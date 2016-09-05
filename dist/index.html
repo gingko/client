@@ -12,11 +12,11 @@
 </body>
 
 <script type="text/javascript">
-var storedState = localStorage.getItem('elm-todo-save');
+var storedState = localStorage.getItem('elm-gingko-save');
 var startingState = storedState ? JSON.parse(storedState) : null;
-var todomvc = Elm.Todo.fullscreen(startingState);
+var todomvc = Elm.Main.fullscreen(startingState);
 todomvc.ports.setStorage.subscribe(function(state) {
-    localStorage.setItem('elm-todo-save', JSON.stringify(state));
+    localStorage.setItem('elm-gingko-save', JSON.stringify(state));
 });
 </script>
 
