@@ -28,17 +28,18 @@ port setStorage : Model -> Cmd msg
 
 
 type alias Model =
-  { card : Card
+  { cards : List Card
   }
 
 type alias Card =
   { content : String
   , editing : Bool
+  , id : Int
   }
 
 emptyModel : Model
 emptyModel =
-  { card = Card "Testing" False
+  { cards = [ Card "Testing" False 0, Card "test 2" False 1 ]
   }
 
 
@@ -53,8 +54,8 @@ init savedModel =
 
 type Msg
     = NoOp
-    | ToggleEdit
-    | UpdateCard String
+    | EditCard Int Bool
+    | UpdateCard Int String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -62,11 +63,19 @@ update msg model =
   case msg of
     NoOp ->
       model ! []
-    ToggleEdit ->
-      { model | card = Card model.card.content ( not model.card.editing ) }
-        ! [ Task.perform (\_ -> NoOp) (\_ -> NoOp) (Dom.focus "card-1") ]
-    UpdateCard str ->
-      { model | card = Card str model.card.editing } ! []
+    EditCard id bool ->
+      let
+        updateCard c =
+          if c.id == id then { c | editing = bool } else c
+      in
+        { model | cards = List.map updateCard model.cards }
+          ! [ Task.perform (\_ -> NoOp) (\_ -> NoOp) (Dom.focus "card-1") ]
+    UpdateCard id str ->
+      let
+        updateCard c =
+          if c.id == id then { c | content = str } else c
+      in
+        { model | cards = List.map updateCard model.cards } ! []
 
 
 
@@ -76,7 +85,7 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-  div [ ] [ viewCard model.card ]
+  div [ ] ( List.map viewCard model.cards )
         
     
 
@@ -85,14 +94,14 @@ viewCard : Card -> Html Msg
 viewCard card =
   div
     [ classList [( "card", True ), ( "editing", card.editing )]
-    , onDoubleClick ToggleEdit
+    , onDoubleClick (EditCard card.id True)
     ]
     [ div [ class "view" ] [ text card.content ]
     , input [ id "card-1"
             , class "edit"
             , value card.content
-            , onInput UpdateCard
-            , onBlur ToggleEdit
+            , onInput (UpdateCard card.id)
+            , onBlur (EditCard card.id False)
             ]
             []
     ]
