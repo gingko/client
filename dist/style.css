@@ -12,6 +12,15 @@ body {
   background: white;
 }
 
-.editing {
-  background: red;
+.card input {
+  display: none;
 }
+
+.editing .view {
+  display: none
+}
+
+.editing input {
+  display: inline-block
+}
+

@@ -1,10 +1,12 @@
 port module Main exposing (..)
 
 
+import Dom
 import Html exposing (..)
 import Html.App as App
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Task
 
 
 main : Program (Maybe Model)
@@ -52,6 +54,7 @@ init savedModel =
 type Msg
     = NoOp
     | ToggleEdit
+    | UpdateCard String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -61,7 +64,9 @@ update msg model =
       model ! []
     ToggleEdit ->
       { model | card = Card model.card.content ( not model.card.editing ) }
-        ! []
+        ! [ Task.perform (\_ -> NoOp) (\_ -> NoOp) (Dom.focus "card-1") ]
+    UpdateCard str ->
+      { model | card = Card str model.card.editing } ! []
 
 
 
@@ -83,8 +88,10 @@ viewCard card =
     , onDoubleClick ToggleEdit
     ]
     [ div [ class "view" ] [ text card.content ]
-    , input [ class "edit"
+    , input [ id "card-1"
+            , class "edit"
             , value card.content
+            , onInput UpdateCard
             , onBlur ToggleEdit
             ]
             []
