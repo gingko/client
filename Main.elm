@@ -33,6 +33,7 @@ type alias Model =
   { cards : List Card
   , active : Int
   , editing : Maybe Int
+  , field : String
   }
 
 type alias Card =
@@ -52,6 +53,7 @@ emptyModel =
             ]
   , active = 0
   , editing = Nothing
+  , field = ""
   }
 
 
@@ -67,8 +69,10 @@ init savedModel =
 type Msg
     = NoOp
     | ActivateCard Int
-    | EditCard (Maybe Int)
-    | UpdateCard Int String
+    | OpenCard Int
+    | UpdateField String
+    | CancelCard
+    | SaveCard Int String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -76,21 +80,38 @@ update msg model =
   case msg of
     NoOp ->
       model ! []
+
     ActivateCard id ->
       { model | active = id }
       ! [ scrollToActive id ]
-    EditCard Nothing ->
-      { model | editing = Nothing } ! [ ]
-    EditCard (Just id) ->
-      { model | editing = Just id }
-      ! [ Task.perform (\_ -> NoOp) (\_ -> NoOp) ( Dom.focus ( "card-edit-" ++ toString id )) ]
-    UpdateCard id str ->
+
+    OpenCard id ->
+      { model
+        | editing = Just id
+        , field = model.cards |> List.filter (\c -> c.id == id)
+                                |> List.head
+                                |> Maybe.withDefault (Card "" 0)
+                                |> .content
+      }
+        ! [ Task.perform (\_ -> NoOp) (\_ -> NoOp) ( Dom.focus ( "card-edit-" ++ toString id )) ]
+
+    UpdateField str ->
+      { model | field = str }
+        ! []
+
+    CancelCard ->
+      { model | editing = Nothing } ! []
+
+    SaveCard id str ->
       let
         updateCard c =
           if c.id == id then { c | content = str } else c
       in
-        { model | cards = List.map updateCard model.cards } 
-        ! [ saveCardChanges (Card str id) ]
+        { model 
+          | cards = List.map updateCard model.cards
+          , editing = Nothing
+        } 
+          ! [ saveCardChanges (Card str id) ]
 
 
 
@@ -127,24 +148,26 @@ viewCard model card =
                 ]
     , id ( "card-" ++ toString card.id )
     , onClick ( ActivateCard card.id )
-    , onDoubleClick ( EditCard (Just card.id) )
+    , onDoubleClick ( OpenCard card.id )
     ]
     [ div [ class "view" ] [ text card.content ]
     , input [ id ( "card-edit-" ++ toString card.id )
             , class "edit"
-            , value card.content
-            , onInput (UpdateCard card.id)
-            , onBlur (EditCard Nothing)
-            , onEnter (EditCard Nothing)
+            , value model.field
+            , onInput UpdateField
+            , onBlur CancelCard
+            , onEnter (SaveCard card.id)
             ]
             []
     ]
 
 
-onEnter : Msg -> Attribute Msg
+onEnter : (String -> Msg) -> Attribute Msg
 onEnter msg =
   let
     tagger code =
-      if code == 13 then msg else NoOp
+      if code == 13 then
+        (msg "test test")
+      else NoOp
   in
     on "keydown" (Json.map tagger keyCode)

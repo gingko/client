@@ -25,6 +25,7 @@ db.allDocs({include_docs: true}).then(function(docs){
     startingState = { cards: cards
                     , active: storedView ? storedView.active : 0 
                     , editing: null
+                    , field: ""
                     }
   }
 
@@ -63,7 +64,6 @@ scrollTo = function(cid) {
 }
 
 saveCard = function(card) {
-  console.log(card);
   db.get(card.id.toString()).then(function(doc){
     if (doc.content == card.content) return;
 
