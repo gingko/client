@@ -16,45 +16,31 @@ main =
     }
 
 
+-- Keep this here, to make sure Model can be passed through port
 port setStorage : Model -> Cmd msg
 
-
-{-| We want to `setStorage` on every update. This function adds the setStorage
-command for every step of the update function.
--}
-updateWithStorage : Msg -> Model -> (Model, Cmd Msg)
-updateWithStorage msg model =
-  let
-    (newModel, cmds) =
-      update msg model
-  in
-    ( newModel
-    , Cmd.batch [ setStorage newModel, cmds ]
-    )
 
 
 -- MODEL
 
 
--- The full application state of our Gingko app.
--- (single tree for now)
 type alias Model =
-  { root: Int
-  , cards : List Card
+  { cards : List Card
+  , editing : Maybe Int
+  , editField : String
   , uid : Int
   }
 
 type alias Card =
   { content : String
-  , cardType : String
-  , children : List Int
   , id : Int
   }
 
 emptyModel : Model
 emptyModel =
-  { root = 0
-  , cards = [newCard "test" 0]
+  { cards = [newCard "Model card test" 0 ]
+  , editing = Nothing
+  , editField = ""
   , uid = 1
   }
 
@@ -62,8 +48,6 @@ emptyModel =
 newCard : String -> Int -> Card
 newCard cont id =
   { content = cont
-  , cardType = "text/markdown"
-  , children = []
   , id = id
   }
 
@@ -79,6 +63,7 @@ init savedModel =
 
 type Msg
     = NoOp
+    | EditingCard Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -86,17 +71,26 @@ update msg model =
   case msg of
     NoOp ->
       model ! []
+    EditingCard eid ->
+      { model | editing = Just eid }
+        ! []
+
+
+
+
 -- VIEW
 
 
 view : Model -> Html Msg
 view model =
+  div [ ] [viewCard (Maybe.withDefault (newCard "default" 0 ) (List.head model.cards)) ]
+        
+    
+
+
+viewCard : Card -> Html Msg
+viewCard card =
   div
-    [ class "todomvc-wrapper"
-    , style [ ("visibility", "hidden") ]
+    [ class "card"
     ]
-    [ section
-        [ class "todoapp" ]
-        [ text "test"
-        ]
-    ]
+    [ text card.content ]
