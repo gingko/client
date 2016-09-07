@@ -156,18 +156,18 @@ viewCard model card =
             , value model.field
             , onInput UpdateField
             , onBlur CancelCard
-            , onEnter (SaveCard card.id)
+            , onEnter (SaveCard card.id model.field)
             ]
             []
     ]
 
 
-onEnter : (String -> Msg) -> Attribute Msg
+onEnter : Msg -> Attribute Msg
 onEnter msg =
   let
     tagger code =
       if code == 13 then
-        (msg "test test")
+        msg
       else NoOp
   in
     on "keydown" (Json.map tagger keyCode)
