@@ -29,17 +29,27 @@ port setStorage : Model -> Cmd msg
 
 type alias Model =
   { cards : List Card
+  , active : Int
+  , editing : Maybe Int
   }
 
 type alias Card =
   { content : String
-  , editing : Bool
   , id : Int
   }
 
 emptyModel : Model
 emptyModel =
-  { cards = [ Card "Testing" False 0, Card "test 2" False 1 ]
+  { cards = [ Card "Testing" 0
+            , Card "test 2" 1
+            , Card "test 3" 2
+            , Card "test 4" 3
+            , Card "test 5" 4
+            , Card "test 6" 5
+            , Card "test 6" 6
+            ]
+  , active = 0
+  , editing = Nothing
   }
 
 
@@ -54,7 +64,8 @@ init savedModel =
 
 type Msg
     = NoOp
-    | EditCard Int Bool
+    | ActivateCard Int
+    | EditCard (Maybe Int)
     | UpdateCard Int String
 
 
@@ -63,13 +74,13 @@ update msg model =
   case msg of
     NoOp ->
       model ! []
-    EditCard id bool ->
-      let
-        updateCard c =
-          if c.id == id then { c | editing = bool } else c
-      in
-        { model | cards = List.map updateCard model.cards }
-          ! [ Task.perform (\_ -> NoOp) (\_ -> NoOp) (Dom.focus ("card-" ++ toString id) ) ]
+    ActivateCard id ->
+      { model | active = id } ! []
+    EditCard Nothing ->
+      { model | editing = Nothing } ! [ ]
+    EditCard (Just id) ->
+      { model | editing = Just id }
+      ! [ Task.perform (\_ -> NoOp) (\_ -> NoOp) ( Dom.focus ( "card-" ++ toString id )) ]
     UpdateCard id str ->
       let
         updateCard c =
@@ -85,23 +96,37 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-  div [ ] ( List.map viewCard model.cards )
-        
-    
-
-
-viewCard : Card -> Html Msg
-viewCard card =
   div
-    [ classList [( "card", True ), ( "editing", card.editing )]
-    , onDoubleClick (EditCard card.id True)
+    [ class "column" ]
+    [ div [class "buffer"][ ]
+    , viewGroup model model.cards
+    , div [class "buffer"][ ]
+    ]        
+
+
+viewGroup : Model -> List Card -> Html Msg
+viewGroup model cards =
+  div
+    [ class "group"
+    ]
+    ( List.map (viewCard model) cards )
+
+
+viewCard : Model -> Card -> Html Msg
+viewCard model card =
+  div
+    [ classList [ ( "card", True )
+                , ( "active", (card.id == model.active ) )
+                , ( "editing", (Just card.id == model.editing ) )
+                ]
+    , onDoubleClick ( EditCard (Just card.id) )
     ]
     [ div [ class "view" ] [ text card.content ]
     , input [ id ( "card-" ++ toString card.id )
             , class "edit"
             , value card.content
             , onInput (UpdateCard card.id)
-            , onBlur (EditCard card.id False)
+            , onBlur (EditCard Nothing)
             ]
             []
     ]

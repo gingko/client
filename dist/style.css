@@ -8,6 +8,16 @@ body {
     background: #ccccdd;
 }
 
+.column {
+  width: 300px;
+  height: 100%;
+  position: absolute;
+}
+
+.buffer {
+  height: 75%;
+}
+
 .card {
   background: white;
 }
