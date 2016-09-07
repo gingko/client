@@ -72,6 +72,10 @@ saveCard = function(card) {
                   , _rev: doc._rev
                   , content: card.content
     });
+  }).catch(function(error){
+    if (error.status == 404) {
+      db.put({_id: card.id.toString(), content: card.content});
+    }
   });
 }
 </script>
