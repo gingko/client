@@ -21,7 +21,7 @@ main =
 
 
 -- Keep this here, to make sure Model can be passed through port
-port setStorage : Model -> Cmd msg
+port saveCardChanges : Card -> Cmd msg
 port scrollToActive : Int -> Cmd msg
 
 
@@ -57,7 +57,7 @@ emptyModel =
 
 init : Maybe Model -> ( Model, Cmd Msg )
 init savedModel =
-  Maybe.withDefault emptyModel savedModel ! []
+  Maybe.withDefault emptyModel savedModel ! [ scrollToActive 0 ]
 
 
 
@@ -89,7 +89,8 @@ update msg model =
         updateCard c =
           if c.id == id then { c | content = str } else c
       in
-        { model | cards = List.map updateCard model.cards } ! []
+        { model | cards = List.map updateCard model.cards } 
+        ! [ saveCardChanges (Card str id) ]
 
 
 

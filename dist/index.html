@@ -17,6 +17,7 @@
 var db = new PouchDB('elm-gingko-test-cards');
 var storedView = JSON.parse(localStorage.getItem('elm-gingko-test-view'));
 var startingState = null;
+var todomvc = null;
 
 db.allDocs({include_docs: true}).then(function(docs){
   cards = docs.rows.map(function(row){return {id: parseInt(row.doc._id), content: row.doc.content}});
@@ -27,20 +28,27 @@ db.allDocs({include_docs: true}).then(function(docs){
                     }
   }
 
-  var todomvc = Elm.Main.fullscreen(startingState);
+  todomvc = Elm.Main.fullscreen(startingState);
 
   todomvc.ports.scrollToActive.subscribe(function(cardId) {
     scrollTo(cardId);
   });
+
+  todomvc.ports.saveCardChanges.subscribe(function(card) {
+    saveCard(card);
+  });
+
 }).catch(function(err){
-  var todomvc = Elm.Main.fullscreen(startingState);
+  todomvc = Elm.Main.fullscreen(startingState);
 
   todomvc.ports.scrollToActive.subscribe(function(cardId) {
     scrollTo(cardId);
   });
 
+  todomvc.ports.saveCardChanges.subscribe(function(card) {
+    saveCard(card);
+  });
 });
-
 
 scrollTo = function(cid) {
   var col = document.getElementById('column');
@@ -52,6 +60,18 @@ scrollTo = function(cid) {
     { scrollTop: col.scrollTop + ((rect.top + rect.height*0.5) - col.offsetHeight*0.5)
     , ease: Power2.easeInOut
     });
+}
+
+saveCard = function(card) {
+  console.log(card);
+  db.get(card.id.toString()).then(function(doc){
+    if (doc.content == card.content) return;
+
+    return db.put({ _id: card.id.toString()
+                  , _rev: doc._rev
+                  , content: card.content
+    });
+  });
 }
 </script>
 
