@@ -5,20 +5,27 @@ body {
 }
 
 body {
-    background: #ccccdd;
+  background: #ccccdd;
+  overflow: hidden;
 }
 
 .column {
   width: 300px;
   height: 100%;
   position: absolute;
+  overflow-y: scroll;
 }
 
 .buffer {
-  height: 75%;
+  height: 90%;
 }
 
 .card {
+  background: #eeeeee;
+  padding: 15px;
+}
+
+.card.active {
   background: white;
 }
 

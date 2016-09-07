@@ -21,6 +21,7 @@ main =
 
 -- Keep this here, to make sure Model can be passed through port
 port setStorage : Model -> Cmd msg
+port scrollToActive : Int -> Cmd msg
 
 
 
@@ -75,12 +76,13 @@ update msg model =
     NoOp ->
       model ! []
     ActivateCard id ->
-      { model | active = id } ! []
+      { model | active = id }
+      ! [ scrollToActive id ]
     EditCard Nothing ->
       { model | editing = Nothing } ! [ ]
     EditCard (Just id) ->
       { model | editing = Just id }
-      ! [ Task.perform (\_ -> NoOp) (\_ -> NoOp) ( Dom.focus ( "card-" ++ toString id )) ]
+      ! [ Task.perform (\_ -> NoOp) (\_ -> NoOp) ( Dom.focus ( "card-edit-" ++ toString id )) ]
     UpdateCard id str ->
       let
         updateCard c =
@@ -97,7 +99,9 @@ update msg model =
 view : Model -> Html Msg
 view model =
   div
-    [ class "column" ]
+    [ id "column"
+    , class "column" 
+    ]
     [ div [class "buffer"][ ]
     , viewGroup model model.cards
     , div [class "buffer"][ ]
@@ -119,10 +123,12 @@ viewCard model card =
                 , ( "active", (card.id == model.active ) )
                 , ( "editing", (Just card.id == model.editing ) )
                 ]
+    , id ( "card-" ++ toString card.id )
+    , onClick ( ActivateCard card.id )
     , onDoubleClick ( EditCard (Just card.id) )
     ]
     [ div [ class "view" ] [ text card.content ]
-    , input [ id ( "card-" ++ toString card.id )
+    , input [ id ( "card-edit-" ++ toString card.id )
             , class "edit"
             , value card.content
             , onInput (UpdateCard card.id)

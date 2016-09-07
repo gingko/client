@@ -18,6 +18,19 @@ var todomvc = Elm.Main.fullscreen(startingState);
 todomvc.ports.setStorage.subscribe(function(state) {
     localStorage.setItem('elm-gingko-save', JSON.stringify(state));
 });
+todomvc.ports.scrollToActive.subscribe(function(cardId) {
+  scrollTo(cardId);
+});
+
+scrollTo = function(cid) {
+  var col = document.getElementById('column');
+  var card = document.getElementById('card-' + cid.toString());
+  console.log(cid.toString());
+  if (card == null) return;
+  var rect = card.getBoundingClientRect();
+
+  col.scrollTop = col.scrollTop + ((rect.top + rect.height*0.5) - col.offsetHeight*0.5);
+}
 </script>
 
 </html>

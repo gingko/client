@@ -1,0 +1,21 @@
+{
+  "name": "gingko-client",
+  "version": "0.0.1",
+  "description": "Gingko client rewritten in Elm",
+  "scripts": {
+    "watch": "chokidar '**/*.elm' -c 'elm-make Main.elm --output dist/elm.js' --initial"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/AdrianoFerrari/gingko-client.git"
+  },
+  "author": "Adriano Ferrari",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AdrianoFerrari/gingko-client/issues"
+  },
+  "homepage": "https://github.com/AdrianoFerrari/gingko-client",
+  "devDependencies": {
+    "chokidar-cli": "^1.2.0"
+  }
+}
