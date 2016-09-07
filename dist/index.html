@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Elm • TodoMVC</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.0/TweenMax.min.js"></script>
   <script type="text/javascript" src="elm.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -29,7 +30,7 @@ scrollTo = function(cid) {
   if (card == null) return;
   var rect = card.getBoundingClientRect();
 
-  col.scrollTop = col.scrollTop + ((rect.top + rect.height*0.5) - col.offsetHeight*0.5);
+  TweenMax.to(col, 0.25, {scrollTop: col.scrollTop + ((rect.top + rect.height*0.5) - col.offsetHeight*0.5)});
 }
 </script>
 
