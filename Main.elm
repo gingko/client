@@ -34,6 +34,7 @@ type alias Model =
   , active : Int
   , editing : Maybe Int
   , field : String
+  , uid : Int
   }
 
 type alias Card =
@@ -54,6 +55,7 @@ emptyModel =
   , active = 0
   , editing = Nothing
   , field = ""
+  , uid = 6
   }
 
 
@@ -73,6 +75,7 @@ type Msg
     | UpdateField String
     | CancelCard
     | SaveCard Int String
+    | InsertCardAfter (Maybe Int)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -113,6 +116,19 @@ update msg model =
         } 
           ! [ saveCardChanges (Card str id) ]
 
+    InsertCardAfter Nothing ->
+      let
+        newId = model.uid + 1
+      in
+        { model
+          | cards = (Card "" newId) :: model.cards
+          , uid = newId
+          , editing = Just newId
+        }
+        ! []
+
+    InsertCardAfter (Just id) ->
+      model ! []
 
 
 
@@ -126,6 +142,7 @@ view model =
     , class "column" 
     ]
     [ div [class "buffer"][ ]
+    , button [ onClick (InsertCardAfter Nothing) ][text "+"]
     , viewGroup model model.cards
     , div [class "buffer"][ ]
     ]        

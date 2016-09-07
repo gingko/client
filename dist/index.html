@@ -26,6 +26,7 @@ db.allDocs({include_docs: true}).then(function(docs){
                     , active: storedView ? storedView.active : 0 
                     , editing: null
                     , field: ""
+                    , uid: cards.length
                     }
   }
 
