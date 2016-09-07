@@ -6,6 +6,7 @@ import Html exposing (..)
 import Html.App as App
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Json.Decode as Json
 import Task
 
 
@@ -133,6 +134,16 @@ viewCard model card =
             , value card.content
             , onInput (UpdateCard card.id)
             , onBlur (EditCard Nothing)
+            , onEnter (EditCard Nothing)
             ]
             []
     ]
+
+
+onEnter : Msg -> Attribute Msg
+onEnter msg =
+  let
+    tagger code =
+      if code == 13 then msg else NoOp
+  in
+    on "keydown" (Json.map tagger keyCode)
