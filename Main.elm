@@ -113,6 +113,7 @@ update msg model =
         { model 
           | cards = List.map updateCard model.cards
           , editing = Nothing
+          , field = ""
         } 
           ! [ saveCardChanges (Card str id) ]
 
@@ -124,8 +125,9 @@ update msg model =
           | cards = (Card "" newId) :: model.cards
           , uid = newId
           , editing = Just newId
+          , active = newId
         }
-        ! []
+        ! [ Task.perform (\_ -> NoOp) (\_ -> NoOp) ( Dom.focus ( "card-edit-" ++ toString newId )) ]
 
     InsertCardAfter (Just id) ->
       model ! []
