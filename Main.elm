@@ -69,7 +69,7 @@ update msg model =
           if c.id == id then { c | editing = bool } else c
       in
         { model | cards = List.map updateCard model.cards }
-          ! [ Task.perform (\_ -> NoOp) (\_ -> NoOp) (Dom.focus "card-1") ]
+          ! [ Task.perform (\_ -> NoOp) (\_ -> NoOp) (Dom.focus ("card-" ++ toString id) ) ]
     UpdateCard id str ->
       let
         updateCard c =
@@ -97,7 +97,7 @@ viewCard card =
     , onDoubleClick (EditCard card.id True)
     ]
     [ div [ class "view" ] [ text card.content ]
-    , input [ id "card-1"
+    , input [ id ( "card-" ++ toString card.id )
             , class "edit"
             , value card.content
             , onInput (UpdateCard card.id)
