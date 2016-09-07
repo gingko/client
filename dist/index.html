@@ -30,7 +30,10 @@ scrollTo = function(cid) {
   if (card == null) return;
   var rect = card.getBoundingClientRect();
 
-  TweenMax.to(col, 0.25, {scrollTop: col.scrollTop + ((rect.top + rect.height*0.5) - col.offsetHeight*0.5)});
+  TweenMax.to(col, 0.35,
+    { scrollTop: col.scrollTop + ((rect.top + rect.height*0.5) - col.offsetHeight*0.5)
+    , ease: Power2.easeInOut
+    });
 }
 </script>
 
