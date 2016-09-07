@@ -11,3 +11,7 @@ body {
 .card {
   background: white;
 }
+
+.editing {
+  background: red;
+}

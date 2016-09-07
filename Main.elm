@@ -4,6 +4,7 @@ port module Main exposing (..)
 import Html exposing (..)
 import Html.App as App
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 
 
 main : Program (Maybe Model)
@@ -25,30 +26,17 @@ port setStorage : Model -> Cmd msg
 
 
 type alias Model =
-  { cards : List Card
-  , editing : Maybe Int
-  , editField : String
-  , uid : Int
+  { card : Card
   }
 
 type alias Card =
   { content : String
-  , id : Int
+  , editing : Bool
   }
 
 emptyModel : Model
 emptyModel =
-  { cards = [newCard "Model card test" 0 ]
-  , editing = Nothing
-  , editField = ""
-  , uid = 1
-  }
-
-
-newCard : String -> Int -> Card
-newCard cont id =
-  { content = cont
-  , id = id
+  { card = Card "Testing" False
   }
 
 
@@ -63,7 +51,7 @@ init savedModel =
 
 type Msg
     = NoOp
-    | EditingCard Int
+    | ToggleEdit
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -71,8 +59,8 @@ update msg model =
   case msg of
     NoOp ->
       model ! []
-    EditingCard eid ->
-      { model | editing = Just eid }
+    ToggleEdit ->
+      { model | card = Card model.card.content ( not model.card.editing ) }
         ! []
 
 
@@ -83,7 +71,7 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-  div [ ] [viewCard (Maybe.withDefault (newCard "default" 0 ) (List.head model.cards)) ]
+  div [ ] [ viewCard model.card ]
         
     
 
@@ -91,6 +79,13 @@ view model =
 viewCard : Card -> Html Msg
 viewCard card =
   div
-    [ class "card"
+    [ classList [( "card", True ), ( "editing", card.editing )]
+    , onDoubleClick ToggleEdit
     ]
-    [ text card.content ]
+    [ div [ class "view" ] [ text card.content ]
+    , input [ class "edit"
+            , value card.content
+            , onBlur ToggleEdit
+            ]
+            []
+    ]
