@@ -106,25 +106,23 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-  let
-    rootGroup = model.root  |> getCard model.cards -- Maybe Card
-                            |> Maybe.withDefault emptyCard -- Card
-                            |> staticLinker model.cards -- StaticCard
-                            |> .children
-  in
-    div
-      [ ]
-      [ viewColumn [rootGroup] ]
+  div
+    [ ]
+    [ viewStructure (buildColumns model.cards model.root) ]
+
+
+viewStructure : List Column -> Html Msg
+viewStructure cols =
+  div
+    [ class "app" ]
+    (List.map viewColumn cols)
 
 
 viewColumn : Column -> Html Msg
 viewColumn col =
-  let
-      red = 1
-  in
-    div
-      [ class "column" ]
-      (List.map viewGroup col)
+  div
+    [ class "column" ]
+    (List.map viewGroup col)
 
 
 viewGroup : Group -> Html Msg
