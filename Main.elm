@@ -101,7 +101,7 @@ view : Model -> Html Msg
 view model =
   div
     [ ]
-    [ ]        
+    [ viewCard ( Maybe.withDefault emptyCard (getCard model.cards model.root) ) ]        
 
 
 viewCard : Card -> Html Msg
@@ -123,6 +123,12 @@ viewCard card =
 
 
 -- HELPERS
+
+
+getCard : CardData -> Id -> Maybe Card
+getCard cards id =
+  List.Extra.find (\c -> c.id == id) cards
+
 
 onEnter : Msg -> Attribute Msg
 onEnter msg =

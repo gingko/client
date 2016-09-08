@@ -23,6 +23,9 @@ db.allDocs({include_docs: true}).then(function(docs){
     return  { id: parseInt(row.doc._id)
             , content: row.doc.content
             , children: row.doc.children
+            , active: row.doc.active
+            , editing: row.doc.editing
+            , field: row.doc.field
             }
   });
   var startingState = null;
