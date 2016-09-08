@@ -30,10 +30,8 @@ db.allDocs({include_docs: true}).then(function(docs){
   if (cards.length > 0 ) {
     startingState = { cards: cards
                     , root: 0
-                    , active: storedView ? storedView.active : 1 
-                    , editing: null
-                    , field: ""
                     , uid: cards.length
+                    , transient: { active: [0,0,0], editing: [0,0,0] }
                     }
   }
 
