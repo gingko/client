@@ -55,7 +55,7 @@ emptyModel =
             , Card 6 "test 6" []
             ]
   , root = 0
-  , active = 0
+  , active = 1
   , editing = Nothing
   , field = ""
   , uid = 6
@@ -64,7 +64,7 @@ emptyModel =
 
 init : Maybe Model -> ( Model, Cmd Msg )
 init savedModel =
-  Maybe.withDefault emptyModel savedModel ! [ scrollToActive 0 ]
+  Maybe.withDefault emptyModel savedModel ! [ scrollToActive 1 ]
 
 
 
@@ -148,7 +148,7 @@ view model =
     ]
     [ div [class "buffer"][ ]
     , button [ onClick (InsertCardAfter Nothing) ][text "+"]
-    , viewGroup model model.cards
+    , viewGroup model (getChildren model.cards model.root)
     , div [class "buffer"][ ]
     ]        
 
@@ -186,10 +186,23 @@ viewCard model card =
 
 -- HELPERS
 
+getCard : List Card -> Int -> Maybe Card
+getCard cards id =
+  cards |> List.filter (\c -> c.id == id)
+        |> List.head 
 
-getCard : Int -> List Card -> Maybe Card
-getCard id cards =
-  Just (Card 0 "" [])
+
+getCards : List Int -> List Card -> List Card
+getCards ids cards =
+  List.filterMap (getCard cards) ids
+
+
+getChildren : List Card -> Int -> List Card
+getChildren cards id =
+  let
+    root = getCard cards id
+  in
+    getCards (Maybe.withDefault (Card 0 "" []) root).children cards
 
 
 onEnter : Msg -> Attribute Msg
