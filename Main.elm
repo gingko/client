@@ -31,6 +31,7 @@ port scrollToActive : Int -> Cmd msg
 
 type alias Model =
   { cards : List Card
+  , root : Int
   , active : Int
   , editing : Maybe Int
   , field : String
@@ -38,20 +39,22 @@ type alias Model =
   }
 
 type alias Card =
-  { content : String
-  , id : Int
+  { id : Int
+  , content : String
+  , children : List Int
   }
 
 emptyModel : Model
 emptyModel =
-  { cards = [ Card "Testing" 0
-            , Card "test 2" 1
-            , Card "test 3" 2
-            , Card "test 4" 3
-            , Card "test 5" 4
-            , Card "test 6" 5
-            , Card "test 6" 6
+  { cards = [ Card 0 "Testing" [1,2,3]
+            , Card 1 "test 2" []
+            , Card 2 "test 3" []
+            , Card 3 "test 4" []
+            , Card 4 "test 5" []
+            , Card 5 "test 6" []
+            , Card 6 "test 6" []
             ]
+  , root = 0
   , active = 0
   , editing = Nothing
   , field = ""
@@ -74,7 +77,7 @@ type Msg
     | OpenCard Int
     | UpdateField String
     | CancelCard
-    | SaveCard Int String
+    | SaveContent Int String
     | InsertCardAfter (Maybe Int)
 
 
@@ -93,7 +96,7 @@ update msg model =
         | editing = Just id
         , field = model.cards |> List.filter (\c -> c.id == id)
                                 |> List.head
-                                |> Maybe.withDefault (Card "" 0)
+                                |> Maybe.withDefault (Card 0 "" [])
                                 |> .content
       }
         ! [ Task.perform (\_ -> NoOp) (\_ -> NoOp) ( Dom.focus ( "card-edit-" ++ toString id )) ]
@@ -105,7 +108,7 @@ update msg model =
     CancelCard ->
       { model | editing = Nothing } ! []
 
-    SaveCard id str ->
+    SaveContent id str ->
       let
         updateCard c =
           if c.id == id then { c | content = str } else c
@@ -115,14 +118,14 @@ update msg model =
           , editing = Nothing
           , field = ""
         } 
-          ! [ saveCardChanges (Card str id) ]
+          ! [ saveCardChanges (Card id str []) ]
 
     InsertCardAfter Nothing ->
       let
         newId = model.uid + 1
       in
         { model
-          | cards = (Card "" newId) :: model.cards
+          | cards = (Card newId "" []) :: model.cards
           , uid = newId
           , editing = Just newId
           , active = newId
@@ -175,10 +178,18 @@ viewCard model card =
             , value model.field
             , onInput UpdateField
             , onBlur CancelCard
-            , onEnter (SaveCard card.id model.field)
+            , onEnter (SaveContent card.id model.field)
             ]
             []
     ]
+
+
+-- HELPERS
+
+
+getCard : Int -> List Card -> Maybe Card
+getCard id cards =
+  Just (Card 0 "" [])
 
 
 onEnter : Msg -> Attribute Msg
