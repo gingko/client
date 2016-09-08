@@ -114,7 +114,17 @@ view model =
   in
     div
       [ ]
-      [ viewGroup rootGroup ]
+      [ viewColumn [rootGroup] ]
+
+
+viewColumn : Column -> Html Msg
+viewColumn col =
+  let
+      red = 1
+  in
+    div
+      [ class "column" ]
+      (List.map viewGroup col)
 
 
 viewGroup : Group -> Html Msg
