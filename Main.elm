@@ -82,7 +82,6 @@ type Msg
     | CancelCard
     | SaveContent Id String
     | InsertAt Id Int
-    | InsertCardAfter (Maybe Id)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -125,22 +124,28 @@ update msg model =
           ! [ saveCardChanges (Card id str []) ]
 
     InsertAt parentId index ->
-      model ! []
-
-    InsertCardAfter Nothing ->
       let
         newId = model.uid + 1
+        newCard = Card newId "" []
+        updateParent c =
+          if c.id == parentId then
+             { c | children = (List.take index c.children) ++ [newId] ++ (List.drop index c.children) }
+          else c
+        newList = (List.map updateParent model.cards) ++ [newCard]
+        changedParent = newList |> List.Extra.find (\c -> c.id == parentId)
+                                |> Maybe.withDefault (Card parentId "" [newId])
+          
       in
         { model
-          | cards = (Card newId "" []) :: model.cards
-          , uid = newId
+          | cards = newList
           , editing = Just newId
+          , field = ""
           , active = newId
-        }
-        ! [ Task.perform (\_ -> NoOp) (\_ -> NoOp) ( Dom.focus ( "card-edit-" ++ toString newId )) ]
+        } 
+          ! [ Task.perform (\_ -> NoOp) (\_ -> NoOp) ( Dom.focus ( "card-edit-" ++ toString newId ))
+            , saveCardChanges changedParent
+            ]
 
-    InsertCardAfter (Just id) ->
-      model ! []
 
 
 

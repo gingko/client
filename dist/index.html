@@ -69,7 +69,10 @@ scrollTo = function(cid) {
 
 saveCard = function(card) {
   db.get(card.id.toString()).then(function(doc){
-    if (doc.content == card.content) return;
+    if (   doc.content == card.content
+        && doc.children == card.children
+       )
+    return;
 
     return db.put({ _id: card.id.toString()
                   , _rev: doc._rev
@@ -78,7 +81,10 @@ saveCard = function(card) {
                   });
   }).catch(function(error){
     if (error.status == 404) {
-      db.put({_id: card.id.toString(), content: card.content});
+      db.put( { _id: card.id.toString()
+              , content: card.content
+              , children: card.children
+              });
     }
   });
 }
