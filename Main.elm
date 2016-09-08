@@ -7,6 +7,7 @@ import Html.App as App
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as Json
+import List.Extra exposing (find, interweave)
 import Task
 
 
@@ -80,6 +81,7 @@ type Msg
     | UpdateField String
     | CancelCard
     | SaveContent Id String
+    | InsertAt Id Int
     | InsertCardAfter (Maybe Id)
 
 
@@ -122,6 +124,9 @@ update msg model =
         } 
           ! [ saveCardChanges (Card id str []) ]
 
+    InsertAt parentId index ->
+      model ! []
+
     InsertCardAfter Nothing ->
       let
         newId = model.uid + 1
@@ -149,7 +154,6 @@ view model =
     , class "column" 
     ]
     [ div [class "buffer"][ ]
-    , button [ onClick (InsertCardAfter Nothing) ][text "+"]
     , viewGroup model (getChildren model.cards model.root)
     , div [class "buffer"][ ]
     ]        
@@ -157,10 +161,23 @@ view model =
 
 viewGroup : Model -> List Card -> Html Msg
 viewGroup model cards =
+  let
+    indices = [0 .. (List.length cards)]
+  in
+    div
+      [ class "group"
+      ]
+      (interweave ( List.map (viewSplit model.root) indices )
+                  ( List.map (viewCard model) cards ))
+
+
+viewSplit : Id -> Int -> Html Msg
+viewSplit parentId index =
   div
-    [ class "group"
+    [ class "split"
     ]
-    ( List.map (viewCard model) cards )
+    [ button [ onClick (InsertAt parentId index) ][text "+"]
+    ]
 
 
 viewCard : Model -> Card -> Html Msg
