@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Elm • TodoMVC</title>
+  <title>Elm • Gingko</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pouchdb/6.0.4/pouchdb.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.0/TweenMax.min.js"></script>
   <script type="text/javascript" src="elm.js"></script>
@@ -74,7 +74,8 @@ saveCard = function(card) {
     return db.put({ _id: card.id.toString()
                   , _rev: doc._rev
                   , content: card.content
-    });
+                  , children: card.children
+                  });
   }).catch(function(error){
     if (error.status == 404) {
       db.put({_id: card.id.toString(), content: card.content});
