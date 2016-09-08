@@ -19,12 +19,18 @@ var storedView = JSON.parse(localStorage.getItem('elm-gingko-test-view'));
 var gingko = null;
 
 db.allDocs({include_docs: true}).then(function(docs){
-  cards = docs.rows.map(function(row){return {id: parseInt(row.doc._id), content: row.doc.content}});
+  cards = docs.rows.map(function(row){
+    return  { id: parseInt(row.doc._id)
+            , content: row.doc.content
+            , children: row.doc.children
+            }
+  });
   var startingState = null;
 
   if (cards.length > 0 ) {
     startingState = { cards: cards
-                    , active: storedView ? storedView.active : 0 
+                    , root: 0
+                    , active: storedView ? storedView.active : 1 
                     , editing: null
                     , field: ""
                     , uid: cards.length
