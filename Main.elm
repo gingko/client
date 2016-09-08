@@ -46,10 +46,17 @@ type alias Card =
   { id : Id
   , content : String
   , children : List Id
+  }
+
+type alias StaticCard =
+  { id : Id
+  , content : String
+  , children : Group
   , active : Bool
   , editing : Bool
   , field : String
   }
+
 
 type alias ViewState =
   { active : (Int, Int, Int)
@@ -69,7 +76,7 @@ emptyModel =
 
 emptyCard : Card
 emptyCard =
-  Card 0 "" [] False False ""
+  Card 0 "" []
 
 init : Maybe Model -> ( Model, Cmd Msg )
 init savedModel =
@@ -101,10 +108,10 @@ view : Model -> Html Msg
 view model =
   div
     [ ]
-    [ viewCard ( Maybe.withDefault emptyCard (getCard model.cards model.root) ) ]        
+    [ viewCard (staticLinker model.cards ( Maybe.withDefault emptyCard (getCard model.cards model.root) )) ]        
 
 
-viewCard : Card -> Html Msg
+viewCard : StaticCard -> Html Msg
 viewCard card =
   div
     [ classList [ ( "card", True )
@@ -128,6 +135,26 @@ viewCard card =
 getCard : CardData -> Id -> Maybe Card
 getCard cards id =
   List.Extra.find (\c -> c.id == id) cards
+
+
+getCards : CardData -> List Id -> Group
+getCards cards ids =
+  List.filterMap (getCard cards) ids
+
+
+staticLinker : CardData -> Card -> StaticCard
+staticLinker cards card =
+  { id = card.id
+  , content = card.content
+  , children = getCards cards card.children
+  , active = False
+  , editing = False
+  , field = ""
+  }
+
+-- nextColumn : Column -> Column
+-- nextColumn col =
+--   (List.map getCardChildren (List.concat col))
 
 
 onEnter : Msg -> Attribute Msg
