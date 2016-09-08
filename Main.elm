@@ -22,7 +22,7 @@ main =
 
 
 port saveCardChanges : Card -> Cmd msg
-port activateCard : (Int, Int, Int) -> Cmd msg
+port activateCard : Coords -> Cmd msg
 
 
 
@@ -55,6 +55,7 @@ type alias StaticCard =
   , active : Bool
   , editing : Bool
   , field : String
+  , coords : Coords
   }
 
 
@@ -65,6 +66,7 @@ type alias ViewState =
 
 type alias Id = Int
 type alias CardData = List Card
+type alias Coords = (Int, Int, Int)
 
 emptyModel : Model
 emptyModel =
@@ -92,6 +94,7 @@ init savedModel =
 
 type Msg
     = NoOp
+    | ActivateCard (Int, Int, Int)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -100,6 +103,8 @@ update msg model =
     NoOp ->
       model ! []
 
+    ActivateCard _ ->
+      model ! []
 
 -- VIEW
 
@@ -143,6 +148,7 @@ viewCard card =
                 , ( "editing", card.editing )
                 ]
     , id ( "card-" ++ toString card.id )
+    , onClick (ActivateCard card.coords)
     ]
     [ div [ class "view" ] [ text card.content ]
     , input [ id ( "card-edit-" ++ toString card.id )
@@ -174,6 +180,7 @@ staticLinker cards card =
   , active = False
   , editing = False
   , field = ""
+  , coords = (0,0,0)
   }
 
 
@@ -187,7 +194,8 @@ nextColumn cards col =
 buildColumns : CardData -> Id -> List Column
 buildColumns cards rootId =
   let
-    rootCard = Maybe.withDefault emptyCard (getCard cards rootId)
+    rootCard = rootId |> getCard cards
+                      |> Maybe.withDefault emptyCard
   in
     [ [[rootCard]]
     , ( nextColumn cards [[rootCard]])
