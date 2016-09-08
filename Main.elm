@@ -20,9 +20,9 @@ main =
     }
 
 
--- Keep this here, to make sure Model can be passed through port
 port saveCardChanges : Card -> Cmd msg
-port scrollToActive : Int -> Cmd msg
+port scrollToActive : Id -> Cmd msg
+
 
 
 
@@ -31,18 +31,20 @@ port scrollToActive : Int -> Cmd msg
 
 type alias Model =
   { cards : List Card
-  , root : Int
-  , active : Int
-  , editing : Maybe Int
+  , root : Id
+  , active : Id
+  , editing : Maybe Id
   , field : String
-  , uid : Int
+  , uid : Id
   }
 
 type alias Card =
-  { id : Int
+  { id : Id
   , content : String
-  , children : List Int
+  , children : List Id
   }
+
+type alias Id = Int
 
 emptyModel : Model
 emptyModel =
@@ -73,12 +75,12 @@ init savedModel =
 
 type Msg
     = NoOp
-    | ActivateCard Int
-    | OpenCard Int
+    | ActivateCard Id
+    | OpenCard Id
     | UpdateField String
     | CancelCard
-    | SaveContent Int String
-    | InsertCardAfter (Maybe Int)
+    | SaveContent Id String
+    | InsertCardAfter (Maybe Id)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -186,18 +188,18 @@ viewCard model card =
 
 -- HELPERS
 
-getCard : List Card -> Int -> Maybe Card
+getCard : List Card -> Id -> Maybe Card
 getCard cards id =
   cards |> List.filter (\c -> c.id == id)
         |> List.head 
 
 
-getCards : List Int -> List Card -> List Card
+getCards : List Id -> List Card -> List Card
 getCards ids cards =
   List.filterMap (getCard cards) ids
 
 
-getChildren : List Card -> Int -> List Card
+getChildren : List Card -> Id -> List Card
 getChildren cards id =
   let
     root = getCard cards id
