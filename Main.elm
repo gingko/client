@@ -111,6 +111,16 @@ view model =
     [ viewCard (staticLinker model.cards ( Maybe.withDefault emptyCard (getCard model.cards model.root) )) ]        
 
 
+viewGroup : Group -> Html Msg
+viewGroup group =
+  let
+    groupStatic = List.map (staticLinker group) group
+  in
+    div
+      [ class "group" ]
+      (List.map viewCard groupStatic)
+
+
 viewCard : StaticCard -> Html Msg
 viewCard card =
   div
