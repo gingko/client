@@ -16,11 +16,12 @@
 <script type="text/javascript">
 var db = new PouchDB('elm-gingko-test-cards');
 var storedView = JSON.parse(localStorage.getItem('elm-gingko-test-view'));
-var startingState = null;
-var todomvc = null;
+var gingko = null;
 
 db.allDocs({include_docs: true}).then(function(docs){
   cards = docs.rows.map(function(row){return {id: parseInt(row.doc._id), content: row.doc.content}});
+  var startingState = null;
+
   if (cards.length > 0 ) {
     startingState = { cards: cards
                     , active: storedView ? storedView.active : 0 
@@ -30,27 +31,23 @@ db.allDocs({include_docs: true}).then(function(docs){
                     }
   }
 
-  todomvc = Elm.Main.fullscreen(startingState);
-
-  todomvc.ports.scrollToActive.subscribe(function(cardId) {
-    scrollTo(cardId);
-  });
-
-  todomvc.ports.saveCardChanges.subscribe(function(card) {
-    saveCard(card);
-  });
+  startElm(startingState);
 
 }).catch(function(err){
-  todomvc = Elm.Main.fullscreen(startingState);
+  startElm(null);
+});
 
-  todomvc.ports.scrollToActive.subscribe(function(cardId) {
+startElm = function(init) {
+  gingko = Elm.Main.fullscreen(init);
+
+  gingko.ports.scrollToActive.subscribe(function(cardId) {
     scrollTo(cardId);
   });
 
-  todomvc.ports.saveCardChanges.subscribe(function(card) {
+  gingko.ports.saveCardChanges.subscribe(function(card) {
     saveCard(card);
   });
-});
+}
 
 scrollTo = function(cid) {
   var col = document.getElementById('column');
