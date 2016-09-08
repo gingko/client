@@ -106,9 +106,15 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-  div
-    [ ]
-    [ viewCard (staticLinker model.cards ( Maybe.withDefault emptyCard (getCard model.cards model.root) )) ]        
+  let
+    rootGroup = model.root  |> getCard model.cards -- Maybe Card
+                            |> Maybe.withDefault emptyCard -- Card
+                            |> staticLinker model.cards -- StaticCard
+                            |> .children
+  in
+    div
+      [ ]
+      [ viewGroup rootGroup ]
 
 
 viewGroup : Group -> Html Msg
