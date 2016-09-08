@@ -160,6 +160,17 @@ nextColumn cards col =
       |> List.map .children -- List Group == Column
 
 
+buildColumns : CardData -> Id -> List Column
+buildColumns cards rootId =
+  let
+    rootCard = Maybe.withDefault emptyCard (getCard cards rootId)
+  in
+    [ [[rootCard]]
+    , ( nextColumn cards [[rootCard]])
+    , ( nextColumn cards (nextColumn cards [[rootCard]]))
+    ]
+
+
 onEnter : Msg -> Attribute Msg
 onEnter msg =
   let
