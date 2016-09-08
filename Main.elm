@@ -114,7 +114,7 @@ view model =
 viewStructure : List Column -> Html Msg
 viewStructure cols =
   div
-    [ class "app" ]
+    [ id "app" ]
     (List.map viewColumn cols)
 
 

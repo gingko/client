@@ -9,10 +9,13 @@ body {
   overflow: hidden;
 }
 
+#app {
+  display: flex;
+}
+
 .column {
-  width: 300px;
+  flex-grow: 1;
   height: 100%;
-  position: absolute;
   overflow-y: scroll;
 }
 
