@@ -22,7 +22,7 @@ main =
 
 
 port saveCardChanges : Card -> Cmd msg
-port activateCard : Coords -> Cmd msg
+port activateCard : CardCoords -> Cmd msg
 
 
 
@@ -34,13 +34,12 @@ type alias Model =
   { cards : CardData
   , root : Id
   , uid : Id
-  , transient : ViewState
+  , active : CardCoords
+  , editing : Maybe CardCoords
   }
   
 
-type alias Column = List Group
-
-type alias Group = List Card
+-- Components
 
 type alias Card =
   { id : Id
@@ -48,32 +47,41 @@ type alias Card =
   , children : List Id
   }
 
-type alias StaticCard =
+type alias Group = List Card
+
+type alias Column = List Group
+
+
+-- Components (statically linked)
+
+type alias CardInstance =
   { id : Id
   , content : String
   , children : Group
   , active : Bool
   , editing : Bool
   , field : String
-  , coords : Coords
+  , coords : CardCoords
   }
 
+type alias GroupInstance = List CardInstance
 
-type alias ViewState =
-  { active : (Int, Int, Int)
-  , editing : (Int, Int, Int)
-  }
+type alias ColumnInstance = List GroupInstance
+
+
+-- Convenience types
 
 type alias Id = Int
 type alias CardData = List Card
-type alias Coords = (Int, Int, Int)
+type alias CardCoords = {column: Int, group: Int, card: Int}
 
 emptyModel : Model
 emptyModel =
   { cards = [ emptyCard ]
   , root = 0
   , uid = 0
-  , transient = { active = (0,0,0), editing = (0,0,0) }
+  , active = { column = 0, group = 0, card = 0 }
+  , editing = Nothing
   }
 
 emptyCard : Card
@@ -94,7 +102,7 @@ init savedModel =
 
 type Msg
     = NoOp
-    | ActivateCard (Int, Int, Int)
+    | ActivateCard CardCoords
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -113,34 +121,31 @@ view : Model -> Html Msg
 view model =
   div
     [ ]
-    [ viewStructure (buildColumns model.cards model.root) ]
+    [ viewStructure (buildTreeInstance model) ]
 
 
-viewStructure : List Column -> Html Msg
+viewStructure : List ColumnInstance -> Html Msg
 viewStructure cols =
   div
     [ id "app" ]
     (List.map viewColumn cols)
 
 
-viewColumn : Column -> Html Msg
+viewColumn : ColumnInstance -> Html Msg
 viewColumn col =
   div
     [ class "column" ]
     (List.map viewGroup col)
 
 
-viewGroup : Group -> Html Msg
+viewGroup : GroupInstance -> Html Msg
 viewGroup group =
-  let
-    groupStatic = List.map (staticLinker group) group
-  in
-    div
-      [ class "group" ]
-      (List.map viewCard groupStatic)
+  div
+    [ class "group" ]
+    (List.map viewCard group)
 
 
-viewCard : StaticCard -> Html Msg
+viewCard : CardInstance -> Html Msg
 viewCard card =
   div
     [ classList [ ( "card", True )
@@ -172,35 +177,77 @@ getCards cards ids =
   List.filterMap (getCard cards) ids
 
 
-staticLinker : CardData -> Card -> StaticCard
-staticLinker cards card =
-  { id = card.id
-  , content = card.content
-  , children = getCards cards card.children
-  , active = False
-  , editing = False
-  , field = ""
-  , coords = (0,0,0)
-  }
-
-
-nextColumn : CardData -> Column -> Column
-nextColumn cards col =
-  col |> List.concat -- List Card
-      |> List.map (staticLinker cards) -- List StaticCard
-      |> List.map .children -- List Group == Column
-
-
-buildColumns : CardData -> Id -> List Column
-buildColumns cards rootId =
+staticCard : Model -> CardCoords -> Card -> CardInstance
+staticCard model coords card =
   let
-    rootCard = rootId |> getCard cards
-                      |> Maybe.withDefault emptyCard
+    editState = case model.editing of
+      Nothing ->
+        False
+      Just editCoords ->
+        coords == editCoords
   in
-    [ [[rootCard]]
-    , ( nextColumn cards [[rootCard]])
-    , ( nextColumn cards (nextColumn cards [[rootCard]]))
-    ]
+    { id = card.id
+    , content = card.content
+    , children = getCards model.cards card.children
+    , active = coords == model.active
+    , editing = editState
+    , field = card.content
+    , coords = coords
+    }
+
+
+staticGroup : Model -> (Int, Int) -> Group -> GroupInstance
+staticGroup model coords group =
+  let
+    indices = [0 .. List.length group]
+    cardCoords =  
+      indices
+        |> List.map (\i -> { column = fst coords
+                           , group = snd coords
+                           , card = i
+                           }) 
+  in
+    List.map2 (staticCard model) cardCoords group
+
+
+staticColumn : Model -> Int -> Column -> ColumnInstance
+staticColumn model cCoord col =
+  let
+    indices = [0 .. List.length col]
+    gCoords =  
+      indices
+        |> List.map (\i -> (cCoord, i)) 
+  in
+    List.map2 (staticGroup model) gCoords col
+
+
+buildTreeInstance : Model -> List ColumnInstance
+buildTreeInstance model =
+  let
+    rootCard = model.root |> getCard model.cards
+                          |> Maybe.withDefault emptyCard
+                          |> staticCard model {column = 0, group = 0, card = 0}
+  in
+    [ [[rootCard]] ]
+
+
+-- nextColumn : CardData -> Column -> Column
+-- nextColumn cards col =
+--   col |> List.concat -- List Card
+--       |> List.map (staticCard cards) -- List CardInstance
+--       |> List.map .children -- List Group == Column
+-- 
+-- 
+-- buildColumns : CardData -> Id -> List Column
+-- buildColumns cards rootId =
+--   let
+--     rootCard = rootId |> getCard cards
+--                       |> Maybe.withDefault emptyCard
+--   in
+--     [ [[rootCard]]
+--     , ( nextColumn cards [[rootCard]])
+--     , ( nextColumn cards (nextColumn cards [[rootCard]]))
+--     ]
 
 
 onEnter : Msg -> Attribute Msg
