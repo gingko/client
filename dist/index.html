@@ -46,7 +46,8 @@ db.allDocs({include_docs: true}).then(function(docs){
 startElm = function(init) {
   gingko = Elm.Main.fullscreen(init);
 
-  gingko.ports.scrollToActive.subscribe(function(cardId) {
+  gingko.ports.activateCard.subscribe(function(cardId) {
+    localStorage.setItem('elm-gingko-test-view', JSON.stringify({active: cardId}));
     scrollTo(cardId);
   });
 

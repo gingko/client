@@ -22,7 +22,7 @@ main =
 
 
 port saveCardChanges : Card -> Cmd msg
-port scrollToActive : Id -> Cmd msg
+port activateCard : Id -> Cmd msg
 
 
 
@@ -49,25 +49,22 @@ type alias Id = Int
 
 emptyModel : Model
 emptyModel =
-  { cards = [ Card 0 "Testing" [1,2,3]
-            , Card 1 "test 2" []
-            , Card 2 "test 3" []
-            , Card 3 "test 4" []
-            , Card 4 "test 5" []
-            , Card 5 "test 6" []
-            , Card 6 "test 6" []
+  { cards = [ Card 0 "Testing" []
             ]
   , root = 0
-  , active = 1
+  , active = 0
   , editing = Nothing
   , field = ""
-  , uid = 6
+  , uid = 0
   }
 
 
 init : Maybe Model -> ( Model, Cmd Msg )
 init savedModel =
-  Maybe.withDefault emptyModel savedModel ! [ scrollToActive 1 ]
+  let
+    selectedModel = Maybe.withDefault emptyModel savedModel
+  in
+    selectedModel ! [ activateCard selectedModel.active ]
 
 
 
@@ -92,7 +89,7 @@ update msg model =
 
     ActivateCard id ->
       { model | active = id }
-      ! [ scrollToActive id ]
+      ! [ activateCard id ]
 
     OpenCard id ->
       { model
@@ -141,6 +138,7 @@ update msg model =
           , editing = Just newId
           , field = ""
           , active = newId
+          , uid = newId
         } 
           ! [ Task.perform (\_ -> NoOp) (\_ -> NoOp) ( Dom.focus ( "card-edit-" ++ toString newId ))
             , saveCardChanges changedParent
