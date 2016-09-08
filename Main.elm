@@ -152,9 +152,12 @@ staticLinker cards card =
   , field = ""
   }
 
--- nextColumn : Column -> Column
--- nextColumn col =
---   (List.map getCardChildren (List.concat col))
+
+nextColumn : CardData -> Column -> Column
+nextColumn cards col =
+  col |> List.concat -- List Card
+      |> List.map (staticLinker cards) -- List StaticCard
+      |> List.map .children -- List Group == Column
 
 
 onEnter : Msg -> Attribute Msg
