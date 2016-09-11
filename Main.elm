@@ -20,6 +20,9 @@ main =
     , subscriptions = \_ -> Sub.none
     }
 
+
+
+
 -- MODEL
 
 
@@ -32,20 +35,20 @@ type alias Model =
 type alias Data =
   { cards : List Card
   , trees : List Tree
-  , root : Id
+  , rootTreeId : TreeId
   , active : Coords
   , editing : Maybe Coords
   }
 
 type alias Card =
-  { id : Id
-  , tipo : String
+  { id : CardId
+  , contentType : String
   , content : String
   }
 
 type alias Tree =
-  { id : Id
-  , card : Id
+  { id : TreeId
+  , rootCardId : CardId
   , children : List Id
   }
 
@@ -58,6 +61,8 @@ type alias Column = List Group
 -- Convenience types
 
 type alias Id = Int
+type alias CardId = Int
+type alias TreeId = Int
 type alias Coords = (Int, Int, Int)
 
 emptyModel : Model
@@ -70,6 +75,10 @@ emptyModel =
 emptyCard : Card
 emptyCard =
   Card 0 "text/markdown" ""
+
+emptyTree : Tree
+emptyTree =
+  Tree 0 0 []
 
 init : Maybe Data -> ( Model, Cmd Msg )
 init savedData =
@@ -131,7 +140,15 @@ viewCard isActive isEditing card =
 
 buildModel : Data -> Model
 buildModel data =
-  emptyModel
+  let
+    rootTree = data.trees |> find (\tree -> tree.id == data.rootTreeId)
+                          |> Maybe.withDefault emptyTree
+    rootCard = find (\card -> card.id == rootTree.rootCardId) data.cards |> Maybe.withDefault emptyCard
+  in
+    { structure = [[[rootCard]]]
+    , active = data.active
+    , editing = data.editing
+    }
 
 
 onEnter : Msg -> Attribute Msg
