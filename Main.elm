@@ -11,7 +11,7 @@ import List.Extra exposing (find, last)
 import Task
 
 
-main : Program (Maybe Data)
+main : Program (Maybe Model)
 main =
   App.programWithFlags
     { init = init
@@ -27,12 +27,6 @@ main =
 
 
 type alias Model =
-  { structure : X
-  , viewState : ViewState
-  , uid : Uid
-  }
-  
-type alias Data =
   { content : List Content
   , aList : List A
   , viewState : ViewState
@@ -69,13 +63,6 @@ type alias Group = List X
 type alias Column = List (List X)
 
 
-defaultModel : Model
-defaultModel =
-  { structure = defaultStructure
-  , viewState = {active = 3}
-  , uid = 0
-  }
-
 defaultContent : Content
 defaultContent =
   { id = 0
@@ -84,29 +71,22 @@ defaultContent =
   }
 
 
-defaultStructure : X
-defaultStructure =
-  { id = 0
-  , uid = 0
-  , content = defaultContent
-  , children = Children [ { id = 1
-                          , uid = 1
-                          , content = defaultContent
-                          , children = Children [ {id = 1, uid = 2, content = defaultContent, children = Children []}
-                                                , {id = 2, uid = 3, content = defaultContent, children = Children []}
-                                                ]
-                          }
-                        , {id = 2, uid = 4, content = defaultContent, children = Children []}
-                        ]
+defaultModel : Model
+defaultModel =
+  { content = [defaultContent, { defaultContent | id = 1, content = "2" }]
+  , aList = [A 0 0 [1], A 1 1 []]
+  , viewState = ViewState 0
+  , root = 0
   }
 
-init : Maybe Data -> ( Model, Cmd Msg )
-init savedData =
-  case savedData of
+
+init : Maybe Model -> ( Model, Cmd Msg )
+init savedModel =
+  case savedModel of
     Nothing ->
       defaultModel ! [ ]
     Just data ->
-      ( buildModel data ) ! [ ]
+      data ! [ ]
 
 
 
@@ -137,7 +117,7 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-  viewX defaultModel.viewState defaultModel.structure
+  viewX defaultModel.viewState (buildStructure defaultModel)
 
 
 viewX : ViewState -> X -> Html Msg
@@ -188,7 +168,7 @@ xToA x =
   }
 
 
-aToX : Data -> Int -> A -> X
+aToX : Model -> Int -> A -> X
 aToX data uid a =
   let
     fmFunction id = find (\a -> a.id == id) data.aList -- (Id -> Maybe A)
@@ -229,15 +209,12 @@ getColumns cols =
       cols
 
 
-buildModel : Data -> Model
-buildModel data =
-  { structure = data.aList -- List A
-                  |> find (\a -> a.id == data.root) -- Maybe A
-                  |> Maybe.withDefault (A 0 0 []) -- A
-                  |> aToX data 0 -- X
-  , viewState = data.viewState
-  , uid = 0
-  }
+buildStructure : Model -> X
+buildStructure data =
+  data.aList -- List A
+    |> find (\a -> a.id == data.root) -- Maybe A
+    |> Maybe.withDefault (A 0 0 []) -- A
+    |> aToX data 0 -- X
 
 
 
