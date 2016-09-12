@@ -28,7 +28,7 @@ main =
 
 type alias Model =
   { content : List Content
-  , aList : List A
+  , nodes : List Node
   , viewState : ViewState
   , root : Id
   }
@@ -43,29 +43,29 @@ type alias Content =
   , content : String
   }
 
-type alias A =
+type alias Node =
   { id : Id
   , content : Id
   , children : List Id
   }
 
-type alias X = 
+type alias Tree = 
   { id : Id
   , content : Content
   , children : Children
   , uid : Uid
   }
 
-type Children = Children (List X)
-type alias Id = Int
+type Children = Children (List Tree)
+type alias Id = String
 type alias Uid = Int
-type alias Group = List X
-type alias Column = List (List X)
+type alias Group = List Tree
+type alias Column = List (List Tree)
 
 
 defaultContent : Content
 defaultContent =
-  { id = 0
+  { id = "0"
   , contentType = "text/markdown"
   , content = "defaultContent"
   }
@@ -73,10 +73,10 @@ defaultContent =
 
 defaultModel : Model
 defaultModel =
-  { content = [defaultContent, { defaultContent | id = 1, content = "2" }]
-  , aList = [A 0 0 [1], A 1 1 []]
+  { content = [defaultContent, { defaultContent | id = "1", content = "2" }]
+  , nodes = [Node "0" "0" ["1"], Node "1" "1" []]
   , viewState = ViewState 0
-  , root = 0
+  , root = "0"
   }
 
 
@@ -117,11 +117,11 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-  viewX model.viewState (buildStructure model)
+  viewTree model.viewState (buildStructure model)
 
 
-viewX : ViewState -> X -> Html Msg
-viewX vs x =
+viewTree : ViewState -> Tree -> Html Msg
+viewTree vs x =
   let
     columns = getColumns([[[x]]])
   in
@@ -129,8 +129,8 @@ viewX vs x =
         (List.map (viewColumn vs) columns)
 
 
-viewXContent : ViewState -> X -> Html Msg
-viewXContent vs x =
+viewTreeContent : ViewState -> Tree -> Html Msg
+viewTreeContent vs x =
     div [ id ("card-" ++ (toString x.uid))
         , classList [("card", True), ("active", vs.active == x.uid)]
         , onClick (Activate x.uid)
@@ -141,7 +141,7 @@ viewXContent vs x =
 viewGroup : ViewState -> Group -> Html Msg
 viewGroup vs xs =
   div [ class "group" ]
-      (List.map (viewXContent vs) xs)
+      (List.map (viewTreeContent vs) xs)
 
 
 viewColumn : ViewState -> Column -> Html Msg
@@ -153,33 +153,33 @@ viewColumn vs col =
 -- STRUCTURING
 
 
-getChildren : X -> List X
+getChildren : Tree -> List Tree
 getChildren x =
   case x.children of
     Children c ->
       c
 
 
-xToA : X -> A
-xToA x =
+xToNode : Tree -> Node
+xToNode x =
   { id = x.id
   , content = x.content.id
   , children = List.map .id (getChildren x)
   }
 
 
-aToX : Model -> Int -> A -> X
-aToX model uid a =
+nodeToTree : Model -> Int -> Node -> Tree
+nodeToTree model uid a =
   let
-    fmFunction id = find (\a -> a.id == id) model.aList -- (Id -> Maybe A)
+    fmFunction id = find (\a -> a.id == id) model.nodes -- (Id -> Maybe Node)
   in
     { id = a.id
     , uid = uid
     , content = model.content  |> find (\c -> c.id == a.content)
                               |> Maybe.withDefault defaultContent
     , children = a.children -- List Id
-                  |> List.filterMap fmFunction -- List A
-                  |> List.map (aToX model (uid+1)) -- List X
+                  |> List.filterMap fmFunction -- List Node
+                  |> List.map (nodeToTree model (uid+1)) -- List Tree
                   |> Children
     }
 
@@ -209,12 +209,12 @@ getColumns cols =
       cols
 
 
-buildStructure : Model -> X
+buildStructure : Model -> Tree
 buildStructure model =
-  model.aList -- List A
-    |> find (\a -> a.id == model.root) -- Maybe A
-    |> Maybe.withDefault (A 0 0 []) -- A
-    |> aToX model 0 -- X
+  model.nodes -- List Node
+    |> find (\a -> a.id == model.root) -- Maybe Node
+    |> Maybe.withDefault (Node "0" "0" []) -- Node
+    |> nodeToTree model 0 -- Tree
 
 
 

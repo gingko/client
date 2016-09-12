@@ -6,6 +6,7 @@
   <title>Elm • Gingko</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pouchdb/6.0.4/pouchdb.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.0/TweenMax.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/js-sha1/0.3.0/sha1.min.js"></script>
   <script type="text/javascript" src="elm.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -19,36 +20,35 @@ var storedView = JSON.parse(localStorage.getItem('elm-gingko-test-view'));
 var gingko = null;
 
 db.allDocs({include_docs: true}).then(function(docs){
-  cards = docs.rows
+  content = docs.rows
             .filter(function(row){
-              return row.doc.type == "card" 
+              return row.doc.type == "content" 
             })
             .map(function(row){
-              return  { id: parseInt(row.doc._id)
+              return  { id: row.doc._id
                       , contentType : row.doc.contentType
                       , content: row.doc.content
                       }
             });  
 
-  trees = docs.rows
+  nodes = docs.rows
             .filter(function(row){
-              return row.doc.type == "tree" 
+              return row.doc.type == "node" 
             })
             .map(function(row){
-              return  { id: parseInt(row.doc._id)
-                      , rootCardId : row.doc.rootCardId
+              return  { id: row.doc._id
+                      , content : row.doc.content
                       , children : row.doc.children
                       }
             });  
   
   var startingState = null;
 
-  if (cards.length > 0 && trees.length > 0) {
-    startingState = { cards: cards
-                    , trees: trees
-                    , rootTreeId: 0
-                    , active: [0,0,0]
-                    , editing: null
+  if (content.length > 0 && nodes.length > 0) {
+    startingState = { content: content
+                    , nodes: nodes
+                    , root: "91211ca10a366a3bd2684c7e94095aa92bf82bc8"
+                    , viewState: {active : 0}
                     }
   }
 
