@@ -57,8 +57,9 @@ type X =
     , children : List X
     }
 
-
 type alias Id = Int
+type alias Group = List X
+type alias Column = List (List X)
 
 
 defaultModel : Model
@@ -125,19 +126,12 @@ viewX x =
     X x' ->
       if x'.children == [] then
         div [ id "app" ] -- root Only
-            [ div [ class "column" ]
-                  [ div [ class "group" ]
-                        [ viewXContent x ]
-                  ]
-            ]
+            [ viewColumn [[x]] ]
       else
         div [ id "app" ]
-            [ div [ class "column" ]
-                  [ div [ class "group" ]
-                        [ viewXContent x ]
-                  ]
+            [ viewColumn [[x]]
             , div [ class "column" ]
-                  [ viewListX x'.children ]
+                  [ viewGroup x'.children ]
             ]
 
 
@@ -149,10 +143,16 @@ viewXContent x =
           [ text x'.content.content ]
     
 
-viewListX : List X -> Html Msg
-viewListX xs =
+viewGroup : Group -> Html Msg
+viewGroup xs =
   div [ class "group" ]
       (List.map viewXContent xs)
+
+
+viewColumn : Column -> Html Msg
+viewColumn col =
+  div [ class "column" ]
+      (List.map viewGroup col)
 
 
 -- STRUCTURING
@@ -187,6 +187,22 @@ aToX data a =
                     |> List.filterMap fmFunction -- List A
                     |> List.map (aToX data) -- List X
       }
+
+
+-- columnHasChildren : Column -> Bool
+-- columnHasChildren col =
+--   col |> List.concat
+--       |> List.any (\x -> x.children /= [])
+
+nextColumn : Column -> Column
+nextColumn col = col
+
+
+getColumns : List Column -> List Column
+getColumns cols =
+  cols
+  -- if none of the last column X's have children, return cols
+  -- otherwise, get the next column, append to cols, and return cols
 
 
 buildModel : Data -> Model
