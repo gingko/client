@@ -50,13 +50,13 @@ type alias A =
   , children : List Id
   }
 
-type X = 
-  X
-    { id : Id
-    , content : Content
-    , children : List X
-    }
+type alias X = 
+  { id : Id
+  , content : Content
+  , children : Children
+  }
 
+type Children = Children (List X)
 type alias Id = Int
 type alias Group = List X
 type alias Column = List (List X)
@@ -78,12 +78,12 @@ defaultContent =
 
 defaultStructure : X
 defaultStructure =
-  X { id = 0
-    , content = defaultContent
-    , children= [ X {id = 1, content = defaultContent, children = []}
-                , X {id = 2, content = defaultContent, children = []}
-                ]
-    }
+  { id = 0
+  , content = defaultContent
+  , children = Children [ {id = 1, content = defaultContent, children = Children []}
+                        , {id = 2, content = defaultContent, children = Children []}
+                        ]
+  }
 
 init : Maybe Data -> ( Model, Cmd Msg )
 init savedData =
@@ -122,25 +122,21 @@ view model =
 
 viewX : X -> Html Msg
 viewX x =
-  case x of
-    X x' ->
-      if x'.children == [] then
-        div [ id "app" ] -- root Only
-            [ viewColumn [[x]] ]
-      else
-        div [ id "app" ]
-            [ viewColumn [[x]]
-            , div [ class "column" ]
-                  [ viewGroup x'.children ]
-            ]
+  if x.children == Children [] then
+    div [ id "app" ] -- root Only
+        [ viewColumn [[x]] ]
+  else
+    div [ id "app" ]
+        [ viewColumn [[x]]
+        , div [ class "column" ]
+              [ viewGroup (getChildren x) ]
+        ]
 
 
 viewXContent : X -> Html Msg
 viewXContent x =
-  case x of
-    X x' ->
-      div [ class "card" ]
-          [ text x'.content.content ]
+    div [ class "card" ]
+        [ text x.content.content ]
     
 
 viewGroup : Group -> Html Msg
@@ -159,20 +155,23 @@ viewColumn col =
 
 
 getId : X -> Id
-getId xin =
-  case xin of
-    X x ->
-      x.id
+getId x =
+  x.id
+
+
+getChildren : X -> List X
+getChildren x =
+  case x.children of
+    Children c ->
+      c
 
 
 xToA : X -> A
 xToA x =
-  case x of
-    X x' ->
-      { id = x'.id
-      , content = x'.content.id
-      , children = List.map getId x'.children
-      }
+  { id = x.id
+  , content = x.content.id
+  , children = List.map getId (getChildren x)
+  }
 
 
 aToX : Data -> A -> X
@@ -180,19 +179,20 @@ aToX data a =
   let
     fmFunction id = find (\a -> a.id == id) data.aList -- (Id -> Maybe A)
   in
-    X { id = a.id
-      , content = data.content  |> find (\c -> c.id == a.content)
-                                |> Maybe.withDefault defaultContent
-      , children = a.children -- List Id
-                    |> List.filterMap fmFunction -- List A
-                    |> List.map (aToX data) -- List X
-      }
+    { id = a.id
+    , content = data.content  |> find (\c -> c.id == a.content)
+                              |> Maybe.withDefault defaultContent
+    , children = a.children -- List Id
+                  |> List.filterMap fmFunction -- List A
+                  |> List.map (aToX data) -- List X
+                  |> Children
+    }
 
 
--- columnHasChildren : Column -> Bool
--- columnHasChildren col =
---   col |> List.concat
---       |> List.any (\x -> x.children /= [])
+columnHasChildren : Column -> Bool
+columnHasChildren col =
+  col |> List.concat
+      |> List.any (\x -> (getChildren x) /= [])
 
 nextColumn : Column -> Column
 nextColumn col = col
