@@ -117,7 +117,7 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-  viewX defaultModel.viewState (buildStructure defaultModel)
+  viewX model.viewState (buildStructure model)
 
 
 viewX : ViewState -> X -> Html Msg
@@ -169,17 +169,17 @@ xToA x =
 
 
 aToX : Model -> Int -> A -> X
-aToX data uid a =
+aToX model uid a =
   let
-    fmFunction id = find (\a -> a.id == id) data.aList -- (Id -> Maybe A)
+    fmFunction id = find (\a -> a.id == id) model.aList -- (Id -> Maybe A)
   in
     { id = a.id
     , uid = uid
-    , content = data.content  |> find (\c -> c.id == a.content)
+    , content = model.content  |> find (\c -> c.id == a.content)
                               |> Maybe.withDefault defaultContent
     , children = a.children -- List Id
                   |> List.filterMap fmFunction -- List A
-                  |> List.map (aToX data uid) -- List X
+                  |> List.map (aToX model (uid+1)) -- List X
                   |> Children
     }
 
@@ -210,11 +210,11 @@ getColumns cols =
 
 
 buildStructure : Model -> X
-buildStructure data =
-  data.aList -- List A
-    |> find (\a -> a.id == data.root) -- Maybe A
+buildStructure model =
+  model.aList -- List A
+    |> find (\a -> a.id == model.root) -- Maybe A
     |> Maybe.withDefault (A 0 0 []) -- A
-    |> aToX data 0 -- X
+    |> aToX model 0 -- X
 
 
 
