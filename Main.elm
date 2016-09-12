@@ -7,7 +7,7 @@ import Html.App as App
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as Json
-import List.Extra exposing (find)
+import List.Extra exposing (find, last)
 import Task
 
 
@@ -80,7 +80,12 @@ defaultStructure : X
 defaultStructure =
   { id = 0
   , content = defaultContent
-  , children = Children [ {id = 1, content = defaultContent, children = Children []}
+  , children = Children [ { id = 1
+                          , content = defaultContent
+                          , children = Children [ {id = 1, content = defaultContent, children = Children []}
+                                                , {id = 2, content = defaultContent, children = Children []}
+                                                ]
+                          }
                         , {id = 2, content = defaultContent, children = Children []}
                         ]
   }
@@ -122,15 +127,11 @@ view model =
 
 viewX : X -> Html Msg
 viewX x =
-  if x.children == Children [] then
-    div [ id "app" ] -- root Only
-        [ viewColumn [[x]] ]
-  else
+  let
+    columns = getColumns([[[x]]])
+  in
     div [ id "app" ]
-        [ viewColumn [[x]]
-        , div [ class "column" ]
-              [ viewGroup (getChildren x) ]
-        ]
+        (List.map viewColumn columns)
 
 
 viewXContent : X -> Html Msg
@@ -194,15 +195,24 @@ columnHasChildren col =
   col |> List.concat
       |> List.any (\x -> (getChildren x) /= [])
 
+
 nextColumn : Column -> Column
-nextColumn col = col
+nextColumn col =
+  (List.map getChildren (List.concat col))
 
 
 getColumns : List Column -> List Column
 getColumns cols =
-  cols
-  -- if none of the last column X's have children, return cols
-  -- otherwise, get the next column, append to cols, and return cols
+  let
+    col = case (last cols) of
+      Nothing -> [[]]
+      Just c -> c
+    hasChildren = columnHasChildren col
+  in
+    if hasChildren then
+      getColumns(cols ++ [nextColumn(col)])
+    else
+      cols
 
 
 buildModel : Data -> Model
