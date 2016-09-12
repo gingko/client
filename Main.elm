@@ -28,14 +28,19 @@ main =
 
 type alias Model =
   { structure : X
-  , active : (Int, Int, Int)
+  , viewState : ViewState
+  , uid : Uid
   }
   
 type alias Data =
   { content : List Content
   , aList : List A
-  , active : (Int, Int, Int)
+  , viewState : ViewState
   , root : Id
+  }
+
+type alias ViewState =
+  { active : Uid
   }
 
 type alias Content =
@@ -54,10 +59,12 @@ type alias X =
   { id : Id
   , content : Content
   , children : Children
+  , uid : Uid
   }
 
 type Children = Children (List X)
 type alias Id = Int
+type alias Uid = Int
 type alias Group = List X
 type alias Column = List (List X)
 
@@ -65,7 +72,8 @@ type alias Column = List (List X)
 defaultModel : Model
 defaultModel =
   { structure = defaultStructure
-  , active = (0,0,0)
+  , viewState = {active = 3}
+  , uid = 0
   }
 
 defaultContent : Content
@@ -79,14 +87,16 @@ defaultContent =
 defaultStructure : X
 defaultStructure =
   { id = 0
+  , uid = 0
   , content = defaultContent
   , children = Children [ { id = 1
+                          , uid = 1
                           , content = defaultContent
-                          , children = Children [ {id = 1, content = defaultContent, children = Children []}
-                                                , {id = 2, content = defaultContent, children = Children []}
+                          , children = Children [ {id = 1, uid = 2, content = defaultContent, children = Children []}
+                                                , {id = 2, uid = 3, content = defaultContent, children = Children []}
                                                 ]
                           }
-                        , {id = 2, content = defaultContent, children = Children []}
+                        , {id = 2, uid = 4, content = defaultContent, children = Children []}
                         ]
   }
 
@@ -106,6 +116,7 @@ init savedData =
 
 type Msg
     = NoOp
+    | Activate Uid
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -113,6 +124,10 @@ update msg model =
   case msg of
     NoOp ->
       model ! []
+
+    Activate uid ->
+      { model | viewState = ViewState uid }
+        ! []
 
 
 
@@ -122,42 +137,40 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-  viewX defaultModel.structure
+  viewX defaultModel.viewState defaultModel.structure
 
 
-viewX : X -> Html Msg
-viewX x =
+viewX : ViewState -> X -> Html Msg
+viewX vs x =
   let
     columns = getColumns([[[x]]])
   in
     div [ id "app" ]
-        (List.map viewColumn columns)
+        (List.map (viewColumn vs) columns)
 
 
-viewXContent : X -> Html Msg
-viewXContent x =
-    div [ class "card" ]
+viewXContent : ViewState -> X -> Html Msg
+viewXContent vs x =
+    div [ id ("card-" ++ (toString x.uid))
+        , classList [("card", True), ("active", vs.active == x.uid)]
+        , onClick (Activate x.uid)
+        ]
         [ text x.content.content ]
     
 
-viewGroup : Group -> Html Msg
-viewGroup xs =
+viewGroup : ViewState -> Group -> Html Msg
+viewGroup vs xs =
   div [ class "group" ]
-      (List.map viewXContent xs)
+      (List.map (viewXContent vs) xs)
 
 
-viewColumn : Column -> Html Msg
-viewColumn col =
+viewColumn : ViewState -> Column -> Html Msg
+viewColumn vs col =
   div [ class "column" ]
-      (List.map viewGroup col)
+      (List.map (viewGroup vs) col)
 
 
 -- STRUCTURING
-
-
-getId : X -> Id
-getId x =
-  x.id
 
 
 getChildren : X -> List X
@@ -171,21 +184,22 @@ xToA : X -> A
 xToA x =
   { id = x.id
   , content = x.content.id
-  , children = List.map getId (getChildren x)
+  , children = List.map .id (getChildren x)
   }
 
 
-aToX : Data -> A -> X
-aToX data a =
+aToX : Data -> Int -> A -> X
+aToX data uid a =
   let
     fmFunction id = find (\a -> a.id == id) data.aList -- (Id -> Maybe A)
   in
     { id = a.id
+    , uid = uid
     , content = data.content  |> find (\c -> c.id == a.content)
                               |> Maybe.withDefault defaultContent
     , children = a.children -- List Id
                   |> List.filterMap fmFunction -- List A
-                  |> List.map (aToX data) -- List X
+                  |> List.map (aToX data uid) -- List X
                   |> Children
     }
 
@@ -220,8 +234,9 @@ buildModel data =
   { structure = data.aList -- List A
                   |> find (\a -> a.id == data.root) -- Maybe A
                   |> Maybe.withDefault (A 0 0 []) -- A
-                  |> aToX data -- X
-  , active = data.active
+                  |> aToX data 0 -- X
+  , viewState = data.viewState
+  , uid = 0
   }
 
 
