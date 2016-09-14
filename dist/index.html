@@ -47,7 +47,7 @@ db.allDocs({include_docs: true}).then(function(docs){
   if (content.length > 0 && nodes.length > 0) {
     startingState = { contents: content
                     , nodes: nodes
-                    , rootId:"9e79ef943b3fd2858ab4970132ab7865452be554"
+                    , rootId:"4cceafc611f3a7d282125c2ef64dcd49ca403ced"
                     , viewState: {active : 0}
                     }
   }
@@ -60,8 +60,8 @@ db.allDocs({include_docs: true}).then(function(docs){
 
 startElm = function(init) {
   gingko = Elm.Main.fullscreen(init);
-  gingko.ports.saveContents.subscribe(saveContents);
-  gingko.ports.saveNodes.subscribe(saveNodes);
+  //gingko.ports.saveContents.subscribe(saveContents);
+  //gingko.ports.saveNodes.subscribe(saveNodes);
 }
 
 scrollTo = function(cid) {

@@ -116,10 +116,13 @@ update msg model =
     ClearContent uid ->
       let
         newStructure = updateTree (ClearContent uid) (buildStructure model)
-        newModel = buildModel newStructure
-        newNodes = newModel.nodes |> List.filter (\n -> List.member n model.nodes)
-        newContents = newModel.contents
-                      |> List.filter (\c -> not (List.member c model.contents))
+        newModel = (buildModel newStructure)
+        newNodes = 
+          newModel.nodes 
+            |> List.filter (\n -> not (List.member n model.nodes))
+        newContents = 
+          newModel.contents
+            |> List.filter (\c -> not (List.member c model.contents))
       in
         { model
           | nodes = model.nodes ++ newNodes
@@ -248,7 +251,7 @@ treeToNodes nodes {uid, content, children} =
             |> List.map treeToNode -- TODO: recursion twice, likely costly unnecessary
             |> List.map .id
       in
-        { id = content.id ++ (String.concat childrenIds)
+        { id = Sha1.sha1(content.id ++ (String.concat childrenIds))
         , contentId = content.id
         , childrenIds = childrenIds
         } :: nodes ++ (List.concat descendants)
