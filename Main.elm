@@ -7,6 +7,7 @@ import Html.App as App
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as Json
+import String
 import List.Extra exposing (find, last)
 import Task
 
@@ -96,6 +97,7 @@ init savedModel =
 type Msg
     = NoOp
     | Activate Uid
+    | ClearContent Uid
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -108,6 +110,9 @@ update msg model =
       { model | viewState = ViewState uid }
         ! []
 
+    ClearContent uid ->
+      model
+        ! []
 
 
 
@@ -128,8 +133,8 @@ viewTree vs x =
         (List.map (viewColumn vs) columns)
 
 
-viewTreeContent : ViewState -> Tree -> Html Msg
-viewTreeContent vs x =
+viewCard : ViewState -> Tree -> Html Msg
+viewCard vs x =
     div [ id ("card-" ++ (toString x.uid))
         , classList [("card", True), ("active", vs.active == x.uid)]
         , onClick (Activate x.uid)
@@ -140,7 +145,7 @@ viewTreeContent vs x =
 viewGroup : ViewState -> Group -> Html Msg
 viewGroup vs xs =
   div [ class "group" ]
-      (List.map (viewTreeContent vs) xs)
+      (List.map (viewCard vs) xs)
 
 
 viewColumn : ViewState -> Column -> Html Msg
@@ -208,7 +213,31 @@ buildStructure model =
     |> nodeToTree model 0 -- Tree
 
 
+treeToNodes : List Node -> Tree -> List Node
+treeToNodes nodes {uid, content, children} =
+  []
 
+
+treeToNode : Tree -> Node
+treeToNode {uid, content, children} =
+  case children of
+    Children [] ->
+      { id = content.id
+      , content = content.id
+      , children = []
+      }
+
+    Children trees ->
+      let
+        childrenIds = 
+          trees 
+            |> List.map treeToNode -- List Node
+            |> List.map .id
+      in
+        { id = content.id ++ (String.concat childrenIds)
+        , content = content.id
+        , children = childrenIds
+        }
 
 --HELPERS
 
