@@ -217,14 +217,15 @@ viewCard vs x =
         , onDoubleClick (OpenCard x.uid x.content.content)
         ]
         [ div [ class "view" ] [ Markdown.toHtml [] x.content.content ]
-        , input [ id ( "card-edit-" ++ toString x.uid )
-                , class "edit"
-                , value vs.field
-                , onBlur CancelCard
-                , onInput UpdateField
-                , onEnter (SaveCard vs.field x.uid)
-                ]
-                []
+        , textarea
+            [ id ( "card-edit-" ++ toString x.uid )
+            , class "edit"
+            , value vs.field
+            , onBlur CancelCard
+            , onInput UpdateField
+            , onEnter (SaveCard vs.field x.uid)
+            ]
+            []
         ]
     
 

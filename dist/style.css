@@ -35,7 +35,7 @@ body {
   background: white;
 }
 
-.card input {
+.card textarea {
   display: none;
 }
 
@@ -43,7 +43,7 @@ body {
   display: none
 }
 
-.editing input {
+.editing textarea {
   display: inline-block
 }
 
