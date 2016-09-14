@@ -88,9 +88,7 @@ saveContents = function(contents) {
             , type : "content"
             }
   });
-  console.log(data);
   db.bulkDocs(data)
-    .then(function(res){console.log(res)})
     .catch(function(err){console.log(err)});
 }
 
@@ -102,14 +100,11 @@ saveNodes = function(nodes) {
             , type : "node"
             }
   });
-  console.log(data);
   db.bulkDocs(data)
-    .then(function(res){console.log(res)})
     .catch(function(err){console.log(err)});
 }
 
 saveRoot = function(rootId) {
-  console.log("saveRoot")
   localStorage.setItem("elm-test-root", rootId);
 }
 

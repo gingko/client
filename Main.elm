@@ -8,6 +8,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as Json
 import Sha1
+import Markdown
 import String
 import List.Extra as ListExtra
 import Task
@@ -169,7 +170,7 @@ update msg model =
     SaveCard str uid ->
       let
         newStructure = updateTree (SaveCard str uid) (buildStructure model)
-        newModel = Debug.log "newModel" (buildModel newStructure)
+        newModel = buildModel newStructure
         newNodes = 
           newModel.nodes 
             |> List.filter (\n -> not (List.member n model.nodes))
@@ -181,6 +182,10 @@ update msg model =
           | nodes = model.nodes ++ newNodes
           , contents = model.contents ++ newContents
           , rootId = newModel.rootId
+          , viewState = { active = model.viewState.active
+                        , editing = Nothing
+                        , field = model.viewState.field
+                        }
         }
           ! [saveNodes newNodes, saveContents newContents, saveRoot newModel.rootId]
 
@@ -211,7 +216,7 @@ viewCard vs x =
         , onClick (Activate x.uid)
         , onDoubleClick (OpenCard x.uid x.content.content)
         ]
-        [ div [ class "view" ] [ text x.content.content ]
+        [ div [ class "view" ] [ Markdown.toHtml [] x.content.content ]
         , input [ id ( "card-edit-" ++ toString x.uid )
                 , class "edit"
                 , value vs.field
