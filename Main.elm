@@ -8,7 +8,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as Json
 import String
-import List.Extra exposing (find, last)
+import List.Extra as ListExtra
 import Task
 
 
@@ -28,7 +28,7 @@ main =
 
 
 type alias Model =
-  { content : List Content
+  { contents : List Content
   , nodes : List Node
   , viewState : ViewState
   , root : Id
@@ -73,7 +73,7 @@ defaultContent =
 
 defaultModel : Model
 defaultModel =
-  { content = [defaultContent, { defaultContent | id = "1", content = "2" }]
+  { contents = [defaultContent, { defaultContent | id = "1", content = "2" }]
   , nodes = [Node "0" "0" ["1"], Node "1" "1" []]
   , viewState = ViewState 0
   , root = "0"
@@ -111,8 +111,16 @@ update msg model =
         ! []
 
     ClearContent uid ->
-      model
-        ! []
+      let
+        newStructure = Debug.log "newStructure" ( updateTree (ClearContent uid) (buildStructure model) )
+        newModel = Debug.log "newModel" (buildModel newStructure)
+      in
+        { model
+          | nodes = model.nodes ++ newModel.nodes |> ListExtra.uniqueBy (\n -> n.id)
+          , contents = model.contents ++ newModel.contents |> ListExtra.uniqueBy (\c -> c.id)
+          , root = newModel.root
+        }
+          ! []
 
 
 
@@ -138,6 +146,7 @@ viewCard vs x =
     div [ id ("card-" ++ (toString x.uid))
         , classList [("card", True), ("active", vs.active == x.uid)]
         , onClick (Activate x.uid)
+        , onDoubleClick (ClearContent x.uid)
         ]
         [ text x.content.content ]
     
@@ -167,11 +176,11 @@ getChildren x =
 nodeToTree : Model -> Int -> Node -> Tree
 nodeToTree model uid a =
   let
-    fmFunction id = find (\a -> a.id == id) model.nodes -- (Id -> Maybe Node)
+    fmFunction id = ListExtra.find (\a -> a.id == id) model.nodes -- (Id -> Maybe Node)
     imFunction = (\idx -> nodeToTree model (idx + uid + 1))
   in
     { uid = uid
-    , content = model.content |> find (\c -> c.id == a.content)
+    , content = model.contents |> ListExtra.find (\c -> c.id == a.content)
                               |> Maybe.withDefault defaultContent
     , children = a.children -- List Id
                   |> List.filterMap fmFunction -- List Node
@@ -194,7 +203,7 @@ nextColumn col =
 getColumns : List Column -> List Column
 getColumns cols =
   let
-    col = case (last cols) of
+    col = case (ListExtra.last cols) of
       Nothing -> [[]]
       Just c -> c
     hasChildren = columnHasChildren col
@@ -208,14 +217,35 @@ getColumns cols =
 buildStructure : Model -> Tree
 buildStructure model =
   model.nodes -- List Node
-    |> find (\a -> a.id == model.root) -- Maybe Node
+    |> ListExtra.find (\a -> a.id == model.root) -- Maybe Node
     |> Maybe.withDefault (Node "0" "0" []) -- Node
     |> nodeToTree model 0 -- Tree
 
 
 treeToNodes : List Node -> Tree -> List Node
 treeToNodes nodes {uid, content, children} =
-  []
+  case children of
+    Children [] ->
+      { id = content.id
+      , content = content.id
+      , children = []
+      } :: nodes
+
+    Children trees ->
+      let
+        descendants = 
+          trees 
+            |> List.map (treeToNodes nodes)
+
+        childrenIds =
+          trees
+            |> List.map treeToNode -- TODO: recursion twice, likely costly unnecessary
+            |> List.map .id
+      in
+        { id = content.id ++ (String.concat childrenIds)
+        , content = content.id
+        , children = childrenIds
+        } :: nodes
 
 
 treeToNode : Tree -> Node
@@ -238,6 +268,49 @@ treeToNode {uid, content, children} =
         , content = content.id
         , children = childrenIds
         }
+
+
+getContents : Tree -> List Content
+getContents {uid, content, children} =
+  case children of
+    Children [] ->
+      [content]
+
+    Children trees ->
+      [content] ++ (List.concatMap getContents trees)
+
+
+updateTree : Msg -> Tree -> Tree
+updateTree msg tree =
+  case msg of
+    ClearContent uid ->
+      if tree.uid == uid then
+        { tree | content = Content "text/markdown" "text/markdown" "" }
+      else
+        case tree.children of
+          Children [] ->
+            tree
+          Children trees ->
+            { tree | children = Children (List.map (updateTree (ClearContent uid)) trees) }
+
+    _ ->
+      tree
+
+
+buildModel : Tree -> Model
+buildModel tree =
+  let
+    nodes = (treeToNodes []) tree
+  in
+    { contents = getContents tree
+    , nodes = nodes
+    , root =
+        nodes 
+          |> List.head
+          |> Maybe.withDefault (Node "0" "" [])
+          |> .id
+    , viewState = { active = 0}
+    }
 
 --HELPERS
 
