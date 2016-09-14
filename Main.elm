@@ -42,6 +42,7 @@ type alias Model =
 type alias ViewState =
   { active : Uid
   , editing : Maybe Uid
+  , field : String
   }
 
 type alias Content =
@@ -81,7 +82,7 @@ defaultModel : Model
 defaultModel =
   { contents = [defaultContent, { defaultContent | id = "1", content = "2" }]
   , nodes = [Node "0" "0" ["1"], Node "1" "1" []]
-  , viewState = ViewState 0 Nothing
+  , viewState = ViewState 0 Nothing ""
   , rootId = "0"
   }
 
@@ -104,7 +105,8 @@ type Msg
     = NoOp
     | Activate Uid
     | ClearContent Uid
-    | OpenCard Uid
+    | OpenCard Uid String
+    | CancelCard
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -114,7 +116,7 @@ update msg model =
       model ! []
 
     Activate uid ->
-      { model | viewState = ViewState uid model.viewState.editing }
+      { model | viewState = ViewState uid model.viewState.editing "" }
         ! [ activateCard uid ]
 
     ClearContent uid ->
@@ -135,12 +137,23 @@ update msg model =
         }
           ! [saveNodes newNodes, saveContents newContents, saveRoot newModel.rootId]
 
-    OpenCard uid ->
+    OpenCard uid str ->
       { model
-        | viewState = {active = model.viewState.active, editing = Just uid }
+        | viewState = { active = model.viewState.active
+                      , editing = Just uid 
+                      , field = str
+                      }
+      }
+        ! [ Task.perform (\_ -> NoOp) (\_ -> NoOp) (Dom.focus ("card-edit-" ++ toString uid)) ]
+
+    CancelCard ->
+      { model
+        | viewState = { active = model.viewState.active
+                      , editing = Nothing 
+                      , field = ""
+                      }
       }
         ! []
-
 
 
 -- VIEW
@@ -168,12 +181,13 @@ viewCard vs x =
                     , ("editing", vs.editing == Just x.uid)
                     ]
         , onClick (Activate x.uid)
-        , onDoubleClick (OpenCard x.uid)
+        , onDoubleClick (OpenCard x.uid x.content.content)
         ]
         [ div [ class "view" ] [ text x.content.content ]
         , input [ id ( "card-edit-" ++ toString x.uid )
                 , class "edit"
-                , value "test"
+                , value vs.field
+                , onBlur CancelCard
                 ]
                 []
         ]
@@ -345,7 +359,7 @@ buildModel tree =
           |> List.head
           |> Maybe.withDefault (Node "0" "" [])
           |> .id
-    , viewState = { active = 0, editing = Nothing }
+    , viewState = { active = 0, editing = Nothing , field = "" }
     }
 
 --HELPERS
