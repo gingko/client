@@ -25,6 +25,7 @@ main =
 
 port saveNodes : List Node -> Cmd msg
 port saveContents : List Content -> Cmd msg
+port saveRoot : String -> Cmd msg
 
 
 -- MODEL
@@ -129,7 +130,7 @@ update msg model =
           , contents = model.contents ++ newContents
           , rootId = newModel.rootId
         }
-          ! [saveNodes newNodes, saveContents newContents]
+          ! [saveNodes newNodes, saveContents newContents, saveRoot newModel.rootId]
 
 
 
@@ -189,8 +190,10 @@ nodeToTree model uid a =
     imFunction = (\idx -> nodeToTree model (idx + uid + 1))
   in
     { uid = uid
-    , content = model.contents |> ListExtra.find (\c -> c.id == a.contentId)
-                              |> Maybe.withDefault defaultContent
+    , content =
+        model.contents 
+          |> ListExtra.find (\c -> c.id == (a.contentId))
+          |> Maybe.withDefault defaultContent
     , children = a.childrenIds -- List Id
                   |> List.filterMap fmFunction -- List Node
                   |> List.indexedMap imFunction -- List Tree
@@ -235,7 +238,7 @@ treeToNodes : List Node -> Tree -> List Node
 treeToNodes nodes {uid, content, children} =
   case children of
     Children [] ->
-      { id = content.id
+      { id = Sha1.sha1(content.id ++ newLine )
       , contentId = content.id
       , childrenIds = []
       } :: nodes
@@ -251,7 +254,7 @@ treeToNodes nodes {uid, content, children} =
             |> List.map treeToNode -- TODO: recursion twice, likely costly unnecessary
             |> List.map .id
       in
-        { id = Sha1.sha1(content.id ++ (String.concat childrenIds))
+        { id = Sha1.sha1(content.id ++ newLine ++ (String.concat childrenIds))
         , contentId = content.id
         , childrenIds = childrenIds
         } :: nodes ++ (List.concat descendants)
@@ -261,7 +264,7 @@ treeToNode : Tree -> Node
 treeToNode {uid, content, children} =
   case children of
     Children [] ->
-      { id = content.id
+      { id = Sha1.sha1(content.id ++ newLine)
       , contentId = content.id
       , childrenIds = []
       }
@@ -273,7 +276,7 @@ treeToNode {uid, content, children} =
             |> List.map treeToNode
             |> List.map .id
       in
-        { id = content.content ++ (String.concat childrenIds)
+        { id = Sha1.sha1(content.id ++ newLine ++ (String.concat childrenIds))
         , contentId = content.id
         , childrenIds = childrenIds
         }
@@ -322,6 +325,11 @@ buildModel tree =
     }
 
 --HELPERS
+
+
+newLine : String
+newLine =
+  String.fromList ['\n']
 
 
 onEnter : Msg -> Attribute Msg

@@ -17,6 +17,7 @@
 <script type="text/javascript">
 var db = new PouchDB('elm-gingko-test-cards');
 var storedView = JSON.parse(localStorage.getItem('elm-gingko-test-view'));
+var storedRoot = localStorage.getItem('elm-test-root');
 var gingko = null;
 
 db.allDocs({include_docs: true}).then(function(docs){
@@ -47,8 +48,8 @@ db.allDocs({include_docs: true}).then(function(docs){
   if (content.length > 0 && nodes.length > 0) {
     startingState = { contents: content
                     , nodes: nodes
-                    , rootId:"4cceafc611f3a7d282125c2ef64dcd49ca403ced"
-                    , viewState: {active : 0}
+                    , rootId: storedRoot ? storedRoot : "f01318cad7d0e51bc23f5b786293cdc497633f3c"
+                    , viewState: storedView ? storedView : {active : 0}
                     }
   }
 
@@ -60,8 +61,9 @@ db.allDocs({include_docs: true}).then(function(docs){
 
 startElm = function(init) {
   gingko = Elm.Main.fullscreen(init);
-  //gingko.ports.saveContents.subscribe(saveContents);
-  //gingko.ports.saveNodes.subscribe(saveNodes);
+  gingko.ports.saveContents.subscribe(saveContents);
+  gingko.ports.saveNodes.subscribe(saveNodes);
+  gingko.ports.saveRoot.subscribe(saveRoot);
 }
 
 scrollTo = function(cid) {
@@ -86,7 +88,9 @@ saveContents = function(contents) {
             }
   });
   console.log(data);
-  db.bulkDocs(data).catch(function(err){console.log(err)});
+  db.bulkDocs(data)
+    .then(function(res){console.log(res)})
+    .catch(function(err){console.log(err)});
 }
 
 saveNodes = function(nodes) {
@@ -98,7 +102,14 @@ saveNodes = function(nodes) {
             }
   });
   console.log(data);
-  db.bulkDocs(data).catch(function(err){console.log(err)});
+  db.bulkDocs(data)
+    .then(function(res){console.log(res)})
+    .catch(function(err){console.log(err)});
+}
+
+saveRoot = function(rootId) {
+  console.log("saveRoot")
+  localStorage.setItem("elm-test-root", rootId);
 }
 </script>
 
