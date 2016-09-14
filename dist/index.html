@@ -37,17 +37,17 @@ db.allDocs({include_docs: true}).then(function(docs){
             })
             .map(function(row){
               return  { id: row.doc._id
-                      , content : row.doc.content
-                      , children : row.doc.children
+                      , contentId : row.doc.content
+                      , childrenIds : row.doc.children
                       }
             });  
   
   var startingState = null;
 
   if (content.length > 0 && nodes.length > 0) {
-    startingState = { content: content
+    startingState = { contents: content
                     , nodes: nodes
-                    , root: "91211ca10a366a3bd2684c7e94095aa92bf82bc8"
+                    , rootId: "91211ca10a366a3bd2684c7e94095aa92bf82bc8"
                     , viewState: {active : 0}
                     }
   }
