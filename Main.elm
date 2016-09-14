@@ -107,6 +107,8 @@ type Msg
     | ClearContent Uid
     | OpenCard Uid String
     | CancelCard
+    | UpdateField String
+    | SaveCard String Uid
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -155,6 +157,32 @@ update msg model =
       }
         ! []
 
+    UpdateField str ->
+      { model
+        | viewState = { active = model.viewState.active
+                      , editing = model.viewState.editing
+                      , field = str 
+                      }
+      } 
+        ! []
+
+    SaveCard str uid ->
+      let
+        newStructure = updateTree (SaveCard str uid) (buildStructure model)
+        newModel = Debug.log "newModel" (buildModel newStructure)
+        newNodes = 
+          newModel.nodes 
+            |> List.filter (\n -> not (List.member n model.nodes))
+        newContents = 
+          newModel.contents
+            |> List.filter (\c -> not (List.member c model.contents))
+      in
+        { model
+          | nodes = model.nodes ++ newNodes
+          , contents = model.contents ++ newContents
+          , rootId = newModel.rootId
+        }
+          ! [saveNodes newNodes, saveContents newContents, saveRoot newModel.rootId]
 
 -- VIEW
 
@@ -188,6 +216,8 @@ viewCard vs x =
                 , class "edit"
                 , value vs.field
                 , onBlur CancelCard
+                , onInput UpdateField
+                , onEnter (SaveCard vs.field x.uid)
                 ]
                 []
         ]
@@ -299,6 +329,7 @@ treeToNodes nodes {uid, content, children} =
 
 
 treeToNode : Tree -> Node
+
 treeToNode {uid, content, children} =
   case children of
     Children [] ->
@@ -342,6 +373,16 @@ updateTree msg tree =
             tree
           Children trees ->
             { tree | children = Children (List.map (updateTree (ClearContent uid)) trees) }
+
+    SaveCard str uid ->
+      if tree.uid == uid then
+         { tree | content = Content (Sha1.sha1 str) "" str }
+      else
+        case tree.children of
+          Children [] ->
+            tree
+          Children trees ->
+            { tree | children = Children (List.map (updateTree (SaveCard str uid)) trees) }
 
     _ ->
       tree
