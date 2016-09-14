@@ -41,6 +41,7 @@ type alias Model =
 
 type alias ViewState =
   { active : Uid
+  , editing : Maybe Uid
   }
 
 type alias Content =
@@ -80,7 +81,7 @@ defaultModel : Model
 defaultModel =
   { contents = [defaultContent, { defaultContent | id = "1", content = "2" }]
   , nodes = [Node "0" "0" ["1"], Node "1" "1" []]
-  , viewState = ViewState 0
+  , viewState = ViewState 0 Nothing
   , rootId = "0"
   }
 
@@ -103,6 +104,7 @@ type Msg
     = NoOp
     | Activate Uid
     | ClearContent Uid
+    | OpenCard Uid
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -112,7 +114,7 @@ update msg model =
       model ! []
 
     Activate uid ->
-      { model | viewState = ViewState uid }
+      { model | viewState = ViewState uid model.viewState.editing }
         ! [ activateCard uid ]
 
     ClearContent uid ->
@@ -132,6 +134,12 @@ update msg model =
           , rootId = newModel.rootId
         }
           ! [saveNodes newNodes, saveContents newContents, saveRoot newModel.rootId]
+
+    OpenCard uid ->
+      { model
+        | viewState = {active = model.viewState.active, editing = Just uid }
+      }
+        ! []
 
 
 
@@ -155,11 +163,20 @@ viewTree vs x =
 viewCard : ViewState -> Tree -> Html Msg
 viewCard vs x =
     div [ id ("card-" ++ (toString x.uid))
-        , classList [("card", True), ("active", vs.active == x.uid)]
+        , classList [ ("card", True)
+                    , ("active", vs.active == x.uid)
+                    , ("editing", vs.editing == Just x.uid)
+                    ]
         , onClick (Activate x.uid)
-        , onDoubleClick (ClearContent x.uid)
+        , onDoubleClick (OpenCard x.uid)
         ]
-        [ text x.content.content ]
+        [ div [ class "view" ] [ text x.content.content ]
+        , input [ id ( "card-edit-" ++ toString x.uid )
+                , class "edit"
+                , value "test"
+                ]
+                []
+        ]
     
 
 viewGroup : ViewState -> Group -> Html Msg
@@ -328,7 +345,7 @@ buildModel tree =
           |> List.head
           |> Maybe.withDefault (Node "0" "" [])
           |> .id
-    , viewState = { active = 0}
+    , viewState = { active = 0, editing = Nothing }
     }
 
 --HELPERS
