@@ -117,14 +117,13 @@ update msg model =
       let
         newStructure = updateTree (ClearContent uid) (buildStructure model)
         newModel = buildModel newStructure
-        newNodes = newModel.nodes
-                    |> List.filter (\n -> not (List.member n (Debug.log "model.nodes" model.nodes)))
+        newNodes = newModel.nodes |> List.filter (\n -> List.member n model.nodes)
         newContents = newModel.contents
                       |> List.filter (\c -> not (List.member c model.contents))
       in
         { model
-          | nodes = Debug.log "newNodes" newNodes
-          , contents = newContents
+          | nodes = model.nodes ++ newNodes
+          , contents = model.contents ++ newContents
           , rootId = newModel.rootId
         }
           ! [saveNodes newNodes, saveContents newContents]
@@ -187,7 +186,7 @@ nodeToTree model uid a =
     imFunction = (\idx -> nodeToTree model (idx + uid + 1))
   in
     { uid = uid
-    , content = (Debug.log "nodeToTree contents" model.contents) |> ListExtra.find (\c -> c.id == a.contentId)
+    , content = model.contents |> ListExtra.find (\c -> c.id == a.contentId)
                               |> Maybe.withDefault defaultContent
     , children = a.childrenIds -- List Id
                   |> List.filterMap fmFunction -- List Node
