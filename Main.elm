@@ -26,6 +26,7 @@ main =
 port saveNodes : List Node -> Cmd msg
 port saveContents : List Content -> Cmd msg
 port saveRoot : String -> Cmd msg
+port activateCard : Int -> Cmd msg
 
 
 -- MODEL
@@ -112,7 +113,7 @@ update msg model =
 
     Activate uid ->
       { model | viewState = ViewState uid }
-        ! []
+        ! [ activateCard uid ]
 
     ClearContent uid ->
       let
@@ -169,8 +170,14 @@ viewGroup vs xs =
 
 viewColumn : ViewState -> Column -> Html Msg
 viewColumn vs col =
-  div [ class "column" ]
-      (List.map (viewGroup vs) col)
+  div 
+    [ class "column" ]
+    [ div 
+        [ class "buffer" ][]
+    , div [](List.map (viewGroup vs) col)
+    , div
+        [ class "buffer" ][]
+    ]
 
 
 -- STRUCTURING

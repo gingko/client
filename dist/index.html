@@ -64,11 +64,12 @@ startElm = function(init) {
   gingko.ports.saveContents.subscribe(saveContents);
   gingko.ports.saveNodes.subscribe(saveNodes);
   gingko.ports.saveRoot.subscribe(saveRoot);
+  gingko.ports.activateCard.subscribe(activateCard);
 }
 
 scrollTo = function(cid) {
-  var col = document.getElementById('column');
   var card = document.getElementById('card-' + cid.toString());
+  var col = card.closest('.column');
   if (card == null) return;
   var rect = card.getBoundingClientRect();
 
@@ -110,6 +111,10 @@ saveNodes = function(nodes) {
 saveRoot = function(rootId) {
   console.log("saveRoot")
   localStorage.setItem("elm-test-root", rootId);
+}
+
+activateCard = function(uid) {
+  scrollTo(uid.toString());
 }
 </script>
 

@@ -11,6 +11,9 @@ body {
 
 #app {
   display: flex;
+  position: absolute;
+  height: 100%;
+  width: 100%;
 }
 
 .column {
