@@ -37,8 +37,8 @@ db.allDocs({include_docs: true}).then(function(docs){
             })
             .map(function(row){
               return  { id: row.doc._id
-                      , contentId : row.doc.content
-                      , childrenIds : row.doc.children
+                      , contentId : row.doc.contentId
+                      , childrenIds : row.doc.childrenIds
                       }
             });  
   
@@ -47,7 +47,7 @@ db.allDocs({include_docs: true}).then(function(docs){
   if (content.length > 0 && nodes.length > 0) {
     startingState = { contents: content
                     , nodes: nodes
-                    , rootId: "91211ca10a366a3bd2684c7e94095aa92bf82bc8"
+                    , rootId: "a"
                     , viewState: {active : 0}
                     }
   }

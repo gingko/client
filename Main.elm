@@ -112,8 +112,8 @@ update msg model =
 
     ClearContent uid ->
       let
-        newStructure = Debug.log "newStructure" ( updateTree (ClearContent uid) (buildStructure model) )
-        newModel = Debug.log "newModel" (buildModel newStructure)
+        newStructure = updateTree (ClearContent uid) (buildStructure model)
+        newModel = buildModel newStructure
       in
         { model
           | nodes = model.nodes ++ newModel.nodes |> ListExtra.uniqueBy (\n -> n.id)
@@ -244,8 +244,8 @@ treeToNodes nodes {uid, content, children} =
       in
         { id = content.id ++ (String.concat childrenIds)
         , contentId = content.id
-        , childrenIds = childrenIds
-        } :: nodes
+        , childrenIds = Debug.log "childrenIds" childrenIds
+        } :: nodes ++ (List.concat descendants)
 
 
 treeToNode : Tree -> Node
