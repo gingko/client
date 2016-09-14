@@ -7,6 +7,7 @@ import Html.App as App
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as Json
+import Sha1
 import String
 import List.Extra as ListExtra
 import Task
@@ -22,6 +23,8 @@ main =
     }
 
 
+port saveNodes : List Node -> Cmd msg
+port saveContents : List Content -> Cmd msg
 
 
 -- MODEL
@@ -114,13 +117,17 @@ update msg model =
       let
         newStructure = updateTree (ClearContent uid) (buildStructure model)
         newModel = buildModel newStructure
+        newNodes = newModel.nodes
+                    |> List.filter (\n -> not (List.member n (Debug.log "model.nodes" model.nodes)))
+        newContents = newModel.contents
+                      |> List.filter (\c -> not (List.member c model.contents))
       in
         { model
-          | nodes = model.nodes ++ newModel.nodes |> ListExtra.uniqueBy (\n -> n.id)
-          , contents = model.contents ++ newModel.contents |> ListExtra.uniqueBy (\c -> c.id)
+          | nodes = Debug.log "newNodes" newNodes
+          , contents = newContents
           , rootId = newModel.rootId
         }
-          ! []
+          ! [saveNodes newNodes, saveContents newContents]
 
 
 
@@ -180,7 +187,7 @@ nodeToTree model uid a =
     imFunction = (\idx -> nodeToTree model (idx + uid + 1))
   in
     { uid = uid
-    , content = model.contents |> ListExtra.find (\c -> c.id == a.contentId)
+    , content = (Debug.log "nodeToTree contents" model.contents) |> ListExtra.find (\c -> c.id == a.contentId)
                               |> Maybe.withDefault defaultContent
     , children = a.childrenIds -- List Id
                   |> List.filterMap fmFunction -- List Node
@@ -244,7 +251,7 @@ treeToNodes nodes {uid, content, children} =
       in
         { id = content.id ++ (String.concat childrenIds)
         , contentId = content.id
-        , childrenIds = Debug.log "childrenIds" childrenIds
+        , childrenIds = childrenIds
         } :: nodes ++ (List.concat descendants)
 
 
@@ -261,10 +268,10 @@ treeToNode {uid, content, children} =
       let
         childrenIds = 
           trees 
-            |> List.map treeToNode -- List Node
+            |> List.map treeToNode
             |> List.map .id
       in
-        { id = content.id ++ (String.concat childrenIds)
+        { id = content.content ++ (String.concat childrenIds)
         , contentId = content.id
         , childrenIds = childrenIds
         }
@@ -285,7 +292,7 @@ updateTree msg tree =
   case msg of
     ClearContent uid ->
       if tree.uid == uid then
-        { tree | content = Content "text/markdown" "text/markdown" "" }
+        { tree | content = Content (Sha1.sha1 "") "" "" }
       else
         case tree.children of
           Children [] ->

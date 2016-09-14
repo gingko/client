@@ -60,6 +60,8 @@ db.allDocs({include_docs: true}).then(function(docs){
 
 startElm = function(init) {
   gingko = Elm.Main.fullscreen(init);
+  gingko.ports.saveContents.subscribe(saveContents);
+  gingko.ports.saveNodes.subscribe(saveNodes);
 }
 
 scrollTo = function(cid) {
@@ -74,26 +76,29 @@ scrollTo = function(cid) {
     });
 }
 
-saveCard = function(card) {
-  db.get(card.id.toString()).then(function(doc){
-    if (   doc.content == card.content
-        && doc.children == card.children
-       )
-    return;
 
-    return db.put({ _id: card.id.toString()
-                  , _rev: doc._rev
-                  , content: card.content
-                  , children: card.children
-                  });
-  }).catch(function(error){
-    if (error.status == 404) {
-      db.put( { _id: card.id.toString()
-              , content: card.content
-              , children: card.children
-              });
-    }
+saveContents = function(contents) {
+  data = contents.map(function(c){
+    return  { _id: c.id
+            , content: c.content
+            , contentType : c.contentType
+            , type : "content"
+            }
   });
+  console.log(data);
+  db.bulkDocs(data).catch(function(err){console.log(err)});
+}
+
+saveNodes = function(nodes) {
+  data = nodes.map(function(c){
+    return  { _id: c.id
+            , contentId: c.contentId
+            , childrenIds : c.childrenIds
+            , type : "node"
+            }
+  });
+  console.log(data);
+  db.bulkDocs(data).catch(function(err){console.log(err)});
 }
 </script>
 
