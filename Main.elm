@@ -31,7 +31,7 @@ type alias Model =
   { contents : List Content
   , nodes : List Node
   , viewState : ViewState
-  , root : Id
+  , rootId : Id
   }
 
 type alias ViewState =
@@ -46,8 +46,8 @@ type alias Content =
 
 type alias Node =
   { id : Id
-  , content : Id
-  , children : List Id
+  , contentId : Id
+  , childrenIds : List Id
   }
 
 type alias Tree = 
@@ -76,7 +76,7 @@ defaultModel =
   { contents = [defaultContent, { defaultContent | id = "1", content = "2" }]
   , nodes = [Node "0" "0" ["1"], Node "1" "1" []]
   , viewState = ViewState 0
-  , root = "0"
+  , rootId = "0"
   }
 
 
@@ -118,7 +118,7 @@ update msg model =
         { model
           | nodes = model.nodes ++ newModel.nodes |> ListExtra.uniqueBy (\n -> n.id)
           , contents = model.contents ++ newModel.contents |> ListExtra.uniqueBy (\c -> c.id)
-          , root = newModel.root
+          , rootId = newModel.rootId
         }
           ! []
 
@@ -180,9 +180,9 @@ nodeToTree model uid a =
     imFunction = (\idx -> nodeToTree model (idx + uid + 1))
   in
     { uid = uid
-    , content = model.contents |> ListExtra.find (\c -> c.id == a.content)
+    , content = model.contents |> ListExtra.find (\c -> c.id == a.contentId)
                               |> Maybe.withDefault defaultContent
-    , children = a.children -- List Id
+    , children = a.childrenIds -- List Id
                   |> List.filterMap fmFunction -- List Node
                   |> List.indexedMap imFunction -- List Tree
                   |> Children
@@ -217,7 +217,7 @@ getColumns cols =
 buildStructure : Model -> Tree
 buildStructure model =
   model.nodes -- List Node
-    |> ListExtra.find (\a -> a.id == model.root) -- Maybe Node
+    |> ListExtra.find (\a -> a.id == model.rootId) -- Maybe Node
     |> Maybe.withDefault (Node "0" "0" []) -- Node
     |> nodeToTree model 0 -- Tree
 
@@ -227,8 +227,8 @@ treeToNodes nodes {uid, content, children} =
   case children of
     Children [] ->
       { id = content.id
-      , content = content.id
-      , children = []
+      , contentId = content.id
+      , childrenIds = []
       } :: nodes
 
     Children trees ->
@@ -243,8 +243,8 @@ treeToNodes nodes {uid, content, children} =
             |> List.map .id
       in
         { id = content.id ++ (String.concat childrenIds)
-        , content = content.id
-        , children = childrenIds
+        , contentId = content.id
+        , childrenIds = childrenIds
         } :: nodes
 
 
@@ -253,8 +253,8 @@ treeToNode {uid, content, children} =
   case children of
     Children [] ->
       { id = content.id
-      , content = content.id
-      , children = []
+      , contentId = content.id
+      , childrenIds = []
       }
 
     Children trees ->
@@ -265,8 +265,8 @@ treeToNode {uid, content, children} =
             |> List.map .id
       in
         { id = content.id ++ (String.concat childrenIds)
-        , content = content.id
-        , children = childrenIds
+        , contentId = content.id
+        , childrenIds = childrenIds
         }
 
 
@@ -304,7 +304,7 @@ buildModel tree =
   in
     { contents = getContents tree
     , nodes = nodes
-    , root =
+    , rootId =
         nodes 
           |> List.head
           |> Maybe.withDefault (Node "0" "" [])
