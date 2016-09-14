@@ -50,10 +50,9 @@ type alias Node =
   }
 
 type alias Tree = 
-  { id : Id
+  { uid : Uid
   , content : Content
   , children : Children
-  , uid : Uid
   }
 
 type Children = Children (List Tree)
@@ -160,26 +159,18 @@ getChildren x =
       c
 
 
-xToNode : Tree -> Node
-xToNode x =
-  { id = x.id
-  , content = x.content.id
-  , children = List.map .id (getChildren x)
-  }
-
-
 nodeToTree : Model -> Int -> Node -> Tree
 nodeToTree model uid a =
   let
     fmFunction id = find (\a -> a.id == id) model.nodes -- (Id -> Maybe Node)
+    imFunction = (\idx -> nodeToTree model (idx + uid + 1))
   in
-    { id = a.id
-    , uid = uid
-    , content = model.content  |> find (\c -> c.id == a.content)
+    { uid = uid
+    , content = model.content |> find (\c -> c.id == a.content)
                               |> Maybe.withDefault defaultContent
     , children = a.children -- List Id
                   |> List.filterMap fmFunction -- List Node
-                  |> List.map (nodeToTree model (uid+1)) -- List Tree
+                  |> List.indexedMap imFunction -- List Tree
                   |> Children
     }
 
