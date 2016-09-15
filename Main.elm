@@ -121,7 +121,8 @@ type Msg
     | OpenCard Int String
     | CancelCard
     | UpdateField String
-    | SaveCard String Int
+    | UpdateCard String Int
+    | SaveTree
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -160,27 +161,48 @@ update msg model =
       } 
         ! []
 
-    SaveCard str uid ->
+    UpdateCard uid str ->
+      { model
+        | tree = updateTree (UpdateCard uid str) model.tree
+        , editing = Nothing
+        , field = ""
+      }
+        ! []
+    
+    SaveTree ->
       let
-        newTree = updateTree (SaveCard str uid) model.tree
-        newNodes = 
-          (treeToNodes []) newTree
+        newNodes =
+          (treeToNodes []) model.tree
             |> List.filter (\n -> not (List.member n model.nodes))
         newContents = 
-          getContents newTree
+          getContents model.tree
             |> List.filter (\c -> not (List.member c model.contents))
-        newRootId = getId newTree
+        newRootId = getId model.tree
       in
         { model
           | nodes = model.nodes ++ newNodes
           , contents = model.contents ++ newContents
-          , tree = newTree
           , rootId = newRootId
-          , active = model.active
-          , editing = Nothing
-          , field = model.field
         }
           ! [saveNodes newNodes, saveContents newContents, saveRoot newRootId]
+
+
+
+updateTree : Msg -> Tree -> Tree
+updateTree msg tree =
+  case msg of
+    UpdateCard str uid ->
+      if tree.uid == uid then
+         { tree | content = Content (Sha1.sha1 str) "" str }
+      else
+        case tree.children of
+          Children [] ->
+            tree
+          Children trees ->
+            { tree | children = Children (List.map (updateTree (UpdateCard str uid)) trees) }
+
+    _ ->
+      tree
 
 -- VIEW
 
@@ -190,8 +212,10 @@ view model =
   let
     columns = getColumns([[[ model.tree ]]])
   in
-    div [ id "app" ]
-        (List.map (viewColumn model) columns)
+    div [ id "wrapper" ]
+        [ button [onClick SaveTree][text "save"] 
+        , div [id "app" ](List.map (viewColumn model) columns)
+        ]
 
 
 viewColumn : Model -> Column -> Html Msg
@@ -229,7 +253,7 @@ viewCard model x =
             , value model.field
             , onBlur CancelCard
             , onInput UpdateField
-            , onEnter (SaveCard model.field x.uid)
+            , onEnter (UpdateCard model.field x.uid)
             ]
             []
         ]
@@ -294,9 +318,6 @@ buildStructure data =
     |> ListExtra.find (\a -> a.id == data.rootId) -- Maybe Node
     |> Maybe.withDefault (Node "0" "0" []) -- Node
     |> nodeToTree data 0 -- Tree
-
-
-
 
 
 treeToNodes : List Node -> Tree -> List Node
@@ -372,21 +393,6 @@ getId {uid, content, children} =
         Sha1.sha1(content.id ++ newLine ++ (String.concat childrenIds))
 
 
-updateTree : Msg -> Tree -> Tree
-updateTree msg tree =
-  case msg of
-    SaveCard str uid ->
-      if tree.uid == uid then
-         { tree | content = Content (Sha1.sha1 str) "" str }
-      else
-        case tree.children of
-          Children [] ->
-            tree
-          Children trees ->
-            { tree | children = Children (List.map (updateTree (SaveCard str uid)) trees) }
-
-    _ ->
-      tree
 
 
 
