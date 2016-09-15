@@ -101,7 +101,6 @@ init savedModel =
 type Msg
     = NoOp
     | Activate Int
-    | ClearContent Int
     | OpenCard Int String
     | CancelCard
     | UpdateField String
@@ -119,24 +118,6 @@ update msg model =
         | active = uid
       }
         ! [ activateCard uid ]
-
-    ClearContent uid ->
-      let
-        newStructure = updateTree (ClearContent uid) (buildStructure model)
-        newModel = (buildModel newStructure)
-        newNodes = 
-          newModel.nodes 
-            |> List.filter (\n -> not (List.member n model.nodes))
-        newContents = 
-          newModel.contents
-            |> List.filter (\c -> not (List.member c model.contents))
-      in
-        { model
-          | nodes = model.nodes ++ newNodes
-          , contents = model.contents ++ newContents
-          , rootId = newModel.rootId
-        }
-          ! [saveNodes newNodes, saveContents newContents, saveRoot newModel.rootId]
 
     OpenCard uid str ->
       { model
@@ -359,16 +340,6 @@ getContents {uid, content, children} =
 updateTree : Msg -> Tree -> Tree
 updateTree msg tree =
   case msg of
-    ClearContent uid ->
-      if tree.uid == uid then
-        { tree | content = Content (Sha1.sha1 "") "" "" }
-      else
-        case tree.children of
-          Children [] ->
-            tree
-          Children trees ->
-            { tree | children = Children (List.map (updateTree (ClearContent uid)) trees) }
-
     SaveCard str uid ->
       if tree.uid == uid then
          { tree | content = Content (Sha1.sha1 str) "" str }
