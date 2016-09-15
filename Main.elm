@@ -37,36 +37,34 @@ type alias Model =
   { contents : List Content
   , nodes : List Node
   , viewState : ViewState
-  , rootId : Id
+  , rootId : String
   }
 
 type alias ViewState =
-  { active : Uid
-  , editing : Maybe Uid
+  { active : Int
+  , editing : Maybe Int
   , field : String
   }
 
 type alias Content =
-  { id : Id
+  { id : String
   , contentType : String
   , content : String
   }
 
 type alias Node =
-  { id : Id
-  , contentId : Id
-  , childrenIds : List Id
+  { id : String
+  , contentId : String
+  , childrenIds : List String
   }
 
 type alias Tree = 
-  { uid : Uid
+  { uid : Int
   , content : Content
   , children : Children
   }
 
 type Children = Children (List Tree)
-type alias Id = String
-type alias Uid = Int
 type alias Group = List Tree
 type alias Column = List (List Tree)
 
@@ -104,12 +102,12 @@ init savedModel =
 
 type Msg
     = NoOp
-    | Activate Uid
-    | ClearContent Uid
-    | OpenCard Uid String
+    | Activate Int
+    | ClearContent Int
+    | OpenCard Int String
     | CancelCard
     | UpdateField String
-    | SaveCard String Uid
+    | SaveCard String Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -260,7 +258,7 @@ getChildren x =
 nodeToTree : Model -> Int -> Node -> Tree
 nodeToTree model uid a =
   let
-    fmFunction id = ListExtra.find (\a -> a.id == id) model.nodes -- (Id -> Maybe Node)
+    fmFunction id = ListExtra.find (\a -> a.id == id) model.nodes -- (String -> Maybe Node)
     imFunction = (\idx -> nodeToTree model (idx + uid + 1))
   in
     { uid = uid
@@ -268,7 +266,7 @@ nodeToTree model uid a =
         model.contents 
           |> ListExtra.find (\c -> c.id == (a.contentId))
           |> Maybe.withDefault defaultContent
-    , children = a.childrenIds -- List Id
+    , children = a.childrenIds -- List String
                   |> List.filterMap fmFunction -- List Node
                   |> List.indexedMap imFunction -- List Tree
                   |> Children
