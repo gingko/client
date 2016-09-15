@@ -36,12 +36,8 @@ port activateCard : Int -> Cmd msg
 type alias Model =
   { contents : List Content
   , nodes : List Node
-  , viewState : ViewState
   , rootId : String
-  }
-
-type alias ViewState =
-  { active : Int
+  , active : Int
   , editing : Maybe Int
   , field : String
   }
@@ -81,8 +77,10 @@ defaultModel : Model
 defaultModel =
   { contents = [defaultContent, { defaultContent | id = "1", content = "2" }]
   , nodes = [Node "0" "0" ["1"], Node "1" "1" []]
-  , viewState = ViewState 0 Nothing ""
   , rootId = "0"
+  , active = 0
+  , editing = Nothing
+  , field = ""
   }
 
 
@@ -117,7 +115,9 @@ update msg model =
       model ! []
 
     Activate uid ->
-      { model | viewState = ViewState uid model.viewState.editing "" }
+      { model 
+        | active = uid
+      }
         ! [ activateCard uid ]
 
     ClearContent uid ->
@@ -140,28 +140,25 @@ update msg model =
 
     OpenCard uid str ->
       { model
-        | viewState = { active = model.viewState.active
-                      , editing = Just uid 
-                      , field = str
-                      }
+        | active = model.active
+        , editing = Just uid 
+        , field = str
       }
         ! [ Task.perform (\_ -> NoOp) (\_ -> NoOp) (Dom.focus ("card-edit-" ++ toString uid)) ]
 
     CancelCard ->
       { model
-        | viewState = { active = model.viewState.active
-                      , editing = Nothing 
-                      , field = ""
-                      }
+        | active = model.active
+        , editing = Nothing 
+        , field = ""
       }
         ! []
 
     UpdateField str ->
       { model
-        | viewState = { active = model.viewState.active
-                      , editing = model.viewState.editing
-                      , field = str 
-                      }
+        | active = model.active
+        , editing = model.editing
+        , field = str 
       } 
         ! []
 
@@ -180,10 +177,9 @@ update msg model =
           | nodes = model.nodes ++ newNodes
           , contents = model.contents ++ newContents
           , rootId = newModel.rootId
-          , viewState = { active = model.viewState.active
-                        , editing = Nothing
-                        , field = model.viewState.field
-                        }
+          , active = model.active
+          , editing = Nothing
+          , field = model.field
         }
           ! [saveNodes newNodes, saveContents newContents, saveRoot newModel.rootId]
 
@@ -192,24 +188,19 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-  viewTree model.viewState (buildStructure model)
-
-
-viewTree : ViewState -> Tree -> Html Msg
-viewTree vs x =
   let
-    columns = getColumns([[[x]]])
+    columns = getColumns([[[ buildStructure model ]]])
   in
     div [ id "app" ]
-        (List.map (viewColumn vs) columns)
+        (List.map (viewColumn model) columns)
 
 
-viewCard : ViewState -> Tree -> Html Msg
-viewCard vs x =
+viewCard : Model -> Tree -> Html Msg
+viewCard model x =
     div [ id ("card-" ++ (toString x.uid))
         , classList [ ("card", True)
-                    , ("active", vs.active == x.uid)
-                    , ("editing", vs.editing == Just x.uid)
+                    , ("active", model.active == x.uid)
+                    , ("editing", model.editing == Just x.uid)
                     ]
         , onClick (Activate x.uid)
         , onDoubleClick (OpenCard x.uid x.content.content)
@@ -218,28 +209,28 @@ viewCard vs x =
         , textarea
             [ id ( "card-edit-" ++ toString x.uid )
             , class "edit"
-            , value vs.field
+            , value model.field
             , onBlur CancelCard
             , onInput UpdateField
-            , onEnter (SaveCard vs.field x.uid)
+            , onEnter (SaveCard model.field x.uid)
             ]
             []
         ]
     
 
-viewGroup : ViewState -> Group -> Html Msg
-viewGroup vs xs =
+viewGroup : Model -> Group -> Html Msg
+viewGroup model xs =
   div [ class "group" ]
-      (List.map (viewCard vs) xs)
+      (List.map (viewCard model) xs)
 
 
-viewColumn : ViewState -> Column -> Html Msg
-viewColumn vs col =
+viewColumn : Model -> Column -> Html Msg
+viewColumn model col =
   div 
     [ class "column" ]
     [ div 
         [ class "buffer" ][]
-    , div [](List.map (viewGroup vs) col)
+    , div [](List.map (viewGroup model) col)
     , div
         [ class "buffer" ][]
     ]
@@ -404,7 +395,9 @@ buildModel tree =
           |> List.head
           |> Maybe.withDefault (Node "0" "" [])
           |> .id
-    , viewState = { active = 0, editing = Nothing , field = "" }
+    , active = 0
+    , editing = Nothing 
+    , field = ""
     }
 
 --HELPERS
