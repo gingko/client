@@ -14,7 +14,7 @@ import List.Extra as ListExtra
 import Task
 
 
-main : Program (Maybe Model)
+main : Program (Maybe Data)
 main =
   App.programWithFlags
     { init = init
@@ -36,6 +36,7 @@ port activateCard : Int -> Cmd msg
 type alias Model =
   { contents : List Content
   , nodes : List Node
+  , tree : Tree
   , rootId : String
   , active : Int
   , editing : Maybe Int
@@ -60,6 +61,12 @@ type alias Tree =
   , children : Children
   }
 
+type alias Data =
+  { contents : List Content
+  , nodes : List Node
+  , rootId : String
+  }
+
 type Children = Children (List Tree)
 type alias Group = List Tree
 type alias Column = List (List Tree)
@@ -77,6 +84,7 @@ defaultModel : Model
 defaultModel =
   { contents = [defaultContent, { defaultContent | id = "1", content = "2" }]
   , nodes = [Node "0" "0" ["1"], Node "1" "1" []]
+  , tree = { uid = 0 , content = defaultContent , children = Children [] }
   , rootId = "0"
   , active = 0
   , editing = Nothing
@@ -84,13 +92,22 @@ defaultModel =
   }
 
 
-init : Maybe Model -> ( Model, Cmd Msg )
-init savedModel =
-  case savedModel of
+init : Maybe Data -> ( Model, Cmd Msg )
+init savedData =
+  case savedData of
     Nothing ->
       defaultModel ! [ ]
     Just data ->
-      data ! [ ]
+      { contents = data.contents
+      , nodes = data.nodes
+      , tree = buildStructure data
+      , rootId = data.rootId
+      , active = 0
+      , editing = Nothing
+      , field = ""
+      }
+        ! [ ]
+
 
 
 
@@ -145,24 +162,25 @@ update msg model =
 
     SaveCard str uid ->
       let
-        newStructure = updateTree (SaveCard str uid) (buildStructure model)
-        newModel = buildModel newStructure
+        newTree = updateTree (SaveCard str uid) model.tree
         newNodes = 
-          newModel.nodes 
+          (treeToNodes []) newTree
             |> List.filter (\n -> not (List.member n model.nodes))
         newContents = 
-          newModel.contents
+          getContents newTree
             |> List.filter (\c -> not (List.member c model.contents))
+        newRootId = getId newTree
       in
         { model
           | nodes = model.nodes ++ newNodes
           , contents = model.contents ++ newContents
-          , rootId = newModel.rootId
+          , tree = newTree
+          , rootId = newRootId
           , active = model.active
           , editing = Nothing
           , field = model.field
         }
-          ! [saveNodes newNodes, saveContents newContents, saveRoot newModel.rootId]
+          ! [saveNodes newNodes, saveContents newContents, saveRoot newRootId]
 
 -- VIEW
 
@@ -170,10 +188,28 @@ update msg model =
 view : Model -> Html Msg
 view model =
   let
-    columns = getColumns([[[ buildStructure model ]]])
+    columns = getColumns([[[ model.tree ]]])
   in
     div [ id "app" ]
         (List.map (viewColumn model) columns)
+
+
+viewColumn : Model -> Column -> Html Msg
+viewColumn model col =
+  div 
+    [ class "column" ]
+    [ div 
+        [ class "buffer" ][]
+    , div [](List.map (viewGroup model) col)
+    , div
+        [ class "buffer" ][]
+    ]
+
+
+viewGroup : Model -> Group -> Html Msg
+viewGroup model xs =
+  div [ class "group" ]
+      (List.map (viewCard model) xs)
 
 
 viewCard : Model -> Tree -> Html Msg
@@ -197,24 +233,6 @@ viewCard model x =
             ]
             []
         ]
-    
-
-viewGroup : Model -> Group -> Html Msg
-viewGroup model xs =
-  div [ class "group" ]
-      (List.map (viewCard model) xs)
-
-
-viewColumn : Model -> Column -> Html Msg
-viewColumn model col =
-  div 
-    [ class "column" ]
-    [ div 
-        [ class "buffer" ][]
-    , div [](List.map (viewGroup model) col)
-    , div
-        [ class "buffer" ][]
-    ]
 
 
 -- STRUCTURING
@@ -227,15 +245,15 @@ getChildren x =
       c
 
 
-nodeToTree : Model -> Int -> Node -> Tree
-nodeToTree model uid a =
+nodeToTree : Data -> Int -> Node -> Tree
+nodeToTree data uid a =
   let
-    fmFunction id = ListExtra.find (\a -> a.id == id) model.nodes -- (String -> Maybe Node)
-    imFunction = (\idx -> nodeToTree model (idx + uid + 1))
+    fmFunction id = ListExtra.find (\a -> a.id == id) data.nodes -- (String -> Maybe Node)
+    imFunction = (\idx -> nodeToTree data (idx + uid + 1))
   in
     { uid = uid
     , content =
-        model.contents 
+        data.contents 
           |> ListExtra.find (\c -> c.id == (a.contentId))
           |> Maybe.withDefault defaultContent
     , children = a.childrenIds -- List String
@@ -270,12 +288,15 @@ getColumns cols =
       cols
 
 
-buildStructure : Model -> Tree
-buildStructure model =
-  model.nodes -- List Node
-    |> ListExtra.find (\a -> a.id == model.rootId) -- Maybe Node
+buildStructure : Data -> Tree
+buildStructure data =
+  data.nodes -- List Node
+    |> ListExtra.find (\a -> a.id == data.rootId) -- Maybe Node
     |> Maybe.withDefault (Node "0" "0" []) -- Node
-    |> nodeToTree model 0 -- Tree
+    |> nodeToTree data 0 -- Tree
+
+
+
 
 
 treeToNodes : List Node -> Tree -> List Node
@@ -305,7 +326,6 @@ treeToNodes nodes {uid, content, children} =
 
 
 treeToNode : Tree -> Node
-
 treeToNode {uid, content, children} =
   case children of
     Children [] ->
@@ -337,6 +357,21 @@ getContents {uid, content, children} =
       [content] ++ (List.concatMap getContents trees)
 
 
+getId : Tree -> String
+getId {uid, content, children} =
+  case children of
+    Children [] ->
+      Sha1.sha1(content.id ++ newLine )
+
+    Children trees ->
+      let
+        childrenIds =
+          trees
+            |> List.map getId
+      in
+        Sha1.sha1(content.id ++ newLine ++ (String.concat childrenIds))
+
+
 updateTree : Msg -> Tree -> Tree
 updateTree msg tree =
   case msg of
@@ -354,22 +389,6 @@ updateTree msg tree =
       tree
 
 
-buildModel : Tree -> Model
-buildModel tree =
-  let
-    nodes = (treeToNodes []) tree
-  in
-    { contents = getContents tree
-    , nodes = nodes
-    , rootId =
-        nodes 
-          |> List.head
-          |> Maybe.withDefault (Node "0" "" [])
-          |> .id
-    , active = 0
-    , editing = Nothing 
-    , field = ""
-    }
 
 --HELPERS
 

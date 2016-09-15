@@ -49,9 +49,6 @@ db.allDocs({include_docs: true}).then(function(docs){
     startingState = { contents: content
                     , nodes: nodes
                     , rootId: storedRoot ? storedRoot : "f01318cad7d0e51bc23f5b786293cdc497633f3c"
-                    , active : 0
-                    , editing: null
-                    , field: ""
                     }
   }
 
