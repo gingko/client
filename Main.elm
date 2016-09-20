@@ -28,7 +28,7 @@ main =
 port saveNodes : List Node -> Cmd msg
 port saveContents : List Content -> Cmd msg
 port saveRoot : String -> Cmd msg
-port activateCard : Int -> Cmd msg
+port activateCard : String -> Cmd msg
 
 
 -- MODEL
@@ -41,8 +41,8 @@ type alias Model =
   , tree : Tree
   , nextUid : Int
   , rootId : String
-  , active : Int
-  , editing : Maybe Int
+  , active : String
+  , editing : Maybe String
   , field : String
   }
 
@@ -59,8 +59,10 @@ type alias Node =
   }
 
 type alias Tree =
-  { uid : Int
+  { uid : String
   , content : Content
+  -- , prev : Maybe String
+  -- , next : Maybe String
   , children : Children
   }
 
@@ -89,10 +91,10 @@ defaultModel =
   { contents = [defaultContent, { defaultContent | id = "1", content = "2" }]
   , nodes = [Node "0" "0" ["1"], Node "1" "1" []]
   , operations = []
-  , tree = { uid = 0 , content = defaultContent , children = Children [] }
+  , tree = { uid = "0" , content = defaultContent , children = Children [] }
   , nextUid = 1
   , rootId = "0"
-  , active = 0
+  , active = "0"
   , editing = Nothing
   , field = ""
   }
@@ -113,7 +115,7 @@ init savedData =
         , tree = newTree
         , nextUid = (List.length (getContents newTree)) + 1
         , rootId = data.rootId
-        , active = 0
+        , active = "0"
         , editing = Nothing
         , field = ""
         }
@@ -127,12 +129,12 @@ init savedData =
 
 type Msg
     = NoOp
-    | Activate Int
-    | OpenCard Int String
+    | Activate String
+    | OpenCard String String
     | CancelCard
     | UpdateField String
-    | UpdateCard Int String
-    | InsertBelow Int
+    | UpdateCard String String
+    | InsertBelow String
     | SaveTree
 
 
@@ -274,7 +276,7 @@ viewGroup model xs =
 
 viewCard : Model -> Tree -> Html Msg
 viewCard model x =
-    div [ id ("card-" ++ (toString x.uid))
+    div [ id ("card-" ++ x.uid)
         , classList [ ("card", True)
                     , ("active", model.active == x.uid)
                     , ("editing", model.editing == Just x.uid)
@@ -284,7 +286,7 @@ viewCard model x =
         ]
         [ div [ class "view" ] [ Markdown.toHtml [] x.content.content ]
         , textarea
-            [ id ( "card-edit-" ++ toString x.uid )
+            [ id ( "card-edit-" ++ x.uid )
             , class "edit"
             , value model.field
             , onBlur CancelCard
@@ -305,11 +307,11 @@ getChildren x =
       c
 
 
-nodeToTree : Data -> Int -> Node -> Tree
+nodeToTree : Data -> String -> Node -> Tree
 nodeToTree data uid a =
   let
     fmFunction id = ListExtra.find (\a -> a.id == id) data.nodes -- (String -> Maybe Node)
-    imFunction = (\idx -> nodeToTree data (idx + uid + 1))
+    imFunction = (\idx -> nodeToTree data (Sha1.sha1 (toString idx) ++ uid))
   in
     { uid = uid
     , content =
@@ -353,7 +355,7 @@ buildStructure data =
   data.nodes -- List Node
     |> ListExtra.find (\a -> a.id == data.rootId) -- Maybe Node
     |> Maybe.withDefault (Node "0" "0" []) -- Node
-    |> nodeToTree data 0 -- Tree
+    |> nodeToTree data "0" -- Tree
 
 
 treeToNodes : List Node -> Tree -> List Node
