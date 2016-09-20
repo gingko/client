@@ -10,6 +10,7 @@ import Json.Decode as Json
 import Sha1
 import Markdown
 import String
+import Utils exposing (..)
 import List.Extra as ListExtra
 import Task
 
@@ -36,7 +37,9 @@ port activateCard : Int -> Cmd msg
 type alias Model =
   { contents : List Content
   , nodes : List Node
+  , operations : List Msg
   , tree : Tree
+  , nextUid : Int
   , rootId : String
   , active : Int
   , editing : Maybe Int
@@ -55,7 +58,7 @@ type alias Node =
   , childrenIds : List String
   }
 
-type alias Tree = 
+type alias Tree =
   { uid : Int
   , content : Content
   , children : Children
@@ -66,6 +69,7 @@ type alias Data =
   , nodes : List Node
   , rootId : String
   }
+
 
 type Children = Children (List Tree)
 type alias Group = List Tree
@@ -84,7 +88,9 @@ defaultModel : Model
 defaultModel =
   { contents = [defaultContent, { defaultContent | id = "1", content = "2" }]
   , nodes = [Node "0" "0" ["1"], Node "1" "1" []]
+  , operations = []
   , tree = { uid = 0 , content = defaultContent , children = Children [] }
+  , nextUid = 1
   , rootId = "0"
   , active = 0
   , editing = Nothing
@@ -98,16 +104,20 @@ init savedData =
     Nothing ->
       defaultModel ! [ ]
     Just data ->
-      { contents = data.contents
-      , nodes = data.nodes
-      , tree = buildStructure data
-      , rootId = data.rootId
-      , active = 0
-      , editing = Nothing
-      , field = ""
-      }
-        ! [ ]
-
+      let
+        newTree = buildStructure data
+      in
+        { contents = data.contents
+        , nodes = data.nodes
+        , operations = []
+        , tree = newTree
+        , nextUid = (List.length (getContents newTree)) + 1
+        , rootId = data.rootId
+        , active = 0
+        , editing = Nothing
+        , field = ""
+        }
+          ! [ ]
 
 
 
@@ -121,7 +131,8 @@ type Msg
     | OpenCard Int String
     | CancelCard
     | UpdateField String
-    | UpdateCard String Int
+    | UpdateCard Int String
+    | InsertBelow Int
     | SaveTree
 
 
@@ -132,7 +143,7 @@ update msg model =
       model ! []
 
     Activate uid ->
-      { model 
+      { model
         | active = uid
       }
         ! [ activateCard uid ]
@@ -140,7 +151,7 @@ update msg model =
     OpenCard uid str ->
       { model
         | active = model.active
-        , editing = Just uid 
+        , editing = Just uid
         , field = str
       }
         ! [ Task.perform (\_ -> NoOp) (\_ -> NoOp) (Dom.focus ("card-edit-" ++ toString uid)) ]
@@ -148,7 +159,7 @@ update msg model =
     CancelCard ->
       { model
         | active = model.active
-        , editing = Nothing 
+        , editing = Nothing
         , field = ""
       }
         ! []
@@ -157,8 +168,8 @@ update msg model =
       { model
         | active = model.active
         , editing = model.editing
-        , field = str 
-      } 
+        , field = str
+      }
         ! []
 
     UpdateCard uid str ->
@@ -166,15 +177,24 @@ update msg model =
         | tree = updateTree (UpdateCard uid str) model.tree
         , editing = Nothing
         , field = ""
+        , operations = Debug.log "ops" ((UpdateCard uid str) :: model.operations )
       }
         ! []
-    
+
+    InsertBelow uid ->
+      { model
+        | tree = updateTree (InsertBelow uid) model.tree
+        , nextUid = model.nextUid + 1
+      }
+        ! []
+
+
     SaveTree ->
       let
         newNodes =
           (treeToNodes []) model.tree
             |> List.filter (\n -> not (List.member n model.nodes))
-        newContents = 
+        newContents =
           getContents model.tree
             |> List.filter (\c -> not (List.member c model.contents))
         newRootId = getId model.tree
@@ -182,6 +202,7 @@ update msg model =
         { model
           | nodes = model.nodes ++ newNodes
           , contents = model.contents ++ newContents
+          , operations = []
           , rootId = newRootId
         }
           ! [saveNodes newNodes, saveContents newContents, saveRoot newRootId]
@@ -191,7 +212,7 @@ update msg model =
 updateTree : Msg -> Tree -> Tree
 updateTree msg tree =
   case msg of
-    UpdateCard str uid ->
+    UpdateCard uid str ->
       if tree.uid == uid then
          { tree | content = Content (Sha1.sha1 str) "" str }
       else
@@ -199,7 +220,22 @@ updateTree msg tree =
           Children [] ->
             tree
           Children trees ->
-            { tree | children = Children (List.map (updateTree (UpdateCard str uid)) trees) }
+            { tree | children = Children (List.map (updateTree (UpdateCard uid str)) trees) }
+
+    InsertBelow uid ->
+      case tree.children of
+        Children [] ->
+          tree
+        Children trees ->
+          let
+            childrenUids = List.map .uid trees
+          in
+            --if List.member uid childrenUids then
+              --{ tree
+                --| children = Children (trees ++ [{uid:
+              --}
+            tree
+
 
     _ ->
       tree
@@ -213,16 +249,16 @@ view model =
     columns = getColumns([[[ model.tree ]]])
   in
     div [ id "wrapper" ]
-        [ button [onClick SaveTree][text "save"] 
+        [ button [onClick SaveTree][text "save"]
         , div [id "app" ](List.map (viewColumn model) columns)
         ]
 
 
 viewColumn : Model -> Column -> Html Msg
 viewColumn model col =
-  div 
+  div
     [ class "column" ]
-    [ div 
+    [ div
         [ class "buffer" ][]
     , div [](List.map (viewGroup model) col)
     , div
@@ -253,7 +289,7 @@ viewCard model x =
             , value model.field
             , onBlur CancelCard
             , onInput UpdateField
-            , onEnter (UpdateCard model.field x.uid)
+            , onEnter (UpdateCard x.uid model.field)
             ]
             []
         ]
@@ -277,7 +313,7 @@ nodeToTree data uid a =
   in
     { uid = uid
     , content =
-        data.contents 
+        data.contents
           |> ListExtra.find (\c -> c.id == (a.contentId))
           |> Maybe.withDefault defaultContent
     , children = a.childrenIds -- List String
@@ -331,8 +367,8 @@ treeToNodes nodes {uid, content, children} =
 
     Children trees ->
       let
-        descendants = 
-          trees 
+        descendants =
+          trees
             |> List.map (treeToNodes nodes)
 
         childrenIds =
@@ -357,8 +393,8 @@ treeToNode {uid, content, children} =
 
     Children trees ->
       let
-        childrenIds = 
-          trees 
+        childrenIds =
+          trees
             |> List.map treeToNode
             |> List.map .id
       in
