@@ -39,7 +39,6 @@ type alias Model =
   , nodes : List Node
   , operations : List Msg
   , tree : Tree
-  , nextUid : Int
   , rootId : String
   , active : String
   , editing : Maybe String
@@ -92,7 +91,6 @@ defaultModel =
   , nodes = [Node "0" "0" ["1"], Node "1" "1" []]
   , operations = []
   , tree = { uid = "0" , content = defaultContent , children = Children [] , next = Nothing, prev = Nothing }
-  , nextUid = 1
   , rootId = "0"
   , active = "0"
   , editing = Nothing
@@ -113,7 +111,6 @@ init savedData =
         , nodes = data.nodes
         , operations = []
         , tree = Debug.log "newTree" newTree
-        , nextUid = (List.length (getContents newTree)) + 1
         , rootId = data.rootId
         , active = "0"
         , editing = Nothing
@@ -186,7 +183,6 @@ update msg model =
     InsertBelow uid ->
       { model
         | tree = updateTree (InsertBelow uid) model.tree
-        , nextUid = model.nextUid + 1
       }
         ! []
 
