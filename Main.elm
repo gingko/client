@@ -61,6 +61,7 @@ type alias Tree =
   , content : Content
   , prev : Maybe String
   , next : Maybe String
+  , visible : Bool
   , children : Children
   }
 
@@ -89,7 +90,7 @@ defaultModel =
   { contents = [defaultContent, { defaultContent | id = "1", content = "2" }]
   , nodes = [Node "0" "0" ["1"], Node "1" "1" []]
   , operations = []
-  , tree = { uid = "0" , content = defaultContent , children = Children [] , next = Nothing, prev = Nothing }
+  , tree = { uid = "0" , content = defaultContent , children = Children [] , next = Nothing, prev = Nothing , visible = True }
   , rootId = "0"
   , active = "0"
   , editing = Nothing
@@ -131,6 +132,7 @@ type Msg
     | UpdateField String
     | UpdateCard String String
     | InsertBelow String
+    | DeleteCard String
     | SaveTree
 
 
@@ -185,6 +187,12 @@ update msg model =
       }
         ! []
 
+    DeleteCard uid ->
+      { model
+        | tree = updateTree (DeleteCard uid) model.tree
+      }
+        ! []
+
 
     SaveTree ->
       let
@@ -219,13 +227,23 @@ updateTree msg tree =
           Children trees ->
             { tree | children = Children (List.map (updateTree (UpdateCard uid str)) trees) }
 
+    DeleteCard uid ->
+      if tree.uid == uid then
+         { tree | visible = False }
+      else
+        case tree.children of
+          Children [] ->
+            tree
+          Children trees ->
+            { tree | children = Children (List.map (updateTree (DeleteCard uid)) trees) }
+
     InsertBelow uid ->
       case tree.children of
         Children [] ->
           tree
         Children trees ->
           let
-            blankTree = (Tree "1" (Content "" "" "") Nothing Nothing (Children []))
+            blankTree = (Tree "1" (Content "" "" "") Nothing Nothing True (Children []))
 
             getNext : String -> Maybe String
             getNext tid =
@@ -311,6 +329,7 @@ viewCard model tree =
         , onDoubleClick (OpenCard tree.uid tree.content.content)
         ]
         [ div [ class "view" ] [ Markdown.toHtml [] tree.content.content ]
+        , button [ onClick (DeleteCard tree.uid) ][text "x"]
         , textarea
             [ id ( "card-edit-" ++ tree.uid )
             , class "edit"
@@ -352,6 +371,7 @@ nodeToTree data uid a =
                   |> Children
     , next = Nothing
     , prev = Nothing
+    , visible = True
     }
 
 
