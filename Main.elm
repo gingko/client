@@ -10,7 +10,6 @@ import Json.Decode as Json
 import Sha1
 import Markdown
 import String
-import Utils exposing (..)
 import List.Extra as ListExtra
 import Task
 
@@ -150,10 +149,10 @@ update msg model =
     OpenCard uid str ->
       { model
         | active = model.active
-        , editing = Just uid
+        , editing = Just (Debug.log "OpenCard uid" uid)
         , field = str
       }
-        ! [ Task.perform (\_ -> NoOp) (\_ -> NoOp) (Dom.focus ("card-edit-" ++ toString uid)) ]
+        ! [ Task.perform (\_ -> NoOp) (\_ -> NoOp) (Dom.focus ("card-edit-" ++ uid)) ]
 
     CancelCard ->
       { model
@@ -182,7 +181,7 @@ update msg model =
 
     InsertBelow uid ->
       { model
-        | tree = updateTree (InsertBelow uid) model.tree
+        | tree = updateTree (InsertBelow (Debug.log "uid" uid)) model.tree
       }
         ! []
 
@@ -226,13 +225,44 @@ updateTree msg tree =
           tree
         Children trees ->
           let
-            childrenUids = List.map .uid trees
+            blankTree = (Tree "1" (Content "" "" "") Nothing Nothing (Children []))
+
+            getNext : String -> Maybe String
+            getNext tid =
+              trees
+                |> ListExtra.find (\t -> t.uid == tid)
+                |> Maybe.withDefault blankTree
+                |> .next
+
+
+            newTree =
+              { blankTree
+                | prev = Just uid
+                , next = getNext uid
+                , uid = Sha1.sha1( uid ++ Maybe.withDefault "" (getNext uid))
+              }
+
+            allTrees = trees ++ [newTree]
+
+            sortedChildrenIds =
+              allTrees -- List Tree
+                -- |> Debug.log "allTrees"
+                |> toDag
+                |> Debug.log "dag"
+                |> linearizeDag
+                |> Debug.log "linearizeDag"
+
+            sortedChildren =
+              sortedChildrenIds
+                |> List.filterMap (\cid -> ListExtra.find (\t -> t.uid == cid) allTrees) -- List Tree
+                |> Children
           in
-            --if List.member uid childrenUids then
-              --{ tree
-                --| children = Children (trees ++ [{uid:
-              --}
-            tree
+            if (List.member uid (List.map .uid trees)) then
+              { tree
+                | children = sortedChildren
+              }
+            else
+              { tree | children = Children (List.map (updateTree (InsertBelow uid)) trees) }
 
 
     _ ->
@@ -271,25 +301,26 @@ viewGroup model xs =
 
 
 viewCard : Model -> Tree -> Html Msg
-viewCard model x =
-    div [ id ("card-" ++ x.uid)
+viewCard model tree =
+    div [ id ("card-" ++ tree.uid)
         , classList [ ("card", True)
-                    , ("active", model.active == x.uid)
-                    , ("editing", model.editing == Just x.uid)
+                    , ("active", model.active == tree.uid)
+                    , ("editing", model.editing == Just tree.uid)
                     ]
-        , onClick (Activate x.uid)
-        , onDoubleClick (OpenCard x.uid x.content.content)
+        , onClick (Activate tree.uid)
+        , onDoubleClick (OpenCard tree.uid tree.content.content)
         ]
-        [ div [ class "view" ] [ Markdown.toHtml [] x.content.content ]
+        [ div [ class "view" ] [ Markdown.toHtml [] tree.content.content ]
         , textarea
-            [ id ( "card-edit-" ++ x.uid )
+            [ id ( "card-edit-" ++ tree.uid )
             , class "edit"
             , value model.field
             , onBlur CancelCard
             , onInput UpdateField
-            , onEnter (UpdateCard x.uid model.field)
+            , onEnter (UpdateCard tree.uid model.field)
             ]
             []
+        , button [ onClick (InsertBelow tree.uid) ][text "+"]
         ]
 
 
@@ -447,6 +478,121 @@ getId {uid, content, children} =
         Sha1.sha1(content.id ++ newLine ++ (String.concat childrenIds))
 
 
+-- POSET and DAG stuff
+
+
+type alias PosetEntry =
+  { uid: String
+  , prev: Maybe String
+  , next: Maybe String
+  }
+
+
+type alias DagEntry =
+  { uid: String
+  , prev: List String
+  , next: List String
+  }
+
+
+toDag : List Tree -> List DagEntry
+toDag posets =
+  let
+    getPrev : Tree -> List String
+    getPrev pos =
+      let
+        prevId =
+          case pos.prev of
+            Nothing -> []
+            Just puid -> [puid]
+      in
+        posets
+          |> List.filter (\p -> p.next == Just pos.uid) -- List Tree
+          |> List.map .uid -- List String
+          |> List.append prevId
+          |> ListExtra.unique -- List String
+
+    getNext : Tree -> List String
+    getNext pos =
+      let
+        nextId =
+          case pos.next of
+            Nothing -> []
+            Just puid -> [puid]
+      in
+        posets
+          |> List.filter (\p -> p.prev == Just pos.uid) -- List Tree
+          |> List.map .uid -- List String
+          |> List.append nextId
+          |> ListExtra.unique -- List String
+
+    f : Tree -> DagEntry
+    f p = DagEntry p.uid (getPrev p) (getNext p)
+  in
+    posets -- List { uid: String, prev: Maybe String, next: Maybe String }
+      |> List.map f
+
+
+sortFunction : List DagEntry -> DagEntry -> DagEntry -> Order
+sortFunction dag a b =
+  let
+    distA = (maxDist dag "end" a.uid)
+    distB = (maxDist dag "end" b.uid)
+  in
+    if distA == distB then
+      compare a.uid b.uid
+    else
+      compare distB distA
+
+
+testDag : List DagEntry
+testDag =
+  [ DagEntry "start" [] ["1"]
+  , DagEntry "1" ["start"] ["2","end"]
+  , DagEntry "2" ["1"] ["3", "end"]
+  , DagEntry "3" ["2"] ["4", "end"]
+  , DagEntry "4" ["3"] ["end"]
+  , DagEntry "end" ["1","2","3","4"] []
+  ]
+
+
+testPoset : List PosetEntry
+testPoset =
+  [ PosetEntry "start" Nothing (Just "end")
+  , PosetEntry "end" (Just "start") Nothing
+  , PosetEntry "a" (Just "start") (Just "end") 
+  , PosetEntry "b" (Just "a") (Just "end") 
+  , PosetEntry "c" (Just "b") (Just "end") 
+  , PosetEntry "y" (Just "b") (Just "c") 
+  , PosetEntry "z" (Just "b") (Just "c") 
+  , PosetEntry "x" (Just "a") (Just "b") 
+  , PosetEntry "f" (Just "x") (Just "y") 
+  ]
+
+
+maxDist : List DagEntry -> String -> String -> Int
+maxDist dag toId fromId =
+  if toId == fromId then
+    0
+  else
+    let
+      maxNexts =
+        dag -- List DagEntry
+          |> ListExtra.find (\de -> de.uid == fromId) -- Maybe DagEntry
+          |> Maybe.withDefault (DagEntry "end" ["start"] []) -- DagEntry
+          |> .next
+          |> List.map (maxDist dag toId)
+          |> List.maximum
+          |> Maybe.withDefault 0
+    in
+      1 + maxNexts
+
+
+linearizeDag : List DagEntry -> List String
+linearizeDag dag =
+  dag -- List DagEntry
+    |> List.sortWith (sortFunction dag) -- List DagEntry
+    |> List.map .uid
 
 
 
