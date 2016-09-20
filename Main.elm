@@ -61,8 +61,8 @@ type alias Node =
 type alias Tree =
   { uid : String
   , content : Content
-  -- , prev : Maybe String
-  -- , next : Maybe String
+  , prev : Maybe String
+  , next : Maybe String
   , children : Children
   }
 
@@ -91,7 +91,7 @@ defaultModel =
   { contents = [defaultContent, { defaultContent | id = "1", content = "2" }]
   , nodes = [Node "0" "0" ["1"], Node "1" "1" []]
   , operations = []
-  , tree = { uid = "0" , content = defaultContent , children = Children [] }
+  , tree = { uid = "0" , content = defaultContent , children = Children [] , next = Nothing, prev = Nothing }
   , nextUid = 1
   , rootId = "0"
   , active = "0"
@@ -322,6 +322,8 @@ nodeToTree data uid a =
                   |> List.filterMap fmFunction -- List Node
                   |> List.indexedMap imFunction -- List Tree
                   |> Children
+    , next = Nothing
+    , prev = Nothing
     }
 
 
