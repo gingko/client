@@ -112,7 +112,7 @@ init savedData =
         { contents = data.contents
         , nodes = data.nodes
         , operations = []
-        , tree = newTree
+        , tree = Debug.log "newTree" newTree
         , nextUid = (List.length (getContents newTree)) + 1
         , rootId = data.rootId
         , active = "0"
@@ -311,7 +311,7 @@ nodeToTree : Data -> String -> Node -> Tree
 nodeToTree data uid a =
   let
     fmFunction id = ListExtra.find (\a -> a.id == id) data.nodes -- (String -> Maybe Node)
-    imFunction = (\idx -> nodeToTree data (Sha1.sha1 (toString idx) ++ uid))
+    imFunction = (\idx -> nodeToTree data (Sha1.sha1 ((toString idx) ++ uid)))
   in
     { uid = uid
     , content =
@@ -321,10 +321,28 @@ nodeToTree data uid a =
     , children = a.childrenIds -- List String
                   |> List.filterMap fmFunction -- List Node
                   |> List.indexedMap imFunction -- List Tree
+                  |> assignPrevNext -- List Tree
                   |> Children
     , next = Nothing
     , prev = Nothing
     }
+
+
+assignPrevNext : List Tree -> List Tree
+assignPrevNext trees =
+  let
+    idList = trees |> List.map .uid
+
+    imFunction : Int -> Tree -> Tree
+    imFunction idx tree =
+      { tree 
+        | prev = ListExtra.getAt (idx - 1) idList
+        , next = ListExtra.getAt (idx + 1) idList
+      }
+
+  in
+    trees -- List Tree
+      |> List.indexedMap imFunction
 
 
 columnHasChildren : Column -> Bool
