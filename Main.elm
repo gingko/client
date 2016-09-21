@@ -1,17 +1,20 @@
 port module Main exposing (..)
 
 
-import Dom
 import Html exposing (..)
 import Html.App as App
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as Json
-import Sha1
-import Markdown
-import String
-import List.Extra as ListExtra
+import Dom
 import Task
+import String
+import Markdown
+import List.Extra as ListExtra
+
+import Sha1
+import Types exposing (..)
+import Tree exposing (..)
 
 
 main : Program (Maybe Data)
@@ -44,45 +47,9 @@ type alias Model =
   , field : String
   }
 
-type alias Content =
-  { id : String
-  , contentType : String
-  , content : String
-  }
-
-type alias Node =
-  { id : String
-  , contentId : String
-  , childrenIds : List String
-  }
-
-type alias Tree =
-  { uid : String
-  , content : Content
-  , prev : Maybe String
-  , next : Maybe String
-  , visible : Bool
-  , children : Children
-  }
-
-type alias Data =
-  { contents : List Content
-  , nodes : List Node
-  , rootId : String
-  }
-
-
-type Children = Children (List Tree)
-type alias Group = List Tree
-type alias Column = List (List Tree)
-
 
 defaultContent : Content
-defaultContent =
-  { id = "0"
-  , contentType = "text/markdown"
-  , content = "defaultContent"
-  }
+defaultContent = { id = "0" , contentType = "text/markdown" , content = "defaultContent" }
 
 
 defaultModel : Model
