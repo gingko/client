@@ -20,6 +20,7 @@ import Types exposing (..)
 type alias Tree =
   { uid : String
   , content : Content
+  , parentId : Maybe String
   , prev : Maybe String
   , next : Maybe String
   , visible : Bool
@@ -36,6 +37,7 @@ default : Tree
 default =
   { uid = "0"
   , content = Content "" "" "" |> withContentId
+  , parentId = Nothing
   , children = Children [] 
   , next = Nothing
   , prev = Nothing 
@@ -93,6 +95,7 @@ update msg tree =
             Tree
               "1"
               (Content "" "" "" |> withContentId )
+              Nothing
               Nothing
               Nothing 
               True 
@@ -226,10 +229,12 @@ nodeToTree data uid a =
         data.contents
           |> ListExtra.find (\c -> c.id == (a.contentId))
           |> Maybe.withDefault defaultContent
+    , parentId = Nothing
     , children = a.childrenIds -- List String
                   |> List.filterMap fmFunction -- List Node
                   |> List.indexedMap imFunction -- List Tree
                   |> assignPrevNext -- List Tree
+                  |> List.map (\t -> { t | parentId = Just uid})
                   |> Children
     , next = Nothing
     , prev = Nothing
