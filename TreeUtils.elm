@@ -194,9 +194,7 @@ getLastChild tree uid =
       if tree.uid == uid then
         children
           |> List.map .uid
-          |> Debug.log "all childrenIds"
           |> ListExtra.last
-          |> Debug.log "lastChild"
       else
         children
           |> List.map ((flip getLastChild) uid)
