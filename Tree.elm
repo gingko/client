@@ -9,7 +9,6 @@ import Html.Lazy exposing (lazy)
 import Json.Decode as Json
 import Markdown
 
-import Sha1
 import Types exposing (..)
 import TreeUtils exposing (..)
 import TreeSort exposing (..)
@@ -18,7 +17,6 @@ import TreeSort exposing (..)
 
 
 -- MODEL
-
 
 default : Tree
 default =
