@@ -89,14 +89,8 @@ init savedData =
 
 type Msg
     = NoOp
-    | Activate String
-    | OpenCard String String
-    | CancelCard
-    | UpdateField String
-    | UpdateCard String String
-    | InsertBelow String
-    | DeleteCard String
     | SaveTree
+    | TreeMsg Tree.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -104,67 +98,6 @@ update msg model =
   case msg of
     NoOp ->
       model ! []
-
-    Activate uid ->
-      { model
-        | viewState = ViewState uid model.viewState.editing model.viewState.field
-      }
-        ! [ activateCard uid ]
-
-    OpenCard uid str ->
-      { model
-        | viewState =
-            ViewState
-              model.viewState.active
-              (Just uid)
-              str
-      }
-        ! [ Task.perform (\_ -> NoOp) (\_ -> NoOp) (Dom.focus ("card-edit-" ++ uid)) ]
-
-    CancelCard ->
-      { model
-        | viewState =
-            ViewState
-              model.viewState.active
-              Nothing
-              ""
-      }
-        ! []
-
-    UpdateField str ->
-      { model
-        | viewState =
-            ViewState
-              model.viewState.active
-              model.viewState.editing
-              str
-      }
-        ! []
-
-    UpdateCard uid str ->
-      { model
-        | tree = Tree.update (Tree.UpdateCard uid str) model.tree
-        , viewState =
-            ViewState
-              model.viewState.active
-              Nothing
-              ""
-        , operations = Debug.log "ops" ((UpdateCard uid str) :: model.operations )
-      }
-        ! []
-
-    InsertBelow uid ->
-      { model
-        | tree = Tree.update (Tree.InsertBelow (Debug.log "uid" uid)) model.tree
-      }
-        ! []
-
-    DeleteCard uid ->
-      { model
-        | tree = Tree.update (Tree.DeleteCard uid) model.tree
-      }
-        ! []
-
 
     SaveTree ->
       let
@@ -184,6 +117,70 @@ update msg model =
         }
           ! [saveNodes newNodes, saveContents newContents, saveRoot newRootId]
 
+    TreeMsg msg ->
+      case msg of
+        Tree.Activate uid ->
+          { model
+            | viewState = ViewState uid model.viewState.editing model.viewState.field
+          }
+            ! [ activateCard uid ]
+
+        Tree.OpenCard uid str ->
+          { model
+            | viewState =
+                ViewState
+                  model.viewState.active
+                  (Just uid)
+                  str
+          }
+            ! [ Task.perform (\_ -> NoOp) (\_ -> NoOp) (Dom.focus ("card-edit-" ++ uid)) ]
+
+        Tree.CancelCard ->
+          { model
+            | viewState =
+                ViewState
+                  model.viewState.active
+                  Nothing
+                  ""
+          }
+            ! []
+
+        Tree.UpdateField str ->
+          { model
+            | viewState =
+                ViewState
+                  model.viewState.active
+                  model.viewState.editing
+                  str
+          }
+            ! []
+
+        Tree.UpdateCard uid str ->
+          { model
+            | tree = Tree.update (Tree.UpdateCard uid str) model.tree
+            , viewState =
+                ViewState
+                  model.viewState.active
+                  Nothing
+                  ""
+          }
+            ! []
+        
+        InsertBelow uid ->
+          { model
+            | tree = Tree.update (Tree.InsertBelow (Debug.log "uid" uid)) model.tree
+          }
+            ! []
+
+        DeleteCard uid ->
+          { model
+            | tree = Tree.update (Tree.DeleteCard uid) model.tree
+          }
+            ! []
+
+        _ -> model ! []
+
+
 
 
 -- VIEW
@@ -196,61 +193,9 @@ view model =
   in
     div [ id "wrapper" ]
         [ button [onClick SaveTree][text "save"]
-        , div [id "app" ](List.map (viewColumn model.viewState) columns)
+        , div [id "app" ]
+            ( columns
+              |> List.map (viewColumn model.viewState)
+              |> List.map (App.map TreeMsg)
+            )
         ]
-
-
-viewColumn : ViewState -> Column -> Html Msg
-viewColumn model col =
-  div
-    [ class "column" ]
-    [ div
-        [ class "buffer" ][]
-    , div [](List.map (viewGroup model) col)
-    , div
-        [ class "buffer" ][]
-    ]
-
-
-viewGroup : ViewState -> Group -> Html Msg
-viewGroup model xs =
-  div [ class "group" ]
-      (List.map (viewCard model) xs)
-
-
-viewCard : ViewState -> Tree -> Html Msg
-viewCard model tree =
-    div [ id ("card-" ++ tree.uid)
-        , classList [ ("card", True)
-                    , ("active", model.active == tree.uid)
-                    , ("editing", model.editing == Just tree.uid)
-                    ]
-        , onClick (Activate tree.uid)
-        , onDoubleClick (OpenCard tree.uid tree.content.content)
-        ]
-        [ div [ class "view" ] [ Markdown.toHtml [] tree.content.content ]
-        , button [ onClick (DeleteCard tree.uid) ][text "x"]
-        , textarea
-            [ id ( "card-edit-" ++ tree.uid )
-            , class "edit"
-            , value model.field
-            , onBlur CancelCard
-            , onInput UpdateField
-            , onEnter (UpdateCard tree.uid model.field)
-            ]
-            []
-        , button [ onClick (InsertBelow tree.uid) ][text "+"]
-        ]
-
-
--- STRUCTURING
-
-onEnter : Msg -> Attribute Msg
-onEnter msg =
-  let
-    tagger code =
-      if code == 13 then
-        msg
-      else NoOp
-  in
-    on "keydown" (Json.map tagger keyCode)

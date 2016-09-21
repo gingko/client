@@ -2,6 +2,12 @@ module Tree exposing (..)
 
 import String
 import List.Extra as ListExtra
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (..)
+import Json.Decode as Json
+import Markdown
+
 import Sha1
 import Types exposing (..)
 
@@ -43,9 +49,13 @@ default =
 
 type Msg
   = NoOp
+  | Activate String
   | UpdateCard String String
   | DeleteCard String
+  | OpenCard String String
+  | CancelCard
   | InsertBelow String
+  | UpdateField String
 
 
 update : Msg -> Tree -> Tree
@@ -115,8 +125,54 @@ update msg tree =
             else
               { tree | children = Children (List.map (update (InsertBelow uid)) trees) }
 
+    _ ->
+      tree
+
 
 -- VIEW
+
+
+viewColumn : ViewState -> Column -> Html Msg
+viewColumn model col =
+  div
+    [ class "column" ]
+    [ div
+        [ class "buffer" ][]
+    , div [](List.map (viewGroup model) col)
+    , div
+        [ class "buffer" ][]
+    ]
+
+
+viewGroup : ViewState -> Group -> Html Msg
+viewGroup model xs =
+  div [ class "group" ]
+      (List.map (viewCard model) xs)
+
+
+viewCard : ViewState -> Tree -> Html Msg
+viewCard model tree =
+    div [ id ("card-" ++ tree.uid)
+        , classList [ ("card", True)
+                    , ("active", model.active == tree.uid)
+                    , ("editing", model.editing == Just tree.uid)
+                    ]
+        , onClick (Activate tree.uid)
+        , onDoubleClick (OpenCard tree.uid tree.content.content)
+        ]
+        [ div [ class "view" ] [ Markdown.toHtml [] tree.content.content ]
+        , button [ onClick (DeleteCard tree.uid) ][text "x"]
+        , textarea
+            [ id ( "card-edit-" ++ tree.uid )
+            , class "edit"
+            , value model.field
+            , onBlur CancelCard
+            , onInput UpdateField
+            , onEnter (UpdateCard tree.uid model.field)
+            ]
+            []
+        , button [ onClick (InsertBelow tree.uid) ][text "+"]
+        ]
 
 
 
@@ -413,3 +469,12 @@ newLine =
   String.fromList ['\n']
 
 
+onEnter : Msg -> Attribute Msg
+onEnter msg =
+  let
+    tagger code =
+      if code == 13 then
+        msg
+      else NoOp
+  in
+    on "keydown" (Json.map tagger keyCode)
