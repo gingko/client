@@ -18,3 +18,7 @@ type alias Data =
   , nodes : List Node
   , rootId : String
   }
+
+
+defaultContent : Content
+defaultContent = { id = "0" , contentType = "text/markdown" , content = "defaultContent" }
