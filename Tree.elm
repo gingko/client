@@ -178,15 +178,7 @@ viewCard vstate tree =
 
 
 
--- HELPERS
-
-
-getChildren : Tree -> List Tree
-getChildren x =
-  case x.children of
-    Children c ->
-      c
-        |> filterTrees
+-- STRUCTURE FUNCTIONS
 
 
 nodeToTree : Data -> String -> Node -> Tree
@@ -211,27 +203,6 @@ nodeToTree data uid a =
     }
 
 
-assignPrevNext : List Tree -> List Tree
-assignPrevNext trees =
-  let
-    idList = trees |> List.map .uid
-
-    imFunction : Int -> Tree -> Tree
-    imFunction idx tree =
-      { tree 
-        | prev = ListExtra.getAt (idx - 1) idList
-        , next = ListExtra.getAt (idx + 1) idList
-      }
-
-  in
-    trees -- List Tree
-      |> List.indexedMap imFunction
-
-
-columnHasChildren : Column -> Bool
-columnHasChildren col =
-  col |> List.concat
-      |> List.any (\x -> (getChildren x) /= [])
 
 
 nextColumn : Column -> Column
@@ -274,12 +245,12 @@ treeToNodes nodes {uid, content, children} =
       let
         descendants =
           trees
-            |> filterTrees
+            |> filterByVisible
             |> List.map (treeToNodes nodes)
 
         childrenIds =
           trees
-            |> filterTrees
+            |> filterByVisible
             |> List.map treeToNode -- TODO: recursion twice, likely costly unnecessary
             |> List.map .id
       in
@@ -302,7 +273,7 @@ treeToNode {uid, content, children} =
       let
         childrenIds =
           trees
-            |> filterTrees
+            |> filterByVisible
             |> List.map treeToNode
             |> List.map .id
       in
@@ -332,27 +303,15 @@ getId {uid, content, children} =
       let
         childrenIds =
           trees
-            |> filterTrees
+            |> filterByVisible
             |> List.map getId
       in
         Sha1.sha1(content.id ++ newLine ++ (String.concat childrenIds))
 
 
-filterTrees : List Tree -> List Tree
-filterTrees trees =
-  trees
-    |> List.filter (\t -> t.visible)
-
 
 
 -- POSET and DAG stuff
-
-
-type alias PosetEntry =
-  { uid: String
-  , prev: Maybe String
-  , next: Maybe String
-  }
 
 
 type alias DagEntry =
@@ -412,31 +371,6 @@ sortFunction dag a b =
       compare distB distA
 
 
-testDag : List DagEntry
-testDag =
-  [ DagEntry "start" [] ["1"]
-  , DagEntry "1" ["start"] ["2","end"]
-  , DagEntry "2" ["1"] ["3", "end"]
-  , DagEntry "3" ["2"] ["4", "end"]
-  , DagEntry "4" ["3"] ["end"]
-  , DagEntry "end" ["1","2","3","4"] []
-  ]
-
-
-testPoset : List PosetEntry
-testPoset =
-  [ PosetEntry "start" Nothing (Just "end")
-  , PosetEntry "end" (Just "start") Nothing
-  , PosetEntry "a" (Just "start") (Just "end") 
-  , PosetEntry "b" (Just "a") (Just "end") 
-  , PosetEntry "c" (Just "b") (Just "end") 
-  , PosetEntry "y" (Just "b") (Just "c") 
-  , PosetEntry "z" (Just "b") (Just "c") 
-  , PosetEntry "x" (Just "a") (Just "b") 
-  , PosetEntry "f" (Just "x") (Just "y") 
-  ]
-
-
 maxDist : List DagEntry -> String -> String -> Int
 maxDist dag toId fromId =
   if toId == fromId then
@@ -463,7 +397,44 @@ linearizeDag dag =
 
 
 
+
 --HELPERS
+
+getChildren : Tree -> List Tree
+getChildren x =
+  case x.children of
+    Children c ->
+      c
+        |> filterByVisible
+
+
+filterByVisible : List Tree -> List Tree
+filterByVisible trees =
+  trees
+    |> List.filter (\t -> t.visible)
+
+
+assignPrevNext : List Tree -> List Tree
+assignPrevNext trees =
+  let
+    idList = trees |> List.map .uid
+
+    imFunction : Int -> Tree -> Tree
+    imFunction idx tree =
+      { tree 
+        | prev = ListExtra.getAt (idx - 1) idList
+        , next = ListExtra.getAt (idx + 1) idList
+      }
+
+  in
+    trees -- List Tree
+      |> List.indexedMap imFunction
+
+
+columnHasChildren : Column -> Bool
+columnHasChildren col =
+  col |> List.concat
+      |> List.any (\x -> (getChildren x) /= [])
 
 
 newLine : String
