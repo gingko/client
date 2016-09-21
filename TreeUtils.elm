@@ -187,6 +187,24 @@ getParent tree uid =
           |> Maybe.oneOf
 
 
+getLastChild : Tree -> String -> Maybe String
+getLastChild tree uid =
+  case tree.children of
+    Children children ->
+      if tree.uid == uid then
+        children
+          |> List.map .uid
+          |> Debug.log "all childrenIds"
+          |> ListExtra.last
+          |> Debug.log "lastChild"
+      else
+        children
+          |> List.map ((flip getLastChild) uid)
+          |> Maybe.oneOf
+
+
+
+
 
 -- UID FUNCTIONS
 
@@ -206,14 +224,6 @@ nodeId contentId children =
 nextUid : String -> Int -> String
 nextUid uid idx =
   Sha1.sha1 (uid ++ (toString idx))
-
-
--- opUid : Tree -> Msg -> String
--- opUid tree msg =
-  -- case msg of
-    -- InsertBelow uid ->
-
-
 
 
 newUid : Maybe String -> Maybe String -> Maybe String -> String

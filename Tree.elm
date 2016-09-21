@@ -97,25 +97,20 @@ update msg tree =
         
 
     InsertBelow uid ->
-      update (Insert (getParent tree uid |> Maybe.withDefault "0" ) (Just uid) (getNext tree uid)) tree
+      let
+        parentId = getParent tree uid |> Maybe.withDefault "0" 
+        prevId_ = Just uid
+        nextId_ = getNext tree uid
+      in
+        update (Insert parentId prevId_ nextId_ ) tree
     
     InsertChild uid ->
-      if tree.uid == uid then
-        { tree
-          | children =
-              children
-                |> List.length
-                |> nextUid uid
-                |> blankTree
-                |> ListExtra.singleton
-                |> List.append children
-                |> Children
-        }
-      else
-        { tree
-          | children = Children (List.map (update (InsertChild uid)) children) 
-        }
-
+      let
+        parentId = uid
+        prevId_ = getLastChild tree uid |> Debug.log "prevId_"
+        nextId_ = Nothing
+      in
+        update (Insert parentId prevId_ nextId_ ) tree
 
     _ ->
       tree
