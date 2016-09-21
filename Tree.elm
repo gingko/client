@@ -29,7 +29,7 @@ type alias Column = List (List Tree)
 default : Tree
 default =
   { uid = "0"
-  , content = Content "adc83b19e793491b1c6ea0fd8b46cd9f32e592fc" "" ""
+  , content = Content (Sha1.sha1 ("" ++ newLine)) "" ""
   , children = Children [] 
   , next = Nothing
   , prev = Nothing 
@@ -48,8 +48,8 @@ type Msg
   | InsertBelow String
 
 
-updateTree : Msg -> Tree -> Tree
-updateTree msg tree =
+update : Msg -> Tree -> Tree
+update msg tree =
   case msg of
     NoOp -> tree
 
@@ -61,7 +61,7 @@ updateTree msg tree =
           Children [] ->
             tree
           Children trees ->
-            { tree | children = Children (List.map (updateTree (UpdateCard uid str)) trees) }
+            { tree | children = Children (List.map (update (UpdateCard uid str)) trees) }
 
     DeleteCard uid ->
       if tree.uid == uid then
@@ -71,7 +71,7 @@ updateTree msg tree =
           Children [] ->
             tree
           Children trees ->
-            { tree | children = Children (List.map (updateTree (DeleteCard uid)) trees) }
+            { tree | children = Children (List.map (update (DeleteCard uid)) trees) }
 
     InsertBelow uid ->
       case tree.children of
@@ -99,12 +99,9 @@ updateTree msg tree =
             allTrees = trees ++ [newTree]
 
             sortedChildrenIds =
-              allTrees -- List Tree
-                -- |> Debug.log "allTrees"
+              allTrees
                 |> toDag
-                |> Debug.log "dag"
                 |> linearizeDag
-                |> Debug.log "linearizeDag"
 
             sortedChildren =
               sortedChildrenIds
@@ -116,7 +113,7 @@ updateTree msg tree =
                 | children = sortedChildren
               }
             else
-              { tree | children = Children (List.map (updateTree (InsertBelow uid)) trees) }
+              { tree | children = Children (List.map (update (InsertBelow uid)) trees) }
 
 
 -- VIEW

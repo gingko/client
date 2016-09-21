@@ -40,9 +40,7 @@ type alias Model =
   , operations : List Msg
   , tree : Tree
   , rootId : String
-  , active : String
-  , editing : Maybe String
-  , field : String
+  , viewState : ViewState
   }
 
 
@@ -53,9 +51,11 @@ defaultModel =
   , operations = []
   , tree = Tree.default
   , rootId = "0"
-  , active = "0"
-  , editing = Nothing
-  , field = ""
+  , viewState = 
+      { active = "0"
+      , editing = Nothing
+      , field = ""
+      }
   }
 
 
@@ -73,9 +73,11 @@ init savedData =
         , operations = []
         , tree = Debug.log "newTree" newTree
         , rootId = data.rootId
-        , active = "0"
-        , editing = Nothing
-        , field = ""
+        , viewState = 
+            { active = "0"
+            , editing = Nothing
+            , field = ""
+            }
         }
           ! [ ]
 
@@ -105,52 +107,61 @@ update msg model =
 
     Activate uid ->
       { model
-        | active = uid
+        | viewState = ViewState uid model.viewState.editing model.viewState.field
       }
         ! [ activateCard uid ]
 
     OpenCard uid str ->
       { model
-        | active = model.active
-        , editing = Just (Debug.log "OpenCard uid" uid)
-        , field = str
+        | viewState =
+            ViewState
+              model.viewState.active
+              (Just uid)
+              str
       }
         ! [ Task.perform (\_ -> NoOp) (\_ -> NoOp) (Dom.focus ("card-edit-" ++ uid)) ]
 
     CancelCard ->
       { model
-        | active = model.active
-        , editing = Nothing
-        , field = ""
+        | viewState =
+            ViewState
+              model.viewState.active
+              Nothing
+              ""
       }
         ! []
 
     UpdateField str ->
       { model
-        | active = model.active
-        , editing = model.editing
-        , field = str
+        | viewState =
+            ViewState
+              model.viewState.active
+              model.viewState.editing
+              str
       }
         ! []
 
     UpdateCard uid str ->
       { model
-        | tree = updateTree (Tree.UpdateCard uid str) model.tree
-        , editing = Nothing
-        , field = ""
+        | tree = Tree.update (Tree.UpdateCard uid str) model.tree
+        , viewState =
+            ViewState
+              model.viewState.active
+              Nothing
+              ""
         , operations = Debug.log "ops" ((UpdateCard uid str) :: model.operations )
       }
         ! []
 
     InsertBelow uid ->
       { model
-        | tree = updateTree (Tree.InsertBelow (Debug.log "uid" uid)) model.tree
+        | tree = Tree.update (Tree.InsertBelow (Debug.log "uid" uid)) model.tree
       }
         ! []
 
     DeleteCard uid ->
       { model
-        | tree = updateTree (Tree.DeleteCard uid) model.tree
+        | tree = Tree.update (Tree.DeleteCard uid) model.tree
       }
         ! []
 
@@ -185,11 +196,11 @@ view model =
   in
     div [ id "wrapper" ]
         [ button [onClick SaveTree][text "save"]
-        , div [id "app" ](List.map (viewColumn model) columns)
+        , div [id "app" ](List.map (viewColumn model.viewState) columns)
         ]
 
 
-viewColumn : Model -> Column -> Html Msg
+viewColumn : ViewState -> Column -> Html Msg
 viewColumn model col =
   div
     [ class "column" ]
@@ -201,13 +212,13 @@ viewColumn model col =
     ]
 
 
-viewGroup : Model -> Group -> Html Msg
+viewGroup : ViewState -> Group -> Html Msg
 viewGroup model xs =
   div [ class "group" ]
       (List.map (viewCard model) xs)
 
 
-viewCard : Model -> Tree -> Html Msg
+viewCard : ViewState -> Tree -> Html Msg
 viewCard model tree =
     div [ id ("card-" ++ tree.uid)
         , classList [ ("card", True)

@@ -19,6 +19,12 @@ type alias Data =
   , rootId : String
   }
 
+type alias ViewState =
+  { active : String
+  , editing : Maybe String
+  , field : String
+  }
+
 
 defaultContent : Content
 defaultContent = { id = "0" , contentType = "text/markdown" , content = "defaultContent" }
