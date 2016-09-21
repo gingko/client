@@ -13,6 +13,7 @@ import List.Extra as ListExtra
 
 import Types exposing (..)
 import Tree exposing (..)
+import TreeUtils exposing (..)
 
 
 main : Program (Maybe Data)

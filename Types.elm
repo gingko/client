@@ -25,6 +25,21 @@ type alias ViewState =
   , field : String
   }
 
+type alias Tree =
+  { uid : String
+  , content : Content
+  , parentId : Maybe String
+  , prev : Maybe String
+  , next : Maybe String
+  , visible : Bool
+  , children : Children
+  }
+
+
+type Children = Children (List Tree)
+type alias Group = List Tree
+type alias Column = List (List Tree)
+
 
 defaultContent : Content
 defaultContent = { id = "0" , contentType = "text/markdown" , content = "defaultContent" }
