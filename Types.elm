@@ -16,6 +16,7 @@ type alias Node =
 type alias Data =
   { contents : List Content
   , nodes : List Node
+  , ops : List Operation
   , rootId : String
   }
 
@@ -24,6 +25,12 @@ type alias ViewState =
   , editing : Maybe String
   , field : String
   }
+
+type alias Operation =
+  { opType : String
+  , params : List (Maybe String)
+  }
+
 
 type alias Tree =
   { uid : String

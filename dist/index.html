@@ -18,6 +18,7 @@
 var db = new PouchDB('elm-gingko-test-cards');
 var storedView = JSON.parse(localStorage.getItem('elm-gingko-test-view'));
 var storedRoot = localStorage.getItem('elm-test-root');
+var storedOps = JSON.parse(localStorage.getItem('elm-test-ops'));
 var gingko = null;
 
 db.allDocs({include_docs: true}).then(function(docs){
@@ -48,6 +49,7 @@ db.allDocs({include_docs: true}).then(function(docs){
   if (content.length > 0 && nodes.length > 0) {
     startingState = { contents: content
                     , nodes: nodes
+                    , ops : storedOps ? storedOps : []
                     , rootId: storedRoot ? storedRoot : "f01318cad7d0e51bc23f5b786293cdc497633f3c"
                     }
   }
@@ -63,6 +65,7 @@ startElm = function(init) {
   gingko.ports.saveContents.subscribe(saveContents);
   gingko.ports.saveNodes.subscribe(saveNodes);
   gingko.ports.saveRoot.subscribe(saveRoot);
+  gingko.ports.saveOp.subscribe(saveOp);
   gingko.ports.activateCard.subscribe(activateCard);
 }
 
@@ -105,6 +108,13 @@ saveNodes = function(nodes) {
 
 saveRoot = function(rootId) {
   localStorage.setItem("elm-test-root", rootId);
+}
+
+saveOp = function(op) {
+  console.log(op);
+  var prev = JSON.parse(localStorage.getItem("elm-test-ops"));
+  prev = prev ? prev : [];
+  localStorage.setItem("elm-test-ops", JSON.stringify(prev.concat(op)));
 }
 
 activateCard = function(uid) {

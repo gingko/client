@@ -29,6 +29,7 @@ main =
 port saveNodes : List Node -> Cmd msg
 port saveContents : List Content -> Cmd msg
 port saveRoot : String -> Cmd msg
+port saveOp : Operation -> Cmd msg
 port activateCard : String -> Cmd msg
 
 
@@ -38,7 +39,7 @@ port activateCard : String -> Cmd msg
 type alias Model =
   { contents : List Content
   , nodes : List Node
-  , operations : List Msg
+  , operations : List Operation
   , tree : Tree
   , rootId : String
   , viewState : ViewState
@@ -67,11 +68,13 @@ init savedData =
       defaultModel ! [ ]
     Just data ->
       let
-        newTree = buildStructure data
+        newTree =
+          buildStructure data
+            |> applyOperations data.ops
       in
         { contents = data.contents
         , nodes = data.nodes
-        , operations = []
+        , operations = data.ops
         , tree = newTree
         , rootId = data.rootId
         , viewState = 
@@ -157,6 +160,9 @@ update msg model =
             ! []
 
         Tree.UpdateCard uid str ->
+          let
+            newOp = Operation "Update" [Just uid, Just str]
+          in
           { model
             | tree = Tree.update (Tree.UpdateCard uid str) model.tree
             , viewState =
@@ -164,8 +170,9 @@ update msg model =
                   model.viewState.active
                   Nothing
                   ""
+            , operations = model.operations ++ [newOp]
           }
-            ! []
+            ! [saveOp newOp]
 
         Tree.InsertChild uid ->
           { model
@@ -179,6 +186,7 @@ update msg model =
             prevId_ = Just uid
             nextId_ = getNext model.tree uid
             newId = newUid parentId prevId_ nextId_
+            newOp = Operation "Insert" [parentId, prevId_, nextId_]
           in
             { model
               | tree = Tree.update (Insert parentId prevId_ nextId_) model.tree
@@ -187,8 +195,9 @@ update msg model =
                   , editing = Just newId
                   , field = ""
                   }
+              , operations = model.operations ++ [newOp]
             }
-              ! [focus newId]
+              ! [focus newId, saveOp newOp]
 
         _ ->
           { model

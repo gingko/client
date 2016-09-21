@@ -107,6 +107,38 @@ update msg tree =
       tree
 
 
+applyOperations : List Operation -> Tree -> Tree
+applyOperations ops tree =
+  List.foldr applyOp tree ops
+
+
+applyOp : Operation -> Tree -> Tree
+applyOp {opType, params} tree =
+  case opType of
+    "Insert" -> 
+      let
+        parId = ListExtra.getAt 0 params |> Maybe.withDefault (Nothing)
+        prevId = ListExtra.getAt 1 params |> Maybe.withDefault (Nothing)
+        nextId = ListExtra.getAt 0 params |> Maybe.withDefault (Nothing)
+      in
+        update (Insert parId prevId nextId) tree
+
+    "Update" -> 
+      let
+        uid = 
+          ListExtra.getAt 0 params 
+            |> Maybe.withDefault (Nothing) 
+            |> Maybe.withDefault ""
+        str =
+          ListExtra.getAt 1 params 
+            |> Maybe.withDefault (Nothing) 
+            |> Maybe.withDefault "empty"
+      in
+        update (UpdateCard uid str) tree
+    _ ->
+      tree
+
+
 
 
 -- VIEW
