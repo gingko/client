@@ -5,6 +5,7 @@ import List.Extra as ListExtra
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Html.Lazy exposing (lazy)
 import Json.Decode as Json
 import Markdown
 
@@ -15,7 +16,6 @@ import Types exposing (..)
 
 
 -- MODEL
-
 
 type alias Tree =
   { uid : String
@@ -129,33 +129,35 @@ update msg tree =
       tree
 
 
+
+
 -- VIEW
 
 
 viewColumn : ViewState -> Column -> Html Msg
-viewColumn model col =
+viewColumn vstate col =
   div
     [ class "column" ]
     [ div
         [ class "buffer" ][]
-    , div [](List.map (viewGroup model) col)
+    , div [](List.map (lazy (viewGroup vstate)) col)
     , div
         [ class "buffer" ][]
     ]
 
 
 viewGroup : ViewState -> Group -> Html Msg
-viewGroup model xs =
+viewGroup vstate xs =
   div [ class "group" ]
-      (List.map (viewCard model) xs)
+      (List.map (lazy (viewCard vstate)) xs)
 
 
 viewCard : ViewState -> Tree -> Html Msg
-viewCard model tree =
+viewCard vstate tree =
     div [ id ("card-" ++ tree.uid)
         , classList [ ("card", True)
-                    , ("active", model.active == tree.uid)
-                    , ("editing", model.editing == Just tree.uid)
+                    , ("active", vstate.active == tree.uid)
+                    , ("editing", vstate.editing == Just tree.uid)
                     ]
         , onClick (Activate tree.uid)
         , onDoubleClick (OpenCard tree.uid tree.content.content)
@@ -165,10 +167,10 @@ viewCard model tree =
         , textarea
             [ id ( "card-edit-" ++ tree.uid )
             , class "edit"
-            , value model.field
+            , value vstate.field
             , onBlur CancelCard
             , onInput UpdateField
-            , onEnter (UpdateCard tree.uid model.field)
+            , onEnter (UpdateCard tree.uid vstate.field)
             ]
             []
         , button [ onClick (InsertBelow tree.uid) ][text "+"]
