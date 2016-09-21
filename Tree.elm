@@ -42,7 +42,9 @@ default =
   , visible = True 
   }
 
-
+blankTree : String -> Tree
+blankTree uid =
+  { default | uid = uid }
 
 
 -- UPDATE
@@ -55,75 +57,82 @@ type Msg
   | OpenCard String String
   | CancelCard
   | InsertBelow String
+  | InsertChild String
   | UpdateField String
 
 
 update : Msg -> Tree -> Tree
 update msg tree =
+  let
+    children =
+      case tree.children of
+        Children trees -> trees
+
+  in
   case msg of
     NoOp -> tree
 
     UpdateCard uid str ->
       if tree.uid == uid then
-         { tree | content = Content (Sha1.sha1 str) "" str }
+        { tree | content = Content (Sha1.sha1 str) "" str }
       else
-        case tree.children of
-          Children [] ->
-            tree
-          Children trees ->
-            { tree | children = Children (List.map (update (UpdateCard uid str)) trees) }
+        { tree | children = Children (List.map (update (UpdateCard uid str)) children) }
 
     DeleteCard uid ->
       if tree.uid == uid then
-         { tree | visible = False }
+        { tree | visible = False }
       else
-        case tree.children of
-          Children [] ->
-            tree
-          Children trees ->
-            { tree | children = Children (List.map (update (DeleteCard uid)) trees) }
+        { tree | children = Children (List.map (update (DeleteCard uid)) children) }
 
     InsertBelow uid ->
-      case tree.children of
-        Children [] ->
-          tree
-        Children trees ->
-          let
-            blankTree = (Tree "1" (Content "" "" "") Nothing Nothing True (Children []))
+      if children == [] then
+         tree
+      else
+        let
+          blankTree = (Tree "1" (Content "" "" "") Nothing Nothing True (Children []))
 
-            getNext : String -> Maybe String
-            getNext tid =
-              trees
-                |> ListExtra.find (\t -> t.uid == tid)
-                |> Maybe.withDefault blankTree
-                |> .next
+          getNext : String -> Maybe String
+          getNext tid =
+            children
+              |> ListExtra.find (\t -> t.uid == tid)
+              |> Maybe.withDefault blankTree
+              |> .next
 
 
-            newTree =
-              { blankTree
-                | prev = Just uid
-                , next = getNext uid
-                , uid = Sha1.sha1( uid ++ Maybe.withDefault "" (getNext uid))
-              }
+          newTree =
+            { blankTree
+              | prev = Just uid
+              , next = getNext uid
+              , uid = Sha1.sha1( uid ++ Maybe.withDefault "" (getNext uid))
+            }
 
-            allTrees = trees ++ [newTree]
+          allTrees = children ++ [newTree]
 
-            sortedChildrenIds =
-              allTrees
-                |> toDag
-                |> linearizeDag
+          sortedChildrenIds =
+            allTrees
+              |> toDag
+              |> linearizeDag
 
-            sortedChildren =
-              sortedChildrenIds
-                |> List.filterMap (\cid -> ListExtra.find (\t -> t.uid == cid) allTrees) -- List Tree
-                |> Children
-          in
-            if (List.member uid (List.map .uid trees)) then
-              { tree
-                | children = sortedChildren
-              }
-            else
-              { tree | children = Children (List.map (update (InsertBelow uid)) trees) }
+          sortedChildren =
+            sortedChildrenIds
+              |> List.filterMap (\cid -> ListExtra.find (\t -> t.uid == cid) allTrees) -- List Tree
+              |> Children
+        in
+          if (List.member uid (List.map .uid children)) then
+            { tree
+              | children = sortedChildren
+            }
+          else
+            { tree | children = Children (List.map (update (InsertBelow uid)) children) }
+    
+    InsertChild uid ->
+      if tree.uid == uid then
+        { tree
+          | children = Children (children ++ [blankTree (Sha1.sha1 (uid ++ "0"))])
+        }
+      else
+        (Debug.log "InsertChild" tree)
+
 
     _ ->
       tree
@@ -154,6 +163,17 @@ viewGroup vstate xs =
 
 viewCard : ViewState -> Tree -> Html Msg
 viewCard vstate tree =
+  let
+    buttons =
+      if (tree.uid /= "0") then
+        [ button [ onClick (DeleteCard tree.uid) ][text "x"]
+        , button [ onClick (InsertBelow tree.uid) ][text "+ below"]
+        , button [ onClick (InsertChild tree.uid) ][text "+ child"]
+        ]
+      else
+        [ button [ onClick (InsertChild tree.uid) ][text "+ child"]
+        ]
+  in
     div [ id ("card-" ++ tree.uid)
         , classList [ ("card", True)
                     , ("active", vstate.active == tree.uid)
@@ -162,8 +182,7 @@ viewCard vstate tree =
         , onClick (Activate tree.uid)
         , onDoubleClick (OpenCard tree.uid tree.content.content)
         ]
-        [ div [ class "view" ] [ Markdown.toHtml [] tree.content.content ]
-        , button [ onClick (DeleteCard tree.uid) ][text "x"]
+        ([ div [ class "view" ] [ Markdown.toHtml [] tree.content.content ]
         , textarea
             [ id ( "card-edit-" ++ tree.uid )
             , class "edit"
@@ -173,8 +192,7 @@ viewCard vstate tree =
             , onEnter (UpdateCard tree.uid vstate.field)
             ]
             []
-        , button [ onClick (InsertBelow tree.uid) ][text "+"]
-        ]
+        ] ++ buttons)
 
 
 

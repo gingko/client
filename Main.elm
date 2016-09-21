@@ -166,19 +166,11 @@ update msg model =
           }
             ! []
         
-        InsertBelow uid ->
+        msg ->
           { model
-            | tree = Tree.update (Tree.InsertBelow (Debug.log "uid" uid)) model.tree
+            | tree = Tree.update msg model.tree
           }
             ! []
-
-        DeleteCard uid ->
-          { model
-            | tree = Tree.update (Tree.DeleteCard uid) model.tree
-          }
-            ! []
-
-        _ -> model ! []
 
 
 
