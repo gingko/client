@@ -87,53 +87,27 @@ update msg tree =
         { tree | children = Children (List.map (update (DeleteCard uid)) children) }
 
     InsertBelow uid ->
-      if children == [] then
-         tree
-      else
-        let
-          blankTree = 
-            Tree
-              "1"
-              (Content "" "" "" |> withContentId )
-              Nothing
-              Nothing
-              Nothing 
-              True 
-              (Children [])
+      let
+        nextId = getNextVisible children uid
 
-          getNext : String -> Maybe String
-          getNext tid =
-            children
-              |> ListExtra.find (\t -> t.uid == tid)
-              |> Maybe.withDefault blankTree
-              |> .next
+        newTree =
+          { uid = newUid tree.parentId (Just uid) nextId
+          , parentId = tree.parentId
+          , prev = Just uid
+          , next = nextId
+          , content = (Content "" "" "" |> withContentId)
+          , visible = True
+          , children = Children []
+          }
 
-
-          newTree =
-            { blankTree
-              | prev = Just uid
-              , next = getNext uid
-              , uid = Sha1.sha1( uid ++ Maybe.withDefault "" (getNext uid))
-            }
-
-          allTrees = children ++ [newTree]
-
-          sortedChildrenIds =
-            allTrees
-              |> toDag
-              |> linearizeDag
-
-          sortedChildren =
-            sortedChildrenIds
-              |> List.filterMap (\cid -> ListExtra.find (\t -> t.uid == cid) allTrees) -- List Tree
-              |> Children
-        in
-          if (List.member uid (List.map .uid children)) then
-            { tree
-              | children = sortedChildren
-            }
-          else
-            { tree | children = Children (List.map (update (InsertBelow uid)) children) }
+        sortedChildren = Children (sortTrees (children ++ [newTree]))
+      in
+        if (List.member uid (List.map .uid children)) then
+          { tree
+            | children = sortedChildren
+          }
+        else
+          { tree | children = Children (List.map (update (InsertBelow uid)) children) }
     
     InsertChild uid ->
       if tree.uid == uid then
@@ -242,8 +216,6 @@ nodeToTree data uid a =
     }
 
 
-
-
 nextColumn : Column -> Column
 nextColumn col =
   (List.map getChildren (List.concat col))
@@ -335,7 +307,15 @@ getContents {uid, content, children} =
 
 
 
--- POSET and DAG stuff
+-- SORTING WITH PARTIAL ORDER
+
+
+sortTrees : List Tree -> List Tree
+sortTrees trees =
+  trees
+    |> toDag
+    |> linearizeDag
+    |> List.filterMap (\cid -> ListExtra.find (\t -> t.uid == cid) trees)
 
 
 type alias DagEntry =
@@ -443,6 +423,14 @@ nextUid uid idx =
   Sha1.sha1 (uid ++ (toString idx))
 
 
+-- opUid : Tree -> Msg -> String
+-- opUid tree msg =
+  -- case msg of
+    -- InsertBelow uid ->
+
+
+
+
 newUid : Maybe String -> Maybe String -> Maybe String -> String
 newUid parentId prevId nextId =
   let
@@ -479,6 +467,21 @@ getChildren x =
     Children c ->
       c
         |> filterByVisible
+
+
+getNextVisible : List Tree -> String -> Maybe String
+getNextVisible trees uid =
+  let
+    ids = trees |> filterByVisible |> List.map .uid
+    idx = ids |> ListExtra.elemIndex uid
+        
+  in
+    case idx of
+      Nothing ->
+        Nothing
+
+      Just i ->
+        ListExtra.getAt (i+1) ids
 
 
 filterByVisible : List Tree -> List Tree

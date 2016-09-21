@@ -172,11 +172,15 @@ update msg model =
           }
             ! []
 
-        msg ->
+        Tree.InsertBelow uid ->
           { model
             | tree = Tree.update msg model.tree
           }
             ! []
+
+        _ ->
+          model ! []
+
 
 
 
