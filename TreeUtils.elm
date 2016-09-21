@@ -150,20 +150,41 @@ getChildren x =
         |> filterByVisible
 
 
-getNextVisible : List Tree -> String -> Maybe String
-getNextVisible trees uid =
-  let
-    ids = trees |> filterByVisible |> List.map .uid
-    idx = ids |> ListExtra.elemIndex uid
-        
-  in
-    case idx of
-      Nothing ->
-        Nothing
+getNext : Tree -> String -> Maybe String
+getNext tree uid =
+  case tree.children of
+    Children children ->
+      if (List.member uid (List.map .uid children)) then -- if uid is in children
+        let
+          ids = children |> filterByVisible |> List.map .uid
+          idx = ids |> ListExtra.elemIndex uid
+              
+        in
+          case idx of
+            Nothing ->
+              Nothing
 
-      Just i ->
-        ListExtra.getAt (i+1) ids
+            Just i ->
+              ListExtra.getAt (i+1) ids
+      else
+        children -- List Tree
+          |> List.map ((flip getNext) uid)
+          |> Maybe.oneOf
 
+
+getParent : Tree -> String -> Maybe String
+getParent tree uid =
+  case tree.children of
+    Children [] ->
+      Nothing
+    Children children ->
+      -- if the children contains uid then this is the parent
+      if (List.member uid (List.map .uid children)) then
+        Just tree.uid
+      else
+        children -- List Tree
+          |> List.map ((flip getParent) uid)
+          |> Maybe.oneOf
 
 
 

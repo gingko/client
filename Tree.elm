@@ -34,6 +34,8 @@ blankTree uid =
   { default | uid = uid }
 
 
+
+
 -- UPDATE
 
 type Msg
@@ -45,6 +47,7 @@ type Msg
   | CancelCard
   | InsertBelow String
   | InsertChild String
+  | Insert String (Maybe String) (Maybe String)
   | UpdateField String
 
 
@@ -71,28 +74,30 @@ update msg tree =
       else
         { tree | children = Children (List.map (update (DeleteCard uid)) children) }
 
-    InsertBelow uid ->
-      let
-        nextId = getNextVisible children uid
+    Insert parentId prevId_ nextId_ ->
+      if tree.uid == parentId then
+        let
+          newTree =
+            { uid = newUid (Just parentId) prevId_ nextId_
+            , parentId = Just parentId
+            , prev = prevId_
+            , next = nextId_
+            , content = (Content "" "" "" |> withContentId)
+            , visible = True
+            , children = Children []
+            }
 
-        newTree =
-          { uid = newUid tree.parentId (Just uid) nextId
-          , parentId = tree.parentId
-          , prev = Just uid
-          , next = nextId
-          , content = (Content "" "" "" |> withContentId)
-          , visible = True
-          , children = Children []
-          }
-
-        sortedChildren = Children (sortTrees (children ++ [newTree]))
-      in
-        if (List.member uid (List.map .uid children)) then
+          sortedChildren = Children (sortTrees (children ++ [newTree]))
+        in
           { tree
             | children = sortedChildren
           }
-        else
-          { tree | children = Children (List.map (update (InsertBelow uid)) children) }
+      else
+          { tree | children = Children (List.map (update msg) children) }
+        
+
+    InsertBelow uid ->
+      update (Insert (getParent tree uid |> Maybe.withDefault "0" ) (Just uid) (getNext tree uid)) tree
     
     InsertChild uid ->
       if tree.uid == uid then
@@ -119,7 +124,6 @@ update msg tree =
 
 
 -- VIEW
-
 
 viewColumn : ViewState -> Column -> Html Msg
 viewColumn vstate col =
