@@ -128,10 +128,18 @@ update msg tree =
     InsertChild uid ->
       if tree.uid == uid then
         { tree
-          | children = Children (children ++ [blankTree (Sha1.sha1 (uid ++ "0"))])
+          | children = --Children (children ++ [blankTree (Sha1.sha1 (uid ++ "0"))])
+              (uid ++ (toString (List.length children)))
+                |> Sha1.sha1
+                |> blankTree
+                |> ListExtra.singleton
+                |> List.append children
+                |> Children
         }
       else
-        (Debug.log "InsertChild" tree)
+        { tree
+          | children = Children (List.map (update (InsertChild uid)) children) 
+        }
 
 
     _ ->
