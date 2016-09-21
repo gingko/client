@@ -71,7 +71,7 @@ init savedData =
         { contents = data.contents
         , nodes = data.nodes
         , operations = []
-        , tree = Debug.log "newTree" newTree
+        , tree = newTree
         , rootId = data.rootId
         , viewState = 
             { active = "0"
@@ -166,6 +166,12 @@ update msg model =
           }
             ! []
         
+        Tree.InsertChild uid ->
+          { model
+            | tree = Tree.update msg model.tree
+          }
+            ! []
+
         msg ->
           { model
             | tree = Tree.update msg model.tree
