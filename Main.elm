@@ -351,6 +351,7 @@ getChildren x =
   case x.children of
     Children c ->
       c
+        |> filterTrees
 
 
 nodeToTree : Data -> String -> Node -> Tree
@@ -414,7 +415,7 @@ getColumns cols =
     if hasChildren then
       getColumns(cols ++ [nextColumn(col)])
     else
-      cols
+      cols ++ [[]]
 
 
 buildStructure : Data -> Tree
@@ -438,10 +439,12 @@ treeToNodes nodes {uid, content, children} =
       let
         descendants =
           trees
+            |> filterTrees
             |> List.map (treeToNodes nodes)
 
         childrenIds =
           trees
+            |> filterTrees
             |> List.map treeToNode -- TODO: recursion twice, likely costly unnecessary
             |> List.map .id
       in
@@ -464,6 +467,7 @@ treeToNode {uid, content, children} =
       let
         childrenIds =
           trees
+            |> filterTrees
             |> List.map treeToNode
             |> List.map .id
       in
@@ -493,9 +497,17 @@ getId {uid, content, children} =
       let
         childrenIds =
           trees
+            |> filterTrees
             |> List.map getId
       in
         Sha1.sha1(content.id ++ newLine ++ (String.concat childrenIds))
+
+
+filterTrees : List Tree -> List Tree
+filterTrees trees =
+  trees
+    |> List.filter (\t -> t.visible)
+
 
 
 -- POSET and DAG stuff
