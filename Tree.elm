@@ -219,7 +219,7 @@ nodeToTree : Data -> String -> Node -> Tree
 nodeToTree data uid a =
   let
     fmFunction id = ListExtra.find (\a -> a.id == id) data.nodes -- (String -> Maybe Node)
-    imFunction = (\idx -> nodeToTree data (Sha1.sha1 ((toString idx) ++ uid)))
+    imFunction = (\idx -> nodeToTree data (nextUid uid idx))
   in
     { uid = uid
     , content =
@@ -436,6 +436,17 @@ nodeId contentId children =
 nextUid : String -> Int -> String
 nextUid uid idx =
   Sha1.sha1 (uid ++ (toString idx))
+
+
+newUid : Maybe String -> Maybe String -> Maybe String -> String
+newUid parentId prevId nextId =
+  let
+    pid = Maybe.withDefault "" parentId
+    vid = Maybe.withDefault "" prevId
+    nid = Maybe.withDefault "" nextId
+  in
+    String.concat [pid ++ newLine ++ vid ++ newLine ++ nid]
+      |> Sha1.sha1
 
 
 treeUid : Tree -> String
