@@ -107,7 +107,7 @@ update msg model =
         newContents =
           getContents model.tree
             |> List.filter (\c -> not (List.member c model.contents))
-        newRootId = getId model.tree
+        newRootId = treeUid model.tree
       in
         { model
           | nodes = model.nodes ++ newNodes

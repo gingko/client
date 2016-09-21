@@ -35,7 +35,7 @@ type alias Column = List (List Tree)
 default : Tree
 default =
   { uid = "0"
-  , content = Content (Sha1.sha1 ("" ++ newLine)) "" ""
+  , content = Content "" "" "" |> withContentId
   , children = Children [] 
   , next = Nothing
   , prev = Nothing 
@@ -74,7 +74,7 @@ update msg tree =
 
     UpdateCard uid str ->
       if tree.uid == uid then
-        { tree | content = Content (Sha1.sha1 str) "" str }
+        { tree | content = Content "" "" str |> withContentId }
       else
         { tree | children = Children (List.map (update (UpdateCard uid str)) children) }
 
@@ -89,7 +89,14 @@ update msg tree =
          tree
       else
         let
-          blankTree = (Tree "1" (Content "" "" "") Nothing Nothing True (Children []))
+          blankTree = 
+            Tree
+              "1"
+              (Content "" "" "" |> withContentId )
+              Nothing
+              Nothing 
+              True 
+              (Children [])
 
           getNext : String -> Maybe String
           getNext tid =
@@ -128,9 +135,10 @@ update msg tree =
     InsertChild uid ->
       if tree.uid == uid then
         { tree
-          | children = --Children (children ++ [blankTree (Sha1.sha1 (uid ++ "0"))])
-              (uid ++ (toString (List.length children)))
-                |> Sha1.sha1
+          | children =
+              children
+                |> List.length
+                |> nextUid uid
                 |> blankTree
                 |> ListExtra.singleton
                 |> List.append children
@@ -262,7 +270,7 @@ treeToNodes : List Node -> Tree -> List Node
 treeToNodes nodes {uid, content, children} =
   case children of
     Children [] ->
-      { id = Sha1.sha1(content.id ++ newLine )
+      { id = nodeId content.id []
       , contentId = content.id
       , childrenIds = []
       } :: nodes
@@ -280,7 +288,7 @@ treeToNodes nodes {uid, content, children} =
             |> List.map treeToNode -- TODO: recursion twice, likely costly unnecessary
             |> List.map .id
       in
-        { id = Sha1.sha1(content.id ++ newLine ++ (String.concat childrenIds))
+        { id = nodeId content.id childrenIds
         , contentId = content.id
         , childrenIds = childrenIds
         } :: nodes ++ (List.concat descendants)
@@ -318,21 +326,6 @@ getContents {uid, content, children} =
     Children trees ->
       [content] ++ (List.concatMap getContents trees)
 
-
-getId : Tree -> String
-getId {uid, content, children} =
-  case children of
-    Children [] ->
-      Sha1.sha1(content.id ++ newLine )
-
-    Children trees ->
-      let
-        childrenIds =
-          trees
-            |> filterByVisible
-            |> List.map getId
-      in
-        Sha1.sha1(content.id ++ newLine ++ (String.concat childrenIds))
 
 
 
@@ -421,6 +414,44 @@ linearizeDag dag =
     |> List.sortWith (sortFunction dag) -- List DagEntry
     |> List.map .uid
 
+
+
+
+-- ID GENERATING FUNCTIONS
+
+
+withContentId : Content -> Content
+withContentId {id, contentType, content} =
+  { id = Sha1.sha1 (contentType ++ newLine ++ content)
+  , contentType = contentType
+  , content = content
+  }
+
+
+nodeId : String -> List String -> String
+nodeId contentId children =
+  Sha1.sha1 (contentId ++ newLine ++ (String.concat children))
+
+
+nextUid : String -> Int -> String
+nextUid uid idx =
+  Sha1.sha1 (uid ++ (toString idx))
+
+
+treeUid : Tree -> String
+treeUid {uid, content, children} =
+  case children of
+    Children [] ->
+      Sha1.sha1(content.id ++ newLine )
+
+    Children trees ->
+      let
+        childrenIds =
+          trees
+            |> filterByVisible
+            |> List.map treeUid
+      in
+        Sha1.sha1(content.id ++ newLine ++ (String.concat childrenIds))
 
 
 
