@@ -47,7 +47,7 @@ type Msg
   | CancelCard
   | InsertBelow String
   | InsertChild String
-  | Insert String (Maybe String) (Maybe String)
+  | Insert (Maybe String) (Maybe String) (Maybe String)
   | UpdateField String
 
 
@@ -75,11 +75,11 @@ update msg tree =
         { tree | children = Children (List.map (update (DeleteCard uid)) children) }
 
     Insert parentId prevId_ nextId_ ->
-      if tree.uid == parentId then
+      if Just tree.uid == parentId then
         let
           newTree =
-            { uid = newUid (Just parentId) prevId_ nextId_
-            , parentId = Just parentId
+            { uid = newUid parentId prevId_ nextId_
+            , parentId = parentId
             , prev = prevId_
             , next = nextId_
             , content = (Content "" "" "" |> withContentId)
@@ -94,20 +94,11 @@ update msg tree =
           }
       else
           { tree | children = Children (List.map (update msg) children) }
-        
-
-    InsertBelow uid ->
-      let
-        parentId = getParent tree uid |> Maybe.withDefault "0" 
-        prevId_ = Just uid
-        nextId_ = getNext tree uid
-      in
-        update (Insert parentId prevId_ nextId_ ) tree
     
     InsertChild uid ->
       let
-        parentId = uid
-        prevId_ = getLastChild tree uid |> Debug.log "prevId_"
+        parentId = Just uid
+        prevId_ = getLastChild tree uid
         nextId_ = Nothing
       in
         update (Insert parentId prevId_ nextId_ ) tree
@@ -156,10 +147,11 @@ viewCard vstate tree =
                     , ("active", vstate.active == tree.uid)
                     , ("editing", vstate.editing == Just tree.uid)
                     ]
-        , onClick (Activate tree.uid)
-        , onDoubleClick (OpenCard tree.uid tree.content.content)
         ]
-        ([ div [ class "view" ] [ Markdown.toHtml [] tree.content.content ]
+        ([ div  [ class "view" 
+                , onClick (Activate tree.uid)
+                , onDoubleClick (OpenCard tree.uid tree.content.content)
+                ] [ Markdown.toHtml [] tree.content.content ]
         , textarea
             [ id ( "card-edit-" ++ tree.uid )
             , class "edit"

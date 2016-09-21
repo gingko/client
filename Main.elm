@@ -134,7 +134,7 @@ update msg model =
                   (Just uid)
                   str
           }
-            ! [ Task.perform (\_ -> NoOp) (\_ -> NoOp) (Dom.focus ("card-edit-" ++ uid)) ]
+            ! [focus uid]
 
         Tree.CancelCard ->
           { model
@@ -166,7 +166,7 @@ update msg model =
                   ""
           }
             ! []
-        
+
         Tree.InsertChild uid ->
           { model
             | tree = Tree.update msg model.tree
@@ -174,13 +174,27 @@ update msg model =
             ! []
 
         Tree.InsertBelow uid ->
-          { model
-            | tree = Tree.update msg model.tree
-          }
-            ! []
+          let
+            parentId = getParent model.tree uid
+            prevId_ = Just uid
+            nextId_ = getNext model.tree uid
+            newId = newUid parentId prevId_ nextId_
+          in
+            { model
+              | tree = Tree.update (Insert parentId prevId_ nextId_) model.tree
+              , viewState =
+                  { active = newId
+                  , editing = Just newId
+                  , field = ""
+                  }
+            }
+              ! [focus newId]
 
         _ ->
-          model ! []
+          { model
+            | tree = Tree.update msg model.tree 
+          } 
+            ! []
 
 
 
@@ -202,3 +216,9 @@ view model =
               |> List.map (App.map TreeMsg)
             )
         ]
+
+
+-- HELPERS
+
+focus uid =
+  Task.perform (\_ -> NoOp) (\_ -> NoOp) (Dom.focus ("card-edit-" ++ uid)) 

@@ -28,6 +28,9 @@ body {
 
 .card {
   background: #eeeeee;
+}
+
+.card .view {
   padding: 15px;
 }
 
