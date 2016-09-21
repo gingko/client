@@ -174,6 +174,17 @@ update msg model =
           }
             ! [saveOp newOp]
 
+        Tree.DeleteCard uid ->
+          let
+            newOp = Operation "Delete" [Just uid]
+          in
+          { model
+            | tree = Tree.update (Tree.DeleteCard uid) model.tree
+            , operations = model.operations ++ [newOp]
+          }
+            ! [saveOp newOp]
+
+
         Tree.InsertChild uid ->
           { model
             | tree = Tree.update msg model.tree

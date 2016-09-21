@@ -135,6 +135,16 @@ applyOp {opType, params} tree =
             |> Maybe.withDefault "empty"
       in
         update (UpdateCard uid str) tree
+
+    "Delete" -> 
+      let
+        uid = 
+          ListExtra.getAt 0 params 
+            |> Maybe.withDefault (Nothing) 
+            |> Maybe.withDefault ""
+      in
+        update (DeleteCard uid) tree
+
     _ ->
       tree
 
