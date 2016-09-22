@@ -132,7 +132,11 @@ update msg model =
           , operations = Array.empty
           , rootId = newRootId
         }
-          ! [saveNodes newNodes, saveContents newContents, saveRoot newRootId, saveOp (Operation "Commit" [])]
+          ! [ saveNodes newNodes
+            , saveContents newContents
+            , saveRoot newRootId
+            , saveOp (Operation "Commit" [])
+            ]
 
     Undo ->
       if Array.isEmpty model.pastTrees then
@@ -275,70 +279,70 @@ update msg model =
 
         Tree.UpdateCard uid str ->
           let
+            oldTree = model.tree
             newOp = Operation "Update" [Just uid, Just str]
+            newTree = Tree.update (Tree.UpdateCard uid str) oldTree
           in
+             
           { model
-            | tree = Tree.update (Tree.UpdateCard uid str) model.tree
-            , pastTrees = Array.push model.tree model.pastTrees
-            , futureTrees = Array.empty
-            , viewState =
+            | viewState =
                 ViewState
                   model.viewState.active
                   Nothing
                   ""
-            , operations = Array.push newOp model.operations
-            , futureOperations = Array.empty
           }
-            ! [saveOp newOp]
+            ! [] 
+            |> stepForward oldTree newTree newOp
 
         Tree.DeleteCard uid ->
           let
+            oldTree = model.tree
             newOp = Operation "Delete" [Just uid]
+            newTree = Tree.update (Tree.DeleteCard uid) oldTree
           in
-          { model
-            | tree = Tree.update (Tree.DeleteCard uid) model.tree
-            , operations = Array.push newOp model.operations
-          }
-            ! [saveOp newOp]
+          model ! []
+            |> stepForward oldTree newTree newOp
 
 
         Tree.InsertChild uid ->
           let
+            oldTree = model.tree
             parentId = Just uid
             prevId_ = getLastChild model.tree uid
             nextId_ = Nothing
             newId = newUid parentId prevId_ nextId_
             newOp = Operation "Insert" [parentId, prevId_, nextId_]
+            newTree = Tree.update (Insert parentId prevId_ nextId_) oldTree
           in
             { model
-              | tree = Tree.update (Insert parentId prevId_ nextId_) model.tree
-              , viewState =
+              | viewState =
                   { active = newId
                   , editing = Just newId
                   , field = ""
                   }
-              , operations = Array.push newOp model.operations
             }
-              ! [focus newId, saveOp newOp]
+              ! [focus newId]
+              |> stepForward oldTree newTree newOp
 
         Tree.InsertBelow uid ->
           let
+            oldTree = model.tree
             parentId = getParent model.tree uid
             prevId_ = Just uid
             nextId_ = getNext model.tree uid
             newId = newUid parentId prevId_ nextId_
             newOp = Operation "Insert" [parentId, prevId_, nextId_]
+            newTree = Tree.update (Insert parentId prevId_ nextId_) oldTree
           in
             { model
-              | tree = Tree.update (Insert parentId prevId_ nextId_) model.tree
-              , viewState =
+              | viewState =
                   { active = newId
                   , editing = Just newId
                   , field = ""
                   }
-              , operations = Array.push newOp model.operations
             }
-              ! [focus newId, saveOp newOp]
+              ! [focus newId]
+              |> stepForward oldTree newTree newOp
 
         _ ->
           { model
@@ -346,6 +350,17 @@ update msg model =
           } 
             ! []
 
+
+stepForward : Tree -> Tree -> Operation -> (Model, Cmd Msg) -> (Model, Cmd Msg)
+stepForward oldTree newTree op (model, cmds) =
+  { model
+    | tree = newTree
+    , pastTrees = Array.push oldTree model.pastTrees
+    , futureTrees = Array.empty
+    , operations = Array.push op model.operations
+    , futureOperations = Array.empty
+  } 
+    ! [cmds, saveOp op]
 
 
 

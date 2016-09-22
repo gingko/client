@@ -112,7 +112,6 @@ saveRoot = function(rootId) {
 }
 
 saveOp = function(op) {
-  console.log(op);
   var prev = JSON.parse(localStorage.getItem("elm-test-ops"));
   prev = prev ? prev : [];
   if (op.opType == "Commit") {
