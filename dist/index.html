@@ -114,7 +114,11 @@ saveOp = function(op) {
   console.log(op);
   var prev = JSON.parse(localStorage.getItem("elm-test-ops"));
   prev = prev ? prev : [];
-  localStorage.setItem("elm-test-ops", JSON.stringify(prev.concat(op)));
+  if (op.opType == "Commit") {
+    localStorage.setItem("elm-test-ops", JSON.stringify([]));
+  } else {
+    localStorage.setItem("elm-test-ops", JSON.stringify(prev.concat(op)));
+  }
 }
 
 activateCard = function(uid) {

@@ -119,7 +119,7 @@ update msg model =
           , operations = []
           , rootId = newRootId
         }
-          ! [saveNodes newNodes, saveContents newContents, saveRoot newRootId]
+          ! [saveNodes newNodes, saveContents newContents, saveRoot newRootId, saveOp (Operation "Commit" [])]
 
     TreeMsg msg ->
       case msg of
@@ -186,10 +186,23 @@ update msg model =
 
 
         Tree.InsertChild uid ->
-          { model
-            | tree = Tree.update msg model.tree
-          }
-            ! []
+          let
+            parentId = Just uid
+            prevId_ = getLastChild model.tree uid
+            nextId_ = Nothing
+            newId = newUid parentId prevId_ nextId_
+            newOp = Operation "Insert" [parentId, prevId_, nextId_]
+          in
+            { model
+              | tree = Tree.update (Insert parentId prevId_ nextId_) model.tree
+              , viewState =
+                  { active = newId
+                  , editing = Just newId
+                  , field = ""
+                  }
+              , operations = model.operations ++ [newOp]
+            }
+              ! [focus newId, saveOp newOp]
 
         Tree.InsertBelow uid ->
           let

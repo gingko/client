@@ -193,6 +193,7 @@ getLastChild tree uid =
     Children children ->
       if tree.uid == uid then
         children
+          |> filterByVisible
           |> List.map .uid
           |> ListExtra.last
       else
