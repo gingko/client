@@ -123,14 +123,58 @@ update msg model =
           ! [saveNodes newNodes, saveContents newContents, saveRoot newRootId, saveOp (Operation "Commit" [])]
 
     HandleKey str ->
+      let
+        vs = model.viewState
+      in
       case str of
         "mod+enter" ->
-          case model.viewState.editing of
+          case vs.editing of
             Nothing ->
               model ! []
 
             Just uid ->
-              update (TreeMsg (Tree.UpdateCard uid model.viewState.field)) model
+              update (TreeMsg (Tree.UpdateCard uid vs.field)) model
+
+        "enter" ->
+          case vs.editing of
+            Nothing ->
+              update 
+                (TreeMsg 
+                  (Tree.OpenCard vs.active 
+                    (getContent model.tree vs.active
+                      |> Maybe.withDefault defaultContent 
+                      |> .content
+                    )
+                  )
+                )
+                model
+
+            Just uid ->
+              model ! []
+
+        "mod+j" ->
+          case vs.editing of
+            Nothing ->
+              update (TreeMsg (Tree.InsertBelow vs.active)) model
+
+            Just uid ->
+              model ! []
+
+        "mod+l" ->
+          case vs.editing of
+            Nothing ->
+              update (TreeMsg (Tree.InsertChild vs.active)) model
+
+            Just uid ->
+              model ! []
+
+        "mod+s" ->
+          case vs.editing of
+            Nothing ->
+              update SaveTree model
+
+            Just uid ->
+              model ! []
         _ ->
           model ! []
 

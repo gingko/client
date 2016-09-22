@@ -128,9 +128,25 @@ activateCard = function(uid) {
 
 
 /* Keyboard shortcuts */
+var shortcuts = [ 'mod+enter'
+                , 'enter'
+                , 'mod+j'
+                , 'mod+k'
+                , 'mod+l'
+                , 'mod+s'
+                ];
 
-Mousetrap.bind('mod+enter', function(e) {
-  gingko.ports.keyboard.send('mod+enter');
+var needOverride= [ 'mod+j'
+                  , 'mod+l'
+                  , 'mod+s'  
+                  ];
+                    
+Mousetrap.bind(shortcuts, function(e, s) {
+  gingko.ports.keyboard.send(s);
+
+  if(needOverride.includes(s)) {
+    return false;
+  }
 });
 
 </script>

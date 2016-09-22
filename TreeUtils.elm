@@ -132,6 +132,23 @@ assignPrevNext trees =
 
 -- ACCESSORS
 
+getContent : Tree -> String -> Maybe Content
+getContent {uid, content, children} id =
+  if uid == id then
+    Just content
+  else
+    case children of
+      Children [] ->
+        Nothing
+
+      Children trees ->
+        trees
+          |> List.map (flip getContent id)
+          |> Maybe.oneOf
+
+
+
+
 getContents : Tree -> List Content
 getContents {uid, content, children} =
   case children of
