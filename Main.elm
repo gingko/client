@@ -43,8 +43,6 @@ type alias Model =
   , tree : Tree
   , pastTrees : Array Tree
   , futureTrees : Array Tree
-  , operations : Array Operation
-  , futureOperations : Array Operation
   , rootId : String
   , viewState : ViewState
   }
@@ -57,8 +55,6 @@ defaultModel =
   , tree = Tree.default
   , pastTrees = Array.empty
   , futureTrees = Array.empty
-  , operations = Array.empty
-  , futureOperations = Array.empty
   , rootId = "0"
   , viewState = 
       { active = "0"
@@ -84,8 +80,6 @@ init savedData =
         , tree = newTree
         , pastTrees = Array.empty
         , futureTrees = Array.empty
-        , operations = data.ops
-        , futureOperations = Array.empty
         , rootId = data.rootId
         , viewState = 
             { active = "0"
@@ -129,7 +123,6 @@ update msg model =
         { model
           | nodes = model.nodes ++ newNodes
           , contents = model.contents ++ newContents
-          , operations = Array.empty
           , rootId = newRootId
         }
           ! [ saveNodes newNodes
@@ -357,8 +350,6 @@ stepForward oldTree newTree op (model, cmds) =
     | tree = newTree
     , pastTrees = Array.push oldTree model.pastTrees
     , futureTrees = Array.empty
-    , operations = Array.push op model.operations
-    , futureOperations = Array.empty
   } 
     ! [cmds, saveOp op]
 
