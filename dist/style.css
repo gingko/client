@@ -26,8 +26,17 @@ body {
   height: 90%;
 }
 
+.group {
+  padding: 0.8rem 1.6rem;
+  border-top: 1px solid #c9c9c9;
+  background-color: #DEDEE2;
+  color: #aaaab3;
+  font-family: "Droid Serif", Georgia;
+}
+
 .card {
   background: #eeeeee;
+  border-left: 3px solid rgba(255,255,255,0);
 }
 
 .card .view {
@@ -36,10 +45,15 @@ body {
 
 .card.active {
   background: white;
+  color: #333333;
+  border: none;
+  border-left: 3px solid #8CC63F;
 }
 
 .card textarea {
   display: none;
+  width: 100%;
+  min-height: 108px;
 }
 
 .editing .view {
