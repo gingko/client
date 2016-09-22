@@ -1,5 +1,7 @@
 module Types exposing (..)
 
+import Array exposing (Array)
+
 
 type alias Content =
   { id : String
@@ -16,7 +18,7 @@ type alias Node =
 type alias Data =
   { contents : List Content
   , nodes : List Node
-  , ops : List Operation
+  , ops : Array Operation
   , rootId : String
   }
 

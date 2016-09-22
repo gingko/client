@@ -1,6 +1,7 @@
 port module Main exposing (..)
 
 
+import Array exposing (Array)
 import Html exposing (..)
 import Html.App as App
 import Html.Attributes exposing (..)
@@ -39,8 +40,11 @@ port activateCard : String -> Cmd msg
 type alias Model =
   { contents : List Content
   , nodes : List Node
-  , operations : List Operation
   , tree : Tree
+  , pastTrees : Array Tree
+  , futureTrees : Array Tree
+  , operations : Array Operation
+  , futureOperations : Array Operation
   , rootId : String
   , viewState : ViewState
   }
@@ -50,8 +54,11 @@ defaultModel : Model
 defaultModel =
   { contents = [defaultContent, { defaultContent | id = "1", content = "2" }]
   , nodes = [Node "0" "0" ["1"], Node "1" "1" []]
-  , operations = []
   , tree = Tree.default
+  , pastTrees = Array.empty
+  , futureTrees = Array.empty
+  , operations = Array.empty
+  , futureOperations = Array.empty
   , rootId = "0"
   , viewState = 
       { active = "0"
@@ -74,8 +81,11 @@ init savedData =
       in
         { contents = data.contents
         , nodes = data.nodes
-        , operations = data.ops
         , tree = newTree
+        , pastTrees = Array.empty
+        , futureTrees = Array.empty
+        , operations = data.ops
+        , futureOperations = Array.empty
         , rootId = data.rootId
         , viewState = 
             { active = "0"
@@ -94,6 +104,8 @@ init savedData =
 type Msg
     = NoOp
     | SaveTree
+    | Undo
+    | Redo
     | HandleKey String
     | TreeMsg Tree.Msg
 
@@ -117,10 +129,38 @@ update msg model =
         { model
           | nodes = model.nodes ++ newNodes
           , contents = model.contents ++ newContents
-          , operations = []
+          , operations = Array.empty
           , rootId = newRootId
         }
           ! [saveNodes newNodes, saveContents newContents, saveRoot newRootId, saveOp (Operation "Commit" [])]
+
+    Undo ->
+      if Array.isEmpty model.pastTrees then
+         model ! []
+      else
+        { model
+          | tree =
+              model.pastTrees
+                |> Array.get (Array.length model.pastTrees - 1)
+                |> Maybe.withDefault Tree.default
+          , pastTrees = Array.slice 0 -1 model.pastTrees
+          , futureTrees = Array.push model.tree model.futureTrees
+        }
+          ! []
+
+    Redo ->
+      if Array.isEmpty model.futureTrees then
+         model ! []
+      else
+        { model
+          | tree =
+              model.futureTrees
+                |> Array.get (Array.length model.futureTrees - 1)
+                |> Maybe.withDefault Tree.default
+          , pastTrees = Array.push model.tree model.pastTrees
+          , futureTrees = Array.slice 0 -1 model.futureTrees
+        }
+          ! []
 
     HandleKey str ->
       let
@@ -175,6 +215,23 @@ update msg model =
 
             Just uid ->
               model ! []
+
+        "mod+z" ->
+          case vs.editing of
+            Nothing ->
+              update Undo model
+
+            Just uid ->
+              model ! []
+
+        "mod+r" ->
+          case vs.editing of
+            Nothing ->
+              update Redo model
+
+            Just uid ->
+              model ! []
+
         _ ->
           model ! []
 
@@ -222,12 +279,15 @@ update msg model =
           in
           { model
             | tree = Tree.update (Tree.UpdateCard uid str) model.tree
+            , pastTrees = Array.push model.tree model.pastTrees
+            , futureTrees = Array.empty
             , viewState =
                 ViewState
                   model.viewState.active
                   Nothing
                   ""
-            , operations = model.operations ++ [newOp]
+            , operations = Array.push newOp model.operations
+            , futureOperations = Array.empty
           }
             ! [saveOp newOp]
 
@@ -237,7 +297,7 @@ update msg model =
           in
           { model
             | tree = Tree.update (Tree.DeleteCard uid) model.tree
-            , operations = model.operations ++ [newOp]
+            , operations = Array.push newOp model.operations
           }
             ! [saveOp newOp]
 
@@ -257,7 +317,7 @@ update msg model =
                   , editing = Just newId
                   , field = ""
                   }
-              , operations = model.operations ++ [newOp]
+              , operations = Array.push newOp model.operations
             }
               ! [focus newId, saveOp newOp]
 
@@ -276,7 +336,7 @@ update msg model =
                   , editing = Just newId
                   , field = ""
                   }
-              , operations = model.operations ++ [newOp]
+              , operations = Array.push newOp model.operations
             }
               ! [focus newId, saveOp newOp]
 

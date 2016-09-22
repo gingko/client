@@ -1,5 +1,6 @@
 module Tree exposing (..)
 
+import Array exposing (Array)
 import String
 import List.Extra as ListExtra
 import Html exposing (..)
@@ -107,9 +108,9 @@ update msg tree =
       tree
 
 
-applyOperations : List Operation -> Tree -> Tree
+applyOperations : Array Operation -> Tree -> Tree
 applyOperations ops tree =
-  List.foldl applyOp tree ops
+  Array.foldl applyOp tree ops
 
 
 applyOp : Operation -> Tree -> Tree
