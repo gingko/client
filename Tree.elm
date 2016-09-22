@@ -196,21 +196,18 @@ viewCard vstate tree =
                 ] [ Markdown.toHtml [] tree.content.content ]
         , textarea
             [ id ( "card-edit-" ++ tree.uid )
-            , class "edit"
+            , classList [ ("edit", True)
+                        , ("mousetrap", True)
+                        ]
             , value vstate.field
             , onBlur CancelCard
             , onInput UpdateField
-            , onEnter (UpdateCard tree.uid vstate.field)
             ]
             []
         ] ++ buttons)
 
 
 
-
--- SORTING WITH PARTIAL ORDER
-
--- ID GENERATING FUNCTIONS
 
 --HELPERS
 

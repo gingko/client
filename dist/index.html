@@ -7,6 +7,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pouchdb/6.0.4/pouchdb.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.0/TweenMax.min.js"></script>
   <script src="https://cdn.jsdelivr.net/js-sha1/0.3.0/sha1.min.js"></script>
+  <script src="mousetrap.js"></script>
   <script type="text/javascript" src="elm.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -124,6 +125,14 @@ saveOp = function(op) {
 activateCard = function(uid) {
   scrollTo(uid.toString());
 }
+
+
+/* Keyboard shortcuts */
+
+Mousetrap.bind('mod+enter', function(e) {
+  gingko.ports.keyboard.send('mod+enter');
+});
+
 </script>
 
 </html>

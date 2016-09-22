@@ -22,7 +22,7 @@ main =
     { init = init
     , view = view
     , update = update
-    , subscriptions = \_ -> Sub.none
+    , subscriptions = subscriptions
     }
 
 
@@ -94,6 +94,7 @@ init savedData =
 type Msg
     = NoOp
     | SaveTree
+    | HandleKey String
     | TreeMsg Tree.Msg
 
 
@@ -120,6 +121,18 @@ update msg model =
           , rootId = newRootId
         }
           ! [saveNodes newNodes, saveContents newContents, saveRoot newRootId, saveOp (Operation "Commit" [])]
+
+    HandleKey str ->
+      case str of
+        "mod+enter" ->
+          case model.viewState.editing of
+            Nothing ->
+              model ! []
+
+            Just uid ->
+              update (TreeMsg (Tree.UpdateCard uid model.viewState.field)) model
+        _ ->
+          model ! []
 
     TreeMsg msg ->
       case msg of
@@ -249,6 +262,19 @@ view model =
               |> List.map (App.map TreeMsg)
             )
         ]
+
+
+
+
+-- SUBSCRIPTIONS
+
+port keyboard : (String -> msg) -> Sub msg
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+  keyboard HandleKey
+
+
 
 
 -- HELPERS
