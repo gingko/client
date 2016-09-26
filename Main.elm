@@ -17,7 +17,7 @@ import Tree exposing (..)
 import TreeUtils exposing (..)
 
 
-main : Program (Maybe Data)
+main : Program (Maybe State)
 main =
   App.programWithFlags
     { init = init
@@ -27,9 +27,10 @@ main =
     }
 
 
-port saveNodes : List Node -> Cmd msg
 port saveContents : List Content -> Cmd msg
-port saveRoot : String -> Cmd msg
+port saveNodes : List Node -> Cmd msg
+port saveCommit : Commit -> Cmd msg
+port saveCurrentCommit : String -> Cmd msg
 port saveOp : Operation -> Cmd msg
 port activateCard : String -> Cmd msg
 
@@ -38,24 +39,18 @@ port activateCard : String -> Cmd msg
 
 
 type alias Model =
-  { contents : List Content
-  , nodes : List Node
+  { objects : Objects
   , tree : Tree
-  , pastTrees : Array Tree
-  , futureTrees : Array Tree
-  , rootId : String
+  , commit : String
   , viewState : ViewState
   }
 
 
 defaultModel : Model
 defaultModel =
-  { contents = [defaultContent, { defaultContent | id = "1", content = "2" }]
-  , nodes = [Node "0" "0" ["1"], Node "1" "1" []]
+  { objects = defaultObjects
   , tree = Tree.default
-  , pastTrees = Array.empty
-  , futureTrees = Array.empty
-  , rootId = "0"
+  , commit = defaultCommit.id
   , viewState = 
       { active = "0"
       , editing = Nothing
@@ -64,28 +59,26 @@ defaultModel =
   }
 
 
-init : Maybe Data -> ( Model, Cmd Msg )
-init savedData =
-  case savedData of
+init : Maybe State -> ( Model, Cmd Msg )
+init savedState =
+  case (Debug.log "savedState" savedState) of
     Nothing ->
       defaultModel ! [ ]
-    Just data ->
+    Just state ->
       let
         newTree =
-          buildStructure data
-            |> applyOperations data.ops
+          buildStructure state.commit state.objects
+            |> applyOperations state.objects.ops
       in
-        { contents = data.contents
-        , nodes = data.nodes
+        { objects = 
+          { contents = state.objects.contents
+          , nodes = state.objects.nodes
+          , commits = state.objects.commits
+          , ops = state.objects.ops
+          }
         , tree = newTree
-        , pastTrees = Array.empty
-        , futureTrees = Array.empty
-        , rootId = data.rootId
-        , viewState = 
-            { active = "0"
-            , editing = Nothing
-            , field = ""
-            }
+        , commit = state.commit
+        , viewState = state.viewState
         }
           ! [ ]
 
@@ -98,8 +91,7 @@ init savedData =
 type Msg
     = NoOp
     | SaveTree
-    | Undo
-    | Redo
+    | CheckoutCommit String
     | HandleKey String
     | TreeMsg Tree.Msg
 
@@ -112,52 +104,144 @@ update msg model =
 
     SaveTree ->
       let
-        newNodes =
-          (treeToNodes []) model.tree
-            |> List.filter (\n -> not (List.member n model.nodes))
         newContents =
           getContents model.tree
-            |> List.filter (\c -> not (List.member c model.contents))
-        newRootId = treeUid model.tree
+            |> List.filter (\c -> not (List.member c model.objects.contents))
+
+        newNodes =
+          (treeToNodes []) model.tree
+            |> List.filter (\n -> not (List.member n model.objects.nodes))
+
+        newCommit = 
+          defaultCommit
       in
         { model
-          | nodes = model.nodes ++ newNodes
-          , contents = model.contents ++ newContents
-          , rootId = newRootId
-        }
-          ! [ saveNodes newNodes
-            , saveContents newContents
-            , saveRoot newRootId
-            , saveOp (Operation "Commit" [])
-            ]
-
-    Undo ->
-      if Array.isEmpty model.pastTrees then
-         model ! []
-      else
-        { model
-          | tree =
-              model.pastTrees
-                |> Array.get (Array.length model.pastTrees - 1)
-                |> Maybe.withDefault Tree.default
-          , pastTrees = Array.slice 0 -1 model.pastTrees
-          , futureTrees = Array.push model.tree model.futureTrees
+          | objects =
+              { nodes = model.objects.nodes ++ newNodes
+              , contents = model.objects.contents ++ newContents
+              , commits = model.objects.commits ++ [newCommit]
+              , ops = Array.empty
+              }
+          , commit = newCommit.id
         }
           ! []
 
-    Redo ->
-      if Array.isEmpty model.futureTrees then
-         model ! []
-      else
-        { model
-          | tree =
-              model.futureTrees
-                |> Array.get (Array.length model.futureTrees - 1)
-                |> Maybe.withDefault Tree.default
-          , pastTrees = Array.push model.tree model.pastTrees
-          , futureTrees = Array.slice 0 -1 model.futureTrees
-        }
-          ! []
+    CheckoutCommit cid ->
+      model ! []
+
+    TreeMsg msg ->
+      case msg of
+        Tree.Activate uid ->
+          { model
+            | viewState = ViewState uid model.viewState.editing model.viewState.field
+          }
+            ! [ activateCard uid ]
+
+        Tree.OpenCard uid str ->
+          { model
+            | viewState =
+                ViewState
+                  model.viewState.active
+                  (Just uid)
+                  str
+          }
+            ! [focus uid]
+
+        Tree.CancelCard ->
+          { model
+            | viewState =
+                ViewState
+                  model.viewState.active
+                  Nothing
+                  ""
+          }
+            ! []
+
+        Tree.UpdateField str ->
+          { model
+            | viewState =
+                ViewState
+                  model.viewState.active
+                  model.viewState.editing
+                  str
+          }
+            ! []
+
+        Tree.UpdateCard uid str ->
+          let
+            oldTree = model.tree
+            newOp = Operation "Update" [Just uid, Just str]
+            newTree = Tree.update (Tree.UpdateCard uid str) oldTree
+          in
+             
+          { model
+            | tree = newTree
+            , viewState =
+                ViewState
+                  model.viewState.active
+                  Nothing
+                  ""
+          }
+            ! [saveOp newOp] 
+
+        Tree.DeleteCard uid ->
+          let
+            oldTree = model.tree
+            newOp = Operation "Delete" [Just uid]
+            newTree = Tree.update (Tree.DeleteCard uid) oldTree
+          in
+          { model
+            | tree = newTree
+          }
+            ! [saveOp newOp]
+
+
+        Tree.InsertChild uid ->
+          let
+            oldTree = model.tree
+            parentId = Just uid
+            prevId_ = getLastChild model.tree uid
+            nextId_ = Nothing
+            newId = newUid parentId prevId_ nextId_
+            newOp = Operation "Insert" [parentId, prevId_, nextId_]
+            newTree = Tree.update (Insert parentId prevId_ nextId_) oldTree
+          in
+            { model
+              | tree = newTree
+              , viewState =
+                  { active = newId
+                  , editing = Just newId
+                  , field = ""
+                  }
+            }
+              ! [focus newId, saveOp newOp]
+
+        Tree.InsertBelow uid ->
+          let
+            oldTree = model.tree
+            parentId = getParent model.tree uid
+            prevId_ = Just uid
+            nextId_ = getNext model.tree uid
+            newId = newUid parentId prevId_ nextId_
+            newOp = Operation "Insert" [parentId, prevId_, nextId_]
+            newTree = Tree.update (Insert parentId prevId_ nextId_) oldTree
+          in
+            { model
+              | tree = newTree
+              , viewState =
+                  { active = newId
+                  , editing = Just newId
+                  , field = ""
+                  }
+            }
+              ! [focus newId, saveOp newOp]
+
+        _ ->
+          { model
+            | tree = Tree.update msg model.tree 
+          } 
+            ! []
+
 
     HandleKey str ->
       let
@@ -213,145 +297,9 @@ update msg model =
             Just uid ->
               model ! []
 
-        "mod+z" ->
-          case vs.editing of
-            Nothing ->
-              update Undo model
-
-            Just uid ->
-              model ! []
-
-        "mod+r" ->
-          case vs.editing of
-            Nothing ->
-              update Redo model
-
-            Just uid ->
-              model ! []
-
         _ ->
           model ! []
 
-    TreeMsg msg ->
-      case msg of
-        Tree.Activate uid ->
-          { model
-            | viewState = ViewState uid model.viewState.editing model.viewState.field
-          }
-            ! [ activateCard uid ]
-
-        Tree.OpenCard uid str ->
-          { model
-            | viewState =
-                ViewState
-                  model.viewState.active
-                  (Just uid)
-                  str
-          }
-            ! [focus uid]
-
-        Tree.CancelCard ->
-          { model
-            | viewState =
-                ViewState
-                  model.viewState.active
-                  Nothing
-                  ""
-          }
-            ! []
-
-        Tree.UpdateField str ->
-          { model
-            | viewState =
-                ViewState
-                  model.viewState.active
-                  model.viewState.editing
-                  str
-          }
-            ! []
-
-        Tree.UpdateCard uid str ->
-          let
-            oldTree = model.tree
-            newOp = Operation "Update" [Just uid, Just str]
-            newTree = Tree.update (Tree.UpdateCard uid str) oldTree
-          in
-             
-          { model
-            | viewState =
-                ViewState
-                  model.viewState.active
-                  Nothing
-                  ""
-          }
-            ! [] 
-            |> stepForward oldTree newTree newOp
-
-        Tree.DeleteCard uid ->
-          let
-            oldTree = model.tree
-            newOp = Operation "Delete" [Just uid]
-            newTree = Tree.update (Tree.DeleteCard uid) oldTree
-          in
-          model ! []
-            |> stepForward oldTree newTree newOp
-
-
-        Tree.InsertChild uid ->
-          let
-            oldTree = model.tree
-            parentId = Just uid
-            prevId_ = getLastChild model.tree uid
-            nextId_ = Nothing
-            newId = newUid parentId prevId_ nextId_
-            newOp = Operation "Insert" [parentId, prevId_, nextId_]
-            newTree = Tree.update (Insert parentId prevId_ nextId_) oldTree
-          in
-            { model
-              | viewState =
-                  { active = newId
-                  , editing = Just newId
-                  , field = ""
-                  }
-            }
-              ! [focus newId]
-              |> stepForward oldTree newTree newOp
-
-        Tree.InsertBelow uid ->
-          let
-            oldTree = model.tree
-            parentId = getParent model.tree uid
-            prevId_ = Just uid
-            nextId_ = getNext model.tree uid
-            newId = newUid parentId prevId_ nextId_
-            newOp = Operation "Insert" [parentId, prevId_, nextId_]
-            newTree = Tree.update (Insert parentId prevId_ nextId_) oldTree
-          in
-            { model
-              | viewState =
-                  { active = newId
-                  , editing = Just newId
-                  , field = ""
-                  }
-            }
-              ! [focus newId]
-              |> stepForward oldTree newTree newOp
-
-        _ ->
-          { model
-            | tree = Tree.update msg model.tree 
-          } 
-            ! []
-
-
-stepForward : Tree -> Tree -> Operation -> (Model, Cmd Msg) -> (Model, Cmd Msg)
-stepForward oldTree newTree op (model, cmds) =
-  { model
-    | tree = newTree
-    , pastTrees = Array.push oldTree model.pastTrees
-    , futureTrees = Array.empty
-  } 
-    ! [cmds, saveOp op]
 
 
 
@@ -371,8 +319,16 @@ view model =
               |> List.map (viewColumn model.viewState)
               |> List.map (App.map TreeMsg)
             )
+        , ul [id "history"]
+            ( List.map viewCommit model.objects.commits )
         ]
 
+
+viewCommit : Commit -> Html Msg
+viewCommit commit =
+  li
+    [ id ("commit-" ++ commit.id) ]
+    [ text ("Commit : " ++ commit.id) ]
 
 
 

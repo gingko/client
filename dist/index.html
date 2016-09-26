@@ -18,7 +18,7 @@
 <script type="text/javascript">
 var db = new PouchDB('elm-gingko-test-cards');
 var storedView = JSON.parse(localStorage.getItem('elm-gingko-test-view'));
-var storedRoot = localStorage.getItem('elm-test-root');
+var storedCommitId = localStorage.getItem('elm-test-root');
 var storedOps = JSON.parse(localStorage.getItem('elm-test-ops'));
 var gingko = null;
 
@@ -44,14 +44,28 @@ db.allDocs({include_docs: true}).then(function(docs){
                       , childrenIds : row.doc.childrenIds
                       }
             });  
+
+  commits = docs.rows
+            .filter(function(row){
+              return row.doc.type == "commit" 
+            })
+            .map(function(row){
+              return  { id: row.doc._id
+                      , contentId : row.doc.contentId
+                      , childrenIds : row.doc.childrenIds
+                      }
+            });  
+
+            
   
   var startingState = null;
 
   if (content.length > 0 && nodes.length > 0) {
     startingState = { contents: content
                     , nodes: nodes
+                    , commits : commits
                     , ops : storedOps ? storedOps : []
-                    , rootId: storedRoot ? storedRoot : "f01318cad7d0e51bc23f5b786293cdc497633f3c"
+                    , currentCommit: storedCommitId ? storedCommitId : "f01318cad7d0e51bc23f5b786293cdc497633f3c"
                     }
   }
 
@@ -65,7 +79,8 @@ startElm = function(init) {
   gingko = Elm.Main.fullscreen(init);
   gingko.ports.saveContents.subscribe(saveContents);
   gingko.ports.saveNodes.subscribe(saveNodes);
-  gingko.ports.saveRoot.subscribe(saveRoot);
+  gingko.ports.saveCommit.subscribe(saveCommit);
+  gingko.ports.saveCurrentCommit.subscribe(saveCurrentCommit);
   gingko.ports.saveOp.subscribe(saveOp);
   gingko.ports.activateCard.subscribe(activateCard);
 }
@@ -107,8 +122,16 @@ saveNodes = function(nodes) {
     .catch(function(err){console.log(err)});
 }
 
-saveRoot = function(rootId) {
-  localStorage.setItem("elm-test-root", rootId);
+saveCommit = function(commit) {
+  commit["_id"] = commit["id"];
+  delete commit["id"];
+  commit["type"] = "commit";
+  db.put(commit)
+    .catch(function(err){console.log(err)});
+}
+
+saveCurrentCommit = function(currentCommit) {
+  localStorage.setItem("elm-test-root", currentCommit);
 }
 
 saveOp = function(op) {

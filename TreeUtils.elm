@@ -10,15 +10,15 @@ import Sha1
 
 -- TREE AND NODE TRANSFORMATIONS
 
-nodeToTree : Data -> String -> Node -> Tree
-nodeToTree data uid a =
+nodeToTree : Objects -> String -> Node -> Tree
+nodeToTree objects uid a =
   let
-    fmFunction id = ListExtra.find (\a -> a.id == id) data.nodes -- (String -> Maybe Node)
-    imFunction = (\idx -> nodeToTree data (nextUid uid idx))
+    fmFunction id = ListExtra.find (\a -> a.id == id) objects.nodes -- (String -> Maybe Node)
+    imFunction = (\idx -> nodeToTree objects (nextUid uid idx))
   in
     { uid = uid
     , content =
-        data.contents
+        objects.contents
           |> ListExtra.find (\c -> c.id == (a.contentId))
           |> Maybe.withDefault defaultContent
     , parentId = Nothing
@@ -53,12 +53,12 @@ getColumns cols =
       cols ++ [[]]
 
 
-buildStructure : Data -> Tree
-buildStructure data =
-  data.nodes -- List Node
-    |> ListExtra.find (\a -> a.id == data.rootId) -- Maybe Node
+buildStructure : String -> Objects -> Tree
+buildStructure current objects =
+  objects.nodes -- List Node
+    |> ListExtra.find (\a -> a.id == current) -- Maybe Node
     |> Maybe.withDefault (Node "0" "0" []) -- Node
-    |> nodeToTree data "0" -- Tree
+    |> nodeToTree objects "0" -- Tree
 
 
 treeToNodes : List Node -> Tree -> List Node
