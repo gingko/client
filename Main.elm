@@ -68,13 +68,13 @@ init savedState =
       let
         newTree =
           buildStructure state.commit state.objects
-            |> applyOperations state.objects.ops
+            |> applyOperations state.objects.operations
       in
         { objects = 
           { contents = state.objects.contents
           , nodes = state.objects.nodes
           , commits = state.objects.commits
-          , ops = state.objects.ops
+          , operations = state.objects.operations
           }
         , tree = newTree
         , commit = state.commit
@@ -120,7 +120,7 @@ update msg model =
               { nodes = model.objects.nodes ++ newNodes
               , contents = model.objects.contents ++ newContents
               , commits = model.objects.commits ++ [newCommit]
-              , ops = Array.empty
+              , operations = Array.empty
               }
           , commit = newCommit.id
         }

@@ -38,7 +38,7 @@ type alias Objects =
   { contents : List Content
   , nodes : List Node
   , commits : List Commit
-  , ops : Array Operation
+  , operations : Array Operation
   }
 
 type alias State =
@@ -111,5 +111,5 @@ defaultObjects =
   { contents = [defaultContent]
   , nodes = [defaultNode]
   , commits = [defaultCommit]
-  , ops = Array.empty
+  , operations = Array.empty
   }

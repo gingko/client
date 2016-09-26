@@ -17,21 +17,21 @@
 
 <script type="text/javascript">
 var db = new PouchDB('elm-gingko-test-cards');
-var storedView = JSON.parse(localStorage.getItem('elm-gingko-test-view'));
-var storedCommitId = localStorage.getItem('elm-test-root');
-var storedOps = JSON.parse(localStorage.getItem('elm-test-ops'));
+var viewState = JSON.parse(localStorage.getItem('elm-gingko-viewState'));
+var commit = localStorage.getItem('elm-gingko-commit');
 var gingko = null;
 
 db.allDocs({include_docs: true}).then(function(docs){
-  content = docs.rows
+  contents = docs.rows
             .filter(function(row){
               return row.doc.type == "content" 
             })
             .map(function(row){
-              return  { id: row.doc._id
-                      , contentType : row.doc.contentType
-                      , content: row.doc.content
-                      }
+              row.doc["id"] = row.doc["_id"];
+              delete row.doc["_id"];
+              delete row.doc["_rev"];
+              delete row.doc["type"];
+              return row.doc;
             });  
 
   nodes = docs.rows
@@ -39,10 +39,11 @@ db.allDocs({include_docs: true}).then(function(docs){
               return row.doc.type == "node" 
             })
             .map(function(row){
-              return  { id: row.doc._id
-                      , contentId : row.doc.contentId
-                      , childrenIds : row.doc.childrenIds
-                      }
+              row.doc["id"] = row.doc["_id"];
+              delete row.doc["_id"];
+              delete row.doc["_rev"];
+              delete row.doc["type"];
+              return row.doc;
             });  
 
   commits = docs.rows
@@ -50,23 +51,39 @@ db.allDocs({include_docs: true}).then(function(docs){
               return row.doc.type == "commit" 
             })
             .map(function(row){
-              return  { id: row.doc._id
-                      , contentId : row.doc.contentId
-                      , childrenIds : row.doc.childrenIds
-                      }
+              row.doc["id"] = row.doc["_id"];
+              delete row.doc["_id"];
+              delete row.doc["_rev"];
+              delete row.doc["type"];
+              return row.doc;
             });  
 
+  operations = docs.rows
+            .filter(function(row){
+              return row.doc.type == "operation" 
+            })
+            .map(function(row){
+              row.doc["id"] = row.doc["_id"];
+              delete row.doc["_id"];
+              delete row.doc["_rev"];
+              delete row.doc["type"];
+              return row.doc;
+            });  
             
   
   var startingState = null;
 
-  if (content.length > 0 && nodes.length > 0) {
-    startingState = { contents: content
-                    , nodes: nodes
-                    , commits : commits
-                    , ops : storedOps ? storedOps : []
-                    , currentCommit: storedCommitId ? storedCommitId : "f01318cad7d0e51bc23f5b786293cdc497633f3c"
-                    }
+  if (contents.length > 0 && nodes.length > 0 && commits.length > 0 ) {
+    startingState =
+      { objects :
+        { contents: contents
+        , nodes: nodes
+        , commits : commits
+        , operations : operations
+        }
+      , commit: commit ? commit : "bc5ff95381ff8577663e45455b14cd09d7e126c1"
+      , viewState: viewState ? viewState : {active: "0", editing: null, field: ""}
+      }
   }
 
   startElm(startingState);
