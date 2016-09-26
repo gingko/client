@@ -54,9 +54,9 @@ getColumns cols =
 
 
 buildStructure : String -> Objects -> Tree
-buildStructure current objects =
+buildStructure nodeId objects =
   objects.nodes -- List Node
-    |> ListExtra.find (\a -> a.id == current) -- Maybe Node
+    |> ListExtra.find (\a -> a.id == nodeId) -- Maybe Node
     |> Maybe.withDefault (Node "0" "0" []) -- Node
     |> nodeToTree objects "0" -- Tree
 

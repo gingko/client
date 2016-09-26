@@ -66,8 +66,14 @@ init savedState =
       defaultModel ! [ ]
     Just state ->
       let
+        nodeId =
+          state.objects.commits
+            |> ListExtra.find (\c -> c.id == state.commit)
+            |> Maybe.withDefault defaultCommit
+            |> .rootNode
+
         newTree =
-          buildStructure state.commit state.objects
+          buildStructure nodeId state.objects
             |> applyOperations state.objects.operations
       in
         { objects = 
@@ -76,8 +82,8 @@ init savedState =
           , commits = state.objects.commits
           , operations = state.objects.operations
           }
-        , tree = newTree
-        , commit = state.commit
+        , tree = Debug.log "newTree" newTree
+        , commit = Debug.log "state.commit" state.commit
         , viewState = state.viewState
         }
           ! [ ]
