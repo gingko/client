@@ -148,7 +148,8 @@ saveCommit = function(commit) {
 }
 
 saveCurrentCommit = function(currentCommit) {
-  localStorage.setItem("elm-test-root", currentCommit);
+  console.log(currentCommit);
+  localStorage.setItem("elm-gingko-commit", currentCommit);
 }
 
 saveOp = function(op) {

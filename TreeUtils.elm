@@ -231,6 +231,18 @@ withContentId {id, contentType, content} =
   , content = content
   }
 
+withCommitId : Commit -> Commit
+withCommitId c =
+  { c
+    | id =
+        c.rootNode ++ newLine ++ 
+        (String.join newLine c.parents) ++
+        (String.join newLine c.authors) ++
+        c.committer ++ newLine ++
+        (toString c.timestamp) ++ newLine ++
+        c.message
+          |> Sha1.sha1
+  }
 
 nodeId : String -> List String -> String
 nodeId contentId children =

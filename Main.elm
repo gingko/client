@@ -119,7 +119,16 @@ update msg model =
             |> List.filter (\n -> not (List.member n model.objects.nodes))
 
         newCommit = 
-          defaultCommit
+          { id = "id"
+          , rootNode = treeUid model.tree
+          , timestamp = 123456789
+          , authors = ["Adriano Ferrari <adriano.ferrari@gmail.com>"]
+          , committer = "Adriano Ferrari <adriano.ferrari@gmail.com>"
+          , parents = [model.commit]
+          , message = "Default Commit message"
+          }
+            |> withCommitId
+
       in
         { model
           | objects =
@@ -130,10 +139,28 @@ update msg model =
               }
           , commit = newCommit.id
         }
-          ! []
+          ! [ saveContents newContents
+            , saveNodes newNodes
+            , saveCommit newCommit
+            , saveCurrentCommit newCommit.id
+            ]
 
     CheckoutCommit cid ->
-      model ! []
+      let
+        nodeId =
+          model.objects.commits
+            |> ListExtra.find (\c -> c.id == cid)
+            |> Maybe.withDefault defaultCommit
+            |> .rootNode
+
+        newTree =
+          buildStructure nodeId model.objects
+      in
+      { model
+        | commit = cid
+        , tree = newTree
+      }
+        ! [saveCurrentCommit cid]
 
     TreeMsg msg ->
       case msg of
@@ -320,21 +347,34 @@ view model =
   in
     div [ id "wrapper" ]
         [ button [onClick SaveTree][text "save"]
+        , fieldset [id "history"]
+            ( List.map (viewCommit model.commit) model.objects.commits )
         , div [id "app" ]
             ( columns
               |> List.map (viewColumn model.viewState)
               |> List.map (App.map TreeMsg)
             )
-        , ul [id "history"]
-            ( List.map viewCommit model.objects.commits )
         ]
 
 
-viewCommit : Commit -> Html Msg
-viewCommit commit =
-  li
-    [ id ("commit-" ++ commit.id) ]
-    [ text ("Commit : " ++ commit.id) ]
+viewCommit : String -> Commit -> Html Msg
+viewCommit current commit =
+  let
+    handleCheck =
+      case (current == commit.id) of
+        True -> (\c -> NoOp)
+        False -> (\c -> CheckoutCommit commit.id)
+  in
+  li []
+    [ label []
+        [ input [ type' "radio"
+                , value commit.id
+                , checked (current == commit.id)
+                , onCheck handleCheck
+                ][]
+        , text commit.id
+        ]
+    ]
 
 
 
