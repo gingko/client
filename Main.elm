@@ -30,7 +30,7 @@ main =
 port saveContents : List Content -> Cmd msg
 port saveNodes : List Node -> Cmd msg
 port saveCommit : Commit -> Cmd msg
-port saveCurrentCommit : String -> Cmd msg
+port setCurrentCommit : String -> Cmd msg
 port saveOp : Operation -> Cmd msg
 port activateCard : String -> Cmd msg
 
@@ -142,7 +142,7 @@ update msg model =
           ! [ saveContents newContents
             , saveNodes newNodes
             , saveCommit newCommit
-            , saveCurrentCommit newCommit.id
+            , setCurrentCommit newCommit.id
             ]
 
     CheckoutCommit cid ->
@@ -160,7 +160,7 @@ update msg model =
         | commit = cid
         , tree = newTree
       }
-        ! [saveCurrentCommit cid]
+        ! [setCurrentCommit cid]
 
     TreeMsg msg ->
       case msg of
@@ -347,8 +347,6 @@ view model =
   in
     div [ id "wrapper" ]
         [ button [onClick SaveTree][text "save"]
-        , fieldset [id "history"]
-            ( List.map (viewCommit model.commit) model.objects.commits )
         , div [id "app" ]
             ( columns
               |> List.map (viewColumn model.viewState)
@@ -357,34 +355,17 @@ view model =
         ]
 
 
-viewCommit : String -> Commit -> Html Msg
-viewCommit current commit =
-  let
-    handleCheck =
-      case (current == commit.id) of
-        True -> (\c -> NoOp)
-        False -> (\c -> CheckoutCommit commit.id)
-  in
-  li []
-    [ label []
-        [ input [ type' "radio"
-                , value commit.id
-                , checked (current == commit.id)
-                , onCheck handleCheck
-                ][]
-        , text commit.id
-        ]
-    ]
-
-
-
 -- SUBSCRIPTIONS
 
 port keyboard : (String -> msg) -> Sub msg
+port commit : (String -> msg) -> Sub msg
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  keyboard HandleKey
+  Sub.batch
+    [ keyboard HandleKey
+    , commit CheckoutCommit
+    ]
 
 
 

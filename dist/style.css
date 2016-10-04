@@ -2,6 +2,7 @@ html,
 body {
     margin: 0;
     padding: 0;
+    display: flex;
 }
 
 body {
@@ -64,3 +65,5 @@ body {
   display: inline-block
 }
 
+#graph {
+}

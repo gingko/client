@@ -243,7 +243,7 @@ CommitsGraphMixin = {
       colour = getColour(branch);
       style = {
         'stroke': colour,
-        'stroke-width': this.props.lineWidth,
+        'strokeWidth': this.props.lineWidth,
         'fill': 'none'
       };
     }
@@ -287,7 +287,7 @@ CommitsGraphMixin = {
       }
       style = {
         'stroke': strokeColour,
-        'stroke-width': strokeWidth,
+        'strokeWidth': strokeWidth,
         'fill': colour
       };
     }
