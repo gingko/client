@@ -181,7 +181,7 @@ CommitsGraphMixin = {
   },
   cursorPoint: function(e) {
     var svg, svgPoint;
-    svg = this.getDOMNode();
+    svg = ReactDOM.findDOMNode(this);
     svgPoint = svg.createSVGPoint();
     svgPoint.x = e.clientX;
     svgPoint.y = e.clientY;

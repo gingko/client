@@ -385,7 +385,7 @@ var commitsObject = [
 ]
 
 function handleGraphClick(sha) {
-  alert(sha);
+  commit = sha;
   render();
 }
 
@@ -394,7 +394,7 @@ function render() {
     React.createElement( CommitsGraph
       , { commits: commitsObject
         , onClick: handleGraphClick
-        , selected: "5a7e04df76e21f9ba4a48098b6b26f19b51b99b1"
+        , selected: commit
         })
   , document.getElementById('graph')
   );
