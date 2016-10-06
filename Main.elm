@@ -61,7 +61,7 @@ defaultModel =
 
 init : Maybe State -> ( Model, Cmd Msg )
 init savedState =
-  case (Debug.log "savedState" savedState) of
+  case savedState of
     Nothing ->
       defaultModel ! [ ]
     Just state ->
@@ -82,8 +82,8 @@ init savedState =
           , commits = state.objects.commits
           , operations = state.objects.operations
           }
-        , tree = Debug.log "newTree" newTree
-        , commit = Debug.log "state.commit" state.commit
+        , tree = newTree
+        , commit = state.commit
         , viewState = state.viewState
         }
           ! [ ]
