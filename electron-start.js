@@ -1,4 +1,4 @@
-const {app, BrowserWindow} = require('electron')
+const {app, BrowserWindow, Menu} = require('electron')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -6,13 +6,16 @@ let win
 
 function createWindow () {
   // Create the browser window.
-  win = new BrowserWindow({width: 800, height: 600})
+  win = new BrowserWindow(
+    { width: 800
+    , height: 600
+    , backgroundColor: ''
+    , icon: `${__dirname}/dist/leaf128.png` 
+    })
 
   // and load the index.html of the app.
   win.loadURL(`file://${__dirname}/dist/index.html`)
 
-  // Open the DevTools.
-  // win.webContents.openDevTools()
 
   // Emitted when the window is closed.
   win.on('closed', () => {
@@ -47,3 +50,28 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+
+const menuTemplate = 
+  [ { label: 'File'
+    , submenu: [{ label: 'Commit Changes'
+                , click (item, focusedWindow) {
+                    if (focusedWindow) focusedWindow.webContents.send('commit-changes')
+                  }
+                }
+               ]
+    }
+  , { label: 'Debug'
+    , submenu: [{ label: 'Show Dev Tools'
+                , accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I'
+                , click (item, focusedWindow) {
+                    if (focusedWindow) focusedWindow.webContents.toggleDevTools()
+                  }
+                }
+               ]
+    }
+  ]
+const menu = Menu.buildFromTemplate(menuTemplate)
+Menu.setApplicationMenu(menu)
+
+
+

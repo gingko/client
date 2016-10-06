@@ -5,6 +5,10 @@ var commit = localStorage.getItem('elm-gingko-commit');
 var commits = null;
 var gingko = null;
 
+require('electron').ipcRenderer.on('commit-changes', (event, message) => {
+  gingko.ports.keyboard.send('mod+s')
+})
+
 db.allDocs({include_docs: true}).then(function(docs){
   contents = docs.rows
             .filter(function(row){
