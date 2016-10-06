@@ -42,7 +42,7 @@ db.allDocs({include_docs: true}).then(function(docs){
               return row.doc;
             });  
 
-  //commits = sortCommits(commits);
+  commits = sortCommits(commits);
 
   operations = docs.rows
             .filter(function(row){
@@ -127,8 +127,12 @@ saveNodes = function(nodes) {
 
 saveCommit = function(commit) {
   var parentIndex = commits.map(function(c){return c.id}).indexOf(commit.parents[0]);
-  parentIndex = parentIndex == 0 ? 0 : parentIndex - 1;
-  commits.splice(parentIndex,0, JSON.parse(JSON.stringify(commit)));
+  if(parentIndex == 0) {
+    commits.unshift(JSON.parse(JSON.stringify(commit)));
+  } else {
+    parentIndex = Math.max(parentIndex-1, 1);
+    commits.splice(parentIndex,0, JSON.parse(JSON.stringify(commit)));
+  }
   render();
 
   commit["_id"] = commit["id"];
@@ -158,9 +162,24 @@ sortCommits = function(coms) {
   result = remaining.filter(function(c){ return c.parents.length == 0 });
   remaining = remaining.filter(function(c){ return c.parents.length !== 0 });
 
-  var x = 100;
+  if(result.length == 0) {
+    result = remaining.filter(function(c){
+      var hasParent = commits.some(function(c1){return c.parents.includes(c1.id)})
+      return !hasParent;
+    });
+
+    remaining = remaining.filter(function(c){
+      var hasParent = commits.some(function(c1){return c.parents.includes(c1.id)})
+      return hasParent;
+    });
+
+  }
+  
+  var x = coms.length + 10;
 
   while (remaining.length && x > 0) {
+    if (x == 1) { alert('error sorting commits'); }
+
     // ids of all commits already in result
     var pids = result.map(function(c){ return c.id });
 
