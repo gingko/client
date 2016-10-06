@@ -1,7 +1,8 @@
 {
   "name": "gingko-client",
-  "version": "0.0.1",
-  "description": "Gingko client rewritten in Elm",
+  "version": "0.0.2",
+  "main": "electron-start.js",
+  "description": "Gingko client rewritten in Elm, packaged with Electron.",
   "scripts": {
     "watch": "chokidar '**/*.elm' -c 'clear && elm-make Main.elm --output dist/elm.js' --initial"
   },

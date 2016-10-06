@@ -1,4 +1,5 @@
 var db = new PouchDB('elm-gingko-test-cards');
+
 var viewState = JSON.parse(localStorage.getItem('elm-gingko-viewState'));
 var commit = localStorage.getItem('elm-gingko-commit');
 var commits = null;
@@ -41,7 +42,7 @@ db.allDocs({include_docs: true}).then(function(docs){
               return row.doc;
             });  
 
-  commits = sortCommits(commits);
+  //commits = sortCommits(commits);
 
   operations = docs.rows
             .filter(function(row){
@@ -174,6 +175,8 @@ sortCommits = function(coms) {
       result.unshift(t); 
       remaining = remaining.filter(function(r){ return r !== t });
     });
+
+    x--;
   }
 
   return result;
@@ -194,7 +197,7 @@ activateCard = function(uid) {
 }
 
 
-/* Keyboard shortcuts */
+// Keyboard shortcuts
 var shortcuts = [ 'mod+enter'
                 , 'enter'
                 , 'mod+j'
@@ -237,4 +240,3 @@ function render() {
   , document.getElementById('graph')
   );
 }
-
