@@ -98,10 +98,10 @@ init savedState =
 type Msg
     = NoOp
     | CommitChanges Int
-    | ExternalCommand (String, String)
     | CheckoutCommit String
-    | HandleKey String
     | TreeMsg Tree.Msg
+    | ExternalCommand (String, String)
+    | HandleKey String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

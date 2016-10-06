@@ -1,4 +1,5 @@
 var db = new PouchDB('elm-gingko-test-cards');
+var ipc = require('electron').ipcRenderer
 
 var viewState = JSON.parse(localStorage.getItem('elm-gingko-viewState'));
 var commit = localStorage.getItem('elm-gingko-commit');
@@ -216,8 +217,8 @@ activateCard = function(uid) {
   scrollTo(uid.toString());
 }
 
-// Menu Commands
-require('electron').ipcRenderer.on('commit-changes', (event, message) => {
+// Commands with payloads
+ipc.on('commit-changes', (event, message) => {
   gingko.ports.externals.send(['commit-changes', Date.now().toString()])
 })
 
