@@ -249,7 +249,7 @@ Mousetrap.bind(shortcuts, function(e, s) {
 
 function handleGraphClick(sha) {
   commit = sha;
-  gingko.ports.commit.send(sha);
+  gingko.ports.externals.send(['commit', sha]);
   render();
 }
 

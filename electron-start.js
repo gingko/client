@@ -1,4 +1,5 @@
-const {app, BrowserWindow, Menu} = require('electron')
+const {app, BrowserWindow, dialog, Menu} = require('electron')
+const fs = require('fs')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -53,12 +54,18 @@ app.on('activate', () => {
 
 const menuTemplate = 
   [ { label: 'File'
-    , submenu: [{ label: 'Commit Changes'
-                , click (item, focusedWindow) {
-                    if (focusedWindow) focusedWindow.webContents.send('commit-changes')
-                  }
-                }
-               ]
+    , submenu:
+        [ { label: 'Commit Changes'
+          , click (item, focusedWindow) {
+              if (focusedWindow) focusedWindow.webContents.send('commit-changes')
+            }
+          }
+        , { label: 'Save As JSON'
+          , click (item, focusedWindow) {
+              if (focusedWindow) saveAsJSON(focusedWindow)
+            }
+          }
+        ]
     }
   , { label: 'Debug'
     , submenu: [{ label: 'Show Dev Tools'
@@ -73,5 +80,8 @@ const menuTemplate =
 const menu = Menu.buildFromTemplate(menuTemplate)
 Menu.setApplicationMenu(menu)
 
-
-
+saveAsJSON = function(fwin){
+  dialog.showSaveDialog({title: 'Save as JSON', defaultPath: __dirname }, function(e){
+    fs.writeFile(e, "test content", function (err) { if(err) { console.log(err.message)}})
+  })
+}

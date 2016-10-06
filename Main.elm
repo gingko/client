@@ -97,6 +97,7 @@ init savedState =
 type Msg
     = NoOp
     | SaveTree
+    | ExternalCommand (String, String)
     | CheckoutCommit String
     | HandleKey String
     | TreeMsg Tree.Msg
@@ -275,7 +276,13 @@ update msg model =
           } 
             ! []
 
-
+    ExternalCommand (cmd, arg) ->
+      case cmd of
+        "commit" ->
+          model ! [run (CheckoutCommit (Debug.log "arg" arg))]
+        _ ->
+          model ! []
+    
     HandleKey str ->
       let
         vs = model.viewState
@@ -358,13 +365,13 @@ view model =
 -- SUBSCRIPTIONS
 
 port keyboard : (String -> msg) -> Sub msg
-port commit : (String -> msg) -> Sub msg
+port externals : ((String, String) -> msg) -> Sub msg
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.batch
     [ keyboard HandleKey
-    , commit CheckoutCommit
+    , externals ExternalCommand
     ]
 
 
@@ -374,3 +381,7 @@ subscriptions model =
 
 focus uid =
   Task.perform (\_ -> NoOp) (\_ -> NoOp) (Dom.focus ("card-edit-" ++ uid)) 
+
+run : Msg -> Cmd Msg
+run msg =
+  Task.perform (\_ -> NoOp) (\_ -> msg ) (Task.succeed msg)
