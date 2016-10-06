@@ -70,7 +70,7 @@ db.allDocs({include_docs: true}).then(function(docs){
         , operations : operations
         }
       , commit: commit ? commit : "bc5ff95381ff8577663e45455b14cd09d7e126c1"
-      , viewState: viewState ? viewState : {active: "0", editing: null, field: ""}
+      , viewState: viewState ? viewState : {active: "0", descendants: [], editing: null, field: ""}
       }
   }
 

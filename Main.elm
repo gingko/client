@@ -54,6 +54,7 @@ defaultModel =
   , commit = defaultCommit.id
   , viewState = 
       { active = "0"
+      , descendants = []
       , editing = Nothing
       , field = ""
       }
@@ -167,8 +168,16 @@ update msg model =
     TreeMsg msg ->
       case msg of
         Tree.Activate uid ->
+          let
+            desc =-- []
+              model.tree
+                |> flip getTree uid
+                |> Maybe.withDefault Tree.default
+                |> getDescendants
+                |> List.map (\t -> t.uid)
+          in
           { model
-            | viewState = ViewState uid model.viewState.editing model.viewState.field
+            | viewState = ViewState uid desc model.viewState.editing model.viewState.field
           }
             ! [ activateCard uid ]
 
@@ -177,6 +186,7 @@ update msg model =
             | viewState =
                 ViewState
                   model.viewState.active
+                  []
                   (Just uid)
                   str
           }
@@ -187,6 +197,7 @@ update msg model =
             | viewState =
                 ViewState
                   model.viewState.active
+                  []
                   Nothing
                   ""
           }
@@ -197,6 +208,7 @@ update msg model =
             | viewState =
                 ViewState
                   model.viewState.active
+                  []
                   model.viewState.editing
                   str
           }
@@ -214,6 +226,7 @@ update msg model =
             , viewState =
                 ViewState
                   model.viewState.active
+                  []
                   Nothing
                   ""
           }
@@ -245,6 +258,7 @@ update msg model =
               | tree = newTree
               , viewState =
                   { active = newId
+                  , descendants = []
                   , editing = Just newId
                   , field = ""
                   }
@@ -265,6 +279,7 @@ update msg model =
               | tree = newTree
               , viewState =
                   { active = newId
+                  , descendants = []
                   , editing = Just newId
                   , field = ""
                   }

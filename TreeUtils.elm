@@ -132,6 +132,13 @@ assignPrevNext trees =
 
 -- ACCESSORS
 
+getTree : Tree -> String -> Maybe Tree
+getTree tree uid =
+  tree
+    |> getDescendants
+    |> ListExtra.find (\t -> t.uid == uid)
+
+
 getContent : Tree -> String -> Maybe Content
 getContent {uid, content, children} id =
   if uid == id then
@@ -145,8 +152,6 @@ getContent {uid, content, children} id =
         trees
           |> List.map (flip getContent id)
           |> Maybe.oneOf
-
-
 
 
 getContents : Tree -> List Content
@@ -165,6 +170,16 @@ getChildren x =
     Children c ->
       c
         |> filterByVisible
+
+getDescendants : Tree -> List Tree
+getDescendants t =
+  let
+    children = getChildren t
+  in
+  if List.isEmpty children then
+    []
+  else
+    children ++ (List.concatMap getDescendants children)
 
 
 getNext : Tree -> String -> Maybe String

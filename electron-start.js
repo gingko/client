@@ -68,13 +68,20 @@ const menuTemplate =
         ]
     }
   , { label: 'Debug'
-    , submenu: [{ label: 'Show Dev Tools'
-                , accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I'
-                , click (item, focusedWindow) {
-                    if (focusedWindow) focusedWindow.webContents.toggleDevTools()
-                  }
-                }
-               ]
+    , submenu: 
+        [ { label: 'Reload'
+          , accelerator: 'F5'
+          , click (item, focusedWindow) {
+              if (focusedWindow) focusedWindow.webContents.reload()
+            }
+          }
+        , { label: 'Show Dev Tools'
+          , accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I'
+          , click (item, focusedWindow) {
+              if (focusedWindow) focusedWindow.webContents.toggleDevTools()
+            }
+          }
+        ]
     }
   ]
 const menu = Menu.buildFromTemplate(menuTemplate)

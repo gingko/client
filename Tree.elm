@@ -168,13 +168,32 @@ viewColumn vstate col =
 
 viewGroup : ViewState -> Group -> Html Msg
 viewGroup vstate xs =
-  div [ class "group" ]
-      (List.map (lazy (viewCard vstate)) xs)
+  let
+    firstChild = 
+      xs
+        |> List.head
+        |> Maybe.withDefault default
+        |> .uid
+
+    isActiveDescendant =
+      vstate.descendants
+        |> List.member firstChild
+  in
+    div [ classList [ ("group", True)
+                    , ("active-descendant", isActiveDescendant)
+                    ]
+        ]
+        (List.map (lazy (viewCard vstate)) xs)
 
 
 viewCard : ViewState -> Tree -> Html Msg
 viewCard vstate tree =
   let
+    hasChildren =
+      case tree.children of
+        Children [] -> False
+        _ -> True
+    
     buttons =
       if (tree.uid /= "0") then
         [ button [ onClick (DeleteCard tree.uid) ][text "x"]
@@ -189,6 +208,7 @@ viewCard vstate tree =
         , classList [ ("card", True)
                     , ("active", vstate.active == tree.uid)
                     , ("editing", vstate.editing == Just tree.uid)
+                    , ("has-children", hasChildren)
                     ]
         ]
         ([ div  [ class "view" 

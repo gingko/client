@@ -53,6 +53,7 @@ type alias State =
 
 type alias ViewState =
   { active : String
+  , descendants : List String
   , editing : Maybe String
   , field : String
   }
