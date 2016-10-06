@@ -7,6 +7,7 @@ import Html.App as App
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as Json
+import String
 import Dom
 import Task
 import Markdown
@@ -96,7 +97,7 @@ init savedState =
 
 type Msg
     = NoOp
-    | SaveTree
+    | CommitChanges Int
     | ExternalCommand (String, String)
     | CheckoutCommit String
     | HandleKey String
@@ -109,7 +110,7 @@ update msg model =
     NoOp ->
       model ! []
 
-    SaveTree ->
+    CommitChanges ts ->
       let
         newContents =
           getContents model.tree
@@ -122,7 +123,7 @@ update msg model =
         newCommit = 
           { id = "id"
           , rootNode = treeUid model.tree
-          , timestamp = 123456789
+          , timestamp = ts
           , authors = ["Adriano Ferrari <adriano.ferrari@gmail.com>"]
           , committer = "Adriano Ferrari <adriano.ferrari@gmail.com>"
           , parents = [model.commit]
@@ -278,8 +279,12 @@ update msg model =
 
     ExternalCommand (cmd, arg) ->
       case cmd of
-        "commit" ->
-          model ! [run (CheckoutCommit (Debug.log "arg" arg))]
+        "commit-changes" ->
+          model ! [run (CommitChanges (arg |> String.toInt |> Result.withDefault 0))]
+        "checkout-commit" ->
+          model ! [run (CheckoutCommit arg)]
+        "keyboard" ->
+          model ! [run (HandleKey arg)]
         _ ->
           model ! []
     
@@ -332,7 +337,7 @@ update msg model =
         "mod+s" ->
           case vs.editing of
             Nothing ->
-              update SaveTree model
+              update (CommitChanges 0) model
 
             Just uid ->
               model ! []
@@ -353,8 +358,7 @@ view model =
     columns = getColumns([[[ model.tree ]]])
   in
     div [ id "wrapper" ]
-        [ button [onClick SaveTree][text "save"]
-        , div [id "app" ]
+        [ div [id "app" ]
             ( columns
               |> List.map (viewColumn model.viewState)
               |> List.map (App.map TreeMsg)
@@ -364,15 +368,11 @@ view model =
 
 -- SUBSCRIPTIONS
 
-port keyboard : (String -> msg) -> Sub msg
 port externals : ((String, String) -> msg) -> Sub msg
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  Sub.batch
-    [ keyboard HandleKey
-    , externals ExternalCommand
-    ]
+  externals ExternalCommand
 
 
 

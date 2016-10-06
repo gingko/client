@@ -5,9 +5,6 @@ var commit = localStorage.getItem('elm-gingko-commit');
 var commits = null;
 var gingko = null;
 
-require('electron').ipcRenderer.on('commit-changes', (event, message) => {
-  gingko.ports.keyboard.send('mod+s')
-})
 
 db.allDocs({include_docs: true}).then(function(docs){
   contents = docs.rows
@@ -219,6 +216,16 @@ activateCard = function(uid) {
   scrollTo(uid.toString());
 }
 
+// Menu Commands
+require('electron').ipcRenderer.on('commit-changes', (event, message) => {
+  gingko.ports.externals.send(['commit-changes', Date.now().toString()])
+})
+
+function handleGraphClick(sha) {
+  commit = sha;
+  gingko.ports.externals.send(['checkout-commit', sha]);
+  render();
+}
 
 // Keyboard shortcuts
 var shortcuts = [ 'mod+enter'
@@ -238,7 +245,7 @@ var needOverride= [ 'mod+j'
                   ];
                     
 Mousetrap.bind(shortcuts, function(e, s) {
-  gingko.ports.keyboard.send(s);
+  gingko.ports.externals.send(['keyboard', s]);
 
   if(needOverride.includes(s)) {
     return false;
@@ -247,11 +254,6 @@ Mousetrap.bind(shortcuts, function(e, s) {
 
 
 
-function handleGraphClick(sha) {
-  commit = sha;
-  gingko.ports.externals.send(['commit', sha]);
-  render();
-}
 
 function render() {
   ReactDOM.render(
