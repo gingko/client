@@ -11,6 +11,8 @@ body {
   overflow: hidden;
 }
 
+::selection { background: #9fe147; }
+
 #app {
   display: flex;
   position: absolute;
@@ -28,15 +30,16 @@ body {
 }
 
 .buffer {
-  background: rgba(255,255,255,0.4);
-  border-right: 1px solid rgba(0,0,0,0.2);
-  border-left: 1px solid rgba(0,0,0,0.2);
+  background: rgb(216, 222, 229);
+  border-right: 1px solid rgb(173, 178, 183);
+  border-left: 1px solid rgb(173, 178, 183);
   margin: 0 16px;
   height: 90%;
 }
 
 .group {
-  padding: 0.8rem 1.6rem;
+  margin: 0;
+  padding: 10px;
   border-top: 1px solid #c9c9c9;
   background-color: #DEDEE2;
   color: #aaaab3;
