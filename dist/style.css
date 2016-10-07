@@ -51,6 +51,7 @@ body {
   color: #333;
   background: #fcfcfc;
   background: linear-gradient(to right, white, #eaeaeb);
+  border-radius: 8px 0 0 8px;
 }
 
 .card {
@@ -70,6 +71,27 @@ body {
 
 .card.has-children {
   margin-right: -26px;
+}
+.card.has-children::before {
+  content: '';
+  position: relative;
+  width: 8px;
+  height: 8px;
+  float: right;
+  right: 16px;
+  top: -8px;
+  background: white;
+  background-image: radial-gradient(circle at 0 0, #dedee2 7px, white 9px);
+}
+.card.has-children::after {
+  content: '';
+  position: relative;
+  width: 8px;
+  height: 8px;
+  float: right;
+  right: 16px;
+  background: white;
+  background-image: radial-gradient(circle at 0 100%, #dedee2 7px, white 9px);
 }
 
 .card textarea {
