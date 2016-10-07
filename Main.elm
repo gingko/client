@@ -54,6 +54,8 @@ defaultModel =
   , commit = defaultCommit.id
   , viewState = 
       { active = "0"
+      , activePast = []
+      , activeFuture = []
       , descendants = []
       , editing = Nothing
       , field = ""
@@ -186,6 +188,8 @@ update msg model =
           | tree = newTree
           , viewState =
               { active = newId
+              , activePast = []
+              , activeFuture = []
               , descendants = []
               , editing = Just newId
               , field = ""
@@ -208,6 +212,8 @@ update msg model =
           | tree = newTree
           , viewState =
               { active = newId
+              , activePast = []
+              , activeFuture = []
               , descendants = []
               , editing = Just newId
               , field = ""
@@ -229,6 +235,8 @@ update msg model =
           | tree = newTree
           , viewState =
               { active = newId
+              , activePast = []
+              , activeFuture = []
               , descendants = []
               , editing = Just newId
               , field = ""
@@ -283,40 +291,53 @@ update msg model =
                 |> List.map (\t -> t.uid)
           in
           { model
-            | viewState = ViewState uid desc model.viewState.editing model.viewState.field
+            | viewState = 
+                { active = uid
+                , activePast = []
+                , activeFuture = []
+                , descendants = desc
+                , editing = model.viewState.editing 
+                , field = model.viewState.field
+                }
           }
             ! [ activateCards (centerlineIds model.tree (getTree model.tree uid |> Maybe.withDefault Tree.default) ) ]
 
         Tree.OpenCard uid str ->
           { model
             | viewState =
-                ViewState
-                  model.viewState.active
-                  []
-                  (Just uid)
-                  str
+                { active = model.viewState.active
+                , activePast = []
+                , activeFuture = []
+                , descendants = []
+                , editing = (Just uid)
+                , field = str
+                }
           }
             ! [focus uid]
 
         Tree.CancelCard ->
           { model
             | viewState =
-                ViewState
-                  model.viewState.active
-                  []
-                  Nothing
-                  ""
+                { active = model.viewState.active
+                , activePast = []
+                , activeFuture = []
+                , descendants = []
+                , editing = Nothing
+                , field = ""
+                }
           }
             ! []
 
         Tree.UpdateField str ->
           { model
             | viewState =
-                ViewState
-                  model.viewState.active
-                  []
-                  model.viewState.editing
-                  str
+                { active = model.viewState.active
+                , activePast = []
+                , activeFuture = []
+                , descendants = []
+                , editing = model.viewState.editing
+                , field = str
+                }
           }
             ! []
 
@@ -333,6 +354,8 @@ update msg model =
                 ViewState
                   model.viewState.active
                   []
+                  []
+                  []
                   Nothing
                   ""
           }
@@ -348,9 +371,6 @@ update msg model =
             | tree = newTree
           }
             ! [saveOp newOp]
-
-
-
 
         _ ->
           { model
