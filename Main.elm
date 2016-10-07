@@ -308,68 +308,38 @@ update msg model =
         vs = model.viewState
       in
       case str of
-        "mod+x" ->
-          let
-            debug = Debug.log "centerlineIds" (centerlineIds model.tree (getTree model.tree vs.active |> Maybe.withDefault Tree.default))
-          in
-          model ! []
-
         "mod+enter" ->
-          case vs.editing of
-            Nothing ->
-              model ! []
-
-            Just uid ->
-              update (TreeMsg (Tree.UpdateCard uid vs.field)) model
+          editMode model
+            (\uid ->  update (TreeMsg (Tree.UpdateCard uid vs.field)) model)
 
         "enter" ->
-          case vs.editing of
-            Nothing ->
-              update 
-                (TreeMsg 
-                  (Tree.OpenCard vs.active 
-                    (getContent model.tree vs.active
-                      |> Maybe.withDefault defaultContent 
-                      |> .content
-                    )
+          normalMode model
+            ( update 
+              (TreeMsg 
+                (Tree.OpenCard vs.active 
+                  (getContent model.tree vs.active
+                    |> Maybe.withDefault defaultContent 
+                    |> .content
                   )
                 )
-                model
-
-            Just uid ->
-              model ! []
+              )
+             model)
 
         "mod+backspace" ->
-          case vs.editing of
-            Nothing ->
-              update (TreeMsg (Tree.DeleteCard vs.active)) model
-
-            Just uid ->
-              model ! []
+          normalMode model
+            ( update (TreeMsg (Tree.DeleteCard vs.active)) model )
 
         "mod+j" ->
-          case vs.editing of
-            Nothing ->
-              update (TreeMsg (Tree.InsertBelow vs.active)) model
-
-            Just uid ->
-              model ! []
+          normalMode model
+            ( update (TreeMsg (Tree.InsertBelow vs.active)) model )
 
         "mod+l" ->
-          case vs.editing of
-            Nothing ->
-              update (TreeMsg (Tree.InsertChild vs.active)) model
-
-            Just uid ->
-              model ! []
+          normalMode model
+            ( update (TreeMsg (Tree.InsertChild vs.active)) model )
 
         "mod+s" ->
-          case vs.editing of
-            Nothing ->
-              update (CommitChanges 0) model
-
-            Just uid ->
-              model ! []
+          normalMode model
+            ( update (CommitChanges 0) model )
 
         _ ->
           model ! []
@@ -414,3 +384,22 @@ focus uid =
 run : Msg -> Cmd Msg
 run msg =
   Task.perform (\_ -> NoOp) (\_ -> msg ) (Task.succeed msg)
+
+editMode : Model -> (String -> (Model, Cmd Msg)) -> (Model, Cmd Msg)
+editMode model editing = 
+  case model.viewState.editing of
+    Nothing ->
+      model ! []
+
+    Just uid ->
+      editing uid
+
+
+normalMode : Model -> (Model, Cmd Msg) -> (Model, Cmd Msg)
+normalMode model normal = 
+  case model.viewState.editing of
+    Nothing ->
+      normal
+
+    Just _ ->
+      model ! []
