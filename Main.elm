@@ -109,6 +109,8 @@ type Msg
     | GoDown String
     | GoUp String
     | GoRight String
+    | ActivatePast
+    | ActivateFuture
     | TreeMsg Tree.Msg
     | ExternalCommand (String, String)
     | HandleKey String
@@ -116,6 +118,9 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+  let
+    vs = model.viewState
+  in
   case msg of
     NoOp ->
       model ! []
@@ -278,6 +283,54 @@ update msg model =
       in
       update (TreeMsg (Tree.Activate rightId)) model
 
+    ActivatePast ->
+      if List.isEmpty vs.activePast then
+        model ! []
+      else
+      let
+        targetId =
+          vs.activePast
+            |> List.head
+            |> Maybe.withDefault vs.active
+
+        newPast =
+          List.drop 1 vs.activePast
+
+        newFuture = vs.active :: vs.activeFuture
+
+        newViewState v =
+          { v
+            | active = targetId
+            , activePast = newPast
+            , activeFuture = newFuture
+          }
+      in
+      { model | viewState = newViewState vs } ! []
+      
+        
+    ActivateFuture ->
+      if List.isEmpty (Debug.log "activeFuture" vs.activeFuture) then
+        model ! []
+      else
+      let
+        targetId =
+          vs.activeFuture
+            |> List.head
+            |> Maybe.withDefault vs.active
+
+        newFuture =
+          List.drop 1 vs.activeFuture
+
+        newPast = vs.active :: vs.activePast
+
+        newViewState v =
+          { v
+            | active = targetId
+            , activePast = newPast
+            , activeFuture = newFuture
+          }
+      in
+      { model | viewState = newViewState vs } ! []
 
     TreeMsg msg ->
       case msg of
@@ -293,11 +346,11 @@ update msg model =
           { model
             | viewState = 
                 { active = uid
-                , activePast = []
+                , activePast = vs.active :: vs.activePast
                 , activeFuture = []
                 , descendants = desc
-                , editing = model.viewState.editing 
-                , field = model.viewState.field
+                , editing = vs.editing 
+                , field = vs.field
                 }
           }
             ! [ activateCards (centerlineIds model.tree (getTree model.tree uid |> Maybe.withDefault Tree.default) ) ]
@@ -305,7 +358,7 @@ update msg model =
         Tree.OpenCard uid str ->
           { model
             | viewState =
-                { active = model.viewState.active
+                { active = vs.active
                 , activePast = []
                 , activeFuture = []
                 , descendants = []
@@ -318,7 +371,7 @@ update msg model =
         Tree.CancelCard ->
           { model
             | viewState =
-                { active = model.viewState.active
+                { active = vs.active
                 , activePast = []
                 , activeFuture = []
                 , descendants = []
@@ -331,11 +384,11 @@ update msg model =
         Tree.UpdateField str ->
           { model
             | viewState =
-                { active = model.viewState.active
+                { active = vs.active
                 , activePast = []
                 , activeFuture = []
                 , descendants = []
-                , editing = model.viewState.editing
+                , editing = vs.editing
                 , field = str
                 }
           }
@@ -351,13 +404,13 @@ update msg model =
           { model
             | tree = newTree
             , viewState =
-                ViewState
-                  model.viewState.active
-                  []
-                  []
-                  []
-                  Nothing
-                  ""
+                { active = vs.active
+                , activePast = []
+                , activeFuture = []
+                , descendants = []
+                , editing = Nothing
+                , field = ""
+                }
           }
             ! [saveOp newOp] 
 
@@ -440,6 +493,12 @@ update msg model =
         "l" ->
           normalMode model
             (GoRight vs.active)
+
+        "[" ->
+          normalMode model ActivatePast
+
+        "]" ->
+          normalMode model ActivateFuture
 
         "mod+s" ->
           normalMode model
