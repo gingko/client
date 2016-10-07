@@ -172,6 +172,27 @@ getChildren x =
         |> filterByVisible
 
 
+getParent : Tree -> String -> Maybe Tree
+getParent all uid =
+  case all.children of
+    Children [] ->
+      Nothing
+    Children children ->
+      if (List.member uid (List.map .uid children)) then
+        Just all
+      else
+        children
+          |> List.map ((flip getParent) uid)
+          |> Maybe.oneOf
+
+
+getParentId : Tree -> String -> Maybe String
+getParentId all uid =
+  case (getParent all uid) of
+    Nothing -> Nothing
+    Just p -> Just p.uid
+
+
 getDescendants : Tree -> List Tree
 getDescendants t =
   let
@@ -183,24 +204,45 @@ getDescendants t =
     children ++ (List.concatMap getDescendants children)
 
 
-getParent : Tree -> String -> Maybe String
-getParent tree uid =
-  case tree.children of
-    Children [] ->
-      Nothing
-    Children children ->
-      -- if the children contains uid then this is the parent
-      if (List.member uid (List.map .uid children)) then
-        Just tree.uid
-      else
-        children -- List Tree
-          |> List.map ((flip getParent) uid)
-          |> Maybe.oneOf
+getDescendantIds : Tree -> List String
+getDescendantIds t =
+  getDescendants t |> List.map .uid
 
 
-getAncestors : Tree -> String -> List Tree
-getAncestors tree uid =
-  [tree]
+getAncestors : Tree -> Tree -> List Tree -> List Tree
+getAncestors all target accum =
+  let
+    current =
+      case (List.head accum) of
+        Nothing -> target
+        Just t -> t
+  in
+  case (getParent all current.uid) of
+    Nothing -> accum
+    Just p ->
+      (getAncestors all target (p :: accum))
+
+
+getAncestorIds : Tree -> Tree -> List Tree -> List String
+getAncestorIds all target accum =
+  getAncestors all target accum |> List.map .uid
+
+
+centerlineIds : Tree -> Tree -> List (List String)
+centerlineIds all active =
+  let
+    desc = getDescendants active
+    anc = getAncestors all active []
+    withDepth x =
+      (getDepth 0 all x.uid, x.uid)
+  in
+  anc
+    |> List.map withDepth
+    |> List.append [ withDepth active ]
+    |> List.append (desc |> List.map withDepth)
+    |> List.sortBy (\x -> fst x)
+    |> ListExtra.groupWhile (\x y-> fst x == fst y)
+    |> List.map (List.map (\x -> snd x))
 
 
 getNext : Tree -> String -> Maybe String
@@ -253,7 +295,6 @@ getDepth prev tree uid =
           |> List.maximum
           |> Maybe.withDefault 0
         
-
 
 
 

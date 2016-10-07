@@ -33,7 +33,7 @@ port saveNodes : List Node -> Cmd msg
 port saveCommit : Commit -> Cmd msg
 port setCurrentCommit : String -> Cmd msg
 port saveOp : Operation -> Cmd msg
-port activateCard : String -> Cmd msg
+port activateCards : List (List String) -> Cmd msg
 
 
 -- MODEL
@@ -169,7 +169,7 @@ update msg model =
       case msg of
         Tree.Activate uid ->
           let
-            desc =-- []
+            desc =
               model.tree
                 |> flip getTree uid
                 |> Maybe.withDefault Tree.default
@@ -179,7 +179,7 @@ update msg model =
           { model
             | viewState = ViewState uid desc model.viewState.editing model.viewState.field
           }
-            ! [ activateCard uid ]
+            ! [ activateCards (centerlineIds model.tree (getTree model.tree uid |> Maybe.withDefault Tree.default) ) ]
 
         Tree.OpenCard uid str ->
           { model
@@ -268,7 +268,7 @@ update msg model =
         Tree.InsertBelow uid ->
           let
             oldTree = model.tree
-            parentId = getParent model.tree uid
+            parentId = getParentId model.tree uid
             prevId_ = Just uid
             nextId_ = getNext model.tree uid
             newId = newUid parentId prevId_ nextId_
@@ -310,7 +310,7 @@ update msg model =
       case str of
         "mod+x" ->
           let
-            debug = Debug.log "getDepth" (getDepth 0 model.tree model.viewState.active)
+            debug = Debug.log "centerlineIds" (centerlineIds model.tree (getTree model.tree vs.active |> Maybe.withDefault Tree.default))
           in
           model ! []
 

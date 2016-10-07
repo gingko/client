@@ -87,12 +87,12 @@ startElm = function(init) {
   gingko.ports.saveCommit.subscribe(saveCommit);
   gingko.ports.setCurrentCommit.subscribe(setCurrentCommit);
   gingko.ports.saveOp.subscribe(saveOp);
-  gingko.ports.activateCard.subscribe(activateCard);
+  gingko.ports.activateCards.subscribe(activateCards);
 }
 
-scrollTo = function(cid) {
+scrollTo = function(cid, colIdx) {
   var card = document.getElementById('card-' + cid.toString());
-  var col = card.closest('.column');
+  var col = document.getElementsByClassName('column')[colIdx]
   if (card == null) return;
   var rect = card.getBoundingClientRect();
 
@@ -213,8 +213,11 @@ saveOp = function(op) {
   }
 }
 
-activateCard = function(uid) {
-  scrollTo(uid.toString());
+activateCards = function(centerlineIds) {
+  centerlineIds.map(function(c, i){
+    var centerIdx = Math.round(c.length/2) - 1
+    scrollTo(c[centerIdx], i)
+  })
 }
 
 // Commands with payloads
