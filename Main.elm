@@ -277,11 +277,25 @@ update msg model =
 
     GoRight uid ->
       let
-        rightId =
-          getFirstChild model.tree uid
-            |> Maybe.withDefault uid
+        tree =
+          getTree model.tree uid -- Maybe Tree
+            |> Maybe.withDefault (blankTree uid) -- Tree
+
+        childrenIds =
+          tree
+            |> getChildren -- List Tree
+            |> List.map .uid -- List String
+
+        firstChild = 
+          getFirstChild model.tree uid |> Maybe.withDefault uid
+
+        prevActiveOfChildren =
+          vs.activePast
+            |> List.filter (\a -> List.member a childrenIds) -- children in activePast
+            |> List.head
+            |> Maybe.withDefault firstChild
       in
-      update (TreeMsg (Tree.Activate rightId)) model
+      update (TreeMsg (Tree.Activate prevActiveOfChildren)) model
 
     ActivatePast ->
       if List.isEmpty vs.activePast then
@@ -309,7 +323,7 @@ update msg model =
       
         
     ActivateFuture ->
-      if List.isEmpty (Debug.log "activeFuture" vs.activeFuture) then
+      if List.isEmpty vs.activeFuture then
         model ! []
       else
       let
