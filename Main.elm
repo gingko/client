@@ -310,36 +310,34 @@ update msg model =
       case str of
         "mod+enter" ->
           editMode model
-            (\uid ->  update (TreeMsg (Tree.UpdateCard uid vs.field)) model)
+            (\uid ->  TreeMsg (Tree.UpdateCard uid vs.field))
 
         "enter" ->
           normalMode model
-            ( update 
-              (TreeMsg 
-                (Tree.OpenCard vs.active 
-                  (getContent model.tree vs.active
-                    |> Maybe.withDefault defaultContent 
-                    |> .content
-                  )
+            (TreeMsg 
+              (Tree.OpenCard vs.active 
+                (getContent model.tree vs.active
+                  |> Maybe.withDefault defaultContent 
+                  |> .content
                 )
               )
-             model)
+            )
 
         "mod+backspace" ->
           normalMode model
-            ( update (TreeMsg (Tree.DeleteCard vs.active)) model )
+            (TreeMsg (Tree.DeleteCard vs.active))
 
         "mod+j" ->
           normalMode model
-            ( update (TreeMsg (Tree.InsertBelow vs.active)) model )
+            (TreeMsg (Tree.InsertBelow vs.active))
 
         "mod+l" ->
           normalMode model
-            ( update (TreeMsg (Tree.InsertChild vs.active)) model )
+            (TreeMsg (Tree.InsertChild vs.active))
 
         "mod+s" ->
           normalMode model
-            ( update (CommitChanges 0) model )
+            (CommitChanges 0)
 
         _ ->
           model ! []
@@ -385,21 +383,21 @@ run : Msg -> Cmd Msg
 run msg =
   Task.perform (\_ -> NoOp) (\_ -> msg ) (Task.succeed msg)
 
-editMode : Model -> (String -> (Model, Cmd Msg)) -> (Model, Cmd Msg)
+editMode : Model -> (String -> Msg) -> (Model, Cmd Msg)
 editMode model editing = 
   case model.viewState.editing of
     Nothing ->
       model ! []
 
     Just uid ->
-      editing uid
+      update (editing uid) model
 
 
-normalMode : Model -> (Model, Cmd Msg) -> (Model, Cmd Msg)
-normalMode model normal = 
+normalMode : Model -> Msg -> (Model, Cmd Msg)
+normalMode model msg = 
   case model.viewState.editing of
     Nothing ->
-      normal
+      update msg model
 
     Just _ ->
       model ! []
