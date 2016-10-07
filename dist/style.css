@@ -23,6 +23,7 @@ body {
 .column {
   flex-grow: 1;
   height: 100%;
+  overflow-x: hidden;
   overflow-y: scroll;
 }
 .column::-webkit-scrollbar {

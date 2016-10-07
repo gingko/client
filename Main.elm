@@ -339,6 +339,14 @@ update msg model =
             Just uid ->
               model ! []
 
+        "mod+backspace" ->
+          case vs.editing of
+            Nothing ->
+              update (TreeMsg (Tree.DeleteCard vs.active)) model
+
+            Just uid ->
+              model ! []
+
         "mod+j" ->
           case vs.editing of
             Nothing ->

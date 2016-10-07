@@ -193,16 +193,6 @@ viewCard vstate tree =
       case tree.children of
         Children [] -> False
         _ -> True
-    
-    buttons =
-      if (tree.uid /= "0") then
-        [ button [ onClick (DeleteCard tree.uid) ][text "x"]
-        , button [ onClick (InsertBelow tree.uid) ][text "+ below"]
-        , button [ onClick (InsertChild tree.uid) ][text "+ child"]
-        ]
-      else
-        [ button [ onClick (InsertChild tree.uid) ][text "+ child"]
-        ]
   in
     div [ id ("card-" ++ tree.uid)
         , classList [ ("card", True)
@@ -211,7 +201,7 @@ viewCard vstate tree =
                     , ("has-children", hasChildren)
                     ]
         ]
-        ([ div  [ class "view" 
+        [ div  [ class "view" 
                 , onClick (Activate tree.uid)
                 , onDoubleClick (OpenCard tree.uid tree.content.content)
                 ] [ Markdown.toHtml [] tree.content.content ]
@@ -225,7 +215,7 @@ viewCard vstate tree =
             , onInput UpdateField
             ]
             []
-        ] ++ buttons)
+        ]
 
 
 
