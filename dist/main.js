@@ -237,6 +237,7 @@ var shortcuts = [ 'mod+enter'
                 , 'mod+s'
                 , 'mod+z'
                 , 'mod+r'
+                , 'mod+x' // debug command
                 ];
 
 var needOverride= [ 'mod+j'

@@ -308,6 +308,12 @@ update msg model =
         vs = model.viewState
       in
       case str of
+        "mod+x" ->
+          let
+            debug = Debug.log "getDepth" (getDepth 0 model.tree model.viewState.active)
+          in
+          model ! []
+
         "mod+enter" ->
           case vs.editing of
             Nothing ->

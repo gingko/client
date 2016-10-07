@@ -171,6 +171,7 @@ getChildren x =
       c
         |> filterByVisible
 
+
 getDescendants : Tree -> List Tree
 getDescendants t =
   let
@@ -180,6 +181,26 @@ getDescendants t =
     []
   else
     children ++ (List.concatMap getDescendants children)
+
+
+getParent : Tree -> String -> Maybe String
+getParent tree uid =
+  case tree.children of
+    Children [] ->
+      Nothing
+    Children children ->
+      -- if the children contains uid then this is the parent
+      if (List.member uid (List.map .uid children)) then
+        Just tree.uid
+      else
+        children -- List Tree
+          |> List.map ((flip getParent) uid)
+          |> Maybe.oneOf
+
+
+getAncestors : Tree -> String -> List Tree
+getAncestors tree uid =
+  [tree]
 
 
 getNext : Tree -> String -> Maybe String
@@ -204,20 +225,6 @@ getNext tree uid =
           |> Maybe.oneOf
 
 
-getParent : Tree -> String -> Maybe String
-getParent tree uid =
-  case tree.children of
-    Children [] ->
-      Nothing
-    Children children ->
-      -- if the children contains uid then this is the parent
-      if (List.member uid (List.map .uid children)) then
-        Just tree.uid
-      else
-        children -- List Tree
-          |> List.map ((flip getParent) uid)
-          |> Maybe.oneOf
-
 
 getLastChild : Tree -> String -> Maybe String
 getLastChild tree uid =
@@ -233,6 +240,19 @@ getLastChild tree uid =
           |> List.map ((flip getLastChild) uid)
           |> Maybe.oneOf
 
+
+getDepth : Int -> Tree -> String -> Int
+getDepth prev tree uid =
+  case tree.children of
+    Children children ->
+      if (tree.uid == uid) then
+        prev
+      else
+        children
+          |> List.map ((flip (getDepth (prev+1))) uid)
+          |> List.maximum
+          |> Maybe.withDefault 0
+        
 
 
 
