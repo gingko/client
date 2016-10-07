@@ -100,6 +100,13 @@ type Msg
     = NoOp
     | CommitChanges Int
     | CheckoutCommit String
+    | InsertAbove String
+    | InsertBelow String
+    | InsertChild String
+    | GoLeft String
+    | GoDown String
+    | GoUp String
+    | GoRight String
     | TreeMsg Tree.Msg
     | ExternalCommand (String, String)
     | HandleKey String
@@ -164,6 +171,105 @@ update msg model =
         , tree = newTree
       }
         ! [setCurrentCommit cid]
+
+    InsertAbove uid ->
+      let
+        oldTree = model.tree
+        parentId = getParentId model.tree uid
+        prevId_ = getPrev model.tree uid
+        nextId_ = Just uid
+        newId = newUid parentId prevId_ nextId_
+        newOp = Operation "Insert" [parentId, prevId_, nextId_]
+        newTree = Tree.update (Insert parentId prevId_ nextId_) oldTree
+      in
+        { model
+          | tree = newTree
+          , viewState =
+              { active = newId
+              , descendants = []
+              , editing = Just newId
+              , field = ""
+              }
+        }
+          ! [focus newId, saveOp newOp]
+
+
+    InsertBelow uid ->
+      let
+        oldTree = model.tree
+        parentId = getParentId model.tree uid
+        prevId_ = Just uid
+        nextId_ = getNext model.tree uid
+        newId = newUid parentId prevId_ nextId_
+        newOp = Operation "Insert" [parentId, prevId_, nextId_]
+        newTree = Tree.update (Insert parentId prevId_ nextId_) oldTree
+      in
+        { model
+          | tree = newTree
+          , viewState =
+              { active = newId
+              , descendants = []
+              , editing = Just newId
+              , field = ""
+              }
+        }
+          ! [focus newId, saveOp newOp]
+
+    InsertChild uid ->
+      let
+        oldTree = model.tree
+        parentId = Just uid
+        prevId_ = getLastChild model.tree uid
+        nextId_ = Nothing
+        newId = newUid parentId prevId_ nextId_
+        newOp = Operation "Insert" [parentId, prevId_, nextId_]
+        newTree = Tree.update (Insert parentId prevId_ nextId_) oldTree
+      in
+        { model
+          | tree = newTree
+          , viewState =
+              { active = newId
+              , descendants = []
+              , editing = Just newId
+              , field = ""
+              }
+        }
+          ! [focus newId, saveOp newOp]
+
+    GoLeft uid ->
+      let
+        targetId =
+          getParent model.tree uid
+            |> Maybe.withDefault (blankTree uid)
+            |> .uid
+      in
+      update (TreeMsg (Tree.Activate targetId)) model
+
+    GoDown uid ->
+      let
+        targetId =
+          getNext model.tree uid
+            |> Maybe.withDefault uid
+      in
+      update (TreeMsg (Tree.Activate targetId)) model
+
+    GoUp uid ->
+      let
+        targetId =
+          getPrev model.tree uid
+            |> Maybe.withDefault uid
+      in
+      update (TreeMsg (Tree.Activate targetId)) model
+
+
+    GoRight uid ->
+      let
+        rightId =
+          getFirstChild model.tree uid
+            |> Maybe.withDefault uid
+      in
+      update (TreeMsg (Tree.Activate rightId)) model
+
 
     TreeMsg msg ->
       case msg of
@@ -244,47 +350,7 @@ update msg model =
             ! [saveOp newOp]
 
 
-        Tree.InsertChild uid ->
-          let
-            oldTree = model.tree
-            parentId = Just uid
-            prevId_ = getLastChild model.tree uid
-            nextId_ = Nothing
-            newId = newUid parentId prevId_ nextId_
-            newOp = Operation "Insert" [parentId, prevId_, nextId_]
-            newTree = Tree.update (Insert parentId prevId_ nextId_) oldTree
-          in
-            { model
-              | tree = newTree
-              , viewState =
-                  { active = newId
-                  , descendants = []
-                  , editing = Just newId
-                  , field = ""
-                  }
-            }
-              ! [focus newId, saveOp newOp]
 
-        Tree.InsertBelow uid ->
-          let
-            oldTree = model.tree
-            parentId = getParentId model.tree uid
-            prevId_ = Just uid
-            nextId_ = getNext model.tree uid
-            newId = newUid parentId prevId_ nextId_
-            newOp = Operation "Insert" [parentId, prevId_, nextId_]
-            newTree = Tree.update (Insert parentId prevId_ nextId_) oldTree
-          in
-            { model
-              | tree = newTree
-              , viewState =
-                  { active = newId
-                  , descendants = []
-                  , editing = Just newId
-                  , field = ""
-                  }
-            }
-              ! [focus newId, saveOp newOp]
 
         _ ->
           { model
@@ -329,11 +395,31 @@ update msg model =
 
         "mod+j" ->
           normalMode model
-            (TreeMsg (Tree.InsertBelow vs.active))
+            (InsertBelow vs.active)
+
+        "mod+k" ->
+          normalMode model
+            (InsertAbove vs.active)
 
         "mod+l" ->
           normalMode model
-            (TreeMsg (Tree.InsertChild vs.active))
+            (InsertChild vs.active)
+
+        "h" ->
+          normalMode model
+            (GoLeft vs.active)
+
+        "j" ->
+          normalMode model
+            (GoDown vs.active)
+
+        "k" ->
+          normalMode model
+            (GoUp vs.active)
+  
+        "l" ->
+          normalMode model
+            (GoRight vs.active)
 
         "mod+s" ->
           normalMode model
@@ -379,9 +465,11 @@ subscriptions model =
 focus uid =
   Task.perform (\_ -> NoOp) (\_ -> NoOp) (Dom.focus ("card-edit-" ++ uid)) 
 
+
 run : Msg -> Cmd Msg
 run msg =
   Task.perform (\_ -> NoOp) (\_ -> msg ) (Task.succeed msg)
+
 
 editMode : Model -> (String -> Msg) -> (Model, Cmd Msg)
 editMode model editing = 

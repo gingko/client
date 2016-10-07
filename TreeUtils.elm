@@ -267,6 +267,42 @@ getNext tree uid =
           |> Maybe.oneOf
 
 
+getPrev : Tree -> String -> Maybe String
+getPrev tree uid =
+  case tree.children of
+    Children children ->
+      if (List.member uid (List.map .uid children)) then -- if uid is in children
+        let
+          ids = children |> filterByVisible |> List.map .uid
+          idx = ids |> ListExtra.elemIndex uid
+              
+        in
+          case idx of
+            Nothing ->
+              Nothing
+
+            Just i ->
+              ListExtra.getAt (i-1) ids
+      else
+        children -- List Tree
+          |> List.map ((flip getPrev) uid)
+          |> Maybe.oneOf
+
+
+getFirstChild : Tree -> String -> Maybe String
+getFirstChild tree uid =
+  case tree.children of
+    Children children ->
+      if tree.uid == uid then
+        children
+          |> filterByVisible
+          |> List.map .uid
+          |> List.head
+      else
+        children
+          |> List.map ((flip getFirstChild) uid)
+          |> Maybe.oneOf
+
 
 getLastChild : Tree -> String -> Maybe String
 getLastChild tree uid =

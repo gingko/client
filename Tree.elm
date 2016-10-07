@@ -46,8 +46,6 @@ type Msg
   | DeleteCard String
   | OpenCard String String
   | CancelCard
-  | InsertBelow String
-  | InsertChild String
   | Insert (Maybe String) (Maybe String) (Maybe String)
   | UpdateField String
 
@@ -95,14 +93,6 @@ update msg tree =
           }
       else
           { tree | children = Children (List.map (update msg) children) }
-    
-    InsertChild uid ->
-      let
-        parentId = Just uid
-        prevId_ = getLastChild tree uid
-        nextId_ = Nothing
-      in
-        update (Insert parentId prevId_ nextId_ ) tree
 
     _ ->
       tree
