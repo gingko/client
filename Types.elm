@@ -35,9 +35,9 @@ type alias Operation =
   }
 
 type Op
-  = Ins (Maybe String) (Maybe String) (Maybe String)
-  | Upd String String
-  | Del String
+  = Ins String (Maybe String) (Maybe String) (Maybe String)
+  | Upd String String String
+  | Del String String
 
 type alias Objects =
   { contents : List Content

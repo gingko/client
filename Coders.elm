@@ -17,25 +17,28 @@ opToValue op =
         Just v -> encoder v
   in
   case op of
-    Ins pid_ previd_ nextid_ ->
+    Ins id pid_ previd_ nextid_ ->
       Json.Encode.object
         [ ( "type", Json.Encode.string "Ins" )
+        , ( "id", Json.Encode.string id )
         , ( "parentId", mbToVal pid_ Json.Encode.string )
         , ( "prevId", mbToVal previd_ Json.Encode.string )
         , ( "nextId", mbToVal nextid_ Json.Encode.string )
         ]
 
-    Upd id str ->
+    Upd id uid str ->
       Json.Encode.object
         [ ( "type", Json.Encode.string "Upd" )
         , ( "id", Json.Encode.string id )
+        , ( "uid", Json.Encode.string uid )
         , ( "content", Json.Encode.string str )
         ]
 
-    Del id ->
+    Del id uid ->
       Json.Encode.object
         [ ( "type", Json.Encode.string "Del" )
         , ( "id", Json.Encode.string id )
+        , ( "uid", Json.Encode.string uid )
         ]
 
 
@@ -51,18 +54,22 @@ opInfo : String -> Decoder Op
 opInfo tag =
   case tag of
     "Ins" ->
-      object3 Ins
+      object4 Ins
+        ("id" := string) 
         (maybe ("parentId" := string)) 
         (maybe ("prevId" := string))
         (maybe ("nextId" := string))
 
     "Upd" ->
-      object2 Upd 
+      object3 Upd 
         ("id" := string) 
+        ("uid" := string) 
         ("content" := string)
 
     "Del" ->
-      object1 Del ("id" := string)
+      object2 Del
+        ("id" := string) 
+        ("uid" := string)
 
     _ -> Json.fail (tag ++ " is not a recognized type for Op")
 

@@ -41,6 +41,7 @@ blankTree uid =
 
 type Msg
   = NoOp
+  | Ops Op
   | Activate String
   | UpdateCard String String
   | DeleteCard String
@@ -60,6 +61,27 @@ update msg tree =
   in
   case msg of
     NoOp -> tree
+
+    Ops (Ins id parentId prevId_ nextId_) ->
+      if Just tree.uid == parentId then
+        let
+          newTree =
+            { uid = newUid parentId prevId_ nextId_
+            , parentId = parentId
+            , prev = prevId_
+            , next = nextId_
+            , content = (Content "" "" "" |> withContentId)
+            , visible = True
+            , children = Children []
+            }
+
+          sortedChildren = Children (sortTrees (children ++ [newTree]))
+        in
+          { tree
+            | children = sortedChildren
+          }
+      else
+          { tree | children = Children (List.map (update msg) children) }
 
     UpdateCard uid str ->
       if tree.uid == uid then

@@ -7,6 +7,8 @@ import Html.App as App
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import String
+import Json.Encode
+import Json.Decode as Json
 import Dom
 import Task
 import Markdown
@@ -34,6 +36,7 @@ port saveCommit : Commit -> Cmd msg
 port setCurrentCommit : String -> Cmd msg
 port saveOp : Operation -> Cmd msg
 port activateCards : List (List String) -> Cmd msg
+port testOp : Json.Encode.Value -> Cmd msg
 
 
 -- MODEL
@@ -112,6 +115,7 @@ type Msg
     | ActivatePast
     | ActivateFuture
     | TreeMsg Tree.Msg
+    | OpIn Json.Value
     | ExternalCommand (String, String)
     | HandleKey String
 
@@ -445,6 +449,38 @@ update msg model =
           } 
             ! []
 
+    OpIn json ->
+      case (Json.decodeValue opDecoder json) of
+        Ok val ->
+          case val of
+            Ins id parentId_ prevId_ nextId_ ->
+            let
+              oldTree = model.tree
+              newId = newUid parentId_ prevId_ nextId_
+              newTree = Tree.update (Insert parentId_ prevId_ nextId_) oldTree
+            in
+              { model
+                | tree = newTree
+                , viewState =
+                    { active = newId
+                    , activePast = []
+                    , activeFuture = []
+                    , descendants = []
+                    , editing = Just newId
+                    , field = ""
+                    }
+              }
+                ! [focus newId]
+
+            _ -> model ! []
+
+        Err err ->
+          let
+            deb = Debug.log "err" err
+          in
+          model ! []
+
+
     ExternalCommand (cmd, arg) ->
       case cmd of
         "commit-changes" ->
@@ -461,6 +497,9 @@ update msg model =
         vs = model.viewState
       in
       case str of
+        "mod+x" ->
+          model ! [testOp (opToValue (Del "123" "asdf"))]
+
         "mod+enter" ->
           editMode model
             (\uid ->  TreeMsg (Tree.UpdateCard uid vs.field))
@@ -521,7 +560,10 @@ update msg model =
           normalMode model
             (CommitChanges 0)
 
-        _ ->
+        other ->
+          let
+            deb = Debug.log "keyboard" other
+          in
           model ! []
 
 
@@ -547,11 +589,15 @@ view model =
 
 -- SUBSCRIPTIONS
 
-port externals : ((String, String) -> msg) -> Sub msg
+port externals : ((String, String) -> msg) -> Sub msg -- ~ Sub (String, String)
+port opsIn : (Json.Encode.Value -> msg) -> Sub msg -- ~ Sub Op
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  externals ExternalCommand
+  Sub.batch
+    [ externals ExternalCommand
+    , opsIn OpIn
+    ]
 
 
 

@@ -94,6 +94,9 @@ startElm = function(init) {
   gingko.ports.saveCommit.subscribe(saveCommit);
   gingko.ports.setCurrentCommit.subscribe(setCurrentCommit);
   gingko.ports.saveOp.subscribe(saveOp);
+  gingko.ports.testOp.subscribe(function(o){
+    console.log(o);
+  });
   gingko.ports.activateCards.subscribe(activateCards);
 }
 
