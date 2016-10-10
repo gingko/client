@@ -241,6 +241,7 @@ function handleGraphClick(sha) {
 // Keyboard shortcuts
 var shortcuts = [ 'mod+enter'
                 , 'enter'
+                , 'esc'
                 , 'mod+backspace'
                 , 'mod+j'
                 , 'mod+k'

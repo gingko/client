@@ -201,7 +201,7 @@ viewCard vstate tree =
                         , ("mousetrap", True)
                         ]
             , value vstate.field
-            , onBlur CancelCard
+            -- , onBlur CancelCard
             , onInput UpdateField
             ]
             []

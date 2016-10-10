@@ -6,7 +6,6 @@ import Html exposing (..)
 import Html.App as App
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Json.Decode as Json
 import String
 import Dom
 import Task
@@ -14,6 +13,7 @@ import Markdown
 import List.Extra as ListExtra
 
 import Types exposing (..)
+import Coders exposing (..)
 import Tree exposing (..)
 import TreeUtils exposing (..)
 
@@ -361,7 +361,7 @@ update msg model =
             | viewState = 
                 { active = uid
                 , activePast = vs.active :: vs.activePast
-                , activeFuture = []
+                , activeFuture = vs.activeFuture
                 , descendants = desc
                 , editing = vs.editing 
                 , field = vs.field
@@ -475,6 +475,9 @@ update msg model =
                 )
               )
             )
+
+        "esc" ->
+          editMode model (\_ -> TreeMsg Tree.CancelCard )
 
         "mod+backspace" ->
           normalMode model
