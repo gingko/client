@@ -45,13 +45,13 @@ body {
   background-color: #DEDEE2;
   color: #aaaab3;
   font-family: "Droid Serif", Georgia;
+  border-radius: 8px 0 0 8px;
 }
 
 .group.active-descendant {
   color: #333;
   background: #fcfcfc;
   background: linear-gradient(to right, white, #eaeaeb);
-  border-radius: 8px 0 0 8px;
 }
 
 .card {
@@ -72,7 +72,7 @@ body {
 .card.has-children {
   margin-right: -26px;
 }
-.card.has-children::before {
+.card.active.has-children::before {
   content: '';
   position: relative;
   width: 8px;
@@ -83,7 +83,7 @@ body {
   background: white;
   background-image: radial-gradient(circle at 0 0, #dedee2 7px, white 9px);
 }
-.card.has-children::after {
+.card.active.has-children::after {
   content: '';
   position: relative;
   width: 8px;
@@ -98,6 +98,19 @@ body {
   display: none;
   width: 100%;
   min-height: 108px;
+  font-size: 14px;
+  font-family: 'Droid Sans Mono', "Lucida Console", Monaco, monospace
+}
+.card textarea:focus {
+  outline: none;
+  border: none;
+}
+
+.card.editing {
+  box-shadow: inset 1px 1px 3px rgba(0,0,0,0.2),0 0 10px #d8f1bc;
+  border-radius: 4px;
+  padding: 10px;
+  border: 1px solid #8cc63f;
 }
 
 .editing .view {
