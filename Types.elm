@@ -34,6 +34,11 @@ type alias Operation =
   , params : List (Maybe String)
   }
 
+type Op
+  = Ins (Maybe String) (Maybe String) (Maybe String)
+  | Upd String String
+  | Del String
+
 type alias Objects =
   { contents : List Content
   , nodes : List Node
