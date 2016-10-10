@@ -20,7 +20,7 @@ import Tree exposing (..)
 import TreeUtils exposing (..)
 
 
-main : Program (Maybe State)
+main : Program (Maybe Json.Value)
 main =
   App.programWithFlags
     { init = init
@@ -34,9 +34,8 @@ port saveContents : List Content -> Cmd msg
 port saveNodes : List Node -> Cmd msg
 port saveCommit : Commit -> Cmd msg
 port setCurrentCommit : String -> Cmd msg
-port saveOp : Operation -> Cmd msg
+port saveOp : Json.Encode.Value -> Cmd msg
 port activateCards : List (List String) -> Cmd msg
-port testOp : Json.Encode.Value -> Cmd msg
 
 
 -- MODEL
@@ -66,34 +65,42 @@ defaultModel =
   }
 
 
-init : Maybe State -> ( Model, Cmd Msg )
+init : Maybe Json.Value -> ( Model, Cmd Msg )
 init savedState =
   case savedState of
     Nothing ->
-      defaultModel ! [ ]
-    Just state ->
+      defaultModel ! []
+    Just val ->
       let
-        nodeId =
-          state.objects.commits
-            |> ListExtra.find (\c -> c.id == state.commit)
-            |> Maybe.withDefault defaultCommit
-            |> .rootNode
-
-        newTree =
-          buildStructure nodeId state.objects
-            |> applyOperations state.objects.operations
+        deb = Debug.log "val" val
       in
-        { objects = 
-          { contents = state.objects.contents
-          , nodes = state.objects.nodes
-          , commits = state.objects.commits
-          , operations = state.objects.operations
-          }
-        , tree = newTree
-        , commit = state.commit
-        , viewState = state.viewState
-        }
-          ! [ ]
+      defaultModel ! []
+
+--     Nothing ->
+--       defaultModel ! [ ]
+--     Just state ->
+--       let
+--         nodeId =
+--           state.objects.commits
+--             |> ListExtra.find (\c -> c.id == state.commit)
+--             |> Maybe.withDefault defaultCommit
+--             |> .rootNode
+-- 
+--         newTree =
+--           buildStructure nodeId state.objects
+--             |> applyOperations state.objects.operations
+--       in
+--         { objects = 
+--           { contents = state.objects.contents
+--           , nodes = state.objects.nodes
+--           , commits = state.objects.commits
+--           , operations = state.objects.operations
+--           }
+--         , tree = newTree
+--         , commit = state.commit
+--         , viewState = state.viewState
+--         }
+--           ! [ ]
 
 
 
@@ -186,12 +193,12 @@ update msg model =
     InsertAbove uid ->
       let
         oldTree = model.tree
-        parentId = getParentId model.tree uid
+        parentId_ = getParentId model.tree uid
         prevId_ = getPrev model.tree uid
         nextId_ = Just uid
-        newId = newUid parentId prevId_ nextId_
-        newOp = Operation "Insert" [parentId, prevId_, nextId_]
-        newTree = Tree.update (Insert parentId prevId_ nextId_) oldTree
+        newId = newUid parentId_ prevId_ nextId_
+        newOp = Ins newId parentId_ prevId_ nextId_
+        newTree = Tree.update (Tree.Apply newOp) oldTree
       in
         { model
           | tree = newTree
@@ -204,18 +211,18 @@ update msg model =
               , field = ""
               }
         }
-          ! [focus newId, saveOp newOp]
+          ! [focus newId, saveOp (opToValue newOp)]
 
 
     InsertBelow uid ->
       let
         oldTree = model.tree
-        parentId = getParentId model.tree uid
+        parentId_ = getParentId model.tree uid
         prevId_ = Just uid
         nextId_ = getNext model.tree uid
-        newId = newUid parentId prevId_ nextId_
-        newOp = Operation "Insert" [parentId, prevId_, nextId_]
-        newTree = Tree.update (Insert parentId prevId_ nextId_) oldTree
+        newId = newUid parentId_ prevId_ nextId_
+        newOp = Ins newId parentId_ prevId_ nextId_
+        newTree = Tree.update (Tree.Apply newOp) oldTree
       in
         { model
           | tree = newTree
@@ -228,17 +235,17 @@ update msg model =
               , field = ""
               }
         }
-          ! [focus newId, saveOp newOp]
+          ! [focus newId, saveOp (opToValue newOp)]
 
     InsertChild uid ->
       let
         oldTree = model.tree
-        parentId = Just uid
+        parentId_ = Just uid
         prevId_ = getLastChild model.tree uid
         nextId_ = Nothing
-        newId = newUid parentId prevId_ nextId_
-        newOp = Operation "Insert" [parentId, prevId_, nextId_]
-        newTree = Tree.update (Insert parentId prevId_ nextId_) oldTree
+        newId = newUid parentId_ prevId_ nextId_
+        newOp = Ins newId parentId_ prevId_ nextId_
+        newTree = Tree.update (Tree.Apply newOp) oldTree
       in
         { model
           | tree = newTree
@@ -251,7 +258,7 @@ update msg model =
               , field = ""
               }
         }
-          ! [focus newId, saveOp newOp]
+          ! [focus newId, saveOp (opToValue newOp)]
 
     GoLeft uid ->
       let
@@ -352,6 +359,45 @@ update msg model =
 
     TreeMsg msg ->
       case msg of
+        Tree.NoOp -> model ! []
+
+        Tree.Apply op ->
+          case op of
+            Upd id uid str ->
+              let
+                oldTree = model.tree
+                newOp = Upd "" uid str
+                newTree = Tree.update (Tree.Apply newOp) oldTree
+              in
+                 
+              { model
+                | tree = newTree
+                , viewState =
+                    { active = vs.active
+                    , activePast = []
+                    , activeFuture = []
+                    , descendants = []
+                    , editing = Nothing
+                    , field = ""
+                    }
+              }
+                ! [saveOp (opToValue newOp)] 
+
+            Del id uid ->
+              let
+                oldTree = model.tree
+                newOp = Del "" uid
+                newTree = Tree.update (Tree.Apply newOp) oldTree
+              in
+              { model
+                | tree = newTree
+              }
+                ! [saveOp (opToValue newOp)]
+
+
+            _ -> model ! []
+
+
         Tree.Activate uid ->
           let
             desc =
@@ -412,43 +458,6 @@ update msg model =
           }
             ! []
 
-        Tree.UpdateCard uid str ->
-          let
-            oldTree = model.tree
-            newOp = Operation "Update" [Just uid, Just str]
-            newTree = Tree.update (Tree.UpdateCard uid str) oldTree
-          in
-             
-          { model
-            | tree = newTree
-            , viewState =
-                { active = vs.active
-                , activePast = []
-                , activeFuture = []
-                , descendants = []
-                , editing = Nothing
-                , field = ""
-                }
-          }
-            ! [saveOp newOp] 
-
-        Tree.DeleteCard uid ->
-          let
-            oldTree = model.tree
-            newOp = Operation "Delete" [Just uid]
-            newTree = Tree.update (Tree.DeleteCard uid) oldTree
-          in
-          { model
-            | tree = newTree
-          }
-            ! [saveOp newOp]
-
-        _ ->
-          { model
-            | tree = Tree.update msg model.tree 
-          } 
-            ! []
-
     OpIn json ->
       case (Json.decodeValue opDecoder json) of
         Ok val ->
@@ -457,7 +466,7 @@ update msg model =
             let
               oldTree = model.tree
               newId = newUid parentId_ prevId_ nextId_
-              newTree = Tree.update (Insert parentId_ prevId_ nextId_) oldTree
+              newTree = Tree.update (Tree.Apply val) oldTree
             in
               { model
                 | tree = newTree
@@ -498,11 +507,11 @@ update msg model =
       in
       case str of
         "mod+x" ->
-          model ! [testOp (opToValue (Del "123" "asdf"))]
+          model ! [saveOp (opToValue (Del "123" "asdf"))]
 
         "mod+enter" ->
           editMode model
-            (\uid ->  TreeMsg (Tree.UpdateCard uid vs.field))
+            (\uid ->  TreeMsg (Tree.Apply (Upd "" uid vs.field)))
 
         "enter" ->
           normalMode model
@@ -520,7 +529,7 @@ update msg model =
 
         "mod+backspace" ->
           normalMode model
-            (TreeMsg (Tree.DeleteCard vs.active))
+            (TreeMsg (Tree.Apply (Del "" vs.active)))
 
         "mod+j" ->
           normalMode model

@@ -41,13 +41,10 @@ blankTree uid =
 
 type Msg
   = NoOp
-  | Ops Op
+  | Apply Op
   | Activate String
-  | UpdateCard String String
-  | DeleteCard String
   | OpenCard String String
   | CancelCard
-  | Insert (Maybe String) (Maybe String) (Maybe String)
   | UpdateField String
 
 
@@ -62,104 +59,53 @@ update msg tree =
   case msg of
     NoOp -> tree
 
-    Ops (Ins id parentId prevId_ nextId_) ->
-      if Just tree.uid == parentId then
-        let
-          newTree =
-            { uid = newUid parentId prevId_ nextId_
-            , parentId = parentId
-            , prev = prevId_
-            , next = nextId_
-            , content = (Content "" "" "" |> withContentId)
-            , visible = True
-            , children = Children []
-            }
+    Apply op ->
+      case op of
+        Ins oid parentId prevId_ nextId_ ->
+          if Just tree.uid == parentId then
+            let
+              newTree =
+                { uid = newUid parentId prevId_ nextId_
+                , parentId = parentId
+                , prev = prevId_
+                , next = nextId_
+                , content = (Content "" "" "" |> withContentId)
+                , visible = True
+                , children = Children []
+                }
 
-          sortedChildren = Children (sortTrees (children ++ [newTree]))
-        in
-          { tree
-            | children = sortedChildren
-          }
-      else
-          { tree | children = Children (List.map (update msg) children) }
+              sortedChildren = Children (sortTrees (children ++ [newTree]))
+            in
+              { tree
+                | children = sortedChildren
+              }
+          else
+              { tree | children = Children (List.map (update msg) children) }
 
-    UpdateCard uid str ->
-      if tree.uid == uid then
-        { tree | content = Content "" "" str |> withContentId }
-      else
-        { tree | children = Children (List.map (update (UpdateCard uid str)) children) }
+        Upd oid uid str ->
+          if tree.uid == uid then
+            { tree | content = Content "" "" str |> withContentId }
+          else
+            { tree | children = Children (List.map (update (Apply (Upd oid uid str))) children) }
 
-    DeleteCard uid ->
-      if tree.uid == uid then
-        { tree | visible = False }
-      else
-        { tree | children = Children (List.map (update (DeleteCard uid)) children) }
-
-    Insert parentId prevId_ nextId_ ->
-      if Just tree.uid == parentId then
-        let
-          newTree =
-            { uid = newUid parentId prevId_ nextId_
-            , parentId = parentId
-            , prev = prevId_
-            , next = nextId_
-            , content = (Content "" "" "" |> withContentId)
-            , visible = True
-            , children = Children []
-            }
-
-          sortedChildren = Children (sortTrees (children ++ [newTree]))
-        in
-          { tree
-            | children = sortedChildren
-          }
-      else
-          { tree | children = Children (List.map (update msg) children) }
+        Del oid uid ->
+          if tree.uid == uid then
+            { tree | visible = False }
+          else
+            { tree | children = Children (List.map (update (Apply (Del oid uid))) children) }
 
     _ ->
       tree
 
 
-applyOperations : Array Operation -> Tree -> Tree
+applyOperations : Array Op -> Tree -> Tree
 applyOperations ops tree =
   Array.foldl applyOp tree ops
 
 
-applyOp : Operation -> Tree -> Tree
-applyOp {opType, params} tree =
-  case (Debug.log "opType" opType) of
-    "Insert" -> 
-      let
-        parId = ListExtra.getAt 0 params |> Maybe.withDefault (Nothing)
-        prevId = ListExtra.getAt 1 params |> Maybe.withDefault (Nothing)
-        nextId = ListExtra.getAt 2 params |> Maybe.withDefault (Nothing)
-      in
-        update (Insert parId prevId nextId) tree
-
-    "Update" -> 
-      let
-        uid = 
-          ListExtra.getAt 0 params 
-            |> Maybe.withDefault (Nothing) 
-            |> Maybe.withDefault ""
-        str =
-          ListExtra.getAt 1 params 
-            |> Maybe.withDefault (Nothing) 
-            |> Maybe.withDefault "empty"
-      in
-        update (UpdateCard uid str) tree
-
-    "Delete" -> 
-      let
-        uid = 
-          ListExtra.getAt 0 params 
-            |> Maybe.withDefault (Nothing) 
-            |> Maybe.withDefault ""
-      in
-        update (DeleteCard uid) tree
-
-    _ ->
-      tree
+applyOp : Op -> Tree -> Tree
+applyOp op tree =
+  update (Apply op) tree
 
 
 

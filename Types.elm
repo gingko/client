@@ -29,11 +29,6 @@ type alias Commit =
   , message : String
   }
 
-type alias Operation =
-  { opType : String
-  , params : List (Maybe String)
-  }
-
 type Op
   = Ins String (Maybe String) (Maybe String) (Maybe String)
   | Upd String String String
@@ -43,7 +38,7 @@ type alias Objects =
   { contents : List Content
   , nodes : List Node
   , commits : List Commit
-  , operations : Array Operation
+  , operations : Array Op
   }
 
 type alias State =
