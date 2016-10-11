@@ -276,10 +276,22 @@ update msg model =
         ! []
 
     UpdateCard uid str ->
-      model ! [] -- TODO :implement
+      let
+        newOp = Upd "" uid str
+        newViewState vs =
+          { vs
+            | active = uid
+            , editing = Nothing
+            , field = ""
+          }
+      in
+      sequence model newViewState newOp []
 
     DeleteCard uid ->
-      model ! [] -- TODO: implement
+      let
+        newOp = Del "" uid
+      in
+      sequence model identity newOp []
 
     CancelCard ->
       { model
@@ -393,28 +405,11 @@ update msg model =
 
     OpIn json ->
       case (Json.decodeValue opDecoder json) of
-        Ok val ->
-          case val of
-            Ins id parentId_ prevId_ nextId_ ->
-            let
-              oldTree = model.tree
-              newId = newUid parentId_ prevId_ nextId_
-              newTree = Tree.update (Tree.Apply val) oldTree
-            in
-              { model
-                | tree = newTree
-                , viewState =
-                    { active = newId
-                    , activePast = []
-                    , activeFuture = []
-                    , descendants = []
-                    , editing = Just newId
-                    , field = ""
-                    }
-              }
-                ! [focus newId]
-
-            _ -> model ! []
+        Ok op ->
+          { model
+            | tree = Tree.update (Tree.Apply op) model.tree
+          }
+            ! []
 
         Err err ->
           let
@@ -443,7 +438,7 @@ update msg model =
 
         "mod+enter" ->
           editMode model
-            ( \uid -> UpdateCard uid vs.field )
+            (\uid -> UpdateCard uid vs.field)
 
         "enter" ->
           normalMode model
