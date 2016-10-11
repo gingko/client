@@ -16,7 +16,7 @@ import List.Extra as ListExtra
 
 import Types exposing (..)
 import Coders exposing (..)
-import Tree exposing (..)
+import Tree exposing (update, viewColumn, blankTree)
 import TreeUtils exposing (..)
 
 
@@ -30,6 +30,7 @@ main =
     }
 
 
+port saveModel : Json.Encode.Value -> Cmd msg
 port saveContents : List Content -> Cmd msg
 port saveNodes : List Node -> Cmd msg
 port saveCommit : Commit -> Cmd msg
@@ -42,7 +43,10 @@ port activateCards : List (List String) -> Cmd msg
 
 
 type alias Model =
-  { objects : Objects
+  { contents : List Content
+  , nodes : List Node
+  , commits : List Commit
+  , operations : Array Op
   , tree : Tree
   , commit : String
   , viewState : ViewState
@@ -51,7 +55,10 @@ type alias Model =
 
 defaultModel : Model
 defaultModel =
-  { objects = defaultObjects
+  { contents = [defaultContent]
+  , nodes = [defaultNode]
+  , commits = [defaultCommit]
+  , operations = Array.empty
   , tree = Tree.default
   , commit = defaultCommit.id
   , viewState = 
@@ -76,55 +83,37 @@ init savedState =
       in
       defaultModel ! []
 
---     Nothing ->
---       defaultModel ! [ ]
---     Just state ->
---       let
---         nodeId =
---           state.objects.commits
---             |> ListExtra.find (\c -> c.id == state.commit)
---             |> Maybe.withDefault defaultCommit
---             |> .rootNode
--- 
---         newTree =
---           buildStructure nodeId state.objects
---             |> applyOperations state.objects.operations
---       in
---         { objects = 
---           { contents = state.objects.contents
---           , nodes = state.objects.nodes
---           , commits = state.objects.commits
---           , operations = state.objects.operations
---           }
---         , tree = newTree
---         , commit = state.commit
---         , viewState = state.viewState
---         }
+{-     Nothing ->
+         defaultModel ! [ ]
+       Just state ->
+         let
+           nodeId =
+             state.objects.commits
+               |> ListExtra.find (\c -> c.id == state.commit)
+               |> Maybe.withDefault defaultCommit
+               |> .rootNode
+   
+           newTree =
+             buildStructure nodeId state.objects
+               |> applyOperations state.objects.operations
+         in
+           { objects = 
+             { contents = state.objects.contents
+             , nodes = state.objects.nodes
+             , commits = state.objects.commits
+             , operations = state.objects.operations
+             }
+           , tree = newTree
+           , commit = state.commit
+           , viewState = state.viewState
+           }
 --           ! [ ]
-
+-}
 
 
 
 -- UPDATE
 
-
-type Msg
-    = NoOp
-    | CommitChanges Int
-    | CheckoutCommit String
-    | InsertAbove String
-    | InsertBelow String
-    | InsertChild String
-    | GoLeft String
-    | GoDown String
-    | GoUp String
-    | GoRight String
-    | ActivatePast
-    | ActivateFuture
-    | TreeMsg Tree.Msg
-    | OpIn Json.Value
-    | ExternalCommand (String, String)
-    | HandleKey String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -140,11 +129,11 @@ update msg model =
       let
         newContents =
           getContents model.tree
-            |> List.filter (\c -> not (List.member c model.objects.contents))
+            |> List.filter (\c -> not (List.member c model.contents))
 
         newNodes =
           (treeToNodes []) model.tree
-            |> List.filter (\n -> not (List.member n model.objects.nodes))
+            |> List.filter (\n -> not (List.member n model.nodes))
 
         newCommit = 
           { id = "id"
@@ -159,12 +148,10 @@ update msg model =
 
       in
         { model
-          | objects =
-              { nodes = model.objects.nodes ++ newNodes
-              , contents = model.objects.contents ++ newContents
-              , commits = model.objects.commits ++ [newCommit]
-              , operations = Array.empty
-              }
+          | nodes = model.nodes ++ newNodes
+          , contents = model.contents ++ newContents
+          , commits = model.commits ++ [newCommit]
+          , operations = Array.empty
           , commit = newCommit.id
         }
           ! [ saveContents newContents
@@ -176,13 +163,15 @@ update msg model =
     CheckoutCommit cid ->
       let
         nodeId =
-          model.objects.commits
+          model.commits
             |> ListExtra.find (\c -> c.id == cid)
             |> Maybe.withDefault defaultCommit
             |> .rootNode
 
         newTree =
-          buildStructure nodeId model.objects
+          buildStructure 
+          nodeId 
+          (Objects model.contents model.nodes model.commits model.operations)
       in
       { model
         | commit = cid
@@ -190,123 +179,26 @@ update msg model =
       }
         ! [setCurrentCommit cid]
 
-    InsertAbove uid ->
+    Activate uid ->
       let
-        oldTree = model.tree
-        parentId_ = getParentId model.tree uid
-        prevId_ = getPrev model.tree uid
-        nextId_ = Just uid
-        newId = newUid parentId_ prevId_ nextId_
-        newOp = Ins newId parentId_ prevId_ nextId_
-        newTree = Tree.update (Tree.Apply newOp) oldTree
+        desc =
+          model.tree
+            |> flip getTree uid
+            |> Maybe.withDefault Tree.default
+            |> getDescendants
+            |> List.map (\t -> t.uid)
       in
-        { model
-          | tree = newTree
-          , viewState =
-              { active = newId
-              , activePast = []
-              , activeFuture = []
-              , descendants = []
-              , editing = Just newId
-              , field = ""
-              }
-        }
-          ! [focus newId, saveOp (opToValue newOp)]
-
-
-    InsertBelow uid ->
-      let
-        oldTree = model.tree
-        parentId_ = getParentId model.tree uid
-        prevId_ = Just uid
-        nextId_ = getNext model.tree uid
-        newId = newUid parentId_ prevId_ nextId_
-        newOp = Ins newId parentId_ prevId_ nextId_
-        newTree = Tree.update (Tree.Apply newOp) oldTree
-      in
-        { model
-          | tree = newTree
-          , viewState =
-              { active = newId
-              , activePast = []
-              , activeFuture = []
-              , descendants = []
-              , editing = Just newId
-              , field = ""
-              }
-        }
-          ! [focus newId, saveOp (opToValue newOp)]
-
-    InsertChild uid ->
-      let
-        oldTree = model.tree
-        parentId_ = Just uid
-        prevId_ = getLastChild model.tree uid
-        nextId_ = Nothing
-        newId = newUid parentId_ prevId_ nextId_
-        newOp = Ins newId parentId_ prevId_ nextId_
-        newTree = Tree.update (Tree.Apply newOp) oldTree
-      in
-        { model
-          | tree = newTree
-          , viewState =
-              { active = newId
-              , activePast = []
-              , activeFuture = []
-              , descendants = []
-              , editing = Just newId
-              , field = ""
-              }
-        }
-          ! [focus newId, saveOp (opToValue newOp)]
-
-    GoLeft uid ->
-      let
-        targetId =
-          getParent model.tree uid
-            |> Maybe.withDefault (blankTree uid)
-            |> .uid
-      in
-      update (TreeMsg (Tree.Activate targetId)) model
-
-    GoDown uid ->
-      let
-        targetId =
-          getNext model.tree uid
-            |> Maybe.withDefault uid
-      in
-      update (TreeMsg (Tree.Activate targetId)) model
-
-    GoUp uid ->
-      let
-        targetId =
-          getPrev model.tree uid
-            |> Maybe.withDefault uid
-      in
-      update (TreeMsg (Tree.Activate targetId)) model
-
-
-    GoRight uid ->
-      let
-        tree =
-          getTree model.tree uid -- Maybe Tree
-            |> Maybe.withDefault (blankTree uid) -- Tree
-
-        childrenIds =
-          tree
-            |> getChildren -- List Tree
-            |> List.map .uid -- List String
-
-        firstChild = 
-          getFirstChild model.tree uid |> Maybe.withDefault uid
-
-        prevActiveOfChildren =
-          vs.activePast
-            |> List.filter (\a -> List.member a childrenIds) -- children in activePast
-            |> List.head
-            |> Maybe.withDefault firstChild
-      in
-      update (TreeMsg (Tree.Activate prevActiveOfChildren)) model
+      { model
+        | viewState = 
+            { active = uid
+            , activePast = vs.active :: vs.activePast
+            , activeFuture = vs.activeFuture
+            , descendants = desc
+            , editing = vs.editing 
+            , field = vs.field
+            }
+      }
+        ! [ activateCards (centerlineIds model.tree (getTree model.tree uid |> Maybe.withDefault Tree.default) ) ]
 
     ActivatePast ->
       if List.isEmpty vs.activePast then
@@ -357,106 +249,147 @@ update msg model =
       in
       { model | viewState = newViewState vs } ! []
 
-    TreeMsg msg ->
-      case msg of
-        Tree.NoOp -> model ! []
+    OpenCard uid str ->
+      { model
+        | viewState =
+            { active = vs.active
+            , activePast = []
+            , activeFuture = []
+            , descendants = []
+            , editing = (Just uid)
+            , field = str
+            }
+      }
+        ! [focus uid]
 
-        Tree.Apply op ->
-          case op of
-            Upd id uid str ->
-              let
-                oldTree = model.tree
-                newOp = Upd "" uid str
-                newTree = Tree.update (Tree.Apply newOp) oldTree
-              in
-                 
-              { model
-                | tree = newTree
-                , viewState =
-                    { active = vs.active
-                    , activePast = []
-                    , activeFuture = []
-                    , descendants = []
-                    , editing = Nothing
-                    , field = ""
-                    }
-              }
-                ! [saveOp (opToValue newOp)] 
+    UpdateField str ->
+      { model
+        | viewState =
+            { active = vs.active
+            , activePast = []
+            , activeFuture = []
+            , descendants = []
+            , editing = vs.editing
+            , field = str
+            }
+      }
+        ! []
 
-            Del id uid ->
-              let
-                oldTree = model.tree
-                newOp = Del "" uid
-                newTree = Tree.update (Tree.Apply newOp) oldTree
-              in
-              { model
-                | tree = newTree
-              }
-                ! [saveOp (opToValue newOp)]
+    UpdateCard uid str ->
+      model ! [] -- TODO :implement
 
+    DeleteCard uid ->
+      model ! [] -- TODO: implement
 
-            _ -> model ! []
+    CancelCard ->
+      { model
+        | viewState =
+            { active = vs.active
+            , activePast = []
+            , activeFuture = []
+            , descendants = []
+            , editing = Nothing
+            , field = ""
+            }
+      }
+        ! []
 
-
-        Tree.Activate uid ->
-          let
-            desc =
-              model.tree
-                |> flip getTree uid
-                |> Maybe.withDefault Tree.default
-                |> getDescendants
-                |> List.map (\t -> t.uid)
-          in
-          { model
-            | viewState = 
-                { active = uid
-                , activePast = vs.active :: vs.activePast
-                , activeFuture = vs.activeFuture
-                , descendants = desc
-                , editing = vs.editing 
-                , field = vs.field
-                }
+    InsertAbove uid ->
+      let
+        parentId_ = getParentId model.tree uid
+        prevId_ = getPrev model.tree uid
+        nextId_ = Just uid
+        newId = newUid parentId_ prevId_ nextId_
+        newOp = Ins newId parentId_ prevId_ nextId_
+        newViewState vs =
+          { vs 
+            | active = newId
+            , editing = Just newId
+            , field = ""
           }
-            ! [ activateCards (centerlineIds model.tree (getTree model.tree uid |> Maybe.withDefault Tree.default) ) ]
+            
+      in
+        sequence model newViewState newOp [focus newId]
 
-        Tree.OpenCard uid str ->
-          { model
-            | viewState =
-                { active = vs.active
-                , activePast = []
-                , activeFuture = []
-                , descendants = []
-                , editing = (Just uid)
-                , field = str
-                }
+    InsertBelow uid ->
+      let
+        parentId_ = getParentId model.tree uid
+        prevId_ = Just uid
+        nextId_ = getNext model.tree uid
+        newId = newUid parentId_ prevId_ nextId_
+        newOp = Ins newId parentId_ prevId_ nextId_
+        newViewState vs =
+          { vs
+            | active = newId
+            , editing = Just newId
+            , field = ""
           }
-            ! [focus uid]
+      in
+        sequence model newViewState newOp [focus newId]
 
-        Tree.CancelCard ->
-          { model
-            | viewState =
-                { active = vs.active
-                , activePast = []
-                , activeFuture = []
-                , descendants = []
-                , editing = Nothing
-                , field = ""
-                }
+    InsertChild uid ->
+      let
+        oldTree = model.tree
+        parentId_ = Just uid
+        prevId_ = getLastChild model.tree uid
+        nextId_ = Nothing
+        newId = newUid parentId_ prevId_ nextId_
+        newOp = Ins newId parentId_ prevId_ nextId_
+        newViewState vs =
+          { vs
+            | active = newId
+            , editing = Just newId
+            , field = ""
           }
-            ! []
+      in
+        sequence model newViewState newOp [focus newId]
 
-        Tree.UpdateField str ->
-          { model
-            | viewState =
-                { active = vs.active
-                , activePast = []
-                , activeFuture = []
-                , descendants = []
-                , editing = vs.editing
-                , field = str
-                }
-          }
-            ! []
+    GoLeft uid ->
+      let
+        targetId =
+          getParent model.tree uid
+            |> Maybe.withDefault (blankTree uid)
+            |> .uid
+      in
+      update (Activate targetId) model
+
+    GoDown uid ->
+      let
+        targetId =
+          getNext model.tree uid
+            |> Maybe.withDefault uid
+      in
+      update (Activate targetId) model
+
+    GoUp uid ->
+      let
+        targetId =
+          getPrev model.tree uid
+            |> Maybe.withDefault uid
+      in
+      update (Activate targetId) model
+
+    GoRight uid ->
+      let
+        tree =
+          getTree model.tree uid -- Maybe Tree
+            |> Maybe.withDefault (blankTree uid) -- Tree
+
+        childrenIds =
+          tree
+            |> getChildren -- List Tree
+            |> List.map .uid -- List String
+
+        firstChild = 
+          getFirstChild model.tree uid |> Maybe.withDefault uid
+
+        prevActiveOfChildren =
+          vs.activePast
+            |> List.filter (\a -> List.member a childrenIds) -- children in activePast
+            |> List.head
+            |> Maybe.withDefault firstChild
+      in
+      update (Activate prevActiveOfChildren) model
 
     OpIn json ->
       case (Json.decodeValue opDecoder json) of
@@ -489,7 +422,6 @@ update msg model =
           in
           model ! []
 
-
     ExternalCommand (cmd, arg) ->
       case cmd of
         "commit-changes" ->
@@ -507,29 +439,27 @@ update msg model =
       in
       case str of
         "mod+x" ->
-          model ! [saveOp (opToValue (Del "123" "asdf"))]
+          model ! []--saveModel (modelToValue model)]
 
         "mod+enter" ->
           editMode model
-            (\uid ->  TreeMsg (Tree.Apply (Upd "" uid vs.field)))
+            ( \uid -> UpdateCard uid vs.field )
 
         "enter" ->
           normalMode model
-            (TreeMsg 
-              (Tree.OpenCard vs.active 
-                (getContent model.tree vs.active
-                  |> Maybe.withDefault defaultContent 
-                  |> .content
-                )
+            (OpenCard vs.active 
+              (getContent model.tree vs.active
+                |> Maybe.withDefault defaultContent 
+                |> .content
               )
             )
 
         "esc" ->
-          editMode model (\_ -> TreeMsg Tree.CancelCard )
+          editMode model (\_ -> CancelCard )
 
         "mod+backspace" ->
           normalMode model
-            (TreeMsg (Tree.Apply (Del "" vs.active)))
+            (DeleteCard vs.active)
 
         "mod+j" ->
           normalMode model
@@ -591,7 +521,6 @@ view model =
         [ div [id "app" ]
             ( columns
               |> List.map (viewColumn model.viewState)
-              |> List.map (App.map TreeMsg)
             )
         ]
 
@@ -620,6 +549,15 @@ focus uid =
 run : Msg -> Cmd Msg
 run msg =
   Task.perform (\_ -> NoOp) (\_ -> msg ) (Task.succeed msg)
+
+
+sequence : Model -> (ViewState -> ViewState) -> Op -> List (Cmd Msg) -> (Model, Cmd Msg)
+sequence model vsf op cmds =
+  { model
+    | viewState = vsf model.viewState
+    , tree = Tree.update (Tree.Apply op) model.tree
+  }
+    ! ([saveOp (opToValue op)] ++ cmds)
 
 
 editMode : Model -> (String -> Msg) -> (Model, Cmd Msg)

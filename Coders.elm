@@ -8,6 +8,11 @@ import Json.Decode as Json exposing (..)
 
 -- ENCODERS
 
+-- modelToValue : Model -> Json.Encode.Value
+-- modelToValue model =
+      
+
+
 opToValue : Op -> Json.Encode.Value
 opToValue op =
   let
@@ -45,14 +50,6 @@ opToValue op =
 
 
 -- DECODERS
-
-stateDecoder : Decoder State
-stateDecoder =
-  Json.object3 State
-    ("objects" := objectsDecoder)
-    ("commit" := string)
-    ("viewState" := viewStateDecoder)
-
 
 objectsDecoder : Decoder Objects
 objectsDecoder =

@@ -1,7 +1,32 @@
 module Types exposing (..)
 
+import Json.Decode as Json
 import Array exposing (Array)
 
+
+
+type Msg
+    = NoOp
+    | CommitChanges Int
+    | CheckoutCommit String
+    | Activate String
+    | ActivatePast
+    | ActivateFuture
+    | OpenCard String String
+    | UpdateField String
+    | UpdateCard String String
+    | DeleteCard String
+    | CancelCard
+    | InsertAbove String
+    | InsertBelow String
+    | InsertChild String
+    | GoLeft String
+    | GoDown String
+    | GoUp String
+    | GoRight String
+    | OpIn Json.Value
+    | ExternalCommand (String, String)
+    | HandleKey String
 
 
 
@@ -41,11 +66,6 @@ type alias Objects =
   , operations : Array Op
   }
 
-type alias State =
-  { objects : Objects
-  , commit : String
-  , viewState : ViewState
-  } 
 
 
 

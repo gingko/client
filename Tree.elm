@@ -39,16 +39,12 @@ blankTree uid =
 
 -- UPDATE
 
-type Msg
+type TreeMsg
   = NoOp
   | Apply Op
-  | Activate String
-  | OpenCard String String
-  | CancelCard
-  | UpdateField String
 
 
-update : Msg -> Tree -> Tree
+update : TreeMsg -> Tree -> Tree
 update msg tree =
   let
     children =
@@ -93,9 +89,6 @@ update msg tree =
             { tree | visible = False }
           else
             { tree | children = Children (List.map (update (Apply (Del oid uid))) children) }
-
-    _ ->
-      tree
 
 
 applyOperations : Array Op -> Tree -> Tree
@@ -174,18 +167,3 @@ viewCard vstate tree =
             ]
             []
         ]
-
-
-
-
---HELPERS
-
-onEnter : Msg -> Attribute Msg
-onEnter msg =
-  let
-    tagger code =
-      if code == 13 then
-        msg
-      else NoOp
-  in
-    on "keydown" (Json.map tagger keyCode)
