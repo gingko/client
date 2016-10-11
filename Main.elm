@@ -1,7 +1,6 @@
 port module Main exposing (..)
 
 
-import Array exposing (Array)
 import Html exposing (..)
 import Html.App as App
 import Html.Attributes exposing (..)
@@ -31,11 +30,6 @@ main =
 
 
 port saveModel : Json.Encode.Value -> Cmd msg
-port saveContents : List Content -> Cmd msg
-port saveNodes : List Node -> Cmd msg
-port saveCommit : Commit -> Cmd msg
-port setCurrentCommit : String -> Cmd msg
-port saveOp : Json.Encode.Value -> Cmd msg
 port activateCards : List (List String) -> Cmd msg
 
 
@@ -46,9 +40,10 @@ type alias Model =
   { contents : List Content
   , nodes : List Node
   , commits : List Commit
-  , operations : Array Op
+  , operations : List Op
   , tree : Tree
   , commit : String
+  , floating : List Op
   , viewState : ViewState
   }
 
@@ -58,8 +53,9 @@ defaultModel =
   { contents = [defaultContent]
   , nodes = [defaultNode]
   , commits = [defaultCommit]
-  , operations = Array.empty
+  , operations = []
   , tree = Tree.default
+  , floating = []
   , commit = defaultCommit.id
   , viewState = 
       { active = "0"
@@ -77,43 +73,20 @@ init savedState =
   case savedState of
     Nothing ->
       defaultModel ! []
-    Just val ->
-      let
-        deb = Debug.log "val" val
-      in
-      defaultModel ! []
+    Just someJson ->
+      case Json.decodeValue modelDecoder someJson of
+        Ok model ->
+          model ! []
+        Err err ->
+          let
+            deb = Debug.log "err" err
+          in
+          defaultModel ! []
 
-{-     Nothing ->
-         defaultModel ! [ ]
-       Just state ->
-         let
-           nodeId =
-             state.objects.commits
-               |> ListExtra.find (\c -> c.id == state.commit)
-               |> Maybe.withDefault defaultCommit
-               |> .rootNode
-   
-           newTree =
-             buildStructure nodeId state.objects
-               |> applyOperations state.objects.operations
-         in
-           { objects = 
-             { contents = state.objects.contents
-             , nodes = state.objects.nodes
-             , commits = state.objects.commits
-             , operations = state.objects.operations
-             }
-           , tree = newTree
-           , commit = state.commit
-           , viewState = state.viewState
-           }
---           ! [ ]
--}
 
 
 
 -- UPDATE
-
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -146,19 +119,17 @@ update msg model =
           }
             |> withCommitId
 
+        newModel =
+          { model
+            | nodes = model.nodes ++ newNodes
+            , contents = model.contents ++ newContents
+            , commits = model.commits ++ [newCommit]
+            , operations = model.operations ++ model.floating
+            , floating = []
+            , commit = newCommit.id
+          }
       in
-        { model
-          | nodes = model.nodes ++ newNodes
-          , contents = model.contents ++ newContents
-          , commits = model.commits ++ [newCommit]
-          , operations = Array.empty
-          , commit = newCommit.id
-        }
-          ! [ saveContents newContents
-            , saveNodes newNodes
-            , saveCommit newCommit
-            , setCurrentCommit newCommit.id
-            ]
+        newModel ! [ saveModel (modelToValue newModel) ]
 
     CheckoutCommit cid ->
       let
@@ -177,7 +148,7 @@ update msg model =
         | commit = cid
         , tree = newTree
       }
-        ! [setCurrentCommit cid]
+        ! []--setCurrentCommit cid]
 
     Activate uid ->
       let
@@ -260,7 +231,7 @@ update msg model =
             , field = str
             }
       }
-        ! [focus uid]
+        ! [focus uid] 
 
     UpdateField str ->
       { model
@@ -277,7 +248,7 @@ update msg model =
 
     UpdateCard uid str ->
       let
-        newOp = Upd "" uid str
+        newOp = Upd "" uid str |> withOpId
         newViewState vs =
           { vs
             | active = uid
@@ -289,7 +260,7 @@ update msg model =
 
     DeleteCard uid ->
       let
-        newOp = Del "" uid
+        newOp = Del "" uid |> withOpId
       in
       sequence model identity newOp []
 
@@ -434,7 +405,10 @@ update msg model =
       in
       case str of
         "mod+x" ->
-          model ! []--saveModel (modelToValue model)]
+          let
+            deb = Debug.log "model: " model
+          in
+          model ! [saveModel (modelToValue model)]
 
         "mod+enter" ->
           editMode model
@@ -548,11 +522,15 @@ run msg =
 
 sequence : Model -> (ViewState -> ViewState) -> Op -> List (Cmd Msg) -> (Model, Cmd Msg)
 sequence model vsf op cmds =
-  { model
-    | viewState = vsf model.viewState
-    , tree = Tree.update (Tree.Apply op) model.tree
-  }
-    ! ([saveOp (opToValue op)] ++ cmds)
+  let
+    newModel =
+      { model
+        | viewState = vsf model.viewState
+        , tree = Tree.update (Tree.Apply op) model.tree
+        , floating = model.floating ++ [op]
+      }
+  in
+    newModel ! ([saveModel (modelToValue newModel)] ++ cmds)
 
 
 editMode : Model -> (String -> Msg) -> (Model, Cmd Msg)

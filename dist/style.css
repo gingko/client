@@ -50,8 +50,8 @@ body {
 
 .group.active-descendant {
   color: #333;
-  background: #fcfcfc;
-  background: linear-gradient(to right, white, #eaeaeb);
+  background: white;
+  /*background: linear-gradient(to right, white, #eaeaeb);*/
 }
 
 .card {

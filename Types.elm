@@ -1,7 +1,6 @@
 module Types exposing (..)
 
 import Json.Decode as Json
-import Array exposing (Array)
 
 
 
@@ -63,7 +62,7 @@ type alias Objects =
   { contents : List Content
   , nodes : List Node
   , commits : List Commit
-  , operations : Array Op
+  , operations : List Op
   }
 
 
@@ -134,5 +133,5 @@ defaultObjects =
   { contents = [defaultContent]
   , nodes = [defaultNode]
   , commits = [defaultCommit]
-  , operations = Array.empty
+  , operations = []
   }

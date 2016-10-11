@@ -134,6 +134,9 @@ assignPrevNext trees =
 
 getTree : Tree -> String -> Maybe Tree
 getTree tree uid =
+  if tree.uid == uid then
+    Just tree
+  else
   tree
     |> getDescendants
     |> ListExtra.find (\t -> t.uid == uid)
@@ -356,6 +359,18 @@ withCommitId c =
           |> Sha1.sha1
   }
 
+
+withOpId : Op -> Op
+withOpId op =
+  case op of
+    Ins id parentId_ prevId_ nextId_ ->
+      Ins (newUid parentId_ prevId_ nextId_) parentId_ prevId_ nextId_
+    Upd id uid str ->
+      Upd (String.concat ["Upd" ++ newLine ++ uid ++ newLine ++ str] |> Sha1.sha1) uid str
+    Del id uid ->
+      Del (String.concat ["Del" ++ newLine ++ uid] |> Sha1.sha1) uid
+
+
 nodeId : String -> List String -> String
 nodeId contentId children =
   Sha1.sha1 (contentId ++ newLine ++ (String.concat children))
@@ -375,6 +390,7 @@ newUid parentId prevId nextId =
   in
     String.concat [pid ++ newLine ++ vid ++ newLine ++ nid]
       |> Sha1.sha1
+
 
 
 treeUid : Tree -> String

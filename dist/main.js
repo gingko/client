@@ -1,11 +1,18 @@
 var db = new PouchDB('elm-gingko-test-cards');
 var ipc = require('electron').ipcRenderer
+var _ = require('underscore')
 
-var viewState = JSON.parse(localStorage.getItem('elm-gingko-viewState'));
-var commit = localStorage.getItem('elm-gingko-commit');
-var commits = null;
 var gingko = null;
 
+// in-memory data, for quick deduping
+var contents = []
+var nodes = []
+var commits = []
+var operations = []
+var tree = null
+var commit = null
+var floating = []
+var viewState = null
 
 db.allDocs({include_docs: true}).then(function(docs){
   contents = docs.rows
@@ -13,8 +20,6 @@ db.allDocs({include_docs: true}).then(function(docs){
               return row.doc.type == "content" 
             })
             .map(function(row){
-              row.doc["id"] = row.doc["_id"];
-              delete row.doc["_id"];
               delete row.doc["_rev"];
               delete row.doc["type"];
               return row.doc;
@@ -25,8 +30,6 @@ db.allDocs({include_docs: true}).then(function(docs){
               return row.doc.type == "node" 
             })
             .map(function(row){
-              row.doc["id"] = row.doc["_id"];
-              delete row.doc["_id"];
               delete row.doc["_rev"];
               delete row.doc["type"];
               return row.doc;
@@ -37,8 +40,6 @@ db.allDocs({include_docs: true}).then(function(docs){
               return row.doc.type == "commit" 
             })
             .map(function(row){
-              row.doc["id"] = row.doc["_id"];
-              delete row.doc["_id"];
               delete row.doc["_rev"];
               delete row.doc["type"];
               return row.doc;
@@ -51,35 +52,27 @@ db.allDocs({include_docs: true}).then(function(docs){
               return row.doc.type == "operation" 
             })
             .map(function(row){
-              row.doc["id"] = row.doc["_id"];
-              delete row.doc["_id"];
               delete row.doc["_rev"];
               delete row.doc["type"];
               return row.doc;
             });  
+
+  tree = JSON.parse(localStorage.getItem('gingko-tree'))
+  commit = JSON.parse(localStorage.getItem('gingko-commit'))
+  floating = JSON.parse(localStorage.getItem('gingko-floating'))
+  viewState = JSON.parse(localStorage.getItem('gingko-viewState'))
             
   
-  var startingState = null;
-
-  if (contents.length > 0 && nodes.length > 0 && commits.length > 0 ) {
-    startingState =
-      { objects :
-        { contents: contents
-        , nodes: nodes
-        , commits : commits
-        , operations : operations
-        }
-      , commit: commit ? commit : "bc5ff95381ff8577663e45455b14cd09d7e126c1"
-      , viewState: viewState ? viewState : 
-          { active: "0"
-          , activePast: []
-          , activeFuture: []
-          , descendants: []
-          , editing: null
-          , field: ""
-          }
-      }
-  }
+  var startingState =
+    { contents: contents
+    , nodes: nodes
+    , commits: commits
+    , operations: operations
+    , tree: tree
+    , floating: floating
+    , commit: commit
+    , viewState: viewState  
+    }
 
   startElm(startingState);
 
@@ -89,11 +82,7 @@ db.allDocs({include_docs: true}).then(function(docs){
 
 startElm = function(init) {
   gingko = Elm.Main.fullscreen(init);
-  gingko.ports.saveContents.subscribe(saveContents);
-  gingko.ports.saveNodes.subscribe(saveNodes);
-  gingko.ports.saveCommit.subscribe(saveCommit);
-  gingko.ports.setCurrentCommit.subscribe(setCurrentCommit);
-  gingko.ports.saveOp.subscribe(saveOp);
+  gingko.ports.saveModel.subscribe(saveModel);
   gingko.ports.activateCards.subscribe(activateCards);
 }
 
@@ -109,29 +98,27 @@ scrollTo = function(cid, colIdx) {
     });
 }
 
+saveModel = function(model) {
+  console.log('model json from Elm', model)
+  saveObjects(_.difference(model.contents, contents), "content")
+  saveObjects(_.difference(model.nodes, nodes), "node")
+  saveObjects(_.difference(model.commits, commits), "commit")
+  saveObjects(_.difference(model.operations, operations), "operation")
 
-saveContents = function(contents) {
-  data = contents.map(function(c){
-    return  { _id: c.id
-            , content: c.content
-            , contentType : c.contentType
-            , type : "content"
-            }
-  });
-  db.bulkDocs(data)
-    .catch(function(err){console.log(err)});
+  localStorage.setItem('gingko-tree', JSON.stringify(model.tree))
+  localStorage.setItem('gingko-commit', JSON.stringify(model.commit))
+  localStorage.setItem('gingko-floating', JSON.stringify(model.floating))
+  localStorage.setItem('gingko-viewState', JSON.stringify(model.viewState))
 }
 
-saveNodes = function(nodes) {
-  data = nodes.map(function(c){
-    return  { _id: c.id
-            , contentId: c.contentId
-            , childrenIds : c.childrenIds
-            , type : "node"
-            }
-  });
+saveObjects = function(objects, type) {
+  data = objects.map(function(o){
+    o["type"] = type
+    return o
+  })
+
   db.bulkDocs(data)
-    .catch(function(err){console.log(err)});
+    .catch(function(err){console.log(err)})
 }
 
 saveCommit = function(commit) {
@@ -144,18 +131,9 @@ saveCommit = function(commit) {
   }
   render();
 
-  commit["_id"] = commit["id"];
-  delete commit["id"];
   commit["type"] = "commit";
   db.put(commit)
     .catch(function(err){console.log(err)});
-}
-
-setCurrentCommit = function(currentCommit) {
-  console.log('setCurrentCommit', currentCommit);
-  localStorage.setItem("elm-gingko-commit", currentCommit);
-  commit = currentCommit;
-  render();
 }
 
 sortCommits = function(coms) {

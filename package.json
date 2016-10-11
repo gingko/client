@@ -18,5 +18,8 @@
   "homepage": "https://github.com/AdrianoFerrari/gingko-client",
   "devDependencies": {
     "chokidar-cli": "^1.2.0"
+  },
+  "dependencies": {
+    "underscore": "^1.8.3"
   }
 }
