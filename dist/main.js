@@ -99,16 +99,25 @@ scrollTo = function(cid, colIdx) {
 }
 
 saveModel = function(model) {
-  console.log('model json from Elm', model)
   saveObjects(_.difference(model.contents, contents), "content")
   saveObjects(_.difference(model.nodes, nodes), "node")
   saveObjects(_.difference(model.commits, commits), "commit")
   saveObjects(_.difference(model.operations, operations), "operation")
 
-  localStorage.setItem('gingko-tree', JSON.stringify(model.tree))
-  localStorage.setItem('gingko-commit', JSON.stringify(model.commit))
-  localStorage.setItem('gingko-floating', JSON.stringify(model.floating))
-  localStorage.setItem('gingko-viewState', JSON.stringify(model.viewState))
+  tree = model.tree
+  if (model.commit !== commit) {
+    commit = model.commit
+    commits = sortCommits(model.commits)
+    render()
+  }
+  floating = model.floating
+  viewState = model.viewState
+  
+  localStorage.setItem('gingko-tree', JSON.stringify(tree))
+  localStorage.setItem('gingko-commit', JSON.stringify(commit))
+  localStorage.setItem('gingko-floating', JSON.stringify(floating))
+  localStorage.setItem('gingko-viewState', JSON.stringify(viewState))
+
 }
 
 saveObjects = function(objects, type) {
@@ -122,7 +131,7 @@ saveObjects = function(objects, type) {
 }
 
 saveCommit = function(commit) {
-  var parentIndex = commits.map(function(c){return c.id}).indexOf(commit.parents[0]);
+  var parentIndex = commits.map(function(c){return c._id}).indexOf(commit.parents[0]);
   if(parentIndex == 0) {
     commits.unshift(JSON.parse(JSON.stringify(commit)));
   } else {
@@ -151,12 +160,12 @@ sortCommits = function(coms) {
 
   if(result.length == 0) {
     result = remaining.filter(function(c){
-      var hasParent = commits.some(function(c1){return c.parents.includes(c1.id)})
+      var hasParent = commits.some(function(c1){return c.parents.includes(c1._id)})
       return !hasParent;
     });
 
     remaining = remaining.filter(function(c){
-      var hasParent = commits.some(function(c1){return c.parents.includes(c1.id)})
+      var hasParent = commits.some(function(c1){return c.parents.includes(c1._id)})
       return hasParent;
     });
 
@@ -168,7 +177,7 @@ sortCommits = function(coms) {
     if (x == 1) { alert('error sorting commits'); }
 
     // ids of all commits already in result
-    var pids = result.map(function(c){ return c.id });
+    var pids = result.map(function(c){ return c._id });
 
     // ids of commits in remaining with one of pids as its parent
     var toAdd = remaining
@@ -186,16 +195,6 @@ sortCommits = function(coms) {
   }
 
   return result;
-}
-
-saveOp = function(op) {
-  var prev = JSON.parse(localStorage.getItem("elm-test-ops"));
-  prev = prev ? prev : [];
-  if (op.opType == "Commit") {
-    localStorage.setItem("elm-test-ops", JSON.stringify([]));
-  } else {
-    localStorage.setItem("elm-test-ops", JSON.stringify(prev.concat(op)));
-  }
 }
 
 activateCards = function(centerlineIds) {
@@ -256,7 +255,7 @@ Mousetrap.bind(shortcuts, function(e, s) {
 function render() {
   ReactDOM.render(
     React.createElement( CommitsGraph
-      , { commits: commits.map(function(c){ return { "sha": c.id, "parents": c.parents }})
+      , { commits: commits.map(function(c){ return { "sha": c._id, "parents": c.parents }})
         , onClick: handleGraphClick
         , selected: commit
         })

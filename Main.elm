@@ -19,7 +19,7 @@ import Tree exposing (update, viewColumn, blankTree)
 import TreeUtils exposing (..)
 
 
-main : Program (Maybe Json.Value)
+main : Program Json.Value
 main =
   App.programWithFlags
     { init = init
@@ -68,20 +68,16 @@ defaultModel =
   }
 
 
-init : Maybe Json.Value -> ( Model, Cmd Msg )
+init : Json.Value -> ( Model, Cmd Msg )
 init savedState =
-  case savedState of
-    Nothing ->
+  case Json.decodeValue modelDecoder savedState of
+    Ok model ->
+      model ! []
+    Err err ->
+      let
+        deb = Debug.log "err" err
+      in
       defaultModel ! []
-    Just someJson ->
-      case Json.decodeValue modelDecoder someJson of
-        Ok model ->
-          model ! []
-        Err err ->
-          let
-            deb = Debug.log "err" err
-          in
-          defaultModel ! []
 
 
 
@@ -143,12 +139,15 @@ update msg model =
           buildStructure 
           nodeId 
           (Objects model.contents model.nodes model.commits model.operations)
+          |> Tree.applyOperations model.floating
+
+        newModel =
+          { model
+            | commit = cid
+            , tree = newTree
+          }
       in
-      { model
-        | commit = cid
-        , tree = newTree
-      }
-        ! []--setCurrentCommit cid]
+      newModel ! [ saveModel (modelToValue newModel) ]
 
     Activate uid ->
       let

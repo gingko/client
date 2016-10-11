@@ -1,6 +1,5 @@
 module Tree exposing (..)
 
-import Array exposing (Array)
 import String
 import List.Extra as ListExtra
 import Html exposing (..)
@@ -91,9 +90,9 @@ update msg tree =
             { tree | children = Children (List.map (update (Apply (Del oid uid))) children) }
 
 
-applyOperations : Array Op -> Tree -> Tree
+applyOperations : List Op -> Tree -> Tree
 applyOperations ops tree =
-  Array.foldl applyOp tree ops
+  List.foldl applyOp tree ops
 
 
 applyOp : Op -> Tree -> Tree
