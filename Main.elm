@@ -43,7 +43,7 @@ type alias Model =
   , operations : List Op
   , tree : Tree
   , commit : String
-  , floating : List Op
+  , floating : List (Op, Bool)
   , viewState : ViewState
   }
 
@@ -120,8 +120,8 @@ update msg model =
             | nodes = model.nodes ++ newNodes
             , contents = model.contents ++ newContents
             , commits = model.commits ++ [newCommit]
-            , operations = model.operations ++ model.floating
-            , floating = []
+            , operations = model.operations ++ (activeOps model.floating)
+            , floating = inactiveFlops model.floating
             , commit = newCommit.id
           }
       in
@@ -139,7 +139,7 @@ update msg model =
           buildStructure 
           nodeId 
           (Objects model.contents model.nodes model.commits model.operations)
-          |> Tree.applyOperations model.floating
+          |> Tree.applyOperations (activeOps model.floating)
 
         newModel =
           { model
@@ -148,6 +148,42 @@ update msg model =
           }
       in
       newModel ! [ saveModel (modelToValue newModel) ]
+
+    Undo ->
+      let
+        rev = List.reverse model.floating
+        newFloating =
+          case (ListExtra.findIndex snd rev) of
+            Nothing -> model.floating
+            Just idx ->
+              ListExtra.updateAt idx (\f -> (fst f, False)) rev
+                |> Maybe.withDefault rev
+                |> List.reverse
+
+        newModel = { model | floating = newFloating }
+
+      in
+      if (model.floating == newFloating) then
+        model ! []
+      else
+        update (CheckoutCommit model.commit) newModel
+
+    Redo ->
+      let
+        newFloating =
+          case (ListExtra.findIndex (\f -> not (snd f)) model.floating) of
+            Nothing -> model.floating
+            Just idx ->
+              ListExtra.updateAt idx (\f -> (fst f, True)) model.floating
+                |> Maybe.withDefault model.floating
+
+        newModel = { model | floating = newFloating }
+
+      in
+      if (model.floating == newFloating) then
+        model ! []
+      else
+        update (CheckoutCommit model.commit) newModel
 
     Activate uid ->
       let
@@ -467,6 +503,12 @@ update msg model =
           normalMode model
             (CommitChanges 0)
 
+        "mod+z" ->
+          update Undo model
+
+        "mod+r" ->
+          update Redo model
+
         other ->
           let
             deb = Debug.log "keyboard" other
@@ -493,16 +535,16 @@ view model =
     )
 
 
-viewHistory : List Op -> Html Msg
-viewHistory ops =
+viewHistory : List (Op, Bool) -> Html Msg
+viewHistory flops =
   div [id "history"]
-      ( List.map viewOp ops
+      ( List.map viewOp flops
       ++ [ div [id "graph"][]]
       )
 
 
-viewOp : Op -> Html Msg
-viewOp op =
+viewOp : (Op, Bool) -> Html Msg
+viewOp (op, state) =
   case op of
     Ins oid parentId_ prevId_ nextId_ ->
       li [id ("op-" ++ oid)][text ("Insert:" ++ oid)]
@@ -549,10 +591,23 @@ sequence model vsf op cmds =
       { model
         | viewState = vsf model.viewState
         , tree = Tree.update (Tree.Apply op) model.tree
-        , floating = model.floating ++ [op]
+        , floating = model.floating ++ [(op, True)]
       }
   in
     newModel ! ([saveModel (modelToValue newModel)] ++ cmds)
+
+
+activeOps : List (Op, Bool) -> List Op
+activeOps flops =
+  flops
+    |> List.filter (\f -> snd f)
+    |> List.map fst
+
+
+inactiveFlops : List (Op, Bool) -> List (Op, Bool)
+inactiveFlops flops =
+  flops
+    |> List.filter (\f -> not (snd f))
 
 
 editMode : Model -> (String -> Msg) -> (Model, Cmd Msg)

@@ -12,7 +12,7 @@ type alias Model =
   , operations : List Op
   , tree : Tree
   , commit : String
-  , floating : List Op
+  , floating : List (Op, Bool)
   , viewState : ViewState
   }
 
@@ -27,7 +27,7 @@ modelToValue model =
    , ("commits", Json.Encode.list (List.map commitToValue model.commits))
    , ("operations", Json.Encode.list (List.map opToValue model.operations))
    , ("tree", treeToValue model.tree)
-   , ("floating", Json.Encode.list (List.map opToValue model.floating))
+   , ("floating", Json.Encode.list (List.map flopToValue model.floating))
    , ("commit", Json.Encode.string model.commit)
    , ("viewState", viewStateToValue model.viewState)
    ]
@@ -92,6 +92,14 @@ opToValue op =
         ]
 
 
+flopToValue : (Op, Bool) -> Json.Encode.Value
+flopToValue flop =
+  Json.Encode.list
+    [ opToValue (fst flop)
+    , Json.Encode.bool (snd flop)
+    ]
+
+
 treeToValue : Tree -> Json.Encode.Value
 treeToValue tree =
   case tree.children of
@@ -131,7 +139,7 @@ modelDecoder =
     ("operations" := Json.list opDecoder)
     ("tree" := treeDecoder)
     ("commit" := string)
-    ("floating" := Json.list opDecoder)
+    ("floating" := Json.list flopDecoder)
     ("viewState" := viewStateDecoder)
 
 objectsDecoder : Decoder Objects
@@ -169,6 +177,11 @@ commitDecoder =
     ("committer" := string)
     ("parents" := Json.list string)
     ("message" := string)
+
+
+flopDecoder : Decoder (Op, Bool)
+flopDecoder =
+  tuple2 (,) opDecoder bool
 
 
 opDecoder : Decoder Op

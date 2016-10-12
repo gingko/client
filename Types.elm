@@ -8,6 +8,8 @@ type Msg
     = NoOp
     | CommitChanges Int
     | CheckoutCommit String
+    | Undo
+    | Redo
     | Activate String
     | ActivatePast
     | ActivateFuture
