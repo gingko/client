@@ -483,14 +483,37 @@ update msg model =
 view : Model -> Html Msg
 view model =
   let
-    columns = getColumns([[[ model.tree ]]])
+    columns =
+      getColumns([[[ model.tree ]]])
+        |> List.map (viewColumn model.viewState)
   in
-    div [ id "wrapper" ]
-        [ div [id "app" ]
-            ( columns
-              |> List.map (viewColumn model.viewState)
-            )
-        ]
+  div [id "app" ]
+    ( columns
+    ++ [ viewHistory (List.reverse model.floating) ]
+    )
+
+
+viewHistory : List Op -> Html Msg
+viewHistory ops =
+  div [id "history"]
+      ( List.map viewOp ops
+      ++ [ div [id "graph"][]]
+      )
+
+
+viewOp : Op -> Html Msg
+viewOp op =
+  case op of
+    Ins oid parentId_ prevId_ nextId_ ->
+      li [id ("op-" ++ oid)][text ("Insert:" ++ oid)]
+
+    Upd oid uid str ->
+      li [id ("op-" ++ oid)][text ("Update:" ++ str)]
+
+    _ ->
+      li [][]
+
+
 
 
 -- SUBSCRIPTIONS
