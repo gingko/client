@@ -121,5 +121,28 @@ body {
   display: inline-block
 }
 
+#history {
+  list-style-type: none;
+  margin: 0;
+  padding: 10px 10px 0px 0px;
+}
+.op-ins {
+  background: rgba(0,255,0,0.2);
+}
+.op-ins:hover {
+  background: rgba(0,255,0,0.6);
+}
+.op-upd {
+  background: rgba(0,0,255,0.2);
+}
+.op-upd:hover {
+  background: rgba(0,0,255,0.6);
+}
+.op-del {
+  background: rgba(255,0,0,0.2);
+}
+.op-del:hover {
+  background: rgba(255,0,0,0.6);
+}
 #graph {
 }

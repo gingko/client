@@ -149,6 +149,48 @@ update msg model =
       in
       newModel ! [ saveModel (modelToValue newModel) ]
 
+    CheckOp oid state ->
+      let
+        isOid id f =
+          case (fst f) of
+            Ins fid _ _ _ ->
+              fid == id
+            Upd fid _ _ ->
+              fid == id
+            Del fid _ ->
+              fid == id
+
+        newFloating =
+          ListExtra.updateIf (isOid oid) (\f -> (fst f, state)) model.floating
+
+        newModel = { model | floating = newFloating }
+      in
+      if (model.floating == newFloating) then
+        model ! []
+      else
+        update (CheckoutCommit model.commit) newModel
+
+    DeleteOp oid ->
+      let
+        isOid id f =
+          case (fst f) of
+            Ins fid _ _ _ ->
+              fid == id
+            Upd fid _ _ ->
+              fid == id
+            Del fid _ ->
+              fid == id
+
+        newFloating =
+          List.filter (not << isOid oid) model.floating
+
+        newModel = { model | floating = newFloating }
+      in
+      if (model.floating == newFloating) then
+        model ! []
+      else
+        update (CheckoutCommit model.commit) newModel
+
     Undo ->
       let
         rev = List.reverse model.floating
@@ -161,7 +203,6 @@ update msg model =
                 |> List.reverse
 
         newModel = { model | floating = newFloating }
-
       in
       if (model.floating == newFloating) then
         model ! []
@@ -537,7 +578,7 @@ view model =
 
 viewHistory : List (Op, Bool) -> Html Msg
 viewHistory flops =
-  div [id "history"]
+  ul [id "history"]
       ( List.map viewOp flops
       ++ [ div [id "graph"][]]
       )
@@ -547,13 +588,43 @@ viewOp : (Op, Bool) -> Html Msg
 viewOp (op, state) =
   case op of
     Ins oid parentId_ prevId_ nextId_ ->
-      li [id ("op-" ++ oid)][text ("Insert:" ++ oid)]
+      li  [ id ("op-" ++ oid)
+          , class "op-ins"
+          , onClick (Activate oid)
+          ]
+          [ input [ type' "checkbox"
+                  , checked state 
+                  , onClick (CheckOp oid (not state))
+                  ][]
+          , text ("+ " ++ (String.left 5 oid))
+          , button [onClick (DeleteOp oid)][text "x"]
+          ]
 
     Upd oid uid str ->
-      li [id ("op-" ++ oid)][text ("Update:" ++ str)]
+      li  [ id ("op-" ++ oid)
+          , class "op-upd"
+          , onClick (Activate uid)
+          ]
+          [ input [ type' "checkbox"
+                  , checked state 
+                  , onClick (CheckOp oid (not state))
+                  ][]
+          , text ("δ " ++ (String.left 6 str) ++ "...")
+          , button [onClick (DeleteOp oid)][text "x"]
+          ]
 
-    _ ->
-      li [][]
+    Del oid uid->
+      li  [ id ("op-" ++ oid)
+          , class "op-del"
+          , onClick (Activate uid)
+          ]
+          [ input [ type' "checkbox"
+                  , checked state 
+                  , onClick (CheckOp oid (not state))
+                  ][]
+          , text ("- " ++ (String.left 5 oid))
+          , button [onClick (DeleteOp oid)][text "x"]
+          ]
 
 
 
