@@ -67,28 +67,31 @@ commitToValue commit =
 opToValue : Op -> Json.Encode.Value
 opToValue op =
   case op of
-    Ins id pid_ previd_ nextid_ ->
+    Ins id pid_ previd_ nextid_ ts ->
       Json.Encode.object
         [ ( "opType", Json.Encode.string "Ins" )
         , ( "_id", Json.Encode.string id )
         , ( "parentId", maybeToValue pid_ Json.Encode.string )
         , ( "prevId", maybeToValue previd_ Json.Encode.string )
         , ( "nextId", maybeToValue nextid_ Json.Encode.string )
+        , ( "timestamp", Json.Encode.int ts )
         ]
 
-    Upd id uid str ->
+    Upd id uid str ts ->
       Json.Encode.object
         [ ( "opType", Json.Encode.string "Upd" )
         , ( "_id", Json.Encode.string id )
         , ( "uid", Json.Encode.string uid )
         , ( "content", Json.Encode.string str )
+        , ( "timestamp", Json.Encode.int ts )
         ]
 
-    Del id uid ->
+    Del id uid ts ->
       Json.Encode.object
         [ ( "opType", Json.Encode.string "Del" )
         , ( "_id", Json.Encode.string id )
         , ( "uid", Json.Encode.string uid )
+        , ( "timestamp", Json.Encode.int ts )
         ]
 
 
@@ -193,22 +196,25 @@ opInfo : String -> Decoder Op
 opInfo tag =
   case tag of
     "Ins" ->
-      object4 Ins
+      object5 Ins
         ("_id" := string) 
         (maybe ("parentId" := string)) 
         (maybe ("prevId" := string))
         (maybe ("nextId" := string))
+        ("timestamp" := int) 
 
     "Upd" ->
-      object3 Upd 
+      object4 Upd 
         ("_id" := string) 
         ("uid" := string) 
         ("content" := string)
+        ("timestamp" := int) 
 
     "Del" ->
-      object2 Del
+      object3 Del
         ("_id" := string) 
         ("uid" := string)
+        ("timestamp" := int) 
 
     _ -> Json.fail (tag ++ " is not a recognized type for Op")
 

@@ -363,12 +363,12 @@ withCommitId c =
 withOpId : Op -> Op
 withOpId op =
   case op of
-    Ins id parentId_ prevId_ nextId_ ->
-      Ins (newUid parentId_ prevId_ nextId_) parentId_ prevId_ nextId_
-    Upd id uid str ->
-      Upd (String.concat ["Upd" ++ newLine ++ uid ++ newLine ++ str] |> Sha1.sha1) uid str
-    Del id uid ->
-      Del (String.concat ["Del" ++ newLine ++ uid] |> Sha1.sha1) uid
+    Ins id parentId_ prevId_ nextId_ ts ->
+      Ins (newUid parentId_ prevId_ nextId_) parentId_ prevId_ nextId_ ts
+    Upd id uid str ts ->
+      Upd (String.join newLine ["Upd", uid, str, toString ts] |> Sha1.sha1) uid str ts
+    Del id uid ts ->
+      Del (String.join newLine ["Del", uid] |> Sha1.sha1) uid ts
 
 
 nodeId : String -> List String -> String

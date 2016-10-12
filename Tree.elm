@@ -56,7 +56,7 @@ update msg tree =
 
     Apply op ->
       case op of
-        Ins oid parentId prevId_ nextId_ ->
+        Ins oid parentId prevId_ nextId_ ts ->
           if Just tree.uid == parentId then
             let
               newTree =
@@ -77,17 +77,17 @@ update msg tree =
           else
               { tree | children = Children (List.map (update msg) children) }
 
-        Upd oid uid str ->
+        Upd oid uid str ts ->
           if tree.uid == uid then
             { tree | content = Content "" "" str |> withContentId }
           else
-            { tree | children = Children (List.map (update (Apply (Upd oid uid str))) children) }
+            { tree | children = Children (List.map (update (Apply (Upd oid uid str ts))) children) }
 
-        Del oid uid ->
+        Del oid uid ts ->
           if tree.uid == uid then
             { tree | visible = False }
           else
-            { tree | children = Children (List.map (update (Apply (Del oid uid))) children) }
+            { tree | children = Children (List.map (update (Apply (Del oid uid ts))) children) }
 
 
 applyOperations : List Op -> Tree -> Tree

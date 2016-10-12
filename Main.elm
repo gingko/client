@@ -13,6 +13,7 @@ import Task
 import Markdown
 import List.Extra as ListExtra
 
+import Sha1 exposing (timestamp)
 import Types exposing (..)
 import Coders exposing (..)
 import Tree exposing (update, viewColumn, blankTree)
@@ -153,11 +154,11 @@ update msg model =
       let
         isOid id f =
           case (fst f) of
-            Ins fid _ _ _ ->
+            Ins fid _ _ _ _ ->
               fid == id
-            Upd fid _ _ ->
+            Upd fid _ _ _ ->
               fid == id
-            Del fid _ ->
+            Del fid _ _ ->
               fid == id
 
         newFloating =
@@ -174,11 +175,11 @@ update msg model =
       let
         isOid id f =
           case (fst f) of
-            Ins fid _ _ _ ->
+            Ins fid _ _ _ _ ->
               fid == id
-            Upd fid _ _ ->
+            Upd fid _ _ _ ->
               fid == id
-            Del fid _ ->
+            Del fid _ _ ->
               fid == id
 
         newFloating =
@@ -324,7 +325,7 @@ update msg model =
 
     UpdateCard uid str ->
       let
-        newOp = Upd "" uid str |> withOpId
+        newOp = Upd "" uid str (timestamp ()) |> withOpId
         newViewState vs =
           { vs
             | active = uid
@@ -336,7 +337,7 @@ update msg model =
 
     DeleteCard uid ->
       let
-        newOp = Del "" uid |> withOpId
+        newOp = Del "" uid (timestamp ())|> withOpId
       in
       sequence model identity newOp []
 
@@ -359,7 +360,7 @@ update msg model =
         prevId_ = getPrev model.tree uid
         nextId_ = Just uid
         newId = newUid parentId_ prevId_ nextId_
-        newOp = Ins newId parentId_ prevId_ nextId_
+        newOp = Ins newId parentId_ prevId_ nextId_ (timestamp ())
         newViewState vs =
           { vs 
             | active = newId
@@ -376,7 +377,7 @@ update msg model =
         prevId_ = Just uid
         nextId_ = getNext model.tree uid
         newId = newUid parentId_ prevId_ nextId_
-        newOp = Ins newId parentId_ prevId_ nextId_
+        newOp = Ins newId parentId_ prevId_ nextId_ (timestamp ())
         newViewState vs =
           { vs
             | active = newId
@@ -393,7 +394,7 @@ update msg model =
         prevId_ = getLastChild model.tree uid
         nextId_ = Nothing
         newId = newUid parentId_ prevId_ nextId_
-        newOp = Ins newId parentId_ prevId_ nextId_
+        newOp = Ins newId parentId_ prevId_ nextId_ (timestamp ())
         newViewState vs =
           { vs
             | active = newId
@@ -587,7 +588,7 @@ viewHistory flops =
 viewOp : (Op, Bool) -> Html Msg
 viewOp (op, state) =
   case op of
-    Ins oid parentId_ prevId_ nextId_ ->
+    Ins oid parentId_ prevId_ nextId_ ts ->
       li  [ id ("op-" ++ oid)
           , class "op-ins"
           , onClick (Activate oid)
@@ -600,7 +601,7 @@ viewOp (op, state) =
           , button [onClick (DeleteOp oid)][text "x"]
           ]
 
-    Upd oid uid str ->
+    Upd oid uid str ts ->
       li  [ id ("op-" ++ oid)
           , class "op-upd"
           , onClick (Activate uid)
@@ -613,7 +614,7 @@ viewOp (op, state) =
           , button [onClick (DeleteOp oid)][text "x"]
           ]
 
-    Del oid uid->
+    Del oid uid ts ->
       li  [ id ("op-" ++ oid)
           , class "op-del"
           , onClick (Activate uid)

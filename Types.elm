@@ -58,9 +58,9 @@ type alias Commit =
   }
 
 type Op
-  = Ins String (Maybe String) (Maybe String) (Maybe String)
-  | Upd String String String
-  | Del String String
+  = Ins String (Maybe String) (Maybe String) (Maybe String) Int
+  | Upd String String String Int
+  | Del String String Int
 
 type alias Objects =
   { contents : List Content

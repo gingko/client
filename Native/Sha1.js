@@ -151,6 +151,7 @@ var _AdrianoFerrari$gingko_client$Native_Sha1 = function()
       shasum.update(buffer);
       return shasum.digest();
     }
+  , timestamp: function(a) {return Date.now()}
   };
 
 }();
