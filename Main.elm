@@ -575,7 +575,7 @@ view model =
   in
   div [id "app" ]
     ( columns
-    ++ [ viewHistory (List.reverse model.floating) ]
+    ++ [ lazy viewHistory (List.reverse model.floating) ]
     )
 
 
@@ -583,7 +583,6 @@ viewHistory : List (Op, Bool) -> Html Msg
 viewHistory flops =
   div [ id "history"]
       [ Keyed.ul [class "ops-list"] <| List.map viewKeyedOp flops
-      , div [id "graph"][]
       ]
 
 

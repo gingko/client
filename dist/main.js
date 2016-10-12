@@ -253,12 +253,14 @@ Mousetrap.bind(shortcuts, function(e, s) {
 
 
 function render() {
+  var graphDiv = document.getElementById('graph')
+  console.log(graphDiv)
   ReactDOM.render(
     React.createElement( CommitsGraph
       , { commits: commits.map(function(c){ return { "sha": c._id, "parents": c.parents }})
         , onClick: handleGraphClick
         , selected: commit
         })
-  , document.getElementById('graph')
+  , graphDiv
   );
 }

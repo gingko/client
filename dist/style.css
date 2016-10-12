@@ -149,4 +149,9 @@ ul.ops-list {
   background: rgba(255,0,0,0.6);
 }
 #graph {
+  position: absolute;
+  right: 10px;
+  bottom: 0;
+  width: 113.56px;
+  z-index: 999;
 }
