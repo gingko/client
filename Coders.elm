@@ -228,7 +228,7 @@ treeDecoder =
     (maybe ("prev" := string))
     (maybe ("next" := string))
     ("visible" := bool)
-    ("children" := list (lazy (\_ -> treeDecoder)) |> Json.map Children )
+    ("children" := list (lazyRecurse (\_ -> treeDecoder)) |> Json.map Children )
 
 
 viewStateDecoder : Decoder ViewState
@@ -247,8 +247,8 @@ viewStateDecoder =
 
 -- HELPERS
 
-lazy : (() -> Decoder a) -> Decoder a
-lazy thunk =
+lazyRecurse : (() -> Decoder a) -> Decoder a
+lazyRecurse thunk =
   customDecoder value
     (\js -> decodeValue (thunk ()) js)
 

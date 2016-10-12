@@ -5,6 +5,8 @@ import Html exposing (..)
 import Html.App as App
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Html.Keyed as Keyed
+import Html.Lazy exposing (lazy, lazy2)
 import String
 import Json.Encode
 import Json.Decode as Json
@@ -579,10 +581,18 @@ view model =
 
 viewHistory : List (Op, Bool) -> Html Msg
 viewHistory flops =
-  ul [id "history"]
-      ( List.map viewOp flops
-      ++ [ div [id "graph"][]]
-      )
+  div [ id "history"]
+      [ Keyed.ul [class "ops-list"] <| List.map viewKeyedOp flops
+      , div [id "graph"][]
+      ]
+
+
+viewKeyedOp : (Op, Bool) -> (String, Html Msg)
+viewKeyedOp (op, state) =
+  case op of
+    Ins oid _ _ _ _ -> (oid, lazy viewOp (op, state))
+    Upd oid _ _ _ -> (oid, lazy viewOp (op, state))
+    Del oid _ _ -> (oid, lazy viewOp (op, state))
 
 
 viewOp : (Op, Bool) -> Html Msg

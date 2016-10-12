@@ -122,9 +122,13 @@ body {
 }
 
 #history {
-  list-style-type: none;
   margin: 0;
   padding: 10px 10px 0px 0px;
+}
+ul.ops-list {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
 }
 .op-ins {
   background: rgba(0,255,0,0.2);
