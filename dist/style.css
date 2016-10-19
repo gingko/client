@@ -6,8 +6,7 @@ body {
 }
 
 body {
-  background: #bec8d4;
-  background-image: linear-gradient(to bottom,#c9d0d9,#b9c4d2);
+  background: url('./concrete_wall.png');
   overflow: hidden;
 }
 
@@ -38,11 +37,12 @@ body {
 }
 
 .buffer {
-  background: rgb(216, 222, 229);
-  border-right: 1px solid rgb(173, 178, 183);
-  border-left: 1px solid rgb(173, 178, 183);
+  background: rgb(50, 89, 107);
+  border-right: 2px solid rgb(72, 115, 136);
+  border-left: 2px solid rgb(42, 79, 97);
   margin: 0 16px;
   height: 90%;
+  z-index: 1;
 }
 
 .group {
@@ -53,6 +53,9 @@ body {
   color: #aaaab3;
   font-family: "Droid Serif", Georgia;
   border-radius: 8px 0 0 8px;
+  box-shadow: 1px 1px 6px #2b3c52;
+  z-index: 5;
+  position: relative;
 }
 .group:empty {
   display: none;
@@ -60,9 +63,7 @@ body {
 .group.active-descendant {
   color: #333;
   background: white;
-  box-shadow: 1px 1px 3px gray;
   margin-bottom: 2px;
-  /*background: linear-gradient(to right, white, #eaeaeb);*/
 }
 
 .card {
@@ -96,6 +97,7 @@ body {
 .card textarea {
   display: none;
   background: none;
+  box-sizing: border-box;
   outline: none;
   border: none;
   width: 100%;
