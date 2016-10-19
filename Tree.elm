@@ -209,7 +209,7 @@ viewCard vstate tree =
         [ div  [ class "view" 
                 , onClick (Activate tree.uid)
                 , onDoubleClick (OpenCard tree.uid tree.content.content)
-                ] [ Markdown.toHtml [] tree.content.content ]
+                ] [ Markdown.toHtmlWith options [] tree.content.content ]
         , textarea
             [ id ( "card-edit-" ++ tree.uid )
             , classList [ ("edit", True)
