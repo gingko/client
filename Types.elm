@@ -6,7 +6,8 @@ import Json.Decode as Json
 
 type Msg
     = NoOp
-    | CommitChanges Int
+    | CommitAll Int
+    | CommitChanges Int Int
     | CheckoutCommit String
     | CheckOp String Bool
     | DeleteOp String

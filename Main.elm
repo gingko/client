@@ -97,7 +97,7 @@ update msg model =
     NoOp ->
       model ! []
 
-    CommitChanges ts ->
+    CommitAll ts ->
       let
         newContents =
           getContents model.tree
@@ -129,6 +129,64 @@ update msg model =
           }
       in
         newModel ! [ saveModel (modelToValue newModel) ]
+
+    CommitChanges num ts ->
+      let
+        toApply =
+          model.floating
+            |> activeOps
+            |> List.take num
+
+        toIgnore =
+          model.floating
+            |> activeOps
+            |> List.drop num
+
+        nodeId =
+          model.commits
+            |> ListExtra.find (\c -> c.id == model.commit)
+            |> Maybe.withDefault defaultCommit
+            |> .rootNode
+
+        newTree =
+          buildStructure 
+          nodeId 
+          (Objects model.contents model.nodes model.commits model.operations)
+          |> Tree.applyOperations toApply
+
+        newContents =
+          getContents newTree
+            |> List.filter (\c -> not (List.member c model.contents))
+
+        newNodes =
+          (treeToNodes []) newTree
+            |> List.filter (\n -> not (List.member n model.nodes))
+
+        newCommit = 
+          { id = "id"
+          , rootNode = treeUid newTree
+          , timestamp = ts
+          , authors = ["Adriano Ferrari <adriano.ferrari@gmail.com>"]
+          , committer = "Adriano Ferrari <adriano.ferrari@gmail.com>"
+          , parents = [model.commit]
+          , message = "Default Commit message"
+          }
+            |> withCommitId
+
+        newModel =
+          { model
+            | nodes = model.nodes ++ newNodes
+            , contents = model.contents ++ newContents
+            , commits = model.commits ++ [newCommit]
+            , operations = model.operations ++ toApply
+            , floating = 
+                model.floating
+                  |> ListExtra.filterNot (\f -> List.member (fst f) toApply)
+            , commit = newCommit.id
+          }
+      in
+        newModel ! [ saveModel (modelToValue newModel) ]
+
 
     CheckoutCommit cid ->
       let
@@ -470,7 +528,7 @@ update msg model =
     ExternalCommand (cmd, arg) ->
       case cmd of
         "commit-changes" ->
-          model ! [run (CommitChanges (arg |> String.toInt |> Result.withDefault 0))]
+          model ! [run (CommitAll (arg |> String.toInt |> Result.withDefault 0))]
         "checkout-commit" ->
           model ! [run (CheckoutCommit arg)]
         "keyboard" ->
@@ -545,7 +603,7 @@ update msg model =
 
         "mod+s" ->
           normalMode model
-            (CommitChanges 0)
+            (CommitAll 0)
 
         "mod+z" ->
           update Undo model
