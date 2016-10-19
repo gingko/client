@@ -46,7 +46,9 @@ body {
   font-family: "Droid Serif", Georgia;
   border-radius: 8px 0 0 8px;
 }
-
+.group:empty {
+  display: none;
+}
 .group.active-descendant {
   color: #333;
   background: white;

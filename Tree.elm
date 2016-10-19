@@ -104,6 +104,21 @@ applyOp op tree =
 
 -- VIEW
 
+view : ViewState -> Tree -> Html Msg
+view vstate tree =
+  let
+    columns =
+      getColumns([[[ tree ]]])
+        |> List.append [[[]]]
+        |> List.map (viewColumn vstate)
+  in
+  div [id "app" ]
+    ( columns
+    )
+
+
+
+
 viewColumn : ViewState -> Column -> Html Msg
 viewColumn vstate col =
   let

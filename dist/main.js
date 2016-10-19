@@ -86,7 +86,7 @@ startElm = function(init) {
 
 scrollTo = function(cid, colIdx) {
   var card = document.getElementById('card-' + cid.toString());
-  var col = document.getElementsByClassName('column')[colIdx]
+  var col = document.getElementsByClassName('column')[colIdx+1]
   if (card == null) return;
   var rect = card.getBoundingClientRect();
 

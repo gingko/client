@@ -626,14 +626,7 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-  let
-    columns =
-      getColumns([[[ model.tree ]]])
-        |> List.map (viewColumn model.viewState)
-  in
-  div [id "app" ]
-    ( columns
-    )
+  (lazy2 Tree.view model.viewState model.tree)
 
 
 viewHistory : List (Op, Bool) -> Html Msg
