@@ -733,6 +733,10 @@ sequence model vsf op cmds =
         , floating = model.floating ++ [(op, True)]
       }
   in
+  if (List.length model.floating >= 20) then
+    fst (update (CommitChanges 10 (timestamp ())) newModel)
+    ! ([saveModel (modelToValue newModel)] ++ cmds)
+  else
     newModel ! ([saveModel (modelToValue newModel)] ++ cmds)
 
 
