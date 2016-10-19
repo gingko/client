@@ -106,14 +106,17 @@ applyOp op tree =
 
 viewColumn : ViewState -> Column -> Html Msg
 viewColumn vstate col =
+  let
+    buffer =
+      [div [ class "buffer" ][]]
+  in
   div
     [ class "column" ]
-    [ div
-        [ class "buffer" ][]
-    , div [](List.map (lazy (viewGroup vstate)) col)
-    , div
-        [ class "buffer" ][]
-    ]
+    ( buffer ++
+      (List.map (lazy (viewGroup vstate)) col) ++
+      buffer
+    )
+    
 
 
 viewGroup : ViewState -> Group -> Html Msg
@@ -139,15 +142,42 @@ viewGroup vstate xs =
 viewCard : ViewState -> Tree -> Html Msg
 viewCard vstate tree =
   let
+    isEditing = vstate.editing == Just tree.uid
+
     hasChildren =
       case tree.children of
         Children [] -> False
         _ -> True
+
   in
+  if isEditing then
+    div [ id ("card-" ++ tree.uid)
+        , classList [ ("card", True)
+                    , ("active", True)
+                    , ("editing", True)
+                    , ("has-children", hasChildren)
+                    ]
+        ]
+        [ div  [ class "view" 
+                , onClick (Activate tree.uid)
+                , onDoubleClick (OpenCard tree.uid tree.content.content)
+                ] [ Markdown.toHtml [] vstate.field ]
+        , textarea
+            [ id ( "card-edit-" ++ tree.uid )
+            , classList [ ("edit", True)
+                        , ("mousetrap", True)
+                        ]
+            , value vstate.field
+            --, onBlur CancelCard
+            , onInput UpdateField
+            ]
+            []
+        ]
+  else
     div [ id ("card-" ++ tree.uid)
         , classList [ ("card", True)
                     , ("active", vstate.active == tree.uid)
-                    , ("editing", vstate.editing == Just tree.uid)
+                    , ("editing", False)
                     , ("has-children", hasChildren)
                     ]
         ]
@@ -155,14 +185,5 @@ viewCard vstate tree =
                 , onClick (Activate tree.uid)
                 , onDoubleClick (OpenCard tree.uid tree.content.content)
                 ] [ Markdown.toHtml [] tree.content.content ]
-        , textarea
-            [ id ( "card-edit-" ++ tree.uid )
-            , classList [ ("edit", True)
-                        , ("mousetrap", True)
-                        ]
-            , value vstate.field
-            -- , onBlur CancelCard
-            , onInput UpdateField
-            ]
-            []
         ]
+

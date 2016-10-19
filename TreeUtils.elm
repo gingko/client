@@ -50,7 +50,7 @@ getColumns cols =
     if hasChildren then
       getColumns(cols ++ [nextColumn(col)])
     else
-      cols ++ [[]]
+      cols
 
 
 buildStructure : String -> Objects -> Tree

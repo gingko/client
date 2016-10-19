@@ -45,8 +45,6 @@ db.allDocs({include_docs: true}).then(function(docs){
               return row.doc;
             });  
 
-  commits = sortCommits(commits);
-
   operations = docs.rows
             .filter(function(row){
               return row.doc.type == "operation" 
@@ -105,11 +103,7 @@ saveModel = function(model) {
   saveObjects(_.difference(model.operations, operations), "operation")
 
   tree = model.tree
-  if (model.commit !== commit) {
-    commit = model.commit
-    commits = sortCommits(model.commits)
-    render()
-  }
+  commit = model.commit
   floating = model.floating
   viewState = model.viewState
   
@@ -117,7 +111,6 @@ saveModel = function(model) {
   localStorage.setItem('gingko-commit', JSON.stringify(commit))
   localStorage.setItem('gingko-floating', JSON.stringify(floating))
   localStorage.setItem('gingko-viewState', JSON.stringify(viewState))
-
 }
 
 saveObjects = function(objects, type) {
@@ -138,7 +131,6 @@ saveCommit = function(commit) {
     parentIndex = Math.max(parentIndex-1, 1);
     commits.splice(parentIndex,0, JSON.parse(JSON.stringify(commit)));
   }
-  render();
 
   commit["type"] = "commit";
   db.put(commit)
@@ -209,12 +201,6 @@ ipc.on('commit-changes', (event, message) => {
   gingko.ports.externals.send(['commit-changes', Date.now().toString()])
 })
 
-function handleGraphClick(sha) {
-  commit = sha;
-  gingko.ports.externals.send(['checkout-commit', sha]);
-  render();
-}
-
 // Keyboard shortcuts
 var shortcuts = [ 'mod+enter'
                 , 'enter'
@@ -248,19 +234,3 @@ Mousetrap.bind(shortcuts, function(e, s) {
     return false;
   }
 });
-
-
-
-
-function render() {
-  var graphDiv = document.getElementById('graph')
-  console.log(graphDiv)
-  ReactDOM.render(
-    React.createElement( CommitsGraph
-      , { commits: commits.map(function(c){ return { "sha": c._id, "parents": c.parents }})
-        , onClick: handleGraphClick
-        , selected: commit
-        })
-  , graphDiv
-  );
-}

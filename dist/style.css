@@ -21,9 +21,8 @@ body {
 }
 
 .column {
-  flex-grow: 1;
+  flex: 1 0;
   height: 100%;
-  overflow-x: hidden;
   overflow-y: scroll;
 }
 .column::-webkit-scrollbar {
@@ -51,11 +50,14 @@ body {
 .group.active-descendant {
   color: #333;
   background: white;
+  box-shadow: 1px 1px 3px gray;
+  margin-bottom: 2px;
   /*background: linear-gradient(to right, white, #eaeaeb);*/
 }
 
 .card {
   border-left: 3px solid rgba(255,255,255,0);
+  position: relative;
 }
 
 .card .view {
@@ -67,36 +69,27 @@ body {
   color: #333333;
   border: none;
   border-left: 3px solid #8CC63F;
+  box-shadow: 1px 1px 3px gray;
 }
 
-.card.has-children {
-  margin-right: -26px;
-}
-.card.active.has-children::before {
-  content: '';
-  position: relative;
-  width: 8px;
-  height: 8px;
-  float: right;
-  right: 16px;
-  top: -8px;
-  background: white;
-  background-image: radial-gradient(circle at 0 0, #dedee2 7px, white 9px);
-}
 .card.active.has-children::after {
   content: '';
-  position: relative;
-  width: 8px;
-  height: 8px;
-  float: right;
-  right: 16px;
   background: white;
-  background-image: radial-gradient(circle at 0 100%, #dedee2 7px, white 9px);
+  position: absolute;
+  width: 12px;
+  height: 100%;
+  right: -10px;
+  top: 0;
+  box-shadow: 3px 1px 3px gray;
 }
 
 .card textarea {
   display: none;
+  background: hsl(196, 54%, 93%);
+  outline: none;
+  border: none;
   width: 100%;
+  padding: 15px;
   min-height: 108px;
   font-size: 14px;
   font-family: 'Droid Sans Mono', "Lucida Console", Monaco, monospace
@@ -107,14 +100,10 @@ body {
 }
 
 .card.editing {
-  box-shadow: inset 1px 1px 3px rgba(0,0,0,0.2),0 0 10px #d8f1bc;
-  border-radius: 4px;
-  padding: 10px;
-  border: 1px solid #8cc63f;
+  border-left: 3px solid hsl(195, 54%, 51%);
 }
 
 .editing .view {
-  display: none
 }
 
 .editing textarea {

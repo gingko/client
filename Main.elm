@@ -633,7 +633,6 @@ view model =
   in
   div [id "app" ]
     ( columns
-    ++ [ lazy viewHistory (List.reverse model.floating) ]
     )
 
 
