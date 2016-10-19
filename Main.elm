@@ -34,6 +34,7 @@ main =
 
 port saveModel : Json.Encode.Value -> Cmd msg
 port activateCards : List (List String) -> Cmd msg
+port editCard : String -> Cmd msg
 
 
 -- MODEL
@@ -368,7 +369,7 @@ update msg model =
             , field = str
             }
       }
-        ! [focus uid] 
+        ! [focus uid, editCard uid] 
 
     UpdateField str ->
       { model
@@ -706,8 +707,10 @@ subscriptions model =
 
 -- HELPERS
 
+focus : String -> Cmd Msg
 focus uid =
-  Task.perform (\_ -> NoOp) (\_ -> NoOp) (Dom.focus ("card-edit-" ++ uid)) 
+  Task.perform (\_ -> NoOp) (\_ -> NoOp) (Dom.focus ("card-edit-" ++ uid))
+      
 
 
 run : Msg -> Cmd Msg

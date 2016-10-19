@@ -20,6 +20,8 @@
     "chokidar-cli": "^1.2.0"
   },
   "dependencies": {
-    "underscore": "^1.8.3"
+    "underscore": "^1.8.3",
+    "jquery": "^3.1.1",
+    "textarea-autosize": "^0.4.2"
   }
 }

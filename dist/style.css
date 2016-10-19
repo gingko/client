@@ -23,6 +23,7 @@ body {
 .column {
   flex: 1 0;
   height: 100%;
+  overflow-x: hidden;
   overflow-y: scroll;
 }
 .column::-webkit-scrollbar {
@@ -94,7 +95,7 @@ body {
 
 .card textarea {
   display: none;
-  background: hsl(196, 54%, 93%);
+  background: none;
   outline: none;
   border: none;
   width: 100%;
@@ -102,6 +103,12 @@ body {
   min-height: 108px;
   font-size: 14px;
   font-family: 'Droid Sans Mono', "Lucida Console", Monaco, monospace
+}
+.card.editing textarea {
+  display: block;
+}
+.card.editing .view {
+  display: none;
 }
 .card textarea:focus {
   outline: none;
@@ -112,12 +119,6 @@ body {
   border-left: 3px solid hsl(195, 54%, 51%);
 }
 
-.editing .view {
-}
-
-.editing textarea {
-  display: inline-block
-}
 
 #history {
   margin: 0;

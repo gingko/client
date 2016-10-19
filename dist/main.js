@@ -1,6 +1,8 @@
+var jQuery = require('jquery')
 var db = new PouchDB('elm-gingko-test-cards');
 var ipc = require('electron').ipcRenderer
 var _ = require('underscore')
+var autosize = require('textarea-autosize')
 
 var gingko = null;
 
@@ -82,6 +84,7 @@ startElm = function(init) {
   gingko = Elm.Main.fullscreen(init);
   gingko.ports.saveModel.subscribe(saveModel);
   gingko.ports.activateCards.subscribe(activateCards);
+  gingko.ports.editCard.subscribe(editCard);
 }
 
 scrollTo = function(cid, colIdx) {
@@ -135,6 +138,10 @@ saveCommit = function(commit) {
   commit["type"] = "commit";
   db.put(commit)
     .catch(function(err){console.log(err)});
+}
+
+editCard = function(cardId) {
+  jQuery('#card-edit-'+cardId).textareaAutoSize()
 }
 
 sortCommits = function(coms) {
