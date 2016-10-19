@@ -38,7 +38,7 @@ body {
 
 .buffer {
   background: rgb(50, 89, 107);
-  border-right: 2px solid rgb(72, 115, 136);
+  border-right: 2px solid rgb(63, 102, 121);
   border-left: 2px solid rgb(42, 79, 97);
   margin: 0 16px;
   height: 90%;
@@ -48,9 +48,10 @@ body {
 .group {
   margin: 0;
   padding: 10px;
-  border-top: 1px solid #c9c9c9;
-  background-color: #DEDEE2;
-  color: #aaaab3;
+  border-top: 1px solid #d3e6f1;
+  border-bottom: 1px solid #3c484e;
+  background-color: #c5ced8;
+  color: #717181;
   font-family: "Droid Serif", Georgia;
   border-radius: 8px 0 0 8px;
   box-shadow: 1px 1px 6px #2b3c52;
