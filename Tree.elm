@@ -162,9 +162,11 @@ viewCard vstate tree =
 
     hasChildren =
       case tree.children of
-        Children [] -> False
-        _ -> True
-
+        Children c ->
+          ( c
+              |> filterByVisible
+              |> List.length
+          ) /= 0
   in
   if isEditing then
     div [ id ("card-" ++ tree.uid)
@@ -201,5 +203,15 @@ viewCard vstate tree =
                 , onClick (Activate tree.uid)
                 , onDoubleClick (OpenCard tree.uid tree.content.content)
                 ] [ Markdown.toHtml [] tree.content.content ]
+        , textarea
+            [ id ( "card-edit-" ++ tree.uid )
+            , classList [ ("edit", True)
+                        , ("mousetrap", True)
+                        ]
+            , value tree.content.content
+            --, onBlur CancelCard
+            , onInput UpdateField
+            ]
+            []
         ]
 
