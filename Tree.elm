@@ -160,6 +160,13 @@ viewCard vstate tree =
   let
     isEditing = vstate.editing == Just tree.uid
 
+    options =
+      { githubFlavored = Just { tables = True, breaks = True }
+      , defaultHighlighting = Nothing
+      , sanitize = False
+      , smartypants = False
+      }
+
     hasChildren =
       case tree.children of
         Children c ->
@@ -179,14 +186,14 @@ viewCard vstate tree =
         [ div  [ class "view" 
                 , onClick (Activate tree.uid)
                 , onDoubleClick (OpenCard tree.uid tree.content.content)
-                ] [ Markdown.toHtml [] vstate.field ]
+                ] [ Markdown.toHtmlWith options [] vstate.field ]
         , textarea
             [ id ( "card-edit-" ++ tree.uid )
             , classList [ ("edit", True)
                         , ("mousetrap", True)
                         ]
             , value vstate.field
-            --, onBlur CancelCard
+            , onBlur CancelCard
             , onInput UpdateField
             ]
             []
