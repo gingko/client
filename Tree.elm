@@ -108,8 +108,9 @@ view : ViewState -> Tree -> Html Msg
 view vstate tree =
   let
     columns =
-      getColumns([[[ tree ]]])
-        |> List.append [[[]]]
+      [[[]]] ++ 
+      getColumns([[[ tree ]]]) ++
+      [[[]]]
         |> List.map (viewColumn vstate)
   in
   div [id "app" ]

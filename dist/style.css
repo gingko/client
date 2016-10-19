@@ -29,6 +29,13 @@ body {
   width: 0 !important;
 }
 
+.column:first-child, .column:last-child{
+  flex: 0.25 0;
+}
+.column:first-child .buffer, .column:last-child .buffer {
+  display: none;
+}
+
 .buffer {
   background: rgb(216, 222, 229);
   border-right: 1px solid rgb(173, 178, 183);
