@@ -24,6 +24,7 @@ type Msg
     | InsertAbove String
     | InsertBelow String
     | InsertChild String
+    | MoveUp String
     | GoLeft String
     | GoDown String
     | GoUp String
