@@ -159,6 +159,8 @@ viewCard : ViewState -> Tree -> Html Msg
 viewCard vstate tree =
   let
     isEditing = vstate.editing == Just tree.uid
+    isRoot = tree.uid == "0"
+    isActive = vstate.active == tree.uid
 
     options =
       { githubFlavored = Just { tables = True, breaks = True }
@@ -174,51 +176,93 @@ viewCard vstate tree =
               |> filterByVisible
               |> List.length
           ) /= 0
+
+    tarea content =
+      textarea
+        [ id ( "card-edit-" ++ tree.uid )
+        , classList [ ("edit", True)
+                    , ("mousetrap", True)
+                    ]
+        , value content
+        , onInput UpdateField
+        ]
+        []
+
+    normalControls =
+      if isActive then
+        [ div [ class "flex-row card-top-overlay" ]
+              [ span
+                [ class "card-btn ins-above"
+                , title "Insert Above (Ctrl+K)"
+                , onClick (InsertAbove tree.uid)
+                ]
+                [ text "+" ]
+              ]
+        , div [ class "flex-column card-right-overlay"]
+              [ span 
+                [ class "card-btn delete"
+                , title "Delete Card (Ctrl+Backspace)"
+                , onClick (DeleteCard tree.uid)
+                ]
+                [ text "×" ]
+              , span
+                [ class "card-btn ins-right"
+                , title "Add Child (Ctrl+L)"
+                , onClick (InsertChild tree.uid)
+                ]
+                [ text "+" ]
+              , span 
+                [ class "card-btn edit"
+                , title "Edit Card (Enter)"
+                , onClick (OpenCard tree.uid tree.content.content)
+                ]
+                [ text "∆" ]
+              ]
+        , div [ class "flex-row card-bottom-overlay" ]
+              [ span
+                [ class "card-btn ins-below"
+                , title "Insert Below (Ctrl+J)"
+                , onClick (InsertBelow tree.uid)
+                ]
+                [ text "+" ]
+              ]
+        ]
+      else
+        []
   in
   if isEditing then
     div [ id ("card-" ++ tree.uid)
         , classList [ ("card", True)
                     , ("active", True)
-                    , ("editing", True)
+                    , ("editing", isEditing)
                     , ("has-children", hasChildren)
                     ]
         ]
-        [ div  [ class "view" 
-                , onClick (Activate tree.uid)
-                , onDoubleClick (OpenCard tree.uid tree.content.content)
-                ] [ Markdown.toHtmlWith options [] vstate.field ]
-        , textarea
-            [ id ( "card-edit-" ++ tree.uid )
-            , classList [ ("edit", True)
-                        , ("mousetrap", True)
-                        ]
-            , value vstate.field
-            , onBlur CancelCard
-            , onInput UpdateField
-            ]
-            []
+        [ tarea vstate.field
+        , div [ class "flex-column card-right-overlay"]
+              [ span 
+                [ class "card-btn save"
+                , title "Save Changes (Ctrl+Enter)"
+                , onClick (Activate tree.uid) --(UpdateCard tree.uid (Debug.log "field" vstate.field))
+                ]
+                [ text "✔" ]
+              ]
         ]
   else
     div [ id ("card-" ++ tree.uid)
         , classList [ ("card", True)
-                    , ("active", vstate.active == tree.uid)
-                    , ("editing", False)
+                    , ("active", isActive)
+                    , ("editing", isEditing)
                     , ("has-children", hasChildren)
                     ]
         ]
-        [ div  [ class "view" 
+        (
+          [ div [ class "view" 
                 , onClick (Activate tree.uid)
                 , onDoubleClick (OpenCard tree.uid tree.content.content)
                 ] [ Markdown.toHtmlWith options [] tree.content.content ]
-        , textarea
-            [ id ( "card-edit-" ++ tree.uid )
-            , classList [ ("edit", True)
-                        , ("mousetrap", True)
-                        ]
-            , value tree.content.content
-            --, onBlur CancelCard
-            , onInput UpdateField
-            ]
-            []
-        ]
+          , tarea tree.content.content
+          ] ++
+          normalControls
+        )
 

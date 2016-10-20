@@ -12,6 +12,23 @@ body {
 
 ::selection { background: #9fe147; }
 
+/* ======== FLEXBOX ======== */
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+
+/* ======== COLUMNS ======== */
+
 #app {
   display: flex;
   position: absolute;
@@ -25,13 +42,16 @@ body {
   overflow-x: hidden;
   overflow-y: scroll;
 }
+
 .column::-webkit-scrollbar {
   width: 0 !important;
 }
 
+
 .column:first-child, .column:last-child{
   flex: 0.25 0;
 }
+
 .column:first-child .buffer, .column:last-child .buffer {
   display: none;
 }
@@ -45,6 +65,9 @@ body {
   z-index: 1;
 }
 
+
+/* ======== GROUP ======== */
+
 .group {
   margin: 0;
   padding: 10px;
@@ -53,40 +76,60 @@ body {
   background-color: #c5ced8;
   color: #717181;
   font-family: "Droid Serif", Georgia;
-  border-radius: 8px 0 0 8px;
   box-shadow: 1px 1px 6px #2b3c52;
   z-index: 5;
   position: relative;
 }
+
 .group:empty {
   display: none;
 }
+
 .group.active-descendant {
   color: #333;
-  background: white;
+  background: #fdfdff;
   margin-bottom: 2px;
+  border-radius: 8px 0 0 8px;
 }
 
+
+/* ======== CARD (Normal view) ======== */
+
 .card {
-  border-left: 3px solid rgba(255,255,255,0);
+  border-left: 4px solid rgba(255,255,255,0);
+  border-radius: 3px;
   position: relative;
+}
+
+.card:hover {
+  background: hsl(212, 19%, 88%);
+}
+
+.group.active-descendant .card:hover {
+  background: #fdfdff;
+  box-shadow: 0px 1px 3px lightgray;
 }
 
 .card .view {
   padding: 15px;
+  cursor: pointer;
+}
+
+.card.active .view {
+  cursor: auto;
 }
 
 .card.active {
-  background: white;
-  color: #333333;
+  background: #fdfdff;
+  color: #332222;
   border: none;
-  border-left: 3px solid #8CC63F;
-  box-shadow: 1px 1px 3px gray;
+  border-left: 4px solid #8CC63F;
+  box-shadow: 0px 1px 3px gray;
 }
 
 .card.active.has-children::after {
   content: '';
-  background: white;
+  background: #fdfdff;
   position: absolute;
   width: 12px;
   height: 100%;
@@ -94,6 +137,8 @@ body {
   top: 0;
   box-shadow: 3px 1px 3px gray;
 }
+
+/* ======== CARD (Edit view) ======== */
 
 .card textarea {
   display: none;
@@ -107,21 +152,161 @@ body {
   font-size: 14px;
   font-family: 'Droid Sans Mono', "Lucida Console", Monaco, monospace
 }
+
 .card.editing textarea {
   display: block;
 }
+
 .card.editing .view {
   display: none;
 }
+
 .card textarea:focus {
   outline: none;
   border: none;
 }
 
 .card.editing {
-  border-left: 3px solid hsl(195, 54%, 51%);
+  border-left: 4px solid hsl(195, 54%, 51%);
 }
 
+
+/* ======== CARD (Buttons) ======== */
+
+.card-top-overlay, .card-right-overlay, .card-bottom-overlay {
+  position: absolute;
+  height: 100%;
+  width: 33%;
+  right: 0;
+  pointer-events: none;
+}
+
+.card-top-overlay, .card-right-overlay {
+  top: 0;
+}
+
+.card-top-overlay, .card-bottom-overlay {
+  height: 33%;
+  width: 100%;
+}
+
+
+.card-bottom-overlay {
+  bottom: 0;
+}
+
+
+.card-btn {
+  cursor: pointer;
+  pointer-events: auto;
+  position: absolute;
+  background: #fdfdff;
+  border-top: 1px solid hsl(0, 0%, 81%);
+  border-left: 1px solid hsl(0, 0%, 81%);
+  border-right: 1px solid hsl(0, 0%, 53%);
+  border-bottom: 1px solid hsl(0, 0%, 53%);
+  color: hsl(0, 0%, 71%);
+  text-align: center;
+  z-index: 100;
+  transition: all 0.4s ease-in;
+  opacity: 0;
+  user-select: none;
+}
+
+
+/* --- Button positioning --- */
+
+.card-btn.ins-right {
+  height: 40px;
+  width: 20px;
+  right: -9px;
+  line-height: 40px;
+}
+
+.card-btn.ins-above {
+  height: 20px;
+  width: 40px;
+  line-height: 20px;
+  top:-10px;
+}
+
+.card-btn.ins-below {
+  height: 20px;
+  width: 40px;
+  line-height: 20px;
+  bottom:-10px;
+}
+
+.card-btn.delete {
+  top: 0;
+  right: 0;
+  width: 15px;
+  height: 15px;
+  line-height: 15px;
+  border: none;
+  border-radius: 0px 3px 0px 0px;
+  color: hsl(0, 0%, 20%);
+}
+
+.card-btn.edit {
+  bottom: 0;
+  right: 0;
+  width: 15px;
+  height: 15px;
+  line-height: 15px;
+  border: none;
+  border-radius: 0px 0px 3px 0px;
+  color: hsl(180, 0%, 20%);
+}
+
+
+/* --- Button state --- */
+
+.card:hover .card-btn {
+  opacity: 0.3;
+}
+
+.card:hover .card-btn.ins-above:hover,
+.card:hover .card-btn.ins-right:hover, 
+.card:hover .card-btn.ins-below:hover {
+  transform: translateY(-1px);
+  background: hsl(86, 71%, 95%);
+  box-shadow: 0px 1px 1px hsl(0, 0%, 57%);
+  opacity: 1.0;
+  transition: none;
+}
+
+.card:hover .card-btn.ins-above:active,
+.card:hover .card-btn.ins-right:active, 
+.card:hover .card-btn.ins-below:active {
+  background: hsl(86, 71%, 82%);
+  transform: none;
+  box-shadow: none;
+}
+
+.card:hover .card-btn.delete:hover {
+  background: hsl(0, 79%, 66%);
+  opacity: 1.0;
+  transition: none;
+  color: #922323;
+}
+
+.card:hover .card-btn.delete:active {
+  background: hsl(0, 80%, 48%);
+}
+
+.card:hover .card-btn.edit:hover {
+  background: hsl(195, 79%, 66%);
+  opacity: 1.0;
+  transition: none;
+  color: hsl(195, 54%, 10%);
+}
+
+.card:hover .card-btn.edit:active {
+  background: hsl(195, 54%, 51%);
+}
+
+/* ======== HISTORY ======== */
 
 #history {
   margin: 0;

@@ -303,7 +303,7 @@ update msg model =
             , activePast = vs.active :: vs.activePast
             , activeFuture = vs.activeFuture
             , descendants = desc
-            , editing = vs.editing 
+            , editing = Nothing
             , field = vs.field
             }
       }
@@ -386,7 +386,7 @@ update msg model =
 
     UpdateCard uid str ->
       let
-        newOp = Upd "" uid str (timestamp ()) |> withOpId
+        newOp = Upd "" uid (Debug.log "UpdateCard str" str) (timestamp ()) |> withOpId
         newViewState vs =
           { vs
             | active = uid
@@ -584,7 +584,15 @@ update msg model =
           normalMode model
             (GoLeft vs.active)
 
+        "left" ->
+          normalMode model
+            (GoLeft vs.active)
+
         "j" ->
+          normalMode model
+            (GoDown vs.active)
+
+        "down" ->
           normalMode model
             (GoDown vs.active)
 
@@ -592,7 +600,15 @@ update msg model =
           normalMode model
             (GoUp vs.active)
   
+        "up" ->
+          normalMode model
+            (GoUp vs.active)
+  
         "l" ->
+          normalMode model
+            (GoRight vs.active)
+
+        "right" ->
           normalMode model
             (GoRight vs.active)
 
