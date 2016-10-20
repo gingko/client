@@ -149,23 +149,23 @@ update msg model =
             |> Maybe.withDefault defaultCommit
             |> .rootNode
 
-        newTree =
+        committedTree =
           buildStructure 
           nodeId 
           (Objects model.contents model.nodes model.commits model.operations)
           |> Tree.applyOperations toApply
 
         newContents =
-          getContents newTree
+          getContents committedTree
             |> List.filter (\c -> not (List.member c model.contents))
 
         newNodes =
-          (treeToNodes []) newTree
+          (treeToNodes []) committedTree
             |> List.filter (\n -> not (List.member n model.nodes))
 
         newCommit = 
           { id = "id"
-          , rootNode = treeUid newTree
+          , rootNode = treeUid committedTree
           , timestamp = ts
           , authors = ["Adriano Ferrari <adriano.ferrari@gmail.com>"]
           , committer = "Adriano Ferrari <adriano.ferrari@gmail.com>"
@@ -420,8 +420,9 @@ update msg model =
         parentId_ = getParentId model.tree uid
         prevId_ = getPrev model.tree uid
         nextId_ = Just uid
-        newId = newUid parentId_ prevId_ nextId_
-        newOp = Ins newId parentId_ prevId_ nextId_ (timestamp ())
+        ts = timestamp ()
+        newId = newUid parentId_ prevId_ nextId_ ts
+        newOp = Ins newId parentId_ prevId_ nextId_ ts
         newViewState vs =
           { vs 
             | active = newId
@@ -437,8 +438,9 @@ update msg model =
         parentId_ = getParentId model.tree uid
         prevId_ = Just uid
         nextId_ = getNext model.tree uid
-        newId = newUid parentId_ prevId_ nextId_
-        newOp = Ins newId parentId_ prevId_ nextId_ (timestamp ())
+        ts = timestamp ()
+        newId = newUid parentId_ prevId_ nextId_ ts
+        newOp = Ins newId parentId_ prevId_ nextId_ ts
         newViewState vs =
           { vs
             | active = newId
@@ -450,12 +452,12 @@ update msg model =
 
     InsertChild uid ->
       let
-        oldTree = model.tree
         parentId_ = Just uid
         prevId_ = getLastChild model.tree uid
         nextId_ = Nothing
-        newId = newUid parentId_ prevId_ nextId_
-        newOp = Ins newId parentId_ prevId_ nextId_ (timestamp ())
+        ts = timestamp ()
+        newId = newUid parentId_ prevId_ nextId_ ts
+        newOp = Ins newId parentId_ prevId_ nextId_ ts
         newViewState vs =
           { vs
             | active = newId

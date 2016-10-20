@@ -364,7 +364,7 @@ withOpId : Op -> Op
 withOpId op =
   case op of
     Ins id parentId_ prevId_ nextId_ ts ->
-      Ins (newUid parentId_ prevId_ nextId_) parentId_ prevId_ nextId_ ts
+      Ins (newUid parentId_ prevId_ nextId_ ts) parentId_ prevId_ nextId_ ts
     Upd id uid str ts ->
       Upd (String.join newLine ["Upd", uid, str, toString ts] |> Sha1.sha1) uid str ts
     Del id uid ts ->
@@ -381,14 +381,14 @@ nextUid uid idx =
   Sha1.sha1 (uid ++ (toString idx))
 
 
-newUid : Maybe String -> Maybe String -> Maybe String -> String
-newUid parentId prevId nextId =
+newUid : Maybe String -> Maybe String -> Maybe String -> Int -> String
+newUid parentId prevId nextId timestamp =
   let
     pid = Maybe.withDefault "" parentId
     vid = Maybe.withDefault "" prevId
     nid = Maybe.withDefault "" nextId
   in
-    String.concat [pid ++ newLine ++ vid ++ newLine ++ nid]
+    String.join newLine [pid, vid, nid, toString timestamp]
       |> Sha1.sha1
 
 

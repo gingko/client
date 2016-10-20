@@ -60,7 +60,7 @@ update msg tree =
           if Just tree.uid == parentId then
             let
               newTree =
-                { uid = newUid parentId prevId_ nextId_
+                { uid = newUid parentId prevId_ nextId_ ts
                 , parentId = parentId
                 , prev = prevId_
                 , next = nextId_
