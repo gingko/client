@@ -84,7 +84,6 @@ startElm = function(init) {
   gingko = Elm.Main.fullscreen(init);
   gingko.ports.saveModel.subscribe(saveModel);
   gingko.ports.activateCards.subscribe(activateCards);
-  gingko.ports.editCard.subscribe(editCard);
 }
 
 scrollTo = function(cid, colIdx) {
@@ -140,9 +139,6 @@ saveCommit = function(commit) {
     .catch(function(err){console.log(err)});
 }
 
-editCard = function(cardId) {
-  jQuery('#card-edit-'+cardId).textareaAutoSize()
-}
 
 sortCommits = function(coms) {
   var remaining = coms.slice(0);
@@ -245,3 +241,28 @@ Mousetrap.bind(shortcuts, function(e, s) {
     return false;
   }
 });
+
+// create an observer instance
+var observer = new MutationObserver(function(mutations) {
+  mutations.forEach(function(mutation) {
+    var nodesArray = [].slice.call(mutation.addedNodes)
+    var textareas = nodesArray.filter(function(node){
+      if (node.nodeName == "TEXTAREA" && node.className == "edit mousetrap") {
+        console.log(node)
+        return true
+      } else {
+        return false
+      }
+    })
+
+    if (textareas.length !== 0) {
+      jQuery(textareas).textareaAutoSize()
+    }
+  });    
+});
+ 
+// configuration of the observer:
+var config = { childList: true, subtree: true };
+ 
+// pass in the target node, as well as the observer options
+observer.observe(document.body, config);

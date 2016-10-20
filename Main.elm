@@ -386,7 +386,7 @@ update msg model =
 
     UpdateCard uid str ->
       let
-        newOp = Upd "" uid (Debug.log "UpdateCard str" str) (timestamp ()) |> withOpId
+        newOp = Upd "" uid str (timestamp ()) |> withOpId
         newViewState vs =
           { vs
             | active = uid

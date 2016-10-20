@@ -178,15 +178,18 @@ viewCard vstate tree =
           ) /= 0
 
     tarea content =
-      textarea
-        [ id ( "card-edit-" ++ tree.uid )
-        , classList [ ("edit", True)
-                    , ("mousetrap", True)
-                    ]
-        , value content
-        , onInput UpdateField
+      div 
+        [ class "edit-wrap"]
+        [ textarea
+            [ id ( "card-edit-" ++ tree.uid )
+            , classList [ ("edit", True)
+                        , ("mousetrap", True)
+                        ]
+            , value content
+            , onInput UpdateField
+            ]
+            []
         ]
-        []
 
     normalControls =
       if isActive then
@@ -243,7 +246,7 @@ viewCard vstate tree =
               [ span 
                 [ class "card-btn save"
                 , title "Save Changes (Ctrl+Enter)"
-                , onClick (Activate tree.uid) --(UpdateCard tree.uid (Debug.log "field" vstate.field))
+                , onClick (UpdateCard tree.uid vstate.field)
                 ]
                 [ text "✔" ]
               ]
