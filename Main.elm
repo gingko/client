@@ -399,8 +399,17 @@ update msg model =
     DeleteCard uid ->
       let
         newOps = [ Del "" uid (timestamp ())|> withOpId ]
+        newActive =
+          vs.activePast
+            |> List.head
+            |> Maybe.withDefault "0"
+
+        newViewState vs =
+          { vs
+            | active = newActive
+          }
       in
-      sequence model identity newOps []
+      sequence model newViewState newOps []
 
     CancelCard ->
       { model
