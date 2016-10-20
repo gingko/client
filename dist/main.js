@@ -247,12 +247,7 @@ var observer = new MutationObserver(function(mutations) {
   mutations.forEach(function(mutation) {
     var nodesArray = [].slice.call(mutation.addedNodes)
     var textareas = nodesArray.filter(function(node){
-      if (node.nodeName == "TEXTAREA" && node.className == "edit mousetrap") {
-        console.log(node)
-        return true
-      } else {
-        return false
-      }
+      return (node.nodeName == "TEXTAREA" && node.className == "edit mousetrap")
     })
 
     if (textareas.length !== 0) {
