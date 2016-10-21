@@ -3,6 +3,7 @@ module Coders exposing (..)
 import Types exposing (..)
 import Json.Encode
 import Json.Decode as Json exposing (..)
+import Array exposing (fromList)
 
 
 type alias Model =
@@ -151,6 +152,28 @@ viewStateToValue vs =
     , ( "editing", maybeToValue vs.editing Json.Encode.string )
     , ( "field", Json.Encode.string vs.active )
     ]
+
+
+-- EXPORT ENCODINGS
+
+treeToSimpleJSON : Tree -> Json.Encode.Value
+treeToSimpleJSON tree =
+  case tree.children of
+    Children c ->
+      Json.Encode.array 
+      ( fromList
+        [ Json.Encode.object
+          [ ( "content", contentToString tree.content )
+          , ( "children", Json.Encode.array (fromList (List.map treeToSimpleJSON c)))
+          ]
+        ]
+      )
+
+
+contentToString : Content -> Json.Encode.Value
+contentToString content =
+  Json.Encode.string content.content
+
 
 
 

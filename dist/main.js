@@ -84,6 +84,7 @@ startElm = function(init) {
   gingko = Elm.Main.fullscreen(init);
   gingko.ports.saveModel.subscribe(saveModel);
   gingko.ports.activateCards.subscribe(activateCards);
+  gingko.ports.export.subscribe(exportTree);
 }
 
 scrollTo = function(cid, colIdx) {
@@ -197,6 +198,10 @@ activateCards = function(centerlineIds) {
     var centerIdx = Math.round(c.length/2) - 1
     scrollTo(c[centerIdx], i)
   })
+}
+
+exportTree = function(json) {
+  console.log(json)
 }
 
 // Commands with payloads

@@ -34,7 +34,7 @@ main =
 
 port saveModel : Json.Encode.Value -> Cmd msg
 port activateCards : List (List String) -> Cmd msg
-port editCard : String -> Cmd msg
+port export : Json.Encode.Value -> Cmd msg
 
 
 -- MODEL
@@ -432,7 +432,7 @@ update msg model =
             , field = str
             }
       }
-        ! [focus uid, editCard uid] 
+        ! [focus uid] 
 
     UpdateField str ->
       { model
@@ -605,10 +605,7 @@ update msg model =
       in
       case str of
         "mod+x" ->
-          let
-            deb = Debug.log "model: " model
-          in
-          model ! [saveModel (modelToValue model)]
+          model ! [export (treeToSimpleJSON model.tree)]
 
         "mod+enter" ->
           editMode model
