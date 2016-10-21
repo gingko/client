@@ -4,8 +4,60 @@ import String
 import List.Extra as ListExtra
 import Types exposing (..)
 import Sha1
+import TreeSort exposing (sortTrees)
 
 
+
+-- TREE MODIFICATIONS --
+
+insertTree : Tree -> Maybe String -> Maybe String -> Maybe String -> Tree -> Tree
+insertTree newTree parentId_ prevId_ nextId_ tree =
+  let
+    children =
+      case tree.children of
+        Children cs -> cs
+
+    treeToInsert =
+      { newTree
+        | parentId = parentId_
+        , prev = prevId_
+        , next = nextId_
+      }
+  in
+  if Just tree.uid == parentId_ then
+    { tree | children = Children (sortTrees (children ++ [treeToInsert])) }
+  else
+    { tree 
+      | children = 
+          children
+            |> List.map (insertTree treeToInsert parentId_ prevId_ nextId_)
+            |> Children
+    }
+
+pruneTree : String -> Tree -> Tree
+pruneTree uid tree =
+  let
+    children =
+      case tree.children of
+        Children cs -> cs
+
+    childrenIds =
+      children |> List.map .uid
+  in
+  if List.member uid childrenIds then
+    { tree
+      | children =
+          children
+            |> ListExtra.filterNot (\t -> t.uid == uid)
+            |> Children
+    }
+  else
+    { tree
+      | children =
+          children
+            |> List.map (pruneTree uid)
+            |> Children
+    }
 
 
 -- TREE AND NODE TRANSFORMATIONS
@@ -369,17 +421,17 @@ withOpId op =
       Upd (String.join newLine ["Upd", uid, str, toString ts] |> Sha1.sha1) uid str ts
     Del id uid ts ->
       Del (String.join newLine ["Del", uid] |> Sha1.sha1) uid ts
-    Copy id uid parentId_ prevId_ nextId_ ts ->
-      Copy
+    Cpy id uid parentId_ prevId_ nextId_ ts ->
+      Cpy
       (String.join newLine 
-        ["Copy", uid, parentId_ ? "", prevId_ ? "", nextId_ ? "", toString ts] 
+        ["Cpy", uid, parentId_ ? "", prevId_ ? "", nextId_ ? "", toString ts] 
           |> Sha1.sha1
       ) 
       uid parentId_ prevId_ nextId_ ts
-    Move id uid parentId_ prevId_ nextId_ ts ->
-      Move
+    Mov id uid parentId_ prevId_ nextId_ ts ->
+      Mov
       (String.join newLine 
-        ["Move", uid, parentId_ ? "", prevId_ ? "", nextId_ ? "", toString ts] 
+        ["Mov", uid, parentId_ ? "", prevId_ ? "", nextId_ ? "", toString ts] 
           |> Sha1.sha1
       ) 
       uid parentId_ prevId_ nextId_ ts

@@ -225,9 +225,9 @@ update msg model =
               fid == id
             Del fid _ _ ->
               fid == id
-            Copy fid _ _ _ _ _ ->
+            Cpy fid _ _ _ _ _ ->
               fid == id
-            Move fid _ _ _ _ _ ->
+            Mov fid _ _ _ _ _ ->
               fid == id
 
         newFloating =
@@ -250,9 +250,9 @@ update msg model =
               fid == id
             Del fid _ _ ->
               fid == id
-            Copy fid _ _ _ _ _ ->
+            Cpy fid _ _ _ _ _ ->
               fid == id
-            Move fid _ _ _ _ _ ->
+            Mov fid _ _ _ _ _ ->
               fid == id
 
         newFloating =
@@ -522,28 +522,24 @@ update msg model =
 
     -- === Card Moving  ===
 
+    Move uid parentId_ prevId_ nextId_ ->
+      let
+        newOp = Mov "" uid parentId_ prevId_ nextId_ (timestamp ()) |> withOpId
+        newViewState vs =
+          { vs
+            | active = uid
+          }
+      in
+        sequence model newViewState newOp [focus uid]
+
     MoveUp uid ->
       let
-        content =
-          getTree model.tree uid 
-            |> Maybe.withDefault Tree.default
-            |> .content
-            |> .content
-
         parentId_ = getParentId model.tree uid
         nextId_ = getPrev model.tree uid
         prevId_ = getPrev model.tree (nextId_ |> Maybe.withDefault "")
-        ts = timestamp ()
-        newId = newUid parentId_ prevId_ nextId_ ts
-
-        newViewState vs =
-          { vs
-            | active = newId
-          }
-
-        newOp = Copy newId uid parentId_ prevId_ nextId_ ts
+        db1 = Debug.log "MoveUp" uid
       in
-        sequence model newViewState newOp [focus newId]
+        update (Move uid parentId_ prevId_ nextId_) model
 
     -- === External Inputs ===
 
@@ -698,8 +694,8 @@ viewKeyedOp (op, state) =
     Ins oid _ _ _ _ -> (oid, lazy viewOp (op, state))
     Upd oid _ _ _ -> (oid, lazy viewOp (op, state))
     Del oid _ _ -> (oid, lazy viewOp (op, state))
-    Copy oid _ _ _ _ _ -> (oid, lazy viewOp (op, state))
-    Move oid _ _ _ _ _ -> (oid, lazy viewOp (op, state))
+    Cpy oid _ _ _ _ _ -> (oid, lazy viewOp (op, state))
+    Mov oid _ _ _ _ _ -> (oid, lazy viewOp (op, state))
 
 
 viewOp : (Op, Bool) -> Html Msg
@@ -744,10 +740,10 @@ viewOp (op, state) =
           , button [onClick (DeleteOp oid)][text "x"]
           ]
 
-    Copy oid uid parentId_ prevId_ nextId_ ts ->
+    Cpy oid uid parentId_ prevId_ nextId_ ts ->
       li [] [text "copy op"]
 
-    Move oid uid parentId_ prevId_ nextId_ ts ->
+    Mov oid uid parentId_ prevId_ nextId_ ts ->
       li [] [text "move op"]
 
 

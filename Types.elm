@@ -35,6 +35,7 @@ type Msg
     | InsertBelow String
     | InsertChild String
     -- === Card Moving  ===
+    | Move String (Maybe String) (Maybe String) (Maybe String)
     | MoveUp String
     -- === External Inputs ===
     | OpIn Json.Value
@@ -71,8 +72,8 @@ type Op
   = Ins String (Maybe String) (Maybe String) (Maybe String) Int
   | Upd String String String Int
   | Del String String Int
-  | Copy String String (Maybe String) (Maybe String) (Maybe String) Int
-  | Move String String (Maybe String) (Maybe String) (Maybe String) Int
+  | Cpy String String (Maybe String) (Maybe String) (Maybe String) Int
+  | Mov String String (Maybe String) (Maybe String) (Maybe String) Int
 
 type alias Objects =
   { contents : List Content

@@ -11,7 +11,6 @@ import Markdown
 
 import Types exposing (..)
 import TreeUtils exposing (..)
-import TreeSort exposing (..)
 
 
 
@@ -56,26 +55,19 @@ update msg tree =
 
     Apply op ->
       case op of
-        Ins oid parentId prevId_ nextId_ ts ->
-          if Just tree.uid == parentId then
-            let
-              newTree =
-                { uid = newUid parentId prevId_ nextId_ ts
-                , parentId = parentId
-                , prev = prevId_
-                , next = nextId_
-                , content = (Content "" "" "" |> withContentId)
-                , visible = True
-                , children = Children []
-                }
-
-              sortedChildren = Children (sortTrees (children ++ [newTree]))
-            in
-              { tree
-                | children = sortedChildren
+        Ins oid parentId_ prevId_ nextId_ ts ->
+          let
+            newTree =
+              { uid = newUid parentId_ prevId_ nextId_ ts
+              , parentId = parentId_
+              , prev = prevId_
+              , next = nextId_
+              , content = (Content "" "" "" |> withContentId)
+              , visible = True
+              , children = Children []
               }
-          else
-              { tree | children = Children (List.map (update msg) children) }
+          in
+          insertTree newTree parentId_ prevId_ nextId_ tree
 
         Upd oid uid str ts ->
           if tree.uid == uid then
@@ -89,40 +81,44 @@ update msg tree =
           else
             { tree | children = Children (List.map (update (Apply (Del oid uid ts))) children) }
 
-        Copy oid uid parentId prevId_ nextId_ ts ->
-          if Just tree.uid == parentId then
-            let
-              oldTree =
-                getTree tree uid
-                  |> Maybe.withDefault default
+        Cpy oid uid parentId_ prevId_ nextId_ ts ->
+          let
+            oldTree =
+              getTree tree uid ? default
 
-              oldChildren = 
-               case oldTree.children of
-                 Children c -> c
+            oldChildren = 
+             case oldTree.children of
+               Children c -> c
 
-              newTree =
-                { uid = newUid parentId prevId_ nextId_ ts
-                , parentId = parentId
-                , prev = prevId_
-                , next = nextId_
-                , content = oldTree.content
-                , visible = True
-                , children =
-                    oldChildren
-                      |> List.map (\c -> { c | uid = newUid c.parentId c.prev c.next ts })
-                      |> Children
-                }
-
-              sortedChildren = Children (sortTrees (children ++ [newTree]))
-            in
-              { tree
-                | children = sortedChildren
+            newTree =
+              { uid = newUid parentId_ prevId_ nextId_ ts
+              , parentId = parentId_
+              , prev = prevId_
+              , next = nextId_
+              , content = oldTree.content
+              , visible = True
+              , children =
+                  oldChildren
+                    |> List.map (\c -> { c | uid = newUid c.parentId c.prev c.next ts })
+                    |> Children
               }
-          else
-              { tree | children = Children (List.map (update msg) children) }
+          in
+          insertTree newTree parentId_ prevId_ nextId_ tree
 
-        Move oid uid parentId prevId_ nextId_ ts ->
-          tree
+        Mov oid uid parentId_ prevId_ nextId_ ts ->
+          let
+            treeToMove_ =
+              getTree tree uid
+          in
+          case treeToMove_ of
+            Nothing -> tree
+            Just treeToMove ->
+              tree
+                |> pruneTree uid
+                |> insertTree treeToMove parentId_ prevId_ nextId_ 
+
+
+
 
 applyOperations : List Op -> Tree -> Tree
 applyOperations ops tree =

@@ -94,9 +94,9 @@ opToValue op =
         , ( "timestamp", Json.Encode.int ts )
         ]
 
-    Copy id uid pid_ previd_ nextid_ ts ->
+    Cpy id uid pid_ previd_ nextid_ ts ->
       Json.Encode.object
-        [ ( "opType", Json.Encode.string "Copy" )
+        [ ( "opType", Json.Encode.string "Cpy" )
         , ( "_id", Json.Encode.string id )
         , ( "uid", Json.Encode.string uid )
         , ( "parentId", maybeToValue pid_ Json.Encode.string )
@@ -105,9 +105,9 @@ opToValue op =
         , ( "timestamp", Json.Encode.int ts )
         ]
 
-    Move id uid pid_ previd_ nextid_ ts ->
+    Mov id uid pid_ previd_ nextid_ ts ->
       Json.Encode.object
-        [ ( "opType", Json.Encode.string "Move" )
+        [ ( "opType", Json.Encode.string "Mov" )
         , ( "_id", Json.Encode.string id )
         , ( "uid", Json.Encode.string uid )
         , ( "parentId", maybeToValue pid_ Json.Encode.string )
@@ -239,8 +239,8 @@ opInfo tag =
         ("uid" := string)
         ("timestamp" := int) 
 
-    "Copy" ->
-      object6 Copy
+    "Cpy" ->
+      object6 Cpy
         ("_id" := string) 
         ("uid" := string) 
         (maybe ("parentId" := string)) 
@@ -248,8 +248,8 @@ opInfo tag =
         (maybe ("nextId" := string))
         ("timestamp" := int) 
 
-    "Move" ->
-      object6 Move
+    "Mov" ->
+      object6 Mov
         ("_id" := string) 
         ("uid" := string) 
         (maybe ("parentId" := string)) 
