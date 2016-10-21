@@ -98,6 +98,8 @@ update msg model =
     NoOp ->
       model ! []
 
+    -- === Commits ===
+
     CommitAll ts ->
       let
         newContents =
@@ -211,6 +213,8 @@ update msg model =
       in
       newModel ! [ saveModel (modelToValue newModel) ]
 
+    -- === Operations ===
+
     CheckOp oid state ->
       let
         isOid id f =
@@ -296,6 +300,8 @@ update msg model =
       else
         update (CheckoutCommit model.commit) newModel
 
+    -- === Card Activation ===
+
     Activate uid ->
       let
         desc =
@@ -366,6 +372,55 @@ update msg model =
       in
       { model | viewState = newViewState vs } ! []
 
+    GoLeft uid ->
+      let
+        targetId =
+          getParent model.tree uid
+            |> Maybe.withDefault (blankTree uid)
+            |> .uid
+      in
+      update (Activate targetId) model
+
+    GoDown uid ->
+      let
+        targetId =
+          getNext model.tree uid
+            |> Maybe.withDefault uid
+      in
+      update (Activate targetId) model
+
+    GoUp uid ->
+      let
+        targetId =
+          getPrev model.tree uid
+            |> Maybe.withDefault uid
+      in
+      update (Activate targetId) model
+
+    GoRight uid ->
+      let
+        tree =
+          getTree model.tree uid -- Maybe Tree
+            |> Maybe.withDefault (blankTree uid) -- Tree
+
+        childrenIds =
+          tree
+            |> getChildren -- List Tree
+            |> List.map .uid -- List String
+
+        firstChild = 
+          getFirstChild model.tree uid |> Maybe.withDefault uid
+
+        prevActiveOfChildren =
+          vs.activePast
+            |> List.filter (\a -> List.member a childrenIds) -- children in activePast
+            |> List.head
+            |> Maybe.withDefault firstChild
+      in
+      update (Activate prevActiveOfChildren) model
+
+    -- === Card Editing  ===
+
     OpenCard uid str ->
       { model
         | viewState =
@@ -423,6 +478,8 @@ update msg model =
       }
         ! []
 
+    -- === Card Insertion  ===
+
     Insert parentId_ prevId_ nextId_ ->
       let
         ts = timestamp ()
@@ -463,6 +520,8 @@ update msg model =
       in
         update (Insert parentId_ prevId_ nextId_) model
 
+    -- === Card Moving  ===
+
     MoveUp uid ->
       let
         content =
@@ -486,52 +545,7 @@ update msg model =
       in
         sequence model newViewState newOp [focus newId]
 
-    GoLeft uid ->
-      let
-        targetId =
-          getParent model.tree uid
-            |> Maybe.withDefault (blankTree uid)
-            |> .uid
-      in
-      update (Activate targetId) model
-
-    GoDown uid ->
-      let
-        targetId =
-          getNext model.tree uid
-            |> Maybe.withDefault uid
-      in
-      update (Activate targetId) model
-
-    GoUp uid ->
-      let
-        targetId =
-          getPrev model.tree uid
-            |> Maybe.withDefault uid
-      in
-      update (Activate targetId) model
-
-    GoRight uid ->
-      let
-        tree =
-          getTree model.tree uid -- Maybe Tree
-            |> Maybe.withDefault (blankTree uid) -- Tree
-
-        childrenIds =
-          tree
-            |> getChildren -- List Tree
-            |> List.map .uid -- List String
-
-        firstChild = 
-          getFirstChild model.tree uid |> Maybe.withDefault uid
-
-        prevActiveOfChildren =
-          vs.activePast
-            |> List.filter (\a -> List.member a childrenIds) -- children in activePast
-            |> List.head
-            |> Maybe.withDefault firstChild
-      in
-      update (Activate prevActiveOfChildren) model
+    -- === External Inputs ===
 
     OpIn json ->
       case (Json.decodeValue opDecoder json) of
