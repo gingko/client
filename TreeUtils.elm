@@ -369,6 +369,13 @@ withOpId op =
       Upd (String.join newLine ["Upd", uid, str, toString ts] |> Sha1.sha1) uid str ts
     Del id uid ts ->
       Del (String.join newLine ["Del", uid] |> Sha1.sha1) uid ts
+    Copy id uid parentId_ prevId_ nextId_ ts ->
+      Copy
+      (String.join newLine 
+        ["Copy", uid, parentId_ ? "", prevId_ ? "", nextId_ ? "", toString ts] 
+          |> Sha1.sha1
+      ) 
+      uid parentId_ prevId_ nextId_ ts
 
 
 nodeId : String -> List String -> String
@@ -411,6 +418,12 @@ treeUid {uid, content, children} =
 
 
 -- HELPERS
+
+(?) : Maybe a -> a -> a
+(?) maybe default =
+  Maybe.withDefault default maybe
+
+infixr 9 ?
 
 filterByVisible : List Tree -> List Tree
 filterByVisible trees =

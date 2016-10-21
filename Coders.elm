@@ -94,6 +94,17 @@ opToValue op =
         , ( "timestamp", Json.Encode.int ts )
         ]
 
+    Copy id uid pid_ previd_ nextid_ ts ->
+      Json.Encode.object
+        [ ( "opType", Json.Encode.string "Copy" )
+        , ( "_id", Json.Encode.string id )
+        , ( "uid", Json.Encode.string uid )
+        , ( "parentId", maybeToValue pid_ Json.Encode.string )
+        , ( "prevId", maybeToValue previd_ Json.Encode.string )
+        , ( "nextId", maybeToValue nextid_ Json.Encode.string )
+        , ( "timestamp", Json.Encode.int ts )
+        ]
+
 
 flopToValue : (Op, Bool) -> Json.Encode.Value
 flopToValue flop =
@@ -214,6 +225,15 @@ opInfo tag =
       object3 Del
         ("_id" := string) 
         ("uid" := string)
+        ("timestamp" := int) 
+
+    "Copy" ->
+      object6 Copy
+        ("_id" := string) 
+        ("uid" := string) 
+        (maybe ("parentId" := string)) 
+        (maybe ("prevId" := string))
+        (maybe ("nextId" := string))
         ("timestamp" := int) 
 
     _ -> Json.fail (tag ++ " is not a recognized type for Op")

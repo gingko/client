@@ -221,6 +221,8 @@ update msg model =
               fid == id
             Del fid _ _ ->
               fid == id
+            Copy fid _ _ _ _ _ ->
+              fid == id
 
         newFloating =
           ListExtra.updateIf (isOid oid) (\f -> (fst f, state)) model.floating
@@ -241,6 +243,8 @@ update msg model =
             Upd fid _ _ _ ->
               fid == id
             Del fid _ _ ->
+              fid == id
+            Copy fid _ _ _ _ _ ->
               fid == id
 
         newFloating =
@@ -467,6 +471,29 @@ update msg model =
       in
         sequence model newViewState newOp [focus newId]
 
+    MoveUp uid ->
+      let
+        content =
+          getTree model.tree uid 
+            |> Maybe.withDefault Tree.default
+            |> .content
+            |> .content
+
+        parentId_ = getParentId model.tree uid
+        nextId_ = getPrev model.tree uid
+        prevId_ = getPrev model.tree (nextId_ |> Maybe.withDefault "")
+        ts = timestamp ()
+        newId = newUid parentId_ prevId_ nextId_ ts
+
+        newViewState vs =
+          { vs
+            | active = newId
+          }
+
+        newOp = Copy newId uid parentId_ prevId_ nextId_ ts
+      in
+        sequence model newViewState newOp [focus newId]
+
     GoLeft uid ->
       let
         targetId =
@@ -614,6 +641,10 @@ update msg model =
           normalMode model
             (GoRight vs.active)
 
+        "alt+up" ->
+          normalMode model
+            (MoveUp vs.active)
+
         "[" ->
           normalMode model ActivatePast
 
@@ -661,6 +692,7 @@ viewKeyedOp (op, state) =
     Ins oid _ _ _ _ -> (oid, lazy viewOp (op, state))
     Upd oid _ _ _ -> (oid, lazy viewOp (op, state))
     Del oid _ _ -> (oid, lazy viewOp (op, state))
+    Copy oid _ _ _ _ _ -> (oid, lazy viewOp (op, state))
 
 
 viewOp : (Op, Bool) -> Html Msg
@@ -704,6 +736,9 @@ viewOp (op, state) =
           , text ("- " ++ (String.left 5 oid))
           , button [onClick (DeleteOp oid)][text "x"]
           ]
+
+    Copy oid uid parentId_ prevId_ nextId_ ts ->
+      li [] [text "copy op"]
 
 
 

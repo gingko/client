@@ -89,6 +89,38 @@ update msg tree =
           else
             { tree | children = Children (List.map (update (Apply (Del oid uid ts))) children) }
 
+        Copy oid uid parentId prevId_ nextId_ ts ->
+          if Just tree.uid == parentId then
+            let
+              oldTree =
+                getTree tree uid
+                  |> Maybe.withDefault default
+
+              oldChildren = 
+               case oldTree.children of
+                 Children c -> c
+
+              newTree =
+                { uid = newUid parentId prevId_ nextId_ ts
+                , parentId = parentId
+                , prev = prevId_
+                , next = nextId_
+                , content = oldTree.content
+                , visible = True
+                , children =
+                    oldChildren
+                      |> List.map (\c -> { c | uid = newUid c.parentId c.prev c.next ts })
+                      |> Children
+                }
+
+              sortedChildren = Children (sortTrees (children ++ [newTree]))
+            in
+              { tree
+                | children = sortedChildren
+              }
+          else
+              { tree | children = Children (List.map (update msg) children) }
+
 
 applyOperations : List Op -> Tree -> Tree
 applyOperations ops tree =
