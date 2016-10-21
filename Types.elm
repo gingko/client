@@ -30,6 +30,7 @@ type Msg
     | DeleteCard String
     | CancelCard
     -- === Card Insertion  ===
+    | Insert (Maybe String) (Maybe String) (Maybe String)
     | InsertAbove String
     | InsertBelow String
     | InsertChild String

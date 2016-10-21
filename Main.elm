@@ -423,11 +423,8 @@ update msg model =
       }
         ! []
 
-    InsertAbove uid ->
+    Insert parentId_ prevId_ nextId_ ->
       let
-        parentId_ = getParentId model.tree uid
-        prevId_ = getPrev model.tree uid
-        nextId_ = Just uid
         ts = timestamp ()
         newId = newUid parentId_ prevId_ nextId_ ts
         newOp = Ins newId parentId_ prevId_ nextId_ ts
@@ -441,39 +438,30 @@ update msg model =
       in
         sequence model newViewState newOp [focus newId]
 
+    InsertAbove uid ->
+      let
+        parentId_ = getParentId model.tree uid
+        prevId_ = getPrev model.tree uid
+        nextId_ = Just uid
+      in
+        update (Insert parentId_ prevId_ nextId_) model
+        
+
     InsertBelow uid ->
       let
         parentId_ = getParentId model.tree uid
         prevId_ = Just uid
         nextId_ = getNext model.tree uid
-        ts = timestamp ()
-        newId = newUid parentId_ prevId_ nextId_ ts
-        newOp = Ins newId parentId_ prevId_ nextId_ ts
-        newViewState vs =
-          { vs
-            | active = newId
-            , editing = Just newId
-            , field = ""
-          }
       in
-        sequence model newViewState newOp [focus newId]
+        update (Insert parentId_ prevId_ nextId_) model
 
     InsertChild uid ->
       let
         parentId_ = Just uid
         prevId_ = getLastChild model.tree uid
         nextId_ = Nothing
-        ts = timestamp ()
-        newId = newUid parentId_ prevId_ nextId_ ts
-        newOp = Ins newId parentId_ prevId_ nextId_ ts
-        newViewState vs =
-          { vs
-            | active = newId
-            , editing = Just newId
-            , field = ""
-          }
       in
-        sequence model newViewState newOp [focus newId]
+        update (Insert parentId_ prevId_ nextId_) model
 
     MoveUp uid ->
       let
