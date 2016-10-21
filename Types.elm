@@ -6,29 +6,36 @@ import Json.Decode as Json
 
 type Msg
     = NoOp
+    -- === Commits ===
     | CommitAll Int
     | CommitChanges Int Int
     | CheckoutCommit String
+    -- === Operations ===
     | CheckOp String Bool
     | DeleteOp String
     | Undo
     | Redo
+    -- === Card Activation ===
     | Activate String
     | ActivatePast
     | ActivateFuture
+    | GoLeft String
+    | GoDown String
+    | GoUp String
+    | GoRight String
+    -- === Card Editing  ===
     | OpenCard String String
     | UpdateField String
     | UpdateCard String String
     | DeleteCard String
     | CancelCard
+    -- === Card Insertion  ===
     | InsertAbove String
     | InsertBelow String
     | InsertChild String
+    -- === Card Moving  ===
     | MoveUp String
-    | GoLeft String
-    | GoDown String
-    | GoUp String
-    | GoRight String
+    -- === External Inputs ===
     | OpIn Json.Value
     | ExternalCommand (String, String)
     | HandleKey String
@@ -63,6 +70,7 @@ type Op
   = Ins String (Maybe String) (Maybe String) (Maybe String) Int
   | Upd String String String Int
   | Del String String Int
+  | Copy String String (Maybe String) (Maybe String) (Maybe String) Int
 
 type alias Objects =
   { contents : List Content

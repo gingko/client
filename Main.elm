@@ -386,7 +386,7 @@ update msg model =
 
     UpdateCard uid str ->
       let
-        newOps = [ Upd "" uid str (timestamp ()) |> withOpId ]
+        newOp = Upd "" uid str (timestamp ()) |> withOpId
         newViewState vs =
           { vs
             | active = uid
@@ -394,22 +394,13 @@ update msg model =
             , field = ""
           }
       in
-      sequence model newViewState newOps []
+      sequence model newViewState newOp []
 
     DeleteCard uid ->
       let
-        newOps = [ Del "" uid (timestamp ())|> withOpId ]
-        newActive =
-          vs.activePast
-            |> List.head
-            |> Maybe.withDefault "0"
-
-        newViewState vs =
-          { vs
-            | active = newActive
-          }
+        newOp = Del "" uid (timestamp ())|> withOpId
       in
-      sequence model newViewState newOps []
+      sequence model identity newOp []
 
     CancelCard ->
       { model
@@ -431,7 +422,7 @@ update msg model =
         nextId_ = Just uid
         ts = timestamp ()
         newId = newUid parentId_ prevId_ nextId_ ts
-        newOps = [ Ins newId parentId_ prevId_ nextId_ ts ]
+        newOp = Ins newId parentId_ prevId_ nextId_ ts
         newViewState vs =
           { vs 
             | active = newId
@@ -440,7 +431,7 @@ update msg model =
           }
             
       in
-        sequence model newViewState newOps [focus newId]
+        sequence model newViewState newOp [focus newId]
 
     InsertBelow uid ->
       let
@@ -449,7 +440,7 @@ update msg model =
         nextId_ = getNext model.tree uid
         ts = timestamp ()
         newId = newUid parentId_ prevId_ nextId_ ts
-        newOps = [ Ins newId parentId_ prevId_ nextId_ ts ]
+        newOp = Ins newId parentId_ prevId_ nextId_ ts
         newViewState vs =
           { vs
             | active = newId
@@ -457,7 +448,7 @@ update msg model =
             , field = ""
           }
       in
-        sequence model newViewState newOps [focus newId]
+        sequence model newViewState newOp [focus newId]
 
     InsertChild uid ->
       let
@@ -466,7 +457,7 @@ update msg model =
         nextId_ = Nothing
         ts = timestamp ()
         newId = newUid parentId_ prevId_ nextId_ ts
-        newOps = [ Ins newId parentId_ prevId_ nextId_ ts ]
+        newOp = Ins newId parentId_ prevId_ nextId_ ts
         newViewState vs =
           { vs
             | active = newId
@@ -474,34 +465,7 @@ update msg model =
             , field = ""
           }
       in
-        sequence model newViewState newOps [focus newId]
-
-    MoveUp uid ->
-      let
-        content =
-          getTree model.tree uid 
-            |> Maybe.withDefault Tree.default
-            |> .content
-            |> .content
-
-        parentId_ = getParentId model.tree uid
-        nextId_ = getPrev model.tree uid
-        prevId_ = getPrev model.tree (nextId_ |> Maybe.withDefault "")
-        ts = timestamp ()
-        newId = newUid parentId_ prevId_ nextId_ ts
-
-        newViewState vs =
-          { vs
-            | active = newId
-          }
-
-        newOps =
-          [ Ins newId parentId_ prevId_ nextId_ ts
-          , Upd "" newId content ts |> withOpId
-          , Del "" uid ts |> withOpId
-          ]
-      in
-        sequence model newViewState newOps [focus newId]
+        sequence model newViewState newOp [focus newId]
 
     GoLeft uid ->
       let
@@ -650,10 +614,6 @@ update msg model =
           normalMode model
             (GoRight vs.active)
 
-        "alt+up" ->
-          normalMode model
-            (MoveUp vs.active)
-
         "[" ->
           normalMode model ActivatePast
 
@@ -776,18 +736,14 @@ run msg =
   Task.perform (\_ -> NoOp) (\_ -> msg ) (Task.succeed msg)
 
 
-sequence : Model -> (ViewState -> ViewState) -> List Op -> List (Cmd Msg) -> (Model, Cmd Msg)
-sequence model vsf ops cmds =
+sequence : Model -> (ViewState -> ViewState) -> Op -> List (Cmd Msg) -> (Model, Cmd Msg)
+sequence model vsf op cmds =
   let
-    fOps =
-      ops
-        |> List.map (\o -> (o, True))
-
     newModel =
       { model
         | viewState = vsf model.viewState
-        , tree = Tree.applyOperations ops model.tree
-        , floating = model.floating ++ fOps
+        , tree = Tree.update (Tree.Apply op) model.tree
+        , floating = model.floating ++ [(op, True)]
       }
   in
   if (List.length model.floating >= 20) then
