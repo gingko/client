@@ -535,8 +535,8 @@ update msg model =
     MoveUp uid ->
       let
         parentId_ = getParentId model.tree uid
-        nextId_ = getPrev model.tree uid
         prevId_ = getPrev model.tree (nextId_ ? "")
+        nextId_ = getPrev model.tree uid
       in
         update (Move uid parentId_ prevId_ nextId_) model
 
@@ -548,10 +548,28 @@ update msg model =
       in
         update (Move uid parentId_ prevId_ nextId_) model
 
-    MoveLeft _ ->
-      model ! []
-    MoveRight _ ->
-      model ! []
+    MoveLeft uid ->
+      let
+        currentParent_ = getParentId model.tree uid
+        parentId_ = getParentId model.tree (currentParent_ ? "")
+        prevId_ = currentParent_ 
+        nextId_ = getNext model.tree (currentParent_ ? "")
+      in
+      if currentParent_ == Nothing || parentId_ == Nothing then
+        model ! []
+      else
+        update (Move uid parentId_ prevId_ nextId_) model
+
+    MoveRight uid ->
+      let
+        parentId_ = getPrev model.tree uid
+        prevId_ = getLastChild model.tree (parentId_ ? "")
+        nextId_ = Nothing
+      in
+      if parentId_ == Nothing then
+        model ! []
+      else
+        update (Move uid parentId_ prevId_ nextId_) model
 
 
     -- === External Inputs ===
@@ -663,6 +681,14 @@ update msg model =
         "alt+down" ->
           normalMode model
             (MoveDown vs.active)
+
+        "alt+left" ->
+          normalMode model
+            (MoveLeft vs.active)
+
+        "alt+right" ->
+          normalMode model
+            (MoveRight vs.active)
 
         "[" ->
           normalMode model ActivatePast
