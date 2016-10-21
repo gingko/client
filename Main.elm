@@ -596,7 +596,14 @@ update msg model =
           model ! [run (CheckoutCommit arg)]
         "keyboard" ->
           model ! [run (HandleKey arg)]
+        "save-as-json" ->
+          model ! [export (treeToSimpleJSON model.tree)]
+        "save-as-markdown" ->
+          model ! [export (treeToMarkdownString model.tree)]
         _ ->
+          let
+            db1 = Debug.log "Unknown external command" cmd
+          in
           model ! []
     
     HandleKey str ->

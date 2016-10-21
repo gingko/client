@@ -1,4 +1,4 @@
-const {app, BrowserWindow, dialog, Menu} = require('electron')
+const {app, BrowserWindow, dialog, Menu, ipcMain} = require('electron')
 const fs = require('fs')
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -62,7 +62,12 @@ const menuTemplate =
           }
         , { label: 'Save As JSON'
           , click (item, focusedWindow) {
-              if (focusedWindow) saveAsJSON(focusedWindow)
+              if (focusedWindow) focusedWindow.webContents.send('save-as-json')
+            }
+          }
+        , { label: 'Save As Markdown'
+          , click (item, focusedWindow) {
+              if (focusedWindow) focusedWindow.webContents.send('save-as-markdown')
             }
           }
         ]
@@ -87,8 +92,21 @@ const menuTemplate =
 const menu = Menu.buildFromTemplate(menuTemplate)
 Menu.setApplicationMenu(menu)
 
-saveAsJSON = function(fwin){
+ipcMain.on('save-as-json', (event, arg) => {
+  saveAsJSON(arg)
+})
+
+ipcMain.on('save-as-markdown', (event, arg) => {
+  saveAsMarkdown(arg)
+})
+
+saveAsJSON = function(json){
   dialog.showSaveDialog({title: 'Save as JSON', defaultPath: __dirname }, function(e){
-    fs.writeFile(e, "test content", function (err) { if(err) { console.log(err.message)}})
+    fs.writeFile(e, JSON.stringify(json, null, 2), function (err) { if(err) { console.log(err.message)}})
+  })
+}
+saveAsMarkdown = function(md){
+  dialog.showSaveDialog({title: 'Save as JSON', defaultPath: __dirname }, function(e){
+    fs.writeFile(e, md,function (err) { if(err) { console.log(err.message)}})
   })
 }

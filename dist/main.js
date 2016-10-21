@@ -200,13 +200,25 @@ activateCards = function(centerlineIds) {
   })
 }
 
-exportTree = function(json) {
-  console.log(json)
+exportTree = function(arg) {
+  if (typeof arg == "string") {
+    ipc.send('save-as-markdown', arg)
+  } else if (typeof arg == "object") {
+    ipc.send('save-as-json', arg)
+  }
 }
 
 // Commands with payloads
 ipc.on('commit-changes', (event, message) => {
   gingko.ports.externals.send(['commit-changes', Date.now().toString()])
+})
+
+ipc.on('save-as-markdown', (event, message) => {
+  gingko.ports.externals.send(['save-as-markdown', ""])
+})
+
+ipc.on('save-as-json', (event, message) => {
+  gingko.ports.externals.send(['save-as-json', ""])
 })
 
 // Keyboard shortcuts

@@ -4,6 +4,8 @@ import Types exposing (..)
 import Json.Encode
 import Json.Decode as Json exposing (..)
 import Array exposing (fromList)
+import String
+import TreeUtils exposing (getContents, newLine)
 
 
 type alias Model =
@@ -175,6 +177,13 @@ contentToString content =
   Json.Encode.string content.content
 
 
+treeToMarkdownString : Tree -> Json.Encode.Value
+treeToMarkdownString tree =
+  tree
+    |> getContents
+    |> List.map .content
+    |> String.join (newLine ++ newLine)
+    |> Json.Encode.string
 
 
 -- DECODERS
