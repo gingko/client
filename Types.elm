@@ -37,6 +37,9 @@ type Msg
     -- === Card Moving  ===
     | Move String (Maybe String) (Maybe String) (Maybe String)
     | MoveUp String
+    | MoveDown String
+    | MoveLeft String
+    | MoveRight String
     -- === External Inputs ===
     | OpIn Json.Value
     | ExternalCommand (String, String)

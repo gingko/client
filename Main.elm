@@ -536,10 +536,23 @@ update msg model =
       let
         parentId_ = getParentId model.tree uid
         nextId_ = getPrev model.tree uid
-        prevId_ = getPrev model.tree (nextId_ |> Maybe.withDefault "")
-        db1 = Debug.log "MoveUp" uid
+        prevId_ = getPrev model.tree (nextId_ ? "")
       in
         update (Move uid parentId_ prevId_ nextId_) model
+
+    MoveDown uid ->
+      let
+        parentId_ = getParentId model.tree uid
+        prevId_ = getNext model.tree uid 
+        nextId_ = getNext model.tree (prevId_ ? "")
+      in
+        update (Move uid parentId_ prevId_ nextId_) model
+
+    MoveLeft _ ->
+      model ! []
+    MoveRight _ ->
+      model ! []
+
 
     -- === External Inputs ===
 
@@ -646,6 +659,10 @@ update msg model =
         "alt+up" ->
           normalMode model
             (MoveUp vs.active)
+
+        "alt+down" ->
+          normalMode model
+            (MoveDown vs.active)
 
         "[" ->
           normalMode model ActivatePast
