@@ -143,7 +143,9 @@ view vstate tree =
       [[[]]]
         |> List.map (viewColumn vstate)
   in
-  div [id "app" ]
+  div [ id "app" 
+      , classList [ ("editing", vstate.editing /= Nothing) ]
+      ]
     ( columns
     )
 

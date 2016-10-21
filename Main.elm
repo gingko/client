@@ -427,7 +427,7 @@ update msg model =
             { active = vs.active
             , activePast = []
             , activeFuture = []
-            , descendants = []
+            , descendants = vs.descendants
             , editing = (Just uid)
             , field = str
             }
@@ -440,7 +440,7 @@ update msg model =
             { active = vs.active
             , activePast = []
             , activeFuture = []
-            , descendants = []
+            , descendants = vs.descendants
             , editing = vs.editing
             , field = str
             }
@@ -471,7 +471,7 @@ update msg model =
             { active = vs.active
             , activePast = []
             , activeFuture = []
-            , descendants = []
+            , descendants = vs.descendants
             , editing = Nothing
             , field = ""
             }
