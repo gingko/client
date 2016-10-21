@@ -223,6 +223,8 @@ update msg model =
               fid == id
             Copy fid _ _ _ _ _ ->
               fid == id
+            Move fid _ _ _ _ _ ->
+              fid == id
 
         newFloating =
           ListExtra.updateIf (isOid oid) (\f -> (fst f, state)) model.floating
@@ -245,6 +247,8 @@ update msg model =
             Del fid _ _ ->
               fid == id
             Copy fid _ _ _ _ _ ->
+              fid == id
+            Move fid _ _ _ _ _ ->
               fid == id
 
         newFloating =
@@ -693,6 +697,7 @@ viewKeyedOp (op, state) =
     Upd oid _ _ _ -> (oid, lazy viewOp (op, state))
     Del oid _ _ -> (oid, lazy viewOp (op, state))
     Copy oid _ _ _ _ _ -> (oid, lazy viewOp (op, state))
+    Move oid _ _ _ _ _ -> (oid, lazy viewOp (op, state))
 
 
 viewOp : (Op, Bool) -> Html Msg
@@ -739,6 +744,9 @@ viewOp (op, state) =
 
     Copy oid uid parentId_ prevId_ nextId_ ts ->
       li [] [text "copy op"]
+
+    Move oid uid parentId_ prevId_ nextId_ ts ->
+      li [] [text "move op"]
 
 
 

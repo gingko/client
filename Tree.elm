@@ -121,6 +121,8 @@ update msg tree =
           else
               { tree | children = Children (List.map (update msg) children) }
 
+        Move oid uid parentId prevId_ nextId_ ts ->
+          tree
 
 applyOperations : List Op -> Tree -> Tree
 applyOperations ops tree =

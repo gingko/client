@@ -71,6 +71,7 @@ type Op
   | Upd String String String Int
   | Del String String Int
   | Copy String String (Maybe String) (Maybe String) (Maybe String) Int
+  | Move String String (Maybe String) (Maybe String) (Maybe String) Int
 
 type alias Objects =
   { contents : List Content

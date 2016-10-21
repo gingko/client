@@ -376,6 +376,13 @@ withOpId op =
           |> Sha1.sha1
       ) 
       uid parentId_ prevId_ nextId_ ts
+    Move id uid parentId_ prevId_ nextId_ ts ->
+      Move
+      (String.join newLine 
+        ["Move", uid, parentId_ ? "", prevId_ ? "", nextId_ ? "", toString ts] 
+          |> Sha1.sha1
+      ) 
+      uid parentId_ prevId_ nextId_ ts
 
 
 nodeId : String -> List String -> String
