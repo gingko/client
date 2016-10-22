@@ -100,6 +100,10 @@ body {
   border-radius: 3px;
   position: relative;
   background-color: #c5ced8;
+  margin-bottom: 2px;
+}
+.card:last-child {
+  margin-bottom: 0;
 }
 
 .card:hover {
@@ -132,7 +136,7 @@ body {
   box-shadow: 0px 1px 3px gray;
 }
 
-.card.active.has-children:not(.editing)::after {
+.card.active.has-children::after {
   content: '';
   background: #fdfdff;
   position: absolute;
@@ -140,8 +144,15 @@ body {
   height: 100%;
   right: -10px;
   top: 0;
+  opacity: 1;
+  transition: none;
   box-shadow: 3px 1px 3px gray;
 }
+.card.editing.has-children::after {
+  opacity: 0;
+  transition: opacity 2s ease;
+}
+
 
 /* ======== CARD (Edit view) ======== */
 
@@ -174,7 +185,7 @@ body {
 .card.editing textarea {
   display: block;
   background: transparent;
-  background-image: repeating-linear-gradient(to bottom, transparent, transparent 18px, hsl(220, 16%, 94%) 1px, transparent 19px);
+  background-image: repeating-linear-gradient(to bottom, transparent, transparent 16px, hsl(220, 16%, 94%) 1px, transparent 17px);
   resize: none;
 }
 
@@ -187,9 +198,12 @@ body {
   outline: none;
   border: none;
   box-sizing: border-box;
+  min-height: 50px;
+  max-height: 80%;
+  overflow-x: hidden;
   width: 100%;
-  font-size: 16px;
-  line-height: 19px;
+  font-size: 14px;
+  line-height: 17px;
   padding: 4px 15px;
   font-family: 'Droid Sans Mono', "Lucida Console", Monaco, monospace;
 }
@@ -219,7 +233,6 @@ body {
   bottom: 0;
 }
 
-
 .card-btn {
   cursor: pointer;
   pointer-events: auto;
@@ -237,6 +250,9 @@ body {
   user-select: none;
 }
 
+.card-btn.save {
+  opacity: 0.4;
+}
 
 /* --- Button positioning --- */
 
@@ -297,7 +313,7 @@ body {
 
 /* --- Button state --- */
 
-.card:hover .card-btn {
+.card:hover .card-btn:not(.save) {
   opacity: 0.3;
 }
 
@@ -338,6 +354,17 @@ body {
 }
 
 .card:hover .card-btn.edit:active {
+  background: hsl(195, 54%, 51%);
+}
+
+.card:hover .card-btn.save:hover {
+  background: hsl(195, 79%, 66%);
+  opacity: 1.0;
+  transition: none;
+  color: hsl(195, 54%, 10%);
+}
+
+.card:hover .card-btn.save:active {
   background: hsl(195, 54%, 51%);
 }
 

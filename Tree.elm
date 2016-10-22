@@ -210,18 +210,15 @@ viewCard vstate tree =
           ) /= 0
 
     tarea content =
-      div 
-        [ class "edit-wrap"]
-        [ textarea
-            [ id ( "card-edit-" ++ tree.uid )
-            , classList [ ("edit", True)
-                        , ("mousetrap", True)
-                        ]
-            , value content
-            , onInput UpdateField
-            ]
-            []
+      textarea
+        [ id ( "card-edit-" ++ tree.uid )
+        , classList [ ("edit", True)
+                    , ("mousetrap", True)
+                    ]
+        , value content
+        , onInput UpdateField
         ]
+        []
 
     normalControls =
       if isActive then
