@@ -184,6 +184,7 @@ body {
 
 .card.editing {
   padding: 15px 0px; 
+  border-color: hsl(215, 79%, 66%);
 }
 
 .card.editing textarea {
@@ -261,7 +262,6 @@ body {
   cursor: pointer;
   pointer-events: auto;
   position: absolute;
-  background: #fdfdff;
   border-top: 1px solid hsl(0, 0%, 81%);
   border-left: 1px solid hsl(0, 0%, 81%);
   border-right: 1px solid hsl(0, 0%, 53%);
@@ -280,8 +280,16 @@ body {
 
 
 
-/* --- Button positioning --- */
+/* --- Button positioning & colors --- */
 
+.card-btn.ins-right,
+.card-btn.ins-above,
+.card-btn.ins-below {
+  background: #fdfdff;
+  height: 20px;
+  width: 40px;
+  line-height: 20px;
+}
 .card-btn.ins-right {
   height: 25px;
   width: 20px;
@@ -290,16 +298,10 @@ body {
 }
 
 .card-btn.ins-above {
-  height: 20px;
-  width: 40px;
-  line-height: 20px;
   top:-10px;
 }
 
 .card-btn.ins-below {
-  height: 20px;
-  width: 40px;
-  line-height: 20px;
   bottom:-10px;
 }
 
@@ -362,36 +364,33 @@ body {
 }
 
 .card:hover .card-btn.delete:hover {
-  background: hsl(0, 79%, 66%);
+  color: hsl(0, 79%, 66%);
   opacity: 1.0;
   transition: none;
-  color: #922323;
 }
 
 .card:hover .card-btn.delete:active {
-  background: hsl(0, 80%, 48%);
+  color: hsl(0, 80%, 48%);
 }
 
 .card:hover .card-btn.edit:hover {
-  background: hsl(195, 79%, 66%);
+  color: hsl(215, 79%, 66%);
   opacity: 1.0;
   transition: none;
-  color: hsl(195, 54%, 10%);
 }
 
 .card:hover .card-btn.edit:active {
-  background: hsl(195, 54%, 51%);
+  color: hsl(215, 54%, 51%);
 }
 
 .card:hover .card-btn.save:hover {
-  background: hsl(195, 79%, 66%);
+  color: hsl(86, 54%, 51%);
   opacity: 1.0;
   transition: none;
-  color: hsl(195, 54%, 10%);
 }
 
 .card:hover .card-btn.save:active {
-  background: hsl(195, 54%, 51%);
+  color: hsl(86, 54%, 41%);
 }
 
 /* --- Root card buttons --- */
