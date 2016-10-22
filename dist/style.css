@@ -1,3 +1,9 @@
+@font-face {
+  font-family: 'Glyphicons Halflings';
+  src: url('./glyphicons-halflings-regular.woff2');
+}
+
+
 html,
 body {
   margin: 0;
@@ -209,6 +215,26 @@ body {
 
 /* ======== CARD (Buttons) ======== */
 
+/* --- Icons --- */
+
+.card-btn.edit,
+.card-btn.save,
+.card-btn.delete {
+  font-family: 'Glyphicons Halflings';
+  font-size: 14px;
+}
+.card-btn.edit::before {
+  content: "\270f";
+}
+.card-btn.save::before {
+  content: "\e013";
+}
+.card-btn.delete::before {
+  content: "\e014";
+}
+
+/* --- Containers --- */
+
 .card-top-overlay, .card-right-overlay, .card-bottom-overlay {
   position: absolute;
   height: 100%;
@@ -251,6 +277,8 @@ body {
 .card-btn.save {
   opacity: 0.4;
 }
+
+
 
 /* --- Button positioning --- */
 
@@ -364,6 +392,13 @@ body {
 
 .card:hover .card-btn.save:active {
   background: hsl(195, 54%, 51%);
+}
+
+/* --- Root card buttons --- */
+
+.card.root:not(.has-children) .card-btn,
+.card.root:not(.has-children):hover .card-btn {
+  opacity: 1;
 }
 
 /* ======== HISTORY ======== */

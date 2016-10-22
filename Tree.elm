@@ -221,7 +221,7 @@ viewCard vstate tree =
         []
 
     normalControls =
-      if isActive then
+      if isActive && not isRoot then
         [ div [ class "flex-row card-top-overlay" ]
               [ span
                 [ class "card-btn ins-above"
@@ -236,7 +236,7 @@ viewCard vstate tree =
                 , title "Delete Card (Ctrl+Backspace)"
                 , onClick (DeleteCard tree.uid)
                 ]
-                [ text "×" ]
+                []
               , span
                 [ class "card-btn ins-right"
                 , title "Add Child (Ctrl+L)"
@@ -248,7 +248,7 @@ viewCard vstate tree =
                 , title "Edit Card (Enter)"
                 , onClick (OpenCard tree.uid tree.content.content)
                 ]
-                [ text "∆" ]
+                []
               ]
         , div [ class "flex-row card-bottom-overlay" ]
               [ span
@@ -259,6 +259,22 @@ viewCard vstate tree =
                 [ text "+" ]
               ]
         ]
+      else if isRoot then
+        [ div [ class "flex-column card-right-overlay"]
+              [ span
+                [ class "card-btn ins-right"
+                , title "Add Child (Ctrl+L)"
+                , onClick (InsertChild tree.uid)
+                ]
+                [ text "+" ]
+              , span 
+                [ class "card-btn edit"
+                , title "Edit Card (Enter)"
+                , onClick (OpenCard tree.uid tree.content.content)
+                ]
+                []
+              ]
+        ]
       else
         []
   in
@@ -267,6 +283,7 @@ viewCard vstate tree =
         , classList [ ("card", True)
                     , ("active", True)
                     , ("editing", isEditing)
+                    , ("root", isRoot)
                     , ("has-children", hasChildren)
                     ]
         ]
@@ -277,7 +294,7 @@ viewCard vstate tree =
                 , title "Save Changes (Ctrl+Enter)"
                 , onClick (UpdateCard tree.uid vstate.field)
                 ]
-                [ text "✔" ]
+                []
               ]
         ]
   else
@@ -285,6 +302,7 @@ viewCard vstate tree =
         , classList [ ("card", True)
                     , ("active", isActive)
                     , ("editing", isEditing)
+                    , ("root", isRoot)
                     , ("has-children", hasChildren)
                     ]
         ]
