@@ -156,6 +156,7 @@ body {
 
 /* ======== CARD (Edit view) ======== */
 
+/* --- Autofocus --- */
 #app,
 #app .buffer {
   transition: all 0.25s ease;
@@ -172,11 +173,8 @@ body {
   box-shadow: none;
   border-color: transparent;
 }
-/*#app.editing .group.active-descendant {
-  background: #fdfdff;
-  transition: all 20s ease;
-}*/
 
+/* --- Core --- */
 
 .card.editing {
   padding: 15px 0px; 
@@ -185,7 +183,7 @@ body {
 .card.editing textarea {
   display: block;
   background: transparent;
-  background-image: repeating-linear-gradient(to bottom, transparent, transparent 16px, hsl(220, 16%, 94%) 1px, transparent 17px);
+  background-image: repeating-linear-gradient(to bottom, transparent, transparent 16px, hsl(220, 16%, 90%) 1px, transparent 17px);
   resize: none;
 }
 
