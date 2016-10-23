@@ -185,12 +185,15 @@ body {
 .card.editing {
   padding: 15px 0px; 
   border-color: hsl(215, 79%, 66%);
+  background-image: url('./handmadepaper.png');
 }
 
 .card.editing textarea {
   display: block;
   background: transparent;
-  background-image: repeating-linear-gradient(to bottom, transparent, transparent 16px, hsl(220, 16%, 90%) 1px, transparent 17px);
+  background-image: repeating-linear-gradient(to bottom, transparent, transparent 16px, hsl(216, 100%, 84%) 1px, transparent 17px);
+  text-shadow: -1px -1px 0px rgba(0,0,0,0.1), 1px 1px 0px rgba(255,255,255,0.8);
+  color: hsl(27,28%,22%);
   resize: none;
 }
 
@@ -220,6 +223,7 @@ body {
 
 .card-btn.edit,
 .card-btn.save,
+.card-btn.cancel,
 .card-btn.delete {
   font-family: 'Glyphicons Halflings';
   font-size: 14px;
@@ -229,6 +233,9 @@ body {
 }
 .card-btn.save::before {
   content: "\e013";
+}
+.card-btn.cancel::before {
+  content: "\e090";
 }
 .card-btn.delete::before {
   content: "\e014";
@@ -274,7 +281,8 @@ body {
   user-select: none;
 }
 
-.card-btn.save {
+.card-btn.save,
+.card-btn.cancel {
   opacity: 0.4;
 }
 
@@ -334,7 +342,16 @@ body {
   height: 25px;
   line-height: 25px;
   border: none;
-  border-radius: 0px 0px 3px 0px;
+  color: hsl(180, 0%, 20%);
+}
+
+.card-btn.cancel {
+  top: 0;
+  right: 0;
+  width: 25px;
+  height: 25px;
+  line-height: 25px;
+  border: none;
   color: hsl(180, 0%, 20%);
 }
 
@@ -391,6 +408,16 @@ body {
 
 .card:hover .card-btn.save:active {
   color: hsl(86, 54%, 41%);
+}
+
+.card:hover .card-btn.cancel:hover {
+  color: hsl(48, 100%, 50%);
+  opacity: 1.0;
+  transition: none;
+}
+
+.card:hover .card-btn.cancel:active {
+  color: hsl(48, 100%, 40%);
 }
 
 /* --- Root card buttons --- */

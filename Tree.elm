@@ -216,6 +216,7 @@ viewCard vstate tree =
                     , ("mousetrap", True)
                     ]
         , value content
+        --, onBlur CancelCard
         , onInput UpdateField
         ]
         []
