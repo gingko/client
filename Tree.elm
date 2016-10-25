@@ -10,28 +10,18 @@ import Json.Decode as Json
 import Markdown
 
 import Types exposing (..)
-import TreeUtils exposing (..)
-
 
 
 
 -- MODEL
 
-default : Tree
 default =
-  { uid = "0"
-  , content = Content "" "" "" |> withContentId
+  { id = ""
+  , content = defaultContent
   , parentId = Nothing
-  , children = Children [] 
-  , next = Nothing
-  , prev = Nothing 
-  , visible = True 
+  , position = 0
+  , children = Children []
   }
-
-blankTree : String -> Tree
-blankTree uid =
-  { default | uid = uid }
-
 
 
 
@@ -55,68 +45,11 @@ update msg tree =
 
     Apply op ->
       case op of
-        Ins oid parentId_ prevId_ nextId_ ts ->
-          let
-            newTree =
-              { uid = newUid parentId_ prevId_ nextId_ ts
-              , parentId = parentId_
-              , prev = prevId_
-              , next = nextId_
-              , content = (Content "" "" "" |> withContentId)
-              , visible = True
-              , children = Children []
-              }
-          in
-          insertTree newTree parentId_ prevId_ nextId_ tree
+        Ins id content parentId_ position updated ->
+          tree
 
-        Upd oid uid str ts ->
-          if tree.uid == uid then
-            { tree | content = Content "" "" str |> withContentId }
-          else
-            { tree | children = Children (List.map (update (Apply (Upd oid uid str ts))) children) }
-
-        Del oid uid ts ->
-          if tree.uid == uid then
-            { tree | visible = False }
-          else
-            { tree | children = Children (List.map (update (Apply (Del oid uid ts))) children) }
-
-        Cpy oid uid parentId_ prevId_ nextId_ ts ->
-          let
-            oldTree =
-              getTree tree uid ? default
-
-            oldChildren = 
-             case oldTree.children of
-               Children c -> c
-
-            newTree =
-              { uid = newUid parentId_ prevId_ nextId_ ts
-              , parentId = parentId_
-              , prev = prevId_
-              , next = nextId_
-              , content = oldTree.content
-              , visible = True
-              , children =
-                  oldChildren
-                    |> List.map (\c -> { c | uid = newUid c.parentId c.prev c.next ts })
-                    |> Children
-              }
-          in
-          insertTree newTree parentId_ prevId_ nextId_ tree
-
-        Mov oid uid parentId_ prevId_ nextId_ ts ->
-          let
-            treeToMove_ =
-              getTree tree uid
-          in
-          case treeToMove_ of
-            Nothing -> tree
-            Just treeToMove ->
-              tree
-                |> pruneTree uid
-                |> insertTree treeToMove parentId_ prevId_ nextId_ 
-
+        Del id ->
+          tree
 
 
 
@@ -134,21 +67,12 @@ applyOp op tree =
 
 -- VIEW
 
-view : ViewState -> Tree -> Html Msg
-view vstate tree =
-  let
-    columns =
-      [[[]]] ++ 
-      getColumns([[[ tree ]]]) ++
-      [[[]]]
-        |> List.map (viewColumn vstate)
-  in
+view : ViewState -> List Tree -> Html Msg
+view vstate trees =
   div [ id "app" 
       , classList [ ("editing", vstate.editing /= Nothing) ]
       ]
-    ( columns
-    )
-
+      []
 
 
 
@@ -161,7 +85,6 @@ viewColumn vstate col =
   div
     [ class "column" ]
     ( buffer ++
-      (List.map (lazy (viewGroup vstate)) col) ++
       buffer
     )
     
@@ -174,7 +97,7 @@ viewGroup vstate xs =
       xs
         |> List.head
         |> Maybe.withDefault default
-        |> .uid
+        |> .id
 
     isActiveDescendant =
       vstate.descendants
@@ -184,15 +107,15 @@ viewGroup vstate xs =
                     , ("active-descendant", isActiveDescendant)
                     ]
         ]
-        (List.map (lazy (viewCard vstate)) xs)
+        []
 
 
 viewCard : ViewState -> Tree -> Html Msg
 viewCard vstate tree =
   let
-    isEditing = vstate.editing == Just tree.uid
-    isRoot = tree.uid == "0"
-    isActive = vstate.active == tree.uid
+    isEditing = vstate.editing == Just tree.id
+    isRoot = tree.id == "0"
+    isActive = vstate.active == tree.id
 
     options =
       { githubFlavored = Just { tables = True, breaks = True }
@@ -205,13 +128,12 @@ viewCard vstate tree =
       case tree.children of
         Children c ->
           ( c
-              |> filterByVisible
               |> List.length
           ) /= 0
 
     tarea content =
       textarea
-        [ id ( "card-edit-" ++ tree.uid )
+        [ id ( "card-edit-" ++ tree.id )
         , classList [ ("edit", True)
                     , ("mousetrap", True)
                     ]
@@ -227,7 +149,7 @@ viewCard vstate tree =
               [ span
                 [ class "card-btn ins-above"
                 , title "Insert Above (Ctrl+K)"
-                , onClick (InsertAbove tree.uid)
+                , onClick (InsertAbove tree.id)
                 ]
                 [ text "+" ]
               ]
@@ -235,19 +157,19 @@ viewCard vstate tree =
               [ span 
                 [ class "card-btn delete"
                 , title "Delete Card (Ctrl+Backspace)"
-                , onClick (DeleteCard tree.uid)
+                , onClick (DeleteCard tree.id)
                 ]
                 []
               , span
                 [ class "card-btn ins-right"
                 , title "Add Child (Ctrl+L)"
-                , onClick (InsertChild tree.uid)
+                , onClick (InsertChild tree.id)
                 ]
                 [ text "+" ]
               , span 
                 [ class "card-btn edit"
                 , title "Edit Card (Enter)"
-                , onClick (OpenCard tree.uid tree.content.content)
+                , onClick (OpenCard tree.id tree.content.content)
                 ]
                 []
               ]
@@ -255,7 +177,7 @@ viewCard vstate tree =
               [ span
                 [ class "card-btn ins-below"
                 , title "Insert Below (Ctrl+J)"
-                , onClick (InsertBelow tree.uid)
+                , onClick (InsertBelow tree.id)
                 ]
                 [ text "+" ]
               ]
@@ -265,13 +187,13 @@ viewCard vstate tree =
               [ span
                 [ class "card-btn ins-right"
                 , title "Add Child (Ctrl+L)"
-                , onClick (InsertChild tree.uid)
+                , onClick (InsertChild tree.id)
                 ]
                 [ text "+" ]
               , span 
                 [ class "card-btn edit"
                 , title "Edit Card (Enter)"
-                , onClick (OpenCard tree.uid tree.content.content)
+                , onClick (OpenCard tree.id tree.content.content)
                 ]
                 []
               ]
@@ -280,7 +202,7 @@ viewCard vstate tree =
         []
   in
   if isEditing then
-    div [ id ("card-" ++ tree.uid)
+    div [ id ("card-" ++ tree.id)
         , classList [ ("card", True)
                     , ("active", True)
                     , ("editing", isEditing)
@@ -293,13 +215,13 @@ viewCard vstate tree =
               [ span 
                 [ class "card-btn save"
                 , title "Save Changes (Ctrl+Enter)"
-                , onClick (UpdateCard tree.uid vstate.field)
+                , onClick (UpdateCard tree.id vstate.field)
                 ]
                 []
               ]
         ]
   else
-    div [ id ("card-" ++ tree.uid)
+    div [ id ("card-" ++ tree.id)
         , classList [ ("card", True)
                     , ("active", isActive)
                     , ("editing", isEditing)
@@ -309,8 +231,8 @@ viewCard vstate tree =
         ]
         (
           [ div [ class "view" 
-                , onClick (Activate tree.uid)
-                , onDoubleClick (OpenCard tree.uid tree.content.content)
+                , onClick (Activate tree.id)
+                , onDoubleClick (OpenCard tree.id tree.content.content)
                 ] [ Markdown.toHtmlWith options [] tree.content.content ]
           , tarea tree.content.content
           ] ++

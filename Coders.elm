@@ -5,17 +5,13 @@ import Json.Encode
 import Json.Decode as Json exposing (..)
 import Array exposing (fromList)
 import String
-import TreeUtils exposing (getContents, newLine)
+import TreeUtils exposing (newLine)
 
 
 type alias Model =
   { contents : List Content
   , nodes : List Node
-  , commits : List Commit
-  , operations : List Op
-  , tree : Tree
-  , commit : String
-  , floating : List (Op, Bool)
+  , trees : List Tree
   , viewState : ViewState
   }
 
@@ -27,11 +23,7 @@ modelToValue model =
   Json.Encode.object
    [ ("contents", Json.Encode.list (List.map contentToValue model.contents))
    , ("nodes", Json.Encode.list (List.map nodeToValue model.nodes))
-   , ("commits", Json.Encode.list (List.map commitToValue model.commits))
-   , ("operations", Json.Encode.list (List.map opToValue model.operations))
-   , ("tree", treeToValue model.tree)
-   , ("floating", Json.Encode.list (List.map flopToValue model.floating))
-   , ("commit", Json.Encode.string model.commit)
+   , ("trees", Json.Encode.list (List.map treeToValue model.trees))
    , ("viewState", viewStateToValue model.viewState)
    ]
 
@@ -54,69 +46,23 @@ nodeToValue node =
     ]
 
 
-commitToValue : Commit -> Json.Encode.Value
-commitToValue commit =
-  Json.Encode.object
-    [ ("_id", Json.Encode.string commit.id)
-    , ("rootNode", Json.Encode.string commit.rootNode)
-    , ("timestamp", Json.Encode.int commit.timestamp)
-    , ("authors", Json.Encode.list (List.map Json.Encode.string commit.authors) )
-    , ("committer", Json.Encode.string commit.committer)
-    , ("parents", Json.Encode.list (List.map Json.Encode.string commit.parents) )
-    , ("message", Json.Encode.string commit.message)
-    ]
-
-
 opToValue : Op -> Json.Encode.Value
 opToValue op =
   case op of
-    Ins id pid_ previd_ nextid_ ts ->
+    Ins id content pid_ position upd_ ->
       Json.Encode.object
         [ ( "opType", Json.Encode.string "Ins" )
         , ( "_id", Json.Encode.string id )
+        , ( "content", contentToValue content)
         , ( "parentId", maybeToValue pid_ Json.Encode.string )
-        , ( "prevId", maybeToValue previd_ Json.Encode.string )
-        , ( "nextId", maybeToValue nextid_ Json.Encode.string )
-        , ( "timestamp", Json.Encode.int ts )
+        , ( "position", Json.Encode.int position )
+        , ( "upd", maybeToValue upd_ Json.Encode.string )
         ]
 
-    Upd id uid str ts ->
-      Json.Encode.object
-        [ ( "opType", Json.Encode.string "Upd" )
-        , ( "_id", Json.Encode.string id )
-        , ( "uid", Json.Encode.string uid )
-        , ( "content", Json.Encode.string str )
-        , ( "timestamp", Json.Encode.int ts )
-        ]
-
-    Del id uid ts ->
+    Del id ->
       Json.Encode.object
         [ ( "opType", Json.Encode.string "Del" )
         , ( "_id", Json.Encode.string id )
-        , ( "uid", Json.Encode.string uid )
-        , ( "timestamp", Json.Encode.int ts )
-        ]
-
-    Cpy id uid pid_ previd_ nextid_ ts ->
-      Json.Encode.object
-        [ ( "opType", Json.Encode.string "Cpy" )
-        , ( "_id", Json.Encode.string id )
-        , ( "uid", Json.Encode.string uid )
-        , ( "parentId", maybeToValue pid_ Json.Encode.string )
-        , ( "prevId", maybeToValue previd_ Json.Encode.string )
-        , ( "nextId", maybeToValue nextid_ Json.Encode.string )
-        , ( "timestamp", Json.Encode.int ts )
-        ]
-
-    Mov id uid pid_ previd_ nextid_ ts ->
-      Json.Encode.object
-        [ ( "opType", Json.Encode.string "Mov" )
-        , ( "_id", Json.Encode.string id )
-        , ( "uid", Json.Encode.string uid )
-        , ( "parentId", maybeToValue pid_ Json.Encode.string )
-        , ( "prevId", maybeToValue previd_ Json.Encode.string )
-        , ( "nextId", maybeToValue nextid_ Json.Encode.string )
-        , ( "timestamp", Json.Encode.int ts )
         ]
 
 
@@ -177,36 +123,17 @@ contentToString content =
   Json.Encode.string content.content
 
 
-treeToMarkdownString : Tree -> Json.Encode.Value
-treeToMarkdownString tree =
-  tree
-    |> getContents
-    |> List.map .content
-    |> String.join (newLine ++ newLine)
-    |> Json.Encode.string
 
 
 -- DECODERS
 
 modelDecoder : Decoder Model
 modelDecoder =
-  Json.object8 Model
+  Json.object4 Model
     ("contents" := Json.list contentDecoder)
     ("nodes" := Json.list nodeDecoder)
-    ("commits" := Json.list commitDecoder)
-    ("operations" := Json.list opDecoder)
-    ("tree" := treeDecoder)
-    ("commit" := string)
-    ("floating" := Json.list flopDecoder)
+    ("trees" := Json.list treeDecoder)
     ("viewState" := viewStateDecoder)
-
-objectsDecoder : Decoder Objects
-objectsDecoder =
-  Json.object4 Objects
-    ("contents" := Json.list contentDecoder)
-    ("nodes" := Json.list nodeDecoder)
-    ("commits" := Json.list commitDecoder)
-    ("operations" := Json.list opDecoder)
 
 
 contentDecoder : Decoder Content
@@ -225,23 +152,6 @@ nodeDecoder =
     ("childrenIds" := Json.list string)
 
 
-commitDecoder : Decoder Commit
-commitDecoder =
-  Json.object7 Commit
-    ("_id" := string)
-    ("rootNode" := string)
-    ("timestamp" := int)
-    ("authors" := Json.list string)
-    ("committer" := string)
-    ("parents" := Json.list string)
-    ("message" := string)
-
-
-flopDecoder : Decoder (Op, Bool)
-flopDecoder =
-  tuple2 (,) opDecoder bool
-
-
 opDecoder : Decoder Op
 opDecoder =
   ("opType" := string) `andThen` opInfo
@@ -253,41 +163,14 @@ opInfo tag =
     "Ins" ->
       object5 Ins
         ("_id" := string) 
+        ("content" := contentDecoder)
         (maybe ("parentId" := string)) 
-        (maybe ("prevId" := string))
-        (maybe ("nextId" := string))
-        ("timestamp" := int) 
-
-    "Upd" ->
-      object4 Upd 
-        ("_id" := string) 
-        ("uid" := string) 
-        ("content" := string)
-        ("timestamp" := int) 
+        ("position" := int) 
+        (maybe ("upd" := string))
 
     "Del" ->
-      object3 Del
+      object1 Del
         ("_id" := string) 
-        ("uid" := string)
-        ("timestamp" := int) 
-
-    "Cpy" ->
-      object6 Cpy
-        ("_id" := string) 
-        ("uid" := string) 
-        (maybe ("parentId" := string)) 
-        (maybe ("prevId" := string))
-        (maybe ("nextId" := string))
-        ("timestamp" := int) 
-
-    "Mov" ->
-      object6 Mov
-        ("_id" := string) 
-        ("uid" := string) 
-        (maybe ("parentId" := string)) 
-        (maybe ("prevId" := string))
-        (maybe ("nextId" := string))
-        ("timestamp" := int) 
 
     _ -> Json.fail (tag ++ " is not a recognized type for Op")
 

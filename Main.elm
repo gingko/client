@@ -17,12 +17,10 @@ import List.Extra as ListExtra
 
 import Sha1 exposing (timestamp)
 import Types exposing (..)
-import Coders exposing (..)
-import Tree exposing (update, viewColumn, blankTree)
-import TreeUtils exposing (..)
+import Tree exposing (update, view)
 
 
-main : Program Json.Value
+main : Program ()
 main =
   App.programWithFlags
     { init = init
@@ -43,11 +41,7 @@ port export : Json.Encode.Value -> Cmd msg
 type alias Model =
   { contents : List Content
   , nodes : List Node
-  , commits : List Commit
-  , operations : List Op
-  , tree : Tree
-  , commit : String
-  , floating : List (Op, Bool)
+  , trees : List Tree
   , viewState : ViewState
   }
 
@@ -56,11 +50,7 @@ defaultModel : Model
 defaultModel =
   { contents = [defaultContent]
   , nodes = [defaultNode]
-  , commits = [defaultCommit]
-  , operations = []
-  , tree = Tree.default
-  , floating = []
-  , commit = defaultCommit.id
+  , trees = [Tree.default]
   , viewState = 
       { active = "0"
       , activePast = []
@@ -72,18 +62,9 @@ defaultModel =
   }
 
 
-init : Json.Value -> ( Model, Cmd Msg )
-init savedState =
-  case Json.decodeValue modelDecoder savedState of
-    Ok model ->
-      model ! []
-    Err err ->
-      let
-        deb = Debug.log "err" err
-      in
-      defaultModel ! []
-
-
+init : () -> (Model, Cmd Msg)
+init _ =
+  defaultModel ! []
 
 
 -- UPDATE
@@ -98,521 +79,15 @@ update msg model =
     NoOp ->
       model ! []
 
-    -- === Commits ===
-
-    CommitAll ts ->
-      let
-        newContents =
-          getContents model.tree
-            |> List.filter (\c -> not (List.member c model.contents))
-
-        newNodes =
-          (treeToNodes []) model.tree
-            |> List.filter (\n -> not (List.member n model.nodes))
-
-        newCommit = 
-          { id = "id"
-          , rootNode = treeUid model.tree
-          , timestamp = ts
-          , authors = ["Adriano Ferrari <adriano.ferrari@gmail.com>"]
-          , committer = "Adriano Ferrari <adriano.ferrari@gmail.com>"
-          , parents = [model.commit]
-          , message = "Default Commit message"
-          }
-            |> withCommitId
-
-        newModel =
-          { model
-            | nodes = model.nodes ++ newNodes
-            , contents = model.contents ++ newContents
-            , commits = model.commits ++ [newCommit]
-            , operations = model.operations ++ (activeOps model.floating)
-            , floating = inactiveFlops model.floating
-            , commit = newCommit.id
-          }
-      in
-        newModel ! [ saveModel (modelToValue newModel) ]
-
-    CommitChanges num ts ->
-      let
-        toApply =
-          model.floating
-            |> activeOps
-            |> List.take num
-
-        toIgnore =
-          model.floating
-            |> activeOps
-            |> List.drop num
-
-        nodeId =
-          model.commits
-            |> ListExtra.find (\c -> c.id == model.commit)
-            |> Maybe.withDefault defaultCommit
-            |> .rootNode
-
-        committedTree =
-          buildStructure 
-          nodeId 
-          (Objects model.contents model.nodes model.commits model.operations)
-          |> Tree.applyOperations toApply
-
-        newContents =
-          getContents committedTree
-            |> List.filter (\c -> not (List.member c model.contents))
-
-        newNodes =
-          (treeToNodes []) committedTree
-            |> List.filter (\n -> not (List.member n model.nodes))
-
-        newCommit = 
-          { id = "id"
-          , rootNode = treeUid committedTree
-          , timestamp = ts
-          , authors = ["Adriano Ferrari <adriano.ferrari@gmail.com>"]
-          , committer = "Adriano Ferrari <adriano.ferrari@gmail.com>"
-          , parents = [model.commit]
-          , message = "Default Commit message"
-          }
-            |> withCommitId
-
-        newModel =
-          { model
-            | nodes = model.nodes ++ newNodes
-            , contents = model.contents ++ newContents
-            , commits = model.commits ++ [newCommit]
-            , operations = model.operations ++ toApply
-            , floating = 
-                model.floating
-                  |> ListExtra.filterNot (\f -> List.member (fst f) toApply)
-            , commit = newCommit.id
-          }
-      in
-        newModel ! [ saveModel (modelToValue newModel) ]
-
-
-    CheckoutCommit cid ->
-      let
-        nodeId =
-          model.commits
-            |> ListExtra.find (\c -> c.id == cid)
-            |> Maybe.withDefault defaultCommit
-            |> .rootNode
-
-        newTree =
-          buildStructure 
-          nodeId 
-          (Objects model.contents model.nodes model.commits model.operations)
-          |> Tree.applyOperations (activeOps model.floating)
-
-        newModel =
-          { model
-            | commit = cid
-            , tree = newTree
-          }
-      in
-      newModel ! [ saveModel (modelToValue newModel) ]
-
-    -- === Operations ===
-
-    CheckOp oid state ->
-      let
-        isOid id f =
-          case (fst f) of
-            Ins fid _ _ _ _ ->
-              fid == id
-            Upd fid _ _ _ ->
-              fid == id
-            Del fid _ _ ->
-              fid == id
-            Cpy fid _ _ _ _ _ ->
-              fid == id
-            Mov fid _ _ _ _ _ ->
-              fid == id
-
-        newFloating =
-          ListExtra.updateIf (isOid oid) (\f -> (fst f, state)) model.floating
-
-        newModel = { model | floating = newFloating }
-      in
-      if (model.floating == newFloating) then
-        model ! []
-      else
-        update (CheckoutCommit model.commit) newModel
-
-    DeleteOp oid ->
-      let
-        isOid id f =
-          case (fst f) of
-            Ins fid _ _ _ _ ->
-              fid == id
-            Upd fid _ _ _ ->
-              fid == id
-            Del fid _ _ ->
-              fid == id
-            Cpy fid _ _ _ _ _ ->
-              fid == id
-            Mov fid _ _ _ _ _ ->
-              fid == id
-
-        newFloating =
-          List.filter (not << isOid oid) model.floating
-
-        newModel = { model | floating = newFloating }
-      in
-      if (model.floating == newFloating) then
-        model ! []
-      else
-        update (CheckoutCommit model.commit) newModel
-
-    Undo ->
-      let
-        rev = List.reverse model.floating
-        newFloating =
-          case (ListExtra.findIndex snd rev) of
-            Nothing -> model.floating
-            Just idx ->
-              ListExtra.updateAt idx (\f -> (fst f, False)) rev
-                |> Maybe.withDefault rev
-                |> List.reverse
-
-        newModel = { model | floating = newFloating }
-      in
-      if (model.floating == newFloating) then
-        model ! []
-      else
-        update (CheckoutCommit model.commit) newModel
-
-    Redo ->
-      let
-        newFloating =
-          case (ListExtra.findIndex (\f -> not (snd f)) model.floating) of
-            Nothing -> model.floating
-            Just idx ->
-              ListExtra.updateAt idx (\f -> (fst f, True)) model.floating
-                |> Maybe.withDefault model.floating
-
-        newModel = { model | floating = newFloating }
-
-      in
-      if (model.floating == newFloating) then
-        model ! []
-      else
-        update (CheckoutCommit model.commit) newModel
-
-    -- === Card Activation ===
-
-    Activate uid ->
-      let
-        desc =
-          model.tree
-            |> flip getTree uid
-            |> Maybe.withDefault Tree.default
-            |> getDescendants
-            |> List.map (\t -> t.uid)
-      in
-      { model
-        | viewState = 
-            { active = uid
-            , activePast = vs.active :: vs.activePast
-            , activeFuture = vs.activeFuture
-            , descendants = desc
-            , editing = Nothing
-            , field = vs.field
-            }
-      }
-        ! [ activateCards (centerlineIds model.tree (getTree model.tree uid |> Maybe.withDefault Tree.default) ) ]
-
-    ActivatePast ->
-      if List.isEmpty vs.activePast then
-        model ! []
-      else
-      let
-        targetId =
-          vs.activePast
-            |> List.head
-            |> Maybe.withDefault vs.active
-
-        newPast =
-          List.drop 1 vs.activePast
-
-        newFuture = vs.active :: vs.activeFuture
-
-        newViewState v =
-          { v
-            | active = targetId
-            , activePast = newPast
-            , activeFuture = newFuture
-          }
-      in
-      { model | viewState = newViewState vs } ! []
-      
-        
-    ActivateFuture ->
-      if List.isEmpty vs.activeFuture then
-        model ! []
-      else
-      let
-        targetId =
-          vs.activeFuture
-            |> List.head
-            |> Maybe.withDefault vs.active
-
-        newFuture =
-          List.drop 1 vs.activeFuture
-
-        newPast = vs.active :: vs.activePast
-
-        newViewState v =
-          { v
-            | active = targetId
-            , activePast = newPast
-            , activeFuture = newFuture
-          }
-      in
-      { model | viewState = newViewState vs } ! []
-
-    GoLeft uid ->
-      let
-        targetId =
-          getParent model.tree uid
-            |> Maybe.withDefault (blankTree uid)
-            |> .uid
-      in
-      update (Activate targetId) model
-
-    GoDown uid ->
-      let
-        targetId =
-          getNext model.tree uid
-            |> Maybe.withDefault uid
-      in
-      update (Activate targetId) model
-
-    GoUp uid ->
-      let
-        targetId =
-          getPrev model.tree uid
-            |> Maybe.withDefault uid
-      in
-      update (Activate targetId) model
-
-    GoRight uid ->
-      let
-        tree =
-          getTree model.tree uid -- Maybe Tree
-            |> Maybe.withDefault (blankTree uid) -- Tree
-
-        childrenIds =
-          tree
-            |> getChildren -- List Tree
-            |> List.map .uid -- List String
-
-        firstChild = 
-          getFirstChild model.tree uid |> Maybe.withDefault uid
-
-        prevActiveOfChildren =
-          vs.activePast
-            |> List.filter (\a -> List.member a childrenIds) -- children in activePast
-            |> List.head
-            |> Maybe.withDefault firstChild
-      in
-      update (Activate prevActiveOfChildren) model
-
-    -- === Card Editing  ===
-
-    OpenCard uid str ->
-      { model
-        | viewState =
-            { active = vs.active
-            , activePast = []
-            , activeFuture = []
-            , descendants = vs.descendants
-            , editing = (Just uid)
-            , field = str
-            }
-      }
-        ! [focus uid] 
-
-    UpdateField str ->
-      { model
-        | viewState =
-            { active = vs.active
-            , activePast = []
-            , activeFuture = []
-            , descendants = vs.descendants
-            , editing = vs.editing
-            , field = str
-            }
-      }
-        ! []
-
-    UpdateCard uid str ->
-      let
-        newOp = Upd "" uid str (timestamp ()) |> withOpId
-        newViewState vs =
-          { vs
-            | active = uid
-            , editing = Nothing
-            , field = ""
-          }
-      in
-      sequence model newViewState newOp []
-
-    DeleteCard uid ->
-      let
-        newOp = Del "" uid (timestamp ())|> withOpId
-      in
-      sequence model identity newOp []
-
-    CancelCard ->
-      { model
-        | viewState =
-            { active = vs.active
-            , activePast = []
-            , activeFuture = []
-            , descendants = vs.descendants
-            , editing = Nothing
-            , field = ""
-            }
-      }
-        ! []
-
-    -- === Card Insertion  ===
-
-    Insert parentId_ prevId_ nextId_ ->
-      let
-        ts = timestamp ()
-        newId = newUid parentId_ prevId_ nextId_ ts
-        newOp = Ins newId parentId_ prevId_ nextId_ ts
-        newViewState vs =
-          { vs 
-            | active = newId
-            , editing = Just newId
-            , field = ""
-          }
-            
-      in
-        sequence model newViewState newOp [focus newId]
-
-    InsertAbove uid ->
-      let
-        parentId_ = getParentId model.tree uid
-        prevId_ = getPrev model.tree uid
-        nextId_ = Just uid
-      in
-        update (Insert parentId_ prevId_ nextId_) model
-        
-
-    InsertBelow uid ->
-      let
-        parentId_ = getParentId model.tree uid
-        prevId_ = Just uid
-        nextId_ = getNext model.tree uid
-      in
-        update (Insert parentId_ prevId_ nextId_) model
-
-    InsertChild uid ->
-      let
-        parentId_ = Just uid
-        prevId_ = getLastChild model.tree uid
-        nextId_ = Nothing
-      in
-        update (Insert parentId_ prevId_ nextId_) model
-
-    -- === Card Moving  ===
-
-    Move uid parentId_ prevId_ nextId_ ->
-      let
-        newOp = Mov "" uid parentId_ prevId_ nextId_ (timestamp ()) |> withOpId
-        newViewState vs =
-          { vs
-            | active = uid
-          }
-      in
-        sequence model newViewState newOp [focus uid]
-
-    MoveUp uid ->
-      let
-        parentId_ = getParentId model.tree uid
-        prevId_ = getPrev model.tree (nextId_ ? "")
-        nextId_ = getPrev model.tree uid
-      in
-        update (Move uid parentId_ prevId_ nextId_) model
-
-    MoveDown uid ->
-      let
-        parentId_ = getParentId model.tree uid
-        prevId_ = getNext model.tree uid 
-        nextId_ = getNext model.tree (prevId_ ? "")
-      in
-        update (Move uid parentId_ prevId_ nextId_) model
-
-    MoveLeft uid ->
-      let
-        currentParent_ = getParentId model.tree uid
-        parentId_ = getParentId model.tree (currentParent_ ? "")
-        prevId_ = currentParent_ 
-        nextId_ = getNext model.tree (currentParent_ ? "")
-      in
-      if currentParent_ == Nothing || parentId_ == Nothing then
-        model ! []
-      else
-        update (Move uid parentId_ prevId_ nextId_) model
-
-    MoveRight uid ->
-      let
-        parentId_ = getPrev model.tree uid
-        prevId_ = getLastChild model.tree (parentId_ ? "")
-        nextId_ = Nothing
-      in
-      if parentId_ == Nothing then
-        model ! []
-      else
-        update (Move uid parentId_ prevId_ nextId_) model
-
-
     -- === External Inputs ===
 
-    OpIn json ->
-      case (Json.decodeValue opDecoder json) of
-        Ok op ->
-          { model
-            | tree = Tree.update (Tree.Apply op) model.tree
-          }
-            ! []
-
-        Err err ->
-          let
-            deb = Debug.log "err" err
-          in
-          model ! []
-
-    ExternalCommand (cmd, arg) ->
-      case cmd of
-        "commit-changes" ->
-          model ! [run (CommitAll (arg |> String.toInt |> Result.withDefault 0))]
-        "checkout-commit" ->
-          model ! [run (CheckoutCommit arg)]
-        "keyboard" ->
-          model ! [run (HandleKey arg)]
-        "save-as-json" ->
-          model ! [export (treeToSimpleJSON model.tree)]
-        "save-as-markdown" ->
-          model ! [export (treeToMarkdownString model.tree)]
-        _ ->
-          let
-            db1 = Debug.log "Unknown external command" cmd
-          in
-          model ! []
-    
     HandleKey str ->
       let
         vs = model.viewState
       in
       case str of
         "mod+x" ->
-          model ! [export (treeToSimpleJSON model.tree)]
+          model ! []
 
         "mod+enter" ->
           editMode model
@@ -620,12 +95,7 @@ update msg model =
 
         "enter" ->
           normalMode model
-            (OpenCard vs.active 
-              (getContent model.tree vs.active
-                |> Maybe.withDefault defaultContent 
-                |> .content
-              )
-            )
+            (OpenCard vs.active "TODO: getContent")
 
         "esc" ->
           editMode model (\_ -> CancelCard )
@@ -678,37 +148,11 @@ update msg model =
           normalMode model
             (GoRight vs.active)
 
-        "alt+up" ->
-          normalMode model
-            (MoveUp vs.active)
-
-        "alt+down" ->
-          normalMode model
-            (MoveDown vs.active)
-
-        "alt+left" ->
-          normalMode model
-            (MoveLeft vs.active)
-
-        "alt+right" ->
-          normalMode model
-            (MoveRight vs.active)
-
         "[" ->
           normalMode model ActivatePast
 
         "]" ->
           normalMode model ActivateFuture
-
-        "mod+s" ->
-          normalMode model
-            (CommitAll 0)
-
-        "mod+z" ->
-          update Undo model
-
-        "mod+r" ->
-          update Redo model
 
         other ->
           let
@@ -716,6 +160,8 @@ update msg model =
           in
           model ! []
 
+    _ ->
+      model ! []
 
 
 
@@ -725,73 +171,7 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-  (lazy2 Tree.view model.viewState model.tree)
-
-
-viewHistory : List (Op, Bool) -> Html Msg
-viewHistory flops =
-  div [ id "history"]
-      [ Keyed.ul [class "ops-list"] <| List.map viewKeyedOp flops
-      ]
-
-
-viewKeyedOp : (Op, Bool) -> (String, Html Msg)
-viewKeyedOp (op, state) =
-  case op of
-    Ins oid _ _ _ _ -> (oid, lazy viewOp (op, state))
-    Upd oid _ _ _ -> (oid, lazy viewOp (op, state))
-    Del oid _ _ -> (oid, lazy viewOp (op, state))
-    Cpy oid _ _ _ _ _ -> (oid, lazy viewOp (op, state))
-    Mov oid _ _ _ _ _ -> (oid, lazy viewOp (op, state))
-
-
-viewOp : (Op, Bool) -> Html Msg
-viewOp (op, state) =
-  case op of
-    Ins oid parentId_ prevId_ nextId_ ts ->
-      li  [ id ("op-" ++ oid)
-          , class "op-ins"
-          , onClick (Activate oid)
-          ]
-          [ input [ type' "checkbox"
-                  , checked state 
-                  , onClick (CheckOp oid (not state))
-                  ][]
-          , text ("+ " ++ (String.left 5 oid))
-          , button [onClick (DeleteOp oid)][text "x"]
-          ]
-
-    Upd oid uid str ts ->
-      li  [ id ("op-" ++ oid)
-          , class "op-upd"
-          , onClick (Activate uid)
-          ]
-          [ input [ type' "checkbox"
-                  , checked state 
-                  , onClick (CheckOp oid (not state))
-                  ][]
-          , text ("δ " ++ (String.left 6 str) ++ "...")
-          , button [onClick (DeleteOp oid)][text "x"]
-          ]
-
-    Del oid uid ts ->
-      li  [ id ("op-" ++ oid)
-          , class "op-del"
-          , onClick (Activate uid)
-          ]
-          [ input [ type' "checkbox"
-                  , checked state 
-                  , onClick (CheckOp oid (not state))
-                  ][]
-          , text ("- " ++ (String.left 5 oid))
-          , button [onClick (DeleteOp oid)][text "x"]
-          ]
-
-    Cpy oid uid parentId_ prevId_ nextId_ ts ->
-      li [] [text "copy op"]
-
-    Mov oid uid parentId_ prevId_ nextId_ ts ->
-      li [] [text "move op"]
+  (lazy2 Tree.view model.viewState model.trees)
 
 
 
@@ -822,36 +202,6 @@ focus uid =
 run : Msg -> Cmd Msg
 run msg =
   Task.perform (\_ -> NoOp) (\_ -> msg ) (Task.succeed msg)
-
-
-sequence : Model -> (ViewState -> ViewState) -> Op -> List (Cmd Msg) -> (Model, Cmd Msg)
-sequence model vsf op cmds =
-  let
-    newModel =
-      { model
-        | viewState = vsf model.viewState
-        , tree = Tree.update (Tree.Apply op) model.tree
-        , floating = model.floating ++ [(op, True)]
-      }
-  in
-  if (List.length model.floating >= 20) then
-    fst (update (CommitChanges 10 (timestamp ())) newModel)
-    ! ([saveModel (modelToValue newModel)] ++ cmds)
-  else
-    newModel ! ([saveModel (modelToValue newModel)] ++ cmds)
-
-
-activeOps : List (Op, Bool) -> List Op
-activeOps flops =
-  flops
-    |> List.filter (\f -> snd f)
-    |> List.map fst
-
-
-inactiveFlops : List (Op, Bool) -> List (Op, Bool)
-inactiveFlops flops =
-  flops
-    |> List.filter (\f -> not (snd f))
 
 
 editMode : Model -> (String -> Msg) -> (Model, Cmd Msg)
