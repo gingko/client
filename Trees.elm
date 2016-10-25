@@ -10,18 +10,20 @@ import Json.Decode as Json
 import Markdown
 
 import Types exposing (..)
+import TreeUtils exposing (getColumns)
 
 
 
 -- MODEL
 
 defaultTree =
-  { id = ""
+  { id = "defaultTree"
   , content = defaultContent
   , parentId = Nothing
   , position = 0
   , children = Children []
   }
+
 
 
 
@@ -69,11 +71,18 @@ applyOp op tree =
 
 view : ViewState -> List Tree -> Html Msg
 view vstate trees =
+  let
+    columns =
+      [[[]]] ++
+      getColumns([[ trees ]]) ++
+      [[[]]]
+        |> List.map (viewColumn vstate)
+  in
   div [ id "app" 
       , classList [ ("editing", vstate.editing /= Nothing) ]
       ]
-      []
-
+    ( columns
+    )
 
 
 viewColumn : ViewState -> Column -> Html Msg

@@ -20,7 +20,7 @@ import Types exposing (..)
 import Trees exposing (update, view)
 
 
-main : Program ()
+main : Program Json.Value
 main =
   App.programWithFlags
     { init = init
@@ -62,7 +62,7 @@ defaultModel =
   }
 
 
-init : () -> (Model, Cmd Msg)
+init : Json.Value -> (Model, Cmd Msg)
 init _ =
   defaultModel ! []
 
@@ -81,12 +81,25 @@ update msg model =
 
     -- === External Inputs ===
 
+    ExternalCommand (cmd, arg) ->
+      case cmd of
+        "keyboard" ->
+          model ! [run (HandleKey arg)]
+        _ ->
+          let
+            db1 = Debug.log "Unknown external command" cmd
+          in
+          model ! []
+
     HandleKey str ->
       let
         vs = model.viewState
       in
       case str of
         "mod+x" ->
+          let
+            db1 = Debug.log "model" model
+          in
           model ! []
 
         "mod+enter" ->
@@ -180,6 +193,7 @@ view model =
 
 port externals : ((String, String) -> msg) -> Sub msg -- ~ Sub (String, String)
 port opsIn : (Json.Encode.Value -> msg) -> Sub msg -- ~ Sub Op
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =

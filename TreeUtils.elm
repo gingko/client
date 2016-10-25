@@ -6,18 +6,39 @@ import Types exposing (..)
 import Sha1
 
 
+-- TRANSFORMATIONS
 
--- TREE MODIFICATIONS --
+getColumns : List Column -> List Column
+getColumns cols =
+  let
+    col = 
+      case (ListExtra.last cols) of
+        Nothing -> [[]]
+        Just c -> c
 
+    hasChildren = 
+      col
+        |> List.concat
+        |> List.any (\x -> (getChildren x) /= [])
 
-
-
--- TREE AND NODE TRANSFORMATIONS
+    nextColumn col =
+      List.map getChildren (List.concat col)
+  in
+  if hasChildren then
+    getColumns(cols ++ [nextColumn(col)])
+  else
+    cols
 
 
 
 
 -- ACCESSORS
+
+getChildren : Tree -> List Tree
+getChildren x =
+  case x.children of
+    Children c ->
+      c
 
 
 
