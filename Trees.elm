@@ -94,6 +94,7 @@ viewColumn vstate col =
   div
     [ class "column" ]
     ( buffer ++
+      (List.map (lazy (viewGroup vstate)) col) ++
       buffer
     )
     
@@ -116,14 +117,13 @@ viewGroup vstate xs =
                     , ("active-descendant", isActiveDescendant)
                     ]
         ]
-        []
+        (List.map (lazy (viewCard vstate)) xs)
 
 
 viewCard : ViewState -> Tree -> Html Msg
 viewCard vstate tree =
   let
     isEditing = vstate.editing == Just tree.id
-    isRoot = tree.id == "0"
     isActive = vstate.active == tree.id
 
     options =
@@ -153,7 +153,7 @@ viewCard vstate tree =
         []
 
     normalControls =
-      if isActive && not isRoot then
+      if isActive then
         [ div [ class "flex-row card-top-overlay" ]
               [ span
                 [ class "card-btn ins-above"
@@ -191,22 +191,6 @@ viewCard vstate tree =
                 [ text "+" ]
               ]
         ]
-      else if isRoot then
-        [ div [ class "flex-column card-right-overlay"]
-              [ span
-                [ class "card-btn ins-right"
-                , title "Add Child (Ctrl+L)"
-                , onClick (InsertChild tree.id)
-                ]
-                [ text "+" ]
-              , span 
-                [ class "card-btn edit"
-                , title "Edit Card (Enter)"
-                , onClick (OpenCard tree.id tree.content.content)
-                ]
-                []
-              ]
-        ]
       else
         []
   in
@@ -215,7 +199,6 @@ viewCard vstate tree =
         , classList [ ("card", True)
                     , ("active", True)
                     , ("editing", isEditing)
-                    , ("root", isRoot)
                     , ("has-children", hasChildren)
                     ]
         ]
@@ -234,7 +217,6 @@ viewCard vstate tree =
         , classList [ ("card", True)
                     , ("active", isActive)
                     , ("editing", isEditing)
-                    , ("root", isRoot)
                     , ("has-children", hasChildren)
                     ]
         ]

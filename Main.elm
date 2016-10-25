@@ -79,6 +79,15 @@ update msg model =
     NoOp ->
       model ! []
 
+    -- === Card Activation ===
+
+    Activate id ->
+      { model
+        | viewState = { vs | active = id }
+      }
+        ! [activateCards [[id]]]
+      
+
     -- === External Inputs ===
 
     ExternalCommand (cmd, arg) ->
