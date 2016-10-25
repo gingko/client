@@ -17,7 +17,7 @@ import List.Extra as ListExtra
 
 import Sha1 exposing (timestamp)
 import Types exposing (..)
-import Tree exposing (update, view)
+import Trees exposing (update, view)
 
 
 main : Program ()
@@ -50,7 +50,7 @@ defaultModel : Model
 defaultModel =
   { contents = [defaultContent]
   , nodes = [defaultNode]
-  , trees = [Tree.default]
+  , trees = [Trees.defaultTree]
   , viewState = 
       { active = "0"
       , activePast = []
@@ -171,7 +171,7 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-  (lazy2 Tree.view model.viewState model.trees)
+  (lazy2 Trees.view model.viewState model.trees)
 
 
 

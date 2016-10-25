@@ -1,4 +1,4 @@
-module Tree exposing (..)
+module Trees exposing (..)
 
 import String
 import List.Extra as ListExtra
@@ -15,7 +15,7 @@ import Types exposing (..)
 
 -- MODEL
 
-default =
+defaultTree =
   { id = ""
   , content = defaultContent
   , parentId = Nothing
@@ -96,7 +96,7 @@ viewGroup vstate xs =
     firstChild = 
       xs
         |> List.head
-        |> Maybe.withDefault default
+        |> Maybe.withDefault defaultTree
         |> .id
 
     isActiveDescendant =
