@@ -230,6 +230,52 @@ update msg model =
     InsertChild pid ->
       update (Insert (blankTree model.nextId) pid 999999) model
 
+    -- === Card Moving  ===
+
+    Move subtree pid idx ->
+      { model
+        | tree = Trees.update (Trees.Mov subtree pid idx) model.tree
+      }
+        ! []
+
+    MoveUp id ->
+      let
+        tree_ =
+          getTree id model.tree
+
+        pid_ =
+          getParent id model.tree
+            |> Maybe.map .id
+
+        refIdx_ =
+          getIndex id model.tree
+      in
+      case (tree_, pid_, refIdx_) of
+        (Just tree, Just pid, Just refIdx) ->
+          update (Move tree pid (refIdx-1)) model
+        _ ->
+          model ! []
+
+    MoveDown id ->
+      let
+        tree_ =
+          getTree id model.tree
+
+        pid_ =
+          getParent id model.tree
+            |> Maybe.map .id
+
+        refIdx_ =
+          getIndex id model.tree
+      in
+      case (tree_, pid_, refIdx_) of
+        (Just tree, Just pid, Just refIdx) ->
+          update (Move tree pid (refIdx+1)) model
+        _ ->
+          model ! []
+
+
+
 
     -- === External Inputs ===
 
@@ -315,6 +361,22 @@ update msg model =
         "right" ->
           normalMode model
             (GoRight vs.active)
+
+        "alt+up" ->
+          normalMode model
+            (MoveUp vs.active)
+
+        "alt+down" ->
+          normalMode model
+            (MoveDown vs.active)
+
+        "alt+left" ->
+          normalMode model
+            (MoveLeft vs.active)
+
+        "alt+right" ->
+          normalMode model
+            (MoveRight vs.active)
 
         "[" ->
           normalMode model ActivatePast

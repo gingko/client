@@ -39,6 +39,7 @@ type TreeMsg
   = NoOp
   | Ins Tree String Int
   | Upd String String
+  | Mov Tree String Int
   | Del String
 
 
@@ -54,8 +55,20 @@ update msg tree =
     Upd id str ->
       modifyTree id (\t -> { t | content = str} ) tree
 
+    Mov newTree parentId idx ->
+      apply 
+        [ Del newTree.id
+        , Ins newTree parentId idx
+        ]
+      tree
+
     Del id ->
       pruneSubtree id tree
+
+
+apply : List TreeMsg -> Tree -> Tree
+apply msgs tree =
+  List.foldl (\m t -> update m t) tree msgs
 
 
 insertSubtree : Tree -> String -> Int -> Tree -> Tree

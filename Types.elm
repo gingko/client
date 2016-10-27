@@ -26,6 +26,11 @@ type Msg
     | InsertBelow String
     | InsertChild String
     -- === Card Moving  ===
+    | Move Tree String Int
+    | MoveUp String
+    | MoveDown String
+    | MoveLeft String
+    | MoveRight String
     -- === External Inputs ===
     | OpIn Json.Value
     | ExternalCommand (String, String)
