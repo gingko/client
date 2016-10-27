@@ -18,6 +18,7 @@ import List.Extra as ListExtra
 import Sha1 exposing (timestamp)
 import Types exposing (..)
 import Trees exposing (update, view)
+import TreeUtils exposing (getContent)
 import Coders exposing (modelDecoder, modelToValue)
 
 
@@ -94,13 +95,26 @@ update msg model =
     -- === Card Editing  ===
 
     OpenCard id str ->
-      model ! []
+      let
+        vsf vs = 
+          { vs 
+            | editing = Just id
+            , field = str
+          }
+      in
+      { model 
+        | viewState = vsf model.viewState
+      } 
+        ! [focus id]
 
     UpdateField str ->
       model ! []
 
     UpdateCard id str ->
-      model ! []
+      { model
+        | tree = Trees.update (Trees.Upd id str) model.tree
+      }
+        ! []
 
     DeleteCard id ->
       { model
@@ -140,7 +154,7 @@ update msg model =
 
         "enter" ->
           normalMode model
-            (OpenCard vs.active "TODO: getContent")
+            (OpenCard vs.active (getContent vs.active model.tree))
 
         "esc" ->
           editMode model (\_ -> CancelCard )

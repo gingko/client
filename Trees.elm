@@ -30,6 +30,7 @@ defaultTree =
 type TreeMsg
   = NoOp
   | Ins Tree String Int
+  | Upd String String
   | Del String
 
 
@@ -42,8 +43,12 @@ update msg tree =
     Ins newTree parentId idx ->
       insertSubtree newTree parentId idx tree
 
+    Upd id str ->
+      modifyTree id (\t -> { t | content = str} ) tree
+
     Del id ->
       pruneSubtree id tree
+
 
 insertSubtree : Tree -> String -> Int -> Tree -> Tree
 insertSubtree subtree parentId idx tree =
