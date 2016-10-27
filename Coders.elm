@@ -49,6 +49,13 @@ viewStateToValue vs =
     ]
 
 
+messageToValue : (String, Json.Encode.Value) -> Json.Encode.Value
+messageToValue (msg, val) =
+  Json.Encode.array (Array.fromList [Json.Encode.string msg, val])
+
+
+
+
 -- EXPORT ENCODINGS
 
 treeToSimpleJSON : Tree -> Json.Encode.Value

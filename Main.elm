@@ -19,7 +19,7 @@ import Sha1 exposing (timestamp)
 import Types exposing (..)
 import Trees exposing (update, view, blankTree)
 import TreeUtils exposing (..)
-import Coders exposing (modelDecoder, modelToValue)
+import Coders exposing (modelDecoder, modelToValue, messageToValue)
 
 
 main : Program Json.Value
@@ -35,6 +35,7 @@ main =
 port saveModel : Json.Encode.Value -> Cmd msg
 port activateCards : List (List String) -> Cmd msg
 port export : Json.Encode.Value -> Cmd msg
+port message : Json.Encode.Value -> Cmd msg
 
 
 -- MODEL
@@ -187,6 +188,9 @@ update msg model =
             db1 = Debug.log "model" model
           in
           model ! [ model |> modelToValue |> saveModel ]
+
+        "mod+s" ->
+          model ! [ message (messageToValue ("save", modelToValue model)) ]
 
         "mod+enter" ->
           editMode model

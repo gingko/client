@@ -4,6 +4,7 @@ const fs = require('fs')
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win
+let currentFile = null
 
 function createWindow () {
   // Create the browser window.
@@ -60,6 +61,7 @@ const menuTemplate =
               dialog.showOpenDialog(focusedWindow, {title: "Open File...", defaultPath: __dirname, properties: ['openFile']}, function(e) {
                 fs.readFile(e[0], (err, data) => {
                   if (err) throw err;
+                  currentFile = e[0]
                   focusedWindow.webContents.send('file-read', data)
                 })
               })
@@ -101,6 +103,10 @@ ipcMain.on('save', (event, arg) => {
   saveModel(arg)
 })
 
+ipcMain.on('save-as', (event, arg) => {
+  saveModelAs(arg)
+})
+
 ipcMain.on('save-as-json', (event, arg) => {
   saveAsJSON(arg)
 })
@@ -110,7 +116,14 @@ ipcMain.on('save-as-markdown', (event, arg) => {
 })
 
 saveModel = function(model){
-  dialog.showSaveDialog({title: 'Save', defaultPath: __dirname }, function(e){
+  if (currentFile) {
+    fs.writeFile(currentFile, JSON.stringify(model, null, 2),function (err) { if(err) { console.log(err.message)}})
+  } else {
+    saveModelAs(model)
+  }
+}
+saveModelAs = function(model){
+  dialog.showSaveDialog({title: 'Save As', defaultPath: __dirname }, function(e){
     fs.writeFile(e, JSON.stringify(model, null, 2),function (err) { if(err) { console.log(err.message)}})
   })
 }

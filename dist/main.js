@@ -16,6 +16,7 @@ startElm = function(init) {
   gingko.ports.saveModel.subscribe(saveModel);
   gingko.ports.activateCards.subscribe(activateCards);
   gingko.ports.export.subscribe(exportTree);
+  gingko.ports.message.subscribe(elmMessage);
 }
 
 scrollTo = function(cid, colIdx) {
@@ -31,7 +32,11 @@ scrollTo = function(cid, colIdx) {
 }
 
 saveModel = function(model) {
-  ipc.send('save', model)
+  ipc.send('save-as', model)
+}
+
+elmMessage = function(msg) {
+  ipc.send(msg[0], msg[1])
 }
 
 saveObjects = function(objects, type) {
