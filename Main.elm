@@ -17,7 +17,7 @@ import List.Extra as ListExtra
 
 import Sha1 exposing (timestamp)
 import Types exposing (..)
-import Trees exposing (update, view, blankTree)
+import Trees exposing (update, view, defaultTree, blankTree)
 import TreeUtils exposing (..)
 import Coders exposing (modelDecoder, modelToValue, messageToValue)
 
@@ -50,7 +50,7 @@ type alias Model =
 
 defaultModel : Model
 defaultModel =
-  { tree = Trees.defaultTree
+  { tree = defaultTree
   , viewState = 
       { active = "0"
       , activePast = []
@@ -92,26 +92,73 @@ update msg model =
     Activate id ->
       let
         desc =
-          getTree id model.tree ? Trees.defaultTree
+          getTree id model.tree ? defaultTree
             |> getDescendants
             |> List.map .id
       in
       { model
-        | viewState = { vs | active = id, descendants = desc }
+        | viewState = 
+            { vs 
+              | active = id
+              , activePast = vs.active :: vs.activePast
+              , descendants = desc 
+            }
       }
-        ! [activateCards (centerlineIds model.tree (getTree id model.tree ? Trees.defaultTree))]
+        ! [activateCards (centerlineIds model.tree (getTree id model.tree ? defaultTree))]
 
     GoLeft id ->
-      model ! []
+      let
+        targetId =
+          getParent id model.tree ? defaultTree |> .id
+      in
+      update (Activate targetId) model
 
     GoDown id ->
-      model ! []
+      let
+        targetId =
+          case getNext id model.tree of
+            Nothing -> id
+            Just ntree -> ntree.id
+      in
+      update (Activate targetId) model
 
     GoUp id ->
-      model ! []
+      let
+        targetId =
+          case getPrev id model.tree of
+            Nothing -> id
+            Just ptree -> ptree.id
+      in
+      update (Activate targetId) model
 
     GoRight id ->
-      model ! []
+      let
+        tree =
+          getTree id model.tree
+
+        childrenIds =
+          getChildren (tree ? defaultTree)
+            |> List.map .id
+
+        firstChildId =
+          childrenIds
+            |> List.head
+            |> Maybe.withDefault id
+
+        prevActiveOfChildren =
+          vs.activePast
+            |> List.filter (\a -> List.member a childrenIds)
+            |> List.head
+            |> Maybe.withDefault firstChildId
+      in
+      case tree of
+        Nothing ->
+          model ! []
+        Just t ->
+          if List.length childrenIds == 0 then
+            model ! []
+          else
+            update (Activate prevActiveOfChildren) model
       
     -- === Card Editing  ===
 
@@ -166,7 +213,7 @@ update msg model =
           getIndex id model.tree ? 999999
 
         pid =
-          getParent id model.tree ? Trees.defaultTree |> .id
+          getParent id model.tree ? defaultTree |> .id
       in
       update (Insert (blankTree model.nextId) pid idx) model
 
@@ -176,7 +223,7 @@ update msg model =
           getIndex id model.tree ? 999999
 
         pid =
-          getParent id model.tree ? Trees.defaultTree |> .id
+          getParent id model.tree ? defaultTree |> .id
       in
       update (Insert (blankTree model.nextId) pid (idx+1)) model
 

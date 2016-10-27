@@ -72,6 +72,32 @@ getSiblings id tree =
     List.concatMap (getSiblings id) (getChildren tree)
 
 
+getNext : String -> Tree -> Maybe Tree
+getNext id tree =
+  let
+    idx = getIndex id tree
+  in
+  case idx of
+    Nothing -> Nothing
+
+    Just i ->
+      getSiblings id tree
+        |> ListExtra.getAt (i+1)
+
+
+getPrev : String -> Tree -> Maybe Tree
+getPrev id tree =
+  let
+    idx = getIndex id tree
+  in
+  case idx of
+    Nothing -> Nothing
+
+    Just i ->
+      getSiblings id tree
+        |> ListExtra.getAt (i-1)
+
+
 getContent : String -> Tree -> String
 getContent id tree =
   case getTree id tree of
