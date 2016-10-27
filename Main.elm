@@ -90,10 +90,28 @@ update msg model =
     -- === Card Activation ===
 
     Activate id ->
+      let
+        desc =
+          getTree id model.tree ? Trees.defaultTree
+            |> getDescendants
+            |> List.map .id
+      in
       { model
-        | viewState = { vs | active = id }
+        | viewState = { vs | active = id, descendants = desc }
       }
-        ! [activateCards [[id]]]
+        ! [activateCards (centerlineIds model.tree (getTree id model.tree ? Trees.defaultTree))]
+
+    GoLeft id ->
+      model ! []
+
+    GoDown id ->
+      model ! []
+
+    GoUp id ->
+      model ! []
+
+    GoRight id ->
+      model ! []
       
     -- === Card Editing  ===
 

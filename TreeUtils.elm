@@ -88,6 +88,64 @@ getIndex id tree =
     |> ListExtra.elemIndex id
 
 
+getDescendants : Tree -> List Tree
+getDescendants t =
+  let
+    children = getChildren t
+  in
+  if List.isEmpty children then
+    []
+  else
+    children ++ (List.concatMap getDescendants children)
+
+
+getAncestors : Tree -> Tree -> List Tree -> List Tree
+getAncestors all target accum =
+  let
+    current =
+      case (List.head accum) of
+        Nothing -> target
+        Just t -> t
+  in
+  case (getParent current.id all) of
+    Nothing -> accum
+    Just p ->
+      (getAncestors all target (p :: accum))
+
+
+getDepth : Int -> Tree -> String -> Int
+getDepth prev tree id =
+  case tree.children of
+    Children children ->
+      if (tree.id == id) then
+        prev
+      else
+        children
+          |> List.map ((flip (getDepth (prev+1))) id)
+          |> List.maximum
+          |> Maybe.withDefault 0
+
+
+
+
+-- SPECIAL PROPERTIES
+
+centerlineIds : Tree -> Tree -> List (List String)
+centerlineIds all active =
+  let
+    desc = getDescendants active
+    anc = getAncestors all active []
+    withDepth x =
+      (getDepth 0 all x.id, x.id)
+  in
+  anc
+    |> List.map withDepth
+    |> List.append [ withDepth active ]
+    |> List.append (desc |> List.map withDepth)
+    |> List.sortBy (\x -> fst x)
+    |> ListExtra.groupWhile (\x y-> fst x == fst y)
+    |> List.map (List.map (\x -> snd x))
+
 
 
 
