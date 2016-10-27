@@ -31,7 +31,7 @@ opToValue op =
       Json.Encode.object
         [ ( "opType", Json.Encode.string "Ins" )
         , ( "_id", Json.Encode.string id )
-        , ( "content", contentToValue content)
+        , ( "content", Json.Encode.string content)
         , ( "parentId", maybeToValue pid_ Json.Encode.string )
         , ( "position", Json.Encode.int position )
         , ( "upd", maybeToValue upd_ Json.Encode.string )
@@ -58,12 +58,10 @@ treeToValue tree =
   case tree.children of
     Children c ->
       Json.Encode.object
-        [ ( "uid", Json.Encode.string tree.uid )
-        , ( "content", contentToValue tree.content )
+        [ ( "id", Json.Encode.string tree.id )
+        , ( "content", Json.Encode.string tree.content )
         , ( "parentId", maybeToValue tree.parentId Json.Encode.string )
-        , ( "prev", maybeToValue tree.prev Json.Encode.string )
-        , ( "next", maybeToValue tree.next Json.Encode.string )
-        , ( "visible", Json.Encode.bool tree.visible )
+        , ( "position", Json.Encode.int tree.position )
         , ( "children", Json.Encode.list (List.map treeToValue c))
         ]
 
@@ -119,7 +117,7 @@ opInfo tag =
     "Ins" ->
       object5 Ins
         ("_id" := string) 
-        ("content" := contentDecoder)
+        ("content" := string)
         (maybe ("parentId" := string)) 
         ("position" := int) 
         (maybe ("upd" := string))
@@ -133,13 +131,11 @@ opInfo tag =
 
 treeDecoder : Decoder Tree
 treeDecoder =
-  Json.object7 Tree
-    ("uid" := string)
-    ("content" := contentDecoder)
+  Json.object5 Tree
+    ("id" := string)
+    ("content" := string)
     (maybe ("parentId" := string)) 
-    (maybe ("prev" := string))
-    (maybe ("next" := string))
-    ("visible" := bool)
+    ("position" := int)
     ("children" := list (lazyRecurse (\_ -> treeDecoder)) |> Json.map Children )
 
 

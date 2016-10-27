@@ -1,84 +1,15 @@
 var jQuery = require('jquery')
-var db = new PouchDB('elm-gingko-test-cards');
 var ipc = require('electron').ipcRenderer
 var _ = require('underscore')
 var autosize = require('textarea-autosize')
 
 var gingko = null;
 
-// in-memory data, for quick deduping
-var contents = []
-var nodes = []
-var commits = []
-var operations = []
-var tree = null
-var commit = null
-var floating = []
-var viewState = null
-
-db.allDocs({include_docs: true}).then(function(docs){
-  contents = docs.rows
-            .filter(function(row){
-              return row.doc.type == "content" 
-            })
-            .map(function(row){
-              delete row.doc["_rev"];
-              delete row.doc["type"];
-              return row.doc;
-            });  
-
-  nodes = docs.rows
-            .filter(function(row){
-              return row.doc.type == "node" 
-            })
-            .map(function(row){
-              delete row.doc["_rev"];
-              delete row.doc["type"];
-              return row.doc;
-            });  
-
-  commits = docs.rows
-            .filter(function(row){
-              return row.doc.type == "commit" 
-            })
-            .map(function(row){
-              delete row.doc["_rev"];
-              delete row.doc["type"];
-              return row.doc;
-            });  
-
-  operations = docs.rows
-            .filter(function(row){
-              return row.doc.type == "operation" 
-            })
-            .map(function(row){
-              delete row.doc["_rev"];
-              delete row.doc["type"];
-              return row.doc;
-            });  
-
-  tree = JSON.parse(localStorage.getItem('gingko-tree'))
-  commit = JSON.parse(localStorage.getItem('gingko-commit'))
-  floating = JSON.parse(localStorage.getItem('gingko-floating'))
-  viewState = JSON.parse(localStorage.getItem('gingko-viewState'))
-            
-  
-  var startingState =
-    { contents: contents
-    , nodes: nodes
-    , commits: commits
-    , operations: operations
-    , tree: tree
-    , floating: floating
-    , commit: commit
-    , viewState: viewState  
-    }
-
-  startElm(startingState);
-
-}).catch(function(err){
-  startElm(null);
-});
+ipc.on('file-read', (event, message) => {
+  var json = JSON.parse(message)
+  console.log(json)
+  startElm(json)
+})
 
 startElm = function(init) {
   gingko = Elm.Main.fullscreen(init);
@@ -100,20 +31,7 @@ scrollTo = function(cid, colIdx) {
 }
 
 saveModel = function(model) {
-  saveObjects(_.difference(model.contents, contents), "content")
-  saveObjects(_.difference(model.nodes, nodes), "node")
-  saveObjects(_.difference(model.commits, commits), "commit")
-  saveObjects(_.difference(model.operations, operations), "operation")
-
-  tree = model.tree
-  commit = model.commit
-  floating = model.floating
-  viewState = model.viewState
-  
-  localStorage.setItem('gingko-tree', JSON.stringify(tree))
-  localStorage.setItem('gingko-commit', JSON.stringify(commit))
-  localStorage.setItem('gingko-floating', JSON.stringify(floating))
-  localStorage.setItem('gingko-viewState', JSON.stringify(viewState))
+  ipc.send('save', model)
 }
 
 saveObjects = function(objects, type) {

@@ -18,6 +18,7 @@ import List.Extra as ListExtra
 import Sha1 exposing (timestamp)
 import Types exposing (..)
 import Trees exposing (update, view)
+import Coders exposing (modelDecoder, modelToValue)
 
 
 main : Program Json.Value
@@ -59,8 +60,15 @@ defaultModel =
 
 
 init : Json.Value -> (Model, Cmd Msg)
-init _ =
-  defaultModel ! []
+init savedState =
+  case Json.decodeValue modelDecoder savedState of
+    Ok model ->
+      model ! []
+    Err err ->
+      let
+        deb = Debug.log "init decode error" err
+      in
+      defaultModel ! []
 
 
 -- UPDATE
@@ -105,7 +113,7 @@ update msg model =
           let
             db1 = Debug.log "model" model
           in
-          model ! []
+          model ! [ model |> modelToValue |> saveModel ]
 
         "mod+enter" ->
           editMode model

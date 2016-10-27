@@ -55,9 +55,14 @@ app.on('activate', () => {
 const menuTemplate = 
   [ { label: 'File'
     , submenu:
-        [ { label: 'Commit Changes'
+        [ { label: 'Open File...'
           , click (item, focusedWindow) {
-              if (focusedWindow) focusedWindow.webContents.send('commit-changes')
+              dialog.showOpenDialog(focusedWindow, {title: "Open File...", defaultPath: __dirname, properties: ['openFile']}, function(e) {
+                fs.readFile(e[0], (err, data) => {
+                  if (err) throw err;
+                  focusedWindow.webContents.send('file-read', data)
+                })
+              })
             }
           }
         , { label: 'Save As JSON'
@@ -92,6 +97,10 @@ const menuTemplate =
 const menu = Menu.buildFromTemplate(menuTemplate)
 Menu.setApplicationMenu(menu)
 
+ipcMain.on('save', (event, arg) => {
+  saveModel(arg)
+})
+
 ipcMain.on('save-as-json', (event, arg) => {
   saveAsJSON(arg)
 })
@@ -100,6 +109,11 @@ ipcMain.on('save-as-markdown', (event, arg) => {
   saveAsMarkdown(arg)
 })
 
+saveModel = function(model){
+  dialog.showSaveDialog({title: 'Save', defaultPath: __dirname }, function(e){
+    fs.writeFile(e, JSON.stringify(model, null, 2),function (err) { if(err) { console.log(err.message)}})
+  })
+}
 saveAsJSON = function(json){
   dialog.showSaveDialog({title: 'Save as JSON', defaultPath: __dirname }, function(e){
     fs.writeFile(e, JSON.stringify(json, null, 2), function (err) { if(err) { console.log(err.message)}})
