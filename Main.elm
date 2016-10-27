@@ -95,24 +95,21 @@ update msg model =
     -- === Card Editing  ===
 
     OpenCard id str ->
-      let
-        vsf vs = 
-          { vs 
-            | editing = Just id
-            , field = str
-          }
-      in
       { model 
-        | viewState = vsf model.viewState
+        | viewState = { vs | active = id, editing = Just id, field = str }
       } 
         ! [focus id]
 
     UpdateField str ->
-      model ! []
+      { model 
+        | viewState = { vs | field = str }
+      } 
+        ! []
 
     UpdateCard id str ->
       { model
         | tree = Trees.update (Trees.Upd id str) model.tree
+        , viewState = { vs | active = id, editing = Nothing, field = "" }
       }
         ! []
 
@@ -123,7 +120,10 @@ update msg model =
         ! []
 
     CancelCard ->
-      model ! []
+      { model 
+        | viewState = { vs | editing = Nothing, field = "" }
+      } 
+        ! []
 
     -- === External Inputs ===
 
