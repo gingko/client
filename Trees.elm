@@ -18,7 +18,15 @@ import TreeUtils exposing (getColumns, getChildren, getParent)
 
 defaultTree =
   { id = "defaultTree"
-  , content = "Content fo defaultTree"
+  , content = "Content from defaultTree"
+  , children = Children []
+  }
+
+
+blankTree : Int -> Tree
+blankTree id =
+  { id = toString id
+  , content = ""
   , children = Children []
   }
 

@@ -17,7 +17,7 @@ import List.Extra as ListExtra
 
 import Sha1 exposing (timestamp)
 import Types exposing (..)
-import Trees exposing (update, view)
+import Trees exposing (update, view, blankTree)
 import TreeUtils exposing (getContent)
 import Coders exposing (modelDecoder, modelToValue)
 
@@ -43,6 +43,7 @@ port export : Json.Encode.Value -> Cmd msg
 type alias Model =
   { tree : Tree
   , viewState : ViewState
+  , nextId : Int
   }
 
 
@@ -57,6 +58,7 @@ defaultModel =
       , editing = Nothing
       , field = ""
       }
+  , nextId = 1
   }
 
 
@@ -124,6 +126,30 @@ update msg model =
         | viewState = { vs | editing = Nothing, field = "" }
       } 
         ! []
+
+    -- === Card Insertion  ===
+
+    Insert subtree pid idx ->
+      let
+        newId = subtree.id
+      in
+      { model
+        | tree = Trees.update (Trees.Ins subtree pid idx) model.tree
+        , viewState = 
+            { vs | active = newId , editing = Just newId , field = subtree.content }
+        , nextId = model.nextId + 1
+      }
+        ! [focus newId]
+
+    InsertAbove id ->
+      model ! []
+
+    InsertBelow id ->
+      model ! []
+
+    InsertChild pid ->
+      update (Insert (blankTree model.nextId) pid 999999) model
+
 
     -- === External Inputs ===
 

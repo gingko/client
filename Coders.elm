@@ -11,6 +11,7 @@ import TreeUtils exposing (newLine)
 type alias Model =
   { tree : Tree
   , viewState : ViewState
+  , nextId : Int
   }
 
 
@@ -21,6 +22,7 @@ modelToValue model =
   Json.Encode.object
    [ ("tree", treeToValue model.tree)
    , ("viewState", viewStateToValue model.viewState)
+   , ("nextId", Json.Encode.int model.nextId)
    ]
 
 
@@ -70,9 +72,10 @@ treeToSimpleJSON tree =
 
 modelDecoder : Decoder Model
 modelDecoder =
-  Json.object2 Model
+  Json.object3 Model
     ("tree" := treeDecoder)
     ("viewState" := viewStateDecoder)
+    ("nextId" := int)
 
 
 treeDecoder : Decoder Tree
