@@ -64,6 +64,14 @@ getChildren x =
       c
 
 
+getSiblings : String -> Tree -> List Tree
+getSiblings id tree =
+  if (getChildren tree |> List.map .id |> List.member id) then
+    getChildren tree
+  else
+    List.concatMap (getSiblings id) (getChildren tree)
+
+
 getContent : String -> Tree -> String
 getContent id tree =
   case getTree id tree of
@@ -71,6 +79,15 @@ getContent id tree =
       ""
     Just t ->
       t.content
+
+
+getIndex : String -> Tree -> Maybe Int
+getIndex id tree =
+  getSiblings id tree
+    |> List.map .id
+    |> ListExtra.elemIndex id
+
+
 
 
 

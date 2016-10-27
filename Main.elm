@@ -18,7 +18,7 @@ import List.Extra as ListExtra
 import Sha1 exposing (timestamp)
 import Types exposing (..)
 import Trees exposing (update, view, blankTree)
-import TreeUtils exposing (getContent)
+import TreeUtils exposing (..)
 import Coders exposing (modelDecoder, modelToValue)
 
 
@@ -142,10 +142,24 @@ update msg model =
         ! [focus newId]
 
     InsertAbove id ->
-      model ! []
+      let
+        idx =
+          getIndex id model.tree ? 999999
+
+        pid =
+          getParent id model.tree ? Trees.defaultTree |> .id
+      in
+      update (Insert (blankTree model.nextId) pid idx) model
 
     InsertBelow id ->
-      model ! []
+      let
+        idx =
+          getIndex id model.tree ? 999999
+
+        pid =
+          getParent id model.tree ? Trees.defaultTree |> .id
+      in
+      update (Insert (blankTree model.nextId) pid (idx+1)) model
 
     InsertChild pid ->
       update (Insert (blankTree model.nextId) pid 999999) model
