@@ -35,21 +35,8 @@ type Msg
 
 -- OBJECTS
 
-type alias Content =
-  { id : String
-  , contentType : String
-  , content : String
-  }
-
-type alias Node =
-  { id : String
-  , contentId : String
-  , parentId: Maybe String
-  , position: Int
-  }
-
 type Op
-  = Ins String Content (Maybe String) Int (Maybe String)
+  = Ins String String (Maybe String) Int (Maybe String)
   | Del String
 
 
@@ -69,7 +56,7 @@ type alias ViewState =
 
 type alias Tree =
   { id : String
-  , content : Content
+  , content : String
   , parentId : Maybe String
   , position : Int
   , children : Children
@@ -79,26 +66,3 @@ type alias Tree =
 type Children = Children (List Tree)
 type alias Group = List Tree
 type alias Column = List (List Tree)
-
-
-
-
--- DEFAULTS
-
-defaultContent : Content
-defaultContent =
-  { id = -- sha1(contentType+"\n"+content)
-      "5960f096212e449474d2eb1f8f4e33495d0a53aa" 
-  , contentType = "text/markdown" 
-  , content = "fromDefault"
-  }
-
-defaultNode : Node
-defaultNode =
-  { id = -- sha1(contentId+"\n"+childrenIds.join("\n")
-      "1331dfaaa7dc267a902e4a9aa0e9d97130fabc4c" 
-  , contentId = defaultContent.id
-  , parentId = Nothing
-  , position = 0
-  }
-

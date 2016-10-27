@@ -18,7 +18,7 @@ import TreeUtils exposing (getColumns)
 
 defaultTree =
   { id = "defaultTree"
-  , content = defaultContent
+  , content = "Content fo defaultTree"
   , parentId = Nothing
   , position = 0
   , children = Children []
@@ -178,7 +178,7 @@ viewCard vstate tree =
               , span 
                 [ class "card-btn edit"
                 , title "Edit Card (Enter)"
-                , onClick (OpenCard tree.id tree.content.content)
+                , onClick (OpenCard tree.id tree.content)
                 ]
                 []
               ]
@@ -223,9 +223,9 @@ viewCard vstate tree =
         (
           [ div [ class "view" 
                 , onClick (Activate tree.id)
-                , onDoubleClick (OpenCard tree.id tree.content.content)
-                ] [ Markdown.toHtmlWith options [] tree.content.content ]
-          , tarea tree.content.content
+                , onDoubleClick (OpenCard tree.id tree.content)
+                ] [ Markdown.toHtmlWith options [] tree.content ]
+          , tarea tree.content
           ] ++
           normalControls
         )

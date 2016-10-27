@@ -39,18 +39,14 @@ port export : Json.Encode.Value -> Cmd msg
 
 
 type alias Model =
-  { contents : List Content
-  , nodes : List Node
-  , trees : List Tree
+  { trees : List Tree
   , viewState : ViewState
   }
 
 
 defaultModel : Model
 defaultModel =
-  { contents = [defaultContent]
-  , nodes = [defaultNode]
-  , trees = [Trees.defaultTree]
+  { trees = [Trees.defaultTree]
   , viewState = 
       { active = "0"
       , activePast = []

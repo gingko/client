@@ -9,9 +9,7 @@ import TreeUtils exposing (newLine)
 
 
 type alias Model =
-  { contents : List Content
-  , nodes : List Node
-  , trees : List Tree
+  { trees : List Tree
   , viewState : ViewState
   }
 
@@ -21,29 +19,9 @@ type alias Model =
 modelToValue : Model -> Json.Encode.Value
 modelToValue model =
   Json.Encode.object
-   [ ("contents", Json.Encode.list (List.map contentToValue model.contents))
-   , ("nodes", Json.Encode.list (List.map nodeToValue model.nodes))
-   , ("trees", Json.Encode.list (List.map treeToValue model.trees))
+   [ ("trees", Json.Encode.list (List.map treeToValue model.trees))
    , ("viewState", viewStateToValue model.viewState)
    ]
-
-
-contentToValue : Content -> Json.Encode.Value
-contentToValue content =
-  Json.Encode.object
-    [ ("_id", Json.Encode.string content.id)
-    , ("contentType", Json.Encode.string content.contentType)
-    , ("content", Json.Encode.string content.content)
-    ]
-
-
-nodeToValue : Node -> Json.Encode.Value
-nodeToValue node =
-  Json.Encode.object
-    [ ("_id", Json.Encode.string node.id)
-    , ("contentId", Json.Encode.string node.contentId)
-    , ("childrenIds", Json.Encode.list (List.map Json.Encode.string node.childrenIds) )
-    ]
 
 
 opToValue : Op -> Json.Encode.Value
@@ -111,16 +89,12 @@ treeToSimpleJSON tree =
       Json.Encode.array 
       ( fromList
         [ Json.Encode.object
-          [ ( "content", contentToString tree.content )
+          [ ( "content", Json.Encode.string tree.content )
           , ( "children", Json.Encode.array (fromList (List.map treeToSimpleJSON c)))
           ]
         ]
       )
 
-
-contentToString : Content -> Json.Encode.Value
-contentToString content =
-  Json.Encode.string content.content
 
 
 
@@ -129,27 +103,9 @@ contentToString content =
 
 modelDecoder : Decoder Model
 modelDecoder =
-  Json.object4 Model
-    ("contents" := Json.list contentDecoder)
-    ("nodes" := Json.list nodeDecoder)
+  Json.object2 Model
     ("trees" := Json.list treeDecoder)
     ("viewState" := viewStateDecoder)
-
-
-contentDecoder : Decoder Content
-contentDecoder =
-  Json.object3 Content
-    ("_id" := string)
-    ("contentType" := string)
-    ("content" := string)
-
-
-nodeDecoder : Decoder Node
-nodeDecoder =
-  Json.object3 Node
-    ("_id" := string)
-    ("contentId" := string)
-    ("childrenIds" := Json.list string)
 
 
 opDecoder : Decoder Op
