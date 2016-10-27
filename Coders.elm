@@ -9,7 +9,7 @@ import TreeUtils exposing (newLine)
 
 
 type alias Model =
-  { trees : List Tree
+  { tree : Tree
   , viewState : ViewState
   }
 
@@ -19,38 +19,9 @@ type alias Model =
 modelToValue : Model -> Json.Encode.Value
 modelToValue model =
   Json.Encode.object
-   [ ("trees", Json.Encode.list (List.map treeToValue model.trees))
+   [ ("tree", treeToValue model.tree)
    , ("viewState", viewStateToValue model.viewState)
    ]
-
-
-opToValue : Op -> Json.Encode.Value
-opToValue op =
-  case op of
-    Ins id content pid_ position upd_ ->
-      Json.Encode.object
-        [ ( "opType", Json.Encode.string "Ins" )
-        , ( "_id", Json.Encode.string id )
-        , ( "content", Json.Encode.string content)
-        , ( "parentId", maybeToValue pid_ Json.Encode.string )
-        , ( "position", Json.Encode.int position )
-        , ( "upd", maybeToValue upd_ Json.Encode.string )
-        ]
-
-    Del id ->
-      Json.Encode.object
-        [ ( "opType", Json.Encode.string "Del" )
-        , ( "_id", Json.Encode.string id )
-        ]
-
-
-
-flopToValue : (Op, Bool) -> Json.Encode.Value
-flopToValue flop =
-  Json.Encode.list
-    [ opToValue (fst flop)
-    , Json.Encode.bool (snd flop)
-    ]
 
 
 treeToValue : Tree -> Json.Encode.Value
@@ -60,8 +31,6 @@ treeToValue tree =
       Json.Encode.object
         [ ( "id", Json.Encode.string tree.id )
         , ( "content", Json.Encode.string tree.content )
-        , ( "parentId", maybeToValue tree.parentId Json.Encode.string )
-        , ( "position", Json.Encode.int tree.position )
         , ( "children", Json.Encode.list (List.map treeToValue c))
         ]
 
@@ -102,40 +71,15 @@ treeToSimpleJSON tree =
 modelDecoder : Decoder Model
 modelDecoder =
   Json.object2 Model
-    ("trees" := Json.list treeDecoder)
+    ("tree" := treeDecoder)
     ("viewState" := viewStateDecoder)
-
-
-opDecoder : Decoder Op
-opDecoder =
-  ("opType" := string) `andThen` opInfo
-
-
-opInfo : String -> Decoder Op
-opInfo tag =
-  case tag of
-    "Ins" ->
-      object5 Ins
-        ("_id" := string) 
-        ("content" := string)
-        (maybe ("parentId" := string)) 
-        ("position" := int) 
-        (maybe ("upd" := string))
-
-    "Del" ->
-      object1 Del
-        ("_id" := string) 
-
-    _ -> Json.fail (tag ++ " is not a recognized type for Op")
 
 
 treeDecoder : Decoder Tree
 treeDecoder =
-  Json.object5 Tree
+  Json.object3 Tree
     ("id" := string)
     ("content" := string)
-    (maybe ("parentId" := string)) 
-    ("position" := int)
     ("children" := list (lazyRecurse (\_ -> treeDecoder)) |> Json.map Children )
 
 

@@ -10,7 +10,7 @@ import Json.Decode as Json
 import Markdown
 
 import Types exposing (..)
-import TreeUtils exposing (getColumns)
+import TreeUtils exposing (getColumns, getChildren, getParent)
 
 
 
@@ -19,8 +19,6 @@ import TreeUtils exposing (getColumns)
 defaultTree =
   { id = "defaultTree"
   , content = "Content fo defaultTree"
-  , parentId = Nothing
-  , position = 0
   , children = Children []
   }
 
@@ -31,50 +29,85 @@ defaultTree =
 
 type TreeMsg
   = NoOp
-  | Apply Op
+  | Ins Tree String Int
+  | Del String
+
 
 
 update : TreeMsg -> Tree -> Tree
 update msg tree =
-  let
-    children =
-      case tree.children of
-        Children trees -> trees
-
-  in
   case msg of
     NoOp -> tree
 
-    Apply op ->
-      case op of
-        Ins id content parentId_ position updated ->
-          tree
+    Ins newTree parentId idx ->
+      insertSubtree newTree parentId idx tree
 
-        Del id ->
-          tree
+    Del id ->
+      pruneSubtree id tree
+
+insertSubtree : Tree -> String -> Int -> Tree -> Tree
+insertSubtree subtree parentId idx tree =
+  let
+    fn = (\c -> (List.take idx c) ++ [subtree] ++ (List.drop idx c))
+  in
+  modifyChildren parentId fn tree
 
 
+pruneSubtree : String -> Tree -> Tree
+pruneSubtree id tree =
+  modifySiblings id (\c -> List.filter (\x -> x.id /= id) c) tree
 
-applyOperations : List Op -> Tree -> Tree
-applyOperations ops tree =
-  List.foldl applyOp tree ops
+
+modifyTree : String -> (Tree -> Tree) -> Tree -> Tree
+modifyTree id upd tree =
+  if tree.id == id then
+    upd tree
+  else
+    { tree
+      | children =
+          getChildren tree
+            |> List.map (modifyTree id upd)
+            |> Children
+    }
 
 
-applyOp : Op -> Tree -> Tree
-applyOp op tree =
-  update (Apply op) tree
+modifyChildren : String -> (List Tree -> List Tree) -> Tree -> Tree
+modifyChildren pid upd tree =
+  if tree.id == pid then
+    { tree
+      | children =
+          getChildren tree
+            |> upd
+            |> Children
+    }
+  else
+    { tree
+      | children =
+          getChildren tree
+            |> List.map (modifyChildren pid upd)
+            |> Children
+    }
+
+
+modifySiblings : String -> (List Tree -> List Tree) -> Tree -> Tree
+modifySiblings id upd tree =
+  case getParent id tree of
+    Nothing ->
+      tree
+    Just parentTree ->
+      modifyChildren parentTree.id upd tree
 
 
 
 
 -- VIEW
 
-view : ViewState -> List Tree -> Html Msg
-view vstate trees =
+view : ViewState -> Tree -> Html Msg
+view vstate tree =
   let
     columns =
       [[[]]] ++
-      getColumns([[ trees ]]) ++
+      getColumns([[[ tree ]]]) ++
       [[[]]]
         |> List.map (viewColumn vstate)
   in

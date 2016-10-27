@@ -35,10 +35,6 @@ type Msg
 
 -- OBJECTS
 
-type Op
-  = Ins String String (Maybe String) Int (Maybe String)
-  | Del String
-
 
 
 
@@ -57,8 +53,6 @@ type alias ViewState =
 type alias Tree =
   { id : String
   , content : String
-  , parentId : Maybe String
-  , position : Int
   , children : Children
   }
 

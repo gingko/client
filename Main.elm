@@ -40,14 +40,14 @@ port export : Json.Encode.Value -> Cmd msg
 
 
 type alias Model =
-  { trees : List Tree
+  { tree : Tree
   , viewState : ViewState
   }
 
 
 defaultModel : Model
 defaultModel =
-  { trees = [Trees.defaultTree]
+  { tree = Trees.defaultTree
   , viewState = 
       { active = "0"
       , activePast = []
@@ -91,6 +91,25 @@ update msg model =
       }
         ! [activateCards [[id]]]
       
+    -- === Card Editing  ===
+
+    OpenCard id str ->
+      model ! []
+
+    UpdateField str ->
+      model ! []
+
+    UpdateCard id str ->
+      model ! []
+
+    DeleteCard id ->
+      { model
+        | tree = Trees.update (Trees.Del id) model.tree
+      }
+        ! []
+
+    CancelCard ->
+      model ! []
 
     -- === External Inputs ===
 
@@ -197,7 +216,7 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-  (lazy2 Trees.view model.viewState model.trees)
+  (lazy2 Trees.view model.viewState model.tree)
 
 
 

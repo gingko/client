@@ -34,6 +34,20 @@ getColumns cols =
 
 -- ACCESSORS
 
+getParent : String -> Tree -> Maybe Tree
+getParent id tree =
+  case tree.children of
+    Children [] ->
+      Nothing
+    Children children ->
+      if (List.member id (List.map .id children)) then
+        Just tree
+      else
+        children
+          |> List.map (getParent id)
+          |> Maybe.oneOf
+
+
 getChildren : Tree -> List Tree
 getChildren x =
   case x.children of
