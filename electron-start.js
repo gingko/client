@@ -18,25 +18,8 @@ function createWindow () {
   // and load the index.html of the app.
   win.loadURL(`file://${__dirname}/dist/index.html`)
 
-  win.on('close', (e) => {
-    var options = 
-      { title: "test"
-      , message: "Save changes before closing?"
-      , buttons: ["Close Without Saving", "Cancel", "Save"]
-      , defaultId: 2
-      }
-    var choice = dialog.showMessageBox(options)
-
-    switch (choice) {
-      case 1:
-        e.preventDefault()
-        break
-      case 2:
-        win.webContents.send('save-and-close')
-        e.preventDefault()
-        break
-    }
-  })
+//  win.on('close', (e) => {
+//  })
 
   // Emitted when the window is closed.
   win.on('closed', () => {

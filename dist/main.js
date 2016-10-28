@@ -14,7 +14,7 @@ const dialog = remote.dialog
 
 var model = null
 var currentFile = null
-var saved = false
+var saved = true
 var gingko =  Elm.Main.fullscreen(null)
 
 
@@ -50,26 +50,31 @@ gingko.ports.message.subscribe(function(msg) {
 
 /* === Messages From Main Process === */
 
-ipc.on('save-and-close', (event, message) => {
-  console.log(event)
-
-  var success =
-    function() { 
-      app.exit()
-    }
-
-  var failure =
-    function(e){
-      console.log(e)
-      event.preventDefault()
-    }
-
-  attemptSave(model, success, failure)
-})
 
 
 
 /* === Handlers === */
+
+window.onbeforeunload = function (e) {
+  if(!saved) {
+    var options = 
+      { title: "test"
+      , message: "Save changes before closing?"
+      , buttons: ["Close Without Saving", "Cancel", "Save"]
+      , defaultId: 2
+      }
+    var choice = dialog.showMessageBox(options)
+
+    if (choice !== 0) {
+      e.returnValue = false
+
+      if (choice == 2) {
+        attemptSave(model, () => app.exit(), (err) => console.log(err))
+      }
+    }
+  }
+}
+
 
 attemptSave = function(model, success, fail) {
   saveModel(model, function(err){
@@ -77,6 +82,7 @@ attemptSave = function(model, success, fail) {
     success()
   })
 }
+
 
 saveModel = function(model, cb){
   if (currentFile) {
@@ -86,6 +92,7 @@ saveModel = function(model, cb){
   }
 }
 
+
 saveModelAs = function(model, cb){
   dialog.showSaveDialog({title: 'Save As', defaultPath: `${__dirname}/..` }, function(e){
     currentFile = e
@@ -93,6 +100,7 @@ saveModelAs = function(model, cb){
     fs.writeFile(e, JSON.stringify(model, null, 2), cb)
   })
 }
+
 
 saveCallback = function(err) {
   if(err) { 
@@ -105,22 +113,9 @@ saveCallback = function(err) {
 }
 
 
+
+
 /* === Messages To Elm === */
-
-ipc.on('file-read', (event, filename, message) => {
-  var json = JSON.parse(message)
-  document.title = `Gingko - ${path.basename(filename)}`
-  startElm(json)
-})
-
-ipc.on('save-as-markdown', (event, message) => {
-  gingko.ports.externals.send(['save-as-markdown', ""])
-})
-
-ipc.on('save-as-json', (event, message) => {
-  gingko.ports.externals.send(['save-as-json', ""])
-})
-
 
 // From This Renderer Process
 
