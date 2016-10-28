@@ -32,15 +32,15 @@ gingko.ports.activateCards.subscribe(function(centerlineIds) {
 
 gingko.ports.message.subscribe(function(msg) {
   switch (msg[0]) {
+    case 'save':
+      model = msg[1]
+      saveModel(model, saveCallback)
+      break
     case 'save-temp':
       model = msg[1]
       document.title = 
         /\*/.test(document.title) ? document.title : document.title + "*"
       saved = false
-      break
-    case 'save':
-      model = msg[1]
-      saveModel(model, saveCallback)
       break
   }
 })
@@ -48,12 +48,12 @@ gingko.ports.message.subscribe(function(msg) {
 
 
 
-/* === Messages From Main Process === */
-
-
-
-
 /* === Handlers === */
+
+ipc.on('load', function(e) {
+  loadFile()
+})
+
 
 window.onbeforeunload = function (e) {
   if(!saved) {
@@ -95,8 +95,7 @@ saveModel = function(model, cb){
 
 saveModelAs = function(model, cb){
   dialog.showSaveDialog({title: 'Save As', defaultPath: `${__dirname}/..` }, function(e){
-    currentFile = e
-    document.title = `Gingko - ${path.basename(e)}`
+    setCurrentFile(e)
     fs.writeFile(e, JSON.stringify(model, null, 2), cb)
   })
 }
@@ -113,11 +112,27 @@ saveCallback = function(err) {
 }
 
 
+setCurrentFile = function(filepath) {
+  currentFile = filepath
+  saved = true
+  document.title = `Gingko - ${path.basename(filepath)}`
+}
+
+
 
 
 /* === Messages To Elm === */
 
-// From This Renderer Process
+loadFile = function() {
+  dialog.showOpenDialog(null, {title: "Open File...", defaultPath: `${__dirname}/..`, properties: ['openFile']}, function(e) {
+    fs.readFile(e[0], (err, data) => {
+      if (err) throw err;
+      setCurrentFile(e[0])
+      gingko.ports.data.send(JSON.parse(data))
+    })
+  })
+}
+
 
 var shortcuts = [ 'mod+enter'
                 , 'enter'

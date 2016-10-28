@@ -32,7 +32,7 @@ type Msg
     | MoveLeft String
     | MoveRight String
     -- === External Inputs ===
-    | OpIn Json.Value
+    | DataIn Json.Value
     | ExternalCommand (String, String)
     | HandleKey String
 

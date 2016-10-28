@@ -18,8 +18,6 @@ function createWindow () {
   // and load the index.html of the app.
   win.loadURL(`file://${__dirname}/dist/index.html`)
 
-//  win.on('close', (e) => {
-//  })
 
   // Emitted when the window is closed.
   win.on('closed', () => {
@@ -61,13 +59,7 @@ const menuTemplate =
     , submenu:
         [ { label: 'Open File...'
           , click (item, focusedWindow) {
-              dialog.showOpenDialog(focusedWindow, {title: "Open File...", defaultPath: __dirname, properties: ['openFile']}, function(e) {
-                fs.readFile(e[0], (err, data) => {
-                  if (err) throw err;
-                  currentFile = e[0]
-                  focusedWindow.webContents.send('file-read', e[0], data)
-                })
-              })
+              focusedWindow.webContents.send('load')
             }
           }
         , { label: 'Save As JSON'

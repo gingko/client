@@ -300,8 +300,6 @@ update msg model =
 
     ExternalCommand (cmd, arg) ->
       case cmd of
-        "save-and-close" ->
-          model ! [ message ("save-and-close", modelToValue model) ]
         "keyboard" ->
           model ! [run (HandleKey arg)]
         _ ->
@@ -309,6 +307,9 @@ update msg model =
             db1 = Debug.log "Unknown external command" cmd
           in
           model ! []
+
+    DataIn json ->
+      init json
 
     HandleKey str ->
       let
@@ -430,14 +431,14 @@ view model =
 -- SUBSCRIPTIONS
 
 port externals : ((String, String) -> msg) -> Sub msg -- ~ Sub (String, String)
-port opsIn : (Json.Encode.Value -> msg) -> Sub msg -- ~ Sub Op
+port data : (Json.Value -> msg) -> Sub msg
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.batch
     [ externals ExternalCommand
-    , opsIn OpIn
+    , data DataIn
     ]
 
 
