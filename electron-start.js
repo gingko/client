@@ -11,16 +11,36 @@ function createWindow () {
   win = new BrowserWindow(
     { width: 800
     , height: 600
-    , backgroundColor: ''
+    , backgroundColor: '#32596b'
     , icon: `${__dirname}/dist/leaf128.png` 
     })
 
   // and load the index.html of the app.
   win.loadURL(`file://${__dirname}/dist/index.html`)
 
+  win.on('close', (e) => {
+    var options = 
+      { title: "test"
+      , message: "Save changes before closing?"
+      , buttons: ["Close Without Saving", "Cancel", "Save"]
+      , defaultId: 2
+      }
+    var choice = dialog.showMessageBox(options)
+
+    switch (choice) {
+      case 1:
+        e.preventDefault()
+        break
+      case 2:
+        win.webContents.send('save-and-close')
+        e.preventDefault()
+        break
+    }
+  })
 
   // Emitted when the window is closed.
   win.on('closed', () => {
+
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
@@ -62,7 +82,7 @@ const menuTemplate =
                 fs.readFile(e[0], (err, data) => {
                   if (err) throw err;
                   currentFile = e[0]
-                  focusedWindow.webContents.send('file-read', data)
+                  focusedWindow.webContents.send('file-read', e[0], data)
                 })
               })
             }
@@ -103,6 +123,12 @@ ipcMain.on('save', (event, arg) => {
   saveModel(arg)
 })
 
+ipcMain.on('save-and-close', (event, arg) => {
+  saveModel(arg)
+
+  app.exit(0)
+})
+
 ipcMain.on('save-as', (event, arg) => {
   saveModelAs(arg)
 })
@@ -117,7 +143,11 @@ ipcMain.on('save-as-markdown', (event, arg) => {
 
 saveModel = function(model){
   if (currentFile) {
-    fs.writeFile(currentFile, JSON.stringify(model, null, 2),function (err) { if(err) { console.log(err.message)}})
+    fs.writeFile(currentFile, JSON.stringify(model, null, 2),function (err) { 
+      if(err) { 
+        console.log(err.message)
+      }
+    })
   } else {
     saveModelAs(model)
   }

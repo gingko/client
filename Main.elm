@@ -281,6 +281,8 @@ update msg model =
 
     ExternalCommand (cmd, arg) ->
       case cmd of
+        "save-and-close" ->
+          model ! [ message (messageToValue ("save-and-close", modelToValue model)) ]
         "keyboard" ->
           model ! [run (HandleKey arg)]
         _ ->
@@ -295,10 +297,7 @@ update msg model =
       in
       case str of
         "mod+x" ->
-          let
-            db1 = Debug.log "model" model
-          in
-          model ! [ model |> modelToValue |> saveModel ]
+          model ! [ message (messageToValue ("test-msg", modelToValue model)) ]
 
         "mod+s" ->
           model ! [ message (messageToValue ("save", modelToValue model)) ]
