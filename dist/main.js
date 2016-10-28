@@ -1,10 +1,12 @@
 var jQuery = require('jquery')
-var ipc = require('electron').ipcRenderer
 var _ = require('underscore')
 var autosize = require('textarea-autosize')
-const path = require('path')
-const dialog = require('electron').remote.dialog
 const fs = require('fs')
+const path = require('path')
+const ipc = require('electron').ipcRenderer
+const remote = require('electron').remote
+const app = remote.app
+const dialog = remote.dialog
 
 
 
@@ -12,7 +14,10 @@ const fs = require('fs')
 
 var model = null
 var currentFile = null
+var saved = false
 var gingko =  Elm.Main.fullscreen(null)
+
+
 
 
 /* === Elm Ports === */
@@ -31,46 +36,76 @@ gingko.ports.message.subscribe(function(msg) {
       model = msg[1]
       document.title = 
         /\*/.test(document.title) ? document.title : document.title + "*"
+      saved = false
       break
     case 'save':
       model = msg[1]
-      saveModel(model)
+      saveModel(model, saveCallback)
       break
   }
 })
 
 
-saveModel = function(model){
-  if (currentFile) {
-    fs.writeFile(currentFile, JSON.stringify(model, null, 2),function (err) { 
-      if(err) { 
-        dialog.showMessageBox({title: "Save Error", message: "Document wasn't saved."})
-        console.log(err.message)
-      }
 
-      document.title = document.title.replace('*', '')
-    })
+
+/* === Messages From Main Process === */
+
+ipc.on('save-and-close', (event, message) => {
+  console.log(event)
+
+  var success =
+    function() { 
+      app.exit()
+    }
+
+  var failure =
+    function(e){
+      console.log(e)
+      event.preventDefault()
+    }
+
+  attemptSave(model, success, failure)
+})
+
+
+
+/* === Handlers === */
+
+attemptSave = function(model, success, fail) {
+  saveModel(model, function(err){
+    if (err) { fail(err) } 
+    success()
+  })
+}
+
+saveModel = function(model, cb){
+  if (currentFile) {
+    fs.writeFile(currentFile, JSON.stringify(model, null, 2), cb)
   } else {
-    saveModelAs(model)
+    saveModelAs(model, cb)
   }
 }
 
-saveModelAs = function(model){
+saveModelAs = function(model, cb){
   dialog.showSaveDialog({title: 'Save As', defaultPath: `${__dirname}/..` }, function(e){
     currentFile = e
     document.title = `Gingko - ${path.basename(e)}`
-    fs.writeFile(e, JSON.stringify(model, null, 2),function (err) { if(err) { console.log(err.message)}})
+    fs.writeFile(e, JSON.stringify(model, null, 2), cb)
   })
+}
+
+saveCallback = function(err) {
+  if(err) { 
+    dialog.showMessageBox({title: "Save Error", message: "Document wasn't saved."})
+    console.log(err.message)
+  }
+
+  document.title = document.title.replace('*', '')
+  saved = true
 }
 
 
 /* === Messages To Elm === */
-
-// From Main Process
-
-ipc.on('save-and-close', (event, message) => {
-  gingko.ports.externals.send(['save-and-close', ""])
-})
 
 ipc.on('file-read', (event, filename, message) => {
   var json = JSON.parse(message)
