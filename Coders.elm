@@ -12,6 +12,7 @@ type alias Model =
   { tree : Tree
   , viewState : ViewState
   , nextId : Int
+  , saved : Bool
   }
 
 
@@ -49,11 +50,6 @@ viewStateToValue vs =
     ]
 
 
-messageToValue : (String, Json.Encode.Value) -> Json.Encode.Value
-messageToValue (msg, val) =
-  Json.Encode.array (Array.fromList [Json.Encode.string msg, val])
-
-
 
 
 -- EXPORT ENCODINGS
@@ -79,10 +75,11 @@ treeToSimpleJSON tree =
 
 modelDecoder : Decoder Model
 modelDecoder =
-  Json.object3 Model
+  Json.object4 Model
     ("tree" := treeDecoder)
     ("viewState" := viewStateDecoder)
     ("nextId" := int)
+    ( succeed True )
 
 
 treeDecoder : Decoder Tree

@@ -3,21 +3,65 @@ var ipc = require('electron').ipcRenderer
 var _ = require('underscore')
 var autosize = require('textarea-autosize')
 const path = require('path')
+const dialog = require('electron').remote.dialog
+const fs = require('fs')
 
-var gingko = null;
 
 
-/* === Elm Initialization === */
+/* === Initialization === */
 
-startElm = function(init) {
-  gingko = Elm.Main.fullscreen(init);
-  gingko.ports.saveModel.subscribe(saveModel);
-  gingko.ports.activateCards.subscribe(activateCards);
-  gingko.ports.export.subscribe(exportTree);
-  gingko.ports.message.subscribe(elmMessage);
+var model = null
+var currentFile = null
+var gingko =  Elm.Main.fullscreen(null)
+
+
+/* === Elm Ports === */
+
+gingko.ports.activateCards.subscribe(function(centerlineIds) {
+  centerlineIds.map(function(c, i){
+    var centerIdx = Math.round(c.length/2) - 1
+    scrollTo(c[centerIdx], i)
+  })
+})
+
+
+gingko.ports.message.subscribe(function(msg) {
+  switch (msg[0]) {
+    case 'save-temp':
+      model = msg[1]
+      document.title = 
+        /\*/.test(document.title) ? document.title : document.title + "*"
+      break
+    case 'save':
+      model = msg[1]
+      saveModel(model)
+      break
+  }
+})
+
+
+saveModel = function(model){
+  if (currentFile) {
+    fs.writeFile(currentFile, JSON.stringify(model, null, 2),function (err) { 
+      if(err) { 
+        dialog.showMessageBox({title: "Save Error", message: "Document wasn't saved."})
+        console.log(err.message)
+      }
+
+      document.title = document.title.replace('*', '')
+    })
+  } else {
+    saveModelAs(model)
+  }
 }
 
-
+saveModelAs = function(model){
+  dialog.showSaveDialog({title: 'Save As', defaultPath: `${__dirname}/..` }, function(e){
+    currentFile = e
+    document.title = `Gingko - ${path.basename(e)}`
+    fs.writeFile(e, JSON.stringify(model, null, 2),function (err) { if(err) { console.log(err.message)}})
+  })
+}
 
 
 /* === Messages To Elm === */
@@ -30,16 +74,8 @@ ipc.on('save-and-close', (event, message) => {
 
 ipc.on('file-read', (event, filename, message) => {
   var json = JSON.parse(message)
-  document.title = path.basename(filename)
+  document.title = `Gingko - ${path.basename(filename)}`
   startElm(json)
-})
-
-ipc.on('test-msg', (event, message) => {
-  console.log('test-msg log:',message)
-})
-
-ipc.on('commit-changes', (event, message) => {
-  gingko.ports.externals.send(['commit-changes', Date.now().toString()])
 })
 
 ipc.on('save-as-markdown', (event, message) => {
@@ -49,6 +85,7 @@ ipc.on('save-as-markdown', (event, message) => {
 ipc.on('save-as-json', (event, message) => {
   gingko.ports.externals.send(['save-as-json', ""])
 })
+
 
 // From This Renderer Process
 
@@ -96,25 +133,9 @@ Mousetrap.bind(shortcuts, function(e, s) {
 
 
 
-/* === Messages From Elm === */
+/* === DOM manipulation === */
 
-elmMessage = function(msg) {
-  switch (msg[0]) {
-    case 'save':
-      ipc.send(msg[0], msg[1])
-      break
-    case 'save-and-close':
-      ipc.send(msg[0], msg[1])
-      break
-  }
-}
-
-
-
-
-/* === Event Handlers === */
-
-scrollTo = function(cid, colIdx) {
+var scrollTo = function(cid, colIdx) {
   var card = document.getElementById('card-' + cid.toString());
   var col = document.getElementsByClassName('column')[colIdx+1]
   if (card == null) return;
@@ -126,32 +147,6 @@ scrollTo = function(cid, colIdx) {
     });
 }
 
-
-saveModel = function(model) {
-  ipc.send('save-as', model)
-}
-
-
-activateCards = function(centerlineIds) {
-  centerlineIds.map(function(c, i){
-    var centerIdx = Math.round(c.length/2) - 1
-    scrollTo(c[centerIdx], i)
-  })
-}
-
-
-exportTree = function(arg) {
-  if (typeof arg == "string") {
-    ipc.send('save-as-markdown', arg)
-  } else if (typeof arg == "object") {
-    ipc.send('save-as-json', arg)
-  }
-}
-
-
-
-
-/* === JS-only Events === */
 
 var observer = new MutationObserver(function(mutations) {
   mutations.forEach(function(mutation) {

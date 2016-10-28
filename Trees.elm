@@ -17,8 +17,8 @@ import TreeUtils exposing (getColumns, getChildren, getParent)
 -- MODEL
 
 defaultTree =
-  { id = "defaultTree"
-  , content = "Content from defaultTree"
+  { id = "0"
+  , content = ""
   , children = Children []
   }
 

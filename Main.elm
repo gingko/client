@@ -15,11 +15,10 @@ import Task
 import Markdown
 import List.Extra as ListExtra
 
-import Sha1 exposing (timestamp)
 import Types exposing (..)
 import Trees exposing (update, view, defaultTree, blankTree)
 import TreeUtils exposing (..)
-import Coders exposing (modelDecoder, modelToValue, messageToValue)
+import Coders exposing (modelDecoder, modelToValue)
 
 
 main : Program Json.Value
@@ -32,10 +31,8 @@ main =
     }
 
 
-port saveModel : Json.Encode.Value -> Cmd msg
 port activateCards : List (List String) -> Cmd msg
-port export : Json.Encode.Value -> Cmd msg
-port message : Json.Encode.Value -> Cmd msg
+port message : (String, Json.Encode.Value) -> Cmd msg
 
 
 -- MODEL
@@ -45,6 +42,7 @@ type alias Model =
   { tree : Tree
   , viewState : ViewState
   , nextId : Int
+  , saved : Bool
   }
 
 
@@ -56,23 +54,28 @@ defaultModel =
       , activePast = []
       , activeFuture = []
       , descendants = []
-      , editing = Nothing
+      , editing = Just "0"
       , field = ""
       }
   , nextId = 1
+  , saved = True
   }
 
 
 init : Json.Value -> (Model, Cmd Msg)
 init savedState =
+  let
+    activateCmd tree id =
+      activateCards (centerlineIds tree (getTree id tree ? defaultTree))
+  in
   case Json.decodeValue modelDecoder savedState of
     Ok model ->
-      model ! []
+      model ! [focus model.viewState.active, activateCmd model.tree model.viewState.active]
     Err err ->
       let
         deb = Debug.log "init decode error" err
       in
-      defaultModel ! []
+      defaultModel ! [focus defaultModel.viewState.active, activateCmd defaultModel.tree defaultModel.viewState.active]
 
 
 -- UPDATE
@@ -175,17 +178,25 @@ update msg model =
         ! []
 
     UpdateCard id str ->
-      { model
-        | tree = Trees.update (Trees.Upd id str) model.tree
-        , viewState = { vs | active = id, editing = Nothing, field = "" }
-      }
-        ! []
+      let
+        newTree = Trees.update (Trees.Upd id str) model.tree
+      in
+      if model.tree == newTree then
+        model ! []
+      else
+        { model
+          | tree = Trees.update (Trees.Upd id str) model.tree
+          , viewState = { vs | active = id, editing = Nothing, field = "" }
+        }
+          ! [] 
+          |> saveTemp
 
     DeleteCard id ->
       { model
         | tree = Trees.update (Trees.Del id) model.tree
       }
         ! []
+        |> saveTemp
 
     CancelCard ->
       { model 
@@ -206,6 +217,7 @@ update msg model =
         , nextId = model.nextId + 1
       }
         ! [focus newId]
+        |> saveTemp
 
     InsertAbove id ->
       let
@@ -233,10 +245,17 @@ update msg model =
     -- === Card Moving  ===
 
     Move subtree pid idx ->
-      { model
-        | tree = Trees.update (Trees.Mov subtree pid idx) model.tree
-      }
-        ! []
+      let
+        newTree = Trees.update (Trees.Mov subtree pid idx) model.tree 
+      in
+      if newTree == model.tree then
+        model ! []
+      else
+        { model
+          | tree = newTree
+          , saved = False
+        }
+          ! []
 
     MoveUp id ->
       let
@@ -282,7 +301,7 @@ update msg model =
     ExternalCommand (cmd, arg) ->
       case cmd of
         "save-and-close" ->
-          model ! [ message (messageToValue ("save-and-close", modelToValue model)) ]
+          model ! [ message ("save-and-close", modelToValue model) ]
         "keyboard" ->
           model ! [run (HandleKey arg)]
         _ ->
@@ -297,10 +316,13 @@ update msg model =
       in
       case str of
         "mod+x" ->
-          model ! [ message (messageToValue ("test-msg", modelToValue model)) ]
+          let
+            db1 = Debug.log "model" model
+          in
+          model ! []
 
         "mod+s" ->
-          model ! [ message (messageToValue ("save", modelToValue model)) ]
+          model ! [ message ("save", modelToValue model) ]
 
         "mod+enter" ->
           editMode model
@@ -426,12 +448,22 @@ subscriptions model =
 focus : String -> Cmd Msg
 focus uid =
   Task.perform (\_ -> NoOp) (\_ -> NoOp) (Dom.focus ("card-edit-" ++ uid))
-      
 
 
 run : Msg -> Cmd Msg
 run msg =
   Task.perform (\_ -> NoOp) (\_ -> msg ) (Task.succeed msg)
+
+
+saveTemp : (Model, Cmd Msg) -> (Model, Cmd Msg)
+saveTemp (model, cmds) =
+  let
+    newModel =
+      { model
+        | saved = False
+      }
+  in
+    newModel ! [ message ("save-temp", modelToValue newModel) ]
 
 
 editMode : Model -> (String -> Msg) -> (Model, Cmd Msg)

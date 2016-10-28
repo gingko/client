@@ -119,10 +119,6 @@ const menuTemplate =
 const menu = Menu.buildFromTemplate(menuTemplate)
 Menu.setApplicationMenu(menu)
 
-ipcMain.on('save', (event, arg) => {
-  saveModel(arg)
-})
-
 ipcMain.on('save-and-close', (event, arg) => {
   saveModel(arg)
 
