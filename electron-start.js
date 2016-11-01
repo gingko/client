@@ -67,14 +67,14 @@ const menuTemplate =
               focusedWindow.webContents.send('load')
             }
           }
-        , { label: 'Save As JSON'
+        , { label: 'Export as JSON..'
           , click (item, focusedWindow) {
-              if (focusedWindow) focusedWindow.webContents.send('save-as-json')
+              if (focusedWindow) focusedWindow.webContents.send('export-as-json')
             }
           }
-        , { label: 'Save As Markdown'
+        , { label: 'Export as Markdown..'
           , click (item, focusedWindow) {
-              if (focusedWindow) focusedWindow.webContents.send('save-as-markdown')
+              if (focusedWindow) focusedWindow.webContents.send('export-as-markdown')
             }
           }
         ]

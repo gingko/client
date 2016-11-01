@@ -87,6 +87,20 @@ ipc.on('load', function(e) {
   }
 })
 
+ipc.on('export-as-json', function(e) {
+  var strip = function(tree) {
+    return {"content": tree.content, "children": tree.children.map(strip)}
+  }
+
+  dialog.showSaveDialog({title: 'Export JSON', defaultPath: `${__dirname}/..` }, function(e){
+    fs.writeFile(e, JSON.stringify([strip(model.tree)], null, 2), function(err){ 
+      if(err) { 
+        dialog.showMessageBox({title: "Save Error", message: "Document wasn't saved."})
+        console.log(err.message)
+      }
+    })
+  })
+})
 
 window.onbeforeunload = function (e) {
   if(!saved) {
