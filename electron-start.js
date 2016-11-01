@@ -57,7 +57,12 @@ app.on('activate', () => {
 const menuTemplate = 
   [ { label: 'File'
     , submenu:
-        [ { label: 'Open File...'
+        [ { label: 'New'
+          , click (item, focusedWindow) {
+              focusedWindow.webContents.send('new')
+            }
+          }
+        , { label: 'Open File...'
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('load')
             }

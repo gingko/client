@@ -70,12 +70,18 @@ init savedState =
   in
   case Json.decodeValue modelDecoder savedState of
     Ok model ->
-      model ! [focus model.viewState.active, activateCmd model.tree model.viewState.active]
+      model 
+        ! [ activateCmd model.tree model.viewState.active
+          , focus model.viewState.active
+          ]
     Err err ->
       let
         deb = Debug.log "init decode error" err
       in
-      defaultModel ! [focus defaultModel.viewState.active, activateCmd defaultModel.tree defaultModel.viewState.active]
+      defaultModel 
+        ! [ activateCmd defaultModel.tree defaultModel.viewState.active
+          , focus defaultModel.viewState.active
+          ]
 
 
 -- UPDATE
@@ -93,21 +99,8 @@ update msg model =
     -- === Card Activation ===
 
     Activate id ->
-      let
-        desc =
-          getTree id model.tree ? defaultTree
-            |> getDescendants
-            |> List.map .id
-      in
-      { model
-        | viewState = 
-            { vs 
-              | active = id
-              , activePast = vs.active :: vs.activePast
-              , descendants = desc 
-            }
-      }
-        ! [activateCards (centerlineIds model.tree (getTree id model.tree ? defaultTree))]
+      model ! []
+        |> activate id
 
     GoLeft id ->
       let
@@ -166,10 +159,8 @@ update msg model =
     -- === Card Editing  ===
 
     OpenCard id str ->
-      { model 
-        | viewState = { vs | active = id, editing = Just id, field = str }
-      } 
-        ! [focus id]
+      model ! []
+        |> openCard id str
 
     UpdateField str ->
       { model 
@@ -212,11 +203,11 @@ update msg model =
       in
       { model
         | tree = Trees.update (Trees.Ins subtree pid idx) model.tree
-        , viewState = 
-            { vs | active = newId , editing = Just newId , field = subtree.content }
         , nextId = model.nextId + 1
       }
-        ! [focus newId]
+        ! []
+        |> openCard newId subtree.content
+        |> activate newId
         |> saveTemp
 
     InsertAbove id ->
@@ -416,6 +407,41 @@ update msg model =
       model ! []
 
 
+activate : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+activate id (model, msg) =
+  let
+    vs = model.viewState
+    desc =
+      getTree id model.tree ? defaultTree
+        |> getDescendants
+        |> List.map .id
+  in
+  { model
+    | viewState = 
+        { vs 
+          | active = id
+          , activePast = vs.active :: vs.activePast
+          , descendants = desc 
+        }
+  }
+    ! [ msg
+      , activateCards (centerlineIds model.tree (getTree id model.tree ? defaultTree))
+      ]
+
+
+openCard : String -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+openCard id str (model, msg) =
+  let
+    vs = model.viewState
+  in
+  { model 
+    | viewState = { vs | active = id, editing = Just id, field = str }
+  } 
+    ! [ msg
+      , focus id
+      ]
+
+
 
 
 -- VIEW
@@ -447,8 +473,8 @@ subscriptions model =
 -- HELPERS
 
 focus : String -> Cmd Msg
-focus uid =
-  Task.perform (\_ -> NoOp) (\_ -> NoOp) (Dom.focus ("card-edit-" ++ uid))
+focus id =
+  Task.perform (\_ -> NoOp) (\_ -> NoOp) (Dom.focus ("card-edit-" ++ id))
 
 
 run : Msg -> Cmd Msg
@@ -464,7 +490,7 @@ saveTemp (model, cmds) =
         | saved = False
       }
   in
-    newModel ! [ message ("save-temp", modelToValue newModel) ]
+    newModel ! [ message ("save-temp", modelToValue newModel), cmds ]
 
 
 editMode : Model -> (String -> Msg) -> (Model, Cmd Msg)

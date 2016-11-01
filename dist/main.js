@@ -25,7 +25,7 @@ var gingko =  Elm.Main.fullscreen(null)
 gingko.ports.activateCards.subscribe(function(centerlineIds) {
   centerlineIds.map(function(c, i){
     var centerIdx = Math.round(c.length/2) - 1
-    scrollTo(c[centerIdx], i)
+    _.delay(scrollTo, 20, c[centerIdx], i)
   })
 })
 
@@ -50,15 +50,48 @@ gingko.ports.message.subscribe(function(msg) {
 
 /* === Handlers === */
 
+ipc.on('new', function(e) {
+  if(!saved) {
+    var options = 
+      { title: "Save changes"
+      , message: "Save changes before closing?"
+      , buttons: ["Close Without Saving", "Cancel", "Save"]
+      , defaultId: 2
+      }
+    var choice = dialog.showMessageBox(options)
+
+    if (choice == 0) {
+      newFile() 
+    } else if (choice == 2) {
+      attemptSave(model, () => newFile(), (err) => console.log(err))
+    }
+  }
+})
+
+
 ipc.on('load', function(e) {
-  loadFile()
+  if(!saved) {
+    var options = 
+      { title: "Save changes"
+      , message: "Save changes before closing?"
+      , buttons: ["Close Without Saving", "Cancel", "Save"]
+      , defaultId: 2
+      }
+    var choice = dialog.showMessageBox(options)
+
+    if (choice == 0) {
+      loadFile() 
+    } else if (choice == 2) {
+      attemptSave(model, () => loadFile(), (err) => console.log(err))
+    }
+  }
 })
 
 
 window.onbeforeunload = function (e) {
   if(!saved) {
     var options = 
-      { title: "test"
+      { title: "Save changes"
       , message: "Save changes before closing?"
       , buttons: ["Close Without Saving", "Cancel", "Save"]
       , defaultId: 2
@@ -123,6 +156,13 @@ setCurrentFile = function(filepath) {
 
 /* === Messages To Elm === */
 
+newFile = function() {
+  setCurrentFile('Untitled')
+  gingko.ports.data.send(null)
+  remote.getCurrentWindow().focus()
+}
+
+
 loadFile = function() {
   dialog.showOpenDialog(null, {title: "Open File...", defaultPath: `${__dirname}/..`, properties: ['openFile']}, function(e) {
     fs.readFile(e[0], (err, data) => {
@@ -183,7 +223,10 @@ Mousetrap.bind(shortcuts, function(e, s) {
 var scrollTo = function(cid, colIdx) {
   var card = document.getElementById('card-' + cid.toString());
   var col = document.getElementsByClassName('column')[colIdx+1]
-  if (card == null) return;
+  if (card == null) {
+    console.log('scroll error: not found',cid)
+    return;
+  }
   var rect = card.getBoundingClientRect();
 
   TweenMax.to(col, 0.35,
