@@ -37,6 +37,7 @@ body {
 
 #app {
   display: flex;
+  justify-content: center;
   position: absolute;
   height: 100%;
   width: 100%;
@@ -45,6 +46,7 @@ body {
 .column {
   flex: 1 0;
   height: 100%;
+  max-width: 600px;
   overflow-x: hidden;
   overflow-y: scroll;
 }
@@ -206,7 +208,7 @@ body {
   outline: none;
   border: none;
   box-sizing: border-box;
-  min-height: 50px;
+  min-height: 100px;
   max-height: 80%;
   overflow-x: hidden;
   width: 100%;
