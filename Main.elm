@@ -169,18 +169,12 @@ update msg model =
         ! []
 
     UpdateCard id str ->
-      let
-        newTree = Trees.update (Trees.Upd id str) model.tree
-      in
-      if model.tree == newTree then
-        model ! []
-      else
-        { model
-          | tree = Trees.update (Trees.Upd id str) model.tree
-          , viewState = { vs | active = id, editing = Nothing, field = "" }
-        }
-          ! [] 
-          |> saveTemp
+      { model
+        | tree = Trees.update (Trees.Upd id str) model.tree
+        , viewState = { vs | active = id, editing = Nothing, field = "" }
+      }
+        ! [] 
+        |> saveTemp
 
     DeleteCard id ->
       { model
