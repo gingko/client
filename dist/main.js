@@ -84,8 +84,20 @@ ipc.on('load', function(e) {
     } else if (choice == 2) {
       attemptSave(model, () => loadFile(), (err) => console.log(err))
     }
+  } else {
+    loadFile()
   }
 })
+
+
+ipc.on('save', function(e) {
+  saveModel(model, saveCallback)
+})
+
+ipc.on('save-as', function(e) {
+  saveModelAs(model, saveCallback)
+})
+
 
 ipc.on('export-as-json', function(e) {
   var strip = function(tree) {
@@ -102,25 +114,9 @@ ipc.on('export-as-json', function(e) {
   })
 })
 
-window.onbeforeunload = function (e) {
-  if(!saved) {
-    var options = 
-      { title: "Save changes"
-      , message: "Save changes before closing?"
-      , buttons: ["Close Without Saving", "Cancel", "Save"]
-      , defaultId: 2
-      }
-    var choice = dialog.showMessageBox(options)
-
-    if (choice !== 0) {
-      e.returnValue = false
-
-      if (choice == 2) {
-        attemptSave(model, () => app.exit(), (err) => console.log(err))
-      }
-    }
-  }
-}
+ipc.on('save-and-close', function (e) {
+  attemptSave(model, () => app.exit(), (err) => console.log(err))
+})
 
 
 attemptSave = function(model, success, fail) {

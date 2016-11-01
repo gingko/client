@@ -18,6 +18,25 @@ function createWindow () {
   // and load the index.html of the app.
   win.loadURL(`file://${__dirname}/dist/index.html`)
 
+  win.on('close', (e) => {
+    var options = 
+      { title: "Save changes?"
+      , message: "Save changes before closing?"
+      , buttons: ["Close Without Saving", "Cancel", "Save"]
+      , defaultId: 2
+      }
+    var choice = dialog.showMessageBox(options)
+
+    switch (choice) {
+      case 1:
+        e.preventDefault()
+        break
+      case 2:
+        win.webContents.send('save-and-close')
+        e.preventDefault()
+        break
+    }
+  })
 
   // Emitted when the window is closed.
   win.on('closed', () => {
@@ -67,27 +86,36 @@ const menuTemplate =
               focusedWindow.webContents.send('load')
             }
           }
+        , { type: 'separator' }
+        , { label: 'Save'
+          , click (item, focusedWindow) {
+              focusedWindow.webContents.send('save')
+            }
+          }
+        , { label: 'Save As...'
+          , click (item, focusedWindow) {
+              focusedWindow.webContents.send('save-as')
+            }
+          }
         , { label: 'Export as JSON..'
           , click (item, focusedWindow) {
-              if (focusedWindow) focusedWindow.webContents.send('export-as-json')
+              focusedWindow.webContents.send('export-as-json')
             }
           }
         , { label: 'Export as Markdown..'
           , click (item, focusedWindow) {
-              if (focusedWindow) focusedWindow.webContents.send('export-as-markdown')
+              focusedWindow.webContents.send('export-as-markdown')
             }
+          }
+        , { type: 'separator' }
+        , { label: 'Exit...'
+          , role: 'quit'
           }
         ]
     }
   , { label: 'Debug'
     , submenu: 
-        [ { label: 'Reload'
-          , accelerator: 'F5'
-          , click (item, focusedWindow) {
-              if (focusedWindow) focusedWindow.webContents.reload()
-            }
-          }
-        , { label: 'Show Dev Tools'
+        [ { label: 'Show Dev Tools'
           , accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I'
           , click (item, focusedWindow) {
               if (focusedWindow) focusedWindow.webContents.toggleDevTools()
