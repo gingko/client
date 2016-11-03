@@ -69,13 +69,18 @@ defaultModel =
 init : Json.Value -> (Model, Cmd Msg)
 init savedState =
   let
-    activateCmd tree id =
-      activateCards (centerlineIds tree (getTree id tree ? defaultTree))
+    activateCmd mdl =
+      activateCards 
+        (centerlineIds 
+          mdl.tree 
+          (getTree mdl.viewState.active mdl.tree ? defaultTree) 
+          mdl.viewState.activePast
+        )
   in
   case Json.decodeValue modelDecoder savedState of
     Ok model ->
       model 
-        ! [ activateCmd model.tree model.viewState.active
+        ! [ activateCmd model
           , focus model.viewState.active
           ]
     Err err ->
@@ -83,7 +88,7 @@ init savedState =
         deb = Debug.log "init decode error" err
       in
       defaultModel 
-        ! [ activateCmd defaultModel.tree defaultModel.viewState.active
+        ! [ activateCmd defaultModel
           , focus defaultModel.viewState.active
           ]
 
@@ -503,14 +508,12 @@ activate id (model, msg) =
   let
     vs = model.viewState
     activeTree_ = getTree id model.tree
-
-    toPrepend =
-      case (List.take 1 vs.activePast) of
-        [ap] ->
-          if ap == vs.active then []
-          else [id]
-        lst ->
-          [id]
+    newPast =
+      case (id == vs.active) of
+        True ->
+          vs.activePast
+        False ->
+          vs.active :: vs.activePast
   in
   case activeTree_ of
     Just activeTree ->
@@ -519,17 +522,22 @@ activate id (model, msg) =
           activeTree
             |> getDescendants
             |> List.map .id
+
+        newModel =
+          { model
+            | viewState = 
+              { vs
+                | active = id
+                , activePast = newPast
+                , activeFuture = []
+                , descendants = desc
+              }
+          }
       in
-      { model
-        | viewState = 
-            { vs 
-              | active = id
-              , activePast = toPrepend ++ vs.activePast
-              , descendants = desc 
-            }
-      }
+      newModel
         ! [ msg
-          , activateCards (centerlineIds model.tree (getTree id model.tree ? defaultTree))
+          , activateCards 
+              (centerlineIds model.tree activeTree newPast)
           ]
 
     Nothing ->

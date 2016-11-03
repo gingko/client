@@ -156,21 +156,37 @@ getDepth prev tree id =
 
 -- SPECIAL PROPERTIES
 
-centerlineIds : Tree -> Tree -> List (List String)
-centerlineIds all active =
+centerlineIds : Tree -> Tree -> List String -> List (List String)
+centerlineIds all activeTree activePast =
   let
-    desc = getDescendants active
-    anc = getAncestors all active []
+    desc = getDescendants activeTree
+    anc = getAncestors all activeTree []
     withDepth x =
       (getDepth 0 all x.id, x.id)
+
+    lastActiveOrAll : List String -> List String -> List String
+    lastActiveOrAll aP ids =
+      let
+        lastActiveIdx_ =
+          aP
+            |> ListExtra.findIndex (\a -> List.member a ids)
+      in
+      case lastActiveIdx_ of
+        Nothing -> ids 
+        Just idx ->
+          aP
+            |> ListExtra.getAt idx -- Maybe String
+            |> Maybe.withDefault "0"
+            |> ListExtra.singleton
   in
   anc
     |> List.map withDepth
-    |> List.append [ withDepth active ]
+    |> List.append [ withDepth activeTree ]
     |> List.append (desc |> List.map withDepth)
     |> List.sortBy (\x -> fst x)
     |> ListExtra.groupWhile (\x y-> fst x == fst y)
     |> List.map (List.map (\x -> snd x))
+    |> List.map (\ids -> lastActiveOrAll activePast ids)
 
 
 

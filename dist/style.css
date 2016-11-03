@@ -98,7 +98,6 @@ body {
 .group.active-descendant {
   color: #333;
   background: #fdfdff;
-  margin-bottom: 2px;
   border-radius: 8px 0 0 8px;
 }
 
