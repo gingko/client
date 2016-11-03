@@ -31,6 +31,9 @@ type Msg
     | MoveDown String
     | MoveLeft String
     | MoveRight String
+    -- === History ===
+    | Undo
+    | Redo
     -- === External Inputs ===
     | DataIn Json.Value
     | ExternalCommand (String, String)

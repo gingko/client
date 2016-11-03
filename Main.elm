@@ -40,6 +40,8 @@ port message : (String, Json.Encode.Value) -> Cmd msg
 
 type alias Model =
   { tree : Tree
+  , treePast : List Tree
+  , treeFuture : List Tree
   , viewState : ViewState
   , nextId : Int
   , saved : Bool
@@ -49,6 +51,8 @@ type alias Model =
 defaultModel : Model
 defaultModel =
   { tree = defaultTree
+  , treePast = []
+  , treeFuture = []
   , viewState = 
       { active = "0"
       , activePast = []
@@ -174,6 +178,7 @@ update msg model =
         , viewState = { vs | active = id, editing = Nothing, field = "" }
       }
         ! [] 
+        |> addToUndo model.tree
         |> saveTemp
 
     DeleteCard id ->
@@ -206,6 +211,7 @@ update msg model =
       }
         ! []
         |> activate nextToActivate
+        |> addToUndo model.tree
         |> saveTemp
 
     CancelCard ->
@@ -227,6 +233,7 @@ update msg model =
         ! []
         |> openCard newId subtree.content
         |> activate newId
+        |> addToUndo model.tree
         |> saveTemp
 
     InsertAbove id ->
@@ -266,6 +273,8 @@ update msg model =
           , saved = False
         }
           ! []
+          |> addToUndo model.tree
+          |> saveTemp
 
     MoveUp id ->
       let
@@ -304,7 +313,37 @@ update msg model =
           model ! []
 
 
+    -- === Card Moving  ===
 
+    Undo ->
+      let
+        prevState_ = List.head model.treePast
+      in
+      case prevState_ of
+        Nothing ->
+          model ! []
+        Just prevState ->
+          { model
+            | tree = prevState
+            , treePast = List.drop 1 model.treePast
+            , treeFuture = model.tree :: model.treeFuture
+          } 
+            ! []
+
+    Redo ->
+      let
+        nextState_ = List.head model.treeFuture
+      in
+      case nextState_ of
+        Nothing ->
+          model ! []
+        Just nextState ->
+          { model
+            | tree = nextState
+            , treePast = model.tree :: model.treePast
+            , treeFuture = List.drop 1 model.treeFuture
+          } 
+            ! []
 
     -- === External Inputs ===
 
@@ -328,7 +367,7 @@ update msg model =
       case str of
         "mod+x" ->
           let
-            db1 = Debug.log "model.viewState" model.viewState
+            db1 = Debug.log "model" model
           in
           model ! []
 
@@ -410,6 +449,12 @@ update msg model =
           normalMode model
             (MoveRight vs.active)
 
+        "mod+z" ->
+          normalMode model Undo
+
+        "mod+r" ->
+          normalMode model Redo
+
         "[" ->
           normalMode model ActivatePast
 
@@ -426,6 +471,18 @@ update msg model =
       model ! []
 
 
+addToUndo : Tree -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+addToUndo oldTree (model, msg) =
+  if oldTree == model.tree then
+    ( model, msg )
+  else
+    { model
+      | treePast = oldTree :: model.treePast
+      , treeFuture = []
+    }
+      ! [msg]
+
+
 activate : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 activate id (model, msg) =
   let
@@ -439,9 +496,6 @@ activate id (model, msg) =
           else [id]
         lst ->
           [id]
-          
-    db1 = Debug.log "vs.activePast" vs.activePast
-    db2 = Debug.log "toPrepend" toPrepend
   in
   case activeTree_ of
     Just activeTree ->

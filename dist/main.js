@@ -65,6 +65,8 @@ ipc.on('new', function(e) {
     } else if (choice == 2) {
       attemptSave(model, () => newFile(), (err) => console.log(err))
     }
+  } else {
+    gingko.ports.data.send(null)
   }
 })
 
