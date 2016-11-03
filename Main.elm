@@ -121,7 +121,7 @@ update msg model =
     GoDown id ->
       let
         targetId =
-          case getNext id model.tree of
+          case getNextInColumn id model.tree of
             Nothing -> id
             Just ntree -> ntree.id
       in
@@ -130,7 +130,7 @@ update msg model =
     GoUp id ->
       let
         targetId =
-          case getPrev id model.tree of
+          case getPrevInColumn id model.tree of
             Nothing -> id
             Just ptree -> ptree.id
       in
@@ -193,8 +193,8 @@ update msg model =
             |> List.filter (\a -> a /= id)
 
         parent_ = getParent id model.tree
-        prev_ = getPrev id model.tree
-        next_ = getNext id model.tree
+        prev_ = getPrevInColumn id model.tree
+        next_ = getNextInColumn id model.tree
 
         nextToActivate =
           case (parent_, prev_, next_) of
@@ -493,7 +493,7 @@ addToUndo oldTree (model, msg) =
     let
       newModel =
         { model
-          | treePast = oldTree :: model.treePast
+          | treePast = oldTree :: model.treePast |> List.take 20
           , treeFuture = []
         }
     in
@@ -513,7 +513,7 @@ activate id (model, msg) =
         True ->
           vs.activePast
         False ->
-          vs.active :: vs.activePast
+          vs.active :: vs.activePast |> List.take 40
   in
   case activeTree_ of
     Just activeTree ->
