@@ -90,7 +90,9 @@ body {
 }
 
 .group:empty {
-  display: none;
+  height: 0;
+  padding: 0;
+  border: none;
 }
 
 .group.active-descendant {
@@ -173,11 +175,15 @@ body {
   transition: border-radius 0.25s ease;
 }
 
+#app.editing .group {
+  background-color: #c5ced8;
+}
+
 #app.editing,
 #app.editing .buffer,
 #app.editing .group {
   background: rgb(50, 89, 107);
-  transition: all 60s ease;
+  transition: background 60s ease, box-shadow 60s ease, border-color 60s ease;
   box-shadow: none;
   border-color: transparent;
 }

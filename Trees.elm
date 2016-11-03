@@ -184,6 +184,7 @@ viewCard vstate tree =
   let
     isEditing = vstate.editing == Just tree.id
     isActive = vstate.active == tree.id
+    isRoot = tree.id == "0"
 
     options =
       { githubFlavored = Just { tables = True, breaks = True }
@@ -211,74 +212,97 @@ viewCard vstate tree =
         ]
         []
 
-    normalControls =
-      if isActive then
-        [ div [ class "flex-row card-top-overlay" ]
-              [ span
-                [ class "card-btn ins-above"
-                , title "Insert Above (Ctrl+K)"
-                , onClick (InsertAbove tree.id)
+    buttons =
+      case (isEditing, isActive, isRoot) of
+        ( False, True, False ) ->
+          [ div [ class "flex-row card-top-overlay" ]
+                [ span
+                  [ class "card-btn ins-above"
+                  , title "Insert Above (Ctrl+K)"
+                  , onClick (InsertAbove tree.id)
+                  ]
+                  [ text "+" ]
                 ]
-                [ text "+" ]
-              ]
-        , div [ class "flex-column card-right-overlay"]
-              [ span 
-                [ class "card-btn delete"
-                , title "Delete Card (Ctrl+Backspace)"
-                , onClick (DeleteCard tree.id)
+          , div [ class "flex-column card-right-overlay"]
+                [ span 
+                  [ class "card-btn delete"
+                  , title "Delete Card (Ctrl+Backspace)"
+                  , onClick (DeleteCard tree.id)
+                  ]
+                  []
+                , span
+                  [ class "card-btn ins-right"
+                  , title "Add Child (Ctrl+L)"
+                  , onClick (InsertChild tree.id)
+                  ]
+                  [ text "+" ]
+                , span 
+                  [ class "card-btn edit"
+                  , title "Edit Card (Enter)"
+                  , onClick (OpenCard tree.id tree.content)
+                  ]
+                  []
                 ]
-                []
-              , span
-                [ class "card-btn ins-right"
-                , title "Add Child (Ctrl+L)"
-                , onClick (InsertChild tree.id)
+          , div [ class "flex-row card-bottom-overlay" ]
+                [ span
+                  [ class "card-btn ins-below"
+                  , title "Insert Below (Ctrl+J)"
+                  , onClick (InsertBelow tree.id)
+                  ]
+                  [ text "+" ]
                 ]
-                [ text "+" ]
-              , span 
-                [ class "card-btn edit"
-                , title "Edit Card (Enter)"
-                , onClick (OpenCard tree.id tree.content)
+          ]
+
+        ( False, True, True ) ->
+          [ div [ class "flex-column card-right-overlay"]
+                [ span
+                  [ class "card-btn ins-right"
+                  , title "Add Child (Ctrl+L)"
+                  , onClick (InsertChild tree.id)
+                  ]
+                  [ text "+" ]
+                , span 
+                  [ class "card-btn edit"
+                  , title "Edit Card (Enter)"
+                  , onClick (OpenCard tree.id tree.content)
+                  ]
+                  []
                 ]
-                []
-              ]
-        , div [ class "flex-row card-bottom-overlay" ]
-              [ span
-                [ class "card-btn ins-below"
-                , title "Insert Below (Ctrl+J)"
-                , onClick (InsertBelow tree.id)
+          ]
+
+        ( True, _, _ ) ->
+          [ div [ class "flex-column card-right-overlay"]
+                [ span 
+                  [ class "card-btn save"
+                  , title "Save Changes (Ctrl+Enter)"
+                  , onClick (UpdateCard tree.id vstate.field)
+                  ]
+                  []
                 ]
-                [ text "+" ]
-              ]
-        ]
-      else
-        []
+          ]
+
+        _ ->
+          []
+
+    cardAttributes =
+      [ id ("card-" ++ tree.id)
+      , classList [ ("card", True)
+                  , ("root", isRoot)
+                  , ("active", isActive)
+                  , ("editing", isEditing)
+                  , ("has-children", hasChildren)
+                  ]
+      ]
   in
   if isEditing then
-    div [ id ("card-" ++ tree.id)
-        , classList [ ("card", True)
-                    , ("active", True)
-                    , ("editing", isEditing)
-                    , ("has-children", hasChildren)
-                    ]
-        ]
-        [ tarea vstate.field
-        , div [ class "flex-column card-right-overlay"]
-              [ span 
-                [ class "card-btn save"
-                , title "Save Changes (Ctrl+Enter)"
-                , onClick (UpdateCard tree.id vstate.field)
-                ]
-                []
-              ]
-        ]
+    div cardAttributes
+        (
+          [ tarea vstate.field ]
+          ++
+          buttons
+        )
   else
-    div [ id ("card-" ++ tree.id)
-        , classList [ ("card", True)
-                    , ("active", isActive)
-                    , ("editing", isEditing)
-                    , ("has-children", hasChildren)
-                    ]
-        ]
+    div cardAttributes
         (
           [ div [ class "view" 
                 , onClick (Activate tree.id)
@@ -286,6 +310,6 @@ viewCard vstate tree =
                 ] [ Markdown.toHtmlWith options [] tree.content ]
           , tarea tree.content
           ] ++
-          normalControls
+          buttons
         )
 
