@@ -116,13 +116,13 @@ const menuTemplate =
   , { label: 'Edit'
     , submenu:
         [ { label: 'Undo'
-          , accelerator: 'CommandOrControl+Z'
+          , enabled : false
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('undo')
             }
           }
         , { label: 'Redo'
-          , accelerator: process.platform === 'win32' ? 'Control+Y' : 'Shift+CommandOrControl+Z'
+          , enabled : false
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('redo')
             }

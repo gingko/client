@@ -7,6 +7,7 @@ const ipc = require('electron').ipcRenderer
 const remote = require('electron').remote
 const app = remote.app
 const dialog = remote.dialog
+const Menu = remote.Menu
 
 
 
@@ -41,6 +42,11 @@ gingko.ports.message.subscribe(function(msg) {
       document.title = 
         /\*/.test(document.title) ? document.title : document.title + "*"
       saved = false
+      break
+    case 'undo-state-change':
+      console.log('undo-state-change')
+      model = msg[1]
+      undoRedoMenuState(model.treePast, model.treeFuture)
       break
   }
 })
@@ -141,12 +147,12 @@ ipc.on('save-and-close', function (e) {
 
 
 ipc.on('undo', function (e) {
-  gingko.ports.externals.send(['undo',''])
+  gingko.ports.externals.send(['keyboard','mod+z'])
 })
 
 
 ipc.on('redo', function (e) {
-  gingko.ports.externals.send(['redo',''])
+  gingko.ports.externals.send(['keyboard','mod+r'])
 })
 
 
@@ -236,16 +242,15 @@ var shortcuts = [ 'mod+enter'
                 , 'alt+right'
                 , '['
                 , ']'
-                , 'mod+s'
                 , 'mod+z'
                 , 'mod+r'
+                , 'mod+s'
                 , 'mod+x' // debug command
                 ];
 
 var needOverride= [ 'mod+j'
                   , 'mod+l'
                   , 'mod+s'  
-                  , 'mod+r'
                   ];
                     
 Mousetrap.bind(shortcuts, function(e, s) {
@@ -257,6 +262,24 @@ Mousetrap.bind(shortcuts, function(e, s) {
 });
 
 
+/* === Menu state === */
+
+undoRedoMenuState = (past, future) => {
+  editSubMenu = Menu.getApplicationMenu().items[1].submenu;
+
+
+  if (past.length === 0) {
+    editSubMenu.items[0].enabled = false;
+  } else {
+    editSubMenu.items[0].enabled = true;
+  }
+
+  if (future.length === 0) {
+    editSubMenu.items[1].enabled = false;
+  } else {
+    editSubMenu.items[1].enabled = true;
+  }
+}
 
 
 /* === DOM manipulation === */

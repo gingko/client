@@ -323,12 +323,16 @@ update msg model =
         Nothing ->
           model ! []
         Just prevState ->
-          { model
-            | tree = prevState
-            , treePast = List.drop 1 model.treePast
-            , treeFuture = model.tree :: model.treeFuture
-          } 
-            ! []
+          let
+            newModel =
+              { model
+                | tree = prevState
+                , treePast = List.drop 1 model.treePast
+                , treeFuture = model.tree :: model.treeFuture
+              } 
+          in
+          newModel
+            ! [ message ("undo-state-change", modelToValue newModel) ]
 
     Redo ->
       let
@@ -338,12 +342,16 @@ update msg model =
         Nothing ->
           model ! []
         Just nextState ->
-          { model
-            | tree = nextState
-            , treePast = model.tree :: model.treePast
-            , treeFuture = List.drop 1 model.treeFuture
-          } 
-            ! []
+          let
+            newModel =
+              { model
+                | tree = nextState
+                , treePast = model.tree :: model.treePast
+                , treeFuture = List.drop 1 model.treeFuture
+              } 
+          in
+          newModel
+            ! [ message ("undo-state-change", modelToValue newModel) ]
 
     -- === External Inputs ===
 
@@ -351,12 +359,6 @@ update msg model =
       case cmd of
         "keyboard" ->
           model ! [run (HandleKey arg)]
-
-        "undo" ->
-          normalMode model Undo
-
-        "redo" ->
-          normalMode model Redo
 
         _ ->
           let
@@ -456,6 +458,12 @@ update msg model =
           normalMode model
             (MoveRight vs.active)
 
+        "mod+z" ->
+          normalMode model Undo
+
+        "mod+r" ->
+          normalMode model Redo
+
         "[" ->
           normalMode model ActivatePast
 
@@ -477,11 +485,17 @@ addToUndo oldTree (model, msg) =
   if oldTree == model.tree then
     ( model, msg )
   else
-    { model
-      | treePast = oldTree :: model.treePast
-      , treeFuture = []
-    }
-      ! [msg]
+    let
+      newModel =
+        { model
+          | treePast = oldTree :: model.treePast
+          , treeFuture = []
+        }
+    in
+    newModel
+      ! [ message ("undo-state-change", modelToValue newModel)
+        , msg
+        ]
 
 
 activate : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
