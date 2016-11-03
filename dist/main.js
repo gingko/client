@@ -140,6 +140,16 @@ ipc.on('save-and-close', function (e) {
 })
 
 
+ipc.on('undo', function (e) {
+  gingko.ports.externals.send(['undo',''])
+})
+
+
+ipc.on('redo', function (e) {
+  gingko.ports.externals.send(['redo',''])
+})
+
+
 attemptSave = function(model, success, fail) {
   saveModel(model, function(err){
     if (err) { fail(err) } 

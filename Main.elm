@@ -351,6 +351,13 @@ update msg model =
       case cmd of
         "keyboard" ->
           model ! [run (HandleKey arg)]
+
+        "undo" ->
+          normalMode model Undo
+
+        "redo" ->
+          normalMode model Redo
+
         _ ->
           let
             db1 = Debug.log "Unknown external command" cmd
@@ -448,12 +455,6 @@ update msg model =
         "alt+right" ->
           normalMode model
             (MoveRight vs.active)
-
-        "mod+z" ->
-          normalMode model Undo
-
-        "mod+r" ->
-          normalMode model Redo
 
         "[" ->
           normalMode model ActivatePast

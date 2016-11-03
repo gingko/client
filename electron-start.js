@@ -113,6 +113,22 @@ const menuTemplate =
           }
         ]
     }
+  , { label: 'Edit'
+    , submenu:
+        [ { label: 'Undo'
+          , accelerator: 'CommandOrControl+Z'
+          , click (item, focusedWindow) {
+              focusedWindow.webContents.send('undo')
+            }
+          }
+        , { label: 'Redo'
+          , accelerator: process.platform === 'win32' ? 'Control+Y' : 'Shift+CommandOrControl+Z'
+          , click (item, focusedWindow) {
+              focusedWindow.webContents.send('redo')
+            }
+          }
+        ]
+    }
   , { label: 'Debug'
     , submenu: 
         [ { label: 'Show Dev Tools'
