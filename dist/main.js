@@ -114,6 +114,25 @@ ipc.on('export-as-json', function(e) {
   })
 })
 
+ipc.on('export-as-markdown', function(e) {
+  var flattenTree = function(tree, strings) {
+    if (tree.children.length == 0) {
+      return strings.concat([tree.content])
+    } else {
+      return strings.concat([tree.content], _.flatten(tree.children.map(function(c){return flattenTree(c,[])})))
+    }
+  }
+
+  dialog.showSaveDialog({title: 'Export Markdown', defaultPath: `${__dirname}/..` }, function(e){
+    fs.writeFile(e, flattenTree(model.tree, []).join("\n\n"), function(err){ 
+      if(err) { 
+        dialog.showMessageBox({title: "Save Error", message: "Document wasn't saved."})
+        console.log(err.message)
+      }
+    })
+  })
+})
+
 ipc.on('save-and-close', function (e) {
   attemptSave(model, () => app.exit(), (err) => console.log(err))
 })
