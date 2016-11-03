@@ -57,44 +57,12 @@ gingko.ports.message.subscribe(function(msg) {
 /* === Handlers === */
 
 ipc.on('new', function(e) {
-  if(!saved) {
-    var options = 
-      { title: "Save changes"
-      , message: "Save changes before closing?"
-      , buttons: ["Close Without Saving", "Cancel", "Save"]
-      , defaultId: 2
-      }
-    var choice = dialog.showMessageBox(options)
-
-    if (choice == 0) {
-      newFile() 
-    } else if (choice == 2) {
-      attemptSave(model, () => newFile(), (err) => console.log(err))
-    }
-  } else {
-    gingko.ports.data.send(null)
-  }
+  saveConfirmAndThen(newFile)
 })
 
 
-ipc.on('load', function(e) {
-  if(!saved) {
-    var options = 
-      { title: "Save changes"
-      , message: "Save changes before closing?"
-      , buttons: ["Close Without Saving", "Cancel", "Save"]
-      , defaultId: 2
-      }
-    var choice = dialog.showMessageBox(options)
-
-    if (choice == 0) {
-      loadFile() 
-    } else if (choice == 2) {
-      attemptSave(model, () => loadFile(), (err) => console.log(err))
-    }
-  } else {
-    loadFile()
-  }
+ipc.on('open', function(e) {
+  saveConfirmAndThen(openDialog)
 })
 
 
@@ -156,6 +124,35 @@ ipc.on('redo', function (e) {
 })
 
 
+saveConfirmAndThen = onSuccess => {
+  if(!saved) {
+    var options = 
+      { title: "Save changes"
+      , message: "Save changes before closing?"
+      , buttons: ["Close Without Saving", "Cancel", "Save"]
+      , defaultId: 2
+      }
+    var choice = dialog.showMessageBox(options)
+
+    if (choice == 0) {
+      onSuccess() 
+    } else if (choice == 2) {
+      attemptSave(model, () => onSuccess(), (err) => console.log(err))
+    }
+  } else {
+    onSuccess()
+  }
+}
+
+document.ondragover = document.ondrop = (ev) => {
+  ev.preventDefault()
+}
+
+document.body.ondrop = (ev) => {
+  saveConfirmAndThen(loadFile(ev.dataTransfer.files[0].path))
+  ev.preventDefault()
+}
+
 attemptSave = function(model, success, fail) {
   saveModel(model, function(err){
     if (err) { fail(err) } 
@@ -199,6 +196,13 @@ setCurrentFile = function(filepath) {
 }
 
 
+loadFile = filepath => {
+  fs.readFile(filepath, (err, data) => {
+    if (err) throw err;
+    setCurrentFile(filepath)
+    gingko.ports.data.send(JSON.parse(data))
+  })
+}
 
 
 /* === Messages To Elm === */
@@ -210,13 +214,9 @@ newFile = function() {
 }
 
 
-loadFile = function() {
+openDialog = function() {
   dialog.showOpenDialog(null, {title: "Open File...", defaultPath: `${__dirname}/..`, properties: ['openFile']}, function(e) {
-    fs.readFile(e[0], (err, data) => {
-      if (err) throw err;
-      setCurrentFile(e[0])
-      gingko.ports.data.send(JSON.parse(data))
-    })
+    loadFile(e[0])
   })
 }
 

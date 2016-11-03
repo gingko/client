@@ -83,7 +83,7 @@ const menuTemplate =
           }
         , { label: 'Open File...'
           , click (item, focusedWindow) {
-              focusedWindow.webContents.send('load')
+              focusedWindow.webContents.send('open')
             }
           }
         , { type: 'separator' }
