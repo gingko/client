@@ -177,10 +177,35 @@ update msg model =
         |> saveTemp
 
     DeleteCard id ->
+      let
+        filteredActive =
+          vs.activePast
+            |> List.filter (\a -> a /= id)
+
+        parent_ = getParent id model.tree
+        prev_ = getPrev id model.tree
+        next_ = getNext id model.tree
+
+        nextToActivate =
+          case (parent_, prev_, next_) of
+            (_, Just prev, _) ->
+              prev.id
+
+            (_, Nothing, Just next) ->
+              next.id
+
+            (Just parent, Nothing, Nothing) ->
+              parent.id
+
+            (Nothing, Nothing, Nothing) ->
+              "0"
+      in
       { model
         | tree = Trees.update (Trees.Del id) model.tree
+        , viewState = { vs | activePast = filteredActive }
       }
         ! []
+        |> activate nextToActivate
         |> saveTemp
 
     CancelCard ->
@@ -303,7 +328,7 @@ update msg model =
       case str of
         "mod+x" ->
           let
-            db1 = Debug.log "model" model
+            db1 = Debug.log "model.viewState" model.viewState
           in
           model ! []
 
@@ -405,22 +430,43 @@ activate : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 activate id (model, msg) =
   let
     vs = model.viewState
-    desc =
-      getTree id model.tree ? defaultTree
-        |> getDescendants
-        |> List.map .id
+    activeTree_ = getTree id model.tree
+
+    toPrepend =
+      case (List.take 1 vs.activePast) of
+        [ap] ->
+          if ap == vs.active then []
+          else [id]
+        lst ->
+          [id]
+          
+    db1 = Debug.log "vs.activePast" vs.activePast
+    db2 = Debug.log "toPrepend" toPrepend
   in
-  { model
-    | viewState = 
-        { vs 
-          | active = id
-          , activePast = vs.active :: vs.activePast
-          , descendants = desc 
-        }
-  }
-    ! [ msg
-      , activateCards (centerlineIds model.tree (getTree id model.tree ? defaultTree))
-      ]
+  case activeTree_ of
+    Just activeTree ->
+      let
+        desc =
+          activeTree
+            |> getDescendants
+            |> List.map .id
+      in
+      { model
+        | viewState = 
+            { vs 
+              | active = id
+              , activePast = toPrepend ++ vs.activePast
+              , descendants = desc 
+            }
+      }
+        ! [ msg
+          , activateCards (centerlineIds model.tree (getTree id model.tree ? defaultTree))
+          ]
+
+    Nothing ->
+      ( model, msg )
+
+
 
 
 openCard : String -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
