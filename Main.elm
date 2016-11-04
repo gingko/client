@@ -186,6 +186,9 @@ update msg model =
         |> addToUndo model.tree
         |> saveTemp
 
+    SaveCard ->
+      update (UpdateCard vs.active vs.field) model
+
     DeleteCard id ->
       let
         filteredActive =
@@ -248,8 +251,17 @@ update msg model =
 
         pid =
           getParent id model.tree ? defaultTree |> .id
+
+        insertMsg =
+          Insert (blankTree model.nextId) pid idx
       in
-      update (Insert (blankTree model.nextId) pid idx) model
+      case vs.editing of
+        Nothing ->
+          update insertMsg model
+
+        Just id ->
+          update SaveCard model
+            |> andThen insertMsg
 
     InsertBelow id ->
       let
@@ -258,11 +270,30 @@ update msg model =
 
         pid =
           getParent id model.tree ? defaultTree |> .id
+
+        insertMsg =
+          Insert (blankTree model.nextId) pid (idx+1)
       in
-      update (Insert (blankTree model.nextId) pid (idx+1)) model
+      case vs.editing of
+        Nothing ->
+          update insertMsg model
+
+        Just id ->
+          update SaveCard model
+            |> andThen insertMsg
 
     InsertChild pid ->
-      update (Insert (blankTree model.nextId) pid 999999) model
+      let
+        insertMsg =
+          Insert (blankTree model.nextId) pid 999999
+      in
+      case vs.editing of
+        Nothing ->
+          update insertMsg model
+
+        Just id ->
+          update SaveCard model
+            |> andThen insertMsg
 
     -- === Card Moving  ===
 
@@ -404,16 +435,13 @@ update msg model =
             (DeleteCard vs.active)
 
         "mod+j" ->
-          normalMode model
-            (InsertBelow vs.active)
+          update (InsertBelow vs.active) model
 
         "mod+k" ->
-          normalMode model
-            (InsertAbove vs.active)
+          update (InsertAbove vs.active) model
 
         "mod+l" ->
-          normalMode model
-            (InsertChild vs.active)
+          update (InsertChild vs.active) model
 
         "h" ->
           normalMode model
@@ -483,6 +511,15 @@ update msg model =
 
     _ ->
       model ! []
+
+
+andThen : Msg -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+andThen msg (model, prevMsg) =
+  let
+    newStep =
+      update msg model
+  in
+  ( fst newStep, Cmd.batch [prevMsg, snd newStep] )
 
 
 addToUndo : Tree -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )

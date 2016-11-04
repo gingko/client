@@ -18,6 +18,7 @@ type Msg
     | OpenCard String String
     | UpdateField String
     | UpdateCard String String
+    | SaveCard
     | DeleteCard String
     | CancelCard
     -- === Card Insertion  ===
