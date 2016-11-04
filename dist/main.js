@@ -37,10 +37,9 @@ gingko.ports.message.subscribe(function(msg) {
       model = msg[1]
       document.title = 
         /\*/.test(document.title) ? document.title : document.title + "*"
-      saved = false
+      setSaved(false)
       break
     case 'undo-state-change':
-      console.log('undo-state-change')
       model = msg[1]
       undoRedoMenuState(model.treePast, model.treeFuture)
       break
@@ -68,6 +67,10 @@ ipc.on('save', function(e) {
 
 ipc.on('save-as', function(e) {
   saveModelAs(model, saveCallback)
+})
+
+ipc.on('save-and-close', function (e) {
+  attemptSave(model, () => app.exit(), (err) => console.log(err))
 })
 
 
@@ -105,10 +108,6 @@ ipc.on('export-as-markdown', function(e) {
   })
 })
 
-ipc.on('save-and-close', function (e) {
-  attemptSave(model, () => app.exit(), (err) => console.log(err))
-})
-
 
 ipc.on('undo', function (e) {
   gingko.ports.externals.send(['keyboard','mod+z'])
@@ -128,6 +127,10 @@ ipc.on('resetzoom', e => {
   webFrame.setZoomLevel(0)
 })
 
+setSaved = bool => {
+  saved = bool;
+  ipc.send('saved', bool)
+}
 
 saveConfirmAndThen = onSuccess => {
   if(!saved) {
@@ -194,13 +197,13 @@ saveCallback = function(err) {
   }
 
   document.title = document.title.replace('*', '')
-  saved = true
+  setSaved(true)
 }
 
 
 setCurrentFile = function(filepath) {
   currentFile = filepath
-  saved = true
+  setSaved(true)
   document.title = `Gingko - ${path.basename(filepath)}`
 }
 
@@ -209,7 +212,8 @@ loadFile = filepath => {
   fs.readFile(filepath, (err, data) => {
     if (err) throw err;
     setCurrentFile(filepath)
-    gingko.ports.data.send(JSON.parse(data))
+    model = JSON.parse(data)
+    gingko.ports.data.send(model)
   })
 }
 

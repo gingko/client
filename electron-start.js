@@ -4,7 +4,7 @@ const fs = require('fs')
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win
-let currentFile = null
+let saved = true
 
 function createWindow () {
   // Create the browser window.
@@ -19,22 +19,24 @@ function createWindow () {
   win.loadURL(`file://${__dirname}/dist/index.html`)
 
   win.on('close', (e) => {
-    var options = 
-      { title: "Save changes?"
-      , message: "Save changes before closing?"
-      , buttons: ["Close Without Saving", "Cancel", "Save"]
-      , defaultId: 2
-      }
-    var choice = dialog.showMessageBox(options)
+    if(!saved) {
+      var options = 
+        { title: "Save changes?"
+        , message: "Save changes before closing?"
+        , buttons: ["Close Without Saving", "Cancel", "Save"]
+        , defaultId: 2
+        }
+      var choice = dialog.showMessageBox(options)
 
-    switch (choice) {
-      case 1:
-        e.preventDefault()
-        break
-      case 2:
-        win.webContents.send('save-and-close')
-        e.preventDefault()
-        break
+      switch (choice) {
+        case 1:
+          e.preventDefault()
+          break
+        case 2:
+          win.webContents.send('save-and-close')
+          e.preventDefault()
+          break
+      }
     }
   })
 
@@ -72,6 +74,10 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+
+ipcMain.on('saved', (event, msg) => {
+  saved = msg;
+})
 
 const menuTemplate = 
   [ { label: 'File'
