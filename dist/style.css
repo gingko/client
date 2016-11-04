@@ -1,8 +1,46 @@
 @font-face {
   font-family: 'Glyphicons Halflings';
-  src: url('./glyphicons-halflings-regular.woff2');
+  src: url('./fonts/glyphicons-halflings-regular.woff2');
 }
-
+@font-face {
+  font-family: 'Droid Serif';
+  src: url('./fonts/Droid_Serif/DroidSerif.ttf');
+}
+@font-face {
+  font-family: 'Droid Serif';
+  src: url('./fonts/Droid_Serif/DroidSerif-Bold.ttf');
+  font-weight: bold;
+}
+@font-face {
+  font-family: 'Droid Serif';
+  src: url('./fonts/Droid_Serif/DroidSerif-Italic.ttf');
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Droid Serif';
+  src: url('./fonts/Droid_Serif/DroidSerif-BoldItalic.ttf');
+  font-weight: bold;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Droid Sans Mono';
+  src: url('./fonts/Droid_Sans_Mono/DroidSansMono.ttf');
+}
+@font-face {
+  font-family: 'Roboto';
+  src: url('./fonts/Roboto/Roboto-Regular.ttf');
+}
+@font-face {
+  font-family: 'Roboto';
+  src: url('./fonts/Roboto/Roboto-Bold.ttf');
+  font-weight: bold;
+}
+@font-face {
+  font-family: 'Roboto';
+  src: url('./fonts/Roboto/Roboto-BoldItalic.ttf');
+  font-weight: bold;
+  font-style: italic;
+}
 
 html,
 body {
@@ -83,7 +121,6 @@ body {
   border-bottom: 1px solid #3c484e;
   background-color: #c5ced8;
   color: #717181;
-  font-family: "Droid Serif", Georgia;
   box-shadow: 1px 1px 6px #2b3c52;
   z-index: 5;
   position: relative;
@@ -165,8 +202,9 @@ body {
 /* --- Typography --- */
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-family: 'Roboto',sans-serif;
   margin: 0;
+  line-height: 1.5;
 }
 
 h1 { font-size: 24px; margin-bottom: 8px }
@@ -178,7 +216,14 @@ h6 { font-size: 10px; margin-bottom: 0 }
 
 p {
   margin: 0;
+  padding: 0 0 10px;
 }
+
+.card .view {
+  font-family: "Droid Serif", serif;
+  line-height: 1.4;
+}
+
 
 
 /* ======== CARD (Edit view) ======== */
@@ -216,7 +261,7 @@ p {
 .card.editing textarea {
   display: block;
   background: transparent;
-  background-image: repeating-linear-gradient(to bottom, transparent, transparent 16px, hsl(216, 100%, 84%) 1px, transparent 17px);
+  background-image: repeating-linear-gradient(to bottom, transparent, transparent 22px, hsl(216, 100%, 84%) 1px, transparent 23px);
   text-shadow: -1px -1px 0px rgba(0,0,0,0.1), 1px 1px 0px rgba(255,255,255,0.8);
   color: hsl(27,28%,22%);
   resize: none;
@@ -235,10 +280,10 @@ p {
   max-height: 80%;
   overflow-x: hidden;
   width: 100%;
-  font-size: 14px;
-  line-height: 17px;
-  padding: 4px 15px;
-  font-family: 'Droid Sans Mono', "Lucida Console", Monaco, monospace;
+  font-size: 16px;
+  line-height: 23px;
+  padding: 5px 15px;
+  font-family: 'Droid Sans Mono', monospace;
 }
 
 
