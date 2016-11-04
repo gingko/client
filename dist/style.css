@@ -220,11 +220,44 @@ p {
 }
 
 .card .view {
-  font-family: "Droid Serif", serif;
+  font-family: 'Droid Serif', serif;
   line-height: 1.4;
 }
 
+p:last-child, ul:last-child { padding-bottom: 0 }
 
+pre, code {
+  font-family: 'Droid Sans Mono', monospace;
+  color: #333333;
+}
+
+pre,
+blockquote {
+  border: 1px solid #999;
+  page-break-inside: avoid;
+}
+
+code {
+  padding: 2px 4px;
+  font-size: 90%;
+  color: #c7254e;
+  white-space: nowrap;
+  background-color: #f9f2f4;
+}
+
+pre {
+  display: block;
+  padding: 9.5px;
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.428571429;
+  word-break: break-all;
+  word-wrap: break-word;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
 
 /* ======== CARD (Edit view) ======== */
 
