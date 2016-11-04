@@ -4,6 +4,7 @@ var autosize = require('textarea-autosize')
 const fs = require('fs')
 const path = require('path')
 const ipc = require('electron').ipcRenderer
+var webFrame = require('electron').webFrame
 const remote = require('electron').remote
 const app = remote.app
 const dialog = remote.dialog
@@ -17,19 +18,14 @@ var model = null
 var currentFile = null
 var saved = true
 var gingko =  Elm.Main.fullscreen(null)
+var lastCenterline = null
 
 
 
 
 /* === Elm Ports === */
 
-gingko.ports.activateCards.subscribe(function(centerlineIds) {
-  centerlineIds.map(function(c, i){
-    var centerIdx = Math.round(c.length/2) - 1
-    _.delay(scrollTo, 20, c[centerIdx], i)
-  })
-})
-
+gingko.ports.activateCards.subscribe(ids => scrollColumns(ids))
 
 gingko.ports.message.subscribe(function(msg) {
   switch (msg[0]) {
@@ -117,10 +113,19 @@ ipc.on('save-and-close', function (e) {
 ipc.on('undo', function (e) {
   gingko.ports.externals.send(['keyboard','mod+z'])
 })
-
-
 ipc.on('redo', function (e) {
   gingko.ports.externals.send(['keyboard','mod+r'])
+})
+
+
+ipc.on('zoomin', e => {
+  webFrame.setZoomLevel(webFrame.getZoomLevel() + 1)
+})
+ipc.on('zoomout', e => {
+  webFrame.setZoomLevel(webFrame.getZoomLevel() - 1)
+})
+ipc.on('resetzoom', e => {
+  webFrame.setZoomLevel(0)
 })
 
 
@@ -151,6 +156,10 @@ document.ondragover = document.ondrop = (ev) => {
 document.body.ondrop = (ev) => {
   saveConfirmAndThen(loadFile(ev.dataTransfer.files[0].path))
   ev.preventDefault()
+}
+
+window.onresize = () => {
+  if (lastCenterline) { scrollColumns(lastCenterline) }
 }
 
 attemptSave = function(model, success, fail) {
@@ -283,6 +292,14 @@ undoRedoMenuState = (past, future) => {
 
 
 /* === DOM manipulation === */
+
+var scrollColumns = centerlineIds => {
+  lastCenterline = centerlineIds
+  centerlineIds.map(function(c, i){
+    var centerIdx = Math.round(c.length/2) - 1
+    _.delay(scrollTo, 20, c[centerIdx], i)
+  })
+}
 
 var scrollTo = function(cid, colIdx) {
   var card = document.getElementById('card-' + cid.toString());

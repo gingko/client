@@ -162,6 +162,24 @@ body {
   transition: opacity 2s ease;
 }
 
+/* --- Typography --- */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  margin: 0;
+}
+
+h1 { font-size: 24px; margin-bottom: 8px }
+h2 { font-size: 20px; margin-bottom: 6px }
+h3 { font-size: 16px; margin-bottom: 5px }
+h4 { font-size: 14px; margin-bottom: 4px }
+h5 { font-size: 12px; margin-bottom: 3px }
+h6 { font-size: 10px; margin-bottom: 0 }
+
+p {
+  margin: 0;
+}
+
 
 /* ======== CARD (Edit view) ======== */
 

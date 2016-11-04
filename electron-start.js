@@ -129,12 +129,42 @@ const menuTemplate =
           }
         ]
     }
+  , { label: 'View'
+    , submenu:
+        [ { label: 'Zoom In'
+          , accelerator: 'CommandOrControl+='
+          , click (item, focusedWindow) {
+              focusedWindow.webContents.send('zoomin')
+            }
+          }
+        , { label: 'Zoom Out'
+          , accelerator: 'CommandOrControl+-'
+          , click (item, focusedWindow) {
+              focusedWindow.webContents.send('zoomout')
+            }
+          }
+        , { label: 'Reset Zoom'
+          , accelerator: 'CommandOrControl+0'
+          , click (item, focusedWindow) {
+              focusedWindow.webContents.send('resetzoom')
+            }
+          }
+        , { type: 'separator' }
+        , { role: 'togglefullscreen' }
+        ]
+    }
   , { label: 'Debug'
     , submenu: 
         [ { label: 'Show Dev Tools'
           , accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I'
           , click (item, focusedWindow) {
               if (focusedWindow) focusedWindow.webContents.toggleDevTools()
+            }
+          }
+        , { label: 'Refresh'
+          , accelerator: 'F5'
+          , click (item, focusedWindow) {
+              if (focusedWindow) focusedWindow.webContents.reload()
             }
           }
         ]
