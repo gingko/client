@@ -35,7 +35,9 @@ type Msg
     -- === History ===
     | Undo
     | Redo
-    -- === External Inputs ===
+    | AddToUndo Tree
+    -- === Ports ===
+    | SaveTemp
     | DataIn Json.Value
     | ExternalCommand (String, String)
     | HandleKey String

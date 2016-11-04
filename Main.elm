@@ -108,8 +108,42 @@ update msg model =
     -- === Card Activation ===
 
     Activate id ->
-      model ! []
-        |> activate id
+      let
+        vs = model.viewState
+        activeTree_ = getTree id model.tree
+        newPast =
+          case (id == vs.active) of
+            True ->
+              vs.activePast
+            False ->
+              vs.active :: vs.activePast |> List.take 40
+      in
+      case activeTree_ of
+        Just activeTree ->
+          let
+            desc =
+              activeTree
+                |> getDescendants
+                |> List.map .id
+
+            newModel =
+              { model
+                | viewState = 
+                  { vs
+                    | active = id
+                    , activePast = newPast
+                    , activeFuture = []
+                    , descendants = desc
+                  }
+              }
+          in
+          newModel
+            ! [ activateCards 
+                  (centerlineIds model.tree activeTree newPast)
+              ]
+
+        Nothing ->
+          model ! []
 
     GoLeft id ->
       let
@@ -168,8 +202,10 @@ update msg model =
     -- === Card Editing  ===
 
     OpenCard id str ->
-      model ! []
-        |> openCard id str
+      { model 
+        | viewState = { vs | active = id, editing = Just id, field = str }
+      } 
+        ! [ focus id ]
 
     UpdateField str ->
       { model 
@@ -183,8 +219,8 @@ update msg model =
         , viewState = { vs | active = id, editing = Nothing, field = "" }
       }
         ! [] 
-        |> addToUndo model.tree
-        |> saveTemp
+        |> andThen (AddToUndo model.tree)
+        |> andThen SaveTemp
 
     SaveCard ->
       update (UpdateCard vs.active vs.field) model
@@ -218,9 +254,9 @@ update msg model =
         , viewState = { vs | activePast = filteredActive }
       }
         ! []
-        |> activate nextToActivate
-        |> addToUndo model.tree
-        |> saveTemp
+        |> andThen (Activate nextToActivate)
+        |> andThen (AddToUndo model.tree)
+        |> andThen SaveTemp
 
     CancelCard ->
       { model 
@@ -239,10 +275,10 @@ update msg model =
         , nextId = model.nextId + 1
       }
         ! []
-        |> openCard newId subtree.content
-        |> activate newId
-        |> addToUndo model.tree
-        |> saveTemp
+        |> andThen (OpenCard newId subtree.content)
+        |> andThen (Activate newId)
+        |> andThen (AddToUndo model.tree)
+        |> andThen SaveTemp
 
     InsertAbove id ->
       let
@@ -309,8 +345,8 @@ update msg model =
           , saved = False
         }
           ! []
-          |> addToUndo model.tree
-          |> saveTemp
+          |> andThen (AddToUndo model.tree)
+          |> andThen SaveTemp
 
     MoveUp id ->
       let
@@ -349,7 +385,7 @@ update msg model =
           model ! []
 
 
-    -- === Card Moving  ===
+    -- === History ===
 
     Undo ->
       let
@@ -389,7 +425,31 @@ update msg model =
           newModel
             ! [ message ("undo-state-change", modelToValue newModel) ]
 
-    -- === External Inputs ===
+    AddToUndo oldTree ->
+      if oldTree == model.tree then
+        model ! []
+      else
+        let
+          newModel =
+            { model
+              | treePast = oldTree :: model.treePast |> List.take 20
+              , treeFuture = []
+            }
+        in
+        newModel
+          ! [ message ("undo-state-change", modelToValue newModel) ]
+
+
+    -- === Ports ===
+
+    SaveTemp ->
+      let
+        newModel =
+          { model
+            | saved = False
+          }
+      in
+        newModel ! [ message ("save-temp", modelToValue newModel) ]
 
     ExternalCommand (cmd, arg) ->
       case cmd of
@@ -522,80 +582,6 @@ andThen msg (model, prevMsg) =
   ( fst newStep, Cmd.batch [prevMsg, snd newStep] )
 
 
-addToUndo : Tree -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-addToUndo oldTree (model, msg) =
-  if oldTree == model.tree then
-    ( model, msg )
-  else
-    let
-      newModel =
-        { model
-          | treePast = oldTree :: model.treePast |> List.take 20
-          , treeFuture = []
-        }
-    in
-    newModel
-      ! [ message ("undo-state-change", modelToValue newModel)
-        , msg
-        ]
-
-
-activate : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-activate id (model, msg) =
-  let
-    vs = model.viewState
-    activeTree_ = getTree id model.tree
-    newPast =
-      case (id == vs.active) of
-        True ->
-          vs.activePast
-        False ->
-          vs.active :: vs.activePast |> List.take 40
-  in
-  case activeTree_ of
-    Just activeTree ->
-      let
-        desc =
-          activeTree
-            |> getDescendants
-            |> List.map .id
-
-        newModel =
-          { model
-            | viewState = 
-              { vs
-                | active = id
-                , activePast = newPast
-                , activeFuture = []
-                , descendants = desc
-              }
-          }
-      in
-      newModel
-        ! [ msg
-          , activateCards 
-              (centerlineIds model.tree activeTree newPast)
-          ]
-
-    Nothing ->
-      ( model, msg )
-
-
-
-
-openCard : String -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-openCard id str (model, msg) =
-  let
-    vs = model.viewState
-  in
-  { model 
-    | viewState = { vs | active = id, editing = Just id, field = str }
-  } 
-    ! [ msg
-      , focus id
-      ]
-
-
 
 
 -- VIEW
@@ -634,17 +620,6 @@ focus id =
 run : Msg -> Cmd Msg
 run msg =
   Task.perform (\_ -> NoOp) (\_ -> msg ) (Task.succeed msg)
-
-
-saveTemp : (Model, Cmd Msg) -> (Model, Cmd Msg)
-saveTemp (model, cmds) =
-  let
-    newModel =
-      { model
-        | saved = False
-      }
-  in
-    newModel ! [ message ("save-temp", modelToValue newModel), cmds ]
 
 
 editMode : Model -> (String -> Msg) -> (Model, Cmd Msg)
