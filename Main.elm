@@ -346,6 +346,7 @@ update msg model =
         }
           ! []
           |> andThen (AddToUndo model.tree)
+          |> andThen (Activate subtree.id)
           |> andThen SaveTemp
 
     MoveUp id ->
@@ -381,6 +382,45 @@ update msg model =
       case (tree_, pid_, refIdx_) of
         (Just tree, Just pid, Just refIdx) ->
           update (Move tree pid (refIdx+1)) model
+        _ ->
+          model ! []
+
+    MoveLeft id ->
+      let
+        tree_ =
+          getTree id model.tree
+
+        parentId =
+          getParent id model.tree
+            |> Maybe.map .id
+            |> Maybe.withDefault "invalid"
+
+        parentIdx_ =
+          getIndex parentId model.tree
+
+        grandparentId_ =
+          getParent parentId model.tree
+            |> Maybe.map .id
+
+      in
+      case (tree_, grandparentId_, parentIdx_) of
+        (Just tree, Just gpId, Just refIdx) ->
+          update (Move tree gpId (refIdx+1)) model
+        _ ->
+          model ! []
+
+    MoveRight id ->
+      let
+        tree_ =
+          getTree id model.tree
+
+        prev_ =
+          getPrev id model.tree
+            |> Maybe.map .id
+      in
+      case (tree_, prev_) of
+        (Just tree, Just prev) ->
+          update (Move tree prev 999999) model
         _ ->
           model ! []
 

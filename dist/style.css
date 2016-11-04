@@ -147,6 +147,7 @@ body {
   position: relative;
   background-color: #c5ced8;
   margin-bottom: 2px;
+  min-height: 53px;
 }
 .card:last-child {
   margin-bottom: 0;

@@ -1,6 +1,7 @@
 elm-stuff
 dist/elm.js
 node_modules
+Gingko-*
 *.gko
 *.ps
 *.pdf
