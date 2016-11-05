@@ -78,8 +78,15 @@ ipc.on('export-as-json', function(e) {
   var strip = function(tree) {
     return {"content": tree.content, "children": tree.children.map(strip)}
   }
+  
+  var options =
+    { title: 'Export JSON'
+    , defaultPath: `${__dirname}/..`
+    , filters:  [ {name: 'JSON Files', extensions: ['json']}
+                ]
+    }
 
-  dialog.showSaveDialog({title: 'Export JSON', defaultPath: `${__dirname}/..` }, function(e){
+  dialog.showSaveDialog(options, function(e){
     fs.writeFile(e, JSON.stringify([strip(model.tree)], null, 2), function(err){ 
       if(err) { 
         dialog.showMessageBox({title: "Save Error", message: "Document wasn't saved."})
@@ -98,7 +105,14 @@ ipc.on('export-as-markdown', function(e) {
     }
   }
 
-  dialog.showSaveDialog({title: 'Export Markdown', defaultPath: `${__dirname}/..` }, function(e){
+  var options =
+    { title: 'Export Markdown (txt)'
+    , defaultPath: `${__dirname}/..`
+    , filters:  [ {name: 'Text Files', extensions: ['txt']}
+                ]
+    }
+
+  dialog.showSaveDialog(options, function(e){
     fs.writeFile(e, flattenTree(model.tree, []).join("\n\n"), function(err){ 
       if(err) { 
         dialog.showMessageBox({title: "Save Error", message: "Document wasn't saved."})
@@ -183,7 +197,14 @@ saveModel = function(model, cb){
 
 
 saveModelAs = function(model, cb){
-  dialog.showSaveDialog({title: 'Save As', defaultPath: `${__dirname}/..` }, function(e){
+  var options =
+    { title: 'Save As'
+    , defaultPath: `${__dirname}/..` 
+    , filters:  [ {name: 'Gingko Files', extensions: ['gko']}
+                ]
+    }
+
+  dialog.showSaveDialog(options, function(e){
     setCurrentFile(e)
     fs.writeFile(e, JSON.stringify(model, null, 2), cb)
   })
@@ -228,9 +249,18 @@ newFile = function() {
 
 
 openDialog = function() {
-  dialog.showOpenDialog(null, {title: "Open File...", defaultPath: `${__dirname}/..`, properties: ['openFile']}, function(e) {
-    loadFile(e[0])
-  })
+  dialog.showOpenDialog(
+    null, 
+    { title: "Open File..."
+    , defaultPath: `${__dirname}/..`
+    , properties: ['openFile']
+    , filters:  [ {name: 'Gingko Files', extensions: ['gko']}
+                ]
+    }
+    , function(e) {
+        loadFile(e[0])
+      }
+ )
 }
 
 
