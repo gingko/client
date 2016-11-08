@@ -83,22 +83,26 @@ const menuTemplate =
   [ { label: 'File'
     , submenu:
         [ { label: 'New'
+          , accelerator: 'CmdOrCtrl+N'
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('new')
             }
           }
         , { label: 'Open File...'
+          , accelerator: 'CmdOrCtrl+O'
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('open')
             }
           }
         , { type: 'separator' }
         , { label: 'Save'
+          , accelerator: 'CmdOrCtrl+S'
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('save')
             }
           }
         , { label: 'Save As...'
+          , accelerator: 'CmdOrCtrl+Shift+S'
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('save-as')
             }

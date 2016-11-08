@@ -206,7 +206,7 @@ saveModelAs = function(model, cb){
   var options =
     { title: 'Save As'
     , defaultPath: currentFile ? `${__dirname}/../${currentFile.replace('.gko','')}` : `${__dirname}/../Untitled.gko`
-    , filters:  [ {name: 'Gingko Files', extensions: ['gko']}
+    , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
                 , {name: 'All Files', extensions: ['*']}
                 ]
     }
@@ -259,17 +259,20 @@ newFile = function() {
 
 
 openDialog = function() {
+  console.log(__dirname)
   dialog.showOpenDialog(
     null, 
     { title: "Open File..."
-    , defaultPath: `${__dirname}/..`
+    , defaultPath: `${__dirname}/../`
     , properties: ['openFile']
-    , filters:  [ {name: 'Gingko Files', extensions: ['gko']}
+    , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
                 , {name: 'All Files', extensions: ['*']}
                 ]
     }
     , function(e) {
-        loadFile(e[0])
+        if(!!e) {
+          loadFile(e[0])
+        }
       }
  )
 }
