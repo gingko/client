@@ -167,12 +167,6 @@ const menuTemplate =
               if (focusedWindow) focusedWindow.webContents.toggleDevTools()
             }
           }
-        , { label: 'Refresh'
-          , accelerator: 'F5'
-          , click (item, focusedWindow) {
-              if (focusedWindow) focusedWindow.webContents.reload()
-            }
-          }
         ]
     }
   ]
