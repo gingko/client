@@ -7,6 +7,7 @@ let win
 let saved = true
 
 function createWindow () {
+
   // Create the browser window.
   win = new BrowserWindow(
     { width: 800
@@ -16,7 +17,11 @@ function createWindow () {
     })
 
   // and load the index.html of the app.
-  win.loadURL(`file://${__dirname}/dist/index.html`)
+  if(!!process.argv[1]) {
+    win.loadURL(`file://${__dirname}/dist/index.html#${encodeURIComponent(process.argv[1])}`)
+  } else {
+    win.loadURL(`file://${__dirname}/dist/index.html`)
+  }
 
   win.on('close', (e) => {
     if(!saved) {

@@ -17,7 +17,36 @@ const Menu = remote.Menu
 var model = null
 var currentFile = null
 var saved = true
-var gingko =  Elm.Main.fullscreen(null)
+
+setCurrentFile = function(filepath) {
+  currentFile = filepath
+  setSaved(true)
+  document.title =
+    filepath ? `Gingko - ${path.basename(filepath)}` : "Gingko - Untitled"
+}
+
+setSaved = bool => {
+  saved = bool;
+  ipc.send('saved', bool)
+}
+
+if(location.hash !== "") {
+  filepath = decodeURIComponent(location.hash.slice(1))  
+
+  try {
+    contents = fs.readFileSync(filepath)
+
+    if(contents !== null) {
+      model = JSON.parse(contents)
+      setCurrentFile(filepath)
+    }
+  }
+  catch (err) {
+    console.log(err)
+    dialog.showErrorBox("File load error.", err.message)
+  }
+}
+var gingko =  Elm.Main.fullscreen(model)
 var lastCenterline = null
 
 
@@ -50,6 +79,11 @@ gingko.ports.message.subscribe(function(msg) {
 
 
 /* === Handlers === */
+
+ipc.on('open-file', function(e) {
+  console.log(e)
+})
+
 
 ipc.on('new', function(e) {
   saveConfirmAndThen(newFile)
@@ -147,10 +181,6 @@ ipc.on('resetzoom', e => {
   webFrame.setZoomLevel(0)
 })
 
-setSaved = bool => {
-  saved = bool;
-  ipc.send('saved', bool)
-}
 
 saveConfirmAndThen = onSuccess => {
   if(!saved) {
@@ -231,12 +261,6 @@ saveCallback = function(err) {
 }
 
 
-setCurrentFile = function(filepath) {
-  currentFile = filepath
-  setSaved(true)
-  document.title =
-    filepath ? `Gingko - ${path.basename(filepath)}` : "Gingko - Untitled"
-}
 
 
 loadFile = filepath => {
