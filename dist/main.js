@@ -81,18 +81,21 @@ ipc.on('export-as-json', function(e) {
   
   var options =
     { title: 'Export JSON'
-    , defaultPath: `${__dirname}/..`
+    , defaultPath: currentFile ? `${__dirname}/../${currentFile.replace('.gko','')}.json` : `${__dirname}/../Untitled.json`
     , filters:  [ {name: 'JSON Files', extensions: ['json']}
+                , {name: 'All Files', extensions: ['*']}
                 ]
     }
 
   dialog.showSaveDialog(options, function(e){
-    fs.writeFile(e, JSON.stringify([strip(model.tree)], null, 2), function(err){ 
-      if(err) { 
-        dialog.showMessageBox({title: "Save Error", message: "Document wasn't saved."})
-        console.log(err.message)
-      }
-    })
+    if(!!e) {
+      fs.writeFile(e, JSON.stringify([strip(model.tree)], null, 2), function(err){ 
+        if(err) { 
+          dialog.showMessageBox({title: "Save Error", message: "Document wasn't saved."})
+          console.log(err.message)
+        }
+      })
+    }
   })
 })
 
@@ -107,18 +110,21 @@ ipc.on('export-as-markdown', function(e) {
 
   var options =
     { title: 'Export Markdown (txt)'
-    , defaultPath: `${__dirname}/..`
+    , defaultPath: currentFile ? `${__dirname}/../${currentFile.replace('.gko','')}.txt` : `${__dirname}/../Untitled.txt`
     , filters:  [ {name: 'Text Files', extensions: ['txt']}
+                , {name: 'All Files', extensions: ['*']}
                 ]
     }
 
   dialog.showSaveDialog(options, function(e){
-    fs.writeFile(e, flattenTree(model.tree, []).join("\n\n"), function(err){ 
-      if(err) { 
-        dialog.showMessageBox({title: "Save Error", message: "Document wasn't saved."})
-        console.log(err.message)
-      }
-    })
+    if(!!e) {
+      fs.writeFile(e, flattenTree(model.tree, []).join("\n\n"), function(err){ 
+        if(err) { 
+          dialog.showMessageBox({title: "Save Error", message: "Document wasn't saved."})
+          console.log(err.message)
+        }
+      })
+    }
   })
 })
 
@@ -199,14 +205,17 @@ saveModel = function(model, cb){
 saveModelAs = function(model, cb){
   var options =
     { title: 'Save As'
-    , defaultPath: `${__dirname}/..` 
+    , defaultPath: currentFile ? `${__dirname}/../${currentFile.replace('.gko','')}` : `${__dirname}/../Untitled.gko`
     , filters:  [ {name: 'Gingko Files', extensions: ['gko']}
+                , {name: 'All Files', extensions: ['*']}
                 ]
     }
 
   dialog.showSaveDialog(options, function(e){
-    setCurrentFile(e)
-    fs.writeFile(e, JSON.stringify(model, null, 2), cb)
+    if(!!e){
+      setCurrentFile(e)
+      fs.writeFile(e, JSON.stringify(model, null, 2), cb)
+    }
   })
 }
 
@@ -225,7 +234,8 @@ saveCallback = function(err) {
 setCurrentFile = function(filepath) {
   currentFile = filepath
   setSaved(true)
-  document.title = `Gingko - ${path.basename(filepath)}`
+  document.title =
+    filepath ? `Gingko - ${path.basename(filepath)}` : "Gingko - Untitled"
 }
 
 
@@ -242,7 +252,7 @@ loadFile = filepath => {
 /* === Messages To Elm === */
 
 newFile = function() {
-  setCurrentFile('Untitled')
+  setCurrentFile(null)
   gingko.ports.data.send(null)
   remote.getCurrentWindow().focus()
 }
@@ -255,6 +265,7 @@ openDialog = function() {
     , defaultPath: `${__dirname}/..`
     , properties: ['openFile']
     , filters:  [ {name: 'Gingko Files', extensions: ['gko']}
+                , {name: 'All Files', extensions: ['*']}
                 ]
     }
     , function(e) {
