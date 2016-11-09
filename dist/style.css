@@ -408,11 +408,16 @@ pre {
   width: 40px;
   line-height: 20px;
 }
+
 .card-btn.ins-right {
-  height: 25px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 20px;
+  height: calc(100% - 44px);
+  max-height: 80px;
   width: 20px;
   right: -9px;
-  line-height: 25px;
 }
 
 .card-btn.ins-above {
