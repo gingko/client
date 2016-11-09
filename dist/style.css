@@ -3,22 +3,22 @@
   src: url('./fonts/glyphicons-halflings-regular.woff2');
 }
 @font-face {
-  font-family: 'Droid Serif';
-  src: url('./fonts/Droid_Serif/DroidSerif.ttf');
+  font-family: 'Open Sans';
+  src: url('./fonts/Open_Sans/OpenSans-Regular.ttf');
 }
 @font-face {
-  font-family: 'Droid Serif';
-  src: url('./fonts/Droid_Serif/DroidSerif-Bold.ttf');
+  font-family: 'Open Sans';
+  src: url('./fonts/Open_Sans/OpenSans-Bold.ttf');
   font-weight: bold;
 }
 @font-face {
-  font-family: 'Droid Serif';
-  src: url('./fonts/Droid_Serif/DroidSerif-Italic.ttf');
+  font-family: 'Open Sans';
+  src: url('./fonts/Open_Sans/OpenSans-Italic.ttf');
   font-style: italic;
 }
 @font-face {
-  font-family: 'Droid Serif';
-  src: url('./fonts/Droid_Serif/DroidSerif-BoldItalic.ttf');
+  font-family: 'Open Sans';
+  src: url('./fonts/Open_Sans/OpenSans-BoldItalic.ttf');
   font-weight: bold;
   font-style: italic;
 }
@@ -27,18 +27,17 @@
   src: url('./fonts/Droid_Sans_Mono/DroidSansMono.ttf');
 }
 @font-face {
-  font-family: 'Roboto';
-  src: url('./fonts/Roboto/Roboto-Regular.ttf');
+  font-family: 'Bitter';
+  src: url('./fonts/Bitter/Bitter-Regular.ttf');
 }
 @font-face {
-  font-family: 'Roboto';
-  src: url('./fonts/Roboto/Roboto-Bold.ttf');
+  font-family: 'Bitter';
+  src: url('./fonts/Bitter/Bitter-Bold.ttf');
   font-weight: bold;
 }
 @font-face {
-  font-family: 'Roboto';
-  src: url('./fonts/Roboto/Roboto-BoldItalic.ttf');
-  font-weight: bold;
+  font-family: 'Bitter';
+  src: url('./fonts/Bitter/Bitter-Italic.ttf');
   font-style: italic;
 }
 
@@ -203,7 +202,7 @@ body {
 /* --- Typography --- */
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Roboto',sans-serif;
+  font-family: 'Bitter', serif;
   margin: 0;
   line-height: 1.5;
 }
@@ -221,7 +220,7 @@ p {
 }
 
 .card .view {
-  font-family: 'Droid Serif', serif;
+  font-family: 'Open Sans', serif;
   line-height: 1.4;
 }
 
