@@ -17,7 +17,7 @@ function createWindow () {
     })
 
   // and load the index.html of the app.
-  if(!!process.argv[1]) {
+  if(!!process.argv[1] && !process.argv[0].endsWith('electron')) {
     win.loadURL(`file://${__dirname}/dist/index.html#${encodeURIComponent(process.argv[1])}`)
   } else {
     win.loadURL(`file://${__dirname}/dist/index.html`)
