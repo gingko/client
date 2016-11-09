@@ -303,10 +303,11 @@ viewCard vstate tree =
   else
     div cardAttributes
         (
-          [ div [ class "view" 
+          [ Markdown.toHtmlWith options 
+                [ class "view" 
                 , onClick (Activate tree.id)
                 , onDoubleClick (OpenCard tree.id tree.content)
-                ] [ Markdown.toHtmlWith options [] tree.content ]
+                ] tree.content
           , tarea tree.content
           ] ++
           buttons
