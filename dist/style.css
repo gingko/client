@@ -41,6 +41,14 @@
   font-style: italic;
 }
 
+html {
+  box-sizing: border-box;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
 html,
 body {
   margin: 0;
@@ -146,7 +154,6 @@ body {
   position: relative;
   background-color: #c5ced8;
   margin-bottom: 2px;
-  min-height: 53px;
 }
 .card:last-child {
   margin-bottom: 0;
@@ -166,7 +173,8 @@ body {
 }
 
 .card .view {
-  padding: 15px;
+  padding: 17px;
+  min-height: 56px;
   cursor: pointer;
 }
 
@@ -308,7 +316,6 @@ pre {
   display: none;
   outline: none;
   border: none;
-  box-sizing: border-box;
   min-height: 100px;
   max-height: 80%;
   overflow-x: hidden;
@@ -329,7 +336,7 @@ pre {
 .card-btn.cancel,
 .card-btn.delete {
   font-family: 'Glyphicons Halflings';
-  font-size: 14px;
+  font-size: 13px;
 }
 .card-btn.edit::before {
   content: "\270f";
@@ -419,9 +426,9 @@ pre {
 .card-btn.delete {
   top: 0;
   right: 0;
-  width: 25px;
-  height: 25px;
-  line-height: 25px;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
   border: none;
   border-radius: 0px 3px 0px 0px;
   color: hsl(0, 0%, 20%);
@@ -430,9 +437,9 @@ pre {
 .card-btn.edit {
   bottom: 0;
   right: 0;
-  width: 25px;
-  height: 25px;
-  line-height: 25px;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
   border: none;
   border-radius: 0px 0px 3px 0px;
   color: hsl(180, 0%, 20%);
