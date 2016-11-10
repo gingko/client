@@ -293,6 +293,10 @@ pre {
 
 /* --- Core --- */
 
+.card.editing .view {
+  display: none;
+}
+
 .card.editing {
   padding: 15px 0px; 
   border-color: hsl(215, 79%, 66%);
@@ -302,15 +306,19 @@ pre {
 .card.editing textarea {
   display: block;
   background: transparent;
-  background-image: repeating-linear-gradient(to bottom, transparent, transparent 22px, hsl(216, 100%, 84%) 1px, transparent 23px);
+  background-image: linear-gradient(to bottom, transparent, transparent 28px, red 2px, transparent 30px), repeating-linear-gradient(to bottom, transparent, transparent 22px, hsl(216, 100%, 84%) 1px, transparent 23px);
+  background-position-y: 1px, 7px;
   text-shadow: -1px -1px 0px rgba(0,0,0,0.1), 1px 1px 0px rgba(255,255,255,0.8);
   color: hsl(27,28%,22%);
   resize: none;
 }
 
-.card.editing .view {
-  display: none;
+.card.editing textarea::first-line {
+  font-size: 22px;
+  font-weight: bold;
+  line-height: 29px;
 }
+
 
 .card textarea {
   display: none;
@@ -416,8 +424,31 @@ pre {
   min-height: 20px;
   height: calc(100% - 44px);
   max-height: 80px;
+  border-left: none;
   width: 20px;
   right: -9px;
+}
+.card-btn.ins-right::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    background: rgb(253, 253, 255);
+    position: absolute;
+    left: -7px;
+    border-radius: 0 0 0 10px;
+    border-bottom: 1px solid hsl(0, 0%, 75%);
+    top:  -7px;
+}
+.card-btn.ins-right::after {
+    content: '';
+    width: 7px;
+    height: 7px;
+    background: rgb(253, 253, 255);
+    position: absolute;
+    left: -7px;
+    border-radius: 10px 0 0 0;
+    border-top: 1px solid hsl(0, 0%, 75%);
+    bottom:  -7px;
 }
 
 .card-btn.ins-above {
@@ -478,7 +509,6 @@ pre {
 }
 
 .card:hover .card-btn.ins-above:hover,
-.card:hover .card-btn.ins-right:hover, 
 .card:hover .card-btn.ins-below:hover {
   transform: translateY(-1px);
   background: hsl(86, 71%, 95%);
@@ -486,9 +516,14 @@ pre {
   opacity: 1.0;
   transition: none;
 }
+.card:hover .card-btn.ins-right:hover {
+  background: white;
+  background: linear-gradient(to right, white, hsl(86, 71%, 95%));
+  opacity: 1.0;
+  transition: none;
+}
 
 .card:hover .card-btn.ins-above:active,
-.card:hover .card-btn.ins-right:active, 
 .card:hover .card-btn.ins-below:active {
   background: hsl(86, 71%, 82%);
   transform: none;
@@ -540,6 +575,9 @@ pre {
 .card.root:not(.has-children) .card-btn,
 .card.root:not(.has-children):hover .card-btn {
   opacity: 1;
+}
+.card.root .view {
+  min-height: 70px;
 }
 
 /* ======== HISTORY ======== */
