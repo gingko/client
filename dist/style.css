@@ -291,6 +291,11 @@ pre {
   border-color: transparent;
 }
 
+#app.editing .card {
+  box-shadow: 1px 2px 4px hsla(0, 0%, 0%, 0.4);
+  transition: box-shadow 60s ease;
+}
+
 /* --- Core --- */
 
 .card.editing .view {
@@ -298,7 +303,7 @@ pre {
 }
 
 .card.editing {
-  padding: 15px 0px; 
+  padding: 15px 0px 5px 0px; 
   border-color: hsl(215, 79%, 66%);
   background-image: url('./handmadepaper.png');
 }
@@ -317,6 +322,7 @@ pre {
   font-size: 22px;
   font-weight: bold;
   line-height: 29px;
+  text-shadow: none;
 }
 
 

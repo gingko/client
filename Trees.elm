@@ -10,7 +10,7 @@ import Json.Decode as Json
 import Markdown
 
 import Types exposing (..)
-import TreeUtils exposing (getColumns, getChildren, getParent)
+import TreeUtils exposing (getColumns, getChildren, getParent, newLine)
 
 
 
@@ -292,6 +292,20 @@ viewCard vstate tree =
                   , ("has-children", hasChildren)
                   ]
       ]
+
+    splitContent =
+      String.split newLine tree.content
+
+    content =
+      case splitContent of
+        [] -> ""
+
+        head :: tail ->
+          if String.startsWith "#" head then
+            String.join newLine splitContent
+          else
+            String.concat ["# ", head, newLine, String.join newLine tail]
+
   in
   if isEditing then
     div cardAttributes
@@ -307,8 +321,8 @@ viewCard vstate tree =
                 [ class "view" 
                 , onClick (Activate tree.id)
                 , onDoubleClick (OpenCard tree.id tree.content)
-                ] tree.content
-          , tarea tree.content
+                ] content
+          , tarea content
           ] ++
           buttons
         )
