@@ -57,7 +57,6 @@ defaultModel =
       { active = "0"
       , activePast = []
       , activeFuture = []
-      , column = 0
       , descendants = []
       , editing = Just "0"
       , field = ""
@@ -127,9 +126,6 @@ update msg model =
                 |> getDescendants
                 |> List.map .id
 
-            col =
-              getDepth 0 model.tree id
-
             newModel =
               { model
                 | viewState = 
@@ -137,7 +133,6 @@ update msg model =
                     | active = id
                     , activePast = newPast
                     , activeFuture = []
-                    , column = col
                     , descendants = desc
                   }
               }
