@@ -223,7 +223,12 @@ update msg model =
         |> andThen SaveTemp
 
     SaveCard ->
-      update (UpdateCard vs.active vs.field) model
+      case vs.editing of
+        Just editId ->
+          update (UpdateCard editId vs.field) model
+
+        Nothing ->
+          model ! []
 
     DeleteCard id ->
       let
