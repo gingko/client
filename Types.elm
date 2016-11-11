@@ -55,6 +55,7 @@ type alias ViewState =
   { active : String
   , activePast : List String
   , activeFuture : List String
+  , column : Int
   , descendants : List String
   , editing : Maybe String
   , field : String

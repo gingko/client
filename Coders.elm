@@ -48,6 +48,7 @@ viewStateToValue vs =
     [ ( "active", Json.Encode.string vs.active )
     , ( "activePast", Json.Encode.list (List.map Json.Encode.string vs.activePast) )
     , ( "activeFuture", Json.Encode.list (List.map Json.Encode.string vs.activeFuture) )
+    , ( "column", Json.Encode.int vs.column )
     , ( "descendants", Json.Encode.list (List.map Json.Encode.string vs.descendants) )
     , ( "editing", maybeToValue vs.editing Json.Encode.string )
     , ( "field", Json.Encode.string vs.active )
@@ -98,10 +99,11 @@ treeDecoder =
 
 viewStateDecoder : Decoder ViewState
 viewStateDecoder =
-  Json.object6 ViewState
+  Json.object7 ViewState
     ("active" := string)
     ("activePast" := list string)
     ("activeFuture" := list string)
+    (oneOf ["column" := int, succeed 0])
     ("descendants" := list string)
     ( maybe ("editing" := string))
     ("field" := string)

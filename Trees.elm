@@ -174,9 +174,13 @@ viewGroup vstate depth xs =
     isActiveDescendant =
       vstate.descendants
         |> List.member firstChild
+
+    depthDelta =
+      Basics.min 6 (depth - vstate.column)
   in
     div [ classList [ ("group", True)
                     , ("active-descendant", isActiveDescendant)
+                    , ("reldepth-" ++ (toString depthDelta), isActiveDescendant)
                     ]
         ]
         (List.map (lazy (viewCard vstate depth)) xs)
