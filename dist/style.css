@@ -27,6 +27,15 @@
   src: url('./fonts/Droid_Sans_Mono/DroidSansMono.ttf');
 }
 @font-face {
+  font-family: 'Roboto Mono';
+  src: url('./fonts/Roboto_Mono/RobotoMono-Regular.ttf');
+}
+@font-face {
+  font-family: 'Roboto Mono';
+  src: url('./fonts/Roboto_Mono/RobotoMono-Bold.ttf');
+  font-weight: bold;
+}
+@font-face {
   font-family: 'Bitter';
   src: url('./fonts/Bitter/Bitter-Regular.ttf');
 }
@@ -304,7 +313,8 @@ pre {
 
 .card.editing {
   padding: 15px 0px 5px 0px; 
-  border-color: hsl(215, 79%, 66%);
+  border: none;
+  border-radius: inherit;
   background-image: url('./handmadepaper.png');
 }
 
@@ -319,8 +329,9 @@ pre {
 }
 
 .card.editing textarea::first-line {
-  font-size: 19px;
+  font-size: 22px;
   font-weight: bold;
+  font-family: 'Roboto Mono', 'Droid Sans Mono', monospace;
   line-height: 29px;
   text-shadow: none;
 }
