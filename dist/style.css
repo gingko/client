@@ -453,7 +453,7 @@ pre {
     position: absolute;
     left: -7px;
     border-radius: 0 0 0 10px;
-    border-bottom: 1px solid hsl(0, 0%, 75%);
+    border-bottom: 1px solid hsl(0, 0%, 60%);
     top:  -7px;
 }
 .card-btn.ins-right::after {
@@ -464,7 +464,7 @@ pre {
     position: absolute;
     left: -7px;
     border-radius: 10px 0 0 0;
-    border-top: 1px solid hsl(0, 0%, 75%);
+    border-top: 1px solid hsl(0, 0%, 40%);
     bottom:  -7px;
 }
 
@@ -534,9 +534,10 @@ pre {
   transition: none;
 }
 .card:hover .card-btn.ins-right:hover {
-  background: white;
-  background: linear-gradient(to right, white, hsl(86, 71%, 95%));
   opacity: 1.0;
+  border-bottom: 1px solid hsl(0,0%,40%);
+  border-right: 1px solid hsl(0,0%,40%);
+  border-top: 1px solid hsl(0,0%,65%);
   transition: none;
 }
 
