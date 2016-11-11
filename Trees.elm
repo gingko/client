@@ -10,7 +10,7 @@ import Json.Decode as Json
 import Markdown
 
 import Types exposing (..)
-import TreeUtils exposing (getColumns, getChildren, getParent, newLine)
+import TreeUtils exposing (getColumns, getColumnsWithDepth, getChildren, getParent, newLine)
 
 
 
@@ -131,11 +131,14 @@ modifySiblings id upd tree =
 view : ViewState -> Tree -> Html Msg
 view vstate tree =
   let
+    columnsWithDepth =
+      getColumnsWithDepth [([[ tree ]], 0)]
+
     columns =
-      [[[]]] ++
-      getColumns([[[ tree ]]]) ++
-      [[[]]]
-        |> List.map (viewColumn vstate)
+      [([[]], -1)] ++
+      columnsWithDepth ++
+      [([[]], List.length columnsWithDepth)]
+        |> List.map (\t -> viewColumn vstate (snd t) (fst t))
   in
   div [ id "app" 
       , classList [ ("editing", vstate.editing /= Nothing) ]
@@ -144,8 +147,8 @@ view vstate tree =
     )
 
 
-viewColumn : ViewState -> Column -> Html Msg
-viewColumn vstate col =
+viewColumn : ViewState -> Int -> Column -> Html Msg
+viewColumn vstate depth col =
   let
     buffer =
       [div [ class "buffer" ][]]
@@ -153,14 +156,14 @@ viewColumn vstate col =
   div
     [ class "column" ]
     ( buffer ++
-      (List.map (lazy (viewGroup vstate)) col) ++
+      (List.map (lazy (viewGroup vstate depth)) col) ++
       buffer
     )
     
 
 
-viewGroup : ViewState -> Group -> Html Msg
-viewGroup vstate xs =
+viewGroup : ViewState -> Int -> Group -> Html Msg
+viewGroup vstate depth xs =
   let
     firstChild = 
       xs
@@ -176,11 +179,11 @@ viewGroup vstate xs =
                     , ("active-descendant", isActiveDescendant)
                     ]
         ]
-        (List.map (lazy (viewCard vstate)) xs)
+        (List.map (lazy (viewCard vstate depth)) xs)
 
 
-viewCard : ViewState -> Tree -> Html Msg
-viewCard vstate tree =
+viewCard : ViewState -> Int -> Tree -> Html Msg
+viewCard vstate depth tree =
   let
     isEditing = vstate.editing == Just tree.id
     isActive = vstate.active == tree.id
@@ -296,6 +299,9 @@ viewCard vstate tree =
     splitContent =
       String.split newLine tree.content
 
+    autoheading =
+      List.repeat (Basics.min 6 (depth+1)) "#"
+
     content =
       case splitContent of
         [] -> ""
@@ -304,7 +310,8 @@ viewCard vstate tree =
           if String.startsWith "#" head then
             String.join newLine splitContent
           else
-            String.concat ["# ", head, newLine, String.join newLine tail]
+            String.concat
+              ( autoheading ++ [" ", head, newLine, String.join newLine tail] )
 
   in
   if isEditing then

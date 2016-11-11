@@ -30,6 +30,34 @@ getColumns cols =
     cols
 
 
+getColumnsWithDepth : List (Column, Int) -> List (Column, Int)
+getColumnsWithDepth cols =
+  let
+    colTuple = 
+      case (ListExtra.last cols) of
+        Nothing -> ([[]], 0)
+        Just c -> c
+
+    col =
+      fst colTuple
+
+    depth =
+      snd colTuple
+
+    hasChildren = 
+      col
+        |> List.concat
+        |> List.any (\x -> (getChildren x) /= [])
+
+    nextColumn col =
+      List.map getChildren (List.concat col)
+  in
+  if hasChildren then
+    getColumnsWithDepth(cols ++ [(nextColumn(col), depth + 1)])
+  else
+    cols
+
+
 
 
 -- ACCESSORS

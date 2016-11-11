@@ -115,7 +115,7 @@ ipc.on('export-as-json', function(e) {
   
   var options =
     { title: 'Export JSON'
-    , defaultPath: currentFile ? `${__dirname}/../${currentFile.replace('.gko','')}.json` : `${__dirname}/../Untitled.json`
+    , defaultPath: currentFile ? `${app.getPath('documents')}/../${currentFile.replace('.gko','')}.json` : `${app.getPath('documents')}/../Untitled.json`
     , filters:  [ {name: 'JSON Files', extensions: ['json']}
                 , {name: 'All Files', extensions: ['*']}
                 ]
@@ -144,7 +144,7 @@ ipc.on('export-as-markdown', function(e) {
 
   var options =
     { title: 'Export Markdown (txt)'
-    , defaultPath: currentFile ? `${__dirname}/../${currentFile.replace('.gko','')}.txt` : `${__dirname}/../Untitled.txt`
+    , defaultPath: currentFile ? `${app.getPath('documents')}/../${currentFile.replace('.gko','')}.txt` : `${app.getPath('documents')}/../Untitled.txt`
     , filters:  [ {name: 'Text Files', extensions: ['txt']}
                 , {name: 'All Files', extensions: ['*']}
                 ]
@@ -235,7 +235,7 @@ saveModel = function(model, cb){
 saveModelAs = function(model, cb){
   var options =
     { title: 'Save As'
-    , defaultPath: currentFile ? `${__dirname}/../${currentFile.replace('.gko','')}` : `${__dirname}/../Untitled.gko`
+    , defaultPath: currentFile ? `${app.getPath('documents')}/../${currentFile.replace('.gko','')}` : `${app.getPath('documents')}/../Untitled.gko`
     , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
                 , {name: 'All Files', extensions: ['*']}
                 ]
@@ -283,11 +283,10 @@ newFile = function() {
 
 
 openDialog = function() {
-  console.log(__dirname)
   dialog.showOpenDialog(
     null, 
     { title: "Open File..."
-    , defaultPath: `${__dirname}/../`
+    , defaultPath: `${app.getPath('documents')}/../`
     , properties: ['openFile']
     , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
                 , {name: 'All Files', extensions: ['*']}
