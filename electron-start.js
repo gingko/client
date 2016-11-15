@@ -99,6 +99,11 @@ const menuTemplate =
               focusedWindow.webContents.send('open')
             }
           }
+        , { label: 'Import File...'
+          , click (item, focusedWindow) {
+              focusedWindow.webContents.send('import')
+            }
+          }
         , { type: 'separator' }
         , { label: 'Save'
           , accelerator: 'CmdOrCtrl+S'

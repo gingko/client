@@ -107,6 +107,9 @@ ipc.on('open', function(e) {
   saveConfirmAndThen(openDialog)
 })
 
+ipc.on('import', function(e) {
+  saveConfirmAndThen(importDialog)
+})
 
 ipc.on('save', function(e) {
   saveModel(model, saveCallback)
@@ -274,13 +277,63 @@ saveCallback = function(err) {
 }
 
 
-
-
 loadFile = filepath => {
   fs.readFile(filepath, (err, data) => {
     if (err) throw err;
     setCurrentFile(filepath)
     model = JSON.parse(data)
+    gingko.ports.data.send(model)
+  })
+}
+
+
+importFile = filepath => {
+  fs.readFile(filepath, (err, data) => {
+    if (err) throw err;
+    setCurrentFile(filepath)
+   
+    var nextId = 0
+    data = data.toString()
+            .replace( /{"content":/g
+                    , s => {
+                        nextId = nextId + 1;
+                        return `{"id":"${nextId}","content":`;
+                      }
+                    )
+    var seed = JSON.parse(data)
+
+    if (seed.length = 1) {
+      var newRoot = 
+          { id: "0"
+          , content: seed[0].content
+          , children: seed[0].children
+          }
+    } else {
+      var newRoot = 
+          { id: "0"
+          , content: path.basename(filepath)
+          , children: seed
+          }
+    }
+
+    model =
+      { tree: newRoot
+      , treePast: []
+      , treeFuture: []
+      , viewState: 
+          { active: "0"
+          , activePast: []
+          , activeFuture: []
+          , descendants: []
+          , editing: null
+          , field: ""
+          }
+      , nextId: nextId
+      , saved: true
+      }
+
+    console.log(model)
+
     gingko.ports.data.send(model)
   })
 }
@@ -308,6 +361,24 @@ openDialog = function() {
     , function(e) {
         if(!!e) {
           loadFile(e[0])
+        }
+      }
+ )
+}
+
+importDialog = function() {
+  dialog.showOpenDialog(
+    null, 
+    { title: "Import File..."
+    , defaultPath: `${app.getPath('documents')}/../`
+    , properties: ['openFile']
+    , filters:  [ {name: 'Gingko App JSON (*.json)', extensions: ['json']}
+                , {name: 'All Files', extensions: ['*']}
+                ]
+    }
+    , function(e) {
+        if(!!e) {
+          importFile(e[0])
         }
       }
  )

@@ -93,7 +93,10 @@ treeDecoder =
   Json.object3 Tree
     ("id" := string)
     ("content" := string)
-    ("children" := list (lazyRecurse (\_ -> treeDecoder)) |> Json.map Children )
+    (oneOf  [ ("children" := list (lazyRecurse (\_ -> treeDecoder)) |> Json.map Children )
+            , succeed (Children [])
+            ]
+    )
 
 
 viewStateDecoder : Decoder ViewState
