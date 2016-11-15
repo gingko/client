@@ -38,6 +38,7 @@ type Msg
     | AddToUndo Tree
     -- === Ports ===
     | SaveTemp
+    | Confirm String String String
     | DataIn Json.Value
     | ExternalCommand (String, String)
     | HandleKey String

@@ -72,6 +72,19 @@ gingko.ports.message.subscribe(function(msg) {
       model = msg[1]
       undoRedoMenuState(model.treePast, model.treeFuture)
       break
+    case 'confirm-cancel':
+      var options =
+        { type: "warning"
+        , buttons: ["OK", "Cancel"]
+        , title: msg[1].title
+        , message: msg[1].message
+        }
+      dialog.showMessageBox(options, function(e) {
+        if(e === 0) {
+          gingko.ports.externals.send(['confirm-cancel', 'true'])
+        }
+      })
+      break
   }
 })
 

@@ -496,10 +496,27 @@ update msg model =
       in
         newModel ! [ message ("save-temp", modelToValue newModel) ]
 
+    Confirm tag title msg ->
+      model
+        ! [ message
+            ( tag
+            , Json.Encode.object  [ ("title", Json.Encode.string title)
+                                  , ("message", Json.Encode.string msg)
+                                  ]
+            )
+          ]
+
     ExternalCommand (cmd, arg) ->
       case cmd of
         "keyboard" ->
           model ! [run (HandleKey arg)]
+
+        "confirm-cancel" ->
+          if arg == "true" then
+            model ! []
+              |> andThen CancelCard
+          else
+            model ! []
 
         _ ->
           let
@@ -533,7 +550,7 @@ update msg model =
             (OpenCard vs.active (getContent vs.active model.tree))
 
         "esc" ->
-          editMode model (\_ -> CancelCard )
+          editMode model (\_ -> Confirm "confirm-cancel" "Discard Changes?" "Are you sure you want to discard unsaved changes?" )
 
         "mod+backspace" ->
           normalMode model
