@@ -2,10 +2,13 @@
 All notable changes to this project will be documented in this file.
 
 
+## [0.0.5] - 2016-11-15
+- You can now import trees from GingkoApp.com's JSON format.
+
+
 ## [0.0.4] - 2016-11-15
 - To prevent losing unsaved card changes, pressing 'Esc' to cancel changes
 now asks for confirmation.
-- You can now import trees from GingkoApp.com's JSON format.
 
 
 ## [0.0.3] - 2016-11-11
