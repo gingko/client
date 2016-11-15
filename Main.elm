@@ -513,8 +513,7 @@ update msg model =
 
         "confirm-cancel" ->
           if arg == "true" then
-            model ! []
-              |> andThen CancelCard
+            update CancelCard model
           else
             model ! []
 
@@ -550,7 +549,26 @@ update msg model =
             (OpenCard vs.active (getContent vs.active model.tree))
 
         "esc" ->
-          editMode model (\_ -> Confirm "confirm-cancel" "Discard Changes?" "Are you sure you want to discard unsaved changes?" )
+          case vs.editing of
+            Nothing ->
+              model ! []
+
+            Just uid ->
+              let
+                activeTree_ =
+                  getTree uid model.tree
+              in
+              case activeTree_ of
+                Nothing ->
+                  model ! []
+
+                Just activeTree ->
+                  if activeTree.content /= vs.field then
+                    update 
+                    (Confirm "confirm-cancel" "Discard Changes?" "Are you sure you want to discard unsaved changes?")
+                    model
+                  else
+                    update CancelCard model
 
         "mod+backspace" ->
           normalMode model
