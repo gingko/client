@@ -332,8 +332,6 @@ importFile = filepath => {
       , saved: true
       }
 
-    console.log(model)
-
     gingko.ports.data.send(model)
   })
 }

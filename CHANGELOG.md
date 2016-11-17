@@ -1,6 +1,11 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+- Bug fix: when deep into tree, navigating up or down beyond group boundaries,
+didn't work, now does.
+- Bug fix: images now scale down to fit in cards.
+
 
 ## [0.0.5] - 2016-11-15
 - You can now import trees from GingkoApp.com's JSON format.

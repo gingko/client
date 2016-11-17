@@ -100,25 +100,13 @@ getSiblings id tree =
     List.concatMap (getSiblings id) (getChildren tree)
 
 
-getColumn : String -> Tree -> List Tree
-getColumn id tree =
+getColumn : Int -> Tree -> Maybe (List (List Tree))
+getColumn n tree =
   let
-    parentId =
-      getParent id tree
-        |> Maybe.map .id
-        |> Maybe.withDefault "invalid"
-
-    grandparent_ =
-      getParent parentId tree
+    cols =
+      getColumns [[[tree]]]
   in
-  case grandparent_ of
-    Just gp ->
-      getChildren gp
-        |> List.filter (\t -> t.children /= Children [])
-        |> List.concatMap getChildren
-
-    Nothing ->
-      getSiblings id tree
+  ListExtra.getAt n cols
 
 
 getPrevNext : Int -> String -> Tree -> Maybe Tree
@@ -151,18 +139,27 @@ getNext id tree =
 getPrevNextInColumn : Int -> String -> Tree -> Maybe Tree
 getPrevNextInColumn shift id tree =
   let
-    column = getColumn id tree
-    idx =
-      column
-        |> List.map .id
-        |> ListExtra.elemIndex id
+    n = getDepth 0 tree id
+    column_ = getColumn n tree
   in
-  case idx of
+  case column_ of
     Nothing -> Nothing
 
-    Just i ->
-      column
-        |> ListExtra.getAt (i + shift)
+    Just col ->
+      let
+        idx =
+          col
+            |> List.concat
+            |> List.map .id
+            |> ListExtra.elemIndex id
+      in
+      case idx of
+        Nothing -> Nothing
+
+        Just i ->
+          col
+            |> List.concat
+            |> ListExtra.getAt (i + shift)
 
 
 getPrevInColumn : String -> Tree -> Maybe Tree

@@ -10,7 +10,7 @@ import Json.Decode as Json
 import Markdown
 
 import Types exposing (..)
-import TreeUtils exposing (getColumns, getColumnsWithDepth, getChildren, getParent, newLine)
+import TreeUtils exposing (..)
 
 
 
@@ -171,11 +171,17 @@ viewGroup vstate depth xs =
         |> Maybe.withDefault defaultTree
         |> .id
 
+    isActive =
+      xs
+        |> List.map .id
+        |> List.member vstate.active
+
     isActiveDescendant =
       vstate.descendants
         |> List.member firstChild
   in
     div [ classList [ ("group", True)
+                    , ("active", isActive)
                     , ("active-descendant", isActiveDescendant)
                     ]
         ]
@@ -188,6 +194,12 @@ viewCard vstate depth tree =
     isEditing = vstate.editing == Just tree.id
     isActive = vstate.active == tree.id
     isRoot = tree.id == "0"
+    isAncestor =
+      getDescendants tree
+        |> List.map .id
+        |> List.member vstate.active
+           
+
 
     options =
       { githubFlavored = Just { tables = True, breaks = True }
@@ -291,6 +303,7 @@ viewCard vstate depth tree =
       , classList [ ("card", True)
                   , ("root", isRoot)
                   , ("active", isActive)
+                  , ("ancestor", isAncestor)
                   , ("editing", isEditing)
                   , ("has-children", hasChildren)
                   ]
