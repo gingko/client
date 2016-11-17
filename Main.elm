@@ -31,7 +31,7 @@ main =
     }
 
 
-port activateCards : List (List String) -> Cmd msg
+port activateCards : (Int, List (List String)) -> Cmd msg
 port message : (String, Json.Encode.Value) -> Cmd msg
 
 
@@ -71,10 +71,12 @@ init savedState =
   let
     activateCmd mdl =
       activateCards 
-        (centerlineIds 
+        ( getDepth 0 mdl.tree mdl.viewState.active
+        , (centerlineIds 
           mdl.tree 
           (getTree mdl.viewState.active mdl.tree ? defaultTree) 
           mdl.viewState.activePast
+          )
         )
   in
   case Json.decodeValue modelDecoder savedState of
@@ -139,7 +141,9 @@ update msg model =
           in
           newModel
             ! [ activateCards 
-                  (centerlineIds model.tree activeTree newPast)
+                  ( getDepth 0 model.tree id
+                  , (centerlineIds model.tree activeTree newPast)
+                  )
               ]
 
         Nothing ->

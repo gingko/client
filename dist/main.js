@@ -48,13 +48,17 @@ if(location.hash !== "") {
 }
 var gingko =  Elm.Main.fullscreen(model)
 var lastCenterline = null
+var lastColumnIdx = null
 
 
 
 
 /* === Elm Ports === */
 
-gingko.ports.activateCards.subscribe(ids => scrollColumns(ids))
+gingko.ports.activateCards.subscribe(actives => {
+  scrollHorizontal(actives[0])
+  scrollColumns(actives[1])
+})
 
 gingko.ports.message.subscribe(function(msg) {
   switch (msg[0]) {
@@ -229,6 +233,7 @@ document.body.ondrop = (ev) => {
 
 window.onresize = () => {
   if (lastCenterline) { scrollColumns(lastCenterline) }
+  if (lastColumnIdx) { scrollHorizontal(lastColumnIdx) }
 }
 
 attemptSave = function(model, success, fail) {
@@ -328,7 +333,7 @@ importFile = filepath => {
           , editing: null
           , field: ""
           }
-      , nextId: nextId
+      , nextId: nextId + 1
       , saved: true
       }
 
@@ -446,6 +451,11 @@ undoRedoMenuState = (past, future) => {
 
 /* === DOM manipulation === */
 
+var scrollHorizontal = colIdx => {
+  lastColumnIdx = colIdx
+  _.delay(scrollHorizTo, 20, colIdx)
+}
+
 var scrollColumns = centerlineIds => {
   lastCenterline = centerlineIds
   centerlineIds.map(function(c, i){
@@ -467,6 +477,32 @@ var scrollTo = function(cid, colIdx) {
     { scrollTop: col.scrollTop + ((rect.top + rect.height*0.5) - col.offsetHeight*0.5)
     , ease: Power2.easeInOut
     });
+}
+
+var scrollHorizTo = function(colIdx) {
+  var col = document.getElementsByClassName('column')[colIdx+1]
+  var appEl = document.getElementById('app');
+  if (col == null) {
+    console.log('scroll horiz error: not found', colIdx)
+    return;
+  }
+  var rect = col.getBoundingClientRect();
+  if (rect.width >= appEl.offsetWidth) {
+    TweenMax.to(appEl, 0.65,
+      { scrollLeft: appEl.scrollLeft + rect.left
+      , ease: Power2.easeInOut
+      });
+  } else if (rect.left < 150) {
+    TweenMax.to(appEl, 0.65,
+      { scrollLeft: appEl.scrollLeft - 150 + rect.left
+      , ease: Power2.easeInOut
+      });
+  } else if (rect.right > appEl.offsetWidth - 150) {
+    TweenMax.to(appEl, 0.65,
+      { scrollLeft: appEl.scrollLeft + 150 + rect.right - appEl.offsetWidth 
+      , ease: Power2.easeInOut
+      });
+  }
 }
 
 

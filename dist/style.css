@@ -91,16 +91,18 @@ body {
 
 #app {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   position: absolute;
   height: 100%;
   width: 100%;
+  overflow-x: auto;
 }
 
 .column {
   flex: 1 0;
   height: 100%;
   max-width: 600px;
+  min-width: 300px;
   overflow-x: hidden;
   overflow-y: scroll;
 }
@@ -112,6 +114,7 @@ body {
 
 .column:first-child, .column:last-child{
   flex: 0.25 0;
+  min-width: 150px;
 }
 
 .column:first-child .buffer, .column:last-child .buffer {

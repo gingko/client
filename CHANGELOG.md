@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 
 
+## [0.0.7] - 2016-11-17
+- Min-width for columns, horizontal scrolling.
+
+
 ## [0.0.6] - 2016-11-17
 - Bug fix: when deep into tree, navigating up or down beyond group boundaries,
 didn't work, now does.
