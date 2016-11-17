@@ -1,7 +1,8 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+
+## [0.0.6] - 2016-11-17
 - Bug fix: when deep into tree, navigating up or down beyond group boundaries,
 didn't work, now does.
 - Bug fix: images now scale down to fit in cards.
