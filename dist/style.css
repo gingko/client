@@ -276,6 +276,10 @@ pre {
   border-radius: 4px;
 }
 
+.card img {
+  max-width: 100%;
+}
+
 /* ======== CARD (Edit view) ======== */
 
 /* --- Autofocus --- */
