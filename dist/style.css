@@ -114,7 +114,7 @@ body {
 
 .column:first-child, .column:last-child{
   flex: 0.25 0;
-  min-width: 150px;
+  min-width: 100px;
 }
 
 .column:first-child .buffer, .column:last-child .buffer {

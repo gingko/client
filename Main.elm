@@ -81,7 +81,7 @@ init savedState =
   in
   case Json.decodeValue modelDecoder savedState of
     Ok model ->
-      model 
+      (Debug.log "model in" model)
         ! [ activateCmd model
           , focus model.viewState.active
           ]
@@ -581,10 +581,19 @@ update msg model =
         "mod+j" ->
           update (InsertBelow vs.active) model
 
+        "mod+down" ->
+          update (InsertBelow vs.active) model
+
         "mod+k" ->
           update (InsertAbove vs.active) model
 
+        "mod+up" ->
+          update (InsertAbove vs.active) model
+
         "mod+l" ->
+          update (InsertChild vs.active) model
+
+        "mod+right" ->
           update (InsertChild vs.active) model
 
         "h" ->

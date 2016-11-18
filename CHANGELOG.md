@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file.
 
 
+## [0.0.8] - 2016-11-18
+- Fixed import bug: importing from web app "Copy" operation worked,
+but when importing from web app "Export", only first card was imported.
+- Added Ctrl+Arrows to create cards, in addition to Ctrl+JKL.
+
+
 ## [0.0.7] - 2016-11-17
 - Min-width for columns, horizontal scrolling.
 

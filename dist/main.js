@@ -297,17 +297,16 @@ importFile = filepath => {
     if (err) throw err;
     setCurrentFile(filepath)
    
-    var nextId = 0
+    var nextId = 1
     data = data.toString()
-            .replace( /{"content":/g
+            .replace( /{(\s*)"content":/g
                     , s => {
-                        nextId = nextId + 1;
-                        return `{"id":"${nextId}","content":`;
+                        return `{"id":"${nextId++}","content":`;
                       }
                     )
     var seed = JSON.parse(data)
 
-    if (seed.length = 1) {
+    if (seed.length == 1) {
       var newRoot = 
           { id: "0"
           , content: seed[0].content
@@ -395,6 +394,9 @@ var shortcuts = [ 'mod+enter'
                 , 'mod+j'
                 , 'mod+k'
                 , 'mod+l'
+                , 'mod+down'
+                , 'mod+up'
+                , 'mod+right'
                 , 'h'
                 , 'j'
                 , 'k'
@@ -492,14 +494,14 @@ var scrollHorizTo = function(colIdx) {
       { scrollLeft: appEl.scrollLeft + rect.left
       , ease: Power2.easeInOut
       });
-  } else if (rect.left < 150) {
+  } else if (rect.left < 100) {
     TweenMax.to(appEl, 0.65,
-      { scrollLeft: appEl.scrollLeft - 150 + rect.left
+      { scrollLeft: appEl.scrollLeft - 100 + rect.left
       , ease: Power2.easeInOut
       });
-  } else if (rect.right > appEl.offsetWidth - 150) {
+  } else if (rect.right > appEl.offsetWidth - 100) {
     TweenMax.to(appEl, 0.65,
-      { scrollLeft: appEl.scrollLeft + 150 + rect.right - appEl.offsetWidth 
+      { scrollLeft: appEl.scrollLeft + 100 + rect.right - appEl.offsetWidth 
       , ease: Power2.easeInOut
       });
   }
