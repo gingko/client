@@ -1,5 +1,18 @@
 # Change Log
 All notable changes to this project will be documented in this file.
+Unreleased changes are implemented but haven't been uploaded yet.
+
+
+## [0.0.9] - 2016-11-24
+- Menu fixed on macOS (wasn't showing "File|Gingko", "Edit", "View", or "Debug" menus).
+- Fixed: Onload "File not found" error for macOS.
+- InsertAbove/Below commands when on Root card no longer creates children.
+- Cards now have max-height on edit mode, then switch to scroll. 
+Prevents scrolling bugs with long cards.
+- Ctrl/Cmd arrows in edit mode no longer create cards
+(shortcut conflicted with text navigation).
+- Pressing Tab in edit mode inserts two spaces (previously: lost focus).
+- Code blocks (triple backtick) now preserve whitespace.
 
 
 ## [0.0.8] - 2016-11-18

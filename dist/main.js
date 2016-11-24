@@ -431,6 +431,16 @@ Mousetrap.bind(shortcuts, function(e, s) {
 });
 
 
+Mousetrap.bind(['tab'], function(e, s) {
+  document.execCommand('insertText', false, '  ')
+  return false;
+});
+
+Mousetrap.bind(['shift+tab'], function(e, s) {
+  return true;
+});
+
+
 /* === Menu state === */
 
 undoRedoMenuState = (past, future) => {

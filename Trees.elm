@@ -179,8 +179,12 @@ viewGroup vstate depth xs =
     isActiveDescendant =
       vstate.descendants
         |> List.member firstChild
+
+    isRoot =
+      List.map .id xs == ["0"]
   in
     div [ classList [ ("group", True)
+                    , ("root-group", isRoot)
                     , ("active", isActive)
                     , ("active-descendant", isActiveDescendant)
                     ]

@@ -260,8 +260,7 @@ blockquote {
 code {
   padding: 2px 4px;
   font-size: 90%;
-  color: #c7254e;
-  white-space: nowrap;
+  white-space: pre;
   background-color: #f9f2f4;
 }
 
@@ -330,6 +329,8 @@ pre {
   background: transparent;
   background-image: linear-gradient(to bottom, transparent, transparent 28px, hsl(0, 70%, 74%) 0px, hsl(0, 70%, 74%) 2px, transparent 30px), repeating-linear-gradient(to bottom, transparent, transparent 22px, hsl(216, 100%, 84%) 1px, transparent 23px);
   background-position-y: 0px, 7px;
+  background-attachment: local;
+  max-height: 600px;
   text-shadow: -1px -1px 0px rgba(0,0,0,0.1), 1px 1px 0px rgba(255,255,255,0.8);
   color: hsl(27,28%,22%);
   resize: none;

@@ -81,7 +81,7 @@ init savedState =
   in
   case Json.decodeValue modelDecoder savedState of
     Ok model ->
-      (Debug.log "model in" model)
+      model 
         ! [ activateCmd model
           , focus model.viewState.active
           ]
@@ -229,7 +229,19 @@ update msg model =
     SaveCard ->
       case vs.editing of
         Just editId ->
-          update (UpdateCard editId vs.field) model
+          let
+            activeTree_ =
+              getTree editId model.tree
+          in
+          case activeTree_ of
+            Nothing ->
+              update CancelCard model
+
+            Just activeTree ->
+              if activeTree.content /= vs.field then
+                update (UpdateCard editId vs.field) model
+              else
+                update CancelCard model
 
         Nothing ->
           model ! []
@@ -273,6 +285,7 @@ update msg model =
       } 
         ! []
 
+
     -- === Card Insertion  ===
 
     Insert subtree pid idx ->
@@ -294,11 +307,16 @@ update msg model =
         idx =
           getIndex id model.tree ? 999999
 
-        pid =
-          getParent id model.tree ? defaultTree |> .id
+        pid_ =
+          getParent id model.tree |> Maybe.map .id
 
         insertMsg =
-          Insert (blankTree model.nextId) pid idx
+          case pid_ of
+            Nothing ->
+              NoOp
+
+            Just pid ->
+              Insert (blankTree model.nextId) pid idx
       in
       case vs.editing of
         Nothing ->
@@ -313,11 +331,16 @@ update msg model =
         idx =
           getIndex id model.tree ? 999999
 
-        pid =
-          getParent id model.tree ? defaultTree |> .id
+        pid_ =
+          getParent id model.tree |> Maybe.map .id
 
         insertMsg =
-          Insert (blankTree model.nextId) pid (idx+1)
+          case pid_ of
+            Nothing ->
+              NoOp
+
+            Just pid ->
+              Insert (blankTree model.nextId) pid (idx+1)
       in
       case vs.editing of
         Nothing ->
@@ -546,7 +569,7 @@ update msg model =
 
         "mod+enter" ->
           editMode model
-            (\uid -> UpdateCard uid vs.field)
+            (\_ -> SaveCard)
 
         "enter" ->
           normalMode model
@@ -582,19 +605,22 @@ update msg model =
           update (InsertBelow vs.active) model
 
         "mod+down" ->
-          update (InsertBelow vs.active) model
+          normalMode model
+            (InsertBelow vs.active)
 
         "mod+k" ->
           update (InsertAbove vs.active) model
 
         "mod+up" ->
-          update (InsertAbove vs.active) model
+          normalMode model
+            (InsertAbove vs.active)
 
         "mod+l" ->
           update (InsertChild vs.active) model
 
         "mod+right" ->
-          update (InsertChild vs.active) model
+          normalMode model
+            (InsertChild vs.active)
 
         "h" ->
           normalMode model

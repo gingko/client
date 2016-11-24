@@ -17,10 +17,18 @@ function createWindow () {
     })
 
   // and load the index.html of the app.
-  if(!!process.argv[1] && !process.argv[0].endsWith('electron')) {
-    win.loadURL(`file://${__dirname}/dist/index.html#${encodeURIComponent(process.argv[1])}`)
+  if (process.platform !== 'darwin') {
+    if(!!process.argv[1] && !process.argv[0].endsWith('electron')) {
+      win.loadURL(`file://${__dirname}/dist/index.html#${encodeURIComponent(process.argv[1])}`)
+    } else {
+      win.loadURL(`file://${__dirname}/dist/index.html`)
+    }
   } else {
-    win.loadURL(`file://${__dirname}/dist/index.html`)
+    if(!!process.argv[2] && !process.argv[0].endsWith('electron')) {
+      win.loadURL(`file://${__dirname}/dist/index.html#${encodeURIComponent(process.argv[2])}`)
+    } else {
+      win.loadURL(`file://${__dirname}/dist/index.html`)
+    }
   }
 
   win.on('close', (e) => {
@@ -53,6 +61,9 @@ function createWindow () {
     // when you should delete the corresponding element.
     win = null
   })
+
+  // menu is defined outside this function, far below for now.
+  Menu.setApplicationMenu(menu)
 }
 
 // This method will be called when Electron has finished
@@ -185,4 +196,3 @@ const menuTemplate =
     }
   ]
 const menu = Menu.buildFromTemplate(menuTemplate)
-Menu.setApplicationMenu(menu)
