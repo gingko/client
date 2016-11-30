@@ -42,14 +42,20 @@ function createWindow () {
       var choice = dialog.showMessageBox(options)
 
       switch (choice) {
+        case 0:
+          win.webContents.send('clear-swap')
+          break
         case 1:
           e.preventDefault()
           break
         case 2:
+          win.webContents.send('clear-swap')
           win.webContents.send('save-and-close')
           e.preventDefault()
           break
       }
+    } else {
+      win.webContents.send('clear-swap')
     }
   })
 

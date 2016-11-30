@@ -16,11 +16,13 @@ const Menu = remote.Menu
 
 var model = null
 var currentFile = null
+var currentSwap = null
 var blankAutosave = null
 var saved = true
 
 setCurrentFile = function(filepath) {
   currentFile = filepath
+  currentSwap = filepath.replace('.gko', '.gko.swp')
   setSaved(true)
   document.title =
     filepath ? `Gingko - ${path.basename(filepath)}` : "Gingko - Untitled"
@@ -123,6 +125,10 @@ ipc.on('save', function(e) {
 
 ipc.on('save-as', function(e) {
   saveModelAs(model, saveCallback)
+})
+
+ipc.on('clear-swap', function (e) {
+  clearSwap()
 })
 
 ipc.on('save-and-close', function (e) {
@@ -248,7 +254,7 @@ attemptSave = function(model, success, fail) {
 
 autosave = function(model) {
   if (currentFile) {
-    saveLocation =
+    currentSwap =
         currentFile.replace('.gko','.gko.swp')
 
   } else {
@@ -257,13 +263,13 @@ autosave = function(model) {
         ? blankAutosave
         : Date.now()
 
-    saveLocation =
+    currentSwap =
       `${app.getPath('documents')}/Untitled-${blankAutosave}.gko.swp`
 
-    localStorage.setItem('autosave', saveLocation) // TODO: warn when this exists.
+    localStorage.setItem('autosave', currentSwap) // TODO: warn when this exists.
   }
 
-  fs.writeFile(saveLocation, JSON.stringify(model, null, 2), function(err){
+  fs.writeFile(currentSwap, JSON.stringify(model, null, 2), function(err){
     if(err) {
       dialog.showErrorBox("Autosave error.", err.message)
     } 
@@ -296,6 +302,10 @@ saveModelAs = function(model, cb){
   })
 }
 
+clearSwap = function(filepath) {
+  var file = filepath ? filepath : currentSwap
+  fs.unlinkSync(file)
+}
 
 saveCallback = function(err) {
   if(err) { 
