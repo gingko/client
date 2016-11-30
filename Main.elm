@@ -218,7 +218,9 @@ update msg model =
           getTree (vs.editing ? "") model.tree ? defaultTree
             |> .content
             |> sift3Distance str
-            |> (\x -> x >= 10.0)
+            |> (\x -> x*2)
+            |> round
+            |> (\x -> x % 20 == 0)
       in
       { model 
         | viewState = { vs | field = str }

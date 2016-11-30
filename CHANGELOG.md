@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 Unreleased changes are implemented but haven't been uploaded yet.
 
 
+## [0.0.10] - 2016-11-30
+- Recovery file: on any card insertion/deletion/moves, and every ~10 characters.
+- Warn on loading a file if a recovery file is also found.
+
+
 ## [0.0.9] - 2016-11-24
 - Menu fixed on macOS (wasn't showing "File|Gingko", "Edit", "View", or "Debug" menus).
 - Fixed: Onload "File not found" error for macOS.
