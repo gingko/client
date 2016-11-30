@@ -16,6 +16,7 @@ const Menu = remote.Menu
 
 var model = null
 var currentFile = null
+var blankAutosave = null
 var saved = true
 
 setCurrentFile = function(filepath) {
@@ -71,6 +72,7 @@ gingko.ports.message.subscribe(function(msg) {
       document.title = 
         /\*/.test(document.title) ? document.title : document.title + "*"
       setSaved(false)
+      autosave(model)
       break
     case 'undo-state-change':
       model = msg[1]
@@ -227,7 +229,7 @@ document.ondragover = document.ondrop = (ev) => {
 }
 
 document.body.ondrop = (ev) => {
-  saveConfirmAndThen(loadFile(ev.dataTransfer.files[0].path))
+  saveConfirmAndThen(attemptLoadFile(ev.dataTransfer.files[0].path))
   ev.preventDefault()
 }
 
@@ -243,6 +245,30 @@ attemptSave = function(model, success, fail) {
   })
 }
 
+
+autosave = function(model) {
+  if (currentFile) {
+    saveLocation =
+        currentFile.replace('.gko','.gko.swp')
+
+  } else {
+    blankAutosave =
+      blankAutosave
+        ? blankAutosave
+        : Date.now()
+
+    saveLocation =
+      `${app.getPath('documents')}/Untitled-${blankAutosave}.gko.swp`
+
+    localStorage.setItem('autosave', saveLocation) // TODO: warn when this exists.
+  }
+
+  fs.writeFile(saveLocation, JSON.stringify(model, null, 2), function(err){
+    if(err) {
+      dialog.showErrorBox("Autosave error.", err.message)
+    } 
+  })
+}
 
 saveModel = function(model, cb){
   if (currentFile) {
@@ -282,10 +308,36 @@ saveCallback = function(err) {
 }
 
 
-loadFile = filepath => {
+attemptLoadFile = filepath => {
+  var swapFilepath =
+    filepath.replace('.gko', '.gko.swp')
+
+  fs.access(swapFilepath, (err) => {
+    if (err) {
+      loadFile(filepath)
+    } else {
+      var options =
+        { type: "warning"
+        , buttons: ["Yes", "No"]
+        , title: "Recover changes?"
+        , message: "Unsaved changes were found. Would you like to recover them?"
+        }
+      dialog.showMessageBox(options, function(e) {
+        if(e === 0) {
+          loadFile(swapFilepath, filepath)
+        } else {
+          loadFile(filepath)
+        }
+      })
+    }
+  })
+}
+
+
+loadFile = (filepath, setpath) => {
   fs.readFile(filepath, (err, data) => {
     if (err) throw err;
-    setCurrentFile(filepath)
+    setCurrentFile(setpath ? setpath : filepath)
     model = JSON.parse(data)
     gingko.ports.data.send(model)
   })
@@ -362,7 +414,7 @@ openDialog = function() {
     }
     , function(e) {
         if(!!e) {
-          loadFile(e[0])
+          attemptLoadFile(e[0])
         }
       }
  )
