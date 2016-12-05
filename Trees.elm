@@ -173,17 +173,9 @@ viewGroup vstate depth xs =
         |> Maybe.withDefault defaultTree
         |> .id
 
-    isActiveGroup =
-      xs
-        |> List.map .id
-        |> List.member vstate.active
-
     isActiveDescendant =
       vstate.descendants
         |> List.member firstChild
-
-    isRoot =
-      List.map .id xs == ["0"]
 
     viewFunction t =
       let
@@ -205,8 +197,6 @@ viewGroup vstate depth xs =
   in
     Keyed.node "div"
       [ classList [ ("group", True)
-                  , ("root-group", isRoot)
-                  , ("active", isActiveGroup)
                   , ("active-descendant", isActiveDescendant)
                   ]
       ]
