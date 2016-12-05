@@ -14,7 +14,6 @@ import Dom
 import Task
 import Markdown
 import List.Extra as ListExtra
-import StringDistance exposing (sift3Distance)
 
 import Types exposing (..)
 import Trees exposing (update, view, defaultTree, blankTree)
@@ -213,20 +212,10 @@ update msg model =
         ! [ focus id ]
 
     UpdateField str ->
-      let
-        isBigChange =
-          getTree (vs.editing ? "") model.tree ? defaultTree
-            |> .content
-            |> sift3Distance str
-            |> (\x -> x*2)
-            |> round
-            |> (\x -> x % 20 == 0)
-      in
       { model 
         | viewState = { vs | field = str }
       } 
         ! []
-        |> onlyIf isBigChange SaveTemp
 
     UpdateCard id str ->
       { model

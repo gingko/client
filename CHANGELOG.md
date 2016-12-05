@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 Unreleased changes are implemented but haven't been uploaded yet.
 
 
+## Unreleased
+- Temporarily removed buggy "save backup while typing".
+
+
 ## [0.0.10] - 2016-11-30
 - Recovery file: on any card insertion/deletion/moves, and every ~10 characters.
 - Warn on loading a file if a recovery file is also found.

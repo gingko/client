@@ -5,7 +5,8 @@ import List.Extra as ListExtra
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Html.Lazy exposing (lazy)
+import Html.Lazy exposing (lazy2, lazy3)
+import Html.Keyed as Keyed
 import Json.Decode as Json
 import Markdown
 
@@ -138,7 +139,7 @@ view vstate tree =
       [([[]], -1)] ++
       columnsWithDepth ++
       [([[]], List.length columnsWithDepth)]
-        |> List.map (\t -> viewColumn vstate (snd t) (fst t))
+        |> List.map (\t -> lazy3 viewColumn vstate (snd t) (fst t))
   in
   div [ id "app" 
       , classList [ ("editing", vstate.editing /= Nothing) ]
@@ -156,7 +157,7 @@ viewColumn vstate depth col =
   div
     [ class "column" ]
     ( buffer ++
-      (List.map (lazy (viewGroup vstate depth)) col) ++
+      (List.map (lazy3 viewGroup vstate depth) col) ++
       buffer
     )
     
@@ -171,7 +172,7 @@ viewGroup vstate depth xs =
         |> Maybe.withDefault defaultTree
         |> .id
 
-    isActive =
+    isActiveGroup =
       xs
         |> List.map .id
         |> List.member vstate.active
@@ -182,28 +183,46 @@ viewGroup vstate depth xs =
 
     isRoot =
       List.map .id xs == ["0"]
+
+    viewFunction t =
+      let
+        isActive =
+          t.id == vstate.active
+
+        field_ =
+          case vstate.editing of
+            Just editId ->
+              if editId == t.id then
+                Just vstate.field
+              else
+                Nothing
+
+            Nothing ->
+              Nothing
+      in
+      viewKeyedCard (isActive, field_, depth) t
   in
-    div [ classList [ ("group", True)
-                    , ("root-group", isRoot)
-                    , ("active", isActive)
-                    , ("active-descendant", isActiveDescendant)
-                    ]
-        ]
-        (List.map (lazy (viewCard vstate depth)) xs)
+    Keyed.node "div"
+      [ classList [ ("group", True)
+                  , ("root-group", isRoot)
+                  , ("active", isActiveGroup)
+                  , ("active-descendant", isActiveDescendant)
+                  ]
+      ]
+      (List.map viewFunction xs)
 
 
-viewCard : ViewState -> Int -> Tree -> Html Msg
-viewCard vstate depth tree =
+viewKeyedCard : (Bool, Maybe String, Int) -> Tree -> (String, Html Msg)
+viewKeyedCard tup tree =
+  (tree.id, lazy2 viewCard tup tree)
+
+
+viewCard : (Bool, Maybe String, Int) -> Tree -> Html Msg
+viewCard (isActive, field_, depth) tree =
   let
-    isEditing = vstate.editing == Just tree.id
-    isActive = vstate.active == tree.id
+    isEditing =
+      field_ /= Nothing
     isRoot = tree.id == "0"
-    isAncestor =
-      getDescendants tree
-        |> List.map .id
-        |> List.member vstate.active
-           
-
 
     options =
       { githubFlavored = Just { tables = True, breaks = True }
@@ -231,8 +250,8 @@ viewCard vstate depth tree =
         []
 
     buttons =
-      case (isEditing, isActive, isRoot) of
-        ( False, True, False ) ->
+      case (isEditing, field_, isRoot) of
+        ( False, Just field, False ) ->
           [ div [ class "flex-row card-top-overlay" ]
                 [ span
                   [ class "card-btn ins-above"
@@ -271,7 +290,7 @@ viewCard vstate depth tree =
                 ]
           ]
 
-        ( False, True, True ) ->
+        ( False, Just field, True ) ->
           [ div [ class "flex-column card-right-overlay"]
                 [ span
                   [ class "card-btn ins-right"
@@ -293,7 +312,7 @@ viewCard vstate depth tree =
                 [ span 
                   [ class "card-btn save"
                   , title "Save Changes (Ctrl+Enter)"
-                  , onClick (UpdateCard tree.id vstate.field)
+                  , onClick SaveCard
                   ]
                   []
                 ]
@@ -307,7 +326,6 @@ viewCard vstate depth tree =
       , classList [ ("card", True)
                   , ("root", isRoot)
                   , ("active", isActive)
-                  , ("ancestor", isAncestor)
                   , ("editing", isEditing)
                   , ("has-children", hasChildren)
                   ]
@@ -331,23 +349,24 @@ viewCard vstate depth tree =
               ( autoheading ++ [" ", head, newLine, String.join newLine tail] )
 
   in
-  if isEditing then
-    div cardAttributes
-        (
-          [ tarea vstate.field ]
-          ++
-          buttons
-        )
-  else
-    div cardAttributes
-        (
-          [ Markdown.toHtmlWith options 
-                [ class "view" 
-                , onClick (Activate tree.id)
-                , onDoubleClick (OpenCard tree.id tree.content)
-                ] content
-          , tarea content
-          ] ++
-          buttons
-        )
+  case field_ of
+    Just field ->
+      div cardAttributes
+          (
+            [ tarea field ]
+            ++
+            buttons
+          )
+    Nothing ->
+      div cardAttributes
+          (
+            [ Markdown.toHtmlWith options 
+                  [ class "view" 
+                  , onClick (Activate tree.id)
+                  , onDoubleClick (OpenCard tree.id tree.content)
+                  ] content
+            , tarea content
+            ] ++
+            buttons
+          )
 
