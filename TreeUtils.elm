@@ -1,6 +1,7 @@
 module TreeUtils exposing (..)
 
 import String
+import Tuple exposing (first, second)
 import List.Extra as ListExtra
 import Types exposing (..)
 import Sha1
@@ -39,10 +40,10 @@ getColumnsWithDepth cols =
         Just c -> c
 
     col =
-      fst colTuple
+      first colTuple
 
     depth =
-      snd colTuple
+      second colTuple
 
     hasChildren = 
       col
@@ -69,7 +70,9 @@ getTree id tree =
   else
     getChildren tree
       |> List.map (getTree id)
-      |> Maybe.oneOf
+      |> List.filter (\m -> m /= Nothing)
+      |> List.head
+      |> Maybe.withDefault Nothing
 
 getParent : String -> Tree -> Maybe Tree
 getParent id tree =
@@ -82,7 +85,9 @@ getParent id tree =
       else
         children
           |> List.map (getParent id)
-          |> Maybe.oneOf
+          |> List.filter (\m -> m /= Nothing)
+          |> List.head
+          |> Maybe.withDefault Nothing
 
 
 getChildren : Tree -> List Tree
@@ -257,9 +262,9 @@ centerlineIds all activeTree activePast =
     |> List.map withDepth
     |> List.append [ withDepth activeTree ]
     |> List.append (desc |> List.map withDepth)
-    |> List.sortBy (\x -> fst x)
-    |> ListExtra.groupWhile (\x y-> fst x == fst y)
-    |> List.map (List.map (\x -> snd x))
+    |> List.sortBy (\x -> first x)
+    |> ListExtra.groupWhile (\x y-> first x == first y)
+    |> List.map (List.map (\x -> second x))
     |> List.map (\ids -> lastActiveOrAll activePast ids)
 
 

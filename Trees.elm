@@ -1,6 +1,7 @@
 module Trees exposing (..)
 
 import String
+import Tuple exposing (first, second)
 import List.Extra as ListExtra
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -139,7 +140,7 @@ view vstate tree =
       [([[]], -1)] ++
       columnsWithDepth ++
       [([[]], List.length columnsWithDepth)]
-        |> List.map (\t -> lazy3 viewColumn vstate (snd t) (fst t))
+        |> List.map (\t -> lazy3 viewColumn vstate (second t) (first t))
   in
   div [ id "app" 
       , classList [ ("editing", vstate.editing /= Nothing) ]

@@ -2,12 +2,12 @@ port module Main exposing (..)
 
 
 import Html exposing (..)
-import Html.App as App
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy, lazy2)
 import String
+import Tuple exposing (first, second)
 import Json.Encode
 import Json.Decode as Json
 import Dom
@@ -21,9 +21,9 @@ import TreeUtils exposing (..)
 import Coders exposing (modelDecoder, modelToValue)
 
 
-main : Program Json.Value
+main : Program Json.Value Model Msg
 main =
-  App.programWithFlags
+  programWithFlags
     { init = init
     , view = view
     , update = update
@@ -698,7 +698,7 @@ andThen msg (model, prevMsg) =
     newStep =
       update msg model
   in
-  ( fst newStep, Cmd.batch [prevMsg, snd newStep] )
+  ( first newStep, Cmd.batch [prevMsg, second newStep] )
 
 
 onlyIf : Bool -> Msg -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -742,12 +742,12 @@ subscriptions model =
 
 focus : String -> Cmd Msg
 focus id =
-  Task.perform (\_ -> NoOp) (\_ -> NoOp) (Dom.focus ("card-edit-" ++ id))
+  Task.attempt (\_ -> NoOp) (Dom.focus ("card-edit-" ++ id))
 
 
 run : Msg -> Cmd Msg
 run msg =
-  Task.perform (\_ -> NoOp) (\_ -> msg ) (Task.succeed msg)
+  Task.attempt (\_ -> msg ) (Task.succeed msg)
 
 
 editMode : Model -> (String -> Msg) -> (Model, Cmd Msg)

@@ -79,21 +79,26 @@ treeToSimpleJSON tree =
 
 modelDecoder : Decoder Model
 modelDecoder =
-  Json.object6 Model
-    ("tree" := treeDecoder)
-    (oneOf ["treePast" := list treeDecoder, succeed []])
-    (oneOf ["treeFuture" := list treeDecoder, succeed []])
-    ("viewState" := viewStateDecoder)
-    ("nextId" := int)
+  Json.map6 Model
+    (field "tree" treeDecoder)
+    (oneOf [field "treePast" (list treeDecoder), succeed []])
+    (oneOf [field "treeFuture" (list treeDecoder), succeed []])
+    (field "viewState" viewStateDecoder)
+    (field "nextId" int)
     ( succeed True )
 
 
 treeDecoder : Decoder Tree
 treeDecoder =
-  Json.object3 Tree
-    ("id" := string)
-    ("content" := string)
-    (oneOf  [ ("children" := list (lazyRecurse (\_ -> treeDecoder)) |> Json.map Children )
+  Json.map3 Tree
+    (field "id" string)
+    (field "content" string)
+    (oneOf  [ ( field 
+                "children"
+                ( list (lazyRecurse (\_ -> treeDecoder)) 
+                  |> Json.map Children 
+                )
+              )
             , succeed (Children [])
             ]
     )
@@ -101,13 +106,13 @@ treeDecoder =
 
 viewStateDecoder : Decoder ViewState
 viewStateDecoder =
-  Json.object6 ViewState
-    ("active" := string)
-    ("activePast" := list string)
-    ("activeFuture" := list string)
-    ("descendants" := list string)
-    ( maybe ("editing" := string))
-    ("field" := string)
+  Json.map6 ViewState
+    (field "active" string)
+    (field "activePast" (list string))
+    (field "activeFuture" (list string))
+    (field "descendants" (list string))
+    (maybe (field "editing" string))
+    (field "field" string)
     
   
 
@@ -117,8 +122,18 @@ viewStateDecoder =
 
 lazyRecurse : (() -> Decoder a) -> Decoder a
 lazyRecurse thunk =
-  customDecoder value
-    (\js -> decodeValue (thunk ()) js)
+  let
+    toResult =
+      (\js -> decodeValue (thunk ()) js)
+  in
+  andThen
+    (\a ->
+      case toResult a of
+        Ok b -> succeed b
+        Err err -> fail err
+    )
+    value
+
 
 maybeToValue : Maybe a -> (a -> Json.Encode.Value) -> Json.Encode.Value
 maybeToValue mb encoder =
