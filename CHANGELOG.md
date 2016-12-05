@@ -3,8 +3,9 @@ All notable changes to this project will be documented in this file.
 Unreleased changes are implemented but haven't been uploaded yet.
 
 
-## Unreleased
+## [0.0.11] - 2016-12-05
 - Temporarily removed buggy "save backup while typing".
+- Slight performance improvement via lazier rendering. Still laggy on large trees.
 
 
 ## [0.0.10] - 2016-11-30
