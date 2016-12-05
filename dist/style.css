@@ -102,7 +102,7 @@ body {
   flex: 1 0;
   height: 100%;
   max-width: 600px;
-  min-width: 300px;
+  min-width: 500px;
   overflow-x: hidden;
   overflow-y: scroll;
 }
