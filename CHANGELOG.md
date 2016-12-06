@@ -3,6 +3,12 @@ All notable changes to this project will be documented in this file.
 Unreleased changes are implemented but haven't been uploaded yet.
 
 
+## [0.0.12] - 2016-12-06
+- Greatly improved performance on large trees.
+- Fixed bug: As of 0.0.10, wasn't able to "File > New". Now works.
+- Temporarily (?) removed "fade background" effect while editing, for performance.
+
+
 ## [0.0.11] - 2016-12-05
 - Temporarily removed buggy "save backup while typing".
 - Slight performance improvement via lazier rendering. Still laggy on large trees.
