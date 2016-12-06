@@ -16,9 +16,9 @@ type Msg
     | GoRight String
     -- === Card Editing  ===
     | OpenCard String String
-    | UpdateField String
-    | UpdateCard String String
-    | SaveCard
+    | AttemptUpdateCard String
+    | UpdateCard (String, String)
+    | UpdateCardError String
     | DeleteCard String
     | CancelCard
     -- === Card Insertion  ===
@@ -58,13 +58,12 @@ type alias ViewState =
   , activeFuture : List String
   , descendants : List String
   , editing : Maybe String
-  , field : String
   }
 
 
 type alias VisibleViewState =
   { active : String
-  , editing : Maybe (String, String)
+  , editing : Maybe String
   , descendants : List String
   }
 

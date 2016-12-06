@@ -145,7 +145,7 @@ view vstate tree =
 
             Just editId ->
               if (first cwd |> List.concat |> List.map .id |> List.member editId ) then
-                Just (editId, vstate.field)
+                Just editId
               else
                 Nothing
       in
@@ -199,18 +199,15 @@ viewGroup vstate depth xs =
         isActive =
           t.id == vstate.active
 
-        field_ =
+        isEditing =
           case vstate.editing of
-            Just (editId, field) ->
-              if editId == t.id then
-                Just field
-              else
-                Nothing
+            Just editId ->
+              t.id == editId
 
             Nothing ->
-              Nothing
+              False
       in
-      viewKeyedCard (isActive, field_, depth) t
+      viewKeyedCard (isActive, isEditing, depth) t
   in
     Keyed.node "div"
       [ classList [ ("group", True)
@@ -220,16 +217,14 @@ viewGroup vstate depth xs =
       (List.map viewFunction xs)
 
 
-viewKeyedCard : (Bool, Maybe String, Int) -> Tree -> (String, Html Msg)
+viewKeyedCard : (Bool, Bool, Int) -> Tree -> (String, Html Msg)
 viewKeyedCard tup tree =
   (tree.id, lazy2 viewCard tup tree)
 
 
-viewCard : (Bool, Maybe String, Int) -> Tree -> Html Msg
-viewCard (isActive, field_, depth) tree =
+viewCard : (Bool, Bool, Int) -> Tree -> Html Msg
+viewCard (isActive, isEditing, depth) tree =
   let
-    isEditing =
-      field_ /= Nothing
     isRoot = tree.id == "0"
 
     options =
@@ -252,14 +247,13 @@ viewCard (isActive, field_, depth) tree =
         , classList [ ("edit", True)
                     , ("mousetrap", True)
                     ]
-        , value content
-        , onInput UpdateField
+        , defaultValue content
         ]
         []
 
     buttons =
-      case (isEditing, field_, isRoot) of
-        ( False, Just field, False ) ->
+      case (isEditing, isRoot) of
+        ( False, False ) ->
           [ div [ class "flex-row card-top-overlay" ]
                 [ span
                   [ class "card-btn ins-above"
@@ -298,7 +292,7 @@ viewCard (isActive, field_, depth) tree =
                 ]
           ]
 
-        ( False, Just field, True ) ->
+        ( False, True ) ->
           [ div [ class "flex-column card-right-overlay"]
                 [ span
                   [ class "card-btn ins-right"
@@ -315,19 +309,17 @@ viewCard (isActive, field_, depth) tree =
                 ]
           ]
 
-        ( True, _, _ ) ->
+        ( True, _ ) ->
           [ div [ class "flex-column card-right-overlay"]
                 [ span 
                   [ class "card-btn save"
                   , title "Save Changes (Ctrl+Enter)"
-                  , onClick SaveCard
+                  , onClick (AttemptUpdateCard tree.id)
                   ]
                   []
                 ]
           ]
 
-        _ ->
-          []
 
     cardAttributes =
       [ id ("card-" ++ tree.id)
@@ -357,24 +349,23 @@ viewCard (isActive, field_, depth) tree =
               ( autoheading ++ [" ", head, newLine, String.join newLine tail] )
 
   in
-  case field_ of
-    Just field ->
-      div cardAttributes
-          (
-            [ tarea field ]
-            ++
-            buttons
-          )
-    Nothing ->
-      div cardAttributes
-          (
-            [ Markdown.toHtmlWith options 
-                  [ class "view" 
-                  , onClick (Activate tree.id)
-                  , onDoubleClick (OpenCard tree.id tree.content)
-                  ] content
-            , tarea content
-            ] ++
-            buttons
-          )
+  if isEditing then
+    div cardAttributes
+      (
+        [ tarea tree.content ]
+        ++
+        buttons
+      )
+  else
+    div cardAttributes
+        (
+          [ div
+                [ class "view" 
+                , onClick (Activate tree.id)
+                , onDoubleClick (OpenCard tree.id tree.content)
+                ] [text content]
+          , tarea content
+          ] ++
+          buttons
+        )
 

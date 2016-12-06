@@ -96,6 +96,16 @@ gingko.ports.message.subscribe(function(msg) {
   }
 })
 
+gingko.ports.attemptUpdate.subscribe(id => {
+  var tarea = document.getElementById('card-edit-'+id)
+
+  if (tarea === null) {
+    gingko.ports.updateError.send('Textarea with id '+id+' not found.')
+  } else {
+    gingko.ports.updateSuccess.send([id, tarea.value])
+  }
+})
+
 
 
 

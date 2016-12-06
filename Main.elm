@@ -32,6 +32,7 @@ main =
 
 
 port activateCards : (Int, List (List String)) -> Cmd msg
+port attemptUpdate : String -> Cmd msg
 port message : (String, Json.Encode.Value) -> Cmd msg
 
 
@@ -59,7 +60,6 @@ defaultModel =
       , activeFuture = []
       , descendants = []
       , editing = Just "0"
-      , field = ""
       }
   , nextId = 1
   , saved = True
@@ -207,45 +207,35 @@ update msg model =
 
     OpenCard id str ->
       { model 
-        | viewState = { vs | active = id, editing = Just id, field = str }
+        | viewState = { vs | active = id, editing = Just id }
       } 
         ! [ focus id ]
 
-    UpdateField str ->
-      { model 
-        | viewState = { vs | field = str }
-      } 
-        ! []
+    AttemptUpdateCard id ->
+      let
+        tree_ =
+          getTree id model.tree
+      in
+      case tree_ of
+        Just tree ->
+          model ! [attemptUpdate id]
 
-    UpdateCard id str ->
+        Nothing ->
+          model ! []
+            |> andThen (UpdateCardError "Elm error: Card not found in tree.")
+
+    UpdateCard (id, str) ->
       { model
         | tree = Trees.update (Trees.Upd id str) model.tree
-        , viewState = { vs | active = id, editing = Nothing, field = "" }
+        , viewState = { vs | active = id, editing = Nothing }
       }
         ! [] 
         |> andThen (AddToUndo model.tree)
         |> andThen SaveTemp
 
-    SaveCard ->
-      case vs.editing of
-        Just editId ->
-          let
-            activeTree_ =
-              getTree editId model.tree
-          in
-          case activeTree_ of
-            Nothing ->
-              update CancelCard model
-
-            Just activeTree ->
-              if activeTree.content /= vs.field then
-                update (UpdateCard editId vs.field) model
-              else
-                update CancelCard model
-
-        Nothing ->
-          model ! []
-
+    UpdateCardError err ->
+      Debug.crash err
+    
     DeleteCard id ->
       let
         filteredActive =
@@ -281,7 +271,7 @@ update msg model =
 
     CancelCard ->
       { model 
-        | viewState = { vs | editing = Nothing, field = "" }
+        | viewState = { vs | editing = Nothing }
       } 
         ! []
 
@@ -323,8 +313,8 @@ update msg model =
           update insertMsg model
 
         Just id ->
-          update SaveCard model
-            |> andThen insertMsg
+          update (AttemptUpdateCard id) model
+            |> andThen insertMsg -- TODO: Only if SaveSuccess
 
     InsertBelow id ->
       let
@@ -347,8 +337,8 @@ update msg model =
           update insertMsg model
 
         Just id ->
-          update SaveCard model
-            |> andThen insertMsg
+          update (AttemptUpdateCard id) model
+            |> andThen insertMsg -- TODO: Only if SaveSuccess
 
     InsertChild pid ->
       let
@@ -360,8 +350,8 @@ update msg model =
           update insertMsg model
 
         Just id ->
-          update SaveCard model
-            |> andThen insertMsg
+          update (AttemptUpdateCard id) model
+            |> andThen insertMsg -- TODO: Only if SaveSuccess
 
     -- === Card Moving  ===
 
@@ -569,33 +559,14 @@ update msg model =
 
         "mod+enter" ->
           editMode model
-            (\_ -> SaveCard)
+            (\id -> AttemptUpdateCard id)
 
         "enter" ->
           normalMode model
             (OpenCard vs.active (getContent vs.active model.tree))
 
         "esc" ->
-          case vs.editing of
-            Nothing ->
-              model ! []
-
-            Just uid ->
-              let
-                activeTree_ =
-                  getTree uid model.tree
-              in
-              case activeTree_ of
-                Nothing ->
-                  model ! []
-
-                Just activeTree ->
-                  if activeTree.content /= vs.field then
-                    update 
-                    (Confirm "confirm-cancel" "Discard Changes?" "Are you sure you want to discard unsaved changes?")
-                    model
-                  else
-                    update CancelCard model
+          update CancelCard model -- TODO
 
         "mod+backspace" ->
           normalMode model
@@ -725,6 +696,8 @@ view model =
 -- SUBSCRIPTIONS
 
 port externals : ((String, String) -> msg) -> Sub msg -- ~ Sub (String, String)
+port updateSuccess : ((String, String) -> msg) -> Sub msg
+port updateError : (String -> msg) -> Sub msg
 port data : (Json.Value -> msg) -> Sub msg
 
 
@@ -732,6 +705,8 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.batch
     [ externals ExternalCommand
+    , updateSuccess UpdateCard
+    , updateError UpdateCardError
     , data DataIn
     ]
 
