@@ -6,7 +6,7 @@ import List.Extra as ListExtra
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Html.Lazy exposing (lazy2, lazy3)
+import Html.Lazy exposing (lazy, lazy2, lazy3)
 import Html.Keyed as Keyed
 import Json.Decode as Json
 import Markdown
@@ -227,12 +227,6 @@ viewCard (isActive, isEditing, depth) tree =
   let
     isRoot = tree.id == "0"
 
-    options =
-      { githubFlavored = Just { tables = True, breaks = True }
-      , defaultHighlighting = Nothing
-      , sanitize = False
-      , smartypants = False
-      }
 
     hasChildren =
       case tree.children of
@@ -358,14 +352,28 @@ viewCard (isActive, isEditing, depth) tree =
       )
   else
     div cardAttributes
-        (
-          [ div
-                [ class "view" 
-                , onClick (Activate tree.id)
-                , onDoubleClick (OpenCard tree.id tree.content)
-                ] [text content]
-          , tarea content
-          ] ++
-          buttons
-        )
+      (
+        [ div
+            [ class "view"
+            , onClick (Activate tree.id)
+            , onDoubleClick (OpenCard tree.id tree.content)
+            ] 
+            [( lazy viewContent content )]
+        ] ++
+        buttons
+      )
+
+
+viewContent : String -> Html Msg
+viewContent content =
+  let
+    options =
+      { githubFlavored = Just { tables = True, breaks = True }
+      , defaultHighlighting = Nothing
+      , sanitize = False
+      , smartypants = False
+      }
+  in
+  Markdown.toHtmlWith options
+    [] content
 
