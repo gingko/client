@@ -246,8 +246,8 @@ viewCard (isActive, isEditing, depth) tree =
         []
 
     buttons =
-      case (isEditing, isRoot) of
-        ( False, False ) ->
+      case (isEditing, isActive, isRoot) of
+        ( False, True, False ) ->
           [ div [ class "flex-row card-top-overlay" ]
                 [ span
                   [ class "card-btn ins-above"
@@ -286,7 +286,7 @@ viewCard (isActive, isEditing, depth) tree =
                 ]
           ]
 
-        ( False, True ) ->
+        ( False, True, True ) ->
           [ div [ class "flex-column card-right-overlay"]
                 [ span
                   [ class "card-btn ins-right"
@@ -303,7 +303,7 @@ viewCard (isActive, isEditing, depth) tree =
                 ]
           ]
 
-        ( True, _ ) ->
+        ( True, _, _ ) ->
           [ div [ class "flex-column card-right-overlay"]
                 [ span 
                   [ class "card-btn save"
@@ -313,6 +313,9 @@ viewCard (isActive, isEditing, depth) tree =
                   []
                 ]
           ]
+
+        _ ->
+          []
 
 
     cardAttributes =
