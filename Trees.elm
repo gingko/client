@@ -136,20 +136,37 @@ view vstate tree =
     columnsWithDepth =
       getColumnsWithDepth [([[ tree ]], 0)]
 
+    getViewArgs cwd =
+      let
+        editing_ =
+          case vstate.editing of
+            Nothing ->
+              Nothing
+
+            Just editId ->
+              if (first cwd |> List.concat |> List.map .id |> List.member editId ) then
+                Just (editId, vstate.field)
+              else
+                Nothing
+      in
+      VisibleViewState 
+        vstate.active
+        editing_
+        vstate.descendants
+
     columns =
       [([[]], -1)] ++
       columnsWithDepth ++
       [([[]], List.length columnsWithDepth)]
-        |> List.map (\t -> lazy3 viewColumn vstate (second t) (first t))
+        |> List.map (\t -> lazy3 viewColumn (getViewArgs t) (second t) (first t))
   in
   div [ id "app" 
-      , classList [ ("editing", vstate.editing /= Nothing) ]
       ]
     ( columns
     )
 
 
-viewColumn : ViewState -> Int -> Column -> Html Msg
+viewColumn : VisibleViewState -> Int -> Column -> Html Msg
 viewColumn vstate depth col =
   let
     buffer =
@@ -164,7 +181,7 @@ viewColumn vstate depth col =
     
 
 
-viewGroup : ViewState -> Int -> Group -> Html Msg
+viewGroup : VisibleViewState -> Int -> Group -> Html Msg
 viewGroup vstate depth xs =
   let
     firstChild = 
@@ -184,9 +201,9 @@ viewGroup vstate depth xs =
 
         field_ =
           case vstate.editing of
-            Just editId ->
+            Just (editId, field) ->
               if editId == t.id then
-                Just vstate.field
+                Just field
               else
                 Nothing
 

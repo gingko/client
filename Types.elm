@@ -62,6 +62,13 @@ type alias ViewState =
   }
 
 
+type alias VisibleViewState =
+  { active : String
+  , editing : Maybe (String, String)
+  , descendants : List String
+  }
+
+
 type alias Tree =
   { id : String
   , content : String
