@@ -96,6 +96,7 @@ body {
   height: 100%;
   width: 100%;
   overflow-x: auto;
+  transform: translateZ(0);
 }
 
 .column {
@@ -105,6 +106,7 @@ body {
   min-width: 500px;
   overflow-x: hidden;
   overflow-y: scroll;
+  transform: translateZ(0);
 }
 
 .column::-webkit-scrollbar {
