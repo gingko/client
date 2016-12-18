@@ -22,14 +22,12 @@ import TreeUtils exposing (..)
 type alias Model =
   { tree : Tree
   , columns : List Column
-  , cards : Dict String Card
   }
 
 
 defaultModel =
   { tree = defaultTree
-  , columns = []
-  , cards = Dict.empty
+  , columns = getColumns [[[defaultTree]]]
   }
 
 
@@ -62,8 +60,19 @@ type TreeMsg
 
 update : TreeMsg -> Model -> Model
 update msg model =
+  let
+    newTree =
+      updateTree msg model.tree
+
+    newColumns =
+      if newTree /= model.tree then
+        getColumns [[[newTree]]]
+      else
+        model.columns
+  in
   { model
-    | tree = updateTree msg model.tree
+    | tree = newTree
+    , columns = newColumns
   }
 
 
@@ -155,7 +164,8 @@ view : ViewState -> Model -> Html Msg
 view vstate model =
   let
     columnsWithDepth =
-      getColumnsWithDepth [([[ model.tree ]], 0)]
+      model.columns
+        |> List.indexedMap (\i c -> (c, i))
 
     getViewArgs cwd =
       let
