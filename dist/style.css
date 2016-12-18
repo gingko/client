@@ -280,6 +280,10 @@ pre {
   border-radius: 4px;
 }
 
+ul, ol {
+  margin: 0;
+}
+
 .card img {
   max-width: 100%;
 }
