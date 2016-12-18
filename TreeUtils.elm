@@ -235,15 +235,9 @@ getDepth prev tree id =
 
 -- SPECIAL PROPERTIES
 
-centerlineIds : Tree -> Tree -> List String -> List (List String)
-centerlineIds all activeTree activePast =
+centerlineIds : List (List String) -> List String -> List String -> List (List String)
+centerlineIds flatCols allIds activePast =
   let
-    desc = getDescendants activeTree
-    anc = getAncestors all activeTree []
-    withDepth x =
-      (getDepth 0 all x.id, x.id)
-
-    lastActiveOrAll : List String -> List String -> List String
     lastActiveOrAll aP ids =
       let
         lastActiveIdx_ =
@@ -258,14 +252,10 @@ centerlineIds all activeTree activePast =
             |> Maybe.withDefault "0"
             |> ListExtra.singleton
   in
-  anc
-    |> List.map withDepth
-    |> List.append [ withDepth activeTree ]
-    |> List.append (desc |> List.map withDepth)
-    |> List.sortBy (\x -> first x)
-    |> ListExtra.groupWhile (\x y-> first x == first y)
-    |> List.map (List.map (\x -> second x))
-    |> List.map (\ids -> lastActiveOrAll activePast ids)
+  flatCols
+    |> List.map (\c -> List.filter (\id -> List.member id allIds) c)
+    |> ListExtra.filterNot List.isEmpty
+    |> List.map (lastActiveOrAll activePast)
 
 
 

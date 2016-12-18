@@ -100,6 +100,20 @@ update msg model =
                 |> getDescendants
                 |> List.map .id
 
+            anc = 
+              getAncestors model.data.tree activeTree []
+                |> List.map .id
+
+            flatCols =
+              model.data.columns
+                |> List.map (\c -> List.map (\g -> List.map .id g) c)
+                |> List.map List.concat
+
+            allIds =
+              anc
+              ++ [id]
+              ++ desc
+
             newModel =
               { model
                 | viewState = 
@@ -114,7 +128,7 @@ update msg model =
           newModel
             ! [ activateCards 
                   ( getDepth 0 model.data.tree id
-                  , (centerlineIds model.data.tree activeTree newPast)
+                  , centerlineIds flatCols allIds newPast
                   )
               ]
 
