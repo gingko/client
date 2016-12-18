@@ -5,13 +5,13 @@ import Json.Encode
 import Json.Decode as Json exposing (..)
 import Array exposing (fromList)
 import String
+
+import Trees
 import TreeUtils exposing (newLine)
 
 
 type alias Model =
-  { tree : Tree
-  , treePast : List Tree
-  , treeFuture : List Tree
+  { data : Trees.Model
   , viewState : ViewState
   , nextId : Int
   , saved : Bool
@@ -23,9 +23,7 @@ type alias Model =
 modelToValue : Model -> Json.Encode.Value
 modelToValue model =
   Json.Encode.object
-   [ ("tree", treeToValue model.tree)
-   , ("treePast", Json.Encode.list (List.map treeToValue model.treePast))
-   , ("treeFuture", Json.Encode.list (List.map treeToValue model.treeFuture))
+   [ ("tree", treeToValue model.data.tree)
    , ("viewState", viewStateToValue model.viewState)
    , ("nextId", Json.Encode.int model.nextId)
    ]
@@ -78,13 +76,19 @@ treeToSimpleJSON tree =
 
 modelDecoder : Decoder Model
 modelDecoder =
-  Json.map6 Model
-    (field "tree" treeDecoder)
-    (oneOf [field "treePast" (list treeDecoder), succeed []])
-    (oneOf [field "treeFuture" (list treeDecoder), succeed []])
+  Json.map4 Model
+    (field "tree" treesModelDecoder)
     (field "viewState" viewStateDecoder)
     (field "nextId" int)
     ( succeed True )
+
+
+treesModelDecoder : Decoder Trees.Model
+treesModelDecoder =
+  Json.map2 Trees.Model
+    treeDecoder
+    (succeed [])
+
 
 
 treeDecoder : Decoder Tree
