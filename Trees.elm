@@ -1,6 +1,7 @@
 module Trees exposing (..)
 
 import String
+import Dict exposing (Dict)
 import Tuple exposing (first, second)
 import List.Extra as ListExtra
 import Html exposing (..)
@@ -17,6 +18,20 @@ import TreeUtils exposing (..)
 
 
 -- MODEL
+
+type alias Model =
+  { tree : Tree
+  , columns : List Column
+  , cards : Dict String Card
+  }
+
+
+defaultModel =
+  { tree = defaultTree
+  , columns = []
+  , cards = Dict.empty
+  }
+
 
 defaultTree =
   { id = "0"
@@ -45,9 +60,15 @@ type TreeMsg
   | Del String
 
 
+update : TreeMsg -> Model -> Model
+update msg model =
+  { model
+    | tree = updateTree msg model.tree
+  }
 
-update : TreeMsg -> Tree -> Tree
-update msg tree =
+
+updateTree : TreeMsg -> Tree -> Tree
+updateTree msg tree =
   case msg of
     NoOp -> tree
 
@@ -70,7 +91,7 @@ update msg tree =
 
 apply : List TreeMsg -> Tree -> Tree
 apply msgs tree =
-  List.foldl (\m t -> update m t) tree msgs
+  List.foldl (\m t -> updateTree m t) tree msgs
 
 
 insertSubtree : Tree -> String -> Int -> Tree -> Tree
@@ -130,11 +151,11 @@ modifySiblings id upd tree =
 
 -- VIEW
 
-view : ViewState -> Tree -> Html Msg
-view vstate tree =
+view : ViewState -> Model -> Html Msg
+view vstate model =
   let
     columnsWithDepth =
-      getColumnsWithDepth [([[ tree ]], 0)]
+      getColumnsWithDepth [([[ model.tree ]], 0)]
 
     getViewArgs cwd =
       let

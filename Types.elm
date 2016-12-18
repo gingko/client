@@ -75,6 +75,14 @@ type alias Tree =
   }
 
 
+type alias Card =
+  { id : String
+  , content : String
+  }
+
+
 type Children = Children (List Tree)
 type alias Group = List Tree
 type alias Column = List (List Tree)
+type alias CardGroup = List Card
+type alias CardColumn = List (List Card)
