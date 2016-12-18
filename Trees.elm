@@ -76,6 +76,13 @@ update msg model =
   }
 
 
+updateColumns : Model -> Model
+updateColumns model =
+  { model
+    | columns = getColumns [[[ model.tree ]]]
+  }
+
+
 updateTree : TreeMsg -> Tree -> Tree
 updateTree msg tree =
   case msg of

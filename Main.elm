@@ -63,8 +63,59 @@ defaultModel =
 
 
 init : Json.Value -> (Model, Cmd Msg)
-init json =
-  defaultModel ! []
+init savedState =
+  let
+    activateCmd mdl =
+      let
+        activeTree =
+          getTree mdl.viewState.active mdl.data.tree ? defaultTree
+
+        desc =
+          activeTree
+            |> getDescendants
+            |> List.map .id
+
+        anc = 
+          getAncestors mdl.data.tree activeTree []
+            |> List.map .id
+
+        flatCols =
+          mdl.data.columns
+            |> List.map (\c -> List.map (\g -> List.map .id g) c)
+            |> List.map List.concat
+
+        allIds =
+          anc
+          ++ [mdl.viewState.active]
+          ++ desc
+      in
+      activateCards 
+        ( getDepth 0 mdl.data.tree mdl.viewState.active
+        , centerlineIds 
+          flatCols
+          allIds
+          mdl.viewState.activePast
+        )
+
+  in
+--  let
+--  in
+  case Json.decodeValue modelDecoder savedState of
+    Ok model ->
+      { model 
+        | data = Trees.updateColumns model.data
+      }
+        ! [ activateCmd model
+          , focus model.viewState.active
+          ]
+    Err err ->
+      let
+        deb = Debug.log "init decode error" err
+      in
+      defaultModel 
+        ! [ activateCmd defaultModel
+          , focus defaultModel.viewState.active
+          ]
 
 
 -- UPDATE
