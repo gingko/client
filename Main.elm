@@ -98,14 +98,16 @@ init savedState =
         )
 
   in
---  let
---  in
   case Json.decodeValue modelDecoder savedState of
     Ok model ->
-      { model 
-        | data = Trees.updateColumns model.data
-      }
-        ! [ activateCmd model
+      let
+        newModel =
+          { model 
+            | data = Trees.updateColumns model.data
+          }
+      in
+      newModel
+        ! [ activateCmd newModel
           , focus model.viewState.active
           ]
     Err err ->
