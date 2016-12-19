@@ -22,7 +22,11 @@ var saved = true
 
 setCurrentFile = function(filepath) {
   currentFile = filepath
-  currentSwap = filepath.endsWith('.gko') ? filepath.replace('.gko', '.gko.swp') : null
+  if (filepath && filepath.endsWith('.gko')) {
+    currentSwap = filepath.replace('.gko', '.gko.swp') 
+  } else { 
+    currentSwap = null 
+  }
   setSaved(true)
   document.title =
     filepath ? `Gingko - ${path.basename(filepath)}` : "Gingko - Untitled"
