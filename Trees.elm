@@ -394,14 +394,14 @@ viewCard (isActive, isEditing, depth) tree =
   else
     div cardAttributes
       (
+        buttons ++
         [ div
             [ class "view"
             , onClick (Activate tree.id)
             , onDoubleClick (OpenCard tree.id tree.content)
             ] 
             [( lazy viewContent content )]
-        ] ++
-        buttons
+        ]
       )
 
 
