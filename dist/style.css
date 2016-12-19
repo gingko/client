@@ -296,9 +296,6 @@ ul, ol {
 #app .buffer {
   transition: all 0.25s ease;
 }
-#app .group {
-  transition: border-radius 0.25s ease;
-}
 
 #app.editing .group {
   background-color: #c5ced8;

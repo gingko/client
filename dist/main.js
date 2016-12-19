@@ -576,17 +576,17 @@ var scrollHorizTo = function(colIdx) {
   }
   var rect = col.getBoundingClientRect();
   if (rect.width >= appEl.offsetWidth) {
-    TweenMax.to(appEl, 0.65,
+    TweenMax.to(appEl, 0.50,
       { scrollLeft: appEl.scrollLeft + rect.left
       , ease: Power2.easeInOut
       });
   } else if (rect.left < 100) {
-    TweenMax.to(appEl, 0.65,
+    TweenMax.to(appEl, 0.50,
       { scrollLeft: appEl.scrollLeft - 100 + rect.left
       , ease: Power2.easeInOut
       });
   } else if (rect.right > appEl.offsetWidth - 100) {
-    TweenMax.to(appEl, 0.65,
+    TweenMax.to(appEl, 0.50,
       { scrollLeft: appEl.scrollLeft + 100 + rect.right - appEl.offsetWidth 
       , ease: Power2.easeInOut
       });
