@@ -491,8 +491,7 @@ update msg model =
             | saved = False
           }
       in
-      newModel ! []
-      --newModel ! [ message ("save-temp", modelToValue newModel) ]
+      newModel ! [ message ("save-temp", modelToValue newModel) ]
 
     Confirm tag title msg ->
       model
@@ -536,8 +535,7 @@ update msg model =
           model ! []
 
         "mod+s" ->
-        model ! []
-        --model ! [ message ("save", modelToValue model) ]
+        model ! [ message ("save", modelToValue model) ]
 
         "mod+enter" ->
           editMode model
