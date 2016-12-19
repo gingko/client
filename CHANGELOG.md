@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 
 ## [0.0.13] - 2016-12-19
 - Core rewrite for performance improvements.
+- **Forced to remove Undo/Redo temporarily**.
 
 
 ## [0.0.12] - 2016-12-06
