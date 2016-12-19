@@ -41,6 +41,8 @@ port message : (String, Json.Encode.Value) -> Cmd msg
 
 type alias Model =
   { data : Trees.Model
+  , treePast : List Tree
+  , treeFuture : List Tree
   , viewState : ViewState
   , nextId : Int
   , saved : Bool
@@ -50,6 +52,8 @@ type alias Model =
 defaultModel : Model
 defaultModel =
   { data = Trees.defaultModel
+  , treePast = []
+  , treeFuture = []
   , viewState = 
       { active = "0"
       , activePast = []
@@ -269,6 +273,7 @@ update msg model =
         , viewState = { vs | active = id, editing = Nothing }
       }
         ! [] 
+        |> andThen (AddToUndo model.data.tree)
         |> andThen SaveTemp
 
     UpdateCardError err ->
@@ -304,6 +309,7 @@ update msg model =
       }
         ! []
         |> andThen (Activate nextToActivate)
+        |> andThen (AddToUndo model.data.tree)
         |> andThen SaveTemp
 
     CancelCard ->
@@ -326,6 +332,7 @@ update msg model =
         ! []
         |> andThen (OpenCard newId subtree.content)
         |> andThen (Activate newId)
+        |> andThen (AddToUndo model.data.tree)
         |> andThen SaveTemp
 
     InsertAbove id ->
@@ -404,6 +411,7 @@ update msg model =
         }
           ! []
           |> andThen (Activate subtree.id)
+          |> andThen (AddToUndo model.data.tree)
           |> andThen SaveTemp
 
     MoveUp id ->
@@ -483,6 +491,67 @@ update msg model =
 
 
     -- === History ===
+
+    Undo ->
+      let
+        prevTree_ = List.head model.treePast
+      in
+      case prevTree_ of
+        Just prevTree ->
+          let
+            newModel =
+              { model
+                | data =
+                    { tree = prevTree
+                    , columns = getColumns [[[ prevTree]]]
+                    }
+                , treePast = List.drop 1 model.treePast
+                , treeFuture = model.data.tree :: model.treeFuture
+              }
+          in
+          newModel
+            ! [ message ("undo-state-change", modelToValue newModel) ]
+
+        Nothing ->
+          model ! []
+
+    Redo ->
+      let
+        nextTree_ = List.head model.treeFuture
+      in
+      case nextTree_ of
+        Just nextTree ->
+          let
+            newModel =
+              { model
+                | data =
+                    { tree = nextTree
+                    , columns = getColumns [[[ nextTree ]]]
+                    }
+                , treePast = model.data.tree :: model.treePast
+                , treeFuture = List.drop 1 model.treeFuture
+              }
+          in
+          newModel
+            ! [ message ("undo-state-change", modelToValue newModel) ]
+
+        Nothing ->
+          model ! []
+
+    AddToUndo oldTree ->
+      if oldTree /= model.data.tree then
+        let
+          newModel =
+            { model
+              | treePast = oldTree :: model.treePast |> List.take 20
+              , treeFuture = []
+            }
+        in
+        newModel
+          ! [ message ("undo-state-change", modelToValue newModel) ]
+      else
+        model ! []
+
 
     -- === Ports ===
 

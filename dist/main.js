@@ -20,6 +20,8 @@ var currentSwap = null
 var blankAutosave = null
 var saved = true
 
+var editSubMenu = Menu.getApplicationMenu().items[1].submenu;
+
 setCurrentFile = function(filepath) {
   currentFile = filepath
   if (filepath && filepath.endsWith('.gko')) {
@@ -364,6 +366,7 @@ loadFile = (filepath, setpath) => {
     setCurrentFile(setpath ? setpath : filepath)
     model = JSON.parse(data)
     gingko.ports.data.send(model)
+    undoRedoMenuState(model.treePast, model.treeFuture)
   })
 }
 
@@ -520,9 +523,6 @@ Mousetrap.bind(['shift+tab'], function(e, s) {
 /* === Menu state === */
 
 undoRedoMenuState = (past, future) => {
-  editSubMenu = Menu.getApplicationMenu().items[1].submenu;
-
-
   if (past.length === 0) {
     editSubMenu.items[0].enabled = false;
   } else {
