@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file.
-Unreleased changes are implemented but haven't been uploaded yet.
+"Unreleased" changes are implemented but haven't been uploaded yet.
+
+
+## [0.0.13] - 2016-12-19
+- Core rewrite for performance improvements.
 
 
 ## [0.0.12] - 2016-12-06
