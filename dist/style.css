@@ -137,6 +137,7 @@ body {
 
 .group {
   margin: 0;
+  margin-right: -1px;
   padding: 10px;
   border-top: 1px solid #d3e6f1;
   border-bottom: 1px solid #3c484e;
