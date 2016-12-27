@@ -19,6 +19,14 @@ var currentFile = null
 var currentSwap = null
 var blankAutosave = null
 var saved = true
+var firstRunTime = Number.parseInt(localStorage.getItem('firstRunTime'))
+var lastRequestTime = Number.parseInt(localStorage.getItem('lastRequestTime'))
+
+if (isNaN(firstRunTime)) {
+  firstRunTime = Date.now()
+  localStorage.setItem('firstRunTime', firstRunTime)
+}
+
 
 var editSubMenu = Menu.getApplicationMenu().items[1].submenu;
 
@@ -37,6 +45,7 @@ setCurrentFile = function(filepath) {
 setSaved = bool => {
   saved = bool;
   ipc.send('saved', bool)
+  if (bool) { maybeRequestPayment() }
 }
 
 if(location.hash !== "") {
@@ -224,6 +233,34 @@ ipc.on('zoomout', e => {
 ipc.on('resetzoom', e => {
   webFrame.setZoomLevel(0)
 })
+
+
+maybeRequestPayment = () => {
+  var t = Date.now()
+  if (
+        (isNaN(lastRequestTime) || t - lastRequestTime > 3.6e6)
+     && (Math.random() < freq(t-firstRunTime))
+     )
+    {
+      dialog.showMessageBox({ title: "A Request"
+                            , message: "Please contribute."
+                            , buttons: ['Ok', 'Cancel']
+                            }
+                           , res => console.log(res))
+      lastRequestTime = t
+      localStorage.setItem('lastRequestTime', t)
+    }
+}
+
+freq = tau => {
+  if (tau <= 7*24*3.6e6) {
+    return 0
+  } else if (tau <= 30*24*3.6e6) {
+    return 0.5
+  } else {
+    return 0.8
+  }
+}
 
 
 saveConfirmAndThen = onSuccess => {
