@@ -101,6 +101,37 @@ ipcMain.on('saved', (event, msg) => {
   saved = msg;
 })
 
+ipcMain.on('request-message', (event, msg) => {
+      dialog.showMessageBox(win
+                           ,{ title: "A Request"
+                            , message: "Please contribute."
+                            , buttons: ['Ok', 'Cancel']
+                            }
+                           , res => {
+                               if(res == 0) showPaymentForm()
+                           })
+})
+
+showPaymentForm = () => {
+  let child = new BrowserWindow(
+    { parent: win
+    , modal: true
+    , show: false
+    , width: 400
+    , height: 300
+    , resizable: false
+    , minimizable: false
+    , maximizable: false
+    , fullscreenable: false
+    }
+  )
+  child.setMenu(null)
+  child.loadURL(`file://${__dirname}/dist/request.html`)
+  child.once('ready-to-show', () => {
+    child.show()
+  })
+}
+
 const menuTemplate = 
   [ { label: 'File'
     , submenu:

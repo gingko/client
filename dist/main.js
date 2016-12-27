@@ -237,19 +237,15 @@ ipc.on('resetzoom', e => {
 
 maybeRequestPayment = () => {
   var t = Date.now()
-  if (
-        (isNaN(lastRequestTime) || t - lastRequestTime > 3.6e6)
-     && (Math.random() < freq(t-firstRunTime))
-     )
-    {
-      dialog.showMessageBox({ title: "A Request"
-                            , message: "Please contribute."
-                            , buttons: ['Ok', 'Cancel']
-                            }
-                           , res => console.log(res))
+//  if (
+//        (isNaN(lastRequestTime) || t - lastRequestTime > 3.6e6)
+//     && (Math.random() < freq(t-firstRunTime))
+//     )
+//    {
+      ipc.send('request-message')
       lastRequestTime = t
       localStorage.setItem('lastRequestTime', t)
-    }
+    //}
 }
 
 freq = tau => {
