@@ -425,6 +425,7 @@ importFile = filepath => {
 newFile = function() {
   setCurrentFile(null)
   gingko.ports.data.send(null)
+  undoRedoMenuState([],[])
   remote.getCurrentWindow().focus()
 }
 
