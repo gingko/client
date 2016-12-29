@@ -3,12 +3,32 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Test Title</title>
-  <script>window.Elm = require('./request.js');</script>
-  <link rel="stylesheet" href="request.css">
+  <title>Enter License Key</title>
 </head>
 
 <body>
-  <h1>Hi there!</h1>
+  <script type="text/javascript">
+    const ipc = require('electron').ipcRenderer
+
+    sendSerial = () => {
+      var serial = document.getElementById('serial').value
+      ipc.send('serial', serial)
+    }
+
+    ipc.on('serial-success', () => {
+      alert('Thank you for contribution!')
+      this.close()
+    })
+    ipc.on('serial-fail', () => {
+      alert('Invalid serial.\nPlease try again.')
+    })
+
+    
+  </script>
+
+  <form>
+    <input id="serial" style="display:block;width:380px;font-size:150%;" autofocus/>
+    <button type="submit" onclick="sendSerial()" style="margin-top:5px;font-size:100%">Submit</button>
+  </form>
 </body>
 </html>

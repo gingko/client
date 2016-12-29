@@ -1,9 +1,11 @@
-const {app, BrowserWindow, dialog, Menu, ipcMain} = require('electron')
+const {app, BrowserWindow, dialog, Menu, ipcMain, shell} = require('electron')
 const fs = require('fs')
+const sha1 = require('sha1')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win
+let serialWindow
 let saved = true
 
 function createWindow () {
@@ -102,33 +104,60 @@ ipcMain.on('saved', (event, msg) => {
 })
 
 ipcMain.on('request-message', (event, msg) => {
+  var options =
+        { title: "Support Gingko's Developer"
+        , message: 
+"Thank you so much for trying Gingko!\n\n\
+\
+Gingko is the work of one person,\n\
+and it's how I support myself and my family.\n\n\
+If you've found it useful, please consider contributing.\
+"
+        , icon: `${__dirname}/dist/leaf128.png` 
+        , buttons: ['Support Gingko', 'Maybe Later']
+        , defaultId: 0
+        , cancelId: 1
+        }
+
       dialog.showMessageBox(win
-                           ,{ title: "A Request"
-                            , message: "Please contribute."
-                            , buttons: ['Ok', 'Cancel']
-                            }
+                           , options
                            , res => {
-                               if(res == 0) showPaymentForm()
+                               if(res == 0) openPaymentPage()
                            })
 })
 
-showPaymentForm = () => {
-  let child = new BrowserWindow(
+ipcMain.on('serial', (event, msg) => {
+  var hash = sha1(msg+"Please don't steal. Just contact me if you need this for free.")
+  if(hash == '3ac67309d2ff5dd533644c9d82d7359f5f729930') {
+    win.send('serial-success')
+    serialWindow.send('serial-success')
+  } else {
+    serialWindow.send('serial-fail')
+  }
+})
+
+openPaymentPage = () => {
+  shell.openExternal('https://gingkoapp.com/support_gingko') 
+}
+
+showSerialWindow = () => {
+  serialWindow = new BrowserWindow(
     { parent: win
     , modal: true
     , show: false
     , width: 400
-    , height: 300
+    , height: 80
+    , backgroundColor: '#ccc'
     , resizable: false
     , minimizable: false
     , maximizable: false
     , fullscreenable: false
     }
   )
-  child.setMenu(null)
-  child.loadURL(`file://${__dirname}/dist/request.html`)
-  child.once('ready-to-show', () => {
-    child.show()
+  serialWindow.setMenu(null)
+  serialWindow.loadURL(`file://${__dirname}/dist/request.html`)
+  serialWindow.once('ready-to-show', () => {
+    serialWindow.show()
   })
 }
 
@@ -219,6 +248,20 @@ const menuTemplate =
           }
         , { type: 'separator' }
         , { role: 'togglefullscreen' }
+        ]
+    }
+  , { label: 'Help'
+    , submenu:
+        [ { label: 'Purchase License'
+          , click (item, focusedWindow) {
+              openPaymentPage()
+            }
+          }
+        , { label: 'Enter License Key'
+          , click (item, focusedWindow) {
+              showSerialWindow()
+            }
+          }
         ]
     }
   , { label: 'Debug'

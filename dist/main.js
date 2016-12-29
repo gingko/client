@@ -21,10 +21,15 @@ var blankAutosave = null
 var saved = true
 var firstRunTime = Number.parseInt(localStorage.getItem('firstRunTime'))
 var lastRequestTime = Number.parseInt(localStorage.getItem('lastRequestTime'))
+var isTrial = JSON.parse(localStorage.getItem('isTrial'))
 
 if (isNaN(firstRunTime)) {
   firstRunTime = Date.now()
   localStorage.setItem('firstRunTime', firstRunTime)
+}
+if (isTrial == null) {
+  isTrial = true
+  localStorage.setItem('isTrial', true)
 }
 
 
@@ -37,7 +42,6 @@ setCurrentFile = function(filepath) {
   } else { 
     currentSwap = null 
   }
-  setSaved(true)
   document.title =
     filepath ? `Gingko - ${path.basename(filepath)}` : "Gingko - Untitled"
 }
@@ -235,17 +239,23 @@ ipc.on('resetzoom', e => {
 })
 
 
+ipc.on('serial-success', e => {
+  isTrial = false
+  localStorage.setItem('isTrial', false)
+})
+
+
 maybeRequestPayment = () => {
   var t = Date.now()
-//  if (
-//        (isNaN(lastRequestTime) || t - lastRequestTime > 3.6e6)
-//     && (Math.random() < freq(t-firstRunTime))
-//     )
-//    {
+  if (  isTrial
+     && (isNaN(lastRequestTime) || t - lastRequestTime > 3.6e6)
+     && (Math.random() < freq(t-firstRunTime))
+     )
+    {
       ipc.send('request-message')
       lastRequestTime = t
       localStorage.setItem('lastRequestTime', t)
-    //}
+    }
 }
 
 freq = tau => {
