@@ -264,7 +264,11 @@ const menuTemplate =
           }
         ]
     }
-  , { label: 'Debug'
+  ] 
+
+if(process.defaultApp || /[\\/]electron-prebuilt[\\/]/.test(process.execPath) || /[\\/]electron[\\/]/.test(process.execPath)) {
+  menuTemplate.push( 
+  { label: 'Debug'
     , submenu: 
         [ { label: 'Show Dev Tools'
           , accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I'
@@ -274,5 +278,7 @@ const menuTemplate =
           }
         ]
     }
-  ]
+ )
+}
+
 const menu = Menu.buildFromTemplate(menuTemplate)
