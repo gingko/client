@@ -137,7 +137,7 @@ ipcMain.on('serial', (event, msg) => {
 })
 
 openPaymentPage = () => {
-  shell.openExternal('https://gingkoapp.com/support_gingko') 
+  shell.openExternal('https://gingkoapp.com/2a0215') 
 }
 
 showSerialWindow = () => {

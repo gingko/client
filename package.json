@@ -1,7 +1,7 @@
 {
   "name": "gingko-client",
   "productName": "Gingko",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "main": "electron-start.js",
   "description": "Gingko client rewritten in Elm, packaged with Electron.",
   "scripts": {

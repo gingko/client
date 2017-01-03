@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
 
+## [0.0.15] - 2017-01-03
+- Added occasional request for payment (Pay What You Want).
+
+
 ## [0.0.14] - 2016-12-19
 - Readded Undo/Redo functionality.
 
