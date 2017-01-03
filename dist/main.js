@@ -22,6 +22,7 @@ var saved = true
 var firstRunTime = Number.parseInt(localStorage.getItem('firstRunTime'))
 var lastRequestTime = Number.parseInt(localStorage.getItem('lastRequestTime'))
 var isTrial = JSON.parse(localStorage.getItem('isTrial'))
+var saveCount = Number.parseInt(JSON.parse(localStorage.getItem('saveCount')))
 
 if (isNaN(firstRunTime)) {
   firstRunTime = Date.now()
@@ -49,7 +50,17 @@ setCurrentFile = function(filepath) {
 setSaved = bool => {
   saved = bool;
   ipc.send('saved', bool)
-  if (bool) { maybeRequestPayment() }
+  if (bool) { 
+    if(isNaN(saveCount)) {
+      saveCount = 1
+      localStorage.setItem('saveCount', 1)
+    } else {
+      saveCount++
+      localStorage.setItem('saveCount', saveCount)
+    }
+
+    maybeRequestPayment() 
+  }
 }
 
 if(location.hash !== "") {
@@ -248,6 +259,7 @@ ipc.on('serial-success', e => {
 maybeRequestPayment = () => {
   var t = Date.now()
   if (  isTrial
+     && (saveCount > 10)
      && (isNaN(lastRequestTime) || t - lastRequestTime > 3.6e6)
      && (Math.random() < freq(t-firstRunTime))
      )
@@ -260,7 +272,7 @@ maybeRequestPayment = () => {
 
 freq = tau => {
   if (tau <= 7*24*3.6e6) {
-    return 0
+    return 0.1
   } else if (tau <= 30*24*3.6e6) {
     return 0.5
   } else {
