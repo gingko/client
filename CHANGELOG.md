@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
 
+## [0.1.0] - 2017-01-05
+- Added link for direct support chat with me.
+
+
 ## [0.0.15] - 2017-01-03
 - Added occasional request for payment (Pay What You Want).
 

@@ -252,7 +252,13 @@ const menuTemplate =
     }
   , { label: 'Help'
     , submenu:
-        [ { label: 'Purchase License'
+        [ { label: 'Chat with Adriano'
+          , click (item, focusedWindow) {
+              shell.openExternal('https://gingkoapp.com/desktop-chat') 
+            }
+          }
+        , { type: 'separator' }
+        , { label: 'Purchase License'
           , click (item, focusedWindow) {
               openPaymentPage()
             }
