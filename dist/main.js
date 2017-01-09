@@ -6,6 +6,7 @@ const path = require('path')
 const ipc = require('electron').ipcRenderer
 var webFrame = require('electron').webFrame
 const remote = require('electron').remote
+const machineIdSync = require('electron-machine-id').machineIdSync
 const app = remote.app
 const dialog = remote.dialog
 const Menu = remote.Menu
@@ -19,10 +20,16 @@ var currentFile = null
 var currentSwap = null
 var blankAutosave = null
 var saved = true
+
+/* === Config loading === */
+
 var firstRunTime = Number.parseInt(localStorage.getItem('firstRunTime'))
 var lastRequestTime = Number.parseInt(localStorage.getItem('lastRequestTime'))
 var isTrial = JSON.parse(localStorage.getItem('isTrial'))
 var saveCount = Number.parseInt(JSON.parse(localStorage.getItem('saveCount')))
+var email = localStorage.getItem('email')
+var name = localStorage.getItem('name')
+var machineId = localStorage.getItem('machineId')
 
 if (isNaN(firstRunTime)) {
   firstRunTime = Date.now()
@@ -32,7 +39,13 @@ if (isTrial == null) {
   isTrial = true
   localStorage.setItem('isTrial', true)
 }
+if (machineId == null) {
+  machineId = machineIdSync().substr(0,6)
+  localStorage.setItem('machineId', machineId)
+}
 
+
+/* ====== */
 
 var editSubMenu = Menu.getApplicationMenu().items[1].submenu;
 
@@ -249,6 +262,22 @@ ipc.on('resetzoom', e => {
   webFrame.setZoomLevel(0)
 })
 
+ipc.on('contact-support', e => {
+  if(email && name && window.Intercom) {
+    window.Intercom('show')
+  } else {
+    ipc.send('ask-for-email')
+  }
+})
+
+ipc.on('id-info', (e, msg) => {
+  name = msg[0]
+  email = msg[1]
+  localStorage.setItem('name', name)
+  localStorage.setItem('email', email)
+  window.Intercom('update', {email: email, name: name})
+  window.Intercom('show')
+})
 
 ipc.on('serial-success', e => {
   isTrial = false
@@ -666,3 +695,22 @@ var observer = new MutationObserver(function(mutations) {
 var config = { childList: true, subtree: true };
  
 observer.observe(document.body, config);
+
+window.onload = function() {
+  if (email && name) {
+    window.Intercom("boot",
+      { app_id: "g1zzjpc3"
+      , email: email
+      , name: name
+      , created_at: Math.round(firstRunTime/1000)
+      }
+    );
+  } else {
+    window.Intercom("boot",
+      { app_id: "g1zzjpc3"
+      , email: machineId
+      , created_at: Math.round(firstRunTime/1000)
+      }
+    );
+  }
+}

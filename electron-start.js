@@ -18,6 +18,7 @@ function createWindow () {
     , icon: `${__dirname}/dist/leaf128.png` 
     })
 
+
   // and load the index.html of the app.
   if (process.platform !== 'darwin') {
     if(!!process.argv[1] && !process.argv[0].endsWith('electron')) {
@@ -103,6 +104,10 @@ ipcMain.on('saved', (event, msg) => {
   saved = msg;
 })
 
+ipcMain.on('ask-for-email', (event, msg) => {
+  showEmailWindow()
+})
+
 ipcMain.on('request-message', (event, msg) => {
   var options =
         { title: "Support Gingko's Developer"
@@ -124,6 +129,10 @@ If you've found it useful, please consider contributing.\
                            , res => {
                                if(res == 0) openPaymentPage()
                            })
+})
+
+ipcMain.on('id-info', (event, msg) => {
+  win.webContents.send('id-info', msg)
 })
 
 ipcMain.on('serial', (event, msg) => {
@@ -158,6 +167,23 @@ showSerialWindow = () => {
   serialWindow.loadURL(`file://${__dirname}/dist/request.html`)
   serialWindow.once('ready-to-show', () => {
     serialWindow.show()
+  })
+}
+
+showEmailWindow = () => {
+  emailWindow = new BrowserWindow(
+    { parent: win
+    , modal: true
+    , show: false
+    , width: 400
+    , height: 80
+    , backgroundColor: '#ccc'
+    }
+  )
+  emailWindow.setMenu(null)
+  emailWindow.loadURL(`file://${__dirname}/dist/email.html`)
+  emailWindow.once('ready-to-show', () => {
+    emailWindow.show()
   })
 }
 
@@ -252,9 +278,9 @@ const menuTemplate =
     }
   , { label: 'Help'
     , submenu:
-        [ { label: 'Chat with Adriano'
+        [ { label: 'Contact Support'
           , click (item, focusedWindow) {
-              shell.openExternal('https://gingkoapp.com/desktop-chat') 
+              focusedWindow.webContents.send('contact-support')
             }
           }
         , { type: 'separator' }
