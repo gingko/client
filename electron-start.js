@@ -176,8 +176,12 @@ showEmailWindow = () => {
     , modal: true
     , show: false
     , width: 400
-    , height: 80
+    , height: 120
     , backgroundColor: '#ccc'
+    , resizable: false
+    , minimizable: false
+    , maximizable: false
+    , fullscreenable: false
     }
   )
   emailWindow.setMenu(null)
