@@ -13,7 +13,8 @@ const Menu = remote.Menu
 
 /* === Initialization === */
 
-var model = null
+var model = {"tree":{"id":"0","content":"","children":[]},"treePast":[],"treeFuture":[],"viewState":{"active":"0","activePast":[],"activeFuture":[],"descendants":[],"editing":"0"},"nextId":1}
+var field = null
 var currentFile = null
 var currentSwap = null
 var blankAutosave = null
@@ -72,6 +73,9 @@ setSaved = bool => {
     localStorage.setItem('saveCount', saveCount)
     window.Intercom('update', {"save_count": saveCount})
     maybeRequestPayment() 
+  } else {
+    document.title = 
+      /\*/.test(document.title) ? document.title : document.title + "*"
   }
 }
 
@@ -83,6 +87,10 @@ if(location.hash !== "") {
 
     if(contents !== null) {
       model = JSON.parse(contents)
+      if (model.field !== undefined) {
+        field = model.field
+        model = _.omit(model, 'field')
+      }
       setCurrentFile(filepath)
     }
   }
@@ -113,8 +121,7 @@ gingko.ports.message.subscribe(function(msg) {
       break
     case 'save-temp':
       model = msg[1]
-      document.title = 
-        /\*/.test(document.title) ? document.title : document.title + "*"
+      field = null
       setSaved(false)
       autosave(model)
       break
@@ -144,6 +151,7 @@ gingko.ports.attemptUpdate.subscribe(id => {
   if (tarea === null) {
     gingko.ports.updateError.send('Textarea with id '+id+' not found.')
   } else {
+    field = null
     gingko.ports.updateSuccess.send([id, tarea.value])
   }
 })
@@ -365,6 +373,12 @@ window.onresize = () => {
   if (lastColumnIdx) { scrollHorizontal(lastColumnIdx) }
 }
 
+withField = model => {
+  if (field !== null) {
+    return _.extend(model, {'field': field})
+  }
+}
+
 attemptSave = function(model, success, fail) {
   saveModel(model, function(err){
     if (err) { fail(err) } 
@@ -397,19 +411,24 @@ autosave = function(model) {
 }
 
 editingInputHandler = function(ev) {
-  console.log(ev.target.value)
+  if (saved) {
+    setSaved(false)
+  }
+  field = ev.target.value
 }
 
 saveModel = function(model, cb){
+  var toSave = withField(model)
   if (currentFile) {
-    fs.writeFile(currentFile, JSON.stringify(model, null, 2), cb)
+    fs.writeFile(currentFile, JSON.stringify(toSave, null, 2), cb)
   } else {
-    saveModelAs(model, cb)
+    saveModelAs(toSave, cb)
   }
 }
 
 
 saveModelAs = function(model, cb){
+  var toSave = withField(model)
   var options =
     { title: 'Save As'
     , defaultPath: currentFile ? `${app.getPath('documents')}/../${currentFile.replace('.gko','')}` : `${app.getPath('documents')}/../Untitled.gko`
@@ -421,7 +440,7 @@ saveModelAs = function(model, cb){
   dialog.showSaveDialog(options, function(e){
     if(!!e){
       setCurrentFile(e)
-      fs.writeFile(e, JSON.stringify(model, null, 2), cb)
+      fs.writeFile(e, JSON.stringify(toSave, null, 2), cb)
     }
   })
 }
@@ -473,8 +492,14 @@ loadFile = (filepath, setpath) => {
     if (err) throw err;
     setCurrentFile(setpath ? setpath : filepath)
     model = JSON.parse(data)
+    if (model.field !== undefined) {
+      console.log('model.field', model.field)
+      field = model.field
+      model = _.omit(model, 'field')
+    }
     gingko.ports.data.send(model)
     undoRedoMenuState(model.treePast, model.treeFuture)
+    setTextarea(model, field)
   })
 }
 
@@ -648,6 +673,13 @@ undoRedoMenuState = (past, future) => {
 
 /* === DOM manipulation === */
 
+var setTextarea = (m, f) => {
+  if(m.viewState.editing !== null && f !== null) {
+    var textarea = document.getElementById('card-edit-'+m.viewState.editing)
+    textarea.value = f
+  }
+}
+
 var scrollHorizontal = colIdx => {
   lastColumnIdx = colIdx
   _.delay(scrollHorizTo, 20, colIdx)
@@ -727,6 +759,10 @@ var observer = new MutationObserver(function(mutations) {
 
   if (textareas.length !== 0) {
     textareas.map(t => {
+      if(model !== null && model.viewState.editing == t.id.split('-')[2] && field !== null) {
+        t.value = field
+        t.focus()
+      }
       t.oninput = editingInputHandler;
     })
     jQuery(textareas).textareaAutoSize()
