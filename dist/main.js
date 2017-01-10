@@ -717,6 +717,7 @@ window.onload = function() {
       , email: email
       , name: name
       , created_at: Math.round(firstRunTime/1000)
+      , "gingko_version": app.getVersion()
       }
     );
   } else {
@@ -724,6 +725,7 @@ window.onload = function() {
       { app_id: "g1zzjpc3"
       , user_id: machineId
       , created_at: Math.round(firstRunTime/1000)
+      , "gingko_version": app.getVersion()
       }
     );
   }
