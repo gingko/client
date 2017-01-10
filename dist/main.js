@@ -214,11 +214,19 @@ ipcRenderer.on('export-as-json', function(e) {
 })
 
 ipcRenderer.on('export-as-markdown', function(e) {
-  var flattenTree = function(tree, strings) {
+  var flattenTree = function(tree, depth, strings) {
     if (tree.children.length == 0) {
-      return strings.concat([tree.content])
+      return strings.concat([addHeading(depth, tree.content)])
     } else {
-      return strings.concat([tree.content], _.flatten(tree.children.map(function(c){return flattenTree(c,[])})))
+      return strings.concat([addHeading(depth, tree.content)], _.flatten(tree.children.map(function(c){return flattenTree(c, depth+1,[])})))
+    }
+  }
+
+  var addHeading = function(depth, content) {
+    if(content.startsWith("#")){
+      return content
+    } else {
+      return "#".repeat(Math.min(6,depth+1)) + " " + content
     }
   }
 
@@ -232,7 +240,7 @@ ipcRenderer.on('export-as-markdown', function(e) {
 
   dialog.showSaveDialog(options, function(e){
     if(!!e) {
-      fs.writeFile(e, flattenTree(model.tree, []).join("\n\n"), function(err){ 
+      fs.writeFile(e, flattenTree(model.tree, 0, []).join("\n\n"), function(err){
         if(err) { 
           dialog.showMessageBox({title: "Save Error", message: "Document wasn't saved."})
           console.log(err.message)
@@ -363,7 +371,6 @@ attemptSave = function(model, success, fail) {
     success()
   })
 }
-
 
 autosave = function(model) {
   if (currentFile) {
