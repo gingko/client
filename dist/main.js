@@ -396,6 +396,10 @@ autosave = function(model) {
   })
 }
 
+editingInputHandler = function(ev) {
+  console.log(ev.target.value)
+}
+
 saveModel = function(model, cb){
   if (currentFile) {
     fs.writeFile(currentFile, JSON.stringify(model, null, 2), cb)
@@ -700,16 +704,33 @@ var scrollHorizTo = function(colIdx) {
 
 
 var observer = new MutationObserver(function(mutations) {
-  mutations.forEach(function(mutation) {
-    var nodesArray = [].slice.call(mutation.addedNodes)
-    var textareas = nodesArray.filter(function(node){
-      return (node.nodeName == "TEXTAREA" && node.className == "edit mousetrap")
-    })
+  var isTextarea = function(node) {
+    return node.nodeName == "TEXTAREA" && node.className == "edit mousetrap"
+  }
 
-    if (textareas.length !== 0) {
-      jQuery(textareas).textareaAutoSize()
-    }
-  });    
+  var textareas = [];
+
+  mutations
+    .map( m => {
+          [].slice.call(m.addedNodes)
+            .map(n => {
+              if (isTextarea(n)) {
+                textareas.push(n)
+              } else {
+                if(n.querySelectorAll) {
+                  var tareas = [].slice.call(n.querySelectorAll('textarea.edit'))
+                  textareas = textareas.concat(tareas)
+                }
+              }
+            })
+        })
+
+  if (textareas.length !== 0) {
+    textareas.map(t => {
+      t.oninput = editingInputHandler;
+    })
+    jQuery(textareas).textareaAutoSize()
+  }
 });
  
 var config = { childList: true, subtree: true };
