@@ -703,6 +703,7 @@ window.onload = function() {
   if (email && name) {
     window.Intercom("boot",
       { app_id: "g1zzjpc3"
+      , user_id: machineId
       , email: email
       , name: name
       , created_at: Math.round(firstRunTime/1000)
@@ -711,7 +712,7 @@ window.onload = function() {
   } else {
     window.Intercom("boot",
       { app_id: "g1zzjpc3"
-      , email: machineId
+      , user_id: machineId
       , created_at: Math.round(firstRunTime/1000)
       }
     );
