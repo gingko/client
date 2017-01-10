@@ -3,8 +3,9 @@ All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
 
-## Unreleased - 2017-01-10
+## [0.1.2] - 2017-01-10
 - Fixed crash when clicking on http links within app.
+- Send anonymous user data to Intercom (number of saves, version number, etc).
 
 
 ## [0.1.1] - 2017-01-05
