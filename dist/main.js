@@ -328,6 +328,11 @@ saveConfirmAndThen = onSuccess => {
   }
 }
 
+jQuery(document).on('click', 'a[href^="http"]', function(ev) {
+  ev.preventDefault()
+  shell.openExternal(this.href)
+})
+
 document.ondragover = document.ondrop = (ev) => {
   ev.preventDefault()
 }
