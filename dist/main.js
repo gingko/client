@@ -301,7 +301,7 @@ maybeRequestPayment = () => {
       } else {
         requestCount++
       }
-      window.Intercom('update', { "request_count": reqestCount })
+      window.Intercom('update', { "request_count": requestCount })
       localStorage.setItem('requestCount', requestCount)
       localStorage.setItem('lastRequestTime', t)
     }
