@@ -25,6 +25,7 @@ var firstRunTime = Number.parseInt(localStorage.getItem('firstRunTime'))
 var lastRequestTime = Number.parseInt(localStorage.getItem('lastRequestTime'))
 var isTrial = JSON.parse(localStorage.getItem('isTrial'))
 var saveCount = Number.parseInt(JSON.parse(localStorage.getItem('saveCount')))
+var requestCount = Number.parseInt(JSON.parse(localStorage.getItem('requestCount')))
 var email = localStorage.getItem('email')
 var name = localStorage.getItem('name')
 var machineId = localStorage.getItem('machineId')
@@ -64,12 +65,12 @@ setSaved = bool => {
   if (bool) { 
     if(isNaN(saveCount)) {
       saveCount = 1
-      localStorage.setItem('saveCount', 1)
     } else {
       saveCount++
-      localStorage.setItem('saveCount', saveCount)
     }
 
+    localStorage.setItem('saveCount', saveCount)
+    window.Intercom('update', {"save_count": saveCount})
     maybeRequestPayment() 
   }
 }
@@ -279,6 +280,7 @@ ipcRenderer.on('id-info', (e, msg) => {
 
 ipcRenderer.on('serial-success', e => {
   isTrial = false
+  window.Intercom('update', { "unlocked": true })
   localStorage.setItem('isTrial', false)
 })
 
@@ -293,6 +295,14 @@ maybeRequestPayment = () => {
     {
       ipcRenderer.send('request-message')
       lastRequestTime = t
+
+      if(isNaN(requestCount)) {
+        requestCount = 1;
+      } else {
+        requestCount++
+      }
+      window.Intercom('update', { "request_count": reqestCount })
+      localStorage.setItem('requestCount', requestCount)
       localStorage.setItem('lastRequestTime', t)
     }
 }
