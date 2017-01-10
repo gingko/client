@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
 
+## Unreleased
+- Fixed Markdown export when using autoheadings.
+- Fixed textareas not growing when text hits bottom, when first created.
+
+
 ## [0.1.2] - 2017-01-10
 - Fixed crash when clicking on http links within app.
 - Send anonymous user data to Intercom (number of saves, version number, etc).
