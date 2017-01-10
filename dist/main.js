@@ -3,9 +3,7 @@ var _ = require('underscore')
 var autosize = require('textarea-autosize')
 const fs = require('fs')
 const path = require('path')
-const ipc = require('electron').ipcRenderer
-var webFrame = require('electron').webFrame
-const remote = require('electron').remote
+const {ipcRenderer, webFrame, remote, shell} = require('electron')
 const machineIdSync = require('electron-machine-id').machineIdSync
 const app = remote.app
 const dialog = remote.dialog
@@ -62,7 +60,7 @@ setCurrentFile = function(filepath) {
 
 setSaved = bool => {
   saved = bool;
-  ipc.send('saved', bool)
+  ipcRenderer.send('saved', bool)
   if (bool) { 
     if(isNaN(saveCount)) {
       saveCount = 1
@@ -154,42 +152,42 @@ gingko.ports.attemptUpdate.subscribe(id => {
 
 /* === Handlers === */
 
-ipc.on('open-file', function(e) {
+ipcRenderer.on('open-file', function(e) {
   console.log(e)
 })
 
 
-ipc.on('new', function(e) {
+ipcRenderer.on('new', function(e) {
   saveConfirmAndThen(newFile)
 })
 
 
-ipc.on('open', function(e) {
+ipcRenderer.on('open', function(e) {
   saveConfirmAndThen(openDialog)
 })
 
-ipc.on('import', function(e) {
+ipcRenderer.on('import', function(e) {
   saveConfirmAndThen(importDialog)
 })
 
-ipc.on('save', function(e) {
+ipcRenderer.on('save', function(e) {
   saveModel(model, saveCallback)
 })
 
-ipc.on('save-as', function(e) {
+ipcRenderer.on('save-as', function(e) {
   saveModelAs(model, saveCallback)
 })
 
-ipc.on('clear-swap', function (e) {
+ipcRenderer.on('clear-swap', function (e) {
   clearSwap()
 })
 
-ipc.on('save-and-close', function (e) {
+ipcRenderer.on('save-and-close', function (e) {
   attemptSave(model, () => app.exit(), (err) => console.log(err))
 })
 
 
-ipc.on('export-as-json', function(e) {
+ipcRenderer.on('export-as-json', function(e) {
   var strip = function(tree) {
     return {"content": tree.content, "children": tree.children.map(strip)}
   }
@@ -214,7 +212,7 @@ ipc.on('export-as-json', function(e) {
   })
 })
 
-ipc.on('export-as-markdown', function(e) {
+ipcRenderer.on('export-as-markdown', function(e) {
   var flattenTree = function(tree, strings) {
     if (tree.children.length == 0) {
       return strings.concat([tree.content])
@@ -244,33 +242,33 @@ ipc.on('export-as-markdown', function(e) {
 })
 
 
-ipc.on('undo', function (e) {
+ipcRenderer.on('undo', function (e) {
   gingko.ports.externals.send(['keyboard','mod+z'])
 })
-ipc.on('redo', function (e) {
+ipcRenderer.on('redo', function (e) {
   gingko.ports.externals.send(['keyboard','mod+r'])
 })
 
 
-ipc.on('zoomin', e => {
+ipcRenderer.on('zoomin', e => {
   webFrame.setZoomLevel(webFrame.getZoomLevel() + 1)
 })
-ipc.on('zoomout', e => {
+ipcRenderer.on('zoomout', e => {
   webFrame.setZoomLevel(webFrame.getZoomLevel() - 1)
 })
-ipc.on('resetzoom', e => {
+ipcRenderer.on('resetzoom', e => {
   webFrame.setZoomLevel(0)
 })
 
-ipc.on('contact-support', e => {
+ipcRenderer.on('contact-support', e => {
   if(email && name && window.Intercom) {
     window.Intercom('show')
   } else {
-    ipc.send('ask-for-email')
+    ipcRenderer.send('ask-for-email')
   }
 })
 
-ipc.on('id-info', (e, msg) => {
+ipcRenderer.on('id-info', (e, msg) => {
   name = msg[0]
   email = msg[1]
   localStorage.setItem('name', name)
@@ -279,7 +277,7 @@ ipc.on('id-info', (e, msg) => {
   window.Intercom('show')
 })
 
-ipc.on('serial-success', e => {
+ipcRenderer.on('serial-success', e => {
   isTrial = false
   localStorage.setItem('isTrial', false)
 })
@@ -293,7 +291,7 @@ maybeRequestPayment = () => {
      && (Math.random() < freq(t-firstRunTime))
      )
     {
-      ipc.send('request-message')
+      ipcRenderer.send('request-message')
       lastRequestTime = t
       localStorage.setItem('lastRequestTime', t)
     }
