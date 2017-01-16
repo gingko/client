@@ -30,7 +30,7 @@ function createWindow () {
   // and load the index.html of the app.
   var url = `file://${__dirname}/dist/index.html`
 
-  if (userdata.name && userdata.email) {
+  if (userdata !== null && !!userdata.name && !!userdata.email) {
     url += `?name=${encodeURIComponent(userdata.name)}&email=${encodeURIComponent(userdata.email)}`
   }
 
