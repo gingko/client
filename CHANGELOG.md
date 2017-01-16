@@ -3,9 +3,12 @@ All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
 
-## Unreleased
+## [0.1.3] - 2017-01-16
+- Can now save document while editing card.
 - Fixed Markdown export when using autoheadings.
 - Fixed textareas not growing when text hits bottom, when first created.
+- Second attempt to fix crash when opening external links.
+- Upgrade Electron framework from 1.4.3 to 1.4.14
 
 
 ## [0.1.2] - 2017-01-10
