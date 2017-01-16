@@ -19,20 +19,31 @@ function createWindow () {
     })
 
 
+  var userdata = null 
+  try {
+    userdata = JSON.parse(fs.readFileSync(`${__dirname}/userinfo.txt`))
+  } 
+  catch (err) {
+    console.log(err)
+  }
+
   // and load the index.html of the app.
+  var url = `file://${__dirname}/dist/index.html`
+
+  if (userdata.name && userdata.email) {
+    url += `?name=${encodeURIComponent(userdata.name)}&email=${encodeURIComponent(userdata.email)}`
+  }
+
   if (process.platform !== 'darwin') {
     if(!!process.argv[1] && !process.argv[0].endsWith('electron')) {
-      win.loadURL(`file://${__dirname}/dist/index.html#${encodeURIComponent(process.argv[1])}`)
-    } else {
-      win.loadURL(`file://${__dirname}/dist/index.html`)
+      url += `#${encodeURIComponent(process.argv[1])}`
     }
   } else {
     if(!!process.argv[2] && !process.argv[0].endsWith('electron')) {
-      win.loadURL(`file://${__dirname}/dist/index.html#${encodeURIComponent(process.argv[2])}`)
-    } else {
-      win.loadURL(`file://${__dirname}/dist/index.html`)
+      url += `#${encodeURIComponent(process.argv[2])}`
     }
   }
+  win.loadURL(url)
 
   win.on('close', (e) => {
     if(!saved) {

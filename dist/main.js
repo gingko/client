@@ -3,6 +3,7 @@ var _ = require('underscore')
 var autosize = require('textarea-autosize')
 const fs = require('fs')
 const path = require('path')
+const url = require('url')
 const {ipcRenderer, webFrame, remote, shell} = require('electron')
 const machineIdSync = require('electron-machine-id').machineIdSync
 const app = remote.app
@@ -99,6 +100,17 @@ if(location.hash !== "") {
     dialog.showErrorBox("File load error.", err.message)
   }
 }
+
+var query = url.parse(location.toString(), true).query;
+
+if((query.name && query.email) && !(!!email && !!name)) {
+  name = query.name
+  email = query.email
+  localStorage.setItem('name', name)
+  localStorage.setItem('email', email)
+  window.Intercom('update', {email: email, name: name})
+}
+
 var gingko =  Elm.Main.fullscreen(model)
 var lastCenterline = null
 var lastColumnIdx = null

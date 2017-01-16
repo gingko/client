@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 
 ## [0.1.3] - 2017-01-16
+- User info from download added to Intercom (name & contact email).
 - Can now save document while editing card.
 - Fixed Markdown export when using autoheadings.
 - Fixed textareas not growing when text hits bottom, when first created.
