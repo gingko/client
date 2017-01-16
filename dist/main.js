@@ -376,6 +376,8 @@ window.onresize = () => {
 withField = model => {
   if (field !== null) {
     return _.extend(model, {'field': field})
+  } else {
+    return model
   }
 }
 
