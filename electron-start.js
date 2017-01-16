@@ -1,5 +1,6 @@
 const {app, BrowserWindow, dialog, Menu, ipcMain, shell} = require('electron')
 const fs = require('fs')
+const path = require('path')
 const sha1 = require('sha1')
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -21,7 +22,7 @@ function createWindow () {
 
   var userdata = null 
   try {
-    userdata = JSON.parse(fs.readFileSync(`${__dirname}/userinfo.txt`))
+    userdata = JSON.parse(fs.readFileSync(path.join(__dirname,'/../../userinfo.txt')))
   } 
   catch (err) {
     console.log(err)
