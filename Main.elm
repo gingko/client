@@ -46,6 +46,7 @@ type alias Model =
   , viewState : ViewState
   , nextId : Int
   , saved : Bool
+  , filepath : Maybe String
   }
 
 
@@ -63,6 +64,7 @@ defaultModel =
       }
   , nextId = 1
   , saved = True
+  , filepath = Nothing
   }
 
 
@@ -555,6 +557,18 @@ update msg model =
 
     -- === Ports ===
 
+    AttemptSave ->
+      model ! [ message ("save", modelToValue model)]
+
+    SaveSuccess path ->
+      { model
+        | saved = True
+        , filepath = Just path
+      } 
+        ! []
+
+    -- === Ports ===
+
     SaveTemp ->
       let
         newModel =
@@ -585,6 +599,9 @@ update msg model =
           else
             model ! []
 
+        "save-success" ->
+          update (SaveSuccess arg) model
+
         _ ->
           let
             db1 = Debug.log "Unknown external command" cmd
@@ -606,7 +623,7 @@ update msg model =
           model ! []
 
         "mod+s" ->
-        model ! [ message ("save", modelToValue model) ]
+          update AttemptSave model
 
         "mod+enter" ->
           editMode model

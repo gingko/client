@@ -192,7 +192,7 @@ ipcRenderer.on('import', function(e) {
 })
 
 ipcRenderer.on('save', function(e) {
-  saveModel(model, saveCallback)
+  gingko.ports.externals.send(['keyboard', 'mod+s'])
 })
 
 ipcRenderer.on('save-as', function(e) {
@@ -472,6 +472,7 @@ saveCallback = function(err) {
 
   document.title = document.title.replace('*', '')
   setSaved(true)
+  gingko.ports.externals.send(['save-success', currentFile]);
 }
 
 

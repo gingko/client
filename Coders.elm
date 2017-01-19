@@ -17,6 +17,7 @@ type alias Model =
   , viewState : ViewState
   , nextId : Int
   , saved : Bool
+  , filepath : Maybe String
   }
 
 
@@ -80,13 +81,14 @@ treeToSimpleJSON tree =
 
 modelDecoder : Decoder Model
 modelDecoder =
-  Json.map6 Model
+  Json.map7 Model
     (field "tree" treesModelDecoder)
     (oneOf [field "treePast" (list treeDecoder), succeed []])
     (oneOf [field "treeFuture" (list treeDecoder), succeed []])
     (field "viewState" viewStateDecoder)
     (field "nextId" int)
     ( succeed True )
+    (maybe (field "filepath" string))
 
 
 treesModelDecoder : Decoder Trees.Model

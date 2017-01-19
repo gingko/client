@@ -36,6 +36,13 @@ type Msg
     | Undo
     | Redo
     | AddToUndo Tree
+    -- === File Handling ===
+    | AttemptNew
+    | AttemptOpen
+    | AttemptSave
+    | AttemptSaveAs
+    | SaveSuccess String
+    | SaveError
     -- === Ports ===
     | SaveTemp
     | Confirm String String String
