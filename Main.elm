@@ -557,6 +557,12 @@ update msg model =
 
     -- === Ports ===
 
+    AttemptNew ->
+      if model.saved then
+        model ! [ message ("new", Json.Encode.bool False)]
+      else
+        model ! [ message ("save-confirm", Json.Encode.string "new")]
+
     AttemptSave ->
       model ! [ message ("save", modelToValue model)]
 
@@ -590,6 +596,15 @@ update msg model =
 
     ExternalCommand (cmd, arg) ->
       case cmd of
+        "new" ->
+          update AttemptNew model
+
+        "save" ->
+          update AttemptSave model
+
+        "save-success" ->
+          update (SaveSuccess arg) model
+
         "keyboard" ->
           model ! [run (HandleKey arg)]
 
@@ -598,9 +613,6 @@ update msg model =
             update CancelCard model
           else
             model ! []
-
-        "save-success" ->
-          update (SaveSuccess arg) model
 
         _ ->
           let

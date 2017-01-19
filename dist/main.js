@@ -17,8 +17,6 @@ const Menu = remote.Menu
 var gingko
 var field = null
 var editing = null
-var currentFile = null
-var currentSwap = null
 var blankAutosave = null
 var saved = true
 
@@ -52,18 +50,12 @@ if (machineId == null) {
 var editSubMenu = Menu.getApplicationMenu().items[1].submenu;
 
 setCurrentFile = function(filepath) {
-  currentFile = filepath
-  if (filepath && filepath.endsWith('.gko')) {
-    currentSwap = filepath.replace('.gko', '.gko.swp') 
-  } else { 
-    currentSwap = null 
-  }
   document.title =
     filepath ? `Gingko - ${path.basename(filepath)}` : "Gingko - Untitled"
 }
 
 setSaved = bool => {
-  saved = bool;
+  saved = bool
   ipcRenderer.send('saved', bool)
   if (bool) { 
     if(isNaN(saveCount)) {
@@ -132,15 +124,21 @@ gingko.ports.activateCards.subscribe(actives => {
 
 gingko.ports.message.subscribe(function(msg) {
   switch (msg[0]) {
+    case 'new':
+      newFile()
+      break
+    case 'open':
+      saveConfirmAndThen(openDialog)
+      break
+    case 'save-confirm':
+      
     case 'save':
-      model = msg[1]
       saveModel(model, saveCallback)
       break
     case 'save-temp':
-      model = msg[1]
       field = null
       setSaved(false)
-      autosave(model)
+      autosave(msg[1])
       break
     case 'undo-state-change':
       model = msg[1]
@@ -176,7 +174,7 @@ gingko.ports.attemptUpdate.subscribe(id => {
 
 
 
-/* === Handlers === */
+/* === From Main process to Elm === */
 
 ipcRenderer.on('open-file', function(e) {
   console.log(e)
@@ -184,12 +182,12 @@ ipcRenderer.on('open-file', function(e) {
 
 
 ipcRenderer.on('new', function(e) {
-  saveConfirmAndThen(newFile)
+  gingko.ports.externals.send(['new', ''])
 })
 
 
 ipcRenderer.on('open', function(e) {
-  saveConfirmAndThen(openDialog)
+  gingko.ports.externals.send(['open', ''])
 })
 
 ipcRenderer.on('import', function(e) {
@@ -197,7 +195,7 @@ ipcRenderer.on('import', function(e) {
 })
 
 ipcRenderer.on('save', function(e) {
-  gingko.ports.externals.send(['keyboard', 'mod+s'])
+  gingko.ports.externals.send(['save', ''])
 })
 
 ipcRenderer.on('save-as', function(e) {
@@ -350,6 +348,21 @@ freq = tau => {
   }
 }
 
+unsavedWarnAndThen = (model, filepath, onSuccess) => {
+  var options = 
+    { title: "Save changes"
+    , message: "Save changes before closing?"
+    , buttons: ["Close Without Saving", "Cancel", "Save"]
+    , defaultId: 2
+    }
+  var choice = dialog.showMessageBox(options)
+
+  if (choice == 0) {
+    onSuccess() 
+  } else if (choice == 2) {
+    attemptSave(model, filepath, () => onSuccess(), (err) => console.log(err))
+  }
+}
 
 saveConfirmAndThen = onSuccess => {
   if(!saved) {
@@ -390,12 +403,11 @@ window.onresize = () => {
   if (lastColumnIdx) { scrollHorizontal(lastColumnIdx) }
 }
 
-withField = model => {
+toFileFormat = model => {
   if (field !== null) {
-    return _.extend(model, {'field': field})
-  } else {
-    return model
-  }
+    model = _.extend(model, {'field': field})
+  } 
+  return _.omit(model, 'filepath')
 }
 
 attemptSave = function(model, success, fail) {
@@ -406,9 +418,13 @@ attemptSave = function(model, success, fail) {
 }
 
 autosave = function(model) {
-  if (currentFile) {
+  var filepath = model.filepath
+
+  model = _.omit(model, 'filepath')
+
+  if (filepath) {
     currentSwap =
-        currentFile.replace('.gko','.gko.swp')
+        model.filepath.replace('.gko','.gko.swp')
 
   } else {
     blankAutosave =
@@ -437,9 +453,9 @@ editingInputHandler = function(ev) {
 }
 
 saveModel = function(model, cb){
-  var toSave = withField(model)
-  if (currentFile) {
-    fs.writeFile(currentFile, JSON.stringify(toSave, null, 2), cb)
+  var toSave = toFileFormat(model)
+  if (model.filepath) {
+    fs.writeFile(filepath, JSON.stringify(toSave, null, 2), cb)
   } else {
     saveModelAs(toSave, cb)
   }
@@ -447,10 +463,10 @@ saveModel = function(model, cb){
 
 
 saveModelAs = function(model, cb){
-  var toSave = withField(model)
+  var toSave = toFileFormat(model)
   var options =
     { title: 'Save As'
-    , defaultPath: currentFile ? `${app.getPath('documents')}/../${currentFile.replace('.gko','')}` : `${app.getPath('documents')}/../Untitled.gko`
+    , defaultPath: model.filepath ? `${app.getPath('documents')}/../${model.filepath.replace('.gko','')}` : `${app.getPath('documents')}/../Untitled.gko`
     , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
                 , {name: 'All Files', extensions: ['*']}
                 ]

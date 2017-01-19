@@ -31,6 +31,7 @@ modelToValue model =
    , ("treeFuture", Json.Encode.list (List.map treeToValue model.treeFuture))
    , ("viewState", viewStateToValue model.viewState)
    , ("nextId", Json.Encode.int model.nextId)
+   , ("filepath", maybeToValue model.filepath Json.Encode.string )
    ]
 
 
