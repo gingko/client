@@ -14,8 +14,9 @@ const Menu = remote.Menu
 
 /* === Initialization === */
 
-var model = {"tree":{"id":"0","content":"","children":[]},"treePast":[],"treeFuture":[],"viewState":{"active":"0","activePast":[],"activeFuture":[],"descendants":[],"editing":"0"},"nextId":1}
+var gingko
 var field = null
+var editing = null
 var currentFile = null
 var currentSwap = null
 var blankAutosave = null
@@ -81,6 +82,7 @@ setSaved = bool => {
 }
 
 if(location.hash !== "") {
+  var model;
   filepath = decodeURIComponent(location.hash.slice(1))  
 
   try {
@@ -90,6 +92,7 @@ if(location.hash !== "") {
       model = JSON.parse(contents)
       if (model.field !== undefined) {
         field = model.field
+        editing = model.viewState.editing
         model = _.omit(model, 'field')
       }
       setCurrentFile(filepath)
@@ -99,6 +102,9 @@ if(location.hash !== "") {
     console.log(err)
     dialog.showErrorBox("File load error.", err.message)
   }
+  gingko =  Elm.Main.fullscreen(model)
+} else {
+  gingko =  Elm.Main.fullscreen(null)
 }
 
 var query = url.parse(location.toString(), true).query;
@@ -111,7 +117,6 @@ if((query.name && query.email) && !(!!email && !!name)) {
   window.Intercom('update', {email: email, name: name})
 }
 
-var gingko =  Elm.Main.fullscreen(model)
 var lastCenterline = null
 var lastColumnIdx = null
 
@@ -774,7 +779,7 @@ var observer = new MutationObserver(function(mutations) {
 
   if (textareas.length !== 0) {
     textareas.map(t => {
-      if(model !== null && model.viewState.editing == t.id.split('-')[2] && field !== null) {
+      if(editing == t.id.split('-')[2] && field !== null) {
         t.value = field
         t.focus()
       }
