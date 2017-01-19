@@ -599,6 +599,9 @@ update msg model =
         "new" ->
           update AttemptNew model
 
+        "open" ->
+          update AttemptOpen model
+
         "save" ->
           update AttemptSave model
 

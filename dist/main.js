@@ -49,7 +49,7 @@ if (machineId == null) {
 
 var editSubMenu = Menu.getApplicationMenu().items[1].submenu;
 
-setCurrentFile = function(filepath) {
+var setTitleFilename = function(filepath) {
   document.title =
     filepath ? `Gingko - ${path.basename(filepath)}` : "Gingko - Untitled"
 }
@@ -87,7 +87,7 @@ if(location.hash !== "") {
         editing = model.viewState.editing
         model = _.omit(model, 'field')
       }
-      setCurrentFile(filepath)
+      setTitleFilename(filepath)
     }
   }
   catch (err) {
@@ -131,9 +131,9 @@ gingko.ports.message.subscribe(function(msg) {
       saveConfirmAndThen(openDialog)
       break
     case 'save-confirm':
-      
+      break 
     case 'save':
-      saveModel(model, saveCallback)
+      save(msg[1])
       break
     case 'save-temp':
       field = null
@@ -159,6 +159,40 @@ gingko.ports.message.subscribe(function(msg) {
       break
   }
 })
+
+// Save Elm model to model.filepath, or trigger Save As dialog to.
+save = model => {
+  if (model.filepath) {
+    writeAndNotify(model.filepath, toFileFormat(model));
+  } else {
+    var options =
+      { title: 'Save As'
+      , defaultPath: model.filepath ? `${app.getPath('documents')}/../${model.filepath.replace('.gko','')}` : `${app.getPath('documents')}/../Untitled.gko`
+      , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
+                  , {name: 'All Files', extensions: ['*']}
+                  ]
+      };
+
+    dialog.showSaveDialog(options, function(path){
+      if(!!path){
+        writeAndNotify(path, toFileFormat(model));
+      }
+    });
+  }
+}
+
+// Notify Elm of filepath on successful save
+// Set titlebar state on successful save
+writeAndNotify = function(path, data) {
+  fs.writeFile(path, data, (err) => {
+    if (err) {
+      dialog.showErrorBox("Save error:", err.message)
+    }
+    gingko.ports.externals.send(['save-success', path]);
+    setTitleFilename(path);
+    setSaved(true)
+  });
+};
 
 gingko.ports.attemptUpdate.subscribe(id => {
   var tarea = document.getElementById('card-edit-'+id)
@@ -407,7 +441,7 @@ toFileFormat = model => {
   if (field !== null) {
     model = _.extend(model, {'field': field})
   } 
-  return _.omit(model, 'filepath')
+  return JSON.stringify(_.omit(model, 'filepath'), null, 2)
 }
 
 attemptSave = function(model, success, fail) {
@@ -418,14 +452,11 @@ attemptSave = function(model, success, fail) {
 }
 
 autosave = function(model) {
-  var filepath = model.filepath
+  var currentSwap;
 
-  model = _.omit(model, 'filepath')
-
-  if (filepath) {
+  if (model.filepath) {
     currentSwap =
-        model.filepath.replace('.gko','.gko.swp')
-
+      model.filepath.replace('.gko','.gko.swp')
   } else {
     blankAutosave =
       blankAutosave
@@ -438,11 +469,11 @@ autosave = function(model) {
     localStorage.setItem('autosave', currentSwap) // TODO: warn when this exists.
   }
 
-  fs.writeFile(currentSwap, JSON.stringify(model, null, 2), function(err){
+  fs.writeFile(currentSwap, toFileFormat(model), function(err){
     if(err) {
       dialog.showErrorBox("Autosave error.", err.message)
     } 
-  })
+  });
 }
 
 editingInputHandler = function(ev) {
@@ -474,7 +505,7 @@ saveModelAs = function(model, cb){
 
   dialog.showSaveDialog(options, function(e){
     if(!!e){
-      setCurrentFile(e)
+      setTitleFilename(e)
       fs.writeFile(e, JSON.stringify(toSave, null, 2), cb)
     }
   })
@@ -526,7 +557,7 @@ attemptLoadFile = filepath => {
 loadFile = (filepath, setpath) => {
   fs.readFile(filepath, (err, data) => {
     if (err) throw err;
-    setCurrentFile(setpath ? setpath : filepath)
+    setTitleFilename(setpath ? setpath : filepath)
     model = JSON.parse(data)
     if (model.field !== undefined) {
       console.log('model.field', model.field)
@@ -543,7 +574,7 @@ loadFile = (filepath, setpath) => {
 importFile = filepath => {
   fs.readFile(filepath, (err, data) => {
     if (err) throw err;
-    setCurrentFile(filepath)
+    setTitleFilename(filepath)
    
     var nextId = 1
     data = data.toString()
@@ -592,7 +623,7 @@ importFile = filepath => {
 /* === Messages To Elm === */
 
 newFile = function() {
-  setCurrentFile(null)
+  setTitleFilename(null)
   gingko.ports.data.send(null)
   undoRedoMenuState([],[])
   remote.getCurrentWindow().focus()
