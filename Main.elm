@@ -559,9 +559,15 @@ update msg model =
 
     AttemptNew ->
       if model.saved then
-        model ! [ message ("new", Json.Encode.bool False)]
+        model ! [ message ("new", Json.Encode.null ) ]
       else
-        model ! [ message ("save-confirm", Json.Encode.string "new")]
+        model ! [ message ("unsaved-new", modelToValue model)]
+
+    AttemptOpen ->
+      if model.saved then
+        model ! [ message ("open", Json.Encode.null ) ]
+      else
+        model ! [ message ("save-confirm", Json.Encode.string "open")]
 
     AttemptSave ->
       model ! [ message ("save", modelToValue model)]

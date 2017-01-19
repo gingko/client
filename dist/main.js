@@ -1,7 +1,7 @@
 var jQuery = require('jquery')
 var _ = require('underscore')
 var autosize = require('textarea-autosize')
-const fs = require('fs')
+const fs = require('mz/fs')
 const path = require('path')
 const url = require('url')
 const {ipcRenderer, webFrame, remote, shell} = require('electron')
@@ -18,6 +18,7 @@ var gingko
 var field = null
 var editing = null
 var blankAutosave = null
+var currentSwap = null
 var saved = true
 
 /* === Config loading === */
@@ -128,10 +129,12 @@ gingko.ports.message.subscribe(function(msg) {
       newFile()
       break
     case 'open':
-      saveConfirmAndThen(openDialog)
+      openDialog()
       break
-    case 'save-confirm':
-      break 
+    case 'unsaved-new':
+      var model = msg[1];
+      unsavedWarnAndThen(toFileFormat(model), model.filepath, newFile)
+      break;
     case 'save':
       save(msg[1])
       break
@@ -184,15 +187,41 @@ save = model => {
 // Notify Elm of filepath on successful save
 // Set titlebar state on successful save
 writeAndNotify = function(path, data) {
-  fs.writeFile(path, data, (err) => {
-    if (err) {
-      dialog.showErrorBox("Save error:", err.message)
-    }
-    gingko.ports.externals.send(['save-success', path]);
-    setTitleFilename(path);
+  var success = (p, d) => {
+    gingko.ports.externals.send(['save-success', p]);
     setSaved(true)
-  });
+    setTitleFilename(p);
+  }
+
+  var error = (err) => {
+    dialog.showErrorBox("Save error:", err.message)
+  }
+
+  fs.writeFile(path, data)
+    .then(success(path, data))
+    .catch(error)
 };
+
+unsavedWarnAndThen = (data, filepath, onSuccess) => {
+  console.log('unsavedWarnAndThen')
+  var options = 
+    { title: "Save changes"
+    , message: "Save changes before closing?"
+    , buttons: ["Close Without Saving", "Cancel", "Save"]
+    , defaultId: 2
+    }
+  var choice = dialog.showMessageBox(options)
+
+  if (choice == 0) {
+    onSuccess() 
+  } else if (choice == 2) {
+    console.log(filepath)
+    fs.writeFile(filepath, data)
+      .then(onSuccess)
+      .catch((err) => dialog.showErrorBox("Save error:", err.message))
+  }
+}
+
 
 gingko.ports.attemptUpdate.subscribe(id => {
   var tarea = document.getElementById('card-edit-'+id)
@@ -382,21 +411,6 @@ freq = tau => {
   }
 }
 
-unsavedWarnAndThen = (model, filepath, onSuccess) => {
-  var options = 
-    { title: "Save changes"
-    , message: "Save changes before closing?"
-    , buttons: ["Close Without Saving", "Cancel", "Save"]
-    , defaultId: 2
-    }
-  var choice = dialog.showMessageBox(options)
-
-  if (choice == 0) {
-    onSuccess() 
-  } else if (choice == 2) {
-    attemptSave(model, filepath, () => onSuccess(), (err) => console.log(err))
-  }
-}
 
 saveConfirmAndThen = onSuccess => {
   if(!saved) {
@@ -452,7 +466,6 @@ attemptSave = function(model, success, fail) {
 }
 
 autosave = function(model) {
-  var currentSwap;
 
   if (model.filepath) {
     currentSwap =
@@ -558,7 +571,7 @@ loadFile = (filepath, setpath) => {
   fs.readFile(filepath, (err, data) => {
     if (err) throw err;
     setTitleFilename(setpath ? setpath : filepath)
-    model = JSON.parse(data)
+    model = _.extend(JSON.parse(data), { filepath: setpath ? setpath : filepath })
     if (model.field !== undefined) {
       console.log('model.field', model.field)
       field = model.field
@@ -630,7 +643,7 @@ newFile = function() {
 }
 
 
-openDialog = function() {
+openDialog = function() { // TODO: add defaultPath
   dialog.showOpenDialog(
     null, 
     { title: "Open File..."
