@@ -567,10 +567,19 @@ update msg model =
       if model.saved then
         model ! [ message ("open", Json.Encode.null ) ]
       else
-        model ! [ message ("save-confirm", Json.Encode.string "open")]
+        model ! [ message ("unsaved-open", modelToValue model)]
 
     AttemptSave ->
       model ! [ message ("save", modelToValue model)]
+
+    AttemptSaveAs ->
+      model ! [ message ("save", modelToValue { model | filepath = Nothing} )]
+
+    AttemptSaveAndClose ->
+      let
+        db1 = Debug.log "model" model
+      in
+      model ! [ message ("save-and-close", modelToValue model)]
 
     SaveSuccess path ->
       { model
@@ -610,6 +619,12 @@ update msg model =
 
         "save" ->
           update AttemptSave model
+
+        "save-as" ->
+          update AttemptSaveAs model
+
+        "save-and-close" ->
+          update AttemptSaveAndClose model
 
         "save-success" ->
           update (SaveSuccess arg) model

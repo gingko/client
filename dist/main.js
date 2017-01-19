@@ -131,18 +131,36 @@ gingko.ports.message.subscribe(function(msg) {
     case 'open':
       openDialog()
       break
-    case 'unsaved-new':
-      var model = msg[1];
-      unsavedWarnAndThen(toFileFormat(model), model.filepath, newFile)
-      break;
     case 'save':
-      save(msg[1])
+      save( msg[1]
+          , (path) => {
+              gingko.ports.externals.send(['save-success', path]);
+              setSaved(true);
+              setTitleFilename(path);
+            }
+          , (err) => dialog.showErrorBox("Save error:", err.message)
+          )
+      break
+    case 'save-and-close':
+      saveAndExit(msg[1])
       break
     case 'save-temp':
       field = null
       setSaved(false)
       autosave(msg[1])
       break
+    case 'unsaved-new':
+      unsavedWarningThen( msg[1]
+        , newFile
+        , (err) => dialog.showErrorBox("Save error:", err.message)
+        )
+      break;
+    case 'unsaved-open':
+      unsavedWarningThen( msg[1]
+        , openDialog
+        , (err) => dialog.showErrorBox("Save error:", err.message)
+        )
+      break;
     case 'undo-state-change':
       model = msg[1]
       undoRedoMenuState(model.treePast, model.treeFuture)
@@ -163,66 +181,6 @@ gingko.ports.message.subscribe(function(msg) {
   }
 })
 
-// Save Elm model to model.filepath, or trigger Save As dialog to.
-save = model => {
-  if (model.filepath) {
-    writeAndNotify(model.filepath, toFileFormat(model));
-  } else {
-    var options =
-      { title: 'Save As'
-      , defaultPath: model.filepath ? `${app.getPath('documents')}/../${model.filepath.replace('.gko','')}` : `${app.getPath('documents')}/../Untitled.gko`
-      , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
-                  , {name: 'All Files', extensions: ['*']}
-                  ]
-      };
-
-    dialog.showSaveDialog(options, function(path){
-      if(!!path){
-        writeAndNotify(path, toFileFormat(model));
-      }
-    });
-  }
-}
-
-// Notify Elm of filepath on successful save
-// Set titlebar state on successful save
-writeAndNotify = function(path, data) {
-  var success = (p, d) => {
-    gingko.ports.externals.send(['save-success', p]);
-    setSaved(true)
-    setTitleFilename(p);
-  }
-
-  var error = (err) => {
-    dialog.showErrorBox("Save error:", err.message)
-  }
-
-  fs.writeFile(path, data)
-    .then(success(path, data))
-    .catch(error)
-};
-
-unsavedWarnAndThen = (data, filepath, onSuccess) => {
-  console.log('unsavedWarnAndThen')
-  var options = 
-    { title: "Save changes"
-    , message: "Save changes before closing?"
-    , buttons: ["Close Without Saving", "Cancel", "Save"]
-    , defaultId: 2
-    }
-  var choice = dialog.showMessageBox(options)
-
-  if (choice == 0) {
-    onSuccess() 
-  } else if (choice == 2) {
-    console.log(filepath)
-    fs.writeFile(filepath, data)
-      .then(onSuccess)
-      .catch((err) => dialog.showErrorBox("Save error:", err.message))
-  }
-}
-
-
 gingko.ports.attemptUpdate.subscribe(id => {
   var tarea = document.getElementById('card-edit-'+id)
 
@@ -233,6 +191,7 @@ gingko.ports.attemptUpdate.subscribe(id => {
     gingko.ports.updateSuccess.send([id, tarea.value])
   }
 })
+
 
 
 
@@ -254,7 +213,7 @@ ipcRenderer.on('open', function(e) {
 })
 
 ipcRenderer.on('import', function(e) {
-  saveConfirmAndThen(importDialog)
+  gingko.ports.externals.send(['import', ''])
 })
 
 ipcRenderer.on('save', function(e) {
@@ -262,7 +221,7 @@ ipcRenderer.on('save', function(e) {
 })
 
 ipcRenderer.on('save-as', function(e) {
-  saveModelAs(model, saveCallback)
+  gingko.ports.externals.send(['save-as', ''])
 })
 
 ipcRenderer.on('clear-swap', function (e) {
@@ -270,7 +229,8 @@ ipcRenderer.on('clear-swap', function (e) {
 })
 
 ipcRenderer.on('save-and-close', function (e) {
-  attemptSave(model, () => app.exit(), (err) => console.log(err))
+  console.log('save-and-close received in renderer')
+  gingko.ports.externals.send(['save-and-close', ''])
 })
 
 
@@ -379,94 +339,60 @@ ipcRenderer.on('serial-success', e => {
 })
 
 
-maybeRequestPayment = () => {
-  var t = Date.now()
-  if (  isTrial
-     && (saveCount > 10)
-     && (isNaN(lastRequestTime) || t - lastRequestTime > 3.6e6)
-     && (Math.random() < freq(t-firstRunTime))
-     )
-    {
-      ipcRenderer.send('request-message')
-      lastRequestTime = t
+/* === Local Functions === */
 
-      if(isNaN(requestCount)) {
-        requestCount = 1;
-      } else {
-        requestCount++
-      }
-      window.Intercom('update', { "request_count": requestCount })
-      localStorage.setItem('requestCount', requestCount)
-      localStorage.setItem('lastRequestTime', t)
-    }
-}
-
-freq = tau => {
-  if (tau <= 7*24*3.6e6) {
-    return 0.1
-  } else if (tau <= 30*24*3.6e6) {
-    return 0.5
+save = (model, success, failure) => {
+  if (model.filepath) {
+    fs.writeFile(model.filepath, toFileFormat(model))
+      .then(success(model.filepath))
+      .catch(failure)
   } else {
-    return 0.8
+    var options =
+      { title: 'Save As'
+      , defaultPath: model.filepath ? `${app.getPath('documents')}/../${model.filepath.replace('.gko','')}` : `${app.getPath('documents')}/../Untitled.gko`
+      , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
+                  , {name: 'All Files', extensions: ['*']}
+                  ]
+      };
+
+    dialog.showSaveDialog(options, function(path){
+      if(!!path){
+        fs.writeFile(path, toFileFormat(model))
+          .then(success(path))
+          .catch(failure)
+      }
+    });
   }
 }
 
-
-saveConfirmAndThen = onSuccess => {
-  if(!saved) {
-    var options = 
-      { title: "Save changes"
-      , message: "Save changes before closing?"
-      , buttons: ["Close Without Saving", "Cancel", "Save"]
-      , defaultId: 2
-      }
-    var choice = dialog.showMessageBox(options)
-
-    if (choice == 0) {
-      onSuccess() 
-    } else if (choice == 2) {
-      attemptSave(model, () => onSuccess(), (err) => console.log(err))
-    }
+// Special handling of exit case
+// TODO: Find out why I can't pass app.exit as
+// success callback to regular save function
+saveAndExit = (model) => {
+  if (model.filepath) {
+    fs.writeFile(model.filepath, toFileFormat(model))
+      .then(app.exit)
+      .catch((err) => dialog.showErrorBox("Save error:", err.message))
   } else {
-    onSuccess()
+    var options =
+      { title: 'Save As'
+      , defaultPath: model.filepath ? `${app.getPath('documents')}/../${model.filepath.replace('.gko','')}` : `${app.getPath('documents')}/../Untitled.gko`
+      , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
+                  , {name: 'All Files', extensions: ['*']}
+                  ]
+      };
+
+    dialog.showSaveDialog(options, function(path){
+      if(!!path){
+        fs.writeFile(path, toFileFormat(model))
+          .then(app.exit)
+          .catch((err) => dialog.showErrorBox("Save error:", err.message))
+      }
+    });
   }
-}
-
-jQuery(document).on('click', 'a[href^="http"]', function(ev) {
-  ev.preventDefault()
-  shell.openExternal(this.href)
-})
-
-document.ondragover = document.ondrop = (ev) => {
-  ev.preventDefault()
-}
-
-document.body.ondrop = (ev) => {
-  saveConfirmAndThen(attemptLoadFile(ev.dataTransfer.files[0].path))
-  ev.preventDefault()
-}
-
-window.onresize = () => {
-  if (lastCenterline) { scrollColumns(lastCenterline) }
-  if (lastColumnIdx) { scrollHorizontal(lastColumnIdx) }
-}
-
-toFileFormat = model => {
-  if (field !== null) {
-    model = _.extend(model, {'field': field})
-  } 
-  return JSON.stringify(_.omit(model, 'filepath'), null, 2)
-}
-
-attemptSave = function(model, success, fail) {
-  saveModel(model, function(err){
-    if (err) { fail(err) } 
-    success()
-  })
 }
 
 autosave = function(model) {
-
   if (model.filepath) {
     currentSwap =
       model.filepath.replace('.gko','.gko.swp')
@@ -489,57 +415,23 @@ autosave = function(model) {
   });
 }
 
-editingInputHandler = function(ev) {
-  if (saved) {
-    setSaved(false)
-  }
-  field = ev.target.value
-}
 
-saveModel = function(model, cb){
-  var toSave = toFileFormat(model)
-  if (model.filepath) {
-    fs.writeFile(filepath, JSON.stringify(toSave, null, 2), cb)
-  } else {
-    saveModelAs(toSave, cb)
-  }
-}
-
-
-saveModelAs = function(model, cb){
-  var toSave = toFileFormat(model)
+unsavedWarningThen = (model, success, failure) => {
   var options =
-    { title: 'Save As'
-    , defaultPath: model.filepath ? `${app.getPath('documents')}/../${model.filepath.replace('.gko','')}` : `${app.getPath('documents')}/../Untitled.gko`
-    , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
-                , {name: 'All Files', extensions: ['*']}
-                ]
+    { title: "Save changes"
+    , message: "Save changes before closing?"
+    , buttons: ["Close Without Saving", "Cancel", "Save"]
+    , defaultId: 2
     }
 
-  dialog.showSaveDialog(options, function(e){
-    if(!!e){
-      setTitleFilename(e)
-      fs.writeFile(e, JSON.stringify(toSave, null, 2), cb)
-    }
-  })
-}
+  var choice = dialog.showMessageBox(options)
 
-clearSwap = function(filepath) {
-  var file = filepath ? filepath : currentSwap
-  fs.unlinkSync(file)
-}
-
-saveCallback = function(err) {
-  if(err) { 
-    dialog.showMessageBox({title: "Save Error", message: "Document wasn't saved."})
-    console.log(err.message)
+  if (choice == 0) {
+    success();
+  } else if (choice == 2) {
+    save(model, success, failure);
   }
-
-  document.title = document.title.replace('*', '')
-  setSaved(true)
-  gingko.ports.externals.send(['save-success', currentFile]);
 }
-
 
 attemptLoadFile = filepath => {
   var swapFilepath =
@@ -566,7 +458,6 @@ attemptLoadFile = filepath => {
   })
 }
 
-
 loadFile = (filepath, setpath) => {
   fs.readFile(filepath, (err, data) => {
     if (err) throw err;
@@ -582,7 +473,6 @@ loadFile = (filepath, setpath) => {
     setTextarea(model, field)
   })
 }
-
 
 importFile = filepath => {
   fs.readFile(filepath, (err, data) => {
@@ -632,16 +522,12 @@ importFile = filepath => {
   })
 }
 
-
-/* === Messages To Elm === */
-
 newFile = function() {
   setTitleFilename(null)
   gingko.ports.data.send(null)
   undoRedoMenuState([],[])
   remote.getCurrentWindow().focus()
 }
-
 
 openDialog = function() { // TODO: add defaultPath
   dialog.showOpenDialog(
@@ -678,6 +564,84 @@ importDialog = function() {
       }
  )
 }
+
+clearSwap = function(filepath) {
+  var file = filepath ? filepath : currentSwap
+  fs.unlinkSync(file)
+}
+
+toFileFormat = model => {
+  if (field !== null) {
+    model = _.extend(model, {'field': field})
+  } 
+  return JSON.stringify(_.omit(model, 'filepath'), null, 2)
+}
+
+
+/* === Payment Request Functions === */
+
+maybeRequestPayment = () => {
+  var t = Date.now()
+  if (  isTrial
+     && (saveCount > 10)
+     && (isNaN(lastRequestTime) || t - lastRequestTime > 3.6e6)
+     && (Math.random() < freq(t-firstRunTime))
+     )
+    {
+      ipcRenderer.send('request-message')
+      lastRequestTime = t
+
+      if(isNaN(requestCount)) {
+        requestCount = 1;
+      } else {
+        requestCount++
+      }
+      window.Intercom('update', { "request_count": requestCount })
+      localStorage.setItem('requestCount', requestCount)
+      localStorage.setItem('lastRequestTime', t)
+    }
+}
+
+freq = tau => {
+  if (tau <= 7*24*3.6e6) {
+    return 0.1
+  } else if (tau <= 30*24*3.6e6) {
+    return 0.5
+  } else {
+    return 0.8
+  }
+}
+
+
+/* === DOM Events and Handlers === */
+
+jQuery(document).on('click', 'a[href^="http"]', function(ev) {
+  ev.preventDefault()
+  shell.openExternal(this.href)
+})
+
+document.ondragover = document.ondrop = (ev) => {
+  ev.preventDefault()
+}
+
+document.body.ondrop = (ev) => {
+  //saveConfirmAndThen(attemptLoadFile(ev.dataTransfer.files[0].path))
+  ev.preventDefault()
+}
+
+window.onresize = () => {
+  if (lastCenterline) { scrollColumns(lastCenterline) }
+  if (lastColumnIdx) { scrollHorizontal(lastColumnIdx) }
+}
+
+
+editingInputHandler = function(ev) {
+  if (saved) {
+    setSaved(false)
+  }
+  field = ev.target.value
+}
+
 
 
 var shortcuts = [ 'mod+enter'

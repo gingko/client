@@ -47,6 +47,7 @@ function createWindow () {
   win.loadURL(url)
 
   win.on('close', (e) => {
+    console.log('saved?', saved)
     if(!saved) {
       var options = 
         { title: "Save changes?"

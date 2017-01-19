@@ -41,6 +41,7 @@ type Msg
     | AttemptOpen
     | AttemptSave
     | AttemptSaveAs
+    | AttemptSaveAndClose
     | SaveSuccess String
     | SaveError
     -- === Ports ===
