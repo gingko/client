@@ -365,24 +365,6 @@ viewCard (isActive, isEditing, depth) tree =
                   , ("has-children", hasChildren)
                   ]
       ]
-
-    splitContent =
-      String.split newLine tree.content
-
-    autoheading =
-      List.repeat (Basics.min 6 (depth+1)) "#"
-
-    content =
-      case splitContent of
-        [] -> ""
-
-        head :: tail ->
-          if String.startsWith "#" head then
-            String.join newLine splitContent
-          else
-            String.concat
-              ( autoheading ++ [" ", head, newLine, String.join newLine tail] )
-
   in
   if isEditing then
     div cardAttributes
@@ -400,7 +382,7 @@ viewCard (isActive, isEditing, depth) tree =
             , onClick (Activate tree.id)
             , onDoubleClick (OpenCard tree.id tree.content)
             ] 
-            [( lazy viewContent content )]
+            [( lazy viewContent tree.content )]
         ]
       )
 
