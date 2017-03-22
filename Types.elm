@@ -39,13 +39,14 @@ type Msg
     -- === File Handling ===
     | AttemptNew
     | AttemptOpen
+    | AttemptImport
     | AttemptSave
     | AttemptSaveAs
     | AttemptSaveAndClose
     | SaveSuccess String
     | SaveError
-    -- === Ports ===
     | SaveTemp
+    -- === Ports ===
     | Confirm String String String
     | DataIn Json.Value
     | ExternalCommand (String, String)

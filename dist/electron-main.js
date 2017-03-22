@@ -12,7 +12,7 @@ const Menu = remote.Menu
 
 
 
-/* === Initialization === */
+/* === Global Variables === */
 
 var gingko
 var field = null
@@ -20,8 +20,12 @@ var editing = null
 var blankAutosave = null
 var currentSwap = null
 var saved = true
+var editSubMenu = Menu.getApplicationMenu().items[1].submenu;
+var lastCenterline = null
+var lastColumnIdx = null
 
-/* === Config loading === */
+
+/* === Config Loading === */
 
 var firstRunTime = Number.parseInt(localStorage.getItem('firstRunTime'))
 var lastRequestTime = Number.parseInt(localStorage.getItem('lastRequestTime'))
@@ -31,6 +35,16 @@ var requestCount = Number.parseInt(JSON.parse(localStorage.getItem('requestCount
 var email = localStorage.getItem('email')
 var name = localStorage.getItem('name')
 var machineId = localStorage.getItem('machineId')
+
+var query = url.parse(location.toString(), true).query;
+
+if((query.name && query.email) && !(!!email && !!name)) {
+  name = query.name
+  email = query.email
+  localStorage.setItem('name', name)
+  localStorage.setItem('email', email)
+  window.Intercom('update', {email: email, name: name})
+}
 
 if (isNaN(firstRunTime)) {
   firstRunTime = Date.now()
@@ -46,33 +60,7 @@ if (machineId == null) {
 }
 
 
-/* ====== */
-
-var editSubMenu = Menu.getApplicationMenu().items[1].submenu;
-
-var setTitleFilename = function(filepath) {
-  document.title =
-    filepath ? `Gingko - ${path.basename(filepath)}` : "Gingko - Untitled"
-}
-
-setSaved = bool => {
-  saved = bool
-  ipcRenderer.send('saved', bool)
-  if (bool) { 
-    if(isNaN(saveCount)) {
-      saveCount = 1
-    } else {
-      saveCount++
-    }
-
-    localStorage.setItem('saveCount', saveCount)
-    window.Intercom('update', {"save_count": saveCount})
-    maybeRequestPayment() 
-  } else {
-    document.title = 
-      /\*/.test(document.title) ? document.title : document.title + "*"
-  }
-}
+/* === Initializing App === */
 
 if(location.hash !== "") {
   var model;
@@ -100,28 +88,94 @@ if(location.hash !== "") {
   gingko =  Elm.Main.fullscreen(null)
 }
 
-var query = url.parse(location.toString(), true).query;
 
-if((query.name && query.email) && !(!!email && !!name)) {
-  name = query.name
-  email = query.email
+/* === From Main process to Elm === */
+
+ipcRenderer.on('open-file', function(e) {
+  console.log(e)
+})
+
+ipcRenderer.on('attempt-new', function(e) {
+  gingko.ports.externals.send(['attempt-new', ''])
+})
+
+
+ipcRenderer.on('attempt-open', function(e) {
+  gingko.ports.externals.send(['attempt-open', ''])
+})
+
+ipcRenderer.on('attempt-import', function(e) {
+  gingko.ports.externals.send(['attempt-import', ''])
+})
+
+ipcRenderer.on('attempt-save', function(e) {
+  gingko.ports.externals.send(['attempt-save', ''])
+})
+
+ipcRenderer.on('attempt-save-as', function(e) {
+  gingko.ports.externals.send(['attempt-save-as', ''])
+})
+
+ipcRenderer.on('clear-swap', function (e) {
+  clearSwap()
+})
+
+ipcRenderer.on('attempt-save-and-close', function (e) {
+  gingko.ports.externals.send(['attempt-save-and-close', ''])
+})
+
+ipcRenderer.on('export-as-json', function(e) {
+  gingko.ports.externals.send(['export-as-json', ''])
+})
+
+ipcRenderer.on('export-as-markdown', function(e) {
+  gingko.ports.externals.send(['export-as-markdown', ''])
+})
+
+
+ipcRenderer.on('undo', function (e) {
+  gingko.ports.externals.send(['keyboard','mod+z'])
+})
+ipcRenderer.on('redo', function (e) {
+  gingko.ports.externals.send(['keyboard','mod+r'])
+})
+
+
+ipcRenderer.on('zoomin', e => {
+  webFrame.setZoomLevel(webFrame.getZoomLevel() + 1)
+})
+ipcRenderer.on('zoomout', e => {
+  webFrame.setZoomLevel(webFrame.getZoomLevel() - 1)
+})
+ipcRenderer.on('resetzoom', e => {
+  webFrame.setZoomLevel(0)
+})
+
+ipcRenderer.on('contact-support', e => {
+  if(email && name && window.Intercom) {
+    window.Intercom('show')
+  } else {
+    ipcRenderer.send('ask-for-email')
+  }
+})
+
+ipcRenderer.on('id-info', (e, msg) => {
+  name = msg[0]
+  email = msg[1]
   localStorage.setItem('name', name)
   localStorage.setItem('email', email)
   window.Intercom('update', {email: email, name: name})
-}
+  window.Intercom('show')
+})
 
-var lastCenterline = null
-var lastColumnIdx = null
-
-
+ipcRenderer.on('serial-success', e => {
+  isTrial = false
+  window.Intercom('update', { "unlocked": true })
+  localStorage.setItem('isTrial', false)
+})
 
 
 /* === Elm Ports === */
-
-gingko.ports.activateCards.subscribe(actives => {
-  scrollHorizontal(actives[0])
-  scrollColumns(actives[1])
-})
 
 gingko.ports.message.subscribe(function(msg) {
   switch (msg[0]) {
@@ -130,6 +184,9 @@ gingko.ports.message.subscribe(function(msg) {
       break
     case 'open':
       openDialog()
+      break
+    case 'import':
+      importDialog()
       break
     case 'save':
       save( msg[1]
@@ -181,6 +238,11 @@ gingko.ports.message.subscribe(function(msg) {
   }
 })
 
+gingko.ports.activateCards.subscribe(actives => {
+  scrollHorizontal(actives[0])
+  scrollColumns(actives[1])
+})
+
 gingko.ports.attemptUpdate.subscribe(id => {
   var tarea = document.getElementById('card-edit-'+id)
 
@@ -195,151 +257,31 @@ gingko.ports.attemptUpdate.subscribe(id => {
 
 
 
-
-/* === From Main process to Elm === */
-
-ipcRenderer.on('open-file', function(e) {
-  console.log(e)
-})
-
-
-ipcRenderer.on('new', function(e) {
-  gingko.ports.externals.send(['new', ''])
-})
-
-
-ipcRenderer.on('open', function(e) {
-  gingko.ports.externals.send(['open', ''])
-})
-
-ipcRenderer.on('import', function(e) {
-  gingko.ports.externals.send(['import', ''])
-})
-
-ipcRenderer.on('save', function(e) {
-  gingko.ports.externals.send(['save', ''])
-})
-
-ipcRenderer.on('save-as', function(e) {
-  gingko.ports.externals.send(['save-as', ''])
-})
-
-ipcRenderer.on('clear-swap', function (e) {
-  clearSwap()
-})
-
-ipcRenderer.on('save-and-close', function (e) {
-  console.log('save-and-close received in renderer')
-  gingko.ports.externals.send(['save-and-close', ''])
-})
-
-
-ipcRenderer.on('export-as-json', function(e) {
-  var strip = function(tree) {
-    return {"content": tree.content, "children": tree.children.map(strip)}
-  }
-  
-  var options =
-    { title: 'Export JSON'
-    , defaultPath: currentFile ? `${app.getPath('documents')}/../${currentFile.replace('.gko','')}.json` : `${app.getPath('documents')}/../Untitled.json`
-    , filters:  [ {name: 'JSON Files', extensions: ['json']}
-                , {name: 'All Files', extensions: ['*']}
-                ]
-    }
-
-  dialog.showSaveDialog(options, function(e){
-    if(!!e) {
-      fs.writeFile(e, JSON.stringify([strip(model.tree)], null, 2), function(err){ 
-        if(err) { 
-          dialog.showMessageBox({title: "Save Error", message: "Document wasn't saved."})
-          console.log(err.message)
-        }
-      })
-    }
-  })
-})
-
-ipcRenderer.on('export-as-markdown', function(e) {
-  var flattenTree = function(tree, depth, strings) {
-    if (tree.children.length == 0) {
-      return strings.concat([addHeading(depth, tree.content)])
-    } else {
-      return strings.concat([addHeading(depth, tree.content)], _.flatten(tree.children.map(function(c){return flattenTree(c, depth+1,[])})))
-    }
-  }
-
-  var addHeading = function(depth, content) {
-    if(content.startsWith("#")){
-      return content
-    } else {
-      return "#".repeat(Math.min(6,depth+1)) + " " + content
-    }
-  }
-
-  var options =
-    { title: 'Export Markdown (txt)'
-    , defaultPath: currentFile ? `${app.getPath('documents')}/../${currentFile.replace('.gko','')}.txt` : `${app.getPath('documents')}/../Untitled.txt`
-    , filters:  [ {name: 'Text Files', extensions: ['txt']}
-                , {name: 'All Files', extensions: ['*']}
-                ]
-    }
-
-  dialog.showSaveDialog(options, function(e){
-    if(!!e) {
-      fs.writeFile(e, flattenTree(model.tree, 0, []).join("\n\n"), function(err){
-        if(err) { 
-          dialog.showMessageBox({title: "Save Error", message: "Document wasn't saved."})
-          console.log(err.message)
-        }
-      })
-    }
-  })
-})
-
-
-ipcRenderer.on('undo', function (e) {
-  gingko.ports.externals.send(['keyboard','mod+z'])
-})
-ipcRenderer.on('redo', function (e) {
-  gingko.ports.externals.send(['keyboard','mod+r'])
-})
-
-
-ipcRenderer.on('zoomin', e => {
-  webFrame.setZoomLevel(webFrame.getZoomLevel() + 1)
-})
-ipcRenderer.on('zoomout', e => {
-  webFrame.setZoomLevel(webFrame.getZoomLevel() - 1)
-})
-ipcRenderer.on('resetzoom', e => {
-  webFrame.setZoomLevel(0)
-})
-
-ipcRenderer.on('contact-support', e => {
-  if(email && name && window.Intercom) {
-    window.Intercom('show')
-  } else {
-    ipcRenderer.send('ask-for-email')
-  }
-})
-
-ipcRenderer.on('id-info', (e, msg) => {
-  name = msg[0]
-  email = msg[1]
-  localStorage.setItem('name', name)
-  localStorage.setItem('email', email)
-  window.Intercom('update', {email: email, name: name})
-  window.Intercom('show')
-})
-
-ipcRenderer.on('serial-success', e => {
-  isTrial = false
-  window.Intercom('update', { "unlocked": true })
-  localStorage.setItem('isTrial', false)
-})
-
-
 /* === Local Functions === */
+
+var setTitleFilename = function(filepath) {
+  document.title =
+    filepath ? `Gingko - ${path.basename(filepath)}` : "Gingko - Untitled"
+}
+
+setSaved = bool => {
+  saved = bool
+  ipcRenderer.send('saved', bool)
+  if (bool) { 
+    if(isNaN(saveCount)) {
+      saveCount = 1
+    } else {
+      saveCount++
+    }
+
+    localStorage.setItem('saveCount', saveCount)
+    window.Intercom('update', {"save_count": saveCount})
+    maybeRequestPayment() 
+  } else {
+    document.title = 
+      /\*/.test(document.title) ? document.title : document.title + "*"
+  }
+}
 
 save = (model, success, failure) => {
   if (model.filepath) {
@@ -431,6 +373,68 @@ unsavedWarningThen = (model, success, failure) => {
   } else if (choice == 2) {
     save(model, success, failure);
   }
+}
+
+exportToJSON = (model) => {
+  var strip = function(tree) {
+    return {"content": tree.content, "children": tree.children.map(strip)}
+  }
+  
+  var options =
+    { title: 'Export JSON'
+    , defaultPath: model.filepath ? `${app.getPath('documents')}/../${model.filepath.replace('.gko','')}.json` : `${app.getPath('documents')}/../Untitled.json`
+    , filters:  [ {name: 'JSON Files', extensions: ['json']}
+                , {name: 'All Files', extensions: ['*']}
+                ]
+    }
+
+  dialog.showSaveDialog(options, function(e){
+    if(!!e) {
+      fs.writeFile(e, JSON.stringify([strip(model.tree)], null, 2), function(err){ 
+        if(err) { 
+          dialog.showMessageBox({title: "Save Error", message: "Document wasn't saved."})
+          console.log(err.message)
+        }
+      })
+    }
+  })
+}
+
+exportToMarkdown = (model) => {
+  var flattenTree = function(tree, depth, strings) {
+    if (tree.children.length == 0) {
+      return strings.concat([addHeading(depth, tree.content)])
+    } else {
+      return strings.concat([addHeading(depth, tree.content)], _.flatten(tree.children.map(function(c){return flattenTree(c, depth+1,[])})))
+    }
+  }
+
+  var addHeading = function(depth, content) {
+    if(content.startsWith("#")){
+      return content
+    } else {
+      return "#".repeat(Math.min(6,depth+1)) + " " + content
+    }
+  }
+
+  var options =
+    { title: 'Export Markdown (txt)'
+    , defaultPath: model.filepath ? `${app.getPath('documents')}/../${model.filepath.replace('.gko','')}.txt` : `${app.getPath('documents')}/../Untitled.txt`
+    , filters:  [ {name: 'Text Files', extensions: ['txt']}
+                , {name: 'All Files', extensions: ['*']}
+                ]
+    }
+
+  dialog.showSaveDialog(options, function(e){
+    if(!!e) {
+      fs.writeFile(e, flattenTree(model.tree, 0, []).join("\n\n"), function(err){
+        if(err) { 
+          dialog.showMessageBox({title: "Save Error", message: "Document wasn't saved."})
+          console.log(err.message)
+        }
+      })
+    }
+  })
 }
 
 attemptLoadFile = filepath => {

@@ -66,7 +66,7 @@ function createWindow () {
           break
         case 2:
           win.webContents.send('clear-swap')
-          win.webContents.send('save-and-close')
+          win.webContents.send('attempt-save-and-close')
           e.preventDefault()
           break
       }
@@ -210,31 +210,31 @@ const menuTemplate =
         [ { label: 'New'
           , accelerator: 'CmdOrCtrl+N'
           , click (item, focusedWindow) {
-              focusedWindow.webContents.send('new')
+              focusedWindow.webContents.send('attempt-new')
             }
           }
         , { label: 'Open File...'
           , accelerator: 'CmdOrCtrl+O'
           , click (item, focusedWindow) {
-              focusedWindow.webContents.send('open')
+              focusedWindow.webContents.send('attempt-open')
             }
           }
         , { label: 'Import File...'
           , click (item, focusedWindow) {
-              focusedWindow.webContents.send('import')
+              focusedWindow.webContents.send('attempt-import')
             }
           }
         , { type: 'separator' }
         , { label: 'Save'
           , accelerator: 'CmdOrCtrl+S'
           , click (item, focusedWindow) {
-              focusedWindow.webContents.send('save')
+              focusedWindow.webContents.send('attempt-save')
             }
           }
         , { label: 'Save As...'
           , accelerator: 'CmdOrCtrl+Shift+S'
           , click (item, focusedWindow) {
-              focusedWindow.webContents.send('save-as')
+              focusedWindow.webContents.send('attempt-save-as')
             }
           }
         , { label: 'Export as JSON..'

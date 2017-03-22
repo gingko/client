@@ -555,7 +555,7 @@ update msg model =
         model ! []
 
 
-    -- === Ports ===
+    -- === File Handling ===
 
     AttemptNew ->
       if model.saved then
@@ -569,16 +569,16 @@ update msg model =
       else
         model ! [ message ("unsaved-open", modelToValue model)]
 
-    AttemptSave ->
-      model ! [ message ("save", modelToValue model)]
+    AttemptImport ->
+      if model.saved then
+        model ! [ message ("import", Json.Encode.null ) ]
+      else
+        model ! [ message ("unsaved-import", modelToValue model)]
 
     AttemptSaveAs ->
       model ! [ message ("save", modelToValue { model | filepath = Nothing} )]
 
     AttemptSaveAndClose ->
-      let
-        db1 = Debug.log "model" model
-      in
       model ! [ message ("save-and-close", modelToValue model)]
 
     SaveSuccess path ->
@@ -588,8 +588,6 @@ update msg model =
       } 
         ! []
 
-    -- === Ports ===
-
     SaveTemp ->
       let
         newModel =
@@ -598,6 +596,8 @@ update msg model =
           }
       in
       newModel ! [ message ("save-temp", modelToValue newModel) ]
+
+    -- === Ports ===
 
     Confirm tag title msg ->
       model
@@ -611,19 +611,19 @@ update msg model =
 
     ExternalCommand (cmd, arg) ->
       case cmd of
-        "new" ->
+        "attempt-new" ->
           update AttemptNew model
 
-        "open" ->
+        "attempt-open" ->
           update AttemptOpen model
 
-        "save" ->
-          update AttemptSave model
-
-        "save-as" ->
+        "attempt-import" ->
+          update AttemptImport model
+ 
+        "attempt-save-as" ->
           update AttemptSaveAs model
 
-        "save-and-close" ->
+        "attempt-save-and-close" ->
           update AttemptSaveAndClose model
 
         "save-success" ->
@@ -638,11 +638,8 @@ update msg model =
           else
             model ! []
 
-        _ ->
-          let
-            db1 = Debug.log "Unknown external command" cmd
-          in
-          model ! []
+        str ->
+          model ! [ message (str, modelToValue model) ]
 
     DataIn json ->
       init json

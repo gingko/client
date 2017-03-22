@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
+## Unreleased
+- Removed auto-titles.
+
 
 ## [0.1.3] - 2017-01-16
 - User info from download added to Intercom (name & contact email).
