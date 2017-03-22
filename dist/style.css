@@ -331,9 +331,6 @@ ul, ol {
 .card.editing textarea {
   display: block;
   background: transparent;
-  background-image: repeating-linear-gradient(to bottom, transparent, transparent 22px, hsl(216, 100%, 84%) 1px, transparent 23px);
-  background-position-y: 0px, 7px;
-  background-attachment: local;
   max-height: 600px;
   text-shadow: -1px -1px 0px rgba(0,0,0,0.1), 1px 1px 0px rgba(255,255,255,0.8);
   color: hsl(27,28%,22%);
@@ -344,7 +341,7 @@ ul, ol {
   display: none;
   outline: none;
   border: none;
-  min-height: 100px;
+  min-height: 60px;
   max-height: 80%;
   overflow-x: hidden;
   width: 100%;
