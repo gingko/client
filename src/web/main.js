@@ -1,6 +1,6 @@
-//var jQuery = require('jquery')
+var jQuery = require('jquery')
 var _ = require('underscore')
-//var autosize = require('textarea-autosize')
+var autosize = require('textarea-autosize')
 const url = require('url')
 window.Elm = require('../elm.js')
 
@@ -280,11 +280,6 @@ freq = tau => {
 
 /* === DOM Events and Handlers === */
 
-//jQuery(document).on('click', 'a[href^="http"]', function(ev) {
-//  ev.preventDefault()
-//  shell.openExternal(this.href)
-//})
-
 document.ondragover = document.ondrop = (ev) => {
   ev.preventDefault()
 }
@@ -463,7 +458,7 @@ var observer = new MutationObserver(function(mutations) {
       }
       t.oninput = editingInputHandler;
     })
-    //jQuery(textareas).textareaAutoSize()
+    jQuery(textareas).textareaAutoSize()
   }
 });
  
