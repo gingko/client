@@ -28,8 +28,8 @@ function createWindow () {
     console.log(err)
   }
 
-  // and load the index.html of the app.
-  var url = `file://${__dirname}/dist/index.html`
+  // and load the html of the app.
+  var url = `file://${__dirname}/dist/electron.html`
 
   if (userdata !== null && !!userdata.name && !!userdata.email) {
     url += `?name=${encodeURIComponent(userdata.name)}&email=${encodeURIComponent(userdata.email)}`
