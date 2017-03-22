@@ -1,5 +1,7 @@
 elm-stuff
 dist/elm.js
+src/elm.js
+dist/bundle.js
 node_modules
 Gingko-*
 *.gko
