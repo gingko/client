@@ -7,7 +7,8 @@
   "scripts": {
     "build-web": "rm -rf ./dist/ && mkdir -p ./dist/static && cp -r ./src/static/* ./dist/static && TARGET=web webpack --watch",
     "build-electron": "rm -rf ./dist/ && mkdir -p ./dist/static && cp -r ./src/static/* ./dist/static && TARGET=electron webpack --watch",
-    "watch": "chokidar '**/*.elm' -c 'tput reset && elm-make Main.elm --output dist/elm.js' --initial"
+    "elm-web": "elm-make src/elm/Main.elm --output src/elm.js && TARGET=web webpack",
+    "elm-electron": "elm-make src/elm/Main.elm --output src/elm.js && TARGET=electron webpack"
   },
   "repository": {
     "type": "git",

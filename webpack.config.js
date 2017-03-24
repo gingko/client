@@ -1,5 +1,4 @@
 var path = require('path');
-var platform;
 
 module.exports = {
   entry: `./src/${process.env.TARGET}/main.js`,
