@@ -1,6 +1,6 @@
-var jQuery = require('jquery')
-var _ = require('underscore')
-var autosize = require('textarea-autosize')
+const jQuery = require('jquery')
+const _ = require('underscore')
+const autosize = require('textarea-autosize')
 const url = require('url')
 
 const shared = require('../shared/shared')
@@ -20,63 +20,9 @@ var lastCenterline = null
 var lastColumnIdx = null
 
 
-/* === Config Loading === */
-
-var firstRunTime = Number.parseInt(localStorage.getItem('firstRunTime'))
-var lastRequestTime = Number.parseInt(localStorage.getItem('lastRequestTime'))
-var isTrial = JSON.parse(localStorage.getItem('isTrial'))
-var saveCount = Number.parseInt(JSON.parse(localStorage.getItem('saveCount')))
-var requestCount = Number.parseInt(JSON.parse(localStorage.getItem('requestCount')))
-var email = localStorage.getItem('email')
-var name = localStorage.getItem('name')
-
-var query = url.parse(location.toString(), true).query;
-
-if((query.name && query.email) && !(!!email && !!name)) {
-  name = query.name
-  email = query.email
-  localStorage.setItem('name', name)
-  localStorage.setItem('email', email)
-  window.Intercom('update', {email: email, name: name})
-}
-
-if (isNaN(firstRunTime)) {
-  firstRunTime = Date.now()
-  localStorage.setItem('firstRunTime', firstRunTime)
-}
-if (isTrial == null) {
-  isTrial = true
-  localStorage.setItem('isTrial', true)
-}
-
-
 /* === Initializing App === */
 
-if(location.hash !== "") {
-  var model;
-  filepath = decodeURIComponent(location.hash.slice(1))  
-
-  try {
-    contents = fs.readFileSync(filepath)
-
-    if(contents !== null) {
-      model = JSON.parse(contents)
-      if (model.field !== undefined) {
-        field = model.field
-        editing = model.viewState.editing
-        model = _.omit(model, 'field')
-      }
-      setTitleFilename(filepath)
-    }
-  }
-  catch (err) {
-    console.log(err)
-    dialog.showErrorBox("File load error.", err.message)
-  }
-  gingko =  Elm.Main.fullscreen(model)
-} else {
-  gingko =  Elm.Main.fullscreen(null)
-}
+gingko =  Elm.Main.fullscreen(null)
 
 
 /* === From Main process to Elm === */
@@ -339,6 +285,8 @@ var shortcuts = [ 'mod+enter'
 var needOverride= [ 'mod+j'
                   , 'mod+l'
                   , 'mod+s'  
+                  , 'alt+left'
+                  , 'alt+right'
                   ];
                     
 Mousetrap.bind(shortcuts, function(e, s) {
@@ -358,12 +306,6 @@ Mousetrap.bind(['tab'], function(e, s) {
 Mousetrap.bind(['shift+tab'], function(e, s) {
   return true;
 });
-
-
-/* === Menu state === */
-
-undoRedoMenuState = (past, future) => {
-}
 
 
 /* === DOM manipulation === */
