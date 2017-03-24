@@ -1,5 +1,33 @@
-var _ = require('underscore')
+const _ = require('underscore')
+const PouchDB = require('pouchdb')
+var db = new PouchDB('my_database')
 
+
+/* ===== Database ===== */
+
+function saveModel(model) {
+  var data = 
+    { _id: new Date().toISOString()
+    , model: model
+    }
+
+  db.put(data, function callback(err, result) {
+    if (!err) {
+      console.log("success!!!")
+    } else {
+      console.log('failure: ' + err)
+    }
+  })
+}
+
+function loadModel(callback) {
+  db.allDocs({include_docs: true, descending: true}, function(err, doc) {
+    callback(doc.rows[0]) 
+  })
+}
+
+
+/* ===== DOM Manipulation ===== */
 
 var setTextarea = (m, f) => {
   if(m.viewState.editing !== null && f !== null) {
@@ -62,7 +90,11 @@ var scrollHorizTo = function(colIdx) {
   }
 }
 
+/* ===== CommonJS Module exports ===== */
+
 module.exports = 
   { scrollHorizontal: scrollHorizontal
   , scrollColumns: scrollColumns
+  , saveModel: saveModel
+  , loadModel: loadModel
   }

@@ -22,11 +22,15 @@ var lastColumnIdx = null
 
 /* === Initializing App === */
 
-gingko =  Elm.Main.fullscreen(null)
+gingko = Elm.Main.fullscreen(null)
+
+shared.loadModel(function(data) {
+  console.log(data)
+  gingko.ports.data.send(data.doc.model)
+})
 
 
 /* === From Main process to Elm === */
-
 
 
 /* === Elm Ports === */
@@ -43,14 +47,9 @@ gingko.ports.message.subscribe(function(msg) {
       importDialog()
       break
     case 'save':
-      save( msg[1]
-          , (path) => {
-              gingko.ports.externals.send(['save-success', path]);
-              setSaved(true);
-              setTitleFilename(path);
-            }
-          , (err) => dialog.showErrorBox("Save error:", err.message)
-          )
+      console.log('save')
+      console.log(msg[1])
+      shared.saveModel(msg[1])
       break
     case 'save-and-close':
       saveAndExit(msg[1])
@@ -74,7 +73,6 @@ gingko.ports.message.subscribe(function(msg) {
       break;
     case 'undo-state-change':
       model = msg[1]
-      undoRedoMenuState(model.treePast, model.treeFuture)
       break
     case 'confirm-cancel':
       var options =
@@ -170,7 +168,6 @@ importFile = filepath => {
 newFile = function() {
   setTitleFilename(null)
   gingko.ports.data.send(null)
-  undoRedoMenuState([],[])
 }
 
 openDialog = function() { // TODO: add defaultPath
@@ -285,11 +282,13 @@ var shortcuts = [ 'mod+enter'
 var needOverride= [ 'mod+j'
                   , 'mod+l'
                   , 'mod+s'  
+                  , 'mod+r'
                   , 'alt+left'
                   , 'alt+right'
                   ];
                     
 Mousetrap.bind(shortcuts, function(e, s) {
+  console.log(s)
   gingko.ports.externals.send(['keyboard', s]);
 
   if(needOverride.includes(s)) {

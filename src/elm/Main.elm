@@ -575,6 +575,9 @@ update msg model =
       else
         model ! [ message ("unsaved-import", modelToValue model)]
 
+    AttemptSave ->
+      model ! [ message ("save", modelToValue model) ]
+
     AttemptSaveAs ->
       model ! [ message ("save", modelToValue { model | filepath = Nothing} )]
 

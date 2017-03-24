@@ -7,8 +7,8 @@
   "scripts": {
     "build-web": "rm -rf ./dist/ && mkdir -p ./dist/static && cp -r ./src/static/* ./dist/static && TARGET=web webpack --watch",
     "build-electron": "rm -rf ./dist/ && mkdir -p ./dist/static && cp -r ./src/static/* ./dist/static && TARGET=electron webpack --watch",
-    "elm-web": "elm-make src/elm/Main.elm --output src/elm.js && TARGET=web webpack",
-    "elm-electron": "elm-make src/elm/Main.elm --output src/elm.js && TARGET=electron webpack"
+    "elm-web": "elm-make src/elm/Main.elm --output src/elm.js && TARGET=web webpack --watch",
+    "elm-electron": "elm-make src/elm/Main.elm --output src/elm.js && TARGET=electron webpack --watch"
   },
   "repository": {
     "type": "git",
@@ -31,6 +31,7 @@
     "electron-machine-id": "^1.0.9",
     "jquery": "^3.1.1",
     "mz": "^2.6.0",
+    "pouchdb": "^6.1.2",
     "sha1": "^1.1.1",
     "textarea-autosize": "^0.4.2",
     "underscore": "^1.8.3"
