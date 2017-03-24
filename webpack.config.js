@@ -1,7 +1,9 @@
 var path = require('path');
+var platform;
 
 module.exports = {
-  entry: './src/web/main.js',
+  entry: `./src/${process.env.TARGET}/main.js`,
+  target: process.env.TARGET,
   module: {
     loaders: [
       {

@@ -9,6 +9,7 @@ const machineIdSync = require('electron-machine-id').machineIdSync
 const app = remote.app
 const dialog = remote.dialog
 const Menu = remote.Menu
+window.Elm = require('../elm/Main')
 
 
 
@@ -43,7 +44,6 @@ if((query.name && query.email) && !(!!email && !!name)) {
   email = query.email
   localStorage.setItem('name', name)
   localStorage.setItem('email', email)
-  window.Intercom('update', {email: email, name: name})
 }
 
 if (isNaN(firstRunTime)) {
@@ -152,11 +152,6 @@ ipcRenderer.on('resetzoom', e => {
 })
 
 ipcRenderer.on('contact-support', e => {
-  if(email && name && window.Intercom) {
-    window.Intercom('show')
-  } else {
-    ipcRenderer.send('ask-for-email')
-  }
 })
 
 ipcRenderer.on('id-info', (e, msg) => {
@@ -164,13 +159,10 @@ ipcRenderer.on('id-info', (e, msg) => {
   email = msg[1]
   localStorage.setItem('name', name)
   localStorage.setItem('email', email)
-  window.Intercom('update', {email: email, name: name})
-  window.Intercom('show')
 })
 
 ipcRenderer.on('serial-success', e => {
   isTrial = false
-  window.Intercom('update', { "unlocked": true })
   localStorage.setItem('isTrial', false)
 })
 
@@ -275,7 +267,6 @@ setSaved = bool => {
     }
 
     localStorage.setItem('saveCount', saveCount)
-    window.Intercom('update', {"save_count": saveCount})
     maybeRequestPayment() 
   } else {
     document.title = 
@@ -600,7 +591,6 @@ maybeRequestPayment = () => {
       } else {
         requestCount++
       }
-      window.Intercom('update', { "request_count": requestCount })
       localStorage.setItem('requestCount', requestCount)
       localStorage.setItem('lastRequestTime', t)
     }
