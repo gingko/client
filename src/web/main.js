@@ -2,7 +2,7 @@ var jQuery = require('jquery')
 var _ = require('underscore')
 var autosize = require('textarea-autosize')
 const url = require('url')
-window.Elm = require('../elm.js')
+window.Elm = require('../elm/Main')
 
 
 
