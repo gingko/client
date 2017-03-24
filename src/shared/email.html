@@ -1,0 +1,27 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Enter your info</title>
+</head>
+
+<body>
+  <script type="text/javascript">
+    const ipc = require('electron').ipcRenderer
+
+    sendInfo = () => {
+      var name = document.getElementById('name').value
+      var email = document.getElementById('email').value
+      ipc.send('id-info', [name, email])
+      window.close()
+    }
+  </script>
+
+  <form>
+    <input id="name" placeholder="Your Name" style="display:block;width:380px;font-size:120%;" autofocus/>
+    <input id="email" placeholder="Your Email" style="display:block;width:380px;font-size:120%;"/>
+    <button type="submit" onclick="sendInfo()" style="margin-top:5px;font-size:100%">Continue</button>
+  </form>
+</body>
+</html>

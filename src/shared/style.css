@@ -1,0 +1,636 @@
+@font-face {
+  font-family: 'Glyphicons Halflings';
+  src: url('./fonts/glyphicons-halflings-regular.woff2');
+}
+@font-face {
+  font-family: 'Open Sans';
+  src: url('./fonts/Open_Sans/OpenSans-Regular.ttf');
+}
+@font-face {
+  font-family: 'Open Sans';
+  src: url('./fonts/Open_Sans/OpenSans-Bold.ttf');
+  font-weight: bold;
+}
+@font-face {
+  font-family: 'Open Sans';
+  src: url('./fonts/Open_Sans/OpenSans-Italic.ttf');
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Open Sans';
+  src: url('./fonts/Open_Sans/OpenSans-BoldItalic.ttf');
+  font-weight: bold;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Droid Sans Mono';
+  src: url('./fonts/Droid_Sans_Mono/DroidSansMono.ttf');
+}
+@font-face {
+  font-family: 'Roboto Mono';
+  src: url('./fonts/Roboto_Mono/RobotoMono-Regular.ttf');
+}
+@font-face {
+  font-family: 'Roboto Mono';
+  src: url('./fonts/Roboto_Mono/RobotoMono-Bold.ttf');
+  font-weight: bold;
+}
+@font-face {
+  font-family: 'Bitter';
+  src: url('./fonts/Bitter/Bitter-Regular.ttf');
+}
+@font-face {
+  font-family: 'Bitter';
+  src: url('./fonts/Bitter/Bitter-Bold.ttf');
+  font-weight: bold;
+}
+@font-face {
+  font-family: 'Bitter';
+  src: url('./fonts/Bitter/Bitter-Italic.ttf');
+  font-style: italic;
+}
+
+html {
+  box-sizing: border-box;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  background: url('./concrete_wall.png');
+}
+
+body {
+  overflow: hidden;
+}
+
+::selection { background: #9fe147; }
+
+/* ======== FLEXBOX ======== */
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+
+/* ======== COLUMNS ======== */
+
+#app {
+  display: flex;
+  justify-content: space-between;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  overflow-x: auto;
+  transform: translateZ(0);
+}
+
+.column {
+  flex: 1 0;
+  height: 100%;
+  max-width: 600px;
+  min-width: 500px;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  transform: translateZ(0);
+}
+
+.column::-webkit-scrollbar {
+  width: 0 !important;
+}
+
+
+.column:first-child, .column:last-child{
+  flex: 0.25 0;
+  min-width: 100px;
+}
+
+.column:first-child .buffer, .column:last-child .buffer {
+  display: none;
+}
+
+.buffer {
+  background: rgb(50, 89, 107);
+  border-right: 2px solid rgb(63, 102, 121);
+  border-left: 2px solid rgb(42, 79, 97);
+  margin: 0 16px;
+  height: 90%;
+  z-index: 1;
+}
+
+
+/* ======== GROUP ======== */
+
+.group {
+  margin: 0;
+  margin-right: -1px;
+  padding: 10px;
+  border-top: 1px solid #d3e6f1;
+  border-bottom: 1px solid #3c484e;
+  background-color: #c5ced8;
+  color: #717181;
+  box-shadow: 1px 1px 6px #2b3c52;
+  z-index: 5;
+  position: relative;
+}
+
+.group:empty {
+  height: 0;
+  padding: 0;
+  border: none;
+}
+
+.group.active-descendant {
+  color: #333;
+  background: #fdfdff;
+  border-radius: 8px 0 0 8px;
+}
+
+
+/* ======== CARD (Normal view) ======== */
+
+.card {
+  border-left: 4px solid rgba(255,255,255,0);
+  border-radius: 3px;
+  position: relative;
+  background-color: #c5ced8;
+  margin-bottom: 2px;
+}
+.card:last-child {
+  margin-bottom: 0;
+}
+
+.card:hover {
+  background: hsl(212, 23%, 85%);
+}
+
+.group.active-descendant .card {
+  background: #fdfdff;
+}
+
+.group.active-descendant .card:hover {
+  background: #fdfdff;
+  box-shadow: 0px 1px 3px lightgray;
+}
+
+.card .view {
+  padding: 17px;
+  min-height: 56px;
+  cursor: pointer;
+}
+
+.card.active .view {
+  cursor: auto;
+}
+
+.card.active {
+  background: #fdfdff;
+  color: #332222;
+  border: none;
+  border-left: 4px solid #8CC63F;
+  box-shadow: 0px 1px 3px gray;
+}
+
+.card.active.has-children::after {
+  content: '';
+  background: #fdfdff;
+  position: absolute;
+  width: 12px;
+  height: 100%;
+  right: -10px;
+  top: 0;
+  opacity: 1;
+  transition: none;
+  box-shadow: 3px 1px 3px gray;
+}
+.card.editing.has-children::after {
+  opacity: 0;
+  transition: opacity 2s ease;
+}
+
+/* --- Typography --- */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Bitter', serif;
+  margin: 0;
+  line-height: 1.5;
+}
+
+h1 { font-size: 24px; margin-bottom: 8px }
+h2 { font-size: 20px; margin-bottom: 6px }
+h3 { font-size: 16px; margin-bottom: 5px }
+h4 { font-size: 14px; margin-bottom: 4px }
+h5 { font-size: 12px; margin-bottom: 3px }
+h6 { font-size: 10px; margin-bottom: 0 }
+
+p {
+  margin: 0;
+  padding: 0 0 10px;
+}
+
+.card .view {
+  font-family: 'Open Sans', serif;
+  line-height: 1.4;
+}
+
+p:last-child, ul:last-child { padding-bottom: 0 }
+
+pre, code {
+  font-family: 'Droid Sans Mono', monospace;
+  color: #333333;
+}
+
+pre,
+blockquote {
+  border: 1px solid #999;
+  page-break-inside: avoid;
+}
+
+code {
+  padding: 2px 4px;
+  font-size: 90%;
+  white-space: pre;
+  background-color: #f9f2f4;
+}
+
+pre {
+  display: block;
+  padding: 9.5px;
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.428571429;
+  word-break: break-all;
+  word-wrap: break-word;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
+ul, ol {
+  margin: 0;
+}
+
+.card img {
+  max-width: 100%;
+}
+
+/* ======== CARD (Edit view) ======== */
+
+/* --- Autofocus --- */
+#app,
+#app .buffer {
+  transition: all 0.25s ease;
+}
+
+#app.editing .group {
+  background-color: #c5ced8;
+}
+
+#app.editing,
+#app.editing .buffer,
+#app.editing .group {
+  background: rgb(50, 89, 107);
+  transition: background 60s ease, box-shadow 60s ease, border-color 60s ease;
+  box-shadow: none;
+  border-color: transparent;
+}
+
+#app.editing .card {
+  box-shadow: 1px 2px 4px hsla(0, 0%, 0%, 0.4);
+  transition: box-shadow 60s ease;
+}
+
+/* --- Core --- */
+
+.card.editing .view {
+  display: none;
+}
+
+.card.editing {
+  padding: 15px 0px 5px 0px; 
+  border: none;
+  border-radius: inherit;
+  background-image: url('./handmadepaper.png');
+}
+
+.card.editing textarea {
+  display: block;
+  background: transparent;
+  max-height: 600px;
+  text-shadow: -1px -1px 0px rgba(0,0,0,0.1), 1px 1px 0px rgba(255,255,255,0.8);
+  color: hsl(27,28%,22%);
+  resize: none;
+}
+
+.card textarea {
+  display: none;
+  outline: none;
+  border: none;
+  min-height: 60px;
+  max-height: 80%;
+  overflow-x: hidden;
+  width: 100%;
+  font-size: 16px;
+  line-height: 23px;
+  padding: 5px 15px;
+  font-family: 'Droid Sans Mono', monospace;
+}
+
+
+/* ======== CARD (Buttons) ======== */
+
+/* --- Icons --- */
+
+.card-btn.edit,
+.card-btn.save,
+.card-btn.cancel,
+.card-btn.delete {
+  font-family: 'Glyphicons Halflings';
+  font-size: 13px;
+}
+.card-btn.edit::before {
+  content: "\270f";
+}
+.card-btn.save::before {
+  content: "\e013";
+}
+.card-btn.cancel::before {
+  content: "\e090";
+}
+.card-btn.delete::before {
+  content: "\e014";
+}
+
+/* --- Containers --- */
+
+.card-top-overlay, .card-right-overlay, .card-bottom-overlay {
+  position: absolute;
+  height: 100%;
+  width: 33%;
+  right: 0;
+  pointer-events: none;
+}
+
+.card-top-overlay, .card-right-overlay {
+  top: 0;
+}
+
+.card-top-overlay, .card-bottom-overlay {
+  height: 33%;
+  width: 100%;
+}
+
+
+.card-bottom-overlay {
+  bottom: 0;
+}
+
+.card-btn {
+  cursor: pointer;
+  pointer-events: auto;
+  position: absolute;
+  border-top: 1px solid hsl(0, 0%, 81%);
+  border-left: 1px solid hsl(0, 0%, 81%);
+  border-right: 1px solid hsl(0, 0%, 53%);
+  border-bottom: 1px solid hsl(0, 0%, 53%);
+  color: hsl(0, 0%, 71%);
+  text-align: center;
+  z-index: 100;
+  transition: all 0.4s ease-in;
+  opacity: 0;
+  user-select: none;
+}
+
+.card-btn.save,
+.card-btn.cancel {
+  opacity: 0.4;
+}
+
+
+
+/* --- Button positioning & colors --- */
+
+.card-btn.ins-right,
+.card-btn.ins-above,
+.card-btn.ins-below {
+  background: #fdfdff;
+  height: 20px;
+  width: 40px;
+  line-height: 20px;
+}
+
+.card-btn.ins-right {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 20px;
+  height: calc(100% - 44px);
+  max-height: 80px;
+  border-left: none;
+  width: 20px;
+  right: -9px;
+}
+.card-btn.ins-right::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    background: rgb(253, 253, 255);
+    position: absolute;
+    left: -7px;
+    border-radius: 0 0 0 10px;
+    border-bottom: 1px solid hsl(0, 0%, 60%);
+    top:  -7px;
+}
+.card-btn.ins-right::after {
+    content: '';
+    width: 7px;
+    height: 7px;
+    background: rgb(253, 253, 255);
+    position: absolute;
+    left: -7px;
+    border-radius: 10px 0 0 0;
+    border-top: 1px solid hsl(0, 0%, 40%);
+    bottom:  -7px;
+}
+
+.card-btn.ins-above {
+  top:-10px;
+}
+
+.card-btn.ins-below {
+  bottom:-10px;
+}
+
+.card-btn.delete {
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  border: none;
+  border-radius: 0px 3px 0px 0px;
+  color: hsl(0, 0%, 20%);
+}
+
+.card-btn.edit {
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  border: none;
+  border-radius: 0px 0px 3px 0px;
+  color: hsl(180, 0%, 20%);
+}
+
+.card-btn.save {
+  bottom: 0;
+  right: 0;
+  width: 25px;
+  height: 25px;
+  line-height: 25px;
+  border: none;
+  color: hsl(180, 0%, 20%);
+}
+
+.card-btn.cancel {
+  top: 0;
+  right: 0;
+  width: 25px;
+  height: 25px;
+  line-height: 25px;
+  border: none;
+  color: hsl(180, 0%, 20%);
+}
+
+
+/* --- Button state --- */
+
+.card:hover .card-btn:not(.save) {
+  opacity: 0.3;
+}
+
+.card:hover .card-btn.ins-above:hover,
+.card:hover .card-btn.ins-below:hover {
+  transform: translateY(-1px);
+  background: hsl(86, 71%, 95%);
+  box-shadow: 0px 1px 1px hsl(0, 0%, 57%);
+  opacity: 1.0;
+  transition: none;
+}
+.card:hover .card-btn.ins-right:hover {
+  opacity: 1.0;
+  border-bottom: 1px solid hsl(0,0%,40%);
+  border-right: 1px solid hsl(0,0%,40%);
+  border-top: 1px solid hsl(0,0%,65%);
+  transition: none;
+}
+
+.card:hover .card-btn.ins-above:active,
+.card:hover .card-btn.ins-below:active {
+  background: hsl(86, 71%, 82%);
+  transform: none;
+  box-shadow: none;
+}
+
+.card:hover .card-btn.delete:hover {
+  color: hsl(0, 79%, 66%);
+  opacity: 1.0;
+  transition: none;
+}
+
+.card:hover .card-btn.delete:active {
+  color: hsl(0, 80%, 48%);
+}
+
+.card:hover .card-btn.edit:hover {
+  color: hsl(215, 79%, 66%);
+  opacity: 1.0;
+  transition: none;
+}
+
+.card:hover .card-btn.edit:active {
+  color: hsl(215, 54%, 51%);
+}
+
+.card:hover .card-btn.save:hover {
+  color: hsl(86, 54%, 51%);
+  opacity: 1.0;
+  transition: none;
+}
+
+.card:hover .card-btn.save:active {
+  color: hsl(86, 54%, 41%);
+}
+
+.card:hover .card-btn.cancel:hover {
+  color: hsl(48, 100%, 50%);
+  opacity: 1.0;
+  transition: none;
+}
+
+.card:hover .card-btn.cancel:active {
+  color: hsl(48, 100%, 40%);
+}
+
+/* --- Root card buttons --- */
+
+.card.root:not(.has-children) .card-btn,
+.card.root:not(.has-children):hover .card-btn {
+  opacity: 1;
+}
+.card.root .view {
+  min-height: 70px;
+}
+
+/* ======== HISTORY ======== */
+
+#history {
+  margin: 0;
+  padding: 10px 10px 0px 0px;
+}
+ul.ops-list {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+.op-ins {
+  background: rgba(0,255,0,0.2);
+}
+.op-ins:hover {
+  background: rgba(0,255,0,0.6);
+}
+.op-upd {
+  background: rgba(0,0,255,0.2);
+}
+.op-upd:hover {
+  background: rgba(0,0,255,0.6);
+}
+.op-del {
+  background: rgba(255,0,0,0.2);
+}
+.op-del:hover {
+  background: rgba(255,0,0,0.6);
+}
+#graph {
+  position: absolute;
+  right: 10px;
+  bottom: 0;
+  width: 113.56px;
+  z-index: 999;
+}
