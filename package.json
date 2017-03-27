@@ -8,7 +8,8 @@
     "build-web": "rm -rf ./dist/ && mkdir -p ./dist/static && cp -r ./src/static/* ./dist/static && TARGET=web webpack --watch",
     "build-electron": "rm -rf ./dist/ && mkdir -p ./dist/static && cp -r ./src/static/* ./dist/static && TARGET=electron webpack --watch",
     "elm-web": "elm-make src/elm/Main.elm --output src/elm.js && TARGET=web webpack --watch",
-    "elm-electron": "elm-make src/elm/Main.elm --output src/elm.js && TARGET=electron webpack --watch"
+    "elm-electron": "elm-make src/elm/Main.elm --output src/elm.js && TARGET=electron webpack --watch",
+    "postinstall": "electron-rebuild"
   },
   "repository": {
     "type": "git",
@@ -23,6 +24,7 @@
   "devDependencies": {
     "chokidar-cli": "^1.2.0",
     "electron": "^1.4.14",
+    "electron-rebuild": "^1.5.7",
     "elm-webpack-loader": "^4.3.0",
     "imports-loader": "^0.7.1",
     "webpack": "^2.3.0"

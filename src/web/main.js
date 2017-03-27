@@ -25,7 +25,6 @@ var lastColumnIdx = null
 gingko = Elm.Main.fullscreen(null)
 
 shared.loadModel(function(data) {
-  console.log(data)
   gingko.ports.data.send(data.doc.model)
 })
 
@@ -47,8 +46,6 @@ gingko.ports.message.subscribe(function(msg) {
       importDialog()
       break
     case 'save':
-      console.log('save')
-      console.log(msg[1])
       shared.saveModel(msg[1])
       break
     case 'save-and-close':
@@ -288,7 +285,6 @@ var needOverride= [ 'mod+j'
                   ];
                     
 Mousetrap.bind(shortcuts, function(e, s) {
-  console.log(s)
   gingko.ports.externals.send(['keyboard', s]);
 
   if(needOverride.includes(s)) {

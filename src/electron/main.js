@@ -64,31 +64,11 @@ if (machineId == null) {
 
 /* === Initializing App === */
 
-if(location.hash !== "") {
-  var model;
-  filepath = decodeURIComponent(location.hash.slice(1))  
+gingko =  Elm.Main.fullscreen(null)
 
-  try {
-    contents = fs.readFileSync(filepath)
-
-    if(contents !== null) {
-      model = JSON.parse(contents)
-      if (model.field !== undefined) {
-        field = model.field
-        editing = model.viewState.editing
-        model = _.omit(model, 'field')
-      }
-      setTitleFilename(filepath)
-    }
-  }
-  catch (err) {
-    console.log(err)
-    dialog.showErrorBox("File load error.", err.message)
-  }
-  gingko =  Elm.Main.fullscreen(model)
-} else {
-  gingko =  Elm.Main.fullscreen(null)
-}
+shared.loadModel(function(data) {
+  gingko.ports.data.send(data.doc.model)
+})
 
 
 /* === From Main process to Elm === */

@@ -1,9 +1,12 @@
 const _ = require('underscore')
 const PouchDB = require('pouchdb')
 var db = new PouchDB('my_database')
+var remoteCouch = 'http://localhost:5984/kittens'
 
 
 /* ===== Database ===== */
+
+db.sync(remoteCouch, {live: true}, (err) => console.log(err))
 
 function saveModel(model) {
   var data = 
@@ -13,7 +16,7 @@ function saveModel(model) {
 
   db.put(data, function callback(err, result) {
     if (!err) {
-      console.log("success!!!")
+      console.log("Saving to PouchDB success: ", result)
     } else {
       console.log('failure: ' + err)
     }
