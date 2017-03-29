@@ -1,15 +1,11 @@
 module Trees exposing (..)
 
-import String
-import Dict exposing (Dict)
 import Tuple exposing (first, second)
-import List.Extra as ListExtra
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Lazy exposing (lazy, lazy2, lazy3)
 import Html.Keyed as Keyed
-import Json.Decode as Json
 import Markdown
 
 import Types exposing (..)
@@ -25,12 +21,14 @@ type alias Model =
   }
 
 
+defaultModel : Model
 defaultModel =
   { tree = defaultTree
   , columns = getColumns [[[defaultTree]]]
   }
 
 
+defaultTree : Tree
 defaultTree =
   { id = "0"
   , content = ""

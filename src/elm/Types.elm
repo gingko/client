@@ -57,6 +57,25 @@ type Msg
 -- OBJECTS
 
 
+type alias Tree =
+  { id : String
+  , content : String
+  , children : Children
+  }
+
+
+type alias TreeNode =
+  { id : String
+  , content : String
+  , children : List String
+  }
+
+
+type Children = Children (List Tree)
+type alias Group = List Tree
+type alias Column = List (List Tree)
+
+
 
 
 -- TRANSIENTS
@@ -75,23 +94,3 @@ type alias VisibleViewState =
   , editing : Maybe String
   , descendants : List String
   }
-
-
-type alias Tree =
-  { id : String
-  , content : String
-  , children : Children
-  }
-
-
-type alias Card =
-  { id : String
-  , content : String
-  }
-
-
-type Children = Children (List Tree)
-type alias Group = List Tree
-type alias Column = List (List Tree)
-type alias CardGroup = List Card
-type alias CardColumn = List (List Card)

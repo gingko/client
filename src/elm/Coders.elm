@@ -4,10 +4,8 @@ import Types exposing (..)
 import Json.Encode
 import Json.Decode as Json exposing (..)
 import Array exposing (fromList)
-import String
 
 import Trees
-import TreeUtils exposing (newLine)
 
 
 type alias Model =
