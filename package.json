@@ -33,7 +33,7 @@
     "electron-machine-id": "^1.0.9",
     "jquery": "^3.1.1",
     "mz": "^2.6.0",
-    "pouchdb": "^6.1.2",
+    "pouchdb-browser": "^6.1.2",
     "sha1": "^1.1.1",
     "textarea-autosize": "^0.4.2",
     "underscore": "^1.8.3"

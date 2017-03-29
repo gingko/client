@@ -622,6 +622,9 @@ update msg model =
 
         "attempt-import" ->
           update AttemptImport model
+
+        "attempt-save" ->
+          update AttemptSave model
  
         "attempt-save-as" ->
           update AttemptSaveAs model

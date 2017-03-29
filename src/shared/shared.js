@@ -1,14 +1,9 @@
 const _ = require('underscore')
-const PouchDB = require('pouchdb')
-var db = new PouchDB('my_database')
-var remoteCouch = 'http://localhost:5984/kittens'
 
 
 /* ===== Database ===== */
 
-db.sync(remoteCouch, {live: true}, (err) => console.log(err))
-
-function saveModel(model) {
+function saveModel(db, model) {
   var data = 
     { _id: new Date().toISOString()
     , model: model
@@ -23,7 +18,7 @@ function saveModel(model) {
   })
 }
 
-function loadModel(callback) {
+function loadModel(db, callback) {
   db.allDocs({include_docs: true, descending: true}, function(err, doc) {
     callback(doc.rows[0]) 
   })

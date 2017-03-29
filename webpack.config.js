@@ -19,6 +19,7 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.elm']
   },
+  devtool: 'source-map',
   output: {
     path: path.join(__dirname, 'dist'),
     publicPath: '/dist/',

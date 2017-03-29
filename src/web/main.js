@@ -2,6 +2,7 @@ const jQuery = require('jquery')
 const _ = require('underscore')
 const autosize = require('textarea-autosize')
 const url = require('url')
+const PouchDB = require('pouchdb-browser')
 
 const shared = require('../shared/shared')
 window.Elm = require('../elm/Main')
@@ -22,9 +23,26 @@ var lastColumnIdx = null
 
 /* === Initializing App === */
 
+
 gingko = Elm.Main.fullscreen(null)
 
-shared.loadModel(function(data) {
+
+/* === Database === */
+
+var db = new PouchDB('my_database')
+var remoteCouch = 'http://localhost:5984/kittens'
+
+db.sync(remoteCouch, {live: true}, (err) => console.log(err))
+db.changes({since: 'now', include_docs: true, live: true})
+  .on('change', function (change) {
+    if (!change.deleted) {
+      gingko.ports.data.send(change.doc.model)
+    }
+  })
+  .on('error', function (err) {
+  })
+
+shared.loadModel(db, function(data) {
   gingko.ports.data.send(data.doc.model)
 })
 
@@ -46,7 +64,7 @@ gingko.ports.message.subscribe(function(msg) {
       importDialog()
       break
     case 'save':
-      shared.saveModel(msg[1])
+      shared.saveModel(db, msg[1])
       break
     case 'save-and-close':
       saveAndExit(msg[1])

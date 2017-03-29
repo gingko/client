@@ -9,6 +9,7 @@ const machineIdSync = require('electron-machine-id').machineIdSync
 const app = remote.app
 const dialog = remote.dialog
 const Menu = remote.Menu
+const PouchDB = require('pouchdb-browser')
 
 const shared = require('../shared/shared')
 window.Elm = require('../elm/Main')
@@ -26,6 +27,8 @@ var saved = true
 var editSubMenu = Menu.getApplicationMenu().items[1].submenu;
 var lastCenterline = null
 var lastColumnIdx = null
+
+
 
 
 /* === Config Loading === */
@@ -66,7 +69,23 @@ if (machineId == null) {
 
 gingko =  Elm.Main.fullscreen(null)
 
-shared.loadModel(function(data) {
+
+/* === Database === */
+
+var db = new PouchDB('my_database')
+var remoteCouch = 'http://localhost:5984/kittens'
+
+db.sync(remoteCouch, {live: true}, (err) => console.log(err))
+db.changes({since: 'now', include_docs: true, live: true})
+  .on('change', function (change) {
+    if (!change.deleted) {
+      gingko.ports.data.send(change.doc.model)
+    }
+  })
+  .on('error', function (err) {
+  })
+
+shared.loadModel(db, function(data) {
   gingko.ports.data.send(data.doc.model)
 })
 
@@ -163,14 +182,7 @@ gingko.ports.message.subscribe(function(msg) {
       importDialog()
       break
     case 'save':
-      save( msg[1]
-          , (path) => {
-              gingko.ports.externals.send(['save-success', path]);
-              setSaved(true);
-              setTitleFilename(path);
-            }
-          , (err) => dialog.showErrorBox("Save error:", err.message)
-          )
+      shared.saveModel(db, msg[1])
       break
     case 'save-and-close':
       saveAndExit(msg[1])
