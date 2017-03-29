@@ -232,6 +232,21 @@ getDepth prev tree id =
 
 
 
+-- NORMALIZATION AND DENORMALIZATION
+
+
+treeToNode : Tree -> TreeNode
+treeToNode tree =
+  let
+    childrenIds = 
+      getChildren tree
+        |> List.map (\t -> t.id)
+  in
+  TreeNode tree.id tree.content childrenIds
+
+
+
+
 -- SPECIAL PROPERTIES
 
 centerlineIds : List (List String) -> List String -> List String -> List (List String)
