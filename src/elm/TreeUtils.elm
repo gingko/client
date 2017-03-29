@@ -4,7 +4,6 @@ import String
 import Tuple exposing (first, second)
 import List.Extra as ListExtra
 import Types exposing (..)
-import Sha1
 
 
 -- TRANSFORMATIONS
