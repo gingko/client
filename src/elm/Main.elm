@@ -2,18 +2,12 @@ port module Main exposing (..)
 
 
 import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.Events exposing (..)
-import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy, lazy2)
-import String
 import Tuple exposing (first, second)
 import Json.Encode
 import Json.Decode as Json
 import Dom
 import Task
-import Markdown
-import List.Extra as ListExtra
 
 import Types exposing (..)
 import Trees exposing (update, view, defaultTree, blankTree)
