@@ -97,7 +97,6 @@ treesModelDecoder =
     (succeed [])
 
 
-
 treeDecoder : Decoder Tree
 treeDecoder =
   Json.map3 Tree
@@ -122,8 +121,20 @@ viewStateDecoder =
     (field "activeFuture" (list string))
     (field "descendants" (list string))
     (maybe (field "editing" string))
-    
-  
+
+
+nodesDecoder : Decoder (List TreeNode)
+nodesDecoder =
+  (list treeNodeDecoder)
+
+
+treeNodeDecoder : Decoder TreeNode
+treeNodeDecoder =
+  Json.map3 TreeNode
+    (field "id" string)
+    (field "content" string)
+    (field "children" (list string))
+ 
 
 
 

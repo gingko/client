@@ -49,6 +49,7 @@ type Msg
     -- === Ports ===
     | Confirm String String String
     | DataIn Json.Value
+    | NodesIn Json.Value
     | ExternalCommand (String, String)
     | HandleKey String
 

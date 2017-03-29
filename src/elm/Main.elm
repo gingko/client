@@ -12,7 +12,7 @@ import Task
 import Types exposing (..)
 import Trees exposing (update, view, defaultTree, blankTree)
 import TreeUtils exposing (..)
-import Coders exposing (modelDecoder, modelToValue)
+import Coders exposing (modelDecoder, nodesDecoder, modelToValue)
 
 
 main : Program Json.Value Model Msg
@@ -96,7 +96,6 @@ init savedState =
           allIds
           mdl.viewState.activePast
         )
-
   in
   case Json.decodeValue modelDecoder savedState of
     Ok model ->
@@ -118,6 +117,24 @@ init savedState =
         ! [ activateCmd defaultModel
           , focus defaultModel.viewState.active
           ]
+
+
+initNodes : Json.Value -> (Model, Cmd Msg)
+initNodes nodeJson =
+  case Json.decodeValue nodesDecoder nodeJson of
+    Ok nodes ->
+      let
+        _ = Debug.log "nodes" nodes
+      in
+      defaultModel ! []
+
+    Err err ->
+      let
+        _ = Debug.log "nodes err" err
+      in
+      defaultModel ! []
+
+
 
 
 -- UPDATE
@@ -644,6 +661,9 @@ update msg model =
     DataIn json ->
       init json
 
+    NodesIn json ->
+      initNodes json
+
     HandleKey str ->
       let
         vs = model.viewState
@@ -800,6 +820,7 @@ port externals : ((String, String) -> msg) -> Sub msg -- ~ Sub (String, String)
 port updateSuccess : ((String, String) -> msg) -> Sub msg
 port updateError : (String -> msg) -> Sub msg
 port data : (Json.Value -> msg) -> Sub msg
+port nodes : (Json.Value -> msg) -> Sub msg
 
 
 subscriptions : Model -> Sub Msg
@@ -809,6 +830,7 @@ subscriptions model =
     , updateSuccess UpdateCard
     , updateError UpdateCardError
     , data DataIn
+    , nodes NodesIn
     ]
 
 
