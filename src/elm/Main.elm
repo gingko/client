@@ -124,9 +124,22 @@ initNodes nodeJson =
   case Json.decodeValue nodesDecoder nodeJson of
     Ok nodes ->
       let
-        _ = Debug.log "nodes" nodes
+        newTree_ =
+          nodesToTree nodes "0"
       in
-      defaultModel ! []
+      case newTree_ of
+        Ok newTree ->
+          { defaultModel
+            | data =
+              Trees.Model newTree []
+                |> Trees.updateColumns
+            , nextId = (getDescendants newTree |> List.length) + 1
+          }
+            ! []
+
+        Err err ->
+          let _ = Debug.log "err" err in
+          defaultModel ! []
 
     Err err ->
       let

@@ -66,8 +66,7 @@ type alias Tree =
 
 
 type alias TreeNode =
-  { id : String
-  , content : String
+  { content : String
   , children : List String
   }
 

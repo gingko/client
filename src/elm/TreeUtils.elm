@@ -1,6 +1,7 @@
 module TreeUtils exposing (..)
 
 import String
+import Dict exposing (..)
 import Tuple exposing (first, second)
 import List.Extra as ListExtra
 import Types exposing (..)
@@ -242,7 +243,49 @@ treeToNode tree =
       getChildren tree
         |> List.map (\t -> t.id)
   in
-  TreeNode tree.id tree.content childrenIds
+  TreeNode tree.content childrenIds
+
+
+nodesToTree : Dict String TreeNode -> String -> Result String Tree
+nodesToTree nodes rootId =
+  case (get rootId nodes) of
+    Just rootNode ->
+      let
+        childrenResults_ =
+          rootNode.children
+            |> List.map (nodesToTree nodes) -- List (Result String Tree)
+
+        errors =
+          childrenResults_
+            |> List.filterMap
+              (\r ->
+                case r of
+                  Ok _ ->
+                    Nothing
+                  Err err ->
+                    Just err
+              )
+
+        children =
+          childrenResults_
+            |> List.filterMap
+              (\r ->
+                case r of
+                  Ok tree ->
+                    Just tree
+                  Err _ ->
+                    Nothing
+              ) -- List Tree
+            |> Children
+      in
+      if List.length errors == 0 then
+        Ok (Tree rootId rootNode.content children)
+      else
+        Err ( errors |> String.join " " )
+
+
+    Nothing ->
+      Err ( ["Node ", rootId, " not found."] |> String.join "")
 
 
 

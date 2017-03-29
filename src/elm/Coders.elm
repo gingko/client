@@ -4,6 +4,7 @@ import Types exposing (..)
 import Json.Encode
 import Json.Decode as Json exposing (..)
 import Array exposing (fromList)
+import Dict exposing (Dict)
 
 import Trees
 
@@ -123,15 +124,14 @@ viewStateDecoder =
     (maybe (field "editing" string))
 
 
-nodesDecoder : Decoder (List TreeNode)
+nodesDecoder : Decoder (Dict String TreeNode)
 nodesDecoder =
-  (list treeNodeDecoder)
+  (dict treeNodeDecoder)
 
 
 treeNodeDecoder : Decoder TreeNode
 treeNodeDecoder =
-  Json.map3 TreeNode
-    (field "id" string)
+  Json.map2 TreeNode
     (field "content" string)
     (field "children" (list string))
  
