@@ -11,7 +11,6 @@ window.Elm = require('../elm/Main')
 
 /* === Global Variables === */
 
-var gingko
 var field = null
 var editing = null
 var blankAutosave = null
@@ -24,7 +23,7 @@ var lastColumnIdx = null
 /* === Initializing App === */
 
 
-gingko = Elm.Main.fullscreen(null)
+self.gingko = Elm.Main.fullscreen(null)
 
 
 /* === Database === */
