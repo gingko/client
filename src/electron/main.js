@@ -1,5 +1,5 @@
 var jQuery = require('jquery')
-var _ = require('underscore')
+var _ = require('lodash')
 var autosize = require('textarea-autosize')
 const fs = require('mz/fs')
 const path = require('path')
@@ -71,18 +71,28 @@ self.gingko =  Elm.Main.fullscreen(null)
 
 /* === Database === */
 
-var db = new PouchDB('data1')
+var db = new PouchDB('data2')
 var remoteCouch = 'http://localhost:5984/kittens'
 
-db.sync(remoteCouch, {live: true}, (err) => console.log(err))
+db.sync(remoteCouch, {live: true, retry: true}, (err) => console.log(err))
 db.changes({since: 'now', include_docs: true, live: true})
   .on('change', function (change) {
-    if (!change.deleted) {
-      gingko.ports.data.send(change.doc.model)
+    if(change.deleted) {
+      gingko.ports.externals.send(['change-deleted', change.id])
     }
+    else {
+      gingko.ports.change.send(
+        [ change.id
+        , _.mapKeys(_.omit(change.doc, ['_id']), function(val, key) {
+            return key == "_rev" ? "rev" : key
+          })
+        ])
+    }
+    console.log(change)
   })
   .on('error', function (err) {
   })
+
 
 shared.loadModel(db, function(data) {
   gingko.ports.nodes.send(data)
