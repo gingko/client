@@ -25,7 +25,7 @@ type alias Model =
 modelToValue : Model -> Json.Encode.Value
 modelToValue model =
   Json.Encode.object
-   [ ("tree", treeToValue model.data.tree)
+   [ ("nodes", nodesToValue model.data.nodes)
    , ("treePast", Json.Encode.list (List.map treeToValue model.treePast))
    , ("treeFuture", Json.Encode.list (List.map treeToValue model.treeFuture))
    , ("viewState", viewStateToValue model.viewState)
@@ -53,6 +53,22 @@ viewStateToValue vs =
     , ( "activeFuture", Json.Encode.list (List.map Json.Encode.string vs.activeFuture) )
     , ( "descendants", Json.Encode.list (List.map Json.Encode.string vs.descendants) )
     , ( "editing", maybeToValue vs.editing Json.Encode.string )
+    ]
+
+
+nodesToValue : Dict String TreeNode -> Json.Encode.Value
+nodesToValue nodes =
+  Dict.toList nodes
+    |> List.map (\(k, v) -> (k, treeNodeToValue v))
+    |> Json.Encode.object
+
+
+treeNodeToValue : TreeNode -> Json.Encode.Value
+treeNodeToValue treeNode =
+  Json.Encode.object
+    [ ( "content", Json.Encode.string treeNode.content )
+    , ( "children", Json.Encode.list (List.map Json.Encode.string treeNode.children) )
+    , ( "rev", maybeToValue treeNode.rev Json.Encode.string )
     ]
 
 
@@ -93,14 +109,15 @@ modelDecoder =
 
 treesModelDecoder : Decoder Trees.Model
 treesModelDecoder =
-  Json.map2 Trees.Model
+  Json.map3 Trees.Model
     treeDecoder
     (succeed [])
+    (succeed Dict.empty)
 
 
 treeDecoder : Decoder Tree
 treeDecoder =
-  Json.map3 Tree
+  Json.map4 Tree
     (field "id" string)
     (field "content" string)
     (oneOf  [ ( field 
@@ -112,6 +129,7 @@ treeDecoder =
             , succeed (Children [])
             ]
     )
+    (field "rev" (maybe string))
 
 
 viewStateDecoder : Decoder ViewState
@@ -131,9 +149,10 @@ nodesDecoder =
 
 treeNodeDecoder : Decoder TreeNode
 treeNodeDecoder =
-  Json.map2 TreeNode
+  Json.map3 TreeNode
     (field "content" string)
     (field "children" (list string))
+    (field "rev" (maybe string))
  
 
 

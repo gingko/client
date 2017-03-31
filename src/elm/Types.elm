@@ -62,12 +62,14 @@ type alias Tree =
   { id : String
   , content : String
   , children : Children
+  , rev : Maybe String
   }
 
 
 type alias TreeNode =
   { content : String
   , children : List String
+  , rev : Maybe String
   }
 
 

@@ -8,6 +8,7 @@ import Json.Encode
 import Json.Decode as Json
 import Dom
 import Task
+import Dict exposing (Dict)
 
 import Types exposing (..)
 import Trees exposing (update, view, defaultTree, blankTree)
@@ -102,7 +103,7 @@ init savedState =
       let
         newModel =
           { model 
-            | data = Trees.updateColumns model.data
+            | data = Trees.updateData model.data
           }
       in
       newModel
@@ -131,8 +132,8 @@ initNodes nodeJson =
         Ok newTree ->
           { defaultModel
             | data =
-              Trees.Model newTree []
-                |> Trees.updateColumns
+              Trees.Model newTree [] Dict.empty
+                |> Trees.updateData
             , nextId = (getDescendants newTree |> List.length) + 1
           }
             ! []
@@ -530,6 +531,7 @@ update msg model =
                 | data =
                     { tree = prevTree
                     , columns = getColumns [[[ prevTree]]]
+                    , nodes = getNodes prevTree
                     }
                 , treePast = List.drop 1 model.treePast
                 , treeFuture = model.data.tree :: model.treeFuture
@@ -553,6 +555,7 @@ update msg model =
                 | data =
                     { tree = nextTree
                     , columns = getColumns [[[ nextTree ]]]
+                    , nodes = Dict.empty
                     }
                 , treePast = model.data.tree :: model.treePast
                 , treeFuture = List.drop 1 model.treeFuture

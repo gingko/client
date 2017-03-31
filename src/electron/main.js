@@ -71,7 +71,7 @@ self.gingko =  Elm.Main.fullscreen(null)
 
 /* === Database === */
 
-var db = new PouchDB('my_database')
+var db = new PouchDB('data1')
 var remoteCouch = 'http://localhost:5984/kittens'
 
 db.sync(remoteCouch, {live: true}, (err) => console.log(err))
@@ -85,7 +85,7 @@ db.changes({since: 'now', include_docs: true, live: true})
   })
 
 shared.loadModel(db, function(data) {
-  gingko.ports.data.send(data.doc.model)
+  gingko.ports.nodes.send(data)
 })
 
 

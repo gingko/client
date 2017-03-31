@@ -1,5 +1,6 @@
 module Trees exposing (..)
 
+import Dict exposing (Dict)
 import Tuple exposing (first, second)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -18,6 +19,7 @@ import TreeUtils exposing (..)
 type alias Model =
   { tree : Tree
   , columns : List Column
+  , nodes : Dict String TreeNode
   }
 
 
@@ -25,6 +27,7 @@ defaultModel : Model
 defaultModel =
   { tree = defaultTree
   , columns = getColumns [[[defaultTree]]]
+  , nodes = Dict.fromList [("0", TreeNode "" [] Nothing)]
   }
 
 
@@ -33,6 +36,7 @@ defaultTree =
   { id = "0"
   , content = ""
   , children = Children []
+  , rev = Nothing
   }
 
 
@@ -41,6 +45,7 @@ blankTree id =
   { id = toString id
   , content = ""
   , children = Children []
+  , rev = Nothing
   }
 
 
@@ -67,10 +72,17 @@ update msg model =
         getColumns [[[newTree]]]
       else
         model.columns
+
+    newNodes =
+      if newTree /= model.tree then
+        getNodes newTree
+      else
+        model.nodes
   in
   { model
     | tree = newTree
     , columns = newColumns
+    , nodes = newNodes
   }
 
 
@@ -78,6 +90,14 @@ updateColumns : Model -> Model
 updateColumns model =
   { model
     | columns = getColumns [[[ model.tree ]]]
+  }
+
+
+updateData : Model -> Model
+updateData model =
+  { model
+    | columns = getColumns [[[ model.tree ]]]
+    , nodes = getNodes model.tree
   }
 
 

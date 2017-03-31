@@ -236,6 +236,27 @@ getDepth prev tree id =
 -- NORMALIZATION AND DENORMALIZATION
 
 
+getNodes : Tree -> Dict String TreeNode
+getNodes tree =
+  getNodesRecursive Dict.empty tree
+
+
+getNodesRecursive : Dict String TreeNode -> Tree -> Dict String TreeNode
+getNodesRecursive nodes currentTree =
+  case currentTree.children of
+    Children children ->
+      let
+        subtreeNodes : Dict String TreeNode
+        subtreeNodes =
+          children
+            |> List.map (getNodesRecursive nodes) -- List (Dict String TreeNode)
+            |> List.foldr Dict.union Dict.empty -- Dict String TreeNode
+      in
+      nodes
+        |> Dict.insert currentTree.id (treeToNode currentTree)
+        |> Dict.union subtreeNodes
+
+
 treeToNode : Tree -> TreeNode
 treeToNode tree =
   let
@@ -243,7 +264,7 @@ treeToNode tree =
       getChildren tree
         |> List.map (\t -> t.id)
   in
-  TreeNode tree.content childrenIds
+  TreeNode tree.content childrenIds tree.rev
 
 
 nodesToTree : Dict String TreeNode -> String -> Result String Tree
@@ -279,7 +300,7 @@ nodesToTree nodes rootId =
             |> Children
       in
       if List.length errors == 0 then
-        Ok (Tree rootId rootNode.content children)
+        Ok (Tree rootId rootNode.content children rootNode.rev)
       else
         Err ( errors |> String.join " " )
 

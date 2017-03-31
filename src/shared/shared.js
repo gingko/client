@@ -4,24 +4,64 @@ const _ = require('underscore')
 /* ===== Database ===== */
 
 function saveModel(db, model) {
-  var data = 
-    { _id: new Date().toISOString()
-    , model: model
-    }
+  var data = nodesToRows(model.nodes)
+  console.log('data',data)
 
-  db.put(data, function callback(err, result) {
-    if (!err) {
-      console.log("Saving to PouchDB success: ", result)
-    } else {
-      console.log('failure: ' + err)
-    }
+  db.allDocs({
+    include_docs: true
+  }).then(function (result) {
+
+    var dataDb = result.rows.map(function(r) {
+      return r.doc
+    })
+    console.log('dataDb',dataDb)
+
+    console.log('diff',_.difference(data, dataDb))
+
+
+  }).catch(function (err) {
+    console.log(err)
+  })
+
+  db.bulkDocs(data)
+    .then(function (result) {
+      console.log(result)
+  }).catch(function(err) {
+      console.log(err)
   })
 }
 
 function loadModel(db, callback) {
-  db.allDocs({include_docs: true, descending: true}, function(err, doc) {
-    callback(doc.rows[0]) 
+  db.allDocs({
+    include_docs: true
+  }).then(function (result) {
+    callback(rowsToNodes(result.rows))
+  }).catch(function (err) {
+    console.log(err)
   })
+}
+
+function rowsToNodes(rows) {
+  return rows.reduce(function(map, obj) {
+    map[obj.doc._id] =  
+      { content: obj.doc.content
+      , children: obj.doc.children
+      , rev: obj.doc._rev
+      }
+    return map
+  }, {})
+}
+
+function nodesToRows(nodes) {
+  var rows = Object.keys(nodes).map(function(key) {
+    return  { "_id": key
+            , "_rev": nodes[key].rev
+            , "content": nodes[key].content
+            , "children": nodes[key].children 
+            }
+  })
+
+  return rows
 }
 
 
