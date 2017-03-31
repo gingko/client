@@ -5,6 +5,7 @@ import Dict exposing (..)
 import Tuple exposing (first, second)
 import List.Extra as ListExtra
 import Types exposing (..)
+import Random exposing (initialSeed, int, minInt, maxInt)
 
 
 -- TRANSFORMATIONS
@@ -233,7 +234,18 @@ getDepth prev tree id =
 
 
 
--- NORMALIZATION AND DENORMALIZATION
+-- DATABASE TRANSFORMATIONS
+
+
+generateId : String -> Int -> String
+generateId timeString time =
+  [ "node"
+  , timeString
+  , Random.step (int 0 maxInt) (initialSeed time) 
+      |> first 
+      |> toString 
+  ]
+    |> String.join "-"
 
 
 getNodes : Tree -> Dict String TreeNode

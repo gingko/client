@@ -1,4 +1,4 @@
-const _ = require('underscore')
+const _ = require('lodash')
 
 
 /* ===== Database ===== */
@@ -16,18 +16,19 @@ function saveModel(db, model) {
     })
     console.log('dataDb',dataDb)
 
-    console.log('diff',_.difference(data, dataDb))
+    var diff =
+      _.differenceWith(data, dataDb, _.isEqual)
+    console.log('diff', diff)
 
+    db.bulkDocs(diff)
+      .then(function (result) {
+        console.log(result)
+      }).catch(function(err) {
+          console.log(err)
+      })
 
   }).catch(function (err) {
     console.log(err)
-  })
-
-  db.bulkDocs(data)
-    .then(function (result) {
-      console.log(result)
-  }).catch(function(err) {
-      console.log(err)
   })
 }
 

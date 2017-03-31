@@ -40,9 +40,9 @@ defaultTree =
   }
 
 
-blankTree : Int -> Tree
-blankTree id =
-  { id = toString id
+blankTree : String -> Int -> Tree
+blankTree timeString time =
+  { id = generateId timeString time
   , content = ""
   , children = Children []
   , rev = Nothing
@@ -59,6 +59,7 @@ type TreeMsg
   | Upd String String
   | Mov Tree String Int
   | Del String
+  | Node String TreeNode
 
 
 update : TreeMsg -> Model -> Model
@@ -121,6 +122,20 @@ updateTree msg tree =
 
     Del id ->
       pruneSubtree id tree
+
+    Node id treeNode ->
+      let
+        modFn t =
+          { t
+            | content = treeNode.content
+            , rev = treeNode.rev
+            , children = 
+                treeNode.children
+                  |> List.filterMap (\c -> getTree c tree)
+                  |> Children
+          }
+      in
+      modifyTree id modFn tree
 
 
 apply : List TreeMsg -> Tree -> Tree

@@ -13,7 +13,8 @@ import Dict exposing (Dict)
 import Types exposing (..)
 import Trees exposing (update, view, defaultTree, blankTree)
 import TreeUtils exposing (..)
-import Coders exposing (modelDecoder, nodesDecoder, modelToValue)
+import Sha1 exposing (..)
+import Coders exposing (modelDecoder, nodesDecoder, treeNodeDecoder, modelToValue)
 
 
 main : Program Json.Value Model Msg
@@ -39,7 +40,6 @@ type alias Model =
   , treePast : List Tree
   , treeFuture : List Tree
   , viewState : ViewState
-  , nextId : Int
   , saved : Bool
   , filepath : Maybe String
   }
@@ -57,7 +57,6 @@ defaultModel =
       , descendants = []
       , editing = Just "0"
       }
-  , nextId = 1
   , saved = True
   , filepath = Nothing
   }
@@ -134,7 +133,6 @@ initNodes nodeJson =
             | data =
               Trees.Model newTree [] Dict.empty
                 |> Trees.updateData
-            , nextId = (getDescendants newTree |> List.length) + 1
           }
             ! []
 
@@ -354,7 +352,6 @@ update msg model =
       in
       { model
         | data = Trees.update (Trees.Ins subtree pid idx) model.data
-        , nextId = model.nextId + 1
       }
         ! []
         |> andThen (OpenCard newId subtree.content)
@@ -376,7 +373,7 @@ update msg model =
               NoOp
 
             Just pid ->
-              Insert (blankTree model.nextId) pid idx
+              Insert (blankTree (timeJSON ()) (timestamp ())) pid idx
       in
       case vs.editing of
         Nothing ->
@@ -400,7 +397,7 @@ update msg model =
               NoOp
 
             Just pid ->
-              Insert (blankTree model.nextId) pid (idx+1)
+              Insert (blankTree (timeJSON ()) (timestamp ())) pid (idx+1)
       in
       case vs.editing of
         Nothing ->
@@ -413,7 +410,7 @@ update msg model =
     InsertChild pid ->
       let
         insertMsg =
-          Insert (blankTree model.nextId) pid 999999
+          Insert (blankTree (timeJSON ()) (timestamp ())) pid 999999
       in
       case vs.editing of
         Nothing ->
@@ -671,6 +668,9 @@ update msg model =
           else
             model ! []
 
+        "change-deleted" ->
+          update (DeleteCard arg) model
+
         str ->
           model ! [ message (str, modelToValue model) ]
 
@@ -679,6 +679,22 @@ update msg model =
 
     NodesIn json ->
       initNodes json
+
+    ChangeIn (id, json) ->
+      let
+        treeNode_ =
+          Json.decodeValue treeNodeDecoder json
+      in
+      case treeNode_ of
+        Ok treeNode ->
+          { model
+            | data = Trees.update (Trees.Node id treeNode) model.data
+          }
+            ! [] 
+
+        Err err ->
+          let _ = Debug.log "ChangeIn err" err in
+          model ! []
 
     HandleKey str ->
       let
@@ -837,6 +853,7 @@ port updateSuccess : ((String, String) -> msg) -> Sub msg
 port updateError : (String -> msg) -> Sub msg
 port data : (Json.Value -> msg) -> Sub msg
 port nodes : (Json.Value -> msg) -> Sub msg
+port change : ((String, Json.Value) -> msg) -> Sub msg
 
 
 subscriptions : Model -> Sub Msg
@@ -847,6 +864,7 @@ subscriptions model =
     , updateError UpdateCardError
     , data DataIn
     , nodes NodesIn
+    , change ChangeIn
     ]
 
 

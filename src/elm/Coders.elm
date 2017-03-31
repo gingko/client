@@ -14,7 +14,6 @@ type alias Model =
   , treePast : List Tree
   , treeFuture : List Tree
   , viewState : ViewState
-  , nextId : Int
   , saved : Bool
   , filepath : Maybe String
   }
@@ -29,7 +28,6 @@ modelToValue model =
    , ("treePast", Json.Encode.list (List.map treeToValue model.treePast))
    , ("treeFuture", Json.Encode.list (List.map treeToValue model.treeFuture))
    , ("viewState", viewStateToValue model.viewState)
-   , ("nextId", Json.Encode.int model.nextId)
    , ("filepath", maybeToValue model.filepath Json.Encode.string )
    ]
 
@@ -97,12 +95,11 @@ treeToSimpleJSON tree =
 
 modelDecoder : Decoder Model
 modelDecoder =
-  Json.map7 Model
+  Json.map6 Model
     (field "tree" treesModelDecoder)
     (oneOf [field "treePast" (list treeDecoder), succeed []])
     (oneOf [field "treeFuture" (list treeDecoder), succeed []])
     (field "viewState" viewStateDecoder)
-    (field "nextId" int)
     ( succeed True )
     (maybe (field "filepath" string))
 

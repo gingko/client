@@ -50,6 +50,7 @@ type Msg
     | Confirm String String String
     | DataIn Json.Value
     | NodesIn Json.Value
+    | ChangeIn (String, Json.Value)
     | ExternalCommand (String, String)
     | HandleKey String
 
