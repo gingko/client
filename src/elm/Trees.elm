@@ -125,13 +125,22 @@ updateTree msg tree =
 
     Node id treeNode ->
       let
+        stubFn (i, mbt) =
+          case mbt of
+            Just tree ->
+              tree
+
+            Nothing ->
+              withIdTree i
+
         modFn t =
           { t
             | content = treeNode.content
             , rev = treeNode.rev
             , children = 
                 treeNode.children
-                  |> List.filterMap (\c -> getTree c tree)
+                  |> List.map (\i -> (i, getTree i tree)) -- List (String, Maybe Tree)
+                  |> List.map stubFn
                   |> Children
           }
       in

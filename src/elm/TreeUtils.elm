@@ -316,9 +316,19 @@ nodesToTree nodes rootId =
       else
         Err ( errors |> String.join " " )
 
-
     Nothing ->
       Err ( ["Node ", rootId, " not found."] |> String.join "")
+
+
+nodeToTree : String -> TreeNode -> Tree
+nodeToTree id treeNode =
+  let
+    childrenStubs =
+      treeNode.children
+        |> List.map withIdTree
+        |> Children
+  in
+  Tree id treeNode.content childrenStubs Nothing
 
 
 
@@ -362,3 +372,6 @@ newLine : String
 newLine =
   String.fromList ['\n']
 
+withIdTree : String -> Tree
+withIdTree id =
+  Tree id "" (Children []) Nothing
