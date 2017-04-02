@@ -23,6 +23,6 @@ module.exports = {
   output: {
     path: path.join(__dirname, 'dist'),
     publicPath: '/dist/',
-    filename: 'bundle.js'
+    filename: `bundle-${process.env.TARGET}.js`
   }
 }
