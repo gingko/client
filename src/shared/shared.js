@@ -5,7 +5,6 @@ const _ = require('lodash')
 
 function saveModel(db, model) {
   var data = nodesToRows(model.nodes)
-  console.log('data',data)
 
   db.allDocs({
     include_docs: true
@@ -14,15 +13,13 @@ function saveModel(db, model) {
     var dataDb = result.rows.map(function(r) {
       return r.doc
     })
-    console.log('dataDb',dataDb)
 
     var diff =
       _.differenceWith(data, dataDb, _.isEqual)
-    console.log('diff', diff)
 
     db.bulkDocs(diff)
       .then(function (result) {
-        console.log(result)
+        console.log('saved', result)
       }).catch(function(err) {
           console.log(err)
       })
@@ -63,6 +60,23 @@ function nodesToRows(nodes) {
   })
 
   return rows
+}
+
+
+function resolver(a, b) {
+  var m = _.clone(a)
+
+  if (a.content !== b.content) {
+    m.content = a.content + "\n=====CONFLICT=====\n" + b.content
+    return m
+  }
+  else if (a.children !== b.children) {
+    m.children = _.union(a.children, b.children)
+    return m
+  }
+  else {
+    return
+  }
 }
 
 
@@ -136,4 +150,5 @@ module.exports =
   , scrollColumns: scrollColumns
   , saveModel: saveModel
   , loadModel: loadModel
+  , resolver: resolver
   }
