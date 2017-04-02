@@ -197,9 +197,7 @@ gingko.ports.message.subscribe(function(msg) {
       saveAndExit(msg[1])
       break
     case 'save-temp':
-      field = null
-      setSaved(false)
-      autosave(msg[1])
+      shared.saveModel(db, msg[1])
       break
     case 'unsaved-new':
       unsavedWarningThen( msg[1]
