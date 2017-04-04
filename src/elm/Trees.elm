@@ -64,27 +64,56 @@ type TreeMsg
 
 update : TreeMsg -> Model -> Model
 update msg model =
-  let
-    newTree =
-      updateTree msg model.tree
+  case msg of
+    Node id treeNode ->
+      let
+        _ = Debug.log "treeNode" treeNode
 
-    newColumns =
-      if newTree /= model.tree then
-        getColumns [[[newTree]]]
-      else
-        model.columns
+        newNodes =
+          Dict.insert id treeNode model.nodes
 
-    newNodes =
-      if newTree /= model.tree then
-        getNodes newTree
-      else
-        model.nodes
-  in
-  { model
-    | tree = newTree
-    , columns = newColumns
-    , nodes = newNodes
-  }
+        newTree =
+          if newNodes /= model.nodes then
+            nodesToTree newNodes "0"
+              |> Debug.log "nodesToTree"
+              |> Result.withDefault defaultTree
+          else
+            model.tree
+
+        newColumns =
+          if newTree /= model.tree then
+            getColumns [[[newTree]]]
+          else
+            model.columns
+      in
+      { model
+        | tree = newTree
+        , columns = newColumns
+        , nodes = newNodes
+      }
+
+    _ ->
+      let
+        newTree =
+          updateTree msg model.tree
+
+        newColumns =
+          if newTree /= model.tree then
+            getColumns [[[newTree]]]
+          else
+            model.columns
+
+        newNodes =
+          if newTree /= model.tree then
+            getNodes newTree
+          else
+            model.nodes
+      in
+      { model
+        | tree = newTree
+        , columns = newColumns
+        , nodes = newNodes
+      }
 
 
 updateColumns : Model -> Model
@@ -124,27 +153,7 @@ updateTree msg tree =
       pruneSubtree id tree
 
     Node id treeNode ->
-      let
-        stubFn (i, mbt) =
-          case mbt of
-            Just tree ->
-              tree
-
-            Nothing ->
-              withIdTree i
-
-        modFn t =
-          { t
-            | content = treeNode.content
-            , rev = treeNode.rev
-            , children = 
-                treeNode.children
-                  |> List.map (\i -> (i, getTree i tree)) -- List (String, Maybe Tree)
-                  |> List.map stubFn
-                  |> Children
-          }
-      in
-      modifyTree id modFn tree
+      tree
 
 
 apply : List TreeMsg -> Tree -> Tree
