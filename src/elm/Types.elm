@@ -64,6 +64,7 @@ type alias Tree =
   , content : String
   , children : Children
   , rev : Maybe String
+  , deleted : Bool
   }
 
 
@@ -71,6 +72,7 @@ type alias TreeNode =
   { content : String
   , children : List String
   , rev : Maybe String
+  , deleted : Bool
   }
 
 

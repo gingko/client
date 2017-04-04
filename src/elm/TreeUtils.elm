@@ -276,7 +276,7 @@ treeToNode tree =
       getChildren tree
         |> List.map (\t -> t.id)
   in
-  TreeNode tree.content childrenIds tree.rev
+  TreeNode tree.content childrenIds tree.rev tree.deleted
 
 
 nodesToTree : Dict String TreeNode -> String -> Result String Tree
@@ -312,7 +312,7 @@ nodesToTree nodes rootId =
             |> Children
       in
       if List.length errors == 0 then
-        Ok (Tree rootId rootNode.content children rootNode.rev)
+        Ok (Tree rootId rootNode.content children rootNode.rev rootNode.deleted)
       else
         Err ( errors |> String.join " " )
 
@@ -328,7 +328,7 @@ nodeToTree id treeNode =
         |> List.map withIdTree
         |> Children
   in
-  Tree id treeNode.content childrenStubs Nothing
+  Tree id treeNode.content childrenStubs Nothing treeNode.deleted
 
 
 
@@ -374,4 +374,4 @@ newLine =
 
 withIdTree : String -> Tree
 withIdTree id =
-  Tree id "" (Children []) Nothing
+  Tree id "" (Children []) Nothing False

@@ -27,7 +27,7 @@ defaultModel : Model
 defaultModel =
   { tree = defaultTree
   , columns = getColumns [[[defaultTree]]]
-  , nodes = Dict.fromList [("0", TreeNode "" [] Nothing)]
+  , nodes = Dict.fromList [("0", TreeNode "" [] Nothing False)]
   }
 
 
@@ -37,6 +37,7 @@ defaultTree =
   , content = ""
   , children = Children []
   , rev = Nothing
+  , deleted = False
   }
 
 
@@ -46,6 +47,7 @@ blankTree timeString time =
   , content = ""
   , children = Children []
   , rev = Nothing
+  , deleted = False
   }
 
 

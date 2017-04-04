@@ -45,6 +45,7 @@ function rowsToNodes(rows) {
       { content: obj.doc.content
       , children: obj.doc.children
       , rev: obj.doc._rev
+      , deleted: obj.doc._deleted ? true : false
       }
     return map
   }, {})

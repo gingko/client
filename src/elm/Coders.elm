@@ -40,6 +40,7 @@ treeToValue tree =
         [ ( "id", Json.Encode.string tree.id )
         , ( "content", Json.Encode.string tree.content )
         , ( "children", Json.Encode.list (List.map treeToValue c))
+        , ( "deleted", Json.Encode.bool tree.deleted )
         ]
 
 
@@ -67,6 +68,7 @@ treeNodeToValue treeNode =
     [ ( "content", Json.Encode.string treeNode.content )
     , ( "children", Json.Encode.list (List.map Json.Encode.string treeNode.children) )
     , ( "rev", maybeToValue treeNode.rev Json.Encode.string )
+    , ( "deleted", Json.Encode.bool treeNode.deleted )
     ]
 
 
@@ -114,7 +116,7 @@ treesModelDecoder =
 
 treeDecoder : Decoder Tree
 treeDecoder =
-  Json.map4 Tree
+  Json.map5 Tree
     (field "id" string)
     (field "content" string)
     (oneOf  [ ( field 
@@ -127,6 +129,7 @@ treeDecoder =
             ]
     )
     (field "rev" (maybe string))
+    (field "deleted" bool)
 
 
 viewStateDecoder : Decoder ViewState
@@ -146,10 +149,11 @@ nodesDecoder =
 
 treeNodeDecoder : Decoder TreeNode
 treeNodeDecoder =
-  Json.map3 TreeNode
+  Json.map4 TreeNode
     (field "content" string)
     (field "children" (list string))
     (field "rev" (maybe string))
+    (field "deleted" bool)
  
 
 
