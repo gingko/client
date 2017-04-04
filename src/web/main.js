@@ -33,62 +33,7 @@ var remoteCouch = 'http://localhost:5984/kittens'
 
 db.sync(remoteCouch, {live: true, retry: true}, (err) => console.log(err))
 db.changes({since: 'now', include_docs: true, live: true, conflicts: true})
-  .on('change', function (change) {
-    if(change.deleted) {
-      gingko.ports.externals.send(['change-deleted', change.id])
-    }
-    else if (change.doc._conflicts) {
-      db.get(change.id, {
-        open_revs: change.doc._conflicts
-      })
-      .then(function(responses) {
-        var docs = responses
-          .filter(function(response){
-            return 'ok' in response
-          })
-          .map(function(response) {
-            return response.ok
-          })
-          .concat(change.doc)
-
-        var wDocs = JSON.parse(JSON.stringify(docs))
-
-        var winning = wDocs.reduce(function(winning, doc) {
-          return winning && shared.resolver(doc, winning)
-        }, wDocs.pop())
-
-        if (!winning) throw({
-          error: 'conflict_resolution_failed',
-          reason: 'The conflict could not be resolved, resolveFun did not return a doc'
-        })
-
-        return docs.filter(function(doc) {
-          return doc._rev !== winning._rev || JSON.stringify(doc) !== JSON.stringify(winning)
-        })
-        .map(function(doc) {
-          if (doc._rev == winning._rev) return winning
-
-          return {
-            _id: doc._id,
-            _rev: doc._rev,
-            _deleted: true
-          }
-
-        })
-      })
-      .then(function(docs) {
-        return db.bulkDocs(docs)
-      })
-    }
-    else {
-      gingko.ports.change.send(
-        [ change.id
-        , _.mapKeys(_.omit(change.doc, ['_id']), function(val, key) {
-            return key == "_rev" ? "rev" : key
-          })
-        ])
-    }
-  })
+  .on('change', shared.onChange)
   .on('error', function (err) {
   })
 

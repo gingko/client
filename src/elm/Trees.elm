@@ -69,15 +69,12 @@ update msg model =
   case msg of
     Node id treeNode ->
       let
-        _ = Debug.log "treeNode" treeNode
-
         newNodes =
           Dict.insert id treeNode model.nodes
 
         newTree =
           if newNodes /= model.nodes then
             nodesToTree newNodes "0"
-              |> Debug.log "nodesToTree"
               |> Result.withDefault defaultTree
           else
             model.tree

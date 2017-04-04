@@ -76,20 +76,7 @@ var remoteCouch = 'http://localhost:5984/kittens'
 
 db.sync(remoteCouch, {live: true, retry: true}, (err) => console.log(err))
 db.changes({since: 'now', include_docs: true, live: true})
-  .on('change', function (change) {
-    if(change.deleted) {
-      gingko.ports.externals.send(['change-deleted', change.id])
-    }
-    else {
-      gingko.ports.change.send(
-        [ change.id
-        , _.mapKeys(_.omit(change.doc, ['_id']), function(val, key) {
-            return key == "_rev" ? "rev" : key
-          })
-        ])
-    }
-    console.log(change)
-  })
+  .on('change', shared.onChange)
   .on('error', function (err) {
   })
 
