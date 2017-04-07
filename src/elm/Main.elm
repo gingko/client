@@ -357,19 +357,6 @@ update msg model =
         |> andThen (OpenCard newId "")
         |> andThen (Activate newId)
 
-    Insert subtree pid idx ->
-      let
-        newId = subtree.id
-      in
-      { model
-        | data = Trees.update (Trees.Ins subtree pid idx) model.data
-      }
-        ! []
-        |> andThen (OpenCard newId subtree.content)
-        |> andThen (Activate newId)
-        |> andThen (AddToUndo model.data.tree)
-        |> andThen SaveTemp
-
     InsertAbove id ->
       let
         idx =
@@ -384,7 +371,7 @@ update msg model =
               NoOp
 
             Just pid ->
-              Insert (blankTree (timeJSON ()) (timestamp ())) pid idx
+              NInsert (TreeNode "" [] Nothing False) pid (idx-1)
       in
       case vs.editing of
         Nothing ->
@@ -421,7 +408,7 @@ update msg model =
     InsertChild pid ->
       let
         insertMsg =
-          Insert (blankTree (timeJSON ()) (timestamp ())) pid 999999
+          NInsert (TreeNode "" [] Nothing False) pid 999999
       in
       case vs.editing of
         Nothing ->
