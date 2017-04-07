@@ -346,6 +346,17 @@ update msg model =
 
     -- === Card Insertion  ===
 
+    NInsert treeNode pid idx ->
+      let
+        newId = "node-" ++ (timeJSON ())
+      in
+      { model
+        | data = Trees.updateDataWithNodes (Trees.Add newId treeNode pid idx) model.data
+      }
+        ! []
+        |> andThen (OpenCard newId "")
+        |> andThen (Activate newId)
+
     Insert subtree pid idx ->
       let
         newId = subtree.id
@@ -397,7 +408,7 @@ update msg model =
               NoOp
 
             Just pid ->
-              Insert (blankTree (timeJSON ()) (timestamp ())) pid (idx+1)
+              NInsert (TreeNode "" [] Nothing False) pid (idx+1)
       in
       case vs.editing of
         Nothing ->

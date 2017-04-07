@@ -11,6 +11,7 @@ import Markdown
 
 import Types exposing (..)
 import TreeUtils exposing (..)
+import Sha1 exposing (timeJSON)
 
 
 
@@ -62,6 +63,11 @@ type TreeMsg
   | Mov Tree String Int
   | Del String
   | Node String TreeNode
+
+
+type NodeMsg
+  = Nope
+  | Add String TreeNode String Int
 
 
 update : TreeMsg -> Model -> Model
@@ -128,6 +134,59 @@ updateData model =
     | columns = getColumns [[[ model.tree ]]]
     , nodes = getNodes model.tree
   }
+
+
+updateDataWithNodes : NodeMsg -> Model -> Model
+updateDataWithNodes msg model =
+  let
+    newNodes =
+      updateNodes msg model.nodes
+
+    newTree =
+      if newNodes /= model.nodes then
+        nodesToTree newNodes "0"
+          |> Result.withDefault defaultTree
+          |> Debug.log "newNodes"
+      else
+        model.tree
+
+    newColumns =
+      if newTree /= model.tree then
+        getColumns [[[newTree]]]
+      else
+        model.columns
+  in
+  { model
+    | tree = newTree
+    , columns = newColumns
+    , nodes = newNodes
+  }
+
+
+
+updateNodes : NodeMsg -> Dict String TreeNode -> Dict String TreeNode
+updateNodes msg nodes =
+  case msg of
+    Add newId treeNode pid pos ->
+      let
+        addToParent : String -> Int -> Maybe TreeNode -> Maybe TreeNode
+        addToParent tnId idx parent_ =
+          case parent_ of
+            Just parent ->
+              Just { parent
+                      | children = parent.children ++ [tnId]
+                    }
+
+            Nothing ->
+              Nothing
+
+      in
+      nodes
+        |> Dict.insert newId treeNode
+        |> Dict.update pid (addToParent newId pos)
+
+    _ ->
+      nodes
 
 
 updateTree : TreeMsg -> Tree -> Tree

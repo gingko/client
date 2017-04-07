@@ -22,6 +22,7 @@ type Msg
     | DeleteCard String
     | CancelCard
     -- === Card Insertion  ===
+    | NInsert TreeNode String Int
     | Insert Tree String Int
     | InsertAbove String
     | InsertBelow String
