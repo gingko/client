@@ -170,8 +170,25 @@ updateNodes msg nodes =
         |> dictUpdate pid (addToParent newId pos)
 
     Rmv nodeId ->
-      nodes
-        |> dictUpdate nodeId (\tn -> { tn | deleted = False } )
+      let
+        parentId_ =
+          getParentId nodeId nodes
+
+        updParent ptn =
+          { ptn
+          | children = ptn.children
+              |> List.map
+                  (\c -> if first c == nodeId then (first c, False) else c)
+          }
+      in
+      case parentId_ of
+        Just parentId ->
+          nodes
+            |> dictUpdate nodeId (\tn -> { tn | deleted = True } )
+            |> dictUpdate parentId updParent
+
+        Nothing ->
+          nodes
 
     Mod nodeId str ->
       nodes
@@ -186,6 +203,20 @@ addToParent tnId idx parent =
   { parent
     | children = parent.children ++ [(tnId, True)]
   }
+
+
+getParentId : String -> Dict String TreeNode -> Maybe String
+getParentId id nodes =
+  nodes
+    |> Dict.filter
+        (\nid n ->
+          n.children
+            |> List.map first
+            |> List.member id
+        )
+    |> Dict.toList -- List (String, TreeNode)
+    |> List.map first -- List String
+    |> List.head -- Maybe String
 
 
 
