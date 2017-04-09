@@ -284,7 +284,7 @@ update msg model =
 
     UpdateCard (id, str) ->
       { model
-        | data = Trees.update (Trees.Upd id str) model.data
+        | data = Trees.updateDataWithNodes (Trees.Mod id str) model.data
         , viewState = { vs | active = id, editing = Nothing }
       }
         ! [] 
