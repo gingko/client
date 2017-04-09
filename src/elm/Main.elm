@@ -102,7 +102,7 @@ init savedState =
       let
         deb = Debug.log "model in from init" model
       in
-      model 
+      model
         ! [ activateCmd model
           , focus model.viewState.active
           ]
@@ -121,19 +121,14 @@ initNodes nodeJson =
   case Json.decodeValue nodesDecoder nodeJson of
     Ok nodes ->
       let
-        newTree_ =
-          nodesToTree nodes "0"
+        newData =
+          Trees.Model defaultTree [] nodes
+            |> Trees.updateData
       in
-      case newTree_ of
-        Ok newTree ->
-          { defaultModel
-            | data = Trees.updateDataWithNodes Trees.Nope defaultModel.data
-          }
-            ! []
-
-        Err err ->
-          let _ = Debug.log "err" err in
-          defaultModel ! []
+      { defaultModel
+        | data = newData
+      }
+        ! []
 
     Err err ->
       let

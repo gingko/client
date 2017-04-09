@@ -108,6 +108,25 @@ updateColumns model =
   }
 
 
+updateData : Model -> Model
+updateData model =
+  let
+    newTree =
+      nodesToTree model.nodes "0"
+        |> Result.withDefault defaultTree
+
+    newColumns =
+      if newTree /= model.tree then
+        getColumns [[[newTree]]]
+      else
+        model.columns
+  in
+  { model
+    | tree = newTree
+    , columns = newColumns
+  }
+
+
 updateDataWithNodes : NodeMsg -> Model -> Model
 updateDataWithNodes msg model =
   let
