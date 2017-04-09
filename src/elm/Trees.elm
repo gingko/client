@@ -167,39 +167,27 @@ updateNodes msg nodes =
     Add newId treeNode pid pos ->
       nodes
         |> Dict.insert newId treeNode
-        |> Dict.update pid (addToParent newId pos)
+        |> dictUpdate pid (addToParent newId pos)
 
     Rmv nodeId ->
-      -- Find the parent, mark as deleted there
-      -- Find the node, mark as deleted
       nodes
+        |> dictUpdate nodeId (\tn -> { tn | deleted = False } )
 
     Mod nodeId str ->
-      Dict.update nodeId (modifyContent str) nodes
+      nodes
+        |> dictUpdate nodeId (\tn -> { tn | content = str })
 
     _ ->
       nodes
 
 
-modifyContent : String -> Maybe TreeNode -> Maybe TreeNode
-modifyContent str treeNode_ =
-  case treeNode_ of
-    Just treeNode ->
-      Just { treeNode | content = str }
-
-    Nothing -> Nothing
+addToParent : String -> Int -> TreeNode -> TreeNode
+addToParent tnId idx parent =
+  { parent
+    | children = parent.children ++ [(tnId, True)]
+  }
 
 
-addToParent : String -> Int -> Maybe TreeNode -> Maybe TreeNode
-addToParent tnId idx parent_ =
-  case parent_ of
-    Just parent ->
-      Just { parent
-              | children = parent.children ++ [(tnId, True)]
-            }
-
-    Nothing ->
-      Nothing
 
 
 

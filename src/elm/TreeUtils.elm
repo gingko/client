@@ -348,3 +348,14 @@ newLine =
 withIdTree : String -> Tree
 withIdTree id =
   Tree id "" (Children []) Nothing False
+
+dictUpdate : comparable -> (b -> b) -> Dict comparable b -> Dict comparable b
+dictUpdate id upd dict =
+  Dict.update
+    id
+    (\n_ ->
+      case n_ of
+        Just n -> Just (upd n)
+        Nothing -> Nothing
+    )
+    dict
