@@ -6,3 +6,4 @@ Gingko-*
 *.gko
 *.ps
 *.pdf
+npm-debug.log

@@ -248,37 +248,6 @@ generateId timeString time =
     |> String.join "-"
 
 
-getNodes : Tree -> Dict String TreeNode
-getNodes tree =
-  getNodesRecursive Dict.empty tree
-
-
-getNodesRecursive : Dict String TreeNode -> Tree -> Dict String TreeNode
-getNodesRecursive nodes currentTree =
-  case currentTree.children of
-    Children children ->
-      let
-        subtreeNodes : Dict String TreeNode
-        subtreeNodes =
-          children
-            |> List.map (getNodesRecursive nodes) -- List (Dict String TreeNode)
-            |> List.foldr Dict.union Dict.empty -- Dict String TreeNode
-      in
-      nodes
-        |> Dict.insert currentTree.id (treeToNode currentTree)
-        |> Dict.union subtreeNodes
-
-
-treeToNode : Tree -> TreeNode
-treeToNode tree =
-  let
-    childrenIds = 
-      getChildren tree
-        |> List.map (\t -> t.id)
-  in
-  TreeNode tree.content childrenIds tree.rev tree.deleted
-
-
 nodesToTree : Dict String TreeNode -> String -> Result String Tree
 nodesToTree nodes rootId =
   case (get rootId nodes) of
@@ -286,6 +255,8 @@ nodesToTree nodes rootId =
       let
         childrenResults_ =
           rootNode.children
+            |> List.filter second
+            |> List.map first
             |> List.map (nodesToTree nodes) -- List (Result String Tree)
 
         errors =
@@ -325,6 +296,8 @@ nodeToTree id treeNode =
   let
     childrenStubs =
       treeNode.children
+        |> List.filter second
+        |> List.map first
         |> List.map withIdTree
         |> Children
   in

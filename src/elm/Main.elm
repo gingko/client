@@ -100,13 +100,10 @@ init savedState =
   case Json.decodeValue modelDecoder savedState of
     Ok model ->
       let
-        newModel =
-          { model 
-            | data = Trees.updateData model.data
-          }
+        deb = Debug.log "model in from init" model
       in
-      newModel
-        ! [ activateCmd newModel
+      model 
+        ! [ activateCmd model
           , focus model.viewState.active
           ]
     Err err ->
@@ -130,9 +127,7 @@ initNodes nodeJson =
       case newTree_ of
         Ok newTree ->
           { defaultModel
-            | data =
-              Trees.Model newTree [] Dict.empty
-                |> Trees.updateData
+            | data = Trees.updateDataWithNodes Trees.Nope defaultModel.data
           }
             ! []
 
@@ -329,7 +324,7 @@ update msg model =
               "0"
       in
       { model
-        | data = Trees.update (Trees.Del id) model.data
+        | data = Trees.updateDataWithNodes (Trees.Rmv id) model.data
         , viewState = { vs | activePast = filteredActive }
       }
         ! []
@@ -515,52 +510,10 @@ update msg model =
     -- === History ===
 
     Undo ->
-      let
-        prevTree_ = List.head model.treePast
-      in
-      case prevTree_ of
-        Just prevTree ->
-          let
-            newModel =
-              { model
-                | data =
-                    { tree = prevTree
-                    , columns = getColumns [[[ prevTree]]]
-                    , nodes = getNodes prevTree
-                    }
-                , treePast = List.drop 1 model.treePast
-                , treeFuture = model.data.tree :: model.treeFuture
-              }
-          in
-          newModel
-            ! [ message ("undo-state-change", modelToValue newModel) ]
-
-        Nothing ->
-          model ! []
+      model ! []
 
     Redo ->
-      let
-        nextTree_ = List.head model.treeFuture
-      in
-      case nextTree_ of
-        Just nextTree ->
-          let
-            newModel =
-              { model
-                | data =
-                    { tree = nextTree
-                    , columns = getColumns [[[ nextTree ]]]
-                    , nodes = Dict.empty
-                    }
-                , treePast = model.data.tree :: model.treePast
-                , treeFuture = List.drop 1 model.treeFuture
-              }
-          in
-          newModel
-            ! [ message ("undo-state-change", modelToValue newModel) ]
-
-        Nothing ->
-          model ! []
+      model ! []
 
     AddToUndo oldTree ->
       if oldTree /= model.data.tree then

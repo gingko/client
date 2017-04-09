@@ -68,6 +68,7 @@ type TreeMsg
 type NodeMsg
   = Nope
   | Add String TreeNode String Int
+  | Rmv String
 
 
 update : TreeMsg -> Model -> Model
@@ -98,41 +99,12 @@ update msg model =
       }
 
     _ ->
-      let
-        newTree =
-          updateTree msg model.tree
-
-        newColumns =
-          if newTree /= model.tree then
-            getColumns [[[newTree]]]
-          else
-            model.columns
-
-        newNodes =
-          if newTree /= model.tree then
-            getNodes newTree
-          else
-            model.nodes
-      in
-      { model
-        | tree = newTree
-        , columns = newColumns
-        , nodes = newNodes
-      }
-
+      model
 
 updateColumns : Model -> Model
 updateColumns model =
   { model
     | columns = getColumns [[[ model.tree ]]]
-  }
-
-
-updateData : Model -> Model
-updateData model =
-  { model
-    | columns = getColumns [[[ model.tree ]]]
-    , nodes = getNodes model.tree
   }
 
 
@@ -174,7 +146,7 @@ updateNodes msg nodes =
           case parent_ of
             Just parent ->
               Just { parent
-                      | children = parent.children ++ [tnId]
+                      | children = parent.children ++ [(tnId, True)]
                     }
 
             Nothing ->
@@ -184,6 +156,11 @@ updateNodes msg nodes =
       nodes
         |> Dict.insert newId treeNode
         |> Dict.update pid (addToParent newId pos)
+
+    Rmv nodeId ->
+      -- Find the parent, mark as deleted there
+      -- Find the node, mark as deleted
+      nodes
 
     _ ->
       nodes

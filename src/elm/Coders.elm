@@ -66,7 +66,8 @@ treeNodeToValue : TreeNode -> Json.Encode.Value
 treeNodeToValue treeNode =
   Json.Encode.object
     [ ( "content", Json.Encode.string treeNode.content )
-    , ( "children", Json.Encode.list (List.map Json.Encode.string treeNode.children) )
+    , ( "children", Json.Encode.list
+          (List.map (tupleToValue Json.Encode.string Json.Encode.bool) treeNode.children) )
     , ( "rev", maybeToValue treeNode.rev Json.Encode.string )
     , ( "deleted", Json.Encode.bool treeNode.deleted )
     ]
@@ -151,7 +152,7 @@ treeNodeDecoder : Decoder TreeNode
 treeNodeDecoder =
   Json.map4 TreeNode
     (field "content" string)
-    (field "children" (list string))
+    (field "children" <| list <| tupleDecoder string bool)
     (field "rev" (maybe string))
     (field "deleted" bool)
  
@@ -180,3 +181,17 @@ maybeToValue mb encoder =
   case mb of
     Nothing -> Json.Encode.null
     Just v -> encoder v
+
+
+tupleToValue : (a -> Json.Encode.Value) -> (b -> Json.Encode.Value) -> (a, b) -> Json.Encode.Value
+tupleToValue aEnc bEnc (aVal, bVal) =
+  Json.Encode.list [ aEnc aVal, bEnc bVal ]
+
+
+tupleDecoder : Decoder a -> Decoder b -> Decoder (a, b)
+tupleDecoder a b =
+  index 0 a
+    |> andThen
+      (\aVal -> index 1 b
+          |> andThen (\bVal -> succeed (aVal, bVal))
+      )
