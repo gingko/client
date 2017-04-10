@@ -11,7 +11,6 @@ import Markdown
 
 import Types exposing (..)
 import TreeUtils exposing (..)
-import Sha1 exposing (timeJSON)
 import List.Extra as ListExtra
 
 
@@ -247,7 +246,7 @@ view vstate model =
               else
                 Nothing
       in
-      VisibleViewState 
+      VisibleViewState
         vstate.active
         editing_
         vstate.descendants
@@ -258,7 +257,7 @@ view vstate model =
       [([[]], List.length columnsWithDepth)]
         |> List.map (\t -> lazy3 viewColumn (getViewArgs t) (second t) (first t))
   in
-  div [ id "app" 
+  div [ id "app"
       ]
     ( columns
     )
@@ -276,13 +275,12 @@ viewColumn vstate depth col =
       (List.map (lazy3 viewGroup vstate depth) col) ++
       buffer
     )
-    
 
 
 viewGroup : VisibleViewState -> Int -> Group -> Html Msg
 viewGroup vstate depth xs =
   let
-    firstChild = 
+    firstChild =
       xs
         |> List.head
         |> Maybe.withDefault defaultTree
@@ -367,7 +365,7 @@ viewCard (isActive, isEditing, depth) tree =
                   , onClick (InsertChild tree.id)
                   ]
                   [ text "+" ]
-                , span 
+                , span
                   [ class "card-btn edit"
                   , title "Edit Card (Enter)"
                   , onClick (OpenCard tree.id tree.content)
@@ -392,7 +390,7 @@ viewCard (isActive, isEditing, depth) tree =
                   , onClick (InsertChild tree.id)
                   ]
                   [ text "+" ]
-                , span 
+                , span
                   [ class "card-btn edit"
                   , title "Edit Card (Enter)"
                   , onClick (OpenCard tree.id tree.content)
@@ -403,7 +401,7 @@ viewCard (isActive, isEditing, depth) tree =
 
         ( True, _, _ ) ->
           [ div [ class "flex-column card-right-overlay"]
-                [ span 
+                [ span
                   [ class "card-btn save"
                   , title "Save Changes (Ctrl+Enter)"
                   , onClick (AttemptUpdateCard tree.id)
@@ -441,7 +439,7 @@ viewCard (isActive, isEditing, depth) tree =
             [ class "view"
             , onClick (Activate tree.id)
             , onDoubleClick (OpenCard tree.id tree.content)
-            ] 
+            ]
             [( lazy viewContent tree.content )]
         ]
       )

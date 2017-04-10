@@ -8,7 +8,6 @@ import Json.Encode
 import Json.Decode as Json
 import Dom
 import Task
-import Dict exposing (Dict)
 
 import Types exposing (..)
 import Trees exposing (defaultTree, blankTree)
