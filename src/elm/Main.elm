@@ -646,7 +646,7 @@ update msg model =
           { model
             | data = Trees.update (Trees.Node id treeNode) model.data
           }
-            ! [] 
+            ! []
 
         Err err ->
           let _ = Debug.log "ChangeIn err" err in

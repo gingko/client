@@ -257,48 +257,10 @@ editingInputHandler = function(ev) {
 
 
 
-var shortcuts = [ 'mod+enter'
-                , 'enter'
-                , 'esc'
-                , 'mod+backspace'
-                , 'mod+j'
-                , 'mod+k'
-                , 'mod+l'
-                , 'mod+down'
-                , 'mod+up'
-                , 'mod+right'
-                , 'h'
-                , 'j'
-                , 'k'
-                , 'l'
-                , 'left'
-                , 'down'
-                , 'up'
-                , 'right'
-                , 'alt+left'
-                , 'alt+down'
-                , 'alt+up'
-                , 'alt+right'
-                , '['
-                , ']'
-                , 'mod+z'
-                , 'mod+r'
-                , 'mod+s'
-                , 'mod+x' // debug command
-                ];
-
-var needOverride= [ 'mod+j'
-                  , 'mod+l'
-                  , 'mod+s'  
-                  , 'mod+r'
-                  , 'alt+left'
-                  , 'alt+right'
-                  ];
-                    
-Mousetrap.bind(shortcuts, function(e, s) {
+Mousetrap.bind(shared.shortcuts, function(e, s) {
   gingko.ports.externals.send(['keyboard', s]);
 
-  if(needOverride.includes(s)) {
+  if(shared.needOverride.includes(s)) {
     return false;
   }
 });

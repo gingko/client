@@ -258,37 +258,6 @@ getParentId id nodes =
     |> List.head
 
 
-insertTreeNode : String -> Int -> TreeNode -> TreeNode
-insertTreeNode id idx treeNode =
-  let
-    refEl =
-      treeNode.children
-        |> List.filter second
-        |> ListExtra.getAt (idx-1)
-        |> Debug.log "refEl"
-        |> Maybe.withDefault ("", False)
-
-    fullIdx_ =
-      ListExtra.elemIndex refEl treeNode.children -- Maybe Int
-  in
-  case fullIdx_ of
-    Just fullIdx ->
-      let
-        fn children =
-          (List.take (fullIdx+1) children)
-          ++ [(id, True)]
-          ++ (List.drop (fullIdx+1) children)
-      in
-      { treeNode
-        | children = treeNode.children
-            |> fn
-      }
-
-    Nothing ->
-      treeNode
-
-
-
 
 
 -- ====== TREE UPDATES ======

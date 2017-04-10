@@ -208,13 +208,57 @@ var scrollHorizTo = function(colIdx) {
   }
 }
 
+
+/* ===== Shared variables ===== */
+
+var shortcuts = [ 'mod+enter'
+                , 'enter'
+                , 'esc'
+                , 'mod+backspace'
+                , 'mod+j'
+                , 'mod+k'
+                , 'mod+l'
+                , 'mod+down'
+                , 'mod+up'
+                , 'mod+right'
+                , 'h'
+                , 'j'
+                , 'k'
+                , 'l'
+                , 'left'
+                , 'down'
+                , 'up'
+                , 'right'
+                , 'alt+left'
+                , 'alt+down'
+                , 'alt+up'
+                , 'alt+right'
+                , '['
+                , ']'
+                , 'mod+z'
+                , 'mod+r'
+                , 'mod+s'
+                , 'mod+x' // debug command
+                ];
+
+var needOverride= [ 'mod+j'
+                  , 'mod+k'
+                  , 'mod+l'
+                  , 'mod+s'
+                  , 'mod+r'
+                  , 'alt+left'
+                  , 'alt+right'
+                  ];
+
 /* ===== CommonJS Module exports ===== */
 
-module.exports = 
+module.exports =
   { scrollHorizontal: scrollHorizontal
   , scrollColumns: scrollColumns
   , saveModel: saveModel
   , loadModel: loadModel
   , onChange: onChange
   , resolver: resolver
+  , shortcuts: shortcuts
+  , needOverride: needOverride
   }
