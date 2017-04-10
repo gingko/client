@@ -166,53 +166,53 @@ updateDataWithNodes msg model =
 updateNodes : NodeMsg -> Dict String TreeNode -> Dict String TreeNode
 updateNodes msg nodes =
   case msg of
-    Add newId treeNode pid pos ->
+    Add id treeNode pid pos ->
       nodes
-        |> Dict.insert newId treeNode
-        |> dictUpdate pid (insertChild newId pos)
+        |> Dict.insert id treeNode
+        |> dictUpdate pid (insertChild id pos)
 
-    Rmv nodeId ->
+    Rmv id ->
       let
         parentId_ =
-          getParentId nodeId nodes
+          getParentId id nodes
 
         updParent ptn =
           { ptn
           | children = ptn.children
               |> List.map
-                  (\c -> if first c == nodeId then (first c, False) else c)
+                  (\c -> if first c == id then (first c, False) else c)
           }
       in
       case parentId_ of
         Just parentId ->
           nodes
-            |> dictUpdate nodeId (\tn -> { tn | deleted = True } )
+            |> dictUpdate id (\tn -> { tn | deleted = True } )
             |> dictUpdate parentId updParent
 
         Nothing ->
           nodes
 
-    Mod nodeId str ->
+    Mod id str ->
       nodes
-        |> dictUpdate nodeId (\tn -> { tn | content = str })
+        |> dictUpdate id (\tn -> { tn | content = str })
 
-    Mv nodeId newPid pos ->
+    Mv id newPid pos ->
       let
-        parentId_ =
-          getParentId nodeId nodes
+        oldPid_ =
+          getParentId id nodes
 
         updParent ptn =
           { ptn
           | children = ptn.children
               |> List.filter
-                  (\c -> first c /= nodeId )
+                  (\c -> first c /= id )
           }
       in
-      case parentId_ of
-        Just parentId ->
+      case oldPid_ of
+        Just oldPid ->
           nodes
-            |> dictUpdate parentId updParent
-            |> dictUpdate newPid (insertTreeNode nodeId pos)
+            |> dictUpdate oldPid updParent
+            |> dictUpdate newPid (insertChild id pos)
 
         Nothing ->
           nodes
