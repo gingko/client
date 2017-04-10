@@ -12,6 +12,7 @@ import Markdown
 import Types exposing (..)
 import TreeUtils exposing (..)
 import Sha1 exposing (timeJSON)
+import List.Extra as ListExtra
 
 
 
@@ -70,6 +71,7 @@ type NodeMsg
   | Add String TreeNode String Int
   | Rmv String
   | Mod String String
+  | Mv String String Int
 
 
 update : TreeMsg -> Model -> Model
@@ -167,7 +169,7 @@ updateNodes msg nodes =
     Add newId treeNode pid pos ->
       nodes
         |> Dict.insert newId treeNode
-        |> dictUpdate pid (addToParent newId pos)
+        |> dictUpdate pid (insertChild newId pos)
 
     Rmv nodeId ->
       let
@@ -194,15 +196,52 @@ updateNodes msg nodes =
       nodes
         |> dictUpdate nodeId (\tn -> { tn | content = str })
 
-    _ ->
+    Mv nodeId newPid pos ->
+      let
+        parentId_ =
+          getParentId nodeId nodes
+
+        updParent ptn =
+          { ptn
+          | children = ptn.children
+              |> List.filter
+                  (\c -> first c /= nodeId )
+          }
+      in
+      case parentId_ of
+        Just parentId ->
+          nodes
+            |> dictUpdate parentId updParent
+            |> dictUpdate newPid (insertTreeNode nodeId pos)
+
+        Nothing ->
+          nodes
+
+    Nope ->
       nodes
 
 
-addToParent : String -> Int -> TreeNode -> TreeNode
-addToParent tnId idx parent =
-  { parent
-    | children = parent.children ++ [(tnId, True)]
-  }
+insertChild : String -> Int -> TreeNode -> TreeNode
+insertChild idToInsert idx treeNode =
+  let
+    visIdx_ =
+      treeNode.children
+        |> List.filter second
+        |> ListExtra.getAt idx -- Maybe (String, Bool)
+        |> Maybe.andThen (\sb -> ListExtra.elemIndex sb treeNode.children) -- Maybe Int
+
+    ins i cs = (List.take i cs) ++ [(idToInsert, True)] ++ (List.drop i cs)
+  in
+  case visIdx_ of
+    Just visIdx ->
+      { treeNode
+        | children = ins visIdx treeNode.children
+      }
+
+    Nothing ->
+      { treeNode
+        | children = ins 999999 treeNode.children
+      }
 
 
 getParentId : String -> Dict String TreeNode -> Maybe String
@@ -214,9 +253,39 @@ getParentId id nodes =
             |> List.map first
             |> List.member id
         )
-    |> Dict.toList -- List (String, TreeNode)
-    |> List.map first -- List String
-    |> List.head -- Maybe String
+    |> Dict.toList
+    |> List.map first
+    |> List.head
+
+
+insertTreeNode : String -> Int -> TreeNode -> TreeNode
+insertTreeNode id idx treeNode =
+  let
+    refEl =
+      treeNode.children
+        |> List.filter second
+        |> ListExtra.getAt (idx-1)
+        |> Debug.log "refEl"
+        |> Maybe.withDefault ("", False)
+
+    fullIdx_ =
+      ListExtra.elemIndex refEl treeNode.children -- Maybe Int
+  in
+  case fullIdx_ of
+    Just fullIdx ->
+      let
+        fn children =
+          (List.take (fullIdx+1) children)
+          ++ [(id, True)]
+          ++ (List.drop (fullIdx+1) children)
+      in
+      { treeNode
+        | children = treeNode.children
+            |> fn
+      }
+
+    Nothing ->
+      treeNode
 
 
 

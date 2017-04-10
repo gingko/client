@@ -28,6 +28,7 @@ type Msg
     | InsertBelow String
     | InsertChild String
     -- === Card Moving  ===
+    | NMove String String Int
     | Move Tree String Int
     | MoveUp String
     | MoveDown String

@@ -287,13 +287,13 @@ update msg model =
         | data = Trees.updateDataWithNodes (Trees.Mod id str) model.data
         , viewState = { vs | active = id, editing = Nothing }
       }
-        ! [] 
+        ! []
         |> andThen (AddToUndo model.data.tree)
         |> andThen SaveTemp
 
     UpdateCardError err ->
       Debug.crash err
-    
+
     DeleteCard id ->
       let
         filteredActive =
@@ -328,9 +328,9 @@ update msg model =
         |> andThen SaveTemp
 
     CancelCard ->
-      { model 
+      { model
         | viewState = { vs | editing = Nothing }
-      } 
+      }
         ! []
 
 
@@ -361,7 +361,7 @@ update msg model =
               NoOp
 
             Just pid ->
-              NInsert (TreeNode "" [] Nothing False) pid (idx-1)
+              NInsert (TreeNode "" [] Nothing False) pid idx
       in
       case vs.editing of
         Nothing ->
@@ -410,6 +410,15 @@ update msg model =
 
     -- === Card Moving  ===
 
+    NMove id pid idx ->
+      { model
+        | data = Trees.updateDataWithNodes (Trees.Mv id pid idx) model.data
+      }
+        ! []
+        |> andThen (Activate id)
+        |> andThen SaveTemp
+
+
     Move subtree pid idx ->
       let
         newData = Trees.update (Trees.Mov subtree pid idx) model.data
@@ -440,7 +449,7 @@ update msg model =
       in
       case (tree_, pid_, refIdx_) of
         (Just tree, Just pid, Just refIdx) ->
-          update (Move tree pid (refIdx-1)) model
+          update (NMove tree.id pid (refIdx-1)) model
         _ ->
           model ! []
 
@@ -455,10 +464,11 @@ update msg model =
 
         refIdx_ =
           getIndex id model.data.tree
+
       in
       case (tree_, pid_, refIdx_) of
         (Just tree, Just pid, Just refIdx) ->
-          update (Move tree pid (refIdx+1)) model
+          update (NMove tree.id pid (refIdx+1)) model
         _ ->
           model ! []
 
@@ -482,7 +492,7 @@ update msg model =
       in
       case (tree_, grandparentId_, parentIdx_) of
         (Just tree, Just gpId, Just refIdx) ->
-          update (Move tree gpId (refIdx+1)) model
+          update (NMove tree.id gpId (refIdx+1)) model
         _ ->
           model ! []
 
@@ -497,7 +507,7 @@ update msg model =
       in
       case (tree_, prev_) of
         (Just tree, Just prev) ->
-          update (Move tree prev 999999) model
+          update (NMove tree.id prev 999999) model
         _ ->
           model ! []
 
