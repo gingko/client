@@ -11,7 +11,7 @@ import Task
 import Dict exposing (Dict)
 
 import Types exposing (..)
-import Trees exposing (update, view, defaultTree, blankTree)
+import Trees exposing (defaultTree, blankTree)
 import TreeUtils exposing (..)
 import Sha1 exposing (..)
 import Coders exposing (modelDecoder, nodesDecoder, treeNodeDecoder, modelToValue)
@@ -284,7 +284,7 @@ update msg model =
 
     UpdateCard (id, str) ->
       { model
-        | data = Trees.updateDataWithNodes (Trees.Mod id str) model.data
+        | data = Trees.update (Trees.Mod id str) model.data
         , viewState = { vs | active = id, editing = Nothing }
       }
         ! []
@@ -319,7 +319,7 @@ update msg model =
               "0"
       in
       { model
-        | data = Trees.updateDataWithNodes (Trees.Rmv id) model.data
+        | data = Trees.update (Trees.Rmv id) model.data
         , viewState = { vs | activePast = filteredActive }
       }
         ! []
@@ -336,12 +336,12 @@ update msg model =
 
     -- === Card Insertion  ===
 
-    NInsert treeNode pid idx ->
+    Insert treeNode pid idx ->
       let
         newId = "node-" ++ (timeJSON ())
       in
       { model
-        | data = Trees.updateDataWithNodes (Trees.Add newId treeNode pid idx) model.data
+        | data = Trees.update (Trees.Add newId treeNode pid idx) model.data
       }
         ! []
         |> andThen (OpenCard newId "")
@@ -361,7 +361,7 @@ update msg model =
               NoOp
 
             Just pid ->
-              NInsert (TreeNode "" [] Nothing False) pid idx
+              Insert (TreeNode "" [] Nothing False) pid idx
       in
       case vs.editing of
         Nothing ->
@@ -385,7 +385,7 @@ update msg model =
               NoOp
 
             Just pid ->
-              NInsert (TreeNode "" [] Nothing False) pid (idx+1)
+              Insert (TreeNode "" [] Nothing False) pid (idx+1)
       in
       case vs.editing of
         Nothing ->
@@ -398,7 +398,7 @@ update msg model =
     InsertChild pid ->
       let
         insertMsg =
-          NInsert (TreeNode "" [] Nothing False) pid 999999
+          Insert (TreeNode "" [] Nothing False) pid 999999
       in
       case vs.editing of
         Nothing ->
@@ -410,30 +410,13 @@ update msg model =
 
     -- === Card Moving  ===
 
-    NMove id pid idx ->
+    Move id pid idx ->
       { model
-        | data = Trees.updateDataWithNodes (Trees.Mv id pid idx) model.data
+        | data = Trees.update (Trees.Mv id pid idx) model.data
       }
         ! []
         |> andThen (Activate id)
         |> andThen SaveTemp
-
-
-    Move subtree pid idx ->
-      let
-        newData = Trees.update (Trees.Mov subtree pid idx) model.data
-      in
-      if newData == model.data then
-        model ! []
-      else
-        { model
-          | data = newData
-          , saved = False
-        }
-          ! []
-          |> andThen (Activate subtree.id)
-          |> andThen (AddToUndo model.data.tree)
-          |> andThen SaveTemp
 
     MoveUp id ->
       let
@@ -449,7 +432,7 @@ update msg model =
       in
       case (tree_, pid_, refIdx_) of
         (Just tree, Just pid, Just refIdx) ->
-          update (NMove tree.id pid (refIdx-1)) model
+          update (Move tree.id pid (refIdx-1)) model
         _ ->
           model ! []
 
@@ -468,7 +451,7 @@ update msg model =
       in
       case (tree_, pid_, refIdx_) of
         (Just tree, Just pid, Just refIdx) ->
-          update (NMove tree.id pid (refIdx+1)) model
+          update (Move tree.id pid (refIdx+1)) model
         _ ->
           model ! []
 
@@ -492,7 +475,7 @@ update msg model =
       in
       case (tree_, grandparentId_, parentIdx_) of
         (Just tree, Just gpId, Just refIdx) ->
-          update (NMove tree.id gpId (refIdx+1)) model
+          update (Move tree.id gpId (refIdx+1)) model
         _ ->
           model ! []
 
@@ -507,7 +490,7 @@ update msg model =
       in
       case (tree_, prev_) of
         (Just tree, Just prev) ->
-          update (NMove tree.id prev 999999) model
+          update (Move tree.id prev 999999) model
         _ ->
           model ! []
 
@@ -646,7 +629,7 @@ update msg model =
           { model
             | data = Trees.update (Trees.Node id treeNode) model.data
           }
-            ! []
+            ! [] 
 
         Err err ->
           let _ = Debug.log "ChangeIn err" err in

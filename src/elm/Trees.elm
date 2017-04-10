@@ -57,52 +57,41 @@ blankTree timeString time =
 
 -- UPDATE
 
-type TreeMsg
-  = NoOp
-  | Ins Tree String Int
-  | Upd String String
-  | Mov Tree String Int
-  | Del String
-  | Node String TreeNode
-
-
 type NodeMsg
   = Nope
   | Add String TreeNode String Int
   | Rmv String
   | Mod String String
   | Mv String String Int
+  | Node String TreeNode
 
 
-update : TreeMsg -> Model -> Model
+update : NodeMsg -> Model -> Model
 update msg model =
-  case msg of
-    Node id treeNode ->
-      let
-        newNodes =
-          Dict.insert id treeNode model.nodes
+  let
+    newNodes =
+      updateNodes msg model.nodes
 
-        newTree =
-          if newNodes /= model.nodes then
-            nodesToTree newNodes "0"
-              |> Result.withDefault defaultTree
-          else
-            model.tree
+    newTree =
+      if newNodes /= model.nodes then
+        nodesToTree newNodes "0"
+          |> Result.withDefault defaultTree
+          |> Debug.log "newNodes"
+      else
+        model.tree
 
-        newColumns =
-          if newTree /= model.tree then
-            getColumns [[[newTree]]]
-          else
-            model.columns
-      in
-      { model
-        | tree = newTree
-        , columns = newColumns
-        , nodes = newNodes
-      }
+    newColumns =
+      if newTree /= model.tree then
+        getColumns [[[newTree]]]
+      else
+        model.columns
+  in
+  { model
+    | tree = newTree
+    , columns = newColumns
+    , nodes = newNodes
+  }
 
-    _ ->
-      model
 
 updateColumns : Model -> Model
 updateColumns model =
@@ -133,34 +122,6 @@ updateData model =
     | tree = newTree
     , columns = newColumns
   }
-
-
-updateDataWithNodes : NodeMsg -> Model -> Model
-updateDataWithNodes msg model =
-  let
-    newNodes =
-      updateNodes msg model.nodes
-
-    newTree =
-      if newNodes /= model.nodes then
-        nodesToTree newNodes "0"
-          |> Result.withDefault defaultTree
-          |> Debug.log "newNodes"
-      else
-        model.tree
-
-    newColumns =
-      if newTree /= model.tree then
-        getColumns [[[newTree]]]
-      else
-        model.columns
-  in
-  { model
-    | tree = newTree
-    , columns = newColumns
-    , nodes = newNodes
-  }
-
 
 
 updateNodes : NodeMsg -> Dict String TreeNode -> Dict String TreeNode
@@ -217,6 +178,10 @@ updateNodes msg nodes =
         Nothing ->
           nodes
 
+    Node id treeNode ->
+      nodes
+        |> Dict.insert id treeNode
+
     Nope ->
       nodes
 
@@ -256,94 +221,6 @@ getParentId id nodes =
     |> Dict.toList
     |> List.map first
     |> List.head
-
-
-
-
--- ====== TREE UPDATES ======
-
-
-updateTree : TreeMsg -> Tree -> Tree
-updateTree msg tree =
-  case msg of
-    NoOp -> tree
-
-    Ins newTree parentId idx ->
-      insertSubtree newTree parentId idx tree
-
-    Upd id str ->
-      modifyTree id (\t -> { t | content = str} ) tree
-
-    Mov newTree parentId idx ->
-      apply 
-        [ Del newTree.id
-        , Ins newTree parentId idx
-        ]
-      tree
-
-    Del id ->
-      pruneSubtree id tree
-
-    Node id treeNode ->
-      tree
-
-
-apply : List TreeMsg -> Tree -> Tree
-apply msgs tree =
-  List.foldl (\m t -> updateTree m t) tree msgs
-
-
-insertSubtree : Tree -> String -> Int -> Tree -> Tree
-insertSubtree subtree parentId idx tree =
-  let
-    fn = (\c -> (List.take idx c) ++ [subtree] ++ (List.drop idx c))
-  in
-  modifyChildren parentId fn tree
-
-
-pruneSubtree : String -> Tree -> Tree
-pruneSubtree id tree =
-  modifySiblings id (\c -> List.filter (\x -> x.id /= id) c) tree
-
-
-modifyTree : String -> (Tree -> Tree) -> Tree -> Tree
-modifyTree id upd tree =
-  if tree.id == id then
-    upd tree
-  else
-    { tree
-      | children =
-          getChildren tree
-            |> List.map (modifyTree id upd)
-            |> Children
-    }
-
-
-modifyChildren : String -> (List Tree -> List Tree) -> Tree -> Tree
-modifyChildren pid upd tree =
-  if tree.id == pid then
-    { tree
-      | children =
-          getChildren tree
-            |> upd
-            |> Children
-    }
-  else
-    { tree
-      | children =
-          getChildren tree
-            |> List.map (modifyChildren pid upd)
-            |> Children
-    }
-
-
-modifySiblings : String -> (List Tree -> List Tree) -> Tree -> Tree
-modifySiblings id upd tree =
-  case getParent id tree of
-    Nothing ->
-      tree
-    Just parentTree ->
-      modifyChildren parentTree.id upd tree
 
 
 

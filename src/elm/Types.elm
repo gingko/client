@@ -22,14 +22,12 @@ type Msg
     | DeleteCard String
     | CancelCard
     -- === Card Insertion  ===
-    | NInsert TreeNode String Int
-    | Insert Tree String Int
+    | Insert TreeNode String Int
     | InsertAbove String
     | InsertBelow String
     | InsertChild String
     -- === Card Moving  ===
-    | NMove String String Int
-    | Move Tree String Int
+    | Move String String Int
     | MoveUp String
     | MoveDown String
     | MoveLeft String
