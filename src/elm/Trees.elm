@@ -74,8 +74,6 @@ update msg model =
     newTree =
       if newNodes /= model.nodes then
         nodesToTree newNodes "0"
-          |> Result.withDefault defaultTree
-          |> Debug.log "newNodes"
       else
         model.tree
 
@@ -109,7 +107,6 @@ updateData model =
   let
     newTree =
       nodesToTree model.nodes "0"
-        |> Result.withDefault defaultTree
 
     newColumns =
       if newTree /= model.tree then

@@ -49,7 +49,7 @@ defaultModel =
   { data = Trees.defaultModel
   , treePast = []
   , treeFuture = []
-  , viewState = 
+  , viewState =
       { active = "0"
       , activePast = []
       , activeFuture = []
@@ -345,6 +345,7 @@ update msg model =
         ! []
         |> andThen (OpenCard newId "")
         |> andThen (Activate newId)
+        |> andThen SaveTemp
 
     InsertAbove id ->
       let

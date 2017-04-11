@@ -119,6 +119,8 @@ function onChange(change) {
                   return key == "_rev" ? "rev" : key
                 })
     obj["deleted"] = change.doc._deleted ? true : false
+
+    console.log('change', change, obj)
     gingko.ports.change.send(
       [ change.id
       , obj

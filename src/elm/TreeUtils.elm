@@ -241,54 +241,29 @@ generateId : String -> Int -> String
 generateId timeString time =
   [ "node"
   , timeString
-  , Random.step (int 0 maxInt) (initialSeed time) 
-      |> first 
-      |> toString 
+  , Random.step (int 0 maxInt) (initialSeed time)
+      |> first
+      |> toString
   ]
     |> String.join "-"
 
 
-nodesToTree : Dict String TreeNode -> String -> Result String Tree
+nodesToTree : Dict String TreeNode -> String -> Tree
 nodesToTree nodes rootId =
   case (get rootId nodes) of
     Just rootNode ->
       let
-        childrenResults_ =
+        children =
           rootNode.children
             |> List.filter second
             |> List.map first
-            |> List.map (nodesToTree nodes) -- List (Result String Tree)
-
-        errors =
-          childrenResults_
-            |> List.filterMap
-              (\r ->
-                case r of
-                  Ok _ ->
-                    Nothing
-                  Err err ->
-                    Just err
-              )
-
-        children =
-          childrenResults_
-            |> List.filterMap
-              (\r ->
-                case r of
-                  Ok tree ->
-                    Just tree
-                  Err _ ->
-                    Nothing
-              ) -- List Tree
+            |> List.map (nodesToTree nodes)
             |> Children
       in
-      if List.length errors == 0 then
-        Ok (Tree rootId rootNode.content children rootNode.rev rootNode.deleted)
-      else
-        Err ( errors |> String.join " " )
+      Tree rootId rootNode.content children rootNode.rev rootNode.deleted
 
     Nothing ->
-      Err ( ["Node ", rootId, " not found."] |> String.join "")
+      Tree rootId "" (Children []) Nothing False
 
 
 nodeToTree : String -> TreeNode -> Tree
