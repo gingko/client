@@ -1,7 +1,7 @@
 const _ = require('lodash')
 
 
-/* ===== Database ===== */
+/* ===== Database Saving ===== */
 
 function saveModel(db, model) {
   var data = nodesToRows(model.nodes)
@@ -14,12 +14,12 @@ function saveModel(db, model) {
       return r.doc
     })
 
-    var diff =
-      _.differenceWith(data, dataDb, _.isEqual)
+    var deltas =
+      getDeltas(dataDb, data)
 
-    console.log(data, dataDb, diff)
+    console.log(data, dataDb, deltas)
 
-    db.bulkDocs(diff)
+    db.bulkDocs(deltas)
       .then(function (result) {
         console.log('saved', result)
       }).catch(function(err) {
@@ -30,6 +30,71 @@ function saveModel(db, model) {
     console.log(err)
   })
 }
+
+function getDeltas(oldData, newData) {
+  var deltas = []
+
+  newData.map(function (nd) {
+    if (oldData.map(od => od._id).includes(nd._id)) {
+      var od = _.find(oldData, od => od._id == nd._id);
+      if (od._id == nd._id && !_.isEqual(od, nd)) {
+        deltas.push([_.find(oldData, od => od._id == nd._id), nd])
+      }
+    }
+    else {
+      deltas.push([null, nd])
+    }
+  })
+
+  return sortDeltas(deltas)
+}
+
+function sortDeltas(deltas) {
+  var removals = []
+  var insertions = []
+  var others = []
+
+  var isRemoval = function(d) {
+    return d[0] !== null && _.differenceWith(d[0].children, d[1].children, _.isEqual).length !== 0
+  }
+
+  var isInsertion = function(d) {
+    return d[0] !== null && _.differenceWith(d[1].children, d[0].children, _.isEqual).length !== 0
+  }
+
+  deltas.map(d => {
+    if (isRemoval(d)) {
+      console.log('delta:removal', d)
+      removals.push(d[1])
+    } else if (isInsertion(d)) {
+      console.log('delta:insertion', d)
+      insertions.push(d[1])
+    } else {
+      console.log('delta:other', d)
+      others.push(d[1])
+    }
+  })
+
+  var sorted = insertions.concat(removals).concat(others)
+  console.log('delta:sorted', sorted)
+
+  return sorted
+}
+
+function nodesToRows(nodes) {
+  var rows = Object.keys(nodes).map(function(key) {
+    return  { "_id": key
+            , "_rev": nodes[key].rev
+            , "content": nodes[key].content
+            , "children": nodes[key].children
+            }
+  })
+
+  return rows
+}
+
+
+/* ===== Database Loading ===== */
 
 function loadModel(db, callback) {
   db.allDocs({
@@ -43,7 +108,7 @@ function loadModel(db, callback) {
 
 function rowsToNodes(rows) {
   return rows.reduce(function(map, obj) {
-    map[obj.doc._id] =  
+    map[obj.doc._id] =
       { content: obj.doc.content
       , children: obj.doc.children
       , rev: obj.doc._rev
@@ -53,17 +118,6 @@ function rowsToNodes(rows) {
   }, {})
 }
 
-function nodesToRows(nodes) {
-  var rows = Object.keys(nodes).map(function(key) {
-    return  { "_id": key
-            , "_rev": nodes[key].rev
-            , "content": nodes[key].content
-            , "children": nodes[key].children 
-            }
-  })
-
-  return rows
-}
 
 function onChange(change) {
   var db = this.db
