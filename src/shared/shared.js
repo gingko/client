@@ -191,8 +191,8 @@ function resolver(a, b) {
     m.content = a.content + "\n=====CONFLICT=====\n" + b.content
     return m
   }
-  else if (a.children !== b.children) {
-    m.children = _.union(a.children, b.children)
+  else if (!_.isEqual(a.children, b.children)) {
+    m.children = _.unionWith(a.children, b.children, _.isEqual)
     return m
   }
   else {
