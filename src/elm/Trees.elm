@@ -182,6 +182,24 @@ updateNodes msg nodes =
       nodes
 
 
+nodeChanges : NodeMsg -> Dict String TreeNode -> Dict String TreeNode
+nodeChanges msg oldNodes =
+  let
+    newNodes = updateNodes msg oldNodes
+
+    both id oldNode newNode nodesSoFar =
+      Dict.insert id newNode nodesSoFar
+  in
+  Dict.merge
+    (identity |> always |> always)
+    both
+    Dict.insert
+    oldNodes
+    newNodes
+    Dict.empty
+
+
+
 insertChild : String -> Int -> TreeNode -> TreeNode
 insertChild idToInsert idx treeNode =
   let

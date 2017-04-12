@@ -338,6 +338,9 @@ update msg model =
     Insert treeNode pid idx ->
       let
         newId = "node-" ++ (timeJSON ())
+        _ =
+          Trees.nodeChanges (Trees.Add newId treeNode pid idx) model.data.nodes
+            |> Debug.log "nodeChanges"
       in
       { model
         | data = Trees.update (Trees.Add newId treeNode pid idx) model.data
@@ -629,7 +632,8 @@ update msg model =
           { model
             | data = Trees.update (Trees.Node id treeNode) model.data
           }
-            ! [] 
+            ! []
+            |> andThen SaveTemp
 
         Err err ->
           let _ = Debug.log "ChangeIn err" err in
