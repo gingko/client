@@ -75,7 +75,7 @@ var db = new PouchDB('treenodes-2')
 var remoteCouch = 'http://localhost:5984/treenodes-2'
 
 db.sync(remoteCouch, {live: true, retry: true}, (err) => console.log(err))
-db.changes({since: 'now', include_docs: true, live: true})
+db.changes({since: 'now', include_docs: true, live: true, conflicts: true})
   .on('change', shared.onChange)
   .on('error', function (err) {
   })
