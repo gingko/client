@@ -86,8 +86,15 @@ update msg model =
       model ! [saveNodes (model.pending |> nodeDictToJson)]
 
     SaveResponses res ->
-      -- receive all oks or not
+      let
+        oks = res |> List.filter .ok
+      in
       model ! []
+      -- TODO:
+      -- get all succeeded pending vals
+      -- update their revs
+      -- insert into model.data.nodes (insert = update if already exists)
+      -- use updateData to get new tree and columns
 
 
     HandleKey key ->
@@ -138,6 +145,7 @@ view model =
 
 port keyboard : (String -> msg) -> Sub msg
 port attemptSaveContent : ((String, String) -> msg) -> Sub msg
+port saveResponses : (List Response -> msg) -> Sub msg
 
 
 subscriptions : Model -> Sub Msg
@@ -145,6 +153,7 @@ subscriptions model =
   Sub.batch
     [ keyboard HandleKey
     , attemptSaveContent AttemptSaveContent
+    , saveResponses SaveResponses
     ]
 
 
