@@ -28,14 +28,14 @@ self.gingko = Elm.Main.fullscreen(null)
 
 /* === Database === */
 
-var db = new PouchDB('treenodes7')
-var remoteCouch = 'http://localhost:5984/treenodes7'
+var db = new PouchDB('treenodes8')
+var remoteCouch = 'http://localhost:5984/treenodes8'
 
 db.sync(remoteCouch, {live: true, retry: true}, (err) => console.log(err))
-db.changes({since: 'now', include_docs: true, live: true, conflicts: true})
-  .on('change', shared.onChange)
-  .on('error', function (err) {
-  })
+//db.changes({since: 'now', include_docs: true, live: true, conflicts: true})
+//  .on('change', shared.onChange)
+//  .on('error', function (err) {
+//  })
 
 shared.loadModel(db, function(data) {
   //gingko.ports.nodes.send(data)
@@ -52,6 +52,27 @@ gingko.ports.activateCards.subscribe(actives => {
   shared.scrollColumns(actives[1])
 })
 
+
+gingko.ports.getText.subscribe(id => {
+  var tarea = document.getElementById('card-edit-'+id)
+
+  if (tarea === null) {
+    gingko.ports.updateError.send('Textarea with id '+id+' not found.')
+  } else {
+    gingko.ports.attemptSaveContent.send([id, tarea.value])
+  }
+})
+
+
+gingko.ports.saveNodes.subscribe(nodes => {
+  console.log(nodes)
+  db.bulkDocs(nodes)
+    .then(result =>
+      console.log('saved', result)
+    ).catch(err =>
+      console.log(err)
+    )
+})
 
 
 

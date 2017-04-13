@@ -21,6 +21,27 @@ type alias Model =
 
 -- ENCODERS
 
+
+nodeDictToJson : Dict String TreeNode -> Json.Encode.Value
+nodeDictToJson nodes =
+  let
+    nodeList = Dict.toList nodes -- List (String, TreeNode)
+
+    fn : (String, TreeNode) -> Json.Encode.Value
+    fn (id, n) =
+      Json.Encode.object
+        [ ("_id", Json.Encode.string id)
+        , ("_rev", maybeToValue n.rev Json.Encode.string)
+        , ("content", Json.Encode.string n.content)
+        , ( "children", Json.Encode.list
+              (List.map (tupleToValue Json.Encode.string Json.Encode.bool) n.children) )
+        ]
+  in
+  Json.Encode.list
+    (List.map fn nodeList)
+
+
+
 modelToValue : Model -> Json.Encode.Value
 modelToValue model =
   Json.Encode.object
@@ -40,7 +61,6 @@ treeToValue tree =
         [ ( "id", Json.Encode.string tree.id )
         , ( "content", Json.Encode.string tree.content )
         , ( "children", Json.Encode.list (List.map treeToValue c))
-        , ( "deleted", Json.Encode.bool tree.deleted )
         ]
 
 
@@ -69,7 +89,6 @@ treeNodeToValue treeNode =
     , ( "children", Json.Encode.list
           (List.map (tupleToValue Json.Encode.string Json.Encode.bool) treeNode.children) )
     , ( "rev", maybeToValue treeNode.rev Json.Encode.string )
-    , ( "deleted", Json.Encode.bool treeNode.deleted )
     ]
 
 
@@ -117,7 +136,7 @@ treesModelDecoder =
 
 treeDecoder : Decoder Tree
 treeDecoder =
-  Json.map5 Tree
+  Json.map4 Tree
     (field "id" string)
     (field "content" string)
     (oneOf  [ ( field 
@@ -130,7 +149,6 @@ treeDecoder =
             ]
     )
     (field "rev" (maybe string))
-    (field "deleted" bool)
 
 
 viewStateDecoder : Decoder ViewState
@@ -150,12 +168,11 @@ nodesDecoder =
 
 treeNodeDecoder : Decoder TreeNode
 treeNodeDecoder =
-  Json.map4 TreeNode
+  Json.map3 TreeNode
     (field "content" string)
     (field "children" <| list <| tupleDecoder string bool)
     (field "rev" (maybe string))
-    (field "deleted" bool)
- 
+
 
 
 

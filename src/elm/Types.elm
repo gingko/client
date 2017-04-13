@@ -13,7 +13,8 @@ type Msg
     | GoRight String
     -- === Card Editing  ===
     | OpenCard String String
-    | AttemptUpdateCard String
+    | GetContentToSave String
+    | AttemptSaveContent (String, String)
     | UpdateCard (String, String)
     | UpdateCardError String
     | DeleteCard String
@@ -30,6 +31,8 @@ type Msg
     | MoveLeft String
     | MoveRight String
     -- === Ports ===
+    | AttemptSave
+    | SaveResponses (List Response)
     | HandleKey String
 
 
@@ -55,6 +58,13 @@ type alias TreeNode =
 type Children = Children (List Tree)
 type alias Group = List Tree
 type alias Column = List (List Tree)
+
+
+type alias Response =
+  { id : String
+  , rev : String
+  , ok : Bool
+  }
 
 
 

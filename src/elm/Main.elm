@@ -4,12 +4,15 @@ port module Main exposing (..)
 import Html exposing (..)
 import Html.Lazy exposing (lazy, lazy2)
 import Tuple exposing (first, second)
+import Dict exposing (Dict)
+import Json.Encode
 import Json.Decode as Json
 import Dom
 import Task
 
-import Trees exposing (..)
 import Types exposing (..)
+import Trees exposing (..)
+import Coders exposing (nodeDictToJson)
 
 
 main : Program Json.Value Model Msg
@@ -23,6 +26,8 @@ main =
 
 
 port activateCards : (Int, List (List String)) -> Cmd msg
+port getText : String -> Cmd msg
+port saveNodes : Json.Encode.Value -> Cmd msg
 
 
 
@@ -32,6 +37,7 @@ port activateCards : (Int, List (List String)) -> Cmd msg
 
 type alias Model =
   { data : Trees.Model
+  , pending : Dict String TreeNode
   , viewState : ViewState
   }
 
@@ -39,6 +45,7 @@ type alias Model =
 defaultModel : Model
 defaultModel =
   { data = Trees.defaultModel
+  , pending = Dict.empty
   , viewState =
       { active = "0"
       , activePast = []
@@ -65,6 +72,33 @@ update msg model =
     vs = model.viewState
   in
   case msg of
+    GetContentToSave id ->
+      model ! [getText id]
+
+    AttemptSaveContent (id, str) ->
+      { model
+        | pending = Trees.getChanges (Trees.Mod id str) model.data.nodes
+      }
+        ! []
+        |> andThen AttemptSave
+
+    AttemptSave ->
+      model ! [saveNodes (model.pending |> nodeDictToJson)]
+
+    SaveResponses res ->
+      -- receive all oks or not
+      model ! []
+
+
+    HandleKey key ->
+      case key of
+        "mod+x" ->
+          let _ = Debug.log "model" model in
+          model ! []
+
+        _ ->
+          model ! []
+
     _ ->
       model ! []
 
@@ -103,12 +137,14 @@ view model =
 
 
 port keyboard : (String -> msg) -> Sub msg
+port attemptSaveContent : ((String, String) -> msg) -> Sub msg
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.batch
     [ keyboard HandleKey
+    , attemptSaveContent AttemptSaveContent
     ]
 
 

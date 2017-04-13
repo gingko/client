@@ -164,6 +164,23 @@ nodeChanges msg oldNodes =
     Dict.empty
 
 
+getChanges : NodeMsg -> Dict String TreeNode -> Dict String TreeNode
+getChanges msg nodes =
+  case msg of
+    Mod id str ->
+      let
+        node_ = Dict.get id nodes
+      in
+      case node_ of
+        Just node ->
+          Dict.singleton id { node | content = str }
+
+        Nothing ->
+          Dict.empty
+
+    _ ->
+      Dict.empty
+
 
 insertChild : String -> Int -> TreeNode -> TreeNode
 insertChild idToInsert idx treeNode =
@@ -384,7 +401,7 @@ viewCard (isActive, isEditing, depth) tree =
                 [ span
                   [ class "card-btn save"
                   , title "Save Changes (Ctrl+Enter)"
-                  , onClick (AttemptUpdateCard tree.id)
+                  , onClick (GetContentToSave tree.id)
                   ]
                   []
                 ]
