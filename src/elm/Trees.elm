@@ -10,7 +10,7 @@ import Html.Keyed as Keyed
 import Markdown
 
 import Types exposing (..)
-import TreeUtils exposing (..)
+import TreeUtils exposing (getColumns, nodesToTree, dictUpdate)
 import List.Extra as ListExtra
 
 
@@ -27,8 +27,8 @@ type alias Model =
 defaultModel : Model
 defaultModel =
   { tree = defaultTree
-  , columns = getColumns [[[defaultTree]]]
-  , nodes = Dict.fromList [("0", TreeNode "" [] Nothing False)]
+  , columns = [[[defaultTree]]]
+  , nodes = Dict.fromList [("0", TreeNode "" [] Nothing)]
   }
 
 
@@ -38,18 +38,8 @@ defaultTree =
   , content = ""
   , children = Children []
   , rev = Nothing
-  , deleted = False
   }
 
-
-blankTree : String -> Int -> Tree
-blankTree timeString time =
-  { id = generateId timeString time
-  , content = ""
-  , children = Children []
-  , rev = Nothing
-  , deleted = False
-  }
 
 
 
@@ -67,34 +57,7 @@ type NodeMsg
 
 update : NodeMsg -> Model -> Model
 update msg model =
-  let
-    newNodes =
-      updateNodes msg model.nodes
-
-    newTree =
-      if newNodes /= model.nodes then
-        nodesToTree newNodes "0"
-      else
-        model.tree
-
-    newColumns =
-      if newTree /= model.tree then
-        getColumns [[[newTree]]]
-      else
-        model.columns
-  in
-  { model
-    | tree = newTree
-    , columns = newColumns
-    , nodes = newNodes
-  }
-
-
-updateColumns : Model -> Model
-updateColumns model =
-  { model
-    | columns = getColumns [[[ model.tree ]]]
-  }
+  model
 
 
 
@@ -143,7 +106,6 @@ updateNodes msg nodes =
       case parentId_ of
         Just parentId ->
           nodes
-            |> dictUpdate id (\tn -> { tn | deleted = True } )
             |> dictUpdate parentId updParent
 
         Nothing ->
@@ -188,7 +150,10 @@ nodeChanges msg oldNodes =
     newNodes = updateNodes msg oldNodes
 
     both id oldNode newNode nodesSoFar =
-      Dict.insert id newNode nodesSoFar
+      if newNode /= oldNode then
+        Dict.insert id newNode nodesSoFar
+      else
+        nodesSoFar
   in
   Dict.merge
     (identity |> always |> always)

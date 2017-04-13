@@ -38,7 +38,7 @@ db.changes({since: 'now', include_docs: true, live: true, conflicts: true})
   })
 
 shared.loadModel(db, function(data) {
-  gingko.ports.nodes.send(data)
+  //gingko.ports.nodes.send(data)
 })
 
 
@@ -47,71 +47,9 @@ shared.loadModel(db, function(data) {
 
 /* === Elm Ports === */
 
-gingko.ports.message.subscribe(function(msg) {
-  switch (msg[0]) {
-    case 'new':
-      newFile()
-      break
-    case 'open':
-      openDialog()
-      break
-    case 'import':
-      importDialog()
-      break
-    case 'save':
-      shared.saveModel(db, msg[1])
-      break
-    case 'save-and-close':
-      saveAndExit(msg[1])
-      break
-    case 'save-temp':
-      shared.saveModel(db, msg[1])
-      break
-    case 'unsaved-new':
-      unsavedWarningThen( msg[1]
-        , newFile
-        , (err) => dialog.showErrorBox("Save error:", err.message)
-        )
-      break;
-    case 'unsaved-open':
-      unsavedWarningThen( msg[1]
-        , openDialog
-        , (err) => dialog.showErrorBox("Save error:", err.message)
-        )
-      break;
-    case 'undo-state-change':
-      model = msg[1]
-      break
-    case 'confirm-cancel':
-      var options =
-        { type: "warning"
-        , buttons: ["OK", "Cancel"]
-        , title: msg[1].title
-        , message: msg[1].message
-        }
-      dialog.showMessageBox(options, function(e) {
-        if(e === 0) {
-          gingko.ports.externals.send(['confirm-cancel', 'true'])
-        }
-      })
-      break
-  }
-})
-
 gingko.ports.activateCards.subscribe(actives => {
   shared.scrollHorizontal(actives[0])
   shared.scrollColumns(actives[1])
-})
-
-gingko.ports.attemptUpdate.subscribe(id => {
-  var tarea = document.getElementById('card-edit-'+id)
-
-  if (tarea === null) {
-    gingko.ports.updateError.send('Textarea with id '+id+' not found.')
-  } else {
-    field = null
-    gingko.ports.updateSuccess.send([id, tarea.value])
-  }
 })
 
 
@@ -258,7 +196,7 @@ editingInputHandler = function(ev) {
 
 
 Mousetrap.bind(shared.shortcuts, function(e, s) {
-  gingko.ports.externals.send(['keyboard', s]);
+  gingko.ports.keyboard.send(s);
 
   if(shared.needOverride.includes(s)) {
     return false;

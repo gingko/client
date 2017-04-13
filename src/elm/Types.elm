@@ -1,6 +1,5 @@
 module Types exposing (..)
 
-import Json.Decode as Json
 
 
 
@@ -8,8 +7,6 @@ type Msg
     = NoOp
     -- === Card Activation ===
     | Activate String
-    | ActivatePast
-    | ActivateFuture
     | GoLeft String
     | GoDown String
     | GoUp String
@@ -32,26 +29,7 @@ type Msg
     | MoveDown String
     | MoveLeft String
     | MoveRight String
-    -- === History ===
-    | Undo
-    | Redo
-    | AddToUndo Tree
-    -- === File Handling ===
-    | AttemptNew
-    | AttemptOpen
-    | AttemptImport
-    | AttemptSave
-    | AttemptSaveAs
-    | AttemptSaveAndClose
-    | SaveSuccess String
-    | SaveError
-    | SaveTemp
     -- === Ports ===
-    | Confirm String String String
-    | DataIn Json.Value
-    | NodesIn Json.Value
-    | ChangeIn (String, Json.Value)
-    | ExternalCommand (String, String)
     | HandleKey String
 
 
@@ -64,7 +42,6 @@ type alias Tree =
   , content : String
   , children : Children
   , rev : Maybe String
-  , deleted : Bool
   }
 
 
@@ -72,7 +49,6 @@ type alias TreeNode =
   { content : String
   , children : List (String, Bool)
   , rev : Maybe String
-  , deleted : Bool
   }
 
 

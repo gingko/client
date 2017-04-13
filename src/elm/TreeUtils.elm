@@ -13,12 +13,12 @@ import Random exposing (initialSeed, int, minInt, maxInt)
 getColumns : List Column -> List Column
 getColumns cols =
   let
-    col = 
+    col =
       case (ListExtra.last cols) of
         Nothing -> [[]]
         Just c -> c
 
-    hasChildren = 
+    hasChildren =
       col
         |> List.concat
         |> List.any (\x -> (getChildren x) /= [])
@@ -31,33 +31,6 @@ getColumns cols =
   else
     cols
 
-
-getColumnsWithDepth : List (Column, Int) -> List (Column, Int)
-getColumnsWithDepth cols =
-  let
-    colTuple = 
-      case (ListExtra.last cols) of
-        Nothing -> ([[]], 0)
-        Just c -> c
-
-    col =
-      first colTuple
-
-    depth =
-      second colTuple
-
-    hasChildren = 
-      col
-        |> List.concat
-        |> List.any (\x -> (getChildren x) /= [])
-
-    nextColumn col =
-      List.map getChildren (List.concat col)
-  in
-  if hasChildren then
-    getColumnsWithDepth(cols ++ [(nextColumn(col), depth + 1)])
-  else
-    cols
 
 
 
@@ -260,10 +233,10 @@ nodesToTree nodes rootId =
             |> List.map (nodesToTree nodes)
             |> Children
       in
-      Tree rootId rootNode.content children rootNode.rev rootNode.deleted
+      Tree rootId rootNode.content children rootNode.rev
 
     Nothing ->
-      Tree rootId "" (Children []) Nothing False
+      Tree rootId "" (Children []) Nothing
 
 
 nodeToTree : String -> TreeNode -> Tree
@@ -276,7 +249,7 @@ nodeToTree id treeNode =
         |> List.map withIdTree
         |> Children
   in
-  Tree id treeNode.content childrenStubs Nothing treeNode.deleted
+  Tree id treeNode.content childrenStubs Nothing
 
 
 
@@ -293,7 +266,7 @@ centerlineIds flatCols allIds activePast =
             |> ListExtra.findIndex (\a -> List.member a ids)
       in
       case lastActiveIdx_ of
-        Nothing -> ids 
+        Nothing -> ids
         Just idx ->
           aP
             |> ListExtra.getAt idx -- Maybe String
@@ -322,7 +295,7 @@ newLine =
 
 withIdTree : String -> Tree
 withIdTree id =
-  Tree id "" (Children []) Nothing False
+  Tree id "" (Children []) Nothing
 
 dictUpdate : comparable -> (b -> b) -> Dict comparable b -> Dict comparable b
 dictUpdate id upd dict =
