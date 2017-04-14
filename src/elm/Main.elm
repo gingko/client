@@ -12,7 +12,7 @@ import List.Extra as ListExtra
 
 import Types exposing (..)
 import Trees exposing (..)
-import TreeUtils exposing (getTree, getParent, getIndex, (?))
+import TreeUtils exposing (getTree, getParent, getIndex, getContent, (?))
 import Coders exposing (nodeListDecoder, nodeListToValue)
 import Sha1 exposing (timeJSON)
 
@@ -226,6 +226,36 @@ update msg model =
         "mod+x" ->
           let _ = Debug.log "model" model in
           model ! []
+
+        "mod+enter" ->
+          editMode model
+            (\id -> GetContentToSave id)
+
+        "enter" ->
+          normalMode model
+            (OpenCard vs.active (getContent vs.active model.data.tree))
+
+        "esc" ->
+          update CancelCard model
+
+        "mod+j" ->
+          update (InsertBelow vs.active) model
+
+        "mod+down" ->
+          update (InsertBelow vs.active) model
+
+        "mod+k" ->
+          update (InsertAbove vs.active) model
+
+        "mod+up" ->
+          update (InsertAbove vs.active) model
+
+        "mod+l" ->
+          update (InsertChild vs.active) model
+
+        "mod+right" ->
+          update (InsertChild vs.active) model
+
 
         _ ->
           model ! []
