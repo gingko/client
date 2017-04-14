@@ -27,8 +27,7 @@ type Msg
     | InsertChild String
     -- === Card Moving  ===
     | Move String String Int
-    | MoveUp String
-    | MoveDown String
+    | MoveWithin String Int
     | MoveLeft String
     | MoveRight String
     -- === Ports ===

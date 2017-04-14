@@ -298,6 +298,39 @@ update msg model =
 
     InsertChild id ->
       update (Insert id 999999) model
+
+    -- === Card Moving  ===
+    Move id pid pos ->
+      { model
+        | data = Trees.updatePending (Trees.Mv id pid pos) model.data
+      }
+        ! []
+        |> andThen (Activate id)
+        |> andThen AttemptSave
+
+    MoveWithin id delta ->
+      let
+        tree_ =
+          getTree id model.data.tree
+
+        pid_ =
+          getParent id model.data.tree
+            |> Maybe.map .id
+
+        refIdx_ =
+          getIndex id model.data.tree
+      in
+      case (tree_, pid_, refIdx_) of
+        (Just tree, Just pid, Just refIdx) ->
+          update (Move tree.id pid (refIdx + delta)) model
+        _ -> model ! []
+
+    MoveLeft id ->
+      model ! []
+
+    MoveRight id ->
+      model ! []
+
     
     -- === Ports ===
 
@@ -402,6 +435,30 @@ update msg model =
 
         "right" ->
           normalMode model (GoRight vs.active)
+
+        "alt+up" ->
+          normalMode model (MoveWithin vs.active -1)
+
+        "alt+down" ->
+          normalMode model (MoveWithin vs.active 1)
+
+        "alt+left" ->
+          normalMode model (MoveLeft vs.active)
+
+        "alt+right" ->
+          normalMode model (MoveRight vs.active)
+
+        "alt+shift+up" ->
+          normalMode model (MoveWithin vs.active -5)
+
+        "alt+shift+down" ->
+          normalMode model (MoveWithin vs.active 5)
+
+        "alt+home" ->
+          normalMode model (MoveWithin vs.active -999999)
+
+        "alt+end" ->
+          normalMode model (MoveWithin vs.active 999999)
 
         _ ->
           model ! []

@@ -83,18 +83,21 @@ updatePending msg model =
 
     Rmv id ->
       let
-        pid_ =
-          getParentId id model.nodes
-
         parent_ = 
-          pid_
-            |> Maybe.andThen (\pid -> Dict.get pid model.nodes)
+          getParentNodeEntry id model.nodes
+
+        hideChild idToHide treeNode =
+          { treeNode
+            | children =
+                treeNode.children
+                  |> List.filter (\(i, _) -> i /= idToHide)
+          }
       in
-      case (pid_, parent_) of
-        (Just pid, Just parent) ->
+      case parent_ of
+        Just (pid, parent) ->
           { model
             | pending = model.pending
-                ++ [(pid, removeChild id parent)]
+                ++ [(pid, hideChild id parent)]
           }
             |> updateData
 
@@ -115,6 +118,41 @@ updatePending msg model =
 
         Nothing ->
           model
+
+    Mv id newPid pos ->
+      let
+        newParent_ = Dict.get newPid model.nodes
+
+        oldParent_ =
+          getParentNodeEntry id model.nodes
+
+        removeChild idToRemove treeNode =
+          { treeNode
+            | children =
+                treeNode.children
+                  |> List.filter (\(id, _) -> id /= idToRemove)
+          }
+      in
+      case (oldParent_, newParent_) of
+        (Just (oldPid, oldParent), Just newParent)->
+          if (oldPid /= newPid) then
+            { model
+              | pending = model.pending
+                  ++ [(oldPid, removeChild id oldParent)]
+                  ++ [(newPid, insertChild id pos newParent)]
+            }
+              |> updateData
+          else
+            { model
+              | pending = model.pending
+                  ++ [(newPid, newParent |> removeChild id |> insertChild id pos)]
+            }
+              |> updateData
+
+        _ ->
+          model
+
+
 
     _ ->
       model
@@ -269,14 +307,6 @@ insertChild idToInsert idx treeNode =
         | children = ins 999999 treeNode.children
       }
 
-removeChild : String -> TreeNode -> TreeNode
-removeChild idToRemove treeNode =
-  { treeNode
-    | children = 
-        treeNode.children
-          |> List.map (\(id, vis) -> if id == idToRemove then (id, False) else (id, vis))
-  }
-
 
 getParentId : String -> Dict String TreeNode -> Maybe String
 getParentId id nodes =
@@ -289,6 +319,19 @@ getParentId id nodes =
         )
     |> Dict.toList
     |> List.map first
+    |> List.head
+
+
+getParentNodeEntry : String -> Dict String TreeNode -> Maybe (String, TreeNode)
+getParentNodeEntry id nodes =
+  nodes
+    |> Dict.filter
+        (\nid n ->
+          n.children
+            |> List.map first
+            |> List.member id
+        )
+    |> Dict.toList
     |> List.head
 
 

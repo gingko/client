@@ -289,6 +289,10 @@ var shortcuts = [ 'mod+enter'
                 , 'alt+down'
                 , 'alt+up'
                 , 'alt+right'
+                , 'alt+shift+up'
+                , 'alt+shift+down'
+                , 'alt+home'
+                , 'alt+end'
                 , '['
                 , ']'
                 , 'mod+z'
@@ -304,6 +308,7 @@ var needOverride= [ 'mod+j'
                   , 'mod+r'
                   , 'alt+left'
                   , 'alt+right'
+                  , 'alt+home'
                   ];
 
 /* ===== CommonJS Module exports ===== */
