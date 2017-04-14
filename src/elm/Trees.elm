@@ -304,7 +304,7 @@ insertChild idToInsert idx treeNode =
 
     Nothing ->
       { treeNode
-        | children = ins 999999 treeNode.children
+        | children = ins idx treeNode.children
       }
 
 

@@ -322,15 +322,44 @@ update msg model =
       in
       case (tree_, pid_, refIdx_) of
         (Just tree, Just pid, Just refIdx) ->
-          update (Move tree.id pid (refIdx + delta)) model
+          update (Move tree.id pid (refIdx + delta |> max 0)) model
         _ -> model ! []
 
     MoveLeft id ->
-      model ! []
+      let
+        tree_ =
+          getTree id model.data.tree
+
+        parentId =
+          getParent id model.data.tree
+            |> Maybe.map .id
+            |> Maybe.withDefault "invalid"
+
+        parentIdx_ =
+          getIndex parentId model.data.tree
+
+        grandparentId_ =
+          getParent parentId model.data.tree
+            |> Maybe.map .id
+      in
+      case (tree_, grandparentId_, parentIdx_) of
+        (Just tree, Just gpId, Just refIdx) ->
+          update (Move tree.id gpId (refIdx+1)) model
+        _ -> model ! []
 
     MoveRight id ->
-      model ! []
+      let
+        tree_ =
+          getTree id model.data.tree
 
+        prev_ =
+          getPrev id model.data.tree
+            |> Maybe.map .id
+      in
+      case (tree_, prev_) of
+        (Just tree, Just prev) ->
+          update (Move tree.id prev 999999) model
+        _ -> model ! []
     
     -- === Ports ===
 
