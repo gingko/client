@@ -12,7 +12,7 @@ import List.Extra as ListExtra
 
 import Types exposing (..)
 import Trees exposing (..)
-import TreeUtils exposing (getTree, getParent, getIndex, getContent, (?))
+import TreeUtils exposing (..)
 import Coders exposing (nodeListDecoder, nodeListToValue)
 import Sha1 exposing (timeJSON)
 
@@ -88,13 +88,46 @@ update msg model =
     Activate id ->
       let
         activeTree_ = getTree id model.data.tree
+        newPast =
+          if (id == vs.active) then
+            vs.activePast
+          else
+            vs.active :: vs.activePast |> List.take 40
       in
       case activeTree_ of
         Just activeTree ->
+          let
+            desc =
+              activeTree
+                |> getDescendants
+                |> List.map .id
+
+            anc =
+              getAncestors model.data.tree activeTree []
+                |> List.map .id
+
+            flatCols =
+              model.data.columns
+                |> List.map (\c -> List.map (\g -> List.map .id g) c)
+                |> List.map List.concat
+
+            allIds =
+              anc
+              ++ [id]
+              ++ desc
+          in
           { model
-            | viewState = { vs | active = id }
+            | viewState = 
+                { vs 
+                  | active = id 
+                  , descendants = desc
+                }
           }
-            ! []
+            ! [ activateCards
+                  ( getDepth 0 model.data.tree id
+                  , centerlineIds flatCols allIds newPast
+                  )
+              ]
 
         Nothing ->
           model ! []
@@ -105,7 +138,7 @@ update msg model =
       { model
         | viewState = { vs | active = id, editing = Just id }
       }
-        ! []
+        ! [focus id]
 
     GetContentToSave id ->
       model ! [getText id]
