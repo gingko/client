@@ -181,6 +181,12 @@ nodeEntryDecoder =
     (field "_rev" (maybe string))
 
 
+nodeObjectDecoder : Decoder (String, TreeNode)
+nodeObjectDecoder =
+  Json.map (\n -> (n.id, TreeNode n.content n.children n.rev))
+    nodeEntryDecoder
+
+
 nodesDecoder : Decoder (Dict String TreeNode)
 nodesDecoder =
   (dict treeNodeDecoder)

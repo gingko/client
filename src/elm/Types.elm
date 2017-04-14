@@ -32,6 +32,7 @@ type Msg
     | MoveRight String
     -- === Ports ===
     | NodesIn Json.Value
+    | ChangeIn Json.Value
     | AttemptSave
     | SaveResponses (List Response)
     | HandleKey String

@@ -168,17 +168,8 @@ function onChange(change) {
     })
   }
   else {
-    var obj =
-      _.mapKeys(_.omit(change.doc, ['_id', '_deleted']), function(val, key) {
-                  return key == "_rev" ? "rev" : key
-                })
-    obj["deleted"] = change.doc._deleted ? true : false
-
-    console.log('change', change, obj)
-    gingko.ports.change.send(
-      [ change.id
-      , obj
-      ])
+    console.log('change', change.doc)
+    gingko.ports.change.send(change.doc)
   }
 }
 

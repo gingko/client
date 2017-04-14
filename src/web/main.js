@@ -32,13 +32,12 @@ var db = new PouchDB('treenodes8')
 var remoteCouch = 'http://localhost:5984/treenodes8'
 
 db.sync(remoteCouch, {live: true, retry: true}, (err) => console.log(err))
-//db.changes({since: 'now', include_docs: true, live: true, conflicts: true})
-//  .on('change', shared.onChange)
-//  .on('error', function (err) {
-//  })
+db.changes({since: 'now', include_docs: true, live: true, conflicts: true})
+  .on('change', shared.onChange)
+  .on('error', function (err) {
+  })
 
 shared.loadModel(db, function(data) {
-  console.log(data.map(r => r.doc))
   gingko.ports.nodes.send(data.map(r => r.doc))
 })
 

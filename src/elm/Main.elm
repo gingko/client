@@ -13,7 +13,7 @@ import List.Extra as ListExtra
 import Types exposing (..)
 import Trees exposing (..)
 import TreeUtils exposing (..)
-import Coders exposing (nodeListDecoder, nodeListToValue)
+import Coders exposing (nodeListDecoder, nodeObjectDecoder, nodeListToValue)
 import Sha1 exposing (timeJSON)
 
 
@@ -300,6 +300,7 @@ update msg model =
       update (Insert id 999999) model
 
     -- === Card Moving  ===
+
     Move id pid pos ->
       { model
         | data = Trees.updatePending (Trees.Mv id pid pos) model.data
@@ -360,12 +361,28 @@ update msg model =
         (Just tree, Just prev) ->
           update (Move tree.id prev 999999) model
         _ -> model ! []
-    
+
     -- === Ports ===
 
     NodesIn json ->
       let _ = Debug.log "json" json in
       init json
+
+    ChangeIn json ->
+      case Json.decodeValue nodeObjectDecoder json of
+        Ok (id, node) ->
+          { model
+            | data =
+                { data
+                  | nodes = Dict.insert id node data.nodes
+                }
+                  |> Trees.updateData
+          }
+            ! []
+
+        Err err ->
+          let _ = Debug.log "ChangeIn decode error:" err in
+          model ! []
 
     AttemptSave ->
       model ! [saveNodes (model.data.pending |> nodeListToValue)]
@@ -530,6 +547,7 @@ view model =
 
 
 port nodes : (Json.Value -> msg) -> Sub msg
+port change : (Json.Value -> msg) -> Sub msg
 port keyboard : (String -> msg) -> Sub msg
 port updateContent : ((String, String) -> msg) -> Sub msg
 port saveResponses : (List Response -> msg) -> Sub msg
@@ -539,6 +557,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.batch
     [ nodes NodesIn
+    , change ChangeIn
     , keyboard HandleKey
     , updateContent UpdateContent
     , saveResponses SaveResponses
