@@ -209,6 +209,37 @@ update msg model =
         ! []
         |> andThen AttemptSave
 
+    DeleteCard id ->
+      let
+        filteredActive =
+          vs.activePast
+            |> List.filter (\a -> a /= id)
+
+        parent_ = getParent id model.data.tree
+        prev_ = getPrevInColumn id model.data.tree
+        next_ = getNextInColumn id model.data.tree
+
+        nextToActivate =
+          case (parent_, prev_, next_) of
+            (_, Just prev, _) ->
+              prev.id
+
+            (_, Nothing, Just next) ->
+              next.id
+
+            (Just parent, Nothing, Nothing) ->
+              parent.id
+
+            (Nothing, Nothing, Nothing) ->
+              "0"
+      in
+      { model
+        | data = Trees.updatePending (Trees.Rmv id) model.data
+      }
+        ! []
+        |> andThen (Activate nextToActivate)
+        |> andThen AttemptSave
+
     CancelCard ->
       { model
         | viewState = { vs | editing = Nothing }
@@ -319,12 +350,13 @@ update msg model =
           model ! []
 
         "mod+enter" ->
-          editMode model
-            (\id -> GetContentToSave id)
+          editMode model (\id -> GetContentToSave id)
 
         "enter" ->
-          normalMode model
-            (OpenCard vs.active (getContent vs.active model.data.tree))
+          normalMode model (OpenCard vs.active (getContent vs.active model.data.tree))
+
+        "mod+backspace" ->
+          normalMode model (DeleteCard vs.active)
 
         "esc" ->
           update CancelCard model

@@ -81,6 +81,25 @@ updatePending msg model =
         Nothing ->
           model
 
+    Rmv id ->
+      let
+        pid_ =
+          getParentId id model.nodes
+
+        parent_ = 
+          pid_
+            |> Maybe.andThen (\pid -> Dict.get pid model.nodes)
+      in
+      case (pid_, parent_) of
+        (Just pid, Just parent) ->
+          { model
+            | pending = model.pending
+                ++ [(pid, removeChild id parent)]
+          }
+            |> updateData
+
+        _ ->
+          model
 
     Mod id str ->
       let
@@ -249,6 +268,14 @@ insertChild idToInsert idx treeNode =
       { treeNode
         | children = ins 999999 treeNode.children
       }
+
+removeChild : String -> TreeNode -> TreeNode
+removeChild idToRemove treeNode =
+  { treeNode
+    | children = 
+        treeNode.children
+          |> List.map (\(id, vis) -> if id == idToRemove then (id, False) else (id, vis))
+  }
 
 
 getParentId : String -> Dict String TreeNode -> Maybe String
