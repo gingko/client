@@ -19,6 +19,14 @@ type alias Model =
   }
 
 
+type alias Node =
+  { id : String
+  , content : String
+  , children : List (String, Bool)
+  , rev : Maybe String
+  }
+
+
 -- ENCODERS
 
 nodeListToValue : List (String, TreeNode) -> Json.Encode.Value
@@ -158,6 +166,21 @@ viewStateDecoder =
     (maybe (field "editing" string))
 
 
+nodeListDecoder : Decoder (List (String, TreeNode))
+nodeListDecoder =
+  Json.map (\ln -> ln |> List.map (\n -> (n.id, TreeNode n.content n.children n.rev)))
+    (list nodeEntryDecoder)
+
+
+nodeEntryDecoder : Decoder Node
+nodeEntryDecoder =
+  Json.map4 Node
+    (field "_id" string)
+    (field "content" string)
+    (field "children" (list (tupleDecoder string bool)))
+    (field "_rev" (maybe string))
+
+
 nodesDecoder : Decoder (Dict String TreeNode)
 nodesDecoder =
   (dict treeNodeDecoder)
@@ -167,8 +190,8 @@ treeNodeDecoder : Decoder TreeNode
 treeNodeDecoder =
   Json.map3 TreeNode
     (field "content" string)
-    (field "children" <| list <| tupleDecoder string bool)
-    (field "rev" (maybe string))
+    (field "children" (list (tupleDecoder string bool)))
+    (field "_rev" (maybe string))
 
 
 

@@ -38,7 +38,8 @@ db.sync(remoteCouch, {live: true, retry: true}, (err) => console.log(err))
 //  })
 
 shared.loadModel(db, function(data) {
-  //gingko.ports.nodes.send(data)
+  console.log(data.map(r => r.doc))
+  gingko.ports.nodes.send(data.map(r => r.doc))
 })
 
 

@@ -1,5 +1,7 @@
 module Types exposing (..)
 
+import Json.Decode as Json
+
 
 
 
@@ -30,6 +32,7 @@ type Msg
     | MoveLeft String
     | MoveRight String
     -- === Ports ===
+    | NodesIn Json.Value
     | AttemptSave
     | SaveResponses (List Response)
     | HandleKey String

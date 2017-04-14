@@ -96,13 +96,13 @@ function nodesToRows(nodes) {
 
 /* ===== Database Loading ===== */
 
-function loadModel(db, callback) {
+function loadModel(db, callback, error) {
   db.allDocs({
     include_docs: true
   }).then(function (result) {
-    callback(rowsToNodes(result.rows))
+    callback(result.rows)
   }).catch(function (err) {
-    console.log(err)
+    error(err)
   })
 }
 

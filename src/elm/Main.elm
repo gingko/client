@@ -13,7 +13,7 @@ import List.Extra as ListExtra
 import Types exposing (..)
 import Trees exposing (..)
 import TreeUtils exposing (getTree, getParent, getIndex, (?))
-import Coders exposing (nodeListToValue)
+import Coders exposing (nodeListDecoder, nodeListToValue)
 import Sha1 exposing (timeJSON)
 
 
@@ -58,7 +58,17 @@ defaultModel =
 
 init : Json.Value -> (Model, Cmd Msg)
 init savedState =
-  defaultModel ! []
+  case Json.decodeValue nodeListDecoder savedState of
+    Ok nodeList ->
+      { defaultModel 
+        | data = Trees.Model defaultTree [] (nodeList |> Dict.fromList) []
+            |> Trees.updateData
+      }
+        ! []
+
+    Err err ->
+      let _ = Debug.log "nodes in err" err in
+      defaultModel ! []
 
 
 
@@ -108,6 +118,12 @@ update msg model =
         ! []
         |> andThen AttemptSave
 
+    CancelCard ->
+      { model
+        | viewState = { vs | editing = Nothing }
+      }
+        ! []
+
     -- === Card Insertion  ===
 
     Insert pid pos ->
@@ -140,10 +156,32 @@ update msg model =
       in
       update insertMsg model
 
+    InsertBelow id ->
+      let
+        idx =
+          getIndex id model.data.tree ? 999999
+
+        pid_ =
+          getParent id model.data.tree |> Maybe.map .id
+
+        insertMsg =
+          case pid_ of
+            Just pid ->
+              Insert pid (idx+1)
+
+            Nothing ->
+              NoOp
+      in
+      update insertMsg model
+
     InsertChild id ->
       update (Insert id 999999) model
     
     -- === Ports ===
+
+    NodesIn json ->
+      let _ = Debug.log "json" json in
+      init json
 
     AttemptSave ->
       model ! [saveNodes (model.data.pending |> nodeListToValue)]
@@ -229,6 +267,7 @@ view model =
 -- SUBSCRIPTIONS
 
 
+port nodes : (Json.Value -> msg) -> Sub msg
 port keyboard : (String -> msg) -> Sub msg
 port updateContent : ((String, String) -> msg) -> Sub msg
 port saveResponses : (List Response -> msg) -> Sub msg
@@ -237,7 +276,8 @@ port saveResponses : (List Response -> msg) -> Sub msg
 subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.batch
-    [ keyboard HandleKey
+    [ nodes NodesIn
+    , keyboard HandleKey
     , updateContent UpdateContent
     , saveResponses SaveResponses
     ]
