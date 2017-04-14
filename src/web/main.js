@@ -59,7 +59,7 @@ gingko.ports.getText.subscribe(id => {
   if (tarea === null) {
     gingko.ports.updateError.send('Textarea with id '+id+' not found.')
   } else {
-    gingko.ports.attemptSaveContent.send([id, tarea.value])
+    gingko.ports.updateContent.send([id, tarea.value])
   }
 })
 

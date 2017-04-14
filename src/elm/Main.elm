@@ -12,7 +12,9 @@ import List.Extra as ListExtra
 
 import Types exposing (..)
 import Trees exposing (..)
+import TreeUtils exposing (getParent, getIndex, (?))
 import Coders exposing (nodeListToValue)
+import Sha1 exposing (timeJSON)
 
 
 main : Program Json.Value Model Msg
@@ -71,16 +73,55 @@ update msg model =
     data = model.data
   in
   case msg of
+    -- === Card Editing  ===
+
     GetContentToSave id ->
       model ! [getText id]
 
-    AttemptSaveContent (id, str) ->
+    UpdateContent (id, str) ->
       { model
         | data = Trees.updatePending (Trees.Mod id str) model.data
         , viewState = { vs | active = id, editing = Nothing }
       }
         ! []
         |> andThen AttemptSave
+
+    -- === Card Insertion  ===
+
+    Insert pid pos ->
+      let
+        newId = "node-" ++ (timeJSON ())
+      in
+      { model
+        | data = Trees.updatePending (Trees.Add newId pid pos) model.data
+      }
+        ! []
+        |> andThen (OpenCard newId "")
+        |> andThen (Activate newId)
+        |> andThen AttemptSave
+
+    InsertAbove id ->
+      let
+        idx =
+          getIndex id model.data.tree ? 999999
+
+        pid_ =
+          getParent id model.data.tree |> Maybe.map .id
+
+        insertMsg =
+          case pid_ of
+            Just pid ->
+              Insert pid idx
+
+            Nothing ->
+              NoOp
+      in
+      update insertMsg model
+
+    InsertChild id ->
+      update (Insert id 999999) model
+    
+    -- === Ports ===
 
     AttemptSave ->
       model ! [saveNodes (model.data.pending |> nodeListToValue)]
@@ -167,7 +208,7 @@ view model =
 
 
 port keyboard : (String -> msg) -> Sub msg
-port attemptSaveContent : ((String, String) -> msg) -> Sub msg
+port updateContent : ((String, String) -> msg) -> Sub msg
 port saveResponses : (List Response -> msg) -> Sub msg
 
 
@@ -175,7 +216,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.batch
     [ keyboard HandleKey
-    , attemptSaveContent AttemptSaveContent
+    , updateContent UpdateContent
     , saveResponses SaveResponses
     ]
 

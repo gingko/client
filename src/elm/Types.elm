@@ -14,13 +14,12 @@ type Msg
     -- === Card Editing  ===
     | OpenCard String String
     | GetContentToSave String
-    | AttemptSaveContent (String, String)
-    | UpdateCard (String, String)
+    | UpdateContent (String, String)
     | UpdateCardError String
     | DeleteCard String
     | CancelCard
     -- === Card Insertion  ===
-    | Insert TreeNode String Int
+    | Insert String Int
     | InsertAbove String
     | InsertBelow String
     | InsertChild String

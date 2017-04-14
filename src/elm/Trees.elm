@@ -50,7 +50,7 @@ defaultTree =
 
 type NodeMsg
   = Nope
-  | Add String TreeNode String Int
+  | Add String String Int
   | Rmv String
   | Mod String String
   | Mv String String Int
@@ -65,6 +65,23 @@ update msg model =
 updatePending : NodeMsg -> Model -> Model
 updatePending msg model =
   case msg of
+    Add id pid pos ->
+      let
+        parent_ = Dict.get pid model.nodes
+      in
+      case parent_ of
+        Just parent ->
+          { model
+            | pending = model.pending
+                ++ [(id, TreeNode "" [] Nothing)]
+                ++ [(pid, insertChild id pos parent)]
+          }
+            |> updateData
+
+        Nothing ->
+          model
+
+
     Mod id str ->
       let
         node_ = Dict.get id model.nodes
@@ -113,10 +130,10 @@ updateData model =
 updateNodes : NodeMsg -> Dict String TreeNode -> Dict String TreeNode
 updateNodes msg nodes =
   case msg of
-    Add id treeNode pid pos ->
-      nodes
-        |> Dict.insert id treeNode
-        |> dictUpdate pid (insertChild id pos)
+    --Add id treeNode pid pos ->
+    --  nodes
+    --    |> Dict.insert id treeNode
+    --    |> dictUpdate pid (insertChild id pos)
 
     Rmv id ->
       let
@@ -169,6 +186,8 @@ updateNodes msg nodes =
 
     Nope ->
       nodes
+
+    _ -> nodes
 
 
 nodeChanges : NodeMsg -> Dict String TreeNode -> Dict String TreeNode
