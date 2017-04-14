@@ -12,7 +12,7 @@ import List.Extra as ListExtra
 
 import Types exposing (..)
 import Trees exposing (..)
-import TreeUtils exposing (getParent, getIndex, (?))
+import TreeUtils exposing (getTree, getParent, getIndex, (?))
 import Coders exposing (nodeListToValue)
 import Sha1 exposing (timeJSON)
 
@@ -73,7 +73,29 @@ update msg model =
     data = model.data
   in
   case msg of
+    -- === Card Activation ===
+
+    Activate id ->
+      let
+        activeTree_ = getTree id model.data.tree
+      in
+      case activeTree_ of
+        Just activeTree ->
+          { model
+            | viewState = { vs | active = id }
+          }
+            ! []
+
+        Nothing ->
+          model ! []
+
     -- === Card Editing  ===
+
+    OpenCard id str ->
+      { model
+        | viewState = { vs | active = id, editing = Just id }
+      }
+        ! []
 
     GetContentToSave id ->
       model ! [getText id]
