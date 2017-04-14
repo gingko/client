@@ -21,25 +21,21 @@ type alias Model =
 
 -- ENCODERS
 
-
-nodeDictToJson : Dict String TreeNode -> Json.Encode.Value
-nodeDictToJson nodes =
-  let
-    nodeList = Dict.toList nodes -- List (String, TreeNode)
-
-    fn : (String, TreeNode) -> Json.Encode.Value
-    fn (id, n) =
-      Json.Encode.object
-        [ ("_id", Json.Encode.string id)
-        , ("_rev", maybeToValue n.rev Json.Encode.string)
-        , ("content", Json.Encode.string n.content)
-        , ( "children", Json.Encode.list
-              (List.map (tupleToValue Json.Encode.string Json.Encode.bool) n.children) )
-        ]
-  in
+nodeListToValue : List (String, TreeNode) -> Json.Encode.Value
+nodeListToValue nodeList =
   Json.Encode.list
-    (List.map fn nodeList)
+    (List.map nodeEntryToValue nodeList)
 
+
+nodeEntryToValue : (String, TreeNode) -> Json.Encode.Value
+nodeEntryToValue (id, n) =
+  Json.Encode.object
+    [ ("_id", Json.Encode.string id)
+    , ("_rev", maybeToValue n.rev Json.Encode.string)
+    , ("content", Json.Encode.string n.content)
+    , ( "children", Json.Encode.list
+          (List.map (tupleToValue Json.Encode.string Json.Encode.bool) n.children) )
+    ]
 
 
 modelToValue : Model -> Json.Encode.Value
@@ -128,10 +124,11 @@ modelDecoder =
 
 treesModelDecoder : Decoder Trees.Model
 treesModelDecoder =
-  Json.map3 Trees.Model
+  Json.map4 Trees.Model
     treeDecoder
     (succeed [])
     (succeed Dict.empty)
+    (succeed [])
 
 
 treeDecoder : Decoder Tree
@@ -139,7 +136,7 @@ treeDecoder =
   Json.map4 Tree
     (field "id" string)
     (field "content" string)
-    (oneOf  [ ( field 
+    (oneOf  [ ( field
                 "children"
                 ( list (lazyRecurse (\_ -> treeDecoder)) 
                   |> Json.map Children 

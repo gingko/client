@@ -21,6 +21,7 @@ type alias Model =
   { tree : Tree
   , columns : List Column
   , nodes : Dict String TreeNode
+  , pending : List (String, TreeNode)
   }
 
 
@@ -29,6 +30,7 @@ defaultModel =
   { tree = defaultTree
   , columns = [[[defaultTree]]]
   , nodes = Dict.fromList [("0", TreeNode "" [] Nothing)]
+  , pending = []
   }
 
 
@@ -60,6 +62,28 @@ update msg model =
   model
 
 
+updatePending : NodeMsg -> Model -> Model
+updatePending msg model =
+  case msg of
+    Mod id str ->
+      let
+        node_ = Dict.get id model.nodes
+      in
+      case node_ of
+        Just node ->
+          { model
+            | pending = model.pending
+                ++ [(id, { node | content = str })]
+          }
+            |> updateData
+
+        Nothing ->
+          model
+
+    _ ->
+      model
+
+
 
 
 -- ====== NODE UPDATES ======
@@ -68,8 +92,11 @@ update msg model =
 updateData : Model -> Model
 updateData model =
   let
+    tempNodes =
+      Dict.union (model.pending |> Dict.fromList) model.nodes
+
     newTree =
-      nodesToTree model.nodes "0"
+      nodesToTree tempNodes "0"
 
     newColumns =
       if newTree /= model.tree then

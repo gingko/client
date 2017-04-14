@@ -4,15 +4,15 @@ port module Main exposing (..)
 import Html exposing (..)
 import Html.Lazy exposing (lazy, lazy2)
 import Tuple exposing (first, second)
-import Dict exposing (Dict)
-import Json.Encode
+import Dict
 import Json.Decode as Json
 import Dom
 import Task
+import List.Extra as ListExtra
 
 import Types exposing (..)
 import Trees exposing (..)
-import Coders exposing (nodeDictToJson)
+import Coders exposing (nodeListToValue)
 
 
 main : Program Json.Value Model Msg
@@ -27,7 +27,7 @@ main =
 
 port activateCards : (Int, List (List String)) -> Cmd msg
 port getText : String -> Cmd msg
-port saveNodes : Json.Encode.Value -> Cmd msg
+port saveNodes : Json.Value -> Cmd msg
 
 
 
@@ -37,7 +37,6 @@ port saveNodes : Json.Encode.Value -> Cmd msg
 
 type alias Model =
   { data : Trees.Model
-  , pending : Dict String TreeNode
   , viewState : ViewState
   }
 
@@ -45,7 +44,6 @@ type alias Model =
 defaultModel : Model
 defaultModel =
   { data = Trees.defaultModel
-  , pending = Dict.empty
   , viewState =
       { active = "0"
       , activePast = []
@@ -70,6 +68,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   let
     vs = model.viewState
+    data = model.data
   in
   case msg of
     GetContentToSave id ->
@@ -77,25 +76,49 @@ update msg model =
 
     AttemptSaveContent (id, str) ->
       { model
-        | pending = Trees.getChanges (Trees.Mod id str) model.data.nodes
+        | data = Trees.updatePending (Trees.Mod id str) model.data
+        , viewState = { vs | active = id, editing = Nothing }
       }
         ! []
         |> andThen AttemptSave
 
     AttemptSave ->
-      model ! [saveNodes (model.pending |> nodeDictToJson)]
+      model ! [saveNodes (model.data.pending |> nodeListToValue)]
 
     SaveResponses res ->
       let
-        oks = res |> List.filter .ok
-      in
-      model ! []
-      -- TODO:
-      -- get all succeeded pending vals
-      -- update their revs
-      -- insert into model.data.nodes (insert = update if already exists)
-      -- use updateData to get new tree and columns
+        okIds =
+          res
+            |> List.filter .ok
+            |> List.map .id
 
+        newPending =
+          data.pending
+            |> List.filter (\(id, ptn) -> not <| List.member id okIds)
+
+        modifiedNodes =
+          res
+            |> List.filter .ok
+            |> List.filterMap
+                (\r ->
+                  data.pending
+                    |> ListExtra.find (\(id, ptn) -> id == r.id)
+                    |> Maybe.andThen (\(id, tn) -> Just (id, {tn | rev = Just r.rev }))
+                )
+            |> Dict.fromList
+
+        newNodes =
+          Dict.union modifiedNodes data.nodes
+      in
+      { model
+        | data =
+            { data
+              | nodes = newNodes
+              , pending = newPending
+              }
+                |> Trees.updateData
+      }
+        ! []
 
     HandleKey key ->
       case key of

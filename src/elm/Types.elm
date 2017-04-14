@@ -55,16 +55,16 @@ type alias TreeNode =
   }
 
 
-type Children = Children (List Tree)
-type alias Group = List Tree
-type alias Column = List (List Tree)
-
-
 type alias Response =
   { id : String
   , rev : String
   , ok : Bool
   }
+
+
+type Children = Children (List Tree)
+type alias Group = List Tree
+type alias Column = List (List Tree)
 
 
 
