@@ -120,6 +120,8 @@ update msg model =
             | viewState = 
                 { vs 
                   | active = id 
+                  , activePast = newPast
+                  , activeFuture = []
                   , descendants = desc
                 }
           }
@@ -131,6 +133,62 @@ update msg model =
 
         Nothing ->
           model ! []
+
+    GoLeft id ->
+      let
+        targetId =
+          getParent id model.data.tree ? defaultTree |> .id
+      in
+      update (Activate targetId) model
+
+    GoDown id ->
+      let
+        targetId =
+          case getNextInColumn id model.data.tree of
+            Nothing -> id
+            Just ntree -> ntree.id
+      in
+      update (Activate targetId) model
+
+    GoUp id ->
+      let
+        targetId =
+          case getPrevInColumn id model.data.tree of
+            Nothing -> id
+            Just ntree -> ntree.id
+      in
+      update (Activate targetId) model
+
+    GoRight id ->
+      let
+        tree_ =
+          getTree id model.data.tree
+
+        childrenIds =
+          getChildren (tree_ ? defaultTree)
+            |> List.map .id
+
+        firstChildId =
+          childrenIds
+            |> List.head
+            |> Maybe.withDefault id
+
+        prevActiveOfChildren =
+          vs.activePast
+            |> List.filter (\a -> List.member a childrenIds)
+            |> List.head
+            |> Maybe.withDefault firstChildId
+      in
+      case tree_ of
+        Nothing ->
+          model ! []
+
+        Just tree ->
+          if List.length childrenIds == 0 then
+            model ! []
+          else
+            update (Activate prevActiveOfChildren) model
+
 
     -- === Card Editing  ===
 
@@ -289,6 +347,29 @@ update msg model =
         "mod+right" ->
           update (InsertChild vs.active) model
 
+        "h" ->
+          normalMode model (GoLeft vs.active)
+
+        "left" ->
+          normalMode model (GoLeft vs.active)
+
+        "j" ->
+          normalMode model (GoDown vs.active)
+
+        "down" ->
+          normalMode model (GoDown vs.active)
+
+        "k" ->
+          normalMode model (GoUp vs.active)
+
+        "up" ->
+          normalMode model (GoUp vs.active)
+
+        "l" ->
+          normalMode model (GoRight vs.active)
+
+        "right" ->
+          normalMode model (GoRight vs.active)
 
         _ ->
           model ! []
