@@ -221,22 +221,21 @@ generateId timeString time =
     |> String.join "-"
 
 
-nodesToTree : Dict String TreeNode -> String -> Tree
+nodesToTree : Dict String TreeNode -> String -> Maybe Tree
 nodesToTree nodes rootId =
   case (get rootId nodes) of
     Just rootNode ->
       let
         children =
           rootNode.children
-            |> List.filter second
             |> List.map first
-            |> List.map (nodesToTree nodes)
+            |> List.filterMap (nodesToTree nodes)
             |> Children
       in
-      Tree rootId rootNode.content children rootNode.rev
+      Just (Tree rootId rootNode.content children rootNode.rev)
 
     Nothing ->
-      Tree rootId "" (Children []) Nothing
+      Nothing
 
 
 nodeToTree : String -> TreeNode -> Tree

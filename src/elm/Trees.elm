@@ -29,7 +29,7 @@ defaultModel : Model
 defaultModel =
   { tree = defaultTree
   , columns = [[[defaultTree]]]
-  , nodes = Dict.fromList [("0", TreeNode "" [] Nothing)]
+  , nodes = Dict.fromList [("0", TreeNode "" [] Nothing False)]
   , pending = []
   }
 
@@ -73,7 +73,7 @@ updatePending msg model =
         Just parent ->
           { model
             | pending = model.pending
-                ++ [(id, TreeNode "" [] Nothing)]
+                ++ [(id, TreeNode "" [] Nothing False)]
                 ++ [(pid, insertChild id pos parent)]
           }
             |> updateData
@@ -83,21 +83,13 @@ updatePending msg model =
 
     Rmv id ->
       let
-        parent_ = 
-          getParentNodeEntry id model.nodes
-
-        hideChild idToHide treeNode =
-          { treeNode
-            | children =
-                treeNode.children
-                  |> List.filter (\(i, _) -> i /= idToHide)
-          }
+        node_ = Dict.get id model.nodes
       in
-      case parent_ of
-        Just (pid, parent) ->
+      case node_ of
+        Just node ->
           { model
             | pending = model.pending
-                ++ [(pid, hideChild id parent)]
+                ++ [(id, { node | deleted = True })]
           }
             |> updateData
 
@@ -171,6 +163,7 @@ updateData model =
 
     newTree =
       nodesToTree tempNodes "0"
+        |> Maybe.withDefault defaultTree
 
     newColumns =
       if newTree /= model.tree then

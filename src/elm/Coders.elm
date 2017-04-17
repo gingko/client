@@ -3,6 +3,7 @@ module Coders exposing (..)
 import Types exposing (..)
 import Json.Encode
 import Json.Decode as Json exposing (..)
+import Json.Decode.Pipeline exposing (decode, required, optional)
 import Array exposing (fromList)
 import Dict exposing (Dict)
 
@@ -24,6 +25,7 @@ type alias Node =
   , content : String
   , children : List (String, Bool)
   , rev : Maybe String
+  , deleted : Bool
   }
 
 
@@ -40,6 +42,7 @@ nodeEntryToValue (id, n) =
   Json.Encode.object
     [ ("_id", Json.Encode.string id)
     , ("_rev", maybeToValue n.rev Json.Encode.string)
+    , ("_deleted", Json.Encode.bool n.deleted)
     , ("content", Json.Encode.string n.content)
     , ( "children", Json.Encode.list
           (List.map (tupleToValue Json.Encode.string Json.Encode.bool) n.children) )
@@ -168,22 +171,23 @@ viewStateDecoder =
 
 nodeListDecoder : Decoder (List (String, TreeNode))
 nodeListDecoder =
-  Json.map (\ln -> ln |> List.map (\n -> (n.id, TreeNode n.content n.children n.rev)))
+  Json.map (\ln -> ln |> List.map (\n -> (n.id, TreeNode n.content n.children n.rev n.deleted)))
     (list nodeEntryDecoder)
 
 
 nodeEntryDecoder : Decoder Node
 nodeEntryDecoder =
-  Json.map4 Node
-    (field "_id" string)
-    (field "content" string)
-    (field "children" (list (tupleDecoder string bool)))
-    (field "_rev" (maybe string))
+  decode Node
+    |> required "_id" string
+    |> required "content" string
+    |> required "children" (list (tupleDecoder string bool))
+    |> required "_rev" (maybe string)
+    |> optional "_deleted" bool False
 
 
 nodeObjectDecoder : Decoder (String, TreeNode)
 nodeObjectDecoder =
-  Json.map (\n -> (n.id, TreeNode n.content n.children n.rev))
+  Json.map (\n -> (n.id, TreeNode n.content n.children n.rev n.deleted))
     nodeEntryDecoder
 
 
@@ -194,10 +198,11 @@ nodesDecoder =
 
 treeNodeDecoder : Decoder TreeNode
 treeNodeDecoder =
-  Json.map3 TreeNode
+  Json.map4 TreeNode
     (field "content" string)
     (field "children" (list (tupleDecoder string bool)))
     (field "_rev" (maybe string))
+    (field "_deleted" bool)
 
 
 

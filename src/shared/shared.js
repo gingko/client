@@ -121,10 +121,7 @@ function rowsToNodes(rows) {
 
 function onChange(change) {
   var db = this.db
-  if(change.deleted) {
-    gingko.ports.externals.send(['change-deleted', change.id])
-  }
-  else if (change.doc._conflicts) {
+  if (change.doc._conflicts) {
     db.get(change.id, {
       open_revs: change.doc._conflicts
     })
