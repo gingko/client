@@ -219,6 +219,12 @@ update msg model =
         prev_ = getPrevInColumn id model.data.tree
         next_ = getNextInColumn id model.data.tree
 
+        desc =
+          getTree id model.data.tree
+            |> Maybe.map getDescendants
+            |> Maybe.map (List.map .id)
+            |> Maybe.withDefault []
+
         nextToActivate =
           case (parent_, prev_, next_) of
             (_, Just prev, _) ->
@@ -234,7 +240,7 @@ update msg model =
               "0"
       in
       { model
-        | data = Trees.updatePending (Trees.Rmv id) model.data
+        | data = Trees.updatePending (Trees.Rmv id desc) model.data
       }
         ! []
         |> andThen (Activate nextToActivate)

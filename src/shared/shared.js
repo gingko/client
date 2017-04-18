@@ -120,12 +120,14 @@ function rowsToNodes(rows) {
 
 
 function onChange(change) {
+  console.log('change', change)
   var db = this.db
   if (change.doc._conflicts) {
     db.get(change.id, {
       open_revs: change.doc._conflicts
     })
     .then(function(responses) {
+      console.log('conflict responses', responses)
       var docs = responses
         .filter(function(response){
           return 'ok' in response
@@ -134,6 +136,8 @@ function onChange(change) {
           return response.ok
         })
         .concat(change.doc)
+
+        console.log('changes docs', docs)
 
       var wDocs = JSON.parse(JSON.stringify(docs))
 
@@ -177,15 +181,15 @@ function resolver(a, b) {
 
   if (a.content !== b.content) {
     m.content = a.content + "\n=====CONFLICT=====\n" + b.content
-    return m
   }
-  else if (!_.isEqual(a.children, b.children)) {
+
+  if (!_.isEqual(a.children, b.children)) {
     m.children = _.unionWith(a.children, b.children, _.isEqual)
-    return m
   }
-  else {
-    return
-  }
+
+  m.deleted = a.deleted || b.deleted
+
+  return m
 }
 
 

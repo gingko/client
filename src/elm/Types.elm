@@ -54,6 +54,7 @@ type alias TreeNode =
   { content : String
   , children : List (String, Bool)
   , rev : Maybe String
+  , deletedSubtree : Maybe (List String)
   , deleted : Bool
   }
 

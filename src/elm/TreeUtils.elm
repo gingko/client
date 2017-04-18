@@ -223,8 +223,12 @@ generateId timeString time =
 
 nodesToTree : Dict String TreeNode -> String -> Maybe Tree
 nodesToTree nodes rootId =
-  case (get rootId nodes) of
-    Just rootNode ->
+  let
+    rootNode_ = get rootId nodes
+    deleted_ = rootNode_ |> Maybe.map .deleted
+  in
+  case (rootNode_, deleted_) of
+    (Just rootNode, Just False) ->
       let
         children =
           rootNode.children
@@ -232,9 +236,9 @@ nodesToTree nodes rootId =
             |> List.filterMap (nodesToTree nodes)
             |> Children
       in
-      Just (Tree rootId rootNode.content children rootNode.rev)
+        Just (Tree rootId rootNode.content children rootNode.rev)
 
-    Nothing ->
+    _ ->
       Nothing
 
 

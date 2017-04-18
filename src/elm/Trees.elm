@@ -29,7 +29,7 @@ defaultModel : Model
 defaultModel =
   { tree = defaultTree
   , columns = [[[defaultTree]]]
-  , nodes = Dict.fromList [("0", TreeNode "" [] Nothing False)]
+  , nodes = Dict.fromList [("0", TreeNode "" [] Nothing Nothing False)]
   , pending = []
   }
 
@@ -51,7 +51,7 @@ defaultTree =
 type NodeMsg
   = Nope
   | Add String String Int
-  | Rmv String
+  | Rmv String (List String)
   | Mod String String
   | Mv String String Int
   | Node String TreeNode
@@ -73,7 +73,7 @@ updatePending msg model =
         Just parent ->
           { model
             | pending = model.pending
-                ++ [(id, TreeNode "" [] Nothing False)]
+                ++ [(id, TreeNode "" [] Nothing Nothing False)]
                 ++ [(pid, insertChild id pos parent)]
           }
             |> updateData
@@ -81,15 +81,25 @@ updatePending msg model =
         Nothing ->
           model
 
-    Rmv id ->
+    Rmv id descIds ->
       let
         node_ = Dict.get id model.nodes
+
+        fMapFunc i =
+          Dict.get i model.nodes
+            |> Maybe.map (\tn -> (i, tn))
+
+        desc = 
+          descIds
+            |> List.filterMap fMapFunc
+            |> List.map (\(i, tn) -> (i, { tn | deleted = True, deletedSubtree = Just descIds }))
       in
       case node_ of
         Just node ->
           { model
             | pending = model.pending
-                ++ [(id, { node | deleted = True })]
+                ++ [(id, { node | deleted = True, deletedSubtree = Just descIds })]
+                ++ desc
           }
             |> updateData
 
@@ -185,7 +195,7 @@ updateNodes msg nodes =
     --    |> Dict.insert id treeNode
     --    |> dictUpdate pid (insertChild id pos)
 
-    Rmv id ->
+    Rmv id descIds ->
       let
         parentId_ =
           getParentId id nodes

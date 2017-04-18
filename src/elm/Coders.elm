@@ -1,7 +1,7 @@
 module Coders exposing (..)
 
 import Types exposing (..)
-import Json.Encode
+import Json.Encode as Enc
 import Json.Decode as Json exposing (..)
 import Json.Decode.Pipeline exposing (decode, required, optional)
 import Array exposing (fromList)
@@ -25,77 +25,80 @@ type alias Node =
   , content : String
   , children : List (String, Bool)
   , rev : Maybe String
+  , deletedSubtree : Maybe (List String)
   , deleted : Bool
   }
 
 
 -- ENCODERS
 
-nodeListToValue : List (String, TreeNode) -> Json.Encode.Value
+nodeListToValue : List (String, TreeNode) -> Enc.Value
 nodeListToValue nodeList =
-  Json.Encode.list
+  Enc.list
     (List.map nodeEntryToValue nodeList)
 
 
-nodeEntryToValue : (String, TreeNode) -> Json.Encode.Value
+nodeEntryToValue : (String, TreeNode) -> Enc.Value
 nodeEntryToValue (id, n) =
-  Json.Encode.object
-    [ ("_id", Json.Encode.string id)
-    , ("_rev", maybeToValue n.rev Json.Encode.string)
-    , ("_deleted", Json.Encode.bool n.deleted)
-    , ("content", Json.Encode.string n.content)
-    , ( "children", Json.Encode.list
-          (List.map (tupleToValue Json.Encode.string Json.Encode.bool) n.children) )
+  Enc.object
+    [ ("_id", Enc.string id)
+    , ("_rev", maybeToValue n.rev Enc.string)
+    , ("deleted", Enc.bool n.deleted)
+    , ("deletedSubtree", maybeToValue n.deletedSubtree
+        (\ss -> Enc.list (List.map Enc.string ss)) )
+    , ("content", Enc.string n.content)
+    , ( "children", Enc.list
+          (List.map (tupleToValue Enc.string Enc.bool) n.children) )
     ]
 
 
-modelToValue : Model -> Json.Encode.Value
+modelToValue : Model -> Enc.Value
 modelToValue model =
-  Json.Encode.object
+  Enc.object
    [ ("nodes", nodesToValue model.data.nodes)
-   , ("treePast", Json.Encode.list (List.map treeToValue model.treePast))
-   , ("treeFuture", Json.Encode.list (List.map treeToValue model.treeFuture))
+   , ("treePast", Enc.list (List.map treeToValue model.treePast))
+   , ("treeFuture", Enc.list (List.map treeToValue model.treeFuture))
    , ("viewState", viewStateToValue model.viewState)
-   , ("filepath", maybeToValue model.filepath Json.Encode.string )
+   , ("filepath", maybeToValue model.filepath Enc.string )
    ]
 
 
-treeToValue : Tree -> Json.Encode.Value
+treeToValue : Tree -> Enc.Value
 treeToValue tree =
   case tree.children of
     Children c ->
-      Json.Encode.object
-        [ ( "id", Json.Encode.string tree.id )
-        , ( "content", Json.Encode.string tree.content )
-        , ( "children", Json.Encode.list (List.map treeToValue c))
+      Enc.object
+        [ ( "id", Enc.string tree.id )
+        , ( "content", Enc.string tree.content )
+        , ( "children", Enc.list (List.map treeToValue c))
         ]
 
 
-viewStateToValue : ViewState -> Json.Encode.Value
+viewStateToValue : ViewState -> Enc.Value
 viewStateToValue vs =
-  Json.Encode.object
-    [ ( "active", Json.Encode.string vs.active )
-    , ( "activePast", Json.Encode.list (List.map Json.Encode.string vs.activePast) )
-    , ( "activeFuture", Json.Encode.list (List.map Json.Encode.string vs.activeFuture) )
-    , ( "descendants", Json.Encode.list (List.map Json.Encode.string vs.descendants) )
-    , ( "editing", maybeToValue vs.editing Json.Encode.string )
+  Enc.object
+    [ ( "active", Enc.string vs.active )
+    , ( "activePast", Enc.list (List.map Enc.string vs.activePast) )
+    , ( "activeFuture", Enc.list (List.map Enc.string vs.activeFuture) )
+    , ( "descendants", Enc.list (List.map Enc.string vs.descendants) )
+    , ( "editing", maybeToValue vs.editing Enc.string )
     ]
 
 
-nodesToValue : Dict String TreeNode -> Json.Encode.Value
+nodesToValue : Dict String TreeNode -> Enc.Value
 nodesToValue nodes =
   Dict.toList nodes
     |> List.map (\(k, v) -> (k, treeNodeToValue v))
-    |> Json.Encode.object
+    |> Enc.object
 
 
-treeNodeToValue : TreeNode -> Json.Encode.Value
+treeNodeToValue : TreeNode -> Enc.Value
 treeNodeToValue treeNode =
-  Json.Encode.object
-    [ ( "content", Json.Encode.string treeNode.content )
-    , ( "children", Json.Encode.list
-          (List.map (tupleToValue Json.Encode.string Json.Encode.bool) treeNode.children) )
-    , ( "rev", maybeToValue treeNode.rev Json.Encode.string )
+  Enc.object
+    [ ( "content", Enc.string treeNode.content )
+    , ( "children", Enc.list
+          (List.map (tupleToValue Enc.string Enc.bool) treeNode.children) )
+    , ( "rev", maybeToValue treeNode.rev Enc.string )
     ]
 
 
@@ -103,15 +106,15 @@ treeNodeToValue treeNode =
 
 -- EXPORT ENCODINGS
 
-treeToSimpleJSON : Tree -> Json.Encode.Value
+treeToSimpleJSON : Tree -> Enc.Value
 treeToSimpleJSON tree =
   case tree.children of
     Children c ->
-      Json.Encode.array 
+      Enc.array 
       ( fromList
-        [ Json.Encode.object
-          [ ( "content", Json.Encode.string tree.content )
-          , ( "children", Json.Encode.array (fromList (List.map treeToSimpleJSON c)))
+        [ Enc.object
+          [ ( "content", Enc.string tree.content )
+          , ( "children", Enc.array (fromList (List.map treeToSimpleJSON c)))
           ]
         ]
       )
@@ -171,7 +174,7 @@ viewStateDecoder =
 
 nodeListDecoder : Decoder (List (String, TreeNode))
 nodeListDecoder =
-  Json.map (\ln -> ln |> List.map (\n -> (n.id, TreeNode n.content n.children n.rev n.deleted)))
+  Json.map (\ln -> ln |> List.map (\n -> (n.id, TreeNode n.content n.children n.rev n.deletedSubtree n.deleted)))
     (list nodeEntryDecoder)
 
 
@@ -182,12 +185,13 @@ nodeEntryDecoder =
     |> required "content" string
     |> required "children" (list (tupleDecoder string bool))
     |> required "_rev" (maybe string)
-    |> optional "_deleted" bool False
+    |> optional "deletedSubtree" (maybe (list string)) Nothing
+    |> optional "deleted" bool False
 
 
 nodeObjectDecoder : Decoder (String, TreeNode)
 nodeObjectDecoder =
-  Json.map (\n -> (n.id, TreeNode n.content n.children n.rev n.deleted))
+  Json.map (\n -> (n.id, TreeNode n.content n.children n.rev n.deletedSubtree n.deleted))
     nodeEntryDecoder
 
 
@@ -198,10 +202,11 @@ nodesDecoder =
 
 treeNodeDecoder : Decoder TreeNode
 treeNodeDecoder =
-  Json.map4 TreeNode
+  Json.map5 TreeNode
     (field "content" string)
     (field "children" (list (tupleDecoder string bool)))
     (field "_rev" (maybe string))
+    (field "deletedSubtree" (maybe (list string)))
     (field "_deleted" bool)
 
 
@@ -224,16 +229,16 @@ lazyRecurse thunk =
     value
 
 
-maybeToValue : Maybe a -> (a -> Json.Encode.Value) -> Json.Encode.Value
+maybeToValue : Maybe a -> (a -> Enc.Value) -> Enc.Value
 maybeToValue mb encoder =
   case mb of
-    Nothing -> Json.Encode.null
+    Nothing -> Enc.null
     Just v -> encoder v
 
 
-tupleToValue : (a -> Json.Encode.Value) -> (b -> Json.Encode.Value) -> (a, b) -> Json.Encode.Value
+tupleToValue : (a -> Enc.Value) -> (b -> Enc.Value) -> (a, b) -> Enc.Value
 tupleToValue aEnc bEnc (aVal, bVal) =
-  Json.Encode.list [ aEnc aVal, bEnc bVal ]
+  Enc.list [ aEnc aVal, bEnc bVal ]
 
 
 tupleDecoder : Decoder a -> Decoder b -> Decoder (a, b)
