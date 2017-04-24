@@ -33,6 +33,7 @@ type Msg
     -- === Ports ===
     | NodesIn Json.Value
     | ChangeIn Json.Value
+    | ConflictsIn Json.Value
     | AttemptSave
     | SaveResponses (List Response)
     | HandleKey String

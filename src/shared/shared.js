@@ -136,36 +136,7 @@ function onChange(change) {
           return response.ok
         })
         .concat(change.doc)
-
-        console.log('changes docs', docs)
-
-      var wDocs = JSON.parse(JSON.stringify(docs))
-
-      var winning = wDocs.reduce(function(winning, doc) {
-        return winning && resolver(doc, winning)
-      }, wDocs.pop())
-
-      if (!winning) throw({
-        error: 'conflict_resolution_failed',
-        reason: 'The conflict could not be resolved, resolveFun did not return a doc'
-      })
-
-      return docs.filter(function(doc) {
-        return doc._rev !== winning._rev || JSON.stringify(doc) !== JSON.stringify(winning)
-      })
-      .map(function(doc) {
-        if (doc._rev == winning._rev) return winning
-
-        return {
-          _id: doc._id,
-          _rev: doc._rev,
-          _deleted: true
-        }
-
-      })
-    })
-    .then(function(docs) {
-      return db.bulkDocs(docs)
+      gingko.ports.conflicts.send(docs)
     })
   }
   else {

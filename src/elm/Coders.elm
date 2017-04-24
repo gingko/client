@@ -43,7 +43,7 @@ nodeEntryToValue (id, n) =
   Enc.object
     [ ("_id", Enc.string id)
     , ("_rev", maybeToValue n.rev Enc.string)
-    , ("deleted", Enc.bool n.deleted)
+    , ("_deleted", Enc.bool n.deleted)
     , ("deletedSubtree", maybeToValue n.deletedSubtree
         (\ss -> Enc.list (List.map Enc.string ss)) )
     , ("content", Enc.string n.content)
@@ -186,7 +186,7 @@ nodeEntryDecoder =
     |> required "children" (list (tupleDecoder string bool))
     |> required "_rev" (maybe string)
     |> optional "deletedSubtree" (maybe (list string)) Nothing
-    |> optional "deleted" bool False
+    |> optional "_deleted" bool False
 
 
 nodeObjectDecoder : Decoder (String, TreeNode)

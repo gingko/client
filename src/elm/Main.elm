@@ -400,6 +400,30 @@ update msg model =
           let _ = Debug.log "ChangeIn decode error:" err in
           model ! []
 
+    ConflictsIn json ->
+      case Json.decodeValue nodeListDecoder json of
+        Ok nodeList ->
+          let
+            resolvedConflicts =
+              nodeList
+                |> Trees.resolve data.nodes
+                |> Debug.log "conflicts nodeList"
+          in
+          { model
+            | data =
+                { data
+                  | pending =
+                      data.pending ++ resolvedConflicts
+                }
+                  |> Trees.updateData
+          }
+            ! []
+            |> andThen AttemptSave
+
+        Err err ->
+          let _ = Debug.log "ConflictsIn decode error:" err in
+          model ! []
+
     AttemptSave ->
       model ! [saveNodes (model.data.pending |> nodeListToValue)]
 
@@ -567,6 +591,7 @@ view model =
 
 port nodes : (Json.Value -> msg) -> Sub msg
 port change : (Json.Value -> msg) -> Sub msg
+port conflicts : (Json.Value -> msg) -> Sub msg
 port keyboard : (String -> msg) -> Sub msg
 port updateContent : ((String, String) -> msg) -> Sub msg
 port saveResponses : (List Response -> msg) -> Sub msg
@@ -577,6 +602,7 @@ subscriptions model =
   Sub.batch
     [ nodes NodesIn
     , change ChangeIn
+    , conflicts ConflictsIn
     , keyboard HandleKey
     , updateContent UpdateContent
     , saveResponses SaveResponses

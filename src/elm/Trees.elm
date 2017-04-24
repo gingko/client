@@ -10,7 +10,7 @@ import Html.Keyed as Keyed
 import Markdown
 
 import Types exposing (..)
-import TreeUtils exposing (getColumns, nodesToTree, dictUpdate)
+import TreeUtils exposing (getColumns, nodesToTree, dictUpdate, (?))
 import List.Extra as ListExtra
 
 
@@ -158,6 +158,55 @@ updatePending msg model =
 
     _ ->
       model
+
+
+
+
+-- ====== CONFLICT RESOLUTION ======
+
+
+resolve : Dict String TreeNode -> List (String, TreeNode) -> List (String, TreeNode)
+resolve nodes conflictsList =
+  case conflictsList of
+    head :: tail ->
+      let
+        resolved =
+          List.foldl resolvePair head tail
+            |> Debug.log "resolved" -- (String, TreeNode)
+
+        losingRevs =
+          conflictsList
+            |> List.filter (\(id, tn) -> tn.rev /= (resolved |> second |> .rev) )
+            |> Debug.log "losing revisions" -- (String, TreeNode)
+            |> List.map (\(id, tn) -> (id, { tn | deleted = True }) )
+
+        -- if deleted = True, restore from deletedSubtree
+        -- otherwise, update with merged TreeNode
+        -- and delete the other revs by adding them to pendingDelete
+      in
+      resolved :: losingRevs
+
+    [] ->
+      []
+
+
+resolvePair : (String, TreeNode) -> (String, TreeNode) -> (String, TreeNode)
+resolvePair (aid, a) (bid, b) =
+  (aid, TreeNode
+    ( if a.content /= b.content then
+        a.content ++ "\n=====CONFLICT=====\n" ++ b.content
+      else
+        a.content
+    )
+    ( a.children |> List.append b.children |> ListExtra.uniqueBy first )
+    ( a.rev )
+    ( a.deletedSubtree ? []
+      |> List.append (b.deletedSubtree ? [])
+      |> ListExtra.unique
+      |> \dst -> if List.isEmpty dst then Nothing else Just dst
+    )
+    ( a.deleted && b.deleted )
+  )
 
 
 
