@@ -160,31 +160,57 @@ updatePending msg model =
       model
 
 
+updateData : Model -> Model
+updateData model =
+  let
+    tempNodes =
+      Dict.union (model.pending |> Dict.fromList) model.nodes
+
+    newTree =
+      nodesToTree tempNodes "0"
+        |> Maybe.withDefault defaultTree
+
+    newColumns =
+      if newTree /= model.tree then
+        getColumns [[[newTree]]]
+      else
+        model.columns
+  in
+  { model
+    | tree = newTree
+    , columns = newColumns
+  }
+
+
 
 
 -- ====== CONFLICT RESOLUTION ======
-
 
 resolve : Dict String TreeNode -> List (String, TreeNode) -> List (String, TreeNode)
 resolve nodes conflictsList =
   case conflictsList of
     head :: tail ->
       let
-        resolved =
+        (id, resolved) =
           List.foldl resolvePair head tail
             |> Debug.log "resolved" -- (String, TreeNode)
 
         losingRevs =
           conflictsList
-            |> List.filter (\(id, tn) -> tn.rev /= (resolved |> second |> .rev) )
+            |> List.filter (\(id, tn) -> tn.rev /= resolved.rev )
             |> Debug.log "losing revisions" -- (String, TreeNode)
             |> List.map (\(id, tn) -> (id, { tn | deleted = True }) )
 
-        -- if deleted = True, restore from deletedSubtree
+        _ = 
+          if not resolved.deleted && resolved.deletedSubtree /= Nothing then
+            Debug.crash "inconsistent state!"
+          else
+            Debug.log "" ""
+
+        -- if deleted == False and deletedSubtree /= Nothing, restore from deletedSubtree
         -- otherwise, update with merged TreeNode
-        -- and delete the other revs by adding them to pendingDelete
       in
-      resolved :: losingRevs
+      (id, resolved) :: losingRevs
 
     [] ->
       []
@@ -212,130 +238,6 @@ resolvePair (aid, a) (bid, b) =
 
 
 -- ====== NODE UPDATES ======
-
-
-updateData : Model -> Model
-updateData model =
-  let
-    tempNodes =
-      Dict.union (model.pending |> Dict.fromList) model.nodes
-
-    newTree =
-      nodesToTree tempNodes "0"
-        |> Maybe.withDefault defaultTree
-
-    newColumns =
-      if newTree /= model.tree then
-        getColumns [[[newTree]]]
-      else
-        model.columns
-  in
-  { model
-    | tree = newTree
-    , columns = newColumns
-  }
-
-
-updateNodes : NodeMsg -> Dict String TreeNode -> Dict String TreeNode
-updateNodes msg nodes =
-  case msg of
-    --Add id treeNode pid pos ->
-    --  nodes
-    --    |> Dict.insert id treeNode
-    --    |> dictUpdate pid (insertChild id pos)
-
-    Rmv id descIds ->
-      let
-        parentId_ =
-          getParentId id nodes
-
-        updParent ptn =
-          { ptn
-          | children = ptn.children
-              |> List.map
-                  (\c -> if first c == id then (first c, False) else c)
-          }
-      in
-      case parentId_ of
-        Just parentId ->
-          nodes
-            |> dictUpdate parentId updParent
-
-        Nothing ->
-          nodes
-
-    Mod id str ->
-      nodes
-        |> dictUpdate id (\tn -> { tn | content = str })
-
-    Mv id newPid pos ->
-      let
-        oldPid_ =
-          getParentId id nodes
-
-        updParent ptn =
-          { ptn
-          | children = ptn.children
-              |> List.filter
-                  (\c -> first c /= id )
-          }
-      in
-      case oldPid_ of
-        Just oldPid ->
-          nodes
-            |> dictUpdate oldPid updParent
-            |> dictUpdate newPid (insertChild id pos)
-
-        Nothing ->
-          nodes
-
-    Node id treeNode ->
-      nodes
-        |> Dict.insert id treeNode
-
-    Nope ->
-      nodes
-
-    _ -> nodes
-
-
-nodeChanges : NodeMsg -> Dict String TreeNode -> Dict String TreeNode
-nodeChanges msg oldNodes =
-  let
-    newNodes = updateNodes msg oldNodes
-
-    both id oldNode newNode nodesSoFar =
-      if newNode /= oldNode then
-        Dict.insert id newNode nodesSoFar
-      else
-        nodesSoFar
-  in
-  Dict.merge
-    (identity |> always |> always)
-    both
-    Dict.insert
-    oldNodes
-    newNodes
-    Dict.empty
-
-
-getChanges : NodeMsg -> Dict String TreeNode -> Dict String TreeNode
-getChanges msg nodes =
-  case msg of
-    Mod id str ->
-      let
-        node_ = Dict.get id nodes
-      in
-      case node_ of
-        Just node ->
-          Dict.singleton id { node | content = str }
-
-        Nothing ->
-          Dict.empty
-
-    _ ->
-      Dict.empty
-
 
 insertChild : String -> Int -> TreeNode -> TreeNode
 insertChild idToInsert idx treeNode =

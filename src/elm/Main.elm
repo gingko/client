@@ -407,7 +407,6 @@ update msg model =
             resolvedConflicts =
               nodeList
                 |> Trees.resolve data.nodes
-                |> Debug.log "conflicts nodeList"
           in
           { model
             | data =
@@ -448,12 +447,10 @@ update msg model =
                     |> Maybe.andThen (\(id, tn) -> Just (id, {tn | rev = Just r.rev }))
                 )
             |> Dict.fromList
-            |> Debug.log "modifiedNodes"
 
         newNodes =
           Dict.union modifiedNodes data.nodes
             |> Dict.filter (\id tn -> not tn.deleted)
-            |> Debug.log "newNodes"
       in
       { model
         | data =
