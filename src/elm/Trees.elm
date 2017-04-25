@@ -29,7 +29,7 @@ defaultModel : Model
 defaultModel =
   { tree = defaultTree
   , columns = [[[defaultTree]]]
-  , nodes = Dict.fromList [("0", TreeNode "" [] Nothing Nothing False)]
+  , nodes = Dict.fromList [("0", TreeNode "" [] Nothing Nothing)]
   , pending = []
   }
 
@@ -73,7 +73,7 @@ updatePending msg model =
         Just parent ->
           { model
             | pending = model.pending
-                ++ [(id, TreeNode "" [] Nothing Nothing False)]
+                ++ [(id, TreeNode "" [] Nothing Nothing)]
                 ++ [(pid, insertChild id pos parent)]
           }
             |> updateData
@@ -92,13 +92,13 @@ updatePending msg model =
         desc = 
           descIds
             |> List.filterMap fMapFunc
-            |> List.map (\(i, tn) -> (i, { tn | deleted = True, deletedSubtree = Just descIds }))
+            |> List.map (\(i, tn) -> (i, { tn | deletedWith = Just descIds }))
       in
       case node_ of
         Just node ->
           { model
             | pending = model.pending
-                ++ [(id, { node | deleted = True, deletedSubtree = Just descIds })]
+                ++ [(id, { node | deletedWith = Just descIds })]
                 ++ desc
           }
             |> updateData
@@ -187,8 +187,8 @@ updateData model =
 -- ====== CONFLICT RESOLUTION ======
 
 resolve : Dict String TreeNode -> List (String, TreeNode) -> List (String, TreeNode)
-resolve nodes conflictsList =
-  case conflictsList of
+resolve nodes conflicts =
+  case conflicts of
     head :: tail ->
       let
         (id, resolved) =
@@ -196,18 +196,22 @@ resolve nodes conflictsList =
             |> Debug.log "resolved" -- (String, TreeNode)
 
         losingRevs =
-          conflictsList
+          conflicts
             |> List.filter (\(id, tn) -> tn.rev /= resolved.rev )
             |> Debug.log "losing revisions" -- (String, TreeNode)
-            |> List.map (\(id, tn) -> (id, { tn | deleted = True }) )
+            |> List.map (\(id, tn) -> (id, { tn | deletedWith = Just [id] }) )
+
+        anyNotDeleted =
+          conflicts
+            |> List.any (\(id, tn) -> tn.deletedWith == Nothing)
 
         _ = 
-          if not resolved.deleted && resolved.deletedSubtree /= Nothing then
+          if anyNotDeleted then
             Debug.crash "inconsistent state!"
           else
             Debug.log "" ""
 
-        -- if deleted == False and deletedSubtree /= Nothing, restore from deletedSubtree
+        -- if deleted == False and deletedWith /= Nothing, restore from deletedWith
         -- otherwise, update with merged TreeNode
       in
       (id, resolved) :: losingRevs
@@ -226,12 +230,11 @@ resolvePair (aid, a) (bid, b) =
     )
     ( a.children |> List.append b.children |> ListExtra.uniqueBy first )
     ( a.rev )
-    ( a.deletedSubtree ? []
-      |> List.append (b.deletedSubtree ? [])
+    ( a.deletedWith ? []
+      |> List.append (b.deletedWith ? [])
       |> ListExtra.unique
       |> \dst -> if List.isEmpty dst then Nothing else Just dst
     )
-    ( a.deleted && b.deleted )
   )
 
 

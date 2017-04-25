@@ -377,24 +377,14 @@ update msg model =
     ChangeIn json ->
       case Json.decodeValue nodeObjectDecoder json of
         Ok (id, node) ->
-          if node.deleted then
-            { model
-              | data =
-                  { data
-                    | nodes = Dict.remove id data.nodes
-                  }
-                    |> Trees.updateData
-            }
-              ! []
-          else
-            { model
-              | data =
-                  { data
-                    | nodes = Dict.insert id node data.nodes
-                  }
-                    |> Trees.updateData
-            }
-              ! []
+          { model
+            | data =
+                { data
+                  | nodes = Dict.insert id node data.nodes
+                }
+                  |> Trees.updateData
+          }
+            ! []
 
         Err err ->
           let _ = Debug.log "ChangeIn decode error:" err in
@@ -450,7 +440,7 @@ update msg model =
 
         newNodes =
           Dict.union modifiedNodes data.nodes
-            |> Dict.filter (\id tn -> not tn.deleted)
+            |> Dict.filter (\id tn -> tn.deletedWith == Nothing )
       in
       { model
         | data =

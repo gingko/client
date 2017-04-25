@@ -28,8 +28,8 @@ self.gingko = Elm.Main.fullscreen(null)
 
 /* === Database === */
 
-var db = new PouchDB('treenodes12')
-var remoteCouch = 'http://localhost:5984/treenodes12'
+var db = new PouchDB('treenodes13')
+var remoteCouch = 'http://localhost:5984/treenodes13'
 
 db.sync(remoteCouch, {live: true, retry: true}, (err) => console.log(err))
 db.changes({since: 'now', include_docs: true, live: true, conflicts: true})
@@ -65,7 +65,7 @@ gingko.ports.getText.subscribe(id => {
 
 
 gingko.ports.saveNodes.subscribe(nodes => {
-  console.log(nodes)
+  console.log('toSave', nodes)
   db.bulkDocs(nodes)
     .then(result => {
       console.log('saved', result)

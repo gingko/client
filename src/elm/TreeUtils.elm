@@ -225,10 +225,10 @@ nodesToTree : Dict String TreeNode -> String -> Maybe Tree
 nodesToTree nodes rootId =
   let
     rootNode_ = get rootId nodes
-    deleted_ = rootNode_ |> Maybe.map .deleted
+    deletedWith_ = rootNode_ |> Maybe.map .deletedWith
   in
-  case (rootNode_, deleted_) of
-    (Just rootNode, Just False) ->
+  case (rootNode_, deletedWith_) of
+    (Just rootNode, Just Nothing) ->
       let
         children =
           rootNode.children
