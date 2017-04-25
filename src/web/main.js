@@ -69,7 +69,7 @@ gingko.ports.saveNodes.subscribe(nodes => {
   db.bulkDocs(nodes)
     .then(result => {
       console.log('saved', result)
-      gingko.ports.saveResponses.send(result)
+      //gingko.ports.saveResponses.send(result)
     }).catch(err => {
       console.log(err)
     })

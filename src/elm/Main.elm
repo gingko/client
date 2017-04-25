@@ -375,12 +375,15 @@ update msg model =
       init json
 
     ChangeIn json ->
+      let _ = Debug.log "ChangeIn" json in
       case Json.decodeValue nodeObjectDecoder json of
         Ok (id, node) ->
           { model
             | data =
                 { data
                   | nodes = Dict.insert id node data.nodes
+                  , pending = data.pending
+                      |> List.filter (\(i, _) -> i /= id)
                 }
                   |> Trees.updateData
           }
@@ -391,6 +394,7 @@ update msg model =
           model ! []
 
     ConflictsIn json ->
+      let _ = Debug.log "ConflictsIn" json in
       case Json.decodeValue nodeListDecoder json of
         Ok nodeList ->
           let
@@ -417,6 +421,7 @@ update msg model =
       model ! [saveNodes (model.data.pending |> nodeListToValue)]
 
     SaveResponses res ->
+      let _ = Debug.log "SaveResponses" res in
       let
         okIds =
           res
@@ -425,6 +430,7 @@ update msg model =
 
         newPending =
           data.pending
+            |> Debug.log "oldPending"
             |> List.filter (\(id, ptn) -> not <| List.member id okIds)
             |> Debug.log "newPending"
 
