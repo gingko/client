@@ -29,7 +29,7 @@ defaultModel : Model
 defaultModel =
   { tree = defaultTree
   , columns = [[[defaultTree]]]
-  , nodes = Dict.fromList [("0", TreeNode "" [] Nothing Nothing)]
+  , nodes = Dict.fromList [("0", TreeNode "" [] Nothing Nothing False)]
   , pending = []
   }
 
@@ -73,7 +73,7 @@ updatePending msg model =
         Just parent ->
           { model
             | pending = model.pending
-                ++ [(id, TreeNode "" [] Nothing Nothing)]
+                ++ [(id, TreeNode "" [] Nothing Nothing False)]
                 ++ [(pid, insertChild id pos parent)]
           }
             |> updateData
@@ -89,16 +89,19 @@ updatePending msg model =
           Dict.get i model.nodes
             |> Maybe.map (\tn -> (i, tn))
 
+        allIds =
+          id :: descIds
+
         desc = 
           descIds
             |> List.filterMap fMapFunc
-            |> List.map (\(i, tn) -> (i, { tn | deletedWith = Just descIds }))
+            |> List.map (\(i, tn) -> (i, { tn | deletedWith = Just allIds }))
       in
       case node_ of
         Just node ->
           { model
             | pending = model.pending
-                ++ [(id, { node | deletedWith = Just descIds })]
+                ++ [(id, { node | deletedWith = Just allIds })]
                 ++ desc
           }
             |> updateData
@@ -197,24 +200,30 @@ resolve nodes conflicts =
 
         losingRevs =
           conflicts
+            |> Debug.log "conflicts"
             |> List.filter (\(id, tn) -> tn.rev /= resolved.rev )
-            |> Debug.log "losing revisions" -- (String, TreeNode)
-            |> List.map (\(id, tn) -> (id, { tn | deletedWith = Just [id] }) )
+            |> List.map (\(id, tn) -> (id, { tn | deleted_ = True}) )
+            |> Debug.log "losing revisions"
 
         anyNotDeleted =
           conflicts
             |> List.any (\(id, tn) -> tn.deletedWith == Nothing)
+            |> Debug.log "anyNotDeleted"
 
-        _ = 
-          if anyNotDeleted then
-            Debug.crash "inconsistent state!"
-          else
-            Debug.log "" ""
+        toRestore = 
+          case (anyNotDeleted, resolved.deletedWith) of
+            (True, Just delIds) ->
+              nodes
+                |> Dict.filter (\id tn -> List.member id delIds)
+                |> Dict.map (\id tn -> { tn | deletedWith = Nothing } )
+                |> Dict.toList
+                |> Debug.log "toRestore"
 
-        -- if deleted == False and deletedWith /= Nothing, restore from deletedWith
-        -- otherwise, update with merged TreeNode
+            _ ->
+              [(id, resolved)]
+
       in
-      (id, resolved) :: losingRevs
+      toRestore ++ losingRevs
 
     [] ->
       []
@@ -222,20 +231,42 @@ resolve nodes conflicts =
 
 resolvePair : (String, TreeNode) -> (String, TreeNode) -> (String, TreeNode)
 resolvePair (aid, a) (bid, b) =
-  (aid, TreeNode
-    ( if a.content /= b.content then
-        a.content ++ "\n=====CONFLICT=====\n" ++ b.content
-      else
-        a.content
-    )
-    ( a.children |> List.append b.children |> ListExtra.uniqueBy first )
-    ( a.rev )
-    ( a.deletedWith ? []
-      |> List.append (b.deletedWith ? [])
-      |> ListExtra.unique
-      |> \dst -> if List.isEmpty dst then Nothing else Just dst
-    )
-  )
+  case (a.deletedWith, b.deletedWith) of
+    (Nothing, Just delIds) ->
+      (aid, { a | deletedWith = Just delIds })
+
+    (Just delIds, Nothing) ->
+      (aid, { b | deletedWith = Just delIds })
+
+    (Just delIdsA, Just delIdsB) ->
+      (aid, TreeNode
+        ( if a.content /= b.content then
+            a.content ++ "\n=====CONFLICT=====\n" ++ b.content
+          else
+            a.content
+        )
+        ( a.children |> List.append b.children |> ListExtra.uniqueBy first )
+        ( a.rev )
+        ( delIdsA
+          |> List.append delIdsB
+          |> ListExtra.unique
+          |> \dst -> if List.isEmpty dst then Nothing else Just dst
+        )
+        ( a.deleted_ && b.deleted_ )
+      )
+
+    (Nothing, Nothing) ->
+      (aid, TreeNode
+        ( if a.content /= b.content then
+            a.content ++ "\n=====CONFLICT=====\n" ++ b.content
+          else
+            a.content
+        )
+        ( a.children |> List.append b.children |> ListExtra.uniqueBy first )
+        ( a.rev )
+        ( Nothing )
+        ( a.deleted_ && b.deleted_ )
+      )
 
 
 

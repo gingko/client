@@ -56,6 +56,7 @@ type alias TreeNode =
   , children : List (String, Bool)
   , rev : Maybe String
   , deletedWith : Maybe (List String)
+  , deleted_ : Bool
   }
 
 

@@ -21,10 +21,11 @@ type alias Model =
 
 
 type alias Node =
-  { id : String
+  { id_ : String
+  , rev_ : Maybe String
+  , deleted_ : Bool
   , content : String
   , children : List (String, Bool)
-  , rev : Maybe String
   , deletedWith : Maybe (List String)
   }
 
@@ -42,6 +43,7 @@ nodeEntryToValue (id, n) =
   Enc.object
     [ ("_id", Enc.string id)
     , ("_rev", maybeToValue n.rev Enc.string)
+    , ("_deleted", Enc.bool n.deleted_)
     , ("deletedWith", maybeToValue n.deletedWith
         (\ss -> Enc.list (List.map Enc.string ss)) )
     , ("content", Enc.string n.content)
@@ -172,7 +174,7 @@ viewStateDecoder =
 
 nodeListDecoder : Decoder (List (String, TreeNode))
 nodeListDecoder =
-  Json.map (\ln -> ln |> List.map (\n -> (n.id, TreeNode n.content n.children n.rev n.deletedWith)))
+  Json.map (\ln -> ln |> List.map (\n -> (n.id_, TreeNode n.content n.children n.rev_ n.deletedWith n.deleted_)))
     (list nodeEntryDecoder)
 
 
@@ -180,15 +182,16 @@ nodeEntryDecoder : Decoder Node
 nodeEntryDecoder =
   decode Node
     |> required "_id" string
+    |> required "_rev" (maybe string)
+    |> optional "_deleted" bool False
     |> required "content" string
     |> required "children" (list (tupleDecoder string bool))
-    |> required "_rev" (maybe string)
     |> optional "deletedWith" (maybe (list string)) Nothing
 
 
 nodeObjectDecoder : Decoder (String, TreeNode)
 nodeObjectDecoder =
-  Json.map (\n -> (n.id, TreeNode n.content n.children n.rev n.deletedWith) )
+  Json.map (\n -> (n.id_, TreeNode n.content n.children n.rev_ n.deletedWith n.deleted_) )
     nodeEntryDecoder
 
 
@@ -199,11 +202,12 @@ nodesDecoder =
 
 treeNodeDecoder : Decoder TreeNode
 treeNodeDecoder =
-  Json.map4 TreeNode
+  Json.map5 TreeNode
     (field "content" string)
     (field "children" (list (tupleDecoder string bool)))
     (field "_rev" (maybe string))
     (field "deletedWith" (maybe (list string)))
+    (field "_deleted" bool)
 
 
 

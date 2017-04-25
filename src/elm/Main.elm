@@ -426,6 +426,7 @@ update msg model =
         newPending =
           data.pending
             |> List.filter (\(id, ptn) -> not <| List.member id okIds)
+            |> Debug.log "newPending"
 
         modifiedNodes =
           res
@@ -437,10 +438,12 @@ update msg model =
                     |> Maybe.andThen (\(id, tn) -> Just (id, {tn | rev = Just r.rev }))
                 )
             |> Dict.fromList
+            |> Debug.log "modifiedNodes"
 
         newNodes =
           Dict.union modifiedNodes data.nodes
             |> Dict.filter (\id tn -> tn.deletedWith == Nothing )
+            |> Debug.log "newNodes"
       in
       { model
         | data =

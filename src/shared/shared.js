@@ -140,7 +140,6 @@ function onChange(change) {
     })
   }
   else {
-    console.log('change', change.doc)
     gingko.ports.change.send(change.doc)
   }
 }
