@@ -32,10 +32,10 @@ type Msg
     | MoveRight String
     -- === Ports ===
     | NodesIn Json.Value
+    | SaveResponsesIn Json.Value
     | ChangeIn Json.Value
     | ConflictsIn Json.Value
     | AttemptSave
-    | SaveResponses (List Response)
     | HandleKey String
 
 
@@ -60,16 +60,23 @@ type alias TreeNode =
   }
 
 
-type alias Response =
-  { id : String
-  , rev : String
-  , ok : Bool
-  }
-
-
 type Children = Children (List Tree)
 type alias Group = List Tree
 type alias Column = List (List Tree)
+
+
+type alias ResOk =
+  { id : String
+  , ok : Bool
+  , rev : String
+  }
+
+type alias ResErr =
+  { status : Int
+  , name : String
+  , message : String
+  , error : Bool
+  }
 
 
 

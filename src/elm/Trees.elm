@@ -54,16 +54,14 @@ type NodeMsg
   | Rmv String (List String)
   | Mod String String
   | Mv String String Int
-  | Node String TreeNode
+  | Responses (List (Result ResErr ResOk, (String, TreeNode)))
+  | Change (String, TreeNode)
+  | Conflicts (List (String, TreeNode))
+
 
 
 update : NodeMsg -> Model -> Model
 update msg model =
-  model
-
-
-updatePending : NodeMsg -> Model -> Model
-updatePending msg model =
   case msg of
     Add id pid pos ->
       let
@@ -157,7 +155,61 @@ updatePending msg model =
         _ ->
           model
 
+    Responses responses ->
+      let
+        getNode (res, (id, tn)) =
+          case res of
+            Ok resOk -> Just (id, tn)
+            Err _ -> Nothing
 
+        getNewNode (res, (id, tn)) =
+          case res of
+            Ok resOk ->
+              Just (id, {tn | rev = Just resOk.rev} )
+
+            Err _ ->
+              Nothing
+
+        nodesToInsert =
+          responses
+            |> List.filterMap getNewNode
+            |> Dict.fromList
+
+        pendingToRemove =
+          responses
+            |> List.filterMap getNode
+      in
+      { model
+        | nodes = Dict.union nodesToInsert model.nodes
+        , pending = model.pending
+            |> List.filter (\ptn -> not <| List.member ptn pendingToRemove)
+      }
+        |> updateData
+
+    Change (id, node) ->
+      let
+        newNodes =
+          Dict.insert id node model.nodes
+      in
+      if newNodes /= model.nodes then
+        { model
+          | nodes = newNodes
+        }
+          |> updateData
+      else
+        model
+
+    Conflicts nodeList ->
+      let
+        resolvedConflicts =
+          nodeList
+            |> resolve model.nodes
+      in
+      { model
+        | pending =
+            model.pending ++ resolvedConflicts
+      }
+        |> updateData
 
     _ ->
       model
@@ -194,33 +246,33 @@ resolve nodes conflicts =
   case conflicts of
     head :: tail ->
       let
-        (id, resolved) =
+        anyNotDeleted =
+          conflicts
+            |> List.any (\(_, tn) -> tn.deletedWith == Nothing)
+
+        (winnerId, winner) =
           List.foldl resolvePair head tail
-            |> Debug.log "resolved" -- (String, TreeNode)
+            |> Debug.log "winner" -- (String, TreeNode)
 
         losingRevs =
           conflicts
             |> Debug.log "conflicts"
-            |> List.filter (\(id, tn) -> tn.rev /= resolved.rev )
-            |> List.map (\(id, tn) -> (id, { tn | deleted_ = True}) )
+            |> List.filter (\(_, tn) -> tn.rev /= winner.rev )
+            |> List.map (\(i, tn) -> (i, { tn | deleted_ = True}) )
             |> Debug.log "losing revisions"
 
-        anyNotDeleted =
-          conflicts
-            |> List.any (\(id, tn) -> tn.deletedWith == Nothing)
-            |> Debug.log "anyNotDeleted"
-
         toRestore = 
-          case (anyNotDeleted, resolved.deletedWith) of
+          case (anyNotDeleted, winner.deletedWith) of
             (True, Just delIds) ->
               nodes
-                |> Dict.filter (\id tn -> List.member id delIds)
-                |> Dict.map (\id tn -> { tn | deletedWith = Nothing } )
+                |> Dict.filter (\i _ -> List.member i delIds)
+                |> Dict.insert winnerId winner
+                |> Dict.map (\_ tn -> { tn | deletedWith = Nothing } )
                 |> Dict.toList
                 |> Debug.log "toRestore"
 
             _ ->
-              [(id, resolved)]
+              [(winnerId, winner)]
 
       in
       toRestore ++ losingRevs

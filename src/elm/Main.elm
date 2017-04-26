@@ -8,12 +8,11 @@ import Dict
 import Json.Decode as Json
 import Dom
 import Task
-import List.Extra as ListExtra
 
 import Types exposing (..)
 import Trees exposing (..)
 import TreeUtils exposing (..)
-import Coders exposing (nodeListDecoder, nodeObjectDecoder, nodeListToValue)
+import Coders exposing (nodeListDecoder, nodeObjectDecoder, nodeListToValue, saveResponseDecoder)
 import Sha1 exposing (timeJSON)
 
 
@@ -203,7 +202,7 @@ update msg model =
 
     UpdateContent (id, str) ->
       { model
-        | data = Trees.updatePending (Trees.Mod id str) model.data
+        | data = Trees.update (Trees.Mod id str) model.data
         , viewState = { vs | active = id, editing = Nothing }
       }
         ! []
@@ -240,7 +239,7 @@ update msg model =
               "0"
       in
       { model
-        | data = Trees.updatePending (Trees.Rmv id desc) model.data
+        | data = Trees.update (Trees.Rmv id desc) model.data
       }
         ! []
         |> andThen (Activate nextToActivate)
@@ -259,7 +258,7 @@ update msg model =
         newId = "node-" ++ (timeJSON ())
       in
       { model
-        | data = Trees.updatePending (Trees.Add newId pid pos) model.data
+        | data = Trees.update (Trees.Add newId pid pos) model.data
       }
         ! []
         |> andThen (OpenCard newId "")
@@ -309,7 +308,7 @@ update msg model =
 
     Move id pid pos ->
       { model
-        | data = Trees.updatePending (Trees.Mv id pid pos) model.data
+        | data = Trees.update (Trees.Mv id pid pos) model.data
       }
         ! []
         |> andThen (Activate id)
@@ -374,18 +373,25 @@ update msg model =
       let _ = Debug.log "json" json in
       init json
 
+    SaveResponsesIn json ->
+      let _ = Debug.log "SaveResponsesIn" json in
+      case Json.decodeValue saveResponseDecoder json of
+        Ok responses ->
+          { model
+            | data = Trees.update (Trees.Responses responses) model.data
+          }
+            ! []
+
+        Err err ->
+          let _ = Debug.log "SaveResponsesIn decode err:" err in
+          model ! []
+
     ChangeIn json ->
       let _ = Debug.log "ChangeIn" json in
       case Json.decodeValue nodeObjectDecoder json of
         Ok (id, node) ->
           { model
-            | data =
-                { data
-                  | nodes = Dict.insert id node data.nodes
-                  , pending = data.pending
-                      |> List.filter (\(i, _) -> i /= id)
-                }
-                  |> Trees.updateData
+            | data = Trees.update (Trees.Change (id, node)) model.data
           }
             ! []
 
@@ -397,18 +403,8 @@ update msg model =
       let _ = Debug.log "ConflictsIn" json in
       case Json.decodeValue nodeListDecoder json of
         Ok nodeList ->
-          let
-            resolvedConflicts =
-              nodeList
-                |> Trees.resolve data.nodes
-          in
           { model
-            | data =
-                { data
-                  | pending =
-                      data.pending ++ resolvedConflicts
-                }
-                  |> Trees.updateData
+            | data = Trees.update (Trees.Conflicts nodeList) model.data
           }
             ! []
             |> andThen AttemptSave
@@ -419,47 +415,6 @@ update msg model =
 
     AttemptSave ->
       model ! [saveNodes (model.data.pending |> nodeListToValue)]
-
-    SaveResponses res ->
-      let _ = Debug.log "SaveResponses" res in
-      let
-        okIds =
-          res
-            |> List.filter .ok
-            |> List.map .id
-
-        newPending =
-          data.pending
-            |> Debug.log "oldPending"
-            |> List.filter (\(id, ptn) -> not <| List.member id okIds)
-            |> Debug.log "newPending"
-
-        modifiedNodes =
-          res
-            |> List.filter .ok
-            |> List.filterMap
-                (\r ->
-                  data.pending
-                    |> ListExtra.find (\(id, ptn) -> id == r.id)
-                    |> Maybe.andThen (\(id, tn) -> Just (id, {tn | rev = Just r.rev }))
-                )
-            |> Dict.fromList
-            |> Debug.log "modifiedNodes"
-
-        newNodes =
-          Dict.union modifiedNodes data.nodes
-            |> Dict.filter (\id tn -> tn.deletedWith == Nothing )
-            |> Debug.log "newNodes"
-      in
-      { model
-        | data =
-            { data
-              | nodes = newNodes
-              , pending = newPending
-              }
-                |> Trees.updateData
-      }
-        ! []
 
     HandleKey key ->
       case key of
@@ -586,22 +541,22 @@ view model =
 
 
 port nodes : (Json.Value -> msg) -> Sub msg
+port saveResponses : (Json.Value -> msg) -> Sub msg
 port change : (Json.Value -> msg) -> Sub msg
 port conflicts : (Json.Value -> msg) -> Sub msg
 port keyboard : (String -> msg) -> Sub msg
 port updateContent : ((String, String) -> msg) -> Sub msg
-port saveResponses : (List Response -> msg) -> Sub msg
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.batch
     [ nodes NodesIn
+    , saveResponses SaveResponsesIn
     , change ChangeIn
     , conflicts ConflictsIn
     , keyboard HandleKey
     , updateContent UpdateContent
-    , saveResponses SaveResponses
     ]
 
 

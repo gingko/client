@@ -195,6 +195,35 @@ nodeObjectDecoder =
     nodeEntryDecoder
 
 
+saveResponseDecoder : Decoder (List ((Result ResErr ResOk), (String, TreeNode)))
+saveResponseDecoder =
+  (list responseEntryDecoder)
+
+
+responseEntryDecoder : Decoder ((Result ResErr ResOk), (String, TreeNode))
+responseEntryDecoder =
+  tupleDecoder
+    resDecoder
+    nodeObjectDecoder
+
+
+resDecoder : Decoder (Result ResErr ResOk)
+resDecoder =
+  Json.oneOf
+    [ decode ResOk
+        |> required "id" string
+        |> required "ok" bool
+        |> required "rev" string -- Decoder ResOk
+        |> Json.map Ok
+    , decode ResErr
+        |> required "status" int
+        |> required "name" string
+        |> required "message" string
+        |> required "error" bool -- Decoder ResErr
+        |> Json.map Err
+    ]
+
+
 nodesDecoder : Decoder (Dict String TreeNode)
 nodesDecoder =
   (dict treeNodeDecoder)

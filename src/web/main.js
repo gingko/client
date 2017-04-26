@@ -67,9 +67,10 @@ gingko.ports.getText.subscribe(id => {
 gingko.ports.saveNodes.subscribe(nodes => {
   console.log('toSave', nodes)
   db.bulkDocs(nodes)
-    .then(result => {
-      console.log('saved', result)
-      //gingko.ports.saveResponses.send(result)
+    .then(responses => {
+      var toSend = responses.map( (r, i) => [r, nodes[i]])
+      console.log('saveResponses', toSend)
+      gingko.ports.saveResponses.send(toSend)
     }).catch(err => {
       console.log(err)
     })
