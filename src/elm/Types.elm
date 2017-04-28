@@ -1,5 +1,6 @@
 module Types exposing (..)
 
+import Dict exposing (Dict)
 import Json.Decode as Json
 
 
@@ -30,6 +31,10 @@ type Msg
     | MoveWithin String Int
     | MoveLeft String
     | MoveRight String
+    -- === History ===
+    | Undo
+    | Redo
+    | AddToUndo (Dict String TreeNode)
     -- === Ports ===
     | NodesIn Json.Value
     | SaveResponsesIn Json.Value
@@ -41,7 +46,6 @@ type Msg
 
 
 -- OBJECTS
-
 
 type alias Tree =
   { id : String

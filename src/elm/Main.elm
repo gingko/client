@@ -1,10 +1,11 @@
 port module Main exposing (..)
 
 
+import Dict exposing (Dict)
+import Tuple exposing (first, second)
+
 import Html exposing (..)
 import Html.Lazy exposing (lazy, lazy2)
-import Tuple exposing (first, second)
-import Dict
 import Json.Decode as Json
 import Dom
 import Task
@@ -38,6 +39,8 @@ port saveNodes : Json.Value -> Cmd msg
 
 type alias Model =
   { data : Trees.Model
+  , nodesPast : List (Dict String TreeNode)
+  , nodesFuture : List (Dict String TreeNode)
   , viewState : ViewState
   }
 
@@ -45,6 +48,8 @@ type alias Model =
 defaultModel : Model
 defaultModel =
   { data = Trees.defaultModel
+  , nodesPast = []
+  , nodesFuture = []
   , viewState =
       { active = "0"
       , activePast = []
@@ -59,7 +64,7 @@ init : Json.Value -> (Model, Cmd Msg)
 init savedState =
   case Json.decodeValue nodeListDecoder savedState of
     Ok nodeList ->
-      { defaultModel 
+      { defaultModel
         | data = Trees.Model defaultTree [] (nodeList |> Dict.fromList) []
             |> Trees.updateData
       }
@@ -367,27 +372,91 @@ update msg model =
           update (Move tree.id prev 999999) model
         _ -> model ! []
 
+    -- === History ===
+
+    Undo ->
+      let
+        prevNodes_ = List.head model.nodesPast
+      in
+      case prevNodes_ of
+        Just prevNodes ->
+          let
+            newModel =
+              { model
+                | data = {data | nodes = prevNodes} |> Trees.updateData
+                , nodesPast = List.drop 1 model.nodesPast
+                , nodesFuture = model.data.nodes :: model.nodesFuture
+              }
+          in
+          newModel
+            ! []
+
+        Nothing ->
+          model ! []
+
+    Redo ->
+      let
+        nextNodes_ = List.head model.nodesFuture
+      in
+      case nextNodes_ of
+        Just nextNodes ->
+          let
+            newModel =
+              { model
+                | data = {data | nodes = nextNodes} |> Trees.updateData
+                , nodesPast = model.data.nodes :: model.nodesPast
+                , nodesFuture = List.drop 1 model.nodesFuture
+              }
+          in
+          newModel
+            ! []
+
+        Nothing ->
+          model ! []
+
+
+    AddToUndo oldNodes ->
+      let _ = Debug.log "AddedToUndo" oldNodes in
+      if oldNodes /= model.data.nodes then
+        let
+          _ = Debug.log "AddedToUndo" oldNodes
+
+          newModel =
+            { model
+              | nodesPast = oldNodes :: model.nodesPast |> List.take 20
+              , nodesFuture = []
+            }
+        in
+        newModel
+          ! []
+      else
+        model ! []
+
     -- === Ports ===
 
     NodesIn json ->
-      let _ = Debug.log "json" json in
       init json
 
     SaveResponsesIn json ->
-      let _ = Debug.log "SaveResponsesIn" json in
       case Json.decodeValue saveResponseDecoder json of
         Ok responses ->
-          { model
-            | data = Trees.update (Trees.Responses responses) model.data
-          }
+          let
+            newModel =
+              { model
+                | data = Trees.update (Trees.Responses responses) model.data
+              }
+          in
+          newModel
             ! []
+            |> onlyIf
+                (newModel.data.pending |> List.isEmpty)
+                (AddToUndo model.data.nodes)
 
         Err err ->
           let _ = Debug.log "SaveResponsesIn decode err:" err in
           model ! []
 
     ChangeIn json ->
-      let _ = Debug.log "ChangeIn" json in
       case Json.decodeValue nodeObjectDecoder json of
         Ok (id, node) ->
           { model
@@ -400,7 +469,6 @@ update msg model =
           model ! []
 
     ConflictsIn json ->
-      let _ = Debug.log "ConflictsIn" json in
       case Json.decodeValue nodeListDecoder json of
         Ok nodeList ->
           { model
@@ -499,6 +567,12 @@ update msg model =
 
         "alt+end" ->
           normalMode model (MoveWithin vs.active 999999)
+
+        "mod+z" ->
+          normalMode model Undo
+
+        "mod+r" ->
+          normalMode model Redo
 
         _ ->
           model ! []

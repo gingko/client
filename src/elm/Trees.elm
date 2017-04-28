@@ -252,16 +252,13 @@ resolve nodes conflicts =
 
         (winnerId, winner) =
           List.foldl resolvePair head tail
-            |> Debug.log "winner" -- (String, TreeNode)
 
         losingRevs =
           conflicts
-            |> Debug.log "conflicts"
             |> List.filter (\(_, tn) -> tn.rev /= winner.rev )
             |> List.map (\(i, tn) -> (i, { tn | deleted_ = True}) )
-            |> Debug.log "losing revisions"
 
-        toRestore = 
+        toRestore =
           case (anyNotDeleted, winner.deletedWith) of
             (True, Just delIds) ->
               nodes
@@ -269,11 +266,9 @@ resolve nodes conflicts =
                 |> Dict.insert winnerId winner
                 |> Dict.map (\_ tn -> { tn | deletedWith = Nothing } )
                 |> Dict.toList
-                |> Debug.log "toRestore"
 
             _ ->
               [(winnerId, winner)]
-
       in
       toRestore ++ losingRevs
 
@@ -346,20 +341,6 @@ insertChild idToInsert idx treeNode =
       { treeNode
         | children = ins idx treeNode.children
       }
-
-
-getParentId : String -> Dict String TreeNode -> Maybe String
-getParentId id nodes =
-  nodes
-    |> Dict.filter
-        (\nid n ->
-          n.children
-            |> List.map first
-            |> List.member id
-        )
-    |> Dict.toList
-    |> List.map first
-    |> List.head
 
 
 getParentNodeEntry : String -> Dict String TreeNode -> Maybe (String, TreeNode)

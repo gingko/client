@@ -1,23 +1,12 @@
 module Coders exposing (..)
 
+import Trees
 import Types exposing (..)
 import Json.Encode as Enc
 import Json.Decode as Json exposing (..)
 import Json.Decode.Pipeline exposing (decode, required, optional)
 import Array exposing (fromList)
 import Dict exposing (Dict)
-
-import Trees
-
-
-type alias Model =
-  { data : Trees.Model
-  , treePast : List Tree
-  , treeFuture : List Tree
-  , viewState : ViewState
-  , saved : Bool
-  , filepath : Maybe String
-  }
 
 
 type alias Node =
@@ -50,17 +39,6 @@ nodeEntryToValue (id, n) =
     , ( "children", Enc.list
           (List.map (tupleToValue Enc.string Enc.bool) n.children) )
     ]
-
-
-modelToValue : Model -> Enc.Value
-modelToValue model =
-  Enc.object
-   [ ("nodes", nodesToValue model.data.nodes)
-   , ("treePast", Enc.list (List.map treeToValue model.treePast))
-   , ("treeFuture", Enc.list (List.map treeToValue model.treeFuture))
-   , ("viewState", viewStateToValue model.viewState)
-   , ("filepath", maybeToValue model.filepath Enc.string )
-   ]
 
 
 treeToValue : Tree -> Enc.Value
@@ -124,16 +102,6 @@ treeToSimpleJSON tree =
 
 
 -- DECODERS
-
-modelDecoder : Decoder Model
-modelDecoder =
-  Json.map6 Model
-    (field "tree" treesModelDecoder)
-    (oneOf [field "treePast" (list treeDecoder), succeed []])
-    (oneOf [field "treeFuture" (list treeDecoder), succeed []])
-    (field "viewState" viewStateDecoder)
-    ( succeed True )
-    (maybe (field "filepath" string))
 
 
 treesModelDecoder : Decoder Trees.Model
