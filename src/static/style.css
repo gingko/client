@@ -605,6 +605,9 @@ ul, ol {
   bottom: 0px;
   padding: 10px 10px 0px 0px;
 }
+#history ul li.active {
+  background: lightblue;
+}
 ul.ops-list {
   list-style-type: none;
   margin: 0;

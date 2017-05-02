@@ -80,8 +80,8 @@ loadCommit commitSha model =
 
 -- VIEW
 
-view : Model -> Html Msg
-view model =
+view : String -> Model -> Html Msg
+view head model =
   div [id "history"
       ]
       [ ul
@@ -90,14 +90,16 @@ view model =
             |> Dict.toList
             |> List.sortBy (\(sha, commit) -> commit.timestamp)
             |> List.reverse
-            |> List.map viewCommit
+            |> List.map (viewCommit head)
           )
       ]
 
-viewCommit : (String, CommitObject) -> Html Msg
-viewCommit (sha, commit) =
+viewCommit : String -> (String, CommitObject) -> Html Msg
+viewCommit head (sha, commit) =
   li
-    [ onClick (LoadCommit sha) ]
+    [ classList [("active", sha == head)]
+    , onClick (LoadCommit sha)
+    ]
     [text (sha ++ ":" ++ (commit.timestamp |> toString))]
 
 

@@ -535,7 +535,7 @@ view : Model -> Html Msg
 view model =
   div []
       [ (lazy2 Trees.view model.viewState model.workingTree)
-      , Objects.view model.objects
+      , Objects.view (model.head ? "") model.objects
       ]
 
 
