@@ -2,6 +2,7 @@ port module Main exposing (..)
 
 
 import Tuple exposing (first, second)
+import Dict
 
 import Html exposing (..)
 import Html.Lazy exposing (lazy, lazy2)
@@ -39,6 +40,7 @@ port saveNodes : Json.Value -> Cmd msg
 type alias Model =
   { workingTree : Trees.Model
   , objects : Objects.Model
+  , head : Maybe String
   , viewState : ViewState
   }
 
@@ -47,6 +49,7 @@ defaultModel : Model
 defaultModel =
   { workingTree = Trees.defaultModel
   , objects = Objects.defaultModel
+  , head = Nothing
   , viewState =
       { active = "0"
       , activePast = []
@@ -198,7 +201,7 @@ update msg model =
         , viewState = { vs | active = id, editing = Nothing }
       }
         ! []
-        |> andThen AttemptSave
+        |> andThen AttemptCommit
 
     DeleteCard id ->
       let
@@ -229,7 +232,7 @@ update msg model =
       }
         ! []
         |> andThen (Activate nextToActivate)
-        |> andThen AttemptSave
+        |> andThen AttemptCommit
 
     CancelCard ->
       { model
@@ -250,7 +253,7 @@ update msg model =
         ! []
         |> andThen (OpenCard newId "")
         |> andThen (Activate newId)
-        |> andThen AttemptSave
+        |> andThen AttemptCommit
 
     InsertAbove id ->
       let
@@ -299,7 +302,7 @@ update msg model =
       }
         ! []
         |> andThen (Activate subtree.id)
-        |> andThen AttemptSave
+        |> andThen AttemptCommit
 
     MoveWithin id delta ->
       let
@@ -364,8 +367,32 @@ update msg model =
 
     -- === Ports ===
 
-    AttemptSave ->
-      model ! []
+    AttemptCommit ->
+      let
+        parent =
+          case model.head of
+            Nothing ->
+              []
+
+            Just hd ->
+              [hd]
+
+        (newHead, newObjects) =
+          Objects.commit
+            "Jane Doe <jane.doe@gmail.com>"
+            parent
+            model.workingTree.tree
+            model.objects
+
+        _ = newObjects.commits
+          |> Dict.toList
+          |> Debug.log "commits"
+      in
+      { model
+        | objects = newObjects
+        , head = Just newHead
+      }
+        ! []
 
     HandleKey key ->
       case key of

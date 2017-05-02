@@ -26,9 +26,9 @@ type alias TreeObject =
 
 type alias CommitObject =
   { tree : String
+  , parents : List String
   , author : String
   , timestamp : Int
-  , parents : List String
   }
 
 
@@ -36,7 +36,7 @@ type alias CommitObject =
 
 -- UPDATE
 
-commit : String -> List String -> Tree -> Model -> Model
+commit : String -> List String -> Tree -> Model -> (String, Model)
 commit author parents tree model =
   let
     (newRootId, newRootTree) =
@@ -44,17 +44,21 @@ commit author parents tree model =
 
     newCommit = CommitObject
       newRootId
+      parents
       author
       (timestamp ())
-      parents
+
+    newCommitSha = newCommit |> commitSha
 
     newTreeObjects =
       generateObjects tree
   in
-  { model
-    | commits = Dict.insert (newCommit |> commitSha) newCommit model.commits
-    , treeObjects = Dict.union model.treeObjects newTreeObjects
-  }
+  ( newCommitSha
+  , { model
+      | commits = Dict.insert newCommitSha newCommit model.commits
+      , treeObjects = Dict.union model.treeObjects newTreeObjects
+    }
+  )
 
 
 

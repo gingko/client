@@ -35,7 +35,7 @@ type Msg
     | Undo
     | Redo
     -- === Ports ===
-    | AttemptSave
+    | AttemptCommit
     | HandleKey String
 
 
