@@ -10,7 +10,7 @@ import Html.Keyed as Keyed
 import Markdown
 
 import Types exposing (..)
-import TreeUtils exposing (getColumns, dictUpdate, (?))
+import TreeUtils exposing (getColumns, getParent, getChildren)
 import List.Extra as ListExtra
 
 
@@ -44,25 +44,111 @@ defaultTree =
 -- UPDATE
 
 type TreeMsg
-  = Ins String String Int
-  | Del String (List String)
+  = Ins Tree String Int
   | Upd String String
-  | Mov String String Int
+  | Mov Tree String Int
+  | Del String
 
 
 
 update : TreeMsg -> Model -> Model
 update msg model =
-  case msg of
-    _ ->
-      model
+  let
+    newTree =
+      updateTree msg model.tree
 
-
-updateColumns : Model -> Model
-updateColumns model =
+    newColumns =
+      if newTree /= model.tree then
+        getColumns [[[newTree]]]
+      else
+        model.columns
+  in
   { model
-    | columns = getColumns [[[model.tree]]]
+    | tree = newTree
+    , columns = newColumns
   }
+
+
+updateTree : TreeMsg -> Tree -> Tree
+updateTree msg tree =
+  case msg of
+    Ins newTree parentId idx ->
+      insertSubtree newTree parentId idx tree
+
+    Upd id str ->
+      modifyTree id (\t -> { t | content = str} ) tree
+
+    Mov newTree parentId idx ->
+      apply
+        [ Del newTree.id
+        , Ins newTree parentId idx
+        ]
+      tree
+
+    Del id ->
+      pruneSubtree id tree
+
+
+
+
+-- TREE TRANSFORMATIONS
+
+apply : List TreeMsg -> Tree -> Tree
+apply msgs tree =
+  List.foldl (\m t -> updateTree m t) tree msgs
+
+
+insertSubtree : Tree -> String -> Int -> Tree -> Tree
+insertSubtree subtree parentId idx tree =
+  let
+    fn = (\c -> (List.take idx c) ++ [subtree] ++ (List.drop idx c))
+  in
+  modifyChildren parentId fn tree
+
+
+pruneSubtree : String -> Tree -> Tree
+pruneSubtree id tree =
+  modifySiblings id (\c -> List.filter (\x -> x.id /= id) c) tree
+
+
+modifyTree : String -> (Tree -> Tree) -> Tree -> Tree
+modifyTree id upd tree =
+  if tree.id == id then
+    upd tree
+  else
+    { tree
+      | children =
+          getChildren tree
+            |> List.map (modifyTree id upd)
+            |> Children
+    }
+
+
+modifyChildren : String -> (List Tree -> List Tree) -> Tree -> Tree
+modifyChildren pid upd tree =
+  if tree.id == pid then
+    { tree
+      | children =
+          getChildren tree
+            |> upd
+            |> Children
+    }
+  else
+    { tree
+      | children =
+          getChildren tree
+            |> List.map (modifyChildren pid upd)
+            |> Children
+    }
+
+
+modifySiblings : String -> (List Tree -> List Tree) -> Tree -> Tree
+modifySiblings id upd tree =
+  case getParent id tree of
+    Nothing ->
+      tree
+    Just parentTree ->
+      modifyChildren parentTree.id upd tree
 
 
 

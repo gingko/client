@@ -12,7 +12,7 @@ import Task
 import Types exposing (..)
 import Trees exposing (..)
 import TreeUtils exposing (..)
-import Sha1 exposing (timeJSON)
+import Sha1 exposing (timestamp)
 import Objects
 
 
@@ -210,12 +210,6 @@ update msg model =
         prev_ = getPrevInColumn id model.workingTree.tree
         next_ = getNextInColumn id model.workingTree.tree
 
-        desc =
-          getTree id model.workingTree.tree
-            |> Maybe.map getDescendants
-            |> Maybe.map (List.map .id)
-            |> Maybe.withDefault []
-
         nextToActivate =
           case (parent_, prev_, next_) of
             (_, Just prev, _) ->
@@ -231,7 +225,7 @@ update msg model =
               "0"
       in
       { model
-        | workingTree = Trees.update (Trees.Del id desc) model.workingTree
+        | workingTree = Trees.update (Trees.Del id) model.workingTree
       }
         ! []
         |> andThen (Activate nextToActivate)
@@ -247,10 +241,11 @@ update msg model =
 
     Insert pid pos ->
       let
-        newId = "node-" ++ (timeJSON ())
+        newId = "node-" ++ (timestamp () |> toString)
+        newTree = Tree newId "" (Children [])
       in
       { model
-        | workingTree = Trees.update (Trees.Ins newId pid pos) model.workingTree
+        | workingTree = Trees.update (Trees.Ins newTree pid pos) model.workingTree
       }
         ! []
         |> andThen (OpenCard newId "")
@@ -298,12 +293,12 @@ update msg model =
 
     -- === Card Moving  ===
 
-    Move id pid pos ->
+    Move subtree pid pos ->
       { model
-        | workingTree = Trees.update (Trees.Mov id pid pos) model.workingTree
+        | workingTree = Trees.update (Trees.Mov subtree pid pos) model.workingTree
       }
         ! []
-        |> andThen (Activate id)
+        |> andThen (Activate subtree.id)
         |> andThen AttemptSave
 
     MoveWithin id delta ->
@@ -320,7 +315,7 @@ update msg model =
       in
       case (tree_, pid_, refIdx_) of
         (Just tree, Just pid, Just refIdx) ->
-          update (Move tree.id pid (refIdx + delta |> max 0)) model
+          update (Move tree pid (refIdx + delta |> max 0)) model
         _ -> model ! []
 
     MoveLeft id ->
@@ -342,7 +337,7 @@ update msg model =
       in
       case (tree_, grandparentId_, parentIdx_) of
         (Just tree, Just gpId, Just refIdx) ->
-          update (Move tree.id gpId (refIdx+1)) model
+          update (Move tree gpId (refIdx+1)) model
         _ -> model ! []
 
     MoveRight id ->
@@ -356,7 +351,7 @@ update msg model =
       in
       case (tree_, prev_) of
         (Just tree, Just prev) ->
-          update (Move tree.id prev 999999) model
+          update (Move tree prev 999999) model
         _ -> model ! []
 
     -- === History ===
