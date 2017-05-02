@@ -253,7 +253,6 @@ update msg model =
         ! []
         |> andThen (OpenCard newId "")
         |> andThen (Activate newId)
-        |> andThen AttemptCommit
 
     InsertAbove id ->
       let
