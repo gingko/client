@@ -221,40 +221,6 @@ generateId timeString time =
     |> String.join "-"
 
 
-nodesToTree : Dict String TreeNode -> String -> Maybe Tree
-nodesToTree nodes rootId =
-  let
-    rootNode_ = get rootId nodes
-    deletedWith_ = rootNode_ |> Maybe.map .deletedWith
-  in
-  case (rootNode_, deletedWith_) of
-    (Just rootNode, Just Nothing) ->
-      let
-        children =
-          rootNode.children
-            |> List.map first
-            |> List.filterMap (nodesToTree nodes)
-            |> Children
-      in
-        Just (Tree rootId rootNode.content children rootNode.rev)
-
-    _ ->
-      Nothing
-
-
-nodeToTree : String -> TreeNode -> Tree
-nodeToTree id treeNode =
-  let
-    childrenStubs =
-      treeNode.children
-        |> List.filter second
-        |> List.map first
-        |> List.map withIdTree
-        |> Children
-  in
-  Tree id treeNode.content childrenStubs Nothing
-
-
 
 
 -- SPECIAL PROPERTIES
@@ -298,7 +264,7 @@ newLine =
 
 withIdTree : String -> Tree
 withIdTree id =
-  Tree id "" (Children []) Nothing
+  Tree id "" (Children [])
 
 dictUpdate : comparable -> (b -> b) -> Dict comparable b -> Dict comparable b
 dictUpdate id upd dict =

@@ -34,33 +34,18 @@ type Msg
     -- === History ===
     | Undo
     | Redo
-    | AddToUndo (Dict String TreeNode)
     -- === Ports ===
-    | NodesIn Json.Value
-    | SaveResponsesIn Json.Value
-    | ChangeIn Json.Value
-    | ConflictsIn Json.Value
     | AttemptSave
     | HandleKey String
 
 
 
--- OBJECTS
+-- TREES
 
 type alias Tree =
   { id : String
   , content : String
   , children : Children
-  , rev : Maybe String
-  }
-
-
-type alias TreeNode =
-  { content : String
-  , children : List (String, Bool)
-  , rev : Maybe String
-  , deletedWith : Maybe (List String)
-  , deleted_ : Bool
   }
 
 
@@ -68,6 +53,10 @@ type Children = Children (List Tree)
 type alias Group = List Tree
 type alias Column = List (List Tree)
 
+
+
+
+-- COMMUNICATION
 
 type alias ResOk =
   { id : String

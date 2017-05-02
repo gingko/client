@@ -1,21 +1,21 @@
 module Objects exposing (..)
 
 import Dict exposing (Dict)
-import Sha1 exposing (sha1)
+
+import Types exposing (..)
+import Sha1 exposing (sha1, timestamp)
 
 
+-- MODEL
 
-
--- ==== Types ====
-
-type alias Tree =
-  { uid : String
-  , content : String
-  , children : Children
+type alias Model =
+  { treeObjects : Dict String TreeObject
+  , commits : Dict String CommitObject
   }
 
 
-type Children = Children (List Tree)
+defaultModel : Model
+defaultModel = Model Dict.empty Dict.empty
 
 
 type alias TreeObject =
@@ -29,6 +29,31 @@ type alias CommitObject =
   , author : String
   , timestamp : Int
   , parents : List String
+  }
+
+
+
+
+-- UPDATE
+
+commit : String -> List String -> Tree -> Model -> Model
+commit author parents tree model =
+  let
+    (newRootId, newRootTree) =
+      treeToObject tree
+
+    newCommit = CommitObject
+      newRootId
+      author
+      (timestamp ())
+      parents
+
+    newTreeObjects =
+      generateObjects tree
+  in
+  { model
+    | commits = Dict.insert (newCommit |> commitSha) newCommit model.commits
+    , treeObjects = Dict.union model.treeObjects newTreeObjects
   }
 
 
@@ -53,22 +78,22 @@ generateObjects tree =
 
 treeToObject : Tree -> (String, TreeObject)
 treeToObject tree =
-  case treeToObjectUid tree of
-    (sha, uid, treeObj) ->
+  case treeToObjectId tree of
+    (sha, id, treeObj) ->
       (sha, treeObj)
 
 
-treeToObjectUid : Tree -> (String, String, TreeObject)
-treeToObjectUid {uid, content, children} =
+treeToObjectId : Tree -> (String, String, TreeObject)
+treeToObjectId {id, content, children} =
   case children of
     Children [] ->
-      (content ++ "\n" |> sha1, uid, TreeObject content [])
+      (content ++ "\n" |> sha1, id, TreeObject content [])
 
     Children treeList ->
       let
         childrenIds =
           treeList
-            |> List.map treeToObjectUid
+            |> List.map treeToObjectId
             |> List.map (\(id, u, obj) -> (id, u))
       in
       ( content ++ "\n" ++
@@ -77,9 +102,21 @@ treeToObjectUid {uid, content, children} =
           |> String.join "\n"
         )
           |> sha1
-      , uid
+      , id
       , TreeObject content childrenIds
       )
+
+
+-- SHA IDs
+
+commitSha : CommitObject -> String
+commitSha commit =
+  ( commit.tree ++ "\n" ) ++
+  ( commit.parents |> String.join "\n" ) ++
+  ( commit.author ++ " " ++ ( commit.timestamp |> toString ) )
+    |> sha1
+
+
 
 
 -- ==== Merging
