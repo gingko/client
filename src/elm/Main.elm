@@ -360,10 +360,32 @@ update msg model =
     -- === History ===
 
     Undo ->
-      model ! []
+      let
+        newState_ =
+          model.head
+            |> Maybe.andThen (\head -> Objects.parentCommit head model.objects)
+            |> Maybe.andThen (\prevCommit -> update (LoadCommit prevCommit) model |> Just)
+      in
+      case newState_ of
+        Just newState ->
+          newState
+
+        Nothing ->
+          model ! []
 
     Redo ->
-      model ! []
+      let
+        newState_ =
+          model.head
+            |> Maybe.andThen (\head -> Objects.childCommit head model.objects)
+            |> Maybe.andThen (\nextCommit -> update (LoadCommit nextCommit) model |> Just)
+      in
+      case newState_ of
+        Just newState ->
+          newState
+
+        Nothing ->
+          model ! []
 
     LoadCommit commitSha ->
       let

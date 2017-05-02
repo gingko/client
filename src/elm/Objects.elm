@@ -1,6 +1,8 @@
 module Objects exposing (..)
 
 import Dict exposing (Dict)
+import Maybe exposing (andThen)
+import Tuple exposing (first, second)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -66,14 +68,23 @@ commit author parents tree model =
 
 loadCommit : String -> Model -> Maybe Tree
 loadCommit commitSha model =
-  let
-    commit_ = Dict.get commitSha model.commits
-  in
-  case commit_ of
-    Just commit ->
-      treeObjectsToTree model.treeObjects commit.tree "0"
+  Dict.get commitSha model.commits
+    |> andThen (\co -> treeObjectsToTree model.treeObjects co.tree "0")
 
-    Nothing -> Nothing
+
+parentCommit : String -> Model -> Maybe String
+parentCommit commitSha model =
+  Dict.get commitSha model.commits
+    |> andThen (\co -> co.parents |> List.head)
+
+
+childCommit : String -> Model -> Maybe String
+childCommit commitSha model =
+  model.commits
+    |> Dict.filter (\sha co -> List.member commitSha co.parents)
+    |> Dict.toList
+    |> List.map first
+    |> List.head
 
 
 
