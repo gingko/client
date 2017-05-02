@@ -53,20 +53,7 @@ type TreeMsg
 
 update : TreeMsg -> Model -> Model
 update msg model =
-  let
-    newTree =
-      updateTree msg model.tree
-
-    newColumns =
-      if newTree /= model.tree then
-        getColumns [[[newTree]]]
-      else
-        model.columns
-  in
-  { model
-    | tree = newTree
-    , columns = newColumns
-  }
+  setTree (updateTree msg model.tree) model
 
 
 updateTree : TreeMsg -> Tree -> Tree
@@ -87,6 +74,21 @@ updateTree msg tree =
 
     Del id ->
       pruneSubtree id tree
+
+
+setTree : Tree -> Model -> Model
+setTree newTree model =
+  let
+    newColumns =
+      if newTree /= model.tree then
+        getColumns [[[newTree]]]
+      else
+        model.columns
+  in
+  { model
+    | tree = newTree
+    , columns = newColumns
+  }
 
 
 

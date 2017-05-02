@@ -601,7 +601,8 @@ ul, ol {
 /* ======== HISTORY ======== */
 
 #history {
-  margin: 0;
+  position: absolute;
+  bottom: 0px;
   padding: 10px 10px 0px 0px;
 }
 ul.ops-list {

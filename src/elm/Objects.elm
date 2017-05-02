@@ -1,6 +1,9 @@
 module Objects exposing (..)
 
 import Dict exposing (Dict)
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 
 import Types exposing (..)
 import Sha1 exposing (sha1, timestamp)
@@ -20,7 +23,7 @@ defaultModel = Model Dict.empty Dict.empty
 
 type alias TreeObject =
   { content : String
-  , children : List (String, String)
+  , children : List (String, String) -- List (sha, tree id)
   }
 
 
@@ -34,7 +37,7 @@ type alias CommitObject =
 
 
 
--- UPDATE
+-- Commit Saving & Loading
 
 commit : String -> List String -> Tree -> Model -> (String, Model)
 commit author parents tree model =
@@ -59,6 +62,44 @@ commit author parents tree model =
       , treeObjects = Dict.union model.treeObjects newTreeObjects
     }
   )
+
+
+loadCommit : String -> Model -> Maybe Tree
+loadCommit commitSha model =
+  let
+    commit_ = Dict.get commitSha model.commits
+  in
+  case commit_ of
+    Just commit ->
+      treeObjectsToTree model.treeObjects commit.tree "0"
+
+    Nothing -> Nothing
+
+
+
+
+-- VIEW
+
+view : Model -> Html Msg
+view model =
+  div [id "history"
+      ]
+      [ ul
+          []
+          (model.commits
+            |> Dict.toList
+            |> List.sortBy (\(sha, commit) -> commit.timestamp)
+            |> List.reverse
+            |> List.map viewCommit
+          )
+      ]
+
+viewCommit : (String, CommitObject) -> Html Msg
+viewCommit (sha, commit) =
+  li
+    [ onClick (LoadCommit sha) ]
+    [text (sha ++ ":" ++ (commit.timestamp |> toString))]
+
 
 
 
@@ -109,6 +150,28 @@ treeToObjectId {id, content, children} =
       , id
       , TreeObject content childrenIds
       )
+
+
+treeObjectsToTree : Dict String TreeObject -> String -> String -> Maybe Tree
+treeObjectsToTree treeObjects treeSha id =
+  let
+    treeObject_ =
+      Dict.get treeSha treeObjects
+  in
+  case treeObject_ of
+    Just {content, children} ->
+      let
+        fMap (sh, i) =
+          treeObjectsToTree treeObjects sh i
+
+        subtrees =
+          children
+            |> List.filterMap fMap -- List Tree
+            |> Children
+      in
+      Just (Tree id content subtrees)
+
+    Nothing -> Nothing
 
 
 -- SHA IDs

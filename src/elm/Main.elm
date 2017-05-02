@@ -365,6 +365,23 @@ update msg model =
     Redo ->
       model ! []
 
+    LoadCommit commitSha ->
+      let
+        newTree_ = Objects.loadCommit commitSha model.objects
+          |> Debug.log "LoadCommit called"
+      in
+      case newTree_ of
+        Just newTree ->
+          { model
+            | workingTree = Trees.setTree newTree model.workingTree
+            , head = Just commitSha
+          }
+            ! []
+
+        Nothing ->
+          model ! []
+            |> Debug.log "failed to load commit"
+
     -- === Ports ===
 
     AttemptCommit ->
@@ -516,7 +533,10 @@ onlyIf cond msg prevStep =
 
 view : Model -> Html Msg
 view model =
-  (lazy2 Trees.view model.viewState model.workingTree)
+  div []
+      [ (lazy2 Trees.view model.viewState model.workingTree)
+      , Objects.view model.objects
+      ]
 
 
 
@@ -524,10 +544,6 @@ view model =
 -- SUBSCRIPTIONS
 
 
-port nodes : (Json.Value -> msg) -> Sub msg
-port saveResponses : (Json.Value -> msg) -> Sub msg
-port change : (Json.Value -> msg) -> Sub msg
-port conflicts : (Json.Value -> msg) -> Sub msg
 port keyboard : (String -> msg) -> Sub msg
 port updateContent : ((String, String) -> msg) -> Sub msg
 
