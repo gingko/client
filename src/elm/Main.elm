@@ -15,6 +15,7 @@ import Trees exposing (..)
 import TreeUtils exposing (..)
 import Coders exposing (nodeListDecoder, nodeObjectDecoder, nodeListToValue, saveResponseDecoder)
 import Sha1 exposing (timeJSON)
+import Objects
 
 
 main : Program Json.Value Model Msg
