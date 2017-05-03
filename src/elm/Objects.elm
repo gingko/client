@@ -3,7 +3,11 @@ module Objects exposing (..)
 import Dict exposing (Dict)
 import Maybe exposing (andThen)
 import Tuple exposing (first, second)
+
 import Json.Encode as Enc
+import Json.Decode as Json
+import Json.Decode.Pipeline exposing (decode, required, optional)
+
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -282,6 +286,57 @@ modelToValue model =
     , ( "treeObjects", treeObjects )
     , ( "head", head )
     ]
+
+
+modelDecoder : Json.Decoder Model
+modelDecoder =
+  Json.map3 Model
+    treeObjectsDecoder
+    commitsDecoder
+    headDecoder
+
+
+commitsDecoder : Json.Decoder (Dict String CommitObject)
+commitsDecoder =
+  let
+    commitObjectDecoder =
+      Json.map4 CommitObject
+        ( Json.field "tree" Json.string )
+        ( Json.field "parents" (Json.list Json.string) )
+        ( Json.field "author" Json.string )
+        ( Json.field "timestamp" Json.int )
+  in
+  (Json.dict commitObjectDecoder)
+
+
+treeObjectsDecoder : Json.Decoder (Dict String TreeObject)
+treeObjectsDecoder =
+  let
+    tupleDecoder a b =
+      Json.index 0 a
+        |> Json.andThen
+          (\aVal -> Json.index 1 b
+              |> Json.andThen (\bVal -> Json.succeed (aVal, bVal))
+          )
+
+    treeObjectDecoder =
+      Json.map2 TreeObject
+        ( Json.field "content" Json.string )
+        ( Json.field "children" (Json.list (tupleDecoder Json.string Json.string)) )
+
+  in
+  (Json.dict treeObjectDecoder)
+
+
+headDecoder : Json.Decoder Head
+headDecoder =
+  Json.map3 Head
+    ( Json.field "_id" Json.string )
+    ( Json.field "current" Json.string )
+    ( Json.field "previous" Json.string )
+
+
+
 
 
 -- ==== Merging
