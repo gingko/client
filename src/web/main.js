@@ -65,15 +65,28 @@ gingko.ports.getText.subscribe(id => {
 
 
 gingko.ports.saveObjects.subscribe(objects => {
-  var toSave = objects.commits.concat(objects.treeObjects);
-  console.log('toSave', toSave)
-  db.bulkDocs(toSave)
-    .then(responses => {
-      var toSend = responses//.map( (r, i) => [r, toSave[i]])
-      console.log('saveResponses', toSend)
-      //gingko.ports.saveResponses.send(toSend)
-    }).catch(err => {
-      console.log(err)
+  db.get(objects.head._id)
+    .catch(function(err) {
+      if (err.name === 'not_found') {
+        return objects.head
+      } else {
+        throw err;
+      }
+    })
+    .then(function(headDoc) {
+      headDoc.current = objects.head.current;
+      headDoc.previous = objects.head.previous;
+
+      var toSave = objects.commits.concat(objects.treeObjects).concat(headDoc);
+      console.log('toSave', toSave)
+      db.bulkDocs(toSave)
+        .then(responses => {
+          var toSend = responses//.map( (r, i) => [r, toSave[i]])
+          console.log('saveResponses', toSend)
+          //gingko.ports.saveResponses.send(toSend)
+        }).catch(err => {
+          console.log(err)
+        })
     })
 })
 

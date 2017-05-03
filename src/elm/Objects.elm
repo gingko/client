@@ -268,10 +268,19 @@ modelToValue model =
       Dict.toList model.treeObjects
         |> List.map (\(k, v) -> treeObjectToValue k v)
         |> Enc.list
+
+    head =
+      Enc.object
+        [ ( "_id", Enc.string model.head.id )
+        , ( "current", Enc.string model.head.current )
+        , ( "previous", Enc.string model.head.previous )
+        ]
+
   in
   Enc.object
     [ ( "commits", commits )
     , ( "treeObjects", treeObjects )
+    , ( "head", head )
     ]
 
 
