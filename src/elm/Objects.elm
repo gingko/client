@@ -3,6 +3,7 @@ module Objects exposing (..)
 import Dict exposing (Dict)
 import Maybe exposing (andThen)
 import Tuple exposing (first, second)
+import Json.Encode as Enc
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -16,11 +17,12 @@ import Sha1 exposing (sha1, timestamp)
 type alias Model =
   { treeObjects : Dict String TreeObject
   , commits : Dict String CommitObject
+  , head : Head
   }
 
 
 defaultModel : Model
-defaultModel = Model Dict.empty Dict.empty
+defaultModel = Model Dict.empty Dict.empty (Head "master" "" "")
 
 
 type alias TreeObject =
@@ -37,12 +39,48 @@ type alias CommitObject =
   }
 
 
+type alias Head =
+  { id : String
+  , current : String
+  , previous : String
+  }
 
 
--- Commit Saving & Loading
 
-commit : String -> List String -> Tree -> Model -> (String, Model)
-commit author parents tree model =
+
+-- UPDATE
+
+type ObjMsg
+  = Commit String Tree
+  | SetHead String
+
+
+update : ObjMsg -> Model -> Model
+update msg model =
+  let
+    head = model.head
+  in
+  case msg of
+    Commit author tree ->
+      let
+        parents =
+          if model.head.current == "" then []
+          else [model.head.current]
+
+        (newHead, newModel) =
+          commitWithParents author parents tree model
+      in
+      update (SetHead newHead) newModel
+
+    SetHead newHead ->
+      { model
+        | head = { head | current = newHead, previous = head.previous }
+      }
+
+
+
+commitWithParents : String -> List String -> Tree -> Model -> (String, Model)
+commitWithParents author parents tree model =
   let
     (newRootId, newRootTree) =
       treeToObject tree
@@ -72,16 +110,16 @@ loadCommit commitSha model =
     |> andThen (\co -> treeObjectsToTree model.treeObjects co.tree "0")
 
 
-parentCommit : String -> Model -> Maybe String
-parentCommit commitSha model =
-  Dict.get commitSha model.commits
+previousCommit : Model -> Maybe String
+previousCommit model =
+  Dict.get model.head.current model.commits
     |> andThen (\co -> co.parents |> List.head)
 
 
-childCommit : String -> Model -> Maybe String
-childCommit commitSha model =
+nextCommit : Model -> Maybe String
+nextCommit model =
   model.commits
-    |> Dict.filter (\sha co -> List.member commitSha co.parents)
+    |> Dict.filter (\sha co -> List.member model.head.current co.parents)
     |> Dict.toList
     |> List.map first
     |> List.head
@@ -91,8 +129,8 @@ childCommit commitSha model =
 
 -- VIEW
 
-view : String -> Model -> Html Msg
-view head model =
+view : Model -> Html Msg
+view model =
   div [id "history"
       ]
       [ ul
@@ -101,7 +139,7 @@ view head model =
             |> Dict.toList
             |> List.sortBy (\(sha, commit) -> commit.timestamp)
             |> List.reverse
-            |> List.map (viewCommit head)
+            |> List.map (viewCommit model.head.current)
           )
       ]
 
@@ -197,6 +235,44 @@ commitSha commit =
     |> sha1
 
 
+
+
+-- PORTS & INTEROP
+
+modelToValue : Model -> Enc.Value
+modelToValue model =
+  let
+    commitToValue sha commit =
+      Enc.object
+        [ ( "_id", Enc.string sha )
+        , ( "tree", Enc.string commit.tree )
+        , ( "parents", Enc.list (commit.parents |> List.map Enc.string) )
+        , ( "author", Enc.string commit.author )
+        , ( "timestamp", Enc.int commit.timestamp )
+        ]
+
+    treeObjectToValue sha treeObject =
+      Enc.object
+        [ ( "_id", Enc.string sha )
+        , ( "content", Enc.string treeObject.content )
+        , ( "children", Enc.list
+              (List.map (\(s, i) -> Enc.list [Enc.string s, Enc.string i]) treeObject.children) )
+        ]
+
+    commits =
+      Dict.toList model.commits
+        |> List.map (\(k, v) -> commitToValue k v)
+        |> Enc.list
+
+    treeObjects =
+      Dict.toList model.treeObjects
+        |> List.map (\(k, v) -> treeObjectToValue k v)
+        |> Enc.list
+  in
+  Enc.object
+    [ ( "commits", commits )
+    , ( "treeObjects", treeObjects )
+    ]
 
 
 -- ==== Merging

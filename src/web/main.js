@@ -64,13 +64,14 @@ gingko.ports.getText.subscribe(id => {
 })
 
 
-gingko.ports.saveNodes.subscribe(nodes => {
-  console.log('toSave', nodes)
-  db.bulkDocs(nodes)
+gingko.ports.saveObjects.subscribe(objects => {
+  var toSave = objects.commits.concat(objects.treeObjects);
+  console.log('toSave', toSave)
+  db.bulkDocs(toSave)
     .then(responses => {
-      var toSend = responses.map( (r, i) => [r, nodes[i]])
+      var toSend = responses//.map( (r, i) => [r, toSave[i]])
       console.log('saveResponses', toSend)
-      gingko.ports.saveResponses.send(toSend)
+      //gingko.ports.saveResponses.send(toSend)
     }).catch(err => {
       console.log(err)
     })

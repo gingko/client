@@ -29,7 +29,7 @@ main =
 
 port activateCards : (Int, List (List String)) -> Cmd msg
 port getText : String -> Cmd msg
-port saveNodes : Json.Value -> Cmd msg
+port saveObjects : Json.Value -> Cmd msg
 
 
 
@@ -40,7 +40,6 @@ port saveNodes : Json.Value -> Cmd msg
 type alias Model =
   { workingTree : Trees.Model
   , objects : Objects.Model
-  , head : Maybe String
   , viewState : ViewState
   }
 
@@ -49,7 +48,6 @@ defaultModel : Model
 defaultModel =
   { workingTree = Trees.defaultModel
   , objects = Objects.defaultModel
-  , head = Nothing
   , viewState =
       { active = "0"
       , activePast = []
@@ -75,6 +73,7 @@ update msg model =
   let
     vs = model.viewState
     workingTree = model.workingTree
+    objects = model.objects
   in
   case msg of
     -- === Card Activation ===
@@ -361,8 +360,7 @@ update msg model =
     Undo ->
       let
         newState_ =
-          model.head
-            |> Maybe.andThen (\head -> Objects.parentCommit head model.objects)
+          Objects.previousCommit model.objects
             |> Maybe.andThen (\prevCommit -> update (LoadCommit prevCommit) model |> Just)
       in
       case newState_ of
@@ -375,8 +373,7 @@ update msg model =
     Redo ->
       let
         newState_ =
-          model.head
-            |> Maybe.andThen (\head -> Objects.childCommit head model.objects)
+          Objects.nextCommit model.objects
             |> Maybe.andThen (\nextCommit -> update (LoadCommit nextCommit) model |> Just)
       in
       case newState_ of
@@ -395,7 +392,7 @@ update msg model =
         Just newTree ->
           { model
             | workingTree = Trees.setTree newTree model.workingTree
-            , head = Just commitSha
+            , objects = Objects.update (Objects.SetHead commitSha) model.objects
           }
             ! []
 
@@ -407,20 +404,8 @@ update msg model =
 
     AttemptCommit ->
       let
-        parent =
-          case model.head of
-            Nothing ->
-              []
-
-            Just hd ->
-              [hd]
-
-        (newHead, newObjects) =
-          Objects.commit
-            "Jane Doe <jane.doe@gmail.com>"
-            parent
-            model.workingTree.tree
-            model.objects
+        newObjects =
+          Objects.update (Objects.Commit "Jane Doe <jane.doe@gmail.com>" model.workingTree.tree) model.objects
 
         _ = newObjects.commits
           |> Dict.toList
@@ -428,9 +413,8 @@ update msg model =
       in
       { model
         | objects = newObjects
-        , head = Just newHead
       }
-        ! []
+        ! [saveObjects (newObjects |> Objects.modelToValue)]
 
     HandleKey key ->
       case key of
@@ -556,7 +540,7 @@ view : Model -> Html Msg
 view model =
   div []
       [ (lazy2 Trees.view model.viewState model.workingTree)
-      , Objects.view (model.head ? "") model.objects
+      , Objects.view model.objects
       ]
 
 
