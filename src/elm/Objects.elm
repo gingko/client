@@ -3,12 +3,14 @@ module Objects exposing (..)
 import Dict exposing (Dict)
 import Maybe exposing (andThen)
 import Tuple exposing (first, second)
+import List.Extra as ListExtra
 
 import Json.Encode as Enc
 import Json.Decode as Json
 import Json.Decode.Pipeline exposing (decode, required, optional)
 
 import Types exposing (..)
+import TreeUtils exposing (getChildren)
 import Sha1 exposing (sha1, timestamp)
 
 
@@ -53,6 +55,7 @@ type alias Head =
 
 type ObjMsg
   = Commit String Tree
+  | CommitMerge (List String) (List String) Tree
   | SetHead String
   | In Json.Value
   | Merge
@@ -73,6 +76,13 @@ update msg model =
 
         (newHead, newModel) =
           commitWithParents author parents tree model
+      in
+      update (SetHead newHead) newModel
+
+    CommitMerge authors parents tree ->
+      let
+        (newHead, newModel) =
+          commitWithParents (authors |> String.join " ") parents tree model
       in
       update (SetHead newHead) newModel
 
@@ -114,10 +124,14 @@ update msg model =
         _ ->
           model
 
-    Merge3 o a b ->
-      case merge o a b model of
-        Ok m ->
-          m
+    Merge3 oSha aSha bSha ->
+      let
+        aCommit_ = Dict.get aSha model.commits
+        bCommit_ = Dict.get bSha model.commits
+      in
+      case (merge oSha aSha bSha model, aCommit_, bCommit_) of
+        (Ok tree, Just aCommit, Just bCommit) ->
+          update (CommitMerge [aCommit.author, bCommit.author] [aSha, bSha] tree) model
 
         _ ->
           model
@@ -383,25 +397,74 @@ getCommonAncestor_ commits shaA shaB =
     |> List.head
 
 
-merge : String -> String -> String -> Model -> Result (List String) Model
-merge o a b model =
-  Ok model
+merge : String -> String -> String -> Model -> Result (List String) Tree
+merge oSha aSha bSha model =
+  let
+    getTree_ sha =
+      Dict.get sha model.commits
+        |> Maybe.andThen (\co -> treeObjectsToTree model.treeObjects co.tree "0")
+
+    oTree_ = getTree_ oSha
+    aTree_ = getTree_ aSha
+    bTree_ = getTree_ bSha
+  in
+  case (oTree_, aTree_, bTree_) of
+    (Just oTree, Just aTree, Just bTree) ->
+      let
+        mTree = mergeTrees oTree aTree bTree
+          |> Debug.log "merge:mTree"
+          |> Result.withDefault oTree
+      in
+      Ok mTree
+
+    _ ->
+      Err ["Couldn't find all trees for 3 way merge"]
 
 
-mergeTree : (String, TreeObject) -> (String, TreeObject) -> (String, TreeObject) -> Result (List String) (String, TreeObject)
-mergeTree oTree aTree bTree =
-  Ok ("fakesha", TreeObject "" [])
+mergeTrees : Tree -> Tree -> Tree -> Result (List String) Tree
+mergeTrees oTree aTree bTree =
+  let
+    mContent = mergeStrings oTree.content aTree.content bTree.content
+      |> Result.withDefault "mergeString conflict"
+
+    mChildren = mergeChildren (getChildren oTree) (getChildren aTree) (getChildren bTree)
+      |> Result.withDefault ((getChildren oTree)++(getChildren aTree)++(getChildren bTree))
+      |> Children
+  in
+  Ok (Tree oTree.id mContent mChildren)
+
+
+mergeChildren : List Tree -> List Tree -> List Tree -> Result (List String) (List Tree)
+mergeChildren oList aList bList =
+  let
+    allTrees =
+      oList ++ aList ++ bList
+
+    toAdd =
+      allTrees
+        |> List.filter (\t -> ((List.member t aList) || (List.member t bList)) && (not <| List.member t oList))
+        |> Debug.log "merge:toAdd"
+
+    toRemove =
+      allTrees
+        |> List.filter (\t ->
+              ( (List.member t aList) && (List.member t oList) && (not <| List.member t bList) )
+            ||( (List.member t bList) && (List.member t oList) && (not <| List.member t aList) )
+            )
+        |> Debug.log "merge:toRemove"
+  in
+  Ok allTrees
 
 
 mergeStrings : String -> String -> String -> Result String String
 mergeStrings o a b =
   let
     mergeFn x y z =
-      "string conflict:" ++
-      x ++"\n" ++
-      y ++"\n" ++
-      z
-        |> Err
+      "<<<<<<<\n" ++
+      y ++ "\n|||||||\n" ++
+      x ++"\n=======\n" ++
+      z ++ "\n>>>>>>>"
+        |> Ok
   in
   mergeGeneric mergeFn o a b
 
@@ -409,10 +472,35 @@ mergeStrings o a b =
 mergeTreeList : List (String, String) -> List (String, String) -> List (String, String) -> Result String (List (String, String))
 mergeTreeList oList aList bList =
   let
+
     mergeFn x y z =
       Ok y
   in
   mergeGeneric mergeFn oList aList bList
+
+
+treeToc : Dict String TreeObject -> String -> Dict String String
+treeToc trees treeSha =
+  let
+    treeObject_ =
+      Dict.get treeSha trees
+  in
+  case treeObject_ of
+    Just tree ->
+      tree.children -- List (String, String)
+        |> List.map first -- List String
+        |> List.map (treeToc trees) -- List (Dict String String)
+        |> List.foldr Dict.union (Dict.fromList tree.children)-- Dict String String
+
+    Nothing ->
+      Dict.empty
+
+
+commitToc : Dict String CommitObject -> Dict String TreeObject -> String -> Dict String String
+commitToc commits trees commitSha =
+  Dict.get commitSha commits -- Maybe CommitObject
+    |> Maybe.map (\co -> treeToc trees co.tree) -- Maybe String
+    |> Maybe.withDefault Dict.empty
 
 
 mergeGeneric : (a -> a -> a -> Result String a) -> a -> a -> a -> Result String a
