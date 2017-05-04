@@ -31,8 +31,8 @@ self.gingko = Elm.Main.fullscreen(null)
 
 /* === Database === */
 
-var db = new PouchDB('atreenodes16')
-var remoteCouch = 'http://localhost:5984/atreenodes16'
+self.db = new PouchDB('atreenodes16')
+self.remoteCouch = 'http://localhost:5984/atreenodes16'
 
 shared.loadModel(db, function(data) {
   data = data.map(r => r.doc)
