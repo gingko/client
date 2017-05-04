@@ -17,8 +17,8 @@ import Sha1 exposing (sha1, timestamp)
 -- MODEL
 
 type alias Model =
-  { treeObjects : Dict String TreeObject
-  , commits : Dict String CommitObject
+  { commits : Dict String CommitObject
+  , treeObjects : Dict String TreeObject
   , head : Head
   }
 
@@ -57,6 +57,7 @@ type ObjMsg
   = Commit String Tree
   | CommitMerge (List String) (List String) Tree
   | SetHead String
+  | Change Json.Value
   | In Json.Value
   | Merge
   | Merge3 String String String
@@ -91,6 +92,27 @@ update msg model =
         | head = { head | current = newHead, previous = head.previous }
       }
 
+    Change json ->
+      case Json.decodeValue (changeDecoder model) json of
+        Ok modelIn ->
+          let
+            _ = Debug.log "Objects.Change json:" modelIn
+
+            newModel =
+              { model
+                | treeObjects = Dict.union model.treeObjects modelIn.treeObjects
+                , commits = Dict.union model.commits modelIn.commits
+                , head = modelIn.head
+              }
+          in
+          update Merge newModel
+
+        Err err ->
+          let _ = Debug.log "Objects.Change json err:" err in
+          model
+
+
+
     In json ->
       case Json.decodeValue modelDecoder json of
         Ok modelIn ->
@@ -109,20 +131,16 @@ update msg model =
           model
 
     Merge ->
-      case model.head.conflicts of
-        [confHead] ->
-          let
-            _ = Debug.log "conflicts:" (model.head.current ++ ":" ++ confHead)
-            merged =
-              getCommonAncestor_ model.commits model.head.current confHead -- Maybe String
-                |> Debug.log "conflicts:getCommonAncestor_"
-                |> Maybe.map (\ca -> update (Merge3 ca model.head.current confHead) model)
-                |> Maybe.withDefault model
-          in
-          merged
+      let
+        mergeFold commitSha prevModel =
+          getCommonAncestor_ prevModel.commits commitSha prevModel.head.current
+            |> Maybe.map (\ca -> update (Merge3 ca commitSha prevModel.head.current) prevModel)
+            |> Maybe.withDefault prevModel
 
-        _ ->
-          model
+        merged =
+          List.foldr mergeFold model model.head.conflicts
+      in
+      merged
 
     Merge3 oSha aSha bSha ->
       let
@@ -322,8 +340,8 @@ modelToValue model =
 modelDecoder : Json.Decoder Model
 modelDecoder =
   Json.map3 Model
-    ( Json.field "treeObjects" treeObjectsDecoder )
     ( Json.field "commits" commitsDecoder )
+    ( Json.field "treeObjects" treeObjectsDecoder )
     ( Json.field "head" headDecoder )
 
 
@@ -366,6 +384,24 @@ headDecoder =
     |> required "current" Json.string
     |> required "previous" Json.string
     |> optional "_conflicts" (Json.list Json.string) []
+
+
+changeDecoder : Model -> Json.Decoder Model
+changeDecoder model =
+  Json.oneOf
+    [ Json.map3 Model
+        ( Json.succeed model.commits )
+        ( Json.succeed model.treeObjects )
+        headDecoder
+    , Json.map3 Model
+        ( Json.succeed model.commits )
+        treeObjectsDecoder
+        ( Json.succeed model.head )
+    , Json.map3 Model
+        commitsDecoder
+        ( Json.succeed model.treeObjects )
+        ( Json.succeed model.head )
+    ]
 
 
 

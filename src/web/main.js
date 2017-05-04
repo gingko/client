@@ -34,10 +34,37 @@ self.gingko = Elm.Main.fullscreen(null)
 self.db = new PouchDB('atreenodes16')
 self.remoteCouch = 'http://localhost:5984/atreenodes16'
 
+db.sync(remoteCouch, {live: true, retry: true})
+db.changes({
+  since: 'now',
+  live: true,
+  include_docs: true
+}).on('change', function (change) {
+  switch (change.doc.type) {
+    case 'commit':
+      var dict = {}
+      dict[change.id] = _.omit(change.doc, ['_id', 'type','_rev'])
+      gingko.ports.change.send(dict)
+      break;
+
+    case 'tree':
+      var dict = {}
+      dict[change.id] = _.omit(change.doc, ['_id', 'type','_rev'])
+      gingko.ports.change.send(dict)
+      break;
+
+    case 'head':
+      var toSend = _.omit(change.doc, ['type','_rev'])
+      gingko.ports.change.send(toSend) // TODO: handle head conflicts
+  }
+}).on('error', function (err) {
+  console.log(err)
+});
+
 db.allDocs(
   { include_docs: true
   , conflicts: true
-}).then(function (result) {
+  }).then(function (result) {
   data = result.rows.map(r => r.doc)
   console.log('toLoad', data)
 

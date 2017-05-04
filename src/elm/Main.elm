@@ -428,11 +428,10 @@ update msg model =
 
     -- === Ports ===
 
-    ObjectsIn json ->
+    ChangeIn json ->
       let
         newObjects =
-          Objects.update (Objects.In json) model.objects
-            |> Debug.log "newObjects"
+          Objects.update (Objects.Change json) model.objects
 
         newTree_ =
           if (newObjects /= model.objects) then
@@ -447,6 +446,30 @@ update msg model =
             , objects = newObjects
           }
             ! []
+
+        Nothing ->
+          model ! []
+
+
+    ObjectsIn json ->
+      let
+        newObjects =
+          Objects.update (Objects.In json) model.objects
+
+        newTree_ =
+          if (newObjects /= model.objects) then
+            Objects.loadCommit newObjects.head.current newObjects
+          else
+            Nothing
+      in
+      case newTree_ of
+        Just newTree ->
+          { model
+            | workingTree = Trees.setTree newTree model.workingTree
+            , objects = newObjects
+          }
+            ! [focus "0"]
+            |> andThen (Activate "0")
 
         Nothing ->
           model ! []
@@ -595,6 +618,7 @@ view model =
 
 
 port objects : (Json.Value -> msg) -> Sub msg
+port change : (Json.Value -> msg) -> Sub msg
 port setHead : (String -> msg) -> Sub msg
 port keyboard : (String -> msg) -> Sub msg
 port updateContent : ((String, String) -> msg) -> Sub msg
@@ -604,6 +628,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.batch
     [ objects ObjectsIn
+    , change ChangeIn
     , setHead LoadCommit
     , keyboard HandleKey
     , updateContent UpdateContent

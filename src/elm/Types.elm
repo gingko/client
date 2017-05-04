@@ -37,6 +37,7 @@ type Msg
     | TryMerge
     | LoadCommit String
     -- === Ports ===
+    | ChangeIn Json.Value
     | ObjectsIn Json.Value
     | AttemptCommit
     | HandleKey String
