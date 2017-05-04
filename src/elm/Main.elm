@@ -2,7 +2,6 @@ port module Main exposing (..)
 
 
 import Tuple exposing (first, second)
-import Dict
 
 import Html exposing (..)
 import Html.Lazy exposing (lazy, lazy2)
@@ -406,7 +405,6 @@ update msg model =
     LoadCommit commitSha ->
       let
         newTree_ = Objects.loadCommit commitSha model.objects
-          |> Debug.log "LoadCommit called"
       in
       case newTree_ of
         Just newTree ->
@@ -449,10 +447,6 @@ update msg model =
       let
         newObjects =
           Objects.update (Objects.Commit "Jane Doe <jane.doe@gmail.com>" model.workingTree.tree) model.objects
-
-        _ = newObjects.commits
-          |> Dict.toList
-          |> Debug.log "commits"
       in
       { model
         | objects = newObjects

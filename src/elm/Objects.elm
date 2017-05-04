@@ -84,7 +84,6 @@ update msg model =
     In json ->
       case Json.decodeValue modelDecoder json of
         Ok modelIn ->
-          let _ = Debug.log "Objects.In success" modelIn in
           { model
             | treeObjects = Dict.union model.treeObjects modelIn.treeObjects
             , commits = Dict.union model.commits modelIn.commits
@@ -139,6 +138,7 @@ nextCommit model =
   model.commits
     |> Dict.filter (\sha co -> List.member model.head.current co.parents)
     |> Dict.toList
+    |> List.sortBy (\(sha, co) -> -1 * co.timestamp)
     |> List.map first
     |> List.head
 

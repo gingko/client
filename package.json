@@ -36,7 +36,7 @@
     "mz": "^2.6.0",
     "pouchdb-browser": "^6.1.2",
     "react": "^15.5.4",
-    "react-commits-graph": "^0.2.0",
+    "react-commits-graph": "https://github.com/AdrianoFerrari/react-commits-graph.git",
     "react-dom": "^15.5.4",
     "sha1": "^1.1.1",
     "textarea-autosize": "^0.4.2",
