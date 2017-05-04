@@ -6,10 +6,7 @@ import Tuple exposing (first, second)
 
 import Json.Encode as Enc
 import Json.Decode as Json
-
-import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.Events exposing (..)
+import Json.Decode.Pipeline exposing (decode, required, optional)
 
 import Types exposing (..)
 import Sha1 exposing (sha1, timestamp)
@@ -25,7 +22,7 @@ type alias Model =
 
 
 defaultModel : Model
-defaultModel = Model Dict.empty Dict.empty (Head "master" "" "")
+defaultModel = Model Dict.empty Dict.empty (Head "master" "" "" [])
 
 
 type alias TreeObject =
@@ -46,6 +43,7 @@ type alias Head =
   { id : String
   , current : String
   , previous : String
+  , conflicts : List String
   }
 
 
@@ -57,6 +55,8 @@ type ObjMsg
   = Commit String Tree
   | SetHead String
   | In Json.Value
+  | Merge
+  | Merge3 String String String
 
 
 update : ObjMsg -> Model -> Model
@@ -84,14 +84,42 @@ update msg model =
     In json ->
       case Json.decodeValue modelDecoder json of
         Ok modelIn ->
-          { model
-            | treeObjects = Dict.union model.treeObjects modelIn.treeObjects
-            , commits = Dict.union model.commits modelIn.commits
-            , head = modelIn.head
-          }
+          let
+            newModel =
+              { model
+                | treeObjects = Dict.union model.treeObjects modelIn.treeObjects
+                , commits = Dict.union model.commits modelIn.commits
+                , head = modelIn.head
+              }
+          in
+          update Merge newModel
 
         Err err ->
           let _ = Debug.log "Objects.In json err:" err in
+          model
+
+    Merge ->
+      case model.head.conflicts of
+        [confHead] ->
+          let
+            _ = Debug.log "conflicts:" (model.head.current ++ ":" ++ confHead)
+            merged =
+              getCommonAncestor_ model.commits model.head.current confHead -- Maybe String
+                |> Debug.log "conflicts:getCommonAncestor_"
+                |> Maybe.map (\ca -> update (Merge3 ca model.head.current confHead) model)
+                |> Maybe.withDefault model
+          in
+          merged
+
+        _ ->
+          model
+
+    Merge3 o a b ->
+      case merge o a b model of
+        Ok m ->
+          m
+
+        _ ->
           model
 
 
@@ -141,34 +169,6 @@ nextCommit model =
     |> List.sortBy (\(sha, co) -> -1 * co.timestamp)
     |> List.map first
     |> List.head
-
-
-
-
--- VIEW
-
-view : Model -> Html Msg
-view model =
-  div [id "history"
-      ]
-      [ ul
-          []
-          (model.commits
-            |> Dict.toList
-            |> List.sortBy (\(sha, commit) -> commit.timestamp)
-            |> List.reverse
-            |> List.map (viewCommit model.head.current)
-          )
-      ]
-
-viewCommit : String -> (String, CommitObject) -> Html Msg
-viewCommit head (sha, commit) =
-  li
-    [ classList [("active", sha == head)]
-    , onClick (LoadCommit sha)
-    ]
-    [text (sha ++ ":" ++ (commit.timestamp |> toString))]
-
 
 
 
@@ -347,19 +347,49 @@ treeObjectsDecoder =
 
 headDecoder : Json.Decoder Head
 headDecoder =
-  Json.map3 Head
-    ( Json.field "_id" Json.string )
-    ( Json.field "current" Json.string )
-    ( Json.field "previous" Json.string )
-
+  decode Head
+    |> required "_id" Json.string
+    |> required "current" Json.string
+    |> required "previous" Json.string
+    |> optional "_conflicts" (Json.list Json.string) []
 
 
 
 
 -- ==== Merging
 
-merge : (String, TreeObject) -> (String, TreeObject) -> (String, TreeObject) -> Result (List String) (String, TreeObject)
-merge oTree aTree bTree =
+getCommonAncestor_ : Dict String CommitObject -> String -> String -> Maybe String
+getCommonAncestor_ commits shaA shaB =
+  let
+    _ = Debug.log "conflicts:shaA" shaA
+    _ = Debug.log "conflicts:shaB" shaB
+
+    getAncestors : Dict String CommitObject -> String -> List String
+    getAncestors cm sh =
+      let
+        c_ = Dict.get sh cm
+      in
+      case c_ of
+        Just c ->
+          c.parents ++ (List.concatMap (getAncestors cm) c.parents)
+
+        Nothing -> []
+
+    aAncestors = getAncestors commits shaA
+    bAncestors = getAncestors commits shaB
+  in
+  aAncestors
+    |> List.filter (\a -> List.member a bAncestors)
+    |> List.head
+
+
+merge : String -> String -> String -> Model -> Result (List String) Model
+merge o a b model =
+  Ok model
+
+
+mergeTree : (String, TreeObject) -> (String, TreeObject) -> (String, TreeObject) -> Result (List String) (String, TreeObject)
+mergeTree oTree aTree bTree =
   Ok ("fakesha", TreeObject "" [])
 
 

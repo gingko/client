@@ -4,6 +4,8 @@ port module Main exposing (..)
 import Tuple exposing (first, second)
 
 import Html exposing (..)
+import Html.Attributes exposing (style)
+import Html.Events exposing (onClick)
 import Html.Lazy exposing (lazy, lazy2)
 import Json.Decode as Json
 import Dom
@@ -402,6 +404,12 @@ update msg model =
         Nothing ->
           model ! []
 
+    TryMerge ->
+      { model
+        | objects = Objects.update Objects.Merge model.objects
+      }
+        ! []
+
     LoadCommit commitSha ->
       let
         newTree_ = Objects.loadCommit commitSha model.objects
@@ -575,7 +583,10 @@ onlyIf cond msg prevStep =
 
 view : Model -> Html Msg
 view model =
-  (lazy2 Trees.view model.viewState model.workingTree)
+  div []
+    [(lazy2 Trees.view model.viewState model.workingTree)
+    , button [onClick TryMerge, style [("z-index","9999"), ("position", "absolute")]] [text "merge"]
+    ]
 
 
 

@@ -34,28 +34,52 @@ self.gingko = Elm.Main.fullscreen(null)
 self.db = new PouchDB('atreenodes16')
 self.remoteCouch = 'http://localhost:5984/atreenodes16'
 
-shared.loadModel(db, function(data) {
-  data = data.map(r => r.doc)
+db.allDocs(
+  { include_docs: true
+  , conflicts: true
+}).then(function (result) {
+  data = result.rows.map(r => r.doc)
   console.log('toLoad', data)
 
-  var processData = function (data, type, toDict) {
+  var processData = function (data, type) {
     var processed = data.filter(d => d.type === type).map(d => _.omit(d, ['type','_rev']))
-    if (toDict) {
-      var dict = {}
-      processed = processed.map(d => dict[d._id] = _.omit(d, '_id'))
-      return dict
-    } else {
-      return processed
-    }
+    var dict = {}
+    processed = processed.map(d => dict[d._id] = _.omit(d, '_id'))
+    return dict
   }
 
-  var commits = processData(data, "commit", true);
-  console.log('commits',commits);
-  var trees = processData(data, "tree", true);
-  var head = processData(data, "head", false)[0];
-  var toSend = { commits: commits, treeObjects: trees, head: head };
-  console.log('toSend', toSend);
-  gingko.ports.objects.send(toSend);
+  var commits = processData(data, "commit");
+  var trees = processData(data, "tree");
+
+  head = _.omit(_.find(data, d => d.type == "head"), ['type', '_rev'])
+
+  if (head._conflicts) {
+    db.get( head._id, {
+      open_revs: head._conflicts
+    })
+    .then(function(responses){
+      console.log('responses', responses)
+      var headDocs = responses
+          .filter(function(response){
+            return 'ok' in response
+          })
+          .map(function(response) {
+            return response.ok.current
+          })
+      console.log('headDocs', headDocs)
+      head._conflicts = headDocs
+
+      var toSend = { commits: commits, treeObjects: trees, head: head };
+      console.log('toSend w/conflicts', toSend);
+      gingko.ports.objects.send(toSend);
+    })
+  } else {
+    var toSend = { commits: commits, treeObjects: trees, head: head };
+    console.log('toSend', toSend);
+    gingko.ports.objects.send(toSend);
+  }
+}).catch(function (err) {
+  console.log(err)
 })
 
 

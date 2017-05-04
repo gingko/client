@@ -34,6 +34,7 @@ type Msg
     -- === History ===
     | Undo
     | Redo
+    | TryMerge
     | LoadCommit String
     -- === Ports ===
     | ObjectsIn Json.Value
