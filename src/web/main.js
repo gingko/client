@@ -82,9 +82,13 @@ gingko.ports.getText.subscribe(id => {
   }
 })
 
+var commitGraphData = null
+var selectedSha = null
 
 gingko.ports.saveObjects.subscribe(objects => {
-  renderCommits(objects.commits, objects.head.current)
+  commitGraphData = _.sortBy(objects.commits, 'timestamp').reverse().map(c => { return {sha: c._id, parents: c.parents}})
+  selectedSha = objects.head.current
+  renderCommits()
   
   db.get(objects.head._id)
     .catch(function(err) {
@@ -112,16 +116,26 @@ gingko.ports.saveObjects.subscribe(objects => {
 })
 
 
-var renderCommits = function(commits, selected) {
-  commits = _.sortBy(commits, 'timestamp').reverse().map(c => { return {sha: c._id, parents: c.parents}})
-  console.log('commits sorted', commits)
+gingko.ports.selectHead.subscribe(sha => setHead(sha))
 
+
+
+var renderCommits = function() {
   var commitElement = React.createElement(CommitsGraph, {
-    commits: commits,
-    selected: selected
+    commits: commitGraphData,
+    onClick: setHead,
+    selected: selectedSha
   });
 
   ReactDOM.render(commitElement, document.getElementById('history'))
+}
+
+var setHead = function(sha) {
+  if (sha) {
+    selectedSha = sha
+    renderCommits()
+    gingko.ports.setHead.send(sha)
+  }
 }
 
 

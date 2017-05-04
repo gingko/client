@@ -603,10 +603,8 @@ ul, ol {
 #history {
   position: absolute;
   bottom: 0px;
-  padding: 10px 10px 0px 0px;
-}
-#history ul li.active {
-  background: lightblue;
+  left: 5px;
+  z-index: 999;
 }
 ul.ops-list {
   list-style-type: none;

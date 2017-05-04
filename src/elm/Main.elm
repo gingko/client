@@ -30,6 +30,7 @@ main =
 port activateCards : (Int, List (List String)) -> Cmd msg
 port getText : String -> Cmd msg
 port saveObjects : Json.Value -> Cmd msg
+port selectHead : String -> Cmd msg
 
 
 
@@ -370,7 +371,12 @@ update msg model =
       let
         newState_ =
           Objects.previousCommit model.objects
-            |> Maybe.andThen (\prevCommit -> update (LoadCommit prevCommit) model |> Just)
+            |> Maybe.andThen 
+                (\prevCommit -> 
+                    update (LoadCommit prevCommit) model 
+                      |> \(m, c) -> (m, Cmd.batch [c, selectHead prevCommit])
+                      |> Just
+                )
       in
       case newState_ of
         Just newState ->
@@ -383,7 +389,12 @@ update msg model =
       let
         newState_ =
           Objects.nextCommit model.objects
-            |> Maybe.andThen (\nextCommit -> update (LoadCommit nextCommit) model |> Just)
+            |> Maybe.andThen 
+                (\nextCommit -> 
+                    update (LoadCommit nextCommit) model 
+                      |> \(m, c) -> (m, Cmd.batch [c, selectHead nextCommit])
+                      |> Just
+                )
       in
       case newState_ of
         Just newState ->
@@ -579,6 +590,7 @@ view model =
 
 
 port objects : (Json.Value -> msg) -> Sub msg
+port setHead : (String -> msg) -> Sub msg
 port keyboard : (String -> msg) -> Sub msg
 port updateContent : ((String, String) -> msg) -> Sub msg
 
@@ -587,6 +599,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.batch
     [ objects ObjectsIn
+    , setHead LoadCommit
     , keyboard HandleKey
     , updateContent UpdateContent
     ]
