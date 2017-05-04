@@ -28,18 +28,34 @@ self.gingko = Elm.Main.fullscreen(null)
 
 /* === Database === */
 
-var db = new PouchDB('treenodes15')
-var remoteCouch = 'http://localhost:5984/treenodes15'
-
-db.sync(remoteCouch, {live: true, retry: true}, (err) => console.log(err))
-db.changes({since: 'now', include_docs: true, live: true, conflicts: true})
-  .on('change', shared.onChange)
-  .on('error', function (err) {
-  })
+var db = new PouchDB('atreenodes16')
+var remoteCouch = 'http://localhost:5984/atreenodes16'
 
 shared.loadModel(db, function(data) {
-  gingko.ports.nodes.send(data.map(r => r.doc))
+  data = data.map(r => r.doc)
+  console.log('toLoad', data)
+
+  var processData = function (data, type, toDict) {
+    var processed = data.filter(d => d.type === type).map(d => _.omit(d, ['type','_rev']))
+    if (toDict) {
+      var dict = {}
+      processed = processed.map(d => dict[d._id] = _.omit(d, '_id'))
+      return dict
+    } else {
+      return processed
+    }
+  }
+
+  var commits = processData(data, "commit", true);
+  console.log('commits',commits);
+  var trees = processData(data, "tree", true);
+  var head = processData(data, "head", false)[0];
+  var toSend = { commits: commits, treeObjects: trees, head: head };
+  console.log('toSend', toSend);
+  gingko.ports.objects.send(toSend);
 })
+
+
 
 
 /* === From Main process to Elm === */

@@ -36,6 +36,7 @@ type Msg
     | Redo
     | LoadCommit String
     -- === Ports ===
+    | ObjectsIn Json.Value
     | AttemptCommit
     | HandleKey String
 

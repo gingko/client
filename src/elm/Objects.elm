@@ -6,7 +6,6 @@ import Tuple exposing (first, second)
 
 import Json.Encode as Enc
 import Json.Decode as Json
-import Json.Decode.Pipeline exposing (decode, required, optional)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -57,6 +56,7 @@ type alias Head =
 type ObjMsg
   = Commit String Tree
   | SetHead String
+  | In Json.Value
 
 
 update : ObjMsg -> Model -> Model
@@ -80,6 +80,20 @@ update msg model =
       { model
         | head = { head | current = newHead, previous = head.previous }
       }
+
+    In json ->
+      case Json.decodeValue modelDecoder json of
+        Ok modelIn ->
+          let _ = Debug.log "Objects.In success" modelIn in
+          { model
+            | treeObjects = Dict.union model.treeObjects modelIn.treeObjects
+            , commits = Dict.union model.commits modelIn.commits
+            , head = modelIn.head
+          }
+
+        Err err ->
+          let _ = Debug.log "Objects.In json err:" err in
+          model
 
 
 
@@ -249,6 +263,7 @@ modelToValue model =
     commitToValue sha commit =
       Enc.object
         [ ( "_id", Enc.string sha )
+        , ( "type", Enc.string "commit" )
         , ( "tree", Enc.string commit.tree )
         , ( "parents", Enc.list (commit.parents |> List.map Enc.string) )
         , ( "author", Enc.string commit.author )
@@ -258,6 +273,7 @@ modelToValue model =
     treeObjectToValue sha treeObject =
       Enc.object
         [ ( "_id", Enc.string sha )
+        , ( "type", Enc.string "tree" )
         , ( "content", Enc.string treeObject.content )
         , ( "children", Enc.list
               (List.map (\(s, i) -> Enc.list [Enc.string s, Enc.string i]) treeObject.children) )
@@ -276,6 +292,7 @@ modelToValue model =
     head =
       Enc.object
         [ ( "_id", Enc.string model.head.id )
+        , ( "type", Enc.string "head" )
         , ( "current", Enc.string model.head.current )
         , ( "previous", Enc.string model.head.previous )
         ]
@@ -291,14 +308,15 @@ modelToValue model =
 modelDecoder : Json.Decoder Model
 modelDecoder =
   Json.map3 Model
-    treeObjectsDecoder
-    commitsDecoder
-    headDecoder
+    ( Json.field "treeObjects" treeObjectsDecoder )
+    ( Json.field "commits" commitsDecoder )
+    ( Json.field "head" headDecoder )
 
 
 commitsDecoder : Json.Decoder (Dict String CommitObject)
 commitsDecoder =
   let
+    commitObjectDecoder : Json.Decoder CommitObject
     commitObjectDecoder =
       Json.map4 CommitObject
         ( Json.field "tree" Json.string )
@@ -323,7 +341,6 @@ treeObjectsDecoder =
       Json.map2 TreeObject
         ( Json.field "content" Json.string )
         ( Json.field "children" (Json.list (tupleDecoder Json.string Json.string)) )
-
   in
   (Json.dict treeObjectDecoder)
 
