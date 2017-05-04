@@ -195,12 +195,21 @@ update msg model =
       model ! [getText id]
 
     UpdateContent (id, str) ->
-      { model
-        | workingTree = Trees.update (Trees.Upd id str) model.workingTree
-        , viewState = { vs | active = id, editing = Nothing }
-      }
-        ! []
-        |> andThen AttemptCommit
+      let
+        newTree = Trees.update (Trees.Upd id str) model.workingTree
+      in
+      if newTree.tree /= model.workingTree.tree then
+        { model
+          | workingTree = newTree
+          , viewState = { vs | active = id, editing = Nothing }
+        }
+          ! []
+          |> andThen AttemptCommit
+      else
+        { model
+          | viewState = { vs | active = id, editing = Nothing }
+        }
+          ! []
 
     DeleteCard id ->
       let
