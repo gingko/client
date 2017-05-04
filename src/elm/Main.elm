@@ -570,10 +570,7 @@ onlyIf cond msg prevStep =
 
 view : Model -> Html Msg
 view model =
-  div []
-      [ (lazy2 Trees.view model.viewState model.workingTree)
-      , Objects.view model.objects
-      ]
+  (lazy2 Trees.view model.viewState model.workingTree)
 
 
 

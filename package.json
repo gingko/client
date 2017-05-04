@@ -35,6 +35,9 @@
     "lodash": "^4.17.4",
     "mz": "^2.6.0",
     "pouchdb-browser": "^6.1.2",
+    "react": "^15.5.4",
+    "react-commits-graph": "^0.2.0",
+    "react-dom": "^15.5.4",
     "sha1": "^1.1.1",
     "textarea-autosize": "^0.4.2",
     "underscore": "^1.8.3"

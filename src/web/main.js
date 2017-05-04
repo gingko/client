@@ -3,6 +3,9 @@ const _ = require('lodash')
 const autosize = require('textarea-autosize')
 const url = require('url')
 const PouchDB = require('pouchdb-browser')
+const React = require('react')
+const ReactDOM = require('react-dom')
+const CommitsGraph = require('react-commits-graph')
 
 const shared = require('../shared/shared')
 window.Elm = require('../elm/Main')
@@ -81,6 +84,8 @@ gingko.ports.getText.subscribe(id => {
 
 
 gingko.ports.saveObjects.subscribe(objects => {
+  renderCommits(objects.commits, objects.head.current)
+  
   db.get(objects.head._id)
     .catch(function(err) {
       if (err.name === 'not_found') {
@@ -105,6 +110,19 @@ gingko.ports.saveObjects.subscribe(objects => {
         })
     })
 })
+
+
+var renderCommits = function(commits, selected) {
+  commits = _.sortBy(commits, 'timestamp').reverse().map(c => { return {sha: c._id, parents: c.parents}})
+  console.log('commits sorted', commits)
+
+  var commitElement = React.createElement(CommitsGraph, {
+    commits: commits,
+    selected: selected
+  });
+
+  ReactDOM.render(commitElement, document.getElementById('history'))
+}
 
 
 
