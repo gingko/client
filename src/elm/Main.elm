@@ -31,7 +31,7 @@ main =
 port activateCards : (Int, List (List String)) -> Cmd msg
 port getText : String -> Cmd msg
 port saveObjects : Json.Value -> Cmd msg
-port selectHead : String -> Cmd msg
+port updateCommits : (Json.Value, String) -> Cmd msg
 
 
 
@@ -372,12 +372,7 @@ update msg model =
       let
         newState_ =
           Objects.previousCommit model.objects
-            |> Maybe.andThen 
-                (\prevCommit -> 
-                    update (LoadCommit prevCommit) model 
-                      |> \(m, c) -> (m, Cmd.batch [c, selectHead prevCommit])
-                      |> Just
-                )
+            |> Maybe.map (\prevCommit -> update (LoadCommit prevCommit) model )
       in
       case newState_ of
         Just newState ->
@@ -390,12 +385,7 @@ update msg model =
       let
         newState_ =
           Objects.nextCommit model.objects
-            |> Maybe.andThen 
-                (\nextCommit -> 
-                    update (LoadCommit nextCommit) model 
-                      |> \(m, c) -> (m, Cmd.batch [c, selectHead nextCommit])
-                      |> Just
-                )
+            |> Maybe.map (\nextCommit -> update (LoadCommit nextCommit) model )
       in
       case newState_ of
         Just newState ->
@@ -416,11 +406,16 @@ update msg model =
       in
       case newTree_ of
         Just newTree ->
+          let
+            newObjects =
+              Objects.update (Objects.SetHead commitSha) model.objects
+          in
           { model
             | workingTree = Trees.setTree newTree model.workingTree
-            , objects = Objects.update (Objects.SetHead commitSha) model.objects
+            , objects = newObjects
           }
             ! []
+            |> andThen (UpdateCommits (newObjects.commits |> Objects.commitsToValue, commitSha))
 
         Nothing ->
           model ! []
@@ -446,6 +441,7 @@ update msg model =
             , objects = newObjects
           }
             ! []
+            |> andThen (UpdateCommits (newObjects.commits |> Objects.commitsToValue, newObjects.head.current))
 
         Nothing ->
           model ! []
@@ -470,9 +466,13 @@ update msg model =
           }
             ! [focus "0"]
             |> andThen (Activate "0")
+            |> andThen (UpdateCommits (newObjects.commits |> Objects.commitsToValue, newObjects.head.current))
 
         Nothing ->
           model ! []
+
+    UpdateCommits (json, sha) ->
+      model ! [updateCommits (json, sha)]
 
     AttemptCommit ->
       let
@@ -483,6 +483,7 @@ update msg model =
         | objects = newObjects
       }
         ! [saveObjects (newObjects |> Objects.modelToValue)]
+        |> andThen (UpdateCommits (newObjects.commits |> Objects.commitsToValue, newObjects.head.current))
 
     HandleKey key ->
       case key of

@@ -39,6 +39,7 @@ type Msg
     -- === Ports ===
     | ChangeIn Json.Value
     | ObjectsIn Json.Value
+    | UpdateCommits (Json.Value, String)
     | AttemptCommit
     | HandleKey String
 

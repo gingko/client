@@ -89,15 +89,13 @@ update msg model =
 
     SetHead newHead ->
       { model
-        | head = { head | current = newHead, previous = head.previous }
+        | head = { head | current = newHead, previous = head.current }
       }
 
     Change json ->
       case Json.decodeValue (changeDecoder model) json of
         Ok modelIn ->
           let
-            _ = Debug.log "Objects.Change json:" modelIn
-
             newModel =
               { model
                 | treeObjects = Dict.union model.treeObjects modelIn.treeObjects
@@ -139,8 +137,10 @@ update msg model =
 
         merged =
           List.foldr mergeFold model model.head.conflicts
+
+        mergedHead = merged.head
       in
-      merged
+      { merged | head = { mergedHead | conflicts = [] }}
 
     Merge3 oSha aSha bSha ->
       let
@@ -292,16 +292,6 @@ commitSha commit =
 modelToValue : Model -> Enc.Value
 modelToValue model =
   let
-    commitToValue sha commit =
-      Enc.object
-        [ ( "_id", Enc.string sha )
-        , ( "type", Enc.string "commit" )
-        , ( "tree", Enc.string commit.tree )
-        , ( "parents", Enc.list (commit.parents |> List.map Enc.string) )
-        , ( "author", Enc.string commit.author )
-        , ( "timestamp", Enc.int commit.timestamp )
-        ]
-
     treeObjectToValue sha treeObject =
       Enc.object
         [ ( "_id", Enc.string sha )
@@ -312,9 +302,7 @@ modelToValue model =
         ]
 
     commits =
-      Dict.toList model.commits
-        |> List.map (\(k, v) -> commitToValue k v)
-        |> Enc.list
+      commitsToValue model.commits
 
     treeObjects =
       Dict.toList model.treeObjects
@@ -335,6 +323,25 @@ modelToValue model =
     , ( "treeObjects", treeObjects )
     , ( "head", head )
     ]
+
+
+commitsToValue : Dict String CommitObject -> Enc.Value
+commitsToValue commits =
+  let
+    commitToValue sha commit =
+      Enc.object
+        [ ( "_id", Enc.string sha )
+        , ( "type", Enc.string "commit" )
+        , ( "tree", Enc.string commit.tree )
+        , ( "parents", Enc.list (commit.parents |> List.map Enc.string) )
+        , ( "author", Enc.string commit.author )
+        , ( "timestamp", Enc.int commit.timestamp )
+        ]
+
+  in
+  Dict.toList commits
+    |> List.map (\(k, v) -> commitToValue k v)
+    |> Enc.list
 
 
 modelDecoder : Json.Decoder Model
@@ -411,9 +418,6 @@ changeDecoder model =
 getCommonAncestor_ : Dict String CommitObject -> String -> String -> Maybe String
 getCommonAncestor_ commits shaA shaB =
   let
-    _ = Debug.log "conflicts:shaA" shaA
-    _ = Debug.log "conflicts:shaB" shaB
-
     getAncestors : Dict String CommitObject -> String -> List String
     getAncestors cm sh =
       let
@@ -496,10 +500,10 @@ mergeStrings : String -> String -> String -> Result String String
 mergeStrings o a b =
   let
     mergeFn x y z =
-      "<<<<<<<\n" ++
-      y ++ "\n|||||||\n" ++
-      x ++"\n=======\n" ++
-      z ++ "\n>>>>>>>"
+      "theirs:\n```\n" ++
+      y ++ "\n```\noriginal:\n```\n" ++
+      x ++"\n```\nyours:\n```\n" ++
+      z ++ "\n```"
         |> Ok
   in
   mergeGeneric mergeFn o a b
