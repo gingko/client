@@ -34,10 +34,13 @@ self.gingko = Elm.Main.fullscreen(null)
 self.db = new PouchDB('atreenodes16')
 self.remoteCouch = 'http://localhost:5984/atreenodes16'
 
+self.headConflicts = []
+
 db.sync(remoteCouch, {live: true, retry: true})
 db.changes({
   since: 'now',
   live: true,
+  conflicts: true,
   include_docs: true
 }).on('change', function (change) {
   switch (change.doc.type) {
@@ -55,7 +58,34 @@ db.changes({
 
     case 'head':
       var toSend = _.omit(change.doc, ['type','_rev'])
-      gingko.ports.change.send(toSend) // TODO: handle head conflicts
+      if (toSend._conflicts) {
+        db.get( toSend._id, {
+          open_revs: toSend._conflicts
+        })
+        .then(function(responses){
+          console.log('responses', responses)
+          var headDocs = responses
+              .filter(function(response){
+                return 'ok' in response
+              })
+              .map(function(response) {
+                return response.ok.current
+              })
+
+          headConflicts = responses.filter(r => 'ok' in r).map(r => [r.ok.current, r.ok._rev])
+
+          console.log('headDocs', headDocs)
+          toSend._conflicts = headDocs
+
+          console.log('toSend w/conflicts', toSend);
+          gingko.ports.change.send(toSend);
+        })
+      } else {
+        var toSend = _.omit(change.doc, ['type','_rev'])
+        console.log('toSend', toSend);
+        gingko.ports.change.send(toSend);
+      }
+      break;
   }
 }).on('error', function (err) {
   console.log(err)
@@ -93,6 +123,9 @@ db.allDocs(
           .map(function(response) {
             return response.ok.current
           })
+
+      headConflicts = responses.filter(r => 'ok' in r).map(r => [r.ok.current, r.ok._rev])
+
       console.log('headDocs', headDocs)
       head._conflicts = headDocs
 
@@ -146,8 +179,14 @@ gingko.ports.saveObjects.subscribe(objects => {
       headDoc.current = objects.head.current;
       headDoc.previous = objects.head.previous;
 
-      var toSave = objects.commits.concat(objects.treeObjects).concat(headDoc);
-      console.log('toSave', toSave)
+      var resolvedConflicts = []
+      if (objects.head._conflicts == undefined && headConflicts.length !== 0) {
+        resolvedConflicts = headConflicts.map(arr => {return {'_id': objects.head._id, '_rev': arr[1], '_deleted': true}})
+        headConflicts = []
+      }
+
+      var toSave = objects.commits.concat(objects.treeObjects).concat(headDoc).concat(resolvedConflicts);
+      console.log('toSave from gingko port', toSave)
       db.bulkDocs(toSave)
         .then(responses => {
           var toSend = responses//.map( (r, i) => [r, toSave[i]])
