@@ -201,6 +201,7 @@ gingko.ports.saveObjects.subscribe(objects => {
 
 gingko.ports.updateCommits.subscribe(function(data) {
   commitGraphData = _.sortBy(data[0], 'timestamp').reverse().map(c => { return {sha: c._id, parents: c.parents}})
+  console.log(commitGraphData)
   selectedSha = data[1]
 
   var commitElement = React.createElement(CommitsGraph, {

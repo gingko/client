@@ -452,7 +452,6 @@ merge oSha aSha bSha model =
     (Just oTree, Just aTree, Just bTree) ->
       let
         mTree = mergeTrees oTree aTree bTree
-          |> Debug.log "merge:mTree"
           |> Result.withDefault oTree
       in
       Ok mTree
@@ -473,27 +472,82 @@ mergeTrees oTree aTree bTree =
   in
   Ok (Tree oTree.id mContent mChildren)
 
+type MergeColumn = O | A | B
+type alias MergeDict = Dict String (Maybe Tree, Maybe Tree, Maybe Tree)
+
 
 mergeChildren : List Tree -> List Tree -> List Tree -> Result (List String) (List Tree)
 mergeChildren oList aList bList =
   let
-    allTrees =
-      oList ++ aList ++ bList
+    allTrees = oList ++ aList ++ bList
 
-    toAdd =
-      allTrees
-        |> List.filter (\t -> ((List.member t aList) || (List.member t bList)) && (not <| List.member t oList))
-        |> Debug.log "merge:toAdd"
+    oVals = getTreeDict O oList
+    aVals = getTreeDict A aList
+    bVals = getTreeDict B bList
 
-    toRemove =
-      allTrees
-        |> List.filter (\t ->
-              ( (List.member t aList) && (List.member t oList) && (not <| List.member t bList) )
-            ||( (List.member t bList) && (List.member t oList) && (not <| List.member t aList) )
-            )
-        |> Debug.log "merge:toRemove"
+    mbHelper l r =
+      case (l, r) of
+        (Just a, Just b) -> Just a
+        (Just a, Nothing) -> Just a
+        (Nothing, Just b) -> Just b
+        (Nothing, Nothing) -> Nothing
+
+    bothStep id (lo, la, lb) (ro, ra, rb) dict =
+      Dict.insert id (mbHelper lo ro, mbHelper la ra, mbHelper lb rb) dict
+
+    allVals =
+      Dict.merge Dict.insert bothStep Dict.insert oVals aVals Dict.empty
+      |> (\di -> Dict.merge Dict.insert bothStep Dict.insert di bVals Dict.empty)
+
+    mergedTrees =
+      allVals
+        |> Dict.toList -- List (String, (MbT, MbT, MbT))
+        |> List.filterMap (\(id, (o_, a_, b_)) ->
+            case (o_, a_, b_) of
+              (Just ot, Just at, Just bt) ->
+                mergeTrees ot at bt
+                  |> Result.toMaybe
+
+              (Just ot, Just at, Nothing) ->
+                if ot == at then
+                  Nothing
+                else
+                  Just at -- TODO: delete/modify conflict
+
+              (Just ot, Nothing, Just bt) ->
+                if ot == bt then
+                  Nothing
+                else
+                  Just bt -- TODO: delete/modify conflict
+
+              (Nothing, Nothing, Just bt) ->
+                Just bt
+
+              (Nothing, Just at, Nothing) ->
+                Just at
+
+              (Nothing, Just at, Just bt) ->
+                if at == bt then
+                  Just at
+                else
+                  Just at -- TODO: modify/modify conflict?
+
+              _ ->
+                Debug.crash "impossible state?"
+
+          )
+
   in
-  Ok allTrees
+  Ok mergedTrees
+
+
+getTreeDict : MergeColumn -> List Tree -> MergeDict
+getTreeDict col trees =
+  case col of
+    O -> trees |> List.map (\t -> (t.id, (Just t, Nothing, Nothing)) ) |> Dict.fromList
+    A -> trees |> List.map (\t -> (t.id, (Nothing, Just t, Nothing)) ) |> Dict.fromList
+    B -> trees |> List.map (\t -> (t.id, (Nothing, Nothing, Just t)) ) |> Dict.fromList
+
 
 
 mergeStrings : String -> String -> String -> Result String String
@@ -501,8 +555,7 @@ mergeStrings o a b =
   let
     mergeFn x y z =
       "theirs:\n```\n" ++
-      y ++ "\n```\noriginal:\n```\n" ++
-      x ++"\n```\nyours:\n```\n" ++
+      y ++ "\n```\nyours:\n```\n" ++
       z ++ "\n```"
         |> Ok
   in
