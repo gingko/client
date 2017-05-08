@@ -36,7 +36,6 @@ self.remoteCouch = 'http://localhost:5984/atreenodes16'
 
 self.headConflicts = []
 
-db.sync(remoteCouch, {live: true, retry: true})
 db.changes({
   since: 'now',
   live: true,
@@ -150,6 +149,11 @@ db.allDocs(
 
 /* === Elm Ports === */
 
+gingko.ports.fetch.subscribe( function() {
+  console.log('fetch')
+  db.replicate.from(remoteCouch)
+})
+
 gingko.ports.activateCards.subscribe(actives => {
   shared.scrollHorizontal(actives[0])
   shared.scrollColumns(actives[1])
@@ -201,8 +205,9 @@ gingko.ports.saveObjects.subscribe(objects => {
 
 gingko.ports.updateCommits.subscribe(function(data) {
   commitGraphData = _.sortBy(data[0], 'timestamp').reverse().map(c => { return {sha: c._id, parents: c.parents}})
-  console.log(commitGraphData)
   selectedSha = data[1]
+  console.log(commitGraphData)
+  console.log(selectedSha)
 
   var commitElement = React.createElement(CommitsGraph, {
     commits: commitGraphData,
@@ -230,7 +235,7 @@ var setTitleFilename = function(filepath) {
 
 setSaved = bool => {
   saved = bool
-  if (bool) { 
+  if (bool) {
     if(isNaN(saveCount)) {
       saveCount = 1
     } else {
@@ -298,40 +303,6 @@ toFileFormat = model => {
     model = _.extend(model, {'field': field})
   } 
   return JSON.stringify(_.omit(model, 'filepath'), null, 2)
-}
-
-
-/* === Payment Request Functions === */
-
-maybeRequestPayment = () => {
-  var t = Date.now()
-  if (  isTrial
-     && (saveCount > 10)
-     && (isNaN(lastRequestTime) || t - lastRequestTime > 3.6e6)
-     && (Math.random() < freq(t-firstRunTime))
-     )
-    {
-      lastRequestTime = t
-
-      if(isNaN(requestCount)) {
-        requestCount = 1;
-      } else {
-        requestCount++
-      }
-      window.Intercom('update', { "request_count": requestCount })
-      localStorage.setItem('requestCount', requestCount)
-      localStorage.setItem('lastRequestTime', t)
-    }
-}
-
-freq = tau => {
-  if (tau <= 7*24*3.6e6) {
-    return 0.1
-  } else if (tau <= 30*24*3.6e6) {
-    return 0.5
-  } else {
-    return 0.8
-  }
 }
 
 

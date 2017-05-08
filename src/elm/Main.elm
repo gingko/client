@@ -4,6 +4,8 @@ port module Main exposing (..)
 import Tuple exposing (first, second)
 
 import Html exposing (..)
+import Html.Attributes exposing (style)
+import Html.Events exposing (onClick)
 import Html.Lazy exposing (lazy, lazy2)
 import Json.Decode as Json
 import Dom
@@ -26,6 +28,7 @@ main =
     }
 
 
+port fetch : () -> Cmd msg
 port activateCards : (Int, List (List String)) -> Cmd msg
 port getText : String -> Cmd msg
 port saveObjects : Json.Value -> Cmd msg
@@ -393,6 +396,9 @@ update msg model =
         Nothing ->
           model ! []
 
+    Fetch ->
+      model ! [fetch ()]
+
     LoadCommit commitSha ->
       let
         newTree_ = Objects.loadCommit commitSha model.objects
@@ -600,7 +606,10 @@ onlyIf cond msg prevStep =
 
 view : Model -> Html Msg
 view model =
-  (lazy2 Trees.view model.viewState model.workingTree)
+  div []
+    [ button [onClick Fetch, style [("z-index", "9999"), ("position", "absolute")]] [text "fetch"]
+    , (lazy2 Trees.view model.viewState model.workingTree)
+    ]
 
 
 

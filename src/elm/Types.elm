@@ -34,6 +34,7 @@ type Msg
     -- === History ===
     | Undo
     | Redo
+    | Fetch
     | TryMerge
     | LoadCommit String
     -- === Ports ===
