@@ -73,11 +73,9 @@ init savedState =
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update msg ({objects, workingTree} as model) =
   let
     vs = model.viewState
-    workingTree = model.workingTree
-    objects = model.objects
   in
   case msg of
     -- === Card Activation ===

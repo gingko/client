@@ -55,6 +55,12 @@ db.changes({
       gingko.ports.change.send(dict)
       break;
 
+    case 'ref':
+      var dict = {}
+      dict[change.id] = change.doc
+      gingko.ports.change.send(dict)
+      break;
+
     case 'head':
       var toSend = _.omit(change.doc, ['type','_rev'])
       if (toSend._conflicts) {
@@ -100,12 +106,17 @@ db.allDocs(
   var processData = function (data, type) {
     var processed = data.filter(d => d.type === type).map(d => _.omit(d, ['type','_rev']))
     var dict = {}
-    processed = processed.map(d => dict[d._id] = _.omit(d, '_id'))
+    if (type == "ref") {
+      processed.map(d => dict[d._id] = d.value)
+    } else {
+      processed.map(d => dict[d._id] = _.omit(d, '_id'))
+    }
     return dict
   }
 
   var commits = processData(data, "commit");
   var trees = processData(data, "tree");
+  var refs = processData(data, "ref");
 
   head = _.omit(_.find(data, d => d.type == "head"), ['type', '_rev'])
 
@@ -128,12 +139,12 @@ db.allDocs(
       console.log('headDocs', headDocs)
       head._conflicts = headDocs
 
-      var toSend = { commits: commits, treeObjects: trees, head: head };
+      var toSend = { commits: commits, treeObjects: trees, refs: refs, head: head };
       console.log('toSend w/conflicts', toSend);
       gingko.ports.objects.send(toSend);
     })
   } else {
-    var toSend = { commits: commits, treeObjects: trees, head: head };
+    var toSend = { commits: commits, treeObjects: trees, refs: refs, head: head };
     console.log('toSend', toSend);
     gingko.ports.objects.send(toSend);
   }

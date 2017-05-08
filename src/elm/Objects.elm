@@ -19,12 +19,13 @@ import Sha1 exposing (sha1, timestamp)
 type alias Model =
   { commits : Dict String CommitObject
   , treeObjects : Dict String TreeObject
+  , refs : Dict String String
   , head : Head
   }
 
 
 defaultModel : Model
-defaultModel = Model Dict.empty Dict.empty (Head "master" "" "" [])
+defaultModel = Model Dict.empty Dict.empty Dict.empty (Head "master" "" "" [])
 
 
 type alias TreeObject =
@@ -301,12 +302,24 @@ modelToValue model =
               (List.map (\(s, i) -> Enc.list [Enc.string s, Enc.string i]) treeObject.children) )
         ]
 
+    refToValue sha refString =
+      Enc.object
+        [ ( "_id", Enc.string sha )
+        , ( "type", Enc.string "ref" )
+        , ( "value", Enc.string refString )
+        ]
+
     commits =
       commitsToValue model.commits
 
     treeObjects =
       Dict.toList model.treeObjects
         |> List.map (\(k, v) -> treeObjectToValue k v)
+        |> Enc.list
+
+    refs =
+      Dict.toList model.refs
+        |> List.map (\(k, v) -> refToValue k v)
         |> Enc.list
 
     head =
@@ -321,6 +334,7 @@ modelToValue model =
   Enc.object
     [ ( "commits", commits )
     , ( "treeObjects", treeObjects )
+    , ( "refs", refs )
     , ( "head", head )
     ]
 
@@ -346,9 +360,10 @@ commitsToValue commits =
 
 modelDecoder : Json.Decoder Model
 modelDecoder =
-  Json.map3 Model
+  Json.map4 Model
     ( Json.field "commits" commitsDecoder )
     ( Json.field "treeObjects" treeObjectsDecoder )
+    ( Json.field "refs" (Json.dict Json.string))
     ( Json.field "head" headDecoder )
 
 
@@ -384,6 +399,11 @@ treeObjectsDecoder =
   (Json.dict treeObjectDecoder)
 
 
+refDecoder : Json.Decoder String
+refDecoder =
+    ( Json.field "value" Json.string )
+
+
 headDecoder : Json.Decoder Head
 headDecoder =
   decode Head
@@ -396,17 +416,25 @@ headDecoder =
 changeDecoder : Model -> Json.Decoder Model
 changeDecoder model =
   Json.oneOf
-    [ Json.map3 Model
+    [ Json.map4 Model
         ( Json.succeed model.commits )
         ( Json.succeed model.treeObjects )
+        ( Json.succeed model.refs )
         headDecoder
-    , Json.map3 Model
+    , Json.map4 Model
+        ( Json.succeed model.commits )
+        ( Json.succeed model.treeObjects )
+        ( Json.dict refDecoder )
+        ( Json.succeed model.head )
+    , Json.map4 Model
         ( Json.succeed model.commits )
         treeObjectsDecoder
+        ( Json.succeed model.refs )
         ( Json.succeed model.head )
-    , Json.map3 Model
+    , Json.map4 Model
         commitsDecoder
         ( Json.succeed model.treeObjects )
+        ( Json.succeed model.refs )
         ( Json.succeed model.head )
     ]
 
