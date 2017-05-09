@@ -54,6 +54,9 @@ type alias Head =
 
 -- UPDATE
 
+
+{-|Consider these the Porcelain commands of Git
+-}
 type ObjMsg
   = Commit String Tree
   | CommitMerge (List String) (List String) Tree
@@ -77,14 +80,14 @@ update msg model =
           else [model.head.current]
 
         (newHead, newModel) =
-          commitWithParents author parents tree model
+          commitTree author parents tree model
       in
       update (SetHead newHead) newModel
 
     CommitMerge authors parents tree ->
       let
         (newHead, newModel) =
-          commitWithParents (authors |> String.join " ") parents tree model
+          commitTree (authors |> String.join " ") parents tree model
       in
       update (SetHead newHead) newModel
 
@@ -155,13 +158,14 @@ update msg model =
         _ ->
           model
 
-
-
-commitWithParents : String -> List String -> Tree -> Model -> (String, Model)
-commitWithParents author parents tree model =
+{-|Generate a CommitObject, and all associated TreeObjects, from Tree and metadata
+Returns (commitSha, newModel)
+-}
+commitTree : String -> List String -> Tree -> Model -> (String, Model)
+commitTree author parents tree model =
   let
-    (newRootId, newRootTree) =
-      treeToObject tree
+    (newRootId, newTreeObjects) =
+      writeTree tree
 
     newCommit = CommitObject
       newRootId
@@ -170,9 +174,6 @@ commitWithParents author parents tree model =
       (timestamp ())
 
     newCommitSha = newCommit |> commitSha
-
-    newTreeObjects =
-      generateObjects tree
   in
   ( newCommitSha
   , { model
@@ -208,19 +209,36 @@ nextCommit model =
 
 -- ==== Generating Objects
 
-generateObjects : Tree -> Dict String TreeObject
-generateObjects tree =
+
+{-|Generate the TreeObjects from a given Tree.
+Returns (rootSha, dictionary of all generated Trees)
+
+Equivalent to `git write-tree`:
+Creates a tree object using the current index. The name of the new tree object is printed to standard output.
+
+The index must be in a fully merged state.
+
+Conceptually, git write-tree sync()s the current index contents into a set of tree files. In order to have that match what is actually in your directory right now, you need to have done a git update-index phase before you did the git write-tree.
+-}
+writeTree : Tree -> (String, Dict String TreeObject)
+writeTree tree =
   case tree.children of
     Children treeList ->
       let
-        rootDict =
+        (rootSha, rootTree) =
           treeToObject tree
+
+        rootDict =
+          (rootSha, rootTree)
             |> List.singleton
             |> Dict.fromList
       in
-      treeList
-        |> List.map generateObjects
+      ( rootSha
+      , treeList
+        |> List.map writeTree
+        |> List.map second
         |> List.foldr Dict.union rootDict
+      )
 
 
 treeToObject : Tree -> (String, TreeObject)
