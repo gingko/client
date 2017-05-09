@@ -43,6 +43,7 @@ port updateCommits : (Json.Value, String) -> Cmd msg
 type alias Model =
   { workingTree : Trees.Model
   , objects : Objects.Model
+  , state : State
   , viewState : ViewState
   }
 
@@ -51,6 +52,7 @@ defaultModel : Model
 defaultModel =
   { workingTree = Trees.defaultModel
   , objects = Objects.defaultModel
+  , state = Clean ""
   , viewState =
       { active = "0"
       , activePast = []
@@ -73,7 +75,7 @@ init savedState =
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ({objects, workingTree} as model) =
+update msg ({objects, workingTree, state} as model) =
   let
     vs = model.viewState
   in
@@ -369,50 +371,27 @@ update msg ({objects, workingTree} as model) =
     -- === History ===
 
     Undo ->
-      let
-        newState_ =
-          Objects.previousCommit model.objects
-            |> Maybe.map (\prevCommit -> update (LoadCommit prevCommit) model )
-      in
-      case newState_ of
-        Just newState ->
-          newState
-
-        Nothing ->
-          model ! []
+      model ! []
 
     Redo ->
-      let
-        newState_ =
-          Objects.nextCommit model.objects
-            |> Maybe.map (\nextCommit -> update (LoadCommit nextCommit) model )
-      in
-      case newState_ of
-        Just newState ->
-          newState
-
-        Nothing ->
-          model ! []
+      model ! []
 
     Fetch ->
       model ! [fetch ()]
 
-    LoadCommit commitSha ->
+    CheckoutCommit commitSha ->
       let
-        newTree_ = Objects.loadCommit commitSha model.objects
+        (newHead, newTree_, newModel) =
+          Objects.update (Objects.Checkout commitSha) objects
       in
       case newTree_ of
         Just newTree ->
-          let
-            newObjects =
-              Objects.update (Objects.SetHead commitSha) model.objects
-          in
           { model
             | workingTree = Trees.setTree newTree model.workingTree
-            , objects = newObjects
+            , state = Clean newHead
           }
             ! []
-            |> andThen (UpdateCommits (newObjects.commits |> Objects.commitsToValue, commitSha))
+            |> andThen (UpdateCommits (objects |> Objects.toValue, commitSha))
 
         Nothing ->
           model ! []
@@ -421,66 +400,47 @@ update msg ({objects, workingTree} as model) =
     -- === Ports ===
 
     ChangeIn json ->
-      let
-        newObjects =
-          Objects.update (Objects.Change json) model.objects
-
-        newTree_ =
-          if (newObjects /= model.objects) then
-            Objects.loadCommit newObjects.head.current newObjects
-          else
-            Nothing
-      in
-      case newTree_ of
-        Just newTree ->
-          { model
-            | workingTree = Trees.setTree newTree model.workingTree
-            , objects = newObjects
-          }
-            ! []
-            |> andThen (UpdateCommits (newObjects.commits |> Objects.commitsToValue, newObjects.head.current))
-
-        Nothing ->
-          model ! []
-
+      model ! []
 
     ObjectsIn json ->
       let
-        newObjects =
-          Objects.update (Objects.In json) model.objects
-
-        newTree_ =
-          if (newObjects /= model.objects) then
-            Objects.loadCommit newObjects.head.current newObjects
-          else
-            Nothing
+        (newHead, newTree_, newObjects) =
+          Objects.update (Objects.Clone json) objects
       in
       case newTree_ of
         Just newTree ->
           { model
             | workingTree = Trees.setTree newTree model.workingTree
             , objects = newObjects
+            , state = Clean newHead
           }
-            ! [focus "0"]
-            |> andThen (Activate "0")
-            |> andThen (UpdateCommits (newObjects.commits |> Objects.commitsToValue, newObjects.head.current))
+            ! []
+            |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
 
         Nothing ->
           model ! []
+            |> Debug.log "failed to load data"
 
     UpdateCommits (json, sha) ->
       model ! [updateCommits (json, sha)]
 
     AttemptCommit ->
-      let
-        newObjects =
-          Objects.update (Objects.Commit "Jane Doe <jane.doe@gmail.com>" model.workingTree.tree) model.objects
-      in
-      { model
-        | objects = newObjects
-      }
-        ! [saveObjects (newObjects |> Objects.modelToValue)]
-        |> andThen (UpdateCommits (newObjects.commits |> Objects.commitsToValue, newObjects.head.current))
+      case state of
+        Clean oldHead ->
+          let
+            (newHead, _, newObjects) =
+              Objects.update (Objects.Commit oldHead "Jane Doe <jane.doe@gmail.com>" workingTree.tree) model.objects
+                |> Debug.log "Commit attempted"
+          in
+          { model
+            | objects = newObjects
+            , state = Clean newHead
+          }
+            ! [saveObjects (newObjects |> Objects.toValue)]
+            |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
+
+        _ ->
+          Debug.crash "Can't commit from dirty state."
 
     HandleKey key ->
       case key of
@@ -627,7 +587,7 @@ subscriptions model =
   Sub.batch
     [ objects ObjectsIn
     , change ChangeIn
-    , setHead LoadCommit
+    , setHead CheckoutCommit
     , keyboard HandleKey
     , updateContent UpdateContent
     ]

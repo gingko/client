@@ -36,7 +36,7 @@ type Msg
     | Redo
     | Fetch
     | TryMerge
-    | LoadCommit String
+    | CheckoutCommit String
     -- === Ports ===
     | ChangeIn Json.Value
     | ObjectsIn Json.Value
@@ -46,7 +46,6 @@ type Msg
 
 
 
--- TREES
 
 type alias Tree =
   { id : String
@@ -54,33 +53,13 @@ type alias Tree =
   , children : Children
   }
 
-
 type Children = Children (List Tree)
 type alias Group = List Tree
 type alias Column = List (List Tree)
 
 
+type State = Clean String | Fetched String String | Merging String String
 
-
--- COMMUNICATION
-
-type alias ResOk =
-  { id : String
-  , ok : Bool
-  , rev : String
-  }
-
-type alias ResErr =
-  { status : Int
-  , name : String
-  , message : String
-  , error : Bool
-  }
-
-
-
-
--- TRANSIENTS
 
 type alias ViewState =
   { active : String

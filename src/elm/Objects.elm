@@ -1,4 +1,4 @@
-module Objects exposing (..)
+module Objects exposing (Model, defaultModel, ObjMsg (Commit, Checkout, Clone), update, toValue)
 
 import Dict exposing (Dict)
 import Maybe exposing (andThen)
@@ -20,12 +20,11 @@ type alias Model =
   { commits : Dict String CommitObject
   , treeObjects : Dict String TreeObject
   , refs : Dict String String
-  , head : Head
   }
 
 
 defaultModel : Model
-defaultModel = Model Dict.empty Dict.empty Dict.empty (Head "master" "" "" [])
+defaultModel = Model Dict.empty Dict.empty Dict.empty
 
 
 type alias TreeObject =
@@ -42,125 +41,54 @@ type alias CommitObject =
   }
 
 
-type alias Head =
-  { id : String
-  , current : String
-  , previous : String
-  , conflicts : List String
-  }
 
 
+-- GIT PORCELAIN
 
-
--- UPDATE
-
-
-{-|Consider these the Porcelain commands of Git
--}
 type ObjMsg
-  = Commit String Tree
-  | CommitMerge (List String) (List String) Tree
-  | SetHead String
-  | Change Json.Value
-  | In Json.Value
-  | Merge
-  | Merge3 String String String
+  = Commit String String Tree
+  | Checkout String
+  | Clone Json.Value
 
 
-update : ObjMsg -> Model -> Model
+update : ObjMsg -> Model -> (String, Maybe Tree, Model)
 update msg model =
-  let
-    head = model.head
-  in
   case msg of
-    Commit author tree ->
+    Commit head author tree ->
       let
         parents =
-          if model.head.current == "" then []
-          else [model.head.current]
+          if head == "" then []
+          else [head]
 
         (newHead, newModel) =
           commitTree author parents tree model
+            |> \(h, m) -> (h, updateRef "heads/master" h m)
       in
-      update (SetHead newHead) newModel
+      (newHead, Nothing, newModel)
 
-    CommitMerge authors parents tree ->
-      let
-        (newHead, newModel) =
-          commitTree (authors |> String.join " ") parents tree model
-      in
-      update (SetHead newHead) newModel
+    Checkout commitSha ->
+      (commitSha, checkoutCommit commitSha model, model)
 
-    SetHead newHead ->
-      { model
-        | head = { head | current = newHead, previous = head.current }
-      }
-
-    Change json ->
-      case Json.decodeValue (changeDecoder model) json of
-        Ok modelIn ->
-          let
-            newModel =
-              { model
-                | treeObjects = Dict.union model.treeObjects modelIn.treeObjects
-                , commits = Dict.union model.commits modelIn.commits
-                , head = modelIn.head
-              }
-          in
-          update Merge newModel
-
-        Err err ->
-          let _ = Debug.log "Objects.Change json err:" err in
-          model
-
-
-
-    In json ->
+    Clone json ->
       case Json.decodeValue modelDecoder json of
-        Ok modelIn ->
-          let
-            newModel =
-              { model
-                | treeObjects = Dict.union model.treeObjects modelIn.treeObjects
-                , commits = Dict.union model.commits modelIn.commits
-                , head = modelIn.head
-              }
-          in
-          update Merge newModel
+        Ok ({refs} as newModel) ->
+          let newHead_ = Dict.get "heads/master" refs in
+          case newHead_ of
+            Just newHead ->
+              update (Checkout newHead) newModel
+
+            Nothing ->
+              let _ = Debug.log "Error: no ref to master head commit." in
+              ("", Nothing, model)
 
         Err err ->
-          let _ = Debug.log "Objects.In json err:" err in
-          model
+          Debug.crash err
 
-    Merge ->
-      let
-        mergeFold commitSha prevModel =
-          getCommonAncestor_ prevModel.commits commitSha prevModel.head.current
-            |> Maybe.map (\ca -> update (Merge3 ca commitSha prevModel.head.current) prevModel)
-            |> Maybe.withDefault prevModel
 
-        merged =
-          List.foldr mergeFold model model.head.conflicts
 
-        mergedHead = merged.head
-      in
-      { merged | head = { mergedHead | conflicts = [] }}
 
-    Merge3 oSha aSha bSha ->
-      let
-        aCommit_ = Dict.get aSha model.commits
-        bCommit_ = Dict.get bSha model.commits
-      in
-      case (merge oSha aSha bSha model, aCommit_, bCommit_) of
-        (Ok tree, Just aCommit, Just bCommit) ->
-          update (CommitMerge [aCommit.author, bCommit.author] [aSha, bSha] tree) model
+-- GIT PLUMBING
 
-        _ ->
-          model
-
-{-|Generate a CommitObject, and all associated TreeObjects, from Tree and metadata
-Returns (commitSha, newModel)
--}
 commitTree : String -> List String -> Tree -> Model -> (String, Model)
 commitTree author parents tree model =
   let
@@ -183,43 +111,20 @@ commitTree author parents tree model =
   )
 
 
-loadCommit : String -> Model -> Maybe Tree
-loadCommit commitSha model =
+checkoutCommit : String -> Model -> Maybe Tree
+checkoutCommit commitSha model =
   Dict.get commitSha model.commits
     |> andThen (\co -> treeObjectsToTree model.treeObjects co.tree "0")
 
 
-previousCommit : Model -> Maybe String
-previousCommit model =
-  Dict.get model.head.current model.commits
-    |> andThen (\co -> co.parents |> List.head)
+updateRef : String -> String -> Model -> Model
+updateRef refId newValue model =
+  { model
+    | refs = model.refs
+        |> Dict.insert refId newValue
+  }
 
 
-nextCommit : Model -> Maybe String
-nextCommit model =
-  model.commits
-    |> Dict.filter (\sha co -> List.member model.head.current co.parents)
-    |> Dict.toList
-    |> List.sortBy (\(sha, co) -> -1 * co.timestamp)
-    |> List.map first
-    |> List.head
-
-
-
-
--- ==== Generating Objects
-
-
-{-|Generate the TreeObjects from a given Tree.
-Returns (rootSha, dictionary of all generated Trees)
-
-Equivalent to `git write-tree`:
-Creates a tree object using the current index. The name of the new tree object is printed to standard output.
-
-The index must be in a fully merged state.
-
-Conceptually, git write-tree sync()s the current index contents into a set of tree files. In order to have that match what is actually in your directory right now, you need to have done a git update-index phase before you did the git write-tree.
--}
 writeTree : Tree -> (String, Dict String TreeObject)
 writeTree tree =
   case tree.children of
@@ -308,8 +213,8 @@ commitSha commit =
 
 -- PORTS & INTEROP
 
-modelToValue : Model -> Enc.Value
-modelToValue model =
+toValue : Model -> Enc.Value
+toValue model =
   let
     treeObjectToValue sha treeObject =
       Enc.object
@@ -339,21 +244,11 @@ modelToValue model =
       Dict.toList model.refs
         |> List.map (\(k, v) -> refToValue k v)
         |> Enc.list
-
-    head =
-      Enc.object
-        [ ( "_id", Enc.string model.head.id )
-        , ( "type", Enc.string "head" )
-        , ( "current", Enc.string model.head.current )
-        , ( "previous", Enc.string model.head.previous )
-        ]
-
   in
   Enc.object
     [ ( "commits", commits )
     , ( "treeObjects", treeObjects )
     , ( "refs", refs )
-    , ( "head", head )
     ]
 
 
@@ -378,11 +273,10 @@ commitsToValue commits =
 
 modelDecoder : Json.Decoder Model
 modelDecoder =
-  Json.map4 Model
+  Json.map3 Model
     ( Json.field "commits" commitsDecoder )
     ( Json.field "treeObjects" treeObjectsDecoder )
     ( Json.field "refs" (Json.dict Json.string))
-    ( Json.field "head" headDecoder )
 
 
 commitsDecoder : Json.Decoder (Dict String CommitObject)
@@ -422,38 +316,21 @@ refDecoder =
     ( Json.field "value" Json.string )
 
 
-headDecoder : Json.Decoder Head
-headDecoder =
-  decode Head
-    |> required "_id" Json.string
-    |> required "current" Json.string
-    |> required "previous" Json.string
-    |> optional "_conflicts" (Json.list Json.string) []
-
-
 changeDecoder : Model -> Json.Decoder Model
 changeDecoder model =
   Json.oneOf
-    [ Json.map4 Model
-        ( Json.succeed model.commits )
-        ( Json.succeed model.treeObjects )
-        ( Json.succeed model.refs )
-        headDecoder
-    , Json.map4 Model
+    [ Json.map3 Model
         ( Json.succeed model.commits )
         ( Json.succeed model.treeObjects )
         ( Json.dict refDecoder )
-        ( Json.succeed model.head )
-    , Json.map4 Model
+    , Json.map3 Model
         ( Json.succeed model.commits )
         treeObjectsDecoder
         ( Json.succeed model.refs )
-        ( Json.succeed model.head )
-    , Json.map4 Model
+    , Json.map3 Model
         commitsDecoder
         ( Json.succeed model.treeObjects )
         ( Json.succeed model.refs )
-        ( Json.succeed model.head )
     ]
 
 

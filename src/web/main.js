@@ -118,36 +118,9 @@ db.allDocs(
   var trees = processData(data, "tree");
   var refs = processData(data, "ref");
 
-  head = _.omit(_.find(data, d => d.type == "head"), ['type', '_rev'])
-
-  if (head._conflicts) {
-    db.get( head._id, {
-      open_revs: head._conflicts
-    })
-    .then(function(responses){
-      console.log('responses', responses)
-      var headDocs = responses
-          .filter(function(response){
-            return 'ok' in response
-          })
-          .map(function(response) {
-            return response.ok.current
-          })
-
-      headConflicts = responses.filter(r => 'ok' in r).map(r => [r.ok.current, r.ok._rev])
-
-      console.log('headDocs', headDocs)
-      head._conflicts = headDocs
-
-      var toSend = { commits: commits, treeObjects: trees, refs: refs, head: head };
-      console.log('toSend w/conflicts', toSend);
-      gingko.ports.objects.send(toSend);
-    })
-  } else {
-    var toSend = { commits: commits, treeObjects: trees, refs: refs, head: head };
-    console.log('toSend', toSend);
-    gingko.ports.objects.send(toSend);
-  }
+  var toSend = { commits: commits, treeObjects: trees, refs: refs};
+  console.log('toSend', toSend);
+  gingko.ports.objects.send(toSend);
 }).catch(function (err) {
   console.log(err)
 })
@@ -182,31 +155,22 @@ gingko.ports.getText.subscribe(id => {
 })
 
 gingko.ports.saveObjects.subscribe(objects => {
-  db.get(objects.head._id)
-    .catch(function(err) {
-      if (err.name === 'not_found') {
-        return objects.head
-      } else {
-        throw err;
-      }
-    })
-    .then(function(headDoc) {
-      headDoc.current = objects.head.current;
-      headDoc.previous = objects.head.previous;
+  db.get('heads/master')
+    .catch(err => console.log(err))
+    .then(headDoc => {
+      newRefs = objects.refs
+        .map(r => {
+          if (r._id == 'heads/master') {
+            headDoc['value'] = r.value
+            return headDoc
+          } else { return r }
+        })
 
-      var resolvedConflicts = []
-      if (objects.head._conflicts == undefined && headConflicts.length !== 0) {
-        resolvedConflicts = headConflicts.map(arr => {return {'_id': objects.head._id, '_rev': arr[1], '_deleted': true}})
-        headConflicts = []
-      }
-
-      var toSave = objects.commits.concat(objects.treeObjects).concat(headDoc).concat(resolvedConflicts);
+      var toSave = objects.commits.concat(objects.treeObjects).concat(newRefs);
       console.log('toSave from gingko port', toSave)
       db.bulkDocs(toSave)
         .then(responses => {
-          var toSend = responses//.map( (r, i) => [r, toSave[i]])
-          console.log('saveResponses', toSend)
-          //gingko.ports.saveResponses.send(toSend)
+          console.log('saveResponses', responses)
         }).catch(err => {
           console.log(err)
         })
@@ -215,7 +179,8 @@ gingko.ports.saveObjects.subscribe(objects => {
 
 
 gingko.ports.updateCommits.subscribe(function(data) {
-  commitGraphData = _.sortBy(data[0], 'timestamp').reverse().map(c => { return {sha: c._id, parents: c.parents}})
+  console.log('updateCommits data', data)
+  commitGraphData = _.sortBy(data[0].commits, 'timestamp').reverse().map(c => { return {sha: c._id, parents: c.parents}})
   selectedSha = data[1]
   console.log(commitGraphData)
   console.log(selectedSha)
