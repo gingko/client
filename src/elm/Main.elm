@@ -425,8 +425,14 @@ update msg ({objects, workingTree, status} as model) =
             , status = newStatus
           }
             ! []
-            |> andThen (UpdateCommits (newObjects |> Objects.toValue, oldHead))
+            |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
 
+        (Clean newHead, Nothing) -> -- no changes to Tree
+          { model
+            | status = newStatus
+          }
+            ! []
+            |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
 
         _ ->
           model ! []

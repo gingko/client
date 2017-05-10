@@ -86,7 +86,7 @@ update msg model =
           in
           case (oldHead_, newHead_) of
             (Just oldHead, Just newHead) ->
-              (Merging oldHead newHead, merge oldHead newHead newModel, newModel) -- TODO: perform merge oldHead newHead
+              (Merging oldHead newHead, merge oldHead newHead newModel, newModel)
                 |> Debug.log "merge result"
 
             (Nothing, Just newHead) ->
@@ -99,7 +99,7 @@ update msg model =
 
             _ ->
               let _ = Debug.log "Error: no ref to master head commit." in
-              (Clean "", Nothing, model)
+              (Bare, Nothing, model)
 
         Err err ->
           Debug.crash err
@@ -218,9 +218,6 @@ treeObjectsToTree treeObjects treeSha id =
 
     Nothing -> Nothing
 
-
--- SHA IDs
-
 commitSha : CommitObject -> String
 commitSha commit =
   ( commit.tree ++ "\n" ) ++
@@ -231,177 +228,59 @@ commitSha commit =
 
 
 
--- PORTS & INTEROP
-
-toValue : Model -> Enc.Value
-toValue model =
-  let
-    treeObjectToValue sha treeObject =
-      Enc.object
-        [ ( "_id", Enc.string sha )
-        , ( "type", Enc.string "tree" )
-        , ( "content", Enc.string treeObject.content )
-        , ( "children", Enc.list
-              (List.map (\(s, i) -> Enc.list [Enc.string s, Enc.string i]) treeObject.children) )
-        ]
-
-    refToValue sha refString =
-      Enc.object
-        [ ( "_id", Enc.string sha )
-        , ( "type", Enc.string "ref" )
-        , ( "value", Enc.string refString )
-        ]
-
-    commits =
-      commitsToValue model.commits
-
-    treeObjects =
-      Dict.toList model.treeObjects
-        |> List.map (\(k, v) -> treeObjectToValue k v)
-        |> Enc.list
-
-    refs =
-      Dict.toList model.refs
-        |> List.map (\(k, v) -> refToValue k v)
-        |> Enc.list
-  in
-  Enc.object
-    [ ( "commits", commits )
-    , ( "treeObjects", treeObjects )
-    , ( "refs", refs )
-    ]
-
-
-commitsToValue : Dict String CommitObject -> Enc.Value
-commitsToValue commits =
-  let
-    commitToValue sha commit =
-      Enc.object
-        [ ( "_id", Enc.string sha )
-        , ( "type", Enc.string "commit" )
-        , ( "tree", Enc.string commit.tree )
-        , ( "parents", Enc.list (commit.parents |> List.map Enc.string) )
-        , ( "author", Enc.string commit.author )
-        , ( "timestamp", Enc.int commit.timestamp )
-        ]
-
-  in
-  Dict.toList commits
-    |> List.map (\(k, v) -> commitToValue k v)
-    |> Enc.list
-
-
-modelDecoder : Json.Decoder Model
-modelDecoder =
-  Json.map3 Model
-    ( Json.field "commits" commitsDecoder )
-    ( Json.field "treeObjects" treeObjectsDecoder )
-    ( Json.field "refs" (Json.dict Json.string))
-
-
-commitsDecoder : Json.Decoder (Dict String CommitObject)
-commitsDecoder =
-  let
-    commitObjectDecoder : Json.Decoder CommitObject
-    commitObjectDecoder =
-      Json.map4 CommitObject
-        ( Json.field "tree" Json.string )
-        ( Json.field "parents" (Json.list Json.string) )
-        ( Json.field "author" Json.string )
-        ( Json.field "timestamp" Json.int )
-  in
-  (Json.dict commitObjectDecoder)
-
-
-treeObjectsDecoder : Json.Decoder (Dict String TreeObject)
-treeObjectsDecoder =
-  let
-    tupleDecoder a b =
-      Json.index 0 a
-        |> Json.andThen
-          (\aVal -> Json.index 1 b
-              |> Json.andThen (\bVal -> Json.succeed (aVal, bVal))
-          )
-
-    treeObjectDecoder =
-      Json.map2 TreeObject
-        ( Json.field "content" Json.string )
-        ( Json.field "children" (Json.list (tupleDecoder Json.string Json.string)) )
-  in
-  (Json.dict treeObjectDecoder)
-
-
-refDecoder : Json.Decoder String
-refDecoder =
-    ( Json.field "value" Json.string )
-
-
-changeDecoder : Model -> Json.Decoder Model
-changeDecoder model =
-  Json.oneOf
-    [ Json.map3 Model
-        ( Json.succeed model.commits )
-        ( Json.succeed model.treeObjects )
-        ( Json.dict refDecoder )
-    , Json.map3 Model
-        ( Json.succeed model.commits )
-        treeObjectsDecoder
-        ( Json.succeed model.refs )
-    , Json.map3 Model
-        commitsDecoder
-        ( Json.succeed model.treeObjects )
-        ( Json.succeed model.refs )
-    ]
-
-
-
-
 -- ==== Merging
 
 getCommonAncestor_ : Dict String CommitObject -> String -> String -> Maybe String
 getCommonAncestor_ commits shaA shaB =
   let
-    getAncestors : Dict String CommitObject -> String -> List String
-    getAncestors cm sh =
-      let
-        c_ = Dict.get sh cm
-      in
-      case c_ of
-        Just c ->
-          c.parents ++ (List.concatMap (getAncestors cm) c.parents)
-
-        Nothing -> []
-
     aAncestors = getAncestors commits shaA
     bAncestors = getAncestors commits shaB
   in
   aAncestors
     |> List.filter (\a -> List.member a bAncestors)
+    |> Debug.log "commonAncestors"
     |> List.head
+
+
+getAncestors : Dict String CommitObject -> String -> List String
+getAncestors cm sh =
+  let
+    c_ = Dict.get sh cm
+  in
+  case c_ of
+    Just c ->
+      c.parents ++ (List.concatMap (getAncestors cm) c.parents)
+
+    Nothing -> []
 
 
 merge : String -> String -> Model -> Maybe Tree
 merge aSha bSha model =
-  let
-    oSha = getCommonAncestor_ model.commits aSha bSha |> Maybe.withDefault ""
-    getTree_ sha =
-      Dict.get sha model.commits
-        |> Maybe.andThen (\co -> treeObjectsToTree model.treeObjects co.tree "0")
+  if (aSha == bSha || List.member bSha (getAncestors model.commits aSha)) then
+    Nothing
+  else if (List.member aSha (getAncestors model.commits bSha)) then
+    checkoutCommit bSha model
+  else
+    let
+      oSha = getCommonAncestor_ model.commits aSha bSha |> Maybe.withDefault ""
+      getTree_ sha =
+        Dict.get sha model.commits
+          |> Maybe.andThen (\co -> treeObjectsToTree model.treeObjects co.tree "0")
 
-    oTree_ = getTree_ oSha
-    aTree_ = getTree_ aSha
-    bTree_ = getTree_ bSha
-  in
-  case (oTree_, aTree_, bTree_) of
-    (Just oTree, Just aTree, Just bTree) ->
-      let
-        mTree = mergeTrees oTree aTree bTree
-          |> Maybe.withDefault oTree
-      in
-      Just mTree
+      oTree_ = getTree_ oSha
+      aTree_ = getTree_ aSha
+      bTree_ = getTree_ bSha
+    in
+    case (oTree_, aTree_, bTree_) of
+      (Just oTree, Just aTree, Just bTree) ->
+        let
+          mTree = mergeTrees oTree aTree bTree
+            |> Maybe.withDefault oTree
+        in
+        Just mTree
 
-    _ ->
-      Nothing
+      _ ->
+        Nothing
 
 
 mergeTrees : Tree -> Tree -> Tree -> Maybe Tree
@@ -549,3 +428,127 @@ mergeGeneric mergeFn o a b =
   else
     mergeFn o a b
 
+
+
+
+-- PORTS & INTEROP
+
+toValue : Model -> Enc.Value
+toValue model =
+  let
+    treeObjectToValue sha treeObject =
+      Enc.object
+        [ ( "_id", Enc.string sha )
+        , ( "type", Enc.string "tree" )
+        , ( "content", Enc.string treeObject.content )
+        , ( "children", Enc.list
+              (List.map (\(s, i) -> Enc.list [Enc.string s, Enc.string i]) treeObject.children) )
+        ]
+
+    refToValue sha refString =
+      Enc.object
+        [ ( "_id", Enc.string sha )
+        , ( "type", Enc.string "ref" )
+        , ( "value", Enc.string refString )
+        ]
+
+    commits =
+      commitsToValue model.commits
+
+    treeObjects =
+      Dict.toList model.treeObjects
+        |> List.map (\(k, v) -> treeObjectToValue k v)
+        |> Enc.list
+
+    refs =
+      Dict.toList model.refs
+        |> List.map (\(k, v) -> refToValue k v)
+        |> Enc.list
+  in
+  Enc.object
+    [ ( "commits", commits )
+    , ( "treeObjects", treeObjects )
+    , ( "refs", refs )
+    ]
+
+
+commitsToValue : Dict String CommitObject -> Enc.Value
+commitsToValue commits =
+  let
+    commitToValue sha commit =
+      Enc.object
+        [ ( "_id", Enc.string sha )
+        , ( "type", Enc.string "commit" )
+        , ( "tree", Enc.string commit.tree )
+        , ( "parents", Enc.list (commit.parents |> List.map Enc.string) )
+        , ( "author", Enc.string commit.author )
+        , ( "timestamp", Enc.int commit.timestamp )
+        ]
+
+  in
+  Dict.toList commits
+    |> List.map (\(k, v) -> commitToValue k v)
+    |> Enc.list
+
+
+modelDecoder : Json.Decoder Model
+modelDecoder =
+  Json.map3 Model
+    ( Json.field "commits" commitsDecoder )
+    ( Json.field "treeObjects" treeObjectsDecoder )
+    ( Json.field "refs" (Json.dict Json.string))
+
+
+commitsDecoder : Json.Decoder (Dict String CommitObject)
+commitsDecoder =
+  let
+    commitObjectDecoder : Json.Decoder CommitObject
+    commitObjectDecoder =
+      Json.map4 CommitObject
+        ( Json.field "tree" Json.string )
+        ( Json.field "parents" (Json.list Json.string) )
+        ( Json.field "author" Json.string )
+        ( Json.field "timestamp" Json.int )
+  in
+  (Json.dict commitObjectDecoder)
+
+
+treeObjectsDecoder : Json.Decoder (Dict String TreeObject)
+treeObjectsDecoder =
+  let
+    tupleDecoder a b =
+      Json.index 0 a
+        |> Json.andThen
+          (\aVal -> Json.index 1 b
+              |> Json.andThen (\bVal -> Json.succeed (aVal, bVal))
+          )
+
+    treeObjectDecoder =
+      Json.map2 TreeObject
+        ( Json.field "content" Json.string )
+        ( Json.field "children" (Json.list (tupleDecoder Json.string Json.string)) )
+  in
+  (Json.dict treeObjectDecoder)
+
+
+refDecoder : Json.Decoder String
+refDecoder =
+    ( Json.field "value" Json.string )
+
+
+changeDecoder : Model -> Json.Decoder Model
+changeDecoder model =
+  Json.oneOf
+    [ Json.map3 Model
+        ( Json.succeed model.commits )
+        ( Json.succeed model.treeObjects )
+        ( Json.dict refDecoder )
+    , Json.map3 Model
+        ( Json.succeed model.commits )
+        treeObjectsDecoder
+        ( Json.succeed model.refs )
+    , Json.map3 Model
+        commitsDecoder
+        ( Json.succeed model.treeObjects )
+        ( Json.succeed model.refs )
+    ]
