@@ -48,7 +48,7 @@ type alias CommitObject =
 type ObjMsg
   = Commit (List String) String Tree
   | Checkout String
-  | Merge Json.Value
+  | Merge Json.Value Tree
 
 
 update : ObjMsg -> Model -> (Status, Maybe Tree, Model)
@@ -65,7 +65,7 @@ update msg model =
     Checkout commitSha ->
       (Clean commitSha, checkoutCommit commitSha model, model)
 
-    Merge json ->
+    Merge json oldTree ->
       case Json.decodeValue modelDecoder json of
         Ok modelIn ->
           let
@@ -86,7 +86,7 @@ update msg model =
           in
           case (oldHead_, newHead_) of
             (Just oldHead, Just newHead) ->
-              (Merging oldHead newHead, merge oldHead newHead newModel, newModel)
+              merge oldHead newHead oldTree newModel
                 |> Debug.log "merge result"
 
             (Nothing, Just newHead) ->
@@ -254,12 +254,12 @@ getAncestors cm sh =
     Nothing -> []
 
 
-merge : String -> String -> Model -> Maybe Tree
-merge aSha bSha model =
+merge : String -> String -> Tree -> Model -> (Status, Maybe Tree, Model)
+merge aSha bSha oldTree model =
   if (aSha == bSha || List.member bSha (getAncestors model.commits aSha)) then
-    Nothing
+    (Clean aSha, Just oldTree, model)
   else if (List.member aSha (getAncestors model.commits bSha)) then
-    checkoutCommit bSha model
+    (Clean bSha, checkoutCommit bSha model, model)
   else
     let
       oSha = getCommonAncestor_ model.commits aSha bSha |> Maybe.withDefault ""
@@ -274,13 +274,17 @@ merge aSha bSha model =
     case (oTree_, aTree_, bTree_) of
       (Just oTree, Just aTree, Just bTree) ->
         let
-          mTree = mergeTrees oTree aTree bTree
-            |> Maybe.withDefault oTree
+          mTree_ = mergeTrees oTree aTree bTree
         in
-        Just mTree
+        case mTree_ of
+          Just tree ->
+            (Merging aSha bSha, Just tree, model)
+
+          Nothing ->
+            (Merging aSha bSha, Just oldTree, model)
 
       _ ->
-        Nothing
+        (Merging aSha bSha, Nothing, model)
 
 
 mergeTrees : Tree -> Tree -> Tree -> Maybe Tree

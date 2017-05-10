@@ -406,7 +406,7 @@ update msg ({objects, workingTree, status} as model) =
     ObjectsIn json ->
       let
         (newStatus, newTree_, newObjects) =
-          Objects.update (Objects.Merge json) objects
+          Objects.update (Objects.Merge json workingTree.tree) objects
       in
       case (newStatus, newTree_) of
         (Clean newHead, Just newTree) ->
