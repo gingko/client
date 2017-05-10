@@ -39,7 +39,6 @@ type Msg
     | TryMerge
     | CheckoutCommit String
     -- === Ports ===
-    | ChangeIn Json.Value
     | ObjectsIn Json.Value
     | UpdateCommits (Json.Value, String)
     | AttemptCommit
@@ -59,7 +58,7 @@ type alias Group = List Tree
 type alias Column = List (List Tree)
 
 
-type Status = Clean String | Fetched String String | Merging String String
+type Status = Bare | Clean String | Merging String String
 
 
 type alias ViewState =

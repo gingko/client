@@ -1,4 +1,4 @@
-module Objects exposing (Model, defaultModel, ObjMsg (Commit, Checkout, Clone), update, toValue)
+module Objects exposing (Model, defaultModel, ObjMsg (Commit, Checkout, Merge), update, toValue)
 
 import Dict exposing (Dict)
 import Maybe exposing (andThen)
@@ -46,40 +46,60 @@ type alias CommitObject =
 -- GIT PORCELAIN
 
 type ObjMsg
-  = Commit String String Tree
+  = Commit (List String) String Tree
   | Checkout String
-  | Clone Json.Value
+  | Merge Json.Value
 
 
-update : ObjMsg -> Model -> (String, Maybe Tree, Model)
+update : ObjMsg -> Model -> (Status, Maybe Tree, Model)
 update msg model =
   case msg of
-    Commit head author tree ->
+    Commit parents author tree ->
       let
-        parents =
-          if head == "" then []
-          else [head]
-
         (newHead, newModel) =
           commitTree author parents tree model
             |> \(h, m) -> (h, updateRef "heads/master" h m)
       in
-      (newHead, Nothing, newModel)
+      (Clean newHead, Nothing, newModel)
 
     Checkout commitSha ->
-      (commitSha, checkoutCommit commitSha model, model)
+      (Clean commitSha, checkoutCommit commitSha model, model)
 
-    Clone json ->
+    Merge json ->
       case Json.decodeValue modelDecoder json of
-        Ok ({refs} as newModel) ->
-          let newHead_ = Dict.get "heads/master" refs in
-          case newHead_ of
-            Just newHead ->
-              update (Checkout newHead) newModel
+        Ok modelIn ->
+          let
+            _ = Debug.log "modelIn" modelIn
 
-            Nothing ->
+            oldHead_ = Dict.get "heads/master" model.refs
+              |> Debug.log "oldHead_"
+
+            newHead_ = Dict.get "heads/master" modelIn.refs
+              |> Debug.log "newHead_"
+
+            newModel =
+              { model
+                | treeObjects = Dict.union modelIn.treeObjects model.treeObjects
+                , commits = Dict.union modelIn.commits model.commits
+                , refs = Dict.union modelIn.refs model.refs
+              }
+          in
+          case (oldHead_, newHead_) of
+            (Just oldHead, Just newHead) ->
+              (Merging oldHead newHead, merge oldHead newHead newModel, newModel) -- TODO: perform merge oldHead newHead
+                |> Debug.log "merge result"
+
+            (Nothing, Just newHead) ->
+              let
+                newTree_ =
+                  Dict.get newHead newModel.commits
+                    |> andThen (\co -> treeObjectsToTree newModel.treeObjects co.tree "0")
+              in
+              (Clean newHead, newTree_, newModel)
+
+            _ ->
               let _ = Debug.log "Error: no ref to master head commit." in
-              ("", Nothing, model)
+              (Clean "", Nothing, model)
 
         Err err ->
           Debug.crash err
@@ -360,9 +380,10 @@ getCommonAncestor_ commits shaA shaB =
     |> List.head
 
 
-merge : String -> String -> String -> Model -> Result (List String) Tree
-merge oSha aSha bSha model =
+merge : String -> String -> Model -> Maybe Tree
+merge aSha bSha model =
   let
+    oSha = getCommonAncestor_ model.commits aSha bSha |> Maybe.withDefault ""
     getTree_ sha =
       Dict.get sha model.commits
         |> Maybe.andThen (\co -> treeObjectsToTree model.treeObjects co.tree "0")
@@ -375,31 +396,31 @@ merge oSha aSha bSha model =
     (Just oTree, Just aTree, Just bTree) ->
       let
         mTree = mergeTrees oTree aTree bTree
-          |> Result.withDefault oTree
+          |> Maybe.withDefault oTree
       in
-      Ok mTree
+      Just mTree
 
     _ ->
-      Err ["Couldn't find all trees for 3 way merge"]
+      Nothing
 
 
-mergeTrees : Tree -> Tree -> Tree -> Result (List String) Tree
+mergeTrees : Tree -> Tree -> Tree -> Maybe Tree
 mergeTrees oTree aTree bTree =
   let
     mContent = mergeStrings oTree.content aTree.content bTree.content
-      |> Result.withDefault "mergeString conflict"
+      |> Maybe.withDefault "mergeString conflict"
 
     mChildren = mergeChildren (getChildren oTree) (getChildren aTree) (getChildren bTree)
-      |> Result.withDefault ((getChildren oTree)++(getChildren aTree)++(getChildren bTree))
+      |> Maybe.withDefault ((getChildren oTree)++(getChildren aTree)++(getChildren bTree))
       |> Children
   in
-  Ok (Tree oTree.id mContent mChildren)
+  Just (Tree oTree.id mContent mChildren)
 
 type MergeColumn = O | A | B
 type alias MergeDict = Dict String (Maybe Tree, Maybe Tree, Maybe Tree)
 
 
-mergeChildren : List Tree -> List Tree -> List Tree -> Result (List String) (List Tree)
+mergeChildren : List Tree -> List Tree -> List Tree -> Maybe (List Tree)
 mergeChildren oList aList bList =
   let
     allTrees = oList ++ aList ++ bList
@@ -429,7 +450,6 @@ mergeChildren oList aList bList =
             case (o_, a_, b_) of
               (Just ot, Just at, Just bt) ->
                 mergeTrees ot at bt
-                  |> Result.toMaybe
 
               (Just ot, Just at, Nothing) ->
                 if ot == at then
@@ -461,7 +481,7 @@ mergeChildren oList aList bList =
           )
 
   in
-  Ok mergedTrees
+  Just mergedTrees
 
 
 getTreeDict : MergeColumn -> List Tree -> MergeDict
@@ -473,24 +493,23 @@ getTreeDict col trees =
 
 
 
-mergeStrings : String -> String -> String -> Result String String
+mergeStrings : String -> String -> String -> Maybe String
 mergeStrings o a b =
   let
     mergeFn x y z =
       "theirs:\n```\n" ++
       y ++ "\n```\nyours:\n```\n" ++
       z ++ "\n```"
-        |> Ok
+        |> Just
   in
   mergeGeneric mergeFn o a b
 
 
-mergeTreeList : List (String, String) -> List (String, String) -> List (String, String) -> Result String (List (String, String))
+mergeTreeList : List (String, String) -> List (String, String) -> List (String, String) -> Maybe (List (String, String))
 mergeTreeList oList aList bList =
   let
-
     mergeFn x y z =
-      Ok y
+      Just y
   in
   mergeGeneric mergeFn oList aList bList
 
@@ -519,14 +538,14 @@ commitToc commits trees commitSha =
     |> Maybe.withDefault Dict.empty
 
 
-mergeGeneric : (a -> a -> a -> Result String a) -> a -> a -> a -> Result String a
+mergeGeneric : (a -> a -> a -> Maybe a) -> a -> a -> a -> Maybe a
 mergeGeneric mergeFn o a b =
   if a == b then
-    Ok a
+    Just a
   else if o == b && o /= a then
-    Ok a
+    Just a
   else if o == a && o /= b then
-    Ok b
+    Just b
   else
     mergeFn o a b
 

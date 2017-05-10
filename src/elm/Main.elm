@@ -8,7 +8,7 @@ import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
 import Html.Lazy exposing (lazy, lazy2)
 import Json.Decode as Json
-import Json.Encode as JS
+import Json.Encode exposing (..)
 import Dom
 import Task
 
@@ -53,7 +53,7 @@ defaultModel : Model
 defaultModel =
   { workingTree = Trees.defaultModel
   , objects = Objects.defaultModel
-  , status = Clean ""
+  , status = Bare
   , viewState =
       { active = "0"
       , activePast = []
@@ -378,21 +378,21 @@ update msg ({objects, workingTree, status} as model) =
       model ! []
 
     Fetch ->
-      model ! [js ("fetch", JS.null)]
+      model ! [js ("fetch", null)]
 
     Push ->
-      model ! [js ("push", JS.null)]
+      model ! [js ("push", null)]
 
     CheckoutCommit commitSha ->
       let
-        (newHead, newTree_, newModel) =
+        (newStatus, newTree_, newModel) =
           Objects.update (Objects.Checkout commitSha) objects
       in
       case newTree_ of
         Just newTree ->
           { model
             | workingTree = Trees.setTree newTree model.workingTree
-            , status = Clean newHead
+            , status = newStatus
           }
             ! []
             |> andThen (UpdateCommits (objects |> Objects.toValue, commitSha))
@@ -403,25 +403,32 @@ update msg ({objects, workingTree, status} as model) =
 
     -- === Ports ===
 
-    ChangeIn json ->
-      model ! []
-
     ObjectsIn json ->
       let
-        (newHead, newTree_, newObjects) =
-          Objects.update (Objects.Clone json) objects
+        (newStatus, newTree_, newObjects) =
+          Objects.update (Objects.Merge json) objects
       in
-      case newTree_ of
-        Just newTree ->
+      case (newStatus, newTree_) of
+        (Clean newHead, Just newTree) ->
           { model
             | workingTree = Trees.setTree newTree model.workingTree
             , objects = newObjects
-            , status = Clean newHead
+            , status = newStatus
           }
             ! []
             |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
 
-        Nothing ->
+        (Merging oldHead newHead, Just newTree) ->
+          { model
+            | workingTree = Trees.setTree newTree model.workingTree
+            , objects = newObjects
+            , status = newStatus
+          }
+            ! []
+            |> andThen (UpdateCommits (newObjects |> Objects.toValue, oldHead))
+
+
+        _ ->
           model ! []
             |> Debug.log "failed to load data"
 
@@ -429,22 +436,23 @@ update msg ({objects, workingTree, status} as model) =
       model ! [updateCommits (json, sha)]
 
     AttemptCommit ->
-      case status of
-        Clean oldHead ->
-          let
-            (newHead, _, newObjects) =
-              Objects.update (Objects.Commit oldHead "Jane Doe <jane.doe@gmail.com>" workingTree.tree) model.objects
-                |> Debug.log "Commit attempted"
-          in
-          { model
-            | objects = newObjects
-            , status = Clean newHead
-          }
-            ! [saveObjects (newObjects |> Objects.toValue)]
-            |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
+      let
+        parents =
+          case status of
+            Bare -> []
+            Clean oldHead -> [oldHead]
+            Merging oldHead newHead -> [oldHead, newHead]
 
-        _ ->
-          Debug.crash "Can't commit from dirty status."
+        (newStatus, _, newObjects) =
+          Objects.update (Objects.Commit parents "Jane Doe <jane.doe@gmail.com>" workingTree.tree) model.objects
+            |> Debug.log "Commit attempted"
+      in
+      { model
+        | objects = newObjects
+        , status = newStatus
+      }
+        ! [saveObjects (newObjects |> Objects.toValue)]
+        |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
 
     HandleKey key ->
       case key of
@@ -561,6 +569,19 @@ onlyIf cond msg prevStep =
     prevStep
 
 
+getHead : Status -> String
+getHead status =
+  case status of
+    Clean head ->
+      head
+
+    Merging head _ ->
+      head
+
+    Bare ->
+      ""
+
+
 
 
 -- VIEW
@@ -571,6 +592,7 @@ view model =
   div []
     [ div [style [("z-index", "9999"), ("position", "absolute")]]
           [ button [onClick Fetch] [text "fetch"]
+          , button [onClick AttemptCommit] [text "commit"]
           , button [onClick Push] [text "push"]
           ]
     , (lazy2 Trees.view model.viewState model.workingTree)
@@ -583,7 +605,6 @@ view model =
 
 
 port objects : (Json.Value -> msg) -> Sub msg
-port change : (Json.Value -> msg) -> Sub msg
 port setHead : (String -> msg) -> Sub msg
 port keyboard : (String -> msg) -> Sub msg
 port updateContent : ((String, String) -> msg) -> Sub msg
@@ -593,7 +614,6 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.batch
     [ objects ObjectsIn
-    , change ChangeIn
     , setHead CheckoutCommit
     , keyboard HandleKey
     , updateContent UpdateContent

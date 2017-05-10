@@ -34,69 +34,6 @@ self.gingko = Elm.Main.fullscreen(null)
 self.db = new PouchDB('atreenodes16')
 self.remoteCouch = 'http://localhost:5984/atreenodes16'
 
-self.headConflicts = []
-
-db.changes({
-  since: 'now',
-  live: true,
-  conflicts: true,
-  include_docs: true
-}).on('change', function (change) {
-  switch (change.doc.type) {
-    case 'commit':
-      var dict = {}
-      dict[change.id] = _.omit(change.doc, ['_id', 'type','_rev'])
-      gingko.ports.change.send(dict)
-      break;
-
-    case 'tree':
-      var dict = {}
-      dict[change.id] = _.omit(change.doc, ['_id', 'type','_rev'])
-      gingko.ports.change.send(dict)
-      break;
-
-    case 'ref':
-      var dict = {}
-      dict[change.id] = change.doc
-      gingko.ports.change.send(dict)
-      break;
-
-    case 'head':
-      var toSend = _.omit(change.doc, ['type','_rev'])
-      if (toSend._conflicts) {
-        db.get( toSend._id, {
-          open_revs: toSend._conflicts
-        })
-        .then(function(responses){
-          console.log('responses', responses)
-          var headDocs = responses
-              .filter(function(response){
-                return 'ok' in response
-              })
-              .map(function(response) {
-                return response.ok.current
-              })
-
-          headConflicts = responses.filter(r => 'ok' in r).map(r => [r.ok.current, r.ok._rev])
-
-          console.log('headDocs', headDocs)
-          toSend._conflicts = headDocs
-
-          console.log('toSend w/conflicts', toSend);
-          gingko.ports.change.send(toSend);
-        })
-      } else {
-        var toSend = _.omit(change.doc, ['type','_rev'])
-        console.log('toSend', toSend);
-        gingko.ports.change.send(toSend);
-      }
-      break;
-  }
-}).on('error', function (err) {
-  console.log(err)
-});
-
-
 var load = function(){
   db.allDocs(
     { include_docs: true
@@ -175,7 +112,11 @@ gingko.ports.getText.subscribe(id => {
 
 gingko.ports.saveObjects.subscribe(objects => {
   db.get('heads/master')
-    .catch(err => console.log(err))
+    .catch(err => {
+      if(err.name == "not_found") {
+        return {_id: 'heads/master' , value : '', type: 'ref' }
+      }
+    })
     .then(headDoc => {
       newRefs = objects.refs
         .map(r => {
