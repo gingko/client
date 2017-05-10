@@ -1,6 +1,5 @@
 module Types exposing (..)
 
-import Dict exposing (Dict)
 import Json.Decode as Json
 
 
@@ -58,7 +57,12 @@ type alias Group = List Tree
 type alias Column = List (List Tree)
 
 
-type Status = Bare | Clean String | Merging String String
+type Op = Mod String | Del | Mov String Int
+type Selection = Original | Ours | Theirs | Manual
+type Conflict = Conflict String Op Op Selection Bool
+
+
+type Status = Bare | Clean String | MergeConflict String String (List Conflict)
 
 
 type alias ViewState =

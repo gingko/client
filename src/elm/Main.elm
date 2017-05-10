@@ -418,7 +418,7 @@ update msg ({objects, workingTree, status} as model) =
             ! []
             |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
 
-        (Merging oldHead newHead, Just newTree) ->
+        (MergeConflict oldHead newHead [], Just newTree) ->
           { model
             | workingTree = Trees.setTree newTree model.workingTree
             , objects = newObjects
@@ -447,7 +447,8 @@ update msg ({objects, workingTree, status} as model) =
           case status of
             Bare -> []
             Clean oldHead -> [oldHead]
-            Merging oldHead newHead -> [oldHead, newHead]
+            MergeConflict oldHead newHead _ -> [oldHead, newHead]
+            -- TODO: Ensure conflicts are resolved before committing.
 
         (newStatus, _, newObjects) =
           Objects.update (Objects.Commit parents "Jane Doe <jane.doe@gmail.com>" workingTree.tree) model.objects
@@ -581,7 +582,7 @@ getHead status =
     Clean head ->
       head
 
-    Merging head _ ->
+    MergeConflict head _ _ ->
       head
 
     Bare ->

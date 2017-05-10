@@ -278,20 +278,20 @@ merge aSha bSha oldTree model =
         in
         case mTree_ of
           Just tree ->
-            (Merging aSha bSha, Just tree, model)
+            (MergeConflict aSha bSha [], Just tree, model)
 
           Nothing ->
-            (Merging aSha bSha, Just oldTree, model)
+            (MergeConflict aSha bSha [], Just oldTree, model)
 
       _ ->
-        (Merging aSha bSha, Nothing, model)
+        (MergeConflict aSha bSha [], Nothing, model)
 
 
 mergeTrees : Tree -> Tree -> Tree -> Maybe Tree
 mergeTrees oTree aTree bTree =
   let
-    mContent = mergeStrings oTree.content aTree.content bTree.content
-      |> Maybe.withDefault "mergeString conflict"
+    mContent = mergeStrings oTree.id oTree.content aTree.content bTree.content
+      |> first
 
     mChildren = mergeChildren (getChildren oTree) (getChildren aTree) (getChildren bTree)
       |> Maybe.withDefault ((getChildren oTree)++(getChildren aTree)++(getChildren bTree))
@@ -376,23 +376,20 @@ getTreeDict col trees =
 
 
 
-mergeStrings : String -> String -> String -> Maybe String
-mergeStrings o a b =
+mergeStrings : String -> String -> String -> String -> (String, List Conflict)
+mergeStrings id o a b =
   let
     mergeFn x y z =
-      "theirs:\n```\n" ++
-      y ++ "\n```\nyours:\n```\n" ++
-      z ++ "\n```"
-        |> Just
+      (y, [Conflict id (Mod y) (Mod z) Ours False])
   in
   mergeGeneric mergeFn o a b
 
 
-mergeTreeList : List (String, String) -> List (String, String) -> List (String, String) -> Maybe (List (String, String))
+mergeTreeList : List (String, String) -> List (String, String) -> List (String, String) -> (List (String, String), List Conflict)
 mergeTreeList oList aList bList =
   let
     mergeFn x y z =
-      Just y
+      (y, [])
   in
   mergeGeneric mergeFn oList aList bList
 
@@ -421,14 +418,14 @@ commitToc commits trees commitSha =
     |> Maybe.withDefault Dict.empty
 
 
-mergeGeneric : (a -> a -> a -> Maybe a) -> a -> a -> a -> Maybe a
+mergeGeneric : (a -> a -> a -> (a, List Conflict)) -> a -> a -> a -> (a, List Conflict)
 mergeGeneric mergeFn o a b =
   if a == b then
-    Just a
+    (a, [])
   else if o == b && o /= a then
-    Just a
+    (a, [])
   else if o == a && o /= b then
-    Just b
+    (b, [])
   else
     mergeFn o a b
 
