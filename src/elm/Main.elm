@@ -425,11 +425,21 @@ update msg ({objects, workingTree, status} as model) =
             , status = newStatus
           }
             ! []
+            |> andThen AttemptCommit
             |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
 
         (Clean newHead, Nothing) -> -- no changes to Tree
           { model
             | status = newStatus
+          }
+            ! []
+            |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
+
+        (MergeConflict oldHead newHead conflicts, Just newTree) ->
+          { model
+            | workingTree = Trees.setTree newTree model.workingTree
+            , objects = newObjects
+            , status = newStatus
           }
             ! []
             |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))

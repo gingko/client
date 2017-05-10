@@ -274,36 +274,28 @@ merge aSha bSha oldTree model =
     case (oTree_, aTree_, bTree_) of
       (Just oTree, Just aTree, Just bTree) ->
         let
-          mTree_ = mergeTrees oTree aTree bTree
+          (mTree, conflicts) = mergeTrees oTree aTree bTree
         in
-        case mTree_ of
-          Just tree ->
-            (MergeConflict aSha bSha [], Just tree, model)
-
-          Nothing ->
-            (MergeConflict aSha bSha [], Just oldTree, model)
+        (MergeConflict aSha bSha conflicts, Just mTree, model)
 
       _ ->
         (MergeConflict aSha bSha [], Nothing, model)
 
 
-mergeTrees : Tree -> Tree -> Tree -> Maybe Tree
+mergeTrees : Tree -> Tree -> Tree -> (Tree, List Conflict)
 mergeTrees oTree aTree bTree =
   let
-    mContent = mergeStrings oTree.id oTree.content aTree.content bTree.content
-      |> first
+    (mContent, contentConflicts) = mergeStrings oTree.id oTree.content aTree.content bTree.content
 
-    mChildren = mergeChildren (getChildren oTree) (getChildren aTree) (getChildren bTree)
-      |> Maybe.withDefault ((getChildren oTree)++(getChildren aTree)++(getChildren bTree))
-      |> Children
+    (mChildren, childrenConflicts) = mergeChildren (getChildren oTree) (getChildren aTree) (getChildren bTree)
   in
-  Just (Tree oTree.id mContent mChildren)
+  (Tree oTree.id mContent (Children mChildren), contentConflicts ++ childrenConflicts)
 
 type MergeColumn = O | A | B
 type alias MergeDict = Dict String (Maybe Tree, Maybe Tree, Maybe Tree)
 
 
-mergeChildren : List Tree -> List Tree -> List Tree -> Maybe (List Tree)
+mergeChildren : List Tree -> List Tree -> List Tree -> (List Tree, List Conflict)
 mergeChildren oList aList bList =
   let
     allTrees = oList ++ aList ++ bList
@@ -326,45 +318,45 @@ mergeChildren oList aList bList =
       Dict.merge Dict.insert bothStep Dict.insert oVals aVals Dict.empty
       |> (\di -> Dict.merge Dict.insert bothStep Dict.insert di bVals Dict.empty)
 
-    mergedTrees =
+    mergeResults =
       allVals
         |> Dict.toList -- List (String, (MbT, MbT, MbT))
         |> List.filterMap (\(id, (o_, a_, b_)) ->
             case (o_, a_, b_) of
               (Just ot, Just at, Just bt) ->
-                mergeTrees ot at bt
+                Just (mergeTrees ot at bt)
 
               (Just ot, Just at, Nothing) ->
                 if ot == at then
                   Nothing
                 else
-                  Just at -- TODO: delete/modify conflict
+                  Just (ot, [Conflict ot.id (Mod at.content) Del Ours False])
 
               (Just ot, Nothing, Just bt) ->
                 if ot == bt then
                   Nothing
                 else
-                  Just bt -- TODO: delete/modify conflict
+                  Just (bt, []) -- TODO: delete/modify conflict
 
               (Nothing, Nothing, Just bt) ->
-                Just bt
+                Just (bt, [])
 
               (Nothing, Just at, Nothing) ->
-                Just at
+                Just (at, [])
 
               (Nothing, Just at, Just bt) ->
                 if at == bt then
-                  Just at
+                  Just (at, [])
                 else
-                  Just at -- TODO: modify/modify conflict?
+                  Just (at, []) -- TODO: modify/modify conflict?
 
               _ ->
                 Debug.crash "impossible state?"
 
-          )
-
+          ) -- List (Tree, List Conflict)
+        |> \mr -> (List.map first mr, List.concatMap second mr)
   in
-  Just mergedTrees
+  mergeResults
 
 
 getTreeDict : MergeColumn -> List Tree -> MergeDict
