@@ -58,7 +58,7 @@ type alias Group = List Tree
 type alias Column = List (List Tree)
 
 
-type State = Clean String | Fetched String String | Merging String String
+type Status = Clean String | Fetched String String | Merging String String
 
 
 type alias ViewState =

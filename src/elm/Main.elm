@@ -43,7 +43,7 @@ port updateCommits : (Json.Value, String) -> Cmd msg
 type alias Model =
   { workingTree : Trees.Model
   , objects : Objects.Model
-  , state : State
+  , status : Status
   , viewState : ViewState
   }
 
@@ -52,7 +52,7 @@ defaultModel : Model
 defaultModel =
   { workingTree = Trees.defaultModel
   , objects = Objects.defaultModel
-  , state = Clean ""
+  , status = Clean ""
   , viewState =
       { active = "0"
       , activePast = []
@@ -75,7 +75,7 @@ init savedState =
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ({objects, workingTree, state} as model) =
+update msg ({objects, workingTree, status} as model) =
   let
     vs = model.viewState
   in
@@ -388,7 +388,7 @@ update msg ({objects, workingTree, state} as model) =
         Just newTree ->
           { model
             | workingTree = Trees.setTree newTree model.workingTree
-            , state = Clean newHead
+            , status = Clean newHead
           }
             ! []
             |> andThen (UpdateCommits (objects |> Objects.toValue, commitSha))
@@ -412,7 +412,7 @@ update msg ({objects, workingTree, state} as model) =
           { model
             | workingTree = Trees.setTree newTree model.workingTree
             , objects = newObjects
-            , state = Clean newHead
+            , status = Clean newHead
           }
             ! []
             |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
@@ -425,7 +425,7 @@ update msg ({objects, workingTree, state} as model) =
       model ! [updateCommits (json, sha)]
 
     AttemptCommit ->
-      case state of
+      case status of
         Clean oldHead ->
           let
             (newHead, _, newObjects) =
@@ -434,13 +434,13 @@ update msg ({objects, workingTree, state} as model) =
           in
           { model
             | objects = newObjects
-            , state = Clean newHead
+            , status = Clean newHead
           }
             ! [saveObjects (newObjects |> Objects.toValue)]
             |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
 
         _ ->
-          Debug.crash "Can't commit from dirty state."
+          Debug.crash "Can't commit from dirty status."
 
     HandleKey key ->
       case key of
