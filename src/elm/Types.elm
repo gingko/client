@@ -35,6 +35,7 @@ type Msg
     | Undo
     | Redo
     | Fetch
+    | Push
     | TryMerge
     | CheckoutCommit String
     -- === Ports ===

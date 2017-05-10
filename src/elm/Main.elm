@@ -8,6 +8,7 @@ import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
 import Html.Lazy exposing (lazy, lazy2)
 import Json.Decode as Json
+import Json.Encode as JS
 import Dom
 import Task
 
@@ -28,7 +29,7 @@ main =
     }
 
 
-port fetch : () -> Cmd msg
+port js : (String, Json.Value) -> Cmd msg
 port activateCards : (Int, List (List String)) -> Cmd msg
 port getText : String -> Cmd msg
 port saveObjects : Json.Value -> Cmd msg
@@ -377,7 +378,10 @@ update msg ({objects, workingTree, status} as model) =
       model ! []
 
     Fetch ->
-      model ! [fetch ()]
+      model ! [js ("fetch", JS.null)]
+
+    Push ->
+      model ! [js ("push", JS.null)]
 
     CheckoutCommit commitSha ->
       let
@@ -565,7 +569,10 @@ onlyIf cond msg prevStep =
 view : Model -> Html Msg
 view model =
   div []
-    [ button [onClick Fetch, style [("z-index", "9999"), ("position", "absolute")]] [text "fetch"]
+    [ div [style [("z-index", "9999"), ("position", "absolute")]]
+          [ button [onClick Fetch] [text "fetch"]
+          , button [onClick Push] [text "push"]
+          ]
     , (lazy2 Trees.view model.viewState model.workingTree)
     ]
 

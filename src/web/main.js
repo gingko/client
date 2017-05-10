@@ -96,34 +96,39 @@ db.changes({
   console.log(err)
 });
 
-db.allDocs(
-  { include_docs: true
-  , conflicts: true
-  }).then(function (result) {
-  data = result.rows.map(r => r.doc)
-  console.log('toLoad', data)
 
-  var processData = function (data, type) {
-    var processed = data.filter(d => d.type === type).map(d => _.omit(d, ['type','_rev']))
-    var dict = {}
-    if (type == "ref") {
-      processed.map(d => dict[d._id] = d.value)
-    } else {
-      processed.map(d => dict[d._id] = _.omit(d, '_id'))
+var load = function(){
+  db.allDocs(
+    { include_docs: true
+    , conflicts: true
+    }).then(function (result) {
+    data = result.rows.map(r => r.doc)
+    console.log('toLoad', data)
+
+    var processData = function (data, type) {
+      var processed = data.filter(d => d.type === type).map(d => _.omit(d, ['type','_rev']))
+      var dict = {}
+      if (type == "ref") {
+        processed.map(d => dict[d._id] = d.value)
+      } else {
+        processed.map(d => dict[d._id] = _.omit(d, '_id'))
+      }
+      return dict
     }
-    return dict
-  }
 
-  var commits = processData(data, "commit");
-  var trees = processData(data, "tree");
-  var refs = processData(data, "ref");
+    var commits = processData(data, "commit");
+    var trees = processData(data, "tree");
+    var refs = processData(data, "ref");
 
-  var toSend = { commits: commits, treeObjects: trees, refs: refs};
-  console.log('toSend', toSend);
-  gingko.ports.objects.send(toSend);
-}).catch(function (err) {
-  console.log(err)
-})
+    var toSend = { commits: commits, treeObjects: trees, refs: refs};
+    console.log('toSend', toSend);
+    gingko.ports.objects.send(toSend);
+  }).catch(function (err) {
+    console.log(err)
+  })
+}
+
+load(); //initial load
 
 
 
@@ -133,9 +138,23 @@ db.allDocs(
 
 /* === Elm Ports === */
 
-gingko.ports.fetch.subscribe( function() {
-  console.log('fetch')
-  db.replicate.from(remoteCouch)
+gingko.ports.js.subscribe( function(elmdata) {
+  switch (elmdata[0]) {
+    case 'fetch':
+      db.replicate.from(remoteCouch)
+        .on('complete', function(info) {
+          console.log('fetch info', info)
+          load()
+        })
+      break
+
+    case 'push':
+      db.replicate.to(remoteCouch)
+        .on('complete', function(info) {
+          console.log('Push success', info)
+        })
+      break
+  }
 })
 
 gingko.ports.activateCards.subscribe(actives => {
