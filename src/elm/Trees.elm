@@ -44,7 +44,8 @@ defaultTree =
 -- UPDATE
 
 type TreeMsg
-  = Ins Tree String Int
+  = Nope
+  | Ins Tree String Int
   | Upd String String
   | Mov Tree String Int
   | Del String
@@ -75,6 +76,8 @@ updateTree msg tree =
     Del id ->
       pruneSubtree id tree
 
+    Nope -> tree
+
 
 setTree : Tree -> Model -> Model
 setTree newTree model =
@@ -89,6 +92,38 @@ setTree newTree model =
     | tree = newTree
     , columns = newColumns
   }
+
+
+setTreeWithConflicts : List Conflict -> Tree -> Model -> Model
+setTreeWithConflicts conflicts originalTree model =
+  let
+    newTree =
+      originalTree
+        |> apply (List.map conflictToTreeMsg conflicts)
+
+    newColumns =
+      if newTree /= model.tree then
+        getColumns [[[newTree]]]
+      else
+        model.columns
+  in
+  { model
+    | tree = newTree
+    , columns = newColumns
+  }
+
+
+conflictToTreeMsg : Conflict -> TreeMsg
+conflictToTreeMsg {id, opA, opB, selection, resolved} =
+  case (id, opA, opB, selection, resolved) of
+    (id, Mod str, _, Ours, False) ->
+      Upd id str
+
+    (id, _, Mod str, Theirs, False) ->
+      Upd id str
+
+    _ ->
+      Nope
 
 
 

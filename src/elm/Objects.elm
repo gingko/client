@@ -69,13 +69,14 @@ update msg model =
       case Json.decodeValue modelDecoder json of
         Ok modelIn ->
           let
-            _ = Debug.log "modelIn" modelIn
+            _ = Debug.log "merge:modelIn" modelIn
+            _ = Debug.log "merge:model" model
 
             oldHead_ = Dict.get "heads/master" model.refs
-              |> Debug.log "oldHead_"
+              |> Debug.log "merge:oldHead_"
 
             newHead_ = Dict.get "heads/master" modelIn.refs
-              |> Debug.log "newHead_"
+              |> Debug.log "merge:newHead_"
 
             newModel =
               { model
@@ -87,7 +88,7 @@ update msg model =
           case (oldHead_, newHead_) of
             (Just oldHead, Just newHead) ->
               merge oldHead newHead oldTree newModel
-                |> Debug.log "merge result"
+                |> Debug.log "merge:result"
 
             (Nothing, Just newHead) ->
               let
@@ -299,6 +300,7 @@ mergeChildren : List Tree -> List Tree -> List Tree -> (List Tree, List Conflict
 mergeChildren oList aList bList =
   let
     allTrees = oList ++ aList ++ bList
+      |> Debug.log "merge:allTrees"
 
     oVals = getTreeDict O oList
     aVals = getTreeDict A aList
@@ -317,38 +319,39 @@ mergeChildren oList aList bList =
     allVals =
       Dict.merge Dict.insert bothStep Dict.insert oVals aVals Dict.empty
       |> (\di -> Dict.merge Dict.insert bothStep Dict.insert di bVals Dict.empty)
+      |> Debug.log "merge:allVals"
 
     mergeResults =
       allVals
         |> Dict.toList -- List (String, (MbT, MbT, MbT))
         |> List.filterMap (\(id, (o_, a_, b_)) ->
             case (o_, a_, b_) of
-              (Just ot, Just at, Just bt) ->
+              (Just ot, Just at, Just bt) -> -- Present in all trees
                 Just (mergeTrees ot at bt)
 
-              (Just ot, Just at, Nothing) ->
+              (Just ot, Just at, Nothing) -> -- Deleted on b
                 if ot == at then
                   Nothing
-                else
+                else                         -- modify/delete conflict
                   Just (ot, [Conflict ot.id (Mod at.content) Del Ours False])
 
-              (Just ot, Nothing, Just bt) ->
+              (Just ot, Nothing, Just bt) -> -- Deleted on a
                 if ot == bt then
                   Nothing
-                else
-                  Just (bt, []) -- TODO: delete/modify conflict
+                else                         -- delete/modify conflict
+                  Just (ot, [Conflict ot.id Del (Mod bt.content) Ours False])
 
-              (Nothing, Nothing, Just bt) ->
+              (Nothing, Nothing, Just bt) -> -- Added on b only
                 Just (bt, [])
 
-              (Nothing, Just at, Nothing) ->
+              (Nothing, Just at, Nothing) -> -- Added on a only
                 Just (at, [])
 
-              (Nothing, Just at, Just bt) ->
+              (Nothing, Just at, Just bt) -> -- Added on a and b. Via move?
                 if at == bt then
-                  Just (at, [])
+                  Just (at, []) -- TODO: move/move conflict
                 else
-                  Just (at, []) -- TODO: modify/modify conflict?
+                  Just (at, []) -- TODO: modify&move/modify&move conflict?
 
               _ ->
                 Debug.crash "impossible state?"
@@ -372,7 +375,7 @@ mergeStrings : String -> String -> String -> String -> (String, List Conflict)
 mergeStrings id o a b =
   let
     mergeFn x y z =
-      (y, [Conflict id (Mod y) (Mod z) Ours False])
+      (x, [Conflict id (Mod y) (Mod z) Ours False])
   in
   mergeGeneric mergeFn o a b
 
@@ -381,7 +384,7 @@ mergeTreeList : List (String, String) -> List (String, String) -> List (String, 
 mergeTreeList oList aList bList =
   let
     mergeFn x y z =
-      (y, [])
+      (x, [])
   in
   mergeGeneric mergeFn oList aList bList
 

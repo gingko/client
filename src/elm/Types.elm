@@ -36,6 +36,7 @@ type Msg
     | Fetch
     | Push
     | TryMerge
+    | SetSelection String
     | CheckoutCommit String
     -- === Ports ===
     | ObjectsIn Json.Value
@@ -59,7 +60,13 @@ type alias Column = List (List Tree)
 
 type Op = Mod String | Del | Mov String Int
 type Selection = Original | Ours | Theirs | Manual
-type Conflict = Conflict String Op Op Selection Bool
+type alias Conflict =
+  { id : String
+  , opA : Op
+  , opB : Op
+  , selection : Selection
+  , resolved : Bool
+  }
 
 
 type Status = Bare | Clean String | MergeConflict String String (List Conflict)

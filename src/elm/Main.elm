@@ -4,8 +4,8 @@ port module Main exposing (..)
 import Tuple exposing (first, second)
 
 import Html exposing (..)
-import Html.Attributes exposing (style)
-import Html.Events exposing (onClick)
+import Html.Attributes exposing (style, value)
+import Html.Events exposing (onClick, onInput)
 import Html.Lazy exposing (lazy, lazy2)
 import Json.Decode as Json
 import Json.Encode exposing (..)
@@ -383,6 +383,49 @@ update msg ({objects, workingTree, status} as model) =
     Push ->
       model ! [js ("push", null)]
 
+    SetSelection str ->
+      let
+        _ = Debug.log "SetSelection" str
+
+        (id, selection) =
+          case String.split ":" str of
+            [idString, "Ours"] ->
+              (idString, Ours)
+
+            [idString, "Theirs"] ->
+              (idString, Theirs)
+
+            [idString, "Original"] ->
+              (idString, Original)
+
+            [idString, "Manual"] ->
+              (idString, Manual)
+
+            _ ->
+              ("otherid", Manual)
+
+        newStatus =
+          case status of
+            MergeConflict oldHead newHead conflicts ->
+              conflicts
+                |> List.map (\c -> if c.id == id then { c | selection = selection } else c)
+                |> MergeConflict oldHead newHead
+
+            _ ->
+              status
+
+      in
+      case newStatus of
+        MergeConflict oldHead newHead conflicts ->
+          { model
+            | workingTree = Trees.setTreeWithConflicts conflicts model.workingTree.tree model.workingTree
+            , status = newStatus
+          }
+            ! []
+
+        _ ->
+          model ! []
+
     CheckoutCommit commitSha ->
       let
         (newStatus, newTree_, newModel) =
@@ -409,6 +452,13 @@ update msg ({objects, workingTree, status} as model) =
           Objects.update (Objects.Merge json workingTree.tree) objects
       in
       case (newStatus, newTree_) of
+        (Clean newHead, Nothing) -> -- no changes to Tree
+          { model
+            | status = newStatus
+          }
+            ! []
+            |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
+
         (Clean newHead, Just newTree) ->
           { model
             | workingTree = Trees.setTree newTree model.workingTree
@@ -428,16 +478,9 @@ update msg ({objects, workingTree, status} as model) =
             |> andThen AttemptCommit
             |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
 
-        (Clean newHead, Nothing) -> -- no changes to Tree
-          { model
-            | status = newStatus
-          }
-            ! []
-            |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
-
         (MergeConflict oldHead newHead conflicts, Just newTree) ->
           { model
-            | workingTree = Trees.setTree newTree model.workingTree
+            | workingTree = Trees.setTreeWithConflicts conflicts newTree model.workingTree
             , objects = newObjects
             , status = newStatus
           }
@@ -453,23 +496,31 @@ update msg ({objects, workingTree, status} as model) =
 
     AttemptCommit ->
       let
-        parents =
-          case status of
-            Bare -> []
-            Clean oldHead -> [oldHead]
-            MergeConflict oldHead newHead _ -> [oldHead, newHead]
-            -- TODO: Ensure conflicts are resolved before committing.
-
-        (newStatus, _, newObjects) =
-          Objects.update (Objects.Commit parents "Jane Doe <jane.doe@gmail.com>" workingTree.tree) model.objects
-            |> Debug.log "Commit attempted"
+        newModel p =
+          let
+            (newStatus, _, newObjects) =
+              Objects.update (Objects.Commit p "Jane Doe <jane.doe@gmail.com>" workingTree.tree) model.objects
+          in
+          { model
+            | objects = newObjects
+            , status = newStatus
+          }
+            ! [saveObjects (newObjects |> Objects.toValue)]
+            |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
       in
-      { model
-        | objects = newObjects
-        , status = newStatus
-      }
-        ! [saveObjects (newObjects |> Objects.toValue)]
-        |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
+      case status of
+        Bare ->
+          newModel []
+
+        Clean oldHead ->
+          newModel [oldHead]
+
+        MergeConflict oldHead newHead conflicts ->
+          if (List.isEmpty conflicts || (conflicts |> List.filter (not << .resolved) |> List.isEmpty)) then
+            newModel [oldHead, newHead]
+          else
+            model ! []
+
 
     HandleKey key ->
       case key of
@@ -606,13 +657,43 @@ getHead status =
 
 view : Model -> Html Msg
 view model =
-  div []
-    [ div [style [("z-index", "9999"), ("position", "absolute")]]
-          [ button [onClick Fetch] [text "fetch"]
-          , button [onClick AttemptCommit] [text "commit"]
-          , button [onClick Push] [text "push"]
-          ]
-    , (lazy2 Trees.view model.viewState model.workingTree)
+  case model.status of
+    MergeConflict oldHead newHead conflicts ->
+      div
+        [style  [ ("background", "rgba(255,0,0,0.3)")
+                , ("position", "absolute")
+                , ("width", "100%")
+                , ("height", "100%")
+                ]
+        ]
+        [ ul [style [("z-index", "9999"), ("position", "absolute")]]
+              (List.map viewConflict conflicts)
+        , (lazy2 Trees.view model.viewState model.workingTree)
+        ]
+
+    _ ->
+      div
+        []
+        [ div [style [("z-index", "9999"), ("position", "absolute")]]
+              [ button [onClick Fetch] [text "fetch"]
+              , button [onClick AttemptCommit] [text "commit"]
+              , button [onClick Push] [text "push"]
+              ]
+        , (lazy2 Trees.view model.viewState model.workingTree)
+        ]
+
+
+viewConflict: Conflict -> Html Msg
+viewConflict {id, opA, opB, selection, resolved} =
+  li
+    []
+    [ span [][ text ("id:" ++ id)]
+    , select [ onInput SetSelection ]
+             [ option [ value <| id ++ ":Ours" ] [ text "Ours" ]
+             , option [ value <| id ++ ":Theirs" ] [ text "Theirs" ]
+             , option [ value <| id ++ ":Original" ] [ text "Original" ]
+             , option [ value <| id ++ ":Manual" ] [ text "Manual" ]
+             ]
     ]
 
 

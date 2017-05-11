@@ -33,8 +33,9 @@ self.gingko = Elm.Main.fullscreen(null)
 
 self.db = new PouchDB('atreenodes16')
 self.remoteCouch = 'http://localhost:5984/atreenodes16'
+self.remoteDb = new PouchDB(remoteCouch)
 
-var load = function(){
+var load = function(headOverride){
   db.allDocs(
     { include_docs: true
     , conflicts: true
@@ -57,6 +58,10 @@ var load = function(){
     var trees = processData(data, "tree");
     var refs = processData(data, "ref");
 
+    if(headOverride) {
+      refs['heads/master'] = headOverride
+    }
+
     var toSend = { commits: commits, treeObjects: trees, refs: refs};
     console.log('toSend', toSend);
     gingko.ports.objects.send(toSend);
@@ -78,10 +83,15 @@ load(); //initial load
 gingko.ports.js.subscribe( function(elmdata) {
   switch (elmdata[0]) {
     case 'fetch':
-      db.replicate.from(remoteCouch)
-        .on('complete', function(info) {
-          console.log('fetch info', info)
-          load()
+      remoteDb.get('heads/master').catch(err => console.log('get head before fetch error:', err))
+        .then(remoteHead => {
+          console.log('remoteHead', remoteHead)
+
+          db.replicate.from(remoteCouch)
+            .on('complete', function(info) {
+              console.log('fetch info', info)
+              load(remoteHead.value)
+            })
         })
       break
 
