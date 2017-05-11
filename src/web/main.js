@@ -120,29 +120,43 @@ gingko.ports.getText.subscribe(id => {
   }
 })
 
-gingko.ports.saveObjects.subscribe(objects => {
-  db.get('heads/master')
+gingko.ports.saveObjects.subscribe(data => {
+  var status = data[0]
+  var objects = data[1]
+  db.get('_local/status')
     .catch(err => {
       if(err.name == "not_found") {
-        return {_id: 'heads/master' , value : '', type: 'ref' }
+        return {_id: '_local/status' , status : 'bare'}
       }
     })
-    .then(headDoc => {
-      newRefs = objects.refs
-        .map(r => {
-          if (r._id == 'heads/master') {
-            headDoc['value'] = r.value
-            return headDoc
-          } else { return r }
-        })
+    .then(statusDoc => {
+      if(statusDoc._rev) {
+        status['_rev'] = statusDoc._rev
+      }
 
-      var toSave = objects.commits.concat(objects.treeObjects).concat(newRefs);
-      console.log('toSave from gingko port', toSave)
-      db.bulkDocs(toSave)
-        .then(responses => {
-          console.log('saveResponses', responses)
-        }).catch(err => {
-          console.log(err)
+      db.get('heads/master')
+        .catch(err => {
+          if(err.name == "not_found") {
+            return {_id: 'heads/master' , value : '', type: 'ref' }
+          }
+        })
+        .then(headDoc => {
+          newRefs = objects.refs
+            .map(r => {
+              if (r._id == 'heads/master') {
+                headDoc['value'] = r.value
+                return headDoc
+              } else { return r }
+            })
+
+          var toSave = objects.commits.concat(objects.treeObjects).concat(newRefs).concat([status]);
+          console.log('toSave from gingko port', toSave)
+          db.bulkDocs(toSave)
+            .then(responses => {
+              console.log('saveResponses', responses)
+            }).catch(err => {
+              console.log(err)
+            })
         })
     })
 })

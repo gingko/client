@@ -9,37 +9,9 @@ import Array exposing (fromList)
 import Dict exposing (Dict)
 
 
-type alias Node =
-  { id_ : String
-  , rev_ : Maybe String
-  , deleted_ : Bool
-  , content : String
-  , children : List (String, Bool)
-  , deletedWith : Maybe (List String)
-  }
 
 
--- ENCODERS
-
-nodeListToValue : List (String, TreeNode) -> Enc.Value
-nodeListToValue nodeList =
-  Enc.list
-    (List.map nodeEntryToValue nodeList)
-
-
-nodeEntryToValue : (String, TreeNode) -> Enc.Value
-nodeEntryToValue (id, n) =
-  Enc.object
-    [ ("_id", Enc.string id)
-    , ("_rev", maybeToValue n.rev Enc.string)
-    , ("_deleted", Enc.bool n.deleted_)
-    , ("deletedWith", maybeToValue n.deletedWith
-        (\ss -> Enc.list (List.map Enc.string ss)) )
-    , ("content", Enc.string n.content)
-    , ( "children", Enc.list
-          (List.map (tupleToValue Enc.string Enc.bool) n.children) )
-    ]
-
+-- Tree
 
 treeToValue : Tree -> Enc.Value
 treeToValue tree =
@@ -52,6 +24,33 @@ treeToValue tree =
         ]
 
 
+treesModelDecoder : Decoder Trees.Model
+treesModelDecoder =
+  Json.map2 Trees.Model
+    treeDecoder
+    (succeed [])
+
+
+treeDecoder : Decoder Tree
+treeDecoder =
+  Json.map3 Tree
+    (field "id" string)
+    (field "content" string)
+    (oneOf  [ ( field
+                "children"
+                ( list (lazyRecurse (\_ -> treeDecoder))
+                  |> Json.map Children
+                )
+              )
+            , succeed (Children [])
+            ]
+    )
+
+
+
+
+-- ViewState
+
 viewStateToValue : ViewState -> Enc.Value
 viewStateToValue vs =
   Enc.object
@@ -61,73 +60,6 @@ viewStateToValue vs =
     , ( "descendants", Enc.list (List.map Enc.string vs.descendants) )
     , ( "editing", maybeToValue vs.editing Enc.string )
     ]
-
-
-nodesToValue : Dict String TreeNode -> Enc.Value
-nodesToValue nodes =
-  Dict.toList nodes
-    |> List.map (\(k, v) -> (k, treeNodeToValue v))
-    |> Enc.object
-
-
-treeNodeToValue : TreeNode -> Enc.Value
-treeNodeToValue treeNode =
-  Enc.object
-    [ ( "content", Enc.string treeNode.content )
-    , ( "children", Enc.list
-          (List.map (tupleToValue Enc.string Enc.bool) treeNode.children) )
-    , ( "rev", maybeToValue treeNode.rev Enc.string )
-    ]
-
-
-
-
--- EXPORT ENCODINGS
-
-treeToSimpleJSON : Tree -> Enc.Value
-treeToSimpleJSON tree =
-  case tree.children of
-    Children c ->
-      Enc.array 
-      ( fromList
-        [ Enc.object
-          [ ( "content", Enc.string tree.content )
-          , ( "children", Enc.array (fromList (List.map treeToSimpleJSON c)))
-          ]
-        ]
-      )
-
-
-
-
-
--- DECODERS
-
-
-treesModelDecoder : Decoder Trees.Model
-treesModelDecoder =
-  Json.map4 Trees.Model
-    treeDecoder
-    (succeed [])
-    (succeed Dict.empty)
-    (succeed [])
-
-
-treeDecoder : Decoder Tree
-treeDecoder =
-  Json.map4 Tree
-    (field "id" string)
-    (field "content" string)
-    (oneOf  [ ( field
-                "children"
-                ( list (lazyRecurse (\_ -> treeDecoder)) 
-                  |> Json.map Children 
-                )
-              )
-            , succeed (Children [])
-            ]
-    )
-    (field "rev" (maybe string))
 
 
 viewStateDecoder : Decoder ViewState
@@ -140,71 +72,146 @@ viewStateDecoder =
     (maybe (field "editing" string))
 
 
-nodeListDecoder : Decoder (List (String, TreeNode))
-nodeListDecoder =
-  Json.map (\ln -> ln |> List.map (\n -> (n.id_, TreeNode n.content n.children n.rev_ n.deletedWith n.deleted_)))
-    (list nodeEntryDecoder)
 
 
-nodeEntryDecoder : Decoder Node
-nodeEntryDecoder =
-  decode Node
-    |> required "_id" string
-    |> required "_rev" (maybe string)
-    |> optional "_deleted" bool False
-    |> required "content" string
-    |> required "children" (list (tupleDecoder string bool))
-    |> optional "deletedWith" (maybe (list string)) Nothing
+-- Status
+
+statusToValue : Status -> Enc.Value
+statusToValue status =
+  case status of
+    Clean head ->
+      Enc.object
+        [ ( "_id", "_local/status" |> Enc.string)
+        , ( "status", "clean" |> Enc.string)
+        , ( "head", head |> Enc.string)
+        ]
+
+    MergeConflict tree aSha bSha conflicts ->
+      Enc.object
+        [ ( "_id", "_local/status" |> Enc.string)
+        , ( "status", "merge-conflict" |> Enc.string)
+        , ( "tree", tree |> treeToValue)
+        , ( "aSha", aSha |> Enc.string)
+        , ( "bSha", bSha |> Enc.string)
+        , ( "conflicts", Enc.list (List.map conflictToValue conflicts) )
+        ]
+
+    Bare ->
+      Enc.object
+        [ ( "_id", "_local/status" |> Enc.string)
+        , ( "status", "bare" |> Enc.string)
+        ]
 
 
-nodeObjectDecoder : Decoder (String, TreeNode)
-nodeObjectDecoder =
-  Json.map (\n -> (n.id_, TreeNode n.content n.children n.rev_ n.deletedWith n.deleted_) )
-    nodeEntryDecoder
+statusDecode : Decoder Status
+statusDecode =
+  let
+    cleanDecoder =
+      Json.map (\h -> Clean h)
+        ( field "head" string)
 
+    mergeConflictDecoder =
+      Json.map4 (\t a b c -> MergeConflict t a b c)
+        ( field "tree" treeDecoder)
+        ( field "aSha" string )
+        ( field "bSha" string )
+        ( field "conflicts" (list (conflictDecoder)) )
 
-saveResponseDecoder : Decoder (List ((Result ResErr ResOk), (String, TreeNode)))
-saveResponseDecoder =
-  (list responseEntryDecoder)
-
-
-responseEntryDecoder : Decoder ((Result ResErr ResOk), (String, TreeNode))
-responseEntryDecoder =
-  tupleDecoder
-    resDecoder
-    nodeObjectDecoder
-
-
-resDecoder : Decoder (Result ResErr ResOk)
-resDecoder =
-  Json.oneOf
-    [ decode ResOk
-        |> required "id" string
-        |> required "ok" bool
-        |> required "rev" string -- Decoder ResOk
-        |> Json.map Ok
-    , decode ResErr
-        |> required "status" int
-        |> required "name" string
-        |> required "message" string
-        |> required "error" bool -- Decoder ResErr
-        |> Json.map Err
+  in
+  oneOf
+    [ cleanDecoder
     ]
 
 
-nodesDecoder : Decoder (Dict String TreeNode)
-nodesDecoder =
-  (dict treeNodeDecoder)
 
 
-treeNodeDecoder : Decoder TreeNode
-treeNodeDecoder =
-  Json.map5 TreeNode
-    (field "content" string)
-    (field "children" (list (tupleDecoder string bool)))
-    (field "_rev" (maybe string))
-    (field "deletedWith" (maybe (list string)))
-    (field "_deleted" bool)
+-- Conflict
+
+conflictToValue : Conflict -> Enc.Value
+conflictToValue {id, opA, opB, selection, resolved} =
+  Enc.object
+    [ ("id", Enc.string id)
+    , ("opA", opToValue opA)
+    , ("opB", opToValue opB)
+    , ("selection", selectionToValue selection)
+    , ("resolved", Enc.bool resolved)
+    ]
+
+
+conflictDecoder : Decoder Conflict
+conflictDecoder =
+  Json.map5 Conflict
+    ( field "id" string )
+    ( field "opA" opDecoder )
+    ( field "opB" opDecoder )
+    ( field "selection" selectionDecoder )
+    ( field "resolved" bool )
+
+
+
+
+-- Op
+
+opToValue : Op -> Enc.Value
+opToValue op =
+  case op of
+    Mod str ->
+      Enc.list ["mod" |> Enc.string, str |> Enc.string]
+
+    _ ->
+      Enc.null
+
+
+opDecoder : Decoder Op
+opDecoder =
+  Json.map (\str -> Mod str)
+    ( index 1 string )
+
+
+
+
+-- Selection
+
+selectionToValue : Selection -> Enc.Value
+selectionToValue selection =
+  case selection of
+    Ours -> "ours" |> Enc.string
+    Theirs -> "theirs" |> Enc.string
+    Original -> "original" |> Enc.string
+    Manual -> "manual" |> Enc.string
+
+
+selectionDecoder : Decoder Selection
+selectionDecoder =
+  let
+    fn s =
+      case s of
+        "ours" -> Ours
+        "theirs" -> Theirs
+        "original" -> Original
+        "manual" -> Manual
+        _ -> Manual
+  in
+  Json.map fn
+    (field "selection" string)
+
+
+
+
+-- EXPORT ENCODINGS
+
+treeToSimpleJSON : Tree -> Enc.Value
+treeToSimpleJSON tree =
+  case tree.children of
+    Children c ->
+      Enc.array
+      ( fromList
+        [ Enc.object
+          [ ( "content", Enc.string tree.content )
+          , ( "children", Enc.array (fromList (List.map treeToSimpleJSON c)))
+          ]
+        ]
+      )
 
 
 

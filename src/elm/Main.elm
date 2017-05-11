@@ -17,6 +17,7 @@ import Trees exposing (..)
 import TreeUtils exposing (..)
 import Sha1 exposing (timestamp)
 import Objects
+import Coders exposing (statusToValue)
 
 
 main : Program Json.Value Model Msg
@@ -32,7 +33,7 @@ main =
 port js : (String, Json.Value) -> Cmd msg
 port activateCards : (Int, List (List String)) -> Cmd msg
 port getText : String -> Cmd msg
-port saveObjects : Json.Value -> Cmd msg
+port saveObjects : (Json.Value, Json.Value) -> Cmd msg
 port updateCommits : (Json.Value, String) -> Cmd msg
 
 
@@ -505,7 +506,7 @@ update msg ({objects, workingTree, status} as model) =
             | objects = newObjects
             , status = newStatus
           }
-            ! [saveObjects (newObjects |> Objects.toValue)]
+            ! [saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)]
             |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
       in
       case status of
