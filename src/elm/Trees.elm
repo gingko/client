@@ -122,6 +122,9 @@ conflictToTreeMsg {id, opA, opB, selection, resolved} =
     (id, _, Mod str, Theirs, False) ->
       Upd id str
 
+    (id, Mod strA, Mod strB, Manual, False) ->
+      Upd id ("`<<<<<<<`\n"++ strA ++ "\n`=======`\n" ++ strB ++ "\n`>>>>>>>`")
+
     _ ->
       Nope
 

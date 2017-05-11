@@ -277,10 +277,11 @@ merge aSha bSha oldTree model =
         let
           (mTree, conflicts) = mergeTrees oTree aTree bTree
         in
-        (MergeConflict aSha bSha conflicts, Just mTree, model)
+        (MergeConflict mTree aSha bSha conflicts, Just mTree, model)
 
       _ ->
-        (MergeConflict aSha bSha [], Nothing, model)
+        Debug.crash "failed merge"
+        --(MergeConflict aSha bSha [], Nothing, model)
 
 
 mergeTrees : Tree -> Tree -> Tree -> (Tree, List Conflict)

@@ -406,19 +406,19 @@ update msg ({objects, workingTree, status} as model) =
 
         newStatus =
           case status of
-            MergeConflict oldHead newHead conflicts ->
+            MergeConflict mTree oldHead newHead conflicts ->
               conflicts
                 |> List.map (\c -> if c.id == id then { c | selection = selection } else c)
-                |> MergeConflict oldHead newHead
+                |> MergeConflict mTree oldHead newHead
 
             _ ->
               status
 
       in
       case newStatus of
-        MergeConflict oldHead newHead conflicts ->
+        MergeConflict mTree oldHead newHead conflicts ->
           { model
-            | workingTree = Trees.setTreeWithConflicts conflicts model.workingTree.tree model.workingTree
+            | workingTree = Trees.setTreeWithConflicts conflicts mTree model.workingTree
             , status = newStatus
           }
             ! []
@@ -468,7 +468,7 @@ update msg ({objects, workingTree, status} as model) =
             ! []
             |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
 
-        (MergeConflict oldHead newHead [], Just newTree) ->
+        (MergeConflict mTree oldHead newHead [], Just newTree) ->
           { model
             | workingTree = Trees.setTree newTree model.workingTree
             , objects = newObjects
@@ -478,9 +478,9 @@ update msg ({objects, workingTree, status} as model) =
             |> andThen AttemptCommit
             |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
 
-        (MergeConflict oldHead newHead conflicts, Just newTree) ->
+        (MergeConflict mTree oldHead newHead conflicts, Just newTree) ->
           { model
-            | workingTree = Trees.setTreeWithConflicts conflicts newTree model.workingTree
+            | workingTree = Trees.setTreeWithConflicts conflicts mTree model.workingTree
             , objects = newObjects
             , status = newStatus
           }
@@ -515,7 +515,7 @@ update msg ({objects, workingTree, status} as model) =
         Clean oldHead ->
           newModel [oldHead]
 
-        MergeConflict oldHead newHead conflicts ->
+        MergeConflict _ oldHead newHead conflicts ->
           if (List.isEmpty conflicts || (conflicts |> List.filter (not << .resolved) |> List.isEmpty)) then
             newModel [oldHead, newHead]
           else
@@ -643,7 +643,7 @@ getHead status =
     Clean head ->
       head
 
-    MergeConflict head _ _ ->
+    MergeConflict _ head _ _ ->
       head
 
     Bare ->
@@ -658,9 +658,19 @@ getHead status =
 view : Model -> Html Msg
 view model =
   case model.status of
-    MergeConflict oldHead newHead conflicts ->
+    MergeConflict _ oldHead newHead conflicts ->
+      let
+        bgString = """
+repeating-linear-gradient(-45deg
+, rgba(255,255,255,0.02)
+, rgba(255,255,255,0.02) 15px
+, rgba(0,0,0,0.025) 15px
+, rgba(0,0,0,0.06) 30px
+)
+          """
+      in
       div
-        [style  [ ("background", "rgba(255,0,0,0.3)")
+        [style  [ ("background", bgString)
                 , ("position", "absolute")
                 , ("width", "100%")
                 , ("height", "100%")
@@ -733,7 +743,7 @@ run msg =
 
 
 editMode : Model -> (String -> Msg) -> (Model, Cmd Msg)
-editMode model editing = 
+editMode model editing =
   case model.viewState.editing of
     Nothing ->
       model ! []
@@ -743,7 +753,7 @@ editMode model editing =
 
 
 normalMode : Model -> Msg -> (Model, Cmd Msg)
-normalMode model msg = 
+normalMode model msg =
   case model.viewState.editing of
     Nothing ->
       update msg model

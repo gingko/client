@@ -69,7 +69,7 @@ type alias Conflict =
   }
 
 
-type Status = Bare | Clean String | MergeConflict String String (List Conflict)
+type Status = Bare | Clean String | MergeConflict Tree String String (List Conflict)
 
 
 type alias ViewState =
