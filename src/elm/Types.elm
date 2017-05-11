@@ -39,7 +39,8 @@ type Msg
     | SetSelection String
     | CheckoutCommit String
     -- === Ports ===
-    | ObjectsIn Json.Value
+    | Load Json.Value
+    | MergeIn Json.Value
     | UpdateCommits (Json.Value, String)
     | AttemptCommit
     | HandleKey String

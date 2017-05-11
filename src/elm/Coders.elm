@@ -100,11 +100,12 @@ statusToValue status =
       Enc.object
         [ ( "_id", "_local/status" |> Enc.string)
         , ( "status", "bare" |> Enc.string)
+        , ( "bare", Enc.bool True )
         ]
 
 
-statusDecode : Decoder Status
-statusDecode =
+statusDecoder : Decoder Status
+statusDecoder =
   let
     cleanDecoder =
       Json.map (\h -> Clean h)
@@ -115,11 +116,17 @@ statusDecode =
         ( field "tree" treeDecoder)
         ( field "aSha" string )
         ( field "bSha" string )
-        ( field "conflicts" (list (conflictDecoder)) )
+        ( field "conflicts" (list conflictDecoder))
+
+    bareDecoder =
+      Json.map (\_ -> Bare)
+        ( field "bare" bool )
 
   in
   oneOf
     [ cleanDecoder
+    , mergeConflictDecoder
+    , bareDecoder
     ]
 
 
@@ -192,8 +199,7 @@ selectionDecoder =
         "manual" -> Manual
         _ -> Manual
   in
-  Json.map fn
-    (field "selection" string)
+  Json.map fn string
 
 
 

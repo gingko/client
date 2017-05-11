@@ -1,4 +1,4 @@
-module Objects exposing (Model, defaultModel, ObjMsg (Commit, Checkout, Merge), update, toValue)
+module Objects exposing (Model, defaultModel, ObjMsg (Commit, Checkout, Init, Merge), update, toValue)
 
 import Dict exposing (Dict)
 import Maybe exposing (andThen)
@@ -8,6 +8,7 @@ import List.Extra as ListExtra
 import Json.Encode as Enc
 import Json.Decode as Json
 import Json.Decode.Pipeline exposing (decode, required, optional)
+import Coders exposing (statusDecoder, tupleDecoder)
 
 import Types exposing (..)
 import TreeUtils exposing (getChildren)
@@ -48,6 +49,7 @@ type alias CommitObject =
 type ObjMsg
   = Commit (List String) String Tree
   | Checkout String
+  | Init Json.Value
   | Merge Json.Value Tree
 
 
@@ -64,6 +66,27 @@ update msg model =
 
     Checkout commitSha ->
       (Clean commitSha, checkoutCommit commitSha model, model)
+
+    Init json ->
+      case Json.decodeValue (tupleDecoder statusDecoder modelDecoder) json of
+        Ok (status, modelIn) ->
+          case status of
+            MergeConflict mTree _ _ _ ->
+              (status, Just mTree, modelIn)
+
+            Clean sha ->
+              let
+                newTree_ =
+                  Dict.get sha modelIn.commits
+                    |> andThen (\co -> treeObjectsToTree modelIn.treeObjects co.tree "0")
+              in
+              (Clean sha, newTree_, modelIn)
+
+            Bare ->
+              (Bare, Nothing, modelIn)
+
+        Err err ->
+          Debug.crash ("Objects.Init:" ++ err)
 
     Merge json oldTree ->
       case Json.decodeValue modelDecoder json of

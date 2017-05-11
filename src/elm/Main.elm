@@ -447,7 +447,52 @@ update msg ({objects, workingTree, status} as model) =
 
     -- === Ports ===
 
-    ObjectsIn json ->
+    Load json ->
+      let
+        (newStatus, newTree_, newObjects) =
+            Objects.update (Objects.Init json) objects
+              |> Debug.log "loadIn"
+      in
+      case (newStatus, newTree_) of
+        (Clean newHead, Nothing) -> -- no changes to Tree
+          { model
+            | status = newStatus
+          }
+            ! []
+            |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
+
+        (Clean newHead, Just newTree) ->
+          { model
+            | workingTree = Trees.setTree newTree model.workingTree
+            , objects = newObjects
+            , status = newStatus
+          }
+            ! []
+            |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
+
+        (MergeConflict mTree oldHead newHead [], Just newTree) ->
+          { model
+            | workingTree = Trees.setTree newTree model.workingTree
+            , objects = newObjects
+            , status = newStatus
+          }
+            ! []
+            |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
+
+        (MergeConflict mTree oldHead newHead conflicts, Just newTree) ->
+          { model
+            | workingTree = Trees.setTreeWithConflicts conflicts mTree model.workingTree
+            , objects = newObjects
+            , status = newStatus
+          }
+            ! []
+            |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
+
+        _ ->
+          model ! []
+            |> Debug.log "failed to load data"
+
+    MergeIn json ->
       let
         (newStatus, newTree_, newObjects) =
           Objects.update (Objects.Merge json workingTree.tree) objects
@@ -485,7 +530,7 @@ update msg ({objects, workingTree, status} as model) =
             , objects = newObjects
             , status = newStatus
           }
-            ! []
+            ! [saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)]
             |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
 
         _ ->
@@ -713,7 +758,8 @@ viewConflict {id, opA, opB, selection, resolved} =
 -- SUBSCRIPTIONS
 
 
-port objects : (Json.Value -> msg) -> Sub msg
+port load : (Json.Value -> msg) -> Sub msg
+port merge : (Json.Value -> msg) -> Sub msg
 port setHead : (String -> msg) -> Sub msg
 port keyboard : (String -> msg) -> Sub msg
 port updateContent : ((String, String) -> msg) -> Sub msg
@@ -722,7 +768,8 @@ port updateContent : ((String, String) -> msg) -> Sub msg
 subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.batch
-    [ objects ObjectsIn
+    [ load Load
+    , merge MergeIn
     , setHead CheckoutCommit
     , keyboard HandleKey
     , updateContent UpdateContent

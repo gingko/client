@@ -36,6 +36,50 @@ self.remoteCouch = 'http://localhost:5984/atreenodes16'
 self.remoteDb = new PouchDB(remoteCouch)
 
 var load = function(headOverride){
+  db.get('_local/status')
+    .catch(err => {
+      if(err.name == "not_found") {
+        return {_id: '_local/status' , status : 'bare', bare: true}
+      }
+    })
+    .then(statusDoc => {
+      db.allDocs(
+        { include_docs: true
+        , conflicts: true
+        }).then(function (result) {
+        data = result.rows.map(r => r.doc)
+        console.log('toLoad', data)
+
+        var processData = function (data, type) {
+          var processed = data.filter(d => d.type === type).map(d => _.omit(d, ['type','_rev']))
+          var dict = {}
+          if (type == "ref") {
+            processed.map(d => dict[d._id] = d.value)
+          } else {
+            processed.map(d => dict[d._id] = _.omit(d, '_id'))
+          }
+          return dict
+        }
+
+        var commits = processData(data, "commit");
+        var trees = processData(data, "tree");
+        var refs = processData(data, "ref");
+        var status = _.omit(statusDoc, '_rev')
+
+        if(headOverride) {
+          refs['heads/master'] = headOverride
+        }
+
+        var toSend = [status, { commits: commits, treeObjects: trees, refs: refs}];
+        console.log('toSend', toSend);
+        gingko.ports.load.send(toSend);
+      }).catch(function (err) {
+        console.log(err)
+      })
+    })
+}
+
+var merge = function(headOverride){
   db.allDocs(
     { include_docs: true
     , conflicts: true
@@ -64,7 +108,7 @@ var load = function(headOverride){
 
     var toSend = { commits: commits, treeObjects: trees, refs: refs};
     console.log('toSend', toSend);
-    gingko.ports.objects.send(toSend);
+    gingko.ports.merge.send(toSend);
   }).catch(function (err) {
     console.log(err)
   })
@@ -90,7 +134,7 @@ gingko.ports.js.subscribe( function(elmdata) {
           db.replicate.from(remoteCouch)
             .on('complete', function(info) {
               console.log('fetch info', info)
-              load(remoteHead.value)
+              merge(remoteHead.value)
             })
         })
       break
@@ -126,7 +170,7 @@ gingko.ports.saveObjects.subscribe(data => {
   db.get('_local/status')
     .catch(err => {
       if(err.name == "not_found") {
-        return {_id: '_local/status' , status : 'bare'}
+        return {_id: '_local/status' , status : 'bare', bare: true}
       }
     })
     .then(statusDoc => {
