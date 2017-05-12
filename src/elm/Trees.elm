@@ -128,6 +128,9 @@ conflictToTreeMsg {id, opA, opB, selection, resolved} =
     (id, Del did, _, Ours, False) ->
       Rmv did
 
+    (id, _, Del did, Theirs, False) ->
+      Rmv did
+
     _ ->
       Nope
 
