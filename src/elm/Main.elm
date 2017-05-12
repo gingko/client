@@ -4,7 +4,7 @@ port module Main exposing (..)
 import Tuple exposing (first, second)
 
 import Html exposing (..)
-import Html.Attributes exposing (style, value)
+import Html.Attributes exposing (style, value, type_, checked)
 import Html.Events exposing (onClick, onInput)
 import Html.Lazy exposing (lazy, lazy2)
 import Json.Decode as Json
@@ -34,7 +34,7 @@ port js : (String, Json.Value) -> Cmd msg
 port activateCards : (Int, List (List String)) -> Cmd msg
 port getText : String -> Cmd msg
 port saveObjects : (Json.Value, Json.Value) -> Cmd msg
-port updateCommits : (Json.Value, String) -> Cmd msg
+port updateCommits : (Json.Value, Maybe String) -> Cmd msg
 
 
 
@@ -427,6 +427,18 @@ update msg ({objects, workingTree, status} as model) =
         _ ->
           model ! []
 
+    Resolve cid ->
+      case status of
+        MergeConflict mTree shaA shaB conflicts ->
+          { model
+            | status = MergeConflict mTree shaA shaB (conflicts |> List.filter (\c -> c.id /= cid))
+          }
+            ! []
+            |> andThen AttemptCommit
+
+        _ ->
+          model ! []
+
     CheckoutCommit commitSha ->
       let
         (newStatus, newTree_, newModel) =
@@ -439,7 +451,7 @@ update msg ({objects, workingTree, status} as model) =
             , status = newStatus
           }
             ! []
-            |> andThen (UpdateCommits (objects |> Objects.toValue, commitSha))
+            |> andThen (UpdateCommits (objects |> Objects.toValue, getHead newStatus))
 
         Nothing ->
           model ! []
@@ -459,7 +471,7 @@ update msg ({objects, workingTree, status} as model) =
             | status = newStatus
           }
             ! []
-            |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
+            |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
 
         (Clean newHead, Just newTree) ->
           { model
@@ -468,7 +480,7 @@ update msg ({objects, workingTree, status} as model) =
             , status = newStatus
           }
             ! []
-            |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
+            |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
 
         (MergeConflict mTree oldHead newHead [], Just newTree) ->
           { model
@@ -477,7 +489,7 @@ update msg ({objects, workingTree, status} as model) =
             , status = newStatus
           }
             ! []
-            |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
+            |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
 
         (MergeConflict mTree oldHead newHead conflicts, Just newTree) ->
           { model
@@ -486,7 +498,7 @@ update msg ({objects, workingTree, status} as model) =
             , status = newStatus
           }
             ! []
-            |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
+            |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
 
         _ ->
           model ! []
@@ -503,7 +515,7 @@ update msg ({objects, workingTree, status} as model) =
             | status = newStatus
           }
             ! []
-            |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
+            |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
 
         (Clean newHead, Just newTree) ->
           { model
@@ -512,7 +524,7 @@ update msg ({objects, workingTree, status} as model) =
             , status = newStatus
           }
             ! []
-            |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
+            |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
 
         (MergeConflict mTree oldHead newHead [], Just newTree) ->
           { model
@@ -522,7 +534,7 @@ update msg ({objects, workingTree, status} as model) =
           }
             ! []
             |> andThen AttemptCommit
-            |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
+            |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
 
         (MergeConflict mTree oldHead newHead conflicts, Just newTree) ->
           { model
@@ -531,14 +543,14 @@ update msg ({objects, workingTree, status} as model) =
             , status = newStatus
           }
             ! [saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)]
-            |> andThen (UpdateCommits (newObjects |> Objects.toValue, newHead))
+            |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
 
         _ ->
           model ! []
             |> Debug.log "failed to load data"
 
-    UpdateCommits (json, sha) ->
-      model ! [updateCommits (json, sha)]
+    UpdateCommits (json, sha_) ->
+      model ! [updateCommits (json, sha_)]
 
     AttemptCommit ->
       let
@@ -683,17 +695,17 @@ onlyIf cond msg prevStep =
     prevStep
 
 
-getHead : Status -> String
+getHead : Status -> Maybe String
 getHead status =
   case status of
     Clean head ->
-      head
+      Just head
 
-    MergeConflict _ head _ _ ->
-      head
+    MergeConflict _ head _ [] ->
+      Just head
 
-    Bare ->
-      ""
+    _ ->
+      Nothing
 
 
 
@@ -750,6 +762,10 @@ viewConflict {id, opA, opB, selection, resolved} =
              , option [ value <| id ++ ":Original" ] [ text "Original" ]
              , option [ value <| id ++ ":Manual" ] [ text "Manual" ]
              ]
+    , label []
+       [ input [ checked resolved , type_ "checkbox" , onClick (Resolve id) ][]
+       , text "Resolved"
+       ]
     ]
 
 

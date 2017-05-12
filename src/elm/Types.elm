@@ -37,11 +37,12 @@ type Msg
     | Push
     | TryMerge
     | SetSelection String
+    | Resolve String
     | CheckoutCommit String
     -- === Ports ===
     | Load Json.Value
     | MergeIn Json.Value
-    | UpdateCommits (Json.Value, String)
+    | UpdateCommits (Json.Value, Maybe String)
     | AttemptCommit
     | HandleKey String
 
@@ -59,7 +60,7 @@ type alias Group = List Tree
 type alias Column = List (List Tree)
 
 
-type Op = Mod String | Del | Mov String Int
+type Op = Mod String String | Del String | Mov String String Int
 type Selection = Original | Ours | Theirs | Manual
 type alias Conflict =
   { id : String

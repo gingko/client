@@ -242,12 +242,20 @@ treeObjectsToTree treeObjects treeSha id =
 
     Nothing -> Nothing
 
+
 commitSha : CommitObject -> String
 commitSha commit =
   ( commit.tree ++ "\n" ) ++
   ( commit.parents |> String.join "\n" ) ++
   ( commit.author ++ " " ++ ( commit.timestamp |> toString ) )
     |> sha1
+
+
+conflictWithSha : Conflict -> Conflict
+conflictWithSha {id, opA, opB, selection, resolved} =
+  Conflict
+    (String.join "\n" [toString opA, toString opB, toString selection, toString resolved] |> sha1)
+    opA opB selection resolved
 
 
 
@@ -357,13 +365,13 @@ mergeChildren oList aList bList =
                 if ot == at then
                   Nothing
                 else                         -- modify/delete conflict
-                  Just (ot, [Conflict ot.id (Mod at.content) Del Ours False])
+                  Just (ot, [Conflict "" (Mod ot.id at.content) (Del ot.id) Ours False |> conflictWithSha])
 
               (Just ot, Nothing, Just bt) -> -- Deleted on a
                 if ot == bt then
                   Nothing
                 else                         -- delete/modify conflict
-                  Just (ot, [Conflict ot.id Del (Mod bt.content) Ours False])
+                  Just (ot, [Conflict "" (Del ot.id) (Mod bt.id bt.content) Ours False |> conflictWithSha])
 
               (Nothing, Nothing, Just bt) -> -- Added on b only
                 Just (bt, [])
@@ -399,7 +407,7 @@ mergeStrings : String -> String -> String -> String -> (String, List Conflict)
 mergeStrings id o a b =
   let
     mergeFn x y z =
-      (x, [Conflict id (Mod y) (Mod z) Ours False])
+      (x, [Conflict "" (Mod id y) (Mod id z) Ours False |> conflictWithSha])
   in
   mergeGeneric mergeFn o a b
 

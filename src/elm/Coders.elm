@@ -162,8 +162,8 @@ conflictDecoder =
 opToValue : Op -> Enc.Value
 opToValue op =
   case op of
-    Mod str ->
-      Enc.list ["mod" |> Enc.string, str |> Enc.string]
+    Mod id str ->
+      Enc.list ["mod" |> Enc.string, id |> Enc.string, str |> Enc.string]
 
     _ ->
       Enc.null
@@ -171,8 +171,9 @@ opToValue op =
 
 opDecoder : Decoder Op
 opDecoder =
-  Json.map (\str -> Mod str)
+  Json.map2 (\id str -> Mod id str)
     ( index 1 string )
+    ( index 2 string )
 
 
 
