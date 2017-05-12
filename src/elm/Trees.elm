@@ -48,7 +48,7 @@ type TreeMsg
   | Ins Tree String Int
   | Upd String String
   | Mov Tree String Int
-  | Del String
+  | Rmv String
 
 
 
@@ -68,12 +68,12 @@ updateTree msg tree =
 
     Mov newTree parentId idx ->
       apply
-        [ Del newTree.id
+        [ Rmv newTree.id
         , Ins newTree parentId idx
         ]
       tree
 
-    Del id ->
+    Rmv id ->
       pruneSubtree id tree
 
     Nope -> tree
@@ -124,6 +124,9 @@ conflictToTreeMsg {id, opA, opB, selection, resolved} =
 
     (id, Mod tid strA, Mod _ strB, Manual, False) ->
       Upd tid ("`<<<<<<<`\n"++ strA ++ "\n`=======`\n" ++ strB ++ "\n`>>>>>>>`")
+
+    (id, Del did, _, Ours, False) ->
+      Rmv did
 
     _ ->
       Nope
@@ -322,7 +325,7 @@ viewCard (isActive, isEditing, depth) tree =
                   [ text "+" ]
                 ]
           , div [ class "flex-column card-right-overlay"]
-                [ span 
+                [ span
                   [ class "card-btn delete"
                   , title "Delete Card (Ctrl+Backspace)"
                   , onClick (DeleteCard tree.id)

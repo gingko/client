@@ -163,7 +163,10 @@ opToValue : Op -> Enc.Value
 opToValue op =
   case op of
     Mod id str ->
-      Enc.list ["mod" |> Enc.string, id |> Enc.string, str |> Enc.string]
+      Enc.list (["mod", id, str] |> List.map Enc.string)
+
+    Del id ->
+      Enc.list (["del", id] |> List.map Enc.string)
 
     _ ->
       Enc.null
@@ -171,9 +174,20 @@ opToValue op =
 
 opDecoder : Decoder Op
 opDecoder =
-  Json.map2 (\id str -> Mod id str)
-    ( index 1 string )
-    ( index 2 string )
+  let
+    modDecoder =
+      Json.map2 (\id str -> Mod id str)
+        ( index 1 string )
+        ( index 2 string )
+
+    delDecoder =
+      Json.map (\id -> Del id)
+        ( index 1 string)
+  in
+  oneOf
+    [ modDecoder
+    , delDecoder
+    ]
 
 
 

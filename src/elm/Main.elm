@@ -242,7 +242,7 @@ update msg ({objects, workingTree, status} as model) =
               "0"
       in
       { model
-        | workingTree = Trees.update (Trees.Del id) model.workingTree
+        | workingTree = Trees.update (Trees.Rmv id) model.workingTree
       }
         ! []
         |> andThen (Activate nextToActivate)
