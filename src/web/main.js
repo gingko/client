@@ -127,7 +127,12 @@ gingko.ports.js.subscribe( function(elmdata) {
         .then(remoteHead => {
           db.replicate.from(remoteCouch)
             .on('complete', function(info) {
-              merge(remoteHead.value)
+              console.log('pull info', info)
+              if(info.docs_written > 0) {
+                merge(remoteHead.value)
+              } else {
+                console.log('up-to-date')
+              }
             })
         })
       break
@@ -135,6 +140,7 @@ gingko.ports.js.subscribe( function(elmdata) {
     case 'push':
       db.replicate.to(remoteCouch)
         .on('complete', function(info) {
+          console.log('push info', info)
         })
       break
   }

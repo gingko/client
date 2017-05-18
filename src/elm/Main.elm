@@ -4,7 +4,7 @@ port module Main exposing (..)
 import Tuple exposing (first, second)
 
 import Html exposing (..)
-import Html.Attributes exposing (style, value, type_, checked)
+import Html.Attributes exposing (style, value, type_, selected, checked)
 import Html.Events exposing (onClick, onInput)
 import Html.Lazy exposing (lazy, lazy2)
 import Json.Decode as Json
@@ -761,10 +761,10 @@ viewConflict {id, opA, opB, selection, resolved} =
     []
     [ span [][ text ("id:" ++ id)]
     , select [ onInput SetSelection ]
-             [ option [ value <| id ++ ":Ours" ] [ text "Ours" ]
-             , option [ value <| id ++ ":Theirs" ] [ text "Theirs" ]
-             , option [ value <| id ++ ":Original" ] [ text "Original" ]
-             , option [ value <| id ++ ":Manual" ] [ text "Manual" ]
+             [ option [ value <| id ++ ":Ours" , selected (selection == Ours)] [ text "Ours" ]
+             , option [ value <| id ++ ":Theirs", selected (selection == Theirs) ] [ text "Theirs" ]
+             , option [ value <| id ++ ":Original", selected (selection == Original) ] [ text "Original" ]
+             , option [ value <| id ++ ":Manual", selected (selection == Manual) ] [ text "Manual" ]
              ]
     , label []
        [ input [ checked resolved , type_ "checkbox" , onClick (Resolve id) ][]
@@ -793,7 +793,7 @@ subscriptions model =
     , setHead CheckoutCommit
     , keyboard HandleKey
     , updateContent UpdateContent
-    , Time.every Time.second (\_ -> Pull)
+    , Time.every (5*Time.second) (\_ -> Pull)
     ]
 
 
