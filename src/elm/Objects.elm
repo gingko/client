@@ -283,8 +283,8 @@ merge aSha bSha oldTree model =
       (Just oTree, Just aTree, Just bTree) ->
         let
           (mTree, conflicts) = mergeTrees oTree aTree bTree
-          aOps = getOps oTree aTree |> Debug.log "ops:aOps"
-          bOps = getOps oTree bTree |> Debug.log "ops:bOps"
+          _ = getConflicts (getOps oTree aTree) (getOps oTree bTree)
+            |> Debug.log "conflicts:"
         in
         (MergeConflict mTree aSha bSha conflicts, Just mTree, model)
 
@@ -434,36 +434,54 @@ getOps oldTree newTree =
     |> collapseDelOps oldTree
 
 
-treeToc : Dict String TreeObject -> String -> Dict String String
-treeToc trees treeSha =
+getConflicts : List Op -> List Op -> (List Op, List Conflict)
+getConflicts opsA opsB =
   let
-    treeObject_ =
-      Dict.get treeSha trees
+    liftFn : Op -> Op -> (List Op, List Conflict)
+    liftFn opA opB =
+      case (opA, opB) of
+        -- Modify/Modify conflict
+        (Mod idA pidsA strA, Mod idB pidsB strB) ->
+          if idA == idB && strA /= strB then
+            ([], [conflict opA opB])
+          else
+            ([opA, opB], [])
+
+        -- Modify/Delete conflicts
+        (Mod idA pidsA strA, Del idB _) ->
+          if idA == idB || (List.member idB pidsA) then
+            ([], [conflict opA opB])
+          else
+            ([opA, opB], [])
+        (Del idA _, Mod idB pidsB strB) ->
+          if idA == idB || (List.member idA pidsB) then
+            ([], [conflict opA opB])
+          else
+            ([opA, opB], [])
+
+        -- Insert/Delete conflicts
+        (Ins {id} pidsA _, Del idB _) ->
+          if id == idB || (List.member idB pidsA) then
+            ([],[conflict opA opB])
+          else
+            ([opA, opB], [])
+        (Del idA _, Ins {id} pidsB _) ->
+          if idA == id || (List.member idA pidsB) then
+            ([],[conflict opA opB])
+          else
+            ([opA, opB], [])
+
+        -- TODO: Move Conflicts
+        _ ->
+          ([opA, opB], [])
+
   in
-  case treeObject_ of
-    Just tree ->
-      tree.children -- List (String, String)
-        |> List.map first -- List String
-        |> List.map (treeToc trees) -- List (Dict String String)
-        |> List.foldr Dict.union (Dict.fromList tree.children)-- Dict String String
-
-    Nothing ->
-      Dict.empty
+  ListExtra.lift2 liftFn opsA opsB -- List (List Op, List Conflict)
+    |> List.foldl
+        (\(os, cs) (osAcc, csAcc) -> (osAcc ++ os, csAcc ++ cs))
+        ([], [])
 
 
-commitToc : Dict String CommitObject -> Dict String TreeObject -> String -> Dict String String
-commitToc commits trees commitSha =
-  Dict.get commitSha commits -- Maybe CommitObject
-    |> Maybe.map (\co -> treeToc trees co.tree) -- Maybe String
-    |> Maybe.withDefault Dict.empty
-
-
-getTreeDict : MergeColumn -> List Tree -> MergeDict
-getTreeDict col trees =
-  case col of
-    O -> trees |> List.map (\t -> (t.id, (Just t, Nothing, Nothing)) ) |> Dict.fromList
-    A -> trees |> List.map (\t -> (t.id, (Nothing, Just t, Nothing)) ) |> Dict.fromList
-    B -> trees |> List.map (\t -> (t.id, (Nothing, Nothing, Just t)) ) |> Dict.fromList
 
 
 getCommonAncestor_ : Dict String CommitObject -> String -> String -> Maybe String
@@ -613,3 +631,11 @@ changeDecoder model =
         ( Json.succeed model.treeObjects )
         ( Json.succeed model.refs )
     ]
+
+
+-- HELPERS
+
+conflict : Op -> Op -> Conflict
+conflict opA opB =
+  Conflict "" opA opB Ours False
+    |> conflictWithSha
