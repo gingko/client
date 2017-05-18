@@ -391,8 +391,6 @@ update msg ({objects, workingTree, status} as model) =
 
     SetSelection str ->
       let
-        _ = Debug.log "SetSelection" str
-
         (id, selection) =
           case String.split ":" str of
             [idString, "Ours"] ->
@@ -468,7 +466,6 @@ update msg ({objects, workingTree, status} as model) =
       let
         (newStatus, newTree_, newObjects) =
             Objects.update (Objects.Init json) objects
-              |> Debug.log "loadIn"
       in
       case (newStatus, newTree_) of
         (Clean newHead, Nothing) -> -- no changes to Tree

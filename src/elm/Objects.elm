@@ -93,14 +93,8 @@ update msg model =
       case Json.decodeValue modelDecoder json of
         Ok modelIn ->
           let
-            _ = Debug.log "merge:modelIn" modelIn
-            _ = Debug.log "merge:model" model
-
             oldHead_ = Dict.get "heads/master" model.refs
-              |> Debug.log "merge:oldHead_"
-
             newHead_ = Dict.get "heads/master" modelIn.refs
-              |> Debug.log "merge:newHead_"
 
             newModel =
               { model
@@ -112,7 +106,6 @@ update msg model =
           case (oldHead_, newHead_) of
             (Just oldHead, Just newHead) ->
               merge oldHead newHead oldTree newModel
-                |> Debug.log "merge:result"
 
             (Nothing, Just newHead) ->
               let
@@ -296,7 +289,6 @@ mergeTrees : Tree -> Tree -> Tree -> (Tree, List Conflict)
 mergeTrees oTree aTree bTree =
   let
     (cleanOps, conflicts) = getConflicts (getOps oTree aTree) (getOps oTree bTree)
-      |> Debug.log "conflicts"
   in
   (treeFromOps oTree cleanOps, conflicts)
 
@@ -304,9 +296,7 @@ mergeTrees oTree aTree bTree =
 treeFromOps : Tree -> List Op -> Tree
 treeFromOps oTree ops =
   oTree
-    |> Debug.log "conflicts:oTree"
     |> apply (List.map opToTreeMsg ops)
-    |> Debug.log "conflicts:treeFromOps"
 
 
 getTreePaths : Tree -> Dict String (String, List String)
@@ -334,8 +324,8 @@ getTreePathsWithParents parents tree =
 getOps : Tree -> Tree -> List Op
 getOps oldTree newTree =
   let
-    oPaths = getTreePaths oldTree |> Debug.log "paths:oPaths"
-    nPaths = getTreePaths newTree |> Debug.log "paths:nPaths"
+    oPaths = getTreePaths oldTree
+    nPaths = getTreePaths newTree
 
     oldOnly : String -> (String, List String) -> List Op -> List Op
     oldOnly id (content, parents) ops =
@@ -451,7 +441,6 @@ getCommonAncestor_ commits shaA shaB =
   in
   aAncestors
     |> List.filter (\a -> List.member a bAncestors)
-    |> Debug.log "commonAncestors"
     |> List.head
 
 

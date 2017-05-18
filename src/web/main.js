@@ -48,7 +48,6 @@ var load = function(headOverride){
         , conflicts: true
         }).then(function (result) {
         data = result.rows.map(r => r.doc)
-        console.log('toLoad', data)
 
         var processData = function (data, type) {
           var processed = data.filter(d => d.type === type).map(d => _.omit(d, ['type','_rev']))
@@ -71,7 +70,6 @@ var load = function(headOverride){
         }
 
         var toSend = [status, { commits: commits, treeObjects: trees, refs: refs}];
-        console.log('toSend', toSend);
         gingko.ports.load.send(toSend);
       }).catch(function (err) {
         console.log(err)
@@ -85,7 +83,6 @@ var merge = function(headOverride){
     , conflicts: true
     }).then(function (result) {
     data = result.rows.map(r => r.doc)
-    console.log('toLoad', data)
 
     var processData = function (data, type) {
       var processed = data.filter(d => d.type === type).map(d => _.omit(d, ['type','_rev']))
@@ -107,7 +104,6 @@ var merge = function(headOverride){
     }
 
     var toSend = { commits: commits, treeObjects: trees, refs: refs};
-    console.log('toSend', toSend);
     gingko.ports.merge.send(toSend);
   }).catch(function (err) {
     console.log(err)
@@ -129,11 +125,8 @@ gingko.ports.js.subscribe( function(elmdata) {
     case 'pull':
       remoteDb.get('heads/master').catch(err => console.log('get head before fetch error:', err))
         .then(remoteHead => {
-          console.log('remoteHead', remoteHead)
-
           db.replicate.from(remoteCouch)
             .on('complete', function(info) {
-              console.log('fetch info', info)
               merge(remoteHead.value)
             })
         })
@@ -142,7 +135,6 @@ gingko.ports.js.subscribe( function(elmdata) {
     case 'push':
       db.replicate.to(remoteCouch)
         .on('complete', function(info) {
-          console.log('Push success', info)
         })
       break
   }
@@ -194,11 +186,8 @@ gingko.ports.saveObjects.subscribe(data => {
             })
 
           var toSave = objects.commits.concat(objects.treeObjects).concat(newRefs).concat([status]);
-          console.log('toSave from gingko port', toSave)
           db.bulkDocs(toSave)
-            .then(responses => {
-              console.log('saveResponses', responses)
-            }).catch(err => {
+            .catch(err => {
               console.log(err)
             })
         })
@@ -207,11 +196,8 @@ gingko.ports.saveObjects.subscribe(data => {
 
 
 gingko.ports.updateCommits.subscribe(function(data) {
-  console.log('updateCommits data', data)
   commitGraphData = _.sortBy(data[0].commits, 'timestamp').reverse().map(c => { return {sha: c._id, parents: c.parents}})
   selectedSha = data[1]
-  console.log(commitGraphData)
-  console.log(selectedSha)
 
   var commitElement = React.createElement(CommitsGraph, {
     commits: commitGraphData,
