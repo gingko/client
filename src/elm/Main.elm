@@ -48,6 +48,7 @@ type alias Model =
   , objects : Objects.Model
   , status : Status
   , viewState : ViewState
+  , online : Bool
   }
 
 
@@ -63,6 +64,7 @@ defaultModel =
       , descendants = []
       , editing = Just "0"
       }
+  , online = True
   }
 
 
@@ -378,16 +380,30 @@ update msg ({objects, workingTree, status} as model) =
     Redo ->
       model ! []
 
+    ToggleOnline ->
+      { model
+        | online = not model.online
+      }
+        ! []
+        |> andThen Push
+
     Pull ->
-      case model.status of
-        MergeConflict _ _ _ _ ->
+      case (model.status, model.online) of
+        (MergeConflict _ _ _ _, _) ->
           model ! []
 
-        _ ->
+        (_, True) ->
           model ! [js ("pull", null)]
 
+        _ ->
+          model ! []
+
+
     Push ->
-      model ! [js ("push", null)]
+      if model.online then
+        model ! [js ("push", null)]
+      else
+        model ! []
 
     SetSelection str ->
       let
@@ -750,6 +766,10 @@ repeating-linear-gradient(-45deg
               [ button [onClick Pull] [text "Pull"]
               , button [onClick AttemptCommit] [text "commit"]
               , button [onClick Push] [text "push"]
+              , label []
+                [ input [ checked model.online, type_ "checkbox", onClick ToggleOnline][]
+                , text "Online"
+                ]
               ]
         , (lazy2 Trees.view model.viewState model.workingTree)
         ]

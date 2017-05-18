@@ -35,6 +35,7 @@ type Msg
     | Redo
     | Pull
     | Push
+    | ToggleOnline
     | SetSelection String
     | Resolve String
     | CheckoutCommit String
