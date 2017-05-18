@@ -11,6 +11,7 @@ import Json.Decode as Json
 import Json.Encode exposing (..)
 import Dom
 import Task
+import Time
 
 import Types exposing (..)
 import Trees exposing (..)
@@ -378,7 +379,12 @@ update msg ({objects, workingTree, status} as model) =
       model ! []
 
     Pull ->
-      model ! [js ("pull", null)]
+      case model.status of
+        MergeConflict _ _ _ _ ->
+          model ! []
+
+        _ ->
+          model ! [js ("pull", null)]
 
     Push ->
       model ! [js ("push", null)]
@@ -568,9 +574,11 @@ update msg ({objects, workingTree, status} as model) =
       case status of
         Bare ->
           newModel []
+            |> andThen Push
 
         Clean oldHead ->
           newModel [oldHead]
+            |> andThen Push
 
         MergeConflict _ oldHead newHead conflicts ->
           if (List.isEmpty conflicts || (conflicts |> List.filter (not << .resolved) |> List.isEmpty)) then
@@ -788,6 +796,7 @@ subscriptions model =
     , setHead CheckoutCommit
     , keyboard HandleKey
     , updateContent UpdateContent
+    , Time.every Time.second (\_ -> Pull)
     ]
 
 
