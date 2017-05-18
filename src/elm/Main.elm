@@ -378,8 +378,8 @@ update msg ({objects, workingTree, status} as model) =
     Redo ->
       model ! []
 
-    Fetch ->
-      model ! [js ("fetch", null)]
+    Pull ->
+      model ! [js ("pull", null)]
 
     Push ->
       model ! [js ("push", null)]
@@ -743,7 +743,7 @@ repeating-linear-gradient(-45deg
       div
         []
         [ div [style [("z-index", "9999"), ("position", "absolute")]]
-              [ button [onClick Fetch] [text "fetch"]
+              [ button [onClick Pull] [text "Pull"]
               , button [onClick AttemptCommit] [text "commit"]
               , button [onClick Push] [text "push"]
               ]

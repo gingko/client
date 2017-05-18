@@ -126,7 +126,7 @@ load(); //initial load
 
 gingko.ports.js.subscribe( function(elmdata) {
   switch (elmdata[0]) {
-    case 'fetch':
+    case 'pull':
       remoteDb.get('heads/master').catch(err => console.log('get head before fetch error:', err))
         .then(remoteHead => {
           console.log('remoteHead', remoteHead)

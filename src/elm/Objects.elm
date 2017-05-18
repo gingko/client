@@ -11,7 +11,7 @@ import Json.Decode.Pipeline exposing (decode, required, optional)
 import Coders exposing (statusDecoder, tupleDecoder)
 
 import Types exposing (..)
-import TreeUtils exposing (getChildren)
+import TreeUtils exposing (getChildren, getTree)
 import Sha1 exposing (sha1, timestamp)
 
 
@@ -262,30 +262,6 @@ conflictWithSha {id, opA, opB, selection, resolved} =
 
 -- ==== Merging
 
-getCommonAncestor_ : Dict String CommitObject -> String -> String -> Maybe String
-getCommonAncestor_ commits shaA shaB =
-  let
-    aAncestors = getAncestors commits shaA
-    bAncestors = getAncestors commits shaB
-  in
-  aAncestors
-    |> List.filter (\a -> List.member a bAncestors)
-    |> Debug.log "commonAncestors"
-    |> List.head
-
-
-getAncestors : Dict String CommitObject -> String -> List String
-getAncestors cm sh =
-  let
-    c_ = Dict.get sh cm
-  in
-  case c_ of
-    Just c ->
-      c.parents ++ (List.concatMap (getAncestors cm) c.parents)
-
-    Nothing -> []
-
-
 merge : String -> String -> Tree -> Model -> (Status, Maybe Tree, Model)
 merge aSha bSha oldTree model =
   if (aSha == bSha || List.member bSha (getAncestors model.commits aSha)) then
@@ -307,6 +283,8 @@ merge aSha bSha oldTree model =
       (Just oTree, Just aTree, Just bTree) ->
         let
           (mTree, conflicts) = mergeTrees oTree aTree bTree
+          aOps = getOps oTree aTree |> Debug.log "ops:aOps"
+          bOps = getOps oTree bTree |> Debug.log "ops:bOps"
         in
         (MergeConflict mTree aSha bSha conflicts, Just mTree, model)
 
@@ -330,84 +308,14 @@ type alias MergeDict = Dict String (Maybe Tree, Maybe Tree, Maybe Tree)
 
 mergeChildren : List Tree -> List Tree -> List Tree -> (List Tree, List Conflict)
 mergeChildren oList aList bList =
-  let
-    allTrees = oList ++ aList ++ bList
-      |> Debug.log "merge:allTrees"
-
-    oVals = getTreeDict O oList
-    aVals = getTreeDict A aList
-    bVals = getTreeDict B bList
-
-    mbHelper l r =
-      case (l, r) of
-        (Just a, Just b) -> Just a
-        (Just a, Nothing) -> Just a
-        (Nothing, Just b) -> Just b
-        (Nothing, Nothing) -> Nothing
-
-    bothStep id (lo, la, lb) (ro, ra, rb) dict =
-      Dict.insert id (mbHelper lo ro, mbHelper la ra, mbHelper lb rb) dict
-
-    allVals =
-      Dict.merge Dict.insert bothStep Dict.insert oVals aVals Dict.empty
-      |> (\di -> Dict.merge Dict.insert bothStep Dict.insert di bVals Dict.empty)
-      |> Debug.log "merge:allVals"
-
-    mergeResults =
-      allVals
-        |> Dict.toList -- List (String, (MbT, MbT, MbT))
-        |> List.filterMap (\(id, (o_, a_, b_)) ->
-            case (o_, a_, b_) of
-              (Just ot, Just at, Just bt) -> -- Present in all trees
-                Just (mergeTrees ot at bt)
-
-              (Just ot, Just at, Nothing) -> -- Deleted on b
-                if ot == at then
-                  Nothing
-                else                         -- modify/delete conflict
-                  Just (ot, [Conflict "" (Mod ot.id at.content) (Del ot.id) Ours False |> conflictWithSha])
-
-              (Just ot, Nothing, Just bt) -> -- Deleted on a
-                if ot == bt then
-                  Nothing
-                else                         -- delete/modify conflict
-                  Just (ot, [Conflict "" (Del ot.id) (Mod bt.id bt.content) Ours False |> conflictWithSha])
-
-              (Nothing, Nothing, Just bt) -> -- Added on b only
-                Just (bt, [])
-
-              (Nothing, Just at, Nothing) -> -- Added on a only
-                Just (at, [])
-
-              (Nothing, Just at, Just bt) -> -- Added on a and b. Via move?
-                if at == bt then
-                  Just (at, []) -- TODO: move/move conflict
-                else
-                  Just (at, []) -- TODO: modify&move/modify&move conflict?
-
-              _ ->
-                Debug.crash "impossible state?"
-
-          ) -- List (Tree, List Conflict)
-        |> \mr -> (List.map first mr, List.concatMap second mr)
-  in
-  mergeResults
-
-
-getTreeDict : MergeColumn -> List Tree -> MergeDict
-getTreeDict col trees =
-  case col of
-    O -> trees |> List.map (\t -> (t.id, (Just t, Nothing, Nothing)) ) |> Dict.fromList
-    A -> trees |> List.map (\t -> (t.id, (Nothing, Just t, Nothing)) ) |> Dict.fromList
-    B -> trees |> List.map (\t -> (t.id, (Nothing, Nothing, Just t)) ) |> Dict.fromList
-
+  (oList, [])
 
 
 mergeStrings : String -> String -> String -> String -> (String, List Conflict)
 mergeStrings id o a b =
   let
     mergeFn x y z =
-      (x, [Conflict "" (Mod id y) (Mod id z) Ours False |> conflictWithSha])
+      (x, [Conflict "" (Mod id [] y) (Mod id [] z) Ours False |> conflictWithSha]) -- TODO: include parents
   in
   mergeGeneric mergeFn o a b
 
@@ -419,6 +327,111 @@ mergeTreeList oList aList bList =
       (x, [])
   in
   mergeGeneric mergeFn oList aList bList
+
+
+mergeGeneric : (a -> a -> a -> (a, List Conflict)) -> a -> a -> a -> (a, List Conflict)
+mergeGeneric mergeFn o a b =
+  if a == b then
+    (a, [])
+  else if o == b && o /= a then
+    (a, [])
+  else if o == a && o /= b then
+    (b, [])
+  else
+    mergeFn o a b
+
+
+getTreePaths : Tree -> Dict String (String, List String)
+getTreePaths tree =
+  getTreePathsWithParents [] tree
+
+
+getTreePathsWithParents : List String -> Tree -> Dict String (String, List String)
+getTreePathsWithParents parents tree =
+  let
+    rootDict = Dict.empty
+      |> Dict.insert tree.id (tree.content, parents)
+  in
+  case tree.children of
+    Children [] ->
+      rootDict
+
+    Children children ->
+      children
+        |> List.map (getTreePathsWithParents (parents ++ [tree.id]))
+        |> List.foldl Dict.union Dict.empty
+        |> Dict.union rootDict
+
+
+getOps : Tree -> Tree -> List Op
+getOps oldTree newTree =
+  let
+    oPaths = getTreePaths oldTree |> Debug.log "paths:oPaths"
+    nPaths = getTreePaths newTree |> Debug.log "paths:nPaths"
+
+    oldOnly : String -> (String, List String) -> List Op -> List Op
+    oldOnly id (content, parents) ops =
+      ops ++ [Del id parents]
+
+    newOnly : String -> (String, List String) -> List Op -> List Op
+    newOnly id (content, parents) ops =
+      let
+        insTree_ = getTree id newTree
+      in
+      case insTree_ of
+        Just insTree ->
+          ops ++ [Ins insTree parents 0]
+
+        _ ->
+          ops
+
+    both : String -> (String, List String) -> (String, List String) -> List Op -> List Op
+    both id (oldContent, oldParents) (newContent, newParents) ops =
+      let
+        modOp =
+          if oldContent /= newContent then
+            [Mod id oldParents newContent]
+          else
+            []
+
+        movOp = [] -- TODO: oldParents /= newParents then Mov
+      in
+      ops ++ modOp ++ movOp
+
+    ignoreOp : Tree -> Op -> Op -> Bool
+    ignoreOp oTree op1 op2 =
+      case (op1, op2) of
+        (Del id1 parents1, Del id2 parents2) ->
+            if (List.member id2 parents1) then
+              True
+            else
+              False
+
+        _ ->
+          False
+
+    maybeIgnore : Tree -> (Op , List Op) -> Maybe Op
+    maybeIgnore oTree (newOp, ops) =
+      let
+        ignore =
+          ops
+            |> List.map (ignoreOp oTree newOp)
+            |> List.any identity
+      in
+      if ignore then
+        Nothing
+      else
+        Just newOp
+
+    collapseDelOps : Tree -> List Op -> List Op
+    collapseDelOps oTree ops =
+      ops
+        |> ListExtra.select -- List (Op, List Op)
+        |> List.filterMap (maybeIgnore oTree)
+
+  in
+  Dict.merge oldOnly both newOnly oPaths nPaths []
+    |> collapseDelOps oldTree
 
 
 treeToc : Dict String TreeObject -> String -> Dict String String
@@ -445,16 +458,36 @@ commitToc commits trees commitSha =
     |> Maybe.withDefault Dict.empty
 
 
-mergeGeneric : (a -> a -> a -> (a, List Conflict)) -> a -> a -> a -> (a, List Conflict)
-mergeGeneric mergeFn o a b =
-  if a == b then
-    (a, [])
-  else if o == b && o /= a then
-    (a, [])
-  else if o == a && o /= b then
-    (b, [])
-  else
-    mergeFn o a b
+getTreeDict : MergeColumn -> List Tree -> MergeDict
+getTreeDict col trees =
+  case col of
+    O -> trees |> List.map (\t -> (t.id, (Just t, Nothing, Nothing)) ) |> Dict.fromList
+    A -> trees |> List.map (\t -> (t.id, (Nothing, Just t, Nothing)) ) |> Dict.fromList
+    B -> trees |> List.map (\t -> (t.id, (Nothing, Nothing, Just t)) ) |> Dict.fromList
+
+
+getCommonAncestor_ : Dict String CommitObject -> String -> String -> Maybe String
+getCommonAncestor_ commits shaA shaB =
+  let
+    aAncestors = getAncestors commits shaA
+    bAncestors = getAncestors commits shaB
+  in
+  aAncestors
+    |> List.filter (\a -> List.member a bAncestors)
+    |> Debug.log "commonAncestors"
+    |> List.head
+
+
+getAncestors : Dict String CommitObject -> String -> List String
+getAncestors cm sh =
+  let
+    c_ = Dict.get sh cm
+  in
+  case c_ of
+    Just c ->
+      c.parents ++ (List.concatMap (getAncestors cm) c.parents)
+
+    Nothing -> []
 
 
 

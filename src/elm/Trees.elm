@@ -116,19 +116,19 @@ setTreeWithConflicts conflicts originalTree model =
 conflictToTreeMsg : Conflict -> TreeMsg
 conflictToTreeMsg {id, opA, opB, selection, resolved} =
   case (id, opA, opB, selection, resolved) of
-    (id, Mod tid str, _, Ours, False) ->
+    (id, Mod tid _ str, _, Ours, False) ->
       Upd tid str
 
-    (id, _, Mod tid str, Theirs, False) ->
+    (id, _, Mod tid _ str, Theirs, False) ->
       Upd tid str
 
-    (id, Mod tid strA, Mod _ strB, Manual, False) ->
+    (id, Mod tid _ strA, Mod _ _ strB, Manual, False) ->
       Upd tid ("`<<<<<<<`\n"++ strA ++ "\n`=======`\n" ++ strB ++ "\n`>>>>>>>`")
 
-    (id, Del did, _, Ours, False) ->
+    (id, Del did _, _, Ours, False) ->
       Rmv did
 
-    (id, _, Del did, Theirs, False) ->
+    (id, _, Del did _, Theirs, False) ->
       Rmv did
 
     _ ->

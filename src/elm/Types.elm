@@ -33,9 +33,8 @@ type Msg
     -- === History ===
     | Undo
     | Redo
-    | Fetch
+    | Pull
     | Push
-    | TryMerge
     | SetSelection String
     | Resolve String
     | CheckoutCommit String
@@ -60,7 +59,7 @@ type alias Group = List Tree
 type alias Column = List (List Tree)
 
 
-type Op = Mod String String | Del String | Mov String String Int
+type Op = Ins Tree (List String) Int | Mod String (List String) String | Del String (List String) | Mov String (List String) Int
 type Selection = Original | Ours | Theirs | Manual
 type alias Conflict =
   { id : String
