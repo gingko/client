@@ -343,15 +343,7 @@ getOps oldTree newTree =
 
     newOnly : String -> (String, List String) -> List Op -> List Op
     newOnly id (content, parents) ops =
-      let
-        insTree_ = getTree id newTree
-      in
-      case insTree_ of
-        Just insTree ->
-          ops ++ [Ins insTree parents 0]
-
-        _ ->
-          ops
+      ops ++ [Ins id content parents 0]
 
     both : String -> (String, List String) -> (String, List String) -> List Op -> List Op
     both id (oldContent, oldParents) (newContent, newParents) ops =
@@ -411,31 +403,31 @@ getConflicts opsA opsB =
         -- Modify/Modify conflict
         (Mod idA pidsA strA, Mod idB pidsB strB) ->
           if idA == idB && strA /= strB then
-            ([], [conflict opA opB])
+            ([], [conflict opA opB Manual])
           else
             ([opA, opB], [])
 
         -- Modify/Delete conflicts
         (Mod idA pidsA strA, Del idB _) ->
           if idA == idB || (List.member idB pidsA) then
-            ([], [conflict opA opB])
+            ([], [conflict opA opB Ours])
           else
             ([opA, opB], [])
         (Del idA _, Mod idB pidsB strB) ->
           if idA == idB || (List.member idA pidsB) then
-            ([], [conflict opA opB])
+            ([], [conflict opA opB Theirs])
           else
             ([opA, opB], [])
 
         -- Insert/Delete conflicts
-        (Ins {id} pidsA _, Del idB _) ->
-          if id == idB || (List.member idB pidsA) then
-            ([],[conflict opA opB])
+        (Ins idA _ pidsA _, Del idB _) ->
+          if idA == idB || (List.member idB pidsA) then
+            ([],[conflict opA opB Ours])
           else
             ([opA, opB], [])
-        (Del idA _, Ins {id} pidsB _) ->
-          if idA == id || (List.member idA pidsB) then
-            ([],[conflict opA opB])
+        (Del idA _, Ins idB _ pidsB _) ->
+          if idA == idB || (List.member idA pidsB) then
+            ([],[conflict opA opB Theirs])
           else
             ([opA, opB], [])
 
@@ -448,6 +440,7 @@ getConflicts opsA opsB =
     |> List.foldl
         (\(os, cs) (osAcc, csAcc) -> (osAcc ++ os, csAcc ++ cs))
         ([], [])
+    |> \(os, cs) -> (os |> ListExtra.uniqueBy toString, cs |> ListExtra.uniqueBy toString) -- Hacky way to remove duplicate Ops
 
 
 getCommonAncestor_ : Dict String CommitObject -> String -> String -> Maybe String
@@ -601,7 +594,7 @@ changeDecoder model =
 
 -- HELPERS
 
-conflict : Op -> Op -> Conflict
-conflict opA opB =
-  Conflict "" opA opB Ours False
+conflict : Op -> Op -> Selection -> Conflict
+conflict opA opB sel =
+  Conflict "" opA opB sel False
     |> conflictWithSha

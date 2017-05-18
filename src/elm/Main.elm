@@ -259,10 +259,9 @@ update msg ({objects, workingTree, status} as model) =
     Insert pid pos ->
       let
         newId = "node-" ++ (timestamp () |> toString)
-        newTree = Tree newId "" (Children [])
       in
       { model
-        | workingTree = Trees.update (Trees.Ins newTree pid pos) model.workingTree
+        | workingTree = Trees.update (Trees.Ins newId "" pid pos) model.workingTree
       }
         ! []
         |> andThen (OpenCard newId "")

@@ -45,7 +45,7 @@ defaultTree =
 
 type TreeMsg
   = Nope
-  | Ins Tree String Int
+  | Ins String String String Int
   | Upd String String
   | Mov Tree String Int
   | Rmv String
@@ -60,18 +60,16 @@ update msg model =
 updateTree : TreeMsg -> Tree -> Tree
 updateTree msg tree =
   case msg of
-    Ins newTree parentId idx ->
-      insertSubtree newTree parentId idx tree
+    Ins newId newContent parentId idx ->
+      insertSubtree (Tree newId newContent (Children [])) parentId idx tree
 
     Upd id str ->
       modifyTree id (\t -> { t | content = str} ) tree
 
     Mov newTree parentId idx ->
-      apply
-        [ Rmv newTree.id
-        , Ins newTree parentId idx
-        ]
       tree
+        |> pruneSubtree newTree.id 
+        |> insertSubtree newTree parentId idx
 
     Rmv id ->
       pruneSubtree id tree
@@ -138,10 +136,10 @@ opToTreeMsg op =
     Del tid _ ->
       Rmv tid
 
-    Types.Ins t pids idx ->
+    Types.Ins id str pids idx ->
       case ListExtra.last pids of
         Just pid ->
-          Ins t pid idx
+          Ins id str pid idx
 
         Nothing ->
           Nope
