@@ -11,6 +11,7 @@ import Json.Decode.Pipeline exposing (decode, required, optional)
 import Coders exposing (statusDecoder, tupleDecoder)
 
 import Types exposing (..)
+import Trees exposing (apply, opToTreeMsg)
 import TreeUtils exposing (getChildren, getTree)
 import Sha1 exposing (sha1, timestamp)
 
@@ -283,8 +284,6 @@ merge aSha bSha oldTree model =
       (Just oTree, Just aTree, Just bTree) ->
         let
           (mTree, conflicts) = mergeTrees oTree aTree bTree
-          _ = getConflicts (getOps oTree aTree) (getOps oTree bTree)
-            |> Debug.log "conflicts:"
         in
         (MergeConflict mTree aSha bSha conflicts, Just mTree, model)
 
@@ -296,49 +295,18 @@ merge aSha bSha oldTree model =
 mergeTrees : Tree -> Tree -> Tree -> (Tree, List Conflict)
 mergeTrees oTree aTree bTree =
   let
-    (mContent, contentConflicts) = mergeStrings oTree.id oTree.content aTree.content bTree.content
-
-    (mChildren, childrenConflicts) = mergeChildren (getChildren oTree) (getChildren aTree) (getChildren bTree)
+    (cleanOps, conflicts) = getConflicts (getOps oTree aTree) (getOps oTree bTree)
+      |> Debug.log "conflicts"
   in
-  (Tree oTree.id mContent (Children mChildren), contentConflicts ++ childrenConflicts)
-
-type MergeColumn = O | A | B
-type alias MergeDict = Dict String (Maybe Tree, Maybe Tree, Maybe Tree)
+  (treeFromOps oTree cleanOps, conflicts)
 
 
-mergeChildren : List Tree -> List Tree -> List Tree -> (List Tree, List Conflict)
-mergeChildren oList aList bList =
-  (oList, [])
-
-
-mergeStrings : String -> String -> String -> String -> (String, List Conflict)
-mergeStrings id o a b =
-  let
-    mergeFn x y z =
-      (x, [Conflict "" (Mod id [] y) (Mod id [] z) Ours False |> conflictWithSha]) -- TODO: include parents
-  in
-  mergeGeneric mergeFn o a b
-
-
-mergeTreeList : List (String, String) -> List (String, String) -> List (String, String) -> (List (String, String), List Conflict)
-mergeTreeList oList aList bList =
-  let
-    mergeFn x y z =
-      (x, [])
-  in
-  mergeGeneric mergeFn oList aList bList
-
-
-mergeGeneric : (a -> a -> a -> (a, List Conflict)) -> a -> a -> a -> (a, List Conflict)
-mergeGeneric mergeFn o a b =
-  if a == b then
-    (a, [])
-  else if o == b && o /= a then
-    (a, [])
-  else if o == a && o /= b then
-    (b, [])
-  else
-    mergeFn o a b
+treeFromOps : Tree -> List Op -> Tree
+treeFromOps oTree ops =
+  oTree
+    |> Debug.log "conflicts:oTree"
+    |> apply (List.map opToTreeMsg ops)
+    |> Debug.log "conflicts:treeFromOps"
 
 
 getTreePaths : Tree -> Dict String (String, List String)
@@ -480,8 +448,6 @@ getConflicts opsA opsB =
     |> List.foldl
         (\(os, cs) (osAcc, csAcc) -> (osAcc ++ os, csAcc ++ cs))
         ([], [])
-
-
 
 
 getCommonAncestor_ : Dict String CommitObject -> String -> String -> Maybe String

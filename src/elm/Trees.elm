@@ -116,23 +116,40 @@ setTreeWithConflicts conflicts originalTree model =
 conflictToTreeMsg : Conflict -> TreeMsg
 conflictToTreeMsg {id, opA, opB, selection, resolved} =
   case (id, opA, opB, selection, resolved) of
-    (id, Mod tid _ str, _, Ours, False) ->
-      Upd tid str
+    (_, opA, _, Ours, False) ->
+      opToTreeMsg opA
 
-    (id, _, Mod tid _ str, Theirs, False) ->
-      Upd tid str
+    (_, _, opB, Theirs, False) ->
+      opToTreeMsg opB
 
-    (id, Mod tid _ strA, Mod _ _ strB, Manual, False) ->
+    (_, Mod tid _ strA, Mod _ _ strB, Manual, False) ->
       Upd tid ("`<<<<<<<`\n"++ strA ++ "\n`=======`\n" ++ strB ++ "\n`>>>>>>>`")
-
-    (id, Del did _, _, Ours, False) ->
-      Rmv did
-
-    (id, _, Del did _, Theirs, False) ->
-      Rmv did
 
     _ ->
       Nope
+
+
+opToTreeMsg : Op -> TreeMsg
+opToTreeMsg op =
+  case op of
+    Mod tid _ str ->
+      Upd tid str
+
+    Del tid _ ->
+      Rmv tid
+
+    Types.Ins t pids idx ->
+      case ListExtra.last pids of
+        Just pid ->
+          Ins t pid idx
+
+        Nothing ->
+          Nope
+
+    -- TODO: Mov Op -> Mov TreeMsg
+    _ ->
+      Nope
+
 
 
 
