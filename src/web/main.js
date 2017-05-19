@@ -123,17 +123,19 @@ load(); //initial load
 gingko.ports.js.subscribe( function(elmdata) {
   switch (elmdata[0]) {
     case 'pull':
-      remoteDb.get('heads/master').catch(err => console.log('get head before fetch error:', err))
-        .then(remoteHead => {
-          db.replicate.from(remoteCouch)
-            .on('complete', function(info) {
-              console.log('pull info', info)
-              if(info.docs_written > 0) {
-                merge(remoteHead.value)
-              } else {
-                console.log('up-to-date')
-              }
-            })
+      var remoteHead;
+      db.replicate.from(remoteCouch)
+        .on('change', function(change) {
+          remoteHead = change.docs.filter(d => d._id == "heads/master")[0]
+          console.log('remoteHead', remoteHead.value)
+        })
+        .on('complete', function(info) {
+          console.log('pull info', info)
+          if(info.docs_written > 0) {
+            merge(remoteHead.value)
+          } else {
+            console.log('up-to-date')
+          }
         })
       break
 

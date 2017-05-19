@@ -813,7 +813,7 @@ subscriptions model =
     , setHead CheckoutCommit
     , keyboard HandleKey
     , updateContent UpdateContent
-    , Time.every (5*Time.second) (\_ -> Pull)
+    , Time.every (1*Time.second) (\_ -> Pull)
     ]
 
 
