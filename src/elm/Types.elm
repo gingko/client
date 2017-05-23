@@ -16,17 +16,17 @@ type Msg
     -- === Card Editing  ===
     | OpenCard String String
     | GetContentToSave String
-    | UpdateContent (String, String)
+    | UpdateContent (String, String) -- |> Save
     | UpdateCardError String
-    | DeleteCard String
+    | DeleteCard String -- |> Activate |> Save
     | CancelCard
     -- === Card Insertion  ===
-    | Insert String Int
+    | Insert String Int -- |> OpenCard |> Activate
     | InsertAbove String
     | InsertBelow String
     | InsertChild String
     -- === Card Moving  ===
-    | Move Tree String Int
+    | Move Tree String Int -- |> Activate |> Save
     | MoveWithin String Int
     | MoveLeft String
     | MoveRight String
@@ -35,15 +35,16 @@ type Msg
     | Redo
     | Pull
     | Push
-    | ToggleOnline
+    | ToggleOnline -- |> Push
     | SetSelection String
-    | Resolve String
-    | CheckoutCommit String
+    | Resolve String -- |> Save
+    | CheckoutCommit String -- |> UpdateCommits
     -- === Ports ===
-    | Load Json.Value
-    | MergeIn Json.Value
+    | Load Json.Value -- |> UpdateCommits
+    | MergeIn Json.Value -- |> [Save] |> UpdateCommits
+    | SetHeadRev String
     | UpdateCommits (Json.Value, Maybe String)
-    | AttemptCommit
+    | Save -- |> UpdateCommits |> [Push]
     | HandleKey String
 
 

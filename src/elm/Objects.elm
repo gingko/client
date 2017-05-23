@@ -1,4 +1,4 @@
-module Objects exposing (Model, defaultModel, ObjMsg (Commit, Checkout, Init, Merge), update, toValue)
+module Objects exposing (Model, defaultModel, ObjMsg (Commit, Checkout, Init, Merge), update, toValue, setHeadRev)
 
 import Dict exposing (Dict)
 import Maybe exposing (andThen)
@@ -21,7 +21,7 @@ import Sha1 exposing (sha1, timestamp)
 type alias Model =
   { commits : Dict String CommitObject
   , treeObjects : Dict String TreeObject
-  , refs : Dict String String
+  , refs : Dict String RefObject
   }
 
 
@@ -40,6 +40,13 @@ type alias CommitObject =
   , parents : List String
   , author : String
   , timestamp : Int
+  }
+
+
+type alias RefObject =
+  { value : String
+  , previous : String
+  , rev : String
   }
 
 
@@ -93,8 +100,8 @@ update msg model =
       case Json.decodeValue modelDecoder json of
         Ok modelIn ->
           let
-            oldHead_ = Dict.get "heads/master" model.refs
-            newHead_ = Dict.get "heads/master" modelIn.refs
+            oldHead_ = Dict.get "heads/master" model.refs |> andThen (\{value} -> Just value)
+            newHead_ = Dict.get "heads/master" modelIn.refs |> andThen (\{value} -> Just value)
 
             newModel =
               { model
@@ -159,7 +166,31 @@ updateRef : String -> String -> Model -> Model
 updateRef refId newValue model =
   { model
     | refs = model.refs
-        |> Dict.insert refId newValue
+        |> Dict.update refId
+            (\mbr ->
+              case mbr of
+                Just {value, previous, rev} ->
+                  Just (RefObject newValue value rev)
+
+                Nothing ->
+                  Just (RefObject newValue "" "")
+            )
+  }
+
+
+setHeadRev : String -> Model -> Model
+setHeadRev newRev model =
+  { model
+    | refs = model.refs
+        |> Dict.update "heads/master"
+            (\mbr ->
+              case mbr of
+                Just {value, previous, rev} ->
+                  Just (RefObject value previous newRev)
+
+                Nothing ->
+                  Just (RefObject "" "" newRev)
+            )
   }
 
 
@@ -472,11 +503,13 @@ toValue model =
               (List.map (\(s, i) -> Enc.list [Enc.string s, Enc.string i]) treeObject.children) )
         ]
 
-    refToValue sha refString =
+    refToValue sha ref =
       Enc.object
         [ ( "_id", Enc.string sha )
+        , ( "_rev", Enc.string ref.rev )
         , ( "type", Enc.string "ref" )
-        , ( "value", Enc.string refString )
+        , ( "value", Enc.string ref.value)
+        , ( "previous", Enc.string ref.previous )
         ]
 
     commits =
@@ -499,6 +532,14 @@ toValue model =
     ]
 
 
+modelDecoder : Json.Decoder Model
+modelDecoder =
+  Json.map3 Model
+    ( Json.field "commits" commitsDecoder )
+    ( Json.field "treeObjects" treeObjectsDecoder )
+    ( Json.field "refs" refObjectsDecoder )
+
+
 commitsToValue : Dict String CommitObject -> Enc.Value
 commitsToValue commits =
   let
@@ -516,14 +557,6 @@ commitsToValue commits =
   Dict.toList commits
     |> List.map (\(k, v) -> commitToValue k v)
     |> Enc.list
-
-
-modelDecoder : Json.Decoder Model
-modelDecoder =
-  Json.map3 Model
-    ( Json.field "commits" commitsDecoder )
-    ( Json.field "treeObjects" treeObjectsDecoder )
-    ( Json.field "refs" (Json.dict Json.string))
 
 
 commitsDecoder : Json.Decoder (Dict String CommitObject)
@@ -558,9 +591,16 @@ treeObjectsDecoder =
   (Json.dict treeObjectDecoder)
 
 
-refDecoder : Json.Decoder String
-refDecoder =
-    ( Json.field "value" Json.string )
+refObjectsDecoder : Json.Decoder (Dict String RefObject)
+refObjectsDecoder =
+  let
+    refObjectDecoder =
+      Json.map3 RefObject
+        ( Json.field "value" Json.string )
+        ( Json.field "previous" Json.string )
+        ( Json.field "_rev" Json.string )
+  in
+  (Json.dict refObjectDecoder)
 
 
 changeDecoder : Model -> Json.Decoder Model
@@ -569,7 +609,7 @@ changeDecoder model =
     [ Json.map3 Model
         ( Json.succeed model.commits )
         ( Json.succeed model.treeObjects )
-        ( Json.dict refDecoder )
+        refObjectsDecoder
     , Json.map3 Model
         ( Json.succeed model.commits )
         treeObjectsDecoder

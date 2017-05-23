@@ -35,6 +35,19 @@ self.db = new PouchDB('atreenodes16')
 self.remoteCouch = 'http://localhost:5984/atreenodes16'
 self.remoteDb = new PouchDB(remoteCouch)
 
+
+var processData = function (data, type) {
+  var processed = data.filter(d => d.type === type).map(d => _.omit(d, 'type'))
+  var dict = {}
+  if (type == "ref") {
+    processed.map(d => dict[d._id] = _.omit(d, '_id'))
+  } else {
+    processed.map(d => dict[d._id] = _.omit(d, ['_id','_rev']))
+  }
+  return dict
+}
+
+
 var load = function(headOverride){
   db.get('_local/status')
     .catch(err => {
@@ -48,17 +61,6 @@ var load = function(headOverride){
         , conflicts: true
         }).then(function (result) {
         data = result.rows.map(r => r.doc)
-
-        var processData = function (data, type) {
-          var processed = data.filter(d => d.type === type).map(d => _.omit(d, ['type','_rev']))
-          var dict = {}
-          if (type == "ref") {
-            processed.map(d => dict[d._id] = d.value)
-          } else {
-            processed.map(d => dict[d._id] = _.omit(d, '_id'))
-          }
-          return dict
-        }
 
         var commits = processData(data, "commit");
         var trees = processData(data, "tree");
@@ -77,37 +79,23 @@ var load = function(headOverride){
     })
 }
 
-var merge = function(headOverride){
-  db.allDocs(
-    { include_docs: true
-    , conflicts: true
-    }).then(function (result) {
-    data = result.rows.map(r => r.doc)
+var merge = function(){
+  db.allDocs( { include_docs: true })
+    .then(function (result) {
+      data = result.rows.map(r => r.doc)
+      console.log('merge:data', data)
 
-    var processData = function (data, type) {
-      var processed = data.filter(d => d.type === type).map(d => _.omit(d, ['type','_rev']))
-      var dict = {}
-      if (type == "ref") {
-        processed.map(d => dict[d._id] = d.value)
-      } else {
-        processed.map(d => dict[d._id] = _.omit(d, '_id'))
-      }
-      return dict
-    }
+      var commits = processData(data, "commit");
+      var trees = processData(data, "tree");
+      var refs = processData(data, "ref");
+      console.log('refs', refs)
 
-    var commits = processData(data, "commit");
-    var trees = processData(data, "tree");
-    var refs = processData(data, "ref");
-
-    if(headOverride) {
-      refs['heads/master'] = headOverride
-    }
-
-    var toSend = { commits: commits, treeObjects: trees, refs: refs};
-    gingko.ports.merge.send(toSend);
-  }).catch(function (err) {
-    console.log(err)
-  })
+      var toSend = { commits: commits, treeObjects: trees, refs: refs};
+      console.log('toSend', toSend)
+      gingko.ports.merge.send(toSend);
+    }).catch(function (err) {
+      console.log(err)
+    })
 }
 
 load(); //initial load
@@ -123,26 +111,32 @@ load(); //initial load
 gingko.ports.js.subscribe( function(elmdata) {
   switch (elmdata[0]) {
     case 'pull':
+      console.log('pull:triggered')
       var remoteHead;
-      db.replicate.from(remoteCouch)
+      db.replicate.from(remoteCouch, {filter: function (doc) {return !doc._id.startsWith('_design');}})
         .on('change', function(change) {
           remoteHead = change.docs.filter(d => d._id == "heads/master")[0]
           console.log('remoteHead', remoteHead.value)
         })
         .on('complete', function(info) {
-          console.log('pull info', info)
-          if(info.docs_written > 0) {
-            merge(remoteHead.value)
+          if(info.docs_written > 0 && info.ok) {
+            console.log('pull:success:to-merge', info)
+            merge()
           } else {
             console.log('up-to-date')
+            db.replicate.to(remoteCouch)
+              .on('complete', function(info) {
+                console.log('push:up-to-date:success')
+              })
           }
         })
       break
 
     case 'push':
+      console.log('push:triggered')
       db.replicate.to(remoteCouch)
         .on('complete', function(info) {
-          console.log('push info', info)
+          console.log('push:success', info)
         })
       break
   }
@@ -178,28 +172,25 @@ gingko.ports.saveObjects.subscribe(data => {
         status['_rev'] = statusDoc._rev
       }
 
-      db.get('heads/master')
+      var toSave = objects.commits.concat(objects.treeObjects).concat(objects.refs).concat([status]);
+      db.bulkDocs(toSave)
         .catch(err => {
-          if(err.name == "not_found") {
-            return {_id: 'heads/master' , value : '', type: 'ref' }
+          console.log(err)
+        })
+        .then(responses => {
+          console.log('bulkDocs responses', responses)
+          var head = responses.filter(r => r.id == "heads/master")[0]
+          if (head.ok) {
+            gingko.ports.setHeadRev.send(head.rev)
+          } else {
+            console.log('head not ok', head)
           }
         })
-        .then(headDoc => {
-          newRefs = objects.refs
-            .map(r => {
-              if (r._id == 'heads/master') {
-                headDoc['value'] = r.value
-                return headDoc
-              } else { return r }
-            })
-
-          var toSave = objects.commits.concat(objects.treeObjects).concat(newRefs).concat([status]);
-          db.bulkDocs(toSave)
-            .catch(err => {
-              console.log(err)
-            })
-        })
     })
+})
+
+gingko.ports.saveLocal.subscribe(data => {
+  console.log(data)
 })
 
 

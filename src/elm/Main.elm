@@ -18,7 +18,7 @@ import Trees exposing (..)
 import TreeUtils exposing (..)
 import Sha1 exposing (timestamp)
 import Objects
-import Coders exposing (statusToValue)
+import Coders exposing (statusToValue, treeToValue)
 
 
 main : Program Json.Value Model Msg
@@ -35,6 +35,7 @@ port js : (String, Json.Value) -> Cmd msg
 port activateCards : (Int, List (List String)) -> Cmd msg
 port getText : String -> Cmd msg
 port saveObjects : (Json.Value, Json.Value) -> Cmd msg
+port saveLocal : Json.Value -> Cmd msg
 port updateCommits : (Json.Value, Maybe String) -> Cmd msg
 
 
@@ -213,7 +214,7 @@ update msg ({objects, workingTree, status} as model) =
           , viewState = { vs | active = id, editing = Nothing }
         }
           ! []
-          |> andThen AttemptCommit
+          |> andThen Save
       else
         { model
           | viewState = { vs | active = id, editing = Nothing }
@@ -249,7 +250,7 @@ update msg ({objects, workingTree, status} as model) =
       }
         ! []
         |> andThen (Activate nextToActivate)
-        |> andThen AttemptCommit
+        |> andThen Save
 
     CancelCard ->
       { model
@@ -317,7 +318,7 @@ update msg ({objects, workingTree, status} as model) =
       }
         ! []
         |> andThen (Activate subtree.id)
-        |> andThen AttemptCommit
+        |> andThen Save
 
     MoveWithin id delta ->
       let
@@ -385,7 +386,6 @@ update msg ({objects, workingTree, status} as model) =
         | online = not model.online
       }
         ! []
-        |> andThen Push
 
     Pull ->
       case (model.status, model.online) of
@@ -453,7 +453,7 @@ update msg ({objects, workingTree, status} as model) =
             | status = MergeConflict mTree shaA shaB (conflicts |> List.filter (\c -> c.id /= cid))
           }
             ! []
-            |> andThen AttemptCommit
+            |> andThen Save
 
         _ ->
           model ! []
@@ -534,6 +534,7 @@ update msg ({objects, workingTree, status} as model) =
           }
             ! []
             |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
+            |> andThen (Activate vs.active)
 
         (Clean newHead, Just newTree) ->
           { model
@@ -543,6 +544,7 @@ update msg ({objects, workingTree, status} as model) =
           }
             ! []
             |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
+            |> andThen (Activate vs.active)
 
         (MergeConflict mTree oldHead newHead [], Just newTree) ->
           { model
@@ -551,8 +553,9 @@ update msg ({objects, workingTree, status} as model) =
             , status = newStatus
           }
             ! []
-            |> andThen AttemptCommit
+            |> andThen Save
             |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
+            |> andThen (Activate vs.active)
 
         (MergeConflict mTree oldHead newHead conflicts, Just newTree) ->
           { model
@@ -562,16 +565,25 @@ update msg ({objects, workingTree, status} as model) =
           }
             ! [saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)]
             |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
+            |> andThen (Activate vs.active)
 
         _ ->
           model ! []
             |> Debug.log "failed to load data"
 
+    SetHeadRev rev ->
+      { model
+        | objects = Objects.setHeadRev rev model.objects
+      }
+        ! []
+        |> andThen Push
+
     UpdateCommits (json, sha_) ->
       model ! [updateCommits (json, sha_)]
 
-    AttemptCommit ->
+    Save ->
       let
+        _ = Debug.log ("Save:"++ (toString status))
         newModel p =
           let
             (newStatus, _, newObjects) =
@@ -587,17 +599,16 @@ update msg ({objects, workingTree, status} as model) =
       case status of
         Bare ->
           newModel []
-            |> andThen Push
 
         Clean oldHead ->
           newModel [oldHead]
-            |> andThen Push
 
         MergeConflict _ oldHead newHead conflicts ->
           if (List.isEmpty conflicts || (conflicts |> List.filter (not << .resolved) |> List.isEmpty)) then
             newModel [oldHead, newHead]
           else
-            model ! []
+            model
+              ! [saveLocal ( model.workingTree.tree |> treeToValue )]
 
 
     HandleKey key ->
@@ -764,7 +775,7 @@ repeating-linear-gradient(-45deg
         []
         [ div [style [("z-index", "9999"), ("position", "absolute")]]
               [ button [onClick Pull] [text "Pull"]
-              , button [onClick AttemptCommit] [text "commit"]
+              , button [onClick Save] [text "commit"]
               , button [onClick Push] [text "push"]
               , label []
                 [ input [ checked model.online, type_ "checkbox", onClick ToggleOnline][]
@@ -795,12 +806,22 @@ viewConflict {id, opA, opB, selection, resolved} =
 
 
 
+-- ENCODING/DECODING
+
+modelToValue : Model -> Json.Value
+modelToValue model =
+  null
+
+
+
+
 -- SUBSCRIPTIONS
 
 
 port load : (Json.Value -> msg) -> Sub msg
 port merge : (Json.Value -> msg) -> Sub msg
 port setHead : (String -> msg) -> Sub msg
+port setHeadRev : (String -> msg) -> Sub msg
 port keyboard : (String -> msg) -> Sub msg
 port updateContent : ((String, String) -> msg) -> Sub msg
 
@@ -811,6 +832,7 @@ subscriptions model =
     [ load Load
     , merge MergeIn
     , setHead CheckoutCommit
+    , setHeadRev SetHeadRev
     , keyboard HandleKey
     , updateContent UpdateContent
     , Time.every (1*Time.second) (\_ -> Pull)
