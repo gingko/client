@@ -36,7 +36,7 @@ type Msg
     | Pull
     | Push
     | ToggleOnline -- |> Push
-    | SetSelection String
+    | SetSelection String Selection String
     | Resolve String -- |> Save
     | CheckoutCommit String -- |> UpdateCommits
     -- === Ports ===

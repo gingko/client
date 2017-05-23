@@ -405,30 +405,13 @@ update msg ({objects, workingTree, status} as model) =
       else
         model ! []
 
-    SetSelection str ->
+    SetSelection cid selection id ->
       let
-        (id, selection) =
-          case String.split ":" str of
-            [idString, "Ours"] ->
-              (idString, Ours)
-
-            [idString, "Theirs"] ->
-              (idString, Theirs)
-
-            [idString, "Original"] ->
-              (idString, Original)
-
-            [idString, "Manual"] ->
-              (idString, Manual)
-
-            _ ->
-              ("otherid", Manual)
-
         newStatus =
           case status of
             MergeConflict mTree oldHead newHead conflicts ->
               conflicts
-                |> List.map (\c -> if c.id == id then { c | selection = selection } else c)
+                |> List.map (\c -> if c.id == cid then { c | selection = selection } else c)
                 |> MergeConflict mTree oldHead newHead
 
             _ ->
@@ -437,11 +420,23 @@ update msg ({objects, workingTree, status} as model) =
       in
       case newStatus of
         MergeConflict mTree oldHead newHead conflicts ->
-          { model
-            | workingTree = Trees.setTreeWithConflicts conflicts mTree model.workingTree
-            , status = newStatus
-          }
-            ! []
+          case selection of
+            Manual ->
+              { model
+                | workingTree = Trees.setTreeWithConflicts conflicts mTree model.workingTree
+                , status = newStatus
+              }
+                ! []
+                |> andThen (HandleKey "enter")
+
+            _ ->
+              { model
+                | workingTree = Trees.setTreeWithConflicts conflicts mTree model.workingTree
+                , status = newStatus
+              }
+                ! []
+                |> andThen CancelCard
+                |> andThen (Activate id)
 
         _ ->
           model ! []
@@ -788,19 +783,55 @@ repeating-linear-gradient(-45deg
 
 viewConflict: Conflict -> Html Msg
 viewConflict {id, opA, opB, selection, resolved} =
-  li
-    []
-    [ span [][ text ("id:" ++ id)]
-    , select [ onInput SetSelection ]
-             [ option [ value <| id ++ ":Ours" , selected (selection == Ours)] [ text "Ours" ]
-             , option [ value <| id ++ ":Theirs", selected (selection == Theirs) ] [ text "Theirs" ]
-             , option [ value <| id ++ ":Original", selected (selection == Original) ] [ text "Original" ]
-             , option [ value <| id ++ ":Manual", selected (selection == Manual) ] [ text "Manual" ]
-             ]
-    , label []
-       [ input [ checked resolved , type_ "checkbox" , onClick (Resolve id) ][]
-       , text "Resolved"
-       ]
+  let
+    withManual cardId =
+      li
+        []
+        [ fieldset []
+            [ radio (SetSelection id Original cardId) (selection == Original) ("Original")
+            , radio (SetSelection id Ours cardId) (selection == Ours) ("Ours:" ++ (toString opA |> String.left 3))
+            , radio (SetSelection id Theirs cardId) (selection == Theirs) ("Theirs:" ++ (toString opB |> String.left 3))
+            , radio (SetSelection id Manual cardId) (selection == Manual) ("Manual")
+            , label []
+               [ input [ checked resolved , type_ "checkbox" , onClick (Resolve id) ][]
+               , text "Resolved"
+               ]
+            ]
+        ]
+
+    withoutManual cardIdA cardIdB =
+      li
+        []
+        [ fieldset []
+            [ radio (SetSelection id Original "") (selection == Original) ("Original")
+            , radio (SetSelection id Ours cardIdA) (selection == Ours) ("Ours:" ++ (toString opA |> String.left 3))
+            , radio (SetSelection id Theirs cardIdB) (selection == Theirs) ("Theirs:" ++ (toString opB |> String.left 3))
+            , label []
+               [ input [ checked resolved , type_ "checkbox" , onClick (Resolve id) ][]
+               , text "Resolved"
+               ]
+            ]
+        ]
+  in
+  case (opA, opB) of
+    (Mod idA _ _, Mod _ _ _) ->
+      withManual idA
+
+    (Types.Ins idA _ _ _, Del idB _) ->
+      withoutManual idA idB
+
+    (Del idA _, Types.Ins idB _ _ _) ->
+      withoutManual idA idB
+
+    _ ->
+      withoutManual "" ""
+
+
+radio : msg -> Bool -> String -> Html msg
+radio msg bool name =
+  label []
+    [ input [ type_ "radio", checked bool, onClick msg ] []
+    , text name
     ]
 
 
