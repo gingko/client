@@ -146,9 +146,6 @@ var pull = function (local, remote, info) {
 // Push
 var push = function (info) {
   db.replicate.to(remoteCouch)
-    .on('complete', pushInfo => {
-      console.log(info, pushInfo)
-    })
 }
 
 

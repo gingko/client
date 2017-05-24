@@ -223,7 +223,13 @@ body {
 }
 
 .card.collab-active {
-  border: 1px solid green;
+  border: none;
+  border-left: 4px solid #428bca;
+}
+
+.card.active.collab-active {
+  border: none;
+  border-left: 4px solid #6aab7e;
 }
 
 /* --- Typography --- */
