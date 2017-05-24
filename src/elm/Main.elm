@@ -12,7 +12,6 @@ import Json.Encode exposing (..)
 import Dom
 import Task
 import Time
-import WebSocket
 
 import Types exposing (..)
 import Trees exposing (..)
@@ -627,8 +626,8 @@ update msg ({objects, workingTree, status} as model) =
     SendCollabState collabState ->
       model ! [js ("socket-send", collabState |> collabStateToValue)]
 
-    RecvCollabState collabString ->
-      case Json.decodeString collabStateDecoder collabString of
+    RecvCollabState json ->
+      case Json.decodeValue collabStateDecoder json of
         Ok collabState ->
           let
             _ = Debug.log "collabState:success" collabState
@@ -636,14 +635,21 @@ update msg ({objects, workingTree, status} as model) =
           if collabState.uid == model.uid then
             model ! []
           else
-            { model
-              | viewState = { vs | collaborators = collabState :: vs.collaborators }
-            }
-              ! []
+            if (List.member collabState.uid (vs.collaborators |> List.map .uid)) then
+              { model
+                | viewState =
+                    { vs | collaborators = vs.collaborators |> List.map (\c -> if c.uid == collabState.uid then collabState else c) }
+              }
+                ! []
+            else
+              { model
+                | viewState = { vs | collaborators = collabState :: vs.collaborators }
+              }
+                ! []
 
         Err err ->
           let
-            _ = Debug.log (["collabState:error", err, collabString] |> String.join "\n")
+            _ = Debug.log (["collabState:error", err, json |> encode 0] |> String.join "\n")
           in
           model ! []
 
@@ -895,6 +901,7 @@ port merge : (Json.Value -> msg) -> Sub msg
 port setHead : (String -> msg) -> Sub msg
 port setHeadRev : (String -> msg) -> Sub msg
 port keyboard : (String -> msg) -> Sub msg
+port socketMsg : (Json.Value -> msg) -> Sub msg
 port updateContent : ((String, String) -> msg) -> Sub msg
 
 
@@ -906,9 +913,9 @@ subscriptions model =
     , setHead CheckoutCommit
     , setHeadRev SetHeadRev
     , keyboard HandleKey
+    , socketMsg RecvCollabState
     , updateContent UpdateContent
     , Time.every (1*Time.second) (\_ -> Pull)
-    , WebSocket.listen "ws://echo.websocket.org" RecvCollabState
     ]
 
 

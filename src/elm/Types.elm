@@ -46,7 +46,7 @@ type Msg
     | UpdateCommits (Json.Value, Maybe String)
     | Save -- |> UpdateCommits |> [Push]
     | SendCollabState CollabState
-    | RecvCollabState String
+    | RecvCollabState Json.Value
     | HandleKey String
 
 

@@ -28,7 +28,7 @@ var lastColumnIdx = null
 
 
 self.gingko = Elm.Main.fullscreen(null)
-self.socket = null
+self.socket = io.connect('http://localhost:3000')
 
 
 /* === Database === */
@@ -113,20 +113,22 @@ load(); //initial load
 gingko.ports.js.subscribe( function(elmdata) {
   switch (elmdata[0]) {
     case 'pull':
-      console.log('pull:triggered')
       sync()
       break
 
     case 'push':
-      push('push:triggered')
       break
 
     case 'socket-send':
       console.log('socket-send:',elmdata[1])
-      socket = socket || io.connect('http://localhost:3000')
       socket.emit('collab', elmdata[1])
       break
   }
+})
+
+
+socket.on('collab', data => {
+  gingko.ports.socketMsg.send(data)
 })
 
 // Fetch + Merge
