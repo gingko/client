@@ -56,9 +56,10 @@ var load = function(headOverride){
       }
     })
     .then(statusDoc => {
+      status = statusDoc.status;
+
       db.allDocs(
         { include_docs: true
-        , conflicts: true
         }).then(function (result) {
         data = result.rows.map(r => r.doc)
 
@@ -79,7 +80,7 @@ var load = function(headOverride){
     })
 }
 
-var merge = function(){
+var merge = function(local, remote){
   db.allDocs( { include_docs: true })
     .then(function (result) {
       data = result.rows.map(r => r.doc)
@@ -88,11 +89,10 @@ var merge = function(){
       var commits = processData(data, "commit");
       var trees = processData(data, "tree");
       var refs = processData(data, "ref");
-      console.log('refs', refs)
 
       var toSend = { commits: commits, treeObjects: trees, refs: refs};
       console.log('toSend', toSend)
-      gingko.ports.merge.send(toSend);
+      gingko.ports.merge.send([local, remote, toSend]);
     }).catch(function (err) {
       console.log(err)
     })
@@ -112,35 +112,75 @@ gingko.ports.js.subscribe( function(elmdata) {
   switch (elmdata[0]) {
     case 'pull':
       console.log('pull:triggered')
-      var remoteHead;
-      db.replicate.from(remoteCouch, {filter: function (doc) {return !doc._id.startsWith('_design');}})
-        .on('change', function(change) {
-          remoteHead = change.docs.filter(d => d._id == "heads/master")[0]
-          console.log('remoteHead', remoteHead.value)
-        })
-        .on('complete', function(info) {
-          if(info.docs_written > 0 && info.ok) {
-            console.log('pull:success:to-merge', info)
-            merge()
-          } else {
-            console.log('up-to-date')
-            db.replicate.to(remoteCouch)
-              .on('complete', function(info) {
-                console.log('push:up-to-date:success')
-              })
-          }
-        })
+      sync()
       break
 
     case 'push':
-      console.log('push:triggered')
-      db.replicate.to(remoteCouch)
-        .on('complete', function(info) {
-          console.log('push:success', info)
-        })
+      push('push:triggered')
       break
   }
 })
+
+// Fetch + Merge
+var pull = function (local, remote, info) {
+  db.replicate.from(remoteCouch)
+    .on('complete', pullInfo => {
+      console.log(info, pullInfo)
+      if(pullInfo.docs_written > 0 && pullInfo.ok) {
+        merge(local, remote)
+      }
+    })
+}
+
+
+// Push
+var push = function (info) {
+  db.replicate.to(remoteCouch)
+    .on('complete', pushInfo => {
+      console.log(info, pushInfo)
+    })
+}
+
+
+var sync = function () {
+  db.get('heads/master')
+    .then(localHead => {
+      remoteDb.get('heads/master')
+        .then(remoteHead => {
+          if(_.isEqual(localHead, remoteHead)) {
+            // Local == Remote => no changes
+            console.log('up-to-date')
+          } else if (localHead.ancestors.includes(remoteHead.value)) {
+            // Local is ahead of remote => Push
+            push('push:Local ahead of remote')
+          } else {
+            // Local is behind of remote => Pull
+            pull(localHead.value, remoteHead.value, 'Local behind remote => Fetch & Merge')
+          }
+        })
+        .catch(remoteHeadErr => {
+          if(remoteHeadErr.name == 'not_found') {
+            // Bare remote repository => Push
+            push('push:bare-remote')
+          }
+        })
+    })
+    .catch(localHeadErr => {
+      remoteDb.get('heads/master')
+        .then(remoteHead => {
+          if(localHeadErr.name == 'not_found') {
+            // Bare local repository => Pull
+            pull(null, remoteHead.value, 'Bare local => Fetch & Merge')
+          }
+        })
+        .catch(remoteHeadErr => {
+          if(remoteHeadErr.name == 'not_found') {
+            // Bare local & remote => up-to-date
+            push('up-to-date (bare)')
+          }
+        })
+    })
+}
 
 gingko.ports.activateCards.subscribe(actives => {
   shared.scrollHorizontal(actives[0])
@@ -179,9 +219,12 @@ gingko.ports.saveObjects.subscribe(data => {
         })
         .then(responses => {
           console.log('bulkDocs responses', responses)
+
           var head = responses.filter(r => r.id == "heads/master")[0]
           if (head.ok) {
+            console.log('local head response', head)
             gingko.ports.setHeadRev.send(head.rev)
+
           } else {
             console.log('head not ok', head)
           }

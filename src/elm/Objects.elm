@@ -45,7 +45,7 @@ type alias CommitObject =
 
 type alias RefObject =
   { value : String
-  , previous : String
+  , ancestors : List String
   , rev : String
   }
 
@@ -97,11 +97,11 @@ update msg model =
           Debug.crash ("Objects.Init:" ++ err)
 
     Merge json oldTree ->
-      case Json.decodeValue modelDecoder json of
-        Ok modelIn ->
+      case Json.decodeValue mergeDecoder json of
+        Ok (localHead_, remoteHead_, modelIn) ->
           let
-            oldHead_ = Dict.get "heads/master" model.refs |> andThen (\{value} -> Just value)
-            newHead_ = Dict.get "heads/master" modelIn.refs |> andThen (\{value} -> Just value)
+            _ = Debug.log "modelIn" modelIn
+            _ = Debug.log "model" model
 
             newModel =
               { model
@@ -110,17 +110,17 @@ update msg model =
                 , refs = Dict.union modelIn.refs model.refs
               }
           in
-          case (oldHead_, newHead_) of
-            (Just oldHead, Just newHead) ->
-              merge oldHead newHead oldTree newModel
+          case (localHead_, remoteHead_) of
+            (Just localHead, Just remoteHead) ->
+              merge localHead remoteHead oldTree newModel
 
-            (Nothing, Just newHead) ->
+            (Nothing, Just remoteHead) ->
               let
                 newTree_ =
-                  Dict.get newHead newModel.commits
+                  Dict.get remoteHead newModel.commits
                     |> andThen (\co -> treeObjectsToTree newModel.treeObjects co.tree "0")
               in
-              (Clean newHead, newTree_, newModel)
+              (Clean remoteHead, newTree_, newModel)
 
             _ ->
               let _ = Debug.log "Error: no ref to master head commit." in
@@ -169,11 +169,11 @@ updateRef refId newValue model =
         |> Dict.update refId
             (\mbr ->
               case mbr of
-                Just {value, previous, rev} ->
-                  Just (RefObject newValue value rev)
+                Just {value, ancestors, rev} ->
+                  Just (RefObject newValue (value :: ancestors) rev)
 
                 Nothing ->
-                  Just (RefObject newValue "" "")
+                  Just (RefObject newValue [] "")
             )
   }
 
@@ -185,11 +185,11 @@ setHeadRev newRev model =
         |> Dict.update "heads/master"
             (\mbr ->
               case mbr of
-                Just {value, previous, rev} ->
-                  Just (RefObject value previous newRev)
+                Just {value, ancestors, rev} ->
+                  Just (RefObject value ancestors newRev)
 
                 Nothing ->
-                  Just (RefObject "" "" newRev)
+                  Just (RefObject "" [] newRev)
             )
   }
 
@@ -509,7 +509,7 @@ toValue model =
         , ( "_rev", Enc.string ref.rev )
         , ( "type", Enc.string "ref" )
         , ( "value", Enc.string ref.value)
-        , ( "previous", Enc.string ref.previous )
+        , ( "ancestors", Enc.list (ref.ancestors |> List.map Enc.string) )
         ]
 
     commits =
@@ -538,6 +538,14 @@ modelDecoder =
     ( Json.field "commits" commitsDecoder )
     ( Json.field "treeObjects" treeObjectsDecoder )
     ( Json.field "refs" refObjectsDecoder )
+
+
+mergeDecoder : Json.Decoder (Maybe String, Maybe String, Model)
+mergeDecoder =
+  Json.map3 (\l r m -> (l, r, m))
+    ( Json.index 0 (Json.maybe Json.string) )
+    ( Json.index 1 (Json.maybe Json.string) )
+    ( Json.index 2 modelDecoder )
 
 
 commitsToValue : Dict String CommitObject -> Enc.Value
@@ -597,7 +605,7 @@ refObjectsDecoder =
     refObjectDecoder =
       Json.map3 RefObject
         ( Json.field "value" Json.string )
-        ( Json.field "previous" Json.string )
+        ( Json.field "ancestors" (Json.list Json.string) )
         ( Json.field "_rev" Json.string )
   in
   (Json.dict refObjectDecoder)

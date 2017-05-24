@@ -389,10 +389,10 @@ update msg ({objects, workingTree, status} as model) =
 
     Pull ->
       case (model.status, model.online) of
-        (MergeConflict _ _ _ _, _) ->
-          model ! []
+        (Clean _, True) ->
+          model ! [js ("pull", null)]
 
-        (_, True) ->
+        (Bare, True) ->
           model ! [js ("pull", null)]
 
         _ ->
@@ -522,44 +522,43 @@ update msg ({objects, workingTree, status} as model) =
         (newStatus, newTree_, newObjects) =
           Objects.update (Objects.Merge json workingTree.tree) objects
       in
-      case (newStatus, newTree_) of
-        (Clean newHead, Nothing) -> -- no changes to Tree
+      case (status, newStatus) of
+        (Bare, Clean sha) ->
           { model
-            | status = newStatus
-          }
-            ! []
-            |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
-            |> andThen (Activate vs.active)
-
-        (Clean newHead, Just newTree) ->
-          { model
-            | workingTree = Trees.setTree newTree model.workingTree
+            | workingTree = Trees.setTree (newTree_ ? workingTree.tree) workingTree
             , objects = newObjects
             , status = newStatus
           }
             ! []
-            |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
+            |> andThen (UpdateCommits (newObjects |> Objects.toValue, Just sha))
             |> andThen (Activate vs.active)
 
-        (MergeConflict mTree oldHead newHead [], Just newTree) ->
+        (Clean oldHead, Clean newHead) ->
+          if (oldHead /= newHead) then
+            { model
+              | workingTree = Trees.setTree (newTree_ ? workingTree.tree) workingTree
+              , objects = newObjects
+              , status = newStatus
+            }
+              ! []
+              |> andThen (UpdateCommits (newObjects |> Objects.toValue, Just newHead))
+              |> andThen (Activate vs.active)
+          else
+            model ! []
+
+        (Clean _, MergeConflict mTree oldHead newHead conflicts) ->
           { model
-            | workingTree = Trees.setTree newTree model.workingTree
+            | workingTree =
+                if (List.isEmpty conflicts) then
+                  Trees.setTree (newTree_ ? workingTree.tree) workingTree
+                else
+                  Trees.setTreeWithConflicts conflicts mTree model.workingTree
             , objects = newObjects
             , status = newStatus
           }
             ! []
             |> andThen Save
-            |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
-            |> andThen (Activate vs.active)
-
-        (MergeConflict mTree oldHead newHead conflicts, Just newTree) ->
-          { model
-            | workingTree = Trees.setTreeWithConflicts conflicts mTree model.workingTree
-            , objects = newObjects
-            , status = newStatus
-          }
-            ! [saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)]
-            |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
+            |> andThen (UpdateCommits (newObjects |> Objects.toValue, Just newHead))
             |> andThen (Activate vs.active)
 
         _ ->
@@ -577,12 +576,11 @@ update msg ({objects, workingTree, status} as model) =
       model ! [updateCommits (json, sha_)]
 
     Save ->
-      let
-        _ = Debug.log ("Save:"++ (toString status))
-        newModel p =
+      case status of
+        Bare ->
           let
             (newStatus, _, newObjects) =
-              Objects.update (Objects.Commit p "Jane Doe <jane.doe@gmail.com>" workingTree.tree) model.objects
+              Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" workingTree.tree) model.objects
           in
           { model
             | objects = newObjects
@@ -590,17 +588,31 @@ update msg ({objects, workingTree, status} as model) =
           }
             ! [saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)]
             |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
-      in
-      case status of
-        Bare ->
-          newModel []
 
         Clean oldHead ->
-          newModel [oldHead]
+          let
+            (newStatus, _, newObjects) =
+              Objects.update (Objects.Commit [oldHead] "Jane Doe <jane.doe@gmail.com>" workingTree.tree) model.objects
+          in
+          { model
+            | objects = newObjects
+            , status = newStatus
+          }
+            ! [saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)]
+            |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
 
         MergeConflict _ oldHead newHead conflicts ->
           if (List.isEmpty conflicts || (conflicts |> List.filter (not << .resolved) |> List.isEmpty)) then
-            newModel [oldHead, newHead]
+            let
+              (newStatus, _, newObjects) =
+                Objects.update (Objects.Commit [oldHead, newHead] "Jane Doe <jane.doe@gmail.com>" workingTree.tree) model.objects
+            in
+            { model
+              | objects = newObjects
+              , status = newStatus
+            }
+              ! [saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)]
+              |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
           else
             model
               ! [saveLocal ( model.workingTree.tree |> treeToValue )]
@@ -866,7 +878,7 @@ subscriptions model =
     , setHeadRev SetHeadRev
     , keyboard HandleKey
     , updateContent UpdateContent
-    , Time.every (1*Time.second) (\_ -> Pull)
+    , Time.every (8*Time.second) (\_ -> Pull)
     ]
 
 
