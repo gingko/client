@@ -12,13 +12,14 @@ import Json.Encode exposing (..)
 import Dom
 import Task
 import Time
+import WebSocket
 
 import Types exposing (..)
 import Trees exposing (..)
 import TreeUtils exposing (..)
-import Sha1 exposing (timestamp)
+import Sha1 exposing (timestamp, timeJSON)
 import Objects
-import Coders exposing (statusToValue, treeToValue)
+import Coders exposing (statusToValue, treeToValue, collabStateToValue, collabStateDecoder)
 
 
 main : Program Json.Value Model Msg
@@ -64,6 +65,7 @@ defaultModel =
       , activeFuture = []
       , descendants = []
       , editing = Just "0"
+      , collaborators = []
       }
   , online = True
   }
@@ -133,6 +135,7 @@ update msg ({objects, workingTree, status} as model) =
                   , centerlineIds flatCols allIds newPast
                   )
               ]
+              |> andThen (SendCollabState (CollabState (timeJSON ()) id (vs.editing /= Nothing)))
 
         Nothing ->
           model ! []
@@ -617,6 +620,27 @@ update msg ({objects, workingTree, status} as model) =
             model
               ! [saveLocal ( model.workingTree.tree |> treeToValue )]
 
+    SendCollabState collabState ->
+      let _ = Debug.log "collabState:sending" collabState in
+      model ! [WebSocket.send "ws://echo.websocket.org" (collabState |> collabStateToValue |> encode 0 )]
+
+    RecvCollabState collabString ->
+      let _ = Debug.log "collabState:receiving" collabString in
+      case Json.decodeString collabStateDecoder collabString of
+        Ok collabState ->
+          let
+            _ = Debug.log "collabState:success" collabState
+          in
+          { model
+            | viewState = { vs | collaborators = collabState :: vs.collaborators }
+          }
+            ! []
+
+        Err err ->
+          let
+            _ = Debug.log (["collabState:error", err, collabString] |> String.join "\n")
+          in
+          model ! []
 
     HandleKey key ->
       case key of
@@ -879,6 +903,7 @@ subscriptions model =
     , keyboard HandleKey
     , updateContent UpdateContent
     , Time.every (1*Time.second) (\_ -> Pull)
+    , WebSocket.listen "ws://echo.websocket.org" RecvCollabState
     ]
 
 

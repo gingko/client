@@ -240,6 +240,7 @@ view vstate model =
         vstate.active
         editing_
         vstate.descendants
+        vstate.collaborators
 
     columns =
       [([[]], -1)] ++

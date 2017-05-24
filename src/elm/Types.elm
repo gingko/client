@@ -45,6 +45,8 @@ type Msg
     | SetHeadRev String
     | UpdateCommits (Json.Value, Maybe String)
     | Save -- |> UpdateCommits |> [Push]
+    | SendCollabState CollabState
+    | RecvCollabState String
     | HandleKey String
 
 
@@ -75,12 +77,20 @@ type alias Conflict =
 type Status = Bare | Clean String | MergeConflict Tree String String (List Conflict)
 
 
+type alias CollabState =
+  { uid : String
+  , active : String
+  , editing : Bool
+  }
+
+
 type alias ViewState =
   { active : String
   , activePast : List String
   , activeFuture : List String
   , descendants : List String
   , editing : Maybe String
+  , collaborators : List CollabState
   }
 
 
@@ -88,4 +98,5 @@ type alias VisibleViewState =
   { active : String
   , editing : Maybe String
   , descendants : List String
+  , collaborators : List CollabState
   }

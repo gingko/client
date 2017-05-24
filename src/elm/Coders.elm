@@ -64,12 +64,30 @@ viewStateToValue vs =
 
 viewStateDecoder : Decoder ViewState
 viewStateDecoder =
-  Json.map5 ViewState
+  Json.map6 ViewState
     (field "active" string)
     (field "activePast" (list string))
     (field "activeFuture" (list string))
     (field "descendants" (list string))
     (maybe (field "editing" string))
+    (succeed [])
+
+
+collabStateToValue : CollabState -> Enc.Value
+collabStateToValue collabState =
+  Enc.object
+    [ ( "uid", Enc.string collabState.uid )
+    , ( "active", Enc.string collabState.active )
+    , ( "editing", Enc.bool collabState.editing )
+    ]
+
+
+collabStateDecoder : Decoder CollabState
+collabStateDecoder =
+  Json.map3 CollabState
+    (field "uid" string)
+    (field "active" string)
+    (field "editing" bool)
 
 
 
