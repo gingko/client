@@ -878,7 +878,7 @@ subscriptions model =
     , setHeadRev SetHeadRev
     , keyboard HandleKey
     , updateContent UpdateContent
-    , Time.every (8*Time.second) (\_ -> Pull)
+    , Time.every (1*Time.second) (\_ -> Pull)
     ]
 
 

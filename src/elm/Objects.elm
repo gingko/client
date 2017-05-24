@@ -100,9 +100,6 @@ update msg model =
       case Json.decodeValue mergeDecoder json of
         Ok (localHead_, remoteHead_, modelIn) ->
           let
-            _ = Debug.log "modelIn" modelIn
-            _ = Debug.log "model" model
-
             newModel =
               { model
                 | treeObjects = Dict.union modelIn.treeObjects model.treeObjects
