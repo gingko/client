@@ -39,6 +39,7 @@
     "react-commits-graph": "https://github.com/AdrianoFerrari/react-commits-graph.git",
     "react-dom": "^15.5.4",
     "sha1": "^1.1.1",
+    "socket.io-client": "^2.0.1",
     "textarea-autosize": "^0.4.2",
     "underscore": "^1.8.3"
   }

@@ -49,6 +49,7 @@ type alias Model =
   { workingTree : Trees.Model
   , objects : Objects.Model
   , status : Status
+  , uid : String
   , viewState : ViewState
   , online : Bool
   }
@@ -59,6 +60,7 @@ defaultModel =
   { workingTree = Trees.defaultModel
   , objects = Objects.defaultModel
   , status = Bare
+  , uid = timeJSON ()
   , viewState =
       { active = "0"
       , activePast = []
@@ -135,7 +137,7 @@ update msg ({objects, workingTree, status} as model) =
                   , centerlineIds flatCols allIds newPast
                   )
               ]
-              |> andThen (SendCollabState (CollabState (timeJSON ()) id (vs.editing /= Nothing)))
+              |> andThen (SendCollabState (CollabState model.uid id (vs.editing /= Nothing)))
 
         Nothing ->
           model ! []
@@ -203,6 +205,7 @@ update msg ({objects, workingTree, status} as model) =
         | viewState = { vs | active = id, editing = Just id }
       }
         ! [focus id]
+        |> andThen (SendCollabState (CollabState model.uid id True))
 
     GetContentToSave id ->
       model ! [getText id]
@@ -260,6 +263,7 @@ update msg ({objects, workingTree, status} as model) =
         | viewState = { vs | editing = Nothing }
       }
         ! []
+        |> andThen (SendCollabState (CollabState model.uid vs.active False))
 
     -- === Card Insertion  ===
 
@@ -621,20 +625,21 @@ update msg ({objects, workingTree, status} as model) =
               ! [saveLocal ( model.workingTree.tree |> treeToValue )]
 
     SendCollabState collabState ->
-      let _ = Debug.log "collabState:sending" collabState in
-      model ! [WebSocket.send "ws://echo.websocket.org" (collabState |> collabStateToValue |> encode 0 )]
+      model ! [js ("socket-send", collabState |> collabStateToValue)]
 
     RecvCollabState collabString ->
-      let _ = Debug.log "collabState:receiving" collabString in
       case Json.decodeString collabStateDecoder collabString of
         Ok collabState ->
           let
             _ = Debug.log "collabState:success" collabState
           in
-          { model
-            | viewState = { vs | collaborators = collabState :: vs.collaborators }
-          }
-            ! []
+          if collabState.uid == model.uid then
+            model ! []
+          else
+            { model
+              | viewState = { vs | collaborators = collabState :: vs.collaborators }
+            }
+              ! []
 
         Err err ->
           let

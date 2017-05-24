@@ -6,6 +6,7 @@ const PouchDB = require('pouchdb-browser')
 const React = require('react')
 const ReactDOM = require('react-dom')
 const CommitsGraph = require('react-commits-graph')
+const io = require('socket.io-client')
 
 const shared = require('../shared/shared')
 window.Elm = require('../elm/Main')
@@ -27,6 +28,7 @@ var lastColumnIdx = null
 
 
 self.gingko = Elm.Main.fullscreen(null)
+self.socket = null
 
 
 /* === Database === */
@@ -117,6 +119,12 @@ gingko.ports.js.subscribe( function(elmdata) {
 
     case 'push':
       push('push:triggered')
+      break
+
+    case 'socket-send':
+      console.log('socket-send:',elmdata[1])
+      socket = socket || io.connect('http://localhost:3000')
+      socket.emit('collab', elmdata[1])
       break
   }
 })
