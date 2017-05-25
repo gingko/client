@@ -103,7 +103,7 @@ body {
   flex: 1 0;
   height: 100%;
   max-width: 600px;
-  min-width: 500px;
+  min-width: 200px;
   overflow-x: hidden;
   overflow-y: scroll;
   transform: translateZ(0);
@@ -220,6 +220,14 @@ body {
 .card.editing.has-children::after {
   opacity: 0;
   transition: opacity 2s ease;
+}
+
+span.collaborators {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  color: hsl(208, 56%, 30%);
+  font-size: 80%;
 }
 
 .card.collab-active {

@@ -299,13 +299,21 @@ viewGroup vstate depth xs =
             |> List.map .active
             |> List.member t.id
 
-        isCollabEditing =
+        collabsEditing =
           vstate.collaborators
             |> List.filter .editing
-            |> List.map .active
-            |> List.member t.id
+            |> List.filter (\c -> c.active == t.id)
+            |> List.map .uid
+
+        collaborators =
+          if isCollabActive then
+            vstate.collaborators
+              |> List.filter (\c -> c.active == t.id)
+              |> List.map .uid
+          else
+            []
       in
-      viewKeyedCard (isActive, isEditing, depth, isCollabActive, isCollabEditing) t
+      viewKeyedCard (isActive, isEditing, depth, collaborators, collabsEditing) t
   in
     Keyed.node "div"
       [ classList [ ("group", True)
@@ -315,13 +323,13 @@ viewGroup vstate depth xs =
       (List.map viewFunction xs)
 
 
-viewKeyedCard : (Bool, Bool, Int, Bool, Bool) -> Tree -> (String, Html Msg)
+viewKeyedCard : (Bool, Bool, Int, List String, List String) -> Tree -> (String, Html Msg)
 viewKeyedCard tup tree =
   (tree.id, lazy2 viewCard tup tree)
 
 
-viewCard : (Bool, Bool, Int, Bool, Bool) -> Tree -> Html Msg
-viewCard (isActive, isEditing, depth, isCollabActive, isCollabEditing) tree =
+viewCard : (Bool, Bool, Int, List String, List String) -> Tree -> Html Msg
+viewCard (isActive, isEditing, depth, collaborators, collabsEditing) tree =
   let
     isRoot = tree.id == "0"
 
@@ -422,8 +430,8 @@ viewCard (isActive, isEditing, depth, isCollabActive, isCollabEditing) tree =
                   , ("root", isRoot)
                   , ("active", isActive)
                   , ("editing", isEditing)
-                  , ("collab-active", isCollabActive)
-                  , ("collab-editing", isCollabEditing)
+                  , ("collab-active", not isEditing && not (List.isEmpty collaborators) )
+                  , ("collab-editing", not isEditing && not (List.isEmpty collabsEditing))
                   , ("has-children", hasChildren)
                   ]
       ]
@@ -436,6 +444,12 @@ viewCard (isActive, isEditing, depth, isCollabActive, isCollabEditing) tree =
         buttons
       )
   else
+    let
+      collabsString =
+        collaborators
+          |> List.map (\c -> if List.member c collabsEditing then c ++ " is editing" else c)
+          |> String.join(", ")
+    in
     div cardAttributes
       (
         buttons ++
@@ -445,6 +459,7 @@ viewCard (isActive, isEditing, depth, isCollabActive, isCollabEditing) tree =
             , onDoubleClick (OpenCard tree.id tree.content)
             ]
             [( lazy viewContent tree.content )]
+        , span [ class "collaborators" ] [text collabsString]
         ]
       )
 
