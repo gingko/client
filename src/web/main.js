@@ -107,6 +107,7 @@ load(); //initial load
 
 /* === From Main process to Elm === */
 
+var collab = {}
 
 /* === Elm Ports === */
 
@@ -121,6 +122,7 @@ gingko.ports.js.subscribe( function(elmdata) {
 
     case 'socket-send':
       console.log('socket-send:',elmdata[1])
+      collab = elmdata[1]
       socket.emit('collab', elmdata[1])
       break
   }
@@ -128,7 +130,11 @@ gingko.ports.js.subscribe( function(elmdata) {
 
 
 socket.on('collab', data => {
-  gingko.ports.socketMsg.send(data)
+  gingko.ports.collabMsg.send(data)
+})
+
+socket.on('collab-leave', data => {
+  gingko.ports.collabLeave.send(data)
 })
 
 // Fetch + Merge
@@ -366,7 +372,8 @@ editingInputHandler = function(ev) {
   if (saved) {
     setSaved(false)
   }
-  field = ev.target.value
+  collab.field = ev.target.value
+  socket.emit('collab', collab)
 }
 
 

@@ -79,15 +79,17 @@ collabStateToValue collabState =
     [ ( "uid", Enc.string collabState.uid )
     , ( "active", Enc.string collabState.active )
     , ( "editing", Enc.bool collabState.editing )
+    , ( "field", Enc.string collabState.field )
     ]
 
 
 collabStateDecoder : Decoder CollabState
 collabStateDecoder =
-  Json.map3 CollabState
+  Json.map4 CollabState
     (field "uid" string)
     (field "active" string)
     (field "editing" bool)
+    (field "field" string)
 
 
 

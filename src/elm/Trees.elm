@@ -298,8 +298,14 @@ viewGroup vstate depth xs =
           vstate.collaborators
             |> List.map .active
             |> List.member t.id
+
+        isCollabEditing =
+          vstate.collaborators
+            |> List.filter .editing
+            |> List.map .active
+            |> List.member t.id
       in
-      viewKeyedCard (isActive, isEditing, depth, isCollabActive) t
+      viewKeyedCard (isActive, isEditing, depth, isCollabActive, isCollabEditing) t
   in
     Keyed.node "div"
       [ classList [ ("group", True)
@@ -309,13 +315,13 @@ viewGroup vstate depth xs =
       (List.map viewFunction xs)
 
 
-viewKeyedCard : (Bool, Bool, Int, Bool) -> Tree -> (String, Html Msg)
+viewKeyedCard : (Bool, Bool, Int, Bool, Bool) -> Tree -> (String, Html Msg)
 viewKeyedCard tup tree =
   (tree.id, lazy2 viewCard tup tree)
 
 
-viewCard : (Bool, Bool, Int, Bool) -> Tree -> Html Msg
-viewCard (isActive, isEditing, depth, isCollabActive) tree =
+viewCard : (Bool, Bool, Int, Bool, Bool) -> Tree -> Html Msg
+viewCard (isActive, isEditing, depth, isCollabActive, isCollabEditing) tree =
   let
     isRoot = tree.id == "0"
 
@@ -417,6 +423,7 @@ viewCard (isActive, isEditing, depth, isCollabActive) tree =
                   , ("active", isActive)
                   , ("editing", isEditing)
                   , ("collab-active", isCollabActive)
+                  , ("collab-editing", isCollabEditing)
                   , ("has-children", hasChildren)
                   ]
       ]

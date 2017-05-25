@@ -227,6 +227,16 @@ body {
   border-left: 4px solid #428bca;
 }
 
+.card.collab-active.collab-editing::after {
+  content: '\A';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background: hsla(208, 56%, 53%, 0.4);
+}
+
 .card.active.collab-active {
   border: none;
   border-left: 4px solid #6aab7e;

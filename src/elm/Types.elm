@@ -47,6 +47,7 @@ type Msg
     | Save -- |> UpdateCommits |> [Push]
     | SendCollabState CollabState
     | RecvCollabState Json.Value
+    | CollaboratorDisconnected String
     | HandleKey String
 
 
@@ -81,6 +82,7 @@ type alias CollabState =
   { uid : String
   , active : String
   , editing : Bool
+  , field : String
   }
 
 

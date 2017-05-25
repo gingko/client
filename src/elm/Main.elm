@@ -136,7 +136,7 @@ update msg ({objects, workingTree, status} as model) =
                   , centerlineIds flatCols allIds newPast
                   )
               ]
-              |> andThen (SendCollabState (CollabState model.uid id (vs.editing /= Nothing)))
+              |> andThen (SendCollabState (CollabState model.uid id (vs.editing /= Nothing) ""))
 
         Nothing ->
           model ! []
@@ -204,7 +204,7 @@ update msg ({objects, workingTree, status} as model) =
         | viewState = { vs | active = id, editing = Just id }
       }
         ! [focus id]
-        |> andThen (SendCollabState (CollabState model.uid id True))
+        |> andThen (SendCollabState (CollabState model.uid id True str))
 
     GetContentToSave id ->
       model ! [getText id]
@@ -262,7 +262,7 @@ update msg ({objects, workingTree, status} as model) =
         | viewState = { vs | editing = Nothing }
       }
         ! []
-        |> andThen (SendCollabState (CollabState model.uid vs.active False))
+        |> andThen (SendCollabState (CollabState model.uid vs.active False ""))
 
     -- === Card Insertion  ===
 
@@ -630,28 +630,36 @@ update msg ({objects, workingTree, status} as model) =
       case Json.decodeValue collabStateDecoder json of
         Ok collabState ->
           let
-            _ = Debug.log "collabState:success" collabState
+            newCollabs =
+              if List.member collabState.uid (vs.collaborators |> List.map .uid) then
+                vs.collaborators |> List.map (\c -> if c.uid == collabState.uid then collabState else c) 
+              else
+                collabState :: vs.collaborators
+
+            newTree =
+              if collabState.editing then
+                Trees.update (Trees.Upd collabState.active collabState.field) model.workingTree
+              else
+                model.workingTree
           in
-          if collabState.uid == model.uid then
-            model ! []
-          else
-            if (List.member collabState.uid (vs.collaborators |> List.map .uid)) then
-              { model
-                | viewState =
-                    { vs | collaborators = vs.collaborators |> List.map (\c -> if c.uid == collabState.uid then collabState else c) }
-              }
-                ! []
-            else
-              { model
-                | viewState = { vs | collaborators = collabState :: vs.collaborators }
-              }
-                ! []
+          { model
+            | workingTree = newTree
+            , viewState = { vs | collaborators = newCollabs |> Debug.log "newCollabs" }
+          }
+            ! []
 
         Err err ->
           let
             _ = Debug.log (["collabState:error", err, json |> encode 0] |> String.join "\n")
           in
           model ! []
+
+    CollaboratorDisconnected uid ->
+      { model
+        | viewState =
+            { vs | collaborators = vs.collaborators |> List.filter (\c -> c.uid /= uid)}
+      }
+        ! []
 
     HandleKey key ->
       case key of
@@ -901,7 +909,8 @@ port merge : (Json.Value -> msg) -> Sub msg
 port setHead : (String -> msg) -> Sub msg
 port setHeadRev : (String -> msg) -> Sub msg
 port keyboard : (String -> msg) -> Sub msg
-port socketMsg : (Json.Value -> msg) -> Sub msg
+port collabMsg : (Json.Value -> msg) -> Sub msg
+port collabLeave : (String -> msg) -> Sub msg
 port updateContent : ((String, String) -> msg) -> Sub msg
 
 
@@ -913,7 +922,8 @@ subscriptions model =
     , setHead CheckoutCommit
     , setHeadRev SetHeadRev
     , keyboard HandleKey
-    , socketMsg RecvCollabState
+    , collabMsg RecvCollabState
+    , collabLeave CollaboratorDisconnected
     , updateContent UpdateContent
     , Time.every (1*Time.second) (\_ -> Pull)
     ]
