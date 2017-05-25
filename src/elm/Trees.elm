@@ -122,12 +122,11 @@ conflictToTreeMsg {id, opA, opB, selection, resolved} =
     (_, _, opB, Theirs, False) ->
       opToTreeMsg opB
 
-    (_, Mod tid _ strA, Mod _ _ strB, Manual, False) ->
+    (_, Mod tid _ strA orig, Mod _ _ strB _, Manual, False) ->
       let
         tokenize s =
           Regex.split Regex.All (Regex.regex "(\\s+|\\b)") s -- List String
 
-        changeMerge : Change String -> List (Change String) -> List (Change String)
         changeMerge d ds =
           case (d, ds) of
             (NoChange a, (NoChange b) :: tail) ->
@@ -142,18 +141,34 @@ conflictToTreeMsg {id, opA, opB, selection, resolved} =
             (ch, list) ->
               ch :: list
 
+        diffWords l r =
+          diff (tokenize l) (tokenize r)
+            |> List.foldr changeMerge []
+            |> List.map
+              (\c ->
+                case c of
+                  NoChange s -> s
+                  Added s -> "{++" ++ s ++ "++}"
+                  Removed s -> "{--" ++ s ++ "--}"
+              )
+            |> String.join ""
 
+        diffLinesString l r =
+          diffLines l r
+            |> List.map
+              (\c ->
+                case c of
+                  NoChange s -> s
+                  Added s -> "{++" ++ s ++ "++}"
+                  Removed s -> "{--" ++ s ++ "--}"
+              )
+            |> String.join "\n"
 
-        manualString = diff (tokenize strA) (tokenize strB)
-          |> List.foldr changeMerge []
-          |> List.map
-            (\c ->
-              case c of
-                NoChange s -> s
-                Added s -> "{++" ++ s ++ "++}"
-                Removed s -> "{--" ++ s ++ "--}"
-            )
-          |> String.join ""
+        manualString =
+          "`Your version:`\n" ++
+          (diffLinesString orig strA) ++
+          "\n\n--------\n`Their version:`\n" ++
+          (diffLinesString orig strB)
       in
       Upd tid manualString
 
@@ -164,7 +179,7 @@ conflictToTreeMsg {id, opA, opB, selection, resolved} =
 opToTreeMsg : Op -> TreeMsg
 opToTreeMsg op =
   case op of
-    Mod tid _ str ->
+    Mod tid _ str _ ->
       Upd tid str
 
     Del tid _ ->

@@ -706,7 +706,7 @@ update msg ({objects, workingTree, status} as model) =
           update (InsertChild vs.active) model
 
         "mod+right" ->
-          update (InsertChild vs.active) model
+          normalMode model (InsertChild vs.active)
 
         "h" ->
           normalMode model (GoLeft vs.active)
@@ -854,7 +854,7 @@ viewConflict {id, opA, opB, selection, resolved} =
             [ radio (SetSelection id Original cardId) (selection == Original) ("Original")
             , radio (SetSelection id Ours cardId) (selection == Ours) ("Ours:" ++ (toString opA |> String.left 3))
             , radio (SetSelection id Theirs cardId) (selection == Theirs) ("Theirs:" ++ (toString opB |> String.left 3))
-            , radio (SetSelection id Manual cardId) (selection == Manual) ("Manual")
+            , radio (SetSelection id Manual cardId) (selection == Manual) ("Difference")
             , label []
                [ input [ checked resolved , type_ "checkbox" , onClick (Resolve id) ][]
                , text "Resolved"
@@ -877,7 +877,7 @@ viewConflict {id, opA, opB, selection, resolved} =
         ]
   in
   case (opA, opB) of
-    (Mod idA _ _, Mod _ _ _) ->
+    (Mod idA _ _ _, Mod _ _ _ _) ->
       withManual idA
 
     (Types.Ins idA _ _ _, Del idB _) ->

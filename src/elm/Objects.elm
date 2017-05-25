@@ -368,7 +368,7 @@ getOps oldTree newTree =
       let
         modOp =
           if oldContent /= newContent then
-            [Mod id oldParents newContent]
+            [Mod id oldParents newContent oldContent]
           else
             []
 
@@ -419,19 +419,19 @@ getConflicts opsA opsB =
     liftFn opA opB =
       case (opA, opB) of
         -- Modify/Modify conflict
-        (Mod idA pidsA strA, Mod idB pidsB strB) ->
+        (Mod idA pidsA strA _, Mod idB pidsB strB _) ->
           if idA == idB && strA /= strB then
             ([], [conflict opA opB Manual])
           else
             ([opA, opB], [])
 
         -- Modify/Delete conflicts
-        (Mod idA pidsA strA, Del idB _) ->
+        (Mod idA pidsA strA _, Del idB _) ->
           if idA == idB || (List.member idB pidsA) then
             ([], [conflict opA opB Ours])
           else
             ([opA, opB], [])
-        (Del idA _, Mod idB pidsB strB) ->
+        (Del idA _, Mod idB pidsB strB _) ->
           if idA == idB || (List.member idA pidsB) then
             ([], [conflict opA opB Theirs])
           else

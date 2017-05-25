@@ -182,9 +182,9 @@ conflictDecoder =
 opToValue : Op -> Enc.Value
 opToValue op =
   case op of
-    Mod id parents str ->
+    Mod id parents str orig ->
       Enc.list (
-        (["mod", id, str] |> List.map Enc.string)
+        (["mod", id, str, orig] |> List.map Enc.string)
         ++ [ parents |> List.map Enc.string |> Enc.list ]
       )
 
@@ -202,10 +202,11 @@ opDecoder : Decoder Op
 opDecoder =
   let
     modDecoder =
-      Json.map3 (\id str parents -> Mod id parents str)
+      Json.map4 (\id str orig parents -> Mod id parents str orig)
         ( index 1 string )
         ( index 2 string )
-        ( index 3 (list string) )
+        ( index 3 string )
+        ( index 4 (list string) )
 
     delDecoder =
       Json.map2 (\id parents-> Del id parents)
