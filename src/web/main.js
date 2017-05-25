@@ -126,6 +126,15 @@ gingko.ports.js.subscribe( function(elmdata) {
       collab = elmdata[1]
       socket.emit('collab', elmdata[1])
       break
+
+    case 'toggle-online':
+      if(elmdata[1]) {
+        console.log('connect')
+        socket.connect()
+      } else {
+        console.log('disconnect')
+        socket.disconnect()
+      }
   }
 })
 

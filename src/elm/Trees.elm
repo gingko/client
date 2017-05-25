@@ -8,6 +8,8 @@ import Html.Events exposing (..)
 import Html.Lazy exposing (lazy, lazy2, lazy3)
 import Html.Keyed as Keyed
 import Markdown
+import Diff exposing (..)
+import Regex
 
 import Types exposing (..)
 import TreeUtils exposing (getColumns, getParent, getChildren)
@@ -121,7 +123,39 @@ conflictToTreeMsg {id, opA, opB, selection, resolved} =
       opToTreeMsg opB
 
     (_, Mod tid _ strA, Mod _ _ strB, Manual, False) ->
-      Upd tid ("`<<<<<<<`\n"++ strA ++ "\n`=======`\n" ++ strB ++ "\n`>>>>>>>`")
+      let
+        tokenize s =
+          Regex.split Regex.All (Regex.regex "(\\s+|\\b)") s -- List String
+
+        changeMerge : Change String -> List (Change String) -> List (Change String)
+        changeMerge d ds =
+          case (d, ds) of
+            (NoChange a, (NoChange b) :: tail) ->
+              NoChange (a ++ b) :: tail
+
+            (Added a, (Added b) :: tail) ->
+              Added (a ++ b) :: tail
+
+            (Removed a, (Removed b) :: tail) ->
+              Removed (a ++ b) :: tail
+
+            (ch, list) ->
+              ch :: list
+
+
+
+        manualString = diff (tokenize strA) (tokenize strB)
+          |> List.foldr changeMerge []
+          |> List.map
+            (\c ->
+              case c of
+                NoChange s -> s
+                Added s -> "{++" ++ s ++ "++}"
+                Removed s -> "{--" ++ s ++ "--}"
+            )
+          |> String.join ""
+      in
+      Upd tid manualString
 
     _ ->
       Nope
@@ -473,7 +507,14 @@ viewContent content =
       , sanitize = False
       , smartypants = False
       }
+
+    processedContent =
+      content
+        |> Regex.replace Regex.All (Regex.regex "{\\+\\+") (\_ -> "<ins class='diff'>")
+        |> Regex.replace Regex.All (Regex.regex "\\+\\+}") (\_ -> "</ins>")
+        |> Regex.replace Regex.All (Regex.regex "{--") (\_ -> "<del class='diff'>")
+        |> Regex.replace Regex.All (Regex.regex "--}") (\_ -> "</del>")
   in
   Markdown.toHtmlWith options
-    [] content
+    [] processedContent
 

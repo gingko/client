@@ -393,7 +393,7 @@ update msg ({objects, workingTree, status} as model) =
       { model
         | online = not model.online
       }
-        ! []
+        ! [js ("toggle-online", bool (not model.online))]
 
     Pull ->
       case (model.status, model.online) of
@@ -435,7 +435,6 @@ update msg ({objects, workingTree, status} as model) =
                 , status = newStatus
               }
                 ! []
-                |> andThen (HandleKey "enter")
 
             _ ->
               { model
@@ -462,22 +461,27 @@ update msg ({objects, workingTree, status} as model) =
           model ! []
 
     CheckoutCommit commitSha ->
-      let
-        (newStatus, newTree_, newModel) =
-          Objects.update (Objects.Checkout commitSha) objects
-      in
-      case newTree_ of
-        Just newTree ->
-          { model
-            | workingTree = Trees.setTree newTree model.workingTree
-            , status = newStatus
-          }
-            ! []
-            |> andThen (UpdateCommits (objects |> Objects.toValue, getHead newStatus))
-
-        Nothing ->
+      case status of
+        MergeConflict _ _ _ _ ->
           model ! []
-            |> Debug.log "failed to load commit"
+
+        _ ->
+          let
+            (newStatus, newTree_, newModel) =
+              Objects.update (Objects.Checkout commitSha) objects
+          in
+          case newTree_ of
+            Just newTree ->
+              { model
+                | workingTree = Trees.setTree newTree model.workingTree
+                , status = newStatus
+              }
+                ! []
+                |> andThen (UpdateCommits (objects |> Objects.toValue, getHead newStatus))
+
+            Nothing ->
+              model ! []
+                |> Debug.log "failed to load commit"
 
     -- === Ports ===
 
@@ -626,7 +630,12 @@ update msg ({objects, workingTree, status} as model) =
               ! [saveLocal ( model.workingTree.tree |> treeToValue )]
 
     SendCollabState collabState ->
-      model ! [js ("socket-send", collabState |> collabStateToValue)]
+      case model.status of
+        MergeConflict _ _ _ _ ->
+          model ! []
+
+        _ ->
+          model ! [js ("socket-send", collabState |> collabStateToValue)]
 
     RecvCollabState json ->
       case Json.decodeValue collabStateDecoder json of
@@ -639,7 +648,7 @@ update msg ({objects, workingTree, status} as model) =
                 collabState :: vs.collaborators
 
             newTree =
-              if collabState.editing then
+              if False then --collabState.editing then
                 Trees.update (Trees.Upd collabState.active collabState.field) model.workingTree
               else
                 model.workingTree
@@ -826,10 +835,7 @@ repeating-linear-gradient(-45deg
       div
         []
         [ div [style [("z-index", "9999"), ("position", "absolute")]]
-              [ button [onClick Pull] [text "Pull"]
-              , button [onClick Save] [text "commit"]
-              , button [onClick Push] [text "push"]
-              , label []
+              [ label []
                 [ input [ checked model.online, type_ "checkbox", onClick ToggleOnline][]
                 , text "Online"
                 ]
