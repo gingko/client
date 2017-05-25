@@ -118,6 +118,7 @@ gingko.ports.js.subscribe( function(elmdata) {
       break
 
     case 'push':
+      push('push:elm-triggered')
       break
 
     case 'socket-send':
