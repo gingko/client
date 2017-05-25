@@ -21,7 +21,7 @@ import Objects
 import Coders exposing (statusToValue, treeToValue, collabStateToValue, collabStateDecoder)
 
 
-main : Program Json.Value Model Msg
+main : Program (Maybe String) Model Msg
 main =
   programWithFlags
     { init = init
@@ -72,9 +72,9 @@ defaultModel =
   }
 
 
-init : Json.Value -> (Model, Cmd Msg)
-init savedState =
-  defaultModel ! [focus "0"]
+init : Maybe String -> (Model, Cmd Msg)
+init uid_ =
+  { defaultModel | uid = uid_ ? defaultModel.uid } ! [focus "0"]
     |> andThen (Activate "0")
 
 
@@ -220,11 +220,13 @@ update msg ({objects, workingTree, status} as model) =
         }
           ! []
           |> andThen Save
+          |> andThen (SendCollabState (CollabState model.uid id False ""))
       else
         { model
           | viewState = { vs | active = id, editing = Nothing }
         }
           ! []
+          |> andThen (SendCollabState (CollabState model.uid id False ""))
 
     DeleteCard id ->
       let

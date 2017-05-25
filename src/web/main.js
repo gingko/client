@@ -1,7 +1,7 @@
 const jQuery = require('jquery')
 const _ = require('lodash')
 const autosize = require('textarea-autosize')
-const url = require('url')
+const querystring = require('querystring')
 const PouchDB = require('pouchdb-browser')
 const React = require('react')
 const ReactDOM = require('react-dom')
@@ -26,8 +26,8 @@ var lastColumnIdx = null
 
 /* === Initializing App === */
 
-
-self.gingko = Elm.Main.fullscreen(null)
+var uid = querystring.parse(window.location.search.slice(1))['uid'] || (new Date()).toISOString()
+self.gingko = Elm.Main.fullscreen(uid)
 self.socket = io.connect('http://localhost:3000')
 
 

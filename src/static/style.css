@@ -235,6 +235,7 @@ body {
   top: 0;
   left: 0;
   background: hsla(208, 56%, 53%, 0.4);
+  pointer-events: none;
 }
 
 .card.active.collab-active {
