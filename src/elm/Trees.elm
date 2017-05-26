@@ -14,6 +14,7 @@ import Regex
 import Types exposing (..)
 import TreeUtils exposing (getColumns, getParent, getChildren)
 import List.Extra as ListExtra
+import Sha1 exposing (Diff, diff3Merge)
 
 
 
@@ -164,13 +165,31 @@ conflictToTreeMsg {id, opA, opB, selection, resolved} =
               )
             |> String.join "\n"
 
+        mergedString : String
+        mergedString =
+          diff3Merge (String.lines strA) (String.lines orig) (String.lines strB)
+            |> List.map
+              (\c ->
+                case c of
+                  Sha1.Ok strings ->
+                    String.join "\n" strings
+
+                  Sha1.Conflict (strAs, strOs, strBs) ->
+                    "\n`>>>>>>>`\n" ++
+                    (String.join "\n" strAs) ++
+                    "\n`=======`\n" ++
+                    (String.join "\n" strBs) ++
+                    "\n`<<<<<<<`\n"
+              )
+            |> String.join "\n"
+
         manualString =
           "`Your version:`\n" ++
           (diffLinesString orig strA) ++
           "\n\n--------\n`Their version:`\n" ++
           (diffLinesString orig strB)
       in
-      Upd tid manualString
+      Upd tid mergedString
 
     _ ->
       Nope

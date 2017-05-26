@@ -1,4 +1,4 @@
-module Sha1 exposing (sha1, timestamp, timeJSON)
+module Sha1 exposing (sha1, timestamp, timeJSON, diff3Merge, Diff(Ok, Conflict))
 
 {-| A single function library, exposing sha1: String -> String.
 
@@ -7,6 +7,7 @@ SHA-1 function from [creationix/elm-git](https://github.com/creationix/elm-git).
 @docs sha1
 -}
 
+import Json.Decode as Json
 import Native.Sha1
 
 
@@ -26,5 +27,14 @@ timestamp a = Native.Sha1.timestamp a
 -}
 timeJSON : () -> String
 timeJSON a = Native.Sha1.timeJSON a
+
+
+type Diff = Ok (List String) | Conflict (List String, List String, List String)
+
+{-| Get diff3Merge
+-}
+diff3Merge : List String -> List String -> List String -> List Diff
+diff3Merge l o r =
+  Native.Sha1.diff3Merge l o r
 
 
