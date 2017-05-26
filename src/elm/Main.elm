@@ -65,7 +65,7 @@ defaultModel =
       , activePast = []
       , activeFuture = []
       , descendants = []
-      , editing = Just "0"
+      , editing = Nothing
       , collaborators = []
       }
   , online = True
