@@ -327,16 +327,16 @@ treeFromOps oTree ops =
     |> apply (List.map opToTreeMsg ops)
 
 
-getTreePaths : Tree -> Dict String (String, List String)
+getTreePaths : Tree -> Dict String (String, List String, Int)
 getTreePaths tree =
-  getTreePathsWithParents [] tree
+  getTreePathsWithParents [] 0 tree
 
 
-getTreePathsWithParents : List String -> Tree -> Dict String (String, List String)
-getTreePathsWithParents parents tree =
+getTreePathsWithParents : List String -> Int -> Tree -> Dict String (String, List String, Int)
+getTreePathsWithParents parents idx tree =
   let
     rootDict = Dict.empty
-      |> Dict.insert tree.id (tree.content, parents)
+      |> Dict.insert tree.id (tree.content, parents, idx)
   in
   case tree.children of
     Children [] ->
@@ -344,7 +344,7 @@ getTreePathsWithParents parents tree =
 
     Children children ->
       children
-        |> List.map (getTreePathsWithParents (parents ++ [tree.id]))
+        |> List.indexedMap (getTreePathsWithParents (parents ++ [tree.id]))
         |> List.foldl Dict.union Dict.empty
         |> Dict.union rootDict
 
@@ -355,16 +355,16 @@ getOps oldTree newTree =
     oPaths = getTreePaths oldTree
     nPaths = getTreePaths newTree
 
-    oldOnly : String -> (String, List String) -> List Op -> List Op
-    oldOnly id (content, parents) ops =
+    oldOnly : String -> (String, List String, Int) -> List Op -> List Op
+    oldOnly id (_, parents, _) ops =
       ops ++ [Del id parents]
 
-    newOnly : String -> (String, List String) -> List Op -> List Op
-    newOnly id (content, parents) ops =
+    newOnly : String -> (String, List String, Int) -> List Op -> List Op
+    newOnly id (content, parents, _) ops =
       ops ++ [Ins id content parents 0]
 
-    both : String -> (String, List String) -> (String, List String) -> List Op -> List Op
-    both id (oldContent, oldParents) (newContent, newParents) ops =
+    both : String -> (String, List String, Int) -> (String, List String, Int) -> List Op -> List Op
+    both id (oldContent, oldParents, oldIdx) (newContent, newParents, newIdx) ops =
       let
         modOp =
           if oldContent /= newContent then
@@ -372,7 +372,11 @@ getOps oldTree newTree =
           else
             []
 
-        movOp = [] -- TODO: oldParents /= newParents then Mov
+        movOp =
+          if (oldParents /= newParents) || (oldIdx /= newIdx) then
+            [Mov id oldParents oldIdx newParents newIdx]
+          else
+            []
       in
       ops ++ modOp ++ movOp
 

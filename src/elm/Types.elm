@@ -64,7 +64,7 @@ type alias Group = List Tree
 type alias Column = List (List Tree)
 
 
-type Op = Ins String String (List String) Int | Mod String (List String) String String | Del String (List String) | Mov String (List String) Int
+type Op = Ins String String (List String) Int | Mod String (List String) String String | Del String (List String) | Mov String (List String) Int (List String) Int
 type Selection = Original | Ours | Theirs | Manual
 type alias Conflict =
   { id : String
