@@ -854,7 +854,7 @@ viewConflict {id, opA, opB, selection, resolved} =
             [ radio (SetSelection id Original cardId) (selection == Original) ("Original")
             , radio (SetSelection id Ours cardId) (selection == Ours) ("Ours:" ++ (toString opA |> String.left 3))
             , radio (SetSelection id Theirs cardId) (selection == Theirs) ("Theirs:" ++ (toString opB |> String.left 3))
-            , radio (SetSelection id Manual cardId) (selection == Manual) ("Difference")
+            , radio (SetSelection id Manual cardId) (selection == Manual) ("Merged")
             , label []
                [ input [ checked resolved , type_ "checkbox" , onClick (Resolve id) ][]
                , text "Resolved"

@@ -627,13 +627,13 @@ function diff3Merge(a, o, b) {
       {
         okList = _elm_lang$core$Native_List.Cons(r.ok[i], okList)
       }
-      return {"ctor": "Ok", "_0": okList}
+      return {"ctor": "DiffOk", "_0": okList}
     } else {
       var confListA = arrayToElmList(r.conflict.a)
       var confListO = arrayToElmList(r.conflict.o)
       var confListB = arrayToElmList(r.conflict.b)
 
-      return {"ctor": "Conflict", "_0": {"ctor": "_Tuple3", "_0":confListA, "_1":confListO, "_2":confListB}}
+      return {"ctor": "DiffConflict", "_0": {"ctor": "_Tuple3", "_0":confListA, "_1":confListO, "_2":confListB}}
     }
   })
   console.log(result,elmResult)

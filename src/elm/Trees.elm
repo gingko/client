@@ -171,10 +171,10 @@ conflictToTreeMsg {id, opA, opB, selection, resolved} =
             |> List.map
               (\c ->
                 case c of
-                  Sha1.Ok strings ->
+                  Sha1.DiffOk strings ->
                     String.join "\n" strings
 
-                  Sha1.Conflict (strAs, strOs, strBs) ->
+                  Sha1.DiffConflict (strAs, strOs, strBs) ->
                     "\n`>>>>>>>`\n" ++
                     (String.join "\n" strAs) ++
                     "\n`=======`\n" ++

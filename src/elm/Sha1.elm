@@ -1,4 +1,4 @@
-module Sha1 exposing (sha1, timestamp, timeJSON, diff3Merge, Diff(Ok, Conflict))
+module Sha1 exposing (sha1, timestamp, timeJSON, diff3Merge, Diff(DiffOk, DiffConflict))
 
 {-| A single function library, exposing sha1: String -> String.
 
@@ -29,7 +29,7 @@ timeJSON : () -> String
 timeJSON a = Native.Sha1.timeJSON a
 
 
-type Diff = Ok (List String) | Conflict (List String, List String, List String)
+type Diff = DiffOk (List String) | DiffConflict (List String, List String, List String)
 
 {-| Get diff3Merge
 -}

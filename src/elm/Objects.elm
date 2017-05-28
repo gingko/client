@@ -13,7 +13,7 @@ import Coders exposing (statusDecoder, tupleDecoder)
 import Types exposing (..)
 import Trees exposing (apply, opToTreeMsg)
 import TreeUtils exposing (getChildren, getTree)
-import Sha1 exposing (sha1, timestamp)
+import Sha1 exposing (sha1, timestamp, diff3Merge)
 
 
 -- MODEL
@@ -419,9 +419,14 @@ getConflicts opsA opsB =
     liftFn opA opB =
       case (opA, opB) of
         -- Modify/Modify conflict
-        (Mod idA pidsA strA _, Mod idB pidsB strB _) ->
+        (Mod idA pidsA strA orig, Mod idB pidsB strB _) ->
           if idA == idB && strA /= strB then
-            ([], [conflict opA opB Manual])
+            case (diff3Merge (String.lines strA) (String.lines orig) (String.lines strB)) of
+              [Sha1.DiffOk mergedStrings] ->
+                ([Mod idA pidsA (mergedStrings |> String.join "\n") orig], [])
+
+              _ ->
+                ([], [conflict opA opB Manual])
           else
             ([opA, opB], [])
 
