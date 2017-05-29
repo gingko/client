@@ -86,14 +86,12 @@ var merge = function(local, remote){
   db.allDocs( { include_docs: true })
     .then(function (result) {
       data = result.rows.map(r => r.doc)
-      console.log('merge:data', data)
 
       var commits = processData(data, "commit");
       var trees = processData(data, "tree");
       var refs = processData(data, "ref");
 
       var toSend = { commits: commits, treeObjects: trees, refs: refs};
-      console.log('toSend', toSend)
       gingko.ports.merge.send([local, remote, toSend]);
     }).catch(function (err) {
       console.log(err)
@@ -122,7 +120,6 @@ gingko.ports.js.subscribe( function(elmdata) {
       break
 
     case 'socket-send':
-      console.log('socket-send:',elmdata[1])
       collab = elmdata[1]
       socket.emit('collab', elmdata[1])
       break
@@ -135,6 +132,11 @@ gingko.ports.js.subscribe( function(elmdata) {
         console.log('disconnect')
         socket.disconnect()
       }
+      break
+
+    case 'alert':
+      alert(elmdata[1])
+      break
   }
 })
 
@@ -151,7 +153,6 @@ socket.on('collab-leave', data => {
 var pull = function (local, remote, info) {
   db.replicate.from(remoteCouch)
     .on('complete', pullInfo => {
-      console.log(info, pullInfo)
       if(pullInfo.docs_written > 0 && pullInfo.ok) {
         merge(local, remote)
       }
@@ -241,8 +242,6 @@ gingko.ports.saveObjects.subscribe(data => {
           console.log(err)
         })
         .then(responses => {
-          console.log('bulkDocs responses', responses)
-
           var head = responses.filter(r => r.id == "heads/master")[0]
           if (head.ok) {
             console.log('local head response', head)

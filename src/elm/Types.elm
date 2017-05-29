@@ -78,10 +78,12 @@ type alias Conflict =
 type Status = Bare | Clean String | MergeConflict Tree String String (List Conflict)
 
 
+type Mode = Active String | Editing String
+
+
 type alias CollabState =
   { uid : String
-  , active : String
-  , editing : Bool
+  , mode : Mode
   , field : String
   }
 

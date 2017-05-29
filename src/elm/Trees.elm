@@ -367,22 +367,18 @@ viewGroup vstate depth xs =
 
         isCollabActive =
           vstate.collaborators
-            |> List.map .active
-            |> List.member t.id
+            |> List.map .mode
+            |> List.member (Active t.id)
 
         collabsEditing =
           vstate.collaborators
-            |> List.filter .editing
-            |> List.filter (\c -> c.active == t.id)
+            |> List.filter (\c -> c.mode == Editing t.id)
             |> List.map .uid
 
         collaborators =
-          if isCollabActive then
-            vstate.collaborators
-              |> List.filter (\c -> c.active == t.id)
-              |> List.map .uid
-          else
-            []
+          vstate.collaborators
+            |> List.filter (\c -> c.mode == Active t.id || c.mode == Editing t.id)
+            |> List.map .uid
       in
       viewKeyedCard (isActive, isEditing, depth, collaborators, collabsEditing) t
   in

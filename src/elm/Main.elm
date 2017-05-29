@@ -136,7 +136,7 @@ update msg ({objects, workingTree, status} as model) =
                   , centerlineIds flatCols allIds newPast
                   )
               ]
-              |> andThen (SendCollabState (CollabState model.uid id (vs.editing /= Nothing) ""))
+              |> andThen (SendCollabState (CollabState model.uid (Active id) ""))
 
         Nothing ->
           model ! []
@@ -200,11 +200,20 @@ update msg ({objects, workingTree, status} as model) =
     -- === Card Editing  ===
 
     OpenCard id str ->
-      { model
-        | viewState = { vs | active = id, editing = Just id }
-      }
-        ! [focus id]
-        |> andThen (SendCollabState (CollabState model.uid id True str))
+      let
+        isLocked =
+          vs.collaborators
+            |> List.filter (\c -> c.mode == Editing id)
+            |> (not << List.isEmpty)
+      in
+      if isLocked then
+        model ! [js ("alert", string "Card is being edited by someone else.")]
+      else
+        { model
+          | viewState = { vs | active = id, editing = Just id }
+        }
+          ! [focus id]
+          |> andThen (SendCollabState (CollabState model.uid (Editing id) str))
 
     GetContentToSave id ->
       model ! [getText id]
@@ -220,13 +229,13 @@ update msg ({objects, workingTree, status} as model) =
         }
           ! []
           |> andThen Save
-          |> andThen (SendCollabState (CollabState model.uid id False ""))
+          |> andThen (SendCollabState (CollabState model.uid (Active id) ""))
       else
         { model
           | viewState = { vs | active = id, editing = Nothing }
         }
           ! []
-          |> andThen (SendCollabState (CollabState model.uid id False ""))
+          |> andThen (SendCollabState (CollabState model.uid (Active id) ""))
 
     DeleteCard id ->
       let
@@ -264,7 +273,7 @@ update msg ({objects, workingTree, status} as model) =
         | viewState = { vs | editing = Nothing }
       }
         ! []
-        |> andThen (SendCollabState (CollabState model.uid vs.active False ""))
+        |> andThen (SendCollabState (CollabState model.uid (Active vs.active) ""))
 
     -- === Card Insertion  ===
 
@@ -643,25 +652,26 @@ update msg ({objects, workingTree, status} as model) =
           let
             newCollabs =
               if List.member collabState.uid (vs.collaborators |> List.map .uid) then
-                vs.collaborators |> List.map (\c -> if c.uid == collabState.uid then collabState else c) 
+                vs.collaborators |> List.map (\c -> if c.uid == collabState.uid then collabState else c)
               else
                 collabState :: vs.collaborators
 
             newTree =
-              if False then --collabState.editing then
-                Trees.update (Trees.Upd collabState.active collabState.field) model.workingTree
-              else
-                model.workingTree
+              case collabState.mode of
+                Editing editId ->
+                  Trees.update (Trees.Upd editId collabState.field) model.workingTree
+
+                _ -> model.workingTree
           in
           { model
             | workingTree = newTree
-            , viewState = { vs | collaborators = newCollabs |> Debug.log "newCollabs" }
+            , viewState = { vs | collaborators = newCollabs }
           }
             ! []
 
         Err err ->
           let
-            _ = Debug.log (["collabState:error", err, json |> encode 0] |> String.join "\n")
+            _ = Debug.log "collabState ERROR" err
           in
           model ! []
 

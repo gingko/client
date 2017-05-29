@@ -77,19 +77,40 @@ collabStateToValue : CollabState -> Enc.Value
 collabStateToValue collabState =
   Enc.object
     [ ( "uid", Enc.string collabState.uid )
-    , ( "active", Enc.string collabState.active )
-    , ( "editing", Enc.bool collabState.editing )
+    , ( "mode", modeToValue collabState.mode )
     , ( "field", Enc.string collabState.field )
     ]
 
 
 collabStateDecoder : Decoder CollabState
 collabStateDecoder =
-  Json.map4 CollabState
+  Json.map3 CollabState
     (field "uid" string)
-    (field "active" string)
-    (field "editing" bool)
+    (field "mode" modeDecoder)
     (field "field" string)
+
+
+-- Mode
+
+modeToValue : Mode -> Enc.Value
+modeToValue mode =
+  case mode of
+    Active id -> tupleToValue Enc.string Enc.string ("Active", id)
+    Editing id -> tupleToValue Enc.string Enc.string ("Editing", id)
+
+
+modeDecoder : Decoder Mode
+modeDecoder =
+  let
+    modeHelp : (String, String) -> Decoder Mode
+    modeHelp (tag, id) =
+      case (tag, id) of
+        ("Active", id) -> succeed (Active id)
+        ("Editing", id) -> succeed (Editing id)
+        _ -> fail <| "Failed mode decoder"
+  in
+  tupleDecoder string string
+    |> andThen modeHelp
 
 
 
