@@ -324,7 +324,7 @@ mergeTrees oTree aTree bTree =
 treeFromOps : Tree -> List Op -> Tree
 treeFromOps oTree ops =
   oTree
-    |> apply (List.map opToTreeMsg ops)
+    |> apply (List.map (opToTreeMsg oTree) ops)
 
 
 getTreePaths : Tree -> Dict String (String, List String, Int)
@@ -458,7 +458,14 @@ getConflicts opsA opsB =
           else
             ([opA, opB], [])
 
-        -- TODO: Move Conflicts
+        ( Mov idA oldParentsA oldIdxA newParentsA newIdxA
+        , Mov idB oldParentsB oldIdxB newParentsB newIdxB
+        ) ->
+          if idA == idB && ((newParentsA /= newParentsB) || (newIdxA /= newIdxB)) then
+            ([], [conflict opA opB Ours])
+          else
+            ([opA, opB], [])
+
         _ ->
           ([opA, opB], [])
 

@@ -12,7 +12,7 @@ import Diff exposing (..)
 import Regex
 
 import Types exposing (..)
-import TreeUtils exposing (getColumns, getParent, getChildren)
+import TreeUtils exposing (getTree, getColumns, getParent, getChildren)
 import List.Extra as ListExtra
 import Sha1 exposing (Diff, diff3Merge)
 
@@ -71,7 +71,7 @@ updateTree msg tree =
 
     Mov newTree parentId idx ->
       tree
-        |> pruneSubtree newTree.id 
+        |> pruneSubtree newTree.id
         |> insertSubtree newTree parentId idx
 
     Rmv id ->
@@ -100,7 +100,7 @@ setTreeWithConflicts conflicts originalTree model =
   let
     newTree =
       originalTree
-        |> apply (List.map conflictToTreeMsg conflicts)
+        |> apply (List.map (conflictToTreeMsg originalTree) conflicts)
 
     newColumns =
       if newTree /= model.tree then
@@ -114,14 +114,14 @@ setTreeWithConflicts conflicts originalTree model =
   }
 
 
-conflictToTreeMsg : Conflict -> TreeMsg
-conflictToTreeMsg {id, opA, opB, selection, resolved} =
+conflictToTreeMsg : Tree -> Conflict -> TreeMsg
+conflictToTreeMsg tree {id, opA, opB, selection, resolved} =
   case (id, opA, opB, selection, resolved) of
     (_, opA, _, Ours, False) ->
-      opToTreeMsg opA
+      opToTreeMsg tree opA
 
     (_, _, opB, Theirs, False) ->
-      opToTreeMsg opB
+      opToTreeMsg tree opB
 
     (_, Mod tid _ strA orig, Mod _ _ strB _, Manual, False) ->
       let
@@ -195,8 +195,8 @@ conflictToTreeMsg {id, opA, opB, selection, resolved} =
       Nope
 
 
-opToTreeMsg : Op -> TreeMsg
-opToTreeMsg op =
+opToTreeMsg : Tree -> Op -> TreeMsg
+opToTreeMsg origTree op =
   case op of
     Mod tid _ str _ ->
       Upd tid str
@@ -212,9 +212,12 @@ opToTreeMsg op =
         Nothing ->
           Nope
 
-    -- TODO: Mov Op -> Mov TreeMsg
-    _ ->
-      Nope
+    Types.Mov tid opids oidx npids nidx ->
+      case (getTree tid origTree, ListExtra.last npids) of
+        (Just tree, Just pid) ->
+          Mov tree pid nidx
+
+        _ -> Nope
 
 
 
