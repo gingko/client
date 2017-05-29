@@ -316,7 +316,7 @@ merge aSha bSha oldTree model =
 mergeTrees : Tree -> Tree -> Tree -> (Tree, List Conflict)
 mergeTrees oTree aTree bTree =
   let
-    (cleanOps, conflicts) = getConflicts (getOps oTree aTree) (getOps oTree bTree)
+    (cleanOps, conflicts) = getConflicts (getOps oTree aTree |> Debug.log "aTree ops") (getOps oTree bTree |> Debug.log "bTree ops")
   in
   (treeFromOps oTree cleanOps, conflicts)
 
@@ -461,7 +461,7 @@ getConflicts opsA opsB =
         ( Mov idA oldParentsA oldIdxA newParentsA newIdxA
         , Mov idB oldParentsB oldIdxB newParentsB newIdxB
         ) ->
-          if idA == idB && ((newParentsA /= newParentsB) || (newIdxA /= newIdxB)) then
+          if areAcyclicMoves (idA, newParentsA) (idB, newParentsB) then
             ([], [conflict opA opB Ours])
           else
             ([opA, opB], [])
@@ -475,6 +475,11 @@ getConflicts opsA opsB =
         (\(os, cs) (osAcc, csAcc) -> (osAcc ++ os, csAcc ++ cs))
         ([], [])
     |> \(os, cs) -> (os |> ListExtra.uniqueBy toString, cs |> ListExtra.uniqueBy toString) -- Hacky way to remove duplicate Ops
+
+
+areAcyclicMoves : (String, List String) -> (String, List String) -> Bool
+areAcyclicMoves (idA, pidsA) (idB, pidsB) =
+  List.member idA pidsB || List.member idB pidsA
 
 
 getCommonAncestor_ : Dict String CommitObject -> String -> String -> Maybe String
