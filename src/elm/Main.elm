@@ -239,6 +239,11 @@ update msg ({objects, workingTree, status} as model) =
 
     DeleteCard id ->
       let
+        isLocked =
+          vs.collaborators
+            |> List.filter (\c -> c.mode == Editing id)
+            |> (not << List.isEmpty)
+
         filteredActive =
           vs.activePast
             |> List.filter (\a -> a /= id)
@@ -261,12 +266,15 @@ update msg ({objects, workingTree, status} as model) =
             (Nothing, Nothing, Nothing) ->
               "0"
       in
-      { model
-        | workingTree = Trees.update (Trees.Rmv id) model.workingTree
-      }
-        ! []
-        |> andThen (Activate nextToActivate)
-        |> andThen Save
+      if isLocked then
+        model ! [js ("alert", string "Card is being edited by someone else.")]
+      else
+        { model
+          | workingTree = Trees.update (Trees.Rmv id) model.workingTree
+        }
+          ! []
+          |> andThen (Activate nextToActivate)
+          |> andThen Save
 
     CancelCard ->
       { model

@@ -378,7 +378,7 @@ getOps oldTree newTree =
           else
             []
       in
-      ops ++ modOp ++ movOp
+      ops ++ modOp
 
     ignoreOp : Tree -> Op -> Op -> Bool
     ignoreOp oTree op1 op2 =
