@@ -230,6 +230,7 @@ var scrollHorizTo = function(colIdx) {
 /* ===== Shared variables ===== */
 
 var shortcuts = [ 'mod+enter'
+                , 'o'
                 , 'enter'
                 , 'esc'
                 , 'mod+backspace'

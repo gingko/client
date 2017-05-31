@@ -636,17 +636,61 @@ ul, ol {
   z-index: 999;
   overflow-y: auto;
 }
-.card .view del.diff {
+.conflicts-list {
+  position: absolute;
+  z-index: 999;
+  left: 15px;
+  bottom: 10px;
+  max-width: 40%;
+  padding: 0;
+}
+.conflict-container {
+  background: transparent;
+  border: 1px solid lightgray;
+  border-radius: 10px 0px 0px 10px;
+}
+.conflict-container .row {
+  text-align: center;
+  vertical-align: middle;
+  margin: 4px;
+}
+.option {
+  padding: 15px;
+  opacity: 0.5;
+  cursor: pointer;
+  border: 1px solid lightgray;
+  background: lightgray;
+}
+.option.selected, .option.selected:hover {
+  opacity: 1;
+  border: 1px solid blue;
+  background: white;
+}
+.option:hover {
+  opacity: 0.75;
+}
+ul.changelist {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+ul.changelist li {
+  text-align: left;
+}
+del.diff {
   background: hsl(0, 100%, 77%);
 }
-.card .view ins.diff {
+ins.diff {
   background: hsl(95, 70%, 60%);
 }
-ul.ops-list {
+ul.changelist {
   list-style-type: none;
   margin: 0;
   padding: 0;
 }
+
+
+
 .op-ins {
   background: rgba(0,255,0,0.2);
 }

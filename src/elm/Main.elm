@@ -4,7 +4,7 @@ port module Main exposing (..)
 import Tuple exposing (first, second)
 
 import Html exposing (..)
-import Html.Attributes exposing (style, value, type_, selected, checked)
+import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
 import Html.Lazy exposing (lazy, lazy2)
 import Json.Decode as Json
@@ -12,6 +12,7 @@ import Json.Encode exposing (..)
 import Dom
 import Task
 import Time
+import Diff exposing (..)
 
 import Types exposing (..)
 import Trees exposing (..)
@@ -359,7 +360,7 @@ update msg ({objects, workingTree, status} as model) =
       in
       case (tree_, pid_, refIdx_) of
         (Just tree, Just pid, Just refIdx) ->
-          update (Move tree pid (refIdx + delta |> max 0)) model
+          update (Move tree pid (refIdx + delta |> Basics.max 0)) model
         _ -> model ! []
 
     MoveLeft id ->
@@ -696,6 +697,9 @@ update msg ({objects, workingTree, status} as model) =
           let _ = Debug.log "model" model in
           model ! []
 
+        "o" ->
+          normalMode model ToggleOnline
+
         "mod+enter" ->
           editMode model (\id -> GetContentToSave id)
 
@@ -844,7 +848,7 @@ repeating-linear-gradient(-45deg
                 , ("height", "100%")
                 ]
         ]
-        [ ul [style [("z-index", "9999"), ("position", "absolute")]]
+        [ ul [class "conflicts-list"]
               (List.map viewConflict conflicts)
         , (lazy2 Trees.view model.viewState model.workingTree)
         ]
@@ -865,14 +869,14 @@ repeating-linear-gradient(-45deg
 viewConflict: Conflict -> Html Msg
 viewConflict {id, opA, opB, selection, resolved} =
   let
-    withManual cardId =
+    withManual cardId oursElement theirsElement =
       li
         []
         [ fieldset []
-            [ radio (SetSelection id Original cardId) (selection == Original) ("Original")
-            , radio (SetSelection id Ours cardId) (selection == Ours) ("Ours:" ++ (toString opA))
-            , radio (SetSelection id Theirs cardId) (selection == Theirs) ("Theirs:" ++ (toString opB))
-            , radio (SetSelection id Manual cardId) (selection == Manual) ("Merged")
+            [ radio (SetSelection id Original cardId) (selection == Original) (text "Original")
+            , radio (SetSelection id Ours cardId) (selection == Ours) (oursElement)
+            , radio (SetSelection id Theirs cardId) (selection == Theirs) theirsElement
+            , radio (SetSelection id Manual cardId) (selection == Manual) (text "Merged")
             , label []
                [ input [ checked resolved , type_ "checkbox" , onClick (Resolve id) ][]
                , text "Resolved"
@@ -884,19 +888,63 @@ viewConflict {id, opA, opB, selection, resolved} =
       li
         []
         [ fieldset []
-            [ radio (SetSelection id Original "") (selection == Original) ("Original")
-            , radio (SetSelection id Ours cardIdA) (selection == Ours) ("Ours:" ++ (toString opA))
-            , radio (SetSelection id Theirs cardIdB) (selection == Theirs) ("Theirs:" ++ (toString opB))
+            [ radio (SetSelection id Original "") (selection == Original) (text "Original")
+            , radio (SetSelection id Ours cardIdA) (selection == Ours) (text ("Ours:" ++ (toString opA |> String.left 3)))
+            , radio (SetSelection id Theirs cardIdB) (selection == Theirs) (text ("Theirs:" ++ (toString opB |> String.left 3)))
             , label []
                [ input [ checked resolved , type_ "checkbox" , onClick (Resolve id) ][]
                , text "Resolved"
                ]
             ]
         ]
+
+    newConflictView cardId ourChanges theirChanges =
+      div [class "flex-row"]
+        [ div [class "conflict-container flex-column"]
+            [ div
+                [ classList [("row option", True), ("selected", selection == Original)]
+                , onClick (SetSelection id Original cardId)
+                ]
+                [ text "Original"]
+            , div [class "row flex-row"]
+                [ div
+                    [ classList [("option", True), ("selected", selection == Ours)]
+                    , onClick (SetSelection id Ours cardId)
+                    ]
+                    [ text "Ours"
+                    , ul [class "changelist"] ourChanges
+                    ]
+                , div
+                    [ classList [("option", True), ("selected", selection == Theirs)]
+                    , onClick (SetSelection id Theirs cardId)
+                    ]
+                    [ text "Theirs"
+                    , ul [class "changelist"] theirChanges
+                    ]
+                ]
+            , div
+                [ classList [("row option", True), ("selected", selection == Manual)]
+                , onClick (SetSelection id Manual cardId)
+                ]
+                [ text "Merged"]
+            ]
+        , button [onClick (Resolve id)][text "Resolved"]
+        ]
   in
   case (opA, opB) of
-    (Mod idA _ _ _, Mod _ _ _ _) ->
-      withManual idA
+    (Mod idA _ strA orig, Mod _ _ strB _) ->
+      let
+        diffLinesString l r =
+          diffLines l r
+            |> List.filterMap
+              (\c ->
+                case c of
+                  NoChange s -> Nothing
+                  Added s -> Just (li [][ins [class "diff"][text s]])
+                  Removed s -> Just (li [][del [class "diff"][text s]])
+              )
+      in
+      newConflictView idA ([]) ([])
 
     (Types.Ins idA _ _ _, Del idB _) ->
       withoutManual idA idB
@@ -908,11 +956,11 @@ viewConflict {id, opA, opB, selection, resolved} =
       withoutManual "" ""
 
 
-radio : msg -> Bool -> String -> Html msg
-radio msg bool name =
+radio : msg -> Bool -> Html msg -> Html msg
+radio msg bool labelElement =
   label []
     [ input [ type_ "radio", checked bool, onClick msg ] []
-    , text name
+    , labelElement
     ]
 
 
