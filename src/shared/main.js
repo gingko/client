@@ -8,7 +8,7 @@ const ReactDOM = require('react-dom')
 const CommitsGraph = require('react-commits-graph')
 const io = require('socket.io-client')
 
-const shared = require('../shared/shared')
+const shared = require('./shared')
 window.Elm = require('../elm/Main')
 
 

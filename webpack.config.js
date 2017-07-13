@@ -1,7 +1,7 @@
 var path = require('path');
 
 module.exports = {
-  entry: `./src/${process.env.TARGET}/main.js`,
+  entry: `./src/shared/main.js`,
   target: process.env.TARGET,
   module: {
     loaders: [
