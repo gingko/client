@@ -1,7 +1,7 @@
 {
   "name": "gingko-client",
   "productName": "Gingko",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "main": "electron-start.js",
   "description": "Gingko client rewritten in Elm, packaged with Electron.",
   "scripts": {
@@ -9,7 +9,7 @@
     "build-electron": "rm -rf ./dist/ && mkdir -p ./dist/static && cp -r ./src/static/* ./dist/static && TARGET=electron webpack --watch",
     "elm-web": "elm-make src/elm/Main.elm --output src/elm.js && TARGET=web webpack --watch",
     "elm-electron": "elm-make src/elm/Main.elm --output src/elm.js && TARGET=electron webpack --watch",
-    "postinstall": "electron-rebuild"
+    "postinstall": "$(npm bin)/electron-rebuild"
   },
   "repository": {
     "type": "git",
@@ -23,18 +23,19 @@
   "homepage": "https://github.com/AdrianoFerrari/gingko-client",
   "devDependencies": {
     "chokidar-cli": "^1.2.0",
-    "electron": "^1.4.14",
-    "electron-rebuild": "^1.5.7",
+    "electron": "^1.7.4",
+    "electron-rebuild": "^1.5.11",
     "elm-webpack-loader": "^4.3.0",
     "imports-loader": "^0.7.1",
-    "webpack": "^2.3.0"
+    "webpack": "^3.3.0"
   },
   "dependencies": {
     "electron-machine-id": "^1.0.9",
     "jquery": "^3.1.1",
     "lodash": "^4.17.4",
     "mz": "^2.6.0",
-    "pouchdb-browser": "^6.1.2",
+    "pouchdb": "^6.3.2",
+    "pouchdb-replication-stream": "^1.2.9",
     "react": "^15.5.4",
     "react-commits-graph": "https://github.com/AdrianoFerrari/react-commits-graph.git",
     "react-dom": "^15.5.4",

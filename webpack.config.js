@@ -4,15 +4,21 @@ module.exports = {
   entry: `./src/shared/main.js`,
   target: process.env.TARGET,
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.elm$/,
         exclude: [/elm-stuff/, /node_modules/],
-        loader: 'elm-webpack-loader?verbose=true&warn=true',
+        use: {
+          loader: 'elm-webpack-loader',
+          options: {verbose: true, warn: true}
+        }
       },
       {
         test: require.resolve("textarea-autosize"),
-        loader: "imports-loader?jQuery=jquery"
+        use: {
+          loader: 'imports-loader',
+          options: {jQuery : 'jquery'}
+        }
       }
     ]
   },
