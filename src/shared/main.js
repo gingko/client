@@ -2,7 +2,7 @@ const jQuery = require('jquery')
 const _ = require('lodash')
 const autosize = require('textarea-autosize')
 const querystring = require('querystring')
-const PouchDB = require('pouchdb-browser')
+const fs = require('fs')
 const React = require('react')
 const ReactDOM = require('react-dom')
 const CommitsGraph = require('react-commits-graph')
@@ -33,7 +33,7 @@ self.socket = io.connect('http://localhost:3000')
 
 /* === Database === */
 
-self.db = new PouchDB('atreenodes16')
+self.db = new PouchDB('data/atreenodes16')
 self.remoteCouch = 'http://localhost:5984/atreenodes16'
 self.remoteDb = new PouchDB(remoteCouch)
 
@@ -55,6 +55,8 @@ var load = function(headOverride){
     .catch(err => {
       if(err.name == "not_found") {
         return {_id: '_local/status' , status : 'bare', bare: true}
+      } else {
+        console.log('load status error', err)
       }
     })
     .then(statusDoc => {
@@ -245,8 +247,9 @@ gingko.ports.saveObjects.subscribe(data => {
           var head = responses.filter(r => r.id == "heads/master")[0]
           if (head.ok) {
             console.log('local head response', head)
+            var ws = fs.createWriteStream('repOut.txt')
+            db.dump(ws).then(res => console.log(res))
             gingko.ports.setHeadRev.send(head.rev)
-
           } else {
             console.log('head not ok', head)
           }

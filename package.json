@@ -30,11 +30,12 @@
     "webpack": "^3.3.0"
   },
   "dependencies": {
+    "bluebird": "^3.5.0",
     "electron-machine-id": "^1.0.9",
     "jquery": "^3.1.1",
     "lodash": "^4.17.4",
     "mz": "^2.6.0",
-    "pouchdb": "^6.3.2",
+    "pouchdb": "^6.3.4",
     "pouchdb-replication-stream": "^1.2.9",
     "react": "^15.5.4",
     "react-commits-graph": "https://github.com/AdrianoFerrari/react-commits-graph.git",

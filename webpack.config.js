@@ -25,6 +25,9 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.elm']
   },
+  externals: {
+    pouchdb: 'require(\'pouchdb\')'
+  },
   devtool: 'source-map',
   output: {
     path: path.join(__dirname, 'dist'),
