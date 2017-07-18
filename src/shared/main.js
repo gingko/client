@@ -2,7 +2,13 @@ const jQuery = require('jquery')
 const _ = require('lodash')
 const autosize = require('textarea-autosize')
 const querystring = require('querystring')
+
 const fs = require('fs')
+const path = require('path')
+const mkdirp = require('mkdirp')
+const {app} = require('electron').remote
+
+const PouchDB = require('pouchdb')
 const React = require('react')
 const ReactDOM = require('react-dom')
 const CommitsGraph = require('react-commits-graph')
@@ -27,7 +33,11 @@ var lastColumnIdx = null
 /* === Initializing App === */
 
 var uid = querystring.parse(window.location.search.slice(1))['uid'] || (new Date()).toISOString()
-self.listDb = new PouchDB('data/treelist')
+
+
+mkdirp.sync(path.join(app.getAppPath(), 'data'))
+self.listDb = new PouchDB(path.join(app.getAppPath(), 'data', 'treelist'))
+
 listDb.allDocs(
   { include_docs: true
   })
@@ -49,6 +59,9 @@ listDb.allDocs(
       load({_id : trees[0][0], name: trees[0][1]})
       gingko.ports.treeList.send(trees)
     }
+  })
+  .catch(function (err) {
+    console.log(err)
   })
 
 self.gingko = Elm.Main.fullscreen([uid, []])
@@ -74,7 +87,7 @@ var processData = function (data, type) {
 
 
 var load = function(dbparams, headOverride){
-  self.db = new PouchDB('data/'+dbparams._id)
+  self.db = new PouchDB(path.join(app.getAppPath(), 'data', dbparams._id))
   db.get('_local/status')
     .catch(err => {
       if(err.name == "not_found") {

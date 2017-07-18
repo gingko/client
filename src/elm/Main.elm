@@ -19,7 +19,7 @@ import Trees exposing (..)
 import TreeUtils exposing (..)
 import Sha1 exposing (timestamp, timeJSON)
 import Objects
-import Coders exposing (statusToValue, treeToValue, collabStateToValue, collabStateDecoder)
+import Coders exposing (statusToValue, treeToValue, treeListDecoder, collabStateToValue, collabStateDecoder)
 
 
 main : Program (Maybe String, List (String, String)) Model Msg
@@ -556,8 +556,15 @@ update msg ({objects, workingTree, status} as model) =
             |> Debug.log "failed to load data"
 
     TreeList json ->
-      let _ = Debug.log "treeList from port" json in
-      model ! []
+      case Json.decodeValue treeListDecoder json of
+        Ok treeList ->
+          { model
+            | treeList = treeList
+          }
+            ! []
+
+        Err _ ->
+          model ! []
 
     MergeIn json ->
       let

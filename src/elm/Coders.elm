@@ -47,6 +47,11 @@ treeDecoder =
     )
 
 
+treeListDecoder : Decoder (List (String, String))
+treeListDecoder =
+  list (tupleDecoder string string)
+
+
 
 
 -- ViewState
