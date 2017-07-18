@@ -27,13 +27,36 @@ var lastColumnIdx = null
 /* === Initializing App === */
 
 var uid = querystring.parse(window.location.search.slice(1))['uid'] || (new Date()).toISOString()
-self.gingko = Elm.Main.fullscreen(uid)
+self.listDb = new PouchDB('data/treelist')
+listDb.allDocs(
+  { include_docs: true
+  })
+  .then(function (result) {
+    console.log(result)
+    if (result.rows.length == 0) {
+      var untitled =
+        {_id: "c1c0e8d93453212ed1fe37304fb8967cfe417c2c"
+        , name: "Untitled Tree"
+        }
+
+      listDb.put(untitled)
+        .then(function (lres) {
+          load(untitled)
+          gingko.ports.treeList.send([untitled._id, untitled.name])
+        })
+    } else {
+      var trees = result.rows.map(r => { return [r.doc._id, r.doc.name] })
+      load({_id : trees[0][0], name: trees[0][1]})
+      gingko.ports.treeList.send(trees)
+    }
+  })
+
+self.gingko = Elm.Main.fullscreen([uid, []])
 self.socket = io.connect('http://localhost:3000')
 
 
 /* === Database === */
 
-self.db = new PouchDB('data/atreenodes16')
 self.remoteCouch = 'http://localhost:5984/atreenodes16'
 self.remoteDb = new PouchDB(remoteCouch)
 
@@ -50,7 +73,8 @@ var processData = function (data, type) {
 }
 
 
-var load = function(headOverride){
+var load = function(dbparams, headOverride){
+  self.db = new PouchDB('data/'+dbparams._id)
   db.get('_local/status')
     .catch(err => {
       if(err.name == "not_found") {
@@ -99,9 +123,6 @@ var merge = function(local, remote){
       console.log(err)
     })
 }
-
-load(); //initial load
-
 
 
 

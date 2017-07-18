@@ -41,6 +41,7 @@ type Msg
     | CheckoutCommit String -- |> UpdateCommits
     -- === Ports ===
     | Load Json.Value -- |> UpdateCommits
+    | TreeList Json.Value
     | MergeIn Json.Value -- |> [Save] |> UpdateCommits
     | SetHeadRev String
     | UpdateCommits (Json.Value, Maybe String)
