@@ -1,0 +1,19 @@
+html, body {
+  background: #eef;
+}
+
+#title-bar {
+  user-select: none;
+  -webkit-app-region: drag;
+  height: 24px;
+  position: fixed;
+  background: gray;
+  padding: 0px;
+  margin: 0px;
+}
+
+#title {
+ position: fixed;
+ top: 0px;
+ left: 6px;
+}
