@@ -2,18 +2,28 @@ html, body {
   background: #eef;
 }
 
+body {
+  padding: 24px 10px 10px 10px;
+}
+
 #title-bar {
+  position: fixed;
+  height: 24px;
+  width: 100%;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   user-select: none;
   -webkit-app-region: drag;
-  height: 24px;
-  position: fixed;
-  background: gray;
+  background: lightgray;
   padding: 0px;
   margin: 0px;
 }
 
 #title {
- position: fixed;
- top: 0px;
- left: 6px;
+  font-family: sans-serif;
+  font-size: 14px;
+  color: #444;
 }

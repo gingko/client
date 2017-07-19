@@ -1,7 +1,10 @@
 var path = require('path');
 
 module.exports = {
-  entry: `./src/shared/main.js`,
+  entry: {
+      main: `./src/shared/main.js`,
+      listwindow: `./src/shared/listwindow.js`
+  },
   target: process.env.TARGET,
   module: {
     rules: [
@@ -32,6 +35,6 @@ module.exports = {
   output: {
     path: path.join(__dirname, 'dist'),
     publicPath: '/dist/',
-    filename: `bundle-${process.env.TARGET}.js`
+    filename: `[name]-${process.env.TARGET}.js`
   }
 }
