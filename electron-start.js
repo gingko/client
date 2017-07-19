@@ -6,8 +6,20 @@ const sha1 = require('sha1')
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win
+let listWindow
 let serialWindow
 let saved = true
+
+
+function createListWindow () {
+  listWindow = new BrowserWindow(
+    { width: 800
+    , height: 600
+    , frame: false
+    })
+
+  listWindow.loadURL(`file://${__dirname}/dist/static/list.html`)
+}
 
 function createWindow () {
 
@@ -91,7 +103,7 @@ function createWindow () {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow)
+app.on('ready', createListWindow)
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
