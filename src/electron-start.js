@@ -28,7 +28,7 @@ function createWindow () {
     { width: 800
     , height: 600
     , backgroundColor: '#32596b'
-    , icon: `${__dirname}/dist/static/leaf128.png` 
+    , icon: `${__dirname}/static/leaf128.png` 
     })
 
 
@@ -41,7 +41,7 @@ function createWindow () {
   }
 
   // and load the html of the app.
-  var url = `file://${__dirname}/dist/static/index.html`
+  var url = `file://${__dirname}/static/index.html`
 
   if (userdata !== null && !!userdata.name && !!userdata.email) {
     url += `?name=${encodeURIComponent(userdata.name)}&email=${encodeURIComponent(userdata.email)}`

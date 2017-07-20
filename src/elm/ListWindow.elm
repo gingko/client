@@ -3,6 +3,7 @@ port module ListWindow exposing (..)
 
 import Html exposing (..)
 import Html.Events exposing (onClick, onInput)
+import Sha1 exposing (sha1)
 
 
 main : Program (List (String, String)) Model Msg
@@ -13,6 +14,9 @@ main =
     , update = update
     , subscriptions = subscriptions
     }
+
+
+port openTree : (String, String) -> Cmd msg
 
 
 
@@ -55,6 +59,18 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
+    UpdateNewField str ->
+      { model
+        | field = str
+      }
+        ! []
+
+    New ->
+      { model
+        | field = ""
+      }
+        ! [ openTree (Sha1.sha1 model.field, model.field) ]
+
     _ ->
       model ! []
 
@@ -66,8 +82,12 @@ update msg model =
 view : Model -> Html Msg
 view model =
   ul []
-    ([ input [][]
-    ]
+    (
+      [ li []
+        [ input [ onInput UpdateNewField ][]
+        , button [ onClick New ][text "New"]
+        ]
+      ]
     ++ List.map viewTreeItem model.trees
     )
 
