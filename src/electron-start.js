@@ -18,8 +18,7 @@ function createListWindow () {
     , frame: false
     })
 
-  listWindow.loadURL(require('./static/list.html'))
-  listWindow.openDevTools()
+  listWindow.loadURL(`file://${__dirname}/static/list.html`)
 }
 
 function createWindow () {

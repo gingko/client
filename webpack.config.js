@@ -11,7 +11,6 @@ module.exports = {
   },
   output: {
     path: path.join(__dirname, 'dist'),
-    publicPath: '/dist',
     filename: '[name].js'
   },
   resolve: {
@@ -19,10 +18,6 @@ module.exports = {
   },
   module: {
     rules: [
-      {
-        test: /\.html$/,
-        use : { loader: 'file-loader' }
-      },
       {
         test: /\.elm$/,
         exclude: [/elm-stuff/, /node_modules/],
@@ -40,6 +35,9 @@ module.exports = {
       }
     ]
   },
+  node: {
+    __dirname: false
+  },
   externals: {
     pouchdb: 'require(\'pouchdb\')'
   },
@@ -47,12 +45,13 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       template: './static/index.html',
+      filename: './static/index.html',
       chunks: ['main']
     }),
     new HtmlWebpackPlugin({
       template: './static/list.html',
+      filename: './static/list.html',
       chunks: ['listwindow'],
-      filename: 'list.html'
     })
   ]
 }

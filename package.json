@@ -2,10 +2,9 @@
   "name": "gingko-client",
   "productName": "Gingko",
   "version": "0.1.4",
-  "main": "electron-start.js",
   "description": "Gingko client rewritten in Elm, packaged with Electron.",
   "scripts": {
-    "start": "webpack --watch",
+    "start": "rm -rf ./dist/ && mkdir -p ./dist/static && cp -r ./src/static/* ./dist/static && webpack --watch",
     "server": "webpack-dev-server",
     "electron": "electron ./dist/electron.js",
     "build-web": "rm -rf ./dist/ && mkdir -p ./dist/static && cp -r ./src/static/* ./dist/static && TARGET=web webpack --watch",
