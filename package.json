@@ -5,6 +5,9 @@
   "main": "electron-start.js",
   "description": "Gingko client rewritten in Elm, packaged with Electron.",
   "scripts": {
+    "start": "webpack --watch",
+    "server": "webpack-dev-server",
+    "electron": "electron ./dist/electron.js",
     "build-web": "rm -rf ./dist/ && mkdir -p ./dist/static && cp -r ./src/static/* ./dist/static && TARGET=web webpack --watch",
     "build-electron": "rm -rf ./dist/ && mkdir -p ./dist/static && cp -r ./src/static/* ./dist/static && TARGET=electron webpack --watch",
     "elm-web": "elm-make src/elm/Main.elm --output src/elm.js && TARGET=web webpack --watch",
@@ -26,11 +29,13 @@
     "electron": "^1.7.4",
     "electron-rebuild": "^1.5.11",
     "elm-webpack-loader": "^4.3.0",
+    "file-loader": "^0.11.2",
+    "html-webpack-plugin": "^2.29.0",
     "imports-loader": "^0.7.1",
-    "webpack": "^3.3.0"
+    "webpack": "^3.3.0",
+    "webpack-dev-server": "^2.5.1"
   },
   "dependencies": {
-    "bluebird": "^3.5.0",
     "electron-machine-id": "^1.0.9",
     "jquery": "^3.1.1",
     "lodash": "^4.17.4",

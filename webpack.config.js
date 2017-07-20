@@ -1,13 +1,28 @@
 var path = require('path');
+var HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
+  target: 'electron',
+  context: path.join(__dirname, 'src'),
   entry: {
-      main: `./src/shared/main.js`,
-      listwindow: `./src/shared/listwindow.js`
+      electron: './electron-start.js',
+      main: './shared/main.js',
+      listwindow: './shared/listwindow.js'
   },
-  target: process.env.TARGET,
+  output: {
+    path: path.join(__dirname, 'dist'),
+    publicPath: '/dist',
+    filename: '[name].js'
+  },
+  resolve: {
+    extensions: ['.js', '.elm']
+  },
   module: {
     rules: [
+      {
+        test: /\.html$/,
+        use : { loader: 'file-loader' }
+      },
       {
         test: /\.elm$/,
         exclude: [/elm-stuff/, /node_modules/],
@@ -25,16 +40,19 @@ module.exports = {
       }
     ]
   },
-  resolve: {
-    extensions: ['.js', '.elm']
-  },
   externals: {
     pouchdb: 'require(\'pouchdb\')'
   },
   devtool: 'source-map',
-  output: {
-    path: path.join(__dirname, 'dist'),
-    publicPath: '/dist/',
-    filename: `[name]-${process.env.TARGET}.js`
-  }
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: './static/index.html',
+      chunks: ['main']
+    }),
+    new HtmlWebpackPlugin({
+      template: './static/list.html',
+      chunks: ['listwindow'],
+      filename: 'list.html'
+    })
+  ]
 }
