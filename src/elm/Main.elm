@@ -22,7 +22,7 @@ import Objects
 import Coders exposing (statusToValue, treeToValue, treeListDecoder, collabStateToValue, collabStateDecoder)
 
 
-main : Program (Maybe String, List (String, String)) Model Msg
+main : Program (String, String) Model Msg
 main =
   programWithFlags
     { init = init
@@ -52,8 +52,6 @@ type alias Model =
   , uid : String
   , viewState : ViewState
   , online : Bool
-  , treeList : List (String, String)
-  , currentTree : Maybe (String, String)
   }
 
 
@@ -72,17 +70,12 @@ defaultModel =
       , collaborators = []
       }
   , online = True
-  , treeList = []
-  , currentTree = Nothing
   }
 
 
-init : (Maybe String, List (String, String)) -> (Model, Cmd Msg)
-init (uid_, list) =
-  { defaultModel
-    | uid = uid_ ? defaultModel.uid
-    , treeList = list
-  }
+init : (String, String) -> (Model, Cmd Msg)
+init _ =
+  defaultModel
     ! [focus "0"]
     |> andThen (Activate "0")
 
@@ -555,17 +548,6 @@ update msg ({objects, workingTree, status} as model) =
           model ! []
             |> Debug.log "failed to load data"
 
-    TreeList json ->
-      case Json.decodeValue treeListDecoder json of
-        Ok treeList ->
-          { model
-            | treeList = treeList
-          }
-            ! []
-
-        Err _ ->
-          model ! []
-
     MergeIn json ->
       let
         (newStatus, newTree_, newObjects) =
@@ -998,7 +980,6 @@ modelToValue model =
 
 
 port load : (Json.Value -> msg) -> Sub msg
-port treeList : (Json.Value -> msg) -> Sub msg
 port merge : (Json.Value -> msg) -> Sub msg
 port setHead : (String -> msg) -> Sub msg
 port setHeadRev : (String -> msg) -> Sub msg
@@ -1012,7 +993,6 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.batch
     [ load Load
-    , treeList TreeList
     , merge MergeIn
     , setHead CheckoutCommit
     , setHeadRev SetHeadRev

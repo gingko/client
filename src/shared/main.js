@@ -32,39 +32,15 @@ var lastColumnIdx = null
 
 /* === Initializing App === */
 
-var uid = querystring.parse(window.location.search.slice(1))['uid'] || (new Date()).toISOString()
+var dbname = querystring.parse(window.location.search.slice(1))['dbname'] || "c1c0e8d93453212ed1fe37304fb8967cfe417c2c"
+var filename = querystring.parse(window.location.search.slice(1))['filename'] || "Untitled Tree"
+console.log('dbname', dbname)
+console.log('filename', filename)
 
-
-mkdirp.sync(path.join(app.getAppPath(), 'data'))
-self.listDb = new PouchDB(path.join(app.getAppPath(), 'data', 'treelist'))
-
-listDb.allDocs(
-  { include_docs: true
-  })
-  .then(function (result) {
-    console.log(result)
-    if (result.rows.length == 0) {
-      var untitled =
-        {_id: "c1c0e8d93453212ed1fe37304fb8967cfe417c2c"
-        , name: "Untitled Tree"
-        }
-
-      listDb.put(untitled)
-        .then(function (lres) {
-          load(untitled)
-          gingko.ports.treeList.send([untitled._id, untitled.name])
-        })
-    } else {
-      var trees = result.rows.map(r => { return [r.doc._id, r.doc.name] })
-      load({_id : trees[0][0], name: trees[0][1]})
-      gingko.ports.treeList.send(trees)
-    }
-  })
-  .catch(function (err) {
-    console.log(err)
-  })
-
-self.gingko = Elm.Main.fullscreen([uid, []])
+dbpath = path.join(app.getPath('documents'), 'Gingko Trees', dbname)
+mkdirp.sync(dbpath)
+self.db = new PouchDB(dbpath)
+self.gingko = Elm.Main.fullscreen([dbname, filename])
 self.socket = io.connect('http://localhost:3000')
 
 
@@ -86,8 +62,7 @@ var processData = function (data, type) {
 }
 
 
-var load = function(dbparams, headOverride){
-  self.db = new PouchDB(path.join(app.getAppPath(), 'data', dbparams._id))
+var load = function(headOverride){
   db.get('_local/status')
     .catch(err => {
       if(err.name == "not_found") {
@@ -136,6 +111,9 @@ var merge = function(local, remote){
       console.log(err)
     })
 }
+
+
+load();
 
 
 
@@ -265,6 +243,8 @@ gingko.ports.saveObjects.subscribe(data => {
     .catch(err => {
       if(err.name == "not_found") {
         return {_id: '_local/status' , status : 'bare', bare: true}
+      } else {
+        console.log('load status error', err)
       }
     })
     .then(statusDoc => {

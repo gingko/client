@@ -1,5 +1,5 @@
 const {app, BrowserWindow, dialog, Menu, ipcMain, shell} = require('electron')
-const fs = require('fs')
+const fs = require('mz/fs')
 const path = require('path')
 const sha1 = require('sha1')
 
@@ -21,7 +21,7 @@ function createListWindow () {
   listWindow.loadURL(`file://${__dirname}/static/list.html`)
 }
 
-function createWindow () {
+function createAppWindow (dbdata) {
 
   // Create the browser window.
   win = new BrowserWindow(
@@ -32,20 +32,8 @@ function createWindow () {
     })
 
 
-  var userdata = null 
-  try {
-    userdata = JSON.parse(fs.readFileSync(path.join(__dirname,'/../../userinfo.txt')))
-  } 
-  catch (err) {
-    console.log(err)
-  }
-
   // and load the html of the app.
-  var url = `file://${__dirname}/static/index.html`
-
-  if (userdata !== null && !!userdata.name && !!userdata.email) {
-    url += `?name=${encodeURIComponent(userdata.name)}&email=${encodeURIComponent(userdata.email)}`
-  }
+  var url = `file://${__dirname}/static/index.html?dbname=${encodeURIComponent(dbdata[0])}&filename=${encodeURIComponent(dbdata[1])}`
 
   if (process.platform !== 'darwin') {
     if(!!process.argv[1] && !process.argv[0].endsWith('electron')) {
@@ -118,12 +106,16 @@ app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (win === null) {
-    createWindow()
+    createAppWindow()
   }
 })
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+
+ipcMain.on('openTree', (event, msg) => {
+  createAppWindow(msg)
+})
 
 ipcMain.on('saved', (event, msg) => {
   saved = msg;

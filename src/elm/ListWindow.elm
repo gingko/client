@@ -71,6 +71,12 @@ update msg model =
       }
         ! [ openTree (Sha1.sha1 model.field, model.field) ]
 
+    Load (id, name) ->
+      { model
+        | field = ""
+      }
+        ! [ openTree (id, name) ]
+
     _ ->
       model ! []
 
