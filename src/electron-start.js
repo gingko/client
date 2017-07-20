@@ -115,6 +115,7 @@ app.on('activate', () => {
 
 ipcMain.on('openTree', (event, msg) => {
   createAppWindow(msg)
+  listWindow.close()
 })
 
 ipcMain.on('saved', (event, msg) => {
