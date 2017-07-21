@@ -1,12 +1,15 @@
 const jQuery = require('jquery')
 const _ = require('lodash')
 const autosize = require('textarea-autosize')
-const querystring = require('querystring')
 
 const fs = require('fs')
 const path = require('path')
 const mkdirp = require('mkdirp')
 const {app} = require('electron').remote
+const querystring = require('querystring')
+
+const sha1 = require('sha1')
+const machineIdSync = require('electron-machine-id').machineIdSync
 
 const PouchDB = require('pouchdb')
 const React = require('react')
@@ -32,11 +35,11 @@ var lastColumnIdx = null
 
 /* === Initializing App === */
 
-var dbname = querystring.parse(window.location.search.slice(1))['dbname'] || "c1c0e8d93453212ed1fe37304fb8967cfe417c2c"
+var dbname = querystring.parse(window.location.search.slice(1))['dbname'] || sha1(Date.now()+machineIdSync())
 var filename = querystring.parse(window.location.search.slice(1))['filename'] || "Untitled Tree"
 
 document.title = `Gingko - ${filename}`
-dbpath = path.join(app.getPath('documents'), 'Gingko Trees', dbname)
+dbpath = path.join(app.getPath('userData'), dbname)
 mkdirp.sync(dbpath)
 self.db = new PouchDB(dbpath)
 self.gingko = Elm.Main.fullscreen([dbname, filename])

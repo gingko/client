@@ -11,17 +11,7 @@ let serialWindow
 let saved = true
 
 
-function createListWindow () {
-  listWindow = new BrowserWindow(
-    { width: 800
-    , height: 600
-    , frame: false
-    })
-
-  listWindow.loadURL(`file://${__dirname}/static/list.html`)
-}
-
-function createAppWindow (dbdata) {
+function createAppWindow () {
 
   // Create the browser window.
   win = new BrowserWindow(
@@ -33,7 +23,7 @@ function createAppWindow (dbdata) {
 
 
   // and load the html of the app.
-  var url = `file://${__dirname}/static/index.html?dbname=${encodeURIComponent(dbdata[0])}&filename=${encodeURIComponent(dbdata[1])}`
+  var url = `file://${__dirname}/static/index.html`
 
   if (process.platform !== 'darwin') {
     if(!!process.argv[1] && !process.argv[0].endsWith('electron')) {
@@ -91,7 +81,7 @@ function createAppWindow (dbdata) {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createListWindow)
+app.on('ready', createAppWindow)
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
@@ -112,11 +102,6 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
-
-ipcMain.on('openTree', (event, msg) => {
-  createAppWindow(msg)
-  listWindow.close()
-})
 
 ipcMain.on('saved', (event, msg) => {
   saved = msg;
