@@ -34,9 +34,8 @@ var lastColumnIdx = null
 
 var dbname = querystring.parse(window.location.search.slice(1))['dbname'] || "c1c0e8d93453212ed1fe37304fb8967cfe417c2c"
 var filename = querystring.parse(window.location.search.slice(1))['filename'] || "Untitled Tree"
-console.log('dbname', dbname)
-console.log('filename', filename)
 
+document.title = `Gingko - ${filename}`
 dbpath = path.join(app.getPath('documents'), 'Gingko Trees', dbname)
 mkdirp.sync(dbpath)
 self.db = new PouchDB(dbpath)
@@ -260,9 +259,6 @@ gingko.ports.saveObjects.subscribe(data => {
         .then(responses => {
           var head = responses.filter(r => r.id == "heads/master")[0]
           if (head.ok) {
-            console.log('local head response', head)
-            var ws = fs.createWriteStream('repOut.txt')
-            db.dump(ws).then(res => console.log(res))
             gingko.ports.setHeadRev.send(head.rev)
           } else {
             console.log('head not ok', head)

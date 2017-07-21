@@ -66,10 +66,11 @@ update msg model =
         ! []
 
     New ->
+      let trimmed = model.field |> String.trim in
       { model
         | field = ""
       }
-        ! [ openTree (Sha1.sha1 model.field, model.field) ]
+        ! [ openTree (Sha1.sha1 trimmed, trimmed) ]
 
     Load (id, name) ->
       { model
