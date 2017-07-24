@@ -52,6 +52,8 @@ type alias Model =
   , uid : String
   , viewState : ViewState
   , online : Bool
+  , filepath : Maybe String
+  , changed : Bool
   }
 
 
@@ -70,6 +72,8 @@ defaultModel =
       , collaborators = []
       }
   , online = True
+  , filepath = Nothing
+  , changed = False
   }
 
 
@@ -502,6 +506,19 @@ update msg ({objects, workingTree, status} as model) =
               model ! []
                 |> Debug.log "failed to load commit"
 
+    -- === Files ===
+
+    IntentSave ->
+      case (model.filepath, model.changed) of
+        (Nothing, True) ->
+          model ! [js ("save-as", null)]
+
+        (Just filepath, True) ->
+          model ! [js ("save", filepath |> string)]
+
+        _ ->
+          model ! []
+
     -- === Ports ===
 
     Load json ->
@@ -785,7 +802,36 @@ update msg ({objects, workingTree, status} as model) =
         "mod+r" ->
           normalMode model Redo
 
+        "mod+s" ->
+          let _ = Debug.log "mod+s" "pressed" in
+          case model.viewState.editing of
+            Nothing ->
+              update IntentSave model
+
+            Just id ->
+              update (GetContentToSave id) model
+                |> andThen IntentSave
+
         _ ->
+          model ! []
+
+    ExternalMessage (cmd, arg) ->
+      case cmd of
+        "saved" ->
+          { model
+            | filepath = Just arg
+            , changed = False
+          }
+            ! [js ("saved", arg |> string)]
+
+        "changed" ->
+          { model
+            | changed = True
+          }
+            ! []
+
+        _ ->
+          let _ = Debug.log "Unknown external command" cmd in
           model ! []
 
     _ ->
@@ -979,6 +1025,7 @@ modelToValue model =
 -- SUBSCRIPTIONS
 
 
+port externals : ((String, String) -> msg) -> Sub msg
 port load : (Json.Value -> msg) -> Sub msg
 port merge : (Json.Value -> msg) -> Sub msg
 port setHead : (String -> msg) -> Sub msg
@@ -1000,6 +1047,7 @@ subscriptions model =
     , collabMsg RecvCollabState
     , collabLeave CollaboratorDisconnected
     , updateContent UpdateContent
+    , externals ExternalMessage
     --, Time.every (1*Time.second) (\_ -> Pull)
     ]
 

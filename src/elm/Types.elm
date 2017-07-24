@@ -39,7 +39,10 @@ type Msg
     | SetSelection String Selection String
     | Resolve String -- |> Save
     | CheckoutCommit String -- |> UpdateCommits
+    -- === Files ===
+    | IntentSave
     -- === Ports ===
+    | ExternalMessage (String, String)
     | Load Json.Value -- |> UpdateCommits
     | MergeIn Json.Value -- |> [Save] |> UpdateCommits
     | SetHeadRev String

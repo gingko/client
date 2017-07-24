@@ -260,12 +260,14 @@ var shortcuts = [ 'mod+enter'
                 , ']'
                 , 'mod+z'
                 , 'mod+r'
+                , 'mod+s'
                 , 'mod+x' // debug command
                 ];
 
 var needOverride= [ 'mod+j'
                   , 'mod+k'
                   , 'mod+l'
+                  , 'mod+s'
                   , 'mod+r'
                   , 'alt+left'
                   , 'alt+right'

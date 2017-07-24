@@ -30,10 +30,10 @@ window.Elm = require('../elm/Main')
 /* === Global Variables === */
 
 var currentFile = null
+var changed = false
 var field = null
 var editing = null
 var currentSwap = null
-var saved = true
 var lastCenterline = null
 var lastColumnIdx = null
 
@@ -132,6 +132,20 @@ var collab = {}
 
 gingko.ports.js.subscribe( function(elmdata) {
   switch (elmdata[0]) {
+    case 'save':
+      save(elmdata[1])
+      break
+
+    case 'save-as':
+      saveAs()
+      break
+
+    case 'saved':
+      changed = false
+      currentFile = elmdata[1]
+      document.title = `Gingko - ${path.basename(currentFile)}`
+      break
+
     case 'pull':
       sync()
       break
@@ -161,6 +175,9 @@ gingko.ports.js.subscribe( function(elmdata) {
   }
 })
 
+ipcRenderer.on('save', e => {
+
+})
 
 socket.on('collab', data => {
   gingko.ports.collabMsg.send(data)
@@ -304,6 +321,7 @@ var setHead = function(sha) {
 
 /* === From Main process to Elm === */
 
+
 ipcRenderer.on('attempt-save', function(e) {
   if(currentFile) {
     save(currentFile)
@@ -330,8 +348,9 @@ ipcRenderer.on('attempt-open', function(e) {
 save = (filepath) => {
   var ws = fs.createWriteStream(filepath)
   db.dump(ws).then( res => {
-    saved = true
-    document.title = document.title.replace('*','')
+    gingko.ports.externals.send(['saved', filepath])
+  }).catch( err => {
+    console.log('Save error', err)
   })
 }
 
@@ -347,32 +366,12 @@ saveAs = () => {
 
   dialog.showSaveDialog(options, function(filepath){
     if(!!filepath){
-      var ws = fs.createWriteStream(filepath)
-      db.dump(ws).then( res => {
-        saved = true
-        currentFile = filepath
-        document.title = `Gingko - ${path.basename(filepath)}`
-      })
+      save(filepath)
     }
   })
 }
 
 
-setSaved = bool => {
-  saved = bool
-  if (bool) {
-    setTitleFilename(filename)
-  } else {
-    document.title =
-      /\*/.test(document.title) ? document.title : document.title + "*"
-  }
-}
-
-
-var setTitleFilename = function(filepath) {
-  document.title =
-    filepath ? `Gingko - ${path.basename(filepath)}` : "Gingko - Untitled Tree"
-}
 
 
 // Special handling of exit case
@@ -445,8 +444,12 @@ window.onresize = () => {
 
 
 editingInputHandler = function(ev) {
-  if (saved) {
-    setSaved(false)
+  if (!changed) {
+    changed = true
+    if (!/\*/.test(document.title)) {
+      document.title = document.title + "*"
+    }
+    gingko.ports.externals.send(['changed', ''])
   }
   collab.field = ev.target.value
   socket.emit('collab', collab)
