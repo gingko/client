@@ -39,7 +39,8 @@ module.exports = {
     __dirname: false
   },
   externals: {
-    pouchdb: 'require(\'pouchdb\')'
+    pouchdb: "require('pouchdb')",
+    replicationStream: "require('pouchdb-replication-stream')"
   },
   devtool: 'source-map',
   plugins: [

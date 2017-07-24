@@ -5,13 +5,18 @@ const autosize = require('textarea-autosize')
 const fs = require('fs')
 const path = require('path')
 const mkdirp = require('mkdirp')
-const {app} = require('electron').remote
+const {ipcRenderer, remote} = require('electron')
+const {app, dialog} = remote
 const querystring = require('querystring')
+
+const PouchDB = require('pouchdb')
+const replicationStream = require('pouchdb-replication-stream')
+PouchDB.plugin(replicationStream.plugin)
+PouchDB.adapter('writableStream', replicationStream.adapters.writableStream)
 
 const sha1 = require('sha1')
 const machineIdSync = require('electron-machine-id').machineIdSync
 
-const PouchDB = require('pouchdb')
 const React = require('react')
 const ReactDOM = require('react-dom')
 const CommitsGraph = require('react-commits-graph')
@@ -24,9 +29,9 @@ window.Elm = require('../elm/Main')
 
 /* === Global Variables === */
 
+var currentFile = null
 var field = null
 var editing = null
-var blankAutosave = null
 var currentSwap = null
 var saved = true
 var lastCenterline = null
@@ -37,8 +42,8 @@ var lastColumnIdx = null
 
 var dbname = querystring.parse(window.location.search.slice(1))['dbname'] || sha1(Date.now()+machineIdSync())
 var filename = querystring.parse(window.location.search.slice(1))['filename'] || "Untitled Tree"
-
 document.title = `Gingko - ${filename}`
+
 dbpath = path.join(app.getPath('userData'), dbname)
 mkdirp.sync(dbpath)
 self.db = new PouchDB(dbpath)
@@ -296,33 +301,76 @@ var setHead = function(sha) {
 
 
 
+
+/* === From Main process to Elm === */
+
+ipcRenderer.on('attempt-save', function(e) {
+  save(`testout-${Date.now()}.gko`)
+})
+
+ipcRenderer.on('attempt-save-as', (e) => {
+  saveAs()
+})
+
+
+ipcRenderer.on('attempt-open', function(e) {
+
+})
+
+
+
+
+
 /* === Local Functions === */
 
-var setTitleFilename = function(filepath) {
-  document.title =
-    filepath ? `Gingko - ${path.basename(filepath)}` : "Gingko - Untitled"
+save = (filepath) => {
+  var ws = fs.createWriteStream(filepath)
+  db.dump(ws).then( res => {
+    saved = true
+  })
 }
+
+
+saveAs = () => {
+  var options =
+    { title: 'Save As'
+    , defaultPath: currentFile ? `${app.getPath('documents')}/../${currentFile.replace('.gko','')}` : `${app.getPath('documents')}/../Untitled.gko`
+    , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
+                , {name: 'All Files', extensions: ['*']}
+                ]
+    }
+
+  dialog.showSaveDialog(options, function(filepath){
+    if(!!filepath){
+      console.log(filepath)
+      var ws = fs.createWriteStream(filepath)
+      db.dump(ws).then( res => {
+        saved = true
+        currentFile = filepath
+        document.title =
+          e ? `Gingko - ${path.basename(filepath)}` : "Gingko - Untitled Tree"
+      })
+    }
+  })
+}
+
 
 setSaved = bool => {
   saved = bool
   if (bool) {
-    if(isNaN(saveCount)) {
-      saveCount = 1
-    } else {
-      saveCount++
-    }
-
-    localStorage.setItem('saveCount', saveCount)
-    window.Intercom('update', {"save_count": saveCount})
-    maybeRequestPayment() 
+    setTitleFilename(filename)
   } else {
-    document.title = 
+    document.title =
       /\*/.test(document.title) ? document.title : document.title + "*"
   }
 }
 
-save = (model, success, failure) => {
+
+var setTitleFilename = function(filepath) {
+  document.title =
+    filepath ? `Gingko - ${path.basename(filepath)}` : "Gingko - Untitled Tree"
 }
+
 
 // Special handling of exit case
 // TODO: Find out why I can't pass app.exit as
