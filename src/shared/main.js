@@ -305,7 +305,11 @@ var setHead = function(sha) {
 /* === From Main process to Elm === */
 
 ipcRenderer.on('attempt-save', function(e) {
-  save(`testout-${Date.now()}.gko`)
+  if(currentFile) {
+    save(currentFile)
+  } else {
+    saveAs()
+  }
 })
 
 ipcRenderer.on('attempt-save-as', (e) => {
@@ -327,6 +331,7 @@ save = (filepath) => {
   var ws = fs.createWriteStream(filepath)
   db.dump(ws).then( res => {
     saved = true
+    document.title = document.title.replace('*','')
   })
 }
 
@@ -342,13 +347,11 @@ saveAs = () => {
 
   dialog.showSaveDialog(options, function(filepath){
     if(!!filepath){
-      console.log(filepath)
       var ws = fs.createWriteStream(filepath)
       db.dump(ws).then( res => {
         saved = true
         currentFile = filepath
-        document.title =
-          e ? `Gingko - ${path.basename(filepath)}` : "Gingko - Untitled Tree"
+        document.title = `Gingko - ${path.basename(filepath)}`
       })
     }
   })
