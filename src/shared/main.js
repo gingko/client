@@ -85,6 +85,7 @@ var load = function(headOverride){
         { include_docs: true
         }).then(function (result) {
         data = result.rows.map(r => r.doc)
+        console.log('allDocs', data)
 
         var commits = processData(data, "commit");
         var trees = processData(data, "tree");
@@ -96,6 +97,7 @@ var load = function(headOverride){
         }
 
         var toSend = [status, { commits: commits, treeObjects: trees, refs: refs}];
+        console.log(toSend)
         gingko.ports.load.send(toSend);
       }).catch(function (err) {
         console.log(err)
@@ -144,6 +146,16 @@ gingko.ports.js.subscribe( function(elmdata) {
       changed = false
       currentFile = elmdata[1]
       document.title = `Gingko - ${path.basename(currentFile)}`
+      break
+
+    case 'open':
+      open()
+      break
+
+    case 'save-and-open':
+      break
+
+    case 'save-as-and-open':
       break
 
     case 'pull':
@@ -358,7 +370,7 @@ save = (filepath) => {
 saveAs = () => {
   var options =
     { title: 'Save As'
-    , defaultPath: currentFile ? `${app.getPath('documents')}/../${currentFile.replace('.gko','')}` : `${app.getPath('documents')}/../Untitled.gko`
+    , defaultPath: currentFile ? currentFile.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.gko")
     , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
                 , {name: 'All Files', extensions: ['*']}
                 ]
@@ -371,6 +383,30 @@ saveAs = () => {
   })
 }
 
+open = () => {
+  dialog.showOpenDialog(
+    null,
+    { title: "Open File..."
+    , defaultPath: currentFile ? path.dirname(currentFile) : app.getPath('documents')
+    , properties: ['openFile']
+    , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
+                , {name: 'All Files', extensions: ['*']}
+                ]
+    }
+    , function(filepathToLoad) {
+        if(!!filepathToLoad[0]) {
+          console.log('filepathToLoad', filepathToLoad[0])
+          var rs = fs.createReadStream(filepathToLoad[0])
+
+          db.load(rs).then( res => {
+            load()
+          }).catch( err => {
+            console.log('file load err', err)
+          })
+        }
+      }
+  )
+}
 
 
 

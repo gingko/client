@@ -42,7 +42,6 @@ module.exports = {
     pouchdb: "require('pouchdb')",
     replicationStream: "require('pouchdb-replication-stream')"
   },
-  devtool: 'source-map',
   plugins: [
     new HtmlWebpackPlugin({
       template: './static/index.html',

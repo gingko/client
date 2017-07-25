@@ -41,6 +41,7 @@ type Msg
     | CheckoutCommit String -- |> UpdateCommits
     -- === Files ===
     | IntentSave
+    | IntentOpen
     -- === Ports ===
     | ExternalMessage (String, String)
     | Load Json.Value -- |> UpdateCommits
