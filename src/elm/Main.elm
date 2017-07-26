@@ -412,12 +412,6 @@ update msg ({objects, workingTree, status} as model) =
     Redo ->
       model ! []
 
-    ToggleOnline ->
-      { model
-        | online = not model.online
-      }
-        ! [js ("toggle-online", bool (not model.online))]
-
     Pull ->
       case (model.status, model.online) of
         (Clean _, True) ->
@@ -743,9 +737,6 @@ update msg ({objects, workingTree, status} as model) =
           let _ = Debug.log "model" model in
           model ! []
 
-        "o" ->
-          normalMode model ToggleOnline
-
         "mod+enter" ->
           editMode model (\id -> GetContentToSave id)
 
@@ -939,14 +930,7 @@ repeating-linear-gradient(-45deg
     _ ->
       div
         []
-        [ div [style [("z-index", "9999"), ("position", "absolute")]]
-              [ label []
-                [ input [ checked model.online, type_ "checkbox", onClick ToggleOnline][]
-                , text "Online"
-                ]
-              ]
-        , (lazy2 Trees.view model.viewState model.workingTree)
-        ]
+        [ lazy2 Trees.view model.viewState model.workingTree ]
 
 
 viewConflict: Conflict -> Html Msg
