@@ -131,62 +131,45 @@ var collab = {}
 /* === Elm Ports === */
 
 gingko.ports.js.subscribe( function(elmdata) {
-  switch (elmdata[0]) {
-    case 'save':
-      savePromise(elmdata[1])
-        .then( filepath =>
-          gingko.ports.externals.send(['saved', filepath])
-        )
-      break
+  const elmCases =
+    { 'save': () =>
+        save(elmdata[1])
+          .then( filepath =>
+            gingko.ports.externals.send(['saved', filepath])
+          )
 
-    case 'save-as':
-      saveAs()
-      break
+    , 'save-as': saveAs
 
-    case 'saved':
-      changed = false
-      currentFile = elmdata[1]
-      document.title = `${path.basename(currentFile)} - Gingko`
-      break
-
-    case 'open':
-      openDialog()
-      break
-
-    case 'save-and-open':
-      saveConfirmation(elmdata[1]).then(openDialog)
-      break
-
-    case 'save-as-and-open':
-      saveConfirmation(null).then(openDialog)
-      break
-
-    case 'pull':
-      sync()
-      break
-
-    case 'push':
-      push('push:elm-triggered')
-      break
-
-    case 'socket-send':
-      collab = elmdata[1]
-      socket.emit('collab', elmdata[1])
-      break
-
-    case 'toggle-online':
-      if(elmdata[1]) {
-        console.log('connect')
-        socket.connect()
-      } else {
-        console.log('disconnect')
-        socket.disconnect()
+    , 'saved': () => {
+        changed = false
+        currentFile = elmdata[1]
+        document.title = `${path.basename(currentFile)} - Gingko`
       }
-      break
 
-    case 'alert':
-      alert(elmdata[1])
-      break
+    , 'open': openDialog
+
+    , 'save-and-open': () => {
+        saveConfirmation(elmdata[1]).then(openDialog)
+      }
+
+    , 'save-as-and-open': () => {
+        saveConfirmation(null).then(openDialog)
+      }
+
+    , 'pull': sync
+
+    , 'push': push
+
+    , 'socket-send': () => {
+        collab = elmdata[1]
+        socket.emit('collab', elmdata[1])
+      }
+  }
+
+  try {
+    elmCases[elmdata[0]]()
+  } catch(err) {
+    console.log('elmCases failed:', elmdata[0], elmdata[1])
   }
 })
 
@@ -214,7 +197,7 @@ var pull = function (local, remote, info) {
 
 
 // Push
-var push = function (info) {
+var push = function () {
   db.replicate.to(remoteCouch)
 }
 
