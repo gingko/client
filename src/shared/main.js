@@ -36,6 +36,9 @@ var editing = null
 var currentSwap = null
 var lastCenterline = null
 var lastColumnIdx = null
+var collab = {}
+
+
 
 
 /* === Initializing App === */
@@ -49,6 +52,165 @@ mkdirp.sync(dbpath)
 self.db = new PouchDB(dbpath)
 self.gingko = Elm.Main.fullscreen()
 self.socket = io.connect('http://localhost:3000')
+
+
+
+
+/* === Elm to JS Ports === */
+
+gingko.ports.js.subscribe( function(elmdata) {
+  const elmCases =
+    { 'new': () => {
+        let clearDb = () => {
+          dbname = sha1(Date.now()+machineIdSync())
+          filename = "Untitled Tree"
+          document.title = `${filename} - Gingko`
+
+          dbpath = path.join(app.getPath('userData'), dbname)
+          mkdirp.sync(dbpath)
+          self.db = new PouchDB(dbpath)
+          gingko.ports.externals.send(['new', ''])
+        }
+
+        if(changed) {
+          saveConfirmation(elmdata[1]).then( () => {
+            db.destroy().then( res => {
+              if (res.ok) {
+                clearDb()
+              }
+            })
+          })
+        } else {
+          clearDb()
+        }
+      }
+
+    , 'save': () =>
+        save(elmdata[1])
+          .then( filepath =>
+            gingko.ports.externals.send(['saved', filepath])
+          )
+
+    , 'save-as': saveAs
+
+    , 'saved': () => {
+        changed = false
+        currentFile = elmdata[1]
+        document.title = `${path.basename(currentFile)} - Gingko`
+      }
+
+    , 'open': openDialog
+
+    , 'save-and-open': () => {
+        saveConfirmation(elmdata[1]).then(openDialog)
+      }
+
+    , 'save-as-and-open': () => {
+        saveConfirmation(null).then(openDialog)
+      }
+
+    , 'pull': sync
+
+    , 'push': push
+
+    , 'socket-send': () => {
+        collab = elmdata[1]
+        socket.emit('collab', elmdata[1])
+      }
+  }
+
+  try {
+    elmCases[elmdata[0]]()
+  } catch(err) {
+    console.log('elmCases failed:', elmdata[0], elmdata[1])
+  }
+})
+
+
+gingko.ports.getText.subscribe(id => {
+  var tarea = document.getElementById('card-edit-'+id)
+
+  if (tarea === null) {
+    gingko.ports.updateError.send('Textarea with id '+id+' not found.')
+  } else {
+    gingko.ports.updateContent.send([id, tarea.value])
+  }
+})
+
+
+gingko.ports.saveObjects.subscribe(data => {
+  var status = data[0]
+  var objects = data[1]
+  db.get('status')
+    .catch(err => {
+      if(err.name == "not_found") {
+        return {_id: 'status' , status : 'bare', bare: true}
+      } else {
+        console.log('load status error', err)
+      }
+    })
+    .then(statusDoc => {
+      if(statusDoc._rev) {
+        status['_rev'] = statusDoc._rev
+      }
+
+      var toSave = objects.commits.concat(objects.treeObjects).concat(objects.refs).concat([status]);
+      db.bulkDocs(toSave)
+        .catch(err => {
+          console.log(err)
+        })
+        .then(responses => {
+          var head = responses.filter(r => r.id == "heads/master")[0]
+          if (head.ok) {
+            gingko.ports.setHeadRev.send(head.rev)
+          } else {
+            console.log('head not ok', head)
+          }
+        })
+    })
+})
+
+
+gingko.ports.saveLocal.subscribe(data => {
+  console.log(data)
+})
+
+
+gingko.ports.updateCommits.subscribe(function(data) {
+  let commitGraphData = _.sortBy(data[0].commits, 'timestamp').reverse().map(c => { return {sha: c._id, parents: c.parents}})
+  let selectedSha = data[1]
+
+  var commitElement = React.createElement(CommitsGraph, {
+    commits: commitGraphData,
+    onClick: setHead,
+    selected: selectedSha
+  });
+
+  ReactDOM.render(commitElement, document.getElementById('history'))
+})
+
+
+gingko.ports.activateCards.subscribe(actives => {
+  shared.scrollHorizontal(actives[0])
+  shared.scrollColumns(actives[1])
+})
+
+
+
+
+/* === JS to Elm Ports === */
+
+ipcRenderer.on('save', e => {
+
+})
+
+socket.on('collab', data => {
+  gingko.ports.collabMsg.send(data)
+})
+
+socket.on('collab-leave', data => {
+  gingko.ports.collabLeave.send(data)
+})
 
 
 /* === Database === */
@@ -120,88 +282,7 @@ const merge = function(local, remote){
 }
 
 
-
-/* === From Main process to Elm === */
-
-var collab = {}
-
-/* === Elm Ports === */
-
-gingko.ports.js.subscribe( function(elmdata) {
-  const elmCases =
-    { 'new': () =>
-        saveConfirmation(elmdata[1]).then( () => {
-          console.log('NEW called.', elmdata[1])
-          db.destroy().then( res => {
-            if (res.ok) {
-              dbname = sha1(Date.now()+machineIdSync())
-              filename = "Untitled Tree"
-              document.title = `${filename} - Gingko`
-
-              dbpath = path.join(app.getPath('userData'), dbname)
-              mkdirp.sync(dbpath)
-              console.log('db destroyed now dbpath', dbpath)
-              self.db = new PouchDB(dbpath)
-              gingko.ports.externals.send(['new', ''])
-            }
-          })
-        })
-
-    , 'save': () =>
-        save(elmdata[1])
-          .then( filepath =>
-            gingko.ports.externals.send(['saved', filepath])
-          )
-
-    , 'save-as': saveAs
-
-    , 'saved': () => {
-        changed = false
-        currentFile = elmdata[1]
-        document.title = `${path.basename(currentFile)} - Gingko`
-      }
-
-    , 'open': openDialog
-
-    , 'save-and-open': () => {
-        saveConfirmation(elmdata[1]).then(openDialog)
-      }
-
-    , 'save-as-and-open': () => {
-        saveConfirmation(null).then(openDialog)
-      }
-
-    , 'pull': sync
-
-    , 'push': push
-
-    , 'socket-send': () => {
-        collab = elmdata[1]
-        socket.emit('collab', elmdata[1])
-      }
-  }
-
-  try {
-    elmCases[elmdata[0]]()
-  } catch(err) {
-    console.log('elmCases failed:', elmdata[0], elmdata[1])
-  }
-})
-
-ipcRenderer.on('save', e => {
-
-})
-
-socket.on('collab', data => {
-  gingko.ports.collabMsg.send(data)
-})
-
-socket.on('collab-leave', data => {
-  gingko.ports.collabLeave.send(data)
-})
-
-// Fetch + Merge
-var pull = function (local, remote, info) {
+const pull = function (local, remote, info) {
   db.replicate.from(remoteCouch)
     .on('complete', pullInfo => {
       if(pullInfo.docs_written > 0 && pullInfo.ok) {
@@ -211,13 +292,12 @@ var pull = function (local, remote, info) {
 }
 
 
-// Push
-var push = function () {
+const push = function () {
   db.replicate.to(remoteCouch)
 }
 
 
-var sync = function () {
+const sync = function () {
   db.get('heads/master')
     .then(localHead => {
       remoteDb.get('heads/master')
@@ -257,73 +337,12 @@ var sync = function () {
     })
 }
 
-gingko.ports.activateCards.subscribe(actives => {
-  shared.scrollHorizontal(actives[0])
-  shared.scrollColumns(actives[1])
-})
 
 
-gingko.ports.getText.subscribe(id => {
-  var tarea = document.getElementById('card-edit-'+id)
-
-  if (tarea === null) {
-    gingko.ports.updateError.send('Textarea with id '+id+' not found.')
-  } else {
-    gingko.ports.updateContent.send([id, tarea.value])
-  }
-})
-
-gingko.ports.saveObjects.subscribe(data => {
-  var status = data[0]
-  var objects = data[1]
-  db.get('status')
-    .catch(err => {
-      if(err.name == "not_found") {
-        return {_id: 'status' , status : 'bare', bare: true}
-      } else {
-        console.log('load status error', err)
-      }
-    })
-    .then(statusDoc => {
-      if(statusDoc._rev) {
-        status['_rev'] = statusDoc._rev
-      }
-
-      var toSave = objects.commits.concat(objects.treeObjects).concat(objects.refs).concat([status]);
-      db.bulkDocs(toSave)
-        .catch(err => {
-          console.log(err)
-        })
-        .then(responses => {
-          var head = responses.filter(r => r.id == "heads/master")[0]
-          if (head.ok) {
-            gingko.ports.setHeadRev.send(head.rev)
-          } else {
-            console.log('head not ok', head)
-          }
-        })
-    })
-})
-
-gingko.ports.saveLocal.subscribe(data => {
-  console.log(data)
-})
 
 
-gingko.ports.updateCommits.subscribe(function(data) {
-  let commitGraphData = _.sortBy(data[0].commits, 'timestamp').reverse().map(c => { return {sha: c._id, parents: c.parents}})
-  let selectedSha = data[1]
 
-  var commitElement = React.createElement(CommitsGraph, {
-    commits: commitGraphData,
-    onClick: setHead,
-    selected: selectedSha
-  });
-
-  ReactDOM.render(commitElement, document.getElementById('history'))
-})
-
-var setHead = function(sha) {
+const setHead = function(sha) {
   if (sha) {
     gingko.ports.setHead.send(sha)
   }
