@@ -39,7 +39,7 @@ function createAppWindow () {
   win.on('close', (e) => {
     console.log('saved?', saved)
     if(!saved) {
-      var options = 
+      var options =
         { title: "Save changes?"
         , message: "Save changes before closing?"
         , buttons: ["Close Without Saving", "Cancel", "Save"]
@@ -107,111 +107,20 @@ ipcMain.on('saved', (event, msg) => {
   saved = msg;
 })
 
-ipcMain.on('ask-for-email', (event, msg) => {
-  showEmailWindow()
-})
 
-ipcMain.on('request-message', (event, msg) => {
-  var options =
-        { title: "Support Gingko's Developer"
-        , message: 
-"Thank you so much for trying Gingko!\n\n\
-\
-Gingko is the work of one person,\n\
-and it's how I support myself and my family.\n\n\
-If you've found it useful, please consider contributing.\
-"
-        , icon: `${__dirname}/dist/leaf128.png` 
-        , buttons: ['Support Gingko', 'Maybe Later']
-        , defaultId: 0
-        , cancelId: 1
-        }
-
-      dialog.showMessageBox(win
-                           , options
-                           , res => {
-                               if(res == 0) openPaymentPage()
-                           })
-})
-
-ipcMain.on('id-info', (event, msg) => {
-  win.webContents.send('id-info', msg)
-})
-
-ipcMain.on('serial', (event, msg) => {
-  var hash = sha1(msg+"Please don't steal. Just contact me if you need this for free.")
-  if(hash == '3ac67309d2ff5dd533644c9d82d7359f5f729930') {
-    win.send('serial-success')
-    serialWindow.send('serial-success')
-  } else {
-    serialWindow.send('serial-fail')
-  }
-})
-
-openPaymentPage = () => {
-  shell.openExternal('https://gingkoapp.com/2a0215') 
-}
-
-showSerialWindow = () => {
-  serialWindow = new BrowserWindow(
-    { parent: win
-    , modal: true
-    , show: false
-    , width: 400
-    , height: 80
-    , backgroundColor: '#ccc'
-    , resizable: false
-    , minimizable: false
-    , maximizable: false
-    , fullscreenable: false
-    }
-  )
-  serialWindow.setMenu(null)
-  serialWindow.loadURL(`file://${__dirname}/dist/request.html`)
-  serialWindow.once('ready-to-show', () => {
-    serialWindow.show()
-  })
-}
-
-showEmailWindow = () => {
-  emailWindow = new BrowserWindow(
-    { parent: win
-    , modal: true
-    , show: false
-    , width: 400
-    , height: 120
-    , backgroundColor: '#ccc'
-    , resizable: false
-    , minimizable: false
-    , maximizable: false
-    , fullscreenable: false
-    }
-  )
-  emailWindow.setMenu(null)
-  emailWindow.loadURL(`file://${__dirname}/dist/email.html`)
-  emailWindow.once('ready-to-show', () => {
-    emailWindow.show()
-  })
-}
-
-const menuTemplate = 
+const menuTemplate =
   [ { label: 'File'
     , submenu:
         [ { label: 'New'
           , accelerator: 'CmdOrCtrl+N'
           , click (item, focusedWindow) {
-              focusedWindow.webContents.send('attempt-new')
+              focusedWindow.webContents.send('menu-new')
             }
           }
         , { label: 'Open File...'
           , accelerator: 'CmdOrCtrl+O'
           , click (item, focusedWindow) {
-              focusedWindow.webContents.send('attempt-open')
-            }
-          }
-        , { label: 'Import File...'
-          , click (item, focusedWindow) {
-              focusedWindow.webContents.send('attempt-import')
+              focusedWindow.webContents.send('menu-open')
             }
           }
         , { type: 'separator' }
@@ -225,16 +134,6 @@ const menuTemplate =
           , accelerator: 'CmdOrCtrl+Shift+S'
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('attempt-save-as')
-            }
-          }
-        , { label: 'Export as JSON..'
-          , click (item, focusedWindow) {
-              focusedWindow.webContents.send('export-as-json')
-            }
-          }
-        , { label: 'Export as Markdown..'
-          , click (item, focusedWindow) {
-              focusedWindow.webContents.send('export-as-markdown')
             }
           }
         , { type: 'separator' }
