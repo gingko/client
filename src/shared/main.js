@@ -47,7 +47,7 @@ document.title = `${filename} - Gingko`
 var dbpath = path.join(app.getPath('userData'), dbname)
 mkdirp.sync(dbpath)
 self.db = new PouchDB(dbpath)
-self.gingko = Elm.Main.fullscreen([dbname, filename])
+self.gingko = Elm.Main.fullscreen()
 self.socket = io.connect('http://localhost:3000')
 
 
@@ -120,9 +120,6 @@ const merge = function(local, remote){
 }
 
 
-load(null);
-
-
 
 /* === From Main process to Elm === */
 
@@ -132,7 +129,25 @@ var collab = {}
 
 gingko.ports.js.subscribe( function(elmdata) {
   const elmCases =
-    { 'save': () =>
+    { 'new': () =>
+        saveConfirmation(elmdata[1]).then( () => {
+          console.log('NEW called.', elmdata[1])
+          db.destroy().then( res => {
+            if (res.ok) {
+              dbname = sha1(Date.now()+machineIdSync())
+              filename = "Untitled Tree"
+              document.title = `${filename} - Gingko`
+
+              dbpath = path.join(app.getPath('userData'), dbname)
+              mkdirp.sync(dbpath)
+              console.log('db destroyed now dbpath', dbpath)
+              self.db = new PouchDB(dbpath)
+              gingko.ports.externals.send(['new', ''])
+            }
+          })
+        })
+
+    , 'save': () =>
         save(elmdata[1])
           .then( filepath =>
             gingko.ports.externals.send(['saved', filepath])

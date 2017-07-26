@@ -40,6 +40,7 @@ type Msg
     | Resolve String -- |> Save
     | CheckoutCommit String -- |> UpdateCommits
     -- === Files ===
+    | IntentNew
     | IntentSave
     | IntentOpen
     -- === Ports ===

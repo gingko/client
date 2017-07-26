@@ -22,9 +22,9 @@ import Objects
 import Coders exposing (statusToValue, treeToValue, treeListDecoder, collabStateToValue, collabStateDecoder)
 
 
-main : Program (String, String) Model Msg
+main : Program Never Model Msg
 main =
-  programWithFlags
+  program
     { init = init
     , view = view
     , update = update
@@ -77,8 +77,8 @@ defaultModel =
   }
 
 
-init : (String, String) -> (Model, Cmd Msg)
-init _ =
+init : (Model, Cmd Msg)
+init =
   defaultModel
     ! [focus "0"]
     |> andThen (Activate "0")
@@ -508,6 +508,14 @@ update msg ({objects, workingTree, status} as model) =
 
     -- === Files ===
 
+    IntentNew ->
+      case model.filepath of
+        Nothing ->
+          model ! [js ("new", null)]
+
+        Just filepath ->
+          model ! [js ("new", filepath |> string)]
+
     IntentSave ->
       case (model.filepath, model.changed) of
         (Nothing, True) ->
@@ -582,8 +590,8 @@ update msg ({objects, workingTree, status} as model) =
             |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
 
         _ ->
+          let _ = Debug.log "failed to load json" (newStatus, newTree_, newObjects, json) in
           model ! []
-            |> Debug.log "failed to load data"
 
     MergeIn json ->
       let
@@ -630,8 +638,8 @@ update msg ({objects, workingTree, status} as model) =
             |> andThen (Activate vs.active)
 
         _ ->
+          let _ = Debug.log "failed to merge json" json in
           model ! []
-            |> Debug.log "failed to load data"
 
     SetHeadRev rev ->
       { model
@@ -822,8 +830,10 @@ update msg ({objects, workingTree, status} as model) =
         "mod+r" ->
           normalMode model Redo
 
+        "mod+n" ->
+          update IntentNew model
+
         "mod+s" ->
-          let _ = Debug.log "mod+s" "pressed" in
           case model.viewState.editing of
             Nothing ->
               update IntentSave model
@@ -840,6 +850,9 @@ update msg ({objects, workingTree, status} as model) =
 
     ExternalMessage (cmd, arg) ->
       case cmd of
+        "new" ->
+          init
+
         "saved" ->
           { model
             | filepath = Just arg
