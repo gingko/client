@@ -150,15 +150,15 @@ gingko.ports.js.subscribe( function(elmdata) {
       break
 
     case 'open':
-      open()
+      openDialog()
       break
 
     case 'save-and-open':
-      saveConfirmAndThen(elmdata[1], open)
+      saveConfirmation(elmdata[1]).then(openDialog)
       break
 
     case 'save-as-and-open':
-      saveConfirmAndThen(null, open)
+      saveConfirmation(null).then(openDialog)
       break
 
     case 'pull':
@@ -402,28 +402,32 @@ const saveAs = () => {
 
 
 
-const saveConfirmAndThen = (filepath, onSuccess) => {
-  let options =
-    { title: "Save changes"
-    , message: "Save changes before closing?"
-    , buttons: ["Close Without Saving", "Cancel", "Save"]
-    , defaultId: 2
-    }
-  let choice = dialog.showMessageBox(options)
+const saveConfirmation = (filepath) => {
+  return new Promise(
+    (resolve, reject) => {
+      let options =
+        { title: "Save changes"
+        , message: "Save changes before closing?"
+        , buttons: ["Close Without Saving", "Cancel", "Save"]
+        , defaultId: 2
+        }
+      let choice = dialog.showMessageBox(options)
 
-  if (choice == 0) {
-    onSuccess()
-  } else if (choice == 2) {
-    if(filepath !== null) {
-      save(filepath).then(onSuccess)
-    } else {
-      saveAs().then(onSuccess)
+      if (choice == 0) {
+        resolve(filepath)
+      } else if (choice == 2) {
+        if(filepath !== null) {
+          resolve(save(filepath))
+        } else {
+          resolve(saveAs())
+        }
+      }
     }
-  }
+  )
 }
 
 
-const open = () => {
+const openDialog = () => {
   dialog.showOpenDialog(
     null,
     { title: "Open File..."
