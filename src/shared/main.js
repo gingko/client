@@ -361,15 +361,6 @@ ipcRenderer.on('attempt-open', function(e) {
 /* === Local Functions === */
 
 const save = (filepath) => {
-  savePromise(filepath)
-    .then( f =>
-      gingko.ports.externals.send(['saved', f])
-    )
-   .catch(console.log.bind(console))
-}
-
-
-const savePromise = (filepath) => {
   return new Promise(
     (resolve, reject) => {
       let ws = fs.createWriteStream(filepath)
@@ -386,6 +377,31 @@ const savePromise = (filepath) => {
   )
 }
 
+
+const saveAs = () => {
+  return new Promise(
+    (resolve, reject) => {
+      var options =
+        { title: 'Save As'
+        , defaultPath: currentFile ? currentFile.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.gko")
+        , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
+                    , {name: 'All Files', extensions: ['*']}
+                    ]
+        }
+
+      dialog.showSaveDialog(options, function(filepath){
+        if(!!filepath){
+          resolve(save(filepath))
+        } else {
+          reject(new Error('no save path chosen'))
+        }
+      })
+    }
+  )
+}
+
+
+
 const saveConfirmAndThen = (filepath, onSuccess) => {
   let options =
     { title: "Save changes"
@@ -398,29 +414,14 @@ const saveConfirmAndThen = (filepath, onSuccess) => {
   if (choice == 0) {
     onSuccess()
   } else if (choice == 2) {
-    savePromise(filepath).then(onSuccess)
+    if(filepath !== null) {
+      save(filepath).then(onSuccess)
+    } else {
+      saveAs().then(onSuccess)
+    }
   }
 }
 
-const confirmAndThen = (optionalAction, finalAction) => {
-}
-
-
-const saveAs = () => {
-  var options =
-    { title: 'Save As'
-    , defaultPath: currentFile ? currentFile.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.gko")
-    , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
-                , {name: 'All Files', extensions: ['*']}
-                ]
-    }
-
-  dialog.showSaveDialog(options, function(filepath){
-    if(!!filepath){
-      save(filepath)
-    }
-  })
-}
 
 const open = () => {
   dialog.showOpenDialog(
