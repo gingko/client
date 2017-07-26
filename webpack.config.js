@@ -35,12 +35,13 @@ module.exports = {
       }
     ]
   },
+  externals : {
+    pouchdb: "require('pouchdb')",
+    "pouchdb-replication-stream": "require('pouchdb-replication-stream')",
+    "pouchdb-promise": "require('pouchdb-promise')"
+  },
   node: {
     __dirname: false
-  },
-  externals: {
-    pouchdb: "require('pouchdb')",
-    replicationStream: "require('pouchdb-replication-stream')"
   },
   plugins: [
     new HtmlWebpackPlugin({

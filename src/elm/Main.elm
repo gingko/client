@@ -533,7 +533,7 @@ update msg ({objects, workingTree, status} as model) =
 
     -- === Ports ===
 
-    Load json ->
+    Load (filepath, json) ->
       let
         (newStatus, newTree_, newObjects) =
             Objects.update (Objects.Init json) objects
@@ -542,6 +542,8 @@ update msg ({objects, workingTree, status} as model) =
         (Clean newHead, Nothing) -> -- no changes to Tree
           { model
             | status = newStatus
+            , filepath = filepath
+            , changed = False
           }
             ! []
             |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
@@ -551,6 +553,8 @@ update msg ({objects, workingTree, status} as model) =
             | workingTree = Trees.setTree newTree model.workingTree
             , objects = newObjects
             , status = newStatus
+            , filepath = filepath
+            , changed = False
           }
             ! []
             |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
@@ -560,6 +564,8 @@ update msg ({objects, workingTree, status} as model) =
             | workingTree = Trees.setTree newTree model.workingTree
             , objects = newObjects
             , status = newStatus
+            , filepath = filepath
+            , changed = False
           }
             ! []
             |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
@@ -569,6 +575,8 @@ update msg ({objects, workingTree, status} as model) =
             | workingTree = Trees.setTreeWithConflicts conflicts mTree model.workingTree
             , objects = newObjects
             , status = newStatus
+            , filepath = filepath
+            , changed = False
           }
             ! []
             |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
@@ -1041,7 +1049,7 @@ modelToValue model =
 
 
 port externals : ((String, String) -> msg) -> Sub msg
-port load : (Json.Value -> msg) -> Sub msg
+port load : ((Maybe String, Json.Value) -> msg) -> Sub msg
 port merge : (Json.Value -> msg) -> Sub msg
 port setHead : (String -> msg) -> Sub msg
 port setHeadRev : (String -> msg) -> Sub msg

@@ -9,7 +9,7 @@ const {ipcRenderer, remote} = require('electron')
 const {app, dialog} = remote
 const querystring = require('querystring')
 
-const PouchDB = require('pouchdb')
+import PouchDB from "pouchdb";
 const replicationStream = require('pouchdb-replication-stream')
 PouchDB.plugin(replicationStream.plugin)
 PouchDB.adapter('writableStream', replicationStream.adapters.writableStream)
@@ -42,9 +42,9 @@ var lastColumnIdx = null
 
 var dbname = querystring.parse(window.location.search.slice(1))['dbname'] || sha1(Date.now()+machineIdSync())
 var filename = querystring.parse(window.location.search.slice(1))['filename'] || "Untitled Tree"
-document.title = `Gingko - ${filename}`
+document.title = `${filename} - Gingko`
 
-dbpath = path.join(app.getPath('userData'), dbname)
+var dbpath = path.join(app.getPath('userData'), dbname)
 mkdirp.sync(dbpath)
 self.db = new PouchDB(dbpath)
 self.gingko = Elm.Main.fullscreen([dbname, filename])
@@ -57,7 +57,7 @@ self.remoteCouch = 'http://localhost:5984/atreenodes16'
 self.remoteDb = new PouchDB(remoteCouch)
 
 
-var processData = function (data, type) {
+const processData = function (data, type) {
   var processed = data.filter(d => d.type === type).map(d => _.omit(d, 'type'))
   var dict = {}
   if (type == "ref") {
@@ -69,11 +69,11 @@ var processData = function (data, type) {
 }
 
 
-var load = function(headOverride){
-  db.get('_local/status')
+const load = function(filepath, headOverride){
+  db.get('status')
     .catch(err => {
       if(err.name == "not_found") {
-        return {_id: '_local/status' , status : 'bare', bare: true}
+        return {_id: 'status' , status : 'bare', bare: true}
       } else {
         console.log('load status error', err)
       }
@@ -84,20 +84,18 @@ var load = function(headOverride){
       db.allDocs(
         { include_docs: true
         }).then(function (result) {
-        data = result.rows.map(r => r.doc)
-        console.log('allDocs', data)
+        let data = result.rows.map(r => r.doc)
 
-        var commits = processData(data, "commit");
-        var trees = processData(data, "tree");
-        var refs = processData(data, "ref");
-        var status = _.omit(statusDoc, '_rev')
+        let commits = processData(data, "commit");
+        let trees = processData(data, "tree");
+        let refs = processData(data, "ref");
+        let status = _.omit(statusDoc, '_rev')
 
         if(headOverride) {
           refs['heads/master'] = headOverride
         }
 
-        var toSend = [status, { commits: commits, treeObjects: trees, refs: refs}];
-        console.log(toSend)
+        let toSend = [filepath, [status, { commits: commits, treeObjects: trees, refs: refs}]];
         gingko.ports.load.send(toSend);
       }).catch(function (err) {
         console.log(err)
@@ -105,16 +103,16 @@ var load = function(headOverride){
     })
 }
 
-var merge = function(local, remote){
+const merge = function(local, remote){
   db.allDocs( { include_docs: true })
     .then(function (result) {
       data = result.rows.map(r => r.doc)
 
-      var commits = processData(data, "commit");
-      var trees = processData(data, "tree");
-      var refs = processData(data, "ref");
+      let commits = processData(data, "commit");
+      let trees = processData(data, "tree");
+      let refs = processData(data, "ref");
 
-      var toSend = { commits: commits, treeObjects: trees, refs: refs};
+      let toSend = { commits: commits, treeObjects: trees, refs: refs};
       gingko.ports.merge.send([local, remote, toSend]);
     }).catch(function (err) {
       console.log(err)
@@ -122,7 +120,7 @@ var merge = function(local, remote){
 }
 
 
-load();
+load(null);
 
 
 
@@ -135,7 +133,10 @@ var collab = {}
 gingko.ports.js.subscribe( function(elmdata) {
   switch (elmdata[0]) {
     case 'save':
-      save(elmdata[1])
+      savePromise(elmdata[1])
+        .then( filepath =>
+          gingko.ports.externals.send(['saved', filepath])
+        )
       break
 
     case 'save-as':
@@ -145,7 +146,7 @@ gingko.ports.js.subscribe( function(elmdata) {
     case 'saved':
       changed = false
       currentFile = elmdata[1]
-      document.title = `Gingko - ${path.basename(currentFile)}`
+      document.title = `${path.basename(currentFile)} - Gingko`
       break
 
     case 'open':
@@ -153,9 +154,11 @@ gingko.ports.js.subscribe( function(elmdata) {
       break
 
     case 'save-and-open':
+      saveConfirmAndThen(elmdata[1], open)
       break
 
     case 'save-as-and-open':
+      saveConfirmAndThen(null, open)
       break
 
     case 'pull':
@@ -275,10 +278,10 @@ gingko.ports.getText.subscribe(id => {
 gingko.ports.saveObjects.subscribe(data => {
   var status = data[0]
   var objects = data[1]
-  db.get('_local/status')
+  db.get('status')
     .catch(err => {
       if(err.name == "not_found") {
-        return {_id: '_local/status' , status : 'bare', bare: true}
+        return {_id: 'status' , status : 'bare', bare: true}
       } else {
         console.log('load status error', err)
       }
@@ -310,8 +313,8 @@ gingko.ports.saveLocal.subscribe(data => {
 
 
 gingko.ports.updateCommits.subscribe(function(data) {
-  commitGraphData = _.sortBy(data[0].commits, 'timestamp').reverse().map(c => { return {sha: c._id, parents: c.parents}})
-  selectedSha = data[1]
+  let commitGraphData = _.sortBy(data[0].commits, 'timestamp').reverse().map(c => { return {sha: c._id, parents: c.parents}})
+  let selectedSha = data[1]
 
   var commitElement = React.createElement(CommitsGraph, {
     commits: commitGraphData,
@@ -357,17 +360,53 @@ ipcRenderer.on('attempt-open', function(e) {
 
 /* === Local Functions === */
 
-save = (filepath) => {
-  var ws = fs.createWriteStream(filepath)
-  db.dump(ws).then( res => {
-    gingko.ports.externals.send(['saved', filepath])
-  }).catch( err => {
-    console.log('Save error', err)
-  })
+const save = (filepath) => {
+  savePromise(filepath)
+    .then( f =>
+      gingko.ports.externals.send(['saved', f])
+    )
+   .catch(console.log.bind(console))
 }
 
 
-saveAs = () => {
+const savePromise = (filepath) => {
+  return new Promise(
+    (resolve, reject) => {
+      let ws = fs.createWriteStream(filepath)
+      db.dump(ws).then( res => {
+        if (res.ok) {
+          resolve(filepath)
+        } else {
+          reject(res)
+        }
+      }).catch( err => {
+        reject(err)
+      })
+    }
+  )
+}
+
+const saveConfirmAndThen = (filepath, onSuccess) => {
+  let options =
+    { title: "Save changes"
+    , message: "Save changes before closing?"
+    , buttons: ["Close Without Saving", "Cancel", "Save"]
+    , defaultId: 2
+    }
+  let choice = dialog.showMessageBox(options)
+
+  if (choice == 0) {
+    onSuccess()
+  } else if (choice == 2) {
+    savePromise(filepath).then(onSuccess)
+  }
+}
+
+const confirmAndThen = (optionalAction, finalAction) => {
+}
+
+
+const saveAs = () => {
   var options =
     { title: 'Save As'
     , defaultPath: currentFile ? currentFile.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.gko")
@@ -383,7 +422,7 @@ saveAs = () => {
   })
 }
 
-open = () => {
+const open = () => {
   dialog.showOpenDialog(
     null,
     { title: "Open File..."
@@ -393,15 +432,29 @@ open = () => {
                 , {name: 'All Files', extensions: ['*']}
                 ]
     }
-    , function(filepathToLoad) {
-        if(!!filepathToLoad[0]) {
-          console.log('filepathToLoad', filepathToLoad[0])
-          var rs = fs.createReadStream(filepathToLoad[0])
+    , function(filepathArray) {
+        var filepathToLoad = filepathArray[0]
+        if(!!filepathToLoad) {
+          var rs = fs.createReadStream(filepathToLoad)
+          db.destroy().then( res => {
+            if (res.ok) {
+              dbpath = path.join(app.getPath('userData'), sha1(filepathToLoad))
+              mkdirp.sync(dbpath)
+              self.db = new PouchDB(dbpath)
 
-          db.load(rs).then( res => {
-            load()
-          }).catch( err => {
-            console.log('file load err', err)
+              db.load(rs).then( res => {
+                if (res.ok) {
+                  currentFile = filepathToLoad
+                  changed = false
+                  document.title = `${path.basename(currentFile)} - Gingko`
+                  load(filepathToLoad)
+                } else {
+                  console.log('db.load res is', res)
+                }
+              }).catch( err => {
+                console.log('file load err', err)
+              })
+            }
           })
         }
       }
@@ -409,57 +462,6 @@ open = () => {
 }
 
 
-
-// Special handling of exit case
-// TODO: Find out why I can't pass app.exit as
-// success callback to regular save function
-saveAndExit = (model) => {
-}
-
-autosave = function(model) {
-}
-
-
-unsavedWarningThen = (model, success, failure) => {
-}
-
-exportToJSON = (model) => {
-}
-
-exportToMarkdown = (model) => {
-}
-
-attemptLoadFile = filepath => {
-}
-
-loadFile = (filepath, setpath) => {
-}
-
-importFile = filepath => {
-}
-
-newFile = function() {
-  setTitleFilename(null)
-  gingko.ports.data.send(null)
-}
-
-openDialog = function() { // TODO: add defaultPath
-}
-
-importDialog = function() {
-}
-
-clearSwap = function(filepath) {
-  var file = filepath ? filepath : currentSwap
-  fs.unlinkSync(file)
-}
-
-toFileFormat = model => {
-  if (field !== null) {
-    model = _.extend(model, {'field': field})
-  } 
-  return JSON.stringify(_.omit(model, 'filepath'), null, 2)
-}
 
 
 /* === DOM Events and Handlers === */
@@ -479,7 +481,7 @@ window.onresize = () => {
 }
 
 
-editingInputHandler = function(ev) {
+const editingInputHandler = function(ev) {
   if (!changed) {
     changed = true
     if (!/\*/.test(document.title)) {
@@ -516,12 +518,12 @@ Mousetrap.bind(['shift+tab'], function(e, s) {
 
 
 
-var observer = new MutationObserver(function(mutations) {
-  var isTextarea = function(node) {
+const observer = new MutationObserver(function(mutations) {
+  let isTextarea = function(node) {
     return node.nodeName == "TEXTAREA" && node.className == "edit mousetrap"
   }
 
-  var textareas = [];
+  let textareas = [];
 
   mutations
     .map( m => {
@@ -531,7 +533,7 @@ var observer = new MutationObserver(function(mutations) {
                 textareas.push(n)
               } else {
                 if(n.querySelectorAll) {
-                  var tareas = [].slice.call(n.querySelectorAll('textarea.edit'))
+                  let tareas = [].slice.call(n.querySelectorAll('textarea.edit'))
                   textareas = textareas.concat(tareas)
                 }
               }
@@ -549,7 +551,7 @@ var observer = new MutationObserver(function(mutations) {
     jQuery(textareas).textareaAutoSize()
   }
 });
- 
-var config = { childList: true, subtree: true };
- 
+
+const config = { childList: true, subtree: true };
+
 observer.observe(document.body, config);

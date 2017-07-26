@@ -44,7 +44,7 @@ type Msg
     | IntentOpen
     -- === Ports ===
     | ExternalMessage (String, String)
-    | Load Json.Value -- |> UpdateCommits
+    | Load (Maybe String, Json.Value) -- |> UpdateCommits
     | MergeIn Json.Value -- |> [Save] |> UpdateCommits
     | SetHeadRev String
     | UpdateCommits (Json.Value, Maybe String)

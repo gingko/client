@@ -127,14 +127,14 @@ statusToValue status =
   case status of
     Clean head ->
       Enc.object
-        [ ( "_id", "_local/status" |> Enc.string)
+        [ ( "_id", "status" |> Enc.string)
         , ( "status", "clean" |> Enc.string)
         , ( "head", head |> Enc.string)
         ]
 
     MergeConflict tree aSha bSha conflicts ->
       Enc.object
-        [ ( "_id", "_local/status" |> Enc.string)
+        [ ( "_id", "status" |> Enc.string)
         , ( "status", "merge-conflict" |> Enc.string)
         , ( "tree", tree |> treeToValue)
         , ( "aSha", aSha |> Enc.string)
@@ -144,7 +144,7 @@ statusToValue status =
 
     Bare ->
       Enc.object
-        [ ( "_id", "_local/status" |> Enc.string)
+        [ ( "_id", "status" |> Enc.string)
         , ( "status", "bare" |> Enc.string)
         , ( "bare", Enc.bool True )
         ]
