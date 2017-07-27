@@ -53,6 +53,9 @@ self.db = new PouchDB(dbpath)
 self.gingko = Elm.Main.fullscreen()
 self.socket = io.connect('http://localhost:3000')
 
+//self.remoteCouch = 'http://localhost:5984/atreenodes16'
+//self.remoteDb = new PouchDB(remoteCouch)
+
 
 
 
@@ -113,6 +116,14 @@ const update = (msg, arg) => {
         saveConfirmation(null).then(openDialog)
       }
 
+    , 'load': () => {
+          if(changed) {
+            saveConfirmation(currentFile).then(() => loadFile(arg))
+          } else {
+            loadFile(arg)
+          }
+        }
+
     , 'pull': sync
 
     , 'push': push
@@ -137,7 +148,7 @@ gingko.ports.js.subscribe(function(elmdata) {
 
 
 gingko.ports.getText.subscribe(id => {
-  var tarea = document.getElementById('card-edit-'+id)
+  let tarea = document.getElementById('card-edit-'+id)
 
   if (tarea === null) {
     gingko.ports.updateError.send('Textarea with id '+id+' not found.')
@@ -148,8 +159,8 @@ gingko.ports.getText.subscribe(id => {
 
 
 gingko.ports.saveObjects.subscribe(data => {
-  var status = data[0]
-  var objects = data[1]
+  let status = data[0]
+  let objects = data[1]
   db.get('status')
     .catch(err => {
       if(err.name == "not_found") {
@@ -163,13 +174,13 @@ gingko.ports.saveObjects.subscribe(data => {
         status['_rev'] = statusDoc._rev
       }
 
-      var toSave = objects.commits.concat(objects.treeObjects).concat(objects.refs).concat([status]);
+      let toSave = objects.commits.concat(objects.treeObjects).concat(objects.refs).concat([status]);
       db.bulkDocs(toSave)
         .catch(err => {
           console.log(err)
         })
         .then(responses => {
-          var head = responses.filter(r => r.id == "heads/master")[0]
+          let head = responses.filter(r => r.id == "heads/master")[0]
           if (head.ok) {
             gingko.ports.setHeadRev.send(head.rev)
           } else {
@@ -189,7 +200,7 @@ gingko.ports.updateCommits.subscribe(function(data) {
   let commitGraphData = _.sortBy(data[0].commits, 'timestamp').reverse().map(c => { return {sha: c._id, parents: c.parents}})
   let selectedSha = data[1]
 
-  var commitElement = React.createElement(CommitsGraph, {
+  let commitElement = React.createElement(CommitsGraph, {
     commits: commitGraphData,
     onClick: setHead,
     selected: selectedSha
@@ -214,17 +225,20 @@ ipcRenderer.on('menu-open', () => update('open'))
 ipcRenderer.on('menu-save', () => update('save', currentFile))
 ipcRenderer.on('menu-save-as', () => update('save-as'))
 
+document.body.ondrop = (ev) => {
+  update('load', ev.dataTransfer.files[0].path)
+  ev.preventDefault()
+}
+
 socket.on('collab', data => gingko.ports.collabMsg.send(data))
 socket.on('collab-leave', data => gingko.ports.collabLeave.send(data))
 
 
 
 
+
+
 /* === Database === */
-
-self.remoteCouch = 'http://localhost:5984/atreenodes16'
-self.remoteDb = new PouchDB(remoteCouch)
-
 
 const processData = function (data, type) {
   var processed = data.filter(d => d.type === type).map(d => _.omit(d, 'type'))
@@ -436,30 +450,35 @@ const openDialog = () => {
     , function(filepathArray) {
         var filepathToLoad = filepathArray[0]
         if(!!filepathToLoad) {
-          var rs = fs.createReadStream(filepathToLoad)
-          db.destroy().then( res => {
-            if (res.ok) {
-              dbpath = path.join(app.getPath('userData'), sha1(filepathToLoad))
-              mkdirp.sync(dbpath)
-              self.db = new PouchDB(dbpath)
-
-              db.load(rs).then( res => {
-                if (res.ok) {
-                  currentFile = filepathToLoad
-                  changed = false
-                  document.title = `${path.basename(currentFile)} - Gingko`
-                  load(filepathToLoad)
-                } else {
-                  console.log('db.load res is', res)
-                }
-              }).catch( err => {
-                console.log('file load err', err)
-              })
-            }
-          })
+          loadFile(filepathToLoad)
         }
       }
   )
+}
+
+
+const loadFile = (filepathToLoad) => {
+  var rs = fs.createReadStream(filepathToLoad)
+  db.destroy().then( res => {
+    if (res.ok) {
+      dbpath = path.join(app.getPath('userData'), sha1(filepathToLoad))
+      mkdirp.sync(dbpath)
+      self.db = new PouchDB(dbpath)
+
+      db.load(rs).then( res => {
+        if (res.ok) {
+          currentFile = filepathToLoad
+          changed = false
+          document.title = `${path.basename(currentFile)} - Gingko`
+          load(filepathToLoad)
+        } else {
+          console.log('db.load res is', res)
+        }
+      }).catch( err => {
+        console.log('file load err', err)
+      })
+    }
+  })
 }
 
 
@@ -467,12 +486,8 @@ const openDialog = () => {
 
 /* === DOM Events and Handlers === */
 
+// Prevent default events, for file dragging.
 document.ondragover = document.ondrop = (ev) => {
-  ev.preventDefault()
-}
-
-document.body.ondrop = (ev) => {
-  //saveConfirmAndThen(attemptLoadFile(ev.dataTransfer.files[0].path))
   ev.preventDefault()
 }
 
