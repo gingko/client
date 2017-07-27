@@ -8,7 +8,7 @@ const sha1 = require('sha1')
 let win
 let listWindow
 let serialWindow
-let saved = true
+let changed = false
 
 
 function createAppWindow () {
@@ -37,31 +37,9 @@ function createAppWindow () {
   win.loadURL(url)
 
   win.on('close', (e) => {
-    console.log('saved?', saved)
-    if(!saved) {
-      var options =
-        { title: "Save changes?"
-        , message: "Save changes before closing?"
-        , buttons: ["Close Without Saving", "Cancel", "Save"]
-        , defaultId: 2
-        }
-      var choice = dialog.showMessageBox(options)
-
-      switch (choice) {
-        case 0:
-          win.webContents.send('clear-swap')
-          break
-        case 1:
-          e.preventDefault()
-          break
-        case 2:
-          win.webContents.send('clear-swap')
-          win.webContents.send('attempt-save-and-close')
-          e.preventDefault()
-          break
-      }
-    } else {
-      win.webContents.send('clear-swap')
+    if (changed) {
+      win.webContents.send('main-save-and-close')
+      e.preventDefault()
     }
   })
 
@@ -103,8 +81,8 @@ app.on('activate', () => {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 
-ipcMain.on('saved', (event, msg) => {
-  saved = msg;
+ipcMain.on('changed', (event, msg) => {
+  changed = msg;
 })
 
 

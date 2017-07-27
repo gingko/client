@@ -523,11 +523,8 @@ update msg ({objects, workingTree, status} as model) =
 
     IntentOpen ->
       case (model.filepath, model.changed) of
-        (Nothing, True) ->
-          model ! [js ("save-as-and-open", null)]
-
         (Just filepath, True) ->
-          model ! [js ("save-and-open", filepath |> string)]
+          model ! [js ("open", filepath |> string)]
 
         _ ->
           model ! [js ("open", null)]

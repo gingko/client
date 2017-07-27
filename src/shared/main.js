@@ -100,20 +100,18 @@ const update = (msg, arg) => {
             gingko.ports.externals.send(['saved', filepath])
           )
 
-    , 'saved': () => {
-        changed = false
-        currentFile = arg
-        document.title = `${path.basename(currentFile)} - Gingko`
-      }
+    , 'save-and-close': () =>
+        saveConfirmation(arg).then(app.exit)
 
-    , 'open': openDialog
+    , 'saved': () =>
+        setFileState(false, arg)
 
-    , 'save-and-open': () => {
-        saveConfirmation(arg).then(openDialog)
-      }
-
-    , 'save-as-and-open': () => {
-        saveConfirmation(null).then(openDialog)
+    , 'open': () => {
+        if (changed) {
+          saveConfirmation(arg).then(openDialog)
+        } else {
+          openDialog()
+        }
       }
 
     , 'load': () => {
@@ -224,6 +222,7 @@ ipcRenderer.on('menu-new', () => update('new'))
 ipcRenderer.on('menu-open', () => update('open'))
 ipcRenderer.on('menu-save', () => update('save', currentFile))
 ipcRenderer.on('menu-save-as', () => update('save-as'))
+ipcRenderer.on('main-save-and-close', () => update('save-and-close', currentFile))
 
 document.body.ondrop = (ev) => {
   update('load', ev.dataTransfer.files[0].path)
@@ -467,9 +466,7 @@ const loadFile = (filepathToLoad) => {
 
       db.load(rs).then( res => {
         if (res.ok) {
-          currentFile = filepathToLoad
-          changed = false
-          document.title = `${path.basename(currentFile)} - Gingko`
+          setFileState(false, filepathToLoad)
           load(filepathToLoad)
         } else {
           console.log('db.load res is', res)
@@ -497,13 +494,26 @@ window.onresize = () => {
 }
 
 
-const editingInputHandler = function(ev) {
-  if (!changed) {
+const setFileState = function(bool, newpath) {
+  if (bool) {
     changed = true
     if (!/\*/.test(document.title)) {
       document.title = document.title + "*"
     }
     gingko.ports.externals.send(['changed', ''])
+  } else {
+    changed = false
+    currentFile = newpath
+    document.title = `${path.basename(currentFile)} - Gingko`
+  }
+
+  ipcRenderer.send('changed', bool)
+}
+
+
+const editingInputHandler = function(ev) {
+  if (!changed) {
+    setFileState(true, currentFile)
   }
   collab.field = ev.target.value
   socket.emit('collab', collab)
