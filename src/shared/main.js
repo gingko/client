@@ -58,8 +58,8 @@ self.socket = io.connect('http://localhost:3000')
 
 /* === Elm to JS Ports === */
 
-gingko.ports.js.subscribe( function(elmdata) {
-  const elmCases =
+const update = (msg, arg) => {
+  let cases =
     { 'new': () => {
         let clearDb = () => {
           dbname = sha1(Date.now()+machineIdSync())
@@ -73,7 +73,7 @@ gingko.ports.js.subscribe( function(elmdata) {
         }
 
         if(changed) {
-          saveConfirmation(elmdata[1]).then( () => {
+          saveConfirmation(arg).then( () => {
             db.destroy().then( res => {
               if (res.ok) {
                 clearDb()
@@ -86,23 +86,27 @@ gingko.ports.js.subscribe( function(elmdata) {
       }
 
     , 'save': () =>
-        save(elmdata[1])
+        save(arg)
           .then( filepath =>
             gingko.ports.externals.send(['saved', filepath])
           )
 
-    , 'save-as': saveAs
+    , 'save-as': () =>
+        saveAs()
+          .then( filepath =>
+            gingko.ports.externals.send(['saved', filepath])
+          )
 
     , 'saved': () => {
         changed = false
-        currentFile = elmdata[1]
+        currentFile = arg
         document.title = `${path.basename(currentFile)} - Gingko`
       }
 
     , 'open': openDialog
 
     , 'save-and-open': () => {
-        saveConfirmation(elmdata[1]).then(openDialog)
+        saveConfirmation(arg).then(openDialog)
       }
 
     , 'save-as-and-open': () => {
@@ -114,16 +118,21 @@ gingko.ports.js.subscribe( function(elmdata) {
     , 'push': push
 
     , 'socket-send': () => {
-        collab = elmdata[1]
-        socket.emit('collab', elmdata[1])
+        collab = arg
+        socket.emit('collab', arg)
       }
   }
 
   try {
-    elmCases[elmdata[0]]()
+    cases[msg]()
   } catch(err) {
-    console.log('elmCases failed:', elmdata[0], elmdata[1])
+    console.log('elmCases failed:', msg, arg)
   }
+}
+
+
+gingko.ports.js.subscribe(function(elmdata) {
+  update(elmdata[0], elmdata[1])
 })
 
 
@@ -200,17 +209,15 @@ gingko.ports.activateCards.subscribe(actives => {
 
 /* === JS to Elm Ports === */
 
-ipcRenderer.on('save', e => {
+ipcRenderer.on('menu-new', () => update('new'))
+ipcRenderer.on('menu-open', () => update('open'))
+ipcRenderer.on('menu-save', () => update('save', currentFile))
+ipcRenderer.on('menu-save-as', () => update('save-as'))
 
-})
+socket.on('collab', data => gingko.ports.collabMsg.send(data))
+socket.on('collab-leave', data => gingko.ports.collabLeave.send(data))
 
-socket.on('collab', data => {
-  gingko.ports.collabMsg.send(data)
-})
 
-socket.on('collab-leave', data => {
-  gingko.ports.collabLeave.send(data)
-})
 
 
 /* === Database === */
@@ -338,39 +345,11 @@ const sync = function () {
 }
 
 
-
-
-
-
 const setHead = function(sha) {
   if (sha) {
     gingko.ports.setHead.send(sha)
   }
 }
-
-
-
-
-/* === From Main process to Elm === */
-
-
-ipcRenderer.on('attempt-save', function(e) {
-  if(currentFile) {
-    save(currentFile)
-  } else {
-    saveAs()
-  }
-})
-
-ipcRenderer.on('attempt-save-as', (e) => {
-  saveAs()
-})
-
-
-ipcRenderer.on('attempt-open', function(e) {
-
-})
-
 
 
 

@@ -127,13 +127,13 @@ const menuTemplate =
         , { label: 'Save'
           , accelerator: 'CmdOrCtrl+S'
           , click (item, focusedWindow) {
-              focusedWindow.webContents.send('attempt-save')
+              focusedWindow.webContents.send('menu-save')
             }
           }
         , { label: 'Save As...'
           , accelerator: 'CmdOrCtrl+Shift+S'
           , click (item, focusedWindow) {
-              focusedWindow.webContents.send('attempt-save-as')
+              focusedWindow.webContents.send('menu-save-as')
             }
           }
         , { type: 'separator' }
