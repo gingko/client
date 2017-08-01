@@ -1,1 +1,42 @@
-../package.json
+{
+  "name": "gingko-client",
+  "productName": "Gingko",
+  "version": "0.1.4",
+  "description": "Gingko client rewritten in Elm, packaged with Electron.",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/AdrianoFerrari/gingko-client.git"
+  },
+  "author": {
+    "name": "Adriano Ferrari",
+    "email": "adriano.ferrari@gmail.com"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AdrianoFerrari/gingko-client/issues"
+  },
+  "homepage": "https://github.com/AdrianoFerrari/gingko-client",
+  "main": "electron.js",
+  "scripts": {
+    "start": "webpack --watch",
+    "electron": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "electron-machine-id": "^1.0.9",
+    "jquery": "^3.1.1",
+    "lodash": "^4.17.4",
+    "mz": "^2.6.0",
+    "pouchdb": "^6.3.4",
+    "pouchdb-replication-stream": "^1.2.9",
+    "react": "^15.5.4",
+    "react-commits-graph": "https://github.com/AdrianoFerrari/react-commits-graph.git",
+    "react-dom": "^15.5.4",
+    "sha1": "^1.1.1",
+    "socket.io-client": "^2.0.1",
+    "textarea-autosize": "^0.4.2",
+    "underscore": "^1.8.3"
+  }
+}

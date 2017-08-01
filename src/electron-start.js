@@ -18,7 +18,7 @@ function createAppWindow () {
     { width: 800
     , height: 600
     , backgroundColor: '#32596b'
-    , icon: `${__dirname}/static/leaf128.png` 
+    , icon: `${__dirname}/static/leaf128.png`
     })
 
 
@@ -180,12 +180,12 @@ const menuTemplate =
           }
         ]
     }
-  ] 
+  ]
 
-if(process.defaultApp || /[\\/]electron-prebuilt[\\/]/.test(process.execPath) || /[\\/]electron[\\/]/.test(process.execPath)) {
-  menuTemplate.push( 
+if(true) {//process.defaultApp || /[\\/]electron-prebuilt[\\/]/.test(process.execPath) || /[\\/]electron[\\/]/.test(process.execPath)) {
+  menuTemplate.push(
   { label: 'Debug'
-    , submenu: 
+    , submenu:
         [ { label: 'Show Dev Tools'
           , accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I'
           , click (item, focusedWindow) {

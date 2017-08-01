@@ -3,51 +3,50 @@
   "productName": "Gingko",
   "version": "0.1.4",
   "description": "Gingko client rewritten in Elm, packaged with Electron.",
-  "main": "dist/electron.js",
-  "scripts": {
-    "start": "rm -rf ./dist/ && mkdir -p ./dist/static && cp -r ./src/static/* ./dist/static && webpack --watch",
-    "server": "webpack-dev-server",
-    "electron": "electron .",
-    "build-web": "rm -rf ./dist/ && mkdir -p ./dist/static && cp -r ./src/static/* ./dist/static && TARGET=web webpack --watch",
-    "build-electron": "rm -rf ./dist/ && mkdir -p ./dist/static && cp -r ./src/static/* ./dist/static && TARGET=electron webpack --watch",
-    "elm-web": "elm-make src/elm/Main.elm --output src/elm.js && TARGET=web webpack --watch",
-    "elm-electron": "elm-make src/elm/Main.elm --output src/elm.js && TARGET=electron webpack --watch",
-    "postinstall": "$(npm bin)/electron-rebuild"
-  },
   "repository": {
     "type": "git",
     "url": "git://github.com/AdrianoFerrari/gingko-client.git"
   },
-  "author": "Adriano Ferrari",
+  "author": {
+    "name": "Adriano Ferrari",
+    "email": "adriano.ferrari@gmail.com"
+  },
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/AdrianoFerrari/gingko-client/issues"
   },
   "homepage": "https://github.com/AdrianoFerrari/gingko-client",
+  "main": "electron.js",
+  "scripts": {
+    "start": "webpack --watch",
+    "electron": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder -w",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "build": {
+    "appId": "com.gingkoapp.desktop",
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    },
+    "win": {
+      "target": "NSIS",
+      "icon": "build/leaf256.ico"
+    }
+  },
   "devDependencies": {
     "chokidar-cli": "^1.2.0",
     "electron": "^1.7.4",
-    "electron-rebuild": "^1.5.11",
+    "electron-builder": "^19.6.3",
     "elm-webpack-loader": "^4.3.0",
     "file-loader": "^0.11.2",
     "html-webpack-plugin": "^2.29.0",
     "imports-loader": "^0.7.1",
     "webpack": "^3.3.0",
     "webpack-dev-server": "^2.5.1"
-  },
-  "dependencies": {
-    "electron-machine-id": "^1.0.9",
-    "jquery": "^3.1.1",
-    "lodash": "^4.17.4",
-    "mz": "^2.6.0",
-    "pouchdb": "^6.3.4",
-    "pouchdb-replication-stream": "^1.2.9",
-    "react": "^15.5.4",
-    "react-commits-graph": "https://github.com/AdrianoFerrari/react-commits-graph.git",
-    "react-dom": "^15.5.4",
-    "sha1": "^1.1.1",
-    "socket.io-client": "^2.0.1",
-    "textarea-autosize": "^0.4.2",
-    "underscore": "^1.8.3"
   }
 }

@@ -6,11 +6,10 @@ module.exports = {
   context: path.join(__dirname, 'src'),
   entry: {
       electron: './electron-start.js',
-      main: './shared/main.js',
-      listwindow: './shared/listwindow.js'
+      main: './shared/main.js'
   },
   output: {
-    path: path.join(__dirname, 'dist'),
+    path: path.join(__dirname, 'app'),
     filename: '[name].js'
   },
   resolve: {
@@ -45,14 +44,9 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './static/index.html',
+      template: './static/index.ejs',
       filename: './static/index.html',
       chunks: ['main']
-    }),
-    new HtmlWebpackPlugin({
-      template: './static/list.html',
-      filename: './static/list.html',
-      chunks: ['listwindow'],
     })
   ]
 }
