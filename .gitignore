@@ -2,6 +2,7 @@ elm-stuff
 dist/*
 src/elm.js
 src/elm-*.js
+app/*.js
 node_modules
 Gingko-*
 *.gko
