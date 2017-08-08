@@ -3,6 +3,7 @@ dist/*
 src/elm.js
 src/elm-*.js
 app/*
+!app/package.json
 node_modules
 Gingko-*
 *.gko
