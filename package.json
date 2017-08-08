@@ -22,7 +22,7 @@
     "electron": "electron .",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
-    "dist:win": "electron-builder -w",
+    "dist:win": "electron-builder",
     "postinstall": "electron-builder install-app-deps"
   },
   "build": {
@@ -38,10 +38,29 @@
       "icon": "build/leaf256.ico"
     }
   },
+  "dependencies": {
+    "electron-machine-id": "^1.0.9",
+    "jquery": "^3.1.1",
+    "lodash": "^4.17.4",
+    "mz": "^2.6.0",
+    "pouchdb-adapter-memory": "^6.3.4",
+    "pouchdb-browser": "^6.3.4",
+    "pouchdb-replication-stream": "^1.2.9",
+    "react": "^15.5.4",
+    "react-commits-graph": "https://github.com/AdrianoFerrari/react-commits-graph.git",
+    "react-dom": "^15.5.4",
+    "sha1": "^1.1.1",
+    "socket.io-client": "^2.0.1",
+    "textarea-autosize": "^0.4.2",
+    "underscore": "^1.8.3"
+  },
   "devDependencies": {
     "chokidar-cli": "^1.2.0",
+    "copy-webpack-plugin": "^4.0.1",
     "electron": "^1.7.4",
     "electron-builder": "^19.6.3",
+    "electron-packager": "^8.7.2",
+    "electron-rebuild": "^1.6.0",
     "elm-webpack-loader": "^4.3.0",
     "file-loader": "^0.11.2",
     "html-webpack-plugin": "^2.29.0",

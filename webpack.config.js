@@ -1,5 +1,6 @@
-var path = require('path');
-var HtmlWebpackPlugin = require('html-webpack-plugin');
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   target: 'electron',
@@ -35,7 +36,7 @@ module.exports = {
     ]
   },
   externals : {
-    pouchdb: "require('pouchdb')",
+    "pouchdb-adapter-memory": "require('pouchdb-adapter-memory')",
     "pouchdb-replication-stream": "require('pouchdb-replication-stream')",
     "pouchdb-promise": "require('pouchdb-promise')"
   },
@@ -44,9 +45,15 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './static/index.ejs',
-      filename: './static/index.html',
+      template: './index.ejs',
+      filename: '../app/static/index.html',
       chunks: ['main']
     })
+  , new CopyWebpackPlugin([{
+      from: './static',
+      to: '../app/static'
+    }]
+    , {debug: 'debug'}
+    )
   ]
 }

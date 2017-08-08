@@ -9,10 +9,14 @@ const {ipcRenderer, remote} = require('electron')
 const {app, dialog} = remote
 const querystring = require('querystring')
 
-import PouchDB from "pouchdb";
+import PouchDB from "pouchdb-browser";
+
 const replicationStream = require('pouchdb-replication-stream')
 PouchDB.plugin(replicationStream.plugin)
 PouchDB.adapter('writableStream', replicationStream.adapters.writableStream)
+const memoryAdapter = require('pouchdb-adapter-memory')
+console.log(memoryAdapter)
+PouchDB.plugin(memoryAdapter)
 
 const sha1 = require('sha1')
 const machineIdSync = require('electron-machine-id').machineIdSync
@@ -49,7 +53,7 @@ document.title = `${filename} - Gingko`
 
 var dbpath = path.join(app.getPath('userData'), dbname)
 mkdirp.sync(dbpath)
-self.db = new PouchDB(dbpath)
+self.db = new PouchDB(dbpath, {adapter: 'memory'})
 self.gingko = Elm.Main.fullscreen()
 self.socket = io.connect('http://localhost:3000')
 
@@ -71,7 +75,7 @@ const update = (msg, arg) => {
 
           dbpath = path.join(app.getPath('userData'), dbname)
           mkdirp.sync(dbpath)
-          self.db = new PouchDB(dbpath)
+          self.db = new PouchDB(dbpath, {adapter: 'memory'})
           gingko.ports.externals.send(['new', ''])
         }
 
@@ -462,7 +466,7 @@ const loadFile = (filepathToLoad) => {
     if (res.ok) {
       dbpath = path.join(app.getPath('userData'), sha1(filepathToLoad))
       mkdirp.sync(dbpath)
-      self.db = new PouchDB(dbpath)
+      self.db = new PouchDB(dbpath, {adapter: 'memory'})
 
       db.load(rs).then( res => {
         if (res.ok) {
