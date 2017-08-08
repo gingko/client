@@ -16,14 +16,12 @@
     "url": "https://github.com/AdrianoFerrari/gingko-client/issues"
   },
   "homepage": "https://github.com/AdrianoFerrari/gingko-client",
-  "main": "electron.js",
   "scripts": {
     "start": "webpack --watch",
-    "electron": "electron .",
+    "electron": "electron app/electron.js",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
-    "dist:win": "electron-builder",
-    "postinstall": "electron-builder install-app-deps"
+    "dist:win": "electron-builder"
   },
   "build": {
     "appId": "com.gingkoapp.desktop",
