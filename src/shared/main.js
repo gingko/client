@@ -513,13 +513,38 @@ const loadFile = (filepathToLoad) => {
 const importFile = (filepathToImport) => {
   fs.readFile(filepathToImport, (err, data) => {
 
-    console.log(data.toString())
+    let nextId = 1
+
+    let seed =
+      JSON.parse(
+        data.toString()
+            .replace( /{(\s*)"content":/g
+                    , s => {
+                        return `{"id":"${nextId++}","content":`
+                      }
+                    )
+      )
+
+    let newRoot =
+      seed.length == 1
+        ?
+          { id: "0"
+          , content: seed[0].content
+          , children: seed[0].children
+          }
+        :
+          { id: "0"
+          , content: path.basename(filepath)
+          , children: seed
+          }
 
     db.destroy().then( res => {
       if (res.ok) {
         dbpath = path.join(app.getPath('userData'), sha1(filepathToImport))
         mkdirp.sync(dbpath)
         self.db = new PouchDB(dbpath, {adapter: 'memory'})
+
+        gingko.ports.jsonImport.send(newRoot)
       }
     })
   })

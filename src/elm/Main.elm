@@ -19,7 +19,7 @@ import Trees exposing (..)
 import TreeUtils exposing (..)
 import Sha1 exposing (timestamp, timeJSON)
 import Objects
-import Coders exposing (statusToValue, treeToValue, treeListDecoder, collabStateToValue, collabStateDecoder)
+import Coders exposing (statusToValue, treeToValue, treeListDecoder, treeDecoder, collabStateToValue, collabStateDecoder)
 
 
 main : Program Never Model Msg
@@ -633,7 +633,16 @@ update msg ({objects, workingTree, status} as model) =
           model ! []
 
     ImportJson json ->
-      model ! []
+      case Json.decodeValue treeDecoder json of
+        Ok newTree ->
+          { model
+            | workingTree = Trees.setTree newTree model.workingTree
+          }
+            ! []
+
+        Err err ->
+          let _ = Debug.log "ImportJson error" err in
+          model ! []
 
     SetHeadRev rev ->
       { model
