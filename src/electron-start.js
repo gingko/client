@@ -115,6 +115,12 @@ const menuTemplate =
             }
           }
         , { type: 'separator' }
+        , { label: 'Import JSON File...'
+          , click (item, focusedWindow) {
+              focusedWindow.webContents.send('menu-import-json')
+            }
+          }
+        , { type: 'separator' }
         , { label: 'Exit...'
           , role: 'quit'
           }

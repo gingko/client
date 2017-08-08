@@ -632,6 +632,9 @@ update msg ({objects, workingTree, status} as model) =
           let _ = Debug.log "failed to merge json" json in
           model ! []
 
+    ImportJson json ->
+      model ! []
+
     SetHeadRev rev ->
       { model
         | objects = Objects.setHeadRev rev model.objects
@@ -1045,6 +1048,7 @@ modelToValue model =
 port externals : ((String, String) -> msg) -> Sub msg
 port load : ((Maybe String, Json.Value) -> msg) -> Sub msg
 port merge : (Json.Value -> msg) -> Sub msg
+port jsonImport : (Json.Value -> msg) -> Sub msg
 port setHead : (String -> msg) -> Sub msg
 port setHeadRev : (String -> msg) -> Sub msg
 port keyboard : (String -> msg) -> Sub msg
@@ -1058,6 +1062,7 @@ subscriptions model =
   Sub.batch
     [ load Load
     , merge MergeIn
+    , jsonImport ImportJson
     , setHead CheckoutCommit
     , setHeadRev SetHeadRev
     , keyboard HandleKey

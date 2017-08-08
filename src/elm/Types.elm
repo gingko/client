@@ -46,6 +46,7 @@ type Msg
     | ExternalMessage (String, String)
     | Load (Maybe String, Json.Value) -- |> UpdateCommits
     | MergeIn Json.Value -- |> [Save] |> UpdateCommits
+    | ImportJson Json.Value
     | SetHeadRev String
     | UpdateCommits (Json.Value, Maybe String)
     | Save -- |> UpdateCommits |> [Push]

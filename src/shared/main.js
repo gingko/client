@@ -125,6 +125,14 @@ const update = (msg, arg) => {
           }
         }
 
+    , 'import': () => {
+        if (changed) {
+          saveConfirmation(arg).then(importDialog)
+        } else {
+          importDialog()
+        }
+    }
+
     , 'pull': sync
 
     , 'push': push
@@ -223,6 +231,7 @@ gingko.ports.activateCards.subscribe(actives => {
 
 ipcRenderer.on('menu-new', () => update('new'))
 ipcRenderer.on('menu-open', () => update('open'))
+ipcRenderer.on('menu-import-json', () => update('import'))
 ipcRenderer.on('menu-save', () => update('save', currentFile))
 ipcRenderer.on('menu-save-as', () => update('save-as'))
 ipcRenderer.on('main-save-and-close', () => update('save-and-close', currentFile))
@@ -458,6 +467,25 @@ const openDialog = () => {
   )
 }
 
+const importDialog = () => {
+  dialog.showOpenDialog(
+    null,
+    { title: "Import JSON File..."
+    , defaultPath: currentFile ? path.dirname(currentFile) : app.getPath('documents')
+    , properties: ['openFile']
+    , filters:  [ {name: 'Gingko JSON files (*.json)', extensions: ['json']}
+                , {name: 'All Files', extensions: ['*']}
+                ]
+    }
+    , function(filepathArray) {
+        var filepathToImport = filepathArray[0]
+        if(!!filepathToImport) {
+          importFile(filepathToImport)
+        }
+      }
+  )
+}
+
 
 const loadFile = (filepathToLoad) => {
   var rs = fs.createReadStream(filepathToLoad)
@@ -478,6 +506,22 @@ const loadFile = (filepathToLoad) => {
         console.log('file load err', err)
       })
     }
+  })
+}
+
+
+const importFile = (filepathToImport) => {
+  fs.readFile(filepathToImport, (err, data) => {
+
+    console.log(data.toString())
+
+    db.destroy().then( res => {
+      if (res.ok) {
+        dbpath = path.join(app.getPath('userData'), sha1(filepathToImport))
+        mkdirp.sync(dbpath)
+        self.db = new PouchDB(dbpath, {adapter: 'memory'})
+      }
+    })
   })
 }
 
