@@ -21,7 +21,8 @@
     "electron": "electron app/electron.js",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
-    "dist:win": "electron-builder"
+    "dist:win": "electron-builder -w",
+    "dist:mac": "electron-builder -m"
   },
   "build": {
     "appId": "com.gingkoapp.desktop",
@@ -34,6 +35,9 @@
     "win": {
       "target": "NSIS",
       "icon": "build/leaf256.ico"
+    },
+    "mac": {
+      "target": "tar.gz"
     }
   },
   "dependencies": {

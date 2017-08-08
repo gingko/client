@@ -2,7 +2,12 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
-## Unreleased
+## [0.1.4] - 2017-08-08
+- **Completely rewrote** storage to be able to support:
+  - Git-like branching version history
+  - Real-time collaboration when online
+  - Change merging when syncing after offline editing
+  - Backup to CouchDB server
 - Removed auto-titles.
 
 
