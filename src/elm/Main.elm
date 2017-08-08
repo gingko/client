@@ -635,10 +635,12 @@ update msg ({objects, workingTree, status} as model) =
     ImportJson json ->
       case Json.decodeValue treeDecoder json of
         Ok newTree ->
-          { model
+          { defaultModel
             | workingTree = Trees.setTree newTree model.workingTree
+            , changed = True
           }
             ! []
+            |> andThen (UpdateCommits (defaultModel.objects |> Objects.toValue, Nothing))
 
         Err err ->
           let _ = Debug.log "ImportJson error" err in
@@ -1057,7 +1059,7 @@ modelToValue model =
 port externals : ((String, String) -> msg) -> Sub msg
 port load : ((Maybe String, Json.Value) -> msg) -> Sub msg
 port merge : (Json.Value -> msg) -> Sub msg
-port jsonImport : (Json.Value -> msg) -> Sub msg
+port importJson : (Json.Value -> msg) -> Sub msg
 port setHead : (String -> msg) -> Sub msg
 port setHeadRev : (String -> msg) -> Sub msg
 port keyboard : (String -> msg) -> Sub msg
@@ -1071,7 +1073,7 @@ subscriptions model =
   Sub.batch
     [ load Load
     , merge MergeIn
-    , jsonImport ImportJson
+    , importJson ImportJson
     , setHead CheckoutCommit
     , setHeadRev SetHeadRev
     , keyboard HandleKey

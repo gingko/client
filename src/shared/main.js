@@ -544,7 +544,9 @@ const importFile = (filepathToImport) => {
         mkdirp.sync(dbpath)
         self.db = new PouchDB(dbpath, {adapter: 'memory'})
 
-        gingko.ports.jsonImport.send(newRoot)
+        document.title = `${path.basename(filepathToImport)} - Gingko`
+        setFileState(true, null)
+        gingko.ports.importJson.send(newRoot)
       }
     })
   })
@@ -570,7 +572,7 @@ const setFileState = function(bool, newpath) {
   if (bool) {
     changed = true
     if (!/\*/.test(document.title)) {
-      document.title = document.title + "*"
+      document.title = "*" + document.title
     }
     gingko.ports.externals.send(['changed', ''])
   } else {
