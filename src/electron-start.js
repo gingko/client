@@ -168,20 +168,9 @@ const menuTemplate =
     }
   , { label: 'Help'
     , submenu:
-        [ { label: 'Contact Support'
+        [ { label: 'Contact Adriano'
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('contact-support')
-            }
-          }
-        , { type: 'separator' }
-        , { label: 'Purchase License'
-          , click (item, focusedWindow) {
-              openPaymentPage()
-            }
-          }
-        , { label: 'Enter License Key'
-          , click (item, focusedWindow) {
-              showSerialWindow()
             }
           }
         ]

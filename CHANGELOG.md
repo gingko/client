@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
+## Unreleased
+  - Removed unused "License/Purchase" options from Help menu.
+  - Fixed "Contact Support" not working.
+
+
 ## [0.1.4] - 2017-08-08
 - **Completely rewrote** storage to be able to support:
   - Git-like branching version history

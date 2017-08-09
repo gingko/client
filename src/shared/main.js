@@ -235,6 +235,7 @@ ipcRenderer.on('menu-import-json', () => update('import'))
 ipcRenderer.on('menu-save', () => update('save', currentFile))
 ipcRenderer.on('menu-save-as', () => update('save-as'))
 ipcRenderer.on('main-save-and-close', () => update('save-and-close', currentFile))
+ipcRenderer.on('contact-support', () => drift.api.openChat())
 
 document.body.ondrop = (ev) => {
   update('load', ev.dataTransfer.files[0].path)
