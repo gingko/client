@@ -231,15 +231,12 @@ update msg ({objects, workingTree, status} as model) =
       if newTree.tree /= model.workingTree.tree then
         { model
           | workingTree = newTree
-          , viewState = { vs | active = id, editing = Nothing }
         }
           ! []
           |> andThen Save
           |> andThen (SendCollabState (CollabState model.uid (Active id) ""))
       else
-        { model
-          | viewState = { vs | active = id, editing = Nothing }
-        }
+        model
           ! []
           |> andThen (SendCollabState (CollabState model.uid (Active id) ""))
 
@@ -749,7 +746,14 @@ update msg ({objects, workingTree, status} as model) =
           model ! []
 
         "mod+enter" ->
-          editMode model (\id -> GetContentToSave id)
+          case vs.editing of
+            Nothing ->
+              model ! []
+
+            Just uid ->
+              update (GetContentToSave uid) model
+                |> andThen CancelCard
+                |> andThen (Activate uid)
 
         "enter" ->
           normalMode model (OpenCard vs.active (getContent vs.active model.workingTree.tree))
@@ -761,19 +765,19 @@ update msg ({objects, workingTree, status} as model) =
           update CancelCard model
 
         "mod+j" ->
-          update (InsertBelow vs.active) model
+          model |> maybeSaveAndThen (InsertBelow vs.active)
 
         "mod+down" ->
-          update (InsertBelow vs.active) model
+          model |> maybeSaveAndThen (InsertBelow vs.active)
 
         "mod+k" ->
-          update (InsertAbove vs.active) model
+          model |> maybeSaveAndThen (InsertAbove vs.active)
 
         "mod+up" ->
-          update (InsertAbove vs.active) model
+          model |> maybeSaveAndThen (InsertAbove vs.active)
 
         "mod+l" ->
-          update (InsertChild vs.active) model
+          model |> maybeSaveAndThen (InsertChild vs.active)
 
         "mod+right" ->
           normalMode model (InsertChild vs.active)
@@ -1099,14 +1103,15 @@ run msg =
   Task.attempt (\_ -> msg ) (Task.succeed msg)
 
 
-editMode : Model -> (String -> Msg) -> (Model, Cmd Msg)
-editMode model editing =
+maybeSaveAndThen : Msg -> Model -> (Model, Cmd Msg)
+maybeSaveAndThen msg model =
   case model.viewState.editing of
     Nothing ->
-      model ! []
+      update msg model
 
     Just uid ->
-      update (editing uid) model
+      update (GetContentToSave uid) model
+        |> andThen msg
 
 
 normalMode : Model -> Msg -> (Model, Cmd Msg)
