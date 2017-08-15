@@ -66,7 +66,9 @@ self.socket = io.connect('http://localhost:3000')
 
 const update = (msg, arg) => {
   let cases =
-    { 'new': () => {
+    { 'alert': () => { alert(arg) }
+
+    , 'new': () => {
         let clearDb = () => {
           dbname = sha1(Date.now()+machineIdSync())
           filename = "Untitled Tree"

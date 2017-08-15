@@ -29,7 +29,7 @@ type alias Model =
 defaultModel : Model
 defaultModel =
   { tree = defaultTree
-  , columns = [[[defaultTree]]]
+  , columns = [[[defaultTree]], [getChildren defaultTree] ]
   }
 
 
@@ -37,7 +37,7 @@ defaultTree : Tree
 defaultTree =
   { id = "0"
   , content = ""
-  , children = Children []
+  , children = Children [Tree "1" "" (Children [])]
   }
 
 
@@ -293,6 +293,7 @@ view vstate model =
     columnsWithDepth =
       model.columns
         |> List.indexedMap (\i c -> (c, i))
+        |> List.drop 1
 
     getViewArgs cwd =
       let
@@ -398,9 +399,6 @@ viewKeyedCard tup tree =
 viewCard : (Bool, Bool, Int, List String, List String) -> Tree -> Html Msg
 viewCard (isActive, isEditing, depth, collaborators, collabsEditing) tree =
   let
-    isRoot = tree.id == "0"
-
-
     hasChildren =
       case tree.children of
         Children c ->
@@ -419,8 +417,8 @@ viewCard (isActive, isEditing, depth, collaborators, collabsEditing) tree =
         []
 
     buttons =
-      case (isEditing, isActive, isRoot) of
-        ( False, True, False ) ->
+      case (isEditing, isActive) of
+        ( False, True ) ->
           [ div [ class "flex-row card-top-overlay" ]
                 [ span
                   [ class "card-btn ins-above"
@@ -459,24 +457,7 @@ viewCard (isActive, isEditing, depth, collaborators, collabsEditing) tree =
                 ]
           ]
 
-        ( False, True, True ) ->
-          [ div [ class "flex-column card-right-overlay"]
-                [ span
-                  [ class "card-btn ins-right"
-                  , title "Add Child (Ctrl+L)"
-                  , onClick (InsertChild tree.id)
-                  ]
-                  [ text "+" ]
-                , span
-                  [ class "card-btn edit"
-                  , title "Edit Card (Enter)"
-                  , onClick (OpenCard tree.id tree.content)
-                  ]
-                  []
-                ]
-          ]
-
-        ( True, _, _ ) ->
+        ( True, _ ) ->
           [ div [ class "flex-column card-right-overlay"]
                 [ span
                   [ class "card-btn save"
@@ -494,7 +475,6 @@ viewCard (isActive, isEditing, depth, collaborators, collabsEditing) tree =
     cardAttributes =
       [ id ("card-" ++ tree.id)
       , classList [ ("card", True)
-                  , ("root", isRoot)
                   , ("active", isActive)
                   , ("editing", isEditing)
                   , ("collab-active", not isEditing && not (List.isEmpty collaborators) )

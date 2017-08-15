@@ -239,10 +239,11 @@ centerlineIds flatCols allIds activePast =
         Just idx ->
           aP
             |> ListExtra.getAt idx -- Maybe String
-            |> Maybe.withDefault "0"
+            |> Maybe.withDefault "1"
             |> ListExtra.singleton
   in
   flatCols
+    |> List.drop 1
     |> List.map (\c -> List.filter (\id -> List.member id allIds) c)
     |> ListExtra.filterNot List.isEmpty
     |> List.map (lastActiveOrAll activePast)

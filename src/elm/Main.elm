@@ -64,7 +64,7 @@ defaultModel =
   , status = Bare
   , uid = timeJSON ()
   , viewState =
-      { active = "0"
+      { active = "1"
       , activePast = []
       , activeFuture = []
       , descendants = []
@@ -80,8 +80,8 @@ defaultModel =
 init : (Model, Cmd Msg)
 init =
   defaultModel
-    ! [focus "0"]
-    |> andThen (Activate "0")
+    ! [focus "1"]
+    |> andThen (Activate "1")
 
 
 
@@ -98,54 +98,57 @@ update msg ({objects, workingTree, status} as model) =
     -- === Card Activation ===
 
     Activate id ->
-      let
-        activeTree_ = getTree id model.workingTree.tree
-        newPast =
-          if (id == vs.active) then
-            vs.activePast
-          else
-            vs.active :: vs.activePast |> List.take 40
-      in
-      case activeTree_ of
-        Just activeTree ->
-          let
-            desc =
-              activeTree
-                |> getDescendants
-                |> List.map .id
+      if id == "0" then
+        model ! []
+      else
+        let
+          activeTree_ = getTree id model.workingTree.tree
+          newPast =
+            if (id == vs.active) then
+              vs.activePast
+            else
+              vs.active :: vs.activePast |> List.take 40
+        in
+        case activeTree_ of
+          Just activeTree ->
+            let
+              desc =
+                activeTree
+                  |> getDescendants
+                  |> List.map .id
 
-            anc =
-              getAncestors model.workingTree.tree activeTree []
-                |> List.map .id
+              anc =
+                getAncestors model.workingTree.tree activeTree []
+                  |> List.map .id
 
-            flatCols =
-              model.workingTree.columns
-                |> List.map (\c -> List.map (\g -> List.map .id g) c)
-                |> List.map List.concat
+              flatCols =
+                model.workingTree.columns
+                  |> List.map (\c -> List.map (\g -> List.map .id g) c)
+                  |> List.map List.concat
 
-            allIds =
-              anc
-              ++ [id]
-              ++ desc
-          in
-          { model
-            | viewState =
-                { vs
-                  | active = id
-                  , activePast = newPast
-                  , activeFuture = []
-                  , descendants = desc
-                }
-          }
-            ! [ activateCards
-                  ( getDepth 0 model.workingTree.tree id
-                  , centerlineIds flatCols allIds newPast
-                  )
-              ]
-              |> andThen (SendCollabState (CollabState model.uid (Active id) ""))
+              allIds =
+                anc
+                ++ [id]
+                ++ desc
+            in
+            { model
+              | viewState =
+                  { vs
+                    | active = id
+                    , activePast = newPast
+                    , activeFuture = []
+                    , descendants = desc
+                  }
+            }
+              ! [ activateCards
+                    ( getDepth 0 model.workingTree.tree id
+                    , centerlineIds flatCols allIds newPast
+                    )
+                ]
+                |> andThen (SendCollabState (CollabState model.uid (Active id) ""))
 
-        Nothing ->
-          model ! []
+          Nothing ->
+            model ! []
 
     GoLeft id ->
       let
@@ -255,22 +258,24 @@ update msg ({objects, workingTree, status} as model) =
         prev_ = getPrevInColumn id model.workingTree.tree
         next_ = getNextInColumn id model.workingTree.tree
 
-        nextToActivate =
+        (nextToActivate, isLastChild) =
           case (parent_, prev_, next_) of
             (_, Just prev, _) ->
-              prev.id
+              (prev.id, False)
 
             (_, Nothing, Just next) ->
-              next.id
+              (next.id, False)
 
             (Just parent, Nothing, Nothing) ->
-              parent.id
+              (parent.id, parent.id == "0")
 
             (Nothing, Nothing, Nothing) ->
-              "0"
+              ("0", True)
       in
       if isLocked then
         model ! [js ("alert", string "Card is being edited by someone else.")]
+      else if isLastChild then
+        model ! [js ("alert", string "Cannot delete last card.")]
       else
         { model
           | workingTree = Trees.update (Trees.Rmv id) model.workingTree
