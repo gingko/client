@@ -14,7 +14,7 @@ import PouchDB from "pouchdb-browser";
 const replicationStream = require('pouchdb-replication-stream')
 PouchDB.plugin(replicationStream.plugin)
 PouchDB.adapter('writableStream', replicationStream.adapters.writableStream)
-const memoryAdapter = require('pouchdb-adapter-memory')
+import memoryAdapter from "pouchdb-adapter-memory";
 PouchDB.plugin(memoryAdapter)
 
 const sha1 = require('sha1')
