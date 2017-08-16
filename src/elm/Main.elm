@@ -19,7 +19,7 @@ import Trees exposing (..)
 import TreeUtils exposing (..)
 import Sha1 exposing (timestamp, timeJSON)
 import Objects
-import Coders exposing (statusToValue, treeToValue, treeListDecoder, treeDecoder, collabStateToValue, collabStateDecoder)
+import Coders exposing (..)
 
 
 main : Program Never Model Msg
@@ -876,6 +876,11 @@ update msg ({objects, workingTree, status} as model) =
             | changed = True
           }
             ! []
+
+        "export-json" ->
+          model
+            ! [js ("export-json", model.workingTree.tree |> treeNoRootToJSON )]
+
 
         _ ->
           let _ = Debug.log "Unknown external command" cmd in

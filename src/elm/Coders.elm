@@ -290,6 +290,13 @@ treeToSimpleJSON tree =
       )
 
 
+treeNoRootToJSON : Tree -> Enc.Value
+treeNoRootToJSON tree =
+  case tree.children of
+    Children c ->
+      Enc.array (fromList (List.map treeToSimpleJSON c))
+
+
 
 
 -- HELPERS

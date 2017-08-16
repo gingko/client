@@ -115,6 +115,11 @@ const menuTemplate =
             }
           }
         , { type: 'separator' }
+        , { label: 'Export JSON File...'
+          , click (item, focusedWindow) {
+              focusedWindow.webContents.send('menu-export-json')
+            }
+          }
         , { label: 'Import JSON File...'
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('menu-import-json')

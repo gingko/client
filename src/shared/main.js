@@ -111,6 +111,10 @@ const update = (msg, arg) => {
     , 'saved': () =>
         setFileState(false, arg)
 
+    , 'export-json': () => {
+        exportJson(arg)
+    }
+
     , 'open': () => {
         if (changed) {
           saveConfirmation(arg).then(openDialog)
@@ -233,6 +237,7 @@ gingko.ports.activateCards.subscribe(actives => {
 
 ipcRenderer.on('menu-new', () => update('new'))
 ipcRenderer.on('menu-open', () => update('open'))
+ipcRenderer.on('menu-export-json', () => gingko.ports.externals.send(['export-json', '']))
 ipcRenderer.on('menu-import-json', () => update('import'))
 ipcRenderer.on('menu-save', () => update('save', currentFile))
 ipcRenderer.on('menu-save-as', () => update('save-as'))
@@ -451,6 +456,32 @@ const saveConfirmation = (filepath) => {
 }
 
 
+const exportJson = (data) => {
+  return new Promise(
+    (resolve, reject) => {
+      var options =
+        { title: 'Export JSON'
+        , defaultPath: currentFile ? currentFile.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.json")
+        , filters:  [ {name: 'Gingko JSON (*.json)', extensions: ['json']}
+                    , {name: 'All Files', extensions: ['*']}
+                    ]
+        }
+
+      dialog.showSaveDialog(options, function(filepath){
+        if(!!filepath){
+          fs.writeFile(filepath, JSON.stringify(data, undefined, 2), (err) => {
+            if (err) reject(new Error('export-json writeFile failed'))
+            resolve(data)
+          })
+        } else {
+          reject(new Error('no export path chosen'))
+        }
+      })
+    }
+  )
+}
+
+
 const openDialog = () => {
   dialog.showOpenDialog(
     null,
@@ -537,7 +568,7 @@ const importFile = (filepathToImport) => {
           }
         :
           { id: "0"
-          , content: path.basename(filepath)
+          , content: path.basename(filepathToImport)
           , children: seed
           }
 

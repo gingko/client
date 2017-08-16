@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
 ## Unreleased
+  - Export to JSON feature available again.
   - Fixed "Can't add cards above/below first card".
   - Fixed "Changes lost if I create new card while in edit mode" bug.
   - Removed unused "License/Purchase" options from Help menu.
