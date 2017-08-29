@@ -49,7 +49,7 @@
     "pouchdb-browser": "^6.3.4",
     "pouchdb-replication-stream": "^1.2.9",
     "react": "^15.5.4",
-    "react-commits-graph": "https://github.com/AdrianoFerrari/react-commits-graph.git",
+    "react-commits-graph": "git+https://github.com/AdrianoFerrari/react-commits-graph.git",
     "react-dom": "^15.5.4",
     "sha1": "^1.1.1",
     "socket.io-client": "^2.0.1",
@@ -59,15 +59,15 @@
   "devDependencies": {
     "chokidar-cli": "^1.2.0",
     "copy-webpack-plugin": "^4.0.1",
-    "electron": "^1.7.4",
-    "electron-builder": "^19.6.3",
+    "electron": "^1.7.6",
+    "electron-builder": "^19.27.0",
     "electron-packager": "^8.7.2",
     "electron-rebuild": "^1.6.0",
     "elm-webpack-loader": "^4.3.0",
     "file-loader": "^0.11.2",
     "html-webpack-plugin": "^2.29.0",
     "imports-loader": "^0.7.1",
-    "webpack": "^3.3.0",
-    "webpack-dev-server": "^2.5.1"
+    "webpack": "^3.5.5",
+    "webpack-dev-server": "^2.7.1"
   }
 }
