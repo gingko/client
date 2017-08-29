@@ -6,8 +6,6 @@ const sha1 = require('sha1')
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win
-let listWindow
-let serialWindow
 let changed = false
 
 
@@ -145,6 +143,11 @@ const menuTemplate =
               focusedWindow.webContents.send('redo')
             }
           }
+        , { type: 'separator' }
+        , { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" }
+        , { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" }
+        , { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" }
+        , { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
         ]
     }
   , { label: 'View'
