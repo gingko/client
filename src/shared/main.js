@@ -5,7 +5,7 @@ const autosize = require('textarea-autosize')
 const fs = require('fs')
 const path = require('path')
 const mkdirp = require('mkdirp')
-const {ipcRenderer, remote} = require('electron')
+const {ipcRenderer, remote, webFrame} = require('electron')
 const {app, dialog} = remote
 const querystring = require('querystring')
 
@@ -241,8 +241,10 @@ ipcRenderer.on('menu-export-json', () => gingko.ports.externals.send(['export-js
 ipcRenderer.on('menu-import-json', () => update('import'))
 ipcRenderer.on('menu-save', () => update('save', currentFile))
 ipcRenderer.on('menu-save-as', () => update('save-as'))
+ipcRenderer.on('zoomin', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() + 1) })
+ipcRenderer.on('zoomout', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() - 1) })
+ipcRenderer.on('resetzoom', e => { webFrame.setZoomLevel(0) })
 ipcRenderer.on('main-save-and-close', () => update('save-and-close', currentFile))
-ipcRenderer.on('contact-support', () => drift.api.openChat())
 
 document.body.ondrop = (ev) => {
   update('load', ev.dataTransfer.files[0].path)
