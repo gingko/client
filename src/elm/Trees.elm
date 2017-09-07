@@ -462,7 +462,7 @@ viewCard (isActive, isEditing, depth, collaborators, collabsEditing) tree =
                 [ span
                   [ class "card-btn save"
                   , title "Save Changes (Ctrl+Enter)"
-                  , onClick (GetContentToSave tree.id)
+                  , onClick (HandleKey "mod+enter")
                   ]
                   []
                 ]
