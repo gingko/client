@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
+## Unreleased
+  - Replaced Drift with simpler email + phone support.
+  - Columns widths increased to 450px minimum.
+
 ## [0.1.5] - 2017-08-29
   - Mac: Cut/Copy/Paste added to Menu. Should fix "can't copy/paste" on macOS.
   - Export to JSON feature available again.
