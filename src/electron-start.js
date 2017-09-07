@@ -6,6 +6,7 @@ const sha1 = require('sha1')
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win
+let winSupport
 let changed = false
 
 
@@ -52,6 +53,25 @@ function createAppWindow () {
 
   // menu is defined outside this function, far below for now.
   Menu.setApplicationMenu(menu)
+}
+
+
+function createSupportWindow () {
+  winSupport = new BrowserWindow(
+    { width: 500
+    , height: 300
+    , backgroundColor: '#fff'
+    , parent: win
+    , modal: true
+    , show: false
+    })
+
+  var url = `file://${__dirname}/static/support.html`
+  winSupport.setMenu(null)
+  winSupport.once('ready-to-show', () => {
+    winSupport.show()
+  })
+  winSupport.loadURL(url)
 }
 
 // This method will be called when Electron has finished
@@ -178,7 +198,7 @@ const menuTemplate =
     , submenu:
         [ { label: 'Contact Adriano'
           , click (item, focusedWindow) {
-              focusedWindow.webContents.send('contact-support')
+              createSupportWindow()
             }
           }
         ]
