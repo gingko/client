@@ -879,7 +879,7 @@ update msg ({objects, workingTree, status} as model) =
 
         "export-json" ->
           model
-            ! [js ("export-json", model.workingTree.tree |> treeNoRootToJSON )]
+            ! [js ("export-json", model.workingTree.tree |> treeToJSON )]
 
 
         _ ->

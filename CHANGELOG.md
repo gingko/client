@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
 ## Unreleased
+  - Fixed JSON export. Format was incorrect and didn't import to web version.
   - Save by clicking checkmark now works.
   - Replaced Drift with simpler email + phone support.
   - Columns widths increased to 450px minimum.

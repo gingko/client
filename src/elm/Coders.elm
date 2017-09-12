@@ -276,25 +276,21 @@ selectionDecoder =
 
 -- EXPORT ENCODINGS
 
-treeToSimpleJSON : Tree -> Enc.Value
-treeToSimpleJSON tree =
+treeToJSON : Tree -> Enc.Value
+treeToJSON tree =
   case tree.children of
     Children c ->
-      Enc.array
-      ( fromList
-        [ Enc.object
-          [ ( "content", Enc.string tree.content )
-          , ( "children", Enc.array (fromList (List.map treeToSimpleJSON c)))
-          ]
+      Enc.list (List.map treeToJSONrecurse c)
+
+
+treeToJSONrecurse : Tree -> Enc.Value
+treeToJSONrecurse tree =
+  case tree.children of
+    Children c ->
+      Enc.object
+        [ ( "content", Enc.string tree.content )
+        , ( "children", Enc.list (List.map treeToJSONrecurse c) )
         ]
-      )
-
-
-treeNoRootToJSON : Tree -> Enc.Value
-treeNoRootToJSON tree =
-  case tree.children of
-    Children c ->
-      Enc.array (fromList (List.map treeToSimpleJSON c))
 
 
 
