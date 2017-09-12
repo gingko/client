@@ -201,7 +201,7 @@ var scrollTo = function(cid, colIdx) {
 }
 
 var scrollHorizTo = function(colIdx) {
-  var col = document.getElementsByClassName('column')[colIdx+1]
+  var col = document.getElementsByClassName('column')[colIdx]
   var appEl = document.getElementById('app');
   if (col == null) {
     console.log('scroll horiz error: not found', colIdx)
@@ -220,9 +220,11 @@ var scrollHorizTo = function(colIdx) {
       });
   } else if (rect.right > appEl.offsetWidth - 100) {
     TweenMax.to(appEl, 0.50,
-      { scrollLeft: appEl.scrollLeft + 100 + rect.right - appEl.offsetWidth 
+      { scrollLeft: appEl.scrollLeft + 100 + rect.right - appEl.offsetWidth
       , ease: Power2.easeInOut
       });
+  } else {
+    console.log("else")
   }
 }
 
