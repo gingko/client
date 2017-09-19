@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
+## [0.1.7] - 2017-09-19
+  - Fixed bug with JSON import (didn't save as gko unless changes made first).
+
 ## [0.1.6] - 2017-09-12
   - Fixed JSON export. Format was incorrect and didn't import to web version.
   - Save by clicking checkmark now works.

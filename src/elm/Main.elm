@@ -637,12 +637,18 @@ update msg ({objects, workingTree, status} as model) =
     ImportJson json ->
       case Json.decodeValue treeDecoder json of
         Ok newTree ->
+          let
+            (newStatus, _, newObjects) =
+              Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" newTree) model.objects
+          in
           { defaultModel
             | workingTree = Trees.setTree newTree model.workingTree
+            , objects = newObjects
+            , status = newStatus
             , changed = True
           }
-            ! []
-            |> andThen (UpdateCommits (defaultModel.objects |> Objects.toValue, Nothing))
+            ! [saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)]
+            |> andThen (UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus))
 
         Err err ->
           let _ = Debug.log "ImportJson error" err in
