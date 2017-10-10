@@ -1,4 +1,4 @@
-const {app, BrowserWindow, dialog, Menu, ipcMain, shell} = require('electron')
+const {app, BrowserWindow, dialog, Menu, ipcMain, shell, autoUpdater} = require('electron')
 const fs = require('mz/fs')
 const path = require('path')
 const sha1 = require('sha1')
@@ -50,6 +50,17 @@ function createAppWindow () {
     // when you should delete the corresponding element.
     win = null
   })
+
+  console.log('autoUpdater', autoUpdater)
+  autoUpdater.setFeedURL('http://localhost:8080')
+  autoUpdater.checkForUpdates()
+  autoUpdater.on('error', (err) => {
+    win.webContents.send('autoUpdater-error')
+  })
+  autoUpdater.on('checking-for-update', (ev) => {
+    win.webContents.send('autoUpdater-checking')
+  })
+
 
   // menu is defined outside this function, far below for now.
   Menu.setApplicationMenu(menu)
