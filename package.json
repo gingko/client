@@ -28,8 +28,7 @@
     "appId": "com.gingkoapp.desktop",
     "linux": {
       "target": [
-        "AppImage",
-        "deb"
+        "AppImage"
       ]
     },
     "win": {
@@ -41,6 +40,7 @@
     }
   },
   "dependencies": {
+    "dblsqd-electron": "^0.2.1",
     "electron-machine-id": "^1.0.9",
     "jquery": "^3.1.1",
     "lodash": "^4.17.4",
@@ -62,6 +62,7 @@
     "electron": "^1.7.6",
     "electron-builder": "^19.27.0",
     "electron-builder-squirrel-windows": "^19.35.1",
+    "electron-debug": "^1.4.0",
     "electron-packager": "^8.7.2",
     "electron-rebuild": "^1.6.0",
     "elm-webpack-loader": "^4.3.0",

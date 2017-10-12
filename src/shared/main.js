@@ -246,9 +246,6 @@ ipcRenderer.on('zoomout', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() -
 ipcRenderer.on('resetzoom', e => { webFrame.setZoomLevel(0) })
 ipcRenderer.on('main-save-and-close', () => update('save-and-close', currentFile))
 
-ipcRenderer.on('autoUpdater-error', e => {console.log('autoUpdater-error', e)})
-ipcRenderer.on('autoUpdater-checking', e => {console.log('autoUpdater-checking', e)})
-
 document.body.ondrop = (ev) => {
   update('load', ev.dataTransfer.files[0].path)
   ev.preventDefault()

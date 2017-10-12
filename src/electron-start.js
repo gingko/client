@@ -10,6 +10,19 @@ let winSupport
 let changed = false
 
 
+const {Feed} = require('dblsqd-sdk')
+const {UpdateWindow} = require('dblsqd-electron')
+
+let feed = new Feed("https://feeds.dblsqd.com/IEsVYK1_Te2BZIyJWhcelw", "testing", "linux", "x86_64")
+let updateWindow = new UpdateWindow(feed, {showOn: "manual"})
+
+require('electron-debug')({showDevTools: true})
+
+function createUpdateWindow () {
+  updateWindow.show()
+}
+
+
 function createAppWindow () {
 
   // Create the browser window.
@@ -51,15 +64,6 @@ function createAppWindow () {
     win = null
   })
 
-  console.log('autoUpdater', autoUpdater)
-  autoUpdater.setFeedURL('http://localhost:8080')
-  autoUpdater.checkForUpdates()
-  autoUpdater.on('error', (err) => {
-    win.webContents.send('autoUpdater-error')
-  })
-  autoUpdater.on('checking-for-update', (ev) => {
-    win.webContents.send('autoUpdater-checking')
-  })
 
 
   // menu is defined outside this function, far below for now.
@@ -88,7 +92,7 @@ function createSupportWindow () {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createAppWindow)
+app.on('ready', createUpdateWindow)
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
