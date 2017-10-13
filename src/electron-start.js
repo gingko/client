@@ -13,7 +13,13 @@ let changed = false
 const {Feed} = require('dblsqd-sdk')
 const {UpdateWindow} = require('dblsqd-electron')
 
-let feed = new Feed("https://feeds.dblsqd.com/IEsVYK1_Te2BZIyJWhcelw", "testing", "linux", "x86_64")
+const platform = process.platform == 'darwin' ? 'mac'
+  : process.platform == 'win32' ? 'win'
+  : process.platform == 'linux' ? 'linux'
+  : 'other platform'
+
+console.log('platform:', platform)
+let feed = new Feed("https://feeds.dblsqd.com/IEsVYK1_Te2BZIyJWhcelw", "testing", platform , "x86_64")
 let updateWindow = new UpdateWindow(feed)
 
 
