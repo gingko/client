@@ -14,13 +14,9 @@ const {Feed} = require('dblsqd-sdk')
 const {UpdateWindow} = require('dblsqd-electron')
 
 let feed = new Feed("https://feeds.dblsqd.com/IEsVYK1_Te2BZIyJWhcelw", "testing", "linux", "x86_64")
-let updateWindow = new UpdateWindow(feed, {showOn: "manual"})
+let updateWindow = new UpdateWindow(feed)
 
-require('electron-debug')({showDevTools: true})
 
-function createUpdateWindow () {
-  updateWindow.show()
-}
 
 
 function createAppWindow () {
@@ -92,7 +88,7 @@ function createSupportWindow () {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createUpdateWindow)
+app.on('ready', createAppWindow)
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
