@@ -1,29 +1,15 @@
 const {app, BrowserWindow, dialog, Menu, ipcMain, shell, autoUpdater} = require('electron')
+const {Feed} = require('dblsqd-sdk')
+const {UpdateWindow} = require('dblsqd-electron')
 const fs = require('mz/fs')
 const path = require('path')
 const sha1 = require('sha1')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let win
+let win, updateWindow
 let winSupport
 let changed = false
-
-
-const {Feed} = require('dblsqd-sdk')
-const {UpdateWindow} = require('dblsqd-electron')
-
-const platform = process.platform == 'darwin' ? 'mac'
-  : process.platform == 'win32' ? 'win'
-  : process.platform == 'linux' ? 'linux'
-  : 'other platform'
-
-console.log('platform:', platform)
-let feed = new Feed("https://feeds.dblsqd.com/IEsVYK1_Te2BZIyJWhcelw", "testing", platform , "x86_64")
-let updateWindow = new UpdateWindow(feed)
-
-
-
 
 function createAppWindow () {
 
@@ -72,6 +58,19 @@ function createAppWindow () {
   Menu.setApplicationMenu(menu)
 }
 
+function createUpdateWindow() {
+  const feed = new Feed('https://feeds.dblsqd.com/IEsVYK1_Te2BZIyJWhcelw', 'testing')
+  const usingAppImage = process.platform == 'linux'
+
+  updateWindow = new UpdateWindow(feed, {
+    icon: `${__dirname}/static/leaf128.png`,
+    showOn: 'update',
+    parent: win,
+    saveUpdateFile: usingAppImage,
+    startUpdateAsProcess: usingAppImage
+  })
+}
+
 
 function createSupportWindow () {
   winSupport = new BrowserWindow(
@@ -94,7 +93,10 @@ function createSupportWindow () {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createAppWindow)
+app.on('ready', () => {
+  createAppWindow()
+  createUpdateWindow()
+})
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
