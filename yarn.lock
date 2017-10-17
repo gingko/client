@@ -1097,17 +1097,17 @@ date-now@^0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/date-now/-/date-now-0.1.4.tgz#eaf439fd4d4848ad74e5cc7dbef200672b9e345b"
 
-dblsqd-electron@^0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/dblsqd-electron/-/dblsqd-electron-0.2.1.tgz#b3993c13fc1789d381c37ae96a5869acfebc9b3b"
+dblsqd-electron@^0.3.2:
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/dblsqd-electron/-/dblsqd-electron-0.3.2.tgz#8fa0408f57ea0fd0f6a66583e0a797ace771de92"
   dependencies:
-    dblsqd-sdk "^0.1.2"
+    dblsqd-sdk "^0.1.3"
     electron "^1.6.11"
     settings-store "^1.2.0"
 
-dblsqd-sdk@^0.1.2:
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/dblsqd-sdk/-/dblsqd-sdk-0.1.2.tgz#df57fb5522443f05a19257453397c934d1278b17"
+dblsqd-sdk@^0.1.3:
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/dblsqd-sdk/-/dblsqd-sdk-0.1.3.tgz#a27ab02036741a7668ef0d74c82548de9b271526"
   dependencies:
     semver "^5.3.0"
 
