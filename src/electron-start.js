@@ -11,6 +11,11 @@ let win, updateWindow
 let winSupport
 let changed = false
 
+if(require('electron-squirrel-startup')) app.quit()
+
+
+
+
 function createAppWindow () {
 
   // Create the browser window.

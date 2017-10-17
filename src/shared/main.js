@@ -221,7 +221,7 @@ gingko.ports.updateCommits.subscribe(function(data) {
     selected: selectedSha
   });
 
-  ReactDOM.render(commitElement, document.getElementById('history'))
+  //ReactDOM.render(commitElement, document.getElementById('history'))
 })
 
 
