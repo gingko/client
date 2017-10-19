@@ -37,9 +37,6 @@
     },
     "mac": {
       "target": "tar.gz"
-    },
-    "squirrelWindows": {
-      "remoteReleases": "http://localhost:8080/"
     }
   },
   "dependencies": {

@@ -2,8 +2,11 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
+## [0.2.0] - 2017-10-19
+  - Implemented auto-update for Linux and Windows.
+
 ## [0.1.7] - 2017-09-19
-  - Fixed bug with JSON import (didn't save as gko unless changes made first).
+  - Fixed bug with JSON import (unable to Save As .gko unless changes made first).
 
 ## [0.1.6] - 2017-09-12
   - Fixed JSON export. Format was incorrect and didn't import to web version.
