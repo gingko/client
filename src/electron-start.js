@@ -64,12 +64,12 @@ function createAppWindow () {
 }
 
 function createUpdateWindow() {
-  const feed = new Feed('https://feeds.dblsqd.com/IEsVYK1_Te2BZIyJWhcelw', 'testing')
+  const feed = new Feed('https://feeds.dblsqd.com/IEsVYK1_Te2BZIyJWhcelw', 'release')
   const usingAppImage = process.platform == 'linux'
 
   updateWindow = new UpdateWindow(feed, {
     icon: `${__dirname}/static/leaf128.png`,
-    showOn: 'update',
+    showOn: 'will-quit',
     parent: win,
     saveUpdateFile: usingAppImage,
     startUpdateAsProcess: usingAppImage
