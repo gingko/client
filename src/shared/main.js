@@ -68,6 +68,20 @@ const update = (msg, arg) => {
   let cases =
     { 'alert': () => { alert(arg) }
 
+    , 'confirm-cancel': () => {
+        let tarea = document.getElementById('card-edit-'+arg[0])
+
+        if (tarea === null) {
+          console.log('tarea not found')
+        } else {
+          if(tarea.value === arg[1]) {
+            gingko.ports.cancelConfirmed.send(null)
+          } else if (confirm('Are you sure you want to cancel your changes?')) {
+              gingko.ports.cancelConfirmed.send(null)
+          }
+        }
+      }
+
     , 'new': () => {
         let clearDb = () => {
           dbname = sha1(Date.now()+machineIdSync())

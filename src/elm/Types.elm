@@ -19,6 +19,7 @@ type Msg
     | UpdateContent (String, String) -- |> Save
     | UpdateCardError String
     | DeleteCard String -- |> Activate |> Save
+    | IntentCancelCard
     | CancelCard
     -- === Card Insertion  ===
     | Insert String Int -- |> OpenCard |> Activate

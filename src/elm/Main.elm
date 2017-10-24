@@ -284,6 +284,12 @@ update msg ({objects, workingTree, status} as model) =
           |> andThen (Activate nextToActivate)
           |> andThen Save
 
+    IntentCancelCard ->
+      let
+        originalContent = getContent vs.active model.workingTree.tree
+      in
+      model ! [js ("confirm-cancel", Json.Encode.list [string vs.active, string originalContent])]
+
     CancelCard ->
       { model
         | viewState = { vs | editing = Nothing }
@@ -773,7 +779,12 @@ update msg ({objects, workingTree, status} as model) =
           normalMode model (DeleteCard vs.active)
 
         "esc" ->
-          update CancelCard model
+          case model.viewState.editing of
+            Nothing ->
+              model ! []
+
+            Just id ->
+              update IntentCancelCard model
 
         "mod+j" ->
           model |> maybeSaveAndThen (InsertBelow vs.active)
@@ -1086,6 +1097,7 @@ port keyboard : (String -> msg) -> Sub msg
 port collabMsg : (Json.Value -> msg) -> Sub msg
 port collabLeave : (String -> msg) -> Sub msg
 port updateContent : ((String, String) -> msg) -> Sub msg
+port cancelConfirmed : (() -> msg) -> Sub msg
 
 
 subscriptions : Model -> Sub Msg
@@ -1100,6 +1112,7 @@ subscriptions model =
     , collabMsg RecvCollabState
     , collabLeave CollaboratorDisconnected
     , updateContent UpdateContent
+    , cancelConfirmed (\_ -> CancelCard)
     , externals ExternalMessage
     --, Time.every (1*Time.second) (\_ -> Pull)
     ]
