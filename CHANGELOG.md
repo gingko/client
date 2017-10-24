@@ -3,10 +3,9 @@ All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
 
-## [0.2.1] - Unreleased
+## [0.2.1] - 2017-10-24
   - Added confirmation dialog for cancelling edits, preventing accidental loss of words.
   - Fixed: Bug where clicking on links would open within Gingko, with no way to escape.
-
 
 ## [0.2.0] - 2017-10-19
   - Implemented auto-update for Linux and Windows.
