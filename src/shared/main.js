@@ -5,7 +5,7 @@ const autosize = require('textarea-autosize')
 const fs = require('fs')
 const path = require('path')
 const mkdirp = require('mkdirp')
-const {ipcRenderer, remote, webFrame} = require('electron')
+const {ipcRenderer, remote, webFrame, shell} = require('electron')
 const {app, dialog} = remote
 const querystring = require('querystring')
 
@@ -666,6 +666,13 @@ Mousetrap.bind(['shift+tab'], function(e, s) {
 
 /* === DOM manipulation === */
 
+
+document.addEventListener('click', (ev) => {
+  if(ev.target.nodeName == "A") {
+    ev.preventDefault()
+    shell.openExternal(ev.target.href)
+  }
+})
 
 
 const observer = new MutationObserver(function(mutations) {
