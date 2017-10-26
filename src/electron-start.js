@@ -69,8 +69,7 @@ function createUpdateWindow() {
 
   updateWindow = new UpdateWindow(feed, {
     icon: `${__dirname}/static/leaf128.png`,
-    showOn: 'will-quit',
-    parent: win,
+    showOn: 'update',
     saveUpdateFile: usingAppImage,
     startUpdateAsProcess: usingAppImage
   })
