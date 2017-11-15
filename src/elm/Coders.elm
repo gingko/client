@@ -295,7 +295,19 @@ treeToJSONrecurse tree =
 
 treeToMarkdown : Tree -> Enc.Value
 treeToMarkdown tree =
-  Enc.string "test"
+  case tree.children of
+    Children c ->
+      List.map treeToMarkdownRecurse c
+        |> String.join "\n\n"
+        |> Enc.string
+
+
+treeToMarkdownRecurse : Tree -> String
+treeToMarkdownRecurse tree =
+  case tree.children of
+    Children c ->
+      [tree.content] ++ (List.map treeToMarkdownRecurse c)
+        |> String.join "\n\n"
 
 
 
