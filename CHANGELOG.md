@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
+## Unreleased
+  - Added "Export to Text" options.
+  - Fixed "Contact Adriano" menu option (was blank screen, now opens mail client)
+
 
 ## [0.2.1] - 2017-10-24
   - Added confirmation dialog for cancelling edits, preventing accidental loss of words.

@@ -4,12 +4,14 @@ const {UpdateWindow} = require('dblsqd-electron')
 const fs = require('mz/fs')
 const path = require('path')
 const sha1 = require('sha1')
+const Store = require('electron-store')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win, updateWindow
 let winSupport
 let changed = false
+const hiddenStore = new Store()
 
 if(require('electron-squirrel-startup')) app.quit()
 
@@ -40,6 +42,19 @@ function createAppWindow () {
     }
   }
   win.loadURL(url)
+
+  win.on('focus', (e) => {
+    let nowDate = new Date()
+    let activations = hiddenStore.get('activations', [])
+    let uniqueDateActivations = Array.from(new Set(activations.map(d => d.substring(0,10))))
+    if (uniqueDateActivations.length < 30) {
+      hiddenStore.set('activations', activations.concat(nowDate))
+      return;
+    } else {
+      hiddenStore.set('activations', activations.concat(nowDate))
+      win.loadURL('https://gingko.io')
+    }
+  })
 
   win.on('close', (e) => {
     if (changed) {
@@ -227,7 +242,7 @@ const menuTemplate =
     , submenu:
         [ { label: 'Contact Adriano'
           , click (item, focusedWindow) {
-              createSupportWindow()
+              shell.openExternal('mailto:adriano@gingkoapp.com')
             }
           }
         ]
