@@ -156,14 +156,20 @@ const menuTemplate =
             }
           }
         , { type: 'separator' }
+        , { label: 'Import JSON File...'
+          , click (item, focusedWindow) {
+              focusedWindow.webContents.send('menu-import-json')
+            }
+          }
+        , { type: 'separator' }
         , { label: 'Export JSON File...'
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('menu-export-json')
             }
           }
-        , { label: 'Import JSON File...'
+        , { label: 'Export Text File...'
           , click (item, focusedWindow) {
-              focusedWindow.webContents.send('menu-import-json')
+              focusedWindow.webContents.send('menu-export-txt')
             }
           }
         , { type: 'separator' }

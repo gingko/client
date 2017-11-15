@@ -898,6 +898,9 @@ update msg ({objects, workingTree, status} as model) =
           model
             ! [js ("export-json", model.workingTree.tree |> treeToJSON )]
 
+        "export-txt" ->
+          model
+            ! [js ("export-txt", model.workingTree.tree |> treeToMarkdown )]
 
         _ ->
           let _ = Debug.log "Unknown external command" cmd in

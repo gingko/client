@@ -129,6 +129,10 @@ const update = (msg, arg) => {
         exportJson(arg)
     }
 
+    , 'export-txt': () => {
+        exportTxt(arg)
+    }
+
     , 'open': () => {
         if (changed) {
           saveConfirmation(arg).then(openDialog)
@@ -251,8 +255,9 @@ gingko.ports.activateCards.subscribe(actives => {
 
 ipcRenderer.on('menu-new', () => update('new'))
 ipcRenderer.on('menu-open', () => update('open'))
-ipcRenderer.on('menu-export-json', () => gingko.ports.externals.send(['export-json', '']))
 ipcRenderer.on('menu-import-json', () => update('import'))
+ipcRenderer.on('menu-export-json', () => gingko.ports.externals.send(['export-json', '']))
+ipcRenderer.on('menu-export-txt', () => gingko.ports.externals.send(['export-txt', '']))
 ipcRenderer.on('menu-save', () => update('save', currentFile))
 ipcRenderer.on('menu-save-as', () => update('save-as'))
 ipcRenderer.on('zoomin', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() + 1) })
@@ -487,6 +492,31 @@ const exportJson = (data) => {
         if(!!filepath){
           fs.writeFile(filepath, JSON.stringify(data, undefined, 2), (err) => {
             if (err) reject(new Error('export-json writeFile failed'))
+            resolve(data)
+          })
+        } else {
+          reject(new Error('no export path chosen'))
+        }
+      })
+    }
+  )
+}
+
+const exportTxt = (data) => {
+  return new Promise(
+    (resolve, reject) => {
+      var options =
+        { title: 'Export TXT'
+        , defaultPath: currentFile ? currentFile.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.txt")
+        , filters:  [ {name: 'Text File', extensions: ['txt']}
+                    , {name: 'All Files', extensions: ['*']}
+                    ]
+        }
+
+      dialog.showSaveDialog(options, function(filepath){
+        if(!!filepath){
+          fs.writeFile(filepath, data, (err) => {
+            if (err) reject(new Error('export-txt writeFile failed'))
             resolve(data)
           })
         } else {
