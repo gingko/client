@@ -1,0 +1,32 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Trial Expired</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    html, body {
+      background: white;
+      padding: 15px;
+      font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+      font-size: 14px;
+    }
+  </style>
+  <script>
+  const {shell} = require('electron')
+  document.addEventListener('click', (ev) => {
+    if(ev.target.nodeName == "A") {
+      ev.preventDefault()
+      shell.openExternal(ev.target.href)
+    }
+  })
+  </script>
+</head>
+
+<body>
+  <div>
+    <p>Hi there. Your trial has expired. Purchase a license <a href="http://gingko.io" target="_blank">here</a>.</p>
+  </div>
+</body>
+</html>

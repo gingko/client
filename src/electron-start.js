@@ -11,7 +11,7 @@ const Store = require('electron-store')
 let win, updateWindow
 let winSupport
 let changed = false
-const hiddenStore = new Store()
+const hiddenStore = new Store({encryptionKey: "A minor obfuscation. Please, don't steal from me."})
 
 if(require('electron-squirrel-startup')) app.quit()
 
@@ -42,19 +42,6 @@ function createAppWindow () {
     }
   }
   win.loadURL(url)
-
-  win.on('focus', (e) => {
-    let nowDate = new Date()
-    let activations = hiddenStore.get('activations', [])
-    let uniqueDateActivations = Array.from(new Set(activations.map(d => d.substring(0,10))))
-    if (uniqueDateActivations.length < 30) {
-      hiddenStore.set('activations', activations.concat(nowDate))
-      return;
-    } else {
-      hiddenStore.set('activations', activations.concat(nowDate))
-      win.loadURL('https://gingko.io')
-    }
-  })
 
   win.on('close', (e) => {
     if (changed) {
@@ -91,7 +78,20 @@ function createUpdateWindow() {
 }
 
 
-function createSupportWindow () {
+function trialExpired() {
+  let activations = hiddenStore.get('activations', []).concat((new Date).toISOString()).slice(0,10)
+  let uniqueActivations = Array.from(new Set(activations.map(d => d.substring(0,10))))
+  if(activations !== uniqueActivations) {
+    hiddenStore.set('activations', uniqueActivations)
+    if (uniqueActivations.length >= 30) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+}
+
+function createTrialWindow () {
   winSupport = new BrowserWindow(
     { width: 500
     , height: 300
@@ -101,7 +101,7 @@ function createSupportWindow () {
     , show: false
     })
 
-  var url = `file://${__dirname}/static/support.html`
+  var url = `file://${__dirname}/static/expired.html`
   winSupport.setMenu(null)
   winSupport.once('ready-to-show', () => {
     winSupport.show()
@@ -113,8 +113,12 @@ function createSupportWindow () {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
-  createAppWindow()
-  createUpdateWindow()
+  if(trialExpired()) {
+    createTrialWindow()
+  } else {
+    createAppWindow()
+    createUpdateWindow()
+  }
 })
 
 // Quit when all windows are closed.
