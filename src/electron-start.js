@@ -8,10 +8,10 @@ const Store = require('electron-store')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let win, updateWindow
-let winSupport
+let win, updateWindow, winTrial, winSerial
 let changed = false
-const hiddenStore = new Store({encryptionKey: "A minor obfuscation. Please, don't steal from me."})
+const hiddenStore = new Store({name: "kernel", encryptionKey: "79df64f73eab9bc0d7b448d2008d876e"})
+const userStore = new Store({name: "config"})
 
 if(require('electron-squirrel-startup')) app.quit()
 
@@ -65,19 +65,6 @@ function createAppWindow () {
   Menu.setApplicationMenu(menu)
 }
 
-function createUpdateWindow() {
-  const feed = new Feed('https://feeds.dblsqd.com/IEsVYK1_Te2BZIyJWhcelw', 'release')
-  const usingAppImage = process.platform == 'linux'
-
-  updateWindow = new UpdateWindow(feed, {
-    icon: `${__dirname}/static/leaf128.png`,
-    showOn: 'update',
-    saveUpdateFile: usingAppImage,
-    startUpdateAsProcess: usingAppImage
-  })
-}
-
-
 function trialExpired() {
   let activations = hiddenStore.get('activations', []).concat((new Date).toISOString()).slice(0,10)
   let uniqueActivations = Array.from(new Set(activations.map(d => d.substring(0,10))))
@@ -91,35 +78,36 @@ function trialExpired() {
   }
 }
 
-function createTrialWindow () {
-  winSupport = new BrowserWindow(
-    { width: 500
-    , height: 300
-    , backgroundColor: '#fff'
-    , parent: win
-    , modal: true
-    , show: false
-    })
 
-  var url = `file://${__dirname}/static/expired.html`
-  winSupport.setMenu(null)
-  winSupport.once('ready-to-show', () => {
-    winSupport.show()
-  })
-  winSupport.loadURL(url)
+function validSerial() {
+  let email = userStore.get('email', "")
+  let storedSerial = userStore.get('serial', "")
+  let hash = sha1(email + "I know you can hack this, but please don't! If you really can't afford Gingko, just get in touch with me.")
+  let serial = [hash.substr(4,4), hash.substr(12,4), hash.substr(20,4), hash.substr(28,4)].join("-").toUpperCase()
+  return storedSerial == serial
 }
+
+
+
+/* ==== App Events ==== */
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
   if(trialExpired()) {
-    createTrialWindow()
+    if(!validSerial()) {
+      createTrialWindow()
+    } else {
+      createAppWindow()
+      createUpdateWindow()
+    }
   } else {
     createAppWindow()
     createUpdateWindow()
   }
 })
+
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
@@ -130,6 +118,7 @@ app.on('window-all-closed', () => {
   }
 })
 
+
 app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
@@ -138,13 +127,82 @@ app.on('activate', () => {
   }
 })
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
 
 ipcMain.on('changed', (event, msg) => {
   changed = msg;
 })
 
+
+ipcMain.on('serial', (event, msg) => {
+  let newEmail = msg[0]
+  let newSerial = msg[1]
+  userStore.set('email', newEmail)
+  userStore.set('serial', newSerial)
+  if(validSerial()){
+    winSerial.webContents.send('serial-success')
+  } else {
+    winSerial.webContents.send('serial-fail')
+  }
+})
+
+
+
+
+/* ==== Modal Windows ==== */
+
+function createUpdateWindow() {
+  const feed = new Feed('https://feeds.dblsqd.com/IEsVYK1_Te2BZIyJWhcelw', 'release')
+  const usingAppImage = process.platform == 'linux'
+
+  updateWindow = new UpdateWindow(feed, {
+    icon: `${__dirname}/static/leaf128.png`,
+    showOn: 'update',
+    saveUpdateFile: usingAppImage,
+    startUpdateAsProcess: usingAppImage
+  })
+}
+
+
+function createTrialWindow () {
+  winTrial = new BrowserWindow(
+    { width: 500
+    , height: 350
+    , backgroundColor: '#fff'
+    , parent: win
+    , modal: true
+    , show: false
+    })
+
+  var url = `file://${__dirname}/static/expired.html`
+  winTrial.setMenu(null)
+  winTrial.once('ready-to-show', () => {
+    winTrial.show()
+  })
+  winTrial.loadURL(url)
+}
+
+
+function createSerialWindow() {
+  winSerial = new BrowserWindow(
+    { width: 500
+    , height: 350
+    , backgroundColor: '#fff'
+    , modal: true
+    , show: false
+    })
+
+  var url = `file://${__dirname}/static/request.html`
+  winSerial.setMenu(null)
+  winSerial.once('ready-to-show', () => {
+    winSerial.show()
+  })
+  winSerial.loadURL(url)
+}
+
+
+
+
+/* ==== Menu ==== */
 
 const menuTemplate =
   [ { label: 'File'
@@ -247,6 +305,11 @@ const menuTemplate =
         [ { label: 'Contact Adriano'
           , click (item, focusedWindow) {
               shell.openExternal('mailto:adriano@gingkoapp.com')
+            }
+          }
+        , { label: 'Enter License'
+          , click (item, focusedWindow) {
+              createSerialWindow()
             }
           }
         ]

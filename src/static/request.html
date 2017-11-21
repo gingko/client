@@ -10,9 +10,10 @@
   <script type="text/javascript">
     const ipc = require('electron').ipcRenderer
 
-    sendSerial = () => {
-      var serial = document.getElementById('serial').value
-      ipc.send('serial', serial)
+    sendSerialInfo = () => {
+      var email = document.getElementById('email').value.toLowerCase()
+      var serial = document.getElementById('serial').value.toUpperCase()
+      ipc.send('serial', [email, serial])
     }
 
     ipc.on('serial-success', () => {
@@ -23,12 +24,12 @@
       alert('Invalid serial.\nPlease try again.')
     })
 
-    
   </script>
 
   <form>
+    <input id="email" style="display:block;width:380px;font-size:150%;" autofocus/>
     <input id="serial" style="display:block;width:380px;font-size:150%;" autofocus/>
-    <button type="submit" onclick="sendSerial()" style="margin-top:5px;font-size:100%">Submit</button>
+    <button type="submit" onclick="sendSerialInfo()" style="margin-top:5px;font-size:100%">Submit</button>
   </form>
 </body>
 </html>
