@@ -75,9 +75,7 @@ function getTrialActivations() {
 }
 
 
-function validSerial() {
-  let email = userStore.get('email', "")
-  let storedSerial = userStore.get('serial', "")
+function validSerial(email, storedSerial) {
   let hash = sha1(email + "I know you can hack this, but please don't! If you really can't afford Gingko, just get in touch with me.")
   let serial = [hash.substr(4,4), hash.substr(12,4), hash.substr(20,4), hash.substr(28,4)].join("-").toUpperCase()
   return storedSerial == serial
@@ -91,8 +89,11 @@ function validSerial() {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
+  let email = userStore.get('email', "")
+  let storedSerial = userStore.get('serial', "")
+
   createAppWindow()
-  if(!validSerial()) {
+  if(!validSerial(email, storedSerial)) {
     createTrialWindow()
   }
   createUpdateWindow()
@@ -126,7 +127,7 @@ ipcMain.on('changed', (event, msg) => {
 ipcMain.on('serial', (event, msg) => {
   let newEmail = msg[0]
   let newSerial = msg[1]
-  if(validSerial()){
+  if(validSerial(newEmail, newSerial)){
     userStore.set('email', newEmail)
     userStore.set('serial', newSerial)
     winSerial.webContents.send('serial-success')
