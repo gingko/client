@@ -193,7 +193,7 @@ function createSerialWindow(shouldBlock) {
   let email = userStore.get('email', "")
   let storedSerial = userStore.get('serial', "")
 
-  var url = `file://${__dirname}/static/request.html`
+  var url = `file://${__dirname}/static/license.html`
   winSerial.setMenu(null)
   winSerial.once('ready-to-show', () => {
     if(shouldBlock) { winSerial.webContents.send('prevent-close', true) }
