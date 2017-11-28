@@ -1,4 +1,4 @@
-const {app, BrowserWindow, dialog, Menu, ipcMain, shell, autoUpdater} = require('electron')
+const {app, BrowserWindow, dialog, Menu, ipcMain, shell} = require('electron')
 const {autoUpdater} = require('dblsqd-electron')
 const fs = require('mz/fs')
 const path = require('path')
