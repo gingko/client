@@ -94,7 +94,13 @@ app.on('ready', () => {
 
   createAppWindow()
   if(!validSerial(email, storedSerial)) {
-    createTrialWindow()
+    let activations = getTrialActivations()
+    let limit = 30
+    let trialDisplayDays = [29, 25, 20, 15, 10, 8, 6, 5, 4, 3, 2, 1, 0]
+
+    if(trialDisplayDays.includes(Math.max(limit - activations.length, 0))) {
+      createTrialWindow(activations, limit)
+    }
   }
   createUpdateWindow()
 })
@@ -158,7 +164,7 @@ function createUpdateWindow() {
 }
 
 
-function createTrialWindow() {
+function createTrialWindow(activations, limit) {
   winTrial = new BrowserWindow(
     { width: 500
     , height: 350
@@ -171,7 +177,7 @@ function createTrialWindow() {
   var url = `file://${__dirname}/static/trial.html`
   winTrial.setMenu(null)
   winTrial.once('ready-to-show', () => {
-    winTrial.webContents.send('trial-activations', [getTrialActivations(), 2])
+    winTrial.webContents.send('trial-activations', [activations, limit])
     winTrial.show()
   })
   winTrial.loadURL(url)
@@ -184,6 +190,9 @@ function createSerialWindow(shouldBlock) {
   winSerial = new BrowserWindow(
     { width: 450
     , height: 262
+    , resizable: false
+    , minimizable: false
+    , fullscreenable: false
     , backgroundColor: 'lightgray'
     , modal: true
     , parent: win

@@ -10,6 +10,10 @@ body {
   padding: 20px;
 }
 
+label {
+  font: caption;
+}
+
 .dialog-buttons {
   display: flex;
   flex-direction: row;
@@ -25,12 +29,17 @@ body {
 
 <body>
   <script type="text/javascript">
+    const {shell} = require('electron')
     const ipc = require('electron').ipcRenderer
 
     sendSerialInfo = () => {
       var email = document.getElementById('email').value.toLowerCase()
       var serial = document.getElementById('serial').value.toUpperCase()
       ipc.send('serial', [email, serial])
+    }
+
+    buyLicense = () => {
+      shell.openExternal('https://gingkoapp.com/desktop-upgrade')
     }
 
     cancel = () => {
@@ -52,6 +61,7 @@ body {
     })
     ipc.on('prevent-close', () => {
       document.getElementById('cancel').disabled = true
+      document.getElementById('buyButton').style.display = "inline-block"
       window.onbeforeunload = (e) => {
         e.returnValue = false
       }
@@ -70,6 +80,7 @@ body {
   <hr>
   <div class="dialog-buttons">
     <button id="cancel" onclick="cancel()" style="margin-top:5px;font-size:100%">Cancel</button>
+    <button id="buyButton" onclick="buyLicense()" style="display: none;margin-top:5px;font-size:100%">Buy License</button>
     <button onclick="sendSerialInfo()" style="margin-top:5px;font-size:100%">Ok</button>
   </div>
 </body>
