@@ -182,9 +182,9 @@ function createTrialWindow() {
 
 function createSerialWindow(shouldBlock) {
   winSerial = new BrowserWindow(
-    { width: 500
-    , height: 350
-    , backgroundColor: '#fff'
+    { width: 450
+    , height: 262
+    , backgroundColor: 'lightgray'
     , modal: true
     , parent: win
     , show: false

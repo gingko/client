@@ -3,7 +3,24 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Enter License Key</title>
+  <title>Register Gingko</title>
+<style>
+body {
+  background-color: lightgray;
+  padding: 20px;
+}
+
+.dialog-buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+.dialog-buttons button {
+  padding: 10px;
+  min-width: 80px;
+  margin-left: 10px;
+}
+</style>
 </head>
 
 <body>
@@ -14,6 +31,10 @@
       var email = document.getElementById('email').value.toLowerCase()
       var serial = document.getElementById('serial').value.toUpperCase()
       ipc.send('serial', [email, serial])
+    }
+
+    cancel = () => {
+      this.close()
     }
 
     ipc.on('serial-info', (e,d) => {
@@ -30,6 +51,7 @@
       alert('Invalid serial.\nPlease try again.')
     })
     ipc.on('prevent-close', () => {
+      document.getElementById('cancel').disabled = true
       window.onbeforeunload = (e) => {
         e.returnValue = false
       }
@@ -38,9 +60,17 @@
   </script>
 
   <form>
+    <label for="email">Email:</label>
     <input id="email" style="display:block;width:380px;font-size:150%;" autofocus/>
+    <br>
+    <label for="serial">Serial:</label>
     <input id="serial" style="display:block;width:380px;font-size:150%;" autofocus/>
-    <button type="submit" onclick="sendSerialInfo()" style="margin-top:5px;font-size:100%">Submit</button>
   </form>
+  <br>
+  <hr>
+  <div class="dialog-buttons">
+    <button id="cancel" onclick="cancel()" style="margin-top:5px;font-size:100%">Cancel</button>
+    <button onclick="sendSerialInfo()" style="margin-top:5px;font-size:100%">Ok</button>
+  </div>
 </body>
 </html>
