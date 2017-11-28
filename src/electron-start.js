@@ -1,6 +1,5 @@
 const {app, BrowserWindow, dialog, Menu, ipcMain, shell, autoUpdater} = require('electron')
-const {Feed} = require('dblsqd-sdk')
-const {UpdateWindow} = require('dblsqd-electron')
+const {autoUpdater} = require('dblsqd-electron')
 const fs = require('mz/fs')
 const path = require('path')
 const sha1 = require('sha1')
@@ -13,7 +12,12 @@ let changed = false
 const hiddenStore = new Store({name: "kernel", encryptionKey: "79df64f73eab9bc0d7b448d2008d876e"})
 const userStore = new Store({name: "config"})
 
-if(require('electron-squirrel-startup')) app.quit()
+//Enable DBLSQD autoUpdater
+const dblsqdBaseUrl = 'https://feeds.dblsqd.com/IEsVYK1_Te2BZIyJWhcelw'
+const dblsqdChannel = 'release'
+const updater = new autoUpdater(dblsqdBaseUrl, dblsqdChannel, {
+  icon: `${__dirname}/static/leaf128.png`
+})
 
 
 
@@ -100,11 +104,9 @@ app.on('ready', () => {
       createTrialWindow()
     } else {
       createAppWindow()
-      createUpdateWindow()
     }
   } else {
     createAppWindow()
-    createUpdateWindow()
   }
 })
 
@@ -149,19 +151,6 @@ ipcMain.on('serial', (event, msg) => {
 
 
 /* ==== Modal Windows ==== */
-
-function createUpdateWindow() {
-  const feed = new Feed('https://feeds.dblsqd.com/IEsVYK1_Te2BZIyJWhcelw', 'release')
-  const usingAppImage = process.platform == 'linux'
-
-  updateWindow = new UpdateWindow(feed, {
-    icon: `${__dirname}/static/leaf128.png`,
-    showOn: 'update',
-    saveUpdateFile: usingAppImage,
-    startUpdateAsProcess: usingAppImage
-  })
-}
-
 
 function createTrialWindow () {
   winTrial = new BrowserWindow(
