@@ -16,12 +16,23 @@
       ipc.send('serial', [email, serial])
     }
 
+    ipc.on('serial-info', (e,d) => {
+      document.getElementById('email').value = d[0]
+      document.getElementById('serial').value = d[1]
+    })
+
     ipc.on('serial-success', () => {
       alert('Thank you for contribution!')
+      window.onbeforeunload = undefined
       this.close()
     })
     ipc.on('serial-fail', () => {
       alert('Invalid serial.\nPlease try again.')
+    })
+    ipc.on('prevent-close', () => {
+      window.onbeforeunload = (e) => {
+        e.returnValue = false
+      }
     })
 
   </script>

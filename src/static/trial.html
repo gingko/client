@@ -1,0 +1,65 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Trial Expired</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    html, body {
+      background: white;
+      padding: 15px;
+      font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+      font-size: 14px;
+    }
+  </style>
+  <script>
+  const {shell} = require('electron')
+  const ipc = require('electron').ipcRenderer
+
+  let trialDays, daysLeft
+
+  ipc.on('trial-activations', (e, d) => {
+    trialDays = d[1]
+    daysLeft = d[1] - d[0].length
+    if(daysLeft > 0) {
+      document.getElementById('days-left-title').innerHTML = daysLeft + " days left in your free trial."
+    } else {
+      document.getElementById('days-left-title').innerHTML = "Your trial has expired."
+      document.getElementById('continue-button').remove()
+      window.onbeforeunload = (e) => {
+        e.returnValue = false
+      }
+    }
+  })
+
+  document.addEventListener('click', (ev) => {
+    if(ev.target.nodeName == "A") {
+      ev.preventDefault()
+      shell.openExternal(ev.target.href)
+    }
+  })
+
+  clickBuy = () => {
+    shell.openExternal('https://gingkoapp.com/desktop-upgrade')
+    ipc.send('open-serial-window', (daysLeft <= 0))
+    window.onbeforeunload = undefined
+    this.close()
+  }
+
+  clickLicense = () => {
+    ipc.send('open-serial-window', (daysLeft <= 0))
+    window.onbeforeunload = undefined
+    this.close()
+  }
+  </script>
+</head>
+
+<body>
+  <h1 id="days-left-title"></h1>
+  <br/>
+  <button id="buy-button" class="btn btn-default" onclick="clickBuy()">Buy license</button>
+  <button id="enter-button" class="btn btn-default" onclick="clickLicense()">Enter license</button>
+  <button id="continue-button" class="btn btn-default" onclick="clickContinue()">Continue trial</button>
+</body>
+</html>

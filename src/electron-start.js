@@ -65,17 +65,13 @@ function createAppWindow () {
   Menu.setApplicationMenu(menu)
 }
 
-function trialExpired() {
+function getTrialActivations() {
   let activations = hiddenStore.get('activations', []).concat((new Date).toISOString()).slice(0,10)
   let uniqueActivations = Array.from(new Set(activations.map(d => d.substring(0,10))))
   if(activations !== uniqueActivations) {
     hiddenStore.set('activations', uniqueActivations)
-    if (uniqueActivations.length >= 30) {
-      return true;
-    } else {
-      return false;
-    }
   }
+  return uniqueActivations
 }
 
 
@@ -95,17 +91,11 @@ function validSerial() {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
-  if(trialExpired()) {
-    if(!validSerial()) {
-      createTrialWindow()
-    } else {
-      createAppWindow()
-      createUpdateWindow()
-    }
-  } else {
-    createAppWindow()
-    createUpdateWindow()
+  createAppWindow()
+  if(!validSerial()) {
+    createTrialWindow()
   }
+  createUpdateWindow()
 })
 
 
@@ -136,15 +126,19 @@ ipcMain.on('changed', (event, msg) => {
 ipcMain.on('serial', (event, msg) => {
   let newEmail = msg[0]
   let newSerial = msg[1]
-  userStore.set('email', newEmail)
-  userStore.set('serial', newSerial)
   if(validSerial()){
+    userStore.set('email', newEmail)
+    userStore.set('serial', newSerial)
     winSerial.webContents.send('serial-success')
   } else {
     winSerial.webContents.send('serial-fail')
   }
 })
 
+
+ipcMain.on('open-serial-window', (event, msg) => {
+  createSerialWindow(msg)
+})
 
 
 
@@ -163,37 +157,46 @@ function createUpdateWindow() {
 }
 
 
-function createTrialWindow () {
+function createTrialWindow() {
   winTrial = new BrowserWindow(
     { width: 500
     , height: 350
     , backgroundColor: '#fff'
-    , parent: win
     , modal: true
+    , parent: win
     , show: false
     })
 
-  var url = `file://${__dirname}/static/expired.html`
+  var url = `file://${__dirname}/static/trial.html`
   winTrial.setMenu(null)
   winTrial.once('ready-to-show', () => {
+    winTrial.webContents.send('trial-activations', [getTrialActivations(), 2])
     winTrial.show()
   })
   winTrial.loadURL(url)
+
+  winTrial.on
 }
 
 
-function createSerialWindow() {
+function createSerialWindow(shouldBlock) {
   winSerial = new BrowserWindow(
     { width: 500
     , height: 350
     , backgroundColor: '#fff'
     , modal: true
+    , parent: win
     , show: false
     })
+
+  let email = userStore.get('email', "")
+  let storedSerial = userStore.get('serial', "")
 
   var url = `file://${__dirname}/static/request.html`
   winSerial.setMenu(null)
   winSerial.once('ready-to-show', () => {
+    if(shouldBlock) { winSerial.webContents.send('prevent-close', true) }
+    winSerial.webContents.send('serial-info', [email, storedSerial])
     winSerial.show()
   })
   winSerial.loadURL(url)
@@ -307,9 +310,15 @@ const menuTemplate =
               shell.openExternal('mailto:adriano@gingkoapp.com')
             }
           }
-        , { label: 'Enter License'
+        , { type: 'separator' }
+        , { label: 'Buy a License...'
           , click (item, focusedWindow) {
-              createSerialWindow()
+              shell.openExternal('https://gingkoapp.com/desktop-upgrade')
+            }
+          }
+        , { label: 'Enter License...'
+          , click (item, focusedWindow) {
+              createSerialWindow(false)
             }
           }
         ]
