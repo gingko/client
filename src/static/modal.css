@@ -1,29 +1,38 @@
 html, body {
-  background: #eef;
+  margin: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
 }
 
 body {
-  padding: 24px 10px 10px 10px;
+  padding: 10px 20px;
+  font: caption;
 }
 
-#title-bar {
-  position: fixed;
-  height: 24px;
-  width: 100%;
-  top: 0;
-  left: 0;
+h1 {
+  margin: 0;
+}
+
+label {
+  font: caption;
+}
+
+.dialog-buttons {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  user-select: none;
-  -webkit-app-region: drag;
-  background: lightgray;
-  padding: 0px;
-  margin: 0px;
+  flex-direction: row;
+  justify-content: flex-end;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 10px;
 }
-
-#title {
-  font-family: sans-serif;
-  font-size: 14px;
-  color: #444;
+.dialog-buttons button {
+  padding: 10px;
+  min-width: 80px;
+  margin-left: 10px;
 }

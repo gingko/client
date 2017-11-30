@@ -4,15 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Trial Expired</title>
-  <link rel="stylesheet" href="style.css">
-  <style>
-    html, body {
-      background: white;
-      padding: 15px;
-      font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-      font-size: 14px;
-    }
-  </style>
+  <link rel="stylesheet" href="modal.css">
   <script>
   const {shell} = require('electron')
   const ipc = require('electron').ipcRenderer
@@ -21,12 +13,18 @@
 
   ipc.on('trial-activations', (e, d) => {
     trialDays = d[1]
-    daysLeft = d[1] - d[0].length
+    daysLeft = Math.max(d[1] - d[0].length, 0)
     if(daysLeft > 0) {
-      document.getElementById('days-left-title').innerHTML = daysLeft + " days left in your free trial."
+      let daysLeftElements = document.getElementsByClassName('days-left')
+      Array.prototype.map.call(daysLeftElements, (el) => {
+        el.innerHTML = daysLeft == 1 ? daysLeft + " day" : daysLeft + " days"
+      })
+      document.getElementById('post-expiration').style.display = "none"
+      document.getElementById('enter-button').style.display = "none"
     } else {
-      document.getElementById('days-left-title').innerHTML = "Your trial has expired."
       document.getElementById('continue-button').remove()
+      document.getElementById('pre-expiration').style.display = "none"
+      document.getElementById('post-expiration').style.display = "block"
       window.onbeforeunload = (e) => {
         e.returnValue = false
       }
@@ -52,14 +50,36 @@
     window.onbeforeunload = undefined
     this.close()
   }
+
+  clickContinue = () => {
+    window.onbeforeunload = undefined
+    this.close()
+  }
   </script>
 </head>
 
 <body>
-  <h1 id="days-left-title"></h1>
-  <br/>
-  <button id="buy-button" class="btn btn-default" onclick="clickBuy()">Buy license</button>
-  <button id="enter-button" class="btn btn-default" onclick="clickLicense()">Enter license</button>
-  <button id="continue-button" class="btn btn-default" onclick="clickContinue()">Continue trial</button>
+  <h1>Gingko - Free Trial</h1>
+  <div id="pre-expiration">
+    <h3>You have <span class="days-left"></span> of usage left in your trial.</h3>
+    <p>Only the days you actually used Gingko count towards your total.</p>
+    <p>I hope you're finding Gingko useful to you. If you have any questions during your trial (or afterwards), don't hesitate to contact me:<br>
+    <ul>
+      <li><a href="mailto:adriano@gingkoapp.com">adriano@gingkoapp.com</a></li>
+      <li>My cell: +1-819-744-1289 <small>(Ottawa, Canada timezone)</small></li>
+    </ul>
+    </p>
+  </div>
+  <div id="post-expiration">
+    <h3>Your trial has expired.</h1>
+    <p></p>
+  </div>
+  <br>
+  <hr>
+  <div class="dialog-buttons">
+    <button id="buy-button" class="btn btn-default" onclick="clickBuy()">Buy License Key...</button>
+    <button id="enter-button" class="btn btn-default" onclick="clickLicense()">Enter License Key</button>
+    <button id="continue-button" class="btn btn-default" onclick="clickContinue()">Continue Trial</button>
+  </div>
 </body>
 </html>

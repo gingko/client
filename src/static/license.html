@@ -4,25 +4,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Register Gingko</title>
+  <link rel="stylesheet" href="modal.css">
 <style>
 body {
   background-color: lightgray;
   padding: 20px;
-}
-
-label {
-  font: caption;
-}
-
-.dialog-buttons {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
-}
-.dialog-buttons button {
-  padding: 10px;
-  min-width: 80px;
-  margin-left: 10px;
 }
 </style>
 </head>
@@ -70,7 +56,7 @@ label {
   </script>
 
   <form>
-    <label for="email">Email:</label>
+    <label for="email">Registered Email:</label>
     <input id="email" style="display:block;width:380px;font-size:150%;" autofocus/>
     <br>
     <label for="serial">Serial:</label>
@@ -79,9 +65,9 @@ label {
   <br>
   <hr>
   <div class="dialog-buttons">
-    <button id="cancel" onclick="cancel()" style="margin-top:5px;font-size:100%">Cancel</button>
-    <button id="buyButton" onclick="buyLicense()" style="display: none;margin-top:5px;font-size:100%">Buy License</button>
-    <button onclick="sendSerialInfo()" style="margin-top:5px;font-size:100%">Ok</button>
+    <button id="cancel" onclick="cancel()">Cancel</button>
+    <button id="buyButton" onclick="buyLicense()">Buy License Key...</button>
+    <button onclick="sendSerialInfo()">OK</button>
   </div>
 </body>
 </html>

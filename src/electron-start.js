@@ -96,9 +96,10 @@ app.on('ready', () => {
   if(!validSerial(email, storedSerial)) {
     let activations = getTrialActivations()
     let limit = 30
-    let trialDisplayDays = [29, 25, 20, 15, 10, 8, 6, 5, 4, 3, 2, 1, 0]
+    let daysLeft = Math.max(limit - activations.length, 0)
+    let trialDisplayDays = [25, 20, 15, 10, 8, 6, 5, 4, 3, 2, 1, 0]
 
-    if(trialDisplayDays.includes(Math.max(limit - activations.length, 0))) {
+    if(trialDisplayDays.includes(daysLeft)) {
       createTrialWindow(activations, limit)
     }
   }
@@ -170,6 +171,9 @@ function createTrialWindow(activations, limit) {
     , height: 350
     , backgroundColor: '#fff'
     , modal: true
+    , useContentSize: true
+    , fullscreenable: false
+    , resizable: false
     , parent: win
     , show: false
     })
@@ -188,13 +192,14 @@ function createTrialWindow(activations, limit) {
 
 function createSerialWindow(shouldBlock) {
   winSerial = new BrowserWindow(
-    { width: 450
-    , height: 262
+    { width: 440
+    , height: 230
     , resizable: false
     , minimizable: false
     , fullscreenable: false
     , backgroundColor: 'lightgray'
     , modal: true
+    , useContentSize: true
     , parent: win
     , show: false
     })
