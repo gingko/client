@@ -18,7 +18,7 @@
   "homepage": "https://github.com/AdrianoFerrari/gingko-client",
   "main": "electron.js",
   "dependencies": {
-    "dblsqd-electron": "^0.3.2",
+    "dblsqd-electron": "^0.4.1",
     "electron-machine-id": "^1.0.9",
     "electron-squirrel-startup": "^1.0.0",
     "jquery": "^3.1.1",
