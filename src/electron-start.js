@@ -107,7 +107,6 @@ app.on('ready', () => {
       createTrialWindow(activations, limit)
     }
   }
-  createUpdateWindow()
 })
 
 
@@ -155,19 +154,6 @@ ipcMain.on('open-serial-window', (event, msg) => {
 
 
 /* ==== Modal Windows ==== */
-
-function createUpdateWindow() {
-  const feed = new Feed('https://feeds.dblsqd.com/IEsVYK1_Te2BZIyJWhcelw', 'release')
-  const usingAppImage = process.platform == 'linux'
-
-  updateWindow = new UpdateWindow(feed, {
-    icon: `${__dirname}/static/leaf128.png`,
-    showOn: 'update',
-    saveUpdateFile: usingAppImage,
-    startUpdateAsProcess: usingAppImage
-  })
-}
-
 
 function createTrialWindow(activations, limit) {
   winTrial = new BrowserWindow(
