@@ -1,7 +1,8 @@
 This is the desktop version, ground-up rewrite of https://gingkoapp.com
+Latest version is available for download at https://gingko.io
 
-It's only recently been open-sourced, so documentation is sparse.
-Please bear with me.
+This code has only recently been open-sourced, so documentation is sparse.
+Please bear with us, while we improve it.
 
 # Installation & Dev Environment
 
@@ -10,10 +11,5 @@ yarn install
 yarn start
 
 # In separate terminal
-yarn electron
+yarn run electron
 ```
-
-
-# Building Installers
-
-TODO.
