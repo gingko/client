@@ -1,21 +1,21 @@
 {
   "name": "gingko-client",
   "productName": "Gingko",
-  "version": "0.2.1",
+  "version": "0.8.0",
   "description": "Gingko client rewritten in Elm, packaged with Electron.",
   "repository": {
     "type": "git",
-    "url": "git://github.com/AdrianoFerrari/gingko-client.git"
+    "url": "git://github.com/gingko/client.git"
   },
   "author": {
     "name": "Adriano Ferrari",
-    "email": "adriano.ferrari@gmail.com"
+    "email": "adriano@gingkoapp.com"
   },
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/AdrianoFerrari/gingko-client/issues"
+    "url": "https://github.com/gingko/client/issues"
   },
-  "homepage": "https://github.com/AdrianoFerrari/gingko-client",
+  "homepage": "https://github.com/gingko/client",
   "main": "electron.js",
   "dependencies": {
     "dblsqd-electron": "^0.4.1",
