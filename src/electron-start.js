@@ -80,7 +80,11 @@ function getTrialActivations() {
 
 
 function validSerial(email, storedSerial) {
-  let hash = sha1(email + "I know you can hack this, but please don't! If you really can't afford Gingko, just get in touch with me.")
+  // I've decided against complicated anti-piracy checks.
+  // Instead, I want things as easy as possible for the user, while still being able to make a living.
+  //
+  // If you really can't afford Gingko, even after allowing for discounts, please get in touch with me first.
+  let hash = sha1(email + "Super easy to crack!")
   let serial = [hash.substr(4,4), hash.substr(12,4), hash.substr(20,4), hash.substr(28,4)].join("-").toUpperCase()
   return storedSerial == serial
 }
