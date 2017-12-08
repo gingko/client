@@ -2,11 +2,13 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
+## [0.8.1] - 2017-12-010
+  - Removed autoUpdater temporarily, to fix unhandled exception on startup.
+
 ## [0.8.0] - 2017-12-06
   - Added "Export to Text" options.
   - Fixed "Contact Adriano" menu option (was blank screen, now opens mail client)
   - Added Free Trial limits and path to purchase.
-
 
 ## [0.2.1] - 2017-10-24
   - Added confirmation dialog for cancelling edits, preventing accidental loss of words.
