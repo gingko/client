@@ -39,7 +39,7 @@
       "remoteReleases": "https://feeds.dblsqd.com/IEsVYK1_Te2BZIyJWhcelw/release/win/x86_64/squirrel.windows"
     },
     "mac": {
-      "target": "zip"
+      "target": "tar.gz"
     }
   },
   "dependencies": {
