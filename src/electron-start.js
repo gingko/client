@@ -1,4 +1,5 @@
 const {app, BrowserWindow, dialog, Menu, ipcMain, shell} = require('electron')
+const {autoUpdater} = require('dblsqd-electron')
 const fs = require('mz/fs')
 const path = require('path')
 const sha1 = require('sha1')
@@ -12,8 +13,12 @@ const hiddenStore = new Store({name: "kernel", encryptionKey: "79df64f73eab9bc0d
 const userStore = new Store({name: "config"})
 
 
-if(require('electron-squirrel-startup')) app.quit()
-
+//Enable DBLSQD autoUpdater
+const dblsqdBaseUrl = 'https://feeds.dblsqd.com/IEsVYK1_Te2BZIyJWhcelw'
+const dblsqdChannel = 'testing'
+const updater = new autoUpdater(dblsqdBaseUrl, dblsqdChannel, {
+  icon: `${__dirname}/static/leaf128.png`
+})
 
 
 
