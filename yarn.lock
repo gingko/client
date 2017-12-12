@@ -1087,9 +1087,9 @@ date-now@^0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/date-now/-/date-now-0.1.4.tgz#eaf439fd4d4848ad74e5cc7dbef200672b9e345b"
 
-dblsqd-electron@^0.4.1:
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/dblsqd-electron/-/dblsqd-electron-0.4.1.tgz#209d0b20a8251b1bb029575b791135e5f72e858d"
+dblsqd-electron@^0.4.2:
+  version "0.4.2"
+  resolved "https://registry.yarnpkg.com/dblsqd-electron/-/dblsqd-electron-0.4.2.tgz#72f0bc490784e6b6310e5dbebc1f5a62492d1ef9"
   dependencies:
     dblsqd-sdk "^0.2.0"
     electron-squirrel-startup "^1.0.0"
