@@ -15,7 +15,7 @@ const userStore = new Store({name: "config"})
 
 //Enable DBLSQD autoUpdater
 const dblsqdBaseUrl = 'https://feeds.dblsqd.com/IEsVYK1_Te2BZIyJWhcelw'
-const dblsqdChannel = 'testing'
+const dblsqdChannel = 'release'
 const updater = new autoUpdater(dblsqdBaseUrl, dblsqdChannel, {
   icon: `${__dirname}/static/leaf128.png`
 })

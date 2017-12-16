@@ -36,7 +36,7 @@
       "icon": "build/leaf256.ico"
     },
     "squirrelWindows": {
-      "remoteReleases": "https://feeds.dblsqd.com/IEsVYK1_Te2BZIyJWhcelw/testing/win/x86_64/squirrel.windows"
+      "remoteReleases": "https://feeds.dblsqd.com/IEsVYK1_Te2BZIyJWhcelw/release/win/x86_64/squirrel.windows"
     },
     "mac": {
       "target": "zip"
