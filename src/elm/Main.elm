@@ -831,13 +831,25 @@ update msg ({objects, workingTree, status} as model) =
         "alt+up" ->
           normalMode model (MoveWithin vs.active -1)
 
+        "alt+k" ->
+          normalMode model (MoveWithin vs.active -1)
+
         "alt+down" ->
+          normalMode model (MoveWithin vs.active 1)
+
+        "alt+j" ->
           normalMode model (MoveWithin vs.active 1)
 
         "alt+left" ->
           normalMode model (MoveLeft vs.active)
 
+        "alt+h" ->
+          normalMode model (MoveLeft vs.active)
+
         "alt+right" ->
+          normalMode model (MoveRight vs.active)
+
+        "alt+l" ->
           normalMode model (MoveRight vs.active)
 
         "alt+shift+up" ->

@@ -2,7 +2,13 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
-## [0.8.1] - 2017-12-010
+## Unreleased - 2017-12-19
+  - Added Alt+hjkl for card moving.
+
+## [0.8.2] - 2017-12-17
+  - Re-enabled autoUpdater. Fixed startup errors on macOS.
+
+## [0.8.1] - 2017-12-10
   - Removed autoUpdater temporarily, to fix unhandled exception on startup.
 
 ## [0.8.0] - 2017-12-06
