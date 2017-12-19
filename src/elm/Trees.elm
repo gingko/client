@@ -15,6 +15,7 @@ import Types exposing (..)
 import TreeUtils exposing (getTree, getColumns, getParent, getChildren)
 import List.Extra as ListExtra
 import Sha1 exposing (Diff, diff3Merge)
+import DragAndDrop
 
 
 
@@ -312,6 +313,7 @@ view vstate model =
         vstate.active
         editing_
         vstate.descendants
+        vstate.dragModel
         vstate.collaborators
 
     columns =
@@ -381,7 +383,7 @@ viewGroup vstate depth xs =
             |> List.filter (\c -> c.mode == Active t.id || c.mode == Editing t.id)
             |> List.map .uid
       in
-      viewKeyedCard (isActive, isEditing, depth, collaborators, collabsEditing) t
+      viewKeyedCard (isActive, isEditing, depth, collaborators, collabsEditing, vstate.dragModel) t
   in
     Keyed.node "div"
       [ classList [ ("group", True)
@@ -391,13 +393,13 @@ viewGroup vstate depth xs =
       (List.map viewFunction xs)
 
 
-viewKeyedCard : (Bool, Bool, Int, List String, List String) -> Tree -> (String, Html Msg)
+viewKeyedCard : (Bool, Bool, Int, List String, List String, DragAndDrop.Model String String) -> Tree -> (String, Html Msg)
 viewKeyedCard tup tree =
   (tree.id, lazy2 viewCard tup tree)
 
 
-viewCard : (Bool, Bool, Int, List String, List String) -> Tree -> Html Msg
-viewCard (isActive, isEditing, depth, collaborators, collabsEditing) tree =
+viewCard : (Bool, Bool, Int, List String, List String, DragAndDrop.Model String String) -> Tree -> Html Msg
+viewCard (isActive, isEditing, depth, collaborators, collabsEditing, dragModel) tree =
   let
     hasChildren =
       case tree.children of
@@ -482,6 +484,8 @@ viewCard (isActive, isEditing, depth, collaborators, collabsEditing) tree =
                   , ("has-children", hasChildren)
                   ]
       ]
+      ++ ( DragAndDrop.draggableHtml dragModel DragAndDropMsg tree.id )
+      ++ ( DragAndDrop.droppableHtml dragModel DragAndDropMsg tree.id )
   in
   if isEditing then
     div cardAttributes

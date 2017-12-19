@@ -6,7 +6,7 @@ import Json.Encode as Enc
 import Json.Decode as Json exposing (..)
 import Json.Decode.Pipeline exposing (decode, required, optional)
 import Array exposing (fromList)
-import Dict exposing (Dict)
+import DragAndDrop
 
 
 
@@ -69,12 +69,13 @@ viewStateToValue vs =
 
 viewStateDecoder : Decoder ViewState
 viewStateDecoder =
-  Json.map6 ViewState
+  Json.map7 ViewState
     (field "active" string)
     (field "activePast" (list string))
     (field "activeFuture" (list string))
     (field "descendants" (list string))
     (maybe (field "editing" string))
+    (succeed DragAndDrop.init)
     (succeed [])
 
 
