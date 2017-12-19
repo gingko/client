@@ -6,9 +6,13 @@ Please bear with us, while we improve it.
 # Installation & Dev Environment
 
 ```bash
+# 1. Mac users: install expect/unbuffer
+brew install expect
+
+# 2. Build code:
 yarn install
 yarn start
 
-# In separate terminal
+# 3. In separate terminal:
 yarn run electron
 ```
