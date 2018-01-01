@@ -627,6 +627,15 @@ ul, ol {
   min-height: 70px;
 }
 
+
+
+/* --- Markdown content formatting --- */
+
+.card .view code {
+  white-space: inherit;
+}
+
+
 /* ======== HISTORY ======== */
 
 #history {
