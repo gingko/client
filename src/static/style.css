@@ -627,6 +627,34 @@ ul, ol {
   min-height: 70px;
 }
 
+/* ======== CARD (Drop regions) ======== */
+
+.drop-region-above, .drop-region-into, .drop-region-below {
+  position: absolute;
+  height: 100%;
+  width: 25%;
+  right: 0;
+}
+
+.drop-region-above, .drop-region-into {
+  top: 0;
+}
+
+.drop-region-above, .drop-region-below {
+  height: 33%;
+  width: 100%;
+}
+
+
+.drop-region-below {
+  bottom: 0;
+}
+
+.drop-region-above.drop-hover, .drop-region-into.drop-hover, .drop-region-below.drop-hover {
+  background-color: green;
+}
+
+
 /* ======== HISTORY ======== */
 
 #history {

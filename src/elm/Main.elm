@@ -437,13 +437,28 @@ update msg ({objects, workingTree, status} as model) =
 
         -- Successful drop
         ( Just (draggedTree, _, _), Nothing, Just (dragId, dropId) ) ->
+          let
+            moveMsg = case dropId of
+              Into id ->
+                Move draggedTree id 999999
+
+              Above id ->
+                Move draggedTree
+                  ( ( getParent id model.workingTree.tree |> Maybe.map .id ) ? "0" )
+                  ( ( getIndex id model.workingTree.tree ? 0 ) - 1 |> Basics.max 0 )
+
+              Below id ->
+                Move draggedTree
+                  ( ( getParent id model.workingTree.tree |> Maybe.map .id ) ? "0" )
+                  ( ( getIndex id model.workingTree.tree ? 0 ) + 1)
+          in
           { model | viewState =
             { vs
               | dragModel = newDragModel
               , draggedTree = Nothing
             }
           } ! []
-            |> andThen (Move draggedTree dropId 999999)
+            |> andThen moveMsg
 
         -- Failed drop
         ( Just (draggedTree, parentId, idx), Nothing, Nothing ) ->

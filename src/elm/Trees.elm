@@ -392,12 +392,12 @@ viewGroup vstate depth xs =
       (List.map viewFunction xs)
 
 
-viewKeyedCard : (Bool, Bool, Int, List String, List String, DragDrop.Model String String) -> Tree -> (String, Html Msg)
+viewKeyedCard : (Bool, Bool, Int, List String, List String, DragDrop.Model String DropId) -> Tree -> (String, Html Msg)
 viewKeyedCard tup tree =
   (tree.id, lazy2 viewCard tup tree)
 
 
-viewCard : (Bool, Bool, Int, List String, List String, DragDrop.Model String String) -> Tree -> Html Msg
+viewCard : (Bool, Bool, Int, List String, List String, DragDrop.Model String DropId) -> Tree -> Html Msg
 viewCard (isActive, isEditing, depth, collaborators, collabsEditing, dragModel) tree =
   let
     hasChildren =
@@ -420,7 +420,7 @@ viewCard (isActive, isEditing, depth, collaborators, collabsEditing, dragModel) 
     buttons =
       case (isEditing, isActive) of
         ( False, True ) ->
-          [ div [ class "flex-row card-top-overlay" ]
+          [ div [ class "flex-row card-top-overlay"]
                 [ span
                   [ class "card-btn ins-above"
                   , title "Insert Above (Ctrl+K)"
@@ -473,6 +473,34 @@ viewCard (isActive, isEditing, depth, collaborators, collabsEditing, dragModel) 
           []
 
 
+    dropRegions =
+      let
+        dragId_ = DragDrop.getDragId dragModel
+
+        dropId_ = DragDrop.getDropId dragModel
+
+        dropDiv str dId =
+          div
+            ( [ classList
+                  [ ("drop-region-"++str, True)
+                  , ("drop-hover", dropId_ == Just dId )
+                  ]
+              ]
+              ++ ( DragDrop.droppable DragDropMsg dId )
+            )
+            []
+      in
+      case dragId_ of
+        Just dragId ->
+          [ dropDiv "above" (Above tree.id)
+          , dropDiv "into" (Into tree.id)
+          , dropDiv "below" (Below tree.id)
+          ]
+
+        Nothing ->
+          []
+
+
     cardAttributes =
       [ id ("card-" ++ tree.id)
       , classList [ ("card", True)
@@ -484,7 +512,6 @@ viewCard (isActive, isEditing, depth, collaborators, collabsEditing, dragModel) 
                   ]
       ]
       ++ ( DragDrop.draggable DragDropMsg tree.id )
-      ++ ( DragDrop.droppable DragDropMsg tree.id )
   in
   if isEditing then
     div cardAttributes
@@ -503,6 +530,7 @@ viewCard (isActive, isEditing, depth, collaborators, collabsEditing, dragModel) 
     div cardAttributes
       (
         buttons ++
+        dropRegions ++
         [ div
             [ class "view"
             , onClick (Activate tree.id)
