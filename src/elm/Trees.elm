@@ -15,7 +15,7 @@ import Types exposing (..)
 import TreeUtils exposing (getTree, getColumns, getParent, getChildren)
 import List.Extra as ListExtra
 import Sha1 exposing (Diff, diff3Merge)
-import DragAndDrop
+import Html5.DragDrop as DragDrop
 
 
 
@@ -393,12 +393,12 @@ viewGroup vstate depth xs =
       (List.map viewFunction xs)
 
 
-viewKeyedCard : (Bool, Bool, Int, List String, List String, DragAndDrop.Model String String) -> Tree -> (String, Html Msg)
+viewKeyedCard : (Bool, Bool, Int, List String, List String, DragDrop.Model String String) -> Tree -> (String, Html Msg)
 viewKeyedCard tup tree =
   (tree.id, lazy2 viewCard tup tree)
 
 
-viewCard : (Bool, Bool, Int, List String, List String, DragAndDrop.Model String String) -> Tree -> Html Msg
+viewCard : (Bool, Bool, Int, List String, List String, DragDrop.Model String String) -> Tree -> Html Msg
 viewCard (isActive, isEditing, depth, collaborators, collabsEditing, dragModel) tree =
   let
     hasChildren =
@@ -484,8 +484,8 @@ viewCard (isActive, isEditing, depth, collaborators, collabsEditing, dragModel) 
                   , ("has-children", hasChildren)
                   ]
       ]
-      ++ ( DragAndDrop.draggableHtml dragModel DragAndDropMsg tree.id )
-      ++ ( DragAndDrop.droppableHtml dragModel DragAndDropMsg tree.id )
+      ++ ( DragDrop.draggable DragDropMsg tree.id )
+      ++ ( DragDrop.droppable DragDropMsg tree.id )
   in
   if isEditing then
     div cardAttributes

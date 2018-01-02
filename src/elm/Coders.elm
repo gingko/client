@@ -6,7 +6,7 @@ import Json.Encode as Enc
 import Json.Decode as Json exposing (..)
 import Json.Decode.Pipeline exposing (decode, required, optional)
 import Array exposing (fromList)
-import DragAndDrop
+import Html5.DragDrop as DragDrop
 
 
 
@@ -75,7 +75,7 @@ viewStateDecoder =
     (field "activeFuture" (list string))
     (field "descendants" (list string))
     (maybe (field "editing" string))
-    (succeed DragAndDrop.init)
+    (succeed DragDrop.init)
     (succeed [])
 
 

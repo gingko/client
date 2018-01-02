@@ -1,7 +1,7 @@
 module Types exposing (..)
 
 import Json.Decode as Json
-import DragAndDrop
+import Html5.DragDrop as DragDrop
 
 
 
@@ -32,7 +32,7 @@ type Msg
     | MoveWithin String Int
     | MoveLeft String
     | MoveRight String
-    | DragAndDropMsg (DragAndDrop.Msg String String)
+    | DragDropMsg (DragDrop.Msg String String)
     -- === History ===
     | Undo
     | Redo
@@ -102,7 +102,7 @@ type alias ViewState =
   , activeFuture : List String
   , descendants : List String
   , editing : Maybe String
-  , dragModel : DragAndDrop.Model String String
+  , dragModel : DragDrop.Model String String
   , collaborators : List CollabState
   }
 
@@ -111,6 +111,6 @@ type alias VisibleViewState =
   { active : String
   , editing : Maybe String
   , descendants : List String
-  , dragModel : DragAndDrop.Model String String
+  , dragModel : DragDrop.Model String String
   , collaborators : List CollabState
   }

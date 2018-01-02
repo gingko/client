@@ -21,7 +21,7 @@ import Sha1 exposing (timestamp, timeJSON)
 import Objects
 import Coders exposing (..)
 
-import DragAndDrop
+import Html5.DragDrop as DragDrop
 
 
 main : Program Never Model Msg
@@ -71,7 +71,7 @@ defaultModel =
       , activeFuture = []
       , descendants = []
       , editing = Nothing
-      , dragModel = DragAndDrop.init
+      , dragModel = DragDrop.init
       , collaborators = []
       }
   , online = True
@@ -415,9 +415,17 @@ update msg ({objects, workingTree, status} as model) =
           update (Move tree prev 999999) model
         _ -> model ! []
 
-    DragAndDropMsg dragAndDropMsg ->
-      let _ = Debug.log "dragAndDropMsg" dragAndDropMsg in
-      model ! []
+    DragDropMsg dragDropMsg ->
+      let
+        ( newDragModel, dragResult_ ) =
+          DragDrop.update dragDropMsg vs.dragModel
+      in
+      case dragResult_ of
+        Just (dragId, dropId) ->
+          { model | viewState = { vs | dragModel = newDragModel }} ! []
+
+        Nothing ->
+          { model | viewState = { vs | dragModel = newDragModel }} ! []
 
     -- === History ===
 
@@ -1136,7 +1144,6 @@ subscriptions model =
     , updateContent UpdateContent
     , cancelConfirmed (\_ -> CancelCard)
     , externals ExternalMessage
-    , Sub.map DragAndDropMsg (DragAndDrop.subscriptions model.viewState.dragModel)
     --, Time.every (1*Time.second) (\_ -> Pull)
     ]
 
