@@ -422,34 +422,42 @@ update msg ({objects, workingTree, status} as model) =
           DragDrop.update dragDropMsg vs.dragModel
             |> Debug.log "dragDropMsg"
       in
-      case (DragDrop.getDragId newDragModel, dragResult_) of
-        ( Just dragId, Nothing ) ->
+      case (vs.draggedTree, DragDrop.getDragId newDragModel, dragResult_ ) of
+        -- Start drag
+        ( Nothing, Just dragId, Nothing ) ->
           { model
             | workingTree = Trees.update (Trees.Rmv dragId) model.workingTree
             , viewState =
               { vs
                 | dragModel = newDragModel
-                , draggedTree =
-                    if vs.draggedTree == Nothing then
-                      getTree dragId model.workingTree.tree
-                    else
-                      vs.draggedTree
-                  |> Debug.log "draggedTree"
+                , draggedTree = getTree dragId model.workingTree.tree
               }
           }
           ! []
 
-        ( Nothing, Just (dragId, dropId) ) ->
+        -- Successful drop
+        ( Just draggedTree, Nothing, Just (dragId, dropId) ) ->
           { model | viewState =
             { vs
               | dragModel = newDragModel
               , draggedTree = Nothing
             }
           } ! []
-            |> andThen (Move (vs.draggedTree ? defaultTree) dropId 999999)
+            |> andThen (Move draggedTree dropId 999999)
 
-        ( _, _ ) ->
-          { model | viewState = { vs | dragModel = newDragModel }} ! []
+        -- Failed drop
+        -- TODO: readd to original place
+        ( Just draggedTree, Nothing, Nothing ) ->
+          { model | viewState =
+            { vs
+              | dragModel = newDragModel
+              , draggedTree = Nothing
+            }
+          } ! []
+            |> andThen (Move draggedTree "0" 999999)
+
+        _ ->
+          { model | viewState = { vs | dragModel = newDragModel } } ! []
 
     -- === History ===
 
