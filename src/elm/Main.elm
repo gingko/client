@@ -419,12 +419,20 @@ update msg ({objects, workingTree, status} as model) =
       let
         ( newDragModel, dragResult_ ) =
           DragDrop.update dragDropMsg vs.dragModel
+            |> Debug.log "dragDropMsg"
       in
-      case dragResult_ of
-        Just (dragId, dropId) ->
+      case (DragDrop.getDragId newDragModel, dragResult_) of
+        ( Just dragId, Nothing ) ->
+          { model
+            | workingTree = Trees.update (Trees.Rmv dragId) model.workingTree
+            , viewState = { vs | dragModel = newDragModel }
+          }
+          ! []
+
+        ( Nothing, Just (dragId, dropId) ) ->
           { model | viewState = { vs | dragModel = newDragModel }} ! []
 
-        Nothing ->
+        ( _, _ ) ->
           { model | viewState = { vs | dragModel = newDragModel }} ! []
 
     -- === History ===
