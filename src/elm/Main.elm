@@ -445,7 +445,7 @@ update msg ({objects, workingTree, status} as model) =
               Above id ->
                 Move draggedTree
                   ( ( getParent id model.workingTree.tree |> Maybe.map .id ) ? "0" )
-                  ( ( getIndex id model.workingTree.tree ? 0 ) - 1 |> Basics.max 0 )
+                  ( ( getIndex id model.workingTree.tree ? 0 ) |> Basics.max 0 )
 
               Below id ->
                 Move draggedTree

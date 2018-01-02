@@ -350,6 +350,13 @@ viewGroup vstate depth xs =
         |> Maybe.withDefault defaultTree
         |> .id
 
+    lastChild =
+      xs
+        |> List.reverse
+        |> List.head
+        |> Maybe.withDefault defaultTree
+        |> .id
+
     isActiveDescendant =
       vstate.descendants
         |> List.member firstChild
@@ -367,6 +374,9 @@ viewGroup vstate depth xs =
             Nothing ->
               False
 
+        isLast =
+          t.id == lastChild
+
         isCollabActive =
           vstate.collaborators
             |> List.map .mode
@@ -382,7 +392,7 @@ viewGroup vstate depth xs =
             |> List.filter (\c -> c.mode == Active t.id || c.mode == Editing t.id)
             |> List.map .uid
       in
-      viewKeyedCard (isActive, isEditing, depth, collaborators, collabsEditing, vstate.dragModel) t
+      viewKeyedCard (isActive, isEditing, depth, isLast, collaborators, collabsEditing, vstate.dragModel) t
   in
     Keyed.node "div"
       [ classList [ ("group", True)
@@ -392,13 +402,13 @@ viewGroup vstate depth xs =
       (List.map viewFunction xs)
 
 
-viewKeyedCard : (Bool, Bool, Int, List String, List String, DragDrop.Model String DropId) -> Tree -> (String, Html Msg)
+viewKeyedCard : (Bool, Bool, Int, Bool, List String, List String, DragDrop.Model String DropId) -> Tree -> (String, Html Msg)
 viewKeyedCard tup tree =
   (tree.id, lazy2 viewCard tup tree)
 
 
-viewCard : (Bool, Bool, Int, List String, List String, DragDrop.Model String DropId) -> Tree -> Html Msg
-viewCard (isActive, isEditing, depth, collaborators, collabsEditing, dragModel) tree =
+viewCard : (Bool, Bool, Int, Bool, List String, List String, DragDrop.Model String DropId) -> Tree -> Html Msg
+viewCard (isActive, isEditing, depth, isLast, collaborators, collabsEditing, dragModel) tree =
   let
     hasChildren =
       case tree.children of
@@ -494,8 +504,8 @@ viewCard (isActive, isEditing, depth, collaborators, collabsEditing, dragModel) 
         Just dragId ->
           [ dropDiv "above" (Above tree.id)
           , dropDiv "into" (Into tree.id)
-          , dropDiv "below" (Below tree.id)
           ]
+          ++ (if isLast then [ dropDiv "below" (Below tree.id) ] else [])
 
         Nothing ->
           []

@@ -636,22 +636,29 @@ ul, ol {
   right: 0;
 }
 
-.drop-region-above, .drop-region-into {
+.drop-region-into {
   top: 0;
 }
 
 .drop-region-above, .drop-region-below {
-  height: 33%;
+  height: 30px;
   width: 100%;
 }
 
-
-.drop-region-below {
-  bottom: 0;
+.drop-region-above {
+  top: -15px;
 }
 
-.drop-region-above.drop-hover, .drop-region-into.drop-hover, .drop-region-below.drop-hover {
-  background-color: green;
+.drop-region-below {
+  bottom: -15px;
+}
+
+.drop-region-above.drop-hover,.drop-region-below.drop-hover {
+  background: linear-gradient(to bottom, hsla(215,100%,38%,0) 0%,hsla(215,100%,38%,1) 44%,hsla(215,100%,38%,1) 50%,hsla(215,100%,38%,1) 56%,hsla(215,100%,38%,0) 100%);
+}
+
+.drop-region-into.drop-hover {
+  background: linear-gradient(to right, hsla(215,100%,38%,0) 0%,hsla(215,100%,38%,0.81) 77%,hsla(215,100%,38%,1) 95%,hsla(215,100%,38%,1) 100%);
 }
 
 
