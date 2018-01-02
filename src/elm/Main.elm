@@ -72,6 +72,7 @@ defaultModel =
       , descendants = []
       , editing = Nothing
       , dragModel = DragDrop.init
+      , draggedTree = Nothing
       , collaborators = []
       }
   , online = True
@@ -425,12 +426,27 @@ update msg ({objects, workingTree, status} as model) =
         ( Just dragId, Nothing ) ->
           { model
             | workingTree = Trees.update (Trees.Rmv dragId) model.workingTree
-            , viewState = { vs | dragModel = newDragModel }
+            , viewState =
+              { vs
+                | dragModel = newDragModel
+                , draggedTree =
+                    if vs.draggedTree == Nothing then
+                      getTree dragId model.workingTree.tree
+                    else
+                      vs.draggedTree
+                  |> Debug.log "draggedTree"
+              }
           }
           ! []
 
         ( Nothing, Just (dragId, dropId) ) ->
-          { model | viewState = { vs | dragModel = newDragModel }} ! []
+          { model | viewState =
+            { vs
+              | dragModel = newDragModel
+              , draggedTree = Nothing
+            }
+          } ! []
+            |> andThen (Move (vs.draggedTree ? defaultTree) dropId 999999)
 
         ( _, _ ) ->
           { model | viewState = { vs | dragModel = newDragModel }} ! []

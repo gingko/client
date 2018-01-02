@@ -7,12 +7,10 @@ import List.Extra as ListExtra
 
 import Json.Encode as Enc
 import Json.Decode as Json
-import Json.Decode.Pipeline exposing (decode, required, optional)
 import Coders exposing (statusDecoder, tupleDecoder)
 
 import Types exposing (..)
 import Trees exposing (apply, opToTreeMsg)
-import TreeUtils exposing (getChildren, getTree)
 import Sha1 exposing (sha1, timestamp, diff3Merge)
 
 
