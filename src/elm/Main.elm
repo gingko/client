@@ -430,13 +430,13 @@ update msg ({objects, workingTree, status} as model) =
             , viewState =
               { vs
                 | dragModel = newDragModel
-                , draggedTree = getTree dragId model.workingTree.tree
+                , draggedTree = getTreeWithPosition dragId model.workingTree.tree
               }
           }
           ! []
 
         -- Successful drop
-        ( Just draggedTree, Nothing, Just (dragId, dropId) ) ->
+        ( Just (draggedTree, _, _), Nothing, Just (dragId, dropId) ) ->
           { model | viewState =
             { vs
               | dragModel = newDragModel
@@ -446,15 +446,14 @@ update msg ({objects, workingTree, status} as model) =
             |> andThen (Move draggedTree dropId 999999)
 
         -- Failed drop
-        -- TODO: readd to original place
-        ( Just draggedTree, Nothing, Nothing ) ->
+        ( Just (draggedTree, parentId, idx), Nothing, Nothing ) ->
           { model | viewState =
             { vs
               | dragModel = newDragModel
               , draggedTree = Nothing
             }
           } ! []
-            |> andThen (Move draggedTree "0" 999999)
+            |> andThen (Move draggedTree parentId idx)
 
         _ ->
           { model | viewState = { vs | dragModel = newDragModel } } ! []

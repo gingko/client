@@ -1,6 +1,5 @@
 module Trees exposing (..)
 
-import Dict exposing (Dict)
 import Tuple exposing (first, second)
 import Html exposing (..)
 import Html.Attributes exposing (..)

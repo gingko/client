@@ -88,6 +88,15 @@ getColumn n tree =
   ListExtra.getAt n cols
 
 
+getTreeWithPosition : String -> Tree -> Maybe (Tree, String, Int)
+getTreeWithPosition id tree =
+  Maybe.map3
+    (\t p i -> (t, p, i))
+    ( getTree id tree )
+    ( getParent id tree |> Maybe.map .id )
+    ( getIndex id tree )
+
+
 getPrevNext : Int -> String -> Tree -> Maybe Tree
 getPrevNext shift id tree =
   let

@@ -103,7 +103,7 @@ type alias ViewState =
   , descendants : List String
   , editing : Maybe String
   , dragModel : DragDrop.Model String String
-  , draggedTree : Maybe Tree
+  , draggedTree : Maybe (Tree, String, Int)
   , collaborators : List CollabState
   }
 
