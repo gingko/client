@@ -2,8 +2,9 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
-## Unreleased - 2017-12-19
+## Unreleased - 2018-01-01
   - Added Alt+hjkl for card moving.
+  - Fixed non-wrapping for `backtick` verbatim sections.
 
 ## [0.8.2] - 2017-12-17
   - Re-enabled autoUpdater. Fixed startup errors on macOS.
