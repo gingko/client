@@ -17,18 +17,17 @@ type Msg
     -- === Card Editing  ===
     | OpenCard String String
     | GetContentToSave String
-    | UpdateContent (String, String) -- |> Save
-    | UpdateCardError String
-    | DeleteCard String -- |> Activate |> Save
+    | UpdateContent (String, String)
+    | DeleteCard String
     | IntentCancelCard
     | CancelCard
     -- === Card Insertion  ===
-    | Insert String Int -- |> OpenCard |> Activate
+    | Insert String Int
     | InsertAbove String
     | InsertBelow String
     | InsertChild String
     -- === Card Moving  ===
-    | Move Tree String Int -- |> Activate |> Save
+    | Move Tree String Int
     | MoveWithin String Int
     | MoveLeft String
     | MoveRight String
@@ -39,20 +38,18 @@ type Msg
     | Pull
     | Push
     | SetSelection String Selection String
-    | Resolve String -- |> Save
-    | CheckoutCommit String -- |> UpdateCommits
+    | Resolve String
+    | CheckoutCommit String
     -- === Files ===
     | IntentNew
     | IntentSave
     | IntentOpen
     -- === Ports ===
     | ExternalMessage (String, String)
-    | Load (Maybe String, Json.Value) -- |> UpdateCommits
-    | MergeIn Json.Value -- |> [Save] |> UpdateCommits
+    | Load (Maybe String, Json.Value)
+    | MergeIn Json.Value
     | ImportJson Json.Value
     | SetHeadRev String
-    | UpdateCommits (Json.Value, Maybe String)
-    | Save -- |> UpdateCommits |> [Push]
     | RecvCollabState Json.Value
     | CollaboratorDisconnected String
     | HandleKey String

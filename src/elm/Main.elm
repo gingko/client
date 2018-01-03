@@ -194,7 +194,7 @@ update msg ({objects, workingTree, status} as model) =
           | workingTree = newTree
         }
           ! []
-          |> andThen Save
+          |> commitOrStage
           |> sendCollabState (CollabState model.uid (Active id) "")
       else
         model
@@ -240,7 +240,7 @@ update msg ({objects, workingTree, status} as model) =
         }
           ! []
           |> activate nextToActivate
-          |> andThen Save
+          |> commitOrStage
 
     IntentCancelCard ->
       let
@@ -315,7 +315,7 @@ update msg ({objects, workingTree, status} as model) =
       }
         ! []
         |> activate subtree.id
-        |> andThen Save
+        |> commitOrStage
 
     MoveWithin id delta ->
       let
@@ -495,7 +495,7 @@ update msg ({objects, workingTree, status} as model) =
             | status = MergeConflict mTree shaA shaB (conflicts |> List.filter (\c -> c.id /= cid))
           }
             ! []
-            |> andThen Save
+            |> commitOrStage
 
         _ ->
           model ! []
@@ -516,8 +516,7 @@ update msg ({objects, workingTree, status} as model) =
                 | workingTree = Trees.setTree newTree model.workingTree
                 , status = newStatus
               }
-                ! []
-                |> andThen (UpdateCommits (objects |> Objects.toValue, getHead newStatus))
+                ! [ updateCommits (objects |> Objects.toValue, getHead newStatus) ]
 
             Nothing ->
               model ! []
@@ -567,8 +566,7 @@ update msg ({objects, workingTree, status} as model) =
             , filepath = filepath
             , changed = False
           }
-            ! []
-            |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
+            ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
 
         (Clean newHead, Just newTree) ->
           { model
@@ -578,8 +576,7 @@ update msg ({objects, workingTree, status} as model) =
             , filepath = filepath
             , changed = False
           }
-            ! []
-            |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
+            ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
 
         (MergeConflict mTree oldHead newHead [], Just newTree) ->
           { model
@@ -589,8 +586,7 @@ update msg ({objects, workingTree, status} as model) =
             , filepath = filepath
             , changed = False
           }
-            ! []
-            |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
+            ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
 
         (MergeConflict mTree oldHead newHead conflicts, Just newTree) ->
           { model
@@ -600,8 +596,7 @@ update msg ({objects, workingTree, status} as model) =
             , filepath = filepath
             , changed = False
           }
-            ! []
-            |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
+            ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
 
         _ ->
           let _ = Debug.log "failed to load json" (newStatus, newTree_, newObjects, json) in
@@ -619,8 +614,7 @@ update msg ({objects, workingTree, status} as model) =
             , objects = newObjects
             , status = newStatus
           }
-            ! []
-            |> andThen (UpdateCommits (newObjects |> Objects.toValue, Just sha))
+            ! [ updateCommits (newObjects |> Objects.toValue, Just sha) ]
             |> activate vs.active
 
         (Clean oldHead, Clean newHead) ->
@@ -630,8 +624,7 @@ update msg ({objects, workingTree, status} as model) =
               , objects = newObjects
               , status = newStatus
             }
-              ! []
-              |> andThen (UpdateCommits (newObjects |> Objects.toValue, Just newHead))
+              ! [ updateCommits (newObjects |> Objects.toValue, Just newHead) ]
               |> activate vs.active
           else
             model ! []
@@ -646,9 +639,8 @@ update msg ({objects, workingTree, status} as model) =
             , objects = newObjects
             , status = newStatus
           }
-            ! []
-            |> andThen Save
-            |> andThen (UpdateCommits (newObjects |> Objects.toValue, Just newHead))
+            ! [ updateCommits (newObjects |> Objects.toValue, Just newHead) ]
+            |> commitOrStage
             |> activate vs.active
 
         _ ->
@@ -668,8 +660,9 @@ update msg ({objects, workingTree, status} as model) =
             , status = newStatus
             , changed = True
           }
-            ! [saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)]
-            |> andThen (UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus))
+            ! [ saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)
+              , updateCommits ( newObjects |> Objects.toValue, getHead newStatus)
+              ]
 
         Err err ->
           let _ = Debug.log "ImportJson error" err in
@@ -681,51 +674,6 @@ update msg ({objects, workingTree, status} as model) =
       }
         ! []
         |> andThen Push
-
-    UpdateCommits (json, sha_) ->
-      model ! [updateCommits (json, sha_)]
-
-    Save ->
-      case status of
-        Bare ->
-          let
-            (newStatus, _, newObjects) =
-              Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" workingTree.tree) model.objects
-          in
-          { model
-            | objects = newObjects
-            , status = newStatus
-          }
-            ! [saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)]
-            |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
-
-        Clean oldHead ->
-          let
-            (newStatus, _, newObjects) =
-              Objects.update (Objects.Commit [oldHead] "Jane Doe <jane.doe@gmail.com>" workingTree.tree) model.objects
-          in
-          { model
-            | objects = newObjects
-            , status = newStatus
-          }
-            ! [saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)]
-            |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
-
-        MergeConflict _ oldHead newHead conflicts ->
-          if (List.isEmpty conflicts || (conflicts |> List.filter (not << .resolved) |> List.isEmpty)) then
-            let
-              (newStatus, _, newObjects) =
-                Objects.update (Objects.Commit [oldHead, newHead] "Jane Doe <jane.doe@gmail.com>" workingTree.tree) model.objects
-            in
-            { model
-              | objects = newObjects
-              , status = newStatus
-            }
-              ! [saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)]
-              |> andThen (UpdateCommits (newObjects |> Objects.toValue, getHead newStatus))
-          else
-            model
-              ! [saveLocal ( model.workingTree.tree |> treeToValue )]
 
     RecvCollabState json ->
       case Json.decodeValue collabStateDecoder json of
@@ -925,7 +873,7 @@ update msg ({objects, workingTree, status} as model) =
           let _ = Debug.log "Unknown external command" cmd in
           model ! []
 
-    _ ->
+    NoOp ->
       model ! []
 
 
@@ -984,6 +932,53 @@ activate id (model, prevCmd) =
 
       Nothing ->
         model ! [ prevCmd ]
+
+
+commitOrStage : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+commitOrStage ({workingTree} as model, prevCmd) =
+  case model.status of
+    Bare ->
+      let
+        (newStatus, _, newObjects) =
+          Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" workingTree.tree) model.objects
+      in
+      { model
+        | objects = newObjects
+        , status = newStatus
+      }
+        ! [ saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)
+          , updateCommits (newObjects |> Objects.toValue, getHead newStatus)
+          ]
+
+    Clean oldHead ->
+      let
+        (newStatus, _, newObjects) =
+          Objects.update (Objects.Commit [oldHead] "Jane Doe <jane.doe@gmail.com>" workingTree.tree) model.objects
+      in
+      { model
+        | objects = newObjects
+        , status = newStatus
+      }
+        ! [ saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)
+          , updateCommits (newObjects |> Objects.toValue, getHead newStatus)
+          ]
+
+    MergeConflict _ oldHead newHead conflicts ->
+      if (List.isEmpty conflicts || (conflicts |> List.filter (not << .resolved) |> List.isEmpty)) then
+        let
+          (newStatus, _, newObjects) =
+            Objects.update (Objects.Commit [oldHead, newHead] "Jane Doe <jane.doe@gmail.com>" workingTree.tree) model.objects
+        in
+        { model
+          | objects = newObjects
+          , status = newStatus
+        }
+          ! [ saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)
+            , updateCommits (newObjects |> Objects.toValue, getHead newStatus)
+            ]
+      else
+        model
+          ! [saveLocal ( model.workingTree.tree |> treeToValue )]
 
 
 sendCollabState : CollabState -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
