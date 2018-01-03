@@ -83,9 +83,8 @@ defaultModel =
 
 init : (Model, Cmd Msg)
 init =
-  defaultModel
-    ! [focus "1"]
-    |> andThen (Activate "1")
+  defaultModel ! [focus "1"]
+    |> activate "1"
 
 
 
@@ -102,64 +101,16 @@ update msg ({objects, workingTree, status} as model) =
     -- === Card Activation ===
 
     Activate id ->
-      if id == "0" then
-        model ! []
-      else
-        let
-          activeTree_ = getTree id model.workingTree.tree
-          newPast =
-            if (id == vs.active) then
-              vs.activePast
-            else
-              vs.active :: vs.activePast |> List.take 40
-        in
-        case activeTree_ of
-          Just activeTree ->
-            let
-              desc =
-                activeTree
-                  |> getDescendants
-                  |> List.map .id
-
-              anc =
-                getAncestors model.workingTree.tree activeTree []
-                  |> List.map .id
-
-              flatCols =
-                model.workingTree.columns
-                  |> List.map (\c -> List.map (\g -> List.map .id g) c)
-                  |> List.map List.concat
-
-              allIds =
-                anc
-                ++ [id]
-                ++ desc
-            in
-            { model
-              | viewState =
-                  { vs
-                    | active = id
-                    , activePast = newPast
-                    , activeFuture = []
-                    , descendants = desc
-                  }
-            }
-              ! [ activateCards
-                    ( getDepth 0 model.workingTree.tree id
-                    , centerlineIds flatCols allIds newPast
-                    )
-                ]
-                |> andThen (SendCollabState (CollabState model.uid (Active id) ""))
-
-          Nothing ->
-            model ! []
+      model ! []
+        |> activate id
 
     GoLeft id ->
       let
         targetId =
           getParent id model.workingTree.tree ? defaultTree |> .id
       in
-      update (Activate targetId) model
+      model ! []
+        |> activate targetId
 
     GoDown id ->
       let
@@ -168,7 +119,8 @@ update msg ({objects, workingTree, status} as model) =
             Nothing -> id
             Just ntree -> ntree.id
       in
-      update (Activate targetId) model
+      model ! []
+        |> activate targetId
 
     GoUp id ->
       let
@@ -177,7 +129,8 @@ update msg ({objects, workingTree, status} as model) =
             Nothing -> id
             Just ntree -> ntree.id
       in
-      update (Activate targetId) model
+      model ! []
+        |> activate targetId
 
     GoRight id ->
       let
@@ -207,7 +160,8 @@ update msg ({objects, workingTree, status} as model) =
           if List.length childrenIds == 0 then
             model ! []
           else
-            update (Activate prevActiveOfChildren) model
+            model ! []
+              |> activate prevActiveOfChildren
 
 
     -- === Card Editing  ===
@@ -226,7 +180,7 @@ update msg ({objects, workingTree, status} as model) =
           | viewState = { vs | active = id, editing = Just id }
         }
           ! [focus id]
-          |> andThen (SendCollabState (CollabState model.uid (Editing id) str))
+          |> sendCollabState (CollabState model.uid (Editing id) str)
 
     GetContentToSave id ->
       model ! [getText id]
@@ -241,11 +195,11 @@ update msg ({objects, workingTree, status} as model) =
         }
           ! []
           |> andThen Save
-          |> andThen (SendCollabState (CollabState model.uid (Active id) ""))
+          |> sendCollabState (CollabState model.uid (Active id) "")
       else
         model
           ! []
-          |> andThen (SendCollabState (CollabState model.uid (Active id) ""))
+          |> sendCollabState (CollabState model.uid (Active id) "")
 
     DeleteCard id ->
       let
@@ -285,7 +239,7 @@ update msg ({objects, workingTree, status} as model) =
           | workingTree = Trees.update (Trees.Rmv id) model.workingTree
         }
           ! []
-          |> andThen (Activate nextToActivate)
+          |> activate nextToActivate
           |> andThen Save
 
     IntentCancelCard ->
@@ -299,7 +253,7 @@ update msg ({objects, workingTree, status} as model) =
         | viewState = { vs | editing = Nothing }
       }
         ! []
-        |> andThen (SendCollabState (CollabState model.uid (Active vs.active) ""))
+        |> sendCollabState (CollabState model.uid (Active vs.active) "")
 
     -- === Card Insertion  ===
 
@@ -312,7 +266,7 @@ update msg ({objects, workingTree, status} as model) =
       }
         ! []
         |> andThen (OpenCard newId "")
-        |> andThen (Activate newId)
+        |> activate newId
 
     InsertAbove id ->
       let
@@ -360,7 +314,7 @@ update msg ({objects, workingTree, status} as model) =
         | workingTree = Trees.update (Trees.Mov subtree pid pos) model.workingTree
       }
         ! []
-        |> andThen (Activate subtree.id)
+        |> activate subtree.id
         |> andThen Save
 
     MoveWithin id delta ->
@@ -529,7 +483,7 @@ update msg ({objects, workingTree, status} as model) =
               }
                 ! []
                 |> andThen CancelCard
-                |> andThen (Activate id)
+                |> activate id
 
         _ ->
           model ! []
@@ -667,7 +621,7 @@ update msg ({objects, workingTree, status} as model) =
           }
             ! []
             |> andThen (UpdateCommits (newObjects |> Objects.toValue, Just sha))
-            |> andThen (Activate vs.active)
+            |> activate vs.active
 
         (Clean oldHead, Clean newHead) ->
           if (oldHead /= newHead) then
@@ -678,7 +632,7 @@ update msg ({objects, workingTree, status} as model) =
             }
               ! []
               |> andThen (UpdateCommits (newObjects |> Objects.toValue, Just newHead))
-              |> andThen (Activate vs.active)
+              |> activate vs.active
           else
             model ! []
 
@@ -695,7 +649,7 @@ update msg ({objects, workingTree, status} as model) =
             ! []
             |> andThen Save
             |> andThen (UpdateCommits (newObjects |> Objects.toValue, Just newHead))
-            |> andThen (Activate vs.active)
+            |> activate vs.active
 
         _ ->
           let _ = Debug.log "failed to merge json" json in
@@ -773,14 +727,6 @@ update msg ({objects, workingTree, status} as model) =
             model
               ! [saveLocal ( model.workingTree.tree |> treeToValue )]
 
-    SendCollabState collabState ->
-      case model.status of
-        MergeConflict _ _ _ _ ->
-          model ! []
-
-        _ ->
-          model ! [js ("socket-send", collabState |> collabStateToValue)]
-
     RecvCollabState json ->
       case Json.decodeValue collabStateDecoder json of
         Ok collabState ->
@@ -831,7 +777,7 @@ update msg ({objects, workingTree, status} as model) =
             Just uid ->
               update (GetContentToSave uid) model
                 |> andThen CancelCard
-                |> andThen (Activate uid)
+                |> activate uid
 
         "enter" ->
           normalMode model (OpenCard vs.active (getContent vs.active model.workingTree.tree))
@@ -981,6 +927,73 @@ update msg ({objects, workingTree, status} as model) =
 
     _ ->
       model ! []
+
+
+activate : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+activate id (model, prevCmd) =
+  let vs = model.viewState in
+  if id == "0" then
+    model ! [ prevCmd ]
+  else
+    let
+      activeTree_ = getTree id model.workingTree.tree
+      newPast =
+        if (id == vs.active) then
+          vs.activePast
+        else
+          vs.active :: vs.activePast |> List.take 40
+    in
+    case activeTree_ of
+      Just activeTree ->
+        let
+          desc =
+            activeTree
+              |> getDescendants
+              |> List.map .id
+
+          anc =
+            getAncestors model.workingTree.tree activeTree []
+              |> List.map .id
+
+          flatCols =
+            model.workingTree.columns
+              |> List.map (\c -> List.map (\g -> List.map .id g) c)
+              |> List.map List.concat
+
+          allIds =
+            anc
+            ++ [id]
+            ++ desc
+        in
+        { model
+          | viewState =
+              { vs
+                | active = id
+                , activePast = newPast
+                , activeFuture = []
+                , descendants = desc
+              }
+        }
+          ! [ prevCmd
+            , activateCards
+                ( getDepth 0 model.workingTree.tree id
+                , centerlineIds flatCols allIds newPast
+                )
+            ]
+            |> sendCollabState (CollabState model.uid (Active id) "")
+
+      Nothing ->
+        model ! [ prevCmd ]
+
+
+sendCollabState : CollabState -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+sendCollabState collabState (model, prevCmd) =
+  case model.status of
+    MergeConflict _ _ _ _ ->
+      model ! [ prevCmd ]
+
+    _ ->
+      model ! [ prevCmd, js ("socket-send", collabState |> collabStateToValue) ]
 
 
 andThen : Msg -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )

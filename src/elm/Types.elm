@@ -53,7 +53,6 @@ type Msg
     | SetHeadRev String
     | UpdateCommits (Json.Value, Maybe String)
     | Save -- |> UpdateCommits |> [Push]
-    | SendCollabState CollabState
     | RecvCollabState Json.Value
     | CollaboratorDisconnected String
     | HandleKey String
