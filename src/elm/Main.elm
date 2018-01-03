@@ -130,12 +130,6 @@ update msg ({objects, workingTree, status} as model) =
       model ! []
         |> deleteCard id
 
-    IntentCancelCard ->
-      let
-        originalContent = getContent vs.active model.workingTree.tree
-      in
-      model ! [js ("confirm-cancel", Json.Encode.list [string vs.active, string originalContent])]
-
     CancelCard ->
       model ! []
         |> cancelCard
@@ -156,67 +150,10 @@ update msg ({objects, workingTree, status} as model) =
 
     -- === Card Moving  ===
 
-    MoveWithin id delta ->
-      let
-        tree_ =
-          getTree id model.workingTree.tree
-
-        pid_ =
-          getParent id model.workingTree.tree
-            |> Maybe.map .id
-
-        refIdx_ =
-          getIndex id model.workingTree.tree
-      in
-      case (tree_, pid_, refIdx_) of
-        (Just tree, Just pid, Just refIdx) ->
-          model ! []
-            |> move tree pid (refIdx + delta |> Basics.max 0)
-        _ -> model ! []
-
-    MoveLeft id ->
-      let
-        tree_ =
-          getTree id model.workingTree.tree
-
-        parentId =
-          getParent id model.workingTree.tree
-            |> Maybe.map .id
-            |> Maybe.withDefault "invalid"
-
-        parentIdx_ =
-          getIndex parentId model.workingTree.tree
-
-        grandparentId_ =
-          getParent parentId model.workingTree.tree
-            |> Maybe.map .id
-      in
-      case (tree_, grandparentId_, parentIdx_) of
-        (Just tree, Just gpId, Just refIdx) ->
-          model ! []
-            |> move tree gpId (refIdx+1)
-        _ -> model ! []
-
-    MoveRight id ->
-      let
-        tree_ =
-          getTree id model.workingTree.tree
-
-        prev_ =
-          getPrev id model.workingTree.tree
-            |> Maybe.map .id
-      in
-      case (tree_, prev_) of
-        (Just tree, Just prev) ->
-          model ! []
-            |> move tree prev 999999
-        _ -> model ! []
-
     DragDropMsg dragDropMsg ->
       let
         ( newDragModel, dragResult_ ) =
           DragDrop.update dragDropMsg vs.dragModel
-            |> Debug.log "dragDropMsg"
       in
       case (vs.draggedTree, DragDrop.getDragId newDragModel, dragResult_ ) of
         -- Start drag
@@ -357,23 +294,6 @@ update msg ({objects, workingTree, status} as model) =
               model ! []
                 |> Debug.log "failed to load commit"
 
-    -- === Files ===
-
-    IntentNew ->
-      case model.filepath of
-        Nothing ->
-          model ! [js ("new", null)]
-
-        Just filepath ->
-          model ! [js ("new", filepath |> string)]
-
-    IntentOpen ->
-      case (model.filepath, model.changed) of
-        (Just filepath, True) ->
-          model ! [js ("open", filepath |> string)]
-
-        _ ->
-          model ! [js ("open", null)]
 
 
     -- === Ports ===
@@ -552,10 +472,10 @@ update msg ({objects, workingTree, status} as model) =
                 |> activate uid
 
         "enter" ->
-          ifNormalModeDo model (openCard vs.active (getContent vs.active model.workingTree.tree))
+          normalMode model (openCard vs.active (getContent vs.active model.workingTree.tree))
 
         "mod+backspace" ->
-          ifNormalModeDo model (deleteCard vs.active)
+          normalMode model (deleteCard vs.active)
 
         "esc" ->
           case model.viewState.editing of
@@ -563,7 +483,8 @@ update msg ({objects, workingTree, status} as model) =
               model ! []
 
             Just id ->
-              update IntentCancelCard model
+              model ! []
+                |> intentCancelCard
 
         "mod+j" ->
           model |> maybeSaveAndThen (insertBelow vs.active)
@@ -584,79 +505,81 @@ update msg ({objects, workingTree, status} as model) =
           model |> maybeSaveAndThen (insertChild vs.active)
 
         "h" ->
-          ifNormalModeDo model (goLeft vs.active)
+          normalMode model (goLeft vs.active)
 
         "left" ->
-          ifNormalModeDo model (goLeft vs.active)
+          normalMode model (goLeft vs.active)
 
         "j" ->
-          ifNormalModeDo model (goDown vs.active)
+          normalMode model (goDown vs.active)
 
         "down" ->
-          ifNormalModeDo model (goDown vs.active)
+          normalMode model (goDown vs.active)
 
         "k" ->
-          ifNormalModeDo model (goUp vs.active)
+          normalMode model (goUp vs.active)
 
         "up" ->
-          ifNormalModeDo model (goUp vs.active)
+          normalMode model (goUp vs.active)
 
         "l" ->
-          ifNormalModeDo model (goRight vs.active)
+          normalMode model (goRight vs.active)
 
         "right" ->
-          ifNormalModeDo model (goRight vs.active)
+          normalMode model (goRight vs.active)
 
         "alt+up" ->
-          normalMode model (MoveWithin vs.active -1)
+          normalMode model (moveWithin vs.active -1)
 
         "alt+k" ->
-          normalMode model (MoveWithin vs.active -1)
+          normalMode model (moveWithin vs.active -1)
 
         "alt+down" ->
-          normalMode model (MoveWithin vs.active 1)
+          normalMode model (moveWithin vs.active 1)
 
         "alt+j" ->
-          normalMode model (MoveWithin vs.active 1)
+          normalMode model (moveWithin vs.active 1)
 
         "alt+left" ->
-          normalMode model (MoveLeft vs.active)
+          normalMode model (moveLeft vs.active)
 
         "alt+h" ->
-          normalMode model (MoveLeft vs.active)
+          normalMode model (moveLeft vs.active)
 
         "alt+right" ->
-          normalMode model (MoveRight vs.active)
+          normalMode model (moveRight vs.active)
 
         "alt+l" ->
-          normalMode model (MoveRight vs.active)
+          normalMode model (moveRight vs.active)
 
         "alt+shift+up" ->
-          normalMode model (MoveWithin vs.active -5)
+          normalMode model (moveWithin vs.active -5)
 
         "alt+shift+down" ->
-          normalMode model (MoveWithin vs.active 5)
+          normalMode model (moveWithin vs.active 5)
 
         "alt+home" ->
-          normalMode model (MoveWithin vs.active -999999)
+          normalMode model (moveWithin vs.active -999999)
 
         "alt+end" ->
-          normalMode model (MoveWithin vs.active 999999)
+          normalMode model (moveWithin vs.active 999999)
 
         "mod+z" ->
-          normalMode model Undo
+          model ! []
 
         "mod+r" ->
-          normalMode model Redo
+          model ! []
 
         "mod+n" ->
-          update IntentNew model
+          model ! []
+            |> intentNew
 
         "mod+s" ->
           model |> maybeSaveAndThen intentSave
 
         "mod+o" ->
-          update IntentOpen model
+          model ! []
+            |> intentOpen
 
         _ ->
           model ! []
@@ -895,6 +818,15 @@ cancelCard (model, prevCmd) =
     |> sendCollabState (CollabState model.uid (Active vs.active) "")
 
 
+intentCancelCard : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+intentCancelCard (model, prevCmd) =
+  let
+    vs = model.viewState
+    originalContent = getContent vs.active model.workingTree.tree
+  in
+  model ! [prevCmd, js ("confirm-cancel", Json.Encode.list [string vs.active, string originalContent])]
+
+
 -- === Card Insertion  ===
 
 insert : String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -956,6 +888,67 @@ move subtree pid pos (model, prevCmd) =
     |> commitOrStage
 
 
+moveWithin : String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+moveWithin id delta (model, prevCmd) =
+  let
+    tree_ =
+      getTree id model.workingTree.tree
+
+    pid_ =
+      getParent id model.workingTree.tree
+        |> Maybe.map .id
+
+    refIdx_ =
+      getIndex id model.workingTree.tree
+  in
+  case (tree_, pid_, refIdx_) of
+    (Just tree, Just pid, Just refIdx) ->
+      model ! [prevCmd]
+        |> move tree pid (refIdx + delta |> Basics.max 0)
+    _ -> model ! [prevCmd]
+
+
+moveLeft : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+moveLeft id (model, prevCmd) =
+  let
+    tree_ =
+      getTree id model.workingTree.tree
+
+    parentId =
+      getParent id model.workingTree.tree
+        |> Maybe.map .id
+        |> Maybe.withDefault "invalid"
+
+    parentIdx_ =
+      getIndex parentId model.workingTree.tree
+
+    grandparentId_ =
+      getParent parentId model.workingTree.tree
+        |> Maybe.map .id
+  in
+  case (tree_, grandparentId_, parentIdx_) of
+    (Just tree, Just gpId, Just refIdx) ->
+      model ! [prevCmd]
+        |> move tree gpId (refIdx+1)
+    _ -> model ! [prevCmd]
+
+
+moveRight : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+moveRight id (model, prevCmd) =
+  let
+    tree_ =
+      getTree id model.workingTree.tree
+
+    prev_ =
+      getPrev id model.workingTree.tree
+        |> Maybe.map .id
+  in
+  case (tree_, prev_) of
+    (Just tree, Just prev) ->
+      model ! [prevCmd]
+        |> move tree prev 999999
+    _ -> model ! [prevCmd]
+
 
 push : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 push (model, prevCmd) =
@@ -964,6 +957,8 @@ push (model, prevCmd) =
   else
     model ! [prevCmd]
 
+
+-- === Files ===
 
 intentSave : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 intentSave (model, prevCmd) =
@@ -976,6 +971,26 @@ intentSave (model, prevCmd) =
 
     _ ->
       model ! [prevCmd]
+
+
+intentNew : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+intentNew (model, prevCmd) =
+  case model.filepath of
+    Nothing ->
+      model ! [prevCmd, js ("new", null)]
+
+    Just filepath ->
+      model ! [prevCmd, js ("new", filepath |> string)]
+
+
+intentOpen : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+intentOpen (model, prevCmd) =
+  case (model.filepath, model.changed) of
+    (Just filepath, True) ->
+      model ! [prevCmd, js ("open", filepath |> string)]
+
+    _ ->
+      model ! [prevCmd, js ("open", null)]
 
 
 commitOrStage : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1254,16 +1269,6 @@ maybeSaveAndThen operation model =
         |> operation
 
 
-normalMode : Model -> Msg -> (Model, Cmd Msg)
-normalMode model msg =
-  case model.viewState.editing of
-    Nothing ->
-      update msg model
-
-    Just _ ->
-      model ! []
-
-
 onlyIf : Bool -> Model -> ( (Model, Cmd Msg) -> (Model, Cmd Msg) ) -> ( Model, Cmd Msg )
 onlyIf cond model operation =
   if cond then
@@ -1273,7 +1278,6 @@ onlyIf cond model operation =
     model ! []
 
 
-ifNormalModeDo : Model -> ( (Model, Cmd Msg) -> (Model, Cmd Msg) ) -> (Model, Cmd Msg)
-ifNormalModeDo model operation =
+normalMode : Model -> ( (Model, Cmd Msg) -> (Model, Cmd Msg) ) -> (Model, Cmd Msg)
+normalMode model operation =
   onlyIf (model.viewState.editing == Nothing) model operation
-

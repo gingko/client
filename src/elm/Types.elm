@@ -14,16 +14,12 @@ type Msg
     | OpenCard String String
     | UpdateContent (String, String)
     | DeleteCard String
-    | IntentCancelCard
     | CancelCard
     -- === Card Insertion  ===
     | InsertAbove String
     | InsertBelow String
     | InsertChild String
     -- === Card Moving  ===
-    | MoveWithin String Int
-    | MoveLeft String
-    | MoveRight String
     | DragDropMsg (DragDrop.Msg String DropId)
     -- === History ===
     | Undo
@@ -32,9 +28,6 @@ type Msg
     | SetSelection String Selection String
     | Resolve String
     | CheckoutCommit String
-    -- === Files ===
-    | IntentNew
-    | IntentOpen
     -- === Ports ===
     | ExternalMessage (String, String)
     | Load (Maybe String, Json.Value)
