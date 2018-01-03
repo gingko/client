@@ -104,64 +104,6 @@ update msg ({objects, workingTree, status} as model) =
       model ! []
         |> activate id
 
-    GoLeft id ->
-      let
-        targetId =
-          getParent id model.workingTree.tree ? defaultTree |> .id
-      in
-      model ! []
-        |> activate targetId
-
-    GoDown id ->
-      let
-        targetId =
-          case getNextInColumn id model.workingTree.tree of
-            Nothing -> id
-            Just ntree -> ntree.id
-      in
-      model ! []
-        |> activate targetId
-
-    GoUp id ->
-      let
-        targetId =
-          case getPrevInColumn id model.workingTree.tree of
-            Nothing -> id
-            Just ntree -> ntree.id
-      in
-      model ! []
-        |> activate targetId
-
-    GoRight id ->
-      let
-        tree_ =
-          getTree id model.workingTree.tree
-
-        childrenIds =
-          getChildren (tree_ ? defaultTree)
-            |> List.map .id
-
-        firstChildId =
-          childrenIds
-            |> List.head
-            |> Maybe.withDefault id
-
-        prevActiveOfChildren =
-          vs.activePast
-            |> List.filter (\a -> List.member a childrenIds)
-            |> List.head
-            |> Maybe.withDefault firstChildId
-      in
-      case tree_ of
-        Nothing ->
-          model ! []
-
-        Just tree ->
-          if List.length childrenIds == 0 then
-            model ! []
-          else
-            model ! []
-              |> activate prevActiveOfChildren
 
 
     -- === Card Editing  ===
@@ -190,45 +132,8 @@ update msg ({objects, workingTree, status} as model) =
           |> sendCollabState (CollabState model.uid (Active id) "")
 
     DeleteCard id ->
-      let
-        isLocked =
-          vs.collaborators
-            |> List.filter (\c -> c.mode == Editing id)
-            |> (not << List.isEmpty)
-
-        filteredActive =
-          vs.activePast
-            |> List.filter (\a -> a /= id)
-
-        parent_ = getParent id model.workingTree.tree
-        prev_ = getPrevInColumn id model.workingTree.tree
-        next_ = getNextInColumn id model.workingTree.tree
-
-        (nextToActivate, isLastChild) =
-          case (parent_, prev_, next_) of
-            (_, Just prev, _) ->
-              (prev.id, False)
-
-            (_, Nothing, Just next) ->
-              (next.id, False)
-
-            (Just parent, Nothing, Nothing) ->
-              (parent.id, parent.id == "0")
-
-            (Nothing, Nothing, Nothing) ->
-              ("0", True)
-      in
-      if isLocked then
-        model ! [js ("alert", string "Card is being edited by someone else.")]
-      else if isLastChild then
-        model ! [js ("alert", string "Cannot delete last card.")]
-      else
-        { model
-          | workingTree = Trees.update (Trees.Rmv id) model.workingTree
-        }
-          ! []
-          |> activate nextToActivate
-          |> commitOrStage
+      model ! []
+        |> deleteCard id
 
     IntentCancelCard ->
       let
@@ -704,7 +609,7 @@ update msg ({objects, workingTree, status} as model) =
           ifNormalModeDo model (openCard vs.active (getContent vs.active model.workingTree.tree))
 
         "mod+backspace" ->
-          normalMode model (DeleteCard vs.active)
+          ifNormalModeDo model (deleteCard vs.active)
 
         "esc" ->
           case model.viewState.editing of
@@ -733,28 +638,28 @@ update msg ({objects, workingTree, status} as model) =
           normalMode model (InsertChild vs.active)
 
         "h" ->
-          normalMode model (GoLeft vs.active)
+          ifNormalModeDo model (goLeft vs.active)
 
         "left" ->
-          normalMode model (GoLeft vs.active)
+          ifNormalModeDo model (goLeft vs.active)
 
         "j" ->
-          normalMode model (GoDown vs.active)
+          ifNormalModeDo model (goDown vs.active)
 
         "down" ->
-          normalMode model (GoDown vs.active)
+          ifNormalModeDo model (goDown vs.active)
 
         "k" ->
-          normalMode model (GoUp vs.active)
+          ifNormalModeDo model (goUp vs.active)
 
         "up" ->
-          normalMode model (GoUp vs.active)
+          ifNormalModeDo model (goUp vs.active)
 
         "l" ->
-          normalMode model (GoRight vs.active)
+          ifNormalModeDo model (goRight vs.active)
 
         "right" ->
-          normalMode model (GoRight vs.active)
+          ifNormalModeDo model (goRight vs.active)
 
         "alt+up" ->
           normalMode model (MoveWithin vs.active -1)
@@ -802,7 +707,13 @@ update msg ({objects, workingTree, status} as model) =
           update IntentNew model
 
         "mod+s" ->
-          model |> maybeSaveAndThen IntentSave
+          case model.viewState.editing of
+            Nothing ->
+              update IntentSave model
+
+            Just id ->
+              update (GetContentToSave id) model
+                |> andThen IntentSave
 
         "mod+o" ->
           update IntentOpen model
@@ -901,6 +812,75 @@ activate id (model, prevCmd) =
         model ! [ prevCmd ]
 
 
+goLeft : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+goLeft id (model, prevCmd) =
+  let
+    targetId =
+      getParent id model.workingTree.tree ? defaultTree |> .id
+  in
+  model ! [prevCmd]
+    |> activate targetId
+
+
+goDown : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+goDown id (model, prevCmd) =
+  let
+    targetId =
+      case getNextInColumn id model.workingTree.tree of
+        Nothing -> id
+        Just ntree -> ntree.id
+  in
+  model ! [prevCmd]
+    |> activate targetId
+
+
+goUp : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+goUp id (model, prevCmd) =
+  let
+    targetId =
+      case getPrevInColumn id model.workingTree.tree of
+        Nothing -> id
+        Just ntree -> ntree.id
+  in
+  model ! [prevCmd]
+    |> activate targetId
+
+
+goRight : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+goRight id (model, prevCmd) =
+  let
+    vs = model.viewState
+
+    tree_ =
+      getTree id model.workingTree.tree
+
+    childrenIds =
+      getChildren (tree_ ? defaultTree)
+        |> List.map .id
+
+    firstChildId =
+      childrenIds
+        |> List.head
+        |> Maybe.withDefault id
+
+    prevActiveOfChildren =
+      vs.activePast
+        |> List.filter (\a -> List.member a childrenIds)
+        |> List.head
+        |> Maybe.withDefault firstChildId
+  in
+  case tree_ of
+    Nothing ->
+      model ! [prevCmd]
+
+    Just tree ->
+      if List.length childrenIds == 0 then
+        model ! [prevCmd]
+      else
+        model ! [prevCmd]
+          |> activate prevActiveOfChildren
+
+
 openCard : String -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 openCard id str (model, prevCmd) =
   let
@@ -919,6 +899,50 @@ openCard id str (model, prevCmd) =
       ! [ prevCmd, focus id ]
       |> sendCollabState (CollabState model.uid (Editing id) str)
 
+
+deleteCard : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+deleteCard id (model, prevCmd) =
+  let
+    vs = model.viewState
+
+    isLocked =
+      vs.collaborators
+        |> List.filter (\c -> c.mode == Editing id)
+        |> (not << List.isEmpty)
+
+    filteredActive =
+      vs.activePast
+        |> List.filter (\a -> a /= id)
+
+    parent_ = getParent id model.workingTree.tree
+    prev_ = getPrevInColumn id model.workingTree.tree
+    next_ = getNextInColumn id model.workingTree.tree
+
+    (nextToActivate, isLastChild) =
+      case (parent_, prev_, next_) of
+        (_, Just prev, _) ->
+          (prev.id, False)
+
+        (_, Nothing, Just next) ->
+          (next.id, False)
+
+        (Just parent, Nothing, Nothing) ->
+          (parent.id, parent.id == "0")
+
+        (Nothing, Nothing, Nothing) ->
+          ("0", True)
+  in
+  if isLocked then
+    model ! [js ("alert", string "Card is being edited by someone else.")]
+  else if isLastChild then
+    model ! [js ("alert", string "Cannot delete last card.")]
+  else
+    { model
+      | workingTree = Trees.update (Trees.Rmv id) model.workingTree
+    }
+      ! []
+      |> activate nextToActivate
+      |> commitOrStage
 
 cancelCard : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 cancelCard (model, prevCmd) =

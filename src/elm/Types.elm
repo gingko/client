@@ -10,10 +10,6 @@ type Msg
     = NoOp
     -- === Card Activation ===
     | Activate String
-    | GoLeft String
-    | GoDown String
-    | GoUp String
-    | GoRight String
     -- === Card Editing  ===
     | OpenCard String String
     | GetContentToSave String
