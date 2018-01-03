@@ -167,20 +167,8 @@ update msg ({objects, workingTree, status} as model) =
     -- === Card Editing  ===
 
     OpenCard id str ->
-      let
-        isLocked =
-          vs.collaborators
-            |> List.filter (\c -> c.mode == Editing id)
-            |> (not << List.isEmpty)
-      in
-      if isLocked then
-        model ! [js ("alert", string "Card is being edited by someone else.")]
-      else
-        { model
-          | viewState = { vs | active = id, editing = Just id }
-        }
-          ! [focus id]
-          |> sendCollabState (CollabState model.uid (Editing id) str)
+      model ! []
+        |> openCard id str
 
     GetContentToSave id ->
       model ! [getText id]
@@ -265,7 +253,7 @@ update msg ({objects, workingTree, status} as model) =
         | workingTree = Trees.update (Trees.Ins newId "" pid pos) model.workingTree
       }
         ! []
-        |> andThen (OpenCard newId "")
+        |> openCard newId ""
         |> activate newId
 
     InsertAbove id ->
@@ -309,14 +297,6 @@ update msg ({objects, workingTree, status} as model) =
 
     -- === Card Moving  ===
 
-    Move subtree pid pos ->
-      { model
-        | workingTree = Trees.update (Trees.Mov subtree pid pos) model.workingTree
-      }
-        ! []
-        |> activate subtree.id
-        |> commitOrStage
-
     MoveWithin id delta ->
       let
         tree_ =
@@ -331,7 +311,8 @@ update msg ({objects, workingTree, status} as model) =
       in
       case (tree_, pid_, refIdx_) of
         (Just tree, Just pid, Just refIdx) ->
-          update (Move tree pid (refIdx + delta |> Basics.max 0)) model
+          model ! []
+            |> move tree pid (refIdx + delta |> Basics.max 0)
         _ -> model ! []
 
     MoveLeft id ->
@@ -353,7 +334,8 @@ update msg ({objects, workingTree, status} as model) =
       in
       case (tree_, grandparentId_, parentIdx_) of
         (Just tree, Just gpId, Just refIdx) ->
-          update (Move tree gpId (refIdx+1)) model
+          model ! []
+            |> move tree gpId (refIdx+1)
         _ -> model ! []
 
     MoveRight id ->
@@ -367,7 +349,8 @@ update msg ({objects, workingTree, status} as model) =
       in
       case (tree_, prev_) of
         (Just tree, Just prev) ->
-          update (Move tree prev 999999) model
+          model ! []
+            |> move tree prev 999999
         _ -> model ! []
 
     DragDropMsg dragDropMsg ->
@@ -392,17 +375,17 @@ update msg ({objects, workingTree, status} as model) =
         -- Successful drop
         ( Just (draggedTree, _, _), Nothing, Just (dragId, dropId) ) ->
           let
-            moveMsg = case dropId of
+            moveOperation = case dropId of
               Into id ->
-                Move draggedTree id 999999
+                move draggedTree id 999999
 
               Above id ->
-                Move draggedTree
+                move draggedTree
                   ( ( getParent id model.workingTree.tree |> Maybe.map .id ) ? "0" )
                   ( ( getIndex id model.workingTree.tree ? 0 ) |> Basics.max 0 )
 
               Below id ->
-                Move draggedTree
+                move draggedTree
                   ( ( getParent id model.workingTree.tree |> Maybe.map .id ) ? "0" )
                   ( ( getIndex id model.workingTree.tree ? 0 ) + 1)
           in
@@ -412,7 +395,7 @@ update msg ({objects, workingTree, status} as model) =
               , draggedTree = Nothing
             }
           } ! []
-            |> andThen moveMsg
+            |> moveOperation
 
         -- Failed drop
         ( Just (draggedTree, parentId, idx), Nothing, Nothing ) ->
@@ -422,7 +405,7 @@ update msg ({objects, workingTree, status} as model) =
               , draggedTree = Nothing
             }
           } ! []
-            |> andThen (Move draggedTree parentId idx)
+            |> move draggedTree parentId idx
 
         _ ->
           { model | viewState = { vs | dragModel = newDragModel } } ! []
@@ -728,7 +711,7 @@ update msg ({objects, workingTree, status} as model) =
                 |> activate uid
 
         "enter" ->
-          normalMode model (OpenCard vs.active (getContent vs.active model.workingTree.tree))
+          ifNormalModeDo model (openCard vs.active (getContent vs.active model.workingTree.tree))
 
         "mod+backspace" ->
           normalMode model (DeleteCard vs.active)
@@ -934,6 +917,35 @@ activate id (model, prevCmd) =
         model ! [ prevCmd ]
 
 
+openCard : String -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+openCard id str (model, prevCmd) =
+  let
+    vs = model.viewState
+    isLocked =
+      vs.collaborators
+        |> List.filter (\c -> c.mode == Editing id)
+        |> (not << List.isEmpty)
+  in
+  if isLocked then
+    model ! [prevCmd, js ("alert", string "Card is being edited by someone else.")]
+  else
+    { model
+      | viewState = { vs | active = id, editing = Just id }
+    }
+      ! [ prevCmd, focus id ]
+      |> sendCollabState (CollabState model.uid (Editing id) str)
+
+
+move : Tree -> String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+move subtree pid pos (model, prevCmd) =
+  { model
+    | workingTree = Trees.update (Trees.Mov subtree pid pos) model.workingTree
+  }
+    ! []
+    |> activate subtree.id
+    |> commitOrStage
+
+
 commitOrStage : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 commitOrStage ({workingTree} as model, prevCmd) =
   case model.status of
@@ -998,15 +1010,6 @@ andThen msg (model, prevMsg) =
       update msg model
   in
   ( first newStep, Cmd.batch [prevMsg, second newStep] )
-
-
-onlyIf : Bool -> Msg -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-onlyIf cond msg prevStep =
-  if cond then
-    prevStep
-      |> andThen msg
-  else
-    prevStep
 
 
 getHead : Status -> Maybe String
@@ -1235,3 +1238,18 @@ normalMode model msg =
 
     Just _ ->
       model ! []
+
+
+onlyIf : Bool -> Model -> ( (Model, Cmd Msg) -> (Model, Cmd Msg) ) -> ( Model, Cmd Msg )
+onlyIf cond model operation =
+  if cond then
+    model ! []
+      |> operation
+  else
+    model ! []
+
+
+ifNormalModeDo : Model -> ( (Model, Cmd Msg) -> (Model, Cmd Msg) ) -> (Model, Cmd Msg)
+ifNormalModeDo model operation =
+  onlyIf (model.viewState.editing == Nothing) model operation
+
