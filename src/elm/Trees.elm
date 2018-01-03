@@ -1,6 +1,5 @@
 module Trees exposing (..)
 
-import Dict exposing (Dict)
 import Tuple exposing (first, second)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -15,6 +14,7 @@ import Types exposing (..)
 import TreeUtils exposing (getTree, getColumns, getParent, getChildren)
 import List.Extra as ListExtra
 import Sha1 exposing (Diff, diff3Merge)
+import Html5.DragDrop as DragDrop
 
 
 
@@ -312,6 +312,7 @@ view vstate model =
         vstate.active
         editing_
         vstate.descendants
+        vstate.dragModel
         vstate.collaborators
 
     columns =
@@ -349,6 +350,13 @@ viewGroup vstate depth xs =
         |> Maybe.withDefault defaultTree
         |> .id
 
+    lastChild =
+      xs
+        |> List.reverse
+        |> List.head
+        |> Maybe.withDefault defaultTree
+        |> .id
+
     isActiveDescendant =
       vstate.descendants
         |> List.member firstChild
@@ -366,6 +374,9 @@ viewGroup vstate depth xs =
             Nothing ->
               False
 
+        isLast =
+          t.id == lastChild
+
         isCollabActive =
           vstate.collaborators
             |> List.map .mode
@@ -381,7 +392,7 @@ viewGroup vstate depth xs =
             |> List.filter (\c -> c.mode == Active t.id || c.mode == Editing t.id)
             |> List.map .uid
       in
-      viewKeyedCard (isActive, isEditing, depth, collaborators, collabsEditing) t
+      viewKeyedCard (isActive, isEditing, depth, isLast, collaborators, collabsEditing, vstate.dragModel) t
   in
     Keyed.node "div"
       [ classList [ ("group", True)
@@ -391,13 +402,13 @@ viewGroup vstate depth xs =
       (List.map viewFunction xs)
 
 
-viewKeyedCard : (Bool, Bool, Int, List String, List String) -> Tree -> (String, Html Msg)
+viewKeyedCard : (Bool, Bool, Int, Bool, List String, List String, DragDrop.Model String DropId) -> Tree -> (String, Html Msg)
 viewKeyedCard tup tree =
   (tree.id, lazy2 viewCard tup tree)
 
 
-viewCard : (Bool, Bool, Int, List String, List String) -> Tree -> Html Msg
-viewCard (isActive, isEditing, depth, collaborators, collabsEditing) tree =
+viewCard : (Bool, Bool, Int, Bool, List String, List String, DragDrop.Model String DropId) -> Tree -> Html Msg
+viewCard (isActive, isEditing, depth, isLast, collaborators, collabsEditing, dragModel) tree =
   let
     hasChildren =
       case tree.children of
@@ -419,7 +430,7 @@ viewCard (isActive, isEditing, depth, collaborators, collabsEditing) tree =
     buttons =
       case (isEditing, isActive) of
         ( False, True ) ->
-          [ div [ class "flex-row card-top-overlay" ]
+          [ div [ class "flex-row card-top-overlay"]
                 [ span
                   [ class "card-btn ins-above"
                   , title "Insert Above (Ctrl+K)"
@@ -472,6 +483,34 @@ viewCard (isActive, isEditing, depth, collaborators, collabsEditing) tree =
           []
 
 
+    dropRegions =
+      let
+        dragId_ = DragDrop.getDragId dragModel
+
+        dropId_ = DragDrop.getDropId dragModel
+
+        dropDiv str dId =
+          div
+            ( [ classList
+                  [ ("drop-region-"++str, True)
+                  , ("drop-hover", dropId_ == Just dId )
+                  ]
+              ]
+              ++ ( DragDrop.droppable DragDropMsg dId )
+            )
+            []
+      in
+      case dragId_ of
+        Just dragId ->
+          [ dropDiv "above" (Above tree.id)
+          , dropDiv "into" (Into tree.id)
+          ]
+          ++ (if isLast then [ dropDiv "below" (Below tree.id) ] else [])
+
+        Nothing ->
+          []
+
+
     cardAttributes =
       [ id ("card-" ++ tree.id)
       , classList [ ("card", True)
@@ -482,6 +521,7 @@ viewCard (isActive, isEditing, depth, collaborators, collabsEditing) tree =
                   , ("has-children", hasChildren)
                   ]
       ]
+      ++ ( DragDrop.draggable DragDropMsg tree.id )
   in
   if isEditing then
     div cardAttributes
@@ -500,6 +540,7 @@ viewCard (isActive, isEditing, depth, collaborators, collabsEditing) tree =
     div cardAttributes
       (
         buttons ++
+        dropRegions ++
         [ div
             [ class "view"
             , onClick (Activate tree.id)

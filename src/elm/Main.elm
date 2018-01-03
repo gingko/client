@@ -21,6 +21,8 @@ import Sha1 exposing (timestamp, timeJSON)
 import Objects
 import Coders exposing (..)
 
+import Html5.DragDrop as DragDrop
+
 
 main : Program Never Model Msg
 main =
@@ -69,6 +71,8 @@ defaultModel =
       , activeFuture = []
       , descendants = []
       , editing = Nothing
+      , dragModel = DragDrop.init
+      , draggedTree = Nothing
       , collaborators = []
       }
   , online = True
@@ -411,6 +415,63 @@ update msg ({objects, workingTree, status} as model) =
         (Just tree, Just prev) ->
           update (Move tree prev 999999) model
         _ -> model ! []
+
+    DragDropMsg dragDropMsg ->
+      let
+        ( newDragModel, dragResult_ ) =
+          DragDrop.update dragDropMsg vs.dragModel
+            |> Debug.log "dragDropMsg"
+      in
+      case (vs.draggedTree, DragDrop.getDragId newDragModel, dragResult_ ) of
+        -- Start drag
+        ( Nothing, Just dragId, Nothing ) ->
+          { model
+            | workingTree = Trees.update (Trees.Rmv dragId) model.workingTree
+            , viewState =
+              { vs
+                | dragModel = newDragModel
+                , draggedTree = getTreeWithPosition dragId model.workingTree.tree
+              }
+          }
+          ! []
+
+        -- Successful drop
+        ( Just (draggedTree, _, _), Nothing, Just (dragId, dropId) ) ->
+          let
+            moveMsg = case dropId of
+              Into id ->
+                Move draggedTree id 999999
+
+              Above id ->
+                Move draggedTree
+                  ( ( getParent id model.workingTree.tree |> Maybe.map .id ) ? "0" )
+                  ( ( getIndex id model.workingTree.tree ? 0 ) |> Basics.max 0 )
+
+              Below id ->
+                Move draggedTree
+                  ( ( getParent id model.workingTree.tree |> Maybe.map .id ) ? "0" )
+                  ( ( getIndex id model.workingTree.tree ? 0 ) + 1)
+          in
+          { model | viewState =
+            { vs
+              | dragModel = newDragModel
+              , draggedTree = Nothing
+            }
+          } ! []
+            |> andThen moveMsg
+
+        -- Failed drop
+        ( Just (draggedTree, parentId, idx), Nothing, Nothing ) ->
+          { model | viewState =
+            { vs
+              | dragModel = newDragModel
+              , draggedTree = Nothing
+            }
+          } ! []
+            |> andThen (Move draggedTree parentId idx)
+
+        _ ->
+          { model | viewState = { vs | dragModel = newDragModel } } ! []
 
     -- === History ===
 

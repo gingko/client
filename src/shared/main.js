@@ -265,11 +265,6 @@ ipcRenderer.on('zoomout', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() -
 ipcRenderer.on('resetzoom', e => { webFrame.setZoomLevel(0) })
 ipcRenderer.on('main-save-and-close', () => update('save-and-close', currentFile))
 
-document.body.ondrop = (ev) => {
-  update('load', ev.dataTransfer.files[0].path)
-  ev.preventDefault()
-}
-
 socket.on('collab', data => gingko.ports.collabMsg.send(data))
 socket.on('collab-leave', data => gingko.ports.collabLeave.send(data))
 

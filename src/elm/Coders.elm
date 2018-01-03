@@ -4,9 +4,7 @@ import Trees
 import Types exposing (..)
 import Json.Encode as Enc
 import Json.Decode as Json exposing (..)
-import Json.Decode.Pipeline exposing (decode, required, optional)
-import Array exposing (fromList)
-import Dict exposing (Dict)
+import Html5.DragDrop as DragDrop
 
 
 
@@ -69,12 +67,14 @@ viewStateToValue vs =
 
 viewStateDecoder : Decoder ViewState
 viewStateDecoder =
-  Json.map6 ViewState
+  Json.map8 ViewState
     (field "active" string)
     (field "activePast" (list string))
     (field "activeFuture" (list string))
     (field "descendants" (list string))
     (maybe (field "editing" string))
+    (succeed DragDrop.init)
+    (succeed Nothing)
     (succeed [])
 
 
