@@ -12,13 +12,11 @@ type Msg
     | Activate String
     -- === Card Editing  ===
     | OpenCard String String
-    | GetContentToSave String
     | UpdateContent (String, String)
     | DeleteCard String
     | IntentCancelCard
     | CancelCard
     -- === Card Insertion  ===
-    | Insert String Int
     | InsertAbove String
     | InsertBelow String
     | InsertChild String
@@ -36,7 +34,6 @@ type Msg
     | CheckoutCommit String
     -- === Files ===
     | IntentNew
-    | IntentSave
     | IntentOpen
     -- === Ports ===
     | ExternalMessage (String, String)

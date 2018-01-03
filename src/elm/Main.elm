@@ -1,8 +1,6 @@
 port module Main exposing (..)
 
 
-import Tuple exposing (first, second)
-
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
@@ -112,9 +110,6 @@ update msg ({objects, workingTree, status} as model) =
       model ! []
         |> openCard id str
 
-    GetContentToSave id ->
-      model ! [getText id]
-
     UpdateContent (id, str) ->
       let
         newTree = Trees.update (Trees.Upd id str) model.workingTree
@@ -147,55 +142,17 @@ update msg ({objects, workingTree, status} as model) =
 
     -- === Card Insertion  ===
 
-    Insert pid pos ->
-      let
-        newId = "node-" ++ (timestamp () |> toString)
-      in
-      { model
-        | workingTree = Trees.update (Trees.Ins newId "" pid pos) model.workingTree
-      }
-        ! []
-        |> openCard newId ""
-        |> activate newId
-
     InsertAbove id ->
-      let
-        idx =
-          getIndex id model.workingTree.tree ? 999999
-
-        pid_ =
-          getParent id model.workingTree.tree |> Maybe.map .id
-
-        insertMsg =
-          case pid_ of
-            Just pid ->
-              Insert pid idx
-
-            Nothing ->
-              NoOp
-      in
-      update insertMsg model
+      model ! []
+        |> insertAbove id
 
     InsertBelow id ->
-      let
-        idx =
-          getIndex id model.workingTree.tree ? 999999
-
-        pid_ =
-          getParent id model.workingTree.tree |> Maybe.map .id
-
-        insertMsg =
-          case pid_ of
-            Just pid ->
-              Insert pid (idx+1)
-
-            Nothing ->
-              NoOp
-      in
-      update insertMsg model
+      model ! []
+        |> insertBelow id
 
     InsertChild id ->
-      update (Insert id 999999) model
+      model ! []
+        |> insertChild id
 
     -- === Card Moving  ===
 
@@ -410,17 +367,6 @@ update msg ({objects, workingTree, status} as model) =
         Just filepath ->
           model ! [js ("new", filepath |> string)]
 
-    IntentSave ->
-      case (model.filepath, model.changed) of
-        (Nothing, True) ->
-          model ! [js ("save-as", null)]
-
-        (Just filepath, True) ->
-          model ! [js ("save", filepath |> string)]
-
-        _ ->
-          model ! []
-
     IntentOpen ->
       case (model.filepath, model.changed) of
         (Just filepath, True) ->
@@ -601,7 +547,7 @@ update msg ({objects, workingTree, status} as model) =
               model ! []
 
             Just uid ->
-              update (GetContentToSave uid) model
+              model ! [getText uid]
                 |> cancelCard
                 |> activate uid
 
@@ -620,22 +566,22 @@ update msg ({objects, workingTree, status} as model) =
               update IntentCancelCard model
 
         "mod+j" ->
-          model |> maybeSaveAndThen (InsertBelow vs.active)
+          model |> maybeSaveAndThen (insertBelow vs.active)
 
         "mod+down" ->
-          model |> maybeSaveAndThen (InsertBelow vs.active)
+          model |> maybeSaveAndThen (insertBelow vs.active)
 
         "mod+k" ->
-          model |> maybeSaveAndThen (InsertAbove vs.active)
+          model |> maybeSaveAndThen (insertAbove vs.active)
 
         "mod+up" ->
-          model |> maybeSaveAndThen (InsertAbove vs.active)
+          model |> maybeSaveAndThen (insertAbove vs.active)
 
         "mod+l" ->
-          model |> maybeSaveAndThen (InsertChild vs.active)
+          model |> maybeSaveAndThen (insertChild vs.active)
 
         "mod+right" ->
-          normalMode model (InsertChild vs.active)
+          model |> maybeSaveAndThen (insertChild vs.active)
 
         "h" ->
           ifNormalModeDo model (goLeft vs.active)
@@ -707,13 +653,7 @@ update msg ({objects, workingTree, status} as model) =
           update IntentNew model
 
         "mod+s" ->
-          case model.viewState.editing of
-            Nothing ->
-              update IntentSave model
-
-            Just id ->
-              update (GetContentToSave id) model
-                |> andThen IntentSave
+          model |> maybeSaveAndThen intentSave
 
         "mod+o" ->
           update IntentOpen model
@@ -944,6 +884,7 @@ deleteCard id (model, prevCmd) =
       |> activate nextToActivate
       |> commitOrStage
 
+
 cancelCard : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 cancelCard (model, prevCmd) =
   let vs = model.viewState in
@@ -953,6 +894,57 @@ cancelCard (model, prevCmd) =
     ! [prevCmd]
     |> sendCollabState (CollabState model.uid (Active vs.active) "")
 
+
+-- === Card Insertion  ===
+
+insert : String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+insert pid pos (model, prevCmd) =
+  let
+    newId = "node-" ++ (timestamp () |> toString)
+  in
+  { model
+    | workingTree = Trees.update (Trees.Ins newId "" pid pos) model.workingTree
+  }
+    ! [prevCmd]
+    |> openCard newId ""
+    |> activate newId
+
+
+insertRelative : String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+insertRelative id delta (model, prevCmd) =
+  let
+    idx =
+      getIndex id model.workingTree.tree ? 999999
+
+    pid_ =
+      getParent id model.workingTree.tree |> Maybe.map .id
+  in
+  case pid_ of
+    Just pid ->
+      model ! [prevCmd]
+        |> insert pid (idx + delta)
+
+    Nothing ->
+      model ! [prevCmd]
+
+
+insertAbove : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+insertAbove id tup =
+  insertRelative id 0 tup
+
+
+insertBelow : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+insertBelow id tup =
+  insertRelative id 1 tup
+
+
+insertChild : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+insertChild id (model, prevCmd) =
+  model ! [prevCmd]
+    |> insert id 999999
+
+
+-- === Card Moving  ===
 
 move : Tree -> String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 move subtree pid pos (model, prevCmd) =
@@ -971,6 +963,19 @@ push (model, prevCmd) =
     model ! [prevCmd, js ("push", null)]
   else
     model ! [prevCmd]
+
+
+intentSave : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+intentSave (model, prevCmd) =
+  case (model.filepath, model.changed) of
+    (Nothing, True) ->
+      model ! [prevCmd, js ("save-as", null)]
+
+    (Just filepath, True) ->
+      model ! [prevCmd, js ("save", filepath |> string)]
+
+    _ ->
+      model ! [prevCmd]
 
 
 commitOrStage : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1028,15 +1033,6 @@ sendCollabState collabState (model, prevCmd) =
 
     _ ->
       model ! [ prevCmd, js ("socket-send", collabState |> collabStateToValue) ]
-
-
-andThen : Msg -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-andThen msg (model, prevMsg) =
-  let
-    newStep =
-      update msg model
-  in
-  ( first newStep, Cmd.batch [prevMsg, second newStep] )
 
 
 getHead : Status -> Maybe String
@@ -1246,15 +1242,16 @@ run msg =
   Task.attempt (\_ -> msg ) (Task.succeed msg)
 
 
-maybeSaveAndThen : Msg -> Model -> (Model, Cmd Msg)
-maybeSaveAndThen msg model =
+maybeSaveAndThen : ( (Model, Cmd Msg) -> (Model, Cmd Msg) ) -> Model -> (Model, Cmd Msg)
+maybeSaveAndThen operation model =
   case model.viewState.editing of
     Nothing ->
-      update msg model
+      model ! []
+        |> operation
 
     Just uid ->
-      update (GetContentToSave uid) model
-        |> andThen msg
+      model ! [getText uid]
+        |> operation
 
 
 normalMode : Model -> Msg -> (Model, Cmd Msg)
