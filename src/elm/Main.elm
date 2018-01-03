@@ -237,11 +237,8 @@ update msg ({objects, workingTree, status} as model) =
       model ! [js ("confirm-cancel", Json.Encode.list [string vs.active, string originalContent])]
 
     CancelCard ->
-      { model
-        | viewState = { vs | editing = Nothing }
-      }
-        ! []
-        |> sendCollabState (CollabState model.uid (Active vs.active) "")
+      model ! []
+        |> cancelCard
 
     -- === Card Insertion  ===
 
@@ -429,13 +426,6 @@ update msg ({objects, workingTree, status} as model) =
         _ ->
           model ! []
 
-
-    Push ->
-      if model.online then
-        model ! [js ("push", null)]
-      else
-        model ! []
-
     SetSelection cid selection id ->
       let
         newStatus =
@@ -465,7 +455,7 @@ update msg ({objects, workingTree, status} as model) =
                 , status = newStatus
               }
                 ! []
-                |> andThen CancelCard
+                |> cancelCard
                 |> activate id
 
         _ ->
@@ -656,7 +646,7 @@ update msg ({objects, workingTree, status} as model) =
         | objects = Objects.setHeadRev rev model.objects
       }
         ! []
-        |> andThen Push
+        |> push
 
     RecvCollabState json ->
       case Json.decodeValue collabStateDecoder json of
@@ -707,7 +697,7 @@ update msg ({objects, workingTree, status} as model) =
 
             Just uid ->
               update (GetContentToSave uid) model
-                |> andThen CancelCard
+                |> cancelCard
                 |> activate uid
 
         "enter" ->
@@ -812,13 +802,7 @@ update msg ({objects, workingTree, status} as model) =
           update IntentNew model
 
         "mod+s" ->
-          case model.viewState.editing of
-            Nothing ->
-              update IntentSave model
-
-            Just id ->
-              update (GetContentToSave id) model
-                |> andThen IntentSave
+          model |> maybeSaveAndThen IntentSave
 
         "mod+o" ->
           update IntentOpen model
@@ -936,6 +920,16 @@ openCard id str (model, prevCmd) =
       |> sendCollabState (CollabState model.uid (Editing id) str)
 
 
+cancelCard : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+cancelCard (model, prevCmd) =
+  let vs = model.viewState in
+  { model
+    | viewState = { vs | editing = Nothing }
+  }
+    ! [prevCmd]
+    |> sendCollabState (CollabState model.uid (Active vs.active) "")
+
+
 move : Tree -> String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 move subtree pid pos (model, prevCmd) =
   { model
@@ -944,6 +938,15 @@ move subtree pid pos (model, prevCmd) =
     ! []
     |> activate subtree.id
     |> commitOrStage
+
+
+
+push : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+push (model, prevCmd) =
+  if model.online then
+    model ! [prevCmd, js ("push", null)]
+  else
+    model ! [prevCmd]
 
 
 commitOrStage : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
