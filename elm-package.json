@@ -1,7 +1,7 @@
 {
     "version": "0.0.1",
     "summary": "Rewrite of Gingko in Elm, with PouchDB backend.",
-    "repository": "https://github.com/AdrianoFerrari/gingko-client.git",
+    "repository": "https://github.com/gingko/client.git",
     "license": "MIT",
     "source-directories": [
         "./src/elm"

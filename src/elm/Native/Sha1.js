@@ -1,4 +1,4 @@
-var _AdrianoFerrari$gingko_client$Native_Sha1 = function()
+var _gingko$client$Native_Sha1 = function()
 {
   // My addition
   var shared = new Uint32Array(80);
