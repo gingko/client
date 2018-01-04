@@ -974,9 +974,11 @@ addToHistory ({workingTree} as model, prevCmd) =
       { model
         | objects = newObjects
         , status = newStatus
+        , changed = True
       }
         ! [ saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)
           , updateCommits (newObjects |> Objects.toValue, getHead newStatus)
+          , js ("changed", null)
           ]
 
     Clean oldHead ->
@@ -987,9 +989,11 @@ addToHistory ({workingTree} as model, prevCmd) =
       { model
         | objects = newObjects
         , status = newStatus
+        , changed = True
       }
         ! [ saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)
           , updateCommits (newObjects |> Objects.toValue, getHead newStatus)
+          , js ("changed", null)
           ]
 
     MergeConflict _ oldHead newHead conflicts ->
@@ -1001,9 +1005,11 @@ addToHistory ({workingTree} as model, prevCmd) =
         { model
           | objects = newObjects
           , status = newStatus
+          , changed = True
         }
           ! [ saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)
             , updateCommits (newObjects |> Objects.toValue, getHead newStatus)
+            , js ("changed", null)
             ]
       else
         model

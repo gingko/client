@@ -82,6 +82,10 @@ const update = (msg, arg) => {
         }
       }
 
+    , 'changed': () => {
+        setFileState(true, currentFile)
+      }
+
     , 'new': () => {
         let clearDb = () => {
           dbname = sha1(Date.now()+machineIdSync())
