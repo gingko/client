@@ -102,8 +102,6 @@ update msg ({objects, workingTree, status} as model) =
       model ! []
         |> activate id
 
-
-
     -- === Card Editing  ===
 
     OpenCard id str ->
@@ -478,13 +476,7 @@ update msg ({objects, workingTree, status} as model) =
           normalMode model (deleteCard vs.active)
 
         "esc" ->
-          case model.viewState.editing of
-            Nothing ->
-              model ! []
-
-            Just id ->
-              model ! []
-                |> intentCancelCard
+          model |> intentCancelCard
 
         "mod+j" ->
           model |> maybeSaveAndThen (insertBelow vs.active)
@@ -618,6 +610,10 @@ update msg ({objects, workingTree, status} as model) =
       model ! []
 
 
+
+
+-- === Card Activation ===
+
 activate : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 activate id (model, prevCmd) =
   let vs = model.viewState in
@@ -744,6 +740,8 @@ goRight id (model, prevCmd) =
           |> activate prevActiveOfChildren
 
 
+-- === Card Editing  ===
+
 openCard : String -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 openCard id str (model, prevCmd) =
   let
@@ -818,13 +816,18 @@ cancelCard (model, prevCmd) =
     |> sendCollabState (CollabState model.uid (Active vs.active) "")
 
 
-intentCancelCard : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-intentCancelCard (model, prevCmd) =
+intentCancelCard : Model -> ( Model, Cmd Msg )
+intentCancelCard model =
   let
     vs = model.viewState
     originalContent = getContent vs.active model.workingTree.tree
   in
-  model ! [prevCmd, js ("confirm-cancel", Json.Encode.list [string vs.active, string originalContent])]
+  case vs.editing of
+    Nothing ->
+      model ! []
+
+    Just id ->
+      model ! [js ("confirm-cancel", Json.Encode.list [string vs.active, string originalContent])]
 
 
 -- === Card Insertion  ===
@@ -950,47 +953,14 @@ moveRight id (model, prevCmd) =
     _ -> model ! [prevCmd]
 
 
+-- === History ===
+
 push : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 push (model, prevCmd) =
   if model.online then
     model ! [prevCmd, js ("push", null)]
   else
     model ! [prevCmd]
-
-
--- === Files ===
-
-intentSave : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-intentSave (model, prevCmd) =
-  case (model.filepath, model.changed) of
-    (Nothing, True) ->
-      model ! [prevCmd, js ("save-as", null)]
-
-    (Just filepath, True) ->
-      model ! [prevCmd, js ("save", filepath |> string)]
-
-    _ ->
-      model ! [prevCmd]
-
-
-intentNew : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-intentNew (model, prevCmd) =
-  case model.filepath of
-    Nothing ->
-      model ! [prevCmd, js ("new", null)]
-
-    Just filepath ->
-      model ! [prevCmd, js ("new", filepath |> string)]
-
-
-intentOpen : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-intentOpen (model, prevCmd) =
-  case (model.filepath, model.changed) of
-    (Just filepath, True) ->
-      model ! [prevCmd, js ("open", filepath |> string)]
-
-    _ ->
-      model ! [prevCmd, js ("open", null)]
 
 
 commitOrStage : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1040,6 +1010,43 @@ commitOrStage ({workingTree} as model, prevCmd) =
           ! [saveLocal ( model.workingTree.tree |> treeToValue )]
 
 
+
+
+-- === Files ===
+
+intentSave : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+intentSave (model, prevCmd) =
+  case (model.filepath, model.changed) of
+    (Nothing, True) ->
+      model ! [prevCmd, js ("save-as", null)]
+
+    (Just filepath, True) ->
+      model ! [prevCmd, js ("save", filepath |> string)]
+
+    _ ->
+      model ! [prevCmd]
+
+
+intentNew : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+intentNew (model, prevCmd) =
+  case model.filepath of
+    Nothing ->
+      model ! [prevCmd, js ("new", null)]
+
+    Just filepath ->
+      model ! [prevCmd, js ("new", filepath |> string)]
+
+
+intentOpen : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+intentOpen (model, prevCmd) =
+  case (model.filepath, model.changed) of
+    (Just filepath, True) ->
+      model ! [prevCmd, js ("open", filepath |> string)]
+
+    _ ->
+      model ! [prevCmd, js ("open", null)]
+
+
 sendCollabState : CollabState -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 sendCollabState collabState (model, prevCmd) =
   case model.status of
@@ -1048,20 +1055,6 @@ sendCollabState collabState (model, prevCmd) =
 
     _ ->
       model ! [ prevCmd, js ("socket-send", collabState |> collabStateToValue) ]
-
-
-getHead : Status -> Maybe String
-getHead status =
-  case status of
-    Clean head ->
-      Just head
-
-    MergeConflict _ head _ [] ->
-      Just head
-
-    _ ->
-      Nothing
-
 
 
 
@@ -1247,6 +1240,18 @@ subscriptions model =
 
 -- HELPERS
 
+getHead : Status -> Maybe String
+getHead status =
+  case status of
+    Clean head ->
+      Just head
+
+    MergeConflict _ head _ [] ->
+      Just head
+
+    _ ->
+      Nothing
+
 focus : String -> Cmd Msg
 focus id =
   Task.attempt (\_ -> NoOp) (Dom.focus ("card-edit-" ++ id))
@@ -1269,15 +1274,7 @@ maybeSaveAndThen operation model =
         |> operation
 
 
-onlyIf : Bool -> Model -> ( (Model, Cmd Msg) -> (Model, Cmd Msg) ) -> ( Model, Cmd Msg )
-onlyIf cond model operation =
-  if cond then
-    model ! []
-      |> operation
-  else
-    model ! []
-
-
 normalMode : Model -> ( (Model, Cmd Msg) -> (Model, Cmd Msg) ) -> (Model, Cmd Msg)
 normalMode model operation =
-  onlyIf (model.viewState.editing == Nothing) model operation
+  model ! []
+    |> if (model.viewState.editing == Nothing) then operation else identity
