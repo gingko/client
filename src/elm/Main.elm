@@ -117,7 +117,7 @@ update msg ({objects, workingTree, status} as model) =
           | workingTree = newTree
         }
           ! []
-          |> commitOrStage
+          |> addToHistory
           |> sendCollabState (CollabState model.uid (Active id) "")
       else
         model
@@ -265,7 +265,7 @@ update msg ({objects, workingTree, status} as model) =
             | status = MergeConflict mTree shaA shaB (conflicts |> List.filter (\c -> c.id /= cid))
           }
             ! []
-            |> commitOrStage
+            |> addToHistory
 
         _ ->
           model ! []
@@ -382,7 +382,7 @@ update msg ({objects, workingTree, status} as model) =
             , status = newStatus
           }
             ! [ updateCommits (newObjects |> Objects.toValue, Just newHead) ]
-            |> commitOrStage
+            |> addToHistory
             |> activate vs.active
 
         _ ->
@@ -803,7 +803,7 @@ deleteCard id (model, prevCmd) =
     }
       ! []
       |> activate nextToActivate
-      |> commitOrStage
+      |> addToHistory
 
 
 cancelCard : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -888,7 +888,7 @@ move subtree pid pos (model, prevCmd) =
   }
     ! []
     |> activate subtree.id
-    |> commitOrStage
+    |> addToHistory
 
 
 moveWithin : String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -963,8 +963,8 @@ push (model, prevCmd) =
     model ! [prevCmd]
 
 
-commitOrStage : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-commitOrStage ({workingTree} as model, prevCmd) =
+addToHistory : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+addToHistory ({workingTree} as model, prevCmd) =
   case model.status of
     Bare ->
       let
