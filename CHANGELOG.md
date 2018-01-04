@@ -2,10 +2,11 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
-## Unreleased - 2018-01-03
+## Unreleased - 2018-01-04
   - Added basic drag-and-drop for card moving.
   - Added Alt+hjkl for card moving.
   - Fixed non-wrapping for `backtick` verbatim sections.
+  - Fixed issue where only text edits triggered "file changed" state.
 
 ## [0.8.2] - 2017-12-17
   - Re-enabled autoUpdater. Fixed startup errors on macOS.
