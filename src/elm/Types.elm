@@ -10,50 +10,30 @@ type Msg
     = NoOp
     -- === Card Activation ===
     | Activate String
-    | GoLeft String
-    | GoDown String
-    | GoUp String
-    | GoRight String
     -- === Card Editing  ===
     | OpenCard String String
-    | GetContentToSave String
-    | UpdateContent (String, String) -- |> Save
-    | UpdateCardError String
-    | DeleteCard String -- |> Activate |> Save
-    | IntentCancelCard
+    | UpdateContent (String, String)
+    | DeleteCard String
     | CancelCard
     -- === Card Insertion  ===
-    | Insert String Int -- |> OpenCard |> Activate
     | InsertAbove String
     | InsertBelow String
     | InsertChild String
     -- === Card Moving  ===
-    | Move Tree String Int -- |> Activate |> Save
-    | MoveWithin String Int
-    | MoveLeft String
-    | MoveRight String
     | DragDropMsg (DragDrop.Msg String DropId)
     -- === History ===
     | Undo
     | Redo
     | Pull
-    | Push
     | SetSelection String Selection String
-    | Resolve String -- |> Save
-    | CheckoutCommit String -- |> UpdateCommits
-    -- === Files ===
-    | IntentNew
-    | IntentSave
-    | IntentOpen
+    | Resolve String
+    | CheckoutCommit String
     -- === Ports ===
     | ExternalMessage (String, String)
-    | Load (Maybe String, Json.Value) -- |> UpdateCommits
-    | MergeIn Json.Value -- |> [Save] |> UpdateCommits
+    | Load (Maybe String, Json.Value)
+    | MergeIn Json.Value
     | ImportJson Json.Value
     | SetHeadRev String
-    | UpdateCommits (Json.Value, Maybe String)
-    | Save -- |> UpdateCommits |> [Push]
-    | SendCollabState CollabState
     | RecvCollabState Json.Value
     | CollaboratorDisconnected String
     | HandleKey String
