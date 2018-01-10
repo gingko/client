@@ -17,6 +17,7 @@ import Trees exposing (..)
 import TreeUtils exposing (..)
 import Sha1 exposing (timestamp, timeJSON)
 import Objects
+import Ports exposing (..)
 import Coders exposing (..)
 
 import Html5.DragDrop as DragDrop
@@ -30,16 +31,6 @@ main =
     , update = update
     , subscriptions = subscriptions
     }
-
-
-port js : (String, Json.Value) -> Cmd msg
-port activateCards : (Int, List (List String)) -> Cmd msg
-port getText : String -> Cmd msg
-port saveObjects : (Json.Value, Json.Value) -> Cmd msg
-port saveLocal : Json.Value -> Cmd msg
-port updateCommits : (Json.Value, Maybe String) -> Cmd msg
-
-
 
 
 -- MODEL
@@ -576,6 +567,9 @@ update msg ({objects, workingTree, status} as model) =
         _ ->
           model ! []
 
+    Outside infoForElm ->
+      case infoForElm of
+
     ExternalMessage (cmd, arg) ->
       case cmd of
         "new" ->
@@ -587,12 +581,6 @@ update msg ({objects, workingTree, status} as model) =
             , changed = False
           }
             ! [js ("saved", arg |> string)]
-
-        "changed" ->
-          { model
-            | changed = True
-          }
-            ! []
 
         "export-json" ->
           model
@@ -1210,7 +1198,15 @@ modelToValue model =
 
 -- SUBSCRIPTIONS
 
+port js : (String, Json.Value) -> Cmd msg
+port activateCards : (Int, List (List String)) -> Cmd msg
+port getText : String -> Cmd msg
+port saveObjects : (Json.Value, Json.Value) -> Cmd msg
+port saveLocal : Json.Value -> Cmd msg
+port updateCommits : (Json.Value, Maybe String) -> Cmd msg
 
+
+port infoForElm : (OutsideData -> msg) -> Sub msg
 port externals : ((String, String) -> msg) -> Sub msg
 port load : ((Maybe String, Json.Value) -> msg) -> Sub msg
 port merge : (Json.Value -> msg) -> Sub msg
@@ -1238,6 +1234,7 @@ subscriptions model =
     , updateContent UpdateContent
     , cancelConfirmed (\_ -> CancelCard)
     , externals ExternalMessage
+    , getInfoFromOutside Outside LogErr
     --, Time.every (1*Time.second) (\_ -> Pull)
     ]
 
