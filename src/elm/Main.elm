@@ -319,6 +319,7 @@ update msg ({objects, workingTree, status} as model) =
             , changed = False
           }
             ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
+            |> activate model.viewState.active
 
         (Clean newHead, Just newTree) ->
           { model
@@ -329,6 +330,7 @@ update msg ({objects, workingTree, status} as model) =
             , changed = False
           }
             ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
+            |> activate model.viewState.active
 
         (MergeConflict mTree oldHead newHead [], Just newTree) ->
           { model
@@ -339,6 +341,7 @@ update msg ({objects, workingTree, status} as model) =
             , changed = False
           }
             ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
+            |> activate model.viewState.active
 
         (MergeConflict mTree oldHead newHead conflicts, Just newTree) ->
           { model
@@ -349,6 +352,7 @@ update msg ({objects, workingTree, status} as model) =
             , changed = False
           }
             ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
+            |> activate model.viewState.active
 
         _ ->
           let _ = Debug.log "failed to load json" (newStatus, newTree_, newObjects, json) in
