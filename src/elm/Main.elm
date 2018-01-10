@@ -99,8 +99,15 @@ update msg ({objects, workingTree, status} as model) =
     -- === Card Activation ===
 
     Activate id ->
-      model ! []
-        |> activate id
+      case vs.editing of
+        Just eid ->
+          model ! [ getText eid ]
+            |> cancelCard
+            |> activate id
+
+        Nothing ->
+          model ! []
+            |> activate id
 
     -- === Card Editing  ===
 

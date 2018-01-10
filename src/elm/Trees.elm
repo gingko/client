@@ -521,7 +521,7 @@ viewCard (isActive, isEditing, depth, isLast, collaborators, collabsEditing, dra
                   , ("has-children", hasChildren)
                   ]
       ]
-      ++ ( DragDrop.draggable DragDropMsg tree.id )
+      ++ (if not isEditing then DragDrop.draggable DragDropMsg tree.id else [])
   in
   if isEditing then
     div cardAttributes
