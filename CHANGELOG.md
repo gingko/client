@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
-## Unreleased - 2018-01-10
+## [0.8.3] - 2018-01-10
   - Added basic drag-and-drop for card moving.
   - Added Alt+hjkl for card moving.
   - Fixed non-wrapping for `backtick` verbatim sections.
