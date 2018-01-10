@@ -538,9 +538,11 @@ const openDialog = () => {
                 ]
     }
     , function(filepathArray) {
-        var filepathToLoad = filepathArray[0]
-        if(!!filepathToLoad) {
-          loadFile(filepathToLoad)
+        if(Array.isArray(filepathArray) && filepathArray.length >= 0) {
+          var filepathToLoad = filepathArray[0]
+          if(!!filepathToLoad) {
+            loadFile(filepathToLoad)
+          }
         }
       }
   )
