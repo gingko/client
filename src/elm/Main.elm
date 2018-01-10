@@ -176,19 +176,20 @@ update msg ({objects, workingTree, status} as model) =
         -- Successful drop
         ( Just (draggedTree, _, _), Nothing, Just (dragId, dropId) ) ->
           let
-            moveOperation = case dropId of
-              Into id ->
-                move draggedTree id 999999
+            moveOperation =
+              case dropId of
+                Into id ->
+                  move draggedTree id 999999
 
-              Above id ->
-                move draggedTree
-                  ( ( getParent id model.workingTree.tree |> Maybe.map .id ) ? "0" )
-                  ( ( getIndex id model.workingTree.tree ? 0 ) |> Basics.max 0 )
+                Above id ->
+                  move draggedTree
+                    ( ( getParent id model.workingTree.tree |> Maybe.map .id ) ? "0" )
+                    ( ( getIndex id model.workingTree.tree ? 0 ) |> Basics.max 0 )
 
-              Below id ->
-                move draggedTree
-                  ( ( getParent id model.workingTree.tree |> Maybe.map .id ) ? "0" )
-                  ( ( getIndex id model.workingTree.tree ? 0 ) + 1)
+                Below id ->
+                  move draggedTree
+                    ( ( getParent id model.workingTree.tree |> Maybe.map .id ) ? "0" )
+                    ( ( getIndex id model.workingTree.tree ? 0 ) + 1)
           in
           { model | viewState =
             { vs
@@ -197,6 +198,7 @@ update msg ({objects, workingTree, status} as model) =
             }
           } ! []
             |> moveOperation
+            |> activate draggedTree.id
 
         -- Failed drop
         ( Just (draggedTree, parentId, idx), Nothing, Nothing ) ->
@@ -207,6 +209,7 @@ update msg ({objects, workingTree, status} as model) =
             }
           } ! []
             |> move draggedTree parentId idx
+            |> activate draggedTree.id
 
         _ ->
           { model | viewState = { vs | dragModel = newDragModel } } ! []
