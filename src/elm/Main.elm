@@ -459,10 +459,6 @@ update msg ({objects, workingTree, status} as model) =
       }
         ! []
 
-    HandleKey key ->
-      case key of
-        _ -> model ! []
-
     Outside infoForElm ->
       case infoForElm of
         Keyboard shortcut ->
@@ -1337,7 +1333,6 @@ subscriptions model =
     , importJson ImportJson
     , setHead CheckoutCommit
     , setHeadRev SetHeadRev
-    , keyboard HandleKey
     , collabMsg RecvCollabState
     , collabLeave CollaboratorDisconnected
     , updateContent UpdateContent

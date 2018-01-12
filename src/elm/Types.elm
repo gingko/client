@@ -36,7 +36,6 @@ type Msg
     | SetHeadRev String
     | RecvCollabState Json.Value
     | CollaboratorDisconnected String
-    | HandleKey String
 
 
 type InfoForOutside
