@@ -1132,6 +1132,8 @@ viewFooter model =
     , br [][]
     , text ("group: " ++ ( wordCounts |> .group |> toString ) )
     , br [][]
+    , text ("column: " ++ ( wordCounts |> .column |> toString ) )
+    , br [][]
     , text ("document: " ++ ( wordCounts |> .document |> toString ) )
     ]
 
@@ -1141,12 +1143,14 @@ getWordCounts model =
   let
     activeCardId = model.viewState.active
 
+    tree = model.workingTree.tree
+
     currentTree =
-      getTree activeCardId model.workingTree.tree
+      getTree activeCardId tree
         |> Maybe.withDefault defaultTree
 
     currentGroup =
-      getSiblings activeCardId model.workingTree.tree
+      getSiblings activeCardId tree
 
     cardCount = countWords currentTree.content
 
@@ -1158,14 +1162,21 @@ getWordCounts model =
         |> String.join "\n\n"
         |> countWords
 
+    columnCount =
+      getColumn (getDepth 0  tree activeCardId) tree -- Maybe (List (List Tree))
+        |> Maybe.withDefault [[]]
+        |> List.concat
+        |> List.map .content
+        |> String.join "\n\n"
+        |> countWords
 
-    treeCount = countWords (treeToMarkdownString model.workingTree.tree)
+    treeCount = countWords (treeToMarkdownString tree)
   in
   WordCount
     cardCount
     subtreeCount
     groupCount
-    0
+    columnCount
     treeCount
 
 
