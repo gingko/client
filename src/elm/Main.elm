@@ -1127,11 +1127,11 @@ viewFooter model =
   in
   div
     [ class "footer" ]
-    [ span [][ text ("card: " ++ ( wordCounts |> .card |> toString ) ) ]
-    , span [][ text ("subtree: " ++ ( wordCounts |> .subtree |> toString ) ) ]
-    , span [][ text ("group: " ++ ( wordCounts |> .group |> toString ) ) ]
-    , span [][ text ("column: " ++ ( wordCounts |> .column |> toString ) ) ]
-    , span [][ text ("document: " ++ ( wordCounts |> .document |> toString ) ) ]
+    [ span [][ text ("card: " ++ ( wordCounts |> .card |> toWordsString ) ) ]
+    , span [][ text ("subtree: " ++ ( wordCounts |> .subtree |> toWordsString ) ) ]
+    , span [][ text ("group: " ++ ( wordCounts |> .group |> toWordsString ) ) ]
+    , span [][ text ("column: " ++ ( wordCounts |> .column |> toWordsString ) ) ]
+    , span [][ text ("document: " ++ ( wordCounts |> .document |> toWordsString ) ) ]
     ]
 
 
@@ -1188,6 +1188,15 @@ countWords str =
     |> String.words
     |> List.filter ((/=) "")
     |> List.length
+
+
+toWordsString : Int -> String
+toWordsString num =
+  case num of
+    1 ->
+      "1 word"
+    n ->
+      (toString n) ++ " words"
 
 
 viewConflict: Conflict -> Html Msg

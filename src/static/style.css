@@ -100,9 +100,29 @@ body {
   justify-content: space-around;
   width: 100%;
   padding: 4px;
+  margin-top: 3px;
   font-size: 12px;
   font-family: sans-serif;
-  background-color: slategray;
+  color: #334;
+  background-color: hsl(199, 11%, 67%);
+  border-top: 1px solid #c8d3d8;
+}
+
+#app::-webkit-scrollbar {
+  height: 10px;
+}
+
+#app::-webkit-scrollbar-track {
+  background: #ddd;
+  border-radius: 20px;
+  box-shadow: inset 1px 0px 2px 0px #312c2c;
+}
+
+#app::-webkit-scrollbar-thumb {
+  background: #61808e;
+  border-radius: 20px;
+  border-top: 1px solid #8499a2;
+  border-bottom: 1px solid #566e78;
 }
 
 
