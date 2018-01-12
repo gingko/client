@@ -1111,9 +1111,12 @@ repeating-linear-gradient(-45deg
     _ ->
       div
         []
-        [ lazy2 Trees.view model.viewState model.workingTree
-        , viewFooter model
-        ]
+        (
+          [ lazy2 Trees.view model.viewState model.workingTree
+          ]
+          ++
+          ( if model.viewState.editing == Nothing then [viewFooter model] else [] )
+        )
 
 
 viewFooter : Model -> Html Msg
@@ -1155,7 +1158,6 @@ countWords str =
   str
     |> String.toLower
     |> replace Regex.All punctuation (\_ -> "")
-    |> String.trim
     |> String.words
     |> List.filter ((/=) "")
     |> List.length
