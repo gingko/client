@@ -1131,6 +1131,8 @@ viewFooter model =
     , text ("subtree: " ++ ( wordCounts |> .subtree |> toString ) )
     , br [][]
     , text ("group: " ++ ( wordCounts |> .group |> toString ) )
+    , br [][]
+    , text ("document: " ++ ( wordCounts |> .document |> toString ) )
     ]
 
 
@@ -1147,19 +1149,24 @@ getWordCounts model =
       getSiblings activeCardId model.workingTree.tree
 
     cardCount = countWords currentTree.content
+
     subtreeCount = cardCount + countWords (treeToMarkdownString currentTree)
+
     groupCount =
       currentGroup
         |> List.map .content
         |> String.join "\n\n"
         |> countWords
+
+
+    treeCount = countWords (treeToMarkdownString model.workingTree.tree)
   in
   WordCount
     cardCount
     subtreeCount
     groupCount
     0
-    0
+    treeCount
 
 
 countWords : String -> Int
