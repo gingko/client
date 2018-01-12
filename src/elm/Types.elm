@@ -2,9 +2,6 @@ module Types exposing (..)
 
 import Json.Decode as Json
 import Html5.DragDrop as DragDrop
-import Trees exposing (Tree)
-
-
 
 
 type Msg
@@ -31,6 +28,7 @@ type Msg
     | CheckoutCommit String
     -- === Ports ===
     | Outside InfoForElm
+    | LogErr String
     | ExternalMessage (String, String)
     | Load (Maybe String, Json.Value)
     | MergeIn Json.Value
@@ -52,6 +50,7 @@ type InfoForOutside
     | ExportJSON Tree
     | ExportTXT Tree
     | SocketSend CollabState
+    | LogError String
 
 
 type InfoForElm
@@ -65,6 +64,18 @@ type InfoForElm
 
 type alias OutsideData =
   { tag : String, data: Json.Value }
+
+
+type alias Tree =
+  { id : String
+  , content : String
+  , children : Children
+  }
+
+
+type Children = Children (List Tree)
+type alias Group = List Tree
+type alias Column = List (List Tree)
 
 
 

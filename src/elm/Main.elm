@@ -461,129 +461,136 @@ update msg ({objects, workingTree, status} as model) =
 
     HandleKey key ->
       case key of
-        "mod+x" ->
-          let _ = Debug.log "model" model in
-          model ! []
-
-        "mod+enter" ->
-          case vs.editing of
-            Nothing ->
-              model ! []
-
-            Just uid ->
-              model ! [getText uid]
-                |> cancelCard
-                |> activate uid
-
-        "enter" ->
-          normalMode model (openCard vs.active (getContent vs.active model.workingTree.tree))
-
-        "mod+backspace" ->
-          normalMode model (deleteCard vs.active)
-
-        "esc" ->
-          model |> intentCancelCard
-
-        "mod+j" ->
-          model |> maybeSaveAndThen (insertBelow vs.active)
-
-        "mod+down" ->
-          model |> maybeSaveAndThen (insertBelow vs.active)
-
-        "mod+k" ->
-          model |> maybeSaveAndThen (insertAbove vs.active)
-
-        "mod+up" ->
-          model |> maybeSaveAndThen (insertAbove vs.active)
-
-        "mod+l" ->
-          model |> maybeSaveAndThen (insertChild vs.active)
-
-        "mod+right" ->
-          model |> maybeSaveAndThen (insertChild vs.active)
-
-        "h" ->
-          normalMode model (goLeft vs.active)
-
-        "left" ->
-          normalMode model (goLeft vs.active)
-
-        "j" ->
-          normalMode model (goDown vs.active)
-
-        "down" ->
-          normalMode model (goDown vs.active)
-
-        "k" ->
-          normalMode model (goUp vs.active)
-
-        "up" ->
-          normalMode model (goUp vs.active)
-
-        "l" ->
-          normalMode model (goRight vs.active)
-
-        "right" ->
-          normalMode model (goRight vs.active)
-
-        "alt+up" ->
-          normalMode model (moveWithin vs.active -1)
-
-        "alt+k" ->
-          normalMode model (moveWithin vs.active -1)
-
-        "alt+down" ->
-          normalMode model (moveWithin vs.active 1)
-
-        "alt+j" ->
-          normalMode model (moveWithin vs.active 1)
-
-        "alt+left" ->
-          normalMode model (moveLeft vs.active)
-
-        "alt+h" ->
-          normalMode model (moveLeft vs.active)
-
-        "alt+right" ->
-          normalMode model (moveRight vs.active)
-
-        "alt+l" ->
-          normalMode model (moveRight vs.active)
-
-        "alt+shift+up" ->
-          normalMode model (moveWithin vs.active -5)
-
-        "alt+shift+down" ->
-          normalMode model (moveWithin vs.active 5)
-
-        "alt+home" ->
-          normalMode model (moveWithin vs.active -999999)
-
-        "alt+end" ->
-          normalMode model (moveWithin vs.active 999999)
-
-        "mod+z" ->
-          model ! []
-
-        "mod+r" ->
-          model ! []
-
-        "mod+n" ->
-          model ! []
-            |> intentNew
-
-        "mod+s" ->
-          model |> maybeSaveAndThen intentSave
-
-        "mod+o" ->
-          model ! []
-            |> intentOpen
-
-        _ ->
-          model ! []
+        _ -> model ! []
 
     Outside infoForElm ->
       case infoForElm of
+        Keyboard shortcut ->
+          let _ = Debug.log "shorcut" shortcut in
+          case shortcut of
+            "mod+x" ->
+              let _ = Debug.log "model" model in
+              model ! []
+
+            "mod+enter" ->
+              case vs.editing of
+                Nothing ->
+                  model ! []
+
+                Just uid ->
+                  model ! [getText uid]
+                    |> cancelCard
+                    |> activate uid
+
+            "enter" ->
+              normalMode model (openCard vs.active (getContent vs.active model.workingTree.tree))
+
+            "mod+backspace" ->
+              normalMode model (deleteCard vs.active)
+
+            "esc" ->
+              model |> intentCancelCard
+
+            "mod+j" ->
+              model |> maybeSaveAndThen (insertBelow vs.active)
+
+            "mod+down" ->
+              model |> maybeSaveAndThen (insertBelow vs.active)
+
+            "mod+k" ->
+              model |> maybeSaveAndThen (insertAbove vs.active)
+
+            "mod+up" ->
+              model |> maybeSaveAndThen (insertAbove vs.active)
+
+            "mod+l" ->
+              model |> maybeSaveAndThen (insertChild vs.active)
+
+            "mod+right" ->
+              model |> maybeSaveAndThen (insertChild vs.active)
+
+            "h" ->
+              normalMode model (goLeft vs.active)
+
+            "left" ->
+              normalMode model (goLeft vs.active)
+
+            "j" ->
+              normalMode model (goDown vs.active)
+
+            "down" ->
+              normalMode model (goDown vs.active)
+
+            "k" ->
+              normalMode model (goUp vs.active)
+
+            "up" ->
+              normalMode model (goUp vs.active)
+
+            "l" ->
+              normalMode model (goRight vs.active)
+
+            "right" ->
+              normalMode model (goRight vs.active)
+
+            "alt+up" ->
+              normalMode model (moveWithin vs.active -1)
+
+            "alt+k" ->
+              normalMode model (moveWithin vs.active -1)
+
+            "alt+down" ->
+              normalMode model (moveWithin vs.active 1)
+
+            "alt+j" ->
+              normalMode model (moveWithin vs.active 1)
+
+            "alt+left" ->
+              normalMode model (moveLeft vs.active)
+
+            "alt+h" ->
+              normalMode model (moveLeft vs.active)
+
+            "alt+right" ->
+              normalMode model (moveRight vs.active)
+
+            "alt+l" ->
+              normalMode model (moveRight vs.active)
+
+            "alt+shift+up" ->
+              normalMode model (moveWithin vs.active -5)
+
+            "alt+shift+down" ->
+              normalMode model (moveWithin vs.active 5)
+
+            "alt+home" ->
+              normalMode model (moveWithin vs.active -999999)
+
+            "alt+end" ->
+              normalMode model (moveWithin vs.active 999999)
+
+            "mod+z" ->
+              model ! []
+
+            "mod+r" ->
+              model ! []
+
+            "mod+n" ->
+              model ! []
+                |> intentNew
+
+            "mod+s" ->
+              model |> maybeSaveAndThen intentSave
+
+            "mod+o" ->
+              model ! []
+                |> intentOpen
+
+            _ ->
+              model ! []
+
+        _ ->
+          model ! []
 
     ExternalMessage (cmd, arg) ->
       case cmd of
@@ -608,6 +615,9 @@ update msg ({objects, workingTree, status} as model) =
         _ ->
           let _ = Debug.log "Unknown external command" cmd in
           model ! []
+
+    LogErr str ->
+      model ! []
 
     NoOp ->
       model ! []
@@ -1306,7 +1316,6 @@ port saveLocal : Json.Value -> Cmd msg
 port updateCommits : (Json.Value, Maybe String) -> Cmd msg
 
 
-port infoForElm : (OutsideData -> msg) -> Sub msg
 port externals : ((String, String) -> msg) -> Sub msg
 port load : ((Maybe String, Json.Value) -> msg) -> Sub msg
 port merge : (Json.Value -> msg) -> Sub msg

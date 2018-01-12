@@ -677,7 +677,7 @@ const editingInputHandler = function(ev) {
 
 
 Mousetrap.bind(shared.shortcuts, function(e, s) {
-  gingko.ports.keyboard.send(s);
+  gingko.ports.infoForElm.send({tag: 'Keyboard', data: s});
 
   if(shared.needOverride.includes(s)) {
     return false;

@@ -10,6 +10,7 @@ import Markdown
 import Diff exposing (..)
 import Regex
 
+import Types exposing (..)
 import TreeUtils exposing (getTree, getColumns, getParent, getChildren)
 import List.Extra as ListExtra
 import Sha1 exposing (Diff, diff3Merge)
@@ -18,18 +19,6 @@ import Html5.DragDrop as DragDrop
 
 
 -- MODEL
-
-type alias Tree =
-  { id : String
-  , content : String
-  , children : Children
-  }
-
-
-type Children = Children (List Tree)
-type alias Group = List Tree
-type alias Column = List (List Tree)
-
 
 type alias Model =
   { tree : Tree
