@@ -10,6 +10,17 @@ getInfoFromOutside tagger onError =
   infoForElm
     (\outsideInfo ->
         case outsideInfo.tag of
+          "Reset" ->
+            tagger <| Reset
+
+          "Saved" ->
+            case decodeValue Json.Decode.string outsideInfo.data of
+              Ok filepath ->
+                tagger <| Saved filepath
+
+              Err e ->
+                onError e
+
           "Keyboard" ->
             case decodeValue Json.Decode.string outsideInfo.data of
               Ok shortcut ->
@@ -30,7 +41,6 @@ type InfoForElm
     | DoExportJSON
     | DoExportTXT
     | Keyboard String
-
       -}
 
 

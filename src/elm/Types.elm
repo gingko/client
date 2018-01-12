@@ -55,7 +55,7 @@ type InfoForOutside
 type InfoForElm
     = Reset
     --| Load String Json.Value
-    | Saved
+    | Saved String
     | DoExportJSON
     | DoExportTXT
     | Keyboard String

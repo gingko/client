@@ -95,7 +95,7 @@ const update = (msg, arg) => {
           dbpath = path.join(app.getPath('userData'), dbname)
           mkdirp.sync(dbpath)
           self.db = new PouchDB(dbpath, {adapter: 'memory'})
-          gingko.ports.externals.send(['new', ''])
+          gingko.ports.infoForElm.send({tag: 'Reset', data: null})
         }
 
         if(changed) {
@@ -114,13 +114,13 @@ const update = (msg, arg) => {
     , 'save': () =>
         save(arg)
           .then( filepath =>
-            gingko.ports.externals.send(['saved', filepath])
+            gingko.ports.infoForElm.send({tag:'Saved', data: filepath})
           )
 
     , 'save-as': () =>
         saveAs()
           .then( filepath =>
-            gingko.ports.externals.send(['saved', filepath])
+            gingko.ports.infoForElm.send({tag:'Saved', data: filepath})
           )
 
     , 'save-and-close': () =>

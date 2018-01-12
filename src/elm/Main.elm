@@ -461,8 +461,17 @@ update msg ({objects, workingTree, status} as model) =
 
     Outside infoForElm ->
       case infoForElm of
+        Reset ->
+          init
+
+        Saved filepath ->
+          { model
+            | filepath = Just filepath
+            , changed = False
+          }
+            ! [js ("saved", filepath |> string)]
+
         Keyboard shortcut ->
-          let _ = Debug.log "shorcut" shortcut in
           case shortcut of
             "mod+x" ->
               let _ = Debug.log "model" model in
@@ -590,16 +599,6 @@ update msg ({objects, workingTree, status} as model) =
 
     ExternalMessage (cmd, arg) ->
       case cmd of
-        "new" ->
-          init
-
-        "saved" ->
-          { model
-            | filepath = Just arg
-            , changed = False
-          }
-            ! [js ("saved", arg |> string)]
-
         "export-json" ->
           model
             ! [js ("export-json", model.workingTree.tree |> treeToJSON )]
