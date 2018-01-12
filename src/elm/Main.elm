@@ -1097,7 +1097,8 @@ repeating-linear-gradient(-45deg
           """
       in
       div
-        [style  [ ("background", bgString)
+        [ id "root"
+        , style  [ ("background", bgString)
                 , ("position", "absolute")
                 , ("width", "100%")
                 , ("height", "100%")
@@ -1110,7 +1111,7 @@ repeating-linear-gradient(-45deg
 
     _ ->
       div
-        []
+        [ id "root" ]
         (
           [ lazy2 Trees.view model.viewState model.workingTree
           ]
@@ -1124,17 +1125,13 @@ viewFooter model =
   let
    wordCounts = getWordCounts model
   in
-  footer
-    []
-    [ text ("card: " ++ ( wordCounts |> .card |> toString ) )
-    , br [][]
-    , text ("subtree: " ++ ( wordCounts |> .subtree |> toString ) )
-    , br [][]
-    , text ("group: " ++ ( wordCounts |> .group |> toString ) )
-    , br [][]
-    , text ("column: " ++ ( wordCounts |> .column |> toString ) )
-    , br [][]
-    , text ("document: " ++ ( wordCounts |> .document |> toString ) )
+  div
+    [ class "footer" ]
+    [ span [][ text ("card: " ++ ( wordCounts |> .card |> toString ) ) ]
+    , span [][ text ("subtree: " ++ ( wordCounts |> .subtree |> toString ) ) ]
+    , span [][ text ("group: " ++ ( wordCounts |> .group |> toString ) ) ]
+    , span [][ text ("column: " ++ ( wordCounts |> .column |> toString ) ) ]
+    , span [][ text ("document: " ++ ( wordCounts |> .document |> toString ) ) ]
     ]
 
 

@@ -87,15 +87,33 @@ body {
 }
 
 
+#root {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  padding: 4px;
+  font-size: 12px;
+  font-family: sans-serif;
+  background-color: slategray;
+}
+
+
 /* ======== COLUMNS ======== */
 
 #app {
   display: flex;
   justify-content: space-between;
-  position: absolute;
-  height: 100%;
-  width: 100%;
+  flex: 1;
   overflow-x: auto;
+  overflow-y: hidden;
   transform: translateZ(0);
 }
 
