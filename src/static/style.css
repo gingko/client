@@ -87,15 +87,53 @@ body {
 }
 
 
+#root {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  padding: 4px;
+  margin-top: 3px;
+  font-size: 12px;
+  font-family: sans-serif;
+  color: #334;
+  background-color: hsl(199, 11%, 67%);
+  border-top: 1px solid #c8d3d8;
+}
+
+#app::-webkit-scrollbar {
+  height: 10px;
+}
+
+#app::-webkit-scrollbar-track {
+  background: #ddd;
+  border-radius: 20px;
+  box-shadow: inset 1px 0px 2px 0px #312c2c;
+}
+
+#app::-webkit-scrollbar-thumb {
+  background: #61808e;
+  border-radius: 20px;
+  border-top: 1px solid #8499a2;
+  border-bottom: 1px solid #566e78;
+}
+
+
 /* ======== COLUMNS ======== */
 
 #app {
   display: flex;
   justify-content: space-between;
-  position: absolute;
-  height: 100%;
-  width: 100%;
+  flex: 1;
   overflow-x: auto;
+  overflow-y: hidden;
   transform: translateZ(0);
 }
 

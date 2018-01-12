@@ -114,3 +114,12 @@ type alias VisibleViewState =
   , dragModel : DragDrop.Model String DropId
   , collaborators : List CollabState
   }
+
+
+type alias WordCount =
+  { card : Int
+  , subtree : Int
+  , group : Int
+  , column : Int
+  , document : Int
+  }

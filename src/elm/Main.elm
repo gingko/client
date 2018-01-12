@@ -7,6 +7,7 @@ import Html.Events exposing (onClick, onInput)
 import Html.Lazy exposing (lazy, lazy2)
 import Json.Decode as Json
 import Json.Encode exposing (..)
+import Regex exposing (Regex, replace, regex)
 import Dom
 import Task
 --import Time
@@ -90,8 +91,15 @@ update msg ({objects, workingTree, status} as model) =
     -- === Card Activation ===
 
     Activate id ->
-      model ! []
-        |> activate id
+      case vs.editing of
+        Just eid ->
+          model ! [ getText eid ]
+            |> cancelCard
+            |> activate id
+
+        Nothing ->
+          model ! []
+            |> activate id
 
     -- === Card Editing  ===
 
@@ -160,19 +168,20 @@ update msg ({objects, workingTree, status} as model) =
         -- Successful drop
         ( Just (draggedTree, _, _), Nothing, Just (dragId, dropId) ) ->
           let
-            moveOperation = case dropId of
-              Into id ->
-                move draggedTree id 999999
+            moveOperation =
+              case dropId of
+                Into id ->
+                  move draggedTree id 999999
 
-              Above id ->
-                move draggedTree
-                  ( ( getParent id model.workingTree.tree |> Maybe.map .id ) ? "0" )
-                  ( ( getIndex id model.workingTree.tree ? 0 ) |> Basics.max 0 )
+                Above id ->
+                  move draggedTree
+                    ( ( getParent id model.workingTree.tree |> Maybe.map .id ) ? "0" )
+                    ( ( getIndex id model.workingTree.tree ? 0 ) |> Basics.max 0 )
 
-              Below id ->
-                move draggedTree
-                  ( ( getParent id model.workingTree.tree |> Maybe.map .id ) ? "0" )
-                  ( ( getIndex id model.workingTree.tree ? 0 ) + 1)
+                Below id ->
+                  move draggedTree
+                    ( ( getParent id model.workingTree.tree |> Maybe.map .id ) ? "0" )
+                    ( ( getIndex id model.workingTree.tree ? 0 ) + 1)
           in
           { model | viewState =
             { vs
@@ -181,6 +190,7 @@ update msg ({objects, workingTree, status} as model) =
             }
           } ! []
             |> moveOperation
+            |> activate draggedTree.id
 
         -- Failed drop
         ( Just (draggedTree, parentId, idx), Nothing, Nothing ) ->
@@ -191,6 +201,7 @@ update msg ({objects, workingTree, status} as model) =
             }
           } ! []
             |> move draggedTree parentId idx
+            |> activate draggedTree.id
 
         _ ->
           { model | viewState = { vs | dragModel = newDragModel } } ! []
@@ -300,6 +311,7 @@ update msg ({objects, workingTree, status} as model) =
             , changed = False
           }
             ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
+            |> activate model.viewState.active
 
         (Clean newHead, Just newTree) ->
           { model
@@ -310,6 +322,7 @@ update msg ({objects, workingTree, status} as model) =
             , changed = False
           }
             ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
+            |> activate model.viewState.active
 
         (MergeConflict mTree oldHead newHead [], Just newTree) ->
           { model
@@ -320,6 +333,7 @@ update msg ({objects, workingTree, status} as model) =
             , changed = False
           }
             ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
+            |> activate model.viewState.active
 
         (MergeConflict mTree oldHead newHead conflicts, Just newTree) ->
           { model
@@ -330,6 +344,7 @@ update msg ({objects, workingTree, status} as model) =
             , changed = False
           }
             ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
+            |> activate model.viewState.active
 
         _ ->
           let _ = Debug.log "failed to load json" (newStatus, newTree_, newObjects, json) in
@@ -1070,7 +1085,8 @@ repeating-linear-gradient(-45deg
           """
       in
       div
-        [style  [ ("background", bgString)
+        [ id "root"
+        , style  [ ("background", bgString)
                 , ("position", "absolute")
                 , ("width", "100%")
                 , ("height", "100%")
@@ -1083,8 +1099,92 @@ repeating-linear-gradient(-45deg
 
     _ ->
       div
-        []
-        [ lazy2 Trees.view model.viewState model.workingTree ]
+        [ id "root" ]
+        (
+          [ lazy2 Trees.view model.viewState model.workingTree
+          ]
+          ++
+          ( if model.viewState.editing == Nothing then [viewFooter model] else [] )
+        )
+
+
+viewFooter : Model -> Html Msg
+viewFooter model =
+  let
+   wordCounts = getWordCounts model
+  in
+  div
+    [ class "footer" ]
+    [ span [][ text ("card: " ++ ( wordCounts |> .card |> toWordsString ) ) ]
+    , span [][ text ("subtree: " ++ ( wordCounts |> .subtree |> toWordsString ) ) ]
+    , span [][ text ("group: " ++ ( wordCounts |> .group |> toWordsString ) ) ]
+    , span [][ text ("column: " ++ ( wordCounts |> .column |> toWordsString ) ) ]
+    , span [][ text ("document: " ++ ( wordCounts |> .document |> toWordsString ) ) ]
+    ]
+
+
+getWordCounts : Model -> WordCount
+getWordCounts model =
+  let
+    activeCardId = model.viewState.active
+
+    tree = model.workingTree.tree
+
+    currentTree =
+      getTree activeCardId tree
+        |> Maybe.withDefault defaultTree
+
+    currentGroup =
+      getSiblings activeCardId tree
+
+    cardCount = countWords currentTree.content
+
+    subtreeCount = cardCount + countWords (treeToMarkdownString currentTree)
+
+    groupCount =
+      currentGroup
+        |> List.map .content
+        |> String.join "\n\n"
+        |> countWords
+
+    columnCount =
+      getColumn (getDepth 0  tree activeCardId) tree -- Maybe (List (List Tree))
+        |> Maybe.withDefault [[]]
+        |> List.concat
+        |> List.map .content
+        |> String.join "\n\n"
+        |> countWords
+
+    treeCount = countWords (treeToMarkdownString tree)
+  in
+  WordCount
+    cardCount
+    subtreeCount
+    groupCount
+    columnCount
+    treeCount
+
+
+countWords : String -> Int
+countWords str =
+  let
+    punctuation = regex "[!@#$%^&*():;\"',.]+"
+  in
+  str
+    |> String.toLower
+    |> replace Regex.All punctuation (\_ -> "")
+    |> String.words
+    |> List.filter ((/=) "")
+    |> List.length
+
+
+toWordsString : Int -> String
+toWordsString num =
+  case num of
+    1 ->
+      "1 word"
+    n ->
+      (toString n) ++ " words"
 
 
 viewConflict: Conflict -> Html Msg
