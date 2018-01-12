@@ -7,6 +7,7 @@ import Html.Events exposing (onClick, onInput)
 import Html.Lazy exposing (lazy, lazy2)
 import Json.Decode as Json
 import Json.Encode exposing (..)
+import Regex exposing (Regex, replace, regex)
 import Dom
 import Task
 --import Time
@@ -1110,7 +1111,43 @@ repeating-linear-gradient(-45deg
     _ ->
       div
         []
-        [ lazy2 Trees.view model.viewState model.workingTree ]
+        [ lazy2 Trees.view model.viewState model.workingTree
+        , viewFooter model
+        ]
+
+
+viewFooter : Model -> Html Msg
+viewFooter model =
+  footer
+    []
+    [ text ( getWordCounts model |> .card |> toString )]
+
+
+getWordCounts : Model -> WordCount
+getWordCounts model =
+  let
+    currentTree =
+      getTree model.viewState.active model.workingTree.tree
+        |> Maybe.withDefault defaultTree
+  in
+  WordCount
+    ( countWords currentTree.content )
+    0
+    0
+    0
+    0
+
+
+countWords : String -> Int
+countWords str =
+  let
+    punctuation = regex "[!@#$%^&*():;\"',.]+"
+  in
+  str
+    |> String.toLower
+    |> replace Regex.All punctuation (\_ -> "")
+    |> String.words
+    |> List.length
 
 
 viewConflict: Conflict -> Html Msg
