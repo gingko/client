@@ -1126,26 +1126,38 @@ viewFooter model =
   in
   footer
     []
-    [ text ( wordCounts |> .card |> toString )
+    [ text ("card: " ++ ( wordCounts |> .card |> toString ) )
     , br [][]
-    , text ( wordCounts |> .subtree |> toString )
+    , text ("subtree: " ++ ( wordCounts |> .subtree |> toString ) )
+    , br [][]
+    , text ("group: " ++ ( wordCounts |> .group |> toString ) )
     ]
 
 
 getWordCounts : Model -> WordCount
 getWordCounts model =
   let
+    activeCardId = model.viewState.active
+
     currentTree =
-      getTree model.viewState.active model.workingTree.tree
+      getTree activeCardId model.workingTree.tree
         |> Maybe.withDefault defaultTree
+
+    currentGroup =
+      getSiblings activeCardId model.workingTree.tree
 
     cardCount = countWords currentTree.content
     subtreeCount = cardCount + countWords (treeToMarkdownString currentTree)
+    groupCount =
+      currentGroup
+        |> List.map .content
+        |> String.join "\n\n"
+        |> countWords
   in
   WordCount
     cardCount
     subtreeCount
-    0
+    groupCount
     0
     0
 
