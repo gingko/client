@@ -1118,9 +1118,15 @@ repeating-linear-gradient(-45deg
 
 viewFooter : Model -> Html Msg
 viewFooter model =
+  let
+   wordCounts = getWordCounts model
+  in
   footer
     []
-    [ text ( getWordCounts model |> .card |> toString )]
+    [ text ( wordCounts |> .card |> toString )
+    , br [][]
+    , text ( wordCounts |> .subtree |> toString )
+    ]
 
 
 getWordCounts : Model -> WordCount
@@ -1129,10 +1135,13 @@ getWordCounts model =
     currentTree =
       getTree model.viewState.active model.workingTree.tree
         |> Maybe.withDefault defaultTree
+
+    cardCount = countWords currentTree.content
+    subtreeCount = cardCount + countWords (treeToMarkdownString currentTree)
   in
   WordCount
-    ( countWords currentTree.content )
-    0
+    cardCount
+    subtreeCount
     0
     0
     0
@@ -1146,7 +1155,9 @@ countWords str =
   str
     |> String.toLower
     |> replace Regex.All punctuation (\_ -> "")
+    |> String.trim
     |> String.words
+    |> List.filter ((/=) "")
     |> List.length
 
 
