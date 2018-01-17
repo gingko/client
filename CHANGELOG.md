@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
   - Added basic word count feature.
+  - Ctrl+arrows (used for text navigation) no longer trigger card insertions.
 
 ## [0.8.3] - 2018-01-10
   - Added basic drag-and-drop for card moving.
