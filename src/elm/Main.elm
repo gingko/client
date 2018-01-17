@@ -497,19 +497,19 @@ update msg ({objects, workingTree, status} as model) =
           model |> maybeSaveAndThen (insertBelow vs.active)
 
         "mod+down" ->
-          model |> maybeSaveAndThen (insertBelow vs.active)
+          normalMode model (insertBelow vs.active)
 
         "mod+k" ->
           model |> maybeSaveAndThen (insertAbove vs.active)
 
         "mod+up" ->
-          model |> maybeSaveAndThen (insertAbove vs.active)
+          normalMode model (insertAbove vs.active)
 
         "mod+l" ->
           model |> maybeSaveAndThen (insertChild vs.active)
 
         "mod+right" ->
-          model |> maybeSaveAndThen (insertChild vs.active)
+          normalMode model (insertChild vs.active)
 
         "h" ->
           normalMode model (goLeft vs.active)
