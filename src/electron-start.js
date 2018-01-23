@@ -70,7 +70,7 @@ function createAppWindow () {
 }
 
 function getTrialActivations() {
-  let activations = hiddenStore.get('activations', []).concat((new Date).toISOString()).slice(0,10)
+  let activations = hiddenStore.get('activations', []).concat((new Date).toISOString())
   let uniqueActivations = Array.from(new Set(activations.map(d => d.substring(0,10))))
   if(activations !== uniqueActivations) {
     hiddenStore.set('activations', uniqueActivations)
