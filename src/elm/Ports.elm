@@ -21,6 +21,7 @@ sendInfoOutside info =
         { tag = "ConfirmCancel"
         , data = Json.Encode.list [ Json.Encode.string id, Json.Encode.string origContent ]
         }
+          |> Debug.log "ConfirmCancel at sendInfoOutside"
 
     _ ->
       Cmd.none

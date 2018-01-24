@@ -64,7 +64,7 @@ self.socket = io.connect('http://localhost:3000')
 
 /* === Elm to JS Ports === */
 
-const update = (msg, arg) => {
+const updateOneport = (msg, arg) => {
   let cases =
     { 'Alert': () => { alert(arg) }
 
@@ -81,8 +81,18 @@ const update = (msg, arg) => {
           }
         }
       }
+    }
 
-    , 'changed': () => {
+  try {
+    cases[msg]()
+  } catch(err) {
+    console.log('elmCases one-port failed:', msg, arg)
+  }
+}
+
+const update = (msg, arg) => {
+  let cases =
+    { 'changed': () => {
         setFileState(true, currentFile)
       }
 
@@ -183,6 +193,9 @@ gingko.ports.js.subscribe(function(elmdata) {
   update(elmdata[0], elmdata[1])
 })
 
+gingko.ports.infoForOutside.subscribe(function(elmdata) {
+  updateOneport(elmdata.tag, elmdata.data)
+})
 
 gingko.ports.getText.subscribe(id => {
   let tarea = document.getElementById('card-edit-'+id)
