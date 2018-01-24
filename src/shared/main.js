@@ -4,7 +4,6 @@ const autosize = require('textarea-autosize')
 
 const fs = require('fs')
 const path = require('path')
-const mkdirp = require('mkdirp')
 const {ipcRenderer, remote, webFrame, shell} = require('electron')
 const {app, dialog} = remote
 const querystring = require('querystring')
@@ -51,7 +50,6 @@ var filename = querystring.parse(window.location.search.slice(1))['filename'] ||
 document.title = `${filename} - Gingko`
 
 var dbpath = path.join(app.getPath('userData'), dbname)
-mkdirp.sync(dbpath)
 self.db = new PouchDB(dbpath, {adapter: 'memory'})
 self.gingko = Elm.Main.fullscreen()
 self.socket = io.connect('http://localhost:3000')
@@ -93,7 +91,6 @@ const update = (msg, arg) => {
           document.title = `${filename} - Gingko`
 
           dbpath = path.join(app.getPath('userData'), dbname)
-          mkdirp.sync(dbpath)
           self.db = new PouchDB(dbpath, {adapter: 'memory'})
           gingko.ports.externals.send(['new', ''])
         }
@@ -573,7 +570,6 @@ const loadFile = (filepathToLoad) => {
   db.destroy().then( res => {
     if (res.ok) {
       dbpath = path.join(app.getPath('userData'), sha1(filepathToLoad))
-      mkdirp.sync(dbpath)
       self.db = new PouchDB(dbpath, {adapter: 'memory'})
 
       db.load(rs).then( res => {
@@ -622,7 +618,6 @@ const importFile = (filepathToImport) => {
     db.destroy().then( res => {
       if (res.ok) {
         dbpath = path.join(app.getPath('userData'), sha1(filepathToImport))
-        mkdirp.sync(dbpath)
         self.db = new PouchDB(dbpath, {adapter: 'memory'})
 
         document.title = `${path.basename(filepathToImport)} - Gingko`
