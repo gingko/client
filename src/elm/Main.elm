@@ -1132,25 +1132,41 @@ repeating-linear-gradient(-45deg
 viewFooter : Model -> Html Msg
 viewFooter model =
   let
-    current = countWords ( treeToMarkdownString model.workingTree.tree )
+    wordCounts = getWordCounts model
+    current = wordCounts.document
     session = current - model.startingWordcount
+    hoverHeight n =
+      14*n + 6
+        |> toString
+        |> \s -> s ++ "px"
   in
   div
     [ class "footer" ]
     ( if model.viewState.editing == Nothing then
         if model.startingWordcount /= 0 then
           let
-            hoverStyle = [("height","48px")]
+            hoverStyle = [("height",hoverHeight 6)]
           in
           [ hover hoverStyle div [ id "wordcount", class "inset" ]
-            [ viewWordcountProgress current session
+            [ span [][ text ( "Session: " ++ ( session |> toWordsString ) ) ]
             , span [][ text ( "Total: " ++ ( current |> toWordsString ) ) ]
-            , span [][ text ( "Session: " ++ ( session |> toWordsString ) ) ]
+            , span [][ text ( "Card: " ++ ( wordCounts.card |> toWordsString ) ) ]
+            , span [][ text ( "Subtree: " ++ ( wordCounts.subtree |> toWordsString ) ) ]
+            , span [][ text ( "Group: " ++ ( wordCounts.group |> toWordsString ) ) ]
+            , span [][ text ( "Column: " ++ ( wordCounts.column |> toWordsString ) ) ]
             ]
           ]
         else
-          [ div [ id "wordcount", class "inset" ]
-            [ span [][ text ( "Total: " ++ ( current |> toWordsString ) ) ] ]
+          let
+            hoverStyle = [("height",hoverHeight 5)]
+          in
+          [ hover hoverStyle div [ id "wordcount", class "inset" ]
+            [ span [][ text ( "Total: " ++ ( current |> toWordsString ) ) ]
+            , span [][ text ( "Card: " ++ ( wordCounts.card |> toWordsString ) ) ]
+            , span [][ text ( "Subtree: " ++ ( wordCounts.subtree |> toWordsString ) ) ]
+            , span [][ text ( "Group: " ++ ( wordCounts.group |> toWordsString ) ) ]
+            , span [][ text ( "Column: " ++ ( wordCounts.column |> toWordsString ) ) ]
+            ]
           ]
       else
         []
@@ -1172,6 +1188,48 @@ viewWordcountProgress current session =
       , span [ style [("flex", toString sessW)], id "wc-progress-bar-session" ][]
       ]
     ]
+
+
+getWordCounts : Model -> WordCount
+getWordCounts model =
+  let
+    activeCardId = model.viewState.active
+
+    tree = model.workingTree.tree
+
+    currentTree =
+      getTree activeCardId tree
+        |> Maybe.withDefault defaultTree
+
+    currentGroup =
+      getSiblings activeCardId tree
+
+    cardCount = countWords currentTree.content
+
+    subtreeCount = cardCount + countWords (treeToMarkdownString currentTree)
+
+    groupCount =
+      currentGroup
+        |> List.map .content
+        |> String.join "\n\n"
+        |> countWords
+
+    columnCount =
+      getColumn (getDepth 0  tree activeCardId) tree -- Maybe (List (List Tree))
+        |> Maybe.withDefault [[]]
+        |> List.concat
+        |> List.map .content
+        |> String.join "\n\n"
+        |> countWords
+
+    treeCount = countWords (treeToMarkdownString tree)
+  in
+  WordCount
+    cardCount
+    subtreeCount
+    groupCount
+    columnCount
+    treeCount
 
 
 countWords : String -> Int

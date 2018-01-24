@@ -740,7 +740,7 @@ ul, ol {
 #wordcount:hover {
   background-color: #a2aeb4;
   border-radius: 4px 4px 0 0;
-  transition: height 0.2s ease-out;
+  transition: height 0.1s ease-out;
   box-shadow: 14px -12px 4px -13px #3c484e;
 }
 
