@@ -21,7 +21,6 @@ sendInfoOutside info =
         { tag = "ConfirmCancel"
         , data = list [ string id, string origContent ]
         }
-          |> Debug.log "ConfirmCancel at sendInfoOutside"
 
     New str_ ->
       infoForOutside
@@ -30,6 +29,12 @@ sendInfoOutside info =
             case str_ of
               Just str -> string str
               Nothing -> null
+        }
+
+    SetSaved filepath ->
+      infoForOutside
+        { tag = "SetSaved"
+        , data = string filepath
         }
 
 

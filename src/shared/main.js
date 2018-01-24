@@ -107,6 +107,9 @@ const updateOneport = (msg, arg) => {
         }
       }
 
+    , 'SetSaved': () =>
+        setFileState(false, arg)
+
     }
 
   try {
@@ -136,9 +139,6 @@ const update = (msg, arg) => {
 
     , 'save-and-close': () =>
         saveConfirmation(arg).then(app.exit)
-
-    , 'saved': () =>
-        setFileState(false, arg)
 
     , 'export-json': () => {
         exportJson(arg)

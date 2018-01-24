@@ -468,7 +468,7 @@ update msg ({objects, workingTree, status} as model) =
             | filepath = Just filepath
             , changed = False
           }
-            ! [js ("saved", filepath |> string)]
+            ! [sendInfoOutside (SetSaved filepath)]
 
         Changed ->
           { model
