@@ -12,6 +12,7 @@ import Dom
 import Task
 --import Time
 import Diff exposing (..)
+import InlineHover exposing (hover)
 
 import Types exposing (..)
 import Trees exposing (..)
@@ -52,6 +53,7 @@ type alias Model =
   , status : Status
   , uid : String
   , viewState : ViewState
+  , startingWordcount : Int
   , online : Bool
   , filepath : Maybe String
   , changed : Bool
@@ -74,6 +76,7 @@ defaultModel =
       , draggedTree = Nothing
       , collaborators = []
       }
+  , startingWordcount = 0
   , online = True
   , filepath = Nothing
   , changed = False
@@ -311,11 +314,17 @@ update msg ({objects, workingTree, status} as model) =
       let
         (newStatus, newTree_, newObjects) =
             Objects.update (Objects.Init json) objects
+
+        startingWordcount =
+          newTree_
+            |> Maybe.map (\t -> countWords (treeToMarkdownString t))
+            |> Maybe.withDefault 0
       in
       case (newStatus, newTree_) of
         (Clean newHead, Nothing) -> -- no changes to Tree
           { model
             | status = newStatus
+            , startingWordcount = startingWordcount
             , filepath = filepath
             , changed = False
           }
@@ -327,6 +336,7 @@ update msg ({objects, workingTree, status} as model) =
             | workingTree = Trees.setTree newTree model.workingTree
             , objects = newObjects
             , status = newStatus
+            , startingWordcount = startingWordcount
             , filepath = filepath
             , changed = False
           }
@@ -338,6 +348,7 @@ update msg ({objects, workingTree, status} as model) =
             | workingTree = Trees.setTree newTree model.workingTree
             , objects = newObjects
             , status = newStatus
+            , startingWordcount = startingWordcount
             , filepath = filepath
             , changed = False
           }
@@ -349,6 +360,7 @@ update msg ({objects, workingTree, status} as model) =
             | workingTree = Trees.setTreeWithConflicts conflicts mTree model.workingTree
             , objects = newObjects
             , status = newStatus
+            , startingWordcount = startingWordcount
             , filepath = filepath
             , changed = False
           }
@@ -1112,26 +1124,69 @@ repeating-linear-gradient(-45deg
     _ ->
       div
         [ id "root" ]
-        (
-          [ lazy2 Trees.view model.viewState model.workingTree
-          ]
-          ++
-          ( if model.viewState.editing == Nothing then [viewFooter model] else [] )
-        )
+        [ lazy2 Trees.view model.viewState model.workingTree
+        , viewFooter model
+        ]
 
 
 viewFooter : Model -> Html Msg
 viewFooter model =
   let
-   wordCounts = getWordCounts model
+    wordCounts = getWordCounts model
+    current = wordCounts.document
+    session = current - model.startingWordcount
+    hoverHeight n =
+      14*n + 6
+        |> toString
+        |> \s -> s ++ "px"
   in
   div
     [ class "footer" ]
-    [ span [][ text ("card: " ++ ( wordCounts |> .card |> toWordsString ) ) ]
-    , span [][ text ("subtree: " ++ ( wordCounts |> .subtree |> toWordsString ) ) ]
-    , span [][ text ("group: " ++ ( wordCounts |> .group |> toWordsString ) ) ]
-    , span [][ text ("column: " ++ ( wordCounts |> .column |> toWordsString ) ) ]
-    , span [][ text ("document: " ++ ( wordCounts |> .document |> toWordsString ) ) ]
+    ( if model.viewState.editing == Nothing then
+        if model.startingWordcount /= 0 then
+          let
+            hoverStyle = [("height",hoverHeight 6)]
+          in
+          [ hover hoverStyle div [ id "wordcount", class "inset" ]
+            [ span [][ text ( "Session: " ++ ( session |> toWordsString ) ) ]
+            , span [][ text ( "Total: " ++ ( current |> toWordsString ) ) ]
+            , span [][ text ( "Card: " ++ ( wordCounts.card |> toWordsString ) ) ]
+            , span [][ text ( "Subtree: " ++ ( wordCounts.subtree |> toWordsString ) ) ]
+            , span [][ text ( "Group: " ++ ( wordCounts.group |> toWordsString ) ) ]
+            , span [][ text ( "Column: " ++ ( wordCounts.column |> toWordsString ) ) ]
+            ]
+          ]
+        else
+          let
+            hoverStyle = [("height",hoverHeight 5)]
+          in
+          [ hover hoverStyle div [ id "wordcount", class "inset" ]
+            [ span [][ text ( "Total: " ++ ( current |> toWordsString ) ) ]
+            , span [][ text ( "Card: " ++ ( wordCounts.card |> toWordsString ) ) ]
+            , span [][ text ( "Subtree: " ++ ( wordCounts.subtree |> toWordsString ) ) ]
+            , span [][ text ( "Group: " ++ ( wordCounts.group |> toWordsString ) ) ]
+            , span [][ text ( "Column: " ++ ( wordCounts.column |> toWordsString ) ) ]
+            ]
+          ]
+      else
+        []
+    )
+
+
+viewWordcountProgress : Int -> Int -> Html Msg
+viewWordcountProgress current session =
+  let
+    currW =
+      1/(1+(toFloat session)/(toFloat current))
+
+    sessW =
+      1-currW
+  in
+  div [ id "wc-progress" ]
+    [ div [ id "wc-progress-wrap" ]
+      [ span [ style [("flex", toString currW)], id "wc-progress-bar" ][]
+      , span [ style [("flex", toString sessW)], id "wc-progress-bar-session" ][]
+      ]
     ]
 
 

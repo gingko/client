@@ -95,19 +95,6 @@ body {
   width: 100%;
 }
 
-.footer {
-  display: flex;
-  justify-content: space-around;
-  width: 100%;
-  padding: 4px;
-  margin-top: 3px;
-  font-size: 12px;
-  font-family: sans-serif;
-  color: #334;
-  background-color: hsl(199, 11%, 67%);
-  border-top: 1px solid #c8d3d8;
-}
-
 #app::-webkit-scrollbar {
   height: 10px;
 }
@@ -712,6 +699,64 @@ ul, ol {
 
 .drop-region-into.drop-hover {
   background: linear-gradient(to right, hsla(86,54%,51%,0) 0%,hsla(86,54%,51%,0.81) 77%,hsla(86,54%,51%,1) 95%,hsla(86,54%,51%,1) 54%);
+}
+
+
+/* ======== STATUS BAR ======== */
+
+.footer {
+  display: flex;
+  justify-content: space-around;
+  height: 25px;
+  width: 100%;
+  padding: 2px;
+  margin-top: 3px;
+  font-size: 12px;
+  font-family: sans-serif;
+  color: #334;
+  background-color: hsl(199, 11%, 67%);
+  border-top: 1px solid #c8d3d8;
+}
+
+.footer .inset {
+  border-top: 1px solid #84939a;
+  border-left: 1px solid #84939a;
+  border-bottom: 1px solid #c8d3d8;
+  border-right: 1px solid #c8d3d8;
+  padding: 2px 6px;
+}
+
+#wordcount {
+  position: absolute;
+  bottom: 2px;
+  display: flex;
+  flex-direction: column-reverse;
+  overflow: hidden;
+  height: 20px;
+  cursor: default;
+  transition: none;
+}
+
+#wordcount:hover {
+  background-color: #a2aeb4;
+  border-radius: 4px 4px 0 0;
+  transition: height 0.1s ease-out;
+  box-shadow: 14px -12px 4px -13px #3c484e;
+}
+
+#wc-progress {
+}
+#wc-progress-wrap {
+  display: flex;
+  height: 14px;
+}
+#wc-progress-bar {
+  height: 100%;
+  background: blue;
+}
+#wc-progress-bar-session {
+  height: 100%;
+  background: green;
 }
 
 
