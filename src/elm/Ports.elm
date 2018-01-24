@@ -3,7 +3,18 @@ port module Ports exposing (..)
 
 import Types exposing (..)
 import Coders exposing (tupleDecoder)
+import Json.Encode
 import Json.Decode exposing (decodeValue)
+
+
+sendInfoOutside : InfoForOutside -> Cmd msg
+sendInfoOutside info =
+  case info of
+    Alert str ->
+      infoForOutside { tag = "Alert", data = Json.Encode.string str }
+
+    _ ->
+      Cmd.none
 
 
 getInfoFromOutside : (InfoForElm -> msg) -> (String -> msg) -> Sub msg
@@ -47,16 +58,7 @@ getInfoFromOutside tagger onError =
           _ ->
             onError <| "Unexpected info from outside: " ++ toString outsideInfo
     )
-      {-
 
-type InfoForElm
-    = Reset
-    | Load String Json.Value
-    | Saved
-    | DoExportJSON
-    | DoExportTXT
-    | Keyboard String
-      -}
-
+port infoForOutside : OutsideData -> Cmd msg
 
 port infoForElm : (OutsideData -> msg) -> Sub msg

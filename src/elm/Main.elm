@@ -750,7 +750,7 @@ openCard id str (model, prevCmd) =
         |> (not << List.isEmpty)
   in
   if isLocked then
-    model ! [prevCmd, js ("alert", string "Card is being edited by someone else.")]
+    model ! [prevCmd, sendInfoOutside (Alert "Card is being edited by someone else.")]
   else
     { model
       | viewState = { vs | active = id, editing = Just id }
@@ -792,9 +792,9 @@ deleteCard id (model, prevCmd) =
           ("0", True)
   in
   if isLocked then
-    model ! [js ("alert", string "Card is being edited by someone else.")]
+    model ! [ sendInfoOutside ( Alert "Card is being edited by someone else.") ]
   else if isLastChild then
-    model ! [js ("alert", string "Cannot delete last card.")]
+    model ! [ sendInfoOutside ( Alert "Cannot delete last card.") ]
   else
     { model
       | workingTree = Trees.update (Trees.Rmv id) model.workingTree
