@@ -10,7 +10,6 @@ import Json.Encode exposing (..)
 import Regex exposing (Regex, replace, regex)
 import Dom
 import Task
---import Time
 import Diff exposing (..)
 
 import Types exposing (..)
@@ -471,6 +470,14 @@ update msg ({objects, workingTree, status} as model) =
           }
             ! [js ("saved", filepath |> string)]
 
+        DoExportJSON ->
+          model
+            ! [js ("export-json", model.workingTree.tree |> treeToJSON )]
+
+        DoExportTXT ->
+          model
+            ! [js ("export-txt", model.workingTree.tree |> treeToMarkdown )]
+
         Keyboard shortcut ->
           case shortcut of
             "mod+x" ->
@@ -593,23 +600,6 @@ update msg ({objects, workingTree, status} as model) =
 
             _ ->
               model ! []
-
-        _ ->
-          model ! []
-
-    ExternalMessage (cmd, arg) ->
-      case cmd of
-        "export-json" ->
-          model
-            ! [js ("export-json", model.workingTree.tree |> treeToJSON )]
-
-        "export-txt" ->
-          model
-            ! [js ("export-txt", model.workingTree.tree |> treeToMarkdown )]
-
-        _ ->
-          let _ = Debug.log "Unknown external command" cmd in
-          model ! []
 
     LogErr str ->
       model ! []
@@ -1311,8 +1301,6 @@ port saveLocal : Json.Value -> Cmd msg
 port updateCommits : (Json.Value, Maybe String) -> Cmd msg
 
 
-port externals : ((String, String) -> msg) -> Sub msg
-port load : ((Maybe String, Json.Value) -> msg) -> Sub msg
 port merge : (Json.Value -> msg) -> Sub msg
 port importJson : (Json.Value -> msg) -> Sub msg
 port setHead : (String -> msg) -> Sub msg
@@ -1335,9 +1323,7 @@ subscriptions model =
     , collabLeave CollaboratorDisconnected
     , updateContent UpdateContent
     , cancelConfirmed (\_ -> CancelCard)
-    , externals ExternalMessage
     , getInfoFromOutside Outside LogErr
-    --, Time.every (1*Time.second) (\_ -> Pull)
     ]
 
 

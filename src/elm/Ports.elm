@@ -30,6 +30,12 @@ getInfoFromOutside tagger onError =
               Err e ->
                 onError e
 
+          "DoExportJSON" ->
+            tagger <| DoExportJSON
+
+          "DoExportTXT" ->
+            tagger <| DoExportTXT
+
           "Keyboard" ->
             case decodeValue Json.Decode.string outsideInfo.data of
               Ok shortcut ->
@@ -45,7 +51,7 @@ getInfoFromOutside tagger onError =
 
 type InfoForElm
     = Reset
-    --| Load String Json.Value
+    | Load String Json.Value
     | Saved
     | DoExportJSON
     | DoExportTXT

@@ -29,7 +29,6 @@ type Msg
     -- === Ports ===
     | Outside InfoForElm
     | LogErr String
-    | ExternalMessage (String, String)
     | MergeIn Json.Value
     | ImportJson Json.Value
     | SetHeadRev String
