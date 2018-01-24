@@ -37,6 +37,9 @@ sendInfoOutside info =
         , data = string filepath
         }
 
+    SetChanged ->
+      tagOnly "SetChanged"
+
 
 getInfoFromOutside : (InfoForElm -> msg) -> (String -> msg) -> Sub msg
 getInfoFromOutside tagger onError =
@@ -82,6 +85,12 @@ getInfoFromOutside tagger onError =
           _ ->
             onError <| "Unexpected info from outside: " ++ toString outsideInfo
     )
+
+
+tagOnly : String -> Cmd msg
+tagOnly tag =
+  infoForOutside { tag = tag, data = null }
+
 
 port infoForOutside : OutsideData -> Cmd msg
 

@@ -110,6 +110,11 @@ const updateOneport = (msg, arg) => {
     , 'SetSaved': () =>
         setFileState(false, arg)
 
+    , 'Changed': () => {
+        setFileState(true, currentFile)
+      }
+
+
     }
 
   try {
@@ -121,11 +126,7 @@ const updateOneport = (msg, arg) => {
 
 const update = (msg, arg) => {
   let cases =
-    { 'changed': () => {
-        setFileState(true, currentFile)
-      }
-
-    , 'save': () =>
+    { 'save': () =>
         save(arg)
           .then( filepath =>
             gingko.ports.infoForElm.send({tag:'Saved', data: filepath})

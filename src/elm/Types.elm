@@ -43,6 +43,7 @@ type InfoForOutside
     --| Push
     --| Pull
     | SetSaved String
+    | SetChanged
     --| SaveAs
     --| ExportJSON Tree
     --| ExportTXT Tree
