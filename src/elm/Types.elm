@@ -30,7 +30,6 @@ type Msg
     | Outside InfoForElm
     | LogErr String
     | ExternalMessage (String, String)
-    | Load (Maybe String, Json.Value)
     | MergeIn Json.Value
     | ImportJson Json.Value
     | SetHeadRev String
@@ -54,7 +53,7 @@ type InfoForOutside
 
 type InfoForElm
     = Reset
-    --| Load String Json.Value
+    | Load (String, Json.Value)
     | Saved String
     | DoExportJSON
     | DoExportTXT

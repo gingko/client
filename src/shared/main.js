@@ -318,7 +318,7 @@ const load = function(filepath, headOverride){
         }
 
         let toSend = [filepath, [status, { commits: commits, treeObjects: trees, refs: refs}]];
-        gingko.ports.load.send(toSend);
+        gingko.ports.infoForElm.send({tag: "Load", data: toSend});
       }).catch(function (err) {
         console.log(err)
       })

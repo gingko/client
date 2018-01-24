@@ -298,58 +298,6 @@ update msg ({objects, workingTree, status} as model) =
 
     -- === Ports ===
 
-    Load (filepath, json) ->
-      let
-        (newStatus, newTree_, newObjects) =
-            Objects.update (Objects.Init json) objects
-      in
-      case (newStatus, newTree_) of
-        (Clean newHead, Nothing) -> -- no changes to Tree
-          { model
-            | status = newStatus
-            , filepath = filepath
-            , changed = False
-          }
-            ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
-            |> activate model.viewState.active
-
-        (Clean newHead, Just newTree) ->
-          { model
-            | workingTree = Trees.setTree newTree model.workingTree
-            , objects = newObjects
-            , status = newStatus
-            , filepath = filepath
-            , changed = False
-          }
-            ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
-            |> activate model.viewState.active
-
-        (MergeConflict mTree oldHead newHead [], Just newTree) ->
-          { model
-            | workingTree = Trees.setTree newTree model.workingTree
-            , objects = newObjects
-            , status = newStatus
-            , filepath = filepath
-            , changed = False
-          }
-            ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
-            |> activate model.viewState.active
-
-        (MergeConflict mTree oldHead newHead conflicts, Just newTree) ->
-          { model
-            | workingTree = Trees.setTreeWithConflicts conflicts mTree model.workingTree
-            , objects = newObjects
-            , status = newStatus
-            , filepath = filepath
-            , changed = False
-          }
-            ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
-            |> activate model.viewState.active
-
-        _ ->
-          let _ = Debug.log "failed to load json" (newStatus, newTree_, newObjects, json) in
-          model ! []
-
     MergeIn json ->
       let
         (newStatus, newTree_, newObjects) =
@@ -463,6 +411,58 @@ update msg ({objects, workingTree, status} as model) =
       case infoForElm of
         Reset ->
           init
+
+        Load (filepath, json) ->
+          let
+            (newStatus, newTree_, newObjects) =
+                Objects.update (Objects.Init json) objects
+          in
+          case (newStatus, newTree_) of
+            (Clean newHead, Nothing) -> -- no changes to Tree
+              { model
+                | status = newStatus
+                , filepath = Just filepath
+                , changed = False
+              }
+                ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
+                |> activate model.viewState.active
+
+            (Clean newHead, Just newTree) ->
+              { model
+                | workingTree = Trees.setTree newTree model.workingTree
+                , objects = newObjects
+                , status = newStatus
+                , filepath = Just filepath
+                , changed = False
+              }
+                ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
+                |> activate model.viewState.active
+
+            (MergeConflict mTree oldHead newHead [], Just newTree) ->
+              { model
+                | workingTree = Trees.setTree newTree model.workingTree
+                , objects = newObjects
+                , status = newStatus
+                , filepath = Just filepath
+                , changed = False
+              }
+                ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
+                |> activate model.viewState.active
+
+            (MergeConflict mTree oldHead newHead conflicts, Just newTree) ->
+              { model
+                | workingTree = Trees.setTreeWithConflicts conflicts mTree model.workingTree
+                , objects = newObjects
+                , status = newStatus
+                , filepath = Just filepath
+                , changed = False
+              }
+                ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
+                |> activate model.viewState.active
+
+            _ ->
+              let _ = Debug.log "failed to load json" (newStatus, newTree_, newObjects, json) in
+              model ! []
 
         Saved filepath ->
           { model
@@ -1327,8 +1327,7 @@ port cancelConfirmed : (() -> msg) -> Sub msg
 subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.batch
-    [ load Load
-    , merge MergeIn
+    [ merge MergeIn
     , importJson ImportJson
     , setHead CheckoutCommit
     , setHeadRev SetHeadRev
