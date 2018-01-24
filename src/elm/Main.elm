@@ -12,6 +12,7 @@ import Dom
 import Task
 --import Time
 import Diff exposing (..)
+import InlineHover exposing (hover)
 
 import Types exposing (..)
 import Trees exposing (..)
@@ -1132,34 +1133,45 @@ viewFooter : Model -> Html Msg
 viewFooter model =
   let
     current = countWords ( treeToMarkdownString model.workingTree.tree )
-    new = current - model.startingWordcount
+    session = current - model.startingWordcount
   in
   div
     [ class "footer" ]
     ( if model.viewState.editing == Nothing then
         if model.startingWordcount /= 0 then
-          [ div [ id "wordcount", class "inset" ]
-            [ div []
-              [ span [ title "Total words" ][ text ( current |> toWordsString ) ]
-              , text " | "
-              , span [ title "Words added this session" ][ text ( new |> toWordsString ) ]
-              ]
-            , span [][ text "this should be on the second row" ]
-            , span [][ text "this should be on the third row" ]
+          let
+            hoverStyle = [("height","48px")]
+          in
+          [ hover hoverStyle div [ id "wordcount", class "inset" ]
+            [ viewWordcountProgress current session
+            , span [][ text ( "Total: " ++ ( current |> toWordsString ) ) ]
+            , span [][ text ( "Session: " ++ ( session |> toWordsString ) ) ]
             ]
           ]
         else
           [ div [ id "wordcount", class "inset" ]
-            [ div []
-              [ span [ title "Total words" ][ text ( current |> toWordsString ) ]
-              ]
-            , span [][ text "this should be on the second row" ]
-            , span [][ text "this should be on the third row" ]
-            ]
+            [ span [][ text ( "Total: " ++ ( current |> toWordsString ) ) ] ]
           ]
       else
         []
     )
+
+
+viewWordcountProgress : Int -> Int -> Html Msg
+viewWordcountProgress current session =
+  let
+    currW =
+      1/(1+(toFloat session)/(toFloat current))
+
+    sessW =
+      1-currW
+  in
+  div [ id "wc-progress" ]
+    [ div [ id "wc-progress-wrap" ]
+      [ span [ style [("flex", toString currW)], id "wc-progress-bar" ][]
+      , span [ style [("flex", toString sessW)], id "wc-progress-bar-session" ][]
+      ]
+    ]
 
 
 countWords : String -> Int

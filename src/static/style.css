@@ -738,11 +738,25 @@ ul, ol {
 }
 
 #wordcount:hover {
-  height: 48px; /* three rows. two is 34 */
   background-color: #a2aeb4;
   border-radius: 4px 4px 0 0;
   transition: height 0.2s ease-out;
   box-shadow: 14px -12px 4px -13px #3c484e;
+}
+
+#wc-progress {
+}
+#wc-progress-wrap {
+  display: flex;
+  height: 14px;
+}
+#wc-progress-bar {
+  height: 100%;
+  background: blue;
+}
+#wc-progress-bar-session {
+  height: 100%;
+  background: green;
 }
 
 
