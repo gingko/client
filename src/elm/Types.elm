@@ -38,9 +38,9 @@ type Msg
 
 type InfoForOutside
     = Alert String
+    | ConfirmCancel String String
     | Push
     --| Pull
-    | Changed
     | New (Maybe String)
     | Save (Maybe String)
     | SaveAs
@@ -53,6 +53,7 @@ type InfoForOutside
 type InfoForElm
     = Reset
     | Load (String, Json.Value)
+    | Changed
     | Saved String
     | DoExportJSON
     | DoExportTXT

@@ -66,9 +66,9 @@ self.socket = io.connect('http://localhost:3000')
 
 const update = (msg, arg) => {
   let cases =
-    { 'alert': () => { alert(arg) }
+    { 'Alert': () => { alert(arg) }
 
-    , 'confirm-cancel': () => {
+    , 'ConfirmCancel': () => {
         let tarea = document.getElementById('card-edit-'+arg[0])
 
         if (tarea === null) {
@@ -655,7 +655,7 @@ const setFileState = function(bool, newpath) {
     if (!/\*/.test(document.title)) {
       document.title = "*" + document.title
     }
-    gingko.ports.externals.send(['changed', ''])
+    gingko.ports.infoForElm.send({ tag: 'Changed', data: null })
   } else {
     changed = false
     currentFile = newpath

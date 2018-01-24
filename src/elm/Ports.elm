@@ -11,7 +11,16 @@ sendInfoOutside : InfoForOutside -> Cmd msg
 sendInfoOutside info =
   case info of
     Alert str ->
-      infoForOutside { tag = "Alert", data = Json.Encode.string str }
+      infoForOutside
+        { tag = "Alert"
+        , data = Json.Encode.string str
+        }
+
+    ConfirmCancel id origContent ->
+      infoForOutside
+        { tag = "ConfirmCancel"
+        , data = Json.Encode.list [ Json.Encode.string id, Json.Encode.string origContent ]
+        }
 
     _ ->
       Cmd.none
@@ -32,6 +41,9 @@ getInfoFromOutside tagger onError =
 
               Err e ->
                 onError e
+
+          "Changed" ->
+            tagger <| Changed
 
           "Saved" ->
             case decodeValue Json.Decode.string outsideInfo.data of

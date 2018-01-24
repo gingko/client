@@ -470,6 +470,12 @@ update msg ({objects, workingTree, status} as model) =
           }
             ! [js ("saved", filepath |> string)]
 
+        Changed ->
+          { model
+            | changed = True
+          }
+            ! []
+
         DoExportJSON ->
           model
             ! [js ("export-json", model.workingTree.tree |> treeToJSON )]
@@ -825,7 +831,7 @@ intentCancelCard model =
       model ! []
 
     Just id ->
-      model ! [js ("confirm-cancel", Json.Encode.list [string vs.active, string originalContent])]
+      model ! [ sendInfoOutside (ConfirmCancel vs.active originalContent) ]
 
 
 -- === Card Insertion  ===
