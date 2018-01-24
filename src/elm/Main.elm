@@ -52,6 +52,7 @@ type alias Model =
   , status : Status
   , uid : String
   , viewState : ViewState
+  , startingWordcount : Int
   , online : Bool
   , filepath : Maybe String
   , changed : Bool
@@ -74,6 +75,7 @@ defaultModel =
       , draggedTree = Nothing
       , collaborators = []
       }
+  , startingWordcount = 0
   , online = True
   , filepath = Nothing
   , changed = False
@@ -311,11 +313,17 @@ update msg ({objects, workingTree, status} as model) =
       let
         (newStatus, newTree_, newObjects) =
             Objects.update (Objects.Init json) objects
+
+        startingWordcount =
+          newTree_
+            |> Maybe.map (\t -> countWords (treeToMarkdownString t))
+            |> Maybe.withDefault 0
       in
       case (newStatus, newTree_) of
         (Clean newHead, Nothing) -> -- no changes to Tree
           { model
             | status = newStatus
+            , startingWordcount = startingWordcount
             , filepath = filepath
             , changed = False
           }
@@ -327,6 +335,7 @@ update msg ({objects, workingTree, status} as model) =
             | workingTree = Trees.setTree newTree model.workingTree
             , objects = newObjects
             , status = newStatus
+            , startingWordcount = startingWordcount
             , filepath = filepath
             , changed = False
           }
@@ -338,6 +347,7 @@ update msg ({objects, workingTree, status} as model) =
             | workingTree = Trees.setTree newTree model.workingTree
             , objects = newObjects
             , status = newStatus
+            , startingWordcount = startingWordcount
             , filepath = filepath
             , changed = False
           }
@@ -349,6 +359,7 @@ update msg ({objects, workingTree, status} as model) =
             | workingTree = Trees.setTreeWithConflicts conflicts mTree model.workingTree
             , objects = newObjects
             , status = newStatus
+            , startingWordcount = startingWordcount
             , filepath = filepath
             , changed = False
           }
@@ -1112,69 +1123,39 @@ repeating-linear-gradient(-45deg
     _ ->
       div
         [ id "root" ]
-        (
-          [ lazy2 Trees.view model.viewState model.workingTree
-          ]
-          ++
-          ( if model.viewState.editing == Nothing then [viewFooter model] else [] )
-        )
+        [ lazy2 Trees.view model.viewState model.workingTree
+        , viewFooter model
+        ]
 
 
 viewFooter : Model -> Html Msg
 viewFooter model =
   let
-   wordCounts = getWordCounts model
+    current = countWords ( treeToMarkdownString model.workingTree.tree )
+    new = current - model.startingWordcount
   in
   div
     [ class "footer" ]
-    [ span [][ text ("card: " ++ ( wordCounts |> .card |> toWordsString ) ) ]
-    , span [][ text ("subtree: " ++ ( wordCounts |> .subtree |> toWordsString ) ) ]
-    , span [][ text ("group: " ++ ( wordCounts |> .group |> toWordsString ) ) ]
-    , span [][ text ("column: " ++ ( wordCounts |> .column |> toWordsString ) ) ]
-    , span [][ text ("document: " ++ ( wordCounts |> .document |> toWordsString ) ) ]
-    ]
-
-
-getWordCounts : Model -> WordCount
-getWordCounts model =
-  let
-    activeCardId = model.viewState.active
-
-    tree = model.workingTree.tree
-
-    currentTree =
-      getTree activeCardId tree
-        |> Maybe.withDefault defaultTree
-
-    currentGroup =
-      getSiblings activeCardId tree
-
-    cardCount = countWords currentTree.content
-
-    subtreeCount = cardCount + countWords (treeToMarkdownString currentTree)
-
-    groupCount =
-      currentGroup
-        |> List.map .content
-        |> String.join "\n\n"
-        |> countWords
-
-    columnCount =
-      getColumn (getDepth 0  tree activeCardId) tree -- Maybe (List (List Tree))
-        |> Maybe.withDefault [[]]
-        |> List.concat
-        |> List.map .content
-        |> String.join "\n\n"
-        |> countWords
-
-    treeCount = countWords (treeToMarkdownString tree)
-  in
-  WordCount
-    cardCount
-    subtreeCount
-    groupCount
-    columnCount
-    treeCount
+    ( if model.viewState.editing == Nothing then
+        if model.startingWordcount /= 0 then
+          [ div [ id "wordcount", class "inset" ]
+            [ div []
+              [ span [ title "Total words" ][ text ( current |> toWordsString ) ]
+              , text " | "
+              , span [ title "Words added this session" ][ text ( new |> toWordsString ) ]
+              ]
+            ]
+          ]
+        else
+          [ div [ id "wordcount", class "inset" ]
+            [ div []
+              [ span [ title "Total words" ][ text ( current |> toWordsString ) ]
+              ]
+            ]
+          ]
+      else
+        []
+    )
 
 
 countWords : String -> Int

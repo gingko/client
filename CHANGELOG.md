@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
 ## Unreleased
-  - Added basic word count feature.
+  - Added basic word count feature (total and session).
   - Ctrl+arrows (used for text navigation) no longer trigger card insertions.
   - Fixed trial counter (maxed out at 20 days left).
 
