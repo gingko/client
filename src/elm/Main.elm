@@ -1144,6 +1144,8 @@ viewFooter model =
               , text " | "
               , span [ title "Words added this session" ][ text ( new |> toWordsString ) ]
               ]
+            , span [][ text "this should be on the second row" ]
+            , span [][ text "this should be on the third row" ]
             ]
           ]
         else
@@ -1151,6 +1153,8 @@ viewFooter model =
             [ div []
               [ span [ title "Total words" ][ text ( current |> toWordsString ) ]
               ]
+            , span [][ text "this should be on the second row" ]
+            , span [][ text "this should be on the third row" ]
             ]
           ]
       else

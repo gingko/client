@@ -727,16 +727,22 @@ ul, ol {
 }
 
 #wordcount {
-  display: flex;
-  flex-direction: column-reverse;
   position: absolute;
   bottom: 2px;
+  display: flex;
+  flex-direction: column-reverse;
+  overflow: hidden;
+  height: 20px;
+  cursor: default;
+  transition: none;
 }
 
 #wordcount:hover {
-  height: 60px;
+  height: 48px; /* three rows. two is 34 */
   background-color: #a2aeb4;
   border-radius: 4px 4px 0 0;
+  transition: height 0.2s ease-out;
+  box-shadow: 14px -12px 4px -13px #3c484e;
 }
 
 
