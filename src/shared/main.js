@@ -81,22 +81,8 @@ const updateOneport = (msg, arg) => {
           }
         }
       }
-    }
 
-  try {
-    cases[msg]()
-  } catch(err) {
-    console.log('elmCases one-port failed:', msg, arg)
-  }
-}
-
-const update = (msg, arg) => {
-  let cases =
-    { 'changed': () => {
-        setFileState(true, currentFile)
-      }
-
-    , 'new': () => {
+    , 'New': () => {
         let clearDb = () => {
           dbname = sha1(Date.now()+machineIdSync())
           filename = "Untitled Tree"
@@ -119,6 +105,21 @@ const update = (msg, arg) => {
         } else {
           clearDb()
         }
+      }
+
+    }
+
+  try {
+    cases[msg]()
+  } catch(err) {
+    console.log('elmCases one-port failed:', msg, arg)
+  }
+}
+
+const update = (msg, arg) => {
+  let cases =
+    { 'changed': () => {
+        setFileState(true, currentFile)
       }
 
     , 'save': () =>

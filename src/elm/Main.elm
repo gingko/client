@@ -1041,10 +1041,10 @@ intentNew : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 intentNew (model, prevCmd) =
   case model.filepath of
     Nothing ->
-      model ! [prevCmd, js ("new", null)]
+      model ! [prevCmd, sendInfoOutside ( New Nothing )]
 
     Just filepath ->
-      model ! [prevCmd, js ("new", filepath |> string)]
+      model ! [prevCmd, sendInfoOutside ( New ( Just filepath ) )]
 
 
 intentOpen : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )

@@ -3,7 +3,7 @@ port module Ports exposing (..)
 
 import Types exposing (..)
 import Coders exposing (tupleDecoder)
-import Json.Encode
+import Json.Encode exposing (..)
 import Json.Decode exposing (decodeValue)
 
 
@@ -13,18 +13,24 @@ sendInfoOutside info =
     Alert str ->
       infoForOutside
         { tag = "Alert"
-        , data = Json.Encode.string str
+        , data = string str
         }
 
     ConfirmCancel id origContent ->
       infoForOutside
         { tag = "ConfirmCancel"
-        , data = Json.Encode.list [ Json.Encode.string id, Json.Encode.string origContent ]
+        , data = list [ string id, string origContent ]
         }
           |> Debug.log "ConfirmCancel at sendInfoOutside"
 
-    _ ->
-      Cmd.none
+    New str_ ->
+      infoForOutside
+        { tag = "New"
+        , data =
+            case str_ of
+              Just str -> string str
+              Nothing -> null
+        }
 
 
 getInfoFromOutside : (InfoForElm -> msg) -> (String -> msg) -> Sub msg

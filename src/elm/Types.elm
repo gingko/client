@@ -39,15 +39,15 @@ type Msg
 type InfoForOutside
     = Alert String
     | ConfirmCancel String String
-    | Push
-    --| Pull
     | New (Maybe String)
-    | Save (Maybe String)
-    | SaveAs
-    | ExportJSON Tree
-    | ExportTXT Tree
-    | SocketSend CollabState
-    | LogError String
+    --| Push
+    --| Pull
+    --| Save (Maybe String)
+    --| SaveAs
+    --| ExportJSON Tree
+    --| ExportTXT Tree
+    --| SocketSend CollabState
+    --| LogError String
 
 
 type InfoForElm
