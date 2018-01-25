@@ -110,10 +110,6 @@ update msg ({objects, workingTree, status} as model) =
       model ! []
         |> deleteCard id
 
-    CancelCard ->
-      model ! []
-        |> cancelCard
-
     -- === Card Insertion  ===
 
     InsertAbove id ->
@@ -255,68 +251,8 @@ update msg ({objects, workingTree, status} as model) =
         _ ->
           model ! []
 
-    CheckoutCommit commitSha ->
-      case status of
-        MergeConflict _ _ _ _ ->
-          model ! []
-
-        _ ->
-          let
-            (newStatus, newTree_, newModel) =
-              Objects.update (Objects.Checkout commitSha) objects
-          in
-          case newTree_ of
-            Just newTree ->
-              { model
-                | workingTree = Trees.setTree newTree model.workingTree
-                , status = newStatus
-              }
-                ! [ sendInfoOutside ( UpdateCommits ( Objects.toValue objects, getHead newStatus ) ) ]
-
-            Nothing ->
-              model ! []
-                |> Debug.log "failed to load commit"
-
-
-
     -- === Ports ===
 
-
-    RecvCollabState json ->
-      case Json.decodeValue collabStateDecoder json of
-        Ok collabState ->
-          let
-            newCollabs =
-              if List.member collabState.uid (vs.collaborators |> List.map .uid) then
-                vs.collaborators |> List.map (\c -> if c.uid == collabState.uid then collabState else c)
-              else
-                collabState :: vs.collaborators
-
-            newTree =
-              case collabState.mode of
-                Editing editId ->
-                  Trees.update (Trees.Upd editId collabState.field) model.workingTree
-
-                _ -> model.workingTree
-          in
-          { model
-            | workingTree = newTree
-            , viewState = { vs | collaborators = newCollabs }
-          }
-            ! []
-
-        Err err ->
-          let
-            _ = Debug.log "collabState ERROR" err
-          in
-          model ! []
-
-    CollaboratorDisconnected uid ->
-      { model
-        | viewState =
-            { vs | collaborators = vs.collaborators |> List.filter (\c -> c.uid /= uid)}
-      }
-        ! []
 
     Outside infoForElm ->
       case infoForElm of
@@ -335,6 +271,10 @@ update msg ({objects, workingTree, status} as model) =
             model
               ! []
               |> sendCollabState (CollabState model.uid (Active id) "")
+
+        CancelCardConfirmed ->
+          model ! []
+            |> cancelCard
 
         Reset ->
           init
@@ -457,12 +397,62 @@ update msg ({objects, workingTree, status} as model) =
               let _ = Debug.log "ImportJson error" err in
               model ! []
 
+        CheckoutCommit commitSha ->
+          case status of
+            MergeConflict _ _ _ _ ->
+              model ! []
+
+            _ ->
+              let
+                (newStatus, newTree_, newModel) =
+                  Objects.update (Objects.Checkout commitSha) objects
+              in
+              case newTree_ of
+                Just newTree ->
+                  { model
+                    | workingTree = Trees.setTree newTree model.workingTree
+                    , status = newStatus
+                  }
+                    ! [ sendInfoOutside ( UpdateCommits ( Objects.toValue objects, getHead newStatus ) ) ]
+
+                Nothing ->
+                  model ! []
+                    |> Debug.log "failed to load commit"
+
         SetHeadRev rev ->
           { model
             | objects = Objects.setHeadRev rev model.objects
           }
             ! []
             |> push
+
+        RecvCollabState collabState ->
+          let
+            newCollabs =
+              if List.member collabState.uid (vs.collaborators |> List.map .uid) then
+                vs.collaborators |> List.map (\c -> if c.uid == collabState.uid then collabState else c)
+              else
+                collabState :: vs.collaborators
+
+            newTree =
+              case collabState.mode of
+                Editing editId ->
+                  Trees.update (Trees.Upd editId collabState.field) model.workingTree
+
+                _ -> model.workingTree
+          in
+          { model
+            | workingTree = newTree
+            , viewState = { vs | collaborators = newCollabs }
+          }
+            ! []
+
+        CollaboratorDisconnected uid ->
+          { model
+            | viewState =
+                { vs | collaborators = vs.collaborators |> List.filter (\c -> c.uid /= uid)}
+          }
+            ! []
 
         Saved filepath ->
           { model
@@ -1302,21 +1292,9 @@ modelToValue model =
 
 -- SUBSCRIPTIONS
 
-port setHead : (String -> msg) -> Sub msg
-port collabMsg : (Json.Value -> msg) -> Sub msg
-port collabLeave : (String -> msg) -> Sub msg
-port cancelConfirmed : (() -> msg) -> Sub msg
-
-
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  Sub.batch
-    [ setHead CheckoutCommit
-    , collabMsg RecvCollabState
-    , collabLeave CollaboratorDisconnected
-    , cancelConfirmed (\_ -> CancelCard)
-    , getInfoFromOutside Outside LogErr
-    ]
+  getInfoFromOutside Outside LogErr
 
 
 

@@ -139,6 +139,9 @@ getInfoFromOutside tagger onError =
               Err e ->
                 onError e
 
+          "CancelCardConfirmed" ->
+            tagger <| CancelCardConfirmed
+
           "Reset" ->
             tagger <| Reset
 
@@ -152,6 +155,30 @@ getInfoFromOutside tagger onError =
 
           "ImportJSON" ->
             tagger <| ImportJSON outsideInfo.data
+
+          "CheckoutCommit" ->
+            case decodeValue Json.Decode.string outsideInfo.data of
+              Ok commitSha ->
+                tagger <| CheckoutCommit commitSha
+
+              Err e ->
+                onError e
+
+          "RecvCollabState" ->
+            case decodeValue collabStateDecoder outsideInfo.data of
+              Ok collabState ->
+                tagger <| RecvCollabState collabState
+
+              Err e ->
+                onError e
+
+          "CollaboratorDisconnected" ->
+            case decodeValue Json.Decode.string outsideInfo.data of
+              Ok uid ->
+                tagger <| CollaboratorDisconnected uid
+
+              Err e ->
+                onError e
 
           "Changed" ->
             tagger <| Changed

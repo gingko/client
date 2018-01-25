@@ -136,9 +136,9 @@ const update = (msg, data) => {
           console.log('tarea not found')
         } else {
           if(tarea.value === data[1]) {
-            gingko.ports.cancelConfirmed.send(null)
+            gingko.ports.infoForElm.send({tag: 'CancelCardConfirmed', data: null})
           } else if (confirm('Are you sure you want to cancel your changes?')) {
-              gingko.ports.cancelConfirmed.send(null)
+            gingko.ports.infoForElm.send({tag: 'CancelCardConfirmed', data: null})
           }
         }
       }
@@ -263,8 +263,8 @@ ipcRenderer.on('zoomout', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() -
 ipcRenderer.on('resetzoom', e => { webFrame.setZoomLevel(0) })
 ipcRenderer.on('main-save-and-close', () => update('SaveAndClose', currentFile))
 
-socket.on('collab', data => gingko.ports.collabMsg.send(data))
-socket.on('collab-leave', data => gingko.ports.collabLeave.send(data))
+socket.on('collab', data => gingko.ports.infoForElm.send({tag: 'RecvCollabState', data: data}))
+socket.on('collab-leave', data => gingko.ports.infoForElm.send({tag: 'CollaboratorDisconnected', data: data}))
 
 
 
@@ -394,7 +394,7 @@ const sync = function () {
 
 const setHead = function(sha) {
   if (sha) {
-    gingko.ports.setHead.send(sha)
+    gingko.ports.infoForElm.send({tag: 'CheckoutCommit', data: sha})
   }
 }
 

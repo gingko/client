@@ -11,7 +11,6 @@ type Msg
     -- === Card Editing  ===
     | OpenCard String String
     | DeleteCard String
-    | CancelCard
     -- === Card Insertion  ===
     | InsertAbove String
     | InsertBelow String
@@ -24,30 +23,27 @@ type Msg
     | Sync
     | SetSelection String Selection String
     | Resolve String
-    | CheckoutCommit String
     -- === Ports ===
     | Outside InfoForElm
     | LogErr String
-    | RecvCollabState Json.Value
-    | CollaboratorDisconnected String
 
 
 type InfoForOutside
     = Alert String
     | ActivateCards (Int, List (List String))
     | GetText String
-    | SaveObjects (Json.Value, Json.Value)
-    | SaveLocal Tree
-    | UpdateCommits (Json.Value, Maybe String)
     | ConfirmCancel String String
     | New (Maybe String)
+    | Open (Maybe String)
     | Save String
     | SaveAs
     | ExportJSON Tree
     | ExportTXT Tree
-    | Open (Maybe String)
     | Push
     | Pull
+    | SaveObjects (Json.Value, Json.Value)
+    | SaveLocal Tree
+    | UpdateCommits (Json.Value, Maybe String)
     | SetSaved String
     | SetChanged
     | SocketSend CollabState
@@ -55,22 +51,17 @@ type InfoForOutside
 
 type InfoForElm
     = UpdateContent (String, String)
+    | CancelCardConfirmed
     | Reset
     | Load (String, Json.Value)
     | Merge Json.Value
     | ImportJSON Json.Value
+    | CheckoutCommit String
     | SetHeadRev String
--- port setHead : (String -> msg) -> Sub msg
--- port updateContent : ((String, String) -> msg) -> Sub msg
--- port cancelConfirmed : (() -> msg) -> Sub msg
---| ImportJson Json.Value
---| SetHeadRev String
---| RecvCollabState Json.Value
---| CollaboratorDisconnected String
+    | RecvCollabState CollabState
+    | CollaboratorDisconnected String
     | Changed
     | Saved String
--- port collabMsg : (Json.Value -> msg) -> Sub msg
--- port collabLeave : (String -> msg) -> Sub msg
     | DoExportJSON
     | DoExportTXT
     | Keyboard String
