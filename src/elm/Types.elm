@@ -42,12 +42,12 @@ type InfoForOutside
     | New (Maybe String)
     | Save String
     | SaveAs
+    | ExportJSON Tree
+    | ExportTXT Tree
     --| Push
     --| Pull
     | SetSaved String
     | SetChanged
-    --| ExportJSON Tree
-    --| ExportTXT Tree
     --| SocketSend CollabState
     --| LogError String
 

@@ -478,11 +478,11 @@ update msg ({objects, workingTree, status} as model) =
 
         DoExportJSON ->
           model
-            ! [js ("export-json", model.workingTree.tree |> treeToJSON )]
+            ! [ sendInfoOutside ( ExportJSON model.workingTree.tree ) ]
 
         DoExportTXT ->
           model
-            ! [js ("export-txt", model.workingTree.tree |> treeToMarkdown )]
+            ! [ sendInfoOutside ( ExportTXT model.workingTree.tree )]
 
         Keyboard shortcut ->
           case shortcut of

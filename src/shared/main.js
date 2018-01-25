@@ -120,6 +120,17 @@ const updateOneport = (msg, arg) => {
             gingko.ports.infoForElm.send({tag:'Saved', data: filepath})
           )
 
+    , 'SaveAndClose': () =>
+        saveConfirmation(arg).then(app.exit)
+
+    , 'ExportJSON': () => {
+        exportJson(arg)
+      }
+
+    , 'ExportTXT': () => {
+        exportTxt(arg)
+      }
+
 
     , 'SetSaved': () =>
         setFileState(false, arg)
@@ -140,18 +151,7 @@ const updateOneport = (msg, arg) => {
 
 const update = (msg, arg) => {
   let cases =
-    { 'save-and-close': () =>
-        saveConfirmation(arg).then(app.exit)
-
-    , 'export-json': () => {
-        exportJson(arg)
-    }
-
-    , 'export-txt': () => {
-        exportTxt(arg)
-    }
-
-    , 'open': () => {
+    { 'open': () => {
         if (changed) {
           saveConfirmation(arg).then(openDialog)
         } else {
@@ -284,7 +284,7 @@ ipcRenderer.on('menu-save-as', () => updateOneport('SaveAs'))
 ipcRenderer.on('zoomin', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() + 1) })
 ipcRenderer.on('zoomout', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() - 1) })
 ipcRenderer.on('resetzoom', e => { webFrame.setZoomLevel(0) })
-ipcRenderer.on('main-save-and-close', () => update('save-and-close', currentFile))
+ipcRenderer.on('main-save-and-close', () => updateOneport('SaveAndClose', currentFile))
 
 socket.on('collab', data => gingko.ports.collabMsg.send(data))
 socket.on('collab-leave', data => gingko.ports.collabLeave.send(data))

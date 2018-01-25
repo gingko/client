@@ -2,7 +2,7 @@ port module Ports exposing (..)
 
 
 import Types exposing (..)
-import Coders exposing (tupleDecoder)
+import Coders exposing (tupleDecoder, treeToJSON, treeToMarkdown)
 import Json.Encode exposing (..)
 import Json.Decode exposing (decodeValue)
 
@@ -39,6 +39,18 @@ sendInfoOutside info =
 
     SaveAs ->
       tagOnly "SaveAs"
+
+    ExportJSON tree ->
+      infoForOutside
+        { tag = "ExportJSON"
+        , data = treeToJSON tree
+        }
+
+    ExportTXT tree ->
+      infoForOutside
+        { tag = "ExportTXT"
+        , data = treeToMarkdown tree
+        }
 
     SetSaved filepath ->
       infoForOutside
