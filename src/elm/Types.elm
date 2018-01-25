@@ -22,7 +22,7 @@ type Msg
     -- === History ===
     | Undo
     | Redo
-    | Pull
+    | Sync
     | SetSelection String Selection String
     | Resolve String
     | CheckoutCommit String
@@ -45,11 +45,11 @@ type InfoForOutside
     | ExportJSON Tree
     | ExportTXT Tree
     | Open (Maybe String)
-    --| Push
-    --| Pull
+    | Push
+    | Pull
     | SetSaved String
     | SetChanged
-    --| SocketSend CollabState
+    | SocketSend CollabState
     --| LogError String
 
 

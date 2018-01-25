@@ -2,7 +2,7 @@ port module Ports exposing (..)
 
 
 import Types exposing (..)
-import Coders exposing (tupleDecoder, treeToJSON, treeToMarkdown)
+import Coders exposing (tupleDecoder, treeToJSON, treeToMarkdown, collabStateToValue)
 import Json.Encode exposing (..)
 import Json.Decode exposing (decodeValue)
 
@@ -69,6 +69,18 @@ sendInfoOutside info =
 
     SetChanged ->
       tagOnly "SetChanged"
+
+    Pull ->
+      tagOnly "Pull"
+
+    Push ->
+      tagOnly "Push"
+
+    SocketSend collabState ->
+      infoForOutside
+        { tag = "SocketSend"
+        , data = collabStateToValue collabState
+        }
 
 
 getInfoFromOutside : (InfoForElm -> msg) -> (String -> msg) -> Sub msg

@@ -146,6 +146,9 @@ const updateOneport = (msg, arg) => {
         setFileState(true, currentFile)
       }
 
+    , 'Pull': sync
+
+    , 'Push': push
 
     }
 
@@ -173,10 +176,6 @@ const update = (msg, arg) => {
           importDialog()
         }
     }
-
-    , 'pull': sync
-
-    , 'push': push
 
     , 'socket-send': () => {
         collab = arg

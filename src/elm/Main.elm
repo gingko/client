@@ -213,13 +213,13 @@ update msg ({objects, workingTree, status} as model) =
     Redo ->
       model ! []
 
-    Pull ->
+    Sync ->
       case (model.status, model.online) of
         (Clean _, True) ->
-          model ! [js ("pull", null)]
+          model ! [ sendInfoOutside Pull ]
 
         (Bare, True) ->
-          model ! [js ("pull", null)]
+          model ! [ sendInfoOutside Pull ]
 
         _ ->
           model ! []
@@ -962,9 +962,9 @@ moveRight id (model, prevCmd) =
 push : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 push (model, prevCmd) =
   if model.online then
-    model ! [prevCmd, js ("push", null)]
+    model ! [ prevCmd, sendInfoOutside Push ]
   else
-    model ! [prevCmd]
+    model ! [ prevCmd ]
 
 
 addToHistory : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1064,7 +1064,7 @@ sendCollabState collabState (model, prevCmd) =
       model ! [ prevCmd ]
 
     _ ->
-      model ! [ prevCmd, js ("socket-send", collabState |> collabStateToValue) ]
+      model ! [ prevCmd, sendInfoOutside ( SocketSend collabState ) ]
 
 
 
