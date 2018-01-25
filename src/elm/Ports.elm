@@ -35,30 +35,6 @@ sendInfoOutside info =
         , data = string id
         }
 
-    SaveObjects ( statusValue, objectsValue ) ->
-      infoForOutside
-        { tag = "SaveObjects"
-        , data = list [ statusValue, objectsValue ]
-        }
-
-    SaveLocal tree ->
-      infoForOutside
-        { tag = "SaveLocal"
-        , data = treeToValue tree
-        }
-
-    UpdateCommits ( objectsValue, head_ ) ->
-      let
-        headToValue mbs =
-          case mbs of
-            Just str -> string str
-            Nothing -> null
-      in
-      infoForOutside
-        { tag = "UpdateCommits"
-        , data = tupleToValue identity headToValue ( objectsValue, head_ )
-        }
-
     ConfirmCancel id origContent ->
       infoForOutside
         { tag = "ConfirmCancel"
@@ -71,6 +47,15 @@ sendInfoOutside info =
         , data =
             case str_ of
               Just str -> string str
+              Nothing -> null
+        }
+
+    Open filepath_ ->
+      infoForOutside
+        { tag = "Open"
+        , data =
+            case filepath_ of
+              Just filepath -> string filepath
               Nothing -> null
         }
 
@@ -95,13 +80,34 @@ sendInfoOutside info =
         , data = treeToMarkdown tree
         }
 
-    Open filepath_ ->
+    Push ->
+      tagOnly "Push"
+
+    Pull ->
+      tagOnly "Pull"
+
+    SaveObjects ( statusValue, objectsValue ) ->
       infoForOutside
-        { tag = "Open"
-        , data =
-            case filepath_ of
-              Just filepath -> string filepath
-              Nothing -> null
+        { tag = "SaveObjects"
+        , data = list [ statusValue, objectsValue ]
+        }
+
+    SaveLocal tree ->
+      infoForOutside
+        { tag = "SaveLocal"
+        , data = treeToValue tree
+        }
+
+    UpdateCommits ( objectsValue, head_ ) ->
+      let
+        headToValue mbs =
+          case mbs of
+            Just str -> string str
+            Nothing -> null
+      in
+      infoForOutside
+        { tag = "UpdateCommits"
+        , data = tupleToValue identity headToValue ( objectsValue, head_ )
         }
 
     SetSaved filepath ->
@@ -113,11 +119,6 @@ sendInfoOutside info =
     SetChanged ->
       tagOnly "SetChanged"
 
-    Pull ->
-      tagOnly "Pull"
-
-    Push ->
-      tagOnly "Push"
 
     SocketSend collabState ->
       infoForOutside
@@ -153,6 +154,9 @@ getInfoFromOutside tagger onError =
               Err e ->
                 onError e
 
+          "Merge" ->
+            tagger <| Merge outsideInfo.data
+
           "ImportJSON" ->
             tagger <| ImportJSON outsideInfo.data
 
@@ -160,6 +164,25 @@ getInfoFromOutside tagger onError =
             case decodeValue Json.Decode.string outsideInfo.data of
               Ok commitSha ->
                 tagger <| CheckoutCommit commitSha
+
+              Err e ->
+                onError e
+
+          "SetHeadRev" ->
+            case decodeValue Json.Decode.string outsideInfo.data of
+              Ok rev ->
+                tagger <| SetHeadRev rev
+
+              Err e ->
+                onError e
+
+          "Changed" ->
+            tagger <| Changed
+
+          "Saved" ->
+            case decodeValue Json.Decode.string outsideInfo.data of
+              Ok filepath ->
+                tagger <| Saved filepath
 
               Err e ->
                 onError e
@@ -176,17 +199,6 @@ getInfoFromOutside tagger onError =
             case decodeValue Json.Decode.string outsideInfo.data of
               Ok uid ->
                 tagger <| CollaboratorDisconnected uid
-
-              Err e ->
-                onError e
-
-          "Changed" ->
-            tagger <| Changed
-
-          "Saved" ->
-            case decodeValue Json.Decode.string outsideInfo.data of
-              Ok filepath ->
-                tagger <| Saved filepath
 
               Err e ->
                 onError e

@@ -58,10 +58,10 @@ type InfoForElm
     | ImportJSON Json.Value
     | CheckoutCommit String
     | SetHeadRev String
-    | RecvCollabState CollabState
-    | CollaboratorDisconnected String
     | Changed
     | Saved String
+    | RecvCollabState CollabState
+    | CollaboratorDisconnected String
     | DoExportJSON
     | DoExportTXT
     | Keyboard String

@@ -426,6 +426,19 @@ update msg ({objects, workingTree, status} as model) =
             ! []
             |> push
 
+        Changed ->
+          { model
+            | changed = True
+          }
+            ! []
+
+        Saved filepath ->
+          { model
+            | filepath = Just filepath
+            , changed = False
+          }
+            ! [sendInfoOutside (SetSaved filepath)]
+
         RecvCollabState collabState ->
           let
             newCollabs =
@@ -451,19 +464,6 @@ update msg ({objects, workingTree, status} as model) =
           { model
             | viewState =
                 { vs | collaborators = vs.collaborators |> List.filter (\c -> c.uid /= uid)}
-          }
-            ! []
-
-        Saved filepath ->
-          { model
-            | filepath = Just filepath
-            , changed = False
-          }
-            ! [sendInfoOutside (SetSaved filepath)]
-
-        Changed ->
-          { model
-            | changed = True
           }
             ! []
 
