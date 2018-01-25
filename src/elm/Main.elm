@@ -92,7 +92,7 @@ update msg ({objects, workingTree, status} as model) =
     Activate id ->
       case vs.editing of
         Just eid ->
-          model ! [ getText eid ]
+          model ! [ sendInfoOutside ( GetText eid ) ]
             |> cancelCard
             |> activate id
 
@@ -496,7 +496,7 @@ update msg ({objects, workingTree, status} as model) =
                   model ! []
 
                 Just uid ->
-                  model ! [getText uid]
+                  model ! [ sendInfoOutside ( GetText uid ) ]
                     |> cancelCard
                     |> activate uid
 
@@ -1302,7 +1302,6 @@ modelToValue model =
 -- SUBSCRIPTIONS
 
 port activateCards : (Int, List (List String)) -> Cmd msg
-port getText : String -> Cmd msg
 port saveObjects : (Json.Value, Json.Value) -> Cmd msg
 port saveLocal : Json.Value -> Cmd msg
 port updateCommits : (Json.Value, Maybe String) -> Cmd msg
@@ -1368,7 +1367,7 @@ maybeSaveAndThen operation model =
         |> operation
 
     Just uid ->
-      model ! [getText uid]
+      model ! [ sendInfoOutside ( GetText uid ) ]
         |> operation
 
 

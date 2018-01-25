@@ -29,6 +29,12 @@ sendInfoOutside info =
         , data = tupleToValue int listListStringToValue (col, cardIds)
         }
 
+    GetText id ->
+      infoForOutside
+        { tag = "GetText"
+        , data = string id
+        }
+
     ConfirmCancel id origContent ->
       infoForOutside
         { tag = "ConfirmCancel"

@@ -73,6 +73,17 @@ const updateOneport = (msg, arg) => {
         shared.scrollColumns(arg[1])
       }
 
+    , 'GetText': () => {
+        let id = arg
+        let tarea = document.getElementById('card-edit-'+id)
+
+        if (tarea === null) {
+          gingko.ports.updateError.send('Textarea with id '+id+' not found.')
+        } else {
+          gingko.ports.updateContent.send([id, tarea.value])
+        }
+      }
+
     , 'ConfirmCancel': () => {
         let tarea = document.getElementById('card-edit-'+arg[0])
 
@@ -198,16 +209,6 @@ const update = (msg, arg) => {
 
 gingko.ports.infoForOutside.subscribe(function(elmdata) {
   updateOneport(elmdata.tag, elmdata.data)
-})
-
-gingko.ports.getText.subscribe(id => {
-  let tarea = document.getElementById('card-edit-'+id)
-
-  if (tarea === null) {
-    gingko.ports.updateError.send('Textarea with id '+id+' not found.')
-  } else {
-    gingko.ports.updateContent.send([id, tarea.value])
-  }
 })
 
 
