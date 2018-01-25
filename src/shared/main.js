@@ -244,11 +244,6 @@ gingko.ports.infoForOutside.subscribe(function(elmdata) {
 })
 
 
-gingko.ports.saveLocal.subscribe(data => {
-  console.log(data)
-})
-
-
 gingko.ports.updateCommits.subscribe(function(data) {
   let commitGraphData = _.sortBy(data[0].commits, 'timestamp').reverse().map(c => { return {sha: c._id, parents: c.parents}})
   let selectedSha = data[1]

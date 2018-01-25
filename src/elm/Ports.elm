@@ -2,7 +2,7 @@ port module Ports exposing (..)
 
 
 import Types exposing (..)
-import Coders exposing (tupleDecoder, tupleToValue, treeToJSON, treeToMarkdown, collabStateToValue)
+import Coders exposing (..)
 import Json.Encode exposing (..)
 import Json.Decode exposing (decodeValue)
 
@@ -39,6 +39,12 @@ sendInfoOutside info =
       infoForOutside
         { tag = "SaveObjects"
         , data = list [ statusValue, objectsValue ]
+        }
+
+    SaveLocal tree ->
+      infoForOutside
+        { tag = "SaveLocal"
+        , data = treeToValue tree
         }
 
     ConfirmCancel id origContent ->

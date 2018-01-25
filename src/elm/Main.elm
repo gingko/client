@@ -1019,7 +1019,7 @@ addToHistory ({workingTree} as model, prevCmd) =
             ]
       else
         model
-          ! [saveLocal ( model.workingTree.tree |> treeToValue )]
+          ! [ sendInfoOutside ( SaveLocal ( model.workingTree.tree ) ) ]
 
 
 
@@ -1301,8 +1301,6 @@ modelToValue model =
 
 -- SUBSCRIPTIONS
 
-port activateCards : (Int, List (List String)) -> Cmd msg
-port saveLocal : Json.Value -> Cmd msg
 port updateCommits : (Json.Value, Maybe String) -> Cmd msg
 
 

@@ -41,7 +41,7 @@ type InfoForOutside
     | ActivateCards (Int, List (List String))
     | GetText String
     | SaveObjects (Json.Value, Json.Value)
--- port saveLocal : Json.Value -> Cmd msg
+    | SaveLocal Tree
 -- port updateCommits : (Json.Value, Maybe String) -> Cmd msg
     | ConfirmCancel String String
     | New (Maybe String)
