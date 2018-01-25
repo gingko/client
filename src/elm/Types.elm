@@ -29,7 +29,6 @@ type Msg
     -- === Ports ===
     | Outside InfoForElm
     | LogErr String
-    | MergeIn Json.Value
     | ImportJson Json.Value
     | SetHeadRev String
     | RecvCollabState Json.Value
@@ -55,14 +54,26 @@ type InfoForOutside
     | SetSaved String
     | SetChanged
     | SocketSend CollabState
-    --| LogError String
 
 
 type InfoForElm
     = Reset
     | Load (String, Json.Value)
+    | Merge Json.Value
+-- port merge : (Json.Value -> msg) -> Sub msg
+-- port importJson : (Json.Value -> msg) -> Sub msg
+-- port setHead : (String -> msg) -> Sub msg
+-- port setHeadRev : (String -> msg) -> Sub msg
+-- port updateContent : ((String, String) -> msg) -> Sub msg
+-- port cancelConfirmed : (() -> msg) -> Sub msg
+--| ImportJson Json.Value
+--| SetHeadRev String
+--| RecvCollabState Json.Value
+--| CollaboratorDisconnected String
     | Changed
     | Saved String
+-- port collabMsg : (Json.Value -> msg) -> Sub msg
+-- port collabLeave : (String -> msg) -> Sub msg
     | DoExportJSON
     | DoExportTXT
     | Keyboard String

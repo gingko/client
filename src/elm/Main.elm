@@ -297,51 +297,6 @@ update msg ({objects, workingTree, status} as model) =
 
     -- === Ports ===
 
-    MergeIn json ->
-      let
-        (newStatus, newTree_, newObjects) =
-          Objects.update (Objects.Merge json workingTree.tree) objects
-      in
-      case (status, newStatus) of
-        (Bare, Clean sha) ->
-          { model
-            | workingTree = Trees.setTree (newTree_ ? workingTree.tree) workingTree
-            , objects = newObjects
-            , status = newStatus
-          }
-            ! [ sendInfoOutside ( UpdateCommits ( Objects.toValue newObjects , Just sha ) ) ]
-            |> activate vs.active
-
-        (Clean oldHead, Clean newHead) ->
-          if (oldHead /= newHead) then
-            { model
-              | workingTree = Trees.setTree (newTree_ ? workingTree.tree) workingTree
-              , objects = newObjects
-              , status = newStatus
-            }
-              ! [ sendInfoOutside ( UpdateCommits ( Objects.toValue newObjects , Just newHead ) ) ]
-              |> activate vs.active
-          else
-            model ! []
-
-        (Clean _, MergeConflict mTree oldHead newHead conflicts) ->
-          { model
-            | workingTree =
-                if (List.isEmpty conflicts) then
-                  Trees.setTree (newTree_ ? workingTree.tree) workingTree
-                else
-                  Trees.setTreeWithConflicts conflicts mTree model.workingTree
-            , objects = newObjects
-            , status = newStatus
-          }
-            ! [ sendInfoOutside ( UpdateCommits ( newObjects |> Objects.toValue, Just newHead ) ) ]
-            |> addToHistory
-            |> activate vs.active
-
-        _ ->
-          let _ = Debug.log "failed to merge json" json in
-          model ! []
-
     ImportJson json ->
       case Json.decodeValue treeDecoder json of
         Ok newTree ->
@@ -461,6 +416,51 @@ update msg ({objects, workingTree, status} as model) =
 
             _ ->
               let _ = Debug.log "failed to load json" (newStatus, newTree_, newObjects, json) in
+              model ! []
+
+        Merge json ->
+          let
+            (newStatus, newTree_, newObjects) =
+              Objects.update (Objects.Merge json workingTree.tree) objects
+          in
+          case (status, newStatus) of
+            (Bare, Clean sha) ->
+              { model
+                | workingTree = Trees.setTree (newTree_ ? workingTree.tree) workingTree
+                , objects = newObjects
+                , status = newStatus
+              }
+                ! [ sendInfoOutside ( UpdateCommits ( Objects.toValue newObjects , Just sha ) ) ]
+                |> activate vs.active
+
+            (Clean oldHead, Clean newHead) ->
+              if (oldHead /= newHead) then
+                { model
+                  | workingTree = Trees.setTree (newTree_ ? workingTree.tree) workingTree
+                  , objects = newObjects
+                  , status = newStatus
+                }
+                  ! [ sendInfoOutside ( UpdateCommits ( Objects.toValue newObjects , Just newHead ) ) ]
+                  |> activate vs.active
+              else
+                model ! []
+
+            (Clean _, MergeConflict mTree oldHead newHead conflicts) ->
+              { model
+                | workingTree =
+                    if (List.isEmpty conflicts) then
+                      Trees.setTree (newTree_ ? workingTree.tree) workingTree
+                    else
+                      Trees.setTreeWithConflicts conflicts mTree model.workingTree
+                , objects = newObjects
+                , status = newStatus
+              }
+                ! [ sendInfoOutside ( UpdateCommits ( newObjects |> Objects.toValue, Just newHead ) ) ]
+                |> addToHistory
+                |> activate vs.active
+
+            _ ->
+              let _ = Debug.log "failed to merge json" json in
               model ! []
 
         Saved filepath ->
@@ -1301,11 +1301,9 @@ modelToValue model =
 
 -- SUBSCRIPTIONS
 
-port merge : (Json.Value -> msg) -> Sub msg
 port importJson : (Json.Value -> msg) -> Sub msg
 port setHead : (String -> msg) -> Sub msg
 port setHeadRev : (String -> msg) -> Sub msg
-port keyboard : (String -> msg) -> Sub msg
 port collabMsg : (Json.Value -> msg) -> Sub msg
 port collabLeave : (String -> msg) -> Sub msg
 port updateContent : ((String, String) -> msg) -> Sub msg
@@ -1315,8 +1313,7 @@ port cancelConfirmed : (() -> msg) -> Sub msg
 subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.batch
-    [ merge MergeIn
-    , importJson ImportJson
+    [ importJson ImportJson
     , setHead CheckoutCommit
     , setHeadRev SetHeadRev
     , collabMsg RecvCollabState

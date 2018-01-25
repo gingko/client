@@ -343,7 +343,7 @@ const merge = function(local, remote){
       let refs = processData(data, "ref");
 
       let toSend = { commits: commits, treeObjects: trees, refs: refs};
-      gingko.ports.merge.send([local, remote, toSend]);
+      gingko.ports.infoForElm.send({tag: "Merge", data: [local, remote, toSend]});
     }).catch(function (err) {
       console.log(err)
     })
