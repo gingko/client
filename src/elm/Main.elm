@@ -355,7 +355,7 @@ update msg ({objects, workingTree, status} as model) =
             , status = newStatus
             , changed = True
           }
-            ! [ saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)
+            ! [ sendInfoOutside ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
               , updateCommits ( newObjects |> Objects.toValue, getHead newStatus)
               ]
 
@@ -982,7 +982,7 @@ addToHistory ({workingTree} as model, prevCmd) =
         , status = newStatus
         , changed = True
       }
-        ! [ saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)
+        ! [ sendInfoOutside ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
           , updateCommits (newObjects |> Objects.toValue, getHead newStatus)
           , sendInfoOutside SetChanged
           ]
@@ -997,7 +997,7 @@ addToHistory ({workingTree} as model, prevCmd) =
         , status = newStatus
         , changed = True
       }
-        ! [ saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)
+        ! [ sendInfoOutside ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
           , updateCommits (newObjects |> Objects.toValue, getHead newStatus)
           , sendInfoOutside SetChanged
           ]
@@ -1013,7 +1013,7 @@ addToHistory ({workingTree} as model, prevCmd) =
           , status = newStatus
           , changed = True
         }
-          ! [ saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)
+          ! [ sendInfoOutside ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
             , updateCommits (newObjects |> Objects.toValue, getHead newStatus)
             , sendInfoOutside SetChanged
             ]
@@ -1302,7 +1302,6 @@ modelToValue model =
 -- SUBSCRIPTIONS
 
 port activateCards : (Int, List (List String)) -> Cmd msg
-port saveObjects : (Json.Value, Json.Value) -> Cmd msg
 port saveLocal : Json.Value -> Cmd msg
 port updateCommits : (Json.Value, Maybe String) -> Cmd msg
 

@@ -35,6 +35,12 @@ sendInfoOutside info =
         , data = string id
         }
 
+    SaveObjects ( statusValue, objectsValue ) ->
+      infoForOutside
+        { tag = "SaveObjects"
+        , data = list [ statusValue, objectsValue ]
+        }
+
     ConfirmCancel id origContent ->
       infoForOutside
         { tag = "ConfirmCancel"

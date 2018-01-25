@@ -84,6 +84,38 @@ const updateOneport = (msg, arg) => {
         }
       }
 
+    , 'SaveObjects': () => {
+        let status = arg[0]
+        let objects = arg[1]
+        db.get('status')
+          .catch(err => {
+            if(err.name == "not_found") {
+              return {_id: 'status' , status : 'bare', bare: true}
+            } else {
+              console.log('load status error', err)
+            }
+          })
+          .then(statusDoc => {
+            if(statusDoc._rev) {
+              status['_rev'] = statusDoc._rev
+            }
+
+            let toSave = objects.commits.concat(objects.treeObjects).concat(objects.refs).concat([status]);
+            db.bulkDocs(toSave)
+              .catch(err => {
+                console.log(err)
+              })
+              .then(responses => {
+                let head = responses.filter(r => r.id == "heads/master")[0]
+                if (head.ok) {
+                  gingko.ports.setHeadRev.send(head.rev)
+                } else {
+                  console.log('head not ok', head)
+                }
+              })
+          })
+      }
+
     , 'ConfirmCancel': () => {
         let tarea = document.getElementById('card-edit-'+arg[0])
 
@@ -209,39 +241,6 @@ const update = (msg, arg) => {
 
 gingko.ports.infoForOutside.subscribe(function(elmdata) {
   updateOneport(elmdata.tag, elmdata.data)
-})
-
-
-gingko.ports.saveObjects.subscribe(data => {
-  let status = data[0]
-  let objects = data[1]
-  db.get('status')
-    .catch(err => {
-      if(err.name == "not_found") {
-        return {_id: 'status' , status : 'bare', bare: true}
-      } else {
-        console.log('load status error', err)
-      }
-    })
-    .then(statusDoc => {
-      if(statusDoc._rev) {
-        status['_rev'] = statusDoc._rev
-      }
-
-      let toSave = objects.commits.concat(objects.treeObjects).concat(objects.refs).concat([status]);
-      db.bulkDocs(toSave)
-        .catch(err => {
-          console.log(err)
-        })
-        .then(responses => {
-          let head = responses.filter(r => r.id == "heads/master")[0]
-          if (head.ok) {
-            gingko.ports.setHeadRev.send(head.rev)
-          } else {
-            console.log('head not ok', head)
-          }
-        })
-    })
 })
 
 
