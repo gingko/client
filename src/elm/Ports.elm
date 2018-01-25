@@ -31,6 +31,12 @@ sendInfoOutside info =
               Nothing -> null
         }
 
+    Save filepath ->
+      infoForOutside
+        { tag = "Save"
+        , data = string filepath
+        }
+
     SaveAs ->
       tagOnly "SaveAs"
 

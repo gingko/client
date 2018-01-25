@@ -1028,10 +1028,10 @@ intentSave : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 intentSave (model, prevCmd) =
   case (model.filepath, model.changed) of
     (Nothing, True) ->
-      model ! [prevCmd, sendInfoOutside SaveAs]
+      model ! [ prevCmd, sendInfoOutside SaveAs ]
 
     (Just filepath, True) ->
-      model ! [prevCmd, js ("save", filepath |> string)]
+      model ! [ prevCmd, sendInfoOutside ( Save filepath ) ]
 
     _ ->
       model ! [prevCmd]

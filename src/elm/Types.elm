@@ -40,11 +40,12 @@ type InfoForOutside
     = Alert String
     | ConfirmCancel String String
     | New (Maybe String)
+    | Save String
+    | SaveAs
     --| Push
     --| Pull
     | SetSaved String
     | SetChanged
-    | SaveAs
     --| ExportJSON Tree
     --| ExportTXT Tree
     --| SocketSend CollabState

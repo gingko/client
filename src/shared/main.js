@@ -107,6 +107,13 @@ const updateOneport = (msg, arg) => {
         }
       }
 
+    , 'Save': () =>
+        save(arg)
+          .then( filepath =>
+            gingko.ports.infoForElm.send({tag:'Saved', data: filepath})
+          )
+
+
     , 'SaveAs': () =>
         saveAs()
           .then( filepath =>
@@ -133,13 +140,7 @@ const updateOneport = (msg, arg) => {
 
 const update = (msg, arg) => {
   let cases =
-    { 'save': () =>
-        save(arg)
-          .then( filepath =>
-            gingko.ports.infoForElm.send({tag:'Saved', data: filepath})
-          )
-
-    , 'save-and-close': () =>
+    { 'save-and-close': () =>
         saveConfirmation(arg).then(app.exit)
 
     , 'export-json': () => {
