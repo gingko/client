@@ -42,7 +42,7 @@ type InfoForOutside
     | GetText String
     | SaveObjects (Json.Value, Json.Value)
     | SaveLocal Tree
--- port updateCommits : (Json.Value, Maybe String) -> Cmd msg
+    | UpdateCommits (Json.Value, Maybe String)
     | ConfirmCancel String String
     | New (Maybe String)
     | Save String

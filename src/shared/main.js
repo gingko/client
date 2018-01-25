@@ -64,17 +64,17 @@ self.socket = io.connect('http://localhost:3000')
 
 /* === Elm to JS Ports === */
 
-const updateOneport = (msg, arg) => {
+const updateOneport = (msg, data) => {
   let cases =
-    { 'Alert': () => { alert(arg) }
+    { 'Alert': () => { alert(data) }
 
     , 'ActivateCards': () => {
-        shared.scrollHorizontal(arg[0])
-        shared.scrollColumns(arg[1])
+        shared.scrollHorizontal(data[0])
+        shared.scrollColumns(data[1])
       }
 
     , 'GetText': () => {
-        let id = arg
+        let id = data
         let tarea = document.getElementById('card-edit-'+id)
 
         if (tarea === null) {
@@ -85,8 +85,8 @@ const updateOneport = (msg, arg) => {
       }
 
     , 'SaveObjects': () => {
-        let status = arg[0]
-        let objects = arg[1]
+        let status = data[0]
+        let objects = data[1]
         db.get('status')
           .catch(err => {
             if(err.name == "not_found") {
@@ -116,13 +116,26 @@ const updateOneport = (msg, arg) => {
           })
       }
 
+    , 'UpdateCommits': () => {
+        let commitGraphData = _.sortBy(data[0].commits, 'timestamp').reverse().map(c => { return {sha: c._id, parents: c.parents}})
+        let selectedSha = data[1]
+
+        let commitElement = React.createElement(CommitsGraph, {
+          commits: commitGraphData,
+          onClick: setHead,
+          selected: selectedSha
+        });
+
+        //ReactDOM.render(commitElement, document.getElementById('history'))
+    }
+
     , 'ConfirmCancel': () => {
-        let tarea = document.getElementById('card-edit-'+arg[0])
+        let tarea = document.getElementById('card-edit-'+data[0])
 
         if (tarea === null) {
           console.log('tarea not found')
         } else {
-          if(tarea.value === arg[1]) {
+          if(tarea.value === data[1]) {
             gingko.ports.cancelConfirmed.send(null)
           } else if (confirm('Are you sure you want to cancel your changes?')) {
               gingko.ports.cancelConfirmed.send(null)
@@ -143,7 +156,7 @@ const updateOneport = (msg, arg) => {
         }
 
         if(changed) {
-          saveConfirmation(arg).then( () => {
+          saveConfirmation(data).then( () => {
             db.destroy().then( res => {
               if (res.ok) {
                 clearDb()
@@ -156,7 +169,7 @@ const updateOneport = (msg, arg) => {
       }
 
     , 'Save': () =>
-        save(arg)
+        save(data)
           .then( filepath =>
             gingko.ports.infoForElm.send({tag:'Saved', data: filepath})
           )
@@ -169,26 +182,26 @@ const updateOneport = (msg, arg) => {
           )
 
     , 'SaveAndClose': () =>
-        saveConfirmation(arg).then(app.exit)
+        saveConfirmation(data).then(app.exit)
 
     , 'ExportJSON': () => {
-        exportJson(arg)
+        exportJson(data)
       }
 
     , 'ExportTXT': () => {
-        exportTxt(arg)
+        exportTxt(data)
       }
 
     , 'Open': () => {
         if (changed) {
-          saveConfirmation(arg).then(openDialog)
+          saveConfirmation(data).then(openDialog)
         } else {
           openDialog()
         }
       }
 
     , 'SetSaved': () =>
-        setFileState(false, arg)
+        setFileState(false, data)
 
     , 'Changed': () => {
         setFileState(true, currentFile)
@@ -203,7 +216,7 @@ const updateOneport = (msg, arg) => {
   try {
     cases[msg]()
   } catch(err) {
-    console.log('elmCases one-port failed:', msg, arg)
+    console.log('elmCases one-port failed:', msg, data)
   }
 }
 
@@ -245,16 +258,6 @@ gingko.ports.infoForOutside.subscribe(function(elmdata) {
 
 
 gingko.ports.updateCommits.subscribe(function(data) {
-  let commitGraphData = _.sortBy(data[0].commits, 'timestamp').reverse().map(c => { return {sha: c._id, parents: c.parents}})
-  let selectedSha = data[1]
-
-  let commitElement = React.createElement(CommitsGraph, {
-    commits: commitGraphData,
-    onClick: setHead,
-    selected: selectedSha
-  });
-
-  //ReactDOM.render(commitElement, document.getElementById('history'))
 })
 
 

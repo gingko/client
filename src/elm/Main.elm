@@ -287,7 +287,7 @@ update msg ({objects, workingTree, status} as model) =
                 | workingTree = Trees.setTree newTree model.workingTree
                 , status = newStatus
               }
-                ! [ updateCommits (objects |> Objects.toValue, getHead newStatus) ]
+                ! [ sendInfoOutside ( UpdateCommits ( Objects.toValue objects, getHead newStatus ) ) ]
 
             Nothing ->
               model ! []
@@ -309,7 +309,7 @@ update msg ({objects, workingTree, status} as model) =
             , objects = newObjects
             , status = newStatus
           }
-            ! [ updateCommits (newObjects |> Objects.toValue, Just sha) ]
+            ! [ sendInfoOutside ( UpdateCommits ( Objects.toValue newObjects , Just sha ) ) ]
             |> activate vs.active
 
         (Clean oldHead, Clean newHead) ->
@@ -319,7 +319,7 @@ update msg ({objects, workingTree, status} as model) =
               , objects = newObjects
               , status = newStatus
             }
-              ! [ updateCommits (newObjects |> Objects.toValue, Just newHead) ]
+              ! [ sendInfoOutside ( UpdateCommits ( Objects.toValue newObjects , Just newHead ) ) ]
               |> activate vs.active
           else
             model ! []
@@ -334,7 +334,7 @@ update msg ({objects, workingTree, status} as model) =
             , objects = newObjects
             , status = newStatus
           }
-            ! [ updateCommits (newObjects |> Objects.toValue, Just newHead) ]
+            ! [ sendInfoOutside ( UpdateCommits ( newObjects |> Objects.toValue, Just newHead ) ) ]
             |> addToHistory
             |> activate vs.active
 
@@ -356,7 +356,7 @@ update msg ({objects, workingTree, status} as model) =
             , changed = True
           }
             ! [ sendInfoOutside ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
-              , updateCommits ( newObjects |> Objects.toValue, getHead newStatus)
+              , sendInfoOutside ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) )
               ]
 
         Err err ->
@@ -423,7 +423,7 @@ update msg ({objects, workingTree, status} as model) =
                 , filepath = Just filepath
                 , changed = False
               }
-                ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
+                ! [ sendInfoOutside ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
                 |> activate model.viewState.active
 
             (Clean newHead, Just newTree) ->
@@ -434,7 +434,7 @@ update msg ({objects, workingTree, status} as model) =
                 , filepath = Just filepath
                 , changed = False
               }
-                ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
+                ! [ sendInfoOutside ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
                 |> activate model.viewState.active
 
             (MergeConflict mTree oldHead newHead [], Just newTree) ->
@@ -445,7 +445,7 @@ update msg ({objects, workingTree, status} as model) =
                 , filepath = Just filepath
                 , changed = False
               }
-                ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
+                ! [ sendInfoOutside ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
                 |> activate model.viewState.active
 
             (MergeConflict mTree oldHead newHead conflicts, Just newTree) ->
@@ -456,7 +456,7 @@ update msg ({objects, workingTree, status} as model) =
                 , filepath = Just filepath
                 , changed = False
               }
-                ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
+                ! [ sendInfoOutside ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
                 |> activate model.viewState.active
 
             _ ->
@@ -983,7 +983,7 @@ addToHistory ({workingTree} as model, prevCmd) =
         , changed = True
       }
         ! [ sendInfoOutside ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
-          , updateCommits (newObjects |> Objects.toValue, getHead newStatus)
+          , sendInfoOutside ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
           , sendInfoOutside SetChanged
           ]
 
@@ -998,7 +998,7 @@ addToHistory ({workingTree} as model, prevCmd) =
         , changed = True
       }
         ! [ sendInfoOutside ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
-          , updateCommits (newObjects |> Objects.toValue, getHead newStatus)
+          , sendInfoOutside ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
           , sendInfoOutside SetChanged
           ]
 
@@ -1014,7 +1014,7 @@ addToHistory ({workingTree} as model, prevCmd) =
           , changed = True
         }
           ! [ sendInfoOutside ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
-            , updateCommits (newObjects |> Objects.toValue, getHead newStatus)
+            , sendInfoOutside ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
             , sendInfoOutside SetChanged
             ]
       else
@@ -1300,9 +1300,6 @@ modelToValue model =
 
 
 -- SUBSCRIPTIONS
-
-port updateCommits : (Json.Value, Maybe String) -> Cmd msg
-
 
 port merge : (Json.Value -> msg) -> Sub msg
 port importJson : (Json.Value -> msg) -> Sub msg

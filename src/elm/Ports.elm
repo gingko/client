@@ -26,7 +26,7 @@ sendInfoOutside info =
       in
       infoForOutside
         { tag = "ActivateCards"
-        , data = tupleToValue int listListStringToValue (col, cardIds)
+        , data = tupleToValue int listListStringToValue ( col, cardIds )
         }
 
     GetText id ->
@@ -45,6 +45,18 @@ sendInfoOutside info =
       infoForOutside
         { tag = "SaveLocal"
         , data = treeToValue tree
+        }
+
+    UpdateCommits ( objectsValue, head_ ) ->
+      let
+        headToValue mbs =
+          case mbs of
+            Just str -> string str
+            Nothing -> null
+      in
+      infoForOutside
+        { tag = "UpdateCommits"
+        , data = tupleToValue identity headToValue ( objectsValue, head_ )
         }
 
     ConfirmCancel id origContent ->
