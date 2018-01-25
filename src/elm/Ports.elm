@@ -52,6 +52,15 @@ sendInfoOutside info =
         , data = treeToMarkdown tree
         }
 
+    Open filepath_ ->
+      infoForOutside
+        { tag = "Open"
+        , data =
+            case filepath_ of
+              Just filepath -> string filepath
+              Nothing -> null
+        }
+
     SetSaved filepath ->
       infoForOutside
         { tag = "SetSaved"

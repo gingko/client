@@ -1051,10 +1051,10 @@ intentOpen : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 intentOpen (model, prevCmd) =
   case (model.filepath, model.changed) of
     (Just filepath, True) ->
-      model ! [prevCmd, js ("open", filepath |> string)]
+      model ! [ prevCmd, sendInfoOutside ( Open ( Just filepath ) ) ]
 
     _ ->
-      model ! [prevCmd, js ("open", null)]
+      model ! [ prevCmd, sendInfoOutside ( Open Nothing ) ]
 
 
 sendCollabState : CollabState -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )

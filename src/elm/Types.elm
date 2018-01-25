@@ -44,6 +44,7 @@ type InfoForOutside
     | SaveAs
     | ExportJSON Tree
     | ExportTXT Tree
+    | Open (Maybe String)
     --| Push
     --| Pull
     | SetSaved String

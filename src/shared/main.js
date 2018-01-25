@@ -131,6 +131,13 @@ const updateOneport = (msg, arg) => {
         exportTxt(arg)
       }
 
+    , 'Open': () => {
+        if (changed) {
+          saveConfirmation(arg).then(openDialog)
+        } else {
+          openDialog()
+        }
+      }
 
     , 'SetSaved': () =>
         setFileState(false, arg)
@@ -151,15 +158,7 @@ const updateOneport = (msg, arg) => {
 
 const update = (msg, arg) => {
   let cases =
-    { 'open': () => {
-        if (changed) {
-          saveConfirmation(arg).then(openDialog)
-        } else {
-          openDialog()
-        }
-      }
-
-    , 'load': () => {
+    { 'load': () => {
           if(changed) {
             saveConfirmation(currentFile).then(() => loadFile(arg))
           } else {
@@ -275,11 +274,11 @@ gingko.ports.activateCards.subscribe(actives => {
 /* === JS to Elm Ports === */
 
 ipcRenderer.on('menu-new', () => updateOneport('New'))
-ipcRenderer.on('menu-open', () => update('open'))
+ipcRenderer.on('menu-open', () => updateOneport('Open'))
 ipcRenderer.on('menu-import-json', () => update('import'))
 ipcRenderer.on('menu-export-json', () => gingko.ports.infoForElm.send({tag: 'DoExportJSON', data: null }))
 ipcRenderer.on('menu-export-txt', () => gingko.ports.infoForElm.send({tag: 'DoExportTXT', data: null }))
-ipcRenderer.on('menu-save', () => update('save', currentFile))
+ipcRenderer.on('menu-save', () => updateOneport('Save', currentFile))
 ipcRenderer.on('menu-save-as', () => updateOneport('SaveAs'))
 ipcRenderer.on('zoomin', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() + 1) })
 ipcRenderer.on('zoomout', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() - 1) })
