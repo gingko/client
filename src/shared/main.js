@@ -107,6 +107,13 @@ const updateOneport = (msg, arg) => {
         }
       }
 
+    , 'SaveAs': () =>
+        saveAs()
+          .then( filepath =>
+            gingko.ports.infoForElm.send({tag:'Saved', data: filepath})
+          )
+
+
     , 'SetSaved': () =>
         setFileState(false, arg)
 
@@ -128,12 +135,6 @@ const update = (msg, arg) => {
   let cases =
     { 'save': () =>
         save(arg)
-          .then( filepath =>
-            gingko.ports.infoForElm.send({tag:'Saved', data: filepath})
-          )
-
-    , 'save-as': () =>
-        saveAs()
           .then( filepath =>
             gingko.ports.infoForElm.send({tag:'Saved', data: filepath})
           )
@@ -272,13 +273,13 @@ gingko.ports.activateCards.subscribe(actives => {
 
 /* === JS to Elm Ports === */
 
-ipcRenderer.on('menu-new', () => update('new'))
+ipcRenderer.on('menu-new', () => updateOneport('New'))
 ipcRenderer.on('menu-open', () => update('open'))
 ipcRenderer.on('menu-import-json', () => update('import'))
 ipcRenderer.on('menu-export-json', () => gingko.ports.infoForElm.send({tag: 'DoExportJSON', data: null }))
 ipcRenderer.on('menu-export-txt', () => gingko.ports.infoForElm.send({tag: 'DoExportTXT', data: null }))
 ipcRenderer.on('menu-save', () => update('save', currentFile))
-ipcRenderer.on('menu-save-as', () => update('save-as'))
+ipcRenderer.on('menu-save-as', () => updateOneport('SaveAs'))
 ipcRenderer.on('zoomin', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() + 1) })
 ipcRenderer.on('zoomout', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() - 1) })
 ipcRenderer.on('resetzoom', e => { webFrame.setZoomLevel(0) })

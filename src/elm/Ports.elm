@@ -31,6 +31,9 @@ sendInfoOutside info =
               Nothing -> null
         }
 
+    SaveAs ->
+      tagOnly "SaveAs"
+
     SetSaved filepath ->
       infoForOutside
         { tag = "SetSaved"

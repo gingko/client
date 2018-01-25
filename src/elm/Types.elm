@@ -44,7 +44,7 @@ type InfoForOutside
     --| Pull
     | SetSaved String
     | SetChanged
-    --| SaveAs
+    | SaveAs
     --| ExportJSON Tree
     --| ExportTXT Tree
     --| SocketSend CollabState
