@@ -297,12 +297,6 @@ update msg ({objects, workingTree, status} as model) =
 
     -- === Ports ===
 
-    SetHeadRev rev ->
-      { model
-        | objects = Objects.setHeadRev rev model.objects
-      }
-        ! []
-        |> push
 
     RecvCollabState json ->
       case Json.decodeValue collabStateDecoder json of
@@ -463,6 +457,12 @@ update msg ({objects, workingTree, status} as model) =
               let _ = Debug.log "ImportJson error" err in
               model ! []
 
+        SetHeadRev rev ->
+          { model
+            | objects = Objects.setHeadRev rev model.objects
+          }
+            ! []
+            |> push
 
         Saved filepath ->
           { model
@@ -1303,7 +1303,6 @@ modelToValue model =
 -- SUBSCRIPTIONS
 
 port setHead : (String -> msg) -> Sub msg
-port setHeadRev : (String -> msg) -> Sub msg
 port collabMsg : (Json.Value -> msg) -> Sub msg
 port collabLeave : (String -> msg) -> Sub msg
 port updateContent : ((String, String) -> msg) -> Sub msg
@@ -1314,7 +1313,6 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.batch
     [ setHead CheckoutCommit
-    , setHeadRev SetHeadRev
     , collabMsg RecvCollabState
     , collabLeave CollaboratorDisconnected
     , updateContent UpdateContent

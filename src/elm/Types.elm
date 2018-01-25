@@ -29,7 +29,6 @@ type Msg
     -- === Ports ===
     | Outside InfoForElm
     | LogErr String
-    | SetHeadRev String
     | RecvCollabState Json.Value
     | CollaboratorDisconnected String
 
@@ -60,8 +59,7 @@ type InfoForElm
     | Load (String, Json.Value)
     | Merge Json.Value
     | ImportJSON Json.Value
--- port merge : (Json.Value -> msg) -> Sub msg
--- port importJson : (Json.Value -> msg) -> Sub msg
+    | SetHeadRev String
 -- port setHead : (String -> msg) -> Sub msg
 -- port setHeadRev : (String -> msg) -> Sub msg
 -- port updateContent : ((String, String) -> msg) -> Sub msg
