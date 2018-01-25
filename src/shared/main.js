@@ -64,7 +64,7 @@ self.socket = io.connect('http://localhost:3000')
 
 /* === Elm to JS Ports === */
 
-const updateOneport = (msg, data) => {
+const update = (msg, data) => {
   let cases =
     { 'Alert': () => { alert(data) }
 
@@ -80,7 +80,7 @@ const updateOneport = (msg, data) => {
         if (tarea === null) {
           gingko.ports.updateError.send('Textarea with id '+id+' not found.')
         } else {
-          gingko.ports.updateContent.send([id, tarea.value])
+          gingko.ports.infoForElm.send({tag: 'UpdateContent', data: [id, tarea.value]})
         }
       }
 
@@ -168,6 +168,22 @@ const updateOneport = (msg, data) => {
         }
       }
 
+    , 'Load': () => {
+          if(changed) {
+            saveConfirmation(currentFile).then(() => loadFile(data))
+          } else {
+            loadFile(data)
+          }
+        }
+
+    , 'Import': () => {
+        if (changed) {
+          saveConfirmation(data).then(importDialog)
+        } else {
+          importDialog()
+        }
+      }
+
     , 'Save': () =>
         save(data)
           .then( filepath =>
@@ -203,13 +219,18 @@ const updateOneport = (msg, data) => {
     , 'SetSaved': () =>
         setFileState(false, data)
 
-    , 'Changed': () => {
+    , 'SetChanged': () => {
         setFileState(true, currentFile)
       }
 
     , 'Pull': sync
 
     , 'Push': push
+
+    , 'SocketSend': () => {
+        collab = data
+        socket.emit('collab', data)
+      }
 
     }
 
@@ -220,44 +241,9 @@ const updateOneport = (msg, data) => {
   }
 }
 
-const update = (msg, arg) => {
-  let cases =
-    { 'load': () => {
-          if(changed) {
-            saveConfirmation(currentFile).then(() => loadFile(arg))
-          } else {
-            loadFile(arg)
-          }
-        }
-
-    , 'import': () => {
-        if (changed) {
-          saveConfirmation(arg).then(importDialog)
-        } else {
-          importDialog()
-        }
-    }
-
-    , 'socket-send': () => {
-        collab = arg
-        socket.emit('collab', arg)
-      }
-  }
-
-  try {
-    cases[msg]()
-  } catch(err) {
-    console.log('elmCases failed:', msg, arg)
-  }
-}
-
 
 gingko.ports.infoForOutside.subscribe(function(elmdata) {
-  updateOneport(elmdata.tag, elmdata.data)
-})
-
-
-gingko.ports.updateCommits.subscribe(function(data) {
+  update(elmdata.tag, elmdata.data)
 })
 
 
@@ -265,17 +251,17 @@ gingko.ports.updateCommits.subscribe(function(data) {
 
 /* === JS to Elm Ports === */
 
-ipcRenderer.on('menu-new', () => updateOneport('New'))
-ipcRenderer.on('menu-open', () => updateOneport('Open'))
-ipcRenderer.on('menu-import-json', () => update('import'))
+ipcRenderer.on('menu-new', () => update('New'))
+ipcRenderer.on('menu-open', () => update('Open'))
+ipcRenderer.on('menu-import-json', () => update('Import'))
 ipcRenderer.on('menu-export-json', () => gingko.ports.infoForElm.send({tag: 'DoExportJSON', data: null }))
 ipcRenderer.on('menu-export-txt', () => gingko.ports.infoForElm.send({tag: 'DoExportTXT', data: null }))
-ipcRenderer.on('menu-save', () => updateOneport('Save', currentFile))
-ipcRenderer.on('menu-save-as', () => updateOneport('SaveAs'))
+ipcRenderer.on('menu-save', () => update('Save', currentFile))
+ipcRenderer.on('menu-save-as', () => update('SaveAs'))
 ipcRenderer.on('zoomin', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() + 1) })
 ipcRenderer.on('zoomout', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() - 1) })
 ipcRenderer.on('resetzoom', e => { webFrame.setZoomLevel(0) })
-ipcRenderer.on('main-save-and-close', () => updateOneport('SaveAndClose', currentFile))
+ipcRenderer.on('main-save-and-close', () => update('SaveAndClose', currentFile))
 
 socket.on('collab', data => gingko.ports.collabMsg.send(data))
 socket.on('collab-leave', data => gingko.ports.collabLeave.send(data))

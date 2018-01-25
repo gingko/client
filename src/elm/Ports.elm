@@ -131,6 +131,14 @@ getInfoFromOutside tagger onError =
   infoForElm
     (\outsideInfo ->
         case outsideInfo.tag of
+          "UpdateContent" ->
+            case decodeValue ( tupleDecoder Json.Decode.string Json.Decode.string ) outsideInfo.data of
+              Ok (id, str) ->
+                tagger <| UpdateContent (id, str)
+
+              Err e ->
+                onError e
+
           "Reset" ->
             tagger <| Reset
 

@@ -106,22 +106,6 @@ update msg ({objects, workingTree, status} as model) =
       model ! []
         |> openCard id str
 
-    UpdateContent (id, str) ->
-      let
-        newTree = Trees.update (Trees.Upd id str) model.workingTree
-      in
-      if newTree.tree /= model.workingTree.tree then
-        { model
-          | workingTree = newTree
-        }
-          ! []
-          |> addToHistory
-          |> sendCollabState (CollabState model.uid (Active id) "")
-      else
-        model
-          ! []
-          |> sendCollabState (CollabState model.uid (Active id) "")
-
     DeleteCard id ->
       model ! []
         |> deleteCard id
@@ -336,6 +320,22 @@ update msg ({objects, workingTree, status} as model) =
 
     Outside infoForElm ->
       case infoForElm of
+        UpdateContent (id, str) ->
+          let
+            newTree = Trees.update (Trees.Upd id str) model.workingTree
+          in
+          if newTree.tree /= model.workingTree.tree then
+            { model
+              | workingTree = newTree
+            }
+              ! []
+              |> addToHistory
+              |> sendCollabState (CollabState model.uid (Active id) "")
+          else
+            model
+              ! []
+              |> sendCollabState (CollabState model.uid (Active id) "")
+
         Reset ->
           init
 
@@ -1305,7 +1305,6 @@ modelToValue model =
 port setHead : (String -> msg) -> Sub msg
 port collabMsg : (Json.Value -> msg) -> Sub msg
 port collabLeave : (String -> msg) -> Sub msg
-port updateContent : ((String, String) -> msg) -> Sub msg
 port cancelConfirmed : (() -> msg) -> Sub msg
 
 
@@ -1315,7 +1314,6 @@ subscriptions model =
     [ setHead CheckoutCommit
     , collabMsg RecvCollabState
     , collabLeave CollaboratorDisconnected
-    , updateContent UpdateContent
     , cancelConfirmed (\_ -> CancelCard)
     , getInfoFromOutside Outside LogErr
     ]

@@ -10,7 +10,6 @@ type Msg
     | Activate String
     -- === Card Editing  ===
     | OpenCard String String
-    | UpdateContent (String, String)
     | DeleteCard String
     | CancelCard
     -- === Card Insertion  ===
@@ -55,13 +54,13 @@ type InfoForOutside
 
 
 type InfoForElm
-    = Reset
+    = UpdateContent (String, String)
+    | Reset
     | Load (String, Json.Value)
     | Merge Json.Value
     | ImportJSON Json.Value
     | SetHeadRev String
 -- port setHead : (String -> msg) -> Sub msg
--- port setHeadRev : (String -> msg) -> Sub msg
 -- port updateContent : ((String, String) -> msg) -> Sub msg
 -- port cancelConfirmed : (() -> msg) -> Sub msg
 --| ImportJson Json.Value
