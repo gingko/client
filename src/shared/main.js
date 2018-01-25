@@ -635,7 +635,7 @@ const importFile = (filepathToImport) => {
 
         document.title = `${path.basename(filepathToImport)} - Gingko`
         setFileState(true, null)
-        gingko.ports.importJson.send(newRoot)
+        gingko.ports.infoForElm.send({tag: 'ImportJSON', data :newRoot})
       }
     })
   })

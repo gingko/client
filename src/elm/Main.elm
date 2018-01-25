@@ -297,27 +297,6 @@ update msg ({objects, workingTree, status} as model) =
 
     -- === Ports ===
 
-    ImportJson json ->
-      case Json.decodeValue treeDecoder json of
-        Ok newTree ->
-          let
-            (newStatus, _, newObjects) =
-              Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" newTree) model.objects
-          in
-          { defaultModel
-            | workingTree = Trees.setTree newTree model.workingTree
-            , objects = newObjects
-            , status = newStatus
-            , changed = True
-          }
-            ! [ sendInfoOutside ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
-              , sendInfoOutside ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) )
-              ]
-
-        Err err ->
-          let _ = Debug.log "ImportJson error" err in
-          model ! []
-
     SetHeadRev rev ->
       { model
         | objects = Objects.setHeadRev rev model.objects
@@ -462,6 +441,28 @@ update msg ({objects, workingTree, status} as model) =
             _ ->
               let _ = Debug.log "failed to merge json" json in
               model ! []
+
+        ImportJSON json ->
+          case Json.decodeValue treeDecoder json of
+            Ok newTree ->
+              let
+                (newStatus, _, newObjects) =
+                  Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" newTree) model.objects
+              in
+              { defaultModel
+                | workingTree = Trees.setTree newTree model.workingTree
+                , objects = newObjects
+                , status = newStatus
+                , changed = True
+              }
+                ! [ sendInfoOutside ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
+                  , sendInfoOutside ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) )
+                  ]
+
+            Err err ->
+              let _ = Debug.log "ImportJson error" err in
+              model ! []
+
 
         Saved filepath ->
           { model
@@ -1301,7 +1302,6 @@ modelToValue model =
 
 -- SUBSCRIPTIONS
 
-port importJson : (Json.Value -> msg) -> Sub msg
 port setHead : (String -> msg) -> Sub msg
 port setHeadRev : (String -> msg) -> Sub msg
 port collabMsg : (Json.Value -> msg) -> Sub msg
@@ -1313,8 +1313,7 @@ port cancelConfirmed : (() -> msg) -> Sub msg
 subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.batch
-    [ importJson ImportJson
-    , setHead CheckoutCommit
+    [ setHead CheckoutCommit
     , setHeadRev SetHeadRev
     , collabMsg RecvCollabState
     , collabLeave CollaboratorDisconnected
