@@ -142,6 +142,9 @@ getInfoFromOutside tagger onError =
               Err e ->
                 onError e
 
+          "ImportJSON" ->
+            tagger <| ImportJSON outsideInfo.data
+
           "Changed" ->
             tagger <| Changed
 
