@@ -2,7 +2,7 @@ port module Ports exposing (..)
 
 
 import Types exposing (..)
-import Coders exposing (tupleDecoder, treeToJSON, treeToMarkdown, collabStateToValue)
+import Coders exposing (tupleDecoder, tupleToValue, treeToJSON, treeToMarkdown, collabStateToValue)
 import Json.Encode exposing (..)
 import Json.Decode exposing (decodeValue)
 
@@ -14,6 +14,19 @@ sendInfoOutside info =
       infoForOutside
         { tag = "Alert"
         , data = string str
+        }
+
+    ActivateCards (col, cardIds) ->
+      let
+        listListStringToValue lls =
+          lls
+            |> List.map (List.map string)
+            |> List.map list
+            |> list
+      in
+      infoForOutside
+        { tag = "ActivateCards"
+        , data = tupleToValue int listListStringToValue (col, cardIds)
         }
 
     ConfirmCancel id origContent ->

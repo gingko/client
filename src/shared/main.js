@@ -68,6 +68,11 @@ const updateOneport = (msg, arg) => {
   let cases =
     { 'Alert': () => { alert(arg) }
 
+    , 'ActivateCards': () => {
+        shared.scrollHorizontal(arg[0])
+        shared.scrollColumns(arg[1])
+      }
+
     , 'ConfirmCancel': () => {
         let tarea = document.getElementById('card-edit-'+arg[0])
 
@@ -191,10 +196,6 @@ const update = (msg, arg) => {
 }
 
 
-gingko.ports.js.subscribe(function(elmdata) {
-  update(elmdata[0], elmdata[1])
-})
-
 gingko.ports.infoForOutside.subscribe(function(elmdata) {
   updateOneport(elmdata.tag, elmdata.data)
 })
@@ -259,12 +260,6 @@ gingko.ports.updateCommits.subscribe(function(data) {
   });
 
   //ReactDOM.render(commitElement, document.getElementById('history'))
-})
-
-
-gingko.ports.activateCards.subscribe(actives => {
-  shared.scrollHorizontal(actives[0])
-  shared.scrollColumns(actives[1])
 })
 
 

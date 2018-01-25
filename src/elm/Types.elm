@@ -38,6 +38,12 @@ type Msg
 
 type InfoForOutside
     = Alert String
+    | ActivateCards (Int, List (List String))
+-- port activateCards : (Int, List (List String)) -> Cmd msg
+-- port getText : String -> Cmd msg
+-- port saveObjects : (Json.Value, Json.Value) -> Cmd msg
+-- port saveLocal : Json.Value -> Cmd msg
+-- port updateCommits : (Json.Value, Maybe String) -> Cmd msg
     | ConfirmCancel String String
     | New (Maybe String)
     | Save String

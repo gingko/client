@@ -664,10 +664,12 @@ activate id (model, prevCmd) =
               }
         }
           ! [ prevCmd
-            , activateCards
+            , sendInfoOutside
+              ( ActivateCards
                 ( getDepth 0 model.workingTree.tree id
                 , centerlineIds flatCols allIds newPast
                 )
+              )
             ]
             |> sendCollabState (CollabState model.uid (Active id) "")
 
@@ -1299,7 +1301,6 @@ modelToValue model =
 
 -- SUBSCRIPTIONS
 
-port js : (String, Json.Value) -> Cmd msg
 port activateCards : (Int, List (List String)) -> Cmd msg
 port getText : String -> Cmd msg
 port saveObjects : (Json.Value, Json.Value) -> Cmd msg
