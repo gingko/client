@@ -62,29 +62,86 @@ self.socket = io.connect('http://localhost:3000')
 
 /* === Elm to JS Ports === */
 
-const update = (msg, arg) => {
+const update = (msg, data) => {
   let cases =
-    { 'alert': () => { alert(arg) }
+    { 'Alert': () => { alert(data) }
 
-    , 'confirm-cancel': () => {
-        let tarea = document.getElementById('card-edit-'+arg[0])
+    , 'ActivateCards': () => {
+        shared.scrollHorizontal(data[0])
+        shared.scrollColumns(data[1])
+      }
+
+    , 'GetText': () => {
+        let id = data
+        let tarea = document.getElementById('card-edit-'+id)
+
+        if (tarea === null) {
+          gingko.ports.updateError.send('Textarea with id '+id+' not found.')
+        } else {
+          gingko.ports.infoForElm.send({tag: 'UpdateContent', data: [id, tarea.value]})
+        }
+      }
+
+    , 'SaveObjects': () => {
+        let status = data[0]
+        let objects = data[1]
+        db.get('status')
+          .catch(err => {
+            if(err.name == "not_found") {
+              return {_id: 'status' , status : 'bare', bare: true}
+            } else {
+              console.log('load status error', err)
+            }
+          })
+          .then(statusDoc => {
+            if(statusDoc._rev) {
+              status['_rev'] = statusDoc._rev
+            }
+
+            let toSave = objects.commits.concat(objects.treeObjects).concat(objects.refs).concat([status]);
+            db.bulkDocs(toSave)
+              .catch(err => {
+                console.log(err)
+              })
+              .then(responses => {
+                let head = responses.filter(r => r.id == "heads/master")[0]
+                if (head.ok) {
+                  gingko.ports.infoForElm.send({tag: 'SetRevHead', data: head.rev})
+                } else {
+                  console.log('head not ok', head)
+                }
+              })
+          })
+      }
+
+    , 'UpdateCommits': () => {
+        let commitGraphData = _.sortBy(data[0].commits, 'timestamp').reverse().map(c => { return {sha: c._id, parents: c.parents}})
+        let selectedSha = data[1]
+
+        let commitElement = React.createElement(CommitsGraph, {
+          commits: commitGraphData,
+          onClick: setHead,
+          selected: selectedSha
+        });
+
+        //ReactDOM.render(commitElement, document.getElementById('history'))
+    }
+
+    , 'ConfirmCancel': () => {
+        let tarea = document.getElementById('card-edit-'+data[0])
 
         if (tarea === null) {
           console.log('tarea not found')
         } else {
-          if(tarea.value === arg[1]) {
-            gingko.ports.cancelConfirmed.send(null)
+          if(tarea.value === data[1]) {
+            gingko.ports.infoForElm.send({tag: 'CancelCardConfirmed', data: null})
           } else if (confirm('Are you sure you want to cancel your changes?')) {
-              gingko.ports.cancelConfirmed.send(null)
+            gingko.ports.infoForElm.send({tag: 'CancelCardConfirmed', data: null})
           }
         }
       }
 
-    , 'changed': () => {
-        setFileState(true, currentFile)
-      }
-
-    , 'new': () => {
+    , 'New': () => {
         let clearDb = () => {
           dbname = sha1(Date.now()+machineIdSync())
           filename = "Untitled Tree"
@@ -92,11 +149,11 @@ const update = (msg, arg) => {
 
           dbpath = path.join(app.getPath('userData'), dbname)
           self.db = new PouchDB(dbpath, {adapter: 'memory'})
-          gingko.ports.externals.send(['new', ''])
+          gingko.ports.infoForElm.send({tag: 'Reset', data: null})
         }
 
         if(changed) {
-          saveConfirmation(arg).then( () => {
+          saveConfirmation(data).then( () => {
             db.destroy().then( res => {
               if (res.ok) {
                 clearDb()
@@ -108,145 +165,82 @@ const update = (msg, arg) => {
         }
       }
 
-    , 'save': () =>
-        save(arg)
+    , 'Load': () => {
+          if(changed) {
+            saveConfirmation(currentFile).then(() => loadFile(data))
+          } else {
+            loadFile(data)
+          }
+        }
+
+    , 'Import': () => {
+        if (changed) {
+          saveConfirmation(data).then(importDialog)
+        } else {
+          importDialog()
+        }
+      }
+
+    , 'Save': () =>
+        save(data)
           .then( filepath =>
-            gingko.ports.externals.send(['saved', filepath])
+            gingko.ports.infoForElm.send({tag:'Saved', data: filepath})
           )
 
-    , 'save-as': () =>
+
+    , 'SaveAs': () =>
         saveAs()
           .then( filepath =>
-            gingko.ports.externals.send(['saved', filepath])
+            gingko.ports.infoForElm.send({tag:'Saved', data: filepath})
           )
 
-    , 'save-and-close': () =>
-        saveConfirmation(arg).then(app.exit)
+    , 'SaveAndClose': () =>
+        saveConfirmation(data).then(app.exit)
 
-    , 'saved': () =>
-        setFileState(false, arg)
+    , 'ExportJSON': () => {
+        exportJson(data)
+      }
 
-    , 'export-json': () => {
-        exportJson(arg)
-    }
+    , 'ExportTXT': () => {
+        exportTxt(data)
+      }
 
-    , 'export-txt': () => {
-        exportTxt(arg)
-    }
-
-    , 'open': () => {
+    , 'Open': () => {
         if (changed) {
-          saveConfirmation(arg).then(openDialog)
+          saveConfirmation(data).then(openDialog)
         } else {
           openDialog()
         }
       }
 
-    , 'load': () => {
-          if(changed) {
-            saveConfirmation(currentFile).then(() => loadFile(arg))
-          } else {
-            loadFile(arg)
-          }
-        }
+    , 'SetSaved': () =>
+        setFileState(false, data)
 
-    , 'import': () => {
-        if (changed) {
-          saveConfirmation(arg).then(importDialog)
-        } else {
-          importDialog()
-        }
-    }
-
-    , 'pull': sync
-
-    , 'push': push
-
-    , 'socket-send': () => {
-        collab = arg
-        socket.emit('collab', arg)
+    , 'SetChanged': () => {
+        setFileState(true, currentFile)
       }
-  }
+
+    , 'Pull': sync
+
+    , 'Push': push
+
+    , 'SocketSend': () => {
+        collab = data
+        socket.emit('collab', data)
+      }
+
+    }
 
   try {
     cases[msg]()
   } catch(err) {
-    console.log('elmCases failed:', msg, arg)
+    console.log('elmCases one-port failed:', msg, data)
   }
 }
 
 
-gingko.ports.js.subscribe(function(elmdata) {
-  update(elmdata[0], elmdata[1])
-})
-
-
-gingko.ports.getText.subscribe(id => {
-  let tarea = document.getElementById('card-edit-'+id)
-
-  if (tarea === null) {
-    gingko.ports.updateError.send('Textarea with id '+id+' not found.')
-  } else {
-    gingko.ports.updateContent.send([id, tarea.value])
-  }
-})
-
-
-gingko.ports.saveObjects.subscribe(data => {
-  let status = data[0]
-  let objects = data[1]
-  db.get('status')
-    .catch(err => {
-      if(err.name == "not_found") {
-        return {_id: 'status' , status : 'bare', bare: true}
-      } else {
-        console.log('load status error', err)
-      }
-    })
-    .then(statusDoc => {
-      if(statusDoc._rev) {
-        status['_rev'] = statusDoc._rev
-      }
-
-      let toSave = objects.commits.concat(objects.treeObjects).concat(objects.refs).concat([status]);
-      db.bulkDocs(toSave)
-        .catch(err => {
-          console.log(err)
-        })
-        .then(responses => {
-          let head = responses.filter(r => r.id == "heads/master")[0]
-          if (head.ok) {
-            gingko.ports.setHeadRev.send(head.rev)
-          } else {
-            console.log('head not ok', head)
-          }
-        })
-    })
-})
-
-
-gingko.ports.saveLocal.subscribe(data => {
-  console.log(data)
-})
-
-
-gingko.ports.updateCommits.subscribe(function(data) {
-  let commitGraphData = _.sortBy(data[0].commits, 'timestamp').reverse().map(c => { return {sha: c._id, parents: c.parents}})
-  let selectedSha = data[1]
-
-  let commitElement = React.createElement(CommitsGraph, {
-    commits: commitGraphData,
-    onClick: setHead,
-    selected: selectedSha
-  });
-
-  //ReactDOM.render(commitElement, document.getElementById('history'))
-})
-
-
-gingko.ports.activateCards.subscribe(actives => {
-  shared.scrollHorizontal(actives[0])
-  shared.scrollColumns(actives[1])
+gingko.ports.infoForOutside.subscribe(function(elmdata) {
+  update(elmdata.tag, elmdata.data)
 })
 
 
@@ -254,20 +248,20 @@ gingko.ports.activateCards.subscribe(actives => {
 
 /* === JS to Elm Ports === */
 
-ipcRenderer.on('menu-new', () => update('new'))
-ipcRenderer.on('menu-open', () => update('open'))
-ipcRenderer.on('menu-import-json', () => update('import'))
-ipcRenderer.on('menu-export-json', () => gingko.ports.externals.send(['export-json', '']))
-ipcRenderer.on('menu-export-txt', () => gingko.ports.externals.send(['export-txt', '']))
-ipcRenderer.on('menu-save', () => update('save', currentFile))
-ipcRenderer.on('menu-save-as', () => update('save-as'))
+ipcRenderer.on('menu-new', () => update('New'))
+ipcRenderer.on('menu-open', () => update('Open'))
+ipcRenderer.on('menu-import-json', () => update('Import'))
+ipcRenderer.on('menu-export-json', () => gingko.ports.infoForElm.send({tag: 'DoExportJSON', data: null }))
+ipcRenderer.on('menu-export-txt', () => gingko.ports.infoForElm.send({tag: 'DoExportTXT', data: null }))
+ipcRenderer.on('menu-save', () => update('Save', currentFile))
+ipcRenderer.on('menu-save-as', () => update('SaveAs'))
 ipcRenderer.on('zoomin', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() + 1) })
 ipcRenderer.on('zoomout', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() - 1) })
 ipcRenderer.on('resetzoom', e => { webFrame.setZoomLevel(0) })
-ipcRenderer.on('main-save-and-close', () => update('save-and-close', currentFile))
+ipcRenderer.on('main-save-and-close', () => update('SaveAndClose', currentFile))
 
-socket.on('collab', data => gingko.ports.collabMsg.send(data))
-socket.on('collab-leave', data => gingko.ports.collabLeave.send(data))
+socket.on('collab', data => gingko.ports.infoForElm.send({tag: 'RecvCollabState', data: data}))
+socket.on('collab-leave', data => gingko.ports.infoForElm.send({tag: 'CollaboratorDisconnected', data: data}))
 
 
 
@@ -315,7 +309,7 @@ const load = function(filepath, headOverride){
         }
 
         let toSend = [filepath, [status, { commits: commits, treeObjects: trees, refs: refs}]];
-        gingko.ports.load.send(toSend);
+        gingko.ports.infoForElm.send({tag: "Load", data: toSend});
       }).catch(function (err) {
         console.log(err)
       })
@@ -332,7 +326,7 @@ const merge = function(local, remote){
       let refs = processData(data, "ref");
 
       let toSend = { commits: commits, treeObjects: trees, refs: refs};
-      gingko.ports.merge.send([local, remote, toSend]);
+      gingko.ports.infoForElm.send({tag: "Merge", data: [local, remote, toSend]});
     }).catch(function (err) {
       console.log(err)
     })
@@ -397,7 +391,7 @@ const sync = function () {
 
 const setHead = function(sha) {
   if (sha) {
-    gingko.ports.setHead.send(sha)
+    gingko.ports.infoForElm.send({tag: 'CheckoutCommit', data: sha})
   }
 }
 
@@ -622,7 +616,7 @@ const importFile = (filepathToImport) => {
 
         document.title = `${path.basename(filepathToImport)} - Gingko`
         setFileState(true, null)
-        gingko.ports.importJson.send(newRoot)
+        gingko.ports.infoForElm.send({tag: 'ImportJSON', data :newRoot})
       }
     })
   })
@@ -650,7 +644,7 @@ const setFileState = function(bool, newpath) {
     if (!/\*/.test(document.title)) {
       document.title = "*" + document.title
     }
-    gingko.ports.externals.send(['changed', ''])
+    gingko.ports.infoForElm.send({ tag: 'Changed', data: null })
   } else {
     changed = false
     currentFile = newpath
@@ -672,7 +666,7 @@ const editingInputHandler = function(ev) {
 
 
 Mousetrap.bind(shared.shortcuts, function(e, s) {
-  gingko.ports.keyboard.send(s);
+  gingko.ports.infoForElm.send({tag: 'Keyboard', data: s});
 
   if(shared.needOverride.includes(s)) {
     return false;

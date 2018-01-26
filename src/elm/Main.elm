@@ -10,7 +10,6 @@ import Json.Encode exposing (..)
 import Regex exposing (Regex, replace, regex)
 import Dom
 import Task
---import Time
 import Diff exposing (..)
 import InlineHover exposing (hover)
 
@@ -19,6 +18,7 @@ import Trees exposing (..)
 import TreeUtils exposing (..)
 import Sha1 exposing (timestamp, timeJSON)
 import Objects
+import Ports exposing (..)
 import Coders exposing (..)
 
 import Html5.DragDrop as DragDrop
@@ -32,16 +32,6 @@ main =
     , update = update
     , subscriptions = subscriptions
     }
-
-
-port js : (String, Json.Value) -> Cmd msg
-port activateCards : (Int, List (List String)) -> Cmd msg
-port getText : String -> Cmd msg
-port saveObjects : (Json.Value, Json.Value) -> Cmd msg
-port saveLocal : Json.Value -> Cmd msg
-port updateCommits : (Json.Value, Maybe String) -> Cmd msg
-
-
 
 
 -- MODEL
@@ -105,7 +95,7 @@ update msg ({objects, workingTree, status} as model) =
     Activate id ->
       case vs.editing of
         Just eid ->
-          model ! [ getText eid ]
+          model ! [ sendOut ( GetText eid ) ]
             |> cancelCard
             |> activate id
 
@@ -119,29 +109,9 @@ update msg ({objects, workingTree, status} as model) =
       model ! []
         |> openCard id str
 
-    UpdateContent (id, str) ->
-      let
-        newTree = Trees.update (Trees.Upd id str) model.workingTree
-      in
-      if newTree.tree /= model.workingTree.tree then
-        { model
-          | workingTree = newTree
-        }
-          ! []
-          |> addToHistory
-          |> sendCollabState (CollabState model.uid (Active id) "")
-      else
-        model
-          ! []
-          |> sendCollabState (CollabState model.uid (Active id) "")
-
     DeleteCard id ->
       model ! []
         |> deleteCard id
-
-    CancelCard ->
-      model ! []
-        |> cancelCard
 
     -- === Card Insertion  ===
 
@@ -226,13 +196,13 @@ update msg ({objects, workingTree, status} as model) =
     Redo ->
       model ! []
 
-    Pull ->
+    Sync ->
       case (model.status, model.online) of
         (Clean _, True) ->
-          model ! [js ("pull", null)]
+          model ! [ sendOut Pull ]
 
         (Bare, True) ->
-          model ! [js ("pull", null)]
+          model ! [ sendOut Pull ]
 
         _ ->
           model ! []
@@ -284,169 +254,204 @@ update msg ({objects, workingTree, status} as model) =
         _ ->
           model ! []
 
-    CheckoutCommit commitSha ->
-      case status of
-        MergeConflict _ _ _ _ ->
-          model ! []
-
-        _ ->
-          let
-            (newStatus, newTree_, newModel) =
-              Objects.update (Objects.Checkout commitSha) objects
-          in
-          case newTree_ of
-            Just newTree ->
-              { model
-                | workingTree = Trees.setTree newTree model.workingTree
-                , status = newStatus
-              }
-                ! [ updateCommits (objects |> Objects.toValue, getHead newStatus) ]
-
-            Nothing ->
-              model ! []
-                |> Debug.log "failed to load commit"
-
-
-
     -- === Ports ===
 
-    Load (filepath, json) ->
-      let
-        (newStatus, newTree_, newObjects) =
-            Objects.update (Objects.Init json) objects
 
-        startingWordcount =
-          newTree_
-            |> Maybe.map (\t -> countWords (treeToMarkdownString t))
-            |> Maybe.withDefault 0
-      in
-      case (newStatus, newTree_) of
-        (Clean newHead, Nothing) -> -- no changes to Tree
-          { model
-            | status = newStatus
-            , startingWordcount = startingWordcount
-            , filepath = filepath
-            , changed = False
-          }
-            ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
-            |> activate model.viewState.active
-
-        (Clean newHead, Just newTree) ->
-          { model
-            | workingTree = Trees.setTree newTree model.workingTree
-            , objects = newObjects
-            , status = newStatus
-            , startingWordcount = startingWordcount
-            , filepath = filepath
-            , changed = False
-          }
-            ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
-            |> activate model.viewState.active
-
-        (MergeConflict mTree oldHead newHead [], Just newTree) ->
-          { model
-            | workingTree = Trees.setTree newTree model.workingTree
-            , objects = newObjects
-            , status = newStatus
-            , startingWordcount = startingWordcount
-            , filepath = filepath
-            , changed = False
-          }
-            ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
-            |> activate model.viewState.active
-
-        (MergeConflict mTree oldHead newHead conflicts, Just newTree) ->
-          { model
-            | workingTree = Trees.setTreeWithConflicts conflicts mTree model.workingTree
-            , objects = newObjects
-            , status = newStatus
-            , startingWordcount = startingWordcount
-            , filepath = filepath
-            , changed = False
-          }
-            ! [ updateCommits (newObjects |> Objects.toValue, getHead newStatus) ]
-            |> activate model.viewState.active
-
-        _ ->
-          let _ = Debug.log "failed to load json" (newStatus, newTree_, newObjects, json) in
-          model ! []
-
-    MergeIn json ->
-      let
-        (newStatus, newTree_, newObjects) =
-          Objects.update (Objects.Merge json workingTree.tree) objects
-      in
-      case (status, newStatus) of
-        (Bare, Clean sha) ->
-          { model
-            | workingTree = Trees.setTree (newTree_ ? workingTree.tree) workingTree
-            , objects = newObjects
-            , status = newStatus
-          }
-            ! [ updateCommits (newObjects |> Objects.toValue, Just sha) ]
-            |> activate vs.active
-
-        (Clean oldHead, Clean newHead) ->
-          if (oldHead /= newHead) then
-            { model
-              | workingTree = Trees.setTree (newTree_ ? workingTree.tree) workingTree
-              , objects = newObjects
-              , status = newStatus
-            }
-              ! [ updateCommits (newObjects |> Objects.toValue, Just newHead) ]
-              |> activate vs.active
-          else
-            model ! []
-
-        (Clean _, MergeConflict mTree oldHead newHead conflicts) ->
-          { model
-            | workingTree =
-                if (List.isEmpty conflicts) then
-                  Trees.setTree (newTree_ ? workingTree.tree) workingTree
-                else
-                  Trees.setTreeWithConflicts conflicts mTree model.workingTree
-            , objects = newObjects
-            , status = newStatus
-          }
-            ! [ updateCommits (newObjects |> Objects.toValue, Just newHead) ]
-            |> addToHistory
-            |> activate vs.active
-
-        _ ->
-          let _ = Debug.log "failed to merge json" json in
-          model ! []
-
-    ImportJson json ->
-      case Json.decodeValue treeDecoder json of
-        Ok newTree ->
+    Port incomingMsg ->
+      case incomingMsg of
+        UpdateContent (id, str) ->
           let
-            (newStatus, _, newObjects) =
-              Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" newTree) model.objects
+            newTree = Trees.update (Trees.Upd id str) model.workingTree
           in
-          { defaultModel
-            | workingTree = Trees.setTree newTree model.workingTree
-            , objects = newObjects
-            , status = newStatus
-            , changed = True
-          }
-            ! [ saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)
-              , updateCommits ( newObjects |> Objects.toValue, getHead newStatus)
-              ]
+          if newTree.tree /= model.workingTree.tree then
+            { model
+              | workingTree = newTree
+            }
+              ! []
+              |> addToHistory
+              |> sendCollabState (CollabState model.uid (Active id) "")
+          else
+            model
+              ! []
+              |> sendCollabState (CollabState model.uid (Active id) "")
 
-        Err err ->
-          let _ = Debug.log "ImportJson error" err in
+        CancelCardConfirmed ->
           model ! []
+            |> cancelCard
 
-    SetHeadRev rev ->
-      { model
-        | objects = Objects.setHeadRev rev model.objects
-      }
-        ! []
-        |> push
+        Reset ->
+          init
 
-    RecvCollabState json ->
-      case Json.decodeValue collabStateDecoder json of
-        Ok collabState ->
+        Load (filepath, json) ->
+          let
+            (newStatus, newTree_, newObjects) =
+                Objects.update (Objects.Init json) objects
+
+            startingWordcount =
+              newTree_
+                |> Maybe.map (\t -> countWords (treeToMarkdownString t))
+                |> Maybe.withDefault 0
+          in
+          case (newStatus, newTree_) of
+            (Clean newHead, Nothing) -> -- no changes to Tree
+              { model
+                | status = newStatus
+                , startingWordcount = startingWordcount
+                , filepath = Just filepath
+                , changed = False
+              }
+                ! [ sendOut ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
+                |> activate model.viewState.active
+
+            (Clean newHead, Just newTree) ->
+              { model
+                | workingTree = Trees.setTree newTree model.workingTree
+                , objects = newObjects
+                , status = newStatus
+                , startingWordcount = startingWordcount
+                , filepath = Just filepath
+                , changed = False
+              }
+                ! [ sendOut ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
+                |> activate model.viewState.active
+
+            (MergeConflict mTree oldHead newHead [], Just newTree) ->
+              { model
+                | workingTree = Trees.setTree newTree model.workingTree
+                , objects = newObjects
+                , status = newStatus
+                , startingWordcount = startingWordcount
+                , filepath = Just filepath
+                , changed = False
+              }
+                ! [ sendOut ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
+                |> activate model.viewState.active
+
+            (MergeConflict mTree oldHead newHead conflicts, Just newTree) ->
+              { model
+                | workingTree = Trees.setTreeWithConflicts conflicts mTree model.workingTree
+                , objects = newObjects
+                , status = newStatus
+                , startingWordcount = startingWordcount
+                , filepath = Just filepath
+                , changed = False
+              }
+                ! [ sendOut ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
+                |> activate model.viewState.active
+
+            _ ->
+              let _ = Debug.log "failed to load json" (newStatus, newTree_, newObjects, json) in
+              model ! []
+
+        Merge json ->
+          let
+            (newStatus, newTree_, newObjects) =
+              Objects.update (Objects.Merge json workingTree.tree) objects
+          in
+          case (status, newStatus) of
+            (Bare, Clean sha) ->
+              { model
+                | workingTree = Trees.setTree (newTree_ ? workingTree.tree) workingTree
+                , objects = newObjects
+                , status = newStatus
+              }
+                ! [ sendOut ( UpdateCommits ( Objects.toValue newObjects , Just sha ) ) ]
+                |> activate vs.active
+
+            (Clean oldHead, Clean newHead) ->
+              if (oldHead /= newHead) then
+                { model
+                  | workingTree = Trees.setTree (newTree_ ? workingTree.tree) workingTree
+                  , objects = newObjects
+                  , status = newStatus
+                }
+                  ! [ sendOut ( UpdateCommits ( Objects.toValue newObjects , Just newHead ) ) ]
+                  |> activate vs.active
+              else
+                model ! []
+
+            (Clean _, MergeConflict mTree oldHead newHead conflicts) ->
+              { model
+                | workingTree =
+                    if (List.isEmpty conflicts) then
+                      Trees.setTree (newTree_ ? workingTree.tree) workingTree
+                    else
+                      Trees.setTreeWithConflicts conflicts mTree model.workingTree
+                , objects = newObjects
+                , status = newStatus
+              }
+                ! [ sendOut ( UpdateCommits ( newObjects |> Objects.toValue, Just newHead ) ) ]
+                |> addToHistory
+                |> activate vs.active
+
+            _ ->
+              let _ = Debug.log "failed to merge json" json in
+              model ! []
+
+        ImportJSON json ->
+          case Json.decodeValue treeDecoder json of
+            Ok newTree ->
+              let
+                (newStatus, _, newObjects) =
+                  Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" newTree) model.objects
+              in
+              { defaultModel
+                | workingTree = Trees.setTree newTree model.workingTree
+                , objects = newObjects
+                , status = newStatus
+                , changed = True
+              }
+                ! [ sendOut ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
+                  , sendOut ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) )
+                  ]
+
+            Err err ->
+              let _ = Debug.log "ImportJson error" err in
+              model ! []
+
+        CheckoutCommit commitSha ->
+          case status of
+            MergeConflict _ _ _ _ ->
+              model ! []
+
+            _ ->
+              let
+                (newStatus, newTree_, newModel) =
+                  Objects.update (Objects.Checkout commitSha) objects
+              in
+              case newTree_ of
+                Just newTree ->
+                  { model
+                    | workingTree = Trees.setTree newTree model.workingTree
+                    , status = newStatus
+                  }
+                    ! [ sendOut ( UpdateCommits ( Objects.toValue objects, getHead newStatus ) ) ]
+
+                Nothing ->
+                  model ! []
+                    |> Debug.log "failed to load commit"
+
+        SetHeadRev rev ->
+          { model
+            | objects = Objects.setHeadRev rev model.objects
+          }
+            ! []
+            |> push
+
+        Changed ->
+          { model
+            | changed = True
+          }
+            ! []
+
+        Saved filepath ->
+          { model
+            | filepath = Just filepath
+            , changed = False
+          }
+            ! [sendOut (SetSaved filepath)]
+
+        RecvCollabState collabState ->
           let
             newCollabs =
               if List.member collabState.uid (vs.collaborators |> List.map .uid) then
@@ -467,171 +472,146 @@ update msg ({objects, workingTree, status} as model) =
           }
             ! []
 
-        Err err ->
-          let
-            _ = Debug.log "collabState ERROR" err
-          in
-          model ! []
-
-    CollaboratorDisconnected uid ->
-      { model
-        | viewState =
-            { vs | collaborators = vs.collaborators |> List.filter (\c -> c.uid /= uid)}
-      }
-        ! []
-
-    HandleKey key ->
-      case key of
-        "mod+x" ->
-          let _ = Debug.log "model" model in
-          model ! []
-
-        "mod+enter" ->
-          case vs.editing of
-            Nothing ->
-              model ! []
-
-            Just uid ->
-              model ! [getText uid]
-                |> cancelCard
-                |> activate uid
-
-        "enter" ->
-          normalMode model (openCard vs.active (getContent vs.active model.workingTree.tree))
-
-        "mod+backspace" ->
-          normalMode model (deleteCard vs.active)
-
-        "esc" ->
-          model |> intentCancelCard
-
-        "mod+j" ->
-          model |> maybeSaveAndThen (insertBelow vs.active)
-
-        "mod+down" ->
-          normalMode model (insertBelow vs.active)
-
-        "mod+k" ->
-          model |> maybeSaveAndThen (insertAbove vs.active)
-
-        "mod+up" ->
-          normalMode model (insertAbove vs.active)
-
-        "mod+l" ->
-          model |> maybeSaveAndThen (insertChild vs.active)
-
-        "mod+right" ->
-          normalMode model (insertChild vs.active)
-
-        "h" ->
-          normalMode model (goLeft vs.active)
-
-        "left" ->
-          normalMode model (goLeft vs.active)
-
-        "j" ->
-          normalMode model (goDown vs.active)
-
-        "down" ->
-          normalMode model (goDown vs.active)
-
-        "k" ->
-          normalMode model (goUp vs.active)
-
-        "up" ->
-          normalMode model (goUp vs.active)
-
-        "l" ->
-          normalMode model (goRight vs.active)
-
-        "right" ->
-          normalMode model (goRight vs.active)
-
-        "alt+up" ->
-          normalMode model (moveWithin vs.active -1)
-
-        "alt+k" ->
-          normalMode model (moveWithin vs.active -1)
-
-        "alt+down" ->
-          normalMode model (moveWithin vs.active 1)
-
-        "alt+j" ->
-          normalMode model (moveWithin vs.active 1)
-
-        "alt+left" ->
-          normalMode model (moveLeft vs.active)
-
-        "alt+h" ->
-          normalMode model (moveLeft vs.active)
-
-        "alt+right" ->
-          normalMode model (moveRight vs.active)
-
-        "alt+l" ->
-          normalMode model (moveRight vs.active)
-
-        "alt+shift+up" ->
-          normalMode model (moveWithin vs.active -5)
-
-        "alt+shift+down" ->
-          normalMode model (moveWithin vs.active 5)
-
-        "alt+home" ->
-          normalMode model (moveWithin vs.active -999999)
-
-        "alt+end" ->
-          normalMode model (moveWithin vs.active 999999)
-
-        "mod+z" ->
-          model ! []
-
-        "mod+r" ->
-          model ! []
-
-        "mod+n" ->
-          model ! []
-            |> intentNew
-
-        "mod+s" ->
-          model |> maybeSaveAndThen intentSave
-
-        "mod+o" ->
-          model ! []
-            |> intentOpen
-
-        _ ->
-          model ! []
-
-    ExternalMessage (cmd, arg) ->
-      case cmd of
-        "new" ->
-          init
-
-        "saved" ->
+        CollaboratorDisconnected uid ->
           { model
-            | filepath = Just arg
-            , changed = False
-          }
-            ! [js ("saved", arg |> string)]
-
-        "changed" ->
-          { model
-            | changed = True
+            | viewState =
+                { vs | collaborators = vs.collaborators |> List.filter (\c -> c.uid /= uid)}
           }
             ! []
 
-        "export-json" ->
+        DoExportJSON ->
           model
-            ! [js ("export-json", model.workingTree.tree |> treeToJSON )]
+            ! [ sendOut ( ExportJSON model.workingTree.tree ) ]
 
-        "export-txt" ->
+        DoExportTXT ->
           model
-            ! [js ("export-txt", model.workingTree.tree |> treeToMarkdown )]
+            ! [ sendOut ( ExportTXT model.workingTree.tree )]
 
-        _ ->
-          let _ = Debug.log "Unknown external command" cmd in
-          model ! []
+        Keyboard shortcut ->
+          case shortcut of
+            "mod+x" ->
+              let _ = Debug.log "model" model in
+              model ! []
+
+            "mod+enter" ->
+              case vs.editing of
+                Nothing ->
+                  model ! []
+
+                Just uid ->
+                  model ! [ sendOut ( GetText uid ) ]
+                    |> cancelCard
+                    |> activate uid
+
+            "enter" ->
+              normalMode model (openCard vs.active (getContent vs.active model.workingTree.tree))
+
+            "mod+backspace" ->
+              normalMode model (deleteCard vs.active)
+
+            "esc" ->
+              model |> intentCancelCard
+
+            "mod+j" ->
+              model |> maybeSaveAndThen (insertBelow vs.active)
+
+            "mod+down" ->
+              normalMode model (insertBelow vs.active)
+
+            "mod+k" ->
+              model |> maybeSaveAndThen (insertAbove vs.active)
+
+            "mod+up" ->
+              normalMode model (insertAbove vs.active)
+
+            "mod+l" ->
+              model |> maybeSaveAndThen (insertChild vs.active)
+
+            "mod+right" ->
+              normalMode model (insertChild vs.active)
+
+            "h" ->
+              normalMode model (goLeft vs.active)
+
+            "left" ->
+              normalMode model (goLeft vs.active)
+
+            "j" ->
+              normalMode model (goDown vs.active)
+
+            "down" ->
+              normalMode model (goDown vs.active)
+
+            "k" ->
+              normalMode model (goUp vs.active)
+
+            "up" ->
+              normalMode model (goUp vs.active)
+
+            "l" ->
+              normalMode model (goRight vs.active)
+
+            "right" ->
+              normalMode model (goRight vs.active)
+
+            "alt+up" ->
+              normalMode model (moveWithin vs.active -1)
+
+            "alt+k" ->
+              normalMode model (moveWithin vs.active -1)
+
+            "alt+down" ->
+              normalMode model (moveWithin vs.active 1)
+
+            "alt+j" ->
+              normalMode model (moveWithin vs.active 1)
+
+            "alt+left" ->
+              normalMode model (moveLeft vs.active)
+
+            "alt+h" ->
+              normalMode model (moveLeft vs.active)
+
+            "alt+right" ->
+              normalMode model (moveRight vs.active)
+
+            "alt+l" ->
+              normalMode model (moveRight vs.active)
+
+            "alt+shift+up" ->
+              normalMode model (moveWithin vs.active -5)
+
+            "alt+shift+down" ->
+              normalMode model (moveWithin vs.active 5)
+
+            "alt+home" ->
+              normalMode model (moveWithin vs.active -999999)
+
+            "alt+end" ->
+              normalMode model (moveWithin vs.active 999999)
+
+            "mod+z" ->
+              model ! []
+
+            "mod+r" ->
+              model ! []
+
+            "mod+n" ->
+              model ! []
+                |> intentNew
+
+            "mod+s" ->
+              model |> maybeSaveAndThen intentSave
+
+            "mod+o" ->
+              model ! []
+                |> intentOpen
+
+            _ ->
+              model ! []
+
+    LogErr str ->
+      model ! []
 
     NoOp ->
       model ! []
@@ -687,10 +667,12 @@ activate id (model, prevCmd) =
               }
         }
           ! [ prevCmd
-            , activateCards
+            , sendOut
+              ( ActivateCards
                 ( getDepth 0 model.workingTree.tree id
                 , centerlineIds flatCols allIds newPast
                 )
+              )
             ]
             |> sendCollabState (CollabState model.uid (Active id) "")
 
@@ -779,7 +761,7 @@ openCard id str (model, prevCmd) =
         |> (not << List.isEmpty)
   in
   if isLocked then
-    model ! [prevCmd, js ("alert", string "Card is being edited by someone else.")]
+    model ! [prevCmd, sendOut (Alert "Card is being edited by someone else.")]
   else
     { model
       | viewState = { vs | active = id, editing = Just id }
@@ -821,9 +803,9 @@ deleteCard id (model, prevCmd) =
           ("0", True)
   in
   if isLocked then
-    model ! [js ("alert", string "Card is being edited by someone else.")]
+    model ! [ sendOut ( Alert "Card is being edited by someone else.") ]
   else if isLastChild then
-    model ! [js ("alert", string "Cannot delete last card.")]
+    model ! [ sendOut ( Alert "Cannot delete last card.") ]
   else
     { model
       | workingTree = Trees.update (Trees.Rmv id) model.workingTree
@@ -854,7 +836,7 @@ intentCancelCard model =
       model ! []
 
     Just id ->
-      model ! [js ("confirm-cancel", Json.Encode.list [string vs.active, string originalContent])]
+      model ! [ sendOut (ConfirmCancel vs.active originalContent) ]
 
 
 -- === Card Insertion  ===
@@ -985,9 +967,9 @@ moveRight id (model, prevCmd) =
 push : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 push (model, prevCmd) =
   if model.online then
-    model ! [prevCmd, js ("push", null)]
+    model ! [ prevCmd, sendOut Push ]
   else
-    model ! [prevCmd]
+    model ! [ prevCmd ]
 
 
 addToHistory : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1003,9 +985,9 @@ addToHistory ({workingTree} as model, prevCmd) =
         , status = newStatus
         , changed = True
       }
-        ! [ saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)
-          , updateCommits (newObjects |> Objects.toValue, getHead newStatus)
-          , js ("changed", null)
+        ! [ sendOut ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
+          , sendOut ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
+          , sendOut SetChanged
           ]
 
     Clean oldHead ->
@@ -1018,9 +1000,9 @@ addToHistory ({workingTree} as model, prevCmd) =
         , status = newStatus
         , changed = True
       }
-        ! [ saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)
-          , updateCommits (newObjects |> Objects.toValue, getHead newStatus)
-          , js ("changed", null)
+        ! [ sendOut ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
+          , sendOut ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
+          , sendOut SetChanged
           ]
 
     MergeConflict _ oldHead newHead conflicts ->
@@ -1034,13 +1016,13 @@ addToHistory ({workingTree} as model, prevCmd) =
           , status = newStatus
           , changed = True
         }
-          ! [ saveObjects (newStatus |> statusToValue, newObjects |> Objects.toValue)
-            , updateCommits (newObjects |> Objects.toValue, getHead newStatus)
-            , js ("changed", null)
+          ! [ sendOut ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
+            , sendOut ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
+            , sendOut SetChanged
             ]
       else
         model
-          ! [saveLocal ( model.workingTree.tree |> treeToValue )]
+          ! [ sendOut ( SaveLocal ( model.workingTree.tree ) ) ]
 
 
 
@@ -1051,10 +1033,10 @@ intentSave : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 intentSave (model, prevCmd) =
   case (model.filepath, model.changed) of
     (Nothing, True) ->
-      model ! [prevCmd, js ("save-as", null)]
+      model ! [ prevCmd, sendOut SaveAs ]
 
     (Just filepath, True) ->
-      model ! [prevCmd, js ("save", filepath |> string)]
+      model ! [ prevCmd, sendOut ( Save filepath ) ]
 
     _ ->
       model ! [prevCmd]
@@ -1064,20 +1046,20 @@ intentNew : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 intentNew (model, prevCmd) =
   case model.filepath of
     Nothing ->
-      model ! [prevCmd, js ("new", null)]
+      model ! [prevCmd, sendOut ( New Nothing )]
 
     Just filepath ->
-      model ! [prevCmd, js ("new", filepath |> string)]
+      model ! [prevCmd, sendOut ( New ( Just filepath ) )]
 
 
 intentOpen : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 intentOpen (model, prevCmd) =
   case (model.filepath, model.changed) of
     (Just filepath, True) ->
-      model ! [prevCmd, js ("open", filepath |> string)]
+      model ! [ prevCmd, sendOut ( Open ( Just filepath ) ) ]
 
     _ ->
-      model ! [prevCmd, js ("open", null)]
+      model ! [ prevCmd, sendOut ( Open Nothing ) ]
 
 
 sendCollabState : CollabState -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1087,7 +1069,7 @@ sendCollabState collabState (model, prevCmd) =
       model ! [ prevCmd ]
 
     _ ->
-      model ! [ prevCmd, js ("socket-send", collabState |> collabStateToValue) ]
+      model ! [ prevCmd, sendOut ( SocketSend collabState ) ]
 
 
 
@@ -1365,36 +1347,9 @@ modelToValue model =
 
 -- SUBSCRIPTIONS
 
-
-port externals : ((String, String) -> msg) -> Sub msg
-port load : ((Maybe String, Json.Value) -> msg) -> Sub msg
-port merge : (Json.Value -> msg) -> Sub msg
-port importJson : (Json.Value -> msg) -> Sub msg
-port setHead : (String -> msg) -> Sub msg
-port setHeadRev : (String -> msg) -> Sub msg
-port keyboard : (String -> msg) -> Sub msg
-port collabMsg : (Json.Value -> msg) -> Sub msg
-port collabLeave : (String -> msg) -> Sub msg
-port updateContent : ((String, String) -> msg) -> Sub msg
-port cancelConfirmed : (() -> msg) -> Sub msg
-
-
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  Sub.batch
-    [ load Load
-    , merge MergeIn
-    , importJson ImportJson
-    , setHead CheckoutCommit
-    , setHeadRev SetHeadRev
-    , keyboard HandleKey
-    , collabMsg RecvCollabState
-    , collabLeave CollaboratorDisconnected
-    , updateContent UpdateContent
-    , cancelConfirmed (\_ -> CancelCard)
-    , externals ExternalMessage
-    --, Time.every (1*Time.second) (\_ -> Pull)
-    ]
+  receiveMsg Port LogErr
 
 
 
@@ -1431,7 +1386,7 @@ maybeSaveAndThen operation model =
         |> operation
 
     Just uid ->
-      model ! [getText uid]
+      model ! [ sendOut ( GetText uid ) ]
         |> operation
 
 

@@ -4,17 +4,13 @@ import Json.Decode as Json
 import Html5.DragDrop as DragDrop
 
 
-
-
 type Msg
     = NoOp
     -- === Card Activation ===
     | Activate String
     -- === Card Editing  ===
     | OpenCard String String
-    | UpdateContent (String, String)
     | DeleteCard String
-    | CancelCard
     -- === Card Insertion  ===
     | InsertAbove String
     | InsertBelow String
@@ -24,21 +20,55 @@ type Msg
     -- === History ===
     | Undo
     | Redo
-    | Pull
+    | Sync
     | SetSelection String Selection String
     | Resolve String
-    | CheckoutCommit String
     -- === Ports ===
-    | ExternalMessage (String, String)
-    | Load (Maybe String, Json.Value)
-    | MergeIn Json.Value
-    | ImportJson Json.Value
+    | Port IncomingMsg
+    | LogErr String
+
+
+type OutgoingMsg
+    = Alert String
+    | ActivateCards (Int, List (List String))
+    | GetText String
+    | ConfirmCancel String String
+    | New (Maybe String)
+    | Open (Maybe String)
+    | Save String
+    | SaveAs
+    | ExportJSON Tree
+    | ExportTXT Tree
+    | Push
+    | Pull
+    | SaveObjects (Json.Value, Json.Value)
+    | SaveLocal Tree
+    | UpdateCommits (Json.Value, Maybe String)
+    | SetSaved String
+    | SetChanged
+    | SocketSend CollabState
+
+
+type IncomingMsg
+    = UpdateContent (String, String)
+    | CancelCardConfirmed
+    | Reset
+    | Load (String, Json.Value)
+    | Merge Json.Value
+    | ImportJSON Json.Value
+    | CheckoutCommit String
     | SetHeadRev String
-    | RecvCollabState Json.Value
+    | Changed
+    | Saved String
+    | RecvCollabState CollabState
     | CollaboratorDisconnected String
-    | HandleKey String
+    | DoExportJSON
+    | DoExportTXT
+    | Keyboard String
 
 
+type alias OutsideData =
+  { tag : String, data: Json.Value }
 
 
 type alias Tree =
@@ -47,9 +77,11 @@ type alias Tree =
   , children : Children
   }
 
+
 type Children = Children (List Tree)
 type alias Group = List Tree
 type alias Column = List (List Tree)
+
 
 
 type Op = Ins String String (List String) Int | Mod String (List String) String String | Del String (List String) | Mov String (List String) Int (List String) Int
