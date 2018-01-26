@@ -35,6 +35,12 @@ sendOut info =
         , data = string id
         }
 
+    TextSurround id str ->
+      infoForOutside
+        { tag = "TextSurround"
+        , data = list [ string id, string str ]
+        }
+
     ConfirmCancel id origContent ->
       infoForOutside
         { tag = "ConfirmCancel"

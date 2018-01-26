@@ -607,7 +607,24 @@ update msg ({objects, workingTree, status} as model) =
               model ! []
                 |> intentOpen
 
+            "mod+b" ->
+              case vs.editing of
+                Nothing ->
+                  model ! []
+
+                Just uid ->
+                  model ! [ sendOut ( TextSurround uid "**" ) ]
+
+            "mod+i" ->
+              case vs.editing of
+                Nothing ->
+                  model ! []
+
+                Just uid ->
+                  model ! [ sendOut ( TextSurround uid "*" ) ]
+
             _ ->
+              let _ = Debug.log "unhandled shortcut" shortcut in
               model ! []
 
     LogErr str ->

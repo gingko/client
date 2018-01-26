@@ -32,6 +32,7 @@ type OutgoingMsg
     = Alert String
     | ActivateCards (Int, List (List String))
     | GetText String
+    | TextSurround String String
     | ConfirmCancel String String
     | New (Maybe String)
     | Open (Maybe String)

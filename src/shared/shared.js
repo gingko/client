@@ -232,7 +232,6 @@ var scrollHorizTo = function(colIdx) {
 /* ===== Shared variables ===== */
 
 var shortcuts = [ 'mod+enter'
-                , 'o'
                 , 'enter'
                 , 'esc'
                 , 'mod+backspace'
@@ -269,6 +268,8 @@ var shortcuts = [ 'mod+enter'
                 , 'mod+n'
                 , 'mod+s'
                 , 'mod+o'
+                , 'mod+b'
+                , 'mod+i'
                 , 'mod+x' // debug command
                 ];
 

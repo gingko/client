@@ -76,9 +76,29 @@ const update = (msg, data) => {
         let tarea = document.getElementById('card-edit-'+id)
 
         if (tarea === null) {
+          // TODO: replace this with proper logging.
           gingko.ports.updateError.send('Textarea with id '+id+' not found.')
         } else {
           gingko.ports.infoForElm.send({tag: 'UpdateContent', data: [id, tarea.value]})
+        }
+      }
+
+    , 'TextSurround': () => {
+        let id = data[0]
+        let surroundString = data[1]
+        let tarea = document.getElementById('card-edit-'+id)
+
+        if (tarea === null) {
+          // TODO: replace this with proper logging.
+          gingko.ports.updateError.send('Textarea with id '+id+' not found.')
+        } else {
+          let start = tarea.selectionStart
+          let end = tarea.selectionEnd
+          if (start !== end) {
+            let text = tarea.value.slice(start, end)
+            let modifiedText = surroundString + text + surroundString
+            document.execCommand('insertText', true, modifiedText)
+          }
         }
       }
 
