@@ -7,8 +7,8 @@ import Json.Encode exposing (..)
 import Json.Decode exposing (decodeValue)
 
 
-sendInfoOutside : InfoForOutside -> Cmd msg
-sendInfoOutside info =
+sendOut : OutgoingMsg -> Cmd msg
+sendOut info =
   case info of
     Alert str ->
       infoForOutside
@@ -127,8 +127,8 @@ sendInfoOutside info =
         }
 
 
-getInfoFromOutside : (InfoForElm -> msg) -> (String -> msg) -> Sub msg
-getInfoFromOutside tagger onError =
+receiveMsg : (IncomingMsg -> msg) -> (String -> msg) -> Sub msg
+receiveMsg tagger onError =
   infoForElm
     (\outsideInfo ->
         case outsideInfo.tag of

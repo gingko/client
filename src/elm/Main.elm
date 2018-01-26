@@ -92,7 +92,7 @@ update msg ({objects, workingTree, status} as model) =
     Activate id ->
       case vs.editing of
         Just eid ->
-          model ! [ sendInfoOutside ( GetText eid ) ]
+          model ! [ sendOut ( GetText eid ) ]
             |> cancelCard
             |> activate id
 
@@ -196,10 +196,10 @@ update msg ({objects, workingTree, status} as model) =
     Sync ->
       case (model.status, model.online) of
         (Clean _, True) ->
-          model ! [ sendInfoOutside Pull ]
+          model ! [ sendOut Pull ]
 
         (Bare, True) ->
-          model ! [ sendInfoOutside Pull ]
+          model ! [ sendOut Pull ]
 
         _ ->
           model ! []
@@ -254,8 +254,8 @@ update msg ({objects, workingTree, status} as model) =
     -- === Ports ===
 
 
-    Outside infoForElm ->
-      case infoForElm of
+    Port incomingMsg ->
+      case incomingMsg of
         UpdateContent (id, str) ->
           let
             newTree = Trees.update (Trees.Upd id str) model.workingTree
@@ -291,7 +291,7 @@ update msg ({objects, workingTree, status} as model) =
                 , filepath = Just filepath
                 , changed = False
               }
-                ! [ sendInfoOutside ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
+                ! [ sendOut ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
                 |> activate model.viewState.active
 
             (Clean newHead, Just newTree) ->
@@ -302,7 +302,7 @@ update msg ({objects, workingTree, status} as model) =
                 , filepath = Just filepath
                 , changed = False
               }
-                ! [ sendInfoOutside ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
+                ! [ sendOut ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
                 |> activate model.viewState.active
 
             (MergeConflict mTree oldHead newHead [], Just newTree) ->
@@ -313,7 +313,7 @@ update msg ({objects, workingTree, status} as model) =
                 , filepath = Just filepath
                 , changed = False
               }
-                ! [ sendInfoOutside ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
+                ! [ sendOut ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
                 |> activate model.viewState.active
 
             (MergeConflict mTree oldHead newHead conflicts, Just newTree) ->
@@ -324,7 +324,7 @@ update msg ({objects, workingTree, status} as model) =
                 , filepath = Just filepath
                 , changed = False
               }
-                ! [ sendInfoOutside ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
+                ! [ sendOut ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
                 |> activate model.viewState.active
 
             _ ->
@@ -343,7 +343,7 @@ update msg ({objects, workingTree, status} as model) =
                 , objects = newObjects
                 , status = newStatus
               }
-                ! [ sendInfoOutside ( UpdateCommits ( Objects.toValue newObjects , Just sha ) ) ]
+                ! [ sendOut ( UpdateCommits ( Objects.toValue newObjects , Just sha ) ) ]
                 |> activate vs.active
 
             (Clean oldHead, Clean newHead) ->
@@ -353,7 +353,7 @@ update msg ({objects, workingTree, status} as model) =
                   , objects = newObjects
                   , status = newStatus
                 }
-                  ! [ sendInfoOutside ( UpdateCommits ( Objects.toValue newObjects , Just newHead ) ) ]
+                  ! [ sendOut ( UpdateCommits ( Objects.toValue newObjects , Just newHead ) ) ]
                   |> activate vs.active
               else
                 model ! []
@@ -368,7 +368,7 @@ update msg ({objects, workingTree, status} as model) =
                 , objects = newObjects
                 , status = newStatus
               }
-                ! [ sendInfoOutside ( UpdateCommits ( newObjects |> Objects.toValue, Just newHead ) ) ]
+                ! [ sendOut ( UpdateCommits ( newObjects |> Objects.toValue, Just newHead ) ) ]
                 |> addToHistory
                 |> activate vs.active
 
@@ -389,8 +389,8 @@ update msg ({objects, workingTree, status} as model) =
                 , status = newStatus
                 , changed = True
               }
-                ! [ sendInfoOutside ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
-                  , sendInfoOutside ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) )
+                ! [ sendOut ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
+                  , sendOut ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) )
                   ]
 
             Err err ->
@@ -413,7 +413,7 @@ update msg ({objects, workingTree, status} as model) =
                     | workingTree = Trees.setTree newTree model.workingTree
                     , status = newStatus
                   }
-                    ! [ sendInfoOutside ( UpdateCommits ( Objects.toValue objects, getHead newStatus ) ) ]
+                    ! [ sendOut ( UpdateCommits ( Objects.toValue objects, getHead newStatus ) ) ]
 
                 Nothing ->
                   model ! []
@@ -437,7 +437,7 @@ update msg ({objects, workingTree, status} as model) =
             | filepath = Just filepath
             , changed = False
           }
-            ! [sendInfoOutside (SetSaved filepath)]
+            ! [sendOut (SetSaved filepath)]
 
         RecvCollabState collabState ->
           let
@@ -469,11 +469,11 @@ update msg ({objects, workingTree, status} as model) =
 
         DoExportJSON ->
           model
-            ! [ sendInfoOutside ( ExportJSON model.workingTree.tree ) ]
+            ! [ sendOut ( ExportJSON model.workingTree.tree ) ]
 
         DoExportTXT ->
           model
-            ! [ sendInfoOutside ( ExportTXT model.workingTree.tree )]
+            ! [ sendOut ( ExportTXT model.workingTree.tree )]
 
         Keyboard shortcut ->
           case shortcut of
@@ -487,7 +487,7 @@ update msg ({objects, workingTree, status} as model) =
                   model ! []
 
                 Just uid ->
-                  model ! [ sendInfoOutside ( GetText uid ) ]
+                  model ! [ sendOut ( GetText uid ) ]
                     |> cancelCard
                     |> activate uid
 
@@ -655,7 +655,7 @@ activate id (model, prevCmd) =
               }
         }
           ! [ prevCmd
-            , sendInfoOutside
+            , sendOut
               ( ActivateCards
                 ( getDepth 0 model.workingTree.tree id
                 , centerlineIds flatCols allIds newPast
@@ -749,7 +749,7 @@ openCard id str (model, prevCmd) =
         |> (not << List.isEmpty)
   in
   if isLocked then
-    model ! [prevCmd, sendInfoOutside (Alert "Card is being edited by someone else.")]
+    model ! [prevCmd, sendOut (Alert "Card is being edited by someone else.")]
   else
     { model
       | viewState = { vs | active = id, editing = Just id }
@@ -791,9 +791,9 @@ deleteCard id (model, prevCmd) =
           ("0", True)
   in
   if isLocked then
-    model ! [ sendInfoOutside ( Alert "Card is being edited by someone else.") ]
+    model ! [ sendOut ( Alert "Card is being edited by someone else.") ]
   else if isLastChild then
-    model ! [ sendInfoOutside ( Alert "Cannot delete last card.") ]
+    model ! [ sendOut ( Alert "Cannot delete last card.") ]
   else
     { model
       | workingTree = Trees.update (Trees.Rmv id) model.workingTree
@@ -824,7 +824,7 @@ intentCancelCard model =
       model ! []
 
     Just id ->
-      model ! [ sendInfoOutside (ConfirmCancel vs.active originalContent) ]
+      model ! [ sendOut (ConfirmCancel vs.active originalContent) ]
 
 
 -- === Card Insertion  ===
@@ -955,7 +955,7 @@ moveRight id (model, prevCmd) =
 push : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 push (model, prevCmd) =
   if model.online then
-    model ! [ prevCmd, sendInfoOutside Push ]
+    model ! [ prevCmd, sendOut Push ]
   else
     model ! [ prevCmd ]
 
@@ -973,9 +973,9 @@ addToHistory ({workingTree} as model, prevCmd) =
         , status = newStatus
         , changed = True
       }
-        ! [ sendInfoOutside ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
-          , sendInfoOutside ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
-          , sendInfoOutside SetChanged
+        ! [ sendOut ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
+          , sendOut ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
+          , sendOut SetChanged
           ]
 
     Clean oldHead ->
@@ -988,9 +988,9 @@ addToHistory ({workingTree} as model, prevCmd) =
         , status = newStatus
         , changed = True
       }
-        ! [ sendInfoOutside ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
-          , sendInfoOutside ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
-          , sendInfoOutside SetChanged
+        ! [ sendOut ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
+          , sendOut ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
+          , sendOut SetChanged
           ]
 
     MergeConflict _ oldHead newHead conflicts ->
@@ -1004,13 +1004,13 @@ addToHistory ({workingTree} as model, prevCmd) =
           , status = newStatus
           , changed = True
         }
-          ! [ sendInfoOutside ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
-            , sendInfoOutside ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
-            , sendInfoOutside SetChanged
+          ! [ sendOut ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
+            , sendOut ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
+            , sendOut SetChanged
             ]
       else
         model
-          ! [ sendInfoOutside ( SaveLocal ( model.workingTree.tree ) ) ]
+          ! [ sendOut ( SaveLocal ( model.workingTree.tree ) ) ]
 
 
 
@@ -1021,10 +1021,10 @@ intentSave : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 intentSave (model, prevCmd) =
   case (model.filepath, model.changed) of
     (Nothing, True) ->
-      model ! [ prevCmd, sendInfoOutside SaveAs ]
+      model ! [ prevCmd, sendOut SaveAs ]
 
     (Just filepath, True) ->
-      model ! [ prevCmd, sendInfoOutside ( Save filepath ) ]
+      model ! [ prevCmd, sendOut ( Save filepath ) ]
 
     _ ->
       model ! [prevCmd]
@@ -1034,20 +1034,20 @@ intentNew : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 intentNew (model, prevCmd) =
   case model.filepath of
     Nothing ->
-      model ! [prevCmd, sendInfoOutside ( New Nothing )]
+      model ! [prevCmd, sendOut ( New Nothing )]
 
     Just filepath ->
-      model ! [prevCmd, sendInfoOutside ( New ( Just filepath ) )]
+      model ! [prevCmd, sendOut ( New ( Just filepath ) )]
 
 
 intentOpen : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 intentOpen (model, prevCmd) =
   case (model.filepath, model.changed) of
     (Just filepath, True) ->
-      model ! [ prevCmd, sendInfoOutside ( Open ( Just filepath ) ) ]
+      model ! [ prevCmd, sendOut ( Open ( Just filepath ) ) ]
 
     _ ->
-      model ! [ prevCmd, sendInfoOutside ( Open Nothing ) ]
+      model ! [ prevCmd, sendOut ( Open Nothing ) ]
 
 
 sendCollabState : CollabState -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1057,7 +1057,7 @@ sendCollabState collabState (model, prevCmd) =
       model ! [ prevCmd ]
 
     _ ->
-      model ! [ prevCmd, sendInfoOutside ( SocketSend collabState ) ]
+      model ! [ prevCmd, sendOut ( SocketSend collabState ) ]
 
 
 
@@ -1294,7 +1294,7 @@ modelToValue model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  getInfoFromOutside Outside LogErr
+  receiveMsg Port LogErr
 
 
 
@@ -1331,7 +1331,7 @@ maybeSaveAndThen operation model =
         |> operation
 
     Just uid ->
-      model ! [ sendInfoOutside ( GetText uid ) ]
+      model ! [ sendOut ( GetText uid ) ]
         |> operation
 
 

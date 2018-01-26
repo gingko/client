@@ -473,7 +473,7 @@ viewCard (isActive, isEditing, depth, isLast, collaborators, collabsEditing, dra
                 [ span
                   [ class "card-btn save"
                   , title "Save Changes (Ctrl+Enter)"
-                  , onClick (Outside (Keyboard "mod+enter"))
+                  , onClick (Port (Keyboard "mod+enter"))
                   ]
                   []
                 ]

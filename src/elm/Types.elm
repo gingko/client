@@ -24,11 +24,11 @@ type Msg
     | SetSelection String Selection String
     | Resolve String
     -- === Ports ===
-    | Outside InfoForElm
+    | Port IncomingMsg
     | LogErr String
 
 
-type InfoForOutside
+type OutgoingMsg
     = Alert String
     | ActivateCards (Int, List (List String))
     | GetText String
@@ -49,7 +49,7 @@ type InfoForOutside
     | SocketSend CollabState
 
 
-type InfoForElm
+type IncomingMsg
     = UpdateContent (String, String)
     | CancelCardConfirmed
     | Reset
