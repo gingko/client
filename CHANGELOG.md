@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
   - Added basic word count feature (total and session).
   - Ctrl+arrows (used for text navigation) no longer trigger card insertions.
   - Fixed trial counter (maxed out at 20 days left).
+  - Added basic syntax highlighting.
   - (Internal) Refactored Ports
 
 ## [0.8.3] - 2018-01-10
