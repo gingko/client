@@ -1188,19 +1188,38 @@ viewFooter model =
 
 viewShortcutsToggle : Bool -> ViewState -> Html Msg
 viewShortcutsToggle isOpen vs =
+  let
+    shortcutSpan keys desc =
+      let
+        keySpans =
+          keys
+            |> List.map (\k -> span [ class "shortcut-key" ][ text k ])
+      in
+      span []
+        ( keySpans
+        ++ [ text ( " " ++ desc ) ]
+        )
+  in
   if isOpen then
     if vs.editing == Nothing then
       div
         [ id "shortcuts-tray", class "inset", onClick ShortcutTrayToggle  ]
-        [ text "normal shortcuts"]
+        [ shortcutSpan ["Enter"] "to Edit"
+        , shortcutSpan ["Ctrl","→"] "to Add Child"
+        , shortcutSpan ["Ctrl", "↓"] "to Add Below"
+        , shortcutSpan ["Ctrl", "↑"] "to Add Above"
+        , shortcutSpan ["Ctrl", "Backspace"] "to Delete"
+        ]
     else
       div
         [ id "shortcuts-tray", class "inset", onClick ShortcutTrayToggle  ]
-        [ text "editing shortcuts"]
+        [ shortcutSpan ["Ctrl", "Enter"] "to Save Changes"
+        , shortcutSpan ["Esc"] "to Cancel Changes"
+        ]
   else
     div
       [ id "shortcuts-tray", class "inset", onClick ShortcutTrayToggle  ]
-      [ text "closed"]
+      [ span [][ text "Shortcut Help" ] ]
 
 
 viewWordcountProgress : Int -> Int -> Html Msg
