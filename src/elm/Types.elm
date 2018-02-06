@@ -23,6 +23,8 @@ type Msg
     | Sync
     | SetSelection String Selection String
     | Resolve String
+    -- === Help ===
+    | ShortcutTrayToggle
     -- === Ports ===
     | Port IncomingMsg
     | LogErr String

@@ -706,7 +706,8 @@ ul, ol {
 
 .footer {
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
+  align-items: flex-end;
   height: 25px;
   width: 100%;
   padding: 2px;
@@ -727,8 +728,6 @@ ul, ol {
 }
 
 #wordcount {
-  position: absolute;
-  bottom: 2px;
   display: flex;
   flex-direction: column-reverse;
   overflow: hidden;

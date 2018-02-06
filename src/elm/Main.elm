@@ -43,6 +43,7 @@ type alias Model =
   , status : Status
   , uid : String
   , viewState : ViewState
+  , shortcutTrayOpen : Bool
   , startingWordcount : Int
   , online : Bool
   , filepath : Maybe String
@@ -66,6 +67,7 @@ defaultModel =
       , draggedTree = Nothing
       , collaborators = []
       }
+  , shortcutTrayOpen = True
   , startingWordcount = 0
   , online = True
   , filepath = Nothing
@@ -253,6 +255,15 @@ update msg ({objects, workingTree, status} as model) =
 
         _ ->
           model ! []
+
+    -- === Help ===
+
+    ShortcutTrayToggle ->
+      { model
+        | shortcutTrayOpen = not model.shortcutTrayOpen
+      }
+        ! []
+
 
     -- === Ports ===
 
@@ -1141,6 +1152,8 @@ viewFooter model =
   in
   div
     [ class "footer" ]
+    ( [ viewShortcutsToggle model.shortcutTrayOpen model.viewState ]
+    ++
     ( if model.viewState.editing == Nothing then
         if model.startingWordcount /= 0 then
           let
@@ -1170,6 +1183,24 @@ viewFooter model =
       else
         []
     )
+    )
+
+
+viewShortcutsToggle : Bool -> ViewState -> Html Msg
+viewShortcutsToggle isOpen vs =
+  if isOpen then
+    if vs.editing == Nothing then
+      div
+        [ id "shortcuts-tray", class "inset", onClick ShortcutTrayToggle  ]
+        [ text "normal shortcuts"]
+    else
+      div
+        [ id "shortcuts-tray", class "inset", onClick ShortcutTrayToggle  ]
+        [ text "editing shortcuts"]
+  else
+    div
+      [ id "shortcuts-tray", class "inset", onClick ShortcutTrayToggle  ]
+      [ text "closed"]
 
 
 viewWordcountProgress : Int -> Int -> Html Msg
