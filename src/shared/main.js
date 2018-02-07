@@ -51,7 +51,15 @@ document.title = `${filename} - Gingko`
 
 var dbpath = path.join(app.getPath('userData'), dbname)
 self.db = new PouchDB(dbpath, {adapter: 'memory'})
-self.gingko = Elm.Main.fullscreen()
+var initFlags = false;
+
+if ( localStorage.getItem('shortcut-tray-is-open') === "false" ) {
+  false
+} else {
+  true
+}
+
+self.gingko = Elm.Main.fullscreen(initFlags)
 self.socket = io.connect('http://localhost:3000')
 
 //self.remoteCouch = 'http://localhost:5984/atreenodes16'
@@ -235,6 +243,10 @@ const update = (msg, data) => {
 
     , 'SetSaved': () =>
         setFileState(false, data)
+
+    , 'SetShortcutTray': () => {
+        localStorage.setItem('shortcut-tray-is-open', data)
+      }
 
     , 'SetChanged': () => {
         setFileState(true, currentFile)

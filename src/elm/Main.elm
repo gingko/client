@@ -24,9 +24,9 @@ import Coders exposing (..)
 import Html5.DragDrop as DragDrop
 
 
-main : Program Never Model Msg
+main : Program Bool Model Msg
 main =
-  program
+  programWithFlags
     { init = init
     , view = view
     , update = update
@@ -75,9 +75,12 @@ defaultModel =
   }
 
 
-init : (Model, Cmd Msg)
-init =
-  defaultModel ! [focus "1"]
+init : Bool -> (Model, Cmd Msg)
+init trayIsOpen =
+  { defaultModel
+    | shortcutTrayOpen = trayIsOpen
+  }
+    ! [focus "1"]
     |> activate "1"
 
 
@@ -259,10 +262,11 @@ update msg ({objects, workingTree, status} as model) =
     -- === Help ===
 
     ShortcutTrayToggle ->
+      let newIsOpen = not model.shortcutTrayOpen in
       { model
-        | shortcutTrayOpen = not model.shortcutTrayOpen
+        | shortcutTrayOpen = newIsOpen
       }
-        ! []
+        ! [ sendOut ( SetShortcutTray newIsOpen ) ]
 
 
     -- === Ports ===
@@ -291,7 +295,7 @@ update msg ({objects, workingTree, status} as model) =
             |> cancelCard
 
         Reset ->
-          init
+          init model.shortcutTrayOpen
 
         Load (filepath, json) ->
           let

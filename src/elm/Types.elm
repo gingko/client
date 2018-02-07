@@ -49,6 +49,7 @@ type OutgoingMsg
     | UpdateCommits (Json.Value, Maybe String)
     | SetSaved String
     | SetChanged
+    | SetShortcutTray Bool
     | SocketSend CollabState
 
 
