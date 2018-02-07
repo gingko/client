@@ -33,6 +33,7 @@ window.Elm = require('../elm/Main')
 
 var currentFile = null
 var changed = false
+var saving = false
 var field = null
 var editing = null
 var currentSwap = null
@@ -172,7 +173,7 @@ const update = (msg, data) => {
           gingko.ports.infoForElm.send({tag: 'Reset', data: null})
         }
 
-        if(changed) {
+        if(changed && !saving) {
           saveConfirmation(data).then( () => {
             db.destroy().then( res => {
               if (res.ok) {
@@ -186,7 +187,7 @@ const update = (msg, data) => {
       }
 
     , 'Load': () => {
-          if(changed) {
+          if(changed && !saving) {
             saveConfirmation(currentFile).then(() => loadFile(data))
           } else {
             loadFile(data)
@@ -194,7 +195,7 @@ const update = (msg, data) => {
         }
 
     , 'Import': () => {
-        if (changed) {
+        if (changed && ! saving) {
           saveConfirmation(data).then(importDialog)
         } else {
           importDialog()
@@ -214,8 +215,11 @@ const update = (msg, data) => {
             gingko.ports.infoForElm.send({tag:'Saved', data: filepath})
           )
 
-    , 'SaveAndClose': () =>
-        saveConfirmation(data).then(app.exit)
+    , 'SaveAndClose': () => {
+        if(!saving) {
+          saveConfirmation(data).then(app.exit)
+        }
+      }
 
     , 'ExportJSON': () => {
         exportJson(data)
@@ -226,7 +230,7 @@ const update = (msg, data) => {
       }
 
     , 'Open': () => {
-        if (changed) {
+        if (changed && !saving) {
           saveConfirmation(data).then(openDialog)
         } else {
           openDialog()
@@ -424,13 +428,17 @@ const save = (filepath) => {
   return new Promise(
     (resolve, reject) => {
       let ws = fs.createWriteStream(filepath)
+      saving = true
       db.dump(ws).then( res => {
         if (res.ok) {
+          saving = false
           resolve(filepath)
         } else {
+          saving = false
           reject(res)
         }
       }).catch( err => {
+        saving = false
         reject(err)
       })
     }

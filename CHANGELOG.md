@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
   - Fixed trial counter (maxed out at 20 days left).
   - Added basic syntax highlighting.
   - (Internal) Refactored Ports
+  - (Critical) If closed quickly after saving, data would be corrupted. Now Fixed.
 
 ## [0.8.3] - 2018-01-10
   - Added basic drag-and-drop for card moving.
