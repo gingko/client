@@ -54,9 +54,9 @@ self.db = new PouchDB(dbpath, {adapter: 'memory'})
 var initFlags = false;
 
 if ( localStorage.getItem('shortcut-tray-is-open') === "false" ) {
-  false
+  initFlags = false
 } else {
-  true
+  initFlags = true
 }
 
 self.gingko = Elm.Main.fullscreen(initFlags)
