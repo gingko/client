@@ -710,7 +710,7 @@ ul, ol {
   align-items: flex-end;
   height: 25px;
   width: 100%;
-  padding: 2px;
+  padding: 2px 6px;
   margin-top: 3px;
   font-size: 12px;
   font-family: sans-serif;
@@ -746,12 +746,46 @@ ul, ol {
 
 #shortcuts-tray {
   display: flex;
+  flex-direction: column-reverse;
+  padding: 1px 6px;
+  z-index: 9999;
+}
+
+#shortcuts-tray div.popup {
+  position: absolute;
+  bottom: 20px;
+  left: 6px;
+  display: flex;
   flex-direction: column;
-  border-radius: 4px 4px 0 0;
+  padding: 2px 8px 8px 6px;
+  border-radius: 4px 4px 4px 0;
+  border-bottom: 1px solid #84939a;
   background-color: #a2aeb4;
   cursor: default;
-  box-shadow: 14px -12px 4px -13px #3c484e;
-  z-index: 9999;
+}
+#shortcuts-tray div.popup::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 99%;
+  left: 0px;
+  border-radius: 4px 4px 4px 0;
+  z-index: -1;
+  box-shadow: 1px -2px 3px #3c484e;
+}
+#shortcuts-tray div.popup::after {
+  content: '';
+  width: 43px;
+  height: 1px;
+  background-color: #a2aeb4;
+  position: absolute;
+  bottom: -1px;
+  left: 1px;
+}
+
+#shortcuts-tray div.icon-stack {
+  display: flex;
+  align-items: center;
 }
 
 span.shortcut-key {

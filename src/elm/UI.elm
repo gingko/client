@@ -6,6 +6,7 @@ import Html.Events exposing (onClick, onInput)
 import Regex exposing (Regex, replace, regex)
 import Diff exposing (..)
 import InlineHover exposing (hover)
+import Octicons as Icon exposing (defaultOptions)
 
 import Types exposing (..)
 import Trees exposing (defaultTree)
@@ -78,24 +79,43 @@ viewShortcutsToggle isOpen vs =
   in
   if isOpen then
     if vs.editing == Nothing then
+      let iconColor = Icon.color "#445" in
       div
         [ id "shortcuts-tray", class "inset", onClick ShortcutTrayToggle  ]
-        [ shortcutSpan ["Enter"] "to Edit"
-        , shortcutSpan ["Ctrl","→"] "to Add Child"
-        , shortcutSpan ["Ctrl", "↓"] "to Add Below"
-        , shortcutSpan ["Ctrl", "↑"] "to Add Above"
-        , shortcutSpan ["Ctrl", "Backspace"] "to Delete"
+        [ div [ class "popup" ]
+          [ shortcutSpan ["Enter"] "to Edit"
+          , shortcutSpan ["Ctrl","→"] "to Add Child"
+          , shortcutSpan ["Ctrl", "↓"] "to Add Below"
+          , shortcutSpan ["Ctrl", "↑"] "to Add Above"
+          , shortcutSpan ["Ctrl", "Backspace"] "to Delete"
+          ]
+        , div [ class "icon-stack" ]
+          [ Icon.keyboard ( defaultOptions |> iconColor )
+          , Icon.question ( defaultOptions |> iconColor |> Icon.size 14 )
+          ]
         ]
     else
+      let iconColor = Icon.color "#445" in
       div
         [ id "shortcuts-tray", class "inset", onClick ShortcutTrayToggle  ]
-        [ shortcutSpan ["Ctrl", "Enter"] "to Save Changes"
-        , shortcutSpan ["Esc"] "to Cancel Changes"
+        [ div [ class "popup" ]
+          [ shortcutSpan ["Ctrl", "Enter"] "to Save Changes"
+          , shortcutSpan ["Esc"] "to Cancel Changes"
+          ]
+        , div [ class "icon-stack" ]
+          [ Icon.keyboard ( defaultOptions |> iconColor )
+          , Icon.question ( defaultOptions |> iconColor |> Icon.size 14 )
+          ]
         ]
   else
+    let iconColor = Icon.color "#6c7c84" in
     div
-      [ id "shortcuts-tray", class "inset", onClick ShortcutTrayToggle  ]
-      [ span [][ text "Shortcut Help" ] ]
+      [ id "shortcuts-tray", class "inset", onClick ShortcutTrayToggle, title "Keyboard Shortcuts Help" ]
+      [ div [ class "icon-stack" ]
+        [ Icon.keyboard ( defaultOptions |> iconColor )
+        , Icon.question ( defaultOptions |> iconColor |> Icon.size 14 )
+        ]
+      ]
 
 
 viewWordcountProgress : Int -> Int -> Html Msg
