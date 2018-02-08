@@ -122,6 +122,12 @@ sendOut info =
         , data = string filepath
         }
 
+    SetShortcutTray isOpen ->
+      infoForOutside
+        { tag = "SetShortcutTray"
+        , data = bool isOpen
+        }
+
     SetChanged ->
       tagOnly "SetChanged"
 

@@ -23,6 +23,8 @@ type Msg
     | Sync
     | SetSelection String Selection String
     | Resolve String
+    -- === Help ===
+    | ShortcutTrayToggle
     -- === Ports ===
     | Port IncomingMsg
     | LogErr String
@@ -47,6 +49,7 @@ type OutgoingMsg
     | UpdateCommits (Json.Value, Maybe String)
     | SetSaved String
     | SetChanged
+    | SetShortcutTray Bool
     | SocketSend CollabState
 
 

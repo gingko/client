@@ -55,7 +55,6 @@ module.exports = {
       from: './static',
       to: '../app/static'
     }]
-    , {debug: 'debug'}
     )
   ]
 }
