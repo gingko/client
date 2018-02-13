@@ -2,13 +2,13 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
-## Unreleased
+## [0.8.4] - 2018-02-13
+  - (Critical) If closed quickly after saving, data could be corrupted. Now Fixed.
   - Added basic word count feature (total and session).
-  - Ctrl+arrows (used for text navigation) no longer trigger card insertions.
-  - Fixed trial counter (maxed out at 20 days left).
   - Added basic syntax highlighting.
+  - Ctrl+arrows (used for text navigation) no longer trigger card insertions.
+  - Fixed trial counter (used to max out at "20 days left").
   - (Internal) Refactored Ports
-  - (Critical) If closed quickly after saving, data would be corrupted. Now Fixed.
 
 ## [0.8.3] - 2018-01-10
   - Added basic drag-and-drop for card moving.
