@@ -4,6 +4,7 @@ const autosize = require('textarea-autosize')
 
 const fs = require('fs')
 const zlib = require('zlib')
+const getHash = require('hash-stream')
 const readChunk = require('read-chunk')
 const fileType = require('file-type')
 const path = require('path')
@@ -445,12 +446,28 @@ const save = (filepath) => {
     (resolve, reject) => {
       let filewriteStream = fs.createWriteStream(filepath)
       let memStream = new MemoryStream();
-      let gzip = zlib.createGzip();
+      let compressedStream = memStream.pipe(zlib.createGzip());
       saving = true
-      db.dump(memStream).then( res => {
+      db.dump(compressedStream).then( res => {
         if (res.ok) {
-          memStream.pipe(gzip).pipe(filewriteStream)
-          resolve(filepath)
+          compressedStream.pipe(filewriteStream)
+
+          var streamHash;
+          var fileHash;
+
+          getHash(compressedStream, 'sha1', (err, hash) => {
+            streamHash = hash.toString('base64')
+            getHash(filepath, 'sha1', (err, fhash) => {
+              fileHash = fhash.toString('base64')
+              console.log('stream/file hashes', streamHash, fileHash)
+
+              if (streamHash !== fileHash) {
+                throw new Error('File integrity check failed.')
+              } else {
+                resolve(filepath)
+              }
+            })
+          })
         } else {
           saving = false
           reject(res)
