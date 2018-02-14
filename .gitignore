@@ -6,10 +6,10 @@ app/*
 !app/package.json
 node_modules
 Gingko-*
-secrets.config
 *.gko
 *.ps
 *.pdf
 repOut.txt
 data/*
 npm-debug.log
+*.env
