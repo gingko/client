@@ -5,14 +5,17 @@ Please bear with us, while we improve it.
 
 # Installation & Dev Environment
 
-```bash
-# 1. Mac users: install expect/unbuffer
-brew install expect
+Prerequisites:
 
-# 2. Build code:
+* Git : https://git-scm.com/downloads
+* Node : https://nodejs.org/en/
+* Elm-Platform : https://guide.elm-lang.org/install.html
+
+```bash
+# 1. Build code:
 yarn install
 yarn start
 
-# 3. In separate terminal:
+# 2. In separate terminal:
 yarn run electron
 ```

@@ -2,11 +2,17 @@
 # Fakes elm-make into printing colors when
 # run by elm-webpack-loader.
 
-# Requires unbuffer to be installed:
+# For elm compiler colors, requires unbuffer to be installed:
 
 # On linux/ubuntu:
 # $ sudo apt-get install expect-dev
 
 # On macOS:
 # $ brew install expect
-unbuffer node_modules/.bin/elm-make $@
+#
+#
+if command -v unbuffer; then
+  unbuffer node_modules/.bin/elm-make $@
+else
+  node_modules/.bin/elm-make $@
+fi
