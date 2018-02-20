@@ -14,7 +14,7 @@ cache:
 
 before_script:
   - npm install -g elm
-  - yarn build
+  - travis_wait 30 mvn yarn build
 
 script:
   - yarn dist
