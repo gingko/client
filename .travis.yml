@@ -12,25 +12,8 @@ cache:
     - sysconfcpus
     - $HOME/.npm # https://stackoverflow.com/a/42523517/1148249
 
-before_install:
-  - | # build time improvement see: https://git.io/vQcqz
-    if [ ! -d sysconfcpus/bin ];
-    then
-      git clone https://github.com/obmarg/libsysconfcpus.git;
-      cd libsysconfcpus;
-      ./configure --prefix=$TRAVIS_BUILD_DIR/sysconfcpus;
-      make && make install;
-      cd ..;
-    fi
-
-install:
-  - npm install -g elm
-  - mv $(npm config get prefix)/bin/elm-make $(npm config get prefix)/bin/elm-make-old
-  - printf "#\041/bin/bash\n\necho \"Running elm-make with sysconfcpus -n 2\"\n\n$TRAVIS_BUILD_DIR/sysconfcpus/bin/sysconfcpus -n 2 elm-make-old \"\$@\"" > $(npm config get prefix)/bin/elm-make
-  - chmod +x $(npm config get prefix)/bin/elm-make
-  - travis_retry elm package install --yes # install main project dependencies
-
 before_script:
+  - npm install -g elm
   - yarn build
 
 script:
