@@ -5,6 +5,7 @@ node_js: "stable"
 os: linux
 
 before_script:
+  - npm install -g elm
   - yarn build
 
 script:
