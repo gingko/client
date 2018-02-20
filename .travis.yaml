@@ -1,0 +1,11 @@
+language: node_js
+
+node_js: "stable"
+
+os: linux
+
+install: yarn install
+
+before_script: yarn build
+
+script: yarn dist
