@@ -24,6 +24,7 @@ before_install:
     fi
 
 install:
+  - yarn install
   - npm install -g elm
   # the next 3 lines are courtesy of @rtfeldman https://git.io/vbj0j
   - mv $(npm config get prefix)/bin/elm-make $(npm config get prefix)/bin/elm-make-old
