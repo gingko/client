@@ -4,4 +4,8 @@ node_js: "stable"
 
 os: linux
 
-script: yarn dist
+before_script:
+  - yarn build
+
+script:
+  - yarn dist
