@@ -13,16 +13,6 @@ const hiddenStore = new Store({name: "kernel", encryptionKey: "79df64f73eab9bc0d
 const userStore = new Store({name: "config"})
 
 
-//Enable autoUpdater
-export default class AppUpdater {
-  constructor() {
-    const log = require("electron-log")
-    log.transports.file.level = "info"
-    autoUpdater.logger = log
-    autoUpdater.checkForUpdatesAndNotify()
-  }
-}
-
 
 
 function createAppWindow () {
@@ -100,6 +90,9 @@ function validSerial(email, storedSerial) {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
+  console.log('autoUpdater', autoUpdater)
+  autoUpdater.checkForUpdatesAndNotify();
+
   let email = userStore.get('email', "")
   let storedSerial = userStore.get('serial', "")
 
