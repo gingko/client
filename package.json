@@ -1,7 +1,7 @@
 {
   "name": "gingko-client",
   "productName": "Gingko",
-  "version": "0.8.4",
+  "version": "0.8.5",
   "description": "Gingko client rewritten in Elm, packaged with Electron.",
   "repository": {
     "type": "git",
@@ -23,7 +23,8 @@
     "pack": "electron-builder --dir",
     "dist": "DEBUG=electron-builder && electron-builder",
     "dist:win": "DEBUG=electron-builder && electron-builder -w",
-    "dist:mac": "DEBUG=electron-builder && electron-builder -m"
+    "dist:mac": "DEBUG=electron-builder && electron-builder -m",
+    "release": "yarn dist"
   },
   "build": {
     "appId": "com.gingkoapp.desktop",

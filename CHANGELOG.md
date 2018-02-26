@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
+## [0.8.5] - 2018-02-26
+  - (Internal) Build process reworked, including code signing certificates.
+
 ## [0.8.4] - 2018-02-13
   - (Critical) If closed quickly after saving, data could be corrupted. Now Fixed.
   - Added basic word count feature (total and session).

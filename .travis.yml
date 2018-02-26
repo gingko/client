@@ -35,4 +35,4 @@ before_script:
   - travis_wait 30 yarn build
 
 script:
-  - yarn dist
+  - yarn release

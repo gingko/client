@@ -1,14 +1,14 @@
 {
   "name": "gingko-client",
   "productName": "Gingko",
-  "version": "0.8.4",
+  "version": "0.8.5",
   "description": "Gingko client rewritten in Elm, packaged with Electron.",
   "repository": {
     "type": "git",
     "url": "git://github.com/gingko/client.git"
   },
   "author": {
-    "name": "Adriano Ferrari",
+    "name": "Gingko Inc",
     "email": "adriano@gingkoapp.com"
   },
   "license": "MIT",
