@@ -46,6 +46,8 @@ var collab = {}
 
 /* === Initializing App === */
 
+console.log('Gingko version', app.getVersion())
+
 var dbname = querystring.parse(window.location.search.slice(1))['dbname'] || sha1(Date.now()+machineIdSync())
 var filename = querystring.parse(window.location.search.slice(1))['filename'] || "Untitled Tree"
 document.title = `${filename} - Gingko`
