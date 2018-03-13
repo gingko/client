@@ -63,13 +63,13 @@ viewFooter model =
     )
 
 
-viewVideo : { m | videoHelpOpen : Bool } -> Html Msg
-viewVideo { videoHelpOpen } =
-  if videoHelpOpen then
+viewVideo : { m | videoModalOpen : Bool } -> Html Msg
+viewVideo { videoModalOpen } =
+  if videoModalOpen then
     div [ class "modal-container" ]
       [ div [ class "modal" ]
-          [
-            text "Hi there!"
+          [ h1 [][ text "Hi there!"]
+          , button [ onClick (VideoModal False) ][text "X"]
           ]
       ]
   else
