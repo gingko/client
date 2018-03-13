@@ -310,7 +310,12 @@ const menuTemplate =
     }
   , { label: 'Help'
     , submenu:
-        [ { label: 'Contact Adriano'
+        [ { label: 'View Videos'
+          , click (item, focusedWindow) {
+              focusedWindow.webContents.send('menu-view-videos')
+            }
+          }
+        , { label: 'Contact Adriano'
           , click (item, focusedWindow) {
               shell.openExternal('mailto:adriano@gingkoapp.com')
             }
