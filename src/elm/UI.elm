@@ -1,4 +1,4 @@
-module UI exposing (viewFooter, viewConflict, countWords)
+module UI exposing (viewFooter, viewVideo, viewConflict, countWords)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -61,6 +61,19 @@ viewFooter model =
         []
     )
     )
+
+
+viewVideo : { m | videoHelpOpen : Bool } -> Html Msg
+viewVideo { videoHelpOpen } =
+  if videoHelpOpen then
+    div [ class "modal-container" ]
+      [ div [ class "modal" ]
+          [
+            text "Hi there!"
+          ]
+      ]
+  else
+    div [][]
 
 
 viewShortcutsToggle : Bool -> ViewState -> Html Msg

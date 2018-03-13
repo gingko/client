@@ -12,7 +12,7 @@ import Task
 import Types exposing (..)
 import Trees exposing (..)
 import TreeUtils exposing (..)
-import UI exposing (viewFooter, viewConflict, countWords)
+import UI exposing (viewFooter, viewVideo, viewConflict, countWords)
 import Sha1 exposing (timestamp, timeJSON)
 import Objects
 import Ports exposing (..)
@@ -41,6 +41,7 @@ type alias Model =
   , uid : String
   , viewState : ViewState
   , shortcutTrayOpen : Bool
+  , videoHelpOpen : Bool
   , startingWordcount : Int
   , online : Bool
   , filepath : Maybe String
@@ -65,6 +66,7 @@ defaultModel =
       , collaborators = []
       }
   , shortcutTrayOpen = True
+  , videoHelpOpen = True
   , startingWordcount = 0
   , online = True
   , filepath = Nothing
@@ -1137,6 +1139,7 @@ repeating-linear-gradient(-45deg
         [ id "root" ]
         [ lazy2 Trees.view model.viewState model.workingTree
         , viewFooter model
+        , viewVideo model
         ]
 
 
