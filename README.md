@@ -1,3 +1,4 @@
+# Gingko 2 [![Build Status](https://travis-ci.org/gingko/client.svg?branch=master)](https://travis-ci.org/gingko/client)
 This is the desktop version, ground-up rewrite of [GingkoApp.com](https://gingkoapp.com). The latest version of this is available for download at [gingko.io](https://gingko.io). (Linux, Windows, and Mac).
 
 This code has only recently been open-sourced, so documentation is sparse.
