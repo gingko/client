@@ -68,13 +68,13 @@ viewVideo { videoModalOpen } =
   if videoModalOpen then
     div [ class "modal-container" ]
       [ div [ class "modal" ]
-          [ h1 []
-              [ text "Hi there!"
-              ,button [ onClick (VideoModal False) ][text "X"]
+          [ div [ class "modal-header" ]
+              [ h1 [] [ text "Welcome to Gingko" ]
+              , a [ onClick (VideoModal False) ][text "×"]
               ]
           , iframe
-              [ width 560
-              , height 315
+              [ width 650
+              , height 366
               , src "https://www.youtube.com/embed/egCKZHsICm8?rel=0&amp;showinfo=0"
               , attribute "frameborder" "0"
               , attribute "allowfullscreen" ""
