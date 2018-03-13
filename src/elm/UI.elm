@@ -68,8 +68,18 @@ viewVideo { videoModalOpen } =
   if videoModalOpen then
     div [ class "modal-container" ]
       [ div [ class "modal" ]
-          [ h1 [][ text "Hi there!"]
-          , button [ onClick (VideoModal False) ][text "X"]
+          [ h1 []
+              [ text "Hi there!"
+              ,button [ onClick (VideoModal False) ][text "X"]
+              ]
+          , iframe
+              [ width 560
+              , height 315
+              , src "https://www.youtube.com/embed/egCKZHsICm8?rel=0&amp;showinfo=0"
+              , attribute "frameborder" "0"
+              , attribute "allowfullscreen" ""
+              ]
+              []
           ]
       ]
   else
