@@ -3,10 +3,15 @@ const _ = require('lodash')
 const autosize = require('textarea-autosize')
 
 const fs = require('fs')
+const zlib = require('zlib')
+const getHash = require('hash-stream')
+const readChunk = require('read-chunk')
+const fileType = require('file-type')
 const path = require('path')
 const {ipcRenderer, remote, webFrame, shell} = require('electron')
 const {app, dialog} = remote
 const querystring = require('querystring')
+const MemoryStream = require('memorystream')
 
 import PouchDB from "pouchdb-browser";
 
@@ -451,12 +456,30 @@ const setHead = function(sha) {
 const save = (filepath) => {
   return new Promise(
     (resolve, reject) => {
-      let ws = fs.createWriteStream(filepath)
+      let filewriteStream = fs.createWriteStream(filepath)
+      let memStream = new MemoryStream();
+      let compressedStream = memStream.pipe(zlib.createGzip());
       saving = true
-      db.dump(ws).then( res => {
+      db.dump(compressedStream).then( res => {
         if (res.ok) {
-          saving = false
-          resolve(filepath)
+          compressedStream.pipe(filewriteStream)
+
+          var streamHash;
+          var fileHash;
+
+          getHash(compressedStream, 'sha1', (err, hash) => {
+            streamHash = hash.toString('base64')
+            getHash(filepath, 'sha1', (err, fhash) => {
+              fileHash = fhash.toString('base64')
+              console.log('stream/file hashes', streamHash, fileHash)
+
+              if (streamHash !== fileHash) {
+                throw new Error('File integrity check failed.')
+              } else {
+                resolve(filepath)
+              }
+            })
+          })
         } else {
           saving = false
           reject(res)
@@ -612,7 +635,15 @@ const importDialog = () => {
 
 
 const loadFile = (filepathToLoad) => {
-  var rs = fs.createReadStream(filepathToLoad)
+  const buffer = readChunk.sync(filepathToLoad, 0, 4100)
+  const filetype = fileType(buffer);
+
+  if (filetype !== null && filetype.mime === "application/gzip") {
+    var rs = fs.createReadStream(filepathToLoad).pipe(zlib.createGunzip())
+  } else {
+    var rs = fs.createReadStream(filepathToLoad)
+  }
+
   db.destroy().then( res => {
     if (res.ok) {
       dbpath = path.join(app.getPath('userData'), sha1(filepathToLoad))
