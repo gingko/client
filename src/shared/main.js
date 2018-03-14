@@ -267,6 +267,9 @@ const update = (msg, data) => {
         socket.emit('collab', data)
       }
 
+    , 'ConsoleLogRequested': () =>
+        console.log(data)
+
     }
 
   try {

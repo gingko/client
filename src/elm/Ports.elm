@@ -138,6 +138,12 @@ sendOut info =
         , data = collabStateToValue collabState
         }
 
+    ConsoleLogRequested err ->
+      infoForOutside
+        { tag = "ConsoleLogRequested"
+        , data = string err
+        }
+
 
 receiveMsg : (IncomingMsg -> msg) -> (String -> msg) -> Sub msg
 receiveMsg tagger onError =

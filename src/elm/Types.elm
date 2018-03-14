@@ -51,6 +51,7 @@ type OutgoingMsg
     | SetChanged
     | SetShortcutTray Bool
     | SocketSend CollabState
+    | ConsoleLogRequested String
 
 
 type IncomingMsg

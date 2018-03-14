@@ -639,8 +639,8 @@ update msg ({objects, workingTree, status} as model) =
               let _ = Debug.log "unhandled shortcut" shortcut in
               model ! []
 
-    LogErr str ->
-      model ! []
+    LogErr err ->
+      model ! [ sendOut (ConsoleLogRequested err) ]
 
     NoOp ->
       model ! []
