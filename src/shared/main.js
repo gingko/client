@@ -327,6 +327,7 @@ const load = function(filepath, headOverride){
   db.get('status')
     .catch(err => {
       if(err.name == "not_found") {
+        console.log('load status not found. Setting to "bare".')
         return {_id: 'status' , status : 'bare', bare: true}
       } else {
         console.log('load status error', err)
@@ -347,6 +348,12 @@ const load = function(filepath, headOverride){
 
         if(headOverride) {
           refs['heads/master'] = headOverride
+        } else if (_.isEmpty(refs)) {
+          var keysSorted = Object.keys(commits).sort(function(a,b) { return commits[b].timestamp - commits[a].timestamp })
+          var lastCommit = keysSorted[0]
+          refs['heads/master'] = { value: lastCommit, ancestors: [], _rev: "" }
+          console.log('recovered status', status)
+          console.log('refs recovered', refs)
         }
 
         let toSend = [filepath, [status, { commits: commits, treeObjects: trees, refs: refs}]];
