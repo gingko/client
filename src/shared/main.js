@@ -137,7 +137,7 @@ const update = (msg, data) => {
               .then(responses => {
                 let head = responses.filter(r => r.id == "heads/master")[0]
                 if (head.ok) {
-                  gingko.ports.infoForElm.send({tag: 'SetRevHead', data: head.rev})
+                  gingko.ports.infoForElm.send({tag: 'SetHeadRev', data: head.rev})
                 } else {
                   console.log('head not ok', head)
                 }
