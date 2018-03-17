@@ -1468,7 +1468,7 @@ electron-builder-lib@20.5.1, electron-builder-lib@~20.5.0:
     semver "^5.5.0"
     temp-file "^3.1.1"
 
-electron-builder@^20.0.4:
+electron-builder@^20.5.1:
   version "20.5.1"
   resolved "https://registry.yarnpkg.com/electron-builder/-/electron-builder-20.5.1.tgz#8e6fba76dcd65aeabab60f15bd46f294ee04dd11"
   dependencies:
