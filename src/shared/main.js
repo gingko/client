@@ -456,7 +456,8 @@ const setHead = function(sha) {
 const save = (filepath) => {
   return new Promise(
     (resolve, reject) => {
-      let filewriteStream = fs.createWriteStream(filepath)
+      let swapfilepath = filepath + '.swp'
+      let filewriteStream = fs.createWriteStream(swapfilepath)
       let memStream = new MemoryStream();
       let compressedStream = memStream.pipe(zlib.createGzip());
       saving = true
@@ -465,17 +466,25 @@ const save = (filepath) => {
           compressedStream.pipe(filewriteStream)
 
           var streamHash;
-          var fileHash;
+          var swapfileHash;
 
           getHash(compressedStream, 'sha1', (err, hash) => {
             streamHash = hash.toString('base64')
-            getHash(filepath, 'sha1', (err, fhash) => {
-              fileHash = fhash.toString('base64')
-              console.log('stream/file hashes', streamHash, fileHash)
+            getHash(swapfilepath, 'sha1', (err, fhash) => {
+              swapfileHash = fhash.toString('base64')
 
-              if (streamHash !== fileHash) {
+              if (streamHash !== swapfileHash) {
                 throw new Error('File integrity check failed.')
               } else {
+                fs.copyFile(swapfilepath, filepath, (copyErr) => {
+                  if (err) {
+                    throw err;
+                  } else {
+                    fs.unlink(swapfilepath, (delErr) => {
+                      if (err) throw err;
+                    })
+                  }
+                })
                 resolve(filepath)
               }
             })
