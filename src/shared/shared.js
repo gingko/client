@@ -224,7 +224,6 @@ var scrollHorizTo = function(colIdx) {
       , ease: Power2.easeInOut
       });
   } else {
-    console.log("else")
   }
 }
 

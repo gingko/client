@@ -457,10 +457,9 @@ const save = (filepath) => {
       let filewriteStream = fs.createWriteStream(swapfilepath)
       let memStream = new MemoryStream();
       saving = true
-      console.log('Just before db.dump')
+
       db.dump(memStream).then( res => {
         if (res.ok) {
-          console.log('db.dump res is .ok')
           memStream.pipe(filewriteStream)
 
           var streamHash;
@@ -471,7 +470,6 @@ const save = (filepath) => {
             getHash(swapfilepath, 'sha1', (err, fhash) => {
               swapfileHash = fhash.toString('base64')
 
-              console.log('stream/swapfile hashes', streamHash, swapfileHash)
               if (streamHash !== swapfileHash) {
                 throw new Error('File integrity check failed.')
               } else {
