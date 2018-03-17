@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
   - Files now saved to swap file, and only copied to original if integrity check passes.
   - (Internal) Status and Head recovery attempts.
+  - (Internal) Upgrade to electron 2 beta.
 
 ## [0.8.6] - 2018-03-14
   - (Critical) Fixed bug with version history data, that caused some data corruption.

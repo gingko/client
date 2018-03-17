@@ -3,10 +3,7 @@ const _ = require('lodash')
 const autosize = require('textarea-autosize')
 
 const fs = require('fs')
-const zlib = require('zlib')
 const getHash = require('hash-stream')
-const readChunk = require('read-chunk')
-const fileType = require('file-type')
 const path = require('path')
 const {ipcRenderer, remote, webFrame, shell} = require('electron')
 const {app, dialog} = remote
@@ -459,20 +456,22 @@ const save = (filepath) => {
       let swapfilepath = filepath + '.swp'
       let filewriteStream = fs.createWriteStream(swapfilepath)
       let memStream = new MemoryStream();
-      let compressedStream = memStream.pipe(zlib.createGzip());
       saving = true
-      db.dump(compressedStream).then( res => {
+      console.log('Just before db.dump')
+      db.dump(memStream).then( res => {
         if (res.ok) {
-          compressedStream.pipe(filewriteStream)
+          console.log('db.dump res is .ok')
+          memStream.pipe(filewriteStream)
 
           var streamHash;
           var swapfileHash;
 
-          getHash(compressedStream, 'sha1', (err, hash) => {
+          getHash(memStream, 'sha1', (err, hash) => {
             streamHash = hash.toString('base64')
             getHash(swapfilepath, 'sha1', (err, fhash) => {
               swapfileHash = fhash.toString('base64')
 
+              console.log('stream/swapfile hashes', streamHash, swapfileHash)
               if (streamHash !== swapfileHash) {
                 throw new Error('File integrity check failed.')
               } else {
@@ -644,14 +643,7 @@ const importDialog = () => {
 
 
 const loadFile = (filepathToLoad) => {
-  const buffer = readChunk.sync(filepathToLoad, 0, 4100)
-  const filetype = fileType(buffer);
-
-  if (filetype !== null && filetype.mime === "application/gzip") {
-    var rs = fs.createReadStream(filepathToLoad).pipe(zlib.createGunzip())
-  } else {
-    var rs = fs.createReadStream(filepathToLoad)
-  }
+  var rs = fs.createReadStream(filepathToLoad)
 
   db.destroy().then( res => {
     if (res.ok) {

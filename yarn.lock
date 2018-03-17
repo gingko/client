@@ -131,7 +131,7 @@ ansi-styles@^3.2.1:
   dependencies:
     color-convert "^1.9.0"
 
-any-promise@^1.0.0, any-promise@^1.1.0:
+any-promise@^1.1.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/any-promise/-/any-promise-1.3.0.tgz#abc6afeedcea52e809cdc0376aed3ce39635d17f"
 
@@ -1199,21 +1199,6 @@ date-now@^0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/date-now/-/date-now-0.1.4.tgz#eaf439fd4d4848ad74e5cc7dbef200672b9e345b"
 
-dblsqd-electron@^0.4.3:
-  version "0.4.3"
-  resolved "https://registry.yarnpkg.com/dblsqd-electron/-/dblsqd-electron-0.4.3.tgz#3a100a62e08fcc89520e82edd29f59ebdc47d94b"
-  dependencies:
-    dblsqd-sdk "^0.2.0"
-    electron-squirrel-startup "^1.0.0"
-    semver "^5.4.1"
-    settings-store "^1.2.0"
-
-dblsqd-sdk@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/dblsqd-sdk/-/dblsqd-sdk-0.2.0.tgz#4ea9ad4e1b8dc467513cb62e5beb213080424092"
-  dependencies:
-    semver "^5.3.0"
-
 debug@2.6.9, debug@^2.1.3, debug@^2.2.0, debug@^2.3.3, debug@^2.5.1, debug@^2.6.3, debug@^2.6.6, debug@^2.6.8, debug@~2.6.4:
   version "2.6.9"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.9.tgz#5d128515df134ff327e90a4c93f4e077a536341f"
@@ -1534,10 +1519,6 @@ electron-is-dev@^0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/electron-is-dev/-/electron-is-dev-0.3.0.tgz#14e6fda5c68e9e4ecbeff9ccf037cbd7c05c5afe"
 
-electron-log@^2.2.14:
-  version "2.2.14"
-  resolved "https://registry.yarnpkg.com/electron-log/-/electron-log-2.2.14.tgz#2123319ccb8d70b0db07f0eda57d5823cb42b4b0"
-
 electron-machine-id@^1.0.9:
   version "1.0.9"
   resolved "https://registry.yarnpkg.com/electron-machine-id/-/electron-machine-id-1.0.9.tgz#cca93f4a04fac1c479f76db73f4f24a6d0345a7d"
@@ -1579,12 +1560,6 @@ electron-rebuild@^1.6.0:
     rimraf "^2.6.1"
     spawn-rx "^2.0.10"
     yargs "^7.0.2"
-
-electron-squirrel-startup@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/electron-squirrel-startup/-/electron-squirrel-startup-1.0.0.tgz#19b4e55933fa0ef8f556784b9c660f772546a0b8"
-  dependencies:
-    debug "^2.2.0"
 
 electron-store@^1.3.0:
   version "1.3.0"
@@ -2024,10 +1999,6 @@ file-loader@^0.11.2:
   resolved "https://registry.yarnpkg.com/file-loader/-/file-loader-0.11.2.tgz#4ff1df28af38719a6098093b88c82c71d1794a34"
   dependencies:
     loader-utils "^1.0.2"
-
-file-type@^7.5.0:
-  version "7.6.0"
-  resolved "https://registry.yarnpkg.com/file-type/-/file-type-7.6.0.tgz#b3dbfc8029148e86f30761b21253562943d21f06"
 
 filename-regex@^2.0.0:
   version "2.0.1"
@@ -3675,14 +3646,6 @@ multicast-dns@^6.0.1:
     dns-packet "^1.3.1"
     thunky "^1.0.2"
 
-mz@^2.6.0:
-  version "2.7.0"
-  resolved "https://registry.yarnpkg.com/mz/-/mz-2.7.0.tgz#95008057a56cafadc2bc63dde7f9ff6955948e32"
-  dependencies:
-    any-promise "^1.0.0"
-    object-assign "^4.0.1"
-    thenify-all "^1.0.0"
-
 nan-x@^1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/nan-x/-/nan-x-1.0.2.tgz#5f34e9d3115242486219eee3c8bc49fd2425b19a"
@@ -4618,13 +4581,6 @@ react@^15.5.4:
     object-assign "^4.1.0"
     prop-types "^15.5.10"
 
-read-chunk@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/read-chunk/-/read-chunk-2.1.0.tgz#6a04c0928005ed9d42e1a6ac5600e19cbc7ff655"
-  dependencies:
-    pify "^3.0.0"
-    safe-buffer "^5.1.1"
-
 read-config-file@3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/read-config-file/-/read-config-file-3.0.0.tgz#771def5184a7f76abaf6b2c82f20cb983775b8ea"
@@ -5089,10 +5045,6 @@ setprototypeof@1.0.3:
 setprototypeof@1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/setprototypeof/-/setprototypeof-1.1.0.tgz#d0bd85536887b6fe7c0d818cb962d9d91c54e656"
-
-settings-store@^1.2.0:
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/settings-store/-/settings-store-1.3.0.tgz#1ccea9a9c0718d0b3d76e707fc2a572e25517e39"
 
 sha.js@^2.4.0, sha.js@^2.4.8:
   version "2.4.10"
@@ -5562,18 +5514,6 @@ textarea-autosize@^0.4.2:
   resolved "https://registry.yarnpkg.com/textarea-autosize/-/textarea-autosize-0.4.2.tgz#f2fb0263b27fb4e7cf67abfe6e51f3cd712720cf"
   dependencies:
     jquery ">=1.8"
-
-thenify-all@^1.0.0:
-  version "1.6.0"
-  resolved "https://registry.yarnpkg.com/thenify-all/-/thenify-all-1.6.0.tgz#1a1918d402d8fc3f98fbf234db0bcc8cc10e9726"
-  dependencies:
-    thenify ">= 3.1.0 < 4"
-
-"thenify@>= 3.1.0 < 4":
-  version "3.3.0"
-  resolved "https://registry.yarnpkg.com/thenify/-/thenify-3.3.0.tgz#e69e38a1babe969b0108207978b9f62b88604839"
-  dependencies:
-    any-promise "^1.0.0"
 
 throttleit@0.0.2:
   version "0.0.2"
