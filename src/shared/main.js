@@ -70,7 +70,18 @@ self.socket = io.connect('http://localhost:3000')
 //self.remoteCouch = 'http://localhost:5984/atreenodes16'
 //self.remoteDb = new PouchDB(remoteCouch)
 
+var crisp_loaded = false;
 
+$crisp.push(['do', 'chat:hide'])
+$crisp.push(['on', 'session:loaded', () => {
+  crisp_loaded = true;
+}])
+$crisp.push(['on', 'chat:closed', () => {
+  $crisp.push(['do', 'chat:hide'])
+}])
+$crisp.push(['on', 'chat:opened', () => {
+  $crisp.push(['do', 'chat:show'])
+}])
 
 
 /* === Elm to JS Ports === */
@@ -301,6 +312,7 @@ ipcRenderer.on('menu-save-as', () => update('SaveAs'))
 ipcRenderer.on('zoomin', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() + 1) })
 ipcRenderer.on('zoomout', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() - 1) })
 ipcRenderer.on('resetzoom', e => { webFrame.setZoomLevel(0) })
+ipcRenderer.on('menu-contact-support', () => { if(crisp_loaded) { $crisp.push(['do', 'chat:open']) } else { shell.openExternal('mailto:adriano@gingkoapp.com') } } )
 ipcRenderer.on('main-save-and-close', () => update('SaveAndClose', currentFile))
 
 socket.on('collab', data => gingko.ports.infoForElm.send({tag: 'RecvCollabState', data: data}))

@@ -310,7 +310,7 @@ const menuTemplate =
     , submenu:
         [ { label: 'Contact Adriano'
           , click (item, focusedWindow) {
-              shell.openExternal('mailto:adriano@gingkoapp.com')
+              focusedWindow.webContents.send('menu-contact-support')
             }
           }
         , { type: 'separator' }
