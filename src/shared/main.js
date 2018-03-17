@@ -477,11 +477,11 @@ const save = (filepath) => {
                 throw new Error('File integrity check failed.')
               } else {
                 fs.copyFile(swapfilepath, filepath, (copyErr) => {
-                  if (err) {
-                    throw err;
+                  if (copyErr) {
+                    throw copyErr;
                   } else {
                     fs.unlink(swapfilepath, (delErr) => {
-                      if (err) throw err;
+                      if (delErr) throw delErr;
                     })
                   }
                 })
