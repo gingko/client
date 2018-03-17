@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
-## Unreleased
+## [0.8.7] - 2018-03-17
   - Files now saved to swap file, and only copied to original if integrity check passes.
   - (Internal) Status and Head recovery attempts.
   - (Internal) Upgrade to electron 2 beta.
