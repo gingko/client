@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="style.css">
   <script src="highlight.pack.js"></script>
   <script type="text/javascript">
-    const machineIdSync = require('electron-machine-id').machineIdSync
+    const machineIdSync = require('node-machine-id').machineIdSync
     const sha1 = require('sha1')
     window.$crisp=[];
     const user_id = sha1("privacy-for-machine-id" + machineIdSync());

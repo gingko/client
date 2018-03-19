@@ -19,7 +19,7 @@ import memoryAdapter from "pouchdb-adapter-memory";
 PouchDB.plugin(memoryAdapter)
 
 const sha1 = require('sha1')
-const machineIdSync = require('electron-machine-id').machineIdSync
+const machineIdSync = require('node-machine-id').machineIdSync
 
 const React = require('react')
 const ReactDOM = require('react-dom')
