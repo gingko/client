@@ -75,7 +75,7 @@ viewVideo { videoModalOpen } =
           , iframe
               [ width 650
               , height 366
-              , src "https://www.youtube.com/embed/egCKZHsICm8?rel=0&amp;showinfo=0"
+              , src "https://www.youtube.com/embed/ZOGgwKAU3vg?rel=0&amp;showinfo=0"
               , attribute "frameborder" "0"
               , attribute "allowfullscreen" ""
               ]

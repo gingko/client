@@ -1,6 +1,5 @@
 const {app, BrowserWindow, dialog, Menu, ipcMain, shell} = require('electron')
 import { autoUpdater } from "electron-updater"
-const fs = require('mz/fs')
 const path = require('path')
 const sha1 = require('sha1')
 const Store = require('electron-store')
