@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
-## Unreleased
+## [0.8.8] - 2018-03-19
   - Welcome video added.
   - Crisp.chat added as in-app support solution.
 
