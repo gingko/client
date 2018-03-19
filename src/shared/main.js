@@ -73,15 +73,10 @@ self.socket = io.connect('http://localhost:3000')
 var crisp_loaded = false;
 
 $crisp.push(['do', 'chat:hide'])
-$crisp.push(['on', 'session:loaded', () => {
-  crisp_loaded = true;
-}])
-$crisp.push(['on', 'chat:closed', () => {
-  $crisp.push(['do', 'chat:hide'])
-}])
-$crisp.push(['on', 'chat:opened', () => {
-  $crisp.push(['do', 'chat:show'])
-}])
+$crisp.push(['on', 'session:loaded', () => { crisp_loaded = true; }])
+$crisp.push(['on', 'chat:closed', () => { $crisp.push(['do', 'chat:hide']) }])
+$crisp.push(['on', 'chat:opened', () => { $crisp.push(['do', 'chat:show']) }])
+$crisp.push(['on', 'message:received', () => { $crisp.push(['do', 'chat:show']) }])
 
 
 /* === Elm to JS Ports === */
