@@ -24,6 +24,7 @@ type Msg
     | SetSelection String Selection String
     | Resolve String
     -- === Help ===
+    | VideoModal Bool
     | ShortcutTrayToggle
     -- === Ports ===
     | Port IncomingMsg
@@ -49,6 +50,7 @@ type OutgoingMsg
     | UpdateCommits (Json.Value, Maybe String)
     | SetSaved String
     | SetChanged
+    | SetVideoModal Bool
     | SetShortcutTray Bool
     | SocketSend CollabState
     | ConsoleLogRequested String
@@ -69,6 +71,7 @@ type IncomingMsg
     | CollaboratorDisconnected String
     | DoExportJSON
     | DoExportTXT
+    | ViewVideos
     | Keyboard String
 
 

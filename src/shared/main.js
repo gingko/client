@@ -56,13 +56,12 @@ document.title = `${filename} - Gingko`
 
 var dbpath = path.join(app.getPath('userData'), dbname)
 self.db = new PouchDB(dbpath, {adapter: 'memory'})
-var initFlags = false;
+var initFlags = [false, false];
 
-if ( localStorage.getItem('shortcut-tray-is-open') === "false" ) {
-  initFlags = false
-} else {
-  initFlags = true
-}
+var initFlags =
+  [ localStorage.getItem('shortcut-tray-is-open') === "false" ? false : true
+  , localStorage.getItem('video-modal-is-open') === "false" ? false : true
+  ]
 
 self.gingko = Elm.Main.fullscreen(initFlags)
 self.socket = io.connect('http://localhost:3000')
@@ -252,6 +251,10 @@ const update = (msg, data) => {
     , 'SetSaved': () =>
         setFileState(false, data)
 
+    , 'SetVideoModal': () => {
+        localStorage.setItem('video-modal-is-open', data)
+      }
+
     , 'SetShortcutTray': () => {
         localStorage.setItem('shortcut-tray-is-open', data)
       }
@@ -301,6 +304,7 @@ ipcRenderer.on('menu-save-as', () => update('SaveAs'))
 ipcRenderer.on('zoomin', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() + 1) })
 ipcRenderer.on('zoomout', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() - 1) })
 ipcRenderer.on('resetzoom', e => { webFrame.setZoomLevel(0) })
+ipcRenderer.on('menu-view-videos', () => gingko.ports.infoForElm.send({tag: 'ViewVideos', data: null }))
 ipcRenderer.on('main-save-and-close', () => update('SaveAndClose', currentFile))
 
 socket.on('collab', data => gingko.ports.infoForElm.send({tag: 'RecvCollabState', data: data}))

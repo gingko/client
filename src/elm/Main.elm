@@ -12,7 +12,7 @@ import Task
 import Types exposing (..)
 import Trees exposing (..)
 import TreeUtils exposing (..)
-import UI exposing (viewFooter, viewConflict, countWords)
+import UI exposing (viewFooter, viewVideo, viewConflict, countWords)
 import Sha1 exposing (timestamp, timeJSON)
 import Objects
 import Ports exposing (..)
@@ -21,7 +21,7 @@ import Coders exposing (..)
 import Html5.DragDrop as DragDrop
 
 
-main : Program Bool Model Msg
+main : Program (Bool, Bool) Model Msg
 main =
   programWithFlags
     { init = init
@@ -41,6 +41,7 @@ type alias Model =
   , uid : String
   , viewState : ViewState
   , shortcutTrayOpen : Bool
+  , videoModalOpen : Bool
   , startingWordcount : Int
   , online : Bool
   , filepath : Maybe String
@@ -65,6 +66,7 @@ defaultModel =
       , collaborators = []
       }
   , shortcutTrayOpen = True
+  , videoModalOpen = True
   , startingWordcount = 0
   , online = True
   , filepath = Nothing
@@ -72,10 +74,11 @@ defaultModel =
   }
 
 
-init : Bool -> (Model, Cmd Msg)
-init trayIsOpen =
+init : (Bool, Bool) -> (Model, Cmd Msg)
+init (trayIsOpen, videoModalIsOpen) =
   { defaultModel
     | shortcutTrayOpen = trayIsOpen
+    , videoModalOpen = videoModalIsOpen
   }
     ! [focus "1"]
     |> activate "1"
@@ -258,6 +261,10 @@ update msg ({objects, workingTree, status} as model) =
 
     -- === Help ===
 
+    VideoModal shouldOpen ->
+      model ! []
+        |> toggleVideoModal shouldOpen
+
     ShortcutTrayToggle ->
       let newIsOpen = not model.shortcutTrayOpen in
       { model
@@ -292,7 +299,7 @@ update msg ({objects, workingTree, status} as model) =
             |> cancelCard
 
         Reset ->
-          init model.shortcutTrayOpen
+          init (model.shortcutTrayOpen, model.videoModalOpen)
 
         Load (filepath, json) ->
           let
@@ -498,6 +505,10 @@ update msg ({objects, workingTree, status} as model) =
         DoExportTXT ->
           model
             ! [ sendOut ( ExportTXT model.workingTree.tree )]
+
+        ViewVideos ->
+          model ! []
+            |> toggleVideoModal True
 
         Keyboard shortcut ->
           case shortcut of
@@ -1101,6 +1112,15 @@ sendCollabState collabState (model, prevCmd) =
       model ! [ prevCmd, sendOut ( SocketSend collabState ) ]
 
 
+toggleVideoModal : Bool -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+toggleVideoModal shouldOpen (model, prevCmd) =
+  { model
+    | videoModalOpen = shouldOpen
+  }
+    ! [ prevCmd, sendOut ( SetVideoModal shouldOpen ) ]
+
+
+
 
 -- VIEW
 
@@ -1137,6 +1157,7 @@ repeating-linear-gradient(-45deg
         [ id "root" ]
         [ lazy2 Trees.view model.viewState model.workingTree
         , viewFooter model
+        , viewVideo model
         ]
 
 

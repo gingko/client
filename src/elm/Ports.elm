@@ -122,6 +122,12 @@ sendOut info =
         , data = string filepath
         }
 
+    SetVideoModal isOpen ->
+      infoForOutside
+        { tag = "SetVideoModal"
+        , data = bool isOpen
+        }
+
     SetShortcutTray isOpen ->
       infoForOutside
         { tag = "SetShortcutTray"
@@ -226,6 +232,9 @@ receiveMsg tagger onError =
 
           "DoExportTXT" ->
             tagger <| DoExportTXT
+
+          "ViewVideos" ->
+            tagger <| ViewVideos
 
           "Keyboard" ->
             case decodeValue Json.Decode.string outsideInfo.data of

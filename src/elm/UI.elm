@@ -1,4 +1,4 @@
-module UI exposing (viewFooter, viewConflict, countWords)
+module UI exposing (viewFooter, viewVideo, viewConflict, countWords)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -61,6 +61,29 @@ viewFooter model =
         []
     )
     )
+
+
+viewVideo : { m | videoModalOpen : Bool } -> Html Msg
+viewVideo { videoModalOpen } =
+  if videoModalOpen then
+    div [ class "modal-container" ]
+      [ div [ class "modal" ]
+          [ div [ class "modal-header" ]
+              [ h1 [] [ text "Welcome to Gingko" ]
+              , a [ onClick (VideoModal False) ][text "×"]
+              ]
+          , iframe
+              [ width 650
+              , height 366
+              , src "https://www.youtube.com/embed/ZOGgwKAU3vg?rel=0&amp;showinfo=0"
+              , attribute "frameborder" "0"
+              , attribute "allowfullscreen" ""
+              ]
+              []
+          ]
+      ]
+  else
+    div [][]
 
 
 viewShortcutsToggle : Bool -> ViewState -> Html Msg

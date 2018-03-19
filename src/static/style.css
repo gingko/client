@@ -702,6 +702,44 @@ ul, ol {
 }
 
 
+
+
+/* ======== MODAL ======== */
+
+.modal-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0,0,0,0.5);
+  z-index: 99999;
+}
+
+.modal {
+  background: white;
+  padding: 16px;
+  border-radius: 6px;
+  box-shadow: 0px 3px 6px rgba(0,0,0,0.35);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.modal-header a {
+  cursor: pointer;
+  font-size: 25px;
+  font-weight: bold;
+  color: gray;
+}
+.modal-header a:hover {
+  color: black;
+}
+
+
 /* ======== STATUS BAR ======== */
 
 .footer {
