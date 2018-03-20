@@ -69,7 +69,7 @@ viewVideo { videoModalOpen } =
     div [ class "modal-container" ]
       [ div [ class "modal" ]
           [ div [ class "modal-header" ]
-              [ h1 [] [ text "Welcome to Gingko" ]
+              [ h1 [] [ text "Learning Videos" ]
               , a [ onClick (VideoModal False) ][text "×"]
               ]
           , iframe

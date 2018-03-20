@@ -3,6 +3,7 @@ import { autoUpdater } from "electron-updater"
 const path = require('path')
 const sha1 = require('sha1')
 const Store = require('electron-store')
+const windowStateKeeper = require('electron-window-state')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -15,15 +16,23 @@ const userStore = new Store({name: "config"})
 
 
 function createAppWindow () {
+  let mainWindowState = windowStateKeeper(
+    { defaultWidth: 1000
+    , defaultHeight: 800
+    }
+  )
 
   // Create the browser window.
   win = new BrowserWindow(
-    { width: 800
-    , height: 600
+    { width: mainWindowState.width
+    , height: mainWindowState.height
+    , x: mainWindowState.x
+    , y: mainWindowState.y
     , backgroundColor: '#32596b'
     , icon: `${__dirname}/static/leaf128.png`
     })
 
+  mainWindowState.manage(win);
 
   // and load the html of the app.
   var url = `file://${__dirname}/static/index.html`
@@ -308,12 +317,12 @@ const menuTemplate =
     }
   , { label: 'Help'
     , submenu:
-        [ { label: 'View Videos'
+        [ { label: 'Learning Videos...'
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('menu-view-videos')
             }
           }
-        , { label: 'Contact Adriano'
+        , { label: 'Contact Adriano...'
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('menu-contact-support')
             }

@@ -50,6 +50,8 @@ var collab = {}
 
 console.log('Gingko version', app.getVersion())
 
+var firstRun = localStorage.getItem('first-run') === "false" ? false : true
+
 var dbname = querystring.parse(window.location.search.slice(1))['dbname'] || sha1(Date.now()+machineIdSync())
 var filename = querystring.parse(window.location.search.slice(1))['filename'] || "Untitled Tree"
 document.title = `${filename} - Gingko`
@@ -60,7 +62,7 @@ var initFlags = [false, false];
 
 var initFlags =
   [ localStorage.getItem('shortcut-tray-is-open') === "false" ? false : true
-  , localStorage.getItem('video-modal-is-open') === "false" ? false : true
+  , localStorage.getItem('video-modal-is-open') === "true" ? true : false
   ]
 
 self.gingko = Elm.Main.fullscreen(initFlags)
@@ -72,10 +74,25 @@ self.socket = io.connect('http://localhost:3000')
 var crisp_loaded = false;
 
 $crisp.push(['do', 'chat:hide'])
-$crisp.push(['on', 'session:loaded', () => { crisp_loaded = true; }])
-$crisp.push(['on', 'chat:closed', () => { $crisp.push(['do', 'chat:hide']) }])
-$crisp.push(['on', 'chat:opened', () => { $crisp.push(['do', 'chat:show']) }])
-$crisp.push(['on', 'message:received', () => { $crisp.push(['do', 'chat:show']) }])
+$crisp.push(['on', 'session:loaded', () => { crisp_loaded = true; console.log('session:loaded')}])
+$crisp.push(['on', 'chat:closed', () => { $crisp.push(['do', 'chat:hide']); console.log('chat:closed') }])
+$crisp.push(['on', 'chat:opened', () => { $crisp.push(['do', 'chat:show']); console.log('chat:opened') }])
+$crisp.push(['on', 'message:received', () => { $crisp.push(['do', 'chat:show']); console.log('message:received') }])
+if (firstRun) {
+  localStorage.setItem('first-run', "false")
+  $crisp.push(['do'
+              , 'message:show'
+              , [ 'text' ,
+`Hi! If there's **anything** I might be able to do to help you turn your ideas into words, go to:
+**Help > Contact Adriano**.
+
+---
+*PS: I won't interrupt you again.*
+*    Your attention is sacred.*`
+                ]
+              ]
+             )
+}
 
 
 /* === Elm to JS Ports === */
