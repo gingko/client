@@ -87,8 +87,9 @@ if (firstRun) {
 **Help > Contact Adriano**.
 
 ---
-*PS: I won't interrupt you again.*
-*    Your attention is sacred.*`
+*PS:*
+*I won't interrupt again, except to respond.*
+*Your attention is sacred.*`
                 ]
               ]
              )
