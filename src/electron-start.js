@@ -317,12 +317,7 @@ const menuTemplate =
     }
   , { label: 'Help'
     , submenu:
-        [ { label: 'Learning Videos...'
-          , click (item, focusedWindow) {
-              focusedWindow.webContents.send('menu-view-videos')
-            }
-          }
-        , { label: 'Contact Adriano...'
+        [ { label: 'Contact Adriano...'
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('menu-contact-support')
             }

@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
 ## [0.8.9] - 2018-03-20
-  - Welcome crisp message added, video not shown automatically.
+  - Welcome crisp message added, welcome video removed.
   - Window state remembered and restored on reopening app.
 
 ## [0.8.8] - 2018-03-19
