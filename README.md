@@ -36,9 +36,9 @@ yarn run electron
 3. git commit
 4. git push
 5. Wait for builds on Travis CI (approx 7 min)
-6. Check release files on https://github.com/gingko/client/releases
-7. When done, publish the release
-8. Update links in site/index.html
+6. Update links in site/index.html
+7. Check release files on https://github.com/gingko/client/releases
+8. When done, publish the release
 
 
 ### To Improve
