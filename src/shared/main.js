@@ -80,16 +80,23 @@ $crisp.push(['on', 'chat:closed', () => { $crisp.push(['do', 'chat:hide']); cons
 $crisp.push(['on', 'chat:opened', () => { $crisp.push(['do', 'chat:show']); console.log('chat:opened') }])
 $crisp.push(['on', 'message:received', () => { $crisp.push(['do', 'chat:show']); console.log('message:received') }])
 if (firstRun) {
+  var ctrlOrCmd = process.platform === "darwin" ? "⌘" : "Ctrl";
   localStorage.setItem('first-run', "false")
   $crisp.push(['do'
               , 'message:show'
               , [ 'text' ,
-`Hi! If there's **anything** I might be able to do to help you turn your ideas into words, go to:
-**Help > Contact Adriano**.
+`Hi! Try these steps to get started:
+1. **Enter** to start writing
+2. **${ctrlOrCmd} + Enter** to save changes
+3. **${ctrlOrCmd} + →** to write in a new *child* card
+4. **${ctrlOrCmd} + Enter** to save changes
+5. **${ctrlOrCmd} + ↓**
+
+I know it's not much guidance, but it's a start.
+**Help > Contact Adriano** to send me a message.
 
 ---
-*PS:*
-*I won't interrupt again, except to respond.*
+*PS: I won't interrupt again, except to respond.*
 *Your attention is sacred.*`
                 ]
               ]
