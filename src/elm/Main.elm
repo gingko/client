@@ -21,7 +21,7 @@ import Coders exposing (..)
 import Html5.DragDrop as DragDrop
 
 
-main : Program (Bool, Bool) Model Msg
+main : Program (Bool, Bool, Bool) Model Msg
 main =
   programWithFlags
     { init = init
@@ -40,6 +40,7 @@ type alias Model =
   , status : Status
   , uid : String
   , viewState : ViewState
+  , isMac : Bool
   , shortcutTrayOpen : Bool
   , videoModalOpen : Bool
   , startingWordcount : Int
@@ -65,6 +66,7 @@ defaultModel =
       , draggedTree = Nothing
       , collaborators = []
       }
+  , isMac = False
   , shortcutTrayOpen = True
   , videoModalOpen = True
   , startingWordcount = 0
@@ -74,10 +76,11 @@ defaultModel =
   }
 
 
-init : (Bool, Bool) -> (Model, Cmd Msg)
-init (trayIsOpen, videoModalIsOpen) =
+init : (Bool, Bool, Bool) -> (Model, Cmd Msg)
+init (isMac, trayIsOpen, videoModalIsOpen) =
   { defaultModel
-    | shortcutTrayOpen = trayIsOpen
+    | isMac = isMac
+    , shortcutTrayOpen = trayIsOpen
     , videoModalOpen = videoModalIsOpen
   }
     ! [focus "1"]
@@ -299,7 +302,7 @@ update msg ({objects, workingTree, status} as model) =
             |> cancelCard
 
         Reset ->
-          init (model.shortcutTrayOpen, model.videoModalOpen)
+          init (model.isMac, model.shortcutTrayOpen, model.videoModalOpen)
 
         Load (filepath, json) ->
           let

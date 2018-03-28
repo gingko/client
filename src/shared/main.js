@@ -61,7 +61,8 @@ self.db = new PouchDB(dbpath, {adapter: 'memory'})
 var initFlags = [false, false];
 
 var initFlags =
-  [ localStorage.getItem('shortcut-tray-is-open') === "false" ? false : true
+  [ process.platform === "darwin"
+  , localStorage.getItem('shortcut-tray-is-open') === "false" ? false : true
   , localStorage.getItem('video-modal-is-open') === "true" ? true : false
   ]
 

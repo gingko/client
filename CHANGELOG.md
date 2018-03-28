@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been uploaded yet.
 
+## Unreleased
+  - Fixed Ctrl vs Cmd issue with shortcut tray.
+
 ## [2.0.1] - 2018-03-27
   - Launch version bump.
   - Update electron-builder to fix Linux auto-updater.
