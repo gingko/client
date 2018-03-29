@@ -16,7 +16,7 @@ sendOut info =
         , data = string str
         }
 
-    ActivateCards (col, cardIds) ->
+    ActivateCards (cardId, col, cardIds) ->
       let
         listListStringToValue lls =
           lls
@@ -26,7 +26,7 @@ sendOut info =
       in
       infoForOutside
         { tag = "ActivateCards"
-        , data = tupleToValue int listListStringToValue ( col, cardIds )
+        , data = tripleToValue string int listListStringToValue ( cardId, col, cardIds )
         }
 
     GetText id ->
@@ -171,9 +171,10 @@ receiveMsg tagger onError =
             tagger <| Reset
 
           "Load" ->
-            case decodeValue ( tupleDecoder Json.Decode.string Json.Decode.value ) outsideInfo.data of
-              Ok ( filepath, json ) ->
-                tagger <| Load (filepath, json)
+            case decodeValue ( tripleDecoder Json.Decode.string Json.Decode.value (Json.Decode.maybe Json.Decode.string) ) outsideInfo.data of
+              Ok ( filepath, json, lastActive_ ) ->
+                let _ = Debug.log "Ports Load" (filepath, json, lastActive_) in
+                tagger <| Load (filepath, json, lastActive_ |> Maybe.withDefault "1" )
 
               Err e ->
                 onError e

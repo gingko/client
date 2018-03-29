@@ -304,7 +304,7 @@ update msg ({objects, workingTree, status} as model) =
         Reset ->
           init (model.isMac, model.shortcutTrayOpen, model.videoModalOpen)
 
-        Load (filepath, json) ->
+        Load (filepath, json, lastActiveCard) ->
           let
             (newStatus, newTree_, newObjects) =
                 Objects.update (Objects.Init json) objects
@@ -323,7 +323,7 @@ update msg ({objects, workingTree, status} as model) =
                 , changed = False
               }
                 ! [ sendOut ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
-                |> activate model.viewState.active
+                |> activate lastActiveCard
 
             (Clean newHead, Just newTree) ->
               { model
@@ -335,7 +335,7 @@ update msg ({objects, workingTree, status} as model) =
                 , changed = False
               }
                 ! [ sendOut ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
-                |> activate model.viewState.active
+                |> activate lastActiveCard
 
             (MergeConflict mTree oldHead newHead [], Just newTree) ->
               { model
@@ -347,7 +347,7 @@ update msg ({objects, workingTree, status} as model) =
                 , changed = False
               }
                 ! [ sendOut ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
-                |> activate model.viewState.active
+                |> activate lastActiveCard
 
             (MergeConflict mTree oldHead newHead conflicts, Just newTree) ->
               { model
@@ -359,7 +359,7 @@ update msg ({objects, workingTree, status} as model) =
                 , changed = False
               }
                 ! [ sendOut ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
-                |> activate model.viewState.active
+                |> activate lastActiveCard
 
             _ ->
               let _ = Debug.log "failed to load json" (newStatus, newTree_, newObjects, json) in
@@ -712,7 +712,8 @@ activate id (model, prevCmd) =
           ! [ prevCmd
             , sendOut
               ( ActivateCards
-                ( getDepth 0 model.workingTree.tree id
+                ( id
+                , getDepth 0 model.workingTree.tree id
                 , centerlineIds flatCols allIds newPast
                 )
               )

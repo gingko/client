@@ -347,10 +347,26 @@ tupleToValue aEnc bEnc (aVal, bVal) =
   Enc.list [ aEnc aVal, bEnc bVal ]
 
 
+tripleToValue : (a -> Enc.Value) -> (b -> Enc.Value) -> (c -> Enc.Value) -> (a, b, c) -> Enc.Value
+tripleToValue aEnc bEnc cEnc (aVal, bVal, cVal) =
+  Enc.list [ aEnc aVal, bEnc bVal, cEnc cVal ]
+
+
 tupleDecoder : Decoder a -> Decoder b -> Decoder (a, b)
 tupleDecoder a b =
   index 0 a
     |> andThen
       (\aVal -> index 1 b
           |> andThen (\bVal -> succeed (aVal, bVal))
+      )
+
+
+tripleDecoder : Decoder a -> Decoder b -> Decoder c -> Decoder (a, b, c)
+tripleDecoder a b c =
+  index 0 a
+    |> andThen
+      (\aVal -> index 1 b
+          |> andThen (\bVal -> index 2 c
+                          |> andThen (\cVal -> succeed (aVal, bVal, cVal))
+                      )
       )

@@ -58,7 +58,6 @@ document.title = `${filename} - Gingko`
 
 var dbpath = path.join(app.getPath('userData'), dbname)
 self.db = new PouchDB(dbpath, {adapter: 'memory'})
-var initFlags = [false, false];
 
 var initFlags =
   [ process.platform === "darwin"
@@ -111,8 +110,9 @@ const update = (msg, data) => {
     { 'Alert': () => { alert(data) }
 
     , 'ActivateCards': () => {
-        shared.scrollHorizontal(data[0])
-        shared.scrollColumns(data[1])
+        setLastActive(currentFile, data[0])
+        shared.scrollHorizontal(data[1])
+        shared.scrollColumns(data[2])
       }
 
     , 'GetText': () => {
@@ -395,7 +395,8 @@ const load = function(filepath, headOverride){
           console.log('refs recovered', refs)
         }
 
-        let toSend = [filepath, [status, { commits: commits, treeObjects: trees, refs: refs}]];
+        let toSend = [filepath, [status, { commits: commits, treeObjects: trees, refs: refs}], getLastActive(filepath)];
+        console.log('toSend', toSend)
         gingko.ports.infoForElm.send({tag: "Load", data: toSend});
       }).catch(function (err) {
         console.log(err)
@@ -739,6 +740,28 @@ const importFile = (filepathToImport) => {
       }
     })
   })
+}
+
+
+function setLastActive (filename, lastActiveCard) {
+  if (filename !== null) {
+    let lastActiveData = JSON.parse(localStorage.getItem('last-active-cards'))
+
+    if (lastActiveData === null) { lastActiveData = {}; }
+
+    lastActiveData[filename] = lastActiveCard;
+    localStorage.setItem('last-active-cards', JSON.stringify(lastActiveData));
+  }
+}
+
+
+function getLastActive (filename) {
+  let lastActiveData = JSON.parse(localStorage.getItem('last-active-cards'))
+  if (lastActiveData !== null && Object.keys(lastActiveData).includes(filename)) {
+    return lastActiveData[filename]
+  } else {
+    return null
+  }
 }
 
 

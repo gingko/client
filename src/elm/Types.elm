@@ -33,7 +33,7 @@ type Msg
 
 type OutgoingMsg
     = Alert String
-    | ActivateCards (Int, List (List String))
+    | ActivateCards (String, Int, List (List String))
     | GetText String
     | TextSurround String String
     | ConfirmCancel String String
@@ -60,7 +60,7 @@ type IncomingMsg
     = UpdateContent (String, String)
     | CancelCardConfirmed
     | Reset
-    | Load (String, Json.Value)
+    | Load (String, Json.Value, String)
     | Merge Json.Value
     | ImportJSON Json.Value
     | CheckoutCommit String
