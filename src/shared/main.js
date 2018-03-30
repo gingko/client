@@ -624,6 +624,13 @@ const exportJson = (data) => {
 const exportTxt = (data) => {
   return new Promise(
     (resolve, reject) => {
+      
+      if (data && typeof data.replace === 'function') {
+        data = (process.platform === "win32") ? data.replace(/\n/g, '\r\n') : data;
+      } else {
+        reject(new Error('invalid data sent for export'))
+      }
+
       var options =
         { title: 'Export TXT'
         , defaultPath: currentFile ? currentFile.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.txt")
@@ -634,7 +641,6 @@ const exportTxt = (data) => {
 
       dialog.showSaveDialog(options, function(filepath){
         if(!!filepath){
-          data = process.platform === "win32" ? data.replace(/\n/g, "\r\n") : data;
           fs.writeFile(filepath, data, (err) => {
             if (err) reject(new Error('export-txt writeFile failed'))
             resolve(data)
