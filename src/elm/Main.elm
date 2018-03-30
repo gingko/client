@@ -859,7 +859,7 @@ deleteCard id (model, prevCmd) =
     { model
       | workingTree = Trees.update (Trees.Rmv id) model.workingTree
     }
-      ! []
+      ! [prevCmd]
       |> maybeColumnsChanged model.workingTree.columns
       |> activate nextToActivate
       |> addToHistory
@@ -962,7 +962,7 @@ move subtree pid pos (model, prevCmd) =
   { model
     | workingTree = Trees.update (Trees.Mov subtree pid pos) model.workingTree
   }
-    ! []
+    ! [prevCmd]
     |> maybeColumnsChanged model.workingTree.columns
     |> activate subtree.id
     |> addToHistory
@@ -1053,7 +1053,8 @@ addToHistory ({workingTree} as model, prevCmd) =
         , status = newStatus
         , changed = True
       }
-        ! [ sendOut ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
+        ! [ prevCmd
+          , sendOut ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
           , sendOut ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
           , sendOut SetChanged
           ]
@@ -1068,7 +1069,8 @@ addToHistory ({workingTree} as model, prevCmd) =
         , status = newStatus
         , changed = True
       }
-        ! [ sendOut ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
+        ! [ prevCmd
+          , sendOut ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
           , sendOut ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
           , sendOut SetChanged
           ]
@@ -1084,13 +1086,14 @@ addToHistory ({workingTree} as model, prevCmd) =
           , status = newStatus
           , changed = True
         }
-          ! [ sendOut ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
+          ! [ prevCmd
+            , sendOut ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
             , sendOut ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
             , sendOut SetChanged
             ]
       else
         model
-          ! [ sendOut ( SaveLocal ( model.workingTree.tree ) ) ]
+          ! [ prevCmd, sendOut ( SaveLocal ( model.workingTree.tree ) ) ]
 
 
 
