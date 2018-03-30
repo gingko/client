@@ -272,6 +272,10 @@ const update = (msg, data) => {
         exportTxt(data)
       }
 
+    , 'ExportTXTColumn': () => {
+        exportTxt(data)
+      }
+
     , 'Open': () => {
         if (changed && !saving) {
           saveConfirmation(data).then(openDialog)
@@ -330,7 +334,7 @@ ipcRenderer.on('menu-new', () => update('New'))
 ipcRenderer.on('menu-open', () => update('Open'))
 ipcRenderer.on('menu-import-json', () => update('Import'))
 ipcRenderer.on('menu-export-json', () => gingko.ports.infoForElm.send({tag: 'DoExportJSON', data: null }))
-ipcRenderer.on('menu-export-txt', () => gingko.ports.infoForElm.send({tag: 'DoExportTXT', data: null }))
+ipcRenderer.on('menu-export-txt', (e, msg) => gingko.ports.infoForElm.send({tag: 'DoExportTXT', data: msg }))
 ipcRenderer.on('menu-save', () => update('Save', currentFile))
 ipcRenderer.on('menu-save-as', () => update('SaveAs'))
 ipcRenderer.on('zoomin', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() + 1) })

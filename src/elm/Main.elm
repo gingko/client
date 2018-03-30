@@ -509,6 +509,11 @@ update msg ({objects, workingTree, status} as model) =
           model
             ! [ sendOut ( ExportTXT model.workingTree.tree )]
 
+        DoExportTXTColumn col ->
+          model
+            ! [ sendOut ( ExportTXTColumn col model.workingTree.tree )]
+
+
         ViewVideos ->
           model ! []
             |> toggleVideoModal True

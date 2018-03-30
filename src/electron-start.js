@@ -259,10 +259,35 @@ const menuTemplate =
               focusedWindow.webContents.send('menu-export-json')
             }
           }
-        , { label: 'Export Text File...'
-          , click (item, focusedWindow) {
-              focusedWindow.webContents.send('menu-export-txt')
-            }
+        , { label: 'Export Text'
+          , submenu :
+              [ { label : 'Entire Document'
+                , click (item, focusedWindow) {
+                    focusedWindow.webContents.send('menu-export-txt')
+                  }
+                }
+              , { type: 'separator' }
+              , { label : 'Column 1'
+                , click (item, focusedWindow) {
+                    focusedWindow.webContents.send('menu-export-txt', 1)
+                  }
+                }
+              , { label : 'Column 2'
+                , click (item, focusedWindow) {
+                    focusedWindow.webContents.send('menu-export-txt', 2)
+                  }
+                }
+              , { label : 'Column 3'
+                , click (item, focusedWindow) {
+                    focusedWindow.webContents.send('menu-export-txt', 3)
+                  }
+                }
+              , { label : 'Column 4'
+                , click (item, focusedWindow) {
+                    focusedWindow.webContents.send('menu-export-txt', 4)
+                  }
+                }
+              ]
           }
         , { type: 'separator' }
         , { label: 'Exit...'

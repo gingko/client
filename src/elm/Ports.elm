@@ -3,6 +3,7 @@ port module Ports exposing (..)
 
 import Types exposing (..)
 import Coders exposing (..)
+import TreeUtils exposing (getColumn)
 import Json.Encode exposing (..)
 import Json.Decode exposing (decodeValue)
 
@@ -84,6 +85,19 @@ sendOut info =
       infoForOutside
         { tag = "ExportTXT"
         , data = treeToMarkdown tree
+        }
+
+    ExportTXTColumn col tree ->
+      infoForOutside
+        { tag = "ExportTXT"
+        , data =
+            tree
+              |> getColumn col
+              |> Maybe.withDefault [[]]
+              |> List.concat
+              |> List.map .content
+              |> String.join "\n\n"
+              |> string
         }
 
     Push ->
@@ -232,7 +246,12 @@ receiveMsg tagger onError =
             tagger <| DoExportJSON
 
           "DoExportTXT" ->
-            tagger <| DoExportTXT
+            case decodeValue Json.Decode.int outsideInfo.data of
+              Ok col ->
+                tagger <| DoExportTXTColumn col
+
+              Err e ->
+                tagger <| DoExportTXT
 
           "ViewVideos" ->
             tagger <| ViewVideos
