@@ -634,6 +634,7 @@ const exportTxt = (data) => {
 
       dialog.showSaveDialog(options, function(filepath){
         if(!!filepath){
+          data = process.platform === "win32" ? data.replace(/\n/g, "\r\n") : data;
           fs.writeFile(filepath, data, (err) => {
             if (err) reject(new Error('export-txt writeFile failed'))
             resolve(data)

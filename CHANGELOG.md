@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
   - Added "Export Column" and "Export Current and Children" options.
+  - Fixed line endings on Windows (Export as Text was all on one-line).
 
 ## [2.0.2] - 2018-03-28
   - Fixed Ctrl vs Cmd issue with shortcut tray.
