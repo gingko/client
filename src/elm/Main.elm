@@ -947,7 +947,7 @@ maybeColumnsChanged oldColumns ({workingTree} as model, prevCmd) =
 
     colsChangedCmd =
       if newColNumber /= oldColNumber then
-        sendOut ( ColumnNumberChange newColNumber )
+        sendOut ( ColumnNumberChange ( newColNumber - 1 ) )
       else
         Cmd.none
   in

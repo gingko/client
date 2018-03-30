@@ -9,6 +9,7 @@ const windowStateKeeper = require('electron-window-state')
 // be closed automatically when the JavaScript object is garbage collected.
 let win, winTrial, winSerial
 let changed = false
+let colNumber = 1
 const hiddenStore = new Store({name: "kernel", encryptionKey: "79df64f73eab9bc0d7b448d2008d876e"})
 const userStore = new Store({name: "config"})
 
@@ -91,6 +92,32 @@ function validSerial(email, storedSerial) {
 }
 
 
+function exportMenu(cols) {
+  var expMenu =
+    [ { label : 'Entire Document...'
+      , click (item, focusedWindow) {
+          focusedWindow.webContents.send('menu-export-txt')
+        }
+      }
+    , { type: 'separator' }
+    ]
+
+  var expMenuItem = function (num) {
+    return  { label : `Column ${num}...`
+            , click (item, focusedWindow) {
+                focusedWindow.webContents.send('menu-export-txt', num)
+              }
+            }
+  }
+
+  for (var i = 1; i <= cols;i++) {
+    expMenu.push(expMenuItem(i))
+  }
+
+  return expMenu
+}
+
+
 
 /* ==== App Events ==== */
 
@@ -142,6 +169,9 @@ ipcMain.on('changed', (event, msg) => {
 
 
 ipcMain.on('column-number-change', (event, msg) => {
+  menuTemplate = menuFunction(msg)
+  menu = Menu.buildFromTemplate(menuTemplate)
+  Menu.setApplicationMenu(menu)
 })
 
 
@@ -223,8 +253,8 @@ function createSerialWindow(shouldBlock) {
 
 /* ==== Menu ==== */
 
-const menuTemplate =
-  [ { label: 'File'
+function menuFunction(cols) {
+  return [ { label: 'File'
     , submenu:
         [ { label: 'New'
           , accelerator: 'CmdOrCtrl+N'
@@ -264,34 +294,7 @@ const menuTemplate =
             }
           }
         , { label: 'Export Text'
-          , submenu :
-              [ { label : 'Entire Document'
-                , click (item, focusedWindow) {
-                    focusedWindow.webContents.send('menu-export-txt')
-                  }
-                }
-              , { type: 'separator' }
-              , { label : 'Column 1'
-                , click (item, focusedWindow) {
-                    focusedWindow.webContents.send('menu-export-txt', 1)
-                  }
-                }
-              , { label : 'Column 2'
-                , click (item, focusedWindow) {
-                    focusedWindow.webContents.send('menu-export-txt', 2)
-                  }
-                }
-              , { label : 'Column 3'
-                , click (item, focusedWindow) {
-                    focusedWindow.webContents.send('menu-export-txt', 3)
-                  }
-                }
-              , { label : 'Column 4'
-                , click (item, focusedWindow) {
-                    focusedWindow.webContents.send('menu-export-txt', 4)
-                  }
-                }
-              ]
+          , submenu : exportMenu(cols)
           }
         , { type: 'separator' }
         , { label: 'Exit...'
@@ -365,6 +368,9 @@ const menuTemplate =
         ]
     }
   ]
+}
+
+var menuTemplate = menuFunction(colNumber)
 
 if(true) {//process.defaultApp || /[\\/]electron-prebuilt[\\/]/.test(process.execPath) || /[\\/]electron[\\/]/.test(process.execPath)) {
   menuTemplate.push(
@@ -381,4 +387,4 @@ if(true) {//process.defaultApp || /[\\/]electron-prebuilt[\\/]/.test(process.exe
  )
 }
 
-const menu = Menu.buildFromTemplate(menuTemplate)
+var menu = Menu.buildFromTemplate(menuTemplate)
