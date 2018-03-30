@@ -319,9 +319,10 @@ const update = (msg, data) => {
     }
 
   try {
+    console.log('try msg', msg)
     cases[msg]()
   } catch(err) {
-    console.log('elmCases one-port failed:', msg, data)
+    console.log('elmCases one-port failed:', err, msg, data)
   }
 }
 

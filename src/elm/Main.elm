@@ -70,7 +70,7 @@ defaultModel =
   , shortcutTrayOpen = True
   , videoModalOpen = True
   , startingWordcount = 0
-  , online = True
+  , online = False
   , filepath = Nothing
   , changed = False
   }
