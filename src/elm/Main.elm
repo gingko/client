@@ -942,17 +942,16 @@ insertChild id (model, prevCmd) =
 maybeColumnsChanged : List Column -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 maybeColumnsChanged oldColumns ({workingTree} as model, prevCmd) =
   let
-    oldColNumber = oldColumns |> List.length |> Debug.log "oldColNumber"
-    newColNumber = workingTree.columns |> List.length |> Debug.log "newColNumber"
-    _ = Debug.log "are different" (newColNumber /= oldColNumber)
+    oldColNumber = oldColumns |> List.length
+    newColNumber = workingTree.columns |> List.length
 
     colsChangedCmd =
-      if newColNumber == oldColNumber then
-        Cmd.none
-      else
+      if newColNumber /= oldColNumber then
         sendOut ( ColumnNumberChange newColNumber )
+      else
+        Cmd.none
   in
-  model ! [colsChangedCmd, prevCmd]
+  model ! [prevCmd, colsChangedCmd]
 
 
 -- === Card Moving  ===

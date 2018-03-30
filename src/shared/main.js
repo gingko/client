@@ -74,10 +74,10 @@ self.socket = io.connect('http://localhost:3000')
 var crisp_loaded = false;
 
 $crisp.push(['do', 'chat:hide'])
-$crisp.push(['on', 'session:loaded', () => { crisp_loaded = true; console.log('session:loaded')}])
-$crisp.push(['on', 'chat:closed', () => { $crisp.push(['do', 'chat:hide']); console.log('chat:closed') }])
-$crisp.push(['on', 'chat:opened', () => { $crisp.push(['do', 'chat:show']); console.log('chat:opened') }])
-$crisp.push(['on', 'message:received', () => { $crisp.push(['do', 'chat:show']); console.log('message:received') }])
+$crisp.push(['on', 'session:loaded', () => { crisp_loaded = true }])
+$crisp.push(['on', 'chat:closed', () => { $crisp.push(['do', 'chat:hide']) }])
+$crisp.push(['on', 'chat:opened', () => { $crisp.push(['do', 'chat:show']) }])
+$crisp.push(['on', 'message:received', () => { $crisp.push(['do', 'chat:show']) }])
 if (firstRun) {
   var ctrlOrCmd = process.platform === "darwin" ? "⌘" : "Ctrl";
   localStorage.setItem('first-run', "false")
@@ -206,7 +206,6 @@ const update = (msg, data) => {
       }
 
     , 'ColumnNumberChange': () => {
-        console.log('ColumnNumberChange', data)
         ipcRenderer.send('column-number-change', data)
       }
 
@@ -319,7 +318,6 @@ const update = (msg, data) => {
     }
 
   try {
-    console.log('try msg', msg)
     cases[msg]()
   } catch(err) {
     console.log('elmCases one-port failed:', err, msg, data)
@@ -328,7 +326,6 @@ const update = (msg, data) => {
 
 
 gingko.ports.infoForOutside.subscribe(function(elmdata) {
-  if (elmdata.tag === "ColumnNumberChange") {console.log('infoForOutside', elmdata)}
   update(elmdata.tag, elmdata.data)
 })
 

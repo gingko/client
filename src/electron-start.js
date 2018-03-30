@@ -142,7 +142,6 @@ ipcMain.on('changed', (event, msg) => {
 
 
 ipcMain.on('column-number-change', (event, msg) => {
-  console.log('main thread msg', msg)
 })
 
 
