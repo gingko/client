@@ -37,6 +37,7 @@ type OutgoingMsg
     | GetText String
     | TextSurround String String
     | ConfirmCancel String String
+    | ColumnNumberChange Int
     | New (Maybe String)
     | Open (Maybe String)
     | Save String

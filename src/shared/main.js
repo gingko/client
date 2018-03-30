@@ -205,6 +205,11 @@ const update = (msg, data) => {
         }
       }
 
+    , 'ColumnNumberChange': () => {
+        console.log('ColumnNumberChange', data)
+        ipcRenderer.send('column-number-change', data)
+      }
+
     , 'New': () => {
         let clearDb = () => {
           dbname = sha1(Date.now()+machineIdSync())
@@ -322,6 +327,7 @@ const update = (msg, data) => {
 
 
 gingko.ports.infoForOutside.subscribe(function(elmdata) {
+  if (elmdata.tag === "ColumnNumberChange") {console.log('infoForOutside', elmdata)}
   update(elmdata.tag, elmdata.data)
 })
 

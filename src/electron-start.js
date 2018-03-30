@@ -141,6 +141,11 @@ ipcMain.on('changed', (event, msg) => {
 })
 
 
+ipcMain.on('column-number-change', (event, msg) => {
+  console.log('main thread msg', msg)
+})
+
+
 ipcMain.on('serial', (event, msg) => {
   let newEmail = msg[0]
   let newSerial = msg[1]

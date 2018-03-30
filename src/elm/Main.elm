@@ -860,6 +860,7 @@ deleteCard id (model, prevCmd) =
       | workingTree = Trees.update (Trees.Rmv id) model.workingTree
     }
       ! []
+      |> maybeColumnsChanged model.workingTree.columns
       |> activate nextToActivate
       |> addToHistory
 
@@ -899,6 +900,7 @@ insert pid pos (model, prevCmd) =
     | workingTree = Trees.update (Trees.Ins newId "" pid pos) model.workingTree
   }
     ! [prevCmd]
+    |> maybeColumnsChanged model.workingTree.columns
     |> openCard newId ""
     |> activate newId
 
@@ -937,6 +939,22 @@ insertChild id (model, prevCmd) =
     |> insert id 999999
 
 
+maybeColumnsChanged : List Column -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+maybeColumnsChanged oldColumns ({workingTree} as model, prevCmd) =
+  let
+    oldColNumber = oldColumns |> List.length |> Debug.log "oldColNumber"
+    newColNumber = workingTree.columns |> List.length |> Debug.log "newColNumber"
+    _ = Debug.log "are different" (newColNumber /= oldColNumber)
+
+    colsChangedCmd =
+      if newColNumber == oldColNumber then
+        Cmd.none
+      else
+        sendOut ( ColumnNumberChange newColNumber )
+  in
+  model ! [colsChangedCmd, prevCmd]
+
+
 -- === Card Moving  ===
 
 move : Tree -> String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -945,6 +963,7 @@ move subtree pid pos (model, prevCmd) =
     | workingTree = Trees.update (Trees.Mov subtree pid pos) model.workingTree
   }
     ! []
+    |> maybeColumnsChanged model.workingTree.columns
     |> activate subtree.id
     |> addToHistory
 

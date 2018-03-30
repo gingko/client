@@ -48,6 +48,13 @@ sendOut info =
         , data = list [ string id, string origContent ]
         }
 
+    ColumnNumberChange cols ->
+      let _ = Debug.log "Ports.elm sendOut ColumnNumberChange" cols in
+      infoForOutside
+        { tag = "ColumnNumberChange"
+        , data = int cols
+        }
+
     New str_ ->
       infoForOutside
         { tag = "New"
