@@ -99,13 +99,18 @@ function exportMenu(cols) {
           focusedWindow.webContents.send('menu-export-txt')
         }
       }
+    , { label : 'Current Card and Children...'
+      , click (item, focusedWindow) {
+          focusedWindow.webContents.send('menu-export-txt-current')
+        }
+      }
     , { type: 'separator' }
     ]
 
   var expMenuItem = function (num) {
     return  { label : `Column ${num}...`
             , click (item, focusedWindow) {
-                focusedWindow.webContents.send('menu-export-txt', num)
+                focusedWindow.webContents.send('menu-export-txt-column', num)
               }
             }
   }

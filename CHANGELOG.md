@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
+## Unreleased
+  - Added "Export Column" and "Export Current and Children" options.
+
 ## [2.0.2] - 2018-03-28
   - Fixed Ctrl vs Cmd issue with shortcut tray.
   - Added more guidance to first-run message.

@@ -311,7 +311,7 @@ update msg ({objects, workingTree, status} as model) =
 
             startingWordcount =
               newTree_
-                |> Maybe.map (\t -> countWords (treeToMarkdownString t))
+                |> Maybe.map (\t -> countWords (treeToMarkdownString False t))
                 |> Maybe.withDefault 0
           in
           case (newStatus, newTree_) of
@@ -507,7 +507,17 @@ update msg ({objects, workingTree, status} as model) =
 
         DoExportTXT ->
           model
-            ! [ sendOut ( ExportTXT model.workingTree.tree )]
+            ! [ sendOut ( ExportTXT False model.workingTree.tree )]
+
+        DoExportTXTCurrent ->
+          let
+            currentTree =
+              model.workingTree.tree
+                |> getTree model.viewState.active
+                |> Maybe.withDefault model.workingTree.tree
+          in
+          model
+            ! [ sendOut ( ExportTXT True currentTree )]
 
         DoExportTXTColumn col ->
           model

@@ -87,10 +87,10 @@ sendOut info =
         , data = treeToJSON tree
         }
 
-    ExportTXT tree ->
+    ExportTXT withRoot tree ->
       infoForOutside
         { tag = "ExportTXT"
-        , data = treeToMarkdown tree
+        , data = treeToMarkdown withRoot tree
         }
 
     ExportTXTColumn col tree ->
@@ -258,6 +258,9 @@ receiveMsg tagger onError =
 
               Err e ->
                 tagger <| DoExportTXT
+
+          "DoExportTXTCurrent" ->
+              tagger <| DoExportTXTCurrent
 
           "ViewVideos" ->
             tagger <| ViewVideos

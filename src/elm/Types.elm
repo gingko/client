@@ -43,7 +43,7 @@ type OutgoingMsg
     | Save String
     | SaveAs
     | ExportJSON Tree
-    | ExportTXT Tree
+    | ExportTXT Bool Tree
     | ExportTXTColumn Int Tree
     | Push
     | Pull
@@ -73,6 +73,7 @@ type IncomingMsg
     | CollaboratorDisconnected String
     | DoExportJSON
     | DoExportTXT
+    | DoExportTXTCurrent
     | DoExportTXTColumn Int
     | ViewVideos
     | Keyboard String

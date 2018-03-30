@@ -176,7 +176,7 @@ getWordCounts model =
 
     cardCount = countWords currentTree.content
 
-    subtreeCount = cardCount + countWords (treeToMarkdownString currentTree)
+    subtreeCount = cardCount + countWords (treeToMarkdownString False currentTree)
 
     groupCount =
       currentGroup
@@ -192,7 +192,7 @@ getWordCounts model =
         |> String.join "\n\n"
         |> countWords
 
-    treeCount = countWords (treeToMarkdownString tree)
+    treeCount = countWords (treeToMarkdownString False tree)
   in
   WordCount
     cardCount

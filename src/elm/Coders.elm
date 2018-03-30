@@ -293,19 +293,27 @@ treeToJSONrecurse tree =
         ]
 
 
-treeToMarkdown : Tree -> Enc.Value
-treeToMarkdown tree =
+treeToMarkdown : Bool -> Tree -> Enc.Value
+treeToMarkdown withRoot tree =
   tree
-    |> treeToMarkdownString
+    |> treeToMarkdownString withRoot
     |> Enc.string
 
 
-treeToMarkdownString : Tree -> String
-treeToMarkdownString tree =
-  case tree.children of
-    Children c ->
-      List.map treeToMarkdownRecurse c
-        |> String.join "\n\n"
+treeToMarkdownString : Bool -> Tree -> String
+treeToMarkdownString withRoot tree =
+  let
+    contentList =
+      case tree.children of
+        Children c ->
+          List.map treeToMarkdownRecurse c
+  in
+  if withRoot then
+    tree.content :: contentList
+      |> String.join "\n\n"
+  else
+    contentList
+      |> String.join "\n\n"
 
 
 treeToMarkdownRecurse : Tree -> String
