@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
-## Unreleased
+## [2.0.3] - 2018-03-31
   - Added "Export Column" and "Export Current and Children" options.
   - Fixed line endings on Windows (Export as Text was all on one-line).
   - Continue from the last active card when opening a file.
