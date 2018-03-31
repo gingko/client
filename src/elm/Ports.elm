@@ -193,7 +193,6 @@ receiveMsg tagger onError =
           "Load" ->
             case decodeValue ( tripleDecoder Json.Decode.string Json.Decode.value (Json.Decode.maybe Json.Decode.string) ) outsideInfo.data of
               Ok ( filepath, json, lastActive_ ) ->
-                let _ = Debug.log "Ports Load" (filepath, json, lastActive_) in
                 tagger <| Load (filepath, json, lastActive_ |> Maybe.withDefault "1" )
 
               Err e ->

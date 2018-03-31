@@ -9,6 +9,7 @@ const {ipcRenderer, remote, webFrame, shell} = require('electron')
 const {app, dialog} = remote
 const querystring = require('querystring')
 const MemoryStream = require('memorystream')
+const Store = require('electron-store')
 
 import PouchDB from "pouchdb-browser";
 
@@ -44,13 +45,24 @@ var lastColumnIdx = null
 var collab = {}
 
 
+const userStore = new Store({name: "config"})
+userStore.getWithDefault = function (key, def) {
+  let val = userStore.get(key);
+  if (typeof val === "undefined") {
+    return def;
+  } else {
+    return val;
+  }
+}
+
+
 
 
 /* === Initializing App === */
 
 console.log('Gingko version', app.getVersion())
 
-var firstRun = localStorage.getItem('first-run') === "false" ? false : true
+var firstRun = userStore.getWithDefault('first-run', true)
 
 var dbname = querystring.parse(window.location.search.slice(1))['dbname'] || sha1(Date.now()+machineIdSync())
 var filename = querystring.parse(window.location.search.slice(1))['filename'] || "Untitled Tree"
@@ -61,8 +73,8 @@ self.db = new PouchDB(dbpath, {adapter: 'memory'})
 
 var initFlags =
   [ process.platform === "darwin"
-  , localStorage.getItem('shortcut-tray-is-open') === "false" ? false : true
-  , localStorage.getItem('video-modal-is-open') === "true" ? true : false
+  , userStore.getWithDefault('shortcut-tray-is-open', true)
+  , userStore.getWithDefault('video-modal-is-open', false)
   ]
 
 self.gingko = Elm.Main.fullscreen(initFlags)
@@ -80,7 +92,7 @@ $crisp.push(['on', 'chat:opened', () => { $crisp.push(['do', 'chat:show']) }])
 $crisp.push(['on', 'message:received', () => { $crisp.push(['do', 'chat:show']) }])
 if (firstRun) {
   var ctrlOrCmd = process.platform === "darwin" ? "⌘" : "Ctrl";
-  localStorage.setItem('first-run', "false")
+  userStore.set('first-run', false)
   $crisp.push(['do'
               , 'message:show'
               , [ 'text' ,
@@ -292,11 +304,11 @@ const update = (msg, data) => {
         setFileState(false, data)
 
     , 'SetVideoModal': () => {
-        localStorage.setItem('video-modal-is-open', data)
+        userStore.set('video-modal-is-open', data)
       }
 
     , 'SetShortcutTray': () => {
-        localStorage.setItem('shortcut-tray-is-open', data)
+        userStore.set('shortcut-tray-is-open', data)
       }
 
     , 'SetChanged': () => {
@@ -406,7 +418,6 @@ const load = function(filepath, headOverride){
         }
 
         let toSend = [filepath, [status, { commits: commits, treeObjects: trees, refs: refs}], getLastActive(filepath)];
-        console.log('toSend', toSend)
         gingko.ports.infoForElm.send({tag: "Load", data: toSend});
       }).catch(function (err) {
         console.log(err)
@@ -762,22 +773,17 @@ const importFile = (filepathToImport) => {
 
 function setLastActive (filename, lastActiveCard) {
   if (filename !== null) {
-    let lastActiveData = JSON.parse(localStorage.getItem('last-active-cards'))
-
-    if (lastActiveData === null) { lastActiveData = {}; }
-
-    lastActiveData[filename] = lastActiveCard;
-    localStorage.setItem('last-active-cards', JSON.stringify(lastActiveData));
+    userStore.set(`last-active-cards.${filename}`, lastActiveCard);
   }
 }
 
 
 function getLastActive (filename) {
-  let lastActiveData = JSON.parse(localStorage.getItem('last-active-cards'))
-  if (lastActiveData !== null && Object.keys(lastActiveData).includes(filename)) {
-    return lastActiveData[filename]
-  } else {
+  let lastActiveCard = userStore.get(`last-active-cards.${filename}`)
+  if (typeof lastActiveCard === "undefined") {
     return null
+  } else {
+    return lastActiveCard
   }
 }
 
