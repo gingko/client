@@ -68,7 +68,7 @@ defaultModel =
       }
   , isMac = False
   , shortcutTrayOpen = True
-  , videoModalOpen = True
+  , videoModalOpen = False
   , startingWordcount = 0
   , online = False
   , filepath = Nothing
