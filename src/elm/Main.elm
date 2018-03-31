@@ -303,6 +303,7 @@ update msg ({objects, workingTree, status} as model) =
 
         Reset ->
           init (model.isMac, model.shortcutTrayOpen, model.videoModalOpen)
+            |> maybeColumnsChanged model.workingTree.columns
 
         Load (filepath, json, lastActiveCard) ->
           let
@@ -323,6 +324,7 @@ update msg ({objects, workingTree, status} as model) =
                 , changed = False
               }
                 ! [ sendOut ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
+                |> maybeColumnsChanged model.workingTree.columns
                 |> activate lastActiveCard
 
             (Clean newHead, Just newTree) ->
@@ -335,6 +337,7 @@ update msg ({objects, workingTree, status} as model) =
                 , changed = False
               }
                 ! [ sendOut ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
+                |> maybeColumnsChanged model.workingTree.columns
                 |> activate lastActiveCard
 
             (MergeConflict mTree oldHead newHead [], Just newTree) ->
@@ -347,6 +350,7 @@ update msg ({objects, workingTree, status} as model) =
                 , changed = False
               }
                 ! [ sendOut ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
+                |> maybeColumnsChanged model.workingTree.columns
                 |> activate lastActiveCard
 
             (MergeConflict mTree oldHead newHead conflicts, Just newTree) ->
@@ -359,6 +363,7 @@ update msg ({objects, workingTree, status} as model) =
                 , changed = False
               }
                 ! [ sendOut ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
+                |> maybeColumnsChanged model.workingTree.columns
                 |> activate lastActiveCard
 
             _ ->
@@ -426,6 +431,8 @@ update msg ({objects, workingTree, status} as model) =
                 ! [ sendOut ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
                   , sendOut ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) )
                   ]
+                  |> maybeColumnsChanged model.workingTree.columns
+                  |> activate vs.active
 
             Err err ->
               let _ = Debug.log "ImportJson error" err in
@@ -448,6 +455,7 @@ update msg ({objects, workingTree, status} as model) =
                     , status = newStatus
                   }
                     ! [ sendOut ( UpdateCommits ( Objects.toValue objects, getHead newStatus ) ) ]
+                    |> maybeColumnsChanged model.workingTree.columns
 
                 Nothing ->
                   model ! []
