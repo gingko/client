@@ -370,26 +370,18 @@ function menuFunction(cols) {
               createSerialWindow(false)
             }
           }
+          , { type: 'separator' }
+          , { label: 'Show Dev Tools'
+            , accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I'
+            , click (item, focusedWindow) {
+                if (focusedWindow) focusedWindow.webContents.toggleDevTools()
+              }
+            }
         ]
     }
   ]
 }
 
 var menuTemplate = menuFunction(colNumber)
-
-if(true) {//process.defaultApp || /[\\/]electron-prebuilt[\\/]/.test(process.execPath) || /[\\/]electron[\\/]/.test(process.execPath)) {
-  menuTemplate.push(
-  { label: 'Debug'
-    , submenu:
-        [ { label: 'Show Dev Tools'
-          , accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I'
-          , click (item, focusedWindow) {
-              if (focusedWindow) focusedWindow.webContents.toggleDevTools()
-            }
-          }
-        ]
-    }
- )
-}
 
 var menu = Menu.buildFromTemplate(menuTemplate)
