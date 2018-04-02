@@ -18,6 +18,7 @@
   "homepage": "https://github.com/gingko/client",
   "scripts": {
     "start": "webpack --watch",
+    "test": "mocha",
     "build": "webpack",
     "electron": "electron ./app",
     "pack": "electron-builder --dir",
@@ -80,6 +81,8 @@
     "file-loader": "^0.11.2",
     "html-webpack-plugin": "^2.29.0",
     "imports-loader": "^0.7.1",
+    "mocha": "^5.0.5",
+    "spectron": "^3.8.0",
     "webpack": "^3.5.5",
     "webpack-dev-server": "^2.7.1"
   }
