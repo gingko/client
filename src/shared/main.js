@@ -224,40 +224,51 @@ const update = (msg, data) => {
     , 'New': () => {
         let clearDb = () => {
           dbname = sha1(Date.now()+machineIdSync())
-          filename = "Untitled Tree"
-          document.title = `${filename} - Gingko`
+          setFileState(false, null)
 
           dbpath = path.join(app.getPath('userData'), dbname)
           self.db = new PouchDB(dbpath, {adapter: 'memory'})
           gingko.ports.infoForElm.send({tag: 'Reset', data: null})
         }
 
-        if(changed && !saveInProgress) {
-          saveConfirmation(data).then( () => {
-            db.destroy().then( res => {
-              if (res.ok) {
-                clearDb()
-              }
-            })
-          })
+        if(saveInProgress) {
+          _.delay(update, 200, 'New')
         } else {
-          clearDb()
+          if(changed) {
+            saveConfirmation(data).then( () => {
+              db.destroy().then( res => {
+                if (res.ok) {
+                  clearDb()
+                }
+              })
+            })
+          } else {
+            clearDb()
+          }
         }
       }
 
-    , 'Load': () => {
-          if(changed && !saveInProgress) {
-            saveConfirmation(currentFile).then(() => loadFile(data))
+    , 'Open': () => {
+        if (saveInProgress) {
+          _.delay(update, 200, 'Open')
+        } else {
+          if (changed) {
+            saveConfirmation(data).then(openDialog)
           } else {
-            loadFile(data)
+            openDialog()
           }
         }
+      }
 
     , 'Import': () => {
-        if (changed && ! saveInProgress) {
-          saveConfirmation(data).then(importDialog)
+        if (saveInProgress) {
+          _.delay(update, 200, 'Import')
         } else {
-          importDialog()
+          if (changed) {
+            saveConfirmation(data).then(importDialog)
+          } else {
+            importDialog()
+          }
         }
       }
 
@@ -275,7 +286,9 @@ const update = (msg, data) => {
           )
 
     , 'SaveAndClose': () => {
-        if(!saveInProgress) {
+        if(saveInProgress) {
+          _.delay(update, 200, 'SaveAndClose')
+        } else {
           saveConfirmation(data).then(app.exit)
         }
       }
@@ -290,14 +303,6 @@ const update = (msg, data) => {
 
     , 'ExportTXTColumn': () => {
         exportTxt(data)
-      }
-
-    , 'Open': () => {
-        if (changed && !saveInProgress) {
-          saveConfirmation(data).then(openDialog)
-        } else {
-          openDialog()
-        }
       }
 
     , 'SetSaved': () =>
@@ -815,7 +820,7 @@ const setFileState = function(bool, newpath) {
   } else {
     changed = false
     currentFile = newpath
-    document.title = `${path.basename(currentFile)} - Gingko`
+    document.title = newpath ? `${path.basename(currentFile)} - Gingko` : "Untitled Tree - Gingko"
   }
 
   ipcRenderer.send('changed', bool)
