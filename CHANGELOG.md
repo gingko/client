@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
+## [2.0.4] - 2018-04-02
+  - (Critical) Fixed bug that didn't ask to save changes on New/Load/Import/Exit.
+  - Fixed bug that led to needing to force-quit.
+
 ## [2.0.3] - 2018-03-31
   - Added "Export Column" and "Export Current and Children" options.
   - Fixed line endings on Windows (Export as Text was all on one-line).
