@@ -36,7 +36,7 @@ window.Elm = require('../elm/Main')
 
 var currentFile = null
 var changed = false
-var saving = false
+var saveInProgress = false
 var field = null
 var editing = null
 var currentSwap = null
@@ -232,7 +232,7 @@ const update = (msg, data) => {
           gingko.ports.infoForElm.send({tag: 'Reset', data: null})
         }
 
-        if(changed && !saving) {
+        if(changed && !saveInProgress) {
           saveConfirmation(data).then( () => {
             db.destroy().then( res => {
               if (res.ok) {
@@ -246,7 +246,7 @@ const update = (msg, data) => {
       }
 
     , 'Load': () => {
-          if(changed && !saving) {
+          if(changed && !saveInProgress) {
             saveConfirmation(currentFile).then(() => loadFile(data))
           } else {
             loadFile(data)
@@ -254,7 +254,7 @@ const update = (msg, data) => {
         }
 
     , 'Import': () => {
-        if (changed && ! saving) {
+        if (changed && ! saveInProgress) {
           saveConfirmation(data).then(importDialog)
         } else {
           importDialog()
@@ -275,7 +275,7 @@ const update = (msg, data) => {
           )
 
     , 'SaveAndClose': () => {
-        if(!saving) {
+        if(!saveInProgress) {
           saveConfirmation(data).then(app.exit)
         }
       }
@@ -293,7 +293,7 @@ const update = (msg, data) => {
       }
 
     , 'Open': () => {
-        if (changed && !saving) {
+        if (changed && !saveInProgress) {
           saveConfirmation(data).then(openDialog)
         } else {
           openDialog()
@@ -515,7 +515,7 @@ const save = (filepath) => {
       let swapfilepath = filepath + '.swp'
       let filewriteStream = fs.createWriteStream(swapfilepath)
       let memStream = new MemoryStream();
-      saving = true
+      saveInProgress = true
 
       db.dump(memStream).then( res => {
         if (res.ok) {
@@ -546,11 +546,11 @@ const save = (filepath) => {
             })
           })
         } else {
-          saving = false
+          saveInProgress = false
           reject(res)
         }
       }).catch( err => {
-        saving = false
+        saveInProgress = false
         reject(err)
       })
     }
