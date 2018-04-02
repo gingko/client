@@ -532,6 +532,8 @@ const save = (filepath) => {
               if (streamHash !== swapfileHash) {
                 throw new Error('File integrity check failed.')
               } else {
+                // Successful save and copy
+                saveInProgress = false
                 fs.copyFile(swapfilepath, filepath, (copyErr) => {
                   if (copyErr) {
                     throw copyErr;
