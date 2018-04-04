@@ -1,6 +1,7 @@
 const jQuery = require('jquery')
 const _ = require('lodash')
 const autosize = require('textarea-autosize')
+const Mousetrap = require('mousetrap')
 
 const fs = require('fs')
 const getHash = require('hash-stream')
@@ -84,6 +85,9 @@ self.socket = io.connect('http://localhost:3000')
 //self.remoteDb = new PouchDB(remoteCouch)
 
 var crisp_loaded = false;
+
+// Needed for unit tests
+window.$crisp = (typeof $crisp === 'undefined') ? [] : $crisp
 
 $crisp.push(['do', 'chat:hide'])
 $crisp.push(['on', 'session:loaded', () => { crisp_loaded = true }])

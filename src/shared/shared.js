@@ -1,4 +1,5 @@
 const _ = require('lodash')
+const {TweenMax} = require('gsap')
 
 
 /* ===== Database Saving ===== */
