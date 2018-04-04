@@ -2,8 +2,9 @@ const Application = require('spectron').Application
 const {expect} = require('chai')
 const electronPath = require('electron') // Require Electron from the binaries included in node_modules.
 const path = require('path')
+const robot = require('robotjs')
 
-describe.skip('Application Lifecycle', function () {
+describe('Application Start', function () {
   this.timeout(10000)
 
   var app, client
@@ -24,32 +25,46 @@ describe.skip('Application Lifecycle', function () {
     }
   })
 
-  xit('shows an initial window', async function () {
+  it('shows an initial window', async function () {
     const windowCount = await client.getWindowCount()
     expect(windowCount).to.be.equal(1)
   })
 
-
-  // Does not work.
   it('should show dev tools when going to "Help > Show Dev Tools"', async function () {
-    client.pause(1000)
-    await client.execute(async () => {
-      var el = await app.electron
-      var menu = app.electron.remote.Menu.getApplicationMenu()
-      console.log(menu)
+    robot.keyTap('h', 'alt')
+    robot.keyTap('d')
+    await client.pause(200)
+    const windowCount = await client.getWindowCount()
+    expect(windowCount).to.be.equal(2)
+  })
+})
+
+
+describe('Application Exit', function () {
+  this.timeout(10000)
+
+  var app, client
+
+  beforeEach(function () {
+    app = new Application({
+      path: electronPath,
+      args: [path.join(__dirname, '../app')],
+      quitTimeout: 10
+    })
+    return app.start().then(function (result) {
+      client = app.client
     })
   })
 
-
-  // Does not work.
-  it('should close the window when pressing Ctrl+Q', async function () {
-    client.windowByIndex(0)
-    await client.keys(['Control', 'Q'])
-    client.pause(2000)
-    const finalWindowCount = await client.getWindowCount()
-    expect(finalWindowCount).to.be.equal(0)
+  // Skip. 'chrome not reachable' error.
+  xit('should close the window when pressing Ctrl+Q', async function () {
+    robot.keyTap('q', 'control')
+    await client.pause(200)
+    const windowCount = await client.getWindowCount()
+    expect(app.isRunning()).to.be.false
   })
 })
+
 
 describe('Basic Actions', function () {
   this.timeout(10000)
@@ -67,10 +82,14 @@ describe('Basic Actions', function () {
   })
 
   // Close app after all tests have run.
-  // Unfortunately, "Save changes?" dialog prevents this.
-  after(function () {
+  // Hack to click "Close without saving" in "Save changes?" dialog.
+  // Platform and distro dependant!
+  after(async function () {
     if (app && app.isRunning()) {
-      return app.stop()
+      app.stop()
+      robot.moveMouse(818, 561)
+      await client.pause(500)
+      robot.mouseClick()
     }
   })
 
@@ -81,7 +100,7 @@ describe('Basic Actions', function () {
 
   it('should switch to edit mode when pressing Enter', async function () {
     await client.keys(['Enter'])
-    const textareaExists = await client.waitForExist('#card-edit-1', 200)
+    const textareaExists = await client.waitForExist('#card-edit-1', 800)
     expect(textareaExists).to.be.true
   })
 
@@ -93,7 +112,7 @@ describe('Basic Actions', function () {
 
   it('should switch to navigation mode when pressing Ctrl+Enter', async function () {
     const step1 = await client.keys(['Control', 'Enter'])
-    const cardViewExists = await client.waitForExist('#card-1 .view', 120)
+    const cardViewExists = await client.waitForExist('#card-1 .view', 800)
     expect(cardViewExists).to.be.true
   })
 
