@@ -9,6 +9,7 @@ Gingko-*
 *.gko
 *.ps
 *.pdf
+testfile-*
 repOut.txt
 data/*
 npm-debug.log

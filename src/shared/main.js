@@ -518,7 +518,7 @@ const setHead = function(sha) {
 
 /* === Local Functions === */
 
-const save = (filepath) => {
+self.save = (filepath) => {
   return new Promise(
     (resolve, reject) => {
       let swapfilepath = filepath + '.swp'
