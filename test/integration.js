@@ -81,7 +81,7 @@ describe('Basic Actions', function () {
 
   it('should switch to edit mode when pressing Enter', async function () {
     await client.keys(['Enter'])
-    const textareaExists = await client.waitForExist('#card-edit-1', 120)
+    const textareaExists = await client.waitForExist('#card-edit-1', 200)
     expect(textareaExists).to.be.true
   })
 
