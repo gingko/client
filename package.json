@@ -90,5 +90,8 @@
     "spectron": "git://github.com/gingko/spectron.git#api-in-app-purchase-error",
     "webpack": "^3.5.5",
     "webpack-dev-server": "^2.7.1"
+  },
+  "optionalDependencies": {
+    "robotjs": "^0.5.1"
   }
 }
