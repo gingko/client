@@ -68,6 +68,7 @@ type IncomingMsg
     | CheckoutCommit String
     | SetHeadRev String
     | Changed
+    | FieldChanged String
     | Saved String
     | RecvCollabState CollabState
     | CollaboratorDisconnected String

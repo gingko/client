@@ -440,6 +440,13 @@ update msg ({objects, workingTree, status} as model) =
               let _ = Debug.log "ImportJson error" err in
               model ! []
 
+        FieldChanged str ->
+          { model
+            | field = str
+            , changed = True
+          }
+            ! []
+
         CheckoutCommit commitSha ->
           case status of
             MergeConflict _ _ _ _ ->
