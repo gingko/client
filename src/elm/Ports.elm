@@ -10,12 +10,24 @@ import Json.Decode exposing (decodeValue)
 
 sendOut : OutgoingMsg -> Cmd msg
 sendOut info =
+  let
+    dataToSend = encodeAndSend info
+  in
   case info of
     Alert str ->
       infoForOutside
         { tag = "Alert"
         , data = string str
         }
+
+    ConfirmClose actionName filepath_ (statusValue, objectsValue) ->
+      dataToSend
+        ( object
+            [ ( "action", string actionName  )
+            , ( "filepath", maybeToValue string filepath_ )
+            , ( "document", list [ statusValue, objectsValue ] )
+            ]
+        )
 
     ActivateCards (cardId, col, cardIds) ->
       let
@@ -274,6 +286,23 @@ receiveMsg tagger onError =
 tagOnly : String -> Cmd msg
 tagOnly tag =
   infoForOutside { tag = tag, data = null }
+
+
+encodeAndSend : OutgoingMsg -> Json.Encode.Value -> Cmd msg
+encodeAndSend info data =
+  let
+    tagName = unionTypeToString info
+  in
+  infoForOutside { tag = tagName, data = data }
+
+
+unionTypeToString : a -> String
+unionTypeToString ut =
+  ut
+    |> toString
+    |> String.words
+    |> List.head
+    |> Maybe.withDefault (ut |> toString)
 
 
 port infoForOutside : OutsideData -> Cmd msg

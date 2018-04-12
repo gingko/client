@@ -33,6 +33,7 @@ type Msg
 
 type OutgoingMsg
     = Alert String
+    | ConfirmClose String (Maybe String) (Json.Value, Json.Value)
     | ActivateCards (String, Int, List (List String))
     | TextSurround String String
     | ConfirmCancel String String
