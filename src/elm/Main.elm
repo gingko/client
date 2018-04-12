@@ -103,15 +103,9 @@ update msg ({objects, workingTree, status} as model) =
     -- === Card Activation ===
 
     Activate id ->
-      case vs.editing of
-        Just eid ->
-          model ! [ sendOut ( GetText eid ) ]
-            |> cancelCard
-            |> activate id
-
-        Nothing ->
-          model ! []
-            |> activate id
+      model ! []
+        |> saveCardIfEditing
+        |> activate id
 
     -- === Card Editing  ===
 
@@ -826,6 +820,29 @@ goRight id (model, prevCmd) =
 
 
 -- === Card Editing  ===
+
+saveCardIfEditing : (Model, Cmd Msg) -> (Model, Cmd Msg)
+saveCardIfEditing (model, prevCmd) =
+  let vs = model.viewState in
+  case vs.editing of
+    Just id ->
+      let
+        newTree = Trees.update (Trees.Upd id model.field) model.workingTree
+          |> Debug.log "saveCardIfEditing newTree"
+      in
+      if newTree.tree /= model.workingTree.tree then
+        { model
+          | workingTree = newTree
+          , viewState = { vs | editing = Nothing }
+          , field = ""
+        }
+          ! [prevCmd]
+          |> addToHistory
+      else
+        model ! [prevCmd]
+
+    Nothing ->
+      model ! [prevCmd]
 
 openCard : String -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 openCard id str (model, prevCmd) =
