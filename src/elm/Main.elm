@@ -1139,8 +1139,8 @@ addToHistory ({workingTree} as model, prevCmd) =
 -- === Files ===
 
 
-saveChangesDialog : String -> ( Model -> ( Model, Cmd Msg ) ) -> Model -> ( Model, Cmd Msg )
-saveChangesDialog actionId actionFunction model =
+saveChangesDialog : String -> ( Model -> ( Model, Cmd Msg ) ) -> ( Model, Cmd Msg) -> ( Model, Cmd Msg )
+saveChangesDialog actionId actionFunction (model, prevCmd) =
   let
     (status, objects) = ( statusToValue model.status, Objects.toValue model.objects )
   in
@@ -1149,10 +1149,10 @@ saveChangesDialog actionId actionFunction model =
       actionFunction model
 
     ( True, Nothing ) ->
-      model ! [ sendOut ( ConfirmClose actionId model.filepath (status, objects) ) ]
+      model ! [ prevCmd, sendOut ( ConfirmClose actionId model.filepath (status, objects) ) ]
 
     ( True, Just eid ) ->
-      model ! [ sendOut ( ConfirmClose (actionId ++ "FromEditMode") model.filepath (status, objects) ) ]
+      model ! [ prevCmd, sendOut ( ConfirmClose (actionId ++ "FromEditMode") model.filepath (status, objects) ) ]
 
 
 intentSave : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1169,13 +1169,8 @@ intentSave (model, prevCmd) =
 
 
 intentNew : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-intentNew (model, prevCmd) =
-  case model.filepath of
-    Nothing ->
-      model ! [prevCmd, sendOut ( New Nothing )]
-
-    Just filepath ->
-      model ! [prevCmd, sendOut ( New ( Just filepath ) )]
+intentNew modelCmds =
+  saveChangesDialog "New" actionNew modelCmds
 
 
 intentOpen : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
