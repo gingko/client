@@ -38,8 +38,6 @@ window.Elm = require('../elm/Main')
 var currentFile = null
 var changed = false
 var saveInProgress = false
-var field = null
-var editing = null
 var currentSwap = null
 var lastCenterline = null
 var lastColumnIdx = null
@@ -896,10 +894,6 @@ const observer = new MutationObserver(function(mutations) {
 
   if (textareas.length !== 0) {
     textareas.map(t => {
-      if(editing == t.id.split('-')[2] && field !== null) {
-        t.value = field
-        t.focus()
-      }
       t.oninput = editingInputHandler;
     })
     jQuery(textareas).textareaAutoSize()
