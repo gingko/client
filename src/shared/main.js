@@ -79,6 +79,10 @@ var initFlags =
 self.gingko = Elm.Main.fullscreen(initFlags)
 self.socket = io.connect('http://localhost:3000')
 
+var toElm = function(tag, data) {
+  gingko.ports.infoForElm.send({tag: tag, data: data})
+}
+
 //self.remoteCouch = 'http://localhost:5984/atreenodes16'
 //self.remoteDb = new PouchDB(remoteCouch)
 
@@ -129,15 +133,45 @@ const update = (msg, data) => {
         shared.scrollColumns(data[2])
       }
 
-    , 'GetText': () => {
-        let id = data
-        let tarea = document.getElementById('card-edit-'+id)
+    , 'ConfirmClose': async () => {
+        let choice = dialog.showMessageBox(saveConfirmationDialogOptions)
+        if (choice == 0) {
+          // "Close without Saving"
 
-        if (tarea === null) {
-          // TODO: replace this with proper logging.
-          gingko.ports.updateError.send('Textarea with id '+id+' not found.')
-        } else {
-          gingko.ports.infoForElm.send({tag: 'UpdateContent', data: [id, tarea.value]})
+          switch (data.action) {
+            case "New":
+            case "NewFromEditMode":
+              await clearDb()
+              document.title = "Untitled Tree - Gingko"
+              toElm("New", null)
+              break
+
+            case "Open":
+            case "OpenFromEditMode":
+              let filepathArray = await openDialog()
+
+              if(Array.isArray(filepathArray) && filepathArray.length >= 0) {
+                var filepathToLoad = filepathArray[0]
+                loadFile(filepathToLoad)
+              }
+              break;
+
+            default:
+              console.log("Unsupported action: " + data.action)
+          }
+        } else if (choice == 2) {
+          // "Save and then Callback"
+          if (data.action == "New" ) {
+            await saveToDB(data.document[0], data.document[1])
+            let savePath = data.filepath ? data.filepath : await saveAsDialog()
+            await save(savePath)
+            await clearDb()
+            document.title = "Untitled Tree - Gingko"
+            toElm("New", null)
+          } else if (data.action == "NewFromEditMode") {
+            document.title = "Untitled Tree - Gingko"
+            toElm("SaveAndNew", null)
+          }
         }
       }
 
@@ -353,7 +387,7 @@ gingko.ports.infoForOutside.subscribe(function(elmdata) {
 
 /* === JS to Elm Ports === */
 
-ipcRenderer.on('menu-new', () => update('New'))
+ipcRenderer.on('menu-new', () => gingko.ports.infoForElm.send({tag: 'IntentNew', data : null}))
 ipcRenderer.on('menu-open', () => update('Open'))
 ipcRenderer.on('menu-import-json', () => update('Import'))
 ipcRenderer.on('menu-export-json', () => gingko.ports.infoForElm.send({tag: 'DoExportJSON', data: null }))
@@ -566,6 +600,13 @@ self.save = (filepath) => {
   )
 }
 
+const saveConfirmationDialogOptions =
+    { title: "Save changes"
+    , message: "Save changes before closing?"
+    , buttons: ["Close Without Saving", "Cancel", "Save"]
+    , defaultId: 2
+    }
+
 
 const saveAs = () => {
   return new Promise(
@@ -777,6 +818,23 @@ const importFile = (filepathToImport) => {
       }
     })
   })
+}
+
+
+const clearDb = (dbname) => {
+  return new Promise(
+    async (resolve, reject) => {
+      let destroyOp = await db.destroy()
+      if (!destroyOp.ok) {
+        reject(new Error("Couldn't destroy db on ClearDB"))
+      }
+
+      dbname = dbname ? dbname : sha1(Date.now()+machineIdSync())
+      dbpath = path.join(app.getPath('userData'), dbname)
+      self.db = new PouchDB(dbpath, {adapter: 'memory'})
+      resolve()
+    }
+  )
 }
 
 
