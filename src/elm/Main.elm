@@ -277,22 +277,6 @@ update msg ({objects, workingTree, status} as model) =
 
     Port incomingMsg ->
       case incomingMsg of
-        UpdateContent (id, str) ->
-          let
-            newTree = Trees.update (Trees.Upd id str) model.workingTree
-          in
-          if newTree.tree /= model.workingTree.tree then
-            { model
-              | workingTree = newTree
-            }
-              ! []
-              |> addToHistory
-              |> sendCollabState (CollabState model.uid (Active id) "")
-          else
-            model
-              ! []
-              |> sendCollabState (CollabState model.uid (Active id) "")
-
         CancelCardConfirmed ->
           model ! []
             |> cancelCard
@@ -546,14 +530,9 @@ update msg ({objects, workingTree, status} as model) =
               model ! []
 
             "mod+enter" ->
-              case vs.editing of
-                Nothing ->
-                  model ! []
-
-                Just uid ->
-                  model ! [ sendOut ( GetText uid ) ]
-                    |> cancelCard
-                    |> activate uid
+              model ! []
+                |> saveCardIfEditing
+                |> activate vs.active
 
             "enter" ->
               normalMode model (openCard vs.active (getContent vs.active model.workingTree.tree))
@@ -565,19 +544,25 @@ update msg ({objects, workingTree, status} as model) =
               model |> intentCancelCard
 
             "mod+j" ->
-              model |> maybeSaveAndThen (insertBelow vs.active)
+              model ! []
+                |> saveCardIfEditing
+                |> insertBelow vs.active
 
             "mod+down" ->
               normalMode model (insertBelow vs.active)
 
             "mod+k" ->
-              model |> maybeSaveAndThen (insertAbove vs.active)
+              model ! []
+                |> saveCardIfEditing
+                |> insertAbove vs.active
 
             "mod+up" ->
               normalMode model (insertAbove vs.active)
 
             "mod+l" ->
-              model |> maybeSaveAndThen (insertChild vs.active)
+              model ! []
+                |> saveCardIfEditing
+                |> insertChild vs.active
 
             "mod+right" ->
               normalMode model (insertChild vs.active)
@@ -653,7 +638,9 @@ update msg ({objects, workingTree, status} as model) =
                 |> intentNew
 
             "mod+s" ->
-              model |> maybeSaveAndThen intentSave
+              model ! []
+                |> saveCardIfEditing
+                |> intentSave
 
             "mod+o" ->
               model ! []
@@ -828,7 +815,6 @@ saveCardIfEditing (model, prevCmd) =
     Just id ->
       let
         newTree = Trees.update (Trees.Upd id model.field) model.workingTree
-          |> Debug.log "saveCardIfEditing newTree"
       in
       if newTree.tree /= model.workingTree.tree then
         { model
@@ -1277,18 +1263,6 @@ focus id =
 run : Msg -> Cmd Msg
 run msg =
   Task.attempt (\_ -> msg ) (Task.succeed msg)
-
-
-maybeSaveAndThen : ( (Model, Cmd Msg) -> (Model, Cmd Msg) ) -> Model -> (Model, Cmd Msg)
-maybeSaveAndThen operation model =
-  case model.viewState.editing of
-    Nothing ->
-      model ! []
-        |> operation
-
-    Just uid ->
-      model ! [ sendOut ( GetText uid ) ]
-        |> operation
 
 
 normalMode : Model -> ( (Model, Cmd Msg) -> (Model, Cmd Msg) ) -> (Model, Cmd Msg)

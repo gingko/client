@@ -34,7 +34,6 @@ type Msg
 type OutgoingMsg
     = Alert String
     | ActivateCards (String, Int, List (List String))
-    | GetText String
     | TextSurround String String
     | ConfirmCancel String String
     | ColumnNumberChange Int
@@ -59,8 +58,7 @@ type OutgoingMsg
 
 
 type IncomingMsg
-    = UpdateContent (String, String)
-    | CancelCardConfirmed
+    = CancelCardConfirmed
     | Reset
     | Load (String, Json.Value, String)
     | Merge Json.Value

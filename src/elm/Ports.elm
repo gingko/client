@@ -30,12 +30,6 @@ sendOut info =
         , data = tripleToValue string int listListStringToValue ( cardId, col, cardIds )
         }
 
-    GetText id ->
-      infoForOutside
-        { tag = "GetText"
-        , data = string id
-        }
-
     TextSurround id str ->
       infoForOutside
         { tag = "TextSurround"
@@ -180,14 +174,6 @@ receiveMsg tagger onError =
             case decodeValue Json.Decode.string outsideInfo.data of
               Ok newField ->
                 tagger <| FieldChanged newField
-
-              Err e ->
-                onError e
-
-          "UpdateContent" ->
-            case decodeValue ( tupleDecoder Json.Decode.string Json.Decode.string ) outsideInfo.data of
-              Ok (id, str) ->
-                tagger <| UpdateContent (id, str)
 
               Err e ->
                 onError e
