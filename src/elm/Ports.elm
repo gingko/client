@@ -176,6 +176,14 @@ receiveMsg tagger onError =
   infoForElm
     (\outsideInfo ->
         case outsideInfo.tag of
+          "FieldChanged" ->
+            case decodeValue Json.Decode.string outsideInfo.data of
+              Ok newField ->
+                tagger <| FieldChanged newField
+
+              Err e ->
+                onError e
+
           "UpdateContent" ->
             case decodeValue ( tupleDecoder Json.Decode.string Json.Decode.string ) outsideInfo.data of
               Ok (id, str) ->

@@ -835,6 +835,7 @@ const editingInputHandler = function(ev) {
   if (!changed) {
     setFileState(true, currentFile)
   }
+  gingko.ports.infoForElm.send({tag: 'FieldChanged', data: ev.target.value})
   collab.field = ev.target.value
   socket.emit('collab', collab)
 }
