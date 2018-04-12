@@ -825,7 +825,11 @@ saveCardIfEditing (model, prevCmd) =
           ! [prevCmd]
           |> addToHistory
       else
-        model ! [prevCmd]
+        { model
+          | viewState = { vs | editing = Nothing }
+          , field = ""
+        }
+          ! [prevCmd]
 
     Nothing ->
       model ! [prevCmd]
