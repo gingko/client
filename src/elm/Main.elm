@@ -844,6 +844,7 @@ openCard id str (model, prevCmd) =
   else
     { model
       | viewState = { vs | active = id, editing = Just id }
+      , field = str
     }
       ! [ prevCmd, focus id ]
       |> sendCollabState (CollabState model.uid (Editing id) str)
