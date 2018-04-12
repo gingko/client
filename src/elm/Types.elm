@@ -38,7 +38,6 @@ type OutgoingMsg
     | TextSurround String String
     | ConfirmCancel String String
     | ColumnNumberChange Int
-    | New (Maybe String)
     | Open (Maybe String)
     | Save String
     | SaveAs
@@ -61,6 +60,7 @@ type OutgoingMsg
 type IncomingMsg
     = CancelCardConfirmed
     | Reset
+    | New
     | Load (String, Json.Value, String)
     | Merge Json.Value
     | ImportJSON Json.Value

@@ -60,15 +60,6 @@ sendOut info =
         , data = int cols
         }
 
-    New str_ ->
-      infoForOutside
-        { tag = "New"
-        , data =
-            case str_ of
-              Just str -> string str
-              Nothing -> null
-        }
-
     Open filepath_ ->
       infoForOutside
         { tag = "Open"
@@ -182,6 +173,9 @@ receiveMsg tagger onError =
   infoForElm
     (\outsideInfo ->
         case outsideInfo.tag of
+          "New" ->
+            tagger <| New
+
           "FieldChanged" ->
             case decodeValue Json.Decode.string outsideInfo.data of
               Ok newField ->

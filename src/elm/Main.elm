@@ -281,6 +281,9 @@ update msg ({objects, workingTree, status} as model) =
           model ! []
             |> cancelCard
 
+        New ->
+          actionNew model
+
         Reset ->
           init (model.isMac, model.shortcutTrayOpen, model.videoModalOpen)
             |> maybeColumnsChanged model.workingTree.columns
@@ -1184,6 +1187,11 @@ intentOpen (model, prevCmd) =
     _ ->
       model ! [ prevCmd, sendOut ( Open Nothing ) ]
 
+
+actionNew : Model -> ( Model, Cmd Msg )
+actionNew model =
+  init (model.isMac, model.shortcutTrayOpen, model.videoModalOpen)
+    |> maybeColumnsChanged model.workingTree.columns
 
 sendCollabState : CollabState -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 sendCollabState collabState (model, prevCmd) =
