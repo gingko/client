@@ -61,7 +61,7 @@ viewStateToValue vs =
     , ( "activePast", Enc.list (List.map Enc.string vs.activePast) )
     , ( "activeFuture", Enc.list (List.map Enc.string vs.activeFuture) )
     , ( "descendants", Enc.list (List.map Enc.string vs.descendants) )
-    , ( "editing", maybeToValue vs.editing Enc.string )
+    , ( "editing", maybeToValue Enc.string vs.editing )
     ]
 
 
@@ -343,8 +343,8 @@ lazyRecurse thunk =
     value
 
 
-maybeToValue : Maybe a -> (a -> Enc.Value) -> Enc.Value
-maybeToValue mb encoder =
+maybeToValue : (a -> Enc.Value) -> Maybe a -> Enc.Value
+maybeToValue encoder mb =
   case mb of
     Nothing -> Enc.null
     Just v -> encoder v
