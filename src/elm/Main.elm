@@ -900,6 +900,7 @@ cancelCard (model, prevCmd) =
   let vs = model.viewState in
   { model
     | viewState = { vs | editing = Nothing }
+    , field = ""
   }
     ! [prevCmd]
     |> sendCollabState (CollabState model.uid (Active vs.active) "")
