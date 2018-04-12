@@ -40,6 +40,7 @@ type alias Model =
   , status : Status
   , uid : String
   , viewState : ViewState
+  , field : String
   , isMac : Bool
   , shortcutTrayOpen : Bool
   , videoModalOpen : Bool
@@ -66,6 +67,7 @@ defaultModel =
       , draggedTree = Nothing
       , collaborators = []
       }
+  , field = ""
   , isMac = False
   , shortcutTrayOpen = True
   , videoModalOpen = False
