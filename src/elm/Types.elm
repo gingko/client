@@ -44,49 +44,64 @@ type OutgoingMsg
     -- === Database ===
     | SaveToDB ( Json.Value, Json.Value )
     | SaveLocal Tree
-    | ExportJSON Tree
-    | ExportTXT Bool Tree
-    | ExportTXTColumn Int Tree
     | Push
     | Pull
     -- === File System ===
-    | Save String
+    | Save ( Maybe String )
+    | ExportJSON Tree
+    | ExportTXT Bool Tree
+    | ExportTXTColumn Int Tree
+    -- === DOM ===
     | ActivateCards ( String, Int, List (List String) )
     | TextSurround String String
+    -- === UI ===
     | UpdateCommits ( Json.Value, Maybe String )
-    | SetSaved String
-    | SetChanged
     | SetVideoModal Bool
     | SetShortcutTray Bool
+    -- === Misc ===
     | SocketSend CollabState
     | ConsoleLogRequested String
 
 
 type IncomingMsg
-    = CancelCardConfirmed
-    | Reset
+    -- === Dialogs, Menus, Window State ===
+    = IntentNew
+    | IntentOpen
+    | IntentImport
+    | IntentExport ExportSettings
+    | IntentExit
+    | CancelCardConfirmed
+    -- === Database ===
     | New
     | SaveAndNew
-    | Load ( String, Json.Value, String )
+    | SetHeadRev String
+    | Open ( String, Json.Value, String )
     | Merge Json.Value
     | ImportJSON Json.Value
-    | CheckoutCommit String
-    | SetHeadRev String
-    | Changed
+    -- === File System ===
+    | FileState ( Maybe String ) Bool
+    -- === DOM ===
     | FieldChanged String
-    | Saved String
-    | RecvCollabState CollabState
-    | CollaboratorDisconnected String
-    | DoExportJSON
-    | DoExportTXT
-    | DoExportTXTCurrent
-    | DoExportTXTColumn Int
+    -- === UI ===
+    | CheckoutCommit String
     | ViewVideos
     | Keyboard String
+    -- === Misc ===
+    | RecvCollabState CollabState
+    | CollaboratorDisconnected String
 
 
 type alias OutsideData =
   { tag : String, data: Json.Value }
+
+
+type alias ExportSettings =
+  { format : ExportFormat
+  , selection : ExportSelection
+  }
+
+type ExportFormat = JSON | TXT
+type ExportSelection = All | CurrentSubtree | ColumnNumber Int
 
 
 type alias Tree =

@@ -84,11 +84,8 @@ sendOut info =
               Nothing -> null
         }
 
-    Save filepath ->
-      infoForOutside
-        { tag = "Save"
-        , data = string filepath
-        }
+    Save filepath_ ->
+      dataToSend ( maybeToValue string filepath_ )
 
     ExportJSON tree ->
       infoForOutside
@@ -142,12 +139,6 @@ sendOut info =
         , data = tupleToValue identity headToValue ( objectsValue, head_ )
         }
 
-    SetSaved filepath ->
-      infoForOutside
-        { tag = "SetSaved"
-        , data = string filepath
-        }
-
     SetVideoModal isOpen ->
       infoForOutside
         { tag = "SetVideoModal"
@@ -159,10 +150,6 @@ sendOut info =
         { tag = "SetShortcutTray"
         , data = bool isOpen
         }
-
-    SetChanged ->
-      tagOnly "SetChanged"
-
 
     SocketSend collabState ->
       infoForOutside
@@ -196,13 +183,10 @@ receiveMsg tagger onError =
           "CancelCardConfirmed" ->
             tagger <| CancelCardConfirmed
 
-          "Reset" ->
-            tagger <| Reset
-
-          "Load" ->
+          "Open" ->
             case decodeValue ( tripleDecoder Json.Decode.string Json.Decode.value (Json.Decode.maybe Json.Decode.string) ) outsideInfo.data of
               Ok ( filepath, json, lastActive_ ) ->
-                tagger <| Load (filepath, json, lastActive_ |> Maybe.withDefault "1" )
+                tagger <| Open (filepath, json, lastActive_ |> Maybe.withDefault "1" )
 
               Err e ->
                 onError e
@@ -229,13 +213,11 @@ receiveMsg tagger onError =
               Err e ->
                 onError e
 
-          "Changed" ->
-            tagger <| Changed
-
-          "Saved" ->
-            case decodeValue Json.Decode.string outsideInfo.data of
-              Ok filepath ->
-                tagger <| Saved filepath
+          "FileState" ->
+            let decoder = tupleDecoder (Json.Decode.maybe Json.Decode.string) Json.Decode.bool in
+            case decodeValue decoder outsideInfo.data of
+              Ok (filepath_, changed) ->
+                tagger <| FileState filepath_ changed
 
               Err e ->
                 onError e
@@ -255,20 +237,6 @@ receiveMsg tagger onError =
 
               Err e ->
                 onError e
-
-          "DoExportJSON" ->
-            tagger <| DoExportJSON
-
-          "DoExportTXT" ->
-            case decodeValue Json.Decode.int outsideInfo.data of
-              Ok col ->
-                tagger <| DoExportTXTColumn col
-
-              Err e ->
-                tagger <| DoExportTXT
-
-          "DoExportTXTCurrent" ->
-              tagger <| DoExportTXTCurrent
 
           "ViewVideos" ->
             tagger <| ViewVideos
