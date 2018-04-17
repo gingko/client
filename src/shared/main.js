@@ -143,7 +143,7 @@ const update = (msg, data) => {
             case "NewFromEditMode":
               await clearDb()
               document.title = "Untitled Tree - Gingko"
-              toElm("New", null)
+              toElm('New', null)
               break
 
             case "Open":
@@ -167,10 +167,10 @@ const update = (msg, data) => {
             await save(savePath)
             await clearDb()
             document.title = "Untitled Tree - Gingko"
-            toElm("New", null)
+            toElm('New', null)
           } else if (data.action == "NewFromEditMode") {
             document.title = "Untitled Tree - Gingko"
-            toElm("SaveAndNew", null)
+            toElm('SaveAndNew', null)
           }
         }
       }
@@ -183,7 +183,7 @@ const update = (msg, data) => {
           await save(savePath)
           await clearDb()
           document.title = "Untitled Tree - Gingko"
-          toElm("New", null)
+          toElm('New', null)
         }
       }
 
@@ -230,7 +230,7 @@ const update = (msg, data) => {
               .then(responses => {
                 let head = responses.filter(r => r.id == "heads/master")[0]
                 if (head.ok) {
-                  gingko.ports.infoForElm.send({tag: 'SetHeadRev', data: head.rev})
+                  toElm('SetHeadRev', head.rev)
                 } else {
                   console.log('head not ok', head)
                 }
@@ -258,9 +258,9 @@ const update = (msg, data) => {
           console.log('tarea not found')
         } else {
           if(tarea.value === data[1]) {
-            gingko.ports.infoForElm.send({tag: 'CancelCardConfirmed', data: null})
+            toElm('CancelCardConfirmed', null)
           } else if (confirm('Are you sure you want to cancel your changes?')) {
-            gingko.ports.infoForElm.send({tag: 'CancelCardConfirmed', data: null})
+            toElm('CancelCardConfirmed', null)
           }
         }
       }
@@ -276,7 +276,7 @@ const update = (msg, data) => {
 
           dbpath = path.join(app.getPath('userData'), dbname)
           self.db = new PouchDB(dbpath, {adapter: 'memory'})
-          gingko.ports.infoForElm.send({tag: 'Reset', data: null})
+          toElm('Reset', null)
         }
 
         if(saveInProgress) {
@@ -323,14 +323,14 @@ const update = (msg, data) => {
     , 'Save': () =>
         save(data)
           .then( filepath =>
-            gingko.ports.infoForElm.send({tag:'Saved', data: filepath})
+            toElm('Saved', filepath)
           )
 
 
     , 'SaveAs': () =>
         saveAs()
           .then( filepath =>
-            gingko.ports.infoForElm.send({tag:'Saved', data: filepath})
+            toElm('Saved', filepath)
           )
 
     , 'SaveAndClose': () => {
@@ -400,24 +400,24 @@ gingko.ports.infoForOutside.subscribe(function(elmdata) {
 
 /* === JS to Elm Ports === */
 
-ipcRenderer.on('menu-new', () => gingko.ports.infoForElm.send({tag: 'IntentNew', data : null}))
+ipcRenderer.on('menu-new', () => toElm('IntentNew', null))
 ipcRenderer.on('menu-open', () => update('Open'))
 ipcRenderer.on('menu-import-json', () => update('Import'))
-ipcRenderer.on('menu-export-json', () => gingko.ports.infoForElm.send({tag: 'DoExportJSON', data: null }))
-ipcRenderer.on('menu-export-txt', () => gingko.ports.infoForElm.send({tag: 'DoExportTXT', data: null }))
-ipcRenderer.on('menu-export-txt-current', () => gingko.ports.infoForElm.send({tag: 'DoExportTXTCurrent', data: null }))
-ipcRenderer.on('menu-export-txt-column', (e, msg) => gingko.ports.infoForElm.send({tag: 'DoExportTXT', data: msg }))
-ipcRenderer.on('menu-save', () => gingko.ports.infoForElm.send({tag: 'Keyboard', data: 'mod+s'}))
+ipcRenderer.on('menu-export-json', () => toElm('DoExportJSON', null ))
+ipcRenderer.on('menu-export-txt', () => toElm('DoExportTXT', null ))
+ipcRenderer.on('menu-export-txt-current', () => toElm('DoExportTXTCurrent', null ))
+ipcRenderer.on('menu-export-txt-column', (e, msg) => toElm('DoExportTXT', msg ))
+ipcRenderer.on('menu-save', () => toElm('Keyboard', 'mod+s'))
 ipcRenderer.on('menu-save-as', () => update('SaveAs'))
 ipcRenderer.on('zoomin', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() + 1) })
 ipcRenderer.on('zoomout', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() - 1) })
 ipcRenderer.on('resetzoom', e => { webFrame.setZoomLevel(0) })
-ipcRenderer.on('menu-view-videos', () => gingko.ports.infoForElm.send({tag: 'ViewVideos', data: null }))
+ipcRenderer.on('menu-view-videos', () => toElm('ViewVideos', null ))
 ipcRenderer.on('menu-contact-support', () => { if(crisp_loaded) { $crisp.push(['do', 'chat:open']); $crisp.push(['do', 'chat:show']); } else { shell.openExternal('mailto:adriano@gingkoapp.com') } } )
 ipcRenderer.on('main-save-and-close', () => update('SaveAndClose', currentFile))
 
-socket.on('collab', data => gingko.ports.infoForElm.send({tag: 'RecvCollabState', data: data}))
-socket.on('collab-leave', data => gingko.ports.infoForElm.send({tag: 'CollaboratorDisconnected', data: data}))
+socket.on('collab', data => toElm('RecvCollabState', data))
+socket.on('collab-leave', data => toElm('CollaboratorDisconnected', data))
 
 
 
@@ -472,7 +472,7 @@ const load = function(filepath, headOverride){
         }
 
         let toSend = [filepath, [status, { commits: commits, treeObjects: trees, refs: refs}], getLastActive(filepath)];
-        gingko.ports.infoForElm.send({tag: "Load", data: toSend});
+        toElm('Load', toSend);
       }).catch(function (err) {
         console.log(err)
       })
@@ -489,7 +489,7 @@ const merge = function(local, remote){
       let refs = processData(data, "ref");
 
       let toSend = { commits: commits, treeObjects: trees, refs: refs};
-      gingko.ports.infoForElm.send({tag: "Merge", data: [local, remote, toSend]});
+      toElm('Merge', [local, remote, toSend]);
     }).catch(function (err) {
       console.log(err)
     })
@@ -554,7 +554,7 @@ const sync = function () {
 
 const setHead = function(sha) {
   if (sha) {
-    gingko.ports.infoForElm.send({tag: 'CheckoutCommit', data: sha})
+    toElm('CheckoutCommit', sha)
   }
 }
 
@@ -860,7 +860,7 @@ const importFile = (filepathToImport) => {
 
         document.title = `${path.basename(filepathToImport)} - Gingko`
         setFileState(true, null)
-        gingko.ports.infoForElm.send({tag: 'ImportJSON', data :newRoot})
+        toElm('ImportJSON', newRoot)
       }
     })
   })
@@ -922,7 +922,7 @@ const setFileState = function(bool, newpath) {
     if (!/\*/.test(document.title)) {
       document.title = "*" + document.title
     }
-    gingko.ports.infoForElm.send({ tag: 'Changed', data: null })
+    toElm('Changed', null)
   } else {
     changed = false
     currentFile = newpath
@@ -937,7 +937,7 @@ const editingInputHandler = function(ev) {
   if (!changed) {
     setFileState(true, currentFile)
   }
-  gingko.ports.infoForElm.send({tag: 'FieldChanged', data: ev.target.value})
+  toElm('FieldChanged', ev.target.value)
   collab.field = ev.target.value
   socket.emit('collab', collab)
 }
@@ -945,7 +945,7 @@ const editingInputHandler = function(ev) {
 
 
 Mousetrap.bind(shared.shortcuts, function(e, s) {
-  gingko.ports.infoForElm.send({tag: 'Keyboard', data: s});
+  toElm('Keyboard',s);
 
   if(shared.needOverride.includes(s)) {
     return false;
