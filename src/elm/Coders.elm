@@ -276,6 +276,45 @@ selectionDecoder =
 
 -- EXPORT ENCODINGS
 
+exportSettingsDecoder : Decoder ExportSettings
+exportSettingsDecoder =
+  let
+    formatFromString s =
+      case s of
+        "json" -> JSON
+        "txt" -> TXT
+        _ -> JSON
+
+    formatDecoder =
+      Json.map formatFromString string
+
+    exportStringDecoder =
+      Json.map
+        (\s ->
+          case s of
+            "all" -> All
+            "current" -> CurrentSubtree
+            _ -> All
+        )
+        string
+
+    exportColumnDecoder =
+      Json.map
+        ( \i -> ColumnNumber i )
+        ( field "column" int )
+
+    exportSelectionDecoder =
+      oneOf
+        [ exportStringDecoder
+        , exportColumnDecoder
+        ]
+  in
+  Json.map2 ExportSettings
+    ( field "format" formatDecoder  )
+    ( field "selection" exportSelectionDecoder  )
+  
+
+
 treeToJSON : Tree -> Enc.Value
 treeToJSON tree =
   case tree.children of
