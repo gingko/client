@@ -56,6 +56,16 @@ userStore.getWithDefault = function (key, def) {
 
 
 
+const mock = require('../../test/mocks.js')
+if(process.env.RUNNING_IN_SPECTRON) {
+  mock(dialog
+      , process.env.DIALOG_CHOICE
+      , process.env.DIALOG_SAVE_PATH
+      , [process.env.DIALOG_OPEN_PATH]
+      )
+}
+
+
 
 /* === Initializing App === */
 
