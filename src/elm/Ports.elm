@@ -180,6 +180,26 @@ receiveMsg tagger onError =
               Err e ->
                 onError e
 
+          "IntentNew" ->
+            tagger <| IntentNew
+
+          "IntentOpen" ->
+            tagger <| IntentOpen
+
+          "IntentImport" ->
+            tagger <| IntentImport
+
+          "IntentExport" ->
+            case decodeValue exportSettingsDecoder outsideInfo.data of
+              Ok exportSettings ->
+                tagger <| IntentExport exportSettings
+
+              Err e ->
+                onError e
+
+          "IntentExit" ->
+            tagger <| IntentExit
+
           "CancelCardConfirmed" ->
             tagger <| CancelCardConfirmed
 
