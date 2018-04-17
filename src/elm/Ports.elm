@@ -76,13 +76,7 @@ sendOut info =
         }
 
     OpenDialog filepath_ ->
-      infoForOutside
-        { tag = "Open"
-        , data =
-            case filepath_ of
-              Just filepath -> string filepath
-              Nothing -> null
-        }
+      dataToSend ( maybeToValue string filepath_ )
 
     Save filepath_ ->
       dataToSend ( maybeToValue string filepath_ )
