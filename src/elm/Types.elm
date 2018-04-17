@@ -68,6 +68,8 @@ type IncomingMsg
     = IntentNew
     | IntentOpen
     | IntentImport
+    | IntentSave
+    | IntentSaveAs
     | IntentExport ExportSettings
     | IntentExit
     | CancelCardConfirmed

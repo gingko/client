@@ -4,8 +4,9 @@ const autosize = require('textarea-autosize')
 const Mousetrap = require('mousetrap')
 
 const fs = require('fs')
-const getHash = require('hash-stream')
 const path = require('path')
+const {promisify} = require('util')
+const getHash = promisify(require('hash-stream'))
 const {ipcRenderer, remote, webFrame, shell} = require('electron')
 const {app, dialog} = remote
 const querystring = require('querystring')
@@ -288,77 +289,11 @@ const update = (msg, data) => {
         ipcRenderer.send('column-number-change', data)
       }
 
-    , 'New': () => {
-        let clearDb = () => {
-          dbname = sha1(Date.now()+machineIdSync())
-          setFileState(false, null)
-
-          dbpath = path.join(app.getPath('userData'), dbname)
-          self.db = new PouchDB(dbpath, {adapter: 'memory'})
-          toElm('Reset', null)
-        }
-
-        if(saveInProgress) {
-          _.delay(update, 200, 'New')
-        } else {
-          if(changed) {
-            saveConfirmation(data).then( () => {
-              db.destroy().then( res => {
-                if (res.ok) {
-                  clearDb()
-                }
-              })
-            })
-          } else {
-            clearDb()
-          }
-        }
-      }
-
-    , 'Open': () => {
-        if (saveInProgress) {
-          _.delay(update, 200, 'Open')
-        } else {
-          if (changed) {
-            saveConfirmation(data).then(openDialog)
-          } else {
-            openDialog()
-          }
-        }
-      }
-
-    , 'Import': () => {
-        if (saveInProgress) {
-          _.delay(update, 200, 'Import')
-        } else {
-          if (changed) {
-            saveConfirmation(data).then(importDialog)
-          } else {
-            importDialog()
-          }
-        }
-      }
-
-    , 'Save': () =>
-        save(data)
-          .then( filepath =>
-            toElm('Saved', filepath)
-          )
-
-
-    , 'SaveAs': () =>
-        saveAs()
-          .then( filepath =>
-            toElm('Saved', filepath)
-          )
-
-    , 'SaveAndClose': () => {
-        if(saveInProgress) {
-          _.delay(update, 200, 'SaveAndClose')
-        } else {
-          saveConfirmation(data).then(app.exit)
-        }
-      }
+		, 'Save': async () => {
+				let savePath = data ? data : await saveAsDialog()
+				save(savePath)
+			}
+				
 
     , 'ExportJSON': () => {
         exportJson(data)
@@ -372,19 +307,12 @@ const update = (msg, data) => {
         exportTxt(data)
       }
 
-    , 'SetSaved': () =>
-        setFileState(false, data)
-
     , 'SetVideoModal': () => {
         userStore.set('video-modal-is-open', data)
       }
 
     , 'SetShortcutTray': () => {
         userStore.set('shortcut-tray-is-open', data)
-      }
-
-    , 'SetChanged': () => {
-        setFileState(true, currentFile)
       }
 
     , 'Pull': sync
@@ -615,52 +543,41 @@ self.saveToDB = (status, objects) => {
     })
 }
 
+
 self.save = (filepath) => {
   return new Promise(
-    (resolve, reject) => {
+    async (resolve, reject) => {
+      let memStream = new MemoryStream();
       let swapfilepath = filepath + '.swp'
       let filewriteStream = fs.createWriteStream(swapfilepath)
-      let memStream = new MemoryStream();
-      saveInProgress = true
+      let copyFile = promisify(fs.copyFile)
+      let deleteFile = promisify(fs.unlink)
 
-      db.dump(memStream).then( res => {
-        if (res.ok) {
-          memStream.pipe(filewriteStream)
+      let dumpToMemOp = await db.dump(memStream)
 
-          var streamHash;
-          var swapfileHash;
+      if (! dumpToMemOp.ok) {
+        reject(new Error('Could not dump database to MemoryStream'))
+      }
 
-          getHash(memStream, 'sha1', (err, hash) => {
-            streamHash = hash.toString('base64')
-            getHash(swapfilepath, 'sha1', (err, fhash) => {
-              swapfileHash = fhash.toString('base64')
+      // write db dump to swapfile first
+      memStream.pipe(filewriteStream)
 
-              if (streamHash !== swapfileHash) {
-                throw new Error('File integrity check failed.')
-              } else {
-                // Successful save and copy
-                saveInProgress = false
-                fs.copyFile(swapfilepath, filepath, (copyErr) => {
-                  if (copyErr) {
-                    throw copyErr;
-                  } else {
-                    fs.unlink(swapfilepath, (delErr) => {
-                      if (delErr) throw delErr;
-                    })
-                  }
-                })
-                resolve(filepath)
-              }
-            })
-          })
-        } else {
-          saveInProgress = false
-          reject(res)
-        }
-      }).catch( err => {
-        saveInProgress = false
-        reject(err)
-      })
+      // integrity checks
+      let memHash = (await getHash(memStream, 'sha1')).toString('base64')
+      let swapHash = (await getHash(swapfilepath, 'sha1')).toString('base64')
+      if (memHash !== swapHash) {
+        reject(new Error(`File integrity check failed: ${memHash} ${swapHash}`))
+      }
+
+      // copy swapfile to original filepath
+      await copyFile(swapfilepath, filepath)
+
+      // delete swapfile
+      await deleteFile(swapfilepath)
+
+			document.title = `${path.basename(filepath)} - Gingko`
+      toElm('FileState', [filepath, false])
+      resolve(true)
     }
   )
 }
@@ -775,6 +692,24 @@ const exportTxt = (data) => {
           reject(new Error('no export path chosen'))
         }
       })
+    }
+  )
+}
+
+
+const saveAsDialog = (pathDefault) => {
+  return new Promise(
+    (resolve, reject) => {
+      var options =
+        { title: 'Save As'
+        , defaultPath: pathDefault ? pathDefault.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.gko")
+        , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
+                    , {name: 'All Files', extensions: ['*']}
+                    ]
+        }
+
+      let filepath = dialog.showSaveDialog(options)
+      resolve(filepath)
     }
   )
 }
@@ -953,10 +888,8 @@ const setFileState = function(bool, newpath) {
 
 
 const editingInputHandler = function(ev) {
-  if (!changed) {
-    setFileState(true, currentFile)
-  }
   toElm('FieldChanged', ev.target.value)
+  document.title = document.title.startsWith('*') ? document.title : '*' + document.title
   collab.field = ev.target.value
   socket.emit('collab', collab)
 }

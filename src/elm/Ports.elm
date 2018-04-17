@@ -189,6 +189,12 @@ receiveMsg tagger onError =
           "IntentImport" ->
             tagger <| IntentImport
 
+          "IntentSave" ->
+            tagger <| IntentSave
+
+          "IntentSaveAs" ->
+            tagger <| IntentSaveAs
+
           "IntentExport" ->
             case decodeValue exportSettingsDecoder outsideInfo.data of
               Ok exportSettings ->

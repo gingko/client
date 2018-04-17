@@ -286,14 +286,26 @@ update msg ({objects, workingTree, status} as model) =
         IntentImport ->
           model ! []
 
+        IntentSave ->
+          model ! []
+            |> intentSave
+
+        IntentSaveAs ->
+          model ! []
+            |> intentSaveAs
+
         IntentExport _ ->
           model ! []
 
         IntentExit ->
           intentExit model
 
-        FileState _ _ ->
-          model ! []
+        FileState filepath_ changed ->
+          { model
+            | filepath = filepath_
+            , changed = changed
+          }
+            ! []
 
         CancelCardConfirmed ->
           model ! []
