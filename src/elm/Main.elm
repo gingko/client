@@ -290,7 +290,7 @@ update msg ({objects, workingTree, status} as model) =
           model ! []
 
         IntentExit ->
-          model ! []
+          intentExit model
 
         FileState _ _ ->
           model ! []

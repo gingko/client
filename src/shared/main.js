@@ -166,6 +166,11 @@ const update = (msg, data) => {
               }
               break;
 
+						case "Exit":
+						case "ExitFromEditMode":
+							app.exit()
+							break;
+
             default:
               console.log("Unsupported action: " + data.action)
           }
@@ -196,6 +201,10 @@ const update = (msg, data) => {
           toElm('New', null)
         }
       }
+
+		, 'Exit': () => {
+				app.exit()
+			}
 
     , 'TextSurround': () => {
         let id = data[0]
