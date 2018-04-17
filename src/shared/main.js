@@ -144,6 +144,24 @@ const update = (msg, data) => {
         shared.scrollColumns(data[2])
       }
 
+    , 'OpenDialog': async () => {
+        let filepathArray = await openDialog()
+
+        if(Array.isArray(filepathArray) && filepathArray.length >= 0) {
+          var filepathToLoad = filepathArray[0]
+          loadFile(filepathToLoad)
+        }
+      }
+
+    , 'ImportDialog': async () => {
+        let filepathArray = await importDialog()
+
+        if(Array.isArray(filepathArray) && filepathArray.length >= 0) {
+          var filepathToLoad = filepathArray[0]
+          importFile(filepathToLoad)
+        }
+			}
+
     , 'ConfirmClose': async () => {
         let choice = dialog.showMessageBox(saveConfirmationDialogOptions)
         if (choice == 0) {
@@ -271,7 +289,7 @@ const update = (msg, data) => {
         //ReactDOM.render(commitElement, document.getElementById('history'))
     }
 
-    , 'ConfirmCancel': () => {
+    , 'ConfirmCancelCard': () => {
         let tarea = document.getElementById('card-edit-'+data[0])
 
         if (tarea === null) {
@@ -419,7 +437,7 @@ const load = function(filepath, headOverride){
         }
 
         let toSend = [filepath, [status, { commits: commits, treeObjects: trees, refs: refs}], getLastActive(filepath)];
-        toElm('Load', toSend);
+        toElm('Open', toSend);
       }).catch(function (err) {
         console.log(err)
       })
