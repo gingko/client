@@ -8,7 +8,6 @@ const windowStateKeeper = require('electron-window-state')
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win, winTrial, winSerial
-let changed = false
 let colNumber = 1
 const hiddenStore = new Store({name: "kernel", encryptionKey: "79df64f73eab9bc0d7b448d2008d876e"})
 const userStore = new Store({name: "config"})
@@ -50,10 +49,8 @@ function createAppWindow () {
   win.loadURL(url)
 
   win.on('close', (e) => {
-    if (changed) {
-      win.webContents.send('main-save-and-close')
-      e.preventDefault()
-    }
+		win.webContents.send('main-exit')
+		e.preventDefault()
   })
 
   // Emitted when the window is closed.
@@ -165,11 +162,6 @@ app.on('activate', () => {
   if (win === null) {
     createAppWindow()
   }
-})
-
-
-ipcMain.on('changed', (event, msg) => {
-  changed = msg;
 })
 
 
