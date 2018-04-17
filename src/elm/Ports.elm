@@ -14,6 +14,15 @@ sendOut info =
     dataToSend = encodeAndSend info
   in
   case info of
+    SaveAnd actionName filepath_ (statusValue, objectsValue) ->
+      dataToSend
+        ( object
+          [ ( "action", string actionName )
+          , ( "filepath", maybeToValue string filepath_ )
+          , ( "document", list [ statusValue, objectsValue ] )
+          ]
+        )
+
     Alert str ->
       infoForOutside
         { tag = "Alert"
@@ -28,6 +37,12 @@ sendOut info =
             , ( "document", list [ statusValue, objectsValue ] )
             ]
         )
+
+    ConfirmExit filepath_ ->
+      dataToSend ( maybeToValue string filepath_ )
+
+    Exit ->
+      dataToSend null
 
     ActivateCards (cardId, col, cardIds) ->
       let
@@ -48,9 +63,9 @@ sendOut info =
         , data = list [ string id, string str ]
         }
 
-    ConfirmCancel id origContent ->
+    ConfirmCancelCard id origContent ->
       infoForOutside
-        { tag = "ConfirmCancel"
+        { tag = "ConfirmCancelCard"
         , data = list [ string id, string origContent ]
         }
 
@@ -60,7 +75,7 @@ sendOut info =
         , data = int cols
         }
 
-    Open filepath_ ->
+    OpenDialog filepath_ ->
       infoForOutside
         { tag = "Open"
         , data =
@@ -74,9 +89,6 @@ sendOut info =
         { tag = "Save"
         , data = string filepath
         }
-
-    SaveAs ->
-      tagOnly "SaveAs"
 
     ExportJSON tree ->
       infoForOutside
@@ -109,11 +121,8 @@ sendOut info =
     Pull ->
       tagOnly "Pull"
 
-    SaveObjects ( statusValue, objectsValue ) ->
-      infoForOutside
-        { tag = "SaveObjects"
-        , data = list [ statusValue, objectsValue ]
-        }
+    SaveToDB ( statusValue, objectsValue ) ->
+      dataToSend ( list [ statusValue, objectsValue ] )
 
     SaveLocal tree ->
       infoForOutside

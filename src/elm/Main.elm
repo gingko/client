@@ -284,6 +284,17 @@ update msg ({objects, workingTree, status} as model) =
         New ->
           actionNew model
 
+        SaveAndNew ->
+          let
+            (newModel, newCmds) =
+              model ! []
+                |> saveCardIfEditing
+          in
+          newModel
+            ! [ newCmds
+              , sendOut ( SaveAnd "New" newModel.filepath ( statusToValue newModel.status, Objects.toValue newModel.objects ) )
+              ]
+
         Reset ->
           init (model.isMac, model.shortcutTrayOpen, model.videoModalOpen)
             |> maybeColumnsChanged model.workingTree.columns
@@ -411,7 +422,7 @@ update msg ({objects, workingTree, status} as model) =
                 , status = newStatus
                 , changed = True
               }
-                ! [ sendOut ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
+                ! [ sendOut ( SaveToDB ( statusToValue newStatus , Objects.toValue newObjects ) )
                   , sendOut ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) )
                   ]
                   |> maybeColumnsChanged model.workingTree.columns
@@ -925,7 +936,7 @@ intentCancelCard model =
       model ! []
 
     Just id ->
-      model ! [ sendOut (ConfirmCancel vs.active originalContent) ]
+      model ! [ sendOut (ConfirmCancelCard vs.active originalContent) ]
 
 
 -- === Card Insertion  ===
@@ -1092,7 +1103,7 @@ addToHistory ({workingTree} as model, prevCmd) =
         , changed = True
       }
         ! [ prevCmd
-          , sendOut ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
+          , sendOut ( SaveToDB ( statusToValue newStatus , Objects.toValue newObjects ) )
           , sendOut ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
           , sendOut SetChanged
           ]
@@ -1108,7 +1119,7 @@ addToHistory ({workingTree} as model, prevCmd) =
         , changed = True
       }
         ! [ prevCmd
-          , sendOut ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
+          , sendOut ( SaveToDB ( statusToValue newStatus , Objects.toValue newObjects ) )
           , sendOut ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
           , sendOut SetChanged
           ]
@@ -1125,7 +1136,7 @@ addToHistory ({workingTree} as model, prevCmd) =
           , changed = True
         }
           ! [ prevCmd
-            , sendOut ( SaveObjects ( statusToValue newStatus , Objects.toValue newObjects ) )
+            , sendOut ( SaveToDB ( statusToValue newStatus , Objects.toValue newObjects ) )
             , sendOut ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
             , sendOut SetChanged
             ]
@@ -1159,7 +1170,7 @@ intentSave : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 intentSave (model, prevCmd) =
   case (model.filepath, model.changed) of
     (Nothing, True) ->
-      model ! [ prevCmd, sendOut SaveAs ]
+      model ! [ prevCmd ]
 
     (Just filepath, True) ->
       model ! [ prevCmd, sendOut ( Save filepath ) ]
@@ -1177,10 +1188,10 @@ intentOpen : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 intentOpen (model, prevCmd) =
   case (model.filepath, model.changed) of
     (Just filepath, True) ->
-      model ! [ prevCmd, sendOut ( Open ( Just filepath ) ) ]
+      model ! [ prevCmd, sendOut ( OpenDialog ( Just filepath ) ) ]
 
     _ ->
-      model ! [ prevCmd, sendOut ( Open Nothing ) ]
+      model ! [ prevCmd, sendOut ( OpenDialog Nothing ) ]
 
 
 actionNew : Model -> ( Model, Cmd Msg )

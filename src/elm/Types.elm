@@ -32,23 +32,28 @@ type Msg
 
 
 type OutgoingMsg
+    -- === Dialogs, Menus, Window State ===
     = Alert String
-    | ConfirmClose String (Maybe String) (Json.Value, Json.Value)
-    | ActivateCards (String, Int, List (List String))
-    | TextSurround String String
-    | ConfirmCancel String String
+    | OpenDialog (Maybe String)
+    | ConfirmClose String (Maybe String) ( Json.Value, Json.Value )
+    | SaveAnd String (Maybe String) ( Json.Value, Json.Value )
+    | ConfirmExit (Maybe String)
+    | ConfirmCancelCard String String
     | ColumnNumberChange Int
-    | Open (Maybe String)
-    | Save String
-    | SaveAs
+    | Exit
+    -- === Database ===
+    | SaveToDB ( Json.Value, Json.Value )
+    | SaveLocal Tree
     | ExportJSON Tree
     | ExportTXT Bool Tree
     | ExportTXTColumn Int Tree
     | Push
     | Pull
-    | SaveObjects (Json.Value, Json.Value)
-    | SaveLocal Tree
-    | UpdateCommits (Json.Value, Maybe String)
+    -- === File System ===
+    | Save String
+    | ActivateCards ( String, Int, List (List String) )
+    | TextSurround String String
+    | UpdateCommits ( Json.Value, Maybe String )
     | SetSaved String
     | SetChanged
     | SetVideoModal Bool
@@ -61,7 +66,8 @@ type IncomingMsg
     = CancelCardConfirmed
     | Reset
     | New
-    | Load (String, Json.Value, String)
+    | SaveAndNew
+    | Load ( String, Json.Value, String )
     | Merge Json.Value
     | ImportJSON Json.Value
     | CheckoutCommit String
@@ -96,7 +102,7 @@ type alias Column = List (List Tree)
 
 
 
-type Op = Ins String String (List String) Int | Mod String (List String) String String | Del String (List String) | Mov String (List String) Int (List String) Int
+type Op = Ins String String (List String) Int | Mod String (List String) String String | Del String (List String) | Mov String (List String) Int (List String) Int 
 type Selection = Original | Ours | Theirs | Manual
 type alias Conflict =
   { id : String
@@ -110,7 +116,7 @@ type alias Conflict =
 type Status = Bare | Clean String | MergeConflict Tree String String (List Conflict)
 
 
-type Mode = Active String | Editing String
+type Mode = Active String | Editing String 
 
 
 type DropId = Above String | Below String | Into String

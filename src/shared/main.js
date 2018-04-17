@@ -175,6 +175,18 @@ const update = (msg, data) => {
         }
       }
 
+    , 'SaveAnd': async () => {
+        // "Save and then Callback"
+        if (data.action == "New" ) {
+          await saveToDB(data.document[0], data.document[1])
+          let savePath = data.filepath ? data.filepath : await saveAsDialog()
+          await save(savePath)
+          await clearDb()
+          document.title = "Untitled Tree - Gingko"
+          toElm("New", null)
+        }
+      }
+
     , 'TextSurround': () => {
         let id = data[0]
         let surroundString = data[1]
@@ -194,7 +206,7 @@ const update = (msg, data) => {
         }
       }
 
-    , 'SaveObjects': () => {
+    , 'SaveToDB': () => {
         let status = data[0]
         let objects = data[1]
         db.get('status')
@@ -379,6 +391,7 @@ const update = (msg, data) => {
 
 
 gingko.ports.infoForOutside.subscribe(function(elmdata) {
+	console.log(elmdata.tag, elmdata.data)
   update(elmdata.tag, elmdata.data)
 })
 
@@ -549,6 +562,39 @@ const setHead = function(sha) {
 
 
 /* === Local Functions === */
+
+self.saveToDB = (status, objects) => {
+  return new Promise(
+    async (resolve, reject) => {
+      let statusDoc =
+        await db.get('status')
+                .catch(err => {
+                  if(err.name == "not_found") {
+                    return {_id: 'status' , status : 'bare', bare: true}
+                  } else {
+                    console.log('load status error', err)
+                  }
+                })
+
+      if(statusDoc._rev) {
+        status['_rev'] = statusDoc._rev
+      }
+
+      let toSave = objects.commits.concat(objects.treeObjects).concat(objects.refs).concat([status]);
+
+      try {
+        let responses = await db.bulkDocs(toSave)
+        let head = responses.filter(r => r.id == "heads/master")[0]
+        if (head.ok) {
+          resolve(head.rev)
+        } else {
+          reject(new Error('head not ok: ' + head))
+        }
+      } catch (err) {
+        console.log(err)
+      }
+    })
+}
 
 self.save = (filepath) => {
   return new Promise(
