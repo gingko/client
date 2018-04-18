@@ -314,17 +314,6 @@ update msg ({objects, workingTree, status} as model) =
         New ->
           actionNew model
 
-        SaveAndNew ->
-          let
-            (newModel, newCmds) =
-              model ! []
-                |> saveCardIfEditing
-          in
-          newModel
-            ! [ newCmds
-              , sendOut ( SaveAnd "New" newModel.filepath ( statusToValue newModel.status, Objects.toValue newModel.objects ) )
-              ]
-
         Open (filepath, json, lastActiveCard) ->
           let
             (newStatus, newTree_, newObjects) =

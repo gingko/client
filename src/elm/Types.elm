@@ -36,7 +36,6 @@ type OutgoingMsg
     = Alert String
     | OpenDialog (Maybe String)
     | ConfirmClose String (Maybe String) ( Json.Value, Json.Value )
-    | SaveAnd String (Maybe String) ( Json.Value, Json.Value )
     | ConfirmExit (Maybe String)
     | ConfirmCancelCard String String
     | ColumnNumberChange Int
@@ -75,9 +74,8 @@ type IncomingMsg
     | CancelCardConfirmed
     -- === Database ===
     | New
-    | SaveAndNew
-    | SetHeadRev String
     | Open ( String, Json.Value, String )
+    | SetHeadRev String
     | Merge Json.Value
     | ImportJSON Json.Value
     -- === File System ===

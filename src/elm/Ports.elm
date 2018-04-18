@@ -14,15 +14,6 @@ sendOut info =
     dataToSend = encodeAndSend info
   in
   case info of
-    SaveAnd actionName filepath_ (statusValue, objectsValue) ->
-      dataToSend
-        ( object
-          [ ( "action", string actionName )
-          , ( "filepath", maybeToValue string filepath_ )
-          , ( "document", list [ statusValue, objectsValue ] )
-          ]
-        )
-
     Alert str ->
       infoForOutside
         { tag = "Alert"
