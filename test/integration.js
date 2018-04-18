@@ -201,12 +201,14 @@ describe('Close Confirmations', function () { // Close Without Saving
       beforeEach(async function() {
         await client.windowByIndex(0)
         robot.keyTap('o', 'control')
+        await client.pause(500)
       })
 
       it('should discard the changes', function() {
         // TODO: add a test file with known content
         //       and then check to see that that content is present
         let checkTextarea = async function() {
+          // waitForExist(..., ..., true) => waitForNotExist
           await client.waitForExist('#card-edit-1', 500, true)
         }
         expect(checkTextarea).to.not.throw
