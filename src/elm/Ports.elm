@@ -69,6 +69,9 @@ sendOut info =
     OpenDialog filepath_ ->
       dataToSend ( maybeToValue string filepath_ )
 
+    ImportDialog filepath_ ->
+      dataToSend ( maybeToValue string filepath_ )
+
     Save filepath_ ->
       dataToSend ( maybeToValue string filepath_ )
 

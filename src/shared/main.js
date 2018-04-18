@@ -758,8 +758,7 @@ const loadFile = async (filepath) => {
 const importFile = async (filepathToImport) => {
   await clearDb(filepathToImport)
 
-  let readFile = promisify(readFile)
-
+  let readFile = promisify(fs.readFile)
   let data = await readFile(filepathToImport)
 
   let nextId = 1

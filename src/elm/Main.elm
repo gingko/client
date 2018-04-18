@@ -284,7 +284,7 @@ update msg ({objects, workingTree, status} as model) =
           intentOpen model
 
         IntentImport ->
-          model ! []
+          intentImport model
 
         IntentSave ->
           model ! []
@@ -1158,6 +1158,11 @@ intentOpen model =
   saveChangesDialog "Open" actionOpen model
 
 
+intentImport : Model -> ( Model, Cmd Msg )
+intentImport model =
+  saveChangesDialog "Import" actionImport model
+
+
 intentSave : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 intentSave (model, prevCmd) =
   model ! [ prevCmd, sendOut ( Save model.filepath ) ]
@@ -1182,6 +1187,12 @@ actionNew model =
 actionOpen : Model -> ( Model, Cmd Msg )
 actionOpen model =
   model ! [ sendOut ( OpenDialog model.filepath ) ]
+
+
+actionImport : Model -> ( Model, Cmd Msg )
+actionImport model =
+  model ! [ sendOut ( ImportDialog model.filepath ) ]
+
 
 actionExit : Model -> ( Model, Cmd Msg )
 actionExit model =

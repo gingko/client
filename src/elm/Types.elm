@@ -35,6 +35,7 @@ type OutgoingMsg
     -- === Dialogs, Menus, Window State ===
     = Alert String
     | OpenDialog (Maybe String)
+    | ImportDialog (Maybe String)
     | ConfirmClose String (Maybe String) ( Json.Value, Json.Value )
     | ConfirmExit (Maybe String)
     | ConfirmCancelCard String String
