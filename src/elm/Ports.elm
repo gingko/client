@@ -20,6 +20,9 @@ sendOut info =
         , data = string str
         }
 
+    ChangeTitle filepath_ changed ->
+      dataToSend ( list [ maybeToValue string filepath_ , bool changed ] )
+
     ConfirmClose actionName filepath_ (statusValue, objectsValue) ->
       dataToSend
         ( object

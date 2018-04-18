@@ -1107,6 +1107,7 @@ addToHistory ({workingTree} as model, prevCmd) =
         ! [ prevCmd
           , sendOut ( SaveToDB ( statusToValue newStatus , Objects.toValue newObjects ) )
           , sendOut ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
+          , sendOut ( ChangeTitle model.filepath True )
           ]
 
     Clean oldHead ->
@@ -1122,6 +1123,7 @@ addToHistory ({workingTree} as model, prevCmd) =
         ! [ prevCmd
           , sendOut ( SaveToDB ( statusToValue newStatus , Objects.toValue newObjects ) )
           , sendOut ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
+          , sendOut ( ChangeTitle model.filepath True )
           ]
 
     MergeConflict _ oldHead newHead conflicts ->
@@ -1138,6 +1140,7 @@ addToHistory ({workingTree} as model, prevCmd) =
           ! [ prevCmd
             , sendOut ( SaveToDB ( statusToValue newStatus , Objects.toValue newObjects ) )
             , sendOut ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
+            , sendOut ( ChangeTitle model.filepath True )
             ]
       else
         model

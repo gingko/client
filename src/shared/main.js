@@ -138,6 +138,20 @@ const update = (msg, data) => {
   let cases =
     { 'Alert': () => { alert(data) }
 
+    , 'ChangeTitle': () => {
+        let filepath = data[0]
+        let changed = data[1]
+        let newTitle = filepath ? `${path.basename(filepath)} - Gingko` : `Untitled Tree - Gingko`
+
+        if (changed) {
+          newTitle = "*" + newTitle
+        }
+
+        if (newTitle !== document.title ) {
+          document.title = newTitle
+        }
+      }
+
     , 'ActivateCards': () => {
         setLastActive(currentFile, data[0])
         shared.scrollHorizontal(data[1])

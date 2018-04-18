@@ -40,6 +40,7 @@ type OutgoingMsg
     | ConfirmExit (Maybe String)
     | ConfirmCancelCard String String
     | ColumnNumberChange Int
+    | ChangeTitle ( Maybe String ) Bool
     | Exit
     -- === Database ===
     | SaveToDB ( Json.Value, Json.Value )
