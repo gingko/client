@@ -294,8 +294,33 @@ update msg ({objects, workingTree, status} as model) =
           model ! []
             |> intentSaveAs
 
-        IntentExport _ ->
-          model ! []
+        IntentExport exportSettings ->
+          case exportSettings.format of
+            JSON ->
+              case exportSettings.selection of
+                All ->
+                  model ! []
+                    |> saveCardIfEditing
+                    |> \(m, c) -> m ! [ c,  sendOut ( ExportJSON m.workingTree.tree ) ]
+
+                _ -> model ! []
+
+            TXT ->
+              case exportSettings.selection of
+                All ->
+                  model ! []
+                    |> saveCardIfEditing
+                    |> \(m, c) -> m ! [ c,  sendOut ( ExportTXT False m.workingTree.tree ) ]
+
+                CurrentSubtree ->
+                  model ! []
+                    |> saveCardIfEditing
+                    |> \(m, c) -> m ! [ c,  sendOut ( ExportTXT True m.workingTree.tree ) ]
+
+                ColumnNumber col ->
+                  model ! []
+                    |> saveCardIfEditing
+                    |> \(m, c) -> m ! [ c,  sendOut ( ExportTXTColumn col m.workingTree.tree ) ]
 
         IntentExit ->
           intentExit model
