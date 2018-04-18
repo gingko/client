@@ -337,7 +337,7 @@ update msg ({objects, workingTree, status} as model) =
           in
           case (newStatus, newTree_) of
             (Clean newHead, Nothing) -> -- no changes to Tree
-              { model
+              { defaultModel
                 | status = newStatus
                 , startingWordcount = startingWordcount
                 , filepath = Just filepath
@@ -348,7 +348,7 @@ update msg ({objects, workingTree, status} as model) =
                 |> activate lastActiveCard
 
             (Clean newHead, Just newTree) ->
-              { model
+              { defaultModel
                 | workingTree = Trees.setTree newTree model.workingTree
                 , objects = newObjects
                 , status = newStatus
@@ -361,7 +361,7 @@ update msg ({objects, workingTree, status} as model) =
                 |> activate lastActiveCard
 
             (MergeConflict mTree oldHead newHead [], Just newTree) ->
-              { model
+              { defaultModel
                 | workingTree = Trees.setTree newTree model.workingTree
                 , objects = newObjects
                 , status = newStatus
@@ -374,7 +374,7 @@ update msg ({objects, workingTree, status} as model) =
                 |> activate lastActiveCard
 
             (MergeConflict mTree oldHead newHead conflicts, Just newTree) ->
-              { model
+              { defaultModel
                 | workingTree = Trees.setTreeWithConflicts conflicts mTree model.workingTree
                 , objects = newObjects
                 , status = newStatus
