@@ -144,8 +144,8 @@ const update = (msg, data) => {
         shared.scrollColumns(data[2])
       }
 
-    , 'OpenDialog': async () => {
-        let filepathArray = await openDialog()
+    , 'OpenDialog': () => {
+        let filepathArray = openDialog(data)
 
         if(Array.isArray(filepathArray) && filepathArray.length >= 0) {
           var filepathToLoad = filepathArray[0]
@@ -177,7 +177,7 @@ const update = (msg, data) => {
 
             case "Open":
             case "OpenFromEditMode":
-              let filepathArray = await openDialog()
+              let filepathArray = openDialog(data.filepath)
 
               if(Array.isArray(filepathArray) && filepathArray.length >= 0) {
                 var filepathToLoad = filepathArray[0]
@@ -437,6 +437,8 @@ const load = function(filepath, headOverride){
         }
 
         let toSend = [filepath, [status, { commits: commits, treeObjects: trees, refs: refs}], getLastActive(filepath)];
+        
+        document.title = `${path.basename(filepath)} - Gingko`
         toElm('Open', toSend);
       }).catch(function (err) {
         console.log(err)
@@ -593,7 +595,7 @@ self.save = (filepath) => {
       // delete swapfile
       await deleteFile(swapfilepath)
 
-			document.title = `${path.basename(filepath)} - Gingko`
+      document.title = `${path.basename(filepath)} - Gingko`
       toElm('FileState', [filepath, false])
       resolve(true)
     }
@@ -733,109 +735,82 @@ const saveAsDialog = (pathDefault) => {
 }
 
 
-const openDialog = () => {
-  dialog.showOpenDialog(
-    null,
-    { title: "Open File..."
-    , defaultPath: currentFile ? path.dirname(currentFile) : app.getPath('documents')
+const openDialog = (pathDefault) => {
+  var options =
+    { title: 'Open File...'
+    , defaultPath: pathDefault ? path.dirname(pathDefault) : app.getPath('documents')
     , properties: ['openFile']
     , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
                 , {name: 'All Files', extensions: ['*']}
                 ]
     }
-    , function(filepathArray) {
-        if(Array.isArray(filepathArray) && filepathArray.length >= 0) {
-          var filepathToLoad = filepathArray[0]
-          if(!!filepathToLoad) {
-            loadFile(filepathToLoad)
-          }
-        }
-      }
-  )
+
+  return dialog.showOpenDialog(options)
 }
 
-const importDialog = () => {
-  dialog.showOpenDialog(
-    null,
-    { title: "Import JSON File..."
-    , defaultPath: currentFile ? path.dirname(currentFile) : app.getPath('documents')
+
+const importDialog = (pathDefault) => {
+  var options =
+    { title: 'Import JSON File...'
+    , defaultPath: pathDefault ? path.dirname(pathDefault) : app.getPath('documents')
     , properties: ['openFile']
-    , filters:  [ {name: 'Gingko JSON files (*.json)', extensions: ['json']}
+    , filters:  [ {name: 'Gingko JSON Files (*.json)', extensions: ['json']}
                 , {name: 'All Files', extensions: ['*']}
                 ]
     }
-    , function(filepathArray) {
-        var filepathToImport = filepathArray[0]
-        if(!!filepathToImport) {
-          importFile(filepathToImport)
-        }
-      }
-  )
+
+  return dialog.showOpenDialog(null, options)
 }
 
 
-const loadFile = (filepathToLoad) => {
-  var rs = fs.createReadStream(filepathToLoad)
 
-  db.destroy().then( res => {
-    if (res.ok) {
-      dbpath = path.join(app.getPath('userData'), sha1(filepathToLoad))
-      self.db = new PouchDB(dbpath, {adapter: 'memory'})
+const loadFile = async (filepath) => {
+  await clearDb(filepath)
 
-      db.load(rs).then( res => {
-        if (res.ok) {
-          setFileState(false, filepathToLoad)
-          load(filepathToLoad)
-        } else {
-          console.log('db.load res is', res)
-        }
-      }).catch( err => {
-        console.log('file load err', err)
-      })
-    }
-  })
+  let rs = fs.createReadStream(filepath)
+  let loadOp = await db.load(rs)
+
+  if (!loadOp.ok) {
+    throw new Error("Couldn't load database from file")
+  }
+
+  load(filepath)
 }
 
 
-const importFile = (filepathToImport) => {
-  fs.readFile(filepathToImport, (err, data) => {
+const importFile = async (filepathToImport) => {
+  await clearDb(filepathToImport)
 
-    let nextId = 1
+  let readFile = promisify(readFile)
 
-    let seed =
-      JSON.parse(
-        data.toString()
-            .replace( /{(\s*)"content":/g
-                    , s => {
-                        return `{"id":"${nextId++}","content":`
-                      }
-                    )
-      )
+  let data = await readFile(filepathToImport)
 
-    let newRoot =
-      seed.length == 1
-        ?
-          { id: "0"
-          , content: seed[0].content
-          , children: seed[0].children
-          }
-        :
-          { id: "0"
-          , content: path.basename(filepathToImport)
-          , children: seed
-          }
+  let nextId = 1
 
-    db.destroy().then( res => {
-      if (res.ok) {
-        dbpath = path.join(app.getPath('userData'), sha1(filepathToImport))
-        self.db = new PouchDB(dbpath, {adapter: 'memory'})
+  let seed =
+    JSON.parse(
+      data.toString()
+          .replace( /{(\s*)"content":/g
+                  , s => {
+                      return `{"id":"${nextId++}","content":`
+                    }
+                  )
+    )
 
-        document.title = `${path.basename(filepathToImport)} - Gingko`
-        setFileState(true, null)
-        toElm('ImportJSON', newRoot)
-      }
-    })
-  })
+  let newRoot =
+    seed.length == 1
+      ?
+        { id: "0"
+        , content: seed[0].content
+        , children: seed[0].children
+        }
+      :
+        { id: "0"
+        , content: path.basename(filepathToImport)
+        , children: seed
+        }
+
+  toElm('ImportJSON', newRoot)
 }
 
 
