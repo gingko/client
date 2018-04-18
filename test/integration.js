@@ -65,10 +65,10 @@ describe('Application Exit', function () {
     })
   })
 
-  // Skip. 'chrome not reachable' error.
+  // Skip. Test not working
   xit('should close the window when pressing Ctrl+Q', async function () {
-    robot.keyTap('q', 'control')
-    await client.pause(200)
+    await client.windowByIndex(0)
+    await client.keys(['Control', 'q', 'NULL'])
     const windowCount = await client.getWindowCount()
     expect(app.isRunning()).to.be.false
   })
@@ -182,7 +182,7 @@ describe('Close Confirmations', function () { // Close Without Saving
     describe('New', function () {
       beforeEach(async function() {
         await client.windowByIndex(0)
-        robot.keyTap('n', 'control')
+        await client.keys(['Control','n', 'NULL'])
       })
 
       it('should discard the changes', async function() {
@@ -200,7 +200,7 @@ describe('Close Confirmations', function () { // Close Without Saving
     describe('Open', function() {
       beforeEach(async function() {
         await client.windowByIndex(0)
-        robot.keyTap('o', 'control')
+        await client.keys(['Control','o', 'NULL'])
         await client.pause(500)
       })
 
@@ -252,7 +252,7 @@ describe('Close Confirmations', function () { // Close Without Saving
       it('should not close', async function(){
         // Send Exit command, should trigger dialog
         // Choice 1 = "Cancel"
-        robot.keyTap('q', 'control')
+        app.stop()
         const textareaValue = await client.getValue('#card-edit-1')
         expect(textareaValue).to.be.equal("Hello World")
       })
@@ -261,7 +261,7 @@ describe('Close Confirmations', function () { // Close Without Saving
     describe('New', function () {
       beforeEach(async function() {
         await client.windowByIndex(0)
-        robot.keyTap('n', 'control')
+        await client.keys(['Control','n','NULL'])
       })
 
       it('should not discard the changes', async function() {
@@ -279,7 +279,7 @@ describe('Close Confirmations', function () { // Close Without Saving
     describe('Open', function () {
       beforeEach(async function() {
         await client.windowByIndex(0)
-        robot.keyTap('o', 'control')
+        await client.keys(['Control','o','NULL'])
       })
 
       it('should not discard the changes', async function() {
