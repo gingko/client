@@ -164,60 +164,39 @@ const update = (msg, data) => {
 
     , 'ConfirmClose': async () => {
         let choice = dialog.showMessageBox(saveConfirmationDialogOptions)
-        if (choice == 0) {
-          // "Close without Saving"
 
-          switch (data.action) {
-            case "New":
-            case "NewFromEditMode":
-              await clearDb()
-              document.title = "Untitled Tree - Gingko"
-              toElm('New', null)
-              break
+        // Cancel
+        if (choice == 1) { return; }
 
-            case "Open":
-            case "OpenFromEditMode":
-              let filepathArray = openDialog(data.filepath)
-
-              if(Array.isArray(filepathArray) && filepathArray.length >= 0) {
-                var filepathToLoad = filepathArray[0]
-                loadFile(filepathToLoad)
-              }
-              break;
-
-            case "Exit":
-            case "ExitFromEditMode":
-              app.exit()
-              break;
-
-            default:
-              console.log("Unsupported action: " + data.action)
-          }
-        } else if (choice == 2) {
-          // "Save and then Callback"
-          if (data.action == "New" ) {
-            await saveToDB(data.document[0], data.document[1])
-            let savePath = data.filepath ? data.filepath : await saveAsDialog()
-            await save(savePath)
-            await clearDb()
-            document.title = "Untitled Tree - Gingko"
-            toElm('New', null)
-          } else if (data.action == "NewFromEditMode") {
-            document.title = "Untitled Tree - Gingko"
-            toElm('SaveAndNew', null)
-          }
-        }
-      }
-
-    , 'SaveAnd': async () => {
-        // "Save and then Callback"
-        if (data.action == "New" ) {
+        // Save Changes
+        if (choice == 2) {
           await saveToDB(data.document[0], data.document[1])
           let savePath = data.filepath ? data.filepath : await saveAsDialog()
           await save(savePath)
-          await clearDb()
-          document.title = "Untitled Tree - Gingko"
-          toElm('New', null)
+        }
+
+        await clearDb()
+        document.title = "Untitled Tree - Gingko"
+
+        switch (data.action) {
+          case "New":
+            toElm('New', null)
+            break;
+
+          case "Open":
+            let filepathArray = openDialog(data.filepath)
+            if(Array.isArray(filepathArray) && filepathArray.length >= 0) {
+              var filepathToLoad = filepathArray[0]
+              loadFile(filepathToLoad)
+            }
+            break;
+
+          case "Exit":
+            app.exit()
+            break;
+
+          default:
+            console.log("Unsupported action: " + data.action)
         }
       }
 

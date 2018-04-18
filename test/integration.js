@@ -298,7 +298,7 @@ describe('Close Confirmations', function () { // Close Without Saving
     it('should not import requested file')
   })
 
-  describe('Save', function () {
+  describe('Save Changes', function () {
     let dialogChoice = 2 // Save
     let filepath = path.join(__dirname, 'testfile-close-confirmation-save.gko')
     var app, client
@@ -329,19 +329,19 @@ describe('Close Confirmations', function () { // Close Without Saving
       })
     })
 
-    it('should save the changes and exit', async function(){
-      // Send Exit command, should trigger dialog
-      // Choice 2 = "Save"
-      robot.keyTap('f', 'alt')
-      await client.pause(40)
-      robot.keyTap('x')
+    describe('Exit', function () {
+      it('should save the changes and exit', async function(){
+        // Send Exit command, should trigger dialog
+        // Choice 2 = "Save"
+        await app.stop()
 
-      await client.pause(800)
+        await client.pause(800)
 
-      let checkfile = function() {
-        fs.accessSync(filepath)
-      }
-      expect(checkfile).to.not.throw()
+        let checkfile = function() {
+          fs.accessSync(filepath)
+        }
+        expect(checkfile).to.not.throw()
+      })
     })
 
 

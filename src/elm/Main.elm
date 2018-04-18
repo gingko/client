@@ -1137,18 +1137,26 @@ addToHistory ({workingTree} as model, prevCmd) =
 
 saveChangesDialog : String -> ( Model -> ( Model, Cmd Msg ) ) -> Model -> ( Model, Cmd Msg )
 saveChangesDialog actionId actionFunction model =
-  let
-    (status, objects) = ( statusToValue model.status, Objects.toValue model.objects )
-  in
   case (model.changed, model.viewState.editing) of
     ( False, _ ) ->
       actionFunction model
 
     ( True, Nothing ) ->
+      let
+        (status, objects) = ( statusToValue model.status, Objects.toValue model.objects )
+      in
       model ! [ sendOut ( ConfirmClose actionId model.filepath (status, objects) ) ]
 
     ( True, Just eid ) ->
-      model ! [ sendOut ( ConfirmClose (actionId ++ "FromEditMode") model.filepath (status, objects) ) ]
+      let
+        modelCardSaved =
+          model ! []
+            |> saveCardIfEditing
+            |> Tuple.first
+
+        (status, objects) = ( statusToValue modelCardSaved.status, Objects.toValue modelCardSaved.objects )
+      in
+      model ! [ sendOut ( ConfirmClose (actionId ++ "FromEditMode") modelCardSaved.filepath (status, objects) ) ]
 
 
 intentNew : Model -> ( Model, Cmd Msg )
