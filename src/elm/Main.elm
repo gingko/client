@@ -1156,7 +1156,7 @@ saveChangesDialog actionId actionFunction model =
 
         (status, objects) = ( statusToValue modelCardSaved.status, Objects.toValue modelCardSaved.objects )
       in
-      model ! [ sendOut ( ConfirmClose (actionId ++ "FromEditMode") modelCardSaved.filepath (status, objects) ) ]
+      model ! [ sendOut ( ConfirmClose actionId modelCardSaved.filepath (status, objects) ) ]
 
 
 intentNew : Model -> ( Model, Cmd Msg )
