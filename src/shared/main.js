@@ -160,7 +160,7 @@ const update = (msg, data) => {
           var filepathToLoad = filepathArray[0]
           importFile(filepathToLoad)
         }
-			}
+      }
 
     , 'ConfirmClose': async () => {
         let choice = dialog.showMessageBox(saveConfirmationDialogOptions)
@@ -185,10 +185,10 @@ const update = (msg, data) => {
               }
               break;
 
-						case "Exit":
-						case "ExitFromEditMode":
-							app.exit()
-							break;
+            case "Exit":
+            case "ExitFromEditMode":
+              app.exit()
+              break;
 
             default:
               console.log("Unsupported action: " + data.action)
@@ -221,9 +221,9 @@ const update = (msg, data) => {
         }
       }
 
-		, 'Exit': () => {
-				app.exit()
-			}
+    , 'Exit': () => {
+        app.exit()
+      }
 
     , 'TextSurround': () => {
         let id = data[0]
@@ -307,11 +307,11 @@ const update = (msg, data) => {
         ipcRenderer.send('column-number-change', data)
       }
 
-		, 'Save': async () => {
-				let savePath = data ? data : await saveAsDialog()
-				save(savePath)
-			}
-				
+    , 'Save': async () => {
+        let savePath = data ? data : await saveAsDialog()
+        save(savePath)
+      }
+        
 
     , 'ExportJSON': () => {
         exportJson(data)
@@ -356,7 +356,6 @@ const update = (msg, data) => {
 
 
 gingko.ports.infoForOutside.subscribe(function(elmdata) {
-	console.log(elmdata.tag, elmdata.data)
   update(elmdata.tag, elmdata.data)
 })
 
@@ -687,7 +686,6 @@ const exportJson = (data) => {
 const exportTxt = (data) => {
   return new Promise(
     (resolve, reject) => {
-      
       if (data && typeof data.replace === 'function') {
         data = (process.platform === "win32") ? data.replace(/\n/g, '\r\n') : data;
       } else {
