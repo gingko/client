@@ -39,7 +39,7 @@ describe('Application Start', function () {
     expect(windowTitle).to.equal("Untitled Tree - Gingko")
   })
 
-  it('shows dev tools when going to "Help > Show Dev Tools"', async function () {
+  xit('shows dev tools when going to "Help > Show Dev Tools"', async function () {
     robot.keyTap('h', 'alt')
     robot.keyTap('d')
     await client.pause(200)
@@ -311,7 +311,8 @@ describe('Close Confirmations', function () { // Close Without Saving
           , DIALOG_CHOICE: dialogChoice
           , DIALOG_SAVE_PATH: filepath
           },
-        args: ['-r', path.join(__dirname, 'mocks.js'), path.join(__dirname, '../app')]
+        args: ['-r', path.join(__dirname, 'mocks.js'), path.join(__dirname, '../app')],
+        quitTimeout: 10
       })
       return app.start().then(async function (result) {
         client = app.client
@@ -321,31 +322,64 @@ describe('Close Confirmations', function () { // Close Without Saving
       })
     })
 
-    // Doesn't exit properly
     afterEach(function (done) {
       fs.unlink(filepath, function(err) {
-        if (err) return done(err)
+        if (app && app.isRunning()) {
+          execSync('pkill electron; pkill electron')
+        }
         done()
       })
     })
 
     describe('Exit', function () {
-      it('should save the changes and exit', async function(){
+      beforeEach(async function() {
         // Send Exit command, should trigger dialog
         // Choice 2 = "Save"
         await app.stop()
-
         await client.pause(800)
+      })
 
+      it('should save the changes', async function(){
         let checkfile = function() {
           fs.accessSync(filepath)
         }
         expect(checkfile).to.not.throw()
       })
+
+      it('should close the app', async function(){
+        expect(app.isRunning()).to.be.false
+      })
     })
 
 
-    it('should save the changes and create a new file')
+    describe('New', function () {
+      beforeEach(async function() {
+        // Send New command, should trigger dialog
+        // Choice 2 = "Save"
+        await client.windowByIndex(0)
+        await client.keys(['Control','n', 'NULL'])
+
+        await client.pause(800)
+      })
+
+      it('should save the changes', function(){
+        let checkfile = function() {
+          fs.accessSync(filepath)
+        }
+        expect(checkfile).to.not.throw()
+      })
+
+      it('should reset the document', async function() {
+        await client.waitForExist('#card-1 .view', 500)
+        let cardText = await client.getText('#card-1 .view')
+        expect(cardText).to.equal("")
+      })
+
+      it('should reset the title', async function() {
+        let windowTitle = await app.browserWindow.getTitle()
+        expect(windowTitle).to.equal("Untitled Tree - Gingko")
+      })
+    })
     it('should save the changes and load requested file')
     it('should save the changes and import requested file')
   })
