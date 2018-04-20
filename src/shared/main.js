@@ -282,14 +282,14 @@ const update = (msg, data) => {
 
       // === File System ===
 
-    , 'Save': () => {
+    , 'Save': async () => {
         let savePath = data ? data : saveAsDialog()
-        save(savePath)
+        await save(savePath)
       }
 
-    , 'SaveAs': () => {
+    , 'SaveAs': async () => {
         let savePath = saveAsDialog(data)
-        save(savePath)
+        await save(savePath)
       }
 
     , 'ExportJSON': () => {
