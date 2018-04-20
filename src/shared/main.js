@@ -318,8 +318,7 @@ const update = (msg, data) => {
         let tarea = document.getElementById('card-edit-'+id)
 
         if (tarea === null) {
-          // TODO: replace this with proper logging.
-          gingko.ports.updateError.send('Textarea with id '+id+' not found.')
+          console.log('Textarea not found for TextSurround command.')
         } else {
           let start = tarea.selectionStart
           let end = tarea.selectionEnd
