@@ -201,6 +201,14 @@ const update = (msg, data) => {
             }
             break;
 
+          case "Import":
+            let importFilepathArray = importDialog(data.filepath)
+            if(Array.isArray(importFilepathArray) && importFilepathArray.length >= 0) {
+              var filepathToImport = importFilepathArray[0]
+              importFile(filepathToImport)
+            }
+            break;
+
           case "Exit":
             app.exit()
             break;
@@ -429,7 +437,7 @@ const load = function(filepath, headOverride){
         }
 
         let toSend = [filepath, [status, { commits: commits, treeObjects: trees, refs: refs}], getLastActive(filepath)];
-        
+
         document.title = `${path.basename(filepath)} - Gingko`
         toElm('Open', toSend);
       }).catch(function (err) {
@@ -751,6 +759,7 @@ const importFile = async (filepathToImport) => {
         , children: seed
         }
 
+  document.title = `${path.basename(filepathToImport)} - Gingko`
   toElm('ImportJSON', newRoot)
 }
 
