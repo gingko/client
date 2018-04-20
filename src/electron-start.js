@@ -344,7 +344,7 @@ function menuFunction(cols) {
         , { role: 'togglefullscreen' }
         ]
     }
-  , { label: '&Help'
+  , { label: 'Help'
     , submenu:
         [ { label: 'Contact Adriano...'
           , click (item, focusedWindow) {
@@ -363,7 +363,7 @@ function menuFunction(cols) {
             }
           }
           , { type: 'separator' }
-          , { label: 'Show &Dev Tools'
+          , { label: 'Show Dev Tools'
             , accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I'
             , click (item, focusedWindow) {
                 if (focusedWindow) focusedWindow.webContents.toggleDevTools()
