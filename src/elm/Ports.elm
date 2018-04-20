@@ -68,6 +68,9 @@ sendOut info =
     Save filepath_ ->
       dataToSend ( maybeToValue string filepath_ )
 
+    SaveAs filepath_ ->
+      dataToSend ( maybeToValue string filepath_ )
+
     ExportJSON tree filepath_ ->
       dataToSend ( list [ treeToJSON tree , maybeToValue string filepath_ ] )
 

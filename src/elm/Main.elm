@@ -1211,7 +1211,7 @@ intentSave (model, prevCmd) =
 
 intentSaveAs : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 intentSaveAs (model, prevCmd) =
-  model ! [ prevCmd, sendOut ( Save Nothing ) ]
+  model ! [ prevCmd, sendOut ( SaveAs model.filepath ) ]
 
 
 intentExit : Model -> ( Model, Cmd Msg )
