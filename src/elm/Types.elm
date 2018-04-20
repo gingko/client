@@ -152,6 +152,7 @@ type alias ViewState =
   , activePast : List String
   , activeFuture : List String
   , descendants : List String
+  , parent : String
   , editing : Maybe String
   , dragModel : DragDrop.Model String DropId
   , draggedTree : Maybe (Tree, String, Int)
@@ -163,6 +164,7 @@ type alias VisibleViewState =
   { active : String
   , editing : Maybe String
   , descendants : List String
+  , parent : String
   , dragModel : DragDrop.Model String DropId
   , collaborators : List CollabState
   }

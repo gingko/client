@@ -62,6 +62,7 @@ defaultModel =
       , activePast = []
       , activeFuture = []
       , descendants = []
+      , parent = "0"
       , editing = Nothing
       , dragModel = DragDrop.init
       , draggedTree = Nothing
@@ -741,6 +742,12 @@ activate id (model, prevCmd) =
             getAncestors model.workingTree.tree activeTree []
               |> List.map .id
 
+          parent =
+            anc
+              |> List.reverse
+              |> List.head
+              |> Maybe.withDefault "0"
+
           flatCols =
             model.workingTree.columns
               |> List.map (\c -> List.map (\g -> List.map .id g) c)
@@ -758,6 +765,7 @@ activate id (model, prevCmd) =
                 , activePast = newPast
                 , activeFuture = []
                 , descendants = desc
+                , parent = parent
               }
         }
           ! [ prevCmd

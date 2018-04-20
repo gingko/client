@@ -312,6 +312,7 @@ view vstate model =
         vstate.active
         editing_
         vstate.descendants
+        vstate.parent
         vstate.dragModel
         vstate.collaborators
 
@@ -366,6 +367,9 @@ viewGroup vstate depth xs =
         isActive =
           t.id == vstate.active
 
+        isParent =
+          t.id == vstate.parent
+
         isEditing =
           case vstate.editing of
             Just editId ->
@@ -392,7 +396,7 @@ viewGroup vstate depth xs =
             |> List.filter (\c -> c.mode == Active t.id || c.mode == Editing t.id)
             |> List.map .uid
       in
-      viewKeyedCard (isActive, isEditing, depth, isLast, collaborators, collabsEditing, vstate.dragModel) t
+      viewKeyedCard (isActive, isParent, isEditing, depth, isLast, collaborators, collabsEditing, vstate.dragModel) t
   in
     Keyed.node "div"
       [ classList [ ("group", True)
@@ -402,13 +406,13 @@ viewGroup vstate depth xs =
       (List.map viewFunction xs)
 
 
-viewKeyedCard : (Bool, Bool, Int, Bool, List String, List String, DragDrop.Model String DropId) -> Tree -> (String, Html Msg)
+viewKeyedCard : (Bool, Bool, Bool, Int, Bool, List String, List String, DragDrop.Model String DropId) -> Tree -> (String, Html Msg)
 viewKeyedCard tup tree =
   (tree.id, lazy2 viewCard tup tree)
 
 
-viewCard : (Bool, Bool, Int, Bool, List String, List String, DragDrop.Model String DropId) -> Tree -> Html Msg
-viewCard (isActive, isEditing, depth, isLast, collaborators, collabsEditing, dragModel) tree =
+viewCard : (Bool, Bool, Bool, Int, Bool, List String, List String, DragDrop.Model String DropId) -> Tree -> Html Msg
+viewCard (isActive, isParent, isEditing, depth, isLast, collaborators, collabsEditing, dragModel) tree =
   let
     hasChildren =
       case tree.children of
@@ -515,6 +519,7 @@ viewCard (isActive, isEditing, depth, isLast, collaborators, collabsEditing, dra
       [ id ("card-" ++ tree.id)
       , classList [ ("card", True)
                   , ("active", isActive)
+                  , ("parent", isParent)
                   , ("editing", isEditing)
                   , ("collab-active", not isEditing && not (List.isEmpty collaborators) )
                   , ("collab-editing", not isEditing && not (List.isEmpty collabsEditing))

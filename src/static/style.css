@@ -247,6 +247,11 @@ body {
   transition: opacity 2s ease;
 }
 
+.card.parent {
+  background: #e8ebef;
+  color: #333;
+}
+
 span.collaborators {
   position: absolute;
   top: 5px;
