@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
+## Unreleased
+  - Added highlighting of parent card.
+
 ## [2.0.6] - 2018-04-20
   - (Internal) Rewrote Saving and "Save Confirmation" logic, for more relability.
 
