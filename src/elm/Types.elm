@@ -32,54 +32,79 @@ type Msg
 
 
 type OutgoingMsg
+    -- === Dialogs, Menus, Window State ===
     = Alert String
-    | ActivateCards (String, Int, List (List String))
-    | TextSurround String String
-    | ConfirmCancel String String
+    | OpenDialog (Maybe String)
+    | ImportDialog (Maybe String)
+    | ConfirmClose String (Maybe String) ( Json.Value, Json.Value )
+    | ConfirmCancelCard String String
     | ColumnNumberChange Int
-    | New (Maybe String)
-    | Open (Maybe String)
-    | Save String
-    | SaveAs
-    | ExportJSON Tree
-    | ExportTXT Bool Tree
-    | ExportTXTColumn Int Tree
+    | ChangeTitle ( Maybe String ) Bool
+    | Exit
+    -- === Database ===
+    | SaveToDB ( Json.Value, Json.Value )
+    | SaveLocal Tree
+    | ClearDB
     | Push
     | Pull
-    | SaveObjects (Json.Value, Json.Value)
-    | SaveLocal Tree
-    | UpdateCommits (Json.Value, Maybe String)
-    | SetSaved String
-    | SetChanged
+    -- === File System ===
+    | Save ( Maybe String )
+    | SaveAs ( Maybe String )
+    | ExportJSON Tree ( Maybe String )
+    | ExportTXT Bool Tree ( Maybe String )
+    | ExportTXTColumn Int Tree ( Maybe String )
+    -- === DOM ===
+    | ActivateCards ( String, Int, List (List String), Maybe String )
+    | TextSurround String String
+    -- === UI ===
+    | UpdateCommits ( Json.Value, Maybe String )
     | SetVideoModal Bool
     | SetShortcutTray Bool
+    -- === Misc ===
     | SocketSend CollabState
     | ConsoleLogRequested String
 
 
 type IncomingMsg
-    = CancelCardConfirmed
-    | Reset
-    | Load (String, Json.Value, String)
+    -- === Dialogs, Menus, Window State ===
+    = IntentNew
+    | IntentOpen
+    | IntentImport
+    | IntentSave
+    | IntentSaveAs
+    | IntentExport ExportSettings
+    | IntentExit
+    | CancelCardConfirmed
+    -- === Database ===
+    | New
+    | Open ( String, Json.Value, String )
+    | SetHeadRev String
     | Merge Json.Value
     | ImportJSON Json.Value
-    | CheckoutCommit String
-    | SetHeadRev String
-    | Changed
+    -- === File System ===
+    | FileState ( Maybe String ) Bool
+    -- === DOM ===
     | FieldChanged String
-    | Saved String
-    | RecvCollabState CollabState
-    | CollaboratorDisconnected String
-    | DoExportJSON
-    | DoExportTXT
-    | DoExportTXTCurrent
-    | DoExportTXTColumn Int
+    -- === UI ===
+    | CheckoutCommit String
     | ViewVideos
     | Keyboard String
+    -- === Misc ===
+    | RecvCollabState CollabState
+    | CollaboratorDisconnected String
 
 
 type alias OutsideData =
   { tag : String, data: Json.Value }
+
+
+type alias ExportSettings =
+  { format : ExportFormat
+  , selection : ExportSelection
+  }
+
+type ExportFormat = JSON | TXT
+type ExportSelection = All | CurrentSubtree | ColumnNumber Int
 
 
 type alias Tree =
@@ -95,7 +120,7 @@ type alias Column = List (List Tree)
 
 
 
-type Op = Ins String String (List String) Int | Mod String (List String) String String | Del String (List String) | Mov String (List String) Int (List String) Int
+type Op = Ins String String (List String) Int | Mod String (List String) String String | Del String (List String) | Mov String (List String) Int (List String) Int 
 type Selection = Original | Ours | Theirs | Manual
 type alias Conflict =
   { id : String
@@ -109,7 +134,7 @@ type alias Conflict =
 type Status = Bare | Clean String | MergeConflict Tree String String (List Conflict)
 
 
-type Mode = Active String | Editing String
+type Mode = Active String | Editing String 
 
 
 type DropId = Above String | Below String | Into String

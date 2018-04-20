@@ -4,8 +4,9 @@ const autosize = require('textarea-autosize')
 const Mousetrap = require('mousetrap')
 
 const fs = require('fs')
-const getHash = require('hash-stream')
 const path = require('path')
+const {promisify} = require('util')
+const getHash = promisify(require('hash-stream'))
 const {ipcRenderer, remote, webFrame, shell} = require('electron')
 const {app, dialog} = remote
 const querystring = require('querystring')
@@ -35,10 +36,6 @@ window.Elm = require('../elm/Main')
 
 /* === Global Variables === */
 
-var currentFile = null
-var changed = false
-var saveInProgress = false
-var currentSwap = null
 var lastCenterline = null
 var lastColumnIdx = null
 var collab = {}
@@ -54,6 +51,16 @@ userStore.getWithDefault = function (key, def) {
   }
 }
 
+
+
+const mock = require('../../test/mocks.js')
+if(process.env.RUNNING_IN_SPECTRON) {
+  mock(dialog
+      , process.env.DIALOG_CHOICE
+      , process.env.DIALOG_SAVE_PATH
+      , [process.env.DIALOG_OPEN_PATH]
+      )
+}
 
 
 
@@ -78,6 +85,10 @@ var initFlags =
 
 self.gingko = Elm.Main.fullscreen(initFlags)
 self.socket = io.connect('http://localhost:3000')
+
+var toElm = function(tag, data) {
+  gingko.ports.infoForElm.send({tag: tag, data: data})
+}
 
 //self.remoteCouch = 'http://localhost:5984/atreenodes16'
 //self.remoteDb = new PouchDB(remoteCouch)
@@ -121,46 +132,114 @@ I know it's not much guidance, but it's a start.
 
 const update = (msg, data) => {
   let cases =
-    { 'Alert': () => { alert(data) }
+    {
+      // === Dialogs, Menus, Window State ===
 
-    , 'ActivateCards': () => {
-        setLastActive(currentFile, data[0])
-        shared.scrollHorizontal(data[1])
-        shared.scrollColumns(data[2])
-      }
+      'Alert': () => { alert(data) }
 
-    , 'GetText': () => {
-        let id = data
-        let tarea = document.getElementById('card-edit-'+id)
+    , 'OpenDialog': () => {
+        let filepathArray = openDialog(data)
 
-        if (tarea === null) {
-          // TODO: replace this with proper logging.
-          gingko.ports.updateError.send('Textarea with id '+id+' not found.')
-        } else {
-          gingko.ports.infoForElm.send({tag: 'UpdateContent', data: [id, tarea.value]})
+        if(Array.isArray(filepathArray) && filepathArray.length >= 0) {
+          var filepathToLoad = filepathArray[0]
+          loadFile(filepathToLoad)
         }
       }
 
-    , 'TextSurround': () => {
-        let id = data[0]
-        let surroundString = data[1]
-        let tarea = document.getElementById('card-edit-'+id)
+    , 'ImportDialog': async () => {
+        let filepathArray = await importDialog()
+
+        if(Array.isArray(filepathArray) && filepathArray.length >= 0) {
+          var filepathToLoad = filepathArray[0]
+          importFile(filepathToLoad)
+        }
+      }
+
+    , 'ConfirmClose': async () => {
+        let choice = dialog.showMessageBox(saveConfirmationDialogOptions)
+
+        // Cancel
+        if (choice == 1) { return; }
+
+        // Save Changes
+        if (choice == 2) {
+          await saveToDB(data.document[0], data.document[1])
+          let savePath = data.filepath ? data.filepath : saveAsDialog()
+          await save(savePath)
+        }
+
+        await clearDb()
+        document.title = "Untitled Tree - Gingko"
+
+        switch (data.action) {
+          case "New":
+            toElm('New', null)
+            break;
+
+          case "Open":
+            let filepathArray = openDialog(data.filepath)
+            if(Array.isArray(filepathArray) && filepathArray.length >= 0) {
+              var filepathToLoad = filepathArray[0]
+              loadFile(filepathToLoad)
+            }
+            break;
+
+          case "Import":
+            let importFilepathArray = importDialog(data.filepath)
+            if(Array.isArray(importFilepathArray) && importFilepathArray.length >= 0) {
+              var filepathToImport = importFilepathArray[0]
+              importFile(filepathToImport)
+            }
+            break;
+
+          case "Exit":
+            app.exit()
+            break;
+
+          default:
+            console.log("Unsupported action: " + data.action)
+        }
+      }
+
+    , 'ConfirmCancelCard': () => {
+        let tarea = document.getElementById('card-edit-'+data[0])
 
         if (tarea === null) {
-          // TODO: replace this with proper logging.
-          gingko.ports.updateError.send('Textarea with id '+id+' not found.')
+          console.log('tarea not found')
         } else {
-          let start = tarea.selectionStart
-          let end = tarea.selectionEnd
-          if (start !== end) {
-            let text = tarea.value.slice(start, end)
-            let modifiedText = surroundString + text + surroundString
-            document.execCommand('insertText', true, modifiedText)
+          if(tarea.value === data[1]) {
+            toElm('CancelCardConfirmed', null)
+          } else if (confirm('Are you sure you want to cancel your changes?')) {
+            toElm('CancelCardConfirmed', null)
           }
         }
       }
 
-    , 'SaveObjects': () => {
+    , 'ColumnNumberChange': () => {
+        ipcRenderer.send('column-number-change', data)
+      }
+
+    , 'ChangeTitle': () => {
+        let filepath = data[0]
+        let changed = data[1]
+        let newTitle = filepath ? `${path.basename(filepath)} - Gingko` : `Untitled Tree - Gingko`
+
+        if (changed) {
+          newTitle = "*" + newTitle
+        }
+
+        if (newTitle !== document.title ) {
+          document.title = newTitle
+        }
+      }
+
+    , 'Exit': () => {
+        app.exit()
+      }
+
+      // === Database ===
+
+    , 'SaveToDB': () => {
         let status = data[0]
         let objects = data[1]
         db.get('status')
@@ -184,13 +263,74 @@ const update = (msg, data) => {
               .then(responses => {
                 let head = responses.filter(r => r.id == "heads/master")[0]
                 if (head.ok) {
-                  gingko.ports.infoForElm.send({tag: 'SetHeadRev', data: head.rev})
+                  toElm('SetHeadRev', head.rev)
                 } else {
                   console.log('head not ok', head)
                 }
               })
           })
       }
+
+    , 'ClearDB': async () => {
+        await clearDb()
+        document.title = "Untitled Tree - Gingko"
+      }
+
+    , 'Push': push
+
+    , 'Pull': sync
+
+      // === File System ===
+
+    , 'Save': async () => {
+        let savePath = data ? data : saveAsDialog()
+        await save(savePath)
+      }
+
+    , 'SaveAs': async () => {
+        let savePath = saveAsDialog(data)
+        await save(savePath)
+      }
+
+    , 'ExportJSON': () => {
+        exportJson(data[0], data[1])
+      }
+
+    , 'ExportTXT': () => {
+        exportTxt(data[0], data[1])
+      }
+
+    , 'ExportTXTColumn': () => {
+        exportTxt(data[0], data[1])
+      }
+
+      // === DOM ===
+
+    , 'ActivateCards': () => {
+        setLastActive(data.filepath, data.cardId)
+        shared.scrollHorizontal(data.column)
+        shared.scrollColumns(data.lastActives)
+      }
+
+    , 'TextSurround': () => {
+        let id = data[0]
+        let surroundString = data[1]
+        let tarea = document.getElementById('card-edit-'+id)
+
+        if (tarea === null) {
+          console.log('Textarea not found for TextSurround command.')
+        } else {
+          let start = tarea.selectionStart
+          let end = tarea.selectionEnd
+          if (start !== end) {
+            let text = tarea.value.slice(start, end)
+            let modifiedText = surroundString + text + surroundString
+            document.execCommand('insertText', true, modifiedText)
+          }
+        }
+      }
+
+      // === UI ===
 
     , 'UpdateCommits': () => {
         let commitGraphData = _.sortBy(data[0].commits, 'timestamp').reverse().map(c => { return {sha: c._id, parents: c.parents}})
@@ -204,112 +344,6 @@ const update = (msg, data) => {
 
         //ReactDOM.render(commitElement, document.getElementById('history'))
     }
-
-    , 'ConfirmCancel': () => {
-        let tarea = document.getElementById('card-edit-'+data[0])
-
-        if (tarea === null) {
-          console.log('tarea not found')
-        } else {
-          if(tarea.value === data[1]) {
-            gingko.ports.infoForElm.send({tag: 'CancelCardConfirmed', data: null})
-          } else if (confirm('Are you sure you want to cancel your changes?')) {
-            gingko.ports.infoForElm.send({tag: 'CancelCardConfirmed', data: null})
-          }
-        }
-      }
-
-    , 'ColumnNumberChange': () => {
-        ipcRenderer.send('column-number-change', data)
-      }
-
-    , 'New': () => {
-        let clearDb = () => {
-          dbname = sha1(Date.now()+machineIdSync())
-          setFileState(false, null)
-
-          dbpath = path.join(app.getPath('userData'), dbname)
-          self.db = new PouchDB(dbpath, {adapter: 'memory'})
-          gingko.ports.infoForElm.send({tag: 'Reset', data: null})
-        }
-
-        if(saveInProgress) {
-          _.delay(update, 200, 'New')
-        } else {
-          if(changed) {
-            saveConfirmation(data).then( () => {
-              db.destroy().then( res => {
-                if (res.ok) {
-                  clearDb()
-                }
-              })
-            })
-          } else {
-            clearDb()
-          }
-        }
-      }
-
-    , 'Open': () => {
-        if (saveInProgress) {
-          _.delay(update, 200, 'Open')
-        } else {
-          if (changed) {
-            saveConfirmation(data).then(openDialog)
-          } else {
-            openDialog()
-          }
-        }
-      }
-
-    , 'Import': () => {
-        if (saveInProgress) {
-          _.delay(update, 200, 'Import')
-        } else {
-          if (changed) {
-            saveConfirmation(data).then(importDialog)
-          } else {
-            importDialog()
-          }
-        }
-      }
-
-    , 'Save': () =>
-        save(data)
-          .then( filepath =>
-            gingko.ports.infoForElm.send({tag:'Saved', data: filepath})
-          )
-
-
-    , 'SaveAs': () =>
-        saveAs()
-          .then( filepath =>
-            gingko.ports.infoForElm.send({tag:'Saved', data: filepath})
-          )
-
-    , 'SaveAndClose': () => {
-        if(saveInProgress) {
-          _.delay(update, 200, 'SaveAndClose')
-        } else {
-          saveConfirmation(data).then(app.exit)
-        }
-      }
-
-    , 'ExportJSON': () => {
-        exportJson(data)
-      }
-
-    , 'ExportTXT': () => {
-        exportTxt(data)
-      }
-
-    , 'ExportTXTColumn': () => {
-        exportTxt(data)
-      }
-
-    , 'SetSaved': () =>
-        setFileState(false, data)
-
     , 'SetVideoModal': () => {
         userStore.set('video-modal-is-open', data)
       }
@@ -318,13 +352,7 @@ const update = (msg, data) => {
         userStore.set('shortcut-tray-is-open', data)
       }
 
-    , 'SetChanged': () => {
-        setFileState(true, currentFile)
-      }
-
-    , 'Pull': sync
-
-    , 'Push': push
+      // === Misc ===
 
     , 'SocketSend': () => {
         collab = data
@@ -353,24 +381,24 @@ gingko.ports.infoForOutside.subscribe(function(elmdata) {
 
 /* === JS to Elm Ports === */
 
-ipcRenderer.on('menu-new', () => update('New'))
-ipcRenderer.on('menu-open', () => update('Open'))
-ipcRenderer.on('menu-import-json', () => update('Import'))
-ipcRenderer.on('menu-export-json', () => gingko.ports.infoForElm.send({tag: 'DoExportJSON', data: null }))
-ipcRenderer.on('menu-export-txt', () => gingko.ports.infoForElm.send({tag: 'DoExportTXT', data: null }))
-ipcRenderer.on('menu-export-txt-current', () => gingko.ports.infoForElm.send({tag: 'DoExportTXTCurrent', data: null }))
-ipcRenderer.on('menu-export-txt-column', (e, msg) => gingko.ports.infoForElm.send({tag: 'DoExportTXT', data: msg }))
-ipcRenderer.on('menu-save', () => gingko.ports.infoForElm.send({tag: 'Keyboard', data: 'mod+s'}))
-ipcRenderer.on('menu-save-as', () => update('SaveAs'))
+ipcRenderer.on('menu-new', () => toElm('IntentNew', null))
+ipcRenderer.on('menu-open', () => toElm('IntentOpen', null ))
+ipcRenderer.on('menu-import-json', () => toElm('IntentImport', null))
+ipcRenderer.on('menu-save', () => toElm('IntentSave', null ))
+ipcRenderer.on('menu-save-as', () => toElm('IntentSaveAs', null))
+ipcRenderer.on('menu-export-json', () => toElm('IntentExport', { format : "json", selection: "all" }))
+ipcRenderer.on('menu-export-txt', () => toElm('IntentExport', { format : "txt", selection: "all" }))
+ipcRenderer.on('menu-export-txt-current', () => toElm('IntentExport', { format : "txt", selection: "current" }))
+ipcRenderer.on('menu-export-txt-column', (e, msg) => toElm('IntentExport', { format : "txt", selection: { column: msg } }))
 ipcRenderer.on('zoomin', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() + 1) })
 ipcRenderer.on('zoomout', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() - 1) })
 ipcRenderer.on('resetzoom', e => { webFrame.setZoomLevel(0) })
-ipcRenderer.on('menu-view-videos', () => gingko.ports.infoForElm.send({tag: 'ViewVideos', data: null }))
+ipcRenderer.on('menu-view-videos', () => toElm('ViewVideos', null ))
 ipcRenderer.on('menu-contact-support', () => { if(crisp_loaded) { $crisp.push(['do', 'chat:open']); $crisp.push(['do', 'chat:show']); } else { shell.openExternal('mailto:adriano@gingkoapp.com') } } )
-ipcRenderer.on('main-save-and-close', () => update('SaveAndClose', currentFile))
+ipcRenderer.on('main-exit', () => toElm('IntentExit', null))
 
-socket.on('collab', data => gingko.ports.infoForElm.send({tag: 'RecvCollabState', data: data}))
-socket.on('collab-leave', data => gingko.ports.infoForElm.send({tag: 'CollaboratorDisconnected', data: data}))
+socket.on('collab', data => toElm('RecvCollabState', data))
+socket.on('collab-leave', data => toElm('CollaboratorDisconnected', data))
 
 
 
@@ -425,7 +453,9 @@ const load = function(filepath, headOverride){
         }
 
         let toSend = [filepath, [status, { commits: commits, treeObjects: trees, refs: refs}], getLastActive(filepath)];
-        gingko.ports.infoForElm.send({tag: "Load", data: toSend});
+
+        document.title = `${path.basename(filepath)} - Gingko`
+        toElm('Open', toSend);
       }).catch(function (err) {
         console.log(err)
       })
@@ -442,7 +472,7 @@ const merge = function(local, remote){
       let refs = processData(data, "ref");
 
       let toSend = { commits: commits, treeObjects: trees, refs: refs};
-      gingko.ports.infoForElm.send({tag: "Merge", data: [local, remote, toSend]});
+      toElm('Merge', [local, remote, toSend]);
     }).catch(function (err) {
       console.log(err)
     })
@@ -507,7 +537,7 @@ const sync = function () {
 
 const setHead = function(sha) {
   if (sha) {
-    gingko.ports.infoForElm.send({tag: 'CheckoutCommit', data: sha})
+    toElm('CheckoutCommit', sha)
   }
 }
 
@@ -516,112 +546,92 @@ const setHead = function(sha) {
 
 /* === Local Functions === */
 
-self.save = (filepath) => {
+self.saveToDB = (status, objects) => {
   return new Promise(
-    (resolve, reject) => {
-      let swapfilepath = filepath + '.swp'
-      let filewriteStream = fs.createWriteStream(swapfilepath)
-      let memStream = new MemoryStream();
-      saveInProgress = true
-
-      db.dump(memStream).then( res => {
-        if (res.ok) {
-          memStream.pipe(filewriteStream)
-
-          var streamHash;
-          var swapfileHash;
-
-          getHash(memStream, 'sha1', (err, hash) => {
-            streamHash = hash.toString('base64')
-            getHash(swapfilepath, 'sha1', (err, fhash) => {
-              swapfileHash = fhash.toString('base64')
-
-              if (streamHash !== swapfileHash) {
-                throw new Error('File integrity check failed.')
-              } else {
-                // Successful save and copy
-                saveInProgress = false
-                fs.copyFile(swapfilepath, filepath, (copyErr) => {
-                  if (copyErr) {
-                    throw copyErr;
+    async (resolve, reject) => {
+      let statusDoc =
+        await db.get('status')
+                .catch(err => {
+                  if(err.name == "not_found") {
+                    return {_id: 'status' , status : 'bare', bare: true}
                   } else {
-                    fs.unlink(swapfilepath, (delErr) => {
-                      if (delErr) throw delErr;
-                    })
+                    console.log('load status error', err)
                   }
                 })
-                resolve(filepath)
-              }
-            })
-          })
-        } else {
-          saveInProgress = false
-          reject(res)
-        }
-      }).catch( err => {
-        saveInProgress = false
-        reject(err)
-      })
-    }
-  )
-}
 
-
-const saveAs = () => {
-  return new Promise(
-    (resolve, reject) => {
-      var options =
-        { title: 'Save As'
-        , defaultPath: currentFile ? currentFile.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.gko")
-        , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
-                    , {name: 'All Files', extensions: ['*']}
-                    ]
-        }
-
-      dialog.showSaveDialog(options, function(filepath){
-        if(!!filepath){
-          resolve(save(filepath))
-        } else {
-          reject(new Error('no save path chosen'))
-        }
-      })
-    }
-  )
-}
-
-
-
-const saveConfirmation = (filepath) => {
-  return new Promise(
-    (resolve, reject) => {
-      let options =
-        { title: "Save changes"
-        , message: "Save changes before closing?"
-        , buttons: ["Close Without Saving", "Cancel", "Save"]
-        , defaultId: 2
-        }
-      let choice = dialog.showMessageBox(options)
-
-      if (choice == 0) {
-        resolve(filepath)
-      } else if (choice == 2) {
-        if(filepath !== null) {
-          resolve(save(filepath))
-        } else {
-          resolve(saveAs())
-        }
+      if(statusDoc._rev) {
+        status['_rev'] = statusDoc._rev
       }
+
+      let toSave = objects.commits.concat(objects.treeObjects).concat(objects.refs).concat([status]);
+
+      try {
+        let responses = await db.bulkDocs(toSave)
+        let head = responses.filter(r => r.id == "heads/master")[0]
+        if (head.ok) {
+          resolve(head.rev)
+        } else {
+          reject(new Error('head not ok: ' + head))
+        }
+      } catch (err) {
+        console.log(err)
+      }
+    })
+}
+
+
+self.save = (filepath) => {
+  return new Promise(
+    async (resolve, reject) => {
+      let memStream = new MemoryStream();
+      let swapfilepath = filepath + '.swp'
+      let filewriteStream = fs.createWriteStream(swapfilepath)
+      let copyFile = promisify(fs.copyFile)
+      let deleteFile = promisify(fs.unlink)
+
+      let dumpToMemOp = await db.dump(memStream)
+
+      if (! dumpToMemOp.ok) {
+        reject(new Error('Could not dump database to MemoryStream'))
+      }
+
+      // write db dump to swapfile first
+      memStream.pipe(filewriteStream)
+
+      // integrity checks
+      let memHash = (await getHash(memStream, 'sha1')).toString('base64')
+      let swapHash = (await getHash(swapfilepath, 'sha1')).toString('base64')
+      if (memHash !== swapHash) {
+        reject(new Error(`File integrity check failed: ${memHash} ${swapHash}`))
+      }
+
+      // copy swapfile to original filepath
+      await copyFile(swapfilepath, filepath)
+
+      // delete swapfile
+      await deleteFile(swapfilepath)
+
+      document.title = `${path.basename(filepath)} - Gingko`
+      toElm('FileState', [filepath, false])
+      resolve(true)
     }
   )
 }
 
+const saveConfirmationDialogOptions =
+    { title: "Save changes"
+    , message: "Save changes before closing?"
+    , buttons: ["Close Without Saving", "Cancel", "Save"]
+    , defaultId: 2
+    }
 
-const exportJson = (data) => {
+
+const exportJson = (data, defaultPath) => {
   return new Promise(
     (resolve, reject) => {
       var options =
         { title: 'Export JSON'
-        , defaultPath: currentFile ? currentFile.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.json")
+        , defaultPath: defaultPath ? defaultPath.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.json")
         , filters:  [ {name: 'Gingko JSON (*.json)', extensions: ['json']}
                     , {name: 'All Files', extensions: ['*']}
                     ]
@@ -641,10 +651,9 @@ const exportJson = (data) => {
   )
 }
 
-const exportTxt = (data) => {
+const exportTxt = (data, defaultPath) => {
   return new Promise(
     (resolve, reject) => {
-      
       if (data && typeof data.replace === 'function') {
         data = (process.platform === "win32") ? data.replace(/\n/g, '\r\n') : data;
       } else {
@@ -653,7 +662,7 @@ const exportTxt = (data) => {
 
       var options =
         { title: 'Export TXT'
-        , defaultPath: currentFile ? currentFile.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.txt")
+        , defaultPath: defaultPath ? defaultPath.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.txt")
         , filters:  [ {name: 'Text File', extensions: ['txt']}
                     , {name: 'All Files', extensions: ['*']}
                     ]
@@ -674,121 +683,124 @@ const exportTxt = (data) => {
 }
 
 
-const openDialog = () => {
-  dialog.showOpenDialog(
-    null,
-    { title: "Open File..."
-    , defaultPath: currentFile ? path.dirname(currentFile) : app.getPath('documents')
+const saveAsDialog = (pathDefault) => {
+  var options =
+    { title: 'Save As'
+    , defaultPath: pathDefault ? pathDefault.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.gko")
+    , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
+                , {name: 'All Files', extensions: ['*']}
+                ]
+    }
+
+  return dialog.showSaveDialog(options)
+}
+
+
+const openDialog = (pathDefault) => {
+  var options =
+    { title: 'Open File...'
+    , defaultPath: pathDefault ? path.dirname(pathDefault) : app.getPath('documents')
     , properties: ['openFile']
     , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
                 , {name: 'All Files', extensions: ['*']}
                 ]
     }
-    , function(filepathArray) {
-        if(Array.isArray(filepathArray) && filepathArray.length >= 0) {
-          var filepathToLoad = filepathArray[0]
-          if(!!filepathToLoad) {
-            loadFile(filepathToLoad)
-          }
-        }
-      }
-  )
+
+  return dialog.showOpenDialog(options)
 }
 
-const importDialog = () => {
-  dialog.showOpenDialog(
-    null,
-    { title: "Import JSON File..."
-    , defaultPath: currentFile ? path.dirname(currentFile) : app.getPath('documents')
+
+const importDialog = (pathDefault) => {
+  var options =
+    { title: 'Import JSON File...'
+    , defaultPath: pathDefault ? path.dirname(pathDefault) : app.getPath('documents')
     , properties: ['openFile']
-    , filters:  [ {name: 'Gingko JSON files (*.json)', extensions: ['json']}
+    , filters:  [ {name: 'Gingko JSON Files (*.json)', extensions: ['json']}
                 , {name: 'All Files', extensions: ['*']}
                 ]
     }
-    , function(filepathArray) {
-        var filepathToImport = filepathArray[0]
-        if(!!filepathToImport) {
-          importFile(filepathToImport)
+
+  return dialog.showOpenDialog(null, options)
+}
+
+
+
+const loadFile = async (filepath) => {
+  await clearDb(filepath)
+
+  let rs = fs.createReadStream(filepath)
+  let loadOp = await db.load(rs)
+
+  if (!loadOp.ok) {
+    throw new Error("Couldn't load database from file")
+  }
+
+  load(filepath)
+}
+
+
+const importFile = async (filepathToImport) => {
+  await clearDb(filepathToImport)
+
+  let readFile = promisify(fs.readFile)
+  let data = await readFile(filepathToImport)
+
+  let nextId = 1
+
+  let seed =
+    JSON.parse(
+      data.toString()
+          .replace( /{(\s*)"content":/g
+                  , s => {
+                      return `{"id":"${nextId++}","content":`
+                    }
+                  )
+    )
+
+  let newRoot =
+    seed.length == 1
+      ?
+        { id: "0"
+        , content: seed[0].content
+        , children: seed[0].children
         }
+      :
+        { id: "0"
+        , content: path.basename(filepathToImport)
+        , children: seed
+        }
+
+  document.title = `${path.basename(filepathToImport)} - Gingko`
+  toElm('ImportJSON', newRoot)
+}
+
+
+const clearDb = (dbname) => {
+  return new Promise(
+    async (resolve, reject) => {
+      let destroyOp = await db.destroy()
+      if (!destroyOp.ok) {
+        reject(new Error("Couldn't destroy db on ClearDB"))
       }
+
+      dbname = dbname ? dbname : sha1(Date.now()+machineIdSync())
+      dbpath = path.join(app.getPath('userData'), dbname)
+      self.db = new PouchDB(dbpath, {adapter: 'memory'})
+      resolve()
+    }
   )
 }
 
 
-const loadFile = (filepathToLoad) => {
-  var rs = fs.createReadStream(filepathToLoad)
-
-  db.destroy().then( res => {
-    if (res.ok) {
-      dbpath = path.join(app.getPath('userData'), sha1(filepathToLoad))
-      self.db = new PouchDB(dbpath, {adapter: 'memory'})
-
-      db.load(rs).then( res => {
-        if (res.ok) {
-          setFileState(false, filepathToLoad)
-          load(filepathToLoad)
-        } else {
-          console.log('db.load res is', res)
-        }
-      }).catch( err => {
-        console.log('file load err', err)
-      })
-    }
-  })
-}
-
-
-const importFile = (filepathToImport) => {
-  fs.readFile(filepathToImport, (err, data) => {
-
-    let nextId = 1
-
-    let seed =
-      JSON.parse(
-        data.toString()
-            .replace( /{(\s*)"content":/g
-                    , s => {
-                        return `{"id":"${nextId++}","content":`
-                      }
-                    )
-      )
-
-    let newRoot =
-      seed.length == 1
-        ?
-          { id: "0"
-          , content: seed[0].content
-          , children: seed[0].children
-          }
-        :
-          { id: "0"
-          , content: path.basename(filepathToImport)
-          , children: seed
-          }
-
-    db.destroy().then( res => {
-      if (res.ok) {
-        dbpath = path.join(app.getPath('userData'), sha1(filepathToImport))
-        self.db = new PouchDB(dbpath, {adapter: 'memory'})
-
-        document.title = `${path.basename(filepathToImport)} - Gingko`
-        setFileState(true, null)
-        gingko.ports.infoForElm.send({tag: 'ImportJSON', data :newRoot})
-      }
-    })
-  })
-}
-
-
-function setLastActive (filename, lastActiveCard) {
-  if (filename !== null) {
-    userStore.set(`last-active-cards.${filename}`, lastActiveCard);
+function setLastActive (filepath, lastActiveCard) {
+  if (filepath !== null) {
+    userStore.set(`last-active-cards.${filepath}`, lastActiveCard);
   }
 }
 
 
-function getLastActive (filename) {
-  let lastActiveCard = userStore.get(`last-active-cards.${filename}`)
+function getLastActive (filepath) {
+  let lastActiveCard = userStore.get(`last-active-cards.${filepath}`)
   if (typeof lastActiveCard === "undefined") {
     return null
   } else {
@@ -812,28 +824,9 @@ window.onresize = () => {
 }
 
 
-const setFileState = function(bool, newpath) {
-  if (bool) {
-    changed = true
-    if (!/\*/.test(document.title)) {
-      document.title = "*" + document.title
-    }
-    gingko.ports.infoForElm.send({ tag: 'Changed', data: null })
-  } else {
-    changed = false
-    currentFile = newpath
-    document.title = newpath ? `${path.basename(currentFile)} - Gingko` : "Untitled Tree - Gingko"
-  }
-
-  ipcRenderer.send('changed', bool)
-}
-
-
 const editingInputHandler = function(ev) {
-  if (!changed) {
-    setFileState(true, currentFile)
-  }
-  gingko.ports.infoForElm.send({tag: 'FieldChanged', data: ev.target.value})
+  toElm('FieldChanged', ev.target.value)
+  document.title = document.title.startsWith('*') ? document.title : '*' + document.title
   collab.field = ev.target.value
   socket.emit('collab', collab)
 }
@@ -841,7 +834,7 @@ const editingInputHandler = function(ev) {
 
 
 Mousetrap.bind(shared.shortcuts, function(e, s) {
-  gingko.ports.infoForElm.send({tag: 'Keyboard', data: s});
+  toElm('Keyboard',s);
 
   if(shared.needOverride.includes(s)) {
     return false;

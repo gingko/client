@@ -61,7 +61,7 @@ viewStateToValue vs =
     , ( "activePast", Enc.list (List.map Enc.string vs.activePast) )
     , ( "activeFuture", Enc.list (List.map Enc.string vs.activeFuture) )
     , ( "descendants", Enc.list (List.map Enc.string vs.descendants) )
-    , ( "editing", maybeToValue vs.editing Enc.string )
+    , ( "editing", maybeToValue Enc.string vs.editing )
     ]
 
 
@@ -276,6 +276,45 @@ selectionDecoder =
 
 -- EXPORT ENCODINGS
 
+exportSettingsDecoder : Decoder ExportSettings
+exportSettingsDecoder =
+  let
+    formatFromString s =
+      case s of
+        "json" -> JSON
+        "txt" -> TXT
+        _ -> JSON
+
+    formatDecoder =
+      Json.map formatFromString string
+
+    exportStringDecoder =
+      Json.map
+        (\s ->
+          case s of
+            "all" -> All
+            "current" -> CurrentSubtree
+            _ -> All
+        )
+        string
+
+    exportColumnDecoder =
+      Json.map
+        ( \i -> ColumnNumber i )
+        ( field "column" int )
+
+    exportSelectionDecoder =
+      oneOf
+        [ exportStringDecoder
+        , exportColumnDecoder
+        ]
+  in
+  Json.map2 ExportSettings
+    ( field "format" formatDecoder  )
+    ( field "selection" exportSelectionDecoder  )
+  
+
+
 treeToJSON : Tree -> Enc.Value
 treeToJSON tree =
   case tree.children of
@@ -343,8 +382,8 @@ lazyRecurse thunk =
     value
 
 
-maybeToValue : Maybe a -> (a -> Enc.Value) -> Enc.Value
-maybeToValue mb encoder =
+maybeToValue : (a -> Enc.Value) -> Maybe a -> Enc.Value
+maybeToValue encoder mb =
   case mb of
     Nothing -> Enc.null
     Just v -> encoder v
