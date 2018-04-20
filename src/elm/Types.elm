@@ -53,7 +53,7 @@ type OutgoingMsg
     | ExportTXT Bool Tree
     | ExportTXTColumn Int Tree
     -- === DOM ===
-    | ActivateCards ( String, Int, List (List String) )
+    | ActivateCards ( String, Int, List (List String), Maybe String )
     | TextSurround String String
     -- === UI ===
     | UpdateCommits ( Json.Value, Maybe String )

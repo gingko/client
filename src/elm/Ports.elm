@@ -35,7 +35,7 @@ sendOut info =
     Exit ->
       dataToSend null
 
-    ActivateCards (cardId, col, cardIds) ->
+    ActivateCards (cardId, col, lastActives, filepath_) ->
       let
         listListStringToValue lls =
           lls
@@ -43,7 +43,14 @@ sendOut info =
             |> List.map list
             |> list
       in
-      dataToSend ( tripleToValue string int listListStringToValue ( cardId, col, cardIds ) )
+      dataToSend
+        ( object
+          [ ( "cardId", string cardId )
+          , ( "column", int col )
+          , ( "lastActives", listListStringToValue lastActives )
+          , ( "filepath", maybeToValue string filepath_ )
+          ]
+        )
 
     TextSurround id str ->
       dataToSend ( list [ string id, string str ] )

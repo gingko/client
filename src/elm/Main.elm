@@ -744,6 +744,7 @@ activate id (model, prevCmd) =
                 ( id
                 , getDepth 0 model.workingTree.tree id
                 , centerlineIds flatCols allIds newPast
+                , model.filepath
                 )
               )
             ]

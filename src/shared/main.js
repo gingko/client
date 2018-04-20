@@ -153,9 +153,9 @@ const update = (msg, data) => {
       }
 
     , 'ActivateCards': () => {
-        setLastActive(currentFile, data[0])
-        shared.scrollHorizontal(data[1])
-        shared.scrollColumns(data[2])
+        setLastActive(data.filepath, data.cardId)
+        shared.scrollHorizontal(data.column)
+        shared.scrollColumns(data.lastActives)
       }
 
     , 'OpenDialog': () => {
@@ -821,15 +821,15 @@ const clearDb = (dbname) => {
 }
 
 
-function setLastActive (filename, lastActiveCard) {
-  if (filename !== null) {
-    userStore.set(`last-active-cards.${filename}`, lastActiveCard);
+function setLastActive (filepath, lastActiveCard) {
+  if (filepath !== null) {
+    userStore.set(`last-active-cards.${filepath}`, lastActiveCard);
   }
 }
 
 
-function getLastActive (filename) {
-  let lastActiveCard = userStore.get(`last-active-cards.${filename}`)
+function getLastActive (filepath) {
+  let lastActiveCard = userStore.get(`last-active-cards.${filepath}`)
   if (typeof lastActiveCard === "undefined") {
     return null
   } else {
