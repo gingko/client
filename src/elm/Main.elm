@@ -338,6 +338,11 @@ update msg ({objects, workingTree, status} as model) =
 
         Open (filepath, json, lastActiveCard) ->
           let
+            -- Reset model, while keeping flags intact
+            baseModel =
+              init (model.isMac, model.shortcutTrayOpen, model.videoModalOpen)
+                |> Tuple.first
+
             (newStatus, newTree_, newObjects) =
                 Objects.update (Objects.Init json) objects
 
@@ -348,7 +353,7 @@ update msg ({objects, workingTree, status} as model) =
           in
           case (newStatus, newTree_) of
             (Clean newHead, Nothing) -> -- no changes to Tree
-              { defaultModel
+              { baseModel
                 | status = newStatus
                 , startingWordcount = startingWordcount
                 , filepath = Just filepath
@@ -359,7 +364,7 @@ update msg ({objects, workingTree, status} as model) =
                 |> activate lastActiveCard
 
             (Clean newHead, Just newTree) ->
-              { defaultModel
+              { baseModel
                 | workingTree = Trees.setTree newTree model.workingTree
                 , objects = newObjects
                 , status = newStatus
@@ -372,7 +377,7 @@ update msg ({objects, workingTree, status} as model) =
                 |> activate lastActiveCard
 
             (MergeConflict mTree oldHead newHead [], Just newTree) ->
-              { defaultModel
+              { baseModel
                 | workingTree = Trees.setTree newTree model.workingTree
                 , objects = newObjects
                 , status = newStatus
@@ -385,7 +390,7 @@ update msg ({objects, workingTree, status} as model) =
                 |> activate lastActiveCard
 
             (MergeConflict mTree oldHead newHead conflicts, Just newTree) ->
-              { defaultModel
+              { baseModel
                 | workingTree = Trees.setTreeWithConflicts conflicts mTree model.workingTree
                 , objects = newObjects
                 , status = newStatus
@@ -457,10 +462,15 @@ update msg ({objects, workingTree, status} as model) =
           case Json.decodeValue treeDecoder json of
             Ok newTree ->
               let
+                -- Reset model, while keeping flags intact
+                baseModel =
+                  init (model.isMac, model.shortcutTrayOpen, model.videoModalOpen)
+                    |> Tuple.first
+
                 (newStatus, _, newObjects) =
                   Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" newTree) model.objects
               in
-              { defaultModel
+              { baseModel
                 | workingTree = Trees.setTree newTree model.workingTree
                 , objects = newObjects
                 , status = newStatus
