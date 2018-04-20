@@ -132,27 +132,10 @@ I know it's not much guidance, but it's a start.
 
 const update = (msg, data) => {
   let cases =
-    { 'Alert': () => { alert(data) }
+    {
+      // === Dialogs, Menus, Window State ===
 
-    , 'ChangeTitle': () => {
-        let filepath = data[0]
-        let changed = data[1]
-        let newTitle = filepath ? `${path.basename(filepath)} - Gingko` : `Untitled Tree - Gingko`
-
-        if (changed) {
-          newTitle = "*" + newTitle
-        }
-
-        if (newTitle !== document.title ) {
-          document.title = newTitle
-        }
-      }
-
-    , 'ActivateCards': () => {
-        setLastActive(data.filepath, data.cardId)
-        shared.scrollHorizontal(data.column)
-        shared.scrollColumns(data.lastActives)
-      }
+      'Alert': () => { alert(data) }
 
     , 'OpenDialog': () => {
         let filepathArray = openDialog(data)
@@ -181,7 +164,7 @@ const update = (msg, data) => {
         // Save Changes
         if (choice == 2) {
           await saveToDB(data.document[0], data.document[1])
-          let savePath = data.filepath ? data.filepath : await saveAsDialog()
+          let savePath = data.filepath ? data.filepath : saveAsDialog()
           await save(savePath)
         }
 
@@ -218,28 +201,43 @@ const update = (msg, data) => {
         }
       }
 
+    , 'ConfirmCancelCard': () => {
+        let tarea = document.getElementById('card-edit-'+data[0])
+
+        if (tarea === null) {
+          console.log('tarea not found')
+        } else {
+          if(tarea.value === data[1]) {
+            toElm('CancelCardConfirmed', null)
+          } else if (confirm('Are you sure you want to cancel your changes?')) {
+            toElm('CancelCardConfirmed', null)
+          }
+        }
+      }
+
+    , 'ColumnNumberChange': () => {
+        ipcRenderer.send('column-number-change', data)
+      }
+
+    , 'ChangeTitle': () => {
+        let filepath = data[0]
+        let changed = data[1]
+        let newTitle = filepath ? `${path.basename(filepath)} - Gingko` : `Untitled Tree - Gingko`
+
+        if (changed) {
+          newTitle = "*" + newTitle
+        }
+
+        if (newTitle !== document.title ) {
+          document.title = newTitle
+        }
+      }
+
     , 'Exit': () => {
         app.exit()
       }
 
-    , 'TextSurround': () => {
-        let id = data[0]
-        let surroundString = data[1]
-        let tarea = document.getElementById('card-edit-'+id)
-
-        if (tarea === null) {
-          // TODO: replace this with proper logging.
-          gingko.ports.updateError.send('Textarea with id '+id+' not found.')
-        } else {
-          let start = tarea.selectionStart
-          let end = tarea.selectionEnd
-          if (start !== end) {
-            let text = tarea.value.slice(start, end)
-            let modifiedText = surroundString + text + surroundString
-            document.execCommand('insertText', true, modifiedText)
-          }
-        }
-      }
+      // === Database ===
 
     , 'SaveToDB': () => {
         let status = data[0]
@@ -278,39 +276,19 @@ const update = (msg, data) => {
         document.title = "Untitled Tree - Gingko"
       }
 
-    , 'UpdateCommits': () => {
-        let commitGraphData = _.sortBy(data[0].commits, 'timestamp').reverse().map(c => { return {sha: c._id, parents: c.parents}})
-        let selectedSha = data[1]
+    , 'Push': push
 
-        let commitElement = React.createElement(CommitsGraph, {
-          commits: commitGraphData,
-          onClick: setHead,
-          selected: selectedSha
-        });
+    , 'Pull': sync
 
-        //ReactDOM.render(commitElement, document.getElementById('history'))
-    }
+      // === File System ===
 
-    , 'ConfirmCancelCard': () => {
-        let tarea = document.getElementById('card-edit-'+data[0])
-
-        if (tarea === null) {
-          console.log('tarea not found')
-        } else {
-          if(tarea.value === data[1]) {
-            toElm('CancelCardConfirmed', null)
-          } else if (confirm('Are you sure you want to cancel your changes?')) {
-            toElm('CancelCardConfirmed', null)
-          }
-        }
+    , 'Save': () => {
+        let savePath = data ? data : saveAsDialog()
+        save(savePath)
       }
 
-    , 'ColumnNumberChange': () => {
-        ipcRenderer.send('column-number-change', data)
-      }
-
-    , 'Save': async () => {
-        let savePath = data ? data : await saveAsDialog()
+    , 'SaveAs': () => {
+        let savePath = saveAsDialog(data)
         save(savePath)
       }
 
@@ -326,6 +304,47 @@ const update = (msg, data) => {
         exportTxt(data[0], data[1])
       }
 
+      // === DOM ===
+
+    , 'ActivateCards': () => {
+        setLastActive(data.filepath, data.cardId)
+        shared.scrollHorizontal(data.column)
+        shared.scrollColumns(data.lastActives)
+      }
+
+    , 'TextSurround': () => {
+        let id = data[0]
+        let surroundString = data[1]
+        let tarea = document.getElementById('card-edit-'+id)
+
+        if (tarea === null) {
+          // TODO: replace this with proper logging.
+          gingko.ports.updateError.send('Textarea with id '+id+' not found.')
+        } else {
+          let start = tarea.selectionStart
+          let end = tarea.selectionEnd
+          if (start !== end) {
+            let text = tarea.value.slice(start, end)
+            let modifiedText = surroundString + text + surroundString
+            document.execCommand('insertText', true, modifiedText)
+          }
+        }
+      }
+
+      // === UI ===
+
+    , 'UpdateCommits': () => {
+        let commitGraphData = _.sortBy(data[0].commits, 'timestamp').reverse().map(c => { return {sha: c._id, parents: c.parents}})
+        let selectedSha = data[1]
+
+        let commitElement = React.createElement(CommitsGraph, {
+          commits: commitGraphData,
+          onClick: setHead,
+          selected: selectedSha
+        });
+
+        //ReactDOM.render(commitElement, document.getElementById('history'))
+    }
     , 'SetVideoModal': () => {
         userStore.set('video-modal-is-open', data)
       }
@@ -334,9 +353,7 @@ const update = (msg, data) => {
         userStore.set('shortcut-tray-is-open', data)
       }
 
-    , 'Pull': sync
-
-    , 'Push': push
+      // === Misc ===
 
     , 'SocketSend': () => {
         collab = data
@@ -668,20 +685,15 @@ const exportTxt = (data, defaultPath) => {
 
 
 const saveAsDialog = (pathDefault) => {
-  return new Promise(
-    (resolve, reject) => {
-      var options =
-        { title: 'Save As'
-        , defaultPath: pathDefault ? pathDefault.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.gko")
-        , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
-                    , {name: 'All Files', extensions: ['*']}
-                    ]
-        }
-
-      let filepath = dialog.showSaveDialog(options)
-      resolve(filepath)
+  var options =
+    { title: 'Save As'
+    , defaultPath: pathDefault ? pathDefault.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.gko")
+    , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
+                , {name: 'All Files', extensions: ['*']}
+                ]
     }
-  )
+
+  return dialog.showSaveDialog(options)
 }
 
 
