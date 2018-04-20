@@ -36,10 +36,6 @@ window.Elm = require('../elm/Main')
 
 /* === Global Variables === */
 
-var currentFile = null
-var changed = false
-var saveInProgress = false
-var currentSwap = null
 var lastCenterline = null
 var lastColumnIdx = null
 var collab = {}
