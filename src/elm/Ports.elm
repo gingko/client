@@ -34,9 +34,6 @@ sendOut info =
             ]
         )
 
-    ConfirmExit filepath_ ->
-      dataToSend ( maybeToValue string filepath_ )
-
     ConfirmCancelCard id origContent ->
       dataToSend ( list [ string id, string origContent ] )
 

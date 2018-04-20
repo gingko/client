@@ -37,7 +37,6 @@ type OutgoingMsg
     | OpenDialog (Maybe String)
     | ImportDialog (Maybe String)
     | ConfirmClose String (Maybe String) ( Json.Value, Json.Value )
-    | ConfirmExit (Maybe String)
     | ConfirmCancelCard String String
     | ColumnNumberChange Int
     | ChangeTitle ( Maybe String ) Bool
