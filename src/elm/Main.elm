@@ -1223,6 +1223,7 @@ actionNew : Model -> ( Model, Cmd Msg )
 actionNew model =
   init (model.isMac, model.shortcutTrayOpen, model.videoModalOpen)
     |> maybeColumnsChanged model.workingTree.columns
+    |> \(m, c) -> m ! [ sendOut ClearDB ]
 
 
 actionOpen : Model -> ( Model, Cmd Msg )

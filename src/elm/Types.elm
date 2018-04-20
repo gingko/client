@@ -45,6 +45,7 @@ type OutgoingMsg
     -- === Database ===
     | SaveToDB ( Json.Value, Json.Value )
     | SaveLocal Tree
+    | ClearDB
     | Push
     | Pull
     -- === File System ===

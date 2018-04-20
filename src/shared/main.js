@@ -265,6 +265,11 @@ const update = (msg, data) => {
           })
       }
 
+    , 'ClearDB': async () => {
+        await clearDb()
+        document.title = "Untitled Tree - Gingko"
+      }
+
     , 'UpdateCommits': () => {
         let commitGraphData = _.sortBy(data[0].commits, 'timestamp').reverse().map(c => { return {sha: c._id, parents: c.parents}})
         let selectedSha = data[1]

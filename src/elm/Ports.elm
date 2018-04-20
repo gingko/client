@@ -57,6 +57,9 @@ sendOut info =
     SaveLocal tree ->
       dataToSend ( treeToValue tree )
 
+    ClearDB ->
+      dataToSend null
+
     Push ->
       dataToSend null
 
