@@ -307,15 +307,15 @@ const update = (msg, data) => {
         
 
     , 'ExportJSON': () => {
-        exportJson(data)
+        exportJson(data[0], data[1])
       }
 
     , 'ExportTXT': () => {
-        exportTxt(data)
+        exportTxt(data[0], data[1])
       }
 
     , 'ExportTXTColumn': () => {
-        exportTxt(data)
+        exportTxt(data[0], data[1])
       }
 
     , 'SetVideoModal': () => {
@@ -602,12 +602,12 @@ const saveConfirmationDialogOptions =
     }
 
 
-const exportJson = (data) => {
+const exportJson = (data, defaultPath) => {
   return new Promise(
     (resolve, reject) => {
       var options =
         { title: 'Export JSON'
-        , defaultPath: currentFile ? currentFile.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.json")
+        , defaultPath: defaultPath ? defaultPath.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.json")
         , filters:  [ {name: 'Gingko JSON (*.json)', extensions: ['json']}
                     , {name: 'All Files', extensions: ['*']}
                     ]
@@ -627,7 +627,7 @@ const exportJson = (data) => {
   )
 }
 
-const exportTxt = (data) => {
+const exportTxt = (data, defaultPath) => {
   return new Promise(
     (resolve, reject) => {
       if (data && typeof data.replace === 'function') {
@@ -638,7 +638,7 @@ const exportTxt = (data) => {
 
       var options =
         { title: 'Export TXT'
-        , defaultPath: currentFile ? currentFile.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.txt")
+        , defaultPath: defaultPath ? defaultPath.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.txt")
         , filters:  [ {name: 'Text File', extensions: ['txt']}
                     , {name: 'All Files', extensions: ['*']}
                     ]

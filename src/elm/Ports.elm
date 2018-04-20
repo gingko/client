@@ -70,25 +70,29 @@ sendOut info =
     Save filepath_ ->
       dataToSend ( maybeToValue string filepath_ )
 
-    ExportJSON tree ->
-      dataToSend ( treeToJSON tree )
+    ExportJSON tree filepath_ ->
+      dataToSend ( list [ treeToJSON tree , maybeToValue string filepath_ ] )
 
-    ExportTXT withRoot tree ->
-      dataToSend ( treeToMarkdown withRoot tree )
+    ExportTXT withRoot tree filepath_ ->
+      dataToSend ( list  [ treeToMarkdown withRoot tree , maybeToValue string filepath_ ] )
 
     -- ExportTXTColumn is handled by 'ExportTXT' in JS
     -- So we use the "ExportTXT" tag here, instead of `dataToSend`
-    ExportTXTColumn col tree ->
+    ExportTXTColumn col tree filepath_ ->
       infoForOutside
         { tag = "ExportTXT"
         , data =
-            tree
-              |> getColumn col
-              |> Maybe.withDefault [[]]
-              |> List.concat
-              |> List.map .content
-              |> String.join "\n\n"
-              |> string
+            ( list 
+              [ tree
+                |> getColumn col
+                |> Maybe.withDefault [[]]
+                |> List.concat
+                |> List.map .content
+                |> String.join "\n\n"
+                |> string
+              , maybeToValue string filepath_
+              ]
+            )
         }
 
     Push ->

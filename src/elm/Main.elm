@@ -301,7 +301,7 @@ update msg ({objects, workingTree, status} as model) =
                 All ->
                   model ! []
                     |> saveCardIfEditing
-                    |> \(m, c) -> m ! [ c,  sendOut ( ExportJSON m.workingTree.tree ) ]
+                    |> \(m, c) -> m ! [ c,  sendOut ( ExportJSON m.workingTree.tree m.filepath ) ]
 
                 _ -> model ! []
 
@@ -310,17 +310,17 @@ update msg ({objects, workingTree, status} as model) =
                 All ->
                   model ! []
                     |> saveCardIfEditing
-                    |> \(m, c) -> m ! [ c,  sendOut ( ExportTXT False m.workingTree.tree ) ]
+                    |> \(m, c) -> m ! [ c,  sendOut ( ExportTXT False m.workingTree.tree m.filepath ) ]
 
                 CurrentSubtree ->
                   model ! []
                     |> saveCardIfEditing
-                    |> \(m, c) -> m ! [ c,  sendOut ( ExportTXT True m.workingTree.tree ) ]
+                    |> \(m, c) -> m ! [ c,  sendOut ( ExportTXT True m.workingTree.tree m.filepath ) ]
 
                 ColumnNumber col ->
                   model ! []
                     |> saveCardIfEditing
-                    |> \(m, c) -> m ! [ c,  sendOut ( ExportTXTColumn col m.workingTree.tree ) ]
+                    |> \(m, c) -> m ! [ c,  sendOut ( ExportTXTColumn col m.workingTree.tree m.filepath ) ]
 
         IntentExit ->
           intentExit model

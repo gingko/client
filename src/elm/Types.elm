@@ -49,9 +49,9 @@ type OutgoingMsg
     | Pull
     -- === File System ===
     | Save ( Maybe String )
-    | ExportJSON Tree
-    | ExportTXT Bool Tree
-    | ExportTXTColumn Int Tree
+    | ExportJSON Tree ( Maybe String )
+    | ExportTXT Bool Tree ( Maybe String )
+    | ExportTXTColumn Int Tree ( Maybe String )
     -- === DOM ===
     | ActivateCards ( String, Int, List (List String), Maybe String )
     | TextSurround String String
