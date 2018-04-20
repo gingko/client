@@ -14,11 +14,16 @@ sendOut info =
     dataToSend = encodeAndSend info
   in
   case info of
+    -- === Dialogs, Menus, Window State ===
+
     Alert str ->
       dataToSend ( string str )
 
-    ChangeTitle filepath_ changed ->
-      dataToSend ( list [ maybeToValue string filepath_ , bool changed ] )
+    OpenDialog filepath_ ->
+      dataToSend ( maybeToValue string filepath_ )
+
+    ImportDialog filepath_ ->
+      dataToSend ( maybeToValue string filepath_ )
 
     ConfirmClose actionName filepath_ (statusValue, objectsValue) ->
       dataToSend
@@ -32,40 +37,33 @@ sendOut info =
     ConfirmExit filepath_ ->
       dataToSend ( maybeToValue string filepath_ )
 
-    Exit ->
-      dataToSend null
-
-    ActivateCards (cardId, col, lastActives, filepath_) ->
-      let
-        listListStringToValue lls =
-          lls
-            |> List.map (List.map string)
-            |> List.map list
-            |> list
-      in
-      dataToSend
-        ( object
-          [ ( "cardId", string cardId )
-          , ( "column", int col )
-          , ( "lastActives", listListStringToValue lastActives )
-          , ( "filepath", maybeToValue string filepath_ )
-          ]
-        )
-
-    TextSurround id str ->
-      dataToSend ( list [ string id, string str ] )
-
     ConfirmCancelCard id origContent ->
       dataToSend ( list [ string id, string origContent ] )
 
     ColumnNumberChange cols ->
       dataToSend ( int cols )
 
-    OpenDialog filepath_ ->
-      dataToSend ( maybeToValue string filepath_ )
+    ChangeTitle filepath_ changed ->
+      dataToSend ( list [ maybeToValue string filepath_ , bool changed ] )
 
-    ImportDialog filepath_ ->
-      dataToSend ( maybeToValue string filepath_ )
+    Exit ->
+      dataToSend null
+
+    -- === Database ===
+
+    SaveToDB ( statusValue, objectsValue ) ->
+      dataToSend ( list [ statusValue, objectsValue ] )
+
+    SaveLocal tree ->
+      dataToSend ( treeToValue tree )
+
+    Push ->
+      dataToSend null
+
+    Pull ->
+      dataToSend null
+
+    -- === File System ===
 
     Save filepath_ ->
       dataToSend ( maybeToValue string filepath_ )
@@ -95,17 +93,29 @@ sendOut info =
             )
         }
 
-    Push ->
-      dataToSend null
+    -- === DOM ===
 
-    Pull ->
-      dataToSend null
+    ActivateCards (cardId, col, lastActives, filepath_) ->
+      let
+        listListStringToValue lls =
+          lls
+            |> List.map (List.map string)
+            |> List.map list
+            |> list
+      in
+      dataToSend
+        ( object
+          [ ( "cardId", string cardId )
+          , ( "column", int col )
+          , ( "lastActives", listListStringToValue lastActives )
+          , ( "filepath", maybeToValue string filepath_ )
+          ]
+        )
 
-    SaveToDB ( statusValue, objectsValue ) ->
-      dataToSend ( list [ statusValue, objectsValue ] )
+    TextSurround id str ->
+      dataToSend ( list [ string id, string str ] )
 
-    SaveLocal tree ->
-      dataToSend ( treeToValue tree )
+    -- === UI ===
 
     UpdateCommits ( objectsValue, head_ ) ->
       let
@@ -122,6 +132,8 @@ sendOut info =
     SetShortcutTray isOpen ->
       dataToSend ( bool isOpen )
 
+    -- === Misc ===
+
     SocketSend collabState ->
       dataToSend ( collabStateToValue collabState )
 
@@ -136,16 +148,7 @@ receiveMsg tagger onError =
   infoForElm
     (\outsideInfo ->
         case outsideInfo.tag of
-          "New" ->
-            tagger <| New
-
-          "FieldChanged" ->
-            case decodeValue Json.Decode.string outsideInfo.data of
-              Ok newField ->
-                tagger <| FieldChanged newField
-
-              Err e ->
-                onError e
+          -- === Dialogs, Menus, Window State ===
 
           "IntentNew" ->
             tagger <| IntentNew
@@ -176,24 +179,15 @@ receiveMsg tagger onError =
           "CancelCardConfirmed" ->
             tagger <| CancelCardConfirmed
 
+          -- === Database ===
+
+          "New" ->
+            tagger <| New
+
           "Open" ->
             case decodeValue ( tripleDecoder Json.Decode.string Json.Decode.value (Json.Decode.maybe Json.Decode.string) ) outsideInfo.data of
               Ok ( filepath, json, lastActive_ ) ->
                 tagger <| Open (filepath, json, lastActive_ |> Maybe.withDefault "1" )
-
-              Err e ->
-                onError e
-
-          "Merge" ->
-            tagger <| Merge outsideInfo.data
-
-          "ImportJSON" ->
-            tagger <| ImportJSON outsideInfo.data
-
-          "CheckoutCommit" ->
-            case decodeValue Json.Decode.string outsideInfo.data of
-              Ok commitSha ->
-                tagger <| CheckoutCommit commitSha
 
               Err e ->
                 onError e
@@ -206,6 +200,14 @@ receiveMsg tagger onError =
               Err e ->
                 onError e
 
+          "Merge" ->
+            tagger <| Merge outsideInfo.data
+
+          "ImportJSON" ->
+            tagger <| ImportJSON outsideInfo.data
+
+          -- === File System ===
+
           "FileState" ->
             let decoder = tupleDecoder (Json.Decode.maybe Json.Decode.string) Json.Decode.bool in
             case decodeValue decoder outsideInfo.data of
@@ -214,6 +216,39 @@ receiveMsg tagger onError =
 
               Err e ->
                 onError e
+
+          -- === DOM ===
+
+          "FieldChanged" ->
+            case decodeValue Json.Decode.string outsideInfo.data of
+              Ok newField ->
+                tagger <| FieldChanged newField
+
+              Err e ->
+                onError e
+
+          -- === UI ===
+
+          "CheckoutCommit" ->
+            case decodeValue Json.Decode.string outsideInfo.data of
+              Ok commitSha ->
+                tagger <| CheckoutCommit commitSha
+
+              Err e ->
+                onError e
+
+          "ViewVideos" ->
+            tagger <| ViewVideos
+
+          "Keyboard" ->
+            case decodeValue Json.Decode.string outsideInfo.data of
+              Ok shortcut ->
+                tagger <| Keyboard shortcut
+
+              Err e ->
+                onError e
+
+          -- === Misc ===
 
           "RecvCollabState" ->
             case decodeValue collabStateDecoder outsideInfo.data of
@@ -227,17 +262,6 @@ receiveMsg tagger onError =
             case decodeValue Json.Decode.string outsideInfo.data of
               Ok uid ->
                 tagger <| CollaboratorDisconnected uid
-
-              Err e ->
-                onError e
-
-          "ViewVideos" ->
-            tagger <| ViewVideos
-
-          "Keyboard" ->
-            case decodeValue Json.Decode.string outsideInfo.data of
-              Ok shortcut ->
-                tagger <| Keyboard shortcut
 
               Err e ->
                 onError e

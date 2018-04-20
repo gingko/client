@@ -300,7 +300,6 @@ const update = (msg, data) => {
         let savePath = data ? data : await saveAsDialog()
         save(savePath)
       }
-        
 
     , 'ExportJSON': () => {
         exportJson(data[0], data[1])

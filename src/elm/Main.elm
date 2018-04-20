@@ -277,6 +277,8 @@ update msg ({objects, workingTree, status} as model) =
 
     Port incomingMsg ->
       case incomingMsg of
+        -- === Dialogs, Menus, Window State ===
+
         IntentNew ->
           intentNew model
 
@@ -325,16 +327,11 @@ update msg ({objects, workingTree, status} as model) =
         IntentExit ->
           intentExit model
 
-        FileState filepath_ changed ->
-          { model
-            | filepath = filepath_
-            , changed = changed
-          }
-            ! []
-
         CancelCardConfirmed ->
           model ! []
-            |> cancelCard
+          |> cancelCard
+
+        -- === Database ===
 
         New ->
           actionNew model
@@ -404,6 +401,13 @@ update msg ({objects, workingTree, status} as model) =
               let _ = Debug.log "failed to load json" (newStatus, newTree_, newObjects, json) in
               model ! []
 
+        SetHeadRev rev ->
+          { model
+            | objects = Objects.setHeadRev rev model.objects
+          }
+            ! []
+            |> push
+
         Merge json ->
           let
             (newStatus, newTree_, newObjects) =
@@ -472,12 +476,25 @@ update msg ({objects, workingTree, status} as model) =
               let _ = Debug.log "ImportJson error" err in
               model ! []
 
+        -- === File System ===
+
+        FileState filepath_ changed ->
+          { model
+            | filepath = filepath_
+            , changed = changed
+          }
+            ! []
+
+        -- === DOM ===
+
         FieldChanged str ->
           { model
             | field = str
             , changed = True
           }
             ! []
+
+        -- === UI ===
 
         CheckoutCommit commitSha ->
           case status of
@@ -501,41 +518,6 @@ update msg ({objects, workingTree, status} as model) =
                 Nothing ->
                   model ! []
                     |> Debug.log "failed to load commit"
-
-        SetHeadRev rev ->
-          { model
-            | objects = Objects.setHeadRev rev model.objects
-          }
-            ! []
-            |> push
-
-        RecvCollabState collabState ->
-          let
-            newCollabs =
-              if List.member collabState.uid (vs.collaborators |> List.map .uid) then
-                vs.collaborators |> List.map (\c -> if c.uid == collabState.uid then collabState else c)
-              else
-                collabState :: vs.collaborators
-
-            newTree =
-              case collabState.mode of
-                Editing editId ->
-                  Trees.update (Trees.Upd editId collabState.field) model.workingTree
-
-                _ -> model.workingTree
-          in
-          { model
-            | workingTree = newTree
-            , viewState = { vs | collaborators = newCollabs }
-          }
-            ! []
-
-        CollaboratorDisconnected uid ->
-          { model
-            | viewState =
-                { vs | collaborators = vs.collaborators |> List.filter (\c -> c.uid /= uid)}
-          }
-            ! []
 
         ViewVideos ->
           model ! []
@@ -681,6 +663,36 @@ update msg ({objects, workingTree, status} as model) =
             _ ->
               let _ = Debug.log "unhandled shortcut" shortcut in
               model ! []
+
+        -- === Misc ===
+
+        RecvCollabState collabState ->
+          let
+            newCollabs =
+              if List.member collabState.uid (vs.collaborators |> List.map .uid) then
+                vs.collaborators |> List.map (\c -> if c.uid == collabState.uid then collabState else c)
+              else
+                collabState :: vs.collaborators
+
+            newTree =
+              case collabState.mode of
+                Editing editId ->
+                  Trees.update (Trees.Upd editId collabState.field) model.workingTree
+
+                _ -> model.workingTree
+          in
+          { model
+            | workingTree = newTree
+            , viewState = { vs | collaborators = newCollabs }
+          }
+            ! []
+
+        CollaboratorDisconnected uid ->
+          { model
+            | viewState =
+                { vs | collaborators = vs.collaborators |> List.filter (\c -> c.uid /= uid)}
+          }
+            ! []
 
     LogErr err ->
       model ! [ sendOut (ConsoleLogRequested err) ]
