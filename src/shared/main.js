@@ -602,55 +602,6 @@ const saveConfirmationDialogOptions =
     }
 
 
-const saveAs = () => {
-  return new Promise(
-    (resolve, reject) => {
-      var options =
-        { title: 'Save As'
-        , defaultPath: currentFile ? currentFile.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.gko")
-        , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
-                    , {name: 'All Files', extensions: ['*']}
-                    ]
-        }
-
-      dialog.showSaveDialog(options, function(filepath){
-        if(!!filepath){
-          resolve(save(filepath))
-        } else {
-          reject(new Error('no save path chosen'))
-        }
-      })
-    }
-  )
-}
-
-
-
-const saveConfirmation = (filepath) => {
-  return new Promise(
-    (resolve, reject) => {
-      let options =
-        { title: "Save changes"
-        , message: "Save changes before closing?"
-        , buttons: ["Close Without Saving", "Cancel", "Save"]
-        , defaultId: 2
-        }
-      let choice = dialog.showMessageBox(options)
-
-      if (choice == 0) {
-        resolve(filepath)
-      } else if (choice == 2) {
-        if(filepath !== null) {
-          resolve(save(filepath))
-        } else {
-          resolve(saveAs())
-        }
-      }
-    }
-  )
-}
-
-
 const exportJson = (data) => {
   return new Promise(
     (resolve, reject) => {
@@ -850,23 +801,6 @@ document.ondragover = document.ondrop = (ev) => {
 window.onresize = () => {
   if (lastCenterline) { scrollColumns(lastCenterline) }
   if (lastColumnIdx) { scrollHorizontal(lastColumnIdx) }
-}
-
-
-const setFileState = function(bool, newpath) {
-  if (bool) {
-    changed = true
-    if (!/\*/.test(document.title)) {
-      document.title = "*" + document.title
-    }
-    toElm('Changed', null)
-  } else {
-    changed = false
-    currentFile = newpath
-    document.title = newpath ? `${path.basename(currentFile)} - Gingko` : "Untitled Tree - Gingko"
-  }
-
-  ipcRenderer.send('changed', bool)
 }
 
 
