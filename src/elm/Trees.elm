@@ -358,6 +358,11 @@ viewGroup vstate depth xs =
         |> Maybe.withDefault defaultTree
         |> .id
 
+    hasActive =
+      xs
+        |> List.map .id
+        |> List.member vstate.active
+
     isActiveDescendant =
       vstate.descendants
         |> List.member firstChild
@@ -400,6 +405,7 @@ viewGroup vstate depth xs =
   in
     Keyed.node "div"
       [ classList [ ("group", True)
+                  , ("has-active", hasActive)
                   , ("active-descendant", isActiveDescendant)
                   ]
       ]

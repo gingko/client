@@ -50,6 +50,16 @@
   font-style: italic;
 }
 
+:root {
+  --dark-gray: hsl(212, 20%, 68%);
+  --dark-gray-lighter: hsl(212, 20%, 73%);
+
+  --light-gray: hsl(214, 18%, 87%);
+  --light-gray-lighter: hsl(214, 18%, 92%);
+
+  --white-bg: hsl(240, 100%, 100%);
+}
+
 html {
   box-sizing: border-box;
 }
@@ -166,7 +176,7 @@ body {
   padding: 10px;
   border-top: 1px solid #d3e6f1;
   border-bottom: 1px solid #3c484e;
-  background-color: #c5ced8;
+  background-color: var(--dark-gray);
   color: #717181;
   box-shadow: 1px 1px 6px #2b3c52;
   z-index: 5;
@@ -179,9 +189,14 @@ body {
   border: none;
 }
 
+.group.has-active {
+  background: var(--light-gray);
+  color: #333;
+}
+
 .group.active-descendant {
   color: #333;
-  background: #fdfdff;
+  background: var(--white-bg);
   border-radius: 8px 0 0 8px;
 }
 
@@ -192,7 +207,7 @@ body {
   border-left: 4px solid rgba(255,255,255,0);
   border-radius: 3px;
   position: relative;
-  background-color: #c5ced8;
+  background-color: var(--dark-gray);
   margin-bottom: 2px;
 }
 .card:last-child {
@@ -200,16 +215,24 @@ body {
 }
 
 .card:hover {
-  background: hsl(212, 23%, 85%);
+  background: var(--dark-gray-lighter);
 }
 
 .group.active-descendant .card {
-  background: #fdfdff;
+  background: var(--white-bg);
 }
 
 .group.active-descendant .card:hover {
-  background: #fdfdff;
+  background: var(--white-bg);
   box-shadow: 0px 1px 3px lightgray;
+}
+
+.group.has-active .card {
+  background: var(--light-gray);
+}
+
+.group.has-active .card:hover {
+  background: var(--light-gray-lighter);
 }
 
 .card .view {
@@ -222,17 +245,17 @@ body {
   cursor: auto;
 }
 
-.card.active {
-  background: #fdfdff;
+.group.has-active .card.active {
+  background: var(--white-bg);
   color: #332222;
   border: none;
   border-left: 4px solid #8CC63F;
   box-shadow: 0px 1px 3px gray;
 }
 
-.card.active.has-children::after {
+.group.has-active .card.active.has-children::after {
   content: '';
-  background: #fdfdff;
+  background: var(--white-bg);
   position: absolute;
   width: 12px;
   height: 100%;
@@ -248,8 +271,25 @@ body {
 }
 
 .card.parent {
-  background: #e8ebef;
+  background: var(--light-gray);
   color: #333;
+}
+
+.card.parent:hover {
+  background: var(--light-gray-lighter);
+  color: #333;
+}
+
+.card.parent::after {
+  content: '';
+  background: var(--light-gray);
+  position: absolute;
+  width: 12px;
+  height: 100%;
+  right: -10px;
+  top: 0;
+  opacity: 1;
+  transition: none;
 }
 
 span.collaborators {
@@ -357,7 +397,7 @@ ul, ol {
 }
 
 #app.editing .group {
-  background-color: #c5ced8;
+  background-color: var(--dark-gray);
 }
 
 #app.editing,
@@ -487,7 +527,7 @@ ul, ol {
 .card-btn.ins-right,
 .card-btn.ins-above,
 .card-btn.ins-below {
-  background: #fdfdff;
+  background: var(--white-bg);
   height: 20px;
   width: 40px;
   line-height: 20px;
