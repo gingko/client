@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
   - Added highlighting of parent card.
+  - Fixed bug with "Export Current and Children" (was exporting "Whole Tree")
 
 ## [2.0.6] - 2018-04-20
   - (Internal) Rewrote Saving and "Save Confirmation" logic, for more relability.

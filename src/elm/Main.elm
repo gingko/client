@@ -316,9 +316,14 @@ update msg ({objects, workingTree, status} as model) =
                     |> \(m, c) -> m ! [ c,  sendOut ( ExportTXT False m.workingTree.tree m.filepath ) ]
 
                 CurrentSubtree ->
+                  let
+                    getCurrentSubtree m =
+                      getTree vs.active m.workingTree.tree
+                        |> Maybe.withDefault m.workingTree.tree
+                  in
                   model ! []
                     |> saveCardIfEditing
-                    |> \(m, c) -> m ! [ c,  sendOut ( ExportTXT True m.workingTree.tree m.filepath ) ]
+                    |> \(m, c) -> m ! [ c,  sendOut ( ExportTXT True (getCurrentSubtree m) m.filepath ) ]
 
                 ColumnNumber col ->
                   model ! []
