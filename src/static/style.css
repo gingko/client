@@ -51,11 +51,11 @@
 }
 
 :root {
-  --dark-gray: hsl(212, 20%, 68%);
-  --dark-gray-lighter: hsl(212, 20%, 73%);
+  --dark-gray: hsl(212, 20%, 65%);
+  --dark-gray-lighter: hsl(212, 20%, 70%);
 
-  --light-gray: hsl(214, 18%, 87%);
-  --light-gray-lighter: hsl(214, 18%, 92%);
+  --light-gray: hsl(212, 18%, 76%);
+  --light-gray-lighter: hsl(212, 18%, 82%);
 
   --white-bg: hsl(240, 100%, 100%);
 }
@@ -416,18 +416,18 @@ ul, ol {
 
 /* --- Core --- */
 
-.card.editing .view {
+.group.has-active .card.editing .view {
   display: none;
 }
 
-.card.editing {
+.group.has-active .card.editing {
   padding: 15px 0px 5px 0px; 
   border: none;
   border-radius: inherit;
   background-image: url('./handmadepaper.png');
 }
 
-.card.editing textarea {
+.group.has-active .card.editing textarea {
   display: block;
   background: transparent;
   max-height: 600px;
@@ -436,7 +436,7 @@ ul, ol {
   resize: none;
 }
 
-.card textarea {
+.group.has-active .card textarea {
   display: none;
   outline: none;
   border: none;
