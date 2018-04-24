@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
-## [2.0.7] - Pre-release
+## [2.0.7] - 2018-04-24
   - Added highlighting of parent card.
   - Fixed bug with "Export Current and Children" (was exporting "Whole Tree")
   - Fixed missing Linux icon in menus.
