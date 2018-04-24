@@ -49,7 +49,7 @@
     },
     "linux": {
       "target": "AppImage",
-      "category": "WordProcessor"
+      "category": "Office"
     }
   },
   "dependencies": {
