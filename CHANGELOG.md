@@ -3,11 +3,12 @@ All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
 ## Unreleased
-  - Fixed auto-update errors on Linux
+  - Fixed auto-update errors on Linux.
+  - Added highlighting of all ancestors, not just parent.
 
 ## [2.0.8] - 2018-04-26
-  - Icons working on all three platforms
-  - Correct certificate used to sign Windows builds
+  - Icons working on all three platforms.
+  - Correct certificate used to sign Windows builds.
 
 ## [2.0.7] - 2018-04-24
   - Added highlighting of parent card.

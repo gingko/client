@@ -312,7 +312,7 @@ view vstate model =
         vstate.active
         editing_
         vstate.descendants
-        vstate.parent
+        vstate.ancestors
         vstate.dragModel
         vstate.collaborators
 
@@ -372,8 +372,8 @@ viewGroup vstate depth xs =
         isActive =
           t.id == vstate.active
 
-        isParent =
-          t.id == vstate.parent
+        isAncestor =
+          List.member t.id vstate.ancestors
 
         isEditing =
           case vstate.editing of
@@ -401,7 +401,7 @@ viewGroup vstate depth xs =
             |> List.filter (\c -> c.mode == Active t.id || c.mode == Editing t.id)
             |> List.map .uid
       in
-      viewKeyedCard (isActive, isParent, isEditing, depth, isLast, collaborators, collabsEditing, vstate.dragModel) t
+      viewKeyedCard (isActive, isAncestor, isEditing, depth, isLast, collaborators, collabsEditing, vstate.dragModel) t
   in
     Keyed.node "div"
       [ classList [ ("group", True)
@@ -418,7 +418,7 @@ viewKeyedCard tup tree =
 
 
 viewCard : (Bool, Bool, Bool, Int, Bool, List String, List String, DragDrop.Model String DropId) -> Tree -> Html Msg
-viewCard (isActive, isParent, isEditing, depth, isLast, collaborators, collabsEditing, dragModel) tree =
+viewCard (isActive, isAncestor, isEditing, depth, isLast, collaborators, collabsEditing, dragModel) tree =
   let
     hasChildren =
       case tree.children of
@@ -525,7 +525,7 @@ viewCard (isActive, isParent, isEditing, depth, isLast, collaborators, collabsEd
       [ id ("card-" ++ tree.id)
       , classList [ ("card", True)
                   , ("active", isActive)
-                  , ("parent", isParent)
+                  , ("ancestor", isAncestor)
                   , ("editing", isEditing)
                   , ("collab-active", not isEditing && not (List.isEmpty collaborators) )
                   , ("collab-editing", not isEditing && not (List.isEmpty collabsEditing))

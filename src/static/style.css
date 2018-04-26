@@ -265,22 +265,24 @@ body {
   transition: none;
   box-shadow: 3px 1px 3px gray;
 }
-.card.editing.has-children::after {
+.group.has-active .card.editing.has-children::after {
   opacity: 0;
   transition: opacity 2s ease;
 }
 
-.card.parent {
+.card.ancestor {
   background: var(--light-gray);
   color: #333;
+  border-left: none;
+  padding-left: 4px;
 }
 
-.card.parent:hover {
+.card.ancestor:hover {
   background: var(--light-gray-lighter);
   color: #333;
 }
 
-.card.parent::after {
+.card.ancestor::after {
   content: '';
   background: var(--light-gray);
   position: absolute;
@@ -290,6 +292,22 @@ body {
   top: 0;
   opacity: 1;
   transition: none;
+}
+
+.card.ancestor::before {
+  content: '';
+  background: var(--light-gray);
+  position: absolute;
+  width: 12px;
+  height: 100%;
+  left: -10px;
+  top: 0;
+  opacity: 1;
+  transition: none;
+}
+
+.column:nth-child(2) .card.ancestor::before {
+  opacity: 0;
 }
 
 span.collaborators {
