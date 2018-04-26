@@ -142,15 +142,23 @@ update msg ({objects, workingTree, status} as model) =
       case (vs.draggedTree, DragDrop.getDragId newDragModel, dragResult_ ) of
         -- Start drag
         ( Nothing, Just dragId, Nothing ) ->
-          { model
-            | workingTree = Trees.update (Trees.Rmv dragId) model.workingTree
-            , viewState =
-              { vs
-                | dragModel = newDragModel
-                , draggedTree = getTreeWithPosition dragId model.workingTree.tree
+          let
+            newTree = Trees.update (Trees.Rmv dragId) model.workingTree
+          in
+          if List.isEmpty <| getChildren newTree.tree then
+            -- Don't allow dragging of last visible card
+            model ! []
+
+          else
+              { model
+                | workingTree = newTree
+                , viewState =
+                  { vs
+                    | dragModel = newDragModel
+                    , draggedTree = getTreeWithPosition dragId model.workingTree.tree
+                  }
               }
-          }
-          ! []
+              ! []
 
         -- Successful drop
         ( Just (draggedTree, _, _), Nothing, Just (dragId, dropId) ) ->

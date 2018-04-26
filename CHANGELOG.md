@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
   - Fixed auto-update errors on Linux.
   - Added highlighting of all ancestors, not just parent.
   - Scroll to active card on window resizing.
+  - Prevented dragging of last card in tree.
 
 ## [2.0.8] - 2018-04-26
   - Icons working on all three platforms.
