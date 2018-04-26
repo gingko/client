@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
   - Added highlighting of all ancestors, not just parent.
   - Scroll to active card on window resizing.
   - Prevented dragging of last card in tree.
+  - Fixed Undo/Redo/Cut/Copy/Paste in Edit menu on Mac.
 
 ## [2.0.8] - 2018-04-26
   - Icons working on all three platforms.
