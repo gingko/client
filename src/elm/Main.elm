@@ -1302,7 +1302,7 @@ repeating-linear-gradient(-45deg
           """
       in
       div
-        [ id "root"
+        [ id "app-root"
         , style  [ ("background", bgString)
                 , ("position", "absolute")
                 , ("width", "100%")
@@ -1316,7 +1316,7 @@ repeating-linear-gradient(-45deg
 
     _ ->
       div
-        [ id "root" ]
+        [ id "app-root" ]
         [ lazy2 Trees.view model.viewState model.workingTree
         , viewFooter model
         , viewVideo model
