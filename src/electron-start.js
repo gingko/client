@@ -313,6 +313,7 @@ function menuFunction(cols) {
           , id : 'undo'
           , enabled : false
           , click (item, focusedWindow) {
+              focusedWindow.webContents.undo()
               focusedWindow.webContents.send('undo')
             }
           , accelerator : 'CommandOrControl+Z'
@@ -321,6 +322,7 @@ function menuFunction(cols) {
           , id : 'redo'
           , enabled : false
           , click (item, focusedWindow) {
+              focusedWindow.webContents.redo()
               focusedWindow.webContents.send('redo')
             }
           , accelerator : 'CommandOrControl+Shift+Z'
