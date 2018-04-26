@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
+## Unreleased
+  - Attempts to get icons working on all 3 platforms.
+
 ## [2.0.7] - 2018-04-24
   - Added highlighting of parent card.
   - Fixed bug with "Export Current and Children" (was exporting "Whole Tree")
