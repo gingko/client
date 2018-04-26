@@ -171,6 +171,14 @@ ipcMain.on('column-number-change', (event, msg) => {
   Menu.setApplicationMenu(menu)
 })
 
+ipcMain.on('edit-mode-toggle', (event, msg) => {
+  let undoMenuItem = menu.getMenuItemById('undo')
+  let redoMenuItem = menu.getMenuItemById('redo')
+
+  if (undoMenuItem) { undoMenuItem.enabled = msg }
+  if (redoMenuItem) { redoMenuItem.enabled = msg }
+})
+
 
 ipcMain.on('serial', (event, msg) => {
   let newEmail = msg[0]
@@ -302,16 +310,20 @@ function menuFunction(cols) {
   , { label: 'Edit'
     , submenu:
         [ { label: 'Undo'
+          , id : 'undo'
           , enabled : false
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('undo')
             }
+          , accelerator : 'CommandOrControl+Z'
           }
         , { label: 'Redo'
+          , id : 'redo'
           , enabled : false
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('redo')
             }
+          , accelerator : 'CommandOrControl+Shift+Z'
           }
         , { type: 'separator' }
         , { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" }

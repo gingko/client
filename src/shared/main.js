@@ -899,7 +899,10 @@ const observer = new MutationObserver(function(mutations) {
     textareas.map(t => {
       t.oninput = editingInputHandler;
     })
+    ipcRenderer.send('edit-mode-toggle', true)
     jQuery(textareas).textareaAutoSize()
+  } else {
+    ipcRenderer.send('edit-mode-toggle', false)
   }
 });
 
