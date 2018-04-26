@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
-## Unreleased
+## [2.0.9] - Pre-release
   - Fixed auto-update errors on Linux.
   - Added highlighting of all ancestors, not just parent.
   - Scroll to active card on window resizing.
