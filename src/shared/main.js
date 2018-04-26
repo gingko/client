@@ -36,8 +36,8 @@ window.Elm = require('../elm/Main')
 
 /* === Global Variables === */
 
-var lastCenterline = null
-var lastColumnIdx = null
+var lastActivesScrolled = null
+var lastColumnScrolled = null
 var collab = {}
 
 
@@ -307,6 +307,9 @@ const update = (msg, data) => {
       // === DOM ===
 
     , 'ActivateCards': () => {
+        lastActivesScrolled = data.lastActives
+        lastColumnScrolled = data.column
+
         setLastActive(data.filepath, data.cardId)
         shared.scrollHorizontal(data.column)
         shared.scrollColumns(data.lastActives)
@@ -819,9 +822,16 @@ document.ondragover = document.ondrop = (ev) => {
 }
 
 window.onresize = () => {
-  if (lastCenterline) { scrollColumns(lastCenterline) }
-  if (lastColumnIdx) { scrollHorizontal(lastColumnIdx) }
+  if (lastActivesScrolled) {
+    debouncedScrollColumns(lastActivesScrolled)
+  }
+  if (lastColumnScrolled) {
+    debouncedScrollHorizontal(lastColumnScrolled)
+  }
 }
+
+const debouncedScrollColumns = _.debounce(shared.scrollColumns, 200)
+const debouncedScrollHorizontal = _.debounce(shared.scrollHorizontal, 200)
 
 
 const editingInputHandler = function(ev) {
