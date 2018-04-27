@@ -500,7 +500,7 @@ viewCard (isActive, isAncestor, isEditing, depth, isLast, collaborators, collabs
                 [ span
                   [ class "card-btn save"
                   , title "Save Changes (Ctrl+Enter)"
-                  , onClick (Port (Keyboard "mod+enter"))
+                  , onClick (Port (Keyboard "mod+enter" 0))
                   ]
                   []
                 ]

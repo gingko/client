@@ -844,7 +844,7 @@ const editingInputHandler = function(ev) {
 
 
 Mousetrap.bind(shared.shortcuts, function(e, s) {
-  toElm('Keyboard',s);
+  toElm('Keyboard',[s,Date.now()]);
 
   if(shared.needOverride.includes(s)) {
     return false;

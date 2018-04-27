@@ -244,9 +244,9 @@ receiveMsg tagger onError =
             tagger <| ViewVideos
 
           "Keyboard" ->
-            case decodeValue Json.Decode.string outsideInfo.data of
-              Ok shortcut ->
-                tagger <| Keyboard shortcut
+            case decodeValue ( tupleDecoder Json.Decode.string Json.Decode.int ) outsideInfo.data of
+              Ok (shortcut, timestamp) ->
+                tagger <| Keyboard shortcut timestamp
 
               Err e ->
                 onError e

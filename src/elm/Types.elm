@@ -88,7 +88,7 @@ type IncomingMsg
     -- === UI ===
     | CheckoutCommit String
     | ViewVideos
-    | Keyboard String
+    | Keyboard String Int
     -- === Misc ===
     | RecvCollabState CollabState
     | CollaboratorDisconnected String

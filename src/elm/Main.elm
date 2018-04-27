@@ -548,7 +548,7 @@ update msg ({objects, workingTree, status} as model) =
           model ! []
             |> toggleVideoModal True
 
-        Keyboard shortcut ->
+        Keyboard shortcut timestamp ->
           case shortcut of
             "mod+x" ->
               let _ = Debug.log "model" model in
@@ -656,7 +656,10 @@ update msg ({objects, workingTree, status} as model) =
               normalMode model (copy vs.active)
 
             "mod+v" ->
-              normalMode model (pasteBelow vs.active)
+              normalMode model (pasteRelative vs.active 1 timestamp)
+
+            "mod+shift+v" ->
+              normalMode model (pasteRelative vs.active 0 timestamp)
 
             "mod+z" ->
               model ! []
@@ -1137,20 +1140,20 @@ copy id (model, prevCmd) =
   ! [ prevCmd ]
 
 
-pasteBelow : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-pasteBelow id (model, prevCmd) =
+pasteRelative : String -> Int -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+pasteRelative id delta timestamp (model, prevCmd) =
   case model.viewState.copiedTree of
     Just copiedTree ->
       let
         vs = model.viewState
 
-        treeToPaste = Trees.renameNodes "somesalt" copiedTree
+        treeToPaste = Trees.renameNodes ( timestamp |> toString ) copiedTree
 
         pid =
           ( ( getParent id model.workingTree.tree |> Maybe.map .id ) ? "0" )
 
         pos =
-          ( ( getIndex id model.workingTree.tree ? 0 ) + 1)
+          ( ( getIndex id model.workingTree.tree ? 0 ) + delta)
       in
       { model
         | workingTree = Trees.update (Trees.Paste treeToPaste pid pos) model.workingTree
