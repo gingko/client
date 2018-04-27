@@ -1151,7 +1151,6 @@ cut id (model, prevCmd) =
     (model, prevCmd)
       |> copy id
       |> deleteCard id
-      |> addToHistory
 
 
 copy : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
