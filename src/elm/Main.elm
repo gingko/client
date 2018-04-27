@@ -550,10 +550,6 @@ update msg ({objects, workingTree, status} as model) =
 
         Keyboard shortcut timestamp ->
           case shortcut of
-            "mod+x" ->
-              let _ = Debug.log "model" model in
-              model ! []
-
             "mod+enter" ->
               model ! []
                 |> saveCardIfEditing
@@ -651,6 +647,9 @@ update msg ({objects, workingTree, status} as model) =
 
             "alt+end" ->
               normalMode model (moveWithin vs.active 999999)
+
+            "mod+x" ->
+              normalMode model (cut vs.active)
 
             "mod+c" ->
               normalMode model (copy vs.active)
@@ -1130,6 +1129,14 @@ moveRight id (model, prevCmd) =
 
 
 -- === Card Cut/Copy/Paste ===
+
+cut : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+cut id (model, prevCmd) =
+  (model, prevCmd)
+    |> copy id
+    |> deleteCard id
+    |> addToHistory
+
 
 copy : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 copy id (model, prevCmd) =

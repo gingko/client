@@ -263,6 +263,7 @@ var shortcuts = [ 'mod+enter'
                 , 'alt+end'
                 , '['
                 , ']'
+                , 'mod+x'
                 , 'mod+c'
                 , 'mod+v'
                 , 'mod+shift+v'
@@ -273,7 +274,6 @@ var shortcuts = [ 'mod+enter'
                 , 'mod+o'
                 , 'mod+b'
                 , 'mod+i'
-                , 'mod+x' // debug command
                 ];
 
 var needOverride= [ 'mod+j'
