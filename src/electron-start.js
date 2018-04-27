@@ -297,6 +297,12 @@ function menuFunction(isEditing, cols) {
             , accelerator : 'CommandOrControl+Shift+Z'
             }
           , { type: 'separator' }
+          , { label: 'Cut Cards'
+            , click (item, focusedWindow) {
+                focusedWindow.webContents.send('menu-cut')
+              }
+            , accelerator : 'CommandOrControl+X'
+            }
           , { label: 'Copy Cards'
             , click (item, focusedWindow) {
                 focusedWindow.webContents.send('menu-copy')
