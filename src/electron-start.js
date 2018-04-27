@@ -8,7 +8,8 @@ const windowStateKeeper = require('electron-window-state')
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win, winTrial, winSerial
-let colNumber = 1
+let _isEditMode = false
+let _columns = 1
 const hiddenStore = new Store({name: "kernel", encryptionKey: "79df64f73eab9bc0d7b448d2008d876e"})
 const userStore = new Store({name: "config"})
 
@@ -165,18 +166,22 @@ app.on('activate', () => {
 })
 
 
-ipcMain.on('column-number-change', (event, msg) => {
-  menuTemplate = menuFunction(msg)
-  menu = Menu.buildFromTemplate(menuTemplate)
-  Menu.setApplicationMenu(menu)
+ipcMain.on('column-number-change', (event, cols) => {
+  if (_columns != cols) {
+    _columns = cols
+    menuTemplate = menuFunction(_isEditMode, _columns)
+    menu = Menu.buildFromTemplate(menuTemplate)
+    Menu.setApplicationMenu(menu)
+  }
 })
 
-ipcMain.on('edit-mode-toggle', (event, msg) => {
-  let undoMenuItem = menu.getMenuItemById('undo')
-  let redoMenuItem = menu.getMenuItemById('redo')
-
-  if (undoMenuItem) { undoMenuItem.enabled = msg }
-  if (redoMenuItem) { redoMenuItem.enabled = msg }
+ipcMain.on('edit-mode-toggle', (event, isEditing) => {
+  if (_isEditMode != isEditing) {
+    _isEditMode = isEditing
+    menuTemplate = menuFunction(_isEditMode, _columns)
+    menu = Menu.buildFromTemplate(menuTemplate)
+    Menu.setApplicationMenu(menu)
+  }
 })
 
 
@@ -258,7 +263,57 @@ function createSerialWindow(shouldBlock) {
 
 /* ==== Menu ==== */
 
-function menuFunction(cols) {
+function menuFunction(isEditing, cols) {
+  let editMenu
+
+  if (isEditing) {
+    editMenu =
+      { label: 'Edit'
+      , submenu:
+          [ { role: 'undo' }
+          , { role: 'redo' }
+          , { type: 'separator' }
+          , { role: 'cut' }
+          , { role: 'copy' }
+          , { role: 'paste' }
+          ]
+      }
+  } else {
+    editMenu =
+      { label: 'Edit'
+      , submenu:
+          [ { label: 'Undo'
+            , enabled : false
+            , click (item, focusedWindow) {
+                focusedWindow.webContents.send('undo')
+              }
+            , accelerator : 'CommandOrControl+Z'
+            }
+          , { label: 'Redo'
+            , enabled : false
+            , click (item, focusedWindow) {
+                focusedWindow.webContents.send('redo')
+              }
+            , accelerator : 'CommandOrControl+Shift+Z'
+            }
+          , { type: 'separator' }
+          , { label: 'Copy Cards'
+            , click (item, focusedWindow) {
+                focusedWindow.webContents.send('menu-copy')
+              }
+            , accelerator : 'CommandOrControl+C'
+            }
+          , { label: 'Paste Cards'
+            , click (item, focusedWindow) {
+                focusedWindow.webContents.send('menu-paste')
+              }
+            , accelerator : 'CommandOrControl+V'
+            }
+          ]
+      }
+    }
+
+
   return [ { label: 'File'
     , submenu:
         [ { label: 'New'
@@ -307,32 +362,7 @@ function menuFunction(cols) {
           }
         ]
     }
-  , { label: 'Edit'
-    , submenu:
-        [ { label: 'Undo'
-          , id : 'undo'
-          , enabled : false
-          , click (item, focusedWindow) {
-              focusedWindow.webContents.undo()
-              focusedWindow.webContents.send('undo')
-            }
-          , accelerator : 'CommandOrControl+Z'
-          }
-        , { label: 'Redo'
-          , id : 'redo'
-          , enabled : false
-          , click (item, focusedWindow) {
-              focusedWindow.webContents.redo()
-              focusedWindow.webContents.send('redo')
-            }
-          , accelerator : 'CommandOrControl+Shift+Z'
-          }
-        , { type: 'separator' }
-        , { role: 'cut' }
-        , { role: 'copy' }
-        , { role: 'paste' }
-        ]
-    }
+  , editMenu
   , { label: 'View'
     , submenu:
         [ { label: 'Zoom In'
@@ -392,6 +422,6 @@ function menuFunction(cols) {
   ]
 }
 
-var menuTemplate = menuFunction(colNumber)
+var menuTemplate = menuFunction(_isEditMode, _columns)
 
 var menu = Menu.buildFromTemplate(menuTemplate)
