@@ -1132,10 +1132,26 @@ moveRight id (model, prevCmd) =
 
 cut : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 cut id (model, prevCmd) =
-  (model, prevCmd)
-    |> copy id
-    |> deleteCard id
-    |> addToHistory
+  let
+    parent_ = getParent id model.workingTree.tree
+    prev_ = getPrevInColumn id model.workingTree.tree
+    next_ = getNextInColumn id model.workingTree.tree
+
+    isLastChild =
+      case ( parent_, prev_, next_ ) of
+        ( Just parent, Nothing, Nothing ) ->
+          parent.id == "0"
+
+        _ -> False
+  in
+  if (isLastChild) then
+    model ! [ sendOut ( Alert "Cannot cut last card" ) ]
+
+  else
+    (model, prevCmd)
+      |> copy id
+      |> deleteCard id
+      |> addToHistory
 
 
 copy : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
