@@ -285,39 +285,51 @@ function menuFunction(isEditing, cols) {
           [ { label: 'Undo'
             , enabled : false
             , click (item, focusedWindow) {
-                focusedWindow.webContents.send('undo')
+                if (process.platform !== darwin) {
+                  focusedWindow.webContents.send('undo')
+                }
               }
             , accelerator : 'CommandOrControl+Z'
             }
           , { label: 'Redo'
             , enabled : false
             , click (item, focusedWindow) {
-                focusedWindow.webContents.send('redo')
+                if (process.platform !== darwin) {
+                  focusedWindow.webContents.send('redo')
+                }
               }
             , accelerator : 'CommandOrControl+Shift+Z'
             }
           , { type: 'separator' }
           , { label: 'Cut Cards'
             , click (item, focusedWindow) {
-                focusedWindow.webContents.send('menu-cut')
+                if (process.platform !== darwin) {
+                  focusedWindow.webContents.send('menu-cut')
+                }
               }
             , accelerator : 'CommandOrControl+X'
             }
           , { label: 'Copy Cards'
             , click (item, focusedWindow) {
-                focusedWindow.webContents.send('menu-copy')
+                if (process.platform !== darwin) {
+                  focusedWindow.webContents.send('menu-copy')
+                }
               }
             , accelerator : 'CommandOrControl+C'
             }
           , { label: 'Paste Cards'
             , click (item, focusedWindow) {
-                focusedWindow.webContents.send('menu-paste')
+                if (process.platform !== darwin) {
+                  focusedWindow.webContents.send('menu-paste')
+                }
               }
             , accelerator : 'CommandOrControl+V'
             }
           , { label: 'Paste Cards as Children'
             , click (item, focusedWindow) {
-                focusedWindow.webContents.send('menu-paste-into')
+                if (process.platform !== darwin) {
+                  focusedWindow.webContents.send('menu-paste-into')
+                }
               }
             , accelerator : 'CommandOrControl+Shift+V'
             }

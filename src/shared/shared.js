@@ -276,7 +276,9 @@ var shortcuts = [ 'mod+enter'
                 , 'mod+i'
                 ];
 
-var needOverride= [ 'mod+o'
+var needOverride= [ 'mod+n'
+                  , 'mod+s'
+                  , 'mod+o'
                   ];
 
 /* ===== CommonJS Module exports ===== */
