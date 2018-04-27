@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [2.0.10] - 2018-04-27
   - Added cut/copy/paste of cards and subtrees.
+  - Fixed: Alt+arrows now move by word on macOS
 
 ## [2.0.9] - 2018-04-26
   - Fixed auto-update errors on Linux.
