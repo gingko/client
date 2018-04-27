@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
-## Unreleased
+## [2.0.10] - Pre-release
   - Added copy/paste of cards and subtrees.
 
 ## [2.0.9] - 2018-04-26
