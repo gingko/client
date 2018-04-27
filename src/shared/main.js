@@ -315,6 +315,21 @@ const update = (msg, data) => {
         shared.scrollColumns(data.lastActives)
       }
 
+    , 'FlashCurrentSubtree': () => {
+        let addFlashClass = function() {
+          jQuery('.card.active').addClass('flash')
+          jQuery('.group.active-descendant').addClass('flash')
+        }
+
+        let removeFlashClass = function() {
+          jQuery('.card.active').removeClass('flash')
+          jQuery('.group.active-descendant').removeClass('flash')
+        }
+
+        addFlashClass()
+        setTimeout(removeFlashClass, 200)
+      }
+
     , 'TextSurround': () => {
         let id = data[0]
         let surroundString = data[1]

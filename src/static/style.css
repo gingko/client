@@ -765,6 +765,24 @@ ul, ol {
 }
 
 
+/* ======== UI Animations ======== */
+
+@keyframes flash {
+  0% { box-shadow: 0px 0px 0px blue; z-index: 99999; }
+  30% { box-shadow: 0px 0px 14px blue; z-index: 99999; }
+  100% { box-shadow: 0px 0px 0px blue; z-index: 99999; }
+}
+.flash {
+  animation: flash 0.2s;
+}
+.card.active.has-children.flash {
+  margin-right: -9px; /* to extend glow to the right*/
+  padding-right: 9px; 
+}
+.card.active.has-children.flash .card-right-overlay {
+  margin-right: 9px;
+}
+
 
 
 /* ======== MODAL ======== */

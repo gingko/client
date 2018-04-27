@@ -1137,7 +1137,9 @@ copy id (model, prevCmd) =
   { model
     | viewState = { vs | copiedTree = getTree id model.workingTree.tree }
   }
-  ! [ prevCmd ]
+  ! [ prevCmd
+    , sendOut FlashCurrentSubtree
+    ]
 
 
 pasteRelative : String -> Int -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1158,7 +1160,7 @@ pasteRelative id delta timestamp (model, prevCmd) =
       { model
         | workingTree = Trees.update (Trees.Paste treeToPaste pid pos) model.workingTree
       }
-        ! [prevCmd]
+        ! [ prevCmd ]
         |> maybeColumnsChanged model.workingTree.columns
         |> activate treeToPaste.id
         |> addToHistory

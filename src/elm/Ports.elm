@@ -115,6 +115,9 @@ sendOut info =
           ]
         )
 
+    FlashCurrentSubtree ->
+      dataToSend null
+
     TextSurround id str ->
       dataToSend ( list [ string id, string str ] )
 

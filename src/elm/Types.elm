@@ -55,6 +55,7 @@ type OutgoingMsg
     | ExportTXTColumn Int Tree ( Maybe String )
     -- === DOM ===
     | ActivateCards ( String, Int, List (List String), Maybe String )
+    | FlashCurrentSubtree
     | TextSurround String String
     -- === UI ===
     | UpdateCommits ( Json.Value, Maybe String )
