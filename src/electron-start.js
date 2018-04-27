@@ -359,7 +359,12 @@ function menuFunction(cols) {
     }
   , { label: 'Help'
     , submenu:
-        [ { label: 'Contact Adriano...'
+        [ { label: 'FAQ'
+          , click (item, focusedWindow) {
+              shell.openExternal('https://gingko.io/faq.html')
+            }
+          }
+        , { label: 'Contact Adriano...'
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('menu-contact-support')
             }
