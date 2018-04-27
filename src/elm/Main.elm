@@ -66,6 +66,7 @@ defaultModel =
       , editing = Nothing
       , dragModel = DragDrop.init
       , draggedTree = Nothing
+      , copiedTree = Nothing
       , collaborators = []
       }
   , field = ""
@@ -651,6 +652,12 @@ update msg ({objects, workingTree, status} as model) =
             "alt+end" ->
               normalMode model (moveWithin vs.active 999999)
 
+            "mod+c" ->
+              normalMode model (copy vs.active)
+
+            "mod+v" ->
+              normalMode model (pasteBelow vs.active)
+
             "mod+z" ->
               model ! []
 
@@ -1117,6 +1124,44 @@ moveRight id (model, prevCmd) =
       model ! [prevCmd]
         |> move tree prev 999999
     _ -> model ! [prevCmd]
+
+
+-- === Card Cut/Copy/Paste ===
+
+copy : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+copy id (model, prevCmd) =
+  let vs = model.viewState in
+  { model
+    | viewState = { vs | copiedTree = getTree id model.workingTree.tree }
+  }
+  ! [ prevCmd ]
+
+
+pasteBelow : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+pasteBelow id (model, prevCmd) =
+  case model.viewState.copiedTree of
+    Just copiedTree ->
+      let
+        vs = model.viewState
+
+        treeToPaste = Trees.renameNodes "somesalt" copiedTree
+
+        pid =
+          ( ( getParent id model.workingTree.tree |> Maybe.map .id ) ? "0" )
+
+        pos =
+          ( ( getIndex id model.workingTree.tree ? 0 ) + 1)
+      in
+      { model
+        | workingTree = Trees.update (Trees.Paste treeToPaste pid pos) model.workingTree
+      }
+        ! [prevCmd]
+        |> maybeColumnsChanged model.workingTree.columns
+        |> activate treeToPaste.id
+        |> addToHistory
+
+    Nothing ->
+      model ! [prevCmd]
 
 
 -- === History ===

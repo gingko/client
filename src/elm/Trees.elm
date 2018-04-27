@@ -13,7 +13,7 @@ import Regex
 import Types exposing (..)
 import TreeUtils exposing (getTree, getColumns, getParent, getChildren)
 import List.Extra as ListExtra
-import Sha1 exposing (Diff, diff3Merge)
+import Sha1 exposing (sha1, Diff, diff3Merge)
 import Html5.DragDrop as DragDrop
 
 
@@ -52,6 +52,7 @@ type TreeMsg
   | Upd String String
   | Mov Tree String Int
   | Rmv String
+  | Paste Tree String Int
 
 
 
@@ -76,6 +77,10 @@ updateTree msg tree =
 
     Rmv id ->
       pruneSubtree id tree
+
+    Paste newTree parentId idx ->
+      tree
+        |> insertSubtree newTree parentId idx
 
     Nope -> tree
 
@@ -281,6 +286,18 @@ modifySiblings id upd tree =
       tree
     Just parentTree ->
       modifyChildren parentTree.id upd tree
+
+
+renameNodes : String -> Tree -> Tree
+renameNodes salt tree =
+  let newId = "node-" ++ ( sha1 ( salt ++ tree.id ) ) in
+  { tree
+    | id = newId
+    , children =
+        getChildren tree
+          |> List.map ( renameNodes salt )
+          |> Children
+  }
 
 
 

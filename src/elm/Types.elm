@@ -156,6 +156,7 @@ type alias ViewState =
   , editing : Maybe String
   , dragModel : DragDrop.Model String DropId
   , draggedTree : Maybe (Tree, String, Int)
+  , copiedTree : Maybe Tree
   , collaborators : List CollabState
   }
 
