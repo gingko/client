@@ -315,6 +315,12 @@ function menuFunction(isEditing, cols) {
               }
             , accelerator : 'CommandOrControl+V'
             }
+          , { label: 'Paste Cards as Children'
+            , click (item, focusedWindow) {
+                focusedWindow.webContents.send('menu-paste-into')
+              }
+            , accelerator : 'CommandOrControl+Shift+V'
+            }
           ]
       }
     }

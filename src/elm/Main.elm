@@ -655,10 +655,10 @@ update msg ({objects, workingTree, status} as model) =
               normalMode model (copy vs.active)
 
             "mod+v" ->
-              normalMode model (pasteRelative vs.active 1 timestamp)
+              normalMode model (pasteBelow vs.active timestamp)
 
             "mod+shift+v" ->
-              normalMode model (pasteRelative vs.active 0 timestamp)
+              normalMode model (pasteInto vs.active timestamp)
 
             "mod+z" ->
               model ! []
@@ -1164,8 +1164,19 @@ copy id (model, prevCmd) =
     ]
 
 
-pasteRelative : String -> Int -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-pasteRelative id delta timestamp (model, prevCmd) =
+paste : Tree -> String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+paste subtree pid pos (model, prevCmd) = 
+  { model
+    | workingTree = Trees.update (Trees.Paste subtree pid pos) model.workingTree
+  }
+    ! [ prevCmd ]
+    |> maybeColumnsChanged model.workingTree.columns
+    |> activate subtree.id
+    |> addToHistory
+
+
+pasteBelow : String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+pasteBelow id timestamp (model, prevCmd) =
   case model.viewState.copiedTree of
     Just copiedTree ->
       let
@@ -1177,15 +1188,26 @@ pasteRelative id delta timestamp (model, prevCmd) =
           ( ( getParent id model.workingTree.tree |> Maybe.map .id ) ? "0" )
 
         pos =
-          ( ( getIndex id model.workingTree.tree ? 0 ) + delta)
+          ( ( getIndex id model.workingTree.tree ? 0 ) + 1 )
       in
-      { model
-        | workingTree = Trees.update (Trees.Paste treeToPaste pid pos) model.workingTree
-      }
-        ! [ prevCmd ]
-        |> maybeColumnsChanged model.workingTree.columns
-        |> activate treeToPaste.id
-        |> addToHistory
+      model ! [prevCmd]
+        |> paste treeToPaste pid pos
+
+    Nothing ->
+      model ! [prevCmd]
+
+
+pasteInto : String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+pasteInto id timestamp (model, prevCmd) =
+  case model.viewState.copiedTree of
+    Just copiedTree ->
+      let
+        vs = model.viewState
+
+        treeToPaste = Trees.renameNodes ( timestamp |> toString ) copiedTree
+      in
+      model ! [prevCmd]
+        |> paste treeToPaste id 999999
 
     Nothing ->
       model ! [prevCmd]

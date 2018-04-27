@@ -411,6 +411,7 @@ ipcRenderer.on('menu-export-txt-column', (e, msg) => toElm('IntentExport', { for
 ipcRenderer.on('menu-cut', (e, msg) => toElm('Keyboard', ["mod+x", Date.now()]))
 ipcRenderer.on('menu-copy', (e, msg) => toElm('Keyboard', ["mod+c", Date.now()]))
 ipcRenderer.on('menu-paste', (e, msg) => toElm('Keyboard', ["mod+v", Date.now()]))
+ipcRenderer.on('menu-paste-into', (e, msg) => toElm('Keyboard', ["mod+shift+v", Date.now()]))
 ipcRenderer.on('zoomin', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() + 1) })
 ipcRenderer.on('zoomout', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() - 1) })
 ipcRenderer.on('resetzoom', e => { webFrame.setZoomLevel(0) })
