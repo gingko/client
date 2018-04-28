@@ -308,6 +308,15 @@ update msg ({objects, workingTree, status} as model) =
 
         IntentExport exportSettings ->
           case exportSettings.format of
+            DOCX ->
+              case exportSettings.selection of
+                All ->
+                  model ! []
+                    |> saveCardIfEditing
+                    |> \(m, c) -> m ! [ c,  sendOut ( ExportDOCX m.workingTree.tree m.filepath ) ]
+
+                _ -> model ! []
+
             JSON ->
               case exportSettings.selection of
                 All ->

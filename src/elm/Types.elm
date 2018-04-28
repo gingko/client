@@ -50,6 +50,7 @@ type OutgoingMsg
     -- === File System ===
     | Save ( Maybe String )
     | SaveAs ( Maybe String )
+    | ExportDOCX Tree ( Maybe String )
     | ExportJSON Tree ( Maybe String )
     | ExportTXT Bool Tree ( Maybe String )
     | ExportTXTColumn Int Tree ( Maybe String )
@@ -104,7 +105,7 @@ type alias ExportSettings =
   , selection : ExportSelection
   }
 
-type ExportFormat = JSON | TXT
+type ExportFormat = DOCX | JSON | TXT
 type ExportSelection = All | CurrentSubtree | ColumnNumber Int
 
 

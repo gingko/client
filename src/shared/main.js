@@ -5,6 +5,7 @@ const Mousetrap = require('mousetrap')
 
 const fs = require('fs')
 const path = require('path')
+import { execFile } from 'child_process'
 const {promisify} = require('util')
 const getHash = promisify(require('hash-stream'))
 const {ipcRenderer, remote, webFrame, shell} = require('electron')
@@ -292,6 +293,10 @@ const update = (msg, data) => {
         await save(savePath)
       }
 
+    , 'ExportDOCX': () => {
+        exportDocx(data[0], data[1])
+      }
+
     , 'ExportJSON': () => {
         exportJson(data[0], data[1])
       }
@@ -404,6 +409,7 @@ ipcRenderer.on('menu-open', () => toElm('IntentOpen', null ))
 ipcRenderer.on('menu-import-json', () => toElm('IntentImport', null))
 ipcRenderer.on('menu-save', () => toElm('IntentSave', null ))
 ipcRenderer.on('menu-save-as', () => toElm('IntentSaveAs', null))
+ipcRenderer.on('menu-export-docx', () => toElm('IntentExport', { format : "docx", selection: "all" }))
 ipcRenderer.on('menu-export-json', () => toElm('IntentExport', { format : "json", selection: "all" }))
 ipcRenderer.on('menu-export-txt', () => toElm('IntentExport', { format : "txt", selection: "all" }))
 ipcRenderer.on('menu-export-txt-current', () => toElm('IntentExport', { format : "txt", selection: "current" }))
@@ -646,6 +652,55 @@ const saveConfirmationDialogOptions =
     , buttons: ["Close Without Saving", "Cancel", "Save"]
     , defaultId: 2
     }
+
+
+const exportDocx = (data, defaultPath) => {
+  console.log('data for exportDocx', data)
+  if (data && typeof data.replace === 'function') {
+    data = (process.platform === "win32") ? data.replace(/\n/g, '\r\n') : data;
+  } else {
+    throw new Error('invalid data sent for export')
+  }
+
+  var options =
+    { title: 'Export to MS Word'
+    , defaultPath: defaultPath ? defaultPath.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.docx")
+    , filters:  [ {name: 'Word Files', extensions: ['docx']}
+                , {name: 'All Files', extensions: ['*']}
+                ]
+    }
+
+  dialog.showSaveDialog(options, function(filepath){
+    if(!!filepath){
+      let tmpMarkdown = path.join(app.getPath('temp'), path.basename(filepath) + ".md")
+
+      fs.writeFile(tmpMarkdown, data, (err) => {
+        if (err) throw new Error('export-docx writeFile failed')
+
+        execFile(`${__dirname}/bin/pandoc`
+          , [ tmpMarkdown
+            , '--from=gfm'
+            , '--to=docx'
+            , `--output=${filepath}`
+            , '--verbose'
+            ]
+          , ( err, stdout, stderr) => {
+              if (err) {
+                throw err;
+              }
+
+              fs.unlink(tmpMarkdown, (err) => {
+                if (err) {
+                  throw err
+                }
+
+                shell.openItem(filepath)
+              })
+          })
+      })
+    }
+  })
+}
 
 
 const exportJson = (data, defaultPath) => {

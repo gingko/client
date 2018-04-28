@@ -259,6 +259,7 @@ exportSettingsDecoder =
       case s of
         "json" -> JSON
         "txt" -> TXT
+        "docx" -> DOCX
         _ -> JSON
 
     formatDecoder =

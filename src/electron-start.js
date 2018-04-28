@@ -372,6 +372,11 @@ function menuFunction(isEditing, cols) {
             }
           }
         , { type: 'separator' }
+        , { label: 'Export to MS Word...'
+          , click (item, focusedWindow) {
+              focusedWindow.webContents.send('menu-export-docx')
+            }
+          }
         , { label: 'Export JSON File...'
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('menu-export-json')
