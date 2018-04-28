@@ -2,7 +2,8 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
-## [2.0.10] - 2018-04-27
+## [2.0.10] - 2018-04-28
+  - Added Export to MS Word
   - Added cut/copy/paste of cards and subtrees.
   - Fixed: Alt+arrows now move by word on macOS
 

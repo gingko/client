@@ -29,11 +29,11 @@ yarn run electron
 1. In Github, draft a new release v2.x.y
   - Title: 2.x.y
   - Description: (paste from changelog)
-2. Test build artifacts by using [trytravis](https://github.com/SethMichaelLarson/trytravis)
-3. Update version number in:
+2. Update version number in:
   - package.json
   - app/package.json
   - CHANGELOG.md
+3. Test build artifacts by using [trytravis](https://github.com/SethMichaelLarson/trytravis)
 4. git commit -m"Version 2.x.y release"
 5. git push
 6. Wait for builds on [Travis CI](https://travis-ci.org/gingko/client/builds) (approx 8 min)
