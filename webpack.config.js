@@ -56,9 +56,5 @@ module.exports = {
       from: './static',
       to: '../app/static'
     }])
-  , new CopyWebpackPlugin([{
-      from: `./bin/${process.platform}`,
-      to: `../app/static/bin`
-    }])
   ]
 }

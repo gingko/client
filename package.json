@@ -21,7 +21,7 @@
     "test": "electron-mocha --renderer test/unit.js || true",
     "test:integration": "mocha test/integration.js",
     "build": "webpack",
-    "electron": "electron ./app",
+    "electron": "RUNNING_LOCALLY=1 electron ./app",
     "pack": "electron-builder --dir",
     "dist": "DEBUG=electron-builder && electron-builder",
     "dist:win": "DEBUG=electron-builder && electron-builder -w",
@@ -30,9 +30,12 @@
   },
   "build": {
     "appId": "com.gingkoapp.desktop",
-    "asar": {
-      "smartUnpack": true
-    },
+    "extraResources": [
+      {
+        "from": "./src/bin/${os}/",
+        "to": "."
+      }
+    ],
     "mac": {
       "category": "public.app-category.productivity"
     },

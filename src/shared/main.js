@@ -676,7 +676,27 @@ const exportDocx = (data, defaultPath) => {
       fs.writeFile(tmpMarkdown, data, (err) => {
         if (err) throw new Error('export-docx writeFile failed')
 
-        execFile(`${__dirname}/bin/pandoc${process.platform == "win32" ? ".exe" : ""}`
+        let pandocPath = path.join(__dirname, '/../../pandoc')
+
+        // pandoc file is copied by electron-builder
+        // so we need to point to the src directory when running with `yarn electron`
+        if (process.env.RUNNING_LOCALLY) {
+          switch (process.platform) {
+            case 'linux':
+              pandocPath = path.join(__dirname, '/../../src/bin/linux/pandoc')
+              break;
+
+            case 'win32':
+              pandocPath = path.join(__dirname, '/../../src/bin/win/pandoc.exe')
+              break;
+
+            case 'darwin':
+              pandocPath = path.join(__dirname, '/../../src/bin/mac/pandoc')
+              break;
+          }
+        }
+
+        execFile( pandocPath
           , [ tmpMarkdown
             , '--from=gfm'
             , '--to=docx'
