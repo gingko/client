@@ -50,7 +50,7 @@ type OutgoingMsg
     -- === File System ===
     | Save ( Maybe String )
     | SaveAs ( Maybe String )
-    | ExportDOCX Tree ( Maybe String )
+    | ExportDOCX String ( Maybe String )
     | ExportJSON Tree ( Maybe String )
     | ExportTXT Bool Tree ( Maybe String )
     | ExportTXTColumn Int Tree ( Maybe String )

@@ -71,8 +71,8 @@ sendOut info =
     SaveAs filepath_ ->
       dataToSend ( maybeToValue string filepath_ )
 
-    ExportDOCX tree filepath_ ->
-      dataToSend ( list [ treeToMarkdown False tree , maybeToValue string filepath_ ] )
+    ExportDOCX str filepath_ ->
+      dataToSend ( list [ string str, maybeToValue string filepath_ ] )
 
     ExportJSON tree filepath_ ->
       dataToSend ( list [ treeToJSON tree , maybeToValue string filepath_ ] )

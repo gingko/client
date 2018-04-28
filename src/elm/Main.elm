@@ -309,13 +309,29 @@ update msg ({objects, workingTree, status} as model) =
         IntentExport exportSettings ->
           case exportSettings.format of
             DOCX ->
-              case exportSettings.selection of
-                All ->
-                  model ! []
-                    |> saveCardIfEditing
-                    |> \(m, c) -> m ! [ c,  sendOut ( ExportDOCX m.workingTree.tree m.filepath ) ]
+              let
+                markdownString m =
+                  case exportSettings.selection of
+                    All ->
+                      m.workingTree.tree
+                        |> treeToMarkdownString False
 
-                _ -> model ! []
+                    CurrentSubtree ->
+                      getTree vs.active m.workingTree.tree
+                        |> Maybe.withDefault m.workingTree.tree
+                        |> treeToMarkdownString True
+
+                    ColumnNumber col ->
+                      getColumn col m.workingTree.tree
+                        |> Maybe.withDefault [[]]
+                        |> List.concat
+                        |> List.map .content
+                        |> String.join "\n\n"
+              in
+              model ! []
+                |> saveCardIfEditing
+                |> \(m, c) -> m ! [ c,  sendOut ( ExportDOCX ( markdownString m ) m.filepath ) ]
+
 
             JSON ->
               case exportSettings.selection of

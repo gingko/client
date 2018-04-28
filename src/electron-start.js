@@ -90,16 +90,16 @@ function validSerial(email, storedSerial) {
 }
 
 
-function exportMenu(cols) {
+function exportMenu(format, cols) {
   var expMenu =
     [ { label : 'Entire Document...'
       , click (item, focusedWindow) {
-          focusedWindow.webContents.send('menu-export-txt')
+          focusedWindow.webContents.send(`menu-export-${format}`)
         }
       }
     , { label : 'Current Card and Children...'
       , click (item, focusedWindow) {
-          focusedWindow.webContents.send('menu-export-txt-current')
+          focusedWindow.webContents.send(`menu-export-${format}-current`)
         }
       }
     , { type: 'separator' }
@@ -108,7 +108,7 @@ function exportMenu(cols) {
   var expMenuItem = function (num) {
     return  { label : `Column ${num}...`
             , click (item, focusedWindow) {
-                focusedWindow.webContents.send('menu-export-txt-column', num)
+                focusedWindow.webContents.send(`menu-export-${format}-column`, num)
               }
             }
   }
@@ -372,18 +372,16 @@ function menuFunction(isEditing, cols) {
             }
           }
         , { type: 'separator' }
-        , { label: 'Export to MS Word...'
-          , click (item, focusedWindow) {
-              focusedWindow.webContents.send('menu-export-docx')
-            }
+        , { label: 'Export to MS Word'
+          , submenu : exportMenu('docx', cols)
           }
-        , { label: 'Export JSON File...'
+        , { label: 'Export to Text'
+          , submenu : exportMenu('txt', cols)
+          }
+        , { label: 'Export to JSON...'
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('menu-export-json')
             }
-          }
-        , { label: 'Export Text'
-          , submenu : exportMenu(cols)
           }
         , { type: 'separator' }
         , { label: 'Exit...'
