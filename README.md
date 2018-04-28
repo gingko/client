@@ -47,4 +47,3 @@ yarn run electron
 * Use Git-LFS, because I seem to hit rate limits when downloading large files.
 * Is `osx_image: xcode9.2` really necessary? Seems to slow down builds, and wasn't needed before
 * Verify that Travis is using "cache" (download at 20MB/s +)
-* Improve DMG installer image/background, etc
