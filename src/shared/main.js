@@ -655,7 +655,6 @@ const saveConfirmationDialogOptions =
 
 
 const exportDocx = (data, defaultPath) => {
-  console.log('data for exportDocx', data)
   if (data && typeof data.replace === 'function') {
     data = (process.platform === "win32") ? data.replace(/\n/g, '\r\n') : data;
   } else {
@@ -677,7 +676,7 @@ const exportDocx = (data, defaultPath) => {
       fs.writeFile(tmpMarkdown, data, (err) => {
         if (err) throw new Error('export-docx writeFile failed')
 
-        execFile(`${__dirname}/bin/pandoc`
+        execFile(`${__dirname}/bin/pandoc${process.platform == "win32" ? ".exe" : ""}`
           , [ tmpMarkdown
             , '--from=gfm'
             , '--to=docx'

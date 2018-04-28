@@ -30,6 +30,9 @@
   },
   "build": {
     "appId": "com.gingkoapp.desktop",
+    "asar": {
+      "smartUnpack": true
+    },
     "mac": {
       "category": "public.app-category.productivity"
     },
