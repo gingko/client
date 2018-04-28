@@ -2,7 +2,6 @@ const {app, BrowserWindow, dialog, Menu, ipcMain, shell} = require('electron')
 import { autoUpdater } from "electron-updater"
 const path = require('path')
 const sha1 = require('sha1')
-import { execFile } from 'child_process'
 const Store = require('electron-store')
 const windowStateKeeper = require('electron-window-state')
 
@@ -373,20 +372,14 @@ function menuFunction(isEditing, cols) {
             }
           }
         , { type: 'separator' }
+        , { label: 'Export to MS Word...'
+          , click (item, focusedWindow) {
+              focusedWindow.webContents.send('menu-export-docx')
+            }
+          }
         , { label: 'Export JSON File...'
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('menu-export-json')
-            }
-          }
-        , { label: 'TEST Pandoc export'
-          , click (item, focusedWindow) {
-              execFile(`${__dirname}/static/bin/pandoc`, ['--version'], (error, stdout, stderr) => {
-                if (error) {
-                  throw error;
-                }
-
-                console.log(stdout)
-              })
             }
           }
         , { label: 'Export Text'
