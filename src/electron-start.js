@@ -285,7 +285,7 @@ function menuFunction(isEditing, cols) {
           [ { label: 'Undo'
             , enabled : false
             , click (item, focusedWindow) {
-                if (process.platform !== darwin) {
+                if (process.platform !== 'darwin') {
                   focusedWindow.webContents.send('undo')
                 }
               }
@@ -294,7 +294,7 @@ function menuFunction(isEditing, cols) {
           , { label: 'Redo'
             , enabled : false
             , click (item, focusedWindow) {
-                if (process.platform !== darwin) {
+                if (process.platform !== 'darwin') {
                   focusedWindow.webContents.send('redo')
                 }
               }
@@ -303,7 +303,7 @@ function menuFunction(isEditing, cols) {
           , { type: 'separator' }
           , { label: 'Cut Cards'
             , click (item, focusedWindow) {
-                if (process.platform !== darwin) {
+                if (process.platform !== 'darwin') {
                   focusedWindow.webContents.send('menu-cut')
                 }
               }
@@ -311,7 +311,7 @@ function menuFunction(isEditing, cols) {
             }
           , { label: 'Copy Cards'
             , click (item, focusedWindow) {
-                if (process.platform !== darwin) {
+                if (process.platform !== 'darwin') {
                   focusedWindow.webContents.send('menu-copy')
                 }
               }
@@ -319,7 +319,7 @@ function menuFunction(isEditing, cols) {
             }
           , { label: 'Paste Cards'
             , click (item, focusedWindow) {
-                if (process.platform !== darwin) {
+                if (process.platform !== 'darwin') {
                   focusedWindow.webContents.send('menu-paste')
                 }
               }
@@ -327,7 +327,7 @@ function menuFunction(isEditing, cols) {
             }
           , { label: 'Paste Cards as Children'
             , click (item, focusedWindow) {
-                if (process.platform !== darwin) {
+                if (process.platform !== 'darwin') {
                   focusedWindow.webContents.send('menu-paste-into')
                 }
               }
