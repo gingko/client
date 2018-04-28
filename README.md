@@ -24,21 +24,22 @@ yarn run electron
 
 # Release process
 
-(for example 0.8.6)
+(for version 2.x.y)
 
-1. Update version in:
+1. In Github, draft a new release v2.x.y
+  - Title: 2.x.y
+  - Description: (paste from changelog)
+2. Test build artifacts by using [trytravis](https://github.com/SethMichaelLarson/trytravis)
+3. Update version number in:
   - package.json
   - app/package.json
   - CHANGELOG.md
-2. In Github, draft a new release v0.8.6
-  - Title: 0.8.6
-  - Description: (paste from changelog)
-3. git commit
-4. git push
-5. Wait for builds on Travis CI (approx 7 min)
-6. Update links in site/index.html
-7. Check release files on https://github.com/gingko/client/releases
-8. When done, publish the release
+4. git commit -m"Version 2.x.y release"
+5. git push
+6. Wait for builds on [Travis CI](https://travis-ci.org/gingko/client/builds) (approx 8 min)
+7. Update links in site/index.html
+8. Check release files on https://github.com/gingko/client/releases
+9. When done, publish the release
 
 
 ### To Improve
