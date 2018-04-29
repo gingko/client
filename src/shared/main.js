@@ -164,8 +164,13 @@ const update = (msg, data) => {
 
         // Save Changes
         if (choice == 2) {
-          await saveToDB(data.document[0], data.document[1])
           let savePath = data.filepath ? data.filepath : saveAsDialog()
+
+          if (typeof savePath !== "string") {
+            return;
+          }
+
+          await saveToDB(data.document[0], data.document[1])
           await save(savePath)
         }
 
@@ -285,11 +290,19 @@ const update = (msg, data) => {
 
     , 'Save': async () => {
         let savePath = data ? data : saveAsDialog()
+        if (typeof savePath !== "string") {
+          return;
+        }
+
         await save(savePath)
       }
 
     , 'SaveAs': async () => {
         let savePath = saveAsDialog(data)
+        if (typeof savePath !== "string") {
+          return;
+        }
+
         await save(savePath)
       }
 
