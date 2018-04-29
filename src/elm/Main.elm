@@ -689,6 +689,7 @@ update msg ({objects, workingTree, status} as model) =
               model ! []
 
             "mod+r" ->
+              let _ = Debug.log "model" model in
               model ! []
 
             "mod+n" ->
