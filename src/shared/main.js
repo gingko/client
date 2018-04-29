@@ -685,7 +685,7 @@ const exportDocx = (data, defaultPath) => {
     }
 
   dialog.showSaveDialog(options, function(filepath){
-    if(!!filepath){
+    if(typeof filepath == "string"){
       let tmpMarkdown = path.join(app.getPath('temp'), path.basename(filepath) + ".md")
 
       fs.writeFile(tmpMarkdown, data, (err) => {
