@@ -22,6 +22,11 @@ viewFooter model =
     wordCounts = getWordCounts model
     current = wordCounts.document
     session = current - model.startingWordcount
+    isOnly =
+      case model.workingTree.tree.children of
+        Children [a] -> True
+        _ -> False
+
     hoverHeight n =
       14*n + 6
         |> toString
@@ -29,7 +34,7 @@ viewFooter model =
   in
   div
     [ class "footer" ]
-    ( [ viewShortcutsToggle model.shortcutTrayOpen model.isMac model.viewState ]
+    ( [ viewShortcutsToggle model.shortcutTrayOpen model.isMac isOnly model.viewState ]
     ++
     ( if model.viewState.editing == Nothing then
         if model.startingWordcount /= 0 then
@@ -86,9 +91,15 @@ viewVideo { videoModalOpen } =
     div [][]
 
 
-viewShortcutsToggle : Bool -> Bool -> ViewState -> Html Msg
-viewShortcutsToggle isOpen isMac vs =
+viewShortcutsToggle : Bool -> Bool -> Bool -> ViewState -> Html Msg
+viewShortcutsToggle isOpen isMac isOnly vs =
   let
+    viewIf cond content =
+      if cond then
+        content
+      else
+        text ""
+
     shortcutSpan keys desc =
       let
         keySpans =
@@ -109,10 +120,12 @@ viewShortcutsToggle isOpen isMac vs =
         [ id "shortcuts-tray", class "inset", onClick ShortcutTrayToggle  ]
         [ div [ class "popup" ]
           [ shortcutSpan ["Enter"] "to Edit"
+          , viewIf (not isOnly) <| shortcutSpan ["↑", "↓", "←", "→"] "to Navigate"
           , shortcutSpan [ctrlOrCmd,"→"] "to Add Child"
           , shortcutSpan [ctrlOrCmd, "↓"] "to Add Below"
           , shortcutSpan [ctrlOrCmd, "↑"] "to Add Above"
-          , shortcutSpan [ctrlOrCmd, "Backspace"] "to Delete"
+          , viewIf (not isOnly) <| shortcutSpan ["Alt", "(arrows)"] "to Move"
+          , viewIf (not isOnly) <| shortcutSpan [ctrlOrCmd, "Backspace"] "to Delete"
           ]
         , div [ class "icon-stack" ]
           [ Icon.keyboard ( defaultOptions |> iconColor )
