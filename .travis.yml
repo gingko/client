@@ -64,3 +64,6 @@ before_cache:
 branches:
   only:
     - master
+
+notifications:
+  email: false
