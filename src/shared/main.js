@@ -170,11 +170,27 @@ const update = (msg, data) => {
             return;
           }
 
-          await saveToDB(data.document[0], data.document[1])
-          await save(savePath)
+          try {
+            await saveToDB(data.document[0], data.document[1])
+          } catch (e) {
+            dialog.showMessageBox(saveErrorAlert(e))
+            return;
+          }
+
+          try {
+            await save(savePath)
+          } catch (e) {
+            dialog.showMessageBox(saveErrorAlert(e))
+            return;
+          }
         }
 
-        await clearDb()
+        try {
+          await clearDb()
+        } catch (e) {
+          dialog.showMessageBox(errorAlert("Error", "Couldn't clear DB", e))
+          return;
+        }
         document.title = "Untitled Tree - Gingko"
 
         switch (data.action) {
@@ -278,7 +294,12 @@ const update = (msg, data) => {
       }
 
     , 'ClearDB': async () => {
-        await clearDb()
+        try {
+          await clearDb()
+        } catch (e) {
+          dialog.showMessageBox(errorAlert("Error", "Couldn't clear DB", e))
+          return;
+        }
         document.title = "Untitled Tree - Gingko"
       }
 
@@ -294,7 +315,12 @@ const update = (msg, data) => {
           return;
         }
 
-        await save(savePath)
+        try {
+          await save(savePath)
+        } catch (e) {
+          dialog.showMessageBox(saveErrorAlert(e))
+          return;
+        }
       }
 
     , 'SaveAs': async () => {
@@ -303,23 +329,48 @@ const update = (msg, data) => {
           return;
         }
 
-        await save(savePath)
+        try {
+          await save(savePath)
+        } catch (e) {
+          dialog.showMessageBox(saveErrorAlert(e))
+          return;
+        }
       }
 
     , 'ExportDOCX': () => {
-        exportDocx(data[0], data[1])
+        try {
+          exportDocx(data[0], data[1])
+        } catch (e) {
+          dialog.showMessageBox(errorAlert('Export Error', "Couldn't export.\nTry again.", e))
+          return;
+        }
       }
 
     , 'ExportJSON': () => {
-        exportJson(data[0], data[1])
+        try {
+          exportJson(data[0], data[1])
+        } catch (e) {
+          dialog.showMessageBox(errorAlert('Export Error', "Couldn't export.\nTry again.", e))
+          return;
+        }
       }
 
     , 'ExportTXT': () => {
-        exportTxt(data[0], data[1])
+        try {
+          exportTxt(data[0], data[1])
+        } catch (e) {
+          dialog.showMessageBox(errorAlert('Export Error', "Couldn't export.\nTry again.", e))
+          return;
+        }
       }
 
     , 'ExportTXTColumn': () => {
-        exportTxt(data[0], data[1])
+        try {
+          exportTxt(data[0], data[1])
+        } catch (e) {
+          dialog.showMessageBox(errorAlert('Export Error', "Couldn't export.\nTry again.", e))
+          return;
+        }
       }
 
       // === DOM ===
@@ -500,6 +551,7 @@ const load = function(filepath, headOverride){
         document.title = `${path.basename(filepath)} - Gingko`
         toElm('Open', toSend);
       }).catch(function (err) {
+        dialog.showMessageBox(errorAlert("Loading Error", "Couldn't load file.", err))
         console.log(err)
       })
     })
@@ -592,8 +644,10 @@ const setHead = function(sha) {
 self.saveToDB = (status, objects) => {
   return new Promise(
     async (resolve, reject) => {
-      let statusDoc =
-        await db.get('status')
+      let statusDoc = {}
+      try {
+        statusDoc =
+          await db.get('status')
                 .catch(err => {
                   if(err.name == "not_found") {
                     return {_id: 'status' , status : 'bare', bare: true}
@@ -601,6 +655,10 @@ self.saveToDB = (status, objects) => {
                     console.log('load status error', err)
                   }
                 })
+      } catch (e) {
+        reject(e)
+        return;
+      }
 
       if(statusDoc._rev) {
         status['_rev'] = statusDoc._rev
@@ -608,16 +666,20 @@ self.saveToDB = (status, objects) => {
 
       let toSave = objects.commits.concat(objects.treeObjects).concat(objects.refs).concat([status]);
 
+      let responses = []
       try {
-        let responses = await db.bulkDocs(toSave)
-        let head = responses.filter(r => r.id == "heads/master")[0]
-        if (head.ok) {
-          resolve(head.rev)
-        } else {
-          reject(new Error('head not ok: ' + head))
-        }
-      } catch (err) {
-        console.log(err)
+        responses = await db.bulkDocs(toSave)
+      } catch (e) {
+        reject(e)
+        return;
+      }
+
+      let head = responses.filter(r => r.id == "heads/master")[0]
+      if (head.ok) {
+        resolve(head.rev)
+      } else {
+        reject(new Error('Reference error when saving to DB.'))
+        return;
       }
     })
 }
@@ -632,10 +694,17 @@ self.save = (filepath) => {
       let copyFile = promisify(fs.copyFile)
       let deleteFile = promisify(fs.unlink)
 
-      let dumpToMemOp = await db.dump(memStream)
+      let dumpToMemOp = {}
+      try {
+        dumpToMemOp = await db.dump(memStream)
+      } catch (e) {
+        reject(e)
+        return;
+      }
 
       if (! dumpToMemOp.ok) {
         reject(new Error('Could not dump database to MemoryStream'))
+        return;
       }
 
       // write db dump to swapfile first
@@ -645,14 +714,25 @@ self.save = (filepath) => {
       let memHash = (await getHash(memStream, 'sha1')).toString('base64')
       let swapHash = (await getHash(swapfilepath, 'sha1')).toString('base64')
       if (memHash !== swapHash) {
-        reject(new Error(`File integrity check failed: ${memHash} ${swapHash}`))
+        reject(new Error(`File integrity check failed`))
+        return;
       }
 
       // copy swapfile to original filepath
-      await copyFile(swapfilepath, filepath)
+      try {
+        await copyFile(swapfilepath, filepath)
+      } catch (e) {
+        reject(e)
+        return;
+      }
 
       // delete swapfile
-      await deleteFile(swapfilepath)
+      try {
+        await deleteFile(swapfilepath)
+      } catch (e) {
+        reject(e)
+        return;
+      }
 
       document.title = `${path.basename(filepath)} - Gingko`
       toElm('FileState', [filepath, false])
@@ -661,12 +741,28 @@ self.save = (filepath) => {
   )
 }
 
+
 const saveConfirmationDialogOptions =
     { title: "Save changes"
     , message: "Save changes before closing?"
     , buttons: ["Close Without Saving", "Cancel", "Save"]
     , defaultId: 2
     }
+
+
+const errorAlert = (title, msg, err) => {
+  return { title: title
+    , message: msg
+    , detail: err.message.split("\n")[0]
+    , type: "error"
+    , buttons: ["OK"]
+    }
+}
+
+
+const saveErrorAlert = (err) => {
+  return errorAlert("Save Error", "The file wasn't saved.\nPlease try again.", err)
+}
 
 
 const exportDocx = (data, defaultPath) => {
@@ -751,11 +847,15 @@ const exportJson = (data, defaultPath) => {
       dialog.showSaveDialog(options, function(filepath){
         if(!!filepath){
           fs.writeFile(filepath, JSON.stringify(data, undefined, 2), (err) => {
-            if (err) reject(new Error('export-json writeFile failed'))
+            if (err) {
+              reject(new Error('export-json writeFile failed'))
+              return;
+            }
             resolve(data)
           })
         } else {
           reject(new Error('no export path chosen'))
+          return;
         }
       })
     }
@@ -769,6 +869,7 @@ const exportTxt = (data, defaultPath) => {
         data = (process.platform === "win32") ? data.replace(/\n/g, '\r\n') : data;
       } else {
         reject(new Error('invalid data sent for export'))
+        return;
       }
 
       var options =
@@ -782,11 +883,15 @@ const exportTxt = (data, defaultPath) => {
       dialog.showSaveDialog(options, function(filepath){
         if(!!filepath){
           fs.writeFile(filepath, data, (err) => {
-            if (err) reject(new Error('export-txt writeFile failed'))
+            if (err) {
+              reject(new Error('export-txt writeFile failed'))
+              return;
+            }
             resolve(data)
           })
         } else {
           reject(new Error('no export path chosen'))
+          return;
         }
       })
     }
@@ -837,10 +942,21 @@ const importDialog = (pathDefault) => {
 
 
 const loadFile = async (filepath) => {
-  await clearDb(filepath)
+  try {
+    await clearDb(filepath)
+  } catch (e) {
+    dialog.showMessageBox(errorAlert("Error loading file","Couldn't clear current DB.", e))
+    return;
+  }
 
   let rs = fs.createReadStream(filepath)
-  let loadOp = await db.load(rs)
+  let loadOp = {}
+  try {
+    loadOp = await db.load(rs)
+  } catch(e) {
+    dialog.showMessageBox(errorAlert("Error loading file","Couldn't read file data correctly.", e))
+    return;
+  }
 
   if (!loadOp.ok) {
     throw new Error("Couldn't load database from file")
@@ -892,6 +1008,7 @@ const clearDb = (dbname) => {
       let destroyOp = await db.destroy()
       if (!destroyOp.ok) {
         reject(new Error("Couldn't destroy db on ClearDB"))
+        return;
       }
 
       dbname = dbname ? dbname : sha1(Date.now()+machineIdSync())
