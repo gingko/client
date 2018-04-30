@@ -261,36 +261,15 @@ const update = (msg, data) => {
 
       // === Database ===
 
-    , 'SaveToDB': () => {
-        let status = data[0]
-        let objects = data[1]
-        db.get('status')
-          .catch(err => {
-            if(err.name == "not_found") {
-              return {_id: 'status' , status : 'bare', bare: true}
-            } else {
-              console.log('load status error', err)
-            }
-          })
-          .then(statusDoc => {
-            if(statusDoc._rev) {
-              status['_rev'] = statusDoc._rev
-            }
-
-            let toSave = objects.commits.concat(objects.treeObjects).concat(objects.refs).concat([status]);
-            db.bulkDocs(toSave)
-              .catch(err => {
-                console.log(err)
-              })
-              .then(responses => {
-                let head = responses.filter(r => r.id == "heads/master")[0]
-                if (head.ok) {
-                  toElm('SetHeadRev', head.rev)
-                } else {
-                  console.log('head not ok', head)
-                }
-              })
-          })
+    , 'SaveToDB': async () => {
+        let newHeadRev = null
+        try {
+          newHeadRev = await saveToDB(data[0], data[1])
+        } catch (e) {
+          dialog.showMessageBox(saveErrorAlert(e))
+          return;
+        }
+        toElm('SetHeadRev', newHeadRev)
       }
 
     , 'ClearDB': async () => {
