@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
+
+## [2.0.11] - 2018-04-30
+  - (Internal) Improved error-handling
+
 ## [2.0.10] - 2018-04-28
   - Added Export to MS Word
   - Added cut/copy/paste of cards and subtrees.
