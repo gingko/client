@@ -979,7 +979,13 @@ const importFile = async (filepathToImport) => {
 const clearDb = (dbname) => {
   return new Promise(
     async (resolve, reject) => {
-      let destroyOp = await db.destroy()
+      try {
+        var destroyOp = await db.destroy()
+      } catch (e) {
+        reject(e)
+        return;
+      }
+
       if (!destroyOp.ok) {
         reject(new Error("Couldn't destroy db on ClearDB"))
         return;
