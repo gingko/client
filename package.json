@@ -71,7 +71,7 @@
     "node-machine-id": "^1.1.10",
     "pouchdb-adapter-memory": "^6.4.3",
     "pouchdb-browser": "^6.4.3",
-    "pouchdb-replication-stream": "^1.2.9",
+    "pouchdb-replication-stream": "git+https://github.com/gingko/pouchdb-replication-stream.git",
     "react": "^15.5.4",
     "react-commits-graph": "git+https://github.com/AdrianoFerrari/react-commits-graph.git",
     "react-dom": "^15.5.4",

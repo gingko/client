@@ -4839,9 +4839,9 @@ pouchdb-promise@6.4.3, pouchdb-promise@^6.0.4:
   dependencies:
     lie "3.1.1"
 
-pouchdb-replication-stream@^1.2.9:
+"pouchdb-replication-stream@git+https://github.com/gingko/pouchdb-replication-stream.git":
   version "1.2.9"
-  resolved "https://registry.yarnpkg.com/pouchdb-replication-stream/-/pouchdb-replication-stream-1.2.9.tgz#aa4fa5d8f52df4825392f18e07c7e11acffc650a"
+  resolved "git+https://github.com/gingko/pouchdb-replication-stream.git#a985b28fb99c06a040e2d0fa025c7df6e7ee0f7f"
   dependencies:
     argsarray "0.0.1"
     inherits "^2.0.3"
