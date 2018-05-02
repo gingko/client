@@ -85,6 +85,8 @@ var initFlags =
   ]
 
 self.gingko = Elm.Main.fullscreen(initFlags)
+ipcRenderer.send('elm-ready')
+
 self.socket = io.connect('http://localhost:3000')
 
 var toElm = function(tag, data) {
@@ -446,6 +448,7 @@ gingko.ports.infoForOutside.subscribe(function(elmdata) {
 
 /* === JS to Elm Ports === */
 
+ipcRenderer.on('open-file', (e, msg) => { console.log('loading:', msg); loadFile(msg) })
 ipcRenderer.on('menu-new', () => toElm('IntentNew', null))
 ipcRenderer.on('menu-open', () => toElm('IntentOpen', null ))
 ipcRenderer.on('menu-import-json', () => toElm('IntentImport', null))
@@ -924,7 +927,18 @@ const loadFile = async (filepath) => {
     return;
   }
 
-  let rs = fs.createReadStream(filepath)
+  try {
+    var rs = fs.createReadStream(filepath)
+  } catch(e) {
+    dialog.showMessageBox(errorAlert("Error loading file","Couldn't read file data correctly.", e))
+    return;
+  }
+
+  rs.on('error', (e) => {
+    dialog.showMessageBox(errorAlert("Error loading file","Couldn't read file data correctly.", e))
+    return;
+  })
+
   try {
     var loadOp = await db.load(rs)
   } catch(e) {

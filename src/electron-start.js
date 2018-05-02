@@ -38,15 +38,6 @@ function createAppWindow () {
   // and load the html of the app.
   var url = `file://${__dirname}/static/index.html`
 
-  if (process.platform !== 'darwin') {
-    if(!!process.argv[1] && !process.argv[0].endsWith('electron')) {
-      url += `#${encodeURIComponent(process.argv[1])}`
-    }
-  } else {
-    if(!!process.argv[2] && !process.argv[0].endsWith('electron')) {
-      url += `#${encodeURIComponent(process.argv[2])}`
-    }
-  }
   win.loadURL(url)
 
   win.on('close', (e) => {
@@ -181,6 +172,19 @@ ipcMain.on('edit-mode-toggle', (event, isEditing) => {
     menuTemplate = menuFunction(_isEditMode, _columns)
     menu = Menu.buildFromTemplate(menuTemplate)
     Menu.setApplicationMenu(menu)
+  }
+})
+
+
+ipcMain.on('elm-ready', () => {
+  if(process.argv[0].endsWith('electron')) {
+    if(typeof process.argv[2] == 'string') {
+      win.webContents.send('open-file', process.argv[2])
+    }
+  } else {
+    if(typeof process.argv[1] == 'string') {
+      win.webContents.send('open-file', process.argv[1])
+    }
   }
 })
 
