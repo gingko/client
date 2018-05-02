@@ -262,9 +262,8 @@ const update = (msg, data) => {
       // === Database ===
 
     , 'SaveToDB': async () => {
-        let newHeadRev = null
         try {
-          newHeadRev = await saveToDB(data[0], data[1])
+          var newHeadRev = await saveToDB(data[0], data[1])
         } catch (e) {
           dialog.showMessageBox(saveErrorAlert(e))
           return;
@@ -623,9 +622,8 @@ const setHead = function(sha) {
 self.saveToDB = (status, objects) => {
   return new Promise(
     async (resolve, reject) => {
-      let statusDoc = {}
       try {
-        statusDoc =
+        var statusDoc =
           await db.get('status')
                 .catch(err => {
                   if(err.name == "not_found") {
@@ -645,9 +643,8 @@ self.saveToDB = (status, objects) => {
 
       let toSave = objects.commits.concat(objects.treeObjects).concat(objects.refs).concat([status]);
 
-      let responses = []
       try {
-        responses = await db.bulkDocs(toSave)
+        var responses = await db.bulkDocs(toSave)
       } catch (e) {
         reject(e)
         return;
@@ -673,9 +670,8 @@ self.save = (filepath) => {
       let copyFile = promisify(fs.copyFile)
       let deleteFile = promisify(fs.unlink)
 
-      let dumpToMemOp = {}
       try {
-        dumpToMemOp = await db.dump(memStream)
+        var dumpToMemOp = await db.dump(memStream)
       } catch (e) {
         reject(e)
         return;
@@ -929,9 +925,8 @@ const loadFile = async (filepath) => {
   }
 
   let rs = fs.createReadStream(filepath)
-  let loadOp = {}
   try {
-    loadOp = await db.load(rs)
+    var loadOp = await db.load(rs)
   } catch(e) {
     dialog.showMessageBox(errorAlert("Error loading file","Couldn't read file data correctly.", e))
     return;
