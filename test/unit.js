@@ -3,10 +3,20 @@ const {promisify} = require('util')
 const path = require('path')
 const _ = require('lodash')
 const {expect} = require('chai')
-const mainjs = require('../app/main.js')
+const fio = require("../src/shared/file-io.js")
+
+
+const PouchDB = require("pouchdb-browser");
+const replicationStream = require('pouchdb-replication-stream')
+PouchDB.plugin(replicationStream.plugin)
+PouchDB.adapter('writableStream', replicationStream.adapters.writableStream)
+const memoryAdapter = require("pouchdb-adapter-memory")
+PouchDB.plugin(memoryAdapter)
 
 
 const readdir = promisify(fs.readdir)
+const readFile = promisify(fs.readFile)
+const unlink = promisify(fs.unlink)
 
 
 let myPause = function(ms) {
@@ -24,12 +34,31 @@ describe('File Saving', function() {
   afterEach(async function () {
     await myPause(400)
     let files = await readdir(__dirname)
-    files
-      .filter(f => f.match(/^testfile-/))
-      .map(f => fs.unlink(path.join(__dirname, f)))
+    let filesToDelete = files.filter(f => f.match(/^testfile-/))
+    await Promise.all(filesToDelete.map( f => unlink(path.join(__dirname, f)) ) )
   })
 
-  it('should save db to file', async function() {
+  it('should throw an error for invalid filepath', async function () {
+    let db = new PouchDB('somedbname')
+
+    try {
+      await fio.dbToFile(db, '!#/not-a-real-filepath')
+    } catch (err) {
+      expect(err.message).to.include('no such file or directory')
+    }
+  })
+
+  it('should dump contents to file', async function () {
+    let dbname = `somedb-${Date.now()}`
+    let db = new PouchDB(dbname)
+    let filepath = path.join(__dirname, 'testfile-empty-db.txt')
+    await fio.dbToFile(db, filepath)
+
+    let filecontents = fs.readFileSync(filepath, 'utf8')
+    expect(filecontents).to.include(`"db_name":"${dbname}"`)
+  })
+
+  xit('should save db to file', async function() {
     let filename = 'testfile-empty-db.txt'
     let filepath = path.join(__dirname, filename)
     let checkfile = function() {
@@ -39,7 +68,7 @@ describe('File Saving', function() {
     expect(checkfile).to.not.throw()
   })
 
-  it('should not have a swap file', async function() {
+  xit('should not have a swap file', async function() {
     let filename = 'testfile-swap.txt'
     let filepath = path.join(__dirname, filename)
     await save(filepath)
