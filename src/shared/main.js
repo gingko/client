@@ -176,12 +176,7 @@ const update = (msg, data) => {
             return;
           }
 
-          try {
-            await save(savePath)
-          } catch (e) {
-            dialog.showMessageBox(saveErrorAlert(e))
-            return;
-          }
+          await save(savePath)
         }
 
         try {
@@ -292,12 +287,7 @@ const update = (msg, data) => {
           return;
         }
 
-        try {
-          await save(savePath)
-        } catch (e) {
-          dialog.showMessageBox(saveErrorAlert(e))
-          return;
-        }
+        await save(savePath)
       }
 
     , 'SaveAs': async () => {
@@ -306,12 +296,7 @@ const update = (msg, data) => {
           return;
         }
 
-        try {
-          await save(savePath)
-        } catch (e) {
-          dialog.showMessageBox(saveErrorAlert(e))
-          return;
-        }
+        await save(savePath)
       }
 
     , 'ExportDOCX': () => {
