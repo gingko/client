@@ -7,11 +7,9 @@ const fs = require('fs')
 const path = require('path')
 import { execFile } from 'child_process'
 const {promisify} = require('util')
-const getHash = promisify(require('hash-stream'))
 const {ipcRenderer, remote, webFrame, shell} = require('electron')
 const {app, dialog} = remote
 const querystring = require('querystring')
-const MemoryStream = require('memorystream')
 const Store = require('electron-store')
 
 import PouchDB from "pouchdb-browser";
@@ -30,6 +28,7 @@ const ReactDOM = require('react-dom')
 const CommitsGraph = require('react-commits-graph')
 const io = require('socket.io-client')
 
+const fio = require('./file-io')
 const shared = require('./shared')
 window.Elm = require('../elm/Main')
 
@@ -664,54 +663,15 @@ self.saveToDB = (status, objects) => {
 self.save = (filepath) => {
   return new Promise(
     async (resolve, reject) => {
-      let memStream = new MemoryStream();
-      let swapfilepath = filepath + '.swp'
-      let filewriteStream = fs.createWriteStream(swapfilepath)
-      let copyFile = promisify(fs.copyFile)
-      let deleteFile = promisify(fs.unlink)
-
       try {
-        var dumpToMemOp = await db.dump(memStream)
-      } catch (e) {
-        reject(e)
-        return;
+        let saveResult = await fio.save(db, filepath)
+
+        document.title = `${path.basename(filepath)} - Gingko`
+        toElm('FileState', [filepath, false])
+        resolve(true)
+      } catch(err) {
+        dialog.showMessageBox(saveErrorAlert(err))
       }
-
-      if (! dumpToMemOp.ok) {
-        reject(new Error('Could not dump database to MemoryStream'))
-        return;
-      }
-
-      // write db dump to swapfile first
-      memStream.pipe(filewriteStream)
-
-      // integrity checks
-      let memHash = (await getHash(memStream, 'sha1')).toString('base64')
-      let swapHash = (await getHash(swapfilepath, 'sha1')).toString('base64')
-      if (memHash !== swapHash) {
-        reject(new Error(`File integrity check failed`))
-        return;
-      }
-
-      // copy swapfile to original filepath
-      try {
-        await copyFile(swapfilepath, filepath)
-      } catch (e) {
-        reject(e)
-        return;
-      }
-
-      // delete swapfile
-      try {
-        await deleteFile(swapfilepath)
-      } catch (e) {
-        reject(e)
-        return;
-      }
-
-      document.title = `${path.basename(filepath)} - Gingko`
-      toElm('FileState', [filepath, false])
-      resolve(true)
     }
   )
 }
