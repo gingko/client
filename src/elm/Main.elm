@@ -1351,7 +1351,10 @@ intentImport model =
 
 intentSave : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 intentSave (model, prevCmd) =
-  model ! [ prevCmd, sendOut ( Save model.filepath ) ]
+  if model.changed then
+    model ! [ prevCmd, sendOut ( Save model.filepath ) ]
+  else
+    model ! [ prevCmd ]
 
 
 intentSaveAs : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
