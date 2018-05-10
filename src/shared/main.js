@@ -75,7 +75,7 @@ var filename = querystring.parse(window.location.search.slice(1))['filename'] ||
 document.title = `${filename} - Gingko`
 
 var dbpath = path.join(app.getPath('userData'), dbname)
-self.db = new PouchDB(dbpath, {adapter: 'memory'})
+self.db = new PouchDB(dbpath)
 
 var initFlags =
   [ process.platform === "darwin"
@@ -938,7 +938,7 @@ const clearDb = (dbname) => {
 
       dbname = dbname ? dbname : sha1(Date.now()+machineIdSync())
       dbpath = path.join(app.getPath('userData'), dbname)
-      self.db = new PouchDB(dbpath, {adapter: 'memory'})
+      self.db = new PouchDB(dbpath)
       resolve()
     }
   )
