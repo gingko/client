@@ -12,7 +12,7 @@ const {app, dialog} = remote
 const querystring = require('querystring')
 const Store = require('electron-store')
 
-import PouchDB from "pouchdb-browser";
+import PouchDB from "pouchdb";
 
 const replicationStream = require('pouchdb-replication-stream')
 PouchDB.plugin(replicationStream.plugin)
