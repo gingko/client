@@ -71,37 +71,34 @@ sendOut info =
     SaveAs filepath_ ->
       dataToSend ( maybeToValue string filepath_ )
 
-    ExportDOCX str filepath_ ->
-      dataToSend ( list [ string str, maybeToValue string filepath_ ] )
+    ExportDOCX str ->
+      dataToSend ( string str )
 
-    ExportJSON tree filepath_ ->
-      dataToSend ( list [ treeToJSON tree , maybeToValue string filepath_ ] )
+    ExportJSON tree ->
+      dataToSend ( treeToJSON tree )
 
-    ExportTXT withRoot tree filepath_ ->
-      dataToSend ( list  [ treeToMarkdown withRoot tree , maybeToValue string filepath_ ] )
+    ExportTXT withRoot tree ->
+      dataToSend ( treeToMarkdown withRoot tree )
 
     -- ExportTXTColumn is handled by 'ExportTXT' in JS
     -- So we use the "ExportTXT" tag here, instead of `dataToSend`
-    ExportTXTColumn col tree filepath_ ->
+    ExportTXTColumn col tree ->
       infoForOutside
         { tag = "ExportTXT"
         , data =
-            ( list 
-              [ tree
+            ( tree
                 |> getColumn col
                 |> Maybe.withDefault [[]]
                 |> List.concat
                 |> List.map .content
                 |> String.join "\n\n"
                 |> string
-              , maybeToValue string filepath_
-              ]
             )
         }
 
     -- === DOM ===
 
-    ActivateCards (cardId, col, lastActives, filepath_) ->
+    ActivateCards (cardId, col, lastActives) ->
       let
         listListStringToValue lls =
           lls
@@ -114,7 +111,6 @@ sendOut info =
           [ ( "cardId", string cardId )
           , ( "column", int col )
           , ( "lastActives", listListStringToValue lastActives )
-          , ( "filepath", maybeToValue string filepath_ )
           ]
         )
 
@@ -159,21 +155,6 @@ receiveMsg tagger onError =
         case outsideInfo.tag of
           -- === Dialogs, Menus, Window State ===
 
-          "IntentNew" ->
-            tagger <| IntentNew
-
-          "IntentOpen" ->
-            tagger <| IntentOpen
-
-          "IntentImport" ->
-            tagger <| IntentImport
-
-          "IntentSave" ->
-            tagger <| IntentSave
-
-          "IntentSaveAs" ->
-            tagger <| IntentSaveAs
-
           "IntentExport" ->
             case decodeValue exportSettingsDecoder outsideInfo.data of
               Ok exportSettings ->
@@ -182,9 +163,6 @@ receiveMsg tagger onError =
               Err e ->
                 onError e
 
-          "IntentExit" ->
-            tagger <| IntentExit
-
           "CancelCardConfirmed" ->
             tagger <| CancelCardConfirmed
 
@@ -192,14 +170,6 @@ receiveMsg tagger onError =
 
           "New" ->
             tagger <| New
-
-          "Open" ->
-            case decodeValue ( tripleDecoder Json.Decode.string Json.Decode.value (Json.Decode.maybe Json.Decode.string) ) outsideInfo.data of
-              Ok ( filepath, json, lastActive_ ) ->
-                tagger <| Open (filepath, json, lastActive_ |> Maybe.withDefault "1" )
-
-              Err e ->
-                onError e
 
           "SetHeadRev" ->
             case decodeValue Json.Decode.string outsideInfo.data of
@@ -221,7 +191,7 @@ receiveMsg tagger onError =
             let decoder = tupleDecoder (Json.Decode.maybe Json.Decode.string) Json.Decode.bool in
             case decodeValue decoder outsideInfo.data of
               Ok (filepath_, changed) ->
-                tagger <| FileState filepath_ changed
+                tagger <| FileState changed
 
               Err e ->
                 onError e

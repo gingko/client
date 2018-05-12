@@ -46,7 +46,8 @@ type alias Model =
   , videoModalOpen : Bool
   , startingWordcount : Int
   , online : Bool
-  , filepath : Maybe String
+  , documentName : Maybe String
+  , databaseKey : String
   , changed : Bool
   }
 
@@ -75,7 +76,8 @@ defaultModel =
   , videoModalOpen = False
   , startingWordcount = 0
   , online = False
-  , filepath = Nothing
+  , documentName = Nothing
+  , databaseKey = ""
   , changed = False
   }
 
@@ -289,23 +291,6 @@ update msg ({objects, workingTree, status} as model) =
       case incomingMsg of
         -- === Dialogs, Menus, Window State ===
 
-        IntentNew ->
-          intentNew model
-
-        IntentOpen ->
-          intentOpen model
-
-        IntentImport ->
-          intentImport model
-
-        IntentSave ->
-          model ! []
-            |> intentSave
-
-        IntentSaveAs ->
-          model ! []
-            |> intentSaveAs
-
         IntentExport exportSettings ->
           case exportSettings.format of
             DOCX ->
@@ -330,7 +315,7 @@ update msg ({objects, workingTree, status} as model) =
               in
               model ! []
                 |> saveCardIfEditing
-                |> \(m, c) -> m ! [ c,  sendOut ( ExportDOCX ( markdownString m ) m.filepath ) ]
+                |> \(m, c) -> m ! [ c,  sendOut ( ExportDOCX ( markdownString m ) ) ]
 
 
             JSON ->
@@ -338,7 +323,7 @@ update msg ({objects, workingTree, status} as model) =
                 All ->
                   model ! []
                     |> saveCardIfEditing
-                    |> \(m, c) -> m ! [ c,  sendOut ( ExportJSON m.workingTree.tree m.filepath ) ]
+                    |> \(m, c) -> m ! [ c,  sendOut ( ExportJSON m.workingTree.tree ) ]
 
                 _ -> model ! []
 
@@ -347,7 +332,7 @@ update msg ({objects, workingTree, status} as model) =
                 All ->
                   model ! []
                     |> saveCardIfEditing
-                    |> \(m, c) -> m ! [ c,  sendOut ( ExportTXT False m.workingTree.tree m.filepath ) ]
+                    |> \(m, c) -> m ! [ c,  sendOut ( ExportTXT False m.workingTree.tree ) ]
 
                 CurrentSubtree ->
                   let
@@ -357,15 +342,12 @@ update msg ({objects, workingTree, status} as model) =
                   in
                   model ! []
                     |> saveCardIfEditing
-                    |> \(m, c) -> m ! [ c,  sendOut ( ExportTXT True (getCurrentSubtree m) m.filepath ) ]
+                    |> \(m, c) -> m ! [ c,  sendOut ( ExportTXT True (getCurrentSubtree m) ) ]
 
                 ColumnNumber col ->
                   model ! []
                     |> saveCardIfEditing
-                    |> \(m, c) -> m ! [ c,  sendOut ( ExportTXTColumn col m.workingTree.tree m.filepath ) ]
-
-        IntentExit ->
-          intentExit model
+                    |> \(m, c) -> m ! [ c,  sendOut ( ExportTXTColumn col m.workingTree.tree ) ]
 
         CancelCardConfirmed ->
           model ! []
@@ -375,76 +357,6 @@ update msg ({objects, workingTree, status} as model) =
 
         New ->
           actionNew model
-
-        Open (filepath, json, lastActiveCard) ->
-          let
-            -- Reset model, while keeping flags intact
-            baseModel =
-              init (model.isMac, model.shortcutTrayOpen, model.videoModalOpen)
-                |> Tuple.first
-
-            (newStatus, newTree_, newObjects) =
-                Objects.update (Objects.Init json) objects
-
-            startingWordcount =
-              newTree_
-                |> Maybe.map (\t -> countWords (treeToMarkdownString False t))
-                |> Maybe.withDefault 0
-          in
-          case (newStatus, newTree_) of
-            (Clean newHead, Nothing) -> -- no changes to Tree
-              { baseModel
-                | status = newStatus
-                , startingWordcount = startingWordcount
-                , filepath = Just filepath
-                , changed = False
-              }
-                ! [ sendOut ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
-                |> maybeColumnsChanged model.workingTree.columns
-                |> activate lastActiveCard
-
-            (Clean newHead, Just newTree) ->
-              { baseModel
-                | workingTree = Trees.setTree newTree model.workingTree
-                , objects = newObjects
-                , status = newStatus
-                , startingWordcount = startingWordcount
-                , filepath = Just filepath
-                , changed = False
-              }
-                ! [ sendOut ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
-                |> maybeColumnsChanged model.workingTree.columns
-                |> activate lastActiveCard
-
-            (MergeConflict mTree oldHead newHead [], Just newTree) ->
-              { baseModel
-                | workingTree = Trees.setTree newTree model.workingTree
-                , objects = newObjects
-                , status = newStatus
-                , startingWordcount = startingWordcount
-                , filepath = Just filepath
-                , changed = False
-              }
-                ! [ sendOut ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
-                |> maybeColumnsChanged model.workingTree.columns
-                |> activate lastActiveCard
-
-            (MergeConflict mTree oldHead newHead conflicts, Just newTree) ->
-              { baseModel
-                | workingTree = Trees.setTreeWithConflicts conflicts mTree model.workingTree
-                , objects = newObjects
-                , status = newStatus
-                , startingWordcount = startingWordcount
-                , filepath = Just filepath
-                , changed = False
-              }
-                ! [ sendOut ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) ) ]
-                |> maybeColumnsChanged model.workingTree.columns
-                |> activate lastActiveCard
-
-            _ ->
-              let _ = Debug.log "failed to load json" (newStatus, newTree_, newObjects, json) in
-              model ! []
 
         SetHeadRev rev ->
           { model
@@ -528,10 +440,9 @@ update msg ({objects, workingTree, status} as model) =
 
         -- === File System ===
 
-        FileState filepath_ changed ->
+        FileState changed ->
           { model
-            | filepath = filepath_
-            , changed = changed
+            | changed = changed
           }
             ! []
 
@@ -692,16 +603,9 @@ update msg ({objects, workingTree, status} as model) =
               let _ = Debug.log "model" model in
               model ! []
 
-            "mod+n" ->
-              intentNew model
-
             "mod+s" ->
               model ! []
                 |> saveCardIfEditing
-                |> intentSave
-
-            "mod+o" ->
-              intentOpen model
 
             "mod+b" ->
               case vs.editing of
@@ -816,7 +720,6 @@ activate id (model, prevCmd) =
                 ( id
                 , getDepth 0 model.workingTree.tree id
                 , centerlineIds flatCols allIds newPast
-                , model.filepath
                 )
               )
             ]
@@ -1265,7 +1168,7 @@ addToHistory ({workingTree} as model, prevCmd) =
         ! [ prevCmd
           , sendOut ( SaveToDB ( statusToValue newStatus , Objects.toValue newObjects ) )
           , sendOut ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
-          , sendOut ( ChangeTitle model.filepath True )
+          , sendOut ( ChangeTitle model.documentName True )
           ]
 
     Clean oldHead ->
@@ -1281,7 +1184,7 @@ addToHistory ({workingTree} as model, prevCmd) =
         ! [ prevCmd
           , sendOut ( SaveToDB ( statusToValue newStatus , Objects.toValue newObjects ) )
           , sendOut ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
-          , sendOut ( ChangeTitle model.filepath True )
+          , sendOut ( ChangeTitle model.documentName True )
           ]
 
     MergeConflict _ oldHead newHead conflicts ->
@@ -1298,7 +1201,7 @@ addToHistory ({workingTree} as model, prevCmd) =
           ! [ prevCmd
             , sendOut ( SaveToDB ( statusToValue newStatus , Objects.toValue newObjects ) )
             , sendOut ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
-            , sendOut ( ChangeTitle model.filepath True )
+            , sendOut ( ChangeTitle model.documentName True )
             ]
       else
         model
@@ -1310,78 +1213,11 @@ addToHistory ({workingTree} as model, prevCmd) =
 -- === Files ===
 
 
-saveChangesDialog : String -> ( Model -> ( Model, Cmd Msg ) ) -> Model -> ( Model, Cmd Msg )
-saveChangesDialog actionId actionFunction model =
-  case (model.changed, model.viewState.editing) of
-    ( False, _ ) ->
-      actionFunction model
-
-    ( True, Nothing ) ->
-      let
-        (status, objects) = ( statusToValue model.status, Objects.toValue model.objects )
-      in
-      model ! [ sendOut ( ConfirmClose actionId model.filepath (status, objects) ) ]
-
-    ( True, Just eid ) ->
-      let
-        modelCardSaved =
-          model ! []
-            |> saveCardIfEditing
-            |> Tuple.first
-
-        (status, objects) = ( statusToValue modelCardSaved.status, Objects.toValue modelCardSaved.objects )
-      in
-      model ! [ sendOut ( ConfirmClose actionId modelCardSaved.filepath (status, objects) ) ]
-
-
-intentNew : Model -> ( Model, Cmd Msg )
-intentNew model =
-  saveChangesDialog "New" actionNew model
-
-
-intentOpen : Model -> ( Model, Cmd Msg )
-intentOpen model =
-  saveChangesDialog "Open" actionOpen model
-
-
-intentImport : Model -> ( Model, Cmd Msg )
-intentImport model =
-  saveChangesDialog "Import" actionImport model
-
-
-intentSave : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-intentSave (model, prevCmd) =
-  if model.changed then
-    model ! [ prevCmd, sendOut ( Save model.filepath ) ]
-  else
-    model ! [ prevCmd ]
-
-
-intentSaveAs : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-intentSaveAs (model, prevCmd) =
-  model ! [ prevCmd, sendOut ( SaveAs model.filepath ) ]
-
-
-intentExit : Model -> ( Model, Cmd Msg )
-intentExit model =
-  saveChangesDialog "Exit" actionExit model
-
-
 actionNew : Model -> ( Model, Cmd Msg )
 actionNew model =
   init (model.isMac, model.shortcutTrayOpen, model.videoModalOpen)
     |> maybeColumnsChanged model.workingTree.columns
     |> \(m, c) -> m ! [ sendOut ClearDB ]
-
-
-actionOpen : Model -> ( Model, Cmd Msg )
-actionOpen model =
-  model ! [ sendOut ( OpenDialog model.filepath ) ]
-
-
-actionImport : Model -> ( Model, Cmd Msg )
-actionImport model =
-  model ! [ sendOut ( ImportDialog model.filepath ) ]
 
 
 actionExit : Model -> ( Model, Cmd Msg )

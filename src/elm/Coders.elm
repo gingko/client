@@ -4,7 +4,6 @@ import Trees
 import Types exposing (..)
 import Json.Encode as Enc
 import Json.Decode as Json exposing (..)
-import Html5.DragDrop as DragDrop
 
 
 

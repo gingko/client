@@ -50,12 +50,12 @@ type OutgoingMsg
     -- === File System ===
     | Save ( Maybe String )
     | SaveAs ( Maybe String )
-    | ExportDOCX String ( Maybe String )
-    | ExportJSON Tree ( Maybe String )
-    | ExportTXT Bool Tree ( Maybe String )
-    | ExportTXTColumn Int Tree ( Maybe String )
+    | ExportDOCX String
+    | ExportJSON Tree
+    | ExportTXT Bool Tree
+    | ExportTXTColumn Int Tree
     -- === DOM ===
-    | ActivateCards ( String, Int, List (List String), Maybe String )
+    | ActivateCards ( String, Int, List (List String) )
     | FlashCurrentSubtree
     | TextSurround String String
     -- === UI ===
@@ -69,22 +69,15 @@ type OutgoingMsg
 
 type IncomingMsg
     -- === Dialogs, Menus, Window State ===
-    = IntentNew
-    | IntentOpen
-    | IntentImport
-    | IntentSave
-    | IntentSaveAs
-    | IntentExport ExportSettings
-    | IntentExit
+    = IntentExport ExportSettings
     | CancelCardConfirmed
     -- === Database ===
     | New
-    | Open ( String, Json.Value, String )
     | SetHeadRev String
     | Merge Json.Value
     | ImportJSON Json.Value
     -- === File System ===
-    | FileState ( Maybe String ) Bool
+    | FileState Bool
     -- === DOM ===
     | FieldChanged String
     -- === UI ===
