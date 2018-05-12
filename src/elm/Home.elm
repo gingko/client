@@ -2,6 +2,7 @@ port module Home exposing (..)
 
 
 import Html exposing (..)
+import Html.Events exposing (..)
 import Dict exposing (Dict)
 
 
@@ -51,7 +52,12 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-  model ! []
+  case msg of
+    New ->
+      model ! [ forJS "New"]
+
+    _ ->
+      model ! []
 
 
 
@@ -60,11 +66,16 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-  h2 [][ text "Hi from Elm" ]
+  div []
+    [ text "Hi from Elm" 
+    , button [ onClick New ][ text "New" ]
+    ]
 
 
 
 -- SUBSCRIPTIONS
+
+port forJS : String -> Cmd msg
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
