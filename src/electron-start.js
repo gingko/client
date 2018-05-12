@@ -7,12 +7,29 @@ const windowStateKeeper = require('electron-window-state')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let win, winTrial, winSerial
+let win, winTrial, winSerial, winHome
 let _isEditMode = false
 let _columns = 1
 const hiddenStore = new Store({name: "kernel", encryptionKey: "79df64f73eab9bc0d7b448d2008d876e"})
 const userStore = new Store({name: "config"})
 
+
+
+function createHomeWindow () {
+  // Create the browser window.
+  winHome = new BrowserWindow(
+    { width: 800
+    , height: 600
+    , frame : false
+    , backgroundColor: '#32596b'
+    , icon: `${__dirname}/static/leaf128.png`
+    })
+
+  // and load the html of the home window.
+  var url = `file://${__dirname}/static/home.html`
+
+  winHome.loadURL(url)
+}
 
 
 
@@ -133,7 +150,8 @@ app.on('ready', () => {
   let email = userStore.get('email', "")
   let storedSerial = userStore.get('serial', "")
 
-  createAppWindow()
+  createHomeWindow()
+  //createAppWindow()
   if(!validSerial(email, storedSerial)) {
     let activations = getTrialActivations()
     let limit = 30

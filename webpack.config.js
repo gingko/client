@@ -8,6 +8,7 @@ module.exports = {
   context: path.join(__dirname, 'src'),
   entry: {
       electron: './electron-start.js',
+      home: './shared/home.js',
       main: './shared/main.js'
   },
   output: {
@@ -51,6 +52,11 @@ module.exports = {
       template: './index.ejs',
       filename: '../app/static/index.html',
       chunks: ['main']
+    })
+  , new HtmlWebpackPlugin({
+      template: './home.ejs',
+      filename: '../app/static/home.html',
+      chunks: ['home']
     })
   , new CopyWebpackPlugin([{
       from: './static',
