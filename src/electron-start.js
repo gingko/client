@@ -29,7 +29,7 @@ function createHomeWindow () {
   var url = `file://${__dirname}/static/home.html`
 
   winHome.loadURL(url)
-  winHome.setMenu(null)
+  //winHome.setMenu(null)
 }
 
 

@@ -4,11 +4,12 @@ port module Home exposing (..)
 import Html exposing (..)
 import Html.Events exposing (..)
 import Dict exposing (Dict)
+import Json.Decode as Json
 
 
-main : Program Never Model Msg
+main : Program Json.Value Model Msg
 main =
-  program
+  programWithFlags
     { init = init
     , view = view
     , update = update
@@ -33,8 +34,9 @@ type alias Document =
   }
 
 
-init : ( Model, Cmd Msg )
-init =
+init : Json.Value -> ( Model, Cmd Msg )
+init json =
+  let _ = Debug.log "json" json in
   Dict.empty
    ! []
 

@@ -1,7 +1,10 @@
 const {ipcRenderer} = require('electron')
 window.Elm= require('../elm/Home')
+const dbMapping = require('./db-mapping')
 
-self.home = Elm.Home.fullscreen()
+
+let docList = dbMapping.getDocList()
+self.home = Elm.Home.fullscreen(docList)
 
 home.ports.forJS.subscribe(function(elmdata) {
   switch(elmdata){

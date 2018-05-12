@@ -70,12 +70,7 @@ console.log('Gingko version', app.getVersion())
 
 var firstRun = userStore.getWithDefault('first-run', true)
 
-var dbname = querystring.parse(window.location.search.slice(1))['dbname'] || sha1(Date.now()+machineIdSync())
-var filename = querystring.parse(window.location.search.slice(1))['filename'] || "Untitled Tree"
-document.title = `${filename} - Gingko`
 
-var dbpath = path.join(app.getPath('userData'), dbname)
-self.db = new PouchDB(dbpath)
 
 var initFlags =
   [ process.platform === "darwin"
@@ -83,7 +78,12 @@ var initFlags =
   , userStore.getWithDefault('video-modal-is-open', false)
   ]
 
-ipcRenderer.on('main:start-app', function (ev, mainDbname) {
+ipcRenderer.on('main:start-app', function (ev, dbname) {
+  document.title = `Untitled - Gingko`
+
+  var dbpath = path.join(app.getPath('userData'), dbname)
+  self.db = new PouchDB(dbpath)
+
   self.gingko = Elm.Main.fullscreen(initFlags)
 
   gingko.ports.infoForOutside.subscribe(function(elmdata) {
