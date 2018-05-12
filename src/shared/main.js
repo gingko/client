@@ -83,7 +83,13 @@ var initFlags =
   , userStore.getWithDefault('video-modal-is-open', false)
   ]
 
-self.gingko = Elm.Main.fullscreen(initFlags)
+ipcRenderer.on('main:start-app', function (ev, mainDbname) {
+  self.gingko = Elm.Main.fullscreen(initFlags)
+
+  gingko.ports.infoForOutside.subscribe(function(elmdata) {
+    update(elmdata.tag, elmdata.data)
+  })
+})
 self.socket = io.connect('http://localhost:3000')
 
 var toElm = function(tag, data) {
@@ -421,9 +427,6 @@ const update = (msg, data) => {
 }
 
 
-gingko.ports.infoForOutside.subscribe(function(elmdata) {
-  update(elmdata.tag, elmdata.data)
-})
 
 
 

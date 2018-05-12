@@ -12,7 +12,7 @@ const dbMap = new Store({name: "document-list"})
  * @returns {string} - database name, if successful
  */
 function newDb( dbname ) {
-  let dbname = dbname || sha1(Date.now()+machineIdSync())
+  dbname = dbname || sha1(Date.now()+machineIdSync())
 
   if(dbMap.has(dbname)) {
     throw new Error(`Cannot create db named : ${dbname}. Key already exists.`)

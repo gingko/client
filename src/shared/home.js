@@ -1,3 +1,4 @@
+const {ipcRenderer} = require('electron')
 window.Elm= require('../elm/Home')
 
 self.home = Elm.Home.fullscreen()
@@ -5,9 +6,10 @@ self.home = Elm.Home.fullscreen()
 home.ports.forJS.subscribe(function(elmdata) {
   switch(elmdata){
     case "New":
-      // call newDb()
-      // tell electron-start to start an app window
-      // with dbname
+      // tell electron-start to:
+      //   1. call newDb()
+      //   2. start an app window with dbname
+      ipcRenderer.send('home:new')
       break;
   }
 })

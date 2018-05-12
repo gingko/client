@@ -4,6 +4,7 @@ const path = require('path')
 const sha1 = require('sha1')
 const Store = require('electron-store')
 const windowStateKeeper = require('electron-window-state')
+const dbMapping = require('./shared/db-mapping')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -33,7 +34,7 @@ function createHomeWindow () {
 
 
 
-function createAppWindow () {
+function createAppWindow (dbname) {
   let mainWindowState = windowStateKeeper(
     { defaultWidth: 1000
     , defaultHeight: 800
@@ -46,6 +47,7 @@ function createAppWindow () {
     , height: mainWindowState.height
     , x: mainWindowState.x
     , y: mainWindowState.y
+    , show: false
     , backgroundColor: '#32596b'
     , icon: `${__dirname}/static/leaf128.png`
     })
@@ -55,16 +57,12 @@ function createAppWindow () {
   // and load the html of the app.
   var url = `file://${__dirname}/static/index.html`
 
-  if (process.platform !== 'darwin') {
-    if(!!process.argv[1] && !process.argv[0].endsWith('electron')) {
-      url += `#${encodeURIComponent(process.argv[1])}`
-    }
-  } else {
-    if(!!process.argv[2] && !process.argv[0].endsWith('electron')) {
-      url += `#${encodeURIComponent(process.argv[2])}`
-    }
-  }
   win.loadURL(url)
+
+  win.on('ready-to-show', () => {
+    win.webContents.send('main:start-app', dbname)
+    win.show()
+  })
 
   win.on('close', (e) => {
     win.webContents.send('main-exit')
@@ -79,7 +77,6 @@ function createAppWindow () {
     // when you should delete the corresponding element.
     win = null
   })
-
 
 
   // menu is defined outside this function, far below for now.
@@ -181,6 +178,14 @@ app.on('activate', () => {
   if (win === null) {
     createAppWindow()
   }
+})
+
+
+
+ipcMain.on('home:new', (event) => {
+  let dbname = dbMapping.newDb()
+  createAppWindow(dbname)
+  winHome.close()
 })
 
 
