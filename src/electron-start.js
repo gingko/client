@@ -20,7 +20,6 @@ function createHomeWindow () {
   winHome = new BrowserWindow(
     { width: 800
     , height: 600
-    , frame : false
     , backgroundColor: '#32596b'
     , icon: `${__dirname}/static/leaf128.png`
     })
@@ -29,6 +28,7 @@ function createHomeWindow () {
   var url = `file://${__dirname}/static/home.html`
 
   winHome.loadURL(url)
+  winHome.setMenu(null)
 }
 
 
