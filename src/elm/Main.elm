@@ -8,6 +8,7 @@ import Json.Decode as Json
 import Json.Encode exposing (..)
 import Dom
 import Task
+import List.Extra as ListExtra
 
 import Types exposing (..)
 import Trees exposing (..)
@@ -673,6 +674,12 @@ update msg ({objects, workingTree, status} as model) =
             "alt+end" ->
               normalMode model (moveWithin vs.active 999999)
 
+            "home" ->
+              normalMode model (goToTopOfColumn vs.active)
+
+            "end" ->
+              normalMode model (goToBottomOfColumn vs.active)
+
             "mod+x" ->
               normalMode model (cut vs.active)
 
@@ -858,6 +865,39 @@ goUp id (model, prevCmd) =
   in
   model ! [prevCmd]
     |> activate targetId
+
+goToTopOfColumn : String -> (Model, Cmd Msg) -> (Model, Cmd Msg)
+goToTopOfColumn id (model, prevCmd) =
+  let
+      firstSibling = getSiblings id model.workingTree.tree
+        |> ListExtra.getAt 0
+
+      targetId = case firstSibling of
+        Nothing -> id
+        Just firstSiblingTree -> firstSiblingTree.id
+
+  in
+  model ! [prevCmd]
+    |> activate targetId
+
+goToBottomOfColumn : String -> (Model, Cmd Msg) -> (Model, Cmd Msg)
+goToBottomOfColumn id (model, prevCmd) =
+  let
+    siblings = getSiblings id model.workingTree.tree
+    siblingCount =
+      siblings
+        |> List.length
+
+    lastSiblingTree = getSiblings id model.workingTree.tree
+      |> ListExtra.getAt (siblingCount-1)
+
+    targetId = case lastSiblingTree of
+      Nothing -> id
+      Just lastSiblingTree -> lastSiblingTree.id
+  in
+  model ! [prevCmd]
+    |> activate targetId
+
 
 
 goRight : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )

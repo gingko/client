@@ -274,6 +274,8 @@ var shortcuts = [ 'mod+enter'
                 , 'mod+o'
                 , 'mod+b'
                 , 'mod+i'
+                , 'end'
+                , 'home'
                 ];
 
 var needOverride= [ 'mod+n'
