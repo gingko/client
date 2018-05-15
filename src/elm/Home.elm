@@ -4,10 +4,9 @@ port module Home exposing (..)
 import Html exposing (..)
 import Html.Events exposing (..)
 import Dict exposing (Dict)
-import Json.Decode as Json
 
 
-main : Program ( List String ) Model Msg
+main : Program ( List (String, Document) ) Model Msg
 main =
   programWithFlags
     { init = init
@@ -43,10 +42,9 @@ defaultDocument =
   }
 
 
-init : List String -> ( Model, Cmd Msg )
-init dbs =
-  ( dbs
-      |> List.map ( \db -> ( db, defaultDocument ) )
+init : List (String, Document) -> ( Model, Cmd Msg )
+init dbObj =
+  ( dbObj
       |> Dict.fromList
   , Cmd.none
   )
@@ -93,8 +91,18 @@ viewDocList docDict =
   ul []
     ( docDict
       |> Dict.toList
-      |> List.map (\(k, v) -> li [][ button [ onClick ( Load k ) ] [ text k ] ])
+      |> List.map viewDocumentItem
     )
+
+
+viewDocumentItem : ( String, Document) -> Html Msg
+viewDocumentItem (dbname, document) =
+  li []
+    [ text document.name
+    , text "|"
+    , text document.last_modified
+    , button [onClick (Load dbname)][ text "Open" ]
+    ]
 
 
 -- SUBSCRIPTIONS

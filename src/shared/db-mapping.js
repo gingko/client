@@ -33,10 +33,13 @@ function newDb( dbname ) {
 
 
 /**
- * getDocList gets the hash object that represents the database-to-document mapping
+ * getDocList gets an array that represents the database-to-document mapping
  */
 function getDocList() {
-  return dbMap.store
+  let docObject = dbMap.store
+  var keys = Object.keys(docObject)
+  var docList = keys.map((k) => { return [k, docObject[k]] })
+  return docList
 }
 
 

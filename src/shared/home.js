@@ -5,7 +5,7 @@ const dbMapping = require('./db-mapping')
 
 let docList = dbMapping.getDocList()
 console.log(docList)
-self.home = Elm.Home.fullscreen(Object.keys(docList))
+self.home = Elm.Home.fullscreen(docList)
 
 home.ports.forJS.subscribe(function(elmdata) {
   console.log('elmdata', elmdata)
