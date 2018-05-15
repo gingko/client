@@ -18,6 +18,7 @@
   "homepage": "https://github.com/gingko/client",
   "scripts": {
     "start": "webpack --watch",
+    "postinstall": "electron-rebuild",
     "test": "electron-mocha --renderer test/unit.js || true",
     "test:integration": "mocha test/integration.js",
     "build": "webpack",
@@ -101,7 +102,5 @@
     "webpack": "^3.5.5",
     "webpack-dev-server": "^2.7.1"
   },
-  "optionalDependencies": {
-    "robotjs": "^0.5.1"
-  }
+  "optionalDependencies": {}
 }
