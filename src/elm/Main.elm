@@ -21,7 +21,7 @@ import Coders exposing (..)
 import Html5.DragDrop as DragDrop
 
 
-main : Program (Bool, Bool, Bool) Model Msg
+main : Program (Json.Value, InitModel) Model Msg
 main =
   programWithFlags
     { init = init
@@ -49,6 +49,15 @@ type alias Model =
   , documentName : Maybe String
   , databaseKey : String
   , changed : Bool
+  }
+
+
+type alias InitModel =
+  { documentName : String
+  , databaseKey : String
+  , isMac : Bool
+  , shortcutTrayOpen : Bool
+  , videoModalOpen : Bool
   }
 
 
@@ -82,12 +91,29 @@ defaultModel =
   }
 
 
-init : (Bool, Bool, Bool) -> (Model, Cmd Msg)
-init (isMac, trayIsOpen, videoModalIsOpen) =
+init : (Json.Value, InitModel) -> (Model, Cmd Msg)
+init (json, modelIn) =
+  let
+    (newStatus, newTree_, newObjects) =
+      Objects.update (Objects.Init json) defaultModel.objects
+
+    newTree = Maybe.withDefault Trees.defaultTree newTree_
+
+    startingWordcount =
+      newTree_
+        |> Maybe.map (\t -> countWords (treeToMarkdownString False t))
+        |> Maybe.withDefault 0
+  in
   { defaultModel
-    | isMac = isMac
-    , shortcutTrayOpen = trayIsOpen
-    , videoModalOpen = videoModalIsOpen
+    | workingTree = Trees.setTree newTree defaultModel.workingTree
+    , objects = newObjects
+    , status = newStatus
+    , isMac = modelIn.isMac
+    , shortcutTrayOpen = modelIn.shortcutTrayOpen
+    , videoModalOpen = modelIn.videoModalOpen
+    , startingWordcount = startingWordcount
+    , documentName = Just modelIn.documentName
+    , databaseKey = modelIn.databaseKey
   }
     ! [focus "1"]
     |> activate "1"
@@ -355,9 +381,6 @@ update msg ({objects, workingTree, status} as model) =
 
         -- === Database ===
 
-        New ->
-          actionNew model
-
         SetHeadRev rev ->
           { model
             | objects = Objects.setHeadRev rev model.objects
@@ -411,32 +434,7 @@ update msg ({objects, workingTree, status} as model) =
               model ! []
 
         ImportJSON json ->
-          case Json.decodeValue treeDecoder json of
-            Ok newTree ->
-              let
-                -- Reset model, while keeping flags intact
-                baseModel =
-                  init (model.isMac, model.shortcutTrayOpen, model.videoModalOpen)
-                    |> Tuple.first
-
-                (newStatus, _, newObjects) =
-                  Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" newTree) model.objects
-              in
-              { baseModel
-                | workingTree = Trees.setTree newTree model.workingTree
-                , objects = newObjects
-                , status = newStatus
-                , changed = True
-              }
-                ! [ sendOut ( SaveToDB ( statusToValue newStatus , Objects.toValue newObjects ) )
-                  , sendOut ( UpdateCommits ( newObjects |> Objects.toValue, getHead newStatus ) )
-                  ]
-                  |> maybeColumnsChanged model.workingTree.columns
-                  |> activate vs.active
-
-            Err err ->
-              let _ = Debug.log "ImportJson error" err in
-              model ! []
+          model ! []
 
         -- === File System ===
 
@@ -1211,13 +1209,6 @@ addToHistory ({workingTree} as model, prevCmd) =
 
 
 -- === Files ===
-
-
-actionNew : Model -> ( Model, Cmd Msg )
-actionNew model =
-  init (model.isMac, model.shortcutTrayOpen, model.videoModalOpen)
-    |> maybeColumnsChanged model.workingTree.columns
-    |> \(m, c) -> m ! [ sendOut ClearDB ]
 
 
 actionExit : Model -> ( Model, Cmd Msg )

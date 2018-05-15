@@ -4,15 +4,20 @@ const dbMapping = require('./db-mapping')
 
 
 let docList = dbMapping.getDocList()
-self.home = Elm.Home.fullscreen(docList)
+console.log(docList)
+self.home = Elm.Home.fullscreen(Object.keys(docList))
 
 home.ports.forJS.subscribe(function(elmdata) {
-  switch(elmdata){
+  console.log('elmdata', elmdata)
+  switch(elmdata.tag){
     case "New":
-      // tell electron-start to:
-      //   1. call newDb()
-      //   2. start an app window with dbname
       ipcRenderer.send('home:new')
+      break;
+    case "Load":
+      ipcRenderer.send('home:load', elmdata.data)
+      break;
+    default:
+      throw new Error('unexpected input from Elm')
       break;
   }
 })

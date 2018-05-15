@@ -71,23 +71,33 @@ console.log('Gingko version', app.getVersion())
 var firstRun = userStore.getWithDefault('first-run', true)
 
 
-var initFlags =
-  [ process.platform === "darwin"
-  , userStore.getWithDefault('shortcut-tray-is-open', true)
-  , userStore.getWithDefault('video-modal-is-open', false)
-  ]
 
 ipcRenderer.on('main:start-app', function (ev, dbname) {
   document.title = `Untitled - Gingko`
 
   var dbpath = path.join(app.getPath('userData'), dbname)
+  console.log('dbname', dbname)
+
   self.db = new PouchDB(dbpath)
 
-  self.gingko = Elm.Main.fullscreen(initFlags)
+  load().then(function (toSend) {
+    console.log(toSend)
+    var initFlags =
+      [ toSend
+      , { documentName : "Untitled"
+        , databaseKey : dbname
+        , isMac : process.platform === "darwin"
+        , shortcutTrayOpen : userStore.getWithDefault('shortcut-tray-is-open', true)
+        , videoModalOpen : userStore.getWithDefault('video-modal-is-open', false)
+        }
+      ]
+    self.gingko = Elm.Main.fullscreen(initFlags)
 
-  gingko.ports.infoForOutside.subscribe(function(elmdata) {
-    update(elmdata.tag, elmdata.data)
+    gingko.ports.infoForOutside.subscribe(function(elmdata) {
+      update(elmdata.tag, elmdata.data)
+    })
   })
+
 })
 
 self.socket = io.connect('http://localhost:3000')
@@ -433,7 +443,6 @@ const update = (msg, data) => {
 
 /* === JS to Elm Ports === */
 
-ipcRenderer.on('open-file', (e, msg) => { console.log('loading:', msg); loadFile(msg) })
 ipcRenderer.on('menu-new', () => toElm('IntentNew', null))
 ipcRenderer.on('menu-open', () => toElm('IntentOpen', null ))
 ipcRenderer.on('menu-import-json', () => toElm('IntentImport', null))
@@ -480,47 +489,47 @@ const processData = function (data, type) {
 
 
 const load = function(filepath, headOverride){
-  db.get('status')
-    .catch(err => {
-      if(err.name == "not_found") {
-        console.log('load status not found. Setting to "bare".')
-        return {_id: 'status' , status : 'bare', bare: true}
-      } else {
-        console.log('load status error', err)
-      }
-    })
-    .then(statusDoc => {
-      status = statusDoc.status;
-
-      db.allDocs(
-        { include_docs: true
-        }).then(function (result) {
-        let data = result.rows.map(r => r.doc)
-
-        let commits = processData(data, "commit");
-        let trees = processData(data, "tree");
-        let refs = processData(data, "ref");
-        let status = _.omit(statusDoc, '_rev')
-
-        if(headOverride) {
-          refs['heads/master'] = headOverride
-        } else if (_.isEmpty(refs)) {
-          var keysSorted = Object.keys(commits).sort(function(a,b) { return commits[b].timestamp - commits[a].timestamp })
-          var lastCommit = keysSorted[0]
-          refs['heads/master'] = { value: lastCommit, ancestors: [], _rev: "" }
-          console.log('recovered status', status)
-          console.log('refs recovered', refs)
+  return new Promise( (resolve, reject) => {
+    db.get('status')
+      .catch(err => {
+        if(err.name == "not_found") {
+          console.log('load status not found. Setting to "bare".')
+          return {_id: 'status' , status : 'bare', bare: true}
+        } else {
+          reject('load status error' + err)
         }
-
-        let toSend = [filepath, [status, { commits: commits, treeObjects: trees, refs: refs}], getLastActive(filepath)];
-
-        document.title = `${path.basename(filepath)} - Gingko`
-        toElm('Open', toSend);
-      }).catch(function (err) {
-        dialog.showMessageBox(errorAlert("Loading Error", "Couldn't load file.", err))
-        console.log(err)
       })
+      .then(statusDoc => {
+        status = statusDoc.status;
+
+        db.allDocs(
+          { include_docs: true
+          }).then(function (result) {
+          let data = result.rows.map(r => r.doc)
+
+          let commits = processData(data, "commit");
+          let trees = processData(data, "tree");
+          let refs = processData(data, "ref");
+          let status = _.omit(statusDoc, '_rev')
+
+          if(headOverride) {
+            refs['heads/master'] = headOverride
+          } else if (_.isEmpty(refs)) {
+            var keysSorted = Object.keys(commits).sort(function(a,b) { return commits[b].timestamp - commits[a].timestamp })
+            var lastCommit = keysSorted[0]
+            refs['heads/master'] = { value: lastCommit, ancestors: [], _rev: "" }
+            console.log('recovered status', status)
+            console.log('refs recovered', refs)
+          }
+
+          let toSend = [status, { commits: commits, treeObjects: trees, refs: refs}];
+          resolve(toSend)
+        }).catch(function (err) {
+          dialog.showMessageBox(errorAlert("Loading Error", "Couldn't load file.", err))
+          reject(err)
+        })
     })
+  })
 }
 
 const merge = function(local, remote){

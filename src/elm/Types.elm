@@ -72,7 +72,6 @@ type IncomingMsg
     = IntentExport ExportSettings
     | CancelCardConfirmed
     -- === Database ===
-    | New
     | SetHeadRev String
     | Merge Json.Value
     | ImportJSON Json.Value

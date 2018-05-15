@@ -168,9 +168,6 @@ receiveMsg tagger onError =
 
           -- === Database ===
 
-          "New" ->
-            tagger <| New
-
           "SetHeadRev" ->
             case decodeValue Json.Decode.string outsideInfo.data of
               Ok rev ->

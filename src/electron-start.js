@@ -189,6 +189,13 @@ ipcMain.on('home:new', (event) => {
 })
 
 
+ipcMain.on('home:load', (event, dbToLoad) => {
+  console.log(dbToLoad)
+  createAppWindow(dbToLoad)
+  winHome.close()
+})
+
+
 ipcMain.on('column-number-change', (event, cols) => {
   if (_columns != cols) {
     _columns = cols
