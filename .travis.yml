@@ -42,6 +42,7 @@ install:
   - chmod +x $(npm config get prefix)/bin/elm-make
 
 before_script:
+  - git lfs pull
   - travis_wait 30 yarn build
 
 script:
