@@ -208,6 +208,19 @@ ipcMain.on('edit-mode-toggle', (event, isEditing) => {
 })
 
 
+ipcMain.on('elm-ready', () => {
+  if(process.argv[0].endsWith('electron')) {
+    if(typeof process.argv[2] == 'string') {
+      win.webContents.send('open-file', process.argv[2])
+    }
+  } else {
+    if(typeof process.argv[1] == 'string') {
+      win.webContents.send('open-file', process.argv[1])
+    }
+  }
+})
+
+
 ipcMain.on('serial', (event, msg) => {
   let newEmail = msg[0]
   let newSerial = msg[1]

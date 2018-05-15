@@ -12,7 +12,7 @@ const {app, dialog} = remote
 const querystring = require('querystring')
 const Store = require('electron-store')
 
-import PouchDB from "pouchdb-browser";
+import PouchDB from "pouchdb";
 
 const replicationStream = require('pouchdb-replication-stream')
 PouchDB.plugin(replicationStream.plugin)
@@ -71,7 +71,6 @@ console.log('Gingko version', app.getVersion())
 var firstRun = userStore.getWithDefault('first-run', true)
 
 
-
 var initFlags =
   [ process.platform === "darwin"
   , userStore.getWithDefault('shortcut-tray-is-open', true)
@@ -90,6 +89,7 @@ ipcRenderer.on('main:start-app', function (ev, dbname) {
     update(elmdata.tag, elmdata.data)
   })
 })
+
 self.socket = io.connect('http://localhost:3000')
 
 var toElm = function(tag, data) {
@@ -433,6 +433,7 @@ const update = (msg, data) => {
 
 /* === JS to Elm Ports === */
 
+ipcRenderer.on('open-file', (e, msg) => { console.log('loading:', msg); loadFile(msg) })
 ipcRenderer.on('menu-new', () => toElm('IntentNew', null))
 ipcRenderer.on('menu-open', () => toElm('IntentOpen', null ))
 ipcRenderer.on('menu-import-json', () => toElm('IntentImport', null))
@@ -872,7 +873,18 @@ const loadFile = async (filepath) => {
     return;
   }
 
-  let rs = fs.createReadStream(filepath)
+  try {
+    var rs = fs.createReadStream(filepath)
+  } catch(e) {
+    dialog.showMessageBox(errorAlert("Error loading file","Couldn't read file data correctly.", e))
+    return;
+  }
+
+  rs.on('error', (e) => {
+    dialog.showMessageBox(errorAlert("Error loading file","Couldn't read file data correctly.", e))
+    return;
+  })
+
   try {
     var loadOp = await db.load(rs)
   } catch(e) {
