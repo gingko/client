@@ -490,44 +490,55 @@ const processData = function (data, type) {
 
 const load = function(filepath, headOverride){
   return new Promise( (resolve, reject) => {
-    db.get('status')
-      .catch(err => {
-        if(err.name == "not_found") {
-          console.log('load status not found. Setting to "bare".')
-          return {_id: 'status' , status : 'bare', bare: true}
-        } else {
-          reject('load status error' + err)
-        }
-      })
-      .then(statusDoc => {
-        status = statusDoc.status;
+    db.info().then(function (result) {
+      if (result.doc_count == 0) {
+        let toSend = [{_id: 'status' , status : 'bare', bare: true}, { commits: {}, treeObjects: {}, refs: {}}];
+        resolve(toSend)
+      } else {
 
-        db.allDocs(
-          { include_docs: true
-          }).then(function (result) {
-          let data = result.rows.map(r => r.doc)
+        console.log('shouldn"t get here on new')
+        db.get('status')
+          .catch(err => {
+            if(err.name == "not_found") {
+              console.log('load status not found. Setting to "bare".')
+              return {_id: 'status' , status : 'bare', bare: true}
+            } else {
+              reject('load status error' + err)
+            }
+          })
+          .then(statusDoc => {
+            status = statusDoc.status;
 
-          let commits = processData(data, "commit");
-          let trees = processData(data, "tree");
-          let refs = processData(data, "ref");
-          let status = _.omit(statusDoc, '_rev')
+            db.allDocs(
+              { include_docs: true
+              }).then(function (result) {
+              let data = result.rows.map(r => r.doc)
 
-          if(headOverride) {
-            refs['heads/master'] = headOverride
-          } else if (_.isEmpty(refs)) {
-            var keysSorted = Object.keys(commits).sort(function(a,b) { return commits[b].timestamp - commits[a].timestamp })
-            var lastCommit = keysSorted[0]
-            refs['heads/master'] = { value: lastCommit, ancestors: [], _rev: "" }
-            console.log('recovered status', status)
-            console.log('refs recovered', refs)
-          }
+              let commits = processData(data, "commit");
+              let trees = processData(data, "tree");
+              let refs = processData(data, "ref");
+              let status = _.omit(statusDoc, '_rev')
 
-          let toSend = [status, { commits: commits, treeObjects: trees, refs: refs}];
-          resolve(toSend)
-        }).catch(function (err) {
-          dialog.showMessageBox(errorAlert("Loading Error", "Couldn't load file.", err))
-          reject(err)
+              if(headOverride) {
+                refs['heads/master'] = headOverride
+              } else if (_.isEmpty(refs)) {
+                var keysSorted = Object.keys(commits).sort(function(a,b) { return commits[b].timestamp - commits[a].timestamp })
+                var lastCommit = keysSorted[0]
+                if (!!lastCommit) {
+                  refs['heads/master'] = { value: lastCommit, ancestors: [], _rev: "" }
+                  console.log('recovered status', status)
+                  console.log('refs recovered', refs)
+                }
+              }
+
+              let toSend = [status, { commits: commits, treeObjects: trees, refs: refs}];
+              resolve(toSend)
+            }).catch(function (err) {
+              dialog.showMessageBox(errorAlert("Loading Error", "Couldn't load file.", err))
+              reject(err)
+            })
         })
+      }
     })
   })
 }
