@@ -31,10 +31,6 @@
   },
   "build": {
     "appId": "com.gingkoapp.desktop",
-    "fileAssociations": {
-      "ext": "gko",
-      "name": "Gingko Tree"
-    },
     "extraResources": [
       {
         "from": "./src/bin/${os}/",
