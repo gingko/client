@@ -74,7 +74,7 @@ function setModified( dbname, modifiedDate ) {
     return;
   }
 
-  let modifiedDate = modifiedDate || (new Date())
+  modifiedDate = modifiedDate || (new Date())
   let modifiedDateString = modifiedDate.toJSON()
 
   let currentDoc = dbMap.get(dbname)

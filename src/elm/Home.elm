@@ -91,6 +91,8 @@ viewDocList docDict =
   ul []
     ( docDict
       |> Dict.toList
+      |> List.sortBy ( \(k, v) -> v.last_modified )
+      |> List.reverse
       |> List.map viewDocumentItem
     )
 
@@ -99,7 +101,7 @@ viewDocumentItem : ( String, Document) -> Html Msg
 viewDocumentItem (dbname, document) =
   li []
     [ text document.name
-    , text "|"
+    , text " | "
     , text document.last_modified
     , button [onClick (Load dbname)][ text "Open" ]
     ]

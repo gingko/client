@@ -28,6 +28,7 @@ const ReactDOM = require('react-dom')
 const CommitsGraph = require('react-commits-graph')
 const io = require('socket.io-client')
 
+const dbMapping = require('./db-mapping')
 const fio = require('./file-io')
 const shared = require('./shared')
 window.Elm = require('../elm/Main')
@@ -69,6 +70,7 @@ if(process.env.RUNNING_IN_SPECTRON) {
 console.log('Gingko version', app.getVersion())
 
 var firstRun = userStore.getWithDefault('first-run', true)
+var currentDbname;
 
 
 
@@ -76,7 +78,7 @@ ipcRenderer.on('main:start-app', function (ev, dbname) {
   document.title = `Untitled - Gingko`
 
   var dbpath = path.join(app.getPath('userData'), dbname)
-  console.log('dbname', dbname)
+  currentDbname = dbname
 
   self.db = new PouchDB(dbpath)
 
@@ -660,6 +662,7 @@ self.saveToDB = (status, objects) => {
 
       let head = responses.filter(r => r.id == "heads/master")[0]
       if (head.ok) {
+        dbMapping.setModified(currentDbname)
         resolve(head.rev)
       } else {
         reject(new Error('Reference error when saving to DB.'))
