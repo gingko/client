@@ -282,6 +282,8 @@ var needOverride= [ 'mod+n'
                   , 'mod+o'
                   , 'mod+s'
                   , 'mod+shift+s'
+                  , 'end'
+                  , 'home'
                   ];
 
 /* ===== CommonJS Module exports ===== */
