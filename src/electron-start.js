@@ -30,7 +30,48 @@ function createHomeWindow () {
   var url = `file://${__dirname}/static/home.html`
 
   winHome.loadURL(url)
-  //winHome.setMenu(null)
+  winHome.setMenu(null)
+}
+
+
+// Tests for creating a window that lies on top of the menu
+// on Windows and Linux
+function createTitleBarWindow (parentWindow) {
+  let parentBounds = parentWindow.getBounds()
+
+  var win = new BrowserWindow(
+    { width: parentBounds.width
+    , height: 40
+    , x: parentBounds.x
+    , y: parentBounds.y
+    , frame: false
+    , show: false
+    , focusable: false
+    , parent: parentWindow
+    , transparent: true
+    }
+  )
+
+  parentWindow.on('show', () => {
+    win.show()
+  })
+
+  parentWindow.on('move', () => {
+    let newBounds = parentWindow.getBounds()
+    newBounds.height = 40
+    win.setBounds(newBounds)
+  })
+
+  parentWindow.on('resize', () => {
+    let newBounds = parentWindow.getBounds()
+    newBounds.height = 40
+    win.setBounds(newBounds)
+  })
+
+  // and load the html of the app.
+  var url = `file://${__dirname}/static/list.html`
+
+  win.loadURL(url)
 }
 
 
@@ -84,6 +125,12 @@ function createAppWindow (dbname) {
 
   // menu is defined outside this function, far below for now.
   Menu.setApplicationMenu(menu)
+
+  /*
+  if (process.platform !== 'darwin') {
+    createTitleBarWindow(win)
+  }
+  */
 }
 
 function getTrialActivations() {
@@ -151,7 +198,6 @@ app.on('ready', () => {
   let storedSerial = userStore.get('serial', "")
 
   createHomeWindow()
-  //createAppWindow()
   if(!validSerial(email, storedSerial)) {
     let activations = getTrialActivations()
     let limit = 30
