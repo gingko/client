@@ -39,6 +39,7 @@ function createAppWindow (dbname) {
   let mainWindowState = windowStateKeeper(
     { defaultWidth: 1000
     , defaultHeight: 800
+    , file: `window-state-${dbname}.json`
     }
   )
 
@@ -190,7 +191,6 @@ ipcMain.on('home:new', (event) => {
 
 
 ipcMain.on('home:load', (event, dbToLoad) => {
-  console.log(dbToLoad)
   createAppWindow(dbToLoad)
   winHome.close()
 })
