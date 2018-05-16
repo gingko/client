@@ -25,14 +25,14 @@ sendOut info =
     ImportDialog filepath_ ->
       dataToSend ( maybeToValue string filepath_ )
 
-    ConfirmClose actionName filepath_ (statusValue, objectsValue) ->
-      dataToSend
-        ( object
-            [ ( "action", string actionName  )
-            , ( "filepath", maybeToValue string filepath_ )
-            , ( "document", list [ statusValue, objectsValue ] )
-            ]
-        )
+    SaveAndClose mbToSave ->
+      case mbToSave of
+        Just (statusValue, objectsValue) ->
+          dataToSend
+            ( list [ statusValue, objectsValue ] )
+
+        Nothing ->
+          dataToSend null
 
     ConfirmCancelCard id origContent ->
       dataToSend ( list [ string id, string origContent ] )
@@ -154,6 +154,10 @@ receiveMsg tagger onError =
     (\outsideInfo ->
         case outsideInfo.tag of
           -- === Dialogs, Menus, Window State ===
+
+          "IntentExit" ->
+            tagger <| IntentExit
+
 
           "IntentExport" ->
             case decodeValue exportSettingsDecoder outsideInfo.data of

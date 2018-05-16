@@ -36,7 +36,7 @@ type OutgoingMsg
     = Alert String
     | OpenDialog (Maybe String)
     | ImportDialog (Maybe String)
-    | ConfirmClose String (Maybe String) ( Json.Value, Json.Value )
+    | SaveAndClose ( Maybe ( Json.Value, Json.Value ) )
     | ConfirmCancelCard String String
     | ColumnNumberChange Int
     | ChangeTitle ( Maybe String ) Bool
@@ -69,7 +69,8 @@ type OutgoingMsg
 
 type IncomingMsg
     -- === Dialogs, Menus, Window State ===
-    = IntentExport ExportSettings
+    = IntentExit
+    | IntentExport ExportSettings
     | CancelCardConfirmed
     -- === Database ===
     | SetHeadRev String

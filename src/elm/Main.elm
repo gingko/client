@@ -317,6 +317,21 @@ update msg ({objects, workingTree, status} as model) =
       case incomingMsg of
         -- === Dialogs, Menus, Window State ===
 
+        IntentExit ->
+          if vs.editing /= Nothing then
+            let
+              modelCardSaved =
+                model ! []
+                  |> saveCardIfEditing
+                  |> Tuple.first
+
+              (status, objects) = ( statusToValue modelCardSaved.status, Objects.toValue modelCardSaved.objects )
+            in
+            model ! [ sendOut ( SaveAndClose (Just (status, objects)) ) ]
+          else
+            model ! [ sendOut ( SaveAndClose Nothing ) ]
+
+
         IntentExport exportSettings ->
           case exportSettings.format of
             DOCX ->

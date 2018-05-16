@@ -173,66 +173,19 @@ const update = (msg, data) => {
         }
       }
 
-    , 'ConfirmClose': async () => {
-        let choice = dialog.showMessageBox(saveConfirmationDialogOptions)
-
-        // Cancel
-        if (choice == 1) { return; }
-
-        // Save Changes
-        if (choice == 2) {
-          let savePath = data.filepath ? data.filepath : saveAsDialog()
-
-          if (typeof savePath !== "string") {
-            return;
-          }
-
-          try {
-            await saveToDB(data.document[0], data.document[1])
-          } catch (e) {
-            dialog.showMessageBox(saveErrorAlert(e))
-            return;
-          }
-
-          await save(savePath)
+    , 'SaveAndClose': async () => {
+        console.log(data)
+        if (!!data) {
+           try {
+             await saveToDB(data[0], data[1])
+           } catch (e) {
+             dialog.showMessageBox(saveErrorAlert(e))
+             return;
+           }
         }
 
-        try {
-          await clearDb()
-        } catch (e) {
-          dialog.showMessageBox(errorAlert("Error", "Couldn't clear DB", e))
-          return;
-        }
-        document.title = "Untitled Tree - Gingko"
-
-        switch (data.action) {
-          case "New":
-            toElm('New', null)
-            break;
-
-          case "Open":
-            let filepathArray = openDialog(data.filepath)
-            if(Array.isArray(filepathArray) && filepathArray.length >= 0) {
-              var filepathToLoad = filepathArray[0]
-              loadFile(filepathToLoad)
-            }
-            break;
-
-          case "Import":
-            let importFilepathArray = importDialog(data.filepath)
-            if(Array.isArray(importFilepathArray) && importFilepathArray.length >= 0) {
-              var filepathToImport = importFilepathArray[0]
-              importFile(filepathToImport)
-            }
-            break;
-
-          case "Exit":
-            app.exit()
-            break;
-
-          default:
-            console.log("Unsupported action: " + data.action)
-        }
+        var win = remote.getCurrentWindow();
+        win.destroy();
       }
 
     , 'ConfirmCancelCard': () => {

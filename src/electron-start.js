@@ -68,7 +68,7 @@ function createAppWindow (dbname) {
 
   win.on('close', (e) => {
     win.webContents.send('main-exit')
-    //e.preventDefault()
+    e.preventDefault()
   })
 
   // Emitted when the window is closed.
