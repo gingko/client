@@ -8,7 +8,8 @@ const dbMapping = require('./shared/db-mapping')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let win, winTrial, winSerial, winHome
+let documentWindows = []
+let winTrial, winSerial, winHome
 let _isEditMode = false
 let _columns = 1
 const hiddenStore = new Store({name: "kernel", encryptionKey: "79df64f73eab9bc0d7b448d2008d876e"})
@@ -42,16 +43,17 @@ function createAppWindow (dbname) {
   )
 
   // Create the browser window.
-  win = new BrowserWindow(
+  var win = new BrowserWindow(
     { width: mainWindowState.width
     , height: mainWindowState.height
-    , x: mainWindowState.x
-    , y: mainWindowState.y
+    , x: mainWindowState.x + (documentWindows.length * 30)
+    , y: mainWindowState.y + (documentWindows.length * 30)
     , show: false
     , backgroundColor: '#32596b'
     , icon: `${__dirname}/static/leaf128.png`
     })
 
+  documentWindows.push(win)
   mainWindowState.manage(win);
 
   // and load the html of the app.
@@ -66,7 +68,7 @@ function createAppWindow (dbname) {
 
   win.on('close', (e) => {
     win.webContents.send('main-exit')
-    e.preventDefault()
+    //e.preventDefault()
   })
 
   // Emitted when the window is closed.
@@ -173,10 +175,8 @@ app.on('window-all-closed', () => {
 
 
 app.on('activate', () => {
-  // On macOS it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  if (win === null) {
-    createAppWindow()
+  if (documentWindows.length == 0) {
+    createHomeWindow()
   }
 })
 
@@ -386,13 +386,14 @@ function menuFunction(isEditing, cols) {
         [ { label: 'New'
           , accelerator: 'CmdOrCtrl+N'
           , click (item, focusedWindow) {
-              focusedWindow.webContents.send('menu-new')
+              let dbname = dbMapping.newDb()
+              createAppWindow(dbname)
             }
           }
         , { label: 'Open File...'
           , accelerator: 'CmdOrCtrl+O'
           , click (item, focusedWindow) {
-              focusedWindow.webContents.send('menu-open')
+              createHomeWindow()
             }
           }
         , { type: 'separator' }
