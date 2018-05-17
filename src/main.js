@@ -93,7 +93,7 @@ function createAppWindow (dbName, docName) {
 function createRenameWindow(parentWindow, dbName, currentName, closeDocument) {
   winRename = new BrowserWindow(
   { width: 440
-  , height: 230
+  , height: 140
   , resizable: false
   , minimizable: false
   , fullscreenable: false

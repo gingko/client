@@ -26,21 +26,21 @@ body {
     window.onload = function() {
       docNameInput = document.getElementById('documentName')
       docNameInput.value = currentName
+      docNameInput.select()
     }
 
-    rename = function () {
+    window.onsubmit = function () {
       ipcRenderer.send('rename:renamed', dbName, docNameInput.value, closeDocument)
       this.close()
     }
   </script>
 
   <form>
-    <input id="documentName" style="display:block;width:380px;font-size:150%;" autofocus/>
+    <label for="documentName">Enter a new name for the document:</label>
+    <input id="documentName" style="display:block;width:410px;margin-top:6px;font-size:150%;" autofocus/>
+    <div class="dialog-buttons">
+      <button id="rename" type="submit">Ok</button>
+    </div>
   </form>
-  <br>
-  <hr>
-  <div class="dialog-buttons">
-    <button id="rename" onclick="rename()">Ok</button>
-  </div>
 </body>
 </html>
