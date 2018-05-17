@@ -219,6 +219,7 @@ const update = (msg, data) => {
       // === Database ===
 
     , 'SaveToDB': async () => {
+        document.title = document.title.startsWith('*') ? document.title : '*' + document.title
         try {
           var newHeadRev = await saveToDB(data[0], data[1])
         } catch (e) {
@@ -226,6 +227,7 @@ const update = (msg, data) => {
           return;
         }
         toElm('SetHeadRev', newHeadRev)
+        document.title = document.title.replace(/^\*/, "")
       }
 
     , 'ClearDB': async () => {
