@@ -118,7 +118,8 @@ function createRenameWindow(parentWindow, dbName, currentName, closeDocument) {
   } else {
     winRename.currentName = "Untitled";
   }
-  winRename.dbName = dbName
+  winRename.dbName = dbName;
+  winRename.closeDocument = closeDocument;
 }
 
 
