@@ -25,23 +25,20 @@ sendOut info =
     ImportDialog filepath_ ->
       dataToSend ( maybeToValue string filepath_ )
 
-    SaveAndClose mbToSave ->
-      case mbToSave of
-        Just (statusValue, objectsValue) ->
-          dataToSend
-            ( list [ statusValue, objectsValue ] )
-
-        Nothing ->
-          dataToSend null
+    SaveAndClose toSave_ ->
+      let
+        toSaveData =
+          case toSave_ of
+            Nothing -> null
+            Just (statusValue, objectsValue) -> list [ statusValue, objectsValue ]
+      in
+      dataToSend toSaveData
 
     ConfirmCancelCard id origContent ->
       dataToSend ( list [ string id, string origContent ] )
 
     ColumnNumberChange cols ->
       dataToSend ( int cols )
-
-    ChangeTitle filepath_ changed ->
-      dataToSend ( list [ maybeToValue string filepath_ , bool changed ] )
 
     Exit ->
       dataToSend null

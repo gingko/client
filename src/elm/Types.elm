@@ -39,7 +39,6 @@ type OutgoingMsg
     | SaveAndClose ( Maybe ( Json.Value, Json.Value ) )
     | ConfirmCancelCard String String
     | ColumnNumberChange Int
-    | ChangeTitle ( Maybe String ) Bool
     | Exit
     -- === Database ===
     | SaveToDB ( Json.Value, Json.Value )

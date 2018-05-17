@@ -4,6 +4,8 @@ port module Home exposing (..)
 import Html exposing (..)
 import Html.Events exposing (..)
 import Dict exposing (Dict)
+import Json.Encode as Json exposing (..)
+import Coders exposing (maybeToValue)
 
 
 main : Program ( List (String, Document) ) Model Msg
@@ -26,7 +28,7 @@ type alias Model =
 
 
 type alias Document =
-  { name : String
+  { name : Maybe String
   , state : String
   , created_at : String
   , last_modified : String
@@ -35,7 +37,7 @@ type alias Document =
 
 defaultDocument : Document
 defaultDocument =
-  { name = "Untitled"
+  { name = Just "Untitled"
   , state = "active"
   , created_at = ""
   , last_modified = ""
@@ -57,7 +59,7 @@ init dbObj =
 type Msg
   = NoOp
   | New
-  | Load String
+  | Load String (Maybe String)
 
 
 
@@ -65,10 +67,15 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
     New ->
-      model ! [ forJS { tag = "New", data = "" }]
+      model ! [ forJS { tag = "New", data = string "" }]
 
-    Load dbname ->
-      model ! [ forJS { tag = "Load", data = dbname }]
+    Load dbname docName_ ->
+      let
+        data =
+          [ string dbname, maybeToValue string docName_ ]
+            |> list
+      in
+      model ! [ forJS { tag = "Load", data = data }]
 
     _ ->
       model ! []
@@ -100,16 +107,16 @@ viewDocList docDict =
 viewDocumentItem : ( String, Document) -> Html Msg
 viewDocumentItem (dbname, document) =
   li []
-    [ text document.name
+    [ text ( document.name |> Maybe.withDefault "Untitled" )
     , text " | "
     , text document.last_modified
-    , button [onClick (Load dbname)][ text "Open" ]
+    , button [onClick (Load dbname document.name)][ text "Open" ]
     ]
 
 
 -- SUBSCRIPTIONS
 
-port forJS : { tag : String, data : String } -> Cmd msg
+port forJS : { tag : String, data : Json.Value } -> Cmd msg
 
 subscriptions : Model -> Sub Msg
 subscriptions model =

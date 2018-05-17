@@ -9,7 +9,7 @@ const dbMapping = require('./shared/db-mapping')
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let documentWindows = []
-let winTrial, winSerial, winHome
+let winTrial, winSerial, winHome, winRename
 let _isEditMode = false
 let _columns = 1
 const hiddenStore = new Store({name: "kernel", encryptionKey: "79df64f73eab9bc0d7b448d2008d876e"})
@@ -34,11 +34,11 @@ function createHomeWindow () {
 }
 
 
-function createAppWindow (dbname) {
+function createAppWindow (dbName, docName) {
   let mainWindowState = windowStateKeeper(
     { defaultWidth: 1000
     , defaultHeight: 800
-    , file: `window-state-${dbname}.json`
+    , file: `window-state-${dbName}.json`
     }
   )
 
@@ -46,29 +46,28 @@ function createAppWindow (dbname) {
   var win = new BrowserWindow(
     { width: mainWindowState.width
     , height: mainWindowState.height
-    , x: mainWindowState.x + (documentWindows.length * 30)
-    , y: mainWindowState.y + (documentWindows.length * 30)
+    , x: mainWindowState.x || (documentWindows.length * 30)
+    , y: mainWindowState.y || (documentWindows.length * 30)
     , show: false
     , backgroundColor: '#32596b'
     , icon: `${__dirname}/static/leaf128.png`
     })
 
-  documentWindows.push(win)
+  documentWindows.push(win);
+
   mainWindowState.manage(win);
 
-  // and load the html of the app.
-  var url = `file://${__dirname}/static/index.html`
 
+  // Add variables to BrowserWindow object, so they can be
+  // accessed from the app window
+  win.dbName = dbName;
+  win.docName = docName;
+
+  var url = `file://${__dirname}/static/index.html`
   win.loadURL(url)
 
   win.on('ready-to-show', () => {
-    win.webContents.send('main:start-app', dbname)
     win.show()
-  })
-
-  win.on('close', (e) => {
-    win.webContents.send('main-exit')
-    e.preventDefault()
   })
 
   // Emitted when the window is closed.
@@ -84,6 +83,39 @@ function createAppWindow (dbname) {
   // menu is defined outside this function, far below for now.
   Menu.setApplicationMenu(menu)
 }
+
+
+function createRenameWindow(parentWindow, dbName, currentName) {
+  winRename = new BrowserWindow(
+  { width: 440
+  , height: 230
+  , resizable: false
+  , minimizable: false
+  , fullscreenable: false
+  , backgroundColor: 'lightgray'
+  , modal: true
+  , parent: parentWindow
+  , useContentSize: true
+  , show: false
+  })
+
+  //winRename.setMenu(null)
+
+  winRename.once('ready-to-show', () => {
+    winRename.show()
+  })
+
+  var url = `file://${__dirname}/static/rename.html`
+  winRename.loadURL(url)
+
+  if (!!currentName) {
+    winRename.currentName = currentName;
+  } else {
+    winRename.currentName = "Untitled";
+  }
+  winRename.dbName = dbName
+}
+
 
 function getTrialActivations() {
   let activations = hiddenStore.get('activations', []).concat((new Date).toISOString())
@@ -182,15 +214,28 @@ app.on('activate', () => {
 
 
 ipcMain.on('home:new', (event) => {
-  let dbname = dbMapping.newDb()
-  createAppWindow(dbname)
+  let dbName = dbMapping.newDb()
+  createAppWindow(dbName, null)
   winHome.close()
 })
 
 
-ipcMain.on('home:load', (event, dbToLoad) => {
-  createAppWindow(dbToLoad)
+ipcMain.on('home:load', (event, dbToLoad, docName) => {
+  createAppWindow(dbToLoad, docName)
   winHome.close()
+})
+
+
+ipcMain.on('app:rename', (event, dbName, currName) => {
+  createRenameWindow(BrowserWindow.fromWebContents(event.sender), dbName, currName)
+})
+
+
+ipcMain.on('rename:renamed', (event, dbName, newName, closeDocument) => {
+  dbMapping.renameDoc(dbName, newName)
+  if (closeDocument) {
+    BrowserWindow.fromWebContents(event.sender).getParentWindow().destroy();
+  }
 })
 
 
@@ -384,8 +429,8 @@ function menuFunction(isEditing, cols) {
         [ { label: 'New'
           , accelerator: 'CmdOrCtrl+N'
           , click (item, focusedWindow) {
-              let dbname = dbMapping.newDb()
-              createAppWindow(dbname)
+              let dbName = dbMapping.newDb()
+              createAppWindow(dbName)
             }
           }
         , { label: 'Open File...'

@@ -1,0 +1,45 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Rename Document</title>
+  <link rel="stylesheet" href="modal.css">
+<style>
+body {
+  background-color: lightgray;
+  padding: 20px;
+}
+</style>
+</head>
+
+<body>
+  <script type="text/javascript">
+    const {remote, ipcRenderer} = require('electron')
+
+    let winRename = remote.getCurrentWindow()
+    let currentName = winRename.currentName
+    let dbname = winRename.dbname
+    let docNameInput
+
+    window.onload = function() {
+      docNameInput = document.getElementById('documentName')
+      docNameInput.value = currentName
+    }
+
+    rename = function () {
+      ipcRenderer.send('rename:renamed', dbname, docNameInput.value, true)
+      this.close()
+    }
+  </script>
+
+  <form>
+    <input id="documentName" style="display:block;width:380px;font-size:150%;" autofocus/>
+  </form>
+  <br>
+  <hr>
+  <div class="dialog-buttons">
+    <button id="rename" onclick="rename()">Ok</button>
+  </div>
+</body>
+</html>

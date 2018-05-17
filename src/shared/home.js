@@ -14,7 +14,7 @@ home.ports.forJS.subscribe(function(elmdata) {
       ipcRenderer.send('home:new')
       break;
     case "Load":
-      ipcRenderer.send('home:load', elmdata.data)
+      ipcRenderer.send('home:load', elmdata.data[0], elmdata.data[1])
       break;
     default:
       throw new Error('unexpected input from Elm')

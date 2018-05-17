@@ -20,7 +20,7 @@ function newDb( dbname ) {
   }
 
   let nowDate = (new Date()).toJSON()
-  let newDocument = { name: "Untitled", state: "active", created_at: nowDate, last_modified: nowDate }
+  let newDocument = { name: null, state: "active", created_at: nowDate, last_modified: nowDate }
   dbMap.set(dbname, newDocument)
 
   if(dbMap.has(dbname)) {
@@ -56,7 +56,7 @@ function renameDoc( dbname, newDocName ) {
 
   let currentDoc = dbMap.get(dbname)
 
-  if(currenDoc.name !== newDocName) {
+  if(currentDoc.name !== newDocName) {
     currentDoc.name = newDocName
     dbMap.set(dbname, currentDoc)
   }

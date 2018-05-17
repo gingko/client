@@ -46,16 +46,12 @@ type alias Model =
   , videoModalOpen : Bool
   , startingWordcount : Int
   , online : Bool
-  , documentName : Maybe String
-  , databaseKey : String
   , changed : Bool
   }
 
 
 type alias InitModel =
-  { documentName : String
-  , databaseKey : String
-  , isMac : Bool
+  { isMac : Bool
   , shortcutTrayOpen : Bool
   , videoModalOpen : Bool
   }
@@ -85,8 +81,6 @@ defaultModel =
   , videoModalOpen = False
   , startingWordcount = 0
   , online = False
-  , documentName = Nothing
-  , databaseKey = ""
   , changed = False
   }
 
@@ -112,8 +106,6 @@ init (json, modelIn) =
     , shortcutTrayOpen = modelIn.shortcutTrayOpen
     , videoModalOpen = modelIn.videoModalOpen
     , startingWordcount = startingWordcount
-    , documentName = Just modelIn.documentName
-    , databaseKey = modelIn.databaseKey
   }
     ! [focus "1"]
     |> activate "1"
@@ -327,7 +319,7 @@ update msg ({objects, workingTree, status} as model) =
 
               (status, objects) = ( statusToValue modelCardSaved.status, Objects.toValue modelCardSaved.objects )
             in
-            model ! [ sendOut ( SaveAndClose (Just (status, objects)) ) ]
+            model ! [ sendOut ( SaveAndClose ( Just (status, objects) ) ) ]
           else
             model ! [ sendOut ( SaveAndClose Nothing ) ]
 
@@ -601,6 +593,7 @@ update msg ({objects, workingTree, status} as model) =
               normalMode model (cut vs.active)
 
             "mod+c" ->
+              let _ = Debug.log "model" model in
               normalMode model (copy vs.active)
 
             "mod+v" ->
@@ -1181,7 +1174,6 @@ addToHistory ({workingTree} as model, prevCmd) =
         ! [ prevCmd
           , sendOut ( SaveToDB ( statusToValue newStatus , Objects.toValue newObjects ) )
           , sendOut ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
-          , sendOut ( ChangeTitle model.documentName True )
           ]
 
     Clean oldHead ->
@@ -1197,7 +1189,6 @@ addToHistory ({workingTree} as model, prevCmd) =
         ! [ prevCmd
           , sendOut ( SaveToDB ( statusToValue newStatus , Objects.toValue newObjects ) )
           , sendOut ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
-          , sendOut ( ChangeTitle model.documentName True )
           ]
 
     MergeConflict _ oldHead newHead conflicts ->
@@ -1214,7 +1205,6 @@ addToHistory ({workingTree} as model, prevCmd) =
           ! [ prevCmd
             , sendOut ( SaveToDB ( statusToValue newStatus , Objects.toValue newObjects ) )
             , sendOut ( UpdateCommits ( Objects.toValue newObjects , getHead newStatus ) )
-            , sendOut ( ChangeTitle model.documentName True )
             ]
       else
         model

@@ -37,20 +37,15 @@ window.Elm = require('../elm/Main')
 
 /* === Global Variables === */
 
+const userStore = new Store({name: "config"})
 var lastActivesScrolled = null
 var lastColumnScrolled = null
 var collab = {}
 
-
-const userStore = new Store({name: "config"})
-userStore.getWithDefault = function (key, def) {
-  let val = userStore.get(key);
-  if (typeof val === "undefined") {
-    return def;
-  } else {
-    return val;
-  }
-}
+var firstRun = userStore.get('first-run', true)
+var appWindow = remote.getCurrentWindow()
+var dbName = appWindow.dbName;
+var docName = appWindow.docName;
 
 
 
@@ -69,40 +64,33 @@ if(process.env.RUNNING_IN_SPECTRON) {
 
 console.log('Gingko version', app.getVersion())
 
-var firstRun = userStore.getWithDefault('first-run', true)
-var currentDbname;
+document.title = `${(!!docName) ? docName : "Untitled"} - Gingko`
 
+var dbpath = path.join(app.getPath('userData'), dbName)
+self.db = new PouchDB(dbpath)
 
+load().then(function (dbData) {
+  var initFlags =
+    [ dbData
+    , { isMac : process.platform === "darwin"
+      , shortcutTrayOpen : userStore.get('shortcut-tray-is-open', true)
+      , videoModalOpen : userStore.get('video-modal-is-open', false)
+      }
+    ]
+  self.gingko = Elm.Main.fullscreen(initFlags)
 
-ipcRenderer.on('main:start-app', function (ev, dbname) {
-  document.title = `Untitled - Gingko`
-
-  var dbpath = path.join(app.getPath('userData'), dbname)
-  currentDbname = dbname
-
-  self.db = new PouchDB(dbpath)
-
-  load().then(function (toSend) {
-    console.log(toSend)
-    var initFlags =
-      [ toSend
-      , { documentName : "Untitled"
-        , databaseKey : dbname
-        , isMac : process.platform === "darwin"
-        , shortcutTrayOpen : userStore.getWithDefault('shortcut-tray-is-open', true)
-        , videoModalOpen : userStore.getWithDefault('video-modal-is-open', false)
-        }
-      ]
-    self.gingko = Elm.Main.fullscreen(initFlags)
-
-    gingko.ports.infoForOutside.subscribe(function(elmdata) {
-      update(elmdata.tag, elmdata.data)
-    })
+  gingko.ports.infoForOutside.subscribe(function(elmdata) {
+    update(elmdata.tag, elmdata.data)
   })
-
 })
 
 self.socket = io.connect('http://localhost:3000')
+
+
+window.onbeforeunload = (e) => {
+  toElm('IntentExit', null)
+  e.returnValue = false
+}
 
 var toElm = function(tag, data) {
   gingko.ports.infoForElm.send({tag: tag, data: data})
@@ -174,7 +162,6 @@ const update = (msg, data) => {
       }
 
     , 'SaveAndClose': async () => {
-        console.log(data)
         if (!!data) {
            try {
              await saveToDB(data[0], data[1])
@@ -184,8 +171,13 @@ const update = (msg, data) => {
            }
         }
 
-        var win = remote.getCurrentWindow();
-        win.destroy();
+        if (!!docName) {
+          // has Title, so close
+          appWindow.destroy();
+        } else {
+          // is Untitled, so ask user to rename
+          ipcRenderer.send('app:rename', dbName, null)
+        }
       }
 
     , 'ConfirmCancelCard': () => {
@@ -443,7 +435,7 @@ const processData = function (data, type) {
 }
 
 
-const load = function(filepath, headOverride){
+function load(filepath, headOverride){
   return new Promise( (resolve, reject) => {
     db.info().then(function (result) {
       if (result.doc_count == 0) {
@@ -615,7 +607,7 @@ self.saveToDB = (status, objects) => {
 
       let head = responses.filter(r => r.id == "heads/master")[0]
       if (head.ok) {
-        dbMapping.setModified(currentDbname)
+        dbMapping.setModified(dbName)
         resolve(head.rev)
       } else {
         reject(new Error('Reference error when saving to DB.'))
