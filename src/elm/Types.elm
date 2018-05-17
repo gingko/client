@@ -34,21 +34,15 @@ type Msg
 type OutgoingMsg
     -- === Dialogs, Menus, Window State ===
     = Alert String
-    | OpenDialog (Maybe String)
-    | ImportDialog (Maybe String)
     | SaveAndClose ( Maybe ( Json.Value, Json.Value ) )
     | ConfirmCancelCard String String
     | ColumnNumberChange Int
-    | Exit
     -- === Database ===
     | SaveToDB ( Json.Value, Json.Value )
     | SaveLocal Tree
-    | ClearDB
     | Push
     | Pull
     -- === File System ===
-    | Save ( Maybe String )
-    | SaveAs ( Maybe String )
     | ExportDOCX String
     | ExportJSON Tree
     | ExportTXT Bool Tree
@@ -74,9 +68,6 @@ type IncomingMsg
     -- === Database ===
     | SetHeadRev String
     | Merge Json.Value
-    | ImportJSON Json.Value
-    -- === File System ===
-    | FileState Bool
     -- === DOM ===
     | FieldChanged String
     -- === UI ===

@@ -19,12 +19,6 @@ sendOut info =
     Alert str ->
       dataToSend ( string str )
 
-    OpenDialog filepath_ ->
-      dataToSend ( maybeToValue string filepath_ )
-
-    ImportDialog filepath_ ->
-      dataToSend ( maybeToValue string filepath_ )
-
     SaveAndClose toSave_ ->
       let
         toSaveData =
@@ -40,9 +34,6 @@ sendOut info =
     ColumnNumberChange cols ->
       dataToSend ( int cols )
 
-    Exit ->
-      dataToSend null
-
     -- === Database ===
 
     SaveToDB ( statusValue, objectsValue ) ->
@@ -51,9 +42,6 @@ sendOut info =
     SaveLocal tree ->
       dataToSend ( treeToValue tree )
 
-    ClearDB ->
-      dataToSend null
-
     Push ->
       dataToSend null
 
@@ -61,12 +49,6 @@ sendOut info =
       dataToSend null
 
     -- === File System ===
-
-    Save filepath_ ->
-      dataToSend ( maybeToValue string filepath_ )
-
-    SaveAs filepath_ ->
-      dataToSend ( maybeToValue string filepath_ )
 
     ExportDOCX str ->
       dataToSend ( string str )
@@ -179,20 +161,6 @@ receiveMsg tagger onError =
 
           "Merge" ->
             tagger <| Merge outsideInfo.data
-
-          "ImportJSON" ->
-            tagger <| ImportJSON outsideInfo.data
-
-          -- === File System ===
-
-          "FileState" ->
-            let decoder = tupleDecoder (Json.Decode.maybe Json.Decode.string) Json.Decode.bool in
-            case decodeValue decoder outsideInfo.data of
-              Ok (filepath_, changed) ->
-                tagger <| FileState changed
-
-              Err e ->
-                onError e
 
           -- === DOM ===
 

@@ -104,7 +104,7 @@ function createRenameWindow(parentWindow, dbName, currentName, closeDocument) {
   , show: false
   })
 
-  //winRename.setMenu(null)
+  winRename.setMenu(null)
 
   winRename.once('ready-to-show', () => {
     winRename.show()

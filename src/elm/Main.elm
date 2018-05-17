@@ -441,17 +441,6 @@ update msg ({objects, workingTree, status} as model) =
               let _ = Debug.log "failed to merge json" json in
               model ! []
 
-        ImportJSON json ->
-          model ! []
-
-        -- === File System ===
-
-        FileState changed ->
-          { model
-            | changed = changed
-          }
-            ! []
-
         -- === DOM ===
 
         FieldChanged str ->
@@ -1215,11 +1204,6 @@ addToHistory ({workingTree} as model, prevCmd) =
 
 
 -- === Files ===
-
-
-actionExit : Model -> ( Model, Cmd Msg )
-actionExit model =
-  model ! [ sendOut Exit ]
 
 
 sendCollabState : CollabState -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )

@@ -143,24 +143,6 @@ const update = (msg, data) => {
 
       'Alert': () => { alert(data) }
 
-    , 'OpenDialog': () => {
-        let filepathArray = openDialog(data)
-
-        if(Array.isArray(filepathArray) && filepathArray.length >= 0) {
-          var filepathToLoad = filepathArray[0]
-          loadFile(filepathToLoad)
-        }
-      }
-
-    , 'ImportDialog': async () => {
-        let filepathArray = await importDialog()
-
-        if(Array.isArray(filepathArray) && filepathArray.length >= 0) {
-          var filepathToLoad = filepathArray[0]
-          importFile(filepathToLoad)
-        }
-      }
-
     , 'SaveAndClose': async () => {
         if (!!data) {
            try {
@@ -198,24 +180,6 @@ const update = (msg, data) => {
         ipcRenderer.send('column-number-change', data)
       }
 
-    , 'ChangeTitle': () => {
-        let filepath = data[0]
-        let changed = data[1]
-        let newTitle = filepath ? `${path.basename(filepath)} - Gingko` : `Untitled Tree - Gingko`
-
-        if (changed) {
-          newTitle = "*" + newTitle
-        }
-
-        if (newTitle !== document.title ) {
-          document.title = newTitle
-        }
-      }
-
-    , 'Exit': () => {
-        app.exit()
-      }
-
       // === Database ===
 
     , 'SaveToDB': async () => {
@@ -230,39 +194,11 @@ const update = (msg, data) => {
         document.title = document.title.replace(/^\*/, "")
       }
 
-    , 'ClearDB': async () => {
-        try {
-          await clearDb()
-        } catch (e) {
-          dialog.showMessageBox(errorAlert("Error", "Couldn't clear DB", e))
-          return;
-        }
-        document.title = "Untitled Tree - Gingko"
-      }
-
     , 'Push': push
 
     , 'Pull': sync
 
       // === File System ===
-
-    , 'Save': async () => {
-        let savePath = data ? data : saveAsDialog()
-        if (typeof savePath !== "string") {
-          return;
-        }
-
-        await save(savePath)
-      }
-
-    , 'SaveAs': async () => {
-        let savePath = saveAsDialog(data)
-        if (typeof savePath !== "string") {
-          return;
-        }
-
-        await save(savePath)
-      }
 
     , 'ExportDOCX': () => {
         try {
@@ -636,14 +572,6 @@ self.save = (filepath) => {
 }
 
 
-const saveConfirmationDialogOptions =
-    { title: "Save changes"
-    , message: "Save changes before closing?"
-    , buttons: ["Close Without Saving", "Cancel", "Save"]
-    , defaultId: 2
-    }
-
-
 const errorAlert = (title, msg, err) => {
   return { title: title
     , message: msg
@@ -788,143 +716,6 @@ const exportTxt = (data, defaultPath) => {
           return;
         }
       })
-    }
-  )
-}
-
-
-const saveAsDialog = (pathDefault) => {
-  var options =
-    { title: 'Save As'
-    , defaultPath: pathDefault ? pathDefault.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.gko")
-    , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
-                , {name: 'All Files', extensions: ['*']}
-                ]
-    }
-
-  return dialog.showSaveDialog(options)
-}
-
-
-const openDialog = (pathDefault) => {
-  var options =
-    { title: 'Open File...'
-    , defaultPath: pathDefault ? path.dirname(pathDefault) : app.getPath('documents')
-    , properties: ['openFile']
-    , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
-                , {name: 'All Files', extensions: ['*']}
-                ]
-    }
-
-  return dialog.showOpenDialog(options)
-}
-
-
-const importDialog = (pathDefault) => {
-  var options =
-    { title: 'Import JSON File...'
-    , defaultPath: pathDefault ? path.dirname(pathDefault) : app.getPath('documents')
-    , properties: ['openFile']
-    , filters:  [ {name: 'Gingko JSON Files (*.json)', extensions: ['json']}
-                , {name: 'All Files', extensions: ['*']}
-                ]
-    }
-
-  return dialog.showOpenDialog(null, options)
-}
-
-
-
-const loadFile = async (filepath) => {
-  try {
-    await clearDb(filepath)
-  } catch (e) {
-    dialog.showMessageBox(errorAlert("Error loading file","Couldn't clear current DB.", e))
-    return;
-  }
-
-  try {
-    var rs = fs.createReadStream(filepath)
-  } catch(e) {
-    dialog.showMessageBox(errorAlert("Error loading file","Couldn't read file data correctly.", e))
-    return;
-  }
-
-  rs.on('error', (e) => {
-    dialog.showMessageBox(errorAlert("Error loading file","Couldn't read file data correctly.", e))
-    return;
-  })
-
-  try {
-    var loadOp = await db.load(rs)
-  } catch(e) {
-    dialog.showMessageBox(errorAlert("Error loading file","Couldn't read file data correctly.", e))
-    return;
-  }
-
-  if (!loadOp.ok) {
-    throw new Error("Couldn't load database from file")
-  }
-
-  load(filepath)
-}
-
-
-const importFile = async (filepathToImport) => {
-  await clearDb(filepathToImport)
-
-  let readFile = promisify(fs.readFile)
-  let data = await readFile(filepathToImport)
-
-  let nextId = 1
-
-  let seed =
-    JSON.parse(
-      data.toString()
-          .replace( /{(\s*)"content":/g
-                  , s => {
-                      return `{"id":"${nextId++}","content":`
-                    }
-                  )
-    )
-
-  let newRoot =
-    seed.length == 1
-      ?
-        { id: "0"
-        , content: seed[0].content
-        , children: seed[0].children
-        }
-      :
-        { id: "0"
-        , content: path.basename(filepathToImport)
-        , children: seed
-        }
-
-  document.title = `${path.basename(filepathToImport)} - Gingko`
-  toElm('ImportJSON', newRoot)
-}
-
-
-const clearDb = (dbname) => {
-  return new Promise(
-    async (resolve, reject) => {
-      try {
-        var destroyOp = await db.destroy()
-      } catch (e) {
-        reject(e)
-        return;
-      }
-
-      if (!destroyOp.ok) {
-        reject(new Error("Couldn't destroy db on ClearDB"))
-        return;
-      }
-
-      dbname = dbname ? dbname : sha1(Date.now()+machineIdSync())
-      dbpath = path.join(app.getPath('userData'), dbname)
-      self.db = new PouchDB(dbpath)
-      resolve()
     }
   )
 }
