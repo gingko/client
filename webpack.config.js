@@ -7,9 +7,9 @@ module.exports = {
   target: 'electron',
   context: path.join(__dirname, 'src'),
   entry: {
-      electron: './electron-start.js',
+      electron: './main.js',
       home: './shared/home.js',
-      main: './shared/main.js'
+      app: './shared/app.js'
   },
   output: {
     path: path.join(__dirname, 'app'),
@@ -52,7 +52,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './index.ejs',
       filename: '../app/static/index.html',
-      chunks: ['main']
+      chunks: ['app']
     })
   , new HtmlWebpackPlugin({
       template: './home.ejs',
