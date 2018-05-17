@@ -25,6 +25,7 @@ const io = require('socket.io-client')
 const dbMapping = require('./db-mapping')
 const fio = require('./file-io')
 const shared = require('./shared')
+const errorAlert = shared.errorAlert
 window.Elm = require('../elm/Main')
 
 
@@ -562,16 +563,6 @@ self.save = (filepath) => {
       }
     }
   )
-}
-
-
-const errorAlert = (title, msg, err) => {
-  return { title: title
-    , message: msg
-    , detail: err.message.split("\n")[0]
-    , type: "error"
-    , buttons: ["OK"]
-    }
 }
 
 

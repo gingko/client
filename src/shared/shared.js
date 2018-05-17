@@ -231,6 +231,17 @@ var scrollHorizTo = function(colIdx) {
 
 /* ===== Shared variables ===== */
 
+const errorAlert = (title, msg, err) => {
+  return { title: title
+    , message: msg
+    , detail: err.message.split("\n")[0]
+    , type: "error"
+    , buttons: ["OK"]
+    }
+}
+
+
+
 var shortcuts = [ 'mod+enter'
                 , 'enter'
                 , 'esc'
@@ -290,6 +301,7 @@ module.exports =
   , saveModel: saveModel
   , loadModel: loadModel
   , onChange: onChange
+  , errorAlert : errorAlert
   , resolver: resolver
   , shortcuts: shortcuts
   , needOverride: needOverride

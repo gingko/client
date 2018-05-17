@@ -6,6 +6,7 @@ const Store = require('electron-store')
 const windowStateKeeper = require('electron-window-state')
 const dbMapping = require('./shared/db-mapping')
 const fio = require('./shared/file-io')
+const errorAlert = require('./shared/shared').errorAlert
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -239,10 +240,15 @@ ipcMain.on('home:import-gko', async (event) => {
 
   var filepathArray = dialog.showOpenDialog(winHome, options)
   if (!!filepathArray) {
-    var { dbName, docName } = await fio.dbFromFile(filepathArray[0])
-    console.log('dbName\n', dbName, '\ndocName\n', docName)
+    try {
+      var { dbName, docName } = await fio.dbFromFile(filepathArray[0])
+    } catch (err) {
+      dialog.showMessageBox(errorAlert("Import Error", "Couldn't load .gko data", err))
+      return;
+    }
     dbMapping.newDb(dbName, docName)
     createAppWindow(dbName, docName)
+    winHome.close()
   }
 })
 
