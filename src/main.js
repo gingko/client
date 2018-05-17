@@ -5,6 +5,7 @@ const sha1 = require('sha1')
 const Store = require('electron-store')
 const windowStateKeeper = require('electron-window-state')
 const dbMapping = require('./shared/db-mapping')
+const fio = require('./shared/file-io')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -223,6 +224,26 @@ ipcMain.on('home:new', (event) => {
   let dbName = dbMapping.newDb()
   createAppWindow(dbName, null)
   winHome.close()
+})
+
+
+ipcMain.on('home:import-gko', async (event) => {
+  var options =
+      { title: 'Open File...'
+      , defaultPath: app.getPath('documents')
+      , properties: ['openFile']
+      , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
+                  , {name: 'All Files', extensions: ['*']}
+                  ]
+      }
+
+  var filepathArray = dialog.showOpenDialog(winHome, options)
+  if (!!filepathArray) {
+    var { dbName, docName } = await fio.dbFromFile(filepathArray[0])
+    console.log('dbName\n', dbName, '\ndocName\n', docName)
+    dbMapping.newDb(dbName, docName)
+    createAppWindow(dbName, docName)
+  }
 })
 
 

@@ -2461,6 +2461,10 @@ firstline@1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/firstline/-/firstline-1.2.0.tgz#c9f4886e7f7fbf0afc12d71941dce06b192aea05"
 
+firstline@^1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/firstline/-/firstline-1.3.0.tgz#aa7b4e9fb9874ac49ecc3f42acc90e08863cbb4b"
+
 flush-write-stream@^1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/flush-write-stream/-/flush-write-stream-1.0.2.tgz#c81b90d8746766f1a609a46809946c45dd8ae417"

@@ -14,12 +14,6 @@ const Store = require('electron-store')
 
 import PouchDB from "pouchdb";
 
-const replicationStream = require('pouchdb-replication-stream')
-PouchDB.plugin(replicationStream.plugin)
-PouchDB.adapter('writableStream', replicationStream.adapters.writableStream)
-import memoryAdapter from "pouchdb-adapter-memory";
-PouchDB.plugin(memoryAdapter)
-
 const sha1 = require('sha1')
 const machineIdSync = require('node-machine-id').machineIdSync
 

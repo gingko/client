@@ -11,20 +11,21 @@ const dbMap = new Store({name: "document-list"})
  * @param {string} [dbname] - database name to use as key in document-list
  * @returns {string} - database name, if successful
  */
-function newDb( dbname ) {
-  dbname = dbname || sha1(Date.now()+machineIdSync())
+function newDb( dbName , docName ) {
+  dbName = dbName || sha1(Date.now()+machineIdSync())
+  docName = docName || null
 
-  if(dbMap.has(dbname)) {
-    throw new Error(`Cannot create db named : ${dbname}. Key already exists.`)
+  if(dbMap.has(dbName)) {
+    throw new Error(`Cannot create db named : ${dbName}. Key already exists.`)
     return;
   }
 
   let nowDate = (new Date()).toJSON()
-  let newDocument = { name: null, state: "active", created_at: nowDate, last_modified: nowDate }
-  dbMap.set(dbname, newDocument)
+  let newDocument = { name: docName, state: "active", created_at: nowDate, last_modified: nowDate }
+  dbMap.set(dbName, newDocument)
 
-  if(dbMap.has(dbname)) {
-    return dbname;
+  if(dbMap.has(dbName)) {
+    return dbName;
   } else {
     throw new Error(`Could not add db to document-list.json`)
     return;
