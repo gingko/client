@@ -391,6 +391,7 @@ update msg ({objects, workingTree, status} as model) =
         SetHeadRev rev ->
           { model
             | objects = Objects.setHeadRev rev model.objects
+            , changed = False
           }
             ! []
             |> push

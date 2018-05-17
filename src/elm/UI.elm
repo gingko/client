@@ -16,7 +16,7 @@ import Coders exposing (treeToMarkdownString)
 
 
 
-viewFooter : { m | viewState : ViewState, workingTree : Trees.Model, startingWordcount : Int, shortcutTrayOpen : Bool, isMac : Bool } -> Html Msg
+viewFooter : { m | viewState : ViewState, workingTree : Trees.Model, startingWordcount : Int, shortcutTrayOpen : Bool, isMac : Bool, changed : Bool } -> Html Msg
 viewFooter model =
   let
     wordCounts = getWordCounts model
@@ -26,6 +26,11 @@ viewFooter model =
       case model.workingTree.tree.children of
         Children [a] -> True
         _ -> False
+
+    viewSaveState =
+      div
+        [ id "save-indicator", classList [("inset", True), ("saving", model.changed) ] ]
+        [ text ( if model.changed then "Saving..." else "Saved" ) ]
 
     hoverHeight n =
       14*n + 6
@@ -49,6 +54,7 @@ viewFooter model =
             , span [][ text ( "Group: " ++ ( wordCounts.group |> toWordsString ) ) ]
             , span [][ text ( "Column: " ++ ( wordCounts.column |> toWordsString ) ) ]
             ]
+          , viewSaveState
           ]
         else
           let
@@ -61,6 +67,7 @@ viewFooter model =
             , span [][ text ( "Group: " ++ ( wordCounts.group |> toWordsString ) ) ]
             , span [][ text ( "Column: " ++ ( wordCounts.column |> toWordsString ) ) ]
             ]
+          , viewSaveState
           ]
       else
         []
