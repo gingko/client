@@ -45,7 +45,6 @@ var collab = {}
 var firstRun = userStore.get('first-run', true)
 var appWindow = remote.getCurrentWindow()
 var dbName = appWindow.dbName;
-var docName = appWindow.docName;
 
 
 
@@ -64,7 +63,7 @@ if(process.env.RUNNING_IN_SPECTRON) {
 
 console.log('Gingko version', app.getVersion())
 
-document.title = `${(!!docName) ? docName : "Untitled"} - Gingko`
+document.title = `${(!!appWindow.docName) ? appWindow.docName : "Untitled"} - Gingko`
 
 var dbpath = path.join(app.getPath('userData'), dbName)
 self.db = new PouchDB(dbpath)
@@ -153,7 +152,7 @@ const update = (msg, data) => {
            }
         }
 
-        if (!!docName) {
+        if (!!appWindow.docName) {
           // has Title, so close
           appWindow.destroy();
         } else {
