@@ -176,7 +176,7 @@ const update = (msg, data) => {
           appWindow.destroy();
         } else {
           // is Untitled, so ask user to rename
-          ipcRenderer.send('app:rename', dbName, null)
+          ipcRenderer.send('app:rename', dbName, null, true)
         }
       }
 

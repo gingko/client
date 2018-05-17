@@ -19,7 +19,8 @@ body {
 
     let winRename = remote.getCurrentWindow()
     let currentName = winRename.currentName
-    let dbname = winRename.dbname
+    let dbName = winRename.dbName
+    let closeDocument = winRename.closeDocument;
     let docNameInput
 
     window.onload = function() {
@@ -28,7 +29,7 @@ body {
     }
 
     rename = function () {
-      ipcRenderer.send('rename:renamed', dbname, docNameInput.value, true)
+      ipcRenderer.send('rename:renamed', dbName, docNameInput.value, closeDocument)
       this.close()
     }
   </script>

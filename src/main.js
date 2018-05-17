@@ -63,6 +63,11 @@ function createAppWindow (dbName, docName) {
   win.dbName = dbName;
   win.docName = docName;
 
+  win.renameDoc = function(newName) {
+    win.setTitle(`${newName} - Gingko`)
+    win.docName = newName
+  }
+
   var url = `file://${__dirname}/static/index.html`
   win.loadURL(url)
 
@@ -85,7 +90,7 @@ function createAppWindow (dbName, docName) {
 }
 
 
-function createRenameWindow(parentWindow, dbName, currentName) {
+function createRenameWindow(parentWindow, dbName, currentName, closeDocument) {
   winRename = new BrowserWindow(
   { width: 440
   , height: 230
@@ -226,15 +231,20 @@ ipcMain.on('home:load', (event, dbToLoad, docName) => {
 })
 
 
-ipcMain.on('app:rename', (event, dbName, currName) => {
-  createRenameWindow(BrowserWindow.fromWebContents(event.sender), dbName, currName)
+ipcMain.on('app:rename', (event, dbName, currName, closeDocument) => {
+  createRenameWindow(BrowserWindow.fromWebContents(event.sender), dbName, currName, closeDocument)
 })
 
 
 ipcMain.on('rename:renamed', (event, dbName, newName, closeDocument) => {
+  let renameWindow = BrowserWindow.fromWebContents(event.sender);
+  let appWindow = renameWindow.getParentWindow();
+
   dbMapping.renameDoc(dbName, newName)
+  appWindow.renameDoc(newName)
+
   if (closeDocument) {
-    BrowserWindow.fromWebContents(event.sender).getParentWindow().destroy();
+    appWindow.destroy();
   }
 })
 
@@ -440,16 +450,9 @@ function menuFunction(isEditing, cols) {
             }
           }
         , { type: 'separator' }
-        , { label: 'Save'
-          , accelerator: 'CmdOrCtrl+S'
+        , { label: 'Rename...'
           , click (item, focusedWindow) {
-              focusedWindow.webContents.send('menu-save')
-            }
-          }
-        , { label: 'Save As...'
-          , accelerator: 'CmdOrCtrl+Shift+S'
-          , click (item, focusedWindow) {
-              focusedWindow.webContents.send('menu-save-as')
+              createRenameWindow(focusedWindow, focusedWindow.dbName, focusedWindow.docName, false)
             }
           }
         , { type: 'separator' }
