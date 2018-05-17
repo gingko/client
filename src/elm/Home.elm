@@ -6,6 +6,7 @@ import Html.Events exposing (..)
 import Dict exposing (Dict)
 import Json.Encode as Json exposing (..)
 import Coders exposing (maybeToValue)
+import Table
 
 
 main : Program ( List (String, Document) ) Model Msg
@@ -24,7 +25,9 @@ main =
 
 
 type alias Model =
-  Dict String Document
+  { documents : Dict String Document
+  , tableState : Table.State
+  }
 
 
 type alias Document =
@@ -32,6 +35,22 @@ type alias Document =
   , state : String
   , created_at : String
   , last_modified : String
+  }
+
+
+type alias WithId d =
+  { d
+    | id : String
+  }
+
+
+addId : String -> Document -> WithId Document
+addId id { name, state, created_at, last_modified } =
+  { id = id
+  , name = name
+  , state = state
+  , created_at = created_at
+  , last_modified = last_modified
   }
 
 
@@ -46,8 +65,14 @@ defaultDocument =
 
 init : List (String, Document) -> ( Model, Cmd Msg )
 init dbObj =
-  ( dbObj
-      |> Dict.fromList
+  let
+    documents =
+      dbObj
+        |> Dict.fromList
+  in
+  ( { documents = documents
+    , tableState = Table.initialSort "Date Modified"
+    }
   , Cmd.none
   )
 
@@ -60,6 +85,7 @@ type Msg
   = NoOp
   | New
   | Load String (Maybe String)
+  | SetTableState Table.State
 
 
 
@@ -76,6 +102,11 @@ update msg model =
             |> list
       in
       model ! [ forJS { tag = "Load", data = data }]
+
+    SetTableState newState ->
+      ( { model | tableState = newState }
+      , Cmd.none
+      )
 
     _ ->
       model ! []
@@ -94,14 +125,34 @@ view model =
 
 
 viewDocList : Model -> Html Msg
-viewDocList docDict =
-  ul []
-    ( docDict
-      |> Dict.toList
-      |> List.sortBy ( \(k, v) -> v.last_modified )
-      |> List.reverse
-      |> List.map viewDocumentItem
-    )
+viewDocList { documents, tableState }=
+  let
+    docList =
+      documents
+        |> Dict.toList
+        |> List.map (\(k, v) -> addId k v)
+  in
+  Table.view config tableState docList
+
+
+config : Table.Config (WithId Document) Msg
+config =
+  let
+    dateColumn name =
+      Table.customColumn
+        { name = name
+        , viewData = .last_modified
+        , sorter = Table.decreasingOrIncreasingBy .last_modified
+        }
+  in
+  Table.config
+    { toId = .id
+    , toMsg = SetTableState
+    , columns =
+        [ Table.stringColumn "Name" (Maybe.withDefault "Untitled" << .name)
+        , dateColumn "Date Modified"
+        ]
+    }
 
 
 viewDocumentItem : ( String, Document) -> Html Msg
