@@ -6,8 +6,9 @@ import Html.Events exposing (..)
 import Html.Attributes exposing (..)
 import Dict exposing (Dict)
 import Json.Encode as Json exposing (string, null)
+import Json.Decode exposing (succeed)
 import Coders exposing (maybeToValue)
-import Octicons as Icon exposing (defaultOptions)
+import Octicons as Icon
 
 
 main : Program ( List (String, Document) ) Model Msg
@@ -26,7 +27,9 @@ main =
 
 
 type alias Model =
-  Dict String Document
+  { documents : Dict String Document
+  , archiveDropdown : Bool
+  }
 
 
 type alias Document =
@@ -48,10 +51,10 @@ defaultDocument =
 
 init : List (String, Document) -> ( Model, Cmd Msg )
 init dbObj =
-  ( dbObj
-      |> Dict.fromList
-  , Cmd.none
-  )
+  { documents = dbObj |> Dict.fromList
+  , archiveDropdown = False
+  }
+  ! []
 
 
 
@@ -65,6 +68,7 @@ type Msg
   | Load String (Maybe String)
   | SetState String String
   | Delete String
+  | ToggleArchive
 
 
 
@@ -89,18 +93,28 @@ update msg model =
       let
         data = Json.list [ string dbname, string state ]
       in
-      ( model
-          |> Dict.update dbname ( Maybe.map (\v -> { v | state = state }) )
-      )
+      { model
+        | documents =
+            model.documents
+              |> Dict.update dbname ( Maybe.map (\v -> { v | state = state }) )
+      }
         ! [ forJS { tag = "SetState", data = data } ]
 
     Delete dbname ->
-      ( model
-          |> Dict.filter ( \k _ -> k /= dbname )
-      )
+      { model
+        | documents =
+            model.documents
+              |> Dict.filter ( \k _ -> k /= dbname )
+      }
         ! [ forJS { tag = "Delete", data = string dbname } ]
 
-    _ ->
+    ToggleArchive ->
+      if ( model.documents |> Dict.filter (\_ v -> v.state == "archived") |> Dict.size ) /= 0 then
+        ( { model | archiveDropdown = not model.archiveDropdown }, Cmd.none )
+      else
+        model ! []
+
+    NoOp ->
       model ! []
 
 
@@ -109,32 +123,61 @@ update msg model =
 -- VIEW
 
 view : Model -> Html Msg
-view model =
-  let iconColor = Icon.color "#445" in
+view {documents, archiveDropdown} =
+  let
+    visibleWhen bool =
+      classList [("visible", bool), ("hidden", not bool)]
+
+    numActive =
+      documents
+      |> Dict.filter (\_ v -> v.state == "active")
+      |> Dict.size
+
+    numArchived =
+      documents
+      |> Dict.filter (\_ v -> v.state == "archived")
+      |> Dict.size
+
+    archivedText bool =
+      "Archived (" ++ ( numArchived |> toString) ++ ")"
+      ++ ( case (bool, numArchived == 0) of
+            (_, True) -> ""
+            (True, _) -> " ▴"
+            (False, _) -> " ▾"
+         )
+  in
   div []
     [ div [ id "template-block" ]
         [ div [ class "template-item", onClick New ]
             [ div [ classList [("template-thumbnail", True), ("new", True)]][]
-            , div [ class "template-title"][ text "New" ]
+            , div [ class "template-title"][ text "Blank" ]
             ]
         , div [ class "template-item", onClick Import ]
-            [ div [ classList [("template-thumbnail", True), ("import", True)]][ Icon.file ( Icon.defaultOptions |> iconColor |> Icon.size 48) ]
+            [ div [ classList [("template-thumbnail", True), ("import", True)]][ Icon.file ( Icon.defaultOptions |> Icon.size 48) ]
             , div [ class "template-title"][ text "Import From File" ]
             ]
         ]
     , div [ id "documents-block" ]
         [ div
-            [ class "list-header" ]
+            [ class "list-header", visibleWhen ( numActive /= 0 )  ]
             [ div [][ text "Name" ]
             , div [][ text "Date Modified" ]
             ]
-        , viewDocList "active" model
-        , viewDocList "archived" model
+        , viewDocList "active" documents
+        , h4 [ onClick ToggleArchive, class "list-section-header" ][text <| archivedText archiveDropdown ]
+        , div [ visibleWhen ( archiveDropdown && numArchived /= 0 ) ]
+            [ div
+              [ class "list-header" ]
+              [ div [][ text "Name" ]
+              , div [][ text "Date Modified" ]
+              ]
+            , viewDocList "archived" documents
+            ]
         ]
     ]
 
 
-viewDocList : String -> Model -> Html Msg
+viewDocList : String -> Dict String Document -> Html Msg
 viewDocList state docDict =
   div [ class "document-list" ]
     ( docDict
@@ -149,22 +192,32 @@ viewDocList state docDict =
 viewDocumentItem : ( String, Document) -> Html Msg
 viewDocumentItem (dbname, document) =
   let
+    onClickThis msg =
+      onWithOptions "click" { defaultOptions | stopPropagation = True } (succeed msg)
+
     buttons =
       case document.state of
         "archived" ->
-          [ button [ onClick (Delete dbname)][ text "Delete" ]
-          , button [ onClick (SetState dbname "active")][ text "Restore" ]
+          [ div
+              [ onClickThis (Delete dbname), title "Delete document"]
+              [ Icon.trashcan Icon.defaultOptions ]
+          , div
+              [ onClickThis (SetState dbname "active"), title "Restore document"]
+              [ Icon.arrowUp Icon.defaultOptions ]
           ]
 
         _ ->
-          [ button [onClick (Load dbname document.name)][ text "Open" ]
-          , button [ onClick (SetState dbname "archived")][ text "Archive" ]
+          [ div
+              [ onClickThis (SetState dbname "archived"), title "Archive document"]
+              [ Icon.archive Icon.defaultOptions ]
           ]
+
   in
   div
     [ class "document-item", onClick (Load dbname document.name) ]
     [ div [ class "doc-title" ][ text ( document.name |> Maybe.withDefault "Untitled" ) ]
     , div [ class "doc-modified" ][ text document.last_modified ]
+    , div [ class "doc-buttons" ] buttons
     ]
 
 

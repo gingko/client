@@ -20,6 +20,13 @@ label {
   font: caption;
 }
 
+.visible {
+  display: unset;
+}
+.hidden {
+  display: none!important;
+}
+
 #template-block {
   background-color: hsl(219, 13%, 21%);
   padding: 20px;
@@ -68,13 +75,19 @@ label {
   padding: 10px 20px;
 }
 
+.list-section-header {
+  color: hsl(221, 32%, 77%);
+  margin-left: 20px;
+  margin-bottom: 5px;
+}
+
 .list-header {
-    display: flex;
-    justify-content: space-between;
-    padding: 5px 20px;
-    margin-top: 10px;
-    color: hsl(221, 32%, 77%);
-    font-size: 80%;
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 20px;
+  margin-top: 10px;
+  color: hsl(221, 32%, 77%);
+  font-size: 80%;
 }
 
 .document-item {
@@ -82,6 +95,7 @@ label {
     justify-content: space-between;
     background: hsl(0, 1%, 90%);
     padding: 10px 20px;
+    padding-right: 10px;
     margin-bottom: 4px;
     cursor: pointer;
     box-shadow: 1px 0px 2px hsla(0,0%,0%,0.4);
@@ -95,6 +109,23 @@ label {
 
 .document-item:hover {
     background: white;
-    right: -1px;
-    position: relative;
+}
+
+.doc-title {
+  flex: auto;
+}
+
+.doc-title, .doc-modified {
+  margin-right: 10px;
+}
+
+.doc-buttons {
+  min-width: 36px;
+  display: flex;
+}
+.doc-buttons * {
+  width: 18px;
+}
+.doc-buttons *:hover path {
+  background-color: white;
 }
