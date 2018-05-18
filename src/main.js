@@ -22,9 +22,10 @@ const userStore = new Store({name: "config"})
 function createHomeWindow () {
   // Create the browser window.
   winHome = new BrowserWindow(
-    { width: 800
+    { width: 640
     , height: 600
-    , backgroundColor: '#32596b'
+    , backgroundColor: '#477085'
+    , titleBarStyle: 'hidden'
     , icon: `${__dirname}/static/leaf128.png`
     })
 

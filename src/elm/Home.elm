@@ -3,6 +3,7 @@ port module Home exposing (..)
 
 import Html exposing (..)
 import Html.Events exposing (..)
+import Html.Attributes exposing (id, class)
 import Dict exposing (Dict)
 import Json.Encode as Json exposing (..)
 import Coders exposing (maybeToValue)
@@ -109,18 +110,26 @@ update msg model =
 view : Model -> Html Msg
 view model =
   div []
-    [ button [ onClick New ][ text "New" ]
-    , button [ onClick Import ][ text "Import *.gko file" ]
-    , h3 [][ text "Active"]
-    , viewDocList "active" model
-    , h3 [][ text "Archived"]
-    , viewDocList "archived" model
+    [ div [ id "template-block" ]
+        [ button [ onClick New ][ text "New" ]
+        , button [ onClick Import ][ text "Import *.gko file" ]
+        ]
+    , div [ id "documents-block" ]
+        [ div
+            [ class "list-header" ]
+            [ div [][ text "Name" ]
+            , div [][ text "Date Modified" ]
+            ]
+        , viewDocList "active" model
+        , h3 [][ text "Archived"]
+        , viewDocList "archived" model
+        ]
     ]
 
 
 viewDocList : String -> Model -> Html Msg
 viewDocList state docDict =
-  ul []
+  div [ class "document-list" ]
     ( docDict
       |> Dict.filter (\k v -> v.state == state)
       |> Dict.toList
@@ -145,13 +154,11 @@ viewDocumentItem (dbname, document) =
           , button [ onClick (SetState dbname "archived")][ text "Archive" ]
           ]
   in
-  li []
-    ( buttons ++
-      [ text ( document.name |> Maybe.withDefault "Untitled" )
-      , text " | "
-      , text document.last_modified
-      ]
-    )
+  div
+    [ class "document-item", onClick (Load dbname document.name) ]
+    [ div [ class "doc-title" ][ text ( document.name |> Maybe.withDefault "Untitled" ) ]
+    , div [ class "doc-modified" ][ text document.last_modified ]
+    ]
 
 
 -- SUBSCRIPTIONS
