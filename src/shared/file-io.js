@@ -42,9 +42,13 @@ async function dbFromFile(filepath) {
 }
 
 
-function destroyDb( dbName ) {
+async function destroyDb( dbName ) {
   var dbPath = path.join(app.getPath('userData'), dbName)
-  return (new PouchDB(dbPath)).destroy()
+  try {
+    await deleteFile(path.join(app.getPath('userData'), `window-state-${dbName}.json`));
+  } finally {
+    return (new PouchDB(dbPath)).destroy()
+  }
 }
 
 

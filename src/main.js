@@ -261,7 +261,7 @@ ipcMain.on('home:load', (event, dbToLoad, docName) => {
 
 ipcMain.on('home:delete', async (event, dbToDelete) => {
   await fio.destroyDb(dbToDelete)
-  dbMapping.removeDb(dbToDelete)
+  await dbMapping.removeDb(dbToDelete)
 })
 
 
