@@ -8,7 +8,6 @@ var homeWindow = remote.getCurrentWindow()
 var home = Elm.Home.fullscreen(docList)
 
 home.ports.forJS.subscribe(function(elmdata) {
-  console.log('elmdata', elmdata)
   switch(elmdata.tag){
     case "New":
       ipcRenderer.send('home:new')
@@ -19,7 +18,16 @@ home.ports.forJS.subscribe(function(elmdata) {
     case "Load":
       ipcRenderer.send('home:load', elmdata.data[0], elmdata.data[1])
       break;
+    case "SetState":
+      dbMapping.setState(elmdata.data[0], elmdata.data[1])
+      break;
+    case "Delete":
+      if(confirm("Are you sure you want to delete this?\nThere is no UNDO.")) {
+        ipcRenderer.send('home:delete', elmdata.data)
+      }
+      break;
     default:
+      console.log('elmdata', elmdata)
       throw new Error('unexpected input from Elm')
       break;
   }

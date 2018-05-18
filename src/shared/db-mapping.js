@@ -87,9 +87,41 @@ function setModified( dbname, modifiedDate ) {
 }
 
 
+/**
+ * setState sets the state field of a document for a given database key
+ * @param {string} dbname - database name used as key in document-list
+ * @param {Date} newState
+ */
+function setState( dbname, newState ) {
+  if(!dbMap.has(dbname)) {
+    throw new Error(`Cannot set document state. Key ${dbname} not found.`)
+    return;
+  }
+
+  let currentDoc = dbMap.get(dbname)
+
+  if(currentDoc.state !== newState) {
+    currentDoc.state = newState
+    dbMap.set(dbname, currentDoc)
+  }
+}
+
+
+function removeDb( dbname ) {
+  if(!dbMap.has(dbname)) {
+    throw new Error(`Document data already deleted. Key ${dbname} not found.`)
+    return;
+  }
+
+  dbMap.delete(dbname)
+}
+
+
 module.exports =
   { newDb : newDb
   , getDocList : getDocList
   , renameDoc : renameDoc
   , setModified : setModified
+  , setState : setState
+  , removeDb : removeDb
   }

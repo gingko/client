@@ -33,13 +33,20 @@ async function dbFromFile(filepath) {
   var dbName = hash.digest('hex')
   var docName = path.basename(filepath, '.gko')
   var dbPath = path.join(app.getPath('userData'), dbName)
-  db = new PouchDB(dbPath)
+  var db = new PouchDB(dbPath)
 
   var rs = fs.createReadStream(filepath)
   await db.load(rs)
   await db.close()
   return { dbName : dbName, docName : docName }
 }
+
+
+function destroyDb( dbName ) {
+  var dbPath = path.join(app.getPath('userData'), dbName)
+  return (new PouchDB(dbPath)).destroy()
+}
+
 
 function getHashWithoutStartTime(filepath) {
   return new Promise(async (resolve, reject) => {
@@ -94,6 +101,7 @@ function save(database, filepath) {
 module.exports =
   { dbToFile: dbToFile
   , dbFromFile: dbFromFile
+  , destroyDb: destroyDb
   , getHash: getHashWithoutStartTime
   , save: save
   }

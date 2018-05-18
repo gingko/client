@@ -59,8 +59,10 @@ init dbObj =
 type Msg
   = NoOp
   | New
-  | Load String (Maybe String)
   | Import
+  | Load String (Maybe String)
+  | SetState String String
+  | Delete String
 
 
 
@@ -81,6 +83,21 @@ update msg model =
       in
       model ! [ forJS { tag = "Load", data = data }]
 
+    SetState dbname state ->
+      let
+        data = list [ string dbname, string state ]
+      in
+      ( model
+          |> Dict.update dbname ( Maybe.map (\v -> { v | state = state }) )
+      )
+        ! [ forJS { tag = "SetState", data = data } ]
+
+    Delete dbname ->
+      ( model
+          |> Dict.filter ( \k _ -> k /= dbname )
+      )
+        ! [ forJS { tag = "Delete", data = string dbname } ]
+
     _ ->
       model ! []
 
@@ -94,14 +111,18 @@ view model =
   div []
     [ button [ onClick New ][ text "New" ]
     , button [ onClick Import ][ text "Import *.gko file" ]
-    , viewDocList model
+    , h3 [][ text "Active"]
+    , viewDocList "active" model
+    , h3 [][ text "Archived"]
+    , viewDocList "archived" model
     ]
 
 
-viewDocList : Model -> Html Msg
-viewDocList docDict =
+viewDocList : String -> Model -> Html Msg
+viewDocList state docDict =
   ul []
     ( docDict
+      |> Dict.filter (\k v -> v.state == state)
       |> Dict.toList
       |> List.sortBy ( \(k, v) -> v.last_modified )
       |> List.reverse
@@ -111,12 +132,26 @@ viewDocList docDict =
 
 viewDocumentItem : ( String, Document) -> Html Msg
 viewDocumentItem (dbname, document) =
+  let
+    buttons =
+      case document.state of
+        "archived" ->
+          [ button [ onClick (Delete dbname)][ text "Delete" ]
+          , button [ onClick (SetState dbname "active")][ text "Restore" ]
+          ]
+
+        _ ->
+          [ button [onClick (Load dbname document.name)][ text "Open" ]
+          , button [ onClick (SetState dbname "archived")][ text "Archive" ]
+          ]
+  in
   li []
-    [ button [onClick (Load dbname document.name)][ text "Open" ]
-    , text ( document.name |> Maybe.withDefault "Untitled" )
-    , text " | "
-    , text document.last_modified
-    ]
+    ( buttons ++
+      [ text ( document.name |> Maybe.withDefault "Untitled" )
+      , text " | "
+      , text document.last_modified
+      ]
+    )
 
 
 -- SUBSCRIPTIONS

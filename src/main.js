@@ -259,6 +259,12 @@ ipcMain.on('home:load', (event, dbToLoad, docName) => {
 })
 
 
+ipcMain.on('home:delete', async (event, dbToDelete) => {
+  await fio.destroyDb(dbToDelete)
+  dbMapping.removeDb(dbToDelete)
+})
+
+
 ipcMain.on('app:rename', (event, dbName, currName, closeDocument) => {
   createRenameWindow(BrowserWindow.fromWebContents(event.sender), dbName, currName, closeDocument)
 })
