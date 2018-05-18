@@ -22,8 +22,46 @@ label {
 
 #template-block {
   background-color: hsl(219, 13%, 21%);
-  padding: 10px 20px;
+  padding: 20px;
+  padding-bottom: 30px;
   box-shadow: inset 0px -2px 4px hsla(0,0%,0%,0.4);
+  display: flex;
+  color: hsl(0,0%,94%);
+}
+
+.template-item {
+  cursor: pointer;
+}
+
+.template-thumbnail {
+  width: 120px;
+  background: white;
+  height: 80px;
+  margin-right: 30px;
+  margin-bottom: 5px;
+  box-shadow: 1px 1px 4px black;
+  border: 2px solid transparent;
+}
+
+.template-item:hover .template-thumbnail {
+  border: 2px solid #a6cc90;
+}
+
+.template-title {
+  font-weight: bold;
+  font-size: 90%;
+}
+
+.template-thumbnail.new {
+  background: url('https://ssl.gstatic.com/docs/templates/thumbnails/docs-blank_1.png');
+  background-size: cover;
+  background-position-y: center;
+}
+
+.template-thumbnail.import {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 #documents-block {
@@ -34,10 +72,9 @@ label {
     display: flex;
     justify-content: space-between;
     padding: 5px 20px;
-    margin-top: 20px;
-    font-weight: bold;
-    color: ghostwhite;
-    font-size: 90%;
+    margin-top: 10px;
+    color: hsl(221, 32%, 77%);
+    font-size: 80%;
 }
 
 .document-item {

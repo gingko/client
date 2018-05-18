@@ -3,10 +3,11 @@ port module Home exposing (..)
 
 import Html exposing (..)
 import Html.Events exposing (..)
-import Html.Attributes exposing (id, class)
+import Html.Attributes exposing (..)
 import Dict exposing (Dict)
-import Json.Encode as Json exposing (..)
+import Json.Encode as Json exposing (string, null)
 import Coders exposing (maybeToValue)
+import Octicons as Icon exposing (defaultOptions)
 
 
 main : Program ( List (String, Document) ) Model Msg
@@ -80,13 +81,13 @@ update msg model =
       let
         data =
           [ string dbname, maybeToValue string docName_ ]
-            |> list
+            |> Json.list
       in
       model ! [ forJS { tag = "Load", data = data }]
 
     SetState dbname state ->
       let
-        data = list [ string dbname, string state ]
+        data = Json.list [ string dbname, string state ]
       in
       ( model
           |> Dict.update dbname ( Maybe.map (\v -> { v | state = state }) )
@@ -109,10 +110,17 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
+  let iconColor = Icon.color "#445" in
   div []
     [ div [ id "template-block" ]
-        [ button [ onClick New ][ text "New" ]
-        , button [ onClick Import ][ text "Import *.gko file" ]
+        [ div [ class "template-item", onClick New ]
+            [ div [ classList [("template-thumbnail", True), ("new", True)]][]
+            , div [ class "template-title"][ text "New" ]
+            ]
+        , div [ class "template-item", onClick Import ]
+            [ div [ classList [("template-thumbnail", True), ("import", True)]][ Icon.file ( Icon.defaultOptions |> iconColor |> Icon.size 48) ]
+            , div [ class "template-title"][ text "Import From File" ]
+            ]
         ]
     , div [ id "documents-block" ]
         [ div
@@ -121,7 +129,6 @@ view model =
             , div [][ text "Date Modified" ]
             ]
         , viewDocList "active" model
-        , h3 [][ text "Archived"]
         , viewDocList "archived" model
         ]
     ]
