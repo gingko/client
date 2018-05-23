@@ -85,6 +85,7 @@ label {
   display: flex;
   justify-content: space-between;
   padding: 5px 20px;
+  padding-right: 56px;
   margin-top: 10px;
   color: hsl(221, 32%, 77%);
   font-size: 80%;

@@ -1,25 +1,27 @@
 port module Home exposing (..)
 
-
-import Html exposing (..)
-import Html.Events exposing (..)
-import Html.Attributes exposing (..)
-import Dict exposing (Dict)
-import Json.Encode as Json exposing (string, null)
-import Json.Decode exposing (succeed)
 import Coders exposing (maybeToValue)
+import Date exposing (Month(..))
+import Date.Distance as DateDist
+import Date.Extra as DateExtra
+import Dict exposing (Dict)
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (..)
+import Json.Decode exposing (succeed)
+import Json.Encode as Json exposing (null, string)
 import Octicons as Icon
+import Time exposing (Time, every, minute)
 
 
-main : Program ( List (String, Document) ) Model Msg
+main : Program ( Time, List ( String, Document ) ) Model Msg
 main =
-  programWithFlags
-    { init = init
-    , view = view
-    , update = update
-    , subscriptions = subscriptions
-    }
-
+    programWithFlags
+        { init = init
+        , view = view
+        , update = update
+        , subscriptions = subscriptions
+        }
 
 
 
@@ -27,205 +29,242 @@ main =
 
 
 type alias Model =
-  { documents : Dict String Document
-  , archiveDropdown : Bool
-  }
+    { documents : Dict String Document
+    , archiveDropdown : Bool
+    , currentTime : Time
+    }
 
 
 type alias Document =
-  { name : Maybe String
-  , state : String
-  , created_at : String
-  , last_modified : String
-  }
+    { name : Maybe String
+    , state : String
+    , created_at : String
+    , last_modified : String
+    }
 
 
 defaultDocument : Document
 defaultDocument =
-  { name = Just "Untitled"
-  , state = "active"
-  , created_at = ""
-  , last_modified = ""
-  }
+    { name = Just "Untitled"
+    , state = "active"
+    , created_at = ""
+    , last_modified = ""
+    }
 
 
-init : List (String, Document) -> ( Model, Cmd Msg )
-init dbObj =
-  { documents = dbObj |> Dict.fromList
-  , archiveDropdown = False
-  }
-  ! []
-
+init : ( Time, List ( String, Document ) ) -> ( Model, Cmd Msg )
+init ( time, dbObj ) =
+    { documents = dbObj |> Dict.fromList
+    , archiveDropdown = False
+    , currentTime = time
+    }
+        ! []
 
 
 
 -- UPDATE
 
-type Msg
-  = NoOp
-  | New
-  | Import
-  | Load String (Maybe String)
-  | SetState String String
-  | Delete String
-  | ToggleArchive
 
+type Msg
+    = NoOp
+    | New
+    | Import
+    | Load String (Maybe String)
+    | SetState String String
+    | Delete String
+    | ToggleArchive
+    | Tick Time
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-  case msg of
-    New ->
-      model ! [ forJS { tag = "New", data = null }]
+    case msg of
+        New ->
+            model ! [ forJS { tag = "New", data = null } ]
 
-    Import ->
-      model ! [ forJS { tag = "ImportGko", data = null } ]
+        Import ->
+            model ! [ forJS { tag = "ImportGko", data = null } ]
 
-    Load dbname docName_ ->
-      let
-        data =
-          [ string dbname, maybeToValue string docName_ ]
-            |> Json.list
-      in
-      model ! [ forJS { tag = "Load", data = data }]
+        Load dbname docName_ ->
+            let
+                data =
+                    [ string dbname, maybeToValue string docName_ ]
+                        |> Json.list
+            in
+            model ! [ forJS { tag = "Load", data = data } ]
 
-    SetState dbname state ->
-      let
-        data = Json.list [ string dbname, string state ]
-      in
-      { model
-        | documents =
-            model.documents
-              |> Dict.update dbname ( Maybe.map (\v -> { v | state = state }) )
-      }
-        ! [ forJS { tag = "SetState", data = data } ]
+        SetState dbname state ->
+            let
+                data =
+                    Json.list [ string dbname, string state ]
+            in
+            { model
+                | documents =
+                    model.documents
+                        |> Dict.update dbname (Maybe.map (\v -> { v | state = state }))
+            }
+                ! [ forJS { tag = "SetState", data = data } ]
 
-    Delete dbname ->
-      { model
-        | documents =
-            model.documents
-              |> Dict.filter ( \k _ -> k /= dbname )
-      }
-        ! [ forJS { tag = "Delete", data = string dbname } ]
+        Delete dbname ->
+            { model
+                | documents =
+                    model.documents
+                        |> Dict.filter (\k _ -> k /= dbname)
+            }
+                ! [ forJS { tag = "Delete", data = string dbname } ]
 
-    ToggleArchive ->
-      if ( model.documents |> Dict.filter (\_ v -> v.state == "archived") |> Dict.size ) /= 0 then
-        ( { model | archiveDropdown = not model.archiveDropdown }, Cmd.none )
-      else
-        model ! []
+        ToggleArchive ->
+            if (model.documents |> Dict.filter (\_ v -> v.state == "archived") |> Dict.size) /= 0 then
+                ( { model | archiveDropdown = not model.archiveDropdown }, Cmd.none )
+            else
+                model ! []
 
-    NoOp ->
-      model ! []
+        Tick currTime ->
+            { model | currentTime = currTime } ! []
 
+        NoOp ->
+            model ! []
 
 
 
 -- VIEW
 
+
 view : Model -> Html Msg
-view {documents, archiveDropdown} =
-  let
-    visibleWhen bool =
-      classList [("visible", bool), ("hidden", not bool)]
+view { documents, archiveDropdown, currentTime } =
+    let
+        visibleWhen bool =
+            classList [ ( "visible", bool ), ( "hidden", not bool ) ]
 
-    numActive =
-      documents
-      |> Dict.filter (\_ v -> v.state == "active")
-      |> Dict.size
+        numActive =
+            documents
+                |> Dict.filter (\_ v -> v.state == "active")
+                |> Dict.size
 
-    numArchived =
-      documents
-      |> Dict.filter (\_ v -> v.state == "archived")
-      |> Dict.size
+        numArchived =
+            documents
+                |> Dict.filter (\_ v -> v.state == "archived")
+                |> Dict.size
 
-    archivedText bool =
-      "Archived (" ++ ( numArchived |> toString) ++ ")"
-      ++ ( case (bool, numArchived == 0) of
-            (_, True) -> ""
-            (True, _) -> " ▴"
-            (False, _) -> " ▾"
-         )
-  in
-  div []
-    [ div [ id "template-block" ]
-        [ div [ class "template-item", onClick New ]
-            [ div [ classList [("template-thumbnail", True), ("new", True)]][]
-            , div [ class "template-title"][ text "Blank" ]
+        archivedText bool =
+            "Archived ("
+                ++ (numArchived |> toString)
+                ++ ")"
+                ++ (case ( bool, numArchived == 0 ) of
+                        ( _, True ) ->
+                            ""
+
+                        ( True, _ ) ->
+                            " ▴"
+
+                        ( False, _ ) ->
+                            " ▾"
+                   )
+    in
+    div []
+        [ div [ id "template-block" ]
+            [ div [ class "template-item", onClick New ]
+                [ div [ classList [ ( "template-thumbnail", True ), ( "new", True ) ] ] []
+                , div [ class "template-title" ] [ text "Blank" ]
+                ]
+            , div [ class "template-item", onClick Import ]
+                [ div [ classList [ ( "template-thumbnail", True ), ( "import", True ) ] ] [ Icon.file (Icon.defaultOptions |> Icon.size 48) ]
+                , div [ class "template-title" ] [ text "Import From File" ]
+                ]
             ]
-        , div [ class "template-item", onClick Import ]
-            [ div [ classList [("template-thumbnail", True), ("import", True)]][ Icon.file ( Icon.defaultOptions |> Icon.size 48) ]
-            , div [ class "template-title"][ text "Import From File" ]
-            ]
-        ]
-    , div [ id "documents-block" ]
-        [ div
-            [ class "list-header", visibleWhen ( numActive /= 0 )  ]
-            [ div [][ text "Name" ]
-            , div [][ text "Date Modified" ]
-            ]
-        , viewDocList "active" documents
-        , h4 [ onClick ToggleArchive, class "list-section-header" ][text <| archivedText archiveDropdown ]
-        , div [ visibleWhen ( archiveDropdown && numArchived /= 0 ) ]
+        , div [ id "documents-block" ]
             [ div
-              [ class "list-header" ]
-              [ div [][ text "Name" ]
-              , div [][ text "Date Modified" ]
-              ]
-            , viewDocList "archived" documents
+                [ class "list-header", visibleWhen (numActive /= 0) ]
+                [ div [] [ text "Name" ]
+                , div [] [ text "Last Modified" ]
+                ]
+            , viewDocList currentTime "active" documents
+            , h4 [ onClick ToggleArchive, class "list-section-header" ] [ text <| archivedText archiveDropdown ]
+            , div [ visibleWhen (archiveDropdown && numArchived /= 0) ]
+                [ div
+                    [ class "list-header" ]
+                    [ div [] [ text "Name" ]
+                    , div [] [ text "Last Modified" ]
+                    ]
+                , viewDocList currentTime "archived" documents
+                ]
             ]
         ]
-    ]
 
 
-viewDocList : String -> Dict String Document -> Html Msg
-viewDocList state docDict =
-  div [ class "document-list" ]
-    ( docDict
-      |> Dict.filter (\k v -> v.state == state)
-      |> Dict.toList
-      |> List.sortBy ( \(k, v) -> v.last_modified )
-      |> List.reverse
-      |> List.map viewDocumentItem
-    )
+viewDocList : Time -> String -> Dict String Document -> Html Msg
+viewDocList currTime state docDict =
+    div [ class "document-list" ]
+        (docDict
+            |> Dict.filter (\k v -> v.state == state)
+            |> Dict.toList
+            |> List.sortBy (\( k, v ) -> v.last_modified)
+            |> List.reverse
+            |> List.map (viewDocumentItem currTime)
+        )
 
 
-viewDocumentItem : ( String, Document) -> Html Msg
-viewDocumentItem (dbname, document) =
-  let
-    onClickThis msg =
-      onWithOptions "click" { defaultOptions | stopPropagation = True } (succeed msg)
+viewDocumentItem : Time -> ( String, Document ) -> Html Msg
+viewDocumentItem currTime ( dbname, document ) =
+    let
+        onClickThis msg =
+            onWithOptions "click" { defaultOptions | stopPropagation = True } (succeed msg)
 
-    buttons =
-      case document.state of
-        "archived" ->
-          [ div
-              [ onClickThis (Delete dbname), title "Delete document"]
-              [ Icon.trashcan Icon.defaultOptions ]
-          , div
-              [ onClickThis (SetState dbname "active"), title "Restore document"]
-              [ Icon.arrowUp Icon.defaultOptions ]
-          ]
+        nowDate =
+            Date.fromTime currTime
 
-        _ ->
-          [ div
-              [ onClickThis (SetState dbname "archived"), title "Archive document"]
-              [ Icon.archive Icon.defaultOptions ]
-          ]
+        modDate =
+            document.last_modified
+                |> DateExtra.fromIsoString
+                |> Maybe.withDefault (DateExtra.fromCalendarDate 2000 Jan 1)
 
-  in
-  div
-    [ class "document-item", onClick (Load dbname document.name) ]
-    [ div [ class "doc-title" ][ text ( document.name |> Maybe.withDefault "Untitled" ) ]
-    , div [ class "doc-modified" ][ text document.last_modified ]
-    , div [ class "doc-buttons" ] buttons
-    ]
+        modString =
+            modDate |> DateExtra.toFormattedString "yyyy-mm-dd, HH:mm"
+
+        relativeString =
+            DateDist.inWords
+                nowDate
+                modDate
+                ++ " ago"
+
+        ( titleString, dateString ) =
+            if (DateExtra.diff DateExtra.Day modDate nowDate |> Debug.log "diff") <= 2 then
+                ( modString, relativeString )
+            else
+                ( relativeString, modString )
+
+        buttons =
+            case document.state of
+                "archived" ->
+                    [ div
+                        [ onClickThis (Delete dbname), title "Delete document" ]
+                        [ Icon.trashcan Icon.defaultOptions ]
+                    , div
+                        [ onClickThis (SetState dbname "active"), title "Restore document" ]
+                        [ Icon.arrowUp Icon.defaultOptions ]
+                    ]
+
+                _ ->
+                    [ div
+                        [ onClickThis (SetState dbname "archived"), title "Archive document" ]
+                        [ Icon.archive Icon.defaultOptions ]
+                    ]
+    in
+    div
+        [ class "document-item", onClick (Load dbname document.name) ]
+        [ div [ class "doc-title" ] [ text (document.name |> Maybe.withDefault "Untitled") ]
+        , div [ class "doc-modified", title titleString ] [ text dateString ]
+        , div [ class "doc-buttons" ] buttons
+        ]
+
 
 
 -- SUBSCRIPTIONS
 
+
 port forJS : { tag : String, data : Json.Value } -> Cmd msg
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  Sub.none
-
+    every (minute / 2) Tick

@@ -5,7 +5,7 @@ const dbMapping = require('./db-mapping')
 
 let docList = dbMapping.getDocList()
 var homeWindow = remote.getCurrentWindow()
-var home = Elm.Home.fullscreen(docList)
+var home = Elm.Home.fullscreen([Date.now(), docList])
 
 home.ports.forJS.subscribe(function(elmdata) {
   switch(elmdata.tag){
