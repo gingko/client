@@ -60,7 +60,7 @@ label {
 }
 
 .template-thumbnail.new {
-  background: url('https://ssl.gstatic.com/docs/templates/thumbnails/docs-blank_1.png');
+  background: url('./docs-blank_1.png');
   background-size: cover;
   background-position-y: center;
 }
