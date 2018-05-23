@@ -36,6 +36,7 @@ const userStore = new Store({name: "config"})
 var lastActivesScrolled = null
 var lastColumnScrolled = null
 var collab = {}
+self.savedObjectIds = [];
 
 var firstRun = userStore.get('first-run', true)
 var appWindow = remote.getCurrentWindow()
@@ -64,6 +65,9 @@ var dbpath = path.join(app.getPath('userData'), dbName)
 self.db = new PouchDB(dbpath)
 
 load().then(function (dbData) {
+
+  savedObjectIds = Object.keys(dbData[1].commits).concat(Object.keys(dbData[1].treeObjects))
+
   var initFlags =
     [ dbData
     , { isMac : process.platform === "darwin"
@@ -375,7 +379,6 @@ function load(filepath, headOverride){
         resolve(toSend)
       } else {
 
-        console.log('shouldn"t get here on new')
         db.get('status')
           .catch(err => {
             if(err.name == "not_found") {
@@ -528,10 +531,17 @@ self.saveToDB = (status, objects) => {
         status['_rev'] = statusDoc._rev
       }
 
+
+      // Filter out object that are already saved in database
+      objects.commits = objects.commits.filter( o => !savedObjectIds.includes(o._id))
+      objects.treeObjects = objects.treeObjects.filter( o => !savedObjectIds.includes(o._id))
+
       let toSave = objects.commits.concat(objects.treeObjects).concat(objects.refs).concat([status]);
 
       try {
         var responses = await db.bulkDocs(toSave)
+        let savedIds = responses.filter(r => r.ok && r.id !== "status" && r.id !== "heads/master")
+        savedObjectIds = savedObjectIds.concat(savedIds.map( o => o.id))
       } catch (e) {
         reject(e)
         return;
