@@ -1,240 +1,231 @@
 port module Ports exposing (..)
 
-
-import Types exposing (..)
 import Coders exposing (..)
-import TreeUtils exposing (getColumn)
-import Json.Encode exposing (..)
 import Json.Decode exposing (decodeValue)
+import Json.Encode exposing (..)
+import TreeUtils exposing (getColumn)
+import Types exposing (..)
 
 
 sendOut : OutgoingMsg -> Cmd msg
 sendOut info =
-  let
-    dataToSend = encodeAndSend info
-  in
-  case info of
-    -- === Dialogs, Menus, Window State ===
+    let
+        dataToSend =
+            encodeAndSend info
+    in
+    case info of
+        -- === Dialogs, Menus, Window State ===
+        Alert str ->
+            dataToSend (string str)
 
-    Alert str ->
-      dataToSend ( string str )
+        SaveAndClose toSave_ ->
+            let
+                toSaveData =
+                    case toSave_ of
+                        Nothing ->
+                            null
 
-    SaveAndClose toSave_ ->
-      let
-        toSaveData =
-          case toSave_ of
-            Nothing -> null
-            Just (statusValue, objectsValue) -> list [ statusValue, objectsValue ]
-      in
-      dataToSend toSaveData
+                        Just ( statusValue, objectsValue ) ->
+                            list [ statusValue, objectsValue ]
+            in
+            dataToSend toSaveData
 
-    ConfirmCancelCard id origContent ->
-      dataToSend ( list [ string id, string origContent ] )
+        ConfirmCancelCard id origContent ->
+            dataToSend (list [ string id, string origContent ])
 
-    ColumnNumberChange cols ->
-      dataToSend ( int cols )
+        ColumnNumberChange cols ->
+            dataToSend (int cols)
 
-    -- === Database ===
+        -- === Database ===
+        SaveToDB ( statusValue, objectsValue ) ->
+            dataToSend (list [ statusValue, objectsValue ])
 
-    SaveToDB ( statusValue, objectsValue ) ->
-      dataToSend ( list [ statusValue, objectsValue ] )
+        SaveLocal tree ->
+            dataToSend (treeToValue tree)
 
-    SaveLocal tree ->
-      dataToSend ( treeToValue tree )
+        Push ->
+            dataToSend null
 
-    Push ->
-      dataToSend null
+        Pull ->
+            dataToSend null
 
-    Pull ->
-      dataToSend null
+        -- === File System ===
+        ExportDOCX str ->
+            dataToSend (string str)
 
-    -- === File System ===
+        ExportJSON tree ->
+            dataToSend (treeToJSON tree)
 
-    ExportDOCX str ->
-      dataToSend ( string str )
+        ExportTXT withRoot tree ->
+            dataToSend (treeToMarkdown withRoot tree)
 
-    ExportJSON tree ->
-      dataToSend ( treeToJSON tree )
+        -- ExportTXTColumn is handled by 'ExportTXT' in JS
+        -- So we use the "ExportTXT" tag here, instead of `dataToSend`
+        ExportTXTColumn col tree ->
+            infoForOutside
+                { tag = "ExportTXT"
+                , data =
+                    tree
+                        |> getColumn col
+                        |> Maybe.withDefault [ [] ]
+                        |> List.concat
+                        |> List.map .content
+                        |> String.join "\n\n"
+                        |> string
+                }
 
-    ExportTXT withRoot tree ->
-      dataToSend ( treeToMarkdown withRoot tree )
+        -- === DOM ===
+        ActivateCards ( cardId, col, lastActives ) ->
+            let
+                listListStringToValue lls =
+                    lls
+                        |> List.map (List.map string)
+                        |> List.map list
+                        |> list
+            in
+            dataToSend
+                (object
+                    [ ( "cardId", string cardId )
+                    , ( "column", int col )
+                    , ( "lastActives", listListStringToValue lastActives )
+                    ]
+                )
 
-    -- ExportTXTColumn is handled by 'ExportTXT' in JS
-    -- So we use the "ExportTXT" tag here, instead of `dataToSend`
-    ExportTXTColumn col tree ->
-      infoForOutside
-        { tag = "ExportTXT"
-        , data =
-            ( tree
-                |> getColumn col
-                |> Maybe.withDefault [[]]
-                |> List.concat
-                |> List.map .content
-                |> String.join "\n\n"
-                |> string
-            )
-        }
+        FlashCurrentSubtree ->
+            dataToSend null
 
-    -- === DOM ===
+        TextSurround id str ->
+            dataToSend (list [ string id, string str ])
 
-    ActivateCards (cardId, col, lastActives) ->
-      let
-        listListStringToValue lls =
-          lls
-            |> List.map (List.map string)
-            |> List.map list
-            |> list
-      in
-      dataToSend
-        ( object
-          [ ( "cardId", string cardId )
-          , ( "column", int col )
-          , ( "lastActives", listListStringToValue lastActives )
-          ]
-        )
+        -- === UI ===
+        UpdateCommits ( objectsValue, head_ ) ->
+            let
+                headToValue mbs =
+                    case mbs of
+                        Just str ->
+                            string str
 
-    FlashCurrentSubtree ->
-      dataToSend null
+                        Nothing ->
+                            null
+            in
+            dataToSend (tupleToValue identity headToValue ( objectsValue, head_ ))
 
-    TextSurround id str ->
-      dataToSend ( list [ string id, string str ] )
+        SetVideoModal isOpen ->
+            dataToSend (bool isOpen)
 
-    -- === UI ===
+        SetShortcutTray isOpen ->
+            dataToSend (bool isOpen)
 
-    UpdateCommits ( objectsValue, head_ ) ->
-      let
-        headToValue mbs =
-          case mbs of
-            Just str -> string str
-            Nothing -> null
-      in
-      dataToSend ( tupleToValue identity headToValue ( objectsValue, head_ ) )
+        -- === Misc ===
+        SocketSend collabState ->
+            dataToSend (collabStateToValue collabState)
 
-    SetVideoModal isOpen ->
-      dataToSend ( bool isOpen )
-
-    SetShortcutTray isOpen ->
-      dataToSend ( bool isOpen )
-
-    -- === Misc ===
-
-    SocketSend collabState ->
-      dataToSend ( collabStateToValue collabState )
-
-    ConsoleLogRequested err ->
-      dataToSend ( string err )
-
-
+        ConsoleLogRequested err ->
+            dataToSend (string err)
 
 
 receiveMsg : (IncomingMsg -> msg) -> (String -> msg) -> Sub msg
 receiveMsg tagger onError =
-  infoForElm
-    (\outsideInfo ->
-        case outsideInfo.tag of
-          -- === Dialogs, Menus, Window State ===
+    infoForElm
+        (\outsideInfo ->
+            case outsideInfo.tag of
+                -- === Dialogs, Menus, Window State ===
+                "IntentExit" ->
+                    tagger <| IntentExit
 
-          "IntentExit" ->
-            tagger <| IntentExit
+                "IntentExport" ->
+                    case decodeValue exportSettingsDecoder outsideInfo.data of
+                        Ok exportSettings ->
+                            tagger <| IntentExport exportSettings
 
+                        Err e ->
+                            onError e
 
-          "IntentExport" ->
-            case decodeValue exportSettingsDecoder outsideInfo.data of
-              Ok exportSettings ->
-                tagger <| IntentExport exportSettings
+                "CancelCardConfirmed" ->
+                    tagger <| CancelCardConfirmed
 
-              Err e ->
-                onError e
+                -- === Database ===
+                "SetHeadRev" ->
+                    case decodeValue Json.Decode.string outsideInfo.data of
+                        Ok rev ->
+                            tagger <| SetHeadRev rev
 
-          "CancelCardConfirmed" ->
-            tagger <| CancelCardConfirmed
+                        Err e ->
+                            onError e
 
-          -- === Database ===
+                "Merge" ->
+                    tagger <| Merge outsideInfo.data
 
-          "SetHeadRev" ->
-            case decodeValue Json.Decode.string outsideInfo.data of
-              Ok rev ->
-                tagger <| SetHeadRev rev
+                -- === DOM ===
+                "FieldChanged" ->
+                    case decodeValue Json.Decode.string outsideInfo.data of
+                        Ok newField ->
+                            tagger <| FieldChanged newField
 
-              Err e ->
-                onError e
+                        Err e ->
+                            onError e
 
-          "Merge" ->
-            tagger <| Merge outsideInfo.data
+                -- === UI ===
+                "CheckoutCommit" ->
+                    case decodeValue Json.Decode.string outsideInfo.data of
+                        Ok commitSha ->
+                            tagger <| CheckoutCommit commitSha
 
-          -- === DOM ===
+                        Err e ->
+                            onError e
 
-          "FieldChanged" ->
-            case decodeValue Json.Decode.string outsideInfo.data of
-              Ok newField ->
-                tagger <| FieldChanged newField
+                "ViewVideos" ->
+                    tagger <| ViewVideos
 
-              Err e ->
-                onError e
+                "Keyboard" ->
+                    case decodeValue (tupleDecoder Json.Decode.string Json.Decode.int) outsideInfo.data of
+                        Ok ( shortcut, timestamp ) ->
+                            tagger <| Keyboard shortcut timestamp
 
-          -- === UI ===
+                        Err e ->
+                            onError e
 
-          "CheckoutCommit" ->
-            case decodeValue Json.Decode.string outsideInfo.data of
-              Ok commitSha ->
-                tagger <| CheckoutCommit commitSha
+                -- === Misc ===
+                "RecvCollabState" ->
+                    case decodeValue collabStateDecoder outsideInfo.data of
+                        Ok collabState ->
+                            tagger <| RecvCollabState collabState
 
-              Err e ->
-                onError e
+                        Err e ->
+                            onError e
 
-          "ViewVideos" ->
-            tagger <| ViewVideos
+                "CollaboratorDisconnected" ->
+                    case decodeValue Json.Decode.string outsideInfo.data of
+                        Ok uid ->
+                            tagger <| CollaboratorDisconnected uid
 
-          "Keyboard" ->
-            case decodeValue ( tupleDecoder Json.Decode.string Json.Decode.int ) outsideInfo.data of
-              Ok (shortcut, timestamp) ->
-                tagger <| Keyboard shortcut timestamp
+                        Err e ->
+                            onError e
 
-              Err e ->
-                onError e
-
-          -- === Misc ===
-
-          "RecvCollabState" ->
-            case decodeValue collabStateDecoder outsideInfo.data of
-              Ok collabState ->
-                tagger <| RecvCollabState collabState
-
-              Err e ->
-                onError e
-
-          "CollaboratorDisconnected" ->
-            case decodeValue Json.Decode.string outsideInfo.data of
-              Ok uid ->
-                tagger <| CollaboratorDisconnected uid
-
-              Err e ->
-                onError e
-
-          _ ->
-            onError <| "Unexpected info from outside: " ++ toString outsideInfo
-    )
-
-
+                _ ->
+                    onError <| "Unexpected info from outside: " ++ toString outsideInfo
+        )
 
 
 encodeAndSend : OutgoingMsg -> Json.Encode.Value -> Cmd msg
 encodeAndSend info data =
-  let
-    tagName = unionTypeToString info
-  in
-  infoForOutside { tag = tagName, data = data }
+    let
+        tagName =
+            unionTypeToString info
+    in
+    infoForOutside { tag = tagName, data = data }
 
 
 unionTypeToString : a -> String
 unionTypeToString ut =
-  ut
-    |> toString
-    |> String.words
-    |> List.head
-    |> Maybe.withDefault (ut |> toString)
+    ut
+        |> toString
+        |> String.words
+        |> List.head
+        |> Maybe.withDefault (ut |> toString)
 
 
 port infoForOutside : OutsideData -> Cmd msg
+
 
 port infoForElm : (OutsideData -> msg) -> Sub msg

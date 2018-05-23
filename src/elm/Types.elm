@@ -1,165 +1,202 @@
 module Types exposing (..)
 
-import Json.Decode as Json
 import Html5.DragDrop as DragDrop
+import Json.Decode as Json
 
 
 type Msg
     = NoOp
-    -- === Card Activation ===
+      -- === Card Activation ===
     | Activate String
-    -- === Card Editing  ===
+      -- === Card Editing  ===
     | OpenCard String String
     | DeleteCard String
-    -- === Card Insertion  ===
+      -- === Card Insertion  ===
     | InsertAbove String
     | InsertBelow String
     | InsertChild String
-    -- === Card Moving  ===
+      -- === Card Moving  ===
     | DragDropMsg (DragDrop.Msg String DropId)
-    -- === History ===
+      -- === History ===
     | Undo
     | Redo
     | Sync
     | SetSelection String Selection String
     | Resolve String
-    -- === Help ===
+      -- === Help ===
     | VideoModal Bool
     | ShortcutTrayToggle
-    -- === Ports ===
+      -- === Ports ===
     | Port IncomingMsg
     | LogErr String
 
 
-type OutgoingMsg
+type
+    OutgoingMsg
     -- === Dialogs, Menus, Window State ===
     = Alert String
-    | SaveAndClose ( Maybe ( Json.Value, Json.Value ) )
+    | SaveAndClose (Maybe ( Json.Value, Json.Value ))
     | ConfirmCancelCard String String
     | ColumnNumberChange Int
-    -- === Database ===
+      -- === Database ===
     | SaveToDB ( Json.Value, Json.Value )
     | SaveLocal Tree
     | Push
     | Pull
-    -- === File System ===
+      -- === File System ===
     | ExportDOCX String
     | ExportJSON Tree
     | ExportTXT Bool Tree
     | ExportTXTColumn Int Tree
-    -- === DOM ===
+      -- === DOM ===
     | ActivateCards ( String, Int, List (List String) )
     | FlashCurrentSubtree
     | TextSurround String String
-    -- === UI ===
+      -- === UI ===
     | UpdateCommits ( Json.Value, Maybe String )
     | SetVideoModal Bool
     | SetShortcutTray Bool
-    -- === Misc ===
+      -- === Misc ===
     | SocketSend CollabState
     | ConsoleLogRequested String
 
 
-type IncomingMsg
+type
+    IncomingMsg
     -- === Dialogs, Menus, Window State ===
     = IntentExit
     | IntentExport ExportSettings
     | CancelCardConfirmed
-    -- === Database ===
+      -- === Database ===
     | SetHeadRev String
     | Merge Json.Value
-    -- === DOM ===
+      -- === DOM ===
     | FieldChanged String
-    -- === UI ===
+      -- === UI ===
     | CheckoutCommit String
     | ViewVideos
     | Keyboard String Int
-    -- === Misc ===
+      -- === Misc ===
     | RecvCollabState CollabState
     | CollaboratorDisconnected String
 
 
 type alias OutsideData =
-  { tag : String, data: Json.Value }
+    { tag : String, data : Json.Value }
 
 
 type alias ExportSettings =
-  { format : ExportFormat
-  , selection : ExportSelection
-  }
+    { format : ExportFormat
+    , selection : ExportSelection
+    }
 
-type ExportFormat = DOCX | JSON | TXT
-type ExportSelection = All | CurrentSubtree | ColumnNumber Int
+
+type ExportFormat
+    = DOCX
+    | JSON
+    | TXT
+
+
+type ExportSelection
+    = All
+    | CurrentSubtree
+    | ColumnNumber Int
 
 
 type alias Tree =
-  { id : String
-  , content : String
-  , children : Children
-  }
+    { id : String
+    , content : String
+    , children : Children
+    }
 
 
-type Children = Children (List Tree)
-type alias Group = List Tree
-type alias Column = List (List Tree)
+type Children
+    = Children (List Tree)
 
 
+type alias Group =
+    List Tree
 
-type Op = Ins String String (List String) Int | Mod String (List String) String String | Del String (List String) | Mov String (List String) Int (List String) Int 
-type Selection = Original | Ours | Theirs | Manual
+
+type alias Column =
+    List (List Tree)
+
+
+type Op
+    = Ins String String (List String) Int
+    | Mod String (List String) String String
+    | Del String (List String)
+    | Mov String (List String) Int (List String) Int
+
+
+type Selection
+    = Original
+    | Ours
+    | Theirs
+    | Manual
+
+
 type alias Conflict =
-  { id : String
-  , opA : Op
-  , opB : Op
-  , selection : Selection
-  , resolved : Bool
-  }
+    { id : String
+    , opA : Op
+    , opB : Op
+    , selection : Selection
+    , resolved : Bool
+    }
 
 
-type Status = Bare | Clean String | MergeConflict Tree String String (List Conflict)
+type Status
+    = Bare
+    | Clean String
+    | MergeConflict Tree String String (List Conflict)
 
 
-type Mode = Active String | Editing String 
+type Mode
+    = Active String
+    | Editing String
 
 
-type DropId = Above String | Below String | Into String
+type DropId
+    = Above String
+    | Below String
+    | Into String
 
 
 type alias CollabState =
-  { uid : String
-  , mode : Mode
-  , field : String
-  }
+    { uid : String
+    , mode : Mode
+    , field : String
+    }
 
 
 type alias ViewState =
-  { active : String
-  , activePast : List String
-  , activeFuture : List String
-  , descendants : List String
-  , ancestors : List String
-  , editing : Maybe String
-  , dragModel : DragDrop.Model String DropId
-  , draggedTree : Maybe (Tree, String, Int)
-  , copiedTree : Maybe Tree
-  , collaborators : List CollabState
-  }
+    { active : String
+    , activePast : List String
+    , activeFuture : List String
+    , descendants : List String
+    , ancestors : List String
+    , editing : Maybe String
+    , dragModel : DragDrop.Model String DropId
+    , draggedTree : Maybe ( Tree, String, Int )
+    , copiedTree : Maybe Tree
+    , collaborators : List CollabState
+    }
 
 
 type alias VisibleViewState =
-  { active : String
-  , editing : Maybe String
-  , descendants : List String
-  , ancestors : List String
-  , dragModel : DragDrop.Model String DropId
-  , collaborators : List CollabState
-  }
+    { active : String
+    , editing : Maybe String
+    , descendants : List String
+    , ancestors : List String
+    , dragModel : DragDrop.Model String DropId
+    , collaborators : List CollabState
+    }
 
 
 type alias WordCount =
-  { card : Int
-  , subtree : Int
-  , group : Int
-  , column : Int
-  , document : Int
-  }
+    { card : Int
+    , subtree : Int
+    , group : Int
+    , column : Int
+    , document : Int
+    }
