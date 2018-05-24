@@ -38,7 +38,7 @@ viewFooter model =
                 [ id "save-indicator", classList [ ( "inset", True ), ( "saving", model.changed ) ] ]
                 [ text
                     (if model.changed then
-                        "Saving..."
+                        "Unsaved"
                      else
                         "Saved"
                     )
@@ -89,7 +89,7 @@ viewFooter model =
                         , viewSaveState
                         ]
                 else
-                    []
+                    [ viewSaveState ]
                )
         )
 
