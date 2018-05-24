@@ -87,7 +87,13 @@ init : ( Json.Value, InitModel ) -> ( Model, Cmd Msg )
 init ( json, modelIn ) =
     let
         ( newStatus, newTree_, newObjects ) =
-            Objects.update (Objects.Init json) defaultModel.objects
+            case Json.decodeValue treeDecoder json of
+                Ok newTree ->
+                    Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" newTree) defaultModel.objects
+                        |> (\( s, _, o ) -> ( s, Just newTree, o ))
+
+                Err err ->
+                    Objects.update (Objects.Init json) defaultModel.objects
 
         newTree =
             Maybe.withDefault Trees.defaultTree newTree_

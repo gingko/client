@@ -13,7 +13,7 @@ home.ports.forJS.subscribe(function(elmdata) {
       ipcRenderer.send('home:new')
       break;
     case "ImportGko":
-      ipcRenderer.send('home:import-gko')
+      ipcRenderer.send('home:import-file')
       break;
     case "Load":
       ipcRenderer.send('home:load', elmdata.data[0], elmdata.data[1])
@@ -22,7 +22,7 @@ home.ports.forJS.subscribe(function(elmdata) {
       dbMapping.setState(elmdata.data[0], elmdata.data[1])
       break;
     case "Delete":
-      if(confirm("Are you sure you want to delete this?\nThere is no UNDO.")) {
+      if(confirm("Are you sure you want to delete this?\nThere is NO UNDO.")) {
         ipcRenderer.send('home:delete', elmdata.data)
       }
       break;

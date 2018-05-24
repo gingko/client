@@ -30,7 +30,6 @@ label {
 #template-block {
   background-color: hsl(219, 13%, 21%);
   padding: 20px;
-  padding-bottom: 30px;
   box-shadow: inset 0px -2px 4px hsla(0,0%,0%,0.4);
   display: flex;
   color: hsl(0,0%,94%);
@@ -47,16 +46,22 @@ label {
   margin-right: 30px;
   margin-bottom: 5px;
   box-shadow: 1px 1px 4px black;
-  border: 2px solid transparent;
+  border: 4px solid transparent;
 }
 
 .template-item:hover .template-thumbnail {
-  border: 2px solid #a6cc90;
+  border: 4px solid #a6cc90;
 }
 
 .template-title {
   font-weight: bold;
   font-size: 90%;
+}
+
+.template-description {
+  font-size: 75%;
+  font-style: italic;
+  color: #aaa;
 }
 
 .template-thumbnail.new {

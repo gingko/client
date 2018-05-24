@@ -170,6 +170,11 @@ view { documents, archiveDropdown, currentTime } =
             , div [ class "template-item", onClick Import ]
                 [ div [ classList [ ( "template-thumbnail", True ), ( "import", True ) ] ] [ Icon.file (Icon.defaultOptions |> Icon.size 48) ]
                 , div [ class "template-title" ] [ text "Import From File" ]
+                , div [ class "template-description" ]
+                    [ text "From Desktop or Online"
+                    , br [] []
+                    , text "(.gko or .json)"
+                    ]
                 ]
             ]
         , div [ id "documents-block" ]

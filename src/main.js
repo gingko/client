@@ -37,7 +37,7 @@ function createHomeWindow () {
 }
 
 
-function createAppWindow (dbName, docName) {
+function createAppWindow (dbName, docName, jsonImportData) {
   let mainWindowState = windowStateKeeper(
     { defaultWidth: 1000
     , defaultHeight: 800
@@ -65,6 +65,7 @@ function createAppWindow (dbName, docName) {
   // accessed from the app window
   win.dbName = dbName;
   win.docName = docName;
+  win.jsonImportData = jsonImportData;
 
   win.renameDoc = function(newName) {
     win.setTitle(`${newName} - Gingko`)
@@ -229,12 +230,13 @@ ipcMain.on('home:new', (event) => {
 })
 
 
-ipcMain.on('home:import-gko', async (event) => {
+ipcMain.on('home:import-file', async (event) => {
   var options =
       { title: 'Open File...'
       , defaultPath: app.getPath('documents')
       , properties: ['openFile']
-      , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
+      , filters:  [ {name: 'Gingko Desktop Files (*.gko)', extensions: ['gko']}
+                  , {name: 'Gingko JSON Files (*.json)', extensions: ['json']}
                   , {name: 'All Files', extensions: ['*']}
                   ]
       }
@@ -242,13 +244,13 @@ ipcMain.on('home:import-gko', async (event) => {
   var filepathArray = dialog.showOpenDialog(winHome, options)
   if (!!filepathArray) {
     try {
-      var { dbName, docName } = await fio.dbFromFile(filepathArray[0])
+      var { dbName, docName, jsonImportData } = await fio.dbFromFile(filepathArray[0])
     } catch (err) {
       dialog.showMessageBox(errorAlert("Import Error", "Couldn't load .gko data", err))
       return;
     }
     dbMapping.newDb(dbName, docName)
-    createAppWindow(dbName, docName)
+    createAppWindow(dbName, docName, jsonImportData)
     winHome.close()
   }
 })
@@ -266,7 +268,7 @@ ipcMain.on('home:delete', async (event, dbToDelete) => {
 })
 
 
-ipcMain.on('app:rename', (event, dbName, currName, closeDocument) => {
+ipcMain.on('app:rename-untitled', (event, dbName, currName, closeDocument) => {
   createRenameWindow(BrowserWindow.fromWebContents(event.sender), dbName, currName, closeDocument)
 })
 

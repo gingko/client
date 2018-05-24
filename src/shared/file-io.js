@@ -25,20 +25,14 @@ function dbToFile(database, filepath) {
 }
 
 async function dbFromFile(filepath) {
-  var dbLine = await firstline(filepath)
-  var dumpInfo= JSON.parse(dbLine)
-  const hash = crypto.createHash('sha1')
-  hash.update(dumpInfo.db_info.db_name + "\n" + dumpInfo.start_time)
-
-  var dbName = hash.digest('hex')
-  var docName = path.basename(filepath, '.gko')
-  var dbPath = path.join(app.getPath('userData'), dbName)
-  var db = new PouchDB(dbPath)
-
-  var rs = fs.createReadStream(filepath)
-  await db.load(rs)
-  await db.close()
-  return { dbName : dbName, docName : docName }
+  try {
+    var importResult = await importGko(filepath);
+  } catch (err) {
+    if(err.message == "Unexpected end of JSON input") {
+      importResult = await importJSON(filepath);
+    }
+  }
+  return importResult;
 }
 
 
@@ -99,6 +93,54 @@ function save(database, filepath) {
       reject(err)
     }
   })
+}
+
+
+async function importGko(filepath) {
+  var dbLine = await firstline(filepath)
+  var dumpInfo= JSON.parse(dbLine)
+  const hash = crypto.createHash('sha1')
+  hash.update(dumpInfo.db_info.db_name + Date.now())
+
+  var dbName = hash.digest('hex')
+  var docName = path.basename(filepath, '.gko')
+  var dbPath = path.join(app.getPath('userData'), dbName)
+  var db = new PouchDB(dbPath)
+
+  var rs = fs.createReadStream(filepath)
+  await db.load(rs)
+  await db.close()
+  return { dbName : dbName, docName : docName }
+}
+
+
+async function importJSON(filepath) {
+  let data = await readFile(filepath);
+
+  const hash = crypto.createHash('sha1')
+  hash.update(data + Date.now())
+  var dbName = hash.digest('hex')
+  var docName = path.basename(filepath, '.json')
+
+  let nextId = 1
+
+  let seed =
+    JSON.parse(
+        data.toString()
+            .replace( /{(\s*)"content":/g
+                    , s => {
+                        return `{"id":"${nextId++}","content":`
+                      }
+                    )
+      )
+
+  let newRoot =
+        { id: "0"
+        , content: ""
+        , children: seed
+        }
+
+  return { dbName : dbName, docName : docName , jsonImportData : newRoot };
 }
 
 

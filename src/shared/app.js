@@ -41,6 +41,7 @@ self.savedObjectIds = [];
 var firstRun = userStore.get('first-run', true)
 var appWindow = remote.getCurrentWindow()
 var dbName = appWindow.dbName;
+var jsonImportData = appWindow.jsonImportData;
 
 
 
@@ -64,15 +65,12 @@ document.title = `${(!!appWindow.docName) ? appWindow.docName : "Untitled"} - Gi
 var dbpath = path.join(app.getPath('userData'), dbName)
 self.db = new PouchDB(dbpath)
 
-load().then(function (dbData) {
-
-  savedObjectIds = Object.keys(dbData[1].commits).concat(Object.keys(dbData[1].treeObjects))
-
+if(!!jsonImportData) {
   var initFlags =
-    [ dbData
-    , { isMac : process.platform === "darwin"
-      , shortcutTrayOpen : userStore.get('shortcut-tray-is-open', true)
-      , videoModalOpen : userStore.get('video-modal-is-open', false)
+    [ jsonImportData
+      , { isMac : process.platform === "darwin"
+        , shortcutTrayOpen : userStore.get('shortcut-tray-is-open', true)
+        , videoModalOpen : userStore.get('video-modal-is-open', false)
       }
     ]
   self.gingko = Elm.Main.fullscreen(initFlags)
@@ -80,7 +78,26 @@ load().then(function (dbData) {
   gingko.ports.infoForOutside.subscribe(function(elmdata) {
     update(elmdata.tag, elmdata.data)
   })
-})
+} else {
+  load().then(function (dbData) {
+
+    savedObjectIds = Object.keys(dbData[1].commits).concat(Object.keys(dbData[1].treeObjects))
+
+    var initFlags =
+      [ dbData
+        , { isMac : process.platform === "darwin"
+          , shortcutTrayOpen : userStore.get('shortcut-tray-is-open', true)
+          , videoModalOpen : userStore.get('video-modal-is-open', false)
+        }
+      ]
+    self.gingko = Elm.Main.fullscreen(initFlags)
+
+    gingko.ports.infoForOutside.subscribe(function(elmdata) {
+      update(elmdata.tag, elmdata.data)
+    })
+  })
+}
+
 
 self.socket = io.connect('http://localhost:3000')
 
@@ -156,7 +173,7 @@ const update = (msg, data) => {
           appWindow.destroy();
         } else {
           // is Untitled, so ask user to rename
-          ipcRenderer.send('app:rename', dbName, null, true)
+          ipcRenderer.send('app:rename-untitled', dbName, null, true)
         }
       }
 
@@ -348,6 +365,7 @@ ipcRenderer.on('resetzoom', e => { webFrame.setZoomLevel(0) })
 ipcRenderer.on('menu-view-videos', () => toElm('ViewVideos', null ))
 ipcRenderer.on('menu-contact-support', () => { if(crisp_loaded) { $crisp.push(['do', 'chat:open']); $crisp.push(['do', 'chat:show']); } else { shell.openExternal('mailto:adriano@gingkoapp.com') } } )
 ipcRenderer.on('main-exit', () => toElm('IntentExit', null))
+ipcRenderer.on('main:delete-and-close', async () => { await db.destroy(); await dbMapping.removeDb(dbName); appWindow.destroy(); })
 
 socket.on('collab', data => toElm('RecvCollabState', data))
 socket.on('collab-leave', data => toElm('CollaboratorDisconnected', data))
