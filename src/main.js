@@ -283,6 +283,13 @@ ipcMain.on('rename:renamed', (event, dbName, newName, closeDocument) => {
   }
 })
 
+ipcMain.on('rename:delete-and-close', (event, dbToDelete) => {
+  let renameWindow = BrowserWindow.fromWebContents(event.sender);
+  let appWindow = renameWindow.getParentWindow();
+
+  appWindow.webContents.send('main:delete-and-close')
+})
+
 
 ipcMain.on('column-number-change', (event, cols) => {
   if (_columns != cols) {
