@@ -8,7 +8,6 @@ import Json.Decode as Json
 import Json.Encode exposing (..)
 import Dom
 import Task
-import List.Extra as ListExtra
 
 import Types exposing (..)
 import Trees exposing (..)
@@ -675,10 +674,10 @@ update msg ({objects, workingTree, status} as model) =
               normalMode model (moveWithin vs.active 999999)
 
             "home" ->
-              normalMode model (goToTopOfColumn vs.active)
+              normalMode model (goToTopOfGroup vs.active True)
 
             "end" ->
-              normalMode model (goToBottomOfColumn vs.active)
+              normalMode model (goToBottomOfGroup vs.active True)
 
             "mod+x" ->
               normalMode model (cut vs.active)
@@ -866,39 +865,40 @@ goUp id (model, prevCmd) =
   model ! [prevCmd]
     |> activate targetId
 
-goToTopOfColumn : String -> (Model, Cmd Msg) -> (Model, Cmd Msg)
-goToTopOfColumn id (model, prevCmd) =
+goToTopOfGroup : String -> Bool -> (Model, Cmd Msg) -> (Model, Cmd Msg)
+goToTopOfGroup id fallToNextGroup (model, prevCmd)  =
   let
-      firstSibling = getSiblings id model.workingTree.tree
-        |> ListExtra.getAt 0
-
-      targetId = case firstSibling of
+    topSibling = case getSiblings id model.workingTree.tree
+      |> List.head of
         Nothing -> id
-        Just firstSiblingTree -> firstSiblingTree.id
+        Just lastSiblingTree -> lastSiblingTree.id
 
+    targetId = if (topSibling == id && fallToNextGroup) then
+      case getPrevInColumn id model.workingTree.tree of
+        Nothing -> topSibling
+        Just previousColumnTree -> previousColumnTree.id
+    else topSibling
   in
   model ! [prevCmd]
     |> activate targetId
 
-goToBottomOfColumn : String -> (Model, Cmd Msg) -> (Model, Cmd Msg)
-goToBottomOfColumn id (model, prevCmd) =
+goToBottomOfGroup : String -> Bool -> (Model, Cmd Msg) -> (Model, Cmd Msg)
+goToBottomOfGroup id fallToNextGroup (model, prevCmd) =
   let
-    siblings = getSiblings id model.workingTree.tree
-    siblingCount =
-      siblings
-        |> List.length
+    bottomSibling = case getSiblings id model.workingTree.tree
+      |> List.reverse
+      |> List.head of
+        Nothing -> id
+        Just lastSiblingTree -> lastSiblingTree.id
 
-    lastSiblingTree = getSiblings id model.workingTree.tree
-      |> ListExtra.getAt (siblingCount-1)
-
-    targetId = case lastSiblingTree of
-      Nothing -> id
-      Just lastSiblingTree -> lastSiblingTree.id
+    targetId = if (bottomSibling == id && fallToNextGroup) then
+      case getNextInColumn id model.workingTree.tree of
+        Nothing -> bottomSibling
+        Just nextColumnTree -> nextColumnTree.id
+      else bottomSibling
   in
   model ! [prevCmd]
     |> activate targetId
-
-
 
 goRight : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 goRight id (model, prevCmd) =
@@ -1231,7 +1231,7 @@ copy id (model, prevCmd) =
 
 
 paste : Tree -> String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-paste subtree pid pos (model, prevCmd) = 
+paste subtree pid pos (model, prevCmd) =
   { model
     | workingTree = Trees.update (Trees.Paste subtree pid pos) model.workingTree
   }
