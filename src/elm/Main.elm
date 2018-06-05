@@ -98,13 +98,16 @@ init ( json, modelIn ) =
         newTree =
             Maybe.withDefault Trees.defaultTree newTree_
 
+        newWorkingTree =
+            Trees.setTree newTree defaultModel.workingTree
+
         startingWordcount =
             newTree_
                 |> Maybe.map (\t -> countWords (treeToMarkdownString False t))
                 |> Maybe.withDefault 0
     in
     { defaultModel
-        | workingTree = Trees.setTree newTree defaultModel.workingTree
+        | workingTree = newWorkingTree
         , objects = newObjects
         , status = newStatus
         , isMac = modelIn.isMac
@@ -112,7 +115,7 @@ init ( json, modelIn ) =
         , videoModalOpen = modelIn.videoModalOpen
         , startingWordcount = startingWordcount
     }
-        ! [ focus "1" ]
+        ! [ focus "1", sendOut <| ColumnNumberChange <| List.length <| newWorkingTree.columns ]
         |> activate "1"
 
 
