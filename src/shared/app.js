@@ -217,7 +217,7 @@ const update = (msg, data) => {
 
     , 'ExportDOCX': () => {
         try {
-          exportDocx(data[0], data[1])
+          exportDocx(data)
         } catch (e) {
           dialog.showMessageBox(errorAlert('Export Error', "Couldn't export.\nTry again.", e))
           return;
@@ -226,7 +226,7 @@ const update = (msg, data) => {
 
     , 'ExportJSON': () => {
         try {
-          exportJson(data[0], data[1])
+          exportJson(data)
         } catch (e) {
           dialog.showMessageBox(errorAlert('Export Error', "Couldn't export.\nTry again.", e))
           return;
@@ -235,7 +235,7 @@ const update = (msg, data) => {
 
     , 'ExportTXT': () => {
         try {
-          exportTxt(data[0], data[1])
+          exportTxt(data)
         } catch (e) {
           dialog.showMessageBox(errorAlert('Export Error', "Couldn't export.\nTry again.", e))
           return;
@@ -244,7 +244,7 @@ const update = (msg, data) => {
 
     , 'ExportTXTColumn': () => {
         try {
-          exportTxt(data[0], data[1])
+          exportTxt(data)
         } catch (e) {
           dialog.showMessageBox(errorAlert('Export Error', "Couldn't export.\nTry again.", e))
           return;
