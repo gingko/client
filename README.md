@@ -1,8 +1,5 @@
-# Gingko 2 [![Build Status](https://travis-ci.org/gingko/client.svg?branch=master)](https://travis-ci.org/gingko/client) [![Issue Stats](http://issuestats.com/github/Gingko/client/badge/pr?style=flat)](http://issuestats.com/github/Gingko/client) [![Issue Stats](http://issuestats.com/github/Gingko/client/badge/issue?style=flat)](http://issuestats.com/github/Gingko/client)
+# Gingko 2 [![Build Status](https://travis-ci.org/gingko/client.svg?branch=master)](https://travis-ci.org/gingko/client)
 This is the desktop version, ground-up rewrite of [GingkoApp.com](https://gingkoapp.com). The latest version of this is available for download at [gingko.io](https://gingko.io). (Linux, Windows, and Mac).
-
-This code has only recently been open-sourced, so documentation is sparse.
-Please bear with us, while we improve it.
 
 # Installation & Dev Environment
 
@@ -20,6 +17,10 @@ yarn start
 # 2. In separate terminal:
 yarn run electron
 ```
+
+# Contributions Welcome
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for a guide to get started.
 
 
 # Release process
