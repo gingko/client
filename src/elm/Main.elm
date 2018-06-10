@@ -679,6 +679,12 @@ update msg ({objects, workingTree, status} as model) =
             "end" ->
               normalMode model (goToBottomOfGroup vs.active True)
 
+            "pageup" ->
+              normalMode model (goToTopOfColumn vs.active)
+
+            "pagedown" ->
+              normalMode model (goToBottomOfColumn vs.active)
+
             "mod+x" ->
               normalMode model (cut vs.active)
 
@@ -841,6 +847,10 @@ goLeft id (model, prevCmd) =
   model ! [prevCmd]
     |> activate targetId
 
+goToTopOfColumn : String -> (Model, Cmd Msg) -> (Model, Cmd Msg)
+goToTopOfColumn id (model, prevCmd) =
+  model ! [prevCmd]
+  |> activate (getFirstInColumn id model.workingTree.tree)
 
 goDown : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 goDown id (model, prevCmd) =
@@ -853,6 +863,10 @@ goDown id (model, prevCmd) =
   model ! [prevCmd]
     |> activate targetId
 
+goToBottomOfColumn : String -> (Model, Cmd Msg) -> (Model, Cmd Msg)
+goToBottomOfColumn id (model, prevCmd) =
+  model ! [prevCmd]
+  |> activate (getLastInColumn id model.workingTree.tree)
 
 goUp : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 goUp id (model, prevCmd) =

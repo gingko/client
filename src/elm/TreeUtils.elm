@@ -166,6 +166,29 @@ getNextInColumn : String -> Tree -> Maybe Tree
 getNextInColumn id tree =
   getPrevNextInColumn 1 id tree
 
+getFirstInColumn : String -> Tree -> String
+getFirstInColumn id tree =
+  case getColumnById id tree of
+    Nothing -> id
+    Just c -> case c
+      |> List.concat
+      |> List.map .id
+      |> List.head of
+        Nothing -> id
+        Just firstId -> firstId
+
+getLastInColumn : String -> Tree -> String
+getLastInColumn id tree =
+  case getColumnById id tree of
+    Nothing -> id
+    Just c -> case c
+      |> List.concat
+      |> List.map .id
+      |> List.reverse
+      |> List.head of
+        Nothing -> id
+        Just firstId -> firstId
+
 
 getContent : String -> Tree -> String
 getContent id tree =

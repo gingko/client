@@ -276,6 +276,8 @@ var shortcuts = [ 'mod+enter'
                 , 'mod+i'
                 , 'end'
                 , 'home'
+                , 'pageup'
+                , 'pagedown'
                 ];
 
 var needOverride= [ 'mod+n'
@@ -284,6 +286,8 @@ var needOverride= [ 'mod+n'
                   , 'mod+shift+s'
                   , 'end'
                   , 'home'
+                  , 'pageup'
+                  , 'pagedown'
                   ];
 
 /* ===== CommonJS Module exports ===== */
