@@ -674,16 +674,16 @@ update msg ({objects, workingTree, status} as model) =
               normalMode model (moveWithin vs.active 999999)
 
             "home" ->
-              normalMode model (goToTopOfGroup vs.active True)
-
-            "end" ->
-              normalMode model (goToBottomOfGroup vs.active True)
-
-            "pageup" ->
               normalMode model (goToTopOfColumn vs.active)
 
-            "pagedown" ->
+            "end" ->
               normalMode model (goToBottomOfColumn vs.active)
+
+            "pageup" ->
+              normalMode model (goToTopOfGroup vs.active True)
+
+            "pagedown" ->
+              normalMode model (goToBottomOfGroup vs.active True)
 
             "mod+x" ->
               normalMode model (cut vs.active)
