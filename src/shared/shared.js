@@ -274,12 +274,20 @@ var shortcuts = [ 'mod+enter'
                 , 'mod+o'
                 , 'mod+b'
                 , 'mod+i'
+                , 'end'
+                , 'home'
+                , 'pageup'
+                , 'pagedown'
                 ];
 
 var needOverride= [ 'mod+n'
                   , 'mod+o'
                   , 'mod+s'
                   , 'mod+shift+s'
+                  , 'end'
+                  , 'home'
+                  , 'pageup'
+                  , 'pagedown'
                   ];
 
 /* ===== CommonJS Module exports ===== */
