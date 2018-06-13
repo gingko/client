@@ -254,7 +254,8 @@ function menuFunction(isEditing, cols) {
     }
 
 
-  return [ { label: 'File'
+  var defaultMenu =
+    [ { label: 'File'
     , submenu:
         [ { label: 'New'
           , accelerator: 'CmdOrCtrl+N'
@@ -292,10 +293,6 @@ function menuFunction(isEditing, cols) {
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('menu-export-json')
             }
-          }
-        , { type: 'separator' }
-        , { label: 'Exit...'
-          , role: 'quit'
           }
         ]
     }
@@ -348,7 +345,7 @@ function menuFunction(isEditing, cols) {
             }
           }
           , { type: 'separator' }
-          , { label: 'Show Dev Tools'
+          , { label: 'Open Debugging Tools'
             , accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I'
             , click (item, focusedWindow) {
                 if (focusedWindow) focusedWindow.webContents.toggleDevTools()
@@ -357,6 +354,31 @@ function menuFunction(isEditing, cols) {
         ]
     }
   ]
+
+
+  if (process.platform == 'darwin') {
+    defaultMenu.unshift(
+      { label : app.getName()
+      , submenu :
+          [ {role: 'about'}
+          , {type: 'separator'}
+          , {role: 'services', submenu: []}
+          , {type: 'separator'}
+          , {role: 'hide'}
+          , {role: 'hideothers'}
+          , {role: 'unhide'}
+          , {type: 'separator'}
+          , {role: 'quit'}
+          ]
+      })
+
+    defaultMenu.splice(4, 0, { role: 'window'})
+  } else {
+    defaultMenu[0].submenu.push({type: 'separator'} , {role: 'quit'} )
+  }
+
+
+  return defaultMenu;
 }
 
 
