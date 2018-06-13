@@ -283,13 +283,13 @@ function menuFunction(isEditing, cols) {
             }
           }
         , { type: 'separator' }
-        , { label: 'Export to MS Word'
+        , { label: 'Export as MS Word'
           , submenu : exportMenu('docx', cols)
           }
-        , { label: 'Export to Text'
+        , { label: 'Export as Text'
           , submenu : exportMenu('txt', cols)
           }
-        , { label: 'Export to JSON...'
+        , { label: 'Export as JSON...'
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('menu-export-json')
             }
