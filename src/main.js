@@ -541,7 +541,8 @@ ipcMain.on('serial', (event, msg) => {
 
 
 ipcMain.on('open-serial-window', (event, msg) => {
-  createSerialWindow(BrowserWindow.fromWebContents(event.sender),msg)
+  var parentWindow = BrowserWindow.fromWebContents(event.sender).getParentWindow();
+  createSerialWindow(parentWindow, msg)
 })
 
 
@@ -568,8 +569,6 @@ function createTrialWindow(parentWindow, activations, limit) {
     winTrial.show()
   })
   winTrial.loadURL(url)
-
-  winTrial.on
 }
 
 
