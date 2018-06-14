@@ -41,9 +41,13 @@ You can always look through the [list of issues](https://github.com/gingko/clien
 You'll never be making changes *directly* to Gingko's code. First, you get copies of the code, make changes to your own copies, and then ask me to merge those changes in to the official code.
 
 1. First, make an online copy in your own GitHub account, by clicking "Fork" at the top right.
+
 ![GitHub Fork Button](./docs/images/how-to-fork.png)
+
 2. Then, get the location of your online (forked) copy...
+
 ![GitHub Clone Button](./docs/images/how-to-clone-address.png)
+
 3. Clone it to your computer:
 ```bash
 git clone git@github.com:{YOUR_USERNAME}/client.git
