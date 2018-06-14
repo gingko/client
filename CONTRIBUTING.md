@@ -28,8 +28,7 @@ The basic process is:
 3. Signal your intentions to me ("make a Pull Request").
 4. Start making changes, and uploading them to your online copy.
 5. Discuss and get feedback from me.
-6. Incorporate feedback and finish your change.
-7. When we're ready, I'll merge your contributions, and make them available to everyone in the next release.
+6. When we're ready, I'll merge your contributions, and make them available to everyone in the next release.
 
 
 ### 1. Defining the Problem
@@ -63,5 +62,29 @@ Follow the steps here to create one:
 https://help.github.com/articles/creating-a-pull-request-from-a-fork/
 
 ### 4. Make Changes & Upload Your Work-In-Progress
+You're ready to start making your changes and contributions!
 
-... to be continued ...
+For minor features, you can often look through the code to see how something similar was accomplished, and reverse-engineer your own solution. Same goes for fixing small bugs, visual changes, or improving the documentation.
+
+For bigger changes, you'll either have to already know some Elm/JavaScript/HTML/CSS, or be willing to learn. Remember that I'd be glad to help you with this!
+
+Every small, self-contained change should be committed to the work history:
+1. `git add` the files you changed
+2. `git commit` the changes
+3. `git push` those changes to your online forked copy
+
+(If you're new to `git`, see here for how to do the above: [git - the simple guide](http://rogerdudler.github.io/git-guide#trees))
+
+Since you already made a Pull Request, pushing your changes will cause them to show up in the Pull Request as well.
+
+### 5. Discussion & Feedback Loop
+
+... to be added ...
+
+### 6. Incorporate Changes
+
+Once we're both happy with the changes, I'll merge them into the official codebase, and prepare them for release to everyone.
+
+Because I don't want to swamp users with updates, I tend to wait till a few changes have been accumulated before making a release.
+
+And that's it! You're now a contributor :tada:!
