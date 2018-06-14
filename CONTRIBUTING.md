@@ -18,6 +18,7 @@ You'll need a free [GitHub Account](https://github.com/join), and the following 
 
 * Git : https://git-scm.com/downloads
 * Node : https://nodejs.org/en/
+* yarn : https://yarnpkg.com/en/docs/install
 * Elm-Platform : https://guide.elm-lang.org/install.html
 
 The basic process is:
@@ -39,7 +40,28 @@ You can always look through the [list of issues](https://github.com/gingko/clien
 ### 2. Get Your Own Copy
 You'll never be making changes *directly* to Gingko's code. First, you get copies of the code, make changes to your own copies, and then ask me to merge those changes in to the official code.
 
-First, make an online copy in your own GitHub account, by clicking "Fork" at the top right.
+1. First, make an online copy in your own GitHub account, by clicking "Fork" at the top right.
 ![GitHub Fork Button](./docs/images/how-to-fork.png)
+2. Then, get the location of your online (forked) copy...
+![GitHub Clone Button](./docs/images/how-to-clone-address.png)
+3. Clone it to your computer:
+```bash
+git clone git@github.com:{YOUR_USERNAME}/client.git
+```
+4. Make a new branch to keep your changes separate from the `master` branch:
+```bash
+git checkout -b name-of-your-feature-or-bugfix
+```
+5. Run the install script: `yarn install`
+6. Build the app (and rebuild every time you make a change): `yarn start`
+7. Try it out: `yarn electron`
+
+### 3. Signal Intentions: Make a Pull Request
+Pull requests are a way of saying "I've made some changes, please 'pull' them into the official code." But they're also a way of organizing the conversation around a *proposed* change. That's why I think we should start one early in the process.
+
+Follow the steps here to create one:
+https://help.github.com/articles/creating-a-pull-request-from-a-fork/
+
+### 4. Make Changes & Upload Your Work-In-Progress
 
 ... to be continued ...
