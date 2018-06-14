@@ -341,7 +341,7 @@ function menuFunction(isEditing, cols) {
           }
         , { label: 'Enter License...'
           , click (item, focusedWindow) {
-              createSerialWindow(false)
+              createSerialWindow(focusedWindow, false)
             }
           }
           , { type: 'separator' }
@@ -401,7 +401,7 @@ app.on('ready', () => {
     let trialDisplayDays = [25, 20, 15, 10, 8, 6, 5, 4, 3, 2, 1, 0]
 
     if(trialDisplayDays.includes(daysLeft)) {
-      createTrialWindow(activations, limit)
+      createTrialWindow(winHome, activations, limit)
     }
   }
 })
@@ -541,14 +541,14 @@ ipcMain.on('serial', (event, msg) => {
 
 
 ipcMain.on('open-serial-window', (event, msg) => {
-  createSerialWindow(msg)
+  createSerialWindow(BrowserWindow.fromWebContents(event.sender),msg)
 })
 
 
 
 /* ==== Modal Windows ==== */
 
-function createTrialWindow(activations, limit) {
+function createTrialWindow(parentWindow, activations, limit) {
   winTrial = new BrowserWindow(
     { width: 500
     , height: 350
@@ -557,7 +557,7 @@ function createTrialWindow(activations, limit) {
     , useContentSize: true
     , fullscreenable: false
     , resizable: false
-    , parent: win
+    , parent: parentWindow
     , show: false
     })
 
@@ -573,7 +573,7 @@ function createTrialWindow(activations, limit) {
 }
 
 
-function createSerialWindow(shouldBlock) {
+function createSerialWindow(parentWindow, shouldBlock) {
   winSerial = new BrowserWindow(
     { width: 440
     , height: 230
@@ -583,7 +583,7 @@ function createSerialWindow(shouldBlock) {
     , backgroundColor: 'lightgray'
     , modal: true
     , useContentSize: true
-    , parent: win
+    , parent: parentWindow
     , show: false
     })
 
