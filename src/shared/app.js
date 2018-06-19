@@ -364,7 +364,6 @@ ipcRenderer.on('zoomout', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() -
 ipcRenderer.on('resetzoom', e => { webFrame.setZoomLevel(0) })
 ipcRenderer.on('menu-view-videos', () => toElm('ViewVideos', null ))
 ipcRenderer.on('menu-contact-support', () => { if(crisp_loaded) { $crisp.push(['do', 'chat:open']); $crisp.push(['do', 'chat:show']); } else { shell.openExternal('mailto:adriano@gingkoapp.com') } } )
-ipcRenderer.on('main-exit', () => toElm('IntentExit', null))
 ipcRenderer.on('main:delete-and-close', async () => { await db.destroy(); await dbMapping.removeDb(dbName); appWindow.destroy(); })
 
 socket.on('collab', data => toElm('RecvCollabState', data))
