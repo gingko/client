@@ -610,17 +610,16 @@ update msg ({ objects, workingTree, status } as model) =
                             normalMode model (moveWithin vs.active 999999)
 
                         "home" ->
-                          normalMode model (goToTopOfColumn vs.active)
+                            normalMode model (goToTopOfColumn vs.active)
 
                         "end" ->
-                          normalMode model (goToBottomOfColumn vs.active)
+                            normalMode model (goToBottomOfColumn vs.active)
 
                         "pageup" ->
-                          normalMode model (goToTopOfGroup vs.active True)
+                            normalMode model (goToTopOfGroup vs.active True)
 
                         "pagedown" ->
-                          normalMode model (goToBottomOfGroup vs.active True)
-
+                            normalMode model (goToBottomOfGroup vs.active True)
 
                         "mod+x" ->
                             normalMode model (cut vs.active)
@@ -789,6 +788,7 @@ activate id ( model, prevCmd ) =
             Nothing ->
                 model ! [ prevCmd ]
 
+
 goLeft : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 goLeft id ( model, prevCmd ) =
     let
@@ -943,8 +943,10 @@ deleteCard id ( model, prevCmd ) =
 
         parent_ =
             getParent id model.workingTree.tree
+
         prev_ =
             getPrevInColumn id model.workingTree.tree
+
         next_ =
             getNextInColumn id model.workingTree.tree
 
@@ -975,50 +977,80 @@ deleteCard id ( model, prevCmd ) =
             |> activate nextToActivate
             |> addToHistory
 
-goToTopOfColumn : String -> (Model, Cmd Msg) -> (Model, Cmd Msg)
-goToTopOfColumn id (model, prevCmd) =
-  model ! [prevCmd]
-  |> activate (getFirstInColumn id model.workingTree.tree)
 
-goToBottomOfColumn : String -> (Model, Cmd Msg) -> (Model, Cmd Msg)
-goToBottomOfColumn id (model, prevCmd) =
-  model ! [prevCmd]
-  |> activate (getLastInColumn id model.workingTree.tree)
+goToTopOfColumn : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+goToTopOfColumn id ( model, prevCmd ) =
+    model
+        ! [ prevCmd ]
+        |> activate (getFirstInColumn id model.workingTree.tree)
 
-goToTopOfGroup : String -> Bool -> (Model, Cmd Msg) -> (Model, Cmd Msg)
-goToTopOfGroup id fallToNextGroup (model, prevCmd)  =
-  let
-    topSibling = case getSiblings id model.workingTree.tree
-      |> List.head of
-        Nothing -> id
-        Just lastSiblingTree -> lastSiblingTree.id
 
-    targetId = if (topSibling == id && fallToNextGroup) then
-      case getPrevInColumn id model.workingTree.tree of
-        Nothing -> topSibling
-        Just previousColumnTree -> previousColumnTree.id
-    else topSibling
-  in
-  model ! [prevCmd]
-    |> activate targetId
+goToBottomOfColumn : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+goToBottomOfColumn id ( model, prevCmd ) =
+    model
+        ! [ prevCmd ]
+        |> activate (getLastInColumn id model.workingTree.tree)
 
-goToBottomOfGroup : String -> Bool -> (Model, Cmd Msg) -> (Model, Cmd Msg)
-goToBottomOfGroup id fallToNextGroup (model, prevCmd) =
-  let
-    bottomSibling = case getSiblings id model.workingTree.tree
-      |> List.reverse
-      |> List.head of
-        Nothing -> id
-        Just lastSiblingTree -> lastSiblingTree.id
 
-    targetId = if (bottomSibling == id && fallToNextGroup) then
-      case getNextInColumn id model.workingTree.tree of
-        Nothing -> bottomSibling
-        Just nextColumnTree -> nextColumnTree.id
-      else bottomSibling
-  in
-  model ! [prevCmd]
-    |> activate targetId
+goToTopOfGroup : String -> Bool -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+goToTopOfGroup id fallToNextGroup ( model, prevCmd ) =
+    let
+        topSibling =
+            case
+                getSiblings id model.workingTree.tree
+                    |> List.head
+            of
+                Nothing ->
+                    id
+
+                Just lastSiblingTree ->
+                    lastSiblingTree.id
+
+        targetId =
+            if topSibling == id && fallToNextGroup then
+                case getPrevInColumn id model.workingTree.tree of
+                    Nothing ->
+                        topSibling
+
+                    Just previousColumnTree ->
+                        previousColumnTree.id
+            else
+                topSibling
+    in
+    model
+        ! [ prevCmd ]
+        |> activate targetId
+
+
+goToBottomOfGroup : String -> Bool -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+goToBottomOfGroup id fallToNextGroup ( model, prevCmd ) =
+    let
+        bottomSibling =
+            case
+                getSiblings id model.workingTree.tree
+                    |> List.reverse
+                    |> List.head
+            of
+                Nothing ->
+                    id
+
+                Just lastSiblingTree ->
+                    lastSiblingTree.id
+
+        targetId =
+            if bottomSibling == id && fallToNextGroup then
+                case getNextInColumn id model.workingTree.tree of
+                    Nothing ->
+                        bottomSibling
+
+                    Just nextColumnTree ->
+                        nextColumnTree.id
+            else
+                bottomSibling
+    in
+    model
+        ! [ prevCmd ]
+        |> activate targetId
 
 
 cancelCard : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
