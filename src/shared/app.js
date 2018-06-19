@@ -73,11 +73,8 @@ if(!!jsonImportData) {
         , videoModalOpen : userStore.get('video-modal-is-open', false)
       }
     ]
-  self.gingko = Elm.Main.fullscreen(initFlags)
 
-  gingko.ports.infoForOutside.subscribe(function(elmdata) {
-    update(elmdata.tag, elmdata.data)
-  })
+  initElmAndPorts(initFlags);
 } else {
   load().then(function (dbData) {
 
@@ -90,11 +87,8 @@ if(!!jsonImportData) {
           , videoModalOpen : userStore.get('video-modal-is-open', false)
         }
       ]
-    self.gingko = Elm.Main.fullscreen(initFlags)
 
-    gingko.ports.infoForOutside.subscribe(function(elmdata) {
-      update(elmdata.tag, elmdata.data)
-    })
+    initElmAndPorts(initFlags);
   })
 }
 
@@ -102,14 +96,27 @@ if(!!jsonImportData) {
 self.socket = io.connect('http://localhost:3000')
 
 
-window.onbeforeunload = (e) => {
-  toElm('IntentExit', null)
-  e.returnValue = false
+function initElmAndPorts(initFlags) {
+  self.gingko = Elm.Main.fullscreen(initFlags)
+
+  gingko.ports.infoForOutside.subscribe(function(elmdata) {
+    update(elmdata.tag, elmdata.data)
+  })
+
+  window.onbeforeunload = (e) => {
+    toElm('IntentExit', null)
+    e.returnValue = false
+  }
 }
 
-var toElm = function(tag, data) {
-  gingko.ports.infoForElm.send({tag: tag, data: data})
+
+function toElm (tag, data) {
+  console.log('toElm called', tag, data);
+  self.gingko.ports.infoForElm.send({tag: tag, data: data})
 }
+
+
+
 
 //self.remoteCouch = 'http://localhost:5984/atreenodes16'
 //self.remoteDb = new PouchDB(remoteCouch)
@@ -345,6 +352,7 @@ const update = (msg, data) => {
 
 ipcRenderer.on('menu-new', () => toElm('IntentNew', null))
 ipcRenderer.on('menu-open', () => toElm('IntentOpen', null ))
+ipcRenderer.on('menu-close-document', () => toElm('IntentExit', null))
 ipcRenderer.on('menu-import-json', () => toElm('IntentImport', null))
 ipcRenderer.on('menu-save', () => toElm('IntentSave', null ))
 ipcRenderer.on('menu-save-as', () => toElm('IntentSaveAs', null))
@@ -376,7 +384,7 @@ socket.on('collab-leave', data => toElm('CollaboratorDisconnected', data))
 
 /* === Database === */
 
-const processData = function (data, type) {
+function processData (data, type) {
   var processed = data.filter(d => d.type === type).map(d => _.omit(d, 'type'))
   var dict = {}
   if (type == "ref") {
@@ -459,7 +467,7 @@ const merge = function(local, remote){
 }
 
 
-const pull = function (local, remote, info) {
+function pull (local, remote, info) {
   db.replicate.from(remoteCouch)
     .on('complete', pullInfo => {
       if(pullInfo.docs_written > 0 && pullInfo.ok) {
@@ -469,12 +477,12 @@ const pull = function (local, remote, info) {
 }
 
 
-const push = function () {
+function push () {
   db.replicate.to(remoteCouch)
 }
 
 
-const sync = function () {
+function sync () {
   db.get('heads/master')
     .then(localHead => {
       remoteDb.get('heads/master')

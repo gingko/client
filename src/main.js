@@ -389,7 +389,9 @@ function menuFunction(isEditing, cols) {
 
     defaultMenu.splice(4, 0, { role: 'window'})
   } else {
-    defaultMenu[0].submenu.push({type: 'separator'} , {role: 'quit'} )
+    let closeMenuItem = { label : 'Close', accelerator: 'Ctrl+W', click (item, focusedWindow) { focusedWindow.webContents.send('menu-close-document'); }};
+    defaultMenu[0].submenu.splice(2, 0, closeMenuItem);
+    defaultMenu[0].submenu.push({type: 'separator'}, {role: 'quit'} );
   }
 
 
