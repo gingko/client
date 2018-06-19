@@ -14,6 +14,7 @@ let documentWindows = []
 let winTrial, winSerial, winHome, winRename
 let _isEditMode = false
 let _columns = 1
+let _menuQuit = false
 const hiddenStore = new Store({name: "kernel", encryptionKey: "79df64f73eab9bc0d7b448d2008d876e"})
 const userStore = new Store({name: "config"})
 
@@ -376,7 +377,13 @@ function menuFunction(isEditing, cols) {
           , {role: 'hideothers'}
           , {role: 'unhide'}
           , {type: 'separator'}
-          , {role: 'quit'}
+          , { label: 'Quit Gingko...'
+            , accelerator: 'Command+Q'
+            , click (item, focusedWindow, event) {
+                _menuQuit = true;
+                app.quit();
+              }
+            }
           ]
       })
 
@@ -419,7 +426,7 @@ app.on('ready', () => {
 app.on('window-all-closed', () => {
   // On macOS it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== 'darwin') {
+  if (_menuQuit || process.platform !== 'darwin') {
     app.quit()
   }
 })
