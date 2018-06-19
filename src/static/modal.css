@@ -36,3 +36,18 @@ label {
   min-width: 80px;
   margin-left: 10px;
 }
+
+#discard {
+  font-style: italic;
+  position: relative;
+  top: 11px;
+  font-size: 80%;
+  margin-right: 10px;
+  cursor: pointer;
+  color: #555;
+}
+
+#discard:hover {
+  color: black;
+  text-decoration: underline;
+}

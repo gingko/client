@@ -7,8 +7,9 @@ module.exports = {
   target: 'electron',
   context: path.join(__dirname, 'src'),
   entry: {
-      electron: './electron-start.js',
-      main: './shared/main.js'
+      electron: './main.js',
+      home: './shared/home.js',
+      app: './shared/app.js'
   },
   output: {
     path: path.join(__dirname, 'app'),
@@ -39,6 +40,7 @@ module.exports = {
   externals : {
     "electron-store": "require('electron-store')",
     "dblsqd-electron": "require('dblsqd-electron')",
+    "pouchdb": "require('pouchdb')",
     "pouchdb-adapter-memory": "require('pouchdb-adapter-memory')",
     "pouchdb-replication-stream": "require('pouchdb-replication-stream')",
     "pouchdb-promise": "require('pouchdb-promise')"
@@ -50,7 +52,12 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './index.ejs',
       filename: '../app/static/index.html',
-      chunks: ['main']
+      chunks: ['app']
+    })
+  , new HtmlWebpackPlugin({
+      template: './home.ejs',
+      filename: '../app/static/home.html',
+      chunks: ['home']
     })
   , new CopyWebpackPlugin([{
       from: './static',

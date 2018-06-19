@@ -12,13 +12,7 @@ const {app, dialog} = remote
 const querystring = require('querystring')
 const Store = require('electron-store')
 
-import PouchDB from "pouchdb-browser";
-
-const replicationStream = require('pouchdb-replication-stream')
-PouchDB.plugin(replicationStream.plugin)
-PouchDB.adapter('writableStream', replicationStream.adapters.writableStream)
-import memoryAdapter from "pouchdb-adapter-memory";
-PouchDB.plugin(memoryAdapter)
+import PouchDB from "pouchdb";
 
 const sha1 = require('sha1')
 const machineIdSync = require('node-machine-id').machineIdSync
@@ -28,28 +22,26 @@ const ReactDOM = require('react-dom')
 const CommitsGraph = require('react-commits-graph')
 const io = require('socket.io-client')
 
+const dbMapping = require('./db-mapping')
 const fio = require('./file-io')
 const shared = require('./shared')
+const errorAlert = shared.errorAlert
 window.Elm = require('../elm/Main')
 
 
 
 /* === Global Variables === */
 
+const userStore = new Store({name: "config"})
 var lastActivesScrolled = null
 var lastColumnScrolled = null
 var collab = {}
+self.savedObjectIds = [];
 
-
-const userStore = new Store({name: "config"})
-userStore.getWithDefault = function (key, def) {
-  let val = userStore.get(key);
-  if (typeof val === "undefined") {
-    return def;
-  } else {
-    return val;
-  }
-}
+var firstRun = userStore.get('first-run', true)
+var appWindow = remote.getCurrentWindow()
+var dbName = appWindow.dbName;
+var jsonImportData = appWindow.jsonImportData;
 
 
 
@@ -68,23 +60,52 @@ if(process.env.RUNNING_IN_SPECTRON) {
 
 console.log('Gingko version', app.getVersion())
 
-var firstRun = userStore.getWithDefault('first-run', true)
+document.title = `${(!!appWindow.docName) ? appWindow.docName : "Untitled"} - Gingko`
 
-var dbname = querystring.parse(window.location.search.slice(1))['dbname'] || sha1(Date.now()+machineIdSync())
-var filename = querystring.parse(window.location.search.slice(1))['filename'] || "Untitled Tree"
-document.title = `${filename} - Gingko`
+var dbpath = path.join(app.getPath('userData'), dbName)
+self.db = new PouchDB(dbpath)
 
-var dbpath = path.join(app.getPath('userData'), dbname)
-self.db = new PouchDB(dbpath, {adapter: 'memory'})
+if(!!jsonImportData) {
+  var initFlags =
+    [ jsonImportData
+      , { isMac : process.platform === "darwin"
+        , shortcutTrayOpen : userStore.get('shortcut-tray-is-open', true)
+        , videoModalOpen : userStore.get('video-modal-is-open', false)
+      }
+    ]
+  self.gingko = Elm.Main.fullscreen(initFlags)
 
-var initFlags =
-  [ process.platform === "darwin"
-  , userStore.getWithDefault('shortcut-tray-is-open', true)
-  , userStore.getWithDefault('video-modal-is-open', false)
-  ]
+  gingko.ports.infoForOutside.subscribe(function(elmdata) {
+    update(elmdata.tag, elmdata.data)
+  })
+} else {
+  load().then(function (dbData) {
 
-self.gingko = Elm.Main.fullscreen(initFlags)
+    savedObjectIds = Object.keys(dbData[1].commits).concat(Object.keys(dbData[1].treeObjects))
+
+    var initFlags =
+      [ dbData
+        , { isMac : process.platform === "darwin"
+          , shortcutTrayOpen : userStore.get('shortcut-tray-is-open', true)
+          , videoModalOpen : userStore.get('video-modal-is-open', false)
+        }
+      ]
+    self.gingko = Elm.Main.fullscreen(initFlags)
+
+    gingko.ports.infoForOutside.subscribe(function(elmdata) {
+      update(elmdata.tag, elmdata.data)
+    })
+  })
+}
+
+
 self.socket = io.connect('http://localhost:3000')
+
+
+window.onbeforeunload = (e) => {
+  toElm('IntentExit', null)
+  e.returnValue = false
+}
 
 var toElm = function(tag, data) {
   gingko.ports.infoForElm.send({tag: tag, data: data})
@@ -137,83 +158,22 @@ const update = (msg, data) => {
 
       'Alert': () => { alert(data) }
 
-    , 'OpenDialog': () => {
-        let filepathArray = openDialog(data)
-
-        if(Array.isArray(filepathArray) && filepathArray.length >= 0) {
-          var filepathToLoad = filepathArray[0]
-          loadFile(filepathToLoad)
-        }
-      }
-
-    , 'ImportDialog': async () => {
-        let filepathArray = await importDialog()
-
-        if(Array.isArray(filepathArray) && filepathArray.length >= 0) {
-          var filepathToLoad = filepathArray[0]
-          importFile(filepathToLoad)
-        }
-      }
-
-    , 'ConfirmClose': async () => {
-        let choice = dialog.showMessageBox(saveConfirmationDialogOptions)
-
-        // Cancel
-        if (choice == 1) { return; }
-
-        // Save Changes
-        if (choice == 2) {
-          let savePath = data.filepath ? data.filepath : saveAsDialog()
-
-          if (typeof savePath !== "string") {
-            return;
-          }
-
-          try {
-            await saveToDB(data.document[0], data.document[1])
-          } catch (e) {
-            dialog.showMessageBox(saveErrorAlert(e))
-            return;
-          }
-
-          await save(savePath)
+    , 'SaveAndClose': async () => {
+        if (!!data) {
+           try {
+             await saveToDB(data[0], data[1])
+           } catch (e) {
+             dialog.showMessageBox(saveErrorAlert(e))
+             return;
+           }
         }
 
-        try {
-          await clearDb()
-        } catch (e) {
-          dialog.showMessageBox(errorAlert("Error", "Couldn't clear DB", e))
-          return;
-        }
-        document.title = "Untitled Tree - Gingko"
-
-        switch (data.action) {
-          case "New":
-            toElm('New', null)
-            break;
-
-          case "Open":
-            let filepathArray = openDialog(data.filepath)
-            if(Array.isArray(filepathArray) && filepathArray.length >= 0) {
-              var filepathToLoad = filepathArray[0]
-              loadFile(filepathToLoad)
-            }
-            break;
-
-          case "Import":
-            let importFilepathArray = importDialog(data.filepath)
-            if(Array.isArray(importFilepathArray) && importFilepathArray.length >= 0) {
-              var filepathToImport = importFilepathArray[0]
-              importFile(filepathToImport)
-            }
-            break;
-
-          case "Exit":
-            app.exit()
-            break;
-
-          default:
-            console.log("Unsupported action: " + data.action)
+        if (!!appWindow.docName) {
+          // has Title, so close
+          appWindow.destroy();
+        } else {
+          // is Untitled, so ask user to rename
+          ipcRenderer.send('app:rename-untitled', dbName, null, true)
         }
       }
 
@@ -235,27 +195,10 @@ const update = (msg, data) => {
         ipcRenderer.send('column-number-change', data)
       }
 
-    , 'ChangeTitle': () => {
-        let filepath = data[0]
-        let changed = data[1]
-        let newTitle = filepath ? `${path.basename(filepath)} - Gingko` : `Untitled Tree - Gingko`
-
-        if (changed) {
-          newTitle = "*" + newTitle
-        }
-
-        if (newTitle !== document.title ) {
-          document.title = newTitle
-        }
-      }
-
-    , 'Exit': () => {
-        app.exit()
-      }
-
       // === Database ===
 
     , 'SaveToDB': async () => {
+        document.title = document.title.startsWith('*') ? document.title : '*' + document.title
         try {
           var newHeadRev = await saveToDB(data[0], data[1])
         } catch (e) {
@@ -263,16 +206,7 @@ const update = (msg, data) => {
           return;
         }
         toElm('SetHeadRev', newHeadRev)
-      }
-
-    , 'ClearDB': async () => {
-        try {
-          await clearDb()
-        } catch (e) {
-          dialog.showMessageBox(errorAlert("Error", "Couldn't clear DB", e))
-          return;
-        }
-        document.title = "Untitled Tree - Gingko"
+        document.title = document.title.replace(/^\*/, "")
       }
 
     , 'Push': push
@@ -281,27 +215,9 @@ const update = (msg, data) => {
 
       // === File System ===
 
-    , 'Save': async () => {
-        let savePath = data ? data : saveAsDialog()
-        if (typeof savePath !== "string") {
-          return;
-        }
-
-        await save(savePath)
-      }
-
-    , 'SaveAs': async () => {
-        let savePath = saveAsDialog(data)
-        if (typeof savePath !== "string") {
-          return;
-        }
-
-        await save(savePath)
-      }
-
     , 'ExportDOCX': () => {
         try {
-          exportDocx(data[0], data[1])
+          exportDocx(data)
         } catch (e) {
           dialog.showMessageBox(errorAlert('Export Error', "Couldn't export.\nTry again.", e))
           return;
@@ -310,7 +226,7 @@ const update = (msg, data) => {
 
     , 'ExportJSON': () => {
         try {
-          exportJson(data[0], data[1])
+          exportJson(data)
         } catch (e) {
           dialog.showMessageBox(errorAlert('Export Error', "Couldn't export.\nTry again.", e))
           return;
@@ -319,7 +235,7 @@ const update = (msg, data) => {
 
     , 'ExportTXT': () => {
         try {
-          exportTxt(data[0], data[1])
+          exportTxt(data)
         } catch (e) {
           dialog.showMessageBox(errorAlert('Export Error', "Couldn't export.\nTry again.", e))
           return;
@@ -328,7 +244,7 @@ const update = (msg, data) => {
 
     , 'ExportTXTColumn': () => {
         try {
-          exportTxt(data[0], data[1])
+          exportTxt(data)
         } catch (e) {
           dialog.showMessageBox(errorAlert('Export Error', "Couldn't export.\nTry again.", e))
           return;
@@ -421,9 +337,6 @@ const update = (msg, data) => {
 }
 
 
-gingko.ports.infoForOutside.subscribe(function(elmdata) {
-  update(elmdata.tag, elmdata.data)
-})
 
 
 
@@ -451,7 +364,7 @@ ipcRenderer.on('zoomout', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() -
 ipcRenderer.on('resetzoom', e => { webFrame.setZoomLevel(0) })
 ipcRenderer.on('menu-view-videos', () => toElm('ViewVideos', null ))
 ipcRenderer.on('menu-contact-support', () => { if(crisp_loaded) { $crisp.push(['do', 'chat:open']); $crisp.push(['do', 'chat:show']); } else { shell.openExternal('mailto:adriano@gingkoapp.com') } } )
-ipcRenderer.on('main-exit', () => toElm('IntentExit', null))
+ipcRenderer.on('main:delete-and-close', async () => { await db.destroy(); await dbMapping.removeDb(dbName); appWindow.destroy(); })
 
 socket.on('collab', data => toElm('RecvCollabState', data))
 socket.on('collab-leave', data => toElm('CollaboratorDisconnected', data))
@@ -475,48 +388,58 @@ const processData = function (data, type) {
 }
 
 
-const load = function(filepath, headOverride){
-  db.get('status')
-    .catch(err => {
-      if(err.name == "not_found") {
-        console.log('load status not found. Setting to "bare".')
-        return {_id: 'status' , status : 'bare', bare: true}
+function load(filepath, headOverride){
+  return new Promise( (resolve, reject) => {
+    db.info().then(function (result) {
+      if (result.doc_count == 0) {
+        let toSend = [{_id: 'status' , status : 'bare', bare: true}, { commits: {}, treeObjects: {}, refs: {}}];
+        resolve(toSend)
       } else {
-        console.log('load status error', err)
+
+        db.get('status')
+          .catch(err => {
+            if(err.name == "not_found") {
+              console.log('load status not found. Setting to "bare".')
+              return {_id: 'status' , status : 'bare', bare: true}
+            } else {
+              reject('load status error' + err)
+            }
+          })
+          .then(statusDoc => {
+            status = statusDoc.status;
+
+            db.allDocs(
+              { include_docs: true
+              }).then(function (result) {
+              let data = result.rows.map(r => r.doc)
+
+              let commits = processData(data, "commit");
+              let trees = processData(data, "tree");
+              let refs = processData(data, "ref");
+              let status = _.omit(statusDoc, '_rev')
+
+              if(headOverride) {
+                refs['heads/master'] = headOverride
+              } else if (_.isEmpty(refs)) {
+                var keysSorted = Object.keys(commits).sort(function(a,b) { return commits[b].timestamp - commits[a].timestamp })
+                var lastCommit = keysSorted[0]
+                if (!!lastCommit) {
+                  refs['heads/master'] = { value: lastCommit, ancestors: [], _rev: "" }
+                  console.log('recovered status', status)
+                  console.log('refs recovered', refs)
+                }
+              }
+
+              let toSend = [status, { commits: commits, treeObjects: trees, refs: refs}];
+              resolve(toSend)
+            }).catch(function (err) {
+              dialog.showMessageBox(errorAlert("Loading Error", "Couldn't load file.", err))
+              reject(err)
+            })
+        })
       }
     })
-    .then(statusDoc => {
-      status = statusDoc.status;
-
-      db.allDocs(
-        { include_docs: true
-        }).then(function (result) {
-        let data = result.rows.map(r => r.doc)
-
-        let commits = processData(data, "commit");
-        let trees = processData(data, "tree");
-        let refs = processData(data, "ref");
-        let status = _.omit(statusDoc, '_rev')
-
-        if(headOverride) {
-          refs['heads/master'] = headOverride
-        } else if (_.isEmpty(refs)) {
-          var keysSorted = Object.keys(commits).sort(function(a,b) { return commits[b].timestamp - commits[a].timestamp })
-          var lastCommit = keysSorted[0]
-          refs['heads/master'] = { value: lastCommit, ancestors: [], _rev: "" }
-          console.log('recovered status', status)
-          console.log('refs recovered', refs)
-        }
-
-        let toSend = [filepath, [status, { commits: commits, treeObjects: trees, refs: refs}], getLastActive(filepath)];
-
-        document.title = `${path.basename(filepath)} - Gingko`
-        toElm('Open', toSend);
-      }).catch(function (err) {
-        dialog.showMessageBox(errorAlert("Loading Error", "Couldn't load file.", err))
-        console.log(err)
-      })
-    })
+  })
 }
 
 const merge = function(local, remote){
@@ -625,10 +548,17 @@ self.saveToDB = (status, objects) => {
         status['_rev'] = statusDoc._rev
       }
 
+
+      // Filter out object that are already saved in database
+      objects.commits = objects.commits.filter( o => !savedObjectIds.includes(o._id))
+      objects.treeObjects = objects.treeObjects.filter( o => !savedObjectIds.includes(o._id))
+
       let toSave = objects.commits.concat(objects.treeObjects).concat(objects.refs).concat([status]);
 
       try {
         var responses = await db.bulkDocs(toSave)
+        let savedIds = responses.filter(r => r.ok && r.id !== "status" && r.id !== "heads/master")
+        savedObjectIds = savedObjectIds.concat(savedIds.map( o => o.id))
       } catch (e) {
         reject(e)
         return;
@@ -636,6 +566,7 @@ self.saveToDB = (status, objects) => {
 
       let head = responses.filter(r => r.id == "heads/master")[0]
       if (head.ok) {
+        dbMapping.setModified(dbName)
         resolve(head.rev)
       } else {
         reject(new Error('Reference error when saving to DB.'))
@@ -659,24 +590,6 @@ self.save = (filepath) => {
       }
     }
   )
-}
-
-
-const saveConfirmationDialogOptions =
-    { title: "Save changes"
-    , message: "Save changes before closing?"
-    , buttons: ["Close Without Saving", "Cancel", "Save"]
-    , defaultId: 2
-    }
-
-
-const errorAlert = (title, msg, err) => {
-  return { title: title
-    , message: msg
-    , detail: err.message.split("\n")[0]
-    , type: "error"
-    , buttons: ["OK"]
-    }
 }
 
 
@@ -814,132 +727,6 @@ const exportTxt = (data, defaultPath) => {
           return;
         }
       })
-    }
-  )
-}
-
-
-const saveAsDialog = (pathDefault) => {
-  var options =
-    { title: 'Save As'
-    , defaultPath: pathDefault ? pathDefault.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.gko")
-    , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
-                , {name: 'All Files', extensions: ['*']}
-                ]
-    }
-
-  return dialog.showSaveDialog(options)
-}
-
-
-const openDialog = (pathDefault) => {
-  var options =
-    { title: 'Open File...'
-    , defaultPath: pathDefault ? path.dirname(pathDefault) : app.getPath('documents')
-    , properties: ['openFile']
-    , filters:  [ {name: 'Gingko Files (*.gko)', extensions: ['gko']}
-                , {name: 'All Files', extensions: ['*']}
-                ]
-    }
-
-  return dialog.showOpenDialog(options)
-}
-
-
-const importDialog = (pathDefault) => {
-  var options =
-    { title: 'Import JSON File...'
-    , defaultPath: pathDefault ? path.dirname(pathDefault) : app.getPath('documents')
-    , properties: ['openFile']
-    , filters:  [ {name: 'Gingko JSON Files (*.json)', extensions: ['json']}
-                , {name: 'All Files', extensions: ['*']}
-                ]
-    }
-
-  return dialog.showOpenDialog(null, options)
-}
-
-
-
-const loadFile = async (filepath) => {
-  try {
-    await clearDb(filepath)
-  } catch (e) {
-    dialog.showMessageBox(errorAlert("Error loading file","Couldn't clear current DB.", e))
-    return;
-  }
-
-  let rs = fs.createReadStream(filepath)
-  try {
-    var loadOp = await db.load(rs)
-  } catch(e) {
-    dialog.showMessageBox(errorAlert("Error loading file","Couldn't read file data correctly.", e))
-    return;
-  }
-
-  if (!loadOp.ok) {
-    throw new Error("Couldn't load database from file")
-  }
-
-  load(filepath)
-}
-
-
-const importFile = async (filepathToImport) => {
-  await clearDb(filepathToImport)
-
-  let readFile = promisify(fs.readFile)
-  let data = await readFile(filepathToImport)
-
-  let nextId = 1
-
-  let seed =
-    JSON.parse(
-      data.toString()
-          .replace( /{(\s*)"content":/g
-                  , s => {
-                      return `{"id":"${nextId++}","content":`
-                    }
-                  )
-    )
-
-  let newRoot =
-    seed.length == 1
-      ?
-        { id: "0"
-        , content: seed[0].content
-        , children: seed[0].children
-        }
-      :
-        { id: "0"
-        , content: path.basename(filepathToImport)
-        , children: seed
-        }
-
-  document.title = `${path.basename(filepathToImport)} - Gingko`
-  toElm('ImportJSON', newRoot)
-}
-
-
-const clearDb = (dbname) => {
-  return new Promise(
-    async (resolve, reject) => {
-      try {
-        var destroyOp = await db.destroy()
-      } catch (e) {
-        reject(e)
-        return;
-      }
-
-      if (!destroyOp.ok) {
-        reject(new Error("Couldn't destroy db on ClearDB"))
-        return;
-      }
-
-      dbname = dbname ? dbname : sha1(Date.now()+machineIdSync())
-      dbpath = path.join(app.getPath('userData'), dbname)
-      self.db = new PouchDB(dbpath, {adapter: 'memory'})
-      resolve()
     }
   )
 }
