@@ -35,6 +35,10 @@ function createHomeWindow () {
 
   Menu.setApplicationMenu(menu)
   winHome.setMenu(null)
+
+  winHome.on('closed', () => {
+    winHome = null;
+  })
 }
 
 
@@ -111,6 +115,10 @@ function createRenameWindow(parentWindow, dbName, currentName, closeDocument) {
 
   winRename.once('ready-to-show', () => {
     winRename.show()
+  })
+
+  winRename.on('closed', () => {
+    winRename = null;
   })
 
   var url = `file://${__dirname}/static/rename.html`
@@ -568,6 +576,9 @@ function createTrialWindow(parentWindow, activations, limit) {
     winTrial.webContents.send('trial-activations', [activations, limit])
     winTrial.show()
   })
+  winTrial.on('closed', () => {
+    winTrial = null;
+  })
   winTrial.loadURL(url)
 }
 
@@ -595,6 +606,9 @@ function createSerialWindow(parentWindow, shouldBlock) {
     if(shouldBlock) { winSerial.webContents.send('prevent-close', true) }
     winSerial.webContents.send('serial-info', [email, storedSerial])
     winSerial.show()
+  })
+  winSerial.on('closed', () => {
+    winSerial = null;
   })
   winSerial.loadURL(url)
 }
