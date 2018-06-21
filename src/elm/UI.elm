@@ -181,6 +181,12 @@ viewShortcutsToggle isOpen isMac isOnly isTextSelected vs =
                     , shortcutSpan [ "Esc" ] "to Cancel Changes"
                     , shortcutSpanEnabled isTextSelected [ ctrlOrCmd, "B" ] "for Bold"
                     , shortcutSpanEnabled isTextSelected [ ctrlOrCmd, "I" ] "for Italic"
+                    , span [ class "markdown-guide" ]
+                        [ a [ href "http://commonmark.org/help" ]
+                            [ text "Markdown Formatting Guide"
+                            , span [ class "icon-container" ] [ Icon.linkExternal (defaultOptions |> iconColor |> Icon.size 14) ]
+                            ]
+                        ]
                     ]
                 , div [ class "icon-stack" ]
                     [ Icon.keyboard (defaultOptions |> iconColor)

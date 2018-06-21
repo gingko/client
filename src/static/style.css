@@ -930,6 +930,18 @@ span.shortcut-key {
 #shortcuts-tray span.disabled {
   color: #6c7c84;
 }
+#shortcuts-tray span.markdown-guide {
+  margin-top: 4px;
+  cursor: pointer;
+}
+#shortcuts-tray span.markdown-guide a {
+  color: #337;
+}
+#shortcuts-tray span.markdown-guide .icon-container {
+  position: relative;
+  top: 4px;
+  left: 3px;
+}
 
 #wc-progress {
 }

@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
+## Unreleased
+  - Added Shortcut hints for formatting
+  - Added CtrlOrCmd + Enter to start editing
+  - Fixed code blocks from overflowing
+
 ## [2.1.0] - 2018-06-19
   - (Major) Autosave to disk on every change
 
