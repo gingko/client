@@ -17,9 +17,6 @@ import PouchDB from "pouchdb";
 const sha1 = require('sha1')
 const machineIdSync = require('node-machine-id').machineIdSync
 
-const React = require('react')
-const ReactDOM = require('react-dom')
-const CommitsGraph = require('react-commits-graph')
 const io = require('socket.io-client')
 
 const dbMapping = require('./db-mapping')
@@ -111,7 +108,6 @@ function initElmAndPorts(initFlags) {
 
 
 function toElm (tag, data) {
-  console.log('toElm called', tag, data);
   self.gingko.ports.infoForElm.send({tag: tag, data: data})
 }
 
@@ -308,11 +304,13 @@ const update = (msg, data) => {
         let commitGraphData = _.sortBy(data[0].commits, 'timestamp').reverse().map(c => { return {sha: c._id, parents: c.parents}})
         let selectedSha = data[1]
 
+        /*
         let commitElement = React.createElement(CommitsGraph, {
           commits: commitGraphData,
           onClick: setHead,
           selected: selectedSha
         });
+        */
 
         //ReactDOM.render(commitElement, document.getElementById('history'))
     }
