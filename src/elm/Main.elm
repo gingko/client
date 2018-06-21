@@ -511,6 +511,12 @@ update msg ({ objects, workingTree, status } as model) =
                             model
                                 ! []
                                 |> saveCardIfEditing
+                                |> (\( m, c ) ->
+                                        if vs.editing == Nothing then
+                                            openCard vs.active (getContent vs.active m.workingTree.tree) ( m, c )
+                                        else
+                                            ( m, c )
+                                   )
                                 |> activate vs.active
 
                         "enter" ->
