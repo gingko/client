@@ -13,7 +13,7 @@ import Trees exposing (defaultTree)
 import Types exposing (..)
 
 
-viewFooter : { m | viewState : ViewState, workingTree : Trees.Model, startingWordcount : Int, shortcutTrayOpen : Bool, isMac : Bool, changed : Bool } -> Html Msg
+viewFooter : { m | viewState : ViewState, workingTree : Trees.Model, startingWordcount : Int, shortcutTrayOpen : Bool, isMac : Bool, isTextSelected : Bool, changed : Bool } -> Html Msg
 viewFooter model =
     let
         wordCounts =
@@ -53,7 +53,7 @@ viewFooter model =
     in
     div
         [ class "footer" ]
-        ([ viewShortcutsToggle model.shortcutTrayOpen model.isMac isOnly model.viewState ]
+        ([ viewShortcutsToggle model.shortcutTrayOpen model.isMac isOnly model.isTextSelected model.viewState ]
             ++ (if model.viewState.editing == Nothing then
                     if model.startingWordcount /= 0 then
                         let
@@ -117,8 +117,8 @@ viewVideo { videoModalOpen } =
         div [] []
 
 
-viewShortcutsToggle : Bool -> Bool -> Bool -> ViewState -> Html Msg
-viewShortcutsToggle isOpen isMac isOnly vs =
+viewShortcutsToggle : Bool -> Bool -> Bool -> Bool -> ViewState -> Html Msg
+viewShortcutsToggle isOpen isMac isOnly isTextSelected vs =
     let
         viewIf cond content =
             if cond then
@@ -126,16 +126,20 @@ viewShortcutsToggle isOpen isMac isOnly vs =
             else
                 text ""
 
-        shortcutSpan keys desc =
+        shortcutSpanEnabled enabled keys desc =
             let
                 keySpans =
                     keys
                         |> List.map (\k -> span [ class "shortcut-key" ] [ text k ])
             in
-            span []
+            span
+                [ classList [ ( "disabled", not enabled ) ] ]
                 (keySpans
                     ++ [ text (" " ++ desc) ]
                 )
+
+        shortcutSpan =
+            shortcutSpanEnabled True
 
         ctrlOrCmd =
             if isMac then
@@ -175,6 +179,8 @@ viewShortcutsToggle isOpen isMac isOnly vs =
                 [ div [ class "popup" ]
                     [ shortcutSpan [ ctrlOrCmd, "Enter" ] "to Save Changes"
                     , shortcutSpan [ "Esc" ] "to Cancel Changes"
+                    , shortcutSpanEnabled isTextSelected [ ctrlOrCmd, "B" ] "for Bold"
+                    , shortcutSpanEnabled isTextSelected [ ctrlOrCmd, "I" ] "for Italic"
                     ]
                 , div [ class "icon-stack" ]
                     [ Icon.keyboard (defaultOptions |> iconColor)

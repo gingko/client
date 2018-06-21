@@ -40,6 +40,7 @@ type alias Model =
     , viewState : ViewState
     , field : String
     , isMac : Bool
+    , isTextSelected : Bool
     , shortcutTrayOpen : Bool
     , videoModalOpen : Bool
     , startingWordcount : Int
@@ -75,6 +76,7 @@ defaultModel =
         }
     , field = ""
     , isMac = False
+    , isTextSelected = False
     , shortcutTrayOpen = True
     , videoModalOpen = False
     , startingWordcount = 0
@@ -474,6 +476,9 @@ update msg ({ objects, workingTree, status } as model) =
                         , changed = True
                     }
                         ! []
+
+                TextSelected isSel ->
+                    { model | isTextSelected = isSel } ! []
 
                 -- === UI ===
                 CheckoutCommit commitSha ->

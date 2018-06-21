@@ -165,6 +165,14 @@ receiveMsg tagger onError =
                         Err e ->
                             onError e
 
+                "TextSelected" ->
+                    case decodeValue Json.Decode.bool outsideInfo.data of
+                        Ok newBool ->
+                            tagger <| TextSelected newBool
+
+                        Err e ->
+                            onError e
+
                 -- === UI ===
                 "CheckoutCommit" ->
                     case decodeValue Json.Decode.string outsideInfo.data of

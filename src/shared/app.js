@@ -842,10 +842,21 @@ const observer = new MutationObserver(function(mutations) {
     textareas.map(t => {
       t.oninput = editingInputHandler;
     })
+
+    document.onselectionchange = () => {
+      let sel = window.getSelection();
+      if(sel.toString().length == 0) {
+        toElm("TextSelected", false);
+      } else {
+        toElm("TextSelected", true);
+      }
+    }
+
     ipcRenderer.send('edit-mode-toggle', true)
     jQuery(textareas).textareaAutoSize()
   } else {
     ipcRenderer.send('edit-mode-toggle', false)
+    document.onselectionchange = undefined;
   }
 });
 

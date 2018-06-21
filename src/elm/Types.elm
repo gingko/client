@@ -72,6 +72,7 @@ type
     | Merge Json.Value
       -- === DOM ===
     | FieldChanged String
+    | TextSelected Bool
       -- === UI ===
     | CheckoutCommit String
     | ViewVideos
