@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
   - Added Shortcut hints for formatting
   - Added CtrlOrCmd + Enter to start editing
   - Fixed code blocks from overflowing
+  - Fixed Home/End key bug introduced in 2.1.0
 
 ## [2.1.0] - 2018-06-19
   - (Major) Autosave to disk on every change
