@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
+## [2.1.2] - 2018-06-27
+  - (Critical) Fixed error on saving rapid changes
+  - Added Window menu to macOS
+
 ## [2.1.1] - 2018-06-26
   - Added Shortcut hints for formatting
   - Added CtrlOrCmd + Enter to start editing
