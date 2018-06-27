@@ -3,6 +3,7 @@ port module Ports exposing (..)
 import Coders exposing (..)
 import Json.Decode exposing (decodeValue)
 import Json.Encode exposing (..)
+import Json.Encode.Extra exposing (maybe)
 import TreeUtils exposing (getColumn)
 import Types exposing (..)
 
@@ -50,28 +51,48 @@ sendOut info =
             dataToSend null
 
         -- === File System ===
-        ExportDOCX str ->
-            dataToSend (string str)
+        ExportDOCX str path_ ->
+            dataToSend
+                (object
+                    [ ( "data", string str )
+                    , ( "filepath", maybe string path_ )
+                    ]
+                )
 
-        ExportJSON tree ->
-            dataToSend (treeToJSON tree)
+        ExportJSON tree path_ ->
+            dataToSend
+                (object
+                    [ ( "data", treeToJSON tree )
+                    , ( "filepath", maybe string path_ )
+                    ]
+                )
 
-        ExportTXT withRoot tree ->
-            dataToSend (treeToMarkdown withRoot tree)
+        ExportTXT withRoot tree path_ ->
+            dataToSend
+                (object
+                    [ ( "data", treeToMarkdown withRoot tree )
+                    , ( "filepath", maybe string path_ )
+                    ]
+                )
 
         -- ExportTXTColumn is handled by 'ExportTXT' in JS
         -- So we use the "ExportTXT" tag here, instead of `dataToSend`
-        ExportTXTColumn col tree ->
+        ExportTXTColumn col tree path_ ->
             infoForOutside
                 { tag = "ExportTXT"
                 , data =
-                    tree
-                        |> getColumn col
-                        |> Maybe.withDefault [ [] ]
-                        |> List.concat
-                        |> List.map .content
-                        |> String.join "\n\n"
-                        |> string
+                    object
+                        [ ( "data"
+                          , tree
+                                |> getColumn col
+                                |> Maybe.withDefault [ [] ]
+                                |> List.concat
+                                |> List.map .content
+                                |> String.join "\n\n"
+                                |> string
+                          )
+                        , ( "filepath", maybe string path_ )
+                        ]
                 }
 
         -- === DOM ===

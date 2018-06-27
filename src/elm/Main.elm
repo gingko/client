@@ -369,7 +369,7 @@ update msg ({ objects, workingTree, status } as model) =
                             model
                                 ! []
                                 |> saveCardIfEditing
-                                |> (\( m, c ) -> m ! [ c, sendOut (ExportDOCX (markdownString m)) ])
+                                |> (\( m, c ) -> m ! [ c, sendOut (ExportDOCX (markdownString m) exportSettings.filepath) ])
 
                         JSON ->
                             case exportSettings.selection of
@@ -377,7 +377,7 @@ update msg ({ objects, workingTree, status } as model) =
                                     model
                                         ! []
                                         |> saveCardIfEditing
-                                        |> (\( m, c ) -> m ! [ c, sendOut (ExportJSON m.workingTree.tree) ])
+                                        |> (\( m, c ) -> m ! [ c, sendOut (ExportJSON m.workingTree.tree exportSettings.filepath) ])
 
                                 _ ->
                                     model ! []
@@ -388,7 +388,7 @@ update msg ({ objects, workingTree, status } as model) =
                                     model
                                         ! []
                                         |> saveCardIfEditing
-                                        |> (\( m, c ) -> m ! [ c, sendOut (ExportTXT False m.workingTree.tree) ])
+                                        |> (\( m, c ) -> m ! [ c, sendOut (ExportTXT False m.workingTree.tree exportSettings.filepath) ])
 
                                 CurrentSubtree ->
                                     let
@@ -399,13 +399,13 @@ update msg ({ objects, workingTree, status } as model) =
                                     model
                                         ! []
                                         |> saveCardIfEditing
-                                        |> (\( m, c ) -> m ! [ c, sendOut (ExportTXT True (getCurrentSubtree m)) ])
+                                        |> (\( m, c ) -> m ! [ c, sendOut (ExportTXT True (getCurrentSubtree m) exportSettings.filepath) ])
 
                                 ColumnNumber col ->
                                     model
                                         ! []
                                         |> saveCardIfEditing
-                                        |> (\( m, c ) -> m ! [ c, sendOut (ExportTXTColumn col m.workingTree.tree) ])
+                                        |> (\( m, c ) -> m ! [ c, sendOut (ExportTXTColumn col m.workingTree.tree exportSettings.filepath) ])
 
                 CancelCardConfirmed ->
                     model
@@ -636,10 +636,6 @@ update msg ({ objects, workingTree, status } as model) =
                             normalMode model (cut vs.active)
 
                         "mod+c" ->
-                            let
-                                _ =
-                                    Debug.log "model" model
-                            in
                             normalMode model (copy vs.active)
 
                         "mod+v" ->

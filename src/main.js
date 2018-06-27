@@ -14,6 +14,7 @@ let documentWindows = []
 let winTrial, winSerial, winHome, winRename
 let _isEditMode = false
 let _columns = 1
+let _hasLastExport = false
 let _menuQuit = false
 const hiddenStore = new Store({name: "kernel", encryptionKey: "79df64f73eab9bc0d7b448d2008d876e"})
 const userStore = new Store({name: "config"})
@@ -188,7 +189,7 @@ function exportMenu(format, cols) {
 }
 
 
-function menuFunction(isEditing, cols) {
+function menuFunction(isEditing, cols, hasLastExport) {
   let editMenu
 
   if (isEditing) {
@@ -302,6 +303,13 @@ function menuFunction(isEditing, cols) {
         , { label: 'Export as JSON...'
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('menu-export-json')
+            }
+          }
+        , { label: 'Repeat Last Export'
+          , enabled: hasLastExport
+          , accelerator: 'CommandOrControl+r'
+          , click (item, focusedWindow) {
+              focusedWindow.webContents.send('menu-export-repeat')
             }
           }
         ]
@@ -493,6 +501,14 @@ ipcMain.on('app:rename-untitled', (event, dbName, currName, closeDocument) => {
 })
 
 
+ipcMain.on('app:last-export-set', (event, lastPath) => {
+  _hasLastExport = !!lastPath
+  menuTemplate = menuFunction(_isEditMode, _columns, _hasLastExport)
+  menu = Menu.buildFromTemplate(menuTemplate)
+  Menu.setApplicationMenu(menu)
+})
+
+
 ipcMain.on('rename:renamed', (event, dbName, newName, closeDocument) => {
   let renameWindow = BrowserWindow.fromWebContents(event.sender);
   let appWindow = renameWindow.getParentWindow();
@@ -516,7 +532,7 @@ ipcMain.on('rename:delete-and-close', (event, dbToDelete) => {
 ipcMain.on('column-number-change', (event, cols) => {
   if (_columns != cols) {
     _columns = cols
-    menuTemplate = menuFunction(_isEditMode, _columns)
+    menuTemplate = menuFunction(_isEditMode, _columns, _hasLastExport)
     menu = Menu.buildFromTemplate(menuTemplate)
     Menu.setApplicationMenu(menu)
   }
@@ -525,7 +541,7 @@ ipcMain.on('column-number-change', (event, cols) => {
 ipcMain.on('edit-mode-toggle', (event, isEditing) => {
   if (_isEditMode != isEditing) {
     _isEditMode = isEditing
-    menuTemplate = menuFunction(_isEditMode, _columns)
+    menuTemplate = menuFunction(_isEditMode, _columns, _hasLastExport)
     menu = Menu.buildFromTemplate(menuTemplate)
     Menu.setApplicationMenu(menu)
   }
@@ -628,6 +644,6 @@ function createSerialWindow(parentWindow, shouldBlock) {
 
 /* ==== Menu ==== */
 
-var menuTemplate = menuFunction(_isEditMode, _columns)
+var menuTemplate = menuFunction(_isEditMode, _columns, _hasLastExport)
 
 var menu = Menu.buildFromTemplate(menuTemplate)

@@ -33,6 +33,9 @@ window.Elm = require('../elm/Main')
 const userStore = new Store({name: "config"})
 var lastActivesScrolled = null
 var lastColumnScrolled = null
+var _lastExportPath = null
+var _lastFormat = null
+var _lastSelection = null
 var collab = {}
 self.savedObjectIds = [];
 
@@ -221,7 +224,7 @@ const update = (msg, data) => {
 
     , 'ExportDOCX': () => {
         try {
-          exportDocx(data)
+          exportDocx(data.data, data.filepath)
         } catch (e) {
           dialog.showMessageBox(errorAlert('Export Error', "Couldn't export.\nTry again.", e))
           return;
@@ -230,7 +233,7 @@ const update = (msg, data) => {
 
     , 'ExportJSON': () => {
         try {
-          exportJson(data)
+          exportJson(data.data, data.filepath)
         } catch (e) {
           dialog.showMessageBox(errorAlert('Export Error', "Couldn't export.\nTry again.", e))
           return;
@@ -239,7 +242,7 @@ const update = (msg, data) => {
 
     , 'ExportTXT': () => {
         try {
-          exportTxt(data)
+          exportTxt(data.data, data.filepath)
         } catch (e) {
           dialog.showMessageBox(errorAlert('Export Error', "Couldn't export.\nTry again.", e))
           return;
@@ -248,7 +251,7 @@ const update = (msg, data) => {
 
     , 'ExportTXTColumn': () => {
         try {
-          exportTxt(data)
+          exportTxt(data.data, data.filepath)
         } catch (e) {
           dialog.showMessageBox(errorAlert('Export Error', "Couldn't export.\nTry again.", e))
           return;
@@ -349,19 +352,26 @@ const update = (msg, data) => {
 
 /* === JS to Elm Ports === */
 
+function intentExportToElm ( format, selection, filepath) {
+  _lastFormat = format
+  _lastSelection = selection
+  toElm('IntentExport', { format: format, selection : selection, filepath: filepath} )
+}
+
 ipcRenderer.on('menu-new', () => toElm('IntentNew', null))
 ipcRenderer.on('menu-open', () => toElm('IntentOpen', null ))
 ipcRenderer.on('menu-close-document', () => toElm('IntentExit', null))
 ipcRenderer.on('menu-import-json', () => toElm('IntentImport', null))
 ipcRenderer.on('menu-save', () => toElm('IntentSave', null ))
 ipcRenderer.on('menu-save-as', () => toElm('IntentSaveAs', null))
-ipcRenderer.on('menu-export-docx', () => toElm('IntentExport', { format : "docx", selection: "all" }))
-ipcRenderer.on('menu-export-docx-current', () => toElm('IntentExport', { format : "docx", selection: "current" }))
-ipcRenderer.on('menu-export-docx-column', (e, msg) => toElm('IntentExport', { format : "docx", selection: { column: msg } }))
-ipcRenderer.on('menu-export-txt', () => toElm('IntentExport', { format : "txt", selection: "all" }))
-ipcRenderer.on('menu-export-txt-current', () => toElm('IntentExport', { format : "txt", selection: "current" }))
-ipcRenderer.on('menu-export-txt-column', (e, msg) => toElm('IntentExport', { format : "txt", selection: { column: msg } }))
-ipcRenderer.on('menu-export-json', () => toElm('IntentExport', { format : "json", selection: "all" }))
+ipcRenderer.on('menu-export-docx', () => intentExportToElm("docx", "all", null))
+ipcRenderer.on('menu-export-docx-current', () => intentExportToElm("docx", "current", null))
+ipcRenderer.on('menu-export-docx-column', (e, msg) => intentExportToElm("docx", {column: msg}, null))
+ipcRenderer.on('menu-export-txt', () => intentExportToElm("txt", "all", null))
+ipcRenderer.on('menu-export-txt-current', () => intentExportToElm("txt", "current", null))
+ipcRenderer.on('menu-export-txt-column', (e, msg) => intentExportToElm("txt", {column: msg}, null))
+ipcRenderer.on('menu-export-json', () => intentExportToElm("json", "all", null))
+ipcRenderer.on('menu-export-repeat', () => intentExportToElm(_lastFormat, _lastSelection, _lastExportPath))
 ipcRenderer.on('menu-cut', (e, msg) => toElm('Keyboard', ["mod+x", Date.now()]))
 ipcRenderer.on('menu-copy', (e, msg) => toElm('Keyboard', ["mod+c", Date.now()]))
 ipcRenderer.on('menu-paste', (e, msg) => toElm('Keyboard', ["mod+v", Date.now()]))
@@ -715,28 +725,39 @@ const exportTxt = (data, defaultPath) => {
         return;
       }
 
-      var options =
-        { title: 'Export TXT'
-        , defaultPath: defaultPath ? defaultPath.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.txt")
-        , filters:  [ {name: 'Text File', extensions: ['txt']}
-                    , {name: 'All Files', extensions: ['*']}
-                    ]
-        }
+      var saveFile = function(filepath) {
+        fs.writeFile(filepath, data, (err) => {
+          if (err) {
+            reject(new Error('export-txt writeFile failed'))
+            return;
+          }
+          _lastExportPath = filepath
+          ipcRenderer.send('app:last-export-set', filepath)
+          resolve(data)
+        })
+      }
 
-      dialog.showSaveDialog(options, function(filepath){
-        if(!!filepath){
-          fs.writeFile(filepath, data, (err) => {
-            if (err) {
-              reject(new Error('export-txt writeFile failed'))
-              return;
-            }
-            resolve(data)
-          })
-        } else {
-          reject(new Error('no export path chosen'))
-          return;
-        }
-      })
+      if(!!defaultPath) {
+        saveFile(defaultPath)
+      } else {
+        var options =
+          { title: 'Export TXT'
+          , defaultPath: defaultPath ? defaultPath.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.txt")
+          , filters:  [ {name: 'Text File', extensions: ['txt']}
+                      , {name: 'All Files', extensions: ['*']}
+                      ]
+          }
+
+
+        dialog.showSaveDialog(options, function(filepath){
+          if(!!filepath){
+            saveFile(filepath)
+          } else {
+            reject(new Error('no export path chosen'))
+            return;
+          }
+        })
+      }
     }
   )
 }

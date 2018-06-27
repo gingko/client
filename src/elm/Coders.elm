@@ -320,10 +320,14 @@ exportSettingsDecoder =
                 [ exportStringDecoder
                 , exportColumnDecoder
                 ]
+
+        exportFilepathDecoder =
+            Json.maybe string
     in
-    Json.map2 ExportSettings
+    Json.map3 ExportSettings
         (field "format" formatDecoder)
         (field "selection" exportSelectionDecoder)
+        (field "filepath" exportFilepathDecoder)
 
 
 treeToJSON : Tree -> Enc.Value

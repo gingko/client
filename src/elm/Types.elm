@@ -44,10 +44,10 @@ type
     | Push
     | Pull
       -- === File System ===
-    | ExportDOCX String
-    | ExportJSON Tree
-    | ExportTXT Bool Tree
-    | ExportTXTColumn Int Tree
+    | ExportDOCX String (Maybe String)
+    | ExportJSON Tree (Maybe String)
+    | ExportTXT Bool Tree (Maybe String)
+    | ExportTXTColumn Int Tree (Maybe String)
       -- === DOM ===
     | ActivateCards ( String, Int, List (List String) )
     | FlashCurrentSubtree
@@ -89,6 +89,7 @@ type alias OutsideData =
 type alias ExportSettings =
     { format : ExportFormat
     , selection : ExportSelection
+    , filepath : Maybe String
     }
 
 
