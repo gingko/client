@@ -593,7 +593,7 @@ self.saveToDB = (status, objects) => {
 }
 
 
-var debounceSaveToDB = debounce(saveToDB, 1000, {'leading': true})
+var debounceSaveToDB = debounce(saveToDB, 3000, {'leading': true})
 
 
 self.save = (filepath) => {
