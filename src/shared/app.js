@@ -168,7 +168,7 @@ const update = (msg, data) => {
     , 'SaveAndClose': async () => {
         if (!!data) {
            try {
-             await debounceSaveToDB(data[0], data[1])
+             await saveToDB(data[0], data[1])
            } catch (e) {
              dialog.showMessageBox(saveErrorAlert(e))
              return;
@@ -207,7 +207,7 @@ const update = (msg, data) => {
     , 'SaveToDB': async () => {
         document.title = document.title.startsWith('*') ? document.title : '*' + document.title
         try {
-          var newHeadRev = await debounceSaveToDB(data[0], data[1])
+          var newHeadRev = await saveToDB(data[0], data[1])
         } catch (e) {
           dialog.showMessageBox(saveErrorAlert(e))
           return;
