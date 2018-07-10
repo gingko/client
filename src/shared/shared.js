@@ -280,7 +280,6 @@ var shortcuts = [ 'mod+enter'
                 , 'mod+shift+v'
                 , 'mod+z'
                 , 'mod+r'
-                , 'mod+s'
                 , 'mod+b'
                 , 'mod+i'
                 , 'end'
@@ -291,7 +290,6 @@ var shortcuts = [ 'mod+enter'
 
 var needOverride= [ 'mod+n'
                   , 'mod+o'
-                  , 'mod+s'
                   , 'mod+shift+s'
                   ];
 

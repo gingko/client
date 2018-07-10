@@ -281,8 +281,14 @@ function menuFunction(isEditing, cols, hasLastExport) {
               createHomeWindow()
             }
           }
+        , { label: 'Save'
+          , accelerator: 'CmdOrCtrl+S'
+          , click (item, focusedWindow) {
+              dialog.showMessageBox({title: "Autosave", message: "Your document is autosaved on each change.\nSave status is visible in the bottom right.", type: "info", buttons: ["OK"]})
+            }
+          }
         , { type: 'separator' }
-        , { label: 'Rename...'
+        , { label: 'Change Title...'
           , click (item, focusedWindow) {
               createRenameWindow(focusedWindow, focusedWindow.dbName, focusedWindow.docName, false)
             }
