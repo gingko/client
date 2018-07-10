@@ -2,9 +2,10 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
-## Unreleased
+## [2.1.3] - 2018-07-10
   - Saving "Reference Error": Increased save-delay from 1s to 3s
   - "File > Repeat Last Export" for quick backups/updates
+  - "File > Save" option added, with info error
 
 
 ## [2.1.2] - 2018-06-27
