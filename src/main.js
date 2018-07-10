@@ -75,7 +75,7 @@ function createAppWindow (dbName, docName, jsonImportData) {
   win.jsonImportData = jsonImportData;
 
   win.renameDoc = function(newName) {
-    win.setTitle(`${newName} - Gingko`)
+    win.webContents.send('main:rename', `${newName} - Gingko`)
     win.docName = newName
   }
 
