@@ -628,9 +628,7 @@ const exportDocx = (data, defaultPath) => {
   var options =
     { title: 'Export to MS Word'
     , defaultPath: defaultPath ? defaultPath.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.docx")
-    , filters:  [ {name: 'Word Files', extensions: ['docx']}
-                , {name: 'All Files', extensions: ['*']}
-                ]
+    , filters:  [ {name: 'Word Files', extensions: ['docx']} ]
     }
 
   dialog.showSaveDialog(options, function(filepath){
