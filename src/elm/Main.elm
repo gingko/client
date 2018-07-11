@@ -65,8 +65,8 @@ defaultModel =
     , objects = Objects.defaultModel
     , status = Bare
     , debouncerState =
-        Debouncer.debounce (3 * second)
-            |> Debouncer.emitFirstInput True
+        Debouncer.throttle (3 * second)
+            |> Debouncer.settleWhenQuietFor (Just <| 6 * second)
             |> toDebouncer
     , uid = timeJSON ()
     , viewState =
@@ -263,7 +263,7 @@ update msg ({ objects, workingTree, status } as model) =
                         _ =
                             Debug.log "Do the save" subModel
                     in
-                    model
+                    updatedModel
                         ! []
                         |> addToHistoryDo
                         |> Tuple.mapSecond (\cmd -> Cmd.batch [ cmd, mappedCmd ])
