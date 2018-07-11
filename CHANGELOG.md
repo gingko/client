@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
 ## Unreleased
+  - Fixed Save errors on rapid moves/changes
   - Fixed title reverts to Untitled" on rename
   - Fixed file extension filtering issues on macOS
   - Added link to github issues to "Help" menu
