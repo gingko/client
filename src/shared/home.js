@@ -3,6 +3,16 @@ window.Elm= require('../elm/Home')
 const dbMapping = require('./db-mapping')
 
 
+var crisp_loaded = false;
+
+$crisp.push(['do', 'chat:hide'])
+$crisp.push(['on', 'session:loaded', () => { crisp_loaded = true }])
+$crisp.push(['on', 'chat:closed', () => { $crisp.push(['do', 'chat:hide']) }])
+$crisp.push(['on', 'chat:opened', () => { $crisp.push(['do', 'chat:show']) }])
+$crisp.push(['on', 'message:received', () => { $crisp.push(['do', 'chat:show']) }])
+
+ipcRenderer.on('menu-contact-support', () => { if(crisp_loaded) { $crisp.push(['do', 'chat:open']); $crisp.push(['do', 'chat:show']); } else { shell.openExternal('mailto:adriano@gingkoapp.com') } } )
+
 let docList = dbMapping.getDocList()
 var homeWindow = remote.getCurrentWindow()
 var home = Elm.Home.fullscreen([Date.now(), docList])
