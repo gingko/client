@@ -233,7 +233,7 @@ viewDocumentItem currTime ( dbname, document ) =
                 ++ " ago"
 
         ( titleString, dateString ) =
-            if (DateExtra.diff DateExtra.Day modDate nowDate |> Debug.log "diff") <= 2 then
+            if DateExtra.diff DateExtra.Day modDate nowDate <= 2 then
                 ( modString, relativeString )
             else
                 ( relativeString, modString )
