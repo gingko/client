@@ -1,8 +1,9 @@
-const {app, BrowserWindow, dialog, Menu, ipcMain, shell} = require('electron')
+const {app, BrowserWindow, dialog, Menu, ipcMain, shell, Notification} = require('electron')
 import { autoUpdater } from "electron-updater"
 const path = require('path')
 const sha1 = require('sha1')
 const Store = require('electron-store')
+import TurndownService from 'turndown'
 const windowStateKeeper = require('electron-window-state')
 const dbMapping = require('./shared/db-mapping')
 const fio = require('./shared/file-io')
@@ -425,7 +426,27 @@ function menuFunction(isEditing, cols, hasLastExport) {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
-  autoUpdater.checkForUpdatesAndNotify();
+  autoUpdater.fullChangelog = true;
+
+  autoUpdater.on('update-downloaded', info => {
+    let turndownService = new TurndownService();
+    if (Array.isArray(info.releaseNotes)){
+      var releaseNotesText = info.releaseNotes.map(rn => {
+        return turndownService.turndown(rn.note);
+      }).join('\n').replace(/\*/g, '·');
+    } else {
+      var releaseNotesText = turndownService.turndown(info.releaseNotes).replace(/\*/g, '·');
+    }
+
+    let updateNotification = new Notification(
+      { title: `${app.getName()} will be updated to v${info.version} on exit`
+        , body: `<a href="https://github.com/gingko/client/blob/master/CHANGELOG.md">Change list</a>:\n${releaseNotesText}`
+      });
+
+    updateNotification.show();
+  });
+
+  autoUpdater.checkForUpdates()
 
   let email = userStore.get('email', "")
   let storedSerial = userStore.get('serial', "")
