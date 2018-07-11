@@ -18,7 +18,7 @@ import Types exposing (..)
 import UI exposing (countWords, viewConflict, viewFooter, viewVideo)
 
 
-main : Program ( Json.Value, InitModel ) Model Msg
+main : Program ( Json.Value, InitModel, Bool ) Model Msg
 main =
     programWithFlags
         { init = init
@@ -85,8 +85,8 @@ defaultModel =
     }
 
 
-init : ( Json.Value, InitModel ) -> ( Model, Cmd Msg )
-init ( json, modelIn ) =
+init : ( Json.Value, InitModel, Bool ) -> ( Model, Cmd Msg )
+init ( json, modelIn, isSaved ) =
     let
         ( newStatus, newTree_, newObjects ) =
             case Json.decodeValue treeDecoder json of
@@ -119,6 +119,12 @@ init ( json, modelIn ) =
     }
         ! [ focus "1", sendOut <| ColumnNumberChange <| List.length <| newWorkingTree.columns ]
         |> activate "1"
+        |> (\mc ->
+                if not isSaved then
+                    mc |> addToHistory
+                else
+                    mc
+           )
 
 
 

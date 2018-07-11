@@ -73,6 +73,7 @@ if(!!jsonImportData) {
         , shortcutTrayOpen : userStore.get('shortcut-tray-is-open', true)
         , videoModalOpen : userStore.get('video-modal-is-open', false)
       }
+      , false // isSaved
     ]
 
   initElmAndPorts(initFlags);
@@ -87,6 +88,7 @@ if(!!jsonImportData) {
           , shortcutTrayOpen : userStore.get('shortcut-tray-is-open', true)
           , videoModalOpen : userStore.get('video-modal-is-open', false)
         }
+        , true // isSaved
       ]
 
     initElmAndPorts(initFlags);
