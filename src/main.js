@@ -347,9 +347,14 @@ function menuFunction(isEditing, cols, hasLastExport) {
     }
   , { label: 'Help'
     , submenu:
-        [ { label: 'FAQ'
+        [ { label: 'FAQ...'
           , click (item, focusedWindow) {
               shell.openExternal('https://gingko.io/faq.html')
+            }
+          }
+        , { label: 'Features List && Known Bugs...'
+          , click (item, focusedWindow) {
+              shell.openExternal('https://github.com/gingko/client/issues')
             }
           }
         , { label: 'Contact Adriano...'
