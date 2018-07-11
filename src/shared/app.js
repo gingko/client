@@ -1,6 +1,5 @@
 const jQuery = require('jquery')
 const _ = require('lodash')
-const debounce = require('debounce-promise')
 const autosize = require('textarea-autosize')
 const Mousetrap = require('mousetrap')
 
@@ -591,9 +590,6 @@ self.saveToDB = (status, objects) => {
       }
     })
 }
-
-
-var debounceSaveToDB = debounce(saveToDB, 3000, {'leading': true})
 
 
 self.save = (filepath) => {
