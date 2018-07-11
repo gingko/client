@@ -36,7 +36,7 @@ function createHomeWindow () {
 
   winHome.loadURL(url)
 
-  Menu.setApplicationMenu(menu)
+  buildMenu();
   winHome.setMenu(null)
 
   winHome.on('closed', () => {
@@ -419,6 +419,16 @@ function menuFunction(isEditing, cols, hasLastExport) {
   return defaultMenu;
 }
 
+function buildMenu() {
+  let menuTemplate = menuFunction
+  let menu = Menu.buildFromTemplate(menuFunction(_isEditMode, _columns, _hasLastExport))
+  Menu.setApplicationMenu(menu)
+}
+
+buildMenu();
+
+
+
 
 /* ==== App Events ==== */
 
@@ -535,9 +545,7 @@ ipcMain.on('app:rename-untitled', (event, dbName, currName, closeDocument) => {
 
 ipcMain.on('app:last-export-set', (event, lastPath) => {
   _hasLastExport = !!lastPath
-  menuTemplate = menuFunction(_isEditMode, _columns, _hasLastExport)
-  menu = Menu.buildFromTemplate(menuTemplate)
-  Menu.setApplicationMenu(menu)
+  buildMenu();
 })
 
 
@@ -564,18 +572,14 @@ ipcMain.on('rename:delete-and-close', (event, dbToDelete) => {
 ipcMain.on('column-number-change', (event, cols) => {
   if (_columns != cols) {
     _columns = cols
-    menuTemplate = menuFunction(_isEditMode, _columns, _hasLastExport)
-    menu = Menu.buildFromTemplate(menuTemplate)
-    Menu.setApplicationMenu(menu)
+    buildMenu();
   }
 })
 
 ipcMain.on('edit-mode-toggle', (event, isEditing) => {
   if (_isEditMode != isEditing) {
     _isEditMode = isEditing
-    menuTemplate = menuFunction(_isEditMode, _columns, _hasLastExport)
-    menu = Menu.buildFromTemplate(menuTemplate)
-    Menu.setApplicationMenu(menu)
+    buildMenu();
   }
 })
 
@@ -670,12 +674,3 @@ function createSerialWindow(parentWindow, shouldBlock) {
   })
   winSerial.loadURL(url)
 }
-
-
-
-
-/* ==== Menu ==== */
-
-var menuTemplate = menuFunction(_isEditMode, _columns, _hasLastExport)
-
-var menu = Menu.buildFromTemplate(menuTemplate)
