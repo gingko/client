@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
   - Fixed title reverts to Untitled" on rename
   - Fixed file extension filtering issues on macOS
   - Added link to github issues to "Help" menu
+  - Fixed JSON import not saving unless modified
 
 ## [2.1.3] - 2018-07-10
   - Saving "Reference Error": Increased save-delay from 1s to 3s
