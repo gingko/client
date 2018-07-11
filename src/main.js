@@ -159,41 +159,12 @@ function validSerial(email, storedSerial) {
 /* ==== Menu ==== */
 
 
-function exportMenu(format, cols) {
-  var expMenu =
-    [ { label : 'Entire Document...'
-      , click (item, focusedWindow) {
-          focusedWindow.webContents.send(`menu-export-${format}`)
-        }
-      }
-    , { label : 'Current Card and Children...'
-      , click (item, focusedWindow) {
-          focusedWindow.webContents.send(`menu-export-${format}-current`)
-        }
-      }
-    , { type: 'separator' }
-    ]
-
-  var expMenuItem = function (num) {
-    return  { label : `Column ${num}...`
-            , click (item, focusedWindow) {
-                focusedWindow.webContents.send(`menu-export-${format}-column`, num)
-              }
-            }
-  }
-
-  for (var i = 1; i <= cols;i++) {
-    expMenu.push(expMenuItem(i))
-  }
-
-  return expMenu
-}
 
 
-function menuFunction(isEditing, cols, hasLastExport) {
+function buildMenu() {
   let editMenu
 
-  if (isEditing) {
+  if (_isEditMode) {
     editMenu =
       { label: 'Edit'
       , submenu:
@@ -263,10 +234,39 @@ function menuFunction(isEditing, cols, hasLastExport) {
             }
           ]
       }
+  }
+
+  var exportMenu = function(format, cols) {
+    var expMenu =
+      [ { label : 'Entire Document...'
+        , click (item, focusedWindow) {
+            focusedWindow.webContents.send(`menu-export-${format}`)
+          }
+        }
+      , { label : 'Current Card and Children...'
+        , click (item, focusedWindow) {
+            focusedWindow.webContents.send(`menu-export-${format}-current`)
+          }
+        }
+      , { type: 'separator' }
+      ]
+
+    var expMenuItem = function (num) {
+      return  { label : `Column ${num}...`
+              , click (item, focusedWindow) {
+                  focusedWindow.webContents.send(`menu-export-${format}-column`, num)
+                }
+              }
     }
 
+    for (var i = 1; i <= cols;i++) {
+      expMenu.push(expMenuItem(i))
+    }
 
-  var defaultMenu =
+    return expMenu
+  }
+
+  var menuTemplate =
     [ { label: 'File'
     , submenu:
         [ { label: 'New'
@@ -302,10 +302,10 @@ function menuFunction(isEditing, cols, hasLastExport) {
           }
         , { type: 'separator' }
         , { label: 'Export as MS Word'
-          , submenu : exportMenu('docx', cols)
+          , submenu : exportMenu('docx', _columns)
           }
         , { label: 'Export as Text'
-          , submenu : exportMenu('txt', cols)
+          , submenu : exportMenu('txt', _columns)
           }
         , { label: 'Export as JSON...'
           , click (item, focusedWindow) {
@@ -313,7 +313,7 @@ function menuFunction(isEditing, cols, hasLastExport) {
             }
           }
         , { label: 'Repeat Last Export'
-          , enabled: hasLastExport
+          , enabled: _hasLastExport
           , accelerator: 'CommandOrControl+r'
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('menu-export-repeat')
@@ -387,7 +387,7 @@ function menuFunction(isEditing, cols, hasLastExport) {
 
 
   if (process.platform == 'darwin') {
-    defaultMenu.unshift(
+    menuTemplate.unshift(
       { label : app.getName()
       , submenu :
           [ {role: 'about'}
@@ -408,20 +408,15 @@ function menuFunction(isEditing, cols, hasLastExport) {
           ]
       })
 
-    defaultMenu.splice(4, 0, { role: 'windowMenu'})
+    menuTemplate.splice(4, 0, { role: 'windowMenu'})
   } else {
     let closeMenuItem = { label : 'Close', accelerator: 'Ctrl+W', click (item, focusedWindow) { focusedWindow.webContents.send('menu-close-document'); }};
-    defaultMenu[0].submenu.splice(3, 0, closeMenuItem);
-    defaultMenu[0].submenu.push({type: 'separator'}, {role: 'quit'} );
+    menuTemplate[0].submenu.splice(3, 0, closeMenuItem);
+    menuTemplate[0].submenu.push({type: 'separator'}, {role: 'quit'} );
   }
 
 
-  return defaultMenu;
-}
-
-function buildMenu() {
-  let menuTemplate = menuFunction
-  let menu = Menu.buildFromTemplate(menuFunction(_isEditMode, _columns, _hasLastExport))
+  let menu = Menu.buildFromTemplate(menuTemplate)
   Menu.setApplicationMenu(menu)
 }
 
