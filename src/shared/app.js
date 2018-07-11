@@ -1,6 +1,5 @@
 const jQuery = require('jquery')
 const _ = require('lodash')
-const debounce = require('debounce-promise')
 const autosize = require('textarea-autosize')
 const Mousetrap = require('mousetrap')
 
@@ -170,7 +169,7 @@ const update = (msg, data) => {
     , 'SaveAndClose': async () => {
         if (!!data) {
            try {
-             await debounceSaveToDB(data[0], data[1])
+             await saveToDB(data[0], data[1])
            } catch (e) {
              dialog.showMessageBox(saveErrorAlert(e))
              return;
@@ -209,7 +208,7 @@ const update = (msg, data) => {
     , 'SaveToDB': async () => {
         document.title = document.title.startsWith('*') ? document.title : '*' + document.title
         try {
-          var newHeadRev = await debounceSaveToDB(data[0], data[1])
+          var newHeadRev = await saveToDB(data[0], data[1])
         } catch (e) {
           dialog.showMessageBox(saveErrorAlert(e))
           return;
@@ -594,9 +593,6 @@ self.saveToDB = (status, objects) => {
       }
     })
 }
-
-
-var debounceSaveToDB = debounce(saveToDB, 3000, {'leading': true})
 
 
 self.save = (filepath) => {

@@ -1,6 +1,7 @@
 port module Main exposing (..)
 
 import Coders exposing (..)
+import Debouncer.Basic as Debouncer exposing (Debouncer, provideInput, toDebouncer)
 import Dom
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -12,6 +13,7 @@ import Objects
 import Ports exposing (..)
 import Sha1 exposing (timeJSON, timestamp)
 import Task
+import Time exposing (second)
 import TreeUtils exposing (..)
 import Trees exposing (..)
 import Types exposing (..)
@@ -36,6 +38,7 @@ type alias Model =
     { workingTree : Trees.Model
     , objects : Objects.Model
     , status : Status
+    , debouncerState : Debouncer () ()
     , uid : String
     , viewState : ViewState
     , field : String
@@ -61,6 +64,10 @@ defaultModel =
     { workingTree = Trees.defaultModel
     , objects = Objects.defaultModel
     , status = Bare
+    , debouncerState =
+        Debouncer.throttle (3 * second)
+            |> Debouncer.settleWhenQuietFor (Just <| 3 * second)
+            |> toDebouncer
     , uid = timeJSON ()
     , viewState =
         { active = "1"
@@ -245,6 +252,27 @@ update msg ({ objects, workingTree, status } as model) =
                     { model | viewState = { vs | dragModel = newDragModel } } ! []
 
         -- === History ===
+        DebouncerSettled subMsg ->
+            let
+                ( subModel, subCmd, emitted_ ) =
+                    Debouncer.update subMsg model.debouncerState
+
+                mappedCmd =
+                    Cmd.map DebouncerSettled subCmd
+
+                updatedModel =
+                    { model | debouncerState = subModel }
+            in
+            case emitted_ of
+                Just () ->
+                    updatedModel
+                        ! []
+                        |> addToHistoryDo
+                        |> Tuple.mapSecond (\cmd -> Cmd.batch [ cmd, mappedCmd ])
+
+                _ ->
+                    ( updatedModel, mappedCmd )
+
         Undo ->
             model ! []
 
@@ -1369,8 +1397,8 @@ push ( model, prevCmd ) =
         model ! [ prevCmd ]
 
 
-addToHistory : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-addToHistory ( { workingTree } as model, prevCmd ) =
+addToHistoryDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+addToHistoryDo ( { workingTree } as model, prevCmd ) =
     case model.status of
         Bare ->
             let
@@ -1420,6 +1448,12 @@ addToHistory ( { workingTree } as model, prevCmd ) =
             else
                 model
                     ! [ prevCmd, sendOut (SaveLocal model.workingTree.tree) ]
+
+
+addToHistory : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+addToHistory ( model, prevCmd ) =
+    update (DebouncerSettled (provideInput ())) model
+        |> Tuple.mapSecond (\cmd -> Cmd.batch [ prevCmd, cmd ])
 
 
 

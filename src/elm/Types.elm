@@ -1,5 +1,6 @@
 module Types exposing (..)
 
+import Debouncer.Basic as Debouncer
 import Html5.DragDrop as DragDrop
 import Json.Decode as Json
 
@@ -18,6 +19,7 @@ type Msg
       -- === Card Moving  ===
     | DragDropMsg (DragDrop.Msg String DropId)
       -- === History ===
+    | DebouncerSettled (Debouncer.Msg ())
     | Undo
     | Redo
     | Sync
