@@ -38,7 +38,7 @@ type alias Model =
     { workingTree : Trees.Model
     , objects : Objects.Model
     , status : Status
-    , debouncerState : Debouncer Bool Bool
+    , debouncerState : Debouncer () ()
     , uid : String
     , viewState : ViewState
     , field : String
@@ -66,7 +66,7 @@ defaultModel =
     , status = Bare
     , debouncerState =
         Debouncer.throttle (3 * second)
-            |> Debouncer.settleWhenQuietFor (Just <| 6 * second)
+            |> Debouncer.settleWhenQuietFor (Just <| 3 * second)
             |> toDebouncer
     , uid = timeJSON ()
     , viewState =
@@ -248,7 +248,7 @@ update msg ({ objects, workingTree, status } as model) =
         -- === History ===
         DebouncerSettled subMsg ->
             let
-                ( subModel, subCmd, emittedBool_ ) =
+                ( subModel, subCmd, emitted_ ) =
                     Debouncer.update subMsg model.debouncerState
 
                 mappedCmd =
@@ -257,12 +257,8 @@ update msg ({ objects, workingTree, status } as model) =
                 updatedModel =
                     { model | debouncerState = subModel }
             in
-            case emittedBool_ of
-                Just True ->
-                    let
-                        _ =
-                            Debug.log "Do the save" subModel
-                    in
+            case emitted_ of
+                Just () ->
                     updatedModel
                         ! []
                         |> addToHistoryDo
@@ -1450,7 +1446,7 @@ addToHistoryDo ( { workingTree } as model, prevCmd ) =
 
 addToHistory : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 addToHistory ( model, prevCmd ) =
-    update (DebouncerSettled (provideInput True)) model
+    update (DebouncerSettled (provideInput ())) model
         |> Tuple.mapSecond (\cmd -> Cmd.batch [ prevCmd, cmd ])
 
 

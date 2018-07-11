@@ -19,7 +19,7 @@ type Msg
       -- === Card Moving  ===
     | DragDropMsg (DragDrop.Msg String DropId)
       -- === History ===
-    | DebouncerSettled (Debouncer.Msg Bool)
+    | DebouncerSettled (Debouncer.Msg ())
     | Undo
     | Redo
     | Sync
