@@ -13,6 +13,7 @@ const errorAlert = require('./shared/shared').errorAlert
 // be closed automatically when the JavaScript object is garbage collected.
 let documentWindows = []
 let winTrial, winSerial, winHome, winRename
+let _documentFocused = false
 let _isEditMode = false
 let _columns = 1
 let _hasLastExport = false
@@ -36,12 +37,18 @@ function createHomeWindow () {
 
   winHome.loadURL(url)
 
-  buildMenu();
-  winHome.setMenu(null)
+  winHome.on('focus', () => {
+    _documentFocused = false;
+    buildMenu();
+    winHome.setMenu(null)
+  })
 
   winHome.on('closed', () => {
     winHome = null;
   })
+
+  buildMenu();
+  winHome.setMenu(null)
 }
 
 
@@ -85,6 +92,11 @@ function createAppWindow (dbName, docName, jsonImportData) {
 
   win.on('ready-to-show', () => {
     win.show()
+  })
+
+  win.on('focus', () => {
+    _documentFocused = true;
+    buildMenu();
   })
 
   // Emitted when the window is closed.
@@ -164,7 +176,7 @@ function validSerial(email, storedSerial) {
 function buildMenu() {
   let editMenu
 
-  if (_isEditMode) {
+  if (_isEditMode || !_documentFocused) {
     editMenu =
       { label: 'Edit'
       , submenu:
@@ -283,6 +295,7 @@ function buildMenu() {
             }
           }
         , { label: 'Save'
+          , enabled: _documentFocused
           , accelerator: 'CmdOrCtrl+S'
           , click (item, focusedWindow) {
               dialog.showMessageBox({title: "Autosave", message: "Your document is autosaved on each change.\nSave status is visible in the bottom right.", type: "info", buttons: ["OK"]})
@@ -290,6 +303,7 @@ function buildMenu() {
           }
         , { type: 'separator' }
         , { label: 'Change Title...'
+          , enabled: _documentFocused
           , click (item, focusedWindow) {
               createRenameWindow(focusedWindow, focusedWindow.dbName, focusedWindow.docName, false)
             }
@@ -302,18 +316,21 @@ function buildMenu() {
           }
         , { type: 'separator' }
         , { label: 'Export as MS Word'
+          , enabled: _documentFocused
           , submenu : exportMenu('docx', _columns)
           }
         , { label: 'Export as Text'
+          , enabled: _documentFocused
           , submenu : exportMenu('txt', _columns)
           }
         , { label: 'Export as JSON...'
+          , enabled: _documentFocused
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('menu-export-json')
             }
           }
         , { label: 'Repeat Last Export'
-          , enabled: _hasLastExport
+          , enabled: _hasLastExport && _documentFocused
           , accelerator: 'CommandOrControl+r'
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('menu-export-repeat')
@@ -325,18 +342,21 @@ function buildMenu() {
   , { label: 'View'
     , submenu:
         [ { label: 'Zoom In'
+          , enabled: _documentFocused
           , accelerator: 'CommandOrControl+='
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('zoomin')
             }
           }
         , { label: 'Zoom Out'
+          , enabled: _documentFocused
           , accelerator: 'CommandOrControl+-'
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('zoomout')
             }
           }
         , { label: 'Reset Zoom'
+          , enabled: _documentFocused
           , accelerator: 'CommandOrControl+0'
           , click (item, focusedWindow) {
               focusedWindow.webContents.send('resetzoom')
@@ -476,6 +496,8 @@ app.on('window-all-closed', () => {
   // to stay active until the user quits explicitly with Cmd + Q
   if (_menuQuit || process.platform !== 'darwin') {
     app.quit()
+  } else {
+    _documentFocused = false;
   }
 })
 
@@ -659,13 +681,21 @@ function createSerialWindow(parentWindow, shouldBlock) {
 
   var url = `file://${__dirname}/static/license.html`
   winSerial.setMenu(null)
+
   winSerial.once('ready-to-show', () => {
     if(shouldBlock) { winSerial.webContents.send('prevent-close', true) }
     winSerial.webContents.send('serial-info', [email, storedSerial])
     winSerial.show()
   })
+
+  winSerial.on('focus', () => {
+    _documentFocused = false;
+    buildMenu();
+  })
+
   winSerial.on('closed', () => {
     winSerial = null;
   })
+
   winSerial.loadURL(url)
 }
