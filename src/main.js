@@ -298,7 +298,7 @@ function buildMenu() {
           , enabled: _documentFocused
           , accelerator: 'CmdOrCtrl+S'
           , click (item, focusedWindow) {
-              dialog.showMessageBox({title: "Autosave", message: "Your document is autosaved on each change.\nSave status is visible in the bottom right.", type: "info", buttons: ["OK"]})
+              dialog.showMessageBox({title: "Autosave", message: "Your document is saved on each change.\nSee save status in top left corner.", type: "info", buttons: ["OK"]})
             }
           }
         , { type: 'separator' }

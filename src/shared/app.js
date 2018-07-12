@@ -71,7 +71,8 @@ if(!!jsonImportData) {
       , { isMac : process.platform === "darwin"
         , shortcutTrayOpen : userStore.get('shortcut-tray-is-open', true)
         , videoModalOpen : userStore.get('video-modal-is-open', false)
-      }
+        , currentTime : Date.now()
+        }
       , false // isSaved
     ]
 
@@ -86,7 +87,8 @@ if(!!jsonImportData) {
         , { isMac : process.platform === "darwin"
           , shortcutTrayOpen : userStore.get('shortcut-tray-is-open', true)
           , videoModalOpen : userStore.get('video-modal-is-open', false)
-        }
+          , currentTime : Date.now()
+          }
         , true // isSaved
       ]
 

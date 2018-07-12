@@ -3,6 +3,7 @@ module Types exposing (..)
 import Debouncer.Basic as Debouncer
 import Html5.DragDrop as DragDrop
 import Json.Decode as Json
+import Time exposing (Time)
 
 
 type Msg
@@ -25,7 +26,8 @@ type Msg
     | Sync
     | SetSelection String Selection String
     | Resolve String
-      -- === Help ===
+      -- === UI ===
+    | TimeUpdate Time
     | VideoModal Bool
     | ShortcutTrayToggle
       -- === Ports ===

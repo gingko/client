@@ -2,7 +2,7 @@ module UI exposing (countWords, viewConflict, viewFooter, viewSaveIndicator, vie
 
 import Coders exposing (treeToMarkdownString)
 import Date
-import Date.Extra as DateExtra
+import Date.Distance as DateDist
 import Dict
 import Diff exposing (..)
 import Html exposing (..)
@@ -12,15 +12,16 @@ import InlineHover exposing (hover)
 import Objects
 import Octicons as Icon exposing (defaultOptions)
 import Regex exposing (Regex, regex, replace)
+import Time exposing (Time)
 import TreeUtils exposing (..)
 import Trees exposing (defaultTree)
 import Types exposing (..)
 
 
-viewSaveIndicator : { m | changed : Bool, objects : Objects.Model } -> Html Msg
+viewSaveIndicator : { m | changed : Bool, objects : Objects.Model, currentTime : Time } -> Html Msg
 viewSaveIndicator model =
     let
-        lastCommit =
+        lastCommitTime =
             model.objects.commits
                 |> Dict.toList
                 |> List.sortBy (\( k, v ) -> -v.timestamp)
@@ -28,15 +29,19 @@ viewSaveIndicator model =
                 |> List.head
                 |> Maybe.withDefault 0
                 |> toFloat
-                |> Date.fromTime
-                |> DateExtra.toFormattedString "yyyy-mm-dd, HH:mm"
+
+        lastChangeString =
+            DateDist.inWords
+                (model.currentTime |> Date.fromTime)
+                (lastCommitTime |> Date.fromTime)
+                ++ " ago"
     in
     div
         [ id "save-indicator", classList [ ( "inset", True ), ( "saving", model.changed ) ] ]
         [ if model.changed then
-            span [ title ("Last saved at " ++ lastCommit) ] [ text "Unsaved changes..." ]
+            span [ title ("Last saved " ++ lastChangeString) ] [ text "Unsaved changes..." ]
           else
-            span [ title ("Last edit at " ++ lastCommit) ] [ text "All changes saved" ]
+            span [ title ("Last edit " ++ lastChangeString) ] [ text "All changes saved" ]
         ]
 
 

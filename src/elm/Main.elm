@@ -13,7 +13,7 @@ import Objects
 import Ports exposing (..)
 import Sha1 exposing (timeJSON, timestamp)
 import Task
-import Time exposing (second)
+import Time exposing (Time, second)
 import TreeUtils exposing (..)
 import Trees exposing (..)
 import Types exposing (..)
@@ -49,6 +49,7 @@ type alias Model =
     , startingWordcount : Int
     , online : Bool
     , changed : Bool
+    , currentTime : Time
     }
 
 
@@ -56,6 +57,7 @@ type alias InitModel =
     { isMac : Bool
     , shortcutTrayOpen : Bool
     , videoModalOpen : Bool
+    , currentTime : Time
     }
 
 
@@ -89,6 +91,7 @@ defaultModel =
     , startingWordcount = 0
     , online = False
     , changed = False
+    , currentTime = 0
     }
 
 
@@ -123,6 +126,7 @@ init ( json, modelIn, isSaved ) =
         , shortcutTrayOpen = modelIn.shortcutTrayOpen
         , videoModalOpen = modelIn.videoModalOpen
         , startingWordcount = startingWordcount
+        , currentTime = modelIn.currentTime
     }
         ! [ focus "1", sendOut <| ColumnNumberChange <| List.length <| newWorkingTree.columns ]
         |> activate "1"
@@ -342,7 +346,11 @@ update msg ({ objects, workingTree, status } as model) =
                 _ ->
                     model ! []
 
-        -- === Help ===
+        -- === UI ===
+        TimeUpdate time ->
+            { model | currentTime = time }
+                ! []
+
         VideoModal shouldOpen ->
             model
                 ! []
@@ -1536,7 +1544,10 @@ modelToValue model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    receiveMsg Port LogErr
+    Sub.batch
+        [ receiveMsg Port LogErr
+        , Time.every (15 * second) TimeUpdate
+        ]
 
 
 
