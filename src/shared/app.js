@@ -659,7 +659,7 @@ const exportDocx = (data, defaultPath) => {
 
         execFile( pandocPath
           , [ tmpMarkdown
-            , '--from=gfm'
+            , '--from=gfm+hard_line_breaks'
             , '--to=docx'
             , `--output=${filepath}`
             , '--verbose'
