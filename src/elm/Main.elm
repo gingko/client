@@ -274,7 +274,7 @@ update msg ({ objects, workingTree, status } as model) =
                         |> addToHistoryDo
                         |> Tuple.mapSecond (\cmd -> Cmd.batch [ cmd, mappedCmd ])
 
-                _ ->
+                Nothing ->
                     ( updatedModel, mappedCmd )
 
         Undo ->
