@@ -1,16 +1,43 @@
-module UI exposing (countWords, viewConflict, viewFooter, viewVideo)
+module UI exposing (countWords, viewConflict, viewFooter, viewSaveIndicator, viewVideo)
 
 import Coders exposing (treeToMarkdownString)
+import Date
+import Date.Extra as DateExtra
+import Dict
 import Diff exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
 import InlineHover exposing (hover)
+import Objects
 import Octicons as Icon exposing (defaultOptions)
 import Regex exposing (Regex, regex, replace)
 import TreeUtils exposing (..)
 import Trees exposing (defaultTree)
 import Types exposing (..)
+
+
+viewSaveIndicator : { m | changed : Bool, objects : Objects.Model } -> Html Msg
+viewSaveIndicator model =
+    let
+        lastCommit =
+            model.objects.commits
+                |> Dict.toList
+                |> List.sortBy (\( k, v ) -> -v.timestamp)
+                |> List.map (\( k, v ) -> v.timestamp)
+                |> List.head
+                |> Maybe.withDefault 0
+                |> toFloat
+                |> Date.fromTime
+                |> DateExtra.toFormattedString "yyyy-mm-dd, HH:mm"
+    in
+    div
+        [ id "save-indicator", classList [ ( "inset", True ), ( "saving", model.changed ) ] ]
+        [ if model.changed then
+            span [ title ("Last saved at " ++ lastCommit) ] [ text "Unsaved changes..." ]
+          else
+            span [ title ("Last edit at " ++ lastCommit) ] [ text "All changes saved" ]
+        ]
 
 
 viewFooter : { m | viewState : ViewState, workingTree : Trees.Model, startingWordcount : Int, shortcutTrayOpen : Bool, isMac : Bool, isTextSelected : Bool, changed : Bool } -> Html Msg
@@ -32,17 +59,6 @@ viewFooter model =
 
                 _ ->
                     False
-
-        viewSaveState =
-            div
-                [ id "save-indicator", classList [ ( "inset", True ), ( "saving", model.changed ) ] ]
-                [ text
-                    (if model.changed then
-                        "Unsaved"
-                     else
-                        "Saved"
-                    )
-                ]
 
         hoverHeight n =
             14

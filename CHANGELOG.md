@@ -2,13 +2,14 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
-## [2.1.4] - 2018-07-12
+## Unreleased
   - Fixed Save errors on rapid moves/changes
   - Fixed title reverts to Untitled" on rename
   - Fixed file extension filtering issues on macOS
-  - Added link to github issues to "Help" menu
   - Fixed JSON import not saving unless modified
   - Fixed single linebreaks ignored in Word exports
+  - Added link to github issues to "Help" menu
+  - Moved 'Saved' indicator to top left
 
 ## [2.1.3] - 2018-07-10
   - Saving "Reference Error": Increased save-delay from 1s to 3s

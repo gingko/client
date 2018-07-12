@@ -840,15 +840,20 @@ ul, ol {
 }
 
 #save-indicator {
-  min-width: 65px;
-  text-align: center;
-  font-style: italic;
+  cursor: default;
+  user-select: none;
+  position: fixed;
+  top: 5px;
+  left: 10px;
+  font-size: 14px;
+  font-family: sans-serif;
+  color: var(--dark-gray);
   transition: box-shadow 1s ease-out;
 }
 
 #save-indicator.saving {
-  box-shadow: inset 0 0 16px lightblue;
-  font-style: bold;
+  text-shadow: 0 0 8px lightblue;
+  color: var(--light-gray);
   transition: none;
 }
 

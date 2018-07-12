@@ -17,7 +17,7 @@ import Time exposing (second)
 import TreeUtils exposing (..)
 import Trees exposing (..)
 import Types exposing (..)
-import UI exposing (countWords, viewConflict, viewFooter, viewVideo)
+import UI exposing (countWords, viewConflict, viewFooter, viewSaveIndicator, viewVideo)
 
 
 main : Program ( Json.Value, InitModel, Bool ) Model Msg
@@ -1515,6 +1515,7 @@ repeating-linear-gradient(-45deg
             div
                 [ id "app-root" ]
                 [ lazy2 Trees.view model.viewState model.workingTree
+                , viewSaveIndicator model
                 , viewFooter model
                 , viewVideo model
                 ]
