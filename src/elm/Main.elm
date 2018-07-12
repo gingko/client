@@ -256,13 +256,13 @@ update msg ({ objects, workingTree, status } as model) =
                     { model | viewState = { vs | dragModel = newDragModel } } ! []
 
         -- === History ===
-        DebouncerSettled subMsg ->
+        ThrottledCommit subMsg ->
             let
                 ( subModel, subCmd, emitted_ ) =
                     Debouncer.update subMsg model.debouncerState
 
                 mappedCmd =
-                    Cmd.map DebouncerSettled subCmd
+                    Cmd.map ThrottledCommit subCmd
 
                 updatedModel =
                     { model | debouncerState = subModel }
@@ -1461,7 +1461,7 @@ addToHistoryDo ( { workingTree } as model, prevCmd ) =
 
 addToHistory : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 addToHistory ( model, prevCmd ) =
-    update (DebouncerSettled (provideInput ())) model
+    update (ThrottledCommit (provideInput ())) model
         |> Tuple.mapSecond (\cmd -> Cmd.batch [ prevCmd, cmd ])
 
 
