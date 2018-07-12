@@ -193,9 +193,8 @@ const update = (msg, data) => {
         if (tarea === null) {
           console.log('tarea not found')
         } else {
-          if(tarea.value === data[1]) {
-            toElm('CancelCardConfirmed', null)
-          } else if (confirm('Are you sure you want to cancel your changes?')) {
+          if(tarea.value === data[1] || confirm('Are you sure you want to cancel your changes?')) {
+            document.title = document.title.replace(/^\*/, "")
             toElm('CancelCardConfirmed', null)
           }
         }

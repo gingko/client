@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
   - Fixed file extension filtering issues on macOS
   - Fixed JSON import not saving unless modified
   - Fixed single linebreaks ignored in Word exports
+  - Fixed cancelling card didn't reset save indicator
   - Added link to github issues to "Help" menu
   - Moved 'Saved' indicator to top left
 

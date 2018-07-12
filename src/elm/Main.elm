@@ -1110,6 +1110,7 @@ cancelCard ( model, prevCmd ) =
     in
     { model
         | viewState = { vs | editing = Nothing }
+        , changed = False
         , field = ""
     }
         ! [ prevCmd ]
