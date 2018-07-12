@@ -1215,6 +1215,7 @@ move : Tree -> String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 move subtree pid pos ( model, prevCmd ) =
     { model
         | workingTree = Trees.update (Trees.Mov subtree pid pos) model.workingTree
+        , changed = True
     }
         ! [ prevCmd ]
         |> maybeColumnsChanged model.workingTree.columns
