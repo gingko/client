@@ -52,6 +52,42 @@ viewFooter model =
         session =
             current - model.startingWordcount
 
+        viewWordCount =
+            if model.viewState.editing == Nothing then
+                if model.startingWordcount /= 0 then
+                    let
+                        hoverStyle =
+                            [ ( "height", hoverHeight 6 ) ]
+                    in
+                    [ hover hoverStyle
+                        div
+                        [ id "wordcount", class "inset" ]
+                        [ span [] [ text ("Session: " ++ (session |> toWordsString)) ]
+                        , span [] [ text ("Total: " ++ (current |> toWordsString)) ]
+                        , span [] [ text ("Card: " ++ (wordCounts.card |> toWordsString)) ]
+                        , span [] [ text ("Subtree: " ++ (wordCounts.subtree |> toWordsString)) ]
+                        , span [] [ text ("Group: " ++ (wordCounts.group |> toWordsString)) ]
+                        , span [] [ text ("Column: " ++ (wordCounts.column |> toWordsString)) ]
+                        ]
+                    ]
+                else
+                    let
+                        hoverStyle =
+                            [ ( "height", hoverHeight 5 ) ]
+                    in
+                    [ hover hoverStyle
+                        div
+                        [ id "wordcount", class "inset" ]
+                        [ span [] [ text ("Total: " ++ (current |> toWordsString)) ]
+                        , span [] [ text ("Card: " ++ (wordCounts.card |> toWordsString)) ]
+                        , span [] [ text ("Subtree: " ++ (wordCounts.subtree |> toWordsString)) ]
+                        , span [] [ text ("Group: " ++ (wordCounts.group |> toWordsString)) ]
+                        , span [] [ text ("Column: " ++ (wordCounts.column |> toWordsString)) ]
+                        ]
+                    ]
+            else
+                []
+
         isOnly =
             case model.workingTree.tree.children of
                 Children [ a ] ->
@@ -70,43 +106,7 @@ viewFooter model =
     div
         [ class "footer" ]
         ([ viewShortcutsToggle model.shortcutTrayOpen model.isMac isOnly model.isTextSelected model.viewState ]
-            ++ (if model.viewState.editing == Nothing then
-                    if model.startingWordcount /= 0 then
-                        let
-                            hoverStyle =
-                                [ ( "height", hoverHeight 6 ) ]
-                        in
-                        [ hover hoverStyle
-                            div
-                            [ id "wordcount", class "inset" ]
-                            [ span [] [ text ("Session: " ++ (session |> toWordsString)) ]
-                            , span [] [ text ("Total: " ++ (current |> toWordsString)) ]
-                            , span [] [ text ("Card: " ++ (wordCounts.card |> toWordsString)) ]
-                            , span [] [ text ("Subtree: " ++ (wordCounts.subtree |> toWordsString)) ]
-                            , span [] [ text ("Group: " ++ (wordCounts.group |> toWordsString)) ]
-                            , span [] [ text ("Column: " ++ (wordCounts.column |> toWordsString)) ]
-                            ]
-                        , viewSaveState
-                        ]
-                    else
-                        let
-                            hoverStyle =
-                                [ ( "height", hoverHeight 5 ) ]
-                        in
-                        [ hover hoverStyle
-                            div
-                            [ id "wordcount", class "inset" ]
-                            [ span [] [ text ("Total: " ++ (current |> toWordsString)) ]
-                            , span [] [ text ("Card: " ++ (wordCounts.card |> toWordsString)) ]
-                            , span [] [ text ("Subtree: " ++ (wordCounts.subtree |> toWordsString)) ]
-                            , span [] [ text ("Group: " ++ (wordCounts.group |> toWordsString)) ]
-                            , span [] [ text ("Column: " ++ (wordCounts.column |> toWordsString)) ]
-                            ]
-                        , viewSaveState
-                        ]
-                else
-                    [ viewSaveState ]
-               )
+            ++ viewWordCount
         )
 
 
