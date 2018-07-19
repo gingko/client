@@ -60,6 +60,7 @@ viewSearchField model =
             [ input
                 [ type_ "search"
                 , id "search-input"
+                , title "Press '/' to search"
                 , onInput SearchFieldUpdated
                 ]
                 []
