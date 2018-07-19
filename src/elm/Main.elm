@@ -771,6 +771,14 @@ update msg ({ objects, workingTree, status } as model) =
                                 Just uid ->
                                     model ! [ sendOut (TextSurround uid "*") ]
 
+                        "/" ->
+                            case vs.editing of
+                                Nothing ->
+                                    model ! [ Task.attempt (\_ -> NoOp) (Dom.focus "search-input") ]
+
+                                Just _ ->
+                                    model ! []
+
                         _ ->
                             let
                                 _ =

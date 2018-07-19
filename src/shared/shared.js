@@ -286,6 +286,7 @@ var shortcuts = [ 'mod+enter'
                 , 'home'
                 , 'pageup'
                 , 'pagedown'
+                , '/'
                 ];
 
 var needOverride= [ 'mod+n'
