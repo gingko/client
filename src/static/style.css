@@ -847,13 +847,13 @@ ul, ol {
   left: 10px;
   font-size: 14px;
   font-family: sans-serif;
-  color: var(--dark-gray);
+  color: var(--light-gray);
+  mix-blend-mode: hard-light;
 }
 
 #save-indicator.saving {
-  text-shadow: 0 0 8px lightblue;
-  color: var(--light-gray);
   transition: none;
+  font-weight: bold;
 }
 
 #search-field {
