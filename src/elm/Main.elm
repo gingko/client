@@ -178,13 +178,17 @@ update msg ({ objects, workingTree, status } as model) =
                         Nothing ->
                             cols
 
-                newSearchField =
+                ( maybeBlur, newSearchField ) =
                     case inputField of
                         "" ->
-                            Nothing
+                            ( \( m, c ) -> m ! [ c, Task.attempt (\_ -> NoOp) (Dom.blur "search-input") ]
+                            , Nothing
+                            )
 
                         str ->
-                            Just str
+                            ( identity
+                            , Just str
+                            )
 
                 filteredCardIds =
                     searchFilter newSearchField model.workingTree.columns
@@ -200,15 +204,19 @@ update msg ({ objects, workingTree, status } as model) =
                     ListExtra.find (\cId -> List.member cId filteredCardIds) allCardsInOrder
 
                 maybeActivate =
-                    case firstFilteredCardId_ of
-                        Just id ->
-                            activate id
+                    case ( newSearchField, firstFilteredCardId_ ) of
+                        ( Just _, Just id ) ->
+                            activate (id |> Debug.log "card to activate")
 
-                        Nothing ->
+                        ( Nothing, _ ) ->
+                            activate vs.active
+
+                        _ ->
                             identity
             in
             { model | viewState = { vs | searchField = newSearchField } }
                 ! []
+                |> maybeBlur
                 |> maybeActivate
 
         -- === Card Editing  ===
