@@ -47,28 +47,28 @@ viewSaveIndicator model =
 
 viewSearchField : { m | viewState : ViewState } -> Html Msg
 viewSearchField model =
-    case model.viewState.searchField of
-        Just searchField ->
-            div
-                [ id "search-field" ]
-                [ input
-                    [ type_ "search"
-                    , defaultValue searchField
-                    , onInput SearchFieldUpdated
-                    ]
-                    []
+    let
+        maybeSearchIcon =
+            if model.viewState.searchField == Nothing then
+                Icon.search (defaultOptions |> Icon.color "#445" |> Icon.size 12)
+            else
+                text ""
+    in
+    if model.viewState.editing == Nothing then
+        div
+            [ id "search-field" ]
+            [ input
+                [ type_ "search"
+                , id "search-input"
+                , onInput SearchFieldUpdated
                 ]
-
-        Nothing ->
-            div
-                [ id "search-field" ]
-                [ input
-                    [ type_ "search"
-                    , placeholder "search this tree"
-                    , onInput SearchFieldUpdated
-                    ]
-                    []
-                ]
+                []
+            , maybeSearchIcon
+            ]
+    else
+        div
+            [ id "search-field" ]
+            []
 
 
 viewFooter : { m | viewState : ViewState, workingTree : Trees.Model, startingWordcount : Int, shortcutTrayOpen : Bool, isMac : Bool, isTextSelected : Bool, changed : Bool } -> Html Msg
