@@ -327,6 +327,7 @@ view vstate model =
                     let
                         hasTerm tree =
                             term
+                                |> Regex.escape
                                 |> Regex.regex
                                 |> Regex.caseInsensitive
                                 |> (\t -> Regex.contains t tree.content)
