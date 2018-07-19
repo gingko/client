@@ -326,7 +326,10 @@ view vstate model =
                 Just term ->
                     let
                         hasTerm tree =
-                            String.contains term tree.content
+                            term
+                                |> Regex.regex
+                                |> Regex.caseInsensitive
+                                |> (\t -> Regex.contains t tree.content)
                     in
                     cols
                         |> List.map (\c -> List.map (\g -> List.filter hasTerm g) c)
