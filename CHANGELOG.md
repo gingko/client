@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
-## Unreleased
+## [2.1.5] - 2018-07-19
   - Added Search & Filtering
 
 ## [2.1.4] - 2018-07-12
