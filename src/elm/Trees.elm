@@ -321,12 +321,10 @@ renameNodes salt tree =
 view : ViewState -> Model -> Html Msg
 view vstate model =
     let
-        searchFilter : Maybe String -> List (List (List Tree)) -> List (List (List Tree))
         searchFilter term_ cols =
             case term_ of
                 Just term ->
                     let
-                        hasTerm : Tree -> Bool
                         hasTerm tree =
                             String.contains term tree.content
                     in
