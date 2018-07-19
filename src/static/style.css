@@ -848,7 +848,6 @@ ul, ol {
   font-size: 14px;
   font-family: sans-serif;
   color: var(--dark-gray);
-  transition: box-shadow 1s ease-out;
 }
 
 #save-indicator.saving {
