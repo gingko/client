@@ -10,6 +10,7 @@ type Msg
     = NoOp
       -- === Card Activation ===
     | Activate String
+    | SearchFieldUpdated String
       -- === Card Editing  ===
     | OpenCard String String
     | DeleteCard String
@@ -182,6 +183,7 @@ type alias ViewState =
     , descendants : List String
     , ancestors : List String
     , editing : Maybe String
+    , searchField : Maybe String
     , dragModel : DragDrop.Model String DropId
     , draggedTree : Maybe ( Tree, String, Int )
     , copiedTree : Maybe Tree
@@ -192,6 +194,7 @@ type alias ViewState =
 type alias VisibleViewState =
     { active : String
     , editing : Maybe String
+    , searchField : Maybe String
     , descendants : List String
     , ancestors : List String
     , dragModel : DragDrop.Model String DropId

@@ -856,6 +856,15 @@ ul, ol {
   transition: none;
 }
 
+#search-field input {
+  position: fixed;
+  top: 5px;
+  right: 10px;
+  border-radius: 10px;
+  padding: 2px 10px;
+  border: 0px;
+}
+
 #wordcount {
   display: flex;
   flex-direction: column-reverse;

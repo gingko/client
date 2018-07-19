@@ -1,4 +1,4 @@
-module UI exposing (countWords, viewConflict, viewFooter, viewSaveIndicator, viewVideo)
+module UI exposing (countWords, viewConflict, viewFooter, viewSaveIndicator, viewSearchField, viewVideo)
 
 import Coders exposing (treeToMarkdownString)
 import Date
@@ -43,6 +43,32 @@ viewSaveIndicator model =
           else
             span [ title ("Last edit " ++ lastChangeString) ] [ text "All changes saved" ]
         ]
+
+
+viewSearchField : { m | viewState : ViewState } -> Html Msg
+viewSearchField model =
+    case model.viewState.searchField of
+        Just searchField ->
+            div
+                [ id "search-field" ]
+                [ input
+                    [ type_ "search"
+                    , defaultValue searchField
+                    , onInput SearchFieldUpdated
+                    ]
+                    []
+                ]
+
+        Nothing ->
+            div
+                [ id "search-field" ]
+                [ input
+                    [ type_ "search"
+                    , placeholder "search this tree"
+                    , onInput SearchFieldUpdated
+                    ]
+                    []
+                ]
 
 
 viewFooter : { m | viewState : ViewState, workingTree : Trees.Model, startingWordcount : Int, shortcutTrayOpen : Bool, isMac : Bool, isTextSelected : Bool, changed : Bool } -> Html Msg

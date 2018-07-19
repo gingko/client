@@ -17,7 +17,7 @@ import Time exposing (Time, second)
 import TreeUtils exposing (..)
 import Trees exposing (..)
 import Types exposing (..)
-import UI exposing (countWords, viewConflict, viewFooter, viewSaveIndicator, viewVideo)
+import UI exposing (countWords, viewConflict, viewFooter, viewSaveIndicator, viewSearchField, viewVideo)
 
 
 main : Program ( Json.Value, InitModel, Bool ) Model Msg
@@ -78,6 +78,7 @@ defaultModel =
         , descendants = []
         , ancestors = [ "0" ]
         , editing = Nothing
+        , searchField = Nothing
         , dragModel = DragDrop.init
         , draggedTree = Nothing
         , copiedTree = Nothing
@@ -155,6 +156,19 @@ update msg ({ objects, workingTree, status } as model) =
                 ! []
                 |> saveCardIfEditing
                 |> activate id
+
+        SearchFieldUpdated inputField ->
+            let
+                newSearchField =
+                    case inputField of
+                        "" ->
+                            Nothing
+
+                        str ->
+                            Just str
+            in
+            { model | viewState = { vs | searchField = newSearchField } }
+                ! []
 
         -- === Card Editing  ===
         OpenCard id str ->
@@ -1526,6 +1540,7 @@ repeating-linear-gradient(-45deg
                 [ id "app-root" ]
                 [ lazy2 Trees.view model.viewState model.workingTree
                 , viewSaveIndicator model
+                , viewSearchField model
                 , viewFooter model
                 , viewVideo model
                 ]
