@@ -9,8 +9,10 @@ import Html.Lazy exposing (lazy, lazy2)
 import Html5.DragDrop as DragDrop
 import Json.Decode as Json
 import Json.Encode exposing (..)
+import List.Extra as ListExtra
 import Objects
 import Ports exposing (..)
+import Regex
 import Sha1 exposing (timeJSON, timestamp)
 import Task
 import Time exposing (Time, second)
@@ -159,6 +161,22 @@ update msg ({ objects, workingTree, status } as model) =
 
         SearchFieldUpdated inputField ->
             let
+                searchFilter term_ cols =
+                    case term_ of
+                        Just term ->
+                            let
+                                hasTerm tree =
+                                    term
+                                        |> Regex.regex
+                                        |> Regex.caseInsensitive
+                                        |> (\t -> Regex.contains t tree.content)
+                            in
+                            cols
+                                |> List.map (\c -> List.map (\g -> List.filter hasTerm g) c)
+
+                        Nothing ->
+                            cols
+
                 newSearchField =
                     case inputField of
                         "" ->
@@ -166,9 +184,31 @@ update msg ({ objects, workingTree, status } as model) =
 
                         str ->
                             Just str
+
+                filteredCardIds =
+                    searchFilter newSearchField model.workingTree.columns
+                        |> List.map (\c -> List.map (\g -> List.map .id g) c)
+                        |> List.concat
+                        |> List.concat
+
+                allCardsInOrder =
+                    getDescendants model.workingTree.tree
+                        |> List.map .id
+
+                firstFilteredCardId_ =
+                    ListExtra.find (\cId -> List.member cId filteredCardIds) allCardsInOrder
+
+                maybeActivate =
+                    case firstFilteredCardId_ of
+                        Just id ->
+                            activate id
+
+                        Nothing ->
+                            identity
             in
             { model | viewState = { vs | searchField = newSearchField } }
                 ! []
+                |> maybeActivate
 
         -- === Card Editing  ===
         OpenCard id str ->
