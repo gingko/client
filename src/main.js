@@ -27,6 +27,15 @@ const hiddenStore = new Store({name: "kernel", encryptionKey: "79df64f73eab9bc0d
 const userStore = new Store({name: "config"})
 
 
+// Make Gingko single instance
+const isSecondInstance = app.makeSingleInstance((commandLine, workingDirectory) => {
+  if(commandLine[0].endsWith('electron') && typeof commandLine[2] == 'string') {
+    openFile(commandLine[2])
+  }
+})
+if (isSecondInstance) { app.exit() }
+
+
 
 function createHomeWindow () {
   // Create the browser window.
