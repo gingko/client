@@ -547,6 +547,7 @@ function openFile(filepath) {
 
     let swapStore = new Store({name: 'swap', cwd: swapFolderPath, defaults: { originalPath : filepath }})
     createDocumentWindow(swapFolderPath)
+    app.addRecentDocument(filepath)
   })
 }
 
