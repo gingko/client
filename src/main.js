@@ -4,6 +4,7 @@ const fs = require('fs')
 const path = require('path')
 const child_process = require('child_process')
 const sha1 = require('sha1')
+const machineIdSync = require('node-machine-id').machineIdSync
 const rimraf = require('rimraf')
 const moment = require('moment')
 const Store = require('electron-store')
@@ -18,6 +19,7 @@ const errorAlert = require('./shared/shared').errorAlert
 // be closed automatically when the JavaScript object is garbage collected.
 let documentWindows = []
 let winTrial, winSerial, winHome, winRename
+let _untitledDocs = 0
 let _documentFocused = false
 let _isEditMode = false
 let _columns = 1
@@ -66,7 +68,7 @@ function createHomeWindow () {
 }
 
 
-function createDocumentWindow (swapFolderPath) {
+function createDocumentWindow (swapFolderPath, originalPath) {
   let metaStore = new Store({name: 'meta', cwd: swapFolderPath})
 
   let mainWindowState = windowStateKeeper(
@@ -96,7 +98,13 @@ function createDocumentWindow (swapFolderPath) {
   // accessed from the app window
   win.swapFolderPath = swapFolderPath;
   win.dbName = path.join(swapFolderPath, 'leveldb');
-  win.docName = metaStore.get('documentName','Untitled');
+
+  if (!!originalPath) {
+    win.docName = path.basename(originalPath)
+  } else {
+    win.docName = "Untitled" + (_untitledDocs !== 0 ? ` (${_untitledDocs + 1})` : "")
+    _untitledDocs += 1;
+  }
   //win.jsonImportData = jsonImportData;
 
   win.renameDoc = function(newName) {
@@ -299,8 +307,8 @@ function buildMenu() {
         [ { label: 'New'
           , accelerator: 'CmdOrCtrl+N'
           , click (item, focusedWindow) {
-              let dbName = dbMapping.newDb()
-              createDocumentWindow(dbName)
+              let swapRandomName = sha1(Date.now()+machineIdSync()).slice(20)
+              createDocumentWindow(path.join(app.getPath('userData'), swapRandomName), null)
             }
           }
         , { label: 'Open File...'
@@ -516,7 +524,6 @@ app.on('ready', () => {
 })
 
 
-// Open file on double-click or command-line
 function openFile(filepath) {
   let parsedPath = path.parse(filepath)
 
@@ -546,7 +553,7 @@ function openFile(filepath) {
     }
 
     let swapStore = new Store({name: 'swap', cwd: swapFolderPath, defaults: { originalPath : filepath }})
-    createDocumentWindow(swapFolderPath)
+    createDocumentWindow(swapFolderPath, filepath)
     app.addRecentDocument(filepath)
   })
 }
