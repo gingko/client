@@ -62,7 +62,7 @@ console.log('Gingko version', app.getVersion())
 
 document.title = `${(!!appWindow.docName) ? appWindow.docName : "Untitled"} - Gingko`
 
-var dbpath = path.join(app.getPath('userData'), dbName)
+var dbpath = dbName
 self.db = new PouchDB(dbpath)
 
 if(!!jsonImportData) {
@@ -180,7 +180,7 @@ const update = (msg, data) => {
 
         if (!!appWindow.docName) {
           // has Title, so close
-          appWindow.destroy();
+          ipcRenderer.send('app:close')
         } else {
           // is Untitled, so ask user to rename
           ipcRenderer.send('app:rename-untitled', dbName, null, true)
@@ -586,7 +586,7 @@ self.saveToDB = (status, objects) => {
 
       let head = responses.filter(r => r.id == "heads/master")[0]
       if (head.ok) {
-        dbMapping.setModified(dbName)
+        //dbMapping.setModified(dbName)
         resolve(head.rev)
       } else {
         reject(new Error('Reference error when saving to DB.'))

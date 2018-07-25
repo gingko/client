@@ -1,8 +1,13 @@
 const {app, BrowserWindow, dialog, Menu, ipcMain, shell, Notification} = require('electron')
 import { autoUpdater } from "electron-updater"
+const fs = require('fs')
 const path = require('path')
+const child_process = require('child_process')
 const sha1 = require('sha1')
+const rimraf = require('rimraf')
+const moment = require('moment')
 const Store = require('electron-store')
+import { path7za } from '7zip-bin'
 import TurndownService from 'turndown'
 const windowStateKeeper = require('electron-window-state')
 const dbMapping = require('./shared/db-mapping')
@@ -52,11 +57,13 @@ function createHomeWindow () {
 }
 
 
-function createAppWindow (dbName, docName, jsonImportData) {
+function createDocumentWindow (swapFolderPath) {
+  let metaStore = new Store({name: 'meta', cwd: swapFolderPath})
+
   let mainWindowState = windowStateKeeper(
     { defaultWidth: 1000
     , defaultHeight: 800
-    , file: `window-state-${dbName}.json`
+    , file: `window-state-${sha1(swapFolderPath)}.json`
     }
   )
 
@@ -78,9 +85,10 @@ function createAppWindow (dbName, docName, jsonImportData) {
 
   // Add variables to BrowserWindow object, so they can be
   // accessed from the app window
-  win.dbName = dbName;
-  win.docName = docName;
-  win.jsonImportData = jsonImportData;
+  win.swapFolderPath = swapFolderPath;
+  win.dbName = path.join(swapFolderPath, 'leveldb');
+  win.docName = metaStore.get('documentName','Untitled');
+  //win.jsonImportData = jsonImportData;
 
   win.renameDoc = function(newName) {
     win.webContents.send('main:rename', `${newName} - Gingko`)
@@ -107,8 +115,6 @@ function createAppWindow (dbName, docName, jsonImportData) {
       documentWindows.splice(index, 1)
     }
   })
-
-
 }
 
 
@@ -285,7 +291,7 @@ function buildMenu() {
           , accelerator: 'CmdOrCtrl+N'
           , click (item, focusedWindow) {
               let dbName = dbMapping.newDb()
-              createAppWindow(dbName)
+              createDocumentWindow(dbName)
             }
           }
         , { label: 'Open File...'
@@ -451,6 +457,8 @@ buildMenu();
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
+
+  // Auto Updater code
   autoUpdater.fullChangelog = true;
 
   autoUpdater.on('update-downloaded', info => {
@@ -476,15 +484,49 @@ app.on('ready', () => {
   let email = userStore.get('email', "")
   let storedSerial = userStore.get('serial', "")
 
-  createHomeWindow()
-  if(!validSerial(email, storedSerial)) {
-    let activations = getTrialActivations()
-    let limit = 30
-    let daysLeft = Math.max(limit - activations.length, 0)
-    let trialDisplayDays = [25, 20, 15, 10, 8, 6, 5, 4, 3, 2, 1, 0]
+  if(process.argv[0].endsWith('electron') && typeof process.argv[2] == 'string') {
+    let filepath = process.argv[2];
+    let parsedPath = path.parse(filepath)
 
-    if(trialDisplayDays.includes(daysLeft)) {
-      createTrialWindow(winHome, activations, limit)
+    // Original file's full path is used as path for swap folder,
+    // to prevent conflicts on opening two files with the same name.
+    let swapName = filepath.split(path.sep).join('%').replace('.gko','')
+    let swapFolderPath = path.join(app.getPath('userData'), swapName )
+
+    // Create a backup of the original file, with datetime appended,
+    // only if the original was modified since last backup.
+    let originalStats = fs.statSync(filepath)
+    let backupName = swapName + moment(originalStats.mtimeMs).format('_YYYY-MM-DD_HH-MM-SS') + parsedPath.ext
+    let backupPath = path.join(app.getPath('userData'), backupName)
+
+    try {
+      fs.copyFileSync(filepath, backupPath, fs.constants.COPYFILE_EXCL)
+    } catch (err) {
+      if (err.code !== 'EEXIST') { throw err }
+    }
+
+    // Unzip original *.gko file to swapFolderPath, and open a
+    // document window, passing the swap folder path.
+    child_process.execFile(path7za, ['x','-bd', `-o${swapFolderPath}`, filepath ], (err, stdout, stderr ) => {
+      if (err) {
+        console.log(err)
+        return
+      }
+
+      let swapStore = new Store({name: 'swap', cwd: swapFolderPath, defaults: { originalPath : filepath }})
+      createDocumentWindow(swapFolderPath)
+    })
+  } else {
+    createHomeWindow()
+    if(!validSerial(email, storedSerial)) {
+      let activations = getTrialActivations()
+      let limit = 30
+      let daysLeft = Math.max(limit - activations.length, 0)
+      let trialDisplayDays = [25, 20, 15, 10, 8, 6, 5, 4, 3, 2, 1, 0]
+
+      if(trialDisplayDays.includes(daysLeft)) {
+        createTrialWindow(winHome, activations, limit)
+      }
     }
   }
 })
@@ -512,7 +554,7 @@ app.on('activate', () => {
 
 ipcMain.on('home:new', (event) => {
   let dbName = dbMapping.newDb()
-  createAppWindow(dbName, null)
+  createDocumentWindow(dbName, null)
   winHome.close()
 })
 
@@ -537,14 +579,14 @@ ipcMain.on('home:import-file', async (event) => {
       return;
     }
     dbMapping.newDb(dbName, docName)
-    createAppWindow(dbName, docName, jsonImportData)
+    createDocumentWindow(dbName, docName, jsonImportData)
     winHome.close()
   }
 })
 
 
 ipcMain.on('home:load', (event, dbToLoad, docName) => {
-  createAppWindow(dbToLoad, docName)
+  createDocumentWindow(dbToLoad, docName)
   winHome.close()
 })
 
@@ -552,6 +594,44 @@ ipcMain.on('home:load', (event, dbToLoad, docName) => {
 ipcMain.on('home:delete', async (event, dbToDelete) => {
   await fio.destroyDb(dbToDelete)
   await dbMapping.removeDb(dbToDelete)
+})
+
+
+ipcMain.on('app:close', (event) => {
+  let documentWindow = BrowserWindow.fromWebContents(event.sender);
+  let swapFolderPath = documentWindow.swapFolderPath;
+  let swapStore = new Store({name: 'swap', cwd: swapFolderPath})
+  let originalPath = swapStore.get('originalPath');
+
+  // Convert swap folder to new .gko backup file by
+  // zip archiving it...
+  let backupPath = swapFolderPath + moment().format('_YYYY-MM-DD_HH-MM-SS') + '.gko';
+  let args =
+      ['a'
+      , backupPath
+      , swapFolderPath + path.sep + '*'
+      , '-r'
+      ]
+
+  child_process.execFile(path7za, args, (err) => {
+    if (err) {
+      console.log(err)
+      return
+    }
+
+    // ... and when done, overwrite original .gko file with new one...
+    fs.copyFile(backupPath, originalPath, (err) => {
+      if(err) { console.log(err) }
+
+      // ... and finally, delete the swap folder.
+      rimraf(swapFolderPath, () => { 
+        console.log('clean exit')
+        documentWindow.destroy();
+      });
+    })
+  })
+
+
 })
 
 
@@ -597,19 +677,6 @@ ipcMain.on('edit-mode-toggle', (event, isEditing) => {
   if (_isEditMode != isEditing) {
     _isEditMode = isEditing
     buildMenu();
-  }
-})
-
-
-ipcMain.on('elm-ready', () => {
-  if(process.argv[0].endsWith('electron')) {
-    if(typeof process.argv[2] == 'string') {
-      win.webContents.send('open-file', process.argv[2])
-    }
-  } else {
-    if(typeof process.argv[1] == 'string') {
-      win.webContents.send('open-file', process.argv[1])
-    }
   }
 })
 
