@@ -307,8 +307,7 @@ function buildMenu() {
         [ { label: 'New'
           , accelerator: 'CmdOrCtrl+N'
           , click (item, focusedWindow) {
-              let swapRandomName = sha1(Date.now()+machineIdSync()).slice(20)
-              createDocumentWindow(path.join(app.getPath('userData'), swapRandomName), null)
+              newUntitled();
             }
           }
         , { label: 'Open File...'
@@ -524,6 +523,12 @@ app.on('ready', () => {
 })
 
 
+function newUntitled() {
+  let swapRandomName = sha1(Date.now()+machineIdSync()).slice(20)
+  createDocumentWindow(path.join(app.getPath('userData'), swapRandomName), null)
+}
+
+
 function openFile(filepath) {
   let parsedPath = path.parse(filepath)
 
@@ -581,9 +586,8 @@ app.on('activate', () => {
 
 
 ipcMain.on('home:new', (event) => {
-  let dbName = dbMapping.newDb()
-  createDocumentWindow(dbName, null)
-  winHome.close()
+  newUntitled();
+  winHome.close();
 })
 
 
