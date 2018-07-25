@@ -306,7 +306,12 @@ function buildMenu() {
         , { label: 'Open File...'
           , accelerator: 'CmdOrCtrl+O'
           , click (item, focusedWindow) {
-              createHomeWindow()
+              let options = {title: 'Open File...', defaultPath : app.getPath('documents') , properties: ['openFile'], filters: [ {name: 'Gingko Files (*.gko)', extensions: ['gko']} ]};
+              dialog.showOpenDialog(options, (filepaths) => {
+                if(Array.isArray(filepaths) && !!filepaths[0]) {
+                  openFile(filepaths[0])
+                }
+              })
             }
           }
         , { label: 'Save'
