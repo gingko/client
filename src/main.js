@@ -624,6 +624,9 @@ ipcMain.on('app:close', (event) => {
   let swapStore = new Store({name: 'swap', cwd: swapFolderPath})
   let originalPath = swapStore.get('originalPath');
 
+  // Remove swap-only data
+  fs.unlinkSync(path.join(swapFolderPath, 'swap.json'))
+
   // Convert swap folder to new .gko backup file by
   // zip archiving it...
   let backupPath = swapFolderPath + moment().format('_YYYY-MM-DD_HH-MM-SS') + '.gko';
@@ -645,7 +648,7 @@ ipcMain.on('app:close', (event) => {
       if(err) { console.log(err) }
 
       // ... and finally, delete the swap folder.
-      rimraf(swapFolderPath, () => { 
+      rimraf(swapFolderPath, () => {
         console.log('clean close', originalPath)
         documentWindow.destroy();
       });
