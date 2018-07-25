@@ -9,7 +9,7 @@ module.exports = {
   entry: {
       electron: './main.js',
       home: './shared/home.js',
-      app: './shared/app.js'
+      doc: './shared/doc.js'
   },
   output: {
     path: path.join(__dirname, 'app'),
@@ -53,7 +53,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './index.ejs',
       filename: '../app/static/index.html',
-      chunks: ['app']
+      chunks: ['doc']
     })
   , new HtmlWebpackPlugin({
       template: './home.ejs',
