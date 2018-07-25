@@ -322,10 +322,26 @@ function buildMenu() {
             }
           }
         , { label: 'Save'
-          , enabled: _documentFocused
+          , enabled: _documentFocused // TODO: Disable this for Untitled documents
           , accelerator: 'CmdOrCtrl+S'
           , click (item, focusedWindow) {
-              dialog.showMessageBox({title: "Autosave", message: "Your document is saved on each change.\nSee save status in top left corner.", type: "info", buttons: ["OK"]})
+              let swapStore = new Store({name: 'swap', cwd: focusedWindow.swapFolderPath});
+            saveFile(focusedWindow.swapFolderPath, swapStore.get('originalPath')); // TODO: add error handling for originalPath not existing
+            }
+          }
+        , { label: 'Save As'
+          , enabled: _documentFocused
+          , accelerator: 'CmdOrCtrl+Shift+S'
+          , click (item, focusedWindow) {
+              let swapStore = new Store({name: 'swap', cwd: focusedWindow.swapFolderPath});
+              let originalPath = swapStore.get('originalPath')
+              let saveOptions =
+                { title: 'Save As'
+                , defaultPath: originalPath ? originalPath : path.join(app.getPath('documents'), 'Untitled.gko')
+                , filters: [{ name: 'Gingko Files (*.gko)', extensions: ['gko'] }]
+                }
+              let targetPath = dialog.showSaveDialog(saveOptions);
+              saveFile(focusedWindow.swapFolderPath, targetPath);
             }
           }
         , { type: 'separator' }
@@ -564,6 +580,41 @@ function openFile(filepath) {
 }
 
 
+function saveFile(swapFolderPath, targetPath) {
+  return new Promise(
+    (resolve, reject) => {
+      // Remove swap-only data
+      fs.unlinkSync(path.join(swapFolderPath, 'swap.json'))
+
+      // Convert swap folder to new .gko backup file by
+      // zip archiving it...
+      let backupPath = swapFolderPath + moment().format('_YYYY-MM-DD_HH-MM-SS') + '.gko';
+      let args =
+          ['a'
+          , backupPath
+          , swapFolderPath + path.sep + '*'
+          , '-r'
+          ]
+
+      child_process.execFile(path7za, args, (err) => {
+        if (err) { reject(err) }
+
+        // ... and when done, copy to target path,
+        // overwriting original .gko file with new one...
+        fs.copyFile(backupPath, targetPath, (err) => {
+          if(err) { reject(err)}
+
+          // ... and finally, delete the swap folder.
+          rimraf(swapFolderPath, () => {
+            console.log('clean close', targetPath)
+            resolve(targetPath)
+          });
+        })
+      })
+    })
+}
+
+
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
@@ -629,44 +680,45 @@ ipcMain.on('home:delete', async (event, dbToDelete) => {
 })
 
 
-ipcMain.on('app:close', (event) => {
+ipcMain.on('app:close', async (event) => {
   let documentWindow = BrowserWindow.fromWebContents(event.sender);
   let swapFolderPath = documentWindow.swapFolderPath;
   let swapStore = new Store({name: 'swap', cwd: swapFolderPath})
   let originalPath = swapStore.get('originalPath');
 
-  // Remove swap-only data
-  fs.unlinkSync(path.join(swapFolderPath, 'swap.json'))
+  if (!originalPath) {
+    // Untitled/never-saved document
+    const confirmOptions =
+      { title: "Save changes"
+      , message: "Save changes before closing?"
+      , buttons: ["Close Without Saving", "Cancel", "Save"]
+      , defaultId: 2
+      }
+    let choice = dialog.showMessageBox(confirmOptions)
 
-  // Convert swap folder to new .gko backup file by
-  // zip archiving it...
-  let backupPath = swapFolderPath + moment().format('_YYYY-MM-DD_HH-MM-SS') + '.gko';
-  let args =
-      ['a'
-      , backupPath
-      , swapFolderPath + path.sep + '*'
-      , '-r'
-      ]
-
-  child_process.execFile(path7za, args, (err) => {
-    if (err) {
-      console.log(err)
-      return
-    }
-
-    // ... and when done, overwrite original .gko file with new one...
-    fs.copyFile(backupPath, originalPath, (err) => {
-      if(err) { console.log(err) }
-
-      // ... and finally, delete the swap folder.
-      rimraf(swapFolderPath, () => {
-        console.log('clean close', originalPath)
+    switch (choice) {
+      case 0:
         documentWindow.destroy();
-      });
-    })
-  })
+        return;
+      case 1:
+        return;
+      case 2:
+        let saveOptions =
+          { title: 'Save As'
+          , defaultPath: path.join(app.getPath('documents'), 'Untitled.gko')
+          , filters: [{ name: 'Gingko Files (*.gko)', extensions: ['gko'] }]
+          }
+        originalPath = dialog.showSaveDialog(documentWindow, saveOptions)
+        break;
+    }
+  }
 
-
+  try {
+    let saveResult = await saveFile(swapFolderPath, originalPath)
+    if(saveResult == originalPath) { documentWindow.destroy() }
+  } catch (err) {
+    dialog.showErrorBox("Error saving to file", `Your content is safe in the backup folder, but it couldn't be saved to ${originalPath}`)
+  }
 })
 
 
