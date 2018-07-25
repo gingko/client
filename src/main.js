@@ -485,37 +485,7 @@ app.on('ready', () => {
   let storedSerial = userStore.get('serial', "")
 
   if(process.argv[0].endsWith('electron') && typeof process.argv[2] == 'string') {
-    let filepath = process.argv[2];
-    let parsedPath = path.parse(filepath)
-
-    // Original file's full path is used as path for swap folder,
-    // to prevent conflicts on opening two files with the same name.
-    let swapName = filepath.split(path.sep).join('%').replace('.gko','')
-    let swapFolderPath = path.join(app.getPath('userData'), swapName )
-
-    // Create a backup of the original file, with datetime appended,
-    // only if the original was modified since last backup.
-    let originalStats = fs.statSync(filepath)
-    let backupName = swapName + moment(originalStats.mtimeMs).format('_YYYY-MM-DD_HH-MM-SS') + parsedPath.ext
-    let backupPath = path.join(app.getPath('userData'), backupName)
-
-    try {
-      fs.copyFileSync(filepath, backupPath, fs.constants.COPYFILE_EXCL)
-    } catch (err) {
-      if (err.code !== 'EEXIST') { throw err }
-    }
-
-    // Unzip original *.gko file to swapFolderPath, and open a
-    // document window, passing the swap folder path.
-    child_process.execFile(path7za, ['x','-bd', `-o${swapFolderPath}`, filepath ], (err, stdout, stderr ) => {
-      if (err) {
-        console.log(err)
-        return
-      }
-
-      let swapStore = new Store({name: 'swap', cwd: swapFolderPath, defaults: { originalPath : filepath }})
-      createDocumentWindow(swapFolderPath)
-    })
+    openFile(process.argv[2]);
   } else {
     createHomeWindow()
     if(!validSerial(email, storedSerial)) {
@@ -530,6 +500,42 @@ app.on('ready', () => {
     }
   }
 })
+
+
+// Open file on double-click or command-line
+function openFile(filepath) {
+  let parsedPath = path.parse(filepath)
+
+  // Original file's full path is used as path for swap folder,
+  // to prevent conflicts on opening two files with the same name.
+  let swapName = filepath.split(path.sep).join('%').replace('.gko','')
+  let swapFolderPath = path.join(app.getPath('userData'), swapName )
+
+  // Create a backup of the original file, with datetime appended,
+  // only if the original was modified since last backup.
+  let originalStats = fs.statSync(filepath)
+  let backupName = swapName + moment(originalStats.mtimeMs).format('_YYYY-MM-DD_HH-MM-SS') + parsedPath.ext
+  let backupPath = path.join(app.getPath('userData'), backupName)
+
+  try {
+    fs.copyFileSync(filepath, backupPath, fs.constants.COPYFILE_EXCL)
+  } catch (err) {
+    if (err.code !== 'EEXIST') { throw err }
+  }
+
+  // Unzip original *.gko file to swapFolderPath, and open a
+  // document window, passing the swap folder path.
+  child_process.execFile(path7za, ['x','-bd', `-o${swapFolderPath}`, filepath ], (err, stdout, stderr ) => {
+    if (err) {
+      console.log(err)
+      return
+    }
+
+    let swapStore = new Store({name: 'swap', cwd: swapFolderPath, defaults: { originalPath : filepath }})
+    createDocumentWindow(swapFolderPath)
+  })
+}
+
 
 
 // Quit when all windows are closed.
@@ -625,7 +631,7 @@ ipcMain.on('app:close', (event) => {
 
       // ... and finally, delete the swap folder.
       rimraf(swapFolderPath, () => { 
-        console.log('clean exit')
+        console.log('clean close', originalPath)
         documentWindow.destroy();
       });
     })
