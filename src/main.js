@@ -669,7 +669,8 @@ ipcMain.on('home:import-file', async (event) => {
 
 
 ipcMain.on('home:load', (event, dbToLoad, docName) => {
-  createDocumentWindow(dbToLoad, docName)
+  let swapPath = path.join(app.getPath('userData'), dbToLoad);
+  createDocumentWindow(swapPath, null)
   winHome.close()
 })
 
