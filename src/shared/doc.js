@@ -39,9 +39,9 @@ var collab = {}
 self.savedObjectIds = [];
 
 var firstRun = userStore.get('first-run', true)
-var appWindow = remote.getCurrentWindow()
-var dbName = appWindow.dbName;
-var jsonImportData = appWindow.jsonImportData;
+var docWindow = remote.getCurrentWindow()
+var dbName = docWindow.dbName;
+var jsonImportData = docWindow.jsonImportData;
 
 
 
@@ -60,10 +60,17 @@ if(process.env.RUNNING_IN_SPECTRON) {
 
 console.log('Gingko version', app.getVersion())
 
-document.title = `${(!!appWindow.docName) ? appWindow.docName : "Untitled"} - Gingko`
+function setDocumentPath(newDbName, newDocName) {
+  dbName = newDbName;
+  docWindow.dbName = newDbName;
+  docWindow.docName = newDocName;
 
-var dbpath = dbName
-self.db = new PouchDB(dbpath)
+  document.title = `${(!!docWindow.docName) ? docWindow.docName : "Untitled"} - Gingko`
+
+  self.db = new PouchDB(dbName)
+}
+
+setDocumentPath(dbName, docWindow.docName);
 
 if(!!jsonImportData) {
   var initFlags =
@@ -178,7 +185,7 @@ const update = (msg, data) => {
            }
         }
 
-        if (!!appWindow.docName) {
+        if (!!docWindow.docName) {
           // has Title, so close
           ipcRenderer.send('app:close')
         } else {
@@ -383,7 +390,7 @@ ipcRenderer.on('zoomout', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() -
 ipcRenderer.on('resetzoom', e => { webFrame.setZoomLevel(0) })
 ipcRenderer.on('menu-view-videos', () => toElm('ViewVideos', null ))
 ipcRenderer.on('menu-contact-support', () => { if(crisp_loaded) { $crisp.push(['do', 'chat:open']); $crisp.push(['do', 'chat:show']); } else { shell.openExternal('mailto:adriano@gingkoapp.com') } } )
-ipcRenderer.on('main:delete-and-close', async () => { await db.destroy(); await dbMapping.removeDb(dbName); appWindow.destroy(); })
+ipcRenderer.on('main:delete-and-close', async () => { await db.destroy(); await dbMapping.removeDb(dbName); docWindow.destroy(); })
 ipcRenderer.on('main:rename', (e, msg) => { document.title = msg; })
 
 socket.on('collab', data => toElm('RecvCollabState', data))
