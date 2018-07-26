@@ -1,11 +1,10 @@
 const {app, BrowserWindow, dialog, Menu, ipcMain, shell, Notification} = require('electron')
 import { autoUpdater } from "electron-updater"
-const fs = require('fs')
+const fs = require('fs-extra')
 const path = require('path')
 const child_process = require('child_process')
 const sha1 = require('sha1')
 const machineIdSync = require('node-machine-id').machineIdSync
-const rimraf = require('rimraf')
 const moment = require('moment')
 const Store = require('electron-store')
 import { path7za } from '7zip-bin'
@@ -613,7 +612,7 @@ function saveFile(swapFolderPath, targetPath) {
           if(err) { reject(err)}
 
           // ... and finally, delete the swap folder.
-          rimraf(swapFolderPath, () => {
+          fs.remove(swapFolderPath, err => {
             console.log('clean close', targetPath)
             app.addRecentDocument(targetPath)
             resolve(targetPath)
