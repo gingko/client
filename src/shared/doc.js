@@ -183,7 +183,7 @@ const update = (msg, data) => {
           console.log('tarea not found')
         } else {
           if(tarea.value === data[1] || confirm('Are you sure you want to cancel your changes?')) {
-            document.title = document.title.replace(/^\*/, "")
+            ipcRenderer.send("doc:set-changed", false);
             toElm('CancelCardConfirmed', null)
           }
         }
@@ -196,7 +196,7 @@ const update = (msg, data) => {
       // === Database ===
 
     , 'SaveToDB': async () => {
-        document.title = document.title.startsWith('*') ? document.title : '*' + document.title
+        ipcRenderer.send("doc:set-changed", true);
         try {
           var newHeadRev = await saveToDB(data[0], data[1])
         } catch (e) {
@@ -204,7 +204,7 @@ const update = (msg, data) => {
           return;
         }
         toElm('SetHeadRev', newHeadRev)
-        document.title = document.title.replace(/^\*/, "")
+        ipcRenderer.send("doc:set-changed", false);
       }
 
     , 'Push': push
@@ -793,7 +793,7 @@ const debouncedScrollHorizontal = _.debounce(shared.scrollHorizontal, 200)
 
 const editingInputHandler = function(ev) {
   toElm('FieldChanged', ev.target.value)
-  document.title = document.title.startsWith('*') ? document.title : '*' + document.title
+  ipcRenderer.send("doc:set-changed", true);
   collab.field = ev.target.value
   socket.emit('collab', collab)
 }

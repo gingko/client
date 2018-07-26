@@ -107,9 +107,11 @@ function createDocumentWindow (swapFolderPath, originalPath) {
   win.dbPath = path.join(swapFolderPath, 'leveldb');
 
   if (originalPath) {
-    win.setTitle(`${path.basename(originalPath)} - Gingko`);
+    let newTitle = `${path.basename(originalPath)} - Gingko`;
+    win.setTitle(newTitle);
   } else {
-    win.setTitle("Untitled" + (_untitledDocs !== 0 ? ` (${_untitledDocs + 1})` : ""));
+    let newTitle = "Untitled" + (_untitledDocs !== 0 ? ` (${_untitledDocs + 1})` : "");
+    win.setTitle(newTitle);
     _untitledDocs += 1;
   }
   //win.jsonImportData = jsonImportData;
@@ -727,6 +729,20 @@ ipcMain.on('app:close', async (event) => {
     if(saveResult == originalPath) { documentWindow.destroy() }
   } catch (err) {
     dialog.showErrorBox("Error saving to file", `Your content is safe in ${swapFolderPath},\nbut it couldn't be saved to ${originalPath}`)
+  }
+})
+
+
+ipcMain.on("doc:set-changed", (event, changed) => {
+  let docWindow = BrowserWindow.fromWebContents(event.sender);
+  let currentTitle = docWindow.getTitle();
+
+  docWindow.setDocumentEdited(changed);
+
+  if(changed && !currentTitle.startsWith("*")) {
+    docWindow.setTitle("*" + currentTitle);
+  } else if (!changed) {
+    docWindow.setTitle(currentTitle.replace(/^\*/, ""));
   }
 })
 
