@@ -1,16 +1,56 @@
 const {app} = require('electron')
 const fs = require('fs')
 const path = require('path')
+const child_process = require("child_process");
 const {promisify} = require('util')
+const { path7za } = require("7zip-bin");
 const readFile = promisify(fs.readFile)
 const firstline = require('firstline')
 let copyFile = promisify(fs.copyFile)
 let deleteFile = promisify(fs.unlink)
 const crypto = require('crypto')
+const moment = require("moment");
+const Store = require("electron-store");
 
 const PouchDB = require('pouchdb');
 const replicationStream = require('pouchdb-replication-stream')
 PouchDB.plugin(replicationStream.plugin)
+
+
+function openFile(filepath) {
+  return new Promise(
+    (resolve, reject) => {
+      let parsedPath = path.parse(filepath);
+
+      // Original file's full path is used as path for swap folder,
+      // to prevent conflicts on opening two files with the same name.
+      let swapName = filepath.split(path.sep).join("%").replace(".gko","");
+      let swapFolderPath = path.join(app.getPath("userData"), swapName );
+
+      // Create a backup of the original file, with datetime appended,
+      // only if the original was modified since last backup.
+      let originalStats = fs.statSync(filepath);
+      let backupName = swapName + moment(originalStats.mtimeMs).format("_YYYY-MM-DD_HH-MM-SS") + parsedPath.ext;
+      let backupPath = path.join(app.getPath("userData"), backupName);
+
+      try {
+        fs.copyFileSync(filepath, backupPath, fs.constants.COPYFILE_EXCL);
+      } catch (err) {
+        if (err.code !== "EEXIST") { throw err; }
+      }
+
+      // Unzip original *.gko file to swapFolderPath, and open a
+      // document window, passing the swap folder path.
+      child_process.execFile(path7za, ["x","-bd", `-o${swapFolderPath}`, filepath ], (err) => {
+        if (err) { reject(err); }
+
+        new Store({name: "swap", cwd: swapFolderPath, defaults: { originalPath : filepath }});
+        resolve(swapFolderPath);
+      });
+    });
+}
+
+
 
 
 function dbToFile(database, filepath) {
@@ -145,7 +185,8 @@ async function importJSON(filepath) {
 
 
 module.exports =
-  { dbToFile: dbToFile
+  { openFile : openFile
+  , dbToFile: dbToFile
   , dbFromFile: dbFromFile
   , destroyDb: destroyDb
   , getHash: getHashWithoutStartTime

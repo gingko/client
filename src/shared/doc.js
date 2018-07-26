@@ -20,7 +20,6 @@ const machineIdSync = require('node-machine-id').machineIdSync
 const io = require('socket.io-client')
 
 const dbMapping = require('./db-mapping')
-const fio = require('./file-io')
 const shared = require('./shared')
 const errorAlert = shared.errorAlert
 window.Elm = require('../elm/Main')
@@ -584,23 +583,6 @@ self.saveToDB = (status, objects) => {
         return;
       }
     })
-}
-
-
-self.save = (filepath) => {
-  return new Promise(
-    async (resolve, reject) => {
-      try {
-        let saveResult = await fio.save(db, filepath)
-
-        document.title = `${path.basename(filepath)} - Gingko`
-        toElm('FileState', [filepath, false])
-        resolve(true)
-      } catch(err) {
-        dialog.showMessageBox(saveErrorAlert(err))
-      }
-    }
-  )
 }
 
 
