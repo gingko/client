@@ -33,6 +33,10 @@ const userStore = new Store({name: "config"})
 const isSecondInstance = app.makeSingleInstance((commandLine, workingDirectory) => {
   if(commandLine[0].endsWith('electron') && typeof commandLine[2] == 'string') {
     openFile(commandLine[2])
+  } else if (!!winHome) {
+    winHome.show()
+  } else {
+    createHomeWindow()
   }
 })
 if (isSecondInstance) { app.exit() }
