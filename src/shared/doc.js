@@ -56,11 +56,9 @@ console.log('Gingko version', app.getVersion())
 
 var firstRun = userStore.get('first-run', true)
 var docWindow = remote.getCurrentWindow()
-var dbName = docWindow.dbName;
 var jsonImportData = docWindow.jsonImportData;
 
-document.title = `${(!!docWindow.docName) ? docWindow.docName : "Untitled"} - Gingko`
-self.db = new PouchDB(dbName)
+self.db = new PouchDB(docWindow.dbPath);
 
 if(!!jsonImportData) {
   var initFlags =
@@ -175,13 +173,7 @@ const update = (msg, data) => {
            }
         }
 
-        if (!!docWindow.docName) {
-          // has Title, so close
-          ipcRenderer.send('app:close')
-        } else {
-          // is Untitled, so ask user to rename
-          ipcRenderer.send('app:rename-untitled', dbName, null, true)
-        }
+        ipcRenderer.send('app:close')
       }
 
     , 'ConfirmCancelCard': () => {
@@ -357,6 +349,10 @@ function intentExportToElm ( format, selection, filepath) {
   toElm('IntentExport', { format: format, selection : selection, filepath: filepath} )
 }
 
+ipcRenderer.on("main:set-db-path", (e, newDbPath) => {
+  self.db = new PouchDB(newDbPath);
+});
+
 ipcRenderer.on('menu-new', () => toElm('IntentNew', null))
 ipcRenderer.on('menu-open', () => toElm('IntentOpen', null ))
 ipcRenderer.on('menu-close-document', () => toElm('IntentExit', null))
@@ -380,7 +376,6 @@ ipcRenderer.on('zoomout', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() -
 ipcRenderer.on('resetzoom', e => { webFrame.setZoomLevel(0) })
 ipcRenderer.on('menu-view-videos', () => toElm('ViewVideos', null ))
 ipcRenderer.on('menu-contact-support', () => { if(crisp_loaded) { $crisp.push(['do', 'chat:open']); $crisp.push(['do', 'chat:show']); } else { shell.openExternal('mailto:adriano@gingkoapp.com') } } )
-ipcRenderer.on('main:delete-and-close', async () => { await db.destroy(); await dbMapping.removeDb(dbName); docWindow.destroy(); })
 ipcRenderer.on('main:rename', (e, msg) => { document.title = msg; })
 
 socket.on('collab', data => toElm('RecvCollabState', data))
@@ -583,7 +578,6 @@ self.saveToDB = (status, objects) => {
 
       let head = responses.filter(r => r.id == "heads/master")[0]
       if (head.ok) {
-        //dbMapping.setModified(dbName)
         resolve(head.rev)
       } else {
         reject(new Error('Reference error when saving to DB.'))

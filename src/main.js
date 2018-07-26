@@ -98,23 +98,22 @@ function createDocumentWindow (swapFolderPath, originalPath) {
   mainWindowState.manage(win);
 
 
-  // Add variables to BrowserWindow object, so they can be
-  // accessed from the app window
+  // Add swapFolderPath variable to BrowserWindow object,
+  // so it can be accessed elsewhere in main.js
   win.swapFolderPath = swapFolderPath;
-  win.dbName = path.join(swapFolderPath, 'leveldb');
 
-  if (!!originalPath) {
-    win.docName = path.basename(originalPath)
+  // Add dbPath variable to BrowserWindow object,
+  // so that it can load from the database as soon as
+  // the window is created.
+  win.dbPath = path.join(swapFolderPath, 'leveldb');
+
+  if (originalPath) {
+    win.setTitle(`${path.basename(originalPath)} - Gingko`);
   } else {
-    win.docName = "Untitled" + (_untitledDocs !== 0 ? ` (${_untitledDocs + 1})` : "")
+    win.setTitle("Untitled" + (_untitledDocs !== 0 ? ` (${_untitledDocs + 1})` : ""));
     _untitledDocs += 1;
   }
   //win.jsonImportData = jsonImportData;
-
-  win.renameDoc = function(newName) {
-    win.webContents.send('main:rename', `${newName} - Gingko`)
-    win.docName = newName
-  }
 
   var url = `file://${__dirname}/static/index.html`
   win.loadURL(url)
