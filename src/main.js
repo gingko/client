@@ -336,23 +336,28 @@ function buildMenu() {
         , { label: 'Save As'
           , enabled: _documentFocused
           , accelerator: 'CmdOrCtrl+Shift+S'
-          , click (item, focusedWindow) {
+          , async click (item, focusedWindow) {
               let swapStore = new Store({name: 'swap', cwd: focusedWindow.swapFolderPath});
               let originalPath = swapStore.get('originalPath')
+
               let saveOptions =
                 { title: 'Save As'
                 , defaultPath: originalPath ? originalPath : path.join(app.getPath('documents'), 'Untitled.gko')
                 , filters: [{ name: 'Gingko Files (*.gko)', extensions: ['gko'] }]
                 }
               let targetPath = dialog.showSaveDialog(saveOptions);
-              saveFile(focusedWindow.swapFolderPath, targetPath);
-            }
-          }
-        , { type: 'separator' }
-        , { label: 'Change Title...'
-          , enabled: _documentFocused
-          , click (item, focusedWindow) {
-              createRenameWindow(focusedWindow, focusedWindow.dbName, focusedWindow.docName, false)
+              try {
+                let saveResult = await saveFile(focusedWindow.swapFolderPath, targetPath);
+                if (saveResult == targetPath) {
+                  // TODO: CHANGE SWAP FOLDER
+                  // * Copy current swap folder to new one based on targetPath
+                  // * Do swapStore.set('originalPath', 'targetPath')
+                  // * Change focusedWindow.swapFolderPath
+                  // * Make sure PouchDB is using that new path
+                }
+              } catch (err) {
+                dialog.showErrorBox("Error saving to file", `Your content is safe in ${focusedWindow.swapFolderPath},\nbut it couldn't be saved to ${targetPath}`)
+              }
             }
           }
         , { type: 'separator' }
@@ -611,6 +616,7 @@ function saveFile(swapFolderPath, targetPath) {
           // ... and finally, delete the swap folder.
           rimraf(swapFolderPath, () => {
             console.log('clean close', targetPath)
+            app.addRecentDocument(targetPath)
             resolve(targetPath)
           });
         })
@@ -722,7 +728,7 @@ ipcMain.on('app:close', async (event) => {
     let saveResult = await saveFile(swapFolderPath, originalPath)
     if(saveResult == originalPath) { documentWindow.destroy() }
   } catch (err) {
-    dialog.showErrorBox("Error saving to file", `Your content is safe in the backup folder, but it couldn't be saved to ${originalPath}`)
+    dialog.showErrorBox("Error saving to file", `Your content is safe in ${swapFolderPath},\nbut it couldn't be saved to ${originalPath}`)
   }
 })
 

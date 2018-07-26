@@ -38,12 +38,6 @@ var _lastSelection = null
 var collab = {}
 self.savedObjectIds = [];
 
-var firstRun = userStore.get('first-run', true)
-var docWindow = remote.getCurrentWindow()
-var dbName = docWindow.dbName;
-var jsonImportData = docWindow.jsonImportData;
-
-
 
 const mock = require('../../test/mocks.js')
 if(process.env.RUNNING_IN_SPECTRON) {
@@ -60,17 +54,13 @@ if(process.env.RUNNING_IN_SPECTRON) {
 
 console.log('Gingko version', app.getVersion())
 
-function setDocumentPath(newDbName, newDocName) {
-  dbName = newDbName;
-  docWindow.dbName = newDbName;
-  docWindow.docName = newDocName;
+var firstRun = userStore.get('first-run', true)
+var docWindow = remote.getCurrentWindow()
+var dbName = docWindow.dbName;
+var jsonImportData = docWindow.jsonImportData;
 
-  document.title = `${(!!docWindow.docName) ? docWindow.docName : "Untitled"} - Gingko`
-
-  self.db = new PouchDB(dbName)
-}
-
-setDocumentPath(dbName, docWindow.docName);
+document.title = `${(!!docWindow.docName) ? docWindow.docName : "Untitled"} - Gingko`
+self.db = new PouchDB(dbName)
 
 if(!!jsonImportData) {
   var initFlags =
