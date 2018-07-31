@@ -33,7 +33,24 @@ main =
 
 
 
--- MODEL
+{-
+   # MODEL
+
+   The Model contains the entire state of the document.
+
+   The most important fields are `workingTree`, `viewState` and `objects`.
+
+   `workingTree` contains the current state of the *document*, as it stands at
+   any given moment. It does not include information about "transient" state
+   (such as which card is focused, or which is being edited). It's defined in
+   Trees.elm.
+
+   `viewState` is where that "transient" information (focused card, edit state)
+   is stored. It's defined in Types.elm.
+
+   `objects` contains the current state of the database, including all the
+   version history information. It's defined in Objects.elm.
+-}
 
 
 type alias Model =
