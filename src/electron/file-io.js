@@ -1,5 +1,5 @@
 const {app} = require('electron')
-const fs = require('fs')
+const fs = require("fs-extra");
 const path = require('path')
 const child_process = require("child_process");
 const {promisify} = require('util')
@@ -11,46 +11,156 @@ let deleteFile = promisify(fs.unlink)
 const crypto = require('crypto')
 const moment = require("moment");
 const Store = require("electron-store");
+const readChunk = require("read-chunk");
+const fileType = require("file-type");
 
 const PouchDB = require('pouchdb');
 const replicationStream = require('pouchdb-replication-stream')
 PouchDB.plugin(replicationStream.plugin)
 
 
-function openFile(filepath) {
-  return new Promise(
-    (resolve, reject) => {
-      let parsedPath = path.parse(filepath);
+/*
+ * verifyFiletype : String -> Bool
+ *
+ * Verify that filepath points to a valid .gko file.
+ * TODO: Handle legacy .gko files, and return correct handlers.
+ *
+ */
 
-      // Original file's full path is used as path for swap folder,
-      // to prevent conflicts on opening two files with the same name.
-      let swapName = filepath.split(path.sep).join("%").replace(".gko","");
-      let swapFolderPath = path.join(app.getPath("userData"), swapName );
-
-      // Create a backup of the original file, with datetime appended,
-      // only if the original was modified since last backup.
-      let originalStats = fs.statSync(filepath);
-      let backupName = swapName + moment(originalStats.mtimeMs).format("_YYYY-MM-DD_HH-MM-SS") + parsedPath.ext;
-      let backupPath = path.join(app.getPath("userData"), backupName);
-
-      try {
-        fs.copyFileSync(filepath, backupPath, fs.constants.COPYFILE_EXCL);
-      } catch (err) {
-        if (err.code !== "EEXIST") { throw err; }
-      }
-
-      // Unzip original *.gko file to swapFolderPath, and open a
-      // document window, passing the swap folder path.
-      child_process.execFile(path7za, ["x","-bd", `-o${swapFolderPath}`, filepath ], (err) => {
-        if (err) { reject(err); }
-
-        new Store({name: "swap", cwd: swapFolderPath, defaults: { originalPath : filepath }});
-        resolve(swapFolderPath);
-      });
-    });
+function verifyFiletype (filepath) {
+  const filetype = fileType(readChunk.sync(filepath, 0, 4100));
+  if(filetype.ext == "7z") {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 
+
+
+/*
+ * fullpathFilename : String -> String -> String
+ *
+ * Given a filepath and extension (e.g. ".gko")
+ * Generate a filename from a full path, replacing path separators with %.
+ *
+ */
+
+function fullpathFilename (filepath, extension) {
+  return filepath.split(path.sep).join("%").replace(extension,"");
+}
+
+
+
+
+/*
+ * makeBackup : String -> Promise String Error
+ *
+ * Given a filepath
+ * Create a copy in userData, with the following contained as the filename:
+ *   - the fullpathFilename
+ *   - the original filename
+ *   - the original file's last_modified date
+ *
+ */
+
+async function makeBackup (filepath) {
+  let parsedPath = path.parse(filepath);
+  let originalStats = fs.statSync(filepath);
+  let backupName = fullpathFilename(filepath, ".gko") + moment(originalStats.mtimeMs).format("_YYYY-MM-DD_HH-MM-SS") + parsedPath.ext;
+  let backupPath = path.join(app.getPath("userData"), backupName);
+
+  try {
+    let copyResult = await fs.copy(filepath, backupPath, { "overwrite": true });
+    return copyResult;
+  } catch (err) {
+    throw err;
+  }
+}
+
+
+
+
+/*
+ * swapFolderCheck : String -> Promise String Error
+ *
+ * Given a swapFolderPath
+ * Checks that there's no existing swap folder there.
+ * Return swap folder path if successful.
+ * Throw an error if the swap folder already exists.
+ *
+ */
+
+async function swapFolderCheck (swapFolderPath) {
+  const exists = await fs.pathExists(swapFolderPath);
+
+  if (exists) {
+    throw new Error("Swap folder already exists.\nThis is likely due to a failed exit.");
+  } else {
+    return swapFolderPath;
+  }
+}
+
+
+
+
+/*
+ * extractFile : String -> String -> Promise String Error
+ *
+ * Given a filepath and targetPath
+ * Extract that filepath to targetPath.
+ * Return a the targetPath if successful.
+ * Throw an error otherwise.
+ *
+ */
+
+async function extractFile (filepath, targetPath) {
+  const execFile = promisify(child_process.execFile);
+  try {
+    await execFile(path7za, ["x","-bd", `-o${targetPath}`, filepath ]);
+    return targetPath;
+  } catch (err) {
+    throw err;
+  }
+}
+
+
+
+
+/*
+ * addFilepathToSwap : String -> String -> Promise String Error
+ *
+ * Given filepath and swapFolderPath
+ * Add swap.json in swapFolderPath, with filepath attribute.
+ *
+ */
+
+function addFilepathToSwap (filepath, swapFolderPath) {
+  new Store({name: "swap", cwd: swapFolderPath, defaults: { "filepath" : filepath }});
+}
+
+
+
+
+async function openFile(filepath) {
+  if (!verifyFiletype(filepath)) {
+    throw new Error("Not a valid .gko file\nPossibly using legacy format.");
+  }
+
+  const swapName = fullpathFilename(filepath);
+  const swapFolderPath = path.join(app.getPath("userData"), swapName );
+
+  try {
+    await makeBackup(filepath);
+    await swapFolderCheck(swapFolderPath);
+    await extractFile(filepath, swapFolderPath);
+    await addFilepathToSwap(filepath, swapFolderPath);
+    return swapFolderPath;
+  } catch (err) {
+    throw err;
+  }
+}
 
 
 function dbToFile(database, filepath) {
