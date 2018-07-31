@@ -329,35 +329,14 @@ function buildMenu() {
           , enabled: _documentFocused // TODO: Disable this for Untitled documents
           , accelerator: 'CmdOrCtrl+S'
           , click (item, focusedWindow) {
-              let swapStore = new Store({name: 'swap', cwd: focusedWindow.swapFolderPath});
-            saveFile(focusedWindow.swapFolderPath, swapStore.get('originalPath')); // TODO: add error handling for originalPath not existing
+              saveDocument(focusedWindow);
             }
           }
         , { label: 'Save As'
           , enabled: _documentFocused
           , accelerator: 'CmdOrCtrl+Shift+S'
-          , async click (item, focusedWindow) {
-              let swapStore = new Store({name: 'swap', cwd: focusedWindow.swapFolderPath});
-              let originalPath = swapStore.get('originalPath')
-
-              let saveOptions =
-                { title: 'Save As'
-                , defaultPath: originalPath ? originalPath : path.join(app.getPath('documents'), 'Untitled.gko')
-                , filters: [{ name: 'Gingko Files (*.gko)', extensions: ['gko'] }]
-                }
-              let targetPath = dialog.showSaveDialog(saveOptions);
-              try {
-                let saveResult = await saveFile(focusedWindow.swapFolderPath, targetPath);
-                if (saveResult == targetPath) {
-                  // TODO: CHANGE SWAP FOLDER
-                  // * Copy current swap folder to new one based on targetPath
-                  // * Do swapStore.set('originalPath', 'targetPath')
-                  // * Change focusedWindow.swapFolderPath
-                  // * Make sure PouchDB is using that new path
-                }
-              } catch (err) {
-                dialog.showErrorBox("Error saving to file", `Your content is safe in ${focusedWindow.swapFolderPath},\nbut it couldn't be saved to ${targetPath}`)
-              }
+          , click (item, focusedWindow) {
+              saveDocumentAs(focusedWindow);
             }
           }
         , { type: 'separator' }
@@ -565,7 +544,72 @@ async function openDocument(filepath) {
 }
 
 
-function saveFile(swapFolderPath, targetPath) {
+
+
+/*
+ * saveDocument : BrowserWindow -> Promise String Error
+ *
+ * Given a docWindow
+ * Save that document's swap folder to its filepath
+ * Return filepath if successful.
+ *
+ */
+
+async function saveDocument (docWindow) {
+  try {
+    const filepath = await fio.saveSwapFolder(docWindow.swapFolderPath);
+    app.addRecentDocument(filepath);
+    return filepath;
+  } catch (err) {
+    throw err;
+  }
+}
+
+
+
+
+/*
+ * saveDocumentAs : BrowserWindow -> Promise String Error
+ *
+ * Given a docWindow
+ * - Get a newFilepath with save dialog
+ * - Call saveSwapFolderAs to copy swap folder and save it
+ * - Set docWindow.swapFolderPath and docWindow's title
+ * - Send "set-swap-folder" message to doc.js
+ * Return new filepath if successful.
+ *
+ */
+
+async function saveDocumentAs (docWindow) {
+  let saveOptions =
+    { title: "Save As"
+    , defaultPath: path.join(app.getPath("documents"), "Untitled.gko")
+    , filters: [{ name: "Gingko Files (*.gko)", extensions: ["gko"] }]
+    };
+
+  console.log("old swapFolderPath", docWindow.swapFolderPath);
+
+  const newFilepath = dialog.showSaveDialog(docWindow, saveOptions);
+
+  if (newFilepath) {
+    try {
+      const newSwapFolderPath = await fio.saveSwapFolderAs(docWindow.swapFolderPath, newFilepath);
+      console.log(newSwapFolderPath);
+      docWindow.swapFolderPath = newSwapFolderPath;
+      app.addRecentDocument(newFilepath);
+      docWindow.setTitle(`${path.basename(newFilepath)} - Gingko`);
+      docWindow.webContents.send("main:set-swap-folder", newSwapFolderPath);
+      return newFilepath;
+    } catch (err) {
+      throw err;
+    }
+  }
+}
+
+
+
+
+function saveFileOld(swapFolderPath, targetPath) {
   return new Promise(
     (resolve, reject) => {
       // Remove swap-only data
@@ -667,44 +711,42 @@ ipcMain.on('home:delete', async (event, dbToDelete) => {
 })
 
 
-ipcMain.on('app:close', async (event) => {
-  let documentWindow = BrowserWindow.fromWebContents(event.sender);
-  let swapFolderPath = documentWindow.swapFolderPath;
-  let swapStore = new Store({name: 'swap', cwd: swapFolderPath})
-  let originalPath = swapStore.get('originalPath');
-
-  if (!originalPath) {
-    // Untitled/never-saved document
-    const confirmOptions =
-      { title: "Save changes"
-      , message: "Save changes before closing?"
-      , buttons: ["Close Without Saving", "Cancel", "Save"]
-      , defaultId: 2
-      }
-    let choice = dialog.showMessageBox(confirmOptions)
-
-    switch (choice) {
-      case 0:
-        documentWindow.destroy();
-        return;
-      case 1:
-        return;
-      case 2:
-        let saveOptions =
-          { title: 'Save As'
-          , defaultPath: path.join(app.getPath('documents'), 'Untitled.gko')
-          , filters: [{ name: 'Gingko Files (*.gko)', extensions: ['gko'] }]
-          }
-        originalPath = dialog.showSaveDialog(documentWindow, saveOptions)
-        break;
-    }
-  }
+ipcMain.on("app:close", async (event) => {
+  let docWindow = BrowserWindow.fromWebContents(event.sender);
+  let swapFolderPath = docWindow.swapFolderPath;
+  let swapStore = new Store({name: "swap", cwd: swapFolderPath})
+  let originalPath = swapStore.get("filepath", false);
 
   try {
-    let saveResult = await saveFile(swapFolderPath, originalPath)
-    if(saveResult == originalPath) { documentWindow.destroy() }
+    if (originalPath) {
+        await saveDocument(docWindow);
+        await fio.deleteSwapFolder(swapFolderPath);
+        docWindow.destroy();
+    } else {
+      // Untitled/never-saved document
+      const confirmOptions =
+        { title: "Save changes"
+        , message: "Save changes before closing?"
+        , buttons: ["Close Without Saving", "Cancel", "Save"]
+        , defaultId: 2
+        }
+      let choice = dialog.showMessageBox(confirmOptions)
+
+      switch (choice) {
+        case 0:
+          docWindow.destroy();
+          return;
+        case 1:
+          return;
+        case 2:
+          let newSwapFolderPath = await saveDocumentAs(docWindow);
+          await fio.deleteSwapFolder(newSwapFolderPath);
+          docWindow.destroy();
+          break;
+      }
+    }
   } catch (err) {
-    dialog.showErrorBox("Error saving to file", `Your content is safe in ${swapFolderPath},\nbut it couldn't be saved to ${originalPath}`)
+    throw err;
   }
 })
 

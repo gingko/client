@@ -1,8 +1,8 @@
 const {app} = require('electron')
 const fs = require("fs-extra");
 const path = require('path')
-const execFile = promisify(require("child_process").execFile);
 const {promisify} = require('util')
+const execFile = promisify(require("child_process").execFile);
 const { path7za } = require("7zip-bin");
 const readFile = promisify(fs.readFile)
 const firstline = require('firstline')
@@ -100,18 +100,18 @@ async function saveSwapFolder (swapFolderPath) {
  * - Zip folder to backupPath
  * - Copy backupPath to newFilepath, with overwrite
  *
- * Returns newFilepath if successful
+ * Returns newSwapFolderPath if successful
  *
  */
 
 async function saveSwapFolderAs (originalSwapFolderPath, newFilepath) {
   try {
     const newSwapFolderPath = await swapMove(originalSwapFolderPath, newFilepath);
-    const backupPath = newSwapFolderPath + moment().format('_YYYY-MM-DD_HH-MM-SS') + '.gko';
+    const backupPath = newSwapFolderPath + moment().format("_YYYY-MM-DD_HH-MM-SS") + ".gko";
     await deleteSwapFolder(originalSwapFolderPath);
     await zipFolder(newSwapFolderPath, backupPath);
     await fs.copy(backupPath, newFilepath, { "overwrite": true });
-    return newFilepath;
+    return newSwapFolderPath;
   } catch (err) {
     throw err;
   }
