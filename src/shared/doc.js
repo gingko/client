@@ -348,8 +348,8 @@ function intentExportToElm ( format, selection, filepath) {
   toElm('IntentExport', { format: format, selection : selection, filepath: filepath} )
 }
 
-ipcRenderer.on("main:set-db-path", (e, newDbPath) => {
-  self.db = new PouchDB(newDbPath);
+ipcRenderer.on("main:set-swap-folder", (e, newSwapFolder) => {
+  self.db = new PouchDB(path.join(newSwapFolder, "leveldb"));
 });
 
 ipcRenderer.on('menu-new', () => toElm('IntentNew', null))
