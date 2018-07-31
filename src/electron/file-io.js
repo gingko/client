@@ -38,7 +38,7 @@ PouchDB.plugin(replicationStream.plugin)
  * - Make a backup of the original file
  * - Add filepath to swap.json
  *
- * Returns the new swapFolderPath if successful.
+ * Return the new swapFolderPath if successful.
  *
  */
 
@@ -54,10 +54,86 @@ async function openFile(filepath) {
     await makeBackup(filepath);
     await swapFolderCheck(swapFolderPath);
     await extractFile(filepath, swapFolderPath);
-    await addFilepathToSwap(filepath, swapFolderPath);
+    addFilepathToSwap(filepath, swapFolderPath);
     return swapFolderPath;
   } catch (err) {
     throw err;
+  }
+}
+
+
+
+
+/*
+ * saveSwapFolder : String -> Promise String Error
+ *
+ * Given swapFolderPath
+ * - Get targetPath from swap.json
+ * - Zip folder to backupPath
+ * - Copy backupPath to targetPath, with overwrite
+ *
+ * Return targetPath if successful
+ *
+ */
+
+async function saveSwapFolder (swapFolderPath) {
+  try {
+    const targetPath = getFilepathFromSwap(swapFolderPath);
+    const backupPath = swapFolderPath + moment().format('_YYYY-MM-DD_HH-MM-SS') + '.gko';
+    await zipFolder(swapFolderPath, backupPath);
+    await fs.copy(backupPath, targetPath, { "overwrite": true });
+    return targetPath;
+  } catch (err) {
+    throw err;
+  }
+}
+
+
+
+
+/*
+ * saveSwapFolderAs : String -> String -> Promise String Error
+ *
+ * Given swapFolderPath and newFilepath
+ * - Move swap folder to new swap folder
+ * - Delete original swap folder
+ * - Zip folder to backupPath
+ * - Copy backupPath to newFilepath, with overwrite
+ *
+ * Returns newFilepath if successful
+ *
+ */
+
+async function saveSwapFolderAs (originalSwapFolderPath, newFilepath) {
+  try {
+    const newSwapFolderPath = await swapMove(originalSwapFolderPath, newFilepath);
+    const backupPath = newSwapFolderPath + moment().format('_YYYY-MM-DD_HH-MM-SS') + '.gko';
+    await deleteSwapFolder(originalSwapFolderPath);
+    await zipFolder(newSwapFolderPath, backupPath);
+    await fs.copy(backupPath, newFilepath, { "overwrite": true });
+    return newFilepath;
+  } catch (err) {
+    throw err;
+  }
+}
+
+
+
+
+/*
+ * deleteSwapFolder : String -> Promise String Error
+ *
+ * Given swapFolderPath
+ * Delete it.
+ *
+ */
+
+async function deleteSwapFolder (swapFolderPath) {
+  try {
+    await fs.remove(swapFolderPath);
+    return swapFolderPath;
+  } catch (err) {
+    throw new Error("Could not delete swap folder.\n" + swapFolderPath);
   }
 }
 
@@ -160,6 +236,9 @@ function save(database, filepath) {
 
 module.exports =
   { openFile : openFile
+  , saveSwapFolder : saveSwapFolder
+  , saveSwapFolderAs : saveSwapFolderAs
+  , deleteSwapFolder : deleteSwapFolder
   , dbToFile: dbToFile
   , dbFromFile: dbFromFile
   , destroyDb: destroyDb
@@ -265,6 +344,38 @@ async function swapFolderCheck (swapFolderPath) {
 
 
 /*
+ * swapMove : String -> String -> Promise String Error
+ *
+ * Given originalSwapFolderPath and newFilepath
+ * - Get newSwapFolderPath from newFilepath
+ * - Check the newSwapFolderPath
+ * - Copy swapFolderPath to newSwapFolderPath
+ * - Delete originalSwapFolderPath
+ * - Set swap.json filepath attribute
+ *
+ * Returns newSwapFolderPath if successful
+ *
+ */
+
+async function swapMove (originalSwapFolderPath, newFilepath) {
+  const newSwapName = fullpathFilename(newFilepath);
+  const newSwapFolderPath = path.join(app.getPath("userData"), newSwapName );
+
+  try {
+    await swapFolderCheck(newSwapFolderPath);
+    await fs.copy(originalSwapFolderPath, newSwapFolderPath);
+    await deleteSwapFolder(originalSwapFolderPath);
+    addFilepathToSwap(newFilepath, newSwapFolderPath);
+    return newSwapFolderPath;
+  } catch (err) {
+    throw new Error("Could not create new swap folder.\n" + originalSwapFolderPath);
+  }
+}
+
+
+
+
+/*
  * extractFile : String -> String -> Promise String Error
  *
  * Given a filepath and targetPath
@@ -315,39 +426,19 @@ async function zipFolder (swapFolderPath, targetPath) {
 
 
 /*
- * deleteSwapFolder : String -> Promise String Error
- *
- * Given swapFolderPath
- * Delete it.
- *
- */
-
-async function deleteSwapFolder (swapFolderPath) {
-  try {
-    await fs.remove(swapFolderPath);
-    return swapFolderPath;
-  } catch (err) {
-    throw err;
-  }
-}
-
-
-
-
-/*
- * addFilepathToSwap : String -> String -> Promise String Error
+ * addFilepathToSwap : String -> String -> ( String | Error )
  *
  * Given filepath and swapFolderPath
  * Add swap.json in swapFolderPath, with filepath attribute.
  *
  */
 
-async function addFilepathToSwap (filepath, swapFolderPath) {
+function addFilepathToSwap (filepath, swapFolderPath) {
   try {
     new Store({name: "swap", cwd: swapFolderPath, defaults: { "filepath" : filepath }});
     return filepath;
   } catch (err) {
-    throw err;
+    throw new Error("Could not set original filepath in swap folder.\n" + path.join(swapFolderPath, "swap.json"));
   }
 }
 
@@ -355,14 +446,14 @@ async function addFilepathToSwap (filepath, swapFolderPath) {
 
 
 /*
- * getFilepathFromSwap : String -> Promise String Error
+ * getFilepathFromSwap : String -> ( String | Error )
  *
  * Given swapFolderPath
  * Return filepath from swapFolderPath/swap.json.
  *
  */
 
-async function getFilepathFromSwap (swapFolderPath) {
+function getFilepathFromSwap (swapFolderPath) {
   const swapStore = new Store({name: "swap", cwd: swapFolderPath});
   let filepath = swapStore.get("filepath");
   if (filepath) {
