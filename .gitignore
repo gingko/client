@@ -9,6 +9,7 @@ Gingko-*
 *.gko
 *.ps
 *.pdf
+*.xoj
 testfile-*
 repOut.txt
 data/*
