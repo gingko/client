@@ -12,6 +12,7 @@ import TurndownService from 'turndown'
 const windowStateKeeper = require('electron-window-state')
 const dbMapping = require('./shared/db-mapping')
 const fio = require('./electron/file-io')
+const GingkoError  = require("./shared/errors");
 const errorAlert = require('./shared/shared').errorAlert
 
 // Keep a global reference of the window object, if you don't, the window will

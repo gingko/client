@@ -13,6 +13,7 @@ const moment = require("moment");
 const Store = require("electron-store");
 const readChunk = require("read-chunk");
 const fileType = require("file-type");
+const GingkoError  = require("../shared/errors");
 
 const PouchDB = require('pouchdb');
 const replicationStream = require('pouchdb-replication-stream')
@@ -359,7 +360,7 @@ async function swapFolderCheck (swapFolderPath) {
   const exists = await fs.pathExists(swapFolderPath);
 
   if (exists) {
-    throw new Error("Swap folder already exists.\nThis is likely due to a failed exit.");
+    throw new GingkoError("Swap folder already exists.\nEither document is already open, or it failed to close properly in the past.", swapFolderPath);
   } else {
     return swapFolderPath;
   }
