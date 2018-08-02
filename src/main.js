@@ -12,6 +12,7 @@ import TurndownService from 'turndown'
 const windowStateKeeper = require('electron-window-state')
 const dbMapping = require('./shared/db-mapping')
 const fio = require('./electron/file-io')
+const filenamify = require("filenamify");
 const GingkoError  = require("./shared/errors");
 const errorAlert = require('./shared/shared').errorAlert
 
@@ -73,8 +74,6 @@ function createHomeWindow () {
 
 
 function createDocumentWindow (swapFolderPath, originalPath, legacyFormat) {
-  let metaStore = new Store({name: 'meta', cwd: swapFolderPath})
-
   let mainWindowState = windowStateKeeper(
     { defaultWidth: 1000
     , defaultHeight: 800
@@ -654,6 +653,46 @@ async function saveDocumentAs (docWindow) {
 
 
 
+/*
+ * saveLegacyDocumentAs : BrowserWindow -> Promise String Error
+ *
+ * Given a docWindow
+ * - Get a newFilepath with save dialog
+ * - Call saveLegacyFolderAs to copy swap folder and save it
+ * - Set docWindow.swapFolderPath and docWindow's title
+ * - Send "set-swap-folder" message to doc.js
+ * Return new filepath if successful.
+ *
+ */
+
+async function saveLegacyDocumentAs (docWindow) {
+  let saveOptions =
+    { title: "Save As"
+    , defaultPath: path.join(app.getPath("documents"), filenamify(docWindow.legacyFormat.name) + ".gko")
+    , filters: [{ name: "Gingko Files (*.gko)", extensions: ["gko"] }]
+    };
+
+  const newFilepath = dialog.showSaveDialog(docWindow, saveOptions);
+
+  if (newFilepath) {
+    try {
+      const newSwapFolderPath = await fio.saveLegacyFolderAs(docWindow.swapFolderPath, docWindow.legacyFormat.name, newFilepath);
+      console.log("saveLegacyFolderAs completed");
+      docWindow.swapFolderPath = newSwapFolderPath;
+      app.addRecentDocument(newFilepath);
+      docWindow.setTitle(`${path.basename(newFilepath)} - Gingko`);
+      docWindow.webContents.send("main:set-swap-folder", newSwapFolderPath);
+      return newFilepath;
+    } catch (err) {
+      throw err;
+    }
+  }
+}
+
+
+
+
+
 function saveFileOld(swapFolderPath, targetPath) {
   return new Promise(
     (resolve, reject) => {
@@ -788,8 +827,9 @@ ipcMain.on("app:close", async (event) => {
           return;
 
         case 1:
-          console.log("Perform file migration");
-          // TODO: Perform file migration
+          let newSwapFolderPath = await saveLegacyDocumentAs(docWindow);
+          await fio.deleteSwapFolder(newSwapFolderPath);
+          docWindow.destroy();
           break;
       }
     } else {

@@ -13,6 +13,7 @@ const moment = require("moment");
 const Store = require("electron-store");
 const readChunk = require("read-chunk");
 const fileType = require("file-type");
+const globby = require("globby");
 const GingkoError  = require("../shared/errors");
 
 const PouchDB = require('pouchdb');
@@ -107,11 +108,46 @@ async function saveSwapFolder (swapFolderPath) {
 
 async function saveSwapFolderAs (originalSwapFolderPath, newTargetPath) {
   try {
-    const newSwapFolderPath = await swapMove(originalSwapFolderPath, newTargetPath);
+    const newSwapFolderPath = await swapCopy(originalSwapFolderPath, newTargetPath);
     const backupPath = getBackupPath(newTargetPath, Date.now());
     await deleteSwapFolder(originalSwapFolderPath);
     await zipFolder(newSwapFolderPath, backupPath);
     await fs.copy(backupPath, newTargetPath, { "overwrite": true });
+    return newSwapFolderPath;
+  } catch (err) {
+    throw err;
+  }
+}
+
+
+
+/*
+ * saveLegacyFolderAs : String -> String -> String -> Promise String Error
+ *
+ * Given legacyFolderPath, legacyName, and newTargetPath
+ * - Copy swap folder to new swap folder
+ * - Nest new swap folder into 'leveldb' path
+ * - Add meta.json with file format version
+ * - Zip folder to backupPath
+ * - Copy backupPath to newFilepath, with overwrite
+ */
+
+async function saveLegacyFolderAs (legacyFolderPath, legacyName, newTargetPath) {
+  try {
+    const newSwapFolderPath = await swapCopy(legacyFolderPath, newTargetPath);
+    const leveldbData = await globby([ path.join(newSwapFolderPath, "*"), "!" + path.join(newSwapFolderPath, "swap.json") ]);
+    const movePromises = leveldbData.map(async ldbPath => {
+      let destPath = path.join(path.dirname(ldbPath), "leveldb", path.basename(ldbPath));
+      return fs.move(ldbPath, destPath);
+    });
+
+    await Promise.all(movePromises);
+    new Store({name: "meta", cwd: newSwapFolderPath, defaults: { "version" : 1}});
+    const backupPath = getBackupPath(newTargetPath, Date.now());
+    await zipFolder(newSwapFolderPath, backupPath);
+    console.log("WILL COPY", backupPath, newTargetPath);
+    await fs.copy(backupPath, newTargetPath, { "overwrite": true });
+    console.log("DID COPY", backupPath, newTargetPath);
     return newSwapFolderPath;
   } catch (err) {
     throw err;
@@ -235,10 +271,12 @@ function save(database, filepath) {
 
 
 
+
 module.exports =
   { openFile : openFile
   , saveSwapFolder : saveSwapFolder
   , saveSwapFolderAs : saveSwapFolderAs
+  , saveLegacyFolderAs : saveLegacyFolderAs
   , deleteSwapFolder : deleteSwapFolder
   , dbToFile: dbToFile
   , dbFromFile: dbFromFile
@@ -370,27 +408,25 @@ async function swapFolderCheck (swapFolderPath) {
 
 
 /*
- * swapMove : String -> String -> Promise String Error
+ * swapCopy : String -> String -> Promise String Error
  *
  * Given originalSwapFolderPath and newFilepath
  * - Get newSwapFolderPath from newFilepath
  * - Check the newSwapFolderPath
  * - Copy swapFolderPath to newSwapFolderPath
- * - Delete originalSwapFolderPath
  * - Set swap.json filepath attribute
  *
  * Returns newSwapFolderPath if successful
  *
  */
 
-async function swapMove (originalSwapFolderPath, newFilepath) {
+async function swapCopy (originalSwapFolderPath, newFilepath) {
   const newSwapName = fullpathFilename(newFilepath);
   const newSwapFolderPath = path.join(app.getPath("userData"), newSwapName );
 
   try {
     await swapFolderCheck(newSwapFolderPath);
     await fs.copy(originalSwapFolderPath, newSwapFolderPath);
-    await deleteSwapFolder(originalSwapFolderPath);
     addFilepathToSwap(newFilepath, newSwapFolderPath);
     return newSwapFolderPath;
   } catch (err) {
