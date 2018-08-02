@@ -72,7 +72,7 @@ function createHomeWindow () {
 }
 
 
-function createDocumentWindow (swapFolderPath, originalPath) {
+function createDocumentWindow (swapFolderPath, originalPath, legacyFormat) {
   let metaStore = new Store({name: 'meta', cwd: swapFolderPath})
 
   let mainWindowState = windowStateKeeper(
@@ -105,16 +105,24 @@ function createDocumentWindow (swapFolderPath, originalPath) {
   // Add dbPath variable to BrowserWindow object,
   // so that it can load from the database as soon as
   // the window is created.
-  win.dbPath = path.join(swapFolderPath, 'leveldb');
+  if (legacyFormat) {
+    win.legacyFormat = legacyFormat;
+    win.dbPath = swapFolderPath;
+  } else {
+    win.dbPath = path.join(swapFolderPath, 'leveldb');
+  }
+
+  let newTitle = "";
 
   if (originalPath) {
-    let newTitle = `${path.basename(originalPath)} - Gingko`;
-    win.setTitle(newTitle);
+    newTitle = `${path.basename(originalPath)} - Gingko`;
+  } else if (legacyFormat) {
+    newTitle = `${legacyFormat.name} (Saved Internally) - Gingko`;
   } else {
-    let newTitle = "Untitled" + (_untitledDocs !== 0 ? ` (${_untitledDocs + 1})` : "");
-    win.setTitle(newTitle);
+    newTitle = "Untitled" + (_untitledDocs !== 0 ? ` (${_untitledDocs + 1})` : "");
     _untitledDocs += 1;
   }
+  win.setTitle(newTitle);
   //win.jsonImportData = jsonImportData;
 
   var url = `file://${__dirname}/static/index.html`
@@ -735,9 +743,9 @@ ipcMain.on('home:import-file', async (event) => {
 })
 
 
-ipcMain.on('home:load', (event, dbToLoad, docName) => {
-  let swapPath = path.join(app.getPath('userData'), dbToLoad);
-  createDocumentWindow(swapPath, null)
+ipcMain.on("home:load", (event, dbToLoad, docName) => {
+  let swapPath = path.join(app.getPath("userData"), dbToLoad);
+  createDocumentWindow(swapPath, null, { "name": docName })
   winHome.close()
 })
 
@@ -759,6 +767,31 @@ ipcMain.on("app:close", async (event) => {
         await saveDocument(docWindow);
         await fio.deleteSwapFolder(swapFolderPath);
         docWindow.destroy();
+    } else if (docWindow.legacyFormat) {
+      // Saved to userData folder, never saved as file
+      const legacyOptions =
+        { title: "Save To File"
+        , type: "info"
+        , message:
+            [ "Older Versions of Gingko saved documents to an internal folder."
+            , "This led to much confusion, and less control. Sorry!",
+            , ""
+            , "Choose a new location for this document."
+            ].join("\n")
+        , buttons: ["Cancel", "Save As File"]
+        , defaultId: 1
+        }
+      let choice = dialog.showMessageBox(legacyOptions);
+
+      switch (choice) {
+        case 0:
+          return;
+
+        case 1:
+          console.log("Perform file migration");
+          // TODO: Perform file migration
+          break;
+      }
     } else {
       // Untitled/never-saved document
       const confirmOptions =
