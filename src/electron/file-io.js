@@ -79,7 +79,7 @@ async function openFile(filepath) {
 async function saveSwapFolder (swapFolderPath) {
   try {
     const targetPath = getFilepathFromSwap(swapFolderPath);
-    const backupPath = swapFolderPath + moment().format('_YYYY-MM-DD_HH-MM-SS') + '.gko';
+    const backupPath = getBackupPath(targetPath, Date.now());
     await zipFolder(swapFolderPath, backupPath);
     await fs.copy(backupPath, targetPath, { "overwrite": true });
     return targetPath;
@@ -107,7 +107,7 @@ async function saveSwapFolder (swapFolderPath) {
 async function saveSwapFolderAs (originalSwapFolderPath, newFilepath) {
   try {
     const newSwapFolderPath = await swapMove(originalSwapFolderPath, newFilepath);
-    const backupPath = newSwapFolderPath + moment().format("_YYYY-MM-DD_HH-MM-SS") + ".gko";
+    const backupPath = getBackupPath(targetPath, Date.now());
     await deleteSwapFolder(originalSwapFolderPath);
     await zipFolder(newSwapFolderPath, backupPath);
     await fs.copy(backupPath, newFilepath, { "overwrite": true });
@@ -256,6 +256,16 @@ module.exports =
 
 
 
+/*
+ * Date format to append to backup files
+ *
+ */
+
+const dateFormatString = "_YYYY-MM-DD_HH-mm-ss";
+
+
+
+
 
 /*
  * verifyFiletype : String -> Bool
@@ -293,6 +303,23 @@ function fullpathFilename (filepath, extension) {
 
 
 /*
+ * getBackupPath : String -> Date -> String
+ *
+ * Given a filepath and timestamp
+ * Return the full path of the backup.
+ *
+ */
+
+function getBackupPath (filepath, timestamp) {
+  const { ext } = path.parse(filepath);
+  const backupName = fullpathFilename(filepath, ext) + moment(timestamp).format(dateFormatString) + ext;
+  return path.join(app.getPath("userData"), backupName);
+}
+
+
+
+
+/*
  * makeBackup : String -> Promise String Error
  *
  * Given a filepath
@@ -304,10 +331,8 @@ function fullpathFilename (filepath, extension) {
  */
 
 async function makeBackup (filepath) {
-  let parsedPath = path.parse(filepath);
   let originalStats = fs.statSync(filepath);
-  let backupName = fullpathFilename(filepath, ".gko") + moment(originalStats.mtimeMs).format("_YYYY-MM-DD_HH-MM-SS") + parsedPath.ext;
-  let backupPath = path.join(app.getPath("userData"), backupName);
+  let backupPath = getBackupPath(filepath, originalStats.mtimeMs);
 
   try {
     let copyResult = await fs.copy(filepath, backupPath, { "overwrite": true });
