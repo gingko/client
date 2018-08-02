@@ -462,9 +462,9 @@ function buildMenu() {
 
     menuTemplate.splice(4, 0, { role: 'windowMenu'})
   } else {
-    let closeMenuItem = { label : 'Close', accelerator: 'Ctrl+W', click (item, focusedWindow) { focusedWindow.webContents.send('menu-close-document'); }};
-    menuTemplate[0].submenu.splice(3, 0, closeMenuItem);
-    menuTemplate[0].submenu.push({type: 'separator'}, {role: 'quit'} );
+    let closeMenuItem = { label : "Close", accelerator: "Ctrl+W", click (item, focusedWindow) { focusedWindow.webContents.send("menu-close-document"); }};
+    menuTemplate[0].submenu.splice(4, 0, closeMenuItem);
+    menuTemplate[0].submenu.push({type: "separator"}, {role: "quit"} );
   }
 
 
