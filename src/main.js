@@ -540,6 +540,45 @@ async function openDocument(filepath) {
     createDocumentWindow(swapFolderPath, filepath);
     app.addRecentDocument(filepath);
   } catch (err) {
+
+    // If the swap folder already exists, it's either because the file is currently open,
+    // Or because of a failed exit in the past.
+    //
+    // In the "already open" case, focus that window.
+    // Otherwise, allow the user to choose:
+    //   - "Recover" (load from swap)
+    //   - "Discard" (load from file)
+    if (err instanceof GingkoError && err.message.includes("Swap folder already exists")) {
+      let existingDoc = documentWindows.filter(dW => dW.swapFolderPath == err.data)[0];
+      if (existingDoc) {
+        existingDoc.focus();
+      } else {
+        const recoveryOptions =
+          { title: "Unsaved Changes Found"
+          , message: "Recover unsaved changes, or Discard them and load from file?"
+          , buttons: ["Discard Unsaved Changes", "Cancel", "Recover"]
+          , defaultId: 2
+          }
+        const choice = dialog.showMessageBox(recoveryOptions)
+
+        switch (choice) {
+          // Discard Unsaved Changes
+          case 0:
+            await fio.deleteSwapFolder(err.data);
+            return openDocument(filepath);
+
+          // Cancel
+          case 1:
+            return;
+
+          // Recover
+          case 2:
+            createDocumentWindow(err.data, filepath);
+            app.addRecentDocument(filepath);
+            break;
+        }
+      }
+    }
     console.log(err);
   }
 }
