@@ -587,14 +587,11 @@ async function saveDocumentAs (docWindow) {
     , filters: [{ name: "Gingko Files (*.gko)", extensions: ["gko"] }]
     };
 
-  console.log("old swapFolderPath", docWindow.swapFolderPath);
-
   const newFilepath = dialog.showSaveDialog(docWindow, saveOptions);
 
   if (newFilepath) {
     try {
       const newSwapFolderPath = await fio.saveSwapFolderAs(docWindow.swapFolderPath, newFilepath);
-      console.log(newSwapFolderPath);
       docWindow.swapFolderPath = newSwapFolderPath;
       app.addRecentDocument(newFilepath);
       docWindow.setTitle(`${path.basename(newFilepath)} - Gingko`);

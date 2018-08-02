@@ -104,13 +104,13 @@ async function saveSwapFolder (swapFolderPath) {
  *
  */
 
-async function saveSwapFolderAs (originalSwapFolderPath, newFilepath) {
+async function saveSwapFolderAs (originalSwapFolderPath, newTargetPath) {
   try {
-    const newSwapFolderPath = await swapMove(originalSwapFolderPath, newFilepath);
-    const backupPath = getBackupPath(targetPath, Date.now());
+    const newSwapFolderPath = await swapMove(originalSwapFolderPath, newTargetPath);
+    const backupPath = getBackupPath(newTargetPath, Date.now());
     await deleteSwapFolder(originalSwapFolderPath);
     await zipFolder(newSwapFolderPath, backupPath);
-    await fs.copy(backupPath, newFilepath, { "overwrite": true });
+    await fs.copy(backupPath, newTargetPath, { "overwrite": true });
     return newSwapFolderPath;
   } catch (err) {
     throw err;
@@ -460,7 +460,8 @@ async function zipFolder (swapFolderPath, targetPath) {
 
 function addFilepathToSwap (filepath, swapFolderPath) {
   try {
-    new Store({name: "swap", cwd: swapFolderPath, defaults: { "filepath" : filepath }});
+    const swapStore = new Store({name: "swap", cwd: swapFolderPath});
+    swapStore.set("filepath", filepath);
     return filepath;
   } catch (err) {
     throw new Error("Could not set original filepath in swap folder.\n" + path.join(swapFolderPath, "swap.json"));
