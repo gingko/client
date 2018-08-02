@@ -677,12 +677,11 @@ async function saveLegacyDocumentAs (docWindow) {
   if (newFilepath) {
     try {
       const newSwapFolderPath = await fio.saveLegacyFolderAs(docWindow.swapFolderPath, docWindow.legacyFormat.name, newFilepath);
-      console.log("saveLegacyFolderAs completed");
       docWindow.swapFolderPath = newSwapFolderPath;
       app.addRecentDocument(newFilepath);
       docWindow.setTitle(`${path.basename(newFilepath)} - Gingko`);
       docWindow.webContents.send("main:set-swap-folder", newSwapFolderPath);
-      return newFilepath;
+      return newSwapFolderPath;
     } catch (err) {
       throw err;
     }

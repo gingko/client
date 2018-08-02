@@ -134,20 +134,11 @@ async function saveSwapFolderAs (originalSwapFolderPath, newTargetPath) {
 
 async function saveLegacyFolderAs (legacyFolderPath, legacyName, newTargetPath) {
   try {
-    const newSwapFolderPath = await swapCopy(legacyFolderPath, newTargetPath);
-    const leveldbData = await globby([ path.join(newSwapFolderPath, "*"), "!" + path.join(newSwapFolderPath, "swap.json") ]);
-    const movePromises = leveldbData.map(async ldbPath => {
-      let destPath = path.join(path.dirname(ldbPath), "leveldb", path.basename(ldbPath));
-      return fs.move(ldbPath, destPath);
-    });
-
-    await Promise.all(movePromises);
+    const newSwapFolderPath = await swapCopy(legacyFolderPath, newTargetPath, true);
     new Store({name: "meta", cwd: newSwapFolderPath, defaults: { "version" : 1}});
     const backupPath = getBackupPath(newTargetPath, Date.now());
     await zipFolder(newSwapFolderPath, backupPath);
-    console.log("WILL COPY", backupPath, newTargetPath);
-    await fs.copy(backupPath, newTargetPath, { "overwrite": true });
-    console.log("DID COPY", backupPath, newTargetPath);
+    await fs.copy(backupPath, newTargetPath);
     return newSwapFolderPath;
   } catch (err) {
     throw err;
@@ -167,6 +158,7 @@ async function saveLegacyFolderAs (legacyFolderPath, legacyName, newTargetPath) 
 
 async function deleteSwapFolder (swapFolderPath) {
   try {
+    // TODO: Ensure that this is indeed a swap directory
     await fs.remove(swapFolderPath);
     return swapFolderPath;
   } catch (err) {
@@ -420,13 +412,13 @@ async function swapFolderCheck (swapFolderPath) {
  *
  */
 
-async function swapCopy (originalSwapFolderPath, newFilepath) {
+async function swapCopy (originalSwapFolderPath, newFilepath, isLegacy) {
   const newSwapName = fullpathFilename(newFilepath);
   const newSwapFolderPath = path.join(app.getPath("userData"), newSwapName );
 
   try {
     await swapFolderCheck(newSwapFolderPath);
-    await fs.copy(originalSwapFolderPath, newSwapFolderPath);
+    await fs.copy(originalSwapFolderPath, path.join(newSwapFolderPath, isLegacy ? "leveldb" : ""));
     addFilepathToSwap(newFilepath, newSwapFolderPath);
     return newSwapFolderPath;
   } catch (err) {
