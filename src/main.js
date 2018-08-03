@@ -118,7 +118,7 @@ function createDocumentWindow (swapFolderPath, originalPath, legacyFormat) {
   } else if (legacyFormat) {
     newTitle = `${legacyFormat.name} (Saved Internally) - Gingko`;
   } else {
-    newTitle = "Untitled" + (_untitledDocs !== 0 ? ` (${_untitledDocs + 1})` : "");
+    newTitle = "Untitled" + (_untitledDocs !== 0 ? ` (${_untitledDocs + 1})` : "") + " - Gingko";
     _untitledDocs += 1;
   }
   win.setTitle(newTitle);
