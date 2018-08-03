@@ -618,14 +618,14 @@ async function saveDocument (docWindow) {
 
 
 /*
- * saveDocumentAs : BrowserWindow -> Promise String Error
+ * saveDocumentAs : BrowserWindow -> Promise { filepath: String, swapFolderPath : String } Error
  *
  * Given a docWindow
  * - Get a newFilepath with save dialog
  * - Call saveSwapFolderAs to copy swap folder and save it
  * - Set docWindow.swapFolderPath and docWindow's title
  * - Send "set-swap-folder" message to doc.js
- * Return new filepath if successful.
+ * Return { filepath, swapFolderPath } if successful.
  *
  */
 
@@ -645,7 +645,7 @@ async function saveDocumentAs (docWindow) {
       app.addRecentDocument(newFilepath);
       docWindow.setTitle(`${path.basename(newFilepath)} - Gingko`);
       docWindow.webContents.send("main:set-swap-folder", newSwapFolderPath);
-      return newFilepath;
+      return { "filepath" : newFilepath, "swapFolderPath" : newSwapFolderPath };
     } catch (err) {
       throw err;
     }
@@ -683,7 +683,7 @@ async function saveLegacyDocumentAs (docWindow) {
       app.addRecentDocument(newFilepath);
       docWindow.setTitle(`${path.basename(newFilepath)} - Gingko`);
       docWindow.webContents.send("main:set-swap-folder", newSwapFolderPath);
-      return newSwapFolderPath;
+      return { "filepath" : newFilepath, "swapFolderPath" : newSwapFolderPath };
     } catch (err) {
       throw err;
     }
@@ -828,8 +828,9 @@ ipcMain.on("app:close", async (event) => {
           return;
 
         case 1:
-          let newSwapFolderPath = await saveLegacyDocumentAs(docWindow);
+          let newSwapFolderPath = (await saveLegacyDocumentAs(docWindow)).swapFolderPath;
           await fio.deleteSwapFolder(newSwapFolderPath);
+          // TODO: Edit document-list.json
           docWindow.destroy();
           break;
       }
@@ -850,7 +851,7 @@ ipcMain.on("app:close", async (event) => {
         case 1:
           return;
         case 2:
-          let newSwapFolderPath = await saveDocumentAs(docWindow);
+          let newSwapFolderPath = (await saveDocumentAs(docWindow)).swapFolderPath;
           await fio.deleteSwapFolder(newSwapFolderPath);
           docWindow.destroy();
           break;
