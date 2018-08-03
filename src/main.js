@@ -10,7 +10,7 @@ const Store = require('electron-store')
 import { path7za } from '7zip-bin'
 import TurndownService from 'turndown'
 const windowStateKeeper = require('electron-window-state')
-const dbMapping = require('./shared/db-mapping')
+const docList = require('./shared/db-mapping')
 const fio = require('./electron/file-io')
 const filenamify = require("filenamify");
 const GingkoError  = require("./shared/errors");
@@ -547,7 +547,7 @@ async function openDocument(filepath) {
   try {
     let swapFolderPath = await fio.openFile(filepath);
     createDocumentWindow(swapFolderPath, filepath);
-    app.addRecentDocument(filepath);
+    addToRecentDocuments(filepath);
   } catch (err) {
 
     // If the swap folder already exists, it's either because the file is currently open,
@@ -583,7 +583,7 @@ async function openDocument(filepath) {
           // Recover
           case 2:
             createDocumentWindow(err.data, filepath);
-            app.addRecentDocument(filepath);
+            addToRecentDocuments(filepath);
             break;
         }
       }
@@ -688,6 +688,23 @@ async function saveLegacyDocumentAs (docWindow) {
       throw err;
     }
   }
+}
+
+
+
+
+/*
+ * addToRecentDocuments : String -> String
+ *
+ * Given a filepath
+ * - Add it to native recent documents list (Windows & macOS)
+ * - Add it to Home screen documents list
+ *
+ */
+
+async function addToRecentDocuments (filepath) {
+  await docList.addFileToDocList(filepath);
+  app.addRecentDocument(filepath);
 }
 
 

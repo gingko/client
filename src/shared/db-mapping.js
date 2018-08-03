@@ -1,9 +1,44 @@
+const fs = require("fs-extra");
+const path = require("path");
 const Store = require('electron-store')
 const sha1 = require('sha1')
 const machineIdSync = require('node-machine-id').machineIdSync
 
 
-const dbMap = new Store({name: "document-list"})
+const dbMap = new Store({name: "document-list"});
+
+dbMap.safeSet = function (key, val) {
+  this.set(key.replace(".","\\."), val);
+};
+
+
+/*
+ * addFileToDocList : String -> String
+ *
+ * Given a filepath
+ * Add it to the list of "Recent Documents".
+ */
+
+async function addFileToDocList (filepath) {
+  if(dbMap.has(filepath)) {
+    return;
+  }
+
+  const fileStats = await fs.stat(filepath);
+
+  const newDocument =
+    { "name" : path.basename(filepath)
+    , "state" : "active"
+    , "created_at" : (new Date(fileStats.birthtime)).toJSON()
+    , "last_modified" : (new Date(fileStats.mtime)).toJSON()
+    };
+
+  dbMap.safeSet(filepath, newDocument);
+
+  return filepath;
+}
+
+
 
 
 /**
@@ -118,7 +153,8 @@ function removeDb( dbname ) {
 
 
 module.exports =
-  { newDb : newDb
+  { addFileToDocList : addFileToDocList
+  , newDb : newDb
   , getDocList : getDocList
   , renameDoc : renameDoc
   , setModified : setModified
