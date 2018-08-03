@@ -173,13 +173,37 @@ async function saveLegacyFolderAs (legacyFolderPath, legacyName, newTargetPath) 
  * deleteSwapFolder : String -> Promise String Error
  *
  * Given swapFolderPath
- * Delete it.
+ *  - Verify that it is inside userData folder
+ *  - Verify that it contains "leveldb" subdirectory
+ *  - Verify that it contains "swap.json" file
+ *  - Verify that it contains "meta.json" file
+ * If so, delete it.
  *
  */
 
 async function deleteSwapFolder (swapFolderPath) {
   try {
-    // TODO: Ensure that this is indeed a swap directory
+    const relative = path.relative(app.getPath("userData"), swapFolderPath);
+
+    // Determine if a path is subdirectory of another in Node.js
+    // https://stackoverflow.com/a/45242825/43769
+    if (!(!!relative && !relative.startsWith("..") && !path.isAbsolute(relative))) {
+      return;
+    }
+
+    if (!fs.pathExistsSync(path.join(swapFolderPath, "leveldb"))) {
+      return;
+    }
+
+    if (!fs.pathExistsSync(path.join(swapFolderPath, "swap.json"))) {
+      return;
+    }
+
+    if (!fs.pathExistsSync(path.join(swapFolderPath, "meta.json"))) {
+      return;
+    }
+
+
     await fs.remove(swapFolderPath);
     return swapFolderPath;
   } catch (err) {
