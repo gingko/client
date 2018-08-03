@@ -224,7 +224,7 @@ viewDocumentItem currTime ( dbname, document ) =
                 |> Maybe.withDefault (DateExtra.fromCalendarDate 2000 Jan 1)
 
         modString =
-            modDate |> DateExtra.toFormattedString "yyyy-mm-dd, HH:mm"
+            modDate |> DateExtra.toFormattedString "YYYY-MM-dd, HH:mm"
 
         relativeString =
             DateDist.inWords
