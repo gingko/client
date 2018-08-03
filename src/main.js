@@ -813,13 +813,13 @@ ipcMain.on("app:close", async (event) => {
         { title: "Save To File"
         , type: "info"
         , message:
-            [ "Older Versions of Gingko saved documents to an internal folder."
+            [ "A previous version of Gingko saved documents to an internal folder."
             , "This led to much confusion, and less control. Sorry!",
             , ""
             , "Choose a new location for this document."
             ].join("\n")
-        , buttons: ["Cancel", "Save As File"]
-        , defaultId: 1
+        , buttons: ["Cancel", "Keep in Legacy Format", "Save As File"]
+        , defaultId: 2
         }
       let choice = dialog.showMessageBox(legacyOptions);
 
@@ -828,6 +828,10 @@ ipcMain.on("app:close", async (event) => {
           return;
 
         case 1:
+          docWindow.destroy();
+          break;
+
+        case 2:
           let newSwapFolderPath = (await saveLegacyDocumentAs(docWindow)).swapFolderPath;
           await fio.deleteSwapFolder(newSwapFolderPath);
           // TODO: Edit document-list.json
