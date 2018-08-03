@@ -77,7 +77,11 @@ label {
 }
 
 #documents-block {
+  position: absolute;
   padding: 10px 20px;
+  width: 100%;
+  height: calc(100% - 169px);
+  overflow-y: auto;
 }
 
 .list-section-header {
