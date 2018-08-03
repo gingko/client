@@ -29,6 +29,27 @@ PouchDB.plugin(replicationStream.plugin)
  */
 
 
+/*
+ * newSwapFolder : String -> Promise String Error
+ *
+ * Given swapFolderPath
+ * - Open a new swap folder (if it doesn't exist)
+ * Return the new swapFolderPath if successful.
+ *
+ */
+
+async function newSwapFolder (swapFolderPath) {
+  try {
+    await swapFolderCheck(swapFolderPath);
+    await fs.ensureDir(path.join(swapFolderPath, "leveldb"));
+    new Store({name: "meta", cwd: swapFolderPath, defaults: { "version" : 1}});
+    return swapFolderPath;
+  } catch (err) {
+    throw err;
+  }
+}
+
+
 
 
 /*
@@ -265,7 +286,8 @@ function save(database, filepath) {
 
 
 module.exports =
-  { openFile : openFile
+  { newSwapFolder : newSwapFolder
+  , openFile : openFile
   , saveSwapFolder : saveSwapFolder
   , saveSwapFolderAs : saveSwapFolderAs
   , saveLegacyFolderAs : saveLegacyFolderAs

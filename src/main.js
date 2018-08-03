@@ -535,9 +535,11 @@ app.on('ready', () => {
 })
 
 
-function newUntitled() {
-  let swapRandomName = sha1(Date.now()+machineIdSync()).slice(20)
-  createDocumentWindow(path.join(app.getPath('userData'), swapRandomName), null)
+async function newUntitled() {
+  const swapRandomName = sha1(Date.now()+machineIdSync()).slice(20)
+  const swapFolderPath = path.join(app.getPath('userData'), swapRandomName);
+  await fio.newSwapFolder(swapFolderPath);
+  createDocumentWindow(swapFolderPath, null);
 }
 
 
@@ -749,7 +751,7 @@ app.on('activate', () => {
 
 
 
-ipcMain.on('home:new', (event) => {
+ipcMain.on('home:new', async (event) => {
   newUntitled();
   winHome.close();
 })
