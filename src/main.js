@@ -800,10 +800,15 @@ ipcMain.on('home:import-file', async (event) => {
 })
 
 
-ipcMain.on("home:load", (event, dbToLoad, docName) => {
-  let swapPath = path.join(app.getPath("userData"), dbToLoad);
-  createDocumentWindow(swapPath, null, { "name": docName })
-  winHome.close()
+ipcMain.on("home:load", async (event, dbToLoad, docName) => {
+  if (/^[a-f0-9]{40}$/i.test(dbToLoad)) {
+    const swapPath = path.join(app.getPath("userData"), dbToLoad);
+    createDocumentWindow(swapPath, null, { "name": docName });
+    winHome.close();
+  } else if (path.isAbsolute(dbToLoad) && fs.pathExistsSync(dbToLoad)) {
+    await openDocument(dbToLoad);
+    winHome.close();
+  }
 })
 
 
