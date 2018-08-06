@@ -17,8 +17,8 @@ import PouchDB from "pouchdb";
 
 const io = require('socket.io-client')
 
-const shared = require('./shared')
-const errorAlert = shared.errorAlert
+const helpers = require("./helpers");
+const errorAlert = helpers.errorAlert
 window.Elm = require('../elm/Main')
 
 
@@ -252,8 +252,8 @@ const update = (msg, data) => {
         lastColumnScrolled = data.column
 
         setLastActive(data.filepath, data.cardId)
-        shared.scrollHorizontal(data.column)
-        shared.scrollColumns(data.lastActives)
+        helpers.scrollHorizontal(data.column)
+        helpers.scrollColumns(data.lastActives)
       }
 
     , 'FlashCurrentSubtree': () => {
@@ -766,8 +766,8 @@ window.onresize = () => {
   }
 }
 
-const debouncedScrollColumns = _.debounce(shared.scrollColumns, 200)
-const debouncedScrollHorizontal = _.debounce(shared.scrollHorizontal, 200)
+const debouncedScrollColumns = _.debounce(helpers.scrollColumns, 200)
+const debouncedScrollHorizontal = _.debounce(helpers.scrollHorizontal, 200)
 
 
 const editingInputHandler = function(ev) {
@@ -779,10 +779,10 @@ const editingInputHandler = function(ev) {
 
 
 
-Mousetrap.bind(shared.shortcuts, function(e, s) {
+Mousetrap.bind(helpers.shortcuts, function(e, s) {
   toElm('Keyboard',[s,Date.now()]);
 
-  if(shared.needOverride.includes(s)) {
+  if(helpers.needOverride.includes(s)) {
     return false;
   }
 });
