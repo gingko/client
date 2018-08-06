@@ -186,6 +186,21 @@ init ( dataIn, modelIn, isSaved ) =
 
 {-
    # UPDATE
+
+   Update is where we react to message events (Msg), and modify the model
+   depending on what Msg was received.
+
+   Most messages arise from within Elm itself, but some come into Elm from JS
+   via ports.
+
+   Each branch of the case statement returns the updated model, AND a piece of
+   data called a command (Cmd) that describes an action for the Elm runtime to
+   take. By far the most common such action is to sendOut an OutgoingMsg to JS.
+
+   Most branches here call a function defined below, instead of updating the
+   model in the update function itself.
+
+   Msg, IncomingMsg, and OutgoingMsg can all be found in Types.elm.
 -}
 
 
