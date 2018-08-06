@@ -2,12 +2,9 @@ const {app, BrowserWindow, dialog, Menu, ipcMain, shell, Notification} = require
 import { autoUpdater } from "electron-updater"
 const fs = require('fs-extra')
 const path = require('path')
-const child_process = require('child_process')
 const sha1 = require('sha1')
 const machineIdSync = require('node-machine-id').machineIdSync
-const moment = require('moment')
 const Store = require('electron-store')
-import { path7za } from '7zip-bin'
 import TurndownService from 'turndown'
 const windowStateKeeper = require('electron-window-state')
 const docList = require('./shared/db-mapping')
@@ -707,44 +704,6 @@ async function addToRecentDocuments (filepath) {
   app.addRecentDocument(filepath);
 }
 
-
-
-
-
-function saveFileOld(swapFolderPath, targetPath) {
-  return new Promise(
-    (resolve, reject) => {
-      // Remove swap-only data
-      fs.unlinkSync(path.join(swapFolderPath, 'swap.json'))
-
-      // Convert swap folder to new .gko backup file by
-      // zip archiving it...
-      let backupPath = swapFolderPath + moment().format('_YYYY-MM-DD_HH-MM-SS') + '.gko';
-      let args =
-          ['a'
-          , backupPath
-          , swapFolderPath + path.sep + '*'
-          , '-r'
-          ]
-
-      child_process.execFile(path7za, args, (err) => {
-        if (err) { reject(err) }
-
-        // ... and when done, copy to target path,
-        // overwriting original .gko file with new one...
-        fs.copyFile(backupPath, targetPath, (err) => {
-          if(err) { reject(err)}
-
-          // ... and finally, delete the swap folder.
-          fs.remove(swapFolderPath, err => {
-            console.log('clean close', targetPath)
-            app.addRecentDocument(targetPath)
-            resolve(targetPath)
-          });
-        })
-      })
-    })
-}
 
 
 
