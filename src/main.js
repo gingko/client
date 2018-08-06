@@ -11,7 +11,7 @@ const docList = require('./shared/db-mapping')
 const fio = require('./electron/file-io')
 const filenamify = require("filenamify");
 const GingkoError  = require("./shared/errors");
-const errorAlert = require('./shared/shared').errorAlert
+const errorAlert = require('./shared/doc-helpers').errorAlert
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.

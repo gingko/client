@@ -17,8 +17,8 @@ import PouchDB from "pouchdb";
 
 const io = require('socket.io-client')
 
-const helpers = require("./helpers");
-const errorAlert = helpers.errorAlert
+const helpers = require("./doc-helpers");
+const errorAlert = helpers.errorAlert;
 window.Elm = require('../elm/Main')
 
 
