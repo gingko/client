@@ -14,12 +14,9 @@ const Store = require('electron-store')
 
 import PouchDB from "pouchdb";
 
-const sha1 = require('sha1')
-const machineIdSync = require('node-machine-id').machineIdSync
 
 const io = require('socket.io-client')
 
-const dbMapping = require('./db-mapping')
 const shared = require('./shared')
 const errorAlert = shared.errorAlert
 window.Elm = require('../elm/Main')
