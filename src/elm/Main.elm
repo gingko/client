@@ -8,7 +8,6 @@ import Html.Attributes exposing (..)
 import Html.Lazy exposing (lazy, lazy2)
 import Html5.DragDrop as DragDrop
 import Json.Decode as Json
-import Json.Encode exposing (..)
 import List.Extra as ListExtra
 import Objects
 import Ports exposing (..)
@@ -1646,15 +1645,6 @@ repeating-linear-gradient(-45deg
                 , viewFooter model
                 , viewVideo model
                 ]
-
-
-
--- ENCODING/DECODING
-
-
-modelToValue : Model -> Json.Value
-modelToValue model =
-    null
 
 
 
