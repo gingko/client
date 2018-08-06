@@ -72,6 +72,13 @@ type alias Model =
     }
 
 
+
+{-
+   InitModel is a reduced form of the model that contains all the user settings
+   that are loaded outside of Elm, and present at initialization.
+-}
+
+
 type alias InitModel =
     { isMac : Bool
     , shortcutTrayOpen : Bool
@@ -115,17 +122,36 @@ defaultModel =
     }
 
 
+
+{-
+   init is where we load the model data upon initialization.
+   If there is no such data, then we're starting a new document, and
+   defaultModel is used instead.
+
+   The dataIn is always JSON, but it can either be a JSON representation of the
+   tree (from a .json file import), OR a full database load from a file
+   containing the full commit history (a .gko file).
+-}
+
+
 init : ( Json.Value, InitModel, Bool ) -> ( Model, Cmd Msg )
-init ( json, modelIn, isSaved ) =
+init ( dataIn, modelIn, isSaved ) =
     let
         ( newStatus, newTree_, newObjects ) =
-            case Json.decodeValue treeDecoder json of
+            case Json.decodeValue treeDecoder dataIn of
                 Ok newTree ->
+                    {- The JSON was successfully decoded by treeDecoder.
+                       We need to create the first commit to the history.
+                    -}
                     Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" newTree) defaultModel.objects
                         |> (\( s, _, o ) -> ( s, Just newTree, o ))
 
                 Err err ->
-                    Objects.update (Objects.Init json) defaultModel.objects
+                    {- If treeDecoder fails, we assume that this was a
+                       load from the database instead. See Objects.elm for
+                       how the data is converted from JSON to type Objects.Model
+                    -}
+                    Objects.update (Objects.Init dataIn) defaultModel.objects
 
         newTree =
             Maybe.withDefault Trees.defaultTree newTree_
@@ -159,7 +185,9 @@ init ( json, modelIn, isSaved ) =
 
 
 
--- UPDATE
+{-
+   # UPDATE
+-}
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
