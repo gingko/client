@@ -47,26 +47,55 @@ main =
    `viewState` is where that "transient" information (focused card, edit state)
    is stored. It's defined in Types.elm.
 
-   `objects` contains the current state of the database, including all the
-   version history information. It's defined in Objects.elm.
+   `objects` contains the current state of the version history data. It's what
+   gets saved to the database. It's defined in Objects.elm.
 -}
 
 
 type alias Model =
+    -- Current state of the document
     { workingTree : Trees.Model
+
+    -- The history data
     , objects : Objects.Model
+
+    -- Status of the history = Bare | Clean ... | MergeConflict ...
     , status : Status
+
+    -- Debouncer is used to prevent trying to save too often
     , debouncerState : Debouncer () ()
+
+    -- Unique user/device id, for realtime collaboration.
     , uid : String
+
+    -- Stores which card is active, edit mode, which is being dragged, etc.
     , viewState : ViewState
+
+    -- Edited card's field value. Updated by onChange handler in the textarea.
     , field : String
+
+    -- Set at init, allows us to show mac-specific content (e.g. ⌘ in shortcuts)
     , isMac : Bool
+
+    -- Set by JS, allows us to show text-selection-only shortcuts (e.g. Bold).
     , isTextSelected : Bool
+
+    -- Is the small shortcut reference tray open or closed?
     , shortcutTrayOpen : Bool
+
+    -- Is the video tutorial modal open or closed? (Unused for now).
     , videoModalOpen : Bool
+
+    -- Word count on open. To see how many words were written in this session.
     , startingWordcount : Int
+
+    -- Are we online or not, in order to attempt to sync. (Unused for now).
     , online : Bool
+
+    -- Has the document been changed since load?
     , changed : Bool
+
+    -- Updated every 15 seconds. For use in , e.g. "Last saved X minutes ago".
     , currentTime : Time
     }
 
