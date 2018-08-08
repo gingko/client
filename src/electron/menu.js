@@ -1,4 +1,4 @@
-import { shell } from "electron";
+const { shell } = require("electron");
 
 
 function getTemplate (menuState, handlers, isMac) {
@@ -82,7 +82,7 @@ function fileMenu (isDocument, isChanged, columnNumber, hasLastExport, handlers)
 
 
   if (isDocument) {
-    let _subMenu = _subMenu.concat(
+    _subMenu = _subMenu.concat(
       [ { type: "separator" }
       , { label: "Export as MS Word"
         , submenu : exportMenu("docx", columnNumber)

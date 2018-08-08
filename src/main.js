@@ -1,4 +1,4 @@
-const {app, BrowserWindow, dialog, Menu, ipcMain, shell, Notification} = require('electron')
+const {app, BrowserWindow, dialog, Menu, ipcMain, Notification} = require('electron')
 import { autoUpdater } from "electron-updater"
 const fs = require('fs-extra')
 const path = require('path')
