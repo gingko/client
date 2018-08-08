@@ -340,42 +340,43 @@ const update = (msg, data) => {
 /* === JS to Elm Ports === */
 
 function intentExportToElm ( format, selection, filepath) {
-  _lastFormat = format
-  _lastSelection = selection
-  toElm('IntentExport', { format: format, selection : selection, filepath: filepath} )
+  _lastFormat = format;
+  _lastSelection = selection;
+  toElm("IntentExport", { format: format, selection : selection, filepath: filepath} );
 }
 
 ipcRenderer.on("main:set-swap-folder", (e, newSwapFolder) => {
   self.db = new PouchDB(path.join(newSwapFolder, "leveldb"));
 });
 
-ipcRenderer.on('menu-new', () => toElm('IntentNew', null))
-ipcRenderer.on('menu-open', () => toElm('IntentOpen', null ))
-ipcRenderer.on('menu-close-document', () => toElm('IntentExit', null))
-ipcRenderer.on('menu-import-json', () => toElm('IntentImport', null))
-ipcRenderer.on('menu-save', () => toElm('IntentSave', null ));
-ipcRenderer.on('menu-save-as', () => toElm('IntentSaveAs', null))
-ipcRenderer.on('menu-export-docx', () => intentExportToElm("docx", "all", null))
-ipcRenderer.on('menu-export-docx-current', () => intentExportToElm("docx", "current", null))
-ipcRenderer.on('menu-export-docx-column', (e, msg) => intentExportToElm("docx", {column: msg}, null))
-ipcRenderer.on('menu-export-txt', () => intentExportToElm("txt", "all", null))
-ipcRenderer.on('menu-export-txt-current', () => intentExportToElm("txt", "current", null))
-ipcRenderer.on('menu-export-txt-column', (e, msg) => intentExportToElm("txt", {column: msg}, null))
-ipcRenderer.on('menu-export-json', () => intentExportToElm("json", "all", null))
-ipcRenderer.on('menu-export-repeat', () => intentExportToElm(_lastFormat, _lastSelection, _lastExportPath))
-ipcRenderer.on('menu-cut', (e, msg) => toElm('Keyboard', ["mod+x", Date.now()]))
-ipcRenderer.on('menu-copy', (e, msg) => toElm('Keyboard', ["mod+c", Date.now()]))
-ipcRenderer.on('menu-paste', (e, msg) => toElm('Keyboard', ["mod+v", Date.now()]))
-ipcRenderer.on('menu-paste-into', (e, msg) => toElm('Keyboard', ["mod+shift+v", Date.now()]))
-ipcRenderer.on('zoomin', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() + 1) })
-ipcRenderer.on('zoomout', e => { webFrame.setZoomLevel(webFrame.getZoomLevel() - 1) })
-ipcRenderer.on('resetzoom', e => { webFrame.setZoomLevel(0) })
-ipcRenderer.on('menu-view-videos', () => toElm('ViewVideos', null ))
-ipcRenderer.on('menu-contact-support', () => { if(crisp_loaded) { $crisp.push(['do', 'chat:open']); $crisp.push(['do', 'chat:show']); } else { shell.openExternal('mailto:adriano@gingkoapp.com') } } )
-ipcRenderer.on('main:rename', (e, msg) => { document.title = msg; })
 
-socket.on('collab', data => toElm('RecvCollabState', data))
-socket.on('collab-leave', data => toElm('CollaboratorDisconnected', data))
+ipcRenderer.on("menu-close-document", () => toElm("IntentExit", null));
+ipcRenderer.on("menu-import-json", () => toElm("IntentImport", null));
+ipcRenderer.on("menu-save", () => toElm("IntentSave", null ));
+ipcRenderer.on("menu-export-docx", () => intentExportToElm("docx", "all", null));
+ipcRenderer.on("menu-export-docx-current", () => intentExportToElm("docx", "current", null));
+ipcRenderer.on("menu-export-docx-column", (e, msg) => intentExportToElm("docx", {column: msg}, null));
+ipcRenderer.on("menu-export-txt", () => intentExportToElm("txt", "all", null));
+ipcRenderer.on("menu-export-txt-current", () => intentExportToElm("txt", "current", null));
+ipcRenderer.on("menu-export-txt-column", (e, msg) => intentExportToElm("txt", {column: msg}, null));
+ipcRenderer.on("menu-export-json", () => intentExportToElm("json", "all", null));
+ipcRenderer.on("menu-export-repeat", () => intentExportToElm(_lastFormat, _lastSelection, _lastExportPath));
+ipcRenderer.on("menu-cut", () => toElm("Keyboard", ["mod+x", Date.now()]));
+ipcRenderer.on("menu-copy", () => toElm("Keyboard", ["mod+c", Date.now()]));
+ipcRenderer.on("menu-paste", () => toElm("Keyboard", ["mod+v", Date.now()]));
+ipcRenderer.on("menu-paste-into", () => toElm("Keyboard", ["mod+shift+v", Date.now()]));
+ipcRenderer.on("menu-view-videos", () => toElm("ViewVideos", null ));
+ipcRenderer.on("menu-contact-support", () => {
+  if(crisp_loaded) {
+    window.$crisp.push(["do", "chat:open"]);
+    window.$crisp.push(["do", "chat:show"]);
+  } else {
+    shell.openExternal("mailto:adriano@gingkoapp.com");
+  }
+});
+
+socket.on("collab", data => toElm("RecvCollabState", data))
+socket.on("collab-leave", data => toElm("CollaboratorDisconnected", data))
 
 
 

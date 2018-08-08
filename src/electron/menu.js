@@ -241,21 +241,23 @@ function viewMenu(isDocument) {
           , enabled: isDocument
           , accelerator: "CommandOrControl+="
           , click : function (item, focusedWindow) {
-              focusedWindow.webContents.send("zoomin");
+              let contents = focusedWindow.webContents;
+              contents.setZoomLevel(contents.getZoomLevel() + 1);
             }
           }
         , { label: "Zoom Out"
           , enabled: isDocument
           , accelerator: "CommandOrControl+-"
           , click : function (item, focusedWindow) {
-              focusedWindow.webContents.send("zoomout");
+              let contents = focusedWindow.webContents;
+              contents.setZoomLevel(contents.getZoomLevel() - 1);
             }
           }
         , { label: "Reset Zoom"
           , enabled: isDocument
           , accelerator: "CommandOrControl+0"
           , click : function (item, focusedWindow) {
-              focusedWindow.webContents.send("resetzoom");
+              focusedWindow.webContents.setZoomLevel(0);
             }
           }
         , { type: "separator" }
