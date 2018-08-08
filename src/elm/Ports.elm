@@ -151,6 +151,9 @@ receiveMsg tagger onError =
         (\outsideInfo ->
             case outsideInfo.tag of
                 -- === Dialogs, Menus, Window State ===
+                "IntentSave" ->
+                    tagger <| IntentSave
+
                 "IntentExit" ->
                     tagger <| IntentExit
 

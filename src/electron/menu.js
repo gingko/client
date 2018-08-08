@@ -5,10 +5,11 @@ function getTemplate (menuState, handlers, isMac) {
   let isDocument = !!menuState;
   let isEditing = menuState && menuState.editMode;
   let columnNumber = menuState && menuState.columnNumber;
+  let changed = menuState && menuState.changed;
   let hasLastExport = menuState && menuState.hasLastExport;
 
   let menuTemplate =
-    [ fileMenu(isDocument, false, columnNumber, hasLastExport, handlers)
+    [ fileMenu(isDocument, changed, columnNumber, hasLastExport, handlers)
     , editMenu(isDocument, isEditing, isMac)
     , viewMenu(isDocument)
     , helpMenu(handlers, isMac)
@@ -65,7 +66,7 @@ function fileMenu (isDocument, isChanged, columnNumber, hasLastExport, handlers)
       , accelerator: "CmdOrCtrl+O"
       , click: handlers.open
       }
-    , { label: "Save"
+    , { label: isChanged ? "Save" : "Saved"
       , enabled: isChanged
       , accelerator: "CmdOrCtrl+S"
       , click : handlers.save

@@ -521,6 +521,11 @@ update msg ({ objects, workingTree, status } as model) =
         Port incomingMsg ->
             case incomingMsg of
                 -- === Dialogs, Menus, Window State ===
+                IntentSave ->
+                    model
+                        ! []
+                        |> saveCardIfEditing
+
                 IntentExit ->
                     if vs.editing /= Nothing then
                         let

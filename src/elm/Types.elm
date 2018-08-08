@@ -69,7 +69,8 @@ type
 type
     IncomingMsg
     -- === Dialogs, Menus, Window State ===
-    = IntentExit
+    = IntentSave
+    | IntentExit
     | IntentExport ExportSettings
     | CancelCardConfirmed
       -- === Database ===

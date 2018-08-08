@@ -81,7 +81,8 @@ function createDocumentWindow (swapFolderPath, originalPath, legacyFormat) {
     })
 
   documentWindows.push(win);
-  docWindowMenuStates[win.id] = { "editMode": false, "columnNumber" : 1 , "hasLastExport" : false };
+  docWindowMenuStates[win.id] =
+    { "editMode": false, "columnNumber" : 1 , "changed" : false, "hasLastExport" : false };
 
   mainWindowState.manage(win);
 
@@ -200,7 +201,7 @@ function buildMenu (menuState) {
           }
         });
       }
-    , save : (item, focusedWindow) => saveDocument(focusedWindow)
+    , save : (item, focusedWindow) => focusedWindow.webContents.send("menu-save")
     , saveAs : (item, focusedWindow) => saveDocumentAs(focusedWindow)
     , quit : () => { _menuQuit = true; app.quit(); }
     , enterLicense : (item, focusedWindow) => createSerialWindow(focusedWindow, false)
@@ -248,6 +249,27 @@ ipcMain.on("app:last-export-set", (event, lastPath) => {
     buildMenu(menuState);
   }
 });
+
+
+ipcMain.on("doc:set-changed", (event, changed) => {
+  let win = BrowserWindow.fromWebContents(event.sender);
+  let currentTitle = win.getTitle();
+  let menuState = docWindowMenuStates[win.id];
+
+  if (menuState.changed !== changed) {
+    _.set(menuState, "changed", changed);
+    buildMenu(menuState);
+  }
+
+  win.setDocumentEdited(changed);
+
+  if(changed && !currentTitle.startsWith("*")) {
+    win.setTitle("*" + currentTitle);
+  } else if (!changed) {
+    win.setTitle(currentTitle.replace(/^\*/, ""));
+  }
+})
+
 
 
 
@@ -616,20 +638,6 @@ ipcMain.on("app:close", async (event) => {
     }
   } catch (err) {
     throw err;
-  }
-})
-
-
-ipcMain.on("doc:set-changed", (event, changed) => {
-  let docWindow = BrowserWindow.fromWebContents(event.sender);
-  let currentTitle = docWindow.getTitle();
-
-  docWindow.setDocumentEdited(changed);
-
-  if(changed && !currentTitle.startsWith("*")) {
-    docWindow.setTitle("*" + currentTitle);
-  } else if (!changed) {
-    docWindow.setTitle(currentTitle.replace(/^\*/, ""));
   }
 })
 
