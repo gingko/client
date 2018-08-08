@@ -5,10 +5,12 @@ const path = require('path')
 const sha1 = require('sha1')
 const machineIdSync = require('node-machine-id').machineIdSync
 const Store = require('electron-store')
+const _ = require("lodash");
 import TurndownService from 'turndown'
 const windowStateKeeper = require('electron-window-state')
 const docList = require('./shared/db-mapping')
 const fio = require('./electron/file-io')
+const getMenuTemplate = require("./electron/menu");
 const filenamify = require("filenamify");
 const GingkoError  = require("./shared/errors");
 const errorAlert = require('./shared/doc-helpers').errorAlert
@@ -16,11 +18,9 @@ const errorAlert = require('./shared/doc-helpers').errorAlert
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let documentWindows = []
+let docWindowMenuStates = {};
 let winTrial, winSerial, winHome, winRename
 let _untitledDocs = 0
-let _documentFocused = false
-let _isEditMode = false
-let _columns = 1
 let _hasLastExport = false
 let _menuQuit = false
 const hiddenStore = new Store({name: "kernel", encryptionKey: "79df64f73eab9bc0d7b448d2008d876e"})
@@ -55,18 +55,9 @@ function createHomeWindow () {
 
   winHome.loadURL(url)
 
-  winHome.on('focus', () => {
-    _documentFocused = false;
-    buildMenu();
-    winHome.setMenu(null)
-  })
-
   winHome.on('closed', () => {
     winHome = null;
   })
-
-  buildMenu();
-  winHome.setMenu(null)
 }
 
 
@@ -90,6 +81,7 @@ function createDocumentWindow (swapFolderPath, originalPath, legacyFormat) {
     })
 
   documentWindows.push(win);
+  docWindowMenuStates[win.id] = { "editMode": false, "columnNumber" : 1 , "hasLastExport" : false };
 
   mainWindowState.manage(win);
 
@@ -128,11 +120,6 @@ function createDocumentWindow (swapFolderPath, originalPath, legacyFormat) {
     win.show()
   })
 
-  win.on('focus', () => {
-    _documentFocused = true;
-    buildMenu();
-  })
-
   // Emitted when the window is closed.
   win.on('closed', () => {
     // Dereference the window object
@@ -157,8 +144,6 @@ function createRenameWindow(parentWindow, dbName, currentName, closeDocument) {
   , useContentSize: true
   , show: false
   })
-
-  winRename.setMenu(null)
 
   winRename.once('ready-to-show', () => {
     winRename.show()
@@ -200,283 +185,69 @@ function validSerial(email, storedSerial) {
   let serial = [hash.substr(4,4), hash.substr(12,4), hash.substr(20,4), hash.substr(28,4)].join("-").toUpperCase()
   return storedSerial == serial
 }
+
 /* ==== Menu ==== */
 
+function buildMenu (menuState) {
+  let handlers =
+    { new : newUntitled
+    , open : function () {
+        let options = {title: "Open File...", defaultPath : app.getPath("documents") , properties: ["openFile"], filters: [ {name: "Gingko Files (*.gko)", extensions: ["gko"]} ]};
 
-
-
-function buildMenu() {
-  let editMenu
-
-  if (_isEditMode || !_documentFocused) {
-    editMenu =
-      { label: 'Edit'
-      , submenu:
-          [ { role: 'undo' }
-          , { role: 'redo' }
-          , { type: 'separator' }
-          , { role: 'cut' }
-          , { role: 'copy' }
-          , { role: 'paste' }
-          , { role: 'selectAll'}
-          ]
+        dialog.showOpenDialog(options, (filepaths) => {
+          if(Array.isArray(filepaths) && !!filepaths[0]) {
+            openDocument(filepaths[0]);
+          }
+        });
       }
-  } else {
-    editMenu =
-      { label: 'Edit'
-      , submenu:
-          [ { label: 'Undo'
-            , enabled : false
-            , click (item, focusedWindow) {
-                if (process.platform !== 'darwin') {
-                  focusedWindow.webContents.send('undo')
-                }
-              }
-            , accelerator : 'CommandOrControl+Z'
-            }
-          , { label: 'Redo'
-            , enabled : false
-            , click (item, focusedWindow) {
-                if (process.platform !== 'darwin') {
-                  focusedWindow.webContents.send('redo')
-                }
-              }
-            , accelerator : 'CommandOrControl+Shift+Z'
-            }
-          , { type: 'separator' }
-          , { label: 'Cut Cards'
-            , click (item, focusedWindow) {
-                if (process.platform !== 'darwin') {
-                  focusedWindow.webContents.send('menu-cut')
-                }
-              }
-            , accelerator : 'CommandOrControl+X'
-            }
-          , { label: 'Copy Cards'
-            , click (item, focusedWindow) {
-                if (process.platform !== 'darwin') {
-                  focusedWindow.webContents.send('menu-copy')
-                }
-              }
-            , accelerator : 'CommandOrControl+C'
-            }
-          , { label: 'Paste Cards'
-            , click (item, focusedWindow) {
-                if (process.platform !== 'darwin') {
-                  focusedWindow.webContents.send('menu-paste')
-                }
-              }
-            , accelerator : 'CommandOrControl+V'
-            }
-          , { label: 'Paste Cards as Children'
-            , click (item, focusedWindow) {
-                if (process.platform !== 'darwin') {
-                  focusedWindow.webContents.send('menu-paste-into')
-                }
-              }
-            , accelerator : 'CommandOrControl+Shift+V'
-            }
-          ]
-      }
-  }
+    , save : (item, focusedWindow) => saveDocument(focusedWindow)
+    , saveAs : (item, focusedWindow) => saveDocumentAs(focusedWindow)
+    , quit : () => { _menuQuit = true; app.quit(); }
+    , enterLicense : (item, focusedWindow) => createSerialWindow(focusedWindow, false)
+    };
 
-  var exportMenu = function(format, cols) {
-    var expMenu =
-      [ { label : 'Entire Document...'
-        , click (item, focusedWindow) {
-            focusedWindow.webContents.send(`menu-export-${format}`)
-          }
-        }
-      , { label : 'Current Card and Children...'
-        , click (item, focusedWindow) {
-            focusedWindow.webContents.send(`menu-export-${format}-current`)
-          }
-        }
-      , { type: 'separator' }
-      ]
-
-    var expMenuItem = function (num) {
-      return  { label : `Column ${num}...`
-              , click (item, focusedWindow) {
-                  focusedWindow.webContents.send(`menu-export-${format}-column`, num)
-                }
-              }
-    }
-
-    for (var i = 1; i <= cols;i++) {
-      expMenu.push(expMenuItem(i))
-    }
-
-    return expMenu
-  }
-
-  var menuTemplate =
-    [ { label: 'File'
-    , submenu:
-        [ { label: 'New'
-          , accelerator: 'CmdOrCtrl+N'
-          , click (item, focusedWindow) {
-              newUntitled();
-            }
-          }
-        , { label: 'Open File...'
-          , accelerator: 'CmdOrCtrl+O'
-          , click (item, focusedWindow) {
-              let options = {title: 'Open File...', defaultPath : app.getPath('documents') , properties: ['openFile'], filters: [ {name: 'Gingko Files (*.gko)', extensions: ['gko']} ]};
-              dialog.showOpenDialog(options, (filepaths) => {
-                if(Array.isArray(filepaths) && !!filepaths[0]) {
-                  openDocument(filepaths[0])
-                }
-              })
-            }
-          }
-        , { label: 'Save'
-          , enabled: _documentFocused // TODO: Disable this for Untitled documents
-          , accelerator: 'CmdOrCtrl+S'
-          , click (item, focusedWindow) {
-              saveDocument(focusedWindow);
-            }
-          }
-        , { label: 'Save As'
-          , enabled: _documentFocused
-          , accelerator: 'CmdOrCtrl+Shift+S'
-          , click (item, focusedWindow) {
-              saveDocumentAs(focusedWindow);
-            }
-          }
-        , { type: 'separator' }
-        , { label: 'Import JSON File...'
-          , click (item, focusedWindow) {
-              focusedWindow.webContents.send('menu-import-json')
-            }
-          }
-        , { type: 'separator' }
-        , { label: 'Export as MS Word'
-          , enabled: _documentFocused
-          , submenu : exportMenu('docx', _columns)
-          }
-        , { label: 'Export as Text'
-          , enabled: _documentFocused
-          , submenu : exportMenu('txt', _columns)
-          }
-        , { label: 'Export as JSON...'
-          , enabled: _documentFocused
-          , click (item, focusedWindow) {
-              focusedWindow.webContents.send('menu-export-json')
-            }
-          }
-        , { label: 'Repeat Last Export'
-          , enabled: _hasLastExport && _documentFocused
-          , accelerator: 'CommandOrControl+r'
-          , click (item, focusedWindow) {
-              focusedWindow.webContents.send('menu-export-repeat')
-            }
-          }
-        ]
-    }
-  , editMenu
-  , { label: 'View'
-    , submenu:
-        [ { label: 'Zoom In'
-          , enabled: _documentFocused
-          , accelerator: 'CommandOrControl+='
-          , click (item, focusedWindow) {
-              focusedWindow.webContents.send('zoomin')
-            }
-          }
-        , { label: 'Zoom Out'
-          , enabled: _documentFocused
-          , accelerator: 'CommandOrControl+-'
-          , click (item, focusedWindow) {
-              focusedWindow.webContents.send('zoomout')
-            }
-          }
-        , { label: 'Reset Zoom'
-          , enabled: _documentFocused
-          , accelerator: 'CommandOrControl+0'
-          , click (item, focusedWindow) {
-              focusedWindow.webContents.send('resetzoom')
-            }
-          }
-        , { type: 'separator' }
-        , { role: 'togglefullscreen' }
-        ]
-    }
-  , { label: 'Help'
-    , submenu:
-        [ { label: 'FAQ...'
-          , click (item, focusedWindow) {
-              shell.openExternal('https://gingko.io/faq.html')
-            }
-          }
-        , { label: 'Features List && Known Bugs...'
-          , click (item, focusedWindow) {
-              shell.openExternal('https://github.com/gingko/client/issues')
-            }
-          }
-        , { label: 'Contact Adriano...'
-          , click (item, focusedWindow) {
-              focusedWindow.webContents.send('menu-contact-support')
-            }
-          }
-        , { type: 'separator' }
-        , { label: 'Buy a License...'
-          , click (item, focusedWindow) {
-              shell.openExternal('https://gingkoapp.com/desktop-upgrade')
-            }
-          }
-        , { label: 'Enter License...'
-          , click (item, focusedWindow) {
-              createSerialWindow(focusedWindow, false)
-            }
-          }
-          , { type: 'separator' }
-          , { label: 'Open Debugging Tools'
-            , accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I'
-            , click (item, focusedWindow) {
-                if (focusedWindow) focusedWindow.webContents.toggleDevTools()
-              }
-            }
-        ]
-    }
-  ]
-
-
-  if (process.platform == 'darwin') {
-    menuTemplate.unshift(
-      { label : app.getName()
-      , submenu :
-          [ {role: 'about'}
-          , {type: 'separator'}
-          , {role: 'services', submenu: []}
-          , {type: 'separator'}
-          , {role: 'hide'}
-          , {role: 'hideothers'}
-          , {role: 'unhide'}
-          , {type: 'separator'}
-          , { label: 'Quit Gingko...'
-            , accelerator: 'Command+Q'
-            , click (item, focusedWindow, event) {
-                _menuQuit = true;
-                app.quit();
-              }
-            }
-          ]
-      })
-
-    menuTemplate.splice(4, 0, { role: 'windowMenu'})
-  } else {
-    let closeMenuItem = { label : "Close", accelerator: "Ctrl+W", click (item, focusedWindow) { focusedWindow.webContents.send("menu-close-document"); }};
-    menuTemplate[0].submenu.splice(4, 0, closeMenuItem);
-    menuTemplate[0].submenu.push({type: "separator"}, {role: "quit"} );
-  }
-
-
-  let menu = Menu.buildFromTemplate(menuTemplate)
-  Menu.setApplicationMenu(menu)
+  let menuTemplate = getMenuTemplate(menuState, handlers);
+  let menu = Menu.buildFromTemplate(menuTemplate);
+  Menu.setApplicationMenu(menu);
 }
 
-buildMenu();
+app.on("browser-window-focus", (ev, win) => {
+  buildMenu(docWindowMenuStates[win.id]);
+
+  if(!win.swapFolderPath) {
+    win.setMenu(null);
+  }
+});
+
+
+ipcMain.on("column-number-change", (event, cols) => {
+  let win = BrowserWindow.fromWebContents(event.sender);
+  let menuState = docWindowMenuStates[win.id];
+  if (menuState.columnNumber !== cols) {
+    _.set(menuState, "columnNumber", cols);
+    buildMenu(menuState);
+  }
+});
+
+
+ipcMain.on("edit-mode-toggle", (event, isEditing) => {
+  let win = BrowserWindow.fromWebContents(event.sender);
+  let menuState = docWindowMenuStates[win.id];
+  if (menuState.editMode !== isEditing) {
+    _.set(menuState, "editMode", isEditing);
+    buildMenu(menuState);
+  }
+});
+
+
+ipcMain.on("app:last-export-set", (event, lastPath) => {
+  let win = BrowserWindow.fromWebContents(event.sender);
+  let menuState = docWindowMenuStates[win.id];
+  if (menuState.hasLastExport !== !!lastPath) {
+    _.set(menuState, "hasLastExport", !!lastPath);
+    buildMenu(menuState);
+  }
+});
 
 
 
@@ -529,7 +300,10 @@ app.on('ready', () => {
       }
     }
   }
+
+  buildMenu();
 })
+
 
 
 async function newUntitled() {
@@ -713,8 +487,6 @@ app.on('window-all-closed', () => {
   // to stay active until the user quits explicitly with Cmd + Q
   if (_menuQuit || process.platform !== 'darwin') {
     app.quit()
-  } else {
-    _documentFocused = false;
   }
 })
 
@@ -867,12 +639,6 @@ ipcMain.on('app:rename-untitled', (event, dbName, currName, closeDocument) => {
 })
 
 
-ipcMain.on('app:last-export-set', (event, lastPath) => {
-  _hasLastExport = !!lastPath
-  buildMenu();
-})
-
-
 ipcMain.on('rename:renamed', (event, dbName, newName, closeDocument) => {
   let renameWindow = BrowserWindow.fromWebContents(event.sender);
   let appWindow = renameWindow.getParentWindow();
@@ -890,21 +656,6 @@ ipcMain.on('rename:delete-and-close', (event, dbToDelete) => {
   let appWindow = renameWindow.getParentWindow();
 
   appWindow.webContents.send('main:delete-and-close')
-})
-
-
-ipcMain.on('column-number-change', (event, cols) => {
-  if (_columns != cols) {
-    _columns = cols
-    buildMenu();
-  }
-})
-
-ipcMain.on('edit-mode-toggle', (event, isEditing) => {
-  if (_isEditMode != isEditing) {
-    _isEditMode = isEditing
-    buildMenu();
-  }
 })
 
 
@@ -980,11 +731,6 @@ function createSerialWindow(parentWindow, shouldBlock) {
     if(shouldBlock) { winSerial.webContents.send('prevent-close', true) }
     winSerial.webContents.send('serial-info', [email, storedSerial])
     winSerial.show()
-  })
-
-  winSerial.on('focus', () => {
-    _documentFocused = false;
-    buildMenu();
   })
 
   winSerial.on('closed', () => {
