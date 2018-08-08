@@ -11,6 +11,14 @@ dbMap.safeSet = function (key, val) {
   this.set(key.replace(".","\\."), val);
 };
 
+dbMap.safeHas = function (key) {
+  this.has(key.replace(".","\\."));
+};
+
+dbMap.safeDelete = function (key) {
+  this.delete(key.replace(".","\\."));
+};
+
 
 /*
  * addFileToDocList : String -> String
@@ -143,12 +151,11 @@ function setState( dbname, newState ) {
 
 
 function removeDb( dbname ) {
-  if(!dbMap.has(dbname)) {
-    throw new Error(`Document data already deleted. Key ${dbname} not found.`)
-    return;
+  if(!dbMap.has(dbname.replace(".","\\."))) {
+    throw new Error(`Document data already deleted. Key ${dbname} not found.`);
   }
 
-  dbMap.delete(dbname)
+  dbMap.safeDelete(dbname);
 }
 
 

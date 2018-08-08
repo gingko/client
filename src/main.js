@@ -192,15 +192,7 @@ function validSerial(email, storedSerial) {
 function buildMenu (menuState) {
   let handlers =
     { new : newUntitled
-    , open : function () {
-        let options = {title: "Open File...", defaultPath : app.getPath("documents") , properties: ["openFile"], filters: [ {name: "Gingko Files (*.gko)", extensions: ["gko"]} ]};
-
-        dialog.showOpenDialog(options, (filepaths) => {
-          if(Array.isArray(filepaths) && !!filepaths[0]) {
-            openDocument(filepaths[0]);
-          }
-        });
-      }
+    , open : openWithDialog
     , save : (item, focusedWindow) => focusedWindow.webContents.send("menu-save")
     , saveAs : (item, focusedWindow) => saveDocumentAs(focusedWindow)
     , quit : () => { _menuQuit = true; app.quit(); }
@@ -333,6 +325,17 @@ async function newUntitled() {
   const swapFolderPath = path.join(app.getPath('userData'), swapRandomName);
   await fio.newSwapFolder(swapFolderPath);
   createDocumentWindow(swapFolderPath, null);
+}
+
+
+function openWithDialog() {
+  let options = {title: "Open File...", defaultPath : app.getPath("documents") , properties: ["openFile"], filters: [ {name: "Gingko Files (*.gko)", extensions: ["gko"]} ]};
+
+  dialog.showOpenDialog(options, (filepaths) => {
+    if(Array.isArray(filepaths) && !!filepaths[0]) {
+      openDocument(filepaths[0]);
+    }
+  });
 }
 
 
@@ -561,8 +564,21 @@ ipcMain.on("home:load", async (event, dbToLoad, docName) => {
   } else if (path.isAbsolute(dbToLoad) && fs.pathExistsSync(dbToLoad)) {
     await openDocument(dbToLoad);
     winHome.close();
+  } else {
+    docList.removeDb(dbToLoad);
+    winHome.webContents.send("doc-list-reload");
+
+    const documentNotFoundOptions =
+      { title: "Document Not Found"
+      , type: "warning"
+      , message: `I'm looking for it in ${dbToLoad}.\nMaybe it was moved.`
+      , buttons: ["OK"]
+      , defaultId: 0
+      };
+
+    dialog.showMessageBox(documentNotFoundOptions);
   }
-})
+});
 
 
 ipcMain.on('home:delete', async (event, dbToDelete) => {

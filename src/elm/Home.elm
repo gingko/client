@@ -74,6 +74,7 @@ type Msg
     | Delete String
     | ToggleArchive
     | Tick Time
+    | DocListReload (List ( String, Document ))
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -121,6 +122,9 @@ update msg model =
 
         Tick currTime ->
             { model | currentTime = currTime } ! []
+
+        DocListReload docList ->
+            { model | documents = docList |> Dict.fromList } ! []
 
         NoOp ->
             model ! []
@@ -270,6 +274,12 @@ viewDocumentItem currTime ( dbname, document ) =
 port forJS : { tag : String, data : Json.Value } -> Cmd msg
 
 
+port docListReload : (List ( String, Document ) -> msg) -> Sub msg
+
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    every (minute / 2) Tick
+    Sub.batch
+        [ docListReload DocListReload
+        , every (minute / 2) Tick
+        ]

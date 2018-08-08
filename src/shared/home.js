@@ -13,6 +13,12 @@ $crisp.push(['on', 'message:received', () => { $crisp.push(['do', 'chat:show']) 
 
 ipcRenderer.on('menu-contact-support', () => { if(crisp_loaded) { $crisp.push(['do', 'chat:open']); $crisp.push(['do', 'chat:show']); } else { shell.openExternal('mailto:adriano@gingkoapp.com') } } )
 
+ipcRenderer.on("doc-list-reload", () => {
+  let docList = dbMapping.getDocList();
+  home.ports.docListReload.send(docList);
+});
+
+
 let docList = dbMapping.getDocList()
 var homeWindow = remote.getCurrentWindow()
 var home = Elm.Home.fullscreen([Date.now(), docList])
