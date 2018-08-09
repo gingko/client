@@ -90,7 +90,7 @@ function createDocumentWindow (swapFolderPath, originalPath, legacyFormat) {
   // Add swapFolderPath variable to BrowserWindow object,
   // so it can be accessed elsewhere in main.js
   win.swapFolderPath = swapFolderPath;
-  win.originalPath = originalPath;
+  win.originalPath = originalPath || legacyFormat.dbname;
 
   // Add dbPath variable to BrowserWindow object,
   // so that it can load from the database as soon as
@@ -565,7 +565,7 @@ ipcMain.on('home:import-file', async (event) => {
 ipcMain.on("home:load", async (event, dbToLoad, docName) => {
   if (/^[a-f0-9]{40}$/i.test(dbToLoad)) {
     const swapPath = path.join(app.getPath("userData"), dbToLoad);
-    createDocumentWindow(swapPath, null, { "name": docName });
+    createDocumentWindow(swapPath, null, { "name": docName, "dbname" : dbToLoad });
     winHome.close();
   } else if (path.isAbsolute(dbToLoad) && fs.pathExistsSync(dbToLoad)) {
     await openDocument(dbToLoad);
