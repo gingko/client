@@ -70,6 +70,7 @@ type Msg
     | New
     | Import
     | Load String (Maybe String)
+    | OpenOther
     | SetState String String
     | Delete String
     | ToggleArchive
@@ -93,6 +94,9 @@ update msg model =
                         |> Json.list
             in
             model ! [ forJS { tag = "Load", data = data } ]
+
+        OpenOther ->
+            model ! [ forJS { tag = "OpenOther", data = null } ]
 
         SetState dbname state ->
             let

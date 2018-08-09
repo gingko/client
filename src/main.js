@@ -328,14 +328,14 @@ async function newUntitled() {
 }
 
 
-function openWithDialog() {
+async function openWithDialog() {
   let options = {title: "Open File...", defaultPath : app.getPath("documents") , properties: ["openFile"], filters: [ {name: "Gingko Files (*.gko)", extensions: ["gko"]} ]};
 
-  dialog.showOpenDialog(options, (filepaths) => {
-    if(Array.isArray(filepaths) && !!filepaths[0]) {
-      openDocument(filepaths[0]);
-    }
-  });
+  var filepaths = dialog.showOpenDialog(options);
+
+  if(Array.isArray(filepaths) && !!filepaths[0]) {
+    return await openDocument(filepaths[0]);
+  }
 }
 
 
@@ -344,6 +344,7 @@ async function openDocument(filepath) {
     let swapFolderPath = await fio.openFile(filepath);
     createDocumentWindow(swapFolderPath, filepath);
     addToRecentDocuments(filepath);
+    return filepath;
   } catch (err) {
 
     // If the swap folder already exists, it's either because the file is currently open,
@@ -577,6 +578,15 @@ ipcMain.on("home:load", async (event, dbToLoad, docName) => {
       };
 
     dialog.showMessageBox(documentNotFoundOptions);
+  }
+});
+
+
+ipcMain.on("home:open-other", async () => {
+  let result = await openWithDialog();
+
+  if(typeof result == "string") {
+    winHome.close();
   }
 });
 
