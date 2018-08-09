@@ -1,6 +1,6 @@
 const {ipcRenderer, dialog, remote} = require('electron')
 window.Elm= require('../elm/Home')
-const dbMapping = require('./db-mapping')
+const dbMapping = require("../electron/doc-list");
 
 
 var crisp_loaded = false;
