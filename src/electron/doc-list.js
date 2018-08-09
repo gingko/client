@@ -88,10 +88,10 @@ function newDb( dbName , docName ) {
  * getDocList gets an array that represents the database-to-document mapping
  */
 function getDocList() {
-  let docObject = docList.store
-  var keys = Object.keys(docObject)
-  var docList = keys.map((k) => { return [k, docObject[k]] })
-  return docList
+  let docObject = docList.store;
+  var keys = Object.keys(docObject);
+  var theList = keys.map((k) => { return [k, docObject[k]]; });
+  return theList;
 }
 
 
