@@ -44,8 +44,8 @@ if (isSecondInstance) { app.exit() }
 function createHomeWindow () {
   // Create the browser window.
   winHome = new BrowserWindow(
-    { width: 640
-    , height: 600
+    { width: 800
+    , height: 722
     , backgroundColor: '#477085'
     , icon: `${__dirname}/static/leaf128.png`
     })
@@ -90,6 +90,7 @@ function createDocumentWindow (swapFolderPath, originalPath, legacyFormat) {
   // Add swapFolderPath variable to BrowserWindow object,
   // so it can be accessed elsewhere in main.js
   win.swapFolderPath = swapFolderPath;
+  win.originalPath = originalPath;
 
   // Add dbPath variable to BrowserWindow object,
   // so that it can load from the database as soon as
@@ -251,6 +252,10 @@ ipcMain.on("doc:set-changed", (event, changed) => {
   if (menuState.changed !== changed) {
     _.set(menuState, "changed", changed);
     buildMenu(menuState);
+  }
+
+  if (!changed) {
+    docList.setModified(win.originalPath);
   }
 
   win.setDocumentEdited(changed);

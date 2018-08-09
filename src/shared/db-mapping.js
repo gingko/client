@@ -7,16 +7,24 @@ const machineIdSync = require('node-machine-id').machineIdSync
 
 const dbMap = new Store({name: "document-list"});
 
-dbMap.safeSet = function (key, val) {
-  this.set(key.replace(".","\\."), val);
+dbMap.getNoDot = function (key, val, def) {
+  key = key.replace(".", "\\.");
+  return this.get(key, val, def);
 };
 
-dbMap.safeHas = function (key) {
-  this.has(key.replace(".","\\."));
+dbMap.setNoDot = function (key, val) {
+  key = key.replace(".", "\\.");
+  return this.set(key, val);
 };
 
-dbMap.safeDelete = function (key) {
-  this.delete(key.replace(".","\\."));
+dbMap.hasNoDot = function (key) {
+  key = key.replace(".", "\\.");
+  return this.has(key);
+};
+
+dbMap.deleteNoDot = function (key) {
+  key = key.replace(".", "\\.");
+  return this.delete(key);
 };
 
 
@@ -28,7 +36,7 @@ dbMap.safeDelete = function (key) {
  */
 
 async function addFileToDocList (filepath) {
-  if(dbMap.has(filepath)) {
+  if(dbMap.hasNoDot(filepath)) {
     return;
   }
 
@@ -41,7 +49,7 @@ async function addFileToDocList (filepath) {
     , "last_modified" : (new Date(fileStats.mtime)).toJSON()
     };
 
-  dbMap.safeSet(filepath, newDocument);
+  dbMap.setNoDot(filepath, newDocument);
 
   return filepath;
 }
@@ -58,16 +66,16 @@ function newDb( dbName , docName ) {
   dbName = dbName || sha1(Date.now()+machineIdSync())
   docName = docName || null
 
-  if(dbMap.has(dbName)) {
+  if(dbMap.hasNoDot(dbName)) {
     throw new Error(`Cannot create db named : ${dbName}. Key already exists.`)
     return;
   }
 
   let nowDate = (new Date()).toJSON()
   let newDocument = { name: docName, state: "active", created_at: nowDate, last_modified: nowDate }
-  dbMap.set(dbName, newDocument)
+  dbMap.setNoDot(dbName, newDocument)
 
-  if(dbMap.has(dbName)) {
+  if(dbMap.hasNoDot(dbName)) {
     return dbName;
   } else {
     throw new Error(`Could not add db to document-list.json`)
@@ -93,16 +101,15 @@ function getDocList() {
  * @param {string} newDocName
  */
 function renameDoc( dbname, newDocName ) {
-  if(!dbMap.has(dbname)) {
+  if(!dbMap.hasNoDot(dbname)) {
     throw new Error(`Cannot rename document. Key ${dbname} not found.`)
-    return;
   }
 
-  let currentDoc = dbMap.get(dbname)
+  let currentDoc = dbMap.getNoDot(dbname)
 
   if(currentDoc.name !== newDocName) {
     currentDoc.name = newDocName
-    dbMap.set(dbname, currentDoc)
+    dbMap.setNoDot(dbname, currentDoc)
   }
 }
 
@@ -113,19 +120,16 @@ function renameDoc( dbname, newDocName ) {
  * @param {Date} [modifiedDate] - date to use in last_modified field
  */
 function setModified( dbname, modifiedDate ) {
-  if(!dbMap.has(dbname)) {
-    throw new Error(`Cannot set document modified date. Key ${dbname} not found.`)
-    return;
-  }
+  if(dbMap.hasNoDot(dbname)) {
+    modifiedDate = modifiedDate || (new Date())
+    let modifiedDateString = modifiedDate.toJSON()
 
-  modifiedDate = modifiedDate || (new Date())
-  let modifiedDateString = modifiedDate.toJSON()
+    let currentDoc = dbMap.getNoDot(dbname)
 
-  let currentDoc = dbMap.get(dbname)
-
-  if(currentDoc.last_modified !== modifiedDateString) {
-    currentDoc.last_modified = modifiedDateString
-    dbMap.set(dbname, currentDoc)
+    if(currentDoc.last_modified !== modifiedDateString) {
+      currentDoc.last_modified = modifiedDateString
+      dbMap.setNoDot(dbname, currentDoc)
+    }
   }
 }
 
@@ -136,26 +140,26 @@ function setModified( dbname, modifiedDate ) {
  * @param {Date} newState
  */
 function setState( dbname, newState ) {
-  if(!dbMap.has(dbname)) {
+  if(!dbMap.hasNoDot(dbname)) {
     throw new Error(`Cannot set document state. Key ${dbname} not found.`)
     return;
   }
 
-  let currentDoc = dbMap.get(dbname)
+  let currentDoc = dbMap.getNoDot(dbname)
 
   if(currentDoc.state !== newState) {
-    currentDoc.state = newState
-    dbMap.set(dbname, currentDoc)
+    currentDoc.state = newState;
+    dbMap.setNoDot(dbname, currentDoc);
   }
 }
 
 
 function removeDb( dbname ) {
-  if(!dbMap.has(dbname.replace(".","\\."))) {
+  if(!dbMap.hasNoDot(dbname)) {
     throw new Error(`Document data already deleted. Key ${dbname} not found.`);
   }
 
-  dbMap.safeDelete(dbname);
+  dbMap.deleteNoDot(dbname);
 }
 
 
