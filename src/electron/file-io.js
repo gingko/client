@@ -66,22 +66,32 @@ async function newSwapFolder (swapFolderPath) {
  */
 
 async function openFile(filepath) {
-  if (!verifyFiletype(filepath)) {
-    throw new Error("Not a valid .gko file\nPossibly using legacy format.");
+  let fileFormat = await determineFiletype(filepath);
+  let swapName, swapFolderPath;
+
+  switch (fileFormat) {
+    case false:
+      throw new Error("Not a valid .gko file\nPossibly using legacy format.");
+
+    case GKO:
+      swapName = fullpathFilename(filepath);
+      swapFolderPath = path.join(app.getPath("userData"), swapName );
+
+      try {
+        await makeBackup(filepath);
+        await swapFolderCheck(swapFolderPath);
+        await extractFile(filepath, swapFolderPath);
+        addFilepathToSwap(filepath, swapFolderPath);
+        return swapFolderPath;
+      } catch (err) {
+        throw err;
+      }
+
+    case LEGACY_GKO:
+      swapFolderPath = await importGko(filepath);
+      return swapFolderPath;
   }
 
-  const swapName = fullpathFilename(filepath);
-  const swapFolderPath = path.join(app.getPath("userData"), swapName );
-
-  try {
-    await makeBackup(filepath);
-    await swapFolderCheck(swapFolderPath);
-    await extractFile(filepath, swapFolderPath);
-    addFilepathToSwap(filepath, swapFolderPath);
-    return swapFolderPath;
-  } catch (err) {
-    throw err;
-  }
 }
 
 
@@ -342,22 +352,38 @@ const dateFormatString = "_YYYY-MM-DD_HH-mm-ss";
 
 
 
-
-
 /*
- * verifyFiletype : String -> Bool
- *
- * Verify that filepath points to a valid .gko file.
- * TODO: Handle legacy .gko files, and return correct handlers.
+ * Enum for file types.
+ * LEGACY_GKO is anything produced with version < 2.1.0
+ * GKO is produced starting at 2.2.0
  *
  */
 
-function verifyFiletype (filepath) {
+const LEGACY_GKO = "LEGACY_GKO";
+const GKO = "GKO";
+
+
+
+
+
+/*
+ * verifyFiletype : String -> ( GKO | LEGACY_GKO )
+ *
+ * Verify that filepath points to a validelectron-store/issues .gko file.
+ *
+ */
+
+async function determineFiletype (filepath) {
   const filetype = fileType(readChunk.sync(filepath, 0, 4100));
-  if(filetype.ext == "7z") {
-    return true;
-  } else {
-    return false;
+
+  if(!filetype) {
+    var dbLine = await firstline(filepath);
+    var dumpInfo= JSON.parse(dbLine);
+    if(dumpInfo.hasOwnProperty("db_info")) {
+      return LEGACY_GKO;
+    }
+  } else if(filetype.ext == "7z") {
+    return GKO;
   }
 }
 
@@ -568,20 +594,23 @@ function getFilepathFromSwap (swapFolderPath) {
 
 
 async function importGko(filepath) {
-  var dbLine = await firstline(filepath)
-  var dumpInfo= JSON.parse(dbLine)
-  const hash = crypto.createHash('sha1')
-  hash.update(dumpInfo.db_info.db_name + Date.now())
+  var dbLine = await firstline(filepath);
+  var dumpInfo= JSON.parse(dbLine);
+  const hash = crypto.createHash("sha1");
+  hash.update(dumpInfo.db_info.db_name + Date.now());
 
-  var dbName = hash.digest('hex')
-  var docName = path.basename(filepath, '.gko')
-  var dbPath = path.join(app.getPath('userData'), dbName)
-  var db = new PouchDB(dbPath)
+  var dbName = hash.digest("hex");
+  var swapFolderPath = path.join(app.getPath("userData"), dbName);
+  var dbPath = path.join(swapFolderPath, "leveldb");
 
-  var rs = fs.createReadStream(filepath)
-  await db.load(rs)
-  await db.close()
-  return { dbName : dbName, docName : docName }
+  await fs.ensureDir(dbPath);
+  new Store({name: "meta", cwd: swapFolderPath, defaults: { "version" : 1}});
+  var db = new PouchDB(dbPath);
+
+  var rs = fs.createReadStream(filepath);
+  await db.load(rs);
+  await db.close();
+  return swapFolderPath;
 }
 
 
