@@ -605,6 +605,7 @@ async function importGko(filepath) {
 
   await fs.ensureDir(dbPath);
   new Store({name: "meta", cwd: swapFolderPath, defaults: { "version" : 1}});
+  addFilepathToSwap(filepath, swapFolderPath);
   var db = new PouchDB(dbPath);
 
   var rs = fs.createReadStream(filepath);
