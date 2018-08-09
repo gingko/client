@@ -8,7 +8,7 @@ const Store = require('electron-store')
 const _ = require("lodash");
 import TurndownService from 'turndown'
 const windowStateKeeper = require('electron-window-state')
-const docList = require('./shared/db-mapping')
+const docList = require('./electron/doc-list')
 const fio = require('./electron/file-io')
 const getMenuTemplate = require("./electron/menu");
 const filenamify = require("filenamify");
@@ -19,7 +19,7 @@ const errorAlert = require('./shared/doc-helpers').errorAlert
 // be closed automatically when the JavaScript object is garbage collected.
 let documentWindows = []
 let docWindowMenuStates = {};
-let winTrial, winSerial, winHome, winRename
+let winTrial, winSerial, winHome;
 let _untitledDocs = 0
 let _hasLastExport = false
 let _menuQuit = false
@@ -130,41 +130,6 @@ function createDocumentWindow (swapFolderPath, originalPath, legacyFormat) {
       documentWindows.splice(index, 1)
     }
   })
-}
-
-
-function createRenameWindow(parentWindow, dbName, currentName, closeDocument) {
-  winRename = new BrowserWindow(
-  { width: 440
-  , height: 140
-  , resizable: false
-  , minimizable: false
-  , fullscreenable: false
-  , backgroundColor: 'lightgray'
-  , modal: true
-  , parent: parentWindow
-  , useContentSize: true
-  , show: false
-  })
-
-  winRename.once('ready-to-show', () => {
-    winRename.show()
-  })
-
-  winRename.on('closed', () => {
-    winRename = null;
-  })
-
-  var url = `file://${__dirname}/static/rename.html`
-  winRename.loadURL(url)
-
-  if (!!currentName) {
-    winRename.currentName = currentName;
-  } else {
-    winRename.currentName = "Untitled";
-  }
-  winRename.dbName = dbName;
-  winRename.closeDocument = closeDocument;
 }
 
 
@@ -596,12 +561,6 @@ ipcMain.on("home:open-other", async () => {
 });
 
 
-ipcMain.on('home:delete', async (event, dbToDelete) => {
-  await fio.destroyDb(dbToDelete)
-  await dbMapping.removeDb(dbToDelete)
-})
-
-
 ipcMain.on("app:close", async (event) => {
   let docWindow = BrowserWindow.fromWebContents(event.sender);
   let swapFolderPath = docWindow.swapFolderPath;
@@ -670,31 +629,6 @@ ipcMain.on("app:close", async (event) => {
   } catch (err) {
     throw err;
   }
-})
-
-
-ipcMain.on('app:rename-untitled', (event, dbName, currName, closeDocument) => {
-  createRenameWindow(BrowserWindow.fromWebContents(event.sender), dbName, currName, closeDocument)
-})
-
-
-ipcMain.on('rename:renamed', (event, dbName, newName, closeDocument) => {
-  let renameWindow = BrowserWindow.fromWebContents(event.sender);
-  let appWindow = renameWindow.getParentWindow();
-
-  dbMapping.renameDoc(dbName, newName)
-  appWindow.renameDoc(newName)
-
-  if (closeDocument) {
-    appWindow.destroy();
-  }
-})
-
-ipcMain.on('rename:delete-and-close', (event, dbToDelete) => {
-  let renameWindow = BrowserWindow.fromWebContents(event.sender);
-  let appWindow = renameWindow.getParentWindow();
-
-  appWindow.webContents.send('main:delete-and-close')
 })
 
 
