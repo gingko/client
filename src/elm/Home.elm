@@ -169,8 +169,8 @@ view { documents, archiveDropdown, currentTime } =
                             " ▾"
                    )
     in
-    div []
-        [ div [ id "template-block" ]
+    div [ id "container" ]
+        [ div [ id "templates-block" ]
             [ div [ class "template-item", onClick New ]
                 [ div [ classList [ ( "template-thumbnail", True ), ( "new", True ) ] ] []
                 , div [ class "template-title" ] [ text "Blank" ]
@@ -186,28 +186,23 @@ view { documents, archiveDropdown, currentTime } =
                 ]
             ]
         , div [ id "documents-block" ]
-            [ div
-                [ class "list-header", visibleWhen (numActive /= 0) ]
-                [ div [] [ text "Name" ]
-                , div [] [ text "Last Modified" ]
+            [ h4 [ class "list-section-header" ]
+                [ text "Recent Documents"
+                , span
+                    [ class "list-header", visibleWhen (numActive /= 0) ]
+                    [ div [] [ text "Last Modified" ]
+                    ]
                 ]
             , viewDocList currentTime "active" documents
-            , h4 [ onClick ToggleArchive, class "list-section-header" ] [ text <| archivedText archiveDropdown ]
-            , div [ visibleWhen (archiveDropdown && numArchived /= 0) ]
-                [ div
-                    [ class "list-header" ]
-                    [ div [] [ text "Name" ]
-                    , div [] [ text "Last Modified" ]
-                    ]
-                , viewDocList currentTime "archived" documents
-                ]
             ]
+        , div [ id "buttons-block" ]
+            [ button [ onClick OpenOther ] [ text "Open Other Documents" ] ]
         ]
 
 
 viewDocList : Time -> String -> Dict String Document -> Html Msg
 viewDocList currTime state docDict =
-    div [ class "document-list" ]
+    div [ classList [ ( "document-list", True ), ( state, True ) ] ]
         (docDict
             |> Dict.filter (\k v -> v.state == state)
             |> Dict.toList
@@ -259,8 +254,8 @@ viewDocumentItem currTime ( dbname, document ) =
 
                 _ ->
                     [ div
-                        [ onClickThis (SetState dbname "archived"), title "Archive document" ]
-                        [ Icon.archive Icon.defaultOptions ]
+                        [ onClickThis (SetState dbname "archived"), title "Remove From List" ]
+                        [ Icon.x Icon.defaultOptions ]
                     ]
     in
     div

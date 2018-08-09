@@ -1,6 +1,5 @@
 html, body {
   margin: 0;
-  overflow: hidden;
   box-sizing: border-box;
 }
 
@@ -20,20 +19,58 @@ label {
   font: caption;
 }
 
-.visible {
-  display: unset;
-}
-.hidden {
-  display: none!important;
+
+*::-webkit-scrollbar {
+  width: 10px;
 }
 
-#template-block {
+*::-webkit-scrollbar-track {
+  background: #ddd;
+  border-radius: 20px;
+  box-shadow: inset 1px 0px 2px 0px rgba(0,0,0,0.3);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #61808e;
+  border-radius: 20px;
+  border-top: 1px solid #8499a2;
+  border-bottom: 1px solid #566e78;
+}
+
+#container {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 169px 1fr 90px;
+  grid-gap: 0px 0px;
+  grid-template-areas: "header" "lists" "footer";
+}
+
+#templates-block {
+  grid-area: header;
   background-color: hsl(219, 13%, 21%);
   padding: 20px;
   box-shadow: inset 0px -2px 4px hsla(0,0%,0%,0.4);
   display: flex;
   color: hsl(0,0%,94%);
 }
+
+#documents-block {
+  grid-area: lists;
+  padding: 10px 15px;
+  overflow-y: auto;
+}
+
+#buttons-block {
+  display: flex;
+  justify-content: flex-end;
+  grid-area: footer;
+  background-color: #477085;
+  padding: 10px 20px;
+}
+
 
 .template-item {
   cursor: pointer;
@@ -76,36 +113,38 @@ label {
   align-items: center;
 }
 
-#documents-block {
-  position: absolute;
-  padding: 10px 20px;
-  width: 100%;
-  height: calc(100% - 169px);
-  overflow-y: auto;
-}
-
 .list-section-header {
-  color: hsl(221, 32%, 77%);
-  margin-left: 20px;
-  margin-bottom: 5px;
+  color: hsl(221, 44%, 88%);
+  display: flex;
+  margin-bottom: 8px;
+  padding-right: 80px;
+  justify-content: space-between;
+  align-items: baseline;
 }
 
 .list-header {
-  display: flex;
-  justify-content: space-between;
-  padding: 5px 20px;
-  padding-right: 56px;
-  margin-top: 10px;
   color: hsl(221, 32%, 77%);
   font-size: 80%;
+  font-weight: normal;
+}
+
+.document-list {
+  max-height: 274px;
+  overflow-y: auto;
+  padding: 15px;
+  background: hsl(200, 32%, 34%);
+  box-shadow: inset 2px 2px 2px rgba(0,0,0,0.2);
+}
+
+.document-list.archived {
+  max-height: 138px;
 }
 
 .document-item {
     display: flex;
     justify-content: space-between;
     background: hsl(0, 1%, 90%);
-    padding: 10px 20px;
-    padding-right: 10px;
+    padding: 10px;
     margin-bottom: 4px;
     cursor: pointer;
     box-shadow: 1px 0px 2px hsla(0,0%,0%,0.4);
@@ -129,10 +168,6 @@ label {
   margin-right: 10px;
 }
 
-.doc-buttons {
-  min-width: 36px;
-  display: flex;
-}
 .doc-buttons * {
   width: 18px;
 }
