@@ -34,6 +34,9 @@ home.ports.forJS.subscribe(function(elmdata) {
     case "Load":
       ipcRenderer.send('home:load', elmdata.data[0], elmdata.data[1])
       break;
+    case "OpenOther":
+      ipcRenderer.send("home:open-other");
+      break;
     case "SetState":
       dbMapping.setState(elmdata.data[0], elmdata.data[1])
       break;
