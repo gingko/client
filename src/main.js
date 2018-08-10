@@ -585,14 +585,15 @@ ipcMain.on("app:close", async (event) => {
         { title: "Save To File"
         , type: "info"
         , message:
-            [ "A previous version of Gingko saved documents to an internal folder."
-            , "This led to much confusion, and less control. Sorry!",
+            [ "A past version of Gingko saved this document to an internal folder."
+            , "This led to much confusion, and less control."
+            , "Sorry!"
             , ""
             , "Choose a new location for this document."
             ].join("\n")
         , buttons: ["Cancel", "Keep in Legacy Format", "Save As File"]
         , defaultId: 2
-        }
+        };
       let choice = dialog.showMessageBox(legacyOptions);
 
       switch (choice) {
