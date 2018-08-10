@@ -536,6 +536,7 @@ ipcMain.on("home:open", async (event, dbToLoad, docName) => {
   if (/^[a-f0-9]{40}$/i.test(dbToLoad)) {
     const swapPath = path.join(app.getPath("userData"), dbToLoad);
     createDocumentWindow(swapPath, null, { "name": docName, "dbname" : dbToLoad });
+    await addToRecentDocuments(dbToLoad);
     winHome.close();
   } else if (path.isAbsolute(dbToLoad) && fs.pathExistsSync(dbToLoad)) {
     await openDocument(dbToLoad);
