@@ -90,7 +90,12 @@ function createDocumentWindow (swapFolderPath, originalPath, legacyFormat) {
   // Add swapFolderPath variable to BrowserWindow object,
   // so it can be accessed elsewhere in main.js
   win.swapFolderPath = swapFolderPath;
-  win.originalPath = originalPath || legacyFormat.dbname;
+
+  if (legacyFormat) {
+    win.originalPath = legacyFormat.dbname;
+  } else {
+    win.originalPath = originalPath;
+  }
 
   // Add dbPath variable to BrowserWindow object,
   // so that it can load from the database as soon as
@@ -219,10 +224,6 @@ ipcMain.on("doc:set-changed", (event, changed) => {
     buildMenu(menuState);
   }
 
-  if (!changed) {
-    docList.setModified(win.originalPath);
-  }
-
   win.setDocumentEdited(changed);
 
   if(changed && !currentTitle.startsWith("*")) {
@@ -230,7 +231,7 @@ ipcMain.on("doc:set-changed", (event, changed) => {
   } else if (!changed) {
     win.setTitle(currentTitle.replace(/^\*/, ""));
   }
-})
+});
 
 
 
