@@ -313,7 +313,7 @@ async function openDocument(filepath) {
   try {
     let swapFolderPath = await fio.openFile(filepath);
     createDocumentWindow(swapFolderPath, filepath);
-    addToRecentDocuments(filepath);
+    await addToRecentDocuments(filepath);
     return filepath;
   } catch (err) {
 
@@ -374,7 +374,6 @@ async function openDocument(filepath) {
 async function saveDocument (docWindow) {
   try {
     const filepath = await fio.saveSwapFolder(docWindow.swapFolderPath);
-    app.addRecentDocument(filepath);
     return filepath;
   } catch (err) {
     throw err;
@@ -409,7 +408,7 @@ async function saveDocumentAs (docWindow) {
     try {
       const newSwapFolderPath = await fio.saveSwapFolderAs(docWindow.swapFolderPath, newFilepath);
       docWindow.swapFolderPath = newSwapFolderPath;
-      app.addRecentDocument(newFilepath);
+      await addToRecentDocuments(newFilepath);
       docWindow.setTitle(`${path.basename(newFilepath)} - Gingko`);
       docWindow.webContents.send("main:set-swap-folder", newSwapFolderPath);
       return { "filepath" : newFilepath, "swapFolderPath" : newSwapFolderPath };
