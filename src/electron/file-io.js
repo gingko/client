@@ -594,6 +594,7 @@ function getFilepathFromSwap (swapFolderPath) {
 
 
 async function importGko(filepath) {
+  await makeBackup(filepath);
   var dbLine = await firstline(filepath);
   var dumpInfo= JSON.parse(dbLine);
   const hash = crypto.createHash("sha1");
