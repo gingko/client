@@ -469,8 +469,14 @@ async function saveLegacyDocumentAs (docWindow) {
  */
 
 async function addToRecentDocuments (filepath) {
-  await docList.addFileToDocList(filepath);
-  app.addRecentDocument(filepath);
+  try {
+    await docList.addFileToDocList(filepath);
+    await docList.setOpened(filepath);
+    app.addRecentDocument(filepath);
+  } catch (err) {
+    dialog.showMessageBox(errorAlert("Recent Documents Error", `Couldn't add ${filepath} to recent documents list`, err));
+    return;
+  }
 }
 
 

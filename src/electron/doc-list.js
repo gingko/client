@@ -33,7 +33,7 @@ docList.deleteNoDot = function (key) {
  * addFileToDocList : String -> String
  *
  * Given a filepath
- * Add it to the list of "Recent Documents".
+ * Add it to the list of "Recent Documents" if it doesn't exist.
  */
 
 async function addFileToDocList (filepath) {
@@ -103,6 +103,26 @@ function getDocList() {
 
 
 /**
+ * setOpened set the last_opened field of a document for a given key
+ *
+ */
+
+function setOpened( dbname, openedDate ) {
+  if(docList.hasNoDot(dbname)) {
+    openedDate = openedDate || (new Date());
+    let openedDateString = openedDate.toJSON();
+
+    let currentDoc = docList.getNoDot(dbname);
+
+    if(currentDoc.last_opened !== openedDateString) {
+      currentDoc.last_opened = openedDateString;
+      docList.setNoDot(dbname, currentDoc);
+    }
+  }
+}
+
+
+/**
  * setModified sets the last_modified field of a document for a given database key
  * @param {string} dbname - database name used as key in document-list
  * @param {Date} [modifiedDate] - date to use in last_modified field
@@ -155,6 +175,7 @@ module.exports =
   { addFileToDocList : addFileToDocList
   , newDb : newDb
   , getDocList : getDocList
+  , setOpened : setOpened
   , setModified : setModified
   , setState : setState
   , removeDb : removeDb
