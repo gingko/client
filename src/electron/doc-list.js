@@ -1,5 +1,6 @@
 const fs = require("fs-extra");
 const path = require("path");
+const _ = require("lodash");
 const Store = require('electron-store')
 const sha1 = require('sha1')
 const machineIdSync = require('node-machine-id').machineIdSync
@@ -47,6 +48,7 @@ async function addFileToDocList (filepath) {
     , "state" : "active"
     , "created_at" : (new Date(fileStats.birthtime)).toJSON()
     , "last_modified" : (new Date(fileStats.mtime)).toJSON()
+    , "last_opened" : (new Date()).toJSON()
     };
 
   docList.setNoDot(filepath, newDocument);
@@ -90,7 +92,12 @@ function newDb( dbName , docName ) {
 function getDocList() {
   let docObject = docList.store;
   var keys = Object.keys(docObject);
-  var theList = keys.map((k) => { return [k, docObject[k]]; });
+  var theList = keys.map((k) => {
+    if (!_.has(docObject[k], "last_opened") && _.has(docObject[k], "last_modified")) {
+      _.set(docObject[k], "last_opened", docObject[k].last_modified);
+    }
+    return [k, docObject[k]];
+  });
   return theList;
 }
 

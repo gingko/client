@@ -40,6 +40,7 @@ type alias Document =
     , state : String
     , created_at : String
     , last_modified : String
+    , last_opened : String
     }
 
 
@@ -49,6 +50,7 @@ defaultDocument =
     , state = "active"
     , created_at = ""
     , last_modified = ""
+    , last_opened = ""
     }
 
 
@@ -206,7 +208,7 @@ viewDocList currTime state docDict =
         (docDict
             |> Dict.filter (\k v -> v.state == state)
             |> Dict.toList
-            |> List.sortBy (\( k, v ) -> v.last_modified)
+            |> List.sortBy (\( k, v ) -> v.last_opened)
             |> List.reverse
             |> List.map (viewDocumentItem currTime)
         )
