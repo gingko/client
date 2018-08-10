@@ -192,7 +192,7 @@ view { documents, archiveDropdown, currentTime } =
                 [ text "Recent Documents"
                 , span
                     [ class "list-header", visibleWhen (numActive /= 0) ]
-                    [ div [] [ text "Last Modified" ]
+                    [ div [] [ text "Last Opened" ]
                     ]
                 ]
             , viewDocList currentTime "active" documents
@@ -223,25 +223,25 @@ viewDocumentItem currTime ( dbname, document ) =
         nowDate =
             Date.fromTime currTime
 
-        modDate =
-            document.last_modified
+        openedDate =
+            document.last_opened
                 |> DateExtra.fromIsoString
                 |> Maybe.withDefault (DateExtra.fromCalendarDate 2000 Jan 1)
 
-        modString =
-            modDate |> DateExtra.toFormattedString "YYYY-MM-dd, HH:mm"
+        openedString =
+            openedDate |> DateExtra.toFormattedString "YYYY-MM-dd, HH:mm"
 
         relativeString =
             DateDist.inWords
                 nowDate
-                modDate
+                openedDate
                 ++ " ago"
 
         ( titleString, dateString ) =
-            if DateExtra.diff DateExtra.Day modDate nowDate <= 2 then
-                ( modString, relativeString )
+            if DateExtra.diff DateExtra.Day openedDate nowDate <= 2 then
+                ( openedString, relativeString )
             else
-                ( relativeString, modString )
+                ( relativeString, openedString )
 
         buttons =
             case document.state of
@@ -263,7 +263,7 @@ viewDocumentItem currTime ( dbname, document ) =
     div
         [ class "document-item", onClick (Open dbname document.name) ]
         [ div [ class "doc-title" ] [ text (document.name |> Maybe.withDefault "Untitled") ]
-        , div [ class "doc-modified", title titleString ] [ text dateString ]
+        , div [ class "doc-opened", title titleString ] [ text dateString ]
         , div [ class "doc-buttons" ] buttons
         ]
 
