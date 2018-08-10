@@ -69,7 +69,7 @@ type Msg
     = NoOp
     | New
     | Import
-    | Load String (Maybe String)
+    | Open String (Maybe String)
     | OpenOther
     | SetState String String
     | Delete String
@@ -87,13 +87,13 @@ update msg model =
         Import ->
             model ! [ forJS { tag = "ImportGko", data = null } ]
 
-        Load dbname docName_ ->
+        Open dbname docName_ ->
             let
                 data =
                     [ string dbname, maybeToValue string docName_ ]
                         |> Json.list
             in
-            model ! [ forJS { tag = "Load", data = data } ]
+            model ! [ forJS { tag = "Open", data = data } ]
 
         OpenOther ->
             model ! [ forJS { tag = "OpenOther", data = null } ]
@@ -259,7 +259,7 @@ viewDocumentItem currTime ( dbname, document ) =
                     ]
     in
     div
-        [ class "document-item", onClick (Load dbname document.name) ]
+        [ class "document-item", onClick (Open dbname document.name) ]
         [ div [ class "doc-title" ] [ text (document.name |> Maybe.withDefault "Untitled") ]
         , div [ class "doc-modified", title titleString ] [ text dateString ]
         , div [ class "doc-buttons" ] buttons

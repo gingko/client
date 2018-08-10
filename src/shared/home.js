@@ -31,8 +31,8 @@ home.ports.forJS.subscribe(function(elmdata) {
     case "ImportGko":
       ipcRenderer.send('home:import-file')
       break;
-    case "Load":
-      ipcRenderer.send('home:load', elmdata.data[0], elmdata.data[1])
+    case "Open":
+      ipcRenderer.send('home:open', elmdata.data[0], elmdata.data[1])
       break;
     case "OpenOther":
       ipcRenderer.send("home:open-other");

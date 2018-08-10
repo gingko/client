@@ -527,7 +527,7 @@ ipcMain.on('home:import-file', async (event) => {
 })
 
 
-ipcMain.on("home:load", async (event, dbToLoad, docName) => {
+ipcMain.on("home:open", async (event, dbToLoad, docName) => {
   if (/^[a-f0-9]{40}$/i.test(dbToLoad)) {
     const swapPath = path.join(app.getPath("userData"), dbToLoad);
     createDocumentWindow(swapPath, null, { "name": docName, "dbname" : dbToLoad });
