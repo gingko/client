@@ -168,6 +168,7 @@ function buildMenu (menuState) {
   let handlers =
     { new : newUntitled
     , open : openWithDialog
+    , openRecent : (rdoc) => openDocumentOrFolder(rdoc.location, rdoc.name)
     , openHome : createHomeWindow
     , save : (item, focusedWindow) => focusedWindow.webContents.send("menu-save")
     , saveAs : async (item, focusedWindow) => {
@@ -317,6 +318,22 @@ async function openWithDialog() {
 
   if(Array.isArray(filepaths) && !!filepaths[0]) {
     return await openDocument(filepaths[0]);
+  }
+}
+
+
+async function openDocumentOrFolder(dbToLoad, docName) {
+  if (/^[a-f0-9]{40}$/i.test(dbToLoad)) {
+    const swapPath = path.join(app.getPath("userData"), dbToLoad);
+    createDocumentWindow(swapPath, null, { "name": docName, "dbname" : dbToLoad });
+    await addToRecentDocuments(dbToLoad);
+    return true;
+  } else if (path.isAbsolute(dbToLoad) && fs.pathExistsSync(dbToLoad)) {
+    await openDocument(dbToLoad);
+    return true;
+  } else {
+    docList.removeDb(dbToLoad);
+    return false;
   }
 }
 
@@ -545,13 +562,9 @@ ipcMain.on('home:import-file', async (event) => {
 
 
 ipcMain.on("home:open", async (event, dbToLoad, docName) => {
-  if (/^[a-f0-9]{40}$/i.test(dbToLoad)) {
-    const swapPath = path.join(app.getPath("userData"), dbToLoad);
-    createDocumentWindow(swapPath, null, { "name": docName, "dbname" : dbToLoad });
-    await addToRecentDocuments(dbToLoad);
-    winHome.close();
-  } else if (path.isAbsolute(dbToLoad) && fs.pathExistsSync(dbToLoad)) {
-    await openDocument(dbToLoad);
+  let didOpen = await openDocumentOrFolder(dbToLoad, docName);
+
+  if(didOpen) {
     winHome.close();
   } else {
     docList.removeDb(dbToLoad);

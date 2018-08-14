@@ -61,7 +61,7 @@ function fileMenu (isDocument, isNew, isChanged, columnNumber, hasLastExport, re
 
   let recentDocsMenu =
     recentDocumentList.map(rdoc => {
-      return { label : rdoc.name, click : () => { handlers.openRecent(rdoc.location); }};
+      return { label : rdoc.name, click : () => { handlers.openRecent(rdoc); }};
     });
 
   recentDocsMenu = recentDocsMenu.slice(0,20);
