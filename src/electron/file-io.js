@@ -623,6 +623,13 @@ async function importJSON(filepath) {
   hash.update(data + Date.now())
   var dbName = hash.digest('hex')
   var docName = path.basename(filepath, '.json')
+  var swapFolderPath = path.join(app.getPath("userData"), dbName);
+  var dbPath = path.join(swapFolderPath, "leveldb");
+
+  await fs.ensureDir(dbPath);
+  new Store({name: "meta", cwd: swapFolderPath, defaults: { "version" : 1}});
+  var db = new PouchDB(dbPath);
+  db.close();
 
   let nextId = 1
 
@@ -642,7 +649,7 @@ async function importJSON(filepath) {
         , children: seed
         }
 
-  return { dbName : dbName, docName : docName , jsonImportData : newRoot };
+  return { swapFolderPath : swapFolderPath, docName : docName , jsonImportData : newRoot };
 }
 
 

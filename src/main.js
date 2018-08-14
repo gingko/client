@@ -61,7 +61,7 @@ function createHomeWindow () {
 }
 
 
-function createDocumentWindow (swapFolderPath, originalPath, legacyFormat) {
+function createDocumentWindow (swapFolderPath, originalPath, legacyFormat, jsonImportData) {
   let mainWindowState = windowStateKeeper(
     { defaultWidth: 1000
     , defaultHeight: 800
@@ -82,7 +82,13 @@ function createDocumentWindow (swapFolderPath, originalPath, legacyFormat) {
 
   documentWindows.push(win);
   docWindowMenuStates[win.id] =
-    { "editMode": false, "columnNumber" : 1 , "changed" : false, "hasLastExport" : false, "isNew": !originalPath, "recentDocumentList": docList.getRecentDocs() };
+    { "editMode": false
+    , "columnNumber" : 1
+    , "changed" : !!jsonImportData
+    , "hasLastExport" : false
+    , "isNew": !originalPath || jsonImportData
+    , "recentDocumentList": docList.getRecentDocs()
+    };
 
   mainWindowState.manage(win);
 
@@ -118,7 +124,7 @@ function createDocumentWindow (swapFolderPath, originalPath, legacyFormat) {
     _untitledDocs += 1;
   }
   win.setTitle(newTitle);
-  //win.jsonImportData = jsonImportData;
+  win.jsonImportData = jsonImportData;
 
   var url = `file://${__dirname}/static/index.html`
   win.loadURL(url)
@@ -178,6 +184,7 @@ function buildMenu (menuState) {
       focusedWinMenuState.isNew = false;
       buildMenu(focusedWinMenuState);
     }
+    , import : importDocument
     , quit : () => { _menuQuit = true; app.quit(); }
     , enterLicense : (item, focusedWindow) => createSerialWindow(focusedWindow, false)
     };
@@ -391,6 +398,28 @@ async function openDocument(filepath) {
 
 
 
+async function importDocument() {
+  var options =
+      { title: "Open File..."
+      , defaultPath: app.getPath("documents")
+      , properties: ["openFile"]
+      , filters:  [ {name: "Gingko JSON Files (*.json)", extensions: ["json"]}
+                  , {name: "All Files", extensions: ["*"]}
+                  ]
+      };
+
+  var filepathArray = dialog.showOpenDialog(winHome, options);
+
+  if(filepathArray) {
+    let { swapFolderPath, jsonImportData } = await fio.dbFromFile(filepathArray[0]);
+    createDocumentWindow(swapFolderPath, null, null, jsonImportData);
+    return true;
+  }
+}
+
+
+
+
 /*
  * saveDocument : BrowserWindow -> Promise String Error
  *
@@ -536,27 +565,9 @@ ipcMain.on('home:new', async (event) => {
 
 
 ipcMain.on('home:import-file', async (event) => {
-  var options =
-      { title: 'Open File...'
-      , defaultPath: app.getPath('documents')
-      , properties: ['openFile']
-      , filters:  [ {name: 'Gingko Desktop Files (*.gko)', extensions: ['gko']}
-                  , {name: 'Gingko JSON Files (*.json)', extensions: ['json']}
-                  , {name: 'All Files', extensions: ['*']}
-                  ]
-      }
-
-  var filepathArray = dialog.showOpenDialog(winHome, options)
-  if (!!filepathArray) {
-    try {
-      var { dbName, docName, jsonImportData } = await fio.dbFromFile(filepathArray[0])
-    } catch (err) {
-      dialog.showMessageBox(errorAlert("Import Error", "Couldn't load .gko data", err))
-      return;
-    }
-    dbMapping.newDb(dbName, docName)
-    createDocumentWindow(dbName, docName, jsonImportData)
-    winHome.close()
+  let didImport = await importDocument();
+  if (didImport) {
+    winHome.close();
   }
 })
 

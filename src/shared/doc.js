@@ -351,7 +351,6 @@ ipcRenderer.on("main:set-swap-folder", (e, newSwapFolder) => {
 
 
 ipcRenderer.on("menu-close-document", () => toElm("IntentExit", null));
-ipcRenderer.on("menu-import-json", () => toElm("IntentImport", null));
 ipcRenderer.on("menu-save", () => toElm("IntentSave", null ));
 ipcRenderer.on("menu-export-docx", () => intentExportToElm("docx", "all", null));
 ipcRenderer.on("menu-export-docx-current", () => intentExportToElm("docx", "current", null));

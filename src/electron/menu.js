@@ -93,7 +93,7 @@ function fileMenu (isDocument, isNew, isChanged, columnNumber, hasLastExport, re
       }
     , { type: "separator" }
     , { label: "Import JSON File..."
-      , click : (item, focusedWindow) => focusedWindow.webContents.send("menu-import-json")
+      , click : handlers.import
       }
     ];
 
