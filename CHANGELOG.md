@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
+## [2.2.0] - 2018-08-14
+  - (Major) Autosave to files, instead of internal folder
+
 ## [2.1.5] - 2018-07-19
   - Added Search & Filtering
 
