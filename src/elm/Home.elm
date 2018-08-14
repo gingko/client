@@ -179,12 +179,9 @@ view { documents, archiveDropdown, currentTime } =
                 ]
             , div [ class "template-item", onClick Import ]
                 [ div [ classList [ ( "template-thumbnail", True ), ( "import", True ) ] ] [ Icon.file (Icon.defaultOptions |> Icon.size 48) ]
-                , div [ class "template-title" ] [ text "Import From File" ]
+                , div [ class "template-title" ] [ text "Import JSON" ]
                 , div [ class "template-description" ]
-                    [ text "From Desktop or Online"
-                    , br [] []
-                    , text "(.gko or .json)"
-                    ]
+                    [ text "From Desktop or Online" ]
                 ]
             ]
         , div [ id "documents-block" ]
@@ -198,7 +195,9 @@ view { documents, archiveDropdown, currentTime } =
             , viewDocList currentTime "active" documents
             ]
         , div [ id "buttons-block" ]
-            [ button [ onClick OpenOther ] [ text "Open Other Documents" ] ]
+            [ div [ onClick OpenOther, class "document-item" ]
+                [ text "Open Other Documents" ]
+            ]
         ]
 
 

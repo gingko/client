@@ -45,7 +45,7 @@ function createHomeWindow () {
   // Create the browser window.
   winHome = new BrowserWindow(
     { width: 800
-    , height: 722
+    , height: 600
     , backgroundColor: '#477085'
     , icon: `${__dirname}/static/leaf128.png`
     })
