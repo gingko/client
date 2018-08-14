@@ -3,13 +3,15 @@ const { shell } = require("electron");
 
 function getTemplate (menuState, handlers, isMac) {
   let isDocument = !!menuState;
+  let isNew = menuState && menuState.isNew;
   let isEditing = menuState && menuState.editMode;
   let columnNumber = menuState && menuState.columnNumber;
   let changed = menuState && menuState.changed;
   let hasLastExport = menuState && menuState.hasLastExport;
+  let recentDocumentList = ( menuState && menuState.recentDocumentList ) || [];
 
   let menuTemplate =
-    [ fileMenu(isDocument, changed, columnNumber, hasLastExport, handlers)
+    [ fileMenu(isDocument, isNew, changed, columnNumber, hasLastExport, recentDocumentList, handlers)
     , editMenu(isDocument, isEditing, isMac)
     , viewMenu(isDocument)
     , helpMenu(handlers, isMac)
@@ -38,7 +40,7 @@ function getTemplate (menuState, handlers, isMac) {
     menuTemplate.splice(4, 0, { role: "windowMenu"});
   } else {
     let closeMenuItem = { label : "Close", accelerator: "Ctrl+W", click : function (item, focusedWindow) { focusedWindow.webContents.send("menu-close-document"); }};
-    menuTemplate[0].submenu.splice(4, 0, closeMenuItem);
+    menuTemplate[0].submenu.splice(5, 0, closeMenuItem);
     menuTemplate[0].submenu.push({type: "separator"}, {role: "quit"} );
   }
 
@@ -54,8 +56,14 @@ module.exports = getTemplate;
 /* PRIVATE FUNCTIONS */
 
 
-function fileMenu (isDocument, isChanged, columnNumber, hasLastExport, handlers) {
+function fileMenu (isDocument, isNew, isChanged, columnNumber, hasLastExport, recentDocumentList, handlers) {
   let _fileMenu;
+
+  let recentDocsMenu =
+    recentDocumentList.map(rdoc => {
+      return { label : rdoc.name, click : () => { handlers.openRecent(rdoc.location); }};
+    });
+
 
   let _subMenu =
     [ { label : "New"
@@ -66,10 +74,14 @@ function fileMenu (isDocument, isChanged, columnNumber, hasLastExport, handlers)
       , accelerator: "CmdOrCtrl+O"
       , click: handlers.open
       }
-    , { label: isChanged ? "Save" : "Saved"
-      , enabled: isChanged
+    , { label: "Open Recent"
+      , enabled : (recentDocumentList.lenght > 0)
+      , submenu : recentDocsMenu
+      }
+    , { label: (isNew ? "Save" : (isChanged ? "Save" : "Saved"))
+      , enabled: isNew || isChanged
       , accelerator: "CmdOrCtrl+S"
-      , click : handlers.save
+      , click : isChanged ? handlers.save : handlers.saveAs
       }
     , { label: "Save As"
       , accelerator: "CmdOrCtrl+Shift+S"

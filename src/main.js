@@ -82,7 +82,7 @@ function createDocumentWindow (swapFolderPath, originalPath, legacyFormat) {
 
   documentWindows.push(win);
   docWindowMenuStates[win.id] =
-    { "editMode": false, "columnNumber" : 1 , "changed" : false, "hasLastExport" : false };
+    { "editMode": false, "columnNumber" : 1 , "changed" : false, "hasLastExport" : false, "isNew": !originalPath };
 
   mainWindowState.manage(win);
 
@@ -164,8 +164,15 @@ function buildMenu (menuState) {
   let handlers =
     { new : newUntitled
     , open : openWithDialog
+    , openHome : createHomeWindow
     , save : (item, focusedWindow) => focusedWindow.webContents.send("menu-save")
-    , saveAs : (item, focusedWindow) => saveDocumentAs(focusedWindow)
+    , saveAs : async (item, focusedWindow) => {
+      let { filepath } = await saveDocumentAs(focusedWindow);
+      focusedWindow.originalPath = filepath;
+      let focusedWinMenuState = docWindowMenuStates[focusedWindow.id];
+      focusedWinMenuState.isNew = false;
+      buildMenu(focusedWinMenuState);
+    }
     , quit : () => { _menuQuit = true; app.quit(); }
     , enterLicense : (item, focusedWindow) => createSerialWindow(focusedWindow, false)
     };
