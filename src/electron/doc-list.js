@@ -102,6 +102,23 @@ function getDocList() {
 }
 
 
+
+function getRecentDocs() {
+  let docObject = docList.store;
+  _.remove(docObject, d => d.state !== "active");
+
+  let keys = Object.keys(docObject);
+  let theList = keys.map((k) => {
+    if (!_.has(docObject[k], "last_opened") && _.has(docObject[k], "last_modified")) {
+      _.set(docObject[k], "last_opened", docObject[k].last_modified);
+    }
+    return { location: k, name: docObject[k].name, last_opened: docObject[k].last_opened };
+  });
+
+  return _.sortBy(theList, "last_opened").reverse();
+}
+
+
 /**
  * setOpened set the last_opened field of a document for a given key
  *
@@ -175,6 +192,7 @@ module.exports =
   { addFileToDocList : addFileToDocList
   , newDb : newDb
   , getDocList : getDocList
+  , getRecentDocs : getRecentDocs
   , setOpened : setOpened
   , setModified : setModified
   , setState : setState

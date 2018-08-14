@@ -82,7 +82,7 @@ function createDocumentWindow (swapFolderPath, originalPath, legacyFormat) {
 
   documentWindows.push(win);
   docWindowMenuStates[win.id] =
-    { "editMode": false, "columnNumber" : 1 , "changed" : false, "hasLastExport" : false, "isNew": !originalPath };
+    { "editMode": false, "columnNumber" : 1 , "changed" : false, "hasLastExport" : false, "isNew": !originalPath, "recentDocumentList": docList.getRecentDocs() };
 
   mainWindowState.manage(win);
 
@@ -161,6 +161,10 @@ function validSerial(email, storedSerial) {
 /* ==== Menu ==== */
 
 function buildMenu (menuState) {
+  if (menuState) {
+    menuState.recentDocumentList = docList.getRecentDocs();
+  }
+
   let handlers =
     { new : newUntitled
     , open : openWithDialog

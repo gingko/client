@@ -40,7 +40,7 @@ function getTemplate (menuState, handlers, isMac) {
     menuTemplate.splice(4, 0, { role: "windowMenu"});
   } else {
     let closeMenuItem = { label : "Close", accelerator: "Ctrl+W", click : function (item, focusedWindow) { focusedWindow.webContents.send("menu-close-document"); }};
-    menuTemplate[0].submenu.splice(5, 0, closeMenuItem);
+    menuTemplate[0].submenu.splice(3, 0, closeMenuItem);
     menuTemplate[0].submenu.push({type: "separator"}, {role: "quit"} );
   }
 
@@ -64,6 +64,10 @@ function fileMenu (isDocument, isNew, isChanged, columnNumber, hasLastExport, re
       return { label : rdoc.name, click : () => { handlers.openRecent(rdoc.location); }};
     });
 
+  recentDocsMenu = recentDocsMenu.slice(0,20);
+  recentDocsMenu.push({ type: "separator" });
+  recentDocsMenu.push({ label: "Show Complete List...", click: handlers.openHome });
+
 
   let _subMenu =
     [ { label : "New"
@@ -75,9 +79,9 @@ function fileMenu (isDocument, isNew, isChanged, columnNumber, hasLastExport, re
       , click: handlers.open
       }
     , { label: "Open Recent"
-      , enabled : (recentDocumentList.lenght > 0)
       , submenu : recentDocsMenu
       }
+    , { type: "separator" }
     , { label: (isNew ? "Save" : (isChanged ? "Save" : "Saved"))
       , enabled: isNew || isChanged
       , accelerator: "CmdOrCtrl+S"
