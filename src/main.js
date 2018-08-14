@@ -189,7 +189,7 @@ function buildMenu (menuState) {
     , enterLicense : (item, focusedWindow) => createSerialWindow(focusedWindow, false)
     };
 
-  let menuTemplate = getMenuTemplate(menuState, handlers);
+  let menuTemplate = getMenuTemplate(menuState, handlers, process.platform === "darwin");
   let menu = Menu.buildFromTemplate(menuTemplate);
   Menu.setApplicationMenu(menu);
 }
@@ -304,6 +304,10 @@ app.on('ready', () => {
       }
     }
   }
+
+  app.on("open-file", (ev, path) => {
+    openDocument(path);
+  });
 
   buildMenu();
 })

@@ -74,7 +74,7 @@ function fileMenu (isDocument, isNew, isChanged, columnNumber, hasLastExport, re
       , accelerator : "CmdOrCtrl+N"
       , click : handlers.new
       }
-    , { label: "Open File..."
+    , { label: "Open..."
       , accelerator: "CmdOrCtrl+O"
       , click: handlers.open
       }
