@@ -312,12 +312,6 @@ app.on('ready', () => {
 app.on("will-finish-launching", () => {
   app.on("open-file", (ev, path) => {
     ev.preventDefault();
-    let openNotification = new Notification(
-      { title: `The file ${path} will open now.`
-      , body: "Yay!"
-      });
-
-    openNotification.show();
     openDocument(path);
   });
 });
