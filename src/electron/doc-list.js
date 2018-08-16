@@ -105,17 +105,20 @@ function getDocList() {
 
 function getRecentDocs() {
   let docObject = docList.store;
-  _.remove(docObject, d => d.state !== "active");
 
   let keys = Object.keys(docObject);
   let theList = keys.map((k) => {
+    if(docObject[k].state !== "active") {
+      return false;
+    }
+
     if (!_.has(docObject[k], "last_opened") && _.has(docObject[k], "last_modified")) {
       _.set(docObject[k], "last_opened", docObject[k].last_modified);
     }
     return { location: k, name: docObject[k].name, last_opened: docObject[k].last_opened };
   });
 
-  return _.sortBy(theList, "last_opened").reverse();
+  return _.sortBy(theList, "last_opened").reverse().filter(x => !!x);
 }
 
 
