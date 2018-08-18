@@ -55,6 +55,11 @@ var docWindow = remote.getCurrentWindow()
 var jsonImportData = docWindow.jsonImportData;
 
 self.db = new PouchDB(docWindow.dbPath);
+ipcRenderer.on("database-close", async (ev) => {
+  console.log("before close from msg");
+  await db.close();
+  console.log("after close from msg");
+})
 
 if(!!jsonImportData) {
   var initFlags =
@@ -345,7 +350,7 @@ function intentExportToElm ( format, selection, filepath) {
   toElm("IntentExport", { format: format, selection : selection, filepath: filepath} );
 }
 
-ipcRenderer.on("main:set-swap-folder", (e, newSwapFolder) => {
+ipcRenderer.on("main:set-swap-folder", async (e, newSwapFolder) => {
   self.db = new PouchDB(path.join(newSwapFolder, "leveldb"));
 });
 
@@ -576,7 +581,8 @@ self.saveToDB = (status, objects) => {
       if (head.ok) {
         resolve(head.rev)
       } else {
-        reject(new Error('Reference error when saving to DB.'))
+        console.log(responses);
+        reject(new Error(`Reference error when saving to DB.\n${head}`))
         return;
       }
     })

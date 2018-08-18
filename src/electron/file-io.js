@@ -13,7 +13,6 @@ const moment = require("moment");
 const Store = require("electron-store");
 const readChunk = require("read-chunk");
 const fileType = require("file-type");
-const globby = require("globby");
 const GingkoError  = require("../shared/errors");
 
 const PouchDB = require('pouchdb');
@@ -399,7 +398,7 @@ async function determineFiletype (filepath) {
  */
 
 function fullpathFilename (filepath, extension) {
-  return filepath.split(path.sep).join("%").replace(extension,"");
+  return filepath.split(path.sep).join("%").replace(extension,"").replace(":","%");
 }
 
 
@@ -490,11 +489,12 @@ async function swapCopy (originalSwapFolderPath, newFilepath, isLegacy) {
 
   try {
     await swapFolderCheck(newSwapFolderPath);
-    await fs.copy(originalSwapFolderPath, path.join(newSwapFolderPath, isLegacy ? "leveldb" : ""));
+    let newPath = path.join(newSwapFolderPath, isLegacy ? "leveldb" : "");
+    await fs.copy(originalSwapFolderPath, newPath);
     addFilepathToSwap(newFilepath, newSwapFolderPath);
     return newSwapFolderPath;
   } catch (err) {
-    throw new Error("Could not create new swap folder.\n" + originalSwapFolderPath);
+    throw new Error("Could not create new swap folder.\n" + originalSwapFolderPath + "\n"+ err.message);
   }
 }
 

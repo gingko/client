@@ -12,8 +12,12 @@ const docList = require('./electron/doc-list')
 const fio = require('./electron/file-io')
 const getMenuTemplate = require("./electron/menu");
 const filenamify = require("filenamify");
+const unhandled = require("electron-unhandled");
 const GingkoError  = require("./shared/errors");
 const errorAlert = require('./shared/doc-helpers').errorAlert
+
+
+unhandled();
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -178,12 +182,12 @@ function buildMenu (menuState) {
     , openHome : createHomeWindow
     , save : (item, focusedWindow) => focusedWindow.webContents.send("menu-save")
     , saveAs : async (item, focusedWindow) => {
-      let { filepath } = await saveDocumentAs(focusedWindow);
-      focusedWindow.originalPath = filepath;
-      let focusedWinMenuState = docWindowMenuStates[focusedWindow.id];
-      focusedWinMenuState.isNew = false;
-      buildMenu(focusedWinMenuState);
-    }
+        let { filepath } = focusedWindow.legacyFormat ? await saveLegacyDocumentAs(focusedWindow) : await saveDocumentAs(focusedWindow);
+        focusedWindow.originalPath = filepath;
+        let focusedWinMenuState = docWindowMenuStates[focusedWindow.id];
+        focusedWinMenuState.isNew = false;
+        buildMenu(focusedWinMenuState);
+      }
     , import : importDocument
     , quit : () => { _menuQuit = true; app.quit(); }
     , enterLicense : (item, focusedWindow) => createSerialWindow(focusedWindow, false)
@@ -438,6 +442,7 @@ async function importDocument() {
 
 async function saveDocument (docWindow) {
   try {
+    docWindow.webContents.send("database-close");
     const filepath = await fio.saveSwapFolder(docWindow.swapFolderPath);
     return filepath;
   } catch (err) {
@@ -509,6 +514,7 @@ async function saveLegacyDocumentAs (docWindow) {
 
   if (newFilepath) {
     try {
+      docWindow.webContents.send("database-close");
       const newSwapFolderPath = await fio.saveLegacyFolderAs(docWindow.swapFolderPath, docWindow.legacyFormat.name, newFilepath);
       docWindow.swapFolderPath = newSwapFolderPath;
       app.addRecentDocument(newFilepath);
