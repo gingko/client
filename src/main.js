@@ -516,8 +516,10 @@ async function saveLegacyDocumentAs (docWindow) {
     try {
       docWindow.webContents.send("database-close");
       const newSwapFolderPath = await fio.saveLegacyFolderAs(docWindow.swapFolderPath, docWindow.legacyFormat.name, newFilepath);
+      await fio.deleteSwapFolder(newSwapFolderPath);
+      docList.removeDb(docWindow.legacyFormat.dbname);
       docWindow.swapFolderPath = newSwapFolderPath;
-      app.addRecentDocument(newFilepath);
+      addToRecentDocuments(newFilepath);
       docWindow.setTitle(`${path.basename(newFilepath)} - Gingko`);
       docWindow.webContents.send("main:set-swap-folder", newSwapFolderPath);
       return { "filepath" : newFilepath, "swapFolderPath" : newSwapFolderPath };
@@ -653,9 +655,7 @@ ipcMain.on("app:close", async (event) => {
           break;
 
         case 2:
-          let newSwapFolderPath = (await saveLegacyDocumentAs(docWindow)).swapFolderPath;
-          await fio.deleteSwapFolder(newSwapFolderPath);
-          // TODO: Edit document-list.json
+          await saveLegacyDocumentAs(docWindow);
           docWindow.destroy();
           break;
       }
