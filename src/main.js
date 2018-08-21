@@ -531,7 +531,7 @@ async function saveLegacyDocumentAs (docWindow) {
     try {
       docWindow.webContents.send("database-close");
       const newSwapFolderPath = await fio.saveLegacyFolderAs(docWindow.swapFolderPath, docWindow.legacyFormat.name, newFilepath);
-      docList.removeDb(docWindow.legacyFormat.dbname);
+      docList.setState(docWindow.legacyFormat.dbname, "deprecated");
       docWindow.swapFolderPath = newSwapFolderPath;
       addToRecentDocuments(newFilepath);
       docWindow.setTitle(`${path.basename(newFilepath)} - Gingko`);
@@ -540,6 +540,8 @@ async function saveLegacyDocumentAs (docWindow) {
     } catch (err) {
       throw err;
     }
+  } else {
+    return false;
   }
 }
 
@@ -669,8 +671,9 @@ ipcMain.on("app:close", async (event) => {
           break;
 
         case 2:
-          await saveLegacyDocumentAs(docWindow);
-          docWindow.destroy();
+          if(await saveLegacyDocumentAs(docWindow)) {
+            docWindow.destroy();
+          };
           break;
       }
     } else {
@@ -691,6 +694,7 @@ ipcMain.on("app:close", async (event) => {
           return;
         case 2:
           let newSwapFolderPath = (await saveDocumentAs(docWindow)).swapFolderPath;
+          docWindow.webContents.send("database-close");
           await fio.deleteSwapFolder(newSwapFolderPath);
           docWindow.destroy();
           break;
