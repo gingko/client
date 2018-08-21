@@ -265,19 +265,19 @@ ipcMain.on("doc:set-changed", (event, changed) => {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', () => {
+app.on("ready", async () => {
 
   // Auto Updater code
   autoUpdater.fullChangelog = true;
 
-  autoUpdater.on('update-downloaded', info => {
+  autoUpdater.on("update-downloaded", info => {
     let turndownService = new TurndownService();
     if (Array.isArray(info.releaseNotes)){
       var releaseNotesText = info.releaseNotes.map(rn => {
         return turndownService.turndown(rn.note);
-      }).join('\n').replace(/\*/g, '·');
+      }).join("\n").replace(/\*/g, "·");
     } else {
-      var releaseNotesText = turndownService.turndown(info.releaseNotes).replace(/\*/g, '·');
+      releaseNotesText = turndownService.turndown(info.releaseNotes).replace(/\*/g, "·");
     }
 
     let updateNotification = new Notification(
@@ -288,29 +288,43 @@ app.on('ready', () => {
     updateNotification.show();
   });
 
-  autoUpdater.checkForUpdates()
+  autoUpdater.checkForUpdates();
 
-  let email = userStore.get('email', "")
-  let storedSerial = userStore.get('serial', "")
+  let email = userStore.get("email", "");
+  let storedSerial = userStore.get("serial", "");
 
-  if(process.argv[0].endsWith('electron') && typeof process.argv[2] == 'string') {
-    openDocument(process.argv[2]);
+  let pathArgument = false;
+
+  // Development, with path of file to open passed as argument
+  if(process.argv[0].endsWith("electron") && typeof process.argv[2] == "string") {
+    if(await fs.pathExists(process.argv[2])) {
+      pathArgument = process.argv[2];
+    }
+  // Production, with path of file to open passed as argument
+  } else if (typeof process.argv[1] == "string") {
+    if(await fs.pathExists(process.argv[1])) {
+      pathArgument = process.argv[1];
+    }
+  }
+
+  if(pathArgument) {
+    openDocument(pathArgument);
   } else {
-    createHomeWindow()
+    createHomeWindow();
     if(!validSerial(email, storedSerial)) {
-      let activations = getTrialActivations()
-      let limit = 30
-      let daysLeft = Math.max(limit - activations.length, 0)
-      let trialDisplayDays = [25, 20, 15, 10, 8, 6, 5, 4, 3, 2, 1, 0]
+      let activations = getTrialActivations();
+      let limit = 30;
+      let daysLeft = Math.max(limit - activations.length, 0);
+      let trialDisplayDays = [25, 20, 15, 10, 8, 6, 5, 4, 3, 2, 1, 0];
 
       if(trialDisplayDays.includes(daysLeft)) {
-        createTrialWindow(winHome, activations, limit)
+        createTrialWindow(winHome, activations, limit);
       }
     }
   }
 
   buildMenu();
-})
+});
 
 
 app.on("will-finish-launching", () => {
