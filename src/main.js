@@ -671,7 +671,10 @@ ipcMain.on("app:close", async (event) => {
           break;
 
         case 2:
-          if(await saveLegacyDocumentAs(docWindow)) {
+          let saveLegacyResult = await saveLegacyDocumentAs(docWindow);
+          if (saveLegacyResult) {
+            if (process.platform === "win32") { docWindow.webContents.send("database-close"); }
+            await fio.deleteSwapFolder(saveLegacyResult.swapFolderPath);
             docWindow.destroy();
           };
           break;
