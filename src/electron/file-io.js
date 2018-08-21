@@ -216,7 +216,7 @@ async function deleteSwapFolder (swapFolderPath) {
     await fs.remove(swapFolderPath);
     return swapFolderPath;
   } catch (err) {
-    throw new Error("Could not delete swap folder.\n" + swapFolderPath);
+    throw new Error("Could not delete swap folder.\n" + swapFolderPath +"\n"+ err.message);
   }
 }
 
@@ -398,7 +398,9 @@ async function determineFiletype (filepath) {
  */
 
 function fullpathFilename (filepath, extension) {
-  return filepath.split(path.sep).join("%").replace(extension,"").replace(":","%");
+  let modPath = filepath.split(path.sep).join("%").replace(extension,"").replace(":","%");
+  console.log("modified path", modPath);
+  return modPath;
 }
 
 
@@ -513,6 +515,8 @@ async function swapCopy (originalSwapFolderPath, newFilepath, isLegacy) {
 
 async function extractFile (filepath, targetPath) {
   try {
+    console.log("extractFile targetPath", targetPath);
+    console.log("extractFile filepath", filepath);
     await execFile(path7za, ["x","-bd", `-o${targetPath}`, filepath ]);
     return targetPath;
   } catch (err) {
