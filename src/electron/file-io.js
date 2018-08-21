@@ -398,9 +398,7 @@ async function determineFiletype (filepath) {
  */
 
 function fullpathFilename (filepath, extension) {
-  let modPath = filepath.split(path.sep).join("%").replace(extension,"").replace(":","%");
-  console.log("modified path", modPath);
-  return modPath;
+  return filepath.split(path.sep).join("%").replace(extension,"").replace(":","%");
 }
 
 
