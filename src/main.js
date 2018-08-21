@@ -296,12 +296,12 @@ app.on("ready", async () => {
   let pathArgument = false;
 
   // Development, with path of file to open passed as argument
-  if(process.argv[0].endsWith("electron") && typeof process.argv[2] == "string") {
+  if(process.defaultApp && typeof process.argv[2] == "string") {
     if(await fs.pathExists(process.argv[2])) {
       pathArgument = process.argv[2];
     }
   // Production, with path of file to open passed as argument
-  } else if (typeof process.argv[1] == "string") {
+  } else if (!process.defaultApp && typeof process.argv[1] == "string") {
     if(await fs.pathExists(process.argv[1])) {
       pathArgument = process.argv[1];
     }
