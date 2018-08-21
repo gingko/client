@@ -490,6 +490,7 @@ async function saveDocumentAs (docWindow) {
 
   if (newFilepath) {
     try {
+      docWindow.webContents.send("database-close");
       const newSwapFolderPath = await fio.saveSwapFolderAs(docWindow.swapFolderPath, newFilepath);
       docWindow.swapFolderPath = newSwapFolderPath;
       await addToRecentDocuments(newFilepath);
