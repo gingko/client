@@ -456,7 +456,7 @@ async function importDocument() {
 
 async function saveDocument (docWindow) {
   try {
-    docWindow.webContents.send("database-close");
+    if (process.platform === "win32") { docWindow.webContents.send("database-close"); }
     const filepath = await fio.saveSwapFolder(docWindow.swapFolderPath);
     return filepath;
   } catch (err) {
@@ -490,7 +490,7 @@ async function saveDocumentAs (docWindow) {
 
   if (newFilepath) {
     try {
-      docWindow.webContents.send("database-close");
+      if (process.platform === "win32") { docWindow.webContents.send("database-close"); }
       const newSwapFolderPath = await fio.saveSwapFolderAs(docWindow.swapFolderPath, newFilepath);
       docWindow.swapFolderPath = newSwapFolderPath;
       await addToRecentDocuments(newFilepath);
@@ -529,7 +529,7 @@ async function saveLegacyDocumentAs (docWindow) {
 
   if (newFilepath) {
     try {
-      docWindow.webContents.send("database-close");
+      if (process.platform === "win32") { docWindow.webContents.send("database-close"); }
       const newSwapFolderPath = await fio.saveLegacyFolderAs(docWindow.swapFolderPath, docWindow.legacyFormat.name, newFilepath);
       docList.setState(docWindow.legacyFormat.dbname, "deprecated");
       docWindow.swapFolderPath = newSwapFolderPath;
@@ -697,7 +697,7 @@ ipcMain.on("app:close", async (event) => {
           return;
         case 2:
           let newSwapFolderPath = (await saveDocumentAs(docWindow)).swapFolderPath;
-          docWindow.webContents.send("database-close");
+          if (process.platform === "win32") { docWindow.webContents.send("database-close"); }
           await fio.deleteSwapFolder(newSwapFolderPath);
           docWindow.destroy();
           break;
