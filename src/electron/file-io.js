@@ -513,8 +513,6 @@ async function swapCopy (originalSwapFolderPath, newFilepath, isLegacy) {
 
 async function extractFile (filepath, targetPath) {
   try {
-    console.log("extractFile targetPath", targetPath);
-    console.log("extractFile filepath", filepath);
     await execFile(path7za, ["x","-bd", `-o${targetPath}`, filepath ]);
     return targetPath;
   } catch (err) {
