@@ -516,7 +516,6 @@ async function saveLegacyDocumentAs (docWindow) {
     try {
       docWindow.webContents.send("database-close");
       const newSwapFolderPath = await fio.saveLegacyFolderAs(docWindow.swapFolderPath, docWindow.legacyFormat.name, newFilepath);
-      await fio.deleteSwapFolder(newSwapFolderPath);
       docList.removeDb(docWindow.legacyFormat.dbname);
       docWindow.swapFolderPath = newSwapFolderPath;
       addToRecentDocuments(newFilepath);
