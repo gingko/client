@@ -56,9 +56,7 @@ var jsonImportData = docWindow.jsonImportData;
 
 self.db = new PouchDB(docWindow.dbPath);
 ipcRenderer.on("database-close", async (ev) => {
-  console.log("before close from msg");
   await db.close();
-  console.log("after close from msg");
 })
 
 if(!!jsonImportData) {
