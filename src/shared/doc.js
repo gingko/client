@@ -175,6 +175,10 @@ const update = (msg, data) => {
         ipcRenderer.send('app:close')
       }
 
+    , "SetChanged" : () => {
+        ipcRenderer.send("doc:set-changed", data);
+      }
+
     , 'ConfirmCancelCard': () => {
         let tarea = document.getElementById('card-edit-'+data[0])
 

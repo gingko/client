@@ -42,6 +42,7 @@ type
     -- === Dialogs, Menus, Window State ===
     = Alert String
     | SaveAndClose (Maybe ( Json.Value, Json.Value ))
+    | SetChanged Bool
     | ConfirmCancelCard String String
     | ColumnNumberChange Int
       -- === Database ===

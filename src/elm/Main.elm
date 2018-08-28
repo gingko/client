@@ -1140,8 +1140,9 @@ saveCardIfEditing ( model, prevCmd ) =
                 { model
                     | viewState = { vs | editing = Nothing }
                     , field = ""
+                    , changed = False
                 }
-                    ! [ prevCmd ]
+                    ! [ prevCmd, sendOut (SetChanged False) ]
 
         Nothing ->
             model ! [ prevCmd ]

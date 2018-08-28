@@ -31,6 +31,9 @@ sendOut info =
             in
             dataToSend toSaveData
 
+        SetChanged changed ->
+            dataToSend (bool changed)
+
         ConfirmCancelCard id origContent ->
             dataToSend (list [ string id, string origContent ])
 
