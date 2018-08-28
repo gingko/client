@@ -391,8 +391,9 @@ pre {
   border-radius: 4px;
 }
 
-ul, ol {
+.card ul, .card ol {
   margin: 0;
+  margin-bottom: 10px;
 }
 
 .card img {
