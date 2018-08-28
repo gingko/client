@@ -482,6 +482,7 @@ viewCard ( isActive, isAncestor, isEditing, depth, isLast, collaborators, collab
         tarea content =
             textarea
                 [ id ("card-edit-" ++ tree.id)
+                , dir "auto"
                 , classList
                     [ ( "edit", True )
                     , ( "mousetrap", True )
@@ -580,6 +581,7 @@ viewCard ( isActive, isAncestor, isEditing, depth, isLast, collaborators, collab
 
         cardAttributes =
             [ id ("card-" ++ tree.id)
+            , dir "auto"
             , classList
                 [ ( "card", True )
                 , ( "active", isActive )
