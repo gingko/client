@@ -1,5 +1,7 @@
 # Gingko 2 [![Build Status](https://travis-ci.org/gingko/client.svg?branch=master)](https://travis-ci.org/gingko/client)
-This is the desktop version, ground-up rewrite of [GingkoApp.com](https://gingkoapp.com). The latest version of this is available for download at [gingko.io](https://gingko.io). (Linux, Windows, and Mac).
+![](./docs/images/screenshot-alien-screenplay.png)
+
+This is the desktop version, ground-up rewrite of [GingkoApp.com](https://gingkoapp.com). The latest version of this is available for download at [gingko.io](https://gingko.io) (Linux, Windows, and Mac).
 
 # Installation & Dev Environment
 
@@ -18,6 +20,6 @@ npm start
 npm run electron
 ```
 
-# Contributions Welcome
+# Contributions Welcome!
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for a guide to get started.
