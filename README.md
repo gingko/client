@@ -11,11 +11,11 @@ Prerequisites:
 
 ```bash
 # 1. Build code:
-yarn install
-yarn start
+npm install
+npm start
 
 # 2. In separate terminal:
-yarn run electron
+npm run electron
 ```
 
 # Contributions Welcome

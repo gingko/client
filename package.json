@@ -27,7 +27,7 @@
     "dist": "DEBUG=electron-builder && electron-builder",
     "dist:win": "DEBUG=electron-builder && electron-builder -w",
     "dist:mac": "DEBUG=electron-builder && electron-builder -m",
-    "release": "yarn dist"
+    "release": "npm run dist"
   },
   "build": {
     "appId": "com.gingkoapp.desktop",
@@ -105,13 +105,12 @@
     "electron": "^2.0.6",
     "electron-builder": "^20.24.4",
     "electron-mocha": "^6.0.1",
-    "electron-rebuild": "^1.7.3",
+    "electron-rebuild": "^1.8.2",
     "elm-webpack-loader": "^4.3.0",
     "file-loader": "^0.11.2",
     "html-webpack-plugin": "^2.29.0",
     "imports-loader": "^0.7.1",
     "mocha": "^5.0.5",
-    "spectron": "git://github.com/gingko/spectron.git#api-in-app-purchase-error",
     "webpack": "^3.5.5",
     "webpack-dev-server": "^2.7.1"
   },

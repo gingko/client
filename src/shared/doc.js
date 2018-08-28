@@ -619,7 +619,7 @@ const exportDocx = (data, defaultPath) => {
         let pandocPath = path.join(__dirname, '/../../pandoc')
 
         // pandoc file is copied by electron-builder
-        // so we need to point to the src directory when running with `yarn electron`
+        // so we need to point to the src directory when running with `npm run electron`
         if (process.env.RUNNING_LOCALLY) {
           switch (process.platform) {
             case 'linux':

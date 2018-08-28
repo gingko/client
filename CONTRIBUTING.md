@@ -18,7 +18,6 @@ You'll need a free [GitHub Account](https://github.com/join), and the following 
 
 * Git : https://git-scm.com/downloads
 * Node : https://nodejs.org/en/
-* yarn : https://yarnpkg.com/en/docs/install
 * Elm-Platform : https://guide.elm-lang.org/install.html
 
 The basic process is:
@@ -55,9 +54,9 @@ git clone git@github.com:{YOUR_USERNAME}/client.git
 ```bash
 git checkout -b name-of-your-feature-or-bugfix
 ```
-5. Run the install script: `yarn install`
-6. Build the app (and rebuild every time you make a change): `yarn start`
-7. Try it out: `yarn electron`
+5. Run the install script: `npm install`
+6. Build the app (and rebuild every time you make a change): `npm start`
+7. Try it out: `npm run electron`
 
 ### 3. Signal Intentions: Make a Pull Request
 Pull requests are a way of saying "I've made some changes, please 'pull' them into the official code." But they're also a way of organizing the conversation around a *proposed* change. That's why I think we should start one early in the process.
