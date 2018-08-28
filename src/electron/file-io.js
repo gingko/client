@@ -398,9 +398,7 @@ async function determineFiletype (filepath) {
  */
 
 function fullpathFilename (filepath, extension) {
-  let modPath = filepath.split(path.sep).join("%").replace(extension,"").replace(":","%");
-  console.log("modified path", modPath);
-  return modPath;
+  return filepath.split(path.sep).join("%").replace(extension,"").replace(":","%");
 }
 
 
@@ -515,8 +513,6 @@ async function swapCopy (originalSwapFolderPath, newFilepath, isLegacy) {
 
 async function extractFile (filepath, targetPath) {
   try {
-    console.log("extractFile targetPath", targetPath);
-    console.log("extractFile filepath", filepath);
     await execFile(path7za, ["x","-bd", `-o${targetPath}`, filepath ]);
     return targetPath;
   } catch (err) {
