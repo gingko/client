@@ -893,19 +893,24 @@ pre {
 
 #wordcount {
   display: flex;
+  cursor: pointer;
   flex-direction: column-reverse;
   overflow: hidden;
   height: 20px;
-  cursor: default;
   transition: none;
 }
 
-#wordcount:hover {
+#wordcount.open, #wordcount:hover {
   background-color: #a2aeb4;
+  height: 90px;
   border-radius: 4px 4px 0 0;
   transition: height 0.2s ease-out;
   box-shadow: 14px -12px 4px -13px #3c484e;
   z-index: 9999;
+}
+
+#wordcount:active {
+  background-color: #bcc6cc;
 }
 
 #shortcuts-tray {
@@ -913,6 +918,7 @@ pre {
   flex-direction: column-reverse;
   padding: 1px 6px;
   z-index: 9999;
+  cursor: pointer;
 }
 
 #shortcuts-tray div.popup {

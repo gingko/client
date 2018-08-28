@@ -31,6 +31,7 @@ type Msg
     | TimeUpdate Time
     | VideoModal Bool
     | ShortcutTrayToggle
+    | WordcountTrayToggle
       -- === Ports ===
     | Port IncomingMsg
     | LogErr String

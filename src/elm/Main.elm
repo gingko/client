@@ -525,6 +525,10 @@ update msg ({ objects, workingTree, status } as model) =
             }
                 ! [ sendOut (SetShortcutTray newIsOpen) ]
 
+        WordcountTrayToggle ->
+            { model | wordcountTrayOpen = not model.wordcountTrayOpen }
+                ! []
+
         -- === Ports ===
         Port incomingMsg ->
             case incomingMsg of

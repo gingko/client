@@ -40,6 +40,7 @@ viewSaveIndicator model =
         [ id "save-indicator", classList [ ( "inset", True ), ( "saving", model.changed ) ] ]
         [ if model.changed then
             span [ title ("Last saved " ++ lastChangeString) ] [ text "Unsaved changes..." ]
+
           else
             span [ title ("Last edit " ++ lastChangeString) ] [ text "All changes saved" ]
         ]
@@ -51,6 +52,7 @@ viewSearchField model =
         maybeSearchIcon =
             if model.viewState.searchField == Nothing then
                 Icon.search (defaultOptions |> Icon.color "#445" |> Icon.size 12)
+
             else
                 text ""
     in
@@ -66,13 +68,14 @@ viewSearchField model =
                 []
             , maybeSearchIcon
             ]
+
     else
         div
             [ id "search-field" ]
             []
 
 
-viewFooter : { m | viewState : ViewState, workingTree : Trees.Model, startingWordcount : Int, shortcutTrayOpen : Bool, isMac : Bool, isTextSelected : Bool, changed : Bool } -> Html Msg
+viewFooter : { m | viewState : ViewState, workingTree : Trees.Model, startingWordcount : Int, shortcutTrayOpen : Bool, wordcountTrayOpen : Bool, isMac : Bool, isTextSelected : Bool, changed : Bool } -> Html Msg
 viewFooter model =
     let
         wordCounts =
@@ -86,37 +89,20 @@ viewFooter model =
 
         viewWordCount =
             if model.viewState.editing == Nothing then
-                if model.startingWordcount /= 0 then
-                    let
-                        hoverStyle =
-                            [ ( "height", hoverHeight 6 ) ]
-                    in
-                    [ hover hoverStyle
-                        div
-                        [ id "wordcount", class "inset" ]
-                        [ span [] [ text ("Session: " ++ (session |> toWordsString)) ]
-                        , span [] [ text ("Total: " ++ (current |> toWordsString)) ]
-                        , span [] [ text ("Card: " ++ (wordCounts.card |> toWordsString)) ]
-                        , span [] [ text ("Subtree: " ++ (wordCounts.subtree |> toWordsString)) ]
-                        , span [] [ text ("Group: " ++ (wordCounts.group |> toWordsString)) ]
-                        , span [] [ text ("Column: " ++ (wordCounts.column |> toWordsString)) ]
-                        ]
+                [ div
+                    [ id "wordcount"
+                    , classList [ ( "inset", True ), ( "open", model.wordcountTrayOpen ) ]
+                    , onClick WordcountTrayToggle
                     ]
-                else
-                    let
-                        hoverStyle =
-                            [ ( "height", hoverHeight 5 ) ]
-                    in
-                    [ hover hoverStyle
-                        div
-                        [ id "wordcount", class "inset" ]
-                        [ span [] [ text ("Total: " ++ (current |> toWordsString)) ]
-                        , span [] [ text ("Card: " ++ (wordCounts.card |> toWordsString)) ]
-                        , span [] [ text ("Subtree: " ++ (wordCounts.subtree |> toWordsString)) ]
-                        , span [] [ text ("Group: " ++ (wordCounts.group |> toWordsString)) ]
-                        , span [] [ text ("Column: " ++ (wordCounts.column |> toWordsString)) ]
-                        ]
+                    [ span [] [ text ("Session: " ++ (session |> toWordsString)) ]
+                    , span [] [ text ("Total: " ++ (current |> toWordsString)) ]
+                    , span [] [ text ("Card: " ++ (wordCounts.card |> toWordsString)) ]
+                    , span [] [ text ("Subtree: " ++ (wordCounts.subtree |> toWordsString)) ]
+                    , span [] [ text ("Group: " ++ (wordCounts.group |> toWordsString)) ]
+                    , span [] [ text ("Column: " ++ (wordCounts.column |> toWordsString)) ]
                     ]
+                ]
+
             else
                 []
 
@@ -161,6 +147,7 @@ viewVideo { videoModalOpen } =
                     []
                 ]
             ]
+
     else
         div [] []
 
@@ -171,6 +158,7 @@ viewShortcutsToggle isOpen isMac isOnly isTextSelected vs =
         viewIf cond content =
             if cond then
                 content
+
             else
                 text ""
 
@@ -192,6 +180,7 @@ viewShortcutsToggle isOpen isMac isOnly isTextSelected vs =
         ctrlOrCmd =
             if isMac then
                 "⌘"
+
             else
                 "Ctrl"
     in
@@ -217,6 +206,7 @@ viewShortcutsToggle isOpen isMac isOnly isTextSelected vs =
                     , Icon.question (defaultOptions |> iconColor |> Icon.size 14)
                     ]
                 ]
+
         else
             let
                 iconColor =
@@ -241,6 +231,7 @@ viewShortcutsToggle isOpen isMac isOnly isTextSelected vs =
                     , Icon.question (defaultOptions |> iconColor |> Icon.size 14)
                     ]
                 ]
+
     else
         let
             iconColor =
