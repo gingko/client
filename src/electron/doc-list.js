@@ -9,22 +9,22 @@ const machineIdSync = require('node-machine-id').machineIdSync
 const docList = new Store({name: "document-list"});
 
 docList.getNoDot = function (key, val, def) {
-  key = key.replace(".", "\\.");
+  key = key.replace(/\./g, "\\.");
   return this.get(key, val, def);
 };
 
 docList.setNoDot = function (key, val) {
-  key = key.replace(".", "\\.");
+  key = key.replace(/\./g, "\\.");
   return this.set(key, val);
 };
 
 docList.hasNoDot = function (key) {
-  key = key.replace(".", "\\.");
+  key = key.replace(/\./g, "\\.");
   return this.has(key);
 };
 
 docList.deleteNoDot = function (key) {
-  key = key.replace(".", "\\.");
+  key = key.replace(/\./g, "\\.");
   return this.delete(key);
 };
 
