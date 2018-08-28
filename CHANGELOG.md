@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
+## [2.2.2] - Prerelease
+  - Add basic RTL language support
+
 ## [2.2.1] - 2018-08-28
   - Fixed Zoom In/Zoom Out "Unhandled error"s
   - Fixed "Unhandled error" when taking actions on already-closed window
