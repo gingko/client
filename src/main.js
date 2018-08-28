@@ -209,50 +209,58 @@ app.on("browser-window-focus", (ev, win) => {
 
 ipcMain.on("column-number-change", (event, cols) => {
   let win = BrowserWindow.fromWebContents(event.sender);
-  let menuState = docWindowMenuStates[win.id];
-  if (menuState.columnNumber !== cols) {
-    _.set(menuState, "columnNumber", cols);
-    buildMenu(menuState);
+  if (win) {
+    let menuState = docWindowMenuStates[win.id];
+    if (menuState.columnNumber !== cols) {
+      _.set(menuState, "columnNumber", cols);
+      buildMenu(menuState);
+    }
   }
 });
 
 
 ipcMain.on("edit-mode-toggle", (event, isEditing) => {
   let win = BrowserWindow.fromWebContents(event.sender);
-  let menuState = docWindowMenuStates[win.id];
-  if (menuState.editMode !== isEditing) {
-    _.set(menuState, "editMode", isEditing);
-    buildMenu(menuState);
+  if (win) {
+    let menuState = docWindowMenuStates[win.id];
+    if (menuState.editMode !== isEditing) {
+      _.set(menuState, "editMode", isEditing);
+      buildMenu(menuState);
+    }
   }
 });
 
 
 ipcMain.on("app:last-export-set", (event, lastPath) => {
   let win = BrowserWindow.fromWebContents(event.sender);
-  let menuState = docWindowMenuStates[win.id];
-  if (menuState.hasLastExport !== !!lastPath) {
-    _.set(menuState, "hasLastExport", !!lastPath);
-    buildMenu(menuState);
+  if (win) {
+    let menuState = docWindowMenuStates[win.id];
+    if (menuState.hasLastExport !== !!lastPath) {
+      _.set(menuState, "hasLastExport", !!lastPath);
+      buildMenu(menuState);
+    }
   }
 });
 
 
 ipcMain.on("doc:set-changed", (event, changed) => {
   let win = BrowserWindow.fromWebContents(event.sender);
-  let currentTitle = win.getTitle();
-  let menuState = docWindowMenuStates[win.id];
+  if (win) {
+    let currentTitle = win.getTitle();
+    let menuState = docWindowMenuStates[win.id];
 
-  if (menuState.changed !== changed) {
-    _.set(menuState, "changed", changed);
-    buildMenu(menuState);
-  }
+    if (menuState.changed !== changed) {
+      _.set(menuState, "changed", changed);
+      buildMenu(menuState);
+    }
 
-  win.setDocumentEdited(changed);
+    win.setDocumentEdited(changed);
 
-  if(changed && !currentTitle.startsWith("*")) {
-    win.setTitle("*" + currentTitle);
-  } else if (!changed) {
-    win.setTitle(currentTitle.replace(/^\*/, ""));
+    if(changed && !currentTitle.startsWith("*")) {
+      win.setTitle("*" + currentTitle);
+    } else if (!changed) {
+      win.setTitle(currentTitle.replace(/^\*/, ""));
+    }
   }
 });
 
