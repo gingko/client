@@ -49,53 +49,57 @@ main =
 
    `objects` contains the current state of the version history data. It's what
    gets saved to the database. It's defined in Objects.elm.
+
+   Complete list of fields:
+
+   workingTree : Current state of the document
+
+   objects : The history data
+
+   status : Status of the history = Bare | Clean ... | MergeConflict ...
+
+   debouncerState : Debouncer is used to prevent trying to save too often
+
+   uid : Unique user/device id, for realtime collaboration.
+
+   viewState : Stores which card is active, edit mode, which is being dragged, etc.
+
+   field : Edited card's field value. Updated by onChange handler in the textarea.
+
+   isMac : Set at init, allows us to show mac-specific content (e.g. ⌘ in shortcuts)
+
+   isTextSelected : Set by JS, allows us to show text-selection-only shortcuts (e.g. Bold).
+
+   shortcutTrayOpen : Is the small shortcut reference tray open or closed?
+
+   videoModalOpen : Is the video tutorial modal open or closed? (Unused for now).
+
+   startingWordcount : Word count on open. To see how many words were written in this session.
+
+   online : Are we online or not, in order to attempt to sync. (Unused for now).
+
+   changed : Has the document been changed since load?
+
+   currentTime : Updated every 15 seconds. For use in , e.g. "Last saved X minutes ago".
 -}
 
 
 type alias Model =
-    -- Current state of the document
     { workingTree : Trees.Model
-
-    -- The history data
     , objects : Objects.Model
-
-    -- Status of the history = Bare | Clean ... | MergeConflict ...
     , status : Status
-
-    -- Debouncer is used to prevent trying to save too often
     , debouncerState : Debouncer () ()
-
-    -- Unique user/device id, for realtime collaboration.
     , uid : String
-
-    -- Stores which card is active, edit mode, which is being dragged, etc.
     , viewState : ViewState
-
-    -- Edited card's field value. Updated by onChange handler in the textarea.
     , field : String
-
-    -- Set at init, allows us to show mac-specific content (e.g. ⌘ in shortcuts)
     , isMac : Bool
-
-    -- Set by JS, allows us to show text-selection-only shortcuts (e.g. Bold).
     , isTextSelected : Bool
-
-    -- Is the small shortcut reference tray open or closed?
     , shortcutTrayOpen : Bool
-
-    -- Is the video tutorial modal open or closed? (Unused for now).
+    , wordcountTrayOpen : Bool
     , videoModalOpen : Bool
-
-    -- Word count on open. To see how many words were written in this session.
     , startingWordcount : Int
-
-    -- Are we online or not, in order to attempt to sync. (Unused for now).
     , online : Bool
-
-    -- Has the document been changed since load?
     , changed : Bool
-
-    -- Updated every 15 seconds. For use in , e.g. "Last saved X minutes ago".
     , currentTime : Time
     }
 
@@ -142,6 +146,7 @@ defaultModel =
     , isMac = False
     , isTextSelected = False
     , shortcutTrayOpen = True
+    , wordcountTrayOpen = False
     , videoModalOpen = False
     , startingWordcount = 0
     , online = False
@@ -207,6 +212,7 @@ init ( dataIn, modelIn, isSaved ) =
         |> (\mc ->
                 if not isSaved then
                     mc |> addToHistory
+
                 else
                     mc
            )
@@ -350,6 +356,7 @@ update msg ({ objects, workingTree, status } as model) =
                     if List.isEmpty <| getChildren newTree.tree then
                         -- Don't allow dragging of last visible card
                         model ! []
+
                     else
                         { model
                             | workingTree = newTree
@@ -455,6 +462,7 @@ update msg ({ objects, workingTree, status } as model) =
                                     (\c ->
                                         if c.id == cid then
                                             { c | selection = selection }
+
                                         else
                                             c
                                     )
@@ -539,6 +547,7 @@ update msg ({ objects, workingTree, status } as model) =
                                 ( statusToValue modelCardSaved.status, Objects.toValue modelCardSaved.objects )
                         in
                         model ! [ sendOut (SaveAndClose (Just ( status, objects ))) ]
+
                     else
                         model ! [ sendOut (SaveAndClose Nothing) ]
 
@@ -643,6 +652,7 @@ update msg ({ objects, workingTree, status } as model) =
                                 }
                                     ! [ sendOut (UpdateCommits ( Objects.toValue newObjects, Just newHead )) ]
                                     |> activate vs.active
+
                             else
                                 model ! []
 
@@ -651,6 +661,7 @@ update msg ({ objects, workingTree, status } as model) =
                                 | workingTree =
                                     if List.isEmpty conflicts then
                                         Trees.setTree (newTree_ ? workingTree.tree) workingTree
+
                                     else
                                         Trees.setTreeWithConflicts conflicts mTree model.workingTree
                                 , objects = newObjects
@@ -717,6 +728,7 @@ update msg ({ objects, workingTree, status } as model) =
                                 |> (\( m, c ) ->
                                         if vs.editing == Nothing then
                                             openCard vs.active (getContent vs.active m.workingTree.tree) ( m, c )
+
                                         else
                                             ( m, c )
                                    )
@@ -898,9 +910,11 @@ update msg ({ objects, workingTree, status } as model) =
                                         (\c ->
                                             if c.uid == collabState.uid then
                                                 collabState
+
                                             else
                                                 c
                                         )
+
                             else
                                 collabState :: vs.collaborators
 
@@ -944,6 +958,7 @@ activate id ( model, prevCmd ) =
     in
     if id == "0" then
         model ! [ prevCmd ]
+
     else
         let
             activeTree_ =
@@ -952,6 +967,7 @@ activate id ( model, prevCmd ) =
             newPast =
                 if id == vs.active then
                     vs.activePast
+
                 else
                     vs.active :: vs.activePast |> List.take 40
         in
@@ -1076,6 +1092,7 @@ goRight id ( model, prevCmd ) =
         Just tree ->
             if List.length childrenIds == 0 then
                 model ! [ prevCmd ]
+
             else
                 model
                     ! [ prevCmd ]
@@ -1106,6 +1123,7 @@ saveCardIfEditing ( model, prevCmd ) =
                 }
                     ! [ prevCmd ]
                     |> addToHistory
+
             else
                 { model
                     | viewState = { vs | editing = Nothing }
@@ -1130,6 +1148,7 @@ openCard id str ( model, prevCmd ) =
     in
     if isLocked then
         model ! [ prevCmd, sendOut (Alert "Card is being edited by someone else.") ]
+
     else
         { model
             | viewState = { vs | active = id, editing = Just id }
@@ -1179,8 +1198,10 @@ deleteCard id ( model, prevCmd ) =
     in
     if isLocked then
         model ! [ sendOut (Alert "Card is being edited by someone else.") ]
+
     else if isLastChild then
         model ! [ sendOut (Alert "Cannot delete last card.") ]
+
     else
         { model
             | workingTree = Trees.update (Trees.Rmv id) model.workingTree
@@ -1227,6 +1248,7 @@ goToTopOfGroup id fallToNextGroup ( model, prevCmd ) =
 
                     Just previousColumnTree ->
                         previousColumnTree.id
+
             else
                 topSibling
     in
@@ -1258,6 +1280,7 @@ goToBottomOfGroup id fallToNextGroup ( model, prevCmd ) =
 
                     Just nextColumnTree ->
                         nextColumnTree.id
+
             else
                 bottomSibling
     in
@@ -1365,6 +1388,7 @@ maybeColumnsChanged oldColumns ( { workingTree } as model, prevCmd ) =
         colsChangedCmd =
             if newColNumber /= oldColNumber then
                 sendOut (ColumnNumberChange (newColNumber - 1))
+
             else
                 Cmd.none
     in
@@ -1484,6 +1508,7 @@ cut id ( model, prevCmd ) =
     in
     if isLastChild then
         model ! [ sendOut (Alert "Cannot cut last card") ]
+
     else
         ( model, prevCmd )
             |> copy id
@@ -1567,6 +1592,7 @@ push : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 push ( model, prevCmd ) =
     if model.online then
         model ! [ prevCmd, sendOut Push ]
+
     else
         model ! [ prevCmd ]
 
@@ -1619,6 +1645,7 @@ addToHistoryDo ( { workingTree } as model, prevCmd ) =
                       , sendOut (SaveToDB ( statusToValue newStatus, Objects.toValue newObjects ))
                       , sendOut (UpdateCommits ( Objects.toValue newObjects, getHead newStatus ))
                       ]
+
             else
                 model
                     ! [ prevCmd, sendOut (SaveLocal model.workingTree.tree) ]
@@ -1741,6 +1768,7 @@ normalMode model operation =
         ! []
         |> (if model.viewState.editing == Nothing then
                 operation
+
             else
                 identity
            )
