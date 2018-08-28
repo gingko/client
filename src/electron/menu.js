@@ -258,7 +258,9 @@ function viewMenu(isDocument) {
           , accelerator: "CommandOrControl+="
           , click : function (item, focusedWindow) {
               let contents = focusedWindow.webContents;
-              contents.setZoomLevel(contents.getZoomLevel() + 1);
+              contents.getZoomLevel(level => {
+                contents.setZoomLevel(level + 1);
+              });
             }
           }
         , { label: "Zoom Out"
@@ -266,7 +268,9 @@ function viewMenu(isDocument) {
           , accelerator: "CommandOrControl+-"
           , click : function (item, focusedWindow) {
               let contents = focusedWindow.webContents;
-              contents.setZoomLevel(contents.getZoomLevel() - 1);
+              contents.getZoomLevel(level => {
+                contents.setZoomLevel(level - 1);
+              });
             }
           }
         , { label: "Reset Zoom"
