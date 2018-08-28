@@ -80,51 +80,52 @@ const errorAlert = (title, msg, err) => {
 
 
 
-var shortcuts = [ 'mod+enter'
-                , 'enter'
-                , 'esc'
-                , 'mod+backspace'
-                , 'mod+j'
-                , 'mod+k'
-                , 'mod+l'
-                , 'mod+down'
-                , 'mod+up'
-                , 'mod+right'
-                , 'h'
-                , 'j'
-                , 'k'
-                , 'l'
-                , 'left'
-                , 'down'
-                , 'up'
-                , 'right'
-                , 'alt+left'
-                , 'alt+h'
-                , 'alt+down'
-                , 'alt+j'
-                , 'alt+up'
-                , 'alt+k'
-                , 'alt+right'
-                , 'alt+l'
-                , 'alt+shift+up'
-                , 'alt+shift+down'
-                , 'alt+home'
-                , 'alt+end'
-                , '['
-                , ']'
-                , 'mod+x'
-                , 'mod+c'
-                , 'mod+v'
-                , 'mod+shift+v'
-                , 'mod+z'
-                , 'mod+r'
-                , 'mod+b'
-                , 'mod+i'
-                , 'end'
-                , 'home'
-                , 'pageup'
-                , 'pagedown'
-                , '/'
+var shortcuts = [ "mod+enter"
+                , "enter"
+                , "esc"
+                , "mod+backspace"
+                , "mod+j"
+                , "mod+k"
+                , "mod+l"
+                , "mod+down"
+                , "mod+up"
+                , "mod+right"
+                , "h"
+                , "j"
+                , "k"
+                , "l"
+                , "left"
+                , "down"
+                , "up"
+                , "right"
+                , "alt+left"
+                , "alt+h"
+                , "alt+down"
+                , "alt+j"
+                , "alt+up"
+                , "alt+k"
+                , "alt+right"
+                , "alt+l"
+                , "alt+shift+up"
+                , "alt+shift+down"
+                , "alt+home"
+                , "alt+end"
+                , "["
+                , "]"
+                , "mod+x"
+                , "mod+c"
+                , "mod+v"
+                , "mod+shift+v"
+                , "mod+z"
+                , "mod+r"
+                , "mod+b"
+                , "mod+i"
+                , "end"
+                , "home"
+                , "pageup"
+                , "pagedown"
+                , "/"
+                , "w"
                 ];
 
 var needOverride= [ 'mod+n'

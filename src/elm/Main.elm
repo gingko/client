@@ -897,6 +897,14 @@ update msg ({ objects, workingTree, status } as model) =
                                 Just _ ->
                                     model ! []
 
+                        "w" ->
+                            case vs.editing of
+                                Nothing ->
+                                    { model | wordcountTrayOpen = not model.wordcountTrayOpen } ! []
+
+                                Just _ ->
+                                    model ! []
+
                         _ ->
                             let
                                 _ =
