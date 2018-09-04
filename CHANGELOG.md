@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
 ## [2.2.2] - Prerelease
-  - Add basic RTL language support
+  - Add RTL language support
   - Add `w` to toggle wordcount tray
   - Fix mistaken "Unsaved" if changes are undone before saving card
   - Fix "Unhandled error" when opening a non-existent file

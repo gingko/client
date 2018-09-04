@@ -234,6 +234,10 @@ body {
   cursor: pointer;
 }
 
+.card .view * {
+  unicode-bidi: plaintext;
+}
+
 .card.active .view {
   cursor: auto;
 }
