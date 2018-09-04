@@ -229,6 +229,7 @@ body {
 
 .card .view {
   padding: 17px;
+  word-wrap: break-word;
   min-height: 56px;
   cursor: pointer;
 }
