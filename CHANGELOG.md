@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
   - Add basic RTL language support
   - Add `w` to toggle wordcount tray
   - Fix mistaken "Unsaved" if changes are undone before saving card
+  - Fix "Unhandled error" when opening a non-existent file
 
 ## [2.2.1] - 2018-08-28
   - Fixed Zoom In/Zoom Out "Unhandled error"s

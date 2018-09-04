@@ -372,7 +372,17 @@ async function openDocumentOrFolder(dbToLoad, docName) {
     await openDocument(dbToLoad);
     return true;
   } else {
-    docList.removeDb(dbToLoad);
+    removeFromRecentDocuments(dbToLoad);
+
+    const documentNotFoundOptions =
+      { title: "Document Not Found"
+      , type: "warning"
+      , message: `I'm looking in ${dbToLoad}.\nMaybe it was moved?\n\nI will remove it from the recent documents list...`
+      , buttons: ["OK"]
+      , defaultId: 0
+      };
+
+    dialog.showMessageBox(documentNotFoundOptions);
     return false;
   }
 }
@@ -577,6 +587,15 @@ async function addToRecentDocuments (filepath) {
 }
 
 
+function removeFromRecentDocuments (filepath) {
+  try {
+    docList.removeDb(filepath);
+    app.removeRecentDocument(filepath);
+  } catch (err) {
+  }
+}
+
+
 
 
 // Quit when all windows are closed.
@@ -617,18 +636,7 @@ ipcMain.on("home:open", async (event, dbToLoad, docName) => {
   if(didOpen) {
     winHome.close();
   } else {
-    docList.removeDb(dbToLoad);
     winHome.webContents.send("doc-list-reload");
-
-    const documentNotFoundOptions =
-      { title: "Document Not Found"
-      , type: "warning"
-      , message: `I'm looking for it in ${dbToLoad}.\nMaybe it was moved.`
-      , buttons: ["OK"]
-      , defaultId: 0
-      };
-
-    dialog.showMessageBox(documentNotFoundOptions);
   }
 });
 
