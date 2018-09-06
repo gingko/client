@@ -4,14 +4,12 @@ src/elm.js
 src/elm-*.js
 app/*
 !app/package.json
+!app/package-lock.json
 node_modules
 Gingko-*
 *.gko
 *.ps
 *.pdf
 *.xoj
-testfile-*
-repOut.txt
-data/*
 npm-debug.log
 *.env
