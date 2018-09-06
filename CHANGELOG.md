@@ -2,8 +2,8 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
-## [2.2.3] - Pre-release
-
+## [2.2.3] - 2018-09-06
+  - Fix loading error "processNextTick is not a function"
 
 ## [2.2.2] - 2018-09-04
   - Add RTL language support
