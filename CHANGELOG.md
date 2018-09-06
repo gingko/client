@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
+## [2.2.3] - Pre-release
+
+
 ## [2.2.2] - 2018-09-04
   - Add RTL language support
   - Add `w` to toggle wordcount tray
