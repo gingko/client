@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
+## [2.2.4] - 2018-09-18
+  - Fix loading error "processNextTick is not a function" for legacy GKO
+
 ## [2.2.3] - 2018-09-06
   - Fix loading error "processNextTick is not a function"
 

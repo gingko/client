@@ -15,9 +15,8 @@ const readChunk = require("read-chunk");
 const fileType = require("file-type");
 const GingkoError  = require("../shared/errors");
 
-const PouchDB = require('pouchdb');
-const replicationStream = require('pouchdb-replication-stream')
-PouchDB.plugin(replicationStream.plugin)
+const PouchDB = require("pouchdb");
+PouchDB.plugin(require("pouchdb-load"));
 
 
 
@@ -223,20 +222,6 @@ async function deleteSwapFolder (swapFolderPath) {
 
 
 
-function dbToFile(database, filepath) {
-  return new Promise((resolve, reject) => {
-    let ws = fs.createWriteStream(filepath)
-    ws.on('error', reject)
-
-    database.dump(ws)
-      .then(() => { resolve(filepath) })
-      .catch(reject)
-  })
-}
-
-
-
-
 async function dbFromFile(filepath) {
   try {
     var importResult = await importGko(filepath);
@@ -280,44 +265,6 @@ function getHashWithoutStartTime(filepath) {
 
 
 
-function save(database, filepath) {
-  return new Promise(async (resolve, reject) => {
-    try {
-      let datestring = new Date().toJSON()
-      let temppath1 = filepath + datestring + ".swp1"
-      let temppath2 = filepath + datestring + ".swp2"
-
-      await dbToFile(database, temppath1)
-      await dbToFile(database, temppath2)
-
-      let hash1 = await getHashWithoutStartTime(temppath1)
-      let hash2 = await getHashWithoutStartTime(temppath2)
-
-      if (hash1 == hash2) {
-        await copyFile(temppath1, filepath)
-        let del1 = deleteFile(temppath1)
-        let del2 = deleteFile(temppath2)
-        await Promise.all([del1, del2])
-        var finalHash = await getHashWithoutStartTime(filepath)
-
-        if(hash1 == finalHash) {
-          resolve({path: filepath, hash: finalHash})
-        } else {
-          reject(Error(`Integrity check failed on save: ${hash1} !== ${finalHash}`))
-        }
-      } else {
-        reject(Error(`Integrity check failed on dbToFile: ${hash1} !== ${hash2}`))
-      }
-    } catch(err) {
-      reject(err)
-    }
-  })
-}
-
-
-
-
-
 module.exports =
   { newSwapFolder : newSwapFolder
   , openFile : openFile
@@ -325,11 +272,9 @@ module.exports =
   , saveSwapFolderAs : saveSwapFolderAs
   , saveLegacyFolderAs : saveLegacyFolderAs
   , deleteSwapFolder : deleteSwapFolder
-  , dbToFile: dbToFile
   , dbFromFile: dbFromFile
   , destroyDb: destroyDb
   , getHash: getHashWithoutStartTime
-  , save: save
   };
 
 
@@ -368,7 +313,7 @@ const GKO = "GKO";
 /*
  * verifyFiletype : String -> ( GKO | LEGACY_GKO )
  *
- * Verify that filepath points to a validelectron-store/issues .gko file.
+ * Verify that filepath points to a valid .gko file.
  *
  */
 
@@ -609,8 +554,8 @@ async function importGko(filepath) {
   addFilepathToSwap(filepath, swapFolderPath);
   var db = new PouchDB(dbPath);
 
-  var rs = fs.createReadStream(filepath);
-  await db.load(rs);
+  let filecontents = await readFile(filepath, "utf8");
+  await db.load(filecontents);
   await db.close();
   return swapFolderPath;
 }
