@@ -182,11 +182,13 @@ function buildMenu (menuState) {
     , openHome : createHomeWindow
     , save : (item, focusedWindow) => focusedWindow.webContents.send("menu-save")
     , saveAs : async (item, focusedWindow) => {
-        let { filepath } = focusedWindow.legacyFormat ? await saveLegacyDocumentAs(focusedWindow) : await saveDocumentAs(focusedWindow);
-        focusedWindow.originalPath = filepath;
-        let focusedWinMenuState = docWindowMenuStates[focusedWindow.id];
-        focusedWinMenuState.isNew = false;
-        buildMenu(focusedWinMenuState);
+        let saveAsReturn = focusedWindow.legacyFormat ? await saveLegacyDocumentAs(focusedWindow) : await saveDocumentAs(focusedWindow);
+        if (saveAsReturn && saveAsReturn.filepath) {
+          focusedWindow.originalPath = saveAsReturn.filepath;
+          let focusedWinMenuState = docWindowMenuStates[focusedWindow.id];
+          focusedWinMenuState.isNew = false;
+          buildMenu(focusedWinMenuState);
+        }
       }
     , import : importDocument
     , quit : () => { _menuQuit = true; app.quit(); }
