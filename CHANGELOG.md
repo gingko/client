@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
+## Unreleased
+  - Fix error when "Save As" to same location
+
 ## [2.2.4] - 2018-09-18
   - Fix loading error "processNextTick is not a function" for legacy .gko
 

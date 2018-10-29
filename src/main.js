@@ -506,6 +506,14 @@ async function saveDocumentAs (docWindow) {
 
   const newFilepath = dialog.showSaveDialog(docWindow, saveOptions);
 
+  if (newFilepath === docWindow.originalPath) {
+    // Saving to same location.
+    // Perform "Save" instead of "Save As"
+    await saveDocument(docWindow);
+    docWindow.setTitle(`${path.basename(newFilepath)} - Gingko`);
+    return { "filepath" : newFilepath, "swapFolderPath" : docWindow.swapFolderPath };
+  }
+
   if (newFilepath) {
     try {
       if (process.platform === "win32") { docWindow.webContents.send("database-close"); }
