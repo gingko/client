@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
-## Unreleased
+## [2.2.5] - 2018-11-01
   - Fix error when "Save As" to same location
   - Fix error when cancelling "Save As"
 
