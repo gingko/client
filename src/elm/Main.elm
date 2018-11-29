@@ -1,4 +1,4 @@
-port module Main exposing (InitModel, Model, activate, addToHistory, addToHistoryDo, cancelCard, copy, cut, defaultModel, deleteCard, focus, getHead, goDown, goLeft, goRight, goToBottomOfColumn, goToBottomOfGroup, goToTopOfColumn, goToTopOfGroup, goUp, init, insert, insertAbove, insertBelow, insertChild, insertRelative, intentCancelCard, main, maybeColumnsChanged, move, moveLeft, moveRight, moveWithin, normalMode, openCard, paste, pasteBelow, pasteInto, push, run, saveCardIfEditing, sendCollabState, subscriptions, toggleVideoModal, update, view)
+port module Main exposing (InitModel, Model)
 
 import Coders exposing (..)
 import Debouncer.Basic as Debouncer exposing (Debouncer, provideInput, toDebouncer)
@@ -449,7 +449,7 @@ update msg ({ objects, workingTree, status } as model) =
                     model ! [] |> checkoutCommit commitSha
 
         Restore ->
-            model
+            { model | historyState = Closed }
                 ! []
                 |> addToHistoryDo
 
