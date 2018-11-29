@@ -1627,7 +1627,6 @@ historyBack ( model, prevCmd ) =
                         Just refObj ->
                             (refObj.value :: refObj.ancestors)
                                 |> List.reverse
-                                |> Debug.log "historyList"
 
                         _ ->
                             []
@@ -1635,15 +1634,7 @@ historyBack ( model, prevCmd ) =
                 prevCommitIdx_ =
                     historyList
                         |> ListExtra.elemIndex currHead
-                        |> Maybe.map
-                            (\x ->
-                                if x < 1 then
-                                    0
-
-                                else
-                                    x - 1
-                            )
-                        |> Debug.log "prevCommitIdx_"
+                        |> Maybe.map (\x -> Basics.max 0 (x - 1))
                         |> Maybe.withDefault -1
 
                 prevCommit_ =
