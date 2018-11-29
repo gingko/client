@@ -1,4 +1,4 @@
-module Types exposing (Children(..), CollabState, Column, Conflict, DropId(..), ExportFormat(..), ExportSelection(..), ExportSettings, Group, IncomingMsg(..), Mode(..), Msg(..), Op(..), OutgoingMsg(..), OutsideData, Selection(..), Status(..), Tree, ViewState, VisibleViewState, WordCount)
+module Types exposing (Children(..), CollabState, Column, Conflict, DropId(..), ExportFormat(..), ExportSelection(..), ExportSettings, Group, HistoryState(..), IncomingMsg(..), Mode(..), Msg(..), Op(..), OutgoingMsg(..), OutsideData, Selection(..), Status(..), Tree, ViewState, VisibleViewState, WordCount)
 
 import Debouncer.Basic as Debouncer
 import Html5.DragDrop as DragDrop
@@ -159,6 +159,11 @@ type Status
     = Bare
     | Clean String
     | MergeConflict Tree String String (List Conflict)
+
+
+type HistoryState
+    = Closed
+    | From String
 
 
 type Mode

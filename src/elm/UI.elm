@@ -8,7 +8,7 @@ import Diff exposing (..)
 import Html exposing (..)
 import Html.Attributes as A exposing (..)
 import Html.Events exposing (onClick, onInput)
-import List.Extra exposing ((!!))
+import List.Extra as ListExtra exposing ((!!))
 import Objects
 import Octicons as Icon exposing (defaultOptions)
 import Regex exposing (Regex, regex, replace)
@@ -128,22 +128,29 @@ viewFooter model =
         )
 
 
-viewHistory : Objects.Model -> Html Msg
-viewHistory objects =
+viewHistory : String -> String -> Objects.Model -> Html Msg
+viewHistory startHead currHead objects =
     let
-        ancestors =
+        historyList =
             Dict.get "heads/master" objects.refs
                 |> Maybe.map .ancestors
                 |> Maybe.withDefault []
+                |> List.append [ startHead ]
                 |> List.reverse
 
         maxIdx =
-            ancestors |> List.length |> (\x -> x - 1) |> toString
+            historyList |> List.length |> (\x -> x - 1) |> toString
+
+        currIdx =
+            historyList
+                |> ListExtra.elemIndex currHead
+                |> Maybe.map toString
+                |> Maybe.withDefault maxIdx
 
         checkoutCommit idxStr =
             case String.toInt idxStr of
                 Ok idx ->
-                    case ancestors !! idx of
+                    case historyList !! idx of
                         Just commit ->
                             CheckoutCommit commit
 
@@ -154,7 +161,7 @@ viewHistory objects =
                     NoOp
     in
     div [ id "history" ]
-        [ input [ type_ "range", A.min "0", A.max maxIdx, defaultValue maxIdx, step "1", onInput checkoutCommit ] []
+        [ input [ type_ "range", A.min "0", A.max maxIdx, defaultValue currIdx, step "1", onInput checkoutCommit ] []
         , button [ onClick Restore ] [ text "Restore this Version" ]
         , button [ onClick CancelHistoryView ] [ text "Cancel" ]
         ]

@@ -2,13 +2,14 @@ port module Main exposing (InitModel, Model, activate, addToHistory, addToHistor
 
 import Coders exposing (..)
 import Debouncer.Basic as Debouncer exposing (Debouncer, provideInput, toDebouncer)
+import Dict
 import Dom
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Lazy exposing (lazy, lazy2)
 import Html5.DragDrop as DragDrop
 import Json.Decode as Json
-import List.Extra as ListExtra
+import List.Extra as ListExtra exposing ((!!))
 import Objects
 import Ports exposing (..)
 import Regex
@@ -76,7 +77,7 @@ main =
 
    startingWordcount : Word count on open. To see how many words were written in this session.
 
-   historyView : Is the display of version history open or not.
+   historyState : State for the display of version history = Closed | From startingSha
 
    online : Are we online or not, in order to attempt to sync. (Unused for now).
 
@@ -100,7 +101,7 @@ type alias Model =
     , wordcountTrayOpen : Bool
     , videoModalOpen : Bool
     , startingWordcount : Int
-    , historyView : Bool
+    , historyState : HistoryState
     , online : Bool
     , changed : Bool
     , currentTime : Time
@@ -152,7 +153,7 @@ defaultModel =
     , wordcountTrayOpen = False
     , videoModalOpen = False
     , startingWordcount = 0
-    , historyView = False
+    , historyState = Closed
     , online = False
     , changed = False
     , currentTime = 0
@@ -445,34 +446,16 @@ update msg ({ objects, workingTree, status } as model) =
                     model ! []
 
                 _ ->
-                    let
-                        ( newStatus, newTree_, newModel ) =
-                            Objects.update (Objects.Checkout commitSha) objects
-                    in
-                    case newTree_ of
-                        Just newTree ->
-                            { model
-                                | workingTree = Trees.setTree newTree model.workingTree
-                                , status = newStatus
-                            }
-                                ! [ sendOut (UpdateCommits ( Objects.toValue objects, getHead newStatus )) ]
-                                |> maybeColumnsChanged model.workingTree.columns
-
-                        Nothing ->
-                            model
-                                ! []
-                                |> Debug.log "failed to load commit"
+                    model ! [] |> checkoutCommit commitSha
 
         Restore ->
             model
                 ! []
                 |> addToHistoryDo
-                |> toggleHistoryView False
 
         CancelHistoryView ->
             model
                 ! []
-                |> toggleHistoryView False
 
         Sync ->
             case ( model.status, model.online ) of
@@ -868,7 +851,7 @@ update msg ({ objects, workingTree, status } as model) =
                             normalMode model (pasteInto vs.active timestamp)
 
                         "mod+z" ->
-                            normalMode model (toggleHistoryView True)
+                            normalMode model historyBack
 
                         "mod+r" ->
                             let
@@ -1610,12 +1593,78 @@ pasteInto id timestamp ( model, prevCmd ) =
 -- === History ===
 
 
-toggleHistoryView : Bool -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-toggleHistoryView shouldOpen ( model, prevCmd ) =
-    { model
-        | historyView = shouldOpen
-    }
-        ! [ prevCmd ]
+checkoutCommit : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+checkoutCommit commitSha ( model, prevCmd ) =
+    let
+        ( newStatus, newTree_, newModel ) =
+            Objects.update (Objects.Checkout commitSha) model.objects
+    in
+    case newTree_ of
+        Just newTree ->
+            { model
+                | workingTree = Trees.setTree newTree model.workingTree
+                , status = newStatus
+            }
+                ! [ sendOut (UpdateCommits ( Objects.toValue model.objects, getHead newStatus )) ]
+                |> maybeColumnsChanged model.workingTree.columns
+
+        Nothing ->
+            model
+                ! []
+                |> Debug.log "failed to load commit"
+
+
+historyBack : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+historyBack ( model, prevCmd ) =
+    case model.status of
+        Clean currHead ->
+            let
+                master =
+                    Dict.get "heads/master" model.objects.refs
+
+                historyList =
+                    case master of
+                        Just refObj ->
+                            (refObj.value :: refObj.ancestors)
+                                |> List.reverse
+                                |> Debug.log "historyList"
+
+                        _ ->
+                            []
+
+                prevCommitIdx_ =
+                    historyList
+                        |> ListExtra.elemIndex currHead
+                        |> Maybe.map
+                            (\x ->
+                                if x < 1 then
+                                    0
+
+                                else
+                                    x - 1
+                            )
+                        |> Debug.log "prevCommitIdx_"
+                        |> Maybe.withDefault -1
+
+                prevCommit_ =
+                    historyList !! prevCommitIdx_
+            in
+            case ( model.historyState, prevCommit_ ) of
+                ( From startSha, Just newSha ) ->
+                    model
+                        ! [ prevCmd ]
+                        |> checkoutCommit newSha
+
+                ( Closed, Just newSha ) ->
+                    { model | historyState = From newSha }
+                        ! [ prevCmd ]
+                        |> checkoutCommit newSha
+
+                _ ->
+                    ( model, prevCmd )
+
+        _ ->
+            ( model, prevCmd )
 
 
 push : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1749,11 +1798,12 @@ repeating-linear-gradient(-45deg
                 , viewSaveIndicator model
                 , viewSearchField model
                 , viewFooter model
-                , if model.historyView then
-                    viewHistory model.objects
+                , case ( model.historyState, model.status ) of
+                    ( From sha, Clean currHead ) ->
+                        viewHistory sha currHead model.objects
 
-                  else
-                    text ""
+                    _ ->
+                        text ""
                 , viewVideo model
                 ]
 
