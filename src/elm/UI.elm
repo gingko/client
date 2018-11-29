@@ -128,8 +128,8 @@ viewFooter model =
         )
 
 
-viewHistory : String -> String -> Objects.Model -> Html Msg
-viewHistory startHead currHead objects =
+viewHistory : String -> Objects.Model -> Html Msg
+viewHistory currHead objects =
     let
         master =
             Dict.get "heads/master" objects.refs
@@ -168,7 +168,7 @@ viewHistory startHead currHead objects =
     div [ id "history" ]
         [ input [ type_ "range", A.min "0", A.max maxIdx, value currIdx, step "1", onInput checkoutCommit ] []
         , button [ onClick Restore ] [ text "Restore this Version" ]
-        , button [ onClick CancelHistoryView ] [ text "Cancel" ]
+        , button [ onClick CancelHistory ] [ text "Cancel" ]
         ]
 
 

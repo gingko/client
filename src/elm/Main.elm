@@ -453,9 +453,13 @@ update msg ({ objects, workingTree, status } as model) =
                 ! []
                 |> addToHistoryDo
 
-        CancelHistoryView ->
-            model
-                ! []
+        CancelHistory ->
+            case model.historyState of
+                From origSha ->
+                    { model | historyState = Closed } ! [] |> checkoutCommit origSha
+
+                Closed ->
+                    model ! []
 
         Sync ->
             case ( model.status, model.online ) of
@@ -1150,8 +1154,14 @@ openCard id str ( model, prevCmd ) =
             vs.collaborators
                 |> List.filter (\c -> c.mode == Editing id)
                 |> (not << List.isEmpty)
+
+        isHistoryView =
+            model.historyState /= Closed
     in
-    if isLocked then
+    if isHistoryView then
+        model ! [ prevCmd, sendOut (Alert "Cannot edit while browsing version history.") ]
+
+    else if isLocked then
         model ! [ prevCmd, sendOut (Alert "Card is being edited by someone else.") ]
 
     else
@@ -1622,14 +1632,16 @@ historyBack ( model, prevCmd ) =
                 master =
                     Dict.get "heads/master" model.objects.refs
 
-                historyList =
+                ( currCommit_, historyList ) =
                     case master of
                         Just refObj ->
-                            (refObj.value :: refObj.ancestors)
+                            ( Just refObj.value
+                            , (refObj.value :: refObj.ancestors)
                                 |> List.reverse
+                            )
 
                         _ ->
-                            []
+                            ( Nothing, [] )
 
                 prevCommitIdx_ =
                     historyList
@@ -1640,14 +1652,14 @@ historyBack ( model, prevCmd ) =
                 prevCommit_ =
                     historyList !! prevCommitIdx_
             in
-            case ( model.historyState, prevCommit_ ) of
-                ( From startSha, Just newSha ) ->
+            case ( model.historyState, currCommit_, prevCommit_ ) of
+                ( From startSha, _, Just newSha ) ->
                     model
                         ! [ prevCmd ]
                         |> checkoutCommit newSha
 
-                ( Closed, Just newSha ) ->
-                    { model | historyState = From newSha }
+                ( Closed, Just currCommit, Just newSha ) ->
+                    { model | historyState = From currCommit }
                         ! [ prevCmd ]
                         |> checkoutCommit newSha
 
@@ -1790,8 +1802,8 @@ repeating-linear-gradient(-45deg
                 , viewSearchField model
                 , viewFooter model
                 , case ( model.historyState, model.status ) of
-                    ( From sha, Clean currHead ) ->
-                        viewHistory sha currHead model.objects
+                    ( From _, Clean currHead ) ->
+                        viewHistory currHead model.objects
 
                     _ ->
                         text ""

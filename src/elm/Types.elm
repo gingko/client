@@ -24,7 +24,7 @@ type Msg
     | ThrottledCommit (Debouncer.Msg ())
     | CheckoutCommit String
     | Restore
-    | CancelHistoryView
+    | CancelHistory
     | Sync
     | SetSelection String Selection String
     | Resolve String
