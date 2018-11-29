@@ -131,12 +131,17 @@ viewFooter model =
 viewHistory : String -> String -> Objects.Model -> Html Msg
 viewHistory startHead currHead objects =
     let
-        historyList =
+        master =
             Dict.get "heads/master" objects.refs
-                |> Maybe.map .ancestors
-                |> Maybe.withDefault []
-                |> List.append [ startHead ]
-                |> List.reverse
+
+        historyList =
+            case master of
+                Just refObj ->
+                    (refObj.value :: refObj.ancestors)
+                        |> List.reverse
+
+                _ ->
+                    []
 
         maxIdx =
             historyList |> List.length |> (\x -> x - 1) |> toString
@@ -161,7 +166,7 @@ viewHistory startHead currHead objects =
                     NoOp
     in
     div [ id "history" ]
-        [ input [ type_ "range", A.min "0", A.max maxIdx, defaultValue currIdx, step "1", onInput checkoutCommit ] []
+        [ input [ type_ "range", A.min "0", A.max maxIdx, value currIdx, step "1", onInput checkoutCommit ] []
         , button [ onClick Restore ] [ text "Restore this Version" ]
         , button [ onClick CancelHistoryView ] [ text "Cancel" ]
         ]
