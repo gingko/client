@@ -76,6 +76,8 @@ main =
 
    startingWordcount : Word count on open. To see how many words were written in this session.
 
+   historyView : Is the display of version history open or not.
+
    online : Are we online or not, in order to attempt to sync. (Unused for now).
 
    changed : Has the document been changed since load?
@@ -98,6 +100,7 @@ type alias Model =
     , wordcountTrayOpen : Bool
     , videoModalOpen : Bool
     , startingWordcount : Int
+    , historyView : Bool
     , online : Bool
     , changed : Bool
     , currentTime : Time
@@ -149,6 +152,7 @@ defaultModel =
     , wordcountTrayOpen = False
     , videoModalOpen = False
     , startingWordcount = 0
+    , historyView = False
     , online = False
     , changed = False
     , currentTime = 0
@@ -459,11 +463,16 @@ update msg ({ objects, workingTree, status } as model) =
                                 ! []
                                 |> Debug.log "failed to load commit"
 
-        Undo ->
-            model ! []
+        Restore ->
+            model
+                ! []
+                |> addToHistoryDo
+                |> toggleHistoryView False
 
-        Redo ->
-            model ! []
+        CancelHistoryView ->
+            model
+                ! []
+                |> toggleHistoryView False
 
         Sync ->
             case ( model.status, model.online ) of
@@ -859,7 +868,7 @@ update msg ({ objects, workingTree, status } as model) =
                             normalMode model (pasteInto vs.active timestamp)
 
                         "mod+z" ->
-                            model ! []
+                            normalMode model (toggleHistoryView True)
 
                         "mod+r" ->
                             let
@@ -1601,6 +1610,14 @@ pasteInto id timestamp ( model, prevCmd ) =
 -- === History ===
 
 
+toggleHistoryView : Bool -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+toggleHistoryView shouldOpen ( model, prevCmd ) =
+    { model
+        | historyView = shouldOpen
+    }
+        ! [ prevCmd ]
+
+
 push : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 push ( model, prevCmd ) =
     if model.online then
@@ -1732,7 +1749,11 @@ repeating-linear-gradient(-45deg
                 , viewSaveIndicator model
                 , viewSearchField model
                 , viewFooter model
-                , viewHistory model.objects
+                , if model.historyView then
+                    viewHistory model.objects
+
+                  else
+                    text ""
                 , viewVideo model
                 ]
 

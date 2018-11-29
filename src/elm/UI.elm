@@ -155,6 +155,8 @@ viewHistory objects =
     in
     div [ id "history" ]
         [ input [ type_ "range", A.min "0", A.max maxIdx, defaultValue maxIdx, step "1", onInput checkoutCommit ] []
+        , button [ onClick Restore ] [ text "Restore this Version" ]
+        , button [ onClick CancelHistoryView ] [ text "Cancel" ]
         ]
 
 

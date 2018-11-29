@@ -1013,10 +1013,12 @@ span.shortcut-key {
 
 #history {
   position: absolute;
-  top: 20px;
-  left: 5px;
+  width: 100%;
+  padding: 10px 5px;
   z-index: 999;
-  overflow-y: auto;
+}
+#history input {
+  width: 100%;
 }
 .conflicts-list {
   position: absolute;

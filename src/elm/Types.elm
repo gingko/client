@@ -23,8 +23,8 @@ type Msg
       -- === History ===
     | ThrottledCommit (Debouncer.Msg ())
     | CheckoutCommit String
-    | Undo
-    | Redo
+    | Restore
+    | CancelHistoryView
     | Sync
     | SetSelection String Selection String
     | Resolve String
