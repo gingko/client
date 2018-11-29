@@ -530,14 +530,6 @@ function sync () {
 }
 
 
-const setHead = function(sha) {
-  if (sha) {
-    toElm('CheckoutCommit', sha)
-  }
-}
-
-
-
 
 /* === Local Functions === */
 

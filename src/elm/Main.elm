@@ -1,4 +1,4 @@
-port module Main exposing (..)
+port module Main exposing (InitModel, Model, activate, addToHistory, addToHistoryDo, cancelCard, copy, cut, defaultModel, deleteCard, focus, getHead, goDown, goLeft, goRight, goToBottomOfColumn, goToBottomOfGroup, goToTopOfColumn, goToTopOfGroup, goUp, init, insert, insertAbove, insertBelow, insertChild, insertRelative, intentCancelCard, main, maybeColumnsChanged, move, moveLeft, moveRight, moveWithin, normalMode, openCard, paste, pasteBelow, pasteInto, push, run, saveCardIfEditing, sendCollabState, subscriptions, toggleVideoModal, update, view)
 
 import Coders exposing (..)
 import Debouncer.Basic as Debouncer exposing (Debouncer, provideInput, toDebouncer)
@@ -18,7 +18,7 @@ import Time exposing (Time, second)
 import TreeUtils exposing (..)
 import Trees exposing (..)
 import Types exposing (..)
-import UI exposing (countWords, viewConflict, viewFooter, viewSaveIndicator, viewSearchField, viewVideo)
+import UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
 
 
 main : Program ( Json.Value, InitModel, Bool ) Model Msg
@@ -435,6 +435,30 @@ update msg ({ objects, workingTree, status } as model) =
                 Nothing ->
                     ( updatedModel, mappedCmd )
 
+        CheckoutCommit commitSha ->
+            case status of
+                MergeConflict _ _ _ _ ->
+                    model ! []
+
+                _ ->
+                    let
+                        ( newStatus, newTree_, newModel ) =
+                            Objects.update (Objects.Checkout commitSha) objects
+                    in
+                    case newTree_ of
+                        Just newTree ->
+                            { model
+                                | workingTree = Trees.setTree newTree model.workingTree
+                                , status = newStatus
+                            }
+                                ! [ sendOut (UpdateCommits ( Objects.toValue objects, getHead newStatus )) ]
+                                |> maybeColumnsChanged model.workingTree.columns
+
+                        Nothing ->
+                            model
+                                ! []
+                                |> Debug.log "failed to load commit"
+
         Undo ->
             model ! []
 
@@ -694,30 +718,6 @@ update msg ({ objects, workingTree, status } as model) =
                     { model | isTextSelected = isSel } ! []
 
                 -- === UI ===
-                CheckoutCommit commitSha ->
-                    case status of
-                        MergeConflict _ _ _ _ ->
-                            model ! []
-
-                        _ ->
-                            let
-                                ( newStatus, newTree_, newModel ) =
-                                    Objects.update (Objects.Checkout commitSha) objects
-                            in
-                            case newTree_ of
-                                Just newTree ->
-                                    { model
-                                        | workingTree = Trees.setTree newTree model.workingTree
-                                        , status = newStatus
-                                    }
-                                        ! [ sendOut (UpdateCommits ( Objects.toValue objects, getHead newStatus )) ]
-                                        |> maybeColumnsChanged model.workingTree.columns
-
-                                Nothing ->
-                                    model
-                                        ! []
-                                        |> Debug.log "failed to load commit"
-
                 ViewVideos ->
                     model
                         ! []
@@ -1732,6 +1732,7 @@ repeating-linear-gradient(-45deg
                 , viewSaveIndicator model
                 , viewSearchField model
                 , viewFooter model
+                , viewHistory model.objects
                 , viewVideo model
                 ]
 

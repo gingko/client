@@ -1,4 +1,4 @@
-module Types exposing (..)
+module Types exposing (Children(..), CollabState, Column, Conflict, DropId(..), ExportFormat(..), ExportSelection(..), ExportSettings, Group, IncomingMsg(..), Mode(..), Msg(..), Op(..), OutgoingMsg(..), OutsideData, Selection(..), Status(..), Tree, ViewState, VisibleViewState, WordCount)
 
 import Debouncer.Basic as Debouncer
 import Html5.DragDrop as DragDrop
@@ -22,6 +22,7 @@ type Msg
     | DragDropMsg (DragDrop.Msg String DropId)
       -- === History ===
     | ThrottledCommit (Debouncer.Msg ())
+    | CheckoutCommit String
     | Undo
     | Redo
     | Sync
@@ -82,7 +83,6 @@ type
     | FieldChanged String
     | TextSelected Bool
       -- === UI ===
-    | CheckoutCommit String
     | ViewVideos
     | Keyboard String Int
       -- === Misc ===

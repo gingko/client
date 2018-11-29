@@ -1,4 +1,4 @@
-port module Ports exposing (..)
+port module Ports exposing (encodeAndSend, infoForElm, infoForOutside, receiveMsg, sendOut, unionTypeToString)
 
 import Coders exposing (..)
 import Json.Decode exposing (decodeValue)
@@ -201,14 +201,6 @@ receiveMsg tagger onError =
                             onError e
 
                 -- === UI ===
-                "CheckoutCommit" ->
-                    case decodeValue Json.Decode.string outsideInfo.data of
-                        Ok commitSha ->
-                            tagger <| CheckoutCommit commitSha
-
-                        Err e ->
-                            onError e
-
                 "ViewVideos" ->
                     tagger <| ViewVideos
 

@@ -1,4 +1,4 @@
-module UI exposing (countWords, viewConflict, viewFooter, viewSaveIndicator, viewSearchField, viewVideo)
+module UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
 
 import Coders exposing (treeToMarkdownString)
 import Date
@@ -6,9 +6,9 @@ import Date.Distance as DateDist
 import Dict
 import Diff exposing (..)
 import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html.Attributes as A exposing (..)
 import Html.Events exposing (onClick, onInput)
-import InlineHover exposing (hover)
+import List.Extra exposing ((!!))
 import Objects
 import Octicons as Icon exposing (defaultOptions)
 import Regex exposing (Regex, regex, replace)
@@ -126,6 +126,36 @@ viewFooter model =
         ([ viewShortcutsToggle model.shortcutTrayOpen model.isMac isOnly model.isTextSelected model.viewState ]
             ++ viewWordCount
         )
+
+
+viewHistory : Objects.Model -> Html Msg
+viewHistory objects =
+    let
+        ancestors =
+            Dict.get "heads/master" objects.refs
+                |> Maybe.map .ancestors
+                |> Maybe.withDefault []
+                |> List.reverse
+
+        maxIdx =
+            ancestors |> List.length |> (\x -> x - 1) |> toString
+
+        checkoutCommit idxStr =
+            case String.toInt idxStr of
+                Ok idx ->
+                    case ancestors !! idx of
+                        Just commit ->
+                            CheckoutCommit commit
+
+                        Nothing ->
+                            NoOp
+
+                Err _ ->
+                    NoOp
+    in
+    div [ id "history" ]
+        [ input [ type_ "range", A.min "0", A.max maxIdx, defaultValue maxIdx, step "1", onInput checkoutCommit ] []
+        ]
 
 
 viewVideo : { m | videoModalOpen : Bool } -> Html Msg
