@@ -2,8 +2,9 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
-## Unreleased
+## [2.2.6] - 2018-12-03
   - Undo/Redo and basic version history navigation
+  - Fix non-persistent "last active card" on opening a document
 
 ## [2.2.5] - 2018-11-01
   - Fix error when "Save As" to same location
