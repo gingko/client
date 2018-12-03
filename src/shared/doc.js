@@ -53,6 +53,7 @@ console.log('Gingko version', app.getVersion())
 var firstRun = userStore.get('first-run', true)
 var docWindow = remote.getCurrentWindow()
 var jsonImportData = docWindow.jsonImportData;
+var currentPath = docWindow.originalPath;
 
 self.db = new PouchDB(docWindow.dbPath);
 ipcRenderer.on("database-close", async (ev) => {
@@ -66,6 +67,7 @@ if(!!jsonImportData) {
         , shortcutTrayOpen : userStore.get('shortcut-tray-is-open', true)
         , videoModalOpen : userStore.get('video-modal-is-open', false)
         , currentTime : Date.now()
+        , lastActive : getLastActive(currentPath)
         }
       , false // isSaved
     ]
@@ -82,6 +84,7 @@ if(!!jsonImportData) {
           , shortcutTrayOpen : userStore.get('shortcut-tray-is-open', true)
           , videoModalOpen : userStore.get('video-modal-is-open', false)
           , currentTime : Date.now()
+          , lastActive : getLastActive(currentPath)
           }
         , true // isSaved
       ]
@@ -254,13 +257,13 @@ const update = (msg, data) => {
 
       // === DOM ===
 
-    , 'ActivateCards': () => {
-        lastActivesScrolled = data.lastActives
-        lastColumnScrolled = data.column
+    , "ActivateCards": () => {
+        lastActivesScrolled = data.lastActives;
+        lastColumnScrolled = data.column;
 
-        setLastActive(data.filepath, data.cardId)
-        helpers.scrollHorizontal(data.column)
-        helpers.scrollColumns(data.lastActives)
+        setLastActive(currentPath, data.cardId);
+        helpers.scrollHorizontal(data.column);
+        helpers.scrollColumns(data.lastActives);
       }
 
     , 'FlashCurrentSubtree': () => {
@@ -352,8 +355,9 @@ function intentExportToElm ( format, selection, filepath) {
   toElm("IntentExport", { format: format, selection : selection, filepath: filepath} );
 }
 
-ipcRenderer.on("main:set-swap-folder", async (e, newSwapFolder) => {
-  self.db = new PouchDB(path.join(newSwapFolder, "leveldb"));
+ipcRenderer.on("main:set-swap-folder", async (e, newPaths) => {
+  self.db = new PouchDB(path.join(newPaths[0], "leveldb"));
+  currentPath = newPaths[1];
 });
 
 
@@ -733,17 +737,17 @@ const exportTxt = (data, defaultPath) => {
 
 function setLastActive (filepath, lastActiveCard) {
   if (filepath !== null) {
-    userStore.set(`last-active-cards.${filepath}`, lastActiveCard);
+    userStore.set(`last-active-cards.${filepath.replace(".","\\.")}`, lastActiveCard);
   }
 }
 
 
 function getLastActive (filepath) {
-  let lastActiveCard = userStore.get(`last-active-cards.${filepath}`)
-  if (typeof lastActiveCard === "undefined") {
-    return null
+  let lastActiveCard = userStore.get(`last-active-cards.${filepath.replace(".","\\.")}`);
+  if (typeof lastActiveCard === "string") {
+    return lastActiveCard;
   } else {
-    return lastActiveCard
+    return "1";
   }
 }
 

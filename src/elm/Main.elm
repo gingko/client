@@ -120,6 +120,7 @@ type alias InitModel =
     , shortcutTrayOpen : Bool
     , videoModalOpen : Bool
     , currentTime : Time
+    , lastActive : String
     }
 
 
@@ -212,8 +213,8 @@ init ( dataIn, modelIn, isSaved ) =
         , startingWordcount = startingWordcount
         , currentTime = modelIn.currentTime
     }
-        ! [ focus "1", sendOut <| ColumnNumberChange <| List.length <| newWorkingTree.columns ]
-        |> activate "1"
+        ! [ focus modelIn.lastActive, sendOut <| ColumnNumberChange <| List.length <| newWorkingTree.columns ]
+        |> activate modelIn.lastActive
         |> (\mc ->
                 if not isSaved then
                     mc |> addToHistory

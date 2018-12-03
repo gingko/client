@@ -523,7 +523,7 @@ async function saveDocumentAs (docWindow) {
       docWindow.swapFolderPath = newSwapFolderPath;
       await addToRecentDocuments(newFilepath);
       docWindow.setTitle(`${path.basename(newFilepath)} - Gingko`);
-      docWindow.webContents.send("main:set-swap-folder", newSwapFolderPath);
+      docWindow.webContents.send("main:set-swap-folder", [newSwapFolderPath, newFilepath]);
       return { "filepath" : newFilepath, "swapFolderPath" : newSwapFolderPath };
     } catch (err) {
       throw err;
@@ -563,7 +563,7 @@ async function saveLegacyDocumentAs (docWindow) {
       docWindow.swapFolderPath = newSwapFolderPath;
       addToRecentDocuments(newFilepath);
       docWindow.setTitle(`${path.basename(newFilepath)} - Gingko`);
-      docWindow.webContents.send("main:set-swap-folder", newSwapFolderPath);
+      docWindow.webContents.send("main:set-swap-folder", [newSwapFolderPath, newFilepath]);
       return { "filepath" : newFilepath, "swapFolderPath" : newSwapFolderPath };
     } catch (err) {
       throw err;
