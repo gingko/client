@@ -1,4 +1,4 @@
-module Types exposing (Children(..), CollabState, Column, Conflict, DropId(..), ExportFormat(..), ExportSelection(..), ExportSettings, Group, HistoryState(..), IncomingMsg(..), Mode(..), Msg(..), Op(..), OutgoingMsg(..), OutsideData, Selection(..), Status(..), Tree, ViewState, VisibleViewState, WordCount)
+module Types exposing (Children(..), CollabState, Column, Conflict, Direction(..), DropId(..), ExportFormat(..), ExportSelection(..), ExportSettings, Group, HistoryState(..), IncomingMsg(..), Mode(..), Msg(..), Op(..), OutgoingMsg(..), OutsideData, Selection(..), Status(..), Tree, ViewState, VisibleViewState, WordCount)
 
 import Debouncer.Basic as Debouncer
 import Html5.DragDrop as DragDrop
@@ -164,6 +164,11 @@ type Status
 type HistoryState
     = Closed
     | From String
+
+
+type Direction
+    = Forward
+    | Backward
 
 
 type Mode

@@ -855,14 +855,10 @@ update msg ({ objects, workingTree, status } as model) =
                             normalMode model (pasteInto vs.active timestamp)
 
                         "mod+z" ->
-                            normalMode model historyBack
+                            normalMode model (historyStep Backward)
 
                         "mod+r" ->
-                            let
-                                _ =
-                                    Debug.log "model" model
-                            in
-                            model ! []
+                            normalMode model (historyStep Forward)
 
                         "mod+s" ->
                             model
@@ -1624,8 +1620,8 @@ checkoutCommit commitSha ( model, prevCmd ) =
                 |> Debug.log "failed to load commit"
 
 
-historyBack : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-historyBack ( model, prevCmd ) =
+historyStep : Direction -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+historyStep dir ( model, prevCmd ) =
     case model.status of
         Clean currHead ->
             let
@@ -1643,16 +1639,24 @@ historyBack ( model, prevCmd ) =
                         _ ->
                             ( Nothing, [] )
 
-                prevCommitIdx_ =
-                    historyList
-                        |> ListExtra.elemIndex currHead
-                        |> Maybe.map (\x -> Basics.max 0 (x - 1))
-                        |> Maybe.withDefault -1
+                newCommitIdx_ =
+                    case dir of
+                        Backward ->
+                            historyList
+                                |> ListExtra.elemIndex currHead
+                                |> Maybe.map (\x -> Basics.max 0 (x - 1))
+                                |> Maybe.withDefault -1
 
-                prevCommit_ =
-                    historyList !! prevCommitIdx_
+                        Forward ->
+                            historyList
+                                |> ListExtra.elemIndex currHead
+                                |> Maybe.map (\x -> Basics.min (List.length historyList - 1) (x + 1))
+                                |> Maybe.withDefault -1
+
+                newCommit_ =
+                    historyList !! newCommitIdx_
             in
-            case ( model.historyState, currCommit_, prevCommit_ ) of
+            case ( model.historyState, currCommit_, newCommit_ ) of
                 ( From startSha, _, Just newSha ) ->
                     model
                         ! [ prevCmd ]
