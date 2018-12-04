@@ -189,7 +189,6 @@ function editMenu (isDocument, isEditing, isMac) {
       { label: "Edit"
       , submenu:
           [ { label: "Undo"
-            , enabled : false
             , accelerator : "CommandOrControl+Z"
             , click : function (item, focusedWindow) {
                 if (!isMac) {
@@ -198,7 +197,6 @@ function editMenu (isDocument, isEditing, isMac) {
               }
             }
           , { label: "Redo"
-            , enabled : false
             , accelerator : "CommandOrControl+Shift+Z"
             , click : function (item, focusedWindow) {
                 if (!isMac) {
