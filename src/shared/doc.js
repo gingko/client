@@ -736,18 +736,20 @@ const exportTxt = (data, defaultPath) => {
 
 
 function setLastActive (filepath, lastActiveCard) {
-  if (filepath !== null) {
+  if (typeof filepath === "string") {
     userStore.set(`last-active-cards.${filepath.replace(".","\\.")}`, lastActiveCard);
   }
 }
 
 
 function getLastActive (filepath) {
-  let lastActiveCard = userStore.get(`last-active-cards.${filepath.replace(".","\\.")}`);
-  if (typeof lastActiveCard === "string") {
-    return lastActiveCard;
-  } else {
-    return "1";
+  if (typeof filepath === "string") {
+    let lastActiveCard = userStore.get(`last-active-cards.${filepath.replace(".","\\.")}`);
+    if (typeof lastActiveCard === "string") {
+      return lastActiveCard;
+    } else {
+      return "1";
+    }
   }
 }
 
