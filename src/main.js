@@ -13,6 +13,7 @@ const fio = require('./electron/file-io')
 const getMenuTemplate = require("./electron/menu");
 const filenamify = require("filenamify");
 const unhandled = require("electron-unhandled");
+const isDev = require("electron-is-dev");
 const GingkoError  = require("./shared/errors");
 const errorAlert = require('./shared/doc-helpers').errorAlert
 
@@ -302,7 +303,9 @@ app.on("ready", async () => {
     updateNotification.show();
   });
 
-  autoUpdater.checkForUpdates();
+  if(!isDev) {
+    autoUpdater.checkForUpdates();
+  }
 
   let email = userStore.get("email", "");
   let storedSerial = userStore.get("serial", "");
