@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [2.2.8] - 2018-12-05
   - (Internal) Upgrade dependencies, including electron to 3.0
+  - Fix "Error: Cannot find module '../screen'"
 
 ## [2.2.7] - 2018-12-04
   - Fix error introduced in last version on opening New documents
