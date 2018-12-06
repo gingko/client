@@ -693,7 +693,8 @@ ipcMain.on("app:close", async (event) => {
         , buttons: ["Cancel", "Keep in Legacy Format", "Save As File"]
         , defaultId: 2
         };
-      let choice = dialog.showMessageBox(legacyOptions);
+
+      let choice = dialog.showMessageBox(docWindow, legacyOptions);
 
       switch (choice) {
         case 0:
@@ -717,10 +718,12 @@ ipcMain.on("app:close", async (event) => {
       const confirmOptions =
         { title: "Save changes"
         , message: "Save changes before closing?"
+        , type: "warning"
         , buttons: ["Close Without Saving", "Cancel", "Save"]
         , defaultId: 2
-        }
-      let choice = dialog.showMessageBox(confirmOptions)
+        };
+
+      let choice = dialog.showMessageBox(docWindow, confirmOptions);
 
       switch (choice) {
         case 0:
