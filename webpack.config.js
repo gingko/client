@@ -39,6 +39,7 @@ module.exports = {
   },
   externals : {
     "7zip-bin": "require('7zip-bin')",
+    "electron-spellchecker": "require('electron-spellchecker')",
     "electron-store": "require('electron-store')",
     "dblsqd-electron": "require('dblsqd-electron')",
     "pouchdb": "require('pouchdb')",
