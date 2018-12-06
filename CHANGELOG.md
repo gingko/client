@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
+## [2.2.9] - 2018-12-06
+  - Fix "Unsaved" confirmation not bringing document to focus
+  - Fix Undo/Redo not working from menu
+  - Add Alt-shortcuts to menu
+
 ## [2.2.8] - 2018-12-05
   - (Internal) Upgrade dependencies, including electron to 3.0
   - Fix "Error: Cannot find module '../screen'"
