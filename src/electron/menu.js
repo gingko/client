@@ -30,7 +30,7 @@ function getTemplate (menuState, handlers, isMac) {
           , {role: "hideothers"}
           , {role: "unhide"}
           , {type: "separator"}
-          , { label: "Quit Gingko..."
+          , { label: "&Quit Gingko..."
             , accelerator: "Command+Q"
             , click : handlers.quit
             }
@@ -39,7 +39,7 @@ function getTemplate (menuState, handlers, isMac) {
 
     menuTemplate.splice(4, 0, { role: "windowMenu"});
   } else {
-    let closeMenuItem = { label : "Close", accelerator: "Ctrl+W", click : function (item, focusedWindow) { focusedWindow.webContents.send("menu-close-document"); }};
+    let closeMenuItem = { label : "&Close", accelerator: "Ctrl+W", click : function (item, focusedWindow) { focusedWindow.webContents.send("menu-close-document"); }};
     menuTemplate[0].submenu.splice(3, 0, closeMenuItem);
     menuTemplate[0].submenu.push({type: "separator"}, {role: "quit"} );
   }
@@ -60,8 +60,8 @@ function fileMenu (isDocument, isNew, isChanged, columnNumber, hasLastExport, re
   let _fileMenu;
 
   let recentDocsMenu =
-    recentDocumentList.map(rdoc => {
-      return { label : rdoc.name, click : () => { handlers.openRecent(rdoc); }};
+    recentDocumentList.map((rdoc, idx) => {
+      return { label : (idx < 9 ? `&${idx+1}  ` : "   ") + rdoc.name, click : () => { handlers.openRecent(rdoc); }};
     });
 
   recentDocsMenu = recentDocsMenu.slice(0,20);
@@ -70,29 +70,29 @@ function fileMenu (isDocument, isNew, isChanged, columnNumber, hasLastExport, re
 
 
   let _subMenu =
-    [ { label : "New"
+    [ { label : "&New"
       , accelerator : "CmdOrCtrl+N"
       , click : handlers.new
       }
-    , { label: "Open..."
+    , { label: "&Open..."
       , accelerator: "CmdOrCtrl+O"
       , click: handlers.open
       }
-    , { label: "Open Recent"
+    , { label: "Open &Recent"
       , submenu : recentDocsMenu
       }
     , { type: "separator" }
-    , { label: (isNew ? "Save" : (isChanged ? "Save" : "Saved"))
+    , { label: (isNew ? "&Save" : (isChanged ? "&Save" : "Saved"))
       , enabled: isNew || isChanged
       , accelerator: "CmdOrCtrl+S"
       , click : isChanged ? handlers.save : handlers.saveAs
       }
-    , { label: "Save As"
+    , { label: "Save &As"
       , accelerator: "CmdOrCtrl+Shift+S"
       , click : handlers.saveAs
       }
     , { type: "separator" }
-    , { label: "Import JSON File..."
+    , { label: "&Import JSON File..."
       , click : handlers.import
       }
     ];
@@ -101,18 +101,18 @@ function fileMenu (isDocument, isNew, isChanged, columnNumber, hasLastExport, re
   if (isDocument) {
     _subMenu = _subMenu.concat(
       [ { type: "separator" }
-      , { label: "Export as MS Word"
+      , { label: "Export as MS &Word"
         , submenu : exportMenu("docx", columnNumber)
         }
-      , { label: "Export as Text"
+      , { label: "Export as &Text"
         , submenu : exportMenu("txt", columnNumber)
         }
-      , { label: "Export as JSON..."
+      , { label: "Export as &JSON..."
         , click : function (item, focusedWindow) {
             focusedWindow.webContents.send("menu-export-json");
           }
         }
-      , { label: "Repeat Last Export"
+      , { label: "Repeat Last E&xport"
         , enabled: hasLastExport
         , accelerator: "CommandOrControl+r"
         , click : function (item, focusedWindow) {
@@ -124,7 +124,7 @@ function fileMenu (isDocument, isNew, isChanged, columnNumber, hasLastExport, re
   }
 
   _fileMenu =
-    { label : "File"
+    { label : "&File"
     , submenu : _subMenu
     };
 
@@ -173,7 +173,7 @@ function editMenu (isDocument, isEditing, isMac) {
 
   if ( (isDocument && isEditing) || !isDocument ) {
     _editMenu =
-      { label: "Edit"
+      { label: "&Edit"
       , submenu:
           [ { role: "undo" }
           , { role: "redo" }
@@ -186,9 +186,9 @@ function editMenu (isDocument, isEditing, isMac) {
       };
   } else {
     _editMenu =
-      { label: "Edit"
+      { label: "&Edit"
       , submenu:
-          [ { label: "Undo"
+          [ { label: "&Undo"
             , accelerator : "CommandOrControl+Z"
             , click : function (item, focusedWindow) {
                 if (!isMac) {
@@ -196,7 +196,7 @@ function editMenu (isDocument, isEditing, isMac) {
                 }
               }
             }
-          , { label: "Redo"
+          , { label: "&Redo"
             , accelerator : "CommandOrControl+Shift+Z"
             , click : function (item, focusedWindow) {
                 if (!isMac) {
@@ -205,7 +205,7 @@ function editMenu (isDocument, isEditing, isMac) {
               }
             }
           , { type: "separator" }
-          , { label: "Cut Cards"
+          , { label: "Cu&t Cards"
             , accelerator : "CommandOrControl+X"
             , click : function (item, focusedWindow) {
                 if (!isMac) {
@@ -213,7 +213,7 @@ function editMenu (isDocument, isEditing, isMac) {
                 }
               }
             }
-          , { label: "Copy Cards"
+          , { label: "&Copy Cards"
             , accelerator : "CommandOrControl+C"
             , click : function (item, focusedWindow) {
                 if (!isMac) {
@@ -221,7 +221,7 @@ function editMenu (isDocument, isEditing, isMac) {
                 }
               }
             }
-          , { label: "Paste Cards"
+          , { label: "&Paste Cards"
             , accelerator : "CommandOrControl+V"
             , click : function (item, focusedWindow) {
                 if (!isMac) {
@@ -249,9 +249,9 @@ function editMenu (isDocument, isEditing, isMac) {
 
 function viewMenu(isDocument) {
   let _viewMenu =
-    { label: "View"
+    { label: "&View"
     , submenu:
-        [ { label: "Zoom In"
+        [ { label: "&Zoom In"
           , enabled: isDocument
           , accelerator: "CommandOrControl+="
           , click : function (item, focusedWindow) {
@@ -261,7 +261,7 @@ function viewMenu(isDocument) {
               });
             }
           }
-        , { label: "Zoom Out"
+        , { label: "Zoom &Out"
           , enabled: isDocument
           , accelerator: "CommandOrControl+-"
           , click : function (item, focusedWindow) {
@@ -271,7 +271,7 @@ function viewMenu(isDocument) {
               });
             }
           }
-        , { label: "Reset Zoom"
+        , { label: "&Reset Zoom"
           , enabled: isDocument
           , accelerator: "CommandOrControl+0"
           , click : function (item, focusedWindow) {
@@ -292,26 +292,26 @@ function helpMenu(handlers, isMac) {
   let _helpMenu;
 
   _helpMenu =
-    { label: "Help"
+    { label: "&Help"
     , submenu:
-        [ { label: "FAQ..."
+        [ { label: "&FAQ..."
           , click : () => shell.openExternal("https://gingko.io/faq.html")
           }
-        , { label: "Features List && Known Bugs..."
+        , { label: "Features &List && Known Bugs..."
           , click : () => shell.openExternal("https://github.com/gingko/client/issues")
           }
-        , { label: "Contact Adriano..."
+        , { label: "&Contact Adriano..."
           , click : (item, focusedWindow) => focusedWindow.webContents.send("menu-contact-support")
           }
         , { type: "separator" }
-        , { label: "Buy a License..."
+        , { label: "&Buy a License..."
           , click : () => shell.openExternal("https://gingkoapp.com/desktop-upgrade")
           }
-        , { label: "Enter License..."
+        , { label: "&Enter License..."
           , click : handlers.enterLicense
           }
         , { type: "separator" }
-        , { label: "Open Debugging Tools"
+        , { label: "Open &Debugging Tools"
           , accelerator: isMac ? "Alt+Command+I" : "Ctrl+Shift+I"
           , click : function (item, focusedWindow) {
               if (focusedWindow) focusedWindow.webContents.toggleDevTools();
