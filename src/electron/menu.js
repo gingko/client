@@ -191,17 +191,13 @@ function editMenu (isDocument, isEditing, isMac) {
           [ { label: "&Undo"
             , accelerator : "CommandOrControl+Z"
             , click : function (item, focusedWindow) {
-                if (!isMac) {
-                  focusedWindow.webContents.send("undo");
-                }
+                focusedWindow.webContents.send("menu-undo");
               }
             }
           , { label: "&Redo"
             , accelerator : "CommandOrControl+Shift+Z"
             , click : function (item, focusedWindow) {
-                if (!isMac) {
-                  focusedWindow.webContents.send("redo");
-                }
+                focusedWindow.webContents.send("menu-redo");
               }
             }
           , { type: "separator" }

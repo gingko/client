@@ -858,7 +858,7 @@ update msg ({ objects, workingTree, status } as model) =
                         "mod+z" ->
                             normalMode model (historyStep Backward)
 
-                        "mod+r" ->
+                        "mod+shift+z" ->
                             normalMode model (historyStep Forward)
 
                         "mod+s" ->
