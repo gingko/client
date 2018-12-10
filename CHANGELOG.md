@@ -2,8 +2,8 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
-## Unreleased
-  - Add spellcheck feature
+## [2.3.0] - 2018-12-10
+  - Add spellcheck
 
 ## [2.2.9] - 2018-12-06
   - Fix "Unsaved" confirmation not bringing document to focus
