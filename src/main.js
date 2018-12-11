@@ -304,7 +304,9 @@ app.on("ready", async () => {
   });
 
   if(!isDev) {
-    autoUpdater.checkForUpdates();
+    autoUpdater.checkForUpdates().catch(err => {
+      console.log("my catch", err);
+    });
   }
 
   let email = userStore.get("email", "");
