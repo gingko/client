@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [2.3.0] - 2018-12-10
   - Add spellcheck
+  - Fix "Error: Cannot find module '../screen'" on clicking New Blank
 
 ## [2.2.9] - 2018-12-06
   - Fix "Unsaved" confirmation not bringing document to focus

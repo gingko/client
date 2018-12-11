@@ -636,7 +636,7 @@ app.on('activate', () => {
 
 
 ipcMain.on('home:new', async (event) => {
-  newUntitled();
+  await newUntitled();
   winHome.close();
 })
 
