@@ -12,9 +12,6 @@ const {app, dialog} = remote
 const querystring = require('querystring')
 const Store = require('electron-store')
 
-import {SpellCheckHandler, ContextMenuListener, ContextMenuBuilder} from "electron-spellchecker";
-const osLocale = require("os-locale");
-
 import PouchDB from "pouchdb";
 
 
@@ -57,16 +54,6 @@ var firstRun = userStore.get('first-run', true)
 var docWindow = remote.getCurrentWindow()
 var jsonImportData = docWindow.jsonImportData;
 var currentPath = docWindow.originalPath;
-
-// Spellchecking
-docWindow.spellCheckHandler = new SpellCheckHandler();
-docWindow.spellCheckHandler.attachToInput();
-docWindow.spellCheckHandler.switchLanguage(osLocale.sync());
-
-let contextMenuBuilder = new ContextMenuBuilder(docWindow.spellCheckHandler);
-let contextMenuListener = new ContextMenuListener((info) => {
-  contextMenuBuilder.showPopupMenu(info);
-});
 
 self.db = new PouchDB(docWindow.dbPath);
 ipcRenderer.on("database-close", async (ev) => {

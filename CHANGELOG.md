@@ -2,9 +2,10 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
-## [2.3.0] - 2018-12-10
-  - Add spellcheck
+## [2.3.0] - 2018-12-11
   - Fix "Error: Cannot find module '../screen'" on clicking New Blank
+  - Fix Unhandled error on updater when offline
+  - (Internal) Revert to electron v2
 
 ## [2.2.9] - 2018-12-06
   - Fix "Unsaved" confirmation not bringing document to focus
