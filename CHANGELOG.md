@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
-## Unreleased
+## [2.3.1] - 2018-12-19
   - Fix: Couldn't click on search area since 2.2.6
   - Fix: Delete & Move shortcuts not always shown in shortcut tray
 
