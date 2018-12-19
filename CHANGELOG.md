@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
   - Fix: Couldn't click on search area since 2.2.6
+  - Fix: Delete & Move shortcuts not always shown in shortcut tray
 
 ## [2.3.0] - 2018-12-11
   - Fix "Error: Cannot find module '../screen'" on clicking New Blank

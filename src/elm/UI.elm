@@ -108,8 +108,12 @@ viewFooter model =
 
         isOnly =
             case model.workingTree.tree.children of
-                Children [ a ] ->
-                    True
+                Children [ singleRoot ] ->
+                    if singleRoot.children == Children [] then
+                        True
+
+                    else
+                        False
 
                 _ ->
                     False
