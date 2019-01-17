@@ -11,6 +11,7 @@ const {ipcRenderer, remote, webFrame, shell} = require('electron')
 const {app, dialog} = remote
 const querystring = require('querystring')
 const Store = require('electron-store')
+const fontScanner = require("font-scanner");
 
 import PouchDB from "pouchdb";
 
@@ -49,6 +50,9 @@ if(process.env.RUNNING_IN_SPECTRON) {
 /* === Initializing App === */
 
 console.log('Gingko version', app.getVersion())
+
+var fonts = fontScanner.getAvailableFontsSync();
+console.log("fonts", fonts);
 
 var firstRun = userStore.get('first-run', true)
 var docWindow = remote.getCurrentWindow()
