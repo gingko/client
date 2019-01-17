@@ -31,6 +31,7 @@ type Msg
       -- === UI ===
     | TimeUpdate Time
     | VideoModal Bool
+    | FontChange { headings : String, content : String, monospace : String }
     | ShortcutTrayToggle
     | WordcountTrayToggle
       -- === Ports ===
@@ -84,6 +85,7 @@ type
     | TextSelected Bool
       -- === UI ===
     | ViewVideos
+    | FontSelectorOpen (List String)
     | Keyboard String Int
       -- === Misc ===
     | RecvCollabState CollabState

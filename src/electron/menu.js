@@ -14,6 +14,9 @@ function getTemplate (menuState, handlers, isMac) {
     [ fileMenu(isDocument, isNew, changed, columnNumber, hasLastExport, recentDocumentList, handlers)
     , editMenu(isDocument, isEditing, isMac)
     , viewMenu(isDocument)
+    , { label : "Font Selector"
+      , click : handlers.fonts
+      }
     , helpMenu(handlers, isMac)
     ];
 

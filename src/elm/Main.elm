@@ -19,7 +19,7 @@ import Time exposing (Time, second)
 import TreeUtils exposing (..)
 import Trees exposing (..)
 import Types exposing (..)
-import UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
+import UI exposing (countWords, viewConflict, viewFontSelector, viewFooter, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
 
 
 main : Program ( Json.Value, InitModel, Bool ) Model Msg
@@ -100,6 +100,8 @@ type alias Model =
     , shortcutTrayOpen : Bool
     , wordcountTrayOpen : Bool
     , videoModalOpen : Bool
+    , fontSelectorOpen : Bool
+    , fonts : { headings : String, content : String, monospace : String, fontList : List String }
     , startingWordcount : Int
     , historyState : HistoryState
     , online : Bool
@@ -153,6 +155,8 @@ defaultModel =
     , shortcutTrayOpen = True
     , wordcountTrayOpen = False
     , videoModalOpen = False
+    , fontSelectorOpen = False
+    , fonts = { headings = "Bitter", content = "Open Sans", monospace = "Droid Sans Mono", fontList = [] }
     , startingWordcount = 0
     , historyState = Closed
     , online = False
@@ -536,6 +540,16 @@ update msg ({ objects, workingTree, status } as model) =
                 ! []
                 |> toggleVideoModal shouldOpen
 
+        FontChange { headings, content, monospace } ->
+            let
+                prevFonts =
+                    model.fonts
+            in
+            { model
+                | fonts = { prevFonts | headings = headings, content = content, monospace = monospace }
+            }
+                ! []
+
         ShortcutTrayToggle ->
             let
                 newIsOpen =
@@ -719,6 +733,17 @@ update msg ({ objects, workingTree, status } as model) =
                     model
                         ! []
                         |> toggleVideoModal True
+
+                FontSelectorOpen fonts ->
+                    let
+                        prevFonts =
+                            model.fonts
+                    in
+                    { model
+                        | fonts = { prevFonts | fontList = fonts ++ [ "Bitter", "Open Sans", "Droid Sans Mono" ] |> List.sort }
+                        , fontSelectorOpen = True
+                    }
+                        ! []
 
                 Keyboard shortcut timestamp ->
                     case shortcut of
@@ -1772,6 +1797,31 @@ toggleVideoModal shouldOpen ( model, prevCmd ) =
 
 view : Model -> Html Msg
 view model =
+    let
+        replace orig new =
+            Regex.replace Regex.All (Regex.regex orig) (\_ -> new)
+
+        styleNode =
+            node "style"
+                []
+                [ text
+                    ("""
+h1, h2, h3, h4, h5, h6 {
+  font-family: '@HEADINGS', serif;
+}
+.card .view {
+  font-family: '@CONTENT', sans-serif;
+}
+pre, code, .group.has-active .card textarea {
+  font-family: '@MONOSPACE', monospace;
+}
+"""
+                        |> replace "@HEADINGS" model.fonts.headings
+                        |> replace "@CONTENT" model.fonts.content
+                        |> replace "@MONOSPACE" model.fonts.monospace
+                    )
+                ]
+    in
     case model.status of
         MergeConflict _ oldHead newHead conflicts ->
             let
@@ -1797,12 +1847,18 @@ repeating-linear-gradient(-45deg
                 [ ul [ class "conflicts-list" ]
                     (List.map viewConflict conflicts)
                 , lazy2 Trees.view model.viewState model.workingTree
+                , styleNode
                 ]
 
         _ ->
             div
                 [ id "app-root" ]
-                [ lazy2 Trees.view model.viewState model.workingTree
+                [ if model.fontSelectorOpen then
+                    viewFontSelector model.fonts
+
+                  else
+                    text ""
+                , lazy2 Trees.view model.viewState model.workingTree
                 , viewSaveIndicator model
                 , viewSearchField model
                 , viewFooter model
@@ -1813,6 +1869,7 @@ repeating-linear-gradient(-45deg
                     _ ->
                         text ""
                 , viewVideo model
+                , styleNode
                 ]
 
 

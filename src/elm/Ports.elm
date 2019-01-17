@@ -204,6 +204,14 @@ receiveMsg tagger onError =
                 "ViewVideos" ->
                     tagger <| ViewVideos
 
+                "FontSelectorOpen" ->
+                    case decodeValue (Json.Decode.list Json.Decode.string) outsideInfo.data of
+                        Ok fonts ->
+                            tagger <| FontSelectorOpen fonts
+
+                        Err e ->
+                            onError e
+
                 "Keyboard" ->
                     case decodeValue (tupleDecoder Json.Decode.string Json.Decode.int) outsideInfo.data of
                         Ok ( shortcut, timestamp ) ->

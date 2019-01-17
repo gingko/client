@@ -1,4 +1,4 @@
-module UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
+module UI exposing (countWords, viewConflict, viewFontSelector, viewFooter, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
 
 import Coders exposing (treeToMarkdownString)
 import Date
@@ -7,7 +7,9 @@ import Dict
 import Diff exposing (..)
 import Html exposing (..)
 import Html.Attributes as A exposing (..)
-import Html.Events exposing (onClick, onInput)
+import Html.Events exposing (on, onClick, onInput)
+import Html.Events.Extra exposing (targetValueMaybe)
+import Json.Decode as Json
 import List.Extra as ListExtra exposing ((!!))
 import Objects
 import Octicons as Icon exposing (defaultOptions)
@@ -381,6 +383,59 @@ toWordsString num =
 
         n ->
             toString n ++ " words"
+
+
+viewFontSelector : { headings : String, content : String, monospace : String, fontList : List String } -> Html Msg
+viewFontSelector fontSelection =
+    let
+        optionFunction f =
+            option [ value f ] [ text f ]
+
+        headingsFunction f_ =
+            case f_ of
+                Just f ->
+                    FontChange { headings = f, content = fontSelection.content, monospace = fontSelection.monospace }
+
+                Nothing ->
+                    NoOp
+
+        contentFunction f_ =
+            case f_ of
+                Just f ->
+                    FontChange { headings = fontSelection.headings, content = f, monospace = fontSelection.monospace }
+
+                Nothing ->
+                    NoOp
+
+        monospaceFunction f_ =
+            case f_ of
+                Just f ->
+                    FontChange { headings = fontSelection.headings, content = fontSelection.content, monospace = f }
+
+                Nothing ->
+                    NoOp
+
+        onSelect msgFunction =
+            on "change" (Json.map msgFunction targetValueMaybe)
+    in
+    div
+        [ class "horizontal-dialog" ]
+        [ div []
+            [ span [ style [ ( "font-family", fontSelection.headings ), ( "font-weight", "bold" ) ] ] [ text "Headings Font" ]
+            , br [] []
+            , select [ onSelect headingsFunction ] (List.map optionFunction fontSelection.fontList)
+            ]
+        , div []
+            [ span [ style [ ( "font-family", fontSelection.content ) ] ] [ text "Content Font" ]
+            , br [] []
+            , select [ onSelect contentFunction ] (List.map optionFunction fontSelection.fontList)
+            ]
+        , div []
+            [ span [ style [ ( "font-family", fontSelection.monospace ) ] ] [ text "Editing/Monospace Font" ]
+            , br [] []
+            , select [ onSelect monospaceFunction ] (List.map optionFunction fontSelection.fontList)
+            ]
+        ]
 
 
 viewConflict : Conflict -> Html Msg

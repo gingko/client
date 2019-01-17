@@ -829,7 +829,6 @@ pre {
   height: 25px;
   width: 100%;
   padding: 2px 6px;
-  margin-top: 3px;
   font-size: 12px;
   font-family: sans-serif;
   color: #334;
@@ -1006,6 +1005,23 @@ span.shortcut-key {
 #wc-progress-bar-session {
   height: 100%;
   background: green;
+}
+
+
+/* ======== FOOTER PREFERENCES ======== */
+
+.horizontal-dialog {
+  position : fixed;
+  z-index: 999;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  width: 100%;
+  padding: 5px 10px;
+  color: #223;
+  background-color: white;
+  box-shadow: 1px 1px 6px rgba(0,0,0,0.5);
+  border-bottom: 1px solid #c8d3d8;
 }
 
 

@@ -16,6 +16,7 @@ const unhandled = require("electron-unhandled");
 const isDev = require("electron-is-dev");
 const GingkoError  = require("./shared/errors");
 const errorAlert = require('./shared/doc-helpers').errorAlert
+const fontScanner = require("font-scanner");
 
 
 unhandled();
@@ -193,6 +194,10 @@ function buildMenu (menuState) {
     , import : importDocument
     , quit : () => { _menuQuit = true; app.quit(); }
     , enterLicense : (item, focusedWindow) => createSerialWindow(focusedWindow, false)
+    , fonts : (item, focusedWindow) => { 
+        var fonts = fontScanner.getAvailableFontsSync();
+        focusedWindow.webContents.send("menu-font-selector", Array.from(new Set(fonts.map(f => f.family))));
+      }
     };
 
   let menuTemplate = getMenuTemplate(menuState, handlers, process.platform === "darwin");

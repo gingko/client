@@ -11,7 +11,6 @@ const {ipcRenderer, remote, webFrame, shell} = require('electron')
 const {app, dialog} = remote
 const querystring = require('querystring')
 const Store = require('electron-store')
-const fontScanner = require("font-scanner");
 
 import PouchDB from "pouchdb";
 
@@ -51,8 +50,6 @@ if(process.env.RUNNING_IN_SPECTRON) {
 
 console.log('Gingko version', app.getVersion())
 
-var fonts = fontScanner.getAvailableFontsSync();
-console.log("fonts", fonts);
 
 var firstRun = userStore.get('first-run', true)
 var docWindow = remote.getCurrentWindow()
@@ -382,6 +379,7 @@ ipcRenderer.on("menu-copy", () => toElm("Keyboard", ["mod+c", Date.now()]));
 ipcRenderer.on("menu-paste", () => toElm("Keyboard", ["mod+v", Date.now()]));
 ipcRenderer.on("menu-paste-into", () => toElm("Keyboard", ["mod+shift+v", Date.now()]));
 ipcRenderer.on("menu-view-videos", () => toElm("ViewVideos", null ));
+ipcRenderer.on("menu-font-selector", (event, data) => toElm("FontSelectorOpen", data));
 ipcRenderer.on("menu-contact-support", () => {
   if(crisp_loaded) {
     window.$crisp.push(["do", "chat:open"]);
