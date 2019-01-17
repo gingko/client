@@ -389,7 +389,7 @@ viewFontSelector : { headings : String, content : String, monospace : String, fo
 viewFontSelector fontSelection =
     let
         optionFunction sel f =
-            option [ value f, selected (sel == f) ] [ text f ]
+            option [ style [ ( "font-family", f ) ], value f, selected (sel == f) ] [ text f ]
 
         headingsFunction f_ =
             case f_ of
@@ -423,17 +423,17 @@ viewFontSelector fontSelection =
         [ div []
             [ span [ style [ ( "font-family", fontSelection.headings ), ( "font-weight", "bold" ) ] ] [ text "Headings Font" ]
             , br [] []
-            , select [ onSelect headingsFunction ] (List.map (optionFunction fontSelection.headings) fontSelection.fontList)
+            , select [ style [ ( "font-family", fontSelection.headings ) ], onSelect headingsFunction ] (List.map (optionFunction fontSelection.headings) fontSelection.fontList)
             ]
         , div []
             [ span [ style [ ( "font-family", fontSelection.content ) ] ] [ text "Content Font" ]
             , br [] []
-            , select [ onSelect contentFunction ] (List.map (optionFunction fontSelection.content) fontSelection.fontList)
+            , select [ style [ ( "font-family", fontSelection.content ) ], onSelect contentFunction ] (List.map (optionFunction fontSelection.content) fontSelection.fontList)
             ]
         , div []
             [ span [ style [ ( "font-family", fontSelection.monospace ) ] ] [ text "Editing/Monospace Font" ]
             , br [] []
-            , select [ onSelect monospaceFunction ] (List.map (optionFunction fontSelection.monospace) fontSelection.fontList)
+            , select [ style [ ( "font-family", fontSelection.monospace ) ], onSelect monospaceFunction ] (List.map (optionFunction fontSelection.monospace) fontSelection.fontList)
             ]
         , button [ onClick FontSelectorClose ] [ text "OK" ]
         ]
