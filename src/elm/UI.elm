@@ -388,8 +388,8 @@ toWordsString num =
 viewFontSelector : { headings : String, content : String, monospace : String, fontList : List String } -> Html Msg
 viewFontSelector fontSelection =
     let
-        optionFunction f =
-            option [ value f ] [ text f ]
+        optionFunction sel f =
+            option [ value f, selected (sel == f) ] [ text f ]
 
         headingsFunction f_ =
             case f_ of
@@ -423,17 +423,17 @@ viewFontSelector fontSelection =
         [ div []
             [ span [ style [ ( "font-family", fontSelection.headings ), ( "font-weight", "bold" ) ] ] [ text "Headings Font" ]
             , br [] []
-            , select [ onSelect headingsFunction ] (List.map optionFunction fontSelection.fontList)
+            , select [ onSelect headingsFunction ] (List.map (optionFunction fontSelection.headings) fontSelection.fontList)
             ]
         , div []
             [ span [ style [ ( "font-family", fontSelection.content ) ] ] [ text "Content Font" ]
             , br [] []
-            , select [ onSelect contentFunction ] (List.map optionFunction fontSelection.fontList)
+            , select [ onSelect contentFunction ] (List.map (optionFunction fontSelection.content) fontSelection.fontList)
             ]
         , div []
             [ span [ style [ ( "font-family", fontSelection.monospace ) ] ] [ text "Editing/Monospace Font" ]
             , br [] []
-            , select [ onSelect monospaceFunction ] (List.map optionFunction fontSelection.fontList)
+            , select [ onSelect monospaceFunction ] (List.map (optionFunction fontSelection.monospace) fontSelection.fontList)
             ]
         ]
 
