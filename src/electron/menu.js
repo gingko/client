@@ -13,10 +13,7 @@ function getTemplate (menuState, handlers, isMac) {
   let menuTemplate =
     [ fileMenu(isDocument, isNew, changed, columnNumber, hasLastExport, recentDocumentList, handlers)
     , editMenu(isDocument, isEditing, isMac)
-    , viewMenu(isDocument)
-    , { label : "Font Selector"
-      , click : handlers.fonts
-      }
+    , viewMenu(isDocument, handlers)
     , helpMenu(handlers, isMac)
     ];
 
@@ -246,11 +243,16 @@ function editMenu (isDocument, isEditing, isMac) {
 
 
 
-function viewMenu(isDocument) {
+function viewMenu(isDocument, handlers) {
   let _viewMenu =
     { label: "&View"
     , submenu:
-        [ { label: "&Zoom In"
+        [ { label: "Select &Fonts..."
+          , enabled: isDocument
+          , click : handlers.fonts
+          }
+        , { type : "separator" }
+        , { label: "&Zoom In"
           , enabled: isDocument
           , accelerator: "CommandOrControl+="
           , click : function (item, focusedWindow) {
