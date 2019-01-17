@@ -31,6 +31,7 @@ type Msg
       -- === UI ===
     | TimeUpdate Time
     | VideoModal Bool
+    | FontSelectorClose
     | FontChange { headings : String, content : String, monospace : String }
     | ShortcutTrayToggle
     | WordcountTrayToggle

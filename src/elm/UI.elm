@@ -435,6 +435,7 @@ viewFontSelector fontSelection =
             , br [] []
             , select [ onSelect monospaceFunction ] (List.map (optionFunction fontSelection.monospace) fontSelection.fontList)
             ]
+        , button [ onClick FontSelectorClose ] [ text "OK" ]
         ]
 
 

@@ -540,6 +540,9 @@ update msg ({ objects, workingTree, status } as model) =
                 ! []
                 |> toggleVideoModal shouldOpen
 
+        FontSelectorClose ->
+            { model | fontSelectorOpen = False } ! []
+
         FontChange { headings, content, monospace } ->
             let
                 prevFonts =
