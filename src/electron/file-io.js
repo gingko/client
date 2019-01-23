@@ -149,6 +149,29 @@ async function saveSwapFolderAs (originalSwapFolderPath, newTargetPath) {
 }
 
 
+/*
+ * backupSwapFolder : String -> Promise String Error
+ *
+ * Given a swapFolderPath
+ * - Get backupPath
+ * - Zip folder to backupPath
+ *
+ * Returns backupPath if successful
+ *
+ */
+
+async function backupSwapFolder (swapFolderPath) {
+  try {
+    const targetPath = getFilepathFromSwap(swapFolderPath);
+    const backupPath = getBackupPath(targetPath, Date.now());
+    await zipFolder(swapFolderPath, backupPath);
+    return backupPath;
+  } catch (err) {
+    throw err;
+  }
+}
+
+
 
 /*
  * saveLegacyFolderAs : String -> String -> String -> Promise String Error
@@ -185,7 +208,7 @@ async function saveLegacyFolderAs (legacyFolderPath, legacyName, newTargetPath) 
  *  - Verify that it contains "leveldb" subdirectory
  *  - Verify that it contains "swap.json" file
  *  - Verify that it contains "meta.json" file
- * If so, delete it.
+ * If so, make a backup, then delete it.
  *
  */
 
@@ -211,7 +234,7 @@ async function deleteSwapFolder (swapFolderPath) {
       return;
     }
 
-
+    await backupSwapFolder(swapFolderPath);
     await fs.remove(swapFolderPath);
     return swapFolderPath;
   } catch (err) {
