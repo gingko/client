@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
+## [2.3.3] - 2019-01-23
+  - Reliability: Save swap folder to file after 15 min of inactivity
+  - Reliability: "Discarding" recovery attempt saves a backup anyway
+
 ## [2.3.2] - 2018-12-19
   - Fix: Autoupdater working correctly after breaking in 2.3.0
 

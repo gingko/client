@@ -267,6 +267,12 @@ ipcMain.on("doc:set-changed", (event, changed) => {
 });
 
 
+ipcMain.on("doc:save-backup", async (event) => {
+  let docWindow = BrowserWindow.fromWebContents(event.sender);
+  await saveDocument(docWindow);
+});
+
+
 
 
 

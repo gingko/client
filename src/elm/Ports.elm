@@ -44,6 +44,9 @@ sendOut info =
         SaveToDB ( statusValue, objectsValue ) ->
             dataToSend (list [ statusValue, objectsValue ])
 
+        SaveBackup ->
+            dataToSend null
+
         SaveLocal tree ->
             dataToSend (treeToValue tree)
 

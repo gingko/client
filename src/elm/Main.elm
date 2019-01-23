@@ -15,7 +15,7 @@ import Ports exposing (..)
 import Regex
 import Sha1 exposing (timeJSON, timestamp)
 import Task
-import Time exposing (Time, second)
+import Time exposing (Time, minute, second)
 import TreeUtils exposing (..)
 import Trees exposing (..)
 import Types exposing (..)
@@ -59,7 +59,9 @@ main =
 
    status : Status of the history = Bare | Clean ... | MergeConflict ...
 
-   debouncerState : Debouncer is used to prevent trying to save too often
+   debouncerStateSwap : Debouncer is used to prevent trying to save too often
+
+   debouncerStateBackup : Longer debouncer for less frequent actions (save backup)
 
    uid : Unique user/device id, for realtime collaboration.
 
@@ -91,7 +93,8 @@ type alias Model =
     { workingTree : Trees.Model
     , objects : Objects.Model
     , status : Status
-    , debouncerState : Debouncer () ()
+    , debouncerStateSwap : Debouncer () ()
+    , debouncerStateBackup : Debouncer () ()
     , uid : String
     , viewState : ViewState
     , field : String
@@ -129,9 +132,13 @@ defaultModel =
     { workingTree = Trees.defaultModel
     , objects = Objects.defaultModel
     , status = Bare
-    , debouncerState =
+    , debouncerStateSwap =
         Debouncer.throttle (3 * second)
             |> Debouncer.settleWhenQuietFor (Just <| 3 * second)
+            |> toDebouncer
+    , debouncerStateBackup =
+        Debouncer.debounce (15 * minute)
+            |> Debouncer.settleWhenQuietFor (Just <| 15 * minute)
             |> toDebouncer
     , uid = timeJSON ()
     , viewState =
@@ -423,13 +430,13 @@ update msg ({ objects, workingTree, status } as model) =
         ThrottledCommit subMsg ->
             let
                 ( subModel, subCmd, emitted_ ) =
-                    Debouncer.update subMsg model.debouncerState
+                    Debouncer.update subMsg model.debouncerStateSwap
 
                 mappedCmd =
                     Cmd.map ThrottledCommit subCmd
 
                 updatedModel =
-                    { model | debouncerState = subModel }
+                    { model | debouncerStateSwap = subModel }
             in
             case emitted_ of
                 Just () ->
@@ -437,6 +444,25 @@ update msg ({ objects, workingTree, status } as model) =
                         ! []
                         |> addToHistoryDo
                         |> Tuple.mapSecond (\cmd -> Cmd.batch [ cmd, mappedCmd ])
+
+                Nothing ->
+                    ( updatedModel, mappedCmd )
+
+        ThrottledBackup subMsg ->
+            let
+                ( subModel, subCmd, emitted_ ) =
+                    Debouncer.update subMsg model.debouncerStateBackup
+
+                mappedCmd =
+                    Cmd.map ThrottledBackup subCmd
+
+                updatedModel =
+                    { model | debouncerStateBackup = subModel }
+            in
+            case emitted_ of
+                Just () ->
+                    updatedModel
+                        ! [ sendOut SaveBackup ]
 
                 Nothing ->
                     ( updatedModel, mappedCmd )
@@ -1742,6 +1768,7 @@ addToHistory : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 addToHistory ( model, prevCmd ) =
     update (ThrottledCommit (provideInput ())) model
         |> Tuple.mapSecond (\cmd -> Cmd.batch [ prevCmd, cmd ])
+        |> (\( mdl, cmd ) -> update (ThrottledBackup (provideInput ())) mdl |> Tuple.mapSecond (\c -> Cmd.batch [ cmd, c ]))
 
 
 

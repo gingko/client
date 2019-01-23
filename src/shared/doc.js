@@ -213,6 +213,10 @@ const update = (msg, data) => {
         ipcRenderer.send("doc:set-changed", false);
       }
 
+      , "SaveBackup": () => {
+        ipcRenderer.send("doc:save-backup");
+      }
+
     , 'Push': push
 
     , 'Pull': sync
