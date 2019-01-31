@@ -1,4 +1,4 @@
-module Fonts exposing (Model, Msg, content, default, heading, monospace, setSystem, update, viewSelector)
+module Fonts exposing (Model, Msg, content, default, heading, init, monospace, setSystem, update, viewSelector)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -19,6 +19,18 @@ type Model
         , builtin : List String
         , system : List String
         }
+
+
+init : Maybe ( String, String, String ) -> Model
+init f_ =
+    case ( f_, default ) of
+        ( Just ( heading, content, monospace ), Model defaultModel ) ->
+            Model { defaultModel | heading = heading, content = content, monospace = monospace }
+                |> Debug.log "Init with fonts"
+
+        ( Nothing, _ ) ->
+            default
+                |> Debug.log "Init WITHOUT fonts"
 
 
 default : Model

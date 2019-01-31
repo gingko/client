@@ -69,6 +69,7 @@ if(!!jsonImportData) {
         , videoModalOpen : userStore.get('video-modal-is-open', false)
         , currentTime : Date.now()
         , lastActive : getLastActive(currentPath)
+        , fonts : getFonts(currentPath)
         }
       , false // isSaved
     ]
@@ -86,6 +87,7 @@ if(!!jsonImportData) {
           , videoModalOpen : userStore.get('video-modal-is-open', false)
           , currentTime : Date.now()
           , lastActive : getLastActive(currentPath)
+          , fonts : getFonts(currentPath)
           }
         , true // isSaved
       ]
@@ -756,6 +758,23 @@ function getLastActive (filepath) {
     }
   } else {
     return "1";
+  }
+}
+
+
+function getFonts (filepath) {
+  if (typeof filepath === "string") {
+    let fonts = userStore.get(`fonts.${filepath.replace(".","\\.")}`);
+    if (Array.isArray(fonts) && fonts.length == 3) {
+      console.log("fonts", fonts);
+      return fonts;
+    } else {
+      console.log("fonts null 1", fonts);
+      return null;
+    }
+  } else {
+    console.log("fonts null 2", fonts);
+    return null;
   }
 }
 

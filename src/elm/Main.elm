@@ -124,6 +124,7 @@ type alias InitModel =
     , videoModalOpen : Bool
     , currentTime : Time
     , lastActive : String
+    , fonts : Maybe ( String, String, String )
     }
 
 
@@ -217,6 +218,7 @@ init ( dataIn, modelIn, isSaved ) =
         , videoModalOpen = modelIn.videoModalOpen
         , startingWordcount = startingWordcount
         , currentTime = modelIn.currentTime
+        , fonts = Fonts.init modelIn.fonts
     }
         ! [ focus modelIn.lastActive, sendOut <| ColumnNumberChange <| List.length <| newWorkingTree.columns ]
         |> activate modelIn.lastActive
