@@ -896,6 +896,16 @@ pre {
   color: black;
 }
 
+/* ======== FONT SELECTOR ======== */
+
+#font-selector select {
+  width: 80%;
+}
+
+#font-selector button {
+  width: 50px;
+  margin-left: 20px;
+}
 
 /* ======== STATUS BAR ======== */
 

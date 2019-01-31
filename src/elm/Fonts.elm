@@ -155,7 +155,7 @@ viewSelector (Model { heading, content, monospace, builtin, system }) =
             on "change" (Json.map msgFunction targetValueMaybe)
     in
     div
-        [ class "horizontal-dialog" ]
+        [ id "font-selector", class "horizontal-dialog" ]
         [ div []
             [ span [ style [ ( "font-family", heading ), ( "font-weight", "bold" ) ] ] [ text "Heading Font" ]
             , br [] []
