@@ -1,9 +1,54 @@
 @import url('./shared.css');
 
 @font-face {
+  font-family: 'Bitter';
+  src: url('./fonts/Bitter/Bitter-Regular.ttf');
+}
+@font-face {
+  font-family: 'Bitter';
+  src: url('./fonts/Bitter/Bitter-Bold.ttf');
+  font-weight: bold;
+}
+@font-face {
+  font-family: 'Bitter';
+  src: url('./fonts/Bitter/Bitter-Italic.ttf');
+  font-style: italic;
+}
+
+
+@font-face {
+  font-family: 'Droid Sans Mono';
+  src: url('./fonts/Droid_Sans_Mono/DroidSansMono.ttf');
+}
+
+@font-face {
   font-family: 'Glyphicons Halflings';
   src: url('./fonts/glyphicons-halflings-regular.woff2');
 }
+
+
+@font-face {
+  font-family: 'Merriweather';
+  src: url('./fonts/Merriweather/Merriweather-Regular.ttf');
+}
+@font-face {
+  font-family: 'Merriweather';
+  src: url('./fonts/Merriweather/Merriweather-Bold.ttf');
+  font-weight: bold;
+}
+@font-face {
+  font-family: 'Merriweather';
+  src: url('./fonts/Merriweather/Merriweather-Italic.ttf');
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Merriweather';
+  src: url('./fonts/Merriweather/Merriweather-BoldItalic.ttf');
+  font-weight: bold;
+  font-style: italic;
+}
+
+
 @font-face {
   font-family: 'Open Sans';
   src: url('./fonts/Open_Sans/OpenSans-Regular.ttf');
@@ -24,10 +69,8 @@
   font-weight: bold;
   font-style: italic;
 }
-@font-face {
-  font-family: 'Droid Sans Mono';
-  src: url('./fonts/Droid_Sans_Mono/DroidSansMono.ttf');
-}
+
+
 @font-face {
   font-family: 'Roboto Mono';
   src: url('./fonts/Roboto_Mono/RobotoMono-Regular.ttf');
@@ -36,20 +79,6 @@
   font-family: 'Roboto Mono';
   src: url('./fonts/Roboto_Mono/RobotoMono-Bold.ttf');
   font-weight: bold;
-}
-@font-face {
-  font-family: 'Bitter';
-  src: url('./fonts/Bitter/Bitter-Regular.ttf');
-}
-@font-face {
-  font-family: 'Bitter';
-  src: url('./fonts/Bitter/Bitter-Bold.ttf');
-  font-weight: bold;
-}
-@font-face {
-  font-family: 'Bitter';
-  src: url('./fonts/Bitter/Bitter-Italic.ttf');
-  font-style: italic;
 }
 
 html {
