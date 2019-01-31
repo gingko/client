@@ -15,6 +15,16 @@
   font-style: italic;
 }
 
+@font-face {
+  font-family: 'Eczar';
+  src: url('./fonts/eczar/Eczar-Regular.ttf');
+}
+@font-face {
+  font-family: 'Eczar';
+  src: url('./fonts/eczar/Eczar-Bold.ttf');
+  font-weight: bold;
+}
+
 
 @font-face {
   font-family: 'Droid Sans Mono';
@@ -24,6 +34,22 @@
 @font-face {
   font-family: 'Glyphicons Halflings';
   src: url('./fonts/glyphicons-halflings-regular.woff2');
+}
+
+
+@font-face {
+  font-family: 'Libre Baskerville';
+  src: url('./fonts/librebaskerville/LibreBaskerville-Regular.ttf');
+}
+@font-face {
+  font-family: 'Libre Baskerville';
+  src: url('./fonts/librebaskerville/LibreBaskerville-Bold.ttf');
+  font-weight: bold;
+}
+@font-face {
+  font-family: 'Libre Baskerville';
+  src: url('./fonts/librebaskerville/LibreBaskerville-Italic.ttf');
+  font-style: italic;
 }
 
 
@@ -44,6 +70,28 @@
 @font-face {
   font-family: 'Merriweather';
   src: url('./fonts/Merriweather/Merriweather-BoldItalic.ttf');
+  font-weight: bold;
+  font-style: italic;
+}
+
+
+@font-face {
+  font-family: 'Open Dyslexic';
+  src: url('./fonts/OpenDyslexic/OpenDyslexic-Regular.otf');
+}
+@font-face {
+  font-family: 'Open Dyslexic';
+  src: url('./fonts/OpenDyslexic/OpenDyslexic-Bold.otf');
+  font-weight: bold;
+}
+@font-face {
+  font-family: 'Open Dyslexic';
+  src: url('./fonts/OpenDyslexic/OpenDyslexic-Italic.otf');
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Open Dyslexic';
+  src: url('./fonts/OpenDyslexic/OpenDyslexic-BoldItalic.otf');
   font-weight: bold;
   font-style: italic;
 }

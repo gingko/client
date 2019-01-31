@@ -5,6 +5,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (on, onClick)
 import Html.Events.Extra exposing (targetValueMaybe)
 import Json.Decode as Json
+import List.Extra exposing (unique)
 
 
 
@@ -26,11 +27,9 @@ init f_ =
     case ( f_, default ) of
         ( Just ( heading, content, monospace ), Model defaultModel ) ->
             Model { defaultModel | heading = heading, content = content, monospace = monospace }
-                |> Debug.log "Init with fonts"
 
         ( Nothing, _ ) ->
             default
-                |> Debug.log "Init WITHOUT fonts"
 
 
 default : Model
@@ -39,7 +38,15 @@ default =
         { heading = "Bitter"
         , content = "Open Sans"
         , monospace = "Droid Sans Mono"
-        , builtin = [ "Bitter", "Open Sans", "Droid Sans Mono", "Merriweather" ]
+        , builtin =
+            [ "Bitter"
+            , "Open Sans"
+            , "Droid Sans Mono"
+            , "Merriweather"
+            , "Libre Baskerville"
+            , "Eczar"
+            , "Open Dyslexic"
+            ]
         , system = []
         }
 
@@ -47,7 +54,7 @@ default =
 setSystem : List String -> Model -> Model
 setSystem sysFonts (Model ({ system } as model)) =
     Model
-        { model | system = system ++ sysFonts |> List.sort }
+        { model | system = system ++ sysFonts |> unique |> List.sort }
 
 
 heading : Model -> String
