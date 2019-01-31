@@ -1,6 +1,7 @@
 module Types exposing (Children(..), CollabState, Column, Conflict, Direction(..), DropId(..), ExportFormat(..), ExportSelection(..), ExportSettings, Group, HistoryState(..), IncomingMsg(..), Mode(..), Msg(..), Op(..), OutgoingMsg(..), OutsideData, Selection(..), Status(..), Tree, ViewState, VisibleViewState, WordCount)
 
 import Debouncer.Basic as Debouncer
+import Fonts
 import Html5.DragDrop as DragDrop
 import Json.Decode as Json
 import Time exposing (Time)
@@ -31,8 +32,7 @@ type Msg
       -- === UI ===
     | TimeUpdate Time
     | VideoModal Bool
-    | FontSelectorClose
-    | FontChange { headings : String, content : String, monospace : String }
+    | FontsMsg Fonts.Msg
     | ShortcutTrayToggle
     | WordcountTrayToggle
       -- === Ports ===

@@ -4,6 +4,7 @@ import Coders exposing (..)
 import Debouncer.Basic as Debouncer exposing (Debouncer, provideInput, toDebouncer)
 import Dict
 import Dom
+import Fonts
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Lazy exposing (lazy, lazy2)
@@ -19,7 +20,7 @@ import Time exposing (Time, second)
 import TreeUtils exposing (..)
 import Trees exposing (..)
 import Types exposing (..)
-import UI exposing (countWords, viewConflict, viewFontSelector, viewFooter, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
+import UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
 
 
 main : Program ( Json.Value, InitModel, Bool ) Model Msg
@@ -101,7 +102,7 @@ type alias Model =
     , wordcountTrayOpen : Bool
     , videoModalOpen : Bool
     , fontSelectorOpen : Bool
-    , fonts : { headings : String, content : String, monospace : String, fontList : List String }
+    , fonts : Fonts.Model
     , startingWordcount : Int
     , historyState : HistoryState
     , online : Bool
@@ -156,7 +157,7 @@ defaultModel =
     , wordcountTrayOpen = False
     , videoModalOpen = False
     , fontSelectorOpen = False
-    , fonts = { headings = "Bitter", content = "Open Sans", monospace = "Droid Sans Mono", fontList = [] }
+    , fonts = Fonts.default
     , startingWordcount = 0
     , historyState = Closed
     , online = False
@@ -540,17 +541,12 @@ update msg ({ objects, workingTree, status } as model) =
                 ! []
                 |> toggleVideoModal shouldOpen
 
-        FontSelectorClose ->
-            { model | fontSelectorOpen = False } ! []
-
-        FontChange { headings, content, monospace } ->
+        FontsMsg msg ->
             let
-                prevFonts =
-                    model.fonts
+                ( newModel, selectorOpen ) =
+                    Fonts.update msg model.fonts
             in
-            { model
-                | fonts = { prevFonts | headings = headings, content = content, monospace = monospace }
-            }
+            { model | fonts = newModel, fontSelectorOpen = selectorOpen }
                 ! []
 
         ShortcutTrayToggle ->
@@ -738,14 +734,7 @@ update msg ({ objects, workingTree, status } as model) =
                         |> toggleVideoModal True
 
                 FontSelectorOpen fonts ->
-                    let
-                        prevFonts =
-                            model.fonts
-                    in
-                    { model
-                        | fonts = { prevFonts | fontList = fonts ++ [ "Bitter", "Open Sans", "Droid Sans Mono" ] |> List.sort }
-                        , fontSelectorOpen = True
-                    }
+                    { model | fonts = Fonts.setSystem fonts model.fonts, fontSelectorOpen = True }
                         ! []
 
                 Keyboard shortcut timestamp ->
@@ -1810,7 +1799,7 @@ view model =
                 [ text
                     ("""
 h1, h2, h3, h4, h5, h6 {
-  font-family: '@HEADINGS', serif;
+  font-family: '@HEADING', serif;
 }
 .card .view {
   font-family: '@CONTENT', sans-serif;
@@ -1819,9 +1808,9 @@ pre, code, .group.has-active .card textarea {
   font-family: '@MONOSPACE', monospace;
 }
 """
-                        |> replace "@HEADINGS" model.fonts.headings
-                        |> replace "@CONTENT" model.fonts.content
-                        |> replace "@MONOSPACE" model.fonts.monospace
+                        |> replace "@HEADING" (Fonts.heading model.fonts)
+                        |> replace "@CONTENT" (Fonts.content model.fonts)
+                        |> replace "@MONOSPACE" (Fonts.monospace model.fonts)
                     )
                 ]
     in
@@ -1857,7 +1846,7 @@ repeating-linear-gradient(-45deg
             div
                 [ id "app-root" ]
                 [ if model.fontSelectorOpen then
-                    viewFontSelector model.fonts
+                    Fonts.viewSelector model.fonts |> Html.map FontsMsg
 
                   else
                     text ""
