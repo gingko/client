@@ -322,6 +322,8 @@ const update = (msg, data) => {
         userStore.set('video-modal-is-open', data)
       }
 
+    , "SetFonts": () => { setFonts(currentPath, data);}
+
     , 'SetShortcutTray': () => {
         userStore.set('shortcut-tray-is-open', data)
       }
@@ -762,18 +764,22 @@ function getLastActive (filepath) {
 }
 
 
+function setFonts (filepath, fonts) {
+  if (typeof filepath === "string") {
+    userStore.set(`fonts.${filepath.replace(".","\\.")}`, fonts);
+  }
+}
+
+
 function getFonts (filepath) {
   if (typeof filepath === "string") {
     let fonts = userStore.get(`fonts.${filepath.replace(".","\\.")}`);
     if (Array.isArray(fonts) && fonts.length == 3) {
-      console.log("fonts", fonts);
       return fonts;
     } else {
-      console.log("fonts null 1", fonts);
       return null;
     }
   } else {
-    console.log("fonts null 2", fonts);
     return null;
   }
 }

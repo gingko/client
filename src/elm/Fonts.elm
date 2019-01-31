@@ -77,23 +77,28 @@ type Msg
     | CloseSelector
 
 
-update : Msg -> Model -> ( Model, Bool )
+update : Msg -> Model -> ( Model, Bool, Maybe ( String, String, String ) )
 update msg (Model model) =
     case msg of
         ChangeHeading h ->
-            ( Model { model | heading = h }, True )
+            ( Model { model | heading = h }, True, Nothing )
 
         ChangeContent c ->
-            ( Model { model | content = c }, True )
+            ( Model { model | content = c }, True, Nothing )
 
         ChangeMonospace m ->
-            ( Model { model | monospace = m }, True )
+            ( Model { model | monospace = m }, True, Nothing )
 
         CloseSelector ->
-            ( Model model, False )
+            ( Model model, False, Just (Model model |> modelToTuple) )
 
         NoOp ->
-            ( Model model, True )
+            ( Model model, True, Nothing )
+
+
+modelToTuple : Model -> ( String, String, String )
+modelToTuple (Model { heading, content, monospace }) =
+    ( heading, content, monospace )
 
 
 
@@ -130,7 +135,7 @@ viewSelector (Model { heading, content, monospace, builtin, system }) =
         fontList sel =
             let
                 optionFunction f =
-                    option [ style [ ( "font-family", f ) ], value f, selected (sel == f) ] [ text f |> Debug.log "option text" ]
+                    option [ style [ ( "font-family", f ) ], value f, selected (sel == f) ] [ text f ]
             in
             {- This would be better, but leads to random font indents within each group for some reason
                [ optgroup [ attribute "label" "Gingko Built-in", style [ ( "font-family", "Bitter" ) ] ] (List.map optionFunction builtin)

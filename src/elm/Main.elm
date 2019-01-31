@@ -545,11 +545,19 @@ update msg ({ objects, workingTree, status } as model) =
 
         FontsMsg msg ->
             let
-                ( newModel, selectorOpen ) =
+                ( newModel, selectorOpen, newFontsTriple_ ) =
                     Fonts.update msg model.fonts
+
+                cmd =
+                    case newFontsTriple_ of
+                        Just newFontsTriple ->
+                            sendOut (SetFonts newFontsTriple)
+
+                        Nothing ->
+                            Cmd.none
             in
             { model | fonts = newModel, fontSelectorOpen = selectorOpen }
-                ! []
+                ! [ cmd ]
 
         ShortcutTrayToggle ->
             let

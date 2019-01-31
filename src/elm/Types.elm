@@ -65,6 +65,7 @@ type
       -- === UI ===
     | UpdateCommits ( Json.Value, Maybe String )
     | SetVideoModal Bool
+    | SetFonts ( String, String, String )
     | SetShortcutTray Bool
       -- === Misc ===
     | SocketSend CollabState

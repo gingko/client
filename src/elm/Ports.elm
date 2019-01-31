@@ -137,6 +137,9 @@ sendOut info =
         SetVideoModal isOpen ->
             dataToSend (bool isOpen)
 
+        SetFonts fontsTriple ->
+            dataToSend (tripleToValue string string string fontsTriple)
+
         SetShortcutTray isOpen ->
             dataToSend (bool isOpen)
 
