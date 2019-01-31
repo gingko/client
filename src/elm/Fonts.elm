@@ -39,7 +39,7 @@ default =
         { heading = "Bitter"
         , content = "Open Sans"
         , monospace = "Droid Sans Mono"
-        , builtin = [ "Bitter", "Open Sans", "Droid Sans Mono" ]
+        , builtin = [ "Bitter", "Open Sans", "Droid Sans Mono", "Merriweather" ]
         , system = []
         }
 
@@ -150,7 +150,7 @@ viewSelector (Model { heading, content, monospace, builtin, system }) =
     div
         [ class "horizontal-dialog" ]
         [ div []
-            [ span [ style [ ( "font-family", heading ), ( "font-weight", "bold" ) ] ] [ text "heading Font" ]
+            [ span [ style [ ( "font-family", heading ), ( "font-weight", "bold" ) ] ] [ text "Heading Font" ]
             , br [] []
             , select [ onSelect headingFunction ] (fontList heading)
             ]
