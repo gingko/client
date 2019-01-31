@@ -12,7 +12,13 @@ import Json.Decode as Json
 
 
 type Model
-    = Model { heading : String, content : String, monospace : String, fontList : List String }
+    = Model
+        { heading : String
+        , content : String
+        , monospace : String
+        , builtin : List String
+        , system : List String
+        }
 
 
 default : Model
@@ -21,14 +27,15 @@ default =
         { heading = "Bitter"
         , content = "Open Sans"
         , monospace = "Droid Sans Mono"
-        , fontList = [ "Bitter", "Open Sans", "Droid Sans Mono" ]
+        , builtin = [ "Bitter", "Open Sans", "Droid Sans Mono" ]
+        , system = []
         }
 
 
 setSystem : List String -> Model -> Model
-setSystem sysFonts (Model ({ heading, content, monospace, fontList } as model)) =
+setSystem sysFonts (Model ({ system } as model)) =
     Model
-        { model | fontList = fontList ++ List.sort sysFonts }
+        { model | system = system ++ sysFonts |> List.sort }
 
 
 heading : Model -> String
@@ -82,11 +89,8 @@ update msg (Model model) =
 
 
 viewSelector : Model -> Html Msg
-viewSelector (Model { heading, content, monospace, fontList }) =
+viewSelector (Model { heading, content, monospace, builtin, system }) =
     let
-        optionFunction sel f =
-            option [ style [ ( "font-family", f ) ], value f, selected (sel == f) ] [ text f ]
-
         headingFunction f_ =
             case f_ of
                 Just f ->
@@ -111,6 +115,18 @@ viewSelector (Model { heading, content, monospace, fontList }) =
                 Nothing ->
                     NoOp
 
+        fontList sel =
+            let
+                optionFunction f =
+                    option [ style [ ( "font-family", f ) ], value f, selected (sel == f) ] [ text f |> Debug.log "option text" ]
+            in
+            {- This would be better, but leads to random font indents within each group for some reason
+               [ optgroup [ attribute "label" "Gingko Built-in", style [ ( "font-family", "Bitter" ) ] ] (List.map optionFunction builtin)
+               , optgroup [ attribute "label" "System Installed", style [ ( "font-family", "Bitter" ) ] ] (List.map optionFunction system)
+               ]
+            -}
+            List.map optionFunction builtin ++ [ option [ disabled True ] [ text "───────────────" ] ] ++ List.map optionFunction system
+
         onSelect msgFunction =
             on "change" (Json.map msgFunction targetValueMaybe)
     in
@@ -119,17 +135,17 @@ viewSelector (Model { heading, content, monospace, fontList }) =
         [ div []
             [ span [ style [ ( "font-family", heading ), ( "font-weight", "bold" ) ] ] [ text "heading Font" ]
             , br [] []
-            , select [ style [ ( "font-family", heading ) ], onSelect headingFunction ] (List.map (optionFunction heading) fontList)
+            , select [ onSelect headingFunction ] (fontList heading)
             ]
         , div []
             [ span [ style [ ( "font-family", content ) ] ] [ text "Content Font" ]
             , br [] []
-            , select [ style [ ( "font-family", content ) ], onSelect contentFunction ] (List.map (optionFunction content) fontList)
+            , select [ onSelect contentFunction ] (fontList content)
             ]
         , div []
             [ span [ style [ ( "font-family", monospace ) ] ] [ text "Editing/Monospace Font" ]
             , br [] []
-            , select [ style [ ( "font-family", monospace ) ], onSelect monospaceFunction ] (List.map (optionFunction monospace) fontList)
+            , select [ onSelect monospaceFunction ] (fontList monospace)
             ]
         , button [ onClick CloseSelector ] [ text "OK" ]
         ]
