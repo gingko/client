@@ -4,6 +4,7 @@ import Coders exposing (..)
 import Debouncer.Basic as Debouncer exposing (Debouncer, provideInput, toDebouncer)
 import Dict
 import Dom
+import Fonts
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Lazy exposing (lazy, lazy2)
@@ -103,6 +104,8 @@ type alias Model =
     , shortcutTrayOpen : Bool
     , wordcountTrayOpen : Bool
     , videoModalOpen : Bool
+    , fontSelectorOpen : Bool
+    , fonts : Fonts.Model
     , startingWordcount : Int
     , historyState : HistoryState
     , online : Bool
@@ -124,6 +127,7 @@ type alias InitModel =
     , videoModalOpen : Bool
     , currentTime : Time
     , lastActive : String
+    , fonts : Maybe ( String, String, String )
     }
 
 
@@ -160,6 +164,8 @@ defaultModel =
     , shortcutTrayOpen = True
     , wordcountTrayOpen = False
     , videoModalOpen = False
+    , fontSelectorOpen = False
+    , fonts = Fonts.default
     , startingWordcount = 0
     , historyState = Closed
     , online = False
@@ -219,6 +225,7 @@ init ( dataIn, modelIn, isSaved ) =
         , videoModalOpen = modelIn.videoModalOpen
         , startingWordcount = startingWordcount
         , currentTime = modelIn.currentTime
+        , fonts = Fonts.init modelIn.fonts
     }
         ! [ focus modelIn.lastActive, sendOut <| ColumnNumberChange <| List.length <| newWorkingTree.columns ]
         |> activate modelIn.lastActive
@@ -562,6 +569,22 @@ update msg ({ objects, workingTree, status } as model) =
                 ! []
                 |> toggleVideoModal shouldOpen
 
+        FontsMsg msg ->
+            let
+                ( newModel, selectorOpen, newFontsTriple_ ) =
+                    Fonts.update msg model.fonts
+
+                cmd =
+                    case newFontsTriple_ of
+                        Just newFontsTriple ->
+                            sendOut (SetFonts newFontsTriple)
+
+                        Nothing ->
+                            Cmd.none
+            in
+            { model | fonts = newModel, fontSelectorOpen = selectorOpen }
+                ! [ cmd ]
+
         ShortcutTrayToggle ->
             let
                 newIsOpen =
@@ -745,6 +768,10 @@ update msg ({ objects, workingTree, status } as model) =
                     model
                         ! []
                         |> toggleVideoModal True
+
+                FontSelectorOpen fonts ->
+                    { model | fonts = Fonts.setSystem fonts model.fonts, fontSelectorOpen = True }
+                        ! []
 
                 Keyboard shortcut timestamp ->
                     case shortcut of
@@ -1799,6 +1826,31 @@ toggleVideoModal shouldOpen ( model, prevCmd ) =
 
 view : Model -> Html Msg
 view model =
+    let
+        replace orig new =
+            Regex.replace Regex.All (Regex.regex orig) (\_ -> new)
+
+        styleNode =
+            node "style"
+                []
+                [ text
+                    ("""
+h1, h2, h3, h4, h5, h6 {
+  font-family: '@HEADING', serif;
+}
+.card .view {
+  font-family: '@CONTENT', sans-serif;
+}
+pre, code, .group.has-active .card textarea {
+  font-family: '@MONOSPACE', monospace;
+}
+"""
+                        |> replace "@HEADING" (Fonts.heading model.fonts)
+                        |> replace "@CONTENT" (Fonts.content model.fonts)
+                        |> replace "@MONOSPACE" (Fonts.monospace model.fonts)
+                    )
+                ]
+    in
     case model.status of
         MergeConflict _ oldHead newHead conflicts ->
             let
@@ -1824,12 +1876,18 @@ repeating-linear-gradient(-45deg
                 [ ul [ class "conflicts-list" ]
                     (List.map viewConflict conflicts)
                 , lazy2 Trees.view model.viewState model.workingTree
+                , styleNode
                 ]
 
         _ ->
             div
                 [ id "app-root" ]
-                [ lazy2 Trees.view model.viewState model.workingTree
+                [ if model.fontSelectorOpen then
+                    Fonts.viewSelector model.fonts |> Html.map FontsMsg
+
+                  else
+                    text ""
+                , lazy2 Trees.view model.viewState model.workingTree
                 , viewSaveIndicator model
                 , viewSearchField model
                 , viewFooter model
@@ -1840,6 +1898,7 @@ repeating-linear-gradient(-45deg
                     _ ->
                         text ""
                 , viewVideo model
+                , styleNode
                 ]
 
 

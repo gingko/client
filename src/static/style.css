@@ -1,9 +1,54 @@
 @import url('./shared.css');
 
 @font-face {
+  font-family: 'Bitter';
+  src: url('./fonts/Bitter/Bitter-Regular.ttf');
+}
+@font-face {
+  font-family: 'Bitter';
+  src: url('./fonts/Bitter/Bitter-Bold.ttf');
+  font-weight: bold;
+}
+@font-face {
+  font-family: 'Bitter';
+  src: url('./fonts/Bitter/Bitter-Italic.ttf');
+  font-style: italic;
+}
+
+
+@font-face {
+  font-family: 'Droid Sans Mono';
+  src: url('./fonts/Droid_Sans_Mono/DroidSansMono.ttf');
+}
+
+@font-face {
   font-family: 'Glyphicons Halflings';
   src: url('./fonts/glyphicons-halflings-regular.woff2');
 }
+
+
+@font-face {
+  font-family: 'Merriweather';
+  src: url('./fonts/Merriweather/Merriweather-Regular.ttf');
+}
+@font-face {
+  font-family: 'Merriweather';
+  src: url('./fonts/Merriweather/Merriweather-Bold.ttf');
+  font-weight: bold;
+}
+@font-face {
+  font-family: 'Merriweather';
+  src: url('./fonts/Merriweather/Merriweather-Italic.ttf');
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Merriweather';
+  src: url('./fonts/Merriweather/Merriweather-BoldItalic.ttf');
+  font-weight: bold;
+  font-style: italic;
+}
+
+
 @font-face {
   font-family: 'Open Sans';
   src: url('./fonts/Open_Sans/OpenSans-Regular.ttf');
@@ -24,10 +69,8 @@
   font-weight: bold;
   font-style: italic;
 }
-@font-face {
-  font-family: 'Droid Sans Mono';
-  src: url('./fonts/Droid_Sans_Mono/DroidSansMono.ttf');
-}
+
+
 @font-face {
   font-family: 'Roboto Mono';
   src: url('./fonts/Roboto_Mono/RobotoMono-Regular.ttf');
@@ -36,20 +79,6 @@
   font-family: 'Roboto Mono';
   src: url('./fonts/Roboto_Mono/RobotoMono-Bold.ttf');
   font-weight: bold;
-}
-@font-face {
-  font-family: 'Bitter';
-  src: url('./fonts/Bitter/Bitter-Regular.ttf');
-}
-@font-face {
-  font-family: 'Bitter';
-  src: url('./fonts/Bitter/Bitter-Bold.ttf');
-  font-weight: bold;
-}
-@font-face {
-  font-family: 'Bitter';
-  src: url('./fonts/Bitter/Bitter-Italic.ttf');
-  font-style: italic;
 }
 
 html {
@@ -829,7 +858,6 @@ pre {
   height: 25px;
   width: 100%;
   padding: 2px 6px;
-  margin-top: 3px;
   font-size: 12px;
   font-family: sans-serif;
   color: #334;
@@ -1006,6 +1034,23 @@ span.shortcut-key {
 #wc-progress-bar-session {
   height: 100%;
   background: green;
+}
+
+
+/* ======== FOOTER PREFERENCES ======== */
+
+.horizontal-dialog {
+  position : fixed;
+  z-index: 999;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  width: 100%;
+  padding: 5px 10px 16px;
+  color: #223;
+  background-color: white;
+  box-shadow: 1px 1px 6px rgba(0,0,0,0.5);
+  border-bottom: 1px solid #c8d3d8;
 }
 
 

@@ -41,6 +41,7 @@ module.exports = {
     "7zip-bin": "require('7zip-bin')",
     "electron-spellchecker": "require('electron-spellchecker')",
     "electron-store": "require('electron-store')",
+    "font-scanner": "require('font-scanner')",
     "dblsqd-electron": "require('dblsqd-electron')",
     "pouchdb": "require('pouchdb')",
     "pouchdb-adapter-memory": "require('pouchdb-adapter-memory')",

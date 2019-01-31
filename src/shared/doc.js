@@ -50,6 +50,7 @@ if(process.env.RUNNING_IN_SPECTRON) {
 
 console.log('Gingko version', app.getVersion())
 
+
 var firstRun = userStore.get('first-run', true)
 var docWindow = remote.getCurrentWindow()
 var jsonImportData = docWindow.jsonImportData;
@@ -68,6 +69,7 @@ if(!!jsonImportData) {
         , videoModalOpen : userStore.get('video-modal-is-open', false)
         , currentTime : Date.now()
         , lastActive : getLastActive(currentPath)
+        , fonts : getFonts(currentPath)
         }
       , false // isSaved
     ]
@@ -85,6 +87,7 @@ if(!!jsonImportData) {
           , videoModalOpen : userStore.get('video-modal-is-open', false)
           , currentTime : Date.now()
           , lastActive : getLastActive(currentPath)
+          , fonts : getFonts(currentPath)
           }
         , true // isSaved
       ]
@@ -323,6 +326,8 @@ const update = (msg, data) => {
         userStore.set('video-modal-is-open', data)
       }
 
+    , "SetFonts": () => { setFonts(currentPath, data);}
+
     , 'SetShortcutTray': () => {
         userStore.set('shortcut-tray-is-open', data)
       }
@@ -382,6 +387,7 @@ ipcRenderer.on("menu-copy", () => toElm("Keyboard", ["mod+c", Date.now()]));
 ipcRenderer.on("menu-paste", () => toElm("Keyboard", ["mod+v", Date.now()]));
 ipcRenderer.on("menu-paste-into", () => toElm("Keyboard", ["mod+shift+v", Date.now()]));
 ipcRenderer.on("menu-view-videos", () => toElm("ViewVideos", null ));
+ipcRenderer.on("menu-font-selector", (event, data) => toElm("FontSelectorOpen", data));
 ipcRenderer.on("menu-contact-support", () => {
   if(crisp_loaded) {
     window.$crisp.push(["do", "chat:open"]);
@@ -758,6 +764,27 @@ function getLastActive (filepath) {
     }
   } else {
     return "1";
+  }
+}
+
+
+function setFonts (filepath, fonts) {
+  if (typeof filepath === "string") {
+    userStore.set(`fonts.${filepath.replace(".","\\.")}`, fonts);
+  }
+}
+
+
+function getFonts (filepath) {
+  if (typeof filepath === "string") {
+    let fonts = userStore.get(`fonts.${filepath.replace(".","\\.")}`);
+    if (Array.isArray(fonts) && fonts.length == 3) {
+      return fonts;
+    } else {
+      return null;
+    }
+  } else {
+    return null;
   }
 }
 
