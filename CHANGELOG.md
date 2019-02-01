@@ -2,7 +2,10 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
-## [2.3.3] - 2019-01-23
+## [2.3.4] - 2019-02-01
+  - Fix: Autoupdater working correctly after breaking in 2.2.9
+
+## [2.3.3] - 2019-01-31
   - Fonts can be changed
   - Reliability: Save swap folder to file after 15 min of inactivity
   - Reliability: "Discarding" recovery attempt saves a backup anyway
