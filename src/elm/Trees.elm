@@ -484,18 +484,6 @@ viewCard ( isActive, isAncestor, isEditing, depth, isLast, collaborators, collab
                     )
                         /= 0
 
-        tarea content =
-            textarea
-                [ id ("card-edit-" ++ tree.id)
-                , dir "auto"
-                , classList
-                    [ ( "edit", True )
-                    , ( "mousetrap", True )
-                    ]
-                , defaultValue content
-                ]
-                []
-
         buttons =
             case ( isEditing, isActive ) of
                 ( False, True ) ->
@@ -534,17 +522,6 @@ viewCard ( isActive, isAncestor, isEditing, depth, isLast, collaborators, collab
                             , onClick (InsertBelow tree.id)
                             ]
                             [ text "+" ]
-                        ]
-                    ]
-
-                ( True, _ ) ->
-                    [ div [ class "flex-column card-right-overlay" ]
-                        [ span
-                            [ class "card-btn save"
-                            , title "Save Changes (Ctrl+Enter)"
-                            , onClick (Port (Keyboard "mod+enter" 0))
-                            ]
-                            []
                         ]
                     ]
 
@@ -592,24 +569,15 @@ viewCard ( isActive, isAncestor, isEditing, depth, isLast, collaborators, collab
                 [ ( "card", True )
                 , ( "active", isActive )
                 , ( "ancestor", isAncestor )
-                , ( "editing", isEditing )
-                , ( "collab-active", not isEditing && not (List.isEmpty collaborators) )
-                , ( "collab-editing", not isEditing && not (List.isEmpty collabsEditing) )
+                , ( "collab-active", not (List.isEmpty collaborators) )
+                , ( "collab-editing", not (List.isEmpty collabsEditing) )
                 , ( "has-children", hasChildren )
                 ]
             ]
-                ++ (if not isEditing then
-                        DragDrop.draggable DragDropMsg tree.id
-
-                    else
-                        []
-                   )
+                ++ DragDrop.draggable DragDropMsg tree.id
     in
     if isEditing then
-        div cardAttributes
-            ([ tarea tree.content ]
-                ++ buttons
-            )
+        viewCardCurrentlyEditing tree.id tree.content hasChildren
 
     else
         let
@@ -659,3 +627,36 @@ viewContent content =
     Markdown.toHtmlWith options
         []
         processedContent
+
+
+viewCardCurrentlyEditing : String -> String -> Bool -> Html Msg
+viewCardCurrentlyEditing cardId content hasChildren =
+    div
+        [ id ("card-" ++ cardId)
+        , dir "auto"
+        , classList
+            [ ( "card", True )
+            , ( "active", True )
+            , ( "editing", True )
+            , ( "has-children", hasChildren )
+            ]
+        ]
+        [ textarea
+            [ id ("card-edit-" ++ cardId)
+            , dir "auto"
+            , classList
+                [ ( "edit", True )
+                , ( "mousetrap", True )
+                ]
+            , defaultValue content
+            ]
+            []
+        , div [ class "flex-column card-right-overlay" ]
+            [ span
+                [ class "card-btn save"
+                , title "Save Changes (Ctrl+Enter)"
+                , onClick (Port (Keyboard "mod+enter" 0))
+                ]
+                []
+            ]
+        ]
