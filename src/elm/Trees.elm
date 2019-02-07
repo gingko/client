@@ -366,7 +366,6 @@ view vstate model =
             VisibleViewState
                 vstate.active
                 editing_
-                vstate.searchField
                 vstate.descendants
                 vstate.ancestors
                 vstate.dragModel
