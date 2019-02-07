@@ -485,48 +485,43 @@ viewCard ( isActive, isAncestor, isEditing, depth, isLast, collaborators, collab
                         /= 0
 
         buttons =
-            case ( isEditing, isActive ) of
-                ( False, True ) ->
-                    [ div [ class "flex-row card-top-overlay" ]
-                        [ span
-                            [ class "card-btn ins-above"
-                            , title "Insert Above (Ctrl+K)"
-                            , onClick (InsertAbove tree.id)
-                            ]
-                            [ text "+" ]
-                        ]
-                    , div [ class "flex-column card-right-overlay" ]
-                        [ span
-                            [ class "card-btn delete"
-                            , title "Delete Card (Ctrl+Backspace)"
-                            , onClick (DeleteCard tree.id)
-                            ]
-                            []
-                        , span
-                            [ class "card-btn ins-right"
-                            , title "Add Child (Ctrl+L)"
-                            , onClick (InsertChild tree.id)
-                            ]
-                            [ text "+" ]
-                        , span
-                            [ class "card-btn edit"
-                            , title "Edit Card (Enter)"
-                            , onClick (OpenCard tree.id tree.content)
-                            ]
-                            []
-                        ]
-                    , div [ class "flex-row card-bottom-overlay" ]
-                        [ span
-                            [ class "card-btn ins-below"
-                            , title "Insert Below (Ctrl+J)"
-                            , onClick (InsertBelow tree.id)
-                            ]
-                            [ text "+" ]
-                        ]
+            [ div [ class "flex-row card-top-overlay" ]
+                [ span
+                    [ class "card-btn ins-above"
+                    , title "Insert Above (Ctrl+K)"
+                    , onClick (InsertAbove tree.id)
                     ]
-
-                _ ->
+                    [ text "+" ]
+                ]
+            , div [ class "flex-column card-right-overlay" ]
+                [ span
+                    [ class "card-btn delete"
+                    , title "Delete Card (Ctrl+Backspace)"
+                    , onClick (DeleteCard tree.id)
+                    ]
                     []
+                , span
+                    [ class "card-btn ins-right"
+                    , title "Add Child (Ctrl+L)"
+                    , onClick (InsertChild tree.id)
+                    ]
+                    [ text "+" ]
+                , span
+                    [ class "card-btn edit"
+                    , title "Edit Card (Enter)"
+                    , onClick (OpenCard tree.id tree.content)
+                    ]
+                    []
+                ]
+            , div [ class "flex-row card-bottom-overlay" ]
+                [ span
+                    [ class "card-btn ins-below"
+                    , title "Insert Below (Ctrl+J)"
+                    , onClick (InsertBelow tree.id)
+                    ]
+                    [ text "+" ]
+                ]
+            ]
 
         dropRegions =
             let
