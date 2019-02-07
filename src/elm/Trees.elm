@@ -1,4 +1,4 @@
-module Trees exposing (..)
+module Trees exposing (Model, TreeMsg(..), apply, conflictToTreeMsg, defaultModel, defaultTree, insertSubtree, modifyChildren, modifySiblings, modifyTree, opToTreeMsg, pruneSubtree, renameNodes, setTree, setTreeWithConflicts, update, updateTree, view, viewCard, viewColumn, viewContent, viewGroup, viewKeyedCard)
 
 import Diff exposing (..)
 import Html exposing (..)
@@ -14,6 +14,7 @@ import Sha1 exposing (Diff, diff3Merge, sha1)
 import TreeUtils exposing (getChildren, getColumns, getParent, getTree)
 import Tuple exposing (first, second)
 import Types exposing (..)
+
 
 
 -- MODEL
@@ -89,6 +90,7 @@ setTree newTree model =
         newColumns =
             if newTree /= model.tree then
                 getColumns [ [ [ newTree ] ] ]
+
             else
                 model.columns
     in
@@ -108,6 +110,7 @@ setTreeWithConflicts conflicts originalTree model =
         newColumns =
             if newTree /= model.tree then
                 getColumns [ [ [ newTree ] ] ]
+
             else
                 model.columns
     in
@@ -262,6 +265,7 @@ modifyTree : String -> (Tree -> Tree) -> Tree -> Tree
 modifyTree id upd tree =
     if tree.id == id then
         upd tree
+
     else
         { tree
             | children =
@@ -280,6 +284,7 @@ modifyChildren pid upd tree =
                     |> upd
                     |> Children
         }
+
     else
         { tree
             | children =
@@ -354,6 +359,7 @@ view vstate model =
                         Just editId ->
                             if first cwd |> List.concat |> List.map .id |> List.member editId then
                                 Just editId
+
                             else
                                 Nothing
             in
@@ -572,6 +578,7 @@ viewCard ( isActive, isAncestor, isEditing, depth, isLast, collaborators, collab
                     ]
                         ++ (if isLast then
                                 [ dropDiv "below" (Below tree.id) ]
+
                             else
                                 []
                            )
@@ -594,6 +601,7 @@ viewCard ( isActive, isAncestor, isEditing, depth, isLast, collaborators, collab
             ]
                 ++ (if not isEditing then
                         DragDrop.draggable DragDropMsg tree.id
+
                     else
                         []
                    )
@@ -603,6 +611,7 @@ viewCard ( isActive, isAncestor, isEditing, depth, isLast, collaborators, collab
             ([ tarea tree.content ]
                 ++ buttons
             )
+
     else
         let
             collabsString =
@@ -611,6 +620,7 @@ viewCard ( isActive, isAncestor, isEditing, depth, isLast, collaborators, collab
                         (\c ->
                             if List.member c collabsEditing then
                                 c ++ " is editing"
+
                             else
                                 c
                         )
