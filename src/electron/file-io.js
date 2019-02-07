@@ -99,6 +99,7 @@ async function openFile(filepath) {
  * saveSwapFolder : String -> Promise String Error
  *
  * Given swapFolderPath
+ * - If swap.json doesn't exist, then it's Untitled
  * - Get targetPath from swap.json
  * - Zip folder to backupPath
  * - Copy backupPath to targetPath, with overwrite
@@ -108,14 +109,28 @@ async function openFile(filepath) {
  */
 
 async function saveSwapFolder (swapFolderPath) {
-  try {
-    const targetPath = getFilepathFromSwap(swapFolderPath);
-    const backupPath = getBackupPath(targetPath, Date.now());
-    await zipFolder(swapFolderPath, backupPath);
-    await fs.copy(backupPath, targetPath, { "overwrite": true });
-    return targetPath;
-  } catch (err) {
-    throw err;
+  const savedBefore = await fs.pathExists(path.join(swapFolderPath, "swap.json"));
+  var targetPath;
+  var backupPath;
+
+  if (savedBefore) {
+    try {
+      targetPath = getFilepathFromSwap(swapFolderPath);
+      backupPath = getBackupPath(targetPath, Date.now());
+      await zipFolder(swapFolderPath, backupPath);
+      await fs.copy(backupPath, targetPath, { "overwrite": true });
+      return targetPath;
+    } catch (err) {
+      throw err;
+    }
+  } else { // Never-saved/Untitled document
+    try {
+      backupPath = getBackupPath(null, Date.now());
+      await zipFolder(swapFolderPath, backupPath);
+      return targetPath;
+    } catch (err) {
+      throw err;
+    }
   }
 }
 
@@ -381,9 +396,14 @@ function fullpathFilename (filepath, extension) {
  */
 
 function getBackupPath (filepath, timestamp) {
-  const { ext } = path.parse(filepath);
-  const backupName = fullpathFilename(filepath, ext) + moment(timestamp).format(dateFormatString) + ext;
-  return path.join(app.getPath("userData"), backupName);
+  if (filepath) {
+    const { ext } = path.parse(filepath);
+    const backupName = fullpathFilename(filepath, ext) + moment(timestamp).format(dateFormatString) + ext;
+    return path.join(app.getPath("userData"), backupName);
+  } else { // Never-saved/Untitled
+    const backupName = "Untitled"+moment(timestamp).format(dateFormatString) + ".gko";
+    return path.join(app.getPath("userData"), backupName);
+  }
 }
 
 
@@ -541,7 +561,7 @@ function addFilepathToSwap (filepath, swapFolderPath) {
 
 
 /*
- * getFilepathFromSwap : String -> ( String | Error )
+ * getFilepathFromSwap : String -> ( String | Null )
  *
  * Given swapFolderPath
  * Return filepath from swapFolderPath/swap.json.
@@ -554,7 +574,7 @@ function getFilepathFromSwap (swapFolderPath) {
   if (filepath) {
     return filepath;
   } else {
-    throw new Error("Could not get original filepath from swap folder.\n" + path.join(swapFolderPath, "swap.json"));
+    return null;
   }
 }
 

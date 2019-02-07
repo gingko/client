@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
+## [2.3.5] - 2019-02-07
+  - Fix errors on saving/closing Untitled documents
+
 ## [2.3.4] - 2019-02-01
   - Fix: Autoupdater working correctly after breaking in 2.2.9
 
