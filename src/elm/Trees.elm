@@ -441,11 +441,6 @@ viewGroup vstate depth xs =
                 isLast =
                     t.id == lastChild
 
-                isCollabActive =
-                    vstate.collaborators
-                        |> List.map .mode
-                        |> List.member (Active t.id)
-
                 collabsEditing =
                     vstate.collaborators
                         |> List.filter (\c -> c.mode == Editing t.id)
@@ -474,7 +469,7 @@ viewKeyedCard tup tree =
 
 
 viewCard : ( Bool, Bool, Bool, Int, Bool, List String, List String, DragDrop.Model String DropId ) -> Tree -> Html Msg
-viewCard ( isActive, isAncestor, isEditing, depth, isLast, collaborators, collabsEditing, dragModel ) tree =
+viewCard ( isActive, isAncestor, isEditing, depth, isLast, collabsOnCard, collabsEditingCard, dragModel ) tree =
     let
         hasChildren =
             case tree.children of
@@ -484,79 +479,6 @@ viewCard ( isActive, isAncestor, isEditing, depth, isLast, collaborators, collab
                     )
                         /= 0
 
-        buttons =
-            [ div [ class "flex-row card-top-overlay" ]
-                [ span
-                    [ class "card-btn ins-above"
-                    , title "Insert Above (Ctrl+K)"
-                    , onClick (InsertAbove tree.id)
-                    ]
-                    [ text "+" ]
-                ]
-            , div [ class "flex-column card-right-overlay" ]
-                [ span
-                    [ class "card-btn delete"
-                    , title "Delete Card (Ctrl+Backspace)"
-                    , onClick (DeleteCard tree.id)
-                    ]
-                    []
-                , span
-                    [ class "card-btn ins-right"
-                    , title "Add Child (Ctrl+L)"
-                    , onClick (InsertChild tree.id)
-                    ]
-                    [ text "+" ]
-                , span
-                    [ class "card-btn edit"
-                    , title "Edit Card (Enter)"
-                    , onClick (OpenCard tree.id tree.content)
-                    ]
-                    []
-                ]
-            , div [ class "flex-row card-bottom-overlay" ]
-                [ span
-                    [ class "card-btn ins-below"
-                    , title "Insert Below (Ctrl+J)"
-                    , onClick (InsertBelow tree.id)
-                    ]
-                    [ text "+" ]
-                ]
-            ]
-
-        dropRegions =
-            let
-                dragId_ =
-                    DragDrop.getDragId dragModel
-
-                dropId_ =
-                    DragDrop.getDropId dragModel
-
-                dropDiv str dId =
-                    div
-                        ([ classList
-                            [ ( "drop-region-" ++ str, True )
-                            , ( "drop-hover", dropId_ == Just dId )
-                            ]
-                         ]
-                            ++ DragDrop.droppable DragDropMsg dId
-                        )
-                        []
-            in
-            case dragId_ of
-                Just dragId ->
-                    [ dropDiv "above" (Above tree.id)
-                    , dropDiv "into" (Into tree.id)
-                    ]
-                        ++ (if isLast then
-                                [ dropDiv "below" (Below tree.id) ]
-
-                            else
-                                []
-                           )
-
-                Nothing ->
-                    []
-
         cardAttributes =
             [ id ("card-" ++ tree.id)
             , dir "auto"
@@ -564,8 +486,8 @@ viewCard ( isActive, isAncestor, isEditing, depth, isLast, collaborators, collab
                 [ ( "card", True )
                 , ( "active", isActive )
                 , ( "ancestor", isAncestor )
-                , ( "collab-active", not (List.isEmpty collaborators) )
-                , ( "collab-editing", not (List.isEmpty collabsEditing) )
+                , ( "collab-active", not (List.isEmpty collabsOnCard) )
+                , ( "collab-editing", not (List.isEmpty collabsEditingCard) )
                 , ( "has-children", hasChildren )
                 ]
             ]
@@ -576,20 +498,42 @@ viewCard ( isActive, isAncestor, isEditing, depth, isLast, collaborators, collab
 
     else
         let
-            collabsString =
-                collaborators
-                    |> List.map
-                        (\c ->
-                            if List.member c collabsEditing then
-                                c ++ " is editing"
+            dropRegions =
+                let
+                    dragId_ =
+                        DragDrop.getDragId dragModel
 
-                            else
-                                c
-                        )
-                    |> String.join ", "
+                    dropId_ =
+                        DragDrop.getDropId dragModel
+
+                    dropDiv str dId =
+                        div
+                            ([ classList
+                                [ ( "drop-region-" ++ str, True )
+                                , ( "drop-hover", dropId_ == Just dId )
+                                ]
+                             ]
+                                ++ DragDrop.droppable DragDropMsg dId
+                            )
+                            []
+                in
+                case dragId_ of
+                    Just dragId ->
+                        [ dropDiv "above" (Above tree.id)
+                        , dropDiv "into" (Into tree.id)
+                        ]
+                            ++ (if isLast then
+                                    [ dropDiv "below" (Below tree.id) ]
+
+                                else
+                                    []
+                               )
+
+                    Nothing ->
+                        []
         in
         div cardAttributes
-            (buttons
+            (buttons tree.id tree.content
                 ++ dropRegions
                 ++ [ div
                         [ class "view"
@@ -597,7 +541,7 @@ viewCard ( isActive, isAncestor, isEditing, depth, isLast, collaborators, collab
                         , onDoubleClick (OpenCard tree.id tree.content)
                         ]
                         [ lazy viewContent tree.content ]
-                   , span [ class "collaborators" ] [ text collabsString ]
+                   , collabsSpan collabsOnCard collabsEditingCard
                    ]
             )
 
@@ -622,6 +566,29 @@ viewContent content =
     Markdown.toHtmlWith options
         []
         processedContent
+
+
+viewCardActive : String -> String -> Bool -> Bool -> List String -> List String -> Html Msg
+viewCardActive cardId content hasChildren isLast collabsOnCard collabsEditingCard =
+    div
+        [ id ("card-" ++ cardId)
+        , dir "auto"
+        , classList
+            [ ( "card", True )
+            , ( "active", True )
+            , ( "collab-active", not (List.isEmpty collabsOnCard) )
+            , ( "collab-editing", not (List.isEmpty collabsEditingCard) )
+            , ( "has-children", hasChildren )
+            ]
+        ]
+        [ div
+            [ class "view"
+            , onClick (Activate cardId)
+            , onDoubleClick (OpenCard cardId content)
+            ]
+            [ lazy viewContent content ]
+        , collabsSpan collabsOnCard collabsEditingCard
+        ]
 
 
 viewCardEditing : String -> String -> Bool -> Html Msg
@@ -655,3 +622,62 @@ viewCardEditing cardId content hasChildren =
                 []
             ]
         ]
+
+
+buttons : String -> String -> List (Html Msg)
+buttons cardId content =
+    [ div [ class "flex-row card-top-overlay" ]
+        [ span
+            [ class "card-btn ins-above"
+            , title "Insert Above (Ctrl+K)"
+            , onClick (InsertAbove cardId)
+            ]
+            [ text "+" ]
+        ]
+    , div [ class "flex-column card-right-overlay" ]
+        [ span
+            [ class "card-btn delete"
+            , title "Delete Card (Ctrl+Backspace)"
+            , onClick (DeleteCard cardId)
+            ]
+            []
+        , span
+            [ class "card-btn ins-right"
+            , title "Add Child (Ctrl+L)"
+            , onClick (InsertChild cardId)
+            ]
+            [ text "+" ]
+        , span
+            [ class "card-btn edit"
+            , title "Edit Card (Enter)"
+            , onClick (OpenCard cardId content)
+            ]
+            []
+        ]
+    , div [ class "flex-row card-bottom-overlay" ]
+        [ span
+            [ class "card-btn ins-below"
+            , title "Insert Below (Ctrl+J)"
+            , onClick (InsertBelow cardId)
+            ]
+            [ text "+" ]
+        ]
+    ]
+
+
+collabsSpan : List String -> List String -> Html Msg
+collabsSpan collabsOnCard collabsEditingCard =
+    let
+        collabsString =
+            collabsOnCard
+                |> List.map
+                    (\c ->
+                        if List.member c collabsEditingCard then
+                            c ++ " is editing"
+
+                        else
+                            c
+                    )
+                |> String.join ", "
+    in
+    span [ class "collaborators" ] [ text collabsString ]
