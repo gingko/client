@@ -1,4 +1,4 @@
-module Trees exposing (Model, TreeMsg(..), apply, conflictToTreeMsg, defaultModel, defaultTree, insertSubtree, modifyChildren, modifySiblings, modifyTree, opToTreeMsg, pruneSubtree, renameNodes, setTree, setTreeWithConflicts, update, updateTree, view, viewCard, viewColumn, viewContent, viewGroup, viewKeyedCard)
+module Trees exposing (Model, TreeMsg(..), apply, conflictToTreeMsg, defaultModel, defaultTree, opToTreeMsg, renameNodes, setTree, setTreeWithConflicts, update, view)
 
 import Diff exposing (..)
 import Html exposing (..)
@@ -441,17 +441,24 @@ viewGroup vstate depth xs =
                 isLast =
                     t.id == lastChild
 
-                collabsEditing =
+                collabsEditingCard =
                     vstate.collaborators
                         |> List.filter (\c -> c.mode == Editing t.id)
                         |> List.map .uid
 
-                collaborators =
+                collabsOnCard =
                     vstate.collaborators
                         |> List.filter (\c -> c.mode == Active t.id || c.mode == Editing t.id)
                         |> List.map .uid
             in
-            viewKeyedCard ( isActive, isAncestor, isEditing, depth, isLast, collaborators, collabsEditing, vstate.dragModel ) t
+            if t.id == vstate.active && not isEditing then
+                ( t.id, viewCardActive t.id t.content (hasChildren t) isLast collabsOnCard collabsEditingCard )
+
+            else if isEditing then
+                ( t.id, viewCardEditing t.id t.content (hasChildren t) )
+
+            else
+                ( t.id, viewCardOther t.id t.content isEditing (hasChildren t) isAncestor isLast collabsOnCard collabsEditingCard vstate.dragModel )
     in
     Keyed.node "div"
         [ classList
@@ -463,132 +470,131 @@ viewGroup vstate depth xs =
         (List.map viewFunction xs)
 
 
-viewKeyedCard : ( Bool, Bool, Bool, Int, Bool, List String, List String, DragDrop.Model String DropId ) -> Tree -> ( String, Html Msg )
-viewKeyedCard tup tree =
-    ( tree.id, lazy2 viewCard tup tree )
-
-
-viewCard : ( Bool, Bool, Bool, Int, Bool, List String, List String, DragDrop.Model String DropId ) -> Tree -> Html Msg
-viewCard ( isActive, isAncestor, isEditing, depth, isLast, collabsOnCard, collabsEditingCard, dragModel ) tree =
+viewCardOther : String -> String -> Bool -> Bool -> Bool -> Bool -> List String -> List String -> DragDrop.Model String DropId -> Html Msg
+viewCardOther cardId content isEditing hasChildren isAncestor isLast collabsOnCard collabsEditingCard dragModel =
     let
-        hasChildren =
-            case tree.children of
-                Children c ->
-                    (c
-                        |> List.length
-                    )
-                        /= 0
+        dropRegions =
+            let
+                dragId_ =
+                    DragDrop.getDragId dragModel
 
-        cardAttributes =
-            [ id ("card-" ++ tree.id)
-            , dir "auto"
-            , classList
-                [ ( "card", True )
-                , ( "active", isActive )
-                , ( "ancestor", isAncestor )
-                , ( "collab-active", not (List.isEmpty collabsOnCard) )
-                , ( "collab-editing", not (List.isEmpty collabsEditingCard) )
-                , ( "has-children", hasChildren )
-                ]
-            ]
-                ++ DragDrop.draggable DragDropMsg tree.id
-    in
-    if isEditing then
-        viewCardEditing tree.id tree.content hasChildren
+                dropId_ =
+                    DragDrop.getDropId dragModel
 
-    else
-        let
-            dropRegions =
-                let
-                    dragId_ =
-                        DragDrop.getDragId dragModel
-
-                    dropId_ =
-                        DragDrop.getDropId dragModel
-
-                    dropDiv str dId =
-                        div
-                            ([ classList
-                                [ ( "drop-region-" ++ str, True )
-                                , ( "drop-hover", dropId_ == Just dId )
-                                ]
-                             ]
-                                ++ DragDrop.droppable DragDropMsg dId
-                            )
-                            []
-                in
-                case dragId_ of
-                    Just dragId ->
-                        [ dropDiv "above" (Above tree.id)
-                        , dropDiv "into" (Into tree.id)
-                        ]
-                            ++ (if isLast then
-                                    [ dropDiv "below" (Below tree.id) ]
-
-                                else
-                                    []
-                               )
-
-                    Nothing ->
+                dropDiv str dId =
+                    div
+                        ([ classList
+                            [ ( "drop-region-" ++ str, True )
+                            , ( "drop-hover", dropId_ == Just dId )
+                            ]
+                         ]
+                            ++ DragDrop.droppable DragDropMsg dId
+                        )
                         []
-        in
-        div cardAttributes
-            (buttons tree.id tree.content
-                ++ dropRegions
-                ++ [ div
-                        [ class "view"
-                        , onClick (Activate tree.id)
-                        , onDoubleClick (OpenCard tree.id tree.content)
-                        ]
-                        [ lazy viewContent tree.content ]
-                   , collabsSpan collabsOnCard collabsEditingCard
-                   ]
-            )
+            in
+            case ( dragId_, isEditing ) of
+                ( Just dragId, False ) ->
+                    [ dropDiv "above" (Above cardId)
+                    , dropDiv "into" (Into cardId)
+                    ]
+                        ++ (if isLast then
+                                [ dropDiv "below" (Below cardId) ]
 
+                            else
+                                []
+                           )
 
-viewContent : String -> Html Msg
-viewContent content =
-    let
-        options =
-            { githubFlavored = Just { tables = True, breaks = True }
-            , defaultHighlighting = Nothing
-            , sanitize = False
-            , smartypants = False
-            }
-
-        processedContent =
-            content
-                |> Regex.replace Regex.All (Regex.regex "{\\+\\+") (\_ -> "<ins class='diff'>")
-                |> Regex.replace Regex.All (Regex.regex "\\+\\+}") (\_ -> "</ins>")
-                |> Regex.replace Regex.All (Regex.regex "{--") (\_ -> "<del class='diff'>")
-                |> Regex.replace Regex.All (Regex.regex "--}") (\_ -> "</del>")
+                _ ->
+                    []
     in
-    Markdown.toHtmlWith options
-        []
-        processedContent
-
-
-viewCardActive : String -> String -> Bool -> Bool -> List String -> List String -> Html Msg
-viewCardActive cardId content hasChildren isLast collabsOnCard collabsEditingCard =
     div
         [ id ("card-" ++ cardId)
         , dir "auto"
         , classList
+            [ ( "card", True )
+            , ( "ancestor", isAncestor )
+            , ( "collab-active", not (List.isEmpty collabsOnCard) )
+            , ( "collab-editing", not (List.isEmpty collabsEditingCard) )
+            , ( "has-children", hasChildren )
+            ]
+        ]
+        (dropRegions
+            ++ [ div
+                    [ class "view"
+                    , onClick (Activate cardId)
+                    , onDoubleClick (OpenCard cardId content)
+                    ]
+                    [ lazy viewContent content ]
+               , collabsSpan collabsOnCard collabsEditingCard
+               ]
+        )
+
+
+viewCardActive : String -> String -> Bool -> Bool -> List String -> List String -> Html Msg
+viewCardActive cardId content hasChildren isLast collabsOnCard collabsEditingCard =
+    let
+        buttons =
+            [ div [ class "flex-row card-top-overlay" ]
+                [ span
+                    [ class "card-btn ins-above"
+                    , title "Insert Above (Ctrl+K)"
+                    , onClick (InsertAbove cardId)
+                    ]
+                    [ text "+" ]
+                ]
+            , div [ class "flex-column card-right-overlay" ]
+                [ span
+                    [ class "card-btn delete"
+                    , title "Delete Card (Ctrl+Backspace)"
+                    , onClick (DeleteCard cardId)
+                    ]
+                    []
+                , span
+                    [ class "card-btn ins-right"
+                    , title "Add Child (Ctrl+L)"
+                    , onClick (InsertChild cardId)
+                    ]
+                    [ text "+" ]
+                , span
+                    [ class "card-btn edit"
+                    , title "Edit Card (Enter)"
+                    , onClick (OpenCard cardId content)
+                    ]
+                    []
+                ]
+            , div [ class "flex-row card-bottom-overlay" ]
+                [ span
+                    [ class "card-btn ins-below"
+                    , title "Insert Below (Ctrl+J)"
+                    , onClick (InsertBelow cardId)
+                    ]
+                    [ text "+" ]
+                ]
+            ]
+    in
+    div
+        ([ id ("card-" ++ cardId)
+         , dir "auto"
+         , classList
             [ ( "card", True )
             , ( "active", True )
             , ( "collab-active", not (List.isEmpty collabsOnCard) )
             , ( "collab-editing", not (List.isEmpty collabsEditingCard) )
             , ( "has-children", hasChildren )
             ]
-        ]
-        [ div
-            [ class "view"
-            , onClick (Activate cardId)
-            , onDoubleClick (OpenCard cardId content)
-            ]
-            [ lazy viewContent content ]
-        , collabsSpan collabsOnCard collabsEditingCard
-        ]
+         ]
+            ++ DragDrop.draggable DragDropMsg cardId
+        )
+        (buttons
+            ++ [ div
+                    [ class "view"
+                    , onClick (Activate cardId)
+                    , onDoubleClick (OpenCard cardId content)
+                    ]
+                    [ lazy viewContent content ]
+               , collabsSpan collabsOnCard collabsEditingCard
+               ]
+        )
 
 
 viewCardEditing : String -> String -> Bool -> Html Msg
@@ -624,45 +630,40 @@ viewCardEditing cardId content hasChildren =
         ]
 
 
-buttons : String -> String -> List (Html Msg)
-buttons cardId content =
-    [ div [ class "flex-row card-top-overlay" ]
-        [ span
-            [ class "card-btn ins-above"
-            , title "Insert Above (Ctrl+K)"
-            , onClick (InsertAbove cardId)
-            ]
-            [ text "+" ]
-        ]
-    , div [ class "flex-column card-right-overlay" ]
-        [ span
-            [ class "card-btn delete"
-            , title "Delete Card (Ctrl+Backspace)"
-            , onClick (DeleteCard cardId)
-            ]
-            []
-        , span
-            [ class "card-btn ins-right"
-            , title "Add Child (Ctrl+L)"
-            , onClick (InsertChild cardId)
-            ]
-            [ text "+" ]
-        , span
-            [ class "card-btn edit"
-            , title "Edit Card (Enter)"
-            , onClick (OpenCard cardId content)
-            ]
-            []
-        ]
-    , div [ class "flex-row card-bottom-overlay" ]
-        [ span
-            [ class "card-btn ins-below"
-            , title "Insert Below (Ctrl+J)"
-            , onClick (InsertBelow cardId)
-            ]
-            [ text "+" ]
-        ]
-    ]
+
+-- HELPERS
+
+
+hasChildren : Tree -> Bool
+hasChildren { children } =
+    case children of
+        Children c ->
+            (c
+                |> List.length
+            )
+                /= 0
+
+
+viewContent : String -> Html Msg
+viewContent content =
+    let
+        options =
+            { githubFlavored = Just { tables = True, breaks = True }
+            , defaultHighlighting = Nothing
+            , sanitize = False
+            , smartypants = False
+            }
+
+        processedContent =
+            content
+                |> Regex.replace Regex.All (Regex.regex "{\\+\\+") (\_ -> "<ins class='diff'>")
+                |> Regex.replace Regex.All (Regex.regex "\\+\\+}") (\_ -> "</ins>")
+                |> Regex.replace Regex.All (Regex.regex "{--") (\_ -> "<del class='diff'>")
+                |> Regex.replace Regex.All (Regex.regex "--}") (\_ -> "</del>")
+    in
+    Markdown.toHtmlWith options
+        []
+        processedContent
 
 
 collabsSpan : List String -> List String -> Html Msg
