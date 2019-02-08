@@ -572,7 +572,7 @@ viewCard ( isActive, isAncestor, isEditing, depth, isLast, collaborators, collab
                 ++ DragDrop.draggable DragDropMsg tree.id
     in
     if isEditing then
-        viewCardCurrentlyEditing tree.id tree.content hasChildren
+        viewCardEditing tree.id tree.content hasChildren
 
     else
         let
@@ -624,8 +624,8 @@ viewContent content =
         processedContent
 
 
-viewCardCurrentlyEditing : String -> String -> Bool -> Html Msg
-viewCardCurrentlyEditing cardId content hasChildren =
+viewCardEditing : String -> String -> Bool -> Html Msg
+viewCardEditing cardId content hasChildren =
     div
         [ id ("card-" ++ cardId)
         , dir "auto"
