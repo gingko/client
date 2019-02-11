@@ -12,7 +12,7 @@
 #
 #
 if command -v unbuffer; then
-  unbuffer node_modules/.bin/elm-make $@
+  unbuffer node_modules/.bin/elm make "${@:3}"
 else
-  node_modules/.bin/elm-make $@
+  node_modules/.bin/elm make "${@:3}"
 fi

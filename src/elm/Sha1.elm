@@ -12,28 +12,30 @@ SHA-1 function from [creationix/elm-git](https://github.com/creationix/elm-git).
 -}
 
 import Json.Decode as Json
-import Native.Sha1
+import SHA1
 
 
 {-| Get the SHA-1 hash of a string.
 -}
 sha1 : String -> String
 sha1 str =
-    Native.Sha1.sha1 str
+    str |> SHA1.fromString |> SHA1.toHex
 
 
 {-| Get Date.now() from JS as Int
 -}
 timestamp : () -> Int
 timestamp a =
-    Native.Sha1.timestamp a
+    -- TODO: Implement
+    0
 
 
 {-| Get Date.now() from JS as JSON
 -}
 timeJSON : () -> String
 timeJSON a =
-    Native.Sha1.timeJSON a
+    -- TODO: Implement
+    "0"
 
 
 type Diff
@@ -45,4 +47,4 @@ type Diff
 -}
 diff3Merge : List String -> List String -> List String -> List Diff
 diff3Merge l o r =
-    Native.Sha1.diff3Merge l o r
+    []

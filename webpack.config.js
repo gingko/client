@@ -25,7 +25,7 @@ module.exports = {
         exclude: [/elm-stuff/, /node_modules/],
         use: {
           loader: 'elm-webpack-loader',
-          options: {verbose: true, warn: true, pathToMake: './elm-log-colors.sh'}
+          options: {verbose: true, pathToMake: './elm-log-colors.sh'}
         }
       },
       {

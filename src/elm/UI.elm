@@ -2,7 +2,6 @@ module UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSaveI
 
 import Coders exposing (treeToMarkdownString)
 import Date
-import Date.Distance as DateDist
 import Dict
 import Diff exposing (..)
 import Html exposing (..)
@@ -31,7 +30,7 @@ viewSaveIndicator model =
                 |> toFloat
 
         lastChangeString =
-            DateDist.inWords
+            inWords
                 (model.currentTime |> Date.fromTime)
                 (lastCommitTime |> Date.fromTime)
                 ++ " ago"
@@ -484,3 +483,8 @@ radio msg bool labelElement =
         [ input [ type_ "radio", checked bool, onClick msg ] []
         , labelElement
         ]
+
+
+inWords : Date -> Date -> String
+inWords date1 date2 =
+    "TODO: write date distance function"

@@ -1,9 +1,9 @@
 port module Main exposing (InitModel, Model)
 
+import Browser.Dom
 import Coders exposing (..)
 import Debouncer.Basic as Debouncer exposing (Debouncer, provideInput, toDebouncer)
 import Dict
-import Dom
 import Fonts
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -16,7 +16,6 @@ import Ports exposing (..)
 import Regex
 import Sha1 exposing (timeJSON, timestamp)
 import Task
-import Time exposing (Time, minute, second)
 import TreeUtils exposing (..)
 import Trees exposing (..)
 import Types exposing (..)
@@ -137,7 +136,7 @@ defaultModel =
     , objects = Objects.defaultModel
     , status = Bare
     , debouncerStateSwap =
-        Debouncer.throttle (3 * second)
+        Debouncer.throttle (fromSeconds 3)
             |> Debouncer.settleWhenQuietFor (Just <| 3 * second)
             |> toDebouncer
     , debouncerStateBackup =
