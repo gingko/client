@@ -1,4 +1,4 @@
-module Trees exposing (..)
+module Trees exposing (Model, TreeMsg(..), apply, conflictToTreeMsg, defaultModel, defaultTree, opToTreeMsg, renameNodes, setTree, setTreeWithConflicts, update, view)
 
 import Diff exposing (..)
 import Html exposing (..)
@@ -14,6 +14,7 @@ import Sha1 exposing (Diff, diff3Merge, sha1)
 import TreeUtils exposing (getChildren, getColumns, getParent, getTree)
 import Tuple exposing (first, second)
 import Types exposing (..)
+
 
 
 -- MODEL
@@ -89,6 +90,7 @@ setTree newTree model =
         newColumns =
             if newTree /= model.tree then
                 getColumns [ [ [ newTree ] ] ]
+
             else
                 model.columns
     in
@@ -108,6 +110,7 @@ setTreeWithConflicts conflicts originalTree model =
         newColumns =
             if newTree /= model.tree then
                 getColumns [ [ [ newTree ] ] ]
+
             else
                 model.columns
     in
@@ -262,6 +265,7 @@ modifyTree : String -> (Tree -> Tree) -> Tree -> Tree
 modifyTree id upd tree =
     if tree.id == id then
         upd tree
+
     else
         { tree
             | children =
@@ -280,6 +284,7 @@ modifyChildren pid upd tree =
                     |> upd
                     |> Children
         }
+
     else
         { tree
             | children =
@@ -354,13 +359,13 @@ view vstate model =
                         Just editId ->
                             if first cwd |> List.concat |> List.map .id |> List.member editId then
                                 Just editId
+
                             else
                                 Nothing
             in
             VisibleViewState
                 vstate.active
                 editing_
-                vstate.searchField
                 vstate.descendants
                 vstate.ancestors
                 vstate.dragModel
@@ -436,22 +441,24 @@ viewGroup vstate depth xs =
                 isLast =
                     t.id == lastChild
 
-                isCollabActive =
-                    vstate.collaborators
-                        |> List.map .mode
-                        |> List.member (Active t.id)
-
-                collabsEditing =
+                collabsEditingCard =
                     vstate.collaborators
                         |> List.filter (\c -> c.mode == Editing t.id)
                         |> List.map .uid
 
-                collaborators =
+                collabsOnCard =
                     vstate.collaborators
                         |> List.filter (\c -> c.mode == Active t.id || c.mode == Editing t.id)
                         |> List.map .uid
             in
-            viewKeyedCard ( isActive, isAncestor, isEditing, depth, isLast, collaborators, collabsEditing, vstate.dragModel ) t
+            if t.id == vstate.active && not isEditing then
+                ( t.id, viewCardActive t.id t.content (hasChildren t) isLast collabsOnCard collabsEditingCard )
+
+            else if isEditing then
+                ( t.id, viewCardEditing t.id t.content (hasChildren t) )
+
+            else
+                ( t.id, viewCardOther t.id t.content isEditing (hasChildren t) isAncestor isLast collabsOnCard collabsEditingCard vstate.dragModel )
     in
     Keyed.node "div"
         [ classList
@@ -463,89 +470,9 @@ viewGroup vstate depth xs =
         (List.map viewFunction xs)
 
 
-viewKeyedCard : ( Bool, Bool, Bool, Int, Bool, List String, List String, DragDrop.Model String DropId ) -> Tree -> ( String, Html Msg )
-viewKeyedCard tup tree =
-    ( tree.id, lazy2 viewCard tup tree )
-
-
-viewCard : ( Bool, Bool, Bool, Int, Bool, List String, List String, DragDrop.Model String DropId ) -> Tree -> Html Msg
-viewCard ( isActive, isAncestor, isEditing, depth, isLast, collaborators, collabsEditing, dragModel ) tree =
+viewCardOther : String -> String -> Bool -> Bool -> Bool -> Bool -> List String -> List String -> DragDrop.Model String DropId -> Html Msg
+viewCardOther cardId content isEditing hasChildren isAncestor isLast collabsOnCard collabsEditingCard dragModel =
     let
-        hasChildren =
-            case tree.children of
-                Children c ->
-                    (c
-                        |> List.length
-                    )
-                        /= 0
-
-        tarea content =
-            textarea
-                [ id ("card-edit-" ++ tree.id)
-                , dir "auto"
-                , classList
-                    [ ( "edit", True )
-                    , ( "mousetrap", True )
-                    ]
-                , defaultValue content
-                ]
-                []
-
-        buttons =
-            case ( isEditing, isActive ) of
-                ( False, True ) ->
-                    [ div [ class "flex-row card-top-overlay" ]
-                        [ span
-                            [ class "card-btn ins-above"
-                            , title "Insert Above (Ctrl+K)"
-                            , onClick (InsertAbove tree.id)
-                            ]
-                            [ text "+" ]
-                        ]
-                    , div [ class "flex-column card-right-overlay" ]
-                        [ span
-                            [ class "card-btn delete"
-                            , title "Delete Card (Ctrl+Backspace)"
-                            , onClick (DeleteCard tree.id)
-                            ]
-                            []
-                        , span
-                            [ class "card-btn ins-right"
-                            , title "Add Child (Ctrl+L)"
-                            , onClick (InsertChild tree.id)
-                            ]
-                            [ text "+" ]
-                        , span
-                            [ class "card-btn edit"
-                            , title "Edit Card (Enter)"
-                            , onClick (OpenCard tree.id tree.content)
-                            ]
-                            []
-                        ]
-                    , div [ class "flex-row card-bottom-overlay" ]
-                        [ span
-                            [ class "card-btn ins-below"
-                            , title "Insert Below (Ctrl+J)"
-                            , onClick (InsertBelow tree.id)
-                            ]
-                            [ text "+" ]
-                        ]
-                    ]
-
-                ( True, _ ) ->
-                    [ div [ class "flex-column card-right-overlay" ]
-                        [ span
-                            [ class "card-btn save"
-                            , title "Save Changes (Ctrl+Enter)"
-                            , onClick (Port (Keyboard "mod+enter" 0))
-                            ]
-                            []
-                        ]
-                    ]
-
-                _ ->
-                    []
-
         dropRegions =
             let
                 dragId_ =
@@ -565,69 +492,158 @@ viewCard ( isActive, isAncestor, isEditing, depth, isLast, collaborators, collab
                         )
                         []
             in
-            case dragId_ of
-                Just dragId ->
-                    [ dropDiv "above" (Above tree.id)
-                    , dropDiv "into" (Into tree.id)
+            case ( dragId_, isEditing ) of
+                ( Just dragId, False ) ->
+                    [ dropDiv "above" (Above cardId)
+                    , dropDiv "into" (Into cardId)
                     ]
                         ++ (if isLast then
-                                [ dropDiv "below" (Below tree.id) ]
+                                [ dropDiv "below" (Below cardId) ]
+
                             else
                                 []
                            )
 
-                Nothing ->
+                _ ->
                     []
+    in
+    div
+        ([ id ("card-" ++ cardId)
+         , dir "auto"
+         , classList
+            [ ( "card", True )
+            , ( "ancestor", isAncestor )
+            , ( "collab-active", not (List.isEmpty collabsOnCard) )
+            , ( "collab-editing", not (List.isEmpty collabsEditingCard) )
+            , ( "has-children", hasChildren )
+            ]
+         ]
+            ++ DragDrop.draggable DragDropMsg cardId
+        )
+        (dropRegions
+            ++ [ div
+                    [ class "view"
+                    , onClick (Activate cardId)
+                    , onDoubleClick (OpenCard cardId content)
+                    ]
+                    [ lazy viewContent content ]
+               , collabsSpan collabsOnCard collabsEditingCard
+               ]
+        )
 
-        cardAttributes =
-            [ id ("card-" ++ tree.id)
-            , dir "auto"
-            , classList
-                [ ( "card", True )
-                , ( "active", isActive )
-                , ( "ancestor", isAncestor )
-                , ( "editing", isEditing )
-                , ( "collab-active", not isEditing && not (List.isEmpty collaborators) )
-                , ( "collab-editing", not isEditing && not (List.isEmpty collabsEditing) )
-                , ( "has-children", hasChildren )
+
+viewCardActive : String -> String -> Bool -> Bool -> List String -> List String -> Html Msg
+viewCardActive cardId content hasChildren isLast collabsOnCard collabsEditingCard =
+    let
+        buttons =
+            [ div [ class "flex-row card-top-overlay" ]
+                [ span
+                    [ class "card-btn ins-above"
+                    , title "Insert Above (Ctrl+K)"
+                    , onClick (InsertAbove cardId)
+                    ]
+                    [ text "+" ]
+                ]
+            , div [ class "flex-column card-right-overlay" ]
+                [ span
+                    [ class "card-btn delete"
+                    , title "Delete Card (Ctrl+Backspace)"
+                    , onClick (DeleteCard cardId)
+                    ]
+                    []
+                , span
+                    [ class "card-btn ins-right"
+                    , title "Add Child (Ctrl+L)"
+                    , onClick (InsertChild cardId)
+                    ]
+                    [ text "+" ]
+                , span
+                    [ class "card-btn edit"
+                    , title "Edit Card (Enter)"
+                    , onClick (OpenCard cardId content)
+                    ]
+                    []
+                ]
+            , div [ class "flex-row card-bottom-overlay" ]
+                [ span
+                    [ class "card-btn ins-below"
+                    , title "Insert Below (Ctrl+J)"
+                    , onClick (InsertBelow cardId)
+                    ]
+                    [ text "+" ]
                 ]
             ]
-                ++ (if not isEditing then
-                        DragDrop.draggable DragDropMsg tree.id
-                    else
-                        []
-                   )
     in
-    if isEditing then
-        div cardAttributes
-            ([ tarea tree.content ]
-                ++ buttons
+    div
+        ([ id ("card-" ++ cardId)
+         , dir "auto"
+         , classList
+            [ ( "card", True )
+            , ( "active", True )
+            , ( "collab-active", not (List.isEmpty collabsOnCard) )
+            , ( "collab-editing", not (List.isEmpty collabsEditingCard) )
+            , ( "has-children", hasChildren )
+            ]
+         ]
+            ++ DragDrop.draggable DragDropMsg cardId
+        )
+        (buttons
+            ++ [ div
+                    [ class "view"
+                    , onClick (Activate cardId)
+                    , onDoubleClick (OpenCard cardId content)
+                    ]
+                    [ lazy viewContent content ]
+               , collabsSpan collabsOnCard collabsEditingCard
+               ]
+        )
+
+
+viewCardEditing : String -> String -> Bool -> Html Msg
+viewCardEditing cardId content hasChildren =
+    div
+        [ id ("card-" ++ cardId)
+        , dir "auto"
+        , classList
+            [ ( "card", True )
+            , ( "active", True )
+            , ( "editing", True )
+            , ( "has-children", hasChildren )
+            ]
+        ]
+        [ textarea
+            [ id ("card-edit-" ++ cardId)
+            , dir "auto"
+            , classList
+                [ ( "edit", True )
+                , ( "mousetrap", True )
+                ]
+            , defaultValue content
+            ]
+            []
+        , div [ class "flex-column card-right-overlay" ]
+            [ span
+                [ class "card-btn save"
+                , title "Save Changes (Ctrl+Enter)"
+                , onClick (Port (Keyboard "mod+enter" 0))
+                ]
+                []
+            ]
+        ]
+
+
+
+-- HELPERS
+
+
+hasChildren : Tree -> Bool
+hasChildren { children } =
+    case children of
+        Children c ->
+            (c
+                |> List.length
             )
-    else
-        let
-            collabsString =
-                collaborators
-                    |> List.map
-                        (\c ->
-                            if List.member c collabsEditing then
-                                c ++ " is editing"
-                            else
-                                c
-                        )
-                    |> String.join ", "
-        in
-        div cardAttributes
-            (buttons
-                ++ dropRegions
-                ++ [ div
-                        [ class "view"
-                        , onClick (Activate tree.id)
-                        , onDoubleClick (OpenCard tree.id tree.content)
-                        ]
-                        [ lazy viewContent tree.content ]
-                   , span [ class "collaborators" ] [ text collabsString ]
-                   ]
-            )
+                /= 0
 
 
 viewContent : String -> Html Msg
@@ -650,3 +666,21 @@ viewContent content =
     Markdown.toHtmlWith options
         []
         processedContent
+
+
+collabsSpan : List String -> List String -> Html Msg
+collabsSpan collabsOnCard collabsEditingCard =
+    let
+        collabsString =
+            collabsOnCard
+                |> List.map
+                    (\c ->
+                        if List.member c collabsEditingCard then
+                            c ++ " is editing"
+
+                        else
+                            c
+                    )
+                |> String.join ", "
+    in
+    span [ class "collaborators" ] [ text collabsString ]

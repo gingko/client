@@ -320,7 +320,7 @@ update msg ({ objects, workingTree, status } as model) =
                 maybeActivate =
                     case ( newSearchField, firstFilteredCardId_ ) of
                         ( Just _, Just id ) ->
-                            activate (id |> Debug.log "card to activate")
+                            activate id
 
                         ( Nothing, _ ) ->
                             activate vs.active

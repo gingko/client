@@ -213,7 +213,6 @@ type alias ViewState =
 type alias VisibleViewState =
     { active : String
     , editing : Maybe String
-    , searchField : Maybe String
     , descendants : List String
     , ancestors : List String
     , dragModel : DragDrop.Model String DropId
