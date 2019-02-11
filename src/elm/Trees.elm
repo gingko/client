@@ -508,16 +508,18 @@ viewCardOther cardId content isEditing hasChildren isAncestor isLast collabsOnCa
                     []
     in
     div
-        [ id ("card-" ++ cardId)
-        , dir "auto"
-        , classList
+        ([ id ("card-" ++ cardId)
+         , dir "auto"
+         , classList
             [ ( "card", True )
             , ( "ancestor", isAncestor )
             , ( "collab-active", not (List.isEmpty collabsOnCard) )
             , ( "collab-editing", not (List.isEmpty collabsEditingCard) )
             , ( "has-children", hasChildren )
             ]
-        ]
+         ]
+            ++ DragDrop.draggable DragDropMsg cardId
+        )
         (dropRegions
             ++ [ div
                     [ class "view"
