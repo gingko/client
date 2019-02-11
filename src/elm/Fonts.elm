@@ -142,7 +142,7 @@ viewSelector (Model { heading, content, monospace, builtin, system }) =
         fontList sel =
             let
                 optionFunction f =
-                    option [ style [ ( "font-family", f ) ], value f, selected (sel == f) ] [ text f ]
+                    option [ style "font-family" f, value f, selected (sel == f) ] [ text f ]
             in
             {- This would be better, but leads to random font indents within each group for some reason
                [ optgroup [ attribute "label" "Gingko Built-in", style [ ( "font-family", "Bitter" ) ] ] (List.map optionFunction builtin)
@@ -157,17 +157,17 @@ viewSelector (Model { heading, content, monospace, builtin, system }) =
     div
         [ id "font-selector", class "horizontal-dialog" ]
         [ div []
-            [ span [ style [ ( "font-family", heading ), ( "font-weight", "bold" ) ] ] [ text "Heading Font" ]
+            [ span [ style "font-family" heading, style "font-weight" "bold" ] [ text "Heading Font" ]
             , br [] []
             , select [ onSelect headingFunction ] (fontList heading)
             ]
         , div []
-            [ span [ style [ ( "font-family", content ) ] ] [ text "Content Font" ]
+            [ span [ style "font-family" content ] [ text "Content Font" ]
             , br [] []
             , select [ onSelect contentFunction ] (fontList content)
             ]
         , div []
-            [ span [ style [ ( "font-family", monospace ) ] ] [ text "Editing/Monospace Font" ]
+            [ span [ style "font-family" monospace ] [ text "Editing/Monospace Font" ]
             , br [] []
             , select [ onSelect monospaceFunction ] (fontList monospace)
             ]

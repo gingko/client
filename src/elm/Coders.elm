@@ -1,9 +1,10 @@
-module Coders exposing (..)
+module Coders exposing (collabStateDecoder, collabStateToValue, conflictDecoder, conflictToValue, exportSettingsDecoder, lazyRecurse, maybeToValue, modeDecoder, modeToValue, opDecoder, opToValue, selectionDecoder, selectionToValue, statusDecoder, statusToValue, treeDecoder, treeListDecoder, treeToJSON, treeToJSONrecurse, treeToMarkdown, treeToMarkdownRecurse, treeToMarkdownString, treeToValue, treesModelDecoder, tripleDecoder, tripleToValue, tupleDecoder, tupleToValue)
 
 import Json.Decode as Json exposing (..)
 import Json.Encode as Enc
 import Trees
 import Types exposing (..)
+
 
 
 -- Tree
@@ -366,6 +367,7 @@ treeToMarkdownString withRoot tree =
         tree.content
             :: contentList
             |> String.join "\n\n"
+
     else
         contentList
             |> String.join "\n\n"

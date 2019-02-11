@@ -82,6 +82,7 @@ sortFunction dag a b =
     in
     if distA == distB then
         compare a.uid b.uid
+
     else
         compare distB distA
 
@@ -90,6 +91,7 @@ maxDist : List DagEntry -> String -> String -> Int
 maxDist dag toId fromId =
     if toId == fromId then
         0
+
     else
         let
             maxNexts =

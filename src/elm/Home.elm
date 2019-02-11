@@ -1,4 +1,4 @@
-port module Home exposing (..)
+port module Home exposing (Document, Model, Msg(..), defaultDocument, docListReload, forJS, init, main, subscriptions, update, view, viewDocList, viewDocumentItem)
 
 import Coders exposing (maybeToValue)
 import Date exposing (Month(..))
@@ -56,11 +56,12 @@ defaultDocument =
 
 init : ( Time, List ( String, Document ) ) -> ( Model, Cmd Msg )
 init ( time, dbObj ) =
-    { documents = dbObj |> Dict.fromList
-    , archiveDropdown = False
-    , currentTime = time
-    }
-        ! []
+    ( { documents = dbObj |> Dict.fromList
+      , archiveDropdown = False
+      , currentTime = time
+      }
+    , Cmd.none
+    )
 
 
 
@@ -84,10 +85,14 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         New ->
-            model ! [ forJS { tag = "New", data = null } ]
+            ( model
+            , forJS { tag = "New", data = null }
+            )
 
         Import ->
-            model ! [ forJS { tag = "ImportGko", data = null } ]
+            ( model
+            , forJS { tag = "ImportGko", data = null }
+            )
 
         Open dbname docName_ ->
             let
@@ -95,45 +100,60 @@ update msg model =
                     [ string dbname, maybeToValue string docName_ ]
                         |> Json.list
             in
-            model ! [ forJS { tag = "Open", data = data } ]
+            ( model
+            , forJS { tag = "Open", data = data }
+            )
 
         OpenOther ->
-            model ! [ forJS { tag = "OpenOther", data = null } ]
+            ( model
+            , forJS { tag = "OpenOther", data = null }
+            )
 
         SetState dbname state ->
             let
                 data =
                     Json.list [ string dbname, string state ]
             in
-            { model
+            ( { model
                 | documents =
                     model.documents
                         |> Dict.update dbname (Maybe.map (\v -> { v | state = state }))
-            }
-                ! [ forJS { tag = "SetState", data = data } ]
+              }
+            , forJS { tag = "SetState", data = data }
+            )
 
         Delete dbname ->
-            { model
+            ( { model
                 | documents =
                     model.documents
                         |> Dict.filter (\k _ -> k /= dbname)
-            }
-                ! [ forJS { tag = "Delete", data = string dbname } ]
+              }
+            , forJS { tag = "Delete", data = string dbname }
+            )
 
         ToggleArchive ->
             if (model.documents |> Dict.filter (\_ v -> v.state == "archived") |> Dict.size) /= 0 then
                 ( { model | archiveDropdown = not model.archiveDropdown }, Cmd.none )
+
             else
-                model ! []
+                ( model
+                , Cmd.none
+                )
 
         Tick currTime ->
-            { model | currentTime = currTime } ! []
+            ( { model | currentTime = currTime }
+            , Cmd.none
+            )
 
         DocListReload docList ->
-            { model | documents = docList |> Dict.fromList } ! []
+            ( { model | documents = docList |> Dict.fromList }
+            , Cmd.none
+            )
 
         NoOp ->
-            model ! []
+            ( model
+            , Cmd.none
+            )
 
 
 
@@ -239,6 +259,7 @@ viewDocumentItem currTime ( dbname, document ) =
         ( titleString, dateString ) =
             if DateExtra.diff DateExtra.Day openedDate nowDate <= 2 then
                 ( openedString, relativeString )
+
             else
                 ( relativeString, openedString )
 

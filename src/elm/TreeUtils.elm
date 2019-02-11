@@ -1,4 +1,4 @@
-module TreeUtils exposing (..)
+module TreeUtils exposing (centerlineIds, dictUpdate, generateId, getAncestors, getChildren, getColumn, getColumnById, getColumns, getContent, getDepth, getDescendants, getFirstInColumn, getIndex, getLastInColumn, getNext, getNextInColumn, getParent, getPrev, getPrevInColumn, getPrevNext, getPrevNextInColumn, getSiblings, getTree, getTreeWithPosition, newLine, withIdTree)
 
 import Dict exposing (..)
 import List.Extra as ListExtra
@@ -6,6 +6,7 @@ import Random exposing (initialSeed, int, maxInt, minInt)
 import String
 import Tuple exposing (first, second)
 import Types exposing (..)
+
 
 
 -- TRANSFORMATIONS
@@ -32,6 +33,7 @@ getColumns cols =
     in
     if hasChildren then
         getColumns (cols ++ [ nextColumn col ])
+
     else
         cols
 
@@ -44,6 +46,7 @@ getTree : String -> Tree -> Maybe Tree
 getTree id tree =
     if tree.id == id then
         Just tree
+
     else
         getChildren tree
             |> List.map (getTree id)
@@ -61,6 +64,7 @@ getParent id tree =
         Children children ->
             if List.member id (List.map .id children) then
                 Just tree
+
             else
                 children
                     |> List.map (getParent id)
@@ -80,6 +84,7 @@ getSiblings : String -> Tree -> List Tree
 getSiblings id tree =
     if getChildren tree |> List.map .id |> List.member id then
         getChildren tree
+
     else
         List.concatMap (getSiblings id) (getChildren tree)
 
@@ -245,6 +250,7 @@ getDescendants t =
     in
     if List.isEmpty children then
         []
+
     else
         children ++ List.concatMap getDescendants children
 
@@ -274,9 +280,10 @@ getDepth prev tree id =
         Children children ->
             if tree.id == id then
                 prev
+
             else
                 children
-                    |> List.map (flip (getDepth (prev + 1)) id)
+                    |> List.map (\a -> getDepth (prev + 1) a id)
                     |> List.maximum
                     |> Maybe.withDefault 0
 
@@ -334,6 +341,8 @@ centerlineIds flatCols allIds activePast =
 (?) : Maybe a -> a -> a
 (?) maybe default =
     Maybe.withDefault default maybe
+
+
 infixr 9 ?
 
 

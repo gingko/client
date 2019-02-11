@@ -216,7 +216,7 @@ init ( dataIn, modelIn, isSaved ) =
                 |> Maybe.map (\t -> countWords (treeToMarkdownString False t))
                 |> Maybe.withDefault 0
     in
-    { defaultModel
+    ( { defaultModel
         | workingTree = newWorkingTree
         , objects = newObjects
         , status = newStatus
@@ -226,8 +226,9 @@ init ( dataIn, modelIn, isSaved ) =
         , startingWordcount = startingWordcount
         , currentTime = modelIn.currentTime
         , fonts = Fonts.init modelIn.fonts
-    }
-        ! [ focus modelIn.lastActive, sendOut <| ColumnNumberChange <| List.length <| newWorkingTree.columns ]
+      }
+    , Cmd.batch [ focus modelIn.lastActive, sendOut <| ColumnNumberChange <| List.length <| newWorkingTree.columns ]
+    )
         |> activate modelIn.lastActive
         |> (\mc ->
                 if not isSaved then
@@ -268,8 +269,9 @@ update msg ({ objects, workingTree, status } as model) =
     case msg of
         -- === Card Activation ===
         Activate id ->
-            model
-                ! []
+            ( model
+            , Cmd.none
+            )
                 |> saveCardIfEditing
                 |> activate id
 
@@ -295,7 +297,10 @@ update msg ({ objects, workingTree, status } as model) =
                 ( maybeBlur, newSearchField ) =
                     case inputField of
                         "" ->
-                            ( \( m, c ) -> m ! [ c, Task.attempt (\_ -> NoOp) (Dom.blur "search-input") ]
+                            ( \( m, c ) ->
+                                ( m
+                                , Cmd.batch [ c, Task.attempt (\_ -> NoOp) (Dom.blur "search-input") ]
+                                )
                             , Nothing
                             )
 
@@ -328,36 +333,42 @@ update msg ({ objects, workingTree, status } as model) =
                         _ ->
                             identity
             in
-            { model | viewState = { vs | searchField = newSearchField } }
-                ! []
+            ( { model | viewState = { vs | searchField = newSearchField } }
+            , Cmd.none
+            )
                 |> maybeBlur
                 |> maybeActivate
 
         -- === Card Editing  ===
         OpenCard id str ->
-            model
-                ! []
+            ( model
+            , Cmd.none
+            )
                 |> openCard id str
 
         DeleteCard id ->
-            model
-                ! []
+            ( model
+            , Cmd.none
+            )
                 |> deleteCard id
 
         -- === Card Insertion  ===
         InsertAbove id ->
-            model
-                ! []
+            ( model
+            , Cmd.none
+            )
                 |> insertAbove id
 
         InsertBelow id ->
-            model
-                ! []
+            ( model
+            , Cmd.none
+            )
                 |> insertBelow id
 
         InsertChild id ->
-            model
-                ! []
+            ( model
+            , Cmd.none
+            )
                 |> insertChild id
 
         -- === Card Moving  ===
@@ -375,18 +386,21 @@ update msg ({ objects, workingTree, status } as model) =
                     in
                     if List.isEmpty <| getChildren newTree.tree then
                         -- Don't allow dragging of last visible card
-                        model ! []
+                        ( model
+                        , Cmd.none
+                        )
 
                     else
-                        { model
+                        ( { model
                             | workingTree = newTree
                             , viewState =
                                 { vs
                                     | dragModel = newDragModel
                                     , draggedTree = getTreeWithPosition dragId model.workingTree.tree
                                 }
-                        }
-                            ! []
+                          }
+                        , Cmd.none
+                        )
 
                 -- Successful drop
                 ( Just ( draggedTree, _, _ ), Nothing, Just ( dragId, dropId ) ) ->
@@ -406,32 +420,36 @@ update msg ({ objects, workingTree, status } as model) =
                                         ((getParent id model.workingTree.tree |> Maybe.map .id) ? "0")
                                         ((getIndex id model.workingTree.tree ? 0) + 1)
                     in
-                    { model
+                    ( { model
                         | viewState =
                             { vs
                                 | dragModel = newDragModel
                                 , draggedTree = Nothing
                             }
-                    }
-                        ! []
+                      }
+                    , Cmd.none
+                    )
                         |> moveOperation
                         |> activate draggedTree.id
 
                 -- Failed drop
                 ( Just ( draggedTree, parentId, idx ), Nothing, Nothing ) ->
-                    { model
+                    ( { model
                         | viewState =
                             { vs
                                 | dragModel = newDragModel
                                 , draggedTree = Nothing
                             }
-                    }
-                        ! []
+                      }
+                    , Cmd.none
+                    )
                         |> move draggedTree parentId idx
                         |> activate draggedTree.id
 
                 _ ->
-                    { model | viewState = { vs | dragModel = newDragModel } } ! []
+                    ( { model | viewState = { vs | dragModel = newDragModel } }
+                    , Cmd.none
+                    )
 
         -- === History ===
         ThrottledCommit subMsg ->
@@ -447,8 +465,9 @@ update msg ({ objects, workingTree, status } as model) =
             in
             case emitted_ of
                 Just () ->
-                    updatedModel
-                        ! []
+                    ( updatedModel
+                    , Cmd.none
+                    )
                         |> addToHistoryDo
                         |> Tuple.mapSecond (\cmd -> Cmd.batch [ cmd, mappedCmd ])
 
@@ -468,8 +487,9 @@ update msg ({ objects, workingTree, status } as model) =
             in
             case emitted_ of
                 Just () ->
-                    updatedModel
-                        ! [ sendOut SaveBackup ]
+                    ( updatedModel
+                    , sendOut SaveBackup
+                    )
 
                 Nothing ->
                     ( updatedModel, mappedCmd )
@@ -477,34 +497,51 @@ update msg ({ objects, workingTree, status } as model) =
         CheckoutCommit commitSha ->
             case status of
                 MergeConflict _ _ _ _ ->
-                    model ! []
+                    ( model
+                    , Cmd.none
+                    )
 
                 _ ->
-                    model ! [] |> checkoutCommit commitSha
+                    ( model
+                    , Cmd.none
+                    )
+                        |> checkoutCommit commitSha
 
         Restore ->
-            { model | historyState = Closed }
-                ! []
+            ( { model | historyState = Closed }
+            , Cmd.none
+            )
                 |> addToHistoryDo
 
         CancelHistory ->
             case model.historyState of
                 From origSha ->
-                    { model | historyState = Closed } ! [] |> checkoutCommit origSha
+                    ( { model | historyState = Closed }
+                    , Cmd.none
+                    )
+                        |> checkoutCommit origSha
 
                 Closed ->
-                    model ! []
+                    ( model
+                    , Cmd.none
+                    )
 
         Sync ->
             case ( model.status, model.online ) of
                 ( Clean _, True ) ->
-                    model ! [ sendOut Pull ]
+                    ( model
+                    , sendOut Pull
+                    )
 
                 ( Bare, True ) ->
-                    model ! [ sendOut Pull ]
+                    ( model
+                    , sendOut Pull
+                    )
 
                 _ ->
-                    model ! []
+                    ( model
+                    , Cmd.none
+                    )
 
         SetSelection cid selection id ->
             let
@@ -529,44 +566,53 @@ update msg ({ objects, workingTree, status } as model) =
                 MergeConflict mTree oldHead newHead conflicts ->
                     case selection of
                         Manual ->
-                            { model
+                            ( { model
                                 | workingTree = Trees.setTreeWithConflicts conflicts mTree model.workingTree
                                 , status = newStatus
-                            }
-                                ! []
+                              }
+                            , Cmd.none
+                            )
 
                         _ ->
-                            { model
+                            ( { model
                                 | workingTree = Trees.setTreeWithConflicts conflicts mTree model.workingTree
                                 , status = newStatus
-                            }
-                                ! []
+                              }
+                            , Cmd.none
+                            )
                                 |> cancelCard
                                 |> activate id
 
                 _ ->
-                    model ! []
+                    ( model
+                    , Cmd.none
+                    )
 
         Resolve cid ->
             case status of
                 MergeConflict mTree shaA shaB conflicts ->
-                    { model
+                    ( { model
                         | status = MergeConflict mTree shaA shaB (conflicts |> List.filter (\c -> c.id /= cid))
-                    }
-                        ! []
+                      }
+                    , Cmd.none
+                    )
                         |> addToHistory
 
                 _ ->
-                    model ! []
+                    ( model
+                    , Cmd.none
+                    )
 
         -- === UI ===
         TimeUpdate time ->
-            { model | currentTime = time }
-                ! []
+            ( { model | currentTime = time }
+            , Cmd.none
+            )
 
         VideoModal shouldOpen ->
-            model
-                ! []
+            ( model
+            , Cmd.none
+            )
                 |> toggleVideoModal shouldOpen
 
         FontsMsg msg ->
@@ -582,48 +628,57 @@ update msg ({ objects, workingTree, status } as model) =
                         Nothing ->
                             Cmd.none
             in
-            { model | fonts = newModel, fontSelectorOpen = selectorOpen }
-                ! [ cmd ]
+            ( { model | fonts = newModel, fontSelectorOpen = selectorOpen }
+            , cmd
+            )
 
         ShortcutTrayToggle ->
             let
                 newIsOpen =
                     not model.shortcutTrayOpen
             in
-            { model
+            ( { model
                 | shortcutTrayOpen = newIsOpen
-            }
-                ! [ sendOut (SetShortcutTray newIsOpen) ]
+              }
+            , sendOut (SetShortcutTray newIsOpen)
+            )
 
         WordcountTrayToggle ->
-            { model | wordcountTrayOpen = not model.wordcountTrayOpen }
-                ! []
+            ( { model | wordcountTrayOpen = not model.wordcountTrayOpen }
+            , Cmd.none
+            )
 
         -- === Ports ===
         Port incomingMsg ->
             case incomingMsg of
                 -- === Dialogs, Menus, Window State ===
                 IntentSave ->
-                    model
-                        ! []
+                    ( model
+                    , Cmd.none
+                    )
                         |> saveCardIfEditing
 
                 IntentExit ->
                     if vs.editing /= Nothing then
                         let
                             modelCardSaved =
-                                model
-                                    ! []
+                                ( model
+                                , Cmd.none
+                                )
                                     |> saveCardIfEditing
                                     |> Tuple.first
 
                             ( status, objects ) =
                                 ( statusToValue modelCardSaved.status, Objects.toValue modelCardSaved.objects )
                         in
-                        model ! [ sendOut (SaveAndClose (Just ( status, objects ))) ]
+                        ( model
+                        , sendOut (SaveAndClose (Just ( status, objects )))
+                        )
 
                     else
-                        model ! [ sendOut (SaveAndClose Nothing) ]
+                        ( model
+                        , sendOut (SaveAndClose Nothing)
+                        )
 
                 IntentExport exportSettings ->
                     case exportSettings.format of
@@ -647,29 +702,46 @@ update msg ({ objects, workingTree, status } as model) =
                                                 |> List.map .content
                                                 |> String.join "\n\n"
                             in
-                            model
-                                ! []
+                            ( model
+                            , Cmd.none
+                            )
                                 |> saveCardIfEditing
-                                |> (\( m, c ) -> m ! [ c, sendOut (ExportDOCX (markdownString m) exportSettings.filepath) ])
+                                |> (\( m, c ) ->
+                                        ( m
+                                        , Cmd.batch [ c, sendOut (ExportDOCX (markdownString m) exportSettings.filepath) ]
+                                        )
+                                   )
 
                         JSON ->
                             case exportSettings.selection of
                                 All ->
-                                    model
-                                        ! []
+                                    ( model
+                                    , Cmd.none
+                                    )
                                         |> saveCardIfEditing
-                                        |> (\( m, c ) -> m ! [ c, sendOut (ExportJSON m.workingTree.tree exportSettings.filepath) ])
+                                        |> (\( m, c ) ->
+                                                ( m
+                                                , Cmd.batch [ c, sendOut (ExportJSON m.workingTree.tree exportSettings.filepath) ]
+                                                )
+                                           )
 
                                 _ ->
-                                    model ! []
+                                    ( model
+                                    , Cmd.none
+                                    )
 
                         TXT ->
                             case exportSettings.selection of
                                 All ->
-                                    model
-                                        ! []
+                                    ( model
+                                    , Cmd.none
+                                    )
                                         |> saveCardIfEditing
-                                        |> (\( m, c ) -> m ! [ c, sendOut (ExportTXT False m.workingTree.tree exportSettings.filepath) ])
+                                        |> (\( m, c ) ->
+                                                ( m
+                                                , Cmd.batch [ c, sendOut (ExportTXT False m.workingTree.tree exportSettings.filepath) ]
+                                                )
+                                           )
 
                                 CurrentSubtree ->
                                     let
@@ -677,29 +749,41 @@ update msg ({ objects, workingTree, status } as model) =
                                             getTree vs.active m.workingTree.tree
                                                 |> Maybe.withDefault m.workingTree.tree
                                     in
-                                    model
-                                        ! []
+                                    ( model
+                                    , Cmd.none
+                                    )
                                         |> saveCardIfEditing
-                                        |> (\( m, c ) -> m ! [ c, sendOut (ExportTXT True (getCurrentSubtree m) exportSettings.filepath) ])
+                                        |> (\( m, c ) ->
+                                                ( m
+                                                , Cmd.batch [ c, sendOut (ExportTXT True (getCurrentSubtree m) exportSettings.filepath) ]
+                                                )
+                                           )
 
                                 ColumnNumber col ->
-                                    model
-                                        ! []
+                                    ( model
+                                    , Cmd.none
+                                    )
                                         |> saveCardIfEditing
-                                        |> (\( m, c ) -> m ! [ c, sendOut (ExportTXTColumn col m.workingTree.tree exportSettings.filepath) ])
+                                        |> (\( m, c ) ->
+                                                ( m
+                                                , Cmd.batch [ c, sendOut (ExportTXTColumn col m.workingTree.tree exportSettings.filepath) ]
+                                                )
+                                           )
 
                 CancelCardConfirmed ->
-                    model
-                        ! []
+                    ( model
+                    , Cmd.none
+                    )
                         |> cancelCard
 
                 -- === Database ===
                 SetHeadRev rev ->
-                    { model
+                    ( { model
                         | objects = Objects.setHeadRev rev model.objects
                         , changed = False
-                    }
-                        ! []
+                      }
+                    , Cmd.none
+                    )
                         |> push
 
                 Merge json ->
@@ -709,29 +793,33 @@ update msg ({ objects, workingTree, status } as model) =
                     in
                     case ( status, newStatus ) of
                         ( Bare, Clean sha ) ->
-                            { model
+                            ( { model
                                 | workingTree = Trees.setTree (newTree_ ? workingTree.tree) workingTree
                                 , objects = newObjects
                                 , status = newStatus
-                            }
-                                ! [ sendOut (UpdateCommits ( Objects.toValue newObjects, Just sha )) ]
+                              }
+                            , sendOut (UpdateCommits ( Objects.toValue newObjects, Just sha ))
+                            )
                                 |> activate vs.active
 
                         ( Clean oldHead, Clean newHead ) ->
                             if oldHead /= newHead then
-                                { model
+                                ( { model
                                     | workingTree = Trees.setTree (newTree_ ? workingTree.tree) workingTree
                                     , objects = newObjects
                                     , status = newStatus
-                                }
-                                    ! [ sendOut (UpdateCommits ( Objects.toValue newObjects, Just newHead )) ]
+                                  }
+                                , sendOut (UpdateCommits ( Objects.toValue newObjects, Just newHead ))
+                                )
                                     |> activate vs.active
 
                             else
-                                model ! []
+                                ( model
+                                , Cmd.none
+                                )
 
                         ( Clean _, MergeConflict mTree oldHead newHead conflicts ) ->
-                            { model
+                            ( { model
                                 | workingTree =
                                     if List.isEmpty conflicts then
                                         Trees.setTree (newTree_ ? workingTree.tree) workingTree
@@ -740,8 +828,9 @@ update msg ({ objects, workingTree, status } as model) =
                                         Trees.setTreeWithConflicts conflicts mTree model.workingTree
                                 , objects = newObjects
                                 , status = newStatus
-                            }
-                                ! [ sendOut (UpdateCommits ( newObjects |> Objects.toValue, Just newHead )) ]
+                              }
+                            , sendOut (UpdateCommits ( newObjects |> Objects.toValue, Just newHead ))
+                            )
                                 |> addToHistory
                                 |> activate vs.active
 
@@ -750,34 +839,42 @@ update msg ({ objects, workingTree, status } as model) =
                                 _ =
                                     Debug.log "failed to merge json" json
                             in
-                            model ! []
+                            ( model
+                            , Cmd.none
+                            )
 
                 -- === DOM ===
                 FieldChanged str ->
-                    { model
+                    ( { model
                         | field = str
                         , changed = True
-                    }
-                        ! []
+                      }
+                    , Cmd.none
+                    )
 
                 TextSelected isSel ->
-                    { model | isTextSelected = isSel } ! []
+                    ( { model | isTextSelected = isSel }
+                    , Cmd.none
+                    )
 
                 -- === UI ===
                 ViewVideos ->
-                    model
-                        ! []
+                    ( model
+                    , Cmd.none
+                    )
                         |> toggleVideoModal True
 
                 FontSelectorOpen fonts ->
-                    { model | fonts = Fonts.setSystem fonts model.fonts, fontSelectorOpen = True }
-                        ! []
+                    ( { model | fonts = Fonts.setSystem fonts model.fonts, fontSelectorOpen = True }
+                    , Cmd.none
+                    )
 
                 Keyboard shortcut timestamp ->
                     case shortcut of
                         "mod+enter" ->
-                            model
-                                ! []
+                            ( model
+                            , Cmd.none
+                            )
                                 |> saveCardIfEditing
                                 |> (\( m, c ) ->
                                         if vs.editing == Nothing then
@@ -798,8 +895,9 @@ update msg ({ objects, workingTree, status } as model) =
                             model |> intentCancelCard
 
                         "mod+j" ->
-                            model
-                                ! []
+                            ( model
+                            , Cmd.none
+                            )
                                 |> saveCardIfEditing
                                 |> insertBelow vs.active
 
@@ -807,8 +905,9 @@ update msg ({ objects, workingTree, status } as model) =
                             normalMode model (insertBelow vs.active)
 
                         "mod+k" ->
-                            model
-                                ! []
+                            ( model
+                            , Cmd.none
+                            )
                                 |> saveCardIfEditing
                                 |> insertAbove vs.active
 
@@ -816,8 +915,9 @@ update msg ({ objects, workingTree, status } as model) =
                             normalMode model (insertAbove vs.active)
 
                         "mod+l" ->
-                            model
-                                ! []
+                            ( model
+                            , Cmd.none
+                            )
                                 |> saveCardIfEditing
                                 |> insertChild vs.active
 
@@ -915,48 +1015,67 @@ update msg ({ objects, workingTree, status } as model) =
                             normalMode model (historyStep Forward)
 
                         "mod+s" ->
-                            model
-                                ! []
+                            ( model
+                            , Cmd.none
+                            )
                                 |> saveCardIfEditing
 
                         "mod+b" ->
                             case vs.editing of
                                 Nothing ->
-                                    model ! []
+                                    ( model
+                                    , Cmd.none
+                                    )
 
                                 Just uid ->
-                                    model ! [ sendOut (TextSurround uid "**") ]
+                                    ( model
+                                    , sendOut (TextSurround uid "**")
+                                    )
 
                         "mod+i" ->
                             case vs.editing of
                                 Nothing ->
-                                    model ! []
+                                    ( model
+                                    , Cmd.none
+                                    )
 
                                 Just uid ->
-                                    model ! [ sendOut (TextSurround uid "*") ]
+                                    ( model
+                                    , sendOut (TextSurround uid "*")
+                                    )
 
                         "/" ->
                             case vs.editing of
                                 Nothing ->
-                                    model ! [ Task.attempt (\_ -> NoOp) (Dom.focus "search-input") ]
+                                    ( model
+                                    , Task.attempt (\_ -> NoOp) (Dom.focus "search-input")
+                                    )
 
                                 Just _ ->
-                                    model ! []
+                                    ( model
+                                    , Cmd.none
+                                    )
 
                         "w" ->
                             case vs.editing of
                                 Nothing ->
-                                    { model | wordcountTrayOpen = not model.wordcountTrayOpen } ! []
+                                    ( { model | wordcountTrayOpen = not model.wordcountTrayOpen }
+                                    , Cmd.none
+                                    )
 
                                 Just _ ->
-                                    model ! []
+                                    ( model
+                                    , Cmd.none
+                                    )
 
                         _ ->
                             let
                                 _ =
                                     Debug.log "unhandled shortcut" shortcut
                             in
-                            model ! []
+                            ( model
+                            , Cmd.none
+                            )
 
                 -- === Misc ===
                 RecvCollabState collabState ->
@@ -984,24 +1103,30 @@ update msg ({ objects, workingTree, status } as model) =
                                 _ ->
                                     model.workingTree
                     in
-                    { model
+                    ( { model
                         | workingTree = newTree
                         , viewState = { vs | collaborators = newCollabs }
-                    }
-                        ! []
+                      }
+                    , Cmd.none
+                    )
 
                 CollaboratorDisconnected uid ->
-                    { model
+                    ( { model
                         | viewState =
                             { vs | collaborators = vs.collaborators |> List.filter (\c -> c.uid /= uid) }
-                    }
-                        ! []
+                      }
+                    , Cmd.none
+                    )
 
         LogErr err ->
-            model ! [ sendOut (ConsoleLogRequested err) ]
+            ( model
+            , sendOut (ConsoleLogRequested err)
+            )
 
         NoOp ->
-            model ! []
+            ( model
+            , Cmd.none
+            )
 
 
 
@@ -1015,7 +1140,9 @@ activate id ( model, prevCmd ) =
             model.viewState
     in
     if id == "0" then
-        model ! [ prevCmd ]
+        ( model
+        , prevCmd
+        )
 
     else
         let
@@ -1051,7 +1178,7 @@ activate id ( model, prevCmd ) =
                             ++ [ id ]
                             ++ desc
                 in
-                { model
+                ( { model
                     | viewState =
                         { vs
                             | active = id
@@ -1060,20 +1187,24 @@ activate id ( model, prevCmd ) =
                             , descendants = desc
                             , ancestors = anc
                         }
-                }
-                    ! [ prevCmd
-                      , sendOut
-                            (ActivateCards
-                                ( id
-                                , getDepth 0 model.workingTree.tree id
-                                , centerlineIds flatCols allIds newPast
-                                )
+                  }
+                , Cmd.batch
+                    [ prevCmd
+                    , sendOut
+                        (ActivateCards
+                            ( id
+                            , getDepth 0 model.workingTree.tree id
+                            , centerlineIds flatCols allIds newPast
                             )
-                      ]
+                        )
+                    ]
+                )
                     |> sendCollabState (CollabState model.uid (Active id) "")
 
             Nothing ->
-                model ! [ prevCmd ]
+                ( model
+                , prevCmd
+                )
 
 
 goLeft : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1082,8 +1213,9 @@ goLeft id ( model, prevCmd ) =
         targetId =
             getParent id model.workingTree.tree ? defaultTree |> .id
     in
-    model
-        ! [ prevCmd ]
+    ( model
+    , prevCmd
+    )
         |> activate targetId
 
 
@@ -1098,8 +1230,9 @@ goDown id ( model, prevCmd ) =
                 Just ntree ->
                     ntree.id
     in
-    model
-        ! [ prevCmd ]
+    ( model
+    , prevCmd
+    )
         |> activate targetId
 
 
@@ -1114,8 +1247,9 @@ goUp id ( model, prevCmd ) =
                 Just ntree ->
                     ntree.id
     in
-    model
-        ! [ prevCmd ]
+    ( model
+    , prevCmd
+    )
         |> activate targetId
 
 
@@ -1145,15 +1279,20 @@ goRight id ( model, prevCmd ) =
     in
     case tree_ of
         Nothing ->
-            model ! [ prevCmd ]
+            ( model
+            , prevCmd
+            )
 
         Just tree ->
             if List.length childrenIds == 0 then
-                model ! [ prevCmd ]
+                ( model
+                , prevCmd
+                )
 
             else
-                model
-                    ! [ prevCmd ]
+                ( model
+                , prevCmd
+                )
                     |> activate prevActiveOfChildren
 
 
@@ -1174,24 +1313,28 @@ saveCardIfEditing ( model, prevCmd ) =
                     Trees.update (Trees.Upd id model.field) model.workingTree
             in
             if newTree.tree /= model.workingTree.tree then
-                { model
+                ( { model
                     | workingTree = newTree
                     , viewState = { vs | editing = Nothing }
                     , field = ""
-                }
-                    ! [ prevCmd ]
+                  }
+                , prevCmd
+                )
                     |> addToHistory
 
             else
-                { model
+                ( { model
                     | viewState = { vs | editing = Nothing }
                     , field = ""
                     , changed = False
-                }
-                    ! [ prevCmd, sendOut (SetChanged False) ]
+                  }
+                , Cmd.batch [ prevCmd, sendOut (SetChanged False) ]
+                )
 
         Nothing ->
-            model ! [ prevCmd ]
+            ( model
+            , prevCmd
+            )
 
 
 openCard : String -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1209,17 +1352,22 @@ openCard id str ( model, prevCmd ) =
             model.historyState /= Closed
     in
     if isHistoryView then
-        model ! [ prevCmd, sendOut (Alert "Cannot edit while browsing version history.") ]
+        ( model
+        , Cmd.batch [ prevCmd, sendOut (Alert "Cannot edit while browsing version history.") ]
+        )
 
     else if isLocked then
-        model ! [ prevCmd, sendOut (Alert "Card is being edited by someone else.") ]
+        ( model
+        , Cmd.batch [ prevCmd, sendOut (Alert "Card is being edited by someone else.") ]
+        )
 
     else
-        { model
+        ( { model
             | viewState = { vs | active = id, editing = Just id }
             , field = str
-        }
-            ! [ prevCmd, focus id ]
+          }
+        , Cmd.batch [ prevCmd, focus id ]
+        )
             |> sendCollabState (CollabState model.uid (Editing id) str)
 
 
@@ -1262,16 +1410,21 @@ deleteCard id ( model, prevCmd ) =
                     ( "0", True )
     in
     if isLocked then
-        model ! [ sendOut (Alert "Card is being edited by someone else.") ]
+        ( model
+        , sendOut (Alert "Card is being edited by someone else.")
+        )
 
     else if isLastChild then
-        model ! [ sendOut (Alert "Cannot delete last card.") ]
+        ( model
+        , sendOut (Alert "Cannot delete last card.")
+        )
 
     else
-        { model
+        ( { model
             | workingTree = Trees.update (Trees.Rmv id) model.workingTree
-        }
-            ! [ prevCmd ]
+          }
+        , prevCmd
+        )
             |> maybeColumnsChanged model.workingTree.columns
             |> activate nextToActivate
             |> addToHistory
@@ -1279,15 +1432,17 @@ deleteCard id ( model, prevCmd ) =
 
 goToTopOfColumn : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 goToTopOfColumn id ( model, prevCmd ) =
-    model
-        ! [ prevCmd ]
+    ( model
+    , prevCmd
+    )
         |> activate (getFirstInColumn id model.workingTree.tree)
 
 
 goToBottomOfColumn : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 goToBottomOfColumn id ( model, prevCmd ) =
-    model
-        ! [ prevCmd ]
+    ( model
+    , prevCmd
+    )
         |> activate (getLastInColumn id model.workingTree.tree)
 
 
@@ -1317,8 +1472,9 @@ goToTopOfGroup id fallToNextGroup ( model, prevCmd ) =
             else
                 topSibling
     in
-    model
-        ! [ prevCmd ]
+    ( model
+    , prevCmd
+    )
         |> activate targetId
 
 
@@ -1349,8 +1505,9 @@ goToBottomOfGroup id fallToNextGroup ( model, prevCmd ) =
             else
                 bottomSibling
     in
-    model
-        ! [ prevCmd ]
+    ( model
+    , prevCmd
+    )
         |> activate targetId
 
 
@@ -1360,12 +1517,13 @@ cancelCard ( model, prevCmd ) =
         vs =
             model.viewState
     in
-    { model
+    ( { model
         | viewState = { vs | editing = Nothing }
         , changed = False
         , field = ""
-    }
-        ! [ prevCmd ]
+      }
+    , prevCmd
+    )
         |> sendCollabState (CollabState model.uid (Active vs.active) "")
 
 
@@ -1380,10 +1538,14 @@ intentCancelCard model =
     in
     case vs.editing of
         Nothing ->
-            model ! []
+            ( model
+            , Cmd.none
+            )
 
         Just id ->
-            model ! [ sendOut (ConfirmCancelCard vs.active originalContent) ]
+            ( model
+            , sendOut (ConfirmCancelCard vs.active originalContent)
+            )
 
 
 
@@ -1396,10 +1558,11 @@ insert pid pos ( model, prevCmd ) =
         newId =
             "node-" ++ (timestamp () |> toString)
     in
-    { model
+    ( { model
         | workingTree = Trees.update (Trees.Ins newId "" pid pos) model.workingTree
-    }
-        ! [ prevCmd ]
+      }
+    , prevCmd
+    )
         |> maybeColumnsChanged model.workingTree.columns
         |> openCard newId ""
         |> activate newId
@@ -1416,12 +1579,15 @@ insertRelative id delta ( model, prevCmd ) =
     in
     case pid_ of
         Just pid ->
-            model
-                ! [ prevCmd ]
+            ( model
+            , prevCmd
+            )
                 |> insert pid (idx + delta)
 
         Nothing ->
-            model ! [ prevCmd ]
+            ( model
+            , prevCmd
+            )
 
 
 insertAbove : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1436,8 +1602,9 @@ insertBelow id tup =
 
 insertChild : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 insertChild id ( model, prevCmd ) =
-    model
-        ! [ prevCmd ]
+    ( model
+    , prevCmd
+    )
         |> insert id 999999
 
 
@@ -1457,7 +1624,9 @@ maybeColumnsChanged oldColumns ( { workingTree } as model, prevCmd ) =
             else
                 Cmd.none
     in
-    model ! [ prevCmd, colsChangedCmd ]
+    ( model
+    , Cmd.batch [ prevCmd, colsChangedCmd ]
+    )
 
 
 
@@ -1466,11 +1635,12 @@ maybeColumnsChanged oldColumns ( { workingTree } as model, prevCmd ) =
 
 move : Tree -> String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 move subtree pid pos ( model, prevCmd ) =
-    { model
+    ( { model
         | workingTree = Trees.update (Trees.Mov subtree pid pos) model.workingTree
         , changed = True
-    }
-        ! [ prevCmd ]
+      }
+    , prevCmd
+    )
         |> maybeColumnsChanged model.workingTree.columns
         |> activate subtree.id
         |> addToHistory
@@ -1491,12 +1661,15 @@ moveWithin id delta ( model, prevCmd ) =
     in
     case ( tree_, pid_, refIdx_ ) of
         ( Just tree, Just pid, Just refIdx ) ->
-            model
-                ! [ prevCmd ]
+            ( model
+            , prevCmd
+            )
                 |> move tree pid (refIdx + delta |> Basics.max 0)
 
         _ ->
-            model ! [ prevCmd ]
+            ( model
+            , prevCmd
+            )
 
 
 moveLeft : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1519,12 +1692,15 @@ moveLeft id ( model, prevCmd ) =
     in
     case ( tree_, grandparentId_, parentIdx_ ) of
         ( Just tree, Just gpId, Just refIdx ) ->
-            model
-                ! [ prevCmd ]
+            ( model
+            , prevCmd
+            )
                 |> move tree gpId (refIdx + 1)
 
         _ ->
-            model ! [ prevCmd ]
+            ( model
+            , prevCmd
+            )
 
 
 moveRight : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1539,12 +1715,15 @@ moveRight id ( model, prevCmd ) =
     in
     case ( tree_, prev_ ) of
         ( Just tree, Just prev ) ->
-            model
-                ! [ prevCmd ]
+            ( model
+            , prevCmd
+            )
                 |> move tree prev 999999
 
         _ ->
-            model ! [ prevCmd ]
+            ( model
+            , prevCmd
+            )
 
 
 
@@ -1572,7 +1751,9 @@ cut id ( model, prevCmd ) =
                     False
     in
     if isLastChild then
-        model ! [ sendOut (Alert "Cannot cut last card") ]
+        ( model
+        , sendOut (Alert "Cannot cut last card")
+        )
 
     else
         ( model, prevCmd )
@@ -1586,20 +1767,23 @@ copy id ( model, prevCmd ) =
         vs =
             model.viewState
     in
-    { model
+    ( { model
         | viewState = { vs | copiedTree = getTree id model.workingTree.tree }
-    }
-        ! [ prevCmd
-          , sendOut FlashCurrentSubtree
-          ]
+      }
+    , Cmd.batch
+        [ prevCmd
+        , sendOut FlashCurrentSubtree
+        ]
+    )
 
 
 paste : Tree -> String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 paste subtree pid pos ( model, prevCmd ) =
-    { model
+    ( { model
         | workingTree = Trees.update (Trees.Paste subtree pid pos) model.workingTree
-    }
-        ! [ prevCmd ]
+      }
+    , prevCmd
+    )
         |> maybeColumnsChanged model.workingTree.columns
         |> activate subtree.id
         |> addToHistory
@@ -1622,12 +1806,15 @@ pasteBelow id timestamp ( model, prevCmd ) =
                 pos =
                     (getIndex id model.workingTree.tree ? 0) + 1
             in
-            model
-                ! [ prevCmd ]
+            ( model
+            , prevCmd
+            )
                 |> paste treeToPaste pid pos
 
         Nothing ->
-            model ! [ prevCmd ]
+            ( model
+            , prevCmd
+            )
 
 
 pasteInto : String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1641,12 +1828,15 @@ pasteInto id timestamp ( model, prevCmd ) =
                 treeToPaste =
                     Trees.renameNodes (timestamp |> toString) copiedTree
             in
-            model
-                ! [ prevCmd ]
+            ( model
+            , prevCmd
+            )
                 |> paste treeToPaste id 999999
 
         Nothing ->
-            model ! [ prevCmd ]
+            ( model
+            , prevCmd
+            )
 
 
 
@@ -1661,16 +1851,18 @@ checkoutCommit commitSha ( model, prevCmd ) =
     in
     case newTree_ of
         Just newTree ->
-            { model
+            ( { model
                 | workingTree = Trees.setTree newTree model.workingTree
                 , status = newStatus
-            }
-                ! [ sendOut (UpdateCommits ( Objects.toValue model.objects, getHead newStatus )) ]
+              }
+            , sendOut (UpdateCommits ( Objects.toValue model.objects, getHead newStatus ))
+            )
                 |> maybeColumnsChanged model.workingTree.columns
 
         Nothing ->
-            model
-                ! []
+            ( model
+            , Cmd.none
+            )
                 |> Debug.log "failed to load commit"
 
 
@@ -1712,13 +1904,15 @@ historyStep dir ( model, prevCmd ) =
             in
             case ( model.historyState, currCommit_, newCommit_ ) of
                 ( From startSha, _, Just newSha ) ->
-                    model
-                        ! [ prevCmd ]
+                    ( model
+                    , prevCmd
+                    )
                         |> checkoutCommit newSha
 
                 ( Closed, Just currCommit, Just newSha ) ->
-                    { model | historyState = From currCommit }
-                        ! [ prevCmd ]
+                    ( { model | historyState = From currCommit }
+                    , prevCmd
+                    )
                         |> checkoutCommit newSha
 
                 _ ->
@@ -1731,10 +1925,14 @@ historyStep dir ( model, prevCmd ) =
 push : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 push ( model, prevCmd ) =
     if model.online then
-        model ! [ prevCmd, sendOut Push ]
+        ( model
+        , Cmd.batch [ prevCmd, sendOut Push ]
+        )
 
     else
-        model ! [ prevCmd ]
+        ( model
+        , prevCmd
+        )
 
 
 addToHistoryDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1745,30 +1943,34 @@ addToHistoryDo ( { workingTree } as model, prevCmd ) =
                 ( newStatus, _, newObjects ) =
                     Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" workingTree.tree) model.objects
             in
-            { model
+            ( { model
                 | objects = newObjects
                 , status = newStatus
                 , changed = True
-            }
-                ! [ prevCmd
-                  , sendOut (SaveToDB ( statusToValue newStatus, Objects.toValue newObjects ))
-                  , sendOut (UpdateCommits ( Objects.toValue newObjects, getHead newStatus ))
-                  ]
+              }
+            , Cmd.batch
+                [ prevCmd
+                , sendOut (SaveToDB ( statusToValue newStatus, Objects.toValue newObjects ))
+                , sendOut (UpdateCommits ( Objects.toValue newObjects, getHead newStatus ))
+                ]
+            )
 
         Clean oldHead ->
             let
                 ( newStatus, _, newObjects ) =
                     Objects.update (Objects.Commit [ oldHead ] "Jane Doe <jane.doe@gmail.com>" workingTree.tree) model.objects
             in
-            { model
+            ( { model
                 | objects = newObjects
                 , status = newStatus
                 , changed = True
-            }
-                ! [ prevCmd
-                  , sendOut (SaveToDB ( statusToValue newStatus, Objects.toValue newObjects ))
-                  , sendOut (UpdateCommits ( Objects.toValue newObjects, getHead newStatus ))
-                  ]
+              }
+            , Cmd.batch
+                [ prevCmd
+                , sendOut (SaveToDB ( statusToValue newStatus, Objects.toValue newObjects ))
+                , sendOut (UpdateCommits ( Objects.toValue newObjects, getHead newStatus ))
+                ]
+            )
 
         MergeConflict _ oldHead newHead conflicts ->
             if List.isEmpty conflicts || (conflicts |> List.filter (not << .resolved) |> List.isEmpty) then
@@ -1776,19 +1978,22 @@ addToHistoryDo ( { workingTree } as model, prevCmd ) =
                     ( newStatus, _, newObjects ) =
                         Objects.update (Objects.Commit [ oldHead, newHead ] "Jane Doe <jane.doe@gmail.com>" workingTree.tree) model.objects
                 in
-                { model
+                ( { model
                     | objects = newObjects
                     , status = newStatus
                     , changed = True
-                }
-                    ! [ prevCmd
-                      , sendOut (SaveToDB ( statusToValue newStatus, Objects.toValue newObjects ))
-                      , sendOut (UpdateCommits ( Objects.toValue newObjects, getHead newStatus ))
-                      ]
+                  }
+                , Cmd.batch
+                    [ prevCmd
+                    , sendOut (SaveToDB ( statusToValue newStatus, Objects.toValue newObjects ))
+                    , sendOut (UpdateCommits ( Objects.toValue newObjects, getHead newStatus ))
+                    ]
+                )
 
             else
-                model
-                    ! [ prevCmd, sendOut (SaveLocal model.workingTree.tree) ]
+                ( model
+                , Cmd.batch [ prevCmd, sendOut (SaveLocal model.workingTree.tree) ]
+                )
 
 
 addToHistory : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1806,18 +2011,23 @@ sendCollabState : CollabState -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 sendCollabState collabState ( model, prevCmd ) =
     case model.status of
         MergeConflict _ _ _ _ ->
-            model ! [ prevCmd ]
+            ( model
+            , prevCmd
+            )
 
         _ ->
-            model ! [ prevCmd, sendOut (SocketSend collabState) ]
+            ( model
+            , Cmd.batch [ prevCmd, sendOut (SocketSend collabState) ]
+            )
 
 
 toggleVideoModal : Bool -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 toggleVideoModal shouldOpen ( model, prevCmd ) =
-    { model
+    ( { model
         | videoModalOpen = shouldOpen
-    }
-        ! [ prevCmd, sendOut (SetVideoModal shouldOpen) ]
+      }
+    , Cmd.batch [ prevCmd, sendOut (SetVideoModal shouldOpen) ]
+    )
 
 
 
@@ -1866,12 +2076,10 @@ repeating-linear-gradient(-45deg
             in
             div
                 [ id "app-root"
-                , style
-                    [ ( "background", bgString )
-                    , ( "position", "absolute" )
-                    , ( "width", "100%" )
-                    , ( "height", "100%" )
-                    ]
+                , style "background" bgString
+                , style "position" "absolute"
+                , style "width" "100%"
+                , style "height" "100%"
                 ]
                 [ ul [ class "conflicts-list" ]
                     (List.map viewConflict conflicts)
@@ -1943,8 +2151,9 @@ run msg =
 
 normalMode : Model -> (( Model, Cmd Msg ) -> ( Model, Cmd Msg )) -> ( Model, Cmd Msg )
 normalMode model operation =
-    model
-        ! []
+    ( model
+    , Cmd.none
+    )
         |> (if model.viewState.editing == Nothing then
                 operation
 

@@ -305,8 +305,8 @@ viewWordcountProgress current session =
     in
     div [ id "wc-progress" ]
         [ div [ id "wc-progress-wrap" ]
-            [ span [ style [ ( "flex", toString currW ) ], id "wc-progress-bar" ] []
-            , span [ style [ ( "flex", toString sessW ) ], id "wc-progress-bar-session" ] []
+            [ span [ style "flex" (toString currW), id "wc-progress-bar" ] []
+            , span [ style "flex" (toString sessW), id "wc-progress-bar-session" ] []
             ]
         ]
 

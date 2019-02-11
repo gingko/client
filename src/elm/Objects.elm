@@ -1,4 +1,4 @@
-module Objects exposing (Model, ObjMsg(Checkout, Commit, Init, Merge), defaultModel, setHeadRev, toValue, update)
+module Objects exposing (Model, ObjMsg(..), defaultModel, setHeadRev, toValue, update)
 
 import Coders exposing (statusDecoder, tupleDecoder)
 import Dict exposing (Dict)
@@ -10,6 +10,7 @@ import Sha1 exposing (diff3Merge, sha1, timestamp)
 import Trees exposing (apply, opToTreeMsg)
 import Tuple exposing (first, second)
 import Types exposing (..)
+
 
 
 -- MODEL
@@ -299,8 +300,10 @@ merge : String -> String -> Tree -> Model -> ( Status, Maybe Tree, Model )
 merge aSha bSha oldTree model =
     if aSha == bSha || List.member bSha (getAncestors model.commits aSha) then
         ( Clean aSha, Just oldTree, model )
+
     else if List.member aSha (getAncestors model.commits bSha) then
         ( Clean bSha, checkoutCommit bSha model, model )
+
     else
         let
             oSha =
@@ -396,12 +399,14 @@ getOps oldTree newTree =
                 modOp =
                     if oldContent /= newContent then
                         [ Mod id oldParents newContent oldContent ]
+
                     else
                         []
 
                 movOp =
                     if (oldParents /= newParents) || (oldIdx /= newIdx) then
                         [ Mov id oldParents oldIdx newParents newIdx ]
+
                     else
                         []
             in
@@ -413,6 +418,7 @@ getOps oldTree newTree =
                 ( Del id1 parents1, Del id2 parents2 ) ->
                     if List.member id2 parents1 then
                         True
+
                     else
                         False
 
@@ -429,6 +435,7 @@ getOps oldTree newTree =
             in
             if ignore then
                 Nothing
+
             else
                 Just newOp
 
@@ -458,6 +465,7 @@ getConflicts opsA opsB =
 
                             _ ->
                                 ( [], [ conflict opA opB Manual ] )
+
                     else
                         ( [ opA, opB ], [] )
 
@@ -465,12 +473,14 @@ getConflicts opsA opsB =
                 ( Mod idA pidsA strA _, Del idB _ ) ->
                     if idA == idB || List.member idB pidsA then
                         ( [], [ conflict opA opB Ours ] )
+
                     else
                         ( [ opA, opB ], [] )
 
                 ( Del idA _, Mod idB pidsB strB _ ) ->
                     if idA == idB || List.member idA pidsB then
                         ( [], [ conflict opA opB Theirs ] )
+
                     else
                         ( [ opA, opB ], [] )
 
@@ -478,18 +488,21 @@ getConflicts opsA opsB =
                 ( Ins idA _ pidsA _, Del idB _ ) ->
                     if idA == idB || List.member idB pidsA then
                         ( [], [ conflict opA opB Ours ] )
+
                     else
                         ( [ opA, opB ], [] )
 
                 ( Del idA _, Ins idB _ pidsB _ ) ->
                     if idA == idB || List.member idA pidsB then
                         ( [], [ conflict opA opB Theirs ] )
+
                     else
                         ( [ opA, opB ], [] )
 
                 ( Mov idA oldParentsA oldIdxA newParentsA newIdxA, Mov idB oldParentsB oldIdxB newParentsB newIdxB ) ->
                     if areAcyclicMoves ( idA, newParentsA ) ( idB, newParentsB ) then
                         ( [], [ conflict opA opB Ours ] )
+
                     else
                         ( [ opA, opB ], [] )
 

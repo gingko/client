@@ -1,4 +1,7 @@
-module Sha1 exposing (Diff(DiffConflict, DiffOk), diff3Merge, sha1, timeJSON, timestamp)
+module Sha1 exposing
+    ( sha1
+    , Diff(..), diff3Merge, timeJSON, timestamp
+    )
 
 {-| A single function library, exposing sha1: String -> String.
 
