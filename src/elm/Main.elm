@@ -14,8 +14,9 @@ import Json.Decode as Json
 import List.Extra as ListExtra exposing (getAt)
 import Objects
 import Ports exposing (..)
+import Random
 import Regex
-import Sha1 exposing (timeJSON, timestamp)
+import Sha1 exposing (timeJSON)
 import Task
 import Time
 import TreeUtils exposing (..)
@@ -61,7 +62,7 @@ main =
 
    status : Status of the history = Bare | Clean ... | MergeConflict ...
 
-   debouncerStateSwap : Debouncer is used to prevent trying to save too often
+   debouncerStateCommit : Debouncer is used to prevent trying to commit too often
 
    debouncerStateBackup : Longer debouncer for less frequent actions (save backup)
 
@@ -95,7 +96,7 @@ type alias Model =
     { workingTree : Trees.Model
     , objects : Objects.Model
     , status : Status
-    , debouncerStateSwap : Debouncer () ()
+    , debouncerStateCommit : Debouncer () ()
     , debouncerStateBackup : Debouncer () ()
     , uid : String
     , viewState : ViewState
@@ -112,6 +113,7 @@ type alias Model =
     , online : Bool
     , changed : Bool
     , currentTime : Time.Posix
+    , seed : Random.Seed
     }
 
 
@@ -137,7 +139,7 @@ defaultModel =
     { workingTree = Trees.defaultModel
     , objects = Objects.defaultModel
     , status = Bare
-    , debouncerStateSwap =
+    , debouncerStateCommit =
         Debouncer.throttle (fromSeconds 3)
             |> Debouncer.settleWhenQuietFor (Just <| fromSeconds 3)
             |> toDebouncer
@@ -172,6 +174,7 @@ defaultModel =
     , online = False
     , changed = False
     , currentTime = Time.millisToPosix 0
+    , seed = Random.initialSeed 12345
     }
 
 
@@ -196,7 +199,7 @@ init ( dataIn, modelIn, isSaved ) =
                     {- The JSON was successfully decoded by treeDecoder.
                        We need to create the first commit to the history.
                     -}
-                    Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" newTreeDecoded) defaultModel.objects
+                    Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" modelIn.currentTime newTreeDecoded) defaultModel.objects
                         |> (\( s, _, o ) -> ( s, Just newTreeDecoded, o ))
 
                 Err err ->
@@ -226,6 +229,7 @@ init ( dataIn, modelIn, isSaved ) =
         , videoModalOpen = modelIn.videoModalOpen
         , startingWordcount = startingWordcount
         , currentTime = Time.millisToPosix modelIn.currentTime
+        , seed = Random.initialSeed modelIn.currentTime
         , fonts = Fonts.init modelIn.fonts
       }
     , Cmd.batch [ focus modelIn.lastActive, sendOut <| ColumnNumberChange <| List.length <| newWorkingTree.columns ]
@@ -455,21 +459,19 @@ update msg ({ objects, workingTree, status } as model) =
         ThrottledCommit subMsg ->
             let
                 ( subModel, subCmd, emitted_ ) =
-                    Debouncer.update subMsg model.debouncerStateSwap
+                    Debouncer.update subMsg model.debouncerStateCommit
 
                 mappedCmd =
                     Cmd.map ThrottledCommit subCmd
 
                 updatedModel =
-                    { model | debouncerStateSwap = subModel }
+                    { model | debouncerStateCommit = subModel }
             in
             case emitted_ of
                 Just () ->
                     ( updatedModel
-                    , Cmd.none
+                    , sendOut CommitWithTimestamp
                     )
-                        |> addToHistoryDo
-                        |> Tuple.mapSecond (\cmd -> Cmd.batch [ cmd, mappedCmd ])
 
                 Nothing ->
                     ( updatedModel, mappedCmd )
@@ -777,6 +779,10 @@ update msg ({ objects, workingTree, status } as model) =
                         |> cancelCard
 
                 -- === Database ===
+                Commit timeMillis ->
+                    ( { model | currentTime = Time.millisToPosix timeMillis }, Cmd.none )
+                        |> addToHistoryDo
+
                 SetHeadRev rev ->
                     ( { model
                         | objects = Objects.setHeadRev rev model.objects
@@ -1555,17 +1561,21 @@ intentCancelCard model =
 insert : String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 insert pid pos ( model, prevCmd ) =
     let
-        newId =
-            "node-" ++ (timestamp () |> Debug.toString)
+        ( newId, newSeed ) =
+            Random.step randomId model.seed
+
+        newIdString =
+            "node-" ++ (newId |> Debug.toString)
     in
     ( { model
-        | workingTree = Trees.update (Trees.Ins newId "" pid pos) model.workingTree
+        | workingTree = Trees.update (Trees.Ins newIdString "" pid pos) model.workingTree
+        , seed = newSeed
       }
     , prevCmd
     )
         |> maybeColumnsChanged model.workingTree.columns
-        |> openCard newId ""
-        |> activate newId
+        |> openCard newIdString ""
+        |> activate newIdString
 
 
 insertRelative : String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1936,12 +1946,12 @@ push ( model, prevCmd ) =
 
 
 addToHistoryDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-addToHistoryDo ( { workingTree } as model, prevCmd ) =
+addToHistoryDo ( { workingTree, currentTime } as model, prevCmd ) =
     case model.status of
         Bare ->
             let
                 ( newStatus, _, newObjects ) =
-                    Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" workingTree.tree) model.objects
+                    Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" (currentTime |> Time.posixToMillis) workingTree.tree) model.objects
             in
             ( { model
                 | objects = newObjects
@@ -1958,7 +1968,7 @@ addToHistoryDo ( { workingTree } as model, prevCmd ) =
         Clean oldHead ->
             let
                 ( newStatus, _, newObjects ) =
-                    Objects.update (Objects.Commit [ oldHead ] "Jane Doe <jane.doe@gmail.com>" workingTree.tree) model.objects
+                    Objects.update (Objects.Commit [ oldHead ] "Jane Doe <jane.doe@gmail.com>" (currentTime |> Time.posixToMillis) workingTree.tree) model.objects
             in
             ( { model
                 | objects = newObjects
@@ -1976,7 +1986,7 @@ addToHistoryDo ( { workingTree } as model, prevCmd ) =
             if List.isEmpty conflicts || (conflicts |> List.filter (not << .resolved) |> List.isEmpty) then
                 let
                     ( newStatus, _, newObjects ) =
-                        Objects.update (Objects.Commit [ oldHead, newHead ] "Jane Doe <jane.doe@gmail.com>" workingTree.tree) model.objects
+                        Objects.update (Objects.Commit [ oldHead, newHead ] "Jane Doe <jane.doe@gmail.com>" (currentTime |> Time.posixToMillis) workingTree.tree) model.objects
                 in
                 ( { model
                     | objects = newObjects
@@ -2125,6 +2135,11 @@ subscriptions model =
 
 
 -- HELPERS
+
+
+randomId : Random.Generator Int
+randomId =
+    Random.int 0 Random.maxInt
 
 
 getHead : Status -> Maybe String

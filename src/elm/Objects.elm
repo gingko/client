@@ -6,7 +6,7 @@ import Json.Decode as Json
 import Json.Encode as Enc
 import List.Extra as ListExtra
 import Maybe exposing (andThen)
-import Sha1 exposing (diff3Merge, sha1, timestamp)
+import Sha1 exposing (diff3Merge, sha1)
 import Trees exposing (apply, opToTreeMsg)
 import Tuple exposing (first, second)
 import Types exposing (..)
@@ -54,7 +54,7 @@ type alias RefObject =
 
 
 type ObjMsg
-    = Commit (List String) String Tree
+    = Commit (List String) String Int Tree
     | Checkout String
     | Init Json.Value
     | Merge Json.Value Tree
@@ -63,10 +63,10 @@ type ObjMsg
 update : ObjMsg -> Model -> ( Status, Maybe Tree, Model )
 update msg model =
     case msg of
-        Commit parents author tree ->
+        Commit parents author timestamp tree ->
             let
                 ( newHead, newModel ) =
-                    commitTree author parents tree model
+                    commitTree author parents timestamp tree model
                         |> (\( h, m ) -> ( h, updateRef "heads/master" h m ))
             in
             ( Clean newHead, Nothing, newModel )
@@ -133,8 +133,8 @@ update msg model =
 -- GIT PLUMBING
 
 
-commitTree : String -> List String -> Tree -> Model -> ( String, Model )
-commitTree author parents tree model =
+commitTree : String -> List String -> Int -> Tree -> Model -> ( String, Model )
+commitTree author parents timestamp tree model =
     let
         ( newRootId, newTreeObjects ) =
             writeTree tree
@@ -144,7 +144,7 @@ commitTree author parents tree model =
                 newRootId
                 parents
                 author
-                (timestamp ())
+                timestamp
 
         newCommitSha =
             newCommit |> generateCommitSha

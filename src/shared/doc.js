@@ -204,6 +204,10 @@ const update = (msg, data) => {
 
       // === Database ===
 
+    , "CommitWithTimestamp": () => {
+        toElm("Commit", Date.now());
+      }
+
     , 'SaveToDB': async () => {
         ipcRenderer.send("doc:set-changed", true);
         try {

@@ -50,6 +50,7 @@ type
     | ConfirmCancelCard String String
     | ColumnNumberChange Int
       -- === Database ===
+    | CommitWithTimestamp
     | SaveToDB ( Json.Value, Json.Value )
     | SaveBackup
     | SaveLocal Tree
@@ -82,6 +83,7 @@ type
     | IntentExport ExportSettings
     | CancelCardConfirmed
       -- === Database ===
+    | Commit Int
     | SetHeadRev String
     | Merge Json.Value
       -- === DOM ===

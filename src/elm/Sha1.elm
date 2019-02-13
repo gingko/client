@@ -1,6 +1,6 @@
 module Sha1 exposing
     ( sha1
-    , Diff(..), diff3Merge, timeJSON, timestamp
+    , Diff(..), diff3Merge, timeJSON
     )
 
 {-| A single function library, exposing sha1: String -> String.
@@ -20,14 +20,6 @@ import SHA1
 sha1 : String -> String
 sha1 str =
     str |> SHA1.fromString |> SHA1.toHex
-
-
-{-| Get Date.now() from JS as Int
--}
-timestamp : () -> Int
-timestamp a =
-    -- TODO: Implement
-    0
 
 
 {-| Get Date.now() from JS as JSON

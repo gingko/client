@@ -41,6 +41,9 @@ sendOut info =
             dataToSend (int cols)
 
         -- === Database ===
+        CommitWithTimestamp ->
+            dataToSend null
+
         SaveToDB ( statusValue, objectsValue ) ->
             dataToSend (list identity [ statusValue, objectsValue ])
 
@@ -175,6 +178,14 @@ receiveMsg tagger onError =
                     tagger <| CancelCardConfirmed
 
                 -- === Database ===
+                "Commit" ->
+                    case decodeValue Json.Decode.int outsideInfo.data of
+                        Ok time ->
+                            tagger <| Commit time
+
+                        Err e ->
+                            onError (errorToString e)
+
                 "SetHeadRev" ->
                     case decodeValue Json.Decode.string outsideInfo.data of
                         Ok rev ->
