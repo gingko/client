@@ -2,14 +2,18 @@ port module Home exposing (Document, Model, Msg(..), defaultDocument, docListRel
 
 import Browser
 import Coders exposing (maybeToValue)
+import Date
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Iso8601
 import Json.Decode exposing (succeed)
 import Json.Encode as Json exposing (null, string)
 import Octicons as Icon
+import Strftime
 import Time
+import Time.Distance as TimeDistance
 
 
 main : Program ( Int, List ( String, Document ) ) Model Msg
@@ -237,28 +241,30 @@ viewDocumentItem currTime ( dbname, document ) =
         onClickThis msg =
             stopPropagationOn "click" (succeed ( msg, True ))
 
-        {--TODO
-        nowDate =
-            Date.fromTime currTime
-            --}
+        currDate =
+            Date.fromPosix Time.utc currTime
+
+        openedTime =
+            Iso8601.toTime document.last_opened
+                |> Result.withDefault currTime
+
         openedDate =
-            document.last_opened
+            Date.fromPosix Time.utc openedTime
 
         openedString =
-            openedDate
+            openedTime
+                |> Strftime.format "%Y-%m-%d, %H:%M" Time.utc
 
         relativeString =
-            -- TODO
-            "some time ago"
+            TimeDistance.inWords currTime openedTime
+                ++ " ago"
 
         ( titleString, dateString ) =
-            {--
-            if DateExtra.diff DateExtra.Day openedDate nowDate <= 2 then
+            if Date.diff Date.Days openedDate currDate <= 2 then
                 ( openedString, relativeString )
 
             else
-                --}
-            ( relativeString, openedString )
+                ( relativeString, openedString )
 
         buttons =
             case document.state of

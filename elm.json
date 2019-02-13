@@ -22,7 +22,11 @@
             "elm-explorations/markdown": "1.0.0",
             "jinjor/elm-diff": "1.0.5",
             "justinmimbs/date": "3.1.2",
-            "norpan/elm-html5-drag-drop": "3.1.3"
+            "justinmimbs/time-extra": "1.1.0",
+            "norpan/elm-html5-drag-drop": "3.1.3",
+            "rtfeldman/elm-iso8601-date-strings": "1.1.2",
+            "sporto/time-distance": "1.0.0",
+            "thaterikperson/elm-strftime": "2.0.2"
         },
         "indirect": {
             "elm/parser": "1.1.0",
@@ -30,7 +34,6 @@
             "elm/url": "1.0.0",
             "elm/virtual-dom": "1.0.2",
             "rtfeldman/elm-hex": "1.0.0",
-            "rtfeldman/elm-iso8601-date-strings": "1.1.2",
             "zwilias/elm-utf-tools": "2.0.1"
         }
     },
