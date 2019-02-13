@@ -241,6 +241,7 @@ viewDocumentItem currTime ( dbname, document ) =
         onClickThis msg =
             stopPropagationOn "click" (succeed ( msg, True ))
 
+        -- TODO: fix timezone
         currDate =
             Date.fromPosix Time.utc currTime
 
@@ -248,9 +249,11 @@ viewDocumentItem currTime ( dbname, document ) =
             Iso8601.toTime document.last_opened
                 |> Result.withDefault currTime
 
+        -- TODO: fix timezone
         openedDate =
             Date.fromPosix Time.utc openedTime
 
+        -- TODO: fix timezone
         openedString =
             openedTime
                 |> Strftime.format "%Y-%m-%d, %H:%M" Time.utc
