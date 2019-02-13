@@ -1,4 +1,4 @@
-module Fonts exposing (Model, Msg, content, default, heading, init, monospace, setSystem, update, viewSelector)
+module Fonts exposing (Model, Msg, Settings, default, getContent, getHeading, getMonospace, init, setSystem, update, viewSelector)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -22,11 +22,18 @@ type Model
         }
 
 
+type alias Settings =
+    { heading : String
+    , content : String
+    , monospace : String
+    }
+
+
 init : Maybe ( String, String, String ) -> Model
 init f_ =
     case ( f_, default ) of
-        ( Just ( heading, content, monospace ), Model defaultModel ) ->
-            Model { defaultModel | heading = heading, content = content, monospace = monospace }
+        ( Just ( headingIn, contentIn, monospaceIn ), Model defaultModel ) ->
+            Model { defaultModel | heading = headingIn, content = contentIn, monospace = monospaceIn }
 
         ( Nothing, _ ) ->
             default
@@ -57,18 +64,18 @@ setSystem sysFonts (Model ({ system } as model)) =
         { model | system = system ++ sysFonts |> unique |> List.sort }
 
 
-heading : Model -> String
-heading (Model { heading }) =
+getHeading : Model -> String
+getHeading (Model { heading }) =
     heading
 
 
-content : Model -> String
-content (Model { content }) =
+getContent : Model -> String
+getContent (Model { content }) =
     content
 
 
-monospace : Model -> String
-monospace (Model { monospace }) =
+getMonospace : Model -> String
+getMonospace (Model { monospace }) =
     monospace
 
 
@@ -84,7 +91,7 @@ type Msg
     | CloseSelector
 
 
-update : Msg -> Model -> ( Model, Bool, Maybe ( String, String, String ) )
+update : Msg -> Model -> ( Model, Bool, Maybe Settings )
 update msg (Model model) =
     case msg of
         ChangeHeading h ->
@@ -97,15 +104,15 @@ update msg (Model model) =
             ( Model { model | monospace = m }, True, Nothing )
 
         CloseSelector ->
-            ( Model model, False, Just (Model model |> modelToTuple) )
+            ( Model model, False, Just (model |> modelToSettings) )
 
         NoOp ->
             ( Model model, True, Nothing )
 
 
-modelToTuple : Model -> ( String, String, String )
-modelToTuple (Model { heading, content, monospace }) =
-    ( heading, content, monospace )
+modelToSettings : { a | heading : String, content : String, monospace : String } -> Settings
+modelToSettings { heading, content, monospace } =
+    { heading = heading, content = content, monospace = monospace }
 
 
 

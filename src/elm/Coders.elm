@@ -1,5 +1,6 @@
-module Coders exposing (collabStateDecoder, collabStateToValue, conflictDecoder, conflictToValue, exportSettingsDecoder, lazyRecurse, maybeToValue, modeDecoder, modeToValue, opDecoder, opToValue, selectionDecoder, selectionToValue, statusDecoder, statusToValue, treeDecoder, treeListDecoder, treeToJSON, treeToJSONrecurse, treeToMarkdown, treeToMarkdownRecurse, treeToMarkdownString, treeToValue, treesModelDecoder, tripleDecoder, tripleToValue, tupleDecoder, tupleToValue)
+module Coders exposing (collabStateDecoder, collabStateToValue, conflictDecoder, conflictToValue, exportSettingsDecoder, fontSettingsEncoder, lazyRecurse, maybeToValue, modeDecoder, modeToValue, opDecoder, opToValue, selectionDecoder, selectionToValue, statusDecoder, statusToValue, treeDecoder, treeListDecoder, treeToJSON, treeToJSONrecurse, treeToMarkdown, treeToMarkdownRecurse, treeToMarkdownString, treeToValue, treesModelDecoder, tripleDecoder, tupleDecoder, tupleToValue)
 
+import Fonts
 import Json.Decode as Json exposing (..)
 import Json.Encode as Enc
 import Trees
@@ -17,7 +18,7 @@ treeToValue tree =
             Enc.object
                 [ ( "id", Enc.string tree.id )
                 , ( "content", Enc.string tree.content )
-                , ( "children", Enc.list (List.map treeToValue c) )
+                , ( "children", Enc.list treeToValue c )
                 ]
 
 
@@ -78,18 +79,18 @@ modeToValue : Mode -> Enc.Value
 modeToValue mode =
     case mode of
         Active id ->
-            tupleToValue Enc.string Enc.string ( "Active", id )
+            tupleToValue Enc.string ( "Active", id )
 
         Editing id ->
-            tupleToValue Enc.string Enc.string ( "Editing", id )
+            tupleToValue Enc.string ( "Editing", id )
 
 
 modeDecoder : Decoder Mode
 modeDecoder =
     let
         modeHelp : ( String, String ) -> Decoder Mode
-        modeHelp ( tag, id ) =
-            case ( tag, id ) of
+        modeHelp ( tag, idIn ) =
+            case ( tag, idIn ) of
                 ( "Active", id ) ->
                     succeed (Active id)
 
@@ -124,7 +125,7 @@ statusToValue status =
                 , ( "tree", tree |> treeToValue )
                 , ( "aSha", aSha |> Enc.string )
                 , ( "bSha", bSha |> Enc.string )
-                , ( "conflicts", Enc.list (List.map conflictToValue conflicts) )
+                , ( "conflicts", Enc.list conflictToValue conflicts )
                 ]
 
         Bare ->
@@ -194,15 +195,13 @@ opToValue op =
     case op of
         Mod id parents str orig ->
             Enc.list
-                (([ "mod", id, str, orig ] |> List.map Enc.string)
-                    ++ [ parents |> List.map Enc.string |> Enc.list ]
-                )
+                Enc.string
+                ([ "mod", id, str, orig ] ++ parents)
 
         Del id parents ->
             Enc.list
-                (([ "del", id ] |> List.map Enc.string)
-                    ++ [ parents |> List.map Enc.string |> Enc.list ]
-                )
+                Enc.string
+                ([ "del", id ] ++ parents)
 
         _ ->
             Enc.null
@@ -335,7 +334,7 @@ treeToJSON : Tree -> Enc.Value
 treeToJSON tree =
     case tree.children of
         Children c ->
-            Enc.list (List.map treeToJSONrecurse c)
+            Enc.list treeToJSONrecurse c
 
 
 treeToJSONrecurse : Tree -> Enc.Value
@@ -344,7 +343,7 @@ treeToJSONrecurse tree =
         Children c ->
             Enc.object
                 [ ( "content", Enc.string tree.content )
-                , ( "children", Enc.list (List.map treeToJSONrecurse c) )
+                , ( "children", Enc.list treeToJSONrecurse c )
                 ]
 
 
@@ -383,6 +382,15 @@ treeToMarkdownRecurse tree =
 
 
 
+-- FONT SETTINGS
+
+
+fontSettingsEncoder : Fonts.Settings -> Enc.Value
+fontSettingsEncoder { heading, content, monospace } =
+    Enc.list Enc.string [ heading, content, monospace ]
+
+
+
 -- HELPERS
 
 
@@ -399,7 +407,7 @@ lazyRecurse thunk =
                     succeed b
 
                 Err err ->
-                    fail err
+                    fail (errorToString err)
         )
         value
 
@@ -414,14 +422,9 @@ maybeToValue encoder mb =
             encoder v
 
 
-tupleToValue : (a -> Enc.Value) -> (b -> Enc.Value) -> ( a, b ) -> Enc.Value
-tupleToValue aEnc bEnc ( aVal, bVal ) =
-    Enc.list [ aEnc aVal, bEnc bVal ]
-
-
-tripleToValue : (a -> Enc.Value) -> (b -> Enc.Value) -> (c -> Enc.Value) -> ( a, b, c ) -> Enc.Value
-tripleToValue aEnc bEnc cEnc ( aVal, bVal, cVal ) =
-    Enc.list [ aEnc aVal, bEnc bVal, cEnc cVal ]
+tupleToValue : (a -> Enc.Value) -> ( a, a ) -> Enc.Value
+tupleToValue encoder ( aVal, bVal ) =
+    Enc.list encoder [ aVal, bVal ]
 
 
 tupleDecoder : Decoder a -> Decoder b -> Decoder ( a, b )

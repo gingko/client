@@ -1,9 +1,7 @@
 port module Home exposing (Document, Model, Msg(..), defaultDocument, docListReload, forJS, init, main, subscriptions, update, view, viewDocList, viewDocumentItem)
 
+import Browser
 import Coders exposing (maybeToValue)
-import Date exposing (Month(..))
-import Date.Distance as DateDist
-import Date.Extra as DateExtra
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -11,12 +9,12 @@ import Html.Events exposing (..)
 import Json.Decode exposing (succeed)
 import Json.Encode as Json exposing (null, string)
 import Octicons as Icon
-import Time exposing (Time, every, minute)
+import Time
 
 
-main : Program ( Time, List ( String, Document ) ) Model Msg
+main : Program ( Int, List ( String, Document ) ) Model Msg
 main =
-    programWithFlags
+    Browser.element
         { init = init
         , view = view
         , update = update
@@ -31,7 +29,7 @@ main =
 type alias Model =
     { documents : Dict String Document
     , archiveDropdown : Bool
-    , currentTime : Time
+    , currentTime : Time.Posix
     }
 
 
@@ -54,11 +52,11 @@ defaultDocument =
     }
 
 
-init : ( Time, List ( String, Document ) ) -> ( Model, Cmd Msg )
+init : ( Int, List ( String, Document ) ) -> ( Model, Cmd Msg )
 init ( time, dbObj ) =
     ( { documents = dbObj |> Dict.fromList
       , archiveDropdown = False
-      , currentTime = time
+      , currentTime = Time.millisToPosix time
       }
     , Cmd.none
     )
@@ -77,7 +75,7 @@ type Msg
     | SetState String String
     | Delete String
     | ToggleArchive
-    | Tick Time
+    | Tick Time.Posix
     | DocListReload (List ( String, Document ))
 
 
@@ -98,7 +96,7 @@ update msg model =
             let
                 data =
                     [ string dbname, maybeToValue string docName_ ]
-                        |> Json.list
+                        |> Json.list identity
             in
             ( model
             , forJS { tag = "Open", data = data }
@@ -112,7 +110,7 @@ update msg model =
         SetState dbname state ->
             let
                 data =
-                    Json.list [ string dbname, string state ]
+                    Json.list string [ dbname, state ]
             in
             ( { model
                 | documents =
@@ -178,7 +176,7 @@ view { documents, archiveDropdown, currentTime } =
 
         archivedText bool =
             "Archived ("
-                ++ (numArchived |> toString)
+                ++ (numArchived |> Debug.toString)
                 ++ ")"
                 ++ (case ( bool, numArchived == 0 ) of
                         ( _, True ) ->
@@ -221,7 +219,7 @@ view { documents, archiveDropdown, currentTime } =
         ]
 
 
-viewDocList : Time -> String -> Dict String Document -> Html Msg
+viewDocList : Time.Posix -> String -> Dict String Document -> Html Msg
 viewDocList currTime state docDict =
     div [ classList [ ( "document-list", True ), ( state, True ) ] ]
         (docDict
@@ -233,35 +231,34 @@ viewDocList currTime state docDict =
         )
 
 
-viewDocumentItem : Time -> ( String, Document ) -> Html Msg
+viewDocumentItem : Time.Posix -> ( String, Document ) -> Html Msg
 viewDocumentItem currTime ( dbname, document ) =
     let
         onClickThis msg =
-            onWithOptions "click" { defaultOptions | stopPropagation = True } (succeed msg)
+            stopPropagationOn "click" (succeed ( msg, True ))
 
+        {--TODO
         nowDate =
             Date.fromTime currTime
-
+            --}
         openedDate =
             document.last_opened
-                |> DateExtra.fromIsoString
-                |> Maybe.withDefault (DateExtra.fromCalendarDate 2000 Jan 1)
 
         openedString =
-            openedDate |> DateExtra.toFormattedString "YYYY-MM-dd, HH:mm"
+            openedDate
 
         relativeString =
-            DateDist.inWords
-                nowDate
-                openedDate
-                ++ " ago"
+            -- TODO
+            "some time ago"
 
         ( titleString, dateString ) =
+            {--
             if DateExtra.diff DateExtra.Day openedDate nowDate <= 2 then
                 ( openedString, relativeString )
 
             else
-                ( relativeString, openedString )
+                --}
+            ( relativeString, openedString )
 
         buttons =
             case document.state of
@@ -302,5 +299,5 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ docListReload DocListReload
-        , every (minute / 2) Tick
+        , Time.every (30 * 1000) Tick
         ]

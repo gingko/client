@@ -1,8 +1,9 @@
 port module Main exposing (InitModel, Model)
 
+import Browser
 import Browser.Dom
 import Coders exposing (..)
-import Debouncer.Basic as Debouncer exposing (Debouncer, provideInput, toDebouncer)
+import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
 import Dict
 import Fonts
 import Html exposing (..)
@@ -10,12 +11,13 @@ import Html.Attributes exposing (..)
 import Html.Lazy exposing (lazy, lazy2)
 import Html5.DragDrop as DragDrop
 import Json.Decode as Json
-import List.Extra as ListExtra exposing ((!!))
+import List.Extra as ListExtra exposing (getAt)
 import Objects
 import Ports exposing (..)
 import Regex
 import Sha1 exposing (timeJSON, timestamp)
 import Task
+import Time
 import TreeUtils exposing (..)
 import Trees exposing (..)
 import Types exposing (..)
@@ -24,7 +26,7 @@ import UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSaveI
 
 main : Program ( Json.Value, InitModel, Bool ) Model Msg
 main =
-    programWithFlags
+    Browser.element
         { init = init
         , view = view
         , update = update
@@ -109,7 +111,7 @@ type alias Model =
     , historyState : HistoryState
     , online : Bool
     , changed : Bool
-    , currentTime : Time
+    , currentTime : Time.Posix
     }
 
 
@@ -124,7 +126,7 @@ type alias InitModel =
     { isMac : Bool
     , shortcutTrayOpen : Bool
     , videoModalOpen : Bool
-    , currentTime : Time
+    , currentTime : Int
     , lastActive : String
     , fonts : Maybe ( String, String, String )
     }
@@ -137,11 +139,11 @@ defaultModel =
     , status = Bare
     , debouncerStateSwap =
         Debouncer.throttle (fromSeconds 3)
-            |> Debouncer.settleWhenQuietFor (Just <| 3 * second)
+            |> Debouncer.settleWhenQuietFor (Just <| fromSeconds 3)
             |> toDebouncer
     , debouncerStateBackup =
-        Debouncer.debounce (15 * minute)
-            |> Debouncer.settleWhenQuietFor (Just <| 15 * minute)
+        Debouncer.debounce (fromSeconds 15 * 60)
+            |> Debouncer.settleWhenQuietFor (Just <| fromSeconds 15 * 60)
             |> toDebouncer
     , uid = timeJSON ()
     , viewState =
@@ -169,7 +171,7 @@ defaultModel =
     , historyState = Closed
     , online = False
     , changed = False
-    , currentTime = 0
+    , currentTime = Time.millisToPosix 0
     }
 
 
@@ -190,12 +192,12 @@ init ( dataIn, modelIn, isSaved ) =
     let
         ( newStatus, newTree_, newObjects ) =
             case Json.decodeValue treeDecoder dataIn of
-                Ok newTree ->
+                Ok newTreeDecoded ->
                     {- The JSON was successfully decoded by treeDecoder.
                        We need to create the first commit to the history.
                     -}
-                    Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" newTree) defaultModel.objects
-                        |> (\( s, _, o ) -> ( s, Just newTree, o ))
+                    Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" newTreeDecoded) defaultModel.objects
+                        |> (\( s, _, o ) -> ( s, Just newTreeDecoded, o ))
 
                 Err err ->
                     {- If treeDecoder fails, we assume that this was a
@@ -223,7 +225,7 @@ init ( dataIn, modelIn, isSaved ) =
         , shortcutTrayOpen = modelIn.shortcutTrayOpen
         , videoModalOpen = modelIn.videoModalOpen
         , startingWordcount = startingWordcount
-        , currentTime = modelIn.currentTime
+        , currentTime = Time.millisToPosix modelIn.currentTime
         , fonts = Fonts.init modelIn.fonts
       }
     , Cmd.batch [ focus modelIn.lastActive, sendOut <| ColumnNumberChange <| List.length <| newWorkingTree.columns ]
@@ -282,9 +284,8 @@ update msg ({ objects, workingTree, status } as model) =
                             let
                                 hasTerm tree =
                                     term
-                                        |> Regex.escape
-                                        |> Regex.regex
-                                        |> Regex.caseInsensitive
+                                        |> Regex.fromStringWith { caseInsensitive = True, multiline = False }
+                                        |> Maybe.withDefault Regex.never
                                         |> (\t -> Regex.contains t tree.content)
                             in
                             cols
@@ -298,7 +299,7 @@ update msg ({ objects, workingTree, status } as model) =
                         "" ->
                             ( \( m, c ) ->
                                 ( m
-                                , Cmd.batch [ c, Task.attempt (\_ -> NoOp) (Dom.blur "search-input") ]
+                                , Cmd.batch [ c, Task.attempt (\_ -> NoOp) (Browser.Dom.blur "search-input") ]
                                 )
                             , Nothing
                             )
@@ -402,7 +403,7 @@ update msg ({ objects, workingTree, status } as model) =
                         )
 
                 -- Successful drop
-                ( Just ( draggedTree, _, _ ), Nothing, Just ( dragId, dropId ) ) ->
+                ( Just ( draggedTree, _, _ ), Nothing, Just ( dragId, dropId, _ ) ) ->
                     let
                         moveOperation =
                             case dropId of
@@ -411,13 +412,13 @@ update msg ({ objects, workingTree, status } as model) =
 
                                 Above id ->
                                     move draggedTree
-                                        ((getParent id model.workingTree.tree |> Maybe.map .id) ? "0")
-                                        ((getIndex id model.workingTree.tree ? 0) |> Basics.max 0)
+                                        ((getParent id model.workingTree.tree |> Maybe.map .id) |> Maybe.withDefault "0")
+                                        ((getIndex id model.workingTree.tree |> Maybe.withDefault 0) |> Basics.max 0)
 
                                 Below id ->
                                     move draggedTree
-                                        ((getParent id model.workingTree.tree |> Maybe.map .id) ? "0")
-                                        ((getIndex id model.workingTree.tree ? 0) + 1)
+                                        ((getParent id model.workingTree.tree |> Maybe.map .id) |> Maybe.withDefault "0")
+                                        ((getIndex id model.workingTree.tree |> Maybe.withDefault 0) + 1)
                     in
                     ( { model
                         | viewState =
@@ -614,10 +615,10 @@ update msg ({ objects, workingTree, status } as model) =
             )
                 |> toggleVideoModal shouldOpen
 
-        FontsMsg msg ->
+        FontsMsg fontsMsg ->
             let
                 ( newModel, selectorOpen, newFontsTriple_ ) =
-                    Fonts.update msg model.fonts
+                    Fonts.update fontsMsg model.fonts
 
                 cmd =
                     case newFontsTriple_ of
@@ -667,11 +668,11 @@ update msg ({ objects, workingTree, status } as model) =
                                     |> saveCardIfEditing
                                     |> Tuple.first
 
-                            ( status, objects ) =
+                            ( statusValue, objectsValue ) =
                                 ( statusToValue modelCardSaved.status, Objects.toValue modelCardSaved.objects )
                         in
                         ( model
-                        , sendOut (SaveAndClose (Just ( status, objects )))
+                        , sendOut (SaveAndClose (Just ( statusValue, objectsValue )))
                         )
 
                     else
@@ -793,7 +794,7 @@ update msg ({ objects, workingTree, status } as model) =
                     case ( status, newStatus ) of
                         ( Bare, Clean sha ) ->
                             ( { model
-                                | workingTree = Trees.setTree (newTree_ ? workingTree.tree) workingTree
+                                | workingTree = Trees.setTree (newTree_ |> Maybe.withDefault workingTree.tree) workingTree
                                 , objects = newObjects
                                 , status = newStatus
                               }
@@ -804,7 +805,7 @@ update msg ({ objects, workingTree, status } as model) =
                         ( Clean oldHead, Clean newHead ) ->
                             if oldHead /= newHead then
                                 ( { model
-                                    | workingTree = Trees.setTree (newTree_ ? workingTree.tree) workingTree
+                                    | workingTree = Trees.setTree (newTree_ |> Maybe.withDefault workingTree.tree) workingTree
                                     , objects = newObjects
                                     , status = newStatus
                                   }
@@ -821,7 +822,7 @@ update msg ({ objects, workingTree, status } as model) =
                             ( { model
                                 | workingTree =
                                     if List.isEmpty conflicts then
-                                        Trees.setTree (newTree_ ? workingTree.tree) workingTree
+                                        Trees.setTree (newTree_ |> Maybe.withDefault workingTree.tree) workingTree
 
                                     else
                                         Trees.setTreeWithConflicts conflicts mTree model.workingTree
@@ -1047,7 +1048,7 @@ update msg ({ objects, workingTree, status } as model) =
                             case vs.editing of
                                 Nothing ->
                                     ( model
-                                    , Task.attempt (\_ -> NoOp) (Dom.focus "search-input")
+                                    , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "search-input")
                                     )
 
                                 Just _ ->
@@ -1210,7 +1211,7 @@ goLeft : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 goLeft id ( model, prevCmd ) =
     let
         targetId =
-            getParent id model.workingTree.tree ? defaultTree |> .id
+            getParent id model.workingTree.tree |> Maybe.withDefault defaultTree |> .id
     in
     ( model
     , prevCmd
@@ -1262,7 +1263,7 @@ goRight id ( model, prevCmd ) =
             getTree id model.workingTree.tree
 
         childrenIds =
-            getChildren (tree_ ? defaultTree)
+            getChildren (tree_ |> Maybe.withDefault defaultTree)
                 |> List.map .id
 
         firstChildId =
@@ -1555,7 +1556,7 @@ insert : String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 insert pid pos ( model, prevCmd ) =
     let
         newId =
-            "node-" ++ (timestamp () |> toString)
+            "node-" ++ (timestamp () |> Debug.toString)
     in
     ( { model
         | workingTree = Trees.update (Trees.Ins newId "" pid pos) model.workingTree
@@ -1571,7 +1572,7 @@ insertRelative : String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 insertRelative id delta ( model, prevCmd ) =
     let
         idx =
-            getIndex id model.workingTree.tree ? 999999
+            getIndex id model.workingTree.tree |> Maybe.withDefault 999999
 
         pid_ =
             getParent id model.workingTree.tree |> Maybe.map .id
@@ -1797,13 +1798,13 @@ pasteBelow id timestamp ( model, prevCmd ) =
                     model.viewState
 
                 treeToPaste =
-                    Trees.renameNodes (timestamp |> toString) copiedTree
+                    Trees.renameNodes (timestamp |> Debug.toString) copiedTree
 
                 pid =
-                    (getParent id model.workingTree.tree |> Maybe.map .id) ? "0"
+                    (getParent id model.workingTree.tree |> Maybe.map .id) |> Maybe.withDefault "0"
 
                 pos =
-                    (getIndex id model.workingTree.tree ? 0) + 1
+                    (getIndex id model.workingTree.tree |> Maybe.withDefault 0) + 1
             in
             ( model
             , prevCmd
@@ -1825,7 +1826,7 @@ pasteInto id timestamp ( model, prevCmd ) =
                     model.viewState
 
                 treeToPaste =
-                    Trees.renameNodes (timestamp |> toString) copiedTree
+                    Trees.renameNodes (timestamp |> Debug.toString) copiedTree
             in
             ( model
             , prevCmd
@@ -1899,7 +1900,7 @@ historyStep dir ( model, prevCmd ) =
                                 |> Maybe.withDefault -1
 
                 newCommit_ =
-                    historyList !! newCommitIdx_
+                    getAt newCommitIdx_ historyList
             in
             case ( model.historyState, currCommit_, newCommit_ ) of
                 ( From startSha, _, Just newSha ) ->
@@ -2037,7 +2038,7 @@ view : Model -> Html Msg
 view model =
     let
         replace orig new =
-            Regex.replace Regex.All (Regex.regex orig) (\_ -> new)
+            Regex.replace (Regex.fromString orig |> Maybe.withDefault Regex.never) (\_ -> new)
 
         styleNode =
             node "style"
@@ -2054,9 +2055,9 @@ pre, code, .group.has-active .card textarea {
   font-family: '@MONOSPACE', monospace;
 }
 """
-                        |> replace "@HEADING" (Fonts.heading model.fonts)
-                        |> replace "@CONTENT" (Fonts.content model.fonts)
-                        |> replace "@MONOSPACE" (Fonts.monospace model.fonts)
+                        |> replace "@HEADING" (Fonts.getHeading model.fonts)
+                        |> replace "@CONTENT" (Fonts.getContent model.fonts)
+                        |> replace "@MONOSPACE" (Fonts.getMonospace model.fonts)
                     )
                 ]
     in
@@ -2117,7 +2118,8 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ receiveMsg Port LogErr
-        , Time.every (15 * second) TimeUpdate
+
+        --, TODO Time.every (15 * second) TimeUpdate
         ]
 
 
@@ -2140,7 +2142,7 @@ getHead status =
 
 focus : String -> Cmd Msg
 focus id =
-    Task.attempt (\_ -> NoOp) (Dom.focus ("card-edit-" ++ id))
+    Task.attempt (\_ -> NoOp) (Browser.Dom.focus ("card-edit-" ++ id))
 
 
 run : Msg -> Cmd Msg

@@ -121,92 +121,97 @@ setTreeWithConflicts conflicts originalTree model =
 
 
 conflictToTreeMsg : Tree -> Conflict -> TreeMsg
-conflictToTreeMsg tree { id, opA, opB, selection, resolved } =
-    case ( id, opA, opB, selection, resolved ) of
-        ( _, opA, _, Ours, False ) ->
+conflictToTreeMsg tree ({ id, opA, opB, selection, resolved } as conflict) =
+    case ( selection, resolved ) of
+        ( Ours, False ) ->
             opToTreeMsg tree opA
 
-        ( _, _, opB, Theirs, False ) ->
+        ( Theirs, False ) ->
             opToTreeMsg tree opB
 
-        ( _, Mod tid _ strA orig, Mod _ _ strB _, Manual, False ) ->
-            let
-                tokenize s =
-                    Regex.split Regex.All (Regex.regex "(\\s+|\\b)") s
+        ( Manual, False ) ->
+            case ( opA, opB ) of
+                ( Mod tid _ strA orig, Mod _ _ strB _ ) ->
+                    let
+                        tokenize s =
+                            Regex.split (Regex.fromString "(\\s+|\\b)" |> Maybe.withDefault Regex.never) s
 
-                -- List String
-                changeMerge d ds =
-                    case ( d, ds ) of
-                        ( NoChange a, (NoChange b) :: tail ) ->
-                            NoChange (a ++ b) :: tail
+                        -- List String
+                        changeMerge d ds =
+                            case ( d, ds ) of
+                                ( NoChange a, (NoChange b) :: tail ) ->
+                                    NoChange (a ++ b) :: tail
 
-                        ( Added a, (Added b) :: tail ) ->
-                            Added (a ++ b) :: tail
+                                ( Added a, (Added b) :: tail ) ->
+                                    Added (a ++ b) :: tail
 
-                        ( Removed a, (Removed b) :: tail ) ->
-                            Removed (a ++ b) :: tail
+                                ( Removed a, (Removed b) :: tail ) ->
+                                    Removed (a ++ b) :: tail
 
-                        ( ch, list ) ->
-                            ch :: list
+                                ( ch, list ) ->
+                                    ch :: list
 
-                diffWords l r =
-                    diff (tokenize l) (tokenize r)
-                        |> List.foldr changeMerge []
-                        |> List.map
-                            (\c ->
-                                case c of
-                                    NoChange s ->
-                                        s
+                        diffWords l r =
+                            diff (tokenize l) (tokenize r)
+                                |> List.foldr changeMerge []
+                                |> List.map
+                                    (\c ->
+                                        case c of
+                                            NoChange s ->
+                                                s
 
-                                    Added s ->
-                                        "{++" ++ s ++ "++}"
+                                            Added s ->
+                                                "{++" ++ s ++ "++}"
 
-                                    Removed s ->
-                                        "{--" ++ s ++ "--}"
-                            )
-                        |> String.join ""
+                                            Removed s ->
+                                                "{--" ++ s ++ "--}"
+                                    )
+                                |> String.join ""
 
-                diffLinesString l r =
-                    diffLines l r
-                        |> List.map
-                            (\c ->
-                                case c of
-                                    NoChange s ->
-                                        s
+                        diffLinesString l r =
+                            diffLines l r
+                                |> List.map
+                                    (\c ->
+                                        case c of
+                                            NoChange s ->
+                                                s
 
-                                    Added s ->
-                                        "{++" ++ s ++ "++}"
+                                            Added s ->
+                                                "{++" ++ s ++ "++}"
 
-                                    Removed s ->
-                                        "{--" ++ s ++ "--}"
-                            )
-                        |> String.join "\n"
+                                            Removed s ->
+                                                "{--" ++ s ++ "--}"
+                                    )
+                                |> String.join "\n"
 
-                mergedString : String
-                mergedString =
-                    diff3Merge (String.lines strA) (String.lines orig) (String.lines strB)
-                        |> List.map
-                            (\c ->
-                                case c of
-                                    Sha1.DiffOk strings ->
-                                        String.join "\n" strings
+                        mergedString : String
+                        mergedString =
+                            diff3Merge (String.lines strA) (String.lines orig) (String.lines strB)
+                                |> List.map
+                                    (\c ->
+                                        case c of
+                                            Sha1.DiffOk strings ->
+                                                String.join "\n" strings
 
-                                    Sha1.DiffConflict ( strAs, strOs, strBs ) ->
-                                        "\n`>>>>>>>`\n"
-                                            ++ String.join "\n" strAs
-                                            ++ "\n`=======`\n"
-                                            ++ String.join "\n" strBs
-                                            ++ "\n`<<<<<<<`\n"
-                            )
-                        |> String.join "\n"
+                                            Sha1.DiffConflict ( strAs, strOs, strBs ) ->
+                                                "\n`>>>>>>>`\n"
+                                                    ++ String.join "\n" strAs
+                                                    ++ "\n`=======`\n"
+                                                    ++ String.join "\n" strBs
+                                                    ++ "\n`<<<<<<<`\n"
+                                    )
+                                |> String.join "\n"
 
-                manualString =
-                    "`Your version:`\n"
-                        ++ diffLinesString orig strA
-                        ++ "\n\n--------\n`Their version:`\n"
-                        ++ diffLinesString orig strB
-            in
-            Upd tid mergedString
+                        manualString =
+                            "`Your version:`\n"
+                                ++ diffLinesString orig strA
+                                ++ "\n\n--------\n`Their version:`\n"
+                                ++ diffLinesString orig strB
+                    in
+                    Upd tid mergedString
+
+                _ ->
+                    Nope
 
         _ ->
             Nope
@@ -332,9 +337,8 @@ view vstate model =
                     let
                         hasTerm tree =
                             term
-                                |> Regex.escape
-                                |> Regex.regex
-                                |> Regex.caseInsensitive
+                                |> Regex.fromStringWith { caseInsensitive = True, multiline = False }
+                                |> Maybe.withDefault Regex.never
                                 |> (\t -> Regex.contains t tree.content)
                     in
                     cols
@@ -471,7 +475,7 @@ viewGroup vstate depth xs =
 
 
 viewCardOther : String -> String -> Bool -> Bool -> Bool -> Bool -> List String -> List String -> DragDrop.Model String DropId -> Html Msg
-viewCardOther cardId content isEditing hasChildren isAncestor isLast collabsOnCard collabsEditingCard dragModel =
+viewCardOther cardId content isEditing isParent isAncestor isLast collabsOnCard collabsEditingCard dragModel =
     let
         dropRegions =
             let
@@ -515,7 +519,7 @@ viewCardOther cardId content isEditing hasChildren isAncestor isLast collabsOnCa
             , ( "ancestor", isAncestor )
             , ( "collab-active", not (List.isEmpty collabsOnCard) )
             , ( "collab-editing", not (List.isEmpty collabsEditingCard) )
-            , ( "has-children", hasChildren )
+            , ( "has-children", isParent )
             ]
          ]
             ++ DragDrop.draggable DragDropMsg cardId
@@ -533,7 +537,7 @@ viewCardOther cardId content isEditing hasChildren isAncestor isLast collabsOnCa
 
 
 viewCardActive : String -> String -> Bool -> Bool -> List String -> List String -> Html Msg
-viewCardActive cardId content hasChildren isLast collabsOnCard collabsEditingCard =
+viewCardActive cardId content isParent isLast collabsOnCard collabsEditingCard =
     let
         buttons =
             [ div [ class "flex-row card-top-overlay" ]
@@ -582,7 +586,7 @@ viewCardActive cardId content hasChildren isLast collabsOnCard collabsEditingCar
             , ( "active", True )
             , ( "collab-active", not (List.isEmpty collabsOnCard) )
             , ( "collab-editing", not (List.isEmpty collabsEditingCard) )
-            , ( "has-children", hasChildren )
+            , ( "has-children", isParent )
             ]
          ]
             ++ DragDrop.draggable DragDropMsg cardId
@@ -600,7 +604,7 @@ viewCardActive cardId content hasChildren isLast collabsOnCard collabsEditingCar
 
 
 viewCardEditing : String -> String -> Bool -> Html Msg
-viewCardEditing cardId content hasChildren =
+viewCardEditing cardId content isParent =
     div
         [ id ("card-" ++ cardId)
         , dir "auto"
@@ -608,7 +612,7 @@ viewCardEditing cardId content hasChildren =
             [ ( "card", True )
             , ( "active", True )
             , ( "editing", True )
-            , ( "has-children", hasChildren )
+            , ( "has-children", isParent )
             ]
         ]
         [ textarea
@@ -618,7 +622,7 @@ viewCardEditing cardId content hasChildren =
                 [ ( "edit", True )
                 , ( "mousetrap", True )
                 ]
-            , defaultValue content
+            , value content
             ]
             []
         , div [ class "flex-column card-right-overlay" ]
@@ -657,11 +661,24 @@ viewContent content =
             }
 
         processedContent =
+            let
+                openAddDiff =
+                    Regex.fromString "{\\+\\+" |> Maybe.withDefault Regex.never
+
+                closeAddDiff =
+                    Regex.fromString "\\+\\+}" |> Maybe.withDefault Regex.never
+
+                openDelDiff =
+                    Regex.fromString "{--" |> Maybe.withDefault Regex.never
+
+                closeDelDiff =
+                    Regex.fromString "--}" |> Maybe.withDefault Regex.never
+            in
             content
-                |> Regex.replace Regex.All (Regex.regex "{\\+\\+") (\_ -> "<ins class='diff'>")
-                |> Regex.replace Regex.All (Regex.regex "\\+\\+}") (\_ -> "</ins>")
-                |> Regex.replace Regex.All (Regex.regex "{--") (\_ -> "<del class='diff'>")
-                |> Regex.replace Regex.All (Regex.regex "--}") (\_ -> "</del>")
+                |> Regex.replace openAddDiff (\_ -> "<ins class='diff'>")
+                |> Regex.replace closeAddDiff (\_ -> "</ins>")
+                |> Regex.replace openDelDiff (\_ -> "<del class='diff'>")
+                |> Regex.replace closeDelDiff (\_ -> "</del>")
     in
     Markdown.toHtmlWith options
         []

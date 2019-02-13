@@ -93,7 +93,7 @@ update msg model =
                             ( Bare, Nothing, modelIn )
 
                 Err err ->
-                    Debug.crash ("Objects.Init:" ++ err)
+                    Debug.todo ("Objects.Init:" ++ Json.errorToString err)
 
         Merge json oldTree ->
             case Json.decodeValue mergeDecoder json of
@@ -126,7 +126,7 @@ update msg model =
                             ( Bare, Nothing, model )
 
                 Err err ->
-                    Debug.crash err
+                    Debug.todo (Json.errorToString err)
 
 
 
@@ -147,7 +147,7 @@ commitTree author parents tree model =
                 (timestamp ())
 
         newCommitSha =
-            newCommit |> commitSha
+            newCommit |> generateCommitSha
     in
     ( newCommitSha
     , { model
@@ -236,7 +236,7 @@ treeToObjectId { id, content, children } =
                 childrenIds =
                     treeList
                         |> List.map treeToObjectId
-                        |> List.map (\( id, u, obj ) -> ( id, u ))
+                        |> List.map (\( tid, u, obj ) -> ( tid, u ))
             in
             ( content
                 ++ "\n"
@@ -274,18 +274,18 @@ treeObjectsToTree treeObjects treeSha id =
             Nothing
 
 
-commitSha : CommitObject -> String
-commitSha commit =
+generateCommitSha : CommitObject -> String
+generateCommitSha commit =
     (commit.tree ++ "\n")
         ++ (commit.parents |> String.join "\n")
-        ++ (commit.author ++ " " ++ (commit.timestamp |> toString))
+        ++ (commit.author ++ " " ++ (commit.timestamp |> Debug.toString))
         |> sha1
 
 
 conflictWithSha : Conflict -> Conflict
 conflictWithSha { id, opA, opB, selection, resolved } =
     Conflict
-        (String.join "\n" [ toString opA, toString opB, toString selection, toString resolved ] |> sha1)
+        (String.join "\n" [ Debug.toString opA, Debug.toString opB, Debug.toString selection, Debug.toString resolved ] |> sha1)
         opA
         opB
         selection
@@ -331,7 +331,7 @@ merge aSha bSha oldTree model =
                 ( MergeConflict mTree aSha bSha conflicts, Just mTree, model )
 
             _ ->
-                Debug.crash "failed merge"
+                Debug.todo "failed merge"
 
 
 
@@ -514,7 +514,7 @@ getConflicts opsA opsB =
         |> List.foldl
             (\( os, cs ) ( osAcc, csAcc ) -> ( osAcc ++ os, csAcc ++ cs ))
             ( [], [] )
-        |> (\( os, cs ) -> ( os |> ListExtra.uniqueBy toString, cs |> ListExtra.uniqueBy toString ))
+        |> (\( os, cs ) -> ( os |> ListExtra.uniqueBy Debug.toString, cs |> ListExtra.uniqueBy Debug.toString ))
 
 
 
@@ -567,8 +567,7 @@ toValue model =
                 , ( "type", Enc.string "tree" )
                 , ( "content", Enc.string treeObject.content )
                 , ( "children"
-                  , Enc.list
-                        (List.map (\( s, i ) -> Enc.list [ Enc.string s, Enc.string i ]) treeObject.children)
+                  , Enc.list (Enc.list Enc.string) (List.map (\( childSha, childId ) -> [ childSha, childId ]) treeObject.children)
                   )
                 ]
 
@@ -578,7 +577,7 @@ toValue model =
                 , ( "_rev", Enc.string ref.rev )
                 , ( "type", Enc.string "ref" )
                 , ( "value", Enc.string ref.value )
-                , ( "ancestors", Enc.list (ref.ancestors |> List.map Enc.string) )
+                , ( "ancestors", Enc.list Enc.string ref.ancestors )
                 ]
 
         commits =
@@ -587,12 +586,12 @@ toValue model =
         treeObjects =
             Dict.toList model.treeObjects
                 |> List.map (\( k, v ) -> treeObjectToValue k v)
-                |> Enc.list
+                |> Enc.list identity
 
         refs =
             Dict.toList model.refs
                 |> List.map (\( k, v ) -> refToValue k v)
-                |> Enc.list
+                |> Enc.list identity
     in
     Enc.object
         [ ( "commits", commits )
@@ -625,14 +624,14 @@ commitsToValue commits =
                 [ ( "_id", Enc.string sha )
                 , ( "type", Enc.string "commit" )
                 , ( "tree", Enc.string commit.tree )
-                , ( "parents", Enc.list (commit.parents |> List.map Enc.string) )
+                , ( "parents", Enc.list Enc.string commit.parents )
                 , ( "author", Enc.string commit.author )
                 , ( "timestamp", Enc.int commit.timestamp )
                 ]
     in
     Dict.toList commits
         |> List.map (\( k, v ) -> commitToValue k v)
-        |> Enc.list
+        |> Enc.list identity
 
 
 commitsDecoder : Json.Decoder (Dict String CommitObject)

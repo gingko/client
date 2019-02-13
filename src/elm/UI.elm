@@ -7,17 +7,17 @@ import Diff exposing (..)
 import Html exposing (..)
 import Html.Attributes as A exposing (..)
 import Html.Events exposing (onClick, onInput)
-import List.Extra as ListExtra exposing ((!!))
+import List.Extra as ListExtra exposing (getAt)
 import Objects
 import Octicons as Icon exposing (defaultOptions)
-import Regex exposing (Regex, regex, replace)
-import Time exposing (Time)
+import Regex exposing (Regex, replace)
+import Time
 import TreeUtils exposing (..)
 import Trees exposing (defaultTree)
 import Types exposing (..)
 
 
-viewSaveIndicator : { m | changed : Bool, objects : Objects.Model, currentTime : Time } -> Html Msg
+viewSaveIndicator : { m | changed : Bool, objects : Objects.Model, currentTime : Time.Posix } -> Html Msg
 viewSaveIndicator model =
     let
         lastCommitTime =
@@ -30,10 +30,13 @@ viewSaveIndicator model =
                 |> toFloat
 
         lastChangeString =
-            inWords
+            "some time ago"
+
+        {--inWords
                 (model.currentTime |> Date.fromTime)
                 (lastCommitTime |> Date.fromTime)
                 ++ " ago"
+                --}
     in
     div
         [ id "save-indicator", classList [ ( "inset", True ), ( "saving", model.changed ) ] ]
@@ -121,7 +124,7 @@ viewFooter model =
             14
                 * n
                 + 6
-                |> toString
+                |> Debug.toString
                 |> (\s -> s ++ "px")
     in
     div
@@ -147,25 +150,25 @@ viewHistory currHead objects =
                     []
 
         maxIdx =
-            historyList |> List.length |> (\x -> x - 1) |> toString
+            historyList |> List.length |> (\x -> x - 1) |> Debug.toString
 
         currIdx =
             historyList
                 |> ListExtra.elemIndex currHead
-                |> Maybe.map toString
+                |> Maybe.map Debug.toString
                 |> Maybe.withDefault maxIdx
 
         checkoutCommit idxStr =
             case String.toInt idxStr of
-                Ok idx ->
-                    case historyList !! idx of
+                Just idx ->
+                    case getAt idx historyList of
                         Just commit ->
                             CheckoutCommit commit
 
                         Nothing ->
                             NoOp
 
-                Err _ ->
+                Nothing ->
                     NoOp
     in
     div [ id "history" ]
@@ -304,8 +307,8 @@ viewWordcountProgress current session =
     in
     div [ id "wc-progress" ]
         [ div [ id "wc-progress-wrap" ]
-            [ span [ style "flex" (toString currW), id "wc-progress-bar" ] []
-            , span [ style "flex" (toString sessW), id "wc-progress-bar-session" ] []
+            [ span [ style "flex" (Debug.toString currW), id "wc-progress-bar" ] []
+            , span [ style "flex" (Debug.toString sessW), id "wc-progress-bar-session" ] []
             ]
         ]
 
@@ -362,11 +365,12 @@ countWords : String -> Int
 countWords str =
     let
         punctuation =
-            regex "[!@#$%^&*():;\"',.]+"
+            Regex.fromString "[!@#$%^&*():;\"',.]+"
+                |> Maybe.withDefault Regex.never
     in
     str
         |> String.toLower
-        |> replace Regex.All punctuation (\_ -> "")
+        |> replace punctuation (\_ -> "")
         |> String.words
         |> List.filter ((/=) "")
         |> List.length
@@ -379,7 +383,7 @@ toWordsString num =
             "1 word"
 
         n ->
-            toString n ++ " words"
+            Debug.toString n ++ " words"
 
 
 viewConflict : Conflict -> Html Msg
@@ -405,8 +409,8 @@ viewConflict { id, opA, opB, selection, resolved } =
                 []
                 [ fieldset []
                     [ radio (SetSelection id Original "") (selection == Original) (text "Original")
-                    , radio (SetSelection id Ours cardIdA) (selection == Ours) (text ("Ours:" ++ (toString opA |> String.left 3)))
-                    , radio (SetSelection id Theirs cardIdB) (selection == Theirs) (text ("Theirs:" ++ (toString opB |> String.left 3)))
+                    , radio (SetSelection id Ours cardIdA) (selection == Ours) (text ("Ours:" ++ (Debug.toString opA |> String.left 3)))
+                    , radio (SetSelection id Theirs cardIdB) (selection == Theirs) (text ("Theirs:" ++ (Debug.toString opB |> String.left 3)))
                     , label []
                         [ input [ checked resolved, type_ "checkbox", onClick (Resolve id) ] []
                         , text "Resolved"
@@ -483,8 +487,3 @@ radio msg bool labelElement =
         [ input [ type_ "radio", checked bool, onClick msg ] []
         , labelElement
         ]
-
-
-inWords : Date -> Date -> String
-inWords date1 date2 =
-    "TODO: write date distance function"

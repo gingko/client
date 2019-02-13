@@ -4,7 +4,7 @@ import Debouncer.Basic as Debouncer
 import Fonts
 import Html5.DragDrop as DragDrop
 import Json.Decode as Json
-import Time exposing (Time)
+import Time
 
 
 type Msg
@@ -31,7 +31,7 @@ type Msg
     | SetSelection String Selection String
     | Resolve String
       -- === UI ===
-    | TimeUpdate Time
+    | TimeUpdate Time.Posix
     | VideoModal Bool
     | FontsMsg Fonts.Msg
     | ShortcutTrayToggle
@@ -67,7 +67,7 @@ type
       -- === UI ===
     | UpdateCommits ( Json.Value, Maybe String )
     | SetVideoModal Bool
-    | SetFonts ( String, String, String )
+    | SetFonts Fonts.Settings
     | SetShortcutTray Bool
       -- === Misc ===
     | SocketSend CollabState

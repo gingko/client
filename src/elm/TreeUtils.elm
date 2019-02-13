@@ -1,4 +1,4 @@
-module TreeUtils exposing (centerlineIds, dictUpdate, generateId, getAncestors, getChildren, getColumn, getColumnById, getColumns, getContent, getDepth, getDescendants, getFirstInColumn, getIndex, getLastInColumn, getNext, getNextInColumn, getParent, getPrev, getPrevInColumn, getPrevNext, getPrevNextInColumn, getSiblings, getTree, getTreeWithPosition, newLine, withIdTree)
+module TreeUtils exposing (centerlineIds, dictUpdate, getAncestors, getChildren, getColumn, getColumnById, getColumns, getContent, getDepth, getDescendants, getFirstInColumn, getIndex, getLastInColumn, getNext, getNextInColumn, getParent, getPrev, getPrevInColumn, getPrevNext, getPrevNextInColumn, getSiblings, getTree, getTreeWithPosition, newLine, withIdTree)
 
 import Dict exposing (..)
 import List.Extra as ListExtra
@@ -15,7 +15,7 @@ import Types exposing (..)
 getColumns : List Column -> List Column
 getColumns cols =
     let
-        col =
+        lastColumn =
             case ListExtra.last cols of
                 Nothing ->
                     [ [] ]
@@ -24,15 +24,15 @@ getColumns cols =
                     c
 
         hasChildren =
-            col
+            lastColumn
                 |> List.concat
                 |> List.any (\x -> getChildren x /= [])
 
-        nextColumn col =
-            List.map getChildren (List.concat col)
+        nextColumn prevColumns =
+            List.map getChildren (List.concat prevColumns)
     in
     if hasChildren then
-        getColumns (cols ++ [ nextColumn col ])
+        getColumns (cols ++ [ nextColumn lastColumn ])
 
     else
         cols
@@ -289,21 +289,6 @@ getDepth prev tree id =
 
 
 
--- DATABASE TRANSFORMATIONS
-
-
-generateId : String -> Int -> String
-generateId timeString time =
-    [ "node"
-    , timeString
-    , Random.step (int 0 maxInt) (initialSeed time)
-        |> first
-        |> toString
-    ]
-        |> String.join "-"
-
-
-
 -- SPECIAL PROPERTIES
 
 
@@ -336,14 +321,6 @@ centerlineIds flatCols allIds activePast =
 
 
 -- HELPERS
-
-
-(?) : Maybe a -> a -> a
-(?) maybe default =
-    Maybe.withDefault default maybe
-
-
-infixr 9 ?
 
 
 newLine : String

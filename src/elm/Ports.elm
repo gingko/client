@@ -1,7 +1,7 @@
 port module Ports exposing (encodeAndSend, infoForElm, infoForOutside, receiveMsg, sendOut, unionTypeToString)
 
 import Coders exposing (..)
-import Json.Decode exposing (decodeValue)
+import Json.Decode exposing (decodeValue, errorToString)
 import Json.Encode exposing (..)
 import Json.Encode.Extra exposing (maybe)
 import TreeUtils exposing (getColumn)
@@ -27,7 +27,7 @@ sendOut info =
                             null
 
                         Just ( statusValue, objectsValue ) ->
-                            list [ statusValue, objectsValue ]
+                            list identity [ statusValue, objectsValue ]
             in
             dataToSend toSaveData
 
@@ -35,14 +35,14 @@ sendOut info =
             dataToSend (bool changed)
 
         ConfirmCancelCard id origContent ->
-            dataToSend (list [ string id, string origContent ])
+            dataToSend (list string [ id, origContent ])
 
         ColumnNumberChange cols ->
             dataToSend (int cols)
 
         -- === Database ===
         SaveToDB ( statusValue, objectsValue ) ->
-            dataToSend (list [ statusValue, objectsValue ])
+            dataToSend (list identity [ statusValue, objectsValue ])
 
         SaveBackup ->
             dataToSend null
@@ -105,10 +105,7 @@ sendOut info =
         ActivateCards ( cardId, col, lastActives ) ->
             let
                 listListStringToValue lls =
-                    lls
-                        |> List.map (List.map string)
-                        |> List.map list
-                        |> list
+                    list (list string) lls
             in
             dataToSend
                 (object
@@ -122,7 +119,7 @@ sendOut info =
             dataToSend null
 
         TextSurround id str ->
-            dataToSend (list [ string id, string str ])
+            dataToSend (list string [ id, str ])
 
         -- === UI ===
         UpdateCommits ( objectsValue, head_ ) ->
@@ -135,13 +132,13 @@ sendOut info =
                         Nothing ->
                             null
             in
-            dataToSend (tupleToValue identity headToValue ( objectsValue, head_ ))
+            dataToSend (tupleToValue identity ( objectsValue, headToValue head_ ))
 
         SetVideoModal isOpen ->
             dataToSend (bool isOpen)
 
-        SetFonts fontsTriple ->
-            dataToSend (tripleToValue string string string fontsTriple)
+        SetFonts fontSettings ->
+            dataToSend (fontSettingsEncoder fontSettings)
 
         SetShortcutTray isOpen ->
             dataToSend (bool isOpen)
@@ -172,7 +169,7 @@ receiveMsg tagger onError =
                             tagger <| IntentExport exportSettings
 
                         Err e ->
-                            onError e
+                            onError (errorToString e)
 
                 "CancelCardConfirmed" ->
                     tagger <| CancelCardConfirmed
@@ -184,7 +181,7 @@ receiveMsg tagger onError =
                             tagger <| SetHeadRev rev
 
                         Err e ->
-                            onError e
+                            onError (errorToString e)
 
                 "Merge" ->
                     tagger <| Merge outsideInfo.data
@@ -196,7 +193,7 @@ receiveMsg tagger onError =
                             tagger <| FieldChanged newField
 
                         Err e ->
-                            onError e
+                            onError (errorToString e)
 
                 "TextSelected" ->
                     case decodeValue Json.Decode.bool outsideInfo.data of
@@ -204,7 +201,7 @@ receiveMsg tagger onError =
                             tagger <| TextSelected newBool
 
                         Err e ->
-                            onError e
+                            onError (errorToString e)
 
                 -- === UI ===
                 "ViewVideos" ->
@@ -216,7 +213,7 @@ receiveMsg tagger onError =
                             tagger <| FontSelectorOpen fonts
 
                         Err e ->
-                            onError e
+                            onError (errorToString e)
 
                 "Keyboard" ->
                     case decodeValue (tupleDecoder Json.Decode.string Json.Decode.int) outsideInfo.data of
@@ -224,7 +221,7 @@ receiveMsg tagger onError =
                             tagger <| Keyboard shortcut timestamp
 
                         Err e ->
-                            onError e
+                            onError (errorToString e)
 
                 -- === Misc ===
                 "RecvCollabState" ->
@@ -233,7 +230,7 @@ receiveMsg tagger onError =
                             tagger <| RecvCollabState collabState
 
                         Err e ->
-                            onError e
+                            onError (errorToString e)
 
                 "CollaboratorDisconnected" ->
                     case decodeValue Json.Decode.string outsideInfo.data of
@@ -241,10 +238,10 @@ receiveMsg tagger onError =
                             tagger <| CollaboratorDisconnected uid
 
                         Err e ->
-                            onError e
+                            onError (errorToString e)
 
                 _ ->
-                    onError <| "Unexpected info from outside: " ++ toString outsideInfo
+                    onError <| "Unexpected info from outside: " ++ Debug.toString outsideInfo
         )
 
 
@@ -260,10 +257,10 @@ encodeAndSend info data =
 unionTypeToString : a -> String
 unionTypeToString ut =
     ut
-        |> toString
+        |> Debug.toString
         |> String.words
         |> List.head
-        |> Maybe.withDefault (ut |> toString)
+        |> Maybe.withDefault (ut |> Debug.toString)
 
 
 port infoForOutside : OutsideData -> Cmd msg
