@@ -1,6 +1,5 @@
 const {ipcRenderer, dialog, remote} = require('electron')
 import {Elm} from "../elm/Home";
-console.log("Elm",Elm);
 const dbMapping = require("../electron/doc-list");
 
 
@@ -22,7 +21,7 @@ ipcRenderer.on("doc-list-reload", () => {
 
 let docList = dbMapping.getDocList()
 var homeWindow = remote.getCurrentWindow()
-var home = Elm.Home.init({node: document.body, flags: [Date.now(), docList]});
+var home = Elm.Home.init({node: document.getElementById("elm"), flags: [Date.now(), docList]});
 
 home.ports.forJS.subscribe(function(elmdata) {
   switch(elmdata.tag){

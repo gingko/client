@@ -101,7 +101,7 @@ self.socket = io.connect('http://localhost:3000')
 
 
 function initElmAndPorts(initFlags) {
-  self.gingko = Elm.Main.init({ node: document.body, flags: initFlags});
+  self.gingko = Elm.Main.init({ node: document.getElementById("elm"), flags: initFlags});
 
   gingko.ports.infoForOutside.subscribe(function(elmdata) {
     update(elmdata.tag, elmdata.data)
