@@ -19,7 +19,7 @@ const io = require('socket.io-client')
 
 const helpers = require("./doc-helpers");
 const errorAlert = helpers.errorAlert;
-window.Elm = require('../elm/Main')
+import { Elm } from "../elm/Main";
 
 
 
@@ -101,7 +101,7 @@ self.socket = io.connect('http://localhost:3000')
 
 
 function initElmAndPorts(initFlags) {
-  self.gingko = Elm.Main.fullscreen(initFlags)
+  self.gingko = Elm.Main.init({ node: document.body, flags: initFlags});
 
   gingko.ports.infoForOutside.subscribe(function(elmdata) {
     update(elmdata.tag, elmdata.data)
