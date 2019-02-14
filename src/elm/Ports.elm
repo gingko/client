@@ -227,9 +227,9 @@ receiveMsg tagger onError =
                             onError (errorToString e)
 
                 "Keyboard" ->
-                    case decodeValue (tupleDecoder Json.Decode.string Json.Decode.int) outsideInfo.data of
-                        Ok ( shortcut, timestamp ) ->
-                            tagger <| Keyboard shortcut timestamp
+                    case decodeValue Json.Decode.string outsideInfo.data of
+                        Ok shortcut ->
+                            tagger <| Keyboard shortcut
 
                         Err e ->
                             onError (errorToString e)

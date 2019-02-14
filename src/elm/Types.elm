@@ -92,7 +92,7 @@ type
       -- === UI ===
     | ViewVideos
     | FontSelectorOpen (List String)
-    | Keyboard String Int
+    | Keyboard String
       -- === Misc ===
     | RecvCollabState CollabState
     | CollaboratorDisconnected String

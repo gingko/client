@@ -629,7 +629,7 @@ viewCardEditing cardId content isParent =
             [ span
                 [ class "card-btn save"
                 , title "Save Changes (Ctrl+Enter)"
-                , onClick (Port (Keyboard "mod+enter" 0))
+                , onClick (Port (Keyboard "mod+enter"))
                 ]
                 []
             ]

@@ -384,12 +384,12 @@ ipcRenderer.on("menu-export-txt-current", () => intentExportToElm("txt", "curren
 ipcRenderer.on("menu-export-txt-column", (e, msg) => intentExportToElm("txt", {column: msg}, null));
 ipcRenderer.on("menu-export-json", () => intentExportToElm("json", "all", null));
 ipcRenderer.on("menu-export-repeat", () => intentExportToElm(_lastFormat, _lastSelection, _lastExportPath));
-ipcRenderer.on("menu-undo", () => toElm("Keyboard", ["mod+z", Date.now()]));
-ipcRenderer.on("menu-redo", () => toElm("Keyboard", ["mod+shift+z", Date.now()]));
-ipcRenderer.on("menu-cut", () => toElm("Keyboard", ["mod+x", Date.now()]));
-ipcRenderer.on("menu-copy", () => toElm("Keyboard", ["mod+c", Date.now()]));
-ipcRenderer.on("menu-paste", () => toElm("Keyboard", ["mod+v", Date.now()]));
-ipcRenderer.on("menu-paste-into", () => toElm("Keyboard", ["mod+shift+v", Date.now()]));
+ipcRenderer.on("menu-undo", () => toElm("Keyboard", "mod+z"));
+ipcRenderer.on("menu-redo", () => toElm("Keyboard", "mod+shift+z"));
+ipcRenderer.on("menu-cut", () => toElm("Keyboard", "mod+x"));
+ipcRenderer.on("menu-copy", () => toElm("Keyboard", "mod+c"));
+ipcRenderer.on("menu-paste", () => toElm("Keyboard", "mod+v"));
+ipcRenderer.on("menu-paste-into", () => toElm("Keyboard", "mod+shift+v"));
 ipcRenderer.on("menu-view-videos", () => toElm("ViewVideos", null ));
 ipcRenderer.on("menu-font-selector", (event, data) => toElm("FontSelectorOpen", data));
 ipcRenderer.on("menu-contact-support", () => {
@@ -825,7 +825,7 @@ const editingInputHandler = function(ev) {
 
 
 Mousetrap.bind(helpers.shortcuts, function(e, s) {
-  toElm('Keyboard',[s,Date.now()]);
+  toElm("Keyboard",s);
 
   if(helpers.needOverride.includes(s)) {
     return false;

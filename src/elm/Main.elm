@@ -875,7 +875,7 @@ update msg ({ objects, workingTree, status } as model) =
                     , Cmd.none
                     )
 
-                Keyboard shortcut timestamp ->
+                Keyboard shortcut ->
                     case shortcut of
                         "mod+enter" ->
                             ( model
@@ -1009,10 +1009,10 @@ update msg ({ objects, workingTree, status } as model) =
                             normalMode model (copy vs.active)
 
                         "mod+v" ->
-                            normalMode model (pasteBelow vs.active timestamp)
+                            normalMode model (pasteBelow vs.active)
 
                         "mod+shift+v" ->
-                            normalMode model (pasteInto vs.active timestamp)
+                            normalMode model (pasteInto vs.active)
 
                         "mod+z" ->
                             normalMode model (historyStep Backward)
@@ -1799,16 +1799,19 @@ paste subtree pid pos ( model, prevCmd ) =
         |> addToHistory
 
 
-pasteBelow : String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-pasteBelow id timestamp ( model, prevCmd ) =
+pasteBelow : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+pasteBelow id ( model, prevCmd ) =
     case model.viewState.copiedTree of
         Just copiedTree ->
             let
                 vs =
                     model.viewState
 
+                ( newId, newSeed ) =
+                    Random.step randomId model.seed
+
                 treeToPaste =
-                    Trees.renameNodes (timestamp |> Debug.toString) copiedTree
+                    Trees.renameNodes (newId |> String.fromInt) copiedTree
 
                 pid =
                     (getParent id model.workingTree.tree |> Maybe.map .id) |> Maybe.withDefault "0"
@@ -1816,7 +1819,7 @@ pasteBelow id timestamp ( model, prevCmd ) =
                 pos =
                     (getIndex id model.workingTree.tree |> Maybe.withDefault 0) + 1
             in
-            ( model
+            ( { model | seed = newSeed }
             , prevCmd
             )
                 |> paste treeToPaste pid pos
@@ -1827,18 +1830,21 @@ pasteBelow id timestamp ( model, prevCmd ) =
             )
 
 
-pasteInto : String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-pasteInto id timestamp ( model, prevCmd ) =
+pasteInto : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+pasteInto id ( model, prevCmd ) =
     case model.viewState.copiedTree of
         Just copiedTree ->
             let
                 vs =
                     model.viewState
 
+                ( newId, newSeed ) =
+                    Random.step randomId model.seed
+
                 treeToPaste =
-                    Trees.renameNodes (timestamp |> Debug.toString) copiedTree
+                    Trees.renameNodes (newId |> String.fromInt) copiedTree
             in
-            ( model
+            ( { model | seed = newSeed }
             , prevCmd
             )
                 |> paste treeToPaste id 999999
