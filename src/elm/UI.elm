@@ -100,11 +100,9 @@ viewFooter model =
                     [ span [] [ text (tr model.language (WordCountSession session)) ]
                     , span [] [ text (tr model.language (WordCountTotal current)) ]
                     , span [] [ text (tr model.language (WordCountCard wordCounts.card)) ]
-
-                    --, span [] [ text ("Card: " ++ (wordCounts.card |> toWordsString)) ]
-                    --, span [] [ text ("Subtree: " ++ (wordCounts.subtree |> toWordsString)) ]
-                    --, span [] [ text ("Group: " ++ (wordCounts.group |> toWordsString)) ]
-                    --, span [] [ text ("Column: " ++ (wordCounts.column |> toWordsString)) ]
+                    , span [] [ text (tr model.language (WordCountSubtree wordCounts.subtree)) ]
+                    , span [] [ text (tr model.language (WordCountGroup wordCounts.group)) ]
+                    , span [] [ text (tr model.language (WordCountColumn wordCounts.column)) ]
                     ]
                 ]
 

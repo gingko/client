@@ -5,6 +5,9 @@ type TranslationId
     = WordCountSession Int
     | WordCountTotal Int
     | WordCountCard Int
+    | WordCountSubtree Int
+    | WordCountGroup Int
+    | WordCountColumn Int
 
 
 type Language
@@ -37,6 +40,21 @@ tr lang trans =
                 WordCountCard n ->
                     { en = "Card : " ++ String.fromInt n ++ pluralize n " word"
                     , es = "Tarjeta : " ++ String.fromInt n ++ pluralize n " palabra"
+                    }
+
+                WordCountSubtree n ->
+                    { en = "Subtree : " ++ String.fromInt n ++ pluralize n " word"
+                    , es = "Subárbol : " ++ String.fromInt n ++ pluralize n " palabra"
+                    }
+
+                WordCountGroup n ->
+                    { en = "Group : " ++ String.fromInt n ++ pluralize n " word"
+                    , es = "Grupo : " ++ String.fromInt n ++ pluralize n " palabra"
+                    }
+
+                WordCountColumn n ->
+                    { en = "Column : " ++ String.fromInt n ++ pluralize n " word"
+                    , es = "Columna : " ++ String.fromInt n ++ pluralize n " palabra"
                     }
     in
     case lang of
