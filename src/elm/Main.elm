@@ -380,7 +380,6 @@ update msg ({ objects, workingTree, status } as model) =
             let
                 ( newDragModel, dragResult_ ) =
                     DragDrop.update dragDropMsg vs.dragModel
-                        |> Debug.log "(newDragModel, dragResult_)"
 
                 modelDragUpdated =
                     { model
@@ -426,6 +425,7 @@ update msg ({ objects, workingTree, status } as model) =
                             ( modelDragUpdated, Cmd.none )
 
                 ( Nothing, Nothing ) ->
+                    -- TODO : Deal with drag failures
                     let
                         _ =
                             Debug.log "dragStatus: drag ended (succeeded OR failed)" ""
@@ -434,117 +434,9 @@ update msg ({ objects, workingTree, status } as model) =
                     ( modelDragUpdated, Cmd.none )
 
                 ( Just dragId, Just _ ) ->
-                    let
-                        _ =
-                            Debug.log "dragStatus: IMPOSSIBLE state" ""
-                    in
+                    -- Impossible state: both Dragging and Dropped
                     ( modelDragUpdated, Cmd.none )
 
-        {--
-                -- Start drag
-                ( Nothing, Just dragId, Nothing ) ->
-                    let
-                        newTree =
-                            Trees.update (Trees.Rmv dragId) model.workingTree
-
-                        draggedTree =
-                            getTreeWithPosition dragId model.workingTree.tree
-                    in
-                    if List.isEmpty <| getChildren newTree.tree then
-                        -- Don't allow dragging of last visible card
-                        ( model
-                        , Cmd.none
-                        )
-                            |> Debug.log "Don't allow dragging last visible"
-
-                    else
-                        ( { modelDragUpdated
-                            | workingTree = newTree
-                            , viewState =
-                                { vs
-                                    | draggedTree = draggedTree
-                                }
-                          }
-                        , Cmd.none
-                        )
-
-                -- Drag continue
-                ( Just _, Just _, Nothing ) ->
-                    let
-                        _ =
-                            Debug.log "DRAG CONTINUED Just, Just, Nothing" ""
-                    in
-                    ( modelDragUpdated, Cmd.none )
-
-                -- Successful drop
-                ( Just ( draggedTree, _, _ ), Nothing, Just ( _, dropId, _ ) ) ->
-                    let
-                        _ =
-                            Debug.log "DRAG SUCCESS Just, Nothing, Just" ""
-
-                        moveOperation =
-                            case dropId of
-                                Into id ->
-                                    move draggedTree id 999999
-                                        |> Debug.log "moveOperation"
-
-                                Above id ->
-                                    move draggedTree
-                                        ((getParent id model.workingTree.tree |> Maybe.map .id) |> Maybe.withDefault "0")
-                                        ((getIndex id model.workingTree.tree |> Maybe.withDefault 0) |> Basics.max 0)
-
-                                Below id ->
-                                    move draggedTree
-                                        ((getParent id model.workingTree.tree |> Maybe.map .id) |> Maybe.withDefault "0")
-                                        ((getIndex id model.workingTree.tree |> Maybe.withDefault 0) + 1)
-                    in
-                    ( { modelDragUpdated
-                        | viewState =
-                            { vs
-                                | draggedTree = Nothing
-                            }
-                      }
-                    , Cmd.none
-                    )
-                        |> moveOperation
-                        |> activate draggedTree.id
-
-                -- Failed drop
-                ( Just ( draggedTree, parentId, idx ), Nothing, Nothing ) ->
-                    let
-                        _ =
-                            Debug.log "DRAG FAILED? Just, Nothing, Nothing" ""
-                    in
-                    ( modelDragUpdated, Cmd.none )
-
-                ( Just _, Just _, Just _ ) ->
-                    let
-                        _ =
-                            Debug.log "OTHER Just, Just, Just" ""
-                    in
-                    ( modelDragUpdated, Cmd.none )
-
-                ( Nothing, Nothing, Nothing ) ->
-                    let
-                        _ =
-                            Debug.log "OTHER Nothing, Nothing, Nothing" ""
-                    in
-                    ( modelDragUpdated, Cmd.none )
-
-                ( Nothing, Just _, Just _ ) ->
-                    let
-                        _ =
-                            Debug.log "OTHER Nothing, Just, Just" ""
-                    in
-                    ( modelDragUpdated, Cmd.none )
-
-                ( Nothing, Nothing, Just _ ) ->
-                    let
-                        _ =
-                            Debug.log "OTHER Nothing, Nothing, Just" ""
-                    in
-                    ( modelDragUpdated, Cmd.none )
-                    --}
         -- === History ===
         ThrottledCommit subMsg ->
             let
@@ -948,7 +840,7 @@ update msg ({ objects, workingTree, status } as model) =
                         draggedTree =
                             getTreeWithPosition dragId model.workingTree.tree
 
-                        {--
+                        {--TODO:
                     if List.isEmpty <| getChildren newTree.tree then
                         -- Don't allow dragging of last visible card
                         --}
