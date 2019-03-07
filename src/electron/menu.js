@@ -15,7 +15,7 @@ function getTemplate (menuState, handlers, lang, isMac) {
   let menuTemplate =
     [ fileMenu(isDocument, isNew, changed, columnNumber, hasLastExport, recentDocumentList, lang, handlers)
     , editMenu(isDocument, isEditing, isMac)
-    , viewMenu(isDocument, handlers)
+    , viewMenu(isDocument, lang, handlers)
     , helpMenu(handlers, isMac)
     ];
 
@@ -245,7 +245,7 @@ function editMenu (isDocument, isEditing, isMac) {
 
 
 
-function viewMenu(isDocument, handlers) {
+function viewMenu(isDocument, lang, handlers) {
   let _viewMenu =
     { label: "&View"
     , submenu:
@@ -255,8 +255,8 @@ function viewMenu(isDocument, handlers) {
           }
         , { label : "Select &Language"
           , submenu :
-          [ { label : "English", type: "radio", click : (item, focusedWindow) => { handlers.language("en", focusedWindow);} }
-          , { label : "Español", type: "radio", checked: true, click : (item, focusedWindow) => { handlers.language("es", focusedWindow);} }
+          [ { label : "English", type: "radio", checked: lang == "en", click : (item, focusedWindow) => { handlers.language("en", focusedWindow);} }
+          , { label : "Español", type: "radio", checked: lang == "es", click : (item, focusedWindow) => { handlers.language("es", focusedWindow);} }
           ]
           }
         , { type : "separator" }
