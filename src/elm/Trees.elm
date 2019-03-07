@@ -479,9 +479,6 @@ viewCardOther cardId content isEditing isParent isAncestor isLast collabsOnCard 
     let
         dropRegions =
             let
-                dragId_ =
-                    DragDrop.getDragId dragModel
-
                 dropId_ =
                     DragDrop.getDropId dragModel
 
@@ -496,20 +493,15 @@ viewCardOther cardId content isEditing isParent isAncestor isLast collabsOnCard 
                         )
                         []
             in
-            case ( dragId_, isEditing ) of
-                ( Just dragId, False ) ->
-                    [ dropDiv "above" (Above cardId)
-                    , dropDiv "into" (Into cardId)
-                    ]
-                        ++ (if isLast then
-                                [ dropDiv "below" (Below cardId) ]
+            [ dropDiv "above" (Above cardId)
+            , dropDiv "into" (Into cardId)
+            ]
+                ++ (if isLast then
+                        [ dropDiv "below" (Below cardId) ]
 
-                            else
-                                []
-                           )
-
-                _ ->
-                    []
+                    else
+                        []
+                   )
     in
     div
         ([ id ("card-" ++ cardId)
@@ -522,7 +514,12 @@ viewCardOther cardId content isEditing isParent isAncestor isLast collabsOnCard 
             , ( "has-children", isParent )
             ]
          ]
-            ++ DragDrop.draggable DragDropMsg cardId
+            ++ (if not isEditing then
+                    DragDrop.draggable DragDropMsg cardId
+
+                else
+                    []
+               )
         )
         (dropRegions
             ++ [ div

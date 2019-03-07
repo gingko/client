@@ -87,6 +87,7 @@ type
     | SetHeadRev String
     | Merge Json.Value
       -- === DOM ===
+    | DragStarted String
     | FieldChanged String
     | TextSelected Bool
       -- === UI ===

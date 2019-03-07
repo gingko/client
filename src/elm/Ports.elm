@@ -198,6 +198,14 @@ receiveMsg tagger onError =
                     tagger <| Merge outsideInfo.data
 
                 -- === DOM ===
+                "DragStarted" ->
+                    case decodeValue Json.Decode.string outsideInfo.data of
+                        Ok dragId ->
+                            tagger <| DragStarted dragId
+
+                        Err e ->
+                            onError (errorToString e)
+
                 "FieldChanged" ->
                     case decodeValue Json.Decode.string outsideInfo.data of
                         Ok newField ->

@@ -107,6 +107,11 @@ function initElmAndPorts(initFlags) {
     update(elmdata.tag, elmdata.data)
   })
 
+  gingko.ports.dragstart.subscribe(function(event) {
+    console.log(event);
+    toElm("DragStarted", event.target.id.replace(/^card-/,""));
+  });
+
   window.onbeforeunload = (e) => {
     toElm('IntentExit', null)
     e.returnValue = false
