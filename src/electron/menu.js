@@ -32,7 +32,7 @@ function getTemplate (menuState, handlers, lang, isMac) {
           , {role: "hideothers"}
           , {role: "unhide"}
           , {type: "separator"}
-          , { label: "&Quit Gingko..."
+          , { label: tr.quit[lang]
             , accelerator: "Command+Q"
             , click : handlers.quit
             }
@@ -41,7 +41,7 @@ function getTemplate (menuState, handlers, lang, isMac) {
 
     menuTemplate.splice(4, 0, { role: "windowMenu"});
   } else {
-    let closeMenuItem = { label : "&Close", accelerator: "Ctrl+W", click : function (item, focusedWindow) { focusedWindow.webContents.send("menu-close-document"); }};
+    let closeMenuItem = { label : tr.close[lang], accelerator: "Ctrl+W", click : function (item, focusedWindow) { focusedWindow.webContents.send("menu-close-document"); }};
     menuTemplate[0].submenu.splice(3, 0, closeMenuItem);
     menuTemplate[0].submenu.push({type: "separator"}, {role: "quit"} );
   }
@@ -68,7 +68,7 @@ function fileMenu (isDocument, isNew, isChanged, columnNumber, hasLastExport, re
 
   recentDocsMenu = recentDocsMenu.slice(0,20);
   recentDocsMenu.push({ type: "separator" });
-  recentDocsMenu.push({ label: "Show Complete List...", click: handlers.openHome });
+  recentDocsMenu.push({ label: tr.showList[lang], click: handlers.openHome });
 
 
   let _subMenu =
@@ -80,21 +80,21 @@ function fileMenu (isDocument, isNew, isChanged, columnNumber, hasLastExport, re
       , accelerator: "CmdOrCtrl+O"
       , click: handlers.open
       }
-    , { label: "Open &Recent"
+    , { label: tr.openRecent[lang]
       , submenu : recentDocsMenu
       }
     , { type: "separator" }
-    , { label: (isNew ? "&Save" : (isChanged ? "&Save" : "Saved"))
+    , { label: (isNew ? tr.save[lang] : (isChanged ? tr.save[lang] : tr.saved[lang]))
       , enabled: isNew || isChanged
       , accelerator: "CmdOrCtrl+S"
       , click : isChanged ? handlers.save : handlers.saveAs
       }
-    , { label: "Save &As"
+    , { label: tr.saveAs[lang]
       , accelerator: "CmdOrCtrl+Shift+S"
       , click : handlers.saveAs
       }
     , { type: "separator" }
-    , { label: "&Import JSON File..."
+    , { label: tr.importJSON[lang]
       , click : handlers.import
       }
     ];
