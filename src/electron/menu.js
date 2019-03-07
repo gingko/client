@@ -72,11 +72,11 @@ function fileMenu (isDocument, isNew, isChanged, columnNumber, hasLastExport, re
 
 
   let _subMenu =
-    [ { label : "&New"
+    [ { label : tr.new[lang]
       , accelerator : "CmdOrCtrl+N"
       , click : handlers.new
       }
-    , { label: "&Open..."
+    , { label: tr.open[lang]
       , accelerator: "CmdOrCtrl+O"
       , click: handlers.open
       }
