@@ -397,7 +397,10 @@ ipcRenderer.on("menu-paste", () => toElm("Keyboard", "mod+v"));
 ipcRenderer.on("menu-paste-into", () => toElm("Keyboard", "mod+shift+v"));
 ipcRenderer.on("menu-view-videos", () => toElm("ViewVideos", null ));
 ipcRenderer.on("menu-font-selector", (event, data) => toElm("FontSelectorOpen", data));
-ipcRenderer.on("menu-language-select", (event, data) => toElm("SetLanguage", data));
+ipcRenderer.on("menu-language-select", (event, data) => {
+  userStore.set("language", data);
+  toElm("SetLanguage", data);
+});
 ipcRenderer.on("menu-contact-support", () => {
   if(crisp_loaded) {
     window.$crisp.push(["do", "chat:open"]);
