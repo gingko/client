@@ -199,6 +199,9 @@ function buildMenu (menuState) {
         const fonts = systemFonts.getFontsSync();
         focusedWindow.webContents.send("menu-font-selector", fonts);
       }
+    , language : (lang, focusedWindow) => {
+        focusedWindow.webContents.send("menu-language-select", lang);
+      }
     };
 
   let menuTemplate = getMenuTemplate(menuState, handlers, process.platform === "darwin");

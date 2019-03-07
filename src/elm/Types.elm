@@ -5,6 +5,7 @@ import Fonts
 import Html5.DragDrop as DragDrop
 import Json.Decode as Json
 import Time
+import Translation
 
 
 type Msg
@@ -91,6 +92,7 @@ type
     | FieldChanged String
     | TextSelected Bool
       -- === UI ===
+    | SetLanguage Translation.Language
     | ViewVideos
     | FontSelectorOpen (List String)
     | Keyboard String

@@ -33,7 +33,7 @@ viewSaveIndicator model =
         lastChangeString =
             "some time ago"
 
-        {--inWords
+        {--TODO : inWords
                 (model.currentTime |> Date.fromTime)
                 (lastCommitTime |> Date.fromTime)
                 ++ " ago"

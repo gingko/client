@@ -4,6 +4,7 @@ import Coders exposing (..)
 import Json.Decode exposing (decodeValue, errorToString)
 import Json.Encode exposing (..)
 import Json.Encode.Extra exposing (maybe)
+import Translation exposing (languageDecoder)
 import TreeUtils exposing (getColumn)
 import Types exposing (..)
 
@@ -223,6 +224,14 @@ receiveMsg tagger onError =
                             onError (errorToString e)
 
                 -- === UI ===
+                "SetLanguage" ->
+                    case decodeValue languageDecoder outsideInfo.data of
+                        Ok lang ->
+                            tagger <| SetLanguage lang
+
+                        Err e ->
+                            onError (errorToString e)
+
                 "ViewVideos" ->
                     tagger <| ViewVideos
 

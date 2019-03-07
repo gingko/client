@@ -251,6 +251,12 @@ function viewMenu(isDocument, handlers) {
           , enabled: isDocument
           , click : handlers.fonts
           }
+        , { label : "Select &Language"
+          , submenu :
+          [ { label : "English", type: "radio", click : (item, focusedWindow) => { handlers.language("en", focusedWindow);} }
+          , { label : "Español", type: "radio", checked: true, click : (item, focusedWindow) => { handlers.language("es", focusedWindow);} }
+          ]
+          }
         , { type : "separator" }
         , { label: "&Zoom In"
           , enabled: isDocument

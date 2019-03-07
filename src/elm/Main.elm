@@ -864,6 +864,11 @@ update msg ({ objects, workingTree, status } as model) =
                     )
 
                 -- === UI ===
+                SetLanguage lang ->
+                    ( { model | language = lang }
+                    , Cmd.none
+                    )
+
                 ViewVideos ->
                     ( model
                     , Cmd.none

@@ -1,4 +1,6 @@
-module Translation exposing (Language(..), TranslationId(..), tr)
+module Translation exposing (Language(..), TranslationId(..), languageDecoder, tr)
+
+import Json.Decode as Json exposing (..)
 
 
 type TranslationId
@@ -63,3 +65,20 @@ tr lang trans =
 
         Es ->
             .es translationSet
+
+
+languageDecoder : Decoder Language
+languageDecoder =
+    let
+        langFromString str =
+            case str of
+                "en" ->
+                    En
+
+                "es" ->
+                    Es
+
+                _ ->
+                    En
+    in
+    Json.map langFromString string
