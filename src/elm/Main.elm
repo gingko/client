@@ -418,23 +418,24 @@ update msg ({ objects, workingTree, status } as model) =
                                                 ((getParent id model.workingTree.tree |> Maybe.map .id) |> Maybe.withDefault "0")
                                                 ((getIndex id model.workingTree.tree |> Maybe.withDefault 0) + 1)
                             in
-                            ( modelDragUpdated, Cmd.none )
+                            ( { modelDragUpdated | viewState = { vs | draggedTree = Nothing } }, Cmd.none )
                                 |> moveOperation
 
                         Nothing ->
                             ( modelDragUpdated, Cmd.none )
 
                 ( Nothing, Nothing ) ->
-                    -- TODO : Deal with drag failures
-                    let
-                        _ =
-                            Debug.log "dragStatus: drag ended (succeeded OR failed)" ""
-                    in
                     -- NotDragging
-                    ( modelDragUpdated, Cmd.none )
+                    case vs.draggedTree of
+                        Just ( draggedTree, parentId, idx ) ->
+                            ( modelDragUpdated, Cmd.none )
+                                |> move draggedTree parentId idx
+
+                        Nothing ->
+                            ( modelDragUpdated, Cmd.none )
 
                 ( Just dragId, Just _ ) ->
-                    -- Impossible state: both Dragging and Dropped
+                    -- Should be Impossible: both Dragging and Dropped
                     ( modelDragUpdated, Cmd.none )
 
         -- === History ===
@@ -839,13 +840,12 @@ update msg ({ objects, workingTree, status } as model) =
 
                         draggedTree =
                             getTreeWithPosition dragId model.workingTree.tree
-
-                        {--TODO:
-                    if List.isEmpty <| getChildren newTree.tree then
-                        -- Don't allow dragging of last visible card
-                        --}
                     in
-                    ( { model | workingTree = newTree, viewState = { vs | draggedTree = draggedTree } }, Cmd.none )
+                    if List.isEmpty <| getChildren newTree.tree then
+                        ( model, Cmd.none )
+
+                    else
+                        ( { model | workingTree = newTree, viewState = { vs | draggedTree = draggedTree } }, Cmd.none )
 
                 FieldChanged str ->
                     ( { model

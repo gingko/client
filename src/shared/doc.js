@@ -108,7 +108,7 @@ function initElmAndPorts(initFlags) {
   })
 
   gingko.ports.dragstart.subscribe(function(event) {
-    console.log(event);
+    event.dataTransfer.setData("text", "");
     toElm("DragStarted", event.target.id.replace(/^card-/,""));
   });
 

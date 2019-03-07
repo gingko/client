@@ -456,7 +456,7 @@ viewGroup vstate depth xs =
                         |> List.map .uid
             in
             if t.id == vstate.active && not isEditing then
-                ( t.id, viewCardActive t.id t.content (hasChildren t) isLast collabsOnCard collabsEditingCard )
+                ( t.id, viewCardActive t.id t.content (hasChildren t) isLast collabsOnCard collabsEditingCard vstate.dragModel )
 
             else if isEditing then
                 ( t.id, viewCardEditing t.id t.content (hasChildren t) )
@@ -476,33 +476,6 @@ viewGroup vstate depth xs =
 
 viewCardOther : String -> String -> Bool -> Bool -> Bool -> Bool -> List String -> List String -> DragDrop.Model String DropId -> Html Msg
 viewCardOther cardId content isEditing isParent isAncestor isLast collabsOnCard collabsEditingCard dragModel =
-    let
-        dropRegions =
-            let
-                dropId_ =
-                    DragDrop.getDropId dragModel
-
-                dropDiv str dId =
-                    div
-                        ([ classList
-                            [ ( "drop-region-" ++ str, True )
-                            , ( "drop-hover", dropId_ == Just dId )
-                            ]
-                         ]
-                            ++ DragDrop.droppable DragDropMsg dId
-                        )
-                        []
-            in
-            [ dropDiv "above" (Above cardId)
-            , dropDiv "into" (Into cardId)
-            ]
-                ++ (if isLast then
-                        [ dropDiv "below" (Below cardId) ]
-
-                    else
-                        []
-                   )
-    in
     div
         ([ id ("card-" ++ cardId)
          , dir "auto"
@@ -521,7 +494,7 @@ viewCardOther cardId content isEditing isParent isAncestor isLast collabsOnCard 
                     []
                )
         )
-        (dropRegions
+        (dropRegions cardId isEditing isLast dragModel
             ++ [ div
                     [ class "view"
                     , onClick (Activate cardId)
@@ -533,8 +506,8 @@ viewCardOther cardId content isEditing isParent isAncestor isLast collabsOnCard 
         )
 
 
-viewCardActive : String -> String -> Bool -> Bool -> List String -> List String -> Html Msg
-viewCardActive cardId content isParent isLast collabsOnCard collabsEditingCard =
+viewCardActive : String -> String -> Bool -> Bool -> List String -> List String -> DragDrop.Model String DropId -> Html Msg
+viewCardActive cardId content isParent isLast collabsOnCard collabsEditingCard dragModel =
     let
         buttons =
             [ div [ class "flex-row card-top-overlay" ]
@@ -589,6 +562,7 @@ viewCardActive cardId content isParent isLast collabsOnCard collabsEditingCard =
             ++ DragDrop.draggable DragDropMsg cardId
         )
         (buttons
+            ++ dropRegions cardId False isLast dragModel
             ++ [ div
                     [ class "view"
                     , onClick (Activate cardId)
@@ -645,6 +619,42 @@ hasChildren { children } =
                 |> List.length
             )
                 /= 0
+
+
+dropRegions : String -> Bool -> Bool -> DragDrop.Model String DropId -> List (Html Msg)
+dropRegions cardId isEditing isLast dragModel =
+    let
+        dragId_ =
+            DragDrop.getDragId dragModel
+
+        dropId_ =
+            DragDrop.getDropId dragModel
+
+        dropDiv str dId =
+            div
+                ([ classList
+                    [ ( "drop-region-" ++ str, True )
+                    , ( "drop-hover", dropId_ == Just dId )
+                    ]
+                 ]
+                    ++ DragDrop.droppable DragDropMsg dId
+                )
+                []
+    in
+    case ( dragId_, isEditing ) of
+        ( Just dragId, False ) ->
+            [ dropDiv "above" (Above cardId)
+            , dropDiv "into" (Into cardId)
+            ]
+                ++ (if isLast then
+                        [ dropDiv "below" (Below cardId) ]
+
+                    else
+                        []
+                   )
+
+        _ ->
+            []
 
 
 viewContent : String -> Html Msg

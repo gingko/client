@@ -480,6 +480,7 @@ pre {
 
 .card img {
   max-width: 100%;
+  pointer-events: none; /* Prevents dragging images instead of cards */
 }
 
 /* ======== CARD (Edit view) ======== */
