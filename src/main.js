@@ -172,7 +172,9 @@ function validSerial(email, storedSerial) {
 
 /* ==== Menu ==== */
 
-function buildMenu (menuState) {
+function buildMenu (menuState, lang) {
+  lang = lang || userStore.get("language") || "en";
+
   if (menuState) {
     menuState.recentDocumentList = docList.getRecentDocs();
   }
@@ -201,10 +203,12 @@ function buildMenu (menuState) {
       }
     , language : (lang, focusedWindow) => {
         focusedWindow.webContents.send("menu-language-select", lang);
+        let focusedWinMenuState = docWindowMenuStates[focusedWindow.id];
+        buildMenu(focusedWinMenuState, lang);
       }
     };
 
-  let menuTemplate = getMenuTemplate(menuState, handlers, userStore.get("language"), process.platform === "darwin");
+  let menuTemplate = getMenuTemplate(menuState, handlers, lang, process.platform === "darwin");
   let menu = Menu.buildFromTemplate(menuTemplate);
   Menu.setApplicationMenu(menu);
 }
