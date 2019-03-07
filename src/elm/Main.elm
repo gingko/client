@@ -19,7 +19,7 @@ import Regex
 import Sha1 exposing (timeJSON)
 import Task
 import Time
-import Translation exposing (tr)
+import Translation exposing (langFromString, tr)
 import TreeUtils exposing (..)
 import Trees exposing (..)
 import Types exposing (..)
@@ -127,7 +127,8 @@ type alias Model =
 
 
 type alias InitModel =
-    { isMac : Bool
+    { language : String
+    , isMac : Bool
     , shortcutTrayOpen : Bool
     , videoModalOpen : Bool
     , currentTime : Int
@@ -165,7 +166,7 @@ defaultModel =
         }
     , field = ""
     , isMac = False
-    , language = Translation.Es
+    , language = Translation.En
     , isTextSelected = False
     , shortcutTrayOpen = True
     , wordcountTrayOpen = False
@@ -227,6 +228,7 @@ init ( dataIn, modelIn, isSaved ) =
         | workingTree = newWorkingTree
         , objects = newObjects
         , status = newStatus
+        , language = langFromString modelIn.language
         , isMac = modelIn.isMac
         , shortcutTrayOpen = modelIn.shortcutTrayOpen
         , videoModalOpen = modelIn.videoModalOpen

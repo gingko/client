@@ -64,7 +64,8 @@ ipcRenderer.on("database-close", async (ev) => {
 if(!!jsonImportData) {
   var initFlags =
     [ jsonImportData
-      , { isMac : process.platform === "darwin"
+      , { language : userStore.get("language")
+        , isMac : process.platform === "darwin"
         , shortcutTrayOpen : userStore.get('shortcut-tray-is-open', true)
         , videoModalOpen : userStore.get('video-modal-is-open', false)
         , currentTime : Date.now()
@@ -82,7 +83,8 @@ if(!!jsonImportData) {
 
     var initFlags =
       [ dbData
-        , { isMac : process.platform === "darwin"
+        , { language : userStore.get("language")
+          , isMac : process.platform === "darwin"
           , shortcutTrayOpen : userStore.get('shortcut-tray-is-open', true)
           , videoModalOpen : userStore.get('video-modal-is-open', false)
           , currentTime : Date.now()
