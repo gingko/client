@@ -204,7 +204,7 @@ function buildMenu (menuState) {
       }
     };
 
-  let menuTemplate = getMenuTemplate(menuState, handlers, process.platform === "darwin");
+  let menuTemplate = getMenuTemplate(menuState, handlers, userStore.get("language"), process.platform === "darwin");
   let menu = Menu.buildFromTemplate(menuTemplate);
   Menu.setApplicationMenu(menu);
 }

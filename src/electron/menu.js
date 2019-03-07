@@ -1,7 +1,8 @@
 const { shell } = require("electron");
+const { tr } = require("../shared/translation.js");
 
 
-function getTemplate (menuState, handlers, isMac) {
+function getTemplate (menuState, handlers, lang, isMac) {
   let isDocument = !!menuState;
   let isNew = menuState && menuState.isNew;
   let isEditing = menuState && menuState.editMode;
@@ -9,9 +10,10 @@ function getTemplate (menuState, handlers, isMac) {
   let changed = menuState && menuState.changed;
   let hasLastExport = menuState && menuState.hasLastExport;
   let recentDocumentList = ( menuState && menuState.recentDocumentList ) || [];
+  lang = lang || "en";
 
   let menuTemplate =
-    [ fileMenu(isDocument, isNew, changed, columnNumber, hasLastExport, recentDocumentList, handlers)
+    [ fileMenu(isDocument, isNew, changed, columnNumber, hasLastExport, recentDocumentList, lang, handlers)
     , editMenu(isDocument, isEditing, isMac)
     , viewMenu(isDocument, handlers)
     , helpMenu(handlers, isMac)
@@ -56,7 +58,7 @@ module.exports = getTemplate;
 /* PRIVATE FUNCTIONS */
 
 
-function fileMenu (isDocument, isNew, isChanged, columnNumber, hasLastExport, recentDocumentList, handlers) {
+function fileMenu (isDocument, isNew, isChanged, columnNumber, hasLastExport, recentDocumentList, lang, handlers) {
   let _fileMenu;
 
   let recentDocsMenu =
@@ -124,7 +126,7 @@ function fileMenu (isDocument, isNew, isChanged, columnNumber, hasLastExport, re
   }
 
   _fileMenu =
-    { label : "&File"
+    { label : tr.file[lang]
     , submenu : _subMenu
     };
 
