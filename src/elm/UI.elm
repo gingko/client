@@ -12,6 +12,7 @@ import Objects
 import Octicons as Icon exposing (defaultOptions)
 import Regex exposing (Regex, replace)
 import Time
+import Translation exposing (Language, TranslationId(..), tr)
 import TreeUtils exposing (..)
 import Trees exposing (defaultTree)
 import Types exposing (..)
@@ -77,7 +78,7 @@ viewSearchField model =
             []
 
 
-viewFooter : { m | viewState : ViewState, workingTree : Trees.Model, startingWordcount : Int, shortcutTrayOpen : Bool, wordcountTrayOpen : Bool, isMac : Bool, isTextSelected : Bool, changed : Bool } -> Html Msg
+viewFooter : { m | viewState : ViewState, workingTree : Trees.Model, startingWordcount : Int, shortcutTrayOpen : Bool, wordcountTrayOpen : Bool, language : Language, isMac : Bool, isTextSelected : Bool, changed : Bool } -> Html Msg
 viewFooter model =
     let
         wordCounts =
@@ -96,12 +97,14 @@ viewFooter model =
                     , classList [ ( "inset", True ), ( "open", model.wordcountTrayOpen ) ]
                     , onClick WordcountTrayToggle
                     ]
-                    [ span [] [ text ("Session: " ++ (session |> toWordsString)) ]
-                    , span [] [ text ("Total: " ++ (current |> toWordsString)) ]
-                    , span [] [ text ("Card: " ++ (wordCounts.card |> toWordsString)) ]
-                    , span [] [ text ("Subtree: " ++ (wordCounts.subtree |> toWordsString)) ]
-                    , span [] [ text ("Group: " ++ (wordCounts.group |> toWordsString)) ]
-                    , span [] [ text ("Column: " ++ (wordCounts.column |> toWordsString)) ]
+                    [ span [] [ text (tr model.language (WordCountSession session)) ]
+                    , span [] [ text (tr model.language (WordCountTotal current)) ]
+                    , span [] [ text (tr model.language (WordCountCard wordCounts.card)) ]
+
+                    --, span [] [ text ("Card: " ++ (wordCounts.card |> toWordsString)) ]
+                    --, span [] [ text ("Subtree: " ++ (wordCounts.subtree |> toWordsString)) ]
+                    --, span [] [ text ("Group: " ++ (wordCounts.group |> toWordsString)) ]
+                    --, span [] [ text ("Column: " ++ (wordCounts.column |> toWordsString)) ]
                     ]
                 ]
 
@@ -374,16 +377,6 @@ countWords str =
         |> String.words
         |> List.filter ((/=) "")
         |> List.length
-
-
-toWordsString : Int -> String
-toWordsString num =
-    case num of
-        1 ->
-            "1 word"
-
-        n ->
-            Debug.toString n ++ " words"
 
 
 viewConflict : Conflict -> Html Msg

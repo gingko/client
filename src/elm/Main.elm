@@ -19,6 +19,7 @@ import Regex
 import Sha1 exposing (timeJSON)
 import Task
 import Time
+import Translation exposing (tr)
 import TreeUtils exposing (..)
 import Trees exposing (..)
 import Types exposing (..)
@@ -101,6 +102,7 @@ type alias Model =
     , uid : String
     , viewState : ViewState
     , field : String
+    , language : Translation.Language
     , isMac : Bool
     , isTextSelected : Bool
     , shortcutTrayOpen : Bool
@@ -163,6 +165,7 @@ defaultModel =
         }
     , field = ""
     , isMac = False
+    , language = Translation.Es
     , isTextSelected = False
     , shortcutTrayOpen = True
     , wordcountTrayOpen = False
