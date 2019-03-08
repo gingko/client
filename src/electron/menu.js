@@ -14,9 +14,9 @@ function getTemplate (menuState, handlers, lang, isMac) {
 
   let menuTemplate =
     [ fileMenu(isDocument, isNew, changed, columnNumber, hasLastExport, recentDocumentList, lang, handlers)
-    , editMenu(isDocument, isEditing, isMac)
+    , editMenu(isDocument, isEditing, isMac, lang)
     , viewMenu(isDocument, lang, handlers)
-    , helpMenu(handlers, isMac)
+    , helpMenu(handlers, isMac, lang)
     ];
 
 
@@ -43,7 +43,7 @@ function getTemplate (menuState, handlers, lang, isMac) {
   } else {
     let closeMenuItem = { label : tr.close[lang], accelerator: "Ctrl+W", click : function (item, focusedWindow) { focusedWindow.webContents.send("menu-close-document"); }};
     menuTemplate[0].submenu.splice(3, 0, closeMenuItem);
-    menuTemplate[0].submenu.push({type: "separator"}, {role: "quit"} );
+    menuTemplate[0].submenu.push({type: "separator"}, {role: "quit", label: tr.quit[lang]} );
   }
 
   return menuTemplate;
@@ -103,18 +103,18 @@ function fileMenu (isDocument, isNew, isChanged, columnNumber, hasLastExport, re
   if (isDocument) {
     _subMenu = _subMenu.concat(
       [ { type: "separator" }
-      , { label: "Export as MS &Word"
-        , submenu : exportMenu("docx", columnNumber)
+      , { label: tr.exportAsWord[lang]
+        , submenu : exportMenu("docx", columnNumber, lang)
         }
-      , { label: "Export as &Text"
-        , submenu : exportMenu("txt", columnNumber)
+      , { label: tr.exportAsText[lang]
+        , submenu : exportMenu("txt", columnNumber, lang)
         }
-      , { label: "Export as &JSON..."
+      , { label: tr.exportAsJSON[lang]
         , click : function (item, focusedWindow) {
             focusedWindow.webContents.send("menu-export-json");
           }
         }
-      , { label: "Repeat Last E&xport"
+      , { label: tr.repeatExport[lang]
         , enabled: hasLastExport
         , accelerator: "CommandOrControl+r"
         , click : function (item, focusedWindow) {
@@ -136,14 +136,14 @@ function fileMenu (isDocument, isNew, isChanged, columnNumber, hasLastExport, re
 
 
 
-function exportMenu (format, cols) {
+function exportMenu (format, cols, lang) {
   let _expMenu =
-    [ { label : "Entire Document..."
+    [ { label : tr.entireDocument[lang]
       , click : function (item, focusedWindow) {
         focusedWindow.webContents.send(`menu-export-${format}`);
       }
     }
-      , { label : "Current Card and Children..."
+      , { label : tr.currentSubtree[lang]
         , click : function (item, focusedWindow) {
           focusedWindow.webContents.send(`menu-export-${format}-current`);
         }
@@ -152,7 +152,7 @@ function exportMenu (format, cols) {
     ];
 
   let expMenuItem = function (num) {
-    return { label : `Column ${num}...`
+    return { label : tr.column[lang](num)
       , click : function (item, focusedWindow) {
         focusedWindow.webContents.send(`menu-export-${format}-column`, num);
       }
@@ -170,40 +170,40 @@ function exportMenu (format, cols) {
 
 
 
-function editMenu (isDocument, isEditing, isMac) {
+function editMenu (isDocument, isEditing, isMac, lang) {
   let _editMenu;
 
   if ( (isDocument && isEditing) || !isDocument ) {
     _editMenu =
-      { label: "&Edit"
+      { label: tr.edit[lang]
       , submenu:
-          [ { role: "undo" }
-          , { role: "redo" }
+          [ { role: "undo" , label : tr.undo[lang] }
+          , { role: "redo" , label : tr.redo[lang] }
           , { type: "separator" }
-          , { role: "cut" }
-          , { role: "copy" }
-          , { role: "paste" }
-          , { role: "selectAll"}
+          , { role: "cut" , label : tr.cut[lang] }
+          , { role: "copy", label : tr.copy[lang] }
+          , { role: "paste" , label : tr.paste[lang] }
+          , { role: "selectAll", label : tr.selectAll[lang] }
           ]
       };
   } else {
     _editMenu =
-      { label: "&Edit"
+      { label: tr.edit[lang]
       , submenu:
-          [ { label: "&Undo"
+          [ { label: tr.undo[lang]
             , accelerator : "CommandOrControl+Z"
             , click : function (item, focusedWindow) {
                 focusedWindow.webContents.send("menu-undo");
               }
             }
-          , { label: "&Redo"
+          , { label: tr.redo[lang]
             , accelerator : "CommandOrControl+Shift+Z"
             , click : function (item, focusedWindow) {
                 focusedWindow.webContents.send("menu-redo");
               }
             }
           , { type: "separator" }
-          , { label: "Cu&t Cards"
+          , { label: tr.cutCards[lang]
             , accelerator : "CommandOrControl+X"
             , click : function (item, focusedWindow) {
                 if (!isMac) {
@@ -211,7 +211,7 @@ function editMenu (isDocument, isEditing, isMac) {
                 }
               }
             }
-          , { label: "&Copy Cards"
+          , { label: tr.copyCards[lang]
             , accelerator : "CommandOrControl+C"
             , click : function (item, focusedWindow) {
                 if (!isMac) {
@@ -219,7 +219,7 @@ function editMenu (isDocument, isEditing, isMac) {
                 }
               }
             }
-          , { label: "&Paste Cards"
+          , { label: tr.pasteCards[lang]
             , accelerator : "CommandOrControl+V"
             , click : function (item, focusedWindow) {
                 if (!isMac) {
@@ -227,7 +227,7 @@ function editMenu (isDocument, isEditing, isMac) {
                 }
               }
             }
-          , { label: "Paste Cards as Children"
+          , { label: tr.pasteCardsInto[lang]
             , accelerator : "CommandOrControl+Shift+V"
             , click : function (item, focusedWindow) {
                 if (!isMac) {
@@ -247,20 +247,20 @@ function editMenu (isDocument, isEditing, isMac) {
 
 function viewMenu(isDocument, lang, handlers) {
   let _viewMenu =
-    { label: "&View"
+    { label: tr.view[lang]
     , submenu:
-        [ { label: "Select &Fonts..."
+        [ { label: tr.selectFonts[lang]
           , enabled: isDocument
           , click : handlers.fonts
           }
-        , { label : "Select &Language"
+        , { label : tr.selectLanguage[lang]
           , submenu :
           [ { label : "English", type: "radio", checked: lang == "en", click : (item, focusedWindow) => { handlers.language("en", focusedWindow);} }
           , { label : "Español", type: "radio", checked: lang == "es", click : (item, focusedWindow) => { handlers.language("es", focusedWindow);} }
           ]
           }
         , { type : "separator" }
-        , { label: "&Zoom In"
+        , { label: tr.zoomIn[lang]
           , enabled: isDocument
           , accelerator: "CommandOrControl+="
           , click : function (item, focusedWindow) {
@@ -270,7 +270,7 @@ function viewMenu(isDocument, lang, handlers) {
               });
             }
           }
-        , { label: "Zoom &Out"
+        , { label: tr.zoomOut[lang]
           , enabled: isDocument
           , accelerator: "CommandOrControl+-"
           , click : function (item, focusedWindow) {
@@ -280,7 +280,7 @@ function viewMenu(isDocument, lang, handlers) {
               });
             }
           }
-        , { label: "&Reset Zoom"
+        , { label: tr.resetZoom[lang]
           , enabled: isDocument
           , accelerator: "CommandOrControl+0"
           , click : function (item, focusedWindow) {
@@ -288,7 +288,7 @@ function viewMenu(isDocument, lang, handlers) {
             }
           }
         , { type: "separator" }
-        , { role: "togglefullscreen" }
+        , { role: "togglefullscreen", label : tr.toggleFullscreen[lang] }
         ]
     };
 
@@ -297,30 +297,30 @@ function viewMenu(isDocument, lang, handlers) {
 
 
 
-function helpMenu(handlers, isMac) {
+function helpMenu(handlers, isMac, lang) {
   let _helpMenu;
 
   _helpMenu =
-    { label: "&Help"
+    { label: tr.help[lang]
     , submenu:
-        [ { label: "&FAQ..."
+        [ { label: tr.faq[lang]
           , click : () => shell.openExternal("https://gingko.io/faq.html")
           }
-        , { label: "Features &List && Known Bugs..."
+        , { label: tr.issuesList[lang]
           , click : () => shell.openExternal("https://github.com/gingko/client/issues")
           }
-        , { label: "&Contact Adriano..."
+        , { label: tr.contactAdri[lang]
           , click : (item, focusedWindow) => focusedWindow.webContents.send("menu-contact-support")
           }
         , { type: "separator" }
-        , { label: "&Buy a License..."
+        , { label: tr.buyLicense[lang]
           , click : () => shell.openExternal("https://gingkoapp.com/desktop-upgrade")
           }
-        , { label: "&Enter License..."
+        , { label: tr.enterLicense[lang]
           , click : handlers.enterLicense
           }
         , { type: "separator" }
-        , { label: "Open &Debugging Tools"
+        , { label: tr.openDevTools[lang]
           , accelerator: isMac ? "Alt+Command+I" : "Ctrl+Shift+I"
           , click : function (item, focusedWindow) {
               if (focusedWindow) focusedWindow.webContents.toggleDevTools();
