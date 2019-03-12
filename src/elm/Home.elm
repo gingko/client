@@ -1,4 +1,4 @@
-port module Home exposing (Document, Model, Msg(..), defaultDocument, docListReload, forJS, init, main, subscriptions, update, view, viewDocList, viewDocumentItem)
+port module Home exposing (Document, Model, Msg(..), docListReload, forJS, init, main, subscriptions, update, view, viewDocList, viewDocumentItem)
 
 import Browser
 import Coders exposing (maybeToValue)
@@ -14,9 +14,10 @@ import Octicons as Icon
 import Strftime
 import Time
 import Time.Distance as TimeDistance
+import Translation exposing (TranslationId(..), langFromString, tr)
 
 
-main : Program ( Int, List ( String, Document ) ) Model Msg
+main : Program ( Int, List ( String, Document ), String ) Model Msg
 main =
     Browser.element
         { init = init
@@ -34,6 +35,7 @@ type alias Model =
     { documents : Dict String Document
     , archiveDropdown : Bool
     , currentTime : Time.Posix
+    , language : Translation.Language
     }
 
 
@@ -46,21 +48,12 @@ type alias Document =
     }
 
 
-defaultDocument : Document
-defaultDocument =
-    { name = Just "Untitled"
-    , state = "active"
-    , created_at = ""
-    , last_modified = ""
-    , last_opened = ""
-    }
-
-
-init : ( Int, List ( String, Document ) ) -> ( Model, Cmd Msg )
-init ( time, dbObj ) =
+init : ( Int, List ( String, Document ), String ) -> ( Model, Cmd Msg )
+init ( time, dbObj, langString ) =
     ( { documents = dbObj |> Dict.fromList
       , archiveDropdown = False
       , currentTime = Time.millisToPosix time
+      , language = langFromString langString
       }
     , Cmd.none
     )
@@ -163,7 +156,7 @@ update msg model =
 
 
 view : Model -> Html Msg
-view { documents, archiveDropdown, currentTime } =
+view { documents, archiveDropdown, currentTime, language } =
     let
         visibleWhen bool =
             classList [ ( "visible", bool ), ( "hidden", not bool ) ]
@@ -177,66 +170,51 @@ view { documents, archiveDropdown, currentTime } =
             documents
                 |> Dict.filter (\_ v -> v.state == "archived")
                 |> Dict.size
-
-        archivedText bool =
-            "Archived ("
-                ++ (numArchived |> Debug.toString)
-                ++ ")"
-                ++ (case ( bool, numArchived == 0 ) of
-                        ( _, True ) ->
-                            ""
-
-                        ( True, _ ) ->
-                            " ▴"
-
-                        ( False, _ ) ->
-                            " ▾"
-                   )
     in
     div [ id "container" ]
         [ div [ id "templates-block" ]
             [ div [ class "template-item", onClick New ]
                 [ div [ classList [ ( "template-thumbnail", True ), ( "new", True ) ] ] []
-                , div [ class "template-title" ] [ text "Blank" ]
+                , div [ class "template-title" ] [ text <| tr language HomeBlank ]
                 ]
             , div [ class "template-item", onClick Import ]
                 [ div [ classList [ ( "template-thumbnail", True ), ( "import", True ) ] ] [ Icon.file (Icon.defaultOptions |> Icon.size 48) ]
-                , div [ class "template-title" ] [ text "Import JSON" ]
+                , div [ class "template-title" ] [ text <| tr language HomeImportJSON ]
                 , div [ class "template-description" ]
-                    [ text "From Desktop or Online" ]
+                    [ text <| tr language HomeJSONFrom ]
                 ]
             ]
         , div [ id "documents-block" ]
             [ h4 [ class "list-section-header" ]
-                [ text "Recent Documents"
+                [ text <| tr language RecentDocuments
                 , span
                     [ class "list-header", visibleWhen (numActive /= 0) ]
-                    [ div [] [ text "Last Opened" ]
+                    [ div [] [ text <| tr language LastOpened ]
                     ]
                 ]
-            , viewDocList currentTime "active" documents
+            , viewDocList language currentTime "active" documents
             ]
         , div [ id "buttons-block" ]
             [ div [ onClick OpenOther, class "document-item" ]
-                [ text "Open Other Documents" ]
+                [ text <| tr language OpenOtherDocuments ]
             ]
         ]
 
 
-viewDocList : Time.Posix -> String -> Dict String Document -> Html Msg
-viewDocList currTime state docDict =
+viewDocList : Translation.Language -> Time.Posix -> String -> Dict String Document -> Html Msg
+viewDocList lang currTime state docDict =
     div [ classList [ ( "document-list", True ), ( state, True ) ] ]
         (docDict
             |> Dict.filter (\k v -> v.state == state)
             |> Dict.toList
             |> List.sortBy (\( k, v ) -> v.last_opened)
             |> List.reverse
-            |> List.map (viewDocumentItem currTime)
+            |> List.map (viewDocumentItem lang currTime)
         )
 
 
-viewDocumentItem : Time.Posix -> ( String, Document ) -> Html Msg
-viewDocumentItem currTime ( dbname, document ) =
+viewDocumentItem : Translation.Language -> Time.Posix -> ( String, Document ) -> Html Msg
+viewDocumentItem lang currTime ( dbname, document ) =
     let
         onClickThis msg =
             stopPropagationOn "click" (succeed ( msg, True ))
@@ -282,7 +260,7 @@ viewDocumentItem currTime ( dbname, document ) =
 
                 _ ->
                     [ div
-                        [ onClickThis (SetState dbname "archived"), title "Remove From List" ]
+                        [ onClickThis (SetState dbname "archived"), title <| tr lang RemoveFromList ]
                         [ Icon.x Icon.defaultOptions ]
                     ]
     in

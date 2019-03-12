@@ -4,7 +4,14 @@ import Json.Decode as Json exposing (..)
 
 
 type TranslationId
-    = WordCountSession Int
+    = HomeBlank
+    | HomeImportJSON
+    | HomeJSONFrom
+    | RecentDocuments
+    | LastOpened
+    | OpenOtherDocuments
+    | RemoveFromList
+    | WordCountSession Int
     | WordCountTotal Int
     | WordCountCard Int
     | WordCountSubtree Int
@@ -29,6 +36,41 @@ tr lang trans =
 
         translationSet =
             case trans of
+                HomeBlank ->
+                    { en = "Blank"
+                    , es = "Vacío"
+                    }
+
+                HomeImportJSON ->
+                    { en = "Import JSON"
+                    , es = "Importar JSON"
+                    }
+
+                HomeJSONFrom ->
+                    { en = "From Desktop or Online"
+                    , es = "Del App Escritorio o Web"
+                    }
+
+                RecentDocuments ->
+                    { en = "Recent Documents"
+                    , es = "Documentos Recientes"
+                    }
+
+                LastOpened ->
+                    { en = "Last Opened"
+                    , es = "Última Apertura"
+                    }
+
+                OpenOtherDocuments ->
+                    { en = "Open Other Documents"
+                    , es = "Abrir Otros Documentos"
+                    }
+
+                RemoveFromList ->
+                    { en = "Remove From List"
+                    , es = "Elminiar de la Lista"
+                    }
+
                 WordCountSession n ->
                     { en = "Session: " ++ String.fromInt n ++ pluralize n " word"
                     , es = "Sesión: " ++ String.fromInt n ++ pluralize n " palabra"
