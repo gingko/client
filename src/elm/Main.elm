@@ -2124,7 +2124,7 @@ repeating-linear-gradient(-45deg
                 , viewFooter model
                 , case ( model.historyState, model.status ) of
                     ( From _, Clean currHead ) ->
-                        viewHistory currHead model.objects
+                        viewHistory model.language currHead model.objects
 
                     _ ->
                         text ""

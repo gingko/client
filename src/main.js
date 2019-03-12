@@ -61,8 +61,6 @@ function createHomeWindow () {
 
   winHome.loadURL(url)
 
-  winHome.openDevTools();
-
   winHome.on('closed', () => {
     winHome = null;
   })

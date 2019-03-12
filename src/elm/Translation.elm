@@ -4,13 +4,28 @@ import Json.Decode as Json exposing (..)
 
 
 type TranslationId
-    = HomeBlank
+    = Cancel
+    | HomeBlank
     | HomeImportJSON
     | HomeJSONFrom
     | RecentDocuments
     | LastOpened
     | OpenOtherDocuments
     | RemoveFromList
+    | UnsavedChanges
+    | AllChangesSaved
+    | RestoreThisVersion
+    | EnterKey
+    | EnterAction
+    | ArrowsAction
+    | AddChildAction
+    | AddBelowAction
+    | AddAboveAction
+    | ArrowKeys
+    | MoveAction
+    | Backspace
+    | DeleteAction
+    | FormattingGuide
     | WordCountSession Int
     | WordCountTotal Int
     | WordCountCard Int
@@ -36,6 +51,11 @@ tr lang trans =
 
         translationSet =
             case trans of
+                Cancel ->
+                    { en = "Cancel"
+                    , es = "Cancelar"
+                    }
+
                 HomeBlank ->
                     { en = "Blank"
                     , es = "Vacío"
@@ -69,6 +89,76 @@ tr lang trans =
                 RemoveFromList ->
                     { en = "Remove From List"
                     , es = "Elminiar de la Lista"
+                    }
+
+                UnsavedChanges ->
+                    { en = "Unsaved changes..."
+                    , es = "Cambios no guardados..."
+                    }
+
+                AllChangesSaved ->
+                    { en = "All changes saved"
+                    , es = "Todos los cambios guardados"
+                    }
+
+                RestoreThisVersion ->
+                    { en = "Restore this Version"
+                    , es = "Restaurar esta Versión"
+                    }
+
+                EnterKey ->
+                    { en = "Enter"
+                    , es = "Enter"
+                    }
+
+                EnterAction ->
+                    { en = "to Edit"
+                    , es = "para Editar"
+                    }
+
+                ArrowsAction ->
+                    { en = "to Navigate"
+                    , es = "para Navegar"
+                    }
+
+                AddChildAction ->
+                    { en = "to Add Child"
+                    , es = "para Agregar un Hijo"
+                    }
+
+                AddBelowAction ->
+                    { en = "to Add Below"
+                    , es = "para Agregar Abajo"
+                    }
+
+                AddAboveAction ->
+                    { en = "to Add Above"
+                    , es = "para Agregar Arriba"
+                    }
+
+                ArrowKeys ->
+                    { en = "(arrows)"
+                    , es = "(flechas)"
+                    }
+
+                MoveAction ->
+                    { en = "to Move"
+                    , es = "para Mover"
+                    }
+
+                Backspace ->
+                    { en = "Backspace"
+                    , es = "Backspace"
+                    }
+
+                DeleteAction ->
+                    { en = "to Delete"
+                    , es = "para Eliminar"
+                    }
+
+                FormattingGuide ->
+                    { en = "Formatting Syntax Guide"
+                    , es = "Guía de Sintaxis para Formato"
                     }
 
                 WordCountSession n ->

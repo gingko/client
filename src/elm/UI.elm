@@ -18,11 +18,11 @@ import Trees exposing (defaultTree)
 import Types exposing (..)
 
 
-viewSaveIndicator : { m | changed : Bool, objects : Objects.Model, currentTime : Time.Posix } -> Html Msg
-viewSaveIndicator model =
+viewSaveIndicator : { m | changed : Bool, objects : Objects.Model, currentTime : Time.Posix, language : Translation.Language } -> Html Msg
+viewSaveIndicator { changed, objects, currentTime, language } =
     let
         lastCommitTime =
-            model.objects.commits
+            objects.commits
                 |> Dict.toList
                 |> List.sortBy (\( k, v ) -> -v.timestamp)
                 |> List.map (\( k, v ) -> v.timestamp)
@@ -40,12 +40,12 @@ viewSaveIndicator model =
                 --}
     in
     div
-        [ id "save-indicator", classList [ ( "inset", True ), ( "saving", model.changed ) ] ]
-        [ if model.changed then
-            span [ title ("Last saved " ++ lastChangeString) ] [ text "Unsaved changes..." ]
+        [ id "save-indicator", classList [ ( "inset", True ), ( "saving", changed ) ] ]
+        [ if changed then
+            span [ title ("Last saved " ++ lastChangeString) ] [ text <| tr language UnsavedChanges ]
 
           else
-            span [ title ("Last edit " ++ lastChangeString) ] [ text "All changes saved" ]
+            span [ title ("Last edit " ++ lastChangeString) ] [ text <| tr language AllChangesSaved ]
         ]
 
 
@@ -130,13 +130,13 @@ viewFooter model =
     in
     div
         [ class "footer" ]
-        ([ viewShortcutsToggle model.shortcutTrayOpen model.isMac isOnly model.isTextSelected model.viewState ]
+        ([ viewShortcutsToggle model.language model.shortcutTrayOpen model.isMac isOnly model.isTextSelected model.viewState ]
             ++ viewWordCount
         )
 
 
-viewHistory : String -> Objects.Model -> Html Msg
-viewHistory currHead objects =
+viewHistory : Translation.Language -> String -> Objects.Model -> Html Msg
+viewHistory lang currHead objects =
     let
         master =
             Dict.get "heads/master" objects.refs
@@ -174,8 +174,8 @@ viewHistory currHead objects =
     in
     div [ id "history" ]
         [ input [ type_ "range", A.min "0", A.max maxIdx, value currIdx, step "1", onInput checkoutCommit ] []
-        , button [ onClick Restore ] [ text "Restore this Version" ]
-        , button [ onClick CancelHistory ] [ text "Cancel" ]
+        , button [ onClick Restore ] [ text <| tr lang RestoreThisVersion ]
+        , button [ onClick CancelHistory ] [ text <| tr lang Cancel ]
         ]
 
 
@@ -203,8 +203,8 @@ viewVideo { videoModalOpen } =
         div [] []
 
 
-viewShortcutsToggle : Bool -> Bool -> Bool -> Bool -> ViewState -> Html Msg
-viewShortcutsToggle isOpen isMac isOnly isTextSelected vs =
+viewShortcutsToggle : Language -> Bool -> Bool -> Bool -> Bool -> ViewState -> Html Msg
+viewShortcutsToggle lang isOpen isMac isOnly isTextSelected vs =
     let
         viewIf cond content =
             if cond then
@@ -244,13 +244,13 @@ viewShortcutsToggle isOpen isMac isOnly isTextSelected vs =
             div
                 [ id "shortcuts-tray", class "inset", onClick ShortcutTrayToggle ]
                 [ div [ class "popup" ]
-                    [ shortcutSpan [ "Enter" ] "to Edit"
-                    , viewIf (not isOnly) <| shortcutSpan [ "↑", "↓", "←", "→" ] "to Navigate"
-                    , shortcutSpan [ ctrlOrCmd, "→" ] "to Add Child"
-                    , shortcutSpan [ ctrlOrCmd, "↓" ] "to Add Below"
-                    , shortcutSpan [ ctrlOrCmd, "↑" ] "to Add Above"
-                    , viewIf (not isOnly) <| shortcutSpan [ "Alt", "(arrows)" ] "to Move"
-                    , viewIf (not isOnly) <| shortcutSpan [ ctrlOrCmd, "Backspace" ] "to Delete"
+                    [ shortcutSpan [ tr lang EnterKey ] (tr lang EnterAction)
+                    , viewIf (not isOnly) <| shortcutSpan [ "↑", "↓", "←", "→" ] (tr lang ArrowsAction)
+                    , shortcutSpan [ ctrlOrCmd, "→" ] (tr lang AddChildAction)
+                    , shortcutSpan [ ctrlOrCmd, "↓" ] (tr lang AddBelowAction)
+                    , shortcutSpan [ ctrlOrCmd, "↑" ] (tr lang AddAboveAction)
+                    , viewIf (not isOnly) <| shortcutSpan [ "Alt", tr lang ArrowKeys ] (tr lang MoveAction)
+                    , viewIf (not isOnly) <| shortcutSpan [ ctrlOrCmd, tr lang Backspace ] (tr lang DeleteAction)
                     ]
                 , div [ class "icon-stack" ]
                     [ Icon.keyboard (defaultOptions |> iconColor)
@@ -272,7 +272,7 @@ viewShortcutsToggle isOpen isMac isOnly isTextSelected vs =
                     , shortcutSpanEnabled isTextSelected [ ctrlOrCmd, "I" ] "for Italic"
                     , span [ class "markdown-guide" ]
                         [ a [ href "http://commonmark.org/help" ]
-                            [ text "Markdown Formatting Guide"
+                            [ text <| tr lang FormattingGuide
                             , span [ class "icon-container" ] [ Icon.linkExternal (defaultOptions |> iconColor |> Icon.size 14) ]
                             ]
                         ]
