@@ -2144,8 +2144,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ receiveMsg Port LogErr
-
-        --, TODO Time.every (15 * second) TimeUpdate
+        , Time.every (15 * 1000) TimeUpdate
         ]
 
 
