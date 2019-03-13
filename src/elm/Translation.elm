@@ -1,6 +1,10 @@
-module Translation exposing (Language(..), TranslationId(..), langFromString, languageDecoder, tr)
+module Translation exposing (Language(..), TranslationId(..), langFromString, languageDecoder, timeDistInWords, tr)
 
+import Date.Distance as DateDist exposing (defaultConfig)
+import Date.Distance.I18n.En as DateDistEn
+import Date.Distance.I18n.Fr as DateDistFr
 import Json.Decode as Json exposing (..)
+import Time
 
 
 type TranslationId
@@ -26,6 +30,9 @@ type TranslationId
     | Backspace
     | DeleteAction
     | FormattingGuide
+    | ToSaveChanges
+    | EscKey
+    | ToCancelChanges
     | WordCountSession Int
     | WordCountTotal Int
     | WordCountCard Int
@@ -161,6 +168,21 @@ tr lang trans =
                     , es = "Guía de Sintaxis para Formato"
                     }
 
+                ToSaveChanges ->
+                    { en = "to Save Changes"
+                    , es = "para Guardar Cambios"
+                    }
+
+                EscKey ->
+                    { en = "Esc"
+                    , es = "Esc"
+                    }
+
+                ToCancelChanges ->
+                    { en = "to Cancel Changes"
+                    , es = "para Cancelar Cambios"
+                    }
+
                 WordCountSession n ->
                     { en = "Session: " ++ String.fromInt n ++ pluralize n " word"
                     , es = "Sesión: " ++ String.fromInt n ++ pluralize n " palabra"
@@ -197,6 +219,16 @@ tr lang trans =
 
         Es ->
             .es translationSet
+
+
+timeDistInWords : Language -> Time.Posix -> Time.Posix -> String
+timeDistInWords lang t1 t2 =
+    case lang of
+        En ->
+            DateDist.inWordsWithConfig { defaultConfig | locale = DateDistEn.locale { addSuffix = True }, includeSeconds = True } t1 t2
+
+        Es ->
+            DateDist.inWordsWithConfig { defaultConfig | locale = DateDistFr.locale { addPrefix = True }, includeSeconds = True } t1 t2
 
 
 languageDecoder : Decoder Language
