@@ -40,11 +40,11 @@ before_install:
 
 install:
   - npm install
-  - npm install -g elm@0.18
+  - npm install -g elm@0.19
   # the next 3 lines are courtesy of @rtfeldman https://git.io/vbj0j
-  - mv $(npm config get prefix)/bin/elm-make $(npm config get prefix)/bin/elm-make-old
-  - printf "#\041/bin/bash\n\necho \"Running elm-make with sysconfcpus -n 2\"\n\n$TRAVIS_BUILD_DIR/sysconfcpus/bin/sysconfcpus -n 2 elm-make-old \"\$@\"" > $(npm config get prefix)/bin/elm-make
-  - chmod +x $(npm config get prefix)/bin/elm-make
+  - mv $(npm config get prefix)/bin/elm $(npm config get prefix)/bin/elm-old
+  - printf "#\041/bin/bash\n\necho \"Running elm with sysconfcpus -n 1\"\n\n$TRAVIS_BUILD_DIR/sysconfcpus/bin/sysconfcpus -n 1 elm-old \"\$@\"" > $(npm config get prefix)/bin/elm-make
+  - chmod +x $(npm config get prefix)/bin/elm
 
 before_script:
   - git lfs pull
