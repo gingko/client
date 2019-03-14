@@ -8,7 +8,7 @@ import Dict
 import Fonts
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Lazy exposing (lazy, lazy2)
+import Html.Lazy exposing (lazy, lazy3)
 import Html5.DragDrop as DragDrop
 import Json.Decode as Json
 import List.Extra as ListExtra exposing (getAt)
@@ -2106,7 +2106,7 @@ repeating-linear-gradient(-45deg
                 ]
                 [ ul [ class "conflicts-list" ]
                     (List.map viewConflict conflicts)
-                , lazy2 Trees.view model.viewState model.workingTree
+                , lazy3 Trees.view model.language model.viewState model.workingTree
                 , styleNode
                 ]
 
@@ -2118,7 +2118,7 @@ repeating-linear-gradient(-45deg
 
                   else
                     text ""
-                , lazy2 Trees.view model.viewState model.workingTree
+                , lazy3 Trees.view model.language model.viewState model.workingTree
                 , viewSaveIndicator model
                 , viewSearchField model
                 , viewFooter model

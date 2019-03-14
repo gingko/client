@@ -222,6 +222,7 @@ type alias VisibleViewState =
     , ancestors : List String
     , dragModel : DragDrop.Model String DropId
     , collaborators : List CollabState
+    , language : Translation.Language
     }
 
 

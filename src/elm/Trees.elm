@@ -11,6 +11,7 @@ import List.Extra as ListExtra
 import Markdown
 import Regex
 import Sha1 exposing (Diff, diff3Merge, sha1)
+import Translation exposing (Language, TranslationId(..), tr)
 import TreeUtils exposing (getChildren, getColumns, getParent, getTree)
 import Tuple exposing (first, second)
 import Types exposing (..)
@@ -328,8 +329,8 @@ renameNodes salt tree =
 -- VIEW
 
 
-view : ViewState -> Model -> Html Msg
-view vstate model =
+view : Language -> ViewState -> Model -> Html Msg
+view lang vstate model =
     let
         searchFilter term_ cols =
             case term_ of
@@ -374,6 +375,7 @@ view vstate model =
                 vstate.ancestors
                 vstate.dragModel
                 vstate.collaborators
+                lang
 
         columns =
             [ ( [ [] ], -1 ) ]
@@ -456,10 +458,10 @@ viewGroup vstate depth xs =
                         |> List.map .uid
             in
             if t.id == vstate.active && not isEditing then
-                ( t.id, viewCardActive t.id t.content (hasChildren t) isLast collabsOnCard collabsEditingCard vstate.dragModel )
+                ( t.id, viewCardActive vstate.language t.id t.content (hasChildren t) isLast collabsOnCard collabsEditingCard vstate.dragModel )
 
             else if isEditing then
-                ( t.id, viewCardEditing t.id t.content (hasChildren t) )
+                ( t.id, viewCardEditing vstate.language t.id t.content (hasChildren t) )
 
             else
                 ( t.id, viewCardOther t.id t.content isEditing (hasChildren t) isAncestor isLast collabsOnCard collabsEditingCard vstate.dragModel )
@@ -506,14 +508,14 @@ viewCardOther cardId content isEditing isParent isAncestor isLast collabsOnCard 
         )
 
 
-viewCardActive : String -> String -> Bool -> Bool -> List String -> List String -> DragDrop.Model String DropId -> Html Msg
-viewCardActive cardId content isParent isLast collabsOnCard collabsEditingCard dragModel =
+viewCardActive : Language -> String -> String -> Bool -> Bool -> List String -> List String -> DragDrop.Model String DropId -> Html Msg
+viewCardActive lang cardId content isParent isLast collabsOnCard collabsEditingCard dragModel =
     let
         buttons =
             [ div [ class "flex-row card-top-overlay" ]
                 [ span
                     [ class "card-btn ins-above"
-                    , title "Insert Above (Ctrl+K)"
+                    , title <| tr lang InsertAboveTitle
                     , onClick (InsertAbove cardId)
                     ]
                     [ text "+" ]
@@ -521,19 +523,19 @@ viewCardActive cardId content isParent isLast collabsOnCard collabsEditingCard d
             , div [ class "flex-column card-right-overlay" ]
                 [ span
                     [ class "card-btn delete"
-                    , title "Delete Card (Ctrl+Backspace)"
+                    , title <| tr lang DeleteCardTitle
                     , onClick (DeleteCard cardId)
                     ]
                     []
                 , span
                     [ class "card-btn ins-right"
-                    , title "Add Child (Ctrl+L)"
+                    , title <| tr lang InsertChildTitle
                     , onClick (InsertChild cardId)
                     ]
                     [ text "+" ]
                 , span
                     [ class "card-btn edit"
-                    , title "Edit Card (Enter)"
+                    , title <| tr lang EditCardTitle
                     , onClick (OpenCard cardId content)
                     ]
                     []
@@ -541,7 +543,7 @@ viewCardActive cardId content isParent isLast collabsOnCard collabsEditingCard d
             , div [ class "flex-row card-bottom-overlay" ]
                 [ span
                     [ class "card-btn ins-below"
-                    , title "Insert Below (Ctrl+J)"
+                    , title <| tr lang InsertBelowTitle
                     , onClick (InsertBelow cardId)
                     ]
                     [ text "+" ]
@@ -574,8 +576,8 @@ viewCardActive cardId content isParent isLast collabsOnCard collabsEditingCard d
         )
 
 
-viewCardEditing : String -> String -> Bool -> Html Msg
-viewCardEditing cardId content isParent =
+viewCardEditing : Language -> String -> String -> Bool -> Html Msg
+viewCardEditing lang cardId content isParent =
     div
         [ id ("card-" ++ cardId)
         , dir "auto"
@@ -599,7 +601,7 @@ viewCardEditing cardId content isParent =
         , div [ class "flex-column card-right-overlay" ]
             [ span
                 [ class "card-btn save"
-                , title "Save Changes (Ctrl+Enter)"
+                , title <| tr lang SaveChangesTitle
                 , onClick (Port (Keyboard "mod+enter"))
                 ]
                 []

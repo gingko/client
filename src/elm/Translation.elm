@@ -23,18 +23,24 @@ type TranslationId
     | RestoreThisVersion
     | EnterKey
     | EnterAction
+    | EditCardTitle
     | ArrowsAction
     | AddChildAction
+    | InsertChildTitle
     | AddBelowAction
+    | InsertBelowTitle
     | AddAboveAction
+    | InsertAboveTitle
     | ArrowKeys
     | MoveAction
     | Backspace
     | DeleteAction
+    | DeleteCardTitle
     | FormattingGuide
     | ForBold
     | ForItalic
     | ToSaveChanges
+    | SaveChangesTitle
     | EscKey
     | ToCancelChanges
     | PressToSearch
@@ -143,6 +149,11 @@ tr lang trans =
                     , es = "para Editar"
                     }
 
+                EditCardTitle ->
+                    { en = "Edit Card (Enter)"
+                    , es = "Editar Tarjeta (Enter)"
+                    }
+
                 ArrowsAction ->
                     { en = "to Navigate"
                     , es = "para Navegar"
@@ -153,14 +164,29 @@ tr lang trans =
                     , es = "para Agregar un Hijo"
                     }
 
+                InsertChildTitle ->
+                    { en = "Insert Child (Ctrl+L)"
+                    , es = "Agregar un Hijo (Ctrl+L)"
+                    }
+
                 AddBelowAction ->
                     { en = "to Add Below"
                     , es = "para Agregar Abajo"
                     }
 
+                InsertBelowTitle ->
+                    { en = "Insert Below (Ctrl+J)"
+                    , es = "Agregar Abajo (Ctrl+J)"
+                    }
+
                 AddAboveAction ->
                     { en = "to Add Above"
                     , es = "para Agregar Arriba"
+                    }
+
+                InsertAboveTitle ->
+                    { en = "Insert Above (Ctrl+K)"
+                    , es = "Agregar Arriba (Ctrl+K)"
                     }
 
                 ArrowKeys ->
@@ -183,6 +209,11 @@ tr lang trans =
                     , es = "para Eliminar"
                     }
 
+                DeleteCardTitle ->
+                    { en = "Delete Card (Ctrl+Backspace)"
+                    , es = "Eliminar Tarjeta (Ctrl+Backspace)"
+                    }
+
                 FormattingGuide ->
                     { en = "Formatting Syntax Guide"
                     , es = "Guía de Sintaxis para Formato"
@@ -201,6 +232,11 @@ tr lang trans =
                 ToSaveChanges ->
                     { en = "to Save Changes"
                     , es = "para Guardar Cambios"
+                    }
+
+                SaveChangesTitle ->
+                    { en = "Save Changes (Ctrl+Enter)"
+                    , es = "Guardar Cambios (Ctrl+Enter)"
                     }
 
                 EscKey ->
