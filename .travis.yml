@@ -17,38 +17,16 @@ cache:
   directories:
     - elm-stuff/build-artifacts
     - elm-stuff/packages
-    - sysconfcpus
     - $HOME/.npm # https://stackoverflow.com/a/42523517/1148249
     - $HOME/.cache/electron
     - $HOME/.cache/electron-builder
 
-before_install:
-  - |
-    if [ "$TRAVIS_OS_NAME" == "osx" ]; then
-      mkdir -p /tmp/git-lfs && curl -L https://github.com/github/git-lfs/releases/download/v2.3.1/git-lfs-$([ "$TRAVIS_OS_NAME" == "linux" ] && echo "linux" || echo "darwin")-amd64-2.3.1.tar.gz | tar -xz -C /tmp/git-lfs --strip-components 1
-      export PATH="/tmp/git-lfs:$PATH"
-    fi
-  - | # build time improvement see: https://git.io/vQcqz
-    if [ ! -d sysconfcpus/bin ];
-    then
-      git clone https://github.com/obmarg/libsysconfcpus.git;
-      cd libsysconfcpus;
-      ./configure --prefix=$TRAVIS_BUILD_DIR/sysconfcpus;
-      make && make install;
-      cd ..;
-    fi
-
 install:
   - npm install
   - npm install -g elm@0.19
-  # the next 3 lines are courtesy of @rtfeldman https://git.io/vbj0j
-  - mv $(npm config get prefix)/bin/elm $(npm config get prefix)/bin/elm-old
-  - printf "#\041/bin/bash\n\necho \"Running elm with sysconfcpus -n 1\"\n\n$TRAVIS_BUILD_DIR/sysconfcpus/bin/sysconfcpus -n 1 elm-old \"\$@\"" > $(npm config get prefix)/bin/elm-make
-  - chmod +x $(npm config get prefix)/bin/elm
 
 before_script:
-  - git lfs pull
-  - travis_wait 30 npm run build
+  - npm run build
 
 script:
   - |
