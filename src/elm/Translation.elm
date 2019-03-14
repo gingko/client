@@ -224,10 +224,10 @@ timeDistInWords : Language -> Time.Posix -> Time.Posix -> String
 timeDistInWords lang t1 t2 =
     case lang of
         En ->
-            TimeDistance.inWordsWithConfig { withAffix = True } I18n.english t1 t2
+            TimeDistance.inWordsWithConfig { withAffix = True } I18n.en t1 t2
 
         Es ->
-            TimeDistance.inWordsWithConfig { withAffix = True } I18n.spanish t1 t2
+            TimeDistance.inWordsWithConfig { withAffix = True } I18n.es t1 t2
 
 
 languageDecoder : Decoder Language

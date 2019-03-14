@@ -20,7 +20,7 @@
             "elm-community/json-extra": "4.0.0",
             "elm-community/list-extra": "8.1.0",
             "elm-explorations/markdown": "1.0.0",
-            "gingko/time-distance": "1.0.0",
+            "gingko/time-distance": "2.0.1",
             "jinjor/elm-diff": "1.0.5",
             "justinmimbs/date": "3.1.2",
             "justinmimbs/time-extra": "1.1.0",
