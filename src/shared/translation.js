@@ -228,12 +228,12 @@ export const tr =
       , es : "No pude abrir el archivo."
       }
 
-  , savingError :
+  , saveError :
       { en : "Save Error"
       , es : "Error al Guardar"
       }
 
-  , savingErrorMsg :
+  , saveErrorMsg :
       { en : "The file wasn't saved.\nPlease try again."
       , es : "El archivo no fue guardado.\nInténtalo de nuevo."
       }
