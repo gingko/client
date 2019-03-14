@@ -19,6 +19,7 @@ const io = require('socket.io-client')
 
 const helpers = require("./doc-helpers");
 const errorAlert = helpers.errorAlert;
+const { tr } = require("../shared/translation.js");
 import { Elm } from "../elm/Main";
 
 
@@ -52,6 +53,7 @@ console.log('Gingko version', app.getVersion())
 
 
 var firstRun = userStore.get('first-run', true)
+var lang = userStore.get("language") || "en";
 var docWindow = remote.getCurrentWindow()
 var jsonImportData = docWindow.jsonImportData;
 var currentPath = docWindow.originalPath;
@@ -64,7 +66,7 @@ ipcRenderer.on("database-close", async (ev) => {
 if(!!jsonImportData) {
   var initFlags =
     [ jsonImportData
-      , { language : userStore.get("language") || "en"
+      , { language : lang
         , isMac : process.platform === "darwin"
         , shortcutTrayOpen : userStore.get('shortcut-tray-is-open', true)
         , videoModalOpen : userStore.get('video-modal-is-open', false)
@@ -83,7 +85,7 @@ if(!!jsonImportData) {
 
     var initFlags =
       [ dbData
-        , { language : userStore.get("language") || "en"
+        , { language : lang
           , isMac : process.platform === "darwin"
           , shortcutTrayOpen : userStore.get('shortcut-tray-is-open', true)
           , videoModalOpen : userStore.get('video-modal-is-open', false)
@@ -198,7 +200,7 @@ const update = (msg, data) => {
         if (tarea === null) {
           console.log('tarea not found')
         } else {
-          if(tarea.value === data[1] || confirm('Are you sure you want to cancel your changes?')) {
+          if(tarea.value === data[1] || confirm(tr.areYouSureCancel[lang])) {
             ipcRenderer.send("doc:set-changed", false);
             toElm('CancelCardConfirmed', null)
           }
@@ -241,7 +243,7 @@ const update = (msg, data) => {
         try {
           exportDocx(data.data, data.filepath)
         } catch (e) {
-          dialog.showMessageBox(errorAlert('Export Error', "Couldn't export.\nTry again.", e))
+          dialog.showMessageBox(errorAlert(tr.exportError[lang], tr.exportErrorMsg[lang], e));
           return;
         }
       }
@@ -250,7 +252,8 @@ const update = (msg, data) => {
         try {
           exportJson(data.data, data.filepath)
         } catch (e) {
-          dialog.showMessageBox(errorAlert('Export Error', "Couldn't export.\nTry again.", e))
+          dialog.showMessageBox(errorAlert(tr.exportError[lang], tr.exportErrorMsg[lang], e));
+          dialog.showMessageBox(errorAlert(tr.exportError[lang], tr.exportErrorMsg[lang], e))
           return;
         }
       }
@@ -401,6 +404,7 @@ ipcRenderer.on("menu-view-videos", () => toElm("ViewVideos", null ));
 ipcRenderer.on("menu-font-selector", (event, data) => toElm("FontSelectorOpen", data));
 ipcRenderer.on("menu-language-select", (event, data) => {
   userStore.set("language", data);
+  ipcRenderer.send("doc:language-changed", data);
   toElm("SetLanguage", data);
 });
 ipcRenderer.on("menu-contact-support", () => {

@@ -1,5 +1,9 @@
 export const tr =
-  { file :
+  {
+
+// === MENU ===
+
+    file :
       { en : "&File"
       , es : "&Archivo"
       }
@@ -170,5 +174,30 @@ export const tr =
   , openDevTools :
       { en : "Open &Debugging Tools"
       , es : "Abrir Herramientas de &Depuración"
+      }
+
+// === DIALOGS AND ERROR MESSAGES ===
+
+  , updatePopup :
+      { en : (name, version) => `${name} will be updated to v${version} on exit`
+      , es : (name, version) => `${name} se actualizará a v${version} cuando se cierre.`
+      }
+
+  , updatePopupBody :
+      { en : (notes) => `<a href="https://github.com/gingko/client/blob/master/CHANGELOG.md">Change list</a>:\n${notes}`
+      , es : (notes) => `<a href="https://github.com/gingko/client/blob/master/CHANGELOG.md">Lista de cambios</a>:\n${notes}`
+      }
+
+  , areYouSureCancel :
+      { en : "Are you sure you want to cancel your changes?"
+      , es : "¿Seguro que quieres cancelar tus cambios?"
+      }
+  , exportError :
+      { en : "Export Error"
+      , es : "Error al Exportar"
+      }
+  , exportErrorMsg :
+      { en : "Couldn't export.\nTry again."
+      , es : "No se pudo exportar.\nInténtalo de nuevo."
       }
   };

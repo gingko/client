@@ -16,6 +16,7 @@ const unhandled = require("electron-unhandled");
 const isDev = require("electron-is-dev");
 const GingkoError  = require("./shared/errors");
 const errorAlert = require('./shared/doc-helpers').errorAlert
+const { tr } = require("./shared/translation.js");
 import SystemFonts from "system-font-families";
 const systemFonts = new SystemFonts();
 
@@ -32,6 +33,7 @@ let _hasLastExport = false
 let _menuQuit = false
 const hiddenStore = new Store({name: "kernel", encryptionKey: "79df64f73eab9bc0d7b448d2008d876e"})
 const userStore = new Store({name: "config"})
+let lang = userStore.get("language") || "en";
 
 
 // Make Gingko single instance
@@ -286,6 +288,11 @@ ipcMain.on("doc:save-backup", async (event) => {
 });
 
 
+ipcMain.on("doc:language-changed", (event, data) => {
+  lang = data;
+});
+
+
 
 
 
@@ -310,8 +317,8 @@ app.on("ready", async () => {
     }
 
     let updateNotification = new Notification(
-      { title: `${app.getName()} will be updated to v${info.version} on exit`
-        , body: `<a href="https://github.com/gingko/client/blob/master/CHANGELOG.md">Change list</a>:\n${releaseNotesText}`
+      { title: tr.updatePopup[lang](app.getName(), info.version)
+      , body: tr.updatePopupBody[lang](releaseNotesText)
       });
 
     updateNotification.show();
