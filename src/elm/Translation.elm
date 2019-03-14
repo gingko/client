@@ -17,6 +17,9 @@ type TranslationId
     | RemoveFromList
     | UnsavedChanges
     | AllChangesSaved
+    | LastSaved
+    | LastEdit
+    | KeyboardHelp
     | RestoreThisVersion
     | EnterKey
     | EnterAction
@@ -29,9 +32,12 @@ type TranslationId
     | Backspace
     | DeleteAction
     | FormattingGuide
+    | ForBold
+    | ForItalic
     | ToSaveChanges
     | EscKey
     | ToCancelChanges
+    | PressToSearch
     | WordCountSession Int
     | WordCountTotal Int
     | WordCountCard Int
@@ -107,6 +113,21 @@ tr lang trans =
                     , es = "Todos los cambios guardados"
                     }
 
+                LastSaved ->
+                    { en = "Last saved"
+                    , es = "Guardado"
+                    }
+
+                LastEdit ->
+                    { en = "Last edit"
+                    , es = "Último cambio"
+                    }
+
+                KeyboardHelp ->
+                    { en = "Keyboard Shortcuts Help"
+                    , es = "Atajos de Teclado"
+                    }
+
                 RestoreThisVersion ->
                     { en = "Restore this Version"
                     , es = "Restaurar esta Versión"
@@ -167,6 +188,16 @@ tr lang trans =
                     , es = "Guía de Sintaxis para Formato"
                     }
 
+                ForBold ->
+                    { en = "for Bold"
+                    , es = "para Negrita"
+                    }
+
+                ForItalic ->
+                    { en = "for Italic"
+                    , es = "para Itálica"
+                    }
+
                 ToSaveChanges ->
                     { en = "to Save Changes"
                     , es = "para Guardar Cambios"
@@ -180,6 +211,11 @@ tr lang trans =
                 ToCancelChanges ->
                     { en = "to Cancel Changes"
                     , es = "para Cancelar Cambios"
+                    }
+
+                PressToSearch ->
+                    { en = "Press '/' to search"
+                    , es = "Presiona '/' para buscar"
                     }
 
                 WordCountSession n ->

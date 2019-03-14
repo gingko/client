@@ -39,32 +39,30 @@ viewSaveIndicator { changed, objects, currentTime, language } =
     div
         [ id "save-indicator", classList [ ( "inset", True ), ( "saving", changed ) ] ]
         [ if changed then
-            -- TODO
-            span [ title ("Last saved " ++ lastChangeString) ] [ text <| tr language UnsavedChanges ]
+            span [ title (tr language LastSaved ++ " " ++ lastChangeString) ] [ text <| tr language UnsavedChanges ]
 
           else
-            -- TODO
-            span [ title ("Last edit " ++ lastChangeString) ] [ text <| tr language AllChangesSaved ]
+            span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language AllChangesSaved ]
         ]
 
 
-viewSearchField : { m | viewState : ViewState } -> Html Msg
-viewSearchField model =
+viewSearchField : { m | viewState : ViewState, language : Language } -> Html Msg
+viewSearchField { viewState, language } =
     let
         maybeSearchIcon =
-            if model.viewState.searchField == Nothing then
+            if viewState.searchField == Nothing then
                 Icon.search (defaultOptions |> Icon.color "#445" |> Icon.size 12)
 
             else
                 text ""
     in
-    if model.viewState.editing == Nothing then
+    if viewState.editing == Nothing then
         div
             [ id "search-field" ]
             [ input
                 [ type_ "search"
                 , id "search-input"
-                , title "Press '/' to search" -- TODO
+                , title (tr language PressToSearch)
                 , onInput SearchFieldUpdated
                 ]
                 []
@@ -267,8 +265,8 @@ viewShortcutsToggle lang isOpen isMac isOnly isTextSelected vs =
                 [ div [ class "popup" ]
                     [ shortcutSpan [ ctrlOrCmd, tr lang EnterKey ] (tr lang ToSaveChanges)
                     , shortcutSpan [ tr lang EscKey ] (tr lang ToCancelChanges)
-                    , shortcutSpanEnabled isTextSelected [ ctrlOrCmd, "B" ] "for Bold" -- TODO
-                    , shortcutSpanEnabled isTextSelected [ ctrlOrCmd, "I" ] "for Italic" -- TODO
+                    , shortcutSpanEnabled isTextSelected [ ctrlOrCmd, "B" ] (tr lang ForBold)
+                    , shortcutSpanEnabled isTextSelected [ ctrlOrCmd, "I" ] (tr lang ForItalic)
                     , span [ class "markdown-guide" ]
                         [ a [ href "http://commonmark.org/help" ]
                             [ text <| tr lang FormattingGuide
@@ -288,8 +286,7 @@ viewShortcutsToggle lang isOpen isMac isOnly isTextSelected vs =
                 Icon.color "#6c7c84"
         in
         div
-            -- TODO
-            [ id "shortcuts-tray", class "inset", onClick ShortcutTrayToggle, title "Keyboard Shortcuts Help" ]
+            [ id "shortcuts-tray", class "inset", onClick ShortcutTrayToggle, title <| tr lang KeyboardHelp ]
             [ div [ class "icon-stack" ]
                 [ Icon.keyboard (defaultOptions |> iconColor)
                 , Icon.question (defaultOptions |> iconColor |> Icon.size 14)
