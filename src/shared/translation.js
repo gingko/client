@@ -178,6 +178,11 @@ export const tr =
 
 // === DIALOGS AND ERROR MESSAGES ===
 
+  , cancel :
+      { en : "Cancel"
+      , es : "Cancelar"
+      }
+
   , updatePopup :
       { en : (name, version) => `${name} will be updated to v${version} on exit`
       , es : (name, version) => `${name} se actualizará a v${version} cuando se cierre.`
@@ -192,6 +197,27 @@ export const tr =
       { en : "Are you sure you want to cancel your changes?"
       , es : "¿Seguro que quieres cancelar tus cambios?"
       }
+
+  , unsavedChangesFound :
+      { en : "Some Changes Weren't Saved"
+      , es : "Algunos Cambios No Fueron Guardados"
+      }
+
+  , unsavedChangesMsg :
+      { en : "Recover unsaved changes, or Discard them?"
+      , es : "¿Recuperar cambios no guardados, o descartarlos?"
+      }
+
+  , discard :
+      { en : "Discard Unsaved Changes"
+      , es : "Descartar Cambios No Guardados"
+      }
+
+  , recover :
+      { en : "Recover"
+      , es : "Recupéralos"
+      }
+
   , exportError :
       { en : "Export Error"
       , es : "Error al Exportar"

@@ -441,12 +441,12 @@ async function openDocument(filepath) {
         existingDoc.focus();
       } else {
         const recoveryOptions =
-          { title: "Unsaved Changes Found"
-          , message: "Recover unsaved changes, or Discard them and load from file?"
-          , buttons: ["Discard Unsaved Changes", "Cancel", "Recover"]
+          { title: tr.unsavedChangesFound[lang]
+          , message: tr.unsavedChangesMsg[lang]
+          , buttons: [tr.discard[lang], tr.cancel[lang], tr.recover[lang]]
           , defaultId: 2
-          }
-        const choice = dialog.showMessageBox(recoveryOptions)
+          };
+        const choice = dialog.showMessageBox(recoveryOptions);
 
         switch (choice) {
           // Discard Unsaved Changes
