@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
+## [2.4.0] - 2019-03-13
+  - Spanish language interface added
+  - (Internal) Upgrade Elm to 0.19
+
 ## [2.3.5] - 2019-02-07
   - Fix errors on saving/closing Untitled documents
 
