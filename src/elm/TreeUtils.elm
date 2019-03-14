@@ -1,8 +1,9 @@
-module TreeUtils exposing (centerlineIds, dictUpdate, getAncestors, getChildren, getColumn, getColumnById, getColumns, getContent, getDepth, getDescendants, getFirstInColumn, getIndex, getLastInColumn, getNext, getNextInColumn, getParent, getPrev, getPrevInColumn, getPrevNext, getPrevNextInColumn, getSiblings, getTree, getTreeWithPosition, newLine, withIdTree)
+module TreeUtils exposing (centerlineIds, dictUpdate, getAncestors, getChildren, getColumn, getColumnById, getColumns, getContent, getDepth, getDescendants, getFirstInColumn, getIndex, getLastInColumn, getNext, getNextInColumn, getParent, getPrev, getPrevInColumn, getPrevNext, getPrevNextInColumn, getSiblings, getTree, getTreeWithPosition, newLine, sha1, withIdTree)
 
 import Dict exposing (..)
 import List.Extra as ListExtra
 import Random exposing (initialSeed, int, maxInt, minInt)
+import SHA1
 import String
 import Tuple exposing (first, second)
 import Types exposing (..)
@@ -331,6 +332,11 @@ newLine =
 withIdTree : String -> Tree
 withIdTree id =
     Tree id "" (Children [])
+
+
+sha1 : String -> String
+sha1 str =
+    str |> SHA1.fromString |> SHA1.toHex
 
 
 dictUpdate : comparable -> (b -> b) -> Dict comparable b -> Dict comparable b

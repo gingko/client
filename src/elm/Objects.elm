@@ -2,11 +2,12 @@ module Objects exposing (Model, ObjMsg(..), defaultModel, setHeadRev, toValue, u
 
 import Coders exposing (statusDecoder, tupleDecoder)
 import Dict exposing (Dict)
+import Diff3 exposing (diff3Merge)
 import Json.Decode as Json
 import Json.Encode as Enc
 import List.Extra as ListExtra
 import Maybe exposing (andThen)
-import Sha1 exposing (diff3Merge, sha1)
+import TreeUtils exposing (sha1)
 import Trees exposing (apply, opToTreeMsg)
 import Tuple exposing (first, second)
 import Types exposing (..)
@@ -460,7 +461,7 @@ getConflicts opsA opsB =
                 ( Mod idA pidsA strA orig, Mod idB pidsB strB _ ) ->
                     if idA == idB && strA /= strB then
                         case diff3Merge (String.lines strA) (String.lines orig) (String.lines strB) of
-                            [ Sha1.DiffOk mergedStrings ] ->
+                            [ Diff3.DiffOk mergedStrings ] ->
                                 ( [ Mod idA pidsA (mergedStrings |> String.join "\n") orig ], [] )
 
                             _ ->

@@ -16,7 +16,6 @@ import Objects
 import Ports exposing (..)
 import Random
 import Regex
-import Sha1 exposing (timeJSON)
 import Task
 import Time
 import Translation exposing (langFromString, tr)
@@ -150,7 +149,7 @@ defaultModel =
         Debouncer.debounce (fromSeconds 15 * 60)
             |> Debouncer.settleWhenQuietFor (Just <| fromSeconds 15 * 60)
             |> toDebouncer
-    , uid = timeJSON ()
+    , uid = "0"
     , viewState =
         { active = "1"
         , activePast = []

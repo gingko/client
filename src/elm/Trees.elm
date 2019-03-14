@@ -1,6 +1,7 @@
 module Trees exposing (Model, TreeMsg(..), apply, conflictToTreeMsg, defaultModel, defaultTree, opToTreeMsg, renameNodes, setTree, setTreeWithConflicts, update, view)
 
 import Diff exposing (..)
+import Diff3 exposing (diff3Merge)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -10,9 +11,8 @@ import Html5.DragDrop as DragDrop
 import List.Extra as ListExtra
 import Markdown
 import Regex
-import Sha1 exposing (Diff, diff3Merge, sha1)
 import Translation exposing (Language, TranslationId(..), tr)
-import TreeUtils exposing (getChildren, getColumns, getParent, getTree)
+import TreeUtils exposing (getChildren, getColumns, getParent, getTree, sha1)
 import Tuple exposing (first, second)
 import Types exposing (..)
 
@@ -191,10 +191,10 @@ conflictToTreeMsg tree ({ id, opA, opB, selection, resolved } as conflict) =
                                 |> List.map
                                     (\c ->
                                         case c of
-                                            Sha1.DiffOk strings ->
+                                            Diff3.DiffOk strings ->
                                                 String.join "\n" strings
 
-                                            Sha1.DiffConflict ( strAs, strOs, strBs ) ->
+                                            Diff3.DiffConflict ( strAs, strOs, strBs ) ->
                                                 "\n`>>>>>>>`\n"
                                                     ++ String.join "\n" strAs
                                                     ++ "\n`=======`\n"
