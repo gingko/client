@@ -20,12 +20,12 @@
             "elm-community/json-extra": "4.0.0",
             "elm-community/list-extra": "8.1.0",
             "elm-explorations/markdown": "1.0.0",
+            "gingko/time-distance": "1.0.0",
             "jinjor/elm-diff": "1.0.5",
             "justinmimbs/date": "3.1.2",
             "justinmimbs/time-extra": "1.1.0",
             "norpan/elm-html5-drag-drop": "3.1.3",
             "rtfeldman/elm-iso8601-date-strings": "1.1.2",
-            "sporto/time-distance": "1.0.0",
             "thaterikperson/elm-strftime": "2.0.2"
         },
         "indirect": {

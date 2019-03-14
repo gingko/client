@@ -13,8 +13,7 @@ import Json.Encode as Json exposing (null, string)
 import Octicons as Icon
 import Strftime
 import Time
-import Time.Distance as TimeDistance
-import Translation exposing (TranslationId(..), langFromString, tr)
+import Translation exposing (TranslationId(..), langFromString, timeDistInWords, tr)
 
 
 main : Program ( Int, List ( String, Document ), String ) Model Msg
@@ -237,8 +236,10 @@ viewDocumentItem lang currTime ( dbname, document ) =
                 |> Strftime.format "%Y-%m-%d, %H:%M" Time.utc
 
         relativeString =
-            TimeDistance.inWords currTime openedTime
-                ++ " ago"
+            timeDistInWords
+                lang
+                currTime
+                openedTime
 
         ( titleString, dateString ) =
             if Date.diff Date.Days openedDate currDate <= 2 then

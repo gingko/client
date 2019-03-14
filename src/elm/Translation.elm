@@ -1,10 +1,9 @@
 module Translation exposing (Language(..), TranslationId(..), langFromString, languageDecoder, timeDistInWords, tr)
 
-import Date.Distance as DateDist exposing (defaultConfig)
-import Date.Distance.I18n.En as DateDistEn
-import Date.Distance.I18n.Fr as DateDistFr
 import Json.Decode as Json exposing (..)
 import Time
+import Time.Distance as TimeDistance
+import Time.Distance.I18n as I18n
 
 
 type TranslationId
@@ -225,10 +224,10 @@ timeDistInWords : Language -> Time.Posix -> Time.Posix -> String
 timeDistInWords lang t1 t2 =
     case lang of
         En ->
-            DateDist.inWordsWithConfig { defaultConfig | locale = DateDistEn.locale { addSuffix = True }, includeSeconds = True } t1 t2
+            TimeDistance.inWordsWithConfig { withAffix = True } I18n.english t1 t2
 
         Es ->
-            DateDist.inWordsWithConfig { defaultConfig | locale = DateDistFr.locale { addPrefix = True }, includeSeconds = True } t1 t2
+            TimeDistance.inWordsWithConfig { withAffix = True } I18n.spanish t1 t2
 
 
 languageDecoder : Decoder Language
