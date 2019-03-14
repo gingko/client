@@ -33,8 +33,8 @@ viewSaveIndicator { changed, objects, currentTime, language } =
         lastChangeString =
             timeDistInWords
                 language
-                currentTime
                 (lastCommitTime |> round |> Time.millisToPosix)
+                currentTime
     in
     div
         [ id "save-indicator", classList [ ( "inset", True ), ( "saving", changed ) ] ]

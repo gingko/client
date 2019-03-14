@@ -238,8 +238,8 @@ viewDocumentItem lang currTime ( dbname, document ) =
         relativeString =
             timeDistInWords
                 lang
-                currTime
                 openedTime
+                currTime
 
         ( titleString, dateString ) =
             if Date.diff Date.Days openedDate currDate <= 2 then
