@@ -253,7 +253,6 @@ const update = (msg, data) => {
           exportJson(data.data, data.filepath)
         } catch (e) {
           dialog.showMessageBox(errorAlert(tr.exportError[lang], tr.exportErrorMsg[lang], e));
-          dialog.showMessageBox(errorAlert(tr.exportError[lang], tr.exportErrorMsg[lang], e))
           return;
         }
       }
@@ -262,7 +261,7 @@ const update = (msg, data) => {
         try {
           exportTxt(data.data, data.filepath)
         } catch (e) {
-          dialog.showMessageBox(errorAlert('Export Error', "Couldn't export.\nTry again.", e))
+          dialog.showMessageBox(errorAlert(tr.exportError[lang], tr.exportErrorMsg[lang], e));
           return;
         }
       }
@@ -271,7 +270,7 @@ const update = (msg, data) => {
         try {
           exportTxt(data.data, data.filepath)
         } catch (e) {
-          dialog.showMessageBox(errorAlert('Export Error', "Couldn't export.\nTry again.", e))
+          dialog.showMessageBox(errorAlert(tr.exportError[lang], tr.exportErrorMsg[lang], e));
           return;
         }
       }
@@ -403,6 +402,7 @@ ipcRenderer.on("menu-paste-into", () => toElm("Keyboard", "mod+shift+v"));
 ipcRenderer.on("menu-view-videos", () => toElm("ViewVideos", null ));
 ipcRenderer.on("menu-font-selector", (event, data) => toElm("FontSelectorOpen", data));
 ipcRenderer.on("menu-language-select", (event, data) => {
+  lang = data;
   userStore.set("language", data);
   ipcRenderer.send("doc:language-changed", data);
   toElm("SetLanguage", data);
@@ -483,7 +483,7 @@ function load(filepath, headOverride){
               let toSend = [status, { commits: commits, treeObjects: trees, refs: refs}];
               resolve(toSend)
             }).catch(function (err) {
-              dialog.showMessageBox(errorAlert("Loading Error", "Couldn't load file.", err))
+              dialog.showMessageBox(errorAlert(tr.loadingError[lang], tr.loadingErrorMsg[lang], err));
               reject(err)
             })
         })
@@ -619,8 +619,8 @@ self.saveToDB = (status, objects) => {
 
 
 const saveErrorAlert = (err) => {
-  return errorAlert("Save Error", "The file wasn't saved.\nPlease try again.", err)
-}
+  return errorAlert(tr.saveError[lang],tr.saveErrorMsg[lang], err);
+};
 
 
 const exportDocx = (data, defaultPath) => {

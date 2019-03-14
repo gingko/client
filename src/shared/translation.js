@@ -218,10 +218,31 @@ export const tr =
       , es : "Recupéralos"
       }
 
+  , loadingError :
+      { en : "Loading Error"
+      , es : "Error al Abrir"
+      }
+
+  , loadingErrorMsg :
+      { en : "Couldn't load file."
+      , es : "No pude abrir el archivo."
+      }
+
+  , savingError :
+      { en : "Save Error"
+      , es : "Error al Guardar"
+      }
+
+  , savingErrorMsg :
+      { en : "The file wasn't saved.\nPlease try again."
+      , es : "El archivo no fue guardado.\nInténtalo de nuevo."
+      }
+
   , exportError :
       { en : "Export Error"
       , es : "Error al Exportar"
       }
+
   , exportErrorMsg :
       { en : "Couldn't export.\nTry again."
       , es : "No se pudo exportar.\nInténtalo de nuevo."
