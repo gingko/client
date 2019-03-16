@@ -754,12 +754,16 @@ ipcMain.on("app:close", async (event) => {
           return;
         case 1:
           return;
-        case 2:
-          let newSwapFolderPath = (await saveDocumentAs(docWindow)).swapFolderPath;
-          if (process.platform === "win32") { docWindow.webContents.send("database-close"); }
-          await fio.deleteSwapFolder(newSwapFolderPath);
-          docWindow.destroy();
+        case 2: {
+          let saveDocAsResult = await saveDocumentAs(docWindow);
+          if (saveDocAsResult && saveDocAsResult.swapFolderPath) {
+            let newSwapFolderPath = saveDocAsResult.swapFolderPath;
+            if (process.platform === "win32") { docWindow.webContents.send("database-close"); }
+            await fio.deleteSwapFolder(newSwapFolderPath);
+            docWindow.destroy();
+          }
           break;
+        }
       }
     }
   } catch (err) {
