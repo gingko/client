@@ -2113,7 +2113,7 @@ repeating-linear-gradient(-45deg
             div
                 [ id "app-root" ]
                 [ if model.fontSelectorOpen then
-                    Fonts.viewSelector model.fonts |> Html.map FontsMsg
+                    Fonts.viewSelector model.language model.fonts |> Html.map FontsMsg
 
                   else
                     text ""

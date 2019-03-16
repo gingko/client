@@ -739,10 +739,10 @@ ipcMain.on("app:close", async (event) => {
     } else {
       // Untitled/never-saved document
       const confirmOptions =
-        { title: "Save changes"
-        , message: "Save changes before closing?"
+        { title: tr.saveChanges[lang]
+        , message: tr.saveChangesMsg[lang]
         , type: "warning"
-        , buttons: ["Close Without Saving", "Cancel", "Save"]
+        , buttons: [tr.closeWithoutSaving[lang], tr.cancel[lang], tr.save[lang]]
         , defaultId: 2
         };
 

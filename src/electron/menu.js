@@ -84,7 +84,7 @@ function fileMenu (isDocument, isNew, isChanged, columnNumber, hasLastExport, re
       , submenu : recentDocsMenu
       }
     , { type: "separator" }
-    , { label: (isNew ? tr.save[lang] : (isChanged ? tr.save[lang] : tr.saved[lang]))
+    , { label: (isNew ? tr.menuSave[lang] : (isChanged ? tr.menuSave[lang] : tr.saved[lang]))
       , enabled: isNew || isChanged
       , accelerator: "CmdOrCtrl+S"
       , click : isChanged ? handlers.save : handlers.saveAs

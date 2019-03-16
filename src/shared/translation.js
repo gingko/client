@@ -19,7 +19,7 @@ export const tr =
       { en : "Open &Recent"
       , es : "Abrir &Recientes"
       }
-  , save :
+  , menuSave :
       { en : "&Save"
       , es : "&Guardar"
       }
@@ -198,9 +198,29 @@ export const tr =
       , es : "¿Seguro que quieres cancelar tus cambios?"
       }
 
+  , save :
+      { en : "Save"
+      , es : "Guardar"
+      }
+
+  , saveChanges :
+      { en : "Save changes"
+      , es : "Guardar cambios"
+      }
+
+  , saveChangesMsg :
+      { en : "Save changes before closing?"
+      , es : "¿Guardar cambios antes de cerrar?"
+      }
+
   , unsavedChangesFound :
       { en : "Some Changes Weren't Saved"
       , es : "Algunos Cambios No Fueron Guardados"
+      }
+
+  , closeWithoutSaving :
+      { en : "Close Without Saving"
+      , es : "Cerra Sin Guardar"
       }
 
   , unsavedChangesMsg :

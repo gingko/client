@@ -44,6 +44,9 @@ type TranslationId
     | EscKey
     | ToCancelChanges
     | PressToSearch
+    | HeadingFont
+    | ContentFont
+    | EditingFont
     | WordCountSession Int
     | WordCountTotal Int
     | WordCountCard Int
@@ -252,6 +255,21 @@ tr lang trans =
                 PressToSearch ->
                     { en = "Press '/' to search"
                     , es = "Presiona '/' para buscar"
+                    }
+
+                HeadingFont ->
+                    { en = "Heading Font"
+                    , es = "Fuente de Titulos"
+                    }
+
+                ContentFont ->
+                    { en = "Content Font"
+                    , es = "Fuente de Contenido"
+                    }
+
+                EditingFont ->
+                    { en = "Editing/Monospace Font"
+                    , es = "Fuente de Edición"
                     }
 
                 WordCountSession n ->

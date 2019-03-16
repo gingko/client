@@ -6,6 +6,7 @@ import Html.Events exposing (on, onClick)
 import Html.Events.Extra exposing (targetValueMaybe)
 import Json.Decode as Json
 import List.Extra exposing (unique)
+import Translation exposing (Language, TranslationId(..), tr)
 
 
 
@@ -119,8 +120,8 @@ modelToSettings { heading, content, monospace } =
 -- VIEW
 
 
-viewSelector : Model -> Html Msg
-viewSelector (Model { heading, content, monospace, builtin, system }) =
+viewSelector : Language -> Model -> Html Msg
+viewSelector lang (Model { heading, content, monospace, builtin, system }) =
     let
         headingFunction f_ =
             case f_ of
@@ -164,17 +165,17 @@ viewSelector (Model { heading, content, monospace, builtin, system }) =
     div
         [ id "font-selector", class "horizontal-dialog" ]
         [ div []
-            [ span [ style "font-family" heading, style "font-weight" "bold" ] [ text "Heading Font" ]
+            [ span [ style "font-family" heading, style "font-weight" "bold" ] [ text <| tr lang HeadingFont ]
             , br [] []
             , select [ onSelect headingFunction ] (fontList heading)
             ]
         , div []
-            [ span [ style "font-family" content ] [ text "Content Font" ]
+            [ span [ style "font-family" content ] [ text <| tr lang ContentFont ]
             , br [] []
             , select [ onSelect contentFunction ] (fontList content)
             ]
         , div []
-            [ span [ style "font-family" monospace ] [ text "Editing/Monospace Font" ]
+            [ span [ style "font-family" monospace ] [ text <| tr lang EditingFont ]
             , br [] []
             , select [ onSelect monospaceFunction ] (fontList monospace)
             ]
