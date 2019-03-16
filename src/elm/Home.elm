@@ -283,6 +283,9 @@ port forJS : { tag : String, data : Json.Value } -> Cmd msg
 port docListReload : (List ( String, Document ) -> msg) -> Sub msg
 
 
+port languageChanged : (String -> msg) -> Sub msg
+
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
