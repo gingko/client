@@ -159,6 +159,10 @@ export const tr =
       { en : "Features &List && Known Bugs..."
       , es : "&Lista de Características y Errores Conocidos..."
       }
+  , backupFolder :
+      { en : "Open Backups Folder..."
+      , es : "Abrir Archivos de \"Backup\"..."
+      }
   , contactAdri :
       { en : "&Contact Adriano..."
       , es : "&Contactar Adriano..."

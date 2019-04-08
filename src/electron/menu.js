@@ -1,6 +1,6 @@
-const { shell } = require("electron");
+const { shell , app } = require("electron");
 const { tr } = require("../shared/translation.js");
-
+const path = require("path");
 
 function getTemplate (menuState, handlers, lang, isMac) {
   let isDocument = !!menuState;
@@ -320,6 +320,9 @@ function helpMenu(handlers, isMac, lang) {
           , click : handlers.enterLicense
           }
         , { type: "separator" }
+        , { label : tr.backupFolder[lang]
+          , click : () => shell.openItem(path.join(app.getPath("userData"), "backups"))
+          }
         , { label: tr.openDevTools[lang]
           , accelerator: isMac ? "Alt+Command+I" : "Ctrl+Shift+I"
           , click : function (item, focusedWindow) {

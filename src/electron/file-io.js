@@ -399,10 +399,10 @@ function getBackupPath (filepath, timestamp) {
   if (filepath) {
     const { ext } = path.parse(filepath);
     const backupName = fullpathFilename(filepath, ext) + moment(timestamp).format(dateFormatString) + ext;
-    return path.join(app.getPath("userData"), backupName);
+    return path.join(app.getPath("userData"), "backups", backupName);
   } else { // Never-saved/Untitled
     const backupName = "Untitled"+moment(timestamp).format(dateFormatString) + ".gko";
-    return path.join(app.getPath("userData"), backupName);
+    return path.join(app.getPath("userData"), "backups", backupName);
   }
 }
 
