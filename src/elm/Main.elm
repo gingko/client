@@ -146,8 +146,8 @@ defaultModel =
             |> Debouncer.settleWhenQuietFor (Just <| fromSeconds 3)
             |> toDebouncer
     , debouncerStateBackup =
-        Debouncer.debounce (fromSeconds 15 * 60)
-            |> Debouncer.settleWhenQuietFor (Just <| fromSeconds 15 * 60)
+        Debouncer.debounce (fromSeconds 40)
+            |> Debouncer.settleWhenQuietFor (Just <| fromSeconds 40)
             |> toDebouncer
     , uid = "0"
     , viewState =
