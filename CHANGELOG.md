@@ -2,8 +2,10 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
-## [2.4.0] - 2019-03-13
+## [2.4.0] - 2019-04-08
   - Spanish language interface added
+  - Add backup folder link in Help menu
+  - Reliability: Save to file after 40 sec of inactivity
   - (Internal) Upgrade Elm to 0.19
 
 ## [2.3.5] - 2019-02-07
