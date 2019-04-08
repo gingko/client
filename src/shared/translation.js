@@ -159,10 +159,6 @@ export const tr =
       { en : "Features &List && Known Bugs..."
       , es : "&Lista de Características y Errores Conocidos..."
       }
-  , backupFolder :
-      { en : "Open Backups Folder..."
-      , es : "Abrir Archivos de \"Backup\"..."
-      }
   , contactAdri :
       { en : "&Contact Adriano..."
       , es : "&Contactar Adriano..."
@@ -175,9 +171,17 @@ export const tr =
       { en : "&Enter License..."
       , es : "Introducir Clave de Licencia..."
       }
+  , backupFolder :
+      { en : "Open Backups Folder..."
+      , es : "Abrir Archivos de \"Backup\"..."
+      }
   , openDevTools :
       { en : "Open &Debugging Tools"
       , es : "Abrir Herramientas de &Depuración"
+      }
+  , gingkoVersion :
+      { en : (version) => `Current Gingko Version : ${version}`
+      , es : (version) => `Versión actual de Gingko : ${version}`
       }
 
 // === DIALOGS AND ERROR MESSAGES ===

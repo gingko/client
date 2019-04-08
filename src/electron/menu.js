@@ -1,4 +1,4 @@
-const { shell , app } = require("electron");
+const { shell , app , dialog } = require("electron");
 const { tr } = require("../shared/translation.js");
 const path = require("path");
 
@@ -329,6 +329,8 @@ function helpMenu(handlers, isMac, lang) {
               if (focusedWindow) focusedWindow.webContents.toggleDevTools();
             }
           }
+        , { type: "separator" }
+        , { label : tr.gingkoVersion[lang](app.getVersion()) , enabled : false }
         ]
     };
 
