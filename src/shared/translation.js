@@ -278,7 +278,7 @@ export const tr =
 
   , cancel :
       { en : "Cancel"
-      , zh : ""
+      , zh : "取消"
       , es : "Cancelar"
       , fr : ""
       }
