@@ -256,7 +256,9 @@ function viewMenu(isDocument, lang, handlers) {
         , { label : tr.selectLanguage[lang]
           , submenu :
           [ { label : "English", type: "radio", checked: lang == "en", click : (item, focusedWindow) => { handlers.language("en", focusedWindow);} }
+        //, { label : "中文",    type: "radio", checked: lang == "zh", click : (item, focusedWindow) => { handlers.language("zh", focusedWindow);} }
           , { label : "Español", type: "radio", checked: lang == "es", click : (item, focusedWindow) => { handlers.language("es", focusedWindow);} }
+        //, { label : "Français", type: "radio", checked: lang == "fr", click : (item, focusedWindow) => { handlers.language("fr", focusedWindow);} }
           ]
           }
         , { type : "separator" }
