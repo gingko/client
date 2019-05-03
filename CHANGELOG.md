@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
+## [2.4.1] - 2019-05-02
+  - Fix "not saving after some time" Windows bug
+
 ## [2.4.0] - 2019-04-08
   - Spanish language interface added
   - Add backup folder link in Help menu

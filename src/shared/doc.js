@@ -59,9 +59,12 @@ var jsonImportData = docWindow.jsonImportData;
 var currentPath = docWindow.originalPath;
 
 self.db = new PouchDB(docWindow.dbPath);
-ipcRenderer.on("database-close", async (ev) => {
+ipcRenderer.on("database-close", async () => {
   await db.close();
-})
+});
+ipcRenderer.on("database-open", async () => {
+  self.db = new PouchDB(docWindow.dbPath);
+});
 
 if(!!jsonImportData) {
   var initFlags =
@@ -229,9 +232,9 @@ const update = (msg, data) => {
         ipcRenderer.send("doc:set-changed", false);
       }
 
-      , "SaveBackup": () => {
+    , "SaveBackup": () => {
         ipcRenderer.send("doc:save-backup");
-      }
+    }
 
     , 'Push': push
 
