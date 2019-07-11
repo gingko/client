@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
+## Unreleased
+  - Fix shortcut conflict "move left" and "Help" menu
+
 ## [2.4.1] - 2019-05-02
   - Fix "not saving after some time" Windows bug
 

@@ -220,8 +220,8 @@ export const tr =
       , fr : ""
       }
   , help :
-      { en : "&Help"
-      , zh : "&帮助"
+      { en : "Help"
+      , zh : "帮助"
       , es : "Ayuda"
       , fr : ""
       }
