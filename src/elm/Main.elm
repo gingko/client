@@ -6,6 +6,7 @@ import Coders exposing (..)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
 import Dict
 import Fonts
+import Fullscreen
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Lazy exposing (lazy, lazy3)
@@ -100,6 +101,7 @@ type alias Model =
     , debouncerStateBackup : Debouncer () ()
     , uid : String
     , viewState : ViewState
+    , isFullscreen : Bool -- TODO : Replace this with view mode union type
     , field : String
     , language : Translation.Language
     , isMac : Bool
@@ -163,6 +165,7 @@ defaultModel =
         , copiedTree = Nothing
         , collaborators = []
         }
+    , isFullscreen = True
     , field = ""
     , isMac = False
     , language = Translation.En
@@ -2110,26 +2113,38 @@ repeating-linear-gradient(-45deg
                 ]
 
         _ ->
-            div
-                [ id "app-root" ]
-                [ if model.fontSelectorOpen then
-                    Fonts.viewSelector model.language model.fonts |> Html.map FontsMsg
+            if model.isFullscreen then
+                div
+                    [ id "app-root" ]
+                    [ if model.fontSelectorOpen then
+                        Fonts.viewSelector model.language model.fonts |> Html.map FontsMsg
 
-                  else
-                    text ""
-                , lazy3 Trees.view model.language model.viewState model.workingTree
-                , viewSaveIndicator model
-                , viewSearchField model
-                , viewFooter model
-                , case ( model.historyState, model.status ) of
-                    ( From _, Clean currHead ) ->
-                        viewHistory model.language currHead model.objects
-
-                    _ ->
+                      else
                         text ""
-                , viewVideo model
-                , styleNode
-                ]
+                    , lazy3 Fullscreen.view model.language model.viewState model.workingTree
+                    ]
+
+            else
+                div
+                    [ id "app-root" ]
+                    [ if model.fontSelectorOpen then
+                        Fonts.viewSelector model.language model.fonts |> Html.map FontsMsg
+
+                      else
+                        text ""
+                    , lazy3 Trees.view model.language model.viewState model.workingTree
+                    , viewSaveIndicator model
+                    , viewSearchField model
+                    , viewFooter model
+                    , case ( model.historyState, model.status ) of
+                        ( From _, Clean currHead ) ->
+                            viewHistory model.language currHead model.objects
+
+                        _ ->
+                            text ""
+                    , viewVideo model
+                    , styleNode
+                    ]
 
 
 
