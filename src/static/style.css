@@ -237,6 +237,46 @@ body {
 }
 
 
+/* ======== FULLSCREEN ======== */
+
+#app.fullscreen {
+  display: flex;
+  justify-content: space-between;
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  transform: translateZ(0);
+}
+
+.fullscreen-parent {
+  flex: .3 0;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  transform: translateZ(0);
+}
+
+.fullscreen-main {
+  flex: 1 0;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  transform: translateZ(0);
+}
+
+.fullscreen-children {
+  flex: .3 0;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  transform: translateZ(0);
+}
+
+.fullscreen-parent::-webkit-scrollbar, .fullscreen-children::-webkit-scrollbar {
+  width: 0 !important;
+}
+
+
 /* ======== GROUP ======== */
 
 .group {
