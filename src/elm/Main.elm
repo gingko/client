@@ -153,7 +153,6 @@ defaultModel =
     , viewState =
         { active = "1"
         , activePast = []
-        , activeFuture = []
         , descendants = []
         , ancestors = [ "0" ]
         , editing = Nothing
@@ -1195,7 +1194,6 @@ activate id ( model, prevCmd ) =
                         { vs
                             | active = id
                             , activePast = newPast
-                            , activeFuture = []
                             , descendants = desc
                             , ancestors = anc
                         }

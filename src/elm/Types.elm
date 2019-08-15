@@ -203,7 +203,6 @@ type alias CollabState =
 type alias ViewState =
     { active : String
     , activePast : List String
-    , activeFuture : List String
     , descendants : List String
     , ancestors : List String
     , editing : Maybe String
