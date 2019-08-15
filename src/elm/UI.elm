@@ -56,23 +56,24 @@ viewSearchField { viewState, language } =
             else
                 text ""
     in
-    if viewState.editing == Nothing then
-        div
-            [ id "search-field" ]
-            [ input
-                [ type_ "search"
-                , id "search-input"
-                , title (tr language PressToSearch)
-                , onInput SearchFieldUpdated
+    case viewState.viewMode of
+        Normal ->
+            div
+                [ id "search-field" ]
+                [ input
+                    [ type_ "search"
+                    , id "search-input"
+                    , title (tr language PressToSearch)
+                    , onInput SearchFieldUpdated
+                    ]
+                    []
+                , maybeSearchIcon
                 ]
-                []
-            , maybeSearchIcon
-            ]
 
-    else
-        div
-            [ id "search-field" ]
-            []
+        Editing ->
+            div
+                [ id "search-field" ]
+                []
 
 
 viewFooter : { m | viewState : ViewState, workingTree : Trees.Model, startingWordcount : Int, shortcutTrayOpen : Bool, wordcountTrayOpen : Bool, language : Language, isMac : Bool, isTextSelected : Bool, changed : Bool } -> Html Msg
@@ -88,23 +89,24 @@ viewFooter model =
             current - model.startingWordcount
 
         viewWordCount =
-            if model.viewState.editing == Nothing then
-                [ div
-                    [ id "wordcount"
-                    , classList [ ( "inset", True ), ( "open", model.wordcountTrayOpen ) ]
-                    , onClick WordcountTrayToggle
+            case model.viewState.viewMode of
+                Normal ->
+                    [ div
+                        [ id "wordcount"
+                        , classList [ ( "inset", True ), ( "open", model.wordcountTrayOpen ) ]
+                        , onClick WordcountTrayToggle
+                        ]
+                        [ span [] [ text (tr model.language (WordCountSession session)) ]
+                        , span [] [ text (tr model.language (WordCountTotal current)) ]
+                        , span [] [ text (tr model.language (WordCountCard wordCounts.card)) ]
+                        , span [] [ text (tr model.language (WordCountSubtree wordCounts.subtree)) ]
+                        , span [] [ text (tr model.language (WordCountGroup wordCounts.group)) ]
+                        , span [] [ text (tr model.language (WordCountColumn wordCounts.column)) ]
+                        ]
                     ]
-                    [ span [] [ text (tr model.language (WordCountSession session)) ]
-                    , span [] [ text (tr model.language (WordCountTotal current)) ]
-                    , span [] [ text (tr model.language (WordCountCard wordCounts.card)) ]
-                    , span [] [ text (tr model.language (WordCountSubtree wordCounts.subtree)) ]
-                    , span [] [ text (tr model.language (WordCountGroup wordCounts.group)) ]
-                    , span [] [ text (tr model.language (WordCountColumn wordCounts.column)) ]
-                    ]
-                ]
 
-            else
-                []
+                Editing ->
+                    []
 
         isOnly =
             case model.workingTree.tree.children of
@@ -233,52 +235,49 @@ viewShortcutsToggle lang isOpen isMac isOnly isTextSelected vs =
                 "Ctrl"
     in
     if isOpen then
-        if vs.editing == Nothing then
-            let
-                iconColor =
-                    Icon.color "#445"
-            in
-            div
-                [ id "shortcuts-tray", class "inset", onClick ShortcutTrayToggle ]
-                [ div [ class "popup" ]
-                    [ shortcutSpan [ tr lang EnterKey ] (tr lang EnterAction)
-                    , viewIf (not isOnly) <| shortcutSpan [ "↑", "↓", "←", "→" ] (tr lang ArrowsAction)
-                    , shortcutSpan [ ctrlOrCmd, "→" ] (tr lang AddChildAction)
-                    , shortcutSpan [ ctrlOrCmd, "↓" ] (tr lang AddBelowAction)
-                    , shortcutSpan [ ctrlOrCmd, "↑" ] (tr lang AddAboveAction)
-                    , viewIf (not isOnly) <| shortcutSpan [ "Alt", tr lang ArrowKeys ] (tr lang MoveAction)
-                    , viewIf (not isOnly) <| shortcutSpan [ ctrlOrCmd, tr lang Backspace ] (tr lang DeleteAction)
-                    ]
-                , div [ class "icon-stack" ]
-                    [ Icon.keyboard (defaultOptions |> iconColor)
-                    , Icon.question (defaultOptions |> iconColor |> Icon.size 14)
-                    ]
-                ]
-
-        else
-            let
-                iconColor =
-                    Icon.color "#445"
-            in
-            div
-                [ id "shortcuts-tray", class "inset", onClick ShortcutTrayToggle ]
-                [ div [ class "popup" ]
-                    [ shortcutSpan [ ctrlOrCmd, tr lang EnterKey ] (tr lang ToSaveChanges)
-                    , shortcutSpan [ tr lang EscKey ] (tr lang ToCancelChanges)
-                    , shortcutSpanEnabled isTextSelected [ ctrlOrCmd, "B" ] (tr lang ForBold)
-                    , shortcutSpanEnabled isTextSelected [ ctrlOrCmd, "I" ] (tr lang ForItalic)
-                    , span [ class "markdown-guide" ]
-                        [ a [ href "http://commonmark.org/help" ]
-                            [ text <| tr lang FormattingGuide
-                            , span [ class "icon-container" ] [ Icon.linkExternal (defaultOptions |> iconColor |> Icon.size 14) ]
-                            ]
+        let
+            iconColor =
+                Icon.color "#445"
+        in
+        case vs.viewMode of
+            Normal ->
+                div
+                    [ id "shortcuts-tray", class "inset", onClick ShortcutTrayToggle ]
+                    [ div [ class "popup" ]
+                        [ shortcutSpan [ tr lang EnterKey ] (tr lang EnterAction)
+                        , viewIf (not isOnly) <| shortcutSpan [ "↑", "↓", "←", "→" ] (tr lang ArrowsAction)
+                        , shortcutSpan [ ctrlOrCmd, "→" ] (tr lang AddChildAction)
+                        , shortcutSpan [ ctrlOrCmd, "↓" ] (tr lang AddBelowAction)
+                        , shortcutSpan [ ctrlOrCmd, "↑" ] (tr lang AddAboveAction)
+                        , viewIf (not isOnly) <| shortcutSpan [ "Alt", tr lang ArrowKeys ] (tr lang MoveAction)
+                        , viewIf (not isOnly) <| shortcutSpan [ ctrlOrCmd, tr lang Backspace ] (tr lang DeleteAction)
+                        ]
+                    , div [ class "icon-stack" ]
+                        [ Icon.keyboard (defaultOptions |> iconColor)
+                        , Icon.question (defaultOptions |> iconColor |> Icon.size 14)
                         ]
                     ]
-                , div [ class "icon-stack" ]
-                    [ Icon.keyboard (defaultOptions |> iconColor)
-                    , Icon.question (defaultOptions |> iconColor |> Icon.size 14)
+
+            Editing ->
+                div
+                    [ id "shortcuts-tray", class "inset", onClick ShortcutTrayToggle ]
+                    [ div [ class "popup" ]
+                        [ shortcutSpan [ ctrlOrCmd, tr lang EnterKey ] (tr lang ToSaveChanges)
+                        , shortcutSpan [ tr lang EscKey ] (tr lang ToCancelChanges)
+                        , shortcutSpanEnabled isTextSelected [ ctrlOrCmd, "B" ] (tr lang ForBold)
+                        , shortcutSpanEnabled isTextSelected [ ctrlOrCmd, "I" ] (tr lang ForItalic)
+                        , span [ class "markdown-guide" ]
+                            [ a [ href "http://commonmark.org/help" ]
+                                [ text <| tr lang FormattingGuide
+                                , span [ class "icon-container" ] [ Icon.linkExternal (defaultOptions |> iconColor |> Icon.size 14) ]
+                                ]
+                            ]
+                        ]
+                    , div [ class "icon-stack" ]
+                        [ Icon.keyboard (defaultOptions |> iconColor)
+                        , Icon.question (defaultOptions |> iconColor |> Icon.size 14)
+                        ]
                     ]
-                ]
 
     else
         let

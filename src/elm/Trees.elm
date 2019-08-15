@@ -357,16 +357,16 @@ view lang vstate model =
         getViewArgs cwd =
             let
                 editing_ =
-                    case vstate.editing of
-                        Nothing ->
-                            Nothing
+                    case vstate.viewMode of
+                        Normal ->
+                            Normal
 
-                        Just editId ->
-                            if first cwd |> List.concat |> List.map .id |> List.member editId then
-                                Just editId
+                        Editing ->
+                            if first cwd |> List.concat |> List.map .id |> List.member vstate.active then
+                                Editing
 
                             else
-                                Nothing
+                                Normal
             in
             VisibleViewState
                 vstate.active
@@ -437,11 +437,11 @@ viewGroup vstate depth xs =
                     List.member t.id vstate.ancestors
 
                 isEditing =
-                    case vstate.editing of
-                        Just editId ->
-                            t.id == editId
+                    case vstate.viewMode of
+                        Editing ->
+                            t.id == vstate.active
 
-                        Nothing ->
+                        Normal ->
                             False
 
                 isLast =
@@ -449,12 +449,12 @@ viewGroup vstate depth xs =
 
                 collabsEditingCard =
                     vstate.collaborators
-                        |> List.filter (\c -> c.mode == Editing t.id)
+                        |> List.filter (\c -> c.mode == CollabEditing t.id)
                         |> List.map .uid
 
                 collabsOnCard =
                     vstate.collaborators
-                        |> List.filter (\c -> c.mode == Active t.id || c.mode == Editing t.id)
+                        |> List.filter (\c -> c.mode == CollabActive t.id || c.mode == CollabEditing t.id)
                         |> List.map .uid
             in
             if t.id == vstate.active && not isEditing then
