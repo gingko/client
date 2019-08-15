@@ -90,7 +90,7 @@ viewCard cardId content =
             [ id ("card-edit-" ++ cardId)
             , dir "auto"
             , classList
-                [ ( "edit-fullscreen", True )
+                [ ( "edit", True )
                 , ( "mousetrap", True )
                 ]
             , value content

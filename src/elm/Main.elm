@@ -884,7 +884,7 @@ update msg ({ objects, workingTree, status } as model) =
 
                 Keyboard shortcut ->
                     case shortcut of
-                        "mod+shift+enter" ->
+                        "shift+enter" ->
                             ( model
                             , Cmd.none
                             )

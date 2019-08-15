@@ -80,7 +80,7 @@ const errorAlert = (title, msg, err) => {
 
 
 
-var shortcuts = [ "mod+shift+enter"
+var shortcuts = [ "shift+enter"
                 , "mod+enter"
                 , "enter"
                 , "esc"
