@@ -37,9 +37,10 @@ view lang vstate model =
     in
     div
         [ id "app"
+        , class "fullscreen"
         ]
         [ viewMaybeParent parent_
-        , viewColumn currentColumn
+        , viewColumn vstate.active currentColumn
         , viewChildren children
         ]
 
@@ -54,11 +55,11 @@ viewMaybeParent parentTuple_ =
             div [ class "fullscreen-parent" ] []
 
 
-viewColumn : Column -> Html Msg
-viewColumn col =
+viewColumn : String -> Column -> Html Msg
+viewColumn active col =
     div
         [ class "fullscreen-main" ]
-        (List.map (lazy viewGroup) col)
+        (List.map (lazy2 viewGroup active) col)
 
 
 viewChildren : List Tree -> Html Msg
@@ -66,25 +67,25 @@ viewChildren xs =
     div [ class "fullscreen-children" ] []
 
 
-viewGroup : Group -> Html Msg
-viewGroup xs =
+viewGroup : String -> Group -> Html Msg
+viewGroup active xs =
     let
         viewFunction t =
-            ( t.id, viewCard t.id t.content )
+            ( t.id, viewCard (t.id == active) t.id t.content )
     in
     Keyed.node "div"
         [ class "group-fullscreen" ]
         (List.map viewFunction xs)
 
 
-viewCard : String -> String -> Html Msg
-viewCard cardId content =
+viewCard : Bool -> String -> String -> Html Msg
+viewCard isActive cardId content =
     div
         [ id ("card-" ++ cardId)
         , dir "auto"
         , classList
             [ ( "card-fullscreen", True )
-            , ( "active-fullscreen", True )
+            , ( "active-fullscreen", isActive )
             ]
         ]
         [ textarea

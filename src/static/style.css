@@ -246,6 +246,7 @@ body {
   overflow-x: auto;
   overflow-y: hidden;
   transform: translateZ(0);
+  background: url('./handmadepaper.png');
 }
 
 .fullscreen-parent {
@@ -274,6 +275,37 @@ body {
 
 .fullscreen-parent::-webkit-scrollbar, .fullscreen-children::-webkit-scrollbar {
   width: 0 !important;
+}
+
+.card-fullscreen {
+  padding: 40px;
+  border-bottom: 1px dotted #dedede;
+}
+
+.card-fullscreen.active-fullscreen {
+  background: hsla(0,100%,100%, 0.2);
+}
+
+.card-fullscreen textarea.edit {
+  display: block;
+  width: 100%;
+  min-height: 60px;
+  padding: 15px 0px 5px 0px;
+  overflow-x: hidden;
+  border: none;
+  border-radius: inherit;
+  background: transparent;
+  font-family: 'Droid Sans Mono', monospace;
+  font-size: 24px;
+  line-height: 23px;
+  color: hsl(27,28%,35%);
+  resize: none;
+  outline: none;
+  border: none;
+}
+.card-fullscreen.active-fullscreen textarea.edit {
+  color: hsl(27,28%,22%);
+  text-shadow: -1px -1px 0px rgba(0,0,0,0.1), 1px 1px 0px rgba(255,255,255,0.8);
 }
 
 
