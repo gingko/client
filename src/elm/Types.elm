@@ -203,6 +203,7 @@ type alias CollabState =
 type ViewMode
     = Normal
     | Editing
+    | FullscreenEditing
 
 
 type alias ViewState =

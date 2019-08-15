@@ -651,7 +651,12 @@ update msg ({ objects, workingTree, status } as model) =
 
                 IntentExit ->
                     case vs.viewMode of
-                        Editing ->
+                        Normal ->
+                            ( model
+                            , sendOut (SaveAndClose Nothing)
+                            )
+
+                        _ ->
                             let
                                 modelCardSaved =
                                     ( model
@@ -665,11 +670,6 @@ update msg ({ objects, workingTree, status } as model) =
                             in
                             ( model
                             , sendOut (SaveAndClose (Just ( statusValue, objectsValue )))
-                            )
-
-                        Normal ->
-                            ( model
-                            , sendOut (SaveAndClose Nothing)
                             )
 
                 IntentExport exportSettings ->
@@ -896,7 +896,7 @@ update msg ({ objects, workingTree, status } as model) =
                                             Normal ->
                                                 openCard vs.active (getContent vs.active m.workingTree.tree) ( m, c )
 
-                                            Editing ->
+                                            _ ->
                                                 ( m, c )
                                    )
                                 |> activate vs.active
@@ -1043,7 +1043,7 @@ update msg ({ objects, workingTree, status } as model) =
                                     , Cmd.none
                                     )
 
-                                Editing ->
+                                _ ->
                                     ( model
                                     , sendOut (TextSurround vs.active "**")
                                     )
@@ -1055,7 +1055,7 @@ update msg ({ objects, workingTree, status } as model) =
                                     , Cmd.none
                                     )
 
-                                Editing ->
+                                _ ->
                                     ( model
                                     , sendOut (TextSurround vs.active "*")
                                     )
@@ -1067,7 +1067,7 @@ update msg ({ objects, workingTree, status } as model) =
                                     , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "search-input")
                                     )
 
-                                Editing ->
+                                _ ->
                                     ( model
                                     , Cmd.none
                                     )
@@ -1079,7 +1079,7 @@ update msg ({ objects, workingTree, status } as model) =
                                     , Cmd.none
                                     )
 
-                                Editing ->
+                                _ ->
                                     ( model
                                     , Cmd.none
                                     )
@@ -1322,7 +1322,12 @@ saveCardIfEditing ( model, prevCmd ) =
             model.viewState
     in
     case vs.viewMode of
-        Editing ->
+        Normal ->
+            ( model
+            , prevCmd
+            )
+
+        _ ->
             let
                 newTree =
                     Trees.update (Trees.Upd vs.active model.field) model.workingTree
@@ -1345,11 +1350,6 @@ saveCardIfEditing ( model, prevCmd ) =
                   }
                 , Cmd.batch [ prevCmd, sendOut (SetChanged False) ]
                 )
-
-        Normal ->
-            ( model
-            , prevCmd
-            )
 
 
 openCard : String -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1557,7 +1557,7 @@ intentCancelCard model =
             , Cmd.none
             )
 
-        Editing ->
+        _ ->
             ( model
             , sendOut (ConfirmCancelCard vs.active originalContent)
             )
@@ -2203,6 +2203,6 @@ normalMode model operation =
                 Normal ->
                     operation
 
-                Editing ->
+                _ ->
                     identity
            )
