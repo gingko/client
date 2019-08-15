@@ -101,7 +101,6 @@ type alias Model =
     , debouncerStateBackup : Debouncer () ()
     , uid : String
     , viewState : ViewState
-    , isFullscreen : Bool -- TODO : Replace this with view mode union type
     , field : String
     , language : Translation.Language
     , isMac : Bool
@@ -164,7 +163,6 @@ defaultModel =
         , copiedTree = Nothing
         , collaborators = []
         }
-    , isFullscreen = True
     , field = ""
     , isMac = False
     , language = Translation.En
@@ -886,6 +884,22 @@ update msg ({ objects, workingTree, status } as model) =
 
                 Keyboard shortcut ->
                     case shortcut of
+                        "mod+shift+enter" ->
+                            ( model
+                            , Cmd.none
+                            )
+                                |> saveCardIfEditing
+                                |> (\( m, c ) ->
+                                        case vs.viewMode of
+                                            Normal ->
+                                                openCard vs.active (getContent vs.active m.workingTree.tree) ( m, c )
+                                                    |> toFullscreen
+
+                                            _ ->
+                                                ( m, c )
+                                   )
+                                |> activate vs.active
+
                         "mod+enter" ->
                             ( model
                             , Cmd.none
@@ -1384,6 +1398,15 @@ openCard id str ( model, prevCmd ) =
         , Cmd.batch [ prevCmd, focus id ]
         )
             |> sendCollabState (CollabState model.uid (CollabEditing id) str)
+
+
+toFullscreen : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+toFullscreen ( model, prevCmd ) =
+    let
+        vs =
+            model.viewState
+    in
+    ( { model | viewState = { vs | viewMode = FullscreenEditing } }, prevCmd )
 
 
 deleteCard : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -2113,7 +2136,7 @@ repeating-linear-gradient(-45deg
                 ]
 
         _ ->
-            if model.isFullscreen then
+            if model.viewState.viewMode == FullscreenEditing then
                 div
                     [ id "app-root" ]
                     [ if model.fontSelectorOpen then
