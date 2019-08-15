@@ -354,6 +354,13 @@ update msg ({ objects, workingTree, status } as model) =
             )
                 |> openCard id str
 
+        OpenCardFullscreen id str ->
+            ( model
+            , Cmd.none
+            )
+                |> saveCardIfEditing
+                |> openCardFullscreen id str
+
         DeleteCard id ->
             ( model
             , Cmd.none
@@ -646,6 +653,7 @@ update msg ({ objects, workingTree, status } as model) =
                     , Cmd.none
                     )
                         |> saveCardIfEditing
+                        |> closeCard
 
                 IntentExit ->
                     case vs.viewMode of
@@ -892,11 +900,10 @@ update msg ({ objects, workingTree, status } as model) =
                                 |> (\( m, c ) ->
                                         case vs.viewMode of
                                             Normal ->
-                                                openCard vs.active (getContent vs.active m.workingTree.tree) ( m, c )
-                                                    |> toFullscreen
+                                                openCardFullscreen vs.active (getContent vs.active m.workingTree.tree) ( m, c )
 
                                             _ ->
-                                                ( m, c )
+                                                closeCard ( m, c )
                                    )
                                 |> activate vs.active
 
@@ -911,7 +918,7 @@ update msg ({ objects, workingTree, status } as model) =
                                                 openCard vs.active (getContent vs.active m.workingTree.tree) ( m, c )
 
                                             _ ->
-                                                ( m, c )
+                                                closeCard ( m, c )
                                    )
                                 |> activate vs.active
 
@@ -1349,8 +1356,6 @@ saveCardIfEditing ( model, prevCmd ) =
             if newTree.tree /= model.workingTree.tree then
                 ( { model
                     | workingTree = newTree
-                    , viewState = { vs | viewMode = Normal }
-                    , field = ""
                   }
                 , prevCmd
                 )
@@ -1358,9 +1363,7 @@ saveCardIfEditing ( model, prevCmd ) =
 
             else
                 ( { model
-                    | viewState = { vs | viewMode = Normal }
-                    , field = ""
-                    , changed = False
+                    | changed = False
                   }
                 , Cmd.batch [ prevCmd, sendOut (SetChanged False) ]
                 )
@@ -1400,13 +1403,26 @@ openCard id str ( model, prevCmd ) =
             |> sendCollabState (CollabState model.uid (CollabEditing id) str)
 
 
-toFullscreen : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-toFullscreen ( model, prevCmd ) =
+openCardFullscreen : String -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+openCardFullscreen id str ( model, prevCmd ) =
+    ( model, prevCmd )
+        |> openCard id str
+        |> (\( m, c ) ->
+                let
+                    vs =
+                        m.viewState
+                in
+                ( { m | viewState = { vs | active = id, viewMode = FullscreenEditing }, field = str }, c )
+           )
+
+
+closeCard : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+closeCard ( model, prevCmd ) =
     let
         vs =
             model.viewState
     in
-    ( { model | viewState = { vs | viewMode = FullscreenEditing } }, prevCmd )
+    ( { model | viewState = { vs | viewMode = Normal }, field = "" }, prevCmd )
 
 
 deleteCard : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )

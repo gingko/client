@@ -15,6 +15,7 @@ type Msg
     | SearchFieldUpdated String
       -- === Card Editing  ===
     | OpenCard String String
+    | OpenCardFullscreen String String
     | DeleteCard String
       -- === Card Insertion  ===
     | InsertAbove String
