@@ -78,11 +78,11 @@ collabStateDecoder =
 modeToValue : Mode -> Enc.Value
 modeToValue mode =
     case mode of
-        Active id ->
-            tupleToValue Enc.string ( "Active", id )
+        CollabActive id ->
+            tupleToValue Enc.string ( "CollabActive", id )
 
-        Editing id ->
-            tupleToValue Enc.string ( "Editing", id )
+        CollabEditing id ->
+            tupleToValue Enc.string ( "CollabEditing", id )
 
 
 modeDecoder : Decoder Mode
@@ -91,11 +91,11 @@ modeDecoder =
         modeHelp : ( String, String ) -> Decoder Mode
         modeHelp ( tag, idIn ) =
             case ( tag, idIn ) of
-                ( "Active", id ) ->
-                    succeed (Active id)
+                ( "CollabActive", id ) ->
+                    succeed (CollabActive id)
 
-                ( "Editing", id ) ->
-                    succeed (Editing id)
+                ( "CollabEditing", id ) ->
+                    succeed (CollabEditing id)
 
                 _ ->
                     fail <| "Failed mode decoder"

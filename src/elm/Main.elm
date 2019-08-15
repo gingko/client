@@ -154,11 +154,10 @@ defaultModel =
     , uid = "0"
     , viewState =
         { active = "1"
+        , viewMode = Normal
         , activePast = []
-        , activeFuture = []
         , descendants = []
         , ancestors = [ "0" ]
-        , editing = Nothing
         , searchField = Nothing
         , dragModel = DragDrop.init
         , draggedTree = Nothing
@@ -651,26 +650,27 @@ update msg ({ objects, workingTree, status } as model) =
                         |> saveCardIfEditing
 
                 IntentExit ->
-                    if vs.editing /= Nothing then
-                        let
-                            modelCardSaved =
-                                ( model
-                                , Cmd.none
-                                )
-                                    |> saveCardIfEditing
-                                    |> Tuple.first
+                    case vs.viewMode of
+                        Editing ->
+                            let
+                                modelCardSaved =
+                                    ( model
+                                    , Cmd.none
+                                    )
+                                        |> saveCardIfEditing
+                                        |> Tuple.first
 
-                            ( statusValue, objectsValue ) =
-                                ( statusToValue modelCardSaved.status, Objects.toValue modelCardSaved.objects )
-                        in
-                        ( model
-                        , sendOut (SaveAndClose (Just ( statusValue, objectsValue )))
-                        )
+                                ( statusValue, objectsValue ) =
+                                    ( statusToValue modelCardSaved.status, Objects.toValue modelCardSaved.objects )
+                            in
+                            ( model
+                            , sendOut (SaveAndClose (Just ( statusValue, objectsValue )))
+                            )
 
-                    else
-                        ( model
-                        , sendOut (SaveAndClose Nothing)
-                        )
+                        Normal ->
+                            ( model
+                            , sendOut (SaveAndClose Nothing)
+                            )
 
                 IntentExport exportSettings ->
                     case exportSettings.format of
@@ -892,11 +892,12 @@ update msg ({ objects, workingTree, status } as model) =
                             )
                                 |> saveCardIfEditing
                                 |> (\( m, c ) ->
-                                        if vs.editing == Nothing then
-                                            openCard vs.active (getContent vs.active m.workingTree.tree) ( m, c )
+                                        case vs.viewMode of
+                                            Normal ->
+                                                openCard vs.active (getContent vs.active m.workingTree.tree) ( m, c )
 
-                                        else
-                                            ( m, c )
+                                            Editing ->
+                                                ( m, c )
                                    )
                                 |> activate vs.active
 
@@ -1036,49 +1037,49 @@ update msg ({ objects, workingTree, status } as model) =
                                 |> saveCardIfEditing
 
                         "mod+b" ->
-                            case vs.editing of
-                                Nothing ->
+                            case vs.viewMode of
+                                Normal ->
                                     ( model
                                     , Cmd.none
                                     )
 
-                                Just uid ->
+                                Editing ->
                                     ( model
-                                    , sendOut (TextSurround uid "**")
+                                    , sendOut (TextSurround vs.active "**")
                                     )
 
                         "mod+i" ->
-                            case vs.editing of
-                                Nothing ->
+                            case vs.viewMode of
+                                Normal ->
                                     ( model
                                     , Cmd.none
                                     )
 
-                                Just uid ->
+                                Editing ->
                                     ( model
-                                    , sendOut (TextSurround uid "*")
+                                    , sendOut (TextSurround vs.active "*")
                                     )
 
                         "/" ->
-                            case vs.editing of
-                                Nothing ->
+                            case vs.viewMode of
+                                Normal ->
                                     ( model
                                     , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "search-input")
                                     )
 
-                                Just _ ->
+                                Editing ->
                                     ( model
                                     , Cmd.none
                                     )
 
                         "w" ->
-                            case vs.editing of
-                                Nothing ->
+                            case vs.viewMode of
+                                Normal ->
                                     ( { model | wordcountTrayOpen = not model.wordcountTrayOpen }
                                     , Cmd.none
                                     )
 
-                                Just _ ->
+                                Editing ->
                                     ( model
                                     , Cmd.none
                                     )
@@ -1112,7 +1113,7 @@ update msg ({ objects, workingTree, status } as model) =
 
                         newTree =
                             case collabState.mode of
-                                Editing editId ->
+                                CollabEditing editId ->
                                     Trees.update (Trees.Upd editId collabState.field) model.workingTree
 
                                 _ ->
@@ -1198,7 +1199,6 @@ activate id ( model, prevCmd ) =
                         { vs
                             | active = id
                             , activePast = newPast
-                            , activeFuture = []
                             , descendants = desc
                             , ancestors = anc
                         }
@@ -1214,7 +1214,7 @@ activate id ( model, prevCmd ) =
                         )
                     ]
                 )
-                    |> sendCollabState (CollabState model.uid (Active id) "")
+                    |> sendCollabState (CollabState model.uid (CollabActive id) "")
 
             Nothing ->
                 ( model
@@ -1321,16 +1321,16 @@ saveCardIfEditing ( model, prevCmd ) =
         vs =
             model.viewState
     in
-    case vs.editing of
-        Just id ->
+    case vs.viewMode of
+        Editing ->
             let
                 newTree =
-                    Trees.update (Trees.Upd id model.field) model.workingTree
+                    Trees.update (Trees.Upd vs.active model.field) model.workingTree
             in
             if newTree.tree /= model.workingTree.tree then
                 ( { model
                     | workingTree = newTree
-                    , viewState = { vs | editing = Nothing }
+                    , viewState = { vs | viewMode = Normal }
                     , field = ""
                   }
                 , prevCmd
@@ -1339,14 +1339,14 @@ saveCardIfEditing ( model, prevCmd ) =
 
             else
                 ( { model
-                    | viewState = { vs | editing = Nothing }
+                    | viewState = { vs | viewMode = Normal }
                     , field = ""
                     , changed = False
                   }
                 , Cmd.batch [ prevCmd, sendOut (SetChanged False) ]
                 )
 
-        Nothing ->
+        Normal ->
             ( model
             , prevCmd
             )
@@ -1360,7 +1360,7 @@ openCard id str ( model, prevCmd ) =
 
         isLocked =
             vs.collaborators
-                |> List.filter (\c -> c.mode == Editing id)
+                |> List.filter (\c -> c.mode == CollabEditing id)
                 |> (not << List.isEmpty)
 
         isHistoryView =
@@ -1378,12 +1378,12 @@ openCard id str ( model, prevCmd ) =
 
     else
         ( { model
-            | viewState = { vs | active = id, editing = Just id }
+            | viewState = { vs | active = id, viewMode = Editing }
             , field = str
           }
         , Cmd.batch [ prevCmd, focus id ]
         )
-            |> sendCollabState (CollabState model.uid (Editing id) str)
+            |> sendCollabState (CollabState model.uid (CollabEditing id) str)
 
 
 deleteCard : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1394,7 +1394,7 @@ deleteCard id ( model, prevCmd ) =
 
         isLocked =
             vs.collaborators
-                |> List.filter (\c -> c.mode == Editing id)
+                |> List.filter (\c -> c.mode == CollabEditing id)
                 |> (not << List.isEmpty)
 
         filteredActive =
@@ -1533,13 +1533,13 @@ cancelCard ( model, prevCmd ) =
             model.viewState
     in
     ( { model
-        | viewState = { vs | editing = Nothing }
+        | viewState = { vs | viewMode = Normal }
         , changed = False
         , field = ""
       }
     , prevCmd
     )
-        |> sendCollabState (CollabState model.uid (Active vs.active) "")
+        |> sendCollabState (CollabState model.uid (CollabActive vs.active) "")
 
 
 intentCancelCard : Model -> ( Model, Cmd Msg )
@@ -1551,13 +1551,13 @@ intentCancelCard model =
         originalContent =
             getContent vs.active model.workingTree.tree
     in
-    case vs.editing of
-        Nothing ->
+    case vs.viewMode of
+        Normal ->
             ( model
             , Cmd.none
             )
 
-        Just id ->
+        Editing ->
             ( model
             , sendOut (ConfirmCancelCard vs.active originalContent)
             )
@@ -2199,9 +2199,10 @@ normalMode model operation =
     ( model
     , Cmd.none
     )
-        |> (if model.viewState.editing == Nothing then
-                operation
+        |> (case model.viewState.viewMode of
+                Normal ->
+                    operation
 
-            else
-                identity
+                Editing ->
+                    identity
            )

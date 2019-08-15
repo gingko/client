@@ -1,4 +1,4 @@
-module Types exposing (Children(..), CollabState, Column, Conflict, Direction(..), DropId(..), ExportFormat(..), ExportSelection(..), ExportSettings, Group, HistoryState(..), IncomingMsg(..), Mode(..), Msg(..), Op(..), OutgoingMsg(..), OutsideData, Selection(..), Status(..), Tree, ViewState, VisibleViewState, WordCount)
+module Types exposing (Children(..), CollabState, Column, Conflict, Direction(..), DropId(..), ExportFormat(..), ExportSelection(..), ExportSettings, Group, HistoryState(..), IncomingMsg(..), Mode(..), Msg(..), Op(..), OutgoingMsg(..), OutsideData, Selection(..), Status(..), Tree, ViewMode(..), ViewState, VisibleViewState, WordCount)
 
 import Debouncer.Basic as Debouncer
 import Fonts
@@ -183,8 +183,8 @@ type Direction
 
 
 type Mode
-    = Active String
-    | Editing String
+    = CollabActive String
+    | CollabEditing String
 
 
 type DropId
@@ -200,13 +200,17 @@ type alias CollabState =
     }
 
 
+type ViewMode
+    = Normal
+    | Editing
+
+
 type alias ViewState =
     { active : String
     , activePast : List String
-    , activeFuture : List String
     , descendants : List String
     , ancestors : List String
-    , editing : Maybe String
+    , viewMode : ViewMode
     , searchField : Maybe String
     , dragModel : DragDrop.Model String DropId
     , draggedTree : Maybe ( Tree, String, Int )
@@ -217,7 +221,7 @@ type alias ViewState =
 
 type alias VisibleViewState =
     { active : String
-    , editing : Maybe String
+    , viewMode : ViewMode
     , descendants : List String
     , ancestors : List String
     , dragModel : DragDrop.Model String DropId
