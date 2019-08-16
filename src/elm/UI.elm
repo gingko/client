@@ -70,15 +70,18 @@ viewSearchField { viewState, language } =
                 , maybeSearchIcon
                 ]
 
-        Editing ->
+        _ ->
             div
                 [ id "search-field" ]
                 []
 
 
-viewFooter : { m | viewState : ViewState, workingTree : Trees.Model, startingWordcount : Int, shortcutTrayOpen : Bool, wordcountTrayOpen : Bool, language : Language, isMac : Bool, isTextSelected : Bool, changed : Bool } -> Html Msg
+viewFooter : { m | viewState : ViewState, workingTree : Trees.Model, startingWordcount : Int, shortcutTrayOpen : Bool, wordcountTrayOpen : Bool, language : Language, isMac : Bool, textCursorInfo : TextCursorInfo, changed : Bool } -> Html Msg
 viewFooter model =
     let
+        isTextSelected =
+            model.textCursorInfo.selected
+
         wordCounts =
             getWordCounts model
 
@@ -105,7 +108,7 @@ viewFooter model =
                         ]
                     ]
 
-                Editing ->
+                _ ->
                     []
 
         isOnly =
@@ -129,7 +132,7 @@ viewFooter model =
     in
     div
         [ class "footer" ]
-        ([ viewShortcutsToggle model.language model.shortcutTrayOpen model.isMac isOnly model.isTextSelected model.viewState ]
+        ([ viewShortcutsToggle model.language model.shortcutTrayOpen model.isMac isOnly model.textCursorInfo.selected model.viewState ]
             ++ viewWordCount
         )
 
@@ -258,7 +261,7 @@ viewShortcutsToggle lang isOpen isMac isOnly isTextSelected vs =
                         ]
                     ]
 
-            Editing ->
+            _ ->
                 div
                     [ id "shortcuts-tray", class "inset", onClick ShortcutTrayToggle ]
                     [ div [ class "popup" ]

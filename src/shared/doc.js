@@ -901,11 +901,12 @@ const observer = new MutationObserver(function(mutations) {
 
     document.onselectionchange = () => {
       let sel = window.getSelection();
-      if(sel.toString().length == 0) {
-        toElm("TextSelected", false);
-      } else {
-        toElm("TextSelected", true);
-      }
+      console.log("selection",sel);
+      toElm("TextCursor",
+        { selected: sel.toString().length == 0 ? false : true
+        , position: "other"
+        }
+      );
     }
 
     ipcRenderer.send('edit-mode-toggle', true)

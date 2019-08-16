@@ -367,6 +367,10 @@ view lang vstate model =
 
                             else
                                 Normal
+
+                        FullscreenEditing ->
+                            -- TODO : Impossible state
+                            Normal
             in
             VisibleViewState
                 vstate.active
@@ -442,6 +446,10 @@ viewGroup vstate depth xs =
                             t.id == vstate.active
 
                         Normal ->
+                            False
+
+                        FullscreenEditing ->
+                            -- TODO : Impossible state
                             False
 
                 isLast =

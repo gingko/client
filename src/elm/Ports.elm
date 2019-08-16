@@ -215,10 +215,10 @@ receiveMsg tagger onError =
                         Err e ->
                             onError (errorToString e)
 
-                "TextSelected" ->
-                    case decodeValue Json.Decode.bool outsideInfo.data of
-                        Ok newBool ->
-                            tagger <| TextSelected newBool
+                "TextCursor" ->
+                    case decodeValue textCursorInfoDecoder outsideInfo.data of
+                        Ok textCursorInfo ->
+                            tagger <| TextCursor textCursorInfo
 
                         Err e ->
                             onError (errorToString e)

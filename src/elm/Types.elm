@@ -1,4 +1,4 @@
-module Types exposing (Children(..), CollabState, Column, Conflict, Direction(..), DropId(..), ExportFormat(..), ExportSelection(..), ExportSettings, Group, HistoryState(..), IncomingMsg(..), Mode(..), Msg(..), Op(..), OutgoingMsg(..), OutsideData, Selection(..), Status(..), Tree, ViewMode(..), ViewState, VisibleViewState, WordCount)
+module Types exposing (Children(..), CollabState, Column, Conflict, CursorPosition(..), Direction(..), DropId(..), ExportFormat(..), ExportSelection(..), ExportSettings, Group, HistoryState(..), IncomingMsg(..), Mode(..), Msg(..), Op(..), OutgoingMsg(..), OutsideData, Selection(..), Status(..), TextCursorInfo, Tree, ViewMode(..), ViewState, VisibleViewState, WordCount)
 
 import Debouncer.Basic as Debouncer
 import Fonts
@@ -91,7 +91,7 @@ type
       -- === DOM ===
     | DragStarted String
     | FieldChanged String
-    | TextSelected Bool
+    | TextCursor TextCursorInfo
       -- === UI ===
     | SetLanguage Translation.Language
     | ViewVideos
@@ -192,6 +192,16 @@ type DropId
     = Above String
     | Below String
     | Into String
+
+
+type alias TextCursorInfo =
+    { selected : Bool, position : CursorPosition }
+
+
+type CursorPosition
+    = Start
+    | End
+    | Other
 
 
 type alias CollabState =

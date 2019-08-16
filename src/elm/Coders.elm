@@ -1,4 +1,4 @@
-module Coders exposing (collabStateDecoder, collabStateToValue, conflictDecoder, conflictToValue, exportSettingsDecoder, fontSettingsEncoder, lazyRecurse, maybeToValue, modeDecoder, modeToValue, opDecoder, opToValue, selectionDecoder, selectionToValue, statusDecoder, statusToValue, treeDecoder, treeListDecoder, treeToJSON, treeToJSONrecurse, treeToMarkdown, treeToMarkdownRecurse, treeToMarkdownString, treeToValue, treesModelDecoder, tripleDecoder, tupleDecoder, tupleToValue)
+module Coders exposing (collabStateDecoder, collabStateToValue, conflictDecoder, conflictToValue, exportSettingsDecoder, fontSettingsEncoder, lazyRecurse, maybeToValue, modeDecoder, modeToValue, opDecoder, opToValue, selectionDecoder, selectionToValue, statusDecoder, statusToValue, textCursorInfoDecoder, treeDecoder, treeListDecoder, treeToJSON, treeToJSONrecurse, treeToMarkdown, treeToMarkdownRecurse, treeToMarkdownString, treeToValue, treesModelDecoder, tripleDecoder, tupleDecoder, tupleToValue)
 
 import Fonts
 import Json.Decode as Json exposing (..)
@@ -269,6 +269,37 @@ selectionDecoder =
                     Manual
     in
     Json.map fn string
+
+
+
+-- Text Cursor
+
+
+cursorPositionDecoder : Decoder CursorPosition
+cursorPositionDecoder =
+    Json.map
+        (\s ->
+            case s of
+                "start" ->
+                    Start
+
+                "end" ->
+                    End
+
+                "other" ->
+                    Other
+
+                _ ->
+                    Other
+        )
+        string
+
+
+textCursorInfoDecoder : Decoder TextCursorInfo
+textCursorInfoDecoder =
+    Json.map2 TextCursorInfo
+        (field "selected" bool)
+        (field "position" cursorPositionDecoder)
 
 
 

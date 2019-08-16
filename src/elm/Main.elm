@@ -104,7 +104,7 @@ type alias Model =
     , field : String
     , language : Translation.Language
     , isMac : Bool
-    , isTextSelected : Bool
+    , textCursorInfo : TextCursorInfo
     , shortcutTrayOpen : Bool
     , wordcountTrayOpen : Bool
     , videoModalOpen : Bool
@@ -164,9 +164,9 @@ defaultModel =
         , collaborators = []
         }
     , field = ""
+    , textCursorInfo = { selected = False, position = End }
     , isMac = False
     , language = Translation.En
-    , isTextSelected = False
     , shortcutTrayOpen = True
     , wordcountTrayOpen = False
     , videoModalOpen = False
@@ -868,10 +868,14 @@ update msg ({ objects, workingTree, status } as model) =
                     , Cmd.none
                     )
 
-                TextSelected isSel ->
-                    ( { model | isTextSelected = isSel }
-                    , Cmd.none
-                    )
+                TextCursor textCursorInfo ->
+                    if model.textCursorInfo /= textCursorInfo then
+                        ( { model | textCursorInfo = textCursorInfo }
+                        , Cmd.none
+                        )
+
+                    else
+                        ( model, Cmd.none )
 
                 -- === UI ===
                 SetLanguage lang ->
@@ -971,7 +975,19 @@ update msg ({ objects, workingTree, status } as model) =
                             normalMode model (goDown vs.active)
 
                         "down" ->
-                            normalMode model (goDown vs.active)
+                            case vs.viewMode of
+                                Normal ->
+                                    ( model, Cmd.none )
+                                        |> goDown vs.active
+
+                                FullscreenEditing ->
+                                    {- check if at end
+                                       if so, getNextInColumn and openCardFullscreen it
+                                    -}
+                                    ( model, Cmd.none )
+
+                                Editing ->
+                                    ( model, Cmd.none )
 
                         "k" ->
                             normalMode model (goUp vs.active)
