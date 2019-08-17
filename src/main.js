@@ -37,16 +37,21 @@ let lang = userStore.get("language") || "en";
 
 
 // Make Gingko single instance
-const isSecondInstance = app.makeSingleInstance((commandLine) => {
-  if(commandLine[0].endsWith("electron") && typeof commandLine[2] == "string") {
-    openDocument(commandLine[2]);
-  } else if (winHome) {
-    winHome.show();
-  } else {
-    createHomeWindow();
-  }
-});
-if (isSecondInstance) { app.exit(); }
+const instanceLock = app.requestSingleInstanceLock();
+
+if (!instanceLock) {
+  app.quit();
+} else {
+  app.on("second-instance", (event, commandLine) => {
+    if(commandLine[0].endsWith("electron") && typeof commandLine[2] == "string") {
+      openDocument(commandLine[2]);
+    } else if (winHome) {
+      winHome.show();
+    } else {
+      createHomeWindow();
+    }
+  });
+}
 
 
 function createHomeWindow () {
