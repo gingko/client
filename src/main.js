@@ -548,7 +548,7 @@ async function saveDocumentAs (docWindow) {
     , filters: [{ name: "Gingko Files (*.gko)", extensions: ["gko"] }]
     };
 
-  const newFilepath = dialog.showSaveDialog(docWindow, saveOptions);
+  const {filePath : newFilepath} = await dialog.showSaveDialog(docWindow, saveOptions);
 
   if (newFilepath === docWindow.originalPath) {
     // Saving to same location.
@@ -595,7 +595,7 @@ async function saveLegacyDocumentAs (docWindow) {
     , filters: [{ name: "Gingko Files (*.gko)", extensions: ["gko"] }]
     };
 
-  const newFilepath = dialog.showSaveDialog(docWindow, saveOptions);
+  const {filePath : newFilepath} = await dialog.showSaveDialog(docWindow, saveOptions);
 
   if (newFilepath) {
     try {
