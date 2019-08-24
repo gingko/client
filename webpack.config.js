@@ -38,7 +38,8 @@ const mainConfig = merge(baseConfig, {
 
   // TODO : Understand what this is doing.
   externals: {
-    "pouchdb": "require('pouchdb')"
+    "pouchdb": "require('pouchdb')",
+    "7zip-bin": "require('7zip-bin')",
   }
 });
 
@@ -79,6 +80,10 @@ const rendererConfig = merge(baseConfig, {
     ]
   },
 
+  externals: {
+    "pouchdb": "require('pouchdb')",
+  },
+
   plugins: [
 
     // Plugin to insert only needed chunks of JS into HTML output files.
@@ -109,12 +114,11 @@ module.exports = [ mainConfig, rendererConfig ];
   ====
 
   externals : {
-    "7zip-bin": "require('7zip-bin')",
+    "pouchdb-load": "require('pouchdb-load')",
+    "pouchdb-promise": "require('pouchdb-promise')",
+    "pouchdb-adapter-memory": "require('pouchdb-adapter-memory')",
     "electron-spellchecker": "require('electron-spellchecker')",
     "electron-store": "require('electron-store')",
     "dblsqd-electron": "require('dblsqd-electron')",
-    "pouchdb-adapter-memory": "require('pouchdb-adapter-memory')",
-    "pouchdb-load": "require('pouchdb-load')",
-    "pouchdb-promise": "require('pouchdb-promise')"
   },
 */
