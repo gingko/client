@@ -426,7 +426,7 @@ async function openDocumentOrFolder(dbToLoad, docName) {
       , defaultId: 0
       };
 
-    dialog.showMessageBox(documentNotFoundOptions);
+    await dialog.showMessageBox(documentNotFoundOptions);
     return false;
   }
 }
@@ -458,7 +458,7 @@ async function openDocument(filepath) {
           , buttons: [tr.discard[lang], tr.cancel[lang], tr.recover[lang]]
           , defaultId: 2
           };
-        const choice = dialog.showMessageBox(recoveryOptions);
+        const {response: choice} = await dialog.showMessageBox(recoveryOptions);
 
         switch (choice) {
           // Discard Unsaved Changes
@@ -633,7 +633,7 @@ async function addToRecentDocuments (filepath) {
     await docList.setOpened(filepath);
     app.addRecentDocument(filepath);
   } catch (err) {
-    dialog.showMessageBox(errorAlert("Recent Documents Error", `Couldn't add ${filepath} to recent documents list`, err));
+    await dialog.showMessageBox(errorAlert("Recent Documents Error", `Couldn't add ${filepath} to recent documents list`, err));
     return;
   }
 }
@@ -729,7 +729,7 @@ ipcMain.on("app:close", async (event) => {
         , defaultId: 2
         };
 
-      let choice = dialog.showMessageBox(docWindow, legacyOptions);
+      let {response: choice} = await dialog.showMessageBox(docWindow, legacyOptions);
 
       switch (choice) {
         case 0:
@@ -758,7 +758,7 @@ ipcMain.on("app:close", async (event) => {
         , defaultId: 2
         };
 
-      let choice = dialog.showMessageBox(docWindow, confirmOptions);
+      let {response : choice} = await dialog.showMessageBox(docWindow, confirmOptions);
 
       switch (choice) {
         case 0:
