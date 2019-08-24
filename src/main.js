@@ -61,12 +61,14 @@ function createHomeWindow () {
     , height: 600
     , backgroundColor: '#477085'
     , icon: `${__dirname}/static/leaf128.png`
+    , webPreferences: { nodeIntegration: true }
     })
 
   // and load the html of the home window.
   var url = `file://${__dirname}/static/home.html`
 
   winHome.loadURL(url)
+  winHome.webContents.openDevTools();
 
   winHome.on('closed', () => {
     winHome = null;

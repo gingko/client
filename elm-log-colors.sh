@@ -12,7 +12,7 @@
 #
 #
 if command -v unbuffer; then
-  tput reset; unbuffer node_modules/.bin/elm $@
+  unbuffer node_modules/.bin/elm $@
 else
-  tput reset; node_modules/.bin/elm $@
+  node_modules/.bin/elm $@
 fi
