@@ -68,7 +68,6 @@ function createHomeWindow () {
   var url = `file://${__dirname}/static/home.html`
 
   winHome.loadURL(url)
-  winHome.webContents.openDevTools();
 
   winHome.on('closed', () => {
     winHome = null;
@@ -93,6 +92,7 @@ function createDocumentWindow (swapFolderPath, originalPath, legacyFormat, jsonI
     , show: false
     , backgroundColor: '#32596b'
     , icon: `${__dirname}/static/leaf128.png`
+    , webPreferences: { nodeIntegration: true }
     })
 
   documentWindows.push(win);
