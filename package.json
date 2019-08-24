@@ -115,7 +115,8 @@
     "imports-loader": "^0.7.1",
     "mocha": "^5.0.5",
     "webpack": "^4.39.2",
-    "webpack-cli": "^3.3.6"
+    "webpack-cli": "^3.3.6",
+    "webpack-merge": "^4.2.1"
   },
   "optionalDependencies": {}
 }

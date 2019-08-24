@@ -1,27 +1,32 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
+const merge = require("webpack-merge");
 
 
-const mainConfig = {
-  // Set the target environment where the code bundles will run.
-  target: "electron-main",
-
-  // "production" or "development" flag. TODO : shared config
+const baseConfig = {
+  // "production" or "development" flag.
   mode: "development",
 
-  // Set the base directory manually, instead of CWD. TODO : shared config
+  // Set the base directory manually, instead of CWD.
   context: path.join(__dirname, "src"),
-
-  // Entry points into the code. The roots of the dependency tree.
-  entry: {
-    electron: "./main.js"
-  },
 
   // Where to output bundled code.
   output: {
     path: path.join(__dirname, "app"),
     filename: "[name].js"
+  },
+
+};
+
+
+const mainConfig = merge(baseConfig, {
+  // Set the target environment where the code bundles will run.
+  target: "electron-main",
+
+  // Entry points into the code. The roots of the dependency tree.
+  entry: {
+    electron: "./main.js"
   },
 
   // Without this, __dirname refers to dirname of input file.
@@ -31,35 +36,21 @@ const mainConfig = {
     __dirname: false
   },
 
-
   // TODO : Understand what this is doing.
   externals: {
     "pouchdb": "require('pouchdb')"
-  },
+  }
+});
 
-};
 
-
-const rendererConfig = {
+const rendererConfig = merge(baseConfig, {
   // Set the target environment where the code bundles will run.
   target: "electron-renderer",
-
-  // "production" or "development" flag. TODO : shared config
-  mode: "development",
-
-  // Set the base directory manually, instead of CWD. TODO : shared config
-  context: path.join(__dirname, "src"),
 
   // Entry points into the code. The root of the dependency tree.
   entry: {
     home: "./shared/home.js",
     doc: "./shared/doc.js"
-  },
-
-  // Where to output bundled code. TODO : shared config
-  output: {
-    path: path.join(__dirname, "app"),
-    filename: "[name].js"
   },
 
   // What file types to attempt to resolve within require/import statements
@@ -108,7 +99,7 @@ const rendererConfig = {
       to: "../app/static"
     }])
   ]
-};
+});
 
 
 module.exports = [ mainConfig, rendererConfig ];
