@@ -2,9 +2,9 @@
 matrix:
   include:
     - os: osx
-      osx_image: xcode9.2
+      osx_image: xcode9.4
       language: node_js
-      node_js: "9"
+      node_js: "12"
       env:
         - ELECTRON_CACHE=$HOME/.cache/electron
         - ELECTRON_BUILDER_CACHE=$HOME/.cache/electron-builder
@@ -23,7 +23,7 @@ cache:
 
 install:
   - npm install
-  - npm install -g elm@0.19
+  - npm install -g elm@0.19.0-bugfix6
 
 before_script:
   - npm run build
