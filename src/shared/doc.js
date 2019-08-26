@@ -15,7 +15,7 @@ const Store = require('electron-store')
 import PouchDB from "pouchdb";
 
 
-const io = require('socket.io-client')
+//const io = require('socket.io-client')
 
 const helpers = require("./doc-helpers");
 const errorAlert = helpers.errorAlert;
@@ -104,7 +104,7 @@ if(!!jsonImportData) {
 }
 
 
-self.socket = io.connect('http://localhost:3000')
+//self.socket = io.connect('http://localhost:3000')
 
 
 function initElmAndPorts(initFlags) {
@@ -352,7 +352,7 @@ const update = (msg, data) => {
 
     , 'SocketSend': () => {
         collab = data
-        socket.emit('collab', data)
+      //socket.emit('collab', data)
       }
 
     , 'ConsoleLogRequested': () =>
@@ -419,8 +419,8 @@ ipcRenderer.on("menu-contact-support", () => {
   }
 });
 
-socket.on("collab", data => toElm("RecvCollabState", data))
-socket.on("collab-leave", data => toElm("CollaboratorDisconnected", data))
+//socket.on("collab", data => toElm("RecvCollabState", data))
+//socket.on("collab-leave", data => toElm("CollaboratorDisconnected", data))
 
 
 
@@ -837,7 +837,7 @@ const editingInputHandler = function(ev) {
   toElm('FieldChanged', ev.target.value)
   ipcRenderer.send("doc:set-changed", true);
   collab.field = ev.target.value
-  socket.emit('collab', collab)
+  //socket.emit('collab', collab)
 }
 
 
