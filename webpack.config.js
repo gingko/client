@@ -39,6 +39,7 @@ const mainConfig = merge(baseConfig, {
   // TODO : Understand what this is doing.
   externals: {
     "pouchdb": "require('pouchdb')",
+    "pouchdb-load": "require('pouchdb-load')",
     "7zip-bin": "require('7zip-bin')",
   }
 });
