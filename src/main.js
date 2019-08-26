@@ -68,6 +68,7 @@ function createHomeWindow () {
   var url = `file://${__dirname}/static/home.html`
 
   winHome.loadURL(url)
+  winHome.removeMenu();
 
   winHome.on('closed', () => {
     winHome = null;
@@ -226,7 +227,7 @@ app.on("browser-window-focus", (ev, win) => {
   buildMenu(docWindowMenuStates[win.id]);
 
   if(!win.swapFolderPath) {
-    win.setMenu(null);
+    win.removeMenu();
   }
 });
 
@@ -820,7 +821,7 @@ function createTrialWindow(parentWindow, activations, limit) {
     })
 
   var url = `file://${__dirname}/static/trial.html`
-  winTrial.setMenu(null)
+  winTrial.removeMenu();
   winTrial.once('ready-to-show', () => {
     winTrial.webContents.send('trial-activations', [activations, limit])
     winTrial.show()
@@ -850,7 +851,7 @@ function createSerialWindow(parentWindow, shouldBlock) {
   let storedSerial = userStore.get('serial', "")
 
   var url = `file://${__dirname}/static/license.html`
-  winSerial.setMenu(null)
+  winSerial.removeMenu();
 
   winSerial.once('ready-to-show', () => {
     if(shouldBlock) { winSerial.webContents.send('prevent-close', true) }
