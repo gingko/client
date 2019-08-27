@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
   - Fix shortcut conflict "move left" and "Help" menu
+  - (Internal) Upgrade Electron to v6
 
 ## [2.4.1] - 2019-05-02
   - Fix "not saving after some time" Windows bug

@@ -37,16 +37,21 @@ let lang = userStore.get("language") || "en";
 
 
 // Make Gingko single instance
-const isSecondInstance = app.makeSingleInstance((commandLine) => {
-  if(commandLine[0].endsWith("electron") && typeof commandLine[2] == "string") {
-    openDocument(commandLine[2]);
-  } else if (winHome) {
-    winHome.show();
-  } else {
-    createHomeWindow();
-  }
-});
-if (isSecondInstance) { app.exit(); }
+const instanceLock = app.requestSingleInstanceLock();
+
+if (!instanceLock) {
+  app.quit();
+} else {
+  app.on("second-instance", (event, commandLine) => {
+    if(commandLine[0].endsWith("electron") && typeof commandLine[2] == "string") {
+      openDocument(commandLine[2]);
+    } else if (winHome) {
+      winHome.show();
+    } else {
+      createHomeWindow();
+    }
+  });
+}
 
 
 function createHomeWindow () {
@@ -56,12 +61,16 @@ function createHomeWindow () {
     , height: 600
     , backgroundColor: '#477085'
     , icon: `${__dirname}/static/leaf128.png`
+    , webPreferences: { nodeIntegration: true }
     })
 
   // and load the html of the home window.
   var url = `file://${__dirname}/static/home.html`
 
   winHome.loadURL(url)
+  winHome.hideMenu = true;
+
+  updateMenu(null, false, winHome);
 
   winHome.on('closed', () => {
     winHome = null;
@@ -86,6 +95,7 @@ function createDocumentWindow (swapFolderPath, originalPath, legacyFormat, jsonI
     , show: false
     , backgroundColor: '#32596b'
     , icon: `${__dirname}/static/leaf128.png`
+    , webPreferences: { nodeIntegration: true }
     })
 
   documentWindows.push(win);
@@ -174,7 +184,7 @@ function validSerial(email, storedSerial) {
 
 /* ==== Menu ==== */
 
-function buildMenu (menuState, lang) {
+function updateMenu (menuState, lang, win) {
   lang = lang || userStore.get("language") || "en";
 
   if (menuState) {
@@ -193,7 +203,7 @@ function buildMenu (menuState, lang) {
           focusedWindow.originalPath = saveAsReturn.filepath;
           let focusedWinMenuState = docWindowMenuStates[focusedWindow.id];
           focusedWinMenuState.isNew = false;
-          buildMenu(focusedWinMenuState);
+          updateMenu(focusedWinMenuState, false, focusedWindow);
         }
       }
     , import : importDocument
@@ -206,21 +216,26 @@ function buildMenu (menuState, lang) {
     , language : (lang, focusedWindow) => {
         focusedWindow.webContents.send("menu-language-select", lang);
         let focusedWinMenuState = docWindowMenuStates[focusedWindow.id];
-        buildMenu(focusedWinMenuState, lang);
+          updateMenu(focusedWinMenuState, lang, focusedWindow);
       }
     };
 
   let menuTemplate = getMenuTemplate(menuState, handlers, lang, process.platform === "darwin");
   let menu = Menu.buildFromTemplate(menuTemplate);
-  Menu.setApplicationMenu(menu);
+
+  if (process.platform === "darwin") {
+    Menu.setApplicationMenu(menu);
+  } else if (typeof win !== "undefined") {
+    if ("hideMenu" in win && win.hideMenu) {
+      win.removeMenu();
+    } else {
+      win.setMenu(menu);
+    }
+  }
 }
 
 app.on("browser-window-focus", (ev, win) => {
-  buildMenu(docWindowMenuStates[win.id]);
-
-  if(!win.swapFolderPath) {
-    win.setMenu(null);
-  }
+  updateMenu(docWindowMenuStates[win.id], false, win);
 });
 
 
@@ -230,7 +245,7 @@ ipcMain.on("column-number-change", (event, cols) => {
     let menuState = docWindowMenuStates[win.id];
     if (menuState.columnNumber !== cols) {
       _.set(menuState, "columnNumber", cols);
-      buildMenu(menuState);
+      updateMenu(menuState, false, win);
     }
   }
 });
@@ -242,7 +257,7 @@ ipcMain.on("edit-mode-toggle", (event, isEditing) => {
     let menuState = docWindowMenuStates[win.id];
     if (menuState.editMode !== isEditing) {
       _.set(menuState, "editMode", isEditing);
-      buildMenu(menuState);
+      updateMenu(menuState, false, win);
     }
   }
 });
@@ -254,7 +269,7 @@ ipcMain.on("app:last-export-set", (event, lastPath) => {
     let menuState = docWindowMenuStates[win.id];
     if (menuState.hasLastExport !== !!lastPath) {
       _.set(menuState, "hasLastExport", !!lastPath);
-      buildMenu(menuState);
+      updateMenu(menuState, false, win);
     }
   }
 });
@@ -268,7 +283,7 @@ ipcMain.on("doc:set-changed", (event, changed) => {
 
     if (menuState.changed !== changed) {
       _.set(menuState, "changed", changed);
-      buildMenu(menuState);
+      updateMenu(menuState, false, win);
     }
 
     win.setDocumentEdited(changed);
@@ -307,6 +322,7 @@ ipcMain.on("doc:language-changed", (event, data) => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on("ready", async () => {
+  Menu.setApplicationMenu(null);
 
   // Auto Updater code
   autoUpdater.fullChangelog = true;
@@ -315,10 +331,10 @@ app.on("ready", async () => {
     let turndownService = new TurndownService();
     if (Array.isArray(info.releaseNotes)){
       var releaseNotesText = info.releaseNotes.map(rn => {
-        return turndownService.turndown(rn.note);
+        return (process.platform === "darwin" ? rn.note : turndownService.turndown(rn.note));
       }).join("\n").replace(/\*/g, "·");
     } else {
-      releaseNotesText = turndownService.turndown(info.releaseNotes).replace(/\*/g, "·");
+      releaseNotesText = process.platform === "darwin" ? info.releaseNotes : turndownService.turndown(info.releaseNotes).replace(/\*/g, "·");
     }
 
     let updateNotification = new Notification(
@@ -367,8 +383,6 @@ app.on("ready", async () => {
       }
     }
   }
-
-  buildMenu();
 });
 
 
@@ -391,10 +405,10 @@ async function newUntitled() {
 async function openWithDialog() {
   let options = {title: "Open File...", defaultPath : app.getPath("documents") , properties: ["openFile"], filters: [ {name: "Gingko Files (*.gko)", extensions: ["gko"]} ]};
 
-  var filepaths = dialog.showOpenDialog(options);
+  var {filePaths} = await dialog.showOpenDialog(options);
 
-  if(Array.isArray(filepaths) && !!filepaths[0]) {
-    return await openDocument(filepaths[0]);
+  if(Array.isArray(filePaths) && !!filePaths[0]) {
+    return await openDocument(filePaths[0]);
   }
 }
 
@@ -419,7 +433,7 @@ async function openDocumentOrFolder(dbToLoad, docName) {
       , defaultId: 0
       };
 
-    dialog.showMessageBox(documentNotFoundOptions);
+    await dialog.showMessageBox(documentNotFoundOptions);
     return false;
   }
 }
@@ -451,7 +465,7 @@ async function openDocument(filepath) {
           , buttons: [tr.discard[lang], tr.cancel[lang], tr.recover[lang]]
           , defaultId: 2
           };
-        const choice = dialog.showMessageBox(recoveryOptions);
+        const {response: choice} = await dialog.showMessageBox(recoveryOptions);
 
         switch (choice) {
           // Discard Unsaved Changes
@@ -488,10 +502,10 @@ async function importDocument() {
                   ]
       };
 
-  var filepathArray = dialog.showOpenDialog(winHome, options);
+  var {filePaths} = await dialog.showOpenDialog(winHome, options);
 
-  if(filepathArray) {
-    let { swapFolderPath, jsonImportData } = await fio.dbFromFile(filepathArray[0]);
+  if(filePaths) {
+    let { swapFolderPath, jsonImportData } = await fio.dbFromFile(filePaths[0]);
     createDocumentWindow(swapFolderPath, null, null, jsonImportData);
     return true;
   }
@@ -541,7 +555,7 @@ async function saveDocumentAs (docWindow) {
     , filters: [{ name: "Gingko Files (*.gko)", extensions: ["gko"] }]
     };
 
-  const newFilepath = dialog.showSaveDialog(docWindow, saveOptions);
+  const {filePath : newFilepath} = await dialog.showSaveDialog(docWindow, saveOptions);
 
   if (newFilepath === docWindow.originalPath) {
     // Saving to same location.
@@ -588,7 +602,7 @@ async function saveLegacyDocumentAs (docWindow) {
     , filters: [{ name: "Gingko Files (*.gko)", extensions: ["gko"] }]
     };
 
-  const newFilepath = dialog.showSaveDialog(docWindow, saveOptions);
+  const {filePath : newFilepath} = await dialog.showSaveDialog(docWindow, saveOptions);
 
   if (newFilepath) {
     try {
@@ -626,7 +640,7 @@ async function addToRecentDocuments (filepath) {
     await docList.setOpened(filepath);
     app.addRecentDocument(filepath);
   } catch (err) {
-    dialog.showMessageBox(errorAlert("Recent Documents Error", `Couldn't add ${filepath} to recent documents list`, err));
+    await dialog.showMessageBox(errorAlert("Recent Documents Error", `Couldn't add ${filepath} to recent documents list`, err));
     return;
   }
 }
@@ -722,7 +736,7 @@ ipcMain.on("app:close", async (event) => {
         , defaultId: 2
         };
 
-      let choice = dialog.showMessageBox(docWindow, legacyOptions);
+      let {response: choice} = await dialog.showMessageBox(docWindow, legacyOptions);
 
       switch (choice) {
         case 0:
@@ -751,7 +765,7 @@ ipcMain.on("app:close", async (event) => {
         , defaultId: 2
         };
 
-      let choice = dialog.showMessageBox(docWindow, confirmOptions);
+      let {response : choice} = await dialog.showMessageBox(docWindow, confirmOptions);
 
       switch (choice) {
         case 0:
@@ -810,10 +824,11 @@ function createTrialWindow(parentWindow, activations, limit) {
     , resizable: false
     , parent: parentWindow
     , show: false
+    , webPreferences: { nodeIntegration: true }
     })
 
   var url = `file://${__dirname}/static/trial.html`
-  winTrial.setMenu(null)
+  winTrial.removeMenu();
   winTrial.once('ready-to-show', () => {
     winTrial.webContents.send('trial-activations', [activations, limit])
     winTrial.show()
@@ -837,13 +852,14 @@ function createSerialWindow(parentWindow, shouldBlock) {
     , useContentSize: true
     , parent: parentWindow
     , show: false
+    , webPreferences: { nodeIntegration: true }
     })
 
   let email = userStore.get('email', "")
   let storedSerial = userStore.get('serial', "")
 
   var url = `file://${__dirname}/static/license.html`
-  winSerial.setMenu(null)
+  winSerial.removeMenu();
 
   winSerial.once('ready-to-show', () => {
     if(shouldBlock) { winSerial.webContents.send('prevent-close', true) }
