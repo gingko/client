@@ -399,10 +399,10 @@ async function newUntitled() {
 async function openWithDialog() {
   let options = {title: "Open File...", defaultPath : app.getPath("documents") , properties: ["openFile"], filters: [ {name: "Gingko Files (*.gko)", extensions: ["gko"]} ]};
 
-  var filepaths = dialog.showOpenDialog(options);
+  var {filePaths} = await dialog.showOpenDialog(options);
 
-  if(Array.isArray(filepaths) && !!filepaths[0]) {
-    return await openDocument(filepaths[0]);
+  if(Array.isArray(filePaths) && !!filePaths[0]) {
+    return await openDocument(filePaths[0]);
   }
 }
 
@@ -496,10 +496,10 @@ async function importDocument() {
                   ]
       };
 
-  var filepathArray = dialog.showOpenDialog(winHome, options);
+  var {filePaths} = await dialog.showOpenDialog(winHome, options);
 
-  if(filepathArray) {
-    let { swapFolderPath, jsonImportData } = await fio.dbFromFile(filepathArray[0]);
+  if(filePaths) {
+    let { swapFolderPath, jsonImportData } = await fio.dbFromFile(filePaths[0]);
     createDocumentWindow(swapFolderPath, null, null, jsonImportData);
     return true;
   }
@@ -818,6 +818,7 @@ function createTrialWindow(parentWindow, activations, limit) {
     , resizable: false
     , parent: parentWindow
     , show: false
+    , webPreferences: { nodeIntegration: true }
     })
 
   var url = `file://${__dirname}/static/trial.html`
@@ -845,6 +846,7 @@ function createSerialWindow(parentWindow, shouldBlock) {
     , useContentSize: true
     , parent: parentWindow
     , show: false
+    , webPreferences: { nodeIntegration: true }
     })
 
   let email = userStore.get('email', "")
