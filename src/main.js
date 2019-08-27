@@ -68,7 +68,9 @@ function createHomeWindow () {
   var url = `file://${__dirname}/static/home.html`
 
   winHome.loadURL(url)
-  winHome.removeMenu();
+  winHome.hideMenu = true;
+
+  updateMenu(null, false, winHome);
 
   winHome.on('closed', () => {
     winHome = null;
@@ -182,7 +184,7 @@ function validSerial(email, storedSerial) {
 
 /* ==== Menu ==== */
 
-function buildMenu (menuState, lang) {
+function updateMenu (menuState, lang, win) {
   lang = lang || userStore.get("language") || "en";
 
   if (menuState) {
@@ -201,7 +203,7 @@ function buildMenu (menuState, lang) {
           focusedWindow.originalPath = saveAsReturn.filepath;
           let focusedWinMenuState = docWindowMenuStates[focusedWindow.id];
           focusedWinMenuState.isNew = false;
-          buildMenu(focusedWinMenuState);
+          updateMenu(focusedWinMenuState, false, focusedWindow);
         }
       }
     , import : importDocument
@@ -214,21 +216,26 @@ function buildMenu (menuState, lang) {
     , language : (lang, focusedWindow) => {
         focusedWindow.webContents.send("menu-language-select", lang);
         let focusedWinMenuState = docWindowMenuStates[focusedWindow.id];
-        buildMenu(focusedWinMenuState, lang);
+          updateMenu(focusedWinMenuState, lang, focusedWindow);
       }
     };
 
   let menuTemplate = getMenuTemplate(menuState, handlers, lang, process.platform === "darwin");
   let menu = Menu.buildFromTemplate(menuTemplate);
-  Menu.setApplicationMenu(menu);
+
+  if (process.platform === "darwin") {
+    Menu.setApplicationMenu(menu);
+  } else if (typeof win !== "undefined") {
+    if ("hideMenu" in win && win.hideMenu) {
+      win.removeMenu();
+    } else {
+      win.setMenu(menu);
+    }
+  }
 }
 
 app.on("browser-window-focus", (ev, win) => {
-  buildMenu(docWindowMenuStates[win.id]);
-
-  if(!win.swapFolderPath) {
-    win.removeMenu();
-  }
+  updateMenu(docWindowMenuStates[win.id], false, win);
 });
 
 
@@ -238,7 +245,7 @@ ipcMain.on("column-number-change", (event, cols) => {
     let menuState = docWindowMenuStates[win.id];
     if (menuState.columnNumber !== cols) {
       _.set(menuState, "columnNumber", cols);
-      buildMenu(menuState);
+      updateMenu(menuState, false, win);
     }
   }
 });
@@ -250,7 +257,7 @@ ipcMain.on("edit-mode-toggle", (event, isEditing) => {
     let menuState = docWindowMenuStates[win.id];
     if (menuState.editMode !== isEditing) {
       _.set(menuState, "editMode", isEditing);
-      buildMenu(menuState);
+      updateMenu(menuState, false, win);
     }
   }
 });
@@ -262,7 +269,7 @@ ipcMain.on("app:last-export-set", (event, lastPath) => {
     let menuState = docWindowMenuStates[win.id];
     if (menuState.hasLastExport !== !!lastPath) {
       _.set(menuState, "hasLastExport", !!lastPath);
-      buildMenu(menuState);
+      updateMenu(menuState, false, win);
     }
   }
 });
@@ -276,7 +283,7 @@ ipcMain.on("doc:set-changed", (event, changed) => {
 
     if (menuState.changed !== changed) {
       _.set(menuState, "changed", changed);
-      buildMenu(menuState);
+      updateMenu(menuState, false, win);
     }
 
     win.setDocumentEdited(changed);
@@ -315,6 +322,7 @@ ipcMain.on("doc:language-changed", (event, data) => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on("ready", async () => {
+  Menu.setApplicationMenu(null);
 
   // Auto Updater code
   autoUpdater.fullChangelog = true;
@@ -375,8 +383,6 @@ app.on("ready", async () => {
       }
     }
   }
-
-  buildMenu();
 });
 
 
