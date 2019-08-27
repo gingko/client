@@ -323,10 +323,10 @@ app.on("ready", async () => {
     let turndownService = new TurndownService();
     if (Array.isArray(info.releaseNotes)){
       var releaseNotesText = info.releaseNotes.map(rn => {
-        return turndownService.turndown(rn.note);
+        return (process.platform === "darwin" ? rn.note : turndownService.turndown(rn.note));
       }).join("\n").replace(/\*/g, "·");
     } else {
-      releaseNotesText = turndownService.turndown(info.releaseNotes).replace(/\*/g, "·");
+      releaseNotesText = process.platform === "darwin" ? info.releaseNotes : turndownService.turndown(info.releaseNotes).replace(/\*/g, "·");
     }
 
     let updateNotification = new Notification(
