@@ -836,10 +836,38 @@ const debouncedScrollHorizontal = _.debounce(helpers.scrollHorizontal, 200)
 const editingInputHandler = function(ev) {
   toElm('FieldChanged', ev.target.value)
   ipcRenderer.send("doc:set-changed", true);
-  collab.field = ev.target.value
+  selectionHandler(ev);
+  //collab.field = ev.target.value
   //socket.emit('collab', collab)
 }
 
+const selectionHandler = function(ev) {
+  if(document.activeElement.nodeName == "TEXTAREA") {
+    let {selectionStart, selectionEnd, selectionDirection} = document.activeElement;
+    let length = document.activeElement.value.length;
+    let cursorPosition = "other";
+
+    if (length == 0) {
+      cursorPosition = "empty"
+    } else if (selectionStart == 0 && selectionEnd == 0) {
+      cursorPosition = "start"
+    } else if (selectionStart == length && selectionEnd == length) {
+      cursorPosition = "end"
+    } else if (selectionStart == 0 && selectionDirection == "backward") {
+      cursorPosition = "start"
+    } else if (selectionEnd == length && selectionDirection == "forward") {
+      cursorPosition = "end"
+    }
+
+    toElm("TextCursor",
+      { selected: selectionStart !== selectionEnd
+      , position: cursorPosition
+      }
+    );
+  }
+}
+
+document.onselectionchange = selectionHandler;
 
 
 Mousetrap.bind(helpers.shortcuts, function(e, s) {
@@ -899,21 +927,10 @@ const observer = new MutationObserver(function(mutations) {
       t.oninput = editingInputHandler;
     })
 
-    document.onselectionchange = () => {
-      let sel = window.getSelection();
-      console.log("selection",sel);
-      toElm("TextCursor",
-        { selected: sel.toString().length == 0 ? false : true
-        , position: "other"
-        }
-      );
-    }
-
     ipcRenderer.send('edit-mode-toggle', true)
     jQuery(textareas).textareaAutoSize()
   } else {
     ipcRenderer.send('edit-mode-toggle', false)
-    document.onselectionchange = undefined;
   }
 });
 

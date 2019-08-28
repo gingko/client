@@ -201,6 +201,7 @@ type alias TextCursorInfo =
 type CursorPosition
     = Start
     | End
+    | Empty
     | Other
 
 
