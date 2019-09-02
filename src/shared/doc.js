@@ -650,6 +650,7 @@ const exportDocx = (data, defaultPath) => {
 
         // pandoc file is copied by electron-builder
         // so we need to point to the src directory when running with `npm run electron`
+        // TODO : Fix this.
         if (process.env.RUNNING_LOCALLY) {
           switch (process.platform) {
             case 'linux':
@@ -683,7 +684,13 @@ const exportDocx = (data, defaultPath) => {
                   throw err
                 }
 
-                shell.openItem(filepath)
+                let exportSuccessNotification = new Notification("Export Suceeded", {
+                  body: "Saved as " + path.basename(filepath)
+                });
+
+                exportSuccessNotification.onclick = () => {
+                  shell.openItem(filepath);
+                }
               })
           })
       })

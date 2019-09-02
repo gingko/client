@@ -11,6 +11,13 @@ const baseConfig = {
   // Set the base directory manually, instead of CWD.
   context: path.join(__dirname, "src"),
 
+  // Without this, __dirname refers to dirname of input file.
+  // With this, refers to dirname of output file.
+  // https://github.com/electron/electron/issues/5107
+  node: {
+    __dirname: false
+  },
+
   // Where to output bundled code.
   output: {
     path: path.join(__dirname, "app"),
@@ -27,13 +34,6 @@ const mainConfig = merge(baseConfig, {
   // Entry points into the code. The roots of the dependency tree.
   entry: {
     electron: "./main.js"
-  },
-
-  // Without this, __dirname refers to dirname of input file.
-  // With this, refers to dirname of output file.
-  // https://github.com/electron/electron/issues/5107
-  node: {
-    __dirname: false
   },
 
   // TODO : Understand what this is doing.
