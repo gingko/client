@@ -16,7 +16,8 @@ type TranslationId
     | OpenOtherDocuments
     | RemoveFromList
     | UnsavedChanges
-    | AllChangesSaved
+    | SavedInternally
+    | ChangesSaved
     | LastSaved
     | LastEdit
     | KeyboardHelp
@@ -137,10 +138,17 @@ tr lang trans =
                     , fr = ""
                     }
 
-                AllChangesSaved ->
-                    { en = "All changes saved"
+                SavedInternally ->
+                    { en = "Saved Internally..."
                     , zh = ""
-                    , es = "Todos los cambios guardados"
+                    , es = "Cambios guardados internamente..."
+                    , fr = ""
+                    }
+
+                ChangesSaved ->
+                    { en = "Saved"
+                    , zh = ""
+                    , es = "Cambios guardados"
                     , fr = ""
                     }
 

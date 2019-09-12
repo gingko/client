@@ -18,8 +18,8 @@ import Trees exposing (defaultTree)
 import Types exposing (..)
 
 
-viewSaveIndicator : { m | changed : Bool, objects : Objects.Model, currentTime : Time.Posix, language : Translation.Language } -> Html Msg
-viewSaveIndicator { changed, objects, currentTime, language } =
+viewSaveIndicator : { m | saveStatus : SaveStatus, objects : Objects.Model, currentTime : Time.Posix, language : Translation.Language } -> Html Msg
+viewSaveIndicator { saveStatus, objects, currentTime, language } =
     let
         lastCommitTime =
             objects.commits
@@ -37,12 +37,17 @@ viewSaveIndicator { changed, objects, currentTime, language } =
                 currentTime
     in
     div
-        [ id "save-indicator", classList [ ( "inset", True ), ( "saving", changed ) ] ]
-        [ if changed then
-            span [ title (tr language LastSaved ++ " " ++ lastChangeString) ] [ text <| tr language UnsavedChanges ]
+        [ id "save-indicator", classList [ ( "inset", True ), ( "saving", saveStatus == Unsaved ) ] ]
+        [ case saveStatus of
+            Unsaved ->
+                span [ title (tr language LastSaved ++ " " ++ lastChangeString) ] [ text <| tr language UnsavedChanges ]
 
-          else
-            span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language AllChangesSaved ]
+            SavedDB ->
+                span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language SavedInternally ]
+
+            Saved ->
+                span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language ChangesSaved ]
+
         ]
 
 
@@ -76,7 +81,7 @@ viewSearchField { viewState, language } =
                 []
 
 
-viewFooter : { m | viewState : ViewState, workingTree : Trees.Model, startingWordcount : Int, shortcutTrayOpen : Bool, wordcountTrayOpen : Bool, language : Language, isMac : Bool, textCursorInfo : TextCursorInfo, changed : Bool } -> Html Msg
+viewFooter : { m | viewState : ViewState, workingTree : Trees.Model, startingWordcount : Int, shortcutTrayOpen : Bool, wordcountTrayOpen : Bool, language : Language, isMac : Bool, textCursorInfo : TextCursorInfo} -> Html Msg
 viewFooter model =
     let
         isTextSelected =

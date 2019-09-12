@@ -113,7 +113,7 @@ type alias Model =
     , startingWordcount : Int
     , historyState : HistoryState
     , online : Bool
-    , changed : Bool
+    , saveStatus : SaveStatus
     , currentTime : Time.Posix
     , seed : Random.Seed
     }
@@ -175,7 +175,7 @@ defaultModel =
     , startingWordcount = 0
     , historyState = Closed
     , online = False
-    , changed = False
+    , saveStatus = SavedDB
     , currentTime = Time.millisToPosix 0
     , seed = Random.initialSeed 12345
     }
@@ -782,7 +782,7 @@ update msg ({ objects, workingTree, status } as model) =
                 SetHeadRev rev ->
                     ( { model
                         | objects = Objects.setHeadRev rev model.objects
-                        , changed = False
+                        , saveStatus = SavedDB
                       }
                     , Cmd.none
                     )
@@ -863,7 +863,7 @@ update msg ({ objects, workingTree, status } as model) =
                 FieldChanged str ->
                     ( { model
                         | field = str
-                        , changed = True
+                        , saveStatus = Unsaved
                       }
                     , Cmd.none
                     )
@@ -1379,7 +1379,7 @@ saveCardIfEditing ( model, prevCmd ) =
 
             else
                 ( { model
-                    | changed = False
+                    | saveStatus = SavedDB
                   }
                 , Cmd.batch [ prevCmd, sendOut (SetChanged False) ]
                 )
@@ -1589,7 +1589,7 @@ cancelCard ( model, prevCmd ) =
     in
     ( { model
         | viewState = { vs | viewMode = Normal }
-        , changed = False
+        , saveStatus = SavedDB
         , field = ""
       }
     , prevCmd
@@ -1711,7 +1711,7 @@ move : Tree -> String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 move subtree pid pos ( model, prevCmd ) =
     ( { model
         | workingTree = Trees.update (Trees.Mov subtree pid pos) model.workingTree
-        , changed = True
+        , saveStatus = Unsaved
       }
     , prevCmd
     )
@@ -2026,7 +2026,7 @@ addToHistoryDo ( { workingTree, currentTime } as model, prevCmd ) =
             ( { model
                 | objects = newObjects
                 , status = newStatus
-                , changed = True
+                , saveStatus = Unsaved
               }
             , Cmd.batch
                 [ prevCmd
@@ -2043,7 +2043,7 @@ addToHistoryDo ( { workingTree, currentTime } as model, prevCmd ) =
             ( { model
                 | objects = newObjects
                 , status = newStatus
-                , changed = True
+                , saveStatus = Unsaved
               }
             , Cmd.batch
                 [ prevCmd
@@ -2061,7 +2061,7 @@ addToHistoryDo ( { workingTree, currentTime } as model, prevCmd ) =
                 ( { model
                     | objects = newObjects
                     , status = newStatus
-                    , changed = True
+                    , saveStatus = Unsaved
                   }
                 , Cmd.batch
                     [ prevCmd
