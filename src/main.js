@@ -356,6 +356,9 @@ app.on("ready", async () => {
 
   let pathArgument = false;
 
+  setTimeout(fio.truncateBackups, 5*60*1000); // 5min after ready: delete excess backups
+  setInterval(fio.truncateBackups, 30*60*1000);// and repeat every 30 minutes thereafter
+
   // Development, with path of file to open passed as argument
   if(process.defaultApp && typeof process.argv[2] == "string") {
     if(await fs.pathExists(process.argv[2])) {
