@@ -204,7 +204,7 @@ const update = (msg, data) => {
           console.log('tarea not found')
         } else {
           if(tarea.value === data[1] || confirm(tr.areYouSureCancel[lang])) {
-            ipcRenderer.send("doc:set-save-status", false);
+            ipcRenderer.send("doc:set-save-status", "Saved");
             toElm('CancelCardConfirmed', null)
           }
         }
@@ -220,8 +220,8 @@ const update = (msg, data) => {
         toElm("Commit", Date.now());
       }
 
-    , 'SaveToDB': async () => {
-        ipcRenderer.send("doc:set-save-status", true);
+    , "SaveToDB": async () => {
+        ipcRenderer.send("doc:set-save-status", "Unsaved");
         try {
           var newHeadRev = await saveToDB(data[0], data[1])
         } catch (e) {
@@ -229,7 +229,7 @@ const update = (msg, data) => {
           return;
         }
         toElm('SetHeadRev', newHeadRev)
-        ipcRenderer.send("doc:set-save-status", false);
+        ipcRenderer.send("doc:set-save-status", "SavedDB");
       }
 
     , 'Push': push
@@ -379,6 +379,11 @@ function intentExportToElm ( format, selection, filepath) {
 ipcRenderer.on("main:set-swap-folder", async (e, newPaths) => {
   self.db = new PouchDB(path.join(newPaths[0], "leveldb"));
   currentPath = newPaths[1];
+});
+
+ipcRenderer.on("main:set-saved", () => {
+  toElm("SetSaved");
+  ipcRenderer.send("doc:set-save-status", "Saved");
 });
 
 
@@ -838,7 +843,7 @@ const debouncedScrollHorizontal = _.debounce(helpers.scrollHorizontal, 200)
 
 const editingInputHandler = function(ev) {
   toElm('FieldChanged', ev.target.value)
-  ipcRenderer.send("doc:set-save-status", true);
+  ipcRenderer.send("doc:set-save-status", "Unsaved");
   selectionHandler(ev);
   //collab.field = ev.target.value
   //socket.emit('collab', collab)

@@ -192,6 +192,9 @@ receiveMsg tagger onError =
                         Err e ->
                             onError (errorToString e)
 
+                "SetSaved" ->
+                    tagger <| SetSaved
+
                 "Merge" ->
                     tagger <| Merge outsideInfo.data
 

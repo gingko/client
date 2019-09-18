@@ -85,6 +85,7 @@ type
       -- === Database ===
     | Commit Int
     | SetHeadRev String
+    | SetSaved
     | Merge Json.Value
       -- === DOM ===
     | DragStarted String

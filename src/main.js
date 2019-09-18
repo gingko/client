@@ -275,36 +275,37 @@ ipcMain.on("app:last-export-set", (event, lastPath) => {
 });
 
 
-ipcMain.on("doc:set-save-status", (event, saveStatus) => {
+ipcMain.on("doc:set-save-status", async (event, saveStatus) => {
   let win = BrowserWindow.fromWebContents(event.sender);
   if (win) {
-    let currentTitle = win.getTitle();
-    let menuState = docWindowMenuStates[win.id];
+    console.log("doc:set-save-status", saveStatus);
 
-    if (menuState.changed !== saveStatus) {
-      _.set(menuState, "changed", saveStatus);
-      updateMenu(menuState, false, win);
-    }
+    switch (saveStatus) {
+      case "Saved":
+        setDocumentChanged(win, false);
+        break;
 
-    win.setDocumentEdited(saveStatus);
+      case "Unsaved":
+        setDocumentChanged(win, true);
+        break;
 
-    if(saveStatus && !currentTitle.startsWith("*")) {
-      win.setTitle("*" + currentTitle);
-    } else if (!saveStatus) {
-      win.setTitle(currentTitle.replace(/^\*/, ""));
-    }
+      case "SavedDB":
+        setDocumentChanged(win, true);
+        let saveReturn = await saveDocument(win);
+        if (saveReturn) {
+          if(process.platform == "win32") {
+            win.webContents.send("database-open");
+          }
+          win.webContents.send("main:set-saved");
+        }
+        break;
+
+      default:
+        console.log("Unknown saveStatus at doc:set-save-status");
+        break;
+    };
   }
-});
 
-
-ipcMain.on("doc:save-backup", async (event) => {
-  /*
-  let docWindow = BrowserWindow.fromWebContents(event.sender);
-  let saveReturn = await saveDocument(docWindow);
-  if (saveReturn && process.platform == "win32") {
-    docWindow.webContents.send("database-open");
-  }
-  */
 });
 
 
@@ -654,6 +655,32 @@ function removeFromRecentDocuments (filepath) {
   }
 }
 
+
+function setDocumentChanged(win, changed) {
+  let currentTitle = win.getTitle();
+  let menuState = docWindowMenuStates[win.id];
+
+  if(changed) {
+    if(!currentTitle.startsWith("*")) {
+      win.setTitle("*" + currentTitle);
+    }
+
+    if (menuState.changed === false) {
+      _.set(menuState, "changed", true);
+      updateMenu(menuState, false, win);
+      win.setDocumentEdited(true);
+
+    }
+  } else {
+    win.setDocumentEdited(false);
+    win.setTitle(currentTitle.replace(/^\*/, ""));
+
+    if (menuState.changed === true) {
+      _.set(menuState, "changed", false);
+      updateMenu(menuState, false, win);
+    }
+  }
+}
 
 
 

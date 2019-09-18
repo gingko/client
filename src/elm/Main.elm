@@ -762,6 +762,11 @@ update msg ({ objects, workingTree, status } as model) =
                     )
                         |> push
 
+                SetSaved ->
+                    ( { model | saveStatus = Saved }
+                    , Cmd.none
+                    )
+
                 Merge json ->
                     let
                         ( newStatus, newTree_, newObjects ) =
