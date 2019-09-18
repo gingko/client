@@ -1200,6 +1200,8 @@ activate id ( model, prevCmd ) =
                             |> List.map (\c -> List.map (\g -> List.map .id g) c)
                             |> List.map List.concat
 
+                    newField = activeTree.content
+
                     allIds =
                         anc
                             ++ [ id ]
@@ -1213,6 +1215,7 @@ activate id ( model, prevCmd ) =
                             , descendants = desc
                             , ancestors = anc
                         }
+                    , field = newField
                   }
                 , Cmd.batch
                     [ prevCmd
