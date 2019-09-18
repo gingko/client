@@ -189,21 +189,24 @@ defaultModel =
 init : ( Json.Value, InitModel, Bool ) -> ( Model, Cmd Msg )
 init ( dataIn, modelIn, isSaved ) =
     let
-        ( newStatus, newTree_, newObjects ) =
+        (( newStatus, newTree_, newObjects ), newSaveStatus) =
             case Json.decodeValue treeDecoder dataIn of
                 Ok newTreeDecoded ->
                     {- The JSON was successfully decoded by treeDecoder.
                        We need to create the first commit to the history.
                     -}
-                    Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" modelIn.currentTime newTreeDecoded) defaultModel.objects
+                    (Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" modelIn.currentTime newTreeDecoded) defaultModel.objects
                         |> (\( s, _, o ) -> ( s, Just newTreeDecoded, o ))
+                    , Unsaved)
 
                 Err err ->
                     {- If treeDecoder fails, we assume that this was a
                        load from the database instead. See Objects.elm for
                        how the data is converted from JSON to type Objects.Model
                     -}
-                    Objects.update (Objects.Init dataIn) defaultModel.objects
+                    ( Objects.update (Objects.Init dataIn) defaultModel.objects
+                    , Saved
+                    )
 
         newTree =
             Maybe.withDefault Trees.defaultTree newTree_
@@ -226,6 +229,7 @@ init ( dataIn, modelIn, isSaved ) =
         , videoModalOpen = modelIn.videoModalOpen
         , startingWordcount = startingWordcount
         , currentTime = Time.millisToPosix modelIn.currentTime
+        , saveStatus = newSaveStatus
         , seed = Random.initialSeed modelIn.currentTime
         , fonts = Fonts.init modelIn.fonts
       }
@@ -749,7 +753,6 @@ update msg ({ objects, workingTree, status } as model) =
 
                 -- === Database ===
                 Commit timeMillis ->
-                    let _ = Debug.log "Commit" timeMillis in
                     ( { model | currentTime = Time.millisToPosix timeMillis }, Cmd.none )
                         |> addToHistoryDo
 

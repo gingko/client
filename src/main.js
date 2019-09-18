@@ -200,6 +200,7 @@ function updateMenu (menuState, lang, win) {
     , saveAs : async (item, focusedWindow) => {
         let saveAsReturn = focusedWindow.legacyFormat ? await saveLegacyDocumentAs(focusedWindow) : await saveDocumentAs(focusedWindow);
         if (saveAsReturn && saveAsReturn.filepath) {
+          focusedWindow.webContents.send("main:set-saved");
           focusedWindow.originalPath = saveAsReturn.filepath;
           let focusedWinMenuState = docWindowMenuStates[focusedWindow.id];
           focusedWinMenuState.isNew = false;
@@ -278,8 +279,6 @@ ipcMain.on("app:last-export-set", (event, lastPath) => {
 ipcMain.on("doc:set-save-status", async (event, saveStatus) => {
   let win = BrowserWindow.fromWebContents(event.sender);
   if (win) {
-    console.log("doc:set-save-status", saveStatus);
-
     switch (saveStatus) {
       case "Saved":
         setDocumentChanged(win, false);

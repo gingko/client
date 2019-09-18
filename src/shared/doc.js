@@ -96,7 +96,7 @@ if(!!jsonImportData) {
           , lastActive : getLastActive(currentPath)
           , fonts : getFonts(currentPath)
           }
-        , true // isSaved
+        , !!currentPath // isSaved
       ]
 
     initElmAndPorts(initFlags);
