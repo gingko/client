@@ -275,22 +275,22 @@ ipcMain.on("app:last-export-set", (event, lastPath) => {
 });
 
 
-ipcMain.on("doc:set-changed", (event, changed) => {
+ipcMain.on("doc:set-save-status", (event, saveStatus) => {
   let win = BrowserWindow.fromWebContents(event.sender);
   if (win) {
     let currentTitle = win.getTitle();
     let menuState = docWindowMenuStates[win.id];
 
-    if (menuState.changed !== changed) {
-      _.set(menuState, "changed", changed);
+    if (menuState.changed !== saveStatus) {
+      _.set(menuState, "changed", saveStatus);
       updateMenu(menuState, false, win);
     }
 
-    win.setDocumentEdited(changed);
+    win.setDocumentEdited(saveStatus);
 
-    if(changed && !currentTitle.startsWith("*")) {
+    if(saveStatus && !currentTitle.startsWith("*")) {
       win.setTitle("*" + currentTitle);
-    } else if (!changed) {
+    } else if (!saveStatus) {
       win.setTitle(currentTitle.replace(/^\*/, ""));
     }
   }

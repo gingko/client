@@ -132,16 +132,16 @@ tr lang trans =
                     }
 
                 UnsavedChanges ->
-                    { en = "Unsaved changes..."
+                    { en = "Unsaved changes"
                     , zh = ""
-                    , es = "Cambios no guardados..."
+                    , es = "Cambios no guardados"
                     , fr = ""
                     }
 
                 SavedInternally ->
-                    { en = "Saved Internally..."
+                    { en = "Saving..."
                     , zh = ""
-                    , es = "Cambios guardados internamente..."
+                    , es = "Guardando cambios..."
                     , fr = ""
                     }
 

@@ -65,8 +65,6 @@ main =
 
    debouncerStateCommit : Debouncer is used to prevent trying to commit too often
 
-   debouncerStateBackup : Longer debouncer for less frequent actions (save backup)
-
    uid : Unique user/device id, for realtime collaboration.
 
    viewState : Stores which card is active, edit mode, which is being dragged, etc.
@@ -98,7 +96,6 @@ type alias Model =
     , objects : Objects.Model
     , status : Status
     , debouncerStateCommit : Debouncer () ()
-    , debouncerStateBackup : Debouncer () ()
     , uid : String
     , viewState : ViewState
     , field : String
@@ -145,10 +142,6 @@ defaultModel =
     , debouncerStateCommit =
         Debouncer.throttle (fromSeconds 3)
             |> Debouncer.settleWhenQuietFor (Just <| fromSeconds 3)
-            |> toDebouncer
-    , debouncerStateBackup =
-        Debouncer.debounce (fromSeconds 40)
-            |> Debouncer.settleWhenQuietFor (Just <| fromSeconds 40)
             |> toDebouncer
     , uid = "0"
     , viewState =
@@ -470,26 +463,6 @@ update msg ({ objects, workingTree, status } as model) =
                 Nothing ->
                     ( updatedModel, mappedCmd )
 
-        ThrottledBackup subMsg ->
-            let
-                ( subModel, subCmd, emitted_ ) =
-                    Debouncer.update subMsg model.debouncerStateBackup
-
-                mappedCmd =
-                    Cmd.map ThrottledBackup subCmd
-
-                updatedModel =
-                    { model | debouncerStateBackup = subModel }
-            in
-            case emitted_ of
-                Just () ->
-                    ( updatedModel
-                    , sendOut SaveBackup
-                    )
-
-                Nothing ->
-                    ( updatedModel, mappedCmd )
-
         CheckoutCommit commitSha ->
             case status of
                 MergeConflict _ _ _ _ ->
@@ -776,6 +749,7 @@ update msg ({ objects, workingTree, status } as model) =
 
                 -- === Database ===
                 Commit timeMillis ->
+                    let _ = Debug.log "Commit" timeMillis in
                     ( { model | currentTime = Time.millisToPosix timeMillis }, Cmd.none )
                         |> addToHistoryDo
 
@@ -2080,7 +2054,6 @@ addToHistory : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 addToHistory ( model, prevCmd ) =
     update (ThrottledCommit (provideInput ())) model
         |> Tuple.mapSecond (\cmd -> Cmd.batch [ prevCmd, cmd ])
-        |> (\( mdl, cmd ) -> update (ThrottledBackup (provideInput ())) mdl |> Tuple.mapSecond (\c -> Cmd.batch [ cmd, c ]))
 
 
 

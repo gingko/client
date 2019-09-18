@@ -48,9 +48,6 @@ sendOut info =
         SaveToDB ( statusValue, objectsValue ) ->
             dataToSend (list identity [ statusValue, objectsValue ])
 
-        SaveBackup ->
-            dataToSend null
-
         SaveLocal tree ->
             dataToSend (treeToValue tree)
 

@@ -194,7 +194,7 @@ const update = (msg, data) => {
       }
 
     , "SetChanged" : () => {
-        ipcRenderer.send("doc:set-changed", data);
+        ipcRenderer.send("doc:set-save-status", data);
       }
 
     , 'ConfirmCancelCard': () => {
@@ -204,7 +204,7 @@ const update = (msg, data) => {
           console.log('tarea not found')
         } else {
           if(tarea.value === data[1] || confirm(tr.areYouSureCancel[lang])) {
-            ipcRenderer.send("doc:set-changed", false);
+            ipcRenderer.send("doc:set-save-status", false);
             toElm('CancelCardConfirmed', null)
           }
         }
@@ -221,7 +221,7 @@ const update = (msg, data) => {
       }
 
     , 'SaveToDB': async () => {
-        ipcRenderer.send("doc:set-changed", true);
+        ipcRenderer.send("doc:set-save-status", true);
         try {
           var newHeadRev = await saveToDB(data[0], data[1])
         } catch (e) {
@@ -229,12 +229,8 @@ const update = (msg, data) => {
           return;
         }
         toElm('SetHeadRev', newHeadRev)
-        ipcRenderer.send("doc:set-changed", false);
+        ipcRenderer.send("doc:set-save-status", false);
       }
-
-    , "SaveBackup": () => {
-        ipcRenderer.send("doc:save-backup");
-    }
 
     , 'Push': push
 
@@ -842,7 +838,7 @@ const debouncedScrollHorizontal = _.debounce(helpers.scrollHorizontal, 200)
 
 const editingInputHandler = function(ev) {
   toElm('FieldChanged', ev.target.value)
-  ipcRenderer.send("doc:set-changed", true);
+  ipcRenderer.send("doc:set-save-status", true);
   selectionHandler(ev);
   //collab.field = ev.target.value
   //socket.emit('collab', collab)

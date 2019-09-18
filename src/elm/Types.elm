@@ -25,7 +25,6 @@ type Msg
     | DragDropMsg (DragDrop.Msg String DropId)
       -- === History ===
     | ThrottledCommit (Debouncer.Msg ())
-    | ThrottledBackup (Debouncer.Msg ())
     | CheckoutCommit String
     | Restore
     | CancelHistory
@@ -54,7 +53,6 @@ type
       -- === Database ===
     | CommitWithTimestamp
     | SaveToDB ( Json.Value, Json.Value )
-    | SaveBackup
     | SaveLocal Tree
     | Push
     | Pull
