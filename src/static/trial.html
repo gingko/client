@@ -40,13 +40,13 @@
 
   clickBuy = () => {
     shell.openExternal('https://gingkoapp.com/desktop-upgrade')
-    ipc.send('open-serial-window', (daysLeft <= 0))
+    ipc.send('license:open-serial-window', (daysLeft <= 0))
     window.onbeforeunload = undefined
     this.close()
   }
 
   clickLicense = () => {
-    ipc.send('open-serial-window', (daysLeft <= 0))
+    ipc.send('license:open-serial-window', (daysLeft <= 0))
     window.onbeforeunload = undefined
     this.close()
   }

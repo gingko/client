@@ -190,7 +190,7 @@ const update = (msg, data) => {
            }
         }
 
-        ipcRenderer.send('app:close')
+        ipcRenderer.send('doc:close')
       }
 
     , "SetChanged" : () => {
@@ -211,7 +211,7 @@ const update = (msg, data) => {
       }
 
     , 'ColumnNumberChange': () => {
-        ipcRenderer.send('column-number-change', data)
+        ipcRenderer.send('doc:column-number-change', data)
       }
 
       // === Database ===
@@ -746,7 +746,7 @@ const exportTxt = (data, defaultPath) => {
             return;
           }
           _lastExportPath = filepath
-          ipcRenderer.send('app:last-export-set', filepath)
+          ipcRenderer.send('doc:last-export-set', filepath)
           resolve(data)
         })
       }
@@ -935,10 +935,10 @@ const observer = new MutationObserver(function(mutations) {
       t.oninput = editingInputHandler;
     })
 
-    ipcRenderer.send('edit-mode-toggle', true)
+    ipcRenderer.send('doc:edit-mode-toggle', true)
     jQuery(textareas).textareaAutoSize()
   } else {
-    ipcRenderer.send('edit-mode-toggle', false)
+    ipcRenderer.send('doc:edit-mode-toggle', false)
   }
 });
 

@@ -240,7 +240,7 @@ app.on("browser-window-focus", (ev, win) => {
 });
 
 
-ipcMain.on("column-number-change", (event, cols) => {
+ipcMain.on("doc:column-number-change", (event, cols) => {
   let win = BrowserWindow.fromWebContents(event.sender);
   if (win) {
     let menuState = docWindowMenuStates[win.id];
@@ -252,7 +252,7 @@ ipcMain.on("column-number-change", (event, cols) => {
 });
 
 
-ipcMain.on("edit-mode-toggle", (event, isEditing) => {
+ipcMain.on("doc:edit-mode-toggle", (event, isEditing) => {
   let win = BrowserWindow.fromWebContents(event.sender);
   if (win) {
     let menuState = docWindowMenuStates[win.id];
@@ -264,7 +264,7 @@ ipcMain.on("edit-mode-toggle", (event, isEditing) => {
 });
 
 
-ipcMain.on("app:last-export-set", (event, lastPath) => {
+ipcMain.on("doc:last-export-set", (event, lastPath) => {
   let win = BrowserWindow.fromWebContents(event.sender);
   if (win) {
     let menuState = docWindowMenuStates[win.id];
@@ -293,7 +293,7 @@ ipcMain.on("doc:set-save-status", async (event, saveStatus) => {
         let saveReturn = await saveDocument(win);
         if (saveReturn) {
           if(process.platform == "win32") {
-            win.webContents.send("database-open");
+            win.webContents.send("main:database-open");
           }
           win.webContents.send("main:set-saved");
         }
@@ -527,7 +527,7 @@ async function importDocument() {
 
 async function saveDocument (docWindow) {
   try {
-    if (process.platform === "win32") { docWindow.webContents.send("database-close"); }
+    if (process.platform === "win32") { docWindow.webContents.send("main:database-close"); }
     const filepath = await fio.saveSwapFolder(docWindow.swapFolderPath);
     return filepath;
   } catch (err) {
@@ -569,7 +569,7 @@ async function saveDocumentAs (docWindow) {
 
   if (newFilepath) {
     try {
-      if (process.platform === "win32") { docWindow.webContents.send("database-close"); }
+      if (process.platform === "win32") { docWindow.webContents.send("main:database-close"); }
       const newSwapFolderPath = await fio.saveSwapFolderAs(docWindow.swapFolderPath, newFilepath);
       docWindow.swapFolderPath = newSwapFolderPath;
       await addToRecentDocuments(newFilepath);
@@ -608,7 +608,7 @@ async function saveLegacyDocumentAs (docWindow) {
 
   if (newFilepath) {
     try {
-      if (process.platform === "win32") { docWindow.webContents.send("database-close"); }
+      if (process.platform === "win32") { docWindow.webContents.send("main:database-close"); }
       const newSwapFolderPath = await fio.saveLegacyFolderAs(docWindow.swapFolderPath, docWindow.legacyFormat.name, newFilepath);
       docList.setState(docWindow.legacyFormat.dbname, "deprecated");
       docWindow.swapFolderPath = newSwapFolderPath;
@@ -723,7 +723,7 @@ ipcMain.on("home:open", async (event, dbToLoad, docName) => {
   if(didOpen) {
     winHome.close();
   } else {
-    winHome.webContents.send("doc-list-reload");
+    winHome.webContents.send("main:doc-list-reload");
   }
 });
 
@@ -737,7 +737,7 @@ ipcMain.on("home:open-other", async () => {
 });
 
 
-ipcMain.on("app:close", async (event) => {
+ipcMain.on("doc:close", async (event) => {
   let docWindow = BrowserWindow.fromWebContents(event.sender);
   let swapFolderPath = docWindow.swapFolderPath;
   let swapStore = new Store({name: "swap", cwd: swapFolderPath})
@@ -777,7 +777,7 @@ ipcMain.on("app:close", async (event) => {
         case 2:
           let saveLegacyResult = await saveLegacyDocumentAs(docWindow);
           if (saveLegacyResult) {
-            if (process.platform === "win32") { docWindow.webContents.send("database-close"); }
+            if (process.platform === "win32") { docWindow.webContents.send("main:database-close"); }
             await fio.deleteSwapFolder(saveLegacyResult.swapFolderPath);
             docWindow.destroy();
           };
@@ -805,7 +805,7 @@ ipcMain.on("app:close", async (event) => {
           let saveDocAsResult = await saveDocumentAs(docWindow);
           if (saveDocAsResult && saveDocAsResult.swapFolderPath) {
             let newSwapFolderPath = saveDocAsResult.swapFolderPath;
-            if (process.platform === "win32") { docWindow.webContents.send("database-close"); }
+            if (process.platform === "win32") { docWindow.webContents.send("main:database-close"); }
             await fio.deleteSwapFolder(newSwapFolderPath);
             docWindow.destroy();
           }
@@ -819,20 +819,20 @@ ipcMain.on("app:close", async (event) => {
 })
 
 
-ipcMain.on('serial', (event, msg) => {
+ipcMain.on('license:serial', (event, msg) => {
   let newEmail = msg[0]
   let newSerial = msg[1]
   if(validSerial(newEmail, newSerial)){
     userStore.set('email', newEmail)
     userStore.set('serial', newSerial)
-    winSerial.webContents.send('serial-success')
+    winSerial.webContents.send('main:serial-success')
   } else {
-    winSerial.webContents.send('serial-fail')
+    winSerial.webContents.send('main:serial-fail')
   }
 })
 
 
-ipcMain.on('open-serial-window', (event, msg) => {
+ipcMain.on('license:open-serial-window', (event, msg) => {
   var parentWindow = BrowserWindow.fromWebContents(event.sender).getParentWindow();
   createSerialWindow(parentWindow, msg)
 })
@@ -858,7 +858,7 @@ function createTrialWindow(parentWindow, activations, limit) {
   var url = `file://${__dirname}/static/trial.html`
   winTrial.removeMenu();
   winTrial.once('ready-to-show', () => {
-    winTrial.webContents.send('trial-activations', [activations, limit])
+    winTrial.webContents.send('main:trial-activations', [activations, limit])
     winTrial.show()
   })
   winTrial.on('closed', () => {

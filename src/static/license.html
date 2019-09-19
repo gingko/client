@@ -21,7 +21,7 @@ body {
     sendSerialInfo = () => {
       var email = document.getElementById('email').value.toLowerCase()
       var serial = document.getElementById('serial').value.toUpperCase()
-      ipc.send('serial', [email, serial])
+      ipc.send('license:serial', [email, serial])
     }
 
     buyLicense = () => {
@@ -32,20 +32,20 @@ body {
       this.close()
     }
 
-    ipc.on('serial-info', (e,d) => {
+    ipc.on('main:serial-info', (e,d) => {
       document.getElementById('email').value = d[0]
       document.getElementById('serial').value = d[1]
     })
 
-    ipc.on('serial-success', () => {
+    ipc.on('main:serial-success', () => {
       alert('Thank you for contribution!')
       window.onbeforeunload = undefined
       this.close()
     })
-    ipc.on('serial-fail', () => {
+    ipc.on('main:serial-fail', () => {
       alert('Invalid serial.\nPlease try again.')
     })
-    ipc.on('prevent-close', () => {
+    ipc.on('main:prevent-close', () => {
       document.getElementById('cancel').disabled = true
       document.getElementById('buyButton').style.display = "inline-block"
       window.onbeforeunload = (e) => {
