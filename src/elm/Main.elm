@@ -757,8 +757,8 @@ update msg ({ objects, workingTree, status } as model) =
                     )
                         |> push
 
-                SetSaved ->
-                    ( { model | saveStatus = Saved }
+                SetSaveStatus saveStatus ->
+                    ( { model | saveStatus = saveStatus }
                     , Cmd.none
                     )
 
@@ -1566,7 +1566,6 @@ cancelCard ( model, prevCmd ) =
     in
     ( { model
         | viewState = { vs | viewMode = Normal }
-        , saveStatus = SavedDB
         , field = ""
       }
     , prevCmd

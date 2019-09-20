@@ -177,8 +177,13 @@ receiveMsg tagger onError =
                         Err e ->
                             onError (errorToString e)
 
-                "SetSaved" ->
-                    tagger <| SetSaved
+                "SetSaveStatus" ->
+                    case decodeValue saveStatusDecoder outsideInfo.data of
+                        Ok saveStatus ->
+                            tagger <| SetSaveStatus saveStatus
+
+                        Err e ->
+                            onError (errorToString e)
 
                 "Merge" ->
                     tagger <| Merge outsideInfo.data

@@ -83,7 +83,7 @@ type
     | Commit Int
     | GetDataToSave
     | SetHeadRev String
-    | SetSaved
+    | SetSaveStatus SaveStatus
     | Merge Json.Value
       -- === DOM ===
     | DragStarted String

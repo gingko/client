@@ -1,4 +1,4 @@
-module Coders exposing (collabStateDecoder, collabStateToValue, conflictDecoder, conflictToValue, exportSettingsDecoder, fontSettingsEncoder, lazyRecurse, maybeToValue, modeDecoder, modeToValue, opDecoder, opToValue, selectionDecoder, selectionToValue, statusDecoder, statusToValue, textCursorInfoDecoder, treeDecoder, treeListDecoder, treeToJSON, treeToJSONrecurse, treeToMarkdown, treeToMarkdownRecurse, treeToMarkdownString, treeToValue, treesModelDecoder, tripleDecoder, tupleDecoder, tupleToValue)
+module Coders exposing (collabStateDecoder, saveStatusDecoder, collabStateToValue, conflictDecoder, conflictToValue, exportSettingsDecoder, fontSettingsEncoder, lazyRecurse, maybeToValue, modeDecoder, modeToValue, opDecoder, opToValue, selectionDecoder, selectionToValue, statusDecoder, statusToValue, textCursorInfoDecoder, treeDecoder, treeListDecoder, treeToJSON, treeToJSONrecurse, treeToMarkdown, treeToMarkdownRecurse, treeToMarkdownString, treeToValue, treesModelDecoder, tripleDecoder, tupleDecoder, tupleToValue)
 
 import Fonts
 import Json.Decode as Json exposing (..)
@@ -159,6 +159,27 @@ statusDecoder =
         , mergeConflictDecoder
         , bareDecoder
         ]
+
+
+saveStatusDecoder : Decoder SaveStatus
+saveStatusDecoder =
+    let
+        fn s =
+            case s of
+                "Unsaved" ->
+                    Unsaved
+
+                "Saved" ->
+                    Saved
+
+                "SavedDB" ->
+                    SavedDB
+
+                _ ->
+                    Unsaved
+    in
+    Json.map fn string
+
 
 
 

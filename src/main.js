@@ -317,7 +317,7 @@ ipcMain.on("doc:set-changed", (event, changed) => {
   if (win) {
     setDocumentChanged(win, changed);
   }
-})
+});
 
 
 ipcMain.on("doc:language-changed", (event, data) => {

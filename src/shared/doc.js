@@ -44,6 +44,13 @@ const ActionOnData = Object.freeze(
 );
 var actionOnData = ActionOnData.NoOp;
 
+const SaveState = Object.freeze(
+  { Changed: {Saved : Symbol("Changed.Saved"), SavedDB: Symbol("Changed.SavedDB")}
+  , SavedDB: Symbol("SavedDB")
+  , Saved: Symbol("Saved")
+  }
+);
+var saveState = SaveState.SavedDB;
 
 const mock = require('../../test/mocks.js')
 if(process.env.RUNNING_IN_SPECTRON) {
@@ -76,6 +83,7 @@ ipcRenderer.on("database-open", async () => {
 });
 
 if(!!jsonImportData) {
+  saveState = SaveState.SavedDB;
   var initFlags =
     [ jsonImportData
       , { language : lang
@@ -94,6 +102,8 @@ if(!!jsonImportData) {
   load().then(function (dbData) {
 
     savedObjectIds = Object.keys(dbData[1].commits).concat(Object.keys(dbData[1].treeObjects))
+
+    saveState = currentPath ? SaveState.Saved : SaveState.SavedDB;
 
     var initFlags =
       [ dbData
@@ -192,6 +202,11 @@ const update = (msg, data) => {
 
     , "SetChanged" : () => {
         ipcRenderer.send("doc:set-changed", data);
+        if (saveState == SaveState.SavedDB) {
+          saveState = SaveState.Changed.SavedDB;
+        } else if (saveState == SaveState.Saved) {
+          saveState = SaveState.Changed.Saved;
+        }
       }
 
     , "ConfirmCancelCard": () => {
@@ -202,7 +217,14 @@ const update = (msg, data) => {
         } else {
           if(tarea.value === data[1] || confirm(tr.areYouSureCancel[lang])) {
             ipcRenderer.send("doc:set-changed", false);
-            toElm("CancelCardConfirmed", null)
+            if(saveState == SaveState.Changed.SavedDB){
+              saveState = SaveState.SavedDB;
+              toElm("SetSaveStatus", "SavedDB");
+            } else if(saveState == SaveState.Changed.Saved){
+              saveState = SaveState.Saved;
+              toElm("SetSaveStatus", "Saved");
+            }
+            toElm("CancelCardConfirmed", null);
           }
         }
       }
@@ -220,6 +242,7 @@ const update = (msg, data) => {
     , "SaveToDB": async () => {
         try {
           var newHeadRev = await saveToDB(data[0], data[1])
+          saveState = SaveState.SavedDB;
           toElm("SetHeadRev", newHeadRev)
           ipcRenderer.send("doc:saved-db");
 
@@ -395,7 +418,7 @@ ipcRenderer.on("main:set-swap-folder", async (e, newPaths) => {
 });
 
 ipcRenderer.on("main:saved-file", () => {
-  toElm("SetSaved");
+  toElm("SetSaveStatus", "Saved");
 });
 
 
@@ -855,7 +878,12 @@ const debouncedScrollHorizontal = _.debounce(helpers.scrollHorizontal, 200)
 
 
 const editingInputHandler = function(ev) {
-  toElm('FieldChanged', ev.target.value)
+  if (saveState == SaveState.Saved) {
+    saveState = SaveState.Changed.Saved;
+  } else if (saveState == SaveState.SavedDB) {
+    saveState = SaveState.Changed.SavedDB;
+  }
+  toElm('FieldChanged', ev.target.value);
   ipcRenderer.send("doc:set-changed", true);
   selectionHandler(ev);
   //collab.field = ev.target.value
