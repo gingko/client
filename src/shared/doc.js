@@ -188,27 +188,27 @@ const update = (msg, data) => {
     {
       // === Dialogs, Menus, Window State ===
 
-      'Alert': () => { alert(data) }
+      "Alert": () => { alert(data) }
 
     , "SetChanged" : () => {
         ipcRenderer.send("doc:set-changed", data);
       }
 
-    , 'ConfirmCancelCard': () => {
-        let tarea = document.getElementById('card-edit-'+data[0])
+    , "ConfirmCancelCard": () => {
+        let tarea = document.getElementById("card-edit-"+data[0])
 
         if (tarea === null) {
-          console.log('tarea not found')
+          console.log("tarea not found")
         } else {
           if(tarea.value === data[1] || confirm(tr.areYouSureCancel[lang])) {
             ipcRenderer.send("doc:set-changed", false);
-            toElm('CancelCardConfirmed', null)
+            toElm("CancelCardConfirmed", null)
           }
         }
       }
 
-    , 'ColumnNumberChange': () => {
-        ipcRenderer.send('doc:column-number-change', data)
+    , "ColumnNumberChange": () => {
+        ipcRenderer.send("doc:column-number-change", data)
       }
 
       // === Database ===
@@ -220,7 +220,7 @@ const update = (msg, data) => {
     , "SaveToDB": async () => {
         try {
           var newHeadRev = await saveToDB(data[0], data[1])
-          toElm('SetHeadRev', newHeadRev)
+          toElm("SetHeadRev", newHeadRev)
           ipcRenderer.send("doc:saved-db");
 
           switch(actionOnData) {
@@ -242,13 +242,13 @@ const update = (msg, data) => {
         }
       }
 
-    , 'Push': push
+    , "Push": push
 
-    , 'Pull': sync
+    , "Pull": sync
 
       // === File System ===
 
-    , 'ExportDOCX': () => {
+    , "ExportDOCX": () => {
         try {
           exportDocx(data.data, data.filepath)
         } catch (e) {
@@ -257,7 +257,7 @@ const update = (msg, data) => {
         }
       }
 
-    , 'ExportJSON': () => {
+    , "ExportJSON": () => {
         try {
           exportJson(data.data, data.filepath)
         } catch (e) {
@@ -266,7 +266,7 @@ const update = (msg, data) => {
         }
       }
 
-    , 'ExportTXT': () => {
+    , "ExportTXT": () => {
         try {
           exportTxt(data.data, data.filepath)
         } catch (e) {
@@ -275,7 +275,7 @@ const update = (msg, data) => {
         }
       }
 
-    , 'ExportTXTColumn': () => {
+    , "ExportTXTColumn": () => {
         try {
           exportTxt(data.data, data.filepath)
         } catch (e) {
@@ -295,43 +295,43 @@ const update = (msg, data) => {
         helpers.scrollColumns(data.lastActives);
       }
 
-    , 'FlashCurrentSubtree': () => {
+    , "FlashCurrentSubtree": () => {
         let addFlashClass = function() {
-          jQuery('.card.active').addClass('flash')
-          jQuery('.group.active-descendant').addClass('flash')
+          jQuery(".card.active").addClass("flash")
+          jQuery(".group.active-descendant").addClass("flash")
         }
 
         let removeFlashClass = function() {
-          jQuery('.card.active').removeClass('flash')
-          jQuery('.group.active-descendant').removeClass('flash')
+          jQuery(".card.active").removeClass("flash")
+          jQuery(".group.active-descendant").removeClass("flash")
         }
 
         addFlashClass()
         setTimeout(removeFlashClass, 200)
       }
 
-    , 'TextSurround': () => {
+    , "TextSurround": () => {
         let id = data[0]
         let surroundString = data[1]
-        let tarea = document.getElementById('card-edit-'+id)
+        let tarea = document.getElementById("card-edit-"+id)
 
         if (tarea === null) {
-          console.log('Textarea not found for TextSurround command.')
+          console.log("Textarea not found for TextSurround command.")
         } else {
           let start = tarea.selectionStart
           let end = tarea.selectionEnd
           if (start !== end) {
             let text = tarea.value.slice(start, end)
             let modifiedText = surroundString + text + surroundString
-            document.execCommand('insertText', true, modifiedText)
+            document.execCommand("insertText", true, modifiedText)
           }
         }
       }
 
       // === UI ===
 
-    , 'UpdateCommits': () => {
-        let commitGraphData = _.sortBy(data[0].commits, 'timestamp').reverse().map(c => { return {sha: c._id, parents: c.parents}})
+    , "UpdateCommits": () => {
+        let commitGraphData = _.sortBy(data[0].commits, "timestamp").reverse().map(c => { return {sha: c._id, parents: c.parents}})
         let selectedSha = data[1]
 
         /*
@@ -342,34 +342,34 @@ const update = (msg, data) => {
         });
         */
 
-        //ReactDOM.render(commitElement, document.getElementById('history'))
+        //ReactDOM.render(commitElement, document.getElementById("history"))
     }
-    , 'SetVideoModal': () => {
-        userStore.set('video-modal-is-open', data)
+    , "SetVideoModal": () => {
+        userStore.set("video-modal-is-open", data)
       }
 
     , "SetFonts": () => { setFonts(currentPath, data);}
 
-    , 'SetShortcutTray': () => {
-        userStore.set('shortcut-tray-is-open', data)
+    , "SetShortcutTray": () => {
+        userStore.set("shortcut-tray-is-open", data)
       }
 
       // === Misc ===
 
-    , 'SocketSend': () => {
+    , "SocketSend": () => {
         collab = data
-      //socket.emit('collab', data)
+      //socket.emit("collab", data)
       }
 
-    , 'ConsoleLogRequested': () =>
+    , "ConsoleLogRequested": () =>
         console.log(data)
 
     }
 
   try {
-    cases[msg]()
+    cases[msg]();
   } catch(err) {
-    console.log('elmCases one-port failed:', err, msg, data)
+    console.log("elmCases one-port failed:", err, msg, data)
   }
 }
 
