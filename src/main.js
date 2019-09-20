@@ -200,7 +200,7 @@ function updateMenu (menuState, lang, win) {
     , saveAs : async (item, focusedWindow) => {
         let saveAsReturn = focusedWindow.legacyFormat ? await saveLegacyDocumentAs(focusedWindow) : await saveDocumentAs(focusedWindow);
         if (saveAsReturn && saveAsReturn.filepath) {
-          focusedWindow.webContents.send("main:set-saved");
+          focusedWindow.webContents.send("main:saved-file");
           focusedWindow.originalPath = saveAsReturn.filepath;
           let focusedWinMenuState = docWindowMenuStates[focusedWindow.id];
           focusedWinMenuState.isNew = false;
@@ -276,36 +276,29 @@ ipcMain.on("doc:last-export-set", (event, lastPath) => {
 });
 
 
-ipcMain.on("doc:set-save-status", async (event, saveStatus) => {
+ipcMain.on("doc:saved-db", async (event) => {
   let win = BrowserWindow.fromWebContents(event.sender);
   if (win) {
-    switch (saveStatus) {
-      case "Saved":
-        setDocumentChanged(win, false);
-        break;
-
-      case "Unsaved":
-        setDocumentChanged(win, true);
-        break;
-
-      case "SavedDB":
-        setDocumentChanged(win, true);
-        let saveReturn = await saveDocument(win);
-        if (saveReturn) {
-          if(process.platform == "win32") {
-            win.webContents.send("main:database-open");
-          }
-          win.webContents.send("main:set-saved");
-        }
-        break;
-
-      default:
-        console.log("Unknown saveStatus at doc:set-save-status");
-        break;
-    };
+    setDocumentChanged(win, true);
+    await new Promise(res => { setTimeout(res, 200) });
+    let saveReturn = await saveDocument(win);
+    if (saveReturn) {
+      if(process.platform == "win32") {
+        win.webContents.send("main:database-open");
+      }
+      setDocumentChanged(win, false);
+      win.webContents.send("main:saved-file");
+    }
   }
-
 });
+
+
+ipcMain.on("doc:set-changed", (event, changed) => {
+  let win = BrowserWindow.fromWebContents(event.sender);
+  if (win) {
+    setDocumentChanged(win, changed);
+  }
+})
 
 
 ipcMain.on("doc:language-changed", (event, data) => {
@@ -737,7 +730,7 @@ ipcMain.on("home:open-other", async () => {
 });
 
 
-ipcMain.on("doc:close", async (event) => {
+ipcMain.on("doc:save-and-exit", async (event) => {
   let docWindow = BrowserWindow.fromWebContents(event.sender);
   let swapFolderPath = docWindow.swapFolderPath;
   let swapStore = new Store({name: "swap", cwd: swapFolderPath})

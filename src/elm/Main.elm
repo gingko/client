@@ -625,38 +625,6 @@ update msg ({ objects, workingTree, status } as model) =
         Port incomingMsg ->
             case incomingMsg of
                 -- === Dialogs, Menus, Window State ===
-                IntentSave ->
-                    Debug.todo "Implement similar to IntentExit"
-
-                IntentExit ->
-                    case vs.viewMode of
-                        Normal ->
-                            ( model
-                            , sendOut (SaveAndClose Nothing)
-                            )
-
-                        _ ->
-                            let
-                                newTree =
-                                    Trees.update (Trees.Upd vs.active model.field) model.workingTree
-
-                                modelCardSaved =
-                                    if newTree.tree /= model.workingTree.tree then
-                                        ( { model | workingTree = newTree }
-                                        , Cmd.none
-                                        )
-                                            |> addToHistoryDo
-                                            |> Tuple.first
-                                    else
-                                        model
-
-                                ( statusValue, objectsValue ) =
-                                    ( statusToValue modelCardSaved.status, Objects.toValue modelCardSaved.objects )
-                            in
-                            ( model
-                            , sendOut (SaveAndClose (Just ( statusValue, objectsValue )))
-                            )
-
                 IntentExport exportSettings ->
                     case exportSettings.format of
                         DOCX ->
@@ -754,6 +722,28 @@ update msg ({ objects, workingTree, status } as model) =
                         |> cancelCard
 
                 -- === Database ===
+                GetDataToSave ->
+                    case vs.viewMode of
+                        Normal ->
+                            ( model
+                            , sendOut (SaveToDB ( statusToValue model.status, Objects.toValue model.objects ))
+                            )
+
+                        _ ->
+                            let
+                                newTree =
+                                    Trees.update (Trees.Upd vs.active model.field) model.workingTree
+                            in
+                            if newTree.tree /= model.workingTree.tree then
+                                ( { model | workingTree = newTree }
+                                , Cmd.none
+                                )
+                                    |> addToHistoryDo
+                            else
+                                ( model
+                                , sendOut (SaveToDB ( statusToValue model.status, Objects.toValue model.objects ))
+                                )
+
                 Commit timeMillis ->
                     ( { model | currentTime = Time.millisToPosix timeMillis }, Cmd.none )
                         |> addToHistoryDo

@@ -35,6 +35,15 @@ var _lastSelection = null
 var collab = {}
 self.savedObjectIds = [];
 
+const ActionOnData = Object.freeze(
+  { Exit : Symbol("Exit")
+  , Save : Symbol("Save")
+  , SaveAs : Symbol("SaveAs")
+  , NoOp : Symbol("NoOp")
+  }
+);
+var actionOnData = ActionOnData.NoOp;
+
 
 const mock = require('../../test/mocks.js')
 if(process.env.RUNNING_IN_SPECTRON) {
@@ -120,7 +129,8 @@ function initElmAndPorts(initFlags) {
   });
 
   window.onbeforeunload = (e) => {
-    toElm('IntentExit', null)
+    actionOnData = ActionOnData.Exit;
+    toElm("GetDataToSave", null)
     e.returnValue = false
   }
 }
@@ -180,21 +190,8 @@ const update = (msg, data) => {
 
       'Alert': () => { alert(data) }
 
-    , 'SaveAndClose': async () => {
-        if (!!data) {
-           try {
-             await saveToDB(data[0], data[1])
-           } catch (e) {
-             dialog.showMessageBox(saveErrorAlert(e))
-             return;
-           }
-        }
-
-        ipcRenderer.send('doc:close')
-      }
-
     , "SetChanged" : () => {
-        ipcRenderer.send("doc:set-save-status", data);
+        ipcRenderer.send("doc:set-changed", data);
       }
 
     , 'ConfirmCancelCard': () => {
@@ -204,7 +201,7 @@ const update = (msg, data) => {
           console.log('tarea not found')
         } else {
           if(tarea.value === data[1] || confirm(tr.areYouSureCancel[lang])) {
-            ipcRenderer.send("doc:set-save-status", "Saved");
+            ipcRenderer.send("doc:set-changed", false);
             toElm('CancelCardConfirmed', null)
           }
         }
@@ -221,15 +218,28 @@ const update = (msg, data) => {
       }
 
     , "SaveToDB": async () => {
-        ipcRenderer.send("doc:set-save-status", "Unsaved");
         try {
           var newHeadRev = await saveToDB(data[0], data[1])
+          toElm('SetHeadRev', newHeadRev)
+          ipcRenderer.send("doc:saved-db");
+
+          switch(actionOnData) {
+            case ActionOnData.Save:
+              ipcRenderer.send("doc:save");
+              break;
+
+            case ActionOnData.SaveAs:
+              ipcRenderer.send("doc:save-as");
+              break;
+
+            case ActionOnData.Exit:
+              ipcRenderer.send("doc:save-and-exit");
+              break;
+          }
         } catch (e) {
           dialog.showMessageBox(saveErrorAlert(e))
           return;
         }
-        toElm('SetHeadRev', newHeadRev)
-        ipcRenderer.send("doc:set-save-status", "SavedDB");
       }
 
     , 'Push': push
@@ -381,13 +391,12 @@ ipcRenderer.on("main:set-swap-folder", async (e, newPaths) => {
   currentPath = newPaths[1];
 });
 
-ipcRenderer.on("main:set-saved", () => {
+ipcRenderer.on("main:saved-file", () => {
   toElm("SetSaved");
-  ipcRenderer.send("doc:set-save-status", "Saved");
 });
 
 
-ipcRenderer.on("menu-close-document", () => toElm("IntentExit", null));
+ipcRenderer.on("menu-close-document", () => { actionOnData = ActionOnData.Exit; toElm("GetDataToSave", null) });
 ipcRenderer.on("menu-save", () => toElm("IntentSave", null ));
 ipcRenderer.on("menu-export-docx", () => intentExportToElm("docx", "all", null));
 ipcRenderer.on("menu-export-docx-current", () => intentExportToElm("docx", "current", null));
@@ -843,7 +852,7 @@ const debouncedScrollHorizontal = _.debounce(helpers.scrollHorizontal, 200)
 
 const editingInputHandler = function(ev) {
   toElm('FieldChanged', ev.target.value)
-  ipcRenderer.send("doc:set-save-status", "Unsaved");
+  ipcRenderer.send("doc:set-changed", true);
   selectionHandler(ev);
   //collab.field = ev.target.value
   //socket.emit('collab', collab)

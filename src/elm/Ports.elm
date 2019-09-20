@@ -46,30 +46,6 @@ sendOut info =
             dataToSend null
 
         -- === File System ===
-        Save toSave_ ->
-            let
-                toSaveData =
-                    case toSave_ of
-                        Nothing ->
-                            null
-
-                        Just ( statusValue, objectsValue ) ->
-                            list identity [ statusValue, objectsValue ]
-            in
-            dataToSend toSaveData
-
-        SaveAndClose toSave_ ->
-            let
-                toSaveData =
-                    case toSave_ of
-                        Nothing ->
-                            null
-
-                        Just ( statusValue, objectsValue ) ->
-                            list identity [ statusValue, objectsValue ]
-            in
-            dataToSend toSaveData
-
         ExportDOCX str path_ ->
             dataToSend
                 (object
@@ -170,12 +146,6 @@ receiveMsg tagger onError =
         (\outsideInfo ->
             case outsideInfo.tag of
                 -- === Dialogs, Menus, Window State ===
-                "IntentSave" ->
-                    tagger <| IntentSave
-
-                "IntentExit" ->
-                    tagger <| IntentExit
-
                 "IntentExport" ->
                     case decodeValue exportSettingsDecoder outsideInfo.data of
                         Ok exportSettings ->
@@ -195,6 +165,9 @@ receiveMsg tagger onError =
 
                         Err e ->
                             onError (errorToString e)
+
+                "GetDataToSave" ->
+                    tagger <| GetDataToSave
 
                 "SetHeadRev" ->
                     case decodeValue Json.Decode.string outsideInfo.data of

@@ -56,8 +56,6 @@ type
     | Push
     | Pull
       -- === File System ===
-    | Save (Maybe (Json.Value, Json.Value))
-    | SaveAndClose (Maybe ( Json.Value, Json.Value ))
     | ExportDOCX String (Maybe String)
     | ExportJSON Tree (Maybe String)
     | ExportTXT Bool Tree (Maybe String)
@@ -79,12 +77,11 @@ type
 type
     IncomingMsg
     -- === Dialogs, Menus, Window State ===
-    = IntentSave
-    | IntentExit
-    | IntentExport ExportSettings
+    = IntentExport ExportSettings
     | CancelCardConfirmed
       -- === Database ===
     | Commit Int
+    | GetDataToSave
     | SetHeadRev String
     | SetSaved
     | Merge Json.Value
