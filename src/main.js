@@ -196,7 +196,13 @@ function updateMenu (menuState, lang, win) {
     , open : openWithDialog
     , openRecent : (rdoc) => openDocumentOrFolder(rdoc.location, rdoc.name)
     , openHome : createHomeWindow
-    , save : (item, focusedWindow) => focusedWindow.webContents.send("menu-save")
+    , save : (item, focusedWindow) => {
+        if (focusedWindow.originalPath) {
+          focusedWindow.webContents.send("menu-save");
+        } else {
+          focusedWindow.webContents.send("menu-save-as");
+        }
+      }
     , saveAs : async (item, focusedWindow) => {
         let saveAsReturn = focusedWindow.legacyFormat ? await saveLegacyDocumentAs(focusedWindow) : await saveDocumentAs(focusedWindow);
         if (saveAsReturn && saveAsReturn.filepath) {
@@ -278,7 +284,7 @@ ipcMain.on("doc:last-export-set", (event, lastPath) => {
 
 ipcMain.on("doc:saved-db", async (event) => {
   let win = BrowserWindow.fromWebContents(event.sender);
-  if (win) {
+  if (win && win.originalPath) {
     let saveReturn = await saveDocument(win);
     if (saveReturn) {
       if(process.platform == "win32") {
@@ -286,6 +292,21 @@ ipcMain.on("doc:saved-db", async (event) => {
       }
       setDocumentChanged(win, false);
       win.webContents.send("main:saved-file");
+    }
+  }
+});
+
+
+ipcMain.on("doc:save-as", async (event) => {
+  let win = BrowserWindow.fromWebContents(event.sender);
+  if (win) {
+    let saveAsReturn = win.legacyFormat ? await saveLegacyDocumentAs(win) : await saveDocumentAs(win);
+    if (saveAsReturn && saveAsReturn.filepath) {
+      win.webContents.send("main:saved-file");
+      win.originalPath = saveAsReturn.filepath;
+      let focusedWinMenuState = docWindowMenuStates[win.id];
+      focusedWinMenuState.isNew = false;
+      updateMenu(focusedWinMenuState, false, win);
     }
   }
 });

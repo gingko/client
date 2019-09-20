@@ -226,14 +226,17 @@ const update = (msg, data) => {
           switch(actionOnData) {
             case ActionOnData.Save:
               ipcRenderer.send("doc:save");
+              actionOnData = ActionOnData.NoOp;
               break;
 
             case ActionOnData.SaveAs:
               ipcRenderer.send("doc:save-as");
+              actionOnData = ActionOnData.NoOp;
               break;
 
             case ActionOnData.Exit:
               ipcRenderer.send("doc:save-and-exit");
+              actionOnData = ActionOnData.NoOp;
               break;
           }
         } catch (e) {
@@ -398,6 +401,7 @@ ipcRenderer.on("main:saved-file", () => {
 
 ipcRenderer.on("menu-close-document", () => { actionOnData = ActionOnData.Exit; toElm("GetDataToSave", null); });
 ipcRenderer.on("menu-save", () => { actionOnData = ActionOnData.Save; toElm("GetDataToSave", null ); });
+ipcRenderer.on("menu-save-as", () => { actionOnData = ActionOnData.SaveAs; toElm("GetDataToSave", null ); });
 ipcRenderer.on("menu-export-docx", () => intentExportToElm("docx", "all", null));
 ipcRenderer.on("menu-export-docx-current", () => intentExportToElm("docx", "current", null));
 ipcRenderer.on("menu-export-docx-column", (e, msg) => intentExportToElm("docx", {column: msg}, null));
