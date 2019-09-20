@@ -279,8 +279,6 @@ ipcMain.on("doc:last-export-set", (event, lastPath) => {
 ipcMain.on("doc:saved-db", async (event) => {
   let win = BrowserWindow.fromWebContents(event.sender);
   if (win) {
-    setDocumentChanged(win, true);
-    await new Promise(res => { setTimeout(res, 200) });
     let saveReturn = await saveDocument(win);
     if (saveReturn) {
       if(process.platform == "win32") {
