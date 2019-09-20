@@ -626,11 +626,7 @@ update msg ({ objects, workingTree, status } as model) =
             case incomingMsg of
                 -- === Dialogs, Menus, Window State ===
                 IntentSave ->
-                    ( model
-                    , Cmd.none
-                    )
-                        |> saveCardIfEditing
-                        |> closeCard
+                    Debug.todo "Implement similar to IntentExit"
 
                 IntentExit ->
                     case vs.viewMode of
@@ -641,12 +637,18 @@ update msg ({ objects, workingTree, status } as model) =
 
                         _ ->
                             let
+                                newTree =
+                                    Trees.update (Trees.Upd vs.active model.field) model.workingTree
+
                                 modelCardSaved =
-                                    ( model
-                                    , Cmd.none
-                                    )
-                                        |> saveCardIfEditing
-                                        |> Tuple.first
+                                    if newTree.tree /= model.workingTree.tree then
+                                        ( { model | workingTree = newTree }
+                                        , Cmd.none
+                                        )
+                                            |> addToHistoryDo
+                                            |> Tuple.first
+                                    else
+                                        model
 
                                 ( statusValue, objectsValue ) =
                                     ( statusToValue modelCardSaved.status, Objects.toValue modelCardSaved.objects )

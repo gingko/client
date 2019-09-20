@@ -20,18 +20,6 @@ sendOut info =
         Alert str ->
             dataToSend (string str)
 
-        SaveAndClose toSave_ ->
-            let
-                toSaveData =
-                    case toSave_ of
-                        Nothing ->
-                            null
-
-                        Just ( statusValue, objectsValue ) ->
-                            list identity [ statusValue, objectsValue ]
-            in
-            dataToSend toSaveData
-
         SetChanged changed ->
             dataToSend (bool changed)
 
@@ -58,6 +46,30 @@ sendOut info =
             dataToSend null
 
         -- === File System ===
+        Save toSave_ ->
+            let
+                toSaveData =
+                    case toSave_ of
+                        Nothing ->
+                            null
+
+                        Just ( statusValue, objectsValue ) ->
+                            list identity [ statusValue, objectsValue ]
+            in
+            dataToSend toSaveData
+
+        SaveAndClose toSave_ ->
+            let
+                toSaveData =
+                    case toSave_ of
+                        Nothing ->
+                            null
+
+                        Just ( statusValue, objectsValue ) ->
+                            list identity [ statusValue, objectsValue ]
+            in
+            dataToSend toSaveData
+
         ExportDOCX str path_ ->
             dataToSend
                 (object

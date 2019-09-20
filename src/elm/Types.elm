@@ -46,7 +46,6 @@ type
     OutgoingMsg
     -- === Dialogs, Menus, Window State ===
     = Alert String
-    | SaveAndClose (Maybe ( Json.Value, Json.Value ))
     | SetChanged Bool
     | ConfirmCancelCard String String
     | ColumnNumberChange Int
@@ -57,6 +56,8 @@ type
     | Push
     | Pull
       -- === File System ===
+    | Save (Maybe (Json.Value, Json.Value))
+    | SaveAndClose (Maybe ( Json.Value, Json.Value ))
     | ExportDOCX String (Maybe String)
     | ExportJSON Tree (Maybe String)
     | ExportTXT Bool Tree (Maybe String)
