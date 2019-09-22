@@ -3,6 +3,7 @@ dist/*
 src/elm.js
 src/elm-*.js
 app/*
+web/*
 !app/package.json
 !app/package-lock.json
 node_modules
