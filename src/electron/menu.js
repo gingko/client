@@ -8,12 +8,12 @@ function getTemplate (menuState, handlers, lang, isMac) {
   let isEditing = menuState && menuState.editMode;
   let columnNumber = menuState && menuState.columnNumber;
   let changed = menuState && menuState.changed;
-  let hasLastExport = menuState && menuState.hasLastExport;
+  let lastExportPath = menuState && menuState.lastExportPath;
   let recentDocumentList = ( menuState && menuState.recentDocumentList ) || [];
   lang = lang || "en";
 
   let menuTemplate =
-    [ fileMenu(isDocument, isNew, changed, columnNumber, hasLastExport, recentDocumentList, lang, handlers)
+    [ fileMenu(isDocument, isNew, changed, columnNumber, lastExportPath, recentDocumentList, lang, handlers)
     , editMenu(isDocument, isEditing, isMac, lang)
     , viewMenu(isDocument, lang, handlers)
     , helpMenu(handlers, isMac, lang)
@@ -58,7 +58,7 @@ module.exports = getTemplate;
 /* PRIVATE FUNCTIONS */
 
 
-function fileMenu (isDocument, isNew, isChanged, columnNumber, hasLastExport, recentDocumentList, lang, handlers) {
+function fileMenu (isDocument, isNew, isChanged, columnNumber, lastExportPath, recentDocumentList, lang, handlers) {
   let _fileMenu;
 
   let recentDocsMenu =
@@ -115,10 +115,10 @@ function fileMenu (isDocument, isNew, isChanged, columnNumber, hasLastExport, re
           }
         }
       , { label: tr.repeatExport[lang]
-        , enabled: hasLastExport
+        , enabled: !!lastExportPath
         , accelerator: "CommandOrControl+r"
         , click : function (item, focusedWindow) {
-            focusedWindow.webContents.send("menu-export-repeat");
+            focusedWindow.webContents.send("menu-export-repeat", lastExportPath);
           }
         }
       ]

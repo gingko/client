@@ -2,6 +2,7 @@ const jQuery = require('jquery')
 const _ = require('lodash')
 const autosize = require('textarea-autosize')
 const Mousetrap = require('mousetrap')
+const server = require("Server");
 
 const fs = require('fs')
 const path = require('path')
@@ -29,7 +30,6 @@ import { Elm } from "../elm/Main";
 const userStore = new Store({name: "config"})
 var lastActivesScrolled = null
 var lastColumnScrolled = null
-var _lastExportPath = null
 var _lastFormat = null
 var _lastSelection = null
 var collab = {}
@@ -276,7 +276,7 @@ const update = (msg, data) => {
 
     , "ExportDOCX": () => {
         try {
-          exportDocx(data.data, data.filepath)
+          server.exportDocx(data.data, data.filepath);
         } catch (e) {
           dialog.showMessageBox(errorAlert(tr.exportError[lang], tr.exportErrorMsg[lang], e));
           return;
@@ -285,7 +285,7 @@ const update = (msg, data) => {
 
     , "ExportJSON": () => {
         try {
-          exportJson(data.data, data.filepath)
+          server.exportJson(data.data, data.filepath)
         } catch (e) {
           dialog.showMessageBox(errorAlert(tr.exportError[lang], tr.exportErrorMsg[lang], e));
           return;
@@ -294,7 +294,7 @@ const update = (msg, data) => {
 
     , "ExportTXT": () => {
         try {
-          exportTxt(data.data, data.filepath)
+          server.exportTxt(data.data, data.filepath)
         } catch (e) {
           dialog.showMessageBox(errorAlert(tr.exportError[lang], tr.exportErrorMsg[lang], e));
           return;
@@ -303,7 +303,7 @@ const update = (msg, data) => {
 
     , "ExportTXTColumn": () => {
         try {
-          exportTxt(data.data, data.filepath)
+          server.exportTxt(data.data, data.filepath)
         } catch (e) {
           dialog.showMessageBox(errorAlert(tr.exportError[lang], tr.exportErrorMsg[lang], e));
           return;
@@ -432,7 +432,7 @@ ipcRenderer.on("menu-export-txt", () => intentExportToElm("txt", "all", null));
 ipcRenderer.on("menu-export-txt-current", () => intentExportToElm("txt", "current", null));
 ipcRenderer.on("menu-export-txt-column", (e, msg) => intentExportToElm("txt", {column: msg}, null));
 ipcRenderer.on("menu-export-json", () => intentExportToElm("json", "all", null));
-ipcRenderer.on("menu-export-repeat", () => intentExportToElm(_lastFormat, _lastSelection, _lastExportPath));
+ipcRenderer.on("menu-export-repeat", (e, lastExportPath) => intentExportToElm(_lastFormat, _lastSelection, lastExportPath));
 ipcRenderer.on("menu-undo", () => toElm("Keyboard", "mod+z"));
 ipcRenderer.on("menu-redo", () => toElm("Keyboard", "mod+shift+z"));
 ipcRenderer.on("menu-cut", () => toElm("Keyboard", "mod+x"));
@@ -661,156 +661,6 @@ self.saveToDB = (status, objects) => {
 const saveErrorAlert = (err) => {
   return errorAlert(tr.saveError[lang],tr.saveErrorMsg[lang], err);
 };
-
-
-const exportDocx = (data, defaultPath) => {
-  if (data && typeof data.replace === 'function') {
-    data = (process.platform === "win32") ? data.replace(/\n/g, '\r\n') : data;
-  } else {
-    throw new Error('invalid data sent for export')
-  }
-
-  var options =
-    { title: 'Export to MS Word'
-    , defaultPath: defaultPath ? defaultPath.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.docx")
-    , filters:  [ {name: 'Word Files', extensions: ['docx']} ]
-    }
-
-  dialog.showSaveDialog(options, function(filepath){
-    if(typeof filepath == "string"){
-      let tmpMarkdown = path.join(app.getPath('temp'), path.basename(filepath) + ".md")
-
-      fs.writeFile(tmpMarkdown, data, (err) => {
-        if (err) throw new Error('export-docx writeFile failed')
-
-        let pandocPath = path.join(__dirname, '/../../pandoc')
-
-        // pandoc file is copied by electron-builder
-        // so we need to point to the src directory when running with `npm run electron`
-        // TODO : Fix this.
-        if (process.env.RUNNING_LOCALLY) {
-          switch (process.platform) {
-            case 'linux':
-              pandocPath = path.join(__dirname, '/../../src/bin/linux/pandoc')
-              break;
-
-            case 'win32':
-              pandocPath = path.join(__dirname, '/../../src/bin/win/pandoc.exe')
-              break;
-
-            case 'darwin':
-              pandocPath = path.join(__dirname, '/../../src/bin/mac/pandoc')
-              break;
-          }
-        }
-
-        execFile( pandocPath
-          , [ tmpMarkdown
-            , '--from=gfm+hard_line_breaks'
-            , '--to=docx'
-            , `--output=${filepath}`
-            , '--verbose'
-            ]
-          , ( err, stdout, stderr) => {
-              if (err) {
-                throw err;
-              }
-
-              fs.unlink(tmpMarkdown, (err) => {
-                if (err) {
-                  throw err
-                }
-
-                let exportSuccessNotification = new Notification("Export Suceeded", {
-                  body: "Saved as " + path.basename(filepath)
-                });
-
-                exportSuccessNotification.onclick = () => {
-                  shell.openItem(filepath);
-                }
-              })
-          })
-      })
-    }
-  })
-}
-
-
-const exportJson = (data, defaultPath) => {
-  return new Promise(
-    (resolve, reject) => {
-      var options =
-        { title: 'Export JSON'
-        , defaultPath: defaultPath ? defaultPath.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.json")
-        , filters:  [ {name: 'Gingko JSON (*.json)', extensions: ['json']}
-                    , {name: 'All Files', extensions: ['*']}
-                    ]
-        }
-
-      dialog.showSaveDialog(options, function(filepath){
-        if(!!filepath){
-          fs.writeFile(filepath, JSON.stringify(data, undefined, 2), (err) => {
-            if (err) {
-              reject(new Error('export-json writeFile failed'))
-              return;
-            }
-            resolve(data)
-          })
-        } else {
-          reject(new Error('no export path chosen'))
-          return;
-        }
-      })
-    }
-  )
-}
-
-const exportTxt = (data, defaultPath) => {
-  return new Promise(
-    (resolve, reject) => {
-      if (data && typeof data.replace === 'function') {
-        data = (process.platform === "win32") ? data.replace(/\n/g, '\r\n') : data;
-      } else {
-        reject(new Error('invalid data sent for export'))
-        return;
-      }
-
-      var saveFile = function(filepath) {
-        fs.writeFile(filepath, data, (err) => {
-          if (err) {
-            reject(new Error('export-txt writeFile failed'))
-            return;
-          }
-          _lastExportPath = filepath
-          ipcRenderer.send('doc:last-export-set', filepath)
-          resolve(data)
-        })
-      }
-
-      if(!!defaultPath) {
-        saveFile(defaultPath)
-      } else {
-        var options =
-          { title: 'Export TXT'
-          , defaultPath: defaultPath ? defaultPath.replace('.gko', '') : path.join(app.getPath('documents'),"Untitled.txt")
-          , filters:  [ {name: 'Text File', extensions: ['txt']}
-                      , {name: 'All Files', extensions: ['*']}
-                      ]
-          }
-
-
-        dialog.showSaveDialog(options, function(filepath){
-          if(!!filepath){
-            saveFile(filepath)
-          } else {
-            reject(new Error('no export path chosen'))
-            return;
-          }
-        })
-      }
-    }
-  )
-}
 
 
 function setLastActive (filepath, lastActiveCard) {

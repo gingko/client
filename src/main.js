@@ -29,7 +29,6 @@ let documentWindows = []
 let docWindowMenuStates = {};
 let winTrial, winSerial, winHome;
 let _untitledDocs = 0
-let _hasLastExport = false
 let _menuQuit = false
 const hiddenStore = new Store({name: "kernel", encryptionKey: "79df64f73eab9bc0d7b448d2008d876e"})
 const userStore = new Store({name: "config"})
@@ -103,7 +102,7 @@ function createDocumentWindow (swapFolderPath, originalPath, legacyFormat, jsonI
     { "editMode": false
     , "columnNumber" : 1
     , "changed" : !!jsonImportData
-    , "hasLastExport" : false
+    , "lastExportPath" : false
     , "isNew": !originalPath || jsonImportData
     , "recentDocumentList": docList.getRecentDocs()
     };
@@ -274,8 +273,8 @@ ipcMain.on("doc:last-export-set", (event, lastPath) => {
   let win = BrowserWindow.fromWebContents(event.sender);
   if (win) {
     let menuState = docWindowMenuStates[win.id];
-    if (menuState.hasLastExport !== !!lastPath) {
-      _.set(menuState, "hasLastExport", !!lastPath);
+    if (menuState.lastExportPath !== lastPath) {
+      _.set(menuState, "lastExportPath", lastPath);
       updateMenu(menuState, false, win);
     }
   }
