@@ -4,10 +4,6 @@ const autosize = require('textarea-autosize')
 const Mousetrap = require('mousetrap')
 const server = require("Server");
 
-const fs = require('fs')
-const path = require('path')
-import { execFile } from 'child_process'
-const {promisify} = require('util')
 const {ipcRenderer, remote, webFrame, shell} = require('electron')
 const {app, dialog} = remote
 const querystring = require('querystring')
@@ -413,7 +409,7 @@ function intentExportToElm ( format, selection, filepath) {
 }
 
 ipcRenderer.on("main:set-swap-folder", async (e, newPaths) => {
-  self.db = new PouchDB(path.join(newPaths[0], "leveldb"));
+  self.db = new PouchDB(newPaths[0]);
   currentPath = newPaths[1];
 });
 
