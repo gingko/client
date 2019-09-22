@@ -5,6 +5,11 @@ import { execFile } from 'child_process'
 const {app, dialog} = remote;
 
 
+const openExternal = (url) => {
+  shell.openExternal(url);
+};
+
+
 const exportDocx = (data, defaultPath) => {
   if (data && typeof data.replace === 'function') {
     data = (process.platform === "win32") ? data.replace(/\n/g, '\r\n') : data;
@@ -153,4 +158,4 @@ const exportTxt = (data, defaultPath) => {
   )
 }
 
-export { exportDocx , exportJson, exportTxt };
+export { openExternal, exportDocx , exportJson, exportTxt };

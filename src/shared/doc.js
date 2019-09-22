@@ -4,7 +4,7 @@ const autosize = require('textarea-autosize')
 const Mousetrap = require('mousetrap')
 const server = require("Server");
 
-const {ipcRenderer, remote, webFrame, shell} = require('electron')
+const {ipcRenderer, remote, webFrame } = require('electron')
 const {app, dialog} = remote
 const querystring = require('querystring')
 const Store = require('electron-store')
@@ -448,7 +448,7 @@ ipcRenderer.on("menu-contact-support", () => {
     window.$crisp.push(["do", "chat:open"]);
     window.$crisp.push(["do", "chat:show"]);
   } else {
-    shell.openExternal("mailto:adriano@gingkoapp.com");
+    server.openExternal("mailto:adriano@gingkoapp.com");
   }
 });
 
@@ -790,7 +790,7 @@ Mousetrap.bind(['shift+tab'], function(e, s) {
 document.addEventListener('click', (ev) => {
   if(ev.target.nodeName == "A") {
     ev.preventDefault()
-    shell.openExternal(ev.target.href)
+    server.openExternal(ev.target.href)
   }
 })
 
