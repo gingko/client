@@ -4,8 +4,7 @@ const autosize = require('textarea-autosize')
 const Mousetrap = require('mousetrap')
 const container = require("Container");
 
-const {ipcRenderer, remote, webFrame } = require('electron')
-const {app} = remote
+const { remote, webFrame } = require('electron')
 const querystring = require('querystring')
 const Store = require('electron-store')
 
@@ -49,9 +48,6 @@ var saveState = SaveState.SavedDB;
 
 
 /* === Initializing App === */
-
-console.log('Gingko version', app.getVersion())
-
 
 var firstRun = userStore.get('first-run', true)
 var lang = userStore.get("language") || "en";
