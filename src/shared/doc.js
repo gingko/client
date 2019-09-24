@@ -60,10 +60,10 @@ var jsonImportData = docWindow.jsonImportData;
 var currentPath = docWindow.originalPath;
 
 self.db = new PouchDB(docWindow.dbPath);
-container.message.on("database-close", async () => {
+container.msgWas("database-close", async () => {
   await db.close();
 });
-container.message.on("database-open", async () => {
+container.msgWas("database-open", async () => {
   self.db = new PouchDB(docWindow.dbPath);
 });
 
@@ -186,7 +186,7 @@ const update = (msg, data) => {
       "Alert": () => { alert(data) }
 
     , "SetChanged" : () => {
-        container.message.send("doc:set-changed", data);
+        container.sendTo("doc:set-changed", data);
         if (saveState == SaveState.SavedDB) {
           saveState = SaveState.Changed.SavedDB;
         } else if (saveState == SaveState.Saved) {
@@ -201,7 +201,7 @@ const update = (msg, data) => {
           console.log("tarea not found")
         } else {
           if(tarea.value === data[1] || confirm(tr.areYouSureCancel[lang])) {
-            container.message.send("doc:set-changed", false);
+            container.sendTo("doc:set-changed", false);
             if(saveState == SaveState.Changed.SavedDB){
               saveState = SaveState.SavedDB;
               toElm("SetSaveStatus", "SavedDB");
@@ -215,7 +215,7 @@ const update = (msg, data) => {
       }
 
     , "ColumnNumberChange": () => {
-        container.message.send("doc:column-number-change", data)
+        container.sendTo("doc:column-number-change", data)
       }
 
       // === Database ===
@@ -232,16 +232,16 @@ const update = (msg, data) => {
 
           switch(actionOnData) {
             case ActionOnData.Save:
-              container.message.send("doc:save");
+              container.sendTo("doc:save");
               break;
 
             case ActionOnData.SaveAs:
-              container.message.send("doc:save-as");
+              container.sendTo("doc:save-as");
               actionOnData = ActionOnData.Save;
               break;
 
             case ActionOnData.Exit:
-              container.message.send("doc:save-and-exit");
+              container.sendTo("doc:save-and-exit");
               actionOnData = ActionOnData.Save;
               break;
           }
@@ -395,42 +395,42 @@ function intentExportToElm ( format, selection, filepath) {
   toElm("IntentExport", { format: format, selection : selection, filepath: filepath} );
 }
 
-container.message.on("main:set-swap-folder", async (e, newPaths) => {
+container.msgWas("main:set-swap-folder", async (e, newPaths) => {
   self.db = new PouchDB(newPaths[0]);
   currentPath = newPaths[1];
 });
 
-container.message.on("main:saved-file", () => {
+container.msgWas("main:saved-file", () => {
   toElm("SetSaveStatus", "Saved");
 });
 
 
-container.message.on("menu-close-document", () => { actionOnData = ActionOnData.Exit; toElm("GetDataToSave", null); });
-container.message.on("menu-save", () => { actionOnData = ActionOnData.Save; toElm("GetDataToSave", null ); });
-container.message.on("menu-save-as", () => { actionOnData = ActionOnData.SaveAs; toElm("GetDataToSave", null ); });
-container.message.on("menu-export-docx", () => intentExportToElm("docx", "all", null));
-container.message.on("menu-export-docx-current", () => intentExportToElm("docx", "current", null));
-container.message.on("menu-export-docx-column", (e, msg) => intentExportToElm("docx", {column: msg}, null));
-container.message.on("menu-export-txt", () => intentExportToElm("txt", "all", null));
-container.message.on("menu-export-txt-current", () => intentExportToElm("txt", "current", null));
-container.message.on("menu-export-txt-column", (e, msg) => intentExportToElm("txt", {column: msg}, null));
-container.message.on("menu-export-json", () => intentExportToElm("json", "all", null));
-container.message.on("menu-export-repeat", (e, lastExportPath) => intentExportToElm(_lastFormat, _lastSelection, lastExportPath));
-container.message.on("menu-undo", () => toElm("Keyboard", "mod+z"));
-container.message.on("menu-redo", () => toElm("Keyboard", "mod+shift+z"));
-container.message.on("menu-cut", () => toElm("Keyboard", "mod+x"));
-container.message.on("menu-copy", () => toElm("Keyboard", "mod+c"));
-container.message.on("menu-paste", () => toElm("Keyboard", "mod+v"));
-container.message.on("menu-paste-into", () => toElm("Keyboard", "mod+shift+v"));
-container.message.on("menu-view-videos", () => toElm("ViewVideos", null ));
-container.message.on("menu-font-selector", (event, data) => toElm("FontSelectorOpen", data));
-container.message.on("menu-language-select", (event, data) => {
+container.msgWas("menu-close-document", () => { actionOnData = ActionOnData.Exit; toElm("GetDataToSave", null); });
+container.msgWas("menu-save", () => { actionOnData = ActionOnData.Save; toElm("GetDataToSave", null ); });
+container.msgWas("menu-save-as", () => { actionOnData = ActionOnData.SaveAs; toElm("GetDataToSave", null ); });
+container.msgWas("menu-export-docx", () => intentExportToElm("docx", "all", null));
+container.msgWas("menu-export-docx-current", () => intentExportToElm("docx", "current", null));
+container.msgWas("menu-export-docx-column", (e, msg) => intentExportToElm("docx", {column: msg}, null));
+container.msgWas("menu-export-txt", () => intentExportToElm("txt", "all", null));
+container.msgWas("menu-export-txt-current", () => intentExportToElm("txt", "current", null));
+container.msgWas("menu-export-txt-column", (e, msg) => intentExportToElm("txt", {column: msg}, null));
+container.msgWas("menu-export-json", () => intentExportToElm("json", "all", null));
+container.msgWas("menu-export-repeat", (e, lastExportPath) => intentExportToElm(_lastFormat, _lastSelection, lastExportPath));
+container.msgWas("menu-undo", () => toElm("Keyboard", "mod+z"));
+container.msgWas("menu-redo", () => toElm("Keyboard", "mod+shift+z"));
+container.msgWas("menu-cut", () => toElm("Keyboard", "mod+x"));
+container.msgWas("menu-copy", () => toElm("Keyboard", "mod+c"));
+container.msgWas("menu-paste", () => toElm("Keyboard", "mod+v"));
+container.msgWas("menu-paste-into", () => toElm("Keyboard", "mod+shift+v"));
+container.msgWas("menu-view-videos", () => toElm("ViewVideos", null ));
+container.msgWas("menu-font-selector", (event, data) => toElm("FontSelectorOpen", data));
+container.msgWas("menu-language-select", (event, data) => {
   lang = data;
   userStore.set("language", data);
-  container.message.send("doc:language-changed", data);
+  container.sendTo("doc:language-changed", data);
   toElm("SetLanguage", data);
 });
-container.message.on("menu-contact-support", () => {
+container.msgWas("menu-contact-support", () => {
   if(crisp_loaded) {
     window.$crisp.push(["do", "chat:open"]);
     window.$crisp.push(["do", "chat:show"]);
@@ -717,7 +717,7 @@ const editingInputHandler = function(ev) {
     saveState = SaveState.Changed.SavedDB;
   }
   toElm('FieldChanged', ev.target.value);
-  container.message.send("doc:set-changed", true);
+  container.sendTo("doc:set-changed", true);
   selectionHandler(ev);
   //collab.field = ev.target.value
   //socket.emit('collab', collab)
@@ -809,10 +809,10 @@ const observer = new MutationObserver(function(mutations) {
       t.oninput = editingInputHandler;
     })
 
-    container.message.send('doc:edit-mode-toggle', true)
+    container.sendTo('doc:edit-mode-toggle', true)
     jQuery(textareas).textareaAutoSize()
   } else {
-    container.message.send('doc:edit-mode-toggle', false)
+    container.sendTo('doc:edit-mode-toggle', false)
   }
 });
 
