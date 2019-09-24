@@ -3,12 +3,21 @@ const path = require("path");
 const {ipcRenderer, remote, shell} = require('electron')
 import { execFile } from 'child_process'
 const {app, dialog} = remote;
+const Store = require('electron-store')
 
 
 const sendTo = ipcRenderer.send;
-const msgWas = ipcRenderer.on;
+const msgWas = (...args) => {
+  ipcRenderer.on(...args);
+}
 const showMessageBox = dialog.showMessageBox;
 const openExternal = shell.openExternal;
+const userStore = new Store({name: "config"});
+
+
+const getInitialData = () => {
+  return ipcRenderer.sendSync("doc:get-initial-data");
+}
 
 
 const exportDocx = (data, defaultPath) => {
@@ -159,4 +168,4 @@ const exportTxt = (data, defaultPath) => {
   )
 }
 
-export { sendTo, msgWas, openExternal, showMessageBox, exportDocx , exportJson, exportTxt };
+export { sendTo, msgWas, getInitialData, userStore, openExternal, showMessageBox, exportDocx , exportJson, exportTxt };

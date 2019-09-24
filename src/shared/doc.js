@@ -4,10 +4,6 @@ const autosize = require('textarea-autosize')
 const Mousetrap = require('mousetrap')
 const container = require("Container");
 
-const { remote, webFrame } = require('electron')
-const querystring = require('querystring')
-const Store = require('electron-store')
-
 import PouchDB from "pouchdb";
 
 
@@ -22,7 +18,7 @@ import { Elm } from "../elm/Main";
 
 /* === Global Variables === */
 
-const userStore = new Store({name: "config"})
+const userStore = container.userStore;
 var lastActivesScrolled = null
 var lastColumnScrolled = null
 var _lastFormat = null
@@ -51,16 +47,17 @@ var saveState = SaveState.SavedDB;
 
 var firstRun = userStore.get('first-run', true)
 var lang = userStore.get("language") || "en";
-var docWindow = remote.getCurrentWindow()
-var jsonImportData = docWindow.jsonImportData;
-var currentPath = docWindow.originalPath;
+var initialData = container.getInitialData();
+var jsonImportData = initialData.jsonImportData;
+var currentPath = initialData.originalPath;
+var dbPath = initialData.dbPath;
 
-self.db = new PouchDB(docWindow.dbPath);
+self.db = new PouchDB(dbPath);
 container.msgWas("database-close", async () => {
   await db.close();
 });
 container.msgWas("database-open", async () => {
-  self.db = new PouchDB(docWindow.dbPath);
+  self.db = new PouchDB(dbPath);
 });
 
 if(!!jsonImportData) {

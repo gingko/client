@@ -27,6 +27,7 @@ unhandled();
 // be closed automatically when the JavaScript object is garbage collected.
 let documentWindows = []
 let docWindowMenuStates = {};
+let docWindowData = {};
 let winTrial, winSerial, winHome;
 let _untitledDocs = 0
 let _menuQuit = false
@@ -109,25 +110,17 @@ function createDocumentWindow (swapFolderPath, originalPath, legacyFormat, jsonI
 
   mainWindowState.manage(win);
 
+  // Add swapFolderPath variable to initialization data
+  _.set(docWindowData, [win.id, "swapFolderPath"], swapFolderPath);
 
-  // Add swapFolderPath variable to BrowserWindow object,
-  // so it can be accessed elsewhere in main.js
-  win.swapFolderPath = swapFolderPath;
-
+  // Add dbPath variable to initialization data
   if (legacyFormat) {
-    win.originalPath = legacyFormat.dbname;
+    _.set(docWindowData, [win.id, "originalPath"], legacyFormat.dbname);
+    _.set(docWindowData, [win.id, "legacyFormat"], legacyFormat);
+    _.set(docWindowData, [win.id, "dbPath"], swapFolderPath);
   } else {
-    win.originalPath = originalPath;
-  }
-
-  // Add dbPath variable to BrowserWindow object,
-  // so that it can load from the database as soon as
-  // the window is created.
-  if (legacyFormat) {
-    win.legacyFormat = legacyFormat;
-    win.dbPath = swapFolderPath;
-  } else {
-    win.dbPath = path.join(swapFolderPath, 'leveldb');
+    _.set(docWindowData, [win.id, "originalPath"], originalPath);
+    _.set(docWindowData, [win.id, "dbPath"], path.join(swapFolderPath, "leveldb"));
   }
 
   let newTitle = "";
@@ -141,7 +134,7 @@ function createDocumentWindow (swapFolderPath, originalPath, legacyFormat, jsonI
     _untitledDocs += 1;
   }
   win.setTitle(newTitle);
-  win.jsonImportData = jsonImportData;
+  _.set(docWindowData, [win.id, "jsonImportData"], jsonImportData);
 
   var url = `file://${__dirname}/static/index.html`
   win.loadURL(url)
@@ -245,6 +238,12 @@ app.on("browser-window-focus", (ev, win) => {
 });
 
 
+ipcMain.on("doc:get-initial-data", (event, arg) => {
+  let win = BrowserWindow.fromWebContents(event.sender);
+  event.returnValue = docWindowData[win.id];
+});
+
+
 ipcMain.on("doc:column-number-change", (event, cols) => {
   let win = BrowserWindow.fromWebContents(event.sender);
   if (win) {
@@ -283,7 +282,7 @@ ipcMain.on("doc:last-export-set", (event, lastPath) => {
 
 ipcMain.on("doc:save", async (event) => {
   let win = BrowserWindow.fromWebContents(event.sender);
-  if (win && win.originalPath) {
+  if (win && _.get(docWindowData, [win.id, "originalPath"], false)) {
     let saveReturn = await saveDocument(win);
     if (saveReturn) {
       if(process.platform == "win32") {
@@ -537,9 +536,10 @@ async function importDocument() {
  */
 
 async function saveDocument (docWindow) {
+  let swapFolderPath = _.get(docWindowData, [docWindow.id, "swapFolderPath"]);
   try {
     if (process.platform === "win32") { docWindow.webContents.send("main:database-close"); }
-    const filepath = await fio.saveSwapFolder(docWindow.swapFolderPath);
+    const filepath = await fio.saveSwapFolder(swapFolderPath);
     return filepath;
   } catch (err) {
     throw err;
@@ -568,21 +568,24 @@ async function saveDocumentAs (docWindow) {
     , filters: [{ name: "Gingko Files (*.gko)", extensions: ["gko"] }]
     };
 
+  let originalPath = _.get(docWindowData, [docWindow.id, "originalPath"]);
+  let swapFolderPath = _.get(docWindowData, [docWindow.id, "swapFolderPath"]);
+
   const {filePath : newFilepath} = await dialog.showSaveDialog(docWindow, saveOptions);
 
-  if (newFilepath === docWindow.originalPath) {
+  if (newFilepath === originalPath) {
     // Saving to same location.
     // Perform "Save" instead of "Save As"
     await saveDocument(docWindow);
     docWindow.setTitle(`${path.basename(newFilepath)} - Gingko`);
-    return { "filepath" : newFilepath, "swapFolderPath" : docWindow.swapFolderPath };
+    return { "filepath" : newFilepath, "swapFolderPath" : swapFolderPath };
   }
 
   if (newFilepath) {
     try {
       if (process.platform === "win32") { docWindow.webContents.send("main:database-close"); }
-      const newSwapFolderPath = await fio.saveSwapFolderAs(docWindow.swapFolderPath, newFilepath);
-      docWindow.swapFolderPath = newSwapFolderPath;
+      const newSwapFolderPath = await fio.saveSwapFolderAs(swapFolderPath, newFilepath);
+      _.set(docWindowData, [docWindow.id, "swapFolderPath"], newSwapFolderPath);
       await addToRecentDocuments(newFilepath);
       docWindow.setTitle(`${path.basename(newFilepath)} - Gingko`);
       docWindow.webContents.send("main:set-swap-folder", [path.join(newSwapFolderPath,"leveldb"), newFilepath]);
@@ -609,9 +612,12 @@ async function saveDocumentAs (docWindow) {
  */
 
 async function saveLegacyDocumentAs (docWindow) {
+  let legacyFormat = _.get(docWindow, [docWindow.id, "legacyFormat"]);
+  let swapFolderPath = _.get(docWindow, [docWindow.id, "swapFolderPath"]);
+
   let saveOptions =
     { title: "Save As"
-    , defaultPath: path.join(app.getPath("documents"), filenamify(docWindow.legacyFormat.name) + ".gko")
+    , defaultPath: path.join(app.getPath("documents"), filenamify(legacyFormat.name) + ".gko")
     , filters: [{ name: "Gingko Files (*.gko)", extensions: ["gko"] }]
     };
 
@@ -620,9 +626,9 @@ async function saveLegacyDocumentAs (docWindow) {
   if (newFilepath) {
     try {
       if (process.platform === "win32") { docWindow.webContents.send("main:database-close"); }
-      const newSwapFolderPath = await fio.saveLegacyFolderAs(docWindow.swapFolderPath, docWindow.legacyFormat.name, newFilepath);
-      docList.setState(docWindow.legacyFormat.dbname, "deprecated");
-      docWindow.swapFolderPath = newSwapFolderPath;
+      const newSwapFolderPath = await fio.saveLegacyFolderAs(swapFolderPath, docWindow.legacyFormat.name, newFilepath);
+      docList.setState(legacyFormat.dbname, "deprecated");
+      _.set(docWindowData, [docWindow.id, "swapFolderPath"], newSwapFolderPath);
       addToRecentDocuments(newFilepath);
       docWindow.setTitle(`${path.basename(newFilepath)} - Gingko`);
       docWindow.webContents.send("main:set-swap-folder", [path.join(newSwapFolderPath,"leveldb"), newFilepath]);
@@ -750,7 +756,8 @@ ipcMain.on("home:open-other", async () => {
 
 ipcMain.on("doc:save-and-exit", async (event) => {
   let docWindow = BrowserWindow.fromWebContents(event.sender);
-  let swapFolderPath = docWindow.swapFolderPath;
+  let swapFolderPath = _.get(docWindowData, [docWindow.id, "swapFolderPath"]);
+  let legacyFormat = _.get(docWindowData, [docWindow.id, "legacyFormat"]);
   let swapStore = new Store({name: "swap", cwd: swapFolderPath})
   let originalPath = swapStore.get("filepath", false);
 
@@ -759,7 +766,7 @@ ipcMain.on("doc:save-and-exit", async (event) => {
         await saveDocument(docWindow);
         await fio.deleteSwapFolder(swapFolderPath);
         docWindow.destroy();
-    } else if (docWindow.legacyFormat) {
+    } else if (legacyFormat) {
       // Saved to userData folder, never saved as file
       const legacyOptions =
         { title: "Save To File"
