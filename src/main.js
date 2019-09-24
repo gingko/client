@@ -281,7 +281,7 @@ ipcMain.on("doc:last-export-set", (event, lastPath) => {
 });
 
 
-ipcMain.on("doc:saved-db", async (event) => {
+ipcMain.on("doc:save", async (event) => {
   let win = BrowserWindow.fromWebContents(event.sender);
   if (win && win.originalPath) {
     let saveReturn = await saveDocument(win);

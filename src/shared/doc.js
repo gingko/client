@@ -35,10 +35,9 @@ const ActionOnData = Object.freeze(
   { Exit : Symbol("Exit")
   , Save : Symbol("Save")
   , SaveAs : Symbol("SaveAs")
-  , NoOp : Symbol("NoOp")
   }
 );
-var actionOnData = ActionOnData.NoOp;
+var actionOnData = ActionOnData.Save;
 
 const SaveState = Object.freeze(
   { Changed: {Saved : Symbol("Changed.Saved"), SavedDB: Symbol("Changed.SavedDB")}
@@ -230,22 +229,20 @@ const update = (msg, data) => {
           var newHeadRev = await saveToDB(data[0], data[1])
           saveState = SaveState.SavedDB;
           toElm("SetHeadRev", newHeadRev)
-          ipcRenderer.send("doc:saved-db");
 
           switch(actionOnData) {
             case ActionOnData.Save:
               ipcRenderer.send("doc:save");
-              actionOnData = ActionOnData.NoOp;
               break;
 
             case ActionOnData.SaveAs:
               ipcRenderer.send("doc:save-as");
-              actionOnData = ActionOnData.NoOp;
+              actionOnData = ActionOnData.Save;
               break;
 
             case ActionOnData.Exit:
               ipcRenderer.send("doc:save-and-exit");
-              actionOnData = ActionOnData.NoOp;
+              actionOnData = ActionOnData.Save;
               break;
           }
         } catch (e) {
