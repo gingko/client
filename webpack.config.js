@@ -29,7 +29,7 @@ const webConfig = {
 
   // What file types to attempt to resolve within require/import statements
   resolve: {
-    alias: { Server: path.resolve(__dirname, "src/web/server.js") },
+    alias: { Container: path.resolve(__dirname, "src/web/container.js") },
     extensions: [".js", ".elm"]
   },
 
@@ -132,7 +132,7 @@ const rendererConfig = merge(baseElectronConfig, {
 
   // What file types to attempt to resolve within require/import statements
   resolve: {
-    alias: { Server: path.resolve(__dirname, "src/electron/server.js") },
+    alias: { Container: path.resolve(__dirname, "src/electron/container.js") },
     extensions: [".js", ".elm"]
   },
 
