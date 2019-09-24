@@ -5,9 +5,9 @@ import { execFile } from 'child_process'
 const {app, dialog} = remote;
 
 
-const openExternal = (url) => {
-  shell.openExternal(url);
-};
+const message = { send : ipcRenderer.send, on : ipcRenderer.on };
+const showMessageBox = dialog.showMessageBox;
+const openExternal = shell.openExternal;
 
 
 const exportDocx = (data, defaultPath) => {
@@ -158,4 +158,4 @@ const exportTxt = (data, defaultPath) => {
   )
 }
 
-export { openExternal, exportDocx , exportJson, exportTxt };
+export { message, openExternal, showMessageBox, exportDocx , exportJson, exportTxt };

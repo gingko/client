@@ -5,7 +5,7 @@ const Mousetrap = require('mousetrap')
 const server = require("Server");
 
 const {ipcRenderer, remote, webFrame } = require('electron')
-const {app, dialog} = remote
+const {app} = remote
 const querystring = require('querystring')
 const Store = require('electron-store')
 
@@ -47,16 +47,6 @@ const SaveState = Object.freeze(
   }
 );
 var saveState = SaveState.SavedDB;
-
-const mock = require('../../test/mocks.js')
-if(process.env.RUNNING_IN_SPECTRON) {
-  mock(dialog
-      , process.env.DIALOG_CHOICE
-      , process.env.DIALOG_SAVE_PATH
-      , [process.env.DIALOG_OPEN_PATH]
-      )
-}
-
 
 
 /* === Initializing App === */
@@ -259,7 +249,7 @@ const update = (msg, data) => {
               break;
           }
         } catch (e) {
-          dialog.showMessageBox(saveErrorAlert(e))
+          server.showMessageBox(saveErrorAlert(e))
           return;
         }
       }
@@ -274,7 +264,7 @@ const update = (msg, data) => {
         try {
           server.exportDocx(data.data, data.filepath);
         } catch (e) {
-          dialog.showMessageBox(errorAlert(tr.exportError[lang], tr.exportErrorMsg[lang], e));
+          server.showMessageBox(errorAlert(tr.exportError[lang], tr.exportErrorMsg[lang], e));
           return;
         }
       }
@@ -283,7 +273,7 @@ const update = (msg, data) => {
         try {
           server.exportJson(data.data, data.filepath)
         } catch (e) {
-          dialog.showMessageBox(errorAlert(tr.exportError[lang], tr.exportErrorMsg[lang], e));
+          server.showMessageBox(errorAlert(tr.exportError[lang], tr.exportErrorMsg[lang], e));
           return;
         }
       }
@@ -292,7 +282,7 @@ const update = (msg, data) => {
         try {
           server.exportTxt(data.data, data.filepath)
         } catch (e) {
-          dialog.showMessageBox(errorAlert(tr.exportError[lang], tr.exportErrorMsg[lang], e));
+          server.showMessageBox(errorAlert(tr.exportError[lang], tr.exportErrorMsg[lang], e));
           return;
         }
       }
@@ -301,7 +291,7 @@ const update = (msg, data) => {
         try {
           server.exportTxt(data.data, data.filepath)
         } catch (e) {
-          dialog.showMessageBox(errorAlert(tr.exportError[lang], tr.exportErrorMsg[lang], e));
+          server.showMessageBox(errorAlert(tr.exportError[lang], tr.exportErrorMsg[lang], e));
           return;
         }
       }
@@ -421,7 +411,7 @@ ipcRenderer.on("main:saved-file", () => {
 ipcRenderer.on("menu-close-document", () => { actionOnData = ActionOnData.Exit; toElm("GetDataToSave", null); });
 ipcRenderer.on("menu-save", () => { actionOnData = ActionOnData.Save; toElm("GetDataToSave", null ); });
 ipcRenderer.on("menu-save-as", () => { actionOnData = ActionOnData.SaveAs; toElm("GetDataToSave", null ); });
-ipcRenderer.on("menu-export-docx", () => intentExportToElm("docx", "all", null));
+server.message.on("menu-export-docx", () => intentExportToElm("docx", "all", null));
 ipcRenderer.on("menu-export-docx-current", () => intentExportToElm("docx", "current", null));
 ipcRenderer.on("menu-export-docx-column", (e, msg) => intentExportToElm("docx", {column: msg}, null));
 ipcRenderer.on("menu-export-txt", () => intentExportToElm("txt", "all", null));
@@ -519,7 +509,7 @@ function load(filepath, headOverride){
               let toSend = [status, { commits: commits, treeObjects: trees, refs: refs}];
               resolve(toSend)
             }).catch(function (err) {
-              dialog.showMessageBox(errorAlert(tr.loadingError[lang], tr.loadingErrorMsg[lang], err));
+              server.showMessageBox(errorAlert(tr.loadingError[lang], tr.loadingErrorMsg[lang], err));
               reject(err)
             })
         })
