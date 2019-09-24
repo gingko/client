@@ -366,6 +366,7 @@ app.on("ready", async () => {
 
   let pathArgument = false;
 
+  setTimeout(fio.truncateBackups, 10*60*1000);// delete excess backups 10 minutes in
   setInterval(fio.truncateBackups, 30*60*1000);// delete excess backups every 30 minutes
 
   // Development, with path of file to open passed as argument
