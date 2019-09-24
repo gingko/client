@@ -108,7 +108,7 @@ const mainConfig = merge(baseElectronConfig, {
 
   // Entry points into the code. The roots of the dependency tree.
   entry: {
-    electron: "./main.js"
+    electron: "./electron/main.js"
   },
 
   // TODO : Understand what this is doing.

@@ -8,15 +8,15 @@ const Store = require('electron-store')
 const _ = require("lodash");
 import TurndownService from 'turndown'
 const windowStateKeeper = require('electron-window-state')
-const docList = require('./electron/doc-list')
-const fio = require('./electron/file-io')
-const getMenuTemplate = require("./electron/menu");
+const docList = require('./doc-list')
+const fio = require('./file-io')
+const getMenuTemplate = require("./menu");
 const filenamify = require("filenamify");
 const unhandled = require("electron-unhandled");
 const isDev = require("electron-is-dev");
-const GingkoError  = require("./shared/errors");
-const errorAlert = require('./shared/doc-helpers').errorAlert
-const { tr } = require("./shared/translation.js");
+const GingkoError  = require("../shared/errors");
+const errorAlert = require('../shared/doc-helpers').errorAlert
+const { tr } = require("../shared/translation.js");
 import SystemFonts from "system-font-families";
 const systemFonts = new SystemFonts();
 
