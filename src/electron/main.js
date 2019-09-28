@@ -413,7 +413,7 @@ app.on("will-finish-launching", () => {
 
 
 async function newUntitled() {
-  const swapRandomName = sha1(Date.now()+machineIdSync()).slice(20)
+  const swapRandomName = "Untitled_"+(new Date()).toISOString();
   const swapFolderPath = path.join(app.getPath('userData'), swapRandomName);
   await fio.newSwapFolder(swapFolderPath);
   createDocumentWindow(swapFolderPath, null);
