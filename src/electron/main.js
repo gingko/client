@@ -178,6 +178,8 @@ function validSerial(email, storedSerial) {
 
 function updateMenu (menuState, lang, win) {
   lang = lang || userStore.get("language") || "en";
+  let originalPath = _.get(docWindowData, [win.id, "originalPath"]);
+  let legacyFormat = _.get(docWindowData, [win.id, "legacyFormat"]);
 
   if (menuState) {
     menuState.recentDocumentList = docList.getRecentDocs();
@@ -189,17 +191,17 @@ function updateMenu (menuState, lang, win) {
     , openRecent : (rdoc) => openDocumentOrFolder(rdoc.location, rdoc.name)
     , openHome : createHomeWindow
     , save : (item, focusedWindow) => {
-        if (focusedWindow.originalPath) {
+        if (originalPath) {
           focusedWindow.webContents.send("menu-save");
         } else {
           focusedWindow.webContents.send("menu-save-as");
         }
       }
     , saveAs : async (item, focusedWindow) => {
-        let saveAsReturn = focusedWindow.legacyFormat ? await saveLegacyDocumentAs(focusedWindow) : await saveDocumentAs(focusedWindow);
+        let saveAsReturn = legacyFormat ? await saveLegacyDocumentAs(focusedWindow) : await saveDocumentAs(focusedWindow);
         if (saveAsReturn && saveAsReturn.filepath) {
           focusedWindow.webContents.send("main:saved-file");
-          focusedWindow.originalPath = saveAsReturn.filepath;
+          _.set(docWindowData, [focusedWindow.id, "originalPath"], saveAsReturn.filepath);
           let focusedWinMenuState = docWindowMenuStates[focusedWindow.id];
           focusedWinMenuState.isNew = false;
           updateMenu(focusedWinMenuState, false, focusedWindow);
@@ -297,11 +299,14 @@ ipcMain.on("doc:save", async (event) => {
 
 ipcMain.on("doc:save-as", async (event) => {
   let win = BrowserWindow.fromWebContents(event.sender);
+  let originalPath = _.get(docWindowData, [win.id, "originalPath"]);
+  let legacyFormat = _.get(docWindowData, [win.id, "legacyFormat"]);
+
   if (win) {
-    let saveAsReturn = win.legacyFormat ? await saveLegacyDocumentAs(win) : await saveDocumentAs(win);
+    let saveAsReturn = legacyFormat ? await saveLegacyDocumentAs(win) : await saveDocumentAs(win);
     if (saveAsReturn && saveAsReturn.filepath) {
       win.webContents.send("main:saved-file");
-      win.originalPath = saveAsReturn.filepath;
+      _.set(docWindowData, [win.id, "originalPath"], saveAsReturn.filepath);
       let focusedWinMenuState = docWindowMenuStates[win.id];
       focusedWinMenuState.isNew = false;
       updateMenu(focusedWinMenuState, false, win);
@@ -468,7 +473,7 @@ async function openDocument(filepath) {
     //   - "Recover" (load from swap)
     //   - "Discard" (load from file)
     if (err instanceof GingkoError && err.message.includes("Swap folder already exists")) {
-      let existingDoc = documentWindows.filter(dW => dW.swapFolderPath == err.data)[0];
+      let existingDoc = documentWindows.filter(dW => _.get(docWindowData, [dW.id, "swapFolderPath"]) == err.data)[0];
       if (existingDoc) {
         existingDoc.focus();
       } else {
@@ -627,7 +632,7 @@ async function saveLegacyDocumentAs (docWindow) {
   if (newFilepath) {
     try {
       if (process.platform === "win32") { docWindow.webContents.send("main:database-close"); }
-      const newSwapFolderPath = await fio.saveLegacyFolderAs(swapFolderPath, docWindow.legacyFormat.name, newFilepath);
+      const newSwapFolderPath = await fio.saveLegacyFolderAs(swapFolderPath, legacyFormat.name, newFilepath);
       docList.setState(legacyFormat.dbname, "deprecated");
       _.set(docWindowData, [docWindow.id, "swapFolderPath"], newSwapFolderPath);
       addToRecentDocuments(newFilepath);
