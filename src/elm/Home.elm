@@ -172,11 +172,11 @@ view { documents, archiveDropdown, currentTime, language } =
     in
     div [ id "container" ]
         [ div [ id "templates-block" ]
-            [ div [ class "template-item", onClick New ]
+            [ div [ id "template-new", class "template-item", onClick New ]
                 [ div [ classList [ ( "template-thumbnail", True ), ( "new", True ) ] ] []
                 , div [ class "template-title" ] [ text <| tr language HomeBlank ]
                 ]
-            , div [ class "template-item", onClick Import ]
+            , div [ id "template-import", class "template-item", onClick Import ]
                 [ div [ classList [ ( "template-thumbnail", True ), ( "import", True ) ] ] [ Icon.file (Icon.defaultOptions |> Icon.size 48) ]
                 , div [ class "template-title" ] [ text <| tr language HomeImportJSON ]
                 , div [ class "template-description" ]
