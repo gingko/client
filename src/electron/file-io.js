@@ -1,56 +1,45 @@
-const {app} = require('electron')
+const { app } = require("electron");
+const { promisify } = require("util");
 const fs = require("fs-extra");
-const path = require('path')
-const {promisify} = require('util')
+const path = require("path");
 const execFile = promisify(require("child_process").execFile);
 const { path7za } = require("7zip-bin");
-const readFile = promisify(fs.readFile)
-const firstline = require('firstline')
-let copyFile = promisify(fs.copyFile)
-let deleteFile = promisify(fs.unlink)
-const crypto = require('crypto')
+const firstline = require("firstline");
+const crypto = require("crypto");
 const moment = require("moment");
 const Store = require("electron-store");
 const readChunk = require("read-chunk");
 const fileType = require("file-type");
-const GingkoError  = require("../shared/errors");
+const GingkoError = require("../shared/errors");
 
 const PouchDB = require("pouchdb");
 PouchDB.plugin(require("pouchdb-load"));
-
-
-
 
 /* ============================================================================
  * EXPOSED FUNCTIONS
  * ============================================================================
  */
 
-
-/*
+/**
  * newSwapFolder : String -> Promise String Error
  *
  * Given swapFolderPath
  * - Open a new swap folder (if it doesn't exist)
  * Return the new swapFolderPath if successful.
  *
+ * @param {String} swapFolderPath
+ *
+ * @returns {Promise<String, Error>} new swapFolderPath if successful
  */
+async function newSwapFolder(swapFolderPath) {
+  await swapFolderCheck(swapFolderPath);
+  await fs.ensureDir(path.join(swapFolderPath, "leveldb"));
+  new Store({ name: "meta", cwd: swapFolderPath, defaults: { version: 1 } });
 
-async function newSwapFolder (swapFolderPath) {
-  try {
-    await swapFolderCheck(swapFolderPath);
-    await fs.ensureDir(path.join(swapFolderPath, "leveldb"));
-    new Store({name: "meta", cwd: swapFolderPath, defaults: { "version" : 1}});
-    return swapFolderPath;
-  } catch (err) {
-    throw err;
-  }
+  return swapFolderPath;
 }
 
-
-
-
-/*
+/**
  * openFile : String -> Promise String Error
  *
  * Given filepath
@@ -59,43 +48,36 @@ async function newSwapFolder (swapFolderPath) {
  * - Make a backup of the original file
  * - Add filepath to swap.json
  *
- * Return the new swapFolderPath if successful.
+ * @param {String} filepath
  *
+ * @returns {Promise<String, Error>} the new swapFolderPath if successful.
  */
-
 async function openFile(filepath) {
-  let fileFormat = await determineFiletype(filepath);
-  let swapName, swapFolderPath;
+  const fileFormat = await determineFiletype(filepath);
 
   switch (fileFormat) {
     case false:
       throw new Error("Not a valid .gko file\nPossibly using legacy format.");
 
-    case GKO:
-      swapName = fullpathFilename(filepath);
-      swapFolderPath = path.join(app.getPath("userData"), swapName );
+    case GKO: {
+      const swapName = fullpathFilename(filepath);
+      const swapFolderPath = path.join(app.getPath("userData"), swapName);
 
-      try {
-        await makeBackup(filepath);
-        await swapFolderCheck(swapFolderPath);
-        await extractFile(filepath, swapFolderPath);
-        addFilepathToSwap(filepath, swapFolderPath);
-        return swapFolderPath;
-      } catch (err) {
-        throw err;
-      }
-
-    case LEGACY_GKO:
-      swapFolderPath = await importGko(filepath);
+      await makeBackup(filepath);
+      await swapFolderCheck(swapFolderPath);
+      await extractFile(filepath, swapFolderPath);
+      addFilepathToSwap(filepath, swapFolderPath);
       return swapFolderPath;
-  }
+    }
+    case LEGACY_GKO: {
+      const swapFolderPath = await importGko(filepath);
 
+      return swapFolderPath;
+    }
+  }
 }
 
-
-
-
-/*
+/**
  * saveSwapFolder : String -> Promise String Error
  *
  * Given swapFolderPath
@@ -104,40 +86,34 @@ async function openFile(filepath) {
  * - Zip folder to backupPath
  * - Copy backupPath to targetPath, with overwrite
  *
- * Return targetPath if successful
+ * @param {String} swapFolderPath
+ *
+ * @returns {Promise<String, Error>} targetPath if successful
  *
  */
-
-async function saveSwapFolder (swapFolderPath) {
-  const savedBefore = await fs.pathExists(path.join(swapFolderPath, "swap.json"));
-  var targetPath;
-  var backupPath;
+async function saveSwapFolder(swapFolderPath) {
+  const savedBefore = await fs.pathExists(
+    path.join(swapFolderPath, "swap.json")
+  );
 
   if (savedBefore) {
-    try {
-      targetPath = getFilepathFromSwap(swapFolderPath);
-      backupPath = getBackupPath(targetPath, Date.now());
-      await zipFolder(swapFolderPath, backupPath);
-      await fs.copy(backupPath, targetPath, { "overwrite": true });
-      return targetPath;
-    } catch (err) {
-      throw err;
-    }
-  } else { // Never-saved/Untitled document
-    try {
-      backupPath = getBackupPath(null, Date.now());
-      await zipFolder(swapFolderPath, backupPath);
-      return targetPath;
-    } catch (err) {
-      throw err;
-    }
+    const targetPath = getFilepathFromSwap(swapFolderPath);
+    const backupPath = getBackupPath(targetPath, Date.now());
+    await zipFolder(swapFolderPath, backupPath);
+    await fs.copy(backupPath, targetPath, { overwrite: true });
+
+    return targetPath;
+  } else {
+    // CR: Beware of this
+    const targetPath = undefined;
+    // Never-saved/Untitled document
+    const backupPath = getBackupPath(null, Date.now());
+    await zipFolder(swapFolderPath, backupPath);
+    return targetPath;
   }
 }
 
-
-
-
-/*
+/**
  * saveSwapFolderAs : String -> String -> Promise String Error
  *
  * Given swapFolderPath and newFilepath
@@ -146,49 +122,46 @@ async function saveSwapFolder (swapFolderPath) {
  * - Zip folder to backupPath
  * - Copy backupPath to newFilepath, with overwrite
  *
- * Returns newSwapFolderPath if successful
+ * @param {String} originalSwapFolderPath
+ * @param {String} newTargetPath
  *
+ * @returns {Promise<String, Error>} newSwapFolderPath if successful
  */
+async function saveSwapFolderAs(originalSwapFolderPath, newTargetPath) {
+  const newSwapFolderPath = await swapCopy(
+    originalSwapFolderPath,
+    newTargetPath
+  );
 
-async function saveSwapFolderAs (originalSwapFolderPath, newTargetPath) {
-  try {
-    const newSwapFolderPath = await swapCopy(originalSwapFolderPath, newTargetPath);
-    const backupPath = getBackupPath(newTargetPath, Date.now());
-    await deleteSwapFolder(originalSwapFolderPath);
-    await zipFolder(newSwapFolderPath, backupPath);
-    await fs.copy(backupPath, newTargetPath, { "overwrite": true });
-    return newSwapFolderPath;
-  } catch (err) {
-    throw err;
-  }
+  const backupPath = getBackupPath(newTargetPath, Date.now());
+  await deleteSwapFolder(originalSwapFolderPath);
+  await zipFolder(newSwapFolderPath, backupPath);
+  await fs.copy(backupPath, newTargetPath, { overwrite: true });
+
+  return newSwapFolderPath;
 }
 
-
-/*
- * backupSwapFolder : String -> Promise String Error
+/**
+ *  backupSwapFolder : String -> Promise String Error
  *
  * Given a swapFolderPath
  * - Get backupPath
  * - Zip folder to backupPath
  *
- * Returns backupPath if successful
+ * @param {String} swapFolderPath
  *
+ * @returns {Promise<String, Error>} backupPath if successful
  */
+async function backupSwapFolder(swapFolderPath) {
+  const targetPath = getFilepathFromSwap(swapFolderPath);
+  const backupPath = getBackupPath(targetPath, Date.now());
 
-async function backupSwapFolder (swapFolderPath) {
-  try {
-    const targetPath = getFilepathFromSwap(swapFolderPath);
-    const backupPath = getBackupPath(targetPath, Date.now());
-    await zipFolder(swapFolderPath, backupPath);
-    return backupPath;
-  } catch (err) {
-    throw err;
-  }
+  await zipFolder(swapFolderPath, backupPath);
+
+  return backupPath;
 }
 
-
-
-/*
+/**
  * saveLegacyFolderAs : String -> String -> String -> Promise String Error
  *
  * Given legacyFolderPath, legacyName, and newTargetPath
@@ -197,25 +170,32 @@ async function backupSwapFolder (swapFolderPath) {
  * - Add meta.json with file format version
  * - Zip folder to backupPath
  * - Copy backupPath to newFilepath, with overwrite
+ *
+ * @param {String} legacyFolderPath
+ * @param {String} newTargetPath
+ *
+ * @returns {Promise<String, Error>} newSwapFolderPath if successful
  */
+async function saveLegacyFolderAs(legacyFolderPath, newTargetPath) {
+  const newSwapFolderPath = await swapCopy(
+    legacyFolderPath,
+    newTargetPath,
+    true
+  );
+  new Store({
+    name: "meta",
+    cwd: newSwapFolderPath,
+    defaults: { version: 1 }
+  });
+  const backupPath = getBackupPath(newTargetPath, Date.now());
 
-async function saveLegacyFolderAs (legacyFolderPath, legacyName, newTargetPath) {
-  try {
-    const newSwapFolderPath = await swapCopy(legacyFolderPath, newTargetPath, true);
-    new Store({name: "meta", cwd: newSwapFolderPath, defaults: { "version" : 1}});
-    const backupPath = getBackupPath(newTargetPath, Date.now());
-    await zipFolder(newSwapFolderPath, backupPath);
-    await fs.copy(backupPath, newTargetPath);
-    return newSwapFolderPath;
-  } catch (err) {
-    throw err;
-  }
+  await zipFolder(newSwapFolderPath, backupPath);
+  await fs.copy(backupPath, newTargetPath);
+
+  return newSwapFolderPath;
 }
 
-
-
-
-/*
+/**
  * deleteSwapFolder : String -> Promise String Error
  *
  * Given swapFolderPath
@@ -225,27 +205,30 @@ async function saveLegacyFolderAs (legacyFolderPath, legacyName, newTargetPath) 
  *  - Verify that it contains "meta.json" file
  * If so, make a backup, then delete it.
  *
+ * @param {String} swapFolderPath
+ *
+ * @returns {Promise<String, Error>} swapFolderPath if successful
  */
-
-async function deleteSwapFolder (swapFolderPath) {
+async function deleteSwapFolder(swapFolderPath) {
   try {
     const relative = path.relative(app.getPath("userData"), swapFolderPath);
 
     // Determine if a path is subdirectory of another in Node.js
     // https://stackoverflow.com/a/45242825/43769
-    if (!(!!relative && !relative.startsWith("..") && !path.isAbsolute(relative))) {
+    if (
+      !(!!relative && !relative.startsWith("..") && !path.isAbsolute(relative))
+    ) {
       return;
     }
 
-    if (!fs.pathExistsSync(path.join(swapFolderPath, "leveldb"))) {
-      return;
-    }
+    // CR: This allows you to perform all the `pathExists` checks in parallel
+    const filesExist = await Promise.all([
+      fs.pathExists(path.join(swapFolderPath, "leveldb")),
+      fs.pathExists(path.join(swapFolderPath, "swap.json")),
+      fs.pathExists(path.join(swapFolderPath, "meta.json"))
+    ]);
 
-    if (!fs.pathExistsSync(path.join(swapFolderPath, "swap.json"))) {
-      return;
-    }
-
-    if (!fs.pathExistsSync(path.join(swapFolderPath, "meta.json"))) {
+    if (filesExist.some(fileExists => !fileExists)) {
       return;
     }
 
@@ -253,77 +236,87 @@ async function deleteSwapFolder (swapFolderPath) {
     await fs.remove(swapFolderPath);
     return swapFolderPath;
   } catch (err) {
-    throw new Error("Could not delete swap folder.\n" + swapFolderPath +"\n"+ err.message);
+    throw new Error(
+      "Could not delete swap folder.\n" + swapFolderPath + "\n" + err.message
+    );
   }
 }
 
-
-
-
+/**
+ * dbFromFile : String -> Promise String Error
+ *
+ * @param {String} filepath
+ *
+ * @returns {Promise<String, Error>}
+ */
 async function dbFromFile(filepath) {
   try {
-    var importResult = await importGko(filepath);
+    return importGko(filepath);
   } catch (err) {
-    if(err.message == "Unexpected end of JSON input") {
-      importResult = await importJSON(filepath);
+    if (err.message == "Unexpected end of JSON input") {
+      return importJSON(filepath);
     }
   }
-  return importResult;
 }
 
+/**
+ * destroyDb : String -> Promise void
+ *
+ * Destroys a db by a given name
+ *
+ * @param {String} dbName
+ *
+ * @returns {Promise<void>}
+ */
+async function destroyDb(dbName) {
+  const dbPath = path.join(app.getPath("userData"), dbName);
 
-
-
-async function destroyDb( dbName ) {
-  var dbPath = path.join(app.getPath('userData'), dbName)
   try {
-    await deleteFile(path.join(app.getPath('userData'), `window-state-${dbName}.json`));
+    await fs.unlink(
+      path.join(app.getPath("userData"), `window-state-${dbName}.json`)
+    );
   } finally {
-    return (new PouchDB(dbPath)).destroy()
+    return new PouchDB(dbPath).destroy();
   }
 }
 
+/**
+ * getHashWithoutStartTime : String -> Promise String Error
+ *
+ * @param {String} filepath
+ *
+ * @returns {Promise<String, Error>} the base64-encoded sha1 hash for the contents of the file, with it's `start_time` attribute set to empty.
+ *  Throws an error if no file is found at the specified filepath.
+ */
+async function getHashWithoutStartTime(filepath) {
+  const hash = crypto.createHash("sha1");
+  const filecontents = await fs.readFile(filepath, "utf8");
+  const transformedContents = filecontents.replace(
+    /"start_time":".*","db_info"/,
+    '"start_time":"","db_info"'
+  );
 
+  hash.update(transformedContents);
 
-
-function getHashWithoutStartTime(filepath) {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const hash = crypto.createHash('sha1')
-      let filecontents = await readFile(filepath, 'utf8')
-      let transformedContents = filecontents.replace(/"start_time":".*","db_info"/, '"start_time":"","db_info"')
-      hash.update(transformedContents)
-      resolve(hash.digest('base64'))
-    } catch (err) {
-      reject(err)
-    }
-  })
+  return hash.digest("base64");
 }
 
-
-
-
-module.exports =
-  { newSwapFolder : newSwapFolder
-  , openFile : openFile
-  , saveSwapFolder : saveSwapFolder
-  , saveSwapFolderAs : saveSwapFolderAs
-  , saveLegacyFolderAs : saveLegacyFolderAs
-  , deleteSwapFolder : deleteSwapFolder
-  , dbFromFile: dbFromFile
-  , destroyDb: destroyDb
-  , getHash: getHashWithoutStartTime
-  };
-
-
-
+module.exports = {
+  newSwapFolder: newSwapFolder,
+  openFile: openFile,
+  saveSwapFolder: saveSwapFolder,
+  saveSwapFolderAs: saveSwapFolderAs,
+  saveLegacyFolderAs: saveLegacyFolderAs,
+  deleteSwapFolder: deleteSwapFolder,
+  dbFromFile: dbFromFile,
+  destroyDb: destroyDb,
+  getHash: getHashWithoutStartTime
+};
 
 /* ============================================================================
  * PRIVATE FUNCTIONS
  * ============================================================================
  */
-
-
 
 /*
  * Date format to append to backup files
@@ -332,110 +325,109 @@ module.exports =
 
 const dateFormatString = "_YYYY-MM-DD_HH-mm-ss";
 
-
-
-/*
+/**
  * Enum for file types.
  * LEGACY_GKO is anything produced with version < 2.1.0
  * GKO is produced starting at 2.2.0
- *
  */
-
+/** @type {String} LEGACY_GKO */
 const LEGACY_GKO = "LEGACY_GKO";
+
+/** @type {String} GKO */
 const GKO = "GKO";
 
-
-
-
-
-/*
- * verifyFiletype : String -> ( GKO | LEGACY_GKO )
+/**
+ * verifyFiletype : String -> Promise ( GKO | LEGACY_GKO )
  *
  * Verify that filepath points to a valid .gko file.
  *
+ * @param {String} filepath
+ *
+ * @returns {Promise<String>} gko filetype
  */
+async function determineFiletype(filepath) {
+  const filetype = fileType(await readChunk(filepath, 0, 4100));
 
-async function determineFiletype (filepath) {
-  const filetype = fileType(readChunk.sync(filepath, 0, 4100));
-
-  if(!filetype) {
-    var dbLine = await firstline(filepath);
-    var dumpInfo= JSON.parse(dbLine);
-    if(dumpInfo.hasOwnProperty("db_info")) {
+  if (!filetype) {
+    const dbLine = await firstline(filepath);
+    const dumpInfo = JSON.parse(dbLine);
+    if (dumpInfo.hasOwnProperty("db_info")) {
       return LEGACY_GKO;
     }
-  } else if(filetype.ext == "7z") {
+  } else if (filetype.ext == "7z") {
     return GKO;
   }
 }
 
-
-
-
-/*
+/**
  * fullpathFilename : String -> String -> String
  *
  * Given a filepath and extension (e.g. ".gko")
  * Generate a filename from a full path, replacing path separators with %.
  *
+ * @param {String} filepath
+ * @param {String} extension
+ *
+ * @returns {String} new filename for the specified filepath and extension
  */
-
-function fullpathFilename (filepath, extension) {
-  return filepath.split(path.sep).join("%").replace(extension,"").replace(":","%");
+function fullpathFilename(filepath, extension) {
+  return filepath
+    .split(path.sep)
+    .join("%")
+    .replace(extension, "")
+    .replace(":", "%");
 }
 
-
-
-
-/*
+/**
  * getBackupPath : String -> Date -> String
  *
  * Given a filepath and timestamp
  * Return the full path of the backup.
  *
+ * @param {String} filepath
+ * @param {Date} timestamp
+ *
+ * @returns {String} path of the backup file
  */
-
-function getBackupPath (filepath, timestamp) {
+function getBackupPath(filepath, timestamp) {
   if (filepath) {
     const { ext } = path.parse(filepath);
-    const backupName = fullpathFilename(filepath, ext) + moment(timestamp).format(dateFormatString) + ext;
+    const backupName =
+      fullpathFilename(filepath, ext) +
+      moment(timestamp).format(dateFormatString) +
+      ext;
+
     return path.join(app.getPath("userData"), "backups", backupName);
-  } else { // Never-saved/Untitled
-    const backupName = "Untitled"+moment(timestamp).format(dateFormatString) + ".gko";
+  } else {
+    // Never-saved/Untitled
+    const backupName =
+      "Untitled" + moment(timestamp).format(dateFormatString) + ".gko";
     return path.join(app.getPath("userData"), "backups", backupName);
   }
 }
 
-
-
-
-/*
+/**
  * makeBackup : String -> Promise String Error
  *
- * Given a filepath
  * Create a copy in userData, with the following contained as the filename:
  *   - the fullpathFilename
  *   - the original filename
  *   - the original file's last_modified date
  *
+ * @param {string} filepath
+ *
+ * @returns {Promise<String, Error>}
  */
+async function makeBackup(filepath) {
+  const originalStats = await fs.stat(filepath);
+  const backupPath = getBackupPath(filepath, originalStats.mtimeMs);
 
-async function makeBackup (filepath) {
-  let originalStats = fs.statSync(filepath);
-  let backupPath = getBackupPath(filepath, originalStats.mtimeMs);
+  const copyResult = await fs.copy(filepath, backupPath, { overwrite: true });
 
-  try {
-    let copyResult = await fs.copy(filepath, backupPath, { "overwrite": true });
-    return copyResult;
-  } catch (err) {
-    throw err;
-  }
+  return copyResult;
 }
 
-
-
-
-/*
+/**
  * swapFolderCheck : String -> Promise String Error
  *
  * Given a swapFolderPath
@@ -443,23 +435,26 @@ async function makeBackup (filepath) {
  * Return swap folder path if successful.
  * Throw an error if the swap folder already exists.
  *
+ * @param {String} swapFolderPath
+ *
+ * @returns {Promise<String, Error>} swapFolderPath if successful
+ *
  */
-
-async function swapFolderCheck (swapFolderPath) {
+async function swapFolderCheck(swapFolderPath) {
   const exists = await fs.pathExists(swapFolderPath);
 
   if (exists) {
-    throw new GingkoError("Swap folder already exists.\nEither document is already open, or it failed to close properly in the past.", swapFolderPath);
+    throw new GingkoError(
+      "Swap folder already exists.\nEither document is already open, or it failed to close properly in the past.",
+      swapFolderPath
+    );
   } else {
     return swapFolderPath;
   }
 }
 
-
-
-
-/*
- * swapCopy : String -> String -> Promise String Error
+/**
+ * swapCopy : String -> String -> Bool -> Promise String Error
  *
  * Given originalSwapFolderPath and newFilepath
  * - Get newSwapFolderPath from newFilepath
@@ -467,29 +462,36 @@ async function swapFolderCheck (swapFolderPath) {
  * - Copy swapFolderPath to newSwapFolderPath
  * - Set swap.json filepath attribute
  *
- * Returns newSwapFolderPath if successful
+ * @param {String} originalSwapFolderPath
+ * @param {String} newFilepath
+ * @param {boolean} isLegacy
+ *
+ * @return {Promise<String, Error>} newSwapFolderPath if successful
  *
  */
-
-async function swapCopy (originalSwapFolderPath, newFilepath, isLegacy) {
+async function swapCopy(originalSwapFolderPath, newFilepath, isLegacy) {
   const newSwapName = fullpathFilename(newFilepath);
-  const newSwapFolderPath = path.join(app.getPath("userData"), newSwapName );
+  const newSwapFolderPath = path.join(app.getPath("userData"), newSwapName);
 
   try {
     await swapFolderCheck(newSwapFolderPath);
-    let newPath = path.join(newSwapFolderPath, isLegacy ? "leveldb" : "");
+    const newPath = path.join(newSwapFolderPath, isLegacy ? "leveldb" : "");
+
     await fs.copy(originalSwapFolderPath, newPath);
     addFilepathToSwap(newFilepath, newSwapFolderPath);
+
     return newSwapFolderPath;
   } catch (err) {
-    throw new Error("Could not create new swap folder.\n" + originalSwapFolderPath + "\n"+ err.message);
+    throw new Error(
+      "Could not create new swap folder.\n" +
+        originalSwapFolderPath +
+        "\n" +
+        err.message
+    );
   }
 }
 
-
-
-
-/*
+/**
  * extractFile : String -> String -> Promise String Error
  *
  * Given a filepath and targetPath
@@ -497,80 +499,70 @@ async function swapCopy (originalSwapFolderPath, newFilepath, isLegacy) {
  * Return a the targetPath if successful.
  * Throw an error otherwise.
  *
+ * @param {String} filepath
+ * @param {String} targetPath
+ *
+ * @return {Promise<String, Error>} targetPath if successful
  */
+async function extractFile(filepath, targetPath) {
+  await execFile(path7za, ["x", "-bd", `-o${targetPath}`, filepath]);
 
-async function extractFile (filepath, targetPath) {
-  try {
-    await execFile(path7za, ["x","-bd", `-o${targetPath}`, filepath ]);
-    return targetPath;
-  } catch (err) {
-    throw err;
-  }
+  return targetPath;
 }
 
-
-
-
-/*
+/**
  * zipFolder : String -> String -> Promise String Error
  *
- * Given swapFolderPath and targetPath
  * Create 7z *.gko file.
- * Return targetPath if successful.
  *
+ * @param {String} swapFolderPath
+ * @param {String} targetPath
+ *
+ * @returns {Promise<String, Error>} targetPath if successful
  */
+async function zipFolder(swapFolderPath, targetPath) {
+  const args = ["a", targetPath, swapFolderPath + path.sep + "*", "-r"]; // TODO: exclude swap.json
+  await execFile(path7za, args);
 
-async function zipFolder (swapFolderPath, targetPath) {
-  let args =
-      [ "a"
-      , targetPath
-      , swapFolderPath + path.sep + "*"
-      , "-r"
-      ]; // TODO: exclude swap.json
-
-  try {
-    await execFile(path7za, args);
-    return targetPath;
-  } catch (err) {
-    throw err;
-  }
+  return targetPath;
 }
 
-
-
-
-/*
+/**
  * addFilepathToSwap : String -> String -> ( String | Error )
  *
  * Given filepath and swapFolderPath
  * Add swap.json in swapFolderPath, with filepath attribute.
  *
+ * @param {String} filepath
+ * @param {String} swapFolderPath
+ *
+ * @returns {String | Error} filepath if successful
  */
-
-function addFilepathToSwap (filepath, swapFolderPath) {
+function addFilepathToSwap(filepath, swapFolderPath) {
   try {
-    const swapStore = new Store({name: "swap", cwd: swapFolderPath});
+    const swapStore = new Store({ name: "swap", cwd: swapFolderPath });
     swapStore.set("filepath", filepath);
     return filepath;
   } catch (err) {
-    throw new Error("Could not set original filepath in swap folder.\n" + path.join(swapFolderPath, "swap.json"));
+    throw new Error(
+      "Could not set original filepath in swap folder.\n" +
+        path.join(swapFolderPath, "swap.json")
+    );
   }
 }
 
-
-
-
-/*
+/**
  * getFilepathFromSwap : String -> ( String | Null )
  *
- * Given swapFolderPath
- * Return filepath from swapFolderPath/swap.json.
+ * @param {String} swapFolderPath
+ *
+ * @returns {String | null} filepath if it exists in swapFolderPath/swap.json
  *
  */
+function getFilepathFromSwap(swapFolderPath) {
+  const swapStore = new Store({ name: "swap", cwd: swapFolderPath });
+  const filepath = swapStore.get("filepath");
 
-function getFilepathFromSwap (swapFolderPath) {
-  const swapStore = new Store({name: "swap", cwd: swapFolderPath});
-  let filepath = swapStore.get("filepath");
   if (filepath) {
     return filepath;
   } else {
@@ -578,66 +570,57 @@ function getFilepathFromSwap (swapFolderPath) {
   }
 }
 
-
-
-
 async function importGko(filepath) {
   await makeBackup(filepath);
-  var dbLine = await firstline(filepath);
-  var dumpInfo= JSON.parse(dbLine);
+  const dbLine = await firstline(filepath);
+  const dumpInfo = JSON.parse(dbLine);
   const hash = crypto.createHash("sha1");
   hash.update(dumpInfo.db_info.db_name + Date.now());
 
-  var dbName = hash.digest("hex");
-  var swapFolderPath = path.join(app.getPath("userData"), dbName);
-  var dbPath = path.join(swapFolderPath, "leveldb");
+  const dbName = hash.digest("hex");
+  const swapFolderPath = path.join(app.getPath("userData"), dbName);
+  const dbPath = path.join(swapFolderPath, "leveldb");
 
   await fs.ensureDir(dbPath);
-  new Store({name: "meta", cwd: swapFolderPath, defaults: { "version" : 1}});
+  new Store({ name: "meta", cwd: swapFolderPath, defaults: { version: 1 } });
   addFilepathToSwap(filepath, swapFolderPath);
-  var db = new PouchDB(dbPath);
+  const db = new PouchDB(dbPath);
 
-  let filecontents = await readFile(filepath, "utf8");
+  const filecontents = await fs.readFile(filepath, "utf8");
   await db.load(filecontents);
   await db.close();
+
   return swapFolderPath;
 }
 
-
 async function importJSON(filepath) {
-  let data = await readFile(filepath);
+  const data = await fs.readFile(filepath);
 
-  const hash = crypto.createHash('sha1')
-  hash.update(data + Date.now())
-  var dbName = hash.digest('hex')
-  var docName = path.basename(filepath, '.json')
-  var swapFolderPath = path.join(app.getPath("userData"), dbName);
-  var dbPath = path.join(swapFolderPath, "leveldb");
+  const hash = crypto.createHash("sha1");
+  hash.update(data + Date.now());
+  const dbName = hash.digest("hex");
+  const docName = path.basename(filepath, ".json");
+  const swapFolderPath = path.join(app.getPath("userData"), dbName);
+  const dbPath = path.join(swapFolderPath, "leveldb");
 
   await fs.ensureDir(dbPath);
-  new Store({name: "meta", cwd: swapFolderPath, defaults: { "version" : 1}});
-  var db = new PouchDB(dbPath);
+  new Store({ name: "meta", cwd: swapFolderPath, defaults: { version: 1 } });
+  const db = new PouchDB(dbPath);
   db.close();
 
-  let nextId = 1
+  let nextId = 1;
 
-  let seed =
-    JSON.parse(
-        data.toString()
-            .replace( /{(\s*)"content":/g
-                    , s => {
-                        return `{"id":"${nextId++}","content":`
-                      }
-                    )
-      )
+  const seed = JSON.parse(
+    data.toString().replace(/{(\s*)"content":/g, s => {
+      return `{"id":"${nextId++}","content":`;
+    })
+  );
 
-  let newRoot =
-        { id: "0"
-        , content: ""
-        , children: seed
-        }
+  const newRoot = { id: "0", content: "", children: seed };
 
-  return { swapFolderPath : swapFolderPath, docName : docName , jsonImportData : newRoot };
+  return {
+    swapFolderPath: swapFolderPath,
+    docName: docName,
+    jsonImportData: newRoot
+  };
 }
-
-
