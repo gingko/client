@@ -242,23 +242,6 @@ async function deleteSwapFolder(swapFolderPath) {
 }
 
 /**
- * dbFromFile : String -> Promise String Error
- *
- * @param {String} filepath
- *
- * @returns {Promise<String, Error>}
- */
-async function dbFromFile(filepath) {
-  try {
-    return importGko(filepath);
-  } catch (err) {
-    if (err.message == "Unexpected end of JSON input") {
-      return importJSON(filepath);
-    }
-  }
-}
-
-/**
  * destroyDb : String -> Promise void
  *
  * Destroys a db by a given name
@@ -319,7 +302,7 @@ module.exports =
   , saveSwapFolderAs : saveSwapFolderAs
   , saveLegacyFolderAs : saveLegacyFolderAs
   , deleteSwapFolder : deleteSwapFolder
-  , dbFromFile: dbFromFile
+  , importJSON: importJSON
   , destroyDb: destroyDb
   , getHash: getHashWithoutStartTime
   , truncateBackups : truncateBackups

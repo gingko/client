@@ -431,8 +431,15 @@ app.on("will-finish-launching", () => {
 async function newUntitled() {
   const swapRandomName = "Untitled_"+(new Date()).toISOString();
   const swapFolderPath = path.join(app.getPath("userData"), swapRandomName);
-  await fio.newSwapFolder(swapFolderPath);
-  createDocumentWindow(swapFolderPath, null);
+  try {
+    await fio.newSwapFolder(swapFolderPath);
+    createDocumentWindow(swapFolderPath, null);
+  } catch (err) {
+    if (err instanceof GingkoError && err.message.includes("Swap folder already exists")) {
+      // TODO: Handle this unlikely case
+      console.log("GINGKO ERROR");
+    }
+  }
 }
 
 async function openWithDialog() {
@@ -539,16 +546,21 @@ async function importDocument() {
 
   var { filePaths } = await dialog.showOpenDialog(winHome, options);
 
-  if (filePaths) {
+  if (filePaths && filePaths[0]) {
     try {
-      let { swapFolderPath, jsonImportData } = await fio.dbFromFile( filePaths[0] );
+      let { swapFolderPath, jsonImportData } = await fio.importJSON( filePaths[0] );
       createDocumentWindow(swapFolderPath, null, null, jsonImportData);
-    } catch (e) {
-      // TODO: Handle errors from file-io in this file
-      // There are various kinds of errors that can happen here:
-      //  - A user may cancel the dialog, not selecting any files
-      //  - The file may not be a valid one (right now, the `dbFromFile` function assumes that the file is valid, and will only work for GKO or JSON files)
-      console.log("An error happened!");
+    } catch (err) {
+      if (err.message.includes("Unexpected token")) {
+        await dialog.showMessageBox(
+          errorAlert(
+            "File Import Error",
+            `Couldn't import ${path.basename(filePaths[0])}.\nIs it really a Gingko JSON file?`,
+            err
+          )
+        );
+      }
+      return false;
     }
     return true;
   }
@@ -570,6 +582,7 @@ async function saveDocument (docWindow) {
     const filepath = await fio.saveSwapFolder(swapFolderPath);
     return filepath;
   } catch (err) {
+    // TODO
     throw err;
   }
 }
@@ -618,6 +631,7 @@ async function saveDocumentAs(docWindow) {
       docWindow.webContents.send("main:set-swap-folder", [path.join(newSwapFolderPath,"leveldb"), newFilepath]);
       return { "filepath" : newFilepath, "swapFolderPath" : newSwapFolderPath };
     } catch (err) {
+      // TODO
       throw err;
     }
   }
@@ -658,6 +672,7 @@ async function saveLegacyDocumentAs (docWindow) {
       docWindow.webContents.send("main:set-swap-folder", [path.join(newSwapFolderPath,"leveldb"), newFilepath]);
       return { "filepath" : newFilepath, "swapFolderPath" : newSwapFolderPath };
     } catch (err) {
+      // TODO
       throw err;
     }
   } else {
@@ -861,6 +876,7 @@ ipcMain.on("doc:save-and-exit", async (event) => {
       }
     }
   } catch (err) {
+    // TODO
     throw err;
   }
 });
