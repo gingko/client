@@ -692,7 +692,7 @@ update msg ({ objects, workingTree, status } as model) =
                                            )
 
                 CancelCardConfirmed ->
-                    ( model
+                    ( { model | dirty = False }
                     , Cmd.none
                     )
                         |> cancelCard
