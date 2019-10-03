@@ -53,6 +53,18 @@ if (!instanceLock) {
   });
 }
 
+// Mock electron-specific functions to control dialogs
+// during integration tests
+const mock = require("../../test/mocks.js");
+if(process.env.RUNNING_IN_SPECTRON) {
+  mock(dialog
+      , process.env.DIALOG_CHOICE
+      , process.env.DIALOG_SAVE_PATH
+      , [process.env.DIALOG_OPEN_PATH]
+      );
+}
+
+
 function createHomeWindow() {
   // Create the browser window.
   winHome = new BrowserWindow({
@@ -379,6 +391,8 @@ app.on("ready", async () => {
   if (process.defaultApp && typeof process.argv[2] == "string") {
     if (await fs.pathExists(process.argv[2])) {
       pathArgument = process.argv[2];
+    } else if (process.argv[2] == "new") {
+      pathArgument = "new";
     }
     // Production, with path of file to open passed as argument
   } else if (!process.defaultApp && typeof process.argv[1] == "string") {
@@ -387,9 +401,11 @@ app.on("ready", async () => {
     }
   }
 
-  if (pathArgument) {
+  if (pathArgument && pathArgument !== "new") {
     openDocument(pathArgument);
-  } else {
+  } else if (pathArgument =="new") {
+    newUntitled();
+  }else {
     createHomeWindow();
     if (!validSerial(email, storedSerial)) {
       let activations = getTrialActivations();

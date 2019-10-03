@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
 ## Unreleased
+  - (Internal) Rewrote logic for saving to files
+  - Removed in-app chat
   - Fix shortcut conflict "move left" and "Help" menu
   - (Internal) Upgrade Electron to v6
 
