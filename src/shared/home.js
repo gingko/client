@@ -4,15 +4,7 @@ const dbMapping = require("../electron/doc-list");
 const Store = require('electron-store')
 
 
-var crisp_loaded = false;
-
-$crisp.push(['do', 'chat:hide'])
-$crisp.push(['on', 'session:loaded', () => { crisp_loaded = true }])
-$crisp.push(['on', 'chat:closed', () => { $crisp.push(['do', 'chat:hide']) }])
-$crisp.push(['on', 'chat:opened', () => { $crisp.push(['do', 'chat:show']) }])
-$crisp.push(['on', 'message:received', () => { $crisp.push(['do', 'chat:show']) }])
-
-ipcRenderer.on('menu-contact-support', () => { if(crisp_loaded) { $crisp.push(['do', 'chat:open']); $crisp.push(['do', 'chat:show']); } else { shell.openExternal('mailto:adriano@gingkoapp.com') } } )
+ipcRenderer.on("menu-contact-support", () => { shell.openExternal("mailto:adriano@gingkoapp.com") });
 
 ipcRenderer.on("menu-language-select", (event, data) => {
   userStore.set("language", data);

@@ -153,44 +153,6 @@ function toElm (tag, data) {
 
 
 
-//self.remoteCouch = 'http://localhost:5984/atreenodes16'
-//self.remoteDb = new PouchDB(remoteCouch)
-
-var crisp_loaded = false;
-
-// Needed for unit tests
-window.$crisp = (typeof $crisp === 'undefined') ? [] : $crisp
-
-$crisp.push(['do', 'chat:hide'])
-$crisp.push(['on', 'session:loaded', () => { crisp_loaded = true }])
-$crisp.push(['on', 'chat:closed', () => { $crisp.push(['do', 'chat:hide']) }])
-$crisp.push(['on', 'chat:opened', () => { $crisp.push(['do', 'chat:show']) }])
-$crisp.push(['on', 'message:received', () => { $crisp.push(['do', 'chat:show']) }])
-if (firstRun) {
-  var ctrlOrCmd = process.platform === "darwin" ? "⌘" : "Ctrl";
-  userStore.set('first-run', false)
-  $crisp.push(['do'
-              , 'message:show'
-              , [ 'text' ,
-`Hi! Try these steps to get started:
-1. **Enter** to start writing
-2. **${ctrlOrCmd} + Enter** to save changes
-3. **${ctrlOrCmd} + →** to write in a new *child* card
-4. **${ctrlOrCmd} + Enter** to save changes
-5. **${ctrlOrCmd} + ↓**
-
-I know it's not much guidance, but it's a start.
-**Help > Contact Adriano** to send me a message.
-
----
-*PS: I won't interrupt again, except to respond.*
-*Your attention is sacred.*`
-                ]
-              ]
-             )
-}
-
-
 /* === Elm to JS Ports === */
 
 const update = (msg, data) => {
@@ -430,14 +392,7 @@ container.msgWas("menu-language-select", (event, data) => {
   container.sendTo("doc:language-changed", data);
   toElm("SetLanguage", data);
 });
-container.msgWas("menu-contact-support", () => {
-  if(crisp_loaded) {
-    window.$crisp.push(["do", "chat:open"]);
-    window.$crisp.push(["do", "chat:show"]);
-  } else {
-    container.openExternal("mailto:adriano@gingkoapp.com");
-  }
-});
+container.msgWas("menu-contact-support", () => container.openExternal("mailto:adriano@gingkoapp.com"));
 
 //socket.on("collab", data => toElm("RecvCollabState", data))
 //socket.on("collab-leave", data => toElm("CollaboratorDisconnected", data))
