@@ -4,6 +4,7 @@ import Coders exposing (..)
 import Json.Decode exposing (decodeValue, errorToString)
 import Json.Encode exposing (..)
 import Json.Encode.Extra exposing (maybe)
+import Time
 import Translation exposing (languageDecoder)
 import TreeUtils exposing (getColumn)
 import Types exposing (..)
@@ -177,10 +178,18 @@ receiveMsg tagger onError =
                         Err e ->
                             onError (errorToString e)
 
-                "SetSaveStatus" ->
-                    case decodeValue saveStatusDecoder outsideInfo.data of
-                        Ok saveStatus ->
-                            tagger <| SetSaveStatus saveStatus
+                "SetLastCommitSaved" ->
+                    case decodeValue (Json.Decode.maybe Json.Decode.int) outsideInfo.data of
+                        Ok time_ ->
+                            tagger <| SetLastCommitSaved (Maybe.map Time.millisToPosix time_)
+
+                        Err e ->
+                            onError (errorToString e)
+
+                "SetLastFileSaved" ->
+                    case decodeValue (Json.Decode.maybe Json.Decode.float) outsideInfo.data of
+                        Ok time_ ->
+                            tagger <| SetLastFileSaved (Maybe.map (Time.millisToPosix << round) time_)
 
                         Err e ->
                             onError (errorToString e)

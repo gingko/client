@@ -1,4 +1,4 @@
-module Types exposing (Children(..), CollabState, SaveStatus(..), Column, Conflict, CursorPosition(..), Direction(..), DropId(..), ExportFormat(..), ExportSelection(..), ExportSettings, Group, HistoryState(..), IncomingMsg(..), Mode(..), Msg(..), Op(..), OutgoingMsg(..), OutsideData, Selection(..), Status(..), TextCursorInfo, Tree, ViewMode(..), ViewState, VisibleViewState, WordCount)
+module Types exposing (Children(..), CollabState, Column, Conflict, CursorPosition(..), Direction(..), DropId(..), ExportFormat(..), ExportSelection(..), ExportSettings, Group, HistoryState(..), IncomingMsg(..), Mode(..), Msg(..), Op(..), OutgoingMsg(..), OutsideData, Selection(..), Status(..), TextCursorInfo, Tree, ViewMode(..), ViewState, VisibleViewState, WordCount)
 
 import Debouncer.Basic as Debouncer
 import Fonts
@@ -83,7 +83,8 @@ type
     | Commit Int
     | GetDataToSave
     | SetHeadRev String
-    | SetSaveStatus SaveStatus
+    | SetLastCommitSaved (Maybe Time.Posix)
+    | SetLastFileSaved (Maybe Time.Posix)
     | Merge Json.Value
       -- === DOM ===
     | DragStarted String
@@ -168,12 +169,6 @@ type Status
     = Bare
     | Clean String
     | MergeConflict Tree String String (List Conflict)
-
-
-type SaveStatus
-    = Unsaved
-    | SavedDB
-    | Saved
 
 
 type HistoryState

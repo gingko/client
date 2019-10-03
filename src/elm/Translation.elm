@@ -15,9 +15,11 @@ type TranslationId
     | LastOpened
     | OpenOtherDocuments
     | RemoveFromList
+    | NeverSaved
     | UnsavedChanges
     | SavedInternally
     | ChangesSaved
+    | DatabaseError
     | LastSaved
     | LastEdit
     | KeyboardHelp
@@ -131,6 +133,13 @@ tr lang trans =
                     , fr = ""
                     }
 
+                NeverSaved ->
+                    { en = "New Document..."
+                    , zh = ""
+                    , es = "Documento Nuevo..."
+                    , fr = ""
+                    }
+
                 UnsavedChanges ->
                     { en = "Unsaved Changes..."
                     , zh = ""
@@ -149,6 +158,13 @@ tr lang trans =
                     { en = "Saved"
                     , zh = ""
                     , es = "Cambios Guardados"
+                    , fr = ""
+                    }
+
+                DatabaseError ->
+                    { en = "Database Error..."
+                    , zh = ""
+                    , es = "Error de Database..."
                     , fr = ""
                     }
 

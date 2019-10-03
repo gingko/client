@@ -18,37 +18,36 @@ import Trees exposing (defaultTree)
 import Types exposing (..)
 
 
-viewSaveIndicator : { m | saveStatus : SaveStatus, objects : Objects.Model, currentTime : Time.Posix, language : Translation.Language } -> Html Msg
-viewSaveIndicator { saveStatus, objects, currentTime, language } =
+viewSaveIndicator : { m | objects : Objects.Model, dirty : Bool, lastCommitSaved : Maybe Time.Posix, lastFileSaved : Maybe Time.Posix, currentTime : Time.Posix, language : Translation.Language } -> Html Msg
+viewSaveIndicator { objects, dirty, lastCommitSaved, lastFileSaved, currentTime, language } =
     let
-        lastCommitTime =
-            objects.commits
-                |> Dict.toList
-                |> List.sortBy (\( k, v ) -> -v.timestamp)
-                |> List.map (\( k, v ) -> v.timestamp)
-                |> List.head
-                |> Maybe.withDefault 0
-                |> toFloat
-
         lastChangeString =
             timeDistInWords
                 language
-                (lastCommitTime |> round |> Time.millisToPosix)
+                (lastCommitSaved |> Maybe.withDefault (Time.millisToPosix 0))
                 currentTime
-    in
-    div
-        [ id "save-indicator", classList [ ( "inset", True ), ( "saving", saveStatus == Unsaved ) ] ]
-        [ case saveStatus of
-            Unsaved ->
+
+        saveStateSpan =
+            if dirty then
                 span [ title (tr language LastSaved ++ " " ++ lastChangeString) ] [ text <| tr language UnsavedChanges ]
 
-            SavedDB ->
-                span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language SavedInternally ]
+            else
+                case ( lastCommitSaved, lastFileSaved ) of
+                    ( Nothing, Nothing ) ->
+                        span [] [ text <| tr language NeverSaved ]
 
-            Saved ->
-                span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language ChangesSaved ]
+                    ( Just commitTime, Nothing ) ->
+                        span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language SavedInternally ]
 
-        ]
+                    ( Just commitTime, Just fileTime ) ->
+                        span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language ChangesSaved ]
+
+                    ( Nothing, Just fileTime ) ->
+                        span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language DatabaseError ]
+    in
+    div
+        [ id "save-indicator", classList [ ( "inset", True ), ( "saving", dirty ) ] ]
+        [ saveStateSpan ]
 
 
 viewSearchField : { m | viewState : ViewState, language : Language } -> Html Msg
@@ -81,7 +80,7 @@ viewSearchField { viewState, language } =
                 []
 
 
-viewFooter : { m | viewState : ViewState, workingTree : Trees.Model, startingWordcount : Int, shortcutTrayOpen : Bool, wordcountTrayOpen : Bool, language : Language, isMac : Bool, textCursorInfo : TextCursorInfo} -> Html Msg
+viewFooter : { m | viewState : ViewState, workingTree : Trees.Model, startingWordcount : Int, shortcutTrayOpen : Bool, wordcountTrayOpen : Bool, language : Language, isMac : Bool, textCursorInfo : TextCursorInfo } -> Html Msg
 viewFooter model =
     let
         isTextSelected =

@@ -1,4 +1,5 @@
-const { app, BrowserWindow, dialog, Menu, ipcMain, Notification } = require("electron");
+const { app, BrowserWindow, dialog, Menu, Notification } = require("electron");
+const { ipcMain: ipc } = require("electron-better-ipc");
 import { autoUpdater } from "electron-updater";
 const fs = require("fs-extra");
 const path = require("path");
@@ -25,8 +26,6 @@ unhandled();
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let documentWindows = [];
-let docWindowMenuStates = {};
-let docWindowData = {};
 let winTrial, winSerial, winHome;
 let _untitledDocs = 0
 let _menuQuit = false
@@ -69,65 +68,65 @@ function createHomeWindow() {
 
   winHome.loadURL(url);
   winHome.hideMenu = true;
+  winHome.mainState = { menuState: false };
 
-  updateMenu(null, false, winHome);
+  updateMenu(winHome, null);
 
   winHome.on("closed", () => {
     winHome = null;
   });
 }
 
-function createDocumentWindow(
-  swapFolderPath,
-  originalPath,
-  legacyFormat,
-  jsonImportData
-) {
-  let mainWindowState = windowStateKeeper({
+function createDocumentWindow(docParams) {
+  const { swapFolderPath, originalPath, legacyFormat, jsonImportData, lastSavedToFile } = docParams;
+  const windowState = windowStateKeeper({
     defaultWidth: 1000,
     defaultHeight: 800,
     file: `window-state-${sha1(swapFolderPath)}.json`
   });
 
   // Create the browser window.
-  var win = new BrowserWindow({
-    width: mainWindowState.width,
-    height: mainWindowState.height,
-    x: mainWindowState.x || documentWindows.length * 30,
-    y: mainWindowState.y || documentWindows.length * 30,
+  const win = new BrowserWindow({
+    width: windowState.width,
+    height: windowState.height,
+    x: windowState.x || documentWindows.length * 30,
+    y: windowState.y || documentWindows.length * 30,
     show: false,
     backgroundColor: "#32596b",
     icon: `${__dirname}/static/leaf128.png`,
     webPreferences: { nodeIntegration: true }
   });
-
+  windowState.manage(win);
   documentWindows.push(win);
-  docWindowMenuStates[win.id] =
-    { "editMode": false
-    , "columnNumber" : 1
-    , "changed" : !!jsonImportData
-    , "lastExportPath" : false
-    , "isNew": !originalPath || jsonImportData
-    , "recentDocumentList": docList.getRecentDocs()
+
+
+  // Passed to doc.js to initialize the app
+  win.initialDocState =
+    { dbPath: [(legacyFormat ? swapFolderPath : path.join(swapFolderPath,"leveldb")), originalPath]
+    , lastSavedToFile
+    , changed: !!jsonImportData
     };
 
-  mainWindowState.manage(win);
+  // State that's local to the Main process (this file).
+  // win is an object in this Main process, and
+  // doesn't share memory with the renderer process.
+  win.mainState =
+    { swapFolderPath
+    , originalPath
+    , legacyFormat
+    , menuState:
+      { editMode: false
+      , columnNumber : 1
+      , changed : !!jsonImportData
+      , lastExportPath : false
+      , isNew: !originalPath || jsonImportData
+      , recentDocumentList: docList.getRecentDocs()
+      }
+    }
 
-  // Add swapFolderPath variable to initialization data
-  _.set(docWindowData, [win.id, "swapFolderPath"], swapFolderPath);
 
-  // Add dbPath variable to initialization data
-  if (legacyFormat) {
-    _.set(docWindowData, [win.id, "originalPath"], legacyFormat.dbname);
-    _.set(docWindowData, [win.id, "legacyFormat"], legacyFormat);
-    _.set(docWindowData, [win.id, "dbPath"], swapFolderPath);
-  } else {
-    _.set(docWindowData, [win.id, "originalPath"], originalPath);
-    _.set(docWindowData, [win.id, "dbPath"], path.join(swapFolderPath, "leveldb"));
-  }
-
+  // Set document title bar
   let newTitle = "";
-
   if (originalPath) {
     newTitle = `${path.basename(originalPath)} - Gingko`;
   } else if (legacyFormat) {
@@ -140,14 +139,15 @@ function createDocumentWindow(
     _untitledDocs += 1;
   }
   win.setTitle(newTitle);
-  _.set(docWindowData, [win.id, "jsonImportData"], jsonImportData);
 
-  var url = `file://${__dirname}/static/index.html`;
-  win.loadURL(url);
+
+  // Load the document HTML & show when ready
+  win.loadFile(`${__dirname}/static/index.html`);
 
   win.on("ready-to-show", () => {
     win.show();
   });
+
 
   // Emitted when the window is closed.
   win.on("closed", () => {
@@ -191,10 +191,11 @@ function validSerial(email, storedSerial) {
 
 /* ==== Menu ==== */
 
-function updateMenu(menuState, lang, win) {
+function updateMenu(win, lang) {
   lang = lang || userStore.get("language") || "en";
-  let originalPath = _.get(docWindowData, [win.id, "originalPath"]);
-  let legacyFormat = _.get(docWindowData, [win.id, "legacyFormat"]);
+  const originalPath = win.mainState && win.mainState.originalPath;
+  const legacyFormat = win.mainState && win.mainState.legacyFormat;
+  const menuState = win.mainState && win.mainState.menuState;
 
   if (menuState) {
     menuState.recentDocumentList = docList.getRecentDocs();
@@ -216,10 +217,8 @@ function updateMenu(menuState, lang, win) {
         let saveAsReturn = legacyFormat ? await saveLegacyDocumentAs(focusedWindow) : await saveDocumentAs(focusedWindow);
         if (saveAsReturn && saveAsReturn.filepath) {
           focusedWindow.webContents.send("main:saved-file");
-          _.set(docWindowData, [focusedWindow.id, "originalPath"], saveAsReturn.filepath);
-          let focusedWinMenuState = docWindowMenuStates[focusedWindow.id];
-          focusedWinMenuState.isNew = false;
-          updateMenu(focusedWinMenuState, false, focusedWindow);
+          focusedWindow.mainState.menuState.isNew = false;
+          updateMenu(focusedWindow, false);
         }
       }
     , import : importDocument
@@ -231,8 +230,7 @@ function updateMenu(menuState, lang, win) {
       }
     , language : (lang, focusedWindow) => {
         focusedWindow.webContents.send("menu-language-select", lang);
-        let focusedWinMenuState = docWindowMenuStates[focusedWindow.id];
-        updateMenu(focusedWinMenuState, lang, focusedWindow);
+        updateMenu(focusedWindow, lang);
       }
     };
 
@@ -251,93 +249,78 @@ function updateMenu(menuState, lang, win) {
 }
 
 app.on("browser-window-focus", (ev, win) => {
-  updateMenu(docWindowMenuStates[win.id], false, win);
+  updateMenu(win, false);
 });
 
 
-ipcMain.on("doc:get-initial-data", (event, arg) => {
+ipc.on("doc:column-number-change", (event, cols) => {
   let win = BrowserWindow.fromWebContents(event.sender);
-  event.returnValue = docWindowData[win.id];
-});
-
-
-ipcMain.on("doc:column-number-change", (event, cols) => {
-  let win = BrowserWindow.fromWebContents(event.sender);
-  if (win) {
-    let menuState = docWindowMenuStates[win.id];
-    if (menuState.columnNumber !== cols) {
-      _.set(menuState, "columnNumber", cols);
-      updateMenu(menuState, false, win);
+  if (win && win.mainState.menuState) {
+    if (win.mainState.menuState.columnNumber !== cols) {
+      win.mainState.menuState.columnNumber = cols;
+      updateMenu(win, false);
     }
   }
 });
 
 
-ipcMain.on("doc:edit-mode-toggle", (event, isEditing) => {
+ipc.on("doc:edit-mode-toggle", (event, isEditing) => {
   let win = BrowserWindow.fromWebContents(event.sender);
-  if (win) {
-    let menuState = docWindowMenuStates[win.id];
-    if (menuState.editMode !== isEditing) {
-      _.set(menuState, "editMode", isEditing);
-      updateMenu(menuState, false, win);
+  if (win && win.mainState.menuState) {
+    if (win.mainState.menuState.editMode !== isEditing) {
+      win.mainState.menuState.editMode = isEditing;
+      updateMenu(win, false);
     }
   }
 });
 
 
-ipcMain.on("doc:last-export-set", (event, lastPath) => {
+ipc.on("doc:last-export-set", (event, lastPath) => {
   let win = BrowserWindow.fromWebContents(event.sender);
-  if (win) {
-    let menuState = docWindowMenuStates[win.id];
-    if (menuState.lastExportPath !== lastPath) {
-      _.set(menuState, "lastExportPath", lastPath);
-      updateMenu(menuState, false, win);
+  if (win && win.mainState.menuState) {
+    if (win.mainState.menuState.lastExportPath !== lastPath) {
+      menuState.lastExportPath = lastPath;
+      updateMenu(win, false);
     }
   }
 });
 
 
-ipcMain.on("doc:save", async (event) => {
+ipc.on("doc:save", async (event) => {
   let win = BrowserWindow.fromWebContents(event.sender);
-  if (win && _.get(docWindowData, [win.id, "originalPath"], false)) {
+  if (win && win.mainState.originalPath) {
     let saveReturn = await saveDocument(win);
     if (saveReturn) {
       if(process.platform == "win32") {
         win.webContents.send("main:database-open");
       }
       setDocumentChanged(win, false);
-      win.webContents.send("main:saved-file");
     }
   }
 });
 
 
-ipcMain.on("doc:save-as", async (event) => {
-  let win = BrowserWindow.fromWebContents(event.sender);
-  let originalPath = _.get(docWindowData, [win.id, "originalPath"]);
-  let legacyFormat = _.get(docWindowData, [win.id, "legacyFormat"]);
+ipc.on("doc:save-as", async (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
 
   if (win) {
-    let saveAsReturn = legacyFormat ? await saveLegacyDocumentAs(win) : await saveDocumentAs(win);
+    const saveAsReturn = win.mainState.legacyFormat ? await saveLegacyDocumentAs(win) : await saveDocumentAs(win);
     if (saveAsReturn && saveAsReturn.filepath) {
-      win.webContents.send("main:saved-file");
-      _.set(docWindowData, [win.id, "originalPath"], saveAsReturn.filepath);
-      let focusedWinMenuState = docWindowMenuStates[win.id];
-      focusedWinMenuState.isNew = false;
-      updateMenu(focusedWinMenuState, false, win);
+      win.mainState.menuState.isNew = false;
+      updateMenu(win, false);
     }
   }
 });
 
 
-ipcMain.on("doc:set-changed", (event, changed) => {
+ipc.on("doc:set-changed", (event, changed) => {
   let win = BrowserWindow.fromWebContents(event.sender);
   if (win) {
     setDocumentChanged(win, changed);
   }
 });
 
-ipcMain.on("doc:language-changed", (event, data) => {
+ipc.on("doc:language-changed", (event, data) => {
   lang = data;
 });
 
@@ -433,7 +416,7 @@ async function newUntitled() {
   const swapFolderPath = path.join(app.getPath("userData"), swapRandomName);
   try {
     await fio.newSwapFolder(swapFolderPath);
-    createDocumentWindow(swapFolderPath, null);
+    createDocumentWindow({swapFolderPath, originalPath : null});
   } catch (err) {
     if (err instanceof GingkoError && err.message.includes("Swap folder already exists")) {
       // TODO: Handle this unlikely case
@@ -460,7 +443,7 @@ async function openWithDialog() {
 async function openDocumentOrFolder(dbToLoad, docName) {
   if (/^[a-f0-9]{40}$/i.test(dbToLoad)) {
     const swapPath = path.join(app.getPath("userData"), dbToLoad);
-    createDocumentWindow(swapPath, null, { name: docName, dbname: dbToLoad });
+    createDocumentWindow({swapFolderPath : swapPath, originalPath : null, legacyFormat : { name: docName, dbname: dbToLoad }});
     await addToRecentDocuments(dbToLoad);
     return true;
   } else if (path.isAbsolute(dbToLoad) && fs.pathExistsSync(dbToLoad)) {
@@ -484,8 +467,9 @@ async function openDocumentOrFolder(dbToLoad, docName) {
 
 async function openDocument(filepath) {
   try {
-    let swapFolderPath = await fio.openFile(filepath);
-    createDocumentWindow(swapFolderPath, filepath);
+    const swapFolderPath = await fio.openFile(filepath);
+
+    createDocumentWindow({swapFolderPath, originalPath: filepath, lastSavedToFile: (await fs.stat(filepath)).mtimeMs });
     await addToRecentDocuments(filepath);
     return filepath;
   } catch (err) {
@@ -497,7 +481,7 @@ async function openDocument(filepath) {
     //   - "Recover" (load from swap)
     //   - "Discard" (load from file)
     if (err instanceof GingkoError && err.message.includes("Swap folder already exists")) {
-      let existingDoc = documentWindows.filter(dW => _.get(docWindowData, [dW.id, "swapFolderPath"]) == err.data)[0];
+      let existingDoc = documentWindows.filter(dW => dW.mainState.swapFolderPath == err.data)[0];
       if (existingDoc) {
         existingDoc.focus();
       } else {
@@ -523,7 +507,7 @@ async function openDocument(filepath) {
 
           // Recover
           case 2:
-            createDocumentWindow(err.data, filepath);
+            createDocumentWindow({swapFolderPath: err.data, originalPath: filepath});
             addToRecentDocuments(filepath);
             break;
         }
@@ -549,7 +533,7 @@ async function importDocument() {
   if (filePaths && filePaths[0]) {
     try {
       let { swapFolderPath, jsonImportData } = await fio.importJSON( filePaths[0] );
-      createDocumentWindow(swapFolderPath, null, null, jsonImportData);
+      createDocumentWindow({ swapFolderPath, jsonImportData });
     } catch (err) {
       if (err.message.includes("Unexpected token")) {
         await dialog.showMessageBox(
@@ -576,11 +560,16 @@ async function importDocument() {
  */
 
 async function saveDocument (docWindow) {
-  let swapFolderPath = _.get(docWindowData, [docWindow.id, "swapFolderPath"]);
   try {
     if (process.platform === "win32") { docWindow.webContents.send("main:database-close"); }
-    const filepath = await fio.saveSwapFolder(swapFolderPath);
-    return filepath;
+    const filePath = await fio.saveSwapFolder(docWindow.mainState.swapFolderPath);
+    ipc.callRenderer(docWindow,
+      "set-doc-state",
+        { lastSavedToFile: (await fs.stat(filePath)).mtimeMs
+        , changed: false
+        }
+    );
+    return filePath;
   } catch (err) {
     // TODO
     throw err;
@@ -606,8 +595,8 @@ async function saveDocumentAs(docWindow) {
     filters: [{ name: "Gingko Files (*.gko)", extensions: ["gko"] }]
   };
 
-  let originalPath = _.get(docWindowData, [docWindow.id, "originalPath"]);
-  let swapFolderPath = _.get(docWindowData, [docWindow.id, "swapFolderPath"]);
+  let originalPath  = docWindow.mainState.originalPath;
+  let swapFolderPath= docWindow.mainState.swapFolderPath;
 
   const {filePath : newFilepath} = await dialog.showSaveDialog(docWindow, saveOptions);
 
@@ -622,13 +611,20 @@ async function saveDocumentAs(docWindow) {
   if (newFilepath) {
     try {
       if (process.platform === "win32") {
-        docWindow.webContents.send("main:database-close"); 
+        docWindow.webContents.send("main:database-close");
       }
       const newSwapFolderPath = await fio.saveSwapFolderAs(swapFolderPath, newFilepath);
-      _.set(docWindowData, [docWindow.id, "swapFolderPath"], newSwapFolderPath);
+      ipc.callRenderer(docWindow,
+        "set-doc-state",
+          { dbPath: [path.join(newSwapFolderPath, "leveldb"), newFilepath]
+          , lastSavedToFile: (await fs.stat(newFilepath)).mtimeMs
+          , changed: false
+          }
+      );
+      docWindow.mainState.swapFolderPath = newSwapFolderPath;
+      docWindow.mainState.originalPath = newFilepath;
       await addToRecentDocuments(newFilepath);
       docWindow.setTitle(`${path.basename(newFilepath)} - Gingko`);
-      docWindow.webContents.send("main:set-swap-folder", [path.join(newSwapFolderPath,"leveldb"), newFilepath]);
       return { "filepath" : newFilepath, "swapFolderPath" : newSwapFolderPath };
     } catch (err) {
       // TODO
@@ -650,8 +646,8 @@ async function saveDocumentAs(docWindow) {
  */
 
 async function saveLegacyDocumentAs (docWindow) {
-  let legacyFormat = _.get(docWindow, [docWindow.id, "legacyFormat"]);
-  let swapFolderPath = _.get(docWindow, [docWindow.id, "swapFolderPath"]);
+  const legacyFormat = docWindow.mainState.legacyFormat;
+  const swapFolderPath = docWindow.mainState.swapFolderPath;
 
   let saveOptions =
     { title: "Save As"
@@ -666,10 +662,10 @@ async function saveLegacyDocumentAs (docWindow) {
       if (process.platform === "win32") { docWindow.webContents.send("main:database-close"); }
       const newSwapFolderPath = await fio.saveLegacyFolderAs(swapFolderPath, legacyFormat.name, newFilepath);
       docList.setState(legacyFormat.dbname, "deprecated");
-      _.set(docWindowData, [docWindow.id, "swapFolderPath"], newSwapFolderPath);
+      docWindow.mainState.swapFolderPath = newSwapFolderPath;
+      docWindow.webContents.send("set-doc-state", { dbPath: [path.join(newSwapFolderPath,"leveldb"), newFilepath] });
       addToRecentDocuments(newFilepath);
       docWindow.setTitle(`${path.basename(newFilepath)} - Gingko`);
-      docWindow.webContents.send("main:set-swap-folder", [path.join(newSwapFolderPath,"leveldb"), newFilepath]);
       return { "filepath" : newFilepath, "swapFolderPath" : newSwapFolderPath };
     } catch (err) {
       // TODO
@@ -716,16 +712,15 @@ function removeFromRecentDocuments(filepath) {
 
 function setDocumentChanged(win, changed) {
   let currentTitle = win.getTitle();
-  let menuState = docWindowMenuStates[win.id];
 
   if(changed) {
     if(!currentTitle.startsWith("*")) {
       win.setTitle("*" + currentTitle);
     }
 
-    if (menuState.changed === false) {
-      _.set(menuState, "changed", true);
-      updateMenu(menuState, false, win);
+    if (win.mainState.menuState.changed === false) {
+      win.mainState.menuState.changed = true;
+      updateMenu(win, false);
       win.setDocumentEdited(true);
 
     }
@@ -733,9 +728,9 @@ function setDocumentChanged(win, changed) {
     win.setDocumentEdited(false);
     win.setTitle(currentTitle.replace(/^\*/, ""));
 
-    if (menuState.changed === true) {
-      _.set(menuState, "changed", false);
-      updateMenu(menuState, false, win);
+    if (win.mainState.menuState.changed === true) {
+      win.mainState.menuState.changed = false;
+      updateMenu(win, false);
     }
   }
 }
@@ -757,19 +752,19 @@ app.on("activate", () => {
   }
 });
 
-ipcMain.on("home:new", async event => {
+ipc.on("home:new", async event => {
   await newUntitled();
   winHome.close();
 });
 
-ipcMain.on("home:import-file", async event => {
+ipc.on("home:import-file", async event => {
   let didImport = await importDocument();
   if (didImport) {
     winHome.close();
   }
 });
 
-ipcMain.on("home:open", async (event, dbToLoad, docName) => {
+ipc.on("home:open", async (event, dbToLoad, docName) => {
   let didOpen = await openDocumentOrFolder(dbToLoad, docName);
 
   if (didOpen) {
@@ -779,7 +774,7 @@ ipcMain.on("home:open", async (event, dbToLoad, docName) => {
   }
 });
 
-ipcMain.on("home:open-other", async () => {
+ipc.on("home:open-other", async () => {
   let result = await openWithDialog();
 
   if (typeof result == "string") {
@@ -788,10 +783,10 @@ ipcMain.on("home:open-other", async () => {
 });
 
 
-ipcMain.on("doc:save-and-exit", async (event) => {
+ipc.on("doc:save-and-exit", async (event, isBlank) => {
   let docWindow = BrowserWindow.fromWebContents(event.sender);
-  let swapFolderPath = _.get(docWindowData, [docWindow.id, "swapFolderPath"]);
-  let legacyFormat = _.get(docWindowData, [docWindow.id, "legacyFormat"]);
+  let swapFolderPath = docWindow.mainState.swapFolderPath;
+  let legacyFormat = docWindow.mainState.legacyFormat;
   let swapStore = new Store({name: "swap", cwd: swapFolderPath})
   let originalPath = swapStore.get("filepath", false);
 
@@ -842,6 +837,12 @@ ipcMain.on("doc:save-and-exit", async (event) => {
       }
     } else {
       // Untitled/never-saved document
+      if(isBlank) {
+        await fio.deleteSwapFolder(docWindow.mainState.swapFolderPath);
+        await docWindow.destroy();
+        return;
+      }
+
       const confirmOptions = {
         title: tr.saveChanges[lang],
         message: tr.saveChangesMsg[lang],
@@ -881,7 +882,7 @@ ipcMain.on("doc:save-and-exit", async (event) => {
   }
 });
 
-ipcMain.on("license:serial", (event, msg) => {
+ipc.on("license:serial", (event, msg) => {
   let newEmail = msg[0];
   let newSerial = msg[1];
   if(validSerial(newEmail, newSerial)){
@@ -894,7 +895,7 @@ ipcMain.on("license:serial", (event, msg) => {
 })
 
 
-ipcMain.on("license:open-serial-window", (event, msg) => {
+ipc.on("license:open-serial-window", (event, msg) => {
   var parentWindow = BrowserWindow.fromWebContents(event.sender).getParentWindow();
   createSerialWindow(parentWindow, msg)
 })

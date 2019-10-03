@@ -18,59 +18,79 @@ import { Elm } from "../elm/Main";
 
 /* === Global Variables === */
 
-const userStore = container.userStore;
 var lastActivesScrolled = null
 var lastColumnScrolled = null
 var _lastFormat = null
 var _lastSelection = null
 var collab = {}
-self.savedObjectIds = [];
 
-const ActionOnData = Object.freeze(
-  { Exit : Symbol("Exit")
-  , Save : Symbol("Save")
-  , SaveAs : Symbol("SaveAs")
-  }
-);
-var actionOnData = ActionOnData.Save;
-
-const SaveState = Object.freeze(
-  { Changed: {Saved : Symbol("Changed.Saved"), SavedDB: Symbol("Changed.SavedDB")}
-  , SavedDB: Symbol("SavedDB")
-  , Saved: Symbol("Saved")
-  }
-);
-var saveState = SaveState.SavedDB;
+const ActionOnData =
+  { Exit: "Exit"
+  , Save: "Save"
+  , SaveAs: "SaveAs"
+  };
+let actionOnData = ActionOnData.Save;
 
 
 /* === Initializing App === */
 
+const userStore = container.userStore;
 var firstRun = userStore.get('first-run', true)
 var lang = userStore.get("language") || "en";
-var initialData = container.getInitialData();
-var jsonImportData = initialData.jsonImportData;
-var currentPath = initialData.originalPath;
-var dbPath = initialData.dbPath;
+self.savedObjectIds = [];
 
-self.db = new PouchDB(dbPath);
+
+const docStateHandlers = {
+  set: function(obj, prop, value) {
+    if (typeof gingko !== "undefined") {
+      switch(prop) {
+        case "headRev":
+          toElm("SetHeadRev", value);
+          break;
+
+        case "lastSavedToFile":
+          toElm("SetLastFileSaved", value);
+          break;
+
+        case "lastSavedToDB":
+          toElm("SetLastCommitSaved", value);
+          break;
+
+        case "changed":
+          container.sendTo("doc:set-changed", value);
+          break;
+      }
+    }
+    obj[prop] = value;
+    return true;
+  }
+};
+const docState = new Proxy(container.getInitialDocState(), docStateHandlers);
+
+container.answerMain("set-doc-state", data => {
+  Object.assign(docState, data);
+});
+
+self.db = new PouchDB(docState.dbPath[0]);
 container.msgWas("database-close", async () => {
   await db.close();
 });
 container.msgWas("database-open", async () => {
-  self.db = new PouchDB(dbPath);
+  self.db = new PouchDB(docState.dbPath[0]);
 });
 
-if(!!jsonImportData) {
-  saveState = SaveState.SavedDB;
-  var initFlags =
-    [ jsonImportData
+if (docState.jsonImportData) {
+  const initFlags =
+    [ docState.jsonImportData
       , { language : lang
         , isMac : process.platform === "darwin"
         , shortcutTrayOpen : userStore.get('shortcut-tray-is-open', true)
         , videoModalOpen : userStore.get('video-modal-is-open', false)
         , currentTime : Date.now()
-        , lastActive : getLastActive(currentPath)
-        , fonts : getFonts(currentPath)
+        , lastCommitSaved : null
+        , lastFileSaved : null
+        , lastActive : getLastActive(docState.dbPath[1])
+        , fonts : getFonts(docState.dbPath[1])
         }
       , false // isSaved
     ]
@@ -81,19 +101,21 @@ if(!!jsonImportData) {
 
     savedObjectIds = Object.keys(dbData[1].commits).concat(Object.keys(dbData[1].treeObjects))
 
-    saveState = currentPath ? SaveState.Saved : SaveState.SavedDB;
+    docState.lastSavedToDB = Object.values(dbData[1].commits).map(c => c.timestamp).sort().slice(-1)[0];
 
-    var initFlags =
+    const initFlags =
       [ dbData
         , { language : lang
           , isMac : process.platform === "darwin"
           , shortcutTrayOpen : userStore.get('shortcut-tray-is-open', true)
           , videoModalOpen : userStore.get('video-modal-is-open', false)
           , currentTime : Date.now()
-          , lastActive : getLastActive(currentPath)
-          , fonts : getFonts(currentPath)
+          , lastCommitSaved : docState.lastSavedToDB || null
+          , lastFileSaved : docState.lastSavedToFile || null
+          , lastActive : getLastActive(docState.dbPath[1])
+          , fonts : getFonts(docState.dbPath[1])
           }
-        , !!currentPath // isSaved
+        , !!docState.dbPath[1] // isSaved
       ]
 
     initElmAndPorts(initFlags);
@@ -179,12 +201,7 @@ const update = (msg, data) => {
       "Alert": () => { alert(data) }
 
     , "SetChanged" : () => {
-        container.sendTo("doc:set-changed", data);
-        if (saveState == SaveState.SavedDB) {
-          saveState = SaveState.Changed.SavedDB;
-        } else if (saveState == SaveState.Saved) {
-          saveState = SaveState.Changed.Saved;
-        }
+        docState.changed = data;
       }
 
     , "ConfirmCancelCard": () => {
@@ -194,14 +211,7 @@ const update = (msg, data) => {
           console.log("tarea not found")
         } else {
           if(tarea.value === data[1] || confirm(tr.areYouSureCancel[lang])) {
-            container.sendTo("doc:set-changed", false);
-            if(saveState == SaveState.Changed.SavedDB){
-              saveState = SaveState.SavedDB;
-              toElm("SetSaveStatus", "SavedDB");
-            } else if(saveState == SaveState.Changed.Saved){
-              saveState = SaveState.Saved;
-              toElm("SetSaveStatus", "Saved");
-            }
+            docState.changed = false;
             toElm("CancelCardConfirmed", null);
           }
         }
@@ -219,9 +229,9 @@ const update = (msg, data) => {
 
     , "SaveToDB": async () => {
         try {
-          var newHeadRev = await saveToDB(data[0], data[1])
-          saveState = SaveState.SavedDB;
-          toElm("SetHeadRev", newHeadRev)
+          const { headRev, lastSavedToDB } = await saveToDB(data[0], data[1]);
+          docState.headRev = headRev;
+          docState.lastSavedToDB = lastSavedToDB;
 
           switch(actionOnData) {
             case ActionOnData.Save:
@@ -234,7 +244,13 @@ const update = (msg, data) => {
               break;
 
             case ActionOnData.Exit:
-              container.sendTo("doc:save-and-exit");
+              if (data[1].commits.length == 1 && data[1].commits[0].tree == "38b64ce2726abefc56db43a526ba88269c946751") {
+                // Empty document with blank initial commit
+                // Should close without saving.
+                container.sendTo("doc:save-and-exit", true);
+              } else {
+                container.sendTo("doc:save-and-exit", false);
+              }
               actionOnData = ActionOnData.Save;
               break;
           }
@@ -292,7 +308,7 @@ const update = (msg, data) => {
         lastActivesScrolled = data.lastActives;
         lastColumnScrolled = data.column;
 
-        setLastActive(currentPath, data.cardId);
+        setLastActive(docState.dbPath[1], data.cardId);
         helpers.scrollHorizontal(data.column);
         helpers.scrollColumns(data.lastActives);
       }
@@ -350,7 +366,7 @@ const update = (msg, data) => {
         userStore.set("video-modal-is-open", data)
       }
 
-    , "SetFonts": () => { setFonts(currentPath, data);}
+    , "SetFonts": () => { setFonts(docState.dbPath[1], data);}
 
     , "SetShortcutTray": () => {
         userStore.set("shortcut-tray-is-open", data)
@@ -387,15 +403,6 @@ function intentExportToElm ( format, selection, filepath) {
   _lastSelection = selection;
   toElm("IntentExport", { format: format, selection : selection, filepath: filepath} );
 }
-
-container.msgWas("main:set-swap-folder", async (e, newPaths) => {
-  self.db = new PouchDB(newPaths[0]);
-  currentPath = newPaths[1];
-});
-
-container.msgWas("main:saved-file", () => {
-  toElm("SetSaveStatus", "Saved");
-});
 
 
 container.msgWas("menu-close-document", () => { actionOnData = ActionOnData.Exit; toElm("GetDataToSave", null); });
@@ -606,12 +613,13 @@ self.saveToDB = (status, objects) => {
         status['_rev'] = statusDoc._rev
       }
 
+      const lastSavedToDB = Object.values(objects.commits).map(c => c.timestamp).sort().slice(-1)[0];
 
       // Filter out object that are already saved in database
-      objects.commits = objects.commits.filter( o => !savedObjectIds.includes(o._id))
-      objects.treeObjects = objects.treeObjects.filter( o => !savedObjectIds.includes(o._id))
+      const newCommits = objects.commits.filter( o => !savedObjectIds.includes(o._id))
+      const newTreeObjects = objects.treeObjects.filter( o => !savedObjectIds.includes(o._id))
 
-      let toSave = objects.commits.concat(objects.treeObjects).concat(objects.refs).concat([status]);
+      const toSave = [...newCommits, ...newTreeObjects, ...objects.refs, ...[status]];
 
       try {
         var responses = await db.bulkDocs(toSave)
@@ -624,9 +632,8 @@ self.saveToDB = (status, objects) => {
 
       let head = responses.filter(r => r.id == "heads/master")[0]
       if (head.ok) {
-        resolve(head.rev)
+        resolve({ headRev: head.rev, lastSavedToDB });
       } else {
-        console.log(responses);
         reject(new Error(`Reference error when saving to DB.\n${head}`))
         return;
       }
@@ -704,13 +711,10 @@ const debouncedScrollHorizontal = _.debounce(helpers.scrollHorizontal, 200)
 
 
 const editingInputHandler = function(ev) {
-  if (saveState == SaveState.Saved) {
-    saveState = SaveState.Changed.Saved;
-  } else if (saveState == SaveState.SavedDB) {
-    saveState = SaveState.Changed.SavedDB;
+  if(docState.changed !== true) {
+    docState.changed = true;
   }
-  toElm('FieldChanged', ev.target.value);
-  container.sendTo("doc:set-changed", true);
+  toElm("FieldChanged", ev.target.value);
   selectionHandler(ev);
   //collab.field = ev.target.value
   //socket.emit('collab', collab)

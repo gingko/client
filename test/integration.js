@@ -9,12 +9,12 @@ const { unlink } = require('fs')
 const { promisify } = require('util')
 
 
-const app = new Application({
-      path: electronPath,
-      args: [path.join(__dirname, "../app")]
-    });
-
 describe('Application Start', function () {
+  const app = new Application({
+        path: electronPath,
+        args: [path.join(__dirname, "../app")]
+      });
+
   this.timeout(10000)
 
   beforeEach(() => {

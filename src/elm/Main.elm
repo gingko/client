@@ -55,62 +55,36 @@ main =
    `objects` contains the current state of the version history data. It's what
    gets saved to the database. It's defined in Objects.elm.
 
-   Complete list of fields:
-
-   workingTree : Current state of the document
-
-   objects : The history data
-
-   status : Status of the history = Bare | Clean ... | MergeConflict ...
-
-   debouncerStateCommit : Debouncer is used to prevent trying to commit too often
-
-   uid : Unique user/device id, for realtime collaboration.
-
-   viewState : Stores which card is active, edit mode, which is being dragged, etc.
-
-   field : Edited card's field value. Updated by onChange handler in the textarea.
-
-   isMac : Set at init, allows us to show mac-specific content (e.g. ⌘ in shortcuts)
-
-   isTextSelected : Set by JS, allows us to show text-selection-only shortcuts (e.g. Bold).
-
-   shortcutTrayOpen : Is the small shortcut reference tray open or closed?
-
-   videoModalOpen : Is the video tutorial modal open or closed? (Unused for now).
-
-   startingWordcount : Word count on open. To see how many words were written in this session.
-
-   historyState : State for the display of version history = Closed | From startingSha
-
-   online : Are we online or not, in order to attempt to sync. (Unused for now).
-
-   changed : Has the document been changed since load?
-
-   currentTime : Updated every 15 seconds. For use in , e.g. "Last saved X minutes ago".
 -}
 
 
 type alias Model =
+    -- Document state
     { workingTree : Trees.Model
     , objects : Objects.Model
     , status : Status
-    , debouncerStateCommit : Debouncer () ()
-    , uid : String
+
+    -- Transient state
     , viewState : ViewState
+    , dirty : Bool
+    , lastCommitSaved : Maybe Time.Posix
+    , lastFileSaved : Maybe Time.Posix
     , field : String
-    , language : Translation.Language
-    , isMac : Bool
     , textCursorInfo : TextCursorInfo
+    , debouncerStateCommit : Debouncer () ()
     , shortcutTrayOpen : Bool
     , wordcountTrayOpen : Bool
     , videoModalOpen : Bool
     , fontSelectorOpen : Bool
-    , fonts : Fonts.Model
-    , startingWordcount : Int
     , historyState : HistoryState
     , online : Bool
-    , saveStatus : SaveStatus
+
+    -- Settings
+    , uid : String
+    , language : Translation.Language
+    , isMac : Bool
+    , fonts : Fonts.Model
+    , startingWordcount : Int
     , currentTime : Time.Posix
     , seed : Random.Seed
     }
@@ -128,6 +102,8 @@ type alias InitModel =
     , isMac : Bool
     , shortcutTrayOpen : Bool
     , videoModalOpen : Bool
+    , lastCommitSaved : Maybe Int
+    , lastFileSaved : Maybe Float
     , currentTime : Int
     , lastActive : String
     , fonts : Maybe ( String, String, String )
@@ -156,6 +132,9 @@ defaultModel =
         , copiedTree = Nothing
         , collaborators = []
         }
+    , dirty = False
+    , lastCommitSaved = Nothing
+    , lastFileSaved = Nothing
     , field = ""
     , textCursorInfo = { selected = False, position = End }
     , isMac = False
@@ -168,7 +147,6 @@ defaultModel =
     , startingWordcount = 0
     , historyState = Closed
     , online = False
-    , saveStatus = SavedDB
     , currentTime = Time.millisToPosix 0
     , seed = Random.initialSeed 12345
     }
@@ -189,24 +167,21 @@ defaultModel =
 init : ( Json.Value, InitModel, Bool ) -> ( Model, Cmd Msg )
 init ( dataIn, modelIn, isSaved ) =
     let
-        (( newStatus, newTree_, newObjects ), newSaveStatus) =
+        ( newStatus, newTree_, newObjects ) =
             case Json.decodeValue treeDecoder dataIn of
                 Ok newTreeDecoded ->
                     {- The JSON was successfully decoded by treeDecoder.
                        We need to create the first commit to the history.
                     -}
-                    (Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" modelIn.currentTime newTreeDecoded) defaultModel.objects
+                    Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" modelIn.currentTime newTreeDecoded) defaultModel.objects
                         |> (\( s, _, o ) -> ( s, Just newTreeDecoded, o ))
-                    , Unsaved)
 
                 Err err ->
                     {- If treeDecoder fails, we assume that this was a
                        load from the database instead. See Objects.elm for
                        how the data is converted from JSON to type Objects.Model
                     -}
-                    ( Objects.update (Objects.Init dataIn) defaultModel.objects
-                    , Saved
-                    )
+                    Objects.update (Objects.Init dataIn) defaultModel.objects
 
         newTree =
             Maybe.withDefault Trees.defaultTree newTree_
@@ -229,7 +204,8 @@ init ( dataIn, modelIn, isSaved ) =
         , videoModalOpen = modelIn.videoModalOpen
         , startingWordcount = startingWordcount
         , currentTime = Time.millisToPosix modelIn.currentTime
-        , saveStatus = newSaveStatus
+        , lastCommitSaved = Maybe.map Time.millisToPosix modelIn.lastCommitSaved
+        , lastFileSaved = Maybe.map (Time.millisToPosix << round) modelIn.lastFileSaved
         , seed = Random.initialSeed modelIn.currentTime
         , fonts = Fonts.init modelIn.fonts
       }
@@ -426,7 +402,7 @@ update msg ({ objects, workingTree, status } as model) =
                                                 ((getParent id model.workingTree.tree |> Maybe.map .id) |> Maybe.withDefault "0")
                                                 ((getIndex id model.workingTree.tree |> Maybe.withDefault 0) + 1)
                             in
-                            ( { modelDragUpdated | viewState = { vs | draggedTree = Nothing } }, Cmd.none )
+                            ( { modelDragUpdated | viewState = { vs | draggedTree = Nothing }, dirty = True }, sendOut <| SetChanged True )
                                 |> moveOperation
 
                         Nothing ->
@@ -739,6 +715,7 @@ update msg ({ objects, workingTree, status } as model) =
                                 , Cmd.none
                                 )
                                     |> addToHistoryDo
+
                             else
                                 ( model
                                 , sendOut (SaveToDB ( statusToValue model.status, Objects.toValue model.objects ))
@@ -751,14 +728,23 @@ update msg ({ objects, workingTree, status } as model) =
                 SetHeadRev rev ->
                     ( { model
                         | objects = Objects.setHeadRev rev model.objects
-                        , saveStatus = SavedDB
+                        , dirty = False
                       }
                     , Cmd.none
                     )
                         |> push
 
-                SetSaveStatus saveStatus ->
-                    ( { model | saveStatus = saveStatus }
+                SetLastCommitSaved time_ ->
+                    ( { model
+                        | lastCommitSaved = time_
+                      }
+                    , Cmd.none
+                    )
+
+                SetLastFileSaved time_ ->
+                    ( { model
+                        | lastFileSaved = time_
+                      }
                     , Cmd.none
                     )
 
@@ -837,7 +823,7 @@ update msg ({ objects, workingTree, status } as model) =
                 FieldChanged str ->
                     ( { model
                         | field = str
-                        , saveStatus = Unsaved
+                        , dirty = True
                       }
                     , Cmd.none
                     )
@@ -1200,7 +1186,8 @@ activate id ( model, prevCmd ) =
                             |> List.map (\c -> List.map (\g -> List.map .id g) c)
                             |> List.map List.concat
 
-                    newField = activeTree.content
+                    newField =
+                        activeTree.content
 
                     allIds =
                         anc
@@ -1355,10 +1342,8 @@ saveCardIfEditing ( model, prevCmd ) =
                     |> addToHistory
 
             else
-                ( { model
-                    | saveStatus = SavedDB
-                  }
-                , Cmd.batch [ prevCmd, sendOut (SetChanged False) ]
+                ( { model | dirty = False }
+                , Cmd.batch [ prevCmd, sendOut <| SetChanged False ]
                 )
 
 
@@ -1470,7 +1455,7 @@ deleteCard id ( model, prevCmd ) =
         ( { model
             | workingTree = Trees.update (Trees.Rmv id) model.workingTree
           }
-        , prevCmd
+        , Cmd.batch [ prevCmd, sendOut <| SetChanged True ]
         )
             |> maybeColumnsChanged model.workingTree.columns
             |> activate nextToActivate
@@ -1687,7 +1672,6 @@ move : Tree -> String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 move subtree pid pos ( model, prevCmd ) =
     ( { model
         | workingTree = Trees.update (Trees.Mov subtree pid pos) model.workingTree
-        , saveStatus = Unsaved
       }
     , prevCmd
     )
@@ -2002,7 +1986,6 @@ addToHistoryDo ( { workingTree, currentTime } as model, prevCmd ) =
             ( { model
                 | objects = newObjects
                 , status = newStatus
-                , saveStatus = Unsaved
               }
             , Cmd.batch
                 [ prevCmd
@@ -2019,7 +2002,6 @@ addToHistoryDo ( { workingTree, currentTime } as model, prevCmd ) =
             ( { model
                 | objects = newObjects
                 , status = newStatus
-                , saveStatus = Unsaved
               }
             , Cmd.batch
                 [ prevCmd
@@ -2037,7 +2019,6 @@ addToHistoryDo ( { workingTree, currentTime } as model, prevCmd ) =
                 ( { model
                     | objects = newObjects
                     , status = newStatus
-                    , saveStatus = Unsaved
                   }
                 , Cmd.batch
                     [ prevCmd
