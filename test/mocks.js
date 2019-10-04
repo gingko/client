@@ -1,13 +1,13 @@
 module.exports = function(dialog, mockChoice, mockSavePath, mockOpenPathArray) {
   dialog.showMessageBox = (options) => {
-    return mockChoice
+    return { response: Number(mockChoice) };
   }
 
   dialog.showSaveDialog = (options) => {
-    return mockSavePath
+    return { filePath: mockSavePath };
   }
 
-  dialog.showOpenDialog = (options) => {
-    return mockOpenPathArray
+  dialog.showOpenDialog = async (options) => {
+    return { filePaths: mockOpenPathArray };
   }
 }

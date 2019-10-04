@@ -9,7 +9,7 @@ const { unlink } = require('fs')
 const { promisify } = require('util')
 
 
-describe('Application Start', function () {
+describe("Application Start", function () {
   const app = new Application({
         path: electronPath,
         args: [path.join(__dirname, "../app")]
@@ -87,5 +87,5 @@ describe("Document Actions", function () {
     await app.client.keys(["Hello World"]);
     const textareaValue = await app.client.getValue('#card-edit-1');
     expect(textareaValue).to.equal("Hello World");
-  })
+  });
 });
