@@ -50,12 +50,12 @@ describe("Application Start", function () {
   });
 });
 
-describe("Document Actions", function () {
+describe("Actions on Untitled Document", function () {
   const app = new Application({
         path: electronPath,
         env:
-          { RUNNING_IN_SPECTRON: '1'
-          , DIALOG_CHOICE: 0 // Close Without Saving
+          { RUNNING_IN_SPECTRON: "1"
+          , DIALOG_CHOICE: "0" // Close Without Saving
           },
         args: [path.join(__dirname, "../app"), "new"]
       });
