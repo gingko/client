@@ -19,8 +19,8 @@
   "scripts": {
     "start": "webpack --watch",
     "postinstall": "electron-rebuild",
-    "test": "electron-mocha --renderer test/unit.js || true",
-    "test:integration": "mocha test/integration.js",
+    "test:unit": "electron-mocha --renderer test/unit.js || true",
+    "test": "mocha test/integration.js",
     "build": "webpack",
     "electron": "electron ./app",
     "pack": "electron-builder --dir",

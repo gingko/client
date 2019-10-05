@@ -4,9 +4,7 @@ const electronPath = require('electron') // Require Electron from the binaries i
 const path = require('path')
 //const robot = require('robotjs')
 const { execSync } = require('child_process')
-const fs = require('fs')
-const { unlink } = require('fs')
-const { promisify } = require('util')
+const fs = require("fs-extra");
 
 
 describe("Application Start", function () {
@@ -50,6 +48,7 @@ describe("Application Start", function () {
   });
 });
 
+
 describe("Actions on Untitled Document", function () {
   const app = new Application({
         path: electronPath,
@@ -88,4 +87,53 @@ describe("Actions on Untitled Document", function () {
     const textareaValue = await app.client.getValue('#card-edit-1');
     expect(textareaValue).to.equal("Hello World");
   });
+});
+
+
+describe("Actions on Loaded Document", function () {
+  const app = new Application({
+        path: electronPath,
+        env:
+          { RUNNING_IN_SPECTRON: "1"
+          , DIALOG_CHOICE: "0" // Close Without Saving
+          },
+        args: [path.join(__dirname, "../app"), path.join(__dirname, "test-1.gko")]
+      });
+
+  this.timeout(10000)
+
+  before(async () => {
+    await fs.copy(path.join(__dirname, "source-test-1.gko"), path.join(__dirname, "test-1.gko"));
+    return app.start();
+  });
+
+  after(() => {
+    if (app && app.isRunning()) {
+      return app.stop();
+    }
+  });
+
+  it("should have loaded the cards", async () => {
+    await app.client.waitUntilWindowLoaded();
+
+    let cardContent = [];
+    cardContent[0] = await app.client.$("#card-1").getText();
+    cardContent[1] = await app.client.$("#card-node-2128918683").getText();
+    cardContent[2] = await app.client.$("#card-node-1367859142").getText();
+    cardContent[3] = await app.client.$("#card-node-1713013080").getText();
+    cardContent[4] = await app.client.$("#card-node-1829485524").getText();
+
+    expect(cardContent).to.eql([
+      "This is the root card.",
+      "The first child is here.",
+      "Second child.",
+      "A third one.",
+      "And second child's child. A grandchild!",
+    ]);
+  });
+});
+
+
+after(async () => {
+  await fs.unlink(path.join(__dirname, "test-1.gko"));
 });
