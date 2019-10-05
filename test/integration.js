@@ -77,9 +77,9 @@ describe("Actions on Untitled Document", function () {
   });
 
   it("should switch to edit mode when pressing Enter", async () => {
-      await app.client.keys(["Enter"]);
-      const textareaExists = await app.client.waitForExist("#card-edit-1", 800);
-      expect(textareaExists).to.be.true;
+    await app.client.keys(["Enter"]);
+    const textareaExists = await app.client.waitForExist("#card-edit-1", 800);
+    expect(textareaExists).to.be.true;
   });
 
   it("should have text \"Hello World\" in card after typing it", async () => {
@@ -87,6 +87,23 @@ describe("Actions on Untitled Document", function () {
     const textareaValue = await app.client.getValue('#card-edit-1');
     expect(textareaValue).to.equal("Hello World");
   });
+
+  it("should have title \"*Untitled - Gingko\"", async () => {
+    let windowTitle = await app.browserWindow.getTitle();
+    expect(windowTitle).to.equal("*Untitled - Gingko");
+  });
+
+  it("should switch to navigation mode when pressing Ctrl+Enter", async () => {
+    const step1 = await app.client.keys(['Control', 'Enter']);
+    const cardViewExists = await app.client.waitForExist('#card-1 .view', 800);
+    expect(cardViewExists).to.be.true;
+  });
+
+  it("should show \"Hello World\" in card view", async () => {
+    const cardText = await app.client.getText("#card-1 .view");
+    expect(cardText).to.equal("Hello World");
+  });
+  
 });
 
 
@@ -113,7 +130,7 @@ describe("Actions on Loaded Document", function () {
     }
   });
 
-  it("should have loaded the cards", async () => {
+  it("should have loaded the cards and content", async () => {
     await app.client.waitUntilWindowLoaded();
 
     let cardContent = [];
