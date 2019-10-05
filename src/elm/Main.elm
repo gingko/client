@@ -193,6 +193,9 @@ init ( dataIn, modelIn, isSaved ) =
             newTree_
                 |> Maybe.map (\t -> countWords (treeToMarkdownString False t))
                 |> Maybe.withDefault 0
+
+        columnNumber =
+            newWorkingTree.columns |> List.length |> (\l -> l - 1)
     in
     ( { defaultModel
         | workingTree = newWorkingTree
@@ -209,7 +212,7 @@ init ( dataIn, modelIn, isSaved ) =
         , seed = Random.initialSeed modelIn.currentTime
         , fonts = Fonts.init modelIn.fonts
       }
-    , Cmd.batch [ focus modelIn.lastActive, sendOut <| ColumnNumberChange <| List.length <| newWorkingTree.columns ]
+    , Cmd.batch [ focus modelIn.lastActive, sendOut <| ColumnNumberChange columnNumber ]
     )
         |> activate modelIn.lastActive
         |> (\mc ->
