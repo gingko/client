@@ -291,7 +291,7 @@ ipc.on("doc:last-export-set", (event, lastPath) => {
   let win = BrowserWindow.fromWebContents(event.sender);
   if (win && win.mainState.menuState) {
     if (win.mainState.menuState.lastExportPath !== lastPath) {
-      menuState.lastExportPath = lastPath;
+      win.mainState.menuState.lastExportPath = lastPath;
       updateMenu(win, false);
     }
   }

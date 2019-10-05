@@ -142,7 +142,14 @@ const exportTxt = (data, defaultPath) => {
             reject(new Error('export-txt writeFile failed'))
             return;
           }
-          ipcRenderer.send('doc:last-export-set', filepath)
+          ipc.send("doc:last-export-set", filepath);
+          let exportSuccessNotification = new Notification("Export Suceeded", {
+            body: "Saved as " + path.basename(filepath)
+          });
+
+          exportSuccessNotification.onclick = () => {
+            shell.openItem(filepath);
+          }
           resolve(data)
         })
       }
