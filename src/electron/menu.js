@@ -229,6 +229,7 @@ function editMenu (isDocument, isEditing, isMac, lang) {
             }
           , { label: tr.pasteCardsInto[lang]
             , accelerator : "CommandOrControl+Shift+V"
+            , registerAccelerator : false
             , click : function (item, focusedWindow) {
                 if (!isMac) {
                   focusedWindow.webContents.send("menu-paste-into");
