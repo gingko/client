@@ -1,9 +1,7 @@
-const Application = require('spectron').Application
-const {expect} = require('chai')
-const electronPath = require('electron') // Require Electron from the binaries included in node_modules.
-const path = require('path')
-//const robot = require('robotjs')
-const { execSync } = require('child_process')
+const Application = require("spectron").Application;
+const {expect} = require("chai");
+const electronPath = require("electron");
+const path = require("path");
 const fs = require("fs-extra");
 
 
@@ -13,7 +11,7 @@ describe("Application Start", function () {
         args: [path.join(__dirname, "../app")]
       });
 
-  this.timeout(10000)
+  this.timeout(10000);
 
   beforeEach(() => {
     return app.start();
@@ -21,7 +19,7 @@ describe("Application Start", function () {
 
   afterEach(function () {
     if (app && app.isRunning()) {
-      return app.stop()
+      return app.stop();
     }
   });
 
@@ -59,7 +57,7 @@ describe("Actions on Untitled Document", function () {
         args: [path.join(__dirname, "../app"), "new"]
       });
 
-  this.timeout(10000)
+  this.timeout(10000);
 
   before(() => {
     return app.start();
@@ -84,7 +82,7 @@ describe("Actions on Untitled Document", function () {
 
   it("should have text \"Hello World\" in card after typing it", async () => {
     await app.client.keys(["Hello World"]);
-    const textareaValue = await app.client.getValue('#card-edit-1');
+    const textareaValue = await app.client.getValue("#card-edit-1");
     expect(textareaValue).to.equal("Hello World");
   });
 
@@ -94,8 +92,8 @@ describe("Actions on Untitled Document", function () {
   });
 
   it("should switch to navigation mode when pressing Ctrl+Enter", async () => {
-    const step1 = await app.client.keys(['Control', 'Enter']);
-    const cardViewExists = await app.client.waitForExist('#card-1 .view', 800);
+    const step1 = await app.client.keys(["Control", "Enter"]);
+    const cardViewExists = await app.client.waitForExist("#card-1 .view", 800);
     expect(cardViewExists).to.be.true;
   });
 
@@ -117,7 +115,7 @@ describe("Actions on Loaded Document", function () {
         args: [path.join(__dirname, "../app"), path.join(__dirname, "test-1.gko")]
       });
 
-  this.timeout(10000)
+  this.timeout(10000);
 
   before(async () => {
     await fs.copy(path.join(__dirname, "source-test-1.gko"), path.join(__dirname, "test-1.gko"));

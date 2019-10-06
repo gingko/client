@@ -1,34 +1,34 @@
-const _ = require('lodash')
-const {TweenMax} = require('gsap')
+const _ = require("lodash");
+const {TweenMax} = require("gsap");
 
 
 /* ===== DOM Manipulation ===== */
 
 var setTextarea = (m, f) => {
   if(m.viewState.editing !== null && f !== null) {
-    var textarea = document.getElementById('card-edit-'+m.viewState.editing)
-    textarea.value = f
+    var textarea = document.getElementById("card-edit-"+m.viewState.editing);
+    textarea.value = f;
   }
-}
+};
 
 var scrollHorizontal = colIdx => {
-  lastColumnIdx = colIdx
-  _.delay(scrollHorizTo, 20, colIdx)
-}
+  lastColumnIdx = colIdx;
+  _.delay(scrollHorizTo, 20, colIdx);
+};
 
 var scrollColumns = centerlineIds => {
-  lastCenterline = centerlineIds
+  lastCenterline = centerlineIds;
   centerlineIds.map(function(c, i){
-    var centerIdx = Math.round(c.length/2) - 1
-    _.delay(scrollTo, 20, c[centerIdx], i)
-  })
-}
+    var centerIdx = Math.round(c.length/2) - 1;
+    _.delay(scrollTo, 20, c[centerIdx], i);
+  });
+};
 
 var scrollTo = function(cid, colIdx) {
-  var card = document.getElementById('card-' + cid.toString());
-  var col = document.getElementsByClassName('column')[colIdx+1]
+  var card = document.getElementById("card-" + cid.toString());
+  var col = document.getElementsByClassName("column")[colIdx+1];
   if (card == null) {
-    console.log('scroll error: not found',cid)
+    console.log("scroll error: not found",cid);
     return;
   }
   var rect = card.getBoundingClientRect();
@@ -37,13 +37,13 @@ var scrollTo = function(cid, colIdx) {
     { scrollTop: col.scrollTop + ((rect.top + rect.height*0.5) - col.offsetHeight*0.5)
     , ease: Power2.easeInOut
     });
-}
+};
 
 var scrollHorizTo = function(colIdx) {
-  var col = document.getElementsByClassName('column')[colIdx]
-  var appEl = document.getElementById('app');
+  var col = document.getElementsByClassName("column")[colIdx];
+  var appEl = document.getElementById("app");
   if (col == null) {
-    console.log('scroll horiz error: not found', colIdx)
+    console.log("scroll horiz error: not found", colIdx);
     return;
   }
   var rect = col.getBoundingClientRect();
@@ -64,7 +64,7 @@ var scrollHorizTo = function(colIdx) {
       });
   } else {
   }
-}
+};
 
 
 /* ===== Shared variables ===== */
@@ -75,8 +75,8 @@ const errorAlert = (title, msg, err) => {
     , detail: err.message.split("\n")[0]
     , type: "error"
     , buttons: ["OK"]
-    }
-}
+    };
+};
 
 
 
@@ -129,9 +129,9 @@ var shortcuts = [ "shift+enter"
                 , "w"
                 ];
 
-var needOverride= [ 'mod+n'
-                  , 'mod+o'
-                  , 'mod+shift+s'
+var needOverride= [ "mod+n"
+                  , "mod+o"
+                  , "mod+shift+s"
                   ];
 
 /* ===== CommonJS Module exports ===== */

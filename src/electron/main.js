@@ -7,16 +7,16 @@ const sha1 = require("sha1");
 const machineIdSync = require("node-machine-id").machineIdSync;
 const Store = require("electron-store");
 const _ = require("lodash");
-import TurndownService from 'turndown'
-const windowStateKeeper = require('electron-window-state')
-const docList = require('./doc-list')
-const fio = require('./file-io')
+import TurndownService from "turndown";
+const windowStateKeeper = require("electron-window-state");
+const docList = require("./doc-list");
+const fio = require("./file-io");
 const getMenuTemplate = require("./menu");
 const filenamify = require("filenamify");
 const unhandled = require("electron-unhandled");
 const isDev = require("electron-is-dev");
 const GingkoError  = require("../shared/errors");
-const errorAlert = require('../shared/doc-helpers').errorAlert
+const errorAlert = require("../shared/doc-helpers").errorAlert;
 const { tr } = require("../shared/translation.js");
 import SystemFonts from "system-font-families";
 const systemFonts = new SystemFonts();
@@ -27,10 +27,10 @@ unhandled();
 // be closed automatically when the JavaScript object is garbage collected.
 let documentWindows = [];
 let winTrial, winSerial, winHome;
-let _untitledDocs = 0
-let _menuQuit = false
-const hiddenStore = new Store({name: "kernel", encryptionKey: "79df64f73eab9bc0d7b448d2008d876e"})
-const userStore = new Store({name: "config"})
+let _untitledDocs = 0;
+let _menuQuit = false;
+const hiddenStore = new Store({name: "kernel", encryptionKey: "79df64f73eab9bc0d7b448d2008d876e"});
+const userStore = new Store({name: "config"});
 let lang = userStore.get("language") || "en";
 
 // Make Gingko single instance
@@ -134,7 +134,7 @@ function createDocumentWindow(docParams) {
       , isNew: !originalPath || jsonImportData
       , recentDocumentList: docList.getRecentDocs()
       }
-    }
+    };
 
 
   // Set document title bar
@@ -803,7 +803,7 @@ ipc.on("doc:save-and-exit", async (event, isBlank) => {
   let docWindow = BrowserWindow.fromWebContents(event.sender);
   let swapFolderPath = docWindow.mainState.swapFolderPath;
   let legacyFormat = docWindow.mainState.legacyFormat;
-  let swapStore = new Store({name: "swap", cwd: swapFolderPath})
+  let swapStore = new Store({name: "swap", cwd: swapFolderPath});
   let originalPath = swapStore.get("filepath", false);
 
   try {
@@ -908,13 +908,13 @@ ipc.on("license:serial", (event, msg) => {
   } else {
     winSerial.webContents.send("main:serial-fail");
   }
-})
+});
 
 
 ipc.on("license:open-serial-window", (event, msg) => {
   var parentWindow = BrowserWindow.fromWebContents(event.sender).getParentWindow();
-  createSerialWindow(parentWindow, msg)
-})
+  createSerialWindow(parentWindow, msg);
+});
 
 
 /* ==== Modal Windows ==== */

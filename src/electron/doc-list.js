@@ -1,9 +1,9 @@
 const fs = require("fs-extra");
 const path = require("path");
 const _ = require("lodash");
-const Store = require('electron-store')
-const sha1 = require('sha1')
-const machineIdSync = require('node-machine-id').machineIdSync
+const Store = require("electron-store");
+const sha1 = require("sha1");
+const machineIdSync = require("node-machine-id").machineIdSync;
 
 
 const docList = new Store({name: "document-list"});
@@ -65,22 +65,22 @@ async function addFileToDocList (filepath) {
  * @returns {string} - database name, if successful
  */
 function newDb( dbName , docName ) {
-  dbName = dbName || sha1(Date.now()+machineIdSync())
-  docName = docName || null
+  dbName = dbName || sha1(Date.now()+machineIdSync());
+  docName = docName || null;
 
   if(docList.hasNoDot(dbName)) {
-    throw new Error(`Cannot create db named : ${dbName}. Key already exists.`)
+    throw new Error(`Cannot create db named : ${dbName}. Key already exists.`);
     return;
   }
 
-  let nowDate = (new Date()).toJSON()
-  let newDocument = { name: docName, state: "active", created_at: nowDate, last_modified: nowDate }
-  docList.setNoDot(dbName, newDocument)
+  let nowDate = (new Date()).toJSON();
+  let newDocument = { name: docName, state: "active", created_at: nowDate, last_modified: nowDate };
+  docList.setNoDot(dbName, newDocument);
 
   if(docList.hasNoDot(dbName)) {
     return dbName;
   } else {
-    throw new Error(`Could not add db to document-list.json`)
+    throw new Error("Could not add db to document-list.json");
     return;
   }
 }
@@ -149,14 +149,14 @@ function setOpened( dbname, openedDate ) {
  */
 function setModified( dbname, modifiedDate ) {
   if(docList.hasNoDot(dbname)) {
-    modifiedDate = modifiedDate || (new Date())
-    let modifiedDateString = modifiedDate.toJSON()
+    modifiedDate = modifiedDate || (new Date());
+    let modifiedDateString = modifiedDate.toJSON();
 
-    let currentDoc = docList.getNoDot(dbname)
+    let currentDoc = docList.getNoDot(dbname);
 
     if(currentDoc.last_modified !== modifiedDateString) {
-      currentDoc.last_modified = modifiedDateString
-      docList.setNoDot(dbname, currentDoc)
+      currentDoc.last_modified = modifiedDateString;
+      docList.setNoDot(dbname, currentDoc);
     }
   }
 }
@@ -169,11 +169,11 @@ function setModified( dbname, modifiedDate ) {
  */
 function setState( dbname, newState ) {
   if(!docList.hasNoDot(dbname)) {
-    throw new Error(`Cannot set document state. Key ${dbname} not found.`)
+    throw new Error(`Cannot set document state. Key ${dbname} not found.`);
     return;
   }
 
-  let currentDoc = docList.getNoDot(dbname)
+  let currentDoc = docList.getNoDot(dbname);
 
   if(currentDoc.state !== newState) {
     currentDoc.state = newState;
@@ -200,4 +200,4 @@ module.exports =
   , setModified : setModified
   , setState : setState
   , removeDb : removeDb
-  }
+  };

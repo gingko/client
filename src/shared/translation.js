@@ -83,7 +83,7 @@ export const tr =
       }
   , column :
       { en : (num) => `Column ${num}`
-      , zh : (num) => `$列{num}`
+      , zh : (num) => `$列${num}`
       , es : (num) => `Columna ${num}`
       , fr : (num) => `${num}`
       }

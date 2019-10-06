@@ -275,7 +275,7 @@ async function getHashWithoutStartTime(filepath) {
   const filecontents = await fs.readFile(filepath, "utf8");
   const transformedContents = filecontents.replace(
     /"start_time":".*","db_info"/,
-    '"start_time":"","db_info"'
+    "\"start_time\":\"\",\"db_info\""
   );
 
   hash.update(transformedContents);
