@@ -2,7 +2,7 @@ const { shell , app , dialog } = require("electron");
 const { tr } = require("../shared/translation.js");
 const path = require("path");
 
-function getTemplate (menuState, handlers, lang, isMac) {
+function getTemplate (menuState, handlers, lang, isMac, isHelpVisible) {
   let isDocument = !!menuState;
   let isNew = menuState && menuState.isNew;
   let isEditing = menuState && menuState.editMode;
@@ -16,7 +16,7 @@ function getTemplate (menuState, handlers, lang, isMac) {
     [ fileMenu(isDocument, isNew, changed, columnNumber, lastExportPath, recentDocumentList, lang, handlers)
     , editMenu(isDocument, isEditing, isMac, lang)
     , viewMenu(isDocument, lang, handlers)
-    , helpMenu(handlers, isMac, lang)
+    , helpMenu(handlers, isMac, lang, isHelpVisible)
     ];
 
 
@@ -300,20 +300,14 @@ function viewMenu(isDocument, lang, handlers) {
 
 
 
-function helpMenu(handlers, isMac, lang) {
+function helpMenu(handlers, isMac, lang, isHelpVisible) {
   let _helpMenu;
 
   _helpMenu =
     { label: tr.help[lang]
     , submenu:
-        [ { label: tr.faq[lang]
-          , click : () => shell.openExternal("https://gingko.io/faq.html")
-          }
-        , { label: tr.issuesList[lang]
-          , click : () => shell.openExternal("https://github.com/gingko/client/issues")
-          }
-        , { label: tr.contactAdri[lang]
-          , click : (item, focusedWindow) => focusedWindow.webContents.send("menu-contact-support")
+        [ { label: tr.toggleHelp[lang](isHelpVisible)
+          , click : (item, focusedWindow) => focusedWindow.webContents.send("menu-toggle-support", !isHelpVisible)
           }
         , { type: "separator" }
         , { label: tr.buyLicense[lang]

@@ -225,6 +225,12 @@ export const tr =
       , es : "Ayuda"
       , fr : ""
       }
+  , toggleHelp :
+      { en : (vis) => vis ? "Hide Help button" : "Show Help button"
+      , zh : ""
+      , es : (vis) => vis ? "Ocultar botón de ayuda" : "Mostrar el botón de ayuda"
+      , fr : (vis) => vis ? "Masquer le bouton d'Aide" : "Afficher le bouton Aide"
+      }
   , faq :
       { en : "&FAQ..."
       , zh : "&常见问题解答"

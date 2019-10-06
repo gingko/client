@@ -1,6 +1,6 @@
 const jQuery = require("jquery");
 const _ = require("lodash");
-const autosize = require("textarea-autosize");
+require("textarea-autosize");
 const Mousetrap = require("mousetrap");
 const container = require("Container");
 
@@ -23,6 +23,7 @@ var lastColumnScrolled = null;
 var _lastFormat = null;
 var _lastSelection = null;
 var collab = {};
+let helpWidgetLauncher;
 
 const ActionOnData =
   { Exit: "Exit"
@@ -35,8 +36,8 @@ let actionOnData = ActionOnData.Save;
 /* === Initializing App === */
 
 const userStore = container.userStore;
-var firstRun = userStore.get("first-run", true);
 var lang = userStore.get("language") || "en";
+var helpVisible = userStore.get("help-visible") || true;
 self.savedObjectIds = [];
 
 
@@ -392,7 +393,25 @@ container.msgWas("menu-language-select", (event, data) => {
   container.sendTo("doc:language-changed", data);
   toElm("SetLanguage", data);
 });
-container.msgWas("menu-contact-support", () => container.openExternal("mailto:adriano@gingkoapp.com"));
+container.msgWas("menu-toggle-support", (event, makeVisible) => {
+  try {
+    if (makeVisible) {
+      helpWidgetLauncher.style.visibility = "visible";
+      FreshworksWidget("open");
+    } else {
+      helpWidgetLauncher.style.visibility = "hidden";
+      FreshworksWidget("close");
+    }
+    container.sendTo("doc:support-toggled", makeVisible);
+  } catch (err) {
+    let options =
+      { title: "Failed to Open Online Help"
+      , message: "Couldn't reach the online help desk.\nEither you are offline, or there's a bug. You can reach me at adriano@gingkoapp.com"
+      , type: "info"
+      };
+    container.showMessageBox(options);
+  }
+});
 
 //socket.on("collab", data => toElm("RecvCollabState", data))
 //socket.on("collab-leave", data => toElm("CollaboratorDisconnected", data))
@@ -735,8 +754,12 @@ document.addEventListener("click", (ev) => {
 
 
 const observer = new MutationObserver(function(mutations) {
-  let isTextarea = function(node) {
+  const isTextarea = function(node) {
     return node.nodeName == "TEXTAREA" && node.className == "edit mousetrap";
+  };
+
+  const isHelpWidget = function(node) {
+    return node.nodeName == "IFRAME" && node.id == "launcher-frame";
   };
 
   let textareas = [];
@@ -747,6 +770,11 @@ const observer = new MutationObserver(function(mutations) {
             .map(n => {
               if (isTextarea(n)) {
                 textareas.push(n);
+              } else if (isHelpWidget(n)) {
+                helpWidgetLauncher = n;
+                if (!helpVisible) {
+                  helpWidgetLauncher.style.visibility = "hidden";
+                }
               } else {
                 if(n.querySelectorAll) {
                   let tareas = [].slice.call(n.querySelectorAll("textarea.edit"));

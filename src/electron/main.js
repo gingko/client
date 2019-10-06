@@ -133,6 +133,7 @@ function createDocumentWindow(docParams) {
       , lastExportPath : false
       , isNew: !originalPath || jsonImportData
       , recentDocumentList: docList.getRecentDocs()
+      , helpVisible: userStore.get("helpVisible") || true
       }
     };
 
@@ -246,7 +247,7 @@ function updateMenu(win, lang) {
       }
     };
 
-  let menuTemplate = getMenuTemplate( menuState, handlers, lang, process.platform === "darwin");
+  let menuTemplate = getMenuTemplate( menuState, handlers, lang, process.platform === "darwin", menuState.helpVisible);
   let menu = Menu.buildFromTemplate(menuTemplate);
 
   if (process.platform === "darwin") {
@@ -335,6 +336,16 @@ ipc.on("doc:set-changed", (event, changed) => {
 ipc.on("doc:language-changed", (event, data) => {
   lang = data;
 });
+
+ipc.on("doc:support-toggled", (event, data) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (win) {
+    win.mainState.menuState.helpVisible = data;
+    userStore.set("helpVisible", data);
+    updateMenu(win, null);
+  }
+});
+
 
 /* ==== App Events ==== */
 
