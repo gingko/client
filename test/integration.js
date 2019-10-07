@@ -86,13 +86,18 @@ describe("Actions on Untitled Document", function () {
     expect(textareaValue).to.equal("Hello World");
   });
 
+  it("should say \"Unsaved Changes...\" in save indicator", async () => {
+    const saveIndicatorText = await app.client.getText("#save-indicator span");
+    expect(saveIndicatorText).to.equal("Unsaved Changes...");
+  });
+
   it("should have title \"*Untitled - Gingko\"", async () => {
     let windowTitle = await app.browserWindow.getTitle();
     expect(windowTitle).to.equal("*Untitled - Gingko");
   });
 
   it("should switch to navigation mode when pressing Ctrl+Enter", async () => {
-    const step1 = await app.client.keys(["Control", "Enter"]);
+    await app.client.keys(["Control", "Enter"]);
     const cardViewExists = await app.client.waitForExist("#card-1 .view", 800);
     expect(cardViewExists).to.be.true;
   });
@@ -101,7 +106,12 @@ describe("Actions on Untitled Document", function () {
     const cardText = await app.client.getText("#card-1 .view");
     expect(cardText).to.equal("Hello World");
   });
-  
+
+  it("should eventually say \"Backup Saved\" in save indicator", async () => {
+    await app.client.pause(3050);
+    const saveIndicatorText = await app.client.getText("#save-indicator span");
+    expect(saveIndicatorText).to.equal("Backup Saved");
+  });
 });
 
 
@@ -145,6 +155,11 @@ describe("Actions on Loaded Document", function () {
       "A third one.",
       "And second child's child. A grandchild!",
     ]);
+  });
+
+  it("should say \"Saved\" in save indicator", async () => {
+    const saveIndicatorText = await app.client.getText("#save-indicator span");
+    expect(saveIndicatorText).to.equal("Saved");
   });
 });
 
