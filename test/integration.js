@@ -5,6 +5,9 @@ const path = require("path");
 const fs = require("fs-extra");
 
 
+const commandOrControl = process.platform == "darwin" ? "\uE03D" : "Control";
+
+
 describe("Application Start", function () {
   const app = new Application({
         path: electronPath,
@@ -96,8 +99,8 @@ describe("Actions on Untitled Document", function () {
     expect(windowTitle).to.equal("*Untitled - Gingko");
   });
 
-  it("should switch to navigation mode when pressing Ctrl+Enter", async () => {
-    await app.client.keys(["Control", "Enter"]);
+  it(`should switch to navigation mode when pressing ${commandOrControl}+Enter`, async () => {
+    await app.client.keys([commandOrControl, "Enter"]);
     const cardViewExists = await app.client.waitForExist("#card-1 .view", 800);
     expect(cardViewExists).to.be.true;
   });
@@ -108,7 +111,7 @@ describe("Actions on Untitled Document", function () {
   });
 
   it("should eventually say \"Backup Saved\" in save indicator", async () => {
-    await app.client.pause(3050);
+    await app.client.pause(4000);
     const saveIndicatorText = await app.client.getText("#save-indicator span");
     expect(saveIndicatorText).to.equal("Backup Saved");
   });
