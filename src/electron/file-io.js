@@ -290,7 +290,7 @@ async function truncateBackups() {
   let sortedFiltered = files.filter((f)=> {return f.endsWith(".gko"); }).sort().reverse();
   let grouped = _.groupBy(sortedFiltered, (f) => { return f.slice(0,-24); }); //groupBy filename without timestamp
   let toDelete = Object.values(_.mapValues(grouped, (fs) => { return fs.slice(8); })).flat();
-  unlinkPromises = toDelete.map((f) => fs.unlink(path.join(dir,f)));
+  let unlinkPromises = toDelete.map((f) => fs.unlink(path.join(dir,f)));
   await Promise.all(unlinkPromises);
 }
 
