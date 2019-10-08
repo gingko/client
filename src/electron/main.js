@@ -133,7 +133,7 @@ function createDocumentWindow(docParams) {
       , lastExportPath : false
       , isNew: !originalPath || jsonImportData
       , recentDocumentList: docList.getRecentDocs()
-      , helpVisible: userStore.get("helpVisible") || true
+      , helpVisible: userStore.get("help-visible") || true
       }
     };
 
@@ -341,7 +341,7 @@ ipc.on("doc:support-toggled", (event, data) => {
   const win = BrowserWindow.fromWebContents(event.sender);
   if (win) {
     win.mainState.menuState.helpVisible = data;
-    userStore.set("helpVisible", data);
+    userStore.set("help-visible", data);
     updateMenu(win, null);
   }
 });
