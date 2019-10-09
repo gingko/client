@@ -1457,6 +1457,7 @@ deleteCard id ( model, prevCmd ) =
     else
         ( { model
             | workingTree = Trees.update (Trees.Rmv id) model.workingTree
+            , dirty = True
           }
         , Cmd.batch [ prevCmd, sendOut <| SetChanged True ]
         )
