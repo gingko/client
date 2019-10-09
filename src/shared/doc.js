@@ -73,10 +73,10 @@ container.answerMain("set-doc-state", data => {
 });
 
 self.db = new PouchDB(docState.dbPath[0]);
-container.msgWas("database-close", async () => {
+container.msgWas("main:database-close", async () => {
   await db.close();
 });
-container.msgWas("database-open", async () => {
+container.msgWas("main:database-open", async () => {
   self.db = new PouchDB(docState.dbPath[0]);
 });
 
