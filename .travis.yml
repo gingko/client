@@ -21,9 +21,20 @@ cache:
     - $HOME/.cache/electron
     - $HOME/.cache/electron-builder
 
+before_install:
+  - |
+    if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+      sudo apt-get update && sudo apt-get install -y --no-install-recommends software-properties-common && sudo dpkg --add-architecture i386 && curl -L https://dl.winehq.org/wine-builds/winehq.key > winehq.key && sudo apt-key add winehq.key && sudo apt-add-repository https://dl.winehq.org/wine-builds/ubuntu && \
+      sudo apt-get update && \
+      sudo apt-get -y purge software-properties-common libdbus-glib-1-2 python3-dbus python3-gi python3-pycurl python3-software-properties && \
+      sudo apt-get install -y --no-install-recommends winehq-stable && \
+      # clean
+      sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/* && sudo unlink winehq.key
+    fi
+
 install:
   - npm install
-  - npm install -g elm@0.19.0-bugfix6
+    #  - npm install -g elm@0.19.0-bugfix6
 
 before_script:
   - npm run build
@@ -31,13 +42,7 @@ before_script:
 script:
   - |
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-      docker run --rm \
-        --env-file <(env | sed -e 's/\s\s*/,/g' | grep -iE 'DEBUG|NODE_|ELECTRON_|YARN_|NPM_|CI|CIRCLE|TRAVIS|APPVEYOR_|CSC_|_TOKEN|_KEY|AWS_|STRIP|BUILD_') \
-        -v ${PWD}:/project \
-        -v ~/.cache/electron:/root/.cache/electron \
-        -v ~/.cache/electron-builder:/root/.cache/electron-builder \
-        electronuserland/builder:wine \
-        /bin/bash -c "npm install && npm run release -- -- --linux --win"
+      npm run release -- -- --linux --win
     else
       npm run release
     fi
