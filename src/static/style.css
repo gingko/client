@@ -1167,6 +1167,10 @@ span.shortcut-key {
   background: green;
 }
 
+#freshworks-container {
+  z-index: 9998 !important;
+}
+
 
 /* ======== FOOTER PREFERENCES ======== */
 
