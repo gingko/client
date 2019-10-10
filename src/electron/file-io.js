@@ -13,7 +13,6 @@ const fileType = require("file-type");
 const GingkoError = require("../shared/errors");
 
 const PouchDB = require("pouchdb");
-PouchDB.plugin(require("pouchdb-load"));
 
 /* ============================================================================
  * EXPOSED FUNCTIONS
@@ -70,9 +69,7 @@ async function openFile(filepath) {
       return swapFolderPath;
     }
     case LEGACY_GKO: {
-      const swapFolderPath = await importGko(filepath);
-
-      return swapFolderPath;
+      throw new Error("Not a valid .gko file\nPossibly using legacy file format. If you need to access this file, contact support.");
     }
   }
 }
@@ -566,29 +563,6 @@ function getFilepathFromSwap(swapFolderPath) {
   } else {
     return null;
   }
-}
-
-async function importGko(filepath) {
-  await makeBackup(filepath);
-  const dbLine = await firstline(filepath);
-  const dumpInfo = JSON.parse(dbLine);
-  const hash = crypto.createHash("sha1");
-  hash.update(dumpInfo.db_info.db_name + Date.now());
-
-  const dbName = hash.digest("hex");
-  const swapFolderPath = path.join(app.getPath("userData"), dbName);
-  const dbPath = path.join(swapFolderPath, "leveldb");
-
-  await fs.ensureDir(dbPath);
-  new Store({ name: "meta", cwd: swapFolderPath, defaults: { version: 1 } });
-  addFilepathToSwap(filepath, swapFolderPath);
-  const db = new PouchDB(dbPath);
-
-  const filecontents = await fs.readFile(filepath, "utf8");
-  await db.load(filecontents);
-  await db.close();
-
-  return swapFolderPath;
 }
 
 async function importJSON(filepath) {

@@ -7,8 +7,6 @@ const container = require("Container");
 import PouchDB from "pouchdb";
 
 
-//const io = require('socket.io-client')
-
 const helpers = require("./doc-helpers");
 const errorAlert = helpers.errorAlert;
 const { tr } = require("../shared/translation.js");
@@ -312,19 +310,7 @@ const update = (msg, data) => {
       // === UI ===
 
     , "UpdateCommits": () => {
-        let commitGraphData = _.sortBy(data[0].commits, "timestamp").reverse().map(c => { return {sha: c._id, parents: c.parents};});
-        let selectedSha = data[1];
-
-        /*
-        let commitElement = React.createElement(CommitsGraph, {
-          commits: commitGraphData,
-          onClick: setHead,
-          selected: selectedSha
-        });
-        */
-
-        //ReactDOM.render(commitElement, document.getElementById("history"))
-    }
+      }
     , "SetVideoModal": () => {
         userStore.set("video-modal-is-open", data);
       }
