@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
+## [2.4.3] - 2019-10-15
+  - Fix Windows bug preventing new file creation
+
 ## [2.4.2] - 2019-10-14
   - (Major) Rewrote logic for saving to files
   - Replace in-app chat with help desk & contact form

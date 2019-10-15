@@ -439,7 +439,7 @@ app.on("will-finish-launching", () => {
 });
 
 async function newUntitled() {
-  const swapRandomName = "Untitled_"+(new Date()).toISOString();
+  const swapRandomName = "Untitled_"+(new Date()).toISOString().replace(/:/g,"-");
   const swapFolderPath = path.join(app.getPath("userData"), swapRandomName);
   try {
     await fio.newSwapFolder(swapFolderPath);
@@ -449,6 +449,8 @@ async function newUntitled() {
       // TODO: Handle this unlikely case
       console.log("GINGKO ERROR");
     }
+
+    throw err;
   }
 }
 
@@ -855,7 +857,7 @@ ipc.on("doc:save-and-exit", async (event, isBlank) => {
           let saveLegacyResult = await saveLegacyDocumentAs(docWindow);
           if (saveLegacyResult) {
             if (process.platform === "win32") {
-              docWindow.webContents.send("database-close");
+              docWindow.webContents.send("main:database-close");
             }
             await fio.deleteSwapFolder(saveLegacyResult.swapFolderPath);
             docWindow.destroy();
@@ -865,6 +867,9 @@ ipc.on("doc:save-and-exit", async (event, isBlank) => {
     } else {
       // Untitled/never-saved document
       if(isBlank) {
+        if (process.platform === "win32") {
+          docWindow.webContents.send("main:database-close");
+        }
         await fio.deleteSwapFolder(docWindow.mainState.swapFolderPath);
         await docWindow.destroy();
         return;
