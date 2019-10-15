@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [2.4.3] - 2019-10-15
   - Fix Windows bug preventing new file creation
   - Fix Windows bug preventing new file closing
+  - Fix inability to import JSON
 
 ## [2.4.2] - 2019-10-14
   - (Major) Rewrote logic for saving to files

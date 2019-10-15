@@ -117,6 +117,7 @@ function createDocumentWindow(docParams) {
     { dbPath: [(legacyFormat ? swapFolderPath : path.join(swapFolderPath,"leveldb")), originalPath]
     , lastSavedToFile
     , changed: !!jsonImportData
+    , jsonImportData
     };
 
   // State that's local to the Main process (this file).
