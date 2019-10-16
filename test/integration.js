@@ -37,7 +37,7 @@ describe("Application Start", function () {
     return expect(title).to.eq("Gingko - Home Screen");
   });
 
-  it.only("should create a document window on clicking 'Blank'", async () => {
+  it("should create a document window on clicking 'Blank'", async () => {
     await app.client.waitUntilWindowLoaded();
     await app.client.click("#template-new");
     await app.client.pause(600);
