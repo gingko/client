@@ -20,14 +20,14 @@
     "start": "webpack --watch",
     "postinstall": "electron-rebuild",
     "test:unit": "electron-mocha --renderer test/unit.js || true",
-    "test": "mocha test/integration.js",
+    "test": "mocha --exit test/integration.js",
     "build": "webpack",
     "electron": "electron ./app",
     "pack": "electron-builder --dir",
-    "dist": "DEBUG=electron-builder && electron-builder",
+    "dist": "set DEBUG=electron-builder&& electron-builder",
     "dist:win": "DEBUG=electron-builder && electron-builder -w",
     "dist:mac": "DEBUG=electron-builder && electron-builder -m",
-    "release": "npm run dist"
+    "release": "electron-builder"
   },
   "build": {
     "appId": "com.gingkoapp.desktop",
