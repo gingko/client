@@ -78,12 +78,13 @@ describe("Actions on Untitled Document", function () {
   });
 
   it("should switch to edit mode when pressing Enter", async () => {
-    await app.client.keys(["Enter"]);
+    await app.client.keys("Enter");
     const textareaExists = await app.client.waitForExist("#card-edit-1", 800);
     expect(textareaExists).to.be.true;
   });
 
   it("should have text \"Hello World\" in card after typing it", async () => {
+    await app.client.pause(200);
     await app.client.keys(["Hello World"]);
     const textareaValue = await app.client.getValue("#card-edit-1");
     expect(textareaValue).to.equal("Hello World");
@@ -167,6 +168,70 @@ describe("Actions on Loaded Document", function () {
 });
 
 
+describe("Importing JSON Document", function () {
+  const app = new Application({
+        path: electronPath,
+        env:
+          { RUNNING_IN_SPECTRON: "1"
+          , DIALOG_CHOICE: "0" // Close Without Saving
+          , DIALOG_OPEN_PATH: path.join(__dirname, "test-1.json")
+          },
+        args: [path.join(__dirname, "../app")]
+      });
+
+  this.timeout(10000);
+
+  before(async () => {
+    await fs.copy(path.join(__dirname, "source-test-1.json"), path.join(__dirname, "test-1.json"));
+    return app.start();
+  });
+
+  after(() => {
+    if (app && app.isRunning()) {
+      return app.stop();
+    }
+  });
+
+  it("should create a document window on selecting file from 'Import JSON'", async () => {
+    await app.client.waitUntilWindowLoaded();
+    await app.client.click("#template-import");
+    await app.client.pause(600);
+    await app.client.windowByIndex(0);
+    const count = await app.client.getWindowCount();
+    const title = await app.browserWindow.getTitle();
+    expect(count).to.eq(1);
+    return expect(title).to.eq("Untitled - Gingko");
+  });
+
+  it("should have loaded the cards and content", async () => {
+    await app.client.waitUntilWindowLoaded();
+
+    let cardContent = [];
+    cardContent[0] = await app.client.$("#card-1").getText();
+    cardContent[1] = await app.client.$("#card-2").getText();
+    cardContent[2] = await app.client.$("#card-3").getText();
+    cardContent[3] = await app.client.$("#card-5").getText();
+    cardContent[4] = await app.client.$("#card-4").getText();
+
+    expect(cardContent).to.eql([
+      "This is the root card.",
+      "The first child is here.",
+      "Second child.",
+      "A third one.",
+      "And second child's child. A grandchild!",
+    ]);
+  });
+
+  it("should say \"Backup Saved\" in save indicator", async () => {
+    const saveIndicatorText = await app.client.getText("#save-indicator span");
+    expect(saveIndicatorText).to.equal("Backup Saved");
+  });
+});
+
+
 after(async () => {
-  await fs.unlink(path.join(__dirname, "test-1.gko"));
+  await Promise.all([
+    fs.unlink(path.join(__dirname, "test-1.gko")),
+    fs.unlink(path.join(__dirname, "test-1.json"))
+  ]);
 });

@@ -20,7 +20,7 @@
     "start": "webpack --watch",
     "postinstall": "electron-rebuild",
     "test:unit": "electron-mocha --renderer test/unit.js || true",
-    "test": "mocha --exit test/integration.js",
+    "test": "mocha --exit --slow 1000 test/integration.js",
     "build": "webpack",
     "electron": "electron ./app",
     "pack": "electron-builder --dir",
