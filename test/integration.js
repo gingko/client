@@ -101,7 +101,8 @@ describe("Actions on Untitled Document", function () {
   });
 
   it(`should switch to navigation mode when pressing ${commandOrControl}+Enter`, async () => {
-    await app.client.keys([commandOrControl, "Enter"]);
+    // Modifier keys are sticky, so they need to be triggered again to release.
+    await app.client.keys([commandOrControl, "Enter", commandOrControl]);
     const cardViewExists = await app.client.waitForExist("#card-1 .view", 800);
     expect(cardViewExists).to.be.true;
   });
@@ -115,6 +116,13 @@ describe("Actions on Untitled Document", function () {
     await app.client.pause(4000);
     const saveIndicatorText = await app.client.getText("#save-indicator span");
     expect(saveIndicatorText).to.equal("Backup Saved");
+  });
+
+  it(`should create a new card on ${commandOrControl}+Right`, async () => {
+    // Modifier keys are sticky, so they need to be triggered again to release.
+    await app.client.keys([commandOrControl, "ArrowRight", commandOrControl]);
+    const cardViewExists = await app.client.waitForExist("[id^=card-node-]", 800);
+    expect(cardViewExists).to.be.true;
   });
 });
 
@@ -230,8 +238,14 @@ describe("Importing JSON Document", function () {
 
 
 after(async () => {
-  await Promise.all([
-    fs.unlink(path.join(__dirname, "test-1.gko")),
-    fs.unlink(path.join(__dirname, "test-1.json"))
-  ]);
+  let testGkoPath = path.join(__dirname, "test-1.gko");
+  let testJSONPath = path.join(__dirname, "test-1.json");
+
+  if (fs.existsSync(testGkoPath)){
+    await fs.unlink(testGkoPath);
+  }
+
+  if (fs.existsSync(testJSONPath)){
+    await fs.unlink(testJSONPath);
+  }
 });
