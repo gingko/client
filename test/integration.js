@@ -3,9 +3,11 @@ const {expect} = require("chai");
 const electronPath = require("electron");
 const path = require("path");
 const fs = require("fs-extra");
+const robot = require("robotjs");
 
 
 const commandOrControl = process.platform == "darwin" ? "\uE03D" : "Control";
+const commandOrControlRobot = process.platform == "darwin" ? "command" : "control";
 
 
 describe("Application Start", function () {
@@ -24,10 +26,6 @@ describe("Application Start", function () {
     if (app && app.isRunning()) {
       return app.stop();
     }
-  });
-
-  it("should work", () => {
-    expect(true).to.be.true;
   });
 
   it("should display Home window", async () => {
@@ -51,11 +49,13 @@ describe("Application Start", function () {
 
 
 describe("Actions on Untitled Document", function () {
+  const savePath = path.join(__dirname, "test-save-1.gko");
+
   const app = new Application({
         path: electronPath,
         env:
           { RUNNING_IN_SPECTRON: "1"
-          , DIALOG_CHOICE: "0" // Close Without Saving
+          , DIALOG_SAVE_PATH: savePath
           },
         args: [path.join(__dirname, "../app"), "new"]
       });
@@ -78,13 +78,12 @@ describe("Actions on Untitled Document", function () {
   });
 
   it("should switch to edit mode when pressing Enter", async () => {
-    await app.client.keys("Enter");
+    robot.keyTap("enter");
     const textareaExists = await app.client.waitForExist("#card-edit-1", 800);
     expect(textareaExists).to.be.true;
   });
 
   it("should have text \"Hello World\" in card after typing it", async () => {
-    await app.client.pause(200);
     await app.client.keys(["Hello World"]);
     const textareaValue = await app.client.getValue("#card-edit-1");
     expect(textareaValue).to.equal("Hello World");
@@ -121,8 +120,84 @@ describe("Actions on Untitled Document", function () {
   it(`should create a new card on ${commandOrControl}+Right`, async () => {
     // Modifier keys are sticky, so they need to be triggered again to release.
     await app.client.keys([commandOrControl, "ArrowRight", commandOrControl]);
+    await app.client.keys("A child card");
     const cardViewExists = await app.client.waitForExist("[id^=card-node-]", 800);
     expect(cardViewExists).to.be.true;
+  });
+
+  it(`should save on ${commandOrControl}+S`, async () => {
+    robot.keyTap("s", commandOrControlRobot);
+    await app.client.pause(1000);
+    const saveIndicatorText = await app.client.getText("#save-indicator span");
+    expect(saveIndicatorText).to.equal("Saved");
+  });
+
+  it("should have saved to file", async () => {
+    expect(fs.existsSync(savePath)).to.be.true;
+  });
+
+  it("should say \"Unsaved Changes...\" on new changes", async () => {
+    // Modifier keys are sticky, so they need to be triggered again to release.
+    await app.client.keys("\nWith some changes after saving");
+    const saveIndicatorText = await app.client.getText("#save-indicator span");
+    expect(saveIndicatorText).to.equal("Unsaved Changes...");
+  });
+
+  it("should eventually say \"Saved\" in save indicator when saving card", async () => {
+    await app.client.keys([commandOrControl, "Enter", commandOrControl]);
+    await app.client.pause(500);
+    const saveIndicatorText = await app.client.getText("#save-indicator span");
+    expect(saveIndicatorText).to.equal("Saved");
+  });
+
+  it("should enter edit mode on clicking edit button", async () => {
+    app.client.$("span.card-btn.edit").click();
+    await app.client.pause(500);
+    await app.client.keys("\nThis should be saved from edit mode even on exit");
+    const textareaValue = await app.client.getValue("[id^=card-edit-node-]");
+    expect(textareaValue).to.equal(
+      "A child card\n" +
+      "With some changes after saving\n" +
+      "This should be saved from edit mode even on exit"
+    );
+  });
+});
+
+
+describe("Verify Data Saved from Untitled", function () {
+  const app = new Application({
+        path: electronPath,
+        env:
+          { RUNNING_IN_SPECTRON: "1"
+          , DIALOG_CHOICE: "0" // Close Without Saving
+          },
+        args: [path.join(__dirname, "../app"), path.join(__dirname, "test-save-1.gko")]
+      });
+
+  this.timeout(10000);
+
+  before(() => {
+    return app.start();
+  });
+
+  after(function () {
+    if (app && app.isRunning()) {
+      return app.stop();
+    }
+  });
+
+  it("should have loaded the cards and content", async () => {
+    await app.client.waitUntilWindowLoaded();
+
+    let cardContent = [];
+    cardContent[0] = await app.client.$("#card-1").getText();
+    cardContent[1] = await app.client.$("[id^=card-node-]").getText();
+    expect(cardContent).to.eql([
+      "Hello World",
+      "A child card\n" +
+        "With some changes after saving\n"+
+        "This should be saved from edit mode even on exit"
+    ]);
   });
 });
 
@@ -240,6 +315,7 @@ describe("Importing JSON Document", function () {
 after(async () => {
   let testGkoPath = path.join(__dirname, "test-1.gko");
   let testJSONPath = path.join(__dirname, "test-1.json");
+  let testSavePath = path.join(__dirname, "test-save-1.gko");
 
   if (fs.existsSync(testGkoPath)){
     await fs.unlink(testGkoPath);
@@ -247,5 +323,9 @@ after(async () => {
 
   if (fs.existsSync(testJSONPath)){
     await fs.unlink(testJSONPath);
+  }
+
+  if (fs.existsSync(testSavePath)){
+    await fs.unlink(testSavePath);
   }
 });
