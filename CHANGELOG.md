@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
+## [2.4.5] - 2019-10-24
+  - Fix : Does not save Untitled after initial Save As
+
 ## [2.4.4] - 2019-10-21
   - Fix bug when opening "Trial" and "Enter Serial" Windows
 

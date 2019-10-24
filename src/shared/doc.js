@@ -47,6 +47,10 @@ const docStateHandlers = {
           toElm("SetHeadRev", value);
           break;
 
+        case "dbPath":
+          self.db = new PouchDB(value[0]);
+          break;
+
         case "lastSavedToFile":
           toElm("SetLastFileSaved", value);
           break;
