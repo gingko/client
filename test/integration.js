@@ -312,6 +312,40 @@ describe("Importing JSON Document", function () {
 });
 
 
+describe("License Window", function () {
+  const app = new Application({
+        path: electronPath,
+        env:
+          { RUNNING_IN_SPECTRON: "1"
+          , DIALOG_CHOICE: "0" // Close Without Saving
+          , MENU_ITEM_ID: "enterLicense"
+          , MENU_ITEM_ACCELERATOR: "Alt+CommandOrControl+Shift+y"
+          },
+        args: [path.join(__dirname, "../app"), "new"]
+      });
+
+  this.timeout(10000);
+
+  before(() => {
+    return app.start();
+  });
+
+  after(function () {
+    if (app && app.isRunning()) {
+      return app.stop();
+    }
+  });
+
+  it("should show the license window", async () => {
+    await app.client.waitUntilWindowLoaded();
+    await ks.sendCombination(["alt", commandOrControlWord, "shift", "y"]);
+    await app.client.windowByIndex(1);
+    const title = await app.browserWindow.getTitle();
+    expect(title).to.equal("Register Gingko");
+  });
+});
+
+
 after(async () => {
   let testGkoPath = path.join(__dirname, "test-1.gko");
   let testJSONPath = path.join(__dirname, "test-1.json");

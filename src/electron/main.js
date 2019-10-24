@@ -23,6 +23,11 @@ const systemFonts = new SystemFonts();
 
 unhandled();
 
+// Mock electron-specific functions to control dialogs
+// and Menu during integration tests
+require("../../test/mocks.js")(dialog, Menu);
+
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let documentWindows = [];
@@ -51,17 +56,6 @@ if (!instanceLock) {
       createHomeWindow();
     }
   });
-}
-
-// Mock electron-specific functions to control dialogs
-// during integration tests
-const mock = require("../../test/mocks.js");
-if(process.env.RUNNING_IN_SPECTRON) {
-  mock(dialog
-      , process.env.DIALOG_CHOICE
-      , process.env.DIALOG_SAVE_PATH
-      , [process.env.DIALOG_OPEN_PATH]
-      );
 }
 
 

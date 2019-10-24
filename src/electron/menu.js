@@ -314,6 +314,7 @@ function helpMenu(handlers, isMac, lang, isHelpVisible) {
           , click : () => shell.openExternal("https://gingkoapp.com/desktop-upgrade")
           }
         , { label: tr.enterLicense[lang]
+          , id: "enterLicense"
           , click : handlers.enterLicense
           }
         , { type: "separator" }
