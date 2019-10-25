@@ -3,11 +3,11 @@ const {expect} = require("chai");
 const electronPath = require("electron");
 const path = require("path");
 const fs = require("fs-extra");
-const robot = require("robotjs");
+const ks = require("node-key-sender");
 
 
 const commandOrControl = process.platform == "darwin" ? "\uE03D" : "Control";
-const commandOrControlRobot = process.platform == "darwin" ? "command" : "control";
+const commandOrControlWord = process.platform == "darwin" ? "command" : "control";
 
 
 describe("Application Start", function () {
@@ -78,7 +78,7 @@ describe("Actions on Untitled Document", function () {
   });
 
   it("should switch to edit mode when pressing Enter", async () => {
-    robot.keyTap("enter");
+    await ks.sendKey("enter");
     const textareaExists = await app.client.waitForExist("#card-edit-1", 800);
     expect(textareaExists).to.be.true;
   });
@@ -126,7 +126,7 @@ describe("Actions on Untitled Document", function () {
   });
 
   it(`should save on ${commandOrControl}+S`, async () => {
-    robot.keyTap("s", commandOrControlRobot);
+    await ks.sendCombination([commandOrControlWord, "s"]);
     await app.client.pause(1000);
     const saveIndicatorText = await app.client.getText("#save-indicator span");
     expect(saveIndicatorText).to.equal("Saved");
