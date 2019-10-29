@@ -387,9 +387,6 @@ app.on("ready", async () => {
     });
   }
 
-  let email = userStore.get("email", "");
-  let storedSerial = userStore.get("serial", "");
-
   let pathArgument = false;
 
   setTimeout(fio.truncateBackups, 10*60*1000);// delete excess backups 10 minutes in
@@ -413,17 +410,21 @@ app.on("ready", async () => {
     openDocument(pathArgument);
   } else if (pathArgument =="new") {
     newUntitled();
-  }else {
+  } else {
     createHomeWindow();
-    if (!validSerial(email, storedSerial)) {
-      let activations = getTrialActivations();
-      let limit = 30;
-      let daysLeft = Math.max(limit - activations.length, 0);
-      let trialDisplayDays = [25, 20, 15, 10, 8, 6, 5, 4, 3, 2, 1, 0];
+  }
 
-      if (trialDisplayDays.includes(daysLeft)) {
-        createTrialWindow(winHome, activations, limit);
-      }
+  let email = userStore.get("email", "");
+  let storedSerial = userStore.get("serial", "");
+
+  if (!validSerial(email, storedSerial)) {
+    let activations = getTrialActivations();
+    let limit = 30;
+    let daysLeft = Math.max(limit - activations.length, 0);
+    let trialDisplayDays = [25, 20, 15, 10, 8, 6, 5, 4, 3, 2, 1, 0];
+
+    if (trialDisplayDays.includes(daysLeft)) {
+      createTrialWindow(winHome, activations, limit);
     }
   }
 });
