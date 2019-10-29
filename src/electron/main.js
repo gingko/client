@@ -257,7 +257,9 @@ function updateMenu(win, lang) {
 }
 
 app.on("browser-window-focus", (ev, win) => {
-  updateMenu(win, false);
+  if (!win.isModal()) {
+    updateMenu(win, false);
+  }
 });
 
 
@@ -944,8 +946,6 @@ function createTrialWindow(parentWindow, activations, limit) {
     webPreferences: { nodeIntegration: true }
   });
 
-  winTrial.mainState = { menuState: false };
-
   var url = `file://${__dirname}/static/trial.html`;
   winTrial.removeMenu();
   winTrial.once("ready-to-show", () => {
@@ -972,8 +972,6 @@ function createSerialWindow(parentWindow, shouldBlock) {
     show: false,
     webPreferences: { nodeIntegration: true }
   });
-
-  winSerial.mainState = { menuState: false };
 
   let email = userStore.get("email", "");
   let storedSerial = userStore.get("serial", "");
