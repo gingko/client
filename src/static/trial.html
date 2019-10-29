@@ -11,7 +11,7 @@
 
   let trialDays, daysLeft
 
-  ipc.on('trial-activations', (e, d) => {
+  ipc.on('main:trial-activations', (e, d) => {
     trialDays = d[1]
     daysLeft = Math.max(d[1] - d[0].length, 0)
     if(daysLeft > 0) {
@@ -21,6 +21,7 @@
       })
       document.getElementById('post-expiration').style.display = "none"
       document.getElementById('enter-button').style.display = "none"
+      document.title = "Trial Period";
     } else {
       document.getElementById('continue-button').remove()
       document.getElementById('pre-expiration').style.display = "none"
@@ -40,13 +41,13 @@
 
   clickBuy = () => {
     shell.openExternal('https://gingkoapp.com/desktop-upgrade')
-    ipc.send('license:open-serial-window', (daysLeft <= 0))
+    ipc.send('trial:open-serial-window', (daysLeft <= 0))
     window.onbeforeunload = undefined
     this.close()
   }
 
   clickLicense = () => {
-    ipc.send('license:open-serial-window', (daysLeft <= 0))
+    ipc.send('trial:open-serial-window', (daysLeft <= 0))
     window.onbeforeunload = undefined
     this.close()
   }
@@ -66,7 +67,6 @@
     <p>I hope you're finding Gingko useful to you. If you have any questions during your trial (or afterwards), don't hesitate to contact me:<br>
     <ul>
       <li><a href="mailto:adriano@gingkoapp.com">adriano@gingkoapp.com</a></li>
-      <li>My cell: +1-819-744-1289 <small>(Ottawa, Canada timezone)</small></li>
     </ul>
     </p>
   </div>

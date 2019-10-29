@@ -216,9 +216,9 @@ function updateMenu(win, lang) {
     , openHome : createHomeWindow
     , save : (item, focusedWindow) => {
         if (originalPath) {
-          focusedWindow.webContents.send("menu-save");
+          focusedWindow.webContents.send("menu:save");
         } else {
-          focusedWindow.webContents.send("menu-save-as");
+          focusedWindow.webContents.send("menu:save-as");
         }
       }
     , saveAs : async (item, focusedWindow) => {
@@ -234,10 +234,10 @@ function updateMenu(win, lang) {
     , enterLicense : (item, focusedWindow) => createSerialWindow(focusedWindow, false)
     , fonts : (item, focusedWindow) => {
         const fonts = systemFonts.getFontsSync();
-        focusedWindow.webContents.send("menu-font-selector", fonts);
+        focusedWindow.webContents.send("menu:font-selector", fonts);
       }
     , language : (lang, focusedWindow) => {
-        focusedWindow.webContents.send("menu-language-select", lang);
+        focusedWindow.webContents.send("menu:language-select", lang);
         updateMenu(focusedWindow, lang);
       }
     };
@@ -897,7 +897,7 @@ ipc.on("doc:save-and-exit", async (event, isBlank) => {
           if (saveDocAsResult && saveDocAsResult.swapFolderPath) {
             let newSwapFolderPath = saveDocAsResult.swapFolderPath;
             if (process.platform === "win32") {
-              docWindow.webContents.send("database-close");
+              docWindow.webContents.send("main:database-close");
             }
             await fio.deleteSwapFolder(newSwapFolderPath);
             docWindow.destroy();
@@ -925,7 +925,7 @@ ipc.on("license:serial", (event, msg) => {
 });
 
 
-ipc.on("license:open-serial-window", (event, msg) => {
+ipc.on("trial:open-serial-window", (event, msg) => {
   var parentWindow = BrowserWindow.fromWebContents(event.sender).getParentWindow();
   createSerialWindow(parentWindow, msg);
 });
@@ -982,9 +982,9 @@ function createSerialWindow(parentWindow, shouldBlock) {
 
   winSerial.once("ready-to-show", () => {
     if (shouldBlock) {
-      winSerial.webContents.send("prevent-close", true);
+      winSerial.webContents.send("main:prevent-close", true);
     }
-    winSerial.webContents.send("serial-info", [email, storedSerial]);
+    winSerial.webContents.send("main:serial-info", [email, storedSerial]);
     winSerial.show();
   });
 

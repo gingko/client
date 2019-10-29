@@ -4,9 +4,9 @@ const dbMapping = require("../electron/doc-list");
 const Store = require("electron-store");
 
 
-ipcRenderer.on("menu-contact-support", () => { shell.openExternal("mailto:adriano@gingkoapp.com"); });
+ipcRenderer.on("menu:contact-support", () => { shell.openExternal("mailto:adriano@gingkoapp.com"); });
 
-ipcRenderer.on("menu-language-select", (event, data) => {
+ipcRenderer.on("menu:language-select", (event, data) => {
   userStore.set("language", data);
   ipcRenderer.send("doc:language-changed", data);
   if (typeof data === "string") {
@@ -14,7 +14,7 @@ ipcRenderer.on("menu-language-select", (event, data) => {
   }
 });
 
-ipcRenderer.on("doc-list-reload", () => {
+ipcRenderer.on("main:doc-list-reload", () => {
   let docList = dbMapping.getDocList();
   home.ports.docListReload.send(docList);
 });

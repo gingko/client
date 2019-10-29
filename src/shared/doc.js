@@ -358,32 +358,32 @@ function intentExportToElm ( format, selection, filepath) {
 }
 
 
-container.msgWas("menu-close-document", () => { actionOnData = ActionOnData.Exit; toElm("GetDataToSave", null); });
-container.msgWas("menu-save", () => { actionOnData = ActionOnData.Save; toElm("GetDataToSave", null ); });
-container.msgWas("menu-save-as", () => { actionOnData = ActionOnData.SaveAs; toElm("GetDataToSave", null ); });
-container.msgWas("menu-export-docx", () => intentExportToElm("docx", "all", null));
-container.msgWas("menu-export-docx-current", () => intentExportToElm("docx", "current", null));
-container.msgWas("menu-export-docx-column", (e, msg) => intentExportToElm("docx", {column: msg}, null));
-container.msgWas("menu-export-txt", () => intentExportToElm("txt", "all", null));
-container.msgWas("menu-export-txt-current", () => intentExportToElm("txt", "current", null));
-container.msgWas("menu-export-txt-column", (e, msg) => intentExportToElm("txt", {column: msg}, null));
-container.msgWas("menu-export-json", () => intentExportToElm("json", "all", null));
-container.msgWas("menu-export-repeat", (e, lastExportPath) => intentExportToElm(_lastFormat, _lastSelection, lastExportPath));
-container.msgWas("menu-undo", () => toElm("Keyboard", "mod+z"));
-container.msgWas("menu-redo", () => toElm("Keyboard", "mod+shift+z"));
-container.msgWas("menu-cut", () => toElm("Keyboard", "mod+x"));
-container.msgWas("menu-copy", () => toElm("Keyboard", "mod+c"));
-container.msgWas("menu-paste", () => toElm("Keyboard", "mod+v"));
-container.msgWas("menu-paste-into", () => toElm("Keyboard", "mod+shift+v"));
-container.msgWas("menu-view-videos", () => toElm("ViewVideos", null ));
-container.msgWas("menu-font-selector", (event, data) => toElm("FontSelectorOpen", data));
-container.msgWas("menu-language-select", (event, data) => {
+container.msgWas("menu:close-document", () => { actionOnData = ActionOnData.Exit; toElm("GetDataToSave", null); });
+container.msgWas("menu:save", () => { actionOnData = ActionOnData.Save; toElm("GetDataToSave", null ); });
+container.msgWas("menu:save-as", () => { actionOnData = ActionOnData.SaveAs; toElm("GetDataToSave", null ); });
+container.msgWas("menu:export-docx", () => intentExportToElm("docx", "all", null));
+container.msgWas("menu:export-docx-current", () => intentExportToElm("docx", "current", null));
+container.msgWas("menu:export-docx-column", (e, msg) => intentExportToElm("docx", {column: msg}, null));
+container.msgWas("menu:export-txt", () => intentExportToElm("txt", "all", null));
+container.msgWas("menu:export-txt-current", () => intentExportToElm("txt", "current", null));
+container.msgWas("menu:export-txt-column", (e, msg) => intentExportToElm("txt", {column: msg}, null));
+container.msgWas("menu:export-json", () => intentExportToElm("json", "all", null));
+container.msgWas("menu:export-repeat", (e, lastExportPath) => intentExportToElm(_lastFormat, _lastSelection, lastExportPath));
+container.msgWas("menu:undo", () => toElm("Keyboard", "mod+z"));
+container.msgWas("menu:redo", () => toElm("Keyboard", "mod+shift+z"));
+container.msgWas("menu:cut", () => toElm("Keyboard", "mod+x"));
+container.msgWas("menu:copy", () => toElm("Keyboard", "mod+c"));
+container.msgWas("menu:paste", () => toElm("Keyboard", "mod+v"));
+container.msgWas("menu:paste-into", () => toElm("Keyboard", "mod+shift+v"));
+container.msgWas("menu:view-videos", () => toElm("ViewVideos", null ));
+container.msgWas("menu:font-selector", (event, data) => toElm("FontSelectorOpen", data));
+container.msgWas("menu:language-select", (event, data) => {
   lang = data;
   userStore.set("language", data);
   container.sendTo("doc:language-changed", data);
   toElm("SetLanguage", data);
 });
-container.msgWas("menu-toggle-support", (event, makeVisible) => {
+container.msgWas("menu:toggle-support", (event, makeVisible) => {
   try {
     if (makeVisible) {
       helpWidgetLauncher.style.visibility = "visible";

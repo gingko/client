@@ -41,7 +41,7 @@ function getTemplate (menuState, handlers, lang, isMac, isHelpVisible) {
 
     menuTemplate.splice(4, 0, { role: "windowMenu"});
   } else {
-    let closeMenuItem = { label : tr.close[lang], accelerator: "Ctrl+W", click : function (item, focusedWindow) { focusedWindow.webContents.send("menu-close-document"); }};
+    let closeMenuItem = { label : tr.close[lang], accelerator: "Ctrl+W", click : function (item, focusedWindow) { focusedWindow.webContents.send("menu:close-document"); }};
     menuTemplate[0].submenu.splice(3, 0, closeMenuItem);
     menuTemplate[0].submenu.push({type: "separator"}, {role: "quit", label: tr.quit[lang]} );
   }
@@ -111,14 +111,14 @@ function fileMenu (isDocument, isNew, isChanged, columnNumber, lastExportPath, r
         }
       , { label: tr.exportAsJSON[lang]
         , click : function (item, focusedWindow) {
-            focusedWindow.webContents.send("menu-export-json");
+            focusedWindow.webContents.send("menu:export-json");
           }
         }
       , { label: tr.repeatExport[lang]
         , enabled: !!lastExportPath
         , accelerator: "CommandOrControl+r"
         , click : function (item, focusedWindow) {
-            focusedWindow.webContents.send("menu-export-repeat", lastExportPath);
+            focusedWindow.webContents.send("menu:export-repeat", lastExportPath);
           }
         }
       ]
@@ -140,12 +140,12 @@ function exportMenu (format, cols, lang) {
   let _expMenu =
     [ { label : tr.entireDocument[lang]
       , click : function (item, focusedWindow) {
-        focusedWindow.webContents.send(`menu-export-${format}`);
+        focusedWindow.webContents.send(`menu:export-${format}`);
       }
     }
       , { label : tr.currentSubtree[lang]
         , click : function (item, focusedWindow) {
-          focusedWindow.webContents.send(`menu-export-${format}-current`);
+          focusedWindow.webContents.send(`menu:export-${format}-current`);
         }
       }
       , { type: "separator" }
@@ -154,7 +154,7 @@ function exportMenu (format, cols, lang) {
   let expMenuItem = function (num) {
     return { label : tr.column[lang](num)
       , click : function (item, focusedWindow) {
-        focusedWindow.webContents.send(`menu-export-${format}-column`, num);
+        focusedWindow.webContents.send(`menu:export-${format}-column`, num);
       }
     };
   };
@@ -193,13 +193,13 @@ function editMenu (isDocument, isEditing, isMac, lang) {
           [ { label: tr.undo[lang]
             , accelerator : "CommandOrControl+Z"
             , click : function (item, focusedWindow) {
-                focusedWindow.webContents.send("menu-undo");
+                focusedWindow.webContents.send("menu:undo");
               }
             }
           , { label: tr.redo[lang]
             , accelerator : "CommandOrControl+Shift+Z"
             , click : function (item, focusedWindow) {
-                focusedWindow.webContents.send("menu-redo");
+                focusedWindow.webContents.send("menu:redo");
               }
             }
           , { type: "separator" }
@@ -207,7 +207,7 @@ function editMenu (isDocument, isEditing, isMac, lang) {
             , accelerator : "CommandOrControl+X"
             , click : function (item, focusedWindow) {
                 if (!isMac) {
-                  focusedWindow.webContents.send("menu-cut");
+                  focusedWindow.webContents.send("menu:cut");
                 }
               }
             }
@@ -215,7 +215,7 @@ function editMenu (isDocument, isEditing, isMac, lang) {
             , accelerator : "CommandOrControl+C"
             , click : function (item, focusedWindow) {
                 if (!isMac) {
-                  focusedWindow.webContents.send("menu-copy");
+                  focusedWindow.webContents.send("menu:copy");
                 }
               }
             }
@@ -223,7 +223,7 @@ function editMenu (isDocument, isEditing, isMac, lang) {
             , accelerator : "CommandOrControl+V"
             , click : function (item, focusedWindow) {
                 if (!isMac) {
-                  focusedWindow.webContents.send("menu-paste");
+                  focusedWindow.webContents.send("menu:paste");
                 }
               }
             }
@@ -232,7 +232,7 @@ function editMenu (isDocument, isEditing, isMac, lang) {
             , registerAccelerator : false
             , click : function (item, focusedWindow) {
                 if (!isMac) {
-                  focusedWindow.webContents.send("menu-paste-into");
+                  focusedWindow.webContents.send("menu:paste-into");
                 }
               }
             }
@@ -307,7 +307,7 @@ function helpMenu(handlers, isMac, lang, isHelpVisible) {
     { label: tr.help[lang]
     , submenu:
         [ { label: tr.toggleHelp[lang](isHelpVisible)
-          , click : (item, focusedWindow) => focusedWindow.webContents.send("menu-toggle-support", !isHelpVisible)
+          , click : (item, focusedWindow) => focusedWindow.webContents.send("menu:toggle-support", !isHelpVisible)
           }
         , { type: "separator" }
         , { label: tr.buyLicense[lang]
