@@ -3,11 +3,12 @@ const {expect} = require("chai");
 const electronPath = require("electron");
 const path = require("path");
 const fs = require("fs-extra");
-const ks = require("node-key-sender");
+//const ks = require("node-key-sender");
+const { keyboard, Key } = require("@nut-tree/nut-js");
 
 
 const commandOrControl = process.platform == "darwin" ? "\uE03D" : "Control";
-const commandOrControlWord = process.platform == "darwin" ? "command" : "control";
+const commandOrControlKey = process.platform == "darwin" ? Key.LeftSuper : Key.LeftControl;
 
 
 describe("Application Start", function () {
@@ -78,7 +79,7 @@ describe("Actions on Untitled Document", function () {
   });
 
   it("should switch to edit mode when pressing Enter", async () => {
-    await ks.sendKey("enter");
+    await keyboard.type(Key.Return);
     const textareaExists = await app.client.waitForExist("#card-edit-1", 800);
     expect(textareaExists).to.be.true;
   });
@@ -126,7 +127,7 @@ describe("Actions on Untitled Document", function () {
   });
 
   it(`should save on ${commandOrControl}+S`, async () => {
-    await ks.sendCombination([commandOrControlWord, "s"]);
+    await keyboard.type(commandOrControlKey, Key.S);
     await app.client.pause(1000);
     const saveIndicatorText = await app.client.getText("#save-indicator span");
     expect(saveIndicatorText).to.equal("Saved");
@@ -137,13 +138,13 @@ describe("Actions on Untitled Document", function () {
   });
 
   it("should say \"Unsaved Changes...\" on new changes", async () => {
-    // Modifier keys are sticky, so they need to be triggered again to release.
     await app.client.keys("\nWith some changes after saving");
     const saveIndicatorText = await app.client.getText("#save-indicator span");
     expect(saveIndicatorText).to.equal("Unsaved Changes...");
   });
 
   it("should eventually say \"Saved\" in save indicator when saving card", async () => {
+    // Modifier keys are sticky, so they need to be triggered again to release.
     await app.client.keys([commandOrControl, "Enter", commandOrControl]);
     await app.client.pause(500);
     const saveIndicatorText = await app.client.getText("#save-indicator span");
@@ -338,7 +339,7 @@ describe("License Window", function () {
 
   it("should show the license window", async () => {
     await app.client.waitUntilWindowLoaded();
-    await ks.sendCombination(["alt", commandOrControlWord, "shift", "y"]);
+    await keyboard.type(Key.LeftAlt, commandOrControlKey, Key.LeftShift, Key.Y);
     await app.client.windowByIndex(1);
     const title = await app.browserWindow.getTitle();
     expect(title).to.equal("Register Gingko");
