@@ -79,7 +79,7 @@ describe("Actions on Untitled Document", function () {
   });
 
   it("should switch to edit mode when pressing Enter", async () => {
-    await keyboard.type(Key.Return);
+    await keyboard.type(Key.Enter);
     const textareaExists = await app.client.waitForExist("#card-edit-1", 800);
     expect(textareaExists).to.be.true;
   });
