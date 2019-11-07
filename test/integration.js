@@ -189,6 +189,7 @@ describe("Verify Data Saved from Untitled", function () {
 
   it("should have loaded the cards and content", async () => {
     await app.client.waitUntilWindowLoaded();
+    await app.client.waitForExist("#card-1", 800);
 
     let cardContent = [];
     cardContent[0] = await app.client.$("#card-1").getText();
@@ -228,6 +229,7 @@ describe("Actions on Loaded Document", function () {
 
   it("should have loaded the cards and content", async () => {
     await app.client.waitUntilWindowLoaded();
+    await app.client.waitForExist("#card-1", 800);
 
     let cardContent = [];
     cardContent[0] = await app.client.$("#card-1").getText();

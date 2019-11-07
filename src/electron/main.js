@@ -768,7 +768,7 @@ function setDocumentChanged(win, changed) {
 app.on("window-all-closed", () => {
   // On macOS it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
-  if (_menuQuit || process.platform !== "darwin") {
+  if (_menuQuit || process.env.RUNNING_IN_SPECTRON || process.platform !== "darwin") {
     app.quit();
   }
 });
