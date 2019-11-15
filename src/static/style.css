@@ -1041,7 +1041,7 @@ pre {
   opacity: 0.8;
 }
 
-#search-field input:focus {
+#search-field input:focus, #search-field input:valid {
   outline: none;
   opacity: 1;
   box-shadow: inset 1px 1px 1px 0px rgb(129, 130, 136);

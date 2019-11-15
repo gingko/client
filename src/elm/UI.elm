@@ -67,6 +67,7 @@ viewSearchField { viewState, language } =
                 [ input
                     [ type_ "search"
                     , id "search-input"
+                    , required True
                     , title (tr language PressToSearch)
                     , onInput SearchFieldUpdated
                     ]
