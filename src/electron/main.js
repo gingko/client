@@ -1,4 +1,4 @@
-const { app, BrowserWindow, dialog, Menu, Notification } = require("electron");
+const { app, BrowserWindow, dialog, Menu, Notification, shell } = require("electron");
 const { ipcMain: ipc } = require("electron-better-ipc");
 import { autoUpdater } from "electron-updater";
 const fs = require("fs-extra");
@@ -255,6 +255,16 @@ function updateMenu(win, lang) {
     }
   }
 }
+
+app.on("web-contents-created", (event, contents) => {
+  contents.on("new-window", async (event, navigationUrl) => {
+    // In this example, we"ll ask the operating system
+    // to open this event"s url in the default browser.
+    event.preventDefault();
+
+    await shell.openExternal(navigationUrl);
+  });
+});
 
 app.on("browser-window-focus", (ev, win) => {
   if (!win.isModal()) {
