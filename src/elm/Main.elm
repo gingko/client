@@ -840,12 +840,41 @@ update msg ({ objects, workingTree, status } as model) =
                     else
                         ( model, Cmd.none )
 
-                CheckboxClicked checkboxNumber ->
-                    let
-                        _ =
-                            Debug.log "checkboxNumber in ELM" checkboxNumber
-                    in
-                    ( model, Cmd.none )
+                CheckboxClicked cardId checkboxNumber ->
+                    case getTree cardId model.workingTree.tree of
+                        Nothing ->
+                            ( model, Cmd.none )
+
+                        Just originalCard ->
+                            let
+                                checkboxes =
+                                    Regex.fromStringWith { caseInsensitive = True, multiline = True }
+                                        "\\[(x| )\\]"
+                                        |> Maybe.withDefault Regex.never
+
+                                checkboxReplacer { match, number } =
+                                    case ( number == checkboxNumber, match ) of
+                                        ( True, "[ ]" ) ->
+                                            "[X]"
+
+                                        ( True, "[x]" ) ->
+                                            "[ ]"
+
+                                        ( True, "[X]" ) ->
+                                            "[ ]"
+
+                                        _ ->
+                                            match
+
+                                newContent =
+                                    originalCard.content
+                                        |> Regex.replace checkboxes checkboxReplacer
+
+                                newTree =
+                                    Trees.update (Trees.Upd cardId newContent) model.workingTree
+                            in
+                            ( { model | workingTree = newTree }, Cmd.none )
+                                |> addToHistory
 
                 -- === UI ===
                 SetLanguage lang ->

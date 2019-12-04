@@ -147,8 +147,8 @@ function initElmAndPorts(initFlags) {
     e.returnValue = false;
   };
 
-  window.checkboxClicked = (number) => {
-    toElm("CheckboxClicked", number);
+  window.checkboxClicked = (cardId, number) => {
+    toElm("CheckboxClicked", [cardId, number]);
   };
 }
 

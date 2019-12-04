@@ -510,7 +510,7 @@ viewCardOther cardId content isEditing isParent isAncestor isLast collabsOnCard 
                     , onClick (Activate cardId)
                     , onDoubleClick (OpenCard cardId content)
                     ]
-                    [ lazy viewContent content ]
+                    [ lazy2 viewContent cardId content ]
                , collabsSpan collabsOnCard collabsEditingCard
                ]
         )
@@ -578,7 +578,7 @@ viewCardActive lang cardId content isParent isLast collabsOnCard collabsEditingC
                     , onClick (Activate cardId)
                     , onDoubleClick (OpenCard cardId content)
                     ]
-                    [ lazy viewContent content ]
+                    [ lazy2 viewContent cardId content ]
                , collabsSpan collabsOnCard collabsEditingCard
                ]
         )
@@ -667,8 +667,8 @@ dropRegions cardId isEditing isLast dragModel =
             []
 
 
-viewContent : String -> Html Msg
-viewContent content =
+viewContent : String -> String -> Html Msg
+viewContent cardId content =
     let
         options =
             { githubFlavored = Just { tables = True, breaks = True }
@@ -705,7 +705,13 @@ viewContent content =
                             else
                                 ""
                     in
-                    "<input type='checkbox'" ++ checkState ++ " onClick='checkboxClicked(" ++ String.fromInt number ++ ")'/>"
+                    "<input type='checkbox'"
+                        ++ checkState
+                        ++ " onClick='checkboxClicked(\""
+                        ++ cardId
+                        ++ "\", "
+                        ++ String.fromInt number
+                        ++ ")'/>"
             in
             content
                 |> Regex.replace openAddDiff (\_ -> "<ins class='diff'>")

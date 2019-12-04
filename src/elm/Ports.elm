@@ -223,9 +223,9 @@ receiveMsg tagger onError =
                             onError (errorToString e)
 
                 "CheckboxClicked" ->
-                    case decodeValue Json.Decode.int outsideInfo.data of
-                        Ok checkboxNumber ->
-                            tagger <| CheckboxClicked checkboxNumber
+                    case decodeValue (tupleDecoder Json.Decode.string Json.Decode.int) outsideInfo.data of
+                        Ok ( cardId, checkboxNumber ) ->
+                            tagger <| CheckboxClicked cardId checkboxNumber
 
                         Err e ->
                             onError (errorToString e)
