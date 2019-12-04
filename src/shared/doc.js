@@ -146,6 +146,10 @@ function initElmAndPorts(initFlags) {
     toElm("GetDataToSave", null);
     e.returnValue = false;
   };
+
+  window.checkboxClicked = (number) => {
+    toElm("CheckboxClicked", number);
+  };
 }
 
 

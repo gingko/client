@@ -840,6 +840,13 @@ update msg ({ objects, workingTree, status } as model) =
                     else
                         ( model, Cmd.none )
 
+                CheckboxClicked checkboxNumber ->
+                    let
+                        _ =
+                            Debug.log "checkboxNumber in ELM" checkboxNumber
+                    in
+                    ( model, Cmd.none )
+
                 -- === UI ===
                 SetLanguage lang ->
                     ( { model | language = lang }

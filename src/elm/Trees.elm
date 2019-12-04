@@ -679,11 +679,10 @@ viewContent content =
 
         processedContent =
             let
-                checkboxEmpty =
-                    Regex.fromString "\\[ \\]" |> Maybe.withDefault Regex.never
-
-                checkboxChecked =
-                    Regex.fromString "\\[[xX]\\]" |> Maybe.withDefault Regex.never
+                checkboxes =
+                    Regex.fromStringWith { caseInsensitive = True, multiline = True }
+                        "\\[(x| )\\]"
+                        |> Maybe.withDefault Regex.never
 
                 openAddDiff =
                     Regex.fromString "{\\+\\+" |> Maybe.withDefault Regex.never
@@ -696,14 +695,24 @@ viewContent content =
 
                 closeDelDiff =
                     Regex.fromString "--}" |> Maybe.withDefault Regex.never
+
+                checkboxReplacer { match, number } =
+                    let
+                        checkState =
+                            if match == "[x]" || match == "[X]" then
+                                "checked"
+
+                            else
+                                ""
+                    in
+                    "<input type='checkbox'" ++ checkState ++ " onClick='checkboxClicked(" ++ String.fromInt number ++ ")'/>"
             in
             content
                 |> Regex.replace openAddDiff (\_ -> "<ins class='diff'>")
                 |> Regex.replace closeAddDiff (\_ -> "</ins>")
                 |> Regex.replace openDelDiff (\_ -> "<del class='diff'>")
                 |> Regex.replace closeDelDiff (\_ -> "</del>")
-                |> Regex.replace checkboxEmpty (\_ -> "<input type='checkbox' disabled/>")
-                |> Regex.replace checkboxChecked (\_ -> "<input type='checkbox' checked disabled/>")
+                |> Regex.replace checkboxes checkboxReplacer
     in
     Markdown.toHtmlWith options
         []

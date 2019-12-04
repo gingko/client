@@ -222,6 +222,14 @@ receiveMsg tagger onError =
                         Err e ->
                             onError (errorToString e)
 
+                "CheckboxClicked" ->
+                    case decodeValue Json.Decode.int outsideInfo.data of
+                        Ok checkboxNumber ->
+                            tagger <| CheckboxClicked checkboxNumber
+
+                        Err e ->
+                            onError (errorToString e)
+
                 -- === UI ===
                 "SetLanguage" ->
                     case decodeValue languageDecoder outsideInfo.data of

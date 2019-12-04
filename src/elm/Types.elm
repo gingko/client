@@ -90,6 +90,7 @@ type
     | DragStarted String
     | FieldChanged String
     | TextCursor TextCursorInfo
+    | CheckboxClicked Int
       -- === UI ===
     | SetLanguage Translation.Language
     | ViewVideos
