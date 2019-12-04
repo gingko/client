@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
+## [2.4.6] - 2019-12-03
+  - Checkboxes added
+  - Fix : Errors on clicking links in help docs
+
 ## [2.4.5] - 2019-10-24
   - Fix : Does not save Untitled after initial Save As
 
