@@ -555,6 +555,10 @@ pre {
   pointer-events: none; /* Prevents dragging images instead of cards */
 }
 
+.card input[type="checkbox"] {
+  cursor: pointer;
+}
+
 /* ======== CARD (Edit view) ======== */
 
 /* --- Autofocus --- */
