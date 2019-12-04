@@ -679,6 +679,12 @@ viewContent content =
 
         processedContent =
             let
+                checkboxEmpty =
+                    Regex.fromString "\\[ \\]" |> Maybe.withDefault Regex.never
+
+                checkboxChecked =
+                    Regex.fromString "\\[[xX]\\]" |> Maybe.withDefault Regex.never
+
                 openAddDiff =
                     Regex.fromString "{\\+\\+" |> Maybe.withDefault Regex.never
 
@@ -696,6 +702,8 @@ viewContent content =
                 |> Regex.replace closeAddDiff (\_ -> "</ins>")
                 |> Regex.replace openDelDiff (\_ -> "<del class='diff'>")
                 |> Regex.replace closeDelDiff (\_ -> "</del>")
+                |> Regex.replace checkboxEmpty (\_ -> "<input type='checkbox' disabled/>")
+                |> Regex.replace checkboxChecked (\_ -> "<input type='checkbox' checked disabled/>")
     in
     Markdown.toHtmlWith options
         []
