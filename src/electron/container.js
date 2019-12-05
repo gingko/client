@@ -8,7 +8,6 @@ const Store = require("electron-store");
 
 
 const sendTo = ipc.send;
-const callMain = ipc.callMain;
 const answerMain = ipc.answerMain;
 const msgWas = (...args) => {
   ipc.on(...args);
@@ -182,7 +181,6 @@ const exportTxt = (data, defaultPath) => {
 export
   { sendTo
   , msgWas
-  , callMain
   , answerMain
   , getInitialDocState
   , userStore

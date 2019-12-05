@@ -184,4 +184,4 @@ const rendererConfig = merge(baseElectronConfig, {
 });
 
 
-module.exports = [ /*webConfig,*/ mainConfig, rendererConfig ];
+module.exports = [ webConfig, mainConfig, rendererConfig ];

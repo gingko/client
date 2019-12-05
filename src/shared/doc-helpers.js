@@ -132,6 +132,9 @@ var shortcuts = [ "shift+enter"
 var needOverride= [ "mod+n"
                   , "mod+o"
                   , "mod+shift+s"
+                  , "mod+h"
+                  , "mod+j"
+                  , "mod+k"
                   ];
 
 /* ===== CommonJS Module exports ===== */
