@@ -23,9 +23,6 @@ jobs:
         uses: actions/setup-node@master
         with:
           node-version: 12
-      - name: Install Xvfb on Linux
-        if: startsWith(matrix.os, 'ubuntu')
-        run: sudo apt-get install xvfb
       - name: Install Node packages
         run: npm ci
       - name: Build Electron App
