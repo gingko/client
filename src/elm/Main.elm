@@ -873,7 +873,7 @@ update msg ({ objects, workingTree, status } as model) =
                                 newTree =
                                     Trees.update (Trees.Upd cardId newContent) model.workingTree
                             in
-                            ( { model | workingTree = newTree }, Cmd.none )
+                            ( { model | workingTree = newTree, dirty = True }, Cmd.none )
                                 |> addToHistory
 
                 -- === UI ===
