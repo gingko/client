@@ -5,6 +5,7 @@ const Mousetrap = require("mousetrap");
 const container = require("Container");
 
 import PouchDB from "pouchdb";
+PouchDB.plugin(require("transform-pouch"));
 
 
 const helpers = require("./doc-helpers");
@@ -75,6 +76,19 @@ container.answerMain("set-doc-state", data => {
 });
 
 self.db = new PouchDB(docState.dbPath[0]);
+
+self.remoteDB = new PouchDB("http://localhost:5984/test-filtered-2");
+self.remoteDB.transform(
+  { outgoing: (doc) => {
+      doc._id = doc._id.slice(5);
+      return doc;
+    }
+  , incoming: (doc) => {
+      doc._id = "4567/" + doc._id;
+      return doc;
+    }
+});
+
 container.msgWas("main:database-close", async () => {
   await db.close();
 });

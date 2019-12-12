@@ -91,6 +91,7 @@
     "sha1": "^1.1.1",
     "system-font-families": "^0.4.1",
     "textarea-autosize": "^0.4.2",
+    "transform-pouch": "^1.1.4",
     "turndown": "^4.0.2",
     "underscore": "^1.9.1"
   },
