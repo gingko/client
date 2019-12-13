@@ -5,8 +5,7 @@ const Mousetrap = require("mousetrap");
 const container = require("Container");
 
 import PouchDB from "pouchdb";
-//PouchDB.plugin(require("/home/adriano/code/oss/transform-pouch"));
-PouchDB.plugin(require("pouchdb-migrate"));
+PouchDB.plugin(require("transform-pouch"));
 
 
 const helpers = require("./doc-helpers");
@@ -78,33 +77,18 @@ container.answerMain("set-doc-state", data => {
 });
 
 self.db = new PouchDB(docState.dbPath[0]);
-console.log(`new PouchDB: ${docState.dbPath[0]}`);
-
-self.enableSync = async (treeId) => {
-  self.TREE_ID = treeId;
-  var head = await self.db.get("heads/master");
-
-  const currRows = await self.db.allDocs({include_docs: true});
-  const newDocs = currRows.rows.map(r => { r.doc.treeId = treeId; return r.doc });
-  console.log("newDocs", newDocs);
-  const bulkRes = await self.db.bulkDocs(newDocs);
-
-  head = await self.db.get("heads/master");
-  console.log("head after", head, bulkRes);
-  toElm("SetHeadRev", head._rev);
-};
 
 self.remoteDB = new PouchDB("http://localhost:5984/test-filtered-2");
-//self.remoteDB.transform(
-//  { outgoing: (doc) => {
-//      doc._id = doc._id.slice(5);
-//      return doc;
-//    }
-//  , incoming: (doc) => {
-//      doc._id = "4567/" + doc._id;
-//      return doc;
-//    }
-//});
+self.remoteDB.transform(
+  { outgoing: (doc) => {
+      doc._id = doc._id.slice(5);
+      return doc;
+    }
+  , incoming: (doc) => {
+      doc._id = "4567/" + doc._id;
+      return doc;
+    }
+});
 
 container.msgWas("main:database-close", async () => {
   await db.close();
