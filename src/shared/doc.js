@@ -90,6 +90,11 @@ self.remoteDB.transform(
     }
 });
 
+self.startSync = () => {
+  var selector = { "_id": { "$regex": `^${self.TREE_ID}/` }};
+  self.db.sync(self.remoteDB, {live: true, retry: true, pull: {selector} });
+};
+
 container.msgWas("main:database-close", async () => {
   await db.close();
 });
