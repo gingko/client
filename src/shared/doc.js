@@ -78,21 +78,26 @@ container.answerMain("set-doc-state", data => {
 
 self.db = new PouchDB(docState.dbPath[0]);
 
+self.TREE_ID = "sync-tests-2";
 self.remoteDB = new PouchDB("http://localhost:5984/test-filtered-2");
 self.remoteDB.transform(
   { outgoing: (doc) => {
-      doc._id = doc._id.slice(5);
+      console.log(`outgoing called on ${doc._id}`);
+      doc._id = doc._id.slice(self.TREE_ID.length + 1);
       return doc;
     }
   , incoming: (doc) => {
-      doc._id = "4567/" + doc._id;
+      doc._id = self.TREE_ID + "/" + doc._id;
       return doc;
     }
 });
 
 self.startSync = () => {
   var selector = { "_id": { "$regex": `^${self.TREE_ID}/` }};
-  self.db.sync(self.remoteDB, {live: true, retry: true, pull: {selector} });
+  self.db.sync(self.remoteDB, {live: true, retry: true, pull: {selector} })
+    .on("change", info => console.log(info));
+
+  setInterval(4000, sync);
 };
 
 container.msgWas("main:database-close", async () => {
@@ -504,9 +509,9 @@ function load(filepath, headOverride){
 }
 
 const merge = function(local, remote){
-  db.allDocs( { include_docs: true })
+  self.db.allDocs( { include_docs: true })
     .then(function (result) {
-      data = result.rows.map(r => r.doc);
+      var data = result.rows.map(r => r.doc);
 
       let commits = processData(data, "commit");
       let trees = processData(data, "tree");
@@ -520,8 +525,9 @@ const merge = function(local, remote){
 };
 
 
-function pull (local, remote, info) {
-  db.replicate.from(remoteCouch)
+function pull (local, remote) {
+  console.log("doc.js:pull");
+  self.db.replicate.from(self.remoteDB)
     .on("complete", pullInfo => {
       if(pullInfo.docs_written > 0 && pullInfo.ok) {
         merge(local, remote);
@@ -531,15 +537,19 @@ function pull (local, remote, info) {
 
 
 function push () {
-  db.replicate.to(remoteCouch);
+  console.log("doc.js:push");
+  self.db.replicate.to(self.remoteDB);
 }
 
 
 function sync () {
-  db.get("heads/master")
+  console.log("doc.js:sync");
+  self.db.get("heads/master")
     .then(localHead => {
-      remoteDb.get("heads/master")
+      console.log("localHead", localHead);
+      self.remoteDB.get(`${self.TREE_ID}/heads/master`)
         .then(remoteHead => {
+          console.log("remoteHead", remoteHead);
           if(_.isEqual(localHead, remoteHead)) {
             // Local == Remote => no changes
             console.log("up-to-date");
@@ -553,13 +563,14 @@ function sync () {
         })
         .catch(remoteHeadErr => {
           if(remoteHeadErr.name == "not_found") {
+            console.log("remoteHeadErr", remoteHeadErr);
             // Bare remote repository => Push
             push("push:bare-remote");
           }
         });
     })
     .catch(localHeadErr => {
-      remoteDb.get("heads/master")
+      self.remoteDB.get(`${self.TREE_ID}/heads/master`)
         .then(remoteHead => {
           if(localHeadErr.name == "not_found") {
             // Bare local repository => Pull

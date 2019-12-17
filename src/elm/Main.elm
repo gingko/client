@@ -146,7 +146,7 @@ defaultModel =
     , fonts = Fonts.default
     , startingWordcount = 0
     , historyState = Closed
-    , online = False
+    , online = True
     , currentTime = Time.millisToPosix 0
     , seed = Random.initialSeed 12345
     }
@@ -2210,6 +2210,7 @@ subscriptions model =
     Sub.batch
         [ receiveMsg Port LogErr
         , Time.every (15 * 1000) TimeUpdate
+        , Time.every (10 * 1000) (\_ -> Sync)
         ]
 
 
