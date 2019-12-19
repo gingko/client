@@ -34,6 +34,9 @@ sendOut info =
         CommitWithTimestamp ->
             dataToSend null
 
+        NoDataToSave ->
+            dataToSend null
+
         SaveToDB ( statusValue, objectsValue ) ->
             dataToSend (list identity [ statusValue, objectsValue ])
 

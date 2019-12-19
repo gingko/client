@@ -51,6 +51,7 @@ type
     | ColumnNumberChange Int
       -- === Database ===
     | CommitWithTimestamp
+    | NoDataToSave
     | SaveToDB ( Json.Value, Json.Value )
     | SaveLocal Tree
     | Push
