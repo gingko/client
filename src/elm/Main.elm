@@ -440,7 +440,7 @@ update msg ({ objects, workingTree, status } as model) =
             case emitted_ of
                 Just () ->
                     ( updatedModel
-                    , sendOut CommitWithTimestamp
+                    , Cmd.batch [ sendOut CommitWithTimestamp, mappedCmd ]
                     )
 
                 Nothing ->
