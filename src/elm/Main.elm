@@ -702,8 +702,11 @@ update msg ({ objects, workingTree, status } as model) =
 
                 -- === Database ===
                 GetDataToSave ->
-                    case vs.viewMode of
-                        Normal ->
+                    case ( vs.viewMode, status ) of
+                        ( Normal, Bare ) ->
+                            ( model, sendOut NoDataToSave )
+
+                        ( Normal, _ ) ->
                             ( model
                             , sendOut (SaveToDB ( statusToValue model.status, Objects.toValue model.objects ))
                             )

@@ -196,6 +196,14 @@ const update = (msg, data) => {
         toElm("Commit", Date.now());
       }
 
+    , "NoDataToSave": () => {
+        if (actionOnData === ActionOnData.Exit) {
+          // Empty document
+          // Should close without saving.
+          container.sendTo("doc:save-and-exit", true);
+        }
+      }
+
     , "SaveToDB": async () => {
         try {
           const { headRev, lastSavedToDB } = await saveToDB(data[0], data[1]);
