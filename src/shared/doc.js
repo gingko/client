@@ -72,7 +72,7 @@ const docStateHandlers = {
 };
 const docState = new Proxy(container.getInitialDocState(), docStateHandlers);
 
-container.answerMain("set-doc-state", data => {
+container.msgWas("set-doc-state", (e, data) => {
   Object.assign(docState, data);
 });
 
