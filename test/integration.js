@@ -78,6 +78,11 @@ describe("Actions on Untitled Document", function () {
     expect(cardExists).to.be.true;
   });
 
+  it("should say \"New Document...\" in save indicator", async () => {
+    const saveIndicatorText = await app.client.getText("#save-indicator span");
+    expect(saveIndicatorText).to.equal("New Document...");
+  });
+
   it("should switch to edit mode when pressing Enter", async () => {
     await keyboard.type(Key.Enter);
     const textareaExists = await app.client.waitForExist("#card-edit-1", 800);
@@ -118,7 +123,7 @@ describe("Actions on Untitled Document", function () {
     expect(saveIndicatorText).to.equal("Backup Saved");
   });
 
-  it(`should create a new card on ${commandOrControl}+Right`, async () => {
+  it(`should create a new card on ${commandOrControl}+Right, with content`, async () => {
     // Modifier keys are sticky, so they need to be triggered again to release.
     await app.client.keys([commandOrControl, "ArrowRight", commandOrControl]);
     await app.client.keys("A child card");
