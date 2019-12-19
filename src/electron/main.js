@@ -310,9 +310,6 @@ ipc.on("doc:save", async (event) => {
   if (win && win.mainState.originalPath) {
     let saveReturn = await saveDocument(win);
     if (saveReturn) {
-      if(process.platform == "win32") {
-        win.webContents.send("main:database-open");
-      }
       setDocumentChanged(win, false);
     }
   }
@@ -604,6 +601,7 @@ async function saveDocument (docWindow) {
         , changed: false
         }
     );
+    if (process.platform === "win32") { docWindow.webContents.send("main:database-open"); }
     return filePath;
   } catch (err) {
     // TODO
