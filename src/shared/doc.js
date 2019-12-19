@@ -120,7 +120,7 @@ if (docState.jsonImportData) {
         , lastActive : getLastActive(docState.dbPath[1])
         , fonts : getFonts(docState.dbPath[1])
         }
-      , false // isSaved
+      , true // isImport
     ];
 
   initElmAndPorts(initFlags);
@@ -143,7 +143,7 @@ if (docState.jsonImportData) {
           , lastActive : getLastActive(docState.dbPath[1])
           , fonts : getFonts(docState.dbPath[1])
           }
-        , !!docState.dbPath[1] // isSaved
+        , false // isImport
       ];
 
     initElmAndPorts(initFlags);

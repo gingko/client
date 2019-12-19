@@ -165,7 +165,7 @@ defaultModel =
 
 
 init : ( Json.Value, InitModel, Bool ) -> ( Model, Cmd Msg )
-init ( dataIn, modelIn, isSaved ) =
+init ( dataIn, modelIn, isImport ) =
     let
         ( newStatus, newTree_, newObjects ) =
             case Json.decodeValue treeDecoder dataIn of
@@ -216,7 +216,7 @@ init ( dataIn, modelIn, isSaved ) =
     )
         |> activate modelIn.lastActive
         |> (\mc ->
-                if not isSaved then
+                if isImport then
                     mc |> addToHistory
 
                 else
