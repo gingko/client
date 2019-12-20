@@ -8,6 +8,9 @@ const userStore =
         case "false":
           return false;
 
+        case null:
+          return args[1];
+
         default:
           return item;
       }
