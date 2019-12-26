@@ -30,8 +30,16 @@ const getInitialDocState = () => {
   return docState;
 };
 
+const showMessageBox = (...args) => {
+  if (args[0] && args[0].buttons && args[0].buttons.length == 1) {
+    alert(`${args[0].title}\n${args[0].message}\n${args[0].detail}`);
+  } else {
+    console.log("showMessageBox", args);
+  }
+};
+
 const justLog = (...args) => {
-  console.log("sendTo", ...args);
+  console.log("container", ...args);
 };
 
 export
@@ -41,7 +49,7 @@ export
   , getInitialDocState
   , userStore
   , justLog as openExternal
-  , justLog as showMessageBox
+  , showMessageBox
   , justLog as exportDocx
   , justLog as exportJson
   , justLog as exportTxt
