@@ -11,15 +11,15 @@ import List.Extra as ListExtra exposing (getAt)
 import Objects
 import Octicons as Icon exposing (defaultOptions)
 import Regex exposing (Regex, replace)
-import Time
+import Time exposing (posixToMillis)
 import Translation exposing (Language, TranslationId(..), timeDistInWords, tr)
 import TreeUtils exposing (..)
 import Trees exposing (defaultTree)
 import Types exposing (..)
 
 
-viewSaveIndicator : { m | objects : Objects.Model, dirty : Bool, lastCommitSaved : Maybe Time.Posix, lastFileSaved : Maybe Time.Posix, currentTime : Time.Posix, language : Translation.Language } -> Html Msg
-viewSaveIndicator { objects, dirty, lastCommitSaved, lastFileSaved, currentTime, language } =
+viewSaveIndicator : { m | objects : Objects.Model, dirty : Bool, lastCommitSaved : Maybe Time.Posix, lastFileSaved : Maybe Time.Posix, currentTime : Time.Posix, online : Bool, language : Translation.Language } -> Html Msg
+viewSaveIndicator { objects, dirty, lastCommitSaved, lastFileSaved, currentTime, online, language } =
     let
         lastChangeString =
             timeDistInWords
@@ -40,7 +40,17 @@ viewSaveIndicator { objects, dirty, lastCommitSaved, lastFileSaved, currentTime,
                         span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language SavedInternally ]
 
                     ( Just commitTime, Just fileTime ) ->
-                        span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language ChangesSaved ]
+                        if posixToMillis commitTime < posixToMillis fileTime then
+                            span [ title (tr language LastEdit ++ " " ++ lastChangeString) ]
+                                [ if online then
+                                    text <| tr language ChangesSynced
+
+                                  else
+                                    text <| tr language ChangesSaved
+                                ]
+
+                        else
+                            span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language SavedInternally ]
 
                     ( Nothing, Just fileTime ) ->
                         span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language DatabaseError ]
