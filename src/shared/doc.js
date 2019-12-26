@@ -3,6 +3,7 @@ const _ = require("lodash");
 require("textarea-autosize");
 const Mousetrap = require("mousetrap");
 const container = require("Container");
+const GitGraph = require("../shared/GitGraph.js");
 
 import PouchDB from "pouchdb";
 PouchDB.plugin(require("transform-pouch"));

@@ -1,6 +1,7 @@
 module UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
 
 import Coders exposing (treeToMarkdownString)
+import CustomElements exposing (gitgraph)
 import Date
 import Dict
 import Diff exposing (..)
@@ -55,9 +56,13 @@ viewSaveIndicator { objects, dirty, lastCommitSaved, lastFileSaved, currentTime,
                     ( Nothing, Just fileTime ) ->
                         span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language DatabaseError ]
     in
-    div
-        [ id "save-indicator", classList [ ( "inset", True ), ( "saving", dirty ) ] ]
-        [ saveStateSpan ]
+    div []
+        [ div
+            [ id "save-indicator", classList [ ( "inset", True ), ( "saving", dirty ) ] ]
+            [ saveStateSpan
+            ]
+        , gitgraph objects
+        ]
 
 
 viewSearchField : { m | viewState : ViewState, language : Language } -> Html Msg
