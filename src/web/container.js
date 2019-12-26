@@ -19,8 +19,10 @@ const userStore =
   };
 
 const getInitialDocState = () => {
+  const url = new URL(window.location);
+  const treeName = url.searchParams.get("treeId") || "defaultTree";
   var docState =
-    { dbPath: "test"
+    { dbPath: [treeName]
     , lastSavedToFile : 0
     , changed: false
     , jsonImportData: false
