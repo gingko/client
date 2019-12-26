@@ -49,7 +49,6 @@ const docStateHandlers = {
           break;
 
         case "dbPath":
-          console.log(`new PouchDB: ${value[0]}`);
           self.db = new PouchDB(value[0]);
           break;
 
@@ -78,11 +77,10 @@ container.msgWas("set-doc-state", (e, data) => {
 
 self.db = new PouchDB(docState.dbPath[0]);
 
-self.TREE_ID = "sync-tests-2";
-self.remoteDB = new PouchDB("http://localhost:5984/test-filtered-2");
+self.TREE_ID = docState.dbPath[0];
+self.remoteDB = new PouchDB("http://localhost:5984/sync-tests");
 self.remoteDB.transform(
   { outgoing: (doc) => {
-      console.log(`outgoing called on ${doc._id}`);
       doc._id = doc._id.slice(self.TREE_ID.length + 1);
       return doc;
     }
@@ -91,14 +89,6 @@ self.remoteDB.transform(
       return doc;
     }
 });
-
-self.startSync = () => {
-  var selector = { "_id": { "$regex": `^${self.TREE_ID}/` }};
-  self.db.sync(self.remoteDB, {live: true, retry: true, pull: {selector} })
-    .on("change", info => console.log(info));
-
-  setInterval(4000, sync);
-};
 
 container.msgWas("main:database-close", async () => {
   await db.close();
@@ -533,65 +523,61 @@ const merge = function(local, remote){
 };
 
 
-function pull (local, remote) {
-  console.log("doc.js:pull");
-  self.db.replicate.from(self.remoteDB)
-    .on("complete", pullInfo => {
-      if(pullInfo.docs_written > 0 && pullInfo.ok) {
-        merge(local, remote);
-      }
-    });
+async function pull (local, remote) {
+  try {
+    var selector = { "_id": { "$regex": `^${self.TREE_ID}/` }};
+    var pullResult = await self.db.replicate.from(self.remoteDB, {selector});
+  if(pullResult.docs_written > 0 && pullResult.ok) {
+    merge(local, remote);
+  }
+  } catch (e) {
+    console.log("pull error");
+  }
 }
 
 
 function push () {
-  console.log("doc.js:push");
   self.db.replicate.to(self.remoteDB);
 }
 
 
-function sync () {
-  console.log("doc.js:sync");
-  self.db.get("heads/master")
-    .then(localHead => {
-      console.log("localHead", localHead);
-      self.remoteDB.get(`${self.TREE_ID}/heads/master`)
-        .then(remoteHead => {
-          console.log("remoteHead", remoteHead);
-          if(_.isEqual(localHead, remoteHead)) {
-            // Local == Remote => no changes
-            console.log("up-to-date");
-          } else if (localHead.ancestors.includes(remoteHead.value)) {
-            // Local is ahead of remote => Push
-            push("push:Local ahead of remote");
-          } else {
-            // Local is behind of remote => Pull
-            pull(localHead.value, remoteHead.value, "Local behind remote => Fetch & Merge");
-          }
-        })
-        .catch(remoteHeadErr => {
-          if(remoteHeadErr.name == "not_found") {
-            console.log("remoteHeadErr", remoteHeadErr);
-            // Bare remote repository => Push
-            push("push:bare-remote");
-          }
-        });
-    })
-    .catch(localHeadErr => {
-      self.remoteDB.get(`${self.TREE_ID}/heads/master`)
-        .then(remoteHead => {
-          if(localHeadErr.name == "not_found") {
-            // Bare local repository => Pull
-            pull(null, remoteHead.value, "Bare local => Fetch & Merge");
-          }
-        })
-        .catch(remoteHeadErr => {
-          if(remoteHeadErr.name == "not_found") {
-            // Bare local & remote => up-to-date
-            push("up-to-date (bare)");
-          }
-        });
-    });
+async function sync () {
+  async function returnError(e) {
+    return e;
+  }
+
+  var localHead = await self.db.get("heads/master").catch(returnError);
+  var remoteHead = await self.remoteDB.get(`${self.TREE_ID}/heads/master`).catch(returnError);
+
+  if (localHead.error && remoteHead.error) {
+    // Neither exists => Do nothing
+    return;
+
+  } else if (localHead.error && localHead.name === "not_found" && remoteHead.value) {
+    // Bare local repository => Pull
+    pull(null, remoteHead.value, "Bare local => Fetch & Merge");
+
+  } else if (localHead.value && remoteHead.error && remoteHead.name === "not_found") {
+    // Bare remote repository => Push
+    push("push:bare-remote");
+
+  } else if (localHead.value && remoteHead.value) {
+    // TODO: remove extra save on close, to prevent needless saves
+    // of heads ref (increments _rev, no change to rest).
+    if(_.isEqual(_.omit(localHead,"_rev"), _.omit(remoteHead, "_rev"))) {
+      // Local == Remote => Up-to-Date
+      docState.lastSavedToFile = Date.now();
+
+    } else if (localHead.ancestors.includes(remoteHead.value)) {
+      // Local is ahead of remote => Push
+      push("push:Local ahead of remote");
+
+    } else {
+      // Local is behind of remote => Pull
+      pull(localHead.value, remoteHead.value, "Local behind remote => Fetch & Merge");
+
+    }
+  }
 }
 
 
