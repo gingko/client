@@ -1,9 +1,10 @@
 const jQuery = require("jquery");
 const _ = require("lodash");
+self.axios = require("axios");
 require("textarea-autosize");
 const Mousetrap = require("mousetrap");
 const container = require("Container");
-const GitGraph = require("../shared/GitGraph.js");
+require("../shared/GitGraph.js");
 
 import PouchDB from "pouchdb";
 PouchDB.plugin(require("transform-pouch"));
@@ -579,21 +580,23 @@ const merge = function(local, remote){
 };
 
 
-async function pull (local, remote) {
+async function pull (local, remote, info) {
   try {
+    if(info) console.log(info);
     var selector = { "_id": { "$regex": `^${self.TREE_ID}/` }};
     var pullResult = await self.db.replicate.from(self.remoteDB, {selector});
-  if(pullResult.docs_written > 0 && pullResult.ok) {
-    merge(local, remote);
-  }
+    if(pullResult.docs_written > 0 && pullResult.ok) {
+      merge(local, remote);
+    }
   } catch (e) {
-    console.log("pull error");
+    console.log("pull error", e);
   }
 }
 
 
-function push () {
+function push (info) {
   self.db.replicate.to(self.remoteDB);
+  if(info) console.log(info);
 }
 
 
