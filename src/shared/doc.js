@@ -85,18 +85,66 @@ container.msgWas("set-doc-state", (e, data) => {
 
 self.db = new PouchDB(docState.dbPath[0]);
 
-self.TREE_ID = docState.dbPath[0];
-self.remoteDB = new PouchDB("http://localhost:5984/sync-tests");
-self.remoteDB.transform(
-  { outgoing: (doc) => {
-      doc._id = doc._id.slice(self.TREE_ID.length + 1);
-      return doc;
+// ============ SYNC ====================
+
+self.signup = async (email, password, passwordConfirm) => {
+  try {
+    if (password !== passwordConfirm) throw new Error("Passwords don't match");
+
+    var userDoc =
+      { "_id": "org.couchdb.user:"+email
+      , "type": "user"
+      , "name": email
+      , "password": password
+      , "roles": []
+      };
+
+    var userDbRemote = new PouchDB("http://b878df3f.ngrok.io/_users");
+    var res = await userDbRemote.put(userDoc);
+    if (res.ok) {
+      self.login(email, password);
     }
-  , incoming: (doc) => {
-      doc._id = self.TREE_ID + "/" + doc._id;
-      return doc;
-    }
-});
+  } catch (e) {
+    console.log("signup error", e);
+  }
+};
+
+self.login = async (email, password) => {
+  self.setUserDb(email);
+  var sessionDb = "http://b878df3f.ngrok.io/_session";
+  return await self.axios.post(sessionDb, {name: email, password: password}, {withCredentials: true});
+};
+
+self.setUserDb = (email) => {
+  var userDb = "http://b878df3f.ngrok.io/userdb-"+ helpers.toHex(email);
+  var remoteOpts =
+    { skip_setup: true
+    , fetch(url, opts){
+        return fetch(url, opts);
+      }
+    };
+  self.remoteDB = new PouchDB(userDb, remoteOpts);
+};
+
+self.enableSync = (treeId) => {
+  docState.sync = [true, treeId];
+};
+
+self.setTreeId = (treeId) => {
+  self.TREE_ID = treeId;
+  self.remoteDB.transform(
+    { outgoing: (doc) => {
+        doc._id = doc._id.slice(self.TREE_ID.length + 1);
+        return doc;
+      }
+    , incoming: (doc) => {
+        doc._id = self.TREE_ID + "/" + doc._id;
+        return doc;
+      }
+  });
+};
+
+// ============ END SYNC ====================
 
 container.msgWas("main:database-close", async () => {
   await db.close();
