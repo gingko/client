@@ -19,8 +19,8 @@ import Trees exposing (defaultTree)
 import Types exposing (..)
 
 
-viewSaveIndicator : { m | objects : Objects.Model, dirty : Bool, lastCommitSaved : Maybe Time.Posix, lastFileSaved : Maybe Time.Posix, currentTime : Time.Posix, online : Bool, language : Translation.Language } -> Html Msg
-viewSaveIndicator { objects, dirty, lastCommitSaved, lastFileSaved, currentTime, online, language } =
+viewSaveIndicator : { m | objects : Objects.Model, dirty : Bool, lastCommitSaved : Maybe Time.Posix, lastFileSaved : Maybe Time.Posix, currentTime : Time.Posix, syncEnabled : Bool, language : Translation.Language } -> Html Msg
+viewSaveIndicator { objects, dirty, lastCommitSaved, lastFileSaved, currentTime, syncEnabled, language } =
     let
         lastChangeString =
             timeDistInWords
@@ -43,7 +43,7 @@ viewSaveIndicator { objects, dirty, lastCommitSaved, lastFileSaved, currentTime,
                     ( Just commitTime, Just fileTime ) ->
                         if posixToMillis commitTime < posixToMillis fileTime then
                             span [ title (tr language LastEdit ++ " " ++ lastChangeString) ]
-                                [ if online then
+                                [ if syncEnabled then
                                     text <| tr language ChangesSynced
 
                                   else

@@ -197,6 +197,14 @@ receiveMsg tagger onError =
                         Err e ->
                             onError (errorToString e)
 
+                "SetSync" ->
+                    case decodeValue Json.Decode.bool outsideInfo.data of
+                        Ok sync ->
+                            tagger <| SetSync sync
+
+                        Err e ->
+                            onError (errorToString e)
+
                 "Merge" ->
                     tagger <| Merge outsideInfo.data
 

@@ -53,6 +53,13 @@ const docStateHandlers = {
           self.db = new PouchDB(value[0]);
           break;
 
+        case "sync":
+          if (value[0]) {
+            self.setTreeId(value[1]);
+            toElm("SetSync", value[0]);
+          }
+          break;
+
         case "lastSavedToFile":
           toElm("SetLastFileSaved", value);
           break;

@@ -86,6 +86,7 @@ type
     | SetHeadRev String
     | SetLastCommitSaved (Maybe Time.Posix)
     | SetLastFileSaved (Maybe Time.Posix)
+    | SetSync Bool
     | Merge Json.Value
       -- === DOM ===
     | DragStarted String
