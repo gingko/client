@@ -4,6 +4,7 @@ self.axios = require("axios");
 require("textarea-autosize");
 const Mousetrap = require("mousetrap");
 const container = require("Container");
+const config = require("../../config.js");
 require("../shared/GitGraph.js");
 
 import PouchDB from "pouchdb";
@@ -100,7 +101,7 @@ self.signup = async (email, password, passwordConfirm) => {
       , "roles": []
       };
 
-    var userDbRemote = new PouchDB("http://b878df3f.ngrok.io/_users");
+    var userDbRemote = new PouchDB(`http://${config.TUNNEL_ID}.ngrok.io/_users`);
     var res = await userDbRemote.put(userDoc);
     if (res.ok) {
       self.login(email, password);
@@ -112,12 +113,12 @@ self.signup = async (email, password, passwordConfirm) => {
 
 self.login = async (email, password) => {
   self.setUserDb(email);
-  var sessionDb = "http://b878df3f.ngrok.io/_session";
+  var sessionDb = `http://${config.TUNNEL_ID}.ngrok.io/_session`;
   return await self.axios.post(sessionDb, {name: email, password: password}, {withCredentials: true});
 };
 
 self.setUserDb = (email) => {
-  var userDb = "http://b878df3f.ngrok.io/userdb-"+ helpers.toHex(email);
+  var userDb = `http://${config.TUNNEL_ID}.ngrok.io/userdb-`+ helpers.toHex(email);
   var remoteOpts =
     { skip_setup: true
     , fetch(url, opts){
@@ -874,6 +875,6 @@ const observer = new MutationObserver(function(mutations) {
   }
 });
 
-const config = { childList: true, subtree: true };
+const observerConfig = { childList: true, subtree: true };
 
-observer.observe(document.body, config);
+observer.observe(document.body, observerConfig);

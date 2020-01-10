@@ -13,3 +13,4 @@ Gingko-*
 *.xoj
 npm-debug.log
 *.env
+config.js
