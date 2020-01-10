@@ -84,6 +84,8 @@ const baseElectronConfig = {
   // "production" or "development" flag.
   mode: "development",
 
+  devtool: "source-map",
+
   // Set the base directory manually, instead of CWD.
   context: path.join(__dirname, "src"),
 
