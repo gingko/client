@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
-## Unreleased
+## [2.4.8] - 2020-01-26
   - Fix : Unhandled Promise ENOENT error after 10min
 
 ## [2.4.7] - 2019-12-19
