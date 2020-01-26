@@ -6,7 +6,6 @@ const path = require("path");
 const sha1 = require("sha1");
 const machineIdSync = require("node-machine-id").machineIdSync;
 const Store = require("electron-store");
-const _ = require("lodash");
 import TurndownService from "turndown";
 const windowStateKeeper = require("electron-window-state");
 const docList = require("./doc-list");

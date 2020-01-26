@@ -4,6 +4,7 @@ const fs = require("fs-extra");
 const path = require("path");
 const execFile = promisify(require("child_process").execFile);
 const { path7za } = require("7zip-bin");
+const _ = require("lodash");
 const firstline = require("firstline");
 const crypto = require("crypto");
 const moment = require("moment");
@@ -283,12 +284,16 @@ async function getHashWithoutStartTime(filepath) {
 
 async function truncateBackups() {
   let dir = path.join(app.getPath("userData"), "backups");
-  let files = await fs.readdir(dir);
-  let sortedFiltered = files.filter((f)=> {return f.endsWith(".gko"); }).sort().reverse();
-  let grouped = _.groupBy(sortedFiltered, (f) => { return f.slice(0,-24); }); //groupBy filename without timestamp
-  let toDelete = Object.values(_.mapValues(grouped, (fs) => { return fs.slice(8); })).flat();
-  let unlinkPromises = toDelete.map((f) => fs.unlink(path.join(dir,f)));
-  await Promise.all(unlinkPromises);
+  const exists = await fs.pathExists(dir);
+
+  if (exists) {
+    let files = await fs.readdir(dir);
+    let sortedFiltered = files.filter((f)=> {return f.endsWith(".gko"); }).sort().reverse();
+    let grouped = _.groupBy(sortedFiltered, (f) => { return f.slice(0,-24); }); //groupBy filename without timestamp
+    let toDelete = Object.values(_.mapValues(grouped, (fs) => { return fs.slice(8); })).flat();
+    let unlinkPromises = toDelete.map((f) => fs.unlink(path.join(dir,f)));
+    await Promise.all(unlinkPromises);
+  }
 }
 
 
