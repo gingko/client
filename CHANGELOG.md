@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
+## [2.4.9] - 2020-02-14
+  - Code Signing Certificate renewal (Windows)
+
 ## [2.4.8] - 2020-01-26
   - Fix : Unhandled Promise ENOENT error after 10min
 
