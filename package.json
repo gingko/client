@@ -46,9 +46,10 @@
       "category": "public.app-category.productivity"
     },
     "win": {
-      "target": [
-        "target": "appx", "target": "nsis"
-      ]
+      "target":
+        [ { "target": "appx" }
+        , { "target": "nsis" }
+        ]
     },
     "dmg": {
       "contents": [
