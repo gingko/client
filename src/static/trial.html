@@ -40,7 +40,7 @@
   })
 
   clickBuy = () => {
-    shell.openExternal('https://gingkoapp.com/desktop-upgrade')
+    shell.openExternal('https://gingko.io/upgrade/')
     ipc.send('trial:open-serial-window', (daysLeft <= 0))
     window.onbeforeunload = undefined
     this.close()

@@ -311,7 +311,7 @@ function helpMenu(handlers, isMac, lang, isHelpVisible) {
           }
         , { type: "separator" }
         , { label: tr.buyLicense[lang]
-          , click : () => shell.openExternal("https://gingkoapp.com/desktop-upgrade")
+          , click : () => shell.openExternal("https://gingko.io/upgrade")
           }
         , { label: tr.enterLicense[lang]
           , id: "enterLicense"
