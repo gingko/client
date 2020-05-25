@@ -952,21 +952,29 @@ update msg ({ objects, workingTree, status } as model) =
                             normalMode model (insertBelow vs.active "")
 
                         "mod+k" ->
-                            ( model
+                            let
+                                ( beforeText, afterText ) =
+                                    model.textCursorInfo.text
+                            in
+                            ( { model | field = afterText }
                             , Cmd.none
                             )
                                 |> saveCardIfEditing
-                                |> insertAbove vs.active ""
+                                |> insertAbove vs.active beforeText
 
                         "mod+up" ->
                             normalMode model (insertAbove vs.active "")
 
                         "mod+l" ->
-                            ( model
+                            let
+                                ( beforeText, afterText ) =
+                                    model.textCursorInfo.text
+                            in
+                            ( { model | field = beforeText }
                             , Cmd.none
                             )
                                 |> saveCardIfEditing
-                                |> insertChild vs.active ""
+                                |> insertChild vs.active afterText
 
                         "mod+right" ->
                             normalMode model (insertChild vs.active "")
