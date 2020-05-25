@@ -137,7 +137,7 @@ viewFooter model =
     in
     div
         [ class "footer" ]
-        ([ viewShortcutsToggle model.language model.shortcutTrayOpen model.isMac isOnly model.textCursorInfo.selected model.viewState ]
+        ([ viewShortcutsToggle model.language model.shortcutTrayOpen model.isMac isOnly model.textCursorInfo model.viewState ]
             ++ viewWordCount
         )
 
@@ -210,15 +210,60 @@ viewVideo { videoModalOpen } =
         div [] []
 
 
-viewShortcutsToggle : Language -> Bool -> Bool -> Bool -> Bool -> ViewState -> Html Msg
-viewShortcutsToggle lang isOpen isMac isOnly isTextSelected vs =
+viewShortcutsToggle : Language -> Bool -> Bool -> Bool -> TextCursorInfo -> ViewState -> Html Msg
+viewShortcutsToggle lang isOpen isMac isOnly textCursorInfo vs =
     let
+        isTextSelected =
+            textCursorInfo.selected
+
         viewIf cond content =
             if cond then
                 content
 
             else
                 text ""
+
+        splitChild =
+            case textCursorInfo.position of
+                Start ->
+                    shortcutSpan [ ctrlOrCmd, "L" ] "to Split Card to Right"
+
+                End ->
+                    shortcutSpan [ ctrlOrCmd, "L" ] (tr lang AddChildAction)
+
+                Empty ->
+                    shortcutSpan [ ctrlOrCmd, "L" ] (tr lang AddChildAction)
+
+                Other ->
+                    shortcutSpan [ ctrlOrCmd, "L" ] "to Split Card to Right"
+
+        splitBelow =
+            case textCursorInfo.position of
+                Start ->
+                    shortcutSpan [ ctrlOrCmd, "J" ] "to Split Card Down"
+
+                End ->
+                    shortcutSpan [ ctrlOrCmd, "J" ] (tr lang AddBelowAction)
+
+                Empty ->
+                    shortcutSpan [ ctrlOrCmd, "J" ] (tr lang AddBelowAction)
+
+                Other ->
+                    shortcutSpan [ ctrlOrCmd, "J" ] "to Split Card Down"
+
+        splitAbove =
+            case textCursorInfo.position of
+                Start ->
+                    shortcutSpan [ ctrlOrCmd, "K" ] "to Split Card Upward"
+
+                End ->
+                    shortcutSpan [ ctrlOrCmd, "K" ] (tr lang AddAboveAction)
+
+                Empty ->
+                    shortcutSpan [ ctrlOrCmd, "K" ] (tr lang AddAboveAction)
+
+                Other ->
+                    shortcutSpan [ ctrlOrCmd, "K" ] "to Split Card Upward"
 
         shortcutSpanEnabled enabled keys desc =
             let
@@ -272,6 +317,9 @@ viewShortcutsToggle lang isOpen isMac isOnly isTextSelected vs =
                     [ div [ class "popup" ]
                         [ shortcutSpan [ ctrlOrCmd, tr lang EnterKey ] (tr lang ToSaveChanges)
                         , shortcutSpan [ tr lang EscKey ] (tr lang ToCancelChanges)
+                        , splitChild
+                        , splitBelow
+                        , splitAbove
                         , shortcutSpanEnabled isTextSelected [ ctrlOrCmd, "B" ] (tr lang ForBold)
                         , shortcutSpanEnabled isTextSelected [ ctrlOrCmd, "I" ] (tr lang ForItalic)
                         , span [ class "markdown-guide" ]
