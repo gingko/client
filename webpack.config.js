@@ -70,10 +70,10 @@ const webConfig = {
     }),
 
     // Plugin to copy static assets (css, images).
-    new CopyWebpackPlugin([{
+    new CopyWebpackPlugin({ patterns: [{
       from: "./static",
       to: "../web/static"
-    }])
+    }]})
   ]
 };
 
@@ -176,10 +176,10 @@ const rendererConfig = merge(baseElectronConfig, {
     }),
 
     // Plugin to copy static assets (css, images).
-    new CopyWebpackPlugin([{
+    new CopyWebpackPlugin({ patterns: [{
       from: "./static",
       to: "../app/static"
-    }])
+    }]})
   ]
 });
 
