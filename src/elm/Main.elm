@@ -136,7 +136,7 @@ defaultModel =
     , lastCommitSaved = Nothing
     , lastFileSaved = Nothing
     , field = ""
-    , textCursorInfo = { selected = False, position = End }
+    , textCursorInfo = { selected = False, position = End, text = ( "", "" ) }
     , isMac = False
     , language = Translation.En
     , shortcutTrayOpen = True
@@ -348,19 +348,19 @@ update msg ({ objects, workingTree, status } as model) =
             ( model
             , Cmd.none
             )
-                |> insertAbove id
+                |> insertAbove id ""
 
         InsertBelow id ->
             ( model
             , Cmd.none
             )
-                |> insertBelow id
+                |> insertBelow id ""
 
         InsertChild id ->
             ( model
             , Cmd.none
             )
-                |> insertChild id
+                |> insertChild id ""
 
         -- === Card Moving  ===
         DragDropMsg dragDropMsg ->
@@ -938,34 +938,38 @@ update msg ({ objects, workingTree, status } as model) =
                             model |> intentCancelCard
 
                         "mod+j" ->
-                            ( model
+                            let
+                                ( beforeText, afterText ) =
+                                    model.textCursorInfo.text
+                            in
+                            ( { model | field = beforeText }
                             , Cmd.none
                             )
                                 |> saveCardIfEditing
-                                |> insertBelow vs.active
+                                |> insertBelow vs.active afterText
 
                         "mod+down" ->
-                            normalMode model (insertBelow vs.active)
+                            normalMode model (insertBelow vs.active "")
 
                         "mod+k" ->
                             ( model
                             , Cmd.none
                             )
                                 |> saveCardIfEditing
-                                |> insertAbove vs.active
+                                |> insertAbove vs.active ""
 
                         "mod+up" ->
-                            normalMode model (insertAbove vs.active)
+                            normalMode model (insertAbove vs.active "")
 
                         "mod+l" ->
                             ( model
                             , Cmd.none
                             )
                                 |> saveCardIfEditing
-                                |> insertChild vs.active
+                                |> insertChild vs.active ""
 
                         "mod+right" ->
-                            normalMode model (insertChild vs.active)
+                            normalMode model (insertChild vs.active "")
 
                         "h" ->
                             normalMode model (goLeft vs.active)
@@ -1626,8 +1630,8 @@ intentCancelCard model =
 -- === Card Insertion  ===
 
 
-insert : String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-insert pid pos ( model, prevCmd ) =
+insert : String -> Int -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+insert pid pos initText ( model, prevCmd ) =
     let
         ( newId, newSeed ) =
             Random.step randomId model.seed
@@ -1636,18 +1640,18 @@ insert pid pos ( model, prevCmd ) =
             "node-" ++ (newId |> Debug.toString)
     in
     ( { model
-        | workingTree = Trees.update (Trees.Ins newIdString "" pid pos) model.workingTree
+        | workingTree = Trees.update (Trees.Ins newIdString initText pid pos) model.workingTree
         , seed = newSeed
       }
     , prevCmd
     )
         |> maybeColumnsChanged model.workingTree.columns
-        |> openCard newIdString ""
+        |> openCard newIdString initText
         |> activate newIdString
 
 
-insertRelative : String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-insertRelative id delta ( model, prevCmd ) =
+insertRelative : String -> Int -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+insertRelative id delta initText ( model, prevCmd ) =
     let
         idx =
             getIndex id model.workingTree.tree |> Maybe.withDefault 999999
@@ -1660,7 +1664,7 @@ insertRelative id delta ( model, prevCmd ) =
             ( model
             , prevCmd
             )
-                |> insert pid (idx + delta)
+                |> insert pid (idx + delta) initText
 
         Nothing ->
             ( model
@@ -1668,22 +1672,26 @@ insertRelative id delta ( model, prevCmd ) =
             )
 
 
-insertAbove : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-insertAbove id tup =
-    insertRelative id 0 tup
+insertAbove : String -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+insertAbove id initText tup =
+    insertRelative id 0 initText tup
 
 
-insertBelow : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-insertBelow id tup =
-    insertRelative id 1 tup
+insertBelow : String -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+insertBelow id initText (( model, cmd ) as tup) =
+    let
+        _ =
+            Debug.log "textCursorInfo" model.textCursorInfo
+    in
+    insertRelative id 1 initText tup
 
 
-insertChild : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-insertChild id ( model, prevCmd ) =
+insertChild : String -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+insertChild id initText ( model, prevCmd ) =
     ( model
     , prevCmd
     )
-        |> insert id 999999
+        |> insert id 999999 initText
 
 
 maybeColumnsChanged : List Column -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )

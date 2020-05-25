@@ -297,9 +297,10 @@ cursorPositionDecoder =
 
 textCursorInfoDecoder : Decoder TextCursorInfo
 textCursorInfoDecoder =
-    Json.map2 TextCursorInfo
+    Json.map3 TextCursorInfo
         (field "selected" bool)
         (field "position" cursorPositionDecoder)
+        (field "text" (tupleDecoder string string))
 
 
 

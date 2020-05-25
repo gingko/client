@@ -700,6 +700,7 @@ const selectionHandler = function(ev) {
   if(document.activeElement.nodeName == "TEXTAREA") {
     let {selectionStart, selectionEnd, selectionDirection} = document.activeElement;
     let length = document.activeElement.value.length;
+    let [before,after] = [document.activeElement.value.substring(0,selectionStart), document.activeElement.value.substring(selectionStart) ]
     let cursorPosition = "other";
 
     if (length == 0) {
@@ -717,6 +718,7 @@ const selectionHandler = function(ev) {
     toElm("TextCursor",
       { selected: selectionStart !== selectionEnd
       , position: cursorPosition
+      , text: [before, after]
       }
     );
   }

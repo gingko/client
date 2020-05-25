@@ -195,7 +195,7 @@ type DropId
 
 
 type alias TextCursorInfo =
-    { selected : Bool, position : CursorPosition }
+    { selected : Bool, position : CursorPosition, text : ( String, String ) }
 
 
 type CursorPosition
