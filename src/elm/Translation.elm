@@ -29,10 +29,13 @@ type TranslationId
     | EditCardTitle
     | ArrowsAction
     | AddChildAction
+    | SplitChildAction
     | InsertChildTitle
     | AddBelowAction
+    | SplitBelowAction
     | InsertBelowTitle
     | AddAboveAction
+    | SplitUpwardAction
     | InsertAboveTitle
     | ArrowKeys
     | MoveAction
@@ -231,6 +234,13 @@ tr lang trans =
                     , fr = ""
                     }
 
+                SplitChildAction ->
+                    { en = "to Split Card to the Right"
+                    , zh = ""
+                    , es = "para Dividir la Tarjeta hacia la Derecha"
+                    , fr = ""
+                    }
+
                 InsertChildTitle ->
                     { en = "Insert Child (Ctrl+L)"
                     , zh = ""
@@ -245,6 +255,13 @@ tr lang trans =
                     , fr = ""
                     }
 
+                SplitBelowAction ->
+                    { en = "to Split Card Down"
+                    , zh = ""
+                    , es = "para Dividir la Tarjeta hacia la Abajo"
+                    , fr = ""
+                    }
+
                 InsertBelowTitle ->
                     { en = "Insert Below (Ctrl+J)"
                     , zh = ""
@@ -256,6 +273,13 @@ tr lang trans =
                     { en = "to Add Above"
                     , zh = ""
                     , es = "para Agregar Arriba"
+                    , fr = ""
+                    }
+
+                SplitUpwardAction ->
+                    { en = "to Split Card Upward"
+                    , zh = ""
+                    , es = "para Dividir la Tarjeta hacia la Arriba"
                     , fr = ""
                     }
 

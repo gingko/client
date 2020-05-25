@@ -223,47 +223,21 @@ viewShortcutsToggle lang isOpen isMac isOnly textCursorInfo vs =
             else
                 text ""
 
+        spanSplit key descAdd descSplit =
+            if textCursorInfo.position == End || textCursorInfo.position == Empty then
+                shortcutSpan [ ctrlOrCmd, key ] descAdd
+
+            else
+                shortcutSpan [ ctrlOrCmd, key ] descSplit
+
         splitChild =
-            case textCursorInfo.position of
-                Start ->
-                    shortcutSpan [ ctrlOrCmd, "L" ] "to Split Card to Right"
-
-                End ->
-                    shortcutSpan [ ctrlOrCmd, "L" ] (tr lang AddChildAction)
-
-                Empty ->
-                    shortcutSpan [ ctrlOrCmd, "L" ] (tr lang AddChildAction)
-
-                Other ->
-                    shortcutSpan [ ctrlOrCmd, "L" ] "to Split Card to Right"
+            spanSplit "L" (tr lang AddChildAction) (tr lang SplitChildAction)
 
         splitBelow =
-            case textCursorInfo.position of
-                Start ->
-                    shortcutSpan [ ctrlOrCmd, "J" ] "to Split Card Down"
-
-                End ->
-                    shortcutSpan [ ctrlOrCmd, "J" ] (tr lang AddBelowAction)
-
-                Empty ->
-                    shortcutSpan [ ctrlOrCmd, "J" ] (tr lang AddBelowAction)
-
-                Other ->
-                    shortcutSpan [ ctrlOrCmd, "J" ] "to Split Card Down"
+            spanSplit "J" (tr lang AddBelowAction) (tr lang SplitBelowAction)
 
         splitAbove =
-            case textCursorInfo.position of
-                Start ->
-                    shortcutSpan [ ctrlOrCmd, "K" ] "to Split Card Upward"
-
-                End ->
-                    shortcutSpan [ ctrlOrCmd, "K" ] (tr lang AddAboveAction)
-
-                Empty ->
-                    shortcutSpan [ ctrlOrCmd, "K" ] (tr lang AddAboveAction)
-
-                Other ->
-                    shortcutSpan [ ctrlOrCmd, "K" ] "to Split Card Upward"
+            spanSplit "K" (tr lang AddAboveAction) (tr lang SplitUpwardAction)
 
         shortcutSpanEnabled enabled keys desc =
             let
