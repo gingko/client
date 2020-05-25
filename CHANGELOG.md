@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
+## [2.4.11] - 2020-05-25
+  - Add ability to split cards while editing
+
 ## [2.4.10] - 2020-05-13
   - Use new payment page with Stripe Checkout (AliPay support)
 
