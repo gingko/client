@@ -114,6 +114,9 @@ sendOut info =
         TextSurround id str ->
             dataToSend (list string [ id, str ])
 
+        SetCursorPosition pos ->
+            dataToSend (int pos)
+
         -- === UI ===
         UpdateCommits ( objectsValue, head_ ) ->
             let

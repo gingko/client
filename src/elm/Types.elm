@@ -65,6 +65,7 @@ type
     | ActivateCards ( String, Int, List (List String) )
     | FlashCurrentSubtree
     | TextSurround String String
+    | SetCursorPosition Int
       -- === UI ===
     | UpdateCommits ( Json.Value, Maybe String )
     | SetVideoModal Bool

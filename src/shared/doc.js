@@ -323,6 +323,11 @@ const update = (msg, data) => {
         }
       }
 
+    , "SetCursorPosition": () => {
+        let pos = data[0];
+        setTimeout(() => document.activeElement.setSelectionRange(pos,pos), 0);
+    }
+
       // === UI ===
 
     , "UpdateCommits": () => {

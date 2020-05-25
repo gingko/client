@@ -947,6 +947,7 @@ update msg ({ objects, workingTree, status } as model) =
                             )
                                 |> saveCardIfEditing
                                 |> insertBelow vs.active afterText
+                                |> setCursorPosition 0
 
                         "mod+down" ->
                             normalMode model (insertBelow vs.active "")
@@ -975,6 +976,7 @@ update msg ({ objects, workingTree, status } as model) =
                             )
                                 |> saveCardIfEditing
                                 |> insertChild vs.active afterText
+                                |> setCursorPosition 0
 
                         "mod+right" ->
                             normalMode model (insertChild vs.active "")
@@ -1687,10 +1689,6 @@ insertAbove id initText tup =
 
 insertBelow : String -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 insertBelow id initText (( model, cmd ) as tup) =
-    let
-        _ =
-            Debug.log "textCursorInfo" model.textCursorInfo
-    in
     insertRelative id 1 initText tup
 
 
@@ -1721,6 +1719,11 @@ maybeColumnsChanged oldColumns ( { workingTree } as model, prevCmd ) =
     ( model
     , Cmd.batch [ prevCmd, colsChangedCmd ]
     )
+
+
+setCursorPosition : Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+setCursorPosition pos ( model, prevCmd ) =
+    ( model, Cmd.batch [ prevCmd, sendOut (SetCursorPosition pos) ] )
 
 
 
