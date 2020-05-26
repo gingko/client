@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
-## Unreleased
+## [2.4.12] - 2020-05-26
   - Add ability to merge cards & subtrees
   - Add public translation project
   - (Internal) Upgrade Electron to v9
