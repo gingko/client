@@ -1,0 +1,436 @@
+msgid ""
+msgstr ""
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+
+msgid "Cancel"
+msgstr ""
+
+msgid "Blank"
+msgstr ""
+
+msgid "Import JSON"
+msgstr ""
+
+msgid "From Desktop or Online"
+msgstr ""
+
+msgid "Recent Documents"
+msgstr ""
+
+msgid "Last Opened"
+msgstr ""
+
+msgid "Open Other Documents"
+msgstr ""
+
+msgid "Remove From List"
+msgstr ""
+
+msgid "New Document..."
+msgstr ""
+
+msgid "Unsaved Changes..."
+msgstr ""
+
+msgid "Backup Saved"
+msgstr ""
+
+msgctxt "Changes Saved"
+msgid "Saved"
+msgstr ""
+
+msgid "Database Error..."
+msgstr ""
+
+msgid "Last saved"
+msgstr ""
+
+msgid "Last edit"
+msgstr ""
+
+msgid "Keyboard Shortcuts Help"
+msgstr ""
+
+msgid "Restore this Version"
+msgstr ""
+
+msgid "Enter"
+msgstr ""
+
+msgid "to Edit"
+msgstr ""
+
+msgid "Edit Card (Enter)"
+msgstr ""
+
+msgid "to Navigate"
+msgstr ""
+
+msgid "to Add Child"
+msgstr ""
+
+msgid "to Split Card to the Right"
+msgstr ""
+
+msgid "Insert Child (Ctrl+L)"
+msgstr ""
+
+msgid "to Add Below"
+msgstr ""
+
+msgid "to Split Card Down"
+msgstr ""
+
+msgid "to Merge into Next"
+msgstr ""
+
+msgid "Insert Below (Ctrl+J)"
+msgstr ""
+
+msgid "to Add Above"
+msgstr ""
+
+msgid "to Split Card Upward"
+msgstr ""
+
+msgid "to Merge into Previous"
+msgstr ""
+
+msgid "Insert Above (Ctrl+K)"
+msgstr ""
+
+msgid "(arrows)"
+msgstr ""
+
+msgid "to Move"
+msgstr ""
+
+msgid "Backspace"
+msgstr ""
+
+msgid "to Delete"
+msgstr ""
+
+msgid "Delete Card (Ctrl+Backspace)"
+msgstr ""
+
+msgid "Formatting Syntax Guide"
+msgstr ""
+
+msgid "for Bold"
+msgstr ""
+
+msgid "for Italic"
+msgstr ""
+
+msgid "to Save Changes"
+msgstr ""
+
+msgid "Save Changes (Ctrl+Enter)"
+msgstr ""
+
+msgid "Esc"
+msgstr ""
+
+msgid "to Cancel Changes"
+msgstr ""
+
+msgid "Press '/' to search"
+msgstr ""
+
+msgid "Heading Font"
+msgstr ""
+
+msgid "Content Font"
+msgstr ""
+
+msgid "Editing/Monospace Font"
+msgstr ""
+
+msgid "Session: %1 word"
+msgid_plural "Session: %1 words"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Total : %1 word"
+msgid_plural "Total : %1 words"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Card : %1 word"
+msgid_plural "Card : %1 words"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Subtree : %1 word"
+msgid_plural "Subtree : %1 words"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Group : %1 word"
+msgid_plural "Group : %1 words"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Column : %1 word"
+msgid_plural "Column : %1 words"
+msgstr[0] ""
+msgstr[1] ""
+
+#:    file
+msgid "&File"
+msgstr ""
+
+#: new
+msgid "&New"
+msgstr ""
+
+#: open
+msgid "&Open..."
+msgstr ""
+
+#: openRecent
+msgid "Open &Recent"
+msgstr ""
+
+#: menuSave
+msgid "&Save"
+msgstr ""
+
+#: saved
+msgid "Saved"
+msgstr ""
+
+#: saveAs
+msgid "Save &As..."
+msgstr ""
+
+#: importJSON
+msgid "&Import JSON File..."
+msgstr ""
+
+#: exportAsWord
+msgid "Export as MS &Word"
+msgstr ""
+
+#: exportAsText
+msgid "Export as &Text"
+msgstr ""
+
+#: exportAsJSON
+msgid "Export as &JSON..."
+msgstr ""
+
+#: entireDocument
+msgid "Entire Document..."
+msgstr ""
+
+#: currentSubtree
+msgid "Current Card and Children..."
+msgstr ""
+
+#: column
+msgid "Column %1"
+msgstr "%1"
+
+#: repeatExport
+msgid "Repeat Last E&xport"
+msgstr ""
+
+#: showList
+msgid "Show Complete List..."
+msgstr ""
+
+#: close
+msgid "&Close"
+msgstr ""
+
+#: quit
+msgid "&Quit Gingko..."
+msgstr ""
+
+#: edit
+msgid "&Edit"
+msgstr ""
+
+#: undo
+msgid "&Undo"
+msgstr ""
+
+#: redo
+msgid "&Redo"
+msgstr ""
+
+#: cut
+msgid "Cu&t"
+msgstr ""
+
+#: copy
+msgid "&Copy"
+msgstr ""
+
+#: paste
+msgid "&Paste"
+msgstr ""
+
+#: selectAll
+msgid "Select &All"
+msgstr ""
+
+#: cutCards
+msgid "Cu&t Cards"
+msgstr ""
+
+#: copyCards
+msgid "&Copy Cards"
+msgstr ""
+
+#: pasteCards
+msgid "&Paste Cards"
+msgstr ""
+
+#: pasteCardsInto
+msgid "Paste Cards as Children"
+msgstr ""
+
+#: view
+msgid "&View"
+msgstr ""
+
+#: selectFonts
+msgid "Select &Fonts..."
+msgstr ""
+
+#: selectLanguage
+msgid "Select &Language"
+msgstr ""
+
+#: zoomIn
+msgid "&Zoom In"
+msgstr ""
+
+#: zoomOut
+msgid "Zoom &Out"
+msgstr ""
+
+#: resetZoom
+msgid "&Reset Zoom"
+msgstr ""
+
+#: toggleFullscreen
+msgid "Toggle Full Screen"
+msgstr ""
+
+#: help
+msgid "Help"
+msgstr ""
+
+#: toggleHelp hide
+msgid "Hide Help button"
+msgstr "Masquer le bouton d'Aide"
+
+#: toggleHelp show
+msgid "Show Help button"
+msgstr "Afficher le bouton Aide"
+
+#: faq
+msgid "&FAQ..."
+msgstr ""
+
+#: issuesList
+msgid "Features &List && Known Bugs..."
+msgstr ""
+
+#: contactAdri
+msgid "&Contact Adriano..."
+msgstr ""
+
+#: buyLicense
+msgid "&Buy a License..."
+msgstr ""
+
+#: enterLicense
+msgid "&Enter License..."
+msgstr ""
+
+#: backupFolder
+msgid "Open Backups Folder..."
+msgstr ""
+
+#: openDevTools
+msgid "Open &Debugging Tools"
+msgstr ""
+
+#: gingkoVersion
+msgid "Current Gingko Version : %1"
+msgstr ""
+
+#, // === DIALOGS AND ERROR MESSAGES ===
+
+#: cancel
+
+#: updatePopup
+msgid "%1 will be updated to v%2 on exit"
+msgstr ""
+
+#: updatePopupBody
+msgid "<a href=\"https://github.com/gingko/client/blob/master/CHANGELOG.md\">Change list</a>:\n%1"
+msgstr ""
+
+#: areYouSureCancel
+msgid "Are you sure you want to cancel your changes?"
+msgstr ""
+
+#: save
+msgid "Save"
+msgstr ""
+
+#: saveChanges
+msgid "Save changes"
+msgstr ""
+
+msgid "Save changes before closing?"
+msgstr ""
+
+#: unsavedChangesFound
+msgid "Some Changes Weren't Saved"
+msgstr ""
+
+#: closeWithoutSaving
+msgid "Close Without Saving"
+msgstr ""
+
+msgid "Recover unsaved changes, or Discard them?"
+msgstr ""
+
+#: discard
+msgid "Discard Unsaved Changes"
+msgstr ""
+
+#: recover
+msgid "Recover"
+msgstr ""
+
+#: loadingError
+msgid "Loading Error"
+msgstr ""
+
+#: loadingErrorMsg
+msgid "Couldn't load file."
+msgstr ""
+
+#: saveError
+msgid "Save Error"
+msgstr ""
+
+#: saveErrorMsg
+msgid "The file wasn't saved.\nPlease try again."
+msgstr ""
+
+#: exportError
+msgid "Export Error"
+msgstr ""
+
+#: exportErrorMsg
+msgid "Couldn't export.\nTry again."
+msgstr ""

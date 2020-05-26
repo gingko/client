@@ -1,0 +1,430 @@
+msgid ""
+msgstr ""
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Blank"
+msgstr ""
+
+msgid "Import JSON"
+msgstr ""
+
+msgid "From Desktop or Online"
+msgstr ""
+
+msgid "Recent Documents"
+msgstr ""
+
+msgid "Last Opened"
+msgstr ""
+
+msgid "Open Other Documents"
+msgstr ""
+
+msgid "Remove From List"
+msgstr ""
+
+msgid "New Document..."
+msgstr ""
+
+msgid "Unsaved Changes..."
+msgstr ""
+
+msgid "Backup Saved"
+msgstr ""
+
+msgctxt "Changes Saved"
+msgid "Saved"
+msgstr ""
+
+msgid "Database Error..."
+msgstr ""
+
+msgid "Last saved"
+msgstr ""
+
+msgid "Last edit"
+msgstr ""
+
+msgid "Keyboard Shortcuts Help"
+msgstr ""
+
+msgid "Restore this Version"
+msgstr ""
+
+msgid "Enter"
+msgstr ""
+
+msgid "to Edit"
+msgstr ""
+
+msgid "Edit Card (Enter)"
+msgstr ""
+
+msgid "to Navigate"
+msgstr ""
+
+msgid "to Add Child"
+msgstr ""
+
+msgid "to Split Card to the Right"
+msgstr ""
+
+msgid "Insert Child (Ctrl+L)"
+msgstr ""
+
+msgid "to Add Below"
+msgstr ""
+
+msgid "to Split Card Down"
+msgstr ""
+
+msgid "to Merge into Next"
+msgstr ""
+
+msgid "Insert Below (Ctrl+J)"
+msgstr ""
+
+msgid "to Add Above"
+msgstr ""
+
+msgid "to Split Card Upward"
+msgstr ""
+
+msgid "to Merge into Previous"
+msgstr ""
+
+msgid "Insert Above (Ctrl+K)"
+msgstr ""
+
+msgid "(arrows)"
+msgstr ""
+
+msgid "to Move"
+msgstr ""
+
+msgid "Backspace"
+msgstr ""
+
+msgid "to Delete"
+msgstr ""
+
+msgid "Delete Card (Ctrl+Backspace)"
+msgstr ""
+
+msgid "Formatting Syntax Guide"
+msgstr ""
+
+msgid "for Bold"
+msgstr ""
+
+msgid "for Italic"
+msgstr ""
+
+msgid "to Save Changes"
+msgstr ""
+
+msgid "Save Changes (Ctrl+Enter)"
+msgstr ""
+
+msgid "Esc"
+msgstr ""
+
+msgid "to Cancel Changes"
+msgstr ""
+
+msgid "Press '/' to search"
+msgstr ""
+
+msgid "Heading Font"
+msgstr ""
+
+msgid "Content Font"
+msgstr ""
+
+msgid "Editing/Monospace Font"
+msgstr ""
+
+msgid "Session: %1 word"
+msgid_plural "Session: %1 words"
+msgstr[0] ""
+
+msgid "Total : %1 word"
+msgid_plural "Total : %1 words"
+msgstr[0] ""
+
+msgid "Card : %1 word"
+msgid_plural "Card : %1 words"
+msgstr[0] ""
+
+msgid "Subtree : %1 word"
+msgid_plural "Subtree : %1 words"
+msgstr[0] ""
+
+msgid "Group : %1 word"
+msgid_plural "Group : %1 words"
+msgstr[0] ""
+
+msgid "Column : %1 word"
+msgid_plural "Column : %1 words"
+msgstr[0] ""
+
+#:    file
+msgid "&File"
+msgstr "&文件"
+
+#: new
+msgid "&New"
+msgstr "&新的"
+
+#: open
+msgid "&Open..."
+msgstr "&打开……"
+
+#: openRecent
+msgid "Open &Recent"
+msgstr "打开&最新"
+
+#: menuSave
+msgid "&Save"
+msgstr "&保存"
+
+#: saved
+msgid "Saved"
+msgstr "已保存"
+
+#: saveAs
+msgid "Save &As..."
+msgstr "保存&为……"
+
+#: importJSON
+msgid "&Import JSON File..."
+msgstr "&导入JSON 文件……"
+
+#: exportAsWord
+msgid "Export as MS &Word"
+msgstr "导出为MS&Word "
+
+#: exportAsText
+msgid "Export as &Text"
+msgstr "导出为&文本"
+
+#: exportAsJSON
+msgid "Export as &JSON..."
+msgstr "导出为&JSON ……"
+
+#: entireDocument
+msgid "Entire Document..."
+msgstr "全部文件……"
+
+#: currentSubtree
+msgid "Current Card and Children..."
+msgstr "当前卡和孩子……"
+
+#: column
+msgid "Column %1"
+msgstr "$列%1"
+
+#: repeatExport
+msgid "Repeat Last E&xport"
+msgstr "重复上一次导出"
+
+#: showList
+msgid "Show Complete List..."
+msgstr "显示完整列表……"
+
+#: close
+msgid "&Close"
+msgstr "&关闭"
+
+#: quit
+msgid "&Quit Gingko..."
+msgstr "&退出Gingko ……"
+
+#: edit
+msgid "&Edit"
+msgstr "&编辑"
+
+#: undo
+msgid "&Undo"
+msgstr "&撤销"
+
+#: redo
+msgid "&Redo"
+msgstr "&重做"
+
+#: cut
+msgid "Cu&t"
+msgstr "断&开"
+
+#: copy
+msgid "&Copy"
+msgstr "&复制"
+
+#: paste
+msgid "&Paste"
+msgstr "&粘贴"
+
+#: selectAll
+msgid "Select &All"
+msgstr "选择&所有"
+
+#: cutCards
+msgid "Cu&t Cards"
+msgstr "切断&卡"
+
+#: copyCards
+msgid "&Copy Cards"
+msgstr "&复制卡"
+
+#: pasteCards
+msgid "&Paste Cards"
+msgstr "&粘贴卡"
+
+#: pasteCardsInto
+msgid "Paste Cards as Children"
+msgstr "将卡粘贴为孩子"
+
+#: view
+msgid "&View"
+msgstr "&查看"
+
+#: selectFonts
+msgid "Select &Fonts..."
+msgstr "选择&字体"
+
+#: selectLanguage
+msgid "Select &Language"
+msgstr "选择&语言"
+
+#: zoomIn
+msgid "&Zoom In"
+msgstr " &放大"
+
+#: zoomOut
+msgid "Zoom &Out"
+msgstr "缩&小"
+
+#: resetZoom
+msgid "&Reset Zoom"
+msgstr "&重置缩放"
+
+#: toggleFullscreen
+msgid "Toggle Full Screen"
+msgstr "切换全屏"
+
+#: help
+msgid "Help"
+msgstr "帮助"
+
+#: toggleHelp hide
+msgid "Hide Help button"
+msgstr ""
+
+#: toggleHelp show
+msgid "Show Help button"
+msgstr ""
+
+#: faq
+msgid "&FAQ..."
+msgstr "&常见问题解答"
+
+#: issuesList
+msgid "Features &List && Known Bugs..."
+msgstr "功能&列表&&已知缺陷……"
+
+#: contactAdri
+msgid "&Contact Adriano..."
+msgstr "&联系Adriano ……"
+
+#: buyLicense
+msgid "&Buy a License..."
+msgstr "&购买一个许可"
+
+#: enterLicense
+msgid "&Enter License..."
+msgstr "&输入许可……"
+
+#: backupFolder
+msgid "Open Backups Folder..."
+msgstr "打开备份文件夹……"
+
+#: openDevTools
+msgid "Open &Debugging Tools"
+msgstr "打开&调试工具"
+
+#: gingkoVersion
+msgid "Current Gingko Version : %1"
+msgstr "$当前Gingko 版本: %1"
+
+#, // === DIALOGS AND ERROR MESSAGES ===
+
+#: cancel
+
+#: updatePopup
+msgid "%1 will be updated to v%2 on exit"
+msgstr "%1 将在退出时被更新至v %2"
+
+#: updatePopupBody
+msgid "<a href=\"https://github.com/gingko/client/blob/master/CHANGELOG.md\">Change list</a>:\n%1"
+msgstr "<a href=\"https://github.com/gingko/client/blob/master/CHANGELOG.md\">更改列表</a>:\n%1"
+
+#: areYouSureCancel
+msgid "Are you sure you want to cancel your changes?"
+msgstr "您确定要取消更改吗？"
+
+#: save
+msgid "Save"
+msgstr "保存"
+
+#: saveChanges
+msgid "Save changes"
+msgstr "保存更改"
+
+msgid "Save changes before closing?"
+msgstr "在关闭前保存更改"
+
+#: unsavedChangesFound
+msgid "Some Changes Weren't Saved"
+msgstr "一些未保存的更改"
+
+#: closeWithoutSaving
+msgid "Close Without Saving"
+msgstr "不保存，直接关闭"
+
+msgid "Recover unsaved changes, or Discard them?"
+msgstr "恢复未保存的更改，或放弃它们"
+
+#: discard
+msgid "Discard Unsaved Changes"
+msgstr "放弃未保存的更改"
+
+#: recover
+msgid "Recover"
+msgstr "恢复"
+
+#: loadingError
+msgid "Loading Error"
+msgstr "载入时出错"
+
+#: loadingErrorMsg
+msgid "Couldn't load file."
+msgstr "无法载入文件。"
+
+#: saveError
+msgid "Save Error"
+msgstr "保存时出错"
+
+#: saveErrorMsg
+msgid "The file wasn't saved.\nPlease try again."
+msgstr "文件未保存。\n请再试一次。"
+
+#: exportError
+msgid "Export Error"
+msgstr "导出时出错"
+
+#: exportErrorMsg
+msgid "Couldn't export.\nTry again."
+msgstr "无法导出。\n请重试。"
