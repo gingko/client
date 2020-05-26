@@ -102,7 +102,7 @@
     "electron": "^9.0.0",
     "electron-builder": "^22.6.1",
     "electron-mocha": "^8.2.2",
-    "electron-rebuild": "^1.8.6",
+    "electron-rebuild": "^1.11.0",
     "elm": "0.19.0-bugfix6",
     "elm-webpack-loader": "^6.0.0",
     "file-loader": "^4.2.0",
