@@ -1,9 +1,19 @@
 # Gingko 2 [![Build Status](https://travis-ci.org/gingko/client.svg?branch=master)](https://travis-ci.org/gingko/client) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/gingko/client)](https://ci.appveyor.com/project/AdrianoFerrari/client)
 ![](./docs/images/screenshot-alien-screenplay.png)
 
-This is the desktop version, ground-up rewrite of [GingkoApp.com](https://gingkoapp.com). The latest version of this is available for download at [gingko.io](https://gingko.io) (Linux, Windows, and Mac).
+Writing software to help organize and draft complex documents. Anything from novels and screenplays to legal briefs and graduate theses.
 
-# Installation & Dev Environment
+This is a ground-up rewrite of [GingkoApp.com](https://gingkoapp.com). The latest version is available for download at [gingko.io](https://gingko.io) (Linux, Windows, and Mac).
+
+# Contributions Welcome!
+
+If you want to help **translate Gingko**, you can join [the translation project](https://poeditor.com/join/project/k8Br3k0JVz).
+
+For code contributions, see [CONTRIBUTING.md](./CONTRIBUTING.md) for a guide to getting started.
+
+---
+
+### Installation & Dev Environment
 
 Prerequisites:
 
@@ -20,6 +30,3 @@ npm start
 npm run electron
 ```
 
-# Contributions Welcome!
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for a guide to get started.
