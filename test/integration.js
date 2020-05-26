@@ -14,6 +14,7 @@ const commandOrControlKey = process.platform == "darwin" ? Key.LeftSuper : Key.L
 describe("Application Start", function () {
   const app = new Application({
         path: electronPath,
+        chromeDriverArgs: ['no-sandbox'],
         args: [path.join(__dirname, "../app")]
       });
 
@@ -54,6 +55,7 @@ describe("Actions on Untitled Document", function () {
 
   const app = new Application({
         path: electronPath,
+        chromeDriverArgs: ['no-sandbox'],
         env:
           { RUNNING_IN_SPECTRON: "1"
           , DIALOG_SAVE_PATH: savePath
@@ -168,6 +170,7 @@ describe("Actions on Untitled Document", function () {
 describe("Verify Data Saved from Untitled", function () {
   const app = new Application({
         path: electronPath,
+        chromeDriverArgs: ['no-sandbox'],
         env:
           { RUNNING_IN_SPECTRON: "1"
           , DIALOG_CHOICE: "0" // Close Without Saving
@@ -207,6 +210,7 @@ describe("Verify Data Saved from Untitled", function () {
 describe("Actions on Loaded Document", function () {
   const app = new Application({
         path: electronPath,
+        chromeDriverArgs: ['no-sandbox'],
         env:
           { RUNNING_IN_SPECTRON: "1"
           , DIALOG_CHOICE: "0" // Close Without Saving
@@ -257,6 +261,7 @@ describe("Actions on Loaded Document", function () {
 describe("Importing JSON Document", function () {
   const app = new Application({
         path: electronPath,
+        chromeDriverArgs: ['no-sandbox'],
         env:
           { RUNNING_IN_SPECTRON: "1"
           , DIALOG_CHOICE: "0" // Close Without Saving
@@ -318,6 +323,7 @@ describe("Importing JSON Document", function () {
 describe("License Window", function () {
   const app = new Application({
         path: electronPath,
+        chromeDriverArgs: ['no-sandbox'],
         env:
           { RUNNING_IN_SPECTRON: "1"
           , DIALOG_CHOICE: "0" // Close Without Saving

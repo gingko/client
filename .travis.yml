@@ -10,12 +10,15 @@ matrix:
         - ELECTRON_BUILDER_CACHE=$HOME/.cache/electron-builder
 
     - os: linux
+      dist: xenial
       language: node_js
       node_js: "12"
+      services:
+        - xvfb
       addons:
         apt:
           packages:
-            - xvfb
+            - libxtst-dev
 
 cache:
   directories:
@@ -25,12 +28,7 @@ cache:
     - $HOME/.cache/electron-builder
 
 script:
-  - |
-    if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-      npm run build && xvfb-run npm run test && npm run release
-    else
-      npm run build && npm run test && npm run release
-    fi
+  - npm run build && npm run test && npm run release
 
 before_cache:
   - rm -rf $HOME/.cache/electron-builder/wine
