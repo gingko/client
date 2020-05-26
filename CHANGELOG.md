@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
   - Add ability to merge cards & subtrees
+  - (Internal) Upgrade Electron to v9
 
 ## [2.4.11] - 2020-05-25
   - Add ability to split cards while editing
