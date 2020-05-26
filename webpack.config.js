@@ -94,6 +94,8 @@ const baseElectronConfig = {
     __dirname: false
   },
 
+  stats: 'errors-only',
+
   // Where to output bundled code.
   output: {
     path: path.join(__dirname, "app"),
