@@ -33,9 +33,11 @@ type TranslationId
     | InsertChildTitle
     | AddBelowAction
     | SplitBelowAction
+    | MergeDownAction
     | InsertBelowTitle
     | AddAboveAction
     | SplitUpwardAction
+    | MergeUpAction
     | InsertAboveTitle
     | ArrowKeys
     | MoveAction
@@ -262,6 +264,13 @@ tr lang trans =
                     , fr = ""
                     }
 
+                MergeDownAction ->
+                    { en = "to Merge into Next"
+                    , zh = ""
+                    , es = "para Combinar la Tarjeta a la Siguiente"
+                    , fr = ""
+                    }
+
                 InsertBelowTitle ->
                     { en = "Insert Below (Ctrl+J)"
                     , zh = ""
@@ -280,6 +289,13 @@ tr lang trans =
                     { en = "to Split Card Upward"
                     , zh = ""
                     , es = "para Dividir la Tarjeta hacia la Arriba"
+                    , fr = ""
+                    }
+
+                MergeUpAction ->
+                    { en = "to Merge into Previous"
+                    , zh = ""
+                    , es = "para Combinar la Tarjeta a la Anterior"
                     , fr = ""
                     }
 

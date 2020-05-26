@@ -278,6 +278,8 @@ viewShortcutsToggle lang isOpen isMac isOnly textCursorInfo vs =
                         , shortcutSpan [ ctrlOrCmd, "↑" ] (tr lang AddAboveAction)
                         , viewIf (not isOnly) <| shortcutSpan [ "Alt", tr lang ArrowKeys ] (tr lang MoveAction)
                         , viewIf (not isOnly) <| shortcutSpan [ ctrlOrCmd, tr lang Backspace ] (tr lang DeleteAction)
+                        , shortcutSpan [ ctrlOrCmd, "Shift", "↓" ] (tr lang MergeDownAction)
+                        , shortcutSpan [ ctrlOrCmd, "Shift", "↑" ] (tr lang MergeUpAction)
                         ]
                     , div [ class "icon-stack" ]
                         [ Icon.keyboard (defaultOptions |> iconColor)

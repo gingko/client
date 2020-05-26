@@ -981,6 +981,18 @@ update msg ({ objects, workingTree, status } as model) =
                         "mod+right" ->
                             normalMode model (insertChild vs.active "")
 
+                        "mod+shift+j" ->
+                            normalMode model (mergeDown vs.active)
+
+                        "mod+shift+down" ->
+                            normalMode model (mergeDown vs.active)
+
+                        "mod+shift+k" ->
+                            normalMode model (mergeUp vs.active)
+
+                        "mod+shift+up" ->
+                            normalMode model (mergeUp vs.active)
+
                         "h" ->
                             normalMode model (goLeft vs.active)
 
@@ -1698,6 +1710,62 @@ insertChild id initText ( model, prevCmd ) =
     , prevCmd
     )
         |> insert id 999999 initText
+
+
+mergeUp : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+mergeUp id ( model, prevCmd ) =
+    let
+        currentTree_ =
+            getTree id model.workingTree.tree
+
+        prevTree_ =
+            getPrevInColumn id model.workingTree.tree
+    in
+    case ( currentTree_, prevTree_ ) of
+        ( Just currentTree, Just prevTree ) ->
+            let
+                mergedTree =
+                    model.workingTree
+                        |> Trees.update (Trees.Mrg currentTree prevTree True)
+            in
+            ( { model
+                | workingTree = mergedTree
+              }
+            , prevCmd
+            )
+                |> activate prevTree.id
+                |> addToHistory
+
+        _ ->
+            ( model, prevCmd )
+
+
+mergeDown : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+mergeDown id ( model, prevCmd ) =
+    let
+        currentTree_ =
+            getTree id model.workingTree.tree
+
+        nextTree_ =
+            getNextInColumn id model.workingTree.tree
+    in
+    case ( currentTree_, nextTree_ ) of
+        ( Just currentTree, Just nextTree ) ->
+            let
+                mergedTree =
+                    model.workingTree
+                        |> Trees.update (Trees.Mrg currentTree nextTree False)
+            in
+            ( { model
+                | workingTree = mergedTree
+              }
+            , prevCmd
+            )
+                |> activate nextTree.id
+                |> addToHistory
+
+        _ ->
+            ( model, prevCmd )
 
 
 maybeColumnsChanged : List Column -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )

@@ -52,6 +52,7 @@ type TreeMsg
     | Upd String String
     | Mov Tree String Int
     | Rmv String
+    | Mrg Tree Tree Bool
     | Paste Tree String Int
 
 
@@ -76,6 +77,31 @@ updateTree msg tree =
 
         Rmv id ->
             pruneSubtree id tree
+
+        Mrg fromTree toTree isReversed ->
+            let
+                maybeReverse =
+                    if isReversed then
+                        List.reverse
+
+                    else
+                        identity
+
+                mergedContent =
+                    [ fromTree.content, toTree.content ]
+                        |> maybeReverse
+                        |> String.join "\n\n"
+
+                mergedChildren =
+                    Children
+                        ([ getChildren fromTree, getChildren toTree ]
+                            |> maybeReverse
+                            |> List.concat
+                        )
+            in
+            tree
+                |> pruneSubtree fromTree.id
+                |> modifyTree toTree.id (\t -> { t | content = mergedContent, children = mergedChildren })
 
         Paste newTree parentId idx ->
             tree
