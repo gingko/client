@@ -243,7 +243,7 @@ msgstr "Mostrar La Lista Entera..."
 
 #: close
 msgid "&Close"
-msgstr"&Cerrar"
+msgstr "&Cerrar"
 
 #: quit
 msgid "&Quit Gingko..."
