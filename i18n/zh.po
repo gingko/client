@@ -1,175 +1,241 @@
 msgid ""
 msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: POEditor.com\n"
+"Project-Id-Version: Gingko Desktop\n"
+"Language: zh-Hans\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
+#: 
 msgid "Cancel"
 msgstr "取消"
 
+#: 
 msgid "Blank"
-msgstr ""
+msgstr "空白"
 
+#: 
 msgid "Import JSON"
-msgstr ""
+msgstr "导入JSON"
 
+#: 
 msgid "From Desktop or Online"
-msgstr ""
+msgstr "从本地或线上"
 
+#: 
 msgid "Recent Documents"
-msgstr ""
+msgstr "最近的文档"
 
+#: 
 msgid "Last Opened"
-msgstr ""
+msgstr "上一个打开"
 
+#: 
 msgid "Open Other Documents"
-msgstr ""
+msgstr "打开另一个文档"
 
+#: 
 msgid "Remove From List"
-msgstr ""
+msgstr "从列表中移除"
 
+#: 
 msgid "New Document..."
-msgstr ""
+msgstr "新的文档"
 
+#: 
 msgid "Unsaved Changes..."
-msgstr ""
+msgstr "未保存的更改"
 
+#: 
 msgid "Backup Saved"
-msgstr ""
+msgstr "保存备份"
 
+#: 
 msgctxt "Changes Saved"
 msgid "Saved"
-msgstr ""
+msgstr "保存"
 
+#: 
 msgid "Database Error..."
-msgstr ""
+msgstr "数据库错误"
 
+#: 
 msgid "Last saved"
-msgstr ""
+msgstr "上一个保存"
 
+#: 
 msgid "Last edit"
-msgstr ""
+msgstr "上一次编辑 "
 
+#: 
 msgid "Keyboard Shortcuts Help"
-msgstr ""
+msgstr "快捷键帮助"
 
+#: 
 msgid "Restore this Version"
-msgstr ""
+msgstr "恢复此版本"
 
+#: 
 msgid "Enter"
-msgstr ""
+msgstr "回车"
 
+#: 
 msgid "to Edit"
-msgstr ""
+msgstr "编辑"
 
+#: 
 msgid "Edit Card (Enter)"
-msgstr ""
+msgstr "编辑卡片（回车）"
 
+#: 
 msgid "to Navigate"
-msgstr ""
+msgstr "导航"
 
+#: 
 msgid "to Add Child"
-msgstr ""
+msgstr "添加子卡片"
 
+#: 
 msgid "to Split Card to the Right"
-msgstr ""
+msgstr "向右拆分卡"
 
+#: 
 msgid "Insert Child (Ctrl+L)"
-msgstr ""
+msgstr "插入子卡片"
 
+#: 
 msgid "to Add Below"
-msgstr ""
+msgstr "在下方添加"
 
+#: 
 msgid "to Split Card Down"
-msgstr ""
+msgstr "向下拆分卡"
 
+#: 
 msgid "to Merge into Next"
-msgstr ""
+msgstr "合并到下一个"
 
+#: 
 msgid "Insert Below (Ctrl+J)"
-msgstr ""
+msgstr "在下方插入"
 
+#: 
 msgid "to Add Above"
-msgstr ""
+msgstr "在上方添加"
 
+#: 
 msgid "to Split Card Upward"
-msgstr ""
+msgstr "向上拆分卡"
 
+#: 
 msgid "to Merge into Previous"
-msgstr ""
+msgstr "合并到上一个"
 
+#: 
 msgid "Insert Above (Ctrl+K)"
-msgstr ""
+msgstr "在上方插入"
 
+#: 
 msgid "(arrows)"
-msgstr ""
+msgstr "（箭头）"
 
+#: 
 msgid "to Move"
-msgstr ""
+msgstr "移动"
 
+#: 
 msgid "Backspace"
-msgstr ""
+msgstr "退格键"
 
+#: 
 msgid "to Delete"
-msgstr ""
+msgstr "删除"
 
+#: 
 msgid "Delete Card (Ctrl+Backspace)"
-msgstr ""
+msgstr "删除卡片"
 
+#: 
 msgid "Formatting Syntax Guide"
-msgstr ""
+msgstr "格式指南"
 
+#: 
 msgid "for Bold"
-msgstr ""
+msgstr "粗体"
 
+#: 
 msgid "for Italic"
-msgstr ""
+msgstr "斜体"
 
+#: 
 msgid "to Save Changes"
-msgstr ""
+msgstr "保存更改"
 
+#: 
 msgid "Save Changes (Ctrl+Enter)"
-msgstr ""
+msgstr "保存更改"
 
+#: 
 msgid "Esc"
-msgstr ""
+msgstr "退出"
 
+#: 
 msgid "to Cancel Changes"
-msgstr ""
+msgstr "取消更改"
 
+#: 
 msgid "Press '/' to search"
-msgstr ""
+msgstr "输入“/”进行搜索"
 
+#: 
 msgid "Heading Font"
-msgstr ""
+msgstr "标题字体"
 
+#: 
 msgid "Content Font"
-msgstr ""
+msgstr "内容字体"
 
+#: 
 msgid "Editing/Monospace Font"
-msgstr ""
+msgstr "编辑/等宽字体"
 
+#: 
 msgid "Session: %1 word"
 msgid_plural "Session: %1 words"
-msgstr[0] ""
+msgstr[0] "本节：%1字\n"
+"复数：本节：%1字"
 
+#: 
 msgid "Total : %1 word"
 msgid_plural "Total : %1 words"
-msgstr[0] ""
+msgstr[0] "总共：%1字\n"
+"复数：总共：%1字"
 
+#: 
 msgid "Card : %1 word"
 msgid_plural "Card : %1 words"
-msgstr[0] ""
+msgstr[0] "卡片：%1字\n"
+"复数：卡片：%1字"
 
+#: 
 msgid "Subtree : %1 word"
 msgid_plural "Subtree : %1 words"
-msgstr[0] ""
+msgstr[0] "树节点下：%1字\n"
+"复数：树节点下：%1字"
 
+#: 
 msgid "Group : %1 word"
 msgid_plural "Group : %1 words"
-msgstr[0] ""
+msgstr[0] "组：%1字\n"
+"复数：组：%1字"
 
+#: 
 msgid "Column : %1 word"
 msgid_plural "Column : %1 words"
-msgstr[0] ""
+msgstr[0] "列：%1字\n"
+"复数：列：%1字"
 
 #:    file
 msgid "&File"
@@ -234,10 +300,6 @@ msgstr "重复上一次导出"
 #: showList
 msgid "Show Complete List..."
 msgstr "显示完整列表……"
-
-#: close
-msgid "&Close"
-msgstr "&关闭"
 
 #: quit
 msgid "&Quit Gingko..."
@@ -321,11 +383,11 @@ msgstr "帮助"
 
 #: toggleHelp hide
 msgid "Hide Help button"
-msgstr ""
+msgstr "隐藏帮助按钮"
 
 #: toggleHelp show
 msgid "Show Help button"
-msgstr ""
+msgstr "显示帮助按钮"
 
 #: faq
 msgid "&FAQ..."
@@ -359,17 +421,16 @@ msgstr "打开&调试工具"
 msgid "Current Gingko Version : %1"
 msgstr "$当前Gingko 版本: %1"
 
-#, // === DIALOGS AND ERROR MESSAGES ===
-
 #: cancel
-
 #: updatePopup
 msgid "%1 will be updated to v%2 on exit"
 msgstr "%1 将在退出时被更新至v %2"
 
 #: updatePopupBody
-msgid "<a href=\"https://github.com/gingko/client/blob/master/CHANGELOG.md\">Change list</a>:\n%1"
-msgstr "<a href=\"https://github.com/gingko/client/blob/master/CHANGELOG.md\">更改列表</a>:\n%1"
+msgid "<a href=\"https://github.com/gingko/client/blob/master/CHANGELOG.md\">Change list</a>:\n"
+"%1"
+msgstr "<a href=\"https://github.com/gingko/client/blob/master/CHANGELOG.md\">更改列表</a>:\n"
+"%1"
 
 #: areYouSureCancel
 msgid "Are you sure you want to cancel your changes?"
@@ -383,6 +444,7 @@ msgstr "保存"
 msgid "Save changes"
 msgstr "保存更改"
 
+#: 
 msgid "Save changes before closing?"
 msgstr "在关闭前保存更改"
 
@@ -394,6 +456,7 @@ msgstr "一些未保存的更改"
 msgid "Close Without Saving"
 msgstr "不保存，直接关闭"
 
+#: 
 msgid "Recover unsaved changes, or Discard them?"
 msgstr "恢复未保存的更改，或放弃它们"
 
@@ -418,13 +481,22 @@ msgid "Save Error"
 msgstr "保存时出错"
 
 #: saveErrorMsg
-msgid "The file wasn't saved.\nPlease try again."
-msgstr "文件未保存。\n请再试一次。"
+msgid "The file wasn't saved.\n"
+"Please try again."
+msgstr "文件未保存。\n"
+"请再试一次。"
 
 #: exportError
 msgid "Export Error"
 msgstr "导出时出错"
 
 #: exportErrorMsg
-msgid "Couldn't export.\nTry again."
-msgstr "无法导出。\n请重试。"
+msgid "Couldn't export.\n"
+"Try again."
+msgstr "无法导出。\n"
+"请重试。"
+
+#: close
+msgid "&Close"
+msgstr "&关闭"
+
