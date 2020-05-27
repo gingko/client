@@ -5,31 +5,31 @@ export const tr =
 
     file :
       { en : "&File"
-      , zh : "&文件"
+      , zh : "文件"
       , es : "&Archivo"
       , fr : ""
       }
   , new :
       { en : "&New"
-      , zh : "&新的"
+      , zh : "新的"
       , es : "&Nuevo"
       , fr : ""
       }
   , open :
       { en : "&Open..."
-      , zh : "&打开……"
+      , zh : "打开……"
       , es : "&Abrir..."
       , fr : ""
       }
   , openRecent :
       { en : "Open &Recent"
-      , zh : "打开&最新"
+      , zh : "打开最新"
       , es : "Abrir &Recientes"
       , fr : ""
       }
   , menuSave :
       { en : "&Save"
-      , zh : "&保存"
+      , zh : "保存"
       , es : "&Guardar"
       , fr : ""
       }
@@ -41,31 +41,31 @@ export const tr =
       }
   , saveAs :
       { en : "Save &As..."
-      , zh : "保存&为……"
+      , zh : "保存为……"
       , es : "Guardar Como..."
       , fr : ""
       }
   , importJSON :
       { en : "&Import JSON File..."
-      , zh : "&导入JSON 文件……"
+      , zh : "导入JSON 文件……"
       , es : "&Importar Archivo JSON..."
       , fr : ""
       }
   , exportAsWord :
       { en : "Export as MS &Word"
-      , zh : "导出为MS&Word "
+      , zh : "导出为MSWord "
       , es : "Exportar como MS &Word"
       , fr : ""
       }
   , exportAsText :
       { en : "Export as &Text"
-      , zh : "导出为&文本"
+      , zh : "导出为文本"
       , es : "Exportar como &Texto"
       , fr : ""
       }
   , exportAsJSON :
       { en : "Export as &JSON..."
-      , zh : "导出为&JSON ……"
+      , zh : "导出为JSON ……"
       , es : "Exportar como &JSON..."
       , fr : ""
       }
@@ -101,73 +101,73 @@ export const tr =
       }
   , close :
       { en : "&Close"
-      , zh : "&关闭"
+      , zh : "关闭"
       , es :"&Cerrar"
       , fr : ""
       }
   , quit :
       { en : "&Quit Gingko..."
-      , zh : "&退出Gingko ……"
+      , zh : "退出Gingko ……"
       , es : "&Salir de Gingko..."
       , fr : ""
       }
   , edit :
       { en : "&Edit"
-      , zh : "&编辑"
+      , zh : "编辑"
       , es : "&Edición"
       , fr : ""
       }
   , undo :
       { en : "&Undo"
-      , zh : "&撤销"
+      , zh : "撤销"
       , es : "&Deshacer"
       , fr : ""
       }
   , redo :
       { en : "&Redo"
-      , zh : "&重做"
+      , zh : "重做"
       , es : "&Rehacer"
       , fr : ""
       }
   , cut :
       { en : "Cu&t"
-      , zh : "断&开"
+      , zh : "断开"
       , es : "Cor&tar"
       , fr : ""
       }
   , copy :
       { en : "&Copy"
-      , zh : "&复制"
+      , zh : "复制"
       , es : "&Copiar"
       , fr : ""
       }
   , paste :
       { en : "&Paste"
-      , zh : "&粘贴"
+      , zh : "粘贴"
       , es : "&Pegar"
       , fr : ""
       }
   , selectAll :
       { en : "Select &All"
-      , zh : "选择&所有"
+      , zh : "选择所有"
       , es : "&Seleccionar Todo"
       , fr : ""
       }
   , cutCards :
       { en : "Cu&t Cards"
-      , zh : "切断&卡"
+      , zh : "切断卡"
       , es : "Cor&tar Tarjetas"
       , fr : ""
       }
   , copyCards :
       { en : "&Copy Cards"
-      , zh : "&复制卡"
+      , zh : "复制卡"
       , es : "&Copiar Tarjetas"
       , fr : ""
       }
   , pasteCards :
       { en : "&Paste Cards"
-      , zh : "&粘贴卡"
+      , zh : "粘贴卡"
       , es : "&Pegar Tarjetas"
       , fr : ""
       }
@@ -179,37 +179,37 @@ export const tr =
       }
   , view :
       { en : "&View"
-      , zh : "&查看"
+      , zh : "查看"
       , es : "&Ver"
       , fr : ""
       }
   , selectFonts :
       { en : "Select &Fonts..."
-      , zh : "选择&字体"
+      , zh : "选择字体"
       , es : "Seleccionar &Fuentes..."
       , fr : ""
       }
   , selectLanguage :
       { en : "Select &Language"
-      , zh : "选择&语言"
+      , zh : "选择语言"
       , es : "Seleccionar &Idioma"
       , fr : ""
       }
   , zoomIn :
       { en : "&Zoom In"
-      , zh : " &放大"
+      , zh : " 放大"
       , es : "Acercar"
       , fr : ""
       }
   , zoomOut :
       { en : "Zoom &Out"
-      , zh : "缩&小"
+      , zh : "缩小"
       , es : "Alejar"
       , fr : ""
       }
   , resetZoom :
       { en : "&Reset Zoom"
-      , zh : "&重置缩放"
+      , zh : "重置缩放"
       , es : "Restablecer Zoom"
       , fr : ""
       }
@@ -227,37 +227,37 @@ export const tr =
       }
   , toggleHelp :
       { en : (vis) => vis ? "Hide Help button" : "Show Help button"
-      , zh : ""
+      , zh : (vis) => vis ? "隐藏帮助按钮" : "显示帮助按钮"
       , es : (vis) => vis ? "Ocultar botón de ayuda" : "Mostrar el botón de ayuda"
       , fr : (vis) => vis ? "Masquer le bouton d'Aide" : "Afficher le bouton Aide"
       }
   , faq :
       { en : "&FAQ..."
-      , zh : "&常见问题解答"
+      , zh : "常见问题解答"
       , es : "&Preguntas Mas Frecuentes..."
       , fr : ""
       }
   , issuesList :
       { en : "Features &List && Known Bugs..."
-      , zh : "功能&列表&&已知缺陷……"
+      , zh : "功能列表&&已知缺陷……"
       , es : "&Lista de Características y Errores Conocidos..."
       , fr : ""
       }
   , contactAdri :
       { en : "&Contact Adriano..."
-      , zh : "&联系Adriano ……"
+      , zh : "联系Adriano ……"
       , es : "&Contactar Adriano..."
       , fr : ""
       }
   , buyLicense :
       { en : "&Buy a License..."
-      , zh : "&购买一个许可"
+      , zh : "购买一个许可"
       , es : "Comprar una Licencia..."
       , fr : ""
       }
   , enterLicense :
       { en : "&Enter License..."
-      , zh : "&输入许可……"
+      , zh : "输入许可……"
       , es : "Introducir Clave de Licencia..."
       , fr : ""
       }
@@ -269,7 +269,7 @@ export const tr =
       }
   , openDevTools :
       { en : "Open &Debugging Tools"
-      , zh : "打开&调试工具"
+      , zh : "打开调试工具"
       , es : "Abrir Herramientas de &Depuración"
       , fr : ""
       }

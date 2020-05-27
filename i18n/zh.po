@@ -204,38 +204,32 @@ msgstr "编辑/等宽字体"
 #: 
 msgid "Session: %1 word"
 msgid_plural "Session: %1 words"
-msgstr[0] "本节：%1字\n"
-"复数：本节：%1字"
+msgstr[0] "本节：%1个字"
 
 #: 
 msgid "Total : %1 word"
 msgid_plural "Total : %1 words"
-msgstr[0] "总共：%1字\n"
-"复数：总共：%1字"
+msgstr[0] "总共：%1个字"
 
 #: 
 msgid "Card : %1 word"
 msgid_plural "Card : %1 words"
-msgstr[0] "卡片：%1字\n"
-"复数：卡片：%1字"
+msgstr[0] "卡片：%1个字"
 
 #: 
 msgid "Subtree : %1 word"
 msgid_plural "Subtree : %1 words"
-msgstr[0] "树节点下：%1字\n"
-"复数：树节点下：%1字"
+msgstr[0] "树节点下：%1个字"
 
 #: 
 msgid "Group : %1 word"
 msgid_plural "Group : %1 words"
-msgstr[0] "组：%1字\n"
-"复数：组：%1字"
+msgstr[0] "组：%1个字"
 
 #: 
 msgid "Column : %1 word"
 msgid_plural "Column : %1 words"
-msgstr[0] "列：%1字\n"
-"复数：列：%1字"
+msgstr[0] "列：%1个字"
 
 #:    file
 msgid "&File"

@@ -91,371 +91,371 @@ tr lang trans =
 
                 HomeBlank ->
                     { en = "Blank"
-                    , zh = ""
+                    , zh = "空白"
                     , es = "Vacío"
                     , fr = ""
                     }
 
                 HomeImportJSON ->
                     { en = "Import JSON"
-                    , zh = ""
+                    , zh = "导入JSON"
                     , es = "Importar JSON"
                     , fr = ""
                     }
 
                 HomeJSONFrom ->
                     { en = "From Desktop or Online"
-                    , zh = ""
+                    , zh = "从本地或线上"
                     , es = "Del App Escritorio o Web"
                     , fr = ""
                     }
 
                 RecentDocuments ->
                     { en = "Recent Documents"
-                    , zh = ""
+                    , zh = "最近的文档"
                     , es = "Documentos Recientes"
                     , fr = ""
                     }
 
                 LastOpened ->
                     { en = "Last Opened"
-                    , zh = ""
+                    , zh = "上一个打开"
                     , es = "Última Apertura"
                     , fr = ""
                     }
 
                 OpenOtherDocuments ->
                     { en = "Open Other Documents"
-                    , zh = ""
+                    , zh = "打开另一个文档"
                     , es = "Abrir Otros Documentos"
                     , fr = ""
                     }
 
                 RemoveFromList ->
                     { en = "Remove From List"
-                    , zh = ""
+                    , zh = "从列表中移除"
                     , es = "Elminiar de la Lista"
                     , fr = ""
                     }
 
                 NeverSaved ->
                     { en = "New Document..."
-                    , zh = ""
+                    , zh = "新的文档"
                     , es = "Documento Nuevo..."
                     , fr = ""
                     }
 
                 UnsavedChanges ->
                     { en = "Unsaved Changes..."
-                    , zh = ""
+                    , zh = "未保存的更改"
                     , es = "Cambios No Guardados..."
                     , fr = ""
                     }
 
                 SavedInternally ->
                     { en = "Backup Saved"
-                    , zh = ""
+                    , zh = "保存备份"
                     , es = "Copia De Seguridad Guardada"
                     , fr = ""
                     }
 
                 ChangesSaved ->
                     { en = "Saved"
-                    , zh = ""
+                    , zh = "保存"
                     , es = "Cambios Guardados"
                     , fr = ""
                     }
 
                 DatabaseError ->
                     { en = "Database Error..."
-                    , zh = ""
+                    , zh = "数据库错误"
                     , es = "Error de Database..."
                     , fr = ""
                     }
 
                 LastSaved ->
                     { en = "Last saved"
-                    , zh = ""
+                    , zh = "上一个保存"
                     , es = "Guardado"
                     , fr = ""
                     }
 
                 LastEdit ->
                     { en = "Last edit"
-                    , zh = ""
+                    , zh = "上一次编辑 "
                     , es = "Último cambio"
                     , fr = ""
                     }
 
                 KeyboardHelp ->
                     { en = "Keyboard Shortcuts Help"
-                    , zh = ""
+                    , zh = "快捷键帮助"
                     , es = "Atajos de Teclado"
                     , fr = ""
                     }
 
                 RestoreThisVersion ->
                     { en = "Restore this Version"
-                    , zh = ""
+                    , zh = "恢复此版本"
                     , es = "Restaurar esta Versión"
                     , fr = ""
                     }
 
                 EnterKey ->
                     { en = "Enter"
-                    , zh = ""
+                    , zh = "回车"
                     , es = "Enter"
                     , fr = ""
                     }
 
                 EnterAction ->
                     { en = "to Edit"
-                    , zh = ""
+                    , zh = "编辑"
                     , es = "para Editar"
                     , fr = ""
                     }
 
                 EditCardTitle ->
                     { en = "Edit Card (Enter)"
-                    , zh = ""
+                    , zh = "编辑卡片（回车）"
                     , es = "Editar Tarjeta (Enter)"
                     , fr = ""
                     }
 
                 ArrowsAction ->
                     { en = "to Navigate"
-                    , zh = ""
+                    , zh = "导航"
                     , es = "para Navegar"
                     , fr = ""
                     }
 
                 AddChildAction ->
                     { en = "to Add Child"
-                    , zh = ""
+                    , zh = "添加子卡片"
                     , es = "para Agregar un Hijo"
                     , fr = ""
                     }
 
                 SplitChildAction ->
                     { en = "to Split Card to the Right"
-                    , zh = ""
+                    , zh = "向右拆分卡"
                     , es = "para Dividir la Tarjeta hacia la Derecha"
                     , fr = ""
                     }
 
                 InsertChildTitle ->
                     { en = "Insert Child (Ctrl+L)"
-                    , zh = ""
+                    , zh = "插入子卡片"
                     , es = "Agregar un Hijo (Ctrl+L)"
                     , fr = ""
                     }
 
                 AddBelowAction ->
                     { en = "to Add Below"
-                    , zh = ""
+                    , zh = "在下方添加"
                     , es = "para Agregar Abajo"
                     , fr = ""
                     }
 
                 SplitBelowAction ->
                     { en = "to Split Card Down"
-                    , zh = ""
+                    , zh = "向下拆分卡"
                     , es = "para Dividir la Tarjeta hacia la Abajo"
                     , fr = ""
                     }
 
                 MergeDownAction ->
                     { en = "to Merge into Next"
-                    , zh = ""
+                    , zh = "合并到下一个"
                     , es = "para Combinar la Tarjeta a la Siguiente"
                     , fr = ""
                     }
 
                 InsertBelowTitle ->
                     { en = "Insert Below (Ctrl+J)"
-                    , zh = ""
+                    , zh = "在下方插入"
                     , es = "Agregar Abajo (Ctrl+J)"
                     , fr = ""
                     }
 
                 AddAboveAction ->
                     { en = "to Add Above"
-                    , zh = ""
+                    , zh = "在上方添加"
                     , es = "para Agregar Arriba"
                     , fr = ""
                     }
 
                 SplitUpwardAction ->
                     { en = "to Split Card Upward"
-                    , zh = ""
+                    , zh = "向上拆分卡"
                     , es = "para Dividir la Tarjeta hacia la Arriba"
                     , fr = ""
                     }
 
                 MergeUpAction ->
                     { en = "to Merge into Previous"
-                    , zh = ""
+                    , zh = "合并到上一个"
                     , es = "para Combinar la Tarjeta a la Anterior"
                     , fr = ""
                     }
 
                 InsertAboveTitle ->
                     { en = "Insert Above (Ctrl+K)"
-                    , zh = ""
+                    , zh = "在上方插入"
                     , es = "Agregar Arriba (Ctrl+K)"
                     , fr = ""
                     }
 
                 ArrowKeys ->
                     { en = "(arrows)"
-                    , zh = ""
+                    , zh = "（箭头）"
                     , es = "(flechas)"
                     , fr = ""
                     }
 
                 MoveAction ->
                     { en = "to Move"
-                    , zh = ""
+                    , zh = "移动"
                     , es = "para Mover"
                     , fr = ""
                     }
 
                 Backspace ->
                     { en = "Backspace"
-                    , zh = ""
+                    , zh = "退格键"
                     , es = "Backspace"
                     , fr = ""
                     }
 
                 DeleteAction ->
                     { en = "to Delete"
-                    , zh = ""
+                    , zh = "删除"
                     , es = "para Eliminar"
                     , fr = ""
                     }
 
                 DeleteCardTitle ->
                     { en = "Delete Card (Ctrl+Backspace)"
-                    , zh = ""
+                    , zh = "删除卡片"
                     , es = "Eliminar Tarjeta (Ctrl+Backspace)"
                     , fr = ""
                     }
 
                 FormattingGuide ->
                     { en = "Formatting Syntax Guide"
-                    , zh = ""
+                    , zh = "格式指南"
                     , es = "Guía de Sintaxis para Formato"
                     , fr = ""
                     }
 
                 ForBold ->
                     { en = "for Bold"
-                    , zh = ""
+                    , zh = "粗体"
                     , es = "para Negrita"
                     , fr = ""
                     }
 
                 ForItalic ->
                     { en = "for Italic"
-                    , zh = ""
+                    , zh = "斜体"
                     , es = "para Itálica"
                     , fr = ""
                     }
 
                 ToSaveChanges ->
                     { en = "to Save Changes"
-                    , zh = ""
+                    , zh = "保存更改"
                     , es = "para Guardar Cambios"
                     , fr = ""
                     }
 
                 SaveChangesTitle ->
                     { en = "Save Changes (Ctrl+Enter)"
-                    , zh = ""
+                    , zh = "保存更改 (Ctrl+Enter)"
                     , es = "Guardar Cambios (Ctrl+Enter)"
                     , fr = ""
                     }
 
                 EscKey ->
                     { en = "Esc"
-                    , zh = ""
+                    , zh = "退出"
                     , es = "Esc"
                     , fr = ""
                     }
 
                 ToCancelChanges ->
                     { en = "to Cancel Changes"
-                    , zh = ""
+                    , zh = "取消更改"
                     , es = "para Cancelar Cambios"
                     , fr = ""
                     }
 
                 PressToSearch ->
                     { en = "Press '/' to search"
-                    , zh = ""
+                    , zh = "输入“/”进行搜索"
                     , es = "Presiona '/' para buscar"
                     , fr = ""
                     }
 
                 HeadingFont ->
                     { en = "Heading Font"
-                    , zh = ""
+                    , zh = "标题字体"
                     , es = "Fuente de Titulos"
                     , fr = ""
                     }
 
                 ContentFont ->
                     { en = "Content Font"
-                    , zh = ""
+                    , zh = "内容字体"
                     , es = "Fuente de Contenido"
                     , fr = ""
                     }
 
                 EditingFont ->
                     { en = "Editing/Monospace Font"
-                    , zh = ""
+                    , zh = "编辑/等宽字体"
                     , es = "Fuente de Edición"
                     , fr = ""
                     }
 
                 WordCountSession n ->
                     { en = "Session: " ++ String.fromInt n ++ pluralize n " word"
-                    , zh = ""
+                    , zh = "本节：" ++ String.fromInt n ++ "个字"
                     , es = "Sesión: " ++ String.fromInt n ++ pluralize n " palabra"
                     , fr = ""
                     }
 
                 WordCountTotal n ->
                     { en = "Total : " ++ String.fromInt n ++ pluralize n " word"
-                    , zh = ""
+                    , zh = "总共：" ++ String.fromInt n ++ "个字"
                     , es = "Total : " ++ String.fromInt n ++ pluralize n " palabra"
                     , fr = ""
                     }
 
                 WordCountCard n ->
                     { en = "Card : " ++ String.fromInt n ++ pluralize n " word"
-                    , zh = ""
+                    , zh = "卡片：" ++ String.fromInt n ++ "个字"
                     , es = "Tarjeta : " ++ String.fromInt n ++ pluralize n " palabra"
                     , fr = ""
                     }
 
                 WordCountSubtree n ->
                     { en = "Subtree : " ++ String.fromInt n ++ pluralize n " word"
-                    , zh = ""
+                    , zh = "树节点下：" ++ String.fromInt n ++ "个字"
                     , es = "Subárbol : " ++ String.fromInt n ++ pluralize n " palabra"
                     , fr = ""
                     }
 
                 WordCountGroup n ->
                     { en = "Group : " ++ String.fromInt n ++ pluralize n " word"
-                    , zh = ""
+                    , zh = "组：" ++ String.fromInt n ++ "个字"
                     , es = "Grupo : " ++ String.fromInt n ++ pluralize n " palabra"
                     , fr = ""
                     }
 
                 WordCountColumn n ->
                     { en = "Column : " ++ String.fromInt n ++ pluralize n " word"
-                    , zh = ""
+                    , zh = "列：" ++ String.fromInt n ++ "个字"
                     , es = "Columna : " ++ String.fromInt n ++ pluralize n " palabra"
                     , fr = ""
                     }

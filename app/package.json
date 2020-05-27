@@ -1,7 +1,7 @@
 {
   "name": "gingko-client",
   "productName": "Gingko",
-  "version": "2.4.12",
+  "version": "2.4.13",
   "description": "Gingko client rewritten in Elm, packaged with Electron.",
   "repository": {
     "type": "git",

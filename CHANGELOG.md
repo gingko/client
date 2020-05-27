@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
+## [2.4.13] - 2020-05-27
+  - Chinese language interface added
+
 ## [2.4.12] - 2020-05-26
   - Add ability to merge cards & subtrees
   - Add public translation project
