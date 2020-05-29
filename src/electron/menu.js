@@ -260,6 +260,9 @@ function viewMenu(isDocument, lang, handlers) {
           , { label : "中文",    type: "radio", checked: lang == "zh", click : (item, focusedWindow) => { handlers.language("zh", focusedWindow);} }
           , { label : "Español", type: "radio", checked: lang == "es", click : (item, focusedWindow) => { handlers.language("es", focusedWindow);} }
         //, { label : "Français", type: "radio", checked: lang == "fr", click : (item, focusedWindow) => { handlers.language("fr", focusedWindow);} }
+          , { label : "Svenska", type: "radio", checked: lang == "sv", click : (item, focusedWindow) => { handlers.language("sv", focusedWindow);} }
+          , { type : "separator" }
+          , { label : "Contribute/Improve a Translation...", click : () => shell.openExternal("https://poeditor.com/join/project/k8Br3k0JVz") }
           ]
           }
         , { type : "separator" }
