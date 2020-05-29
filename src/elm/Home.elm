@@ -4,7 +4,7 @@ import Browser
 import Coders exposing (maybeToValue)
 import Date
 import Dict exposing (Dict)
-import Html exposing (Html, div, h4, span, text)
+import Html exposing (Html, div, h4, li, span, text)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Iso8601
@@ -13,7 +13,7 @@ import Json.Encode as Json exposing (null, string)
 import Octicons as Icon
 import Strftime
 import Time
-import Translation exposing (TranslationId(..), langFromString, timeDistInWords, tr)
+import Translation exposing (TranslationId(..), langFromString, languageName, timeDistInWords, tr)
 
 
 main : Program ( Int, List ( String, Document ), String ) Model Msg
@@ -35,6 +35,7 @@ type alias Model =
     , archiveDropdown : Bool
     , currentTime : Time.Posix
     , language : Translation.Language
+    , languageMenu : Bool
     }
 
 
@@ -53,6 +54,7 @@ init ( time, dbObj, langString ) =
       , archiveDropdown = False
       , currentTime = Time.millisToPosix time
       , language = langFromString langString
+      , languageMenu = False
       }
     , Cmd.none
     )
@@ -68,6 +70,8 @@ type Msg
     | Import
     | Open String (Maybe String)
     | OpenOther
+    | ToggleLanguageMenu
+    | ChangeLanguage Translation.Language
     | SetState String String
     | Delete String
     | ToggleArchive
@@ -102,6 +106,20 @@ update msg model =
             ( model
             , forJS { tag = "OpenOther", data = null }
             )
+
+        ToggleLanguageMenu ->
+            ( { model | languageMenu = not model.languageMenu }
+            , Cmd.none
+            )
+
+        ChangeLanguage newLang ->
+            if newLang /= model.language then
+                ( { model | language = newLang }
+                , Cmd.none
+                )
+
+            else
+                ( model, Cmd.none )
 
         SetState dbname state ->
             let
@@ -155,7 +173,7 @@ update msg model =
 
 
 view : Model -> Html Msg
-view { documents, archiveDropdown, currentTime, language } =
+view { documents, archiveDropdown, currentTime, language, languageMenu } =
     let
         visibleWhen bool =
             classList [ ( "visible", bool ), ( "hidden", not bool ) ]
@@ -196,6 +214,14 @@ view { documents, archiveDropdown, currentTime, language } =
         , div [ id "buttons-block" ]
             [ div [ onClick OpenOther, class "document-item" ]
                 [ text <| tr language OpenOtherDocuments ]
+            , div [ onClick ToggleLanguageMenu, class "document-item" ]
+                (if languageMenu then
+                    Translation.activeLanguages
+                        |> List.map (\( l, n ) -> li [ onClick <| ChangeLanguage l ] [ text <| n ])
+
+                 else
+                    [ text <| Translation.languageName language ]
+                )
             ]
         ]
 

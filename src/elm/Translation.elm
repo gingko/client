@@ -1,4 +1,4 @@
-module Translation exposing (Language(..), TranslationId(..), langFromString, languageDecoder, timeDistInWords, tr)
+module Translation exposing (Language(..), TranslationId(..), activeLanguages, langFromString, languageDecoder, languageName, timeDistInWords, tr)
 
 import Json.Decode as Json exposing (..)
 import Time
@@ -69,6 +69,30 @@ type Language
     | Es
     | Fr
     | Sv
+
+
+languageName : Language -> String
+languageName lang =
+    case lang of
+        En ->
+            "English"
+
+        Zh ->
+            "中文"
+
+        Es ->
+            "Español"
+
+        Fr ->
+            "Français"
+
+        Sv ->
+            "Svenska"
+
+
+activeLanguages : List ( Language, String )
+activeLanguages =
+    [ En, Zh, Es, Sv ] |> List.map (\l -> ( l, languageName l ))
 
 
 tr : Language -> TranslationId -> String

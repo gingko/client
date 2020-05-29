@@ -7,7 +7,6 @@
     "dependencies": {
         "direct": {
             "Gizra/elm-debouncer": "2.0.0",
-            "Herteby/enum": "1.0.1",
             "TSFoster/elm-sha1": "2.1.0",
             "capitalist/elm-octicons": "2.3.0",
             "elm/browser": "1.0.2",
