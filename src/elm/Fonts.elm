@@ -1,6 +1,6 @@
 module Fonts exposing (Model, Msg, Settings, default, getContent, getHeading, getMonospace, init, setSystem, update, viewSelector)
 
-import Html exposing (..)
+import Html exposing (Html, br, button, div, option, select, span, text)
 import Html.Attributes exposing (..)
 import Html.Events exposing (on, onClick)
 import Html.Events.Extra exposing (targetValueMaybe)

@@ -2,7 +2,7 @@ module Trees exposing (Model, TreeMsg(..), apply, conflictToTreeMsg, defaultMode
 
 import Diff exposing (..)
 import Diff3 exposing (diff3Merge)
-import Html exposing (..)
+import Html exposing (Html, div, span, text, textarea)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Keyed as Keyed

@@ -4,7 +4,7 @@ import Coders exposing (treeToMarkdownString)
 import Date
 import Dict
 import Diff exposing (..)
-import Html exposing (..)
+import Html exposing (Html, a, button, del, div, fieldset, h1, iframe, input, ins, label, li, span, text, ul)
 import Html.Attributes as A exposing (..)
 import Html.Events exposing (onClick, onInput)
 import List.Extra as ListExtra exposing (getAt)

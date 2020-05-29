@@ -4,7 +4,7 @@ import Browser
 import Coders exposing (maybeToValue)
 import Date
 import Dict exposing (Dict)
-import Html exposing (..)
+import Html exposing (Html, div, h4, span, text)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Iso8601
