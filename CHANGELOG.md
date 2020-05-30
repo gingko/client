@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
-## Unrelease
+## [2.4.14] - 2020-05-30
   - Swedish language interface added
   - Add ability to change language from Home screen
 
