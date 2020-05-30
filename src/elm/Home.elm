@@ -4,7 +4,7 @@ import Browser
 import Coders exposing (maybeToValue)
 import Date
 import Dict exposing (Dict)
-import Html exposing (Html, div, h4, li, span, text)
+import Html exposing (Html, div, h4, span, text)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Iso8601
@@ -212,16 +212,23 @@ view { documents, archiveDropdown, currentTime, language, languageMenu } =
             , viewDocList language currentTime "active" documents
             ]
         , div [ id "buttons-block" ]
-            [ div [ onClick OpenOther, class "document-item" ]
-                [ text <| tr language OpenOtherDocuments ]
-            , div [ onClick ToggleLanguageMenu, class "document-item" ]
+            [ div [ onClick ToggleLanguageMenu, classList [ ( "document-item", True ), ( "language-button", True ) ] ]
                 (if languageMenu then
                     Translation.activeLanguages
-                        |> List.map (\( l, n ) -> li [ onClick <| ChangeLanguage l ] [ text <| n ])
+                        |> List.map
+                            (\( l, n ) ->
+                                div
+                                    [ classList [ ( "language-item", True ), ( "selected", l == language ) ]
+                                    , onClick <| ChangeLanguage l
+                                    ]
+                                    [ text <| n ]
+                            )
 
                  else
-                    [ text <| Translation.languageName language ]
+                    [ div [ class "language-item" ] [ text <| Translation.languageName language ] ]
                 )
+            , div [ onClick OpenOther, class "document-item" ]
+                [ text <| tr language OpenOtherDocuments ]
             ]
         ]
 

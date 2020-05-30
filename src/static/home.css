@@ -71,9 +71,34 @@ label {
   grid-area: footer;
   background-color: #477085;
   box-shadow: 2px -2px 2px rgba(0,0,0,0.2);
-  padding: 10px 40px;
+  padding: 10px 20px;
 }
 
+.document-item.language-button {
+  position: absolute;
+  left: 20px;
+  bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  background: #588094;
+  border-top: 1px solid #84b1c7;
+}
+
+.document-item.language-button:hover {
+  background: #84b1c7;
+  border-top: 1px solid #9fcbe0;
+}
+
+.language-item {
+  flex: auto;
+  padding: 3px 10px;
+  width: 100%;
+  text-align: center;
+}
+
+.language-item.selected {
+  background: hsl(0, 0%, 100%,0.6);
+}
 
 .template-item {
   cursor: pointer;
