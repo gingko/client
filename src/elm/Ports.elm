@@ -40,9 +40,6 @@ sendOut info =
         SaveToDB ( statusValue, objectsValue ) ->
             dataToSend (list identity [ statusValue, objectsValue ])
 
-        SaveLocal tree ->
-            dataToSend (treeToValue tree)
-
         Push ->
             dataToSend null
 
@@ -57,6 +54,9 @@ sendOut info =
                     , ( "filepath", maybe string path_ )
                     ]
                 )
+
+        SaveLocal tree ->
+            dataToSend (treeToJSON tree)
 
         ExportJSON tree path_ ->
             dataToSend

@@ -237,6 +237,10 @@ const update = (msg, data) => {
         }
       }
 
+      , "SaveLocal": () => {
+        container.saveLocal(data);
+      }
+
     , "Push": push
 
     , "Pull": sync

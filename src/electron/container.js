@@ -24,6 +24,11 @@ const getInitialDocState = () => {
 };
 
 
+const saveLocal = (jsonData) => {
+  fs.writeFile("/home/adriano/testsavelocal.json", JSON.stringify(jsonData, undefined, 2), (err) => console.log(err));
+};
+
+
 const exportDocx = async (data, defaultPath) => {
   if (data && typeof data.replace === "function") {
     data = (process.platform === "win32") ? data.replace(/\n/g, "\r\n") : data;
@@ -188,6 +193,7 @@ export
   , userStore
   , openExternal
   , showMessageBox
+  , saveLocal
   , exportDocx
   , exportJson
   , exportTxt

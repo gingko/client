@@ -2135,8 +2135,10 @@ addToHistoryDo ( { workingTree, currentTime } as model, prevCmd ) =
               }
             , Cmd.batch
                 [ prevCmd
-                , sendOut (SaveToDB ( statusToValue newStatus, Objects.toValue newObjects ))
-                , sendOut (UpdateCommits ( Objects.toValue newObjects, getHead newStatus ))
+
+                --, sendOut (SaveToDB ( statusToValue newStatus, Objects.toValue newObjects ))
+                --, sendOut (UpdateCommits ( Objects.toValue newObjects, getHead newStatus ))
+                , sendOut (SaveLocal workingTree.tree)
                 ]
             )
 
