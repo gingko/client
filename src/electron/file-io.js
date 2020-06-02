@@ -9,8 +9,7 @@ const firstline = require("firstline");
 const crypto = require("crypto");
 const moment = require("moment");
 const Store = require("electron-store");
-const readChunk = require("read-chunk");
-const fileType = require("file-type");
+const FileType = require("file-type");
 const GingkoError = require("../shared/errors");
 
 const PouchDB = require("pouchdb");
@@ -55,9 +54,14 @@ async function newSwapFolder(swapFolderPath) {
 async function openFile(filepath) {
   const fileFormat = await determineFiletype(filepath);
 
-  switch (fileFormat) {
+  switch (fileFormat.format) {
     case false:
       throw new Error("Not a valid .gko file\nPossibly using legacy format.");
+
+    case JSON_FILE:
+      await makeBackup(filepath);
+      //await swapFolderCheck(swapFolderPath);
+      return filepath;
 
     case GKO: {
       const swapName = fullpathFilename(filepath);
@@ -336,6 +340,9 @@ const LEGACY_GKO = "LEGACY_GKO";
 /** @type {String} GKO */
 const GKO = "GKO";
 
+/** @type {String} JSON_FILE */
+const JSON_FILE = "JSON_FILE";
+
 /**
  * verifyFiletype : String -> Promise ( GKO | LEGACY_GKO )
  *
@@ -346,16 +353,27 @@ const GKO = "GKO";
  * @returns {Promise<String>} gko filetype
  */
 async function determineFiletype(filepath) {
-  const filetype = fileType(await readChunk(filepath, 0, 4100));
+  const filetype = await FileType.fromFile(filepath);
 
   if (!filetype) {
-    const dbLine = await firstline(filepath);
-    const dumpInfo = JSON.parse(dbLine);
-    if (dumpInfo.hasOwnProperty("db_info")) {
-      return LEGACY_GKO;
+    try {
+      const dbLine = await firstline(filepath);
+      const dumpInfo = JSON.parse(dbLine);
+      if (dumpInfo.hasOwnProperty("db_info")) {
+        return {format: LEGACY_GKO, data: dumpInfo};
+      }
+    } catch (err) {
+      if (err.msg == "Unexpected end of JSON input") {
+        const filecontents = await fs.readFile(filepath, "utf8");
+        const jsonfile = JSON.parse(filecontents);
+        return {format: JSON_FILE, data: jsonfile};
+      } else {
+        console.log("thrown error from determineFiletype", err.msg);
+        return {format: false}
+      }
     }
   } else if (filetype.ext == "7z") {
-    return GKO;
+    return {format: GKO, data: null};
   }
 }
 
