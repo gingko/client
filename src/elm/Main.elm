@@ -26,7 +26,7 @@ import Types exposing (..)
 import UI exposing (countWords, viewFooter, viewSearchField, viewVideo)
 
 
-main : Program ( Json.Value, InitModel, Bool ) Model Msg
+main : Program ( Json.Value, InitModel ) Model Msg
 main =
     Browser.element
         { init = init
@@ -62,7 +62,7 @@ type FileDocState
     = NewDoc
     | SavedDoc
         { filePath : String
-        , lastSave : Time.Posix
+        , lastSaved : Time.Posix
         }
 
 
@@ -81,7 +81,6 @@ type alias Model =
     , undoHistory : List Trees.Model
     , docState : DocState
     , dirty : Bool
-    , lastFileSaved : Maybe Time.Posix
 
     -- Transient state
     , viewState : ViewState
@@ -114,11 +113,12 @@ type alias Model =
 
 
 type alias InitModel =
-    { language : String
+    { filePath : String
+    , lastSaved : Float
+    , language : String
     , isMac : Bool
     , shortcutTrayOpen : Bool
     , videoModalOpen : Bool
-    , lastFileSaved : Maybe Float
     , currentTime : Int
     , lastActive : String
     , fonts : Maybe ( String, String, String )
@@ -131,7 +131,6 @@ defaultModel =
     , undoHistory = []
     , docState = FileDoc NewDoc
     , dirty = False
-    , lastFileSaved = Nothing
     , field = ""
     , debouncerStateCommit =
         Debouncer.throttle (fromSeconds 3)
@@ -178,16 +177,23 @@ defaultModel =
 -}
 
 
-init : ( Json.Value, InitModel, Bool ) -> ( Model, Cmd Msg )
-init ( dataIn, modelIn, isSaved ) =
+init : ( Json.Value, InitModel ) -> ( Model, Cmd Msg )
+init ( dataIn, modelIn ) =
     let
-        newTree =
+        ( newTree, docState ) =
             case Json.decodeValue treeDecoder dataIn of
                 Ok newTreeDecoded ->
-                    newTreeDecoded
+                    ( newTreeDecoded
+                    , FileDoc
+                        (SavedDoc
+                            { filePath = modelIn.filePath
+                            , lastSaved = (Time.millisToPosix << round) modelIn.lastSaved
+                            }
+                        )
+                    )
 
                 Err err ->
-                    Trees.defaultTree
+                    ( Trees.defaultTree, FileDoc NewDoc )
 
         newWorkingTree =
             Trees.setTree newTree defaultModel.workingTree
@@ -200,7 +206,7 @@ init ( dataIn, modelIn, isSaved ) =
     in
     ( { defaultModel
         | workingTree = newWorkingTree
-        , lastFileSaved = Maybe.map (Time.millisToPosix << round) modelIn.lastFileSaved
+        , docState = docState
         , language = langFromString modelIn.language
         , isMac = modelIn.isMac
         , shortcutTrayOpen = modelIn.shortcutTrayOpen
@@ -213,13 +219,6 @@ init ( dataIn, modelIn, isSaved ) =
     , Cmd.batch [ focus modelIn.lastActive, sendOut <| ColumnNumberChange columnNumber ]
     )
         |> activate modelIn.lastActive
-        |> (\mc ->
-                if not isSaved then
-                    mc |> addToHistory
-
-                else
-                    mc
-           )
 
 
 

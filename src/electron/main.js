@@ -83,11 +83,11 @@ function createHomeWindow() {
 }
 
 function createDocumentWindow(docParams) {
-  const { swapFolderPath, originalPath, legacyFormat, jsonImportData, lastSavedToFile } = docParams;
+  const { filePath, legacyFormat, savedData, lastSaved } = docParams;
   const windowState = windowStateKeeper({
     defaultWidth: 1000,
     defaultHeight: 800,
-    file: `window-state-${sha1(swapFolderPath)}.json`
+    file: `window-state-${sha1(filePath)}.json`
   });
 
   // Create the browser window.
@@ -107,25 +107,24 @@ function createDocumentWindow(docParams) {
 
   // Passed to doc.js to initialize the app
   win.initialDocState =
-    { dbPath: [(legacyFormat ? swapFolderPath : path.join(swapFolderPath,"leveldb")), originalPath]
-    , lastSavedToFile
-    , changed: !!jsonImportData
-    , jsonImportData
+    { filePath
+    , lastSaved
+    , savedData
     };
+
 
   // State that's local to the Main process (this file).
   // win is an object in this Main process, and
   // doesn't share memory with the renderer process.
   win.mainState =
-    { swapFolderPath
-    , originalPath
+    { filePath
     , legacyFormat
     , menuState:
       { editMode: false
       , columnNumber : 1
-      , changed : !!jsonImportData
+      , changed : !!savedData
       , lastExportPath : false
-      , isNew: !originalPath || jsonImportData
+      , isNew: !filePath || savedData
       , recentDocumentList: docList.getRecentDocs()
       , helpVisible: userStore.get("help-visible", true)
       }
@@ -134,8 +133,8 @@ function createDocumentWindow(docParams) {
 
   // Set document title bar
   let newTitle = "";
-  if (originalPath) {
-    newTitle = `${path.basename(originalPath)} - Gingko`;
+  if (filePath) {
+    newTitle = `${path.basename(filePath)} - Gingko`;
   } else if (legacyFormat) {
     newTitle = `${legacyFormat.name} (Saved Internally) - Gingko`;
   } else {
@@ -502,8 +501,8 @@ async function openDocumentOrFolder(dbToLoad, docName) {
 }
 
 async function openDocument(docPath) {
-  let { filepath, data } = await fio.openFile( docPath );
-  createDocumentWindow({ swapFolderPath: filepath, jsonImportData : fio.reformJSON(data) });
+  let { filepath, data, lastSaved } = await fio.openFile( docPath );
+  createDocumentWindow({ filePath : docPath, savedData : fio.reformJSON(data), lastSaved });
   return true;
 }
 

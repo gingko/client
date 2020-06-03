@@ -59,9 +59,10 @@ async function openFile(filepath) {
       throw new Error("Not a valid .gko file\nPossibly using legacy format.");
 
     case JSON_FILE:
+      const originalStats = await fs.stat(filepath);
       await makeBackup(filepath);
       //await swapFolderCheck(swapFolderPath);
-      return { filepath: filepath, data: fileFormat.data }  ;
+      return { filepath: filepath, data: fileFormat.data, lastSaved : originalStats.mtimeMs }  ;
 
     case GKO: {
       const swapName = fullpathFilename(filepath);

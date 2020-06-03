@@ -74,28 +74,20 @@ container.answerMain("set-doc-state", data => {
   Object.assign(docState, data);
 });
 
-self.db = new PouchDB(docState.dbPath[0]);
-container.msgWas("main:database-close", async () => {
-  await db.close();
-});
-container.msgWas("main:database-open", async () => {
-  self.db = new PouchDB(docState.dbPath[0]);
-});
 
-if (docState.jsonImportData) {
+if (docState.savedData) {
   const initFlags =
-    [ docState.jsonImportData
-      , { language : lang
-        , isMac : process.platform === "darwin"
-        , shortcutTrayOpen : userStore.get("shortcut-tray-is-open", true)
-        , videoModalOpen : userStore.get("video-modal-is-open", false)
-        , currentTime : Date.now()
-        , lastCommitSaved : null
-        , lastFileSaved : null
-        , lastActive : getLastActive(docState.dbPath[1])
-        , fonts : getFonts(docState.dbPath[1])
-        }
-      , false // isSaved
+    [ docState.savedData
+    , { filePath : docState.filePath
+      , lastSaved : docState.lastSaved
+      , language : lang
+      , isMac : process.platform === "darwin"
+      , shortcutTrayOpen : userStore.get("shortcut-tray-is-open", true)
+      , videoModalOpen : userStore.get("video-modal-is-open", false)
+      , currentTime : Date.now()
+      , lastActive : getLastActive(docState.filePath)
+      , fonts : getFonts(docState.filePath)
+      }
     ];
 
   initElmAndPorts(initFlags);
