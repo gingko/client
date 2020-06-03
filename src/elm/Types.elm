@@ -25,12 +25,6 @@ type Msg
     | DragDropMsg (DragDrop.Msg String DropId)
       -- === History ===
     | ThrottledCommit (Debouncer.Msg ())
-    | CheckoutCommit String
-    | Restore
-    | CancelHistory
-    | Sync
-    | SetSelection String Selection String
-    | Resolve String
       -- === UI ===
     | TimeUpdate Time.Posix
     | VideoModal Bool
@@ -81,13 +75,6 @@ type
     -- === Dialogs, Menus, Window State ===
     = IntentExport ExportSettings
     | CancelCardConfirmed
-      -- === Database ===
-    | Commit Int
-    | GetDataToSave
-    | SetHeadRev String
-    | SetLastCommitSaved (Maybe Time.Posix)
-    | SetLastFileSaved (Maybe Time.Posix)
-    | Merge Json.Value
       -- === DOM ===
     | DragStarted String
     | FieldChanged String

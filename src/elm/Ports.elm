@@ -165,44 +165,6 @@ receiveMsg tagger onError =
                     tagger <| CancelCardConfirmed
 
                 -- === Database ===
-                "Commit" ->
-                    case decodeValue Json.Decode.int outsideInfo.data of
-                        Ok time ->
-                            tagger <| Commit time
-
-                        Err e ->
-                            onError (errorToString e)
-
-                "GetDataToSave" ->
-                    tagger <| GetDataToSave
-
-                "SetHeadRev" ->
-                    case decodeValue Json.Decode.string outsideInfo.data of
-                        Ok rev ->
-                            tagger <| SetHeadRev rev
-
-                        Err e ->
-                            onError (errorToString e)
-
-                "SetLastCommitSaved" ->
-                    case decodeValue (Json.Decode.maybe Json.Decode.int) outsideInfo.data of
-                        Ok time_ ->
-                            tagger <| SetLastCommitSaved (Maybe.map Time.millisToPosix time_)
-
-                        Err e ->
-                            onError (errorToString e)
-
-                "SetLastFileSaved" ->
-                    case decodeValue (Json.Decode.maybe Json.Decode.float) outsideInfo.data of
-                        Ok time_ ->
-                            tagger <| SetLastFileSaved (Maybe.map (Time.millisToPosix << round) time_)
-
-                        Err e ->
-                            onError (errorToString e)
-
-                "Merge" ->
-                    tagger <| Merge outsideInfo.data
-
                 -- === DOM ===
                 "DragStarted" ->
                     case decodeValue Json.Decode.string outsideInfo.data of

@@ -1,4 +1,4 @@
-module UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
+module UI exposing (countWords, viewFooter, viewSaveIndicator, viewSearchField, viewVideo)
 
 import Coders exposing (treeToMarkdownString)
 import Date
@@ -140,50 +140,6 @@ viewFooter model =
         ([ viewShortcutsToggle model.language model.shortcutTrayOpen model.isMac isOnly model.textCursorInfo model.viewState ]
             ++ viewWordCount
         )
-
-
-viewHistory : Translation.Language -> String -> Objects.Model -> Html Msg
-viewHistory lang currHead objects =
-    let
-        master =
-            Dict.get "heads/master" objects.refs
-
-        historyList =
-            case master of
-                Just refObj ->
-                    (refObj.value :: refObj.ancestors)
-                        |> List.reverse
-
-                _ ->
-                    []
-
-        maxIdx =
-            historyList |> List.length |> (\x -> x - 1) |> Debug.toString
-
-        currIdx =
-            historyList
-                |> ListExtra.elemIndex currHead
-                |> Maybe.map Debug.toString
-                |> Maybe.withDefault maxIdx
-
-        checkoutCommit idxStr =
-            case String.toInt idxStr of
-                Just idx ->
-                    case getAt idx historyList of
-                        Just commit ->
-                            CheckoutCommit commit
-
-                        Nothing ->
-                            NoOp
-
-                Nothing ->
-                    NoOp
-    in
-    div [ id "history" ]
-        [ input [ type_ "range", A.min "0", A.max maxIdx, value currIdx, step "1", onInput checkoutCommit ] []
-        , button [ onClick Restore ] [ text <| tr lang RestoreThisVersion ]
-        , button [ onClick CancelHistory ] [ text <| tr lang Cancel ]
-        ]
 
 
 viewVideo : { m | videoModalOpen : Bool } -> Html Msg
@@ -403,101 +359,6 @@ countWords str =
         |> String.words
         |> List.filter ((/=) "")
         |> List.length
-
-
-viewConflict : Conflict -> Html Msg
-viewConflict { id, opA, opB, selection, resolved } =
-    let
-        withManual cardId oursElement theirsElement =
-            li
-                []
-                [ fieldset []
-                    [ radio (SetSelection id Original cardId) (selection == Original) (text "Original")
-                    , radio (SetSelection id Ours cardId) (selection == Ours) oursElement
-                    , radio (SetSelection id Theirs cardId) (selection == Theirs) theirsElement
-                    , radio (SetSelection id Manual cardId) (selection == Manual) (text "Merged")
-                    , label []
-                        [ input [ checked resolved, type_ "checkbox", onClick (Resolve id) ] []
-                        , text "Resolved"
-                        ]
-                    ]
-                ]
-
-        withoutManual cardIdA cardIdB =
-            li
-                []
-                [ fieldset []
-                    [ radio (SetSelection id Original "") (selection == Original) (text "Original")
-                    , radio (SetSelection id Ours cardIdA) (selection == Ours) (text ("Ours:" ++ (Debug.toString opA |> String.left 3)))
-                    , radio (SetSelection id Theirs cardIdB) (selection == Theirs) (text ("Theirs:" ++ (Debug.toString opB |> String.left 3)))
-                    , label []
-                        [ input [ checked resolved, type_ "checkbox", onClick (Resolve id) ] []
-                        , text "Resolved"
-                        ]
-                    ]
-                ]
-
-        newConflictView cardId ourChanges theirChanges =
-            div [ class "flex-row" ]
-                [ div [ class "conflict-container flex-column" ]
-                    [ div
-                        [ classList [ ( "row option", True ), ( "selected", selection == Original ) ]
-                        , onClick (SetSelection id Original cardId)
-                        ]
-                        [ text "Original" ]
-                    , div [ class "row flex-row" ]
-                        [ div
-                            [ classList [ ( "option", True ), ( "selected", selection == Ours ) ]
-                            , onClick (SetSelection id Ours cardId)
-                            ]
-                            [ text "Ours"
-                            , ul [ class "changelist" ] ourChanges
-                            ]
-                        , div
-                            [ classList [ ( "option", True ), ( "selected", selection == Theirs ) ]
-                            , onClick (SetSelection id Theirs cardId)
-                            ]
-                            [ text "Theirs"
-                            , ul [ class "changelist" ] theirChanges
-                            ]
-                        ]
-                    , div
-                        [ classList [ ( "row option", True ), ( "selected", selection == Manual ) ]
-                        , onClick (SetSelection id Manual cardId)
-                        ]
-                        [ text "Merged" ]
-                    ]
-                , button [ onClick (Resolve id) ] [ text "Resolved" ]
-                ]
-    in
-    case ( opA, opB ) of
-        ( Mod idA _ strA orig, Mod _ _ strB _ ) ->
-            let
-                diffLinesString l r =
-                    diffLines l r
-                        |> List.filterMap
-                            (\c ->
-                                case c of
-                                    NoChange s ->
-                                        Nothing
-
-                                    Added s ->
-                                        Just (li [] [ ins [ class "diff" ] [ text s ] ])
-
-                                    Removed s ->
-                                        Just (li [] [ del [ class "diff" ] [ text s ] ])
-                            )
-            in
-            newConflictView idA [] []
-
-        ( Types.Ins idA _ _ _, Del idB _ ) ->
-            withoutManual idA idB
-
-        ( Del idA _, Types.Ins idB _ _ _ ) ->
-            withoutManual idA idB
-
-        _ ->
-            withoutManual "" ""
 
 
 radio : msg -> Bool -> Html msg -> Html msg

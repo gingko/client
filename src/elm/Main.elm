@@ -23,7 +23,7 @@ import Translation exposing (langFromString, tr)
 import TreeUtils exposing (..)
 import Trees exposing (..)
 import Types exposing (..)
-import UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
+import UI exposing (countWords, viewFooter, viewSearchField, viewVideo)
 
 
 main : Program ( Json.Value, InitModel, Bool ) Model Msg
@@ -58,11 +58,24 @@ main =
 -}
 
 
+type FileDocState
+    = NewDoc { lastEdit : Maybe Time.Posix }
+    | SavedDoc
+        { filePath : String
+        , lastSave : Time.Posix
+        , lastEdit : Maybe Time.Posix
+        }
+
+
+type DocState
+    = FileDocState
+    | CloudDocState
+
+
 type alias Model =
     -- Document state
     { workingTree : Trees.Model
-    , objects : Objects.Model
-    , status : Status
+    , undoHistory : List Trees.Model
 
     -- Transient state
     , viewState : ViewState
@@ -113,8 +126,7 @@ type alias InitModel =
 defaultModel : Model
 defaultModel =
     { workingTree = Trees.defaultModel
-    , objects = Objects.defaultModel
-    , status = Bare
+    , undoHistory = []
     , debouncerStateCommit =
         Debouncer.throttle (fromSeconds 3)
             |> Debouncer.settleWhenQuietFor (Just <| fromSeconds 3)
@@ -167,40 +179,25 @@ defaultModel =
 init : ( Json.Value, InitModel, Bool ) -> ( Model, Cmd Msg )
 init ( dataIn, modelIn, isSaved ) =
     let
-        ( newStatus, newTree_, newObjects ) =
+        newTree =
             case Json.decodeValue treeDecoder dataIn of
                 Ok newTreeDecoded ->
-                    {- The JSON was successfully decoded by treeDecoder.
-                       We need to create the first commit to the history.
-                    -}
-                    Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" modelIn.currentTime newTreeDecoded) defaultModel.objects
-                        |> (\( s, _, o ) -> ( s, Just newTreeDecoded, o ))
+                    newTreeDecoded
 
                 Err err ->
-                    {- If treeDecoder fails, we assume that this was a
-                       load from the database instead. See Objects.elm for
-                       how the data is converted from JSON to type Objects.Model
-                    -}
-                    Objects.update (Objects.Init dataIn) defaultModel.objects
-
-        newTree =
-            Maybe.withDefault Trees.defaultTree newTree_
+                    Trees.defaultTree
 
         newWorkingTree =
             Trees.setTree newTree defaultModel.workingTree
 
         startingWordcount =
-            newTree_
-                |> Maybe.map (\t -> countWords (treeToMarkdownString False t))
-                |> Maybe.withDefault 0
+            countWords (treeToMarkdownString False newTree)
 
         columnNumber =
             newWorkingTree.columns |> List.length |> (\l -> l - 1)
     in
     ( { defaultModel
         | workingTree = newWorkingTree
-        , objects = newObjects
-        , status = newStatus
         , language = langFromString modelIn.language
         , isMac = modelIn.isMac
         , shortcutTrayOpen = modelIn.shortcutTrayOpen
@@ -246,7 +243,7 @@ init ( dataIn, modelIn, isSaved ) =
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ({ objects, workingTree, status } as model) =
+update msg ({ workingTree } as model) =
     let
         vs =
             model.viewState
@@ -446,115 +443,6 @@ update msg ({ objects, workingTree, status } as model) =
                 Nothing ->
                     ( updatedModel, mappedCmd )
 
-        CheckoutCommit commitSha ->
-            case status of
-                MergeConflict _ _ _ _ ->
-                    ( model
-                    , Cmd.none
-                    )
-
-                _ ->
-                    ( model
-                    , Cmd.none
-                    )
-                        |> checkoutCommit commitSha
-
-        Restore ->
-            ( { model | historyState = Closed }
-            , Cmd.none
-            )
-                |> addToHistoryDo
-
-        CancelHistory ->
-            case model.historyState of
-                From origSha ->
-                    ( { model | historyState = Closed }
-                    , Cmd.none
-                    )
-                        |> checkoutCommit origSha
-
-                Closed ->
-                    ( model
-                    , Cmd.none
-                    )
-
-        Sync ->
-            case ( model.status, model.online ) of
-                ( Clean _, True ) ->
-                    ( model
-                    , sendOut Pull
-                    )
-
-                ( Bare, True ) ->
-                    ( model
-                    , sendOut Pull
-                    )
-
-                _ ->
-                    ( model
-                    , Cmd.none
-                    )
-
-        SetSelection cid selection id ->
-            let
-                newStatus =
-                    case status of
-                        MergeConflict mTree oldHead newHead conflicts ->
-                            conflicts
-                                |> List.map
-                                    (\c ->
-                                        if c.id == cid then
-                                            { c | selection = selection }
-
-                                        else
-                                            c
-                                    )
-                                |> MergeConflict mTree oldHead newHead
-
-                        _ ->
-                            status
-            in
-            case newStatus of
-                MergeConflict mTree oldHead newHead conflicts ->
-                    case selection of
-                        Manual ->
-                            ( { model
-                                | workingTree = Trees.setTreeWithConflicts conflicts mTree model.workingTree
-                                , status = newStatus
-                              }
-                            , Cmd.none
-                            )
-
-                        _ ->
-                            ( { model
-                                | workingTree = Trees.setTreeWithConflicts conflicts mTree model.workingTree
-                                , status = newStatus
-                              }
-                            , Cmd.none
-                            )
-                                |> cancelCard
-                                |> activate id
-
-                _ ->
-                    ( model
-                    , Cmd.none
-                    )
-
-        Resolve cid ->
-            case status of
-                MergeConflict mTree shaA shaB conflicts ->
-                    ( { model
-                        | status = MergeConflict mTree shaA shaB (conflicts |> List.filter (\c -> c.id /= cid))
-                      }
-                    , Cmd.none
-                    )
-                        |> addToHistory
-
-                _ ->
-                    ( model
-                    , Cmd.none
-                    )
-
         -- === UI ===
         TimeUpdate time ->
             ( { model | currentTime = time }
@@ -699,117 +587,6 @@ update msg ({ objects, workingTree, status } as model) =
                     , Cmd.none
                     )
                         |> cancelCard
-
-                -- === Database ===
-                GetDataToSave ->
-                    case ( vs.viewMode, status ) of
-                        ( Normal, Bare ) ->
-                            ( model, sendOut NoDataToSave )
-
-                        ( Normal, _ ) ->
-                            ( model
-                            , sendOut (SaveToDB ( statusToValue model.status, Objects.toValue model.objects ))
-                            )
-
-                        _ ->
-                            let
-                                newTree =
-                                    Trees.update (Trees.Upd vs.active model.field) model.workingTree
-                            in
-                            if newTree.tree /= model.workingTree.tree then
-                                ( { model | workingTree = newTree }
-                                , Cmd.none
-                                )
-                                    |> addToHistoryDo
-
-                            else
-                                ( model
-                                , sendOut (SaveToDB ( statusToValue model.status, Objects.toValue model.objects ))
-                                )
-
-                Commit timeMillis ->
-                    ( { model | currentTime = Time.millisToPosix timeMillis }, Cmd.none )
-                        |> addToHistoryDo
-
-                SetHeadRev rev ->
-                    ( { model
-                        | objects = Objects.setHeadRev rev model.objects
-                        , dirty = False
-                      }
-                    , Cmd.none
-                    )
-                        |> push
-
-                SetLastCommitSaved time_ ->
-                    ( { model
-                        | lastCommitSaved = time_
-                      }
-                    , Cmd.none
-                    )
-
-                SetLastFileSaved time_ ->
-                    ( { model
-                        | lastFileSaved = time_
-                      }
-                    , Cmd.none
-                    )
-
-                Merge json ->
-                    let
-                        ( newStatus, newTree_, newObjects ) =
-                            Objects.update (Objects.Merge json workingTree.tree) objects
-                    in
-                    case ( status, newStatus ) of
-                        ( Bare, Clean sha ) ->
-                            ( { model
-                                | workingTree = Trees.setTree (newTree_ |> Maybe.withDefault workingTree.tree) workingTree
-                                , objects = newObjects
-                                , status = newStatus
-                              }
-                            , sendOut (UpdateCommits ( Objects.toValue newObjects, Just sha ))
-                            )
-                                |> activate vs.active
-
-                        ( Clean oldHead, Clean newHead ) ->
-                            if oldHead /= newHead then
-                                ( { model
-                                    | workingTree = Trees.setTree (newTree_ |> Maybe.withDefault workingTree.tree) workingTree
-                                    , objects = newObjects
-                                    , status = newStatus
-                                  }
-                                , sendOut (UpdateCommits ( Objects.toValue newObjects, Just newHead ))
-                                )
-                                    |> activate vs.active
-
-                            else
-                                ( model
-                                , Cmd.none
-                                )
-
-                        ( Clean _, MergeConflict mTree oldHead newHead conflicts ) ->
-                            ( { model
-                                | workingTree =
-                                    if List.isEmpty conflicts then
-                                        Trees.setTree (newTree_ |> Maybe.withDefault workingTree.tree) workingTree
-
-                                    else
-                                        Trees.setTreeWithConflicts conflicts mTree model.workingTree
-                                , objects = newObjects
-                                , status = newStatus
-                              }
-                            , sendOut (UpdateCommits ( newObjects |> Objects.toValue, Just newHead ))
-                            )
-                                |> addToHistory
-                                |> activate vs.active
-
-                        _ ->
-                            let
-                                _ =
-                                    Debug.log "failed to merge json" json
-                            in
-                            ( model
-                            , Cmd.none
-                            )
 
                 -- === DOM ===
                 DragStarted dragId ->
@@ -1090,10 +867,10 @@ update msg ({ objects, workingTree, status } as model) =
                             normalMode model (pasteInto vs.active)
 
                         "mod+z" ->
-                            normalMode model (historyStep Backward)
+                            normalMode model identity
 
                         "mod+shift+z" ->
-                            normalMode model (historyStep Forward)
+                            normalMode model identity
 
                         "mod+s" ->
                             ( model
@@ -1283,7 +1060,6 @@ activate id ( model, prevCmd ) =
                         )
                     ]
                 )
-                    |> sendCollabState (CollabState model.uid (CollabActive id) "")
 
             Nothing ->
                 ( model
@@ -1446,7 +1222,6 @@ openCard id str ( model, prevCmd ) =
           }
         , Cmd.batch [ prevCmd, focus id ]
         )
-            |> sendCollabState (CollabState model.uid (CollabEditing id) str)
 
 
 openCardFullscreen : String -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1624,7 +1399,6 @@ cancelCard ( model, prevCmd ) =
       }
     , prevCmd
     )
-        |> sendCollabState (CollabState model.uid (CollabActive vs.active) "")
 
 
 intentCancelCard : Model -> ( Model, Cmd Msg )
@@ -2013,156 +1787,9 @@ pasteInto id ( model, prevCmd ) =
 -- === History ===
 
 
-checkoutCommit : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-checkoutCommit commitSha ( model, prevCmd ) =
-    let
-        ( newStatus, newTree_, newModel ) =
-            Objects.update (Objects.Checkout commitSha) model.objects
-    in
-    case newTree_ of
-        Just newTree ->
-            ( { model
-                | workingTree = Trees.setTree newTree model.workingTree
-                , status = newStatus
-              }
-            , sendOut (UpdateCommits ( Objects.toValue model.objects, getHead newStatus ))
-            )
-                |> maybeColumnsChanged model.workingTree.columns
-
-        Nothing ->
-            ( model
-            , Cmd.none
-            )
-                |> Debug.log "failed to load commit"
-
-
-historyStep : Direction -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-historyStep dir ( model, prevCmd ) =
-    case model.status of
-        Clean currHead ->
-            let
-                master =
-                    Dict.get "heads/master" model.objects.refs
-
-                ( currCommit_, historyList ) =
-                    case master of
-                        Just refObj ->
-                            ( Just refObj.value
-                            , (refObj.value :: refObj.ancestors)
-                                |> List.reverse
-                            )
-
-                        _ ->
-                            ( Nothing, [] )
-
-                newCommitIdx_ =
-                    case dir of
-                        Backward ->
-                            historyList
-                                |> ListExtra.elemIndex currHead
-                                |> Maybe.map (\x -> Basics.max 0 (x - 1))
-                                |> Maybe.withDefault -1
-
-                        Forward ->
-                            historyList
-                                |> ListExtra.elemIndex currHead
-                                |> Maybe.map (\x -> Basics.min (List.length historyList - 1) (x + 1))
-                                |> Maybe.withDefault -1
-
-                newCommit_ =
-                    getAt newCommitIdx_ historyList
-            in
-            case ( model.historyState, currCommit_, newCommit_ ) of
-                ( From startSha, _, Just newSha ) ->
-                    ( model
-                    , prevCmd
-                    )
-                        |> checkoutCommit newSha
-
-                ( Closed, Just currCommit, Just newSha ) ->
-                    ( { model | historyState = From currCommit }
-                    , prevCmd
-                    )
-                        |> checkoutCommit newSha
-
-                _ ->
-                    ( model, prevCmd )
-
-        _ ->
-            ( model, prevCmd )
-
-
-push : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-push ( model, prevCmd ) =
-    if model.online then
-        ( model
-        , Cmd.batch [ prevCmd, sendOut Push ]
-        )
-
-    else
-        ( model
-        , prevCmd
-        )
-
-
 addToHistoryDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 addToHistoryDo ( { workingTree, currentTime } as model, prevCmd ) =
-    case model.status of
-        Bare ->
-            let
-                ( newStatus, _, newObjects ) =
-                    Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" (currentTime |> Time.posixToMillis) workingTree.tree) model.objects
-            in
-            ( { model
-                | objects = newObjects
-                , status = newStatus
-              }
-            , Cmd.batch
-                [ prevCmd
-                , sendOut (SaveToDB ( statusToValue newStatus, Objects.toValue newObjects ))
-                , sendOut (UpdateCommits ( Objects.toValue newObjects, getHead newStatus ))
-                ]
-            )
-
-        Clean oldHead ->
-            let
-                ( newStatus, _, newObjects ) =
-                    Objects.update (Objects.Commit [ oldHead ] "Jane Doe <jane.doe@gmail.com>" (currentTime |> Time.posixToMillis) workingTree.tree) model.objects
-            in
-            ( { model
-                | objects = newObjects
-                , status = newStatus
-              }
-            , Cmd.batch
-                [ prevCmd
-
-                --, sendOut (SaveToDB ( statusToValue newStatus, Objects.toValue newObjects ))
-                --, sendOut (UpdateCommits ( Objects.toValue newObjects, getHead newStatus ))
-                , sendOut (SaveLocal workingTree.tree)
-                ]
-            )
-
-        MergeConflict _ oldHead newHead conflicts ->
-            if List.isEmpty conflicts || (conflicts |> List.filter (not << .resolved) |> List.isEmpty) then
-                let
-                    ( newStatus, _, newObjects ) =
-                        Objects.update (Objects.Commit [ oldHead, newHead ] "Jane Doe <jane.doe@gmail.com>" (currentTime |> Time.posixToMillis) workingTree.tree) model.objects
-                in
-                ( { model
-                    | objects = newObjects
-                    , status = newStatus
-                  }
-                , Cmd.batch
-                    [ prevCmd
-                    , sendOut (SaveToDB ( statusToValue newStatus, Objects.toValue newObjects ))
-                    , sendOut (UpdateCommits ( Objects.toValue newObjects, getHead newStatus ))
-                    ]
-                )
-
-            else
-                ( model
-                , Cmd.batch [ prevCmd, sendOut (SaveLocal model.workingTree.tree) ]
-                )
+    ( model, prevCmd )
 
 
 addToHistory : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -2173,20 +1800,6 @@ addToHistory ( model, prevCmd ) =
 
 
 -- === Files ===
-
-
-sendCollabState : CollabState -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-sendCollabState collabState ( model, prevCmd ) =
-    case model.status of
-        MergeConflict _ _ _ _ ->
-            ( model
-            , prevCmd
-            )
-
-        _ ->
-            ( model
-            , Cmd.batch [ prevCmd, sendOut (SocketSend collabState) ]
-            )
 
 
 toggleVideoModal : Bool -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -2229,65 +1842,31 @@ pre, code, .group.has-active .card textarea {
                     )
                 ]
     in
-    case model.status of
-        MergeConflict _ oldHead newHead conflicts ->
-            let
-                bgString =
-                    """
-repeating-linear-gradient(-45deg
-, rgba(255,255,255,0.02)
-, rgba(255,255,255,0.02) 15px
-, rgba(0,0,0,0.025) 15px
-, rgba(0,0,0,0.06) 30px
-)
-          """
-            in
-            div
-                [ id "app-root"
-                , style "background" bgString
-                , style "position" "absolute"
-                , style "width" "100%"
-                , style "height" "100%"
-                ]
-                [ ul [ class "conflicts-list" ]
-                    (List.map viewConflict conflicts)
-                , lazy3 Trees.view model.language model.viewState model.workingTree
-                , styleNode
-                ]
+    if model.viewState.viewMode == FullscreenEditing then
+        div
+            [ id "app-root" ]
+            [ if model.fontSelectorOpen then
+                Fonts.viewSelector model.language model.fonts |> Html.map FontsMsg
 
-        _ ->
-            if model.viewState.viewMode == FullscreenEditing then
-                div
-                    [ id "app-root" ]
-                    [ if model.fontSelectorOpen then
-                        Fonts.viewSelector model.language model.fonts |> Html.map FontsMsg
+              else
+                text ""
+            , lazy3 Fullscreen.view model.language model.viewState model.workingTree
+            ]
 
-                      else
-                        text ""
-                    , lazy3 Fullscreen.view model.language model.viewState model.workingTree
-                    ]
+    else
+        div
+            [ id "app-root" ]
+            [ if model.fontSelectorOpen then
+                Fonts.viewSelector model.language model.fonts |> Html.map FontsMsg
 
-            else
-                div
-                    [ id "app-root" ]
-                    [ if model.fontSelectorOpen then
-                        Fonts.viewSelector model.language model.fonts |> Html.map FontsMsg
-
-                      else
-                        text ""
-                    , lazy3 Trees.view model.language model.viewState model.workingTree
-                    , viewSaveIndicator model
-                    , viewSearchField model
-                    , viewFooter model
-                    , case ( model.historyState, model.status ) of
-                        ( From _, Clean currHead ) ->
-                            viewHistory model.language currHead model.objects
-
-                        _ ->
-                            text ""
-                    , viewVideo model
-                    , styleNode
-                    ]
+              else
+                text ""
+            , lazy3 Trees.view model.language model.viewState model.workingTree
+            , viewSearchField model
+            , viewFooter model
+            , viewVideo model
+            , styleNode
+            ]
 
 
 
