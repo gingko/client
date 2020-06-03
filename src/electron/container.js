@@ -24,8 +24,8 @@ const getInitialDocState = () => {
 };
 
 
-const saveLocal = (jsonData) => {
-  fs.writeFile("/home/adriano/testsavelocal.gko", JSON.stringify(jsonData, undefined, 2), (err) => console.log(err));
+const saveFile = (jsonData, filePath) => {
+  fs.writeFile(filePath, JSON.stringify(jsonData, undefined, 2), (err) => console.log(err));
 };
 
 
@@ -193,7 +193,7 @@ export
   , userStore
   , openExternal
   , showMessageBox
-  , saveLocal
+  , saveFile
   , exportDocx
   , exportJson
   , exportTxt

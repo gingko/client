@@ -24,7 +24,7 @@ type Msg
       -- === Card Moving  ===
     | DragDropMsg (DragDrop.Msg String DropId)
       -- === History ===
-    | ThrottledCommit (Debouncer.Msg ())
+    | ThrottledSave (Debouncer.Msg ())
       -- === UI ===
     | TimeUpdate Time.Posix
     | VideoModal Bool
@@ -47,7 +47,7 @@ type
     | CommitWithTimestamp
     | NoDataToSave
     | SaveToDB ( Json.Value, Json.Value )
-    | SaveLocal Tree
+    | SaveFile Tree String
     | Push
     | Pull
       -- === File System ===

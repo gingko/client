@@ -78,7 +78,7 @@ type DocState
 type alias Model =
     -- Document state
     { workingTree : Trees.Model
-    , undoHistory : List Trees.Model
+    , undoHistory : { before : List Trees.Model, after : List Trees.Model }
     , docState : DocState
     , dirty : Bool
 
@@ -128,7 +128,7 @@ type alias InitModel =
 defaultModel : Model
 defaultModel =
     { workingTree = Trees.defaultModel
-    , undoHistory = []
+    , undoHistory = { before = [], after = [] }
     , docState = FileDoc NewDoc
     , dirty = False
     , field = ""
@@ -423,13 +423,13 @@ update msg ({ workingTree } as model) =
                     ( modelDragUpdated, Cmd.none )
 
         -- === History ===
-        ThrottledCommit subMsg ->
+        ThrottledSave subMsg ->
             let
                 ( subModel, subCmd, emitted_ ) =
                     Debouncer.update subMsg model.debouncerStateCommit
 
                 mappedCmd =
-                    Cmd.map ThrottledCommit subCmd
+                    Cmd.map ThrottledSave subCmd
 
                 updatedModel =
                     { model | debouncerStateCommit = subModel }
@@ -437,8 +437,9 @@ update msg ({ workingTree } as model) =
             case emitted_ of
                 Just () ->
                     ( updatedModel
-                    , Cmd.batch [ sendOut CommitWithTimestamp, mappedCmd ]
+                    , mappedCmd
                     )
+                        |> addToHistoryInstant model
 
                 Nothing ->
                     ( updatedModel, mappedCmd )
@@ -654,7 +655,7 @@ update msg ({ workingTree } as model) =
                                     Trees.update (Trees.Upd cardId newContent) model.workingTree
                             in
                             ( { model | workingTree = newTree, dirty = True }, Cmd.none )
-                                |> addToHistory
+                                |> addToHistoryInstant model
 
                 -- === UI ===
                 SetLanguage lang ->
@@ -867,10 +868,10 @@ update msg ({ workingTree } as model) =
                             normalMode model (pasteInto vs.active)
 
                         "mod+z" ->
-                            normalMode model identity
+                            normalMode model (historyStep Backward)
 
                         "mod+shift+z" ->
-                            normalMode model identity
+                            normalMode model (historyStep Forward)
 
                         "mod+s" ->
                             ( model
@@ -1183,7 +1184,7 @@ saveCardIfEditing ( model, prevCmd ) =
                   }
                 , prevCmd
                 )
-                    |> addToHistory
+                    |> addToHistoryInstant model
 
             else
                 ( { model | dirty = False }
@@ -1303,7 +1304,7 @@ deleteCard id ( model, prevCmd ) =
         )
             |> maybeColumnsChanged model.workingTree.columns
             |> activate nextToActivate
-            |> addToHistory
+            |> addToHistoryInstant model
 
 
 goToTopOfColumn : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1508,7 +1509,7 @@ mergeUp id ( model, prevCmd ) =
             , prevCmd
             )
                 |> activate prevTree.id
-                |> addToHistory
+                |> addToHistoryInstant model
 
         _ ->
             ( model, prevCmd )
@@ -1536,7 +1537,7 @@ mergeDown id ( model, prevCmd ) =
             , prevCmd
             )
                 |> activate nextTree.id
-                |> addToHistory
+                |> addToHistoryInstant model
 
         _ ->
             ( model, prevCmd )
@@ -1581,7 +1582,7 @@ move subtree pid pos ( model, prevCmd ) =
     )
         |> maybeColumnsChanged model.workingTree.columns
         |> activate subtree.id
-        |> addToHistory
+        |> addToHistoryThrottled
 
 
 moveWithin : String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1724,7 +1725,7 @@ paste subtree pid pos ( model, prevCmd ) =
     )
         |> maybeColumnsChanged model.workingTree.columns
         |> activate subtree.id
-        |> addToHistory
+        |> addToHistoryInstant model
 
 
 pasteBelow : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1787,15 +1788,79 @@ pasteInto id ( model, prevCmd ) =
 -- === History ===
 
 
-addToHistoryDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-addToHistoryDo ( { workingTree, currentTime } as model, prevCmd ) =
-    ( model, prevCmd )
+addToHistoryInstant : Model -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+addToHistoryInstant oldModel ( { workingTree, currentTime } as model, prevCmd ) =
+    let
+        newBefore =
+            oldModel.workingTree
+                :: model.undoHistory.before
+
+        newCmds =
+            case model.docState of
+                FileDoc (SavedDoc { filePath }) ->
+                    Cmd.batch [ sendOut (SaveFile model.workingTree.tree filePath), prevCmd ]
+
+                _ ->
+                    prevCmd
+    in
+    ( { model
+        | undoHistory = { before = newBefore, after = [] }
+      }
+    , newCmds
+    )
 
 
-addToHistory : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-addToHistory ( model, prevCmd ) =
-    update (ThrottledCommit (provideInput ())) model
+addToHistoryThrottled : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+addToHistoryThrottled ( model, prevCmd ) =
+    update (ThrottledSave (provideInput ())) model
         |> Tuple.mapSecond (\cmd -> Cmd.batch [ prevCmd, cmd ])
+
+
+historyStep : Direction -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+historyStep dir ( model, prevCmd ) =
+    case dir of
+        Backward ->
+            case ListExtra.uncons model.undoHistory.before of
+                Just ( bef, newBefore ) ->
+                    let
+                        _ =
+                            Debug.log "undoHistory" (String.fromInt (List.length newBefore) ++ " " ++ String.fromInt (List.length model.undoHistory.after + 1))
+                    in
+                    ( { model
+                        | workingTree = bef
+                        , undoHistory =
+                            { before = newBefore
+                            , after =
+                                model.workingTree :: model.undoHistory.after
+                            }
+                      }
+                    , prevCmd
+                    )
+
+                Nothing ->
+                    ( model, prevCmd )
+
+        Forward ->
+            case ListExtra.uncons model.undoHistory.after of
+                Just ( aft, newAfter ) ->
+                    let
+                        _ =
+                            Debug.log "undoHistory" (String.fromInt (List.length newAfter) ++ " " ++ String.fromInt (List.length model.undoHistory.before + 1))
+                    in
+                    ( { model
+                        | workingTree = aft
+                        , undoHistory =
+                            { before =
+                                model.workingTree :: model.undoHistory.before
+                            , after =
+                                newAfter
+                            }
+                      }
+                    , prevCmd
+                    )
+
+                Nothing ->
+                    ( model, prevCmd )
 
 
 

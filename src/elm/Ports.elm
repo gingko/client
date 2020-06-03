@@ -55,8 +55,13 @@ sendOut info =
                     ]
                 )
 
-        SaveLocal tree ->
-            dataToSend (treeToJSON tree)
+        SaveFile tree path ->
+            dataToSend
+                (object
+                    [ ( "data", treeToJSON tree )
+                    , ( "filepath", string path )
+                    ]
+                )
 
         ExportJSON tree path_ ->
             dataToSend

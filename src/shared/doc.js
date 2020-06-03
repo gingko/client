@@ -229,9 +229,9 @@ const update = (msg, data) => {
         }
       }
 
-      , "SaveLocal": () => {
-        container.saveLocal(data);
-      }
+    , "SaveFile": () => {
+        container.saveFile(data.data,data.filepath);
+    }
 
     , "Push": push
 
@@ -281,7 +281,7 @@ const update = (msg, data) => {
         lastActivesScrolled = data.lastActives;
         lastColumnScrolled = data.column;
 
-        setLastActive(docState.dbPath[1], data.cardId);
+        setLastActive(docState.filePath, data.cardId);
         helpers.scrollHorizontal(data.column);
         helpers.scrollColumns(data.lastActives);
       }
