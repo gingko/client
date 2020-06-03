@@ -59,29 +59,32 @@ main =
 
 
 type FileDocState
-    = NewDoc { lastEdit : Maybe Time.Posix }
+    = NewDoc
     | SavedDoc
         { filePath : String
         , lastSave : Time.Posix
-        , lastEdit : Maybe Time.Posix
         }
 
 
+type CloudDocState
+    = Unsynced
+
+
 type DocState
-    = FileDocState
-    | CloudDocState
+    = FileDoc FileDocState
+    | CloudDoc CloudDocState
 
 
 type alias Model =
     -- Document state
     { workingTree : Trees.Model
     , undoHistory : List Trees.Model
+    , docState : DocState
+    , dirty : Bool
+    , lastFileSaved : Maybe Time.Posix
 
     -- Transient state
     , viewState : ViewState
-    , dirty : Bool
-    , lastCommitSaved : Maybe Time.Posix
-    , lastFileSaved : Maybe Time.Posix
     , field : String
     , textCursorInfo : TextCursorInfo
     , debouncerStateCommit : Debouncer () ()
@@ -115,7 +118,6 @@ type alias InitModel =
     , isMac : Bool
     , shortcutTrayOpen : Bool
     , videoModalOpen : Bool
-    , lastCommitSaved : Maybe Int
     , lastFileSaved : Maybe Float
     , currentTime : Int
     , lastActive : String
@@ -127,6 +129,10 @@ defaultModel : Model
 defaultModel =
     { workingTree = Trees.defaultModel
     , undoHistory = []
+    , docState = FileDoc NewDoc
+    , dirty = False
+    , lastFileSaved = Nothing
+    , field = ""
     , debouncerStateCommit =
         Debouncer.throttle (fromSeconds 3)
             |> Debouncer.settleWhenQuietFor (Just <| fromSeconds 3)
@@ -144,10 +150,6 @@ defaultModel =
         , copiedTree = Nothing
         , collaborators = []
         }
-    , dirty = False
-    , lastCommitSaved = Nothing
-    , lastFileSaved = Nothing
-    , field = ""
     , textCursorInfo = { selected = False, position = End, text = ( "", "" ) }
     , isMac = False
     , language = Translation.En
@@ -198,14 +200,13 @@ init ( dataIn, modelIn, isSaved ) =
     in
     ( { defaultModel
         | workingTree = newWorkingTree
+        , lastFileSaved = Maybe.map (Time.millisToPosix << round) modelIn.lastFileSaved
         , language = langFromString modelIn.language
         , isMac = modelIn.isMac
         , shortcutTrayOpen = modelIn.shortcutTrayOpen
         , videoModalOpen = modelIn.videoModalOpen
         , startingWordcount = startingWordcount
         , currentTime = Time.millisToPosix modelIn.currentTime
-        , lastCommitSaved = Maybe.map Time.millisToPosix modelIn.lastCommitSaved
-        , lastFileSaved = Maybe.map (Time.millisToPosix << round) modelIn.lastFileSaved
         , seed = Random.initialSeed modelIn.currentTime
         , fonts = Fonts.init modelIn.fonts
       }
