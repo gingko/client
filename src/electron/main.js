@@ -501,7 +501,13 @@ async function openDocumentOrFolder(dbToLoad, docName) {
   }
 }
 
-async function openDocument(filepath) {
+async function openDocument(docPath) {
+  let { filepath, data } = await fio.openFile( docPath );
+  createDocumentWindow({ swapFolderPath: filepath, jsonImportData : fio.reformJSON(data) });
+  return true;
+}
+
+async function openDocumentOld(filepath) {
   try {
     const swapFolderPath = await fio.openFile(filepath);
 

@@ -25,7 +25,7 @@ const getInitialDocState = () => {
 
 
 const saveLocal = (jsonData) => {
-  fs.writeFile("/home/adriano/testsavelocal.json", JSON.stringify(jsonData, undefined, 2), (err) => console.log(err));
+  fs.writeFile("/home/adriano/testsavelocal.gko", JSON.stringify(jsonData, undefined, 2), (err) => console.log(err));
 };
 
 

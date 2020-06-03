@@ -61,7 +61,7 @@ async function openFile(filepath) {
     case JSON_FILE:
       await makeBackup(filepath);
       //await swapFolderCheck(swapFolderPath);
-      return filepath;
+      return { filepath: filepath, data: fileFormat.data }  ;
 
     case GKO: {
       const swapName = fullpathFilename(filepath);
@@ -309,6 +309,7 @@ module.exports =
   , saveLegacyFolderAs : saveLegacyFolderAs
   , deleteSwapFolder : deleteSwapFolder
   , importJSON: importJSON
+  , reformJSON: reformJSON
   , destroyDb: destroyDb
   , getHash: getHashWithoutStartTime
   , truncateBackups : truncateBackups
@@ -363,12 +364,11 @@ async function determineFiletype(filepath) {
         return {format: LEGACY_GKO, data: dumpInfo};
       }
     } catch (err) {
-      if (err.msg == "Unexpected end of JSON input") {
+      if (err.message == "Unexpected end of JSON input") {
         const filecontents = await fs.readFile(filepath, "utf8");
         const jsonfile = JSON.parse(filecontents);
         return {format: JSON_FILE, data: jsonfile};
       } else {
-        console.log("thrown error from determineFiletype", err.msg);
         return {format: false}
       }
     }
@@ -603,19 +603,23 @@ async function importJSON(filepath) {
   const db = new PouchDB(dbPath);
   db.close();
 
-  let nextId = 1;
-
-  const seed = JSON.parse(
-    data.toString().replace(/{(\s*)"content":/g, s => {
-      return `{"id":"${nextId++}","content":`;
-    })
-  );
-
-  const newRoot = { id: "0", content: "", children: seed };
+  let newRoot = reformJSON(data);
 
   return {
     swapFolderPath: swapFolderPath,
     docName: docName,
     jsonImportData: newRoot
   };
+}
+
+function reformJSON(jsonData) {
+  let nextId = 1;
+
+  const seed = JSON.parse(
+    JSON.stringify(jsonData).replace(/{(\s*)"content":/g, s => {
+      return `{"id":"${nextId++}","content":`;
+    })
+  );
+
+  return { id: "0", content: "", children: seed };
 }
