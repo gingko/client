@@ -229,8 +229,14 @@ const update = (msg, data) => {
         }
       }
 
-    , "SaveFile": () => {
-        container.saveFile(data.data,data.filepath);
+    , "SaveFile": async () => {
+        let modTime = await container.saveFile(data.data,data.filepath);
+
+        if(docState.changed !== false) {
+          docState.changed = false;
+        }
+
+        toElm("SetLastSaved", [data.filepath, modTime]);
     }
 
     , "Push": push

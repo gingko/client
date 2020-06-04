@@ -122,7 +122,7 @@ function createDocumentWindow(docParams) {
     , menuState:
       { editMode: false
       , columnNumber : 1
-      , changed : !!savedData
+      , changed : false
       , lastExportPath : false
       , isNew: !filePath || savedData
       , recentDocumentList: docList.getRecentDocs()

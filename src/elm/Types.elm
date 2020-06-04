@@ -72,8 +72,10 @@ type
 
 type
     IncomingMsg
-    -- === Dialogs, Menus, Window State ===
-    = IntentExport ExportSettings
+    -- === File States ===
+    = SetLastSaved String Time.Posix
+      -- === Dialogs, Menus, Window State ===
+    | IntentExport ExportSettings
     | CancelCardConfirmed
       -- === DOM ===
     | DragStarted String

@@ -1,4 +1,4 @@
-const fs = require("fs");
+const fs = require("fs-extra");
 const path = require("path");
 const { remote, shell } = require("electron");
 const { ipcRenderer: ipc } = require("electron-better-ipc");
@@ -24,8 +24,11 @@ const getInitialDocState = () => {
 };
 
 
-const saveFile = (jsonData, filePath) => {
-  fs.writeFile(filePath, JSON.stringify(jsonData, undefined, 2), (err) => console.log(err));
+const saveFile = async (jsonData, filePath) => {
+  await fs.writeFile(filePath, JSON.stringify(jsonData, undefined, 2));
+  const fileStats = await fs.stat(filePath);
+  console.log(fileStats);
+  return fileStats.mtimeMs;
 };
 
 

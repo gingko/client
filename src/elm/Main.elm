@@ -492,6 +492,17 @@ update msg ({ workingTree } as model) =
         -- === Ports ===
         Port incomingMsg ->
             case incomingMsg of
+                -- === File States ===
+                SetLastSaved filePath mtime ->
+                    case model.docState of
+                        FileDoc _ ->
+                            ( { model | docState = (FileDoc <| SavedDoc { filePath = filePath, lastSaved = mtime }) |> Debug.log "new docState" }
+                            , Cmd.none
+                            )
+
+                        CloudDoc _ ->
+                            ( model, Cmd.none )
+
                 -- === Dialogs, Menus, Window State ===
                 IntentExport exportSettings ->
                     case exportSettings.format of
@@ -1818,14 +1829,19 @@ addToHistoryThrottled ( model, prevCmd ) =
 
 historyStep : Direction -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 historyStep dir ( model, prevCmd ) =
+    let
+        newCmds =
+            case model.docState of
+                FileDoc (SavedDoc { filePath }) ->
+                    Cmd.batch [ sendOut (SaveFile model.workingTree.tree filePath), prevCmd ]
+
+                _ ->
+                    prevCmd
+    in
     case dir of
         Backward ->
             case ListExtra.uncons model.undoHistory.before of
                 Just ( bef, newBefore ) ->
-                    let
-                        _ =
-                            Debug.log "undoHistory" (String.fromInt (List.length newBefore) ++ " " ++ String.fromInt (List.length model.undoHistory.after + 1))
-                    in
                     ( { model
                         | workingTree = bef
                         , undoHistory =
@@ -1834,7 +1850,7 @@ historyStep dir ( model, prevCmd ) =
                                 model.workingTree :: model.undoHistory.after
                             }
                       }
-                    , prevCmd
+                    , newCmds
                     )
 
                 Nothing ->
@@ -1843,10 +1859,6 @@ historyStep dir ( model, prevCmd ) =
         Forward ->
             case ListExtra.uncons model.undoHistory.after of
                 Just ( aft, newAfter ) ->
-                    let
-                        _ =
-                            Debug.log "undoHistory" (String.fromInt (List.length newAfter) ++ " " ++ String.fromInt (List.length model.undoHistory.before + 1))
-                    in
                     ( { model
                         | workingTree = aft
                         , undoHistory =
@@ -1856,7 +1868,7 @@ historyStep dir ( model, prevCmd ) =
                                 newAfter
                             }
                       }
-                    , prevCmd
+                    , newCmds
                     )
 
                 Nothing ->

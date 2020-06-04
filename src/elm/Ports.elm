@@ -157,6 +157,16 @@ receiveMsg tagger onError =
     infoForElm
         (\outsideInfo ->
             case outsideInfo.tag of
+                -- === File States ===
+                "SetLastSaved" ->
+                    case decodeValue (tupleDecoder Json.Decode.string Json.Decode.float) outsideInfo.data of
+                        Ok ( filePath, mtime ) ->
+                            tagger <|
+                                SetLastSaved filePath ((Time.millisToPosix << round) mtime)
+
+                        Err e ->
+                            onError (errorToString e)
+
                 -- === Dialogs, Menus, Window State ===
                 "IntentExport" ->
                     case decodeValue exportSettingsDecoder outsideInfo.data of
@@ -169,7 +179,6 @@ receiveMsg tagger onError =
                 "CancelCardConfirmed" ->
                     tagger <| CancelCardConfirmed
 
-                -- === Database ===
                 -- === DOM ===
                 "DragStarted" ->
                     case decodeValue Json.Decode.string outsideInfo.data of
