@@ -79,7 +79,7 @@ type DocState
 type alias Model =
     -- Document state
     { workingTree : Trees.Model
-    , undoHistory : { before : List Trees.Model, after : List Trees.Model }
+    , undoHistory : { before : List ( Trees.Model, String ), after : List ( Trees.Model, String ) }
     , docState : DocState
     , dirty : Bool
 
@@ -1815,7 +1815,7 @@ addToHistoryInstant : Model -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 addToHistoryInstant oldModel ( { workingTree, currentTime } as model, prevCmd ) =
     let
         newBefore =
-            oldModel.workingTree
+            ( oldModel.workingTree, model.viewState.active )
                 :: model.undoHistory.before
 
         newCmds =
@@ -1855,15 +1855,16 @@ historyStep dir ( model, prevCmd ) =
             case ListExtra.uncons model.undoHistory.before of
                 Just ( bef, newBefore ) ->
                     ( { model
-                        | workingTree = bef
+                        | workingTree = Tuple.first bef
                         , undoHistory =
                             { before = newBefore
                             , after =
-                                model.workingTree :: model.undoHistory.after
+                                ( model.workingTree, model.viewState.active ) :: model.undoHistory.after
                             }
                       }
                     , newCmds
                     )
+                        |> activate (Tuple.second bef)
 
                 Nothing ->
                     ( model, prevCmd )
@@ -1872,16 +1873,17 @@ historyStep dir ( model, prevCmd ) =
             case ListExtra.uncons model.undoHistory.after of
                 Just ( aft, newAfter ) ->
                     ( { model
-                        | workingTree = aft
+                        | workingTree = Tuple.first aft
                         , undoHistory =
                             { before =
-                                model.workingTree :: model.undoHistory.before
+                                ( model.workingTree, model.viewState.active ) :: model.undoHistory.before
                             , after =
                                 newAfter
                             }
                       }
                     , newCmds
                     )
+                        |> activate (Tuple.second aft)
 
                 Nothing ->
                     ( model, prevCmd )
