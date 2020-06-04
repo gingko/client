@@ -27,7 +27,6 @@ const getInitialDocState = () => {
 const saveFile = async (jsonData, filePath) => {
   await fs.writeFile(filePath, JSON.stringify(jsonData, undefined, 2));
   const fileStats = await fs.stat(filePath);
-  console.log(fileStats);
   return fileStats.mtimeMs;
 };
 

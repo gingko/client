@@ -496,7 +496,10 @@ update msg ({ workingTree } as model) =
                 SetLastSaved filePath mtime ->
                     case model.docState of
                         FileDoc _ ->
-                            ( { model | docState = (FileDoc <| SavedDoc { filePath = filePath, lastSaved = mtime }) |> Debug.log "new docState" }
+                            ( { model
+                                | docState = (FileDoc <| SavedDoc { filePath = filePath, lastSaved = mtime }) |> Debug.log "new docState"
+                                , dirty = False
+                              }
                             , Cmd.none
                             )
 
@@ -1892,6 +1895,30 @@ toggleVideoModal shouldOpen ( model, prevCmd ) =
 -- VIEW
 
 
+viewSidebar : Model -> Html Msg
+viewSidebar model =
+    let
+        saveStatus =
+            case model.docState of
+                FileDoc (SavedDoc { filePath, lastSaved }) ->
+                    if model.dirty then
+                        "Unsaved Changes..."
+
+                    else
+                        "Saved"
+
+                FileDoc NewDoc ->
+                    "Never Saved..."
+
+                CloudDoc _ ->
+                    "Cloud Document"
+    in
+    div [ id "sidebar" ]
+        [ h2 [] [ text "File" ]
+        , span [] [ text saveStatus ]
+        ]
+
+
 view : Model -> Html Msg
 view model =
     let
@@ -1933,7 +1960,8 @@ pre, code, .group.has-active .card textarea {
     else
         div
             [ id "app-root" ]
-            [ if model.fontSelectorOpen then
+            [ viewSidebar model
+            , if model.fontSelectorOpen then
                 Fonts.viewSelector model.language model.fonts |> Html.map FontsMsg
 
               else

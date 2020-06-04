@@ -167,8 +167,11 @@ body {
 
 
 #app-root {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: 1fr auto;
+  gap: 0px 0px;
+  grid-template-areas: "sidebar document" "sidebar footer";
   position: absolute;
   height: 100%;
   width: 100%;
@@ -191,10 +194,24 @@ body {
   border-bottom: 1px solid #566e78;
 }
 
+#sidebar {
+  grid-area: sidebar;
+  width: 200px;
+  padding: 10px 20px;
+  background-color: hsla(199, 6%, 92%, 1);
+  box-shadow: 1px 1px 6px #2b3c52;
+  font-family: sans-serif;
+}
+
+#sidebar h1, #sidebar h2 {
+  font-family: sans-serif;
+}
+
 
 /* ======== COLUMNS ======== */
 
 #app {
+  grid-area: document;
   display: flex;
   justify-content: space-between;
   flex: 1;
@@ -987,6 +1004,7 @@ pre {
 /* ======== STATUS BAR ======== */
 
 .footer {
+  grid-area:footer;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;

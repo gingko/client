@@ -133,11 +133,11 @@ function initElmAndPorts(initFlags) {
     toElm("DragStarted", event.target.id.replace(/^card-/,""));
   });
 
-  window.onbeforeunload = (e) => {
-    actionOnData = ActionOnData.Exit;
-    toElm("GetDataToSave", null);
-    e.returnValue = false;
-  };
+//  window.onbeforeunload = (e) => {
+ //   actionOnData = ActionOnData.Exit;
+  //  toElm("GetDataToSave", null);
+   // e.returnValue = false;
+  //};
 
   window.checkboxClicked = (cardId, number) => {
     toElm("CheckboxClicked", [cardId, number]);
