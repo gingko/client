@@ -24,7 +24,7 @@ import Translation exposing (langFromString, tr)
 import TreeUtils exposing (..)
 import Trees exposing (..)
 import Types exposing (..)
-import UI exposing (countWords, viewFooter, viewSearchField, viewVideo)
+import UI exposing (countWords, viewFooter, viewSaveIndicator, viewSearchField, viewVideo)
 
 
 main : Program ( Json.Value, InitModel ) Model Msg
@@ -57,23 +57,6 @@ main =
    gets saved to the database. It's defined in Objects.elm.
 
 -}
-
-
-type FileDocState
-    = NewDoc
-    | SavedDoc
-        { filePath : String
-        , lastSaved : Time.Posix
-        }
-
-
-type CloudDocState
-    = Unsynced
-
-
-type DocState
-    = FileDoc FileDocState
-    | CloudDoc CloudDocState
 
 
 type alias Model =
@@ -1906,31 +1889,6 @@ toggleVideoModal shouldOpen ( model, prevCmd ) =
 -- VIEW
 
 
-viewSidebar : Model -> Html Msg
-viewSidebar model =
-    let
-        saveStatus =
-            case model.docState of
-                FileDoc (SavedDoc { filePath, lastSaved }) ->
-                    if model.dirty then
-                        "Unsaved Changes..."
-
-                    else
-                        "Saved"
-
-                FileDoc NewDoc ->
-                    "Never Saved..."
-
-                CloudDoc _ ->
-                    "Cloud Document"
-    in
-    div [ id "sidebar" ]
-        [ h2 [] [ text "File" ]
-        , div [] [ text saveStatus ]
-        , div [ onClick IntentSave ] [ text "Save" ]
-        ]
-
-
 view : Model -> Html Msg
 view model =
     let
@@ -1972,13 +1930,13 @@ pre, code, .group.has-active .card textarea {
     else
         div
             [ id "app-root" ]
-            [ viewSidebar model
-            , if model.fontSelectorOpen then
+            [ if model.fontSelectorOpen then
                 Fonts.viewSelector model.language model.fonts |> Html.map FontsMsg
 
               else
                 text ""
             , lazy3 Trees.view model.language model.viewState model.workingTree
+            , viewSaveIndicator model
             , viewSearchField model
             , viewFooter model
             , viewVideo model

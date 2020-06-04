@@ -1,4 +1,4 @@
-module Types exposing (Children(..), CollabState, Column, Conflict, CursorPosition(..), Direction(..), DropId(..), ExportFormat(..), ExportSelection(..), ExportSettings, Group, HistoryState(..), IncomingMsg(..), Mode(..), Msg(..), Op(..), OutgoingMsg(..), OutsideData, Selection(..), Status(..), TextCursorInfo, Tree, ViewMode(..), ViewState, VisibleViewState, WordCount)
+module Types exposing (Children(..), CloudDocState(..), CollabState, Column, Conflict, CursorPosition(..), Direction(..), DocState(..), DropId(..), ExportFormat(..), ExportSelection(..), ExportSettings, FileDocState(..), Group, HistoryState(..), IncomingMsg(..), Mode(..), Msg(..), Op(..), OutgoingMsg(..), OutsideData, Selection(..), Status(..), TextCursorInfo, Tree, ViewMode(..), ViewState, VisibleViewState, WordCount)
 
 import Debouncer.Basic as Debouncer
 import Fonts
@@ -6,6 +6,23 @@ import Html5.DragDrop as DragDrop
 import Json.Decode as Json
 import Time
 import Translation
+
+
+type FileDocState
+    = NewDoc
+    | SavedDoc
+        { filePath : String
+        , lastSaved : Time.Posix
+        }
+
+
+type CloudDocState
+    = Unsynced
+
+
+type DocState
+    = FileDoc FileDocState
+    | CloudDoc CloudDocState
 
 
 type Msg

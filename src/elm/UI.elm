@@ -18,32 +18,31 @@ import Trees exposing (defaultTree)
 import Types exposing (..)
 
 
-viewSaveIndicator : { m | objects : Objects.Model, dirty : Bool, lastCommitSaved : Maybe Time.Posix, lastFileSaved : Maybe Time.Posix, currentTime : Time.Posix, language : Translation.Language } -> Html Msg
-viewSaveIndicator { objects, dirty, lastCommitSaved, lastFileSaved, currentTime, language } =
+viewSaveIndicator : { m | docState : DocState, dirty : Bool, currentTime : Time.Posix, language : Translation.Language } -> Html Msg
+viewSaveIndicator { docState, dirty, currentTime, language } =
     let
-        lastChangeString =
-            timeDistInWords
-                language
-                (lastCommitSaved |> Maybe.withDefault (Time.millisToPosix 0))
-                currentTime
-
         saveStateSpan =
-            if dirty then
-                span [ title (tr language LastSaved ++ " " ++ lastChangeString) ] [ text <| tr language UnsavedChanges ]
+            case docState of
+                FileDoc (SavedDoc { lastSaved }) ->
+                    let
+                        lastChangeString =
+                            timeDistInWords
+                                language
+                                lastSaved
+                                currentTime
+                    in
+                    if dirty then
+                        span [ title (tr language LastSaved ++ " " ++ lastChangeString) ] [ text <| tr language UnsavedChanges ]
 
-            else
-                case ( lastCommitSaved, lastFileSaved ) of
-                    ( Nothing, Nothing ) ->
-                        span [] [ text <| tr language NeverSaved ]
-
-                    ( Just commitTime, Nothing ) ->
-                        span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language SavedInternally ]
-
-                    ( Just commitTime, Just fileTime ) ->
+                    else
                         span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language ChangesSaved ]
 
-                    ( Nothing, Just fileTime ) ->
-                        span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language DatabaseError ]
+                FileDoc NewDoc ->
+                    span [] [ text <| tr language NeverSaved ]
+
+                CloudDoc _ ->
+                    -- TODO: states and translations
+                    span [] [ text "Cloud Document" ]
     in
     div
         [ id "save-indicator", classList [ ( "inset", True ), ( "saving", dirty ) ] ]
