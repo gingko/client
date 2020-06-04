@@ -79,11 +79,11 @@ container.answerMain("set-doc-state", data => {
 });
 
 
-if (docState.savedData) {
+if (docState.fileDoc) {
   const initFlags =
     [ docState.savedData
-    , { filePath : docState.filePath
-      , lastSaved : docState.lastSaved
+    , { filePath : docState.filePath || null
+      , lastSaved : docState.lastSaved || null
       , language : lang
       , isMac : process.platform === "darwin"
       , shortcutTrayOpen : userStore.get("shortcut-tray-is-open", true)

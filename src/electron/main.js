@@ -107,7 +107,8 @@ function createDocumentWindow(docParams) {
 
   // Passed to doc.js to initialize the app
   win.initialDocState =
-    { filePath
+    { fileDoc : true
+    , filePath
     , lastSaved
     , savedData
     };
@@ -157,8 +158,6 @@ function setFileTitle(win, filePath) {
   let newTitle = "";
   if (filePath) {
     newTitle = `${path.basename(filePath)} - Gingko`;
-  } else if (legacyFormat) {
-    newTitle = `${legacyFormat.name} (Saved Internally) - Gingko`;
   } else {
     newTitle =
       "Untitled" +
@@ -442,19 +441,7 @@ app.on("will-finish-launching", () => {
 });
 
 async function newUntitled() {
-  const swapRandomName = "Untitled_"+(new Date()).toISOString().replace(/:/g,"-");
-  const swapFolderPath = path.join(app.getPath("userData"), swapRandomName);
-  try {
-    await fio.newSwapFolder(swapFolderPath);
-    createDocumentWindow({swapFolderPath, originalPath : null});
-  } catch (err) {
-    if (err instanceof GingkoError && err.message.includes("Swap folder already exists")) {
-      // TODO: Handle this unlikely case
-      console.log("GINGKO ERROR");
-    }
-
-    throw err;
-  }
+  createDocumentWindow({filePath: ""});
 }
 
 async function openWithDialog() {

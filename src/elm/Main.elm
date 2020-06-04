@@ -9,7 +9,6 @@ import Fonts
 import Fullscreen
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick)
 import Html.Lazy exposing (lazy, lazy3)
 import Html5.DragDrop as DragDrop
 import Json.Decode as Json
@@ -97,8 +96,8 @@ type alias Model =
 
 
 type alias InitModel =
-    { filePath : String
-    , lastSaved : Float
+    { filePath : Maybe String
+    , lastSaved : Maybe Float
     , language : String
     , isMac : Bool
     , shortcutTrayOpen : Bool
@@ -167,14 +166,21 @@ init ( dataIn, modelIn ) =
         ( newTree, docState ) =
             case Json.decodeValue treeDecoder dataIn of
                 Ok newTreeDecoded ->
-                    ( newTreeDecoded
-                    , FileDoc
-                        (SavedDoc
-                            { filePath = modelIn.filePath
-                            , lastSaved = (Time.millisToPosix << round) modelIn.lastSaved
-                            }
-                        )
-                    )
+                    let
+                        docStateIn =
+                            case ( modelIn.filePath, modelIn.lastSaved ) of
+                                ( Just filePath, Just lastSaved ) ->
+                                    FileDoc
+                                        (SavedDoc
+                                            { filePath = filePath
+                                            , lastSaved = (Time.millisToPosix << round) lastSaved
+                                            }
+                                        )
+
+                                _ ->
+                                    FileDoc NewDoc
+                    in
+                    ( newTreeDecoded, docStateIn )
 
                 Err err ->
                     ( Trees.defaultTree, FileDoc NewDoc )
