@@ -407,14 +407,6 @@ update msg ({ workingTree } as model) =
                     ( modelDragUpdated, Cmd.none )
 
         -- === File System ===
-        IntentSave ->
-            case model.docState of
-                FileDoc (SavedDoc { filePath }) ->
-                    ( model, sendOut <| SaveFile model.workingTree.tree filePath )
-
-                _ ->
-                    ( model, Cmd.none )
-
         ThrottledSave subMsg ->
             let
                 ( subModel, subCmd, emitted_ ) =
@@ -485,11 +477,28 @@ update msg ({ workingTree } as model) =
         Port incomingMsg ->
             case incomingMsg of
                 -- === File States ===
+                FileSave newFilePath_ ->
+                    case ( model.docState, newFilePath_ ) of
+                        ( FileDoc (SavedDoc { filePath }), Nothing ) ->
+                            ( model, sendOut <| SaveFile model.workingTree.tree filePath )
+
+                        ( FileDoc (SavedDoc _), Just newFilePath ) ->
+                            ( model, sendOut <| SaveFile model.workingTree.tree newFilePath )
+
+                        ( FileDoc NewDoc, Just newFilePath ) ->
+                            ( model, sendOut <| SaveFile model.workingTree.tree newFilePath )
+
+                        ( FileDoc NewDoc, Nothing ) ->
+                            ( model, Cmd.none )
+
+                        ( CloudDoc _, _ ) ->
+                            ( model, Cmd.none )
+
                 SetLastSaved filePath mtime ->
                     case model.docState of
                         FileDoc _ ->
                             ( { model
-                                | docState = (FileDoc <| SavedDoc { filePath = filePath, lastSaved = mtime }) |> Debug.log "new docState"
+                                | docState = FileDoc <| SavedDoc { filePath = filePath, lastSaved = mtime }
                                 , dirty = False
                               }
                             , Cmd.none

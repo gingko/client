@@ -47,19 +47,19 @@ sendOut info =
             dataToSend null
 
         -- === File System ===
-        ExportDOCX str path_ ->
-            dataToSend
-                (object
-                    [ ( "data", string str )
-                    , ( "filepath", maybe string path_ )
-                    ]
-                )
-
         SaveFile tree path ->
             dataToSend
                 (object
                     [ ( "data", treeToJSON tree )
                     , ( "filepath", string path )
+                    ]
+                )
+
+        ExportDOCX str path_ ->
+            dataToSend
+                (object
+                    [ ( "data", string str )
+                    , ( "filepath", maybe string path_ )
                     ]
                 )
 
@@ -158,6 +158,14 @@ receiveMsg tagger onError =
         (\outsideInfo ->
             case outsideInfo.tag of
                 -- === File States ===
+                "FileSave" ->
+                    case decodeValue (Json.Decode.maybe Json.Decode.string) outsideInfo.data of
+                        Ok filePath_ ->
+                            tagger <| FileSave filePath_
+
+                        Err e ->
+                            onError (errorToString e)
+
                 "SetLastSaved" ->
                     case decodeValue (tupleDecoder Json.Decode.string Json.Decode.float) outsideInfo.data of
                         Ok ( filePath, mtime ) ->

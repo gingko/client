@@ -43,6 +43,10 @@ const docStateHandlers = {
   set: function(obj, prop, value) {
     if (typeof gingko !== "undefined") {
       switch(prop) {
+        case "filePath":
+          container.sendTo("doc:path-changed", value);
+          break;
+
         case "headRev":
           toElm("SetHeadRev", value);
           break;
@@ -235,6 +239,7 @@ const update = (msg, data) => {
         if(docState.changed !== false) {
           docState.changed = false;
         }
+        docState.filePath = data.filepath;
 
         toElm("SetLastSaved", [data.filepath, modTime]);
     }
@@ -378,8 +383,14 @@ function intentExportToElm ( format, selection, filepath) {
 
 
 container.msgWas("menu:close-document", () => { actionOnData = ActionOnData.Exit; toElm("GetDataToSave", null); });
-container.msgWas("menu:save", () => { actionOnData = ActionOnData.Save; toElm("GetDataToSave", null ); });
-container.msgWas("menu:save-as", () => { actionOnData = ActionOnData.SaveAs; toElm("GetDataToSave", null ); });
+container.msgWas("menu:save", () => { toElm("FileSave", null ); });
+container.msgWas("menu:save-as", async () => {
+  console.log("AT doc.js save-as handler");
+  let newFilePath = await container.showSaveDialog("Save As", docState.filePath);
+  console.log("saveDialogReturn", newFilePath);
+  docState.filePath = newFilePath;
+  toElm("FileSave", newFilePath);
+});
 container.msgWas("menu:export-docx", () => intentExportToElm("docx", "all", null));
 container.msgWas("menu:export-docx-current", () => intentExportToElm("docx", "current", null));
 container.msgWas("menu:export-docx-column", (e, msg) => intentExportToElm("docx", {column: msg}, null));

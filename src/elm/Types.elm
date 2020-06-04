@@ -41,7 +41,6 @@ type Msg
       -- === Card Moving  ===
     | DragDropMsg (DragDrop.Msg String DropId)
       -- === File System ===
-    | IntentSave
     | ThrottledSave (Debouncer.Msg ())
       -- === UI ===
     | TimeUpdate Time.Posix
@@ -92,6 +91,7 @@ type
     IncomingMsg
     -- === File States ===
     = SetLastSaved String Time.Posix
+    | FileSave (Maybe String)
       -- === Dialogs, Menus, Window State ===
     | IntentExport ExportSettings
     | CancelCardConfirmed

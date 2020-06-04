@@ -132,19 +132,7 @@ function createDocumentWindow(docParams) {
 
 
   // Set document title bar
-  let newTitle = "";
-  if (filePath) {
-    newTitle = `${path.basename(filePath)} - Gingko`;
-  } else if (legacyFormat) {
-    newTitle = `${legacyFormat.name} (Saved Internally) - Gingko`;
-  } else {
-    newTitle =
-      "Untitled" +
-      (_untitledDocs !== 0 ? ` (${_untitledDocs + 1})` : "") +
-      " - Gingko";
-    _untitledDocs += 1;
-  }
-  win.setTitle(newTitle);
+  setFileTitle(win, filePath);
 
 
   // Load the document HTML & show when ready
@@ -163,6 +151,22 @@ function createDocumentWindow(docParams) {
       documentWindows.splice(index, 1);
     }
   });
+}
+
+function setFileTitle(win, filePath) {
+  let newTitle = "";
+  if (filePath) {
+    newTitle = `${path.basename(filePath)} - Gingko`;
+  } else if (legacyFormat) {
+    newTitle = `${legacyFormat.name} (Saved Internally) - Gingko`;
+  } else {
+    newTitle =
+      "Untitled" +
+      (_untitledDocs !== 0 ? ` (${_untitledDocs + 1})` : "") +
+      " - Gingko";
+    _untitledDocs += 1;
+  }
+  win.setTitle(newTitle);
 }
 
 function getTrialActivations() {
@@ -212,21 +216,8 @@ function updateMenu(win, lang) {
     , open : openWithDialog
     , openRecent : (rdoc) => openDocumentOrFolder(rdoc.location, rdoc.name)
     , openHome : createHomeWindow
-    , save : (item, focusedWindow) => {
-        if (originalPath) {
-          focusedWindow.webContents.send("menu:save");
-        } else {
-          focusedWindow.webContents.send("menu:save-as");
-        }
-      }
-    , saveAs : async (item, focusedWindow) => {
-        let saveAsReturn = legacyFormat ? await saveLegacyDocumentAs(focusedWindow) : await saveDocumentAs(focusedWindow);
-        if (saveAsReturn && saveAsReturn.filepath) {
-          focusedWindow.webContents.send("main:saved-file");
-          focusedWindow.mainState.menuState.isNew = false;
-          updateMenu(focusedWindow, false);
-        }
-      }
+    , save : (item, focusedWindow) => { focusedWindow.webContents.send("menu:save"); }
+    , saveAs : (item, focusedWindow) => { focusedWindow.webContents.send("menu:save-as"); }
     , import : importDocument
     , quit : () => { _menuQuit = true; app.quit(); }
     , enterLicense : (item, focusedWindow) => createSerialWindow(focusedWindow, false)
@@ -269,6 +260,12 @@ app.on("browser-window-focus", (ev, win) => {
     updateMenu(win, false);
   }
 });
+
+
+ipc.on("doc:path-changed", (event, newPath) => {
+  let win = BrowserWindow.fromWebContents(event.sender);
+  setFileTitle(win,newPath);
+})
 
 
 ipc.on("doc:column-number-change", (event, cols) => {

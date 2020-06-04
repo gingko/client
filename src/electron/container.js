@@ -14,6 +14,18 @@ const msgWas = (...args) => {
   ipc.on(...args);
 };
 const showMessageBox = dialog.showMessageBox;
+
+const showSaveDialog = async (title, defaultPath) => {
+  let options = {
+    title: title || "Save As",
+    defaultPath: defaultPath || path.join(app.getPath("documents"), "Untitled.gko"),
+    filters: [{ name: "Gingko Files (*.gko)", extensions: ["gko"] }]
+  };
+
+  let {filePath} = await dialog.showSaveDialog(options);
+  return filePath;
+}
+
 const openExternal = shell.openExternal;
 const userStore = new Store({name: "config"});
 const browserWindow = remote.getCurrentWindow();
@@ -195,6 +207,7 @@ export
   , userStore
   , openExternal
   , showMessageBox
+  , showSaveDialog
   , saveFile
   , exportDocx
   , exportJson
