@@ -23,7 +23,8 @@ type Msg
     | InsertChild String
       -- === Card Moving  ===
     | DragDropMsg (DragDrop.Msg String DropId)
-      -- === History ===
+      -- === File System ===
+    | IntentSave
     | ThrottledSave (Debouncer.Msg ())
       -- === UI ===
     | TimeUpdate Time.Posix

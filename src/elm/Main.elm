@@ -9,6 +9,7 @@ import Fonts
 import Fullscreen
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (onClick)
 import Html.Lazy exposing (lazy, lazy3)
 import Html5.DragDrop as DragDrop
 import Json.Decode as Json
@@ -422,7 +423,15 @@ update msg ({ workingTree } as model) =
                     -- Should be Impossible: both Dragging and Dropped
                     ( modelDragUpdated, Cmd.none )
 
-        -- === History ===
+        -- === File System ===
+        IntentSave ->
+            case model.docState of
+                FileDoc (SavedDoc { filePath }) ->
+                    ( model, sendOut <| SaveFile model.workingTree.tree filePath )
+
+                _ ->
+                    ( model, Cmd.none )
+
         ThrottledSave subMsg ->
             let
                 ( subModel, subCmd, emitted_ ) =
@@ -1915,7 +1924,8 @@ viewSidebar model =
     in
     div [ id "sidebar" ]
         [ h2 [] [ text "File" ]
-        , span [] [ text saveStatus ]
+        , div [] [ text saveStatus ]
+        , div [ onClick IntentSave ] [ text "Save" ]
         ]
 
 
