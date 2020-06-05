@@ -1780,8 +1780,9 @@ paste : Tree -> String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 paste subtree pid pos ( model, prevCmd ) =
     ( { model
         | workingTree = Trees.update (Trees.Paste subtree pid pos) model.workingTree
+        , dirty = True
       }
-    , prevCmd
+    , Cmd.batch [ sendOut <| SetChanged True, prevCmd ]
     )
         |> maybeColumnsChanged model.workingTree.columns
         |> activate subtree.id
