@@ -42,6 +42,7 @@ type Msg
     | DragDropMsg (DragDrop.Msg String DropId)
       -- === File System ===
     | ThrottledSave (Debouncer.Msg ())
+    | ThrottledSaveWIP (Debouncer.Msg ())
       -- === UI ===
     | TimeUpdate Time.Posix
     | VideoModal Bool

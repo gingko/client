@@ -70,6 +70,7 @@ type alias Model =
     , field : String
     , textCursorInfo : TextCursorInfo
     , debouncerStateCommit : Debouncer () ()
+    , debouncerEditing : Debouncer () ()
     , shortcutTrayOpen : Bool
     , wordcountTrayOpen : Bool
     , videoModalOpen : Bool
@@ -118,6 +119,9 @@ defaultModel =
     , debouncerStateCommit =
         Debouncer.throttle (fromSeconds 3)
             |> Debouncer.settleWhenQuietFor (Just <| fromSeconds 3)
+            |> toDebouncer
+    , debouncerEditing =
+        Debouncer.debounce (fromSeconds 3)
             |> toDebouncer
     , uid = "0"
     , viewState =
@@ -434,6 +438,40 @@ update msg ({ workingTree } as model) =
                 Nothing ->
                     ( updatedModel, mappedCmd )
 
+        ThrottledSaveWIP subMsg ->
+            let
+                ( subModel, subCmd, emitted_ ) =
+                    Debouncer.update subMsg model.debouncerEditing
+
+                mappedCmd =
+                    Cmd.map ThrottledSaveWIP subCmd
+
+                updatedModel =
+                    { model | debouncerEditing = subModel }
+
+                tempSavedTree =
+                    saveCardIfEditing ( model, Cmd.none )
+                        |> Tuple.first
+                        |> .workingTree
+                        |> .tree
+            in
+            case emitted_ of
+                Just () ->
+                    case updatedModel.docState of
+                        FileDoc (SavedDoc { filePath }) ->
+                            ( updatedModel
+                            , Cmd.batch [ sendOut <| SaveFile tempSavedTree filePath, mappedCmd ]
+                            )
+
+                        FileDoc NewDoc ->
+                            ( updatedModel, mappedCmd )
+
+                        CloudDoc _ ->
+                            ( updatedModel, mappedCmd )
+
+                Nothing ->
+                    ( updatedModel, mappedCmd )
+
         -- === UI ===
         TimeUpdate time ->
             ( { model | currentTime = time }
@@ -632,6 +670,7 @@ update msg ({ workingTree } as model) =
                       }
                     , Cmd.none
                     )
+                        |> saveWIPThrottled
 
                 TextCursor textCursorInfo ->
                     if model.textCursorInfo /= textCursorInfo then
@@ -1834,6 +1873,12 @@ addToHistoryInstant oldModel ( { workingTree, currentTime } as model, prevCmd ) 
 addToHistoryThrottled : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 addToHistoryThrottled ( model, prevCmd ) =
     update (ThrottledSave (provideInput ())) model
+        |> Tuple.mapSecond (\cmd -> Cmd.batch [ prevCmd, cmd ])
+
+
+saveWIPThrottled : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+saveWIPThrottled ( model, prevCmd ) =
+    update (ThrottledSaveWIP (provideInput ())) model
         |> Tuple.mapSecond (\cmd -> Cmd.batch [ prevCmd, cmd ])
 
 
