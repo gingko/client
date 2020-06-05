@@ -98,6 +98,7 @@ type alias Model =
 
 type alias InitModel =
     { filePath : Maybe String
+    , backupPath : String
     , lastSaved : Maybe Float
     , language : String
     , isMac : Bool
@@ -113,7 +114,7 @@ defaultModel : Model
 defaultModel =
     { workingTree = Trees.defaultModel
     , undoHistory = { before = [], after = [] }
-    , docState = FileDoc NewDoc
+    , docState = FileDoc (NewDoc "")
     , dirty = False
     , field = ""
     , debouncerStateCommit =
@@ -182,12 +183,12 @@ init ( dataIn, modelIn ) =
                                         )
 
                                 _ ->
-                                    FileDoc NewDoc
+                                    FileDoc (NewDoc modelIn.backupPath)
                     in
                     ( newTreeDecoded, docStateIn )
 
                 Err err ->
-                    ( Trees.defaultTree, FileDoc NewDoc )
+                    ( Trees.defaultTree, FileDoc (NewDoc modelIn.backupPath) )
 
         newWorkingTree =
             Trees.setTree newTree defaultModel.workingTree
@@ -463,8 +464,10 @@ update msg ({ workingTree } as model) =
                             , Cmd.batch [ sendOut <| SaveFile tempSavedTree filePath, mappedCmd ]
                             )
 
-                        FileDoc NewDoc ->
-                            ( updatedModel, mappedCmd )
+                        FileDoc (NewDoc backupPath) ->
+                            ( updatedModel
+                            , Cmd.batch [ sendOut <| SaveBackup tempSavedTree backupPath, mappedCmd ]
+                            )
 
                         CloudDoc _ ->
                             ( updatedModel, mappedCmd )
@@ -529,10 +532,10 @@ update msg ({ workingTree } as model) =
                         ( FileDoc (SavedDoc _), Just newFilePath ) ->
                             ( model, sendOut <| SaveFile model.workingTree.tree newFilePath )
 
-                        ( FileDoc NewDoc, Just newFilePath ) ->
+                        ( FileDoc (NewDoc _), Just newFilePath ) ->
                             ( model, sendOut <| SaveFile model.workingTree.tree newFilePath )
 
-                        ( FileDoc NewDoc, Nothing ) ->
+                        ( FileDoc (NewDoc _), Nothing ) ->
                             ( model, Cmd.none )
 
                         ( CloudDoc _, _ ) ->
@@ -1861,7 +1864,10 @@ addToHistoryInstant oldModel ( { workingTree, currentTime } as model, prevCmd ) 
                 FileDoc (SavedDoc { filePath }) ->
                     Cmd.batch [ sendOut (SaveFile model.workingTree.tree filePath), prevCmd ]
 
-                _ ->
+                FileDoc (NewDoc backupPath) ->
+                    Cmd.batch [ sendOut (SaveBackup model.workingTree.tree backupPath), prevCmd ]
+
+                CloudDoc _ ->
                     prevCmd
     in
     ( { model

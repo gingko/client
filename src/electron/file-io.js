@@ -312,6 +312,7 @@ module.exports =
   , importJSON: importJSON
   , reformJSON: reformJSON
   , destroyDb: destroyDb
+  , getBackupPath : getBackupPath
   , getHash: getHashWithoutStartTime
   , truncateBackups : truncateBackups
   };

@@ -109,6 +109,7 @@ function createDocumentWindow(docParams) {
   win.initialDocState =
     { fileDoc : true
     , filePath
+    , backupPath : fio.getBackupPath(filePath, Date.now() )
     , lastSaved
     , savedData
     };

@@ -55,6 +55,14 @@ sendOut info =
                     ]
                 )
 
+        SaveBackup tree path ->
+            dataToSend
+                (object
+                    [ ( "data", treeToJSON tree )
+                    , ( "filepath", string path )
+                    ]
+                )
+
         ExportDOCX str path_ ->
             dataToSend
                 (object

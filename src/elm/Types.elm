@@ -9,7 +9,7 @@ import Translation
 
 
 type FileDocState
-    = NewDoc
+    = NewDoc String
     | SavedDoc
         { filePath : String
         , lastSaved : Time.Posix
@@ -66,6 +66,7 @@ type
     | NoDataToSave
     | SaveToDB ( Json.Value, Json.Value )
     | SaveFile Tree String
+    | SaveBackup Tree String
     | Push
     | Pull
       -- === File System ===

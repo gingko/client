@@ -83,6 +83,7 @@ if (docState.fileDoc) {
   const initFlags =
     [ docState.savedData
     , { filePath : docState.filePath || null
+      , backupPath : docState.backupPath
       , lastSaved : docState.lastSaved || null
       , language : lang
       , isMac : process.platform === "darwin"
@@ -242,6 +243,10 @@ const update = (msg, data) => {
         docState.filePath = data.filepath;
 
         toElm("SetLastSaved", [data.filepath, modTime]);
+    }
+
+    , "SaveBackup": async () => {
+        await container.saveFile(data.data, data.filepath)
     }
 
     , "Push": push

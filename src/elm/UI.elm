@@ -37,7 +37,7 @@ viewSaveIndicator { docState, dirty, currentTime, language } =
                     else
                         span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language ChangesSaved ]
 
-                FileDoc NewDoc ->
+                FileDoc (NewDoc _) ->
                     span [] [ text <| tr language NeverSaved ]
 
                 CloudDoc _ ->
