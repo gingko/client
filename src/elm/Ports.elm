@@ -55,6 +55,14 @@ sendOut info =
                     ]
                 )
 
+        SaveSwap tree path ->
+            dataToSend
+                (object
+                    [ ( "data", treeToJSON tree )
+                    , ( "filepath", string path )
+                    ]
+                )
+
         SaveBackup tree path ->
             dataToSend
                 (object

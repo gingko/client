@@ -245,6 +245,10 @@ const update = (msg, data) => {
         toElm("SetLastSaved", [data.filepath, modTime]);
     }
 
+    , "SaveSwap": async () => {
+        await container.saveFile(data.data,data.filepath+".swp");
+    }
+
     , "SaveBackup": async () => {
         await container.saveFile(data.data, data.filepath)
     }

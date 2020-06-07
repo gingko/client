@@ -461,7 +461,7 @@ update msg ({ workingTree } as model) =
                     case updatedModel.docState of
                         FileDoc (SavedDoc { filePath }) ->
                             ( updatedModel
-                            , Cmd.batch [ sendOut <| SaveFile tempSavedTree filePath, mappedCmd ]
+                            , Cmd.batch [ sendOut <| SaveSwap tempSavedTree filePath, mappedCmd ]
                             )
 
                         FileDoc (NewDoc backupPath) ->
@@ -1862,7 +1862,7 @@ addToHistoryInstant oldModel ( { workingTree, currentTime } as model, prevCmd ) 
         newCmds =
             case model.docState of
                 FileDoc (SavedDoc { filePath }) ->
-                    Cmd.batch [ sendOut (SaveFile model.workingTree.tree filePath), prevCmd ]
+                    Cmd.batch [ sendOut (SaveSwap model.workingTree.tree filePath), prevCmd ]
 
                 FileDoc (NewDoc backupPath) ->
                     Cmd.batch [ sendOut (SaveBackup model.workingTree.tree backupPath), prevCmd ]
@@ -1895,7 +1895,7 @@ historyStep dir ( model, prevCmd ) =
         newCmds =
             case model.docState of
                 FileDoc (SavedDoc { filePath }) ->
-                    Cmd.batch [ sendOut (SaveFile model.workingTree.tree filePath), prevCmd ]
+                    Cmd.batch [ sendOut (SaveSwap model.workingTree.tree filePath), prevCmd ]
 
                 _ ->
                     prevCmd

@@ -66,6 +66,7 @@ type
     | NoDataToSave
     | SaveToDB ( Json.Value, Json.Value )
     | SaveFile Tree String
+    | SaveSwap Tree String
     | SaveBackup Tree String
     | Push
     | Pull
