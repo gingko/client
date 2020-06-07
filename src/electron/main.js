@@ -486,6 +486,36 @@ async function openDocumentOrFolder(dbToLoad, docName) {
 }
 
 async function openDocument(docPath) {
+  let swapExists = await fs.pathExists(docPath+".swp")
+
+  if (swapExists) {
+    const recoveryOptions = {
+      title: tr.unsavedChangesFound[lang],
+      message: tr.unsavedChangesMsg[lang],
+      buttons: [tr.discard[lang], tr.cancel[lang], tr.recover[lang]],
+      defaultId: 2
+    };
+    const { response } = await dialog.showMessageBox(recoveryOptions);
+
+    switch (response) {
+      // Discard Unsaved Changes
+      case 0:
+        await fs.remove(docPath+".swp")
+        break;
+
+      // Cancel
+      case 1:
+        return;
+
+      // Recover
+      case 2:
+        await fs.move(docPath+".swp",docPath,{overwrite: true})
+        break;
+    }
+  } else {
+
+  }
+
   let { filepath, data, lastSaved } = await fio.openFile( docPath );
   createDocumentWindow({ filePath : docPath, savedData : fio.reformJSON(data), lastSaved });
   return true;

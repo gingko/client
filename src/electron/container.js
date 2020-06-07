@@ -13,7 +13,13 @@ const answerMain = ipc.answerMain;
 const msgWas = (...args) => {
   ipc.on(...args);
 };
-const showMessageBox = dialog.showMessageBox;
+const showMessageBox = (options) => {
+  return dialog.showMessageBox(remote.getCurrentWindow(),options);
+}
+
+const close = () => {
+  remote.getCurrentWindow().destroy();
+}
 
 const showSaveDialog = async (title, defaultPath) => {
   let options = {
@@ -212,4 +218,5 @@ export
   , exportDocx
   , exportJson
   , exportTxt
+  , close
   };

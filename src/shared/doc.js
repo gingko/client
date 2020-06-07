@@ -23,12 +23,7 @@ var _lastSelection = null;
 var collab = {};
 let helpWidgetLauncher;
 
-const ActionOnData =
-  { Exit: "Exit"
-  , Save: "Save"
-  , SaveAs: "SaveAs"
-  };
-let actionOnData = ActionOnData.Save;
+let exitAfterSave = false;
 
 
 /* === Initializing App === */
@@ -138,11 +133,45 @@ function initElmAndPorts(initFlags) {
     toElm("DragStarted", event.target.id.replace(/^card-/,""));
   });
 
-//  window.onbeforeunload = (e) => {
- //   actionOnData = ActionOnData.Exit;
-  //  toElm("GetDataToSave", null);
-   // e.returnValue = false;
-  //};
+  window.onbeforeunload = async (e) => {
+    if (docState.changed) {
+      const confirmOptions = {
+        title: tr.saveChanges[lang],
+        message: tr.saveChangesMsg[lang],
+        type: "warning",
+        buttons: [tr.closeWithoutSaving[lang], tr.cancel[lang], tr.save[lang]],
+        defaultId: 2
+      };
+
+      let { response } = await container.showMessageBox( confirmOptions );
+
+      switch (response) {
+        // Close without Saving
+        case 0:
+          container.close();
+          break;
+
+        // Cancel
+        case 1:
+          e.returnValue = false;
+          break;
+
+        // Save Changes
+        case 2: {
+          exitAfterSave = true;
+          if(docState.filePath) {
+            toElm("FileSave", docState.filePath);
+          } else {
+            let newFilePath = await container.showSaveDialog("Save As", docState.filePath);
+            docState.filePath = newFilePath;
+            toElm("FileSave", newFilePath);
+          }
+          e.returnValue = false;
+          break;
+        }
+      }
+    }
+  };
 
   window.checkboxClicked = (cardId, number) => {
     toElm("CheckboxClicked", [cardId, number]);
@@ -241,6 +270,11 @@ const update = (msg, data) => {
           docState.changed = false;
         }
         docState.filePath = data.filepath;
+
+        if (exitAfterSave) {
+          console.log("SHOULD EXIT");
+          container.close();
+        }
 
         toElm("SetLastSaved", [data.filepath, modTime]);
     }
@@ -394,9 +428,7 @@ function intentExportToElm ( format, selection, filepath) {
 container.msgWas("menu:close-document", () => { actionOnData = ActionOnData.Exit; toElm("GetDataToSave", null); });
 container.msgWas("menu:save", () => { toElm("FileSave", null ); });
 container.msgWas("menu:save-as", async () => {
-  console.log("AT doc.js save-as handler");
   let newFilePath = await container.showSaveDialog("Save As", docState.filePath);
-  console.log("saveDialogReturn", newFilePath);
   docState.filePath = newFilePath;
   toElm("FileSave", newFilePath);
 });
