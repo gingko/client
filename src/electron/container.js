@@ -17,7 +17,8 @@ const showMessageBox = (options) => {
   return dialog.showMessageBox(remote.getCurrentWindow(),options);
 }
 
-const close = () => {
+const close = async (swapPath) => {
+  await fs.remove(swapPath);
   remote.getCurrentWindow().destroy();
 }
 
@@ -47,6 +48,9 @@ const saveFile = async (jsonData, filePath) => {
   const fileStats = await fs.stat(filePath);
   return fileStats.mtimeMs;
 };
+
+
+const deleteFile = fs.remove;
 
 
 const exportDocx = async (data, defaultPath) => {

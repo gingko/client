@@ -148,7 +148,7 @@ function initElmAndPorts(initFlags) {
       switch (response) {
         // Close without Saving
         case 0:
-          container.close();
+          container.close(docState.filePath + ".swp" || docState.backupPath);
           break;
 
         // Cancel
@@ -170,6 +170,8 @@ function initElmAndPorts(initFlags) {
           break;
         }
       }
+    } else {
+      container.close(docState.filePath + ".swp" || docState.backupPath);
     }
   };
 
@@ -272,8 +274,7 @@ const update = (msg, data) => {
         docState.filePath = data.filepath;
 
         if (exitAfterSave) {
-          console.log("SHOULD EXIT");
-          container.close();
+          container.close(data.filepath+".swp");
         }
 
         toElm("SetLastSaved", [data.filepath, modTime]);
@@ -425,7 +426,6 @@ function intentExportToElm ( format, selection, filepath) {
 }
 
 
-container.msgWas("menu:close-document", () => { actionOnData = ActionOnData.Exit; toElm("GetDataToSave", null); });
 container.msgWas("menu:save", () => { toElm("FileSave", null ); });
 container.msgWas("menu:save-as", async () => {
   let newFilePath = await container.showSaveDialog("Save As", docState.filePath);

@@ -525,15 +525,22 @@ update msg ({ workingTree } as model) =
             case incomingMsg of
                 -- === File States ===
                 FileSave newFilePath_ ->
+                    let
+                        tempSavedTree =
+                            saveCardIfEditing ( model, Cmd.none )
+                                |> Tuple.first
+                                |> .workingTree
+                                |> .tree
+                    in
                     case ( model.docState, newFilePath_ ) of
                         ( FileDoc (SavedDoc { filePath }), Nothing ) ->
-                            ( model, sendOut <| SaveFile model.workingTree.tree filePath )
+                            ( model, sendOut <| SaveFile tempSavedTree filePath )
 
                         ( FileDoc (SavedDoc _), Just newFilePath ) ->
-                            ( model, sendOut <| SaveFile model.workingTree.tree newFilePath )
+                            ( model, sendOut <| SaveFile tempSavedTree newFilePath )
 
                         ( FileDoc (NewDoc _), Just newFilePath ) ->
-                            ( model, sendOut <| SaveFile model.workingTree.tree newFilePath )
+                            ( model, sendOut <| SaveFile tempSavedTree newFilePath )
 
                         ( FileDoc (NewDoc _), Nothing ) ->
                             ( model, Cmd.none )
