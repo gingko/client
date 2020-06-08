@@ -512,13 +512,12 @@ async function openDocument(docPath) {
         await fs.move(docPath+".swp",docPath,{overwrite: true})
         break;
     }
-  } else {
-
   }
 
   let { filepath, data, lastSaved } = await fio.openFile( docPath );
   createDocumentWindow({ filePath : docPath, savedData : fio.reformJSON(data), lastSaved });
-  return true;
+  await addToRecentDocuments(filepath);
+  return filepath;
 }
 
 async function openDocumentOld(filepath) {
