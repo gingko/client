@@ -16,8 +16,5 @@ install:
 build_script:
   - npm run build
 
-test_script:
-  - npm run test
-
-after_test:
+after_build:
   - npm run release

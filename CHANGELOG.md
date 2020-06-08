@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 "Unreleased" changes are implemented but haven't been released yet.
 
+## Unreleased
+  - (Major) New plain JSON file format
+
 ## [2.4.15] - 2020-06-01
   - Fix : Inability to Export
 
