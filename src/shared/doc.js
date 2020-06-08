@@ -148,7 +148,11 @@ function initElmAndPorts(initFlags) {
       switch (response) {
         // Close without Saving
         case 0:
-          container.close(docState.filePath + ".swp" || docState.backupPath);
+          if (docState.filePath) {
+            container.close(docState.filePath + ".swp");
+          } else {
+            container.close(docState.backupPath);
+          }
           break;
 
         // Cancel
