@@ -149,7 +149,7 @@ function initElmAndPorts(initFlags) {
         // Close without Saving
         case 0:
           if (docState.filePath) {
-            container.close(docState.filePath + ".swp");
+            container.close(docState.filePath + ".swp", docState.backupPath);
           } else {
             container.close(docState.backupPath);
           }
@@ -175,7 +175,7 @@ function initElmAndPorts(initFlags) {
         }
       }
     } else {
-      container.close(docState.filePath + ".swp" || docState.backupPath);
+      container.close(docState.filePath + ".swp", docState.backupPath);
     }
   };
 
@@ -278,7 +278,7 @@ const update = (msg, data) => {
         docState.filePath = data.filepath;
 
         if (exitAfterSave) {
-          container.close(data.filepath+".swp");
+          container.close(docState.filePath + ".swp", docState.backupPath);
         }
 
         toElm("SetLastSaved", [data.filepath, modTime]);

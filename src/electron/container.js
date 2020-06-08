@@ -17,8 +17,9 @@ const showMessageBox = (options) => {
   return dialog.showMessageBox(remote.getCurrentWindow(),options);
 }
 
-const close = async (swapPath) => {
+const close = async (swapPath, backupPath) => {
   await fs.remove(swapPath);
+  if(backupPath) { await fs.remove(backupPath); }
   remote.getCurrentWindow().destroy();
 }
 
