@@ -430,7 +430,15 @@ function intentExportToElm ( format, selection, filepath) {
 }
 
 
-container.msgWas("menu:save", () => { toElm("FileSave", null ); });
+container.msgWas("menu:save", async () => {
+  if(docState.filePath) {
+    toElm("FileSave", null );
+  } else {
+    let newFilePath = await container.showSaveDialog("Save As", docState.filePath);
+    docState.filePath = newFilePath;
+    toElm("FileSave", newFilePath);
+  }
+});
 container.msgWas("menu:save-as", async () => {
   let newFilePath = await container.showSaveDialog("Save As", docState.filePath);
   docState.filePath = newFilePath;

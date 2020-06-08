@@ -14,7 +14,9 @@ const msgWas = (...args) => {
   ipc.on(...args);
 };
 const showMessageBox = (options) => {
-  return dialog.showMessageBox(remote.getCurrentWindow(),options);
+  let docWindow = remote.getCurrentWindow();
+  docWindow.focus();
+  return dialog.showMessageBox(docWindow,options);
 }
 
 const close = async (swapPath, backupPath) => {
