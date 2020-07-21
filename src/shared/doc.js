@@ -101,7 +101,7 @@ self.signup = async (email, password, passwordConfirm) => {
       , "roles": []
       };
 
-    var userDbRemote = new PouchDB(`http://${config.TUNNEL_ID}.ngrok.io/_users`);
+    var userDbRemote = new PouchDB(`http://${config.G2_SERVER}:5984/_users`);
     var res = await userDbRemote.put(userDoc);
     if (res.ok) {
       self.login(email, password);
@@ -113,12 +113,12 @@ self.signup = async (email, password, passwordConfirm) => {
 
 self.login = async (email, password) => {
   self.setUserDb(email);
-  var sessionDb = `http://${config.TUNNEL_ID}.ngrok.io/_session`;
+  var sessionDb = `http://${config.G2_SERVER}:5984/_session`;
   return await self.axios.post(sessionDb, {name: email, password: password}, {withCredentials: true});
 };
 
 self.setUserDb = (email) => {
-  var userDb = `http://${config.TUNNEL_ID}.ngrok.io/userdb-`+ helpers.toHex(email);
+  var userDb = `http://${config.G2_SERVER}:5984/userdb-`+ helpers.toHex(email);
   var remoteOpts =
     { skip_setup: true
     , fetch(url, opts){
