@@ -77,7 +77,7 @@ type alias Model =
     , videoModalOpen : Bool
     , fontSelectorOpen : Bool
     , historyState : HistoryState
-    , online : Bool
+    , syncEnabled : Bool
 
     -- Settings
     , uid : String
@@ -146,7 +146,7 @@ defaultModel =
     , fonts = Fonts.default
     , startingWordcount = 0
     , historyState = Closed
-    , online = False
+    , syncEnabled = False
     , currentTime = Time.millisToPosix 0
     , seed = Random.initialSeed 12345
     }
@@ -165,7 +165,7 @@ defaultModel =
 
 
 init : ( Json.Value, InitModel, Bool ) -> ( Model, Cmd Msg )
-init ( dataIn, modelIn, isSaved ) =
+init ( dataIn, modelIn, isImport ) =
     let
         ( newStatus, newTree_, newObjects ) =
             case Json.decodeValue treeDecoder dataIn of
@@ -216,7 +216,7 @@ init ( dataIn, modelIn, isSaved ) =
     )
         |> activate modelIn.lastActive
         |> (\mc ->
-                if not isSaved then
+                if isImport then
                     mc |> addToHistory
 
                 else
@@ -479,7 +479,7 @@ update msg ({ objects, workingTree, status } as model) =
                     )
 
         Sync ->
-            case ( model.status, model.online ) of
+            case ( model.status, model.syncEnabled ) of
                 ( Clean _, True ) ->
                     ( model
                     , sendOut Pull
@@ -752,6 +752,15 @@ update msg ({ objects, workingTree, status } as model) =
                         | lastFileSaved = time_
                       }
                     , Cmd.none
+                    )
+
+                SetSync sync ->
+                    ( { model | syncEnabled = sync }
+                    , if sync then
+                        sendOut Pull
+
+                      else
+                        Cmd.none
                     )
 
                 Merge json ->
@@ -2094,7 +2103,7 @@ historyStep dir ( model, prevCmd ) =
 
 push : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 push ( model, prevCmd ) =
-    if model.online then
+    if model.syncEnabled then
         ( model
         , Cmd.batch [ prevCmd, sendOut Push ]
         )
@@ -2300,6 +2309,7 @@ subscriptions model =
     Sub.batch
         [ receiveMsg Port LogErr
         , Time.every (15 * 1000) TimeUpdate
+        , Time.every (10 * 1000) (\_ -> Sync)
         ]
 
 

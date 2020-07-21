@@ -1,10 +1,14 @@
 const jQuery = require("jquery");
 const _ = require("lodash");
+self.axios = require("axios");
 require("textarea-autosize");
 const Mousetrap = require("mousetrap");
 const container = require("Container");
+const config = require("../../config.js");
+require("../shared/GitGraph.js");
 
 import PouchDB from "pouchdb";
+PouchDB.plugin(require("transform-pouch"));
 
 
 const helpers = require("./doc-helpers");
@@ -51,6 +55,13 @@ const docStateHandlers = {
           self.db = new PouchDB(value[0]);
           break;
 
+        case "sync":
+          if (value[0]) {
+            self.setTreeId(value[1]);
+            toElm("SetSync", value[0]);
+          }
+          break;
+
         case "lastSavedToFile":
           toElm("SetLastFileSaved", value);
           break;
@@ -70,11 +81,73 @@ const docStateHandlers = {
 };
 const docState = new Proxy(container.getInitialDocState(), docStateHandlers);
 
-container.answerMain("set-doc-state", data => {
+container.msgWas("set-doc-state", (e, data) => {
   Object.assign(docState, data);
 });
 
 self.db = new PouchDB(docState.dbPath[0]);
+
+// ============ SYNC ====================
+
+self.signup = async (email, password, passwordConfirm) => {
+  try {
+    if (password !== passwordConfirm) throw new Error("Passwords don't match");
+
+    var userDoc =
+      { "_id": "org.couchdb.user:"+email
+      , "type": "user"
+      , "name": email
+      , "password": password
+      , "roles": []
+      };
+
+    var userDbRemote = new PouchDB(`http://${config.TUNNEL_ID}.ngrok.io/_users`);
+    var res = await userDbRemote.put(userDoc);
+    if (res.ok) {
+      self.login(email, password);
+    }
+  } catch (e) {
+    console.log("signup error", e);
+  }
+};
+
+self.login = async (email, password) => {
+  self.setUserDb(email);
+  var sessionDb = `http://${config.TUNNEL_ID}.ngrok.io/_session`;
+  return await self.axios.post(sessionDb, {name: email, password: password}, {withCredentials: true});
+};
+
+self.setUserDb = (email) => {
+  var userDb = `http://${config.TUNNEL_ID}.ngrok.io/userdb-`+ helpers.toHex(email);
+  var remoteOpts =
+    { skip_setup: true
+    , fetch(url, opts){
+        return fetch(url, opts);
+      }
+    };
+  self.remoteDB = new PouchDB(userDb, remoteOpts);
+};
+
+self.enableSync = (treeId) => {
+  docState.sync = [true, treeId];
+};
+
+self.setTreeId = (treeId) => {
+  self.TREE_ID = treeId;
+  self.remoteDB.transform(
+    { outgoing: (doc) => {
+        doc._id = doc._id.slice(self.TREE_ID.length + 1);
+        return doc;
+      }
+    , incoming: (doc) => {
+        doc._id = self.TREE_ID + "/" + doc._id;
+        return doc;
+      }
+  });
+};
+
+// ============ END SYNC ====================
+
 container.msgWas("main:database-close", async () => {
   await db.close();
 });
@@ -95,7 +168,7 @@ if (docState.jsonImportData) {
         , lastActive : getLastActive(docState.dbPath[1])
         , fonts : getFonts(docState.dbPath[1])
         }
-      , false // isSaved
+      , true // isImport
     ];
 
   initElmAndPorts(initFlags);
@@ -118,7 +191,7 @@ if (docState.jsonImportData) {
           , lastActive : getLastActive(docState.dbPath[1])
           , fonts : getFonts(docState.dbPath[1])
           }
-        , !!docState.dbPath[1] // isSaved
+        , false // isImport
       ];
 
     initElmAndPorts(initFlags);
@@ -497,9 +570,9 @@ function load(filepath, headOverride){
 }
 
 const merge = function(local, remote){
-  db.allDocs( { include_docs: true })
+  self.db.allDocs( { include_docs: true })
     .then(function (result) {
-      data = result.rows.map(r => r.doc);
+      var data = result.rows.map(r => r.doc);
 
       let commits = processData(data, "commit");
       let trees = processData(data, "tree");
@@ -513,59 +586,63 @@ const merge = function(local, remote){
 };
 
 
-function pull (local, remote, info) {
-  db.replicate.from(remoteCouch)
-    .on("complete", pullInfo => {
-      if(pullInfo.docs_written > 0 && pullInfo.ok) {
-        merge(local, remote);
-      }
-    });
+async function pull (local, remote, info) {
+  try {
+    if(info) console.log(info);
+    var selector = { "_id": { "$regex": `^${self.TREE_ID}/` }};
+    var pullResult = await self.db.replicate.from(self.remoteDB, {selector});
+    if(pullResult.docs_written > 0 && pullResult.ok) {
+      merge(local, remote);
+    }
+  } catch (e) {
+    console.log("pull error", e);
+  }
 }
 
 
-function push () {
-  db.replicate.to(remoteCouch);
+function push (info) {
+  self.db.replicate.to(self.remoteDB);
+  if(info) console.log(info);
 }
 
 
-function sync () {
-  db.get("heads/master")
-    .then(localHead => {
-      remoteDb.get("heads/master")
-        .then(remoteHead => {
-          if(_.isEqual(localHead, remoteHead)) {
-            // Local == Remote => no changes
-            console.log("up-to-date");
-          } else if (localHead.ancestors.includes(remoteHead.value)) {
-            // Local is ahead of remote => Push
-            push("push:Local ahead of remote");
-          } else {
-            // Local is behind of remote => Pull
-            pull(localHead.value, remoteHead.value, "Local behind remote => Fetch & Merge");
-          }
-        })
-        .catch(remoteHeadErr => {
-          if(remoteHeadErr.name == "not_found") {
-            // Bare remote repository => Push
-            push("push:bare-remote");
-          }
-        });
-    })
-    .catch(localHeadErr => {
-      remoteDb.get("heads/master")
-        .then(remoteHead => {
-          if(localHeadErr.name == "not_found") {
-            // Bare local repository => Pull
-            pull(null, remoteHead.value, "Bare local => Fetch & Merge");
-          }
-        })
-        .catch(remoteHeadErr => {
-          if(remoteHeadErr.name == "not_found") {
-            // Bare local & remote => up-to-date
-            push("up-to-date (bare)");
-          }
-        });
-    });
+async function sync () {
+  async function returnError(e) {
+    return e;
+  }
+
+  var localHead = await self.db.get("heads/master").catch(returnError);
+  var remoteHead = await self.remoteDB.get(`${self.TREE_ID}/heads/master`).catch(returnError);
+
+  if (localHead.error && remoteHead.error) {
+    // Neither exists => Do nothing
+    return;
+
+  } else if (localHead.error && localHead.name === "not_found" && remoteHead.value) {
+    // Bare local repository => Pull
+    pull(null, remoteHead.value, "Bare local => Fetch & Merge");
+
+  } else if (localHead.value && remoteHead.error && remoteHead.name === "not_found") {
+    // Bare remote repository => Push
+    push("push:bare-remote");
+
+  } else if (localHead.value && remoteHead.value) {
+    // TODO: remove extra save on close, to prevent needless saves
+    // of heads ref (increments _rev, no change to rest).
+    if(_.isEqual(_.omit(localHead,"_rev"), _.omit(remoteHead, "_rev"))) {
+      // Local == Remote => Up-to-Date
+      docState.lastSavedToFile = Date.now();
+
+    } else if (localHead.ancestors.includes(remoteHead.value)) {
+      // Local is ahead of remote => Push
+      push("push:Local ahead of remote");
+
+    } else {
+      // Local is behind of remote => Pull
+      pull(localHead.value, remoteHead.value, "Local behind remote => Fetch & Merge");
+
+    }
+  }
 }
 
 
@@ -805,6 +882,6 @@ const observer = new MutationObserver(function(mutations) {
   }
 });
 
-const config = { childList: true, subtree: true };
+const observerConfig = { childList: true, subtree: true };
 
-observer.observe(document.body, config);
+observer.observe(document.body, observerConfig);

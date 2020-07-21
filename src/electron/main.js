@@ -1,5 +1,4 @@
-const { app, BrowserWindow, dialog, Menu, Notification, shell } = require("electron");
-const { ipcMain: ipc } = require("electron-better-ipc");
+const { app, BrowserWindow, dialog, Menu, Notification, shell, ipcMain: ipc } = require("electron");
 import { autoUpdater } from "electron-updater";
 const fs = require("fs-extra");
 const path = require("path");
@@ -310,9 +309,6 @@ ipc.on("doc:save", async (event) => {
   if (win && win.mainState.originalPath) {
     let saveReturn = await saveDocument(win);
     if (saveReturn) {
-      if(process.platform == "win32") {
-        win.webContents.send("main:database-open");
-      }
       setDocumentChanged(win, false);
     }
   }
@@ -599,12 +595,12 @@ async function saveDocument (docWindow) {
   try {
     if (process.platform === "win32") { docWindow.webContents.send("main:database-close"); }
     const filePath = await fio.saveSwapFolder(docWindow.mainState.swapFolderPath);
-    ipc.callRenderer(docWindow,
-      "set-doc-state",
+    docWindow.webContents.send("set-doc-state",
         { lastSavedToFile: (await fs.stat(filePath)).mtimeMs
         , changed: false
         }
     );
+    if (process.platform === "win32") { docWindow.webContents.send("main:database-open"); }
     return filePath;
   } catch (err) {
     // TODO
@@ -650,8 +646,7 @@ async function saveDocumentAs(docWindow) {
         docWindow.webContents.send("main:database-close");
       }
       const newSwapFolderPath = await fio.saveSwapFolderAs(swapFolderPath, newFilepath);
-      ipc.callRenderer(docWindow,
-        "set-doc-state",
+      docWindow.webContents.send("set-doc-state",
           { dbPath: [path.join(newSwapFolderPath, "leveldb"), newFilepath]
           , lastSavedToFile: (await fs.stat(newFilepath)).mtimeMs
           , changed: false

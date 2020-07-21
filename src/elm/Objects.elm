@@ -331,6 +331,9 @@ merge aSha bSha oldTree model =
                 in
                 ( MergeConflict mTree aSha bSha conflicts, Just mTree, model )
 
+            ( Nothing, Just _, Just _ ) ->
+                Debug.todo "failed merge, no common ancestor found."
+
             _ ->
                 Debug.todo "failed merge"
 

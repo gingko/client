@@ -19,6 +19,7 @@ type TranslationId
     | UnsavedChanges
     | SavedInternally
     | ChangesSaved
+    | ChangesSynced
     | DatabaseError
     | LastSaved
     | LastEdit
@@ -201,6 +202,13 @@ tr lang trans =
                     , es = "Cambios Guardados"
                     , fr = ""
                     , sv = "Sparade"
+                    }
+
+                ChangesSynced ->
+                    { en = "Synced"
+                    , zh = ""
+                    , es = "Sincronizado"
+                    , fr = ""
                     }
 
                 DatabaseError ->

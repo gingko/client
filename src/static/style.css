@@ -987,6 +987,8 @@ pre {
 /* ======== STATUS BAR ======== */
 
 .footer {
+  position: absolute;
+  bottom: 0;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
@@ -1277,10 +1279,7 @@ ul.changelist {
 .op-del:hover {
   background: rgba(255,0,0,0.6);
 }
-#graph {
+#history-graph {
   position: absolute;
-  right: 10px;
-  bottom: 0;
-  width: 113.56px;
-  z-index: 999;
+  top: 40px;
 }

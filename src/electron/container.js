@@ -1,15 +1,12 @@
 const fs = require("fs");
 const path = require("path");
-const { remote, shell } = require("electron");
-const { ipcRenderer: ipc } = require("electron-better-ipc");
+const { remote, shell, ipcRenderer: ipc } = require("electron");
 import { execFile } from "child_process";
 const {app, dialog} = remote;
 const Store = require("electron-store");
 
 
 const sendTo = ipc.send;
-const callMain = ipc.callMain;
-const answerMain = ipc.answerMain;
 const msgWas = (...args) => {
   ipc.on(...args);
 };
@@ -182,8 +179,6 @@ const exportTxt = (data, defaultPath) => {
 export
   { sendTo
   , msgWas
-  , callMain
-  , answerMain
   , getInitialDocState
   , userStore
   , openExternal
