@@ -87,6 +87,7 @@
     "node-machine-id": "^1.1.10",
     "pouchdb": "^7.1.1",
     "react": "^15.6.2",
+    "react-commits-graph": "github:AdrianoFerrari/react-commits-graph",
     "react-dom": "^15.6.2",
     "read-chunk": "^2.1.0",
     "rimraf": "^2.6.2",

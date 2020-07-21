@@ -209,6 +209,7 @@ tr lang trans =
                     , zh = ""
                     , es = "Sincronizado"
                     , fr = ""
+                    , sv = ""
                     }
 
                 DatabaseError ->
