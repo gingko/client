@@ -1,4 +1,4 @@
 module.exports = {
   TUNNEL_ID: "abcdefgh",
-  G2_SERVER: "123.123.123.123"
+  COUCHDB_SERVER: "http://example.com/db"
 };

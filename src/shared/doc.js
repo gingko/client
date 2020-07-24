@@ -101,7 +101,7 @@ self.signup = async (email, password, passwordConfirm) => {
       , "roles": []
       };
 
-    var userDbRemote = new PouchDB(`http://${config.G2_SERVER}/db/_users`);
+    var userDbRemote = new PouchDB(`${config.COUCHDB_SERVER}/_users`);
     var res = await userDbRemote.put(userDoc);
     if (res.ok) {
       self.login(email, password);
@@ -113,12 +113,12 @@ self.signup = async (email, password, passwordConfirm) => {
 
 self.login = async (email, password) => {
   self.setUserDb(email);
-  var sessionDb = `http://${config.G2_SERVER}/db/_session`;
+  var sessionDb = `${config.COUCHDB_SERVER}/_session`;
   return await self.axios.post(sessionDb, {name: email, password: password}, {withCredentials: true});
 };
 
 self.setUserDb = (email) => {
-  var userDb = `http://${config.G2_SERVER}/db/userdb-`+ helpers.toHex(email);
+  var userDb = `${config.COUCHDB_SERVER}/userdb-`+ helpers.toHex(email);
   var remoteOpts =
     { skip_setup: true
     , fetch(url, opts){
