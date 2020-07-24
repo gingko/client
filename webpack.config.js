@@ -65,14 +65,14 @@ const webConfig = {
     // Plugin to insert only needed chunks of JS into HTML output files.
     new HtmlWebpackPlugin({
       template: "./index.ejs",
-      filename: "../web/static/index.html",
+      filename: "../web/index.html",
       chunks: ["doc"]
     }),
 
     // Plugin to copy static assets (css, images).
     new CopyWebpackPlugin({ patterns: [{
       from: "./static",
-      to: "../web/static"
+      to: "../web"
     }]})
   ]
 };
