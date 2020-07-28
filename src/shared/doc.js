@@ -93,17 +93,9 @@ self.signup = async (email, password, passwordConfirm) => {
   try {
     if (password !== passwordConfirm) throw new Error("Passwords don't match");
 
-    var userDoc =
-      { "_id": "org.couchdb.user:"+email
-      , "type": "user"
-      , "name": email
-      , "password": password
-      , "roles": []
-      };
-
-    var userDbRemote = new PouchDB(`${config.COUCHDB_SERVER}/_users`);
-    var res = await userDbRemote.put(userDoc);
-    if (res.ok) {
+    var res = await self.axios.post(`${config.APP_SERVER}/signup`, {email: email, password: password});
+    console.log("axios signup post response", res);
+    if (res.data.ok) {
       self.login(email, password);
     }
   } catch (e) {
