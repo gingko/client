@@ -6,7 +6,6 @@ import Html.Events exposing (onFocus)
 import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy, lazy2, lazy3)
 import Translation exposing (Language, TranslationId(..), tr)
-import TreeData exposing (Column, Tree)
 import TreeUtils exposing (getChildren, getColumnById, getParent, getTree)
 import Types exposing (..)
 
@@ -17,8 +16,8 @@ type alias Model =
     }
 
 
-view : Language -> ViewState -> Model -> Html Msg
-view lang vstate model =
+view : (String -> String -> msg) -> Language -> ViewState -> Model -> Html msg
+view openCardFullscreen lang vstate model =
     let
         current_ =
             getTree vstate.active model.tree
@@ -41,12 +40,12 @@ view lang vstate model =
         , class "fullscreen"
         ]
         [ viewMaybeParent parent_
-        , viewColumn vstate.active currentColumn
+        , viewColumn openCardFullscreen vstate.active currentColumn
         , viewChildren children
         ]
 
 
-viewMaybeParent : Maybe ( String, String ) -> Html Msg
+viewMaybeParent : Maybe ( String, String ) -> Html msg
 viewMaybeParent parentTuple_ =
     case parentTuple_ of
         Just ( cardId, content ) ->
@@ -56,31 +55,31 @@ viewMaybeParent parentTuple_ =
             div [ class "fullscreen-parent" ] []
 
 
-viewColumn : String -> Column -> Html Msg
-viewColumn active col =
+viewColumn : (String -> String -> msg) -> String -> Column -> Html msg
+viewColumn openCardFullscreen active col =
     div
         [ class "fullscreen-main" ]
-        (List.map (lazy2 viewGroup active) col)
+        (List.map (lazy2 (viewGroup openCardFullscreen) active) col)
 
 
-viewChildren : List Tree -> Html Msg
+viewChildren : List Tree -> Html msg
 viewChildren xs =
     div [ class "fullscreen-children" ] []
 
 
-viewGroup : String -> Group -> Html Msg
-viewGroup active xs =
+viewGroup : (String -> String -> msg) -> String -> Group -> Html msg
+viewGroup openCardFullscreen active xs =
     let
         viewFunction t =
-            ( t.id, viewCard (t.id == active) t.id t.content )
+            ( t.id, viewCard openCardFullscreen (t.id == active) t.id t.content )
     in
     Keyed.node "div"
         [ class "group-fullscreen" ]
         (List.map viewFunction xs)
 
 
-viewCard : Bool -> String -> String -> Html Msg
-viewCard isActive cardId content =
+viewCard : (String -> String -> msg) -> Bool -> String -> String -> Html msg
+viewCard openCardFullscreen isActive cardId content =
     div
         [ id ("card-" ++ cardId)
         , dir "auto"
@@ -92,7 +91,7 @@ viewCard isActive cardId content =
         [ textarea
             [ id ("card-edit-" ++ cardId)
             , dir "auto"
-            , onFocus <| OpenCardFullscreen cardId content
+            , onFocus <| openCardFullscreen cardId content
             , classList
                 [ ( "edit", True )
                 , ( "mousetrap", True )

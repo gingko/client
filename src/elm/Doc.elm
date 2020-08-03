@@ -6,6 +6,7 @@ import Coders exposing (..)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
 import Dict
 import Fonts
+import Fullscreen
 import Html exposing (Html, div, node, span, text, textarea, ul)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onDoubleClick)
@@ -2322,8 +2323,7 @@ repeating-linear-gradient(-45deg
 
                       else
                         text ""
-
-                    --, lazy3 Fullscreen.view model.language model.viewState model.workingTree
+                    , lazy3 (Fullscreen.view OpenCardFullscreen) model.language model.viewState model.workingTree
                     ]
 
             else
@@ -2630,8 +2630,7 @@ viewCardEditing lang cardId content isParent =
             [ span
                 [ class "card-btn save"
                 , title <| tr lang SaveChangesTitle
-
-                -- TODO, onClick (Port (Keyboard "mod+enter"))
+                , onClick (Port (Keyboard "mod+enter"))
                 ]
                 []
             ]
