@@ -1,4 +1,4 @@
-module Types exposing (Children(..), CollabState, Column, Conflict, CursorPosition(..), Direction(..), DropId(..), ExportFormat(..), ExportSelection(..), ExportSettings, Group, HistoryState(..), IncomingMsg(..), Mode(..), Msg(..), Op(..), OutgoingMsg(..), OutsideData, Selection(..), Status(..), TextCursorInfo, Tree, ViewMode(..), ViewState, VisibleViewState, WordCount)
+module Types exposing (Children(..), CollabState, Column, Conflict, CursorPosition(..), DropId(..), ExportFormat(..), ExportSelection(..), ExportSettings, Group, IncomingMsg(..), Mode(..), Msg(..), Op(..), OutgoingMsg(..), OutsideData, Selection(..), Status(..), TextCursorInfo, Tree, ViewMode(..), ViewState, VisibleViewState)
 
 import Debouncer.Basic as Debouncer
 import Fonts
@@ -173,16 +173,6 @@ type Status
     = Bare
     | Clean String
     | MergeConflict Tree String String (List Conflict)
-
-
-type HistoryState
-    = Closed
-    | From String
-
-
-type Direction
-    = Forward
-    | Backward
 
 
 type Mode

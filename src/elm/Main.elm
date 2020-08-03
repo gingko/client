@@ -2045,6 +2045,20 @@ checkoutCommit commitSha ( model, prevCmd ) =
                 |> Debug.log "failed to load commit"
 
 
+
+-- History
+
+
+type Direction
+    = Forward
+    | Backward
+
+
+type HistoryState
+    = Closed
+    | From String
+
+
 historyStep : Direction -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 historyStep dir ( model, prevCmd ) =
     case model.status of

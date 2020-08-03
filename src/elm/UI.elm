@@ -340,6 +340,19 @@ viewShortcutsToggle lang isOpen isMac isOnly textCursorInfo vs =
             ]
 
 
+
+-- Word count
+
+
+type alias WordCount =
+    { card : Int
+    , subtree : Int
+    , group : Int
+    , column : Int
+    , document : Int
+    }
+
+
 viewWordcountProgress : Int -> Int -> Html Msg
 viewWordcountProgress current session =
     let
