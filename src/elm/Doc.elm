@@ -1,4 +1,4 @@
-port module Doc exposing (InitModel, Model)
+port module Doc exposing (InitModel, Model, Msg, init, subscriptions, update, view)
 
 import Browser
 import Browser.Dom
@@ -28,16 +28,6 @@ import TreeUtils exposing (..)
 import Tuple exposing (first, second)
 import Types exposing (..)
 import UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
-
-
-main : Program ( Json.Value, InitModel, Bool ) Model Msg
-main =
-    Browser.element
-        { init = init
-        , view = view
-        , update = update
-        , subscriptions = subscriptions
-        }
 
 
 
