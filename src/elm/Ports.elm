@@ -1,12 +1,18 @@
-port module Ports exposing (encodeAndSend, infoForElm, infoForOutside, receiveMsg, sendOut, unionTypeToString)
+port module Ports exposing (ExportFormat(..), ExportSelection(..), ExportSettings, IncomingMsg(..), OutgoingMsg(..), encodeAndSend, infoForElm, infoForOutside, receiveMsg, sendOut, unionTypeToString)
 
 import Coders exposing (..)
-import Json.Decode exposing (decodeValue, errorToString)
-import Json.Encode exposing (..)
+import Fonts
+import Json.Decode as Dec exposing (Decoder, decodeValue, errorToString, field, oneOf)
+import Json.Encode as Enc exposing (..)
 import Json.Encode.Extra exposing (maybe)
 import Time
 import Translation exposing (languageDecoder)
 import TreeUtils exposing (getColumn)
+import Types exposing (CollabState, CursorPosition(..), TextCursorInfo, Tree)
+
+
+
+-- TYPES
 
 
 type
@@ -19,7 +25,7 @@ type
       -- === Database ===
     | CommitWithTimestamp
     | NoDataToSave
-    | SaveToDB ( Json.Value, Json.Value )
+    | SaveToDB ( Enc.Value, Enc.Value )
     | SaveLocal Tree
     | Push
     | Pull
@@ -34,7 +40,7 @@ type
     | TextSurround String String
     | SetCursorPosition Int
       -- === UI ===
-    | UpdateCommits ( Json.Value, Maybe String )
+    | UpdateCommits ( Enc.Value, Maybe String )
     | SetVideoModal Bool
     | SetFonts Fonts.Settings
     | SetShortcutTray Bool
@@ -55,7 +61,7 @@ type
     | SetLastCommitSaved (Maybe Time.Posix)
     | SetLastFileSaved (Maybe Time.Posix)
     | SetSync Bool
-    | Merge Json.Value
+    | Merge Dec.Value
       -- === DOM ===
     | DragStarted String
     | FieldChanged String
@@ -72,7 +78,7 @@ type
 
 
 type alias OutsideData =
-    { tag : String, data : Json.Value }
+    { tag : String, data : Enc.Value }
 
 
 type alias ExportSettings =
@@ -80,6 +86,22 @@ type alias ExportSettings =
     , selection : ExportSelection
     , filepath : Maybe String
     }
+
+
+type ExportFormat
+    = DOCX
+    | JSON
+    | TXT
+
+
+type ExportSelection
+    = All
+    | CurrentSubtree
+    | ColumnNumber Int
+
+
+
+-- HELPERS
 
 
 sendOut : OutgoingMsg -> Cmd msg
@@ -238,7 +260,7 @@ receiveMsg tagger onError =
 
                 -- === Database ===
                 "Commit" ->
-                    case decodeValue Json.Decode.int outsideInfo.data of
+                    case decodeValue Dec.int outsideInfo.data of
                         Ok time ->
                             tagger <| Commit time
 
@@ -249,7 +271,7 @@ receiveMsg tagger onError =
                     tagger <| GetDataToSave
 
                 "SetHeadRev" ->
-                    case decodeValue Json.Decode.string outsideInfo.data of
+                    case decodeValue Dec.string outsideInfo.data of
                         Ok rev ->
                             tagger <| SetHeadRev rev
 
@@ -257,7 +279,7 @@ receiveMsg tagger onError =
                             onError (errorToString e)
 
                 "SetLastCommitSaved" ->
-                    case decodeValue (Json.Decode.maybe Json.Decode.int) outsideInfo.data of
+                    case decodeValue (Dec.maybe Dec.int) outsideInfo.data of
                         Ok time_ ->
                             tagger <| SetLastCommitSaved (Maybe.map Time.millisToPosix time_)
 
@@ -265,7 +287,7 @@ receiveMsg tagger onError =
                             onError (errorToString e)
 
                 "SetLastFileSaved" ->
-                    case decodeValue (Json.Decode.maybe Json.Decode.float) outsideInfo.data of
+                    case decodeValue (Dec.maybe Dec.float) outsideInfo.data of
                         Ok time_ ->
                             tagger <| SetLastFileSaved (Maybe.map (Time.millisToPosix << round) time_)
 
@@ -273,7 +295,7 @@ receiveMsg tagger onError =
                             onError (errorToString e)
 
                 "SetSync" ->
-                    case decodeValue Json.Decode.bool outsideInfo.data of
+                    case decodeValue Dec.bool outsideInfo.data of
                         Ok sync ->
                             tagger <| SetSync sync
 
@@ -285,7 +307,7 @@ receiveMsg tagger onError =
 
                 -- === DOM ===
                 "DragStarted" ->
-                    case decodeValue Json.Decode.string outsideInfo.data of
+                    case decodeValue Dec.string outsideInfo.data of
                         Ok dragId ->
                             tagger <| DragStarted dragId
 
@@ -293,7 +315,7 @@ receiveMsg tagger onError =
                             onError (errorToString e)
 
                 "FieldChanged" ->
-                    case decodeValue Json.Decode.string outsideInfo.data of
+                    case decodeValue Dec.string outsideInfo.data of
                         Ok newField ->
                             tagger <| FieldChanged newField
 
@@ -309,7 +331,7 @@ receiveMsg tagger onError =
                             onError (errorToString e)
 
                 "CheckboxClicked" ->
-                    case decodeValue (tupleDecoder Json.Decode.string Json.Decode.int) outsideInfo.data of
+                    case decodeValue (tupleDecoder Dec.string Dec.int) outsideInfo.data of
                         Ok ( cardId, checkboxNumber ) ->
                             tagger <| CheckboxClicked cardId checkboxNumber
 
@@ -329,7 +351,7 @@ receiveMsg tagger onError =
                     tagger <| ViewVideos
 
                 "FontSelectorOpen" ->
-                    case decodeValue (Json.Decode.list Json.Decode.string) outsideInfo.data of
+                    case decodeValue (Dec.list Dec.string) outsideInfo.data of
                         Ok fonts ->
                             tagger <| FontSelectorOpen fonts
 
@@ -337,7 +359,7 @@ receiveMsg tagger onError =
                             onError (errorToString e)
 
                 "Keyboard" ->
-                    case decodeValue Json.Decode.string outsideInfo.data of
+                    case decodeValue Dec.string outsideInfo.data of
                         Ok shortcut ->
                             tagger <| Keyboard shortcut
 
@@ -354,7 +376,7 @@ receiveMsg tagger onError =
                             onError (errorToString e)
 
                 "CollaboratorDisconnected" ->
-                    case decodeValue Json.Decode.string outsideInfo.data of
+                    case decodeValue Dec.string outsideInfo.data of
                         Ok uid ->
                             tagger <| CollaboratorDisconnected uid
 
@@ -366,7 +388,7 @@ receiveMsg tagger onError =
         )
 
 
-encodeAndSend : OutgoingMsg -> Json.Encode.Value -> Cmd msg
+encodeAndSend : OutgoingMsg -> Enc.Value -> Cmd msg
 encodeAndSend info data =
     let
         tagName =
@@ -382,6 +404,97 @@ unionTypeToString ut =
         |> String.words
         |> List.head
         |> Maybe.withDefault (ut |> Debug.toString)
+
+
+
+-- DECODERS
+
+
+cursorPositionDecoder : Decoder CursorPosition
+cursorPositionDecoder =
+    Dec.map
+        (\s ->
+            case s of
+                "start" ->
+                    Start
+
+                "end" ->
+                    End
+
+                "other" ->
+                    Other
+
+                _ ->
+                    Other
+        )
+        Dec.string
+
+
+textCursorInfoDecoder : Decoder TextCursorInfo
+textCursorInfoDecoder =
+    Dec.map3 TextCursorInfo
+        (field "selected" Dec.bool)
+        (field "position" cursorPositionDecoder)
+        (field "text" (tupleDecoder Dec.string Dec.string))
+
+
+exportSettingsDecoder : Decoder ExportSettings
+exportSettingsDecoder =
+    let
+        formatFromString s =
+            case s of
+                "json" ->
+                    JSON
+
+                "txt" ->
+                    TXT
+
+                "docx" ->
+                    DOCX
+
+                _ ->
+                    JSON
+
+        formatDecoder =
+            Dec.map formatFromString Dec.string
+
+        exportStringDecoder =
+            Dec.map
+                (\s ->
+                    case s of
+                        "all" ->
+                            All
+
+                        "current" ->
+                            CurrentSubtree
+
+                        _ ->
+                            All
+                )
+                Dec.string
+
+        exportColumnDecoder =
+            Dec.map
+                (\i -> ColumnNumber i)
+                (field "column" Dec.int)
+
+        exportSelectionDecoder =
+            oneOf
+                [ exportStringDecoder
+                , exportColumnDecoder
+                ]
+
+        exportFilepathDecoder =
+            Dec.maybe Dec.string
+    in
+    Dec.map3 ExportSettings
+        (field "format" formatDecoder)
+        (field "selection" exportSelectionDecoder)
+        (field "filepath" exportFilepathDecoder)
+
+
+
+-- PORTS
 
 
 port infoForOutside : OutsideData -> Cmd msg

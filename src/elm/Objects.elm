@@ -7,8 +7,8 @@ import Json.Decode as Json
 import Json.Encode as Enc
 import List.Extra as ListExtra
 import Maybe exposing (andThen)
+import TreeStructure exposing (apply, opToMsg)
 import TreeUtils exposing (sha1)
-import Trees exposing (apply, opToTreeMsg)
 import Tuple exposing (first, second)
 import Types exposing (..)
 
@@ -327,7 +327,7 @@ merge aSha bSha oldTree model =
             ( Just oTree, Just aTree, Just bTree ) ->
                 let
                     ( mTree, conflicts ) =
-                        mergeTrees oTree aTree bTree
+                        mergeTreeStructure oTree aTree bTree
                 in
                 ( MergeConflict mTree aSha bSha conflicts, Just mTree, model )
 
@@ -342,8 +342,8 @@ merge aSha bSha oldTree model =
 --(MergeConflict aSha bSha [], Nothing, model)
 
 
-mergeTrees : Tree -> Tree -> Tree -> ( Tree, List Conflict )
-mergeTrees oTree aTree bTree =
+mergeTreeStructure : Tree -> Tree -> Tree -> ( Tree, List Conflict )
+mergeTreeStructure oTree aTree bTree =
     let
         ( cleanOps, conflicts ) =
             getConflicts (getOps oTree aTree |> Debug.log "aTree ops") (getOps oTree bTree |> Debug.log "bTree ops")
@@ -354,7 +354,7 @@ mergeTrees oTree aTree bTree =
 treeFromOps : Tree -> List Op -> Tree
 treeFromOps oTree ops =
     oTree
-        |> apply (List.map (opToTreeMsg oTree) ops)
+        |> apply (List.map (opToMsg oTree) ops)
 
 
 getTreePaths : Tree -> Dict String ( String, List String, Int )

@@ -1,9 +1,9 @@
-module Coders exposing (collabStateDecoder, collabStateToValue, conflictDecoder, conflictToValue, exportSettingsDecoder, fontSettingsEncoder, lazyRecurse, maybeToValue, modeDecoder, modeToValue, opDecoder, opToValue, selectionDecoder, selectionToValue, statusDecoder, statusToValue, textCursorInfoDecoder, treeDecoder, treeListDecoder, treeToJSON, treeToJSONrecurse, treeToMarkdown, treeToMarkdownRecurse, treeToMarkdownString, treeToValue, treesModelDecoder, tripleDecoder, tupleDecoder, tupleToValue)
+module Coders exposing (collabStateDecoder, collabStateToValue, conflictDecoder, conflictToValue, fontSettingsEncoder, lazyRecurse, maybeToValue, modeDecoder, modeToValue, opDecoder, opToValue, selectionDecoder, selectionToValue, statusDecoder, statusToValue, treeDecoder, treeListDecoder, treeToJSON, treeToJSONrecurse, treeToMarkdown, treeToMarkdownRecurse, treeToMarkdownString, treeToValue, treesModelDecoder, tripleDecoder, tupleDecoder, tupleToValue)
 
 import Fonts
 import Json.Decode as Json exposing (..)
 import Json.Encode as Enc
-import Trees
+import TreeStructure
 import Types exposing (..)
 
 
@@ -22,9 +22,9 @@ treeToValue tree =
                 ]
 
 
-treesModelDecoder : Decoder Trees.Model
+treesModelDecoder : Decoder TreeStructure.Model
 treesModelDecoder =
-    Json.map2 Trees.Model
+    Json.map2 TreeStructure.Model
         treeDecoder
         (succeed [])
 
@@ -269,97 +269,6 @@ selectionDecoder =
                     Manual
     in
     Json.map fn string
-
-
-
--- Text Cursor
-
-
-cursorPositionDecoder : Decoder CursorPosition
-cursorPositionDecoder =
-    Json.map
-        (\s ->
-            case s of
-                "start" ->
-                    Start
-
-                "end" ->
-                    End
-
-                "other" ->
-                    Other
-
-                _ ->
-                    Other
-        )
-        string
-
-
-textCursorInfoDecoder : Decoder TextCursorInfo
-textCursorInfoDecoder =
-    Json.map3 TextCursorInfo
-        (field "selected" bool)
-        (field "position" cursorPositionDecoder)
-        (field "text" (tupleDecoder string string))
-
-
-
--- EXPORT ENCODINGS
-
-
-exportSettingsDecoder : Decoder ExportSettings
-exportSettingsDecoder =
-    let
-        formatFromString s =
-            case s of
-                "json" ->
-                    JSON
-
-                "txt" ->
-                    TXT
-
-                "docx" ->
-                    DOCX
-
-                _ ->
-                    JSON
-
-        formatDecoder =
-            Json.map formatFromString string
-
-        exportStringDecoder =
-            Json.map
-                (\s ->
-                    case s of
-                        "all" ->
-                            All
-
-                        "current" ->
-                            CurrentSubtree
-
-                        _ ->
-                            All
-                )
-                string
-
-        exportColumnDecoder =
-            Json.map
-                (\i -> ColumnNumber i)
-                (field "column" int)
-
-        exportSelectionDecoder =
-            oneOf
-                [ exportStringDecoder
-                , exportColumnDecoder
-                ]
-
-        exportFilepathDecoder =
-            Json.maybe string
-    in
-    Json.map3 ExportSettings
-        (field "format" formatDecoder)
-        (field "selection" exportSelectionDecoder)
-        (field "filepath" exportFilepathDecoder)
 
 
 treeToJSON : Tree -> Enc.Value

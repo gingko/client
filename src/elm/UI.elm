@@ -14,12 +14,12 @@ import Octicons as Icon exposing (defaultOptions)
 import Regex exposing (Regex, replace)
 import Time exposing (posixToMillis)
 import Translation exposing (Language, TranslationId(..), timeDistInWords, tr)
+import TreeStructure exposing (defaultTree)
 import TreeUtils exposing (..)
-import Trees exposing (defaultTree)
 import Types exposing (..)
 
 
-viewSaveIndicator : { m | objects : Objects.Model, dirty : Bool, lastCommitSaved : Maybe Time.Posix, lastFileSaved : Maybe Time.Posix, currentTime : Time.Posix, syncEnabled : Bool, language : Translation.Language } -> Html Msg
+viewSaveIndicator : { m | objects : Objects.Model, dirty : Bool, lastCommitSaved : Maybe Time.Posix, lastFileSaved : Maybe Time.Posix, currentTime : Time.Posix, syncEnabled : Bool, language : Translation.Language } -> Html msg
 viewSaveIndicator { objects, dirty, lastCommitSaved, lastFileSaved, currentTime, syncEnabled, language } =
     let
         lastChangeString =
@@ -65,8 +65,8 @@ viewSaveIndicator { objects, dirty, lastCommitSaved, lastFileSaved, currentTime,
         ]
 
 
-viewSearchField : { m | viewState : ViewState, language : Language } -> Html Msg
-viewSearchField { viewState, language } =
+viewSearchField : (String -> msg) -> { m | viewState : ViewState, language : Language } -> Html msg
+viewSearchField searchFieldMsg { viewState, language } =
     let
         maybeSearchIcon =
             if viewState.searchField == Nothing then
@@ -84,7 +84,7 @@ viewSearchField { viewState, language } =
                     , id "search-input"
                     , required True
                     , title (tr language PressToSearch)
-                    , onInput SearchFieldUpdated
+                    , onInput searchFieldMsg
                     ]
                     []
                 , maybeSearchIcon
@@ -96,8 +96,8 @@ viewSearchField { viewState, language } =
                 []
 
 
-viewFooter : { m | viewState : ViewState, workingTree : Trees.Model, startingWordcount : Int, shortcutTrayOpen : Bool, wordcountTrayOpen : Bool, language : Language, isMac : Bool, textCursorInfo : TextCursorInfo } -> Html Msg
-viewFooter model =
+viewFooter : msg -> msg -> { m | viewState : ViewState, workingTree : TreeStructure.Model, startingWordcount : Int, shortcutTrayOpen : Bool, wordcountTrayOpen : Bool, language : Language, isMac : Bool, textCursorInfo : TextCursorInfo } -> Html msg
+viewFooter wordCountToggle shortcutToggle model =
     let
         isTextSelected =
             model.textCursorInfo.selected
@@ -117,7 +117,7 @@ viewFooter model =
                     [ div
                         [ id "wordcount"
                         , classList [ ( "inset", True ), ( "open", model.wordcountTrayOpen ) ]
-                        , onClick WordcountTrayToggle
+                        , onClick wordCountToggle
                         ]
                         [ span [] [ text (tr model.language (WordCountSession session)) ]
                         , span [] [ text (tr model.language (WordCountTotal current)) ]
@@ -152,13 +152,13 @@ viewFooter model =
     in
     div
         [ class "footer" ]
-        ([ viewShortcutsToggle model.language model.shortcutTrayOpen model.isMac isOnly model.textCursorInfo model.viewState ]
+        ([ viewShortcutsToggle shortcutToggle model.language model.shortcutTrayOpen model.isMac isOnly model.textCursorInfo model.viewState ]
             ++ viewWordCount
         )
 
 
-viewHistory : Translation.Language -> String -> Objects.Model -> Html Msg
-viewHistory lang currHead objects =
+viewHistory : msg -> (String -> msg) -> msg -> msg -> Translation.Language -> String -> Objects.Model -> Html msg
+viewHistory noopMsg checkoutMsg restoreMsg cancelMsg lang currHead objects =
     let
         master =
             Dict.get "heads/master" objects.refs
@@ -186,29 +186,29 @@ viewHistory lang currHead objects =
                 Just idx ->
                     case getAt idx historyList of
                         Just commit ->
-                            CheckoutCommit commit
+                            checkoutMsg commit
 
                         Nothing ->
-                            NoOp
+                            noopMsg
 
                 Nothing ->
-                    NoOp
+                    noopMsg
     in
     div [ id "history" ]
         [ input [ type_ "range", A.min "0", A.max maxIdx, value currIdx, step "1", onInput checkoutCommit ] []
-        , button [ onClick Restore ] [ text <| tr lang RestoreThisVersion ]
-        , button [ onClick CancelHistory ] [ text <| tr lang Cancel ]
+        , button [ onClick restoreMsg ] [ text <| tr lang RestoreThisVersion ]
+        , button [ onClick cancelMsg ] [ text <| tr lang Cancel ]
         ]
 
 
-viewVideo : { m | videoModalOpen : Bool } -> Html Msg
-viewVideo { videoModalOpen } =
+viewVideo : (Bool -> msg) -> { m | videoModalOpen : Bool } -> Html msg
+viewVideo modalMsg { videoModalOpen } =
     if videoModalOpen then
         div [ class "modal-container" ]
             [ div [ class "modal" ]
                 [ div [ class "modal-header" ]
                     [ h1 [] [ text "Learning Videos" ]
-                    , a [ onClick (VideoModal False) ] [ text "×" ]
+                    , a [ onClick (modalMsg False) ] [ text "×" ]
                     ]
                 , iframe
                     [ width 650
@@ -225,8 +225,8 @@ viewVideo { videoModalOpen } =
         div [] []
 
 
-viewShortcutsToggle : Language -> Bool -> Bool -> Bool -> TextCursorInfo -> ViewState -> Html Msg
-viewShortcutsToggle lang isOpen isMac isOnly textCursorInfo vs =
+viewShortcutsToggle : msg -> Language -> Bool -> Bool -> Bool -> TextCursorInfo -> ViewState -> Html msg
+viewShortcutsToggle trayToggleMsg lang isOpen isMac isOnly textCursorInfo vs =
     let
         isTextSelected =
             textCursorInfo.selected
@@ -284,7 +284,7 @@ viewShortcutsToggle lang isOpen isMac isOnly textCursorInfo vs =
         case vs.viewMode of
             Normal ->
                 div
-                    [ id "shortcuts-tray", class "inset", onClick ShortcutTrayToggle ]
+                    [ id "shortcuts-tray", class "inset", onClick trayToggleMsg ]
                     [ div [ class "popup" ]
                         [ shortcutSpan [ tr lang EnterKey ] (tr lang EnterAction)
                         , viewIf (not isOnly) <| shortcutSpan [ "↑", "↓", "←", "→" ] (tr lang ArrowsAction)
@@ -304,7 +304,7 @@ viewShortcutsToggle lang isOpen isMac isOnly textCursorInfo vs =
 
             _ ->
                 div
-                    [ id "shortcuts-tray", class "inset", onClick ShortcutTrayToggle ]
+                    [ id "shortcuts-tray", class "inset", onClick trayToggleMsg ]
                     [ div [ class "popup" ]
                         [ shortcutSpan [ ctrlOrCmd, tr lang EnterKey ] (tr lang ToSaveChanges)
                         , shortcutSpan [ tr lang EscKey ] (tr lang ToCancelChanges)
@@ -332,7 +332,7 @@ viewShortcutsToggle lang isOpen isMac isOnly textCursorInfo vs =
                 Icon.color "#6c7c84"
         in
         div
-            [ id "shortcuts-tray", class "inset", onClick ShortcutTrayToggle, title <| tr lang KeyboardHelp ]
+            [ id "shortcuts-tray", class "inset", onClick trayToggleMsg, title <| tr lang KeyboardHelp ]
             [ div [ class "icon-stack" ]
                 [ Icon.keyboard (defaultOptions |> iconColor)
                 , Icon.question (defaultOptions |> iconColor |> Icon.size 14)
@@ -353,7 +353,7 @@ type alias WordCount =
     }
 
 
-viewWordcountProgress : Int -> Int -> Html Msg
+viewWordcountProgress : Int -> Int -> Html msg
 viewWordcountProgress current session =
     let
         currW =
@@ -370,7 +370,7 @@ viewWordcountProgress current session =
         ]
 
 
-getWordCounts : { m | viewState : ViewState, workingTree : Trees.Model } -> WordCount
+getWordCounts : { m | viewState : ViewState, workingTree : TreeStructure.Model } -> WordCount
 getWordCounts model =
     let
         activeCardId =
@@ -433,19 +433,19 @@ countWords str =
         |> List.length
 
 
-viewConflict : Conflict -> Html Msg
-viewConflict { id, opA, opB, selection, resolved } =
+viewConflict : (String -> Selection -> String -> msg) -> (String -> msg) -> Conflict -> Html msg
+viewConflict setSelectionMsg resolveMsg { id, opA, opB, selection, resolved } =
     let
         withManual cardId oursElement theirsElement =
             li
                 []
                 [ fieldset []
-                    [ radio (SetSelection id Original cardId) (selection == Original) (text "Original")
-                    , radio (SetSelection id Ours cardId) (selection == Ours) oursElement
-                    , radio (SetSelection id Theirs cardId) (selection == Theirs) theirsElement
-                    , radio (SetSelection id Manual cardId) (selection == Manual) (text "Merged")
+                    [ radio (setSelectionMsg id Original cardId) (selection == Original) (text "Original")
+                    , radio (setSelectionMsg id Ours cardId) (selection == Ours) oursElement
+                    , radio (setSelectionMsg id Theirs cardId) (selection == Theirs) theirsElement
+                    , radio (setSelectionMsg id Manual cardId) (selection == Manual) (text "Merged")
                     , label []
-                        [ input [ checked resolved, type_ "checkbox", onClick (Resolve id) ] []
+                        [ input [ checked resolved, type_ "checkbox", onClick (resolveMsg id) ] []
                         , text "Resolved"
                         ]
                     ]
@@ -455,11 +455,11 @@ viewConflict { id, opA, opB, selection, resolved } =
             li
                 []
                 [ fieldset []
-                    [ radio (SetSelection id Original "") (selection == Original) (text "Original")
-                    , radio (SetSelection id Ours cardIdA) (selection == Ours) (text ("Ours:" ++ (Debug.toString opA |> String.left 3)))
-                    , radio (SetSelection id Theirs cardIdB) (selection == Theirs) (text ("Theirs:" ++ (Debug.toString opB |> String.left 3)))
+                    [ radio (setSelectionMsg id Original "") (selection == Original) (text "Original")
+                    , radio (setSelectionMsg id Ours cardIdA) (selection == Ours) (text ("Ours:" ++ (Debug.toString opA |> String.left 3)))
+                    , radio (setSelectionMsg id Theirs cardIdB) (selection == Theirs) (text ("Theirs:" ++ (Debug.toString opB |> String.left 3)))
                     , label []
-                        [ input [ checked resolved, type_ "checkbox", onClick (Resolve id) ] []
+                        [ input [ checked resolved, type_ "checkbox", onClick (resolveMsg id) ] []
                         , text "Resolved"
                         ]
                     ]
@@ -470,20 +470,20 @@ viewConflict { id, opA, opB, selection, resolved } =
                 [ div [ class "conflict-container flex-column" ]
                     [ div
                         [ classList [ ( "row option", True ), ( "selected", selection == Original ) ]
-                        , onClick (SetSelection id Original cardId)
+                        , onClick (setSelectionMsg id Original cardId)
                         ]
                         [ text "Original" ]
                     , div [ class "row flex-row" ]
                         [ div
                             [ classList [ ( "option", True ), ( "selected", selection == Ours ) ]
-                            , onClick (SetSelection id Ours cardId)
+                            , onClick (setSelectionMsg id Ours cardId)
                             ]
                             [ text "Ours"
                             , ul [ class "changelist" ] ourChanges
                             ]
                         , div
                             [ classList [ ( "option", True ), ( "selected", selection == Theirs ) ]
-                            , onClick (SetSelection id Theirs cardId)
+                            , onClick (setSelectionMsg id Theirs cardId)
                             ]
                             [ text "Theirs"
                             , ul [ class "changelist" ] theirChanges
@@ -491,11 +491,11 @@ viewConflict { id, opA, opB, selection, resolved } =
                         ]
                     , div
                         [ classList [ ( "row option", True ), ( "selected", selection == Manual ) ]
-                        , onClick (SetSelection id Manual cardId)
+                        , onClick (setSelectionMsg id Manual cardId)
                         ]
                         [ text "Merged" ]
                     ]
-                , button [ onClick (Resolve id) ] [ text "Resolved" ]
+                , button [ onClick (resolveMsg id) ] [ text "Resolved" ]
                 ]
     in
     case ( opA, opB ) of

@@ -1,4 +1,4 @@
-module Types exposing (Children(..), CollabState, Column, Conflict, DropId(..), Group, Mode(..), Op(..), Selection(..), Status(..), Tree, ViewMode(..), ViewState, VisibleViewState)
+module Types exposing (Children(..), CollabState, Column, Conflict, CursorPosition(..), DropId(..), Group, Mode(..), Op(..), Selection(..), Status(..), TextCursorInfo, Tree, ViewMode(..), ViewState, VisibleViewState)
 
 import Html5.DragDrop as DragDrop
 import Translation

@@ -14,7 +14,7 @@ PouchDB.plugin(require("transform-pouch"));
 const helpers = require("./doc-helpers");
 const errorAlert = helpers.errorAlert;
 const { tr } = require("../shared/translation.js");
-import { Elm } from "../elm/Main";
+import { Elm } from "../elm/Doc";
 
 
 

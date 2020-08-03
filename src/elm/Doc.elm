@@ -1,4 +1,4 @@
-port module Main exposing (InitModel, Model)
+port module Doc exposing (InitModel, Model)
 
 import Browser
 import Browser.Dom
@@ -6,21 +6,25 @@ import Coders exposing (..)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
 import Dict
 import Fonts
-import Html exposing (..)
+import Html exposing (Html, div, node, span, text, textarea, ul)
 import Html.Attributes exposing (..)
-import Html.Lazy exposing (lazy, lazy3)
+import Html.Events exposing (onClick, onDoubleClick)
+import Html.Keyed as Keyed
+import Html.Lazy exposing (lazy, lazy2, lazy3)
 import Html5.DragDrop as DragDrop
 import Json.Decode as Json
 import List.Extra as ListExtra exposing (getAt)
+import Markdown
 import Objects
 import Ports exposing (..)
 import Random
 import Regex
 import Task
 import Time
-import Translation exposing (langFromString, tr)
+import Translation exposing (..)
+import TreeStructure exposing (..)
 import TreeUtils exposing (..)
-import Trees exposing (..)
+import Tuple exposing (first, second)
 import Types exposing (..)
 import UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
 
@@ -46,7 +50,7 @@ main =
    `workingTree` contains the current state of the *document*, as it stands at
    any given moment. It does not include information about "transient" state
    (such as which card is focused, or which is being edited). It's defined in
-   Trees.elm.
+   TreeStructure.elm.
 
    `viewState` is where that "transient" information (focused card, edit state)
    is stored. It's defined in Types.elm.
@@ -59,7 +63,7 @@ main =
 
 type alias Model =
     -- Document state
-    { workingTree : Trees.Model
+    { workingTree : TreeStructure.Model
     , objects : Objects.Model
     , status : Status
 
@@ -111,7 +115,7 @@ type alias InitModel =
 
 defaultModel : Model
 defaultModel =
-    { workingTree = Trees.defaultModel
+    { workingTree = TreeStructure.defaultModel
     , objects = Objects.defaultModel
     , status = Bare
     , debouncerStateCommit =
@@ -183,10 +187,10 @@ init ( dataIn, modelIn, isImport ) =
                     Objects.update (Objects.Init dataIn) defaultModel.objects
 
         newTree =
-            Maybe.withDefault Trees.defaultTree newTree_
+            Maybe.withDefault TreeStructure.defaultTree newTree_
 
         newWorkingTree =
-            Trees.setTree newTree defaultModel.workingTree
+            TreeStructure.setTree newTree defaultModel.workingTree
 
         startingWordcount =
             newTree_
@@ -257,6 +261,8 @@ type Msg
     | InsertAbove String
     | InsertBelow String
     | InsertChild String
+      -- === Card Moving  ===
+    | DragDropMsg (DragDrop.Msg String DropId)
       -- === History ===
     | ThrottledCommit (Debouncer.Msg ())
     | CheckoutCommit String
@@ -550,7 +556,7 @@ update msg ({ objects, workingTree, status } as model) =
                     case selection of
                         Manual ->
                             ( { model
-                                | workingTree = Trees.setTreeWithConflicts conflicts mTree model.workingTree
+                                | workingTree = TreeStructure.setTreeWithConflicts conflicts mTree model.workingTree
                                 , status = newStatus
                               }
                             , Cmd.none
@@ -558,7 +564,7 @@ update msg ({ objects, workingTree, status } as model) =
 
                         _ ->
                             ( { model
-                                | workingTree = Trees.setTreeWithConflicts conflicts mTree model.workingTree
+                                | workingTree = TreeStructure.setTreeWithConflicts conflicts mTree model.workingTree
                                 , status = newStatus
                               }
                             , Cmd.none
@@ -745,7 +751,7 @@ update msg ({ objects, workingTree, status } as model) =
                         _ ->
                             let
                                 newTree =
-                                    Trees.update (Trees.Upd vs.active model.field) model.workingTree
+                                    TreeStructure.update (TreeStructure.Upd vs.active model.field) model.workingTree
                             in
                             if newTree.tree /= model.workingTree.tree then
                                 ( { model | workingTree = newTree }
@@ -802,7 +808,7 @@ update msg ({ objects, workingTree, status } as model) =
                     case ( status, newStatus ) of
                         ( Bare, Clean sha ) ->
                             ( { model
-                                | workingTree = Trees.setTree (newTree_ |> Maybe.withDefault workingTree.tree) workingTree
+                                | workingTree = TreeStructure.setTree (newTree_ |> Maybe.withDefault workingTree.tree) workingTree
                                 , objects = newObjects
                                 , status = newStatus
                               }
@@ -813,7 +819,7 @@ update msg ({ objects, workingTree, status } as model) =
                         ( Clean oldHead, Clean newHead ) ->
                             if oldHead /= newHead then
                                 ( { model
-                                    | workingTree = Trees.setTree (newTree_ |> Maybe.withDefault workingTree.tree) workingTree
+                                    | workingTree = TreeStructure.setTree (newTree_ |> Maybe.withDefault workingTree.tree) workingTree
                                     , objects = newObjects
                                     , status = newStatus
                                   }
@@ -830,10 +836,10 @@ update msg ({ objects, workingTree, status } as model) =
                             ( { model
                                 | workingTree =
                                     if List.isEmpty conflicts then
-                                        Trees.setTree (newTree_ |> Maybe.withDefault workingTree.tree) workingTree
+                                        TreeStructure.setTree (newTree_ |> Maybe.withDefault workingTree.tree) workingTree
 
                                     else
-                                        Trees.setTreeWithConflicts conflicts mTree model.workingTree
+                                        TreeStructure.setTreeWithConflicts conflicts mTree model.workingTree
                                 , objects = newObjects
                                 , status = newStatus
                               }
@@ -855,7 +861,7 @@ update msg ({ objects, workingTree, status } as model) =
                 DragStarted dragId ->
                     let
                         newTree =
-                            Trees.update (Trees.Rmv dragId) model.workingTree
+                            TreeStructure.update (TreeStructure.Rmv dragId) model.workingTree
 
                         draggedTree =
                             getTreeWithPosition dragId model.workingTree.tree
@@ -914,7 +920,7 @@ update msg ({ objects, workingTree, status } as model) =
                                         |> Regex.replace checkboxes checkboxReplacer
 
                                 newTree =
-                                    Trees.update (Trees.Upd cardId newContent) model.workingTree
+                                    TreeStructure.update (TreeStructure.Upd cardId newContent) model.workingTree
                             in
                             ( { model | workingTree = newTree, dirty = True }, Cmd.none )
                                 |> addToHistory
@@ -1219,7 +1225,7 @@ update msg ({ objects, workingTree, status } as model) =
                         newTree =
                             case collabState.mode of
                                 CollabEditing editId ->
-                                    Trees.update (Trees.Upd editId collabState.field) model.workingTree
+                                    TreeStructure.update (TreeStructure.Upd editId collabState.field) model.workingTree
 
                                 _ ->
                                     model.workingTree
@@ -1439,7 +1445,7 @@ saveCardIfEditing ( model, prevCmd ) =
         _ ->
             let
                 newTree =
-                    Trees.update (Trees.Upd vs.active model.field) model.workingTree
+                    TreeStructure.update (TreeStructure.Upd vs.active model.field) model.workingTree
             in
             if newTree.tree /= model.workingTree.tree then
                 ( { model
@@ -1561,7 +1567,7 @@ deleteCard id ( model, prevCmd ) =
 
     else
         ( { model
-            | workingTree = Trees.update (Trees.Rmv id) model.workingTree
+            | workingTree = TreeStructure.update (TreeStructure.Rmv id) model.workingTree
             , dirty = True
           }
         , Cmd.batch [ prevCmd, sendOut <| SetChanged True ]
@@ -1702,7 +1708,7 @@ insert pid pos initText ( model, prevCmd ) =
             "node-" ++ (newId |> Debug.toString)
     in
     ( { model
-        | workingTree = Trees.update (Trees.Ins newIdString initText pid pos) model.workingTree
+        | workingTree = TreeStructure.update (TreeStructure.Ins newIdString initText pid pos) model.workingTree
         , seed = newSeed
       }
     , prevCmd
@@ -1766,7 +1772,7 @@ mergeUp id ( model, prevCmd ) =
             let
                 mergedTree =
                     model.workingTree
-                        |> Trees.update (Trees.Mrg currentTree prevTree True)
+                        |> TreeStructure.update (TreeStructure.Mrg currentTree prevTree True)
             in
             ( { model
                 | workingTree = mergedTree
@@ -1794,7 +1800,7 @@ mergeDown id ( model, prevCmd ) =
             let
                 mergedTree =
                     model.workingTree
-                        |> Trees.update (Trees.Mrg currentTree nextTree False)
+                        |> TreeStructure.update (TreeStructure.Mrg currentTree nextTree False)
             in
             ( { model
                 | workingTree = mergedTree
@@ -1841,7 +1847,7 @@ setCursorPosition pos ( model, prevCmd ) =
 move : Tree -> String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 move subtree pid pos ( model, prevCmd ) =
     ( { model
-        | workingTree = Trees.update (Trees.Mov subtree pid pos) model.workingTree
+        | workingTree = TreeStructure.update (TreeStructure.Mov subtree pid pos) model.workingTree
       }
     , prevCmd
     )
@@ -1984,7 +1990,7 @@ copy id ( model, prevCmd ) =
 paste : Tree -> String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 paste subtree pid pos ( model, prevCmd ) =
     ( { model
-        | workingTree = Trees.update (Trees.Paste subtree pid pos) model.workingTree
+        | workingTree = TreeStructure.update (TreeStructure.Paste subtree pid pos) model.workingTree
       }
     , prevCmd
     )
@@ -2005,7 +2011,7 @@ pasteBelow id ( model, prevCmd ) =
                     Random.step randomId model.seed
 
                 treeToPaste =
-                    Trees.renameNodes (newId |> String.fromInt) copiedTree
+                    TreeStructure.renameNodes (newId |> String.fromInt) copiedTree
 
                 pid =
                     (getParent id model.workingTree.tree |> Maybe.map .id) |> Maybe.withDefault "0"
@@ -2036,7 +2042,7 @@ pasteInto id ( model, prevCmd ) =
                     Random.step randomId model.seed
 
                 treeToPaste =
-                    Trees.renameNodes (newId |> String.fromInt) copiedTree
+                    TreeStructure.renameNodes (newId |> String.fromInt) copiedTree
             in
             ( { model | seed = newSeed }
             , prevCmd
@@ -2062,7 +2068,7 @@ checkoutCommit commitSha ( model, prevCmd ) =
     case newTree_ of
         Just newTree ->
             ( { model
-                | workingTree = Trees.setTree newTree model.workingTree
+                | workingTree = TreeStructure.setTree newTree model.workingTree
                 , status = newStatus
               }
             , sendOut (UpdateCommits ( Objects.toValue model.objects, getHead newStatus ))
@@ -2302,8 +2308,8 @@ repeating-linear-gradient(-45deg
                 , style "height" "100%"
                 ]
                 [ ul [ class "conflicts-list" ]
-                    (List.map viewConflict conflicts)
-                , lazy3 Trees.view model.language model.viewState model.workingTree
+                    (List.map (viewConflict SetSelection Resolve) conflicts)
+                , lazy3 treeView model.language model.viewState model.workingTree
                 , styleNode
                 ]
 
@@ -2328,19 +2334,434 @@ repeating-linear-gradient(-45deg
 
                       else
                         text ""
-                    , lazy3 Trees.view model.language model.viewState model.workingTree
+                    , lazy3 treeView model.language model.viewState model.workingTree
                     , viewSaveIndicator model
-                    , viewSearchField model
-                    , viewFooter model
+                    , viewSearchField SearchFieldUpdated model
+                    , viewFooter WordcountTrayToggle ShortcutTrayToggle model
                     , case ( model.historyState, model.status ) of
                         ( From _, Clean currHead ) ->
-                            viewHistory model.language currHead model.objects
+                            viewHistory NoOp CheckoutCommit Restore CancelHistory model.language currHead model.objects
 
                         _ ->
                             text ""
-                    , viewVideo model
+                    , viewVideo VideoModal model
                     , styleNode
                     ]
+
+
+treeView : Language -> ViewState -> TreeStructure.Model -> Html Msg
+treeView lang vstate model =
+    let
+        searchFilter term_ cols =
+            case term_ of
+                Just term ->
+                    let
+                        hasTerm tree =
+                            term
+                                |> Regex.fromStringWith { caseInsensitive = True, multiline = False }
+                                |> Maybe.withDefault Regex.never
+                                |> (\t -> Regex.contains t tree.content)
+                    in
+                    cols
+                        |> List.map (\c -> List.map (\g -> List.filter hasTerm g) c)
+
+                Nothing ->
+                    cols
+
+        columnsWithDepth =
+            model.columns
+                |> searchFilter vstate.searchField
+                |> List.indexedMap (\i c -> ( c, i ))
+                |> List.drop 1
+
+        getViewArgs cwd =
+            let
+                editing_ =
+                    case vstate.viewMode of
+                        Normal ->
+                            Normal
+
+                        Editing ->
+                            if first cwd |> List.concat |> List.map .id |> List.member vstate.active then
+                                Editing
+
+                            else
+                                Normal
+
+                        FullscreenEditing ->
+                            -- TODO : Impossible state
+                            Normal
+            in
+            VisibleViewState
+                vstate.active
+                editing_
+                vstate.descendants
+                vstate.ancestors
+                vstate.dragModel
+                vstate.collaborators
+                lang
+
+        columns =
+            [ ( [ [] ], -1 ) ]
+                ++ columnsWithDepth
+                ++ [ ( [ [] ], List.length columnsWithDepth ) ]
+                |> List.map (\t -> lazy3 viewColumn (getViewArgs t) (second t) (first t))
+    in
+    div
+        [ id "app"
+        ]
+        columns
+
+
+viewColumn : VisibleViewState -> Int -> Column -> Html Msg
+viewColumn vstate depth col =
+    let
+        buffer =
+            [ div [ class "buffer" ] [] ]
+    in
+    div
+        [ class "column" ]
+        (buffer
+            ++ List.map (lazy3 viewGroup vstate depth) col
+            ++ buffer
+        )
+
+
+viewGroup : VisibleViewState -> Int -> Group -> Html Msg
+viewGroup vstate depth xs =
+    let
+        firstChild =
+            xs
+                |> List.head
+                |> Maybe.withDefault defaultTree
+                |> .id
+
+        lastChild =
+            xs
+                |> List.reverse
+                |> List.head
+                |> Maybe.withDefault defaultTree
+                |> .id
+
+        hasActive =
+            xs
+                |> List.map .id
+                |> List.member vstate.active
+
+        isActiveDescendant =
+            vstate.descendants
+                |> List.member firstChild
+
+        viewFunction t =
+            let
+                isActive =
+                    t.id == vstate.active
+
+                isAncestor =
+                    List.member t.id vstate.ancestors
+
+                isEditing =
+                    case vstate.viewMode of
+                        Editing ->
+                            t.id == vstate.active
+
+                        Normal ->
+                            False
+
+                        FullscreenEditing ->
+                            -- TODO : Impossible state
+                            False
+
+                isLast =
+                    t.id == lastChild
+
+                collabsEditingCard =
+                    vstate.collaborators
+                        |> List.filter (\c -> c.mode == CollabEditing t.id)
+                        |> List.map .uid
+
+                collabsOnCard =
+                    vstate.collaborators
+                        |> List.filter (\c -> c.mode == CollabActive t.id || c.mode == CollabEditing t.id)
+                        |> List.map .uid
+            in
+            if t.id == vstate.active && not isEditing then
+                ( t.id, viewCardActive vstate.language t.id t.content (hasChildren t) isLast collabsOnCard collabsEditingCard vstate.dragModel )
+
+            else if isEditing then
+                ( t.id, viewCardEditing vstate.language t.id t.content (hasChildren t) )
+
+            else
+                ( t.id, viewCardOther t.id t.content isEditing (hasChildren t) isAncestor isLast collabsOnCard collabsEditingCard vstate.dragModel )
+    in
+    Keyed.node "div"
+        [ classList
+            [ ( "group", True )
+            , ( "has-active", hasActive )
+            , ( "active-descendant", isActiveDescendant )
+            ]
+        ]
+        (List.map viewFunction xs)
+
+
+viewCardOther : String -> String -> Bool -> Bool -> Bool -> Bool -> List String -> List String -> DragDrop.Model String DropId -> Html Msg
+viewCardOther cardId content isEditing isParent isAncestor isLast collabsOnCard collabsEditingCard dragModel =
+    div
+        ([ id ("card-" ++ cardId)
+         , dir "auto"
+         , classList
+            [ ( "card", True )
+            , ( "ancestor", isAncestor )
+            , ( "collab-active", not (List.isEmpty collabsOnCard) )
+            , ( "collab-editing", not (List.isEmpty collabsEditingCard) )
+            , ( "has-children", isParent )
+            ]
+         ]
+            ++ (if not isEditing then
+                    DragDrop.draggable DragDropMsg cardId
+
+                else
+                    []
+               )
+        )
+        (dropRegions cardId isEditing isLast dragModel
+            ++ [ div
+                    [ class "view"
+                    , onClick (Activate cardId)
+                    , onDoubleClick (OpenCard cardId content)
+                    ]
+                    [ lazy2 viewContent cardId content ]
+               , collabsSpan collabsOnCard collabsEditingCard
+               ]
+        )
+
+
+viewCardActive : Language -> String -> String -> Bool -> Bool -> List String -> List String -> DragDrop.Model String DropId -> Html Msg
+viewCardActive lang cardId content isParent isLast collabsOnCard collabsEditingCard dragModel =
+    let
+        buttons =
+            [ div [ class "flex-row card-top-overlay" ]
+                [ span
+                    [ class "card-btn ins-above"
+                    , title <| tr lang InsertAboveTitle
+                    , onClick (InsertAbove cardId)
+                    ]
+                    [ text "+" ]
+                ]
+            , div [ class "flex-column card-right-overlay" ]
+                [ span
+                    [ class "card-btn delete"
+                    , title <| tr lang DeleteCardTitle
+                    , onClick (DeleteCard cardId)
+                    ]
+                    []
+                , span
+                    [ class "card-btn ins-right"
+                    , title <| tr lang InsertChildTitle
+                    , onClick (InsertChild cardId)
+                    ]
+                    [ text "+" ]
+                , span
+                    [ class "card-btn edit"
+                    , title <| tr lang EditCardTitle
+                    , onClick (OpenCard cardId content)
+                    ]
+                    []
+                ]
+            , div [ class "flex-row card-bottom-overlay" ]
+                [ span
+                    [ class "card-btn ins-below"
+                    , title <| tr lang InsertBelowTitle
+                    , onClick (InsertBelow cardId)
+                    ]
+                    [ text "+" ]
+                ]
+            ]
+    in
+    div
+        ([ id ("card-" ++ cardId)
+         , dir "auto"
+         , classList
+            [ ( "card", True )
+            , ( "active", True )
+            , ( "collab-active", not (List.isEmpty collabsOnCard) )
+            , ( "collab-editing", not (List.isEmpty collabsEditingCard) )
+            , ( "has-children", isParent )
+            ]
+         ]
+            ++ DragDrop.draggable DragDropMsg cardId
+        )
+        (buttons
+            ++ dropRegions cardId False isLast dragModel
+            ++ [ div
+                    [ class "view"
+                    , onClick (Activate cardId)
+                    , onDoubleClick (OpenCard cardId content)
+                    ]
+                    [ lazy2 viewContent cardId content ]
+               , collabsSpan collabsOnCard collabsEditingCard
+               ]
+        )
+
+
+viewCardEditing : Language -> String -> String -> Bool -> Html Msg
+viewCardEditing lang cardId content isParent =
+    div
+        [ id ("card-" ++ cardId)
+        , dir "auto"
+        , classList
+            [ ( "card", True )
+            , ( "active", True )
+            , ( "editing", True )
+            , ( "has-children", isParent )
+            ]
+        ]
+        [ textarea
+            [ id ("card-edit-" ++ cardId)
+            , dir "auto"
+            , classList
+                [ ( "edit", True )
+                , ( "mousetrap", True )
+                ]
+            , value content
+            ]
+            []
+        , div [ class "flex-column card-right-overlay" ]
+            [ span
+                [ class "card-btn save"
+                , title <| tr lang SaveChangesTitle
+
+                -- TODO, onClick (Port (Keyboard "mod+enter"))
+                ]
+                []
+            ]
+        ]
+
+
+
+-- HELPERS
+
+
+hasChildren : Tree -> Bool
+hasChildren { children } =
+    case children of
+        Children c ->
+            (c
+                |> List.length
+            )
+                /= 0
+
+
+dropRegions : String -> Bool -> Bool -> DragDrop.Model String DropId -> List (Html Msg)
+dropRegions cardId isEditing isLast dragModel =
+    let
+        dragId_ =
+            DragDrop.getDragId dragModel
+
+        dropId_ =
+            DragDrop.getDropId dragModel
+
+        dropDiv str dId =
+            div
+                ([ classList
+                    [ ( "drop-region-" ++ str, True )
+                    , ( "drop-hover", dropId_ == Just dId )
+                    ]
+                 ]
+                    ++ DragDrop.droppable DragDropMsg dId
+                )
+                []
+    in
+    case ( dragId_, isEditing ) of
+        ( Just dragId, False ) ->
+            [ dropDiv "above" (Above cardId)
+            , dropDiv "into" (Into cardId)
+            ]
+                ++ (if isLast then
+                        [ dropDiv "below" (Below cardId) ]
+
+                    else
+                        []
+                   )
+
+        _ ->
+            []
+
+
+viewContent : String -> String -> Html Msg
+viewContent cardId content =
+    let
+        options =
+            { githubFlavored = Just { tables = True, breaks = True }
+            , defaultHighlighting = Nothing
+            , sanitize = False
+            , smartypants = False
+            }
+
+        processedContent =
+            let
+                checkboxes =
+                    Regex.fromStringWith { caseInsensitive = True, multiline = True }
+                        "\\[(x| )\\]"
+                        |> Maybe.withDefault Regex.never
+
+                openAddDiff =
+                    Regex.fromString "{\\+\\+" |> Maybe.withDefault Regex.never
+
+                closeAddDiff =
+                    Regex.fromString "\\+\\+}" |> Maybe.withDefault Regex.never
+
+                openDelDiff =
+                    Regex.fromString "{--" |> Maybe.withDefault Regex.never
+
+                closeDelDiff =
+                    Regex.fromString "--}" |> Maybe.withDefault Regex.never
+
+                checkboxReplacer { match, number } =
+                    let
+                        checkState =
+                            if match == "[x]" || match == "[X]" then
+                                "checked"
+
+                            else
+                                ""
+                    in
+                    "<input type='checkbox'"
+                        ++ checkState
+                        ++ " onClick='checkboxClicked(\""
+                        ++ cardId
+                        ++ "\", "
+                        ++ String.fromInt number
+                        ++ ")'/>"
+            in
+            content
+                |> Regex.replace openAddDiff (\_ -> "<ins class='diff'>")
+                |> Regex.replace closeAddDiff (\_ -> "</ins>")
+                |> Regex.replace openDelDiff (\_ -> "<del class='diff'>")
+                |> Regex.replace closeDelDiff (\_ -> "</del>")
+                |> Regex.replace checkboxes checkboxReplacer
+    in
+    Markdown.toHtmlWith options
+        []
+        processedContent
+
+
+collabsSpan : List String -> List String -> Html Msg
+collabsSpan collabsOnCard collabsEditingCard =
+    let
+        collabsString =
+            collabsOnCard
+                |> List.map
+                    (\c ->
+                        if List.member c collabsEditingCard then
+                            c ++ " is editing"
+
+                        else
+                            c
+                    )
+                |> String.join ", "
+    in
+    span [ class "collaborators" ] [ text collabsString ]
 
 
 

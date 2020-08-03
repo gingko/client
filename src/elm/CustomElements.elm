@@ -5,7 +5,6 @@ import Html exposing (Attribute, Html, div)
 import Html.Attributes exposing (attribute, id, property, style)
 import Json.Encode as Json exposing (Value, list, object, string)
 import Objects exposing (Model)
-import Types exposing (Msg)
 
 
 commitsToValue : Model -> Value
@@ -29,7 +28,7 @@ commitsGraph commits =
         []
 
 
-gitgraph : Model -> Html Msg
+gitgraph : Model -> Html msg
 gitgraph objects =
     div [ id "history-graph" ]
         [ commitsGraph objects ]
