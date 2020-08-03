@@ -1,6 +1,5 @@
 port module Doc exposing (InitModel, Model, Msg, init, subscriptions, update, view)
 
-import Browser
 import Browser.Dom
 import Coders exposing (..)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
@@ -11,7 +10,7 @@ import Html exposing (Html, div, node, span, text, textarea, ul)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onDoubleClick)
 import Html.Keyed as Keyed
-import Html.Lazy exposing (lazy, lazy2, lazy3)
+import Html.Lazy exposing (lazy2, lazy3)
 import Html5.DragDrop as DragDrop
 import Json.Decode as Json
 import List.Extra as ListExtra exposing (getAt)
