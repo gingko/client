@@ -1,4 +1,4 @@
-module TreeSort exposing (sortTrees)
+module Doc.TreeSort exposing (sortTrees)
 
 import List.Extra as ListExtra
 import Types exposing (..)

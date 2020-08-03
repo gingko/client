@@ -1,4 +1,4 @@
-port module Home exposing (Document, Model, Msg(..), docListReload, forJS, init, main, subscriptions, update, view, viewDocList, viewDocumentItem)
+port module Page.HomeElectron exposing (Document, Model, Msg(..), docListReload, forJS, init, main, subscriptions, update, view, viewDocList, viewDocumentItem)
 
 import Browser
 import Coders exposing (maybeToValue)

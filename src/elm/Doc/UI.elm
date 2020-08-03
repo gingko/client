@@ -1,21 +1,21 @@
-module UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
+module Doc.UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
 
 import Coders exposing (treeToMarkdownString)
-import CustomElements exposing (gitgraph)
 import Date
 import Dict
 import Diff exposing (..)
+import Doc.CustomElements exposing (gitgraph)
+import Doc.Objects as Objects
+import Doc.TreeStructure as TreeStructure exposing (defaultTree)
+import Doc.TreeUtils exposing (..)
 import Html exposing (Html, a, button, del, div, fieldset, h1, iframe, input, ins, label, li, span, text, ul)
 import Html.Attributes as A exposing (..)
 import Html.Events exposing (onClick, onInput)
 import List.Extra as ListExtra exposing (getAt)
-import Objects
 import Octicons as Icon exposing (defaultOptions)
 import Regex exposing (Regex, replace)
 import Time exposing (posixToMillis)
 import Translation exposing (Language, TranslationId(..), timeDistInWords, tr)
-import TreeStructure exposing (defaultTree)
-import TreeUtils exposing (..)
 import Types exposing (..)
 
 

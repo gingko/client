@@ -1,14 +1,14 @@
-module Objects exposing (Model, ObjMsg(..), defaultModel, setHeadRev, toValue, update)
+module Doc.Objects exposing (Model, ObjMsg(..), defaultModel, setHeadRev, toValue, update)
 
 import Coders exposing (statusDecoder, tupleDecoder)
 import Dict exposing (Dict)
 import Diff3 exposing (diff3Merge)
+import Doc.TreeStructure exposing (apply, opToMsg)
+import Doc.TreeUtils exposing (sha1)
 import Json.Decode as Json
 import Json.Encode as Enc
 import List.Extra as ListExtra
 import Maybe exposing (andThen)
-import TreeStructure exposing (apply, opToMsg)
-import TreeUtils exposing (sha1)
 import Tuple exposing (first, second)
 import Types exposing (..)
 

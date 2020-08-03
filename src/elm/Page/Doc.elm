@@ -1,11 +1,15 @@
-port module Doc exposing (InitModel, Model, Msg, init, subscriptions, update, view)
+port module Page.Doc exposing (InitModel, Model, Msg, init, subscriptions, update, view)
 
 import Browser.Dom
 import Coders exposing (..)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
 import Dict
-import Fonts
-import Fullscreen
+import Doc.Fonts as Fonts
+import Doc.Fullscreen as Fullscreen
+import Doc.Objects as Objects
+import Doc.TreeStructure as TreeStructure exposing (..)
+import Doc.TreeUtils exposing (..)
+import Doc.UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
 import Html exposing (Html, div, node, span, text, textarea, ul)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onDoubleClick)
@@ -15,18 +19,14 @@ import Html5.DragDrop as DragDrop
 import Json.Decode as Json
 import List.Extra as ListExtra exposing (getAt)
 import Markdown
-import Objects
 import Ports exposing (..)
 import Random
 import Regex
 import Task
 import Time
 import Translation exposing (..)
-import TreeStructure exposing (..)
-import TreeUtils exposing (..)
 import Tuple exposing (first, second)
 import Types exposing (..)
-import UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
 
 
 

@@ -1,12 +1,12 @@
-module TreeStructure exposing (Model, Msg(..), apply, conflictToMsg, defaultModel, defaultTree, opToMsg, renameNodes, setTree, setTreeWithConflicts, update)
+module Doc.TreeStructure exposing (Model, Msg(..), apply, conflictToMsg, defaultModel, defaultTree, opToMsg, renameNodes, setTree, setTreeWithConflicts, update)
 
 import Diff exposing (..)
 import Diff3 exposing (diff3Merge)
+import Doc.TreeUtils exposing (getChildren, getColumns, getParent, getTree, sha1)
 import List.Extra as ListExtra
 import Markdown
 import Regex
 import Translation exposing (Language, TranslationId(..), tr)
-import TreeUtils exposing (getChildren, getColumns, getParent, getTree, sha1)
 import Tuple exposing (first, second)
 import Types exposing (..)
 

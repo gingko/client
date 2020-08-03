@@ -1,4 +1,4 @@
-module Fonts exposing (Model, Msg, Settings, default, getContent, getHeading, getMonospace, init, setSystem, update, viewSelector)
+module Doc.Fonts exposing (Model, Msg, Settings, default, getContent, getHeading, getMonospace, init, setSystem, update, viewSelector)
 
 import Html exposing (Html, br, button, div, option, select, span, text)
 import Html.Attributes exposing (..)

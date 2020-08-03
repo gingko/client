@@ -1,9 +1,9 @@
 module Coders exposing (collabStateDecoder, collabStateToValue, conflictDecoder, conflictToValue, fontSettingsEncoder, lazyRecurse, maybeToValue, modeDecoder, modeToValue, opDecoder, opToValue, selectionDecoder, selectionToValue, statusDecoder, statusToValue, treeDecoder, treeListDecoder, treeToJSON, treeToJSONrecurse, treeToMarkdown, treeToMarkdownRecurse, treeToMarkdownString, treeToValue, treesModelDecoder, tripleDecoder, tupleDecoder, tupleToValue)
 
-import Fonts
+import Doc.Fonts as Fonts
+import Doc.TreeStructure as TreeStructure
 import Json.Decode as Json exposing (..)
 import Json.Encode as Enc
-import TreeStructure
 import Types exposing (..)
 
 

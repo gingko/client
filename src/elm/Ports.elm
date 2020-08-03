@@ -1,13 +1,13 @@
 port module Ports exposing (ExportFormat(..), ExportSelection(..), ExportSettings, IncomingMsg(..), OutgoingMsg(..), encodeAndSend, infoForElm, infoForOutside, receiveMsg, sendOut, unionTypeToString)
 
 import Coders exposing (..)
-import Fonts
+import Doc.Fonts as Fonts
+import Doc.TreeUtils exposing (getColumn)
 import Json.Decode as Dec exposing (Decoder, decodeValue, errorToString, field, oneOf)
 import Json.Encode as Enc exposing (..)
 import Json.Encode.Extra exposing (maybe)
 import Time
 import Translation exposing (languageDecoder)
-import TreeUtils exposing (getColumn)
 import Types exposing (CollabState, CursorPosition(..), TextCursorInfo, Tree)
 
 

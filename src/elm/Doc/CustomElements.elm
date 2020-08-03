@@ -1,10 +1,10 @@
-module CustomElements exposing (gitgraph)
+module Doc.CustomElements exposing (gitgraph)
 
 import Dict
+import Doc.Objects exposing (Model)
 import Html exposing (Attribute, Html, div)
 import Html.Attributes exposing (attribute, id, property, style)
 import Json.Encode as Json exposing (Value, list, object, string)
-import Objects exposing (Model)
 
 
 commitsToValue : Model -> Value

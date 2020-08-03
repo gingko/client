@@ -2,9 +2,9 @@ module Main exposing (main)
 
 import Browser exposing (Document)
 import Browser.Navigation as Nav
-import Doc
 import Html
 import Json.Decode as Json
+import Page.Doc
 import Url exposing (Url)
 
 
@@ -13,14 +13,14 @@ import Url exposing (Url)
 
 
 type Model
-    = Doc Doc.Model
+    = Doc Page.Doc.Model
 
 
-init : ( Json.Value, Doc.InitModel, Bool ) -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init : ( Json.Value, Page.Doc.InitModel, Bool ) -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags _ _ =
     let
         ( docModel, docCmd ) =
-            Doc.init flags
+            Page.Doc.init flags
     in
     ( Doc docModel, Cmd.map GotDocMsg docCmd )
 
@@ -33,7 +33,7 @@ view : Model -> Document Msg
 view model =
     case model of
         Doc docModel ->
-            { title = "Gingko", body = [ Html.map GotDocMsg (Doc.view docModel) ] }
+            { title = "Gingko", body = [ Html.map GotDocMsg (Page.Doc.view docModel) ] }
 
 
 
@@ -43,7 +43,7 @@ view model =
 type Msg
     = ChangedUrl Url
     | ClickedLink Browser.UrlRequest
-    | GotDocMsg Doc.Msg
+    | GotDocMsg Page.Doc.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -58,7 +58,7 @@ update msg model =
         ( GotDocMsg docMsg, Doc docModel ) ->
             let
                 ( newDocModel, docCmd ) =
-                    Doc.update docMsg docModel
+                    Page.Doc.update docMsg docModel
             in
             ( Doc newDocModel, Cmd.map GotDocMsg docCmd )
 
@@ -71,14 +71,14 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     case model of
         Doc docModel ->
-            Sub.map GotDocMsg (Doc.subscriptions docModel)
+            Sub.map GotDocMsg (Page.Doc.subscriptions docModel)
 
 
 
 -- MAIN
 
 
-main : Program ( Json.Value, Doc.InitModel, Bool ) Model Msg
+main : Program ( Json.Value, Page.Doc.InitModel, Bool ) Model Msg
 main =
     Browser.application
         { init = init

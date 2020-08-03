@@ -1,12 +1,12 @@
-module Fullscreen exposing (view)
+module Doc.Fullscreen exposing (view)
 
+import Doc.TreeUtils exposing (getChildren, getColumnById, getParent, getTree)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onFocus)
 import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy, lazy2, lazy3)
 import Translation exposing (Language, TranslationId(..), tr)
-import TreeUtils exposing (getChildren, getColumnById, getParent, getTree)
 import Types exposing (..)
 
 
