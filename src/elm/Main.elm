@@ -20,16 +20,13 @@ type Model
 
 init : ( Json.Value, Page.Doc.InitModel, Bool ) -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url navKey =
-    let
-        ( docModel, docCmd ) =
-            Page.Doc.init flags
-    in
     case url.path of
         "/" ->
             ( Home Page.Home.init, Cmd.none )
 
         _ ->
-            ( Doc docModel, Cmd.map GotDocMsg docCmd )
+            Page.Doc.init flags
+                |> updateWith Doc GotDocMsg
 
 
 
@@ -74,6 +71,13 @@ update msg model =
 
         _ ->
             ( model, Cmd.none )
+
+
+updateWith : (subModel -> Model) -> (subMsg -> Msg) -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )
+updateWith toModel toMsg ( subModel, subCmd ) =
+    ( toModel subModel
+    , Cmd.map toMsg subCmd
+    )
 
 
 

@@ -728,6 +728,34 @@ update msg ({ objects, workingTree, status } as model) =
                         |> cancelCard
 
                 -- === Database ===
+                DatabaseLoaded dataIn ->
+                    let
+                        ( newStatus, newTree_, newObjects ) =
+                            Objects.update (Objects.Init dataIn) defaultModel.objects
+
+                        newTree =
+                            Maybe.withDefault TreeStructure.defaultTree newTree_
+
+                        newWorkingTree =
+                            TreeStructure.setTree newTree defaultModel.workingTree
+
+                        startingWordcount =
+                            newTree_
+                                |> Maybe.map (\t -> countWords (treeToMarkdownString False t))
+                                |> Maybe.withDefault 0
+
+                        columnNumber =
+                            newWorkingTree.columns |> List.length |> (\l -> l - 1)
+                    in
+                    ( { model
+                        | workingTree = newWorkingTree
+                        , objects = newObjects
+                        , status = newStatus
+                        , startingWordcount = startingWordcount
+                      }
+                    , sendOut <| ColumnNumberChange columnNumber
+                    )
+
                 GetDataToSave ->
                     case ( vs.viewMode, status ) of
                         ( Normal, Bare ) ->

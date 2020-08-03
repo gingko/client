@@ -23,6 +23,7 @@ type
     | ConfirmCancelCard String String
     | ColumnNumberChange Int
       -- === Database ===
+    | LoadDatabase String
     | CommitWithTimestamp
     | NoDataToSave
     | SaveToDB ( Enc.Value, Enc.Value )
@@ -55,6 +56,7 @@ type
     = IntentExport ExportSettings
     | CancelCardConfirmed
       -- === Database ===
+    | DatabaseLoaded Dec.Value
     | Commit Int
     | GetDataToSave
     | SetHeadRev String
@@ -125,6 +127,9 @@ sendOut info =
             dataToSend (int cols)
 
         -- === Database ===
+        LoadDatabase dbName ->
+            dataToSend (string dbName)
+
         CommitWithTimestamp ->
             dataToSend null
 

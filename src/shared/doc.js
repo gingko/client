@@ -257,6 +257,10 @@ const update = (msg, data) => {
 
       // === Database ===
 
+    , "LoadDatabase": () => {
+        docState.dbPath = [data, ""];
+      }
+
     , "CommitWithTimestamp": () => {
         toElm("Commit", Date.now());
       }
