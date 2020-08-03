@@ -5,6 +5,7 @@ import Browser.Navigation as Nav
 import Html
 import Json.Decode as Json
 import Page.Doc
+import Page.Home
 import Url exposing (Url)
 
 
@@ -13,16 +14,22 @@ import Url exposing (Url)
 
 
 type Model
-    = Doc Page.Doc.Model
+    = Home Page.Home.Model
+    | Doc Page.Doc.Model
 
 
 init : ( Json.Value, Page.Doc.InitModel, Bool ) -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init flags _ _ =
+init flags url navKey =
     let
         ( docModel, docCmd ) =
             Page.Doc.init flags
     in
-    ( Doc docModel, Cmd.map GotDocMsg docCmd )
+    case url.path of
+        "/" ->
+            ( Home Page.Home.init, Cmd.none )
+
+        _ ->
+            ( Doc docModel, Cmd.map GotDocMsg docCmd )
 
 
 
@@ -32,6 +39,9 @@ init flags _ _ =
 view : Model -> Document Msg
 view model =
     case model of
+        Home homeModel ->
+            { title = "Gingko - Home", body = [ Page.Home.view homeModel ] }
+
         Doc docModel ->
             { title = "Gingko", body = [ Html.map GotDocMsg (Page.Doc.view docModel) ] }
 
@@ -62,6 +72,9 @@ update msg model =
             in
             ( Doc newDocModel, Cmd.map GotDocMsg docCmd )
 
+        _ ->
+            ( model, Cmd.none )
+
 
 
 -- SUBSCRIPTIONS
@@ -72,6 +85,9 @@ subscriptions model =
     case model of
         Doc docModel ->
             Sub.map GotDocMsg (Page.Doc.subscriptions docModel)
+
+        Home _ ->
+            Sub.none
 
 
 
