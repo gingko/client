@@ -233,12 +233,3 @@ type alias VisibleViewState =
     , collaborators : List CollabState
     , language : Translation.Language
     }
-
-
-type alias WordCount =
-    { card : Int
-    , subtree : Int
-    , group : Int
-    , column : Int
-    , document : Int
-    }
