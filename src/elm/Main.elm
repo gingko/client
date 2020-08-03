@@ -6,7 +6,6 @@ import Coders exposing (..)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
 import Dict
 import Fonts
-import Fullscreen
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Lazy exposing (lazy, lazy3)
@@ -243,6 +242,38 @@ init ( dataIn, modelIn, isImport ) =
 
    Msg, IncomingMsg, and OutgoingMsg can all be found in Types.elm.
 -}
+
+
+type Msg
+    = NoOp
+      -- === Card Activation ===
+    | Activate String
+    | SearchFieldUpdated String
+      -- === Card Editing  ===
+    | OpenCard String String
+    | OpenCardFullscreen String String
+    | DeleteCard String
+      -- === Card Insertion  ===
+    | InsertAbove String
+    | InsertBelow String
+    | InsertChild String
+      -- === History ===
+    | ThrottledCommit (Debouncer.Msg ())
+    | CheckoutCommit String
+    | Restore
+    | CancelHistory
+    | Sync
+    | SetSelection String Selection String
+    | Resolve String
+      -- === UI ===
+    | TimeUpdate Time.Posix
+    | VideoModal Bool
+    | FontsMsg Fonts.Msg
+    | ShortcutTrayToggle
+    | WordcountTrayToggle
+      -- === Ports ===
+    | Port IncomingMsg
+    | LogErr String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -2285,7 +2316,8 @@ repeating-linear-gradient(-45deg
 
                       else
                         text ""
-                    , lazy3 Fullscreen.view model.language model.viewState model.workingTree
+
+                    --, lazy3 Fullscreen.view model.language model.viewState model.workingTree
                     ]
 
             else

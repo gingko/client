@@ -6,7 +6,7 @@ import Random exposing (initialSeed, int, maxInt, minInt)
 import SHA1
 import String
 import Tuple exposing (first, second)
-import Types exposing (..)
+import Types exposing (Children(..), Column, Tree)
 
 
 

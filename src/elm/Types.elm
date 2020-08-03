@@ -1,130 +1,7 @@
-module Types exposing (Children(..), CollabState, Column, Conflict, CursorPosition(..), DropId(..), ExportFormat(..), ExportSelection(..), ExportSettings, Group, IncomingMsg(..), Mode(..), Msg(..), Op(..), OutgoingMsg(..), OutsideData, Selection(..), Status(..), TextCursorInfo, Tree, ViewMode(..), ViewState, VisibleViewState)
+module Types exposing (Children(..), CollabState, Column, Conflict, DropId(..), Group, Mode(..), Op(..), Selection(..), Status(..), Tree, ViewMode(..), ViewState, VisibleViewState)
 
-import Debouncer.Basic as Debouncer
-import Fonts
 import Html5.DragDrop as DragDrop
-import Json.Decode as Json
-import Time
 import Translation
-
-
-type Msg
-    = NoOp
-      -- === Card Activation ===
-    | Activate String
-    | SearchFieldUpdated String
-      -- === Card Editing  ===
-    | OpenCard String String
-    | OpenCardFullscreen String String
-    | DeleteCard String
-      -- === Card Insertion  ===
-    | InsertAbove String
-    | InsertBelow String
-    | InsertChild String
-      -- === Card Moving  ===
-    | DragDropMsg (DragDrop.Msg String DropId)
-      -- === History ===
-    | ThrottledCommit (Debouncer.Msg ())
-    | CheckoutCommit String
-    | Restore
-    | CancelHistory
-    | Sync
-    | SetSelection String Selection String
-    | Resolve String
-      -- === UI ===
-    | TimeUpdate Time.Posix
-    | VideoModal Bool
-    | FontsMsg Fonts.Msg
-    | ShortcutTrayToggle
-    | WordcountTrayToggle
-      -- === Ports ===
-    | Port IncomingMsg
-    | LogErr String
-
-
-type
-    OutgoingMsg
-    -- === Dialogs, Menus, Window State ===
-    = Alert String
-    | SetChanged Bool
-    | ConfirmCancelCard String String
-    | ColumnNumberChange Int
-      -- === Database ===
-    | CommitWithTimestamp
-    | NoDataToSave
-    | SaveToDB ( Json.Value, Json.Value )
-    | SaveLocal Tree
-    | Push
-    | Pull
-      -- === File System ===
-    | ExportDOCX String (Maybe String)
-    | ExportJSON Tree (Maybe String)
-    | ExportTXT Bool Tree (Maybe String)
-    | ExportTXTColumn Int Tree (Maybe String)
-      -- === DOM ===
-    | ActivateCards ( String, Int, List (List String) )
-    | FlashCurrentSubtree
-    | TextSurround String String
-    | SetCursorPosition Int
-      -- === UI ===
-    | UpdateCommits ( Json.Value, Maybe String )
-    | SetVideoModal Bool
-    | SetFonts Fonts.Settings
-    | SetShortcutTray Bool
-      -- === Misc ===
-    | SocketSend CollabState
-    | ConsoleLogRequested String
-
-
-type
-    IncomingMsg
-    -- === Dialogs, Menus, Window State ===
-    = IntentExport ExportSettings
-    | CancelCardConfirmed
-      -- === Database ===
-    | Commit Int
-    | GetDataToSave
-    | SetHeadRev String
-    | SetLastCommitSaved (Maybe Time.Posix)
-    | SetLastFileSaved (Maybe Time.Posix)
-    | SetSync Bool
-    | Merge Json.Value
-      -- === DOM ===
-    | DragStarted String
-    | FieldChanged String
-    | TextCursor TextCursorInfo
-    | CheckboxClicked String Int
-      -- === UI ===
-    | SetLanguage Translation.Language
-    | ViewVideos
-    | FontSelectorOpen (List String)
-    | Keyboard String
-      -- === Misc ===
-    | RecvCollabState CollabState
-    | CollaboratorDisconnected String
-
-
-type alias OutsideData =
-    { tag : String, data : Json.Value }
-
-
-type alias ExportSettings =
-    { format : ExportFormat
-    , selection : ExportSelection
-    , filepath : Maybe String
-    }
-
-
-type ExportFormat
-    = DOCX
-    | JSON
-    | TXT
-
-
-type ExportSelection
-    = All
-    | CurrentSubtree
-    | ColumnNumber Int
 
 
 type alias Tree =
@@ -146,38 +23,8 @@ type alias Column =
     List (List Tree)
 
 
-type Op
-    = Ins String String (List String) Int
-    | Mod String (List String) String String
-    | Del String (List String)
-    | Mov String (List String) Int (List String) Int
 
-
-type Selection
-    = Original
-    | Ours
-    | Theirs
-    | Manual
-
-
-type alias Conflict =
-    { id : String
-    , opA : Op
-    , opB : Op
-    , selection : Selection
-    , resolved : Bool
-    }
-
-
-type Status
-    = Bare
-    | Clean String
-    | MergeConflict Tree String String (List Conflict)
-
-
-type Mode
-    = CollabActive String
-    | CollabEditing String
+-- Drag and Drop
 
 
 type DropId
@@ -186,15 +33,14 @@ type DropId
     | Into String
 
 
-type alias TextCursorInfo =
-    { selected : Bool, position : CursorPosition, text : ( String, String ) }
+
+-- Transient View States
 
 
-type CursorPosition
-    = Start
-    | End
-    | Empty
-    | Other
+type ViewMode
+    = Normal
+    | Editing
+    | FullscreenEditing
 
 
 type alias CollabState =
@@ -204,10 +50,9 @@ type alias CollabState =
     }
 
 
-type ViewMode
-    = Normal
-    | Editing
-    | FullscreenEditing
+type Mode
+    = CollabActive String
+    | CollabEditing String
 
 
 type alias ViewState =
@@ -233,3 +78,55 @@ type alias VisibleViewState =
     , collaborators : List CollabState
     , language : Translation.Language
     }
+
+
+type alias TextCursorInfo =
+    { selected : Bool, position : CursorPosition, text : ( String, String ) }
+
+
+type CursorPosition
+    = Start
+    | End
+    | Empty
+    | Other
+
+
+
+--  Repo Status
+
+
+type Status
+    = Bare
+    | Clean String
+    | MergeConflict Tree String String (List Conflict)
+
+
+
+-- Conflict Resolution
+
+
+type Selection
+    = Original
+    | Ours
+    | Theirs
+    | Manual
+
+
+type alias Conflict =
+    { id : String
+    , opA : Op
+    , opB : Op
+    , selection : Selection
+    , resolved : Bool
+    }
+
+
+
+-- Operations ( ? )
+
+
+type Op
+    = Ins String String (List String) Int
+    | Mod String (List String) String String
+    | Del String (List String)
+    | Mov String (List String) Int (List String) Int

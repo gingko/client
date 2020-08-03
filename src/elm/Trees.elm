@@ -1,4 +1,4 @@
-module Trees exposing (Model, TreeMsg(..), apply, conflictToTreeMsg, defaultModel, defaultTree, opToTreeMsg, renameNodes, setTree, setTreeWithConflicts, update, view)
+module Trees exposing (Model, Msg, apply, conflictToMsg, defaultModel, defaultTree, opToMsg, renameNodes, setTree, setTreeWithConflicts, update, view)
 
 import Diff exposing (..)
 import Diff3 exposing (diff3Merge)
@@ -46,8 +46,20 @@ defaultTree =
 -- UPDATE
 
 
-type TreeMsg
+type Msg
     = Nope
+      -- === Card Activation ===
+    | Activate String
+      -- === Card Editing  ===
+    | OpenCard String String
+    | DeleteCard String
+      -- === Card Insertion  ===
+    | InsertAbove String
+    | InsertBelow String
+    | InsertChild String
+      -- === Card Moving  ===
+    | DragDropMsg (DragDrop.Msg String DropId)
+      -- === Original TreeMsg  ===
     | Ins String String String Int
     | Upd String String
     | Mov Tree String Int
@@ -56,12 +68,12 @@ type TreeMsg
     | Paste Tree String Int
 
 
-update : TreeMsg -> Model -> Model
+update : Msg -> Model -> Model
 update msg model =
     setTree (updateTree msg model.tree) model
 
 
-updateTree : TreeMsg -> Tree -> Tree
+updateTree : Msg -> Tree -> Tree
 updateTree msg tree =
     case msg of
         Ins newId newContent parentId idx ->
@@ -132,7 +144,7 @@ setTreeWithConflicts conflicts originalTree model =
     let
         newTree =
             originalTree
-                |> apply (List.map (conflictToTreeMsg originalTree) conflicts)
+                |> apply (List.map (conflictToMsg originalTree) conflicts)
 
         newColumns =
             if newTree /= model.tree then
@@ -147,14 +159,14 @@ setTreeWithConflicts conflicts originalTree model =
     }
 
 
-conflictToTreeMsg : Tree -> Conflict -> TreeMsg
-conflictToTreeMsg tree ({ id, opA, opB, selection, resolved } as conflict) =
+conflictToMsg : Tree -> Conflict -> Msg
+conflictToMsg tree ({ id, opA, opB, selection, resolved } as conflict) =
     case ( selection, resolved ) of
         ( Ours, False ) ->
-            opToTreeMsg tree opA
+            opToMsg tree opA
 
         ( Theirs, False ) ->
-            opToTreeMsg tree opB
+            opToMsg tree opB
 
         ( Manual, False ) ->
             case ( opA, opB ) of
@@ -244,8 +256,8 @@ conflictToTreeMsg tree ({ id, opA, opB, selection, resolved } as conflict) =
             Nope
 
 
-opToTreeMsg : Tree -> Op -> TreeMsg
-opToTreeMsg origTree op =
+opToMsg : Tree -> Op -> Msg
+opToMsg origTree op =
     case op of
         Mod tid _ str _ ->
             Upd tid str
@@ -274,7 +286,7 @@ opToTreeMsg origTree op =
 -- TREE TRANSFORMATIONS
 
 
-apply : List TreeMsg -> Tree -> Tree
+apply : List Msg -> Tree -> Tree
 apply msgs tree =
     List.foldl (\m t -> updateTree m t) tree msgs
 
@@ -636,7 +648,8 @@ viewCardEditing lang cardId content isParent =
             [ span
                 [ class "card-btn save"
                 , title <| tr lang SaveChangesTitle
-                , onClick (Port (Keyboard "mod+enter"))
+
+                -- TODO, onClick (Port (Keyboard "mod+enter"))
                 ]
                 []
             ]

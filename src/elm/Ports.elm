@@ -7,7 +7,79 @@ import Json.Encode.Extra exposing (maybe)
 import Time
 import Translation exposing (languageDecoder)
 import TreeUtils exposing (getColumn)
-import Types exposing (..)
+
+
+type
+    OutgoingMsg
+    -- === Dialogs, Menus, Window State ===
+    = Alert String
+    | SetChanged Bool
+    | ConfirmCancelCard String String
+    | ColumnNumberChange Int
+      -- === Database ===
+    | CommitWithTimestamp
+    | NoDataToSave
+    | SaveToDB ( Json.Value, Json.Value )
+    | SaveLocal Tree
+    | Push
+    | Pull
+      -- === File System ===
+    | ExportDOCX String (Maybe String)
+    | ExportJSON Tree (Maybe String)
+    | ExportTXT Bool Tree (Maybe String)
+    | ExportTXTColumn Int Tree (Maybe String)
+      -- === DOM ===
+    | ActivateCards ( String, Int, List (List String) )
+    | FlashCurrentSubtree
+    | TextSurround String String
+    | SetCursorPosition Int
+      -- === UI ===
+    | UpdateCommits ( Json.Value, Maybe String )
+    | SetVideoModal Bool
+    | SetFonts Fonts.Settings
+    | SetShortcutTray Bool
+      -- === Misc ===
+    | SocketSend CollabState
+    | ConsoleLogRequested String
+
+
+type
+    IncomingMsg
+    -- === Dialogs, Menus, Window State ===
+    = IntentExport ExportSettings
+    | CancelCardConfirmed
+      -- === Database ===
+    | Commit Int
+    | GetDataToSave
+    | SetHeadRev String
+    | SetLastCommitSaved (Maybe Time.Posix)
+    | SetLastFileSaved (Maybe Time.Posix)
+    | SetSync Bool
+    | Merge Json.Value
+      -- === DOM ===
+    | DragStarted String
+    | FieldChanged String
+    | TextCursor TextCursorInfo
+    | CheckboxClicked String Int
+      -- === UI ===
+    | SetLanguage Translation.Language
+    | ViewVideos
+    | FontSelectorOpen (List String)
+    | Keyboard String
+      -- === Misc ===
+    | RecvCollabState CollabState
+    | CollaboratorDisconnected String
+
+
+type alias OutsideData =
+    { tag : String, data : Json.Value }
+
+
+type alias ExportSettings =
+    { format : ExportFormat
+    , selection : ExportSelection
+    , filepath : Maybe String
+    }
 
 
 sendOut : OutgoingMsg -> Cmd msg
