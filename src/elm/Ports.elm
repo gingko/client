@@ -264,6 +264,9 @@ receiveMsg tagger onError =
                     tagger <| CancelCardConfirmed
 
                 -- === Database ===
+                "DatabaseLoaded" ->
+                    tagger <| DatabaseLoaded outsideInfo.data
+
                 "Commit" ->
                     case decodeValue Dec.int outsideInfo.data of
                         Ok time ->

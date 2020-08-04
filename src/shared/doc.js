@@ -85,8 +85,6 @@ container.msgWas("set-doc-state", (e, data) => {
   Object.assign(docState, data);
 });
 
-self.db = new PouchDB(docState.dbPath[0]);
-
 // ============ SYNC ====================
 
 self.signup = async (email, password, passwordConfirm) => {
@@ -165,29 +163,21 @@ if (docState.jsonImportData) {
 
   initElmAndPorts(initFlags);
 } else {
-  load().then(function (dbData) {
+  const initFlags =
+    [ { language : lang
+        , isMac : process.platform === "darwin"
+        , shortcutTrayOpen : userStore.get("shortcut-tray-is-open", true)
+        , videoModalOpen : userStore.get("video-modal-is-open", false)
+        , currentTime : Date.now()
+        , lastCommitSaved : docState.lastSavedToDB || null
+        , lastFileSaved : docState.lastSavedToFile || null
+        , lastActive : getLastActive(docState.dbPath[1])
+        , fonts : getFonts(docState.dbPath[1])
+        }
+      , false // isImport
+    ];
 
-    savedObjectIds = Object.keys(dbData[1].commits).concat(Object.keys(dbData[1].treeObjects));
-
-    docState.lastSavedToDB = Object.values(dbData[1].commits).map(c => c.timestamp).sort().slice(-1)[0];
-
-    const initFlags =
-      [ dbData
-        , { language : lang
-          , isMac : process.platform === "darwin"
-          , shortcutTrayOpen : userStore.get("shortcut-tray-is-open", true)
-          , videoModalOpen : userStore.get("video-modal-is-open", false)
-          , currentTime : Date.now()
-          , lastCommitSaved : docState.lastSavedToDB || null
-          , lastFileSaved : docState.lastSavedToFile || null
-          , lastActive : getLastActive(docState.dbPath[1])
-          , fonts : getFonts(docState.dbPath[1])
-          }
-        , false // isImport
-      ];
-
-    initElmAndPorts(initFlags);
-  });
+  initElmAndPorts(initFlags);
 }
 
 
@@ -257,8 +247,10 @@ const update = (msg, data) => {
 
       // === Database ===
 
-    , "LoadDatabase": () => {
+    , "LoadDatabase": async () => {
         docState.dbPath = [data, ""];
+        var loadRes = await load();
+        toElm("DatabaseLoaded", loadRes);
       }
 
     , "CommitWithTimestamp": () => {

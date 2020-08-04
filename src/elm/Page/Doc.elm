@@ -157,55 +157,20 @@ defaultModel =
 -}
 
 
-init : ( Json.Value, InitModel, Bool ) -> ( Model, Cmd Msg )
-init ( dataIn, modelIn, isImport ) =
-    let
-        ( newStatus, newTree_, newObjects ) =
-            case Json.decodeValue treeDecoder dataIn of
-                Ok newTreeDecoded ->
-                    {- The JSON was successfully decoded by treeDecoder.
-                       We need to create the first commit to the history.
-                    -}
-                    Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" modelIn.currentTime newTreeDecoded) defaultModel.objects
-                        |> (\( s, _, o ) -> ( s, Just newTreeDecoded, o ))
-
-                Err err ->
-                    {- If treeDecoder fails, we assume that this was a
-                       load from the database instead. See Objects.elm for
-                       how the data is converted from JSON to type Objects.Model
-                    -}
-                    Objects.update (Objects.Init dataIn) defaultModel.objects
-
-        newTree =
-            Maybe.withDefault TreeStructure.defaultTree newTree_
-
-        newWorkingTree =
-            TreeStructure.setTree newTree defaultModel.workingTree
-
-        startingWordcount =
-            newTree_
-                |> Maybe.map (\t -> countWords (treeToMarkdownString False t))
-                |> Maybe.withDefault 0
-
-        columnNumber =
-            newWorkingTree.columns |> List.length |> (\l -> l - 1)
-    in
+init : String -> ( InitModel, Bool ) -> ( Model, Cmd Msg )
+init dbName ( modelIn, isImport ) =
     ( { defaultModel
-        | workingTree = newWorkingTree
-        , objects = newObjects
-        , status = newStatus
-        , language = langFromString modelIn.language
+        | language = langFromString modelIn.language
         , isMac = modelIn.isMac
         , shortcutTrayOpen = modelIn.shortcutTrayOpen
         , videoModalOpen = modelIn.videoModalOpen
-        , startingWordcount = startingWordcount
         , currentTime = Time.millisToPosix modelIn.currentTime
         , lastCommitSaved = Maybe.map Time.millisToPosix modelIn.lastCommitSaved
         , lastFileSaved = Maybe.map (Time.millisToPosix << round) modelIn.lastFileSaved
         , seed = Random.initialSeed modelIn.currentTime
         , fonts = Fonts.init modelIn.fonts
       }
-    , Cmd.batch [ focus modelIn.lastActive, sendOut <| ColumnNumberChange columnNumber ]
+    , sendOut <| LoadDatabase dbName
     )
         |> activate modelIn.lastActive
         |> (\mc ->

@@ -18,14 +18,14 @@ type Model
     | Doc Page.Doc.Model
 
 
-init : ( Json.Value, Page.Doc.InitModel, Bool ) -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init : ( Page.Doc.InitModel, Bool ) -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url navKey =
     case url.path of
         "/" ->
             ( Home Page.Home.init, Cmd.none )
 
-        _ ->
-            Page.Doc.init flags
+        dbNamePath ->
+            Page.Doc.init (String.dropLeft 1 dbNamePath) flags
                 |> updateWith Doc GotDocMsg
 
 
@@ -98,7 +98,7 @@ subscriptions model =
 -- MAIN
 
 
-main : Program ( Json.Value, Page.Doc.InitModel, Bool ) Model Msg
+main : Program ( Page.Doc.InitModel, Bool ) Model Msg
 main =
     Browser.application
         { init = init
