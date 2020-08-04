@@ -1,6 +1,7 @@
-port module Page.Doc exposing (InitModel, Model, Msg, init, subscriptions, update, view)
+port module Page.Doc exposing (InitModel, Model, Msg, init, subscriptions, toNavKey, update, view)
 
 import Browser.Dom
+import Browser.Navigation as Nav
 import Coders exposing (..)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
 import Dict
@@ -57,6 +58,9 @@ type alias Model =
     , objects : Objects.Model
     , status : Status
 
+    -- SPA Page State
+    , navKey : Nav.Key
+
     -- Transient state
     , viewState : ViewState
     , dirty : Bool
@@ -103,11 +107,12 @@ type alias InitModel =
     }
 
 
-defaultModel : Model
-defaultModel =
+defaultModel : Nav.Key -> Model
+defaultModel navKey =
     { workingTree = TreeStructure.defaultModel
     , objects = Objects.defaultModel
     , status = Bare
+    , navKey = navKey
     , debouncerStateCommit =
         Debouncer.throttle (fromSeconds 3)
             |> Debouncer.settleWhenQuietFor (Just <| fromSeconds 3)
@@ -157,29 +162,16 @@ defaultModel =
 -}
 
 
-init : String -> ( InitModel, Bool ) -> ( Model, Cmd Msg )
-init dbName ( modelIn, isImport ) =
-    ( { defaultModel
-        | language = langFromString modelIn.language
-        , isMac = modelIn.isMac
-        , shortcutTrayOpen = modelIn.shortcutTrayOpen
-        , videoModalOpen = modelIn.videoModalOpen
-        , currentTime = Time.millisToPosix modelIn.currentTime
-        , lastCommitSaved = Maybe.map Time.millisToPosix modelIn.lastCommitSaved
-        , lastFileSaved = Maybe.map (Time.millisToPosix << round) modelIn.lastFileSaved
-        , seed = Random.initialSeed modelIn.currentTime
-        , fonts = Fonts.init modelIn.fonts
-      }
+init : Nav.Key -> String -> ( Model, Cmd Msg )
+init navKey dbName =
+    ( defaultModel navKey
     , sendOut <| LoadDatabase dbName
     )
-        |> activate modelIn.lastActive
-        |> (\mc ->
-                if isImport then
-                    mc |> addToHistory
 
-                else
-                    mc
-           )
+
+toNavKey : Model -> Nav.Key
+toNavKey model =
+    model.navKey
 
 
 
@@ -696,13 +688,13 @@ update msg ({ objects, workingTree, status } as model) =
                 DatabaseLoaded dataIn ->
                     let
                         ( newStatus, newTree_, newObjects ) =
-                            Objects.update (Objects.Init dataIn) defaultModel.objects
+                            Objects.update (Objects.Init dataIn) (defaultModel model.navKey).objects
 
                         newTree =
                             Maybe.withDefault TreeStructure.defaultTree newTree_
 
                         newWorkingTree =
-                            TreeStructure.setTree newTree defaultModel.workingTree
+                            TreeStructure.setTree newTree (defaultModel model.navKey).workingTree
 
                         startingWordcount =
                             newTree_

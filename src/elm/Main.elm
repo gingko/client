@@ -14,19 +14,39 @@ import Url exposing (Url)
 
 
 type Model
-    = Home Page.Home.Model
+    = Redirect Nav.Key
+    | Home Page.Home.Model
     | Doc Page.Doc.Model
 
 
-init : ( Page.Doc.InitModel, Bool ) -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init flags url navKey =
+init : Url -> Nav.Key -> ( Model, Cmd Msg )
+init url navKey =
+    changeRouteTo url (Redirect navKey)
+
+
+changeRouteTo : Url -> Model -> ( Model, Cmd Msg )
+changeRouteTo url model =
     case url.path of
         "/" ->
-            ( Home Page.Home.init, Cmd.none )
+            Page.Home.init (toNavKey model)
+                |> updateWith Home GotHomeMsg
 
         dbNamePath ->
-            Page.Doc.init (String.dropLeft 1 dbNamePath) flags
+            Page.Doc.init (toNavKey model) (String.dropLeft 1 dbNamePath)
                 |> updateWith Doc GotDocMsg
+
+
+toNavKey : Model -> Nav.Key
+toNavKey page =
+    case page of
+        Redirect navKey ->
+            navKey
+
+        Home home ->
+            Page.Home.toNavKey home
+
+        Doc doc ->
+            Page.Doc.toNavKey doc
 
 
 
@@ -36,8 +56,11 @@ init flags url navKey =
 view : Model -> Document Msg
 view model =
     case model of
+        Redirect _ ->
+            { title = "Loading...", body = [] }
+
         Home homeModel ->
-            { title = "Gingko - Home", body = [ Page.Home.view homeModel ] }
+            { title = "Gingko - Home", body = [ Html.map GotHomeMsg (Page.Home.view homeModel) ] }
 
         Doc docModel ->
             { title = "Gingko", body = [ Html.map GotDocMsg (Page.Doc.view docModel) ] }
@@ -50,24 +73,26 @@ view model =
 type Msg
     = ChangedUrl Url
     | ClickedLink Browser.UrlRequest
+    | GotHomeMsg Page.Home.Msg
     | GotDocMsg Page.Doc.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model ) of
-        ( ChangedUrl _, _ ) ->
-            ( model, Cmd.none )
+        ( ChangedUrl url, _ ) ->
+            changeRouteTo url model
 
         ( ClickedLink _, _ ) ->
             ( model, Cmd.none )
 
         ( GotDocMsg docMsg, Doc docModel ) ->
-            let
-                ( newDocModel, docCmd ) =
-                    Page.Doc.update docMsg docModel
-            in
-            ( Doc newDocModel, Cmd.map GotDocMsg docCmd )
+            Page.Doc.update docMsg docModel
+                |> updateWith Doc GotDocMsg
+
+        ( GotHomeMsg homeMsg, Home homeModel ) ->
+            Page.Home.update homeMsg homeModel
+                |> updateWith Home GotHomeMsg
 
         _ ->
             ( model, Cmd.none )
@@ -87,21 +112,24 @@ updateWith toModel toMsg ( subModel, subCmd ) =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     case model of
-        Doc docModel ->
-            Sub.map GotDocMsg (Page.Doc.subscriptions docModel)
+        Redirect _ ->
+            Sub.none
 
         Home _ ->
             Sub.none
+
+        Doc docModel ->
+            Sub.map GotDocMsg (Page.Doc.subscriptions docModel)
 
 
 
 -- MAIN
 
 
-main : Program ( Page.Doc.InitModel, Bool ) Model Msg
+main : Program () Model Msg
 main =
     Browser.application
-        { init = init
+        { init = \_ -> init
         , view = view
         , update = update
         , subscriptions = subscriptions
