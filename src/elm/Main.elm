@@ -3,7 +3,6 @@ module Main exposing (main)
 import Browser exposing (Document)
 import Browser.Navigation as Nav
 import Html
-import Json.Decode as Json
 import Page.Doc
 import Page.Home
 import Url exposing (Url)

@@ -3,6 +3,7 @@ module Page.Home exposing (Model, Msg, init, toNavKey, update, view)
 import Browser.Navigation as Nav
 import Html exposing (Html, button, div, text)
 import Html.Events exposing (onClick)
+import RandomId
 import Translation exposing (langFromString)
 
 
@@ -45,7 +46,7 @@ view : Model -> Html Msg
 view model =
     div []
         [ text "This is the home page"
-        , button [ onClick NewDoc ] [ text "New" ]
+        , button [ onClick GetNewDocId ] [ text "New" ]
         ]
 
 
@@ -54,11 +55,15 @@ view model =
 
 
 type Msg
-    = NewDoc
+    = GetNewDocId
+    | NewDocIdReceived String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NewDoc ->
-            ( model, Nav.pushUrl model.navKey "aNewUrlFromElm" )
+        GetNewDocId ->
+            ( model, RandomId.generate NewDocIdReceived )
+
+        NewDocIdReceived docId ->
+            ( model, Nav.pushUrl model.navKey docId )
