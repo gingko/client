@@ -5,6 +5,7 @@ import Browser.Navigation as Nav
 import Html
 import Page.Doc
 import Page.Home
+import Page.Login
 import Url exposing (Url)
 
 
@@ -14,6 +15,7 @@ import Url exposing (Url)
 
 type Model
     = Redirect Nav.Key
+    | Login Page.Login.Model
     | Home Page.Home.Model
     | Doc Page.Doc.Model
 
@@ -30,6 +32,10 @@ changeRouteTo url model =
             Page.Home.init (toNavKey model)
                 |> updateWith Home GotHomeMsg
 
+        "/login" ->
+            Page.Login.init (toNavKey model)
+                |> updateWith Login GotLoginMsg
+
         dbNamePath ->
             Page.Doc.init (toNavKey model) (String.dropLeft 1 dbNamePath)
                 |> updateWith Doc GotDocMsg
@@ -40,6 +46,9 @@ toNavKey page =
     case page of
         Redirect navKey ->
             navKey
+
+        Login login ->
+            Page.Login.toNavKey login
 
         Home home ->
             Page.Home.toNavKey home
@@ -58,11 +67,14 @@ view model =
         Redirect _ ->
             { title = "Loading...", body = [] }
 
-        Home homeModel ->
-            { title = "Gingko - Home", body = [ Html.map GotHomeMsg (Page.Home.view homeModel) ] }
+        Login login ->
+            { title = "Gingko - Login", body = [ Html.map GotLoginMsg (Page.Login.view login) ] }
 
-        Doc docModel ->
-            { title = "Gingko", body = [ Html.map GotDocMsg (Page.Doc.view docModel) ] }
+        Home home ->
+            { title = "Gingko - Home", body = [ Html.map GotHomeMsg (Page.Home.view home) ] }
+
+        Doc doc ->
+            { title = "Gingko", body = [ Html.map GotDocMsg (Page.Doc.view doc) ] }
 
 
 
@@ -72,6 +84,7 @@ view model =
 type Msg
     = ChangedUrl Url
     | ClickedLink Browser.UrlRequest
+    | GotLoginMsg Page.Login.Msg
     | GotHomeMsg Page.Home.Msg
     | GotDocMsg Page.Doc.Msg
 
@@ -85,6 +98,10 @@ update msg model =
         ( ClickedLink _, _ ) ->
             ( model, Cmd.none )
 
+        ( GotLoginMsg loginMsg, Login loginModel ) ->
+            Page.Login.update loginMsg loginModel
+                |> updateWith Login GotLoginMsg
+
         ( GotDocMsg docMsg, Doc docModel ) ->
             Page.Doc.update docMsg docModel
                 |> updateWith Doc GotDocMsg
@@ -94,6 +111,10 @@ update msg model =
                 |> updateWith Home GotHomeMsg
 
         _ ->
+            let
+                _ =
+                    Debug.log "(msg, model)" ( msg, model )
+            in
             ( model, Cmd.none )
 
 
@@ -112,6 +133,9 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     case model of
         Redirect _ ->
+            Sub.none
+
+        Login _ ->
             Sub.none
 
         Home _ ->
