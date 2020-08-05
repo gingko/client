@@ -79,10 +79,14 @@ update msg model =
                     Dec.field "name" Dec.string
             in
             ( model
-            , Http.post
-                { url = "http://localhost:5984/_session"
+            , Http.riskyRequest
+                { method = "POST"
+                , url = "http://localhost:5984/_session"
+                , headers = []
                 , body = requestBody
                 , expect = Http.expectJson CompletedLogin responseDecoder
+                , timeout = Nothing
+                , tracker = Nothing
                 }
             )
 
@@ -93,11 +97,7 @@ update msg model =
             ( { model | password = password }, Cmd.none )
 
         CompletedLogin email ->
-            let
-                _ =
-                    Debug.log "logged in!" email
-            in
-            ( model, Cmd.none )
+            ( model, Nav.replaceUrl model.navKey "/" )
 
 
 
