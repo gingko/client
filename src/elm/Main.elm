@@ -29,18 +29,36 @@ init maybeEmail url navKey =
 
 changeRouteTo : Url -> Model -> ( Model, Cmd Msg )
 changeRouteTo url model =
-    case url.path of
-        "/" ->
-            Page.Home.init (toSession model)
-                |> updateWith Home GotHomeMsg
+    let
+        session =
+            toSession model
+    in
+    if Session.loggedIn session then
+        case url.path of
+            "/" ->
+                Page.Home.init session
+                    |> updateWith Home GotHomeMsg
 
-        "/login" ->
-            Page.Login.init (toSession model)
-                |> updateWith Login GotLoginMsg
+            "/login" ->
+                Page.Login.init session
+                    |> updateWith Login GotLoginMsg
 
-        dbNamePath ->
-            Page.Doc.init (toSession model) (String.dropLeft 1 dbNamePath)
-                |> updateWith Doc GotDocMsg
+            dbNamePath ->
+                Page.Doc.init session (String.dropLeft 1 dbNamePath)
+                    |> updateWith Doc GotDocMsg
+
+    else
+        let
+            ( loginModel, loginCmds ) =
+                Page.Login.init session
+                    |> updateWith Login GotLoginMsg
+        in
+        case url.path of
+            "/login" ->
+                ( loginModel, loginCmds )
+
+            _ ->
+                ( loginModel, Cmd.batch [ Nav.replaceUrl (Session.navKey session) "/login", loginCmds ] )
 
 
 toSession : Model -> Session

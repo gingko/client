@@ -1,4 +1,4 @@
-module Session exposing (Session, changes, fromData, logout, navKey, save, username)
+module Session exposing (Session, changes, fromData, loggedIn, logout, navKey, save, username)
 
 import Browser.Navigation as Nav
 import Json.Decode as Json
@@ -32,6 +32,16 @@ username session =
 
         Guest _ ->
             Nothing
+
+
+loggedIn : Session -> Bool
+loggedIn session =
+    case session of
+        LoggedIn _ _ ->
+            True
+
+        Guest _ ->
+            False
 
 
 fromData : Nav.Key -> Maybe String -> Session
