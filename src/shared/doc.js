@@ -418,7 +418,7 @@ const update = (msg, data) => {
   try {
     cases[msg]();
   } catch(err) {
-    console.log("elmCases one-port failed:", err, msg, data);
+    console.error("Unexpected message from Elm", err, msg, data);
   }
 };
 

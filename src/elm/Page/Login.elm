@@ -96,8 +96,11 @@ update msg model =
         EnteredPassword password ->
             ( { model | password = password }, Cmd.none )
 
-        CompletedLogin email ->
+        CompletedLogin (Ok email) ->
             ( model, Nav.replaceUrl model.navKey "/" )
+
+        CompletedLogin (Err error) ->
+            ( model, Cmd.none )
 
 
 
