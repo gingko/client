@@ -202,6 +202,7 @@ if (docState.jsonImportData) {
 function initElmAndPorts(initFlags) {
   self.gingko = Elm.Main.init({ node: document.getElementById("elm"), flags: initFlags});
 
+  // Page.Doc messages
   gingko.ports.infoForOutside.subscribe(function(elmdata) {
     update(elmdata.tag, elmdata.data);
   });
@@ -220,6 +221,22 @@ function initElmAndPorts(initFlags) {
   window.checkboxClicked = (cardId, number) => {
     toElm("CheckboxClicked", [cardId, number]);
   };
+
+  // Session messages
+  gingko.ports.storeSession.subscribe((data) => {
+    if (data == null) {
+      localStorage.removeItem(sessionStorageKey);
+    } else {
+      localStorage.setItem(sessionStorageKey, data);
+      setTimeout(()=> gingko.ports.sessionChanged.send(data), 0);
+    }
+  });
+
+  window.addEventListener("storage", function(event) {
+      if (event.storageArea === localStorage && event.key === sessionStorageKey) {
+        gingko.ports.sessionChanged.send(event.newValue);
+      }
+  }, false);
 }
 
 
@@ -267,15 +284,6 @@ const update = (msg, data) => {
         var loadRes = await load();
         toElm("DatabaseLoaded", loadRes);
       }
-
-    , "StoreSession": () => {
-      if (data == null) {
-        localStorage.removeItem(sessionStorageKey);
-      } else {
-        localStorage.setItem(sessionStorageKey, data);
-        setTimeout(()=> toElm("SessionStored", data));
-      }
-    }
 
     , "CommitWithTimestamp": () => {
         toElm("Commit", Date.now());
