@@ -1,7 +1,6 @@
-port module Page.Doc exposing (InitModel, Model, Msg, init, subscriptions, toNavKey, update, view)
+port module Page.Doc exposing (InitModel, Model, Msg, init, subscriptions, toSession, update, view)
 
 import Browser.Dom
-import Browser.Navigation as Nav
 import Coders exposing (..)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
 import Dict
@@ -23,6 +22,7 @@ import Markdown
 import Ports exposing (..)
 import Random
 import Regex
+import Session exposing (Session)
 import Task
 import Time
 import Translation exposing (..)
@@ -59,7 +59,7 @@ type alias Model =
     , status : Status
 
     -- SPA Page State
-    , navKey : Nav.Key
+    , session : Session
 
     -- Transient state
     , viewState : ViewState
@@ -107,12 +107,12 @@ type alias InitModel =
     }
 
 
-defaultModel : Nav.Key -> Model
-defaultModel navKey =
+defaultModel : Session -> Model
+defaultModel session =
     { workingTree = TreeStructure.defaultModel
     , objects = Objects.defaultModel
     , status = Bare
-    , navKey = navKey
+    , session = session
     , debouncerStateCommit =
         Debouncer.throttle (fromSeconds 3)
             |> Debouncer.settleWhenQuietFor (Just <| fromSeconds 3)
@@ -162,16 +162,16 @@ defaultModel navKey =
 -}
 
 
-init : Nav.Key -> String -> ( Model, Cmd Msg )
-init navKey dbName =
-    ( defaultModel navKey
+init : Session -> String -> ( Model, Cmd Msg )
+init session dbName =
+    ( defaultModel session
     , sendOut <| LoadDatabase dbName
     )
 
 
-toNavKey : Model -> Nav.Key
-toNavKey model =
-    model.navKey
+toSession : Model -> Session
+toSession model =
+    model.session
 
 
 
@@ -688,13 +688,13 @@ update msg ({ objects, workingTree, status } as model) =
                 DatabaseLoaded dataIn ->
                     let
                         ( newStatus, newTree_, newObjects ) =
-                            Objects.update (Objects.Init dataIn) (defaultModel model.navKey).objects
+                            Objects.update (Objects.Init dataIn) (defaultModel model.session).objects
 
                         newTree =
                             Maybe.withDefault TreeStructure.defaultTree newTree_
 
                         newWorkingTree =
-                            TreeStructure.setTree newTree (defaultModel model.navKey).workingTree
+                            TreeStructure.setTree newTree (defaultModel model.session).workingTree
 
                         startingWordcount =
                             newTree_

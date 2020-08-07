@@ -1,4 +1,4 @@
-port module Ports exposing (ExportFormat(..), ExportSelection(..), ExportSettings, IncomingMsg(..), OutgoingMsg(..), encodeAndSend, infoForElm, infoForOutside, receiveMsg, sendOut, unionTypeToString)
+port module Ports exposing (ExportFormat(..), ExportSelection(..), ExportSettings, IncomingMsg(..), OutgoingMsg(..), encodeAndSend, infoForElm, infoForOutside, receiveMsg, sendOut, sessionChanged, storeSession, unionTypeToString)
 
 import Coders exposing (..)
 import Doc.Fonts as Fonts
@@ -509,3 +509,9 @@ port infoForOutside : OutsideData -> Cmd msg
 
 
 port infoForElm : (OutsideData -> msg) -> Sub msg
+
+
+port storeSession : Maybe String -> Cmd msg
+
+
+port sessionChanged : (Value -> msg) -> Sub msg

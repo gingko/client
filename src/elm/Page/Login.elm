@@ -1,4 +1,4 @@
-module Page.Login exposing (Model, Msg, init, toNavKey, update, view)
+module Page.Login exposing (Model, Msg, init, subscriptions, toSession, update, view)
 
 import Browser.Navigation as Nav
 import Html exposing (..)
@@ -7,7 +7,9 @@ import Html.Events exposing (onInput, onSubmit)
 import Http
 import Json.Decode as Dec
 import Json.Encode as Enc
+import Ports
 import Result exposing (Result)
+import Session exposing (Session)
 
 
 
@@ -15,14 +17,19 @@ import Result exposing (Result)
 
 
 type alias Model =
-    { navKey : Nav.Key, email : String, password : String }
+    { session : Session, email : String, password : String }
 
 
-init : Nav.Key -> ( Model, Cmd msg )
-init navKey =
-    ( { navKey = navKey, email = "", password = "" }
+init : Session -> ( Model, Cmd msg )
+init session =
+    ( { session = session, email = "", password = "" }
     , Cmd.none
     )
+
+
+toSession : Model -> Session
+toSession model =
+    model.session
 
 
 
@@ -61,6 +68,7 @@ type Msg
     | EnteredEmail String
     | EnteredPassword String
     | CompletedLogin (Result Http.Error String)
+    | GotSession Session
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -97,16 +105,19 @@ update msg model =
             ( { model | password = password }, Cmd.none )
 
         CompletedLogin (Ok email) ->
-            ( model, Nav.replaceUrl model.navKey "/" )
+            ( model, Session.save email )
 
         CompletedLogin (Err error) ->
             ( model, Cmd.none )
 
+        GotSession email ->
+            ( model, Nav.replaceUrl (Session.navKey model.session) "/" )
 
 
--- EXPORT
+
+-- SUBSCRIPTIONS
 
 
-toNavKey : Model -> Nav.Key
-toNavKey =
-    .navKey
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Session.changes GotSession (Session.navKey model.session)

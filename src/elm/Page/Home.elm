@@ -1,9 +1,10 @@
-module Page.Home exposing (Model, Msg, init, toNavKey, update, view)
+module Page.Home exposing (Model, Msg, init, toSession, update, view)
 
 import Browser.Navigation as Nav
 import Html exposing (Html, button, div, text)
 import Html.Events exposing (onClick)
 import RandomId
+import Session exposing (Session)
 import Translation exposing (langFromString)
 
 
@@ -14,7 +15,7 @@ import Translation exposing (langFromString)
 type alias Model =
     { documents : List DocEntry
     , language : Translation.Language
-    , navKey : Nav.Key
+    , session : Session
     }
 
 
@@ -26,16 +27,16 @@ type DocState
     = Local
 
 
-init : Nav.Key -> ( Model, Cmd msg )
-init navKey =
-    ( { documents = [], language = langFromString "en", navKey = navKey }
+init : Session -> ( Model, Cmd msg )
+init session =
+    ( { documents = [], language = langFromString "en", session = session }
     , Cmd.none
     )
 
 
-toNavKey : Model -> Nav.Key
-toNavKey model =
-    model.navKey
+toSession : Model -> Session
+toSession model =
+    model.session
 
 
 
@@ -66,4 +67,4 @@ update msg model =
             ( model, RandomId.generate NewDocIdReceived )
 
         NewDocIdReceived docId ->
-            ( model, Nav.pushUrl model.navKey docId )
+            ( model, Nav.pushUrl (Session.navKey model.session) docId )

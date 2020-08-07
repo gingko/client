@@ -27,6 +27,8 @@ var _lastSelection = null;
 var collab = {};
 let helpWidgetLauncher;
 
+const sessionStorageKey = "gingko-session-storage";
+
 const ActionOnData =
   { Exit: "Exit"
   , Save: "Save"
@@ -41,6 +43,14 @@ const userStore = container.userStore;
 var lang = userStore.get("language") || "en";
 var helpVisible = userStore.get("help-visible") || true;
 self.savedObjectIds = [];
+
+
+// Whenever localStorage changes in another tab, report it if necessary.
+window.addEventListener("storage", function(event) {
+  if (event.storageArea === localStorage && event.key === sessionStorageKey) {
+    toElm("SessionStored", event.newValue);
+  }
+}, false);
 
 
 const docStateHandlers = {
@@ -145,6 +155,11 @@ container.msgWas("main:database-open", async () => {
   self.db = new PouchDB(docState.dbPath[0]);
 });
 
+
+const initFlags = localStorage.getItem(sessionStorageKey) || null;
+initElmAndPorts(initFlags);
+
+/*
 if (docState.jsonImportData) {
   const initFlags =
     [ docState.jsonImportData
@@ -179,7 +194,7 @@ if (docState.jsonImportData) {
 
   initElmAndPorts(initFlags);
 }
-
+*/
 
 //self.socket = io.connect('http://localhost:3000')
 
@@ -252,6 +267,15 @@ const update = (msg, data) => {
         var loadRes = await load();
         toElm("DatabaseLoaded", loadRes);
       }
+
+    , "StoreSession": () => {
+      if (data == null) {
+        localStorage.removeItem(sessionStorageKey);
+      } else {
+        localStorage.setItem(sessionStorageKey, data);
+        setTimeout(()=> toElm("SessionStored", data));
+      }
+    }
 
     , "CommitWithTimestamp": () => {
         toElm("Commit", Date.now());

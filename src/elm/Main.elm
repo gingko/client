@@ -3,9 +3,11 @@ module Main exposing (main)
 import Browser exposing (Document)
 import Browser.Navigation as Nav
 import Html
+import Json.Decode exposing (Value)
 import Page.Doc
 import Page.Home
 import Page.Login
+import Session exposing (Session)
 import Url exposing (Url)
 
 
@@ -14,47 +16,47 @@ import Url exposing (Url)
 
 
 type Model
-    = Redirect Nav.Key
+    = Redirect Session
     | Login Page.Login.Model
     | Home Page.Home.Model
     | Doc Page.Doc.Model
 
 
-init : Url -> Nav.Key -> ( Model, Cmd Msg )
-init url navKey =
-    changeRouteTo url (Redirect navKey)
+init : Maybe String -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init maybeEmail url navKey =
+    changeRouteTo url (Redirect (Session.fromData navKey maybeEmail))
 
 
 changeRouteTo : Url -> Model -> ( Model, Cmd Msg )
 changeRouteTo url model =
     case url.path of
         "/" ->
-            Page.Home.init (toNavKey model)
+            Page.Home.init (toSession model)
                 |> updateWith Home GotHomeMsg
 
         "/login" ->
-            Page.Login.init (toNavKey model)
+            Page.Login.init (toSession model)
                 |> updateWith Login GotLoginMsg
 
         dbNamePath ->
-            Page.Doc.init (toNavKey model) (String.dropLeft 1 dbNamePath)
+            Page.Doc.init (toSession model) (String.dropLeft 1 dbNamePath)
                 |> updateWith Doc GotDocMsg
 
 
-toNavKey : Model -> Nav.Key
-toNavKey page =
+toSession : Model -> Session
+toSession page =
     case page of
-        Redirect navKey ->
-            navKey
+        Redirect session ->
+            session
 
         Login login ->
-            Page.Login.toNavKey login
+            Page.Login.toSession login
 
         Home home ->
-            Page.Home.toNavKey home
+            Page.Home.toSession home
 
         Doc doc ->
-            Page.Doc.toNavKey doc
+            Page.Doc.toSession doc
 
 
 
@@ -135,24 +137,24 @@ subscriptions model =
         Redirect _ ->
             Sub.none
 
-        Login _ ->
-            Sub.none
+        Login pageModel ->
+            Sub.map GotLoginMsg (Page.Login.subscriptions pageModel)
 
         Home _ ->
             Sub.none
 
-        Doc docModel ->
-            Sub.map GotDocMsg (Page.Doc.subscriptions docModel)
+        Doc pageModel ->
+            Sub.map GotDocMsg (Page.Doc.subscriptions pageModel)
 
 
 
 -- MAIN
 
 
-main : Program () Model Msg
+main : Program (Maybe String) Model Msg
 main =
     Browser.application
-        { init = \_ -> init
+        { init = init
         , view = view
         , update = update
         , subscriptions = subscriptions
