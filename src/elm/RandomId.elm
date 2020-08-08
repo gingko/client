@@ -1,4 +1,4 @@
-module RandomId exposing (generate)
+module RandomId exposing (generate, intToValidChar)
 
 import Random
 
@@ -22,7 +22,7 @@ intToValidChar int =
         -- 0 to 9
         int + 48 |> Char.fromCode
 
-    else if int <= 10 + 26 then
+    else if int < 10 + 26 then
         -- A to Z
         int - 10 + 65 |> Char.fromCode
 
