@@ -58,7 +58,7 @@ changeRouteTo url model =
                 ( loginModel, loginCmds )
 
             _ ->
-                ( loginModel, Cmd.batch [ Nav.replaceUrl (Session.navKey session) "/login", loginCmds ] )
+                ( loginModel, Cmd.batch [ loginCmds, Nav.replaceUrl (Session.navKey session) "/login" ] )
 
 
 toSession : Model -> Session
@@ -85,7 +85,7 @@ view : Model -> Document Msg
 view model =
     case model of
         Redirect _ ->
-            { title = "Loading...", body = [] }
+            { title = "Loading...", body = [ Html.div [] [ Html.text "LOADING..." ] ] }
 
         Login login ->
             { title = "Gingko - Login", body = [ Html.map GotLoginMsg (Page.Login.view login) ] }
@@ -107,12 +107,17 @@ type Msg
     | GotLoginMsg Page.Login.Msg
     | GotHomeMsg Page.Home.Msg
     | GotDocMsg Page.Doc.Msg
+    | GotSession Session
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model ) of
         ( ChangedUrl url, _ ) ->
+            let
+                _ =
+                    Debug.log "Main ChangedUrl" url
+            in
             changeRouteTo url model
 
         ( ClickedLink _, _ ) ->
@@ -129,6 +134,10 @@ update msg model =
         ( GotHomeMsg homeMsg, Home homeModel ) ->
             Page.Home.update homeMsg homeModel
                 |> updateWith Home GotHomeMsg
+
+        ( GotSession session, Redirect _ ) ->
+            -- TODO: Does this serve any purpose?
+            ( Redirect session, Nav.replaceUrl (Session.navKey session) "/" )
 
         _ ->
             let
@@ -153,7 +162,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     case model of
         Redirect _ ->
-            Sub.none
+            Session.changes GotSession (Session.navKey (toSession model))
 
         Login pageModel ->
             Sub.map GotLoginMsg (Page.Login.subscriptions pageModel)

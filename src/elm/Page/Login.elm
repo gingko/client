@@ -110,8 +110,8 @@ update msg model =
         CompletedLogin (Err error) ->
             ( model, Cmd.none )
 
-        GotSession email ->
-            ( model, Nav.replaceUrl (Session.navKey model.session) "/" )
+        GotSession session ->
+            ( { model | session = session }, Nav.replaceUrl (Session.navKey session) "/" )
 
 
 
