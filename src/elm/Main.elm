@@ -157,7 +157,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     case model of
         Redirect _ ->
-            Session.changes GotSession (Session.navKey (toSession model))
+            Sub.none
 
         Login pageModel ->
             Sub.map GotLoginMsg (Page.Login.subscriptions pageModel)
