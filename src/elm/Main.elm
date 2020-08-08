@@ -107,7 +107,6 @@ type Msg
     | GotLoginMsg Page.Login.Msg
     | GotHomeMsg Page.Home.Msg
     | GotDocMsg Page.Doc.Msg
-    | GotSession Session
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -134,10 +133,6 @@ update msg model =
         ( GotHomeMsg homeMsg, Home homeModel ) ->
             Page.Home.update homeMsg homeModel
                 |> updateWith Home GotHomeMsg
-
-        ( GotSession session, Redirect _ ) ->
-            -- TODO: Does this serve any purpose?
-            ( Redirect session, Nav.replaceUrl (Session.navKey session) "/" )
 
         _ ->
             let
