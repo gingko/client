@@ -8,6 +8,7 @@ import Dict
 import Doc.Data as Data
 import Doc.Fonts as Fonts
 import Doc.Fullscreen as Fullscreen
+import Doc.Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (..)
 import Doc.TreeUtils exposing (..)
 import Doc.UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
@@ -58,7 +59,8 @@ type alias Model =
     { workingTree : TreeStructure.Model
     , objects : Data.Model
     , status : Status
-    , metadata : ( Maybe String, String )
+    , dbName : String
+    , metadata : Metadata
 
     -- SPA Page State
     , session : Session
@@ -109,12 +111,13 @@ type alias InitModel =
     }
 
 
-defaultModel : Session -> Model
-defaultModel session =
+defaultModel : Session -> String -> Model
+defaultModel session dbName =
     { workingTree = TreeStructure.defaultModel
     , objects = Data.defaultModel
     , status = Bare
-    , metadata = ( Nothing, "" )
+    , dbName = dbName
+    , metadata = Metadata Nothing Nothing
     , session = session
     , debouncerStateCommit =
         Debouncer.throttle (fromSeconds 3)
@@ -167,7 +170,7 @@ defaultModel session =
 
 init : Session -> String -> ( Model, Cmd Msg )
 init session dbName =
-    ( defaultModel session
+    ( defaultModel session dbName
     , sendOut <| LoadDatabase dbName
     )
 
@@ -697,7 +700,7 @@ update msg ({ objects, workingTree, status } as model) =
                             Maybe.withDefault TreeStructure.defaultTree decodedData.builtTree
 
                         newWorkingTree =
-                            TreeStructure.setTree newTree (defaultModel model.session).workingTree
+                            TreeStructure.setTree newTree (defaultModel model.session model.dbName).workingTree
 
                         startingWordcount =
                             decodedData.builtTree
@@ -716,9 +719,10 @@ update msg ({ objects, workingTree, status } as model) =
                       }
                     , Cmd.batch
                         [ sendOut <| ColumnNumberChange columnNumber
-                        , case decodedData.metadata of
-                            ( Just name, _ ) ->
-                                Nav.replaceUrl (Session.navKey model.session) ("/" ++ name)
+                        , case decodedData.metadata.docName of
+                            Just name ->
+                                --Nav.replaceUrl (Session.navKey model.session) ("/" ++ name)
+                                Cmd.none
 
                             _ ->
                                 Cmd.none

@@ -1,8 +1,9 @@
 module Doc.Data exposing (Model, Msg(..), defaultModel, init, setHeadRev, toValue, update)
 
-import Coders exposing (metadataDecoder, statusDecoder, tripleDecoder, tupleDecoder)
+import Coders exposing (statusDecoder, tripleDecoder, tupleDecoder)
 import Dict exposing (Dict)
 import Diff3 exposing (diff3Merge)
+import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.TreeStructure exposing (apply, opToMsg)
 import Doc.TreeUtils exposing (sha1)
 import Json.Decode as Json
@@ -51,7 +52,7 @@ type alias RefObject =
 
 
 type alias DocumentData =
-    { metadata : ( Maybe String, String )
+    { metadata : Metadata
     , status : Status
     , builtTree : Maybe Tree
     , objects : Model
@@ -60,7 +61,7 @@ type alias DocumentData =
 
 init : Json.Value -> DocumentData
 init json =
-    case Json.decodeValue (tripleDecoder metadataDecoder statusDecoder modelDecoder) json of
+    case Json.decodeValue (tripleDecoder Metadata.decoder statusDecoder modelDecoder) json of
         Ok ( metadata, status, modelIn ) ->
             case status of
                 MergeConflict mTree _ _ _ ->
