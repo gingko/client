@@ -48,7 +48,8 @@ self.savedObjectIds = [];
 // Whenever localStorage changes in another tab, report it if necessary.
 window.addEventListener("storage", function(event) {
   if (event.storageArea === localStorage && event.key === sessionStorageKey) {
-    toElm("SessionStored", event.newValue);
+    setUserDb(event.newValue);
+    gingko.ports.sessionChanged.send(event.newValue);
   }
 }, false);
 
@@ -67,8 +68,6 @@ const docStateHandlers = {
 
         case "sync":
           if (value[0]) {
-            self.setTreeId(value[1]);
-            toElm("SetSync", value[0]);
           }
           break;
 
@@ -97,27 +96,8 @@ container.msgWas("set-doc-state", (e, data) => {
 
 // ============ SYNC ====================
 
-self.signup = async (email, password, passwordConfirm) => {
-  try {
-    if (password !== passwordConfirm) throw new Error("Passwords don't match");
-
-    var res = await self.axios.post(`${config.APP_SERVER}/signup`, {email: email, password: password});
-    console.log("axios signup post response", res);
-    if (res.data.ok) {
-      self.login(email, password);
-    }
-  } catch (e) {
-    console.log("signup error", e);
-  }
-};
-
-self.login = async (email, password) => {
-  self.setUserDb(email);
-  var sessionDb = `${config.COUCHDB_SERVER}/_session`;
-  return await self.axios.post(sessionDb, {name: email, password: password}, {withCredentials: true});
-};
-
-self.setUserDb = (email) => {
+function setUserDb(email) {
+  console.log("Inside setUserDb", email);
   var userDb = `${config.COUCHDB_SERVER}/userdb-`+ helpers.toHex(email);
   var remoteOpts =
     { skip_setup: true
@@ -128,11 +108,7 @@ self.setUserDb = (email) => {
   self.remoteDB = new PouchDB(userDb, remoteOpts);
 };
 
-self.enableSync = (treeId) => {
-  docState.sync = [true, treeId];
-};
-
-self.setTreeId = (treeId) => {
+function enableSync(treeId) {
   self.TREE_ID = treeId;
   self.remoteDB.transform(
     { outgoing: (doc) => {
@@ -144,6 +120,7 @@ self.setTreeId = (treeId) => {
         return doc;
       }
   });
+  toElm("SetSync", true);
 };
 
 // ============ END SYNC ====================
@@ -157,6 +134,9 @@ container.msgWas("main:database-open", async () => {
 
 
 const initFlags = localStorage.getItem(sessionStorageKey) || null;
+if (initFlags) {
+  setUserDb(initFlags);
+}
 initElmAndPorts(initFlags);
 
 /*
@@ -228,6 +208,7 @@ function initElmAndPorts(initFlags) {
       localStorage.removeItem(sessionStorageKey);
     } else {
       localStorage.setItem(sessionStorageKey, data);
+      setUserDb(data);
       setTimeout(()=> gingko.ports.sessionChanged.send(data), 0);
     }
   });
@@ -282,6 +263,7 @@ const update = (msg, data) => {
     , "LoadDatabase": async () => {
         docState.dbPath = [data, ""];
         var loadRes = await load();
+        enableSync(data);
         toElm("DatabaseLoaded", loadRes);
       }
 
