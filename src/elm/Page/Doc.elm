@@ -59,7 +59,6 @@ type alias Model =
     { workingTree : TreeStructure.Model
     , objects : Data.Model
     , status : Status
-    , dbName : String
     , metadata : Metadata
 
     -- SPA Page State
@@ -111,12 +110,11 @@ type alias InitModel =
     }
 
 
-defaultModel : Session -> String -> Model
-defaultModel session dbName =
+defaultModel : Session -> Model
+defaultModel session =
     { workingTree = TreeStructure.defaultModel
     , objects = Data.defaultModel
     , status = Bare
-    , dbName = dbName
     , metadata = Metadata.new
     , session = session
     , debouncerStateCommit =
@@ -170,7 +168,7 @@ defaultModel session dbName =
 
 init : Session -> String -> ( Model, Cmd Msg )
 init session dbName =
-    ( defaultModel session dbName
+    ( defaultModel session
     , sendOut <| LoadDatabase dbName
     )
 
@@ -700,7 +698,7 @@ update msg ({ objects, workingTree, status } as model) =
                             Maybe.withDefault TreeStructure.defaultTree decodedData.builtTree
 
                         newWorkingTree =
-                            TreeStructure.setTree newTree (defaultModel model.session model.dbName).workingTree
+                            TreeStructure.setTree newTree (defaultModel model.session).workingTree
 
                         startingWordcount =
                             decodedData.builtTree
@@ -717,16 +715,7 @@ update msg ({ objects, workingTree, status } as model) =
                         , metadata = decodedData.metadata
                         , startingWordcount = startingWordcount
                       }
-                    , Cmd.batch
-                        [ sendOut <| ColumnNumberChange columnNumber
-                        , case Metadata.getDocName decodedData.metadata of
-                            Just name ->
-                                --Nav.replaceUrl (Session.navKey model.session) ("/" ++ name)
-                                Cmd.none
-
-                            _ ->
-                                Cmd.none
-                        ]
+                    , sendOut <| ColumnNumberChange columnNumber
                     )
 
                 GetDataToSave ->
