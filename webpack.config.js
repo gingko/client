@@ -19,6 +19,7 @@ const webConfig = {
   // Where to output bundled code.
   output: {
     path: path.join(__dirname, "web"),
+    publicPath: "/",
     filename: "[name].js"
   },
 

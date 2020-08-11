@@ -7,6 +7,8 @@ import Json.Decode exposing (Value)
 import Page.Doc
 import Page.Home
 import Page.Login
+import Page.NotFound
+import Route exposing (Route)
 import Session exposing (Session)
 import Url exposing (Url)
 
@@ -17,6 +19,7 @@ import Url exposing (Url)
 
 type Model
     = Redirect Session
+    | NotFound Session
     | Login Page.Login.Model
     | Home Page.Home.Model
     | Doc Page.Doc.Model
@@ -24,28 +27,31 @@ type Model
 
 init : Maybe String -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init maybeEmail url navKey =
-    changeRouteTo url (Redirect (Session.fromData navKey maybeEmail))
+    changeRouteTo (Route.fromUrl url) (Redirect (Session.fromData navKey maybeEmail))
 
 
-changeRouteTo : Url -> Model -> ( Model, Cmd Msg )
-changeRouteTo url model =
+changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )
+changeRouteTo maybeRoute model =
     let
         session =
             toSession model
     in
     if Session.loggedIn session then
-        case url.path of
-            "/" ->
-                Page.Home.init session
-                    |> updateWith Home GotHomeMsg
+        case maybeRoute of
+            Just Route.Home ->
+                Page.Home.init session |> updateWith Home GotHomeMsg
 
-            "/login" ->
-                Page.Login.init session
-                    |> updateWith Login GotLoginMsg
+            Just Route.Login ->
+                Page.Login.init session |> updateWith Login GotLoginMsg
 
-            dbNamePath ->
-                Page.Doc.init session (String.dropLeft 1 dbNamePath)
-                    |> updateWith Doc GotDocMsg
+            Just (Route.Doc dbName _) ->
+                Page.Doc.init session dbName |> updateWith Doc GotDocMsg
+
+            Just (Route.DocUntitled dbName) ->
+                Page.Doc.init session dbName |> updateWith Doc GotDocMsg
+
+            Nothing ->
+                ( NotFound session, Cmd.none )
 
     else
         let
@@ -53,8 +59,8 @@ changeRouteTo url model =
                 Page.Login.init session
                     |> updateWith Login GotLoginMsg
         in
-        case url.path of
-            "/login" ->
+        case maybeRoute of
+            Just Route.Login ->
                 ( loginModel, loginCmds )
 
             _ ->
@@ -65,6 +71,9 @@ toSession : Model -> Session
 toSession page =
     case page of
         Redirect session ->
+            session
+
+        NotFound session ->
             session
 
         Login login ->
@@ -86,6 +95,9 @@ view model =
     case model of
         Redirect _ ->
             { title = "Loading...", body = [ Html.div [] [ Html.text "LOADING..." ] ] }
+
+        NotFound _ ->
+            Page.NotFound.view
 
         Login login ->
             { title = "Gingko - Login", body = [ Html.map GotLoginMsg (Page.Login.view login) ] }
@@ -117,7 +129,7 @@ update msg model =
                 _ =
                     Debug.log "Main ChangedUrl" url
             in
-            changeRouteTo url model
+            changeRouteTo (Route.fromUrl url) model
 
         ( ClickedLink _, _ ) ->
             ( model, Cmd.none )
@@ -157,6 +169,9 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     case model of
         Redirect _ ->
+            Sub.none
+
+        NotFound _ ->
             Sub.none
 
         Login pageModel ->
