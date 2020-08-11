@@ -42,7 +42,7 @@ const webConfig = {
         exclude: [/elm-stuff/, /node_modules/],
         use: {
           loader: "elm-webpack-loader",
-          options: {verbose: true, pathToElm: "./elm-log-colors.sh"}
+          options: {debug: true, verbose: true, pathToElm: "./elm-log-colors.sh"}
         }
       },
       {

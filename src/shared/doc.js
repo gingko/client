@@ -192,12 +192,6 @@ function initElmAndPorts(initFlags) {
     toElm("DragStarted", event.target.id.replace(/^card-/,""));
   });
 
-  window.onbeforeunload = (e) => {
-    actionOnData = ActionOnData.Exit;
-    toElm("GetDataToSave", null);
-    e.returnValue = false;
-  };
-
   window.checkboxClicked = (cardId, number) => {
     toElm("CheckboxClicked", [cardId, number]);
   };
@@ -832,14 +826,6 @@ Mousetrap.bind(["shift+tab"], function(e, s) {
 
 
 /* === DOM manipulation === */
-
-
-document.addEventListener("click", (ev) => {
-  if(ev.target.nodeName == "A") {
-    ev.preventDefault();
-    container.openExternal(ev.target.href);
-  }
-});
 
 
 const observer = new MutationObserver(function(mutations) {

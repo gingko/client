@@ -125,14 +125,15 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model ) of
         ( ChangedUrl url, _ ) ->
-            let
-                _ =
-                    Debug.log "Main ChangedUrl" url
-            in
             changeRouteTo (Route.fromUrl url) model
 
-        ( ClickedLink _, _ ) ->
-            ( model, Cmd.none )
+        ( ClickedLink urlRequest, _ ) ->
+            case urlRequest of
+                Browser.Internal url ->
+                    ( model, Nav.pushUrl (Session.navKey (toSession model)) (Url.toString url) )
+
+                Browser.External href ->
+                    ( model, Nav.load href )
 
         ( GotLoginMsg loginMsg, Login loginModel ) ->
             Page.Login.update loginMsg loginModel
@@ -147,10 +148,6 @@ update msg model =
                 |> updateWith Home GotHomeMsg
 
         _ ->
-            let
-                _ =
-                    Debug.log "(msg, model)" ( msg, model )
-            in
             ( model, Cmd.none )
 
 
