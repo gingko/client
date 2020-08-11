@@ -5,7 +5,7 @@ import Date
 import Dict
 import Diff exposing (..)
 import Doc.CustomElements exposing (gitgraph)
-import Doc.Objects as Objects
+import Doc.Data as Data
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Html exposing (Html, a, button, del, div, fieldset, h1, iframe, input, ins, label, li, span, text, ul)
@@ -19,7 +19,7 @@ import Translation exposing (Language, TranslationId(..), timeDistInWords, tr)
 import Types exposing (..)
 
 
-viewSaveIndicator : { m | objects : Objects.Model, dirty : Bool, lastCommitSaved : Maybe Time.Posix, lastFileSaved : Maybe Time.Posix, currentTime : Time.Posix, syncEnabled : Bool, language : Translation.Language } -> Html msg
+viewSaveIndicator : { m | objects : Data.Model, dirty : Bool, lastCommitSaved : Maybe Time.Posix, lastFileSaved : Maybe Time.Posix, currentTime : Time.Posix, syncEnabled : Bool, language : Translation.Language } -> Html msg
 viewSaveIndicator { objects, dirty, lastCommitSaved, lastFileSaved, currentTime, syncEnabled, language } =
     let
         lastChangeString =
@@ -157,7 +157,7 @@ viewFooter wordCountToggle shortcutToggle model =
         )
 
 
-viewHistory : msg -> (String -> msg) -> msg -> msg -> Translation.Language -> String -> Objects.Model -> Html msg
+viewHistory : msg -> (String -> msg) -> msg -> msg -> Translation.Language -> String -> Data.Model -> Html msg
 viewHistory noopMsg checkoutMsg restoreMsg cancelMsg lang currHead objects =
     let
         master =

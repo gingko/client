@@ -1,4 +1,4 @@
-module Doc.Objects exposing (Model, ObjMsg(..), defaultModel, init, setHeadRev, toValue, update)
+module Doc.Data exposing (Model, Msg(..), defaultModel, init, setHeadRev, toValue, update)
 
 import Coders exposing (statusDecoder, tupleDecoder)
 import Dict exposing (Dict)
@@ -77,13 +77,13 @@ init json =
 -- GIT PORCELAIN
 
 
-type ObjMsg
+type Msg
     = Commit (List String) String Int Tree
     | Checkout String
     | Merge Json.Value Tree
 
 
-update : ObjMsg -> Model -> ( Status, Maybe Tree, Model )
+update : Msg -> Model -> ( Status, Maybe Tree, Model )
 update msg model =
     case msg of
         Commit parents author timestamp tree ->

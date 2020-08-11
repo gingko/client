@@ -4,9 +4,9 @@ import Browser.Dom
 import Coders exposing (..)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
 import Dict
+import Doc.Data as Data
 import Doc.Fonts as Fonts
 import Doc.Fullscreen as Fullscreen
-import Doc.Objects as Objects
 import Doc.TreeStructure as TreeStructure exposing (..)
 import Doc.TreeUtils exposing (..)
 import Doc.UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
@@ -47,7 +47,7 @@ import Types exposing (..)
    is stored. It's defined in Types.elm.
 
    `objects` contains the current state of the version history data. It's what
-   gets saved to the database. It's defined in Objects.elm.
+   gets saved to the database. It's defined in Data.elm.
 
 -}
 
@@ -55,7 +55,7 @@ import Types exposing (..)
 type alias Model =
     -- Document state
     { workingTree : TreeStructure.Model
-    , objects : Objects.Model
+    , objects : Data.Model
     , status : Status
 
     -- SPA Page State
@@ -110,7 +110,7 @@ type alias InitModel =
 defaultModel : Session -> Model
 defaultModel session =
     { workingTree = TreeStructure.defaultModel
-    , objects = Objects.defaultModel
+    , objects = Data.defaultModel
     , status = Bare
     , session = session
     , debouncerStateCommit =
@@ -687,8 +687,8 @@ update msg ({ objects, workingTree, status } as model) =
                 -- === Database ===
                 DatabaseLoaded dataIn ->
                     let
-                        ( newStatus, newTree_, newObjects ) =
-                            Objects.init dataIn
+                        ( newStatus, newTree_, newData ) =
+                            Data.init dataIn
 
                         newTree =
                             Maybe.withDefault TreeStructure.defaultTree newTree_
@@ -706,7 +706,7 @@ update msg ({ objects, workingTree, status } as model) =
                     in
                     ( { model
                         | workingTree = newWorkingTree
-                        , objects = newObjects
+                        , objects = newData
                         , status = newStatus
                         , startingWordcount = startingWordcount
                       }
@@ -720,7 +720,7 @@ update msg ({ objects, workingTree, status } as model) =
 
                         ( Normal, _ ) ->
                             ( model
-                            , sendOut (SaveToDB ( statusToValue model.status, Objects.toValue model.objects ))
+                            , sendOut (SaveToDB ( statusToValue model.status, Data.toValue model.objects ))
                             )
 
                         _ ->
@@ -736,7 +736,7 @@ update msg ({ objects, workingTree, status } as model) =
 
                             else
                                 ( model
-                                , sendOut (SaveToDB ( statusToValue model.status, Objects.toValue model.objects ))
+                                , sendOut (SaveToDB ( statusToValue model.status, Data.toValue model.objects ))
                                 )
 
                 Commit timeMillis ->
@@ -745,7 +745,7 @@ update msg ({ objects, workingTree, status } as model) =
 
                 SetHeadRev rev ->
                     ( { model
-                        | objects = Objects.setHeadRev rev model.objects
+                        | objects = Data.setHeadRev rev model.objects
                         , dirty = False
                       }
                     , Cmd.none
@@ -777,17 +777,17 @@ update msg ({ objects, workingTree, status } as model) =
 
                 Merge json ->
                     let
-                        ( newStatus, newTree_, newObjects ) =
-                            Objects.update (Objects.Merge json workingTree.tree) objects
+                        ( newStatus, newTree_, newData ) =
+                            Data.update (Data.Merge json workingTree.tree) objects
                     in
                     case ( status, newStatus ) of
                         ( Bare, Clean sha ) ->
                             ( { model
                                 | workingTree = TreeStructure.setTree (newTree_ |> Maybe.withDefault workingTree.tree) workingTree
-                                , objects = newObjects
+                                , objects = newData
                                 , status = newStatus
                               }
-                            , sendOut (UpdateCommits ( Objects.toValue newObjects, Just sha ))
+                            , sendOut (UpdateCommits ( Data.toValue newData, Just sha ))
                             )
                                 |> activate vs.active
 
@@ -795,10 +795,10 @@ update msg ({ objects, workingTree, status } as model) =
                             if oldHead /= newHead then
                                 ( { model
                                     | workingTree = TreeStructure.setTree (newTree_ |> Maybe.withDefault workingTree.tree) workingTree
-                                    , objects = newObjects
+                                    , objects = newData
                                     , status = newStatus
                                   }
-                                , sendOut (UpdateCommits ( Objects.toValue newObjects, Just newHead ))
+                                , sendOut (UpdateCommits ( Data.toValue newData, Just newHead ))
                                 )
                                     |> activate vs.active
 
@@ -815,10 +815,10 @@ update msg ({ objects, workingTree, status } as model) =
 
                                     else
                                         TreeStructure.setTreeWithConflicts conflicts mTree model.workingTree
-                                , objects = newObjects
+                                , objects = newData
                                 , status = newStatus
                               }
-                            , sendOut (UpdateCommits ( newObjects |> Objects.toValue, Just newHead ))
+                            , sendOut (UpdateCommits ( newData |> Data.toValue, Just newHead ))
                             )
                                 |> addToHistory
                                 |> activate vs.active
@@ -2038,7 +2038,7 @@ checkoutCommit : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 checkoutCommit commitSha ( model, prevCmd ) =
     let
         ( newStatus, newTree_, newModel ) =
-            Objects.update (Objects.Checkout commitSha) model.objects
+            Data.update (Data.Checkout commitSha) model.objects
     in
     case newTree_ of
         Just newTree ->
@@ -2046,7 +2046,7 @@ checkoutCommit commitSha ( model, prevCmd ) =
                 | workingTree = TreeStructure.setTree newTree model.workingTree
                 , status = newStatus
               }
-            , sendOut (UpdateCommits ( Objects.toValue model.objects, getHead newStatus ))
+            , sendOut (UpdateCommits ( Data.toValue model.objects, getHead newStatus ))
             )
                 |> maybeColumnsChanged model.workingTree.columns
 
@@ -2145,50 +2145,50 @@ addToHistoryDo ( { workingTree, currentTime } as model, prevCmd ) =
     case model.status of
         Bare ->
             let
-                ( newStatus, _, newObjects ) =
-                    Objects.update (Objects.Commit [] "Jane Doe <jane.doe@gmail.com>" (currentTime |> Time.posixToMillis) workingTree.tree) model.objects
+                ( newStatus, _, newData ) =
+                    Data.update (Data.Commit [] "Jane Doe <jane.doe@gmail.com>" (currentTime |> Time.posixToMillis) workingTree.tree) model.objects
             in
             ( { model
-                | objects = newObjects
+                | objects = newData
                 , status = newStatus
               }
             , Cmd.batch
                 [ prevCmd
-                , sendOut (SaveToDB ( statusToValue newStatus, Objects.toValue newObjects ))
-                , sendOut (UpdateCommits ( Objects.toValue newObjects, getHead newStatus ))
+                , sendOut (SaveToDB ( statusToValue newStatus, Data.toValue newData ))
+                , sendOut (UpdateCommits ( Data.toValue newData, getHead newStatus ))
                 ]
             )
 
         Clean oldHead ->
             let
-                ( newStatus, _, newObjects ) =
-                    Objects.update (Objects.Commit [ oldHead ] "Jane Doe <jane.doe@gmail.com>" (currentTime |> Time.posixToMillis) workingTree.tree) model.objects
+                ( newStatus, _, newData ) =
+                    Data.update (Data.Commit [ oldHead ] "Jane Doe <jane.doe@gmail.com>" (currentTime |> Time.posixToMillis) workingTree.tree) model.objects
             in
             ( { model
-                | objects = newObjects
+                | objects = newData
                 , status = newStatus
               }
             , Cmd.batch
                 [ prevCmd
-                , sendOut (SaveToDB ( statusToValue newStatus, Objects.toValue newObjects ))
-                , sendOut (UpdateCommits ( Objects.toValue newObjects, getHead newStatus ))
+                , sendOut (SaveToDB ( statusToValue newStatus, Data.toValue newData ))
+                , sendOut (UpdateCommits ( Data.toValue newData, getHead newStatus ))
                 ]
             )
 
         MergeConflict _ oldHead newHead conflicts ->
             if List.isEmpty conflicts || (conflicts |> List.filter (not << .resolved) |> List.isEmpty) then
                 let
-                    ( newStatus, _, newObjects ) =
-                        Objects.update (Objects.Commit [ oldHead, newHead ] "Jane Doe <jane.doe@gmail.com>" (currentTime |> Time.posixToMillis) workingTree.tree) model.objects
+                    ( newStatus, _, newData ) =
+                        Data.update (Data.Commit [ oldHead, newHead ] "Jane Doe <jane.doe@gmail.com>" (currentTime |> Time.posixToMillis) workingTree.tree) model.objects
                 in
                 ( { model
-                    | objects = newObjects
+                    | objects = newData
                     , status = newStatus
                   }
                 , Cmd.batch
                     [ prevCmd
-                    , sendOut (SaveToDB ( statusToValue newStatus, Objects.toValue newObjects ))
-                    , sendOut (UpdateCommits ( Objects.toValue newObjects, getHead newStatus ))
+                    , sendOut (SaveToDB ( statusToValue newStatus, Data.toValue newData ))
+                    , sendOut (UpdateCommits ( Data.toValue newData, getHead newStatus ))
                     ]
                 )
 
