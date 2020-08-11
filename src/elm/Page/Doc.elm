@@ -8,7 +8,7 @@ import Dict
 import Doc.Data as Data
 import Doc.Fonts as Fonts
 import Doc.Fullscreen as Fullscreen
-import Doc.Metadata exposing (Metadata)
+import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (..)
 import Doc.TreeUtils exposing (..)
 import Doc.UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
@@ -117,7 +117,7 @@ defaultModel session dbName =
     , objects = Data.defaultModel
     , status = Bare
     , dbName = dbName
-    , metadata = Metadata Nothing Nothing
+    , metadata = Metadata.new
     , session = session
     , debouncerStateCommit =
         Debouncer.throttle (fromSeconds 3)
@@ -719,7 +719,7 @@ update msg ({ objects, workingTree, status } as model) =
                       }
                     , Cmd.batch
                         [ sendOut <| ColumnNumberChange columnNumber
-                        , case decodedData.metadata.docName of
+                        , case Metadata.getDocName decodedData.metadata of
                             Just name ->
                                 --Nav.replaceUrl (Session.navKey model.session) ("/" ++ name)
                                 Cmd.none
