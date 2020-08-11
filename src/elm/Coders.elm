@@ -1,4 +1,4 @@
-module Coders exposing (collabStateDecoder, collabStateToValue, conflictDecoder, conflictToValue, fontSettingsEncoder, lazyRecurse, maybeToValue, modeDecoder, modeToValue, opDecoder, opToValue, selectionDecoder, selectionToValue, statusDecoder, statusToValue, treeDecoder, treeListDecoder, treeToJSON, treeToJSONrecurse, treeToMarkdown, treeToMarkdownRecurse, treeToMarkdownString, treeToValue, treesModelDecoder, tripleDecoder, tupleDecoder, tupleToValue)
+module Coders exposing (collabStateDecoder, collabStateToValue, conflictDecoder, conflictToValue, fontSettingsEncoder, lazyRecurse, maybeToValue, metadataDecoder, modeDecoder, modeToValue, opDecoder, opToValue, selectionDecoder, selectionToValue, statusDecoder, statusToValue, treeDecoder, treeListDecoder, treeToJSON, treeToJSONrecurse, treeToMarkdown, treeToMarkdownRecurse, treeToMarkdownString, treeToValue, treesModelDecoder, tripleDecoder, tupleDecoder, tupleToValue)
 
 import Doc.Fonts as Fonts
 import Doc.TreeStructure as TreeStructure
@@ -159,6 +159,17 @@ statusDecoder =
         , mergeConflictDecoder
         , bareDecoder
         ]
+
+
+
+-- Metadata
+
+
+metadataDecoder : Decoder ( Maybe String, String )
+metadataDecoder =
+    Json.map2 (\n r -> ( n, r ))
+        (field "name" (maybe string))
+        (field "_rev" string)
 
 
 

@@ -521,7 +521,7 @@ function load(filepath, headOverride){
   return new Promise( (resolve, reject) => {
     db.info().then(function (result) {
       if (result.doc_count == 0) {
-        let toSend = [{_id: "status" , status : "bare", bare: true}, { commits: {}, treeObjects: {}, refs: {}}];
+        let toSend = [{name: null, _rev: ""}, {_id: "status" , status : "bare", bare: true}, { commits: {}, treeObjects: {}, refs: {}}];
         resolve(toSend);
       } else {
 
@@ -545,6 +545,7 @@ function load(filepath, headOverride){
               let commits = processData(data, "commit");
               let trees = processData(data, "tree");
               let refs = processData(data, "ref");
+              let metadata = _.omit(data.filter(d => d._id == "metadata")[0], "_id") || null;
               let status = _.omit(statusDoc, "_rev");
 
               if(headOverride) {
@@ -559,7 +560,7 @@ function load(filepath, headOverride){
                 }
               }
 
-              let toSend = [status, { commits: commits, treeObjects: trees, refs: refs}];
+              let toSend = [metadata, status, { commits: commits, treeObjects: trees, refs: refs}];
               resolve(toSend);
             }).catch(function (err) {
               container.showMessageBox(errorAlert(tr.loadingError[lang], tr.loadingErrorMsg[lang], err));

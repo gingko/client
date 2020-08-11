@@ -1,6 +1,6 @@
 module Doc.Data exposing (Model, Msg(..), defaultModel, init, setHeadRev, toValue, update)
 
-import Coders exposing (statusDecoder, tupleDecoder)
+import Coders exposing (metadataDecoder, statusDecoder, tripleDecoder, tupleDecoder)
 import Dict exposing (Dict)
 import Diff3 exposing (diff3Merge)
 import Doc.TreeStructure exposing (apply, opToMsg)
@@ -50,13 +50,21 @@ type alias RefObject =
     }
 
 
-init : Json.Value -> ( Status, Maybe Tree, Model )
+type alias DocumentData =
+    { metadata : ( Maybe String, String )
+    , status : Status
+    , builtTree : Maybe Tree
+    , objects : Model
+    }
+
+
+init : Json.Value -> DocumentData
 init json =
-    case Json.decodeValue (tupleDecoder statusDecoder modelDecoder) json of
-        Ok ( status, modelIn ) ->
+    case Json.decodeValue (tripleDecoder metadataDecoder statusDecoder modelDecoder) json of
+        Ok ( metadata, status, modelIn ) ->
             case status of
                 MergeConflict mTree _ _ _ ->
-                    ( status, Just mTree, modelIn )
+                    DocumentData metadata status (Just mTree) modelIn
 
                 Clean sha ->
                     let
@@ -64,13 +72,13 @@ init json =
                             Dict.get sha modelIn.commits
                                 |> andThen (\co -> treeObjectsToTree modelIn.treeObjects co.tree "0")
                     in
-                    ( Clean sha, newTree_, modelIn )
+                    DocumentData metadata (Clean sha) newTree_ modelIn
 
                 Bare ->
-                    ( Bare, Nothing, modelIn )
+                    DocumentData metadata Bare Nothing modelIn
 
         Err err ->
-            Debug.todo ("Objects.Init:" ++ Json.errorToString err)
+            Debug.todo ("Data.Init:" ++ Json.errorToString err)
 
 
 

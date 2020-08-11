@@ -1,6 +1,7 @@
 port module Page.Doc exposing (InitModel, Model, Msg, init, subscriptions, toSession, update, view)
 
 import Browser.Dom
+import Browser.Navigation as Nav
 import Coders exposing (..)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
 import Dict
@@ -57,6 +58,7 @@ type alias Model =
     { workingTree : TreeStructure.Model
     , objects : Data.Model
     , status : Status
+    , metadata : ( Maybe String, String )
 
     -- SPA Page State
     , session : Session
@@ -112,6 +114,7 @@ defaultModel session =
     { workingTree = TreeStructure.defaultModel
     , objects = Data.defaultModel
     , status = Bare
+    , metadata = ( Nothing, "" )
     , session = session
     , debouncerStateCommit =
         Debouncer.throttle (fromSeconds 3)
@@ -687,17 +690,17 @@ update msg ({ objects, workingTree, status } as model) =
                 -- === Database ===
                 DatabaseLoaded dataIn ->
                     let
-                        ( newStatus, newTree_, newData ) =
+                        decodedData =
                             Data.init dataIn
 
                         newTree =
-                            Maybe.withDefault TreeStructure.defaultTree newTree_
+                            Maybe.withDefault TreeStructure.defaultTree decodedData.builtTree
 
                         newWorkingTree =
                             TreeStructure.setTree newTree (defaultModel model.session).workingTree
 
                         startingWordcount =
-                            newTree_
+                            decodedData.builtTree
                                 |> Maybe.map (\t -> countWords (treeToMarkdownString False t))
                                 |> Maybe.withDefault 0
 
@@ -706,11 +709,20 @@ update msg ({ objects, workingTree, status } as model) =
                     in
                     ( { model
                         | workingTree = newWorkingTree
-                        , objects = newData
-                        , status = newStatus
+                        , objects = decodedData.objects
+                        , status = decodedData.status
+                        , metadata = decodedData.metadata
                         , startingWordcount = startingWordcount
                       }
-                    , sendOut <| ColumnNumberChange columnNumber
+                    , Cmd.batch
+                        [ sendOut <| ColumnNumberChange columnNumber
+                        , case decodedData.metadata of
+                            ( Just name, _ ) ->
+                                Nav.replaceUrl (Session.navKey model.session) ("/" ++ name)
+
+                            _ ->
+                                Cmd.none
+                        ]
                     )
 
                 GetDataToSave ->
