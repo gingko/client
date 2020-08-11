@@ -41,6 +41,7 @@ type
     | TextSurround String String
     | SetCursorPosition Int
       -- === UI ===
+    | SetNewTitle { name : String, rev : String }
     | UpdateCommits ( Enc.Value, Maybe String )
     | SetVideoModal Bool
     | SetFonts Fonts.Settings
@@ -217,6 +218,9 @@ sendOut info =
             dataToSend (int pos)
 
         -- === UI ===
+        SetNewTitle titleData ->
+            dataToSend (object [ ( "name", string titleData.name ), ( "_rev", string titleData.rev ) ])
+
         UpdateCommits ( objectsValue, head_ ) ->
             let
                 headToValue mbs =

@@ -12,9 +12,9 @@ import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (..)
 import Doc.TreeUtils exposing (..)
 import Doc.UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
-import Html exposing (Html, div, node, span, text, textarea, ul)
+import Html exposing (Html, div, h1, input, node, span, text, textarea, ul)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick, onDoubleClick)
+import Html.Events exposing (onClick, onDoubleClick, onInput)
 import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy2, lazy3)
 import Html5.DragDrop as DragDrop
@@ -72,6 +72,8 @@ type alias Model =
     , field : String
     , textCursorInfo : TextCursorInfo
     , debouncerStateCommit : Debouncer () ()
+    , isEditingTitle : Bool
+    , titleField : String
     , shortcutTrayOpen : Bool
     , wordcountTrayOpen : Bool
     , videoModalOpen : Bool
@@ -141,6 +143,8 @@ defaultModel session =
     , textCursorInfo = { selected = False, position = End, text = ( "", "" ) }
     , isMac = False
     , language = Translation.En
+    , isEditingTitle = False
+    , titleField = ""
     , shortcutTrayOpen = True
     , wordcountTrayOpen = False
     , videoModalOpen = False
@@ -223,6 +227,9 @@ type Msg
     | SetSelection String Selection String
     | Resolve String
       -- === UI ===
+    | ToggledTitleEdit Bool
+    | TitleFieldChanged String
+    | TitleEdited
     | TimeUpdate Time.Posix
     | VideoModal Bool
     | FontsMsg Fonts.Msg
@@ -544,6 +551,15 @@ update msg ({ objects, workingTree, status } as model) =
                     )
 
         -- === UI ===
+        ToggledTitleEdit isEditingTitle ->
+            ( { model | isEditingTitle = isEditingTitle }, Cmd.none )
+
+        TitleFieldChanged newTitle ->
+            ( { model | titleField = newTitle }, Cmd.none )
+
+        TitleEdited ->
+            Debug.todo "Find clean way to send data out to save"
+
         TimeUpdate time ->
             ( { model | currentTime = time }
             , Cmd.none
@@ -2314,6 +2330,7 @@ repeating-linear-gradient(-45deg
                       else
                         text ""
                     , lazy3 treeView model.language model.viewState model.workingTree
+                    , viewHeader model.isEditingTitle model.titleField (Metadata.getDocName model.metadata)
                     , viewSaveIndicator model
                     , viewSearchField SearchFieldUpdated model
                     , viewFooter WordcountTrayToggle ShortcutTrayToggle model
@@ -2614,6 +2631,20 @@ viewCardEditing lang cardId content isParent =
                 []
             ]
         ]
+
+
+viewHeader : Bool -> String -> Maybe String -> Html Msg
+viewHeader isEditing headingField docName_ =
+    if isEditing then
+        input [ onInput TitleFieldChanged, value headingField ] []
+
+    else
+        case docName_ of
+            Just docName ->
+                h1 [ onClick (ToggledTitleEdit True), style "position" "fixed", style "right" "100px" ] [ text docName ]
+
+            Nothing ->
+                h1 [ onClick (ToggledTitleEdit True), style "position" "fixed", style "right" "100px" ] [ text "Untitled" ]
 
 
 
