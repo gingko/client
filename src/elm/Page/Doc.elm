@@ -688,7 +688,7 @@ update msg ({ objects, workingTree, status } as model) =
                 DatabaseLoaded dataIn ->
                     let
                         ( newStatus, newTree_, newObjects ) =
-                            Objects.update (Objects.Init dataIn) (defaultModel model.session).objects
+                            Objects.init dataIn
 
                         newTree =
                             Maybe.withDefault TreeStructure.defaultTree newTree_

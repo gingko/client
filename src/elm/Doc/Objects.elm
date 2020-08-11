@@ -1,4 +1,4 @@
-module Doc.Objects exposing (Model, ObjMsg(..), defaultModel, setHeadRev, toValue, update)
+module Doc.Objects exposing (Model, ObjMsg(..), defaultModel, init, setHeadRev, toValue, update)
 
 import Coders exposing (statusDecoder, tupleDecoder)
 import Dict exposing (Dict)
@@ -50,6 +50,29 @@ type alias RefObject =
     }
 
 
+init : Json.Value -> ( Status, Maybe Tree, Model )
+init json =
+    case Json.decodeValue (tupleDecoder statusDecoder modelDecoder) json of
+        Ok ( status, modelIn ) ->
+            case status of
+                MergeConflict mTree _ _ _ ->
+                    ( status, Just mTree, modelIn )
+
+                Clean sha ->
+                    let
+                        newTree_ =
+                            Dict.get sha modelIn.commits
+                                |> andThen (\co -> treeObjectsToTree modelIn.treeObjects co.tree "0")
+                    in
+                    ( Clean sha, newTree_, modelIn )
+
+                Bare ->
+                    ( Bare, Nothing, modelIn )
+
+        Err err ->
+            Debug.todo ("Objects.Init:" ++ Json.errorToString err)
+
+
 
 -- GIT PORCELAIN
 
@@ -57,7 +80,6 @@ type alias RefObject =
 type ObjMsg
     = Commit (List String) String Int Tree
     | Checkout String
-    | Init Json.Value
     | Merge Json.Value Tree
 
 
@@ -74,27 +96,6 @@ update msg model =
 
         Checkout commitSha ->
             ( Clean commitSha, checkoutCommit commitSha model, model )
-
-        Init json ->
-            case Json.decodeValue (tupleDecoder statusDecoder modelDecoder) json of
-                Ok ( status, modelIn ) ->
-                    case status of
-                        MergeConflict mTree _ _ _ ->
-                            ( status, Just mTree, modelIn )
-
-                        Clean sha ->
-                            let
-                                newTree_ =
-                                    Dict.get sha modelIn.commits
-                                        |> andThen (\co -> treeObjectsToTree modelIn.treeObjects co.tree "0")
-                            in
-                            ( Clean sha, newTree_, modelIn )
-
-                        Bare ->
-                            ( Bare, Nothing, modelIn )
-
-                Err err ->
-                    Debug.todo ("Objects.Init:" ++ Json.errorToString err)
 
         Merge json oldTree ->
             case Json.decodeValue mergeDecoder json of
