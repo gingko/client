@@ -41,7 +41,7 @@ type
     | TextSurround String String
     | SetCursorPosition Int
       -- === UI ===
-    | SetNewTitle { name : String, rev : String }
+    | SetNewTitle Enc.Value
     | UpdateCommits ( Enc.Value, Maybe String )
     | SetVideoModal Bool
     | SetFonts Fonts.Settings
@@ -58,6 +58,7 @@ type
     | CancelCardConfirmed
       -- === Database ===
     | DatabaseLoaded Dec.Value
+    | MetadataSaved Dec.Value
     | Commit Int
     | GetDataToSave
     | SetHeadRev String
@@ -218,8 +219,8 @@ sendOut info =
             dataToSend (int pos)
 
         -- === UI ===
-        SetNewTitle titleData ->
-            dataToSend (object [ ( "name", string titleData.name ), ( "_rev", string titleData.rev ) ])
+        SetNewTitle metadata ->
+            dataToSend metadata
 
         UpdateCommits ( objectsValue, head_ ) ->
             let
@@ -270,6 +271,9 @@ receiveMsg tagger onError =
                 -- === Database ===
                 "DatabaseLoaded" ->
                     tagger <| DatabaseLoaded outsideInfo.data
+
+                "MetadataSaved" ->
+                    tagger <| MetadataSaved outsideInfo.data
 
                 "Commit" ->
                     case decodeValue Dec.int outsideInfo.data of

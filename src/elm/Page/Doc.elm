@@ -12,7 +12,7 @@ import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (..)
 import Doc.TreeUtils exposing (..)
 import Doc.UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
-import Html exposing (Html, div, h1, input, node, span, text, textarea, ul)
+import Html exposing (Html, button, div, h1, input, node, span, text, textarea, ul)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onDoubleClick, onInput)
 import Html.Keyed as Keyed
@@ -558,7 +558,11 @@ update msg ({ objects, workingTree, status } as model) =
             ( { model | titleField = newTitle }, Cmd.none )
 
         TitleEdited ->
-            Debug.todo "Find clean way to send data out to save"
+            if Just model.titleField /= Metadata.getDocName model.metadata then
+                ( model, sendOut <| SetNewTitle <| Metadata.encode model.titleField model.metadata )
+
+            else
+                ( model, Cmd.none )
 
         TimeUpdate time ->
             ( { model | currentTime = time }
@@ -733,6 +737,14 @@ update msg ({ objects, workingTree, status } as model) =
                       }
                     , sendOut <| ColumnNumberChange columnNumber
                     )
+
+                MetadataSaved json ->
+                    case Json.decodeValue Metadata.decoder json of
+                        Ok metadata ->
+                            ( { model | isEditingTitle = False, metadata = metadata }, Cmd.none )
+
+                        Err err ->
+                            Debug.todo "Error in MetadataDaved" (Json.errorToString err)
 
                 GetDataToSave ->
                     case ( vs.viewMode, status ) of
@@ -2636,7 +2648,10 @@ viewCardEditing lang cardId content isParent =
 viewHeader : Bool -> String -> Maybe String -> Html Msg
 viewHeader isEditing headingField docName_ =
     if isEditing then
-        input [ onInput TitleFieldChanged, value headingField ] []
+        div [ style "position" "fixed", style "right" "100px" ]
+            [ input [ onInput TitleFieldChanged, value headingField ] []
+            , button [ onClick TitleEdited ] [ text "Rename" ]
+            ]
 
     else
         case docName_ of

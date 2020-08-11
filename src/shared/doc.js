@@ -398,6 +398,14 @@ const update = (msg, data) => {
     }
 
       // === UI ===
+    , "SetNewTitle": async () => {
+        let saveRes = await db.put(data);
+        console.log(saveRes);
+        if (saveRes.ok) {
+          data._rev = saveRes.rev;
+          toElm("MetadataSaved", data);
+        }
+    }
 
     , "UpdateCommits": () => {
       }
