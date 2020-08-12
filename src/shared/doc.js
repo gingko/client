@@ -402,6 +402,7 @@ const update = (msg, data) => {
         let saveRes = await db.put(data);
         console.log(saveRes);
         if (saveRes.ok) {
+          push();
           data._rev = saveRes.rev;
           toElm("MetadataSaved", data);
         }

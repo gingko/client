@@ -7,7 +7,6 @@ import Html.Events exposing (onInput, onSubmit)
 import Http
 import Json.Decode as Dec
 import Json.Encode as Enc
-import Ports
 import Result exposing (Result)
 import Session exposing (Session)
 

@@ -1,4 +1,4 @@
-module Doc.Metadata exposing (Metadata, decoder, encode, getDocName, new)
+module Doc.Metadata exposing (Metadata, decoder, decoderWithDbName, encode, getDocName, new)
 
 import Json.Decode as Dec exposing (Decoder)
 import Json.Encode as Enc
@@ -28,6 +28,14 @@ getDocName (Metadata { docName }) =
 decoder : Decoder Metadata
 decoder =
     Dec.map2 (\n r -> Metadata { docName = n, rev = r })
+        (Dec.field "name" (Dec.maybe Dec.string))
+        (Dec.field "_rev" (Dec.maybe Dec.string))
+
+
+decoderWithDbName : Decoder ( String, Metadata )
+decoderWithDbName =
+    Dec.map3 (\id n r -> ( String.dropRight (String.length "/metadata") id, Metadata { docName = n, rev = r } ))
+        (Dec.field "_id" Dec.string)
         (Dec.field "name" (Dec.maybe Dec.string))
         (Dec.field "_rev" (Dec.maybe Dec.string))
 
