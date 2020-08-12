@@ -39,7 +39,7 @@ const showMessageBox = (...args) => {
 };
 
 const justLog = (...args) => {
-  console.log("container", ...args);
+  console.debug("container", ...args);
 };
 
 export

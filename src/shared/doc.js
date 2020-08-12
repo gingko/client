@@ -255,7 +255,7 @@ const update = (msg, data) => {
       // === Database ===
 
     , "LoadDatabase": async () => {
-        docState.dbPath = [data, ""];
+        docState.dbPath = [data, data];
         var loadRes = await load();
         enableSync(data);
         toElm("DatabaseLoaded", loadRes);
