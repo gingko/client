@@ -62,15 +62,6 @@ const docStateHandlers = {
           toElm("SetHeadRev", value);
           break;
 
-        case "dbPath":
-          self.db = new PouchDB(value[0]);
-          break;
-
-        case "sync":
-          if (value[0]) {
-          }
-          break;
-
         case "lastSavedToFile":
           toElm("SetLastFileSaved", value);
           break;
@@ -108,7 +99,7 @@ function setUserDb(email) {
   self.remoteDB = new PouchDB(userDb, remoteOpts);
 };
 
-function enableSync(treeId) {
+function setRemoteDB(treeId) {
   self.TREE_ID = treeId;
   self.remoteDB.transform(
     { outgoing: (doc) => {
@@ -120,7 +111,6 @@ function enableSync(treeId) {
         return doc;
       }
   });
-  toElm("SetSync", true);
 };
 
 // ============ END SYNC ====================
@@ -255,9 +245,13 @@ const update = (msg, data) => {
       // === Database ===
 
     , "LoadDatabase": async () => {
-        docState.dbPath = [data, data];
-        var loadRes = await load();
-        enableSync(data);
+        setRemoteDB(data);
+        self.db = new PouchDB(data);
+        let dbInfo = await db.info();
+        if (dbInfo.doc_count == 0) {
+          await db.replicate.from(remoteDB);
+        }
+        let loadRes = await load();
         toElm("DatabaseLoaded", loadRes);
       }
 
@@ -524,55 +518,47 @@ function processData (data, type) {
 
 function load(filepath, headOverride){
   return new Promise( (resolve, reject) => {
-    db.info().then(function (result) {
-      if (result.doc_count == 0) {
-        let toSend = [{name: null, _rev: ""}, {_id: "status" , status : "bare", bare: true}, { commits: {}, treeObjects: {}, refs: {}}];
-        resolve(toSend);
-      } else {
+    db.get("status")
+      .catch(err => {
+        if(err.name == "not_found") {
+          console.log("load status not found. Setting to \"bare\".");
+          return {_id: "status" , status : "bare", bare: true};
+        } else {
+          reject("load status error" + err);
+        }
+      })
+      .then(statusDoc => {
+        status = statusDoc.status;
 
-        db.get("status")
-          .catch(err => {
-            if(err.name == "not_found") {
-              console.log("load status not found. Setting to \"bare\".");
-              return {_id: "status" , status : "bare", bare: true};
-            } else {
-              reject("load status error" + err);
+        db.allDocs(
+          { include_docs: true
+          }).then(function (result) {
+          let data = result.rows.map(r => r.doc);
+
+          let commits = processData(data, "commit");
+          let trees = processData(data, "tree");
+          let refs = processData(data, "ref");
+          let metadata = _.omit(data.filter(d => d._id == "metadata")[0], "_id") || null;
+          let status = _.omit(statusDoc, "_rev");
+
+          if(headOverride) {
+            refs["heads/master"] = headOverride;
+          } else if (_.isEmpty(refs)) {
+            var keysSorted = Object.keys(commits).sort(function(a,b) { return commits[b].timestamp - commits[a].timestamp; });
+            var lastCommit = keysSorted[0];
+            if (lastCommit) {
+              refs["heads/master"] = { value: lastCommit, ancestors: [], _rev: "" };
+              console.log("recovered status", status);
+              console.log("refs recovered", refs);
             }
-          })
-          .then(statusDoc => {
-            status = statusDoc.status;
+          }
 
-            db.allDocs(
-              { include_docs: true
-              }).then(function (result) {
-              let data = result.rows.map(r => r.doc);
-
-              let commits = processData(data, "commit");
-              let trees = processData(data, "tree");
-              let refs = processData(data, "ref");
-              let metadata = _.omit(data.filter(d => d._id == "metadata")[0], "_id") || null;
-              let status = _.omit(statusDoc, "_rev");
-
-              if(headOverride) {
-                refs["heads/master"] = headOverride;
-              } else if (_.isEmpty(refs)) {
-                var keysSorted = Object.keys(commits).sort(function(a,b) { return commits[b].timestamp - commits[a].timestamp; });
-                var lastCommit = keysSorted[0];
-                if (lastCommit) {
-                  refs["heads/master"] = { value: lastCommit, ancestors: [], _rev: "" };
-                  console.log("recovered status", status);
-                  console.log("refs recovered", refs);
-                }
-              }
-
-              let toSend = [metadata, status, { commits: commits, treeObjects: trees, refs: refs}];
-              resolve(toSend);
-            }).catch(function (err) {
-              container.showMessageBox(errorAlert(tr.loadingError[lang], tr.loadingErrorMsg[lang], err));
-              reject(err);
-            });
+          let toSend = [metadata, status, { commits: commits, treeObjects: trees, refs: refs}];
+          resolve(toSend);
+        }).catch(function (err) {
+          container.showMessageBox(errorAlert(tr.loadingError[lang], tr.loadingErrorMsg[lang], err));
+          reject(err);
         });
-      }
     });
   });
 }
