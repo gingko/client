@@ -28,6 +28,8 @@ const webConfig = {
     doc: "./shared/doc.js"
   },
 
+  stats: 'errors-only',
+
   // What file types to attempt to resolve within require/import statements
   resolve: {
     alias: { Container: path.resolve(__dirname, "src/web/container.js") },

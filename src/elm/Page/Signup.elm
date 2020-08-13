@@ -1,13 +1,11 @@
-module Page.Login exposing (Model, Msg, init, subscriptions, toSession, update, view)
+module Page.Signup exposing (Model, Msg, init, toSession, update, view)
 
-import Browser.Navigation as Nav
 import Html exposing (..)
 import Html.Attributes exposing (href, placeholder, value)
 import Html.Events exposing (onInput, onSubmit)
 import Http
 import Json.Decode as Dec
 import Json.Encode as Enc
-import Result exposing (Result)
 import Session exposing (Session)
 
 
@@ -16,19 +14,23 @@ import Session exposing (Session)
 
 
 type alias Model =
-    { session : Session, email : String, password : String }
+    { session : Session
+    , email : String
+    , password : String
+    , passwordConfirm : String
+    }
 
 
 init : Session -> ( Model, Cmd msg )
 init session =
-    ( { session = session, email = "", password = "" }
+    ( { session = session, email = "", password = "", passwordConfirm = "" }
     , Cmd.none
     )
 
 
 toSession : Model -> Session
-toSession model =
-    model.session
+toSession { session } =
+    session
 
 
 
@@ -39,8 +41,8 @@ type Msg
     = SubmittedForm
     | EnteredEmail String
     | EnteredPassword String
-    | CompletedLogin (Result Http.Error String)
-    | GotSession Session
+    | EnteredPassConfirm String
+    | CompletedSignup (Result Http.Error String)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -50,7 +52,7 @@ update msg model =
             let
                 requestBody =
                     Enc.object
-                        [ ( "name", Enc.string model.email )
+                        [ ( "email", Enc.string model.email )
                         , ( "password", Enc.string model.password )
                         ]
                         |> Http.jsonBody
@@ -59,14 +61,10 @@ update msg model =
                     Dec.field "name" Dec.string
             in
             ( model
-            , Http.riskyRequest
-                { method = "POST"
-                , url = "http://localhost:5984/_session"
-                , headers = []
+            , Http.post
+                { url = "http://localhost:3000/signup"
                 , body = requestBody
-                , expect = Http.expectJson CompletedLogin responseDecoder
-                , timeout = Nothing
-                , tracker = Nothing
+                , expect = Http.expectJson CompletedSignup responseDecoder
                 }
             )
 
@@ -76,14 +74,14 @@ update msg model =
         EnteredPassword password ->
             ( { model | password = password }, Cmd.none )
 
-        CompletedLogin (Ok email) ->
+        EnteredPassConfirm passwordConfirm ->
+            ( { model | passwordConfirm = passwordConfirm }, Cmd.none )
+
+        CompletedSignup (Ok email) ->
             ( model, Session.save email )
 
-        CompletedLogin (Err error) ->
+        CompletedSignup (Err error) ->
             ( model, Cmd.none )
-
-        GotSession session ->
-            ( { model | session = session }, Nav.replaceUrl (Session.navKey session) "/" )
 
 
 
@@ -109,15 +107,14 @@ view model =
                 ]
                 []
             ]
-        , button [] [ text "Login" ]
-        , a [ href "/signup" ] [ text "Signup" ]
+        , fieldset []
+            [ input
+                [ placeholder "Confirm Password"
+                , onInput EnteredPassConfirm
+                , value model.passwordConfirm
+                ]
+                []
+            ]
+        , button [] [ text "Signup" ]
+        , a [ href "/login" ] [ text "Login" ]
         ]
-
-
-
--- SUBSCRIPTIONS
-
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-    Session.changes GotSession (Session.navKey model.session)

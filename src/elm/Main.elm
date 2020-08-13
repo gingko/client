@@ -8,6 +8,7 @@ import Page.Doc
 import Page.Home
 import Page.Login
 import Page.NotFound
+import Page.Signup
 import Route exposing (Route)
 import Session exposing (Session)
 import Url exposing (Url)
@@ -20,6 +21,7 @@ import Url exposing (Url)
 type Model
     = Redirect Session
     | NotFound Session
+    | Signup Page.Signup.Model
     | Login Page.Login.Model
     | Home Page.Home.Model
     | Doc Page.Doc.Model
@@ -40,6 +42,9 @@ changeRouteTo maybeRoute model =
         case maybeRoute of
             Just Route.Home ->
                 Page.Home.init session |> updateWith Home GotHomeMsg
+
+            Just Route.Signup ->
+                Page.Signup.init session |> updateWith Signup GotSignupMsg
 
             Just Route.Login ->
                 Page.Login.init session |> updateWith Login GotLoginMsg
@@ -76,6 +81,9 @@ toSession page =
         NotFound session ->
             session
 
+        Signup signup ->
+            Page.Signup.toSession signup
+
         Login login ->
             Page.Login.toSession login
 
@@ -87,35 +95,13 @@ toSession page =
 
 
 
--- VIEW
-
-
-view : Model -> Document Msg
-view model =
-    case model of
-        Redirect _ ->
-            { title = "Loading...", body = [ Html.div [] [ Html.text "LOADING..." ] ] }
-
-        NotFound _ ->
-            Page.NotFound.view
-
-        Login login ->
-            { title = "Gingko - Login", body = [ Html.map GotLoginMsg (Page.Login.view login) ] }
-
-        Home home ->
-            { title = "Gingko - Home", body = [ Html.map GotHomeMsg (Page.Home.view home) ] }
-
-        Doc doc ->
-            { title = "Gingko", body = [ Html.map GotDocMsg (Page.Doc.view doc) ] }
-
-
-
 -- UPDATE
 
 
 type Msg
     = ChangedUrl Url
     | ClickedLink Browser.UrlRequest
+    | GotSignupMsg Page.Signup.Msg
     | GotLoginMsg Page.Login.Msg
     | GotHomeMsg Page.Home.Msg
     | GotDocMsg Page.Doc.Msg
@@ -134,6 +120,10 @@ update msg model =
 
                 Browser.External href ->
                     ( model, Nav.load href )
+
+        ( GotSignupMsg signupMsg, Signup signupModel ) ->
+            Page.Signup.update signupMsg signupModel
+                |> updateWith Signup GotSignupMsg
 
         ( GotLoginMsg loginMsg, Login loginModel ) ->
             Page.Login.update loginMsg loginModel
@@ -159,6 +149,32 @@ updateWith toModel toMsg ( subModel, subCmd ) =
 
 
 
+-- VIEW
+
+
+view : Model -> Document Msg
+view model =
+    case model of
+        Redirect _ ->
+            { title = "Loading...", body = [ Html.div [] [ Html.text "LOADING..." ] ] }
+
+        NotFound _ ->
+            Page.NotFound.view
+
+        Signup signup ->
+            { title = "Gingko - Signup", body = [ Html.map GotSignupMsg (Page.Signup.view signup) ] }
+
+        Login login ->
+            { title = "Gingko - Login", body = [ Html.map GotLoginMsg (Page.Login.view login) ] }
+
+        Home home ->
+            { title = "Gingko - Home", body = [ Html.map GotHomeMsg (Page.Home.view home) ] }
+
+        Doc doc ->
+            { title = "Gingko", body = [ Html.map GotDocMsg (Page.Doc.view doc) ] }
+
+
+
 -- SUBSCRIPTIONS
 
 
@@ -169,6 +185,9 @@ subscriptions model =
             Sub.none
 
         NotFound _ ->
+            Sub.none
+
+        Signup pageModel ->
             Sub.none
 
         Login pageModel ->
