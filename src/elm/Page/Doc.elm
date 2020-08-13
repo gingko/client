@@ -738,13 +738,17 @@ update msg ({ objects, workingTree, status } as model) =
                     , sendOut <| ColumnNumberChange columnNumber
                     )
 
-                MetadataSaved json ->
+                TitleSaved json ->
                     case Json.decodeValue Metadata.decoder json of
                         Ok metadata ->
                             ( { model | isEditingTitle = False, metadata = metadata }, Cmd.none )
 
                         Err err ->
-                            Debug.todo "Error in MetadataDaved" (Json.errorToString err)
+                            let
+                                _ =
+                                    Debug.log "Error in MetadataSaved" (Json.errorToString err)
+                            in
+                            ( model, Cmd.none )
 
                 GetDataToSave ->
                     case ( vs.viewMode, status ) of

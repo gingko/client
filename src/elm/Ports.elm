@@ -58,7 +58,7 @@ type
     | CancelCardConfirmed
       -- === Database ===
     | DatabaseLoaded Dec.Value
-    | MetadataSaved Dec.Value
+    | TitleSaved Dec.Value
     | Commit Int
     | GetDataToSave
     | SetHeadRev String
@@ -272,8 +272,8 @@ receiveMsg tagger onError =
                 "DatabaseLoaded" ->
                     tagger <| DatabaseLoaded outsideInfo.data
 
-                "MetadataSaved" ->
-                    tagger <| MetadataSaved outsideInfo.data
+                "TitleSaved" ->
+                    tagger <| TitleSaved outsideInfo.data
 
                 "Commit" ->
                     case decodeValue Dec.int outsideInfo.data of

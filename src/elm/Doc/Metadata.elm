@@ -47,7 +47,7 @@ encode newDocName (Metadata { rev }) =
             Enc.object
                 [ ( "_id", Enc.string "metadata" )
                 , ( "name", Enc.string newDocName )
-                , ( "_rev", Enc.string revData )
+                , ( "rev", Enc.string revData )
                 ]
 
         Nothing ->
