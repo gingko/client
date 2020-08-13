@@ -9,6 +9,7 @@ import Http
 import Json.Decode as Dec
 import Json.Encode as Enc
 import RandomId
+import Route
 import Session exposing (Session)
 import Translation exposing (langFromString)
 
@@ -94,7 +95,12 @@ update msg model =
                 _ =
                     Debug.log "ReceivedDocuments error" err
             in
-            ( model, Cmd.none )
+            case err of
+                Http.BadStatus 401 ->
+                    ( model, Route.replaceUrl (Session.navKey model.session) Route.Login )
+
+                _ ->
+                    ( model, Cmd.none )
 
         GetNewDocId ->
             ( model, RandomId.generate NewDocIdReceived )

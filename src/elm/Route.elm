@@ -1,5 +1,6 @@
-module Route exposing (Route(..), fromUrl)
+module Route exposing (Route(..), fromUrl, replaceUrl)
 
+import Browser.Navigation as Nav
 import Url exposing (Url)
 import Url.Parser as Parser exposing ((</>), Parser, oneOf, s, string)
 
@@ -24,3 +25,24 @@ parser =
 fromUrl : Url -> Maybe Route
 fromUrl url =
     Parser.parse parser url
+
+
+routeToString : Route -> String
+routeToString route =
+    case route of
+        Home ->
+            "/"
+
+        Login ->
+            "/login"
+
+        Doc dbName docName ->
+            "/" ++ dbName ++ "/" ++ docName
+
+        DocUntitled dbName ->
+            "/" ++ dbName
+
+
+replaceUrl : Nav.Key -> Route -> Cmd msg
+replaceUrl navKey route =
+    Nav.replaceUrl navKey (routeToString route)
