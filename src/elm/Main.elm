@@ -188,7 +188,7 @@ subscriptions model =
             Sub.none
 
         Signup pageModel ->
-            Sub.none
+            Sub.map GotSignupMsg (Page.Signup.subscriptions pageModel)
 
         Login pageModel ->
             Sub.map GotLoginMsg (Page.Login.subscriptions pageModel)

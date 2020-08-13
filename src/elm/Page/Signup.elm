@@ -1,5 +1,6 @@
-module Page.Signup exposing (Model, Msg, init, toSession, update, view)
+module Page.Signup exposing (Model, Msg, init, subscriptions, toSession, update, view)
 
+import Browser.Navigation as Nav
 import Html exposing (..)
 import Html.Attributes exposing (href, placeholder, value)
 import Html.Events exposing (onInput, onSubmit)
@@ -43,6 +44,7 @@ type Msg
     | EnteredPassword String
     | EnteredPassConfirm String
     | CompletedSignup (Result Http.Error String)
+    | GotSession Session
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -83,6 +85,9 @@ update msg model =
         CompletedSignup (Err error) ->
             ( model, Cmd.none )
 
+        GotSession session ->
+            ( { model | session = session }, Nav.replaceUrl (Session.navKey session) "/" )
+
 
 
 -- VIEW
@@ -118,3 +123,12 @@ view model =
         , button [] [ text "Signup" ]
         , a [ href "/login" ] [ text "Login" ]
         ]
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Session.changes GotSession (Session.navKey model.session)
