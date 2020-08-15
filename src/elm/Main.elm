@@ -60,11 +60,18 @@ changeRouteTo maybeRoute model =
 
     else
         let
+            ( signupModel, signupCmds ) =
+                Page.Signup.init session
+                    |> updateWith Signup GotSignupMsg
+
             ( loginModel, loginCmds ) =
                 Page.Login.init session
                     |> updateWith Login GotLoginMsg
         in
         case maybeRoute of
+            Just Route.Signup ->
+                ( signupModel, signupCmds )
+
             Just Route.Login ->
                 ( loginModel, loginCmds )
 

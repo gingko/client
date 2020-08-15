@@ -1,7 +1,8 @@
-port module Session exposing (Session, changes, fromData, loggedIn, logout, navKey, save, username)
+port module Session exposing (Session, changes, fromData, loggedIn, logout, navKey, save, userDb, username)
 
 import Browser.Navigation as Nav
 import Json.Decode as Json
+import Utils exposing (hexEncode)
 
 
 type Session
@@ -28,6 +29,16 @@ username session =
     case session of
         LoggedIn _ email ->
             Just email
+
+        Guest _ ->
+            Nothing
+
+
+userDb : Session -> Maybe String
+userDb session =
+    case session of
+        LoggedIn _ email ->
+            Just ("userdb-" ++ hexEncode email)
 
         Guest _ ->
             Nothing

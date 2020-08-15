@@ -27,24 +27,29 @@ type alias Model =
 
 init : Session -> ( Model, Cmd Msg )
 init session =
-    let
-        rowDecoder =
-            Dec.field "value" Metadata.decoderWithDbName
+    case Session.userDb session of
+        Nothing ->
+            ( { documents = [], language = langFromString "en", session = session }, Cmd.none )
 
-        responseDecoder =
-            Dec.field "rows" (Dec.list rowDecoder)
-    in
-    ( { documents = [], language = langFromString "en", session = session }
-    , Http.riskyRequest
-        { url = "http://localhost:5984/userdb-74657374324074657374696e672e636f6d/_design/testDocList/_view/docList" -- TODO
-        , method = "GET"
-        , body = Http.emptyBody
-        , expect = Http.expectJson ReceivedDocuments responseDecoder
-        , headers = []
-        , timeout = Nothing
-        , tracker = Nothing
-        }
-    )
+        Just userDb ->
+            let
+                rowDecoder =
+                    Dec.field "value" Metadata.decoderWithDbName
+
+                responseDecoder =
+                    Dec.field "rows" (Dec.list rowDecoder)
+            in
+            ( { documents = [], language = langFromString "en", session = session }
+            , Http.riskyRequest
+                { url = "http://localhost:5984/" ++ userDb ++ "/_design/testDocList/_view/docList"
+                , method = "GET"
+                , body = Http.emptyBody
+                , expect = Http.expectJson ReceivedDocuments responseDecoder
+                , headers = []
+                , timeout = Nothing
+                , tracker = Nothing
+                }
+            )
 
 
 toSession : Model -> Session
