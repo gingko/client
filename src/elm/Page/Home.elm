@@ -39,7 +39,7 @@ init session =
             in
             ( { documents = [], language = langFromString "en", session = session }
             , Http.riskyRequest
-                { url = "http://localhost:5984/" ++ userDb ++ "/_design/testDocList/_view/docList"
+                { url = "/db/" ++ userDb ++ "/_design/testDocList/_view/docList"
                 , method = "GET"
                 , body = Http.emptyBody
                 , expect = Http.expectJson ReceivedDocuments responseDecoder

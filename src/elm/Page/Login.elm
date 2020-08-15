@@ -61,7 +61,7 @@ update msg model =
             ( model
             , Http.riskyRequest
                 { method = "POST"
-                , url = "http://localhost:5984/_session"
+                , url = "/db/_session"
                 , headers = []
                 , body = requestBody
                 , expect = Http.expectJson CompletedLogin responseDecoder
