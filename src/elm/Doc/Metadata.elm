@@ -48,7 +48,7 @@ encode (Metadata { docName, rev }) =
             Enc.object
                 [ ( "_id", Enc.string "metadata" )
                 , ( "name", maybeToValue Enc.string docName )
-                , ( "rev", Enc.string revData )
+                , ( "_rev", Enc.string revData )
                 ]
 
         Nothing ->
@@ -65,7 +65,7 @@ rename newDocName (Metadata { rev }) =
             Enc.object
                 [ ( "_id", Enc.string "metadata" )
                 , ( "name", Enc.string newDocName )
-                , ( "rev", Enc.string revData )
+                , ( "_rev", Enc.string revData )
                 ]
 
         Nothing ->

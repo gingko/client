@@ -400,13 +400,13 @@ const update = (msg, data) => {
 
       // === UI ===
     , "SetNewTitle": async () => {
-        let saveRes = await db.put(data);
+        let saveRes = await db.put(data).catch(returnError);
         if (saveRes.ok) {
           push();
           data._rev = saveRes.rev;
           toElm("TitleSaved", data);
         } else {
-          console.error(saveRes);
+          console.error(data, saveRes);
           toElm("TitleNotSaved", null);
         }
     }
