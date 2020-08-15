@@ -245,14 +245,20 @@ const update = (msg, data) => {
       // === Database ===
 
     , "LoadDatabase": async () => {
-        setRemoteDB(data);
         self.db = new PouchDB(data);
-        let dbInfo = await db.info();
-        if (dbInfo.doc_count == 0) {
-          await db.replicate.from(remoteDB);
+        setRemoteDB(data);
+
+        let docExistsLocally = await docExists(db);
+        let docExistsRemotely = await docExists(remoteDB, data);
+
+        console.log("docExists(Locally|Remotely)", docExistsLocally, docExistsRemotely)
+
+        if (docExistsLocally) {
+          let loadRes = await load();
+          toElm("DatabaseLoaded", loadRes);
+        } else if (docExistsRemotely){
+          sync();
         }
-        let loadRes = await load();
-        toElm("DatabaseLoaded", loadRes);
       }
 
     , "CommitWithTimestamp": () => {
@@ -516,6 +522,16 @@ function processData (data, type) {
 }
 
 
+async function docExists(dbToCheck, docName) {
+  let docId = `${typeof docName == "string" ? (docName + "/") : "" }heads/master`;
+  let head = await dbToCheck.get(docId).catch(returnError);
+  if (head.error) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
 function load(filepath, headOverride){
   return new Promise( (resolve, reject) => {
     db.get("status")
@@ -601,10 +617,6 @@ function push (info) {
 
 
 async function sync () {
-  async function returnError(e) {
-    return e;
-  }
-
   var localHead = await self.db.get("heads/master").catch(returnError);
   var remoteHead = await self.remoteDB.get(`${self.TREE_ID}/heads/master`).catch(returnError);
 
@@ -639,6 +651,10 @@ async function sync () {
   }
 }
 
+
+async function returnError(e) {
+  return e;
+}
 
 
 /* === Local Functions === */
