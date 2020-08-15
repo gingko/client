@@ -64,7 +64,7 @@ update msg model =
             in
             ( model
             , Http.post
-                { url = "http://localhost:3000/signup"
+                { url = "/signup"
                 , body = requestBody
                 , expect = Http.expectJson CompletedSignup responseDecoder
                 }
