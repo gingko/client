@@ -1,4 +1,4 @@
-module Route exposing (Route(..), fromUrl, replaceUrl)
+module Route exposing (Route(..), fromUrl, pushUrl, replaceUrl)
 
 import Browser.Navigation as Nav
 import Url exposing (Url)
@@ -9,8 +9,8 @@ type Route
     = Home
     | Signup
     | Login
-    | Doc String String
     | DocUntitled String
+    | Doc String String
 
 
 parser : Parser (Route -> a) a
@@ -51,3 +51,8 @@ routeToString route =
 replaceUrl : Nav.Key -> Route -> Cmd msg
 replaceUrl navKey route =
     Nav.replaceUrl navKey (routeToString route)
+
+
+pushUrl : Nav.Key -> Route -> Cmd msg
+pushUrl navKey route =
+    Nav.pushUrl navKey (routeToString route)

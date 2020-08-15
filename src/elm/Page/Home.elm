@@ -1,13 +1,11 @@
 module Page.Home exposing (Model, Msg, init, toSession, update, view)
 
-import Browser.Navigation as Nav
 import Doc.Metadata as Metadata exposing (Metadata)
 import Html exposing (Html, a, button, div, h1, li, text, ul)
 import Html.Attributes exposing (href)
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Dec
-import Json.Encode as Enc
 import RandomId
 import Route
 import Session exposing (Session)
@@ -96,10 +94,6 @@ update msg model =
             ( { model | documents = docList }, Cmd.none )
 
         ReceivedDocuments (Err err) ->
-            let
-                _ =
-                    Debug.log "ReceivedDocuments error" err
-            in
             case err of
                 Http.BadStatus 401 ->
                     ( model, Route.replaceUrl (Session.navKey model.session) Route.Login )
@@ -111,4 +105,4 @@ update msg model =
             ( model, RandomId.generate NewDocIdReceived )
 
         NewDocIdReceived docId ->
-            ( model, Nav.pushUrl (Session.navKey model.session) docId )
+            ( model, Route.pushUrl (Session.navKey model.session) (Route.DocUntitled docId) )
