@@ -26,7 +26,7 @@ type
     | LoadDatabase String
     | CommitWithTimestamp
     | NoDataToSave
-    | SaveToDB ( Enc.Value, Enc.Value )
+    | SaveToDB ( Enc.Value, Enc.Value, Enc.Value )
     | SaveLocal Tree
     | Push
     | Pull
@@ -64,7 +64,6 @@ type
     | SetHeadRev String
     | SetLastCommitSaved (Maybe Time.Posix)
     | SetLastFileSaved (Maybe Time.Posix)
-    | SetSync Bool
     | Merge Dec.Value
       -- === DOM ===
     | DragStarted String
@@ -138,8 +137,8 @@ sendOut info =
         NoDataToSave ->
             dataToSend null
 
-        SaveToDB ( statusValue, objectsValue ) ->
-            dataToSend (list identity [ statusValue, objectsValue ])
+        SaveToDB ( metadataValue, statusValue, objectsValue ) ->
+            dataToSend (list identity [ metadataValue, statusValue, objectsValue ])
 
         SaveLocal tree ->
             dataToSend (treeToValue tree)
@@ -306,14 +305,6 @@ receiveMsg tagger onError =
                     case decodeValue (Dec.maybe Dec.float) outsideInfo.data of
                         Ok time_ ->
                             tagger <| SetLastFileSaved (Maybe.map (Time.millisToPosix << round) time_)
-
-                        Err e ->
-                            onError (errorToString e)
-
-                "SetSync" ->
-                    case decodeValue Dec.bool outsideInfo.data of
-                        Ok sync ->
-                            tagger <| SetSync sync
 
                         Err e ->
                             onError (errorToString e)

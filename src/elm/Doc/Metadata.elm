@@ -1,5 +1,6 @@
-module Doc.Metadata exposing (Metadata, decoder, decoderWithDbName, encode, getDocName, new)
+module Doc.Metadata exposing (Metadata, decoder, decoderWithDbName, encode, getDocName, new, rename)
 
+import Coders exposing (maybeToValue)
 import Json.Decode as Dec exposing (Decoder)
 import Json.Encode as Enc
 
@@ -40,8 +41,25 @@ decoderWithDbName =
         (Dec.field "_rev" (Dec.maybe Dec.string))
 
 
-encode : String -> Metadata -> Dec.Value
-encode newDocName (Metadata { rev }) =
+encode : Metadata -> Dec.Value
+encode (Metadata { docName, rev }) =
+    case rev of
+        Just revData ->
+            Enc.object
+                [ ( "_id", Enc.string "metadata" )
+                , ( "name", maybeToValue Enc.string docName )
+                , ( "rev", Enc.string revData )
+                ]
+
+        Nothing ->
+            Enc.object
+                [ ( "_id", Enc.string "metadata" )
+                , ( "name", maybeToValue Enc.string docName )
+                ]
+
+
+rename : String -> Metadata -> Dec.Value
+rename newDocName (Metadata { rev }) =
     case rev of
         Just revData ->
             Enc.object

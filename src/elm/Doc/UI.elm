@@ -19,8 +19,8 @@ import Translation exposing (Language, TranslationId(..), timeDistInWords, tr)
 import Types exposing (..)
 
 
-viewSaveIndicator : { m | objects : Data.Model, dirty : Bool, lastCommitSaved : Maybe Time.Posix, lastFileSaved : Maybe Time.Posix, currentTime : Time.Posix, syncEnabled : Bool, language : Translation.Language } -> Html msg
-viewSaveIndicator { objects, dirty, lastCommitSaved, lastFileSaved, currentTime, syncEnabled, language } =
+viewSaveIndicator : { m | objects : Data.Model, dirty : Bool, lastCommitSaved : Maybe Time.Posix, lastFileSaved : Maybe Time.Posix, currentTime : Time.Posix, language : Translation.Language } -> Html msg
+viewSaveIndicator { objects, dirty, lastCommitSaved, lastFileSaved, currentTime, language } =
     let
         lastChangeString =
             timeDistInWords
@@ -43,12 +43,7 @@ viewSaveIndicator { objects, dirty, lastCommitSaved, lastFileSaved, currentTime,
                     ( Just commitTime, Just fileTime ) ->
                         if posixToMillis commitTime < posixToMillis fileTime then
                             span [ title (tr language LastEdit ++ " " ++ lastChangeString) ]
-                                [ if syncEnabled then
-                                    text <| tr language ChangesSynced
-
-                                  else
-                                    text <| tr language ChangesSaved
-                                ]
+                                [ text <| tr language ChangesSynced ]
 
                         else
                             span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language SavedInternally ]

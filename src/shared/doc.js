@@ -255,6 +255,7 @@ const update = (msg, data) => {
 
         if (docExistsLocally) {
           let loadRes = await load();
+          console.log(loadRes);
           toElm("DatabaseLoaded", loadRes);
         } else if (docExistsRemotely){
           sync();
@@ -275,7 +276,7 @@ const update = (msg, data) => {
 
     , "SaveToDB": async () => {
         try {
-          const { headRev, lastSavedToDB } = await saveToDB(data[0], data[1]);
+          const { headRev, lastSavedToDB } = await saveToDB(data[0], data[1], data[2]);
           docState.headRev = headRev;
           docState.lastSavedToDB = lastSavedToDB;
 
@@ -554,7 +555,12 @@ function load(filepath, headOverride){
           let commits = processData(data, "commit");
           let trees = processData(data, "tree");
           let refs = processData(data, "ref");
-          let metadata = _.omit(data.filter(d => d._id == "metadata")[0], "_id") || null;
+          let metadata;
+          if (data.filter(d => d._id == "metadata").length == 1) {
+            metadata = _.omit(data.filter(d => d._id == "metadata")[0], "_id");
+          } else {
+            metadata = {name: null, _rev: null};
+          }
           let status = _.omit(statusDoc, "_rev");
 
           if(headOverride) {
@@ -659,7 +665,7 @@ async function returnError(e) {
 
 /* === Local Functions === */
 
-self.saveToDB = (status, objects) => {
+self.saveToDB = (metadata, status, objects) => {
   return new Promise(
     async (resolve, reject) => {
       try {
@@ -687,7 +693,8 @@ self.saveToDB = (status, objects) => {
       const newCommits = objects.commits.filter( o => !savedObjectIds.includes(o._id));
       const newTreeObjects = objects.treeObjects.filter( o => !savedObjectIds.includes(o._id));
 
-      const toSave = [...newCommits, ...newTreeObjects, ...objects.refs, ...[status]];
+      const toSave = [metadata, ...newCommits, ...newTreeObjects, ...objects.refs, ...[status]];
+      console.log(toSave);
 
       try {
         var responses = await db.bulkDocs(toSave);

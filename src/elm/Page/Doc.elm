@@ -79,7 +79,6 @@ type alias Model =
     , videoModalOpen : Bool
     , fontSelectorOpen : Bool
     , historyState : HistoryState
-    , syncEnabled : Bool
 
     -- Settings
     , uid : String
@@ -152,7 +151,6 @@ defaultModel session =
     , fonts = Fonts.default
     , startingWordcount = 0
     , historyState = Closed
-    , syncEnabled = False
     , currentTime = Time.millisToPosix 0
     , seed = Random.initialSeed 12345
     }
@@ -474,13 +472,13 @@ update msg ({ objects, workingTree, status } as model) =
                     )
 
         Sync ->
-            case ( model.status, model.syncEnabled ) of
-                ( Clean _, True ) ->
+            case model.status of
+                Clean _ ->
                     ( model
                     , sendOut Pull
                     )
 
-                ( Bare, True ) ->
+                Bare ->
                     ( model
                     , sendOut Pull
                     )
@@ -559,7 +557,7 @@ update msg ({ objects, workingTree, status } as model) =
 
         TitleEdited ->
             if Just model.titleField /= Metadata.getDocName model.metadata then
-                ( model, sendOut <| SetNewTitle <| Metadata.encode model.titleField model.metadata )
+                ( model, sendOut <| SetNewTitle <| Metadata.rename model.titleField model.metadata )
 
             else
                 ( model, Cmd.none )
@@ -757,7 +755,7 @@ update msg ({ objects, workingTree, status } as model) =
 
                         ( Normal, _ ) ->
                             ( model
-                            , sendOut (SaveToDB ( statusToValue model.status, Data.toValue model.objects ))
+                            , sendOut (SaveToDB ( Metadata.encode model.metadata, statusToValue model.status, Data.toValue model.objects ))
                             )
 
                         _ ->
@@ -773,7 +771,7 @@ update msg ({ objects, workingTree, status } as model) =
 
                             else
                                 ( model
-                                , sendOut (SaveToDB ( statusToValue model.status, Data.toValue model.objects ))
+                                , sendOut (SaveToDB ( Metadata.encode model.metadata, statusToValue model.status, Data.toValue model.objects ))
                                 )
 
                 Commit timeMillis ->
@@ -801,15 +799,6 @@ update msg ({ objects, workingTree, status } as model) =
                         | lastFileSaved = time_
                       }
                     , Cmd.none
-                    )
-
-                SetSync sync ->
-                    ( { model | syncEnabled = sync }
-                    , if sync then
-                        sendOut Pull
-
-                      else
-                        Cmd.none
                     )
 
                 Merge json ->
@@ -2166,15 +2155,9 @@ historyStep dir ( model, prevCmd ) =
 
 push : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 push ( model, prevCmd ) =
-    if model.syncEnabled then
-        ( model
-        , Cmd.batch [ prevCmd, sendOut Push ]
-        )
-
-    else
-        ( model
-        , prevCmd
-        )
+    ( model
+    , Cmd.batch [ prevCmd, sendOut Push ]
+    )
 
 
 addToHistoryDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -2191,7 +2174,7 @@ addToHistoryDo ( { workingTree, currentTime } as model, prevCmd ) =
               }
             , Cmd.batch
                 [ prevCmd
-                , sendOut (SaveToDB ( statusToValue newStatus, Data.toValue newData ))
+                , sendOut (SaveToDB ( Metadata.encode model.metadata, statusToValue newStatus, Data.toValue newData ))
                 , sendOut (UpdateCommits ( Data.toValue newData, getHead newStatus ))
                 ]
             )
@@ -2207,7 +2190,7 @@ addToHistoryDo ( { workingTree, currentTime } as model, prevCmd ) =
               }
             , Cmd.batch
                 [ prevCmd
-                , sendOut (SaveToDB ( statusToValue newStatus, Data.toValue newData ))
+                , sendOut (SaveToDB ( Metadata.encode model.metadata, statusToValue newStatus, Data.toValue newData ))
                 , sendOut (UpdateCommits ( Data.toValue newData, getHead newStatus ))
                 ]
             )
@@ -2224,7 +2207,7 @@ addToHistoryDo ( { workingTree, currentTime } as model, prevCmd ) =
                   }
                 , Cmd.batch
                     [ prevCmd
-                    , sendOut (SaveToDB ( statusToValue newStatus, Data.toValue newData ))
+                    , sendOut (SaveToDB ( Metadata.encode model.metadata, statusToValue newStatus, Data.toValue newData ))
                     , sendOut (UpdateCommits ( Data.toValue newData, getHead newStatus ))
                     ]
                 )
