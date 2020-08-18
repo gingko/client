@@ -307,7 +307,9 @@ const update = (msg, data) => {
         }
       }
 
-    , "Push": push
+    , "Push": () => {
+        push("Push command from Elm.");
+    }
 
     , "Pull": sync
 
@@ -616,9 +618,15 @@ async function pull (local, remote, info) {
 }
 
 
-function push (info) {
-  self.db.replicate.to(self.remoteDB);
+async function push (info) {
   if(info) console.log(info);
+  if (typeof db !== "undefined" && typeof remoteDB !== "undefined") {
+    let repRes;
+    repRes = await db.replicate.to(remoteDB);
+    if (repRes.ok) {
+      docState.lastSavedToFile = Date.now();
+    }
+  }
 }
 
 

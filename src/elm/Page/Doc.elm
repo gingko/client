@@ -220,7 +220,7 @@ type Msg
     | CheckoutCommit String
     | Restore
     | CancelHistory
-    | Sync
+    | PullFromRemote
     | SetSelection String Selection String
     | Resolve String
       -- === UI ===
@@ -470,7 +470,7 @@ update msg ({ objects, workingTree, status } as model) =
                     , Cmd.none
                     )
 
-        Sync ->
+        PullFromRemote ->
             case model.status of
                 Clean _ ->
                     ( model
@@ -2786,7 +2786,7 @@ subscriptions model =
     Sub.batch
         [ receiveMsg Port LogErr
         , Time.every (15 * 1000) TimeUpdate
-        , Time.every (10 * 1000) (\_ -> Sync)
+        , Time.every (10 * 1000) (\_ -> PullFromRemote)
         ]
 
 
