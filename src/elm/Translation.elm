@@ -189,7 +189,8 @@ tr lang trans =
                     }
 
                 SavedInternally ->
-                    { en = "Backup Saved"
+                    -- TODO: Update translations
+                    { en = "Saved Offline"
                     , zh = "保存备份"
                     , es = "Copia De Seguridad Guardada"
                     , fr = ""

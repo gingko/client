@@ -62,12 +62,12 @@ const docStateHandlers = {
           toElm("SetHeadRev", value);
           break;
 
-        case "lastSavedToFile":
-          toElm("SetLastFileSaved", value);
+        case "lastSavedRemotely":
+          toElm("SavedRemotely", value);
           break;
 
-        case "lastSavedToDB":
-          toElm("SetLastCommitSaved", value);
+        case "lastSavedLocally":
+          toElm("SavedLocally", value);
           break;
 
         case "changed":
@@ -138,8 +138,8 @@ if (docState.jsonImportData) {
         , shortcutTrayOpen : userStore.get("shortcut-tray-is-open", true)
         , videoModalOpen : userStore.get("video-modal-is-open", false)
         , currentTime : Date.now()
-        , lastCommitSaved : null
-        , lastFileSaved : null
+        , lastSavedLocally : null
+        , lastSavedRemotely : null
         , lastActive : getLastActive(docState.dbPath[1])
         , fonts : getFonts(docState.dbPath[1])
         }
@@ -154,8 +154,8 @@ if (docState.jsonImportData) {
         , shortcutTrayOpen : userStore.get("shortcut-tray-is-open", true)
         , videoModalOpen : userStore.get("video-modal-is-open", false)
         , currentTime : Date.now()
-        , lastCommitSaved : docState.lastSavedToDB || null
-        , lastFileSaved : docState.lastSavedToFile || null
+        , lastSavedLocally : docState.lastSavedLocally || null
+        , lastSavedRemotely : docState.lastSavedRemotely || null
         , lastActive : getLastActive(docState.dbPath[1])
         , fonts : getFonts(docState.dbPath[1])
         }
@@ -276,9 +276,9 @@ const update = (msg, data) => {
 
     , "SaveToDB": async () => {
         try {
-          const { headRev, lastSavedToDB } = await saveToDB(data[0], data[1], data[2]);
+          const { headRev, lastSavedLocally } = await saveToDB(data[0], data[1], data[2]);
           docState.headRev = headRev;
-          docState.lastSavedToDB = lastSavedToDB;
+          docState.lastSavedLocally = lastSavedLocally;
 
           switch(actionOnData) {
             case ActionOnData.Save:
@@ -624,7 +624,7 @@ async function push (info) {
     let repRes;
     repRes = await db.replicate.to(remoteDB);
     if (repRes.ok) {
-      docState.lastSavedToFile = Date.now();
+      docState.lastSavedRemotely = Date.now();
     }
   }
 }
@@ -651,7 +651,7 @@ async function sync () {
     // of heads ref (increments _rev, no change to rest).
     if(_.isEqual(_.omit(localHead,"_rev"), _.omit(remoteHead, "_rev"))) {
       // Local == Remote => Up-to-Date
-      docState.lastSavedToFile = Date.now();
+      docState.lastSavedRemotely = Date.now();
 
     } else if (localHead.ancestors.includes(remoteHead.value)) {
       // Local is ahead of remote => Push
@@ -695,7 +695,7 @@ self.saveToDB = (metadata, status, objects) => {
         status["_rev"] = statusDoc._rev;
       }
 
-      const lastSavedToDB = Object.values(objects.commits).map(c => c.timestamp).sort().slice(-1)[0];
+      const lastSavedLocally = Object.values(objects.commits).map(c => c.timestamp).sort().slice(-1)[0];
 
       // Filter out object that are already saved in database
       const newCommits = objects.commits.filter( o => !savedObjectIds.includes(o._id));
@@ -715,7 +715,7 @@ self.saveToDB = (metadata, status, objects) => {
 
       let head = responses.filter(r => r.id == "heads/master")[0];
       if (head.ok) {
-        resolve({ headRev: head.rev, lastSavedToDB });
+        resolve({ headRev: head.rev, lastSavedLocally });
       } else {
         reject(new Error(`Reference error when saving to DB.\n${head}`));
         return;
