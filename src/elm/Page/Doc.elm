@@ -66,8 +66,8 @@ type alias Model =
     -- Transient state
     , viewState : ViewState
     , dirty : Bool
-    , lastCommitSaved : Maybe Time.Posix
-    , lastFileSaved : Maybe Time.Posix
+    , lastLocalSave : Maybe Time.Posix
+    , lastRemoteSave : Maybe Time.Posix
     , field : String
     , textCursorInfo : TextCursorInfo
     , debouncerStateCommit : Debouncer () ()
@@ -102,8 +102,8 @@ type alias InitModel =
     , isMac : Bool
     , shortcutTrayOpen : Bool
     , videoModalOpen : Bool
-    , lastCommitSaved : Maybe Int
-    , lastFileSaved : Maybe Float
+    , lastLocalSave : Maybe Int
+    , lastRemoteSave : Maybe Float
     , currentTime : Int
     , lastActive : String
     , fonts : Maybe ( String, String, String )
@@ -135,8 +135,8 @@ defaultModel session =
         , collaborators = []
         }
     , dirty = False
-    , lastCommitSaved = Nothing
-    , lastFileSaved = Nothing
+    , lastLocalSave = Nothing
+    , lastRemoteSave = Nothing
     , field = ""
     , textCursorInfo = { selected = False, position = End, text = ( "", "" ) }
     , isMac = False
@@ -786,16 +786,16 @@ update msg ({ objects, workingTree, status } as model) =
                     )
                         |> push
 
-                SetLastCommitSaved time_ ->
+                SavedLocally time_ ->
                     ( { model
-                        | lastCommitSaved = time_
+                        | lastLocalSave = time_
                       }
                     , Cmd.none
                     )
 
-                SetLastFileSaved time_ ->
+                SavedRemotely time_ ->
                     ( { model
-                        | lastFileSaved = time_
+                        | lastRemoteSave = time_
                       }
                     , Cmd.none
                     )

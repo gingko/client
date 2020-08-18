@@ -19,13 +19,13 @@ import Translation exposing (Language, TranslationId(..), timeDistInWords, tr)
 import Types exposing (..)
 
 
-viewSaveIndicator : { m | objects : Data.Model, dirty : Bool, lastCommitSaved : Maybe Time.Posix, lastFileSaved : Maybe Time.Posix, currentTime : Time.Posix, language : Translation.Language } -> Html msg
-viewSaveIndicator { objects, dirty, lastCommitSaved, lastFileSaved, currentTime, language } =
+viewSaveIndicator : { m | objects : Data.Model, dirty : Bool, lastLocalSave : Maybe Time.Posix, lastRemoteSave : Maybe Time.Posix, currentTime : Time.Posix, language : Translation.Language } -> Html msg
+viewSaveIndicator { objects, dirty, lastLocalSave, lastRemoteSave, currentTime, language } =
     let
         lastChangeString =
             timeDistInWords
                 language
-                (lastCommitSaved |> Maybe.withDefault (Time.millisToPosix 0))
+                (lastLocalSave |> Maybe.withDefault (Time.millisToPosix 0))
                 currentTime
 
         saveStateSpan =
@@ -33,7 +33,7 @@ viewSaveIndicator { objects, dirty, lastCommitSaved, lastFileSaved, currentTime,
                 span [ title (tr language LastSaved ++ " " ++ lastChangeString) ] [ text <| tr language UnsavedChanges ]
 
             else
-                case ( lastCommitSaved, lastFileSaved ) of
+                case ( lastLocalSave, lastRemoteSave ) of
                     ( Nothing, Nothing ) ->
                         span [] [ text <| tr language NeverSaved ]
 

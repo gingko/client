@@ -62,8 +62,8 @@ type
     | Commit Int
     | GetDataToSave
     | SetHeadRev String
-    | SetLastCommitSaved (Maybe Time.Posix)
-    | SetLastFileSaved (Maybe Time.Posix)
+    | SavedLocally (Maybe Time.Posix)
+    | SavedRemotely (Maybe Time.Posix)
     | Merge Dec.Value
       -- === DOM ===
     | DragStarted String
@@ -293,18 +293,18 @@ receiveMsg tagger onError =
                         Err e ->
                             onError (errorToString e)
 
-                "SetLastCommitSaved" ->
+                "SavedLocally" ->
                     case decodeValue (Dec.maybe Dec.int) outsideInfo.data of
                         Ok time_ ->
-                            tagger <| SetLastCommitSaved (Maybe.map Time.millisToPosix time_)
+                            tagger <| SavedLocally (Maybe.map Time.millisToPosix time_)
 
                         Err e ->
                             onError (errorToString e)
 
-                "SetLastFileSaved" ->
+                "SavedRemotely" ->
                     case decodeValue (Dec.maybe Dec.float) outsideInfo.data of
                         Ok time_ ->
-                            tagger <| SetLastFileSaved (Maybe.map (Time.millisToPosix << round) time_)
+                            tagger <| SavedRemotely (Maybe.map (Time.millisToPosix << round) time_)
 
                         Err e ->
                             onError (errorToString e)
