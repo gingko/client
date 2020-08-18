@@ -19,7 +19,7 @@ import Translation exposing (Language, TranslationId(..), timeDistInWords, tr)
 import Types exposing (..)
 
 
-viewSaveIndicator : { m | objects : Data.Model, dirty : Bool, lastLocalSave : Maybe Time.Posix, lastRemoteSave : Maybe Time.Posix, currentTime : Time.Posix, language : Translation.Language } -> Html msg
+viewSaveIndicator : { m | objects : Data.Objects, dirty : Bool, lastLocalSave : Maybe Time.Posix, lastRemoteSave : Maybe Time.Posix, currentTime : Time.Posix, language : Translation.Language } -> Html msg
 viewSaveIndicator { objects, dirty, lastLocalSave, lastRemoteSave, currentTime, language } =
     let
         lastChangeString =
@@ -152,7 +152,7 @@ viewFooter wordCountToggle shortcutToggle model =
         )
 
 
-viewHistory : msg -> (String -> msg) -> msg -> msg -> Translation.Language -> String -> Data.Model -> Html msg
+viewHistory : msg -> (String -> msg) -> msg -> msg -> Translation.Language -> String -> Data.Objects -> Html msg
 viewHistory noopMsg checkoutMsg restoreMsg cancelMsg lang currHead objects =
     let
         master =

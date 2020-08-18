@@ -216,14 +216,6 @@ const update = (msg, data) => {
 
         if (docExistsLocally) {
           let loadRes = await load();
-          let loadedDocument =
-            { objects: loadRes.objects
-            , status : loadRes.status
-            , metadata : loadRes.metadata
-            , lastSavedLocally : loadRes.lastCommitTime
-            };
-
-          toElm("DocumentLoaded", loadedDocument);
         }
 
         if (docExistsRemotely){
@@ -504,79 +496,72 @@ async function docExists(dbToCheck, docName) {
   }
 }
 
-function load(filepath, headOverride){
-  return new Promise( (resolve, reject) => {
-    db.get("status")
-      .catch(err => {
-        if(err.name == "not_found") {
-          console.log("load status not found. Setting to \"bare\".");
-          return {_id: "status" , status : "bare", bare: true};
-        } else {
-          reject("load status error" + err);
-        }
-      })
-      .then(statusDoc => {
-        status = statusDoc.status;
-
-        db.allDocs(
-          { include_docs: true
-          }).then(function (result) {
-          let data = result.rows.map(r => r.doc);
-
-          let commits = processData(data, "commit");
-          let trees = processData(data, "tree");
-          let refs = processData(data, "ref");
-          let metadata;
-          if (data.filter(d => d._id == "metadata").length == 1) {
-            metadata = _.omit(data.filter(d => d._id == "metadata")[0], "_id");
-          } else {
-            metadata = {name: null, _rev: null};
-          }
-          let status = _.omit(statusDoc, "_rev");
-
-          let commitsSorted = Object.entries(commits).sort(function(a,b) { return a[1].timestamp - b[1].timestamp; });
-          let lastCommit = commitsSorted[0];
-
-          let toSend =
-            { metadata: metadata
-            , status : status
-            , objects : { commits: commits, treeObjects: trees, refs: refs }
-            , lastCommitTime : lastCommit[1].timestamp
-            };
-
-          resolve(toSend);
-        }).catch(function (err) {
-          container.showMessageBox(errorAlert(tr.loadingError[lang], tr.loadingErrorMsg[lang], err));
-          reject(err);
-        });
-    });
-  });
+async function load() {
+  try {
+    let result = await db.allDocs({include_docs: true})
+    toElm("DocumentLoaded", rowsToElmData(result));
+  } catch (err) {
+    container.showMessageBox(errorAlert(tr.loadingError[lang], tr.loadingErrorMsg[lang], err));
+  }
 }
 
-const merge = function(local, remote){
-  self.db.allDocs( { include_docs: true })
-    .then(function (result) {
-      var data = result.rows.map(r => r.doc);
-
-      let commits = processData(data, "commit");
-      let trees = processData(data, "tree");
-      let refs = processData(data, "ref");
-
-      let toSend = { commits: commits, treeObjects: trees, refs: refs};
-      toElm("Merge", [local, remote, toSend]);
-    }).catch(function (err) {
-      console.log(err);
-    });
+async function merge(local, remote) {
+  let result = await db.allDocs({include_docs: true})
+  let toSend = rowsToElmData(result);
+  toSend.localHead = local;
+  toSend.remoteHead = remote;
+  toElm("Merge", toSend);
 };
 
 
+function rowsToElmData(result) {
+  let data = result.rows.map(r => r.doc);
+
+  let commits = processData(data, "commit");
+  let trees = processData(data, "tree");
+  let refs = processData(data, "ref");
+
+  let metadata;
+  if (data.filter(d => d._id == "metadata").length == 1) {
+    metadata = _.omit(data.filter(d => d._id == "metadata")[0], "_id");
+  } else {
+    metadata = {name: null, _rev: null};
+  }
+
+  let status;
+  if (data.filter(d => d._id == "status").length == 1) {
+    status = _.omit(data.filter(d => d._id == "status")[0], ["_id", "_rev"]);
+  } else {
+    status = {name: null, _rev: null};
+  }
+
+  let commitsSorted = Object.entries(commits).sort(function(a,b) { return a[1].timestamp - b[1].timestamp; });
+  let lastCommit = commitsSorted[0];
+
+  let toSend =
+    { metadata: metadata
+    , status : status
+    , objects : { commits: commits, treeObjects: trees, refs: refs }
+    , lastCommitTime : lastCommit[1].timestamp
+    };
+
+  return toSend;
+}
+
+
 async function pull (local, remote, info) {
+  console.log("pull", local, remote)
   try {
     if(info) console.log(info);
     var selector = { "_id": { "$regex": `^${self.TREE_ID}/` }};
     var pullResult = await self.db.replicate.from(self.remoteDB, {selector});
     if(pullResult.docs_written > 0 && pullResult.ok) {
-      merge(local, remote);
+      if (typeof local !== "string") {
+        // Bare local, pull only, then load document into elm
+        load();
+      } else {
+        merge(local, remote);
+      }
     }
   } catch (e) {
     console.log("pull error", e);
@@ -592,6 +577,8 @@ async function push (info) {
     if (repRes.ok) {
       docState.lastSavedRemotely = Date.now();
     }
+  } else {
+    console.log("one or both of the dbs don't exist!")
   }
 }
 
