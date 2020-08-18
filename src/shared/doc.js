@@ -129,45 +129,6 @@ if (initFlags) {
 }
 initElmAndPorts(initFlags);
 
-/*
-if (docState.jsonImportData) {
-  const initFlags =
-    [ docState.jsonImportData
-      , { language : lang
-        , isMac : process.platform === "darwin"
-        , shortcutTrayOpen : userStore.get("shortcut-tray-is-open", true)
-        , videoModalOpen : userStore.get("video-modal-is-open", false)
-        , currentTime : Date.now()
-        , lastSavedLocally : null
-        , lastSavedRemotely : null
-        , lastActive : getLastActive(docState.dbPath[1])
-        , fonts : getFonts(docState.dbPath[1])
-        }
-      , true // isImport
-    ];
-
-  initElmAndPorts(initFlags);
-} else {
-  const initFlags =
-    [ { language : lang
-        , isMac : process.platform === "darwin"
-        , shortcutTrayOpen : userStore.get("shortcut-tray-is-open", true)
-        , videoModalOpen : userStore.get("video-modal-is-open", false)
-        , currentTime : Date.now()
-        , lastSavedLocally : docState.lastSavedLocally || null
-        , lastSavedRemotely : docState.lastSavedRemotely || null
-        , lastActive : getLastActive(docState.dbPath[1])
-        , fonts : getFonts(docState.dbPath[1])
-        }
-      , false // isImport
-    ];
-
-  initElmAndPorts(initFlags);
-}
-*/
-
-//self.socket = io.connect('http://localhost:3000')
-
 
 function initElmAndPorts(initFlags) {
   self.gingko = Elm.Main.init({ node: document.getElementById("elm"), flags: initFlags});
@@ -244,7 +205,7 @@ const update = (msg, data) => {
 
       // === Database ===
 
-    , "LoadDatabase": async () => {
+    , "LoadDocument": async () => {
         self.db = new PouchDB(data);
         setRemoteDB(data);
 
@@ -255,9 +216,17 @@ const update = (msg, data) => {
 
         if (docExistsLocally) {
           let loadRes = await load();
-          console.log(loadRes);
-          toElm("DatabaseLoaded", loadRes);
-        } else if (docExistsRemotely){
+          let loadedDocument =
+            { objects: loadRes.objects
+            , status : loadRes.status
+            , metadata : loadRes.metadata
+            , lastSavedLocally : loadRes.lastCommitTime
+            };
+
+          toElm("DocumentLoaded", loadedDocument);
+        }
+
+        if (docExistsRemotely){
           sync();
         }
       }
@@ -565,19 +534,16 @@ function load(filepath, headOverride){
           }
           let status = _.omit(statusDoc, "_rev");
 
-          if(headOverride) {
-            refs["heads/master"] = headOverride;
-          } else if (_.isEmpty(refs)) {
-            var keysSorted = Object.keys(commits).sort(function(a,b) { return commits[b].timestamp - commits[a].timestamp; });
-            var lastCommit = keysSorted[0];
-            if (lastCommit) {
-              refs["heads/master"] = { value: lastCommit, ancestors: [], _rev: "" };
-              console.log("recovered status", status);
-              console.log("refs recovered", refs);
-            }
-          }
+          let commitsSorted = Object.entries(commits).sort(function(a,b) { return a[1].timestamp - b[1].timestamp; });
+          let lastCommit = commitsSorted[0];
 
-          let toSend = [metadata, status, { commits: commits, treeObjects: trees, refs: refs}];
+          let toSend =
+            { metadata: metadata
+            , status : status
+            , objects : { commits: commits, treeObjects: trees, refs: refs }
+            , lastCommitTime : lastCommit[1].timestamp
+            };
+
           resolve(toSend);
         }).catch(function (err) {
           container.showMessageBox(errorAlert(tr.loadingError[lang], tr.loadingErrorMsg[lang], err));

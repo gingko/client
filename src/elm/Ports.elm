@@ -23,7 +23,7 @@ type
     | ConfirmCancelCard String String
     | ColumnNumberChange Int
       -- === Database ===
-    | LoadDatabase String
+    | LoadDocument String
     | CommitWithTimestamp
     | NoDataToSave
     | SaveToDB ( Enc.Value, Enc.Value, Enc.Value )
@@ -57,7 +57,7 @@ type
     = IntentExport ExportSettings
     | CancelCardConfirmed
       -- === Database ===
-    | DatabaseLoaded Dec.Value
+    | DocumentLoaded Dec.Value
     | TitleSaved Dec.Value
     | Commit Int
     | GetDataToSave
@@ -128,7 +128,7 @@ sendOut info =
             dataToSend (int cols)
 
         -- === Database ===
-        LoadDatabase dbName ->
+        LoadDocument dbName ->
             dataToSend (string dbName)
 
         CommitWithTimestamp ->
@@ -268,8 +268,8 @@ receiveMsg tagger onError =
                     tagger <| CancelCardConfirmed
 
                 -- === Database ===
-                "DatabaseLoaded" ->
-                    tagger <| DatabaseLoaded outsideInfo.data
+                "DocumentLoaded" ->
+                    tagger <| DocumentLoaded outsideInfo.data
 
                 "TitleSaved" ->
                     tagger <| TitleSaved outsideInfo.data

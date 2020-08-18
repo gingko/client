@@ -52,8 +52,7 @@ type alias RefObject =
 
 
 type alias DocumentData =
-    { metadata : Metadata
-    , status : Status
+    { status : Status
     , builtTree : Maybe Tree
     , objects : Model
     }
@@ -61,22 +60,28 @@ type alias DocumentData =
 
 init : Json.Value -> DocumentData
 init json =
-    case Json.decodeValue (tripleDecoder Metadata.decoder statusDecoder modelDecoder) json of
-        Ok ( metadata, status, modelIn ) ->
+    let
+        dataDecoder =
+            Json.map2 (\s o -> ( s, o ))
+                (Json.field "status" statusDecoder)
+                (Json.field "objects" modelDecoder)
+    in
+    case Json.decodeValue dataDecoder json of
+        Ok ( status, objects ) ->
             case status of
                 MergeConflict mTree _ _ _ ->
-                    DocumentData metadata status (Just mTree) modelIn
+                    DocumentData status (Just mTree) objects
 
                 Clean sha ->
                     let
                         newTree_ =
-                            Dict.get sha modelIn.commits
-                                |> andThen (\co -> treeObjectsToTree modelIn.treeObjects co.tree "0")
+                            Dict.get sha objects.commits
+                                |> andThen (\co -> treeObjectsToTree objects.treeObjects co.tree "0")
                     in
-                    DocumentData metadata (Clean sha) newTree_ modelIn
+                    DocumentData (Clean sha) newTree_ objects
 
                 Bare ->
-                    DocumentData metadata Bare Nothing modelIn
+                    DocumentData Bare Nothing objects
 
         Err err ->
             Debug.todo ("Data.Init:" ++ Json.errorToString err)

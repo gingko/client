@@ -1,4 +1,4 @@
-port module Page.Doc exposing (InitModel, Model, Msg, init, subscriptions, toSession, update, view)
+port module Page.Doc exposing (Model, Msg, init, subscriptions, toSession, update, view)
 
 import Browser.Dom
 import Coders exposing (statusToValue, treeToMarkdownString)
@@ -90,26 +90,6 @@ type alias Model =
     }
 
 
-
-{-
-   InitModel is a reduced form of the model that contains all the user settings
-   that are loaded outside of Elm, and present at initialization.
--}
-
-
-type alias InitModel =
-    { language : String
-    , isMac : Bool
-    , shortcutTrayOpen : Bool
-    , videoModalOpen : Bool
-    , lastLocalSave : Maybe Int
-    , lastRemoteSave : Maybe Float
-    , currentTime : Int
-    , lastActive : String
-    , fonts : Maybe ( String, String, String )
-    }
-
-
 defaultModel : Session -> Model
 defaultModel session =
     { workingTree = TreeStructure.defaultModel
@@ -170,7 +150,7 @@ defaultModel session =
 init : Session -> String -> ( Model, Cmd Msg )
 init session dbName =
     ( defaultModel session
-    , sendOut <| LoadDatabase dbName
+    , sendOut <| LoadDocument dbName
     )
 
 
@@ -706,19 +686,27 @@ update msg ({ objects, workingTree, status } as model) =
                         |> cancelCard
 
                 -- === Database ===
-                DatabaseLoaded dataIn ->
+                DocumentLoaded dataIn ->
                     let
-                        decodedData =
-                            Data.init dataIn
+                        loadedDoc =
+                            { data = Data.init dataIn
+                            , metadata =
+                                Json.decodeValue (Json.field "metadata" Metadata.decoder) dataIn
+                                    |> Result.withDefault Metadata.new
+                            , lastLocalSave =
+                                Json.decodeValue (Json.field "lastSavedLocally" Json.int) dataIn
+                                    |> Result.toMaybe
+                                    |> Maybe.map Time.millisToPosix
+                            }
 
                         newTree =
-                            Maybe.withDefault TreeStructure.defaultTree decodedData.builtTree
+                            Maybe.withDefault TreeStructure.defaultTree loadedDoc.data.builtTree
 
                         newWorkingTree =
                             TreeStructure.setTree newTree (defaultModel model.session).workingTree
 
                         startingWordcount =
-                            decodedData.builtTree
+                            loadedDoc.data.builtTree
                                 |> Maybe.map (\t -> countWords (treeToMarkdownString False t))
                                 |> Maybe.withDefault 0
 
@@ -727,9 +715,10 @@ update msg ({ objects, workingTree, status } as model) =
                     in
                     ( { model
                         | workingTree = newWorkingTree
-                        , objects = decodedData.objects
-                        , status = decodedData.status
-                        , metadata = decodedData.metadata
+                        , objects = loadedDoc.data.objects
+                        , status = loadedDoc.data.status
+                        , metadata = loadedDoc.metadata
+                        , lastLocalSave = loadedDoc.lastLocalSave
                         , startingWordcount = startingWordcount
                       }
                     , sendOut <| ColumnNumberChange columnNumber
