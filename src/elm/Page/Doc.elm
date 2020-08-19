@@ -218,7 +218,7 @@ type Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ({ objects, workingTree, status } as model) =
+update msg ({ workingTree, status } as model) =
     let
         vs =
             model.viewState
@@ -1523,10 +1523,6 @@ deleteCard id ( model, prevCmd ) =
                 |> List.filter (\c -> c.mode == CollabEditing id)
                 |> (not << List.isEmpty)
 
-        filteredActive =
-            vs.activePast
-                |> List.filter (\a -> a /= id)
-
         parent_ =
             getParent id model.workingTree.tree
 
@@ -1999,9 +1995,6 @@ pasteBelow id ( model, prevCmd ) =
     case model.viewState.copiedTree of
         Just copiedTree ->
             let
-                vs =
-                    model.viewState
-
                 ( newId, newSeed ) =
                     Random.step randomId model.seed
 
@@ -2030,9 +2023,6 @@ pasteInto id ( model, prevCmd ) =
     case model.viewState.copiedTree of
         Just copiedTree ->
             let
-                vs =
-                    model.viewState
-
                 ( newId, newSeed ) =
                     Random.step randomId model.seed
 
@@ -2072,7 +2062,7 @@ checkoutCommit commitSha ( model, prevCmd ) =
 
         Nothing ->
             ( model
-            , Cmd.none
+            , prevCmd
             )
                 |> Debug.log "failed to load commit"
 
@@ -2128,7 +2118,7 @@ historyStep dir ( model, prevCmd ) =
                     getAt newCommitIdx_ historyList
             in
             case ( model.historyState, currCommit_, newCommit_ ) of
-                ( From startSha, _, Just newSha ) ->
+                ( From _, _, Just newSha ) ->
                     ( model
                     , prevCmd
                     )
@@ -2411,13 +2401,13 @@ viewColumn vstate depth col =
     div
         [ class "column" ]
         (buffer
-            ++ List.map (lazy3 viewGroup vstate depth) col
+            ++ List.map (lazy2 viewGroup vstate) col
             ++ buffer
         )
 
 
-viewGroup : VisibleViewState -> Int -> Group -> Html Msg
-viewGroup vstate depth xs =
+viewGroup : VisibleViewState -> Group -> Html Msg
+viewGroup vstate xs =
     let
         firstChild =
             xs
@@ -2810,11 +2800,6 @@ getHead status =
 focus : String -> Cmd Msg
 focus id =
     Task.attempt (\_ -> NoOp) (Browser.Dom.focus ("card-edit-" ++ id))
-
-
-run : Msg -> Cmd Msg
-run msg =
-    Task.attempt (\_ -> msg) (Task.succeed msg)
 
 
 normalMode : Model -> (( Model, Cmd Msg ) -> ( Model, Cmd Msg )) -> ( Model, Cmd Msg )
