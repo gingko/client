@@ -529,7 +529,12 @@ update msg ({ objects, workingTree, status } as model) =
 
         -- === UI ===
         ToggledTitleEdit isEditingTitle ->
-            ( { model | isEditingTitle = isEditingTitle }, Cmd.none )
+            ( { model
+                | isEditingTitle = isEditingTitle
+                , titleField = Metadata.getDocName model.metadata |> Maybe.withDefault ""
+              }
+            , Cmd.none
+            )
 
         TitleFieldChanged newTitle ->
             ( { model | titleField = newTitle }, Cmd.none )
