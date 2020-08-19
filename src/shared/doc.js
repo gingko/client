@@ -25,9 +25,18 @@ var lastColumnScrolled = null;
 var _lastFormat = null;
 var _lastSelection = null;
 var collab = {};
-let lang;
-let helpVisible;
-let helpWidgetLauncher;
+var lang;
+var helpVisible;
+var helpWidgetLauncher;
+
+var db;
+var remoteDB;
+var gingko;
+var TREE_ID;
+var savedObjectIds = [];
+const userStore = container.userStore;
+const localStore = container.localStore;
+
 
 const sessionStorageKey = "gingko-session-storage";
 
@@ -36,15 +45,10 @@ const ActionOnData =
   , Save: "Save"
   , SaveAs: "SaveAs"
   };
-let actionOnData = ActionOnData.Save;
+var actionOnData = ActionOnData.Save;
 
 
 /* === Initializing App === */
-
-const userStore = container.userStore;
-const localStore = container.localStore;
-self.savedObjectIds = [];
-
 
 initElmAndPorts();
 
@@ -58,7 +62,7 @@ async function initElmAndPorts() {
 
   const initFlags = { session : sessionData, language: "en" };
 
-  self.gingko = Elm.Main.init({ node: document.getElementById("elm"), flags: initFlags});
+  gingko = Elm.Main.init({ node: document.getElementById("elm"), flags: initFlags});
 
   // Page.Doc messages
   gingko.ports.infoForOutside.subscribe(function(elmdata) {
@@ -139,18 +143,18 @@ function setUserDb(email) {
         return fetch(url, opts);
       }
     };
-  self.remoteDB = new PouchDB(userDb, remoteOpts);
+  remoteDB = new PouchDB(userDb, remoteOpts);
 };
 
 function setRemoteDB(treeId) {
-  self.TREE_ID = treeId;
-  self.remoteDB.transform(
+  TREE_ID = treeId;
+  remoteDB.transform(
     { outgoing: (doc) => {
-        doc._id = doc._id.slice(self.TREE_ID.length + 1);
+        doc._id = doc._id.slice(TREE_ID.length + 1);
         return doc;
       }
     , incoming: (doc) => {
-        doc._id = self.TREE_ID + "/" + doc._id;
+        doc._id = TREE_ID + "/" + doc._id;
         return doc;
       }
   });
@@ -162,12 +166,12 @@ container.msgWas("main:database-close", async () => {
   await db.close();
 });
 container.msgWas("main:database-open", async () => {
-  self.db = new PouchDB(docState.dbPath[0]);
+  db = new PouchDB(docState.dbPath[0]);
 });
 
 
 function toElm (tag, data) {
-  self.gingko.ports.infoForElm.send({tag: tag, data: data});
+  gingko.ports.infoForElm.send({tag: tag, data: data});
 }
 
 
@@ -207,7 +211,7 @@ const update = (msg, data) => {
       // === Database ===
 
     , "LoadDocument": async () => {
-        self.db = new PouchDB(data);
+        db = new PouchDB(data);
         localStore.db(data);
         setRemoteDB(data);
 
@@ -238,7 +242,6 @@ const update = (msg, data) => {
 
     , "SaveToDB": async () => {
         try {
-          console.log("Data from Elm to save", data);
           const { headRev, metadataRev, lastSavedLocally } = await saveToDB(data[0], data[1], data[2]);
           docState.revs = {headRev, metadataRev};
           docState.lastSavedLocally = lastSavedLocally;
@@ -271,7 +274,7 @@ const update = (msg, data) => {
       }
 
     , "Push": () => {
-        push("Push command from Elm.");
+        push();
     }
 
     , "Pull": sync
@@ -504,7 +507,6 @@ async function loadData() {
   try {
     let result = await db.allDocs({include_docs: true})
     let toSend = rowsToElmData(result);
-    console.log("loadData toSend", toSend);
     toElm("DocumentLoaded", toSend);
   } catch (err) {
     container.showMessageBox(errorAlert(tr.loadingError[lang], tr.loadingErrorMsg[lang], err));
@@ -521,7 +523,6 @@ async function loadLocalStore() {
 async function loadUserStore() {
   let store = await userStore.load();
   lang = store.language;
-  console.log("lang set", lang);
   toElm("UserStoreLoaded", store);
 }
 
@@ -573,8 +574,8 @@ async function pull (local, remote, info) {
   console.log("pull", local, remote)
   try {
     if(info) console.log(info);
-    var selector = { "_id": { "$regex": `^${self.TREE_ID}/` }};
-    var pullResult = await self.db.replicate.from(self.remoteDB, {selector});
+    var selector = { "_id": { "$regex": `^${TREE_ID}/` }};
+    var pullResult = await db.replicate.from(remoteDB, {selector});
     if(pullResult.docs_written > 0 && pullResult.ok) {
       if (typeof local !== "string") {
         // Bare local, pull only, then load document into elm
@@ -604,8 +605,8 @@ async function push (info) {
 
 
 async function sync () {
-  var localHead = await self.db.get("heads/master").catch(returnError);
-  var remoteHead = await self.remoteDB.get(`${self.TREE_ID}/heads/master`).catch(returnError);
+  var localHead = await db.get("heads/master").catch(returnError);
+  var remoteHead = await remoteDB.get(`${TREE_ID}/heads/master`).catch(returnError);
 
   if (localHead.error && remoteHead.error) {
     // Neither exists => Do nothing
@@ -628,11 +629,11 @@ async function sync () {
 
       // Possible changes in metadata
       let localMetadata = await db.get("metadata").catch(returnError);
-      let remoteMetadata = await remoteDB.get(`${self.TREE_ID}/metadata`).catch(returnError);
+      let remoteMetadata = await remoteDB.get(`${TREE_ID}/metadata`).catch(returnError);
       if(!_.isEqual(localMetadata, remoteMetadata)) {
         // Only way they can *remain* unequal is if remote > local
         // Therefore, pull
-        var selector = { "_id": `${self.TREE_ID}/metadata` };
+        var selector = { "_id": `${TREE_ID}/metadata` };
         var pullResult = await db.replicate.from(remoteDB, {selector});
         if(pullResult.ok && pullResult.docs_written == 1) {
           toElm("TitleSaved", remoteMetadata );
