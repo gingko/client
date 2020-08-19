@@ -1,3 +1,7 @@
+const _ = require("lodash");
+import PouchDB from "pouchdb";
+
+
 const userStore =
   { get: (...args) => {
       var item = localStorage.getItem(...args);
@@ -16,6 +20,31 @@ const userStore =
       }
     }
   , set: (...args) => localStorage.setItem(...args)
+  };
+
+
+var localDB;
+const localStoreId = "_local/store";
+const localStore =
+  { db : (dbName) => { localDB = new PouchDB(dbName); }
+  , load : async () => {
+      let store = await localDB.get(localStoreId).catch(() => {return {_id : localStoreId}});
+      return _.omit(store, ["_id", "_rev"]);
+    }
+  , get : async (key, fallback) => {
+      let store = await localDB.get(localStoreId).catch(async (e) => e);
+      if (!store.error && typeof store[key] !== "undefined") {
+        return store[key];
+      } else {
+        return fallback;
+      }
+    }
+  , set : async (key, value) => {
+      let store = await localDB.get(localStoreId).catch(() => {return {_id : localStoreId}});
+      store[key] = value;
+      let putRes = await localDB.put(store).catch(async (e) => e);
+      return putRes;
+    }
   };
 
 const getInitialDocState = () => {
@@ -47,6 +76,7 @@ export
   , justLog as msgWas
   , justLog as answerMain
   , getInitialDocState
+  , localStore
   , userStore
   , justLog as openExternal
   , showMessageBox

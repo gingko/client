@@ -58,6 +58,7 @@ type
     | CancelCardConfirmed
       -- === Database ===
     | DocumentLoaded Dec.Value
+    | LocalStoreLoaded Dec.Value
     | TitleSaved Dec.Value
     | TitleNotSaved
     | Commit Int
@@ -271,6 +272,9 @@ receiveMsg tagger onError =
                 -- === Database ===
                 "DocumentLoaded" ->
                     tagger <| DocumentLoaded outsideInfo.data
+
+                "LocalStoreLoaded" ->
+                    tagger <| LocalStoreLoaded outsideInfo.data
 
                 "TitleSaved" ->
                     tagger <| TitleSaved outsideInfo.data

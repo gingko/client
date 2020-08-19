@@ -40,6 +40,7 @@ let actionOnData = ActionOnData.Save;
 /* === Initializing App === */
 
 const userStore = container.userStore;
+const localStore = container.localStore;
 var lang = userStore.get("language") || "en";
 var helpVisible = userStore.get("help-visible") || true;
 self.savedObjectIds = [];
@@ -176,6 +177,7 @@ function toElm (tag, data) {
 /* === Elm to JS Ports === */
 
 const update = (msg, data) => {
+  console.debug("From Elm", msg, data);
   let cases =
     {
       // === Dialogs, Menus, Window State ===
@@ -207,15 +209,15 @@ const update = (msg, data) => {
 
     , "LoadDocument": async () => {
         self.db = new PouchDB(data);
+        localStore.db(data);
         setRemoteDB(data);
 
         let docExistsLocally = await docExists(db);
         let docExistsRemotely = await docExists(remoteDB, data);
 
-        console.log("docExists(Locally|Remotely)", docExistsLocally, docExistsRemotely)
-
         if (docExistsLocally) {
-          let loadRes = await load();
+          await loadData();
+          loadLocalStore();
         }
 
         if (docExistsRemotely){
@@ -319,9 +321,10 @@ const update = (msg, data) => {
         lastActivesScrolled = data.lastActives;
         lastColumnScrolled = data.column;
 
-        setLastActive(docState.dbPath[1], data.cardId);
         helpers.scrollHorizontal(data.column);
         helpers.scrollColumns(data.lastActives);
+
+        localStore.set("last-active", data.cardId);
       }
 
     , "FlashCurrentSubtree": () => {
@@ -497,7 +500,7 @@ async function docExists(dbToCheck, docName) {
   }
 }
 
-async function load() {
+async function loadData() {
   try {
     let result = await db.allDocs({include_docs: true})
     let toSend = rowsToElmData(result);
@@ -505,6 +508,11 @@ async function load() {
   } catch (err) {
     container.showMessageBox(errorAlert(tr.loadingError[lang], tr.loadingErrorMsg[lang], err));
   }
+}
+
+async function loadLocalStore() {
+  let store = await localStore.load();
+  toElm("LocalStoreLoaded", store);
 }
 
 async function merge(local, remote) {

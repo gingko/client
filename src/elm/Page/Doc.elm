@@ -721,6 +721,14 @@ update msg ({ workingTree, status } as model) =
                     , sendOut <| ColumnNumberChange columnNumber
                     )
 
+                LocalStoreLoaded dataIn ->
+                    case Json.decodeValue (Json.field "last-active" Json.string) dataIn of
+                        Ok lastActive ->
+                            ( model, Cmd.none ) |> activate lastActive
+
+                        Err _ ->
+                            ( model, Cmd.none )
+
                 TitleSaved json ->
                     case Json.decodeValue Metadata.decoder json of
                         Ok metadata ->
