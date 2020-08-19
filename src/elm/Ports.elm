@@ -59,9 +59,10 @@ type
       -- === Database ===
     | DocumentLoaded Dec.Value
     | TitleSaved Dec.Value
+    | TitleNotSaved
     | Commit Int
     | GetDataToSave
-    | SetHeadRev String
+    | SetRevs { headRev : String, metadataRev : String }
     | SavedLocally (Maybe Time.Posix)
     | SavedRemotely (Maybe Time.Posix)
     | Merge Dec.Value
@@ -285,10 +286,16 @@ receiveMsg tagger onError =
                 "GetDataToSave" ->
                     tagger <| GetDataToSave
 
-                "SetHeadRev" ->
-                    case decodeValue Dec.string outsideInfo.data of
-                        Ok rev ->
-                            tagger <| SetHeadRev rev
+                "SetRevs" ->
+                    let
+                        revsDecoder =
+                            Dec.map2 (\h m -> { headRev = h, metadataRev = m })
+                                (Dec.field "headRev" Dec.string)
+                                (Dec.field "metadataRev" Dec.string)
+                    in
+                    case decodeValue revsDecoder outsideInfo.data of
+                        Ok revs ->
+                            tagger <| SetRevs revs
 
                         Err e ->
                             onError (errorToString e)

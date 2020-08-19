@@ -58,8 +58,8 @@ const docStateHandlers = {
   set: function(obj, prop, value) {
     if (typeof gingko !== "undefined") {
       switch(prop) {
-        case "headRev":
-          toElm("SetHeadRev", value);
+        case "revs":
+          toElm("SetRevs", value);
           break;
 
         case "lastSavedRemotely":
@@ -237,8 +237,9 @@ const update = (msg, data) => {
 
     , "SaveToDB": async () => {
         try {
-          const { headRev, lastSavedLocally } = await saveToDB(data[0], data[1], data[2]);
-          docState.headRev = headRev;
+          console.log("Data from Elm to save", data);
+          const { headRev, metadataRev, lastSavedLocally } = await saveToDB(data[0], data[1], data[2]);
+          docState.revs = {headRev, metadataRev};
           docState.lastSavedLocally = lastSavedLocally;
 
           switch(actionOnData) {
@@ -499,7 +500,8 @@ async function docExists(dbToCheck, docName) {
 async function load() {
   try {
     let result = await db.allDocs({include_docs: true})
-    toElm("DocumentLoaded", rowsToElmData(result));
+    let toSend = rowsToElmData(result);
+    toElm("DocumentLoaded", toSend);
   } catch (err) {
     container.showMessageBox(errorAlert(tr.loadingError[lang], tr.loadingErrorMsg[lang], err));
   }
@@ -606,6 +608,19 @@ async function sync () {
       // Local == Remote => Up-to-Date
       docState.lastSavedRemotely = Date.now();
 
+      // Possible changes in metadata
+      let localMetadata = await db.get("metadata").catch(returnError);
+      let remoteMetadata = await remoteDB.get(`${self.TREE_ID}/metadata`).catch(returnError);
+      if(!_.isEqual(localMetadata, remoteMetadata)) {
+        // Only way they can *remain* unequal is if remote > local
+        // Therefore, pull
+        var selector = { "_id": `${self.TREE_ID}/metadata` };
+        var pullResult = await db.replicate.from(remoteDB, {selector});
+        if(pullResult.ok && pullResult.docs_written == 1) {
+          toElm("TitleSaved", remoteMetadata );
+        }
+      }
+
     } else if (localHead.ancestors.includes(remoteHead.value)) {
       // Local is ahead of remote => Push
       push("push:Local ahead of remote");
@@ -626,54 +641,30 @@ async function returnError(e) {
 
 /* === Local Functions === */
 
-self.saveToDB = (metadata, status, objects) => {
-  return new Promise(
-    async (resolve, reject) => {
-      try {
-        var statusDoc =
-          await db.get("status")
-                .catch(err => {
-                  if(err.name == "not_found") {
-                    return {_id: "status" , status : "bare", bare: true};
-                  } else {
-                    console.log("load status error", err);
-                  }
-                });
-      } catch (e) {
-        reject(e);
-        return;
-      }
+async function saveToDB(metadata, status, objects) {
+  const statusDoc = await db.get("status").catch(returnError);
+  if(statusDoc._rev) {
+    status["_rev"] = statusDoc._rev;
+  }
 
-      if(statusDoc._rev) {
-        status["_rev"] = statusDoc._rev;
-      }
+  const lastSavedLocally = Object.values(objects.commits).map(c => c.timestamp).sort().slice(-1)[0];
 
-      const lastSavedLocally = Object.values(objects.commits).map(c => c.timestamp).sort().slice(-1)[0];
+  // Filter out object that are already saved in database
+  const newCommits = objects.commits.filter( o => !savedObjectIds.includes(o._id));
+  const newTreeObjects = objects.treeObjects.filter( o => !savedObjectIds.includes(o._id));
 
-      // Filter out object that are already saved in database
-      const newCommits = objects.commits.filter( o => !savedObjectIds.includes(o._id));
-      const newTreeObjects = objects.treeObjects.filter( o => !savedObjectIds.includes(o._id));
+  const toSave = [metadata, ...newCommits, ...newTreeObjects, ...objects.refs, ...[status]];
 
-      const toSave = [metadata, ...newCommits, ...newTreeObjects, ...objects.refs, ...[status]];
-      console.log(toSave);
+  let responses = await db.bulkDocs(toSave);
+  let savedIds = responses.filter(r => r.ok && r.id !== "status" && r.id !== "heads/master" && r.id !== "metadata");
+  savedObjectIds = savedObjectIds.concat(savedIds.map( o => o.id));
 
-      try {
-        var responses = await db.bulkDocs(toSave);
-        let savedIds = responses.filter(r => r.ok && r.id !== "status" && r.id !== "heads/master");
-        savedObjectIds = savedObjectIds.concat(savedIds.map( o => o.id));
-      } catch (e) {
-        reject(e);
-        return;
-      }
+  let headRes = responses.filter(r => r.id == "heads/master")[0];
+  let metadataRes = responses.filter(r => r.id == "metadata")[0];
 
-      let head = responses.filter(r => r.id == "heads/master")[0];
-      if (head.ok) {
-        resolve({ headRev: head.rev, lastSavedLocally });
-      } else {
-        reject(new Error(`Reference error when saving to DB.\n${head}`));
-        return;
-      }
-    });
+  if (headRes.ok) {
+    return { headRev: headRes.rev, metadataRev : metadataRes.rev, lastSavedLocally };
+  }
 };
 
 

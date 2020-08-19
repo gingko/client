@@ -1,4 +1,4 @@
-module Doc.Metadata exposing (Metadata, decoder, decoderWithDbName, encode, getDocName, new, rename)
+module Doc.Metadata exposing (Metadata, decoder, encode, getDocId, getDocName, new, rename, setRev)
 
 import Coders exposing (maybeToValue)
 import Json.Decode as Dec exposing (Decoder)
@@ -7,19 +7,30 @@ import Json.Encode as Enc
 
 type Metadata
     = Metadata
-        { docName : Maybe String
+        { docId : String
+        , docName : Maybe String
         , rev : Maybe String
         }
 
 
-new : Metadata
-new =
-    Metadata { docName = Nothing, rev = Nothing }
+new : String -> Metadata
+new docId =
+    Metadata { docId = docId, docName = Nothing, rev = Nothing }
+
+
+getDocId : Metadata -> String
+getDocId (Metadata { docId }) =
+    docId
 
 
 getDocName : Metadata -> Maybe String
 getDocName (Metadata { docName }) =
     docName
+
+
+setRev : String -> Metadata -> Metadata
+setRev newRev (Metadata oldMetadata) =
+    Metadata { oldMetadata | rev = Just newRev }
 
 
 
@@ -28,25 +39,19 @@ getDocName (Metadata { docName }) =
 
 decoder : Decoder Metadata
 decoder =
-    Dec.map2 (\n r -> Metadata { docName = n, rev = r })
-        (Dec.field "name" (Dec.maybe Dec.string))
-        (Dec.field "_rev" (Dec.maybe Dec.string))
-
-
-decoderWithDbName : Decoder ( String, Metadata )
-decoderWithDbName =
-    Dec.map3 (\id n r -> ( String.dropRight (String.length "/metadata") id, Metadata { docName = n, rev = r } ))
-        (Dec.field "_id" Dec.string)
+    Dec.map3 (\i n r -> Metadata { docId = i, docName = n, rev = r })
+        (Dec.field "docId" Dec.string)
         (Dec.field "name" (Dec.maybe Dec.string))
         (Dec.field "_rev" (Dec.maybe Dec.string))
 
 
 encode : Metadata -> Dec.Value
-encode (Metadata { docName, rev }) =
+encode (Metadata { docId, docName, rev }) =
     case rev of
         Just revData ->
             Enc.object
                 [ ( "_id", Enc.string "metadata" )
+                , ( "docId", Enc.string docId )
                 , ( "name", maybeToValue Enc.string docName )
                 , ( "_rev", Enc.string revData )
                 ]
@@ -54,22 +59,16 @@ encode (Metadata { docName, rev }) =
         Nothing ->
             Enc.object
                 [ ( "_id", Enc.string "metadata" )
+                , ( "docId", Enc.string docId )
                 , ( "name", maybeToValue Enc.string docName )
                 ]
 
 
 rename : String -> Metadata -> Dec.Value
-rename newDocName (Metadata { rev }) =
-    case rev of
-        Just revData ->
-            Enc.object
-                [ ( "_id", Enc.string "metadata" )
-                , ( "name", Enc.string newDocName )
-                , ( "_rev", Enc.string revData )
-                ]
-
-        Nothing ->
-            Enc.object
-                [ ( "_id", Enc.string "metadata" )
-                , ( "name", Enc.string newDocName )
-                ]
+rename newDocName (Metadata { docId, docName, rev }) =
+    Metadata
+        { docId = docId
+        , docName = Just newDocName
+        , rev = rev
+        }
+        |> encode

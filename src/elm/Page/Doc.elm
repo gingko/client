@@ -90,12 +90,12 @@ type alias Model =
     }
 
 
-defaultModel : Session -> Model
-defaultModel session =
+defaultModel : Session -> String -> Model
+defaultModel session docId =
     { workingTree = TreeStructure.defaultModel
     , objects = Data.defaultObjects
     , status = Bare
-    , metadata = Metadata.new
+    , metadata = Metadata.new docId
     , session = session
     , debouncerStateCommit =
         Debouncer.throttle (fromSeconds 3)
@@ -149,7 +149,7 @@ defaultModel session =
 
 init : Session -> String -> ( Model, Cmd Msg )
 init session dbName =
-    ( defaultModel session
+    ( defaultModel session dbName
     , sendOut <| LoadDocument dbName
     )
 
@@ -695,7 +695,7 @@ update msg ({ objects, workingTree, status } as model) =
                             Maybe.withDefault TreeStructure.defaultTree loadedDoc.builtTree
 
                         newWorkingTree =
-                            TreeStructure.setTree newTree (defaultModel model.session).workingTree
+                            TreeStructure.setTree newTree (defaultModel model.session "").workingTree
 
                         startingWordcount =
                             loadedDoc.builtTree
@@ -728,6 +728,14 @@ update msg ({ objects, workingTree, status } as model) =
                             in
                             ( model, Cmd.none )
 
+                TitleNotSaved ->
+                    ( { model
+                        | isEditingTitle = False
+                        , titleField = Metadata.getDocName model.metadata |> Maybe.withDefault ""
+                      }
+                    , Cmd.none
+                    )
+
                 GetDataToSave ->
                     case ( vs.viewMode, status ) of
                         ( Normal, Bare ) ->
@@ -758,9 +766,10 @@ update msg ({ objects, workingTree, status } as model) =
                     ( { model | currentTime = Time.millisToPosix timeMillis }, Cmd.none )
                         |> addToHistoryDo
 
-                SetHeadRev rev ->
+                SetRevs revs ->
                     ( { model
-                        | objects = Data.setHeadRev rev model.objects
+                        | objects = Data.setHeadRev revs.headRev model.objects
+                        , metadata = Metadata.setRev revs.metadataRev model.metadata
                         , dirty = False
                       }
                     , Cmd.none

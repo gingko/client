@@ -17,7 +17,7 @@ import Translation exposing (langFromString)
 
 
 type alias Model =
-    { documents : List ( String, Metadata )
+    { documents : List Metadata
     , language : Translation.Language
     , session : Session
     }
@@ -32,7 +32,7 @@ init session =
         Just userDb ->
             let
                 rowDecoder =
-                    Dec.field "value" Metadata.decoderWithDbName
+                    Dec.field "value" Metadata.decoder
 
                 responseDecoder =
                     Dec.field "rows" (Dec.list rowDecoder)
@@ -68,13 +68,16 @@ view model =
         ]
 
 
-viewDocEntry : ( String, Metadata ) -> Html Msg
-viewDocEntry ( dbName, metadata ) =
+viewDocEntry : Metadata -> Html Msg
+viewDocEntry metadata =
     let
+        docId =
+            Metadata.getDocId metadata
+
         docName =
             Metadata.getDocName metadata |> Maybe.withDefault "Untitled"
     in
-    li [] [ a [ href <| "/" ++ dbName ] [ text docName ] ]
+    li [] [ a [ href <| "/" ++ docId ] [ text docName ] ]
 
 
 
@@ -82,7 +85,7 @@ viewDocEntry ( dbName, metadata ) =
 
 
 type Msg
-    = ReceivedDocuments (Result Http.Error (List ( String, Metadata )))
+    = ReceivedDocuments (Result Http.Error (List Metadata))
     | GetNewDocId
     | NewDocIdReceived String
 

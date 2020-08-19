@@ -67,7 +67,7 @@ defaultModel =
         Nothing
         defaultObjects
         Nothing
-        Metadata.new
+        (Metadata.new "")
 
 
 load : Json.Value -> Model
