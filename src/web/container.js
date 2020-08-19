@@ -2,24 +2,36 @@ const _ = require("lodash");
 import PouchDB from "pouchdb";
 
 
+var userStoreLocal;
+var userStoreRemote;
+const userSettingsId = "settings";
 const userStore =
-  { get: (...args) => {
-      var item = localStorage.getItem(...args);
-      switch (item) {
-        case "true":
-          return true;
-
-        case "false":
-          return false;
-
-        case null:
-          return args[1];
-
-        default:
-          return item;
+  { db : (email, remoteDB) => {
+      userStoreLocal = new PouchDB(`settings_for_${email}`);
+      userStoreRemote = new PouchDB(remoteDB);
+    }
+  , load : async () => {
+      let store = await userStoreRemote.get(userSettingsId).catch(() => {return {_id : userSettingsId}});
+      return _.omit(store, ["_id", "_rev"]);
+    }
+  , get : async (key, fallback) => {
+      let store = await userStoreRemote.get(userSettingsId).catch(async (e) => e);
+      if (!store.error && typeof store[key] !== "undefined") {
+        return store[key];
+      } else {
+        return fallback;
       }
     }
-  , set: (...args) => localStorage.setItem(...args)
+  , set : async (key, value) => {
+      let store = await userStoreRemote.get(userSettingsId).catch(() => {return {_id : userSettingsId}});
+      store[key] = value;
+      let putRes = await userStoreRemote.put(store).catch(async (e) => e);
+      if (putRes.ok) {
+        var selector = {_id: userSettingsId };
+        userStoreLocal.replicate.from(userStoreRemote, { selector });
+      }
+      return putRes;
+    }
   };
 
 

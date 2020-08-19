@@ -58,6 +58,7 @@ type
     | CancelCardConfirmed
       -- === Database ===
     | DocumentLoaded Dec.Value
+    | UserStoreLoaded Dec.Value
     | LocalStoreLoaded Dec.Value
     | TitleSaved Dec.Value
     | TitleNotSaved
@@ -73,7 +74,7 @@ type
     | TextCursor TextCursorInfo
     | CheckboxClicked String Int
       -- === UI ===
-    | SetLanguage Translation.Language
+    | LanguageChanged Translation.Language
     | ViewVideos
     | FontSelectorOpen (List String)
     | Keyboard String
@@ -273,6 +274,9 @@ receiveMsg tagger onError =
                 "DocumentLoaded" ->
                     tagger <| DocumentLoaded outsideInfo.data
 
+                "UserStoreLoaded" ->
+                    tagger <| UserStoreLoaded outsideInfo.data
+
                 "LocalStoreLoaded" ->
                     tagger <| LocalStoreLoaded outsideInfo.data
 
@@ -357,10 +361,10 @@ receiveMsg tagger onError =
                             onError (errorToString e)
 
                 -- === UI ===
-                "SetLanguage" ->
+                "LanguageChanged" ->
                     case decodeValue languageDecoder outsideInfo.data of
                         Ok lang ->
-                            tagger <| SetLanguage lang
+                            tagger <| LanguageChanged lang
 
                         Err e ->
                             onError (errorToString e)

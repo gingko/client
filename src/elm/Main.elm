@@ -3,7 +3,7 @@ module Main exposing (main)
 import Browser exposing (Document)
 import Browser.Navigation as Nav
 import Html
-import Json.Decode exposing (Value)
+import Json.Decode as Dec exposing (Decoder, Value)
 import Page.Doc
 import Page.Home
 import Page.Login
@@ -11,6 +11,7 @@ import Page.NotFound
 import Page.Signup
 import Route exposing (Route)
 import Session exposing (Session)
+import Translation exposing (Language, langFromString)
 import Url exposing (Url)
 
 
@@ -27,9 +28,27 @@ type Model
     | Doc Page.Doc.Model
 
 
-init : Maybe String -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init maybeEmail url navKey =
-    changeRouteTo (Route.fromUrl url) (Redirect (Session.fromData navKey maybeEmail))
+type alias Flags =
+    { session : Maybe String
+    , language : Language
+    }
+
+
+init : Value -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init flagsData url navKey =
+    let
+        flagsDecoder : Decoder Flags
+        flagsDecoder =
+            Dec.map2 (\s ls -> Flags s (langFromString ls))
+                (Dec.field "session" (Dec.nullable Dec.string))
+                (Dec.field "language" Dec.string)
+    in
+    case Dec.decodeValue flagsDecoder flagsData of
+        Ok flags ->
+            changeRouteTo (Route.fromUrl url) (Redirect (Session.fromData navKey flags.session))
+
+        Err err ->
+            Debug.todo "flags decoding error" err
 
 
 changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )
@@ -211,7 +230,7 @@ subscriptions model =
 -- MAIN
 
 
-main : Program (Maybe String) Model Msg
+main : Program Value Model Msg
 main =
     Browser.application
         { init = init

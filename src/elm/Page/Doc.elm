@@ -721,6 +721,25 @@ update msg ({ workingTree, status } as model) =
                     , sendOut <| ColumnNumberChange columnNumber
                     )
 
+                UserStoreLoaded dataIn ->
+                    let
+                        userSettingsDecoder =
+                            Json.map2 (\st l -> { shortcutTrayOpen = st, language = l |> langFromString })
+                                (Json.field "shortcut-tray-is-open" Json.bool)
+                                (Json.field "language" Json.string)
+                    in
+                    case Json.decodeValue userSettingsDecoder dataIn of
+                        Ok settings ->
+                            ( { model
+                                | shortcutTrayOpen = settings.shortcutTrayOpen
+                                , language = settings.language
+                              }
+                            , Cmd.none
+                            )
+
+                        Err _ ->
+                            ( model, Cmd.none )
+
                 LocalStoreLoaded dataIn ->
                     case Json.decodeValue (Json.field "last-active" Json.string) dataIn of
                         Ok lastActive ->
@@ -929,7 +948,7 @@ update msg ({ workingTree, status } as model) =
                                 |> addToHistory
 
                 -- === UI ===
-                SetLanguage lang ->
+                LanguageChanged lang ->
                     ( { model | language = lang }
                     , Cmd.none
                     )

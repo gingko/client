@@ -1,6 +1,6 @@
 const jQuery = require("jquery");
 const _ = require("lodash");
-self.axios = require("axios");
+const axios = require("axios");
 require("textarea-autosize");
 const Mousetrap = require("mousetrap");
 const container = require("Container");
@@ -25,6 +25,8 @@ var lastColumnScrolled = null;
 var _lastFormat = null;
 var _lastSelection = null;
 var collab = {};
+let lang;
+let helpVisible;
 let helpWidgetLauncher;
 
 const sessionStorageKey = "gingko-session-storage";
@@ -41,19 +43,58 @@ let actionOnData = ActionOnData.Save;
 
 const userStore = container.userStore;
 const localStore = container.localStore;
-var lang = userStore.get("language") || "en";
-var helpVisible = userStore.get("help-visible") || true;
 self.savedObjectIds = [];
 
 
-// Whenever localStorage changes in another tab, report it if necessary.
-window.addEventListener("storage", function(event) {
-  if (event.storageArea === localStorage && event.key === sessionStorageKey) {
-    setUserDb(event.newValue);
-    gingko.ports.sessionChanged.send(event.newValue);
-  }
-}, false);
+initElmAndPorts();
 
+async function initElmAndPorts() {
+  const sessionData = localStorage.getItem(sessionStorageKey) || null;
+  if (sessionData) {
+    setUserDb(sessionData);
+  }
+
+  loadUserStore();
+
+  const initFlags = { session : sessionData, language: "en" };
+
+  self.gingko = Elm.Main.init({ node: document.getElementById("elm"), flags: initFlags});
+
+  // Page.Doc messages
+  gingko.ports.infoForOutside.subscribe(function(elmdata) {
+    update(elmdata.tag, elmdata.data);
+  });
+
+  gingko.ports.dragstart.subscribe(function(event) {
+    event.dataTransfer.setData("text", "");
+    toElm("DragStarted", event.target.id.replace(/^card-/,""));
+  });
+
+  window.checkboxClicked = (cardId, number) => {
+    toElm("CheckboxClicked", [cardId, number]);
+  };
+
+  // Session messages
+  gingko.ports.storeSession.subscribe((data) => {
+    if (data == null) {
+      localStorage.removeItem(sessionStorageKey);
+    } else {
+      localStorage.setItem(sessionStorageKey, data);
+      setUserDb(data);
+      setTimeout(()=> gingko.ports.sessionChanged.send(data), 0);
+    }
+  });
+
+  // Whenever localStorage changes in another tab, report it if necessary.
+  window.addEventListener("storage", function(event) {
+      if (event.storageArea === localStorage && event.key === sessionStorageKey) {
+        gingko.ports.sessionChanged.send(event.newValue);
+      }
+  }, false);
+}
+
+
+// Doc State Proxy Object
 
 const docStateHandlers = {
   set: function(obj, prop, value) {
@@ -89,8 +130,9 @@ container.msgWas("set-doc-state", (e, data) => {
 // ============ SYNC ====================
 
 function setUserDb(email) {
-  console.log("Inside setUserDb", email);
+  console.log("Inside setUserDb", email, helpers.toHex(email));
   var userDb = `${config.COUCHDB_SERVER}/userdb-`+ helpers.toHex(email);
+  userStore.db(email, userDb);
   var remoteOpts =
     { skip_setup: true
     , fetch(url, opts){
@@ -122,49 +164,6 @@ container.msgWas("main:database-close", async () => {
 container.msgWas("main:database-open", async () => {
   self.db = new PouchDB(docState.dbPath[0]);
 });
-
-
-const initFlags = localStorage.getItem(sessionStorageKey) || null;
-if (initFlags) {
-  setUserDb(initFlags);
-}
-initElmAndPorts(initFlags);
-
-
-function initElmAndPorts(initFlags) {
-  self.gingko = Elm.Main.init({ node: document.getElementById("elm"), flags: initFlags});
-
-  // Page.Doc messages
-  gingko.ports.infoForOutside.subscribe(function(elmdata) {
-    update(elmdata.tag, elmdata.data);
-  });
-
-  gingko.ports.dragstart.subscribe(function(event) {
-    event.dataTransfer.setData("text", "");
-    toElm("DragStarted", event.target.id.replace(/^card-/,""));
-  });
-
-  window.checkboxClicked = (cardId, number) => {
-    toElm("CheckboxClicked", [cardId, number]);
-  };
-
-  // Session messages
-  gingko.ports.storeSession.subscribe((data) => {
-    if (data == null) {
-      localStorage.removeItem(sessionStorageKey);
-    } else {
-      localStorage.setItem(sessionStorageKey, data);
-      setUserDb(data);
-      setTimeout(()=> gingko.ports.sessionChanged.send(data), 0);
-    }
-  });
-
-  window.addEventListener("storage", function(event) {
-      if (event.storageArea === localStorage && event.key === sessionStorageKey) {
-        gingko.ports.sessionChanged.send(event.newValue);
-      }
-  }, false);
-}
 
 
 function toElm (tag, data) {
@@ -446,7 +445,7 @@ container.msgWas("menu:language-select", (event, data) => {
   lang = data;
   userStore.set("language", data);
   container.sendTo("doc:language-changed", data);
-  toElm("SetLanguage", data);
+  toElm("LanguageChanged", data);
 });
 container.msgWas("menu:toggle-support", (event, makeVisible) => {
   try {
@@ -500,19 +499,30 @@ async function docExists(dbToCheck, docName) {
   }
 }
 
+// Load local document data
 async function loadData() {
   try {
     let result = await db.allDocs({include_docs: true})
     let toSend = rowsToElmData(result);
+    console.log("loadData toSend", toSend);
     toElm("DocumentLoaded", toSend);
   } catch (err) {
     container.showMessageBox(errorAlert(tr.loadingError[lang], tr.loadingErrorMsg[lang], err));
   }
 }
 
+// Load device-specific data (unsynced settings)
 async function loadLocalStore() {
   let store = await localStore.load();
   toElm("LocalStoreLoaded", store);
+}
+
+// Load user-specific data (synced settings)
+async function loadUserStore() {
+  let store = await userStore.load();
+  lang = store.language;
+  console.log("lang set", lang);
+  toElm("UserStoreLoaded", store);
 }
 
 async function merge(local, remote) {
