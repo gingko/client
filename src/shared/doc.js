@@ -274,9 +274,7 @@ const update = (msg, data) => {
         }
       }
 
-    , "Push": () => {
-        push();
-    }
+    , "Push": () => { }
 
     , "Pull": sync
 
@@ -536,6 +534,14 @@ async function merge(local, remote) {
 };
 
 
+function getObjects(result) {
+  let data = result.rows.map(r => r.doc);
+  let commits = processData(data, "commit");
+  let treeObjects = processData(data, "tree");
+  return {commits, treeObjects};
+}
+
+
 function rowsToElmData(result) {
   let data = result.rows.map(r => r.doc);
 
@@ -572,11 +578,24 @@ function rowsToElmData(result) {
 
 
 async function sync () {
-  let pullRes = await db.replicate.from(remoteDB).catch(async (e) => e);
+  // Find out which is local head
+  let localHead = await db.get("heads/master").catch(async (e) => e);
+
+  // Fetch remote changes for current document...
+  let selector = { "_id": { "$regex": `${TREE_ID}/` } };
+  let fetchRes = await db.replicate.from(remoteDB, {selector}).catch(async (e) => e);
+  // ...and send them into Elm repo
+  let result = await db.allDocs({include_docs: true})
+  let allObjects = getObjects(result);
+  toElm("ObjectsUpdated", allObjects);
+
+  // Find new head, or possible conflict/branching history
   let newHead = await db.get("heads/master", {conflicts: true});
+
+  // Handle conflicts
   if (newHead.hasOwnProperty("_conflicts")) {
     let conflictHead = await db.get("heads/master", {rev: newHead._conflicts[0]});
-    console.error("CONFLICT!", newHead, conflictHead);
+    console.error("CONFLICT!", localHead, newHead, conflictHead);
     merge(conflictHead.value, newHead.value); // TODO: which was local/which remote?
   } else {
     let pushRes = await db.replicate.to(remoteDB).catch(async (e) => e);
