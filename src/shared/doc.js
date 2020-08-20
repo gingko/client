@@ -29,7 +29,6 @@ var lang;
 var helpVisible;
 var helpWidgetLauncher;
 
-var db;
 var remoteDB;
 var gingko;
 var TREE_ID;
@@ -150,7 +149,9 @@ function setRemoteDB(treeId) {
   TREE_ID = treeId;
   remoteDB.transform(
     { outgoing: (doc) => {
-        doc._id = doc._id.slice(TREE_ID.length + 1);
+        if (doc._id.startsWith(TREE_ID+"/")) {
+          doc._id = doc._id.slice(TREE_ID.length + 1);
+        }
         return doc;
       }
     , incoming: (doc) => {
@@ -166,7 +167,7 @@ container.msgWas("main:database-close", async () => {
   await db.close();
 });
 container.msgWas("main:database-open", async () => {
-  db = new PouchDB(docState.dbPath[0]);
+  self.db = new PouchDB(docState.dbPath[0]);
 });
 
 
@@ -211,7 +212,7 @@ const update = (msg, data) => {
       // === Database ===
 
     , "LoadDocument": async () => {
-        db = new PouchDB(data);
+        self.db = new PouchDB(data);
         localStore.db(data);
         setRemoteDB(data);
 
@@ -570,85 +571,15 @@ function rowsToElmData(result) {
 }
 
 
-async function pull (local, remote, info) {
-  console.log("pull", local, remote)
-  try {
-    if(info) console.log(info);
-    var selector = { "_id": { "$regex": `^${TREE_ID}/` }};
-    var pullResult = await db.replicate.from(remoteDB, {selector});
-    if(pullResult.docs_written > 0 && pullResult.ok) {
-      if (typeof local !== "string") {
-        // Bare local, pull only, then load document into elm
-        load();
-      } else {
-        merge(local, remote);
-      }
-    }
-  } catch (e) {
-    console.log("pull error", e);
-  }
-}
-
-
-async function push (info) {
-  if(info) console.log(info);
-  if (typeof db !== "undefined" && typeof remoteDB !== "undefined") {
-    let repRes;
-    repRes = await db.replicate.to(remoteDB);
-    if (repRes.ok) {
-      docState.lastSavedRemotely = Date.now();
-    }
-  } else {
-    console.log("one or both of the dbs don't exist!")
-  }
-}
-
-
 async function sync () {
-  var localHead = await db.get("heads/master").catch(returnError);
-  var remoteHead = await remoteDB.get(`${TREE_ID}/heads/master`).catch(returnError);
-
-  if (localHead.error && remoteHead.error) {
-    // Neither exists => Do nothing
-    return;
-
-  } else if (localHead.error && localHead.name === "not_found" && remoteHead.value) {
-    // Bare local repository => Pull
-    pull(null, remoteHead.value, "Bare local => Fetch & Merge");
-
-  } else if (localHead.value && remoteHead.error && remoteHead.name === "not_found") {
-    // Bare remote repository => Push
-    push("push:bare-remote");
-
-  } else if (localHead.value && remoteHead.value) {
-    // TODO: remove extra save on close, to prevent needless saves
-    // of heads ref (increments _rev, no change to rest).
-    if(_.isEqual(_.omit(localHead,"_rev"), _.omit(remoteHead, "_rev"))) {
-      // Local == Remote => Up-to-Date
-      docState.lastSavedRemotely = Date.now();
-
-      // Possible changes in metadata
-      let localMetadata = await db.get("metadata").catch(returnError);
-      let remoteMetadata = await remoteDB.get(`${TREE_ID}/metadata`).catch(returnError);
-      if(!_.isEqual(localMetadata, remoteMetadata)) {
-        // Only way they can *remain* unequal is if remote > local
-        // Therefore, pull
-        var selector = { "_id": `${TREE_ID}/metadata` };
-        var pullResult = await db.replicate.from(remoteDB, {selector});
-        if(pullResult.ok && pullResult.docs_written == 1) {
-          toElm("TitleSaved", remoteMetadata );
-        }
-      }
-
-    } else if (localHead.ancestors.includes(remoteHead.value)) {
-      // Local is ahead of remote => Push
-      push("push:Local ahead of remote");
-
-    } else {
-      // Local is behind of remote => Pull
-      pull(localHead.value, remoteHead.value, "Local behind remote => Fetch & Merge");
-
-    }
+  let pullRes = await db.replicate.from(remoteDB).catch(async (e) => e);
+  let newHead = await db.get("heads/master", {conflicts: true});
+  if (newHead.hasOwnProperty("_conflicts")) {
+    let conflictHead = await db.get("heads/master", {rev: newHead._conflicts[0]});
+    console.error("CONFLICT!", newHead, conflictHead);
+    merge(conflictHead.value, newHead.value); // TODO: which was local/which remote?
+  } else {
+    let pushRes = await db.replicate.to(remoteDB).catch(async (e) => e);
   }
 }
 
