@@ -2182,60 +2182,11 @@ push ( model, prevCmd ) =
 
 addToHistoryDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 addToHistoryDo ( { workingTree, currentTime } as model, prevCmd ) =
-    case model.status of
-        Bare ->
-            let
-                ( newStatus, newObjects ) =
-                    Data.commit [] "Jane Doe <jane.doe@gmail.com>" (currentTime |> Time.posixToMillis) workingTree.tree model.objects
-            in
-            ( { model
-                | status = newStatus
-                , objects = newObjects
-              }
-            , Cmd.batch
-                [ prevCmd
-                , sendOut (SaveToDB ( Metadata.encode model.metadata, statusToValue newStatus, Data.toValue newObjects ))
-                , sendOut (UpdateCommits ( Data.toValue newObjects, getHead newStatus ))
-                ]
-            )
-
-        Clean oldHead ->
-            let
-                ( newStatus, newObjects ) =
-                    Data.commit [ oldHead ] "Jane Doe <jane.doe@gmail.com>" (currentTime |> Time.posixToMillis) workingTree.tree model.objects
-            in
-            ( { model
-                | objects = newObjects
-                , status = newStatus
-              }
-            , Cmd.batch
-                [ prevCmd
-                , sendOut (SaveToDB ( Metadata.encode model.metadata, statusToValue newStatus, Data.toValue newObjects ))
-                , sendOut (UpdateCommits ( Data.toValue newObjects, getHead newStatus ))
-                ]
-            )
-
-        MergeConflict _ oldHead newHead conflicts ->
-            if List.isEmpty conflicts || (conflicts |> List.filter (not << .resolved) |> List.isEmpty) then
-                let
-                    ( newStatus, newObjects ) =
-                        Data.commit [ oldHead, newHead ] "Jane Doe <jane.doe@gmail.com>" (currentTime |> Time.posixToMillis) workingTree.tree model.objects
-                in
-                ( { model
-                    | objects = newObjects
-                    , status = newStatus
-                  }
-                , Cmd.batch
-                    [ prevCmd
-                    , sendOut (SaveToDB ( Metadata.encode model.metadata, statusToValue newStatus, Data.toValue newObjects ))
-                    , sendOut (UpdateCommits ( Data.toValue newObjects, getHead newStatus ))
-                    ]
-                )
-
-            else
-                ( model
-                , Cmd.batch [ prevCmd, sendOut (SaveLocal model.workingTree.tree) ]
-                )
+    let
+        newData =
+            Data.commitNew "Jane Doe <jane.doe@gmail.com" (currentTime |> Time.posixToMillis) workingTree.tree model.data
+    in
+    ( { model | data = newData }, Cmd.none )
 
 
 addToHistory : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )

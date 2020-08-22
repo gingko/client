@@ -181,10 +181,22 @@ commitTreeNew author parents timestamp tree (Model ({ refs, commits, treeObjects
 
         newCommitSha =
             newCommit |> generateCommitSha
+
+        updateHead ref_ =
+            let
+                newRev =
+                    case ref_ of
+                        Just { rev } ->
+                            rev
+
+                        Nothing ->
+                            ""
+            in
+            Just (RefObject newCommitSha [] newRev)
     in
     Model
         { model
-            | refs = Dict.update "heads/master" identity refs
+            | refs = Dict.update "heads/master" updateHead refs
             , commits = Dict.insert newCommitSha newCommit commits
             , treeObjects = Dict.union treeObjects newTreeObjects
         }
