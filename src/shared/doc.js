@@ -151,6 +151,8 @@ function setRemoteDB(treeId) {
     { outgoing: (doc) => {
         if (doc._id.startsWith(TREE_ID+"/")) {
           doc._id = doc._id.slice(TREE_ID.length + 1);
+        } else if (doc._id == `${TREE_ID}/heads/master`) {
+          doc._id = "remotes/origin/master";
         }
         return doc;
       }
@@ -215,18 +217,7 @@ const update = (msg, data) => {
         self.db = new PouchDB(data);
         localStore.db(data);
         setRemoteDB(data);
-
-        let docExistsLocally = await docExists(db);
-        let docExistsRemotely = await docExists(remoteDB, data);
-
-        if (docExistsLocally) {
-          await loadData();
-          loadLocalStore();
-        }
-
-        if (docExistsRemotely){
-          sync();
-        }
+        pull();
       }
 
     , "CommitWithTimestamp": () => {
@@ -274,9 +265,9 @@ const update = (msg, data) => {
         }
       }
 
-    , "Push": () => { }
+    , "Push": push
 
-    , "Pull": sync
+    , "Pull": pull
 
       // === File System ===
 
@@ -577,31 +568,29 @@ function rowsToElmData(result) {
 }
 
 
-async function sync () {
-  // Find out which is local head
-  let localHead = await db.get("heads/master").catch(async (e) => e);
-
-  // Fetch remote changes for current document...
+async function pull () {
+  // Fetch remote changes for current document.
   let selector = { "_id": { "$regex": `${TREE_ID}/` } };
   let fetchRes = await db.replicate.from(remoteDB, {selector}).catch(async (e) => e);
-  // ...and send them into Elm repo
+
+  // If local head doesn't exist, create it by copying remotes/origin/master.
+  let localHead = await db.get("heads/master").catch(async (e) => e);
+  if (localHead.error && localHead.name == "not_found") {
+    let remoteHead = await db.get("remotes/origin/master");
+    let newLocalHead = // same as remote, but with "heads/master" as _id
+    db.put(newLocalHead);
+  }
+
+  // Finally, send all objects into Elm repo.
   let result = await db.allDocs({include_docs: true})
   let allObjects = getObjects(result);
-  toElm("ObjectsUpdated", allObjects);
-
-  // Find new head, or possible conflict/branching history
-  let newHead = await db.get("heads/master", {conflicts: true});
-
-  // Handle conflicts
-  if (newHead.hasOwnProperty("_conflicts")) {
-    let conflictHead = await db.get("heads/master", {rev: newHead._conflicts[0]});
-    console.error("CONFLICT!", localHead, newHead, conflictHead);
-    merge(conflictHead.value, newHead.value); // TODO: which was local/which remote?
-  } else {
-    let pushRes = await db.replicate.to(remoteDB).catch(async (e) => e);
-  }
+  toElm("DataReceived", allObjects);
 }
 
+
+async function push () {
+
+}
 
 async function returnError(e) {
   return e;

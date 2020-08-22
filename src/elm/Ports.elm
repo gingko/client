@@ -26,6 +26,7 @@ type
     | LoadDocument String
     | CommitWithTimestamp
     | NoDataToSave
+    | SaveData Enc.Value
     | SaveToDB ( Enc.Value, Enc.Value, Enc.Value )
     | SaveLocal Tree
     | Push
@@ -57,6 +58,7 @@ type
     = IntentExport ExportSettings
     | CancelCardConfirmed
       -- === Database ===
+    | DataReceived Dec.Value
     | DocumentLoaded Dec.Value
     | UserStoreLoaded Dec.Value
     | LocalStoreLoaded Dec.Value
@@ -131,6 +133,9 @@ sendOut info =
             dataToSend (int cols)
 
         -- === Database ===
+        SaveData data ->
+            dataToSend data
+
         LoadDocument dbName ->
             dataToSend (string dbName)
 
@@ -271,6 +276,9 @@ receiveMsg tagger onError =
                     tagger <| CancelCardConfirmed
 
                 -- === Database ===
+                "DataReceived" ->
+                    tagger <| DataReceived outsideInfo.data
+
                 "DocumentLoaded" ->
                     tagger <| DocumentLoaded outsideInfo.data
 

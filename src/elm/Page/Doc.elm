@@ -56,6 +56,7 @@ import Types exposing (..)
 type alias Model =
     -- Document state
     { workingTree : TreeStructure.Model
+    , data : Data.Model
     , objects : Data.Objects
     , status : Status
     , metadata : Metadata
@@ -93,6 +94,7 @@ type alias Model =
 defaultModel : Session -> String -> Model
 defaultModel session docId =
     { workingTree = TreeStructure.defaultModel
+    , data = Data.empty
     , objects = Data.defaultObjects
     , status = Bare
     , metadata = Metadata.new docId
@@ -691,6 +693,13 @@ update msg ({ workingTree, status } as model) =
                         |> cancelCard
 
                 -- === Database ===
+                DataReceived dataIn ->
+                    let
+                        ( newData, newTree ) =
+                            Data.update dataIn ( model.data, model.workingTree.tree )
+                    in
+                    ( model, Cmd.none )
+
                 DocumentLoaded dataIn ->
                     let
                         loadedDoc =

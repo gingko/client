@@ -1,10 +1,10 @@
-module Doc.Data exposing (Objects, checkout, commit, defaultObjects, load, merge, setHeadRev, toValue)
+module Doc.Data exposing (Model, Objects, OldModel, checkout, commit, commitNew, defaultObjects, empty, load, merge, setHeadRev, toNewValue, toValue, update)
 
 import Coders exposing (statusDecoder, tupleDecoder)
 import Dict exposing (Dict)
 import Diff3 exposing (diff3Merge)
 import Doc.Metadata as Metadata exposing (Metadata)
-import Doc.TreeStructure exposing (apply, opToMsg)
+import Doc.TreeStructure exposing (apply, defaultTree, opToMsg)
 import Doc.TreeUtils exposing (sha1)
 import Json.Decode as Json
 import Json.Encode as Enc
@@ -19,7 +19,20 @@ import Types exposing (..)
 -- MODEL
 
 
-type alias Model =
+type Model
+    = Model
+        { refs : Dict String RefObject
+        , commits : Dict String CommitObject
+        , treeObjects : Dict String TreeObject
+        , conflicts : List Conflict
+        }
+
+
+empty =
+    Model { refs = Dict.empty, commits = Dict.empty, treeObjects = Dict.empty, conflicts = [] }
+
+
+type alias OldModel =
     { status : Status
     , builtTree : Maybe Tree
     , objects : Objects
@@ -61,8 +74,8 @@ type alias RefObject =
     }
 
 
-defaultModel =
-    Model
+defaultOldModel =
+    OldModel
         Bare
         Nothing
         defaultObjects
@@ -70,18 +83,27 @@ defaultModel =
         (Metadata.new "")
 
 
-load : Json.Value -> Model
+load : Json.Value -> OldModel
 load json =
-    Json.decodeValue decodeModel json
+    Json.decodeValue decodeOldModel json
         -- TODO
-        |> Result.withDefault defaultModel
+        |> Result.withDefault defaultOldModel
+
+
+
+-- UPDATE
+
+
+update : Json.Value -> ( Model, Tree ) -> ( Model, Tree )
+update json ( oldModel, oldTree ) =
+    ( oldModel, oldTree )
 
 
 
 -- GIT PORCELAIN
 
 
-merge : Objects -> Tree -> Json.Value -> Model
+merge : Objects -> Tree -> Json.Value -> OldModel
 merge oldObjects oldTree json =
     let
         mergeData =
@@ -93,6 +115,40 @@ merge oldObjects oldTree json =
 
         Err err ->
             Debug.todo (Json.errorToString err)
+
+
+commitNew : String -> Int -> Tree -> Model -> Model
+commitNew author timestamp tree ((Model { conflicts, refs, commits }) as model) =
+    let
+        localHead_ =
+            Dict.get "heads/master" refs
+
+        remoteHead_ =
+            Dict.get "remotes/origin/master" refs
+    in
+    case ( localHead_, remoteHead_ ) of
+        ( Nothing, Nothing ) ->
+            -- Git Init (New document)
+            commitTreeNew author [] timestamp tree model
+                |> Debug.log "Git Init"
+
+        ( Nothing, Just remoteHead ) ->
+            -- Git Clone (Bare local). Disallow commit until local head is set.
+            model
+
+        ( Just localHead, Nothing ) ->
+            -- Local document (unsynced changes).
+            commitTreeNew author [ localHead.value ] timestamp tree model
+
+        ( Just localHead, Just remoteHead ) ->
+            -- Local & Remote
+            if List.isEmpty (List.filter (not << .resolved) conflicts) then
+                -- No unresolved conflicts.
+                commitTreeNew author [ localHead.value, remoteHead.value ] timestamp tree model
+
+            else
+                -- Unresolved conflicts exist, dont' commit.
+                model
 
 
 commit : List String -> String -> Int -> Tree -> Objects -> ( Status, Objects )
@@ -108,6 +164,30 @@ checkout commitSha objects =
 
 
 -- GIT PLUMBING
+
+
+commitTreeNew : String -> List String -> Int -> Tree -> Model -> Model
+commitTreeNew author parents timestamp tree (Model ({ refs, commits, treeObjects } as model)) =
+    let
+        ( newRootId, newTreeObjects ) =
+            writeTree tree
+
+        newCommit =
+            CommitObject
+                newRootId
+                parents
+                author
+                timestamp
+
+        newCommitSha =
+            newCommit |> generateCommitSha
+    in
+    Model
+        { model
+            | refs = Dict.update "heads/master" identity refs
+            , commits = Dict.insert newCommitSha newCommit commits
+            , treeObjects = Dict.union treeObjects newTreeObjects
+        }
 
 
 commitTree : String -> List String -> Int -> Tree -> Objects -> ( String, Objects )
@@ -273,7 +353,7 @@ conflictWithSha { id, opA, opB, selection, resolved } =
 -- ==== Merging
 
 
-doMerge : String -> String -> Tree -> Model -> Model
+doMerge : String -> String -> Tree -> OldModel -> OldModel
 doMerge aSha bSha oldTree model =
     if aSha == bSha || List.member bSha (getAncestors model.objects.commits aSha) then
         --( Clean aSha, Just oldTree, model )
@@ -539,8 +619,8 @@ getAncestors cm sh =
 -- PORTS & INTEROP
 
 
-decodeModel : Json.Decoder Model
-decodeModel =
+decodeOldModel : Json.Decoder OldModel
+decodeOldModel =
     Json.map4
         (\status objects metadata lastSavedLocally ->
             let
@@ -549,7 +629,7 @@ decodeModel =
             in
             case status of
                 MergeConflict mTree _ _ _ ->
-                    Model status (Just mTree) objects ls metadata
+                    OldModel status (Just mTree) objects ls metadata
 
                 Clean sha ->
                     let
@@ -557,10 +637,10 @@ decodeModel =
                             Dict.get sha objects.commits
                                 |> andThen (\co -> treeObjectsToTree objects.treeObjects co.tree "0")
                     in
-                    Model status newTree_ objects ls metadata
+                    OldModel status newTree_ objects ls metadata
 
                 Bare ->
-                    Model Bare Nothing objects ls metadata
+                    OldModel Bare Nothing objects ls metadata
         )
         (Json.field "status" statusDecoder)
         (Json.field "objects" modelDecoder)
@@ -568,12 +648,17 @@ decodeModel =
         (Json.field "lastCommitTime" (Json.nullable Json.int))
 
 
-decodeMergeData : Json.Decoder ( String, String, Model )
+decodeMergeData : Json.Decoder ( String, String, OldModel )
 decodeMergeData =
     Json.map3 (\l r d -> ( l, r, d ))
         (Json.field "localHead" Json.string)
         (Json.field "remoteHead" Json.string)
-        decodeModel
+        decodeOldModel
+
+
+toNewValue : Model -> Enc.Value
+toNewValue model =
+    Enc.object [ ( "_id", Enc.string "something" ) ]
 
 
 toValue : Objects -> Enc.Value
