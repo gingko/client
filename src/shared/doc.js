@@ -174,6 +174,7 @@ container.msgWas("main:database-open", async () => {
 
 
 function toElm (tag, data) {
+  console.debug("toElm", tag, data);
   gingko.ports.infoForElm.send({tag: tag, data: data});
 }
 
@@ -230,6 +231,25 @@ const update = (msg, data) => {
           // Should close without saving.
           container.sendTo("doc:save-and-exit", true);
         }
+      }
+
+    , "SaveData": async () => {
+        // Store ids of refs, so we can send back updated _rev.
+        const refIds = data.refs.map(r => r._id);
+
+        // Filter out object that are already saved in database.
+        const newCommits = data.commits.filter( o => !savedObjectIds.includes(o._id));
+        const newTreeObjects = data.treeObjects.filter( o => !savedObjectIds.includes(o._id));
+        const toSave = [...newCommits, ...newTreeObjects, ...data.refs];
+
+        // Save to database, and add successes to savedObjectIds.
+        const responses = await db.bulkDocs(toSave);
+        const savedIds = responses.filter(r => r.ok).map(o => o.id);
+        savedObjectIds = savedObjectIds.concat(savedIds);
+
+        // Send updated _revs for successful ref saves.
+        const savedRefs = responses.filter(r => refIds.includes(r.id) && r.ok);
+        toElm("DataSaved", savedRefs);
       }
 
     , "SaveToDB": async () => {

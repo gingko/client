@@ -693,6 +693,13 @@ update msg ({ workingTree, status } as model) =
                         |> cancelCard
 
                 -- === Database ===
+                DataSaved dataIn ->
+                    let
+                        newData =
+                            Data.success dataIn model.data
+                    in
+                    ( { model | data = newData }, Cmd.none )
+
                 DataReceived dataIn ->
                     let
                         ( newData, newTree ) =
@@ -784,7 +791,8 @@ update msg ({ workingTree, status } as model) =
 
                         ( Normal, _ ) ->
                             ( model
-                            , sendOut (SaveToDB ( Metadata.encode model.metadata, statusToValue model.status, Data.toValue model.objects ))
+                            , Cmd.none
+                              --, sendOut (SaveToDB ( Metadata.encode model.metadata, statusToValue model.status, Data.toValue model.objects ))
                             )
 
                         _ ->
@@ -800,7 +808,8 @@ update msg ({ workingTree, status } as model) =
 
                             else
                                 ( model
-                                , sendOut (SaveToDB ( Metadata.encode model.metadata, statusToValue model.status, Data.toValue model.objects ))
+                                , Cmd.none
+                                  --, sendOut (SaveToDB ( Metadata.encode model.metadata, statusToValue model.status, Data.toValue model.objects ))
                                 )
 
                 Commit timeMillis ->
@@ -843,7 +852,8 @@ update msg ({ workingTree, status } as model) =
                                 , objects = mergedDoc.objects
                                 , status = mergedDoc.status
                               }
-                            , sendOut (UpdateCommits ( Data.toValue mergedDoc.objects, Just sha ))
+                            , Cmd.none
+                              --, sendOut (UpdateCommits ( Data.toValue mergedDoc.objects, Just sha ))
                             )
                                 |> activate vs.active
 
@@ -854,7 +864,8 @@ update msg ({ workingTree, status } as model) =
                                     , objects = mergedDoc.objects
                                     , status = mergedDoc.status
                                   }
-                                , sendOut (UpdateCommits ( Data.toValue mergedDoc.objects, Just newHead ))
+                                , Cmd.none
+                                  --, sendOut (UpdateCommits ( Data.toValue mergedDoc.objects, Just newHead ))
                                 )
                                     |> activate vs.active
 
@@ -874,7 +885,8 @@ update msg ({ workingTree, status } as model) =
                                 , objects = mergedDoc.objects
                                 , status = mergedDoc.status
                               }
-                            , sendOut (UpdateCommits ( mergedDoc.objects |> Data.toValue, Just newHead ))
+                            , Cmd.none
+                              --, sendOut (UpdateCommits ( mergedDoc.objects |> Data.toValue, Just newHead ))
                             )
                                 |> addToHistory
                                 |> activate vs.active
@@ -2092,7 +2104,8 @@ checkoutCommit commitSha ( model, prevCmd ) =
                 | workingTree = TreeStructure.setTree newTree model.workingTree
                 , status = newStatus
               }
-            , sendOut (UpdateCommits ( Data.toValue model.objects, getHead newStatus ))
+            , Cmd.none
+              --, sendOut (UpdateCommits ( Data.toValue model.objects, getHead newStatus ))
             )
                 |> maybeColumnsChanged model.workingTree.columns
 
@@ -2186,7 +2199,7 @@ addToHistoryDo ( { workingTree, currentTime } as model, prevCmd ) =
         newData =
             Data.commitNew "Jane Doe <jane.doe@gmail.com" (currentTime |> Time.posixToMillis) workingTree.tree model.data
     in
-    ( { model | data = newData }, Cmd.none )
+    ( { model | data = newData }, sendOut <| SaveData (Data.toValue newData) )
 
 
 addToHistory : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -2758,7 +2771,8 @@ subscriptions model =
     Sub.batch
         [ receiveMsg Port LogErr
         , Time.every (15 * 1000) TimeUpdate
-        , Time.every (10 * 1000) (\_ -> PullFromRemote)
+
+        --, Time.every (10 * 1000) (\_ -> PullFromRemote)
         ]
 
 

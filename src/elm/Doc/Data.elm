@@ -1,4 +1,4 @@
-module Doc.Data exposing (Model, Objects, OldModel, checkout, commit, commitNew, defaultObjects, empty, load, merge, setHeadRev, toNewValue, toValue, update)
+module Doc.Data exposing (Model, Objects, OldModel, checkout, commit, commitNew, defaultObjects, empty, load, merge, setHeadRev, success, toValue, update)
 
 import Coders exposing (statusDecoder, tupleDecoder)
 import Dict exposing (Dict)
@@ -30,6 +30,48 @@ type Model
 
 empty =
     Model { refs = Dict.empty, commits = Dict.empty, treeObjects = Dict.empty, conflicts = [] }
+
+
+toValue : Model -> Enc.Value
+toValue (Model model) =
+    let
+        treeObjectToValue sha treeObject =
+            Enc.object
+                [ ( "_id", Enc.string sha )
+                , ( "type", Enc.string "tree" )
+                , ( "content", Enc.string treeObject.content )
+                , ( "children"
+                  , Enc.list (Enc.list Enc.string) (List.map (\( childSha, childId ) -> [ childSha, childId ]) treeObject.children)
+                  )
+                ]
+
+        refToValue sha ref =
+            Enc.object
+                [ ( "_id", Enc.string sha )
+                , ( "_rev", Enc.string ref.rev )
+                , ( "type", Enc.string "ref" )
+                , ( "value", Enc.string ref.value )
+                , ( "ancestors", Enc.list Enc.string ref.ancestors )
+                ]
+
+        commits =
+            commitsToValue model.commits
+
+        treeObjects =
+            Dict.toList model.treeObjects
+                |> List.map (\( k, v ) -> treeObjectToValue k v)
+                |> Enc.list identity
+
+        refs =
+            Dict.toList model.refs
+                |> List.map (\( k, v ) -> refToValue k v)
+                |> Enc.list identity
+    in
+    Enc.object
+        [ ( "commits", commits )
+        , ( "treeObjects", treeObjects )
+        , ( "refs", refs )
+        ]
 
 
 type alias OldModel =
@@ -97,6 +139,37 @@ load json =
 update : Json.Value -> ( Model, Tree ) -> ( Model, Tree )
 update json ( oldModel, oldTree ) =
     ( oldModel, oldTree )
+
+
+success : Json.Value -> Model -> Model
+success json (Model ({ refs } as model)) =
+    let
+        responseDecoder =
+            Json.list
+                (Json.map2 Tuple.pair
+                    (Json.field "id" Json.string)
+                    (Json.field "rev" Json.string)
+                )
+    in
+    case Json.decodeValue responseDecoder json of
+        Ok responses ->
+            let
+                updater ( id, newRev ) =
+                    Dict.get id refs
+                        |> Maybe.andThen (\r -> Just ( id, { r | rev = newRev } ))
+
+                resDict =
+                    responses
+                        |> List.filterMap updater
+                        |> Dict.fromList
+
+                newRefs =
+                    Dict.union resDict refs
+            in
+            Model { model | refs = newRefs }
+
+        Err err ->
+            Model model
 
 
 
@@ -666,53 +739,6 @@ decodeMergeData =
         (Json.field "localHead" Json.string)
         (Json.field "remoteHead" Json.string)
         decodeOldModel
-
-
-toNewValue : Model -> Enc.Value
-toNewValue model =
-    Enc.object [ ( "_id", Enc.string "something" ) ]
-
-
-toValue : Objects -> Enc.Value
-toValue model =
-    let
-        treeObjectToValue sha treeObject =
-            Enc.object
-                [ ( "_id", Enc.string sha )
-                , ( "type", Enc.string "tree" )
-                , ( "content", Enc.string treeObject.content )
-                , ( "children"
-                  , Enc.list (Enc.list Enc.string) (List.map (\( childSha, childId ) -> [ childSha, childId ]) treeObject.children)
-                  )
-                ]
-
-        refToValue sha ref =
-            Enc.object
-                [ ( "_id", Enc.string sha )
-                , ( "_rev", Enc.string ref.rev )
-                , ( "type", Enc.string "ref" )
-                , ( "value", Enc.string ref.value )
-                , ( "ancestors", Enc.list Enc.string ref.ancestors )
-                ]
-
-        commits =
-            commitsToValue model.commits
-
-        treeObjects =
-            Dict.toList model.treeObjects
-                |> List.map (\( k, v ) -> treeObjectToValue k v)
-                |> Enc.list identity
-
-        refs =
-            Dict.toList model.refs
-                |> List.map (\( k, v ) -> refToValue k v)
-                |> Enc.list identity
-    in
-    Enc.object
-        [ ( "commits", commits )
-        , ( "treeObjects", treeObjects )
-        , ( "refs", refs )
-        ]
 
 
 modelDecoder : Json.Decoder Objects

@@ -58,6 +58,7 @@ type
     = IntentExport ExportSettings
     | CancelCardConfirmed
       -- === Database ===
+    | DataSaved Dec.Value
     | DataReceived Dec.Value
     | DocumentLoaded Dec.Value
     | UserStoreLoaded Dec.Value
@@ -276,6 +277,9 @@ receiveMsg tagger onError =
                     tagger <| CancelCardConfirmed
 
                 -- === Database ===
+                "DataSaved" ->
+                    tagger <| DataSaved outsideInfo.data
+
                 "DataReceived" ->
                     tagger <| DataReceived outsideInfo.data
 
