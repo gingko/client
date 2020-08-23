@@ -705,7 +705,7 @@ update msg ({ workingTree, status } as model) =
                         ( newData, newTree ) =
                             Data.update dataIn ( model.data, model.workingTree.tree )
                     in
-                    ( model, Cmd.none )
+                    ( { model | data = newData, workingTree = TreeStructure.setTree newTree model.workingTree }, Cmd.none )
 
                 DocumentLoaded dataIn ->
                     let

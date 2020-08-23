@@ -138,7 +138,59 @@ load json =
 
 update : Json.Value -> ( Model, Tree ) -> ( Model, Tree )
 update json ( oldModel, oldTree ) =
-    ( oldModel, oldTree )
+    let
+        refObjectDecoder =
+            Json.map4 (\id v a r -> ( id, RefObject v a r ))
+                (Json.field "_id" Json.string)
+                (Json.field "value" Json.string)
+                (Json.field "ancestors" (Json.list Json.string))
+                (Json.field "_rev" Json.string)
+
+        commitObjectDecoder =
+            Json.map5 (\id t p a ts -> ( id, CommitObject t p a ts ))
+                (Json.field "_id" Json.string)
+                (Json.field "tree" Json.string)
+                (Json.field "parents" (Json.list Json.string))
+                (Json.field "author" Json.string)
+                (Json.field "timestamp" Json.int)
+
+        treeObjectDecoder =
+            Json.map3 (\id cn ch -> ( id, TreeObject cn ch ))
+                (Json.field "_id" Json.string)
+                (Json.field "content" Json.string)
+                (Json.field "children" (Json.list (tupleDecoder Json.string Json.string)))
+
+        modelBuilder r c t =
+            Model
+                { refs = Dict.fromList r
+                , commits = Dict.fromList c
+                , treeObjects = Dict.fromList t
+                , conflicts = [] -- TODO
+                }
+
+        dataDecoder =
+            Json.map3 modelBuilder
+                (Json.field "ref" (Json.list refObjectDecoder))
+                (Json.field "commit" (Json.list commitObjectDecoder))
+                (Json.field "tree" (Json.list treeObjectDecoder))
+    in
+    case Json.decodeValue dataDecoder json of
+        Ok newModel ->
+            ( newModel, checkoutRef "heads/master" newModel |> Maybe.withDefault oldTree )
+
+        Err err ->
+            let
+                _ =
+                    Debug.log "error" err
+            in
+            ( oldModel, oldTree )
+
+
+checkoutRef : String -> Model -> Maybe Tree
+checkoutRef refId (Model model) =
+    Dict.get refId model.refs
+        |> andThen (\ro -> Dict.get ro.value model.commits)
+        |> andThen (\co -> treeObjectsToTree model.treeObjects co.tree "0")
 
 
 success : Json.Value -> Model -> Model

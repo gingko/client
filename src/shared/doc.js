@@ -603,8 +603,7 @@ async function pull () {
 
   // Finally, send all objects into Elm repo.
   let result = await db.allDocs({include_docs: true})
-  let allObjects = getObjects(result);
-  toElm("DataReceived", allObjects);
+  toElm("DataReceived", _.groupBy(result.rows.map(r => r.doc), "type"));
 }
 
 
