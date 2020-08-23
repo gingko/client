@@ -60,17 +60,14 @@ type
       -- === Database ===
     | DataSaved Dec.Value
     | DataReceived Dec.Value
-    | DocumentLoaded Dec.Value
     | UserStoreLoaded Dec.Value
     | LocalStoreLoaded Dec.Value
     | TitleSaved Dec.Value
     | TitleNotSaved
     | Commit Int
     | GetDataToSave
-    | SetRevs { headRev : String, metadataRev : String }
     | SavedLocally (Maybe Time.Posix)
     | SavedRemotely (Maybe Time.Posix)
-    | Merge Dec.Value
       -- === DOM ===
     | DragStarted String
     | FieldChanged String
@@ -283,9 +280,6 @@ receiveMsg tagger onError =
                 "DataReceived" ->
                     tagger <| DataReceived outsideInfo.data
 
-                "DocumentLoaded" ->
-                    tagger <| DocumentLoaded outsideInfo.data
-
                 "UserStoreLoaded" ->
                     tagger <| UserStoreLoaded outsideInfo.data
 
@@ -306,20 +300,6 @@ receiveMsg tagger onError =
                 "GetDataToSave" ->
                     tagger <| GetDataToSave
 
-                "SetRevs" ->
-                    let
-                        revsDecoder =
-                            Dec.map2 (\h m -> { headRev = h, metadataRev = m })
-                                (Dec.field "headRev" Dec.string)
-                                (Dec.field "metadataRev" Dec.string)
-                    in
-                    case decodeValue revsDecoder outsideInfo.data of
-                        Ok revs ->
-                            tagger <| SetRevs revs
-
-                        Err e ->
-                            onError (errorToString e)
-
                 "SavedLocally" ->
                     case decodeValue (Dec.maybe Dec.int) outsideInfo.data of
                         Ok time_ ->
@@ -335,9 +315,6 @@ receiveMsg tagger onError =
 
                         Err e ->
                             onError (errorToString e)
-
-                "Merge" ->
-                    tagger <| Merge outsideInfo.data
 
                 -- === DOM ===
                 "DragStarted" ->

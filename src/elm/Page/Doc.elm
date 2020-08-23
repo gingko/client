@@ -32,25 +32,7 @@ import Types exposing (..)
 
 
 
-{-
-   # MODEL
-
-   The Model contains the entire state of the document.
-
-   The most important fields are `workingTree`, `viewState` and `objects`.
-
-   `workingTree` contains the current state of the *document*, as it stands at
-   any given moment. It does not include information about "transient" state
-   (such as which card is focused, or which is being edited). It's defined in
-   TreeStructure.elm.
-
-   `viewState` is where that "transient" information (focused card, edit state)
-   is stored. It's defined in Types.elm.
-
-   `objects` contains the current state of the version history data. It's what
-   gets saved to the database. It's defined in Data.elm.
-
--}
+-- MODEL
 
 
 type alias Model =
@@ -704,34 +686,19 @@ update msg ({ workingTree, status } as model) =
                     let
                         ( newData, newTree ) =
                             Data.update dataIn ( model.data, model.workingTree.tree )
-                    in
-                    ( { model | data = newData, workingTree = TreeStructure.setTree newTree model.workingTree }, Cmd.none )
-
-                DocumentLoaded dataIn ->
-                    let
-                        loadedDoc =
-                            Data.load dataIn
-
-                        newTree =
-                            Maybe.withDefault TreeStructure.defaultTree loadedDoc.builtTree
 
                         newWorkingTree =
-                            TreeStructure.setTree newTree (defaultModel model.session "").workingTree
+                            TreeStructure.setTree newTree model.workingTree
 
                         startingWordcount =
-                            loadedDoc.builtTree
-                                |> Maybe.map (\t -> countWords (treeToMarkdownString False t))
-                                |> Maybe.withDefault 0
+                            countWords (treeToMarkdownString False newTree)
 
                         columnNumber =
                             newWorkingTree.columns |> List.length |> (\l -> l - 1)
                     in
                     ( { model
-                        | workingTree = newWorkingTree
-                        , objects = loadedDoc.objects
-                        , status = loadedDoc.status
-                        , metadata = loadedDoc.metadata
-                        , lastLocalSave = loadedDoc.lastLocalSave
+                        | data = newData
+                        , workingTree = newWorkingTree
                         , startingWordcount = startingWordcount
                       }
                     , sendOut <| ColumnNumberChange columnNumber
@@ -816,16 +783,6 @@ update msg ({ workingTree, status } as model) =
                     ( { model | currentTime = Time.millisToPosix timeMillis }, Cmd.none )
                         |> addToHistoryDo
 
-                SetRevs revs ->
-                    ( { model
-                        | objects = Data.setHeadRev revs.headRev model.objects
-                        , metadata = Metadata.setRev revs.metadataRev model.metadata
-                        , dirty = False
-                      }
-                    , Cmd.none
-                    )
-                        |> push
-
                 SavedLocally time_ ->
                     ( { model
                         | lastLocalSave = time_
@@ -839,66 +796,6 @@ update msg ({ workingTree, status } as model) =
                       }
                     , Cmd.none
                     )
-
-                Merge json ->
-                    let
-                        mergedDoc =
-                            Data.merge model.objects workingTree.tree json
-                    in
-                    case ( status, mergedDoc.status ) of
-                        ( Bare, Clean sha ) ->
-                            ( { model
-                                | workingTree = TreeStructure.setTree (mergedDoc.builtTree |> Maybe.withDefault workingTree.tree) workingTree
-                                , objects = mergedDoc.objects
-                                , status = mergedDoc.status
-                              }
-                            , Cmd.none
-                              --, sendOut (UpdateCommits ( Data.toValue mergedDoc.objects, Just sha ))
-                            )
-                                |> activate vs.active
-
-                        ( Clean oldHead, Clean newHead ) ->
-                            if oldHead /= newHead then
-                                ( { model
-                                    | workingTree = TreeStructure.setTree (mergedDoc.builtTree |> Maybe.withDefault workingTree.tree) workingTree
-                                    , objects = mergedDoc.objects
-                                    , status = mergedDoc.status
-                                  }
-                                , Cmd.none
-                                  --, sendOut (UpdateCommits ( Data.toValue mergedDoc.objects, Just newHead ))
-                                )
-                                    |> activate vs.active
-
-                            else
-                                ( model
-                                , Cmd.none
-                                )
-
-                        ( Clean _, MergeConflict mTree oldHead newHead conflicts ) ->
-                            ( { model
-                                | workingTree =
-                                    if List.isEmpty conflicts then
-                                        TreeStructure.setTree (mergedDoc.builtTree |> Maybe.withDefault workingTree.tree) workingTree
-
-                                    else
-                                        TreeStructure.setTreeWithConflicts conflicts mTree model.workingTree
-                                , objects = mergedDoc.objects
-                                , status = mergedDoc.status
-                              }
-                            , Cmd.none
-                              --, sendOut (UpdateCommits ( mergedDoc.objects |> Data.toValue, Just newHead ))
-                            )
-                                |> addToHistory
-                                |> activate vs.active
-
-                        _ ->
-                            let
-                                _ =
-                                    Debug.log "failed to merge json" json
-                            in
-                            ( model
-                            , Cmd.none
-                            )
 
                 -- === DOM ===
                 DragStarted dragId ->
