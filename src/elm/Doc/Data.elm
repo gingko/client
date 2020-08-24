@@ -6,7 +6,7 @@ import Diff3 exposing (diff3Merge)
 import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.TreeStructure exposing (apply, defaultTree, opToMsg)
 import Doc.TreeUtils exposing (sha1)
-import Json.Decode as Json
+import Json.Decode as Dec
 import Json.Encode as Enc
 import List.Extra as ListExtra
 import Maybe exposing (andThen)
@@ -28,50 +28,14 @@ type Model
         }
 
 
+empty : Model
 empty =
-    Model { refs = Dict.empty, commits = Dict.empty, treeObjects = Dict.empty, conflicts = [] }
-
-
-toValue : Model -> Enc.Value
-toValue (Model model) =
-    let
-        treeObjectToValue sha treeObject =
-            Enc.object
-                [ ( "_id", Enc.string sha )
-                , ( "type", Enc.string "tree" )
-                , ( "content", Enc.string treeObject.content )
-                , ( "children"
-                  , Enc.list (Enc.list Enc.string) (List.map (\( childSha, childId ) -> [ childSha, childId ]) treeObject.children)
-                  )
-                ]
-
-        refToValue sha ref =
-            Enc.object
-                [ ( "_id", Enc.string sha )
-                , ( "_rev", Enc.string ref.rev )
-                , ( "type", Enc.string "ref" )
-                , ( "value", Enc.string ref.value )
-                , ( "ancestors", Enc.list Enc.string ref.ancestors )
-                ]
-
-        commits =
-            commitsToValue model.commits
-
-        treeObjects =
-            Dict.toList model.treeObjects
-                |> List.map (\( k, v ) -> treeObjectToValue k v)
-                |> Enc.list identity
-
-        refs =
-            Dict.toList model.refs
-                |> List.map (\( k, v ) -> refToValue k v)
-                |> Enc.list identity
-    in
-    Enc.object
-        [ ( "commits", commits )
-        , ( "treeObjects", treeObjects )
-        , ( "refs", refs )
-        ]
+    Model
+        { refs = Dict.empty
+        , commits = Dict.empty
+        , treeObjects = Dict.empty
+        , conflicts = []
+        }
 
 
 type alias Objects =
@@ -111,30 +75,9 @@ type alias RefObject =
 -- UPDATE
 
 
-update : Json.Value -> ( Model, Tree ) -> ( Model, Tree )
-update json ( oldModel, oldTree ) =
+update : Dec.Value -> ( Model, Tree ) -> ( Model, Tree )
+update json ( oldData, oldTree ) =
     let
-        refObjectDecoder =
-            Json.map4 (\id v a r -> ( id, RefObject v a r ))
-                (Json.field "_id" Json.string)
-                (Json.field "value" Json.string)
-                (Json.field "ancestors" (Json.list Json.string))
-                (Json.field "_rev" Json.string)
-
-        commitObjectDecoder =
-            Json.map5 (\id t p a ts -> ( id, CommitObject t p a ts ))
-                (Json.field "_id" Json.string)
-                (Json.field "tree" Json.string)
-                (Json.field "parents" (Json.list Json.string))
-                (Json.field "author" Json.string)
-                (Json.field "timestamp" Json.int)
-
-        treeObjectDecoder =
-            Json.map3 (\id cn ch -> ( id, TreeObject cn ch ))
-                (Json.field "_id" Json.string)
-                (Json.field "content" Json.string)
-                (Json.field "children" (Json.list (tupleDecoder Json.string Json.string)))
-
         modelBuilder r c t =
             Model
                 { refs = Dict.fromList r
@@ -144,21 +87,21 @@ update json ( oldModel, oldTree ) =
                 }
 
         dataDecoder =
-            Json.map3 modelBuilder
-                (Json.field "ref" (Json.list refObjectDecoder))
-                (Json.field "commit" (Json.list commitObjectDecoder))
-                (Json.field "tree" (Json.list treeObjectDecoder))
+            Dec.map3 modelBuilder
+                (Dec.field "ref" (Dec.list refObjectDecoder))
+                (Dec.field "commit" (Dec.list commitObjectDecoder))
+                (Dec.field "tree" (Dec.list treeObjectDecoder))
     in
-    case Json.decodeValue dataDecoder json of
-        Ok newModel ->
-            ( newModel, checkoutRef "heads/master" newModel |> Maybe.withDefault oldTree )
+    case Dec.decodeValue dataDecoder json of
+        Ok newData ->
+            ( newData, checkoutRef "heads/master" newData |> Maybe.withDefault oldTree )
 
         Err err ->
             let
                 _ =
                     Debug.log "error" err
             in
-            ( oldModel, oldTree )
+            ( oldData, oldTree )
 
 
 checkoutRef : String -> Model -> Maybe Tree
@@ -168,17 +111,17 @@ checkoutRef refId (Model model) =
         |> andThen (\co -> treeObjectsToTree model.treeObjects co.tree "0")
 
 
-success : Json.Value -> Model -> Model
+success : Dec.Value -> Model -> Model
 success json (Model ({ refs } as model)) =
     let
         responseDecoder =
-            Json.list
-                (Json.map2 Tuple.pair
-                    (Json.field "id" Json.string)
-                    (Json.field "rev" Json.string)
+            Dec.list
+                (Dec.map2 Tuple.pair
+                    (Dec.field "id" Dec.string)
+                    (Dec.field "rev" Dec.string)
                 )
     in
-    case Json.decodeValue responseDecoder json of
+    case Dec.decodeValue responseDecoder json of
         Ok responses ->
             let
                 updater ( id, newRev ) =
@@ -197,10 +140,6 @@ success json (Model ({ refs } as model)) =
 
         Err err ->
             Model model
-
-
-
--- GIT PORCELAIN
 
 
 commitNew : String -> Int -> Tree -> Model -> Model
@@ -242,7 +181,7 @@ checkout commitSha objects =
 
 
 
--- GIT PLUMBING
+-- INTERNALS
 
 
 commitTree : String -> List String -> Int -> Tree -> Model -> Model
@@ -606,26 +545,56 @@ getAncestors cm sh =
 -- PORTS & INTEROP
 
 
-modelDecoder : Json.Decoder Objects
-modelDecoder =
-    Json.map3 Objects
-        (Json.field "commits" commitsDecoder)
-        (Json.field "treeObjects" treeObjectsDecoder)
-        (Json.field "refs" refObjectsDecoder)
+refObjectDecoder : Dec.Decoder ( String, RefObject )
+refObjectDecoder =
+    Dec.map4 (\id v a r -> ( id, RefObject v a r ))
+        (Dec.field "_id" Dec.string)
+        (Dec.field "value" Dec.string)
+        (Dec.field "ancestors" (Dec.list Dec.string))
+        (Dec.field "_rev" Dec.string)
 
 
-mergeDecoder : Json.Decoder ( Maybe String, Maybe String, Objects )
-mergeDecoder =
-    Json.map3 (\l r m -> ( l, r, m ))
-        (Json.index 0 (Json.maybe Json.string))
-        (Json.index 1 (Json.maybe Json.string))
-        (Json.index 2 modelDecoder)
+commitObjectDecoder : Dec.Decoder ( String, CommitObject )
+commitObjectDecoder =
+    Dec.map5 (\id t p a ts -> ( id, CommitObject t p a ts ))
+        (Dec.field "_id" Dec.string)
+        (Dec.field "tree" Dec.string)
+        (Dec.field "parents" (Dec.list Dec.string))
+        (Dec.field "author" Dec.string)
+        (Dec.field "timestamp" Dec.int)
 
 
-commitsToValue : Dict String CommitObject -> Enc.Value
-commitsToValue commits =
+treeObjectDecoder : Dec.Decoder ( String, TreeObject )
+treeObjectDecoder =
+    Dec.map3 (\id cn ch -> ( id, TreeObject cn ch ))
+        (Dec.field "_id" Dec.string)
+        (Dec.field "content" Dec.string)
+        (Dec.field "children" (Dec.list (tupleDecoder Dec.string Dec.string)))
+
+
+toValue : Model -> Enc.Value
+toValue (Model { commits, refs, treeObjects }) =
     let
-        commitToValue sha commitObj =
+        treeObjectToValue ( sha, treeObject ) =
+            Enc.object
+                [ ( "_id", Enc.string sha )
+                , ( "type", Enc.string "tree" )
+                , ( "content", Enc.string treeObject.content )
+                , ( "children"
+                  , Enc.list (Enc.list Enc.string) (List.map (\( childSha, childId ) -> [ childSha, childId ]) treeObject.children)
+                  )
+                ]
+
+        refToValue ( sha, ref ) =
+            Enc.object
+                [ ( "_id", Enc.string sha )
+                , ( "_rev", Enc.string ref.rev )
+                , ( "type", Enc.string "ref" )
+                , ( "value", Enc.string ref.value )
+                , ( "ancestors", Enc.list Enc.string ref.ancestors )
+                ]
+
+        commitToValue ( sha, commitObj ) =
             Enc.object
                 [ ( "_id", Enc.string sha )
                 , ( "type", Enc.string "commit" )
@@ -635,71 +604,10 @@ commitsToValue commits =
                 , ( "timestamp", Enc.int commitObj.timestamp )
                 ]
     in
-    Dict.toList commits
-        |> List.map (\( k, v ) -> commitToValue k v)
-        |> Enc.list identity
-
-
-commitsDecoder : Json.Decoder (Dict String CommitObject)
-commitsDecoder =
-    let
-        commitObjectDecoder : Json.Decoder CommitObject
-        commitObjectDecoder =
-            Json.map4 CommitObject
-                (Json.field "tree" Json.string)
-                (Json.field "parents" (Json.list Json.string))
-                (Json.field "author" Json.string)
-                (Json.field "timestamp" Json.int)
-    in
-    Json.dict commitObjectDecoder
-
-
-treeObjectsDecoder : Json.Decoder (Dict String TreeObject)
-treeObjectsDecoder =
-    let
-        tupleDecoder a b =
-            Json.index 0 a
-                |> Json.andThen
-                    (\aVal ->
-                        Json.index 1 b
-                            |> Json.andThen (\bVal -> Json.succeed ( aVal, bVal ))
-                    )
-
-        treeObjectDecoder =
-            Json.map2 TreeObject
-                (Json.field "content" Json.string)
-                (Json.field "children" (Json.list (tupleDecoder Json.string Json.string)))
-    in
-    Json.dict treeObjectDecoder
-
-
-refObjectsDecoder : Json.Decoder (Dict String RefObject)
-refObjectsDecoder =
-    let
-        refObjectDecoder =
-            Json.map3 RefObject
-                (Json.field "value" Json.string)
-                (Json.field "ancestors" (Json.list Json.string))
-                (Json.field "_rev" Json.string)
-    in
-    Json.dict refObjectDecoder
-
-
-changeDecoder : Objects -> Json.Decoder Objects
-changeDecoder model =
-    Json.oneOf
-        [ Json.map3 Objects
-            (Json.succeed model.commits)
-            (Json.succeed model.treeObjects)
-            refObjectsDecoder
-        , Json.map3 Objects
-            (Json.succeed model.commits)
-            treeObjectsDecoder
-            (Json.succeed model.refs)
-        , Json.map3 Objects
-            commitsDecoder
-            (Json.succeed model.treeObjects)
-            (Json.succeed model.refs)
+    Enc.object
+        [ ( "refs", Enc.list refToValue (Dict.toList refs) )
+        , ( "commits", Enc.list commitToValue (Dict.toList commits) )
+        , ( "treeObjects", Enc.list treeObjectToValue (Dict.toList treeObjects) )
         ]
 
 
