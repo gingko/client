@@ -149,18 +149,23 @@ function setRemoteDB(treeId) {
   TREE_ID = treeId;
   remoteDB.transform(
     { outgoing: (doc) => {
-        if (doc._id.startsWith(TREE_ID+"/")) {
-          doc._id = doc._id.slice(TREE_ID.length + 1);
-        } else if (doc._id == `${TREE_ID}/heads/master`) {
+        if (doc._id == `${TREE_ID}/heads/master`) {
           doc._id = "remotes/origin/master";
+        } else if (doc._id.startsWith(TREE_ID+"/")) {
+          doc._id = doc._id.slice(TREE_ID.length + 1);
         }
         return doc;
       }
     , incoming: (doc) => {
-        doc._id = TREE_ID + "/" + doc._id;
-        return doc;
+        if (doc._id == `${TREE_ID}/heads/master`) {
+          doc._rev = doc.remoteRev;
+          return _.omit(doc, "remoteRev");
+        } else {
+          doc._id = TREE_ID + "/" + doc._id;
+          return doc;
+        }
       }
-  });
+    });
 };
 
 // ============ END SYNC ====================
@@ -237,13 +242,16 @@ const update = (msg, data) => {
         // Store ids of refs, so we can send back updated _rev.
         const refIds = data.refs.map(r => r._id);
 
-        // Filter out object that are already saved in database.
+        // Keep objects that are not saved in database, or are not remote-only.
         const newCommits = data.commits.filter( o => !savedObjectIds.includes(o._id));
         const newTreeObjects = data.treeObjects.filter( o => !savedObjectIds.includes(o._id));
-        const toSave = [...newCommits, ...newTreeObjects, ...data.refs];
+        const localRefs = data.refs.filter( r => !r._id.startsWith("remotes/") );
+        const toSave = [...newCommits, ...newTreeObjects, ...localRefs];
 
         // Save to database, and add successes to savedObjectIds.
+        console.log("toSave", toSave);
         const responses = await db.bulkDocs(toSave);
+        console.log(responses);
         const savedIds = responses.filter(r => r.ok).map(o => o.id);
         savedObjectIds = savedObjectIds.concat(savedIds);
 
@@ -593,13 +601,15 @@ async function pull () {
   let selector = { "_id": { "$regex": `${TREE_ID}/` } };
   let fetchRes = await db.replicate.from(remoteDB, {selector}).catch(async (e) => e);
 
-  // If local head doesn't exist, create it by copying remotes/origin/master.
+  /*
+   * // If local head doesn't exist, create it by copying remotes/origin/master.
   let localHead = await db.get("heads/master").catch(async (e) => e);
   if (localHead.error && localHead.name == "not_found") {
-    let remoteHead = await db.get("remotes/origin/master");
-    let newLocalHead = // same as remote, but with "heads/master" as _id
-    db.put(newLocalHead);
+    let copiedHead = await db.get("remotes/origin/master");
+    copiedHead._id = "heads/master";
+    await db.put(_.omit(copiedHead, "_rev"));
   }
+  */
 
   // Finally, send all objects into Elm repo.
   let result = await db.allDocs({include_docs: true})
@@ -607,8 +617,11 @@ async function pull () {
 }
 
 
-async function push () {
-
+self.push = async () => {
+  // TODO: Check remote before pushing?
+  let filter = (doc) => { return doc._id !== "remotes/origin/master"; }
+  let pushRes = await db.replicate.to(remoteDB, {filter}).catch(async (e) => e);
+  console.log("pushRes", pushRes);
 }
 
 async function returnError(e) {

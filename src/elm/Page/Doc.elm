@@ -107,7 +107,7 @@ defaultModel session docId =
     , language = Translation.En
     , isEditingTitle = False
     , titleField = ""
-    , shortcutTrayOpen = True
+    , shortcutTrayOpen = False -- TODO
     , wordcountTrayOpen = False
     , videoModalOpen = False
     , fontSelectorOpen = False
@@ -136,6 +136,7 @@ init session dbName =
     ( defaultModel session dbName
     , sendOut <| LoadDocument dbName
     )
+        |> activate "1"
 
 
 toSession : Model -> Session
@@ -680,12 +681,12 @@ update msg ({ workingTree, status } as model) =
                         newData =
                             Data.success dataIn model.data
                     in
-                    ( { model | data = newData }, Cmd.none )
+                    ( { model | data = newData }, sendOut <| Push )
 
                 DataReceived dataIn ->
                     let
-                        ( newData, newTree ) =
-                            Data.update dataIn ( model.data, model.workingTree.tree )
+                        ( newData, newTree, cmd ) =
+                            Data.input dataIn ( model.data, model.workingTree.tree )
 
                         newWorkingTree =
                             TreeStructure.setTree newTree model.workingTree
@@ -701,7 +702,18 @@ update msg ({ workingTree, status } as model) =
                         , workingTree = newWorkingTree
                         , startingWordcount = startingWordcount
                       }
-                    , sendOut <| ColumnNumberChange columnNumber
+                    , Cmd.batch
+                        [ sendOut <| ColumnNumberChange columnNumber
+                        , case cmd of
+                            Data.SendPush ->
+                                sendOut <| Push
+
+                            Data.SendSave ->
+                                sendOut <| SaveData (Data.encode newData)
+
+                            Data.None ->
+                                Cmd.none
+                        ]
                     )
 
                 UserStoreLoaded dataIn ->
@@ -759,7 +771,7 @@ update msg ({ workingTree, status } as model) =
                         ( Normal, _ ) ->
                             ( model
                             , Cmd.none
-                              --, sendOut (SaveToDB ( Metadata.encode model.metadata, statusToValue model.status, Data.toValue model.objects ))
+                              --, sendOut (SaveToDB ( Metadata.encode model.metadata, statusToValue model.status, Data.encode model.objects ))
                             )
 
                         _ ->
@@ -776,7 +788,7 @@ update msg ({ workingTree, status } as model) =
                             else
                                 ( model
                                 , Cmd.none
-                                  --, sendOut (SaveToDB ( Metadata.encode model.metadata, statusToValue model.status, Data.toValue model.objects ))
+                                  --, sendOut (SaveToDB ( Metadata.encode model.metadata, statusToValue model.status, Data.encode model.objects ))
                                 )
 
                 Commit timeMillis ->
@@ -2002,7 +2014,7 @@ checkoutCommit commitSha ( model, prevCmd ) =
                 , status = newStatus
               }
             , Cmd.none
-              --, sendOut (UpdateCommits ( Data.toValue model.objects, getHead newStatus ))
+              --, sendOut (UpdateCommits ( Data.encode model.objects, getHead newStatus ))
             )
                 |> maybeColumnsChanged model.workingTree.columns
 
@@ -2083,20 +2095,13 @@ historyStep dir ( model, prevCmd ) =
             ( model, prevCmd )
 
 
-push : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-push ( model, prevCmd ) =
-    ( model
-    , Cmd.batch [ prevCmd, sendOut Push ]
-    )
-
-
 addToHistoryDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 addToHistoryDo ( { workingTree, currentTime } as model, prevCmd ) =
     let
         newData =
             Data.commitNew "Jane Doe <jane.doe@gmail.com" (currentTime |> Time.posixToMillis) workingTree.tree model.data
     in
-    ( { model | data = newData }, sendOut <| SaveData (Data.toValue newData) )
+    ( { model | data = newData }, sendOut <| SaveData (Data.encode newData) )
 
 
 addToHistory : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
