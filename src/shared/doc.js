@@ -149,21 +149,14 @@ function setRemoteDB(treeId) {
   TREE_ID = treeId;
   remoteDB.transform(
     { outgoing: (doc) => {
-        if (doc._id == `${TREE_ID}/heads/master`) {
-          doc._id = "remotes/origin/master";
-        } else if (doc._id.startsWith(TREE_ID+"/")) {
+        if (doc._id.startsWith(TREE_ID+"/")) {
           doc._id = doc._id.slice(TREE_ID.length + 1);
         }
         return doc;
       }
     , incoming: (doc) => {
-        if (doc._id == `${TREE_ID}/heads/master`) {
-          doc._rev = doc.remoteRev;
-          return _.omit(doc, "remoteRev");
-        } else {
-          doc._id = TREE_ID + "/" + doc._id;
-          return doc;
-        }
+        doc._id = TREE_ID + "/" + doc._id;
+        return doc;
       }
     });
 };
@@ -596,24 +589,30 @@ function rowsToElmData(result) {
 }
 
 
-async function pull () {
+self.pull = async () => {
+  // Get local head before replication.
+  let localHead = await db.get("heads/master").catch(async (e) => e);
+
   // Fetch remote changes for current document.
   let selector = { "_id": { "$regex": `${TREE_ID}/` } };
   let fetchRes = await db.replicate.from(remoteDB, {selector}).catch(async (e) => e);
 
-  /*
-   * // If local head doesn't exist, create it by copying remotes/origin/master.
-  let localHead = await db.get("heads/master").catch(async (e) => e);
-  if (localHead.error && localHead.name == "not_found") {
-    let copiedHead = await db.get("remotes/origin/master");
-    copiedHead._id = "heads/master";
-    await db.put(_.omit(copiedHead, "_rev"));
+  // Get all local entries in db, and format in object to send to Elm.
+  let result = await db.allDocs({include_docs: true})
+  let toSend = _.groupBy(result.rows.map(r => r.doc), "type");
+
+  // Get new head, or possible conflict/branching history.
+  let newHead = await db.get("heads/master", {conflicts: true}).catch(async (e) => e);
+
+  // Add conflicts to data to be sent.
+  if (newHead.hasOwnProperty("_conflicts")) {
+    let conflictHead = await db.get("heads/master", {rev: newHead._conflicts[0]});
+    console.error("CONFLICT!", conflictHead);
+    toSend.conflict = conflictHead; // TODO: might need to switch local vs remote in conflicts
   }
-  */
 
   // Finally, send all objects into Elm repo.
-  let result = await db.allDocs({include_docs: true})
-  toElm("DataReceived", _.groupBy(result.rows.map(r => r.doc), "type"));
+  toElm("DataReceived",toSend);
 }
 
 

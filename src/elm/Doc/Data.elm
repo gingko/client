@@ -1,4 +1,4 @@
-module Doc.Data exposing (DataCmd(..), Model, Objects, checkout, commitNew, defaultObjects, empty, encode, input, success)
+module Doc.Data exposing (DataCmd(..), Model, Objects, checkout, commitNew, defaultObjects, empty, encode, received, success)
 
 import Coders exposing (statusDecoder, tupleDecoder)
 import Dict exposing (Dict)
@@ -27,7 +27,7 @@ type alias Data =
     { refs : Dict String RefObject
     , commits : Dict String CommitObject
     , treeObjects : Dict String TreeObject
-    , conflicts : List Conflict
+    , conflict : Maybe RefObject
     }
 
 
@@ -37,7 +37,7 @@ empty =
         { refs = Dict.empty
         , commits = Dict.empty
         , treeObjects = Dict.empty
-        , conflicts = []
+        , conflict = Nothing
         }
 
 
@@ -84,8 +84,8 @@ type DataCmd
     | SendSave
 
 
-input : Dec.Value -> ( Model, Tree ) -> ( Model, Tree, DataCmd )
-input json ( Model oldData, oldTree ) =
+received : Dec.Value -> ( Model, Tree ) -> ( Model, Tree, DataCmd )
+received json ( Model oldData, oldTree ) =
     case Dec.decodeValue decode json of
         Ok (Model newData) ->
             let
@@ -199,7 +199,7 @@ success json (Model ({ refs } as model)) =
 
 
 commitNew : String -> Int -> Tree -> Model -> Model
-commitNew author timestamp tree ((Model ({ conflicts, refs, commits } as data)) as model) =
+commitNew author timestamp tree ((Model ({ refs, commits } as data)) as model) =
     case getStatus data of
         Empty ->
             commitTree author [] timestamp tree model
@@ -676,18 +676,19 @@ decode =
                 (Dec.field "content" Dec.string)
                 (Dec.field "children" (Dec.list (tupleDecoder Dec.string Dec.string)))
 
-        modelBuilder r c t =
+        modelBuilder r c t cflct =
             Model
                 { refs = Dict.fromList r
                 , commits = Dict.fromList c
                 , treeObjects = Dict.fromList t
-                , conflicts = [] -- TODO
+                , conflict = Maybe.map Tuple.second cflct
                 }
     in
-    Dec.map3 modelBuilder
+    Dec.map4 modelBuilder
         (Dec.field "ref" (Dec.list refObjectDecoder))
         (Dec.field "commit" (Dec.list commitObjectDecoder))
         (Dec.field "tree" (Dec.list treeObjectDecoder))
+        (Dec.field "conflict" (Dec.nullable refObjectDecoder))
 
 
 encode : Model -> Enc.Value

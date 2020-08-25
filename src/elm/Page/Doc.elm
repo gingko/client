@@ -686,7 +686,7 @@ update msg ({ workingTree, status } as model) =
                 DataReceived dataIn ->
                     let
                         ( newData, newTree, cmd ) =
-                            Data.input dataIn ( model.data, model.workingTree.tree )
+                            Data.received dataIn ( model.data, model.workingTree.tree )
 
                         newWorkingTree =
                             TreeStructure.setTree newTree model.workingTree
