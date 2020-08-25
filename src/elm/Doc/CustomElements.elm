@@ -1,13 +1,13 @@
 module Doc.CustomElements exposing (gitgraph)
 
 import Dict
-import Doc.Data exposing (Objects)
+import Doc.Data exposing (Data)
 import Html exposing (Attribute, Html, div)
 import Html.Attributes exposing (attribute, id, property, style)
 import Json.Encode as Json exposing (Value, list, object, string)
 
 
-commitsToValue : Objects -> Value
+commitsToValue : Data -> Value
 commitsToValue objects =
     objects.commits
         |> Dict.toList
@@ -19,7 +19,7 @@ commitsToValue objects =
             )
 
 
-commitsGraph : Objects -> Html a
+commitsGraph : Data -> Html a
 commitsGraph commits =
     Html.node "git-graph"
         [ property "commits" (commits |> commitsToValue)
@@ -28,7 +28,7 @@ commitsGraph commits =
         []
 
 
-gitgraph : Objects -> Html msg
+gitgraph : Data -> Html msg
 gitgraph objects =
     div [ id "history-graph" ]
         [ commitsGraph objects ]

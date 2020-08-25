@@ -1,4 +1,4 @@
-module Types exposing (Children(..), CollabState, Column, Conflict, CursorPosition(..), DropId(..), Group, Mode(..), Op(..), Selection(..), Status(..), TextCursorInfo, Tree, ViewMode(..), ViewState, VisibleViewState)
+module Types exposing (Children(..), CollabState, Column, Conflict, CursorPosition(..), DropId(..), Group, Mode(..), Op(..), Selection(..), TextCursorInfo, Tree, ViewMode(..), ViewState, VisibleViewState)
 
 import Html5.DragDrop as DragDrop
 import Translation
@@ -89,16 +89,6 @@ type CursorPosition
     | End
     | Empty
     | Other
-
-
-
---  Repo Status
-
-
-type Status
-    = Bare
-    | Clean String
-    | MergeConflict Tree String String (List Conflict)
 
 
 

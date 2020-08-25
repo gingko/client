@@ -1,7 +1,7 @@
 port module Page.Doc exposing (Model, Msg, init, subscriptions, toSession, update, view)
 
 import Browser.Dom
-import Coders exposing (statusToValue, treeToMarkdownString)
+import Coders exposing (treeToMarkdownString)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
 import Dict
 import Doc.Data as Data
@@ -39,8 +39,6 @@ type alias Model =
     -- Document state
     { workingTree : TreeStructure.Model
     , data : Data.Model
-    , objects : Data.Objects
-    , status : Status
     , metadata : Metadata
 
     -- SPA Page State
@@ -77,8 +75,6 @@ defaultModel : Session -> String -> Model
 defaultModel session docId =
     { workingTree = TreeStructure.defaultModel
     , data = Data.empty
-    , objects = Data.defaultObjects
-    , status = Bare
     , metadata = Metadata.new docId
     , session = session
     , debouncerStateCommit =
@@ -119,18 +115,6 @@ defaultModel session docId =
     }
 
 
-
-{-
-   init is where we load the model data upon initialization.
-   If there is no such data, then we're starting a new document, and
-   defaultModel is used instead.
-
-   The dataIn is always JSON, but it can either be a JSON representation of the
-   tree (from a .json file import), OR a full database load from a file
-   containing the full commit history (a .gko file).
--}
-
-
 init : Session -> String -> ( Model, Cmd Msg )
 init session dbName =
     ( defaultModel session dbName
@@ -145,24 +129,7 @@ toSession model =
 
 
 
-{-
-   # UPDATE
-
-   Update is where we react to message events (Msg), and modify the model
-   depending on what Msg was received.
-
-   Most messages arise from within Elm itself, but some come into Elm from JS
-   via ports.
-
-   Each branch of the case statement returns the updated model, AND a piece of
-   data called a command (Cmd) that describes an action for the Elm runtime to
-   take. By far the most common such action is to sendOut an OutgoingMsg to JS.
-
-   Most branches here call a function defined below, instead of updating the
-   model in the update function itself.
-
-   Msg, IncomingMsg, and OutgoingMsg can all be found in Types.elm.
--}
+-- UPDATE
 
 
 type Msg
@@ -203,7 +170,7 @@ type Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ({ workingTree, status } as model) =
+update msg ({ workingTree } as model) =
     let
         vs =
             model.viewState
@@ -404,17 +371,10 @@ update msg ({ workingTree, status } as model) =
                     ( updatedModel, mappedCmd )
 
         CheckoutCommit commitSha ->
-            case status of
-                MergeConflict _ _ _ _ ->
-                    ( model
-                    , Cmd.none
-                    )
-
-                _ ->
-                    ( model
-                    , Cmd.none
-                    )
-                        |> checkoutCommit commitSha
+            ( model
+            , Cmd.none
+            )
+                |> checkoutCommit commitSha
 
         Restore ->
             ( { model | historyState = Closed }
@@ -436,21 +396,9 @@ update msg ({ workingTree, status } as model) =
                     )
 
         PullFromRemote ->
-            case model.status of
-                Clean _ ->
-                    ( model
-                    , sendOut Pull
-                    )
-
-                Bare ->
-                    ( model
-                    , sendOut Pull
-                    )
-
-                _ ->
-                    ( model
-                    , Cmd.none
-                    )
+            ( model
+            , sendOut Pull
+            )
 
         SetSelection cid selection id ->
             let
@@ -463,6 +411,7 @@ update msg ({ workingTree, status } as model) =
               }
             , Cmd.none
             )
+                |> activate id
 
         Resolve cid ->
             let
@@ -725,11 +674,8 @@ update msg ({ workingTree, status } as model) =
                     )
 
                 GetDataToSave ->
-                    case ( vs.viewMode, status ) of
-                        ( Normal, Bare ) ->
-                            ( model, sendOut NoDataToSave )
-
-                        ( Normal, _ ) ->
+                    case vs.viewMode of
+                        Normal ->
                             ( model
                             , Cmd.none
                               --, sendOut (SaveToDB ( Metadata.encode model.metadata, statusToValue model.status, Data.encode model.objects ))
@@ -1049,10 +995,20 @@ update msg ({ workingTree, status } as model) =
                             normalMode model (pasteInto vs.active)
 
                         "mod+z" ->
-                            normalMode model (historyStep Backward)
+                            case model.historyState of
+                                From currHead ->
+                                    normalMode model (historyStep Backward currHead)
+
+                                Closed ->
+                                    ( model, Cmd.none )
 
                         "mod+shift+z" ->
-                            normalMode model (historyStep Forward)
+                            case model.historyState of
+                                From currHead ->
+                                    normalMode model (historyStep Forward currHead)
+
+                                Closed ->
+                                    ( model, Cmd.none )
 
                         "mod+s" ->
                             ( model
@@ -1965,14 +1921,13 @@ pasteInto id ( model, prevCmd ) =
 checkoutCommit : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 checkoutCommit commitSha ( model, prevCmd ) =
     let
-        ( newStatus, newTree_ ) =
-            Data.checkout commitSha model.objects
+        newTree_ =
+            Data.checkout commitSha model.data
     in
     case newTree_ of
         Just newTree ->
             ( { model
                 | workingTree = TreeStructure.setTree newTree model.workingTree
-                , status = newStatus
               }
             , Cmd.none
               --, sendOut (UpdateCommits ( Data.encode model.objects, getHead newStatus ))
@@ -2000,57 +1955,52 @@ type HistoryState
     | From String
 
 
-historyStep : Direction -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-historyStep dir ( model, prevCmd ) =
-    case model.status of
-        Clean currHead ->
-            let
-                master =
-                    Dict.get "heads/master" model.objects.refs
+historyStep : Direction -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+historyStep dir currHead ( model, prevCmd ) =
+    let
+        master =
+            Data.head "heads/master" model.data
 
-                ( currCommit_, historyList ) =
-                    case master of
-                        Just refObj ->
-                            ( Just refObj.value
-                            , (refObj.value :: refObj.ancestors)
-                                |> List.reverse
-                            )
-
-                        _ ->
-                            ( Nothing, [] )
-
-                newCommitIdx_ =
-                    case dir of
-                        Backward ->
-                            historyList
-                                |> ListExtra.elemIndex currHead
-                                |> Maybe.map (\x -> Basics.max 0 (x - 1))
-                                |> Maybe.withDefault -1
-
-                        Forward ->
-                            historyList
-                                |> ListExtra.elemIndex currHead
-                                |> Maybe.map (\x -> Basics.min (List.length historyList - 1) (x + 1))
-                                |> Maybe.withDefault -1
-
-                newCommit_ =
-                    getAt newCommitIdx_ historyList
-            in
-            case ( model.historyState, currCommit_, newCommit_ ) of
-                ( From _, _, Just newSha ) ->
-                    ( model
-                    , prevCmd
+        ( currCommit_, historyList ) =
+            case master of
+                Just refObj ->
+                    ( Just refObj.value
+                    , (refObj.value :: refObj.ancestors)
+                        |> List.reverse
                     )
-                        |> checkoutCommit newSha
-
-                ( Closed, Just currCommit, Just newSha ) ->
-                    ( { model | historyState = From currCommit }
-                    , prevCmd
-                    )
-                        |> checkoutCommit newSha
 
                 _ ->
-                    ( model, prevCmd )
+                    ( Nothing, [] )
+
+        newCommitIdx_ =
+            case dir of
+                Backward ->
+                    historyList
+                        |> ListExtra.elemIndex currHead
+                        |> Maybe.map (\x -> Basics.max 0 (x - 1))
+                        |> Maybe.withDefault -1
+
+                Forward ->
+                    historyList
+                        |> ListExtra.elemIndex currHead
+                        |> Maybe.map (\x -> Basics.min (List.length historyList - 1) (x + 1))
+                        |> Maybe.withDefault -1
+
+        newCommit_ =
+            getAt newCommitIdx_ historyList
+    in
+    case ( model.historyState, currCommit_, newCommit_ ) of
+        ( From _, _, Just newSha ) ->
+            ( model
+            , prevCmd
+            )
+                |> checkoutCommit newSha
+
+        ( Closed, Just currCommit, Just newSha ) ->
+            ( { model | historyState = From currCommit }
+            , prevCmd
+            )
+                |> checkoutCommit newSha
 
         _ ->
             ( model, prevCmd )
@@ -2077,16 +2027,9 @@ addToHistory ( model, prevCmd ) =
 
 sendCollabState : CollabState -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 sendCollabState collabState ( model, prevCmd ) =
-    case model.status of
-        MergeConflict _ _ _ _ ->
-            ( model
-            , prevCmd
-            )
-
-        _ ->
-            ( model
-            , Cmd.batch [ prevCmd, sendOut (SocketSend collabState) ]
-            )
+    ( model
+    , Cmd.batch [ prevCmd, sendOut (SocketSend collabState) ]
+    )
 
 
 toggleVideoModal : Bool -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -2155,9 +2098,9 @@ pre, code, .group.has-active .card textarea {
                     , viewSaveIndicator model
                     , viewSearchField SearchFieldUpdated model
                     , viewFooter WordcountTrayToggle ShortcutTrayToggle model
-                    , case ( model.historyState, model.status ) of
-                        ( From _, Clean currHead ) ->
-                            viewHistory NoOp CheckoutCommit Restore CancelHistory model.language currHead model.objects
+                    , case model.historyState of
+                        From currHead ->
+                            viewHistory NoOp CheckoutCommit Restore CancelHistory model.language currHead model.data
 
                         _ ->
                             text ""
@@ -2646,19 +2589,6 @@ subscriptions model =
 randomId : Random.Generator Int
 randomId =
     Random.int 0 Random.maxInt
-
-
-getHead : Status -> Maybe String
-getHead status =
-    case status of
-        Clean head ->
-            Just head
-
-        MergeConflict _ head _ [] ->
-            Just head
-
-        _ ->
-            Nothing
 
 
 focus : String -> Cmd Msg

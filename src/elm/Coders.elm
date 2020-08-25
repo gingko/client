@@ -1,4 +1,4 @@
-module Coders exposing (collabStateDecoder, collabStateToValue, conflictDecoder, conflictToValue, fontSettingsEncoder, lazyRecurse, maybeToValue, modeDecoder, modeToValue, opDecoder, opToValue, selectionDecoder, selectionToValue, statusDecoder, statusToValue, treeDecoder, treeListDecoder, treeToJSON, treeToJSONrecurse, treeToMarkdown, treeToMarkdownRecurse, treeToMarkdownString, treeToValue, treesModelDecoder, tripleDecoder, tupleDecoder, tupleToValue)
+module Coders exposing (collabStateDecoder, collabStateToValue, conflictDecoder, conflictToValue, fontSettingsEncoder, lazyRecurse, maybeToValue, modeDecoder, modeToValue, opDecoder, opToValue, selectionDecoder, selectionToValue, treeDecoder, treeListDecoder, treeToJSON, treeToJSONrecurse, treeToMarkdown, treeToMarkdownRecurse, treeToMarkdownString, treeToValue, treesModelDecoder, tripleDecoder, tupleDecoder, tupleToValue)
 
 import Doc.Fonts as Fonts
 import Doc.TreeStructure as TreeStructure
@@ -102,63 +102,6 @@ modeDecoder =
     in
     tupleDecoder string string
         |> andThen modeHelp
-
-
-
--- Status
-
-
-statusToValue : Status -> Enc.Value
-statusToValue status =
-    case status of
-        Clean head ->
-            Enc.object
-                [ ( "_id", "status" |> Enc.string )
-                , ( "status", "clean" |> Enc.string )
-                , ( "head", head |> Enc.string )
-                ]
-
-        MergeConflict tree aSha bSha conflicts ->
-            Enc.object
-                [ ( "_id", "status" |> Enc.string )
-                , ( "status", "merge-conflict" |> Enc.string )
-                , ( "tree", tree |> treeToValue )
-                , ( "aSha", aSha |> Enc.string )
-                , ( "bSha", bSha |> Enc.string )
-                , ( "conflicts", Enc.list conflictToValue conflicts )
-                ]
-
-        Bare ->
-            Enc.object
-                [ ( "_id", "status" |> Enc.string )
-                , ( "status", "bare" |> Enc.string )
-                , ( "bare", Enc.bool True )
-                ]
-
-
-statusDecoder : Decoder Status
-statusDecoder =
-    let
-        cleanDecoder =
-            Json.map (\h -> Clean h)
-                (field "head" string)
-
-        mergeConflictDecoder =
-            Json.map4 (\t a b c -> MergeConflict t a b c)
-                (field "tree" treeDecoder)
-                (field "aSha" string)
-                (field "bSha" string)
-                (field "conflicts" (list conflictDecoder))
-
-        bareDecoder =
-            Json.map (\_ -> Bare)
-                (field "bare" bool)
-    in
-    oneOf
-        [ cleanDecoder
-        , mergeConflictDecoder
-        , bareDecoder
-        ]
 
 
 

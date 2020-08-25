@@ -1,6 +1,6 @@
-module Doc.Data exposing (DataCmd(..), Model, Objects, checkout, commitNew, conflictList, conflictSelection, defaultObjects, empty, encode, received, resolve, success)
+module Doc.Data exposing (Data, DataCmd(..), Model, checkout, commitNew, conflictList, conflictSelection, empty, encode, head, received, resolve, success)
 
-import Coders exposing (statusDecoder, tupleDecoder)
+import Coders exposing (tupleDecoder)
 import Dict exposing (Dict)
 import Diff3 exposing (diff3Merge)
 import Doc.Metadata as Metadata exposing (Metadata)
@@ -20,8 +20,8 @@ import Types exposing (..)
 
 
 type Model
-    = IsOk Data
-    | InConflict Data ConflictInfo
+    = Clean Data
+    | MergeConflict Data ConflictInfo
 
 
 type alias Data =
@@ -37,27 +37,6 @@ type alias ConflictInfo =
     , conflicts : List Conflict
     , mergedTree : Tree
     }
-
-
-empty : Model
-empty =
-    IsOk
-        { refs = Dict.empty
-        , commits = Dict.empty
-        , treeObjects = Dict.empty
-        }
-
-
-type alias Objects =
-    { commits : Dict String CommitObject
-    , treeObjects : Dict String TreeObject
-    , refs : Dict String RefObject
-    }
-
-
-defaultObjects : Objects
-defaultObjects =
-    Objects Dict.empty Dict.empty Dict.empty
 
 
 type alias TreeObject =
@@ -81,6 +60,15 @@ type alias RefObject =
     }
 
 
+empty : Model
+empty =
+    Clean
+        { refs = Dict.empty
+        , commits = Dict.empty
+        , treeObjects = Dict.empty
+        }
+
+
 
 -- EXPOSED FUNCTIONS
 
@@ -91,11 +79,26 @@ type DataCmd
     | SendSave
 
 
+getData : Model -> Data
+getData model =
+    case model of
+        Clean d ->
+            d
+
+        MergeConflict d _ ->
+            d
+
+
+head : String -> Model -> Maybe RefObject
+head id model =
+    Dict.get id (getData model).refs
+
+
 received : Dec.Value -> ( Model, Tree ) -> ( Model, Tree, List Conflict )
 received json ( oldModel, oldTree ) =
     case Dec.decodeValue decode json of
         Ok ( newData, Nothing ) ->
-            ( IsOk newData, checkoutRef "heads/master" newData |> Maybe.withDefault oldTree, [] )
+            ( Clean newData, checkoutRef "heads/master" newData |> Maybe.withDefault oldTree, [] )
 
         Ok ( newData, Just ( confId, confHead ) ) ->
             let
@@ -106,11 +109,11 @@ received json ( oldModel, oldTree ) =
                     merge localHead.value confHead.value oldTree newData
             in
             case mergedModel of
-                IsOk data ->
-                    ( IsOk data, checkoutRef "heads/master" data |> Maybe.withDefault oldTree, [] )
+                Clean data ->
+                    ( Clean data, checkoutRef "heads/master" data |> Maybe.withDefault oldTree, [] )
 
-                InConflict data cdata ->
-                    ( InConflict data cdata, cdata.mergedTree, cdata.conflicts )
+                MergeConflict data cdata ->
+                    ( MergeConflict data cdata, cdata.mergedTree, cdata.conflicts )
 
         Err err ->
             let
@@ -153,11 +156,11 @@ success json model =
                     Dict.union (resDict d) d.refs
             in
             case model of
-                IsOk d ->
-                    IsOk { d | refs = newRefs d }
+                Clean d ->
+                    Clean { d | refs = newRefs d }
 
-                InConflict d cd ->
-                    InConflict { d | refs = newRefs d } cd
+                MergeConflict d cd ->
+                    MergeConflict { d | refs = newRefs d } cd
 
         Err err ->
             model
@@ -166,43 +169,43 @@ success json model =
 commitNew : String -> Int -> Tree -> Model -> Model
 commitNew author timestamp tree model =
     case model of
-        IsOk data ->
+        Clean data ->
             case Dict.get "heads/master" data.refs of
                 Nothing ->
-                    IsOk (commitTree author [] timestamp tree data)
+                    Clean (commitTree author [] timestamp tree data)
 
                 Just localHead ->
-                    IsOk (commitTree author [ localHead.value ] timestamp tree data)
+                    Clean (commitTree author [ localHead.value ] timestamp tree data)
 
-        InConflict data { localHead, remoteHead, conflicts } ->
+        MergeConflict data { localHead, remoteHead, conflicts } ->
             if List.isEmpty (List.filter (not << .resolved) conflicts) then
                 -- No unresolved conflicts.
-                IsOk (commitTree author [ localHead, remoteHead ] timestamp tree data)
+                Clean (commitTree author [ localHead, remoteHead ] timestamp tree data)
 
             else
                 -- Unresolved conflicts exist, dont' commit.
                 model
 
 
-checkout : String -> Objects -> ( Status, Maybe Tree )
-checkout commitSha objects =
-    ( Clean commitSha, checkoutCommit commitSha objects )
+checkout : String -> Model -> Maybe Tree
+checkout commitSha model =
+    checkoutCommit commitSha (getData model)
 
 
 conflictList : Model -> List Conflict
 conflictList model =
     case model of
-        IsOk _ ->
+        Clean _ ->
             []
 
-        InConflict _ { conflicts } ->
+        MergeConflict _ { conflicts } ->
             conflicts
 
 
 conflictSelection : String -> Selection -> Model -> Model
 conflictSelection cid selection model =
     case model of
-        InConflict data confInfo ->
+        MergeConflict data confInfo ->
             let
                 newConflicts =
                     confInfo.conflicts
@@ -215,28 +218,28 @@ conflictSelection cid selection model =
                                     c
                             )
             in
-            InConflict data { confInfo | conflicts = newConflicts }
+            MergeConflict data { confInfo | conflicts = newConflicts }
 
-        IsOk _ ->
+        Clean _ ->
             model
 
 
 resolve : String -> Model -> ( Model, Bool )
 resolve cid model =
     case model of
-        IsOk _ ->
+        Clean _ ->
             ( model, True )
 
-        InConflict d confInfo ->
+        MergeConflict d confInfo ->
             let
                 newConflicts =
                     List.filter (\c -> c.id /= cid) confInfo.conflicts
             in
             if List.isEmpty newConflicts then
-                ( IsOk d, True )
+                ( Clean d, True )
 
             else
-                ( InConflict d { confInfo | conflicts = newConflicts }, False )
+                ( MergeConflict d { confInfo | conflicts = newConflicts }, False )
 
 
 
@@ -278,10 +281,10 @@ commitTree author parents timestamp tree data =
     }
 
 
-checkoutCommit : String -> Objects -> Maybe Tree
-checkoutCommit commitSha model =
-    Dict.get commitSha model.commits
-        |> andThen (\co -> treeObjectsToTree model.treeObjects co.tree "0")
+checkoutCommit : String -> Data -> Maybe Tree
+checkoutCommit commitSha data =
+    Dict.get commitSha data.commits
+        |> andThen (\co -> treeObjectsToTree data.treeObjects co.tree "0")
 
 
 writeTree : Tree -> ( String, Dict String TreeObject )
@@ -386,13 +389,13 @@ conflictWithSha { id, opA, opB, selection, resolved } =
 merge : String -> String -> Tree -> Data -> Model
 merge aSha bSha oldTree data =
     if aSha == bSha then
-        IsOk data
+        Clean data
 
     else if List.member bSha (getAncestors data.commits aSha) then
-        IsOk data
+        Clean data
 
     else if List.member aSha (getAncestors data.commits bSha) then
-        IsOk data
+        Clean data
 
     else
         let
@@ -418,7 +421,7 @@ merge aSha bSha oldTree data =
                     ( mTree, conflicts ) =
                         mergeTreeStructure oTree aTree bTree
                 in
-                InConflict data { localHead = aSha, remoteHead = bSha, conflicts = conflicts, mergedTree = mTree }
+                MergeConflict data { localHead = aSha, remoteHead = bSha, conflicts = conflicts, mergedTree = mTree }
 
             ( Nothing, Just _, Just _ ) ->
                 Debug.todo "failed merge, no common ancestor found."
@@ -685,12 +688,7 @@ encode : Model -> Enc.Value
 encode model =
     let
         data =
-            case model of
-                IsOk d ->
-                    d
-
-                InConflict d _ ->
-                    d
+            getData model
 
         treeObjectToValue ( sha, treeObject ) =
             Enc.object
