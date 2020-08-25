@@ -1,4 +1,4 @@
-module Doc.Data exposing (DataCmd(..), Model, Objects, checkout, commitNew, defaultObjects, empty, encode, received, success)
+module Doc.Data exposing (DataCmd(..), Model, Objects, checkout, commitNew, conflictList, conflictSelection, defaultObjects, empty, encode, received, resolve, success)
 
 import Coders exposing (statusDecoder, tupleDecoder)
 import Dict exposing (Dict)
@@ -20,24 +20,31 @@ import Types exposing (..)
 
 
 type Model
-    = Model Data
+    = IsOk Data
+    | InConflict Data ConflictInfo
 
 
 type alias Data =
     { refs : Dict String RefObject
     , commits : Dict String CommitObject
     , treeObjects : Dict String TreeObject
-    , conflict : Maybe RefObject
+    }
+
+
+type alias ConflictInfo =
+    { localHead : String
+    , remoteHead : String
+    , conflicts : List Conflict
+    , mergedTree : Tree
     }
 
 
 empty : Model
 empty =
-    Model
+    IsOk
         { refs = Dict.empty
         , commits = Dict.empty
         , treeObjects = Dict.empty
-        , conflict = Nothing
         }
 
 
@@ -84,80 +91,33 @@ type DataCmd
     | SendSave
 
 
-received : Dec.Value -> ( Model, Tree ) -> ( Model, Tree, DataCmd )
-received json ( Model oldData, oldTree ) =
+received : Dec.Value -> ( Model, Tree ) -> ( Model, Tree, List Conflict )
+received json ( oldModel, oldTree ) =
     case Dec.decodeValue decode json of
-        Ok (Model newData) ->
+        Ok ( newData, Nothing ) ->
+            ( IsOk newData, checkoutRef "heads/master" newData |> Maybe.withDefault oldTree, [] )
+
+        Ok ( newData, Just ( confId, confHead ) ) ->
             let
-                headUpdater refHead ro_ =
-                    case ro_ of
-                        Nothing ->
-                            Just (RefObject refHead.value [] "")
+                localHead =
+                    Dict.get "heads/master" newData.refs |> Maybe.withDefault confHead
 
-                        Just ro ->
-                            Just { ro | value = refHead.value }
-
-                newStatus =
-                    getStatus newData |> Debug.log "newStatus"
+                mergedModel =
+                    merge localHead.value confHead.value oldTree newData
             in
-            case newStatus of
-                LocalOnly _ ->
-                    ( Model newData, checkoutRef "heads/master" newData |> Maybe.withDefault oldTree, SendPush )
+            case mergedModel of
+                IsOk data ->
+                    ( IsOk data, checkoutRef "heads/master" data |> Maybe.withDefault oldTree, [] )
 
-                RemoteOnly remoteHead ->
-                    let
-                        updatedData =
-                            { newData | refs = Dict.update "heads/master" (headUpdater remoteHead) newData.refs }
-                    in
-                    ( Model updatedData, checkoutRef "heads/master" updatedData |> Maybe.withDefault oldTree, SendSave )
+                InConflict data cdata ->
+                    ( InConflict data cdata, cdata.mergedTree, cdata.conflicts )
 
-                LocalAhead _ ->
-                    ( Model newData, checkoutRef "heads/master" newData |> Maybe.withDefault oldTree, SendPush )
-
-                RemoteAhead remoteHead ->
-                    let
-                        updatedData =
-                            { newData | refs = Dict.update "heads/master" (headUpdater remoteHead) newData.refs }
-                    in
-                    ( Model newData, checkoutRef "heads/master" newData |> Maybe.withDefault oldTree, SendSave )
-
-                InSync _ _ ->
-                    ( Model newData, checkoutRef "heads/master" newData |> Maybe.withDefault oldTree, None )
-
-                _ ->
-                    ( Model newData, oldTree, None )
-
-        {-
-
-           let
-               localHead_ =
-                   Dict.get "heads/master" oldData.refs
-
-               remoteHead_ =
-                   Dict.get "remotes/origin/master" refs
-           in
-           case ( localHead_, remoteHead_ ) of
-               ( Nothing, Just remoteHead ) ->
-                   -- Git Clone. Set new local head to be same as remote.
-                   ( Model { newData | refs = Dict.insert "heads/master" remoteHead refs }, oldTree )
-
-               ( Just localHead, Nothing ) ->
-                   -- Git Init. Not pushed to remote yet.
-                   ( Model newData, checkoutRef "heads/master" newData |> Maybe.withDefault oldTree )
-
-               ( Just localHead, Just remoteHead ) ->
-                   -- Git Pull. Merge changes
-                   ( Model oldData, oldTree )
-
-               ( Nothing, Nothing ) ->
-                   ( Model oldData, oldTree )
-        -}
         Err err ->
             let
                 _ =
                     Debug.log "error" err
             in
-            ( Model oldData, oldTree, None )
+            ( oldModel, oldTree, [] )
 
 
 checkoutRef : String -> Data -> Maybe Tree
@@ -168,7 +128,7 @@ checkoutRef refId data =
 
 
 success : Dec.Value -> Model -> Model
-success json (Model ({ refs } as model)) =
+success json model =
     let
         responseDecoder =
             Dec.list
@@ -180,62 +140,48 @@ success json (Model ({ refs } as model)) =
     case Dec.decodeValue responseDecoder json of
         Ok responses ->
             let
-                updater ( id, newRev ) =
-                    Dict.get id refs
+                updater d ( id, newRev ) =
+                    Dict.get id d.refs
                         |> Maybe.andThen (\r -> Just ( id, { r | rev = newRev } ))
 
-                resDict =
+                resDict d =
                     responses
-                        |> List.filterMap updater
+                        |> List.filterMap (updater d)
                         |> Dict.fromList
 
-                newRefs =
-                    Dict.union resDict refs
+                newRefs d =
+                    Dict.union (resDict d) d.refs
             in
-            Model { model | refs = newRefs }
+            case model of
+                IsOk d ->
+                    IsOk { d | refs = newRefs d }
+
+                InConflict d cd ->
+                    InConflict { d | refs = newRefs d } cd
 
         Err err ->
-            Model model
+            model
 
 
 commitNew : String -> Int -> Tree -> Model -> Model
-commitNew author timestamp tree ((Model ({ refs, commits } as data)) as model) =
-    case getStatus data of
-        Empty ->
-            commitTree author [] timestamp tree model
+commitNew author timestamp tree model =
+    case model of
+        IsOk data ->
+            case Dict.get "heads/master" data.refs of
+                Nothing ->
+                    IsOk (commitTree author [] timestamp tree data)
 
-        LocalOnly localHead ->
-            commitTree author [ localHead.value ] timestamp tree model
+                Just localHead ->
+                    IsOk (commitTree author [ localHead.value ] timestamp tree data)
 
-        RemoteOnly _ ->
-            model
+        InConflict data { localHead, remoteHead, conflicts } ->
+            if List.isEmpty (List.filter (not << .resolved) conflicts) then
+                -- No unresolved conflicts.
+                IsOk (commitTree author [ localHead, remoteHead ] timestamp tree data)
 
-        LocalAhead localHead ->
-            commitTree author [ localHead.value ] timestamp tree model
-
-        RemoteAhead remoteHead ->
-            commitTree author [ remoteHead.value ] timestamp tree model
-
-        Merging localHead remoteHead ->
-            commitTree author [ localHead.value, remoteHead.value ] timestamp tree model
-
-        InSync localHead _ ->
-            commitTree author [ localHead.value ] timestamp tree model
-
-
-
-{-
-   InConflict ->
-       -- Local & Remote
-       if List.isEmpty (List.filter (not << .resolved) conflicts) then
-           -- No unresolved conflicts.
-           commitTree author [ localHead.value, remoteHead.value ] timestamp tree model
-
-       else
-           -- Unresolved conflicts exist, dont' commit.
-           model
-
--}
+            else
+                -- Unresolved conflicts exist, dont' commit.
+                model
 
 
 checkout : String -> Objects -> ( Status, Maybe Tree )
@@ -243,56 +189,62 @@ checkout commitSha objects =
     ( Clean commitSha, checkoutCommit commitSha objects )
 
 
+conflictList : Model -> List Conflict
+conflictList model =
+    case model of
+        IsOk _ ->
+            []
+
+        InConflict _ { conflicts } ->
+            conflicts
+
+
+conflictSelection : String -> Selection -> Model -> Model
+conflictSelection cid selection model =
+    case model of
+        InConflict data confInfo ->
+            let
+                newConflicts =
+                    confInfo.conflicts
+                        |> List.map
+                            (\c ->
+                                if c.id == cid then
+                                    { c | selection = selection }
+
+                                else
+                                    c
+                            )
+            in
+            InConflict data { confInfo | conflicts = newConflicts }
+
+        IsOk _ ->
+            model
+
+
+resolve : String -> Model -> ( Model, Bool )
+resolve cid model =
+    case model of
+        IsOk _ ->
+            ( model, True )
+
+        InConflict d confInfo ->
+            let
+                newConflicts =
+                    List.filter (\c -> c.id /= cid) confInfo.conflicts
+            in
+            if List.isEmpty newConflicts then
+                ( IsOk d, True )
+
+            else
+                ( InConflict d { confInfo | conflicts = newConflicts }, False )
+
+
 
 -- INTERNALS
 
 
-type MyStatus
-    = Empty
-    | LocalOnly RefObject
-    | RemoteOnly RefObject
-    | LocalAhead RefObject
-    | RemoteAhead RefObject
-    | Merging RefObject RefObject
-    | InSync RefObject RefObject
-
-
-getStatus : Data -> MyStatus
-getStatus { refs, commits } =
-    let
-        localHead_ =
-            Dict.get "heads/master" refs
-
-        remoteHead_ =
-            Dict.get "remotes/origin/master" refs
-    in
-    case ( localHead_, remoteHead_ ) of
-        ( Nothing, Nothing ) ->
-            Empty
-
-        ( Just localHead, Nothing ) ->
-            LocalOnly localHead
-
-        ( Nothing, Just remoteHead ) ->
-            RemoteOnly remoteHead
-
-        ( Just localHead, Just remoteHead ) ->
-            if localHead.value == remoteHead.value then
-                InSync localHead remoteHead
-
-            else if List.member localHead.value (getAncestors commits remoteHead.value) then
-                RemoteAhead remoteHead
-
-            else if List.member remoteHead.value (getAncestors commits localHead.value) then
-                LocalAhead localHead
-
-            else
-                -- Merge Conflict of some sort
-                Merging localHead remoteHead
-
-
-commitTree : String -> List String -> Int -> Tree -> Model -> Model
-commitTree author parents timestamp tree (Model ({ refs, commits, treeObjects } as model)) =
+commitTree : String -> List String -> Int -> Tree -> Data -> Data
+commitTree author parents timestamp tree data =
     let
         ( newRootId, newTreeObjects ) =
             writeTree tree
@@ -319,12 +271,11 @@ commitTree author parents timestamp tree (Model ({ refs, commits, treeObjects } 
             in
             Just (RefObject newCommitSha [] newRev)
     in
-    Model
-        { model
-            | refs = Dict.update "heads/master" updateHead refs
-            , commits = Dict.insert newCommitSha newCommit commits
-            , treeObjects = Dict.union treeObjects newTreeObjects
-        }
+    { data
+        | refs = Dict.update "heads/master" updateHead data.refs
+        , commits = Dict.insert newCommitSha newCommit data.commits
+        , treeObjects = Dict.union newTreeObjects data.treeObjects
+    }
 
 
 checkoutCommit : String -> Objects -> Maybe Tree
@@ -430,6 +381,50 @@ conflictWithSha { id, opA, opB, selection, resolved } =
 
 
 -- ==== Merging
+
+
+merge : String -> String -> Tree -> Data -> Model
+merge aSha bSha oldTree data =
+    if aSha == bSha then
+        IsOk data
+
+    else if List.member bSha (getAncestors data.commits aSha) then
+        IsOk data
+
+    else if List.member aSha (getAncestors data.commits bSha) then
+        IsOk data
+
+    else
+        let
+            oSha =
+                getCommonAncestor_ data.commits aSha bSha |> Maybe.withDefault ""
+
+            getTree_ sha =
+                Dict.get sha data.commits
+                    |> Maybe.andThen (\co -> treeObjectsToTree data.treeObjects co.tree "0")
+
+            oTree_ =
+                getTree_ oSha
+
+            aTree_ =
+                getTree_ aSha
+
+            bTree_ =
+                getTree_ bSha
+        in
+        case ( oTree_, aTree_, bTree_ ) of
+            ( Just oTree, Just aTree, Just bTree ) ->
+                let
+                    ( mTree, conflicts ) =
+                        mergeTreeStructure oTree aTree bTree
+                in
+                InConflict data { localHead = aSha, remoteHead = bSha, conflicts = conflicts, mergedTree = mTree }
+
+            ( Nothing, Just _, Just _ ) ->
+                Debug.todo "failed merge, no common ancestor found."
+
+            _ ->
+                Debug.todo "failed merge"
 
 
 mergeTreeStructure : Tree -> Tree -> Tree -> ( Tree, List Conflict )
@@ -652,7 +647,7 @@ getAncestors cm sh =
 -- PORTS & INTEROP
 
 
-decode : Dec.Decoder Model
+decode : Dec.Decoder ( Data, Maybe ( String, RefObject ) )
 decode =
     let
         refObjectDecoder =
@@ -677,23 +672,26 @@ decode =
                 (Dec.field "children" (Dec.list (tupleDecoder Dec.string Dec.string)))
 
         modelBuilder r c t cflct =
-            Model
-                { refs = Dict.fromList r
-                , commits = Dict.fromList c
-                , treeObjects = Dict.fromList t
-                , conflict = Maybe.map Tuple.second cflct
-                }
+            ( Data (Dict.fromList r) (Dict.fromList c) (Dict.fromList t), cflct )
     in
     Dec.map4 modelBuilder
         (Dec.field "ref" (Dec.list refObjectDecoder))
         (Dec.field "commit" (Dec.list commitObjectDecoder))
         (Dec.field "tree" (Dec.list treeObjectDecoder))
-        (Dec.field "conflict" (Dec.nullable refObjectDecoder))
+        (Dec.maybe (Dec.field "conflict" refObjectDecoder))
 
 
 encode : Model -> Enc.Value
-encode (Model { commits, refs, treeObjects }) =
+encode model =
     let
+        data =
+            case model of
+                IsOk d ->
+                    d
+
+                InConflict d _ ->
+                    d
+
         treeObjectToValue ( sha, treeObject ) =
             Enc.object
                 [ ( "_id", Enc.string sha )
@@ -724,9 +722,9 @@ encode (Model { commits, refs, treeObjects }) =
                 ]
     in
     Enc.object
-        [ ( "refs", Enc.list refToValue (Dict.toList refs) )
-        , ( "commits", Enc.list commitToValue (Dict.toList commits) )
-        , ( "treeObjects", Enc.list treeObjectToValue (Dict.toList treeObjects) )
+        [ ( "refs", Enc.list refToValue (Dict.toList data.refs) )
+        , ( "commits", Enc.list commitToValue (Dict.toList data.commits) )
+        , ( "treeObjects", Enc.list treeObjectToValue (Dict.toList data.treeObjects) )
         ]
 
 

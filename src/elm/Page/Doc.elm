@@ -454,63 +454,32 @@ update msg ({ workingTree, status } as model) =
 
         SetSelection cid selection id ->
             let
-                newStatus =
-                    case status of
-                        MergeConflict mTree oldHead newHead conflicts ->
-                            conflicts
-                                |> List.map
-                                    (\c ->
-                                        if c.id == cid then
-                                            { c | selection = selection }
-
-                                        else
-                                            c
-                                    )
-                                |> MergeConflict mTree oldHead newHead
-
-                        _ ->
-                            status
+                newData =
+                    Data.conflictSelection cid selection model.data
             in
-            case newStatus of
-                MergeConflict mTree oldHead newHead conflicts ->
-                    case selection of
-                        Manual ->
-                            ( { model
-                                | workingTree = TreeStructure.setTreeWithConflicts conflicts mTree model.workingTree
-                                , status = newStatus
-                              }
-                            , Cmd.none
-                            )
-
-                        _ ->
-                            ( { model
-                                | workingTree = TreeStructure.setTreeWithConflicts conflicts mTree model.workingTree
-                                , status = newStatus
-                              }
-                            , Cmd.none
-                            )
-                                |> cancelCard
-                                |> activate id
-
-                _ ->
-                    ( model
-                    , Cmd.none
-                    )
+            ( { model
+                | data = newData
+                , workingTree = TreeStructure.setTreeWithConflicts (Data.conflictList newData) model.workingTree.tree model.workingTree
+              }
+            , Cmd.none
+            )
 
         Resolve cid ->
-            case status of
-                MergeConflict mTree shaA shaB conflicts ->
-                    ( { model
-                        | status = MergeConflict mTree shaA shaB (conflicts |> List.filter (\c -> c.id /= cid))
-                      }
-                    , Cmd.none
-                    )
-                        |> addToHistory
+            let
+                ( newData, mergeComplete ) =
+                    Data.resolve cid model.data
+            in
+            if mergeComplete then
+                ( { model | data = newData }, Cmd.none )
+                    |> addToHistory
 
-                _ ->
-                    ( model
-                    , Cmd.none
-                    )
+            else
+                ( { model
+                    | data = newData
+                    , workingTree = TreeStructure.setTreeWithConflicts (Data.conflictList newData) model.workingTree.tree model.workingTree
+                  }
+                , Cmd.none
+                )
 
         -- === UI ===
         ToggledTitleEdit isEditingTitle ->
@@ -685,11 +654,11 @@ update msg ({ workingTree, status } as model) =
 
                 DataReceived dataIn ->
                     let
-                        ( newData, newTree, cmd ) =
+                        ( newData, newTree, conflicts ) =
                             Data.received dataIn ( model.data, model.workingTree.tree )
 
                         newWorkingTree =
-                            TreeStructure.setTree newTree model.workingTree
+                            TreeStructure.setTreeWithConflicts conflicts newTree model.workingTree
 
                         startingWordcount =
                             countWords (treeToMarkdownString False newTree)
@@ -704,15 +673,7 @@ update msg ({ workingTree, status } as model) =
                       }
                     , Cmd.batch
                         [ sendOut <| ColumnNumberChange columnNumber
-                        , case cmd of
-                            Data.SendPush ->
-                                sendOut <| Push
-
-                            Data.SendSave ->
-                                sendOut <| SaveData (Data.encode newData)
-
-                            Data.None ->
-                                Cmd.none
+                        , Cmd.none
                         ]
                     )
 
@@ -2168,33 +2129,8 @@ pre, code, .group.has-active .card textarea {
                     )
                 ]
     in
-    case model.status of
-        MergeConflict _ oldHead newHead conflicts ->
-            let
-                bgString =
-                    """
-repeating-linear-gradient(-45deg
-, rgba(255,255,255,0.02)
-, rgba(255,255,255,0.02) 15px
-, rgba(0,0,0,0.025) 15px
-, rgba(0,0,0,0.06) 30px
-)
-          """
-            in
-            div
-                [ id "app-root"
-                , style "background" bgString
-                , style "position" "absolute"
-                , style "width" "100%"
-                , style "height" "100%"
-                ]
-                [ ul [ class "conflicts-list" ]
-                    (List.map (viewConflict SetSelection Resolve) conflicts)
-                , lazy3 treeView model.language model.viewState model.workingTree
-                , styleNode
-                ]
-
-        _ ->
+    case Data.conflictList model.data of
+        [] ->
             if model.viewState.viewMode == FullscreenEditing then
                 div
                     [ id "app-root" ]
@@ -2228,6 +2164,31 @@ repeating-linear-gradient(-45deg
                     , viewVideo VideoModal model
                     , styleNode
                     ]
+
+        conflicts ->
+            let
+                bgString =
+                    """
+repeating-linear-gradient(-45deg
+, rgba(255,255,255,0.02)
+, rgba(255,255,255,0.02) 15px
+, rgba(0,0,0,0.025) 15px
+, rgba(0,0,0,0.06) 30px
+)
+          """
+            in
+            div
+                [ id "app-root"
+                , style "background" bgString
+                , style "position" "absolute"
+                , style "width" "100%"
+                , style "height" "100%"
+                ]
+                [ ul [ class "conflicts-list" ]
+                    (List.map (viewConflict SetSelection Resolve) conflicts)
+                , lazy3 treeView model.language model.viewState model.workingTree
+                , styleNode
+                ]
 
 
 treeView : Language -> ViewState -> TreeStructure.Model -> Html Msg
