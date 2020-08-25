@@ -257,39 +257,6 @@ const update = (msg, data) => {
         toElm("DataSaved", savedRefs);
       }
 
-    , "SaveToDB": async () => {
-        try {
-          const { headRev, metadataRev, lastSavedLocally } = await saveToDB(data[0], data[1], data[2]);
-          docState.revs = {headRev, metadataRev};
-          docState.lastSavedLocally = lastSavedLocally;
-
-          switch(actionOnData) {
-            case ActionOnData.Save:
-              container.sendTo("doc:save");
-              break;
-
-            case ActionOnData.SaveAs:
-              container.sendTo("doc:save-as");
-              actionOnData = ActionOnData.Save;
-              break;
-
-            case ActionOnData.Exit:
-              if (data[1].commits.length == 1 && data[1].commits[0].tree == "38b64ce2726abefc56db43a526ba88269c946751") {
-                // Empty document with blank initial commit
-                // Should close without saving.
-                container.sendTo("doc:save-and-exit", true);
-              } else {
-                container.sendTo("doc:save-and-exit", false);
-              }
-              actionOnData = ActionOnData.Save;
-              break;
-          }
-        } catch (e) {
-          container.showMessageBox(saveErrorAlert(e));
-          return;
-        }
-      }
-
     , "Push": push
 
     , "Pull": pull
@@ -632,32 +599,6 @@ async function returnError(e) {
 
 
 /* === Local Functions === */
-
-async function saveToDB(metadata, status, objects) {
-  const statusDoc = await db.get("status").catch(returnError);
-  if(statusDoc._rev) {
-    status["_rev"] = statusDoc._rev;
-  }
-
-  const lastSavedLocally = Object.values(objects.commits).map(c => c.timestamp).sort().slice(-1)[0];
-
-  // Filter out object that are already saved in database
-  const newCommits = objects.commits.filter( o => !savedObjectIds.includes(o._id));
-  const newTreeObjects = objects.treeObjects.filter( o => !savedObjectIds.includes(o._id));
-
-  const toSave = [metadata, ...newCommits, ...newTreeObjects, ...objects.refs, ...[status]];
-
-  let responses = await db.bulkDocs(toSave);
-  let savedIds = responses.filter(r => r.ok && r.id !== "status" && r.id !== "heads/master" && r.id !== "metadata");
-  savedObjectIds = savedObjectIds.concat(savedIds.map( o => o.id));
-
-  let headRes = responses.filter(r => r.id == "heads/master")[0];
-  let metadataRes = responses.filter(r => r.id == "metadata")[0];
-
-  if (headRes.ok) {
-    return { headRev: headRes.rev, metadataRev : metadataRes.rev, lastSavedLocally };
-  }
-};
 
 
 const saveErrorAlert = (err) => {

@@ -27,7 +27,6 @@ type
     | CommitWithTimestamp
     | NoDataToSave
     | SaveData Enc.Value
-    | SaveToDB ( Enc.Value, Enc.Value, Enc.Value )
     | SaveLocal Tree
     | Push
     | Pull
@@ -142,9 +141,6 @@ sendOut info =
 
         NoDataToSave ->
             dataToSend null
-
-        SaveToDB ( metadataValue, statusValue, objectsValue ) ->
-            dataToSend (list identity [ metadataValue, statusValue, objectsValue ])
 
         SaveLocal tree ->
             dataToSend (treeToValue tree)
