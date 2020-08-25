@@ -420,20 +420,16 @@ update msg ({ workingTree } as model) =
 
         Resolve cid ->
             let
-                ( newData, mergeComplete ) =
+                newData =
                     Data.resolve cid model.data
             in
-            if mergeComplete then
-                ( { model | data = newData }, Cmd.none )
-                    |> addToHistory
-
-            else
-                ( { model
-                    | data = newData
-                    , workingTree = TreeStructure.setTreeWithConflicts (Data.conflictList newData) model.workingTree.tree model.workingTree
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | data = newData
+                , workingTree = TreeStructure.setTreeWithConflicts (Data.conflictList newData) model.workingTree.tree model.workingTree
+              }
+            , Cmd.none
+            )
+                |> addToHistory
 
         -- === UI ===
         ToggledTitleEdit isEditingTitle ->
@@ -2022,7 +2018,11 @@ addToHistoryDo ( { workingTree, currentTime } as model, prevCmd ) =
         newData =
             Data.commitNew "Jane Doe <jane.doe@gmail.com" (currentTime |> Time.posixToMillis) workingTree.tree model.data
     in
-    ( { model | data = newData }, sendOut <| SaveData (Data.encode newData) )
+    if newData /= model.data then
+        ( { model | data = newData }, sendOut <| SaveData (Data.encode newData) )
+
+    else
+        ( model, Cmd.none )
 
 
 addToHistory : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )

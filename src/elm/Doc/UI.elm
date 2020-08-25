@@ -19,8 +19,8 @@ import Translation exposing (Language, TranslationId(..), timeDistInWords, tr)
 import Types exposing (..)
 
 
-viewSaveIndicator : { m | dirty : Bool, lastLocalSave : Maybe Time.Posix, lastRemoteSave : Maybe Time.Posix, currentTime : Time.Posix, language : Translation.Language } -> Html msg
-viewSaveIndicator { dirty, lastLocalSave, lastRemoteSave, currentTime, language } =
+viewSaveIndicator : { m | data : Data.Model, dirty : Bool, lastLocalSave : Maybe Time.Posix, lastRemoteSave : Maybe Time.Posix, currentTime : Time.Posix, language : Translation.Language } -> Html msg
+viewSaveIndicator { data, dirty, lastLocalSave, lastRemoteSave, currentTime, language } =
     let
         lastChangeString =
             timeDistInWords
@@ -56,8 +56,7 @@ viewSaveIndicator { dirty, lastLocalSave, lastRemoteSave, currentTime, language 
             [ id "save-indicator", classList [ ( "inset", True ), ( "saving", dirty ) ] ]
             [ saveStateSpan
             ]
-
-        --, gitgraph objects
+        , gitgraph data
         ]
 
 

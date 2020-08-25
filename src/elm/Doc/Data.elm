@@ -1,4 +1,4 @@
-module Doc.Data exposing (Data, DataCmd(..), Model, checkout, commitNew, conflictList, conflictSelection, empty, encode, head, received, resolve, success)
+module Doc.Data exposing (Data, DataCmd(..), Model, checkout, commitNew, conflictList, conflictSelection, empty, encode, getData, head, received, resolve, success)
 
 import Coders exposing (tupleDecoder)
 import Dict exposing (Dict)
@@ -224,22 +224,18 @@ conflictSelection cid selection model =
             model
 
 
-resolve : String -> Model -> ( Model, Bool )
+resolve : String -> Model -> Model
 resolve cid model =
     case model of
         Clean _ ->
-            ( model, True )
+            model
 
         MergeConflict d confInfo ->
             let
                 newConflicts =
                     List.filter (\c -> c.id /= cid) confInfo.conflicts
             in
-            if List.isEmpty newConflicts then
-                ( Clean d, True )
-
-            else
-                ( MergeConflict d { confInfo | conflicts = newConflicts }, False )
+            MergeConflict d { confInfo | conflicts = newConflicts }
 
 
 
