@@ -607,7 +607,6 @@ self.pull = async () => {
   // Add conflicts to data to be sent.
   if (newHead.hasOwnProperty("_conflicts")) {
     let conflictHead = await db.get("heads/master", {rev: newHead._conflicts[0]});
-    console.error("CONFLICT!", conflictHead);
     toSend.conflict = conflictHead; // TODO: might need to switch local vs remote in conflicts
   }
 

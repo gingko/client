@@ -76,7 +76,6 @@ empty =
 type DataCmd
     = None
     | SendPush
-    | SendSave
 
 
 getData : Model -> Data
@@ -94,11 +93,11 @@ head id model =
     Dict.get id (getData model).refs
 
 
-received : Dec.Value -> ( Model, Tree ) -> ( Model, Tree, List Conflict )
+received : Dec.Value -> ( Model, Tree ) -> ( Model, Tree, DataCmd )
 received json ( oldModel, oldTree ) =
     case Dec.decodeValue decode json of
         Ok ( newData, Nothing ) ->
-            ( Clean newData, checkoutRef "heads/master" newData |> Maybe.withDefault oldTree, [] )
+            ( Clean newData, checkoutRef "heads/master" newData |> Maybe.withDefault oldTree, SendPush )
 
         Ok ( newData, Just ( confId, confHead ) ) ->
             let
@@ -110,17 +109,18 @@ received json ( oldModel, oldTree ) =
             in
             case mergedModel of
                 Clean data ->
-                    ( Clean data, checkoutRef "heads/master" data |> Maybe.withDefault oldTree, [] )
+                    -- TODO : Send msg to resolve conflicts
+                    ( Clean data, checkoutRef "heads/master" data |> Maybe.withDefault oldTree, None )
 
                 MergeConflict data cdata ->
-                    ( MergeConflict data cdata, cdata.mergedTree, cdata.conflicts )
+                    ( MergeConflict data cdata, cdata.mergedTree, None )
 
         Err err ->
             let
                 _ =
                     Debug.log "error" err
             in
-            ( oldModel, oldTree, [] )
+            ( oldModel, oldTree, None )
 
 
 checkoutRef : String -> Data -> Maybe Tree

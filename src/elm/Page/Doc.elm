@@ -396,9 +396,13 @@ update msg ({ workingTree } as model) =
                     )
 
         PullFromRemote ->
-            ( model
-            , sendOut Pull
-            )
+            if List.isEmpty (Data.conflictList model.data) then
+                ( model
+                , sendOut Pull
+                )
+
+            else
+                ( model, Cmd.none )
 
         SetSelection cid selection id ->
             let
@@ -599,15 +603,15 @@ update msg ({ workingTree } as model) =
                         newData =
                             Data.success dataIn model.data
                     in
-                    ( { model | data = newData }, sendOut <| Push )
+                    ( { model | data = newData }, sendOut <| Pull )
 
                 DataReceived dataIn ->
                     let
-                        ( newData, newTree, conflicts ) =
+                        ( newData, newTree, cmd ) =
                             Data.received dataIn ( model.data, model.workingTree.tree )
 
                         newWorkingTree =
-                            TreeStructure.setTreeWithConflicts conflicts newTree model.workingTree
+                            TreeStructure.setTreeWithConflicts (Data.conflictList newData) newTree model.workingTree
 
                         startingWordcount =
                             countWords (treeToMarkdownString False newTree)
@@ -622,7 +626,12 @@ update msg ({ workingTree } as model) =
                       }
                     , Cmd.batch
                         [ sendOut <| ColumnNumberChange columnNumber
-                        , Cmd.none
+                        , case cmd of
+                            Data.SendPush ->
+                                sendOut <| Push
+
+                            Data.None ->
+                                Cmd.none
                         ]
                     )
 
@@ -2577,8 +2586,7 @@ subscriptions model =
     Sub.batch
         [ receiveMsg Port LogErr
         , Time.every (15 * 1000) TimeUpdate
-
-        --, Time.every (10 * 1000) (\_ -> PullFromRemote)
+        , Time.every (2 * 1000) (\_ -> PullFromRemote)
         ]
 
 
