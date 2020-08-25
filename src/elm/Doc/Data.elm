@@ -417,7 +417,11 @@ merge aSha bSha oldTree data =
                     ( mTree, conflicts ) =
                         mergeTreeStructure oTree aTree bTree
                 in
-                MergeConflict data { localHead = aSha, remoteHead = bSha, conflicts = conflicts, mergedTree = mTree }
+                if List.isEmpty conflicts then
+                    Clean data
+
+                else
+                    MergeConflict data { localHead = aSha, remoteHead = bSha, conflicts = conflicts, mergedTree = mTree }
 
             ( Nothing, Just _, Just _ ) ->
                 Debug.todo "failed merge, no common ancestor found."
