@@ -396,13 +396,14 @@ update msg ({ workingTree } as model) =
                     )
 
         PullFromRemote ->
-            if List.isEmpty (Data.conflictList model.data) then
-                ( model
-                , sendOut Pull
-                )
+            case ( vs.viewMode, Data.conflictList model.data ) of
+                ( Normal, [] ) ->
+                    ( model
+                    , sendOut Pull
+                    )
 
-            else
-                ( model, Cmd.none )
+                _ ->
+                    ( model, Cmd.none )
 
         SetSelection cid selection id ->
             let

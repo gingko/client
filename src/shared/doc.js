@@ -235,16 +235,20 @@ const update = (msg, data) => {
         // Store ids of refs, so we can send back updated _rev.
         const refIds = data.refs.map(r => r._id);
 
-        // Keep objects that are not saved in database, or are not remote-only.
+        // Keep objects that are not saved in database.
         const newCommits = data.commits.filter( o => !savedObjectIds.includes(o._id));
         const newTreeObjects = data.treeObjects.filter( o => !savedObjectIds.includes(o._id));
-        const localRefs = data.refs.filter( r => !r._id.startsWith("remotes/") );
-        const toSave = [...newCommits, ...newTreeObjects, ...localRefs];
+
+        // Remove conflicts if head is updated
+        let savedHead = await db.get("heads/master", {conflicts: true}).catch(async e => e);
+        if (savedHead.hasOwnProperty("_conflicts")) {
+          let revToDelete = savedHead._conflicts[0];
+          let delRes = await db.remove("heads/master", revToDelete);
+        }
 
         // Save to database, and add successes to savedObjectIds.
-        console.log("toSave", toSave);
+        const toSave = [...newCommits, ...newTreeObjects, ...data.refs];
         const responses = await db.bulkDocs(toSave);
-        console.log(responses);
         const savedIds = responses.filter(r => r.ok).map(o => o.id);
         savedObjectIds = savedObjectIds.concat(savedIds);
 
