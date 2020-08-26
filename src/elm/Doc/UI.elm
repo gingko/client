@@ -41,7 +41,7 @@ viewSaveIndicator { data, dirty, lastLocalSave, lastRemoteSave, currentTime, lan
                         span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language SavedInternally ]
 
                     ( Just commitTime, Just fileTime ) ->
-                        if posixToMillis commitTime < posixToMillis fileTime then
+                        if posixToMillis commitTime <= posixToMillis fileTime then
                             span [ title (tr language LastEdit ++ " " ++ lastChangeString) ]
                                 [ text <| tr language ChangesSynced ]
 

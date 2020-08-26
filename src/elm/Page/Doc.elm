@@ -600,15 +600,21 @@ update msg ({ workingTree } as model) =
                         newData =
                             Data.success dataIn model.data
                     in
-                    ( { model | data = newData }, sendOut <| Pull )
+                    ( { model
+                        | data = newData
+                        , lastLocalSave = Data.lastCommitTime newData |> Maybe.map Time.millisToPosix |> Debug.log "lastLocalSave"
+                        , dirty = False
+                      }
+                    , sendOut <| Pull
+                    )
 
                 DataReceived dataIn ->
                     let
-                        ( newData, newTree, shouldPush ) =
+                        { newModel, newTree, shouldPush, isSync } =
                             Data.received dataIn ( model.data, model.workingTree.tree )
 
                         newWorkingTree =
-                            TreeStructure.setTreeWithConflicts (Data.conflictList newData) newTree model.workingTree
+                            TreeStructure.setTreeWithConflicts (Data.conflictList newModel) newTree model.workingTree
 
                         startingWordcount =
                             countWords (treeToMarkdownString False newTree)
@@ -617,8 +623,15 @@ update msg ({ workingTree } as model) =
                             newWorkingTree.columns |> List.length |> (\l -> l - 1)
                     in
                     ( { model
-                        | data = newData
+                        | data = newModel
                         , workingTree = newWorkingTree
+                        , lastLocalSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
+                        , lastRemoteSave =
+                            if isSync then
+                                Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
+
+                            else
+                                model.lastRemoteSave
                         , startingWordcount = startingWordcount
                       }
                     , Cmd.batch

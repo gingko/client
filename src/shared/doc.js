@@ -216,7 +216,7 @@ const update = (msg, data) => {
         self.db = new PouchDB(data);
         localStore.db(data);
         setRemoteDB(data);
-        pull();
+        load();
       }
 
     , "CommitWithTimestamp": () => {
@@ -560,6 +560,15 @@ function rowsToElmData(result) {
 }
 
 
+async function load ()  {
+  // Get all local entries in db, and format in object to send to Elm.
+  let result = await db.allDocs({include_docs: true})
+  let toSend = _.groupBy(result.rows.map(r => r.doc), "type");
+  toSend.isSync = false;
+  toElm("DataReceived",toSend);
+}
+
+
 self.pull = async () => {
   // Get local head before replication.
   let localHead = await db.get("heads/master").catch(async (e) => e);
@@ -568,21 +577,24 @@ self.pull = async () => {
   let selector = { "_id": { "$regex": `${TREE_ID}/` } };
   let fetchRes = await db.replicate.from(remoteDB, {selector}).catch(async (e) => e);
 
-  // Get all local entries in db, and format in object to send to Elm.
-  let result = await db.allDocs({include_docs: true})
-  let toSend = _.groupBy(result.rows.map(r => r.doc), "type");
+  if (fetchRes.ok) {
+    // Get all local entries in db, and format in object to send to Elm.
+    let result = await db.allDocs({include_docs: true})
+    let toSend = _.groupBy(result.rows.map(r => r.doc), "type");
+    toSend.isSync = true;
 
-  // Get new head, or possible conflict/branching history.
-  let newHead = await db.get("heads/master", {conflicts: true}).catch(async (e) => e);
+    // Get new head, or possible conflict/branching history.
+    let newHead = await db.get("heads/master", {conflicts: true}).catch(async (e) => e);
 
-  // Add conflicts to data to be sent.
-  if (newHead.hasOwnProperty("_conflicts")) {
-    let conflictHead = await db.get("heads/master", {rev: newHead._conflicts[0]});
-    toSend.conflict = conflictHead; // TODO: might need to switch local vs remote in conflicts
+    // Add conflicts to data to be sent.
+    if (newHead.hasOwnProperty("_conflicts")) {
+      let conflictHead = await db.get("heads/master", {rev: newHead._conflicts[0]});
+      toSend.conflict = conflictHead; // TODO: might need to switch local vs remote in conflicts
+    }
+
+    // Finally, send all objects into Elm repo.
+    toElm("DataReceived",toSend);
   }
-
-  // Finally, send all objects into Elm repo.
-  toElm("DataReceived",toSend);
 }
 
 
@@ -590,7 +602,6 @@ self.push = async () => {
   // TODO: Check remote before pushing?
   let filter = (doc) => { return doc._id !== "remotes/origin/master"; }
   let pushRes = await db.replicate.to(remoteDB, {filter}).catch(async (e) => e);
-  console.log("pushRes", pushRes);
 }
 
 async function returnError(e) {

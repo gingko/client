@@ -1,4 +1,4 @@
-module Doc.Data exposing (Data, Model, checkout, commit, conflictList, conflictSelection, empty, encode, getData, head, received, resolve, success)
+module Doc.Data exposing (Data, Model, checkout, commit, conflictList, conflictSelection, empty, encode, getData, head, lastCommitTime, received, resolve, success)
 
 import Coders exposing (tupleDecoder)
 import Dict exposing (Dict)
@@ -103,17 +103,31 @@ checkout commitSha model =
     checkoutCommit commitSha (getData model)
 
 
+lastCommitTime : Model -> Maybe Int
+lastCommitTime model =
+    (getData model).commits
+        |> Dict.values
+        |> List.map .timestamp
+        |> List.sort
+        |> List.reverse
+        |> List.head
+
+
 
 -- EXPOSED : Functions
 
 
-received : Dec.Value -> ( Model, Tree ) -> ( Model, Tree, Bool )
+received : Dec.Value -> ( Model, Tree ) -> { newModel : Model, newTree : Tree, shouldPush : Bool, isSync : Bool }
 received json ( oldModel, oldTree ) =
     case Dec.decodeValue decode json of
-        Ok ( newData, Nothing ) ->
-            ( Clean newData, checkoutRef "heads/master" newData |> Maybe.withDefault oldTree, True )
+        Ok ( newData, Nothing, isSync ) ->
+            { newModel = Clean newData
+            , newTree = checkoutRef "heads/master" newData |> Maybe.withDefault oldTree
+            , shouldPush = True
+            , isSync = isSync
+            }
 
-        Ok ( newData, Just ( confId, confHead ) ) ->
+        Ok ( newData, Just ( confId, confHead ), isSync ) ->
             let
                 localHead =
                     Dict.get "heads/master" newData.refs |> Maybe.withDefault confHead
@@ -123,17 +137,25 @@ received json ( oldModel, oldTree ) =
             in
             case mergedModel of
                 Clean data ->
-                    ( Clean data, checkoutRef "heads/master" data |> Maybe.withDefault oldTree, False )
+                    { newModel = Clean data
+                    , newTree = checkoutRef "heads/master" data |> Maybe.withDefault oldTree
+                    , shouldPush = False
+                    , isSync = isSync
+                    }
 
                 MergeConflict data cdata ->
-                    ( MergeConflict data cdata, cdata.mergedTree, False )
+                    { newModel = MergeConflict data cdata
+                    , newTree = cdata.mergedTree
+                    , shouldPush = False
+                    , isSync = isSync
+                    }
 
         Err err ->
             let
                 _ =
                     Debug.log "error" err
             in
-            ( oldModel, oldTree, False )
+            { newModel = oldModel, newTree = oldTree, shouldPush = False, isSync = False }
 
 
 success : Dec.Value -> Model -> Model
@@ -652,7 +674,7 @@ getAncestors cm sh =
 -- PORTS & INTEROP
 
 
-decode : Dec.Decoder ( Data, Maybe ( String, RefObject ) )
+decode : Dec.Decoder ( Data, Maybe ( String, RefObject ), Bool )
 decode =
     let
         refObjectDecoder =
@@ -676,14 +698,15 @@ decode =
                 (Dec.field "content" Dec.string)
                 (Dec.field "children" (Dec.list (tupleDecoder Dec.string Dec.string)))
 
-        modelBuilder r c t cflct =
-            ( Data (Dict.fromList r) (Dict.fromList c) (Dict.fromList t), cflct )
+        modelBuilder r c t cflct sync =
+            ( Data (Dict.fromList r) (Dict.fromList c) (Dict.fromList t), cflct, sync )
     in
-    Dec.map4 modelBuilder
+    Dec.map5 modelBuilder
         (Dec.field "ref" (Dec.list refObjectDecoder))
         (Dec.field "commit" (Dec.list commitObjectDecoder))
         (Dec.field "tree" (Dec.list treeObjectDecoder))
         (Dec.maybe (Dec.field "conflict" refObjectDecoder))
+        (Dec.field "isSync" Dec.bool)
 
 
 encode : Model -> Enc.Value
