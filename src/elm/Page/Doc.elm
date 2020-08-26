@@ -668,16 +668,20 @@ update msg ({ workingTree } as model) =
                         Err _ ->
                             ( model, Cmd.none )
 
+                MetadataSynced json ->
+                    case Json.decodeValue Metadata.decoder json of
+                        Ok metadata ->
+                            ( { model | metadata = metadata }, Cmd.none )
+
+                        Err err ->
+                            ( model, Cmd.none )
+
                 MetadataSaved json ->
                     case Json.decodeValue Metadata.decoder json of
                         Ok metadata ->
                             ( { model | isEditingTitle = False, metadata = metadata }, Cmd.none )
 
                         Err err ->
-                            let
-                                _ =
-                                    Debug.log "Error in MetadataSaved" (Json.errorToString err)
-                            in
                             ( model, Cmd.none )
 
                 MetadataSaveError ->

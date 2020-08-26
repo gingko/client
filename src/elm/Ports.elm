@@ -60,12 +60,14 @@ type
     | DataReceived Dec.Value
     | UserStoreLoaded Dec.Value
     | LocalStoreLoaded Dec.Value
-    | MetadataSaved Dec.Value
-    | MetadataSaveError
     | Commit Int
     | GetDataToSave
     | SavedLocally (Maybe Time.Posix)
     | SavedRemotely (Maybe Time.Posix)
+      -- === Metadata ===
+    | MetadataSynced Dec.Value
+    | MetadataSaved Dec.Value
+    | MetadataSaveError
       -- === DOM ===
     | DragStarted String
     | FieldChanged String
@@ -277,6 +279,9 @@ receiveMsg tagger onError =
 
                 "LocalStoreLoaded" ->
                     tagger <| LocalStoreLoaded outsideInfo.data
+
+                "MetadataSynced" ->
+                    tagger <| MetadataSynced outsideInfo.data
 
                 "MetadataSaved" ->
                     tagger <| MetadataSaved outsideInfo.data

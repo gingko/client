@@ -216,7 +216,8 @@ const update = (msg, data) => {
         localStore.db(data);
         setRemoteDB(data);
         loadMetadata();
-        pull(false);
+        pull(false); // load local
+        pull(true); // sync remote
       }
 
     , "CommitWithTimestamp": () => {
@@ -351,7 +352,7 @@ const update = (msg, data) => {
 
       // === UI ===
     , "SaveMetadata": async () => {
-        let saveRes = await db.put(data).catch(returnError);
+        let saveRes = await db.put(data).catch(async e => e);
         if (saveRes.ok) {
           await db.replicate.to(remoteDB, {doc_ids: ["metadata"]});
           data._rev = saveRes.rev;
@@ -498,7 +499,8 @@ async function pull(isSync) {
 
   // Get all local entries in db, and format in object to send to Elm.
   let result = await db.allDocs({include_docs: true})
-  let toSend = _.groupBy(result.rows.map(r => r.doc), "type");
+  let groupFn = r => r.hasOwnProperty("type") ? r.type : r._id;
+  let toSend = _.groupBy(result.rows.map(r => r.doc), groupFn);
 
   // Get new head, or possible conflict/branching history.
   let newHead = await db.get("heads/master", {conflicts: true}).catch(async (e) => e);
@@ -518,17 +520,12 @@ async function pull(isSync) {
   // Finally, send all objects into Elm repo.
   toSend.isSync = isSync;
   toElm("DataReceived",toSend);
+  if (toSend.metadata) { toElm("MetadataSynced", toSend.metadata[0]) }
 }
 
 
 async function push() {
-  // TODO: Check remote before pushing?
-  let filter = (doc) => { return doc._id !== "remotes/origin/master"; }
-  let pushRes = await db.replicate.to(remoteDB, {filter}).catch(async (e) => e);
-}
-
-async function returnError(e) {
-  return e;
+  let pushRes = await db.replicate.to(remoteDB).catch(async (e) => e);
 }
 
 
