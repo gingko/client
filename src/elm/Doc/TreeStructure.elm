@@ -144,6 +144,14 @@ setTreeWithConflicts conflicts originalTree model =
 conflictToMsg : Tree -> Conflict -> Msg
 conflictToMsg tree ({ id, opA, opB, selection, resolved } as conflict) =
     case ( selection, resolved ) of
+        ( Original, False ) ->
+            case ( opA, opB ) of
+                ( Mod tid pars strA orig, Mod _ _ _ _ ) ->
+                    opToMsg tree (Mod tid pars orig strA)
+
+                _ ->
+                    Nope
+
         ( Ours, False ) ->
             opToMsg tree opA
 
