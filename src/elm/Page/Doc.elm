@@ -445,7 +445,7 @@ update msg ({ workingTree } as model) =
 
         TitleEdited ->
             if Just model.titleField /= Metadata.getDocName model.metadata then
-                ( model, sendOut <| SetNewTitle <| Metadata.rename model.titleField model.metadata )
+                ( model, sendOut <| SaveMetadata <| Metadata.rename model.titleField model.metadata )
 
             else
                 ( model, Cmd.none )
@@ -668,7 +668,7 @@ update msg ({ workingTree } as model) =
                         Err _ ->
                             ( model, Cmd.none )
 
-                TitleSaved json ->
+                MetadataSaved json ->
                     case Json.decodeValue Metadata.decoder json of
                         Ok metadata ->
                             ( { model | isEditingTitle = False, metadata = metadata }, Cmd.none )
@@ -680,7 +680,7 @@ update msg ({ workingTree } as model) =
                             in
                             ( model, Cmd.none )
 
-                TitleNotSaved ->
+                MetadataSaveError ->
                     ( { model
                         | isEditingTitle = False
                         , titleField = Metadata.getDocName model.metadata |> Maybe.withDefault ""
@@ -2592,11 +2592,11 @@ port dragstart : Json.Value -> Cmd msg
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.batch
         [ receiveMsg Port LogErr
-        , Time.every (15 * 1000) TimeUpdate
-        , Time.every (2 * 1000) (\_ -> PullFromRemote)
+        , Time.every (9 * 1000) TimeUpdate
+        , Time.every (10 * 1000) (\_ -> PullFromRemote)
         ]
 
 

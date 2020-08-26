@@ -27,7 +27,6 @@ type
     | CommitWithTimestamp
     | NoDataToSave
     | SaveData Enc.Value
-    | SaveLocal Tree
     | Push
     | Pull
       -- === File System ===
@@ -41,7 +40,7 @@ type
     | TextSurround String String
     | SetCursorPosition Int
       -- === UI ===
-    | SetNewTitle Enc.Value
+    | SaveMetadata Enc.Value
     | UpdateCommits ( Enc.Value, Maybe String )
     | SetVideoModal Bool
     | SetFonts Fonts.Settings
@@ -61,8 +60,8 @@ type
     | DataReceived Dec.Value
     | UserStoreLoaded Dec.Value
     | LocalStoreLoaded Dec.Value
-    | TitleSaved Dec.Value
-    | TitleNotSaved
+    | MetadataSaved Dec.Value
+    | MetadataSaveError
     | Commit Int
     | GetDataToSave
     | SavedLocally (Maybe Time.Posix)
@@ -142,9 +141,6 @@ sendOut info =
         NoDataToSave ->
             dataToSend null
 
-        SaveLocal tree ->
-            dataToSend (treeToValue tree)
-
         Push ->
             dataToSend null
 
@@ -220,7 +216,7 @@ sendOut info =
             dataToSend (int pos)
 
         -- === UI ===
-        SetNewTitle metadata ->
+        SaveMetadata metadata ->
             dataToSend metadata
 
         UpdateCommits ( objectsValue, head_ ) ->
@@ -282,8 +278,8 @@ receiveMsg tagger onError =
                 "LocalStoreLoaded" ->
                     tagger <| LocalStoreLoaded outsideInfo.data
 
-                "TitleSaved" ->
-                    tagger <| TitleSaved outsideInfo.data
+                "MetadataSaved" ->
+                    tagger <| MetadataSaved outsideInfo.data
 
                 "Commit" ->
                     case decodeValue Dec.int outsideInfo.data of

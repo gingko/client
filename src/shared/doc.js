@@ -215,6 +215,7 @@ const update = (msg, data) => {
         self.db = new PouchDB(data);
         localStore.db(data);
         setRemoteDB(data);
+        loadMetadata();
         pull(false);
       }
 
@@ -349,15 +350,15 @@ const update = (msg, data) => {
     }
 
       // === UI ===
-    , "SetNewTitle": async () => {
+    , "SaveMetadata": async () => {
         let saveRes = await db.put(data).catch(returnError);
         if (saveRes.ok) {
-          push();
+          await db.replicate.to(remoteDB, {doc_ids: ["metadata"]});
           data._rev = saveRes.rev;
-          toElm("TitleSaved", data);
+          toElm("MetadataSaved", data);
         } else {
           console.error(data, saveRes);
-          toElm("TitleNotSaved", null);
+          toElm("MetadataSaveError", null);
         }
     }
 
@@ -461,44 +462,13 @@ container.msgWas("menu:toggle-support", (event, makeVisible) => {
 
 /* === Database === */
 
-function processData (data, type) {
-  var processed = data.filter(d => d.type === type).map(d => _.omit(d, "type"));
-  var dict = {};
-  if (type == "ref") {
-    processed.map(d => dict[d._id] = _.omit(d, "_id"));
-  } else {
-    processed.map(d => dict[d._id] = _.omit(d, ["_id","_rev"]));
-  }
-  return dict;
-}
-
-
-async function docExists(dbToCheck, docName) {
-  let docId = `${typeof docName == "string" ? (docName + "/") : "" }heads/master`;
-  let head = await dbToCheck.get(docId).catch(returnError);
-  if (head.error) {
-    return false;
-  } else {
-    return true;
-  }
-}
-
-// Load local document data
-async function loadData() {
-  try {
-    let result = await db.allDocs({include_docs: true})
-    let toSend = rowsToElmData(result);
-    toElm("DocumentLoaded", toSend);
-  } catch (err) {
-    container.showMessageBox(errorAlert(tr.loadingError[lang], tr.loadingErrorMsg[lang], err));
-  }
-}
 
 // Load device-specific data (unsynced settings)
 async function loadLocalStore() {
   let store = await localStore.load();
   toElm("LocalStoreLoaded", store);
 }
+
 
 // Load user-specific data (synced settings)
 async function loadUserStore() {
@@ -507,55 +477,12 @@ async function loadUserStore() {
   toElm("UserStoreLoaded", store);
 }
 
-async function merge(local, remote) {
-  let result = await db.allDocs({include_docs: true})
-  let toSend = rowsToElmData(result);
-  toSend.localHead = local;
-  toSend.remoteHead = remote;
-  toElm("Merge", toSend);
-};
 
-
-function getObjects(result) {
-  let data = result.rows.map(r => r.doc);
-  let commits = processData(data, "commit");
-  let treeObjects = processData(data, "tree");
-  return {commits, treeObjects};
-}
-
-
-function rowsToElmData(result) {
-  let data = result.rows.map(r => r.doc);
-
-  let commits = processData(data, "commit");
-  let trees = processData(data, "tree");
-  let refs = processData(data, "ref");
-
-  let metadata;
-  if (data.filter(d => d._id == "metadata").length == 1) {
-    metadata = _.omit(data.filter(d => d._id == "metadata")[0], "_id");
-  } else {
-    metadata = {name: null, _rev: null};
+async function loadMetadata() {
+  let metadata = await db.get("metadata").catch(async e => e);
+  if (!metadata.error) {
+    toElm("MetadataSaved", metadata);
   }
-
-  let status;
-  if (data.filter(d => d._id == "status").length == 1) {
-    status = _.omit(data.filter(d => d._id == "status")[0], ["_id", "_rev"]);
-  } else {
-    status = {name: null, _rev: null};
-  }
-
-  let commitsSorted = Object.entries(commits).sort(function(a,b) { return a[1].timestamp - b[1].timestamp; });
-  let lastCommit = commitsSorted[0];
-
-  let toSend =
-    { metadata: metadata
-    , status : status
-    , objects : { commits: commits, treeObjects: trees, refs: refs }
-    , lastCommitTime : lastCommit[1].timestamp
-    };
-
-  return toSend;
 }
 
 
