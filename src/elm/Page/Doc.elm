@@ -866,30 +866,38 @@ update msg ({ workingTree } as model) =
                             model |> intentCancelCard
 
                         "mod+j" ->
-                            let
-                                ( beforeText, afterText ) =
-                                    model.textCursorInfo.text
-                            in
-                            ( { model | field = beforeText }
-                            , Cmd.none
-                            )
-                                |> saveCardIfEditing
-                                |> insertBelow vs.active afterText
-                                |> setCursorPosition 0
+                            if model.viewState.viewMode == Normal then
+                                insertBelow vs.active "" ( model, Cmd.none )
+
+                            else
+                                let
+                                    ( beforeText, afterText ) =
+                                        model.textCursorInfo.text
+                                in
+                                ( { model | field = beforeText }
+                                , Cmd.none
+                                )
+                                    |> saveCardIfEditing
+                                    |> insertBelow vs.active afterText
+                                    |> setCursorPosition 0
 
                         "mod+down" ->
                             normalMode model (insertBelow vs.active "")
 
                         "mod+k" ->
-                            let
-                                ( beforeText, afterText ) =
-                                    model.textCursorInfo.text
-                            in
-                            ( { model | field = afterText }
-                            , Cmd.none
-                            )
-                                |> saveCardIfEditing
-                                |> insertAbove vs.active beforeText
+                            if model.viewState.viewMode == Normal then
+                                insertAbove vs.active "" ( model, Cmd.none )
+
+                            else
+                                let
+                                    ( beforeText, afterText ) =
+                                        model.textCursorInfo.text
+                                in
+                                ( { model | field = afterText }
+                                , Cmd.none
+                                )
+                                    |> saveCardIfEditing
+                                    |> insertAbove vs.active beforeText
 
                         "mod+up" ->
                             normalMode model (insertAbove vs.active "")
