@@ -604,7 +604,7 @@ update msg ({ workingTree } as model) =
 
                 DataReceived dataIn ->
                     let
-                        ( newData, newTree, cmd ) =
+                        ( newData, newTree, shouldPush ) =
                             Data.received dataIn ( model.data, model.workingTree.tree )
 
                         newWorkingTree =
@@ -623,12 +623,11 @@ update msg ({ workingTree } as model) =
                       }
                     , Cmd.batch
                         [ sendOut <| ColumnNumberChange columnNumber
-                        , case cmd of
-                            Data.SendPush ->
-                                sendOut <| Push
+                        , if shouldPush then
+                            sendOut <| Push
 
-                            Data.None ->
-                                Cmd.none
+                          else
+                            Cmd.none
                         ]
                     )
 
@@ -2016,7 +2015,7 @@ addToHistoryDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 addToHistoryDo ( { workingTree, currentTime } as model, prevCmd ) =
     let
         newData =
-            Data.commitNew "Jane Doe <jane.doe@gmail.com" (currentTime |> Time.posixToMillis) workingTree.tree model.data
+            Data.commit "Jane Doe <jane.doe@gmail.com" (currentTime |> Time.posixToMillis) workingTree.tree model.data
     in
     if newData /= model.data then
         ( { model | data = newData }, sendOut <| SaveData (Data.encode newData) )

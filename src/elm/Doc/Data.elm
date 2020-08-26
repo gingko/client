@@ -1,4 +1,4 @@
-module Doc.Data exposing (Data, DataCmd(..), Model, checkout, commitNew, conflictList, conflictSelection, empty, encode, getData, head, received, resolve, success)
+module Doc.Data exposing (Data, Model, checkout, commit, conflictList, conflictSelection, empty, encode, getData, head, received, resolve, success)
 
 import Coders exposing (tupleDecoder)
 import Dict exposing (Dict)
@@ -70,12 +70,7 @@ empty =
 
 
 
--- EXPOSED FUNCTIONS
-
-
-type DataCmd
-    = None
-    | SendPush
+-- EXPOSED : Getters
 
 
 getData : Model -> Data
@@ -93,11 +88,30 @@ head id model =
     Dict.get id (getData model).refs
 
 
-received : Dec.Value -> ( Model, Tree ) -> ( Model, Tree, DataCmd )
+conflictList : Model -> List Conflict
+conflictList model =
+    case model of
+        Clean _ ->
+            []
+
+        MergeConflict _ { conflicts } ->
+            conflicts
+
+
+checkout : String -> Model -> Maybe Tree
+checkout commitSha model =
+    checkoutCommit commitSha (getData model)
+
+
+
+-- EXPOSED : Functions
+
+
+received : Dec.Value -> ( Model, Tree ) -> ( Model, Tree, Bool )
 received json ( oldModel, oldTree ) =
     case Dec.decodeValue decode json of
         Ok ( newData, Nothing ) ->
-            ( Clean newData, checkoutRef "heads/master" newData |> Maybe.withDefault oldTree, SendPush )
+            ( Clean newData, checkoutRef "heads/master" newData |> Maybe.withDefault oldTree, True )
 
         Ok ( newData, Just ( confId, confHead ) ) ->
             let
@@ -109,25 +123,17 @@ received json ( oldModel, oldTree ) =
             in
             case mergedModel of
                 Clean data ->
-                    -- TODO : Send msg to resolve conflicts
-                    ( Clean data, checkoutRef "heads/master" data |> Maybe.withDefault oldTree, None )
+                    ( Clean data, checkoutRef "heads/master" data |> Maybe.withDefault oldTree, False )
 
                 MergeConflict data cdata ->
-                    ( MergeConflict data cdata, cdata.mergedTree, None )
+                    ( MergeConflict data cdata, cdata.mergedTree, False )
 
         Err err ->
             let
                 _ =
                     Debug.log "error" err
             in
-            ( oldModel, oldTree, None )
-
-
-checkoutRef : String -> Data -> Maybe Tree
-checkoutRef refId data =
-    Dict.get refId data.refs
-        |> andThen (\ro -> Dict.get ro.value data.commits)
-        |> andThen (\co -> treeObjectsToTree data.treeObjects co.tree "0")
+            ( oldModel, oldTree, False )
 
 
 success : Dec.Value -> Model -> Model
@@ -166,8 +172,8 @@ success json model =
             model
 
 
-commitNew : String -> Int -> Tree -> Model -> Model
-commitNew author timestamp tree model =
+commit : String -> Int -> Tree -> Model -> Model
+commit author timestamp tree model =
     case model of
         Clean data ->
             case Dict.get "heads/master" data.refs of
@@ -185,21 +191,6 @@ commitNew author timestamp tree model =
             else
                 -- Unresolved conflicts exist, dont' commit.
                 model
-
-
-checkout : String -> Model -> Maybe Tree
-checkout commitSha model =
-    checkoutCommit commitSha (getData model)
-
-
-conflictList : Model -> List Conflict
-conflictList model =
-    case model of
-        Clean _ ->
-            []
-
-        MergeConflict _ { conflicts } ->
-            conflicts
 
 
 conflictSelection : String -> Selection -> Model -> Model
@@ -240,6 +231,13 @@ resolve cid model =
 
 
 -- INTERNALS
+
+
+checkoutRef : String -> Data -> Maybe Tree
+checkoutRef refId data =
+    Dict.get refId data.refs
+        |> andThen (\ro -> Dict.get ro.value data.commits)
+        |> andThen (\co -> treeObjectsToTree data.treeObjects co.tree "0")
 
 
 commitTree : String -> List String -> Int -> Tree -> Data -> Data
@@ -545,6 +543,10 @@ getOps oldTree newTree =
 getConflicts : List Op -> List Op -> ( List Op, List Conflict )
 getConflicts opsA opsB =
     let
+        conflict opA opB sel =
+            Conflict "" opA opB sel False
+                |> conflictWithSha
+
         liftFn : Op -> Op -> ( List Op, List Conflict )
         liftFn opA opB =
             case ( opA, opB ) of
@@ -724,13 +726,3 @@ encode model =
         , ( "commits", Enc.list commitToValue (Dict.toList data.commits) )
         , ( "treeObjects", Enc.list treeObjectToValue (Dict.toList data.treeObjects) )
         ]
-
-
-
--- HELPERS
-
-
-conflict : Op -> Op -> Selection -> Conflict
-conflict opA opB sel =
-    Conflict "" opA opB sel False
-        |> conflictWithSha
