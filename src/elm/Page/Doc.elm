@@ -115,10 +115,14 @@ defaultModel session docId =
     }
 
 
-init : Session -> String -> ( Model, Cmd Msg )
-init session dbName =
+init : Session -> String -> Bool -> ( Model, Cmd Msg )
+init session dbName isNew =
     ( defaultModel session dbName
-    , sendOut <| LoadDocument dbName
+    , if not isNew then
+        sendOut <| LoadDocument dbName
+
+      else
+        sendOut <| InitDocument dbName
     )
         |> activate "1"
 

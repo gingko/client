@@ -23,6 +23,7 @@ type
     | ConfirmCancelCard String String
     | ColumnNumberChange Int
       -- === Database ===
+    | InitDocument String
     | LoadDocument String
     | CommitWithTimestamp
     | NoDataToSave
@@ -133,6 +134,9 @@ sendOut info =
         -- === Database ===
         SaveData data ->
             dataToSend data
+
+        InitDocument dbName ->
+            dataToSend (string dbName)
 
         LoadDocument dbName ->
             dataToSend (string dbName)

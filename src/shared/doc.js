@@ -210,6 +210,12 @@ const update = (msg, data) => {
       }
 
       // === Database ===
+    , "InitDocument": async () => {
+        self.db = new PouchDB(data);
+        localStore.db(data);
+        setRemoteDB(data);
+        initMetadata(data);
+    }
 
     , "LoadDocument": async () => {
         self.db = new PouchDB(data);
@@ -478,6 +484,11 @@ async function loadUserStore() {
   toElm("UserStoreLoaded", store);
 }
 
+
+async function initMetadata(docId) {
+  let metadata = {_id : "metadata", docId: docId, name: null};
+  await db.put(metadata).catch(async e => e);
+}
 
 async function loadMetadata() {
   let metadata = await db.get("metadata").catch(async e => e);

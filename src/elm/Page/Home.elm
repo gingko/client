@@ -108,4 +108,4 @@ update msg model =
             ( model, RandomId.generate NewDocIdReceived )
 
         NewDocIdReceived docId ->
-            ( model, Route.pushUrl (Session.navKey model.session) (Route.DocUntitled docId) )
+            ( model, Route.pushUrl (Session.navKey model.session) (Route.DocNew docId) )

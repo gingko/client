@@ -68,11 +68,14 @@ changeRouteTo maybeRoute model =
             Just Route.Login ->
                 Page.Login.init session |> updateWith Login GotLoginMsg
 
-            Just (Route.Doc dbName _) ->
-                Page.Doc.init session dbName |> updateWith Doc GotDocMsg
+            Just (Route.DocNew dbName) ->
+                Page.Doc.init session dbName True |> updateWith Doc GotDocMsg
 
             Just (Route.DocUntitled dbName) ->
-                Page.Doc.init session dbName |> updateWith Doc GotDocMsg
+                Page.Doc.init session dbName False |> updateWith Doc GotDocMsg
+
+            Just (Route.Doc dbName _) ->
+                Page.Doc.init session dbName False |> updateWith Doc GotDocMsg
 
             Nothing ->
                 ( NotFound session, Cmd.none )
