@@ -80,7 +80,7 @@ const showMessageBox = (...args) => {
 };
 
 const justLog = (...args) => {
-  console.debug("container", ...args);
+  //console.debug("container", ...args);
 };
 
 export

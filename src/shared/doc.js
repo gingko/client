@@ -172,7 +172,6 @@ container.msgWas("main:database-open", async () => {
 
 
 function toElm (tag, data) {
-  console.debug("toElm", tag, data);
   gingko.ports.infoForElm.send({tag: tag, data: data});
 }
 

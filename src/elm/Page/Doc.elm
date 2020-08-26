@@ -618,9 +618,6 @@ update msg ({ workingTree } as model) =
 
                         startingWordcount =
                             countWords (treeToMarkdownString False newTree)
-
-                        columnNumber =
-                            newWorkingTree.columns |> List.length |> (\l -> l - 1)
                     in
                     ( { model
                         | data = newModel
@@ -635,14 +632,14 @@ update msg ({ workingTree } as model) =
                         , startingWordcount = startingWordcount
                       }
                     , Cmd.batch
-                        [ sendOut <| ColumnNumberChange columnNumber
-                        , if shouldPush then
+                        [ if shouldPush then
                             sendOut <| Push
 
                           else
                             Cmd.none
                         ]
                     )
+                        |> maybeColumnsChanged model.workingTree.columns
 
                 UserStoreLoaded dataIn ->
                     let
