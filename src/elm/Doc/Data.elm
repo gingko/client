@@ -3,6 +3,7 @@ module Doc.Data exposing (Data, Model, checkout, commit, conflictList, conflictS
 import Coders exposing (tupleDecoder)
 import Dict exposing (Dict)
 import Diff3 exposing (diff3Merge)
+import Doc.Data.Conflict exposing (Conflict, Op(..), Selection(..))
 import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.TreeStructure exposing (apply, defaultTree, opToMsg)
 import Doc.TreeUtils exposing (sha1)
@@ -12,7 +13,7 @@ import List.Extra as ListExtra
 import Maybe exposing (andThen)
 import Time
 import Tuple exposing (second)
-import Types exposing (..)
+import Types exposing (Children(..), Tree)
 
 
 

@@ -6,6 +6,7 @@ import Dict
 import Diff exposing (..)
 import Doc.CustomElements exposing (gitgraph)
 import Doc.Data as Data
+import Doc.Data.Conflict as Conflict exposing (Conflict, Op(..), Selection(..))
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Html exposing (Html, a, button, del, div, fieldset, h1, iframe, input, ins, label, li, span, text, ul)
@@ -16,7 +17,7 @@ import Octicons as Icon exposing (defaultOptions)
 import Regex exposing (Regex, replace)
 import Time exposing (posixToMillis)
 import Translation exposing (Language, TranslationId(..), timeDistInWords, tr)
-import Types exposing (..)
+import Types exposing (Children(..), CursorPosition(..), TextCursorInfo, ViewMode(..), ViewState)
 
 
 viewSaveIndicator : { m | data : Data.Model, dirty : Bool, lastLocalSave : Maybe Time.Posix, lastRemoteSave : Maybe Time.Posix, currentTime : Time.Posix, language : Translation.Language } -> Html msg
@@ -513,10 +514,10 @@ viewConflict setSelectionMsg resolveMsg { id, opA, opB, selection, resolved } =
             in
             newConflictView idA [] []
 
-        ( Types.Ins idA _ _ _, Del idB _ ) ->
+        ( Conflict.Ins idA _ _ _, Del idB _ ) ->
             withoutManual idA idB
 
-        ( Del idA _, Types.Ins idB _ _ _ ) ->
+        ( Del idA _, Conflict.Ins idB _ _ _ ) ->
             withoutManual idA idB
 
         _ ->

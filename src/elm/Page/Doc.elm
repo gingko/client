@@ -5,6 +5,7 @@ import Coders exposing (treeToMarkdownString)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
 import Dict
 import Doc.Data as Data
+import Doc.Data.Conflict exposing (Selection)
 import Doc.Fonts as Fonts
 import Doc.Fullscreen as Fullscreen
 import Doc.Metadata as Metadata exposing (Metadata)

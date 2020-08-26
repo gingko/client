@@ -1,4 +1,4 @@
-module Types exposing (Children(..), CollabState, Column, Conflict, CursorPosition(..), DropId(..), Group, Mode(..), Op(..), Selection(..), TextCursorInfo, Tree, ViewMode(..), ViewState, VisibleViewState)
+module Types exposing (Children(..), CollabState, Column, CursorPosition(..), DropId(..), Group, Mode(..), TextCursorInfo, Tree, ViewMode(..), ViewState, VisibleViewState)
 
 import Html5.DragDrop as DragDrop
 import Translation
@@ -89,34 +89,3 @@ type CursorPosition
     | End
     | Empty
     | Other
-
-
-
--- Conflict Resolution
-
-
-type Selection
-    = Original
-    | Ours
-    | Theirs
-    | Manual
-
-
-type alias Conflict =
-    { id : String
-    , opA : Op
-    , opB : Op
-    , selection : Selection
-    , resolved : Bool
-    }
-
-
-
--- Operations ( ? )
-
-
-type Op
-    = Ins String String (List String) Int
-    | Mod String (List String) String String
-    | Del String (List String)
-    | Mov String (List String) Int (List String) Int

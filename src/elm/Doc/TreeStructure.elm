@@ -2,13 +2,14 @@ module Doc.TreeStructure exposing (Model, Msg(..), apply, conflictToMsg, default
 
 import Diff exposing (..)
 import Diff3 exposing (diff3Merge)
+import Doc.Data.Conflict as Conflict exposing (Conflict, Op(..), Selection(..))
 import Doc.TreeUtils exposing (getChildren, getColumns, getParent, getTree, sha1)
 import List.Extra as ListExtra
 import Markdown
 import Regex
 import Translation exposing (Language, TranslationId(..), tr)
 import Tuple exposing (first, second)
-import Types exposing (..)
+import Types exposing (Children(..), Column, Tree)
 
 
 
@@ -255,7 +256,7 @@ opToMsg origTree op =
         Del tid _ ->
             Rmv tid
 
-        Types.Ins id str pids idx ->
+        Conflict.Ins id str pids idx ->
             case ListExtra.last pids of
                 Just pid ->
                     Ins id str pid idx
@@ -263,7 +264,7 @@ opToMsg origTree op =
                 Nothing ->
                     Nope
 
-        Types.Mov tid opids oidx npids nidx ->
+        Conflict.Mov tid opids oidx npids nidx ->
             case ( getTree tid origTree, ListExtra.last npids ) of
                 ( Just tree, Just pid ) ->
                     Mov tree pid nidx
