@@ -3,7 +3,6 @@ port module Page.Doc exposing (Model, Msg, init, subscriptions, toSession, updat
 import Browser.Dom
 import Coders exposing (treeToMarkdownString)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
-import Dict
 import Doc.Data as Data
 import Doc.Data.Conflict exposing (Selection)
 import Doc.Fonts as Fonts
@@ -29,7 +28,7 @@ import Task
 import Time
 import Translation exposing (..)
 import Tuple exposing (first, second)
-import Types exposing (..)
+import Types exposing (Children(..), CollabState, Column, CursorPosition(..), DropId(..), Group, Mode(..), TextCursorInfo, Tree, ViewMode(..), ViewState, VisibleViewState)
 
 
 
