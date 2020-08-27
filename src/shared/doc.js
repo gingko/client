@@ -30,6 +30,7 @@ var helpVisible;
 var helpWidgetLauncher;
 
 var remoteDB;
+var remoteDBnoTransform;
 var gingko;
 var TREE_ID;
 var savedObjectIds = [];
@@ -134,7 +135,7 @@ container.msgWas("set-doc-state", (e, data) => {
 
 function setUserDb(email) {
   console.log("Inside setUserDb", email, helpers.toHex(email));
-  var userDb = `${config.COUCHDB_SERVER}/userdb-`+ helpers.toHex(email);
+  let userDb = `${config.COUCHDB_SERVER}/userdb-`+ helpers.toHex(email);
   userStore.db(email, userDb);
   var remoteOpts =
     { skip_setup: true
@@ -143,6 +144,7 @@ function setUserDb(email) {
       }
     };
   remoteDB = new PouchDB(userDb, remoteOpts);
+  remoteDBnoTransform = new PouchDB(userDb, remoteOpts);
 };
 
 function setRemoteDB(treeId) {
@@ -225,6 +227,17 @@ const update = (msg, data) => {
         pull(false); // load local
         pull(true); // sync remote
       }
+
+    , "RequestDelete": async () => {
+      if(confirm("Are you sure you want to delete this document?")) {
+        let docsFetch = await remoteDBnoTransform.allDocs({startkey: data+"/", endkey: data+"/\ufff0"});
+        let docsToDelete = docsFetch.rows.map(r => {return {_id : r.id, _rev: r.value.rev, _deleted: true}});
+        let deleteResponse = await remoteDBnoTransform.bulkDocs(docsToDelete);
+        let localDBToDelete = new PouchDB(data);
+        await localDBToDelete.destroy();
+        toElm("DocListChanged", null);
+      }
+    }
 
     , "CommitWithTimestamp": () => {
         toElm("Commit", Date.now());
@@ -389,7 +402,7 @@ const update = (msg, data) => {
       }
 
     , "ConsoleLogRequested": () =>
-        console.log(data)
+        console.error(data)
 
     };
 

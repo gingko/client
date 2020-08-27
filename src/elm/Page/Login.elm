@@ -1,6 +1,5 @@
 module Page.Login exposing (Model, Msg, init, subscriptions, toSession, update, view)
 
-import Browser.Navigation as Nav
 import Html exposing (..)
 import Html.Attributes exposing (href, placeholder, value)
 import Html.Events exposing (onInput, onSubmit)
@@ -8,6 +7,7 @@ import Http
 import Json.Decode as Dec
 import Json.Encode as Enc
 import Result exposing (Result)
+import Route
 import Session exposing (Session)
 
 
@@ -83,7 +83,7 @@ update msg model =
             ( model, Cmd.none )
 
         GotSession session ->
-            ( { model | session = session }, Nav.replaceUrl (Session.navKey session) "/" )
+            ( { model | session = session }, Route.pushUrl (Session.navKey session) Route.Home )
 
 
 

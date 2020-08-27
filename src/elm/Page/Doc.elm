@@ -11,8 +11,8 @@ import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Doc.UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
-import Html exposing (Html, button, div, h1, input, node, span, text, textarea, ul)
-import Html.Attributes exposing (class, classList, dir, id, style, title, value)
+import Html exposing (Html, a, button, div, h1, input, node, span, text, textarea, ul)
+import Html.Attributes exposing (class, classList, dir, href, id, style, title, value)
 import Html.Events exposing (onClick, onDoubleClick, onInput)
 import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy2, lazy3)
@@ -23,6 +23,7 @@ import Markdown
 import Ports exposing (ExportFormat(..), ExportSelection(..), IncomingMsg(..), OutgoingMsg(..), receiveMsg, sendOut)
 import Random
 import Regex
+import Route
 import Session exposing (Session)
 import Task
 import Time
@@ -122,7 +123,10 @@ init session dbName isNew =
         sendOut <| LoadDocument dbName
 
       else
-        sendOut <| InitDocument dbName
+        Cmd.batch
+            [ sendOut <| InitDocument dbName
+            , Route.replaceUrl (Session.navKey session) (Route.DocUntitled dbName)
+            ]
     )
         |> activate "1"
 
@@ -1145,6 +1149,10 @@ update msg ({ workingTree } as model) =
                     , Cmd.none
                     )
 
+                -- === UNUSED ===
+                DocListChanged ->
+                    ( model, Cmd.none )
+
         LogErr err ->
             ( model
             , sendOut (ConsoleLogRequested err)
@@ -2141,6 +2149,7 @@ pre, code, .group.has-active .card textarea {
                             text ""
                     , viewVideo VideoModal model
                     , styleNode
+                    , a [ style "z-index" "9999999999", href "/" ] [ text "home" ]
                     ]
 
         conflicts ->

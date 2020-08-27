@@ -58,26 +58,32 @@ changeRouteTo maybeRoute model =
             toSession model
     in
     if Session.loggedIn session then
-        case maybeRoute of
-            Just Route.Home ->
+        case ( model, maybeRoute ) of
+            ( _, Just Route.Home ) ->
                 Page.Home.init session |> updateWith Home GotHomeMsg
 
-            Just Route.Signup ->
+            ( _, Just Route.Signup ) ->
                 Page.Signup.init session |> updateWith Signup GotSignupMsg
 
-            Just Route.Login ->
+            ( _, Just Route.Login ) ->
                 Page.Login.init session |> updateWith Login GotLoginMsg
 
-            Just (Route.DocNew dbName) ->
+            ( Home _, Just (Route.DocNew dbName) ) ->
                 Page.Doc.init session dbName True |> updateWith Doc GotDocMsg
 
-            Just (Route.DocUntitled dbName) ->
+            ( _, Just (Route.DocNew _) ) ->
+                ( model, Cmd.none )
+
+            ( Doc _, Just (Route.DocUntitled _) ) ->
+                ( model, Cmd.none )
+
+            ( _, Just (Route.DocUntitled dbName) ) ->
                 Page.Doc.init session dbName False |> updateWith Doc GotDocMsg
 
-            Just (Route.Doc dbName _) ->
+            ( _, Just (Route.Doc dbName _) ) ->
                 Page.Doc.init session dbName False |> updateWith Doc GotDocMsg
 
-            Nothing ->
+            ( _, Nothing ) ->
                 ( NotFound session, Cmd.none )
 
     else
@@ -98,7 +104,7 @@ changeRouteTo maybeRoute model =
                 ( loginModel, loginCmds )
 
             _ ->
-                ( loginModel, Cmd.batch [ loginCmds, Nav.replaceUrl (Session.navKey session) "/login" ] )
+                ( loginModel, Cmd.batch [ loginCmds, Route.replaceUrl (Session.navKey session) Route.Login ] )
 
 
 toSession : Model -> Session
@@ -222,8 +228,8 @@ subscriptions model =
         Login pageModel ->
             Sub.map GotLoginMsg (Page.Login.subscriptions pageModel)
 
-        Home _ ->
-            Sub.none
+        Home pageModel ->
+            Sub.map GotHomeMsg (Page.Home.subscriptions pageModel)
 
         Doc pageModel ->
             Sub.map GotDocMsg (Page.Doc.subscriptions pageModel)

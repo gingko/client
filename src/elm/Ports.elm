@@ -25,6 +25,7 @@ type
       -- === Database ===
     | InitDocument String
     | LoadDocument String
+    | RequestDelete String
     | CommitWithTimestamp
     | NoDataToSave
     | SaveData Enc.Value
@@ -65,6 +66,7 @@ type
     | GetDataToSave
     | SavedLocally (Maybe Time.Posix)
     | SavedRemotely (Maybe Time.Posix)
+    | DocListChanged
       -- === Metadata ===
     | MetadataSynced Dec.Value
     | MetadataSaved Dec.Value
@@ -139,6 +141,9 @@ sendOut info =
             dataToSend (string dbName)
 
         LoadDocument dbName ->
+            dataToSend (string dbName)
+
+        RequestDelete dbName ->
             dataToSend (string dbName)
 
         CommitWithTimestamp ->
@@ -316,6 +321,9 @@ receiveMsg tagger onError =
 
                         Err e ->
                             onError (errorToString e)
+
+                "DocListChanged" ->
+                    tagger <| DocListChanged
 
                 -- === DOM ===
                 "DragStarted" ->

@@ -1,4 +1,4 @@
-module Page.Home exposing (Model, Msg, init, toSession, update, view)
+module Page.Home exposing (Model, Msg, init, subscriptions, toSession, update, view)
 
 import Doc.Metadata as Metadata exposing (Metadata)
 import Html exposing (Html, a, button, div, h1, li, text, ul)
@@ -6,6 +6,7 @@ import Html.Attributes exposing (href)
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Dec
+import Ports exposing (IncomingMsg(..), OutgoingMsg(..), receiveMsg, sendOut)
 import RandomId
 import Route
 import Session exposing (Session)
@@ -25,29 +26,9 @@ type alias Model =
 
 init : Session -> ( Model, Cmd Msg )
 init session =
-    case Session.userDb session of
-        Nothing ->
-            ( { documents = [], language = langFromString "en", session = session }, Cmd.none )
-
-        Just userDb ->
-            let
-                rowDecoder =
-                    Dec.field "value" Metadata.decoder
-
-                responseDecoder =
-                    Dec.field "rows" (Dec.list rowDecoder)
-            in
-            ( { documents = [], language = langFromString "en", session = session }
-            , Http.riskyRequest
-                { url = "/db/" ++ userDb ++ "/_design/testDocList/_view/docList"
-                , method = "GET"
-                , body = Http.emptyBody
-                , expect = Http.expectJson ReceivedDocuments responseDecoder
-                , headers = []
-                , timeout = Nothing
-                , tracker = Nothing
-                }
-            )
+    ( { documents = [], language = langFromString "en", session = session }
+    , getDocumentList session
+    )
 
 
 toSession : Model -> Session
@@ -77,7 +58,7 @@ viewDocEntry metadata =
         docName =
             Metadata.getDocName metadata |> Maybe.withDefault "Untitled"
     in
-    li [] [ a [ href <| "/" ++ docId ] [ text docName ] ]
+    li [] [ a [ href <| "/" ++ docId ] [ text docName ], button [ onClick <| DeleteDoc docId ] [ text "X" ] ]
 
 
 
@@ -88,6 +69,9 @@ type Msg
     = ReceivedDocuments (Result Http.Error (List Metadata))
     | GetNewDocId
     | NewDocIdReceived String
+    | DeleteDoc String
+    | Port IncomingMsg
+    | LogErr String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -108,4 +92,54 @@ update msg model =
             ( model, RandomId.generate NewDocIdReceived )
 
         NewDocIdReceived docId ->
-            ( model, Route.pushUrl (Session.navKey model.session) (Route.DocNew docId) )
+            ( model, Route.replaceUrl (Session.navKey model.session) (Route.DocNew docId) )
+
+        DeleteDoc docId ->
+            ( model, sendOut <| RequestDelete docId )
+
+        Port incomingMsg ->
+            case incomingMsg of
+                DocListChanged ->
+                    ( model, getDocumentList model.session )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        LogErr err ->
+            ( model
+            , sendOut (ConsoleLogRequested err)
+            )
+
+
+getDocumentList : Session -> Cmd Msg
+getDocumentList session =
+    let
+        rowDecoder =
+            Dec.field "value" Metadata.decoder
+
+        responseDecoder =
+            Dec.field "rows" (Dec.list rowDecoder)
+    in
+    case Session.userDb session of
+        Just userDb ->
+            Http.riskyRequest
+                { url = "/db/" ++ userDb ++ "/_design/testDocList/_view/docList"
+                , method = "GET"
+                , body = Http.emptyBody
+                , expect = Http.expectJson ReceivedDocuments responseDecoder
+                , headers = []
+                , timeout = Nothing
+                , tracker = Nothing
+                }
+
+        Nothing ->
+            Cmd.none
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    receiveMsg Port LogErr
