@@ -1,6 +1,26 @@
-module RandomId exposing (generate, intToValidChar)
+module RandomId exposing (fromObjectId, generate)
 
 import Random
+
+
+generate : (String -> msg) -> Cmd msg
+generate msgTag =
+    Random.generate msgTag stringGenerator
+
+
+fromObjectId : String -> String
+fromObjectId objId =
+    objId
+        |> String.slice 8 17
+        |> String.toList
+        |> List.map Char.toCode
+        |> List.map (modBy 62)
+        |> List.map intToValidChar
+        |> String.fromList
+
+
+
+-- INTERNAL
 
 
 stringGenerator : Random.Generator String
@@ -9,11 +29,6 @@ stringGenerator =
         |> Random.map intToValidChar
         |> Random.list 5
         |> Random.map String.fromList
-
-
-generate : (String -> msg) -> Cmd msg
-generate msgTag =
-    Random.generate msgTag stringGenerator
 
 
 intToValidChar : Int -> Char
