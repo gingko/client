@@ -14,7 +14,11 @@ import Types exposing (Children(..), Tree)
 
 
 type alias TreeEntries =
-    Dict String String
+    Dict String TreeMetadata
+
+
+type alias TreeMetadata =
+    { name : String }
 
 
 type alias CardEntries =
@@ -29,7 +33,7 @@ type alias CardData =
     }
 
 
-decoder : String -> Decoder (List ( String, Data ))
+decoder : String -> Decoder (List ( String, TreeMetadata, Data ))
 decoder author =
     Dec.map2 importTrees
         decodeTreeEntries
@@ -37,19 +41,26 @@ decoder author =
         |> Dec.map (toData author)
 
 
-encode : List ( String, Data ) -> Enc.Value
+encode : List ( String, TreeMetadata, Data ) -> Enc.Value
 encode dataList =
     dataList
-        |> Enc.list (\( tid, tdata ) -> Enc.object [ ( "treeId", Enc.string tid ), ( "data", Data.encodeData tdata ) ])
+        |> Enc.list
+            (\( tid, tmdata, tdata ) ->
+                Enc.object
+                    [ ( "id", Enc.string tid )
+                    , ( "name", Enc.string tmdata.name )
+                    , ( "data", Data.encodeData tdata )
+                    ]
+            )
 
 
 
 -- ===== INTERNAL =====
 
 
-decodeTreeEntries : Decoder (Dict String String)
+decodeTreeEntries : Decoder (Dict String TreeMetadata)
 decodeTreeEntries =
-    (Dec.succeed (\id name -> ( fromObjectId id, name ))
+    (Dec.succeed (\id name -> ( fromObjectId id, { name = name } ))
         |> required "_id" Dec.string
         |> required "name" Dec.string
     )
@@ -87,20 +98,20 @@ decodeCardEntries =
 -- Functions
 
 
-importTrees : TreeEntries -> CardEntries -> List ( String, Tree )
+importTrees : TreeEntries -> CardEntries -> List ( String, TreeMetadata, Tree )
 importTrees trees cards =
     trees
         |> Dict.toList
         |> List.map (importTree cards)
 
 
-importTree : CardEntries -> ( String, String ) -> ( String, Tree )
-importTree cards ( treeId, treeName ) =
+importTree : CardEntries -> ( String, TreeMetadata ) -> ( String, TreeMetadata, Tree )
+importTree cards ( treeId, treeMeta ) =
     let
         cardsInTree =
             Dict.filter (\_ card -> card.treeId == treeId) cards
     in
-    ( treeId, Tree treeId "" (getChildren Nothing cardsInTree) )
+    ( treeId, treeMeta, Tree treeId "" (getChildren Nothing cardsInTree) )
 
 
 getChildren : Maybe String -> CardEntries -> Children
@@ -116,7 +127,7 @@ getChildren parentId_ cards =
         |> Children
 
 
-toData : String -> List ( String, Tree ) -> List ( String, Data )
+toData : String -> List ( String, TreeMetadata, Tree ) -> List ( String, TreeMetadata, Data )
 toData author trees =
     trees
-        |> List.map (\( tid, tree ) -> ( tid, Data.commitTree author [] 0 tree Data.emptyData ))
+        |> List.map (\( tid, tmdata, tree ) -> ( tid, tmdata, Data.commitTree author [] 0 tree Data.emptyData ))

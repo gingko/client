@@ -273,8 +273,19 @@ const update = (msg, data) => {
         toElm("DataSaved", savedRefs);
       }
 
-    , "SaveImportedData": async () => {
-        console.log("Import: ", data)
+    , "SaveImportedData": () => {
+       // data is array of {id: String, name: String, data: { ... }}
+        data.forEach(async doc => {
+          let treeDb = new PouchDB(doc.id);
+          let metadata = {_id: "metadata", docId : doc.id, name : doc.name };
+          let dataRows = [...doc.data.commits, ...doc.data.treeObjects, ...doc.data.refs, metadata];
+          let toSave = dataRows.map(r => {
+            r._id = doc.id + "/" + r._id;
+            return _.omit(r, "_rev");
+          });
+          await remoteDBnoTransform.bulkDocs(toSave);
+        });
+        toElm("DocListChanged", null);
     }
 
     , "Push": push
