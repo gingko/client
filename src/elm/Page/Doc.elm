@@ -744,15 +744,6 @@ update msg ({ workingTree } as model) =
                     , Cmd.none
                     )
 
-                -- === Legacy Import ===
-                ImportAll list ->
-                    case list of
-                        ( _, aTree ) :: _ ->
-                            ( { model | workingTree = TreeStructure.setTree aTree model.workingTree }, Cmd.none )
-
-                        [] ->
-                            ( model, Cmd.none )
-
                 -- === DOM ===
                 DragStarted dragId ->
                     let

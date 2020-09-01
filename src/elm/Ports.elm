@@ -66,8 +66,6 @@ type
     | SavedLocally (Maybe Time.Posix)
     | SavedRemotely (Maybe Time.Posix)
     | DocListChanged
-      -- === Legacy Import ===
-    | ImportAll (List ( String, Tree ))
       -- === Metadata ===
     | MetadataSynced Dec.Value
     | MetadataSaved Dec.Value
@@ -314,10 +312,6 @@ receiveMsg tagger onError =
 
                 "DocListChanged" ->
                     tagger <| DocListChanged
-
-                -- === Legacy Import ===
-                "ImportAll" ->
-                    tagger <| ImportAll (Import.decode outsideInfo.data)
 
                 -- === DOM ===
                 "DragStarted" ->

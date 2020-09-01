@@ -42,44 +42,15 @@ decode json =
     in
     case ( decodedTrees, decodedCardEntries ) of
         ( Ok treeDict, Ok cardDict ) ->
-            let
-                _ =
-                    Debug.log "treeDict" treeDict
-
-                _ =
-                    Debug.log "cardDict" cardDict
-            in
             importTrees treeDict cardDict
-                |> Debug.log "imported trees"
 
         ( Err treeErr, Ok cardDict ) ->
-            let
-                _ =
-                    Debug.log "treeErr" treeErr
-
-                _ =
-                    Debug.log "cardDict" cardDict
-            in
             []
 
         ( Ok treeDict, Err cardErr ) ->
-            let
-                _ =
-                    Debug.log "treeDict" treeDict
-
-                _ =
-                    Debug.log "cardErr" cardErr
-            in
             []
 
         ( Err treeErr, Err cardErr ) ->
-            let
-                _ =
-                    Debug.log "treeErr" treeErr
-
-                _ =
-                    Debug.log "cardErr" cardErr
-            in
             []
 
 
