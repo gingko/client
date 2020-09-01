@@ -30,17 +30,17 @@ type alias CardData =
     }
 
 
-decoder : String -> Decoder (List ( String, Metadata, Data ))
-decoder author =
+decoder : Decoder (List ( String, Metadata, Tree ))
+decoder =
     Dec.map2 importTrees
         decodeTreeEntries
         decodeCardEntries
-        |> Dec.map (toData author)
 
 
-encode : List ( String, Metadata, Data ) -> Enc.Value
-encode dataList =
+encode : String -> List ( String, Metadata, Tree ) -> Enc.Value
+encode author dataList =
     dataList
+        |> List.map (toData author)
         |> Enc.list
             (\( tid, mdata, tdata ) ->
                 Enc.object
@@ -126,7 +126,6 @@ getChildren parentId_ cards =
         |> Children
 
 
-toData : String -> List ( String, Metadata, Tree ) -> List ( String, Metadata, Data )
-toData author trees =
-    trees
-        |> List.map (\( tid, tmdata, tree ) -> ( tid, tmdata, Data.commitTree author [] 0 tree Data.emptyData ))
+toData : String -> ( String, Metadata, Tree ) -> ( String, Metadata, Data )
+toData author ( tid, tmdata, tree ) =
+    ( tid, tmdata, Data.commitTree author [] 0 tree Data.emptyData )
