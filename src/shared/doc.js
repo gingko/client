@@ -274,11 +274,9 @@ const update = (msg, data) => {
       }
 
     , "SaveImportedData": () => {
-       // data is array of {id: String, name: String, data: { ... }}
         data.forEach(async doc => {
           let treeDb = new PouchDB(doc.id);
-          let metadata = {_id: "metadata", docId : doc.id, name : doc.name };
-          let dataRows = [...doc.data.commits, ...doc.data.treeObjects, ...doc.data.refs, metadata];
+          let dataRows = [...doc.data.commits, ...doc.data.treeObjects, ...doc.data.refs, doc.metadata];
           let toSave = dataRows.map(r => {
             r._id = doc.id + "/" + r._id;
             return _.omit(r, "_rev");
@@ -510,7 +508,8 @@ async function loadUserStore() {
 
 
 async function initMetadata(docId) {
-  let metadata = {_id : "metadata", docId: docId, name: null};
+  const now = Date.now();
+  let metadata = {_id : "metadata", docId: docId, name: null, createdAt: now, updatedAt: now};
   await db.put(metadata).catch(async e => e);
 }
 

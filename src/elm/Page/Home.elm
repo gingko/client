@@ -14,6 +14,7 @@ import RandomId
 import Route
 import Session exposing (Session)
 import Task
+import Time
 import Translation exposing (langFromString)
 
 
@@ -61,7 +62,13 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ReceivedDocuments (Ok docList) ->
-            ( { model | documents = docList }, Cmd.none )
+            let
+                sortedList =
+                    docList
+                        |> List.sortBy (Time.posixToMillis << Metadata.getUpdatedAt)
+                        |> List.reverse
+            in
+            ( { model | documents = sortedList }, Cmd.none )
 
         ReceivedDocuments (Err err) ->
             case err of

@@ -2,6 +2,7 @@ module Import exposing (decoder, encode)
 
 import Dict exposing (Dict)
 import Doc.Data as Data exposing (Data)
+import Doc.Metadata as Metadata exposing (Metadata)
 import Json.Decode as Dec exposing (Decoder)
 import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as Enc
@@ -14,11 +15,7 @@ import Types exposing (Children(..), Tree)
 
 
 type alias TreeEntries =
-    Dict String TreeMetadata
-
-
-type alias TreeMetadata =
-    { name : String }
+    Dict String Metadata
 
 
 type alias CardEntries =
@@ -33,7 +30,7 @@ type alias CardData =
     }
 
 
-decoder : String -> Decoder (List ( String, TreeMetadata, Data ))
+decoder : String -> Decoder (List ( String, Metadata, Data ))
 decoder author =
     Dec.map2 importTrees
         decodeTreeEntries
@@ -41,14 +38,14 @@ decoder author =
         |> Dec.map (toData author)
 
 
-encode : List ( String, TreeMetadata, Data ) -> Enc.Value
+encode : List ( String, Metadata, Data ) -> Enc.Value
 encode dataList =
     dataList
         |> Enc.list
-            (\( tid, tmdata, tdata ) ->
+            (\( tid, mdata, tdata ) ->
                 Enc.object
                     [ ( "id", Enc.string tid )
-                    , ( "name", Enc.string tmdata.name )
+                    , ( "metadata", Metadata.encode mdata )
                     , ( "data", Data.encodeData tdata )
                     ]
             )
@@ -58,13 +55,15 @@ encode dataList =
 -- ===== INTERNAL =====
 
 
-decodeTreeEntries : Decoder (Dict String TreeMetadata)
+decodeTreeEntries : Decoder (Dict String Metadata)
 decodeTreeEntries =
-    (Dec.succeed (\id name -> ( fromObjectId id, { name = name } ))
-        |> required "_id" Dec.string
-        |> required "name" Dec.string
-    )
+    let
+        builder md =
+            Just ( Metadata.getDocId md, md )
+    in
+    Metadata.decoderImport
         |> Dec.list
+        |> Dec.map (List.filterMap (Maybe.andThen builder))
         |> Dec.map Dict.fromList
         |> Dec.field "trees"
 
@@ -98,14 +97,14 @@ decodeCardEntries =
 -- Functions
 
 
-importTrees : TreeEntries -> CardEntries -> List ( String, TreeMetadata, Tree )
+importTrees : TreeEntries -> CardEntries -> List ( String, Metadata, Tree )
 importTrees trees cards =
     trees
         |> Dict.toList
         |> List.map (importTree cards)
 
 
-importTree : CardEntries -> ( String, TreeMetadata ) -> ( String, TreeMetadata, Tree )
+importTree : CardEntries -> ( String, Metadata ) -> ( String, Metadata, Tree )
 importTree cards ( treeId, treeMeta ) =
     let
         cardsInTree =
@@ -127,7 +126,7 @@ getChildren parentId_ cards =
         |> Children
 
 
-toData : String -> List ( String, TreeMetadata, Tree ) -> List ( String, TreeMetadata, Data )
+toData : String -> List ( String, Metadata, Tree ) -> List ( String, Metadata, Data )
 toData author trees =
     trees
         |> List.map (\( tid, tmdata, tree ) -> ( tid, tmdata, Data.commitTree author [] 0 tree Data.emptyData ))
