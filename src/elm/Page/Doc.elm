@@ -1151,6 +1151,9 @@ update msg ({ workingTree } as model) =
                     )
 
                 -- === UNUSED ===
+                ImportComplete ->
+                    ( model, Cmd.none )
+
                 DocListChanged ->
                     ( model, Cmd.none )
 

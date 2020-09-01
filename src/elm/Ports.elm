@@ -65,6 +65,8 @@ type
     | GetDataToSave
     | SavedLocally (Maybe Time.Posix)
     | SavedRemotely (Maybe Time.Posix)
+      -- === Home Page ===
+    | ImportComplete
     | DocListChanged
       -- === Metadata ===
     | MetadataSynced Dec.Value
@@ -312,6 +314,9 @@ receiveMsg tagger onError =
 
                         Err e ->
                             onError (errorToString e)
+
+                "ImportComplete" ->
+                    tagger <| ImportComplete
 
                 "DocListChanged" ->
                     tagger <| DocListChanged

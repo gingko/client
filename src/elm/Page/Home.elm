@@ -27,12 +27,18 @@ type alias Model =
     , language : Translation.Language
     , session : Session
     , isImporting : Bool
+    , isFetching : Bool
     }
 
 
 init : Session -> ( Model, Cmd Msg )
 init session =
-    ( { documents = [], language = langFromString "en", session = session, isImporting = False }
+    ( { documents = []
+      , language = langFromString "en"
+      , session = session
+      , isImporting = False
+      , isFetching = True
+      }
     , getDocumentList session
     )
 
@@ -68,7 +74,7 @@ update msg model =
                         |> List.sortBy (Time.posixToMillis << Metadata.getUpdatedAt)
                         |> List.reverse
             in
-            ( { model | documents = sortedList }, Cmd.none )
+            ( { model | isFetching = False, documents = sortedList }, Cmd.none )
 
         ReceivedDocuments (Err err) ->
             case err of
@@ -112,8 +118,11 @@ update msg model =
 
         Port incomingMsg ->
             case incomingMsg of
+                ImportComplete ->
+                    ( { model | isImporting = False, isFetching = True }, getDocumentList model.session )
+
                 DocListChanged ->
-                    ( model, getDocumentList model.session )
+                    ( { model | isFetching = True }, getDocumentList model.session )
 
                 _ ->
                     ( model, Cmd.none )
@@ -159,6 +168,11 @@ view model =
         div []
             [ h1 [] [ text "This is the home page" ]
             , ul [] (List.map viewDocEntry model.documents)
+            , if model.isFetching then
+                text "loading documents from server..."
+
+              else
+                text ""
             , button [ onClick GetNewDocId ] [ text "New" ]
             , button [ onClick ImportFileRequested ] [ text "Legacy Import" ]
             ]
@@ -167,6 +181,11 @@ view model =
         div []
             [ h1 [] [ text "This is the home page" ]
             , ul [] (List.map viewDocEntry model.documents)
+            , if model.isFetching then
+                text "loading documents from server..."
+
+              else
+                text ""
             , h1 [] [ text "Importing documents..." ]
             ]
 
