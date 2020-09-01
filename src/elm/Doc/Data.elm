@@ -122,17 +122,17 @@ lastCommitTime model =
 -- EXPOSED : Functions
 
 
-received : Dec.Value -> ( Model, Tree ) -> { newModel : Model, newTree : Tree, shouldPush : Bool, isSync : Bool }
+received : Dec.Value -> ( Model, Tree ) -> { newModel : Model, newTree : Tree, shouldPush : Bool, isNew : Bool }
 received json ( oldModel, oldTree ) =
     case Dec.decodeValue decode json of
-        Ok ( newData, Nothing, isSync ) ->
+        Ok ( newData, Nothing, isNew ) ->
             { newModel = Clean newData
             , newTree = checkoutRef "heads/master" newData |> Maybe.withDefault oldTree
             , shouldPush = True
-            , isSync = isSync
+            , isNew = isNew
             }
 
-        Ok ( newData, Just ( confId, confHead ), isSync ) ->
+        Ok ( newData, Just ( confId, confHead ), isNew ) ->
             let
                 localHead =
                     Dict.get "heads/master" newData.refs |> Maybe.withDefault confHead
@@ -145,14 +145,14 @@ received json ( oldModel, oldTree ) =
                     { newModel = Clean data
                     , newTree = checkoutRef "heads/master" data |> Maybe.withDefault oldTree
                     , shouldPush = False
-                    , isSync = isSync
+                    , isNew = isNew
                     }
 
                 MergeConflict data cdata ->
                     { newModel = MergeConflict data cdata
                     , newTree = cdata.mergedTree
                     , shouldPush = False
-                    , isSync = isSync
+                    , isNew = isNew
                     }
 
         Err err ->
@@ -160,7 +160,7 @@ received json ( oldModel, oldTree ) =
                 _ =
                     Debug.log "error" err
             in
-            { newModel = oldModel, newTree = oldTree, shouldPush = False, isSync = False }
+            { newModel = oldModel, newTree = oldTree, shouldPush = False, isNew = False }
 
 
 success : Dec.Value -> Model -> Model
@@ -711,7 +711,7 @@ decode =
         (Dec.field "commit" (Dec.list commitObjectDecoder))
         (Dec.field "tree" (Dec.list treeObjectDecoder))
         (Dec.maybe (Dec.field "conflict" refObjectDecoder))
-        (Dec.field "isSync" Dec.bool)
+        (Dec.field "isNew" Dec.bool)
 
 
 encode : Model -> Enc.Value

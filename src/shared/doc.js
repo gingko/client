@@ -224,8 +224,8 @@ const update = (msg, data) => {
         localStore.db(data);
         setRemoteDB(data);
         loadMetadata();
-        pull(false); // load local
-        pull(true); // sync remote
+        pull(true); // load local
+        pull(false); // sync remote
       }
 
     , "RequestDelete": async () => {
@@ -289,7 +289,7 @@ const update = (msg, data) => {
 
     , "Push": push
 
-    , "Pull": () => pull(true)
+    , "Pull": () => pull(false)
 
       // === File System ===
 
@@ -522,12 +522,12 @@ async function loadMetadata() {
 }
 
 
-async function pull(isSync) {
+async function pull(isNew) {
   // Get local head before replication.
   let localHead = await db.get("heads/master").catch(async (e) => e);
 
   // Fetch remote changes for current document.
-  if (isSync) {
+  if (!isNew) {
     let selector = { "_id": { "$regex": `${TREE_ID}/` } };
     await db.replicate.from(remoteDB, {selector}).catch(async (e) => e);
   }
@@ -553,7 +553,7 @@ async function pull(isSync) {
   }
 
   // Finally, send all objects into Elm repo.
-  toSend.isSync = isSync;
+  toSend.isNew = isNew;
   toElm("DataReceived",toSend);
   if (toSend.metadata) { toElm("MetadataSynced", toSend.metadata[0]) }
 }

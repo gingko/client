@@ -44,6 +44,7 @@ type alias Model =
 
     -- SPA Page State
     , session : Session
+    , loading : Bool
 
     -- Transient state
     , viewState : ViewState
@@ -72,12 +73,13 @@ type alias Model =
     }
 
 
-defaultModel : Session -> String -> Model
-defaultModel session docId =
+defaultModel : Bool -> Session -> String -> Model
+defaultModel isNew session docId =
     { workingTree = TreeStructure.defaultModel
     , data = Data.empty
     , metadata = Metadata.new docId
     , session = session
+    , loading = not isNew
     , debouncerStateCommit =
         Debouncer.throttle (fromSeconds 3)
             |> Debouncer.settleWhenQuietFor (Just <| fromSeconds 3)
@@ -118,7 +120,7 @@ defaultModel session docId =
 
 init : Session -> String -> Bool -> ( Model, Cmd Msg )
 init session dbName isNew =
-    ( defaultModel session dbName
+    ( defaultModel isNew session dbName
     , if not isNew then
         sendOut <| LoadDocument dbName
 
@@ -623,7 +625,7 @@ update msg ({ workingTree } as model) =
 
                 DataReceived dataIn ->
                     let
-                        { newModel, newTree, shouldPush, isSync } =
+                        { newModel, newTree, shouldPush, isNew } =
                             Data.received dataIn ( model.data, model.workingTree.tree )
 
                         newWorkingTree =
@@ -634,10 +636,11 @@ update msg ({ workingTree } as model) =
                     in
                     ( { model
                         | data = newModel
+                        , loading = isNew
                         , workingTree = newWorkingTree
                         , lastLocalSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
                         , lastRemoteSave =
-                            if isSync then
+                            if not isNew then
                                 Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
 
                             else
@@ -2094,6 +2097,15 @@ toggleVideoModal shouldOpen ( model, prevCmd ) =
 
 view : Model -> Html Msg
 view model =
+    if model.loading then
+        h1 [] [ text "Loading..." ]
+
+    else
+        viewLoaded model
+
+
+viewLoaded : Model -> Html Msg
+viewLoaded model =
     let
         replace orig new =
             Regex.replace (Regex.fromString orig |> Maybe.withDefault Regex.never) (\_ -> new)
