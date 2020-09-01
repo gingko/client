@@ -1,8 +1,14 @@
-module Import exposing (..)
+module Import exposing (decode)
 
 import Dict exposing (Dict)
 import Doc.TreeStructure exposing (defaultTree)
+import Json.Decode as Dec exposing (Decoder)
+import RandomId exposing (fromObjectId)
 import Types exposing (Children(..), Tree)
+
+
+
+-- MODEL
 
 
 type alias TreeEntries =
@@ -19,6 +25,93 @@ type alias CardData =
     , position : Float
     , content : String
     }
+
+
+
+-- DECODER
+
+
+decode : Dec.Value -> List ( String, Tree )
+decode json =
+    let
+        decodedTrees =
+            Dec.decodeValue decodeTreeEntries json
+
+        decodedCardEntries =
+            Dec.decodeValue decodeCardEntries json
+    in
+    case ( decodedTrees, decodedCardEntries ) of
+        ( Ok treeDict, Ok cardDict ) ->
+            let
+                _ =
+                    Debug.log "treeDict" treeDict
+
+                _ =
+                    Debug.log "cardDict" cardDict
+            in
+            importTrees treeDict cardDict
+                |> Debug.log "imported trees"
+
+        ( Err treeErr, Ok cardDict ) ->
+            let
+                _ =
+                    Debug.log "treeErr" treeErr
+
+                _ =
+                    Debug.log "cardDict" cardDict
+            in
+            []
+
+        ( Ok treeDict, Err cardErr ) ->
+            let
+                _ =
+                    Debug.log "treeDict" treeDict
+
+                _ =
+                    Debug.log "cardErr" cardErr
+            in
+            []
+
+        ( Err treeErr, Err cardErr ) ->
+            let
+                _ =
+                    Debug.log "treeErr" treeErr
+
+                _ =
+                    Debug.log "cardErr" cardErr
+            in
+            []
+
+
+
+-- ===== INTERNAL =====
+
+
+decodeTreeEntries : Decoder (Dict String String)
+decodeTreeEntries =
+    Dec.map2 (\id name -> ( fromObjectId id, name ))
+        (Dec.field "_id" Dec.string)
+        (Dec.field "name" Dec.string)
+        |> Dec.list
+        |> Dec.map Dict.fromList
+        |> Dec.field "trees"
+
+
+decodeCardEntries : Decoder (Dict String CardData)
+decodeCardEntries =
+    Dec.map5 (\id tid pid pos ct -> ( id, CardData (fromObjectId tid) pid pos ct ))
+        (Dec.field "_id" Dec.string)
+        (Dec.field "treeId" Dec.string)
+        (Dec.field "parentId" (Dec.maybe Dec.string))
+        (Dec.field "position" Dec.float)
+        (Dec.field "content" Dec.string)
+        |> Dec.list
+        |> Dec.map Dict.fromList
+        |> Dec.field "cards"
+
+
+
+-- Functions
 
 
 importTrees : TreeEntries -> CardEntries -> List ( String, Tree )

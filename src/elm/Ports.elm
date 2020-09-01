@@ -3,6 +3,7 @@ port module Ports exposing (ExportFormat(..), ExportSelection(..), ExportSetting
 import Coders exposing (..)
 import Doc.Fonts as Fonts
 import Doc.TreeUtils exposing (getColumn)
+import Import
 import Json.Decode as Dec exposing (Decoder, decodeValue, errorToString, field, oneOf)
 import Json.Encode as Enc exposing (..)
 import Json.Encode.Extra exposing (maybe)
@@ -65,6 +66,8 @@ type
     | SavedLocally (Maybe Time.Posix)
     | SavedRemotely (Maybe Time.Posix)
     | DocListChanged
+      -- === Legacy Import ===
+    | ImportAll (List ( String, Tree ))
       -- === Metadata ===
     | MetadataSynced Dec.Value
     | MetadataSaved Dec.Value
@@ -311,6 +314,10 @@ receiveMsg tagger onError =
 
                 "DocListChanged" ->
                     tagger <| DocListChanged
+
+                -- === Legacy Import ===
+                "ImportAll" ->
+                    tagger <| ImportAll (Import.decode outsideInfo.data)
 
                 -- === DOM ===
                 "DragStarted" ->

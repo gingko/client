@@ -31,7 +31,6 @@ var helpWidgetLauncher;
 
 var remoteDB;
 var remoteDBnoTransform;
-var gingko;
 var TREE_ID;
 var savedObjectIds = [];
 const userStore = container.userStore;
@@ -62,7 +61,7 @@ async function initElmAndPorts() {
 
   const initFlags = { session : sessionData, language: "en" };
 
-  gingko = Elm.Main.init({ node: document.getElementById("elm"), flags: initFlags});
+  self.gingko = Elm.Main.init({ node: document.getElementById("elm"), flags: initFlags});
 
   // Page.Doc messages
   gingko.ports.infoForOutside.subscribe(function(elmdata) {
