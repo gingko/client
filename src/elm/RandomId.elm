@@ -11,7 +11,7 @@ generate msgTag =
 fromObjectId : String -> String
 fromObjectId objId =
     objId
-        |> String.slice 8 17
+        |> String.slice 12 17
         |> String.toList
         |> List.map Char.toCode
         |> List.map (modBy 62)
