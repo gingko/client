@@ -239,10 +239,6 @@ const update = (msg, data) => {
       }
     }
 
-    , "CommitWithTimestamp": () => {
-        toElm("Commit", Date.now());
-      }
-
     , "NoDataToSave": () => {
         if (actionOnData === ActionOnData.Exit) {
           // Empty document

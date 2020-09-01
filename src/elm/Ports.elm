@@ -26,7 +26,6 @@ type
     | InitDocument String
     | LoadDocument String
     | RequestDelete String
-    | CommitWithTimestamp
     | NoDataToSave
     | SaveData Enc.Value
     | Push
@@ -62,7 +61,6 @@ type
     | DataReceived Dec.Value
     | UserStoreLoaded Dec.Value
     | LocalStoreLoaded Dec.Value
-    | Commit Int
     | GetDataToSave
     | SavedLocally (Maybe Time.Posix)
     | SavedRemotely (Maybe Time.Posix)
@@ -145,9 +143,6 @@ sendOut info =
 
         RequestDelete dbName ->
             dataToSend (string dbName)
-
-        CommitWithTimestamp ->
-            dataToSend null
 
         NoDataToSave ->
             dataToSend null
@@ -294,14 +289,6 @@ receiveMsg tagger onError =
 
                 "MetadataSaved" ->
                     tagger <| MetadataSaved outsideInfo.data
-
-                "Commit" ->
-                    case decodeValue Dec.int outsideInfo.data of
-                        Ok time ->
-                            tagger <| Commit time
-
-                        Err e ->
-                            onError (errorToString e)
 
                 "GetDataToSave" ->
                     tagger <| GetDataToSave

@@ -157,6 +157,7 @@ type Msg
     | DragDropMsg (DragDrop.Msg String DropId)
       -- === History ===
     | ThrottledCommit (Debouncer.Msg ())
+    | Commit Time.Posix
     | CheckoutCommit String
     | Restore
     | CancelHistory
@@ -372,11 +373,15 @@ update msg ({ workingTree } as model) =
             case emitted_ of
                 Just () ->
                     ( updatedModel
-                    , Cmd.batch [ sendOut CommitWithTimestamp, mappedCmd ]
+                    , Cmd.batch [ Task.perform Commit Time.now, mappedCmd ]
                     )
 
                 Nothing ->
                     ( updatedModel, mappedCmd )
+
+        Commit time ->
+            ( { model | currentTime = time }, Cmd.none )
+                |> addToHistoryDo
 
         CheckoutCommit commitSha ->
             ( model
@@ -724,10 +729,6 @@ update msg ({ workingTree } as model) =
                                 , Cmd.none
                                   --, sendOut (SaveToDB ( Metadata.encode model.metadata, statusToValue model.status, Data.encode model.objects ))
                                 )
-
-                Commit timeMillis ->
-                    ( { model | currentTime = Time.millisToPosix timeMillis }, Cmd.none )
-                        |> addToHistoryDo
 
                 SavedLocally time_ ->
                     ( { model
