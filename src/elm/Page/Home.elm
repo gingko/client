@@ -25,12 +25,13 @@ type alias Model =
     { documents : List Metadata
     , language : Translation.Language
     , session : Session
+    , isImporting : Bool
     }
 
 
 init : Session -> ( Model, Cmd Msg )
 init session =
-    ( { documents = [], language = langFromString "en", session = session }
+    ( { documents = [], language = langFromString "en", session = session, isImporting = False }
     , getDocumentList session
     )
 
@@ -38,32 +39,6 @@ init session =
 toSession : Model -> Session
 toSession model =
     model.session
-
-
-
--- VIEW
-
-
-view : Model -> Html Msg
-view model =
-    div []
-        [ h1 [] [ text "This is the home page" ]
-        , ul [] (List.map viewDocEntry model.documents)
-        , button [ onClick GetNewDocId ] [ text "New" ]
-        , button [ onClick ImportFileRequested ] [ text "Legacy Import" ]
-        ]
-
-
-viewDocEntry : Metadata -> Html Msg
-viewDocEntry metadata =
-    let
-        docId =
-            Metadata.getDocId metadata
-
-        docName =
-            Metadata.getDocName metadata |> Maybe.withDefault "Untitled"
-    in
-    li [] [ a [ href <| "/" ++ docId ] [ text docName ], button [ onClick <| DeleteDoc docId ] [ text "X" ] ]
 
 
 
@@ -77,7 +52,7 @@ type Msg
     | DeleteDoc String
     | ImportFileRequested
     | ImportFileSelected File
-    | ImportFileLoaded String
+    | ImportFileLoaded String String
     | Port IncomingMsg
     | LogErr String
 
@@ -109,23 +84,24 @@ update msg model =
             ( model, Select.file [ "text/*", "application/json" ] ImportFileSelected )
 
         ImportFileSelected file ->
-            ( model, Task.perform ImportFileLoaded (File.toString file) )
+            case Session.username model.session of
+                Just username ->
+                    ( { model | isImporting = True }, Task.perform (ImportFileLoaded username) (File.toString file) )
 
-        ImportFileLoaded contents ->
-            case Dec.decodeString Import.decoder contents of
+                Nothing ->
+                    ( { model | isImporting = False }, Cmd.none )
+
+        ImportFileLoaded username contents ->
+            case Dec.decodeString (Import.decoder username) contents of
                 Ok dataList ->
-                    let
-                        _ =
-                            Debug.log "dataList" dataList
-                    in
-                    ( model, Cmd.none )
+                    ( { model | isImporting = False }, sendOut <| SaveImportedData (Import.encode dataList) )
 
                 Err err ->
                     let
                         _ =
                             Debug.log "err" err
                     in
-                    ( model, Cmd.none )
+                    ( { model | isImporting = False }, Cmd.none )
 
         Port incomingMsg ->
             case incomingMsg of
@@ -164,6 +140,40 @@ getDocumentList session =
 
         Nothing ->
             Cmd.none
+
+
+
+-- VIEW
+
+
+view : Model -> Html Msg
+view model =
+    if not model.isImporting then
+        div []
+            [ h1 [] [ text "This is the home page" ]
+            , ul [] (List.map viewDocEntry model.documents)
+            , button [ onClick GetNewDocId ] [ text "New" ]
+            , button [ onClick ImportFileRequested ] [ text "Legacy Import" ]
+            ]
+
+    else
+        div []
+            [ h1 [] [ text "This is the home page" ]
+            , ul [] (List.map viewDocEntry model.documents)
+            , h1 [] [ text "Importing documents..." ]
+            ]
+
+
+viewDocEntry : Metadata -> Html Msg
+viewDocEntry metadata =
+    let
+        docId =
+            Metadata.getDocId metadata
+
+        docName =
+            Metadata.getDocName metadata |> Maybe.withDefault "Untitled"
+    in
+    li [] [ a [ href <| "/" ++ docId ] [ text docName ], button [ onClick <| DeleteDoc docId ] [ text "X" ] ]
 
 
 

@@ -1,4 +1,4 @@
-module Doc.Data exposing (Data, Model, checkout, commit, conflictList, conflictSelection, empty, encode, getData, head, lastCommitTime, received, resolve, success)
+module Doc.Data exposing (Data, Model, checkout, commit, commitTree, conflictList, conflictSelection, empty, emptyData, encode, encodeData, getData, head, lastCommitTime, received, resolve, success)
 
 import Coders exposing (tupleDecoder)
 import Dict exposing (Dict)
@@ -63,11 +63,15 @@ type alias RefObject =
 
 empty : Model
 empty =
-    Clean
-        { refs = Dict.empty
-        , commits = Dict.empty
-        , treeObjects = Dict.empty
-        }
+    Clean emptyData
+
+
+emptyData : Data
+emptyData =
+    { refs = Dict.empty
+    , commits = Dict.empty
+    , treeObjects = Dict.empty
+    }
 
 
 
@@ -216,6 +220,41 @@ commit author timestamp tree model =
                 model
 
 
+commitTree : String -> List String -> Int -> Tree -> Data -> Data
+commitTree author parents timestamp tree data =
+    let
+        ( newRootId, newTreeObjects ) =
+            writeTree tree
+
+        newCommit =
+            CommitObject
+                newRootId
+                parents
+                author
+                timestamp
+
+        newCommitSha =
+            newCommit |> generateCommitSha
+
+        updateHead ref_ =
+            let
+                newRev =
+                    case ref_ of
+                        Just { rev } ->
+                            rev
+
+                        Nothing ->
+                            ""
+            in
+            Just (RefObject newCommitSha [] newRev)
+    in
+    { data
+        | refs = Dict.update "heads/master" updateHead data.refs
+        , commits = Dict.insert newCommitSha newCommit data.commits
+        , treeObjects = Dict.union newTreeObjects data.treeObjects
+    }
+
+
 conflictSelection : String -> Selection -> Model -> Model
 conflictSelection cid selection model =
     case model of
@@ -261,41 +300,6 @@ checkoutRef refId data =
     Dict.get refId data.refs
         |> andThen (\ro -> Dict.get ro.value data.commits)
         |> andThen (\co -> treeObjectsToTree data.treeObjects co.tree "0")
-
-
-commitTree : String -> List String -> Int -> Tree -> Data -> Data
-commitTree author parents timestamp tree data =
-    let
-        ( newRootId, newTreeObjects ) =
-            writeTree tree
-
-        newCommit =
-            CommitObject
-                newRootId
-                parents
-                author
-                timestamp
-
-        newCommitSha =
-            newCommit |> generateCommitSha
-
-        updateHead ref_ =
-            let
-                newRev =
-                    case ref_ of
-                        Just { rev } ->
-                            rev
-
-                        Nothing ->
-                            ""
-            in
-            Just (RefObject newCommitSha [] newRev)
-    in
-    { data
-        | refs = Dict.update "heads/master" updateHead data.refs
-        , commits = Dict.insert newCommitSha newCommit data.commits
-        , treeObjects = Dict.union newTreeObjects data.treeObjects
-    }
 
 
 checkoutCommit : String -> Data -> Maybe Tree
@@ -712,10 +716,12 @@ decode =
 
 encode : Model -> Enc.Value
 encode model =
-    let
-        data =
-            getData model
+    encodeData (getData model)
 
+
+encodeData : Data -> Enc.Value
+encodeData data =
+    let
         treeObjectToValue ( sha, treeObject ) =
             Enc.object
                 [ ( "_id", Enc.string sha )

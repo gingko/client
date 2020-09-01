@@ -28,6 +28,7 @@ type
     | RequestDelete String
     | NoDataToSave
     | SaveData Enc.Value
+    | SaveImportedData Enc.Value
     | Push
     | Pull
       -- === File System ===
@@ -133,6 +134,9 @@ sendOut info =
 
         -- === Database ===
         SaveData data ->
+            dataToSend data
+
+        SaveImportedData data ->
             dataToSend data
 
         InitDocument dbName ->

@@ -1,8 +1,10 @@
-module Import exposing (decoder)
+module Import exposing (decoder, encode)
 
 import Dict exposing (Dict)
+import Doc.Data as Data exposing (Data)
 import Json.Decode as Dec exposing (Decoder)
 import Json.Decode.Pipeline exposing (optional, required)
+import Json.Encode as Enc
 import RandomId exposing (fromObjectId)
 import Types exposing (Children(..), Tree)
 
@@ -27,15 +29,18 @@ type alias CardData =
     }
 
 
-
--- DECODER
-
-
-decoder : Decoder (List ( String, Tree ))
-decoder =
+decoder : String -> Decoder (List ( String, Data ))
+decoder author =
     Dec.map2 importTrees
         decodeTreeEntries
         decodeCardEntries
+        |> Dec.map (toData author)
+
+
+encode : List ( String, Data ) -> Enc.Value
+encode dataList =
+    dataList
+        |> Enc.list (\( tid, tdata ) -> Enc.object [ ( "treeId", Enc.string tid ), ( "data", Data.encodeData tdata ) ])
 
 
 
@@ -109,3 +114,9 @@ getChildren parentId_ cards =
         |> Dict.toList
         |> List.map mapFn
         |> Children
+
+
+toData : String -> List ( String, Tree ) -> List ( String, Data )
+toData author trees =
+    trees
+        |> List.map (\( tid, tree ) -> ( tid, Data.commitTree author [] 0 tree Data.emptyData ))

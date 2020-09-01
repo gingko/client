@@ -273,6 +273,10 @@ const update = (msg, data) => {
         toElm("DataSaved", savedRefs);
       }
 
+    , "SaveImportedData": async () => {
+        console.log("Import: ", data)
+    }
+
     , "Push": push
 
     , "Pull": () => pull(true)
