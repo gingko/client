@@ -1,15 +1,19 @@
 module Page.Home exposing (Model, Msg, init, subscriptions, toSession, update, view)
 
 import Doc.Metadata as Metadata exposing (Metadata)
+import File exposing (File)
+import File.Select as Select
 import Html exposing (Html, a, button, div, h1, li, text, ul)
 import Html.Attributes exposing (href)
 import Html.Events exposing (onClick)
 import Http
+import Import
 import Json.Decode as Dec
 import Ports exposing (IncomingMsg(..), OutgoingMsg(..), receiveMsg, sendOut)
 import RandomId
 import Route
 import Session exposing (Session)
+import Task
 import Translation exposing (langFromString)
 
 
@@ -46,6 +50,7 @@ view model =
         [ h1 [] [ text "This is the home page" ]
         , ul [] (List.map viewDocEntry model.documents)
         , button [ onClick GetNewDocId ] [ text "New" ]
+        , button [ onClick ImportFileRequested ] [ text "Legacy Import" ]
         ]
 
 
@@ -70,6 +75,9 @@ type Msg
     | GetNewDocId
     | NewDocIdReceived String
     | DeleteDoc String
+    | ImportFileRequested
+    | ImportFileSelected File
+    | ImportFileLoaded String
     | Port IncomingMsg
     | LogErr String
 
@@ -96,6 +104,28 @@ update msg model =
 
         DeleteDoc docId ->
             ( model, sendOut <| RequestDelete docId )
+
+        ImportFileRequested ->
+            ( model, Select.file [ "text/*", "application/json" ] ImportFileSelected )
+
+        ImportFileSelected file ->
+            ( model, Task.perform ImportFileLoaded (File.toString file) )
+
+        ImportFileLoaded contents ->
+            case Dec.decodeString Import.decoder contents of
+                Ok dataList ->
+                    let
+                        _ =
+                            Debug.log "dataList" dataList
+                    in
+                    ( model, Cmd.none )
+
+                Err err ->
+                    let
+                        _ =
+                            Debug.log "err" err
+                    in
+                    ( model, Cmd.none )
 
         Port incomingMsg ->
             case incomingMsg of

@@ -1,8 +1,8 @@
-module Import exposing (decode)
+module Import exposing (decoder)
 
 import Dict exposing (Dict)
-import Doc.TreeStructure exposing (defaultTree)
 import Json.Decode as Dec exposing (Decoder)
+import Json.Decode.Pipeline exposing (optional, required)
 import RandomId exposing (fromObjectId)
 import Types exposing (Children(..), Tree)
 
@@ -31,27 +31,11 @@ type alias CardData =
 -- DECODER
 
 
-decode : Dec.Value -> List ( String, Tree )
-decode json =
-    let
-        decodedTrees =
-            Dec.decodeValue decodeTreeEntries json
-
-        decodedCardEntries =
-            Dec.decodeValue decodeCardEntries json
-    in
-    case ( decodedTrees, decodedCardEntries ) of
-        ( Ok treeDict, Ok cardDict ) ->
-            importTrees treeDict cardDict
-
-        ( Err treeErr, Ok cardDict ) ->
-            []
-
-        ( Ok treeDict, Err cardErr ) ->
-            []
-
-        ( Err treeErr, Err cardErr ) ->
-            []
+decoder : Decoder (List ( String, Tree ))
+decoder =
+    Dec.map2 importTrees
+        decodeTreeEntries
+        decodeCardEntries
 
 
 
@@ -60,9 +44,10 @@ decode json =
 
 decodeTreeEntries : Decoder (Dict String String)
 decodeTreeEntries =
-    Dec.map2 (\id name -> ( fromObjectId id, name ))
-        (Dec.field "_id" Dec.string)
-        (Dec.field "name" Dec.string)
+    (Dec.succeed (\id name -> ( fromObjectId id, name ))
+        |> required "_id" Dec.string
+        |> required "name" Dec.string
+    )
         |> Dec.list
         |> Dec.map Dict.fromList
         |> Dec.field "trees"
@@ -70,13 +55,25 @@ decodeTreeEntries =
 
 decodeCardEntries : Decoder (Dict String CardData)
 decodeCardEntries =
-    Dec.map5 (\id tid pid pos ct -> ( id, CardData (fromObjectId tid) pid pos ct ))
-        (Dec.field "_id" Dec.string)
-        (Dec.field "treeId" Dec.string)
-        (Dec.field "parentId" (Dec.maybe Dec.string))
-        (Dec.field "position" Dec.float)
-        (Dec.field "content" Dec.string)
+    let
+        builder id tid pid pos ct del des =
+            if del || des then
+                Nothing
+
+            else
+                Just ( id, CardData (fromObjectId tid) pid pos ct )
+    in
+    (Dec.succeed builder
+        |> required "_id" Dec.string
+        |> required "treeId" Dec.string
+        |> optional "parentId" (Dec.maybe Dec.string) Nothing
+        |> optional "position" Dec.float 0.0
+        |> optional "content" Dec.string ""
+        |> optional "deleted" Dec.bool False
+        |> optional "destroyed" Dec.bool False
+    )
         |> Dec.list
+        |> Dec.map (List.filterMap identity)
         |> Dec.map Dict.fromList
         |> Dec.field "cards"
 
