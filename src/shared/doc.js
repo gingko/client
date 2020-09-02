@@ -156,11 +156,13 @@ const fromElm = (msg, data) => {
 
     , "RequestDelete": async () => {
       if(confirm("Are you sure you want to delete this document?")) {
-        let docsFetch = await remoteDBnoTransform.allDocs({startkey: data+"/", endkey: data+"/\ufff0"});
+        let docsFetch = await remoteDB.allDocs({startkey: data+"/", endkey: data+"/\ufff0"});
         let docsToDelete = docsFetch.rows.map(r => {return {_id : r.id, _rev: r.value.rev, _deleted: true}});
-        let deleteResponse = await remoteDBnoTransform.bulkDocs(docsToDelete);
-        let localDBToDelete = new PouchDB(data);
-        await localDBToDelete.destroy();
+        let deleteResponse = await remoteDB.bulkDocs(docsToDelete);
+
+        let selector = { "_id": { "$regex": `${TREE_ID}/` } };
+        await db.replicate.from(remoteDB, {selector}).catch(async (e) => e);
+
         toElm("DocListChanged", null);
       }
     }
