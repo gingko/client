@@ -1,6 +1,5 @@
 const jQuery = require("jquery");
 const _ = require("lodash");
-const axios = require("axios");
 require("textarea-autosize");
 const Mousetrap = require("mousetrap");
 const container = require("Container");
@@ -23,7 +22,6 @@ var lastActivesScrolled = null;
 var lastColumnScrolled = null;
 var _lastFormat = null;
 var _lastSelection = null;
-var collab = {};
 var lang;
 var helpVisible;
 var helpWidgetLauncher;
@@ -37,13 +35,6 @@ const localStore = container.localStore;
 
 
 const sessionStorageKey = "gingko-session-storage";
-
-const ActionOnData =
-  { Exit: "Exit"
-  , Save: "Save"
-  , SaveAs: "SaveAs"
-  };
-var actionOnData = ActionOnData.Save;
 
 
 /* === Initializing App === */
@@ -64,7 +55,7 @@ async function initElmAndPorts() {
 
   // Page.Doc messages
   gingko.ports.infoForOutside.subscribe(function(elmdata) {
-    update(elmdata.tag, elmdata.data);
+    fromElm(elmdata.tag, elmdata.data);
   });
 
   gingko.ports.dragstart.subscribe(function(event) {
@@ -96,41 +87,6 @@ async function initElmAndPorts() {
 }
 
 
-// Doc State Proxy Object
-
-const docStateHandlers = {
-  set: function(obj, prop, value) {
-    if (typeof gingko !== "undefined") {
-      switch(prop) {
-        case "revs":
-          toElm("SetRevs", value);
-          break;
-
-        case "lastSavedRemotely":
-          toElm("SavedRemotely", value);
-          break;
-
-        case "lastSavedLocally":
-          toElm("SavedLocally", value);
-          break;
-
-        case "changed":
-          container.sendTo("doc:set-changed", value);
-          break;
-      }
-    }
-    obj[prop] = value;
-    return true;
-  }
-};
-const docState = new Proxy(container.getInitialDocState(), docStateHandlers);
-
-container.msgWas("set-doc-state", (e, data) => {
-  Object.assign(docState, data);
-});
-
-// ============ SYNC ====================
-
 function setUserDbs(email) {
   console.log("Inside setUserDbs", email, helpers.toHex(email));
   const userDbName = `userdb-${helpers.toHex(email)}`;
@@ -146,27 +102,23 @@ function setUserDbs(email) {
   self.db = new PouchDB(userDbName)
 };
 
-// ============ END SYNC ====================
+
+
+
+/* === Elm / JS Interop === */
+
 
 function toElm (tag, data) {
   gingko.ports.infoForElm.send({tag: tag, data: data});
 }
 
 
-
-
-/* === Elm to JS Ports === */
-
-const update = (msg, data) => {
+const fromElm = (msg, data) => {
   let cases =
     {
       // === Dialogs, Menus, Window State ===
 
       "Alert": () => { alert(data); }
-
-    , "SetChanged" : () => {
-        docState.changed = data;
-      }
 
     , "ConfirmCancelCard": () => {
         let tarea = document.getElementById("card-edit-"+data[0]);
@@ -175,27 +127,29 @@ const update = (msg, data) => {
           console.log("tarea not found");
         } else {
           if(tarea.value === data[1] || confirm(tr.areYouSureCancel[lang])) {
-            docState.changed = false;
             toElm("CancelCardConfirmed", null);
           }
         }
-      }
-
-    , "ColumnNumberChange": () => {
-        container.sendTo("doc:column-number-change", data);
       }
 
       // === Database ===
     , "InitDocument": async () => {
         TREE_ID = data;
         localStore.db(data);
-        initMetadata(data);
+        const now = Date.now();
+        let metadata = {_id : docId+"/metadata", docId: docId, name: null, createdAt: now, updatedAt: now};
+        await db.put(metadata).catch(async e => e);
     }
 
     , "LoadDocument": async () => {
         TREE_ID = data;
         localStore.db(data);
-        loadMetadata();
+
+        let metadata = await db.get("metadata").catch(async e => e);
+        if (!metadata.error) {
+          toElm("MetadataSaved", metadata);
+        }
+
         pull(true); // load local
         pull(false); // sync remote
       }
@@ -210,14 +164,6 @@ const update = (msg, data) => {
         toElm("DocListChanged", null);
       }
     }
-
-    , "NoDataToSave": () => {
-        if (actionOnData === ActionOnData.Exit) {
-          // Empty document
-          // Should close without saving.
-          container.sendTo("doc:save-and-exit", true);
-        }
-      }
 
     , "SaveData": async () => {
         // Store ids of refs, so we can send back updated _rev.
@@ -256,7 +202,7 @@ const update = (msg, data) => {
             r._id = doc.id + "/" + r._id;
             return _.omit(r, "_rev");
           });
-          return remoteDBnoTransform.bulkDocs(toSave);
+          return remoteDB.bulkDocs(toSave);
         });
         let saveResults = await Promise.all(savePromises);
         toElm("ImportComplete", null);
@@ -265,44 +211,6 @@ const update = (msg, data) => {
     , "Push": push
 
     , "Pull": () => pull(false)
-
-      // === File System ===
-
-    , "ExportDOCX": () => {
-        try {
-          container.exportDocx(data.data, data.filepath);
-        } catch (e) {
-          container.showMessageBox(errorAlert(tr.exportError[lang], tr.exportErrorMsg[lang], e));
-          return;
-        }
-      }
-
-    , "ExportJSON": () => {
-        try {
-          container.exportJson(data.data, data.filepath);
-        } catch (e) {
-          container.showMessageBox(errorAlert(tr.exportError[lang], tr.exportErrorMsg[lang], e));
-          return;
-        }
-      }
-
-    , "ExportTXT": () => {
-        try {
-          container.exportTxt(data.data, data.filepath);
-        } catch (e) {
-          container.showMessageBox(errorAlert(tr.exportError[lang], tr.exportErrorMsg[lang], e));
-          return;
-        }
-      }
-
-    , "ExportTXTColumn": () => {
-        try {
-          container.exportTxt(data.data, data.filepath);
-        } catch (e) {
-          container.showMessageBox(errorAlert(tr.exportError[lang], tr.exportErrorMsg[lang], e));
-          return;
-        }
-      }
 
       // === DOM ===
 
@@ -371,11 +279,12 @@ const update = (msg, data) => {
 
     , "UpdateCommits": () => {
       }
+
     , "SetVideoModal": () => {
         userStore.set("video-modal-is-open", data);
       }
 
-    , "SetFonts": () => { setFonts(docState.dbPath[1], data);}
+    , "SetFonts": () => {}
 
     , "SetShortcutTray": () => {
         userStore.set("shortcut-tray-is-open", data);
@@ -383,10 +292,7 @@ const update = (msg, data) => {
 
       // === Misc ===
 
-    , "SocketSend": () => {
-        collab = data;
-      //socket.emit("collab", data)
-      }
+    , "SocketSend": () => {}
 
     , "ConsoleLogRequested": () =>
         console.error(data)
@@ -396,73 +302,9 @@ const update = (msg, data) => {
   try {
     cases[msg]();
   } catch(err) {
-    console.error("Unexpected message from Elm", err, msg, data);
+    console.error("Unexpected message from Elm : ", msg, data, err);
   }
 };
-
-
-
-
-
-
-/* === JS to Elm Ports === */
-
-function intentExportToElm ( format, selection, filepath) {
-  _lastFormat = format;
-  _lastSelection = selection;
-  toElm("IntentExport", { format: format, selection : selection, filepath: filepath} );
-}
-
-
-container.msgWas("menu:close-document", () => { actionOnData = ActionOnData.Exit; toElm("GetDataToSave", null); });
-container.msgWas("menu:save", () => { actionOnData = ActionOnData.Save; toElm("GetDataToSave", null ); });
-container.msgWas("menu:save-as", () => { actionOnData = ActionOnData.SaveAs; toElm("GetDataToSave", null ); });
-container.msgWas("menu:export-docx", () => intentExportToElm("docx", "all", null));
-container.msgWas("menu:export-docx-current", () => intentExportToElm("docx", "current", null));
-container.msgWas("menu:export-docx-column", (e, msg) => intentExportToElm("docx", {column: msg}, null));
-container.msgWas("menu:export-txt", () => intentExportToElm("txt", "all", null));
-container.msgWas("menu:export-txt-current", () => intentExportToElm("txt", "current", null));
-container.msgWas("menu:export-txt-column", (e, msg) => intentExportToElm("txt", {column: msg}, null));
-container.msgWas("menu:export-json", () => intentExportToElm("json", "all", null));
-container.msgWas("menu:export-repeat", (e, lastExportPath) => intentExportToElm(_lastFormat, _lastSelection, lastExportPath));
-container.msgWas("menu:undo", () => toElm("Keyboard", "mod+z"));
-container.msgWas("menu:redo", () => toElm("Keyboard", "mod+shift+z"));
-container.msgWas("menu:cut", () => toElm("Keyboard", "mod+x"));
-container.msgWas("menu:copy", () => toElm("Keyboard", "mod+c"));
-container.msgWas("menu:paste", () => toElm("Keyboard", "mod+v"));
-container.msgWas("menu:paste-into", () => toElm("Keyboard", "mod+shift+v"));
-container.msgWas("menu:view-videos", () => toElm("ViewVideos", null ));
-container.msgWas("menu:font-selector", (event, data) => toElm("FontSelectorOpen", data));
-container.msgWas("menu:language-select", (event, data) => {
-  lang = data;
-  userStore.set("language", data);
-  container.sendTo("doc:language-changed", data);
-  toElm("LanguageChanged", data);
-});
-container.msgWas("menu:toggle-support", (event, makeVisible) => {
-  try {
-    if (makeVisible) {
-      helpWidgetLauncher.style.visibility = "visible";
-      FreshworksWidget("open");
-    } else {
-      helpWidgetLauncher.style.visibility = "hidden";
-      FreshworksWidget("close");
-    }
-    container.sendTo("doc:support-toggled", makeVisible);
-  } catch (err) {
-    let options =
-      { title: "Failed to Open Online Help"
-      , message: "Couldn't reach the online help desk.\nEither you are offline, or there's a bug. You can reach me at adriano@gingkoapp.com"
-      , type: "info"
-      };
-    container.showMessageBox(options);
-  }
-});
-
-//socket.on("collab", data => toElm("RecvCollabState", data))
-//socket.on("collab-leave", data => toElm("CollaboratorDisconnected", data))
-
-
 
 
 
@@ -482,20 +324,6 @@ async function loadUserStore() {
   let store = await userStore.load();
   lang = store.language;
   toElm("UserStoreLoaded", store);
-}
-
-
-async function initMetadata(docId) {
-  const now = Date.now();
-  let metadata = {_id : docId+"/metadata", docId: docId, name: null, createdAt: now, updatedAt: now};
-  await db.put(metadata).catch(async e => e);
-}
-
-async function loadMetadata() {
-  let metadata = await db.get("metadata").catch(async e => e);
-  if (!metadata.error) {
-    toElm("MetadataSaved", metadata);
-  }
 }
 
 
@@ -625,13 +453,8 @@ const debouncedScrollHorizontal = _.debounce(helpers.scrollHorizontal, 200);
 
 
 const editingInputHandler = function(ev) {
-  if(docState.changed !== true) {
-    docState.changed = true;
-  }
   toElm("FieldChanged", ev.target.value);
   selectionHandler(ev);
-  //collab.field = ev.target.value
-  //socket.emit('collab', collab)
 };
 
 const selectionHandler = function(ev) {
@@ -679,9 +502,12 @@ Mousetrap.bind(["tab"], function(e, s) {
   return false;
 });
 
+
 Mousetrap.bind(["shift+tab"], function(e, s) {
   return true;
 });
+
+
 
 
 /* === DOM manipulation === */
@@ -723,13 +549,12 @@ const observer = new MutationObserver(function(mutations) {
       t.oninput = editingInputHandler;
     });
 
-    container.sendTo("doc:edit-mode-toggle", true);
     jQuery(textareas).textareaAutoSize();
-  } else {
-    container.sendTo("doc:edit-mode-toggle", false);
   }
 });
 
+
 const observerConfig = { childList: true, subtree: true };
+
 
 observer.observe(document.body, observerConfig);
