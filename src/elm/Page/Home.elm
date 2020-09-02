@@ -161,6 +161,9 @@ update msg model =
             in
             ( ImportSaving selectList pageData, sendOut <| SaveImportedData treesToSave )
 
+        ( Port ImportComplete, ImportSaving _ pageData ) ->
+            ( Loading pageData, getDocumentList pageData.session )
+
         _ ->
             updatePageData msg (getData model)
                 |> Tuple.mapFirst Loaded
@@ -208,9 +211,6 @@ updatePageData msg model =
 
         Port incomingMsg ->
             case incomingMsg of
-                ImportComplete ->
-                    ( model, getDocumentList model.session )
-
                 DocListChanged ->
                     ( model, getDocumentList model.session )
 
