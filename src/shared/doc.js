@@ -8,7 +8,6 @@ const config = require("../../config.js");
 require("../shared/GitGraph.js");
 
 import PouchDB from "pouchdb";
-PouchDB.plugin(require("transform-pouch"));
 
 
 const helpers = require("./doc-helpers");
@@ -30,7 +29,6 @@ var helpVisible;
 var helpWidgetLauncher;
 
 var remoteDB;
-var remoteDBnoTransform;
 var gingko;
 var TREE_ID;
 var savedObjectIds = [];
@@ -55,7 +53,7 @@ initElmAndPorts();
 async function initElmAndPorts() {
   const sessionData = localStorage.getItem(sessionStorageKey) || null;
   if (sessionData) {
-    setUserDb(sessionData);
+    setUserDbs(sessionData);
   }
 
   loadUserStore();
@@ -84,7 +82,7 @@ async function initElmAndPorts() {
       localStorage.removeItem(sessionStorageKey);
     } else {
       localStorage.setItem(sessionStorageKey, data);
-      setUserDb(data);
+      setUserDbs(data);
       setTimeout(()=> gingko.ports.sessionChanged.send(data), 0);
     }
   });
@@ -133,45 +131,22 @@ container.msgWas("set-doc-state", (e, data) => {
 
 // ============ SYNC ====================
 
-function setUserDb(email) {
-  console.log("Inside setUserDb", email, helpers.toHex(email));
-  let userDb = `${config.COUCHDB_SERVER}/userdb-`+ helpers.toHex(email);
-  userStore.db(email, userDb);
+function setUserDbs(email) {
+  console.log("Inside setUserDbs", email, helpers.toHex(email));
+  const userDbName = `userdb-${helpers.toHex(email)}`;
+  let userDbUrl = config.COUCHDB_SERVER + "/" + userDbName;
+  userStore.db(email, userDbUrl);
   var remoteOpts =
     { skip_setup: true
     , fetch(url, opts){
         return fetch(url, opts);
       }
     };
-  remoteDB = new PouchDB(userDb, remoteOpts);
-  remoteDBnoTransform = new PouchDB(userDb, remoteOpts);
-};
-
-function setRemoteDB(treeId) {
-  TREE_ID = treeId;
-  remoteDB.transform(
-    { outgoing: (doc) => {
-        if (doc._id.startsWith(TREE_ID+"/")) {
-          doc._id = doc._id.slice(TREE_ID.length + 1);
-        }
-        return doc;
-      }
-    , incoming: (doc) => {
-        doc._id = TREE_ID + "/" + doc._id;
-        return doc;
-      }
-    });
+  remoteDB = new PouchDB(userDbUrl, remoteOpts);
+  self.db = new PouchDB(userDbName)
 };
 
 // ============ END SYNC ====================
-
-container.msgWas("main:database-close", async () => {
-  await db.close();
-});
-container.msgWas("main:database-open", async () => {
-  self.db = new PouchDB(docState.dbPath[0]);
-});
-
 
 function toElm (tag, data) {
   gingko.ports.infoForElm.send({tag: tag, data: data});
@@ -183,7 +158,6 @@ function toElm (tag, data) {
 /* === Elm to JS Ports === */
 
 const update = (msg, data) => {
-  console.debug("From Elm", msg, data);
   let cases =
     {
       // === Dialogs, Menus, Window State ===
@@ -213,16 +187,14 @@ const update = (msg, data) => {
 
       // === Database ===
     , "InitDocument": async () => {
-        self.db = new PouchDB(data);
+        TREE_ID = data;
         localStore.db(data);
-        setRemoteDB(data);
         initMetadata(data);
     }
 
     , "LoadDocument": async () => {
-        self.db = new PouchDB(data);
+        TREE_ID = data;
         localStore.db(data);
-        setRemoteDB(data);
         loadMetadata();
         pull(true); // load local
         pull(false); // sync remote
@@ -256,20 +228,23 @@ const update = (msg, data) => {
         const newTreeObjects = data.treeObjects.filter( o => !savedObjectIds.includes(o._id));
 
         // Remove conflicts if head is updated
-        let savedHead = await db.get("heads/master", {conflicts: true}).catch(async e => e);
+        let savedHead = await db.get(prefix("heads/master"), {conflicts: true}).catch(async e => e);
         if (savedHead.hasOwnProperty("_conflicts")) {
           let revToDelete = savedHead._conflicts[0];
-          let delRes = await db.remove("heads/master", revToDelete);
+          let delRes = await db.remove(prefix("heads/master"), revToDelete);
         }
 
         // Save to database, and add successes to savedObjectIds.
-        const toSave = [...newCommits, ...newTreeObjects, ...data.refs];
+        const rows = [...newCommits, ...newTreeObjects, ...data.refs];
+        const toSave = rows.map(r =>{r._id = prefix(r._id); return r;} );
         const responses = await db.bulkDocs(toSave);
         const savedIds = responses.filter(r => r.ok).map(o => o.id);
         savedObjectIds = savedObjectIds.concat(savedIds);
 
         // Send updated _revs for successful ref saves.
-        const savedRefs = responses.filter(r => refIds.includes(r.id) && r.ok);
+        const savedRefs = responses
+                            .map(r => {r.id = unprefix(r.id); return r })
+                            .filter(r => refIds.includes(r.id) && r.ok);
         toElm("DataSaved", savedRefs);
       }
 
@@ -381,10 +356,12 @@ const update = (msg, data) => {
 
       // === UI ===
     , "SaveMetadata": async () => {
+        data._id = prefix(data._id);
         let saveRes = await db.put(data).catch(async e => e);
         if (saveRes.ok) {
-          await db.replicate.to(remoteDB, {doc_ids: ["metadata"]});
+          await db.replicate.to(remoteDB, {doc_ids: [prefix("metadata")]});
           data._rev = saveRes.rev;
+          data._id = unprefix(data._id);
           toElm("MetadataSaved", data);
         } else {
           console.error(data, saveRes);
@@ -510,7 +487,7 @@ async function loadUserStore() {
 
 async function initMetadata(docId) {
   const now = Date.now();
-  let metadata = {_id : "metadata", docId: docId, name: null, createdAt: now, updatedAt: now};
+  let metadata = {_id : docId+"/metadata", docId: docId, name: null, createdAt: now, updatedAt: now};
   await db.put(metadata).catch(async e => e);
 }
 
@@ -524,7 +501,7 @@ async function loadMetadata() {
 
 async function pull(isNew) {
   // Get local head before replication.
-  let localHead = await db.get("heads/master").catch(async (e) => e);
+  let localHead = await db.get(prefix("heads/master")).catch(async (e) => e);
 
   // Fetch remote changes for current document.
   if (!isNew) {
@@ -533,18 +510,19 @@ async function pull(isNew) {
   }
 
   // Get all local entries in db, and format in object to send to Elm.
-  let result = await db.allDocs({include_docs: true})
+  let result = await db.allDocs({include_docs: true, startkey: TREE_ID+"/", endkey: TREE_ID+"/\ufff0"})
+  let mappedDocs = result.rows.map(r => {r.doc._id = unprefix(r.doc._id); return r.doc;});
   let groupFn = r => r.hasOwnProperty("type") ? r.type : r._id;
-  let toSend = _.groupBy(result.rows.map(r => r.doc), groupFn);
+  let toSend = _.groupBy(mappedDocs, groupFn);
 
   // Get new head, or possible conflict/branching history.
-  let newHead = await db.get("heads/master", {conflicts: true}).catch(async (e) => e);
+  let newHead = await db.get(prefix("heads/master"), {conflicts: true}).catch(async (e) => e);
 
   // Add conflicts to data to be sent.
   if (newHead.hasOwnProperty("_conflicts")) {
-    let conflictHead = await db.get("heads/master", {rev: newHead._conflicts[0]});
+    let conflictHead = await db.get(prefix("heads/master"), {rev: newHead._conflicts[0]});
     if (_.isEqual(localHead, conflictHead)) {
-      let setHead = (r) => { return (r._id == "heads/master" ? conflictHead : r); }
+      let setHead = (r) => { return (r._id == prefix("heads/master") ? conflictHead : r); }
       toSend.ref = toSend.ref.map(setHead);
       toSend.conflict = newHead;
     } else {
@@ -560,11 +538,21 @@ async function pull(isNew) {
 
 
 async function push() {
-  let pushRes = await db.replicate.to(remoteDB).catch(async (e) => e);
+  let selector = { "_id": { "$regex": `${TREE_ID}/` } };
+  await db.replicate.to(remoteDB, {selector}).catch(async (e) => e);
 }
 
 
 /* === Local Functions === */
+
+
+function prefix(id) {
+  return TREE_ID+"/"+id;
+}
+
+function unprefix(id) {
+  return id.slice(TREE_ID.length + 1);
+}
 
 
 const saveErrorAlert = (err) => {
