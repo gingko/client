@@ -91,7 +91,6 @@ function setUserDbs(email) {
   console.log("Inside setUserDbs", email, helpers.toHex(email));
   const userDbName = `userdb-${helpers.toHex(email)}`;
   let userDbUrl = config.COUCHDB_SERVER + "/" + userDbName;
-  userStore.db(email, userDbUrl);
   var remoteOpts =
     { skip_setup: true
     , fetch(url, opts){
@@ -100,6 +99,7 @@ function setUserDbs(email) {
     };
   remoteDB = new PouchDB(userDbUrl, remoteOpts);
   self.db = new PouchDB(userDbName)
+  userStore.db(db, remoteDB);
 };
 
 
@@ -135,15 +135,17 @@ const fromElm = (msg, data) => {
       // === Database ===
     , "InitDocument": async () => {
         TREE_ID = data;
-        localStore.db(data);
+        localStore.db(db, data);
+
         const now = Date.now();
         let metadata = {_id : docId+"/metadata", docId: docId, name: null, createdAt: now, updatedAt: now};
         await db.put(metadata).catch(async e => e);
+        loadLocalStore();
     }
 
     , "LoadDocument": async () => {
         TREE_ID = data;
-        localStore.db(data);
+        localStore.db(db, data);
 
         let metadata = await db.get("metadata").catch(async e => e);
         if (!metadata.error) {
@@ -152,6 +154,7 @@ const fromElm = (msg, data) => {
 
         pull(true); // load local
         pull(false); // sync remote
+        loadLocalStore();
       }
 
     , "RequestDelete": async () => {
@@ -373,7 +376,7 @@ async function push() {
 }
 
 
-/* === Local Functions === */
+/* === Helper Functions === */
 
 
 function prefix(id) {
@@ -390,51 +393,10 @@ const saveErrorAlert = (err) => {
 };
 
 
-function setLastActive (filepath, lastActiveCard) {
-  if (typeof filepath === "string") {
-    userStore.set(`last-active-cards.${filepath.replace(".","\\.")}`, lastActiveCard);
-  }
-}
-
-
-function getLastActive (filepath) {
-  if (typeof filepath === "string") {
-    let lastActiveCard = userStore.get(`last-active-cards.${filepath.replace(".","\\.")}`);
-    if (typeof lastActiveCard === "string") {
-      return lastActiveCard;
-    } else {
-      return "1";
-    }
-  } else {
-    return "1";
-  }
-}
-
-
-function setFonts (filepath, fonts) {
-  if (typeof filepath === "string") {
-    userStore.set(`fonts.${filepath.replace(".","\\.")}`, fonts);
-  }
-}
-
-
-function getFonts (filepath) {
-  if (typeof filepath === "string") {
-    let fonts = userStore.get(`fonts.${filepath.replace(".","\\.")}`);
-    if (Array.isArray(fonts) && fonts.length == 3) {
-      return fonts;
-    } else {
-      return null;
-    }
-  } else {
-    return null;
-  }
-}
-
-
 
 
 /* === DOM Events and Handlers === */
+
 
 // Prevent default events, for file dragging.
 document.ondragover = document.ondrop = (ev) => {

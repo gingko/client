@@ -6,9 +6,9 @@ var userStoreLocal;
 var userStoreRemote;
 const userSettingsId = "settings";
 const userStore =
-  { db : (email, remoteDB) => {
-      userStoreLocal = new PouchDB(`settings_for_${email}`);
-      userStoreRemote = new PouchDB(remoteDB);
+  { db : (localDB, remoteDB) => {
+      userStoreLocal = localDB;
+      userStoreRemote = remoteDB;
     }
   , load : async () => {
       let store = await userStoreRemote.get(userSettingsId).catch(() => {return {_id : userSettingsId}});
@@ -27,8 +27,7 @@ const userStore =
       store[key] = value;
       let putRes = await userStoreRemote.put(store).catch(async (e) => e);
       if (putRes.ok) {
-        var selector = {_id: userSettingsId };
-        userStoreLocal.replicate.from(userStoreRemote, { selector });
+        userStoreLocal.replicate.from(userStoreRemote, { doc_ids: [userSettingsId] });
       }
       return putRes;
     }
@@ -36,9 +35,10 @@ const userStore =
 
 
 var localDB;
-const localStoreId = "_local/store";
+var localStoreId;
+var treeId;
 const localStore =
-  { db : (dbName) => { localDB = new PouchDB(dbName); }
+  { db : (db, tree_id) => { localDB = db; treeId = tree_id; localStoreId = `_local/${tree_id}/settings`; }
   , load : async () => {
       let store = await localDB.get(localStoreId).catch(() => {return {_id : localStoreId}});
       return _.omit(store, ["_id", "_rev"]);

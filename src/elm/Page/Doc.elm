@@ -655,6 +655,7 @@ update msg ({ workingTree } as model) =
                             Cmd.none
                         ]
                     )
+                        |> activate model.viewState.active
                         |> maybeColumnsChanged model.workingTree.columns
 
                 UserStoreLoaded dataIn ->
@@ -679,7 +680,7 @@ update msg ({ workingTree } as model) =
                 LocalStoreLoaded dataIn ->
                     case Json.decodeValue (Json.field "last-active" Json.string) dataIn of
                         Ok lastActive ->
-                            ( model, Cmd.none ) |> activate lastActive
+                            ( { model | viewState = { vs | active = lastActive } }, Cmd.none )
 
                         Err _ ->
                             ( model, Cmd.none )
