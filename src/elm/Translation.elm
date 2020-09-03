@@ -11,10 +11,13 @@ type TranslationId
     | HomeBlank
     | HomeImportJSON
     | HomeJSONFrom
+    | HomeImportLegacy
+    | HomeLegacyFrom
     | RecentDocuments
     | LastUpdated
     | LastOpened
     | OpenOtherDocuments
+    | DeleteDocument
     | RemoveFromList
     | NeverSaved
     | UnsavedChanges
@@ -141,6 +144,22 @@ tr lang trans =
                     , sv = "Från Skrivbordsmiljö till Online"
                     }
 
+                HomeImportLegacy ->
+                    { en = "Import Backup"
+                    , zh = ""
+                    , es = ""
+                    , fr = ""
+                    , sv = ""
+                    }
+
+                HomeLegacyFrom ->
+                    { en = "From gingkoapp.com \"Backup All\""
+                    , zh = ""
+                    , es = ""
+                    , fr = ""
+                    , sv = ""
+                    }
+
                 RecentDocuments ->
                     { en = "Recent Documents"
                     , zh = "最近的文档"
@@ -171,6 +190,14 @@ tr lang trans =
                     , es = "Abrir Otros Documentos"
                     , fr = ""
                     , sv = "Öppna andra dokument"
+                    }
+
+                DeleteDocument ->
+                    { en = "Delete Document"
+                    , zh = ""
+                    , es = ""
+                    , fr = ""
+                    , sv = ""
                     }
 
                 RemoveFromList ->

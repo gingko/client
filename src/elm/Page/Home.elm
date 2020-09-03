@@ -174,6 +174,9 @@ update msg model =
         ( Port ImportComplete, ImportSaving _ pageData ) ->
             ( Loading pageData, getDocumentList pageData.session )
 
+        ( Tick _, ImportSelecting _ _ ) ->
+            ( model, Cmd.none )
+
         _ ->
             updatePageData msg (getData model)
                 |> Tuple.mapFirst Loaded
@@ -281,7 +284,7 @@ view : Model -> Html Msg
 view model =
     case model of
         ImportSelecting selectionList pageData ->
-            div []
+            div [ id "import-selecting" ]
                 [ h1 [] [ text "This is the home page" ]
                 , ul [] (List.map viewSelectionEntry selectionList)
                 , button [ onClick ImportSelectionDone ] [ text "Import Trees..." ]
@@ -320,9 +323,9 @@ viewHome { language, languageMenu, currentTime, documents } =
                 ]
             , div [ id "template-import", class "template-item", onClick ImportFileRequested ]
                 [ div [ classList [ ( "template-thumbnail", True ), ( "import", True ) ] ] [ Icon.file (Icon.defaultOptions |> Icon.size 48) ]
-                , div [ class "template-title" ] [ text <| tr language HomeImportJSON ]
+                , div [ class "template-title" ] [ text <| tr language HomeImportLegacy ]
                 , div [ class "template-description" ]
-                    [ text <| tr language HomeJSONFrom ]
+                    [ text <| tr language HomeLegacyFrom ]
                 ]
             ]
         , div [ id "documents-block" ]
@@ -408,7 +411,7 @@ viewDocumentItem lang currTime metadata =
 
         buttons =
             [ div
-                [ onClickThis (DeleteDoc docId), title <| tr lang RemoveFromList ]
+                [ onClickThis (DeleteDoc docId), title <| tr lang DeleteDocument ]
                 [ Icon.x Icon.defaultOptions ]
             ]
     in

@@ -64,6 +64,12 @@ label {
   min-height: 150px;
 }
 
+#import-selecting {
+  position: fixed;
+  height: 100%;
+  overflow-y: scroll;
+}
+
 #buttons-block {
   position: relative;
   display: flex;
