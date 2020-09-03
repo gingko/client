@@ -1146,23 +1146,31 @@ update msg ({ workingTree } as model) =
 
 
 activate : String -> Bool -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-activate id instant ( model, prevCmd ) =
+activate tryId instant ( model, prevCmd ) =
     let
         vs =
             model.viewState
     in
-    if id == "0" then
+    if tryId == "0" then
         ( model
         , prevCmd
         )
 
     else
         let
+            activeTree__ =
+                getTree tryId model.workingTree.tree
+
             activeTree_ =
-                getTree id model.workingTree.tree
+                case activeTree__ of
+                    Just aTree ->
+                        Just aTree
+
+                    Nothing ->
+                        getFirstCard model.workingTree.tree
 
             newPast =
-                if id == vs.active then
+                if tryId == vs.active then
                     vs.activePast
 
                 else
@@ -1171,6 +1179,9 @@ activate id instant ( model, prevCmd ) =
         case activeTree_ of
             Just activeTree ->
                 let
+                    id =
+                        activeTree.id
+
                     desc =
                         activeTree
                             |> getDescendants
@@ -2075,7 +2086,7 @@ dataReceived dataIn model =
     )
         |> maybeColumnsChanged model.workingTree.columns
         |> (if model.loading then
-                activate model.viewState.active True
+                activate (model.viewState.active |> Debug.log "received activate") True
 
             else
                 identity

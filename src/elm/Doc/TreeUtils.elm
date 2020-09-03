@@ -1,4 +1,4 @@
-module Doc.TreeUtils exposing (centerlineIds, dictUpdate, getAncestors, getChildren, getColumn, getColumnById, getColumns, getContent, getDepth, getDescendants, getFirstInColumn, getIndex, getLastInColumn, getNext, getNextInColumn, getParent, getPrev, getPrevInColumn, getPrevNext, getPrevNextInColumn, getSiblings, getTree, getTreeWithPosition, newLine, sha1, withIdTree)
+module Doc.TreeUtils exposing (centerlineIds, dictUpdate, getAncestors, getChildren, getColumn, getColumnById, getColumns, getContent, getDepth, getDescendants, getFirstCard, getFirstInColumn, getIndex, getLastInColumn, getNext, getNextInColumn, getParent, getPrev, getPrevInColumn, getPrevNext, getPrevNextInColumn, getSiblings, getTree, getTreeWithPosition, newLine, sha1, withIdTree)
 
 import Dict exposing (..)
 import List.Extra as ListExtra
@@ -287,6 +287,16 @@ getDepth prev tree id =
                     |> List.map (\a -> getDepth (prev + 1) a id)
                     |> List.maximum
                     |> Maybe.withDefault 0
+
+
+getFirstCard : Tree -> Maybe Tree
+getFirstCard tree =
+    case tree.children of
+        Children (fst :: _) ->
+            Just fst
+
+        Children [] ->
+            Nothing
 
 
 
