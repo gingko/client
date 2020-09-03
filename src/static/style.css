@@ -142,11 +142,26 @@ body {
   margin: 0;
   padding: 0;
   display: flex;
-  background: url('./concrete_wall.png');
+  background: url('./concrete_wall.png'), rgb(50, 89, 107);
 }
 
 body {
   overflow: hidden;
+}
+
+#loading-overlay {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: rgb(50, 89, 107);
+  animation: fadeOut 0.5s;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to   { opacity: 0; }
 }
 
 ::selection { background: #9fe147; }

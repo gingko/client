@@ -628,14 +628,6 @@ update msg ({ workingTree } as model) =
                     , sendOut <| Pull
                     )
 
-                DataLoaded dataIn ->
-                    let
-                        ( newModel, newCmds ) =
-                            dataReceived dataIn model
-                    in
-                    ( newModel, newCmds )
-                        |> activate newModel.viewState.active True
-
                 DataReceived dataIn ->
                     dataReceived dataIn model
 
@@ -2087,6 +2079,12 @@ dataReceived dataIn model =
         ]
     )
         |> maybeColumnsChanged model.workingTree.columns
+        |> (if model.loading then
+                activate model.viewState.active True
+
+            else
+                identity
+           )
 
 
 sendCollabState : CollabState -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -2112,7 +2110,7 @@ toggleVideoModal shouldOpen ( model, prevCmd ) =
 view : Model -> Html Msg
 view model =
     if model.loading then
-        h1 [] [ text "Loading..." ]
+        div [ id "loading-overlay" ] []
 
     else
         viewLoaded model
@@ -2180,6 +2178,7 @@ pre, code, .group.has-active .card textarea {
                     , viewVideo VideoModal model
                     , styleNode
                     , a [ style "z-index" "9999999999", href "/" ] [ text "home" ]
+                    , div [ id "loading-overlay" ] []
                     ]
 
         conflicts ->

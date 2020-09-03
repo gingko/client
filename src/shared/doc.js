@@ -45,10 +45,10 @@ async function initElmAndPorts() {
   const sessionData = localStorage.getItem(sessionStorageKey) || null;
   if (sessionData) {
     setUserDbs(sessionData);
+    let store = await userStore.load();
+    lang = store.language;
   }
 
-  let store = await userStore.load();
-  lang = store.language;
 
   const initFlags = { session : sessionData, language: "en" };
 
@@ -326,7 +326,7 @@ const fromElm = (msg, data) => {
 
 async function load() {
   let toSend = await loadDocData();
-  toElm("DataLoaded", toSend);
+  if (toSend.refs) { toElm("DataReceived", toSend); }
 }
 
 
