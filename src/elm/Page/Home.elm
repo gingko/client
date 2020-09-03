@@ -124,10 +124,6 @@ update msg model =
                     ( ImportSelecting listWithSelectState pageData, Cmd.none )
 
                 Err err ->
-                    let
-                        _ =
-                            Debug.log "err" err
-                    in
                     ( model, Cmd.none )
 
         ( ImportTreeSelected treeId isSelected, ImportSelecting selectList pageData ) ->

@@ -1,6 +1,7 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
+const TerserPlugin = require("terser-webpack-plugin");
 const merge = require("webpack-merge");
 
 
@@ -9,7 +10,7 @@ const merge = require("webpack-merge");
 
 const webConfig = {
   // "production" or "development" flag.
-  mode: "development",
+  mode: "production",
 
   target: "web",
 
@@ -44,7 +45,7 @@ const webConfig = {
         exclude: [/elm-stuff/, /node_modules/],
         use: {
           loader: "elm-webpack-loader",
-          options: {debug: true, verbose: true, pathToElm: "./elm-log-colors.sh"}
+          options: {verbose: true, pathToElm: "./elm-log-colors.sh"}
         }
       },
       {

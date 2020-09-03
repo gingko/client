@@ -1,4 +1,4 @@
-port module Ports exposing (ExportFormat(..), ExportSelection(..), ExportSettings, IncomingMsg(..), OutgoingMsg(..), encodeAndSend, infoForElm, infoForOutside, receiveMsg, sendOut, unionTypeToString)
+port module Ports exposing (ExportFormat(..), ExportSelection(..), ExportSettings, IncomingMsg(..), OutgoingMsg(..), infoForElm, infoForOutside, receiveMsg, sendOut)
 
 import Coders exposing (..)
 import Doc.Fonts as Fonts
@@ -116,52 +116,48 @@ type ExportSelection
 
 sendOut : OutgoingMsg -> Cmd msg
 sendOut info =
-    let
-        dataToSend =
-            encodeAndSend info
-    in
     case info of
         -- === Dialogs, Menus, Window State ===
         Alert str ->
-            dataToSend (string str)
+            dataToSend "Alert" (string str)
 
         SetChanged changed ->
-            dataToSend (bool changed)
+            dataToSend "SetChanged" (bool changed)
 
         ConfirmCancelCard id origContent ->
-            dataToSend (list string [ id, origContent ])
+            dataToSend "ConfirmCancelCard" (list string [ id, origContent ])
 
         ColumnNumberChange cols ->
-            dataToSend (int cols)
+            dataToSend "ColumnNumberChange" (int cols)
 
         -- === Database ===
         SaveData data ->
-            dataToSend data
+            dataToSend "SaveData" data
 
         SaveImportedData data ->
-            dataToSend data
+            dataToSend "SaveImportedData" data
 
         InitDocument dbName ->
-            dataToSend (string dbName)
+            dataToSend "InitDocument" (string dbName)
 
         LoadDocument dbName ->
-            dataToSend (string dbName)
+            dataToSend "LoadDocument" (string dbName)
 
         RequestDelete dbName ->
-            dataToSend (string dbName)
+            dataToSend "RequestDelete" (string dbName)
 
         NoDataToSave ->
-            dataToSend null
+            dataToSend "NoDataToSave" null
 
         Push ->
-            dataToSend null
+            dataToSend "Push" null
 
         Pull ->
-            dataToSend null
+            dataToSend "Pull" null
 
         -- === File System ===
         ExportDOCX str path_ ->
-            dataToSend
+            dataToSend "ExportDOCX"
                 (object
                     [ ( "data", string str )
                     , ( "filepath", maybe string path_ )
@@ -169,7 +165,7 @@ sendOut info =
                 )
 
         ExportJSON tree path_ ->
-            dataToSend
+            dataToSend "ExportJSON"
                 (object
                     [ ( "data", treeToJSON tree )
                     , ( "filepath", maybe string path_ )
@@ -177,32 +173,28 @@ sendOut info =
                 )
 
         ExportTXT withRoot tree path_ ->
-            dataToSend
+            dataToSend "ExportTXT"
                 (object
                     [ ( "data", treeToMarkdown withRoot tree )
                     , ( "filepath", maybe string path_ )
                     ]
                 )
 
-        -- ExportTXTColumn is handled by 'ExportTXT' in JS
-        -- So we use the "ExportTXT" tag here, instead of `dataToSend`
         ExportTXTColumn col tree path_ ->
-            infoForOutside
-                { tag = "ExportTXT"
-                , data =
-                    object
-                        [ ( "data"
-                          , tree
-                                |> getColumn col
-                                |> Maybe.withDefault [ [] ]
-                                |> List.concat
-                                |> List.map .content
-                                |> String.join "\n\n"
-                                |> string
-                          )
-                        , ( "filepath", maybe string path_ )
-                        ]
-                }
+            dataToSend "ExportTXT"
+                (object
+                    [ ( "data"
+                      , tree
+                            |> getColumn col
+                            |> Maybe.withDefault [ [] ]
+                            |> List.concat
+                            |> List.map .content
+                            |> String.join "\n\n"
+                            |> string
+                      )
+                    , ( "filepath", maybe string path_ )
+                    ]
+                )
 
         -- === DOM ===
         ActivateCards ( cardId, col, lastActives ) instant ->
@@ -210,7 +202,7 @@ sendOut info =
                 listListStringToValue lls =
                     list (list string) lls
             in
-            dataToSend
+            dataToSend "ActivateCards"
                 (object
                     [ ( "cardId", string cardId )
                     , ( "column", int col )
@@ -220,17 +212,17 @@ sendOut info =
                 )
 
         FlashCurrentSubtree ->
-            dataToSend null
+            dataToSend "FlashCurrentSubtree" null
 
         TextSurround id str ->
-            dataToSend (list string [ id, str ])
+            dataToSend "TextSurround" (list string [ id, str ])
 
         SetCursorPosition pos ->
-            dataToSend (int pos)
+            dataToSend "SetCursorPosition" (int pos)
 
         -- === UI ===
         SaveMetadata metadata ->
-            dataToSend metadata
+            dataToSend "SaveMetadata" metadata
 
         UpdateCommits ( objectsValue, head_ ) ->
             let
@@ -242,23 +234,23 @@ sendOut info =
                         Nothing ->
                             null
             in
-            dataToSend (tupleToValue identity ( objectsValue, headToValue head_ ))
+            dataToSend "UpdateCommits" (tupleToValue identity ( objectsValue, headToValue head_ ))
 
         SetVideoModal isOpen ->
-            dataToSend (bool isOpen)
+            dataToSend "SetVideoModal" (bool isOpen)
 
         SetFonts fontSettings ->
-            dataToSend (fontSettingsEncoder fontSettings)
+            dataToSend "SetFonts" (fontSettingsEncoder fontSettings)
 
         SetShortcutTray isOpen ->
-            dataToSend (bool isOpen)
+            dataToSend "SetShortcutTray" (bool isOpen)
 
         -- === Misc ===
         SocketSend collabState ->
-            dataToSend (collabStateToValue collabState)
+            dataToSend "SocketSend" (collabStateToValue collabState)
 
         ConsoleLogRequested err ->
-            dataToSend (string err)
+            dataToSend "ConsoleLogRequested" (string err)
 
 
 receiveMsg : (IncomingMsg -> msg) -> (String -> msg) -> Sub msg
@@ -401,26 +393,13 @@ receiveMsg tagger onError =
                             onError (errorToString e)
 
                 _ ->
-                    onError <| "Unexpected info from outside: " ++ Debug.toString outsideInfo
+                    onError <| "Unexpected info from outside: " ++ outsideInfo.tag
         )
 
 
-encodeAndSend : OutgoingMsg -> Enc.Value -> Cmd msg
-encodeAndSend info data =
-    let
-        tagName =
-            unionTypeToString info
-    in
+dataToSend : String -> Enc.Value -> Cmd msg
+dataToSend tagName data =
     infoForOutside { tag = tagName, data = data }
-
-
-unionTypeToString : a -> String
-unionTypeToString ut =
-    ut
-        |> Debug.toString
-        |> String.words
-        |> List.head
-        |> Maybe.withDefault (ut |> Debug.toString)
 
 
 

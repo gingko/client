@@ -48,8 +48,8 @@ init flagsData url navKey =
         Ok flags ->
             changeRouteTo (Route.fromUrl url) (Redirect (Session.fromData navKey flags.session))
 
-        Err err ->
-            Debug.todo "flags decoding error" err
+        Err _ ->
+            changeRouteTo (Just Route.Login) (Redirect (Session.guest navKey))
 
 
 changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )

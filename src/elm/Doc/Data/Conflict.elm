@@ -1,5 +1,6 @@
-module Doc.Data.Conflict exposing (Conflict, Op(..), Selection(..))
+module Doc.Data.Conflict exposing (Conflict, Op(..), Selection(..), conflictWithSha, opString)
 
+import Doc.TreeUtils exposing (sha1)
 import Json.Decode as Dec exposing (Decoder)
 import Json.Encode as Enc
 
@@ -25,6 +26,59 @@ type Op
     | Mod String (List String) String String
     | Del String (List String)
     | Mov String (List String) Int (List String) Int
+
+
+conflictWithSha : Conflict -> Conflict
+conflictWithSha { opA, opB, selection, resolved } =
+    Conflict
+        (String.join "\n"
+            [ opString opA
+            , opString opB
+            , selString selection
+            , if resolved then
+                "True"
+
+              else
+                "False"
+            ]
+            |> sha1
+        )
+        opA
+        opB
+        selection
+        resolved
+
+
+opString : Op -> String
+opString op =
+    case op of
+        Ins st1 st2 strs int ->
+            String.join "\n" ([ "Ins", st1, st2 ] ++ strs ++ [ String.fromInt int ])
+
+        Mod st1 strs st2 st3 ->
+            String.join "\n" ([ "Mod", st1 ] ++ strs ++ [ st2, st3 ])
+
+        Del st1 strs ->
+            String.join "\n" ([ "Del", st1 ] ++ strs)
+
+        Mov st1 strs int strs2 int2 ->
+            String.join "\n" ([ "Mov", st1 ] ++ strs ++ [ String.fromInt int ] ++ strs2 ++ [ String.fromInt int2 ])
+
+
+selString : Selection -> String
+selString selection =
+    case selection of
+        Ours ->
+            "ours"
+
+        Theirs ->
+            "theirs"
+
+        Original ->
+            "original"
+
+        Manual ->
+            "manual"
 
 
 
@@ -96,18 +150,7 @@ opDecoder =
 
 selectionToValue : Selection -> Enc.Value
 selectionToValue selection =
-    case selection of
-        Ours ->
-            "ours" |> Enc.string
-
-        Theirs ->
-            "theirs" |> Enc.string
-
-        Original ->
-            "original" |> Enc.string
-
-        Manual ->
-            "manual" |> Enc.string
+    selString selection |> Enc.string
 
 
 selectionDecoder : Decoder Selection

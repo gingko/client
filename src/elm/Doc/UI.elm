@@ -6,7 +6,7 @@ import Dict
 import Diff exposing (..)
 import Doc.CustomElements exposing (gitgraph)
 import Doc.Data as Data
-import Doc.Data.Conflict as Conflict exposing (Conflict, Op(..), Selection(..))
+import Doc.Data.Conflict as Conflict exposing (Conflict, Op(..), Selection(..), opString)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Html exposing (Html, a, button, del, div, fieldset, h1, iframe, input, ins, label, li, span, text, ul)
@@ -143,7 +143,7 @@ viewFooter wordCountToggle shortcutToggle model =
             14
                 * n
                 + 6
-                |> Debug.toString
+                |> String.fromInt
                 |> (\s -> s ++ "px")
     in
     div
@@ -169,12 +169,12 @@ viewHistory noopMsg checkoutMsg restoreMsg cancelMsg lang currHead dataModel =
                     []
 
         maxIdx =
-            historyList |> List.length |> (\x -> x - 1) |> Debug.toString
+            historyList |> List.length |> (\x -> x - 1) |> String.fromInt
 
         currIdx =
             historyList
                 |> ListExtra.elemIndex currHead
-                |> Maybe.map Debug.toString
+                |> Maybe.map String.fromInt
                 |> Maybe.withDefault maxIdx
 
         checkoutCommit idxStr =
@@ -360,8 +360,8 @@ viewWordcountProgress current session =
     in
     div [ id "wc-progress" ]
         [ div [ id "wc-progress-wrap" ]
-            [ span [ style "flex" (Debug.toString currW), id "wc-progress-bar" ] []
-            , span [ style "flex" (Debug.toString sessW), id "wc-progress-bar-session" ] []
+            [ span [ style "flex" (String.fromFloat currW), id "wc-progress-bar" ] []
+            , span [ style "flex" (String.fromFloat sessW), id "wc-progress-bar-session" ] []
             ]
         ]
 
@@ -452,8 +452,8 @@ viewConflict setSelectionMsg resolveMsg { id, opA, opB, selection, resolved } =
                 []
                 [ fieldset []
                     [ radio (setSelectionMsg id Original "") (selection == Original) (text "Original")
-                    , radio (setSelectionMsg id Ours cardIdA) (selection == Ours) (text ("Ours:" ++ (Debug.toString opA |> String.left 3)))
-                    , radio (setSelectionMsg id Theirs cardIdB) (selection == Theirs) (text ("Theirs:" ++ (Debug.toString opB |> String.left 3)))
+                    , radio (setSelectionMsg id Ours cardIdA) (selection == Ours) (text ("Ours:" ++ (opString opA |> String.left 3)))
+                    , radio (setSelectionMsg id Theirs cardIdB) (selection == Theirs) (text ("Theirs:" ++ (opString opB |> String.left 3)))
                     , label []
                         [ input [ checked resolved, type_ "checkbox", onClick (resolveMsg id) ] []
                         , text "Resolved"

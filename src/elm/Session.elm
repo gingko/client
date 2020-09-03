@@ -1,4 +1,4 @@
-port module Session exposing (Session, changes, fromData, loggedIn, logout, navKey, save, userDb, username)
+port module Session exposing (Session, changes, fromData, guest, loggedIn, logout, navKey, save, userDb, username)
 
 import Browser.Navigation as Nav
 import Json.Decode as Json
@@ -72,6 +72,11 @@ sessionDecoder key json =
 
         Err _ ->
             Guest key
+
+
+guest : Nav.Key -> Session
+guest key =
+    Guest key
 
 
 

@@ -3,7 +3,7 @@ module Doc.Data exposing (Data, Model, checkout, commit, commitTree, conflictLis
 import Coders exposing (tupleDecoder)
 import Dict exposing (Dict)
 import Diff3 exposing (diff3Merge)
-import Doc.Data.Conflict exposing (Conflict, Op(..), Selection(..))
+import Doc.Data.Conflict exposing (Conflict, Op(..), Selection(..), conflictWithSha, opString)
 import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.TreeStructure exposing (apply, defaultTree, opToMsg)
 import Doc.TreeUtils exposing (sha1)
@@ -153,10 +153,6 @@ received json ( oldModel, oldTree ) =
                     }
 
         Err err ->
-            let
-                _ =
-                    Debug.log "error" err
-            in
             { newModel = oldModel, newTree = oldTree, shouldPush = False }
 
 
@@ -386,18 +382,8 @@ generateCommitSha : CommitObject -> String
 generateCommitSha commitObj =
     (commitObj.tree ++ "\n")
         ++ (commitObj.parents |> String.join "\n")
-        ++ (commitObj.author ++ " " ++ (commitObj.timestamp |> Debug.toString))
+        ++ (commitObj.author ++ " " ++ (commitObj.timestamp |> String.fromInt))
         |> sha1
-
-
-conflictWithSha : Conflict -> Conflict
-conflictWithSha { id, opA, opB, selection, resolved } =
-    Conflict
-        (String.join "\n" [ Debug.toString opA, Debug.toString opB, Debug.toString selection, Debug.toString resolved ] |> sha1)
-        opA
-        opB
-        selection
-        resolved
 
 
 
@@ -446,17 +432,17 @@ merge aSha bSha oldTree data =
                     MergeConflict data { localHead = aSha, remoteHead = bSha, conflicts = conflicts, mergedTree = mTree }
 
             ( Nothing, Just _, Just _ ) ->
-                Debug.todo "failed merge, no common ancestor found."
+                Clean data
 
             _ ->
-                Debug.todo "failed merge"
+                Clean data
 
 
 mergeTreeStructure : Tree -> Tree -> Tree -> ( Tree, List Conflict )
 mergeTreeStructure oTree aTree bTree =
     let
         ( cleanOps, conflicts ) =
-            getConflicts (getOps oTree aTree |> Debug.log "aTree ops") (getOps oTree bTree |> Debug.log "bTree ops")
+            getConflicts (getOps oTree aTree) (getOps oTree bTree)
     in
     ( treeFromOps oTree cleanOps, conflicts )
 
@@ -632,7 +618,7 @@ getConflicts opsA opsB =
         |> List.foldl
             (\( os, cs ) ( osAcc, csAcc ) -> ( osAcc ++ os, csAcc ++ cs ))
             ( [], [] )
-        |> (\( os, cs ) -> ( os |> ListExtra.uniqueBy Debug.toString, cs |> ListExtra.uniqueBy Debug.toString ))
+        |> (\( os, cs ) -> ( os |> ListExtra.uniqueBy opString, cs |> ListExtra.uniqueBy .id ))
 
 
 

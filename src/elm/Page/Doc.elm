@@ -622,7 +622,7 @@ update msg ({ workingTree } as model) =
                     in
                     ( { model
                         | data = newData
-                        , lastLocalSave = Data.lastCommitTime newData |> Maybe.map Time.millisToPosix |> Debug.log "lastLocalSave"
+                        , lastLocalSave = Data.lastCommitTime newData |> Maybe.map Time.millisToPosix
                         , dirty = False
                       }
                     , sendOut <| Pull
@@ -1078,10 +1078,6 @@ update msg ({ workingTree } as model) =
                                     )
 
                         _ ->
-                            let
-                                _ =
-                                    Debug.log "unhandled shortcut" shortcut
-                            in
                             ( model
                             , Cmd.none
                             )
@@ -1591,7 +1587,7 @@ insert pid pos initText ( model, prevCmd ) =
             Random.step randomId model.seed
 
         newIdString =
-            "node-" ++ (newId |> Debug.toString)
+            "node-" ++ (newId |> String.fromInt)
     in
     ( { model
         | workingTree = TreeStructure.update (TreeStructure.Ins newIdString initText pid pos) model.workingTree
@@ -1959,7 +1955,6 @@ checkoutCommit commitSha ( model, prevCmd ) =
             ( model
             , prevCmd
             )
-                |> Debug.log "failed to load commit"
 
 
 
