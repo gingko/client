@@ -12,6 +12,7 @@ type TranslationId
     | HomeImportJSON
     | HomeJSONFrom
     | RecentDocuments
+    | LastUpdated
     | LastOpened
     | OpenOtherDocuments
     | RemoveFromList
@@ -146,6 +147,14 @@ tr lang trans =
                     , es = "Documentos Recientes"
                     , fr = ""
                     , sv = "Senaste dokumenten"
+                    }
+
+                LastUpdated ->
+                    { en = "Last Updated"
+                    , zh = ""
+                    , es = "Última Modificación"
+                    , fr = ""
+                    , sv = "Senast öppnade"
                     }
 
                 LastOpened ->

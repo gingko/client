@@ -1,21 +1,24 @@
 module Page.Home exposing (Model, Msg, init, subscriptions, toSession, update, view)
 
+import Date
 import Doc.Metadata as Metadata exposing (Metadata)
 import File exposing (File)
 import File.Select as Select
-import Html exposing (Html, a, button, div, h1, input, li, text, ul)
-import Html.Attributes exposing (checked, href, type_)
-import Html.Events exposing (onCheck, onClick)
+import Html exposing (Html, a, button, div, h1, h4, input, li, span, text, ul)
+import Html.Attributes exposing (checked, class, classList, href, id, title, type_)
+import Html.Events exposing (onCheck, onClick, stopPropagationOn)
 import Http
 import Import
 import Json.Decode as Dec
+import Octicons as Icon
 import Ports exposing (IncomingMsg(..), OutgoingMsg(..), receiveMsg, sendOut)
 import RandomId
 import Route
 import Session exposing (Session)
+import Strftime
 import Task
 import Time
-import Translation exposing (langFromString)
+import Translation exposing (..)
 import Types exposing (Tree)
 
 
@@ -46,6 +49,8 @@ type Model
 type alias PageData =
     { documents : List Metadata
     , language : Translation.Language
+    , languageMenu : Bool
+    , currentTime : Time.Posix
     , session : Session
     }
 
@@ -55,9 +60,14 @@ init session =
     ( Loading
         { documents = []
         , language = langFromString "en"
+        , languageMenu = False
+        , currentTime = Time.millisToPosix 0
         , session = session
         }
-    , getDocumentList session
+    , Cmd.batch
+        [ Task.perform Tick Time.now
+        , getDocumentList session
+        ]
     )
 
 
@@ -93,12 +103,16 @@ type Msg
     = ReceivedDocuments (Result Http.Error (List Metadata))
     | GetNewDocId
     | NewDocIdReceived String
+    | Open String
     | DeleteDoc String
     | ImportFileRequested
     | ImportFileSelected File
     | ImportTreeSelected String Bool
     | ImportFileLoaded String String
     | ImportSelectionDone
+    | ToggleLanguageMenu
+    | ChangeLanguage Language
+    | Tick Time.Posix
     | Port IncomingMsg
     | LogErr String
 
@@ -191,8 +205,17 @@ updatePageData msg model =
         NewDocIdReceived docId ->
             ( model, Route.replaceUrl (Session.navKey model.session) (Route.DocNew docId) )
 
+        Open docId ->
+            ( model, Route.pushUrl (Session.navKey model.session) (Route.DocUntitled docId) )
+
         DeleteDoc docId ->
             ( model, sendOut <| RequestDelete docId )
+
+        ToggleLanguageMenu ->
+            ( { model | languageMenu = not model.languageMenu }, Cmd.none )
+
+        ChangeLanguage lang ->
+            ( { model | language = lang }, Cmd.none )
 
         ImportFileRequested ->
             ( model, Select.file [ "text/*", "application/json" ] ImportFileSelected )
@@ -204,6 +227,9 @@ updatePageData msg model =
 
                 Nothing ->
                     ( model, Cmd.none )
+
+        Tick currTime ->
+            ( { model | currentTime = currTime }, Cmd.none )
 
         Port incomingMsg ->
             case incomingMsg of
@@ -254,22 +280,6 @@ getDocumentList session =
 view : Model -> Html Msg
 view model =
     case model of
-        Loading pageData ->
-            div []
-                [ h1 [] [ text "This is the home page" ]
-                , text "loading..."
-                , button [ onClick GetNewDocId ] [ text "New" ]
-                , button [ onClick ImportFileRequested ] [ text "Legacy Import" ]
-                ]
-
-        Loaded pageData ->
-            div []
-                [ h1 [] [ text "This is the home page" ]
-                , ul [] (List.map viewDocEntry pageData.documents)
-                , button [ onClick GetNewDocId ] [ text "New" ]
-                , button [ onClick ImportFileRequested ] [ text "Legacy Import" ]
-                ]
-
         ImportSelecting selectionList pageData ->
             div []
                 [ h1 [] [ text "This is the home page" ]
@@ -287,22 +297,127 @@ view model =
             div []
                 [ h1 [] [ text "This is the home page" ]
                 , h1 [] [ text err ]
-                , ul [] (List.map viewDocEntry pageData.documents)
-                , button [ onClick GetNewDocId ] [ text "New" ]
-                , button [ onClick ImportFileRequested ] [ text "Legacy Import" ]
                 ]
 
+        Loading pageData ->
+            viewHome pageData
 
-viewDocEntry : Metadata -> Html Msg
-viewDocEntry metadata =
+        Loaded pageData ->
+            viewHome pageData
+
+
+viewHome : PageData -> Html Msg
+viewHome { language, languageMenu, currentTime, documents } =
+    let
+        visibleWhen bool =
+            classList [ ( "visible", bool ), ( "hidden", not bool ) ]
+    in
+    div [ id "container" ]
+        [ div [ id "templates-block" ]
+            [ div [ id "template-new", class "template-item", onClick GetNewDocId ]
+                [ div [ classList [ ( "template-thumbnail", True ), ( "new", True ) ] ] []
+                , div [ class "template-title" ] [ text <| tr language HomeBlank ]
+                ]
+            , div [ id "template-import", class "template-item", onClick ImportFileRequested ]
+                [ div [ classList [ ( "template-thumbnail", True ), ( "import", True ) ] ] [ Icon.file (Icon.defaultOptions |> Icon.size 48) ]
+                , div [ class "template-title" ] [ text <| tr language HomeImportJSON ]
+                , div [ class "template-description" ]
+                    [ text <| tr language HomeJSONFrom ]
+                ]
+            ]
+        , div [ id "documents-block" ]
+            [ h4 [ class "list-section-header" ]
+                [ text "."
+                , span
+                    [ class "list-header" ]
+                    [ div [] [ text <| tr language LastUpdated ]
+                    ]
+                ]
+            , viewDocList language currentTime documents
+            ]
+        , div [ id "buttons-block" ]
+            [ div [ onClick ToggleLanguageMenu, classList [ ( "document-item", True ), ( "language-button", True ) ] ]
+                (if languageMenu then
+                    Translation.activeLanguages
+                        |> List.map
+                            (\( l, n ) ->
+                                div
+                                    [ classList [ ( "language-item", True ), ( "selected", l == language ) ]
+                                    , onClick <| ChangeLanguage l
+                                    ]
+                                    [ text <| n ]
+                            )
+
+                 else
+                    [ div [ class "language-item" ] [ text <| Translation.languageName language ] ]
+                )
+            ]
+        ]
+
+
+viewDocList : Translation.Language -> Time.Posix -> List Metadata -> Html Msg
+viewDocList lang currTime docList =
+    div [ classList [ ( "document-list", True ) ] ]
+        (docList
+            |> List.sortBy (Time.posixToMillis << Metadata.getUpdatedAt)
+            |> List.reverse
+            |> List.map (viewDocumentItem lang currTime)
+        )
+
+
+viewDocumentItem : Translation.Language -> Time.Posix -> Metadata -> Html Msg
+viewDocumentItem lang currTime metadata =
     let
         docId =
             Metadata.getDocId metadata
 
-        docName =
-            Metadata.getDocName metadata |> Maybe.withDefault "Untitled"
+        docName_ =
+            Metadata.getDocName metadata
+
+        onClickThis msg =
+            stopPropagationOn "click" (Dec.succeed ( msg, True ))
+
+        -- TODO: fix timezone
+        currDate =
+            Date.fromPosix Time.utc currTime
+
+        updatedTime =
+            Metadata.getUpdatedAt metadata
+
+        -- TODO: fix timezone
+        updatedDate =
+            Date.fromPosix Time.utc updatedTime
+
+        -- TODO: fix timezone
+        updatedString =
+            updatedTime
+                |> Strftime.format "%Y-%m-%d, %H:%M" Time.utc
+
+        relativeString =
+            timeDistInWords
+                lang
+                updatedTime
+                currTime
+
+        ( titleString, dateString ) =
+            if Date.diff Date.Days updatedDate currDate <= 2 then
+                ( updatedString, relativeString )
+
+            else
+                ( relativeString, updatedString )
+
+        buttons =
+            [ div
+                [ onClickThis (DeleteDoc docId), title <| tr lang RemoveFromList ]
+                [ Icon.x Icon.defaultOptions ]
+            ]
     in
-    li [] [ a [ href <| "/" ++ docId ] [ text docName ], button [ onClick <| DeleteDoc docId ] [ text "X" ] ]
+    div
+        [ class "document-item", onClick (Open docId) ]
+        [ div [ class "doc-title" ] [ text (docName_ |> Maybe.withDefault "Untitled") ]
+        , div [ class "doc-opened", title titleString ] [ text dateString ]
+        , div [ class "doc-buttons" ] buttons
+        ]
 
 
 viewSelectionEntry : { selected : Bool, tree : ( String, Metadata, Tree ) } -> Html Msg
@@ -319,5 +434,8 @@ viewSelectionEntry { selected, tree } =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
-    receiveMsg Port LogErr
+subscriptions _ =
+    Sub.batch
+        [ receiveMsg Port LogErr
+        , Time.every (30 * 1000) Tick
+        ]
