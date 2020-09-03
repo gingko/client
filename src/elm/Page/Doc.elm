@@ -1,6 +1,8 @@
 port module Page.Doc exposing (Model, Msg, init, subscriptions, toSession, update, view)
 
+import Api
 import Browser.Dom
+import Bytes exposing (Bytes)
 import Coders exposing (treeToMarkdownString)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
 import Doc.Data as Data
@@ -11,12 +13,14 @@ import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Doc.UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
+import File.Download as Download
 import Html exposing (Html, a, button, div, h1, input, node, span, text, textarea, ul)
 import Html.Attributes exposing (class, classList, dir, href, id, style, title, value)
 import Html.Events exposing (onClick, onDoubleClick, onInput)
 import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy2, lazy3)
 import Html5.DragDrop as DragDrop
+import Http
 import Json.Decode as Json
 import List.Extra as ListExtra exposing (getAt)
 import Markdown
@@ -181,6 +185,8 @@ type Msg
     | ShortcutTrayToggle
     | WordcountTrayToggle
       -- === Ports ===
+    | ExportAll
+    | Exported (Result Http.Error Bytes)
     | Port IncomingMsg
     | LogErr String
 
@@ -515,6 +521,23 @@ update msg ({ workingTree } as model) =
             )
 
         -- === Ports ===
+        ExportAll ->
+            let
+                markdownString =
+                    treeToMarkdownString False model.workingTree.tree
+            in
+            ( model, Api.exportDocx Exported { docId = Metadata.getDocId model.metadata, markdown = markdownString } )
+
+        Exported (Ok bytes) ->
+            let
+                mime =
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            in
+            ( model, Download.bytes "test.docx" mime bytes )
+
+        Exported (Err _) ->
+            ( model, Cmd.none )
+
         Port incomingMsg ->
             case incomingMsg of
                 -- === Dialogs, Menus, Window State ===
@@ -2172,6 +2195,7 @@ pre, code, .group.has-active .card textarea {
                         text ""
                     , lazy3 treeView model.language model.viewState model.workingTree
                     , viewHeader model.isEditingTitle model.titleField (Metadata.getDocName model.metadata)
+                    , button [ onClick ExportAll ] [ text "Export to Word" ]
                     , viewSaveIndicator model
                     , viewSearchField SearchFieldUpdated model
                     , viewFooter WordcountTrayToggle ShortcutTrayToggle model
