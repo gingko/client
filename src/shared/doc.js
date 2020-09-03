@@ -179,11 +179,11 @@ const fromElm = (msg, data) => {
 
     , "SaveData": async () => {
         // Store ids of refs, so we can send back updated _rev.
-        const refIds = data.refs.map(r => r._id);
+        const refIds = data.data.refs.map(r => r._id);
 
         // Keep objects that are not saved in database.
-        const newCommits = data.commits.filter( o => !savedObjectIds.includes(o._id));
-        const newTreeObjects = data.treeObjects.filter( o => !savedObjectIds.includes(o._id));
+        const newCommits = data.data.commits.filter( o => !savedObjectIds.includes(o._id));
+        const newTreeObjects = data.data.treeObjects.filter( o => !savedObjectIds.includes(o._id));
 
         // Remove conflicts if head is updated
         let savedHead = await db.get(prefix("heads/master"), {conflicts: true}).catch(async e => e);
@@ -193,7 +193,7 @@ const fromElm = (msg, data) => {
         }
 
         // Save to database, and add successes to savedObjectIds.
-        const rows = [...newCommits, ...newTreeObjects, ...data.refs];
+        const rows = [...newCommits, ...newTreeObjects, ...data.data.refs];
         const toSave = rows.map(r =>{r._id = prefix(r._id); return r;} );
         const responses = await db.bulkDocs(toSave);
         const savedIds = responses.filter(r => r.ok).map(o => o.id);
@@ -204,6 +204,10 @@ const fromElm = (msg, data) => {
                             .map(r => {r.id = unprefix(r.id); return r })
                             .filter(r => refIds.includes(r.id) && r.ok);
         toElm("DataSaved", savedRefs);
+
+        // Set updatedAt field
+        data.metadata.updatedAt = Date.now();
+        fromElm("SaveMetadata", data.metadata);
       }
 
     , "SaveImportedData": async () => {

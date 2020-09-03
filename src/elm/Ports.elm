@@ -27,7 +27,7 @@ type
     | LoadDocument String
     | RequestDelete String
     | NoDataToSave
-    | SaveData Enc.Value
+    | SaveData Enc.Value Enc.Value
     | SaveImportedData Enc.Value
     | Push
     | Pull
@@ -131,8 +131,8 @@ sendOut info =
             dataToSend "ColumnNumberChange" (int cols)
 
         -- === Database ===
-        SaveData data ->
-            dataToSend "SaveData" data
+        SaveData data metadata ->
+            dataToSend "SaveData" (object [ ( "data", data ), ( "metadata", metadata ) ])
 
         SaveImportedData data ->
             dataToSend "SaveImportedData" data

@@ -2029,7 +2029,7 @@ addToHistoryDo ( { workingTree, currentTime } as model, prevCmd ) =
             Data.commit "Jane Doe <jane.doe@gmail.com" (currentTime |> Time.posixToMillis) workingTree.tree model.data
     in
     if newData /= model.data then
-        ( { model | data = newData }, sendOut <| SaveData (Data.encode newData) )
+        ( { model | data = newData }, sendOut <| SaveData (Data.encode newData) (Metadata.encode model.metadata) )
 
     else
         ( model, Cmd.none )
