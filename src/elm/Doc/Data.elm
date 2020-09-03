@@ -122,17 +122,16 @@ lastCommitTime model =
 -- EXPOSED : Functions
 
 
-received : Dec.Value -> ( Model, Tree ) -> { newModel : Model, newTree : Tree, shouldPush : Bool, isNew : Bool }
+received : Dec.Value -> ( Model, Tree ) -> { newModel : Model, newTree : Tree, shouldPush : Bool }
 received json ( oldModel, oldTree ) =
     case Dec.decodeValue decode json of
-        Ok ( newData, Nothing, isNew ) ->
+        Ok ( newData, Nothing ) ->
             { newModel = Clean newData
             , newTree = checkoutRef "heads/master" newData |> Maybe.withDefault oldTree
             , shouldPush = True
-            , isNew = isNew
             }
 
-        Ok ( newData, Just ( confId, confHead ), isNew ) ->
+        Ok ( newData, Just ( confId, confHead ) ) ->
             let
                 localHead =
                     Dict.get "heads/master" newData.refs |> Maybe.withDefault confHead
@@ -145,14 +144,12 @@ received json ( oldModel, oldTree ) =
                     { newModel = Clean data
                     , newTree = checkoutRef "heads/master" data |> Maybe.withDefault oldTree
                     , shouldPush = False
-                    , isNew = isNew
                     }
 
                 MergeConflict data cdata ->
                     { newModel = MergeConflict data cdata
                     , newTree = cdata.mergedTree
                     , shouldPush = False
-                    , isNew = isNew
                     }
 
         Err err ->
@@ -160,7 +157,7 @@ received json ( oldModel, oldTree ) =
                 _ =
                     Debug.log "error" err
             in
-            { newModel = oldModel, newTree = oldTree, shouldPush = False, isNew = False }
+            { newModel = oldModel, newTree = oldTree, shouldPush = False }
 
 
 success : Dec.Value -> Model -> Model
@@ -679,7 +676,7 @@ getAncestors cm sh =
 -- PORTS & INTEROP
 
 
-decode : Dec.Decoder ( Data, Maybe ( String, RefObject ), Bool )
+decode : Dec.Decoder ( Data, Maybe ( String, RefObject ) )
 decode =
     let
         refObjectDecoder =
@@ -703,15 +700,14 @@ decode =
                 (Dec.field "content" Dec.string)
                 (Dec.field "children" (Dec.list (tupleDecoder Dec.string Dec.string)))
 
-        modelBuilder r c t cflct sync =
-            ( Data (Dict.fromList r) (Dict.fromList c) (Dict.fromList t), cflct, sync )
+        modelBuilder r c t cflct =
+            ( Data (Dict.fromList r) (Dict.fromList c) (Dict.fromList t), cflct )
     in
-    Dec.map5 modelBuilder
+    Dec.map4 modelBuilder
         (Dec.field "ref" (Dec.list refObjectDecoder))
         (Dec.field "commit" (Dec.list commitObjectDecoder))
         (Dec.field "tree" (Dec.list treeObjectDecoder))
         (Dec.maybe (Dec.field "conflict" refObjectDecoder))
-        (Dec.field "isNew" Dec.bool)
 
 
 encode : Model -> Enc.Value

@@ -130,7 +130,12 @@ init session dbName isNew =
             , Route.replaceUrl (Session.navKey session) (Route.DocUntitled dbName)
             ]
     )
-        |> activate "1"
+        |> (if isNew then
+                activate "1"
+
+            else
+                identity
+           )
 
 
 toSession : Model -> Session
@@ -623,40 +628,16 @@ update msg ({ workingTree } as model) =
                     , sendOut <| Pull
                     )
 
-                DataReceived dataIn ->
+                DataLoaded dataIn ->
                     let
-                        { newModel, newTree, shouldPush, isNew } =
-                            Data.received dataIn ( model.data, model.workingTree.tree )
-
-                        newWorkingTree =
-                            TreeStructure.setTreeWithConflicts (Data.conflictList newModel) newTree model.workingTree
-
-                        startingWordcount =
-                            countWords (treeToMarkdownString False newTree)
+                        ( newModel, newCmds ) =
+                            dataReceived dataIn model
                     in
-                    ( { model
-                        | data = newModel
-                        , loading = isNew
-                        , workingTree = newWorkingTree
-                        , lastLocalSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
-                        , lastRemoteSave =
-                            if not isNew then
-                                Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
+                    ( newModel, newCmds )
+                        |> activate newModel.viewState.active
 
-                            else
-                                model.lastRemoteSave
-                        , startingWordcount = startingWordcount
-                      }
-                    , Cmd.batch
-                        [ if shouldPush then
-                            sendOut <| Push
-
-                          else
-                            Cmd.none
-                        ]
-                    )
-                        |> activate model.viewState.active
-                        |> maybeColumnsChanged model.workingTree.columns
+                DataReceived dataIn ->
+                    dataReceived dataIn model
 
                 UserStoreLoaded dataIn ->
                     let
@@ -2074,6 +2055,37 @@ addToHistory ( model, prevCmd ) =
 
 
 -- === Files ===
+
+
+dataReceived : Json.Value -> Model -> ( Model, Cmd Msg )
+dataReceived dataIn model =
+    let
+        { newModel, newTree, shouldPush } =
+            Data.received dataIn ( model.data, model.workingTree.tree )
+
+        newWorkingTree =
+            TreeStructure.setTreeWithConflicts (Data.conflictList newModel) newTree model.workingTree
+
+        startingWordcount =
+            countWords (treeToMarkdownString False newTree)
+    in
+    ( { model
+        | data = newModel
+        , loading = False
+        , workingTree = newWorkingTree
+        , lastLocalSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
+        , lastRemoteSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
+        , startingWordcount = startingWordcount
+      }
+    , Cmd.batch
+        [ if shouldPush then
+            sendOut <| Push
+
+          else
+            Cmd.none
+        ]
+    )
+        |> maybeColumnsChanged model.workingTree.columns
 
 
 sendCollabState : CollabState -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )

@@ -59,6 +59,7 @@ type
     | CancelCardConfirmed
       -- === Database ===
     | DataSaved Dec.Value
+    | DataLoaded Dec.Value
     | DataReceived Dec.Value
     | UserStoreLoaded Dec.Value
     | LocalStoreLoaded Dec.Value
@@ -280,6 +281,9 @@ receiveMsg tagger onError =
                 -- === Database ===
                 "DataSaved" ->
                     tagger <| DataSaved outsideInfo.data
+
+                "DataLoaded" ->
+                    tagger <| DataLoaded outsideInfo.data
 
                 "DataReceived" ->
                     tagger <| DataReceived outsideInfo.data

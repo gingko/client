@@ -47,7 +47,8 @@ async function initElmAndPorts() {
     setUserDbs(sessionData);
   }
 
-  loadUserStore();
+  let store = await userStore.load();
+  lang = store.language;
 
   const initFlags = { session : sessionData, language: "en" };
 
@@ -114,6 +115,7 @@ function toElm (tag, data) {
 
 
 const fromElm = (msg, data) => {
+  console.debug("fromElm", msg, data);
   let cases =
     {
       // === Dialogs, Menus, Window State ===
@@ -133,28 +135,33 @@ const fromElm = (msg, data) => {
       }
 
       // === Database ===
+
     , "InitDocument": async () => {
         TREE_ID = data;
-        localStore.db(db, data);
 
         const now = Date.now();
-        let metadata = {_id : docId+"/metadata", docId: docId, name: null, createdAt: now, updatedAt: now};
+        let metadata = {_id : data+"/metadata", docId: data, name: null, createdAt: now, updatedAt: now};
         await db.put(metadata).catch(async e => e);
-        loadLocalStore();
+
+        localStore.db(db, data);
+        let store = await localStore.load();
+        toElm("LocalStoreLoaded", store);
     }
 
     , "LoadDocument": async () => {
         TREE_ID = data;
+
         localStore.db(db, data);
+        let store = await localStore.load();
+        toElm("LocalStoreLoaded", store);
 
         let metadata = await db.get("metadata").catch(async e => e);
         if (!metadata.error) {
           toElm("MetadataSaved", metadata);
         }
 
-        pull(true); // load local
-        pull(false); // sync remote
-        loadLocalStore();
+        await load(); // load local
+        await pull(); // sync remote
       }
 
     , "RequestDelete": async () => {
@@ -215,7 +222,7 @@ const fromElm = (msg, data) => {
 
     , "Push": push
 
-    , "Pull": () => pull(false)
+    , "Pull": () => pull()
 
       // === DOM ===
 
@@ -307,7 +314,7 @@ const fromElm = (msg, data) => {
   try {
     cases[msg]();
   } catch(err) {
-    console.error("Unexpected message from Elm : ", msg, data, err);
+    console.log("Unexpected message from Elm : ", msg, data, err);
   }
 };
 
@@ -317,36 +324,21 @@ const fromElm = (msg, data) => {
 /* === Database === */
 
 
-// Load device-specific data (unsynced settings)
-async function loadLocalStore() {
-  let store = await localStore.load();
-  toElm("LocalStoreLoaded", store);
+async function load() {
+  let toSend = await loadDocData();
+  toElm("DataLoaded", toSend);
 }
 
 
-// Load user-specific data (synced settings)
-async function loadUserStore() {
-  let store = await userStore.load();
-  lang = store.language;
-  toElm("UserStoreLoaded", store);
-}
-
-
-async function pull(isNew) {
+async function pull() {
   // Get local head before replication.
   let localHead = await db.get(prefix("heads/master")).catch(async (e) => e);
 
   // Fetch remote changes for current document.
-  if (!isNew) {
-    let selector = { "_id": { "$regex": `${TREE_ID}/` } };
-    await db.replicate.from(remoteDB, {selector}).catch(async (e) => e);
-  }
+  let selector = { "_id": { "$regex": `${TREE_ID}/` } };
+  await db.replicate.from(remoteDB, {selector}).catch(async (e) => e);
 
-  // Get all local entries in db, and format in object to send to Elm.
-  let result = await db.allDocs({include_docs: true, startkey: TREE_ID+"/", endkey: TREE_ID+"/\ufff0"})
-  let mappedDocs = result.rows.map(r => {r.doc._id = unprefix(r.doc._id); return r.doc;});
-  let groupFn = r => r.hasOwnProperty("type") ? r.type : r._id;
-  let toSend = _.groupBy(mappedDocs, groupFn);
+  let toSend = await loadDocData();
 
   // Get new head, or possible conflict/branching history.
   let newHead = await db.get(prefix("heads/master"), {conflicts: true}).catch(async (e) => e);
@@ -364,8 +356,7 @@ async function pull(isNew) {
   }
 
   // Finally, send all objects into Elm repo.
-  toSend.isNew = isNew;
-  toElm("DataReceived",toSend);
+  if (toSend.ref) { toElm("DataReceived",toSend); };
   if (toSend.metadata) { toElm("MetadataSynced", toSend.metadata[0]) }
 }
 
@@ -374,6 +365,17 @@ async function push() {
   let selector = { "_id": { "$regex": `${TREE_ID}/` } };
   await db.replicate.to(remoteDB, {selector}).catch(async (e) => e);
 }
+
+
+async function loadDocData() {
+  // Get all local entries in db, and format in object to send to Elm.
+  let result = await db.allDocs({include_docs: true, startkey: TREE_ID+"/", endkey: TREE_ID+"/\ufff0"})
+  let mappedDocs = result.rows.map(r => {r.doc._id = unprefix(r.doc._id); return r.doc;});
+  let groupFn = r => r.hasOwnProperty("type") ? r.type : r._id;
+  return _.groupBy(mappedDocs, groupFn);
+}
+
+
 
 
 /* === Helper Functions === */
