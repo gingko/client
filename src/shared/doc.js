@@ -230,8 +230,8 @@ const fromElm = (msg, data) => {
         lastActivesScrolled = data.lastActives;
         lastColumnScrolled = data.column;
 
-        helpers.scrollHorizontal(data.column);
-        helpers.scrollColumns(data.lastActives);
+        helpers.scrollHorizontal(data.column, data.instant);
+        helpers.scrollColumns(data.lastActives, data.instant);
 
         localStore.set("last-active", data.cardId);
       }

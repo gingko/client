@@ -37,7 +37,7 @@ type
     | ExportTXT Bool Tree (Maybe String)
     | ExportTXTColumn Int Tree (Maybe String)
       -- === DOM ===
-    | ActivateCards ( String, Int, List (List String) )
+    | ActivateCards ( String, Int, List (List String) ) Bool
     | FlashCurrentSubtree
     | TextSurround String String
     | SetCursorPosition Int
@@ -206,7 +206,7 @@ sendOut info =
                 }
 
         -- === DOM ===
-        ActivateCards ( cardId, col, lastActives ) ->
+        ActivateCards ( cardId, col, lastActives ) instant ->
             let
                 listListStringToValue lls =
                     list (list string) lls
@@ -216,6 +216,7 @@ sendOut info =
                     [ ( "cardId", string cardId )
                     , ( "column", int col )
                     , ( "lastActives", listListStringToValue lastActives )
+                    , ( "instant", bool instant )
                     ]
                 )
 

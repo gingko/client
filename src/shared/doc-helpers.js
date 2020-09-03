@@ -23,20 +23,20 @@ var setTextarea = (m, f) => {
   }
 };
 
-var scrollHorizontal = colIdx => {
+var scrollHorizontal = (colIdx, instant) => {
   lastColumnIdx = colIdx;
-  _.delay(scrollHorizTo, 20, colIdx);
+  _.delay(scrollHorizTo, 20, colIdx, instant);
 };
 
-var scrollColumns = centerlineIds => {
+var scrollColumns = (centerlineIds, instant) => {
   lastCenterline = centerlineIds;
   centerlineIds.map(function(c, i){
     var centerIdx = Math.round(c.length/2) - 1;
-    _.delay(scrollTo, 20, c[centerIdx], i);
+    _.delay(scrollTo, 20, c[centerIdx], i, instant);
   });
 };
 
-var scrollTo = function(cid, colIdx) {
+var scrollTo = function(cid, colIdx, instant) {
   var card = document.getElementById("card-" + cid.toString());
   var col = document.getElementsByClassName("column")[colIdx+1];
   if (card == null) {
@@ -45,13 +45,14 @@ var scrollTo = function(cid, colIdx) {
   }
   var rect = card.getBoundingClientRect();
 
-  TweenMax.to(col, 0.35,
+  TweenMax.to(col, instant ? 0 : 0.35,
     { scrollTop: col.scrollTop + ((rect.top + rect.height*0.5) - col.offsetHeight*0.5)
     , ease: Power2.easeInOut
     });
 };
 
-var scrollHorizTo = function(colIdx) {
+var scrollHorizTo = function(colIdx, instant) {
+  let scrollDuration = instant ? 0 : 0.50;
   var col = document.getElementsByClassName("column")[colIdx];
   var appEl = document.getElementById("app");
   if (col == null) {
@@ -60,17 +61,17 @@ var scrollHorizTo = function(colIdx) {
   }
   var rect = col.getBoundingClientRect();
   if (rect.width >= appEl.offsetWidth) {
-    TweenMax.to(appEl, 0.50,
+    TweenMax.to(appEl, scrollDuration,
       { scrollLeft: appEl.scrollLeft + rect.left
       , ease: Power2.easeInOut
       });
   } else if (rect.left < 100) {
-    TweenMax.to(appEl, 0.50,
+    TweenMax.to(appEl, scrollDuration,
       { scrollLeft: appEl.scrollLeft - 100 + rect.left
       , ease: Power2.easeInOut
       });
   } else if (rect.right > appEl.offsetWidth - 100) {
-    TweenMax.to(appEl, 0.50,
+    TweenMax.to(appEl, scrollDuration,
       { scrollLeft: appEl.scrollLeft + 100 + rect.right - appEl.offsetWidth
       , ease: Power2.easeInOut
       });

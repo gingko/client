@@ -131,7 +131,7 @@ init session dbName isNew =
             ]
     )
         |> (if isNew then
-                activate "1"
+                activate "1" True
 
             else
                 identity
@@ -198,7 +198,7 @@ update msg ({ workingTree } as model) =
             , Cmd.none
             )
                 |> saveCardIfEditing
-                |> activate id
+                |> activate id False
 
         SearchFieldUpdated inputField ->
             let
@@ -249,10 +249,10 @@ update msg ({ workingTree } as model) =
                 maybeActivate =
                     case ( newSearchField, firstFilteredCardId_ ) of
                         ( Just _, Just id ) ->
-                            activate id
+                            activate id False
 
                         ( Nothing, _ ) ->
-                            activate vs.active
+                            activate vs.active False
 
                         _ ->
                             identity
@@ -436,7 +436,7 @@ update msg ({ workingTree } as model) =
               }
             , Cmd.none
             )
-                |> activate id
+                |> activate id True
 
         Resolve cid ->
             let
@@ -634,7 +634,7 @@ update msg ({ workingTree } as model) =
                             dataReceived dataIn model
                     in
                     ( newModel, newCmds )
-                        |> activate newModel.viewState.active
+                        |> activate newModel.viewState.active True
 
                 DataReceived dataIn ->
                     dataReceived dataIn model
@@ -829,7 +829,7 @@ update msg ({ workingTree } as model) =
                                             _ ->
                                                 closeCard ( m, c )
                                    )
-                                |> activate vs.active
+                                |> activate vs.active False
 
                         "mod+enter" ->
                             ( model
@@ -844,7 +844,7 @@ update msg ({ workingTree } as model) =
                                             _ ->
                                                 closeCard ( m, c )
                                    )
-                                |> activate vs.active
+                                |> activate vs.active False
 
                         "enter" ->
                             normalMode model (openCard vs.active (getContent vs.active model.workingTree.tree))
@@ -1157,8 +1157,8 @@ update msg ({ workingTree } as model) =
 -- === Card Activation ===
 
 
-activate : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-activate id ( model, prevCmd ) =
+activate : String -> Bool -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+activate id instant ( model, prevCmd ) =
     let
         vs =
             model.viewState
@@ -1223,6 +1223,7 @@ activate id ( model, prevCmd ) =
                             , getDepth 0 model.workingTree.tree id
                             , centerlineIds flatCols allIds newPast
                             )
+                            instant
                         )
                     ]
                 )
@@ -1243,7 +1244,7 @@ goLeft id ( model, prevCmd ) =
     ( model
     , prevCmd
     )
-        |> activate targetId
+        |> activate targetId False
 
 
 goDown : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1260,7 +1261,7 @@ goDown id ( model, prevCmd ) =
     ( model
     , prevCmd
     )
-        |> activate targetId
+        |> activate targetId False
 
 
 goUp : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1277,7 +1278,7 @@ goUp id ( model, prevCmd ) =
     ( model
     , prevCmd
     )
-        |> activate targetId
+        |> activate targetId False
 
 
 goRight : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1320,7 +1321,7 @@ goRight id ( model, prevCmd ) =
                 ( model
                 , prevCmd
                 )
-                    |> activate prevActiveOfChildren
+                    |> activate prevActiveOfChildren False
 
 
 
@@ -1466,7 +1467,7 @@ deleteCard id ( model, prevCmd ) =
         , Cmd.batch [ prevCmd, sendOut <| SetChanged True ]
         )
             |> maybeColumnsChanged model.workingTree.columns
-            |> activate nextToActivate
+            |> activate nextToActivate False
             |> addToHistory
 
 
@@ -1475,7 +1476,7 @@ goToTopOfColumn id ( model, prevCmd ) =
     ( model
     , prevCmd
     )
-        |> activate (getFirstInColumn id model.workingTree.tree)
+        |> activate (getFirstInColumn id model.workingTree.tree) False
 
 
 goToBottomOfColumn : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1483,7 +1484,7 @@ goToBottomOfColumn id ( model, prevCmd ) =
     ( model
     , prevCmd
     )
-        |> activate (getLastInColumn id model.workingTree.tree)
+        |> activate (getLastInColumn id model.workingTree.tree) False
 
 
 goToTopOfGroup : String -> Bool -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1515,7 +1516,7 @@ goToTopOfGroup id fallToNextGroup ( model, prevCmd ) =
     ( model
     , prevCmd
     )
-        |> activate targetId
+        |> activate targetId False
 
 
 goToBottomOfGroup : String -> Bool -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1548,7 +1549,7 @@ goToBottomOfGroup id fallToNextGroup ( model, prevCmd ) =
     ( model
     , prevCmd
     )
-        |> activate targetId
+        |> activate targetId False
 
 
 cancelCard : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1608,7 +1609,7 @@ insert pid pos initText ( model, prevCmd ) =
     )
         |> maybeColumnsChanged model.workingTree.columns
         |> openCard newIdString initText
-        |> activate newIdString
+        |> activate newIdString True
 
 
 insertRelative : String -> Int -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1672,7 +1673,7 @@ mergeUp id ( model, prevCmd ) =
               }
             , prevCmd
             )
-                |> activate prevTree.id
+                |> activate prevTree.id False
                 |> addToHistory
 
         _ ->
@@ -1700,7 +1701,7 @@ mergeDown id ( model, prevCmd ) =
               }
             , prevCmd
             )
-                |> activate nextTree.id
+                |> activate nextTree.id False
                 |> addToHistory
 
         _ ->
@@ -1745,7 +1746,7 @@ move subtree pid pos ( model, prevCmd ) =
     , prevCmd
     )
         |> maybeColumnsChanged model.workingTree.columns
-        |> activate subtree.id
+        |> activate subtree.id False
         |> addToHistory
 
 
@@ -1888,7 +1889,7 @@ paste subtree pid pos ( model, prevCmd ) =
     , prevCmd
     )
         |> maybeColumnsChanged model.workingTree.columns
-        |> activate subtree.id
+        |> activate subtree.id False
         |> addToHistory
 
 
