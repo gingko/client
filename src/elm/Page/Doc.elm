@@ -2109,7 +2109,7 @@ dataReceived dataIn model =
     )
         |> maybeColumnsChanged model.workingTree.columns
         |> (if model.loading then
-                activate (model.viewState.active |> Debug.log "received activate") True
+                activate model.viewState.active True
 
             else
                 identity
