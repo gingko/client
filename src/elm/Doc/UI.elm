@@ -153,10 +153,10 @@ viewSidebar msgs isOpen =
 
         fileIconColor =
             if isOpen then
-                "#333"
+                "hsl(202 22% 44%)"
 
             else
-                "#999"
+                "hsl(202 22% 66%)"
 
         fileIcon =
             Icon.fileDirectory (defaultOptions |> Icon.color fileIconColor |> Icon.size 18)

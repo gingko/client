@@ -1,11 +1,11 @@
 :root {
-  --dark-gray: hsl(212, 20%, 65%);
-  --dark-gray-lighter: hsl(212, 20%, 70%);
+  --dark-gray: hsl(202 59% 47%);
+  --dark-gray-lighter: hsl(202 50% 56%);
 
-  --light-gray: hsl(212, 18%, 76%);
-  --light-gray-lighter: hsl(212, 18%, 82%);
+  --light-gray: hsl(202 48% 60%);
+  --light-gray-lighter: hsl(202 43% 67%);
 
-  --white-bg: hsl(240, 100%, 100%);
+  --white-bg: hsl(202, 100%, 100%);
 
   --gingko-green: #8CC63F;
 }

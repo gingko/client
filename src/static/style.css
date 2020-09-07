@@ -142,7 +142,7 @@ body {
   margin: 0;
   padding: 0;
   display: flex;
-  background: hsl(199deg 36% 34%);
+  background: #1d7db4;
 }
 
 body {
@@ -184,16 +184,11 @@ body {
     "sidebar sidebar-menu document-footer";
 }
 
-#app-root:not(.loading) {
-  background: url('./concrete_wall.png');
-}
-
-
 #loading-overlay {
   grid-area: document;
   width: 100%;
   height: 100%;
-  background: rgb(50, 89, 107);
+  background: #1d7db4;
   animation: fadeOut 0.5s;
   opacity: 0;
   pointer-events: none;
@@ -203,9 +198,9 @@ body {
 #home {
   grid-area: home;
   padding: 5px;
-  background: hsl(199deg 27% 90%);
-  border-bottom: 1px solid hsl(212deg 5% 58%);
-  border-right: 1px solid hsl(212deg 19% 83%);
+  background: white;
+  border-bottom: 1px solid hsl(212deg 0% 58%);
+  border-right: 1px solid hsl(212deg 0% 83%);
   z-index: 100;
 }
 #home-link {
@@ -226,9 +221,9 @@ body {
   align-items: center;
   justify-content: space-between;
   color: #334;
-  background-color: hsl(199, 27%, 90%);
-  border-bottom: 1px solid hsl(212deg 5% 58%);
+  background-color: white;
   z-index: 99;
+  border-bottom: 1px solid hsl(212deg 5% 58%);
   box-shadow: 0 0 4px #00000085;
 }
 
@@ -275,10 +270,18 @@ body {
 #sidebar {
   grid-area: sidebar;
   min-width: 40px;
-  background: #d1d1d1;
+  background: hsl(202 34% 96%);
   display: flex;
   flex-direction: column;
   align-items: center;
+  border-right: 1px solid hsl(212deg 5% 58%);
+  box-shadow: 0 0 4px #00000085;
+  z-index: 5;
+}
+
+#sidebar.open {
+  border-right: none;
+  box-shadow: none;
 }
 
 .sidebar-button {
@@ -291,7 +294,9 @@ body {
 
 #sidebar-menu {
   grid-area: sidebar-menu;
-  background: #f3f3f3;
+  background: white;
+  border-right: 1px solid hsl(212deg 5% 58%);
+  box-shadow: 0 0 4px #00000085;
 }
 
 
@@ -353,9 +358,6 @@ body {
 }
 
 .buffer {
-  background: rgb(50, 89, 107);
-  border-right: 2px solid rgb(63, 102, 121);
-  border-left: 2px solid rgb(42, 79, 97);
   margin: 0 16px;
   height: 90%;
   z-index: 1;
@@ -440,11 +442,10 @@ body {
   margin: 0;
   margin-right: -1px;
   padding: 10px;
-  border-top: 1px solid #d3e6f1;
-  border-bottom: 1px solid #3c484e;
   background-color: var(--dark-gray);
-  color: #717181;
-  box-shadow: 1px 1px 6px #2b3c52;
+  color: hsl(202deg 51% 30%);
+  border-radius: 3px;
+  box-shadow: 1px 1px 6px hsl(202 72% 26%);
   z-index: 5;
   position: relative;
 }
