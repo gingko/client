@@ -105,11 +105,9 @@ viewSaveIndicator { dirty, lastLocalSave, lastRemoteSave, currentTime, language 
                     ( Nothing, Just fileTime ) ->
                         span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language DatabaseError ]
     in
-    div []
-        [ div
-            [ id "save-indicator", classList [ ( "inset", True ), ( "saving", dirty ) ] ]
-            [ saveStateSpan
-            ]
+    div
+        [ id "save-indicator", classList [ ( "inset", True ), ( "saving", dirty ) ] ]
+        [ saveStateSpan
         ]
 
 
@@ -117,7 +115,7 @@ viewAccount : (Bool -> msg) -> Bool -> Session -> Html msg
 viewAccount toggleMsg isOpen session =
     let
         userIcon =
-            Icon.person (defaultOptions |> Icon.color "#333" |> Icon.size 28)
+            Icon.person (defaultOptions |> Icon.color "#333" |> Icon.size 18)
     in
     div [ id "account", onClick (toggleMsg (not isOpen)) ]
         [ userIcon
