@@ -1,4 +1,4 @@
-module Doc.UI exposing (countWords, viewConflict, viewFooter, viewHeader, viewHistory, viewHomeLink, viewSaveIndicator, viewSearchField, viewVideo)
+module Doc.UI exposing (countWords, viewConflict, viewFooter, viewHeader, viewHistory, viewHomeLink, viewSaveIndicator, viewSearchField, viewSidebar, viewVideo)
 
 import Coders exposing (treeToMarkdownString)
 import Date
@@ -25,13 +25,20 @@ import Types exposing (Children(..), CursorPosition(..), TextCursorInfo, ViewMod
 -- HEADER
 
 
-viewHomeLink : Html msg
-viewHomeLink =
+viewHomeLink : Bool -> Html msg
+viewHomeLink sidebarOpen =
     let
         homeIcon =
             Icon.home (defaultOptions |> Icon.color "#ddd" |> Icon.size 28)
     in
-    div [ id "home-link" ] [ a [ href (Route.routeToString Route.Home) ] [ homeIcon ] ]
+    div [ id "home-link" ]
+        [ a [ href (Route.routeToString Route.Home) ] [ homeIcon ]
+        , if sidebarOpen then
+            text "Home"
+
+          else
+            text ""
+        ]
 
 
 type alias HeaderConfig msg =
@@ -97,6 +104,32 @@ viewSaveIndicator { dirty, lastLocalSave, lastRemoteSave, currentTime, language 
             [ saveStateSpan
             ]
         ]
+
+
+
+-- SIDEBAR
+
+
+type alias SidebarMsgs msg =
+    { toggledSidebar : Bool -> msg
+    , exportAll : msg
+    }
+
+
+viewSidebar : SidebarMsgs msg -> Bool -> List (Html msg)
+viewSidebar msgs isOpen =
+    let
+        sidebarMenu =
+            if isOpen then
+                div [ id "sidebar-menu" ] [ button [ onClick msgs.exportAll ] [ text "Export to docx" ] ]
+
+            else
+                text ""
+    in
+    [ div [ id "sidebar", classList [ ( "open", isOpen ) ] ]
+        [ button [ onClick <| msgs.toggledSidebar (not isOpen) ] [ text "File" ] ]
+    , sidebarMenu
+    ]
 
 
 

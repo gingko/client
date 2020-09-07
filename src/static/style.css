@@ -195,6 +195,7 @@ body {
 }
 
 #home-link {
+  grid-area: home;
   background: hsl(208deg 55% 48%);
   z-index: 100;
   padding: 5px;
@@ -230,6 +231,16 @@ body {
 #save-indicator.saving {
   transition: none;
   font-weight: bold;
+}
+
+#sidebar {
+  grid-area: sidebar;
+  background: #d1d1d1;
+}
+
+#sidebar-menu {
+  grid-area: sidebar-menu;
+  background: #f3f3f3;
 }
 
 

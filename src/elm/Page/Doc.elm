@@ -59,6 +59,7 @@ type alias Model =
     , textCursorInfo : TextCursorInfo
     , debouncerStateCommit : Debouncer () ()
     , titleField : Maybe String
+    , sidebarOpen : Bool
     , shortcutTrayOpen : Bool
     , wordcountTrayOpen : Bool
     , videoModalOpen : Bool
@@ -108,6 +109,7 @@ defaultModel isNew session docId =
     , isMac = False
     , language = Translation.En
     , titleField = Nothing
+    , sidebarOpen = False
     , shortcutTrayOpen = False -- TODO
     , wordcountTrayOpen = False
     , videoModalOpen = False
@@ -177,6 +179,7 @@ type Msg
     | ToggledTitleEdit Bool
     | TitleFieldChanged String
     | TitleEdited
+    | ToggledSidebar Bool
     | TimeUpdate Time.Posix
     | VideoModal Bool
     | FontsMsg Fonts.Msg
@@ -483,6 +486,9 @@ update msg ({ workingTree } as model) =
 
                 Nothing ->
                     ( model, Cmd.none )
+
+        ToggledSidebar sidebarOpen ->
+            ( { model | sidebarOpen = sidebarOpen }, Cmd.none )
 
         TimeUpdate time ->
             ( { model | currentTime = time }
@@ -2191,23 +2197,26 @@ pre, code, .group.has-active .card textarea {
             else
                 div
                     [ id "app-root" ]
-                    [ UI.viewHomeLink
-                    , lazy3 treeView model.language model.viewState model.workingTree
-                    , UI.viewHeader { toggledTitleEdit = ToggledTitleEdit, titleFieldChanged = TitleFieldChanged, titleEdited = TitleEdited }
+                    ([ UI.viewHomeLink model.sidebarOpen
+                     , lazy3 treeView model.language model.viewState model.workingTree
+                     , UI.viewHeader { toggledTitleEdit = ToggledTitleEdit, titleFieldChanged = TitleFieldChanged, titleEdited = TitleEdited }
                         (Metadata.getDocName model.metadata)
                         model
-                    , viewSearchField SearchFieldUpdated model
-                    , viewFooter WordcountTrayToggle ShortcutTrayToggle model
-                    , case model.historyState of
-                        From currHead ->
-                            viewHistory NoOp CheckoutCommit Restore CancelHistory model.language currHead model.data
+                     ]
+                        ++ UI.viewSidebar { exportAll = ExportAll, toggledSidebar = ToggledSidebar } model.sidebarOpen
+                        ++ [ viewSearchField SearchFieldUpdated model
+                           , viewFooter WordcountTrayToggle ShortcutTrayToggle model
+                           , case model.historyState of
+                                From currHead ->
+                                    viewHistory NoOp CheckoutCommit Restore CancelHistory model.language currHead model.data
 
-                        _ ->
-                            text ""
-                    , viewVideo VideoModal model
-                    , styleNode
-                    , div [ id "loading-overlay" ] []
-                    ]
+                                _ ->
+                                    text ""
+                           , viewVideo VideoModal model
+                           , styleNode
+                           , div [ id "loading-overlay" ] []
+                           ]
+                    )
 
         conflicts ->
             let
