@@ -467,6 +467,15 @@ body {
   border-radius: 8px 0 0 8px;
 }
 
+.group .card .view img {
+  opacity: 0.3;
+}
+
+.group.has-active .card .view img,
+.group.active-descendant .card .view img {
+  opacity: 1;
+}
+
 
 /* ======== CARD (Normal view) ======== */
 
