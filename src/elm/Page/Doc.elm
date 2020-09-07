@@ -15,7 +15,7 @@ import Doc.TreeUtils exposing (..)
 import Doc.UI as UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSearchField, viewVideo)
 import File.Download as Download
 import Html exposing (Html, a, button, div, h1, input, node, span, text, textarea, ul)
-import Html.Attributes exposing (class, classList, dir, href, id, style, title, value)
+import Html.Attributes exposing (autofocus, class, classList, dir, href, id, style, title, value)
 import Html.Events exposing (onClick, onDoubleClick, onInput)
 import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy2, lazy3)
@@ -92,7 +92,7 @@ defaultModel isNew session docId =
     , uid = "0"
     , viewState =
         { active = "1"
-        , viewMode = Normal
+        , viewMode = Editing
         , activePast = []
         , descendants = []
         , ancestors = [ "0" ]
@@ -2526,6 +2526,7 @@ viewCardEditing lang cardId content isParent =
         [ textarea
             [ id ("card-edit-" ++ cardId)
             , dir "auto"
+            , autofocus True
             , classList
                 [ ( "edit", True )
                 , ( "mousetrap", True )
