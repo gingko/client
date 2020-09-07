@@ -120,7 +120,7 @@ defaultModel isNew session docId =
     , startingWordcount = 0
     , historyState = Closed
     , currentTime = Time.millisToPosix 0
-    , seed = Random.initialSeed 12345
+    , seed = Random.initialSeed (Session.seed session)
     }
 
 

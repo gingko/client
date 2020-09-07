@@ -31,6 +31,7 @@ type Model
 
 type alias Flags =
     { session : Maybe String
+    , seed : Int
     , language : Language
     }
 
@@ -38,15 +39,15 @@ type alias Flags =
 init : Value -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flagsData url navKey =
     let
-        flagsDecoder : Decoder Flags
         flagsDecoder =
-            Dec.map2 (\s ls -> Flags s (langFromString ls))
+            Dec.map3 Flags
                 (Dec.field "session" (Dec.nullable Dec.string))
-                (Dec.field "language" Dec.string)
+                (Dec.field "seed" Dec.int)
+                (Dec.field "language" Dec.string |> Dec.map langFromString)
     in
     case Dec.decodeValue flagsDecoder flagsData of
         Ok flags ->
-            changeRouteTo (Route.fromUrl url) (Redirect (Session.fromData navKey flags.session))
+            changeRouteTo (Route.fromUrl url) (Redirect (Session.fromData navKey flags.seed flags.session))
 
         Err _ ->
             changeRouteTo (Just Route.Login) (Redirect (Session.guest navKey))

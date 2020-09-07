@@ -50,7 +50,7 @@ async function initElmAndPorts() {
   }
 
 
-  const initFlags = { session : sessionData, language: "en" };
+  const initFlags = { session : sessionData, seed: Date.now(), language: "en" };
 
   gingko = Elm.Main.init({ node: document.getElementById("elm"), flags: initFlags});
 
