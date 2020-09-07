@@ -54,7 +54,7 @@ var scrollTo = function(cid, colIdx, instant) {
 var scrollHorizTo = function(colIdx, instant) {
   let scrollDuration = instant ? 0 : 0.50;
   var col = document.getElementsByClassName("column")[colIdx];
-  var appEl = document.getElementById("app");
+  var appEl = document.getElementById("document");
   if (col == null) {
     console.log("scroll horiz error: not found", colIdx);
     return;
