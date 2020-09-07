@@ -9,13 +9,14 @@ import Doc.Data as Data
 import Doc.Data.Conflict as Conflict exposing (Conflict, Op(..), Selection(..), opString)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
-import Html exposing (Html, a, button, del, div, fieldset, h1, iframe, input, ins, label, li, span, text, ul)
+import Html exposing (Html, a, button, del, div, fieldset, h1, hr, iframe, input, ins, label, li, span, text, ul)
 import Html.Attributes as A exposing (..)
 import Html.Events exposing (onClick, onInput)
 import List.Extra as ListExtra exposing (getAt)
 import Octicons as Icon exposing (defaultOptions)
 import Regex exposing (Regex, replace)
 import Route
+import Session exposing (Session)
 import Time exposing (posixToMillis)
 import Translation exposing (Language, TranslationId(..), timeDistInWords, tr)
 import Types exposing (Children(..), CursorPosition(..), TextCursorInfo, ViewMode(..), ViewState)
@@ -41,28 +42,35 @@ viewHomeLink sidebarOpen =
         ]
 
 
-type alias HeaderConfig msg =
+type alias HeaderMsgs msg =
     { toggledTitleEdit : Bool -> msg
     , titleFieldChanged : String -> msg
     , titleEdited : msg
+    , toggledAccountMenu : Bool -> msg
     }
 
 
-viewHeader : HeaderConfig msg -> Maybe String -> { m | titleField : Maybe String, dirty : Bool, lastLocalSave : Maybe Time.Posix, lastRemoteSave : Maybe Time.Posix, currentTime : Time.Posix, language : Translation.Language } -> Html msg
-viewHeader config title_ model =
+viewHeader : HeaderMsgs msg -> Maybe String -> { m | titleField : Maybe String, accountMenuOpen : Bool, dirty : Bool, lastLocalSave : Maybe Time.Posix, lastRemoteSave : Maybe Time.Posix, currentTime : Time.Posix, language : Translation.Language, session : Session } -> Html msg
+viewHeader msgs title_ model =
     case model.titleField of
         Just editingField ->
             div [ id "document-header" ]
-                [ input [ onInput config.titleFieldChanged, value editingField ] []
-                , button [ onClick config.titleEdited ] [ text "Rename" ]
+                [ span [ id "title" ]
+                    [ input [ onInput msgs.titleFieldChanged, value editingField ] []
+                    , button [ onClick msgs.titleEdited ] [ text "Rename" ]
+                    ]
+                , viewAccount msgs.toggledAccountMenu model.accountMenuOpen model.session
                 ]
 
         Nothing ->
             div [ id "document-header" ]
-                [ h1 [ onClick (config.toggledTitleEdit True) ]
-                    [ text (title_ |> Maybe.withDefault "Untitled")
+                [ span [ id "title" ]
+                    [ h1 [ onClick (msgs.toggledTitleEdit True) ]
+                        [ text (title_ |> Maybe.withDefault "Untitled")
+                        ]
+                    , viewSaveIndicator model
                     ]
-                , viewSaveIndicator model
+                , viewAccount msgs.toggledAccountMenu model.accountMenuOpen model.session
                 ]
 
 
@@ -103,6 +111,26 @@ viewSaveIndicator { dirty, lastLocalSave, lastRemoteSave, currentTime, language 
             [ id "save-indicator", classList [ ( "inset", True ), ( "saving", dirty ) ] ]
             [ saveStateSpan
             ]
+        ]
+
+
+viewAccount : (Bool -> msg) -> Bool -> Session -> Html msg
+viewAccount toggleMsg isOpen session =
+    let
+        userIcon =
+            Icon.person (defaultOptions |> Icon.color "#333" |> Icon.size 28)
+    in
+    div [ onClick (toggleMsg (not isOpen)) ]
+        [ userIcon
+        , if isOpen then
+            div [ id "account-dropdown" ]
+                [ text (Session.username session |> Maybe.withDefault "")
+                , hr [] []
+                , a [ href (Route.routeToString Route.Logout) ] [ text "Logout" ]
+                ]
+
+          else
+            text ""
         ]
 
 

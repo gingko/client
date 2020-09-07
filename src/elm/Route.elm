@@ -11,6 +11,7 @@ type Route
     = Home
     | Signup
     | Login
+    | Logout
     | DocNew String
     | DocUntitled String
     | Doc String String
@@ -34,6 +35,7 @@ parser =
         [ Parser.map Home Parser.top
         , Parser.map Signup (s "signup")
         , Parser.map Login (s "login")
+        , Parser.map Logout (s "logout")
         , Parser.map newOrUntitled (string <?> queryNew)
         , Parser.map Doc (string </> string)
         ]
@@ -55,6 +57,9 @@ routeToString route =
 
         Login ->
             "/login"
+
+        Logout ->
+            "/logout"
 
         DocNew dbName ->
             "/" ++ dbName ++ "?new=true"

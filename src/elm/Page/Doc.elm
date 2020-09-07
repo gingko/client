@@ -60,6 +60,7 @@ type alias Model =
     , debouncerStateCommit : Debouncer () ()
     , titleField : Maybe String
     , sidebarOpen : Bool
+    , accountMenuOpen : Bool
     , shortcutTrayOpen : Bool
     , wordcountTrayOpen : Bool
     , videoModalOpen : Bool
@@ -110,6 +111,7 @@ defaultModel isNew session docId =
     , language = Translation.En
     , titleField = Nothing
     , sidebarOpen = False
+    , accountMenuOpen = False
     , shortcutTrayOpen = False -- TODO
     , wordcountTrayOpen = False
     , videoModalOpen = False
@@ -179,6 +181,7 @@ type Msg
     | ToggledTitleEdit Bool
     | TitleFieldChanged String
     | TitleEdited
+    | ToggledAccountMenu Bool
     | ToggledSidebar Bool
     | TimeUpdate Time.Posix
     | VideoModal Bool
@@ -486,6 +489,9 @@ update msg ({ workingTree } as model) =
 
                 Nothing ->
                     ( model, Cmd.none )
+
+        ToggledAccountMenu isOpen ->
+            ( { model | accountMenuOpen = isOpen }, Cmd.none )
 
         ToggledSidebar sidebarOpen ->
             ( { model | sidebarOpen = sidebarOpen }, Cmd.none )
@@ -2199,7 +2205,7 @@ pre, code, .group.has-active .card textarea {
                     [ id "app-root" ]
                     ([ UI.viewHomeLink model.sidebarOpen
                      , lazy3 treeView model.language model.viewState model.workingTree
-                     , UI.viewHeader { toggledTitleEdit = ToggledTitleEdit, titleFieldChanged = TitleFieldChanged, titleEdited = TitleEdited }
+                     , UI.viewHeader { toggledTitleEdit = ToggledTitleEdit, titleFieldChanged = TitleFieldChanged, titleEdited = TitleEdited, toggledAccountMenu = ToggledAccountMenu }
                         (Metadata.getDocName model.metadata)
                         model
                      ]

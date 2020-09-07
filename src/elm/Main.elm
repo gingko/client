@@ -69,6 +69,11 @@ changeRouteTo maybeRoute model =
             ( _, Just Route.Login ) ->
                 Page.Login.init session |> updateWith Login GotLoginMsg
 
+            ( _, Just Route.Logout ) ->
+                Page.Login.init session
+                    |> updateWith Login GotLoginMsg
+                    |> withCmd Session.logout
+
             ( Home _, Just (Route.DocNew dbName) ) ->
                 Page.Doc.init session dbName True |> updateWith Doc GotDocMsg
 
@@ -182,6 +187,11 @@ updateWith toModel toMsg ( subModel, subCmd ) =
     ( toModel subModel
     , Cmd.map toMsg subCmd
     )
+
+
+withCmd : Cmd Msg -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+withCmd newCmd ( model, cmd ) =
+    ( model, Cmd.batch [ newCmd, cmd ] )
 
 
 

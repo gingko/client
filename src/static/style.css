@@ -206,7 +206,8 @@ body {
   padding: 4px;
   display: flex;
   flex-direction: row;
-  align-items: baseline;
+  align-items: center;
+  justify-content: space-between;
   color: #334;
   background-color: hsl(199, 27%, 90%);
   border-bottom: 1px solid hsl(212deg 5% 58%);
@@ -214,7 +215,13 @@ body {
   box-shadow: 0 0 4px #00000085;
 }
 
-#document-header h1 {
+#title {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+}
+
+#title h1 {
   font-size: 20px;
   padding: 0 12px;
 }
@@ -231,6 +238,15 @@ body {
 #save-indicator.saving {
   transition: none;
   font-weight: bold;
+}
+
+#account-dropdown {
+  position: absolute;
+  right: 0px;
+  top: 39px;
+  padding: 16px;
+  background: whitesmoke;
+  border-radius: 5px 0 5px 5px;
 }
 
 #sidebar {
