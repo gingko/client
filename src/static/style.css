@@ -194,11 +194,18 @@ body {
     "sidebar sidebar-menu document-footer";
 }
 
-#home-link {
+#home {
   grid-area: home;
   background: hsl(208deg 55% 48%);
   z-index: 100;
   padding: 5px;
+}
+#home-link {
+  display: flex;
+  align-items: center;
+}
+#home-link-name {
+  margin-left: 6px;
 }
 
 #document-header {
@@ -240,7 +247,12 @@ body {
   font-weight: bold;
 }
 
+#account {
+  cursor: pointer;
+}
+
 #account-dropdown {
+  cursor: default;
   position: absolute;
   right: 0px;
   top: 39px;
@@ -252,6 +264,17 @@ body {
 #sidebar {
   grid-area: sidebar;
   background: #d1d1d1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sidebar-button {
+  padding: 10px;
+  cursor: pointer;
+}
+.sidebar-button:hover , .sidebar-button.open {
+  background-color: white;
 }
 
 #sidebar-menu {

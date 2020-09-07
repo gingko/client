@@ -9,7 +9,7 @@ import Doc.Data as Data
 import Doc.Data.Conflict as Conflict exposing (Conflict, Op(..), Selection(..), opString)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
-import Html exposing (Html, a, button, del, div, fieldset, h1, hr, iframe, input, ins, label, li, span, text, ul)
+import Html exposing (Html, a, button, del, div, fieldset, h1, hr, iframe, img, input, ins, label, li, span, text, ul)
 import Html.Attributes as A exposing (..)
 import Html.Events exposing (onClick, onInput)
 import List.Extra as ListExtra exposing (getAt)
@@ -28,17 +28,16 @@ import Types exposing (Children(..), CursorPosition(..), TextCursorInfo, ViewMod
 
 viewHomeLink : Bool -> Html msg
 viewHomeLink sidebarOpen =
-    let
-        homeIcon =
-            Icon.home (defaultOptions |> Icon.color "#ddd" |> Icon.size 28)
-    in
-    div [ id "home-link" ]
-        [ a [ href (Route.routeToString Route.Home) ] [ homeIcon ]
-        , if sidebarOpen then
-            text "Home"
+    div [ id "home" ]
+        [ a [ id "home-link", href (Route.routeToString Route.Home) ]
+            [ img [ src "../gingko-leaf-logo.svg", width 28 ]
+                []
+            , if sidebarOpen then
+                span [ id "home-link-name" ] [ text "Home" ]
 
-          else
-            text ""
+              else
+                text ""
+            ]
         ]
 
 
@@ -120,7 +119,7 @@ viewAccount toggleMsg isOpen session =
         userIcon =
             Icon.person (defaultOptions |> Icon.color "#333" |> Icon.size 28)
     in
-    div [ onClick (toggleMsg (not isOpen)) ]
+    div [ id "account", onClick (toggleMsg (not isOpen)) ]
         [ userIcon
         , if isOpen then
             div [ id "account-dropdown" ]
@@ -153,9 +152,19 @@ viewSidebar msgs isOpen =
 
             else
                 text ""
+
+        fileIconColor =
+            if isOpen then
+                "#333"
+
+            else
+                "#999"
+
+        fileIcon =
+            Icon.fileDirectory (defaultOptions |> Icon.color fileIconColor |> Icon.size 18)
     in
     [ div [ id "sidebar", classList [ ( "open", isOpen ) ] ]
-        [ button [ onClick <| msgs.toggledSidebar (not isOpen) ] [ text "File" ] ]
+        [ div [ classList [ ( "sidebar-button", True ), ( "open", isOpen ) ], onClick <| msgs.toggledSidebar (not isOpen) ] [ fileIcon ] ]
     , sidebarMenu
     ]
 
