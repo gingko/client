@@ -1,4 +1,4 @@
-module Doc.UI exposing (countWords, viewConflict, viewFooter, viewHeader, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
+module Doc.UI exposing (countWords, viewConflict, viewFooter, viewHeader, viewHistory, viewHomeLink, viewSaveIndicator, viewSearchField, viewVideo)
 
 import Coders exposing (treeToMarkdownString)
 import Date
@@ -15,9 +15,23 @@ import Html.Events exposing (onClick, onInput)
 import List.Extra as ListExtra exposing (getAt)
 import Octicons as Icon exposing (defaultOptions)
 import Regex exposing (Regex, replace)
+import Route
 import Time exposing (posixToMillis)
 import Translation exposing (Language, TranslationId(..), timeDistInWords, tr)
 import Types exposing (Children(..), CursorPosition(..), TextCursorInfo, ViewMode(..), ViewState)
+
+
+
+-- HEADER
+
+
+viewHomeLink : Html msg
+viewHomeLink =
+    let
+        homeIcon =
+            Icon.home (defaultOptions |> Icon.color "#ddd" |> Icon.size 28)
+    in
+    div [ id "home-link" ] [ a [ href (Route.routeToString Route.Home) ] [ homeIcon ] ]
 
 
 type alias HeaderConfig msg =
@@ -27,13 +41,26 @@ type alias HeaderConfig msg =
     }
 
 
-viewHeader : HeaderConfig msg -> Maybe String -> { m | dirty : Bool, lastLocalSave : Maybe Time.Posix, lastRemoteSave : Maybe Time.Posix, currentTime : Time.Posix, language : Translation.Language } -> Html msg
+viewHeader : HeaderConfig msg -> Maybe String -> { m | titleField : Maybe String, dirty : Bool, lastLocalSave : Maybe Time.Posix, lastRemoteSave : Maybe Time.Posix, currentTime : Time.Posix, language : Translation.Language } -> Html msg
 viewHeader config title_ model =
-    div [ id "document-header" ] [ text (title_ |> Maybe.withDefault "Untitled") ]
+    case model.titleField of
+        Just editingField ->
+            div [ id "document-header" ]
+                [ input [ onInput config.titleFieldChanged, value editingField ] []
+                , button [ onClick config.titleEdited ] [ text "Rename" ]
+                ]
+
+        Nothing ->
+            div [ id "document-header" ]
+                [ h1 [ onClick (config.toggledTitleEdit True) ]
+                    [ text (title_ |> Maybe.withDefault "Untitled")
+                    ]
+                , viewSaveIndicator model
+                ]
 
 
-viewSaveIndicator : { m | data : Data.Model, dirty : Bool, lastLocalSave : Maybe Time.Posix, lastRemoteSave : Maybe Time.Posix, currentTime : Time.Posix, language : Translation.Language } -> Html msg
-viewSaveIndicator { data, dirty, lastLocalSave, lastRemoteSave, currentTime, language } =
+viewSaveIndicator : { m | dirty : Bool, lastLocalSave : Maybe Time.Posix, lastRemoteSave : Maybe Time.Posix, currentTime : Time.Posix, language : Translation.Language } -> Html msg
+viewSaveIndicator { dirty, lastLocalSave, lastRemoteSave, currentTime, language } =
     let
         lastChangeString =
             timeDistInWords
@@ -69,8 +96,11 @@ viewSaveIndicator { data, dirty, lastLocalSave, lastRemoteSave, currentTime, lan
             [ id "save-indicator", classList [ ( "inset", True ), ( "saving", dirty ) ] ]
             [ saveStateSpan
             ]
-        , gitgraph data
         ]
+
+
+
+-- DOCUMENT
 
 
 viewSearchField : (String -> msg) -> { m | viewState : ViewState, language : Language } -> Html msg

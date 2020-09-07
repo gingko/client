@@ -1,4 +1,4 @@
-module Route exposing (Route(..), fromUrl, pushUrl, replaceUrl)
+module Route exposing (Route(..), fromUrl, pushUrl, replaceUrl, routeToString)
 
 import Browser.Navigation as Nav
 import Dict

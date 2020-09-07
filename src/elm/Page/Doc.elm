@@ -58,8 +58,7 @@ type alias Model =
     , field : String
     , textCursorInfo : TextCursorInfo
     , debouncerStateCommit : Debouncer () ()
-    , isEditingTitle : Bool
-    , titleField : String
+    , titleField : Maybe String
     , shortcutTrayOpen : Bool
     , wordcountTrayOpen : Bool
     , videoModalOpen : Bool
@@ -108,8 +107,7 @@ defaultModel isNew session docId =
     , textCursorInfo = { selected = False, position = End, text = ( "", "" ) }
     , isMac = False
     , language = Translation.En
-    , isEditingTitle = False
-    , titleField = ""
+    , titleField = Nothing
     , shortcutTrayOpen = False -- TODO
     , wordcountTrayOpen = False
     , videoModalOpen = False
@@ -459,22 +457,32 @@ update msg ({ workingTree } as model) =
 
         -- === UI ===
         ToggledTitleEdit isEditingTitle ->
-            ( { model
-                | isEditingTitle = isEditingTitle
-                , titleField = Metadata.getDocName model.metadata |> Maybe.withDefault ""
-              }
-            , Cmd.none
-            )
-
-        TitleFieldChanged newTitle ->
-            ( { model | titleField = newTitle }, Cmd.none )
-
-        TitleEdited ->
-            if Just model.titleField /= Metadata.getDocName model.metadata then
-                ( model, sendOut <| SaveMetadata <| Metadata.rename model.titleField model.metadata )
+            if isEditingTitle then
+                ( { model
+                    | titleField = Metadata.getDocName model.metadata |> Maybe.withDefault "" |> Just
+                  }
+                , Cmd.none
+                )
 
             else
-                ( model, Cmd.none )
+                ( { model | titleField = Nothing }
+                , Cmd.none
+                )
+
+        TitleFieldChanged newTitle ->
+            ( { model | titleField = Just newTitle }, Cmd.none )
+
+        TitleEdited ->
+            case model.titleField of
+                Just editedTitle ->
+                    if Just editedTitle /= Metadata.getDocName model.metadata then
+                        ( model, sendOut <| SaveMetadata <| Metadata.rename editedTitle model.metadata )
+
+                    else
+                        ( model, Cmd.none )
+
+                Nothing ->
+                    ( model, Cmd.none )
 
         TimeUpdate time ->
             ( { model | currentTime = time }
@@ -692,18 +700,13 @@ update msg ({ workingTree } as model) =
                 MetadataSaved json ->
                     case Json.decodeValue Metadata.decoder json of
                         Ok metadata ->
-                            ( { model | isEditingTitle = False, metadata = metadata }, Cmd.none )
+                            ( { model | titleField = Nothing, metadata = metadata }, Cmd.none )
 
                         Err err ->
                             ( model, Cmd.none )
 
                 MetadataSaveError ->
-                    ( { model
-                        | isEditingTitle = False
-                        , titleField = Metadata.getDocName model.metadata |> Maybe.withDefault ""
-                      }
-                    , Cmd.none
-                    )
+                    ( { model | titleField = Nothing }, Cmd.none )
 
                 GetDataToSave ->
                     case vs.viewMode of
@@ -2188,11 +2191,7 @@ pre, code, .group.has-active .card textarea {
             else
                 div
                     [ id "app-root" ]
-                    [ if model.fontSelectorOpen then
-                        Fonts.viewSelector model.language model.fonts |> Html.map FontsMsg
-
-                      else
-                        text ""
+                    [ UI.viewHomeLink
                     , lazy3 treeView model.language model.viewState model.workingTree
                     , UI.viewHeader { toggledTitleEdit = ToggledTitleEdit, titleFieldChanged = TitleFieldChanged, titleEdited = TitleEdited }
                         (Metadata.getDocName model.metadata)
