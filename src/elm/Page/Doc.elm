@@ -12,7 +12,7 @@ import Doc.Fullscreen as Fullscreen
 import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
-import Doc.UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
+import Doc.UI as UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSearchField, viewVideo)
 import File.Download as Download
 import Html exposing (Html, a, button, div, h1, input, node, span, text, textarea, ul)
 import Html.Attributes exposing (class, classList, dir, href, id, style, title, value)
@@ -2194,9 +2194,9 @@ pre, code, .group.has-active .card textarea {
                       else
                         text ""
                     , lazy3 treeView model.language model.viewState model.workingTree
-                    , viewHeader model.isEditingTitle model.titleField (Metadata.getDocName model.metadata)
-                    , button [ onClick ExportAll ] [ text "Export to Word" ]
-                    , viewSaveIndicator model
+                    , UI.viewHeader { toggledTitleEdit = ToggledTitleEdit, titleFieldChanged = TitleFieldChanged, titleEdited = TitleEdited }
+                        (Metadata.getDocName model.metadata)
+                        model
                     , viewSearchField SearchFieldUpdated model
                     , viewFooter WordcountTrayToggle ShortcutTrayToggle model
                     , case model.historyState of
@@ -2207,7 +2207,6 @@ pre, code, .group.has-active .card textarea {
                             text ""
                     , viewVideo VideoModal model
                     , styleNode
-                    , a [ style "z-index" "9999999999", href "/" ] [ text "home" ]
                     , div [ id "loading-overlay" ] []
                     ]
 
@@ -2296,7 +2295,7 @@ treeView lang vstate model =
                 |> List.map (\t -> lazy3 viewColumn (getViewArgs t) (second t) (first t))
     in
     div
-        [ id "app"
+        [ id "document"
         ]
         columns
 

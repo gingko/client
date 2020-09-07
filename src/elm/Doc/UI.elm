@@ -1,4 +1,4 @@
-module Doc.UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
+module Doc.UI exposing (countWords, viewConflict, viewFooter, viewHeader, viewHistory, viewSaveIndicator, viewSearchField, viewVideo)
 
 import Coders exposing (treeToMarkdownString)
 import Date
@@ -18,6 +18,18 @@ import Regex exposing (Regex, replace)
 import Time exposing (posixToMillis)
 import Translation exposing (Language, TranslationId(..), timeDistInWords, tr)
 import Types exposing (Children(..), CursorPosition(..), TextCursorInfo, ViewMode(..), ViewState)
+
+
+type alias HeaderConfig msg =
+    { toggledTitleEdit : Bool -> msg
+    , titleFieldChanged : String -> msg
+    , titleEdited : msg
+    }
+
+
+viewHeader : HeaderConfig msg -> Maybe String -> { m | dirty : Bool, lastLocalSave : Maybe Time.Posix, lastRemoteSave : Maybe Time.Posix, currentTime : Time.Posix, language : Translation.Language } -> Html msg
+viewHeader config title_ model =
+    div [ id "document-header" ] [ text (title_ |> Maybe.withDefault "Untitled") ]
 
 
 viewSaveIndicator : { m | data : Data.Model, dirty : Bool, lastLocalSave : Maybe Time.Posix, lastRemoteSave : Maybe Time.Posix, currentTime : Time.Posix, language : Translation.Language } -> Html msg

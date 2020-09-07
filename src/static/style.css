@@ -182,24 +182,37 @@ body {
 
 
 #app-root {
-  display: flex;
-  flex-direction: column;
   position: absolute;
   height: 100%;
   width: 100%;
+  display: grid;
+  grid-template-columns: 40px auto 1fr;
+  grid-template-rows: 40px 1fr 25px;
+  grid-template-areas:
+    "home-icon home-link document-header"
+    "sidebar sidebar-menu document"
+    "sidebar sidebar-menu document-footer";
 }
 
-#app::-webkit-scrollbar {
+#document-header {
+  grid-area: document-header;
+}
+
+#document {
+  grid-area: document;
+}
+
+#document::-webkit-scrollbar {
   height: 10px;
 }
 
-#app::-webkit-scrollbar-track {
+#document::-webkit-scrollbar-track {
   background: #ddd;
   border-radius: 20px;
   box-shadow: inset 1px 0px 2px 0px #312c2c;
 }
 
-#app::-webkit-scrollbar-thumb {
+#document::-webkit-scrollbar-thumb {
   background: #61808e;
   border-radius: 20px;
   border-top: 1px solid #8499a2;
@@ -209,7 +222,7 @@ body {
 
 /* ======== COLUMNS ======== */
 
-#app {
+#document {
   display: flex;
   justify-content: space-between;
   flex: 1;
@@ -254,7 +267,7 @@ body {
 
 /* ======== FULLSCREEN ======== */
 
-#app.fullscreen {
+#document.fullscreen {
   display: flex;
   justify-content: space-between;
   flex: 1;
@@ -577,25 +590,25 @@ pre {
 /* ======== CARD (Edit view) ======== */
 
 /* --- Autofocus --- */
-#app,
-#app .buffer {
+#document,
+#document .buffer {
   transition: all 0.25s ease;
 }
 
-#app.editing .group {
+#document.editing .group {
   background-color: var(--dark-gray);
 }
 
-#app.editing,
-#app.editing .buffer,
-#app.editing .group {
+#document.editing,
+#document.editing .buffer,
+#document.editing .group {
   background: rgb(50, 89, 107);
   transition: background 60s ease, box-shadow 60s ease, border-color 60s ease;
   box-shadow: none;
   border-color: transparent;
 }
 
-#app.editing .card {
+#document.editing .card {
   box-shadow: 1px 2px 4px hsla(0, 0%, 0%, 0.4);
   transition: box-shadow 60s ease;
 }
@@ -1002,12 +1015,10 @@ pre {
 /* ======== STATUS BAR ======== */
 
 .footer {
-  position: absolute;
-  bottom: 0;
+  grid-area: document-footer;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  height: 25px;
   width: 100%;
   padding: 2px 6px;
   font-size: 12px;
