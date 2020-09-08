@@ -92,7 +92,12 @@ defaultModel isNew session docId =
     , uid = "0"
     , viewState =
         { active = "1"
-        , viewMode = Editing
+        , viewMode =
+            if isNew then
+                Editing
+
+            else
+                Normal
         , activePast = []
         , descendants = []
         , ancestors = [ "0" ]
