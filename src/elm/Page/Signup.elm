@@ -2,7 +2,7 @@ module Page.Signup exposing (Model, Msg, init, subscriptions, toSession, update,
 
 import Browser.Navigation as Nav
 import Html exposing (..)
-import Html.Attributes exposing (href, placeholder, value)
+import Html.Attributes exposing (autofocus, class, href, id, placeholder, value)
 import Html.Events exposing (onInput, onSubmit)
 import Http
 import Json.Decode as Dec
@@ -95,33 +95,32 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    form [ onSubmit SubmittedForm ]
-        [ fieldset []
-            [ input
-                [ placeholder "Email"
-                , onInput EnteredEmail
-                , value model.email
+    div [ id "form-page" ]
+        [ div [ class "center-form" ]
+            [ form [ onSubmit SubmittedForm ]
+                [ label [] [ text "Email" ]
+                , input
+                    [ onInput EnteredEmail
+                    , value model.email
+                    , autofocus True
+                    ]
+                    []
+                , label [] [ text "Password" ]
+                , input
+                    [ onInput EnteredPassword
+                    , value model.password
+                    ]
+                    []
+                , label [] [ text "Confirm Password" ]
+                , input
+                    [ onInput EnteredPassConfirm
+                    , value model.passwordConfirm
+                    ]
+                    []
+                , button [] [ text "Signup" ]
+                , span [] [ text "or ", a [ href "/login" ] [ text "Login" ] ]
                 ]
-                []
             ]
-        , fieldset []
-            [ input
-                [ placeholder "Password"
-                , onInput EnteredPassword
-                , value model.password
-                ]
-                []
-            ]
-        , fieldset []
-            [ input
-                [ placeholder "Confirm Password"
-                , onInput EnteredPassConfirm
-                , value model.passwordConfirm
-                ]
-                []
-            ]
-        , button [] [ text "Signup" ]
-        , a [ href "/login" ] [ text "Login" ]
         ]
 
 
