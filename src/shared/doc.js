@@ -44,7 +44,7 @@ initElmAndPorts();
 async function initElmAndPorts() {
   const sessionData = localStorage.getItem(sessionStorageKey) || null;
   if (sessionData) {
-    setUserDbs(sessionData);
+    setUserDbs(sessionData.session);
     let store = await userStore.load();
     lang = store.language;
   }
@@ -74,7 +74,8 @@ async function initElmAndPorts() {
       localStorage.removeItem(sessionStorageKey);
     } else {
       let newSession = {session : data, seed: Date.now()};
-      localStorage.setItem(sessionStorageKey, newSession);
+      localStorage.setItem(sessionStorageKey, JSON.stringify(newSession));
+      setUserDbs(data);
       setTimeout(()=> gingko.ports.sessionChanged.send(newSession), 0);
     }
   });
