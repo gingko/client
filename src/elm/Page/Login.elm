@@ -17,12 +17,17 @@ import Validate exposing (Valid, Validator, ifBlank, ifInvalidEmail, ifNotInt, v
 
 
 type alias Model =
-    { session : Session, email : String, password : String }
+    { session : Session, email : String, password : String, errors : List ( Field, String ) }
+
+
+type Field
+    = Email
+    | Password
 
 
 init : Session -> ( Model, Cmd msg )
 init session =
-    ( { session = session, email = "", password = "" }
+    ( { session = session, email = "", password = "", errors = [] }
     , Cmd.none
     )
 
@@ -55,11 +60,7 @@ update msg model =
                     )
 
                 Err errs ->
-                    let
-                        _ =
-                            Debug.log "errs" errs
-                    in
-                    ( model, Cmd.none )
+                    ( { model | errors = errs }, Cmd.none )
 
         EnteredEmail email ->
             ( { model | email = email }, Cmd.none )
@@ -77,14 +78,14 @@ update msg model =
             ( { model | session = session }, Route.pushUrl (Session.navKey session) Route.Home )
 
 
-modelValidator : Validator String Model
+modelValidator : Validator ( Field, String ) Model
 modelValidator =
     Validate.all
         [ Validate.firstError
-            [ ifBlank .email "Please enter an email address."
-            , ifInvalidEmail .email (\_ -> "This does not seem to be a valid email.")
+            [ ifBlank .email ( Email, "Please enter an email address." )
+            , ifInvalidEmail .email (\_ -> ( Email, "This does not seem to be a valid email." ))
             ]
-        , ifBlank .password "Please enter a password."
+        , ifBlank .password ( Password, "Please enter a password." )
         ]
 
 
@@ -121,10 +122,18 @@ sendLoginRequest validModel =
 
 view : Model -> Html Msg
 view model =
+    let
+        emailErrors : List String
+        emailErrors =
+            model.errors
+                |> List.filter ((==) Email << Tuple.first)
+                |> List.map Tuple.second
+    in
     div [ id "form-page" ]
         [ div [ class "center-form" ]
             [ form [ onSubmit SubmittedForm ]
                 [ label [] [ text "Email" ]
+                , div [] [ text (String.join "\n" emailErrors) ]
                 , input
                     [ onInput EnteredEmail
                     , value model.email
