@@ -136,10 +136,7 @@ init session dbName isNew =
         sendOut <| LoadDocument dbName
 
       else
-        Cmd.batch
-            [ sendOut <| InitDocument dbName
-            , Route.replaceUrl (Session.navKey session) (Route.DocUntitled dbName)
-            ]
+        sendOut <| InitDocument dbName
     )
         |> (if isNew then
                 activate "1" True

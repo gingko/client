@@ -6,6 +6,7 @@ import Html
 import Import
 import Json.Decode as Dec exposing (Decoder, Value)
 import Page.Doc
+import Page.DocNew
 import Page.Home
 import Page.Login
 import Page.NotFound
@@ -26,6 +27,7 @@ type Model
     | Signup Page.Signup.Model
     | Login Page.Login.Model
     | Home Page.Home.Model
+    | DocNew Session
     | Doc Page.Doc.Model
 
 
@@ -60,37 +62,40 @@ changeRouteTo maybeRoute model =
             toSession model
     in
     if Session.loggedIn session then
-        case ( model, maybeRoute ) of
-            ( _, Just Route.Home ) ->
+        case maybeRoute of
+            Just Route.Home ->
                 Page.Home.init session |> updateWith Home GotHomeMsg
 
-            ( _, Just Route.Signup ) ->
+            Just Route.Signup ->
                 Page.Signup.init session |> updateWith Signup GotSignupMsg
 
-            ( _, Just Route.Login ) ->
+            Just Route.Login ->
                 Page.Login.init session |> updateWith Login GotLoginMsg
 
-            ( _, Just Route.Logout ) ->
+            Just Route.Logout ->
                 Page.Login.init session
                     |> updateWith Login GotLoginMsg
                     |> withCmd Session.logout
 
-            ( Home _, Just (Route.DocNew dbName) ) ->
-                Page.Doc.init session dbName True |> updateWith Doc GotDocMsg
+            Just Route.DocNew ->
+                Page.DocNew.init session |> updateWith DocNew GotDocNewMsg
 
-            ( _, Just (Route.DocNew _) ) ->
-                ( model, Cmd.none )
+            Just (Route.DocUntitled dbName) ->
+                let
+                    isNew =
+                        case model of
+                            DocNew _ ->
+                                True
 
-            ( Doc _, Just (Route.DocUntitled _) ) ->
-                ( model, Cmd.none )
+                            _ ->
+                                False
+                in
+                Page.Doc.init session dbName isNew |> updateWith Doc GotDocMsg
 
-            ( _, Just (Route.DocUntitled dbName) ) ->
+            Just (Route.Doc dbName _) ->
                 Page.Doc.init session dbName False |> updateWith Doc GotDocMsg
 
-            ( _, Just (Route.Doc dbName _) ) ->
-                Page.Doc.init session dbName False |> updateWith Doc GotDocMsg
-
-            ( _, Nothing ) ->
+            Nothing ->
                 ( NotFound session, Cmd.none )
 
     else
@@ -132,6 +137,9 @@ toSession page =
         Home home ->
             Page.Home.toSession home
 
+        DocNew session ->
+            session
+
         Doc doc ->
             Page.Doc.toSession doc
 
@@ -146,6 +154,7 @@ type Msg
     | GotSignupMsg Page.Signup.Msg
     | GotLoginMsg Page.Login.Msg
     | GotHomeMsg Page.Home.Msg
+    | GotDocNewMsg Page.DocNew.Msg
     | GotDocMsg Page.Doc.Msg
 
 
@@ -171,13 +180,17 @@ update msg model =
             Page.Login.update loginMsg loginModel
                 |> updateWith Login GotLoginMsg
 
-        ( GotDocMsg docMsg, Doc docModel ) ->
-            Page.Doc.update docMsg docModel
-                |> updateWith Doc GotDocMsg
-
         ( GotHomeMsg homeMsg, Home homeModel ) ->
             Page.Home.update homeMsg homeModel
                 |> updateWith Home GotHomeMsg
+
+        ( GotDocNewMsg docNewMsg, DocNew docNewModel ) ->
+            Page.DocNew.update docNewMsg docNewModel
+                |> updateWith DocNew GotDocNewMsg
+
+        ( GotDocMsg docMsg, Doc docModel ) ->
+            Page.Doc.update docMsg docModel
+                |> updateWith Doc GotDocMsg
 
         _ ->
             ( model, Cmd.none )
@@ -217,6 +230,9 @@ view model =
         Home home ->
             { title = "Gingko - Home", body = [ Html.map GotHomeMsg (Page.Home.view home) ] }
 
+        DocNew _ ->
+            { title = "Gingko - New", body = [ Html.div [] [ Html.text "LOADING..." ] ] }
+
         Doc doc ->
             { title = "Gingko", body = [ Html.map GotDocMsg (Page.Doc.view doc) ] }
 
@@ -242,6 +258,9 @@ subscriptions model =
 
         Home pageModel ->
             Sub.map GotHomeMsg (Page.Home.subscriptions pageModel)
+
+        DocNew _ ->
+            Sub.none
 
         Doc pageModel ->
             Sub.map GotDocMsg (Page.Doc.subscriptions pageModel)

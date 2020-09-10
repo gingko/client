@@ -297,6 +297,8 @@ body {
   background: white;
   border-right: 1px solid hsl(212deg 5% 58%);
   box-shadow: 0 0 4px #00000085;
+  display: flex;
+  flex-direction: column;
 }
 
 

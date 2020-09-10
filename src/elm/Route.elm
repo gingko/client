@@ -1,4 +1,4 @@
-module Route exposing (Route(..), fromUrl, pushUrl, replaceUrl, routeToString)
+module Route exposing (Route(..), fromUrl, pushUrl, replaceUrl, toString)
 
 import Browser.Navigation as Nav
 import Dict
@@ -12,31 +12,20 @@ type Route
     | Signup
     | Login
     | Logout
-    | DocNew String
+    | DocNew
     | DocUntitled String
     | Doc String String
 
 
 parser : Parser (Route -> a) a
 parser =
-    let
-        queryNew =
-            Q.enum "new" (Dict.fromList [ ( "true", True ) ])
-
-        newOrUntitled docId new_ =
-            case new_ of
-                Just True ->
-                    DocNew docId
-
-                _ ->
-                    DocUntitled docId
-    in
     oneOf
         [ Parser.map Home Parser.top
         , Parser.map Signup (s "signup")
         , Parser.map Login (s "login")
         , Parser.map Logout (s "logout")
-        , Parser.map newOrUntitled (string <?> queryNew)
+        , Parser.map DocNew (s "new")
+        , Parser.map DocUntitled string
         , Parser.map Doc (string </> string)
         ]
 
@@ -46,8 +35,8 @@ fromUrl url =
     Parser.parse parser url
 
 
-routeToString : Route -> String
-routeToString route =
+toString : Route -> String
+toString route =
     case route of
         Home ->
             "/"
@@ -61,8 +50,8 @@ routeToString route =
         Logout ->
             "/logout"
 
-        DocNew dbName ->
-            "/" ++ dbName ++ "?new=true"
+        DocNew ->
+            "/new"
 
         DocUntitled dbName ->
             "/" ++ dbName
@@ -73,9 +62,9 @@ routeToString route =
 
 replaceUrl : Nav.Key -> Route -> Cmd msg
 replaceUrl navKey route =
-    Nav.replaceUrl navKey (routeToString route)
+    Nav.replaceUrl navKey (toString route)
 
 
 pushUrl : Nav.Key -> Route -> Cmd msg
 pushUrl navKey route =
-    Nav.pushUrl navKey (routeToString route)
+    Nav.pushUrl navKey (toString route)

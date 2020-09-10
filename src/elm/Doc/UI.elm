@@ -29,7 +29,7 @@ import Types exposing (Children(..), CursorPosition(..), TextCursorInfo, ViewMod
 viewHomeLink : Bool -> Html msg
 viewHomeLink sidebarOpen =
     div [ id "home" ]
-        [ a [ id "home-link", href (Route.routeToString Route.Home) ]
+        [ a [ id "home-link", href (Route.toString Route.Home) ]
             [ img [ src "../gingko-leaf-logo.svg", width 28 ]
                 []
             , if sidebarOpen then
@@ -123,7 +123,7 @@ viewAccount toggleMsg isOpen session =
             div [ id "account-dropdown" ]
                 [ text (Session.username session |> Maybe.withDefault "")
                 , hr [] []
-                , a [ href (Route.routeToString Route.Logout) ] [ text "Logout" ]
+                , a [ href (Route.toString Route.Logout) ] [ text "Logout" ]
                 ]
 
           else
@@ -146,7 +146,7 @@ viewSidebar msgs isOpen =
     let
         sidebarMenu =
             if isOpen then
-                div [ id "sidebar-menu" ] [ button [ onClick msgs.exportAll ] [ text "Export to docx" ] ]
+                div [ id "sidebar-menu" ] [ a [ href (Route.toString Route.DocNew) ] [ text "New" ], button [ onClick msgs.exportAll ] [ text "Export to docx" ] ]
 
             else
                 text ""

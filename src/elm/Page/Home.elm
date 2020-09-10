@@ -101,8 +101,6 @@ getData model =
 
 type Msg
     = ReceivedDocuments (Result Http.Error (List Metadata))
-    | GetNewDocId
-    | NewDocIdReceived String
     | Open String
     | DeleteDoc String
     | ImportFileRequested
@@ -201,12 +199,6 @@ updatePageData msg model =
 
                 _ ->
                     ( model, Cmd.none )
-
-        GetNewDocId ->
-            ( model, RandomId.generate NewDocIdReceived )
-
-        NewDocIdReceived docId ->
-            ( model, Route.replaceUrl (Session.navKey model.session) (Route.DocNew docId) )
 
         Open docId ->
             ( model, Route.pushUrl (Session.navKey model.session) (Route.DocUntitled docId) )
@@ -317,7 +309,7 @@ viewHome { language, languageMenu, currentTime, documents } =
     in
     div [ id "container" ]
         [ div [ id "templates-block" ]
-            [ div [ id "template-new", class "template-item", onClick GetNewDocId ]
+            [ a [ id "template-new", class "template-item", href (Route.toString Route.DocNew) ]
                 [ div [ classList [ ( "template-thumbnail", True ), ( "new", True ) ] ] []
                 , div [ class "template-title" ] [ text <| tr language HomeBlank ]
                 ]
