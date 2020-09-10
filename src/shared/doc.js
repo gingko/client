@@ -73,9 +73,9 @@ async function initElmAndPorts() {
     if (data == null) {
       localStorage.removeItem(sessionStorageKey);
     } else {
-      localStorage.setItem(sessionStorageKey, data);
-      setUserDbs(data);
-      setTimeout(()=> gingko.ports.sessionChanged.send(data), 0);
+      let newSession = {session : data, seed: Date.now()};
+      localStorage.setItem(sessionStorageKey, newSession);
+      setTimeout(()=> gingko.ports.sessionChanged.send(newSession), 0);
     }
   });
 
