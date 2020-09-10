@@ -9,6 +9,7 @@ import Json.Encode as Enc
 import Result exposing (Result)
 import Route
 import Session exposing (Session)
+import Validate exposing (Valid, Validator, ifBlank, ifInvalidEmail, ifNotInt, validate)
 
 
 
@@ -47,28 +48,18 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         SubmittedForm ->
-            let
-                requestBody =
-                    Enc.object
-                        [ ( "name", Enc.string model.email )
-                        , ( "password", Enc.string model.password )
-                        ]
-                        |> Http.jsonBody
+            case validate modelValidator model of
+                Ok validModel ->
+                    ( model
+                    , sendLoginRequest validModel
+                    )
 
-                responseDecoder =
-                    Dec.field "name" Dec.string
-            in
-            ( model
-            , Http.riskyRequest
-                { method = "POST"
-                , url = "/db/_session"
-                , headers = []
-                , body = requestBody
-                , expect = Http.expectJson CompletedLogin responseDecoder
-                , timeout = Nothing
-                , tracker = Nothing
-                }
-            )
+                Err errs ->
+                    let
+                        _ =
+                            Debug.log "errs" errs
+                    in
+                    ( model, Cmd.none )
 
         EnteredEmail email ->
             ( { model | email = email }, Cmd.none )
@@ -84,6 +75,44 @@ update msg model =
 
         GotSession session ->
             ( { model | session = session }, Route.pushUrl (Session.navKey session) Route.Home )
+
+
+modelValidator : Validator String Model
+modelValidator =
+    Validate.all
+        [ Validate.firstError
+            [ ifBlank .email "Please enter an email address."
+            , ifInvalidEmail .email (\_ -> "This does not seem to be a valid email.")
+            ]
+        , ifBlank .password "Please enter a password."
+        ]
+
+
+sendLoginRequest : Valid Model -> Cmd Msg
+sendLoginRequest validModel =
+    let
+        model =
+            Validate.fromValid validModel
+
+        requestBody =
+            Enc.object
+                [ ( "name", Enc.string model.email )
+                , ( "password", Enc.string model.password )
+                ]
+                |> Http.jsonBody
+
+        responseDecoder =
+            Dec.field "name" Dec.string
+    in
+    Http.riskyRequest
+        { method = "POST"
+        , url = "/db/_session"
+        , headers = []
+        , body = requestBody
+        , expect = Http.expectJson CompletedLogin responseDecoder
+        , timeout = Nothing
+        , tracker = Nothing
+        }
 
 
 
