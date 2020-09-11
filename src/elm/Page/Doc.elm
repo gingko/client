@@ -14,8 +14,8 @@ import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Doc.UI as UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSearchField, viewVideo)
 import File.Download as Download
-import Html exposing (Html, a, button, div, h1, input, node, span, text, textarea, ul)
-import Html.Attributes exposing (class, classList, dir, href, id, style, title, value)
+import Html exposing (Html, button, div, h1, input, node, span, text, textarea, ul)
+import Html.Attributes exposing (class, classList, dir, id, style, title, value)
 import Html.Events exposing (onClick, onDoubleClick, onInput)
 import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy2, lazy3)
@@ -27,7 +27,6 @@ import Markdown
 import Ports exposing (ExportFormat(..), ExportSelection(..), IncomingMsg(..), OutgoingMsg(..), receiveMsg, sendOut)
 import Random
 import Regex
-import Route
 import Session exposing (Session)
 import Task
 import Time

@@ -43,7 +43,7 @@ init flagsData url navKey =
     let
         flagsDecoder =
             Dec.map3 Flags
-                (Dec.field "session" (Dec.nullable Dec.string))
+                (Dec.field "email" (Dec.nullable Dec.string))
                 (Dec.field "seed" Dec.int)
                 (Dec.field "language" Dec.string |> Dec.map langFromString)
     in

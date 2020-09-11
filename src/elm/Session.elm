@@ -80,7 +80,7 @@ sessionDecoder key json =
         decoder =
             Json.map2 Tuple.pair
                 (Json.field "seed" Json.int)
-                (Json.field "session" Json.string)
+                (Json.field "email" Json.string)
     in
     case Json.decodeValue decoder json of
         Ok ( decodedSeed, email ) ->

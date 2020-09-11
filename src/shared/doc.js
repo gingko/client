@@ -42,15 +42,18 @@ const sessionStorageKey = "gingko-session-storage";
 initElmAndPorts();
 
 async function initElmAndPorts() {
-  const sessionData = localStorage.getItem(sessionStorageKey) || null;
+  let email = null;
+  let sessionData = localStorage.getItem(sessionStorageKey) || null;
   if (sessionData) {
-    setUserDbs(sessionData.session);
+    sessionData = JSON.parse(sessionData);
+    email = sessionData.email;
+    setUserDbs(sessionData.email);
     let store = await userStore.load();
     lang = store.language;
   }
 
 
-  const initFlags = { session : sessionData, seed: Date.now(), language: "en" };
+  const initFlags = { email : email, seed: Date.now(), language: "en" };
 
   gingko = Elm.Main.init({ node: document.getElementById("elm"), flags: initFlags});
 
@@ -69,14 +72,14 @@ async function initElmAndPorts() {
   };
 
   // Session messages
-  gingko.ports.storeSession.subscribe((data) => {
-    if (data == null) {
+  gingko.ports.storeSession.subscribe((email) => {
+    if (email == null) {
       localStorage.removeItem(sessionStorageKey);
       deleteLocalUserDbs();
     } else {
-      let newSession = {session : data, seed: Date.now()};
+      let newSession = {email : email, seed: Date.now()};
       localStorage.setItem(sessionStorageKey, JSON.stringify(newSession));
-      setUserDbs(data);
+      setUserDbs(email);
       setTimeout(()=> gingko.ports.sessionChanged.send(newSession), 0);
     }
   });
