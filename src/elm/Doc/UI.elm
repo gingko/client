@@ -146,7 +146,10 @@ viewSidebar msgs isOpen =
     let
         sidebarMenu =
             if isOpen then
-                div [ id "sidebar-menu" ] [ a [ href (Route.toString Route.DocNew) ] [ text "New" ], button [ onClick msgs.exportAll ] [ text "Export to docx" ] ]
+                div [ id "sidebar-menu" ]
+                    [ a [ href (Route.toString Route.DocNew), class "sidebar-item" ] [ text "New" ]
+                    , button [ onClick msgs.exportAll, class "sidebar-item" ] [ text "Export to docx" ]
+                    ]
 
             else
                 text ""

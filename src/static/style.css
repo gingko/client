@@ -220,7 +220,6 @@ body {
   padding: 5px;
   background: white;
   border-bottom: 1px solid hsl(212deg 0% 58%);
-  border-right: 1px solid hsl(212deg 0% 83%);
   z-index: 100;
 }
 #home-link {
@@ -319,6 +318,21 @@ body {
   box-shadow: 0 0 4px #00000085;
   display: flex;
   flex-direction: column;
+}
+
+#sidebar-menu .sidebar-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  margin: 10px;
+  background: #cdd9df;
+  border-radius: 4px;
+  color: black;
+}
+.sidebar-item a {
+  text-decoration: none;
+  color: black;
 }
 
 
