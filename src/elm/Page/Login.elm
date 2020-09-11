@@ -1,7 +1,7 @@
 module Page.Login exposing (Model, Msg, init, subscriptions, toSession, update, view)
 
 import Html exposing (..)
-import Html.Attributes exposing (class, href, id, placeholder, value)
+import Html.Attributes exposing (class, href, id, value)
 import Html.Events exposing (onInput, onSubmit)
 import Http
 import Json.Decode as Dec
@@ -9,7 +9,8 @@ import Json.Encode as Enc
 import Result exposing (Result)
 import Route
 import Session exposing (Session)
-import Validate exposing (Valid, Validator, ifBlank, ifInvalidEmail, ifNotInt, validate)
+import Utils exposing (getFieldErrors)
+import Validate exposing (Valid, Validator, ifBlank, ifInvalidEmail, validate)
 
 
 
@@ -123,11 +124,11 @@ sendLoginRequest validModel =
 view : Model -> Html Msg
 view model =
     let
-        emailErrors : List String
         emailErrors =
-            model.errors
-                |> List.filter ((==) Email << Tuple.first)
-                |> List.map Tuple.second
+            getFieldErrors Email model.errors
+
+        passwordErrors =
+            getFieldErrors Password model.errors
     in
     div [ id "form-page" ]
         [ div [ class "center-form" ]
@@ -140,6 +141,7 @@ view model =
                     ]
                     []
                 , label [] [ text "Password" ]
+                , div [] [ text (String.join "\n" passwordErrors) ]
                 , input
                     [ onInput EnteredPassword
                     , value model.password
