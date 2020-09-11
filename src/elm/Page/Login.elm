@@ -3,7 +3,7 @@ module Page.Login exposing (Model, Msg, init, subscriptions, toSession, update, 
 import Html exposing (..)
 import Html.Attributes exposing (class, href, id, value)
 import Html.Events exposing (onInput, onSubmit)
-import Http
+import Http exposing (Error(..))
 import Json.Decode as Dec
 import Json.Encode as Enc
 import Result exposing (Result)
@@ -22,7 +22,8 @@ type alias Model =
 
 
 type Field
-    = Email
+    = Form
+    | Email
     | Password
 
 
@@ -73,7 +74,30 @@ update msg model =
             ( model, Session.save email )
 
         CompletedLogin (Err error) ->
-            ( model, Cmd.none )
+            let
+                fallbackMsg =
+                    ( Form, "Server Issue. Something wrong on our end. Please let us know!" )
+
+                errorMsg =
+                    case error of
+                        Timeout ->
+                            ( Form, "Timed out. Maybe there's a server issue?" )
+
+                        NetworkError ->
+                            ( Form, "Network Error. Maybe you're offline?" )
+
+                        BadStatus statusCode ->
+                            case statusCode of
+                                401 ->
+                                    ( Form, "Email or Password was incorrect. Please try again." )
+
+                                _ ->
+                                    fallbackMsg
+
+                        _ ->
+                            fallbackMsg
+            in
+            ( { model | errors = [ errorMsg ], password = "" }, Cmd.none )
 
         GotSession session ->
             ( { model | session = session }, Route.pushUrl (Session.navKey session) Route.Home )
@@ -124,6 +148,9 @@ sendLoginRequest validModel =
 view : Model -> Html Msg
 view model =
     let
+        formErrors =
+            getFieldErrors Form model.errors
+
         emailErrors =
             getFieldErrors Email model.errors
 
@@ -133,7 +160,8 @@ view model =
     div [ id "form-page" ]
         [ div [ class "center-form" ]
             [ form [ onSubmit SubmittedForm ]
-                [ label [] [ text "Email" ]
+                [ div [] [ text (String.join "\n" formErrors) ]
+                , label [] [ text "Email" ]
                 , div [] [ text (String.join "\n" emailErrors) ]
                 , input
                     [ onInput EnteredEmail
