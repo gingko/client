@@ -72,6 +72,7 @@ async function initElmAndPorts() {
   gingko.ports.storeSession.subscribe((data) => {
     if (data == null) {
       localStorage.removeItem(sessionStorageKey);
+      deleteLocalUserDbs();
     } else {
       let newSession = {session : data, seed: Date.now()};
       localStorage.setItem(sessionStorageKey, JSON.stringify(newSession));
@@ -103,6 +104,12 @@ function setUserDbs(email) {
   self.db = new PouchDB(userDbName)
   userStore.db(db, remoteDB);
 };
+
+
+async function deleteLocalUserDbs() {
+  console.log("Deleting local copies of documents, for privacy.");
+  await db.destroy();
+}
 
 
 
