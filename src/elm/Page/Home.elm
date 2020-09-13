@@ -1,5 +1,6 @@
 module Page.Home exposing (Model, Msg, init, subscriptions, toSession, update, view)
 
+import CachedData exposing (CachedData(..), expectJson)
 import Date
 import Doc.Metadata as Metadata exposing (Metadata)
 import File exposing (File)
@@ -27,8 +28,7 @@ import Types exposing (Tree)
 
 
 type Model
-    = Loading PageData
-    | Loaded PageData
+    = Home PageData
     | ImportSelecting
         (List
             { selected : Bool
@@ -43,11 +43,10 @@ type Model
             }
         )
         PageData
-    | Error String PageData
 
 
 type alias PageData =
-    { documents : List Metadata
+    { documents : CachedData Http.Error (List Metadata)
     , language : Translation.Language
     , languageMenu : Bool
     , currentTime : Time.Posix
@@ -57,8 +56,8 @@ type alias PageData =
 
 init : Session -> ( Model, Cmd Msg )
 init session =
-    ( Loading
-        { documents = []
+    ( Home
+        { documents = Loading
         , language = langFromString "en"
         , languageMenu = False
         , currentTime = Time.millisToPosix 0
@@ -79,10 +78,7 @@ toSession model =
 getData : Model -> PageData
 getData model =
     case model of
-        Loading pdata ->
-            pdata
-
-        Loaded pdata ->
+        Home pdata ->
             pdata
 
         ImportSelecting _ pdata ->
@@ -91,16 +87,13 @@ getData model =
         ImportSaving _ pdata ->
             pdata
 
-        Error _ pdata ->
-            pdata
-
 
 
 -- UPDATE
 
 
 type Msg
-    = ReceivedDocuments (Result Http.Error (List Metadata))
+    = ReceivedDocuments (CachedData Http.Error (List Metadata))
     | Open String
     | DeleteDoc String
     | ImportFileRequested
@@ -118,15 +111,7 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model ) of
-        ( ReceivedDocuments (Ok _), Loading pageData ) ->
-            updatePageData msg pageData
-                |> Tuple.mapFirst Loaded
-
-        ( ReceivedDocuments (Err err), Loading pageData ) ->
-            updatePageData msg pageData
-                |> Tuple.mapFirst (\pd -> Error "NetworkError" pd)
-
-        ( ImportFileLoaded uname contents, Loaded pageData ) ->
+        ( ImportFileLoaded uname contents, Home pageData ) ->
             case Dec.decodeString Import.decoder contents of
                 Ok dataList ->
                     let
@@ -170,35 +155,21 @@ update msg model =
             ( ImportSaving selectList pageData, sendOut <| SaveImportedData treesToSave )
 
         ( Port ImportComplete, ImportSaving _ pageData ) ->
-            ( Loading pageData, getDocumentList pageData.session )
+            ( Home pageData, getDocumentList pageData.session )
 
         ( Tick _, ImportSelecting _ _ ) ->
             ( model, Cmd.none )
 
         _ ->
             updatePageData msg (getData model)
-                |> Tuple.mapFirst Loaded
+                |> Tuple.mapFirst Home
 
 
 updatePageData : Msg -> PageData -> ( PageData, Cmd Msg )
 updatePageData msg model =
     case msg of
-        ReceivedDocuments (Ok docList) ->
-            let
-                sortedList =
-                    docList
-                        |> List.sortBy (Time.posixToMillis << Metadata.getUpdatedAt)
-                        |> List.reverse
-            in
-            ( { model | documents = sortedList }, Cmd.none )
-
-        ReceivedDocuments (Err err) ->
-            case err of
-                Http.BadStatus 401 ->
-                    ( model, Route.replaceUrl (Session.navKey model.session) Route.Login )
-
-                _ ->
-                    ( model, Cmd.none )
+        ReceivedDocuments response ->
+            ( { model | documents = response }, Cmd.none )
 
         Open docId ->
             ( model, Route.pushUrl (Session.navKey model.session) (Route.DocUntitled docId) )
@@ -258,7 +229,7 @@ getDocumentList session =
                 { url = "/db/" ++ userDb ++ "/_design/testDocList/_view/docList"
                 , method = "GET"
                 , body = Http.emptyBody
-                , expect = Http.expectJson ReceivedDocuments responseDecoder
+                , expect = CachedData.expectJson ReceivedDocuments responseDecoder
                 , headers = []
                 , timeout = Nothing
                 , tracker = Nothing
@@ -275,6 +246,9 @@ getDocumentList session =
 view : Model -> Html Msg
 view model =
     case model of
+        Home pageData ->
+            viewHome pageData
+
         ImportSelecting selectionList pageData ->
             div [ id "import-selecting" ]
                 [ h1 [] [ text "This is the home page" ]
@@ -287,18 +261,6 @@ view model =
                 [ h1 [] [ text "This is the home page" ]
                 , text "Importing selected trees...."
                 ]
-
-        Error err pageData ->
-            div []
-                [ h1 [] [ text "This is the home page" ]
-                , h1 [] [ text err ]
-                ]
-
-        Loading pageData ->
-            viewHome pageData
-
-        Loaded pageData ->
-            viewHome pageData
 
 
 viewHome : PageData -> Html Msg
@@ -350,8 +312,27 @@ viewHome { language, languageMenu, currentTime, documents } =
         ]
 
 
-viewDocList : Translation.Language -> Time.Posix -> List Metadata -> Html Msg
-viewDocList lang currTime docList =
+viewDocList : Translation.Language -> Time.Posix -> CachedData e (List Metadata) -> Html Msg
+viewDocList lang currTime docListState =
+    case docListState of
+        NotAsked ->
+            text "NotAsked"
+
+        Loading ->
+            h1 [] [ text "LOADING" ]
+
+        SuccessLocal _ docList ->
+            viewDocListLoaded lang currTime docList
+
+        Success _ docList ->
+            viewDocListLoaded lang currTime docList
+
+        Failure err ->
+            text <| "error!" ++ Debug.toString err
+
+
+viewDocListLoaded : Translation.Language -> Time.Posix -> List Metadata -> Html Msg
+viewDocListLoaded lang currTime docList =
     div [ classList [ ( "document-list", True ) ] ]
         (docList
             |> List.sortBy (Time.posixToMillis << Metadata.getUpdatedAt)
