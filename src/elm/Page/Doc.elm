@@ -1650,7 +1650,7 @@ insert pid pos initText ( model, prevCmd ) =
     )
         |> maybeColumnsChanged model.workingTree.columns
         |> openCard newIdString initText
-        |> activate newIdString True
+        |> activate newIdString False
 
 
 insertRelative : String -> Int -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
