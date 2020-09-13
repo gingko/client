@@ -2,7 +2,7 @@ module Page.Signup exposing (Model, Msg, init, subscriptions, toSession, update,
 
 import Browser.Navigation as Nav
 import Html exposing (..)
-import Html.Attributes exposing (autofocus, class, href, id, placeholder, value)
+import Html.Attributes exposing (autofocus, class, href, id, placeholder, src, value)
 import Html.Events exposing (onInput, onSubmit)
 import Http exposing (Error(..))
 import Json.Decode as Dec
@@ -170,7 +170,8 @@ view model =
             getFieldErrors PasswordConfirm model.errors
     in
     div [ id "form-page" ]
-        [ div [ class "center-form" ]
+        [ img [ id "logo", src "gingko-leaf-logo.svg" ] []
+        , div [ class "center-form" ]
             [ form [ onSubmit SubmittedForm ]
                 [ div [] [ text (String.join "\n" formErrors) ]
                 , label [] [ text "Email" ]
@@ -196,7 +197,7 @@ view model =
                     ]
                     []
                 , button [] [ text "Signup" ]
-                , span [] [ text "or ", a [ href "/login" ] [ text "Login" ] ]
+                , span [ class "alt-action" ] [ text "or ", a [ href "/login" ] [ text "Login" ] ]
                 ]
             ]
         ]
