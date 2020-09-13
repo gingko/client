@@ -1,4 +1,4 @@
-module Doc.Metadata exposing (Metadata, decoder, decoderImport, encode, getCreatedAt, getDocId, getDocName, getUpdatedAt, new, rename, setRev)
+module Doc.Metadata exposing (Metadata, decoder, decoderImport, encode, getCreatedAt, getDocId, getDocName, getUpdatedAt, listDecoder, new, rename, setRev)
 
 import Coders exposing (maybeToValue)
 import Json.Decode as Dec exposing (Decoder)
@@ -68,6 +68,11 @@ decoder =
         (Dec.field "createdAt" Dec.int |> Dec.map Time.millisToPosix)
         (Dec.field "updatedAt" Dec.int |> Dec.map Time.millisToPosix)
         (Dec.field "_rev" (Dec.maybe Dec.string))
+
+
+listDecoder : Decoder (List Metadata)
+listDecoder =
+    Dec.field "rows" (Dec.list (Dec.field "value" decoder))
 
 
 decoderImport : Decoder (Maybe Metadata)

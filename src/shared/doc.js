@@ -106,7 +106,33 @@ function setUserDbs(email) {
   remoteDB = new PouchDB(userDbUrl, remoteOpts);
   self.db = new PouchDB(userDbName)
   userStore.db(db, remoteDB);
+
+  // add docList design document
+  let ddoc =
+    { "_id": "_design/testDocList",
+      "views": {
+        "docList": {
+          "map": "function (doc) {\n  if (/metadata/.test(doc._id)) {\n    emit(doc._id, doc);\n  }\n}"
+        }
+      },
+      "language": "javascript"
+    };
+  db.put(ddoc).catch(async e => e); // ignore conflict error
 };
+
+
+
+self.testDocList = async function () {
+  let docList = await getDocumentList();
+  toElm("DocumentListReceived", docList)
+}
+
+
+async function getDocumentList() {
+  // Fetch document list
+  let docList = await db.query("testDocList/docList").catch(async e => e);
+  return docList;
+}
 
 
 async function deleteLocalUserDbs() {
@@ -156,6 +182,7 @@ const fromElm = (msg, data) => {
 
         localStore.db(db, data);
         let store = await localStore.load();
+        loadDocumentList();
         toElm("LocalStoreLoaded", store);
     }
 
@@ -184,7 +211,7 @@ const fromElm = (msg, data) => {
         let selector = { "_id": { "$regex": `${TREE_ID}/` } };
         await db.replicate.from(remoteDB, {selector}).catch(async (e) => e);
 
-        toElm("DocListChanged", null);
+        //toElm("DocListChanged", null);
       }
     }
 
@@ -379,6 +406,10 @@ async function pull() {
 async function push() {
   let selector = { "_id": { "$regex": `${TREE_ID}/` } };
   await db.replicate.to(remoteDB, {selector}).catch(async (e) => e);
+}
+
+
+function loadDocumentList() {
 }
 
 

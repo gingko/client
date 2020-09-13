@@ -199,8 +199,24 @@ updatePageData msg model =
 
         Port incomingMsg ->
             case incomingMsg of
-                DocListChanged ->
-                    ( model, getDocumentList model.session )
+                DocumentListReceived json ->
+                    let
+                        _ =
+                            Debug.log "DocListRec!!!"
+                    in
+                    case ( model.documents, Dec.decodeValue Metadata.listDecoder json ) of
+                        ( Success _ _, Ok docList ) ->
+                            ( model, Cmd.none )
+
+                        ( _, Ok docList ) ->
+                            let
+                                _ =
+                                    Debug.log "SuccessLocal!!!"
+                            in
+                            ( { model | documents = SuccessLocal Nothing docList }, Cmd.none )
+
+                        ( _, Err _ ) ->
+                            ( model, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -216,20 +232,13 @@ updatePageData msg model =
 
 getDocumentList : Session -> Cmd Msg
 getDocumentList session =
-    let
-        rowDecoder =
-            Dec.field "value" Metadata.decoder
-
-        responseDecoder =
-            Dec.field "rows" (Dec.list rowDecoder)
-    in
     case Session.userDb session of
         Just userDb ->
             Http.riskyRequest
                 { url = "/db/" ++ userDb ++ "/_design/testDocList/_view/docList"
                 , method = "GET"
                 , body = Http.emptyBody
-                , expect = CachedData.expectJson ReceivedDocuments responseDecoder
+                , expect = CachedData.expectJson ReceivedDocuments Metadata.listDecoder
                 , headers = []
                 , timeout = Nothing
                 , tracker = Nothing

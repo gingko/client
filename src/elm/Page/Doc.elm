@@ -1169,7 +1169,7 @@ update msg ({ workingTree } as model) =
                 ImportComplete ->
                     ( model, Cmd.none )
 
-                DocListChanged ->
+                DocumentListReceived _ ->
                     ( model, Cmd.none )
 
         LogErr err ->

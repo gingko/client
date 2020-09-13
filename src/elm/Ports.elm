@@ -67,7 +67,7 @@ type
     | SavedRemotely (Maybe Time.Posix)
       -- === Home Page ===
     | ImportComplete
-    | DocListChanged
+    | DocumentListReceived Dec.Value
       -- === Metadata ===
     | MetadataSynced Dec.Value
     | MetadataSaved Dec.Value
@@ -311,8 +311,8 @@ receiveMsg tagger onError =
                 "ImportComplete" ->
                     tagger <| ImportComplete
 
-                "DocListChanged" ->
-                    tagger <| DocListChanged
+                "DocumentListReceived" ->
+                    tagger <| DocumentListReceived outsideInfo.data
 
                 -- === DOM ===
                 "DragStarted" ->
