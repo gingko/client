@@ -124,7 +124,8 @@ function setUserDbs(email) {
 
 self.testDocList = async function () {
   let docList = await getDocumentList();
-  toElm("DocumentListReceived", docList)
+  docList.timestamp = Date.now();
+  toElmPort("documentListChanged", docList)
 }
 
 
@@ -148,6 +149,15 @@ async function deleteLocalUserDbs() {
 
 function toElm (tag, data) {
   gingko.ports.infoForElm.send({tag: tag, data: data});
+}
+
+
+function toElmPort(portName, data)  {
+  if (gingko.ports.hasOwnProperty(portName)) {
+    gingko.ports[portName].send(data);
+  } else {
+    console.error("Unknown port", portName, data);
+  }
 }
 
 

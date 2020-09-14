@@ -1,4 +1,4 @@
-module Page.Home exposing (Model, Msg, init, subscriptions, toSession, update, view)
+port module Page.Home exposing (Model, Msg, init, subscriptions, toSession, update, view)
 
 import CachedData exposing (CachedData(..), expectJson)
 import Date
@@ -196,30 +196,6 @@ updatePageData msg model =
 
         Tick currTime ->
             ( { model | currentTime = currTime }, Cmd.none )
-
-        Port incomingMsg ->
-            case incomingMsg of
-                DocumentListReceived json ->
-                    let
-                        _ =
-                            Debug.log "DocListRec!!!"
-                    in
-                    case ( model.documents, Dec.decodeValue Metadata.listDecoder json ) of
-                        ( Success _ _, Ok docList ) ->
-                            ( model, Cmd.none )
-
-                        ( _, Ok docList ) ->
-                            let
-                                _ =
-                                    Debug.log "SuccessLocal!!!"
-                            in
-                            ( { model | documents = SuccessLocal Nothing docList }, Cmd.none )
-
-                        ( _, Err _ ) ->
-                            ( model, Cmd.none )
-
-                _ ->
-                    ( model, Cmd.none )
 
         LogErr err ->
             ( model
@@ -421,6 +397,9 @@ viewSelectionEntry { selected, tree } =
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
-        [ receiveMsg Port LogErr
+        [ documentListChanged (CachedData.fromLocal Metadata.listDecoder >> ReceivedDocuments)
         , Time.every (30 * 1000) Tick
         ]
+
+
+port documentListChanged : (Dec.Value -> msg) -> Sub msg

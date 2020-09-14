@@ -1,8 +1,7 @@
-module CachedData exposing (CachedData(..), expectJson, fromResult)
+module CachedData exposing (CachedData(..), expectJson, fromLocal, fromResult)
 
 import Dict
 import Http exposing (Expect, expectStringResponse)
-import Iso8601
 import Json.Decode as Dec exposing (Decoder)
 import Time
 
@@ -23,6 +22,25 @@ fromResult result =
 
         Ok ( x, timestamp_ ) ->
             Success timestamp_ x
+
+
+fromLocal : Decoder a -> Dec.Value -> CachedData Http.Error a
+fromLocal decoder json =
+    let
+        timestampDecoder =
+            Dec.field "timestamp" (Dec.nullable Dec.int) |> Dec.map (Maybe.map Time.millisToPosix)
+
+        decoderWithTimestamp =
+            Dec.map2 Tuple.pair
+                decoder
+                timestampDecoder
+    in
+    case Dec.decodeValue decoderWithTimestamp json of
+        Ok ( val, time_ ) ->
+            SuccessLocal time_ val
+
+        Err err ->
+            Failure (Http.BadBody (Dec.errorToString err))
 
 
 expectJson : (CachedData Http.Error a -> msg) -> Decoder a -> Expect msg

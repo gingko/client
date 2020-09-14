@@ -1169,9 +1169,6 @@ update msg ({ workingTree } as model) =
                 ImportComplete ->
                     ( model, Cmd.none )
 
-                DocumentListReceived _ ->
-                    ( model, Cmd.none )
-
         LogErr err ->
             ( model
             , sendOut (ConsoleLogRequested err)
