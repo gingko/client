@@ -3,6 +3,7 @@ port module Page.Doc exposing (Model, Msg, init, subscriptions, toSession, updat
 import Api
 import Browser.Dom
 import Bytes exposing (Bytes)
+import CachedData exposing (CachedData(..))
 import Coders exposing (treeToMarkdownString)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
 import Doc.Data as Data
@@ -47,6 +48,7 @@ type alias Model =
 
     -- SPA Page State
     , session : Session
+    , documents : CachedData Http.Error (List Metadata)
     , loading : Bool
 
     -- Transient state
@@ -83,6 +85,7 @@ defaultModel isNew session docId =
     , data = Data.empty
     , metadata = Metadata.new docId
     , session = session
+    , documents = NotAsked
     , loading = not isNew
     , debouncerStateCommit =
         Debouncer.throttle (fromSeconds 3)
@@ -182,6 +185,7 @@ type Msg
     | SetSelection String Selection String
     | Resolve String
       -- === UI ===
+    | ReceivedDocuments (CachedData Http.Error (List Metadata))
     | ToggledTitleEdit Bool
     | TitleFieldChanged String
     | TitleEdited
@@ -466,6 +470,9 @@ update msg ({ workingTree } as model) =
                 |> addToHistory
 
         -- === UI ===
+        ReceivedDocuments docData ->
+            ( { model | documents = docData }, Cmd.none )
+
         ToggledTitleEdit isEditingTitle ->
             if isEditingTitle then
                 ( { model
@@ -2156,12 +2163,11 @@ view : Model -> Html Msg
 view model =
     if model.loading then
         div [ id "app-root", class "loading" ]
-            ([ UI.viewHomeLink False
-             , div [ id "document-header" ] []
-             , div [ id "loading-overlay" ] []
-             ]
-                ++ UI.viewSidebar { exportAll = ExportAll, toggledSidebar = ToggledSidebar } model.sidebarOpen
-            )
+            [ UI.viewHomeLink False
+            , div [ id "document-header" ] []
+            , div [ id "loading-overlay" ] []
+            , UI.viewSidebarStatic
+            ]
 
     else
         viewLoaded model
@@ -2216,7 +2222,13 @@ pre, code, .group.has-active .card textarea {
                         (Metadata.getDocName model.metadata)
                         model
                      ]
-                        ++ UI.viewSidebar { exportAll = ExportAll, toggledSidebar = ToggledSidebar } model.sidebarOpen
+                        ++ UI.viewSidebar
+                            { exportAll = ExportAll
+                            , toggledSidebar = ToggledSidebar
+                            }
+                            model.metadata
+                            model.documents
+                            model.sidebarOpen
                         ++ [ viewSearchField SearchFieldUpdated model
                            , viewFooter WordcountTrayToggle ShortcutTrayToggle model
                            , case model.historyState of
@@ -2699,6 +2711,7 @@ subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
         [ receiveMsg Port LogErr
+        , Ports.documentListChanged (CachedData.fromLocal Metadata.listDecoder >> ReceivedDocuments)
         , Time.every (9 * 1000) TimeUpdate
         , Time.every (10 * 1000) (\_ -> PullFromRemote)
         ]

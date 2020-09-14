@@ -1,4 +1,4 @@
-port module Page.Home exposing (Model, Msg, init, subscriptions, toSession, update, view)
+module Page.Home exposing (Model, Msg, init, subscriptions, toSession, update, view)
 
 import CachedData exposing (CachedData(..), expectJson)
 import Date
@@ -397,9 +397,6 @@ viewSelectionEntry { selected, tree } =
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
-        [ documentListChanged (CachedData.fromLocal Metadata.listDecoder >> ReceivedDocuments)
+        [ Ports.documentListChanged (CachedData.fromLocal Metadata.listDecoder >> ReceivedDocuments)
         , Time.every (30 * 1000) Tick
         ]
-
-
-port documentListChanged : (Dec.Value -> msg) -> Sub msg

@@ -1,4 +1,4 @@
-port module Ports exposing (ExportFormat(..), ExportSelection(..), ExportSettings, IncomingMsg(..), OutgoingMsg(..), infoForElm, infoForOutside, receiveMsg, sendOut)
+port module Ports exposing (ExportFormat(..), ExportSelection(..), ExportSettings, IncomingMsg(..), OutgoingMsg(..), documentListChanged, infoForElm, infoForOutside, receiveMsg, sendOut)
 
 import Coders exposing (..)
 import Doc.Fonts as Fonts
@@ -493,3 +493,6 @@ port infoForOutside : OutsideData -> Cmd msg
 
 
 port infoForElm : (OutsideData -> msg) -> Sub msg
+
+
+port documentListChanged : (Dec.Value -> msg) -> Sub msg

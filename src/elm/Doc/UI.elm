@@ -1,12 +1,12 @@
-module Doc.UI exposing (countWords, viewConflict, viewFooter, viewHeader, viewHistory, viewHomeLink, viewSaveIndicator, viewSearchField, viewSidebar, viewVideo)
+module Doc.UI exposing (countWords, viewConflict, viewFooter, viewHeader, viewHistory, viewHomeLink, viewSaveIndicator, viewSearchField, viewSidebar, viewSidebarStatic, viewVideo)
 
+import CachedData exposing (CachedData(..))
 import Coders exposing (treeToMarkdownString)
-import Date
-import Dict
 import Diff exposing (..)
 import Doc.CustomElements exposing (gitgraph)
 import Doc.Data as Data
 import Doc.Data.Conflict as Conflict exposing (Conflict, Op(..), Selection(..), opString)
+import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Html exposing (Html, a, button, del, div, fieldset, h1, hr, iframe, img, input, ins, label, li, span, text, ul)
@@ -141,13 +141,37 @@ type alias SidebarMsgs msg =
     }
 
 
-viewSidebar : SidebarMsgs msg -> Bool -> List (Html msg)
-viewSidebar msgs isOpen =
+viewSidebar : SidebarMsgs msg -> Metadata -> CachedData x (List Metadata) -> Bool -> List (Html msg)
+viewSidebar msgs currentDocument docListData isOpen =
     let
+        viewDocItem d =
+            li [ classList [ ( "sidebar-document-item", True ), ( "active", d == currentDocument ) ] ]
+                [ a [ href <| Route.toString (Route.DocUntitled (Metadata.getDocId d)) ]
+                    [ Metadata.getDocName d |> Maybe.withDefault "Untitled" |> text ]
+                ]
+
+        docList =
+            case docListData of
+                NotAsked ->
+                    [ text "Not asked" ]
+
+                Loading ->
+                    [ text "Loading..." ]
+
+                SuccessLocal _ docs ->
+                    List.map viewDocItem docs
+
+                Success _ docs ->
+                    List.map viewDocItem docs
+
+                Failure _ ->
+                    [ text "Failed to load documents list." ]
+
         sidebarMenu =
             if isOpen then
                 div [ id "sidebar-menu" ]
                     [ a [ href (Route.toString Route.DocNew), class "sidebar-item" ] [ text "New" ]
+                    , ul [ id "doc-list" ] docList
                     , button [ onClick msgs.exportAll, class "sidebar-item" ] [ text "Export to docx" ]
                     ]
 
@@ -168,6 +192,13 @@ viewSidebar msgs isOpen =
         [ div [ classList [ ( "sidebar-button", True ), ( "open", isOpen ) ], onClick <| msgs.toggledSidebar (not isOpen) ] [ fileIcon ] ]
     , sidebarMenu
     ]
+
+
+viewSidebarStatic : Html msg
+viewSidebarStatic =
+    div [ id "sidebar" ]
+        [ div [ classList [ ( "sidebar-button", True ) ] ] []
+        ]
 
 
 
