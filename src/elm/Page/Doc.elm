@@ -3,13 +3,13 @@ port module Page.Doc exposing (Model, Msg, init, subscriptions, toSession, updat
 import Api
 import Browser.Dom
 import Bytes exposing (Bytes)
-import CachedData exposing (CachedData(..))
 import Coders exposing (treeToMarkdownString)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
 import Doc.Data as Data
 import Doc.Data.Conflict exposing (Selection)
 import Doc.Fonts as Fonts
 import Doc.Fullscreen as Fullscreen
+import Doc.List as DocList
 import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
@@ -48,7 +48,7 @@ type alias Model =
 
     -- SPA Page State
     , session : Session
-    , documents : CachedData Http.Error (List Metadata)
+    , documents : DocList.Model
     , loading : Bool
 
     -- Transient state
@@ -85,7 +85,7 @@ defaultModel isNew session docId =
     , data = Data.empty
     , metadata = Metadata.new docId
     , session = session
-    , documents = NotAsked
+    , documents = DocList.init
     , loading = not isNew
     , debouncerStateCommit =
         Debouncer.throttle (fromSeconds 3)
@@ -185,7 +185,7 @@ type Msg
     | SetSelection String Selection String
     | Resolve String
       -- === UI ===
-    | ReceivedDocuments (CachedData Http.Error (List Metadata))
+    | ReceivedDocuments DocList.Model
     | ToggledTitleEdit Bool
     | TitleFieldChanged String
     | TitleEdited
@@ -471,7 +471,7 @@ update msg ({ workingTree } as model) =
 
         -- === UI ===
         ReceivedDocuments docData ->
-            ( { model | documents = docData }, Cmd.none )
+            ( { model | documents = DocList.update docData model.documents }, Cmd.none )
 
         ToggledTitleEdit isEditingTitle ->
             if isEditingTitle then
@@ -2711,7 +2711,7 @@ subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
         [ receiveMsg Port LogErr
-        , Ports.documentListChanged (CachedData.fromLocal Metadata.listDecoder >> ReceivedDocuments)
+        , DocList.subscription ReceivedDocuments
         , Time.every (9 * 1000) TimeUpdate
         , Time.every (10 * 1000) (\_ -> PullFromRemote)
         ]

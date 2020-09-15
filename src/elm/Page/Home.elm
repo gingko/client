@@ -1,7 +1,7 @@
 module Page.Home exposing (Model, Msg, init, subscriptions, toSession, update, view)
 
-import CachedData exposing (CachedData(..), expectJson)
 import Date
+import Doc.List as DocList
 import Doc.Metadata as Metadata exposing (Metadata)
 import File exposing (File)
 import File.Select as Select
@@ -46,7 +46,7 @@ type Model
 
 
 type alias PageData =
-    { documents : CachedData Http.Error (List Metadata)
+    { documents : DocList.Model
     , language : Translation.Language
     , languageMenu : Bool
     , currentTime : Time.Posix
@@ -57,7 +57,7 @@ type alias PageData =
 init : Session -> ( Model, Cmd Msg )
 init session =
     ( Home
-        { documents = Loading
+        { documents = DocList.init
         , language = langFromString "en"
         , languageMenu = False
         , currentTime = Time.millisToPosix 0
@@ -93,7 +93,7 @@ getData model =
 
 
 type Msg
-    = ReceivedDocuments (CachedData Http.Error (List Metadata))
+    = ReceivedDocuments DocList.Model
     | Open String
     | DeleteDoc String
     | ImportFileRequested
@@ -169,7 +169,7 @@ updatePageData : Msg -> PageData -> ( PageData, Cmd Msg )
 updatePageData msg model =
     case msg of
         ReceivedDocuments response ->
-            ( { model | documents = CachedData.update response model.documents }, Cmd.none )
+            ( { model | documents = DocList.update response model.documents }, Cmd.none )
 
         Open docId ->
             ( model, Route.pushUrl (Session.navKey model.session) (Route.DocUntitled docId) )
@@ -210,15 +210,7 @@ getDocumentList : Session -> Cmd Msg
 getDocumentList session =
     case Session.userDb session of
         Just userDb ->
-            Http.riskyRequest
-                { url = "/db/" ++ userDb ++ "/_design/testDocList/_view/docList"
-                , method = "GET"
-                , body = Http.emptyBody
-                , expect = CachedData.expectJson ReceivedDocuments Metadata.listDecoder
-                , headers = []
-                , timeout = Nothing
-                , tracker = Nothing
-                }
+            DocList.fetch ReceivedDocuments userDb
 
         Nothing ->
             Cmd.none
@@ -275,7 +267,7 @@ viewHome { language, languageMenu, currentTime, documents } =
                     [ div [] [ text <| tr language LastUpdated ]
                     ]
                 ]
-            , viewDocList language currentTime documents
+            , DocList.viewLarge { openDoc = Open, deleteDoc = DeleteDoc } language currentTime documents
             ]
         , div [ id "buttons-block" ]
             [ div [ onClick ToggleLanguageMenu, classList [ ( "document-item", True ), ( "language-button", True ) ] ]
@@ -297,90 +289,6 @@ viewHome { language, languageMenu, currentTime, documents } =
         ]
 
 
-viewDocList : Translation.Language -> Time.Posix -> CachedData e (List Metadata) -> Html Msg
-viewDocList lang currTime docListState =
-    case docListState of
-        NotAsked ->
-            text "NotAsked"
-
-        Loading ->
-            h1 [] [ text "LOADING" ]
-
-        SuccessLocal _ docList ->
-            viewDocListLoaded lang currTime docList
-
-        Success _ docList ->
-            viewDocListLoaded lang currTime docList
-
-        Failure err ->
-            text <| "error!" ++ Debug.toString err
-
-
-viewDocListLoaded : Translation.Language -> Time.Posix -> List Metadata -> Html Msg
-viewDocListLoaded lang currTime docList =
-    div [ classList [ ( "document-list", True ) ] ]
-        (docList
-            |> List.sortBy (Time.posixToMillis << Metadata.getUpdatedAt)
-            |> List.reverse
-            |> List.map (viewDocumentItem lang currTime)
-        )
-
-
-viewDocumentItem : Translation.Language -> Time.Posix -> Metadata -> Html Msg
-viewDocumentItem lang currTime metadata =
-    let
-        docId =
-            Metadata.getDocId metadata
-
-        docName_ =
-            Metadata.getDocName metadata
-
-        onClickThis msg =
-            stopPropagationOn "click" (Dec.succeed ( msg, True ))
-
-        -- TODO: fix timezone
-        currDate =
-            Date.fromPosix Time.utc currTime
-
-        updatedTime =
-            Metadata.getUpdatedAt metadata
-
-        -- TODO: fix timezone
-        updatedDate =
-            Date.fromPosix Time.utc updatedTime
-
-        -- TODO: fix timezone
-        updatedString =
-            updatedTime
-                |> Strftime.format "%Y-%m-%d, %H:%M" Time.utc
-
-        relativeString =
-            timeDistInWords
-                lang
-                updatedTime
-                currTime
-
-        ( titleString, dateString ) =
-            if Date.diff Date.Days updatedDate currDate <= 2 then
-                ( updatedString, relativeString )
-
-            else
-                ( relativeString, updatedString )
-
-        buttons =
-            [ div
-                [ onClickThis (DeleteDoc docId), title <| tr lang DeleteDocument ]
-                [ Icon.x Icon.defaultOptions ]
-            ]
-    in
-    div
-        [ class "document-item", onClick (Open docId) ]
-        [ div [ class "doc-title" ] [ text (docName_ |> Maybe.withDefault "Untitled") ]
-        , div [ class "doc-opened", title titleString ] [ text dateString ]
-        , div [ class "doc-buttons" ] buttons
-        ]
-
-
 viewSelectionEntry : { selected : Bool, tree : ( String, Metadata, Tree ) } -> Html Msg
 viewSelectionEntry { selected, tree } =
     let
@@ -397,6 +305,6 @@ viewSelectionEntry { selected, tree } =
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
-        [ Ports.documentListChanged (CachedData.fromLocal Metadata.listDecoder >> ReceivedDocuments)
+        [ DocList.subscription ReceivedDocuments
         , Time.every (30 * 1000) Tick
         ]

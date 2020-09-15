@@ -1,4 +1,4 @@
-port module Ports exposing (ExportFormat(..), ExportSelection(..), ExportSettings, IncomingMsg(..), OutgoingMsg(..), documentListChanged, infoForElm, infoForOutside, receiveMsg, sendOut)
+port module Ports exposing (ExportFormat(..), ExportSelection(..), ExportSettings, IncomingMsg(..), OutgoingMsg(..), infoForElm, infoForOutside, receiveMsg, sendOut)
 
 import Coders exposing (..)
 import Doc.Fonts as Fonts
@@ -25,6 +25,7 @@ type
       -- === Database ===
     | InitDocument String
     | LoadDocument String
+    | GetDocumentList String
     | RequestDelete String
     | NoDataToSave
     | SaveData Enc.Value Enc.Value
@@ -141,6 +142,9 @@ sendOut info =
 
         LoadDocument dbName ->
             dataToSend "LoadDocument" (string dbName)
+
+        GetDocumentList dbName ->
+            dataToSend "GetDocumentList" (string dbName)
 
         RequestDelete dbName ->
             dataToSend "RequestDelete" (string dbName)
@@ -493,6 +497,3 @@ port infoForOutside : OutsideData -> Cmd msg
 
 
 port infoForElm : (OutsideData -> msg) -> Sub msg
-
-
-port documentListChanged : (Dec.Value -> msg) -> Sub msg
