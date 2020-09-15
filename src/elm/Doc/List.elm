@@ -124,7 +124,7 @@ viewLarge msgs lang currTime model =
             viewDocListLoaded msgs lang currTime docList
 
         Failure err ->
-            text <| "error!" ++ Debug.toString err
+            text <| "error!"
 
 
 viewDocListLoaded : ListMsgs msg -> Translation.Language -> Time.Posix -> List Metadata -> Html msg
