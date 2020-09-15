@@ -206,10 +206,10 @@ viewSmall currentDocument model =
             text "Loading..."
 
         SuccessLocal _ docs ->
-            ul [] (List.map viewDocItem docs)
+            ul [ class "sidebar-document-list" ] (List.map viewDocItem docs)
 
         Success _ docs ->
-            ul [] (List.map viewDocItem docs)
+            ul [ class "sidebar-document-list" ] (List.map viewDocItem docs)
 
         Failure _ ->
             text "Failed to load documents list."

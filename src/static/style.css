@@ -351,6 +351,50 @@ body {
   color: black;
 }
 
+.sidebar-document-list {
+  list-style: none;
+  margin: 10px;
+  padding: 0px;
+}
+li.sidebar-document-item {
+  position: relative;
+}
+li.sidebar-document-item a {
+  display: block;
+  padding: 10px;
+  background: hsl(200deg 22% 84%);
+  text-decoration: none;
+  color: black;
+}
+li.sidebar-document-item.active a {
+  background: white;
+  border-left: 4px solid var(--gingko-green);
+}
+li.sidebar-document-item.active::before ,
+li.sidebar-document-item.active::after {
+  position: absolute;
+  content: '';
+  width: 10px;
+  height: 20px;
+  background: #cdd9df;
+  z-index: 6;
+}
+li.sidebar-document-item.active::before {
+  box-shadow: 0px 8px 0px 0px #ffffff;
+  border-radius: 0 0 10px 0;
+  position: absolute;
+  top: -20px;
+  right: 0;
+}
+li.sidebar-document-item.active::after {
+  box-shadow: 0px -8px 0px 0px #ffffff;
+  border-radius: 0  10px 0 0;
+  position: absolute;
+  bottom: -20px;
+  right: 0;
+}
+
+
 
 #document {
   grid-area: document;
