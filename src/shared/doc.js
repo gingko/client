@@ -53,7 +53,7 @@ async function initElmAndPorts() {
   }
 
 
-  const initFlags = { email : email, seed: Date.now(), language: "en" };
+  const initFlags = { email : email, seed: Date.now(), language: lang };
 
   gingko = Elm.Main.init({ node: document.getElementById("elm"), flags: initFlags});
 
@@ -78,7 +78,7 @@ async function initElmAndPorts() {
       deleteLocalUserDbs();
     } else {
       let newSession = {email : email, seed: Date.now()};
-      localStorage.setItem(sessionStorageKey, JSON.stringify(newSession));
+      localStorage.setItem(sessionStorageKey, JSON.stringify(_.omit(newSession, "seed")));
       setUserDbs(email);
       setTimeout(()=> gingko.ports.sessionChanged.send(newSession), 0);
     }
