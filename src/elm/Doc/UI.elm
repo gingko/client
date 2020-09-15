@@ -148,7 +148,9 @@ viewSidebar msgs currentDocument docList isOpen =
             if isOpen then
                 div [ id "sidebar-menu" ]
                     [ a [ href (Route.toString Route.DocNew), class "sidebar-item" ] [ text "New" ]
+                    , hr [ style "width" "80%" ] []
                     , DocList.viewSmall currentDocument docList
+                    , hr [ style "width" "80%" ] []
                     , button [ onClick msgs.exportAll, class "sidebar-item" ] [ text "Export to docx" ]
                     ]
 
