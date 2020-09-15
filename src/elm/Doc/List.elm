@@ -7,10 +7,11 @@ import Html exposing (Html, a, div, h1, li, text, ul)
 import Html.Attributes exposing (class, classList, href, title)
 import Html.Events exposing (onClick, stopPropagationOn)
 import Http exposing (Expect, expectStringResponse)
-import Json.Decode as Dec exposing (Decoder)
+import Json.Decode as Dec
 import Octicons as Icon
 import Ports exposing (OutgoingMsg(..), sendOut)
 import Route
+import Session exposing (Session)
 import Strftime
 import Time
 import Translation exposing (TranslationId(..), timeDistInWords, tr)
@@ -32,20 +33,25 @@ init =
     Loading
 
 
-fetch : (Model -> msg) -> String -> Cmd msg
-fetch msg userDb =
-    Cmd.batch
-        [ sendOut <| GetDocumentList userDb
-        , Http.riskyRequest
-            { url = "/db/" ++ userDb ++ "/_design/testDocList/_view/docList"
-            , method = "GET"
-            , body = Http.emptyBody
-            , expect = expectJson msg
-            , headers = []
-            , timeout = Nothing
-            , tracker = Nothing
-            }
-        ]
+fetch : Session -> (Model -> msg) -> Cmd msg
+fetch session msg =
+    case Session.userDb session of
+        Just userDb ->
+            Cmd.batch
+                [ sendOut <| GetDocumentList userDb
+                , Http.riskyRequest
+                    { url = "/db/" ++ userDb ++ "/_design/testDocList/_view/docList"
+                    , method = "GET"
+                    , body = Http.emptyBody
+                    , expect = expectJson msg
+                    , headers = []
+                    , timeout = Nothing
+                    , tracker = Nothing
+                    }
+                ]
+
+        Nothing ->
+            Cmd.none
 
 
 
@@ -87,6 +93,9 @@ update new old =
 
         ( _, Success ts data ) ->
             Success ts data
+
+        ( SuccessLocal ts data, Failure _ ) ->
+            SuccessLocal ts data
 
         _ ->
             new

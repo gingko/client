@@ -121,21 +121,6 @@ function setUserDbs(email) {
 };
 
 
-
-self.testDocList = async function () {
-  let docList = await getDocumentList();
-  docList.timestamp = Date.now();
-  toElmPort("documentListChanged", docList)
-}
-
-
-async function getDocumentList() {
-  // Fetch document list
-  let docList = await db.query("testDocList/docList").catch(async e => e);
-  return docList;
-}
-
-
 async function deleteLocalUserDbs() {
   console.log("Deleting local copies of documents, for privacy.");
   await db.destroy();
@@ -210,6 +195,12 @@ const fromElm = (msg, data) => {
 
         await load(); // load local
         await pull(); // sync remote
+      }
+
+    , "GetDocumentList": async () => {
+        let docList = await db.query("testDocList/docList").catch(async e => e);
+        docList.timestamp = Date.now();
+        toElmPort("documentListChanged", docList)
       }
 
     , "RequestDelete": async () => {
@@ -366,7 +357,7 @@ const fromElm = (msg, data) => {
   try {
     cases[msg]();
   } catch(err) {
-    console.log("Unexpected message from Elm : ", msg, data, err);
+    console.error("Unexpected message from Elm : ", msg, data, err);
   }
 };
 

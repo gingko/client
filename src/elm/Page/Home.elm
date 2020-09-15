@@ -1,22 +1,18 @@
 module Page.Home exposing (Model, Msg, init, subscriptions, toSession, update, view)
 
-import Date
 import Doc.List as DocList
 import Doc.Metadata as Metadata exposing (Metadata)
 import File exposing (File)
 import File.Select as Select
 import Html exposing (Html, a, button, div, h1, h4, input, li, span, text, ul)
-import Html.Attributes exposing (checked, class, classList, href, id, title, type_)
-import Html.Events exposing (onCheck, onClick, stopPropagationOn)
-import Http
+import Html.Attributes exposing (checked, class, classList, href, id, type_)
+import Html.Events exposing (onCheck, onClick)
 import Import
 import Json.Decode as Dec
 import Octicons as Icon
-import Ports exposing (IncomingMsg(..), OutgoingMsg(..), receiveMsg, sendOut)
-import RandomId
+import Ports exposing (IncomingMsg(..), OutgoingMsg(..), sendOut)
 import Route
 import Session exposing (Session)
-import Strftime
 import Task
 import Time
 import Translation exposing (..)
@@ -65,7 +61,7 @@ init session =
         }
     , Cmd.batch
         [ Task.perform Tick Time.now
-        , getDocumentList session
+        , DocList.fetch session ReceivedDocuments
         ]
     )
 
@@ -155,7 +151,7 @@ update msg model =
             ( ImportSaving selectList pageData, sendOut <| SaveImportedData treesToSave )
 
         ( Port ImportComplete, ImportSaving _ pageData ) ->
-            ( Home pageData, getDocumentList pageData.session )
+            ( Home pageData, DocList.fetch pageData.session ReceivedDocuments )
 
         ( Tick _, ImportSelecting _ _ ) ->
             ( model, Cmd.none )
@@ -204,16 +200,6 @@ updatePageData msg model =
 
         _ ->
             ( model, Cmd.none )
-
-
-getDocumentList : Session -> Cmd Msg
-getDocumentList session =
-    case Session.userDb session of
-        Just userDb ->
-            DocList.fetch ReceivedDocuments userDb
-
-        Nothing ->
-            Cmd.none
 
 
 

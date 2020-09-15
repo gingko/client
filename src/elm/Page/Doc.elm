@@ -135,11 +135,15 @@ init : Session -> String -> Bool -> ( Model, Cmd Msg )
 init session dbName isNew =
     ( defaultModel isNew session dbName
     , if not isNew then
-        sendOut <| LoadDocument dbName
+        Cmd.batch
+            [ sendOut <| LoadDocument dbName
+            , DocList.fetch session ReceivedDocuments
+            ]
 
       else
         Cmd.batch
             [ sendOut <| InitDocument dbName
+            , DocList.fetch session ReceivedDocuments
             , focus "1"
             ]
     )
