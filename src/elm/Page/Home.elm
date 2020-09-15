@@ -169,7 +169,7 @@ updatePageData : Msg -> PageData -> ( PageData, Cmd Msg )
 updatePageData msg model =
     case msg of
         ReceivedDocuments response ->
-            ( { model | documents = response }, Cmd.none )
+            ( { model | documents = CachedData.update response model.documents }, Cmd.none )
 
         Open docId ->
             ( model, Route.pushUrl (Session.navKey model.session) (Route.DocUntitled docId) )

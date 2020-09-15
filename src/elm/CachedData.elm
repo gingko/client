@@ -1,4 +1,4 @@
-module CachedData exposing (CachedData(..), expectJson, fromLocal, fromResult)
+module CachedData exposing (CachedData(..), expectJson, fromLocal, fromResult, update)
 
 import Dict
 import Http exposing (Expect, expectStringResponse)
@@ -12,6 +12,47 @@ type CachedData e a
     | Failure e
     | SuccessLocal (Maybe Time.Posix) a
     | Success (Maybe Time.Posix) a
+
+
+update : CachedData e a -> CachedData e a -> CachedData e a
+update new old =
+    let
+        comp tsOld_ tsNew_ =
+            Maybe.map2 (<=)
+                (Maybe.map Time.posixToMillis tsOld_)
+                (Maybe.map Time.posixToMillis tsNew_)
+    in
+    case ( old, new ) of
+        ( SuccessLocal _ _, Success ts data ) ->
+            Success ts data
+
+        ( Success ts data, SuccessLocal _ _ ) ->
+            Success ts data
+
+        ( SuccessLocal tsOld_ dataOld, SuccessLocal tsNew_ dataNew ) ->
+            case comp tsOld_ tsNew_ of
+                Just False ->
+                    SuccessLocal tsOld_ dataOld
+
+                _ ->
+                    SuccessLocal tsNew_ dataNew
+
+        ( Success tsOld_ dataOld, Success tsNew_ dataNew ) ->
+            case comp tsOld_ tsNew_ of
+                Just False ->
+                    Success tsOld_ dataOld
+
+                _ ->
+                    Success tsNew_ dataNew
+
+        ( _, SuccessLocal ts data ) ->
+            SuccessLocal ts data
+
+        ( _, Success ts data ) ->
+            Success ts data
+
+        _ ->
+            new
 
 
 fromResult : Result e ( a, Maybe Time.Posix ) -> CachedData e a
