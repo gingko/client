@@ -253,7 +253,7 @@ const fromElm = (msg, data) => {
           return remoteDB.bulkDocs(toSave);
         });
         let saveResults = await Promise.all(savePromises);
-        toElm("ImportComplete", null);
+        toElmPort("importComplete", null);
     }
 
     , "Push": push

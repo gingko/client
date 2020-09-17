@@ -1,4 +1,4 @@
-module Page.Home exposing (Model, Msg, init, subscriptions, toSession, update, view)
+port module Page.Home exposing (Model, Msg, init, subscriptions, toSession, update, view)
 
 import Doc.List as DocList
 import Doc.Metadata as Metadata exposing (Metadata)
@@ -10,7 +10,7 @@ import Html.Events exposing (onCheck, onClick)
 import Import
 import Json.Decode as Dec
 import Octicons as Icon
-import Ports exposing (IncomingMsg(..), OutgoingMsg(..), sendOut)
+import Ports exposing (OutgoingMsg(..), sendOut)
 import Route
 import Session exposing (Session)
 import Task
@@ -97,10 +97,10 @@ type Msg
     | ImportTreeSelected String Bool
     | ImportFileLoaded String String
     | ImportSelectionDone
+    | ImportComplete
     | ToggleLanguageMenu
     | ChangeLanguage Language
     | Tick Time.Posix
-    | Port IncomingMsg
     | LogErr String
 
 
@@ -150,7 +150,7 @@ update msg model =
             in
             ( ImportSaving selectList pageData, sendOut <| SaveImportedData treesToSave )
 
-        ( Port ImportComplete, ImportSaving _ pageData ) ->
+        ( ImportComplete, ImportSaving _ pageData ) ->
             ( Home pageData, DocList.fetch pageData.session ReceivedDocuments )
 
         ( Tick _, ImportSelecting _ _ ) ->
@@ -288,9 +288,12 @@ viewSelectionEntry { selected, tree } =
 -- SUBSCRIPTIONS
 
 
+port importComplete : (() -> msg) -> Sub msg
+
+
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
-        [ DocList.subscription ReceivedDocuments
+        [ importComplete (always ImportComplete)
         , Time.every (30 * 1000) Tick
         ]

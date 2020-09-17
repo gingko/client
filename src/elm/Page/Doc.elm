@@ -1177,10 +1177,6 @@ update msg ({ workingTree } as model) =
                     , Cmd.none
                     )
 
-                -- === UNUSED ===
-                ImportComplete ->
-                    ( model, Cmd.none )
-
         LogErr err ->
             ( model
             , sendOut (ConsoleLogRequested err)

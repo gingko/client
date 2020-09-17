@@ -67,8 +67,6 @@ type
     | GetDataToSave
     | SavedLocally (Maybe Time.Posix)
     | SavedRemotely (Maybe Time.Posix)
-      -- === Home Page ===
-    | ImportComplete
       -- === Metadata ===
     | MetadataSynced Dec.Value
     | MetadataSaved Dec.Value
@@ -317,9 +315,6 @@ receiveMsg tagger onError =
 
                         Err e ->
                             onError (errorToString e)
-
-                "ImportComplete" ->
-                    tagger <| ImportComplete
 
                 -- === DOM ===
                 "DragStarted" ->
