@@ -8,13 +8,10 @@ require("../shared/GitGraph.js");
 
 import PouchDB from "pouchdb";
 
-
 const helpers = require("./doc-helpers");
 const errorAlert = helpers.errorAlert;
 const { tr } = require("../shared/translation.js");
 import { Elm } from "../elm/Main";
-
-
 
 /* === Global Variables === */
 
@@ -33,9 +30,7 @@ var savedObjectIds = [];
 const userStore = container.userStore;
 const localStore = container.localStore;
 
-
 const sessionStorageKey = "gingko-session-storage";
-
 
 /* === Initializing App === */
 
@@ -52,77 +47,81 @@ async function initElmAndPorts() {
     lang = store.language;
   }
 
+  const initFlags = { email: email, seed: Date.now(), language: "en" };
 
-  const initFlags = { email : email, seed: Date.now(), language: "en" };
-
-  gingko = Elm.Main.init({ node: document.getElementById("elm"), flags: initFlags});
+  gingko = Elm.Main.init({
+    node: document.getElementById("elm"),
+    flags: initFlags,
+  });
 
   // All messages from Elm
-  gingko.ports.infoForOutside.subscribe(function(elmdata) {
+  gingko.ports.infoForOutside.subscribe(function (elmdata) {
     fromElm(elmdata.tag, elmdata.data);
   });
 
   window.checkboxClicked = (cardId, number) => {
-    toElm([cardId, number], "docMsgs", "CheckboxClicked" );
+    toElm([cardId, number], "docMsgs", "CheckboxClicked");
   };
 
   // Whenever localStorage changes in another tab, report it if necessary.
-  window.addEventListener("storage", function(event) {
-      if (event.storageArea === localStorage && event.key === sessionStorageKey) {
+  window.addEventListener(
+    "storage",
+    function (event) {
+      if (
+        event.storageArea === localStorage &&
+        event.key === sessionStorageKey
+      ) {
         gingko.ports.sessionChanged.send(event.newValue);
       }
-  }, false);
+    },
+    false
+  );
 }
-
 
 function setUserDbs(email) {
   console.log("Inside setUserDbs", email, helpers.toHex(email));
   const userDbName = `userdb-${helpers.toHex(email)}`;
   let userDbUrl = config.COUCHDB_SERVER + "/" + userDbName;
-  var remoteOpts =
-    { skip_setup: true
-    , fetch(url, opts){
-        return fetch(url, opts);
-      }
-    };
+  var remoteOpts = {
+    skip_setup: true,
+    fetch(url, opts) {
+      return fetch(url, opts);
+    },
+  };
   remoteDB = new PouchDB(userDbUrl, remoteOpts);
-  self.db = new PouchDB(userDbName)
+  self.db = new PouchDB(userDbName);
   userStore.db(db, remoteDB);
 
   // add docList design document
-  let ddoc =
-    { "_id": "_design/testDocList",
-      "views": {
-        "docList": {
-          "map": "function (doc) {\n  if (/metadata/.test(doc._id)) {\n    emit(doc._id, doc);\n  }\n}"
-        }
+  let ddoc = {
+    _id: "_design/testDocList",
+    views: {
+      docList: {
+        map:
+          "function (doc) {\n  if (/metadata/.test(doc._id)) {\n    emit(doc._id, doc);\n  }\n}",
       },
-      "language": "javascript"
-    };
-  db.put(ddoc).catch(async e => e); // ignore conflict error
-};
-
+    },
+    language: "javascript",
+  };
+  db.put(ddoc).catch(async (e) => e); // ignore conflict error
+}
 
 async function deleteLocalUserDbs() {
   console.log("Deleting local copies of documents, for privacy.");
   await db.destroy();
 }
 
-
-
-
 /* === Elm / JS Interop === */
-
 
 function toElm(data, portName, tagName) {
   let portExists = gingko.ports.hasOwnProperty(portName);
-  let tagGiven = (typeof tagName == "string");
+  let tagGiven = typeof tagName == "string";
 
   if (portExists) {
     var dataToSend;
 
     if (tagGiven) {
-      dataToSend =  {tag: tagName, data: data};
+      dataToSend = { tag: tagName, data: data };
     } else {
       dataToSend = data;
     }
@@ -132,268 +131,299 @@ function toElm(data, portName, tagName) {
   }
 }
 
-
 const fromElm = (msg, data) => {
   console.debug("fromElm", msg, data);
-  let cases =
-    {
-      "StoreSession": () => {
-        if (data == null) {
-          localStorage.removeItem(sessionStorageKey);
-          deleteLocalUserDbs();
-        } else {
-          let newSession = {email : data, seed: Date.now()};
-          localStorage.setItem(sessionStorageKey, JSON.stringify(_.omit(newSession, "seed")));
-          setUserDbs(data);
-          setTimeout(()=> gingko.ports.sessionChanged.send(newSession), 0);
-        }
-      },
-      // === Dialogs, Menus, Window State ===
+  let cases = {
+    StoreSession: () => {
+      if (data == null) {
+        localStorage.removeItem(sessionStorageKey);
+        deleteLocalUserDbs();
+      } else {
+        let newSession = { email: data, seed: Date.now() };
+        localStorage.setItem(
+          sessionStorageKey,
+          JSON.stringify(_.omit(newSession, "seed"))
+        );
+        setUserDbs(data);
+        setTimeout(() => gingko.ports.sessionChanged.send(newSession), 0);
+      }
+    },
+    // === Dialogs, Menus, Window State ===
 
-      "Alert": () => { alert(data); }
+    Alert: () => {
+      alert(data);
+    },
 
-    , "ConfirmCancelCard": () => {
-        let tarea = document.getElementById("card-edit-"+data[0]);
+    ConfirmCancelCard: () => {
+      let tarea = document.getElementById("card-edit-" + data[0]);
 
-        if (tarea === null) {
-          console.log("tarea not found");
-        } else {
-          if(tarea.value === data[1] || confirm(tr.areYouSureCancel[lang])) {
-            toElm(null, "docMsgs", "CancelCardConfirmed");
-          }
+      if (tarea === null) {
+        console.log("tarea not found");
+      } else {
+        if (tarea.value === data[1] || confirm(tr.areYouSureCancel[lang])) {
+          toElm(null, "docMsgs", "CancelCardConfirmed");
         }
       }
+    },
 
-      // === Database ===
+    // === Database ===
 
-    , "InitDocument": async () => {
-        TREE_ID = data;
+    InitDocument: async () => {
+      TREE_ID = data;
 
-        const now = Date.now();
-        let metadata = {_id : data+"/metadata", docId: data, name: null, createdAt: now, updatedAt: now};
-        await db.put(metadata).catch(async e => e);
+      const now = Date.now();
+      let metadata = {
+        _id: data + "/metadata",
+        docId: data,
+        name: null,
+        createdAt: now,
+        updatedAt: now,
+      };
+      await db.put(metadata).catch(async (e) => e);
 
-        localStore.db(db, data);
-        let store = await localStore.load();
-        loadDocumentList();
-        toElm(store, "docMsgs", "LocalStoreLoaded");
-    }
+      localStore.db(db, data);
+      let store = await localStore.load();
+      loadDocumentList();
+      toElm(store, "docMsgs", "LocalStoreLoaded");
+    },
 
-    , "LoadDocument": async () => {
-        TREE_ID = data;
+    LoadDocument: async () => {
+      TREE_ID = data;
 
-        localStore.db(db, data);
-        let store = await localStore.load();
-        toElm(store, "docMsgs", "LocalStoreLoaded");
+      localStore.db(db, data);
+      let store = await localStore.load();
+      toElm(store, "docMsgs", "LocalStoreLoaded");
 
-        let metadata = await db.get("metadata").catch(async e => e);
-        if (!metadata.error) {
-          toElm(metadata, "docMsgs", "MetadataSaved");
-        }
-
-        await load(); // load local
-        await pull(); // sync remote
+      let metadata = await db.get("metadata").catch(async (e) => e);
+      if (!metadata.error) {
+        toElm(metadata, "docMsgs", "MetadataSaved");
       }
 
-    , "GetDocumentList": async () => {
-        let docList = await db.query("testDocList/docList").catch(async e => e);
-        docList.timestamp = Date.now();
-        toElm(docList,"documentListChanged");
-      }
+      await load(); // load local
+      await pull(); // sync remote
+    },
 
-    , "RequestDelete": async () => {
-      if(confirm("Are you sure you want to delete this document?")) {
-        let docsFetch = await remoteDB.allDocs({startkey: data+"/", endkey: data+"/\ufff0"});
-        let docsToDelete = docsFetch.rows.map(r => {return {_id : r.id, _rev: r.value.rev, _deleted: true}});
+    GetDocumentList: async () => {
+      let docList = await db.query("testDocList/docList").catch(async (e) => e);
+      docList.timestamp = Date.now();
+      toElm(docList, "documentListChanged");
+    },
+
+    RequestDelete: async () => {
+      if (confirm("Are you sure you want to delete this document?")) {
+        let docsFetch = await remoteDB.allDocs({
+          startkey: data + "/",
+          endkey: data + "/\ufff0",
+        });
+        let docsToDelete = docsFetch.rows.map((r) => {
+          return { _id: r.id, _rev: r.value.rev, _deleted: true };
+        });
         let deleteResponse = await remoteDB.bulkDocs(docsToDelete);
 
-        let selector = { "_id": { "$regex": `${TREE_ID}/` } };
-        await db.replicate.from(remoteDB, {selector}).catch(async (e) => e);
+        let selector = { _id: { $regex: `${TREE_ID}/` } };
+        await db.replicate.from(remoteDB, { selector }).catch(async (e) => e);
 
         //toElm("DocListChanged", null);
       }
-    }
+    },
 
-    , "SaveData": async () => {
-        // Store ids of refs, so we can send back updated _rev.
-        const refIds = data.data.refs.map(r => r._id);
+    SaveData: async () => {
+      // Store ids of refs, so we can send back updated _rev.
+      const refIds = data.data.refs.map((r) => r._id);
 
-        // Keep objects that are not saved in database.
-        const newCommits = data.data.commits.filter( o => !savedObjectIds.includes(o._id));
-        const newTreeObjects = data.data.treeObjects.filter( o => !savedObjectIds.includes(o._id));
+      // Keep objects that are not saved in database.
+      const newCommits = data.data.commits.filter(
+        (o) => !savedObjectIds.includes(o._id)
+      );
+      const newTreeObjects = data.data.treeObjects.filter(
+        (o) => !savedObjectIds.includes(o._id)
+      );
 
-        // Remove conflicts if head is updated
-        let savedHead = await db.get(prefix("heads/master"), {conflicts: true}).catch(async e => e);
-        if (savedHead.hasOwnProperty("_conflicts")) {
-          let revToDelete = savedHead._conflicts[0];
-          let delRes = await db.remove(prefix("heads/master"), revToDelete);
-        }
-
-        // Save to database, and add successes to savedObjectIds.
-        const rows = [...newCommits, ...newTreeObjects, ...data.data.refs];
-        const toSave = rows.map(r =>{r._id = prefix(r._id); return r;} );
-        const responses = await db.bulkDocs(toSave);
-        const savedIds = responses.filter(r => r.ok).map(o => o.id);
-        savedObjectIds = savedObjectIds.concat(savedIds);
-
-        // Send updated _revs for successful ref saves.
-        const savedRefs = responses
-                            .map(r => {r.id = unprefix(r.id); return r })
-                            .filter(r => refIds.includes(r.id) && r.ok);
-        toElm(savedRefs, "docMsgs", "DataSaved");
-
-        // Set updatedAt field
-        data.metadata.updatedAt = Date.now();
-        fromElm("SaveMetadata", data.metadata);
+      // Remove conflicts if head is updated
+      let savedHead = await db
+        .get(prefix("heads/master"), { conflicts: true })
+        .catch(async (e) => e);
+      if (savedHead.hasOwnProperty("_conflicts")) {
+        let revToDelete = savedHead._conflicts[0];
+        let delRes = await db.remove(prefix("heads/master"), revToDelete);
       }
 
-    , "SaveImportedData": async () => {
-        let savePromises = data.map(doc => {
-          let treeDb = new PouchDB(doc.id);
-          let dataRows = [...doc.data.commits, ...doc.data.treeObjects, ...doc.data.refs, doc.metadata];
-          let toSave = dataRows.map(r => {
-            r._id = doc.id + "/" + r._id;
-            return _.omit(r, "_rev");
-          });
-          return remoteDB.bulkDocs(toSave);
+      // Save to database, and add successes to savedObjectIds.
+      const rows = [...newCommits, ...newTreeObjects, ...data.data.refs];
+      const toSave = rows.map((r) => {
+        r._id = prefix(r._id);
+        return r;
+      });
+      const responses = await db.bulkDocs(toSave);
+      const savedIds = responses.filter((r) => r.ok).map((o) => o.id);
+      savedObjectIds = savedObjectIds.concat(savedIds);
+
+      // Send updated _revs for successful ref saves.
+      const savedRefs = responses
+        .map((r) => {
+          r.id = unprefix(r.id);
+          return r;
+        })
+        .filter((r) => refIds.includes(r.id) && r.ok);
+      toElm(savedRefs, "docMsgs", "DataSaved");
+
+      // Set updatedAt field
+      data.metadata.updatedAt = Date.now();
+      fromElm("SaveMetadata", data.metadata);
+    },
+
+    SaveImportedData: async () => {
+      let savePromises = data.map((doc) => {
+        let treeDb = new PouchDB(doc.id);
+        let dataRows = [
+          ...doc.data.commits,
+          ...doc.data.treeObjects,
+          ...doc.data.refs,
+          doc.metadata,
+        ];
+        let toSave = dataRows.map((r) => {
+          r._id = doc.id + "/" + r._id;
+          return _.omit(r, "_rev");
         });
-        let saveResults = await Promise.all(savePromises);
-        toElm(null, "importComplete");
-    }
+        return remoteDB.bulkDocs(toSave);
+      });
+      let saveResults = await Promise.all(savePromises);
+      toElm(null, "importComplete");
+    },
 
-    , "Push": push
+    Push: push,
 
-    , "Pull": () => pull()
+    Pull: () => pull(),
 
-      // === DOM ===
+    // === DOM ===
 
-    , "ActivateCards": () => {
-        lastActivesScrolled = data.lastActives;
-        lastColumnScrolled = data.column;
+    ActivateCards: () => {
+      lastActivesScrolled = data.lastActives;
+      lastColumnScrolled = data.column;
 
-        helpers.scrollHorizontal(data.column, data.instant);
-        helpers.scrollColumns(data.lastActives, data.instant);
+      helpers.scrollHorizontal(data.column, data.instant);
+      helpers.scrollColumns(data.lastActives, data.instant);
 
-        localStore.set("last-active", data.cardId);
-      }
+      localStore.set("last-active", data.cardId);
+    },
 
-    , "DragStart": () => {
+    DragStart: () => {
       data.dataTransfer.setData("text", "");
-      toElm(data.target.id.replace(/^card-/,""), "docMsgs", "DragStarted");
-    }
+      toElm(data.target.id.replace(/^card-/, ""), "docMsgs", "DragStarted");
+    },
 
-    , "FlashCurrentSubtree": () => {
-        let addFlashClass = function() {
-          jQuery(".card.active").addClass("flash");
-          jQuery(".group.active-descendant").addClass("flash");
-        };
+    FlashCurrentSubtree: () => {
+      let addFlashClass = function () {
+        jQuery(".card.active").addClass("flash");
+        jQuery(".group.active-descendant").addClass("flash");
+      };
 
-        let removeFlashClass = function() {
-          jQuery(".card.active").removeClass("flash");
-          jQuery(".group.active-descendant").removeClass("flash");
-        };
+      let removeFlashClass = function () {
+        jQuery(".card.active").removeClass("flash");
+        jQuery(".group.active-descendant").removeClass("flash");
+      };
 
-        addFlashClass();
-        setTimeout(removeFlashClass, 200);
-      }
+      addFlashClass();
+      setTimeout(removeFlashClass, 200);
+    },
 
-    , "TextSurround": () => {
-        let id = data[0];
-        let surroundString = data[1];
-        let tarea = document.getElementById("card-edit-"+id);
+    TextSurround: () => {
+      let id = data[0];
+      let surroundString = data[1];
+      let tarea = document.getElementById("card-edit-" + id);
 
-        if (tarea === null) {
-          console.log("Textarea not found for TextSurround command.");
-        } else {
-          let start = tarea.selectionStart;
-          let end = tarea.selectionEnd;
-          if (start !== end) {
-            let text = tarea.value.slice(start, end);
-            let modifiedText = surroundString + text + surroundString;
-            document.execCommand("insertText", true, modifiedText);
-          }
+      if (tarea === null) {
+        console.log("Textarea not found for TextSurround command.");
+      } else {
+        let start = tarea.selectionStart;
+        let end = tarea.selectionEnd;
+        if (start !== end) {
+          let text = tarea.value.slice(start, end);
+          let modifiedText = surroundString + text + surroundString;
+          document.execCommand("insertText", true, modifiedText);
         }
       }
+    },
 
-    , "SetCursorPosition": () => {
-        let pos = data[0];
-        setTimeout(() => document.activeElement.setSelectionRange(pos,pos), 0);
-    }
+    SetCursorPosition: () => {
+      let pos = data[0];
+      setTimeout(() => document.activeElement.setSelectionRange(pos, pos), 0);
+    },
 
-      // === UI ===
-    , "SaveMetadata": async () => {
-        data._id = prefix(data._id);
-        let saveRes = await db.put(data).catch(async e => e);
-        if (saveRes.ok) {
-          await db.replicate.to(remoteDB, {doc_ids: [prefix("metadata")]});
-          data._rev = saveRes.rev;
-          data._id = unprefix(data._id);
-          toElm(data, "docMsgs", "MetadataSaved");
-        } else {
-          console.error(data, saveRes);
-          toElm(null, "docMsgs", "MetadataSaveError");
-        }
-    }
-
-    , "UpdateCommits": () => {
+    // === UI ===
+    SaveMetadata: async () => {
+      data._id = prefix(data._id);
+      let saveRes = await db.put(data).catch(async (e) => e);
+      if (saveRes.ok) {
+        await db.replicate.to(remoteDB, { doc_ids: [prefix("metadata")] });
+        data._rev = saveRes.rev;
+        data._id = unprefix(data._id);
+        toElm(data, "docMsgs", "MetadataSaved");
+      } else {
+        console.error(data, saveRes);
+        toElm(null, "docMsgs", "MetadataSaveError");
       }
+    },
 
-    , "SetVideoModal": () => {
-        userStore.set("video-modal-is-open", data);
-      }
+    UpdateCommits: () => {},
 
-    , "SetFonts": () => {}
+    SetVideoModal: () => {
+      userStore.set("video-modal-is-open", data);
+    },
 
-    , "SetShortcutTray": () => {
-        userStore.set("shortcut-tray-is-open", data);
-      }
+    SetFonts: () => {},
 
-      // === Misc ===
+    SetShortcutTray: () => {
+      userStore.set("shortcut-tray-is-open", data);
+    },
 
-    , "SocketSend": () => {}
+    // === Misc ===
 
-    , "ConsoleLogRequested": () =>
-        console.error(data)
+    SocketSend: () => {},
 
-    };
+    ConsoleLogRequested: () => console.error(data),
+  };
 
   try {
     cases[msg]();
-  } catch(err) {
+  } catch (err) {
     console.error("Unexpected message from Elm : ", msg, data, err);
   }
 };
 
-
-
-
 /* === Database === */
-
 
 async function load() {
   let toSend = await loadDocData();
-  if (toSend.refs) { toElm(toSend, "docMsgs", "DataReceived"); }
+  if (toSend.refs) {
+    toElm(toSend, "docMsgs", "DataReceived");
+  }
 }
-
 
 async function pull() {
   // Get local head before replication.
   let localHead = await db.get(prefix("heads/master")).catch(async (e) => e);
 
   // Fetch remote changes for current document.
-  let selector = { "_id": { "$regex": `${TREE_ID}/` } };
-  await db.replicate.from(remoteDB, {selector}).catch(async (e) => e);
+  let selector = { _id: { $regex: `${TREE_ID}/` } };
+  await db.replicate.from(remoteDB, { selector }).catch(async (e) => e);
 
   let toSend = await loadDocData();
 
   // Get new head, or possible conflict/branching history.
-  let newHead = await db.get(prefix("heads/master"), {conflicts: true}).catch(async (e) => e);
+  let newHead = await db
+    .get(prefix("heads/master"), { conflicts: true })
+    .catch(async (e) => e);
 
   // Add conflicts to data to be sent.
   if (newHead.hasOwnProperty("_conflicts")) {
-    let conflictHead = await db.get(prefix("heads/master"), {rev: newHead._conflicts[0]});
+    let conflictHead = await db.get(prefix("heads/master"), {
+      rev: newHead._conflicts[0],
+    });
     if (_.isEqual(localHead, conflictHead)) {
-      let setHead = (r) => { return (r._id == prefix("heads/master") ? conflictHead : r); }
+      let setHead = (r) => {
+        return r._id == prefix("heads/master") ? conflictHead : r;
+      };
       toSend.ref = toSend.ref.map(setHead);
       toSend.conflict = newHead;
     } else {
@@ -402,53 +432,51 @@ async function pull() {
   }
 
   // Finally, send all objects into Elm repo.
-  if (toSend.ref) { toElm(toSend, "docMsgs", "DataReceived"); };
-  if (toSend.metadata) { toElm(toSend.metadata[0], "docMsgs", "MetadataSynced") }
+  if (toSend.ref) {
+    toElm(toSend, "docMsgs", "DataReceived");
+  }
+  if (toSend.metadata) {
+    toElm(toSend.metadata[0], "docMsgs", "MetadataSynced");
+  }
 }
-
 
 async function push() {
-  let selector = { "_id": { "$regex": `${TREE_ID}/` } };
-  await db.replicate.to(remoteDB, {selector}).catch(async (e) => e);
+  let selector = { _id: { $regex: `${TREE_ID}/` } };
+  await db.replicate.to(remoteDB, { selector }).catch(async (e) => e);
 }
 
-
-function loadDocumentList() {
-}
-
+function loadDocumentList() {}
 
 async function loadDocData() {
   // Get all local entries in db, and format in object to send to Elm.
-  let result = await db.allDocs({include_docs: true, startkey: TREE_ID+"/", endkey: TREE_ID+"/\ufff0"})
-  let mappedDocs = result.rows.map(r => {r.doc._id = unprefix(r.doc._id); return r.doc;});
-  let groupFn = r => r.hasOwnProperty("type") ? r.type : r._id;
+  let result = await db.allDocs({
+    include_docs: true,
+    startkey: TREE_ID + "/",
+    endkey: TREE_ID + "/\ufff0",
+  });
+  let mappedDocs = result.rows.map((r) => {
+    r.doc._id = unprefix(r.doc._id);
+    return r.doc;
+  });
+  let groupFn = (r) => (r.hasOwnProperty("type") ? r.type : r._id);
   return _.groupBy(mappedDocs, groupFn);
 }
 
-
-
-
 /* === Helper Functions === */
 
-
 function prefix(id) {
-  return TREE_ID+"/"+id;
+  return TREE_ID + "/" + id;
 }
 
 function unprefix(id) {
   return id.slice(TREE_ID.length + 1);
 }
 
-
 const saveErrorAlert = (err) => {
-  return errorAlert(tr.saveError[lang],tr.saveErrorMsg[lang], err);
+  return errorAlert(tr.saveError[lang], tr.saveErrorMsg[lang], err);
 };
 
-
-
-
 /* === DOM Events and Handlers === */
-
 
 // Prevent default events, for file dragging.
 document.ondragover = document.ondrop = (ev) => {
@@ -467,17 +495,23 @@ window.onresize = () => {
 const debouncedScrollColumns = _.debounce(helpers.scrollColumns, 200);
 const debouncedScrollHorizontal = _.debounce(helpers.scrollHorizontal, 200);
 
-
-const editingInputHandler = function(ev) {
+const editingInputHandler = function (ev) {
   toElm(ev.target.value, "docMsgs", "FieldChanged");
   selectionHandler(ev);
 };
 
-const selectionHandler = function(ev) {
-  if(document.activeElement.nodeName == "TEXTAREA") {
-    let {selectionStart, selectionEnd, selectionDirection} = document.activeElement;
+const selectionHandler = function (ev) {
+  if (document.activeElement.nodeName == "TEXTAREA") {
+    let {
+      selectionStart,
+      selectionEnd,
+      selectionDirection,
+    } = document.activeElement;
     let length = document.activeElement.value.length;
-    let [before,after] = [document.activeElement.value.substring(0,selectionStart), document.activeElement.value.substring(selectionStart) ]
+    let [before, after] = [
+      document.activeElement.value.substring(0, selectionStart),
+      document.activeElement.value.substring(selectionStart),
+    ];
     let cursorPosition = "other";
 
     if (length == 0) {
@@ -493,77 +527,69 @@ const selectionHandler = function(ev) {
     }
 
     toElm(
-      { selected: selectionStart !== selectionEnd
-      , position: cursorPosition
-      , text: [before, after]
-      }
-    , "docMsgs"
-    , "TextCursor"
+      {
+        selected: selectionStart !== selectionEnd,
+        position: cursorPosition,
+        text: [before, after],
+      },
+      "docMsgs",
+      "TextCursor"
     );
   }
 };
 
 document.onselectionchange = selectionHandler;
 
-
-Mousetrap.bind(helpers.shortcuts, function(e, s) {
+Mousetrap.bind(helpers.shortcuts, function (e, s) {
   toElm(s, "docMsgs", "Keyboard");
 
-  if(helpers.needOverride.includes(s)) {
+  if (helpers.needOverride.includes(s)) {
     return false;
   }
 });
 
-
-Mousetrap.bind(["tab"], function(e, s) {
+Mousetrap.bind(["tab"], function (e, s) {
   document.execCommand("insertText", false, "  ");
   return false;
 });
 
-
-Mousetrap.bind(["shift+tab"], function(e, s) {
+Mousetrap.bind(["shift+tab"], function (e, s) {
   return true;
 });
 
-
-
-
 /* === DOM manipulation === */
 
-
-const observer = new MutationObserver(function(mutations) {
-  const isTextarea = function(node) {
+const observer = new MutationObserver(function (mutations) {
+  const isTextarea = function (node) {
     return node.nodeName == "TEXTAREA" && node.className == "edit mousetrap";
   };
 
-  const isHelpWidget = function(node) {
+  const isHelpWidget = function (node) {
     return node.nodeName == "IFRAME" && node.id == "launcher-frame";
   };
 
   let textareas = [];
 
-  mutations
-    .map( m => {
-          [].slice.call(m.addedNodes)
-            .map(n => {
-              if (isTextarea(n)) {
-                textareas.push(n);
-              } else if (isHelpWidget(n)) {
-                helpWidgetLauncher = n;
-                if (!helpVisible) {
-                  helpWidgetLauncher.style.visibility = "hidden";
-                }
-              } else {
-                if(n.querySelectorAll) {
-                  let tareas = [].slice.call(n.querySelectorAll("textarea.edit"));
-                  textareas = textareas.concat(tareas);
-                }
-              }
-            });
-        });
+  mutations.map((m) => {
+    [].slice.call(m.addedNodes).map((n) => {
+      if (isTextarea(n)) {
+        textareas.push(n);
+      } else if (isHelpWidget(n)) {
+        helpWidgetLauncher = n;
+        if (!helpVisible) {
+          helpWidgetLauncher.style.visibility = "hidden";
+        }
+      } else {
+        if (n.querySelectorAll) {
+          let tareas = [].slice.call(n.querySelectorAll("textarea.edit"));
+          textareas = textareas.concat(tareas);
+        }
+      }
+    });
+  });
 
   if (textareas.length !== 0) {
-    textareas.map(t => {
+    textareas.map((t) => {
       t.oninput = editingInputHandler;
     });
 
@@ -571,8 +597,6 @@ const observer = new MutationObserver(function(mutations) {
   }
 });
 
-
 const observerConfig = { childList: true, subtree: true };
-
 
 observer.observe(document.body, observerConfig);
