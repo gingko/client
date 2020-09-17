@@ -63,7 +63,7 @@ async function initElmAndPorts() {
   });
 
   window.checkboxClicked = (cardId, number) => {
-    toElm("CheckboxClicked", [cardId, number]);
+    toElm([cardId, number], "docMsgs", "CheckboxClicked" );
   };
 
   // Whenever localStorage changes in another tab, report it if necessary.
@@ -114,14 +114,19 @@ async function deleteLocalUserDbs() {
 /* === Elm / JS Interop === */
 
 
-function toElm (tag, data) {
-  gingko.ports.infoForElm.send({tag: tag, data: data});
-}
+function toElm(data, portName, tagName) {
+  let portExists = gingko.ports.hasOwnProperty(portName);
+  let tagGiven = (typeof tagName == "string");
 
+  if (portExists) {
+    var dataToSend;
 
-function toElmPort(portName, data)  {
-  if (gingko.ports.hasOwnProperty(portName)) {
-    gingko.ports[portName].send(data);
+    if (tagGiven) {
+      dataToSend =  {tag: tagName, data: data};
+    } else {
+      dataToSend = data;
+    }
+    gingko.ports[portName].send(dataToSend);
   } else {
     console.error("Unknown port", portName, data);
   }
@@ -154,7 +159,7 @@ const fromElm = (msg, data) => {
           console.log("tarea not found");
         } else {
           if(tarea.value === data[1] || confirm(tr.areYouSureCancel[lang])) {
-            toElm("CancelCardConfirmed", null);
+            toElm(null, "docMsgs", "CancelCardConfirmed");
           }
         }
       }
@@ -171,7 +176,7 @@ const fromElm = (msg, data) => {
         localStore.db(db, data);
         let store = await localStore.load();
         loadDocumentList();
-        toElm("LocalStoreLoaded", store);
+        toElm(store, "docMsgs", "LocalStoreLoaded");
     }
 
     , "LoadDocument": async () => {
@@ -179,11 +184,11 @@ const fromElm = (msg, data) => {
 
         localStore.db(db, data);
         let store = await localStore.load();
-        toElm("LocalStoreLoaded", store);
+        toElm(store, "docMsgs", "LocalStoreLoaded");
 
         let metadata = await db.get("metadata").catch(async e => e);
         if (!metadata.error) {
-          toElm("MetadataSaved", metadata);
+          toElm(metadata, "docMsgs", "MetadataSaved");
         }
 
         await load(); // load local
@@ -193,7 +198,7 @@ const fromElm = (msg, data) => {
     , "GetDocumentList": async () => {
         let docList = await db.query("testDocList/docList").catch(async e => e);
         docList.timestamp = Date.now();
-        toElmPort("documentListChanged", docList)
+        toElm(docList,"documentListChanged");
       }
 
     , "RequestDelete": async () => {
@@ -235,7 +240,7 @@ const fromElm = (msg, data) => {
         const savedRefs = responses
                             .map(r => {r.id = unprefix(r.id); return r })
                             .filter(r => refIds.includes(r.id) && r.ok);
-        toElm("DataSaved", savedRefs);
+        toElm(savedRefs, "docMsgs", "DataSaved");
 
         // Set updatedAt field
         data.metadata.updatedAt = Date.now();
@@ -253,7 +258,7 @@ const fromElm = (msg, data) => {
           return remoteDB.bulkDocs(toSave);
         });
         let saveResults = await Promise.all(savePromises);
-        toElmPort("importComplete", null);
+        toElm(null, "importComplete");
     }
 
     , "Push": push
@@ -274,7 +279,7 @@ const fromElm = (msg, data) => {
 
     , "DragStart": () => {
       data.dataTransfer.setData("text", "");
-      toElm("DragStarted", data.target.id.replace(/^card-/,""));
+      toElm(data.target.id.replace(/^card-/,""), "docMsgs", "DragStarted");
     }
 
     , "FlashCurrentSubtree": () => {
@@ -323,10 +328,10 @@ const fromElm = (msg, data) => {
           await db.replicate.to(remoteDB, {doc_ids: [prefix("metadata")]});
           data._rev = saveRes.rev;
           data._id = unprefix(data._id);
-          toElm("MetadataSaved", data);
+          toElm(data, "docMsgs", "MetadataSaved");
         } else {
           console.error(data, saveRes);
-          toElm("MetadataSaveError", null);
+          toElm(null, "docMsgs", "MetadataSaveError");
         }
     }
 
@@ -367,7 +372,7 @@ const fromElm = (msg, data) => {
 
 async function load() {
   let toSend = await loadDocData();
-  if (toSend.refs) { toElm("DataReceived", toSend); }
+  if (toSend.refs) { toElm(toSend, "docMsgs", "DataReceived"); }
 }
 
 
@@ -397,8 +402,8 @@ async function pull() {
   }
 
   // Finally, send all objects into Elm repo.
-  if (toSend.ref) { toElm("DataReceived",toSend); };
-  if (toSend.metadata) { toElm("MetadataSynced", toSend.metadata[0]) }
+  if (toSend.ref) { toElm(toSend, "docMsgs", "DataReceived"); };
+  if (toSend.metadata) { toElm(toSend.metadata[0], "docMsgs", "MetadataSynced") }
 }
 
 
@@ -464,7 +469,7 @@ const debouncedScrollHorizontal = _.debounce(helpers.scrollHorizontal, 200);
 
 
 const editingInputHandler = function(ev) {
-  toElm("FieldChanged", ev.target.value);
+  toElm(ev.target.value, "docMsgs", "FieldChanged");
   selectionHandler(ev);
 };
 
@@ -487,11 +492,13 @@ const selectionHandler = function(ev) {
       cursorPosition = "end";
     }
 
-    toElm("TextCursor",
+    toElm(
       { selected: selectionStart !== selectionEnd
       , position: cursorPosition
       , text: [before, after]
       }
+    , "docMsgs"
+    , "TextCursor"
     );
   }
 };
@@ -500,7 +507,7 @@ document.onselectionchange = selectionHandler;
 
 
 Mousetrap.bind(helpers.shortcuts, function(e, s) {
-  toElm("Keyboard",s);
+  toElm(s, "docMsgs", "Keyboard");
 
   if(helpers.needOverride.includes(s)) {
     return false;
