@@ -1,0 +1,8 @@
+*.html
+*.css
+src/static/
+node_modules
+dist/*
+app/*
+/web/*
+
