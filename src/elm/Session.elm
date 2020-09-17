@@ -2,7 +2,7 @@ port module Session exposing (Session, changes, fromData, guest, loggedIn, logou
 
 import Browser.Navigation as Nav
 import Json.Decode as Json
-import Ports exposing (OutgoingMsg(..), sendOut)
+import Outgoing exposing (Msg(..), send)
 import Utils exposing (hexEncode)
 
 
@@ -102,12 +102,12 @@ guest key =
 
 save : String -> Cmd msg
 save email =
-    sendOut <| StoreSession (Just email)
+    send <| StoreSession (Just email)
 
 
 logout : Cmd msg
 logout =
-    sendOut <| StoreSession Nothing
+    send <| StoreSession Nothing
 
 
 changes : (Session -> msg) -> Nav.Key -> Sub msg

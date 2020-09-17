@@ -10,7 +10,7 @@ import Html.Events exposing (onCheck, onClick)
 import Import
 import Json.Decode as Dec
 import Octicons as Icon
-import Ports exposing (OutgoingMsg(..), sendOut)
+import Outgoing exposing (Msg(..), send)
 import Route
 import Session exposing (Session)
 import Task
@@ -148,7 +148,7 @@ update msg model =
                         |> List.map .tree
                         |> Import.encode author
             in
-            ( ImportSaving selectList pageData, sendOut <| SaveImportedData treesToSave )
+            ( ImportSaving selectList pageData, send <| SaveImportedData treesToSave )
 
         ( ImportComplete, ImportSaving _ pageData ) ->
             ( Home pageData, DocList.fetch pageData.session ReceivedDocuments )
@@ -171,7 +171,7 @@ updatePageData msg model =
             ( model, Route.pushUrl (Session.navKey model.session) (Route.DocUntitled docId) )
 
         DeleteDoc docId ->
-            ( model, sendOut <| RequestDelete docId )
+            ( model, send <| RequestDelete docId )
 
         ToggleLanguageMenu ->
             ( { model | languageMenu = not model.languageMenu }, Cmd.none )
@@ -195,7 +195,7 @@ updatePageData msg model =
 
         LogErr err ->
             ( model
-            , sendOut (ConsoleLogRequested err)
+            , send (ConsoleLogRequested err)
             )
 
         _ ->

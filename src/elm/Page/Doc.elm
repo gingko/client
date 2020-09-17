@@ -25,7 +25,8 @@ import Http
 import Json.Decode as Json
 import List.Extra as ListExtra exposing (getAt)
 import Markdown
-import Ports exposing (ExportFormat(..), ExportSelection(..), IncomingMsg(..), OutgoingMsg(..), receiveMsg, sendOut)
+import Outgoing exposing (Msg(..), send)
+import Page.Doc.Incoming as Incoming exposing (ExportFormat(..), ExportSelection(..), Msg(..))
 import Random
 import Regex
 import Session exposing (Session)
@@ -136,13 +137,13 @@ init session dbName isNew =
     ( defaultModel isNew session dbName
     , if not isNew then
         Cmd.batch
-            [ sendOut <| LoadDocument dbName
+            [ send <| LoadDocument dbName
             , DocList.fetch session ReceivedDocuments
             ]
 
       else
         Cmd.batch
-            [ sendOut <| InitDocument dbName
+            [ send <| InitDocument dbName
             , DocList.fetch session ReceivedDocuments
             , focus "1"
             ]
@@ -203,7 +204,7 @@ type Msg
       -- === Ports ===
     | ExportAll
     | Exported (Result Http.Error Bytes)
-    | Port IncomingMsg
+    | Incoming Incoming.Msg
     | LogErr String
 
 
@@ -344,7 +345,7 @@ update msg ({ workingTree } as model) =
                     ( modelDragUpdated
                     , DragDrop.getDragstartEvent dragDropMsg
                         |> Maybe.map .event
-                        |> Maybe.map (\json -> sendOut <| DragStart json)
+                        |> Maybe.map (\json -> send <| DragStart json)
                         |> Maybe.withDefault Cmd.none
                     )
 
@@ -368,7 +369,7 @@ update msg ({ workingTree } as model) =
                                                 ((getParent id model.workingTree.tree |> Maybe.map .id) |> Maybe.withDefault "0")
                                                 ((getIndex id model.workingTree.tree |> Maybe.withDefault 0) + 1)
                             in
-                            ( { modelDragUpdated | viewState = { vs | draggedTree = Nothing }, dirty = True }, sendOut <| SetChanged True )
+                            ( { modelDragUpdated | viewState = { vs | draggedTree = Nothing }, dirty = True }, send <| SetChanged True )
                                 |> moveOperation
 
                         Nothing ->
@@ -442,7 +443,7 @@ update msg ({ workingTree } as model) =
             case ( vs.viewMode, Data.conflictList model.data ) of
                 ( Normal, [] ) ->
                     ( model
-                    , sendOut Pull
+                    , send Pull
                     )
 
                 _ ->
@@ -498,7 +499,7 @@ update msg ({ workingTree } as model) =
             case model.titleField of
                 Just editedTitle ->
                     if Just editedTitle /= Metadata.getDocName model.metadata then
-                        ( model, sendOut <| SaveMetadata <| Metadata.rename editedTitle model.metadata )
+                        ( model, send <| SaveMetadata <| Metadata.rename editedTitle model.metadata )
 
                     else
                         ( model, Cmd.none )
@@ -531,7 +532,7 @@ update msg ({ workingTree } as model) =
                 cmd =
                     case newFontsTriple_ of
                         Just newFontsTriple ->
-                            sendOut (SetFonts newFontsTriple)
+                            send (SetFonts newFontsTriple)
 
                         Nothing ->
                             Cmd.none
@@ -548,7 +549,7 @@ update msg ({ workingTree } as model) =
             ( { model
                 | shortcutTrayOpen = newIsOpen
               }
-            , sendOut (SetShortcutTray newIsOpen)
+            , send (SetShortcutTray newIsOpen)
             )
 
         WordcountTrayToggle ->
@@ -574,7 +575,7 @@ update msg ({ workingTree } as model) =
         Exported (Err _) ->
             ( model, Cmd.none )
 
-        Port incomingMsg ->
+        Incoming incomingMsg ->
             case incomingMsg of
                 -- === Dialogs, Menus, Window State ===
                 IntentExport exportSettings ->
@@ -605,7 +606,7 @@ update msg ({ workingTree } as model) =
                                 |> saveCardIfEditing
                                 |> (\( m, c ) ->
                                         ( m
-                                        , Cmd.batch [ c, sendOut (ExportDOCX (markdownString m) exportSettings.filepath) ]
+                                        , Cmd.batch [ c, send (ExportDOCX (markdownString m) exportSettings.filepath) ]
                                         )
                                    )
 
@@ -618,7 +619,7 @@ update msg ({ workingTree } as model) =
                                         |> saveCardIfEditing
                                         |> (\( m, c ) ->
                                                 ( m
-                                                , Cmd.batch [ c, sendOut (ExportJSON m.workingTree.tree exportSettings.filepath) ]
+                                                , Cmd.batch [ c, send (ExportJSON m.workingTree.tree exportSettings.filepath) ]
                                                 )
                                            )
 
@@ -636,7 +637,7 @@ update msg ({ workingTree } as model) =
                                         |> saveCardIfEditing
                                         |> (\( m, c ) ->
                                                 ( m
-                                                , Cmd.batch [ c, sendOut (ExportTXT False m.workingTree.tree exportSettings.filepath) ]
+                                                , Cmd.batch [ c, send (ExportTXT False m.workingTree.tree exportSettings.filepath) ]
                                                 )
                                            )
 
@@ -652,7 +653,7 @@ update msg ({ workingTree } as model) =
                                         |> saveCardIfEditing
                                         |> (\( m, c ) ->
                                                 ( m
-                                                , Cmd.batch [ c, sendOut (ExportTXT True (getCurrentSubtree m) exportSettings.filepath) ]
+                                                , Cmd.batch [ c, send (ExportTXT True (getCurrentSubtree m) exportSettings.filepath) ]
                                                 )
                                            )
 
@@ -663,7 +664,7 @@ update msg ({ workingTree } as model) =
                                         |> saveCardIfEditing
                                         |> (\( m, c ) ->
                                                 ( m
-                                                , Cmd.batch [ c, sendOut (ExportTXTColumn col m.workingTree.tree exportSettings.filepath) ]
+                                                , Cmd.batch [ c, send (ExportTXTColumn col m.workingTree.tree exportSettings.filepath) ]
                                                 )
                                            )
 
@@ -684,7 +685,7 @@ update msg ({ workingTree } as model) =
                         , lastLocalSave = Data.lastCommitTime newData |> Maybe.map Time.millisToPosix
                         , dirty = False
                       }
-                    , sendOut <| Pull
+                    , send <| Pull
                     )
 
                 DataReceived dataIn ->
@@ -741,7 +742,7 @@ update msg ({ workingTree } as model) =
                         Normal ->
                             ( model
                             , Cmd.none
-                              --, sendOut (SaveToDB ( Metadata.encode model.metadata, statusToValue model.status, Data.encode model.objects ))
+                              --, send (SaveToDB ( Metadata.encode model.metadata, statusToValue model.status, Data.encode model.objects ))
                             )
 
                         _ ->
@@ -758,7 +759,7 @@ update msg ({ workingTree } as model) =
                             else
                                 ( model
                                 , Cmd.none
-                                  --, sendOut (SaveToDB ( Metadata.encode model.metadata, statusToValue model.status, Data.encode model.objects ))
+                                  --, send (SaveToDB ( Metadata.encode model.metadata, statusToValue model.status, Data.encode model.objects ))
                                 )
 
                 SavedLocally time_ ->
@@ -1092,7 +1093,7 @@ update msg ({ workingTree } as model) =
 
                                 _ ->
                                     ( model
-                                    , sendOut (TextSurround vs.active "**")
+                                    , send (TextSurround vs.active "**")
                                     )
 
                         "mod+i" ->
@@ -1104,7 +1105,7 @@ update msg ({ workingTree } as model) =
 
                                 _ ->
                                     ( model
-                                    , sendOut (TextSurround vs.active "*")
+                                    , send (TextSurround vs.active "*")
                                     )
 
                         "/" ->
@@ -1179,7 +1180,7 @@ update msg ({ workingTree } as model) =
 
         LogErr err ->
             ( model
-            , sendOut (ConsoleLogRequested err)
+            , send (ConsoleLogRequested err)
             )
 
         NoOp ->
@@ -1263,7 +1264,7 @@ activate tryId instant ( model, prevCmd ) =
                   }
                 , Cmd.batch
                     [ prevCmd
-                    , sendOut
+                    , send
                         (ActivateCards
                             ( id
                             , getDepth 0 model.workingTree.tree id
@@ -1401,7 +1402,7 @@ saveCardIfEditing ( model, prevCmd ) =
 
             else
                 ( { model | dirty = False }
-                , Cmd.batch [ prevCmd, sendOut <| SetChanged False ]
+                , Cmd.batch [ prevCmd, send <| SetChanged False ]
                 )
 
 
@@ -1421,12 +1422,12 @@ openCard id str ( model, prevCmd ) =
     in
     if isHistoryView then
         ( model
-        , Cmd.batch [ prevCmd, sendOut (Alert "Cannot edit while browsing version history.") ]
+        , Cmd.batch [ prevCmd, send (Alert "Cannot edit while browsing version history.") ]
         )
 
     else if isLocked then
         ( model
-        , Cmd.batch [ prevCmd, sendOut (Alert "Card is being edited by someone else.") ]
+        , Cmd.batch [ prevCmd, send (Alert "Card is being edited by someone else.") ]
         )
 
     else
@@ -1497,12 +1498,12 @@ deleteCard id ( model, prevCmd ) =
     in
     if isLocked then
         ( model
-        , sendOut (Alert "Card is being edited by someone else.")
+        , send (Alert "Card is being edited by someone else.")
         )
 
     else if isLastChild then
         ( model
-        , sendOut (Alert "Cannot delete last card.")
+        , send (Alert "Cannot delete last card.")
         )
 
     else
@@ -1510,7 +1511,7 @@ deleteCard id ( model, prevCmd ) =
             | workingTree = TreeStructure.update (TreeStructure.Rmv id) model.workingTree
             , dirty = True
           }
-        , Cmd.batch [ prevCmd, sendOut <| SetChanged True ]
+        , Cmd.batch [ prevCmd, send <| SetChanged True ]
         )
             |> maybeColumnsChanged model.workingTree.columns
             |> activate nextToActivate False
@@ -1630,7 +1631,7 @@ intentCancelCard model =
 
         _ ->
             ( model
-            , sendOut (ConfirmCancelCard vs.active originalContent)
+            , send (ConfirmCancelCard vs.active originalContent)
             )
 
 
@@ -1765,7 +1766,7 @@ maybeColumnsChanged oldColumns ( { workingTree } as model, prevCmd ) =
 
         colsChangedCmd =
             if newColNumber /= oldColNumber then
-                sendOut (ColumnNumberChange (newColNumber - 1))
+                send (ColumnNumberChange (newColNumber - 1))
 
             else
                 Cmd.none
@@ -1777,7 +1778,7 @@ maybeColumnsChanged oldColumns ( { workingTree } as model, prevCmd ) =
 
 setCursorPosition : Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 setCursorPosition pos ( model, prevCmd ) =
-    ( model, Cmd.batch [ prevCmd, sendOut (SetCursorPosition pos) ] )
+    ( model, Cmd.batch [ prevCmd, send (SetCursorPosition pos) ] )
 
 
 
@@ -1902,7 +1903,7 @@ cut id ( model, prevCmd ) =
     in
     if isLastChild then
         ( model
-        , sendOut (Alert "Cannot cut last card")
+        , send (Alert "Cannot cut last card")
         )
 
     else
@@ -1922,7 +1923,7 @@ copy id ( model, prevCmd ) =
       }
     , Cmd.batch
         [ prevCmd
-        , sendOut FlashCurrentSubtree
+        , send FlashCurrentSubtree
         ]
     )
 
@@ -2005,7 +2006,7 @@ checkoutCommit commitSha ( model, prevCmd ) =
                 | workingTree = TreeStructure.setTree newTree model.workingTree
               }
             , Cmd.none
-              --, sendOut (UpdateCommits ( Data.encode model.objects, getHead newStatus ))
+              --, send (UpdateCommits ( Data.encode model.objects, getHead newStatus ))
             )
                 |> maybeColumnsChanged model.workingTree.columns
 
@@ -2087,7 +2088,7 @@ addToHistoryDo ( { workingTree, currentTime } as model, prevCmd ) =
             Data.commit "Jane Doe <jane.doe@gmail.com" (currentTime |> Time.posixToMillis) workingTree.tree model.data
     in
     if newData /= model.data then
-        ( { model | data = newData }, sendOut <| SaveData (Data.encode newData) (Metadata.encode model.metadata) )
+        ( { model | data = newData }, send <| SaveData (Data.encode newData) (Metadata.encode model.metadata) )
 
     else
         ( model, Cmd.none )
@@ -2125,7 +2126,7 @@ dataReceived dataIn model =
       }
     , Cmd.batch
         [ if shouldPush then
-            sendOut <| Push
+            send <| Push
 
           else
             Cmd.none
@@ -2143,7 +2144,7 @@ dataReceived dataIn model =
 sendCollabState : CollabState -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 sendCollabState collabState ( model, prevCmd ) =
     ( model
-    , Cmd.batch [ prevCmd, sendOut (SocketSend collabState) ]
+    , Cmd.batch [ prevCmd, send (SocketSend collabState) ]
     )
 
 
@@ -2152,7 +2153,7 @@ toggleVideoModal shouldOpen ( model, prevCmd ) =
     ( { model
         | videoModalOpen = shouldOpen
       }
-    , Cmd.batch [ prevCmd, sendOut (SetVideoModal shouldOpen) ]
+    , Cmd.batch [ prevCmd, send (SetVideoModal shouldOpen) ]
     )
 
 
@@ -2551,7 +2552,7 @@ viewCardEditing lang cardId content isParent =
             [ span
                 [ class "card-btn save"
                 , title <| tr lang SaveChangesTitle
-                , onClick (Port (Keyboard "mod+enter"))
+                , onClick (Incoming (Keyboard "mod+enter"))
                 ]
                 []
             ]
@@ -2708,8 +2709,8 @@ collabsSpan collabsOnCard collabsEditingCard =
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
-        [ receiveMsg Port LogErr
-        , DocList.subscription ReceivedDocuments
+        [ Incoming.subscribe Incoming LogErr
+        , DocList.subscribe ReceivedDocuments
         , Time.every (9 * 1000) TimeUpdate
         , Time.every (10 * 1000) (\_ -> PullFromRemote)
         ]

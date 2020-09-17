@@ -1,4 +1,4 @@
-port module Doc.List exposing (Model, fetch, init, subscription, update, viewLarge, viewSmall)
+port module Doc.List exposing (Model, fetch, init, subscribe, update, viewLarge, viewSmall)
 
 import Date
 import Dict
@@ -9,7 +9,7 @@ import Html.Events exposing (onClick, stopPropagationOn)
 import Http exposing (Expect, expectStringResponse)
 import Json.Decode as Dec
 import Octicons as Icon
-import Ports exposing (OutgoingMsg(..), sendOut)
+import Outgoing exposing (Msg(..), send)
 import Route
 import Session exposing (Session)
 import Strftime
@@ -38,7 +38,7 @@ fetch session msg =
     case Session.userDb session of
         Just userDb ->
             Cmd.batch
-                [ sendOut <| GetDocumentList userDb
+                [ send <| GetDocumentList userDb
                 , Http.riskyRequest
                     { url = "/db/" ++ userDb ++ "/_design/testDocList/_view/docList"
                     , method = "GET"
@@ -289,6 +289,6 @@ expectJson toMsg =
 port documentListChanged : (Dec.Value -> msg) -> Sub msg
 
 
-subscription : (Model -> msg) -> Sub msg
-subscription msg =
+subscribe : (Model -> msg) -> Sub msg
+subscribe msg =
     documentListChanged (decoderLocal >> msg)

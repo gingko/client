@@ -1,6 +1,7 @@
-module Types exposing (Children(..), CollabState, Column, CursorPosition(..), DropId(..), Group, Mode(..), TextCursorInfo, Tree, ViewMode(..), ViewState, VisibleViewState)
+module Types exposing (Children(..), CollabState, Column, CursorPosition(..), DropId(..), Group, Mode(..), OutsideData, TextCursorInfo, Tree, ViewMode(..), ViewState, VisibleViewState)
 
 import Html5.DragDrop as DragDrop
+import Json.Encode as Enc
 import Translation
 
 
@@ -21,6 +22,14 @@ type alias Group =
 
 type alias Column =
     List (List Tree)
+
+
+
+-- JS Interop
+
+
+type alias OutsideData =
+    { tag : String, data : Enc.Value }
 
 
 
