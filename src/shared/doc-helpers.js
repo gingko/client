@@ -152,6 +152,7 @@ var needOverride= [ "mod+n"
                   , "mod+h"
                   , "mod+j"
                   , "mod+k"
+                  , "mod+l"
                   ];
 
 /* ===== CommonJS Module exports ===== */
