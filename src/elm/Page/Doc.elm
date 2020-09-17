@@ -1,4 +1,4 @@
-port module Page.Doc exposing (Model, Msg, init, subscriptions, toSession, update, view)
+module Page.Doc exposing (Model, Msg, init, subscriptions, toSession, update, view)
 
 import Api
 import Browser.Dom
@@ -343,7 +343,8 @@ update msg ({ workingTree } as model) =
                     -- Dragging
                     ( modelDragUpdated
                     , DragDrop.getDragstartEvent dragDropMsg
-                        |> Maybe.map (.event >> dragstart)
+                        |> Maybe.map .event
+                        |> Maybe.map (\json -> sendOut <| DragStart json)
                         |> Maybe.withDefault Cmd.none
                     )
 
@@ -2706,9 +2707,6 @@ collabsSpan collabsOnCard collabsEditingCard =
 
 
 -- SUBSCRIPTIONS
-
-
-port dragstart : Json.Value -> Cmd msg
 
 
 subscriptions : Model -> Sub Msg

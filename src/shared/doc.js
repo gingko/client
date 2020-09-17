@@ -57,32 +57,14 @@ async function initElmAndPorts() {
 
   gingko = Elm.Main.init({ node: document.getElementById("elm"), flags: initFlags});
 
-  // Page.Doc messages
+  // All messages from Elm
   gingko.ports.infoForOutside.subscribe(function(elmdata) {
     fromElm(elmdata.tag, elmdata.data);
-  });
-
-  gingko.ports.dragstart.subscribe(function(event) {
-    event.dataTransfer.setData("text", "");
-    toElm("DragStarted", event.target.id.replace(/^card-/,""));
   });
 
   window.checkboxClicked = (cardId, number) => {
     toElm("CheckboxClicked", [cardId, number]);
   };
-
-  // Session messages
-  gingko.ports.storeSession.subscribe((email) => {
-    if (email == null) {
-      localStorage.removeItem(sessionStorageKey);
-      deleteLocalUserDbs();
-    } else {
-      let newSession = {email : email, seed: Date.now()};
-      localStorage.setItem(sessionStorageKey, JSON.stringify(_.omit(newSession, "seed")));
-      setUserDbs(email);
-      setTimeout(()=> gingko.ports.sessionChanged.send(newSession), 0);
-    }
-  });
 
   // Whenever localStorage changes in another tab, report it if necessary.
   window.addEventListener("storage", function(event) {
@@ -150,6 +132,17 @@ const fromElm = (msg, data) => {
   console.debug("fromElm", msg, data);
   let cases =
     {
+      "StoreSession": () => {
+        if (data == null) {
+          localStorage.removeItem(sessionStorageKey);
+          deleteLocalUserDbs();
+        } else {
+          let newSession = {email : data, seed: Date.now()};
+          localStorage.setItem(sessionStorageKey, JSON.stringify(_.omit(newSession, "seed")));
+          setUserDbs(data);
+          setTimeout(()=> gingko.ports.sessionChanged.send(newSession), 0);
+        }
+      },
       // === Dialogs, Menus, Window State ===
 
       "Alert": () => { alert(data); }
@@ -278,6 +271,11 @@ const fromElm = (msg, data) => {
 
         localStore.set("last-active", data.cardId);
       }
+
+    , "DragStart": () => {
+      data.dataTransfer.setData("text", "");
+      toElm("DragStarted", data.target.id.replace(/^card-/,""));
+    }
 
     , "FlashCurrentSubtree": () => {
         let addFlashClass = function() {

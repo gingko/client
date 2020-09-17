@@ -15,10 +15,10 @@ import Types exposing (CollabState, CursorPosition(..), TextCursorInfo, Tree)
 -- TYPES
 
 
-type
-    OutgoingMsg
-    -- === Dialogs, Menus, Window State ===
-    = Alert String
+type OutgoingMsg
+    = StoreSession (Maybe String)
+      -- === Dialogs, Menus, Window State ===
+    | Alert String
     | SetChanged Bool
     | ConfirmCancelCard String String
     | ColumnNumberChange Int
@@ -39,6 +39,7 @@ type
     | ExportTXTColumn Int Tree (Maybe String)
       -- === DOM ===
     | ActivateCards ( String, Int, List (List String) ) Bool
+    | DragStart Enc.Value
     | FlashCurrentSubtree
     | TextSurround String String
     | SetCursorPosition Int
@@ -117,6 +118,9 @@ type ExportSelection
 sendOut : OutgoingMsg -> Cmd msg
 sendOut info =
     case info of
+        StoreSession str_ ->
+            dataToSend "StoreSession" (maybe string str_)
+
         -- === Dialogs, Menus, Window State ===
         Alert str ->
             dataToSend "Alert" (string str)
@@ -213,6 +217,9 @@ sendOut info =
                     , ( "instant", bool instant )
                     ]
                 )
+
+        DragStart event ->
+            dataToSend "DragStart" event
 
         FlashCurrentSubtree ->
             dataToSend "FlashCurrentSubtree" null
