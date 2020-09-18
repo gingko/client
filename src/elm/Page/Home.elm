@@ -295,5 +295,6 @@ subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
         [ importComplete (always ImportComplete)
+        , DocList.subscribe ReceivedDocuments
         , Time.every (30 * 1000) Tick
         ]

@@ -219,15 +219,19 @@ const fromElm = (msg, data) => {
           startkey: data + "/",
           endkey: data + "/\ufff0",
         });
+
         let docsToDelete = docsFetch.rows.map((r) => {
           return { _id: r.id, _rev: r.value.rev, _deleted: true };
         });
-        let deleteResponse = await remoteDB.bulkDocs(docsToDelete);
 
-        let selector = { _id: { $regex: `${TREE_ID}/` } };
-        await db.replicate.from(remoteDB, { selector }).catch(async (e) => e);
+        // Delete from local and remote DBs
+        remoteDB.bulkDocs(docsToDelete);
+        await db.bulkDocs(docsToDelete);
 
-        //toElm("DocListChanged", null);
+        // Get new (local) list of documents
+        let docList = await db.query("testDocList/docList").catch(async (e) => e);
+        docList.timestamp = Date.now();
+        toElm(docList, "documentListChanged");
       }
     },
 

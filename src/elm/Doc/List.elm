@@ -70,15 +70,15 @@ update new old =
         ( SuccessLocal _ _, Success ts data ) ->
             Success ts data
 
-        ( Success ts data, SuccessLocal _ _ ) ->
-            Success ts data
+        ( Success ts1 data, SuccessLocal ts2 _ ) ->
+            Success ts1 data
 
         ( SuccessLocal tsOld dataOld, SuccessLocal tsNew dataNew ) ->
             if Time.posixToMillis tsOld <= Time.posixToMillis tsNew then
-                SuccessLocal tsOld dataOld
+                SuccessLocal tsNew dataNew
 
             else
-                SuccessLocal tsNew dataNew
+                SuccessLocal tsOld dataOld
 
         ( Success tsOld_ dataOld, Success tsNew_ dataNew ) ->
             case comp tsOld_ tsNew_ of
