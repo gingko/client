@@ -23,8 +23,7 @@ import Translation exposing (TranslationId(..), timeDistInWords, tr)
 
 type Model
     = Loading
-    | SuccessLocal Time.Posix (List Metadata)
-    | Success (Maybe Time.Posix) (List Metadata)
+    | Success Time.Posix (List Metadata)
     | Failure Http.Error
 
 
@@ -60,42 +59,16 @@ fetch session msg =
 
 update : Model -> Model -> Model
 update new old =
-    let
-        comp tsOld_ tsNew_ =
-            Maybe.map2 (<=)
-                (Maybe.map Time.posixToMillis tsOld_)
-                (Maybe.map Time.posixToMillis tsNew_)
-    in
     case ( old, new ) of
-        ( SuccessLocal _ _, Success ts data ) ->
-            Success ts data
-
-        ( Success ts1 data, SuccessLocal ts2 _ ) ->
-            Success ts1 data
-
-        ( SuccessLocal tsOld dataOld, SuccessLocal tsNew dataNew ) ->
-            if Time.posixToMillis tsOld <= Time.posixToMillis tsNew then
-                SuccessLocal tsNew dataNew
+        ( Success tsOld dataOld, Success tsNew dataNew ) ->
+            if Time.posixToMillis tsOld > Time.posixToMillis tsNew then
+                Success tsOld dataOld
 
             else
-                SuccessLocal tsOld dataOld
-
-        ( Success tsOld_ dataOld, Success tsNew_ dataNew ) ->
-            case comp tsOld_ tsNew_ of
-                Just False ->
-                    Success tsOld_ dataOld
-
-                _ ->
-                    Success tsNew_ dataNew
-
-        ( _, SuccessLocal ts data ) ->
-            SuccessLocal ts data
+                Success tsNew dataNew
 
         ( _, Success ts data ) ->
             Success ts data
-
-        ( SuccessLocal ts data, Failure _ ) ->
-            SuccessLocal ts data
 
         _ ->
             new
@@ -116,9 +89,6 @@ viewLarge msgs lang currTime model =
     case model of
         Loading ->
             h1 [] [ text "LOADING" ]
-
-        SuccessLocal _ docList ->
-            viewDocListLoaded msgs lang currTime docList
 
         Success _ docList ->
             viewDocListLoaded msgs lang currTime docList
@@ -205,9 +175,6 @@ viewSmall currentDocument model =
         Loading ->
             text "Loading..."
 
-        SuccessLocal _ docs ->
-            ul [ class "sidebar-document-list" ] (List.map viewDocItem docs)
-
         Success _ docs ->
             ul [ class "sidebar-document-list" ] (List.map viewDocItem docs)
 
@@ -232,20 +199,20 @@ decoderLocal json =
     in
     case Dec.decodeValue decoderWithTimestamp json of
         Ok ( val, time ) ->
-            SuccessLocal time val
+            Success time val
 
         Err err ->
             Failure (Http.BadBody (Dec.errorToString err))
 
 
-fromResult : Result Http.Error ( List Metadata, Maybe Time.Posix ) -> Model
+fromResult : Result Http.Error ( List Metadata, Time.Posix ) -> Model
 fromResult result =
     case result of
         Err e ->
             Failure e
 
-        Ok ( x, timestamp_ ) ->
-            Success timestamp_ x
+        Ok ( x, timestamp ) ->
+            Success timestamp x
 
 
 expectJson : (Model -> msg) -> Expect msg
@@ -269,14 +236,15 @@ expectJson toMsg =
                     case Dec.decodeString Metadata.listDecoder body of
                         Ok value ->
                             let
-                                timestamp_ : Maybe Time.Posix
-                                timestamp_ =
+                                timestamp : Time.Posix
+                                timestamp =
                                     metadata.headers
                                         |> Dict.get "x-timestamp"
                                         |> Maybe.andThen String.toInt
-                                        |> Maybe.map Time.millisToPosix
+                                        |> Maybe.withDefault 0
+                                        |> Time.millisToPosix
                             in
-                            Ok ( value, timestamp_ )
+                            Ok ( value, timestamp )
 
                         Err err ->
                             Err (Http.BadBody (Dec.errorToString err))
