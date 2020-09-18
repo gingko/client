@@ -1,3 +1,4 @@
+// @format
 const jQuery = require("jquery");
 const _ = require("lodash");
 require("textarea-autosize");
@@ -134,6 +135,8 @@ function toElm(data, portName, tagName) {
 const fromElm = (msg, data) => {
   console.debug("fromElm", msg, data);
   let cases = {
+    // === SPA ===
+
     StoreSession: () => {
       if (data == null) {
         localStorage.removeItem(sessionStorageKey);
@@ -148,6 +151,7 @@ const fromElm = (msg, data) => {
         setTimeout(() => gingko.ports.sessionChanged.send(newSession), 0);
       }
     },
+
     // === Dialogs, Menus, Window State ===
 
     Alert: () => {
@@ -199,8 +203,8 @@ const fromElm = (msg, data) => {
         toElm(metadata, "docMsgs", "MetadataSaved");
       }
 
-      await load(); // load local
-      await pull(); // sync remote
+      load(); // load local
+      pull(); // sync remote
     },
 
     GetDocumentList: async () => {
@@ -395,7 +399,7 @@ const fromElm = (msg, data) => {
 
 async function load() {
   let toSend = await loadDocData();
-  if (toSend.refs) {
+  if (toSend.ref) {
     toElm(toSend, "docMsgs", "DataReceived");
   }
 }
