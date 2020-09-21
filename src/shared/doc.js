@@ -10,7 +10,6 @@ require("../shared/GitGraph.js");
 import PouchDB from "pouchdb";
 
 const helpers = require("./doc-helpers");
-const errorAlert = helpers.errorAlert;
 const { tr } = require("../shared/translation.js");
 import { Elm } from "../elm/Main";
 
@@ -251,7 +250,7 @@ const fromElm = (msg, data) => {
         .catch(async (e) => e);
       if (savedHead.hasOwnProperty("_conflicts")) {
         let revToDelete = savedHead._conflicts[0];
-        let delRes = await db.remove(prefix("heads/master"), revToDelete);
+        await db.remove(prefix("heads/master"), revToDelete);
       }
 
       // Save to database, and add successes to savedObjectIds.
@@ -280,7 +279,6 @@ const fromElm = (msg, data) => {
 
     SaveImportedData: async () => {
       let savePromises = data.map((doc) => {
-        let treeDb = new PouchDB(doc.id);
         let dataRows = [
           ...doc.data.commits,
           ...doc.data.treeObjects,
@@ -293,7 +291,7 @@ const fromElm = (msg, data) => {
         });
         return remoteDB.bulkDocs(toSave);
       });
-      let saveResults = await Promise.all(savePromises);
+      await Promise.all(savePromises);
       toElm(null, "importComplete");
     },
 
@@ -478,10 +476,6 @@ function unprefix(id) {
   return id.slice(TREE_ID.length + 1);
 }
 
-const saveErrorAlert = (err) => {
-  return errorAlert(tr.saveError[lang], tr.saveErrorMsg[lang], err);
-};
-
 /* === DOM Events and Handlers === */
 
 // Prevent default events, for file dragging.
@@ -506,7 +500,7 @@ const editingInputHandler = function (ev) {
   selectionHandler(ev);
 };
 
-const selectionHandler = function (ev) {
+const selectionHandler = function () {
   if (document.activeElement.nodeName == "TEXTAREA") {
     let {
       selectionStart,
@@ -554,12 +548,12 @@ Mousetrap.bind(helpers.shortcuts, function (e, s) {
   }
 });
 
-Mousetrap.bind(["tab"], function (e, s) {
+Mousetrap.bind(["tab"], function () {
   document.execCommand("insertText", false, "  ");
   return false;
 });
 
-Mousetrap.bind(["shift+tab"], function (e, s) {
+Mousetrap.bind(["shift+tab"], function () {
   return true;
 });
 
