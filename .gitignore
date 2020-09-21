@@ -14,3 +14,4 @@ Gingko-*
 npm-debug.log
 *.env
 config.js
+.idea

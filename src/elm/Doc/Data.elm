@@ -4,14 +4,12 @@ import Coders exposing (tupleDecoder)
 import Dict exposing (Dict)
 import Diff3 exposing (diff3Merge)
 import Doc.Data.Conflict exposing (Conflict, Op(..), Selection(..), conflictWithSha, opString)
-import Doc.Metadata as Metadata exposing (Metadata)
-import Doc.TreeStructure exposing (apply, defaultTree, opToMsg)
+import Doc.TreeStructure exposing (apply, opToMsg)
 import Doc.TreeUtils exposing (sha1)
 import Json.Decode as Dec
 import Json.Encode as Enc
 import List.Extra as ListExtra
 import Maybe exposing (andThen)
-import Time
 import Tuple exposing (second)
 import Types exposing (Children(..), Tree)
 
@@ -131,7 +129,7 @@ received json ( oldModel, oldTree ) =
             , shouldPush = True
             }
 
-        Ok ( newData, Just ( confId, confHead ) ) ->
+        Ok ( newData, Just ( _, confHead ) ) ->
             let
                 localHead =
                     Dict.get "heads/master" newData.refs |> Maybe.withDefault confHead
@@ -152,7 +150,7 @@ received json ( oldModel, oldTree ) =
                     , shouldPush = False
                     }
 
-        Err err ->
+        Err _ ->
             { newModel = oldModel, newTree = oldTree, shouldPush = False }
 
 
@@ -188,7 +186,7 @@ success json model =
                 MergeConflict d cd ->
                     MergeConflict { d | refs = newRefs d } cd
 
-        Err err ->
+        Err _ ->
             model
 
 
@@ -325,7 +323,7 @@ writeTree tree =
 treeToObject : Tree -> ( String, TreeObject )
 treeToObject tree =
     case treeToObjectId tree of
-        ( sha, id, treeObj ) ->
+        ( sha, _, treeObj ) ->
             ( sha, treeObj )
 
 
@@ -340,7 +338,7 @@ treeToObjectId { id, content, children } =
                 childrenIds =
                     treeList
                         |> List.map treeToObjectId
-                        |> List.map (\( tid, u, obj ) -> ( tid, u ))
+                        |> List.map (\( tid, u, _ ) -> ( tid, u ))
             in
             ( content
                 ++ "\n"
@@ -391,7 +389,7 @@ generateCommitSha commitObj =
 
 
 merge : String -> String -> Tree -> Data -> Model
-merge aSha bSha oldTree data =
+merge aSha bSha _ data =
     if aSha == bSha then
         Clean data
 
@@ -510,12 +508,12 @@ getOps oldTree newTree =
                     else
                         []
             in
-            ops ++ modOp
+            ops ++ modOp ++ movOp
 
         ignoreOp : Tree -> Op -> Op -> Bool
-        ignoreOp oTree op1 op2 =
+        ignoreOp _ op1 op2 =
             case ( op1, op2 ) of
-                ( Del id1 parents1, Del id2 parents2 ) ->
+                ( Del _ parents1, Del id2 _ ) ->
                     if List.member id2 parents1 then
                         True
 
@@ -561,7 +559,7 @@ getConflicts opsA opsB =
         liftFn opA opB =
             case ( opA, opB ) of
                 -- Modify/Modify conflict
-                ( Mod idA pidsA strA orig, Mod idB pidsB strB _ ) ->
+                ( Mod idA pidsA strA orig, Mod idB _ strB _ ) ->
                     if idA == idB && strA /= strB then
                         case diff3Merge (String.lines strA) (String.lines orig) (String.lines strB) of
                             [ Diff3.DiffOk mergedStrings ] ->
@@ -574,14 +572,14 @@ getConflicts opsA opsB =
                         ( [ opA, opB ], [] )
 
                 -- Modify/Delete conflicts
-                ( Mod idA pidsA strA _, Del idB _ ) ->
+                ( Mod idA pidsA _ _, Del idB _ ) ->
                     if idA == idB || List.member idB pidsA then
                         ( [], [ conflict opA opB Ours ] )
 
                     else
                         ( [ opA, opB ], [] )
 
-                ( Del idA _, Mod idB pidsB strB _ ) ->
+                ( Del idA _, Mod idB pidsB _ _ ) ->
                     if idA == idB || List.member idA pidsB then
                         ( [], [ conflict opA opB Theirs ] )
 
@@ -603,7 +601,7 @@ getConflicts opsA opsB =
                     else
                         ( [ opA, opB ], [] )
 
-                ( Mov idA oldParentsA oldIdxA newParentsA newIdxA, Mov idB oldParentsB oldIdxB newParentsB newIdxB ) ->
+                ( Mov idA _ _ newParentsA _, Mov idB _ _ newParentsB _ ) ->
                     if areAcyclicMoves ( idA, newParentsA ) ( idB, newParentsB ) then
                         ( [], [ conflict opA opB Ours ] )
 

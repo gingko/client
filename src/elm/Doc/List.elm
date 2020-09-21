@@ -93,7 +93,7 @@ viewLarge msgs lang currTime model =
         Success _ docList ->
             viewDocListLoaded msgs lang currTime docList
 
-        Failure err ->
+        Failure _ ->
             text <| "error!"
 
 
@@ -229,7 +229,7 @@ expectJson toMsg =
                 Http.NetworkError_ ->
                     Err Http.NetworkError
 
-                Http.BadStatus_ metadata body ->
+                Http.BadStatus_ metadata _ ->
                     Err (Http.BadStatus metadata.statusCode)
 
                 Http.GoodStatus_ metadata body ->

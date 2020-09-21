@@ -107,7 +107,7 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model ) of
-        ( ImportFileLoaded uname contents, Home pageData ) ->
+        ( ImportFileLoaded _ contents, Home pageData ) ->
             case Dec.decodeString Import.decoder contents of
                 Ok dataList ->
                     let
@@ -116,7 +116,7 @@ update msg model =
                     in
                     ( ImportSelecting listWithSelectState pageData, Cmd.none )
 
-                Err err ->
+                Err _ ->
                     ( model, Cmd.none )
 
         ( ImportTreeSelected treeId isSelected, ImportSelecting selectList pageData ) ->
@@ -212,14 +212,14 @@ view model =
         Home pageData ->
             viewHome pageData
 
-        ImportSelecting selectionList pageData ->
+        ImportSelecting selectionList _ ->
             div [ id "import-selecting" ]
                 [ h1 [] [ text "This is the home page" ]
                 , ul [] (List.map viewSelectionEntry selectionList)
                 , button [ onClick ImportSelectionDone ] [ text "Import Trees..." ]
                 ]
 
-        ImportSaving selectionList pageData ->
+        ImportSaving _ _ ->
             div []
                 [ h1 [] [ text "This is the home page" ]
                 , text "Importing selected trees...."
@@ -228,10 +228,6 @@ view model =
 
 viewHome : PageData -> Html Msg
 viewHome { language, languageMenu, currentTime, documents } =
-    let
-        visibleWhen bool =
-            classList [ ( "visible", bool ), ( "hidden", not bool ) ]
-    in
     div [ id "container" ]
         [ div [ id "templates-block" ]
             [ a [ id "template-new", class "template-item", href (Route.toString Route.DocNew) ]

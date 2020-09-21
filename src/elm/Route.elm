@@ -1,10 +1,8 @@
 module Route exposing (Route(..), fromUrl, pushUrl, replaceUrl, toString)
 
 import Browser.Navigation as Nav
-import Dict
 import Url exposing (Url)
 import Url.Parser as Parser exposing ((</>), (<?>), Parser, oneOf, s, string)
-import Url.Parser.Query as Q
 
 
 type Route

@@ -2,7 +2,7 @@ module Page.Signup exposing (Model, Msg, init, subscriptions, toSession, update,
 
 import Browser.Navigation as Nav
 import Html exposing (..)
-import Html.Attributes exposing (autofocus, class, href, id, placeholder, src, value)
+import Html.Attributes exposing (autofocus, class, href, id, src, value)
 import Html.Events exposing (onInput, onSubmit)
 import Http exposing (Error(..))
 import Json.Decode as Dec

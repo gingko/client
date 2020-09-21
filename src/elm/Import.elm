@@ -120,7 +120,7 @@ getChildren parentId_ cards =
             Tree id cd.content (getChildren (Just id) cards)
     in
     cards
-        |> Dict.filter (\id c -> c.parentId == parentId_)
+        |> Dict.filter (\_ c -> c.parentId == parentId_)
         |> Dict.toList
         |> List.map mapFn
         |> Children

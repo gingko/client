@@ -3,11 +3,8 @@ port module Outgoing exposing (Msg(..), infoForOutside, send)
 import Coders exposing (..)
 import Doc.Fonts as Fonts
 import Doc.TreeUtils exposing (getColumn)
-import Json.Decode as Dec exposing (Decoder, decodeValue, errorToString, field, oneOf)
 import Json.Encode as Enc exposing (..)
 import Json.Encode.Extra exposing (maybe)
-import Time
-import Translation exposing (languageDecoder)
 import Types exposing (CollabState, CursorPosition(..), OutsideData, TextCursorInfo, Tree)
 
 

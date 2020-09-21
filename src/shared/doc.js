@@ -16,18 +16,16 @@ import { Elm } from "../elm/Main";
 
 /* === Global Variables === */
 
-var lastActivesScrolled = null;
-var lastColumnScrolled = null;
-var _lastFormat = null;
-var _lastSelection = null;
-var lang;
-var helpVisible;
-var helpWidgetLauncher;
+let lastActivesScrolled = null;
+let lastColumnScrolled = null;
+let lang;
+let helpVisible;
+let helpWidgetLauncher;
 
-var remoteDB;
-var gingko;
-var TREE_ID;
-var savedObjectIds = [];
+let remoteDB;
+let gingko;
+let TREE_ID;
+let savedObjectIds = [];
 const userStore = container.userStore;
 const localStore = container.localStore;
 

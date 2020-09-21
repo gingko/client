@@ -3,7 +3,6 @@ module Main exposing (main)
 import Browser exposing (Document)
 import Browser.Navigation as Nav
 import Html
-import Import
 import Json.Decode as Dec exposing (Decoder, Value)
 import Page.Doc
 import Page.DocNew

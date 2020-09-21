@@ -2,11 +2,10 @@ module Doc.UI exposing (countWords, viewConflict, viewFooter, viewHeader, viewHi
 
 import Coders exposing (treeToMarkdownString)
 import Diff exposing (..)
-import Doc.CustomElements exposing (gitgraph)
 import Doc.Data as Data
 import Doc.Data.Conflict as Conflict exposing (Conflict, Op(..), Selection(..), opString)
 import Doc.List as DocList
-import Doc.Metadata as Metadata exposing (Metadata)
+import Doc.Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Html exposing (Html, a, button, del, div, fieldset, h1, hr, iframe, img, input, ins, label, li, span, text, ul)
@@ -91,7 +90,7 @@ viewSaveIndicator { dirty, lastLocalSave, lastRemoteSave, currentTime, language 
                     ( Nothing, Nothing ) ->
                         span [] [ text <| tr language NeverSaved ]
 
-                    ( Just commitTime, Nothing ) ->
+                    ( Just _, Nothing ) ->
                         span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language SavedInternally ]
 
                     ( Just commitTime, Just fileTime ) ->
@@ -102,7 +101,7 @@ viewSaveIndicator { dirty, lastLocalSave, lastRemoteSave, currentTime, language 
                         else
                             span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language SavedInternally ]
 
-                    ( Nothing, Just fileTime ) ->
+                    ( Nothing, Just _ ) ->
                         span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language DatabaseError ]
     in
     div
@@ -218,9 +217,6 @@ viewSearchField searchFieldMsg { viewState, language } =
 viewFooter : msg -> msg -> { m | viewState : ViewState, workingTree : TreeStructure.Model, startingWordcount : Int, shortcutTrayOpen : Bool, wordcountTrayOpen : Bool, language : Language, isMac : Bool, textCursorInfo : TextCursorInfo } -> Html msg
 viewFooter wordCountToggle shortcutToggle model =
     let
-        isTextSelected =
-            model.textCursorInfo.selected
-
         wordCounts =
             getWordCounts model
 
@@ -261,13 +257,6 @@ viewFooter wordCountToggle shortcutToggle model =
 
                 _ ->
                     False
-
-        hoverHeight n =
-            14
-                * n
-                + 6
-                |> String.fromInt
-                |> (\s -> s ++ "px")
     in
     div
         [ class "footer" ]
@@ -618,7 +607,7 @@ viewConflict setSelectionMsg resolveMsg { id, opA, opB, selection, resolved } =
                 ]
     in
     case ( opA, opB ) of
-        ( Mod idA _ strA orig, Mod _ _ strB _ ) ->
+        ( Mod idA _ _ _, Mod _ _ _ _ ) ->
             let
                 diffLinesString l r =
                     diffLines l r

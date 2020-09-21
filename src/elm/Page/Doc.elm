@@ -33,7 +33,6 @@ import Session exposing (Session)
 import Task
 import Time
 import Translation exposing (..)
-import Tuple exposing (first, second)
 import Types exposing (Children(..), CollabState, Column, CursorPosition(..), DropId(..), Group, Mode(..), TextCursorInfo, Tree, ViewMode(..), ViewState, VisibleViewState)
 
 
@@ -340,7 +339,7 @@ update msg ({ workingTree } as model) =
                     }
             in
             case ( DragDrop.getDragId newDragModel, dragResult_ ) of
-                ( Just dragId, Nothing ) ->
+                ( Just _, Nothing ) ->
                     -- Dragging
                     ( modelDragUpdated
                     , DragDrop.getDragstartEvent dragDropMsg
@@ -385,7 +384,7 @@ update msg ({ workingTree } as model) =
                         Nothing ->
                             ( modelDragUpdated, Cmd.none )
 
-                ( Just dragId, Just _ ) ->
+                ( Just _, Just _ ) ->
                     -- Should be Impossible: both Dragging and Dropped
                     ( modelDragUpdated, Cmd.none )
 
@@ -723,7 +722,7 @@ update msg ({ workingTree } as model) =
                         Ok metadata ->
                             ( { model | metadata = metadata }, Cmd.none )
 
-                        Err err ->
+                        Err _ ->
                             ( model, Cmd.none )
 
                 MetadataSaved json ->
@@ -731,7 +730,7 @@ update msg ({ workingTree } as model) =
                         Ok metadata ->
                             ( { model | titleField = Nothing, metadata = metadata }, Cmd.none )
 
-                        Err err ->
+                        Err _ ->
                             ( model, Cmd.none )
 
                 MetadataSaveError ->
@@ -1358,7 +1357,7 @@ goRight id ( model, prevCmd ) =
             , prevCmd
             )
 
-        Just tree ->
+        Just _ ->
             if List.length childrenIds == 0 then
                 ( model
                 , prevCmd
@@ -1687,7 +1686,7 @@ insertAbove id initText tup =
 
 
 insertBelow : String -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-insertBelow id initText (( model, cmd ) as tup) =
+insertBelow id initText tup =
     insertRelative id 1 initText tup
 
 
@@ -2088,10 +2087,15 @@ addToHistoryDo ( { workingTree, currentTime } as model, prevCmd ) =
             Data.commit "Jane Doe <jane.doe@gmail.com" (currentTime |> Time.posixToMillis) workingTree.tree model.data
     in
     if newData /= model.data then
-        ( { model | data = newData }, send <| SaveData (Data.encode newData) (Metadata.encode model.metadata) )
+        ( { model | data = newData }
+        , Cmd.batch
+            [ send <| SaveData (Data.encode newData) (Metadata.encode model.metadata)
+            , prevCmd
+            ]
+        )
 
     else
-        ( model, Cmd.none )
+        ( model, prevCmd )
 
 
 addToHistory : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -2290,13 +2294,12 @@ treeView lang vstate model =
                 Nothing ->
                     cols
 
-        columnsWithDepth =
+        columnsFiltered =
             model.columns
                 |> searchFilter vstate.searchField
-                |> List.indexedMap (\i c -> ( c, i ))
                 |> List.drop 1
 
-        getViewArgs cwd =
+        getViewArgs c =
             let
                 editing_ =
                     case vstate.viewMode of
@@ -2304,7 +2307,7 @@ treeView lang vstate model =
                             Normal
 
                         Editing ->
-                            if first cwd |> List.concat |> List.map .id |> List.member vstate.active then
+                            if c |> List.concat |> List.map .id |> List.member vstate.active then
                                 Editing
 
                             else
@@ -2324,10 +2327,10 @@ treeView lang vstate model =
                 lang
 
         columns =
-            [ ( [ [] ], -1 ) ]
-                ++ columnsWithDepth
-                ++ [ ( [ [] ], List.length columnsWithDepth ) ]
-                |> List.map (\t -> lazy3 viewColumn (getViewArgs t) (second t) (first t))
+            [ [ [] ] ]
+                ++ columnsFiltered
+                ++ [ [ [] ] ]
+                |> List.map (\c -> lazy2 viewColumn (getViewArgs c) c)
     in
     div
         [ id "document"
@@ -2335,8 +2338,8 @@ treeView lang vstate model =
         columns
 
 
-viewColumn : VisibleViewState -> Int -> Column -> Html Msg
-viewColumn vstate depth col =
+viewColumn : VisibleViewState -> Column -> Html Msg
+viewColumn vstate col =
     let
         buffer =
             [ div [ class "buffer" ] [] ]
@@ -2407,7 +2410,7 @@ viewGroup vstate xs =
                         |> List.filter (\c -> c.mode == CollabActive t.id || c.mode == CollabEditing t.id)
                         |> List.map .uid
             in
-            if t.id == vstate.active && not isEditing then
+            if isActive && not isEditing then
                 ( t.id, viewCardActive vstate.language t.id t.content (hasChildren t) isLast collabsOnCard collabsEditingCard vstate.dragModel )
 
             else if isEditing then
@@ -2611,7 +2614,7 @@ dropRegions cardId isEditing isLast dragModel =
                 []
     in
     case ( dragId_, isEditing ) of
-        ( Just dragId, False ) ->
+        ( Just _, False ) ->
             [ dropDiv "above" (Above cardId)
             , dropDiv "into" (Into cardId)
             ]

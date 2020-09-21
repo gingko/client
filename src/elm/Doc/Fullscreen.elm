@@ -5,8 +5,8 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onFocus)
 import Html.Keyed as Keyed
-import Html.Lazy exposing (lazy, lazy2, lazy3)
-import Translation exposing (Language, TranslationId(..), tr)
+import Html.Lazy exposing (lazy2)
+import Translation exposing (Language, TranslationId(..))
 import Types exposing (..)
 
 
@@ -17,7 +17,7 @@ type alias Model =
 
 
 view : (String -> String -> msg) -> Language -> ViewState -> Model -> Html msg
-view openCardFullscreen lang vstate model =
+view openCardFullscreen _ vstate model =
     let
         current_ =
             getTree vstate.active model.tree
@@ -48,7 +48,7 @@ view openCardFullscreen lang vstate model =
 viewMaybeParent : Maybe ( String, String ) -> Html msg
 viewMaybeParent parentTuple_ =
     case parentTuple_ of
-        Just ( cardId, content ) ->
+        Just ( _, content ) ->
             div [ class "fullscreen-parent" ] [ text content ]
 
         Nothing ->
@@ -63,7 +63,7 @@ viewColumn openCardFullscreen active col =
 
 
 viewChildren : List Tree -> Html msg
-viewChildren xs =
+viewChildren _ =
     div [ class "fullscreen-children" ] []
 
 

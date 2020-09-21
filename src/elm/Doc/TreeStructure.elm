@@ -5,10 +5,7 @@ import Diff3 exposing (diff3Merge)
 import Doc.Data.Conflict as Conflict exposing (Conflict, Op(..), Selection(..))
 import Doc.TreeUtils exposing (getChildren, getColumns, getParent, getTree, sha1)
 import List.Extra as ListExtra
-import Markdown
 import Regex
-import Translation exposing (Language, TranslationId(..), tr)
-import Tuple exposing (first, second)
 import Types exposing (Children(..), Column, Tree)
 
 
@@ -143,7 +140,7 @@ setTreeWithConflicts conflicts originalTree model =
 
 
 conflictToMsg : Tree -> Conflict -> Msg
-conflictToMsg tree ({ id, opA, opB, selection, resolved } as conflict) =
+conflictToMsg tree { id, opA, opB, selection, resolved } =
     case ( selection, resolved ) of
         ( Original, False ) ->
             case ( opA, opB ) of
@@ -264,7 +261,7 @@ opToMsg origTree op =
                 Nothing ->
                     Nope
 
-        Conflict.Mov tid opids oidx npids nidx ->
+        Conflict.Mov tid _ _ npids nidx ->
             case ( getTree tid origTree, ListExtra.last npids ) of
                 ( Just tree, Just pid ) ->
                     Mov tree pid nidx

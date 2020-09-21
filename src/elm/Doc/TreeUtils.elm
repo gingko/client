@@ -2,10 +2,8 @@ module Doc.TreeUtils exposing (centerlineIds, dictUpdate, getAncestors, getChild
 
 import Dict exposing (..)
 import List.Extra as ListExtra
-import Random exposing (initialSeed, int, maxInt, minInt)
 import SHA1
 import String
-import Tuple exposing (first, second)
 import Types exposing (Children(..), Column, Tree)
 
 
