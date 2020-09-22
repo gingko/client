@@ -70,7 +70,6 @@ type alias Model =
 
     -- Settings
     , uid : String
-    , language : Translation.Language
     , isMac : Bool
     , fonts : Fonts.Model
     , startingWordcount : Int
@@ -115,7 +114,6 @@ defaultModel isNew session docId =
     , field = ""
     , textCursorInfo = { selected = False, position = End, text = ( "", "" ) }
     , isMac = False
-    , language = Translation.En
     , titleField = Nothing
     , sidebarOpen = False
     , accountMenuOpen = False
@@ -690,25 +688,6 @@ update msg ({ workingTree } as model) =
                 DataReceived dataIn ->
                     dataReceived dataIn model
 
-                UserStoreLoaded dataIn ->
-                    let
-                        userSettingsDecoder =
-                            Json.map2 (\st l -> { shortcutTrayOpen = st, language = l |> langFromString })
-                                (Json.field "shortcut-tray-is-open" Json.bool)
-                                (Json.field "language" Json.string)
-                    in
-                    case Json.decodeValue userSettingsDecoder dataIn of
-                        Ok settings ->
-                            ( { model
-                                | shortcutTrayOpen = settings.shortcutTrayOpen
-                                , language = settings.language
-                              }
-                            , Cmd.none
-                            )
-
-                        Err _ ->
-                            ( model, Cmd.none )
-
                 LocalStoreLoaded dataIn ->
                     case Json.decodeValue (Json.field "last-active" Json.string) dataIn of
                         Ok lastActive ->
@@ -845,7 +824,7 @@ update msg ({ workingTree } as model) =
 
                 -- === UI ===
                 LanguageChanged lang ->
-                    ( { model | language = lang }
+                    ( { model | user = User.setLanguage lang model.user }
                     , Cmd.none
                     )
 
@@ -2212,18 +2191,18 @@ pre, code, .group.has-active .card textarea {
                 div
                     [ id "app-root" ]
                     [ if model.fontSelectorOpen then
-                        Fonts.viewSelector model.language model.fonts |> Html.map FontsMsg
+                        Fonts.viewSelector (User.language model.user) model.fonts |> Html.map FontsMsg
 
                       else
                         text ""
-                    , lazy3 (Fullscreen.view OpenCardFullscreen) model.language model.viewState model.workingTree
+                    , lazy3 (Fullscreen.view OpenCardFullscreen) (User.language model.user) model.viewState model.workingTree
                     ]
 
             else
                 div
                     [ id "app-root" ]
                     ([ UI.viewHomeLink model.sidebarOpen
-                     , lazy3 treeView model.language model.viewState model.workingTree
+                     , lazy3 treeView (User.language model.user) model.viewState model.workingTree
                      , UI.viewHeader { toggledTitleEdit = ToggledTitleEdit, titleFieldChanged = TitleFieldChanged, titleEdited = TitleEdited, toggledAccountMenu = ToggledAccountMenu }
                         (Metadata.getDocName model.metadata)
                         model
@@ -2239,7 +2218,7 @@ pre, code, .group.has-active .card textarea {
                            , viewFooter WordcountTrayToggle ShortcutTrayToggle model
                            , case model.historyState of
                                 From currHead ->
-                                    viewHistory NoOp CheckoutCommit Restore CancelHistory model.language currHead model.data
+                                    viewHistory NoOp CheckoutCommit Restore CancelHistory (User.language model.user) currHead model.data
 
                                 _ ->
                                     text ""
@@ -2270,7 +2249,7 @@ repeating-linear-gradient(-45deg
                 ]
                 [ ul [ class "conflicts-list" ]
                     (List.map (viewConflict SetSelection Resolve) conflicts)
-                , lazy3 treeView model.language model.viewState model.workingTree
+                , lazy3 treeView (User.language model.user) model.viewState model.workingTree
                 , styleNode
                 ]
 

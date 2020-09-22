@@ -30,25 +30,21 @@ type Model
     | Doc Page.Doc.Model
 
 
-type alias Flags =
-    { user : Maybe String
-    , seed : Int
-    , language : Language
-    }
-
-
 init : Value -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init json url navKey =
     let
         user =
             User.decode navKey json
     in
-    case User.loggedIn user of
-        True ->
+    case ( User.loggedIn user, Route.fromUrl url ) of
+        ( True, _ ) ->
             changeRouteTo (Route.fromUrl url) (Redirect user)
 
-        False ->
+        ( False, Just Route.Login ) ->
             changeRouteTo (Just Route.Login) (Redirect user)
+
+        ( False, _ ) ->
+            changeRouteTo (Just Route.Signup) (Redirect user)
 
 
 changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )

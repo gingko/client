@@ -1,4 +1,4 @@
-module Translation exposing (Language(..), TranslationId(..), activeLanguages, langFromString, languageDecoder, languageName, timeDistInWords, tr)
+module Translation exposing (Language(..), TranslationId(..), activeLanguages, langFromString, langToString, languageDecoder, languageName, timeDistInWords, tr)
 
 import Json.Decode as Json exposing (..)
 import Time
@@ -646,3 +646,22 @@ langFromString str =
 
         _ ->
             En
+
+
+langToString : Language -> String
+langToString lang =
+    case lang of
+        En ->
+            "en"
+
+        Zh ->
+            "zh"
+
+        Es ->
+            "es"
+
+        Fr ->
+            "fr"
+
+        Sv ->
+            "sv"

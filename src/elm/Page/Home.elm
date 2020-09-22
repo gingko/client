@@ -43,7 +43,6 @@ type Model
 
 type alias PageData =
     { documents : DocList.Model
-    , language : Translation.Language
     , languageMenu : Bool
     , currentTime : Time.Posix
     , user : User
@@ -54,7 +53,6 @@ init : User -> ( Model, Cmd Msg )
 init user =
     ( Home
         { documents = DocList.init
-        , language = langFromString "en"
         , languageMenu = False
         , currentTime = Time.millisToPosix 0
         , user = user
@@ -177,7 +175,7 @@ updatePageData msg model =
             ( { model | languageMenu = not model.languageMenu }, Cmd.none )
 
         ChangeLanguage lang ->
-            ( { model | language = lang }, Cmd.none )
+            ( { model | user = User.setLanguage lang model.user }, Cmd.none )
 
         ImportFileRequested ->
             ( model, Select.file [ "text/*", "application/json" ] ImportFileSelected )
@@ -227,7 +225,11 @@ view model =
 
 
 viewHome : PageData -> Html Msg
-viewHome { language, languageMenu, currentTime, documents } =
+viewHome { user, languageMenu, currentTime, documents } =
+    let
+        language =
+            User.language user
+    in
     div [ id "container" ]
         [ div [ id "templates-block" ]
             [ a [ id "template-new", class "template-item", href (Route.toString Route.DocNew) ]

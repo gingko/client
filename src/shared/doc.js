@@ -53,6 +53,7 @@ async function initElmAndPorts() {
   }
 
 
+  console.log("loaded settings" ,settings)
   const initFlags = { email: email, seed: Date.now(), language: settings.language};
 
   gingko = Elm.Main.init({
@@ -97,6 +98,14 @@ function setUserDbs(email) {
   remoteDB = new PouchDB(userDbUrl, remoteOpts);
   self.db = new PouchDB(userDbName);
   userStore.db(db, remoteDB);
+
+  // Sync user settings
+  PouchDB.sync(db, remoteDB, {live: true, retry: true, doc_ids: ["settings"]})
+    .on('change', (change) => {
+      if (change.direction == "pull") {
+        console.log(change.docs[0]);
+      }
+    });
 
   // add docList design document
   let ddoc = {
@@ -147,13 +156,12 @@ const fromElm = (msg, data) => {
         localStorage.removeItem(sessionStorageKey);
         deleteLocalUserDbs();
       } else {
-        let newSession = { email: data, seed: Date.now() };
         localStorage.setItem(
           sessionStorageKey,
-          JSON.stringify(_.omit(newSession, "seed"))
+          JSON.stringify(_.omit(data, "seed"))
         );
-        setUserDbs(data);
-        setTimeout(() => gingko.ports.userStateChanged.send(newSession), 0);
+        setUserDbs(data.email);
+        setTimeout(() => gingko.ports.userStateChanged.send(data), 0);
       }
     },
 

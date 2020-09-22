@@ -47,7 +47,7 @@ type Msg
     = SubmittedForm
     | EnteredEmail String
     | EnteredPassword String
-    | CompletedLogin (Result Http.Error String)
+    | CompletedLogin (Result Http.Error User)
     | GotUser User
 
 
@@ -70,8 +70,8 @@ update msg model =
         EnteredPassword password ->
             ( { model | password = password }, Cmd.none )
 
-        CompletedLogin (Ok email) ->
-            ( model, User.save email )
+        CompletedLogin (Ok user) ->
+            ( model, User.storeLogin user )
 
         CompletedLogin (Err error) ->
             let
@@ -117,28 +117,10 @@ modelValidator =
 sendLoginRequest : Valid Model -> Cmd Msg
 sendLoginRequest validModel =
     let
-        model =
+        { email, password, user } =
             Validate.fromValid validModel
-
-        requestBody =
-            Enc.object
-                [ ( "name", Enc.string model.email )
-                , ( "password", Enc.string model.password )
-                ]
-                |> Http.jsonBody
-
-        responseDecoder =
-            Dec.field "name" Dec.string
     in
-    Http.riskyRequest
-        { method = "POST"
-        , url = "/db/_session"
-        , headers = []
-        , body = requestBody
-        , expect = Http.expectJson CompletedLogin responseDecoder
-        , timeout = Nothing
-        , tracker = Nothing
-        }
+    User.requestLogin CompletedLogin email password user
 
 
 

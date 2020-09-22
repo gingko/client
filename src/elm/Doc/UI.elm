@@ -48,8 +48,12 @@ type alias HeaderMsgs msg =
     }
 
 
-viewHeader : HeaderMsgs msg -> Maybe String -> { m | titleField : Maybe String, accountMenuOpen : Bool, dirty : Bool, lastLocalSave : Maybe Time.Posix, lastRemoteSave : Maybe Time.Posix, currentTime : Time.Posix, language : Translation.Language, user : User } -> Html msg
+viewHeader : HeaderMsgs msg -> Maybe String -> { m | titleField : Maybe String, accountMenuOpen : Bool, dirty : Bool, lastLocalSave : Maybe Time.Posix, lastRemoteSave : Maybe Time.Posix, currentTime : Time.Posix, user : User } -> Html msg
 viewHeader msgs title_ model =
+    let
+        language =
+            User.language model.user
+    in
     case model.titleField of
         Just editingField ->
             div [ id "document-header" ]
@@ -66,14 +70,17 @@ viewHeader msgs title_ model =
                     [ h1 [ onClick (msgs.toggledTitleEdit True) ]
                         [ text (title_ |> Maybe.withDefault "Untitled")
                         ]
-                    , viewSaveIndicator model
+                    , viewSaveIndicator language model
                     ]
                 , viewAccount msgs.toggledAccountMenu model.accountMenuOpen model.user
                 ]
 
 
-viewSaveIndicator : { m | dirty : Bool, lastLocalSave : Maybe Time.Posix, lastRemoteSave : Maybe Time.Posix, currentTime : Time.Posix, language : Translation.Language } -> Html msg
-viewSaveIndicator { dirty, lastLocalSave, lastRemoteSave, currentTime, language } =
+viewSaveIndicator :
+    Language
+    -> { m | dirty : Bool, lastLocalSave : Maybe Time.Posix, lastRemoteSave : Maybe Time.Posix, currentTime : Time.Posix }
+    -> Html msg
+viewSaveIndicator language { dirty, lastLocalSave, lastRemoteSave, currentTime } =
     let
         lastChangeString =
             timeDistInWords
@@ -183,9 +190,12 @@ viewSidebarStatic =
 -- DOCUMENT
 
 
-viewSearchField : (String -> msg) -> { m | viewState : ViewState, language : Language } -> Html msg
-viewSearchField searchFieldMsg { viewState, language } =
+viewSearchField : (String -> msg) -> { m | viewState : ViewState, user : User } -> Html msg
+viewSearchField searchFieldMsg { viewState, user } =
     let
+        language =
+            User.language user
+
         maybeSearchIcon =
             if viewState.searchField == Nothing then
                 Icon.search (defaultOptions |> Icon.color "#445" |> Icon.size 12)
@@ -214,9 +224,12 @@ viewSearchField searchFieldMsg { viewState, language } =
                 []
 
 
-viewFooter : msg -> msg -> { m | viewState : ViewState, workingTree : TreeStructure.Model, startingWordcount : Int, shortcutTrayOpen : Bool, wordcountTrayOpen : Bool, language : Language, isMac : Bool, textCursorInfo : TextCursorInfo } -> Html msg
+viewFooter : msg -> msg -> { m | viewState : ViewState, workingTree : TreeStructure.Model, startingWordcount : Int, shortcutTrayOpen : Bool, wordcountTrayOpen : Bool, user : User, isMac : Bool, textCursorInfo : TextCursorInfo } -> Html msg
 viewFooter wordCountToggle shortcutToggle model =
     let
+        language =
+            User.language model.user
+
         wordCounts =
             getWordCounts model
 
@@ -234,12 +247,12 @@ viewFooter wordCountToggle shortcutToggle model =
                         , classList [ ( "inset", True ), ( "open", model.wordcountTrayOpen ) ]
                         , onClick wordCountToggle
                         ]
-                        [ span [] [ text (tr model.language (WordCountSession session)) ]
-                        , span [] [ text (tr model.language (WordCountTotal current)) ]
-                        , span [] [ text (tr model.language (WordCountCard wordCounts.card)) ]
-                        , span [] [ text (tr model.language (WordCountSubtree wordCounts.subtree)) ]
-                        , span [] [ text (tr model.language (WordCountGroup wordCounts.group)) ]
-                        , span [] [ text (tr model.language (WordCountColumn wordCounts.column)) ]
+                        [ span [] [ text (tr language (WordCountSession session)) ]
+                        , span [] [ text (tr language (WordCountTotal current)) ]
+                        , span [] [ text (tr language (WordCountCard wordCounts.card)) ]
+                        , span [] [ text (tr language (WordCountSubtree wordCounts.subtree)) ]
+                        , span [] [ text (tr language (WordCountGroup wordCounts.group)) ]
+                        , span [] [ text (tr language (WordCountColumn wordCounts.column)) ]
                         ]
                     ]
 
@@ -260,7 +273,7 @@ viewFooter wordCountToggle shortcutToggle model =
     in
     div
         [ class "footer" ]
-        ([ viewShortcutsToggle shortcutToggle model.language model.shortcutTrayOpen model.isMac isOnly model.textCursorInfo model.viewState ]
+        ([ viewShortcutsToggle shortcutToggle language model.shortcutTrayOpen model.isMac isOnly model.textCursorInfo model.viewState ]
             ++ viewWordCount
         )
 

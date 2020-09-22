@@ -13,7 +13,7 @@ import Types exposing (CollabState, CursorPosition(..), OutsideData, TextCursorI
 
 
 type Msg
-    = StoreUser (Maybe String)
+    = StoreUser Enc.Value
       -- === Dialogs, Menus, Window State ===
     | Alert String
     | SetChanged Bool
@@ -58,8 +58,8 @@ type Msg
 send : Msg -> Cmd msg
 send info =
     case info of
-        StoreUser str_ ->
-            dataToSend "StoreUser" (maybe string str_)
+        StoreUser user ->
+            dataToSend "StoreUser" user
 
         -- === Dialogs, Menus, Window State ===
         Alert str ->

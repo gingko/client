@@ -5,8 +5,6 @@ import Html exposing (..)
 import Html.Attributes exposing (autofocus, class, href, id, src, value)
 import Html.Events exposing (onInput, onSubmit)
 import Http exposing (Error(..))
-import Json.Decode as Dec
-import Json.Encode as Enc
 import User exposing (User)
 import Utils exposing (getFieldErrors)
 import Validate exposing (Valid, Validator, ifBlank, ifFalse, ifInvalidEmail, validate)
@@ -53,7 +51,7 @@ type Msg
     | EnteredEmail String
     | EnteredPassword String
     | EnteredPassConfirm String
-    | CompletedSignup (Result Http.Error String)
+    | CompletedSignup (Result Http.Error User)
     | GotUser User
 
 
@@ -79,8 +77,8 @@ update msg model =
         EnteredPassConfirm passwordConfirm ->
             ( { model | passwordConfirm = passwordConfirm }, Cmd.none )
 
-        CompletedSignup (Ok email) ->
-            ( model, User.save email )
+        CompletedSignup (Ok user) ->
+            ( model, User.storeSignup user )
 
         CompletedSignup (Err error) ->
             let
@@ -130,24 +128,10 @@ modelValidator =
 sendSignupRequest : Valid Model -> Cmd Msg
 sendSignupRequest validModel =
     let
-        model =
+        { email, password, user } =
             Validate.fromValid validModel
-
-        requestBody =
-            Enc.object
-                [ ( "email", Enc.string model.email )
-                , ( "password", Enc.string model.password )
-                ]
-                |> Http.jsonBody
-
-        responseDecoder =
-            Dec.field "name" Dec.string
     in
-    Http.post
-        { url = "/signup"
-        , body = requestBody
-        , expect = Http.expectJson CompletedSignup responseDecoder
-        }
+    User.requestSignup CompletedSignup email password user
 
 
 
