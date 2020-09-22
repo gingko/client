@@ -11,6 +11,20 @@ const userStore = {
   },
   load: async function() {
     return userStoreLocal.get(userSettingsId);
+  },
+  set: function(key, val) {
+    userStoreLocal.get(userSettingsId)
+      .then(doc => {
+        doc[key] = val;
+        userStoreLocal.put(doc);
+      })
+      .catch(err => {
+        if (err.status == 404) {
+          let newSettings = {_id : userSettingsId};
+          newSettings[key] = val;
+          userStoreLocal.put(newSettings);
+        }
+      })
   }
 };
 

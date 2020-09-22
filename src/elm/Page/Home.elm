@@ -175,7 +175,7 @@ updatePageData msg model =
             ( { model | languageMenu = not model.languageMenu }, Cmd.none )
 
         ChangeLanguage lang ->
-            ( { model | user = User.setLanguage lang model.user }, Cmd.none )
+            ( { model | user = User.setLanguage lang model.user }, send <| SetLanguage lang )
 
         ImportFileRequested ->
             ( model, Select.file [ "text/*", "application/json" ] ImportFileSelected )

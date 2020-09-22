@@ -391,6 +391,10 @@ const fromElm = (msg, data) => {
       userStore.set("video-modal-is-open", data);
     },
 
+    SetLanguage: () => {
+      userStore.set("language", data);
+    },
+
     SetFonts: () => {},
 
     SetShortcutTray: () => {

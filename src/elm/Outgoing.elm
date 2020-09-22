@@ -5,6 +5,7 @@ import Doc.Fonts as Fonts
 import Doc.TreeUtils exposing (getColumn)
 import Json.Encode as Enc exposing (..)
 import Json.Encode.Extra exposing (maybe)
+import Translation exposing (Language, langToString)
 import Types exposing (CollabState, CursorPosition(..), OutsideData, TextCursorInfo, Tree)
 
 
@@ -44,6 +45,7 @@ type Msg
     | SaveMetadata Enc.Value
     | UpdateCommits ( Enc.Value, Maybe String )
     | SetVideoModal Bool
+    | SetLanguage Language
     | SetFonts Fonts.Settings
     | SetShortcutTray Bool
       -- === Misc ===
@@ -188,6 +190,9 @@ send info =
 
         SetVideoModal isOpen ->
             dataToSend "SetVideoModal" (bool isOpen)
+
+        SetLanguage lang ->
+            dataToSend "SetLanguage" (lang |> langToString |> string)
 
         SetFonts fontSettings ->
             dataToSend "SetFonts" (fontSettingsEncoder fontSettings)
