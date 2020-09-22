@@ -38,20 +38,17 @@ type alias Flags =
 
 
 init : Value -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init flagsData url navKey =
+init json url navKey =
     let
-        flagsDecoder =
-            Dec.map3 Flags
-                (Dec.field "email" (Dec.nullable Dec.string))
-                (Dec.field "seed" Dec.int)
-                (Dec.field "language" Dec.string |> Dec.map langFromString)
+        user =
+            User.decode navKey json
     in
-    case Dec.decodeValue flagsDecoder flagsData of
-        Ok flags ->
-            changeRouteTo (Route.fromUrl url) (Redirect (User.fromData navKey flags.seed flags.user))
+    case User.loggedIn user of
+        True ->
+            changeRouteTo (Route.fromUrl url) (Redirect user)
 
-        Err _ ->
-            changeRouteTo (Just Route.Login) (Redirect (User.guest navKey))
+        False ->
+            changeRouteTo (Just Route.Login) (Redirect user)
 
 
 changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )

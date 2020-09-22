@@ -10,12 +10,7 @@ const userStore = {
     userStoreRemote = remoteDb;
   },
   load: async function() {
-    let settings = await userStoreLocal.get(userSettingsId).catch(e => e);
-    if (settings.ok) {
-      return settings;
-    } else {
-      return null;
-    }
+    return userStoreLocal.get(userSettingsId);
   }
 };
 

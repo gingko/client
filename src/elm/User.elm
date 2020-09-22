@@ -1,4 +1,4 @@
-port module User exposing (User, changes, db, fromData, guest, loggedIn, logout, name, navKey, save, seed)
+port module User exposing (User, changes, db, decode, guest, loggedIn, logout, name, navKey, save, seed)
 
 import Browser.Navigation as Nav
 import Json.Decode as Json
@@ -16,8 +16,8 @@ type User
 
 
 navKey : User -> Nav.Key
-navKey session =
-    case session of
+navKey user =
+    case user of
         LoggedIn key _ _ ->
             key
 
@@ -26,8 +26,8 @@ navKey session =
 
 
 name : User -> Maybe String
-name session =
-    case session of
+name user =
+    case user of
         LoggedIn _ _ email ->
             Just email
 
@@ -36,8 +36,8 @@ name session =
 
 
 seed : User -> Int
-seed session =
-    case session of
+seed user =
+    case user of
         LoggedIn _ s _ ->
             s
 
@@ -46,8 +46,8 @@ seed session =
 
 
 db : User -> Maybe String
-db session =
-    case session of
+db user =
+    case user of
         LoggedIn _ _ email ->
             Just ("userdb-" ++ hexEncode email)
 
@@ -56,8 +56,8 @@ db session =
 
 
 loggedIn : User -> Bool
-loggedIn session =
-    case session of
+loggedIn user =
+    case user of
         LoggedIn _ _ _ ->
             True
 
@@ -75,8 +75,8 @@ fromData key initSeed maybeEmail =
             Guest key
 
 
-userDecoder : Nav.Key -> Json.Value -> User
-userDecoder key json =
+decode : Nav.Key -> Json.Value -> User
+decode key json =
     let
         decoder =
             Json.map2 Tuple.pair
@@ -112,7 +112,7 @@ logout =
 
 changes : (User -> msg) -> Nav.Key -> Sub msg
 changes toMsg key =
-    userStateChanged (userDecoder key >> toMsg)
+    userStateChanged (decode key >> toMsg)
 
 
 port userStateChanged : (Json.Value -> msg) -> Sub msg

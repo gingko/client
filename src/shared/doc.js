@@ -37,13 +37,21 @@ initElmAndPorts();
 async function initElmAndPorts() {
   let email = null;
   let sessionData = localStorage.getItem(sessionStorageKey) || null;
-  let settings;
+  let settings = {language: "en"};
   if (sessionData) {
+    console.log("sessionData found")
     sessionData = JSON.parse(sessionData);
     email = sessionData.email;
     setUserDbs(sessionData.email);
-    settings = (await userStore.load()) || { language : "en"};
+
+    // Load user settings
+    try {
+      settings = await userStore.load();
+    } catch (e) {
+      console.log("failed", e)
+    }
   }
+
 
   const initFlags = { email: email, seed: Date.now(), language: settings.language};
 
