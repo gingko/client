@@ -11,9 +11,9 @@ import Page.Login
 import Page.NotFound
 import Page.Signup
 import Route exposing (Route)
-import Session exposing (Session)
 import Translation exposing (Language, langFromString)
 import Url exposing (Url)
+import User exposing (User)
 
 
 
@@ -21,17 +21,17 @@ import Url exposing (Url)
 
 
 type Model
-    = Redirect Session
-    | NotFound Session
+    = Redirect User
+    | NotFound User
     | Signup Page.Signup.Model
     | Login Page.Login.Model
     | Home Page.Home.Model
-    | DocNew Session
+    | DocNew User
     | Doc Page.Doc.Model
 
 
 type alias Flags =
-    { session : Maybe String
+    { user : Maybe String
     , seed : Int
     , language : Language
     }
@@ -48,36 +48,36 @@ init flagsData url navKey =
     in
     case Dec.decodeValue flagsDecoder flagsData of
         Ok flags ->
-            changeRouteTo (Route.fromUrl url) (Redirect (Session.fromData navKey flags.seed flags.session))
+            changeRouteTo (Route.fromUrl url) (Redirect (User.fromData navKey flags.seed flags.user))
 
         Err _ ->
-            changeRouteTo (Just Route.Login) (Redirect (Session.guest navKey))
+            changeRouteTo (Just Route.Login) (Redirect (User.guest navKey))
 
 
 changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )
 changeRouteTo maybeRoute model =
     let
-        session =
-            toSession model
+        user =
+            toUser model
     in
-    if Session.loggedIn session then
+    if User.loggedIn user then
         case maybeRoute of
             Just Route.Home ->
-                Page.Home.init session |> updateWith Home GotHomeMsg
+                Page.Home.init user |> updateWith Home GotHomeMsg
 
             Just Route.Signup ->
-                Page.Signup.init session |> updateWith Signup GotSignupMsg
+                Page.Signup.init user |> updateWith Signup GotSignupMsg
 
             Just Route.Login ->
-                Page.Login.init session |> updateWith Login GotLoginMsg
+                Page.Login.init user |> updateWith Login GotLoginMsg
 
             Just Route.Logout ->
-                Page.Login.init session
+                Page.Login.init user
                     |> updateWith Login GotLoginMsg
-                    |> withCmd Session.logout
+                    |> withCmd User.logout
 
             Just Route.DocNew ->
-                Page.DocNew.init session |> updateWith DocNew GotDocNewMsg
+                Page.DocNew.init user |> updateWith DocNew GotDocNewMsg
 
             Just (Route.DocUntitled dbName) ->
                 let
@@ -89,22 +89,22 @@ changeRouteTo maybeRoute model =
                             _ ->
                                 False
                 in
-                Page.Doc.init session dbName isNew |> updateWith Doc GotDocMsg
+                Page.Doc.init user dbName isNew |> updateWith Doc GotDocMsg
 
             Just (Route.Doc dbName _) ->
-                Page.Doc.init session dbName False |> updateWith Doc GotDocMsg
+                Page.Doc.init user dbName False |> updateWith Doc GotDocMsg
 
             Nothing ->
-                ( NotFound session, Cmd.none )
+                ( NotFound user, Cmd.none )
 
     else
         let
             ( signupModel, signupCmds ) =
-                Page.Signup.init session
+                Page.Signup.init user
                     |> updateWith Signup GotSignupMsg
 
             ( loginModel, loginCmds ) =
-                Page.Login.init session
+                Page.Login.init user
                     |> updateWith Login GotLoginMsg
         in
         case maybeRoute of
@@ -115,32 +115,32 @@ changeRouteTo maybeRoute model =
                 ( loginModel, loginCmds )
 
             _ ->
-                ( loginModel, Cmd.batch [ loginCmds, Route.replaceUrl (Session.navKey session) Route.Login ] )
+                ( loginModel, Cmd.batch [ loginCmds, Route.replaceUrl (User.navKey user) Route.Login ] )
 
 
-toSession : Model -> Session
-toSession page =
+toUser : Model -> User
+toUser page =
     case page of
-        Redirect session ->
-            session
+        Redirect user ->
+            user
 
-        NotFound session ->
-            session
+        NotFound user ->
+            user
 
         Signup signup ->
-            Page.Signup.toSession signup
+            Page.Signup.toUser signup
 
         Login login ->
-            Page.Login.toSession login
+            Page.Login.toUser login
 
         Home home ->
-            Page.Home.toSession home
+            Page.Home.toUser home
 
-        DocNew session ->
-            session
+        DocNew user ->
+            user
 
         Doc doc ->
-            Page.Doc.toSession doc
+            Page.Doc.toUser doc
 
 
 
@@ -166,7 +166,7 @@ update msg model =
         ( ClickedLink urlRequest, _ ) ->
             case urlRequest of
                 Browser.Internal url ->
-                    ( model, Nav.pushUrl (Session.navKey (toSession model)) (Url.toString url) )
+                    ( model, Nav.pushUrl (User.navKey (toUser model)) (Url.toString url) )
 
                 Browser.External href ->
                     ( model, Nav.load href )

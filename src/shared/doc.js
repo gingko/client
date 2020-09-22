@@ -37,15 +37,15 @@ initElmAndPorts();
 async function initElmAndPorts() {
   let email = null;
   let sessionData = localStorage.getItem(sessionStorageKey) || null;
+  let settings;
   if (sessionData) {
     sessionData = JSON.parse(sessionData);
     email = sessionData.email;
     setUserDbs(sessionData.email);
-    let store = await userStore.load();
-    lang = store.language;
+    settings = (await userStore.load()) || { language : "en"};
   }
 
-  const initFlags = { email: email, seed: Date.now(), language: "en" };
+  const initFlags = { email: email, seed: Date.now(), language: settings.language};
 
   gingko = Elm.Main.init({
     node: document.getElementById("elm"),
@@ -69,7 +69,7 @@ async function initElmAndPorts() {
         event.storageArea === localStorage &&
         event.key === sessionStorageKey
       ) {
-        gingko.ports.sessionChanged.send(event.newValue);
+        gingko.ports.userStateChanged.send(event.newValue);
       }
     },
     false
@@ -134,7 +134,7 @@ const fromElm = (msg, data) => {
   let cases = {
     // === SPA ===
 
-    StoreSession: () => {
+    StoreUser: () => {
       if (data == null) {
         localStorage.removeItem(sessionStorageKey);
         deleteLocalUserDbs();
@@ -145,7 +145,7 @@ const fromElm = (msg, data) => {
           JSON.stringify(_.omit(newSession, "seed"))
         );
         setUserDbs(data);
-        setTimeout(() => gingko.ports.sessionChanged.send(newSession), 0);
+        setTimeout(() => gingko.ports.userStateChanged.send(newSession), 0);
       }
     },
 

@@ -5,37 +5,18 @@ var userStoreLocal;
 var userStoreRemote;
 const userSettingsId = "settings";
 const userStore = {
-  db: (localDB, remoteDB) => {
-    userStoreLocal = localDB;
-    userStoreRemote = remoteDB;
+  db: function(localDb, remoteDb) {
+    userStoreLocal = localDb;
+    userStoreRemote = remoteDb;
   },
-  load: async () => {
-    let store = await userStoreRemote.get(userSettingsId).catch(() => {
-      return { _id: userSettingsId };
-    });
-    return _.omit(store, ["_id", "_rev"]);
-  },
-  get: async (key, fallback) => {
-    let store = await userStoreRemote.get(userSettingsId).catch(async (e) => e);
-    if (!store.error && typeof store[key] !== "undefined") {
-      return store[key];
+  load: async function() {
+    let settings = await userStoreLocal.get(userSettingsId).catch(e => e);
+    if (settings.ok) {
+      return settings;
     } else {
-      return fallback;
+      return null;
     }
-  },
-  set: async (key, value) => {
-    let store = await userStoreRemote.get(userSettingsId).catch(() => {
-      return { _id: userSettingsId };
-    });
-    store[key] = value;
-    let putRes = await userStoreRemote.put(store).catch(async (e) => e);
-    if (putRes.ok) {
-      userStoreLocal.replicate.from(userStoreRemote, {
-        doc_ids: [userSettingsId],
-      });
-    }
-    return putRes;
-  },
+  }
 };
 
 var localDB;

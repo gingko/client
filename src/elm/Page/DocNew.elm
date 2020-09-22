@@ -2,7 +2,7 @@ module Page.DocNew exposing (Model, Msg, init, update)
 
 import RandomId
 import Route
-import Session exposing (Session)
+import User exposing (User)
 
 
 
@@ -10,10 +10,10 @@ import Session exposing (Session)
 
 
 type alias Model =
-    Session
+    User
 
 
-init : Session -> ( Model, Cmd Msg )
+init : User -> ( Model, Cmd Msg )
 init session =
     ( session, RandomId.generate NewDocIdReceived )
 
@@ -30,4 +30,4 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         NewDocIdReceived docId ->
-            ( model, Route.replaceUrl (Session.navKey model) (Route.DocUntitled docId) )
+            ( model, Route.replaceUrl (User.navKey model) (Route.DocUntitled docId) )

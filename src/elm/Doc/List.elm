@@ -11,10 +11,10 @@ import Json.Decode as Dec
 import Octicons as Icon
 import Outgoing exposing (Msg(..), send)
 import Route
-import Session exposing (Session)
 import Strftime
 import Time
 import Translation exposing (TranslationId(..), timeDistInWords, tr)
+import User exposing (User)
 
 
 
@@ -32,9 +32,9 @@ init =
     Loading
 
 
-fetch : Session -> (Model -> msg) -> Cmd msg
+fetch : User -> (Model -> msg) -> Cmd msg
 fetch session msg =
-    case Session.userDb session of
+    case User.db session of
         Just userDb ->
             Cmd.batch
                 [ send <| GetDocumentList userDb

@@ -1,4 +1,4 @@
-module Page.Login exposing (Model, Msg, init, subscriptions, toSession, update, view)
+module Page.Login exposing (Model, Msg, init, subscriptions, toUser, update, view)
 
 import Html exposing (..)
 import Html.Attributes exposing (class, href, id, src, value)
@@ -8,7 +8,7 @@ import Json.Decode as Dec
 import Json.Encode as Enc
 import Result exposing (Result)
 import Route
-import Session exposing (Session)
+import User exposing (User)
 import Utils exposing (getFieldErrors)
 import Validate exposing (Valid, Validator, ifBlank, ifInvalidEmail, validate)
 
@@ -18,7 +18,7 @@ import Validate exposing (Valid, Validator, ifBlank, ifInvalidEmail, validate)
 
 
 type alias Model =
-    { session : Session, email : String, password : String, errors : List ( Field, String ) }
+    { user : User, email : String, password : String, errors : List ( Field, String ) }
 
 
 type Field
@@ -27,16 +27,16 @@ type Field
     | Password
 
 
-init : Session -> ( Model, Cmd msg )
-init session =
-    ( { session = session, email = "", password = "", errors = [] }
+init : User -> ( Model, Cmd msg )
+init user =
+    ( { user = user, email = "", password = "", errors = [] }
     , Cmd.none
     )
 
 
-toSession : Model -> Session
-toSession model =
-    model.session
+toUser : Model -> User
+toUser model =
+    model.user
 
 
 
@@ -48,7 +48,7 @@ type Msg
     | EnteredEmail String
     | EnteredPassword String
     | CompletedLogin (Result Http.Error String)
-    | GotSession Session
+    | GotUser User
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -71,7 +71,7 @@ update msg model =
             ( { model | password = password }, Cmd.none )
 
         CompletedLogin (Ok email) ->
-            ( model, Session.save email )
+            ( model, User.save email )
 
         CompletedLogin (Err error) ->
             let
@@ -99,8 +99,8 @@ update msg model =
             in
             ( { model | errors = [ errorMsg ], password = "" }, Cmd.none )
 
-        GotSession session ->
-            ( { model | session = session }, Route.pushUrl (Session.navKey session) Route.Home )
+        GotUser user ->
+            ( { model | user = user }, Route.pushUrl (User.navKey user) Route.Home )
 
 
 modelValidator : Validator ( Field, String ) Model
@@ -189,4 +189,4 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Session.changes GotSession (Session.navKey model.session)
+    User.changes GotUser (User.navKey model.user)

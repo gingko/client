@@ -15,10 +15,10 @@ import List.Extra as ListExtra exposing (getAt)
 import Octicons as Icon exposing (defaultOptions)
 import Regex exposing (Regex, replace)
 import Route
-import Session exposing (Session)
 import Time exposing (posixToMillis)
 import Translation exposing (Language, TranslationId(..), timeDistInWords, tr)
 import Types exposing (Children(..), CursorPosition(..), TextCursorInfo, ViewMode(..), ViewState)
+import User exposing (User)
 
 
 
@@ -48,7 +48,7 @@ type alias HeaderMsgs msg =
     }
 
 
-viewHeader : HeaderMsgs msg -> Maybe String -> { m | titleField : Maybe String, accountMenuOpen : Bool, dirty : Bool, lastLocalSave : Maybe Time.Posix, lastRemoteSave : Maybe Time.Posix, currentTime : Time.Posix, language : Translation.Language, session : Session } -> Html msg
+viewHeader : HeaderMsgs msg -> Maybe String -> { m | titleField : Maybe String, accountMenuOpen : Bool, dirty : Bool, lastLocalSave : Maybe Time.Posix, lastRemoteSave : Maybe Time.Posix, currentTime : Time.Posix, language : Translation.Language, user : User } -> Html msg
 viewHeader msgs title_ model =
     case model.titleField of
         Just editingField ->
@@ -57,7 +57,7 @@ viewHeader msgs title_ model =
                     [ input [ onInput msgs.titleFieldChanged, value editingField ] []
                     , button [ onClick msgs.titleEdited ] [ text "Rename" ]
                     ]
-                , viewAccount msgs.toggledAccountMenu model.accountMenuOpen model.session
+                , viewAccount msgs.toggledAccountMenu model.accountMenuOpen model.user
                 ]
 
         Nothing ->
@@ -68,7 +68,7 @@ viewHeader msgs title_ model =
                         ]
                     , viewSaveIndicator model
                     ]
-                , viewAccount msgs.toggledAccountMenu model.accountMenuOpen model.session
+                , viewAccount msgs.toggledAccountMenu model.accountMenuOpen model.user
                 ]
 
 
@@ -110,8 +110,8 @@ viewSaveIndicator { dirty, lastLocalSave, lastRemoteSave, currentTime, language 
         ]
 
 
-viewAccount : (Bool -> msg) -> Bool -> Session -> Html msg
-viewAccount toggleMsg isOpen session =
+viewAccount : (Bool -> msg) -> Bool -> User -> Html msg
+viewAccount toggleMsg isOpen user =
     let
         userIcon =
             Icon.person (defaultOptions |> Icon.color "#333" |> Icon.size 18)
@@ -120,7 +120,7 @@ viewAccount toggleMsg isOpen session =
         [ userIcon
         , if isOpen then
             div [ id "account-dropdown" ]
-                [ text (Session.username session |> Maybe.withDefault "")
+                [ text (User.name user |> Maybe.withDefault "")
                 , hr [] []
                 , a [ href (Route.toString Route.Logout) ] [ text "Logout" ]
                 ]

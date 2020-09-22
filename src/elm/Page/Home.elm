@@ -1,4 +1,4 @@
-port module Page.Home exposing (Model, Msg, init, subscriptions, toSession, update, view)
+port module Page.Home exposing (Model, Msg, init, subscriptions, toUser, update, view)
 
 import Doc.List as DocList
 import Doc.Metadata as Metadata exposing (Metadata)
@@ -12,11 +12,11 @@ import Json.Decode as Dec
 import Octicons as Icon
 import Outgoing exposing (Msg(..), send)
 import Route
-import Session exposing (Session)
 import Task
 import Time
 import Translation exposing (..)
 import Types exposing (Tree)
+import User exposing (User)
 
 
 
@@ -46,29 +46,29 @@ type alias PageData =
     , language : Translation.Language
     , languageMenu : Bool
     , currentTime : Time.Posix
-    , session : Session
+    , user : User
     }
 
 
-init : Session -> ( Model, Cmd Msg )
-init session =
+init : User -> ( Model, Cmd Msg )
+init user =
     ( Home
         { documents = DocList.init
         , language = langFromString "en"
         , languageMenu = False
         , currentTime = Time.millisToPosix 0
-        , session = session
+        , user = user
         }
     , Cmd.batch
         [ Task.perform Tick Time.now
-        , DocList.fetch session ReceivedDocuments
+        , DocList.fetch user ReceivedDocuments
         ]
     )
 
 
-toSession : Model -> Session
-toSession model =
-    (getData model).session
+toUser : Model -> User
+toUser model =
+    (getData model).user
 
 
 getData : Model -> PageData
@@ -140,7 +140,7 @@ update msg model =
         ( ImportSelectionDone, ImportSelecting selectList pageData ) ->
             let
                 author =
-                    toSession model |> Session.username |> Maybe.withDefault "jane.doe@gmail.com"
+                    toUser model |> User.name |> Maybe.withDefault "jane.doe@gmail.com"
 
                 treesToSave =
                     selectList
@@ -151,7 +151,7 @@ update msg model =
             ( ImportSaving selectList pageData, send <| SaveImportedData treesToSave )
 
         ( ImportComplete, ImportSaving _ pageData ) ->
-            ( Home pageData, DocList.fetch pageData.session ReceivedDocuments )
+            ( Home pageData, DocList.fetch pageData.user ReceivedDocuments )
 
         ( Tick _, ImportSelecting _ _ ) ->
             ( model, Cmd.none )
@@ -168,7 +168,7 @@ updatePageData msg model =
             ( { model | documents = DocList.update response model.documents }, Cmd.none )
 
         Open docId ->
-            ( model, Route.pushUrl (Session.navKey model.session) (Route.DocUntitled docId) )
+            ( model, Route.pushUrl (User.navKey model.user) (Route.DocUntitled docId) )
 
         DeleteDoc docId ->
             ( model, send <| RequestDelete docId )
@@ -183,7 +183,7 @@ updatePageData msg model =
             ( model, Select.file [ "text/*", "application/json" ] ImportFileSelected )
 
         ImportFileSelected file ->
-            case Session.username model.session of
+            case User.name model.user of
                 Just username ->
                     ( model, Task.perform (ImportFileLoaded username) (File.toString file) )
 

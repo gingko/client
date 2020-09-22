@@ -1,4 +1,4 @@
-port module Session exposing (Session, changes, fromData, guest, loggedIn, logout, navKey, save, seed, userDb, username)
+port module User exposing (User, changes, db, fromData, guest, loggedIn, logout, name, navKey, save, seed)
 
 import Browser.Navigation as Nav
 import Json.Decode as Json
@@ -6,7 +6,7 @@ import Outgoing exposing (Msg(..), send)
 import Utils exposing (hexEncode)
 
 
-type Session
+type User
     = LoggedIn Nav.Key Int String
     | Guest Nav.Key
 
@@ -15,7 +15,7 @@ type Session
 -- DATA
 
 
-navKey : Session -> Nav.Key
+navKey : User -> Nav.Key
 navKey session =
     case session of
         LoggedIn key _ _ ->
@@ -25,8 +25,8 @@ navKey session =
             key
 
 
-username : Session -> Maybe String
-username session =
+name : User -> Maybe String
+name session =
     case session of
         LoggedIn _ _ email ->
             Just email
@@ -35,7 +35,7 @@ username session =
             Nothing
 
 
-seed : Session -> Int
+seed : User -> Int
 seed session =
     case session of
         LoggedIn _ s _ ->
@@ -45,8 +45,8 @@ seed session =
             123456
 
 
-userDb : Session -> Maybe String
-userDb session =
+db : User -> Maybe String
+db session =
     case session of
         LoggedIn _ _ email ->
             Just ("userdb-" ++ hexEncode email)
@@ -55,7 +55,7 @@ userDb session =
             Nothing
 
 
-loggedIn : Session -> Bool
+loggedIn : User -> Bool
 loggedIn session =
     case session of
         LoggedIn _ _ _ ->
@@ -65,7 +65,7 @@ loggedIn session =
             False
 
 
-fromData : Nav.Key -> Int -> Maybe String -> Session
+fromData : Nav.Key -> Int -> Maybe String -> User
 fromData key initSeed maybeEmail =
     case maybeEmail of
         Just email ->
@@ -75,8 +75,8 @@ fromData key initSeed maybeEmail =
             Guest key
 
 
-sessionDecoder : Nav.Key -> Json.Value -> Session
-sessionDecoder key json =
+userDecoder : Nav.Key -> Json.Value -> User
+userDecoder key json =
     let
         decoder =
             Json.map2 Tuple.pair
@@ -91,7 +91,7 @@ sessionDecoder key json =
             Guest key
 
 
-guest : Nav.Key -> Session
+guest : Nav.Key -> User
 guest key =
     Guest key
 
@@ -102,17 +102,17 @@ guest key =
 
 save : String -> Cmd msg
 save email =
-    send <| StoreSession (Just email)
+    send <| StoreUser (Just email)
 
 
 logout : Cmd msg
 logout =
-    send <| StoreSession Nothing
+    send <| StoreUser Nothing
 
 
-changes : (Session -> msg) -> Nav.Key -> Sub msg
+changes : (User -> msg) -> Nav.Key -> Sub msg
 changes toMsg key =
-    sessionChanged (sessionDecoder key >> toMsg)
+    userStateChanged (userDecoder key >> toMsg)
 
 
-port sessionChanged : (Json.Value -> msg) -> Sub msg
+port userStateChanged : (Json.Value -> msg) -> Sub msg

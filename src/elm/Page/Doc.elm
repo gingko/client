@@ -1,4 +1,4 @@
-module Page.Doc exposing (Model, Msg, init, subscriptions, toSession, update, view)
+module Page.Doc exposing (Model, Msg, init, subscriptions, toUser, update, view)
 
 import Api
 import Browser.Dom
@@ -29,11 +29,11 @@ import Outgoing exposing (Msg(..), send)
 import Page.Doc.Incoming as Incoming exposing (ExportFormat(..), ExportSelection(..), Msg(..))
 import Random
 import Regex
-import Session exposing (Session)
 import Task
 import Time
 import Translation exposing (..)
 import Types exposing (Children(..), CollabState, Column, CursorPosition(..), DropId(..), Group, Mode(..), TextCursorInfo, Tree, ViewMode(..), ViewState, VisibleViewState)
+import User exposing (User)
 
 
 
@@ -47,7 +47,7 @@ type alias Model =
     , metadata : Metadata
 
     -- SPA Page State
-    , session : Session
+    , user : User
     , documents : DocList.Model
     , loading : Bool
 
@@ -79,12 +79,12 @@ type alias Model =
     }
 
 
-defaultModel : Bool -> Session -> String -> Model
+defaultModel : Bool -> User -> String -> Model
 defaultModel isNew session docId =
     { workingTree = TreeStructure.defaultModel
     , data = Data.empty
     , metadata = Metadata.new docId
-    , session = session
+    , user = session
     , documents = DocList.init
     , loading = not isNew
     , debouncerStateCommit =
@@ -127,11 +127,11 @@ defaultModel isNew session docId =
     , startingWordcount = 0
     , historyState = Closed
     , currentTime = Time.millisToPosix 0
-    , seed = Random.initialSeed (Session.seed session)
+    , seed = Random.initialSeed (User.seed session)
     }
 
 
-init : Session -> String -> Bool -> ( Model, Cmd Msg )
+init : User -> String -> Bool -> ( Model, Cmd Msg )
 init session dbName isNew =
     ( defaultModel isNew session dbName
     , if not isNew then
@@ -155,9 +155,9 @@ init session dbName isNew =
            )
 
 
-toSession : Model -> Session
-toSession model =
-    model.session
+toUser : Model -> User
+toUser model =
+    model.user
 
 
 
