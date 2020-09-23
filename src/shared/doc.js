@@ -119,6 +119,15 @@ function setUserDbs(email) {
     language: "javascript",
   };
   db.put(ddoc).catch(async (e) => e); // ignore conflict error
+
+  // Update Elm on document list changes
+  PouchDB.sync(db, remoteDB, { filter: "_view", view: "testDocList/docList", include_docs: true, live: true, retry: true })
+    .on('change', (ev) => {
+      if (ev.direction === "pull") {
+        // New document list received, update Elm
+        loadAndUpdateDocList();
+      }
+    });
 }
 
 async function deleteLocalUserDbs() {
@@ -200,7 +209,6 @@ const fromElm = (msg, data) => {
 
       localStore.db(db, data);
       let store = await localStore.load();
-      loadDocumentList();
       toElm(store, "docMsgs", "LocalStoreLoaded");
     },
 
@@ -220,10 +228,8 @@ const fromElm = (msg, data) => {
       pull(); // sync remote
     },
 
-    GetDocumentList: async () => {
-      let docList = await db.query("testDocList/docList").catch(async (e) => e);
-      docList.timestamp = Date.now();
-      toElm(docList, "documentListChanged");
+    GetDocumentList: () => {
+      loadAndUpdateDocList();
     },
 
     RequestDelete: async () => {
@@ -242,9 +248,7 @@ const fromElm = (msg, data) => {
         await db.bulkDocs(docsToDelete);
 
         // Get new (local) list of documents
-        let docList = await db.query("testDocList/docList").catch(async (e) => e);
-        docList.timestamp = Date.now();
-        toElm(docList, "documentListChanged");
+        loadAndUpdateDocList();
       }
     },
 
@@ -469,7 +473,10 @@ async function push() {
   await db.replicate.to(remoteDB, { selector }).catch(async (e) => e);
 }
 
-function loadDocumentList() {}
+async function loadAndUpdateDocList() {
+  let docList = await db.query("testDocList/docList").catch(async (e) => e);
+  toElm(docList, "documentListChanged");
+}
 
 async function loadDocData() {
   // Get all local entries in db, and format in object to send to Elm.

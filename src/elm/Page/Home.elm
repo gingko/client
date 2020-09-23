@@ -59,7 +59,7 @@ init user =
         }
     , Cmd.batch
         [ Task.perform Tick Time.now
-        , DocList.fetch user ReceivedDocuments
+        , DocList.fetch user
         ]
     )
 
@@ -150,7 +150,7 @@ update msg model =
             ( ImportSaving selectList pageData, send <| SaveImportedData treesToSave )
 
         ( ImportComplete, ImportSaving _ pageData ) ->
-            ( Home pageData, DocList.fetch pageData.user ReceivedDocuments )
+            ( Home pageData, DocList.fetch pageData.user )
 
         ( Tick _, ImportSelecting _ _ ) ->
             ( model, Cmd.none )
@@ -163,8 +163,8 @@ update msg model =
 updatePageData : Msg -> PageData -> ( PageData, Cmd Msg )
 updatePageData msg model =
     case msg of
-        ReceivedDocuments response ->
-            ( { model | documents = DocList.update response model.documents }, Cmd.none )
+        ReceivedDocuments newList ->
+            ( { model | documents = newList }, Cmd.none )
 
         Open docId ->
             ( model, Route.pushUrl (User.navKey model.user) (Route.DocUntitled docId) )

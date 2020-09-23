@@ -135,13 +135,13 @@ init session dbName isNew =
     , if not isNew then
         Cmd.batch
             [ send <| LoadDocument dbName
-            , DocList.fetch session ReceivedDocuments
+            , DocList.fetch session
             ]
 
       else
         Cmd.batch
             [ send <| InitDocument dbName
-            , DocList.fetch session ReceivedDocuments
+            , DocList.fetch session
             , focus "1"
             ]
     )
@@ -473,8 +473,8 @@ update msg ({ workingTree } as model) =
                 |> addToHistory
 
         -- === UI ===
-        ReceivedDocuments docData ->
-            ( { model | documents = DocList.update docData model.documents }, Cmd.none )
+        ReceivedDocuments newList ->
+            ( { model | documents = newList }, Cmd.none )
 
         ToggledTitleEdit isEditingTitle ->
             if isEditingTitle then
