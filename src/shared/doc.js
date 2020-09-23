@@ -101,9 +101,9 @@ function setUserDbs(email) {
 
   // Sync user settings
   PouchDB.sync(db, remoteDB, {live: true, retry: true, doc_ids: ["settings"]})
-    .on('change', (change) => {
-      if (change.direction == "pull") {
-        console.log(change.docs[0]);
+    .on('change', (ev) => {
+      if (ev.direction === "pull") {
+        gingko.ports.userSettingsChange.send(ev.change.docs[0]);
       }
     });
 
@@ -161,7 +161,7 @@ const fromElm = (msg, data) => {
           JSON.stringify(_.omit(data, "seed"))
         );
         setUserDbs(data.email);
-        setTimeout(() => gingko.ports.userStateChanged.send(data), 0);
+        setTimeout(() => gingko.ports.userLoginChange.send(data), 0);
       }
     },
 

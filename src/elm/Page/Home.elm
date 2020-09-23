@@ -98,6 +98,7 @@ type Msg
     | ImportComplete
     | ToggleLanguageMenu
     | ChangeLanguage Language
+    | SettingsChanged Language
     | Tick Time.Posix
     | LogErr String
 
@@ -176,6 +177,9 @@ updatePageData msg model =
 
         ChangeLanguage lang ->
             ( { model | user = User.setLanguage lang model.user }, send <| SetLanguage lang )
+
+        SettingsChanged lang ->
+            ( { model | user = User.setLanguage lang model.user }, Cmd.none )
 
         ImportFileRequested ->
             ( model, Select.file [ "text/*", "application/json" ] ImportFileSelected )
@@ -294,5 +298,6 @@ subscriptions _ =
     Sub.batch
         [ importComplete (always ImportComplete)
         , DocList.subscribe ReceivedDocuments
+        , User.settingsChange SettingsChanged
         , Time.every (30 * 1000) Tick
         ]

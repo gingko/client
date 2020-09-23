@@ -193,4 +193,4 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    User.changes GotUser (User.navKey model.user)
+    User.loginChanges GotUser (User.navKey model.user)

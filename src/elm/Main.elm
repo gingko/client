@@ -65,9 +65,13 @@ changeRouteTo maybeRoute model =
                 Page.Login.init user |> updateWith Login GotLoginMsg
 
             Just Route.Logout ->
-                Page.Login.init user
+                let
+                    ( loggedOutUser, logoutCmd ) =
+                        User.logout user
+                in
+                Page.Login.init loggedOutUser
                     |> updateWith Login GotLoginMsg
-                    |> withCmd User.logout
+                    |> withCmd logoutCmd
 
             Just Route.DocNew ->
                 Page.DocNew.init user |> updateWith DocNew GotDocNewMsg

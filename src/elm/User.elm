@@ -1,4 +1,4 @@
-port module User exposing (User, changes, db, decode, language, loggedIn, logout, name, navKey, requestLogin, requestSignup, seed, setLanguage, storeLogin, storeSignup)
+port module User exposing (User, db, decode, language, loggedIn, loginChanges, logout, name, navKey, requestLogin, requestSignup, seed, setLanguage, settingsChange, storeLogin, storeSignup)
 
 import Browser.Navigation as Nav
 import Http
@@ -6,7 +6,7 @@ import Json.Decode as Dec
 import Json.Decode.Pipeline exposing (optionalAt, required)
 import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
-import Translation exposing (Language(..), langFromString, langToString)
+import Translation exposing (Language(..), langFromString, langToString, languageDecoder)
 import Utils exposing (hexEncode)
 
 
@@ -241,9 +241,16 @@ storeLogin user =
     store (Just user)
 
 
-logout : Cmd msg
-logout =
-    store Nothing
+logout : User -> ( User, Cmd msg )
+logout user =
+    case user of
+        LoggedIn key data ->
+            ( Guest key (GuestData data.seed data.language)
+            , store Nothing
+            )
+
+        Guest _ _ ->
+            ( user, Cmd.none )
 
 
 
@@ -260,9 +267,30 @@ store user_ =
             send <| StoreUser Enc.null
 
 
-changes : (User -> msg) -> Nav.Key -> Sub msg
-changes toMsg key =
-    userStateChanged (decode key >> toMsg)
+loginChanges : (User -> msg) -> Nav.Key -> Sub msg
+loginChanges toMsg key =
+    userLoginChange (decode key >> toMsg)
 
 
-port userStateChanged : (Dec.Value -> msg) -> Sub msg
+settingsChange : (Language -> msg) -> Sub msg
+settingsChange toMsg =
+    let
+        decodeSettings json =
+            case Dec.decodeValue (Dec.field "language" languageDecoder) json of
+                Ok lang ->
+                    lang
+
+                Err err ->
+                    let
+                        _ =
+                            Debug.log "err" err
+                    in
+                    En
+    in
+    userSettingsChange (decodeSettings >> toMsg)
+
+
+port userLoginChange : (Dec.Value -> msg) -> Sub msg
+
+
+port userSettingsChange : (Dec.Value -> msg) -> Sub msg

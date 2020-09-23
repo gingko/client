@@ -4,8 +4,6 @@ import Html exposing (..)
 import Html.Attributes exposing (class, href, id, src, value)
 import Html.Events exposing (onInput, onSubmit)
 import Http exposing (Error(..))
-import Json.Decode as Dec
-import Json.Encode as Enc
 import Result exposing (Result)
 import Route
 import User exposing (User)
@@ -171,4 +169,4 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    User.changes GotUser (User.navKey model.user)
+    User.loginChanges GotUser (User.navKey model.user)
