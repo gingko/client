@@ -188,6 +188,7 @@ type Msg
     | Resolve String
       -- === UI ===
     | ReceivedDocuments DocList.Model
+    | SettingsChanged Language
     | ToggledTitleEdit Bool
     | TitleFieldChanged String
     | TitleEdited
@@ -475,6 +476,9 @@ update msg ({ workingTree } as model) =
         -- === UI ===
         ReceivedDocuments newList ->
             ( { model | documents = newList }, Cmd.none )
+
+        SettingsChanged lang ->
+            ( { model | user = User.setLanguage lang model.user }, Cmd.none )
 
         ToggledTitleEdit isEditingTitle ->
             if isEditingTitle then
@@ -2693,6 +2697,7 @@ subscriptions _ =
     Sub.batch
         [ Incoming.subscribe Incoming LogErr
         , DocList.subscribe ReceivedDocuments
+        , User.settingsChange SettingsChanged
         , Time.every (9 * 1000) TimeUpdate
         , Time.every (10 * 1000) (\_ -> PullFromRemote)
         ]
