@@ -143,7 +143,8 @@ viewAccount toggleMsg isOpen user =
 
 type alias SidebarMsgs msg =
     { toggledSidebar : Bool -> msg
-    , exportAll : msg
+    , exportDocx : msg
+    , exportJSON : msg
     }
 
 
@@ -157,7 +158,8 @@ viewSidebar msgs currentDocument docList isOpen =
                     , hr [ style "width" "80%" ] []
                     , DocList.viewSmall currentDocument docList
                     , hr [ style "width" "80%" ] []
-                    , button [ onClick msgs.exportAll, class "sidebar-item" ] [ text "Export to docx" ]
+                    , button [ onClick msgs.exportJSON, class "sidebar-item" ] [ text "Export to JSON" ]
+                    , button [ onClick msgs.exportDocx, class "sidebar-item" ] [ text "Export to docx" ]
                     ]
 
             else

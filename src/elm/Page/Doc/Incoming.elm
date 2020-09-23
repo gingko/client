@@ -1,4 +1,4 @@
-port module Page.Doc.Incoming exposing (ExportFormat(..), ExportSelection(..), Msg(..), subscribe)
+port module Page.Doc.Incoming exposing (Msg(..), subscribe)
 
 import Coders exposing (..)
 import Json.Decode as Dec exposing (Decoder, decodeValue, errorToString, field, oneOf)
@@ -10,8 +10,7 @@ import Types exposing (CollabState, CursorPosition(..), OutsideData, TextCursorI
 type
     Msg
     -- === Dialogs, Menus, Window State ===
-    = IntentExport ExportSettings
-    | CancelCardConfirmed
+    = CancelCardConfirmed
       -- === Database ===
     | DataSaved Dec.Value
     | DataReceived Dec.Value
@@ -36,25 +35,6 @@ type
       -- === Misc ===
     | RecvCollabState CollabState
     | CollaboratorDisconnected String
-
-
-type alias ExportSettings =
-    { format : ExportFormat
-    , selection : ExportSelection
-    , filepath : Maybe String
-    }
-
-
-type ExportFormat
-    = DOCX
-    | JSON
-    | TXT
-
-
-type ExportSelection
-    = All
-    | CurrentSubtree
-    | ColumnNumber Int
 
 
 
@@ -89,61 +69,6 @@ textCursorInfoDecoder =
         (field "text" (tupleDecoder Dec.string Dec.string))
 
 
-exportSettingsDecoder : Decoder ExportSettings
-exportSettingsDecoder =
-    let
-        formatFromString s =
-            case s of
-                "json" ->
-                    JSON
-
-                "txt" ->
-                    TXT
-
-                "docx" ->
-                    DOCX
-
-                _ ->
-                    JSON
-
-        formatDecoder =
-            Dec.map formatFromString Dec.string
-
-        exportStringDecoder =
-            Dec.map
-                (\s ->
-                    case s of
-                        "all" ->
-                            All
-
-                        "current" ->
-                            CurrentSubtree
-
-                        _ ->
-                            All
-                )
-                Dec.string
-
-        exportColumnDecoder =
-            Dec.map
-                (\i -> ColumnNumber i)
-                (field "column" Dec.int)
-
-        exportSelectionDecoder =
-            oneOf
-                [ exportStringDecoder
-                , exportColumnDecoder
-                ]
-
-        exportFilepathDecoder =
-            Dec.maybe Dec.string
-    in
-    Dec.map3 ExportSettings
-        (field "format" formatDecoder)
-        (field "selection" exportSelectionDecoder)
-        (field "filepath" exportFilepathDecoder)
-
-
 
 -- SUBSCRIPTION HELPER
 
@@ -154,14 +79,6 @@ subscribe tagger onError =
         (\outsideInfo ->
             case outsideInfo.tag of
                 -- === Dialogs, Menus, Window State ===
-                "IntentExport" ->
-                    case decodeValue exportSettingsDecoder outsideInfo.data of
-                        Ok exportSettings ->
-                            tagger <| IntentExport exportSettings
-
-                        Err e ->
-                            onError (errorToString e)
-
                 "CancelCardConfirmed" ->
                     tagger <| CancelCardConfirmed
 

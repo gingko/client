@@ -3,7 +3,7 @@ module Page.Doc exposing (Model, Msg, init, subscriptions, toUser, update, view)
 import Api
 import Browser.Dom
 import Bytes exposing (Bytes)
-import Coders exposing (treeToMarkdownString)
+import Coders exposing (treeToJSON, treeToMarkdownString)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
 import Doc.Data as Data
 import Doc.Data.Conflict exposing (Selection)
@@ -23,10 +23,11 @@ import Html.Lazy exposing (lazy2, lazy3)
 import Html5.DragDrop as DragDrop
 import Http
 import Json.Decode as Json
+import Json.Encode as Enc
 import List.Extra as ListExtra exposing (getAt)
 import Markdown
 import Outgoing exposing (Msg(..), send)
-import Page.Doc.Incoming as Incoming exposing (ExportFormat(..), ExportSelection(..), Msg(..))
+import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Random
 import Regex
 import Task
@@ -200,8 +201,9 @@ type Msg
     | ShortcutTrayToggle
     | WordcountTrayToggle
       -- === Ports ===
-    | ExportAll
+    | ExportDocx
     | Exported (Result Http.Error Bytes)
+    | ExportJSON
     | Incoming Incoming.Msg
     | LogErr String
 
@@ -559,7 +561,7 @@ update msg ({ workingTree } as model) =
             )
 
         -- === Ports ===
-        ExportAll ->
+        ExportDocx ->
             let
                 markdownString =
                     treeToMarkdownString False model.workingTree.tree
@@ -576,99 +578,20 @@ update msg ({ workingTree } as model) =
         Exported (Err _) ->
             ( model, Cmd.none )
 
+        ExportJSON ->
+            let
+                treeJSONstring =
+                    treeToJSON model.workingTree.tree
+                        |> Enc.encode 2
+
+                fileName =
+                    Metadata.getDocName model.metadata |> Maybe.withDefault "Untitled.json"
+            in
+            ( model, Download.string fileName "application/json" treeJSONstring )
+
         Incoming incomingMsg ->
             case incomingMsg of
                 -- === Dialogs, Menus, Window State ===
-                IntentExport exportSettings ->
-                    case exportSettings.format of
-                        DOCX ->
-                            let
-                                markdownString m =
-                                    case exportSettings.selection of
-                                        All ->
-                                            m.workingTree.tree
-                                                |> treeToMarkdownString False
-
-                                        CurrentSubtree ->
-                                            getTree vs.active m.workingTree.tree
-                                                |> Maybe.withDefault m.workingTree.tree
-                                                |> treeToMarkdownString True
-
-                                        ColumnNumber col ->
-                                            getColumn col m.workingTree.tree
-                                                |> Maybe.withDefault [ [] ]
-                                                |> List.concat
-                                                |> List.map .content
-                                                |> String.join "\n\n"
-                            in
-                            ( model
-                            , Cmd.none
-                            )
-                                |> saveCardIfEditing
-                                |> (\( m, c ) ->
-                                        ( m
-                                        , Cmd.batch [ c, send (ExportDOCX (markdownString m) exportSettings.filepath) ]
-                                        )
-                                   )
-
-                        JSON ->
-                            case exportSettings.selection of
-                                All ->
-                                    ( model
-                                    , Cmd.none
-                                    )
-                                        |> saveCardIfEditing
-                                        |> (\( m, c ) ->
-                                                ( m
-                                                , Cmd.batch [ c, send (ExportJSON m.workingTree.tree exportSettings.filepath) ]
-                                                )
-                                           )
-
-                                _ ->
-                                    ( model
-                                    , Cmd.none
-                                    )
-
-                        TXT ->
-                            case exportSettings.selection of
-                                All ->
-                                    ( model
-                                    , Cmd.none
-                                    )
-                                        |> saveCardIfEditing
-                                        |> (\( m, c ) ->
-                                                ( m
-                                                , Cmd.batch [ c, send (ExportTXT False m.workingTree.tree exportSettings.filepath) ]
-                                                )
-                                           )
-
-                                CurrentSubtree ->
-                                    let
-                                        getCurrentSubtree m =
-                                            getTree vs.active m.workingTree.tree
-                                                |> Maybe.withDefault m.workingTree.tree
-                                    in
-                                    ( model
-                                    , Cmd.none
-                                    )
-                                        |> saveCardIfEditing
-                                        |> (\( m, c ) ->
-                                                ( m
-                                                , Cmd.batch [ c, send (ExportTXT True (getCurrentSubtree m) exportSettings.filepath) ]
-                                                )
-                                           )
-
-                                ColumnNumber col ->
-                                    ( model
-                                    , Cmd.none
-                                    )
-                                        |> saveCardIfEditing
-                                        |> (\( m, c ) ->
-                                                ( m
-                                                , Cmd.batch [ c, send (ExportTXTColumn col m.workingTree.tree exportSettings.filepath) ]
-                                                )
-                                           )
-
                 CancelCardConfirmed ->
                     ( { model | dirty = False }
                     , Cmd.none
@@ -2212,7 +2135,8 @@ pre, code, .group.has-active .card textarea {
                         model
                      ]
                         ++ UI.viewSidebar
-                            { exportAll = ExportAll
+                            { exportDocx = ExportDocx
+                            , exportJSON = ExportJSON
                             , toggledSidebar = ToggledSidebar
                             }
                             model.metadata
