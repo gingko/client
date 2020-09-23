@@ -354,7 +354,8 @@ body {
 .sidebar-document-list {
   list-style: none;
   margin: 10px;
-  padding: 0px;
+  padding: 10px 0 10px 10px;
+  background: hsl(200deg 22% 84%);
 }
 li.sidebar-document-item {
   position: relative;
@@ -375,22 +376,22 @@ li.sidebar-document-item.active::after {
   position: absolute;
   content: '';
   width: 10px;
-  height: 20px;
+  height: 10px;
   background: #cdd9df;
   z-index: 6;
 }
 li.sidebar-document-item.active::before {
-  box-shadow: 0px 8px 0px 0px #ffffff;
+  box-shadow: 2px 2px 0px 2px #ffffff;
   border-radius: 0 0 10px 0;
   position: absolute;
-  top: -20px;
+  top: -10px;
   right: 0;
 }
 li.sidebar-document-item.active::after {
-  box-shadow: 0px -8px 0px 0px #ffffff;
+  box-shadow: 2px -2px 0px 2px #ffffff;
   border-radius: 0  10px 0 0;
   position: absolute;
-  bottom: -20px;
+  bottom: -10px;
   right: 0;
 }
 
