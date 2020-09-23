@@ -3,9 +3,10 @@ port module User exposing (User, changes, db, decode, language, loggedIn, logout
 import Browser.Navigation as Nav
 import Http
 import Json.Decode as Dec
+import Json.Decode.Pipeline exposing (optionalAt, required)
 import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
-import Translation exposing (Language, langFromString, langToString)
+import Translation exposing (Language(..), langFromString, langToString)
 import Utils exposing (hexEncode)
 
 
@@ -109,16 +110,6 @@ setLanguage lang user =
             Guest key { data | language = lang }
 
 
-login : User -> String -> User
-login user email =
-    case user of
-        Guest key data ->
-            LoggedIn key (UserData email data.seed data.language)
-
-        LoggedIn _ _ ->
-            user
-
-
 
 -- ENCODER & DECODER
 
@@ -135,12 +126,12 @@ decode key json =
                     err
                         |> Dec.errorToString
                         |> Debug.log "decode error"
-                        |> String.left 5
+                        |> String.right 10
                         |> String.toList
                         |> List.map Char.toCode
                         |> List.foldl (+) 12345
             in
-            Guest key (GuestData errToSeed Translation.En)
+            Guest key (GuestData errToSeed En)
 
 
 decoder : Nav.Key -> Dec.Decoder User
@@ -163,6 +154,22 @@ decodeGuest key =
         (Dec.field "seed" Dec.int)
         (Dec.field "language" (Dec.string |> Dec.map langFromString))
         |> Dec.map (Guest key)
+
+
+responseDecoder : User -> Dec.Decoder User
+responseDecoder user =
+    let
+        builder email lang =
+            case user of
+                Guest key data ->
+                    LoggedIn key (UserData email data.seed lang)
+
+                LoggedIn _ _ ->
+                    user
+    in
+    Dec.succeed builder
+        |> required "email" Dec.string
+        |> optionalAt [ "settings", "language" ] (Dec.map langFromString Dec.string) En
 
 
 encode : User -> Enc.Value
@@ -195,15 +202,11 @@ requestSignup toMsg email password user =
                 , ( "password", Enc.string password )
                 ]
                 |> Http.jsonBody
-
-        responseDecoder =
-            Dec.map (login user)
-                (Dec.field "email" Dec.string)
     in
     Http.post
         { url = "/signup"
         , body = requestBody
-        , expect = Http.expectJson toMsg responseDecoder
+        , expect = Http.expectJson toMsg (responseDecoder user)
         }
 
 
@@ -221,17 +224,13 @@ requestLogin toMsg email password user =
                 , ( "password", Enc.string password )
                 ]
                 |> Http.jsonBody
-
-        responseDecoder =
-            Dec.map (login user)
-                (Dec.field "email" Dec.string)
     in
     Http.riskyRequest
         { method = "POST"
         , url = "/login"
         , headers = []
         , body = requestBody
-        , expect = Http.expectJson toMsg responseDecoder
+        , expect = Http.expectJson toMsg (responseDecoder user)
         , timeout = Nothing
         , tracker = Nothing
         }
