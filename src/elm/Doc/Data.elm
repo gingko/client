@@ -139,7 +139,7 @@ received json ( oldModel, oldTree ) =
                     union changedData (getData oldModel)
 
                 localHead =
-                    Dict.get "heads/master" newData.refs |> Maybe.withDefault confHead
+                    Dict.get "heads/master" changedData.refs |> Maybe.withDefault confHead
 
                 mergedModel =
                     merge localHead.value confHead.value oldTree newData

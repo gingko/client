@@ -236,9 +236,6 @@ const fromElm = (msg, data) => {
           console.log("ev.docs", ev.docs);
           let maybeRemoteHead = _.find(ev.docs, ["_id", TREE_ID + "/heads/master"]);
           if (typeof maybeRemoteHead !== "undefined") {
-            // Track remote head value
-            remoteHead = maybeRemoteHead;
-
             // Rearrange data to format expected by Elm
             let mappedDocs = ev.docs.map((doc) => {
               doc._id = unprefix(doc._id);
@@ -256,15 +253,20 @@ const fromElm = (msg, data) => {
               let conflictHead = await db.get(prefix("heads/master"), {
                 rev: newHead._conflicts[0],
               });
-              console.log("auto:conflictHead", conflictHead);
-              if (!_.isEqual(remoteHead, conflictHead)) {
+              if (localHead === conflictHead.value) {
+                console.log("NO need to flip", localHead, conflictHead);
+                // Winning revision is remote.
+                // Therefore don't flip.
+                toSend.conflict = conflictHead;
+              } else {
+                console.log("need to flip", localHead, conflictHead, JSON.toString(toSend));
+                // Winning revision is local.
+                // Therefore we need to flip conflict and winner.
+                toSend.conflict = newHead;
                 let setHead = (r) => {
                   return r._id == prefix("heads/master") ? conflictHead : r;
                 };
                 toSend.ref = toSend.ref.map(setHead);
-                toSend.conflict = newHead;
-              } else {
-                toSend.conflict = conflictHead;
               }
             }
 
@@ -301,6 +303,11 @@ const fromElm = (msg, data) => {
     },
 
     SaveData: async () => {
+      let maybeLocalHead = _.find(data.data.refs, ["_id", "heads/master"]);
+      if (typeof maybeLocalHead !== "undefined") {
+        localHead = maybeLocalHead.value;
+        console.log("new local head", localHead);
+      }
       // Store ids of refs, so we can send back updated _rev.
       const refIds = data.data.refs.map((r) => r._id);
 
@@ -344,8 +351,8 @@ const fromElm = (msg, data) => {
       push();
 
       // Set updatedAt field
-      data.metadata.updatedAt = Date.now();
-      fromElm("SaveMetadata", data.metadata);
+      //data.metadata.updatedAt = Date.now();
+      //fromElm("SaveMetadata", data.metadata);
     },
 
     SaveImportedData: async () => {
