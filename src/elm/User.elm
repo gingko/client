@@ -125,7 +125,6 @@ decode key json =
                 errToSeed =
                     err
                         |> Dec.errorToString
-                        |> Debug.log "decode error"
                         |> String.right 10
                         |> String.toList
                         |> List.map Char.toCode
@@ -281,10 +280,6 @@ settingsChange toMsg =
                     lang
 
                 Err err ->
-                    let
-                        _ =
-                            Debug.log "err" err
-                    in
                     En
     in
     userSettingsChange (decodeSettings >> toMsg)
