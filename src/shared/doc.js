@@ -24,6 +24,8 @@ let helpWidgetLauncher;
 let remoteDB;
 let gingko;
 let TREE_ID;
+let localHead;
+let remoteHead;
 let savedObjectIds = [];
 const userStore = container.userStore;
 const localStore = container.localStore;
@@ -225,7 +227,53 @@ const fromElm = (msg, data) => {
       }
 
       load(); // load local
-      pull(); // sync remote
+      //pull(); // sync remote
+
+      // Set up regular *fetch*
+      let options  = {selector: { _id: { $regex: `${TREE_ID}/` } }, live: true, retry: true};
+      db.replicate.from(remoteDB, options)
+        .on('change', async (ev) => {
+          console.log("ev.docs", ev.docs);
+          let maybeRemoteHead = _.find(ev.docs, ["_id", TREE_ID + "/heads/master"]);
+          if (typeof maybeRemoteHead !== "undefined") {
+            // Track remote head value
+            remoteHead = maybeRemoteHead;
+
+            // Rearrange data to format expected by Elm
+            let mappedDocs = ev.docs.map((doc) => {
+              doc._id = unprefix(doc._id);
+              return doc;
+            });
+            let groupFn = (d) => (d.hasOwnProperty("type") ? d.type : d._id);
+            let toSend = _.groupBy(mappedDocs, groupFn);
+
+            // Get new head, or possible conflict/branching history.
+            let newHead = await db
+              .get(prefix("heads/master"), { conflicts: true })
+              .catch(async (e) => e);
+
+            if (newHead.hasOwnProperty("_conflicts")) {
+              let conflictHead = await db.get(prefix("heads/master"), {
+                rev: newHead._conflicts[0],
+              });
+              console.log("auto:conflictHead", conflictHead);
+              if (!_.isEqual(remoteHead, conflictHead)) {
+                let setHead = (r) => {
+                  return r._id == prefix("heads/master") ? conflictHead : r;
+                };
+                toSend.ref = toSend.ref.map(setHead);
+                toSend.conflict = newHead;
+              } else {
+                toSend.conflict = conflictHead;
+              }
+            }
+
+            // Send new documents to Elm for merging.
+            console.log(toSend)
+            toElm(toSend, "docMsgs", "DataReceived");
+          }
+        })
+        .on('error', (err) => console.log("pull change error", err))
     },
 
     GetDocumentList: () => {
@@ -292,6 +340,9 @@ const fromElm = (msg, data) => {
         .filter((r) => refIds.includes(r.id) && r.ok);
       toElm(savedRefs, "docMsgs", "DataSaved");
 
+      // Send new changes to remote
+      push();
+
       // Set updatedAt field
       data.metadata.updatedAt = Date.now();
       fromElm("SaveMetadata", data.metadata);
@@ -314,10 +365,6 @@ const fromElm = (msg, data) => {
       await Promise.all(savePromises);
       toElm(null, "importComplete");
     },
-
-    Push: push,
-
-    Pull: () => pull(),
 
     // === DOM ===
 

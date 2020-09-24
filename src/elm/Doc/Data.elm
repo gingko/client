@@ -123,14 +123,21 @@ lastCommitTime model =
 received : Dec.Value -> ( Model, Tree ) -> { newModel : Model, newTree : Tree, shouldPush : Bool }
 received json ( oldModel, oldTree ) =
     case Dec.decodeValue decode json of
-        Ok ( newData, Nothing ) ->
+        Ok ( changedData, Nothing ) ->
+            let
+                newData =
+                    union changedData (getData oldModel)
+            in
             { newModel = Clean newData
             , newTree = checkoutRef "heads/master" newData |> Maybe.withDefault oldTree
             , shouldPush = True
             }
 
-        Ok ( newData, Just ( _, confHead ) ) ->
+        Ok ( changedData, Just ( _, confHead ) ) ->
             let
+                newData =
+                    union changedData (getData oldModel)
+
                 localHead =
                     Dict.get "heads/master" newData.refs |> Maybe.withDefault confHead
 
@@ -150,7 +157,11 @@ received json ( oldModel, oldTree ) =
                     , shouldPush = False
                     }
 
-        Err _ ->
+        Err err ->
+            let
+                _ =
+                    Debug.log "Received data err" err
+            in
             { newModel = oldModel, newTree = oldTree, shouldPush = False }
 
 
@@ -284,6 +295,14 @@ resolve cid model =
 
 
 -- INTERNALS
+
+
+union : Data -> Data -> Data
+union newData oldData =
+    { refs = Dict.union newData.refs oldData.refs
+    , commits = Dict.union newData.commits oldData.commits
+    , treeObjects = Dict.union newData.treeObjects oldData.treeObjects
+    }
 
 
 checkoutRef : String -> Data -> Maybe Tree
