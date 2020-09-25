@@ -50,7 +50,12 @@ async function saveData(localDb, treeId, elmData, savedImmutablesIds) {
   // Return responses of successfully saved documents.
   // Also return ids of successfully saved immutable objects.
   let saveResponses = await localDb.bulkDocs(toSave);
-  let successfulResponses = saveResponses.filter(r => r.ok).map(r => {delete r.ok; return r;});
+  let successfulResponses =
+    saveResponses
+      .filter(r => r.ok)
+      .map(r => {delete r.ok; return r;})
+      .map(d => unprefix(d, treeId, "id"))
+
   let immutableObjFilter = (d) => !d.id.includes("heads/master") && !d.id.includes("metadata");
   let newSavedImmutables = successfulResponses.filter(immutableObjFilter).map(r => r.id);
   return [successfulResponses, newSavedImmutables];
@@ -107,10 +112,10 @@ function prefix(doc, treeId) {
 }
 
 
-function unprefix(doc, treeId) {
+function unprefix(doc, treeId, idField = "_id") {
   let newDoc = Object.assign({},doc);
-  let newId = doc._id.slice(treeId.length + 1);
-  newDoc._id = newId;
+  let newId = doc[idField].slice(treeId.length + 1);
+  newDoc[idField] = newId;
   return newDoc;
 }
 
