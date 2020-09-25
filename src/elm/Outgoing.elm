@@ -29,7 +29,6 @@ type Msg
     | SaveData Enc.Value
     | SaveImportedData Enc.Value
     | Push
-    | Pull
       -- === File System ===
     | ExportDOCX String (Maybe String)
     | ExportJSON Tree (Maybe String)
@@ -100,9 +99,6 @@ send info =
 
         Push ->
             dataToSend "Push" null
-
-        Pull ->
-            dataToSend "Pull" null
 
         -- === File System ===
         ExportDOCX str path_ ->

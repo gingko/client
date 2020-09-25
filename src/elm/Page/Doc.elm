@@ -184,7 +184,6 @@ type Msg
     | CheckoutCommit String
     | Restore
     | CancelHistory
-    | PullFromRemote
     | SetSelection String Selection String
     | Resolve String
       -- === UI ===
@@ -439,16 +438,6 @@ update msg ({ workingTree } as model) =
                     , Cmd.none
                     )
 
-        PullFromRemote ->
-            case ( vs.viewMode, Data.conflictList model.data ) of
-                ( Normal, [] ) ->
-                    ( model
-                    , send Pull
-                    )
-
-                _ ->
-                    ( model, Cmd.none )
-
         SetSelection cid selection id ->
             let
                 newData =
@@ -609,7 +598,7 @@ update msg ({ workingTree } as model) =
                         , lastLocalSave = Data.lastCommitTime newData |> Maybe.map Time.millisToPosix
                         , dirty = False
                       }
-                    , send <| Pull
+                    , Cmd.none
                     )
 
                 DataReceived dataIn ->
@@ -2623,7 +2612,6 @@ subscriptions _ =
         , DocList.subscribe ReceivedDocuments
         , User.settingsChange SettingsChanged
         , Time.every (9 * 1000) TimeUpdate
-        , Time.every (10 * 1000) (\_ -> PullFromRemote)
         ]
 
 

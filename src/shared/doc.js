@@ -213,6 +213,10 @@ const fromElm = (msg, elmData) => {
       localStore.db(db, elmData);
       let store = await localStore.load();
       toElm(store, "docMsgs", "LocalStoreLoaded");
+
+      // Start live replication from remote.
+      let dataToElmHandler = (d) => toElm(d, "docMsgs", "DataReceived");
+      data.startPullingChanges(db, remoteDB, elmData,dataToElmHandler);
     },
 
     LoadDocument : async () => {
@@ -260,7 +264,9 @@ const fromElm = (msg, elmData) => {
       let [savedData, savedImmutables] = await data.saveData(db, TREE_ID, elmData, savedObjectIds);
       savedObjectIds = savedObjectIds.concat(savedImmutables);
       toElm(savedData, "docMsgs", "DataSaved");
-      push();
+      if(true /*TODO: no conflicts*/) {
+        data.push(db, remoteDB, TREE_ID);
+      }
     },
 
     SaveImportedData: async () => {
@@ -280,10 +286,6 @@ const fromElm = (msg, elmData) => {
       await Promise.all(savePromises);
       toElm(null, "importComplete");
     },
-
-    Push: () => {},
-
-    Pull: () => {},
 
     // === DOM ===
 
@@ -385,79 +387,18 @@ const fromElm = (msg, elmData) => {
   }
 };
 
+
+
+
 /* === Database === */
-
-async function load() {
-  let toSend = await loadDocData();
-  if (toSend.ref) {
-    toElm(toSend, "docMsgs", "DataReceived");
-  }
-}
-
-async function pull() {
-  // Get local head before replication.
-  let localHead = await db.get(prefix("heads/master")).catch(async (e) => e);
-
-  // Fetch remote changes for current document.
-  let selector = { _id: { $regex: `${TREE_ID}/` } };
-  await db.replicate.from(remoteDB, { selector }).catch(async (e) => e);
-
-  let toSend = await loadDocData();
-
-  // Get new head, or possible conflict/branching history.
-  let newHead = await db
-    .get(prefix("heads/master"), { conflicts: true })
-    .catch(async (e) => e);
-
-  // Add conflicts to data to be sent.
-  if (newHead.hasOwnProperty("_conflicts")) {
-    let conflictHead = await db.get(prefix("heads/master"), {
-      rev: newHead._conflicts[0],
-    });
-    if (_.isEqual(localHead, conflictHead)) {
-      let setHead = (r) => {
-        return r._id == prefix("heads/master") ? conflictHead : r;
-      };
-      toSend.ref = toSend.ref.map(setHead);
-      toSend.conflict = newHead;
-    } else {
-      toSend.conflict = conflictHead;
-    }
-  }
-
-  // Finally, send all objects into Elm repo.
-  if (toSend.ref) {
-    toElm(toSend, "docMsgs", "DataReceived");
-  }
-  if (toSend.metadata) {
-    toElm(toSend.metadata[0], "docMsgs", "MetadataSynced");
-  }
-}
-
-async function push() {
-  let selector = { _id: { $regex: `${TREE_ID}/` } };
-  await db.replicate.to(remoteDB, { selector }).catch(async (e) => e);
-}
 
 async function loadAndUpdateDocList() {
   let docList = await db.query("testDocList/docList").catch(async (e) => e);
   toElm(docList, "documentListChanged");
 }
 
-async function loadDocData() {
-  // Get all local entries in db, and format in object to send to Elm.
-  let result = await db.allDocs({
-    include_docs: true,
-    startkey: TREE_ID + "/",
-    endkey: TREE_ID + "/\ufff0",
-  });
-  let mappedDocs = result.rows.map((r) => {
-    r.doc._id = unprefix(r.doc._id);
-    return r.doc;
-  });
-  let groupFn = (r) => (r.hasOwnProperty("type") ? r.type : r._id);
-  return _.groupBy(mappedDocs, groupFn);
-}
+
+
 
 /* === Helper Functions === */
 

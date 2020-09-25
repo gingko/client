@@ -62,6 +62,12 @@ async function saveData(localDb, treeId, elmData, savedImmutablesIds) {
 }
 
 
+function push(localDb, remoteDb, treeId) {
+  let selector = { _id: { $regex: `${treeId}/` } };
+  localDb.replicate.to(remoteDb, { selector }).catch(async (e) => e);
+}
+
+
 async function saveLocalHead(localDb, headToSave) {
   try {
     let oldLocalHead = await localDb.get(headToSave._id);
@@ -124,4 +130,4 @@ function unprefix(doc, treeId, idField = "_id") {
 
 /* === Exports === */
 
-export { load, startPullingChanges, saveData };
+export { load, startPullingChanges, saveData, push };
