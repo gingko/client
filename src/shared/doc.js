@@ -287,6 +287,8 @@ const fromElm = (msg, elmData) => {
       toElm(null, "importComplete");
     },
 
+    Push: () => data.push(db, remoteDB, TREE_ID),
+
     // === DOM ===
 
     ActivateCards: () => {
