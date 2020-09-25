@@ -150,7 +150,11 @@ received json ( oldModel, oldTree ) =
                     , shouldPush = False
                     }
 
-        Err _ ->
+        Err err ->
+            let
+                _ =
+                    Debug.log "data received elm error" err
+            in
             { newModel = oldModel, newTree = oldTree, shouldPush = False }
 
 
@@ -663,27 +667,6 @@ getAncestors cm sh =
 decode : Dec.Decoder ( Data, Maybe ( String, RefObject ) )
 decode =
     let
-        refObjectDecoder =
-            Dec.map4 (\id v a r -> ( id, RefObject v a r ))
-                (Dec.field "_id" Dec.string)
-                (Dec.field "value" Dec.string)
-                (Dec.field "ancestors" (Dec.list Dec.string))
-                (Dec.field "_rev" Dec.string)
-
-        commitObjectDecoder =
-            Dec.map5 (\id t p a ts -> ( id, CommitObject t p a ts ))
-                (Dec.field "_id" Dec.string)
-                (Dec.field "tree" Dec.string)
-                (Dec.field "parents" (Dec.list Dec.string))
-                (Dec.field "author" Dec.string)
-                (Dec.field "timestamp" Dec.int)
-
-        treeObjectDecoder =
-            Dec.map3 (\id cn ch -> ( id, TreeObject cn ch ))
-                (Dec.field "_id" Dec.string)
-                (Dec.field "content" Dec.string)
-                (Dec.field "children" (Dec.list (tupleDecoder Dec.string Dec.string)))
-
         modelBuilder r c t cflct =
             ( Data (Dict.fromList r) (Dict.fromList c) (Dict.fromList t), cflct )
     in
@@ -692,6 +675,33 @@ decode =
         (Dec.field "commit" (Dec.list commitObjectDecoder))
         (Dec.field "tree" (Dec.list treeObjectDecoder))
         (Dec.maybe (Dec.field "conflict" refObjectDecoder))
+
+
+refObjectDecoder : Dec.Decoder ( String, RefObject )
+refObjectDecoder =
+    Dec.map4 (\id v a r -> ( id, RefObject v a r ))
+        (Dec.field "_id" Dec.string)
+        (Dec.field "value" Dec.string)
+        (Dec.field "ancestors" (Dec.list Dec.string))
+        (Dec.field "_rev" Dec.string)
+
+
+commitObjectDecoder : Dec.Decoder ( String, CommitObject )
+commitObjectDecoder =
+    Dec.map5 (\id t p a ts -> ( id, CommitObject t p a ts ))
+        (Dec.field "_id" Dec.string)
+        (Dec.field "tree" Dec.string)
+        (Dec.field "parents" (Dec.list Dec.string))
+        (Dec.field "author" Dec.string)
+        (Dec.field "timestamp" Dec.int)
+
+
+treeObjectDecoder : Dec.Decoder ( String, TreeObject )
+treeObjectDecoder =
+    Dec.map3 (\id cn ch -> ( id, TreeObject cn ch ))
+        (Dec.field "_id" Dec.string)
+        (Dec.field "content" Dec.string)
+        (Dec.field "children" (Dec.list (tupleDecoder Dec.string Dec.string)))
 
 
 encode : Model -> Enc.Value -> Enc.Value

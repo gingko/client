@@ -1,14 +1,24 @@
+import _ from "lodash";
+
 Object.defineProperty(Array.prototype, "tap", { value(f) { f(this); return this; }});
 
 
-function startPullingChanges (localDb, remoteDb, treeId) {
+async function load (localDb, treeId) {
+  let options = {include_docs: true , conflicts : true, startkey: treeId + "/", endkey: treeId + "/\ufff0"};
+  let allDocsRes = await localDb.allDocs(options);
+  let allDocs = allDocsRes.rows.map(r => r.doc).map(d => unprefix(d, treeId));
+  let toSend = loadedResToElmData(allDocs, treeId);
+  let docsWithConflicts = await getConflicts(localDb, allDocs);
+  return toSend;
+}
+
+
+function startPullingChanges (localDb, remoteDb, treeId, changeHandler) {
   let options = {selector : { _id: { $regex: `${treeId}/` } }, live : true, retry : true};
   localDb.replicate.from(remoteDb, options).on('change', async (change) => {
     if (includesRef(change)) {
-      let allDocsRes = await allTreeDocs(localDb, treeId);
-      let allDocs = allDocsResToDocs(allDocsRes);
-      let docsWithConflicts = await getConflicts(localDb, allDocs);
-      console.log("docsWithConflicts", docsWithConflicts);
+      let toSend = await load(localDb, treeId);
+      changeHandler(toSend);
     }
   });
 }
@@ -19,24 +29,31 @@ async function saveData(localDb, treeId, elmData, savedImmutablesIds) {
   // Add treeId prefix.
   let toSave =
     elmData
-      .tap(console.log)
       .filter(d => !savedImmutablesIds.includes(treeId + "/" + d._id))
-      .tap(console.log)
       .map(d => prefix(d, treeId))
 
   // Save local head as _local PouchDB document.
   // This allows us to later figure out which conflicting revision
   // was picked as the arbitrary winner (the local or remote one).
+  let makeIdLocal = (doc) => {
+    let newDoc = Object.assign({}, doc);
+    newDoc._id = `_local/${treeId}/heads/master`;
+    return newDoc;
+  }
   let localHeadToSave =
     toSave
       .filter(d => d._id === `${treeId}/heads/master`)
-      .map(lh => { lh._id = `_local/${treeId}/heads/master`; return lh; })
+      .map(makeIdLocal)
       [0];
   await saveLocalHead(localDb, localHeadToSave);
 
   // Return responses of successfully saved documents.
+  // Also return ids of successfully saved immutable objects.
   let saveResponses = await localDb.bulkDocs(toSave);
-  return saveResponses.filter(r => r.ok).map(r => {delete r.ok; return r;});
+  let successfulResponses = saveResponses.filter(r => r.ok).map(r => {delete r.ok; return r;});
+  let immutableObjFilter = (d) => !d.id.includes("heads/master") && !d.id.includes("metadata");
+  let newSavedImmutables = successfulResponses.filter(immutableObjFilter).map(r => r.id);
+  return [successfulResponses, newSavedImmutables];
 }
 
 
@@ -48,18 +65,6 @@ async function saveLocalHead(localDb, headToSave) {
     delete headToSave._rev;
   }
   return localDb.put(headToSave);
-}
-
-
-
-function allTreeDocs (db, treeId) {
-  let options = {include_docs: true , conflicts : true, startkey: treeId + "/", endkey: treeId + "/\ufff0"};
-  return db.allDocs(options);
-}
-
-
-function allDocsResToDocs (allDocsRes) {
-  return allDocsRes.rows.map(r => r.doc);
 }
 
 
@@ -75,6 +80,13 @@ async function getConflicts (db, allDocs) {
 
   let resolved = await Promise.allSettled(getConflictPromises);
   return resolved.filter(p => p.status === "fulfilled").map(p => p.value);
+}
+
+
+function loadedResToElmData (docs) {
+  let groupFn = (r) => (r.hasOwnProperty("type") ? r.type : r._id);
+  let sth = _.groupBy(docs, groupFn);
+  return sth;
 }
 
 
@@ -97,7 +109,7 @@ function prefix(doc, treeId) {
 
 function unprefix(doc, treeId) {
   let newDoc = Object.assign({},doc);
-  let newId = id.slice(treeId.length + 1);
+  let newId = doc._id.slice(treeId.length + 1);
   newDoc._id = newId;
   return newDoc;
 }
@@ -107,4 +119,4 @@ function unprefix(doc, treeId) {
 
 /* === Exports === */
 
-export { saveData, startPullingChanges };
+export { load, startPullingChanges, saveData };

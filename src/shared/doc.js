@@ -215,21 +215,21 @@ const fromElm = (msg, elmData) => {
       toElm(store, "docMsgs", "LocalStoreLoaded");
     },
 
-    LoadDocument: async () => {
+    LoadDocument : async () => {
       TREE_ID = elmData;
 
+      // Load document-specific settings.
       localStore.db(db, elmData);
       let store = await localStore.load();
       toElm(store, "docMsgs", "LocalStoreLoaded");
 
-      let metadata = await db.get("metadata").catch(async (e) => e);
-      if (!metadata.error) {
-        toElm(metadata, "docMsgs", "MetadataSaved");
-      }
-      data.startPullingChanges(db, remoteDB, elmData);
+      // Load document data.
+      let dataToElmHandler = (d) => toElm(d, "docMsgs", "DataReceived");
+      let loadedData = await data.load(db, elmData);
+      dataToElmHandler(loadedData);
 
-      load(); // load local
-      pull(); // sync remote
+      // Start live replication from remote.
+      data.startPullingChanges(db, remoteDB, elmData,dataToElmHandler);
     },
 
     GetDocumentList: () => {
@@ -257,9 +257,10 @@ const fromElm = (msg, elmData) => {
     },
 
     SaveData: async () => {
-      let savedData = await data.saveData(db, TREE_ID, elmData, savedObjectIds);
-      savedObjectIds = savedObjectIds.concat(savedData.map(d => d.id));
+      let [savedData, savedImmutables] = await data.saveData(db, TREE_ID, elmData, savedObjectIds);
+      savedObjectIds = savedObjectIds.concat(savedImmutables);
       toElm(savedData, "docMsgs", "DataSaved");
+      push();
     },
 
     SaveImportedData: async () => {
@@ -280,9 +281,9 @@ const fromElm = (msg, elmData) => {
       toElm(null, "importComplete");
     },
 
-    Push: push,
+    Push: () => {},
 
-    Pull: () => pull(),
+    Pull: () => {},
 
     // === DOM ===
 
