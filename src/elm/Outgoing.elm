@@ -26,7 +26,7 @@ type Msg
     | GetDocumentList String
     | RequestDelete String
     | NoDataToSave
-    | SaveData Enc.Value Enc.Value
+    | SaveData Enc.Value
     | SaveImportedData Enc.Value
     | Push
     | Pull
@@ -77,8 +77,8 @@ send info =
             dataToSend "ColumnNumberChange" (int cols)
 
         -- === Database ===
-        SaveData data metadata ->
-            dataToSend "SaveData" (object [ ( "data", data ), ( "metadata", metadata ) ])
+        SaveData data ->
+            dataToSend "SaveData" data
 
         SaveImportedData data ->
             dataToSend "SaveImportedData" data

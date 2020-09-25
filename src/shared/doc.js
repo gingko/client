@@ -1,4 +1,6 @@
 // @format
+import * as data from "./data.js";
+
 const jQuery = require("jquery");
 const _ = require("lodash");
 require("textarea-autosize");
@@ -22,6 +24,7 @@ let helpVisible;
 let helpWidgetLauncher;
 
 let remoteDB;
+let db;
 let gingko;
 let TREE_ID;
 let savedObjectIds = [];
@@ -96,7 +99,7 @@ function setUserDbs(email) {
     },
   };
   remoteDB = new PouchDB(userDbUrl, remoteOpts);
-  self.db = new PouchDB(userDbName);
+  db = new PouchDB(userDbName);
   userStore.db(db, remoteDB);
 
   // Sync user settings
@@ -155,38 +158,38 @@ function toElm(data, portName, tagName) {
   }
 }
 
-const fromElm = (msg, data) => {
-  console.debug("fromElm", msg, data);
+const fromElm = (msg, elmData) => {
+  console.debug("fromElm", msg, elmData);
   let cases = {
     // === SPA ===
 
     StoreUser: () => {
-      if (data == null) {
+      if (elmData == null) {
         localStorage.removeItem(sessionStorageKey);
         deleteLocalUserDbs();
       } else {
         localStorage.setItem(
           sessionStorageKey,
-          JSON.stringify(_.omit(data, "seed"))
+          JSON.stringify(_.omit(elmData, "seed"))
         );
-        setUserDbs(data.email);
-        setTimeout(() => gingko.ports.userLoginChange.send(data), 0);
+        setUserDbs(elmData.email);
+        setTimeout(() => gingko.ports.userLoginChange.send(elmData), 0);
       }
     },
 
     // === Dialogs, Menus, Window State ===
 
     Alert: () => {
-      alert(data);
+      alert(elmData);
     },
 
     ConfirmCancelCard: () => {
-      let tarea = document.getElementById("card-edit-" + data[0]);
+      let tarea = document.getElementById("card-edit-" + elmData[0]);
 
       if (tarea === null) {
         console.log("tarea not found");
       } else {
-        if (tarea.value === data[1] || confirm(tr.areYouSureCancel[lang])) {
+        if (tarea.value === elmData[1] || confirm(tr.areYouSureCancel[lang])) {
           toElm(null, "docMsgs", "CancelCardConfirmed");
         }
       }
@@ -195,27 +198,27 @@ const fromElm = (msg, data) => {
     // === Database ===
 
     InitDocument: async () => {
-      TREE_ID = data;
+      TREE_ID = elmData;
 
       const now = Date.now();
       let metadata = {
-        _id: data + "/metadata",
-        docId: data,
+        _id: elmData + "/metadata",
+        docId: elmData,
         name: null,
         createdAt: now,
         updatedAt: now,
       };
       await db.put(metadata).catch(async (e) => e);
 
-      localStore.db(db, data);
+      localStore.db(db, elmData);
       let store = await localStore.load();
       toElm(store, "docMsgs", "LocalStoreLoaded");
     },
 
     LoadDocument: async () => {
-      TREE_ID = data;
+      TREE_ID = elmData;
 
-      localStore.db(db, data);
+      localStore.db(db, elmData);
       let store = await localStore.load();
       toElm(store, "docMsgs", "LocalStoreLoaded");
 
@@ -223,6 +226,7 @@ const fromElm = (msg, data) => {
       if (!metadata.error) {
         toElm(metadata, "docMsgs", "MetadataSaved");
       }
+      data.startPullingChanges(db, remoteDB, elmData);
 
       load(); // load local
       pull(); // sync remote
@@ -235,8 +239,8 @@ const fromElm = (msg, data) => {
     RequestDelete: async () => {
       if (confirm("Are you sure you want to delete this document?")) {
         let docsFetch = await remoteDB.allDocs({
-          startkey: data + "/",
-          endkey: data + "/\ufff0",
+          startkey: elmData + "/",
+          endkey: elmData + "/\ufff0",
         });
 
         let docsToDelete = docsFetch.rows.map((r) => {
@@ -253,52 +257,13 @@ const fromElm = (msg, data) => {
     },
 
     SaveData: async () => {
-      // Store ids of refs, so we can send back updated _rev.
-      const refIds = data.data.refs.map((r) => r._id);
-
-      // Keep objects that are not saved in database.
-      const newCommits = data.data.commits.filter(
-        (o) => !savedObjectIds.includes(o._id)
-      );
-      const newTreeObjects = data.data.treeObjects.filter(
-        (o) => !savedObjectIds.includes(o._id)
-      );
-
-      // Remove conflicts if head is updated
-      let savedHead = await db
-        .get(prefix("heads/master"), { conflicts: true })
-        .catch(async (e) => e);
-      if (savedHead.hasOwnProperty("_conflicts")) {
-        let revToDelete = savedHead._conflicts[0];
-        await db.remove(prefix("heads/master"), revToDelete);
-      }
-
-      // Save to database, and add successes to savedObjectIds.
-      const rows = [...newCommits, ...newTreeObjects, ...data.data.refs];
-      const toSave = rows.map((r) => {
-        r._id = prefix(r._id);
-        return r;
-      });
-      const responses = await db.bulkDocs(toSave);
-      const savedIds = responses.filter((r) => r.ok).map((o) => o.id);
-      savedObjectIds = savedObjectIds.concat(savedIds);
-
-      // Send updated _revs for successful ref saves.
-      const savedRefs = responses
-        .map((r) => {
-          r.id = unprefix(r.id);
-          return r;
-        })
-        .filter((r) => refIds.includes(r.id) && r.ok);
-      toElm(savedRefs, "docMsgs", "DataSaved");
-
-      // Set updatedAt field
-      data.metadata.updatedAt = Date.now();
-      fromElm("SaveMetadata", data.metadata);
+      let savedData = await data.saveData(db, TREE_ID, elmData, savedObjectIds);
+      savedObjectIds = savedObjectIds.concat(savedData.map(d => d.id));
+      toElm(savedData, "docMsgs", "DataSaved");
     },
 
     SaveImportedData: async () => {
-      let savePromises = data.map((doc) => {
+      let savePromises = elmData.map((doc) => {
         let dataRows = [
           ...doc.data.commits,
           ...doc.data.treeObjects,
@@ -322,18 +287,18 @@ const fromElm = (msg, data) => {
     // === DOM ===
 
     ActivateCards: () => {
-      lastActivesScrolled = data.lastActives;
-      lastColumnScrolled = data.column;
+      lastActivesScrolled = elmData.lastActives;
+      lastColumnScrolled = elmData.column;
 
-      helpers.scrollHorizontal(data.column, data.instant);
-      helpers.scrollColumns(data.lastActives, data.instant);
+      helpers.scrollHorizontal(elmData.column, elmData.instant);
+      helpers.scrollColumns(elmData.lastActives, elmData.instant);
 
-      localStore.set("last-active", data.cardId);
+      localStore.set("last-active", elmData.cardId);
     },
 
     DragStart: () => {
-      data.dataTransfer.setData("text", "");
-      toElm(data.target.id.replace(/^card-/, ""), "docMsgs", "DragStarted");
+      elmData.dataTransfer.setData("text", "");
+      toElm(elmData.target.id.replace(/^card-/, ""), "docMsgs", "DragStarted");
     },
 
     FlashCurrentSubtree: () => {
@@ -352,8 +317,8 @@ const fromElm = (msg, data) => {
     },
 
     TextSurround: () => {
-      let id = data[0];
-      let surroundString = data[1];
+      let id = elmData[0];
+      let surroundString = elmData[1];
       let tarea = document.getElementById("card-edit-" + id);
 
       if (tarea === null) {
@@ -370,21 +335,21 @@ const fromElm = (msg, data) => {
     },
 
     SetCursorPosition: () => {
-      let pos = data[0];
+      let pos = elmData[0];
       setTimeout(() => document.activeElement.setSelectionRange(pos, pos), 0);
     },
 
     // === UI ===
     SaveMetadata: async () => {
-      data._id = prefix(data._id);
-      let saveRes = await db.put(data).catch(async (e) => e);
+      elmData._id = prefix(elmData._id);
+      let saveRes = await db.put(elmData).catch(async (e) => e);
       if (saveRes.ok) {
         await db.replicate.to(remoteDB, { doc_ids: [prefix("metadata")] });
-        data._rev = saveRes.rev;
-        data._id = unprefix(data._id);
-        toElm(data, "docMsgs", "MetadataSaved");
+        elmData._rev = saveRes.rev;
+        elmData._id = unprefix(elmData._id);
+        toElm(elmData, "docMsgs", "MetadataSaved");
       } else {
-        console.error(data, saveRes);
+        console.error(elmData, saveRes);
         toElm(null, "docMsgs", "MetadataSaveError");
       }
     },
@@ -392,30 +357,30 @@ const fromElm = (msg, data) => {
     UpdateCommits: () => {},
 
     SetVideoModal: () => {
-      userStore.set("video-modal-is-open", data);
+      userStore.set("video-modal-is-open", elmData);
     },
 
     SetLanguage: () => {
-      userStore.set("language", data);
+      userStore.set("language", elmData);
     },
 
     SetFonts: () => {},
 
     SetShortcutTray: () => {
-      userStore.set("shortcut-tray-is-open", data);
+      userStore.set("shortcut-tray-is-open", elmData);
     },
 
     // === Misc ===
 
     SocketSend: () => {},
 
-    ConsoleLogRequested: () => console.error(data),
+    ConsoleLogRequested: () => console.error(elmData),
   };
 
   try {
     cases[msg]();
   } catch (err) {
-    console.error("Unexpected message from Elm : ", msg, data, err);
+    console.error("Unexpected message from Elm : ", msg, elmData, err);
   }
 };
 

@@ -1,4 +1,4 @@
-module Doc.Data exposing (Data, Model, checkout, commit, commitTree, conflictList, conflictSelection, empty, emptyData, encode, encodeData, getData, head, lastCommitTime, received, resolve, success)
+module Doc.Data exposing (Data, Model, checkout, commit, commitTree, conflictList, conflictSelection, empty, emptyData, encode, getData, head, lastCommitTime, received, resolve, success, toValue)
 
 import Coders exposing (tupleDecoder)
 import Dict exposing (Dict)
@@ -694,45 +694,63 @@ decode =
         (Dec.maybe (Dec.field "conflict" refObjectDecoder))
 
 
-encode : Model -> Enc.Value
-encode model =
-    encodeData (getData model)
-
-
-encodeData : Data -> Enc.Value
-encodeData data =
+encode : Model -> Enc.Value -> Enc.Value
+encode model metadata =
     let
-        treeObjectToValue ( sha, treeObject ) =
-            Enc.object
-                [ ( "_id", Enc.string sha )
-                , ( "type", Enc.string "tree" )
-                , ( "content", Enc.string treeObject.content )
-                , ( "children"
-                  , Enc.list (Enc.list Enc.string) (List.map (\( childSha, childId ) -> [ childSha, childId ]) treeObject.children)
-                  )
-                ]
+        data =
+            getData model
 
-        refToValue ( sha, ref ) =
-            Enc.object
-                [ ( "_id", Enc.string sha )
-                , ( "_rev", Enc.string ref.rev )
-                , ( "type", Enc.string "ref" )
-                , ( "value", Enc.string ref.value )
-                , ( "ancestors", Enc.list Enc.string ref.ancestors )
-                ]
+        refs =
+            List.map refToValue (Dict.toList data.refs)
 
-        commitToValue ( sha, commitObj ) =
-            Enc.object
-                [ ( "_id", Enc.string sha )
-                , ( "type", Enc.string "commit" )
-                , ( "tree", Enc.string commitObj.tree )
-                , ( "parents", Enc.list Enc.string commitObj.parents )
-                , ( "author", Enc.string commitObj.author )
-                , ( "timestamp", Enc.int commitObj.timestamp )
-                ]
+        commits =
+            List.map commitToValue (Dict.toList data.commits)
+
+        treeObjects =
+            List.map treeObjectToValue (Dict.toList data.treeObjects)
     in
+    Enc.list identity (metadata :: refs ++ commits ++ treeObjects)
+
+
+toValue : Data -> Enc.Value
+toValue data =
     Enc.object
         [ ( "refs", Enc.list refToValue (Dict.toList data.refs) )
         , ( "commits", Enc.list commitToValue (Dict.toList data.commits) )
         , ( "treeObjects", Enc.list treeObjectToValue (Dict.toList data.treeObjects) )
+        ]
+
+
+treeObjectToValue : ( String, TreeObject ) -> Enc.Value
+treeObjectToValue ( sha, treeObject ) =
+    Enc.object
+        [ ( "_id", Enc.string sha )
+        , ( "type", Enc.string "tree" )
+        , ( "content", Enc.string treeObject.content )
+        , ( "children"
+          , Enc.list (Enc.list Enc.string) (List.map (\( childSha, childId ) -> [ childSha, childId ]) treeObject.children)
+          )
+        ]
+
+
+refToValue : ( String, RefObject ) -> Enc.Value
+refToValue ( sha, ref ) =
+    Enc.object
+        [ ( "_id", Enc.string sha )
+        , ( "_rev", Enc.string ref.rev )
+        , ( "type", Enc.string "ref" )
+        , ( "value", Enc.string ref.value )
+        , ( "ancestors", Enc.list Enc.string ref.ancestors )
+        ]
+
+
+commitToValue : ( String, CommitObject ) -> Enc.Value
+commitToValue ( sha, commitObj ) =
+    Enc.object
+        [ ( "_id", Enc.string sha )
+        , ( "type", Enc.string "commit" )
+        , ( "tree", Enc.string commitObj.tree )
+        , ( "parents", Enc.list Enc.string commitObj.parents )
+        , ( "author", Enc.string commitObj.author )
+        , ( "timestamp", Enc.int commitObj.timestamp )
         ]

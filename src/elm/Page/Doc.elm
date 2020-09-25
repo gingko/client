@@ -1995,7 +1995,7 @@ addToHistoryDo ( { workingTree, currentTime } as model, prevCmd ) =
     if newData /= model.data then
         ( { model | data = newData }
         , Cmd.batch
-            [ send <| SaveData (Data.encode newData) (Metadata.encode model.metadata)
+            [ send <| SaveData (Data.encode newData (Metadata.encode model.metadata))
             , prevCmd
             ]
         )

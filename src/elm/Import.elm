@@ -46,7 +46,7 @@ encode author dataList =
                 Enc.object
                     [ ( "id", Enc.string tid )
                     , ( "metadata", Metadata.encode mdata )
-                    , ( "data", Data.encodeData tdata )
+                    , ( "data", Data.toValue tdata )
                     ]
             )
 

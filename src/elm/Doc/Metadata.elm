@@ -94,7 +94,7 @@ decoderImport =
         |> optional "deleted" Dec.bool False
 
 
-encode : Metadata -> Dec.Value
+encode : Metadata -> Enc.Value
 encode (Metadata docId { docName, createdAt, updatedAt, rev }) =
     case rev of
         Just revData ->
