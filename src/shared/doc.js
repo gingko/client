@@ -233,7 +233,6 @@ const fromElm = (msg, data) => {
       let options  = {selector: { _id: { $regex: `${TREE_ID}/` } }, live: true, retry: true};
       db.replicate.from(remoteDB, options)
         .on('change', async (ev) => {
-          console.log("ev.docs", ev.docs);
           let maybeRemoteHead = _.find(ev.docs, ["_id", TREE_ID + "/heads/master"]);
           if (typeof maybeRemoteHead !== "undefined") {
             // Rearrange data to format expected by Elm
@@ -248,30 +247,27 @@ const fromElm = (msg, data) => {
             let newHead = await db
               .get(prefix("heads/master"), { conflicts: true })
               .catch(async (e) => e);
+            newHead._id = unprefix(newHead._id);
 
             if (newHead.hasOwnProperty("_conflicts")) {
+              // Get conflicting revision
               let conflictHead = await db.get(prefix("heads/master"), {
                 rev: newHead._conflicts[0],
               });
+              conflictHead._id = unprefix(conflictHead._id);
+
               if (localHead === conflictHead.value) {
-                console.log("NO need to flip", localHead, conflictHead);
-                // Winning revision is remote.
+                // Losing revision (conflictHead) is the local one, need to switch them.
+                toSend.conflict = newHead;
+                toSend.ref = toSend.ref.map(r => r._id === "heads/master" ? conflictHead : r);
+              } else {
+                // Conflict head is already the remote.
                 // Therefore don't flip.
                 toSend.conflict = conflictHead;
-              } else {
-                console.log("need to flip", localHead, conflictHead, JSON.toString(toSend));
-                // Winning revision is local.
-                // Therefore we need to flip conflict and winner.
-                toSend.conflict = newHead;
-                let setHead = (r) => {
-                  return r._id == prefix("heads/master") ? conflictHead : r;
-                };
-                toSend.ref = toSend.ref.map(setHead);
               }
             }
 
             // Send new documents to Elm for merging.
-            console.log(toSend)
             toElm(toSend, "docMsgs", "DataReceived");
           }
         })
@@ -323,8 +319,10 @@ const fromElm = (msg, data) => {
       let savedHead = await db
         .get(prefix("heads/master"), { conflicts: true })
         .catch(async (e) => e);
+      console.log("savedHead", savedHead);
       if (savedHead.hasOwnProperty("_conflicts")) {
         let revToDelete = savedHead._conflicts[0];
+        console.log("revToDelete", revToDelete);
         await db.remove(prefix("heads/master"), revToDelete);
       }
 
