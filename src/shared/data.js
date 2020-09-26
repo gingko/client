@@ -58,8 +58,6 @@ async function saveData(localDb, treeId, elmData, savedImmutablesIds) {
 
   // Check if we've resolved a merge conflict
   let [head, headConflicts] = await getHeadAndConflicts(localDb, treeId);
-  console.log("head", head);
-  console.log("headConflicts", headConflicts);
   if (headConflicts.length > 0) {
     // If winning rev is greater than conflicting ones
     // then the conflict was resolved. Delete conflicting revs.
@@ -150,7 +148,7 @@ function maybeAddConflict(elmDocs, conflictingDocs, savedLocalHead) {
 
   if (losingHead.value === savedLocalHead.value) {
     // Flip
-    newDocs.ref.map(d => d._id === headId ? losingHead : d);
+    newDocs.ref = newDocs.ref.map(d => d._id === headId ? losingHead : d);
     newDocs.conflict = winningHead;
   } else {
     newDocs.conflict = losingHead;
