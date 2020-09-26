@@ -6,10 +6,11 @@ Object.defineProperty(Array.prototype, "tap", { value(f) { f(this); return this;
 async function load (localDb, treeId) {
   let options = {include_docs: true , conflicts : true, startkey: treeId + "/", endkey: treeId + "/\ufff0"};
   let allDocsRes = await localDb.allDocs(options);
-  let allDocs = allDocsRes.rows.map(r => r.doc).map(d => unprefix(d, treeId));
-  let toSend = loadedResToElmData(allDocs, treeId);
-  let docsWithConflicts = await getConflicts(localDb, allDocs);
-  return toSend;
+  let allDocs = allDocsRes.rows.map(r => r.doc);
+  let elmDocs = loadedResToElmData(allDocs, treeId);
+  let conflictedDocs = await getAllConflicts(localDb, allDocs, treeId);
+  let localHead = await loadLocalHead(localDb, treeId).catch(e => null);
+  return maybeAddConflict(elmDocs, conflictedDocs, localHead);
 }
 
 
@@ -47,8 +48,7 @@ async function saveData(localDb, treeId, elmData, savedImmutablesIds) {
       [0];
   await saveLocalHead(localDb, localHeadToSave);
 
-  // Return responses of successfully saved documents.
-  // Also return ids of successfully saved immutable objects.
+  // Save documents and return responses of successfully saved ones.
   let saveResponses = await localDb.bulkDocs(toSave);
   let successfulResponses =
     saveResponses
@@ -56,8 +56,23 @@ async function saveData(localDb, treeId, elmData, savedImmutablesIds) {
       .map(r => {delete r.ok; return r;})
       .map(d => unprefix(d, treeId, "id"))
 
+  // Check if we've resolved a merge conflict
+  let [head, headConflicts] = await getHeadAndConflicts(localDb, treeId);
+  console.log("head", head);
+  console.log("headConflicts", headConflicts);
+  if (headConflicts.length > 0) {
+    // If winning rev is greater than conflicting ones
+    // then the conflict was resolved. Delete conflicting revs.
+    if (revToInt(head._rev) > revToInt(headConflicts[0]._rev)) {
+      headConflicts.map(confDoc => localDb.remove(confDoc._id, confDoc._rev));
+    }
+  }
+
+  // Get ids of successfully saved immutable objects.
   let immutableObjFilter = (d) => !d.id.includes("heads/master") && !d.id.includes("metadata");
   let newSavedImmutables = successfulResponses.filter(immutableObjFilter).map(r => r.id);
+
+
   return [successfulResponses, newSavedImmutables];
 }
 
@@ -79,7 +94,32 @@ async function saveLocalHead(localDb, headToSave) {
 }
 
 
-async function getConflicts (db, allDocs) {
+function loadLocalHead(localDb, treeId) {
+  return localDb.get(`_local/${treeId}/heads/master`)
+}
+
+
+async function getHeadAndConflicts(localDb, treeId) {
+  let headId = `${treeId}/heads/master`;
+  let head = await localDb.get(headId, {conflicts: true});
+
+  let conflictPromises = [];
+  if (head.hasOwnProperty("_conflicts")) {
+    conflictPromises =
+      head._conflicts.map(confRev => localDb.get(headId, {rev: confRev}));
+  }
+  let resolved = await Promise.allSettled(conflictPromises);
+
+  let retVal =
+    resolved
+      .filter(p => p.status === "fulfilled")
+      .map(p => p.value)
+
+  return [head, retVal];
+}
+
+
+async function getAllConflicts (db, allDocs, treeId) {
   let idConfTupleMap = (id, confRevs) => {
     return confRevs.flatMap(confRev => db.get(id, {rev: confRev}));
   }
@@ -90,20 +130,50 @@ async function getConflicts (db, allDocs) {
       .flatMap(tup => idConfTupleMap(tup[0],tup[1]))
 
   let resolved = await Promise.allSettled(getConflictPromises);
-  return resolved.filter(p => p.status === "fulfilled").map(p => p.value);
+
+  return resolved
+    .filter(p => p.status === "fulfilled")
+    .map(p => p.value)
+    .map(d => unprefix(d, treeId));
 }
 
 
-function loadedResToElmData (docs) {
+function maybeAddConflict(elmDocs, conflictingDocs, savedLocalHead) {
+  if (conflictingDocs.length === 0) { return elmDocs }
+
+  let newDocs = Object.assign({}, elmDocs);
+  let headId = `heads/master`;
+
+  let losingHead = conflictingDocs.filter(d => d._id === headId)[0];
+  let winningHead = newDocs.ref.filter(d => d._id === headId)[0];
+  console.log("winning, losing", winningHead, losingHead);
+
+  if (losingHead.value === savedLocalHead.value) {
+    // Flip
+    newDocs.ref.map(d => d._id === headId ? losingHead : d);
+    newDocs.conflict = winningHead;
+  } else {
+    newDocs.conflict = losingHead;
+  }
+  return newDocs;
+}
+
+
+function loadedResToElmData (docs, treeId) {
+  let newDocs = docs.map(d => unprefix(d, treeId));
   let groupFn = (r) => (r.hasOwnProperty("type") ? r.type : r._id);
-  let sth = _.groupBy(docs, groupFn);
-  return sth;
+  return _.groupBy(newDocs, groupFn);
 }
 
 
 
 
 /* === Helper Functions === */
+
+function revToInt (rev) {
+  return Number(rev.split('-')[0]);
+}
+
 
 function includesRef (change) {
   return change.docs.map(d => d.type).includes("ref");
@@ -112,16 +182,14 @@ function includesRef (change) {
 
 function prefix(doc, treeId) {
   let newDoc = Object.assign({},doc);
-  let newId = treeId + "/" + doc._id;
-  newDoc._id = newId;
+  newDoc._id = treeId + "/" + doc._id;
   return newDoc;
 }
 
 
 function unprefix(doc, treeId, idField = "_id") {
   let newDoc = Object.assign({},doc);
-  let newId = doc[idField].slice(treeId.length + 1);
-  newDoc[idField] = newId;
+  newDoc[idField] = doc[idField].slice(treeId.length + 1);
   return newDoc;
 }
 
