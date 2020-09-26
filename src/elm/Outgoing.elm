@@ -41,7 +41,6 @@ type Msg
     | TextSurround String String
     | SetCursorPosition Int
       -- === UI ===
-    | SaveMetadata Enc.Value
     | UpdateCommits ( Enc.Value, Maybe String )
     | SetVideoModal Bool
     | SetLanguage Language
@@ -169,9 +168,6 @@ send info =
             dataToSend "SetCursorPosition" (int pos)
 
         -- === UI ===
-        SaveMetadata metadata ->
-            dataToSend "SaveMetadata" metadata
-
         UpdateCommits ( objectsValue, head_ ) ->
             let
                 headToValue mbs =

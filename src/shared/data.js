@@ -24,11 +24,29 @@ function startPullingChanges (localDb, remoteDb, treeId, changeHandler) {
 
 
 async function saveData(localDb, treeId, elmData, savedImmutablesIds) {
+  // Function to modify metadata & get its _rev.
+  let updateMetadata;
+  if (elmData.filter(d => d._id === "metadata").length > 0) {
+    let savedMetadata = await localDb.get(treeId + "/metadata").catch(e => e);
+    updateMetadata = d => {
+      if (d._id === "metadata") {
+        d.updatedAt = Date.now();
+        if (savedMetadata.hasOwnProperty("_rev")) {
+          d._rev = savedMetadata._rev;
+        }
+      }
+      return d;
+    };
+  } else {
+    updateMetadata = d => d
+  }
+
   // Filter out already saved immutable objects.
   // Add treeId prefix.
   let toSave =
     elmData
       .filter(d => !savedImmutablesIds.includes(treeId + "/" + d._id))
+      .map(updateMetadata)
       .map(d => prefix(d, treeId))
 
   // Save local head as _local PouchDB document.
@@ -44,7 +62,9 @@ async function saveData(localDb, treeId, elmData, savedImmutablesIds) {
       .filter(d => d._id === `${treeId}/heads/master`)
       .map(makeIdLocal)
       [0];
-  await saveLocalHead(localDb, localHeadToSave);
+  if (typeof localHeadToSave !== "undefined") {
+    await saveLocalHead(localDb, localHeadToSave);
+  }
 
   // Save documents and return responses of successfully saved ones.
   let saveResponses = await localDb.bulkDocs(toSave);

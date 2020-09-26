@@ -117,10 +117,12 @@ encode (Metadata docId { docName, createdAt, updatedAt, rev }) =
                 ]
 
 
-rename : String -> Metadata -> Dec.Value
+rename : String -> Metadata -> Enc.Value
 rename newDocName (Metadata docId record) =
     Metadata docId
         { record
             | docName = Just newDocName
         }
-        |> encode
+        |> List.singleton
+        |> List.map encode
+        |> Enc.list identity
