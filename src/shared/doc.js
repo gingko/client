@@ -261,10 +261,10 @@ const fromElm = (msg, elmData) => {
     },
 
     SaveData: async () => {
-      let [savedData, savedImmutables] = await data.saveData(db, TREE_ID, elmData, savedObjectIds);
+      let [savedData, savedImmutables, conflictsExist] = await data.saveData(db, TREE_ID, elmData, savedObjectIds);
       savedObjectIds = savedObjectIds.concat(savedImmutables);
       toElm(savedData, "docMsgs", "DataSaved");
-      if(true /*TODO: no conflicts*/) {
+      if(!conflictsExist) {
         data.push(db, remoteDB, TREE_ID);
       }
     },

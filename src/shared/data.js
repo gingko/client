@@ -57,13 +57,17 @@ async function saveData(localDb, treeId, elmData, savedImmutablesIds) {
       .map(d => unprefix(d, treeId, "id"))
 
   // Check if we've resolved a merge conflict
+  let conflictsExist;
   let [head, headConflicts] = await getHeadAndConflicts(localDb, treeId);
   if (headConflicts.length > 0) {
     // If winning rev is greater than conflicting ones
     // then the conflict was resolved. Delete conflicting revs.
     if (revToInt(head._rev) > revToInt(headConflicts[0]._rev)) {
       headConflicts.map(confDoc => localDb.remove(confDoc._id, confDoc._rev));
+      conflictsExist = false;
     }
+  } else {
+    conflictsExist = true;
   }
 
   // Get ids of successfully saved immutable objects.
@@ -71,7 +75,7 @@ async function saveData(localDb, treeId, elmData, savedImmutablesIds) {
   let newSavedImmutables = successfulResponses.filter(immutableObjFilter).map(r => r.id);
 
 
-  return [successfulResponses, newSavedImmutables];
+  return [successfulResponses, newSavedImmutables, conflictsExist];
 }
 
 
