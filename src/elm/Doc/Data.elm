@@ -120,13 +120,12 @@ lastCommitTime model =
 -- EXPOSED : Functions
 
 
-received : Dec.Value -> ( Model, Tree ) -> { newModel : Model, newTree : Tree, shouldPush : Bool }
+received : Dec.Value -> ( Model, Tree ) -> { newModel : Model, newTree : Tree }
 received json ( oldModel, oldTree ) =
     case Dec.decodeValue decode json of
         Ok ( newData, Nothing ) ->
             { newModel = Clean newData
             , newTree = checkoutRef "heads/master" newData |> Maybe.withDefault oldTree
-            , shouldPush = True
             }
 
         Ok ( newData, Just ( _, confHead ) ) ->
@@ -141,21 +140,15 @@ received json ( oldModel, oldTree ) =
                 Clean data ->
                     { newModel = Clean data
                     , newTree = checkoutRef "heads/master" data |> Maybe.withDefault oldTree
-                    , shouldPush = False
                     }
 
                 MergeConflict data cdata ->
                     { newModel = MergeConflict data cdata
                     , newTree = cdata.mergedTree
-                    , shouldPush = False
                     }
 
         Err err ->
-            let
-                _ =
-                    Debug.log "data received elm error" err
-            in
-            { newModel = oldModel, newTree = oldTree, shouldPush = False }
+            { newModel = oldModel, newTree = oldTree }
 
 
 success : Dec.Value -> Model -> Model

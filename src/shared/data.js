@@ -4,9 +4,7 @@ Object.defineProperty(Array.prototype, "tap", { value(f) { f(this); return this;
 
 
 async function load (localDb, treeId) {
-  let options = {include_docs: true , conflicts : true, startkey: treeId + "/", endkey: treeId + "/\ufff0"};
-  let allDocsRes = await localDb.allDocs(options);
-  let allDocs = allDocsRes.rows.map(r => r.doc);
+  let allDocs = await loadAll(localDb, treeId);
   let elmDocs = loadedResToElmData(allDocs, treeId);
   let conflictedDocs = await getAllConflicts(localDb, allDocs, treeId);
   let localHead = await loadLocalHead(localDb, treeId).catch(e => null);
@@ -63,11 +61,14 @@ async function saveData(localDb, treeId, elmData, savedImmutablesIds) {
     // If winning rev is greater than conflicting ones
     // then the conflict was resolved. Delete conflicting revs.
     if (revToInt(head._rev) > revToInt(headConflicts[0]._rev)) {
-      headConflicts.map(confDoc => localDb.remove(confDoc._id, confDoc._rev));
+      let confDelPromises = headConflicts.map(confDoc => localDb.remove(confDoc._id, confDoc._rev));
+      await Promise.allSettled(confDelPromises);
       conflictsExist = false;
+    } else {
+      conflictsExist = true
     }
   } else {
-    conflictsExist = true;
+    conflictsExist = false;
   }
 
   // Get ids of successfully saved immutable objects.
@@ -79,9 +80,25 @@ async function saveData(localDb, treeId, elmData, savedImmutablesIds) {
 }
 
 
-function push(localDb, remoteDb, treeId) {
-  let selector = { _id: { $regex: `${treeId}/` } };
-  localDb.replicate.to(remoteDb, { selector }).catch(async (e) => e);
+async function push(localDb, remoteDb, treeId, checkForConflicts) {
+  let shouldPush = true;
+  if (checkForConflicts) {
+    let allDocs = await loadAll(localDb, treeId);
+    let conflictedDocs = await getAllConflicts(localDb, allDocs, treeId);
+    shouldPush = conflictedDocs.length === 0;
+  }
+
+  if (shouldPush) {
+    let selector = { _id: { $regex: `${treeId}/` } };
+    localDb.replicate.to(remoteDb, { selector }).catch(async (e) => e);
+  }
+}
+
+
+async function loadAll(localDb, treeId) {
+  let options = {include_docs: true , conflicts : true, startkey: treeId + "/", endkey: treeId + "/\ufff0"};
+  let allDocsRes = await localDb.allDocs(options);
+  return allDocsRes.rows.map(r => r.doc);
 }
 
 
@@ -148,7 +165,6 @@ function maybeAddConflict(elmDocs, conflictingDocs, savedLocalHead) {
 
   let losingHead = conflictingDocs.filter(d => d._id === headId)[0];
   let winningHead = newDocs.ref.filter(d => d._id === headId)[0];
-  console.log("winning, losing", winningHead, losingHead);
 
   if (losingHead.value === savedLocalHead.value) {
     // Flip

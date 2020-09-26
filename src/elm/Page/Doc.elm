@@ -2006,7 +2006,7 @@ addToHistory ( model, prevCmd ) =
 dataReceived : Json.Value -> Model -> ( Model, Cmd Msg )
 dataReceived dataIn model =
     let
-        { newModel, newTree, shouldPush } =
+        { newModel, newTree } =
             Data.received dataIn ( model.data, model.workingTree.tree )
 
         newWorkingTree =
@@ -2023,13 +2023,7 @@ dataReceived dataIn model =
         , lastRemoteSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
         , startingWordcount = startingWordcount
       }
-    , Cmd.batch
-        [ if shouldPush then
-            send <| Push
-
-          else
-            Cmd.none
-        ]
+    , send <| MaybePush
     )
         |> maybeColumnsChanged model.workingTree.columns
         |> (if model.loading then

@@ -265,7 +265,7 @@ const fromElm = (msg, elmData) => {
       savedObjectIds = savedObjectIds.concat(savedImmutables);
       toElm(savedData, "docMsgs", "DataSaved");
       if(!conflictsExist) {
-        data.push(db, remoteDB, TREE_ID);
+        data.push(db, remoteDB, TREE_ID, false);
       }
     },
 
@@ -287,7 +287,9 @@ const fromElm = (msg, elmData) => {
       toElm(null, "importComplete");
     },
 
-    Push: () => data.push(db, remoteDB, TREE_ID),
+    MaybePush: () => {
+      data.push(db, remoteDB, TREE_ID, true);
+    },
 
     // === DOM ===
 

@@ -28,7 +28,7 @@ type Msg
     | NoDataToSave
     | SaveData Enc.Value
     | SaveImportedData Enc.Value
-    | Push
+    | MaybePush
       -- === File System ===
     | ExportDOCX String (Maybe String)
     | ExportJSON Tree (Maybe String)
@@ -97,8 +97,8 @@ send info =
         NoDataToSave ->
             dataToSend "NoDataToSave" null
 
-        Push ->
-            dataToSend "Push" null
+        MaybePush ->
+            dataToSend "MaybePush" null
 
         -- === File System ===
         ExportDOCX str path_ ->
