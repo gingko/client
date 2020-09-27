@@ -6,7 +6,7 @@ Object.defineProperty(Array.prototype, "tap", { value(f) { f(this); return this;
 async function load (localDb, treeId) {
   let allDocs = await loadAll(localDb, treeId);
   let elmDocs = loadedResToElmData(allDocs, treeId);
-  let conflictedDocs = await getAllConflicts(localDb, allDocs, treeId);
+  let conflictedDocs = await getConflicts(localDb, allDocs, treeId);
   let localHead = await loadLocalHead(localDb, treeId).catch(e => undefined);
   return maybeAddConflict(elmDocs, conflictedDocs, localHead);
 }
@@ -19,12 +19,22 @@ async function loadMetadata(localDb, treeId) {
 
 function startPullingChanges (localDb, remoteDb, treeId, changeHandler) {
   let options = {selector : { _id: { $regex: `${treeId}/` } }, live : true, retry : true};
-  localDb.replicate.from(remoteDb, options).on('change', async (change) => {
-    if (includesRef(change)) {
-      let toSend = await load(localDb, treeId);
-      changeHandler(toSend);
-    }
-  });
+  localDb.replicate.from(remoteDb, options)
+    .on('change', async (change) => {
+      let metadataDocs = getMetadataDocs(change);
+      console.log("metadataDocs", metadataDocs);
+      if (metadataDocs.length > 0) {
+        await resolveMetadataConflicts(localDb, metadataDocs);
+      }
+      if (includesRef(change)) {
+        let toSend = await load(localDb, treeId);
+        changeHandler(toSend);
+      }
+    })
+    .on('paused', (err) => {
+      console.log("PAUSED and sending a push");
+      push(localDb, remoteDb, treeId, true, (s) => console.log("SUCCESS push", s))
+    });
 }
 
 
@@ -119,7 +129,8 @@ async function push(localDb, remoteDb, treeId, checkForConflicts, successHandler
   let shouldPush = true;
   if (checkForConflicts) {
     let allDocs = await loadAll(localDb, treeId);
-    let conflictedDocs = await getAllConflicts(localDb, allDocs, treeId);
+    let conflictedDocs = await getConflicts(localDb, allDocs, treeId);
+    console.log("push conflicted", conflictedDocs);
     shouldPush = conflictedDocs.length === 0;
   }
 
@@ -175,12 +186,12 @@ async function getHeadAndConflicts(localDb, treeId) {
 }
 
 
-async function getAllConflicts (db, allDocs, treeId) {
+async function getConflicts (db, docsList, treeId) {
   let idConfTupleMap = (id, confRevs) => {
     return confRevs.flatMap(confRev => db.get(id, {rev: confRev}));
   }
   let getConflictPromises =
-    allDocs
+    docsList
       .filter(d => d.hasOwnProperty("_conflicts"))
       .map(d => [d._id, d._conflicts])
       .flatMap(tup => idConfTupleMap(tup[0],tup[1]))
@@ -190,15 +201,19 @@ async function getAllConflicts (db, allDocs, treeId) {
   return resolved
     .filter(p => p.status === "fulfilled")
     .map(p => p.value)
-    .map(d => unprefix(d, treeId));
+    .map(d => typeof treeId === "undefined" ? d : unprefix(d, treeId));
 }
 
 
 function maybeAddConflict(elmDocs, conflictingDocs, savedLocalHead) {
-  if (conflictingDocs.length === 0 || typeof savedLocalHead === "undefined") { return elmDocs }
+  let headId = `heads/master`;
+  if  (  conflictingDocs.length === 0
+      || typeof savedLocalHead === "undefined"
+      || typeof conflictingDocs.find(d => d._id === headId) === "undefined"
+      )
+  { return elmDocs }
 
   let newDocs = Object.assign({}, elmDocs);
-  let headId = `heads/master`;
 
   let losingHead = conflictingDocs.filter(d => d._id === headId)[0];
   let winningHead = newDocs.ref.filter(d => d._id === headId)[0];
@@ -211,6 +226,32 @@ function maybeAddConflict(elmDocs, conflictingDocs, savedLocalHead) {
     newDocs.conflict = losingHead;
   }
   return newDocs;
+}
+
+
+async function resolveMetadataConflicts (localDb, metadataDocs) {
+  let docIds = metadataDocs.map(d => d._id);
+  let options = {include_docs: true, conflicts: true, keys: docIds};
+  let docsWithConflicts =
+    (await localDb.allDocs(options))
+      .rows
+      .map(r => r.doc)
+      .filter(d => d.hasOwnProperty("_conflicts"));
+  let conflicts = await getConflicts(localDb, docsWithConflicts);
+
+  let docsAndConflicts = docsWithConflicts.concat(conflicts);
+  let chosen = _
+    .chain(docsAndConflicts)
+    .sortBy('updatedAt')
+    .reverse()
+    .uniqBy('docId')
+    .value()
+    .map(d => {return {id: d._id, rev: d._rev}})
+  let all = docsAndConflicts.map(d => {return {id: d._id, rev: d._rev}});
+  let losers = _.differenceBy(all, chosen, 'rev')
+
+  let loserDelPromises = losers.map(d => localDb.remove(d.id, {rev: d.rev}));
+  await Promise.allSettled(loserDelPromises);
 }
 
 
@@ -227,6 +268,11 @@ function loadedResToElmData (docs, treeId) {
 
 function revToInt (rev) {
   return Number(rev.split('-')[0]);
+}
+
+
+function getMetadataDocs (change) {
+  return change.docs.filter(d => d._id.endsWith("metadata"));
 }
 
 
