@@ -17,7 +17,7 @@ type Msg
     = StoreUser Enc.Value
       -- === Dialogs, Menus, Window State ===
     | Alert String
-    | SetChanged Bool
+    | SetDirty Bool
     | ConfirmCancelCard String String
     | ColumnNumberChange Int
       -- === Database ===
@@ -65,8 +65,8 @@ send info =
         Alert str ->
             dataToSend "Alert" (string str)
 
-        SetChanged changed ->
-            dataToSend "SetChanged" (bool changed)
+        SetDirty changed ->
+            dataToSend "SetDirty" (bool changed)
 
         ConfirmCancelCard id origContent ->
             dataToSend "ConfirmCancelCard" (list string [ id, origContent ])

@@ -368,7 +368,7 @@ update msg ({ workingTree } as model) =
                                                 ((getParent id model.workingTree.tree |> Maybe.map .id) |> Maybe.withDefault "0")
                                                 ((getIndex id model.workingTree.tree |> Maybe.withDefault 0) + 1)
                             in
-                            ( { modelDragUpdated | viewState = { vs | draggedTree = Nothing }, dirty = True }, send <| SetChanged True )
+                            ( { modelDragUpdated | viewState = { vs | draggedTree = Nothing }, dirty = True }, send <| SetDirty True )
                                 |> moveOperation
 
                         Nothing ->
@@ -1305,7 +1305,7 @@ saveCardIfEditing ( model, prevCmd ) =
 
             else
                 ( { model | dirty = False }
-                , Cmd.batch [ prevCmd, send <| SetChanged False ]
+                , Cmd.batch [ prevCmd, send <| SetDirty False ]
                 )
 
 
@@ -1414,7 +1414,7 @@ deleteCard id ( model, prevCmd ) =
             | workingTree = TreeStructure.update (TreeStructure.Rmv id) model.workingTree
             , dirty = True
           }
-        , Cmd.batch [ prevCmd, send <| SetChanged True ]
+        , Cmd.batch [ prevCmd, send <| SetDirty True ]
         )
             |> maybeColumnsChanged model.workingTree.columns
             |> activate nextToActivate False

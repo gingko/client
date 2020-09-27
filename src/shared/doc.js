@@ -27,6 +27,7 @@ let remoteDB;
 let db;
 let gingko;
 let TREE_ID;
+let DIRTY = false;
 let savedObjectIds = [];
 const userStore = container.userStore;
 const localStore = container.localStore;
@@ -86,6 +87,15 @@ async function initElmAndPorts() {
     },
     false
   );
+
+  // Prevent closing if unsaved changes exist.
+  window.addEventListener('beforeunload', (event) => {
+    if (DIRTY) {
+      console.log("DIRTY")
+      event.preventDefault();
+      event.returnValue = '';
+    }
+  });
 }
 
 function setUserDbs(email) {
@@ -183,6 +193,10 @@ const fromElm = (msg, elmData) => {
       alert(elmData);
     },
 
+    SetDirty: () => {
+      DIRTY = true;
+    },
+
     ConfirmCancelCard: () => {
       let tarea = document.getElementById("card-edit-" + elmData[0]);
 
@@ -260,11 +274,26 @@ const fromElm = (msg, elmData) => {
       }
     },
 
-    SaveData: async () => {
-      let [savedData, savedImmutables, conflictsExist, savedMetadata] = await data.saveData(db, TREE_ID, elmData, savedObjectIds);
+      SaveData: async () => {
+      let [ savedData
+          , savedImmutables
+          , conflictsExist
+          , savedMetadata
+          ] = await data.saveData(db, TREE_ID, elmData, savedObjectIds);
+
+      // Add saved immutables to cache.
       savedObjectIds = savedObjectIds.concat(savedImmutables);
+
+      // Send new revs to Elm
       toElm(savedData, "docMsgs", "DataSaved");
+
+      // Mark document as clean
+      DIRTY = false;
+
+      // Maybe send metadata to Elm
       if (typeof savedMetadata !== "undefined") { toElm(savedMetadata, "docMsgs", "MetadataSaved")}
+
+      // Maybe push
       if(!conflictsExist) {
         data.push(db, remoteDB, TREE_ID, false);
       }
@@ -435,6 +464,7 @@ const debouncedScrollColumns = _.debounce(helpers.scrollColumns, 200);
 const debouncedScrollHorizontal = _.debounce(helpers.scrollHorizontal, 200);
 
 const editingInputHandler = function (ev) {
+  DIRTY = true;
   toElm(ev.target.value, "docMsgs", "FieldChanged");
   selectionHandler(ev);
 };
