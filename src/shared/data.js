@@ -17,12 +17,11 @@ async function loadMetadata(localDb, treeId) {
 }
 
 
-function startPullingChanges (localDb, remoteDb, treeId, changeHandler) {
+function startLiveReplication (localDb, remoteDb, treeId, changeHandler, pushSuccessHandler) {
   let options = {selector : { _id: { $regex: `${treeId}/` } }, live : true, retry : true};
   localDb.replicate.from(remoteDb, options)
     .on('change', async (change) => {
       let metadataDocs = getMetadataDocs(change);
-      console.log("metadataDocs", metadataDocs);
       if (metadataDocs.length > 0) {
         await resolveMetadataConflicts(localDb, metadataDocs);
       }
@@ -32,8 +31,7 @@ function startPullingChanges (localDb, remoteDb, treeId, changeHandler) {
       }
     })
     .on('paused', (err) => {
-      console.log("PAUSED and sending a push");
-      push(localDb, remoteDb, treeId, true, (s) => console.log("SUCCESS push", s))
+      push(localDb, remoteDb, treeId, true, pushSuccessHandler)
     });
 }
 
@@ -130,7 +128,6 @@ async function push(localDb, remoteDb, treeId, checkForConflicts, successHandler
   if (checkForConflicts) {
     let allDocs = await loadAll(localDb, treeId);
     let conflictedDocs = await getConflicts(localDb, allDocs, treeId);
-    console.log("push conflicted", conflictedDocs);
     shouldPush = conflictedDocs.length === 0;
   }
 
@@ -250,7 +247,7 @@ async function resolveMetadataConflicts (localDb, metadataDocs) {
   let all = docsAndConflicts.map(d => {return {id: d._id, rev: d._rev}});
   let losers = _.differenceBy(all, chosen, 'rev')
 
-  let loserDelPromises = losers.map(d => localDb.remove(d.id, {rev: d.rev}));
+  let loserDelPromises = losers.map(d => localDb.remove(d.id, d.rev));
   await Promise.allSettled(loserDelPromises);
 }
 
@@ -299,4 +296,4 @@ function unprefix(doc, treeId, idField = "_id") {
 
 /* === Exports === */
 
-export { load, loadMetadata, startPullingChanges, saveData, push };
+export { load, loadMetadata, startLiveReplication, saveData, push };

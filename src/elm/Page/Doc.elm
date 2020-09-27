@@ -2039,7 +2039,7 @@ dataReceived dataIn model =
         , lastRemoteSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
         , startingWordcount = startingWordcount
       }
-    , send <| MaybePush
+    , Cmd.none
     )
         |> maybeColumnsChanged model.workingTree.columns
         |> (if model.loading then

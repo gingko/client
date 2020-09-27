@@ -136,10 +136,8 @@ function setUserDbs(email) {
   // Update Elm on document list changes
   PouchDB.sync(db, remoteDB, { filter: "_view", view: "testDocList/docList", include_docs: true, live: true, retry: true })
     .on('change', (ev) => {
-      if (ev.direction === "pull") {
-        // New document list received, update Elm
-        loadAndUpdateDocList();
-      }
+      // New document list received, update Elm
+      loadAndUpdateDocList();
     });
 }
 
@@ -230,7 +228,7 @@ const fromElm = (msg, elmData) => {
 
       // Start live replication from remote.
       let dataToElmHandler = (d) => toElm(d, "docMsgs", "DataReceived");
-      data.startPullingChanges(db, remoteDB, elmData,dataToElmHandler);
+      data.startLiveReplication(db, remoteDB, elmData, dataToElmHandler, pushSuccessHandler);
     },
 
     LoadDocument : async () => {
@@ -247,7 +245,7 @@ const fromElm = (msg, elmData) => {
       dataToElmHandler(loadedData);
 
       // Start live replication from remote.
-      data.startPullingChanges(db, remoteDB, elmData,dataToElmHandler);
+      data.startLiveReplication(db, remoteDB, elmData, dataToElmHandler, pushSuccessHandler);
     },
 
     GetDocumentList: () => {
@@ -317,9 +315,6 @@ const fromElm = (msg, elmData) => {
       toElm(null, "importComplete");
     },
 
-    MaybePush: () => {
-      data.push(db, remoteDB, TREE_ID, true, pushSuccessHandler);
-    },
 
     // === DOM ===
 
