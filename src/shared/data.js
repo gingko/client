@@ -115,7 +115,7 @@ async function saveData(localDb, treeId, elmData, savedImmutablesIds) {
 }
 
 
-async function push(localDb, remoteDb, treeId, checkForConflicts) {
+async function push(localDb, remoteDb, treeId, checkForConflicts, successHandler) {
   let shouldPush = true;
   if (checkForConflicts) {
     let allDocs = await loadAll(localDb, treeId);
@@ -125,7 +125,9 @@ async function push(localDb, remoteDb, treeId, checkForConflicts) {
 
   if (shouldPush) {
     let selector = { _id: { $regex: `${treeId}/` } };
-    localDb.replicate.to(remoteDb, { selector }).catch(async (e) => e);
+    localDb.replicate.to(remoteDb, { selector })
+      .on('complete', successHandler)
+      .catch(async (e) => e);
   }
 }
 

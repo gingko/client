@@ -17,7 +17,7 @@ type
     | LocalStoreLoaded Dec.Value
     | GetDataToSave
     | SavedLocally (Maybe Time.Posix)
-    | SavedRemotely (Maybe Time.Posix)
+    | SavedRemotely Time.Posix
       -- === Metadata ===
     | MetadataSynced Dec.Value
     | MetadataSaved Dec.Value
@@ -110,9 +110,9 @@ subscribe tagger onError =
                             onError (errorToString e)
 
                 "SavedRemotely" ->
-                    case decodeValue (Dec.maybe Dec.float) outsideInfo.data of
-                        Ok time_ ->
-                            tagger <| SavedRemotely (Maybe.map (Time.millisToPosix << round) time_)
+                    case decodeValue Dec.int outsideInfo.data of
+                        Ok time ->
+                            tagger <| SavedRemotely (Time.millisToPosix time)
 
                         Err e ->
                             onError (errorToString e)

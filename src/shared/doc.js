@@ -274,7 +274,7 @@ const fromElm = (msg, elmData) => {
       }
     },
 
-      SaveData: async () => {
+    SaveData: async () => {
       let [ savedData
           , savedImmutables
           , conflictsExist
@@ -295,7 +295,7 @@ const fromElm = (msg, elmData) => {
 
       // Maybe push
       if(!conflictsExist) {
-        data.push(db, remoteDB, TREE_ID, false);
+        data.push(db, remoteDB, TREE_ID, false, pushSuccessHandler);
       }
     },
 
@@ -318,7 +318,7 @@ const fromElm = (msg, elmData) => {
     },
 
     MaybePush: () => {
-      data.push(db, remoteDB, TREE_ID, true);
+      data.push(db, remoteDB, TREE_ID, true, pushSuccessHandler);
     },
 
     // === DOM ===
@@ -442,6 +442,11 @@ function prefix(id) {
 
 function unprefix(id) {
   return id.slice(TREE_ID.length + 1);
+}
+
+
+function pushSuccessHandler (info) {
+  toElm(Date.parse(info.end_time), "docMsgs", "SavedRemotely")
 }
 
 /* === DOM Events and Handlers === */

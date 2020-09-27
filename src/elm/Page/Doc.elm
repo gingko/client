@@ -679,9 +679,9 @@ update msg ({ workingTree } as model) =
                     , Cmd.none
                     )
 
-                SavedRemotely time_ ->
+                SavedRemotely time ->
                     ( { model
-                        | lastRemoteSave = time_
+                        | lastRemoteSave = Just time
                       }
                     , Cmd.none
                     )
