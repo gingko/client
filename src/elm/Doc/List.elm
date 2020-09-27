@@ -144,7 +144,7 @@ viewSmall : Metadata -> Model -> Html msg
 viewSmall currentDocument model =
     let
         viewDocItem d =
-            li [ classList [ ( "sidebar-document-item", True ), ( "active", d == currentDocument ) ] ]
+            li [ classList [ ( "sidebar-document-item", True ), ( "active", Metadata.isSameDocId d currentDocument ) ] ]
                 [ a [ href <| Route.toString (Route.DocUntitled (Metadata.getDocId d)) ]
                     [ Metadata.getDocName d |> Maybe.withDefault "Untitled" |> text ]
                 ]

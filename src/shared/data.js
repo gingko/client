@@ -7,7 +7,7 @@ async function load (localDb, treeId) {
   let allDocs = await loadAll(localDb, treeId);
   let elmDocs = loadedResToElmData(allDocs, treeId);
   let conflictedDocs = await getAllConflicts(localDb, allDocs, treeId);
-  let localHead = await loadLocalHead(localDb, treeId).catch(e => null);
+  let localHead = await loadLocalHead(localDb, treeId).catch(e => undefined);
   return maybeAddConflict(elmDocs, conflictedDocs, localHead);
 }
 
@@ -193,7 +193,7 @@ async function getAllConflicts (db, allDocs, treeId) {
 
 
 function maybeAddConflict(elmDocs, conflictingDocs, savedLocalHead) {
-  if (conflictingDocs.length === 0) { return elmDocs }
+  if (conflictingDocs.length === 0 || typeof savedLocalHead === "undefined") { return elmDocs }
 
   let newDocs = Object.assign({}, elmDocs);
   let headId = `heads/master`;
