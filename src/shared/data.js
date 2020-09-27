@@ -12,6 +12,11 @@ async function load (localDb, treeId) {
 }
 
 
+async function loadMetadata(localDb, treeId) {
+  return localDb.get(treeId + "/metadata").catch(e => e);
+}
+
+
 function startPullingChanges (localDb, remoteDb, treeId, changeHandler) {
   let options = {selector : { _id: { $regex: `${treeId}/` } }, live : true, retry : true};
   localDb.replicate.from(remoteDb, options).on('change', async (change) => {
@@ -26,13 +31,15 @@ function startPullingChanges (localDb, remoteDb, treeId, changeHandler) {
 async function saveData(localDb, treeId, elmData, savedImmutablesIds) {
   // Function to modify metadata & get its _rev.
   let updateMetadata;
+  let savedMetadata;
   if (elmData.filter(d => d._id === "metadata").length > 0) {
-    let savedMetadata = await localDb.get(treeId + "/metadata").catch(e => e);
+    let oldMetadata = await localDb.get(treeId + "/metadata").catch(e => e);
     updateMetadata = d => {
       if (d._id === "metadata") {
         d.updatedAt = Date.now();
-        if (savedMetadata.hasOwnProperty("_rev")) {
-          d._rev = savedMetadata._rev;
+        if (oldMetadata.hasOwnProperty("_rev")) {
+          d._rev = oldMetadata._rev;
+          savedMetadata = Object.assign({}, d);
         }
       }
       return d;
@@ -74,6 +81,14 @@ async function saveData(localDb, treeId, elmData, savedImmutablesIds) {
       .map(r => {delete r.ok; return r;})
       .map(d => unprefix(d, treeId, "id"))
 
+
+  // Get saved metadata (with new _rev), if it was saved
+  let savedMetadataResponse = successfulResponses.find(r => r.id === "metadata");
+  if (typeof savedMetadataResponse !== "undefined" && savedMetadataResponse.hasOwnProperty("rev")) {
+    savedMetadata._rev = savedMetadataResponse.rev;
+    savedMetadata = unprefix(savedMetadata, treeId);
+  }
+
   // Check if we've resolved a merge conflict
   let conflictsExist;
   let [head, headConflicts] = await getHeadAndConflicts(localDb, treeId);
@@ -96,7 +111,7 @@ async function saveData(localDb, treeId, elmData, savedImmutablesIds) {
   let newSavedImmutables = successfulResponses.filter(immutableObjFilter).map(r => r.id);
 
 
-  return [successfulResponses, newSavedImmutables, conflictsExist];
+  return [successfulResponses, newSavedImmutables, conflictsExist, savedMetadata];
 }
 
 
@@ -236,4 +251,4 @@ function unprefix(doc, treeId, idField = "_id") {
 
 /* === Exports === */
 
-export { load, startPullingChanges, saveData, push };
+export { load, loadMetadata, startPullingChanges, saveData, push };

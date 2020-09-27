@@ -135,14 +135,14 @@ init session dbName isNew =
     ( defaultModel isNew session dbName
     , if not isNew then
         Cmd.batch
-            [ send <| LoadDocument dbName
-            , DocList.fetch session
+            [ DocList.fetch session
+            , send <| LoadDocument dbName
             ]
 
       else
         Cmd.batch
-            [ send <| InitDocument dbName
-            , DocList.fetch session
+            [ DocList.fetch session
+            , send <| InitDocument dbName
             , focus "1"
             ]
     )
@@ -466,7 +466,12 @@ update msg ({ workingTree } as model) =
 
         -- === UI ===
         ReceivedDocuments newList ->
-            ( { model | documents = newList }, Cmd.none )
+            let
+                newMetadata =
+                    DocList.current model.metadata newList
+                        |> Maybe.withDefault model.metadata
+            in
+            ( { model | metadata = newMetadata, documents = newList }, Cmd.none )
 
         SettingsChanged lang ->
             ( { model | user = User.setLanguage lang model.user }, Cmd.none )
@@ -625,7 +630,11 @@ update msg ({ workingTree } as model) =
                         Ok metadata ->
                             ( { model | titleField = Nothing, metadata = metadata }, Cmd.none )
 
-                        Err _ ->
+                        Err err ->
+                            let
+                                _ =
+                                    Debug.log "metadatasaved error" err
+                            in
                             ( model, Cmd.none )
 
                 MetadataSaveError ->

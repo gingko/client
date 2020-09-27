@@ -1,4 +1,4 @@
-port module Doc.List exposing (Model, fetch, init, subscribe, viewLarge, viewSmall)
+port module Doc.List exposing (Model, current, fetch, init, subscribe, viewLarge, viewSmall)
 
 import Date
 import Doc.Metadata as Metadata exposing (Metadata)
@@ -38,6 +38,18 @@ fetch session =
 
         Nothing ->
             Cmd.none
+
+
+current : Metadata -> Model -> Maybe Metadata
+current metadata model =
+    case model of
+        Success list ->
+            list
+                |> List.filter (\m -> Metadata.isSameDocId metadata m)
+                |> List.head
+
+        _ ->
+            Nothing
 
 
 

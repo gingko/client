@@ -1,4 +1,4 @@
-module Doc.Metadata exposing (Metadata, decoder, decoderImport, encode, getCreatedAt, getDocId, getDocName, getUpdatedAt, listDecoder, new, rename, setRev)
+module Doc.Metadata exposing (Metadata, decoder, decoderImport, encode, getCreatedAt, getDocId, getDocName, getUpdatedAt, isSameDocId, listDecoder, new, rename)
 
 import Coders exposing (maybeToValue)
 import Json.Decode as Dec exposing (Decoder)
@@ -51,9 +51,9 @@ getUpdatedAt (Metadata _ { updatedAt }) =
     updatedAt
 
 
-setRev : String -> Metadata -> Metadata
-setRev newRev (Metadata docId oldMetadata) =
-    Metadata docId { oldMetadata | rev = Just newRev }
+isSameDocId : Metadata -> Metadata -> Bool
+isSameDocId m1 m2 =
+    getDocId m1 == getDocId m2
 
 
 
