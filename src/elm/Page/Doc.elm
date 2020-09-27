@@ -201,7 +201,7 @@ type Msg
     | WordcountTrayToggle
       -- === Ports ===
     | ExportDocx
-    | Exported (Result Http.Error Bytes)
+    | Exported (Maybe String) (Result Http.Error Bytes)
     | ExportJSON
     | Incoming Incoming.Msg
     | LogErr String
@@ -560,16 +560,23 @@ update msg ({ workingTree } as model) =
                 markdownString =
                     treeToMarkdownString False model.workingTree.tree
             in
-            ( model, Api.exportDocx Exported { docId = Metadata.getDocId model.metadata, markdown = markdownString } )
+            ( model
+            , Api.exportDocx
+                (Exported (Metadata.getDocName model.metadata))
+                { docId = Metadata.getDocId model.metadata, markdown = markdownString }
+            )
 
-        Exported (Ok bytes) ->
+        Exported docName_ (Ok bytes) ->
             let
                 mime =
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            in
-            ( model, Download.bytes "test.docx" mime bytes )
 
-        Exported (Err _) ->
+                filename =
+                    (docName_ |> Maybe.withDefault "Untitled") ++ ".docx"
+            in
+            ( model, Download.bytes filename mime bytes )
+
+        Exported _ (Err _) ->
             ( model, Cmd.none )
 
         ExportJSON ->
