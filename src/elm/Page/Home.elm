@@ -23,40 +23,37 @@ import User exposing (User)
 -- MODEL
 
 
-type Model
-    = Home PageData
-    | ImportSelecting
-        (List
-            { selected : Bool
-            , tree : ( String, Metadata, Tree )
-            }
-        )
-        PageData
-    | ImportSaving
-        (List
-            { selected : Bool
-            , tree : ( String, Metadata, Tree )
-            }
-        )
-        PageData
-
-
-type alias PageData =
+type alias Model =
     { documents : DocList.Model
+    , importModal : ImportModalState
     , languageMenu : Bool
     , currentTime : Time.Posix
     , user : User
     }
 
 
+type ImportModalState
+    = Closed
+    | ModalOpen
+    | ImportSelecting ImportSelection
+    | ImportSaving ImportSelection
+
+
+type alias ImportSelection =
+    List
+        { selected : Bool
+        , tree : ( String, Metadata, Tree )
+        }
+
+
 init : User -> ( Model, Cmd Msg )
 init user =
-    ( Home
-        { documents = DocList.init
-        , languageMenu = False
-        , currentTime = Time.millisToPosix 0
-        , user = user
-        }
+    ( { documents = DocList.init
+      , languageMenu = False
+      , importModal = Closed
+      , currentTime = Time.millisToPosix 0
+      , user = user
+      }
     , Cmd.batch
         [ Task.perform Tick Time.now
         , DocList.fetch user
@@ -65,21 +62,8 @@ init user =
 
 
 toUser : Model -> User
-toUser model =
-    (getData model).user
-
-
-getData : Model -> PageData
-getData model =
-    case model of
-        Home pdata ->
-            pdata
-
-        ImportSelecting _ pdata ->
-            pdata
-
-        ImportSaving _ pdata ->
-            pdata
+toUser =
+    .user
 
 
 
@@ -90,12 +74,7 @@ type Msg
     = ReceivedDocuments DocList.Model
     | Open String
     | DeleteDoc String
-    | ImportFileRequested
-    | ImportFileSelected File
-    | ImportTreeSelected String Bool
-    | ImportFileLoaded String String
-    | ImportSelectionDone
-    | ImportComplete
+    | ImportModal ImportModalMsg
     | ToggleLanguageMenu
     | ChangeLanguage Language
     | SettingsChanged Language
@@ -103,65 +82,18 @@ type Msg
     | LogErr String
 
 
+type ImportModalMsg
+    = ModalToggled Bool
+    | FileRequested
+    | FileSelected File
+    | FileLoaded String String
+    | TreeSelected String Bool
+    | SelectionDone
+    | Completed
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case ( msg, model ) of
-        ( ImportFileLoaded _ contents, Home pageData ) ->
-            case Dec.decodeString Import.decoder contents of
-                Ok dataList ->
-                    let
-                        listWithSelectState =
-                            dataList |> List.map (\t -> { selected = False, tree = t })
-                    in
-                    ( ImportSelecting listWithSelectState pageData, Cmd.none )
-
-                Err _ ->
-                    ( model, Cmd.none )
-
-        ( ImportTreeSelected treeId isSelected, ImportSelecting selectList pageData ) ->
-            let
-                mapFn ({ selected, tree } as orig) =
-                    let
-                        ( tid, _, _ ) =
-                            tree
-                    in
-                    if tid == treeId then
-                        { orig | selected = isSelected }
-
-                    else
-                        orig
-
-                newList =
-                    selectList |> List.map mapFn
-            in
-            ( ImportSelecting newList pageData, Cmd.none )
-
-        ( ImportSelectionDone, ImportSelecting selectList pageData ) ->
-            let
-                author =
-                    toUser model |> User.name |> Maybe.withDefault "jane.doe@gmail.com"
-
-                treesToSave =
-                    selectList
-                        |> List.filter .selected
-                        |> List.map .tree
-                        |> Import.encode author
-            in
-            ( ImportSaving selectList pageData, send <| SaveImportedData treesToSave )
-
-        ( ImportComplete, ImportSaving _ pageData ) ->
-            ( Home pageData, DocList.fetch pageData.user )
-
-        ( Tick _, ImportSelecting _ _ ) ->
-            ( model, Cmd.none )
-
-        _ ->
-            updatePageData msg (getData model)
-                |> Tuple.mapFirst Home
-
-
-updatePageData : Msg -> PageData -> ( PageData, Cmd Msg )
-updatePageData msg model =
     case msg of
         ReceivedDocuments newList ->
             ( { model | documents = newList }, Cmd.none )
@@ -181,16 +113,8 @@ updatePageData msg model =
         SettingsChanged lang ->
             ( { model | user = User.setLanguage lang model.user }, Cmd.none )
 
-        ImportFileRequested ->
-            ( model, Select.file [ "text/*", "application/json" ] ImportFileSelected )
-
-        ImportFileSelected file ->
-            case User.name model.user of
-                Just username ->
-                    ( model, Task.perform (ImportFileLoaded username) (File.toString file) )
-
-                Nothing ->
-                    ( model, Cmd.none )
+        ImportModal importMsg ->
+            updateImportModal importMsg model |> Tuple.mapSecond (Cmd.map ImportModal)
 
         Tick currTime ->
             ( { model | currentTime = currTime }, Cmd.none )
@@ -199,6 +123,77 @@ updatePageData msg model =
             ( model
             , send (ConsoleLogRequested err)
             )
+
+
+updateImportModal : ImportModalMsg -> Model -> ( Model, Cmd ImportModalMsg )
+updateImportModal msg ({ importModal, user } as model) =
+    case ( msg, importModal ) of
+        ( ModalToggled True, Closed ) ->
+            ( { model | importModal = ModalOpen }, Cmd.none )
+
+        ( ModalToggled False, _ ) ->
+            ( { model | importModal = Closed }, Cmd.none )
+
+        ( FileRequested, _ ) ->
+            ( model, Select.file [ "text/*", "application/json" ] FileSelected )
+
+        ( FileSelected file, _ ) ->
+            case User.name model.user of
+                Just username ->
+                    ( model, Task.perform (FileLoaded username) (File.toString file) )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        ( FileLoaded _ contents, ModalOpen ) ->
+            case Dec.decodeString Import.decoder contents of
+                Ok dataList ->
+                    let
+                        listWithSelectState =
+                            dataList |> List.map (\t -> { selected = False, tree = t })
+                    in
+                    ( { model | importModal = ImportSelecting listWithSelectState }, Cmd.none )
+
+                Err err ->
+                    let
+                        _ =
+                            Debug.log "Import File Error" err
+                    in
+                    ( model, Cmd.none )
+
+        ( TreeSelected treeId isSelected, ImportSelecting selectList ) ->
+            let
+                mapFn ({ selected, tree } as orig) =
+                    let
+                        ( tid, _, _ ) =
+                            tree
+                    in
+                    if tid == treeId then
+                        { orig | selected = isSelected }
+
+                    else
+                        orig
+
+                newList =
+                    selectList |> List.map mapFn
+            in
+            ( { model | importModal = ImportSelecting newList }, Cmd.none )
+
+        ( SelectionDone, ImportSelecting selectList ) ->
+            let
+                author =
+                    user |> User.name |> Maybe.withDefault "jane.doe@gmail.com"
+
+                treesToSave =
+                    selectList
+                        |> List.filter .selected
+                        |> List.map .tree
+                        |> Import.encode author
+            in
+            ( { model | importModal = ImportSaving selectList }, send <| SaveImportedData treesToSave )
+
+        ( Completed, ImportSaving _ ) ->
+            ( { model | importModal = Closed }, DocList.fetch user )
 
         _ ->
             ( model, Cmd.none )
@@ -209,45 +204,25 @@ updatePageData msg model =
 
 
 view : Model -> Html Msg
-view model =
-    case model of
-        Home pageData ->
-            viewHome pageData
-
-        ImportSelecting selectionList _ ->
-            div [ id "import-selecting" ]
-                [ h1 [] [ text "This is the home page" ]
-                , ul [] (List.map viewSelectionEntry selectionList)
-                , button [ onClick ImportSelectionDone ] [ text "Import Trees..." ]
-                ]
-
-        ImportSaving _ _ ->
-            div []
-                [ h1 [] [ text "This is the home page" ]
-                , text "Importing selected trees...."
-                ]
-
-
-viewHome : PageData -> Html Msg
-viewHome { user, languageMenu, currentTime, documents } =
+view { user, importModal, languageMenu, currentTime, documents } =
     let
         language =
             User.language user
     in
     div [ id "container" ]
-        [ div [ id "templates-block" ]
+        ([ div [ id "templates-block" ]
             [ a [ id "template-new", class "template-item", href (Route.toString Route.DocNew) ]
                 [ div [ classList [ ( "template-thumbnail", True ), ( "new", True ) ] ] []
                 , div [ class "template-title" ] [ text <| tr language HomeBlank ]
                 ]
-            , div [ id "template-import", class "template-item", onClick ImportFileRequested ]
+            , div [ id "template-import", class "template-item", onClick <| ImportModal (ModalToggled True) ]
                 [ div [ classList [ ( "template-thumbnail", True ), ( "import", True ) ] ] [ Icon.file (Icon.defaultOptions |> Icon.size 48) ]
                 , div [ class "template-title" ] [ text <| tr language HomeImportLegacy ]
                 , div [ class "template-description" ]
                     [ text <| tr language HomeLegacyFrom ]
                 ]
             ]
-        , div [ id "documents-block" ]
+         , div [ id "documents-block" ]
             [ h4 [ class "list-section-header" ]
                 [ text "."
                 , span
@@ -257,7 +232,7 @@ viewHome { user, languageMenu, currentTime, documents } =
                 ]
             , DocList.viewLarge { openDoc = Open, deleteDoc = DeleteDoc } language currentTime documents
             ]
-        , div [ id "buttons-block" ]
+         , div [ id "buttons-block" ]
             [ div [ onClick ToggleLanguageMenu, classList [ ( "document-item", True ), ( "language-button", True ) ] ]
                 (if languageMenu then
                     Translation.activeLanguages
@@ -274,7 +249,43 @@ viewHome { user, languageMenu, currentTime, documents } =
                     [ div [ class "language-item" ] [ text <| Translation.languageName language ] ]
                 )
             ]
-        ]
+         ]
+            ++ viewImportModal importModal
+        )
+
+
+viewImportModal : ImportModalState -> List (Html Msg)
+viewImportModal modalState =
+    case modalState of
+        Closed ->
+            [ text "" ]
+
+        ModalOpen ->
+            [ h1 [] [ text "Import From Gingko v1" ]
+            , text "Instructions here"
+            , button [ onClick (ImportModal FileRequested) ] [ text "From backup file..." ]
+            ]
+                |> modalWrapper
+
+        ImportSelecting importSelection ->
+            [ h1 [] [ text "Import From Gingko v1" ]
+            , div [] [ ul [] (List.map viewSelectionEntry importSelection) ]
+            , button [ onClick (ImportModal SelectionDone) ] [ text "Import Selected Trees" ]
+            ]
+                |> modalWrapper
+
+        ImportSaving importSelection ->
+            [ h1 [] [ text "Import From Gingko v1" ]
+            , div [] [ ul [] (List.map viewSelectionEntry importSelection) ]
+            ]
+                |> modalWrapper
+
+
+modalWrapper : List (Html Msg) -> List (Html Msg)
+modalWrapper body =
+    [ div [ class "modal-overlay" ] []
+    , div [ class "modal" ] [ button [ class "close-button" ] [ text "X" ], div [ class "modal-guts" ] body ]
+    ]
 
 
 viewSelectionEntry : { selected : Bool, tree : ( String, Metadata, Tree ) } -> Html Msg
@@ -283,7 +294,7 @@ viewSelectionEntry { selected, tree } =
         ( id, mdata, _ ) =
             tree
     in
-    li [] [ input [ type_ "checkbox", checked selected, onCheck (ImportTreeSelected id) ] [], text (Metadata.getDocName mdata |> Maybe.withDefault "Untitled") ]
+    li [] [ input [ type_ "checkbox", checked selected, onCheck (ImportModal << TreeSelected id) ] [], text (Metadata.getDocName mdata |> Maybe.withDefault "Untitled") ]
 
 
 
@@ -296,7 +307,7 @@ port importComplete : (() -> msg) -> Sub msg
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
-        [ importComplete (always ImportComplete)
+        [ importComplete (always (ImportModal Completed))
         , DocList.subscribe ReceivedDocuments
         , User.settingsChange SettingsChanged
         , Time.every (30 * 1000) Tick
