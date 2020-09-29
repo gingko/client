@@ -504,10 +504,15 @@ li.sidebar-document-item.active::after {
   width: 0 !important;
 }
 
+.column.first {
+  background-color: #145b83;
+  border-right: 2px solid #328abd;
+  margin-right: 40px;
+}
 
 .column:first-child, .column:last-child{
-  flex: 0.25 0;
-  min-width: 100px;
+  flex: 0.15 0;
+  min-width: 80px;
 }
 
 .column:first-child .buffer, .column:last-child .buffer {
