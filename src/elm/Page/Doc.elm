@@ -637,11 +637,7 @@ update msg ({ workingTree } as model) =
                         Ok metadata ->
                             ( { model | titleField = Nothing, metadata = metadata }, Cmd.none )
 
-                        Err err ->
-                            let
-                                _ =
-                                    Debug.log "metadatasaved error" err
-                            in
+                        Err _ ->
                             ( model, Cmd.none )
 
                 MetadataSaveError ->

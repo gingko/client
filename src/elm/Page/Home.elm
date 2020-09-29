@@ -162,11 +162,7 @@ updateImportModal msg ({ importModal, user } as model) =
                     in
                     ( { model | importModal = ImportSelecting listWithSelectState }, Cmd.none )
 
-                Err err ->
-                    let
-                        _ =
-                            Debug.log "Import File Error" err
-                    in
+                Err _ ->
                     ( model, Cmd.none )
 
         ( TreeSelected treeId isSelected, ImportSelecting selectList ) ->
