@@ -4,9 +4,9 @@ import Doc.List as DocList
 import Doc.Metadata as Metadata exposing (Metadata)
 import File exposing (File)
 import File.Select as Select
-import Html exposing (Html, a, button, div, h1, h4, input, li, span, text, ul)
-import Html.Attributes exposing (checked, class, classList, href, id, type_)
-import Html.Events exposing (onCheck, onClick)
+import Html exposing (Html, a, br, button, div, h1, h4, iframe, input, li, p, span, text, ul)
+import Html.Attributes exposing (checked, class, classList, height, href, id, src, target, type_, width)
+import Html.Events exposing (on, onCheck, onClick)
 import Import
 import Json.Decode as Dec
 import Octicons as Icon
@@ -34,7 +34,7 @@ type alias Model =
 
 type ImportModalState
     = Closed
-    | ModalOpen
+    | ModalOpen Bool
     | ImportSelecting ImportSelection
     | ImportSaving ImportSelection
 
@@ -71,7 +71,8 @@ toUser =
 
 
 type Msg
-    = ReceivedDocuments DocList.Model
+    = NoOp
+    | ReceivedDocuments DocList.Model
     | Open String
     | DeleteDoc String
     | ImportModal ImportModalMsg
@@ -85,6 +86,7 @@ type Msg
 type ImportModalMsg
     = ModalToggled Bool
     | FileRequested
+    | FileDraggedOver Bool
     | FileSelected File
     | FileLoaded String String
     | TreeSelected String Bool
@@ -124,18 +126,24 @@ update msg model =
             , send (ConsoleLogRequested err)
             )
 
+        NoOp ->
+            ( model, Cmd.none )
+
 
 updateImportModal : ImportModalMsg -> Model -> ( Model, Cmd ImportModalMsg )
 updateImportModal msg ({ importModal, user } as model) =
     case ( msg, importModal ) of
         ( ModalToggled True, Closed ) ->
-            ( { model | importModal = ModalOpen }, Cmd.none )
+            ( { model | importModal = ModalOpen False }, Cmd.none )
 
         ( ModalToggled False, _ ) ->
             ( { model | importModal = Closed }, Cmd.none )
 
         ( FileRequested, _ ) ->
             ( model, Select.file [ "text/*", "application/json" ] FileSelected )
+
+        ( FileDraggedOver isDraggedOver, ModalOpen _ ) ->
+            ( { model | importModal = ModalOpen isDraggedOver }, Cmd.none )
 
         ( FileSelected file, _ ) ->
             case User.name model.user of
@@ -145,7 +153,7 @@ updateImportModal msg ({ importModal, user } as model) =
                 Nothing ->
                     ( model, Cmd.none )
 
-        ( FileLoaded _ contents, ModalOpen ) ->
+        ( FileLoaded _ contents, ModalOpen _ ) ->
             case Dec.decodeString Import.decoder contents of
                 Ok dataList ->
                     let
@@ -260,10 +268,49 @@ viewImportModal modalState =
         Closed ->
             [ text "" ]
 
-        ModalOpen ->
+        ModalOpen isDraggingOver ->
+            let
+                fileDropDecoder =
+                    Dec.map
+                        (\files ->
+                            case List.head files of
+                                Just file ->
+                                    ImportModal (FileSelected file)
+
+                                Nothing ->
+                                    NoOp
+                        )
+                        (Dec.field "dataTransfer" (Dec.field "files" (Dec.list File.decoder)))
+            in
             [ h1 [] [ text "Import From Gingko v1" ]
-            , text "Instructions here"
-            , button [ onClick (ImportModal FileRequested) ] [ text "From backup file..." ]
+            , p [] [ text "If you want to transfer multiple trees from your old account to this new one, follow these steps." ]
+            , p []
+                [ text "1. Check to see if you're logged in or not:"
+                , br [] []
+                , iframe [ src "https://gingkoapp.com/loginstate", width 400, height 40 ] []
+                ]
+            , p []
+                [ text "2. If you're NOT logged into the old Gingko, "
+                , a [ href "https://gingkoapp.com/login", target "_blank" ] [ text "login here" ]
+                , text ", then come back."
+                ]
+            , p []
+                [ text "3. Click here to download a backup of all your trees: "
+                , br [] []
+                , a [ href "https://gingkoapp.com/export/all" ] [ text "Download Full Backup" ]
+                ]
+            , p []
+                [ text "4. Drag the backup file here:"
+                , div
+                    [ classList [ ( "file-drop-zone", True ), ( "dragged-over", isDraggingOver ) ]
+                    , on "dragenter" (Dec.succeed (ImportModal <| FileDraggedOver True))
+                    , on "dragleave" (Dec.succeed (ImportModal <| FileDraggedOver False))
+                    , on "drop" fileDropDecoder
+                    ]
+                    []
+                , text "or find the file in your system: "
+                , button [ onClick (ImportModal FileRequested) ] [ text "Browse..." ]
+                ]
             ]
                 |> modalWrapper
 
@@ -284,7 +331,7 @@ viewImportModal modalState =
 modalWrapper : List (Html Msg) -> List (Html Msg)
 modalWrapper body =
     [ div [ class "modal-overlay" ] []
-    , div [ class "modal" ] [ button [ class "close-button" ] [ text "X" ], div [ class "modal-guts" ] body ]
+    , div [ class "modal" ] [ button [ class "close-button", onClick (ImportModal (ModalToggled False)) ] [ text "X" ], div [ class "modal-guts" ] body ]
     ]
 
 

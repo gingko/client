@@ -302,6 +302,8 @@ body {
   font-size: 1.3rem;
 }
 .modal-guts {
+  display: flex;
+  flex-direction: column;
   position: absolute;
   top: 0;
   left: 0;
@@ -309,6 +311,15 @@ body {
   height: 100%;
   overflow: auto;
   padding: 20px 50px 20px 20px;
+}
+.file-drop-zone.dragged-over {
+    border: 4px solid green;
+}
+.file-drop-zone {
+  width: 100%;
+  height: 80px;
+  background-color: lightgray;
+  box-shadow: inset 2px 2px 4px darkgray;
 }
 
 #title {
