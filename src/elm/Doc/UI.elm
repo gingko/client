@@ -159,7 +159,7 @@ viewSidebar msgs currentDocument docList isOpen =
                     , DocList.viewSmall currentDocument docList
                     , hr [ style "width" "80%" ] []
                     , button [ onClick msgs.exportJSON, class "sidebar-item" ] [ text "Export to JSON" ]
-                    , button [ onClick msgs.exportDocx, class "sidebar-item" ] [ text "Export to docx" ]
+                    , button [ onClick msgs.exportDocx, class "sidebar-item" ] [ text "Export to Word" ]
                     ]
 
             else
@@ -249,7 +249,8 @@ viewFooter wordCountToggle shortcutToggle model =
                         , classList [ ( "inset", True ), ( "open", model.wordcountTrayOpen ) ]
                         , onClick wordCountToggle
                         ]
-                        [ span [] [ text (tr language (WordCountSession session)) ]
+                        [ span [] [ text "Word count" ]
+                        , span [] [ text (tr language (WordCountSession session)) ]
                         , span [] [ text (tr language (WordCountTotal current)) ]
                         , span [] [ text (tr language (WordCountCard wordCounts.card)) ]
                         , span [] [ text (tr language (WordCountSubtree wordCounts.subtree)) ]

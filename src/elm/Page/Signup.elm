@@ -2,7 +2,7 @@ module Page.Signup exposing (Model, Msg, init, subscriptions, toUser, update, vi
 
 import Browser.Navigation as Nav
 import Html exposing (..)
-import Html.Attributes exposing (autofocus, class, href, id, src, value)
+import Html.Attributes exposing (autofocus, class, href, id, src, type_, value)
 import Html.Events exposing (onInput, onSubmit)
 import Http exposing (Error(..))
 import User exposing (User)
@@ -162,6 +162,7 @@ view model =
                 , div [] [ text (String.join "\n" emailErrors) ]
                 , input
                     [ onInput EnteredEmail
+                    , type_ "email"
                     , value model.email
                     , autofocus True
                     ]
@@ -170,6 +171,7 @@ view model =
                 , div [] [ text (String.join "\n" passwordErrors) ]
                 , input
                     [ onInput EnteredPassword
+                    , type_ "password"
                     , value model.password
                     ]
                     []
@@ -177,6 +179,7 @@ view model =
                 , div [] [ text (String.join "\n" passwordConfirmErrors) ]
                 , input
                     [ onInput EnteredPassConfirm
+                    , type_ "password"
                     , value model.passwordConfirm
                     ]
                     []

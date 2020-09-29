@@ -1,7 +1,7 @@
 module Page.Login exposing (Model, Msg, init, subscriptions, toUser, update, view)
 
 import Html exposing (..)
-import Html.Attributes exposing (class, href, id, src, value)
+import Html.Attributes exposing (autofocus, class, href, id, src, type_, value)
 import Html.Events exposing (onInput, onSubmit)
 import Http exposing (Error(..))
 import Result exposing (Result)
@@ -146,13 +146,16 @@ view model =
                 , div [] [ text (String.join "\n" emailErrors) ]
                 , input
                     [ onInput EnteredEmail
+                    , type_ "email"
                     , value model.email
+                    , autofocus True
                     ]
                     []
                 , label [] [ text "Password" ]
                 , div [] [ text (String.join "\n" passwordErrors) ]
                 , input
                     [ onInput EnteredPassword
+                    , type_ "password"
                     , value model.password
                     ]
                     []

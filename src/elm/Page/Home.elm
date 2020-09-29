@@ -318,8 +318,18 @@ viewImportModal modalState =
                 |> modalWrapper
 
         ImportSaving importSelection ->
+            let
+                importCount =
+                    importSelection
+                        |> List.filter .selected
+                        |> List.length
+            in
             [ h1 [] [ text "Import From Gingko v1" ]
-            , div [] [ ul [] (List.map viewSelectionEntry importSelection) ]
+            , p []
+                [ text <| "Importing selected " ++ String.fromInt importCount ++ " trees..."
+                , br [] []
+                , text "This might take a while..."
+                ]
             ]
                 |> modalWrapper
 

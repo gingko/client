@@ -153,7 +153,7 @@ tr lang trans =
                     }
 
                 HomeLegacyFrom ->
-                    { en = "Transfer trees from your legacy account"
+                    { en = "Bulk transfer of trees from your legacy account"
                     , zh = ""
                     , es = ""
                     , fr = ""
