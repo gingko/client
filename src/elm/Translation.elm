@@ -121,7 +121,7 @@ tr lang trans =
                     }
 
                 HomeBlank ->
-                    { en = "Blank"
+                    { en = "Blank Tree"
                     , zh = "空白"
                     , es = "Vacío"
                     , fr = ""
@@ -145,7 +145,7 @@ tr lang trans =
                     }
 
                 HomeImportLegacy ->
-                    { en = "Import Backup"
+                    { en = "From Old Account"
                     , zh = ""
                     , es = ""
                     , fr = ""
@@ -153,7 +153,7 @@ tr lang trans =
                     }
 
                 HomeLegacyFrom ->
-                    { en = "From gingkoapp.com \"Backup All\""
+                    { en = "Transfer trees from your legacy account"
                     , zh = ""
                     , es = ""
                     , fr = ""

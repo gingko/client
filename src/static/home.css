@@ -131,12 +131,14 @@ a.template-item {
 .template-title {
   font-weight: bold;
   font-size: 90%;
+  max-width: 160px;
 }
 
 .template-description {
   font-size: 75%;
   font-style: italic;
   color: #aaa;
+  max-width: 120px;
 }
 
 .template-thumbnail.new {
