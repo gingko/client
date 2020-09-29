@@ -74,6 +74,7 @@ type alias ViewState =
     , dragModel : DragDrop.Model String DropId
     , draggedTree : Maybe ( Tree, String, Int )
     , copiedTree : Maybe Tree
+    , clipboardTree : Maybe Tree
     , collaborators : List CollabState
     }
 

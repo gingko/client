@@ -333,7 +333,9 @@ const fromElm = (msg, elmData) => {
       toElm(elmData.target.id.replace(/^card-/, ""), "docMsgs", "DragStarted");
     },
 
-    FlashCurrentSubtree: () => {
+    CopyCurrentSubtree: () => {
+      console.log("copied", elmData);
+      navigator.clipboard.writeText(JSON.stringify(elmData));
       let addFlashClass = function () {
         jQuery(".card.active").addClass("flash");
         jQuery(".group.active-descendant").addClass("flash");
@@ -450,6 +452,16 @@ function pushSuccessHandler (info) {
 document.ondragover = document.ondrop = (ev) => {
   ev.preventDefault();
 };
+
+document.onpaste = (ev) => {
+  console.log("paste event", ev.clipboardData.getData("text/plain"))
+  try {
+    let parsed = JSON.parse(ev.clipboardData.getData("text/plain"))
+    toElm(parsed, "docMsgs", "Paste");
+  } catch {
+
+  }
+}
 
 window.onresize = () => {
   if (lastActivesScrolled) {
