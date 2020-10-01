@@ -1,4 +1,4 @@
-module Coders exposing (collabStateDecoder, collabStateToValue, fontSettingsEncoder, lazyRecurse, maybeToValue, modeDecoder, modeToValue, treeDecoder, treeListDecoder, treeToJSON, treeToJSONrecurse, treeToMarkdown, treeToMarkdownRecurse, treeToMarkdownString, treeToValue, treesModelDecoder, tripleDecoder, tupleDecoder, tupleToValue)
+module Coders exposing (collabStateDecoder, collabStateToValue, fontSettingsEncoder, lazyRecurse, maybeToValue, modeDecoder, modeToValue, treeDecoder, treeListDecoder, treeOrString, treeToJSON, treeToJSONrecurse, treeToMarkdown, treeToMarkdownRecurse, treeToMarkdownString, treeToValue, treesModelDecoder, tripleDecoder, tupleDecoder, tupleToValue)
 
 import Doc.Fonts as Fonts
 import Doc.TreeStructure as TreeStructure
@@ -43,6 +43,14 @@ treeDecoder =
             , succeed (Children [])
             ]
         )
+
+
+treeOrString : Decoder Tree
+treeOrString =
+    Json.oneOf
+        [ treeDecoder
+        , Json.map (\str -> Tree "0" str (Children [])) Json.string
+        ]
 
 
 treeListDecoder : Decoder (List ( String, String ))

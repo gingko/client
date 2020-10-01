@@ -699,7 +699,10 @@ update msg ({ workingTree } as model) =
                         ( { model | workingTree = newTree, viewState = { vs | draggedTree = draggedTree } }, Cmd.none )
 
                 Paste tree ->
-                    normalMode model (pasteBelow2 vs.active tree)
+                    normalMode model (pasteBelow vs.active tree)
+
+                PasteInto tree ->
+                    normalMode model (pasteInto vs.active tree)
 
                 FieldChanged str ->
                     ( { model
@@ -965,12 +968,6 @@ update msg ({ workingTree } as model) =
 
                         "mod+c" ->
                             normalMode model (copy vs.active)
-
-                        "TODO:mod+v" ->
-                            normalMode model (pasteBelow vs.active)
-
-                        "mod+shift+v" ->
-                            normalMode model (pasteInto vs.active)
 
                         "mod+z" ->
                             case model.historyState of
@@ -1859,8 +1856,8 @@ paste subtree pid pos ( model, prevCmd ) =
         |> addToHistory
 
 
-pasteBelow2 : String -> Tree -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-pasteBelow2 id copiedTree ( model, prevCmd ) =
+pasteBelow : String -> Tree -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+pasteBelow id copiedTree ( model, prevCmd ) =
     let
         ( newId, newSeed ) =
             Random.step randomId model.seed
@@ -1880,54 +1877,19 @@ pasteBelow2 id copiedTree ( model, prevCmd ) =
         |> paste treeToPaste pid pos
 
 
-pasteBelow : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-pasteBelow id ( model, prevCmd ) =
-    case model.viewState.clipboardTree of
-        Just copiedTree ->
-            let
-                ( newId, newSeed ) =
-                    Random.step randomId model.seed
+pasteInto : String -> Tree -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+pasteInto id copiedTree ( model, prevCmd ) =
+    let
+        ( newId, newSeed ) =
+            Random.step randomId model.seed
 
-                treeToPaste =
-                    TreeStructure.renameNodes (newId |> String.fromInt) copiedTree
-
-                pid =
-                    (getParent id model.workingTree.tree |> Maybe.map .id) |> Maybe.withDefault "0"
-
-                pos =
-                    (getIndex id model.workingTree.tree |> Maybe.withDefault 0) + 1
-            in
-            ( { model | seed = newSeed }
-            , prevCmd
-            )
-                |> paste treeToPaste pid pos
-
-        Nothing ->
-            ( model
-            , prevCmd
-            )
-
-
-pasteInto : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-pasteInto id ( model, prevCmd ) =
-    case model.viewState.copiedTree of
-        Just copiedTree ->
-            let
-                ( newId, newSeed ) =
-                    Random.step randomId model.seed
-
-                treeToPaste =
-                    TreeStructure.renameNodes (newId |> String.fromInt) copiedTree
-            in
-            ( { model | seed = newSeed }
-            , prevCmd
-            )
-                |> paste treeToPaste id 999999
-
-        Nothing ->
-            ( model
-            , prevCmd
-            )
+        treeToPaste =
+            TreeStructure.renameNodes (newId |> String.fromInt) copiedTree
+    in
+    ( { model | seed = newSeed }
+    , prevCmd
+    )
+        |> paste treeToPaste id 999999
 
 
 

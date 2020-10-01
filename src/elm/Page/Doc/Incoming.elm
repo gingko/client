@@ -4,7 +4,7 @@ import Coders exposing (..)
 import Json.Decode as Dec exposing (Decoder, decodeValue, errorToString, field, oneOf)
 import Time
 import Translation exposing (languageDecoder)
-import Types exposing (CollabState, CursorPosition(..), OutsideData, TextCursorInfo, Tree)
+import Types exposing (Children(..), CollabState, CursorPosition(..), OutsideData, TextCursorInfo, Tree)
 
 
 type
@@ -25,6 +25,7 @@ type
       -- === DOM ===
     | DragStarted String
     | Paste Tree
+    | PasteInto Tree
     | FieldChanged String
     | TextCursor TextCursorInfo
     | CheckboxClicked String Int
@@ -128,9 +129,17 @@ subscribe tagger onError =
                             onError (errorToString e)
 
                 "Paste" ->
-                    case decodeValue treeDecoder outsideInfo.data of
+                    case decodeValue treeOrString outsideInfo.data of
                         Ok tree ->
                             tagger <| Paste tree
+
+                        Err e ->
+                            onError (errorToString e)
+
+                "PasteInto" ->
+                    case decodeValue treeOrString outsideInfo.data of
+                        Ok tree ->
+                            tagger <| PasteInto tree
 
                         Err e ->
                             onError (errorToString e)

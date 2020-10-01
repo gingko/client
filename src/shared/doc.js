@@ -453,15 +453,6 @@ document.ondragover = document.ondrop = (ev) => {
   ev.preventDefault();
 };
 
-document.onpaste = (ev) => {
-  console.log("paste event", ev.clipboardData.getData("text/plain"))
-  try {
-    let parsed = JSON.parse(ev.clipboardData.getData("text/plain"))
-    toElm(parsed, "docMsgs", "Paste");
-  } catch {
-
-  }
-}
 
 window.onresize = () => {
   if (lastActivesScrolled) {
@@ -522,7 +513,21 @@ const selectionHandler = function () {
 document.onselectionchange = selectionHandler;
 
 Mousetrap.bind(helpers.shortcuts, function (e, s) {
-  toElm(s, "docMsgs", "Keyboard");
+  if (s === "mod+v" || s === "mod+shift+v") {
+    let elmTag = s === "mod+v" ? "Paste" : "PasteInto";
+
+    navigator.clipboard.readText()
+      .then(clipString => {
+        try {
+          let clipObj = JSON.parse(clipString);
+          toElm(clipObj, "docMsgs", elmTag)
+        } catch {
+          toElm(clipString, "docMsgs", elmTag)
+        }
+      });
+  } else {
+    toElm(s, "docMsgs", "Keyboard");
+  }
 
   if (helpers.needOverride.includes(s)) {
     return false;
