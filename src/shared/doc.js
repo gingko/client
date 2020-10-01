@@ -333,7 +333,9 @@ const fromElm = (msg, elmData) => {
       toElm(elmData.target.id.replace(/^card-/, ""), "docMsgs", "DragStarted");
     },
 
-    FlashCurrentSubtree: () => {
+    CopyCurrentSubtree: () => {
+      console.log("copied", elmData);
+      navigator.clipboard.writeText(JSON.stringify(elmData));
       let addFlashClass = function () {
         jQuery(".card.active").addClass("flash");
         jQuery(".group.active-descendant").addClass("flash");
@@ -451,6 +453,7 @@ document.ondragover = document.ondrop = (ev) => {
   ev.preventDefault();
 };
 
+
 window.onresize = () => {
   if (lastActivesScrolled) {
     debouncedScrollColumns(lastActivesScrolled);
@@ -510,7 +513,21 @@ const selectionHandler = function () {
 document.onselectionchange = selectionHandler;
 
 Mousetrap.bind(helpers.shortcuts, function (e, s) {
-  toElm(s, "docMsgs", "Keyboard");
+  if (s === "mod+v" || s === "mod+shift+v") {
+    let elmTag = s === "mod+v" ? "Paste" : "PasteInto";
+
+    navigator.clipboard.readText()
+      .then(clipString => {
+        try {
+          let clipObj = JSON.parse(clipString);
+          toElm(clipObj, "docMsgs", elmTag)
+        } catch {
+          toElm(clipString, "docMsgs", elmTag)
+        }
+      });
+  } else {
+    toElm(s, "docMsgs", "Keyboard");
+  }
 
   if (helpers.needOverride.includes(s)) {
     return false;

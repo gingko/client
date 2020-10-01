@@ -36,7 +36,7 @@ type Msg
       -- === DOM ===
     | ActivateCards ( String, Int, List (List String) ) Bool
     | DragStart Enc.Value
-    | FlashCurrentSubtree
+    | CopyCurrentSubtree Enc.Value
     | TextSurround String String
     | SetCursorPosition Int
       -- === UI ===
@@ -154,8 +154,12 @@ send info =
         DragStart event ->
             dataToSend "DragStart" event
 
-        FlashCurrentSubtree ->
-            dataToSend "FlashCurrentSubtree" null
+        CopyCurrentSubtree treeJSON ->
+            let
+                _ =
+                    Debug.log "treeJson" (Enc.encode 2 treeJSON)
+            in
+            dataToSend "CopyCurrentSubtree" treeJSON
 
         TextSurround id str ->
             dataToSend "TextSurround" (list string [ id, str ])
