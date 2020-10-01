@@ -454,6 +454,13 @@ document.ondragover = document.ondrop = (ev) => {
 };
 
 
+window.addEventListener("message", (ev) => {
+  if(ev.data.hasOwnProperty("loggedin")) {
+    toElm(ev.data.loggedin, "iframeLoginStateChange");
+  }
+});
+
+
 window.onresize = () => {
   if (lastActivesScrolled) {
     debouncedScrollColumns(lastActivesScrolled);
