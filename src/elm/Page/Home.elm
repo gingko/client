@@ -92,6 +92,7 @@ type Msg
 type ImportModalMsg
     = ModalToggled Bool
     | LoginStateChanged Bool
+    | Retry
     | FileRequested
     | FileDraggedOver Bool
     | FileSelected File
@@ -156,6 +157,9 @@ updateImportModal msg ({ importModal, user } as model) =
                         LoggedOut
             in
             ( { model | importModal = ModalOpen { loginState = newState, isFileDragging = False } }, Cmd.none )
+
+        ( Retry, ModalOpen modalData ) ->
+            ( { model | importModal = ModalOpen { modalData | loginState = Unknown } }, Cmd.none )
 
         ( FileRequested, _ ) ->
             ( model, Select.file [ "text/*", "application/json" ] FileSelected )
@@ -335,8 +339,10 @@ viewImportModal modalState =
                     , p []
                         [ text "1. "
                         , a [ href "https://gingkoapp.com/login", target "_blank" ] [ text "Login there" ]
-                        , text ", then come back."
+                        , text "."
                         ]
+                    , p []
+                        [ text "2. Then, come back and ", button [ onClick (ImportModal Retry) ] [ text "Try again" ], text "." ]
                     ]
                         |> modalWrapper
 
