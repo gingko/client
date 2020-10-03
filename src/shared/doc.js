@@ -321,6 +321,8 @@ const fromElm = (msg, elmData) => {
     ScrollCards: () => {
       helpers.scrollColumns(elmData);
       helpers.scrollHorizontal(elmData.columnIdx, elmData.instant);
+      lastActivesScrolled = elmData;
+      lastColumnScrolled = elmData.columnIdx;
     },
 
     DragStart: () => {
