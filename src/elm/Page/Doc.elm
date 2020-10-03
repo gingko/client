@@ -1136,6 +1136,12 @@ activate tryId instant ( model, prevCmd ) =
                 let
                     id =
                         activeTree.id
+                            |> Debug.log "scroll:activeId"
+
+                    scrollPositions : List ( Int, Doc.TreeUtils.ScrollPosition )
+                    scrollPositions =
+                        getScrollPositions activeTree (vs.activePast |> Debug.log "scroll:activePast param") model.workingTree.tree
+                            |> Debug.log "scroll:positions"
 
                     desc =
                         activeTree
@@ -1172,13 +1178,7 @@ activate tryId instant ( model, prevCmd ) =
                 , Cmd.batch
                     [ prevCmd
                     , send
-                        (ActivateCards
-                            ( id
-                            , getDepth 0 model.workingTree.tree id
-                            , centerlineIds flatCols allIds newPast
-                            )
-                            instant
-                        )
+                        (ScrollCards scrollPositions instant)
                     ]
                 )
                     |> sendCollabState (CollabState model.uid (CollabActive id) "")

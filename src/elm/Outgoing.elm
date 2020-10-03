@@ -2,7 +2,7 @@ port module Outgoing exposing (Msg(..), infoForOutside, send)
 
 import Coders exposing (..)
 import Doc.Fonts as Fonts
-import Doc.TreeUtils exposing (getColumn)
+import Doc.TreeUtils exposing (ScrollPosition, getColumn, scrollPositionToValue)
 import Json.Encode as Enc exposing (..)
 import Json.Encode.Extra exposing (maybe)
 import Translation exposing (Language, langToString)
@@ -35,6 +35,7 @@ type Msg
     | ExportTXTColumn Int Tree (Maybe String)
       -- === DOM ===
     | ActivateCards ( String, Int, List (List String) ) Bool
+    | ScrollCards (List ( Int, ScrollPosition )) Bool
     | DragStart Enc.Value
     | CopyCurrentSubtree Enc.Value
     | TextSurround String String
@@ -147,6 +148,24 @@ send info =
                     [ ( "cardId", string cardId )
                     , ( "column", int col )
                     , ( "lastActives", listListStringToValue lastActives )
+                    , ( "instant", bool instant )
+                    ]
+                )
+
+        ScrollCards listScrollPositions instant ->
+            dataToSend "ScrollCards"
+                (object
+                    [ ( "columns"
+                      , listScrollPositions
+                            |> List.map
+                                (\( idx, sp ) ->
+                                    Enc.object
+                                        [ ( "columnIdx", Enc.int idx )
+                                        , ( "scrollData", scrollPositionToValue sp )
+                                        ]
+                                )
+                            |> Enc.list identity
+                      )
                     , ( "instant", bool instant )
                     ]
                 )

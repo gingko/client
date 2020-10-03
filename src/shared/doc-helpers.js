@@ -35,9 +35,17 @@ var scrollColumns = (centerlineIds, instant) => {
   });
 };
 
+var scrollColumns2 = (scrollInfo) => {
+  scrollInfo.columns.map(column => {
+    _.delay(scrollTo, 20, column.scrollData.target, column.columnIdx -1, scrollInfo.instant);
+  });
+}
+
 var scrollTo = function (cid, colIdx, instant) {
   var card = document.getElementById("card-" + cid.toString());
+  console.log("scroll:card", card)
   var col = document.getElementsByClassName("column")[colIdx + 1];
+  console.log("scroll:column", col)
   if (card == null) {
     console.log("scroll error: not found", cid);
     return;
@@ -160,6 +168,7 @@ var needOverride = [
 module.exports = {
   scrollHorizontal: scrollHorizontal,
   scrollColumns: scrollColumns,
+  scrollColumns2: scrollColumns2,
   errorAlert: errorAlert,
   shortcuts: shortcuts,
   needOverride: needOverride,

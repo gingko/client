@@ -328,6 +328,10 @@ const fromElm = (msg, elmData) => {
       localStore.set("last-active", elmData.cardId);
     },
 
+    ScrollCards: () => {
+      helpers.scrollColumns2(elmData);
+    },
+
     DragStart: () => {
       elmData.dataTransfer.setData("text", "");
       toElm(elmData.target.id.replace(/^card-/, ""), "docMsgs", "DragStarted");

@@ -1,7 +1,9 @@
-module Doc.TreeUtils exposing (centerlineIds, dictUpdate, getAncestors, getChildren, getColumn, getColumnById, getColumns, getContent, getDepth, getDescendants, getFirstCard, getFirstInColumn, getIndex, getLastInColumn, getNext, getNextInColumn, getParent, getPrev, getPrevInColumn, getPrevNext, getPrevNextInColumn, getSiblings, getTree, getTreeWithPosition, newLine, sha1, withIdTree)
+module Doc.TreeUtils exposing (ScrollPosition, centerlineIds, dictUpdate, getAncestors, getChildren, getColumn, getColumnById, getColumns, getContent, getDepth, getDescendants, getFirstCard, getFirstInColumn, getIndex, getLastInColumn, getNext, getNextInColumn, getParent, getPrev, getPrevInColumn, getPrevNext, getPrevNextInColumn, getScrollPositions, getSiblings, getTree, getTreeWithPosition, newLine, scrollPositionToValue, sha1, withIdTree)
 
 import Dict exposing (..)
+import Json.Encode as Enc
 import List.Extra as ListExtra
+import Maybe.Extra as MaybeExtra
 import SHA1
 import String
 import Types exposing (Children(..), Column, Tree)
@@ -299,6 +301,160 @@ getFirstCard tree =
 
 
 -- SPECIAL PROPERTIES
+
+
+type ScrollPosition
+    = Center String
+    | Before String
+    | After String
+    | Between String String
+    | None
+
+
+scrollPositionToValue : ScrollPosition -> Enc.Value
+scrollPositionToValue sp =
+    case sp of
+        Center id ->
+            Enc.object
+                [ ( "target", Enc.string id )
+                , ( "position", Enc.string "Center" )
+                ]
+
+        Before id ->
+            Enc.object
+                [ ( "target", Enc.string id )
+                , ( "position", Enc.string "Before" )
+                ]
+
+        After id ->
+            Enc.object
+                [ ( "target", Enc.string id )
+                , ( "position", Enc.string "After" )
+                ]
+
+        Between id1 id2 ->
+            Enc.object
+                [ ( "target1", Enc.string id1 )
+                , ( "target2", Enc.string id2 )
+                , ( "position", Enc.string "Between" )
+                ]
+
+        None ->
+            Enc.object
+                [ ( "position", Enc.string "None" )
+                ]
+
+
+getScrollPositions : Tree -> List String -> Tree -> List ( Int, ScrollPosition )
+getScrollPositions activeTree activePastIds fullTree =
+    let
+        ancestors =
+            getAncestors fullTree activeTree [] |> List.map .id
+
+        descendants =
+            getDescendants activeTree
+                |> List.map .id
+                |> Debug.log "scroll:descendants"
+
+        lastActiveDescendants =
+            descendants
+                |> List.filter (\d -> List.member d activePastIds)
+                |> Debug.log "scroll:allLastActDesc"
+
+        preorderedIds =
+            preorderTraversal fullTree
+                |> Debug.log "scroll:preorderedIds"
+
+        preorderActiveIndex =
+            preorderedIds
+                |> ListExtra.elemIndex activeTree.id
+                |> Maybe.withDefault 0
+
+        filterOut refList origList =
+            origList |> List.filter (\li -> not <| List.member li refList)
+
+        ( beforeIds, afterIds ) =
+            preorderedIds
+                |> ListExtra.splitAt preorderActiveIndex
+                |> Tuple.mapBoth (filterOut descendants) (filterOut descendants)
+                |> Tuple.mapBoth (filterOut ancestors) (filterOut ancestors)
+                |> Debug.log "scroll:after/before"
+
+        flatColumns =
+            getColumns [ [ [ fullTree ] ] ]
+                |> List.map List.concat
+                |> List.map (List.map .id)
+
+        centerActive col =
+            ListExtra.find ((==) activeTree.id) col
+                |> Maybe.map Center
+
+        centerAncestor col =
+            ListExtra.find (\i -> List.member i ancestors) col
+                |> Maybe.map Center
+
+        centerLastActiveDescendant col =
+            ListExtra.find (\i -> List.member i lastActiveDescendants) col
+                |> Debug.log "scroll:lastActDesc"
+                |> Maybe.map Center
+
+        centerOtherDescendants col =
+            ListExtra.find (\i -> List.member i descendants) col
+                |> Maybe.map Center
+
+        befores col =
+            ListExtra.find (\i -> List.member i beforeIds) col
+
+        afters col =
+            ListExtra.find (\i -> List.member i afterIds) col
+
+        beforeAndOrAfter col =
+            case ( befores col, afters col ) of
+                ( Just bef, Just aft ) ->
+                    Between bef aft |> Just
+
+                ( Just bef, Nothing ) ->
+                    After bef |> Just
+
+                ( Nothing, Just aft ) ->
+                    Before aft |> Just
+
+                ( Nothing, Nothing ) ->
+                    Nothing
+    in
+    flatColumns
+        |> List.indexedMap
+            (\idx col ->
+                ( idx
+                , MaybeExtra.orList
+                    [ centerActive col
+                    , centerAncestor col
+                    , centerLastActiveDescendant col
+                    , centerOtherDescendants col
+                    , beforeAndOrAfter col
+                    ]
+                    |> Maybe.withDefault None
+                )
+            )
+        |> List.drop 1
+
+
+columnContains : List String -> Column -> Bool
+columnContains ids col =
+    col
+        |> List.concat
+        |> List.map .id
+        |> List.any (\idInCol -> List.member idInCol ids)
+
+
+preorderTraversal : Tree -> List String
+preorderTraversal tree =
+    case tree.children of
+        Children [] ->
+            [ tree.id ]
+
+        Children children ->
+            tree.id :: List.concatMap preorderTraversal children
 
 
 centerlineIds : List (List String) -> List String -> List String -> List (List String)

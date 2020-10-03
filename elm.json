@@ -24,6 +24,7 @@
             "elm-community/html-extra": "3.4.0",
             "elm-community/json-extra": "4.2.0",
             "elm-community/list-extra": "8.2.4",
+            "elm-community/maybe-extra": "5.2.0",
             "elm-explorations/markdown": "1.0.0",
             "gingko/time-distance": "2.3.0",
             "jinjor/elm-diff": "1.0.6",
