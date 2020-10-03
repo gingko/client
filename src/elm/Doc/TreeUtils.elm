@@ -334,7 +334,7 @@ scrollPositionToValue sp =
 
         Between id1 id2 ->
             Enc.object
-                [ ( "target1", Enc.string id1 )
+                [ ( "target", Enc.string id1 )
                 , ( "target2", Enc.string id2 )
                 , ( "position", Enc.string "Between" )
                 ]
@@ -363,7 +363,6 @@ getScrollPositions activeTree activePastIds fullTree =
 
         preorderedIds =
             preorderTraversal fullTree
-                |> Debug.log "scroll:preorderedIds"
 
         preorderActiveIndex =
             preorderedIds
@@ -373,12 +372,12 @@ getScrollPositions activeTree activePastIds fullTree =
         filterOut refList origList =
             origList |> List.filter (\li -> not <| List.member li refList)
 
-        ( beforeIds, afterIds ) =
+        ( afterIds, beforeIds ) =
             preorderedIds
                 |> ListExtra.splitAt preorderActiveIndex
                 |> Tuple.mapBoth (filterOut descendants) (filterOut descendants)
                 |> Tuple.mapBoth (filterOut ancestors) (filterOut ancestors)
-                |> Debug.log "scroll:after/before"
+                |> Tuple.mapBoth (filterOut [ activeTree.id ]) (filterOut [ activeTree.id ])
 
         flatColumns =
             getColumns [ [ [ fullTree ] ] ]
@@ -406,18 +405,18 @@ getScrollPositions activeTree activePastIds fullTree =
             ListExtra.find (\i -> List.member i beforeIds) col
 
         afters col =
-            ListExtra.find (\i -> List.member i afterIds) col
+            ListExtra.find (\i -> List.member i afterIds) (col |> List.reverse)
 
         beforeAndOrAfter col =
             case ( befores col, afters col ) of
                 ( Just bef, Just aft ) ->
-                    Between bef aft |> Just
+                    Between aft bef |> Just
 
                 ( Just bef, Nothing ) ->
-                    After bef |> Just
+                    Before bef |> Just
 
                 ( Nothing, Just aft ) ->
-                    Before aft |> Just
+                    After aft |> Just
 
                 ( Nothing, Nothing ) ->
                     Nothing

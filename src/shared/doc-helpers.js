@@ -37,24 +37,41 @@ var scrollColumns = (centerlineIds, instant) => {
 
 var scrollColumns2 = (scrollInfo) => {
   scrollInfo.columns.map(column => {
-    _.delay(scrollTo, 20, column.scrollData.target, column.columnIdx -1, scrollInfo.instant);
+    let positionParam;
+    switch (column.scrollData.position) {
+      case "Center":
+        positionParam = "center";
+        break;
+
+      case "After":
+        positionParam = "bottom";
+        break;
+
+      case "Before":
+        positionParam = "top";
+        break;
+
+      case "Between":
+        positionParam = "bottom"
+        break;
+    }
+    _.delay(scrollTo, 20, column.scrollData.target, column.columnIdx -1, scrollInfo.instant, positionParam);
   });
 }
 
-var scrollTo = function (cid, colIdx, instant) {
+var scrollTo = function (cid, colIdx, instant, position) {
   var card = document.getElementById("card-" + cid.toString());
-  console.log("scroll:card", card)
   var col = document.getElementsByClassName("column")[colIdx + 1];
-  console.log("scroll:column", col)
   if (card == null) {
     console.log("scroll error: not found", cid);
     return;
   }
   var rect = card.getBoundingClientRect();
+  let positionMultiplier = position === "top" ? 0 : position === "center" ? 0.5 : 1;
 
   TweenMax.to(col, instant ? 0 : 0.35, {
     scrollTop:
-      col.scrollTop + (rect.top + rect.height * 0.5 - col.offsetHeight * 0.5),
+      col.scrollTop + (rect.top + rect.height * positionMultiplier - col.offsetHeight * 0.5),
     ease: Power2.easeInOut,
   });
 };

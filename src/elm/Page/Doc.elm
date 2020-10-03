@@ -1136,12 +1136,9 @@ activate tryId instant ( model, prevCmd ) =
                 let
                     id =
                         activeTree.id
-                            |> Debug.log "scroll:activeId"
 
-                    scrollPositions : List ( Int, Doc.TreeUtils.ScrollPosition )
                     scrollPositions =
-                        getScrollPositions activeTree (vs.activePast |> Debug.log "scroll:activePast param") model.workingTree.tree
-                            |> Debug.log "scroll:positions"
+                        getScrollPositions activeTree vs.activePast model.workingTree.tree
 
                     desc =
                         activeTree
@@ -1152,18 +1149,8 @@ activate tryId instant ( model, prevCmd ) =
                         getAncestors model.workingTree.tree activeTree []
                             |> List.map .id
 
-                    flatCols =
-                        model.workingTree.columns
-                            |> List.map (\c -> List.map (\g -> List.map .id g) c)
-                            |> List.map List.concat
-
                     newField =
                         activeTree.content
-
-                    allIds =
-                        anc
-                            ++ [ id ]
-                            ++ desc
                 in
                 ( { model
                     | viewState =
