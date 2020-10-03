@@ -318,18 +318,9 @@ const fromElm = (msg, elmData) => {
 
     // === DOM ===
 
-    ActivateCards: () => {
-      lastActivesScrolled = elmData.lastActives;
-      lastColumnScrolled = elmData.column;
-
-      helpers.scrollHorizontal(elmData.column, elmData.instant);
-      helpers.scrollColumns(elmData.lastActives, elmData.instant);
-
-      localStore.set("last-active", elmData.cardId);
-    },
-
     ScrollCards: () => {
-      helpers.scrollColumns2(elmData);
+      helpers.scrollColumns(elmData);
+      helpers.scrollHorizontal(elmData.columnIdx, elmData.instant);
     },
 
     DragStart: () => {

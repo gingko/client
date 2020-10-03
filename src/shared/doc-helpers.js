@@ -27,15 +27,7 @@ var scrollHorizontal = (colIdx, instant) => {
   _.delay(scrollHorizTo, 20, colIdx, instant);
 };
 
-var scrollColumns = (centerlineIds, instant) => {
-  lastCenterline = centerlineIds;
-  centerlineIds.map(function (c, i) {
-    var centerIdx = Math.round(c.length / 2) - 1;
-    _.delay(scrollTo, 20, c[centerIdx], i, instant);
-  });
-};
-
-var scrollColumns2 = (scrollInfo) => {
+var scrollColumns = (scrollInfo) => {
   scrollInfo.columns.map(column => {
     let positionParam;
     switch (column.scrollData.position) {
@@ -55,13 +47,13 @@ var scrollColumns2 = (scrollInfo) => {
         positionParam = "bottom"
         break;
     }
-    _.delay(scrollTo, 20, column.scrollData.target, column.columnIdx -1, scrollInfo.instant, positionParam);
+    _.delay(scrollTo, 20, column.scrollData.target, column.columnIdx, scrollInfo.instant, positionParam);
   });
 }
 
 var scrollTo = function (cid, colIdx, instant, position) {
   var card = document.getElementById("card-" + cid.toString());
-  var col = document.getElementsByClassName("column")[colIdx + 1];
+  var col = document.getElementsByClassName("column")[colIdx ];
   if (card == null) {
     console.log("scroll error: not found", cid);
     return;
@@ -185,7 +177,6 @@ var needOverride = [
 module.exports = {
   scrollHorizontal: scrollHorizontal,
   scrollColumns: scrollColumns,
-  scrollColumns2: scrollColumns2,
   errorAlert: errorAlert,
   shortcuts: shortcuts,
   needOverride: needOverride,

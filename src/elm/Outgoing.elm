@@ -34,8 +34,7 @@ type Msg
     | ExportTXT Bool Tree (Maybe String)
     | ExportTXTColumn Int Tree (Maybe String)
       -- === DOM ===
-    | ActivateCards ( String, Int, List (List String) ) Bool
-    | ScrollCards (List ( Int, ScrollPosition )) Bool
+    | ScrollCards (List ( Int, ScrollPosition )) Int Bool
     | DragStart Enc.Value
     | CopyCurrentSubtree Enc.Value
     | TextSurround String String
@@ -138,21 +137,7 @@ send info =
                 )
 
         -- === DOM ===
-        ActivateCards ( cardId, col, lastActives ) instant ->
-            let
-                listListStringToValue lls =
-                    list (list string) lls
-            in
-            dataToSend "ActivateCards"
-                (object
-                    [ ( "cardId", string cardId )
-                    , ( "column", int col )
-                    , ( "lastActives", listListStringToValue lastActives )
-                    , ( "instant", bool instant )
-                    ]
-                )
-
-        ScrollCards listScrollPositions instant ->
+        ScrollCards listScrollPositions colIdx instant ->
             dataToSend "ScrollCards"
                 (object
                     [ ( "columns"
@@ -166,6 +151,7 @@ send info =
                                 )
                             |> Enc.list identity
                       )
+                    , ( "columnIdx", int colIdx )
                     , ( "instant", bool instant )
                     ]
                 )

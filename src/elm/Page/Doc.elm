@@ -1145,6 +1145,9 @@ activate tryId instant ( model, prevCmd ) =
                             |> getDescendants
                             |> List.map .id
 
+                    colIdx =
+                        getDepth 0 model.workingTree.tree activeTree.id
+
                     anc =
                         getAncestors model.workingTree.tree activeTree []
                             |> List.map .id
@@ -1165,7 +1168,7 @@ activate tryId instant ( model, prevCmd ) =
                 , Cmd.batch
                     [ prevCmd
                     , send
-                        (ScrollCards scrollPositions instant)
+                        (ScrollCards scrollPositions colIdx instant)
                     ]
                 )
                     |> sendCollabState (CollabState model.uid (CollabActive id) "")
