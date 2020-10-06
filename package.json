@@ -103,7 +103,7 @@
     "chai": "^4.1.2",
     "chokidar-cli": "^2.1.0",
     "copy-webpack-plugin": "^6.0.1",
-    "electron": "^9.0.0",
+    "electron": "^9.3.1",
     "electron-builder": "^22.7.0",
     "electron-mocha": "^8.2.2",
     "electron-rebuild": "^1.11.0",
