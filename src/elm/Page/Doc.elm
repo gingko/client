@@ -89,6 +89,9 @@ applyTheme theme =
         Gray ->
             class "gray-theme"
 
+        Turquoise ->
+            class "turquoise-theme"
+
         Dark ->
             class "dark-theme"
 

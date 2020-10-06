@@ -234,6 +234,24 @@ body {
   --edit-text-color: hsl(27,28%,22%);
   --normal-text-color: hsl(0, 20%, 17%);
 }
+.turquoise-theme {
+  --bg-left: hsl(172, 74%, 30%);
+  --bg-main: hsl(172, 72%, 41%);
+
+  --tree-bg-2: hsl(172, 59%, 47%);
+  --tree-bg-2-lighter: hsl(172, 50%, 56%);
+
+  --tree-bg-1: hsl(172, 48%, 60%);
+  --tree-bg-1-lighter: hsl(172, 43%, 67%);
+
+  --active-bg: hsl(172, 100%, 100%);
+
+  --selection-color: hsl(44, 80%, 57%);
+
+  /* --edit-bg is not defined here */
+  --edit-text-color: hsl(27,28%,22%);
+  --normal-text-color: hsl(0, 20%, 17%);
+}
 
 /* ======== FLEXBOX ======== */
 
