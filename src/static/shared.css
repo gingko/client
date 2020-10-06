@@ -11,5 +11,13 @@
   --active-bg: hsl(202, 100%, 100%);
 
   --selection-color: #8CC63F;
+
+  /* --edit-bg is not defined here,
+     so that we can fallback to
+     "handmadepaper.png" background
+     image.
+   */
+  --edit-text-color: hsl(27,28%,22%);
+  --normal-text-color: #332222;
 }
 

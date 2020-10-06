@@ -11,7 +11,6 @@ import Page.Login
 import Page.NotFound
 import Page.Signup
 import Route exposing (Route)
-import Translation exposing (Language, langFromString)
 import Url exposing (Url)
 import User exposing (User)
 

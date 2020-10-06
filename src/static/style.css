@@ -194,8 +194,23 @@ body {
 
 /* ======== THEMES ======== */
 
-.dark {
+.dark-theme {
   --bg-left: black;
+  --bg-main: hsl(0, 0%, 10%);
+
+  --tree-bg-2: hsl(0, 0%, 20%);
+  --tree-bg-2-lighter: hsl(0, 0%, 25%);
+
+  --tree-bg-1: hsl(0,0%,30%);
+  --tree-bg-1-lighter: hsl(0,0%, 35%);
+
+  --active-bg: black;
+
+  --selection-color: white;
+
+  --edit-bg: black;
+  --edit-text-color: white;
+  --normal-text-color: white;
 }
 
 /* ======== FLEXBOX ======== */
@@ -465,6 +480,7 @@ li.sidebar-document-item.active::after {
 
 #document {
   grid-area: document;
+  background-color: var(--bg-main);
 }
 
 #document::-webkit-scrollbar {
@@ -696,7 +712,7 @@ li.sidebar-document-item.active::after {
 
 .group.has-active .card.active {
   background: var(--active-bg);
-  color: #332222;
+  color: var(--normal-text-color);
   border: none;
   border-left: 4px solid var(--selection-color);
   box-shadow: 0px 1px 3px gray;
@@ -898,7 +914,7 @@ pre {
   padding: 15px 0px 5px 0px; 
   border: none;
   border-radius: inherit;
-  background-image: url('./handmadepaper.png');
+  background: var(--edit-bg, url('./handmadepaper.png'));
 }
 
 .group.has-active .card.editing textarea {
@@ -906,7 +922,7 @@ pre {
   background: transparent;
   max-height: 600px;
   text-shadow: -1px -1px 0px rgba(0,0,0,0.1), 1px 1px 0px rgba(255,255,255,0.8);
-  color: hsl(27,28%,22%);
+  color: var(--edit-text-color);
   resize: none;
 }
 

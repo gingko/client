@@ -73,10 +73,26 @@ type alias Model =
     , uid : String
     , isMac : Bool
     , fonts : Fonts.Model
+    , theme : Theme
     , startingWordcount : Int
     , currentTime : Time.Posix
     , seed : Random.Seed
     }
+
+
+type Theme
+    = Default
+    | Dark
+
+
+applyTheme : Theme -> Html.Attribute msg
+applyTheme theme =
+    case theme of
+        Default ->
+            class ""
+
+        Dark ->
+            class "dark-theme"
 
 
 defaultModel : Bool -> User -> String -> Model
@@ -124,6 +140,7 @@ defaultModel isNew session docId =
     , videoModalOpen = False
     , fontSelectorOpen = False
     , fonts = Fonts.default
+    , theme = Default
     , startingWordcount = 0
     , historyState = Closed
     , currentTime = Time.millisToPosix 0
@@ -2110,7 +2127,7 @@ pre, code, .group.has-active .card textarea {
 
             else
                 div
-                    [ id "app-root" ]
+                    [ id "app-root", applyTheme model.theme ]
                     ([ UI.viewHomeLink model.sidebarOpen
                      , lazy3 treeView (User.language model.user) model.viewState model.workingTree
                      , UI.viewHeader { toggledTitleEdit = ToggledTitleEdit, titleFieldChanged = TitleFieldChanged, titleEdited = TitleEdited, toggledAccountMenu = ToggledAccountMenu }
