@@ -17,7 +17,7 @@ import Regex exposing (Regex, replace)
 import Route
 import Time exposing (posixToMillis)
 import Translation exposing (Language, TranslationId(..), timeDistInWords, tr)
-import Types exposing (Children(..), CursorPosition(..), TextCursorInfo, ViewMode(..), ViewState)
+import Types exposing (Children(..), CursorPosition(..), TextCursorInfo, Theme(..), ViewMode(..), ViewState)
 import User exposing (User)
 
 
@@ -145,6 +145,7 @@ type alias SidebarMsgs msg =
     { toggledSidebar : Bool -> msg
     , exportDocx : msg
     , exportJSON : msg
+    , changeTheme : Theme -> msg
     }
 
 
@@ -160,6 +161,8 @@ viewSidebar msgs currentDocument docList isOpen =
                     , hr [ style "width" "80%" ] []
                     , button [ onClick msgs.exportJSON, class "sidebar-item" ] [ text "Export to JSON" ]
                     , button [ onClick msgs.exportDocx, class "sidebar-item" ] [ text "Export to Word" ]
+                    , button [ onClick <| msgs.changeTheme Dark ] [ text "Set Dark Theme" ]
+                    , button [ onClick <| msgs.changeTheme Default ] [ text "Set Default" ]
                     ]
 
             else

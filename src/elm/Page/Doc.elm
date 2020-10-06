@@ -33,7 +33,7 @@ import Regex
 import Task
 import Time
 import Translation exposing (..)
-import Types exposing (Children(..), CollabState, Column, CursorPosition(..), DropId(..), Group, Mode(..), TextCursorInfo, Tree, ViewMode(..), ViewState, VisibleViewState)
+import Types exposing (..)
 import User exposing (User)
 
 
@@ -78,11 +78,6 @@ type alias Model =
     , currentTime : Time.Posix
     , seed : Random.Seed
     }
-
-
-type Theme
-    = Default
-    | Dark
 
 
 applyTheme : Theme -> Html.Attribute msg
@@ -212,6 +207,7 @@ type Msg
     | TitleEdited
     | ToggledAccountMenu Bool
     | ToggledSidebar Bool
+    | ChangeTheme Theme
     | TimeUpdate Time.Posix
     | VideoModal Bool
     | FontsMsg Fonts.Msg
@@ -527,6 +523,9 @@ update msg ({ workingTree } as model) =
 
         ToggledSidebar sidebarOpen ->
             ( { model | sidebarOpen = sidebarOpen }, Cmd.none )
+
+        ChangeTheme newTheme ->
+            ( { model | theme = newTheme }, Cmd.none )
 
         TimeUpdate time ->
             ( { model | currentTime = time }
@@ -2138,6 +2137,7 @@ pre, code, .group.has-active .card textarea {
                             { exportDocx = ExportDocx
                             , exportJSON = ExportJSON
                             , toggledSidebar = ToggledSidebar
+                            , changeTheme = ChangeTheme
                             }
                             model.metadata
                             model.documents
