@@ -618,9 +618,12 @@ update msg ({ workingTree } as model) =
                     dataReceived dataIn model
 
                 LocalStoreLoaded dataIn ->
-                    case Json.decodeValue (Json.field "last-active" Json.string) dataIn of
-                        Ok lastActive ->
-                            ( { model | viewState = { vs | active = lastActive } }, Cmd.none )
+                    case Json.decodeValue (Json.field "last-actives" (Json.list Json.string)) dataIn of
+                        Ok (lastActive :: activePast) ->
+                            ( { model | viewState = { vs | active = lastActive, activePast = activePast } }, Cmd.none )
+
+                        Ok [] ->
+                            ( model, Cmd.none )
 
                         Err _ ->
                             ( model, Cmd.none )
@@ -1168,7 +1171,7 @@ activate tryId instant ( model, prevCmd ) =
                 , Cmd.batch
                     [ prevCmd
                     , send
-                        (ScrollCards scrollPositions colIdx instant)
+                        (ScrollCards (id :: newPast) scrollPositions colIdx instant)
                     ]
                 )
                     |> sendCollabState (CollabState model.uid (CollabActive id) "")

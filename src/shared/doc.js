@@ -323,6 +323,7 @@ const fromElm = (msg, elmData) => {
       helpers.scrollHorizontal(elmData.columnIdx, elmData.instant);
       lastActivesScrolled = elmData;
       lastColumnScrolled = elmData.columnIdx;
+      localStore.set('last-actives', elmData.lastActives);
     },
 
     DragStart: () => {
