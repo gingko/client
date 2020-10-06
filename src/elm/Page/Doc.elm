@@ -1138,7 +1138,7 @@ activate tryId instant ( model, prevCmd ) =
                         activeTree.id
 
                     scrollPositions =
-                        getScrollPositions activeTree vs.activePast model.workingTree.tree
+                        getScrollPositions activeTree newPast model.workingTree.tree
 
                     desc =
                         activeTree

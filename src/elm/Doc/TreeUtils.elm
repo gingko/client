@@ -355,9 +355,15 @@ getScrollPositions activeTree activePastIds fullTree =
             getDescendants activeTree
                 |> List.map .id
 
-        lastActiveDescendants =
-            descendants
-                |> List.filter (\d -> List.member d activePastIds)
+        historySortedTree =
+            fullTree
+                |> sortChildrenBy (\t -> ListExtra.elemIndex t.id activePastIds |> Maybe.withDefault 9999)
+                |> (\t ->
+                        getColumns [ [ [ t ] ] ]
+                   )
+                |> List.map List.concat
+                |> List.concatMap (List.map .id)
+                |> List.filter (\li -> List.member li descendants)
 
         preorderedIds =
             preorderTraversal fullTree
@@ -391,7 +397,7 @@ getScrollPositions activeTree activePastIds fullTree =
                 |> Maybe.map Center
 
         centerLastActiveDescendant col =
-            ListExtra.find (\i -> List.member i lastActiveDescendants) col
+            ListExtra.find (\i -> List.member i col) historySortedTree
                 |> Maybe.map Center
 
         centerOtherDescendants col =
@@ -422,25 +428,17 @@ getScrollPositions activeTree activePastIds fullTree =
         |> List.indexedMap
             (\idx col ->
                 ( idx
-                , MaybeExtra.orList
-                    [ centerActive col
-                    , centerAncestor col
-                    , centerLastActiveDescendant col
-                    , centerOtherDescendants col
-                    , beforeAndOrAfter col
+                , MaybeExtra.orListLazy
+                    [ \() -> centerActive col
+                    , \() -> centerAncestor col
+                    , \() -> centerLastActiveDescendant col
+                    , \() -> centerOtherDescendants col
+                    , \() -> beforeAndOrAfter col
                     ]
                     |> Maybe.withDefault None
                 )
             )
         |> List.drop 1
-
-
-columnContains : List String -> Column -> Bool
-columnContains ids col =
-    col
-        |> List.concat
-        |> List.map .id
-        |> List.any (\idInCol -> List.member idInCol ids)
 
 
 preorderTraversal : Tree -> List String
@@ -451,6 +449,23 @@ preorderTraversal tree =
 
         Children children ->
             tree.id :: List.concatMap preorderTraversal children
+
+
+sortChildrenBy : (Tree -> comparable) -> Tree -> Tree
+sortChildrenBy toComparable tree =
+    let
+        sortedChildren =
+            case tree.children of
+                Children [] ->
+                    tree.children
+
+                Children children ->
+                    children
+                        |> List.sortBy toComparable
+                        |> List.map (sortChildrenBy toComparable)
+                        |> Children
+    in
+    { tree | children = sortedChildren }
 
 
 centerlineIds : List (List String) -> List String -> List String -> List (List String)
