@@ -54,6 +54,7 @@ type ViewMode
 
 type Theme
     = Default
+    | Gray
     | Dark
 
 

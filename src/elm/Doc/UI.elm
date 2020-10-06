@@ -175,7 +175,9 @@ viewSidebar msgs currentDocument docList sidebarState =
                 Settings ->
                     div [ id "sidebar-menu" ]
                         [ h3 [] [ text "Settings" ]
+                        , text "Some test themes:"
                         , button [ onClick <| msgs.themeChanged Default ] [ text "Set Default" ]
+                        , button [ onClick <| msgs.themeChanged Gray ] [ text "Set Gray" ]
                         , button [ onClick <| msgs.themeChanged Dark ] [ text "Set Dark Theme" ]
                         ]
 

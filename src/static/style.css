@@ -212,6 +212,28 @@ body {
   --edit-text-color: white;
   --normal-text-color: white;
 }
+.gray-theme {
+  --bg-left: hsl(202, 0%, 30%);
+  --bg-main: hsl(202, 0%, 41%);
+
+  --tree-bg-2: hsl(202, 0%, 47%);
+  --tree-bg-2-lighter: hsl(202, 0%, 56%);
+
+  --tree-bg-1: hsl(202, 0%, 60%);
+  --tree-bg-1-lighter: hsl(202, 0%, 67%);
+
+  --active-bg: hsl(202, 100%, 100%);
+
+  --selection-color: hsl(86, 0%, 51%);
+
+  /* --edit-bg is not defined here,
+     so that we can fallback to
+     "handmadepaper.png" background
+     image.
+   */
+  --edit-text-color: hsl(27,28%,22%);
+  --normal-text-color: hsl(0, 20%, 17%);
+}
 
 /* ======== FLEXBOX ======== */
 
@@ -528,7 +550,7 @@ li.sidebar-document-item.active::after {
 
 .column.first {
   background-color: var(--bg-left);
-  border-right: 2px solid #328abd;
+  border-right: 2px solid hsla(0, 0%, 0%, 0.15);
   margin-right: 40px;
 }
 
@@ -627,9 +649,9 @@ li.sidebar-document-item.active::after {
   margin-right: -1px;
   padding: 10px;
   background-color: var(--tree-bg-2);
-  color: hsl(202deg 51% 30%);
+  color: hsl(202, 0%, 30%);
   border-radius: 3px;
-  box-shadow: 1px 1px 6px hsl(202 72% 26%);
+  box-shadow: 1px 1px 6px hsla(0, 0%, 0%, 0.26);
   z-index: 5;
   position: relative;
 }

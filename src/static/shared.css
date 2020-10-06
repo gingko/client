@@ -1,16 +1,16 @@
 :root {
-  --bg-left: #145b83;
-  --bg-main: #1d7db4;
+  --bg-left: hsl(202, 74%, 30%);
+  --bg-main: hsl(202, 72%, 41%);
 
-  --tree-bg-2: hsl(202 59% 47%);
-  --tree-bg-2-lighter: hsl(202 50% 56%);
+  --tree-bg-2: hsl(202, 59%, 47%);
+  --tree-bg-2-lighter: hsl(202, 50%, 56%);
 
-  --tree-bg-1: hsl(202 48% 60%);
-  --tree-bg-1-lighter: hsl(202 43% 67%);
+  --tree-bg-1: hsl(202, 48%, 60%);
+  --tree-bg-1-lighter: hsl(202, 43%, 67%);
 
   --active-bg: hsl(202, 100%, 100%);
 
-  --selection-color: #8CC63F;
+  --selection-color: hsl(86, 54%, 51%);
 
   /* --edit-bg is not defined here,
      so that we can fallback to
@@ -18,6 +18,6 @@
      image.
    */
   --edit-text-color: hsl(27,28%,22%);
-  --normal-text-color: #332222;
+  --normal-text-color: hsl(0, 20%, 17%);
 }
 
