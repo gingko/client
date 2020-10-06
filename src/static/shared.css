@@ -1,12 +1,15 @@
 :root {
-  --dark-gray: hsl(202 59% 47%);
-  --dark-gray-lighter: hsl(202 50% 56%);
+  --bg-left: #145b83;
+  --bg-main: #1d7db4;
 
-  --light-gray: hsl(202 48% 60%);
-  --light-gray-lighter: hsl(202 43% 67%);
+  --tree-bg-2: hsl(202 59% 47%);
+  --tree-bg-2-lighter: hsl(202 50% 56%);
 
-  --white-bg: hsl(202, 100%, 100%);
+  --tree-bg-1: hsl(202 48% 60%);
+  --tree-bg-1-lighter: hsl(202 43% 67%);
 
-  --gingko-green: #8CC63F;
+  --active-bg: hsl(202, 100%, 100%);
+
+  --selection-color: #8CC63F;
 }
 

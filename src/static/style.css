@@ -142,7 +142,7 @@ body {
   margin: 0;
   padding: 0;
   display: flex;
-  background: #1d7db4;
+  background: var(--bg-main);
 }
 
 body {
@@ -192,6 +192,12 @@ body {
   text-align: center;
 }
 
+/* ======== THEMES ======== */
+
+.dark {
+  --bg-left: black;
+}
+
 /* ======== FLEXBOX ======== */
 
 .flex-column {
@@ -224,7 +230,7 @@ body {
   grid-area: document;
   width: 100%;
   height: 100%;
-  background: #1d7db4;
+  background: var(--bg-main);
   animation: fadeOut 0.5s;
   opacity: 0;
   pointer-events: none;
@@ -429,7 +435,7 @@ li.sidebar-document-item a {
 }
 li.sidebar-document-item.active a {
   background: white;
-  border-left: 4px solid var(--gingko-green);
+  border-left: 4px solid var(--selection-color);
 }
 li.sidebar-document-item.active::before ,
 li.sidebar-document-item.active::after {
@@ -505,7 +511,7 @@ li.sidebar-document-item.active::after {
 }
 
 .column.first {
-  background-color: #145b83;
+  background-color: var(--bg-left);
   border-right: 2px solid #328abd;
   margin-right: 40px;
 }
@@ -604,7 +610,7 @@ li.sidebar-document-item.active::after {
   margin: 0;
   margin-right: -1px;
   padding: 10px;
-  background-color: var(--dark-gray);
+  background-color: var(--tree-bg-2);
   color: hsl(202deg 51% 30%);
   border-radius: 3px;
   box-shadow: 1px 1px 6px hsl(202 72% 26%);
@@ -619,13 +625,13 @@ li.sidebar-document-item.active::after {
 }
 
 .group.has-active {
-  background: var(--light-gray);
+  background: var(--tree-bg-1);
   color: #333;
 }
 
 .group.active-descendant {
   color: #333;
-  background: var(--white-bg);
+  background: var(--active-bg);
   border-radius: 8px 0 0 8px;
 }
 
@@ -645,7 +651,7 @@ li.sidebar-document-item.active::after {
   border-left: 4px solid rgba(255,255,255,0);
   border-radius: 3px;
   position: relative;
-  background-color: var(--dark-gray);
+  background-color: var(--tree-bg-2);
   margin-bottom: 2px;
 }
 .card:last-child {
@@ -653,24 +659,24 @@ li.sidebar-document-item.active::after {
 }
 
 .card:hover {
-  background: var(--dark-gray-lighter);
+  background: var(--tree-bg-2-lighter);
 }
 
 .group.active-descendant .card {
-  background: var(--white-bg);
+  background: var(--active-bg);
 }
 
 .group.active-descendant .card:hover {
-  background: var(--white-bg);
+  background: var(--active-bg);
   box-shadow: 0px 1px 3px lightgray;
 }
 
 .group.has-active .card {
-  background: var(--light-gray);
+  background: var(--tree-bg-1);
 }
 
 .group.has-active .card:hover {
-  background: var(--light-gray-lighter);
+  background: var(--tree-bg-1-lighter);
 }
 
 .card .view {
@@ -689,16 +695,16 @@ li.sidebar-document-item.active::after {
 }
 
 .group.has-active .card.active {
-  background: var(--white-bg);
+  background: var(--active-bg);
   color: #332222;
   border: none;
-  border-left: 4px solid var(--gingko-green);
+  border-left: 4px solid var(--selection-color);
   box-shadow: 0px 1px 3px gray;
 }
 
 .group.has-active .card.active.has-children::after {
   content: '';
-  background: var(--white-bg);
+  background: var(--active-bg);
   position: absolute;
   width: 12px;
   height: 100%;
@@ -714,20 +720,20 @@ li.sidebar-document-item.active::after {
 }
 
 .card.ancestor {
-  background: var(--light-gray);
+  background: var(--tree-bg-1);
   color: #333;
   border-left: none;
   padding-left: 4px;
 }
 
 .card.ancestor:hover {
-  background: var(--light-gray-lighter);
+  background: var(--tree-bg-1-lighter);
   color: #333;
 }
 
 .card.ancestor::after {
   content: '';
-  background: var(--light-gray);
+  background: var(--tree-bg-1);
   position: absolute;
   width: 12px;
   height: 100%;
@@ -739,7 +745,7 @@ li.sidebar-document-item.active::after {
 
 .card.ancestor::before {
   content: '';
-  background: var(--light-gray);
+  background: var(--tree-bg-1);
   position: absolute;
   width: 12px;
   height: 100%;
@@ -865,7 +871,7 @@ pre {
 }
 
 #document.editing .group {
-  background-color: var(--dark-gray);
+  background-color: var(--tree-bg-2);
 }
 
 #document.editing,
@@ -995,7 +1001,7 @@ pre {
 .card-btn.ins-right,
 .card-btn.ins-above,
 .card-btn.ins-below {
-  background: var(--white-bg);
+  background: var(--active-bg);
   height: 20px;
   width: 40px;
   line-height: 20px;
