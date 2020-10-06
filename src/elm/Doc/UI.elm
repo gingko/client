@@ -13,11 +13,12 @@ import Html.Attributes as A exposing (..)
 import Html.Events exposing (onClick, onInput)
 import List.Extra as ListExtra exposing (getAt)
 import Octicons as Icon exposing (defaultOptions)
+import Page.Doc.Theme exposing (Theme(..))
 import Regex exposing (Regex, replace)
 import Route
 import Time exposing (posixToMillis)
 import Translation exposing (Language, TranslationId(..), timeDistInWords, tr)
-import Types exposing (Children(..), CursorPosition(..), SidebarState(..), TextCursorInfo, Theme(..), ViewMode(..), ViewState)
+import Types exposing (Children(..), CursorPosition(..), SidebarState(..), TextCursorInfo, ViewMode(..), ViewState)
 import User exposing (User)
 
 

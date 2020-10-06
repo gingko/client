@@ -5,6 +5,7 @@ import Doc.Fonts as Fonts
 import Doc.TreeUtils exposing (ScrollPosition, getColumn, scrollPositionToValue)
 import Json.Encode as Enc exposing (..)
 import Json.Encode.Extra exposing (maybe)
+import Page.Doc.Theme as Theme exposing (Theme)
 import Translation exposing (Language, langToString)
 import Types exposing (CollabState, CursorPosition(..), OutsideData, TextCursorInfo, Tree)
 
@@ -43,6 +44,7 @@ type Msg
     | UpdateCommits ( Enc.Value, Maybe String )
     | SetVideoModal Bool
     | SetLanguage Language
+    | SaveThemeSetting Theme
     | SetFonts Fonts.Settings
     | SetShortcutTray Bool
       -- === Misc ===
@@ -187,6 +189,9 @@ send info =
 
         SetLanguage lang ->
             dataToSend "SetLanguage" (lang |> langToString |> string)
+
+        SaveThemeSetting newTheme ->
+            dataToSend "SaveThemeSetting" (Theme.toValue newTheme)
 
         SetFonts fontSettings ->
             dataToSend "SetFonts" (fontSettingsEncoder fontSettings)

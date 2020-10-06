@@ -28,6 +28,7 @@ import List.Extra as ListExtra exposing (getAt)
 import Markdown
 import Outgoing exposing (Msg(..), send)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
+import Page.Doc.Theme as Theme exposing (Theme(..), applyTheme)
 import Random
 import Regex
 import Task
@@ -78,22 +79,6 @@ type alias Model =
     , currentTime : Time.Posix
     , seed : Random.Seed
     }
-
-
-applyTheme : Theme -> Html.Attribute msg
-applyTheme theme =
-    case theme of
-        Default ->
-            class ""
-
-        Gray ->
-            class "gray-theme"
-
-        Turquoise ->
-            class "turquoise-theme"
-
-        Dark ->
-            class "dark-theme"
 
 
 defaultModel : Bool -> User -> String -> Model
@@ -531,7 +516,7 @@ update msg ({ workingTree } as model) =
             ( { model | sidebarState = newSidebarState }, Cmd.none )
 
         ThemeChanged newTheme ->
-            ( { model | theme = newTheme }, Cmd.none )
+            ( { model | theme = newTheme }, send <| SaveThemeSetting newTheme )
 
         TimeUpdate time ->
             ( { model | currentTime = time }
@@ -640,15 +625,27 @@ update msg ({ workingTree } as model) =
                     dataReceived dataIn model
 
                 LocalStoreLoaded dataIn ->
-                    case Json.decodeValue (Json.field "last-actives" (Json.list Json.string)) dataIn of
-                        Ok (lastActive :: activePast) ->
-                            ( { model | viewState = { vs | active = lastActive, activePast = activePast } }, Cmd.none )
+                    let
+                        newViewstate =
+                            case Json.decodeValue (Json.field "last-actives" (Json.list Json.string)) dataIn of
+                                Ok (lastActive :: activePast) ->
+                                    { vs | active = lastActive, activePast = activePast }
 
-                        Ok [] ->
-                            ( model, Cmd.none )
+                                Ok [] ->
+                                    vs
 
-                        Err _ ->
-                            ( model, Cmd.none )
+                                Err _ ->
+                                    vs
+
+                        newTheme =
+                            case Json.decodeValue Theme.decoder dataIn of
+                                Ok decodedTheme ->
+                                    decodedTheme
+
+                                Err _ ->
+                                    Default
+                    in
+                    ( { model | viewState = newViewstate, theme = newTheme }, Cmd.none )
 
                 MetadataSynced json ->
                     case Json.decodeValue Metadata.decoder json of

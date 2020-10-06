@@ -1,4 +1,4 @@
-module Types exposing (Children(..), CollabState, Column, CursorPosition(..), DropId(..), Group, Mode(..), OutsideData, SidebarState(..), TextCursorInfo, Theme(..), Tree, ViewMode(..), ViewState, VisibleViewState)
+module Types exposing (Children(..), CollabState, Column, CursorPosition(..), DropId(..), Group, Mode(..), OutsideData, SidebarState(..), TextCursorInfo, Tree, ViewMode(..), ViewState, VisibleViewState)
 
 import Html5.DragDrop as DragDrop
 import Json.Encode as Enc
@@ -50,13 +50,6 @@ type ViewMode
     = Normal
     | Editing
     | FullscreenEditing
-
-
-type Theme
-    = Default
-    | Gray
-    | Turquoise
-    | Dark
 
 
 type SidebarState
