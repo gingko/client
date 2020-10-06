@@ -8,7 +8,7 @@ import Doc.List as DocList
 import Doc.Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
-import Html exposing (Html, a, button, del, div, fieldset, h1, hr, iframe, img, input, ins, label, li, span, text, ul)
+import Html exposing (Html, a, button, del, div, fieldset, h1, h3, hr, iframe, img, input, ins, label, li, span, text, ul)
 import Html.Attributes as A exposing (..)
 import Html.Events exposing (onClick, onInput)
 import List.Extra as ListExtra exposing (getAt)
@@ -159,20 +159,23 @@ viewSidebar msgs currentDocument docList sidebarState =
             case sidebarState of
                 File ->
                     div [ id "sidebar-menu" ]
-                        [ a [ href (Route.toString Route.DocNew), class "sidebar-item" ] [ text "New" ]
+                        [ h3 [] [ text "File" ]
+                        , a [ href (Route.toString Route.DocNew), class "sidebar-item" ] [ text "New" ]
                         , hr [ style "width" "80%" ] []
                         , DocList.viewSmall currentDocument docList
                         ]
 
                 Export ->
                     div [ id "sidebar-menu" ]
-                        [ button [ onClick msgs.exportJSON, class "sidebar-item" ] [ text "Export to JSON" ]
+                        [ h3 [] [ text "Export" ]
+                        , button [ onClick msgs.exportJSON, class "sidebar-item" ] [ text "Export to JSON" ]
                         , button [ onClick msgs.exportDocx, class "sidebar-item" ] [ text "Export to Word" ]
                         ]
 
                 Settings ->
                     div [ id "sidebar-menu" ]
-                        [ button [ onClick <| msgs.themeChanged Default ] [ text "Set Default" ]
+                        [ h3 [] [ text "Settings" ]
+                        , button [ onClick <| msgs.themeChanged Default ] [ text "Set Default" ]
                         , button [ onClick <| msgs.themeChanged Dark ] [ text "Set Dark Theme" ]
                         ]
 
