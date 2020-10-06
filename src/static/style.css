@@ -415,7 +415,7 @@ body {
   box-shadow: 0 0 4px #00000085;
   display: flex;
   flex-direction: column;
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 
 #sidebar-menu .sidebar-item {

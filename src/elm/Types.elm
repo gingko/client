@@ -60,6 +60,8 @@ type Theme
 type SidebarState
     = SidebarClosed
     | File
+    | Export
+    | Settings
 
 
 type alias CollabState =

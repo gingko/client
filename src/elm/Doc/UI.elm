@@ -162,11 +162,18 @@ viewSidebar msgs currentDocument docList sidebarState =
                         [ a [ href (Route.toString Route.DocNew), class "sidebar-item" ] [ text "New" ]
                         , hr [ style "width" "80%" ] []
                         , DocList.viewSmall currentDocument docList
-                        , hr [ style "width" "80%" ] []
-                        , button [ onClick msgs.exportJSON, class "sidebar-item" ] [ text "Export to JSON" ]
+                        ]
+
+                Export ->
+                    div [ id "sidebar-menu" ]
+                        [ button [ onClick msgs.exportJSON, class "sidebar-item" ] [ text "Export to JSON" ]
                         , button [ onClick msgs.exportDocx, class "sidebar-item" ] [ text "Export to Word" ]
+                        ]
+
+                Settings ->
+                    div [ id "sidebar-menu" ]
+                        [ button [ onClick <| msgs.themeChanged Default ] [ text "Set Default" ]
                         , button [ onClick <| msgs.themeChanged Dark ] [ text "Set Dark Theme" ]
-                        , button [ onClick <| msgs.themeChanged Default ] [ text "Set Default" ]
                         ]
 
                 SidebarClosed ->
@@ -181,20 +188,29 @@ viewSidebar msgs currentDocument docList sidebarState =
 
         fileIcon =
             Icon.fileDirectory (defaultOptions |> Icon.color fileIconColor |> Icon.size 18)
+
+        exportIcon =
+            Icon.signOut (defaultOptions |> Icon.color fileIconColor |> Icon.size 18)
+
+        settingsIcon =
+            Icon.settings (defaultOptions |> Icon.color fileIconColor |> Icon.size 18)
+
+        toggle menu =
+            if sidebarState == menu then
+                msgs.sidebarStateChanged <| SidebarClosed
+
+            else
+                msgs.sidebarStateChanged <| menu
+
+        sidebarButton menu icon =
+            div
+                [ classList [ ( "sidebar-button", True ), ( "open", sidebarState == menu ) ], onClick <| toggle menu ]
+                [ icon ]
     in
     [ div [ id "sidebar", classList [ ( "open", isOpen ) ] ]
-        [ div
-            [ classList [ ( "sidebar-button", True ), ( "open", isOpen ) ]
-            , onClick <|
-                msgs.sidebarStateChanged
-                    (if isOpen then
-                        SidebarClosed
-
-                     else
-                        File
-                    )
-            ]
-            [ fileIcon ]
+        [ sidebarButton File fileIcon
+        , sidebarButton Export exportIcon
+        , sidebarButton Settings settingsIcon
         ]
     , sidebarMenu
     ]
