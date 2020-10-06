@@ -17,7 +17,7 @@ import Regex exposing (Regex, replace)
 import Route
 import Time exposing (posixToMillis)
 import Translation exposing (Language, TranslationId(..), timeDistInWords, tr)
-import Types exposing (Children(..), CursorPosition(..), TextCursorInfo, Theme(..), ViewMode(..), ViewState)
+import Types exposing (Children(..), CursorPosition(..), SidebarState(..), TextCursorInfo, Theme(..), ViewMode(..), ViewState)
 import User exposing (User)
 
 
@@ -142,31 +142,35 @@ viewAccount toggleMsg isOpen user =
 
 
 type alias SidebarMsgs msg =
-    { toggledSidebar : Bool -> msg
+    { sidebarStateChanged : SidebarState -> msg
     , exportDocx : msg
     , exportJSON : msg
-    , changeTheme : Theme -> msg
+    , themeChanged : Theme -> msg
     }
 
 
-viewSidebar : SidebarMsgs msg -> Metadata -> DocList.Model -> Bool -> List (Html msg)
-viewSidebar msgs currentDocument docList isOpen =
+viewSidebar : SidebarMsgs msg -> Metadata -> DocList.Model -> SidebarState -> List (Html msg)
+viewSidebar msgs currentDocument docList sidebarState =
     let
-        sidebarMenu =
-            if isOpen then
-                div [ id "sidebar-menu" ]
-                    [ a [ href (Route.toString Route.DocNew), class "sidebar-item" ] [ text "New" ]
-                    , hr [ style "width" "80%" ] []
-                    , DocList.viewSmall currentDocument docList
-                    , hr [ style "width" "80%" ] []
-                    , button [ onClick msgs.exportJSON, class "sidebar-item" ] [ text "Export to JSON" ]
-                    , button [ onClick msgs.exportDocx, class "sidebar-item" ] [ text "Export to Word" ]
-                    , button [ onClick <| msgs.changeTheme Dark ] [ text "Set Dark Theme" ]
-                    , button [ onClick <| msgs.changeTheme Default ] [ text "Set Default" ]
-                    ]
+        isOpen =
+            not (sidebarState == SidebarClosed)
 
-            else
-                text ""
+        sidebarMenu =
+            case sidebarState of
+                File ->
+                    div [ id "sidebar-menu" ]
+                        [ a [ href (Route.toString Route.DocNew), class "sidebar-item" ] [ text "New" ]
+                        , hr [ style "width" "80%" ] []
+                        , DocList.viewSmall currentDocument docList
+                        , hr [ style "width" "80%" ] []
+                        , button [ onClick msgs.exportJSON, class "sidebar-item" ] [ text "Export to JSON" ]
+                        , button [ onClick msgs.exportDocx, class "sidebar-item" ] [ text "Export to Word" ]
+                        , button [ onClick <| msgs.themeChanged Dark ] [ text "Set Dark Theme" ]
+                        , button [ onClick <| msgs.themeChanged Default ] [ text "Set Default" ]
+                        ]
+
+                SidebarClosed ->
+                    text ""
 
         fileIconColor =
             if isOpen then
@@ -179,7 +183,19 @@ viewSidebar msgs currentDocument docList isOpen =
             Icon.fileDirectory (defaultOptions |> Icon.color fileIconColor |> Icon.size 18)
     in
     [ div [ id "sidebar", classList [ ( "open", isOpen ) ] ]
-        [ div [ classList [ ( "sidebar-button", True ), ( "open", isOpen ) ], onClick <| msgs.toggledSidebar (not isOpen) ] [ fileIcon ] ]
+        [ div
+            [ classList [ ( "sidebar-button", True ), ( "open", isOpen ) ]
+            , onClick <|
+                msgs.sidebarStateChanged
+                    (if isOpen then
+                        SidebarClosed
+
+                     else
+                        File
+                    )
+            ]
+            [ fileIcon ]
+        ]
     , sidebarMenu
     ]
 

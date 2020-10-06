@@ -61,7 +61,7 @@ type alias Model =
     , textCursorInfo : TextCursorInfo
     , debouncerStateCommit : Debouncer () ()
     , titleField : Maybe String
-    , sidebarOpen : Bool
+    , sidebarState : SidebarState
     , accountMenuOpen : Bool
     , shortcutTrayOpen : Bool
     , wordcountTrayOpen : Bool
@@ -128,7 +128,7 @@ defaultModel isNew session docId =
     , textCursorInfo = { selected = False, position = End, text = ( "", "" ) }
     , isMac = False
     , titleField = Nothing
-    , sidebarOpen = False
+    , sidebarState = SidebarClosed
     , accountMenuOpen = False
     , shortcutTrayOpen = False -- TODO
     , wordcountTrayOpen = False
@@ -206,8 +206,8 @@ type Msg
     | TitleFieldChanged String
     | TitleEdited
     | ToggledAccountMenu Bool
-    | ToggledSidebar Bool
-    | ChangeTheme Theme
+    | SidebarStateChanged SidebarState
+    | ThemeChanged Theme
     | TimeUpdate Time.Posix
     | VideoModal Bool
     | FontsMsg Fonts.Msg
@@ -521,10 +521,10 @@ update msg ({ workingTree } as model) =
         ToggledAccountMenu isOpen ->
             ( { model | accountMenuOpen = isOpen }, Cmd.none )
 
-        ToggledSidebar sidebarOpen ->
-            ( { model | sidebarOpen = sidebarOpen }, Cmd.none )
+        SidebarStateChanged newSidebarState ->
+            ( { model | sidebarState = newSidebarState }, Cmd.none )
 
-        ChangeTheme newTheme ->
+        ThemeChanged newTheme ->
             ( { model | theme = newTheme }, Cmd.none )
 
         TimeUpdate time ->
@@ -2127,7 +2127,7 @@ pre, code, .group.has-active .card textarea {
             else
                 div
                     [ id "app-root", applyTheme model.theme ]
-                    ([ UI.viewHomeLink model.sidebarOpen
+                    ([ UI.viewHomeLink (not (model.sidebarState == SidebarClosed))
                      , lazy3 treeView (User.language model.user) model.viewState model.workingTree
                      , UI.viewHeader { toggledTitleEdit = ToggledTitleEdit, titleFieldChanged = TitleFieldChanged, titleEdited = TitleEdited, toggledAccountMenu = ToggledAccountMenu }
                         (Metadata.getDocName model.metadata)
@@ -2136,12 +2136,12 @@ pre, code, .group.has-active .card textarea {
                         ++ UI.viewSidebar
                             { exportDocx = ExportDocx
                             , exportJSON = ExportJSON
-                            , toggledSidebar = ToggledSidebar
-                            , changeTheme = ChangeTheme
+                            , sidebarStateChanged = SidebarStateChanged
+                            , themeChanged = ThemeChanged
                             }
                             model.metadata
                             model.documents
-                            model.sidebarOpen
+                            model.sidebarState
                         ++ [ viewSearchField SearchFieldUpdated model
                            , viewFooter WordcountTrayToggle ShortcutTrayToggle model
                            , case model.historyState of
