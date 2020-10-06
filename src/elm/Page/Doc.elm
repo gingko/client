@@ -1817,7 +1817,6 @@ copy id ( model, prevCmd ) =
 
         copiedTree_ =
             getTree id model.workingTree.tree
-                |> Debug.log "clipboardTree_"
     in
     ( { model
         | viewState = { vs | clipboardTree = copiedTree_ }

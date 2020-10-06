@@ -160,10 +160,6 @@ send info =
             dataToSend "DragStart" event
 
         CopyCurrentSubtree treeJSON ->
-            let
-                _ =
-                    Debug.log "treeJson" (Enc.encode 2 treeJSON)
-            in
             dataToSend "CopyCurrentSubtree" treeJSON
 
         TextSurround id str ->

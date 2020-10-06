@@ -354,12 +354,10 @@ getScrollPositions activeTree activePastIds fullTree =
         descendants =
             getDescendants activeTree
                 |> List.map .id
-                |> Debug.log "scroll:descendants"
 
         lastActiveDescendants =
             descendants
                 |> List.filter (\d -> List.member d activePastIds)
-                |> Debug.log "scroll:allLastActDesc"
 
         preorderedIds =
             preorderTraversal fullTree
@@ -394,7 +392,6 @@ getScrollPositions activeTree activePastIds fullTree =
 
         centerLastActiveDescendant col =
             ListExtra.find (\i -> List.member i lastActiveDescendants) col
-                |> Debug.log "scroll:lastActDesc"
                 |> Maybe.map Center
 
         centerOtherDescendants col =
