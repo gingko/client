@@ -123,6 +123,23 @@ async function saveData(localDb, treeId, elmData, savedImmutablesIds) {
 }
 
 
+async function pull(localDb, remoteDb, treeId) {
+  let selector = { _id: { $regex: `${treeId}/` } };
+  let results = await localDb.replicate.from(remoteDb, { selector })
+    .on('change', async (change) => {
+      let metadataDocs = getMetadataDocs(change);
+      if (metadataDocs.length > 0) {
+        await resolveMetadataConflicts(localDb, metadataDocs);
+      }
+    })
+    .catch(async (e) => e);
+
+  if (results.ok && results.docs_written > 0) {
+    return await load(localDb, treeId);
+  }
+}
+
+
 async function push(localDb, remoteDb, treeId, checkForConflicts, successHandler) {
   let shouldPush = true;
   if (checkForConflicts) {
@@ -296,4 +313,4 @@ function unprefix(doc, treeId, idField = "_id") {
 
 /* === Exports === */
 
-export { load, loadMetadata, startLiveReplication, saveData, push };
+export { load, loadMetadata, startLiveReplication, saveData, pull, push };

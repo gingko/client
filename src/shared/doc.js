@@ -102,12 +102,7 @@ function setUserDbs(email) {
   console.log("Inside setUserDbs", email, helpers.toHex(email));
   const userDbName = `userdb-${helpers.toHex(email)}`;
   let userDbUrl = config.COUCHDB_SERVER + "/" + userDbName;
-  var remoteOpts = {
-    skip_setup: true,
-    fetch(url, opts) {
-      return fetch(url, opts);
-    },
-  };
+  var remoteOpts = { skip_setup: true };
   remoteDB = new PouchDB(userDbUrl, remoteOpts);
   db = new PouchDB(userDbName);
   userStore.db(db, remoteDB);
@@ -225,10 +220,6 @@ const fromElm = (msg, elmData) => {
       localStore.db(db, elmData);
       let store = await localStore.load();
       toElm(store, "docMsgs", "LocalStoreLoaded");
-
-      // Start live replication from remote.
-      let dataToElmHandler = (d) => toElm(d, "docMsgs", "DataReceived");
-      data.startLiveReplication(db, remoteDB, elmData, dataToElmHandler, pushSuccessHandler);
     },
 
     LoadDocument : async () => {
@@ -239,13 +230,13 @@ const fromElm = (msg, elmData) => {
       let store = await localStore.load();
       toElm(store, "docMsgs", "LocalStoreLoaded");
 
-      // Load document data.
-      let dataToElmHandler = (d) => toElm(d, "docMsgs", "DataReceived");
+      // Load local document data.
       let loadedData = await data.load(db, elmData);
-      dataToElmHandler(loadedData);
+      toElm(loadedData, "docMsgs", "DataReceived");
 
-      // Start live replication from remote.
-      data.startLiveReplication(db, remoteDB, elmData, dataToElmHandler, pushSuccessHandler);
+      // Pull data from remote
+      let dataAfterPull = await data.pull(db, remoteDB, elmData);
+      toElm(dataAfterPull, "docMsgs", "DataReceived");
     },
 
     GetDocumentList: () => {
@@ -291,10 +282,16 @@ const fromElm = (msg, elmData) => {
       // Maybe send metadata to Elm
       if (typeof savedMetadata !== "undefined") { toElm(savedMetadata, "docMsgs", "MetadataSaved")}
 
-      // Maybe push
+      // Pull & Maybe push
+      await data.pull(db, remoteDB, TREE_ID);
       if(!conflictsExist) {
         data.push(db, remoteDB, TREE_ID, false, pushSuccessHandler);
       }
+    },
+
+    PullData: async () => {
+      let dataAfterPull = await data.pull(db, remoteDB, TREE_ID);
+      toElm(dataAfterPull, "docMsgs", "DataReceived");
     },
 
     SaveImportedData: async () => {

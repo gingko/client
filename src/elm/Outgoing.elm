@@ -28,6 +28,7 @@ type Msg
     | RequestDelete String
     | NoDataToSave
     | SaveData Enc.Value
+    | PullData
     | SaveImportedData Enc.Value
       -- === File System ===
     | ExportDOCX String (Maybe String)
@@ -78,6 +79,9 @@ send info =
         -- === Database ===
         SaveData data ->
             dataToSend "SaveData" data
+
+        PullData ->
+            dataToSend "PullData" null
 
         SaveImportedData data ->
             dataToSend "SaveImportedData" data

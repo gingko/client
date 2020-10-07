@@ -205,6 +205,7 @@ type Msg
     | ShortcutTrayToggle
     | WordcountTrayToggle
       -- === Ports ===
+    | Pull
     | ExportDocx
     | Exported (Maybe String) (Result Http.Error Bytes)
     | ExportJSON
@@ -563,6 +564,9 @@ update msg ({ workingTree } as model) =
             )
 
         -- === Ports ===
+        Pull ->
+            ( model, send <| PullData )
+
         ExportDocx ->
             let
                 markdownString =
@@ -2627,6 +2631,7 @@ subscriptions _ =
         , DocList.subscribe ReceivedDocuments
         , User.settingsChange SettingsChanged
         , Time.every (9 * 1000) TimeUpdate
+        , Time.every (5 * 1000) (always Pull)
         ]
 
 
