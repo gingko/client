@@ -2160,6 +2160,7 @@ pre, code, .group.has-active .card textarea {
                            , viewVideo VideoModal model
                            , styleNode
                            , div [ id "loading-overlay" ] []
+                           , div [ id "preloader" ] []
                            ]
                     )
 

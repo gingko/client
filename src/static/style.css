@@ -290,6 +290,9 @@ body {
   opacity: 0;
   pointer-events: none;
 }
+#preloader {
+  background: url("./handmadepaper.png");
+}
 
 
 #home {
