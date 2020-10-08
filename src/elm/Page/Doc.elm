@@ -1,9 +1,8 @@
 module Page.Doc exposing (Model, Msg, init, subscriptions, toUser, update, view)
 
-import Api
 import Browser.Dom
 import Bytes exposing (Bytes)
-import Coders exposing (treeToJSON, treeToMarkdownString, treeToValue)
+import Coders exposing (treeToMarkdownString, treeToValue)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
 import Doc.Data as Data
 import Doc.Data.Conflict exposing (Selection)
@@ -27,7 +26,7 @@ import Json.Encode as Enc
 import List.Extra as ListExtra exposing (getAt)
 import Markdown
 import Outgoing exposing (Msg(..), send)
-import Page.Doc.Export exposing (exportView)
+import Page.Doc.Export as Export exposing (ExportFormat(..), ExportSelection(..), exportView, exportViewError)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Doc.Theme as Theme exposing (Theme(..), applyTheme)
 import Random
@@ -65,6 +64,7 @@ type alias Model =
     , titleField : Maybe String
     , sidebarState : SidebarState
     , exportPreview : Bool
+    , exportSettings : ( ExportSelection, ExportFormat )
     , accountMenuOpen : Bool
     , shortcutTrayOpen : Bool
     , wordcountTrayOpen : Bool
@@ -123,6 +123,7 @@ defaultModel isNew session docId =
     , titleField = Nothing
     , sidebarState = SidebarClosed
     , exportPreview = False
+    , exportSettings = ( ExportEverything, DOCX )
     , accountMenuOpen = False
     , shortcutTrayOpen = False -- TODO
     , wordcountTrayOpen = False
@@ -202,6 +203,8 @@ type Msg
     | ToggledAccountMenu Bool
     | SidebarStateChanged SidebarState
     | ExportPreviewToggled Bool
+    | ExportSelectionChanged ExportSelection
+    | ExportFormatChanged ExportFormat
     | ThemeChanged Theme
     | TimeUpdate Time.Posix
     | VideoModal Bool
@@ -210,9 +213,8 @@ type Msg
     | WordcountTrayToggle
       -- === Ports ===
     | Pull
-    | ExportDocx
-    | Exported (Maybe String) (Result Http.Error Bytes)
-    | ExportJSON
+    | Export
+    | Exported String (Result Http.Error Bytes)
     | Incoming Incoming.Msg
     | LogErr String
 
@@ -529,6 +531,12 @@ update msg ({ workingTree } as model) =
                         identity
                    )
 
+        ExportSelectionChanged expSel ->
+            ( { model | exportSettings = Tuple.mapFirst (always expSel) model.exportSettings }, Cmd.none )
+
+        ExportFormatChanged expFormat ->
+            ( { model | exportSettings = Tuple.mapSecond (always expFormat) model.exportSettings }, Cmd.none )
+
         ThemeChanged newTheme ->
             ( { model | theme = newTheme }, send <| SaveThemeSetting newTheme )
 
@@ -580,40 +588,34 @@ update msg ({ workingTree } as model) =
         Pull ->
             ( model, send <| PullData )
 
-        ExportDocx ->
+        Export ->
             let
-                markdownString =
-                    treeToMarkdownString False model.workingTree.tree
+                activeTree =
+                    getTree vs.active model.workingTree.tree
+                        |> Maybe.withDefault model.workingTree.tree
             in
             ( model
-            , Api.exportDocx
-                (Exported (Metadata.getDocName model.metadata))
-                { docId = Metadata.getDocId model.metadata, markdown = markdownString }
+            , Export.command
+                Exported
+                (Metadata.getDocId model.metadata)
+                (Metadata.getDocName model.metadata |> Maybe.withDefault "Untitled")
+                model.exportSettings
+                activeTree
+                model.workingTree.tree
             )
 
-        Exported docName_ (Ok bytes) ->
+        Exported docName (Ok bytes) ->
             let
                 mime =
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
                 filename =
-                    (docName_ |> Maybe.withDefault "Untitled") ++ ".docx"
+                    docName ++ ".docx"
             in
             ( model, Download.bytes filename mime bytes )
 
         Exported _ (Err _) ->
             ( model, Cmd.none )
-
-        ExportJSON ->
-            let
-                treeJSONstring =
-                    treeToJSON model.workingTree.tree
-                        |> Enc.encode 2
-
-                fileName =
-                    Metadata.getDocName model.metadata |> Maybe.withDefault "Untitled.json"
-            in
-            ( model, Download.string fileName "application/json" treeJSONstring )
 
         Incoming incomingMsg ->
             case incomingMsg of
@@ -2154,7 +2156,16 @@ pre, code, .group.has-active .card textarea {
                                 lazy3 treeView (User.language model.user) model.viewState model.workingTree
 
                             True ->
-                                exportView model.workingTree.tree
+                                let
+                                    activeTree_ =
+                                        getTree model.viewState.active model.workingTree.tree
+                                in
+                                case activeTree_ of
+                                    Just activeTree ->
+                                        exportView model.exportSettings activeTree model.workingTree.tree
+
+                                    Nothing ->
+                                        exportViewError "No card selected, cannot preview export."
                 in
                 div
                     [ id "app-root", applyTheme model.theme ]
@@ -2167,12 +2178,14 @@ pre, code, .group.has-active .card textarea {
                         ++ UI.viewSidebar
                             { sidebarStateChanged = SidebarStateChanged
                             , exportPreviewToggled = ExportPreviewToggled
-                            , exportJSON = ExportJSON
-                            , exportDocx = ExportDocx
+                            , exportSelectionChanged = ExportSelectionChanged
+                            , exportFormatChanged = ExportFormatChanged
+                            , export = Export
                             , themeChanged = ThemeChanged
                             }
                             model.metadata
                             model.documents
+                            model.exportSettings
                             model.sidebarState
                         ++ [ viewSearchField SearchFieldUpdated model
                            , viewFooter WordcountTrayToggle ShortcutTrayToggle model

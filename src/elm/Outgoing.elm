@@ -30,11 +30,6 @@ type Msg
     | SaveData Enc.Value
     | PullData
     | SaveImportedData Enc.Value
-      -- === File System ===
-    | ExportDOCX String (Maybe String)
-    | ExportJSON Tree (Maybe String)
-    | ExportTXT Bool Tree (Maybe String)
-    | ExportTXTColumn Int Tree (Maybe String)
       -- === DOM ===
     | ScrollCards (List String) (List ( Int, ScrollPosition )) Int Bool
     | DragStart Enc.Value
@@ -100,47 +95,6 @@ send info =
 
         NoDataToSave ->
             dataToSend "NoDataToSave" null
-
-        -- === File System ===
-        ExportDOCX str path_ ->
-            dataToSend "ExportDOCX"
-                (object
-                    [ ( "data", string str )
-                    , ( "filepath", maybe string path_ )
-                    ]
-                )
-
-        ExportJSON tree path_ ->
-            dataToSend "ExportJSON"
-                (object
-                    [ ( "data", treeToJSON tree )
-                    , ( "filepath", maybe string path_ )
-                    ]
-                )
-
-        ExportTXT withRoot tree path_ ->
-            dataToSend "ExportTXT"
-                (object
-                    [ ( "data", treeToMarkdown withRoot tree )
-                    , ( "filepath", maybe string path_ )
-                    ]
-                )
-
-        ExportTXTColumn col tree path_ ->
-            dataToSend "ExportTXT"
-                (object
-                    [ ( "data"
-                      , tree
-                            |> getColumn col
-                            |> Maybe.withDefault [ [] ]
-                            |> List.concat
-                            |> List.map .content
-                            |> String.join "\n\n"
-                            |> string
-                      )
-                    , ( "filepath", maybe string path_ )
-                    ]
-                )
 
         -- === DOM ===
         ScrollCards lastActives listScrollPositions colIdx instant ->

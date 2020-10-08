@@ -8,11 +8,12 @@ import Doc.List as DocList
 import Doc.Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
-import Html exposing (Html, a, button, del, div, fieldset, h1, h3, hr, iframe, img, input, ins, label, li, span, text, ul)
+import Html exposing (Html, a, br, button, del, div, fieldset, h1, h3, hr, iframe, img, input, ins, label, li, span, text, ul)
 import Html.Attributes as A exposing (..)
-import Html.Events exposing (onCheck, onClick, onInput)
+import Html.Events exposing (on, onCheck, onClick, onInput)
 import List.Extra as ListExtra exposing (getAt)
 import Octicons as Icon exposing (defaultOptions)
+import Page.Doc.Export exposing (ExportFormat(..), ExportSelection(..))
 import Page.Doc.Theme exposing (Theme(..))
 import Regex exposing (Regex, replace)
 import Route
@@ -145,17 +146,28 @@ viewAccount toggleMsg isOpen user =
 type alias SidebarMsgs msg =
     { sidebarStateChanged : SidebarState -> msg
     , exportPreviewToggled : Bool -> msg
-    , exportDocx : msg
-    , exportJSON : msg
+    , exportSelectionChanged : ExportSelection -> msg
+    , exportFormatChanged : ExportFormat -> msg
+    , export : msg
     , themeChanged : Theme -> msg
     }
 
 
-viewSidebar : SidebarMsgs msg -> Metadata -> DocList.Model -> SidebarState -> List (Html msg)
-viewSidebar msgs currentDocument docList sidebarState =
+viewSidebar : SidebarMsgs msg -> Metadata -> DocList.Model -> ( ExportSelection, ExportFormat ) -> SidebarState -> List (Html msg)
+viewSidebar msgs currentDocument docList ( exportSelection, exportFormat ) sidebarState =
     let
         isOpen =
             not (sidebarState == SidebarClosed)
+
+        exportSelectionRadio selection domId labelText =
+            [ input [ id domId, type_ "radio", onInput (always <| msgs.exportSelectionChanged selection), checked (exportSelection == selection) ] []
+            , label [ for domId ] [ text labelText ]
+            ]
+
+        exportFormatRadio selection domId labelText =
+            [ input [ id domId, type_ "radio", onInput (always <| msgs.exportFormatChanged selection), checked (exportFormat == selection) ] []
+            , label [ for domId ] [ text labelText ]
+            ]
 
         sidebarMenu =
             case sidebarState of
@@ -171,8 +183,21 @@ viewSidebar msgs currentDocument docList sidebarState =
                     div [ id "sidebar-menu" ]
                         [ h3 [] [ text "Export" ]
                         , label [] [ text "Toggle export preview", input [ type_ "checkbox", onCheck msgs.exportPreviewToggled ] [] ]
-                        , button [ onClick msgs.exportJSON, class "sidebar-item" ] [ text "Export to JSON" ]
-                        , button [ onClick msgs.exportDocx, class "sidebar-item" ] [ text "Export to Word" ]
+                        , hr [] []
+                        , div [ id "export-selection" ]
+                            (exportSelectionRadio ExportEverything "export-everything" "Whole tree"
+                                ++ [ br [] [] ]
+                                ++ exportSelectionRadio ExportSubtree "export-subtree" "Current card & Subtree"
+                            )
+                        , hr [] []
+                        , div [ id "export-selection" ]
+                            (exportFormatRadio DOCX "export-word" "Word format"
+                                ++ [ br [] [] ]
+                                ++ exportFormatRadio PlainText "export-plain" "Plain text"
+                                ++ [ br [] [] ]
+                                ++ exportFormatRadio JSON "export-json" "JSON format"
+                            )
+                        , button [ onClick msgs.export, class "sidebar-item" ] [ text "Export" ]
                         ]
 
                 Settings ->

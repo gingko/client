@@ -112,11 +112,15 @@ modeDecoder =
         |> andThen modeHelp
 
 
-treeToJSON : Tree -> Enc.Value
-treeToJSON tree =
-    case tree.children of
-        Children c ->
-            Enc.list treeToJSONrecurse c
+treeToJSON : Bool -> Tree -> Enc.Value
+treeToJSON withRoot tree =
+    if withRoot then
+        Enc.list treeToJSONrecurse [ tree ]
+
+    else
+        case tree.children of
+            Children c ->
+                Enc.list treeToJSONrecurse c
 
 
 treeToJSONrecurse : Tree -> Enc.Value
