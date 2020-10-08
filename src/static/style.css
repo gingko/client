@@ -847,6 +847,25 @@ span.collaborators {
   border-left: 4px solid #6aab7e;
 }
 
+
+/* === Export Preview === */
+
+#export-preview {
+  grid-area: document;
+  background: white;
+  margin-left: 60px;
+  padding: 40px;
+  overflow-y: auto;
+  box-shadow: -2px 4px 5px hsla(0, 0%, 0%, 0.4);
+}
+#export-preview .top-buffer {
+  height: 40px;
+}
+#export-preview img {
+  max-width: 80%;
+}
+
+
 /* --- Typography --- */
 
 h1, h2, h3, h4, h5, h6 {

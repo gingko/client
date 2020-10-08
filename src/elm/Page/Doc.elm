@@ -27,6 +27,7 @@ import Json.Encode as Enc
 import List.Extra as ListExtra exposing (getAt)
 import Markdown
 import Outgoing exposing (Msg(..), send)
+import Page.Doc.Export exposing (exportView)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Doc.Theme as Theme exposing (Theme(..), applyTheme)
 import Random
@@ -63,6 +64,7 @@ type alias Model =
     , debouncerStateCommit : Debouncer () ()
     , titleField : Maybe String
     , sidebarState : SidebarState
+    , exportPreview : Bool
     , accountMenuOpen : Bool
     , shortcutTrayOpen : Bool
     , wordcountTrayOpen : Bool
@@ -120,6 +122,7 @@ defaultModel isNew session docId =
     , isMac = False
     , titleField = Nothing
     , sidebarState = SidebarClosed
+    , exportPreview = False
     , accountMenuOpen = False
     , shortcutTrayOpen = False -- TODO
     , wordcountTrayOpen = False
@@ -198,6 +201,7 @@ type Msg
     | TitleEdited
     | ToggledAccountMenu Bool
     | SidebarStateChanged SidebarState
+    | ExportPreviewToggled Bool
     | ThemeChanged Theme
     | TimeUpdate Time.Posix
     | VideoModal Bool
@@ -515,6 +519,15 @@ update msg ({ workingTree } as model) =
 
         SidebarStateChanged newSidebarState ->
             ( { model | sidebarState = newSidebarState }, Cmd.none )
+
+        ExportPreviewToggled previewEnabled ->
+            ( { model | exportPreview = previewEnabled }, Cmd.none )
+                |> (if not previewEnabled then
+                        activate vs.active True
+
+                    else
+                        identity
+                   )
 
         ThemeChanged newTheme ->
             ( { model | theme = newTheme }, send <| SaveThemeSetting newTheme )
@@ -2134,18 +2147,28 @@ pre, code, .group.has-active .card textarea {
                     ]
 
             else
+                let
+                    documentView =
+                        case model.exportPreview of
+                            False ->
+                                lazy3 treeView (User.language model.user) model.viewState model.workingTree
+
+                            True ->
+                                exportView model.workingTree.tree
+                in
                 div
                     [ id "app-root", applyTheme model.theme ]
                     ([ UI.viewHomeLink (not (model.sidebarState == SidebarClosed))
-                     , lazy3 treeView (User.language model.user) model.viewState model.workingTree
+                     , documentView
                      , UI.viewHeader { toggledTitleEdit = ToggledTitleEdit, titleFieldChanged = TitleFieldChanged, titleEdited = TitleEdited, toggledAccountMenu = ToggledAccountMenu }
                         (Metadata.getDocName model.metadata)
                         model
                      ]
                         ++ UI.viewSidebar
-                            { exportDocx = ExportDocx
+                            { sidebarStateChanged = SidebarStateChanged
+                            , exportPreviewToggled = ExportPreviewToggled
                             , exportJSON = ExportJSON
-                            , sidebarStateChanged = SidebarStateChanged
+                            , exportDocx = ExportDocx
                             , themeChanged = ThemeChanged
                             }
                             model.metadata

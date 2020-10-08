@@ -10,7 +10,7 @@ import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Html exposing (Html, a, button, del, div, fieldset, h1, h3, hr, iframe, img, input, ins, label, li, span, text, ul)
 import Html.Attributes as A exposing (..)
-import Html.Events exposing (onClick, onInput)
+import Html.Events exposing (onCheck, onClick, onInput)
 import List.Extra as ListExtra exposing (getAt)
 import Octicons as Icon exposing (defaultOptions)
 import Page.Doc.Theme exposing (Theme(..))
@@ -144,6 +144,7 @@ viewAccount toggleMsg isOpen user =
 
 type alias SidebarMsgs msg =
     { sidebarStateChanged : SidebarState -> msg
+    , exportPreviewToggled : Bool -> msg
     , exportDocx : msg
     , exportJSON : msg
     , themeChanged : Theme -> msg
@@ -169,6 +170,7 @@ viewSidebar msgs currentDocument docList sidebarState =
                 Export ->
                     div [ id "sidebar-menu" ]
                         [ h3 [] [ text "Export" ]
+                        , label [] [ text "Toggle export preview", input [ type_ "checkbox", onCheck msgs.exportPreviewToggled ] [] ]
                         , button [ onClick msgs.exportJSON, class "sidebar-item" ] [ text "Export to JSON" ]
                         , button [ onClick msgs.exportDocx, class "sidebar-item" ] [ text "Export to Word" ]
                         ]
