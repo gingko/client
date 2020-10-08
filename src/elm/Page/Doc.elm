@@ -2028,33 +2028,35 @@ addToHistory ( model, prevCmd ) =
 
 dataReceived : Json.Value -> Model -> ( Model, Cmd Msg )
 dataReceived dataIn model =
-    let
-        { newModel, newTree } =
-            Data.received dataIn ( model.data, model.workingTree.tree )
+    case Data.received dataIn ( model.data, model.workingTree.tree ) of
+        Just { newModel, newTree } ->
+            let
+                newWorkingTree =
+                    TreeStructure.setTreeWithConflicts (Data.conflictList newModel) newTree model.workingTree
 
-        newWorkingTree =
-            TreeStructure.setTreeWithConflicts (Data.conflictList newModel) newTree model.workingTree
+                startingWordcount =
+                    countWords (treeToMarkdownString False newTree)
+            in
+            ( { model
+                | data = newModel
+                , loading = False
+                , workingTree = newWorkingTree
+                , lastLocalSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
+                , lastRemoteSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
+                , startingWordcount = startingWordcount
+              }
+            , Cmd.none
+            )
+                |> maybeColumnsChanged model.workingTree.columns
+                |> (if model.loading then
+                        activate model.viewState.active True
 
-        startingWordcount =
-            countWords (treeToMarkdownString False newTree)
-    in
-    ( { model
-        | data = newModel
-        , loading = False
-        , workingTree = newWorkingTree
-        , lastLocalSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
-        , lastRemoteSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
-        , startingWordcount = startingWordcount
-      }
-    , Cmd.none
-    )
-        |> maybeColumnsChanged model.workingTree.columns
-        |> (if model.loading then
-                activate model.viewState.active True
+                    else
+                        identity
+                   )
 
-            else
-                identity
-           )
+        Nothing ->
+            ( model, Cmd.none )
 
 
 sendCollabState : CollabState -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )

@@ -120,13 +120,14 @@ lastCommitTime model =
 -- EXPOSED : Functions
 
 
-received : Dec.Value -> ( Model, Tree ) -> { newModel : Model, newTree : Tree }
+received : Dec.Value -> ( Model, Tree ) -> Maybe { newModel : Model, newTree : Tree }
 received json ( oldModel, oldTree ) =
     case Dec.decodeValue decode json of
         Ok ( newData, Nothing ) ->
             { newModel = Clean newData
             , newTree = checkoutRef "heads/master" newData |> Maybe.withDefault oldTree
             }
+                |> Just
 
         Ok ( newData, Just ( _, confHead ) ) ->
             let
@@ -141,14 +142,16 @@ received json ( oldModel, oldTree ) =
                     { newModel = Clean data
                     , newTree = checkoutRef "heads/master" data |> Maybe.withDefault oldTree
                     }
+                        |> Just
 
                 MergeConflict data cdata ->
                     { newModel = MergeConflict data cdata
                     , newTree = cdata.mergedTree
                     }
+                        |> Just
 
         Err err ->
-            { newModel = oldModel, newTree = oldTree }
+            Nothing
 
 
 success : Dec.Value -> Model -> Model
