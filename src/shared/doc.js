@@ -162,7 +162,7 @@ function toElm(data, portName, tagName) {
 }
 
 const fromElm = (msg, elmData) => {
-  console.debug("fromElm", msg, elmData);
+  //console.debug("fromElm", msg, elmData);
   let cases = {
     // === SPA ===
 
