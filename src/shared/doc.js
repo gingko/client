@@ -44,7 +44,7 @@ async function initElmAndPorts() {
   let sessionData = localStorage.getItem(sessionStorageKey) || null;
   let settings = {language: "en"};
   if (sessionData) {
-    console.log("sessionData found")
+    console.log("sessionData found", sessionData);
     sessionData = JSON.parse(sessionData);
     email = sessionData.email;
     setUserDbs(sessionData.email);
