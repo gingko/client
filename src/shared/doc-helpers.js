@@ -61,7 +61,7 @@ var scrollTo = function (cid, colIdx, instant, position) {
   var rect = card.getBoundingClientRect();
   let positionMultiplier = position === "top" ? 0 : position === "center" ? 0.5 : 1;
 
-  TweenMax.to(col, instant ? 0 : 0.35, {
+  TweenMax.to(col, instant ? 0 : 0.25, {
     scrollTop:
       col.scrollTop + (rect.top + rect.height * positionMultiplier - col.offsetHeight * 0.5),
     ease: Power2.easeInOut,
@@ -69,7 +69,7 @@ var scrollTo = function (cid, colIdx, instant, position) {
 };
 
 var scrollHorizTo = function (colIdx, instant) {
-  let scrollDuration = instant ? 0 : 0.5;
+  let scrollDuration = instant ? 0 : 0.3;
   var col = document.getElementsByClassName("column")[colIdx];
   var appEl = document.getElementById("document");
   if (col == null) {

@@ -562,6 +562,7 @@ li.sidebar-document-item.active::after {
   min-width: 450px;
   overflow-x: hidden;
   overflow-y: scroll;
+  scrollbar-width: none;
   transform: translateZ(0);
 }
 
