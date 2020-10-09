@@ -27,6 +27,7 @@ let remoteDB;
 let db;
 let gingko;
 let TREE_ID;
+let PULL_LOCK = false;
 let DIRTY = false;
 let savedObjectIds = [];
 const userStore = container.userStore;
@@ -91,7 +92,6 @@ async function initElmAndPorts() {
   // Prevent closing if unsaved changes exist.
   window.addEventListener('beforeunload', (event) => {
     if (DIRTY) {
-      console.log("DIRTY")
       event.preventDefault();
       event.returnValue = '';
     }
@@ -231,11 +231,14 @@ const fromElm = (msg, elmData) => {
       toElm(store, "docMsgs", "LocalStoreLoaded");
 
       // Load local document data.
-      let loadedData = await data.load(db, elmData);
+      let [loadedData, savedIds] = await data.load(db, elmData);
+      savedObjectIds = savedObjectIds.concat(savedIds);
       toElm(loadedData, "docMsgs", "DataReceived");
 
       // Pull data from remote
-      let dataAfterPull = await data.pull(db, remoteDB, elmData);
+      PULL_LOCK = true;
+      let dataAfterPull = await data.pull(db, remoteDB, elmData, "LoadDocument");
+      PULL_LOCK = false;
       toElm(dataAfterPull, "docMsgs", "DataReceived");
     },
 
@@ -283,15 +286,19 @@ const fromElm = (msg, elmData) => {
       if (typeof savedMetadata !== "undefined") { toElm(savedMetadata, "docMsgs", "MetadataSaved")}
 
       // Pull & Maybe push
-      await data.pull(db, remoteDB, TREE_ID);
-      if(!conflictsExist) {
-        data.push(db, remoteDB, TREE_ID, false, pushSuccessHandler);
+      if (!PULL_LOCK) {
+        PULL_LOCK = true;
+        await data.sync(db, remoteDB, TREE_ID, conflictsExist, pullSuccessHandler, pushSuccessHandler);
+        PULL_LOCK = false;
       }
     },
 
     PullData: async () => {
-      let dataAfterPull = await data.pull(db, remoteDB, TREE_ID);
-      toElm(dataAfterPull, "docMsgs", "DataReceived");
+      if (!PULL_LOCK ) {
+        PULL_LOCK = true;
+        await data.sync(db, remoteDB, TREE_ID, null, pullSuccessHandler, pushSuccessHandler);
+        PULL_LOCK = true;
+      }
     },
 
     SaveImportedData: async () => {
@@ -329,7 +336,6 @@ const fromElm = (msg, elmData) => {
     },
 
     CopyCurrentSubtree: () => {
-      console.log("copied", elmData);
       navigator.clipboard.writeText(JSON.stringify(elmData));
       let addFlashClass = function () {
         jQuery(".card.active").addClass("flash");
@@ -438,6 +444,11 @@ function prefix(id) {
 
 function unprefix(id) {
   return id.slice(TREE_ID.length + 1);
+}
+
+
+function pullSuccessHandler (pulledData) {
+  toElm(pulledData, "docMsgs", "DataReceived")
 }
 
 

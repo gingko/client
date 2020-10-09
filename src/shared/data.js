@@ -8,31 +8,12 @@ async function load (localDb, treeId) {
   let elmDocs = loadedResToElmData(allDocs, treeId);
   let conflictedDocs = await getConflicts(localDb, allDocs, treeId);
   let localHead = await loadLocalHead(localDb, treeId).catch(e => undefined);
-  return maybeAddConflict(elmDocs, conflictedDocs, localHead);
+  return [maybeAddConflict(elmDocs, conflictedDocs, localHead), allDocs.map(d => d._id)];
 }
 
 
 async function loadMetadata(localDb, treeId) {
   return localDb.get(treeId + "/metadata").catch(e => e);
-}
-
-
-function startLiveReplication (localDb, remoteDb, treeId, changeHandler, pushSuccessHandler) {
-  let options = {selector : { _id: { $regex: `${treeId}/` } }, live : true, retry : true};
-  localDb.replicate.from(remoteDb, options)
-    .on('change', async (change) => {
-      let metadataDocs = getMetadataDocs(change);
-      if (metadataDocs.length > 0) {
-        await resolveMetadataConflicts(localDb, metadataDocs);
-      }
-      if (includesRef(change)) {
-        let toSend = await load(localDb, treeId);
-        changeHandler(toSend);
-      }
-    })
-    .on('paused', (err) => {
-      push(localDb, remoteDb, treeId, true, pushSuccessHandler)
-    });
 }
 
 
@@ -87,7 +68,6 @@ async function saveData(localDb, treeId, elmData, savedImmutablesIds) {
     saveResponses
       .filter(r => r.ok)
       .map(r => {delete r.ok; return r;})
-      .map(d => unprefix(d, treeId, "id"))
 
 
   // Get saved metadata (with new _rev), if it was saved
@@ -123,7 +103,7 @@ async function saveData(localDb, treeId, elmData, savedImmutablesIds) {
 }
 
 
-async function pull(localDb, remoteDb, treeId) {
+async function pull(localDb, remoteDb, treeId, source) {
   let selector = { _id: { $regex: `${treeId}/` } };
   let results = await localDb.replicate.from(remoteDb, { selector })
     .on('change', async (change) => {
@@ -153,6 +133,18 @@ async function push(localDb, remoteDb, treeId, checkForConflicts, successHandler
     localDb.replicate.to(remoteDb, { selector })
       .on('complete', successHandler)
       .catch(async (e) => e);
+  }
+}
+
+
+async function sync(localDb, remoteDb, treeId, conflictsExist, documentsReceivedHandler, pushSuccessHandler) {
+  let dataAfterPull = await pull(localDb, remoteDb, treeId, "sync function");
+  documentsReceivedHandler(dataAfterPull);
+
+  if (typeof conflictsExist !== "boolean") {
+    await push(localDb, remoteDb, treeId, true, pushSuccessHandler);
+  } else if (!conflictsExist) {
+    await push(localDb, remoteDb, treeId, false, pushSuccessHandler);
   }
 }
 
@@ -313,4 +305,4 @@ function unprefix(doc, treeId, idField = "_id") {
 
 /* === Exports === */
 
-export { load, loadMetadata, startLiveReplication, saveData, pull, push };
+export { load, loadMetadata, saveData, pull, sync };

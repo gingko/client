@@ -2670,7 +2670,7 @@ subscriptions _ =
         , DocList.subscribe ReceivedDocuments
         , User.settingsChange SettingsChanged
         , Time.every (9 * 1000) TimeUpdate
-        , Time.every (5 * 1000) (always Pull)
+        , Time.every (20 * 1000) (always Pull)
         ]
 
 
