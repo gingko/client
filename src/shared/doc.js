@@ -297,7 +297,7 @@ const fromElm = (msg, elmData) => {
       if (!PULL_LOCK ) {
         PULL_LOCK = true;
         await data.sync(db, remoteDB, TREE_ID, null, pullSuccessHandler, pushSuccessHandler);
-        PULL_LOCK = true;
+        PULL_LOCK = false;
       }
     },
 
