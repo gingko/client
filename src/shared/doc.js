@@ -237,8 +237,7 @@ const fromElm = (msg, elmData) => {
 
       // Pull data from remote
       PULL_LOCK = true;
-      let [dataAfterPull, pulledIds] = await data.pull(db, remoteDB, elmData, "LoadDocument");
-      savedObjectIds = savedObjectIds.concat(pulledIds);
+      let dataAfterPull = await data.pull(db, remoteDB, elmData, "LoadDocument");
       PULL_LOCK = false;
       toElm(dataAfterPull, "docMsgs", "DataReceived");
     },
