@@ -8,7 +8,8 @@ async function load (localDb, treeId) {
   let elmDocs = loadedResToElmData(allDocs, treeId);
   let conflictedDocs = await getConflicts(localDb, allDocs, treeId);
   let localHead = await loadLocalHead(localDb, treeId).catch(e => undefined);
-  return [maybeAddConflict(elmDocs, conflictedDocs, localHead), allDocs.map(d => d._id)];
+  let immutablesIds = allDocs.map(d => d._id).filter(id => !id.includes("metadata") && !id.includes("heads"));
+  return [maybeAddConflict(elmDocs, conflictedDocs, localHead), immutablesIds];
 }
 
 
