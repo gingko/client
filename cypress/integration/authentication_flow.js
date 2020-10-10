@@ -1,4 +1,9 @@
 describe('User Signup Flow', () => {
+  let testEmail;
+
+  beforeEach(() => {
+    Cypress.Cookies.preserveOnce('AuthSession')
+  })
 
   it('Redirects to /signup', () => {
     cy.visit('http://localhost:3000/')
@@ -18,8 +23,9 @@ describe('User Signup Flow', () => {
   })
 
   it('Creates a new account', () => {
+    testEmail = 'test'+Date.now()+'@testing.com'
     cy.get('#signup-email')
-      .type('test'+Date.now()+'@testing.com')
+      .type(testEmail)
 
     cy.get('#signup-password')
       .type('testing')
@@ -47,10 +53,10 @@ describe('User Signup Flow', () => {
 
   it('Is focused on editing card', () => {
     cy.get('textarea').should('have.focus')
-      .type('Hello World!')
+      .type('Hello World :)')
 
     cy.get('body').type('{ctrl}{enter}')
 
-    cy.get('#card-1 .view').contains('Hello World!')
+    cy.get('#card-1 .view').contains('Hello World :)')
   })
 })
