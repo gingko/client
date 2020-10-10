@@ -161,7 +161,8 @@ view model =
                 , label [] [ text "Email" ]
                 , div [] [ text (String.join "\n" emailErrors) ]
                 , input
-                    [ onInput EnteredEmail
+                    [ id "signup-email"
+                    , onInput EnteredEmail
                     , type_ "email"
                     , value model.email
                     , autofocus True
@@ -170,7 +171,8 @@ view model =
                 , label [] [ text "Password" ]
                 , div [] [ text (String.join "\n" passwordErrors) ]
                 , input
-                    [ onInput EnteredPassword
+                    [ id "signup-password"
+                    , onInput EnteredPassword
                     , type_ "password"
                     , value model.password
                     ]
@@ -178,7 +180,8 @@ view model =
                 , label [] [ text "Confirm Password" ]
                 , div [] [ text (String.join "\n" passwordConfirmErrors) ]
                 , input
-                    [ onInput EnteredPassConfirm
+                    [ id "signup-password-confirm"
+                    , onInput EnteredPassConfirm
                     , type_ "password"
                     , value model.passwordConfirm
                     ]

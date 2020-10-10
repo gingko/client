@@ -105,7 +105,7 @@ changeRouteTo maybeRoute model =
         in
         case maybeRoute of
             Just Route.Signup ->
-                ( signupModel, signupCmds )
+                ( signupModel, Cmd.batch [ signupCmds, Route.replaceUrl (User.navKey user) Route.Signup ] )
 
             Just Route.Login ->
                 ( loginModel, loginCmds )
@@ -156,6 +156,14 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model ) of
+        ( ChangedUrl url, Signup _ ) ->
+            case Route.fromUrl url of
+                Just Route.Signup ->
+                    ( model, Cmd.none )
+
+                otherRoute ->
+                    changeRouteTo otherRoute model
+
         ( ChangedUrl url, _ ) ->
             changeRouteTo (Route.fromUrl url) model
 
