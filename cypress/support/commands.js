@@ -1,4 +1,5 @@
 const config = require("../../config.js");
+const helpers = require("../../src/shared/doc-helpers.js");
 
 Cypress.Commands.add('deleteUser', (userEmail)=> {
   cy.clearCookie('AuthSession')
@@ -17,6 +18,11 @@ Cypress.Commands.add('deleteUser', (userEmail)=> {
           })
       }
     })
+
+  indexedDB.databases().then((dbs) => {
+    dbs.filter((db) => db.name.includes(helpers.toHex(userEmail)))
+      .map((db) => { window.indexedDB.deleteDatabase(db.name); })
+  })
 })
 
 
