@@ -1,5 +1,3 @@
-const helpers = require("../../src/shared/doc-helpers.js");
-
 describe('Document Editing', () => {
   let testEmail = 'cypress@testing.com'
 

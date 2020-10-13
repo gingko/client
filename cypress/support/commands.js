@@ -32,6 +32,30 @@ Cypress.Commands.add('signup', (userEmail) => {
       , method: 'POST'
       , body: {email: userEmail, password: 'testing'}
     })
+    .then((response) => {
+      localStorage.setItem('gingko-session-storage', JSON.stringify({ email: userEmail, language: 'en' }))
+    })
+})
 
-  localStorage.setItem('gingko-session-storage', JSON.stringify({email: userEmail, language: 'en'}))
+
+Cypress.Commands.add('login', (userEmail) => {
+  cy.request(
+    { url: 'http://localhost:3000/login'
+      , method: 'POST'
+      , body: {email: userEmail, password: 'testing'}
+    })
+    .then((response) => {
+      localStorage.setItem('gingko-session-storage', JSON.stringify({email: userEmail, language: 'en'}))
+    })
+})
+
+
+Cypress.Commands.add('writeInCard', (textToType) => {
+  cy.get('textarea')
+    .type(textToType)
+})
+
+
+Cypress.Commands.add('shortcut', (keys) => {
+  cy.get('body').type(keys)
 })

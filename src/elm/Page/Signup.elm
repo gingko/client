@@ -152,7 +152,7 @@ passwordValidator : Validator ( Field, String ) Model
 passwordValidator =
     Validate.firstError
         [ ifBlank .password ( Password, "Please enter a password." )
-        , ifTrue (\model -> String.length model.password <= 8) ( Password, "Password should be 8 characters or more." )
+        , ifTrue (\model -> String.length model.password <= 7) ( Password, "Password should be 7 characters or more." )
         ]
 
 
