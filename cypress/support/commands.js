@@ -1,25 +1,31 @@
-// ***********************************************
-// This example commands.js shows you how to
-// create various custom commands and overwrite
-// existing commands.
-//
-// For more comprehensive examples of custom
-// commands please read more here:
-// https://on.cypress.io/custom-commands
-// ***********************************************
-//
-//
-// -- This is a parent command --
-// Cypress.Commands.add("login", (email, password) => { ... })
-//
-//
-// -- This is a child command --
-// Cypress.Commands.add("drag", { prevSubject: 'element'}, (subject, options) => { ... })
-//
-//
-// -- This is a dual command --
-// Cypress.Commands.add("dismiss", { prevSubject: 'optional'}, (subject, options) => { ... })
-//
-//
-// -- This will overwrite an existing command --
-// Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
+const config = require("../../config.js");
+
+Cypress.Commands.add('deleteUser', (userEmail)=> {
+  cy.clearCookie('AuthSession')
+  cy.request(
+    { url: config.COUCHDB_SERVER + '/_users/org.couchdb.user:'+userEmail
+      , method: 'GET'
+      , auth: {user: config.COUCHDB_ADMIN_USERNAME, password: config.COUCHDB_ADMIN_PASSWORD}
+      , failOnStatusCode: false
+    })
+    .then((response) => {
+      if(response.status === 200) {
+        cy.request(
+          { url: `${config.COUCHDB_SERVER}/_users/org.couchdb.user:${userEmail}?rev=${response.body._rev}`
+            , method: 'DELETE'
+            , auth: {user: config.COUCHDB_ADMIN_USERNAME, password: config.COUCHDB_ADMIN_PASSWORD}
+          })
+      }
+    })
+})
+
+
+Cypress.Commands.add('signup', (userEmail) => {
+  cy.request(
+    { url: 'http://localhost:3000/signup'
+      , method: 'POST'
+      , body: {email: userEmail, password: 'testing'}
+    })
+
+  localStorage.setItem('gingko-session-storage', JSON.stringify({email: userEmail, language: 'en'}))
+})

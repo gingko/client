@@ -2,8 +2,12 @@ const config = require("../../config.js");
 const helpers = require("../../src/shared/doc-helpers.js");
 
 describe('User Signup Flow', () => {
-  let testEmail = 'test'+Date.now()+'@testing.com'
+  let testEmail = 'cypress@testing.com'
   let testUserDb = helpers.toHex(testEmail);
+
+  before(() => {
+    cy.deleteUser(testEmail)
+  })
 
   beforeEach(() => {
     Cypress.Cookies.preserveOnce('AuthSession')
@@ -12,6 +16,10 @@ describe('User Signup Flow', () => {
   it('Redirects to /signup', () => {
     cy.visit('http://localhost:3000/')
     cy.location('pathname').should('eq', '/signup')
+  })
+
+  it('Is focused on the first field', () => {
+    cy.get('#signup-email').should('have.focus')
   })
 
   it('Displays errors on submitting empty form', () => {
