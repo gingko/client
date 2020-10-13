@@ -152,7 +152,7 @@ passwordValidator : Validator ( Field, String ) Model
 passwordValidator =
     Validate.firstError
         [ ifBlank .password ( Password, "Please enter a password." )
-        , ifTrue (\model -> String.length model.password <= 7) ( Password, "Password should be 7 characters or more." )
+        , ifTrue (\model -> String.length model.password < 7) ( Password, "Password should be 7 characters or more." )
         ]
 
 
@@ -221,7 +221,7 @@ view model =
                 , div [ class "input-error" ] [ text (String.join "\n" passwordErrors) ]
                 , input
                     [ id "signup-password"
-                    , placeholder "Password (min. 8 characters)"
+                    , placeholder "Password (min. 7 characters)"
                     , onInput EnteredPassword
                     , type_ "password"
                     , value model.password
