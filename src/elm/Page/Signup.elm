@@ -3,13 +3,13 @@ module Page.Signup exposing (Model, Msg, init, subscriptions, toUser, update, vi
 import Browser.Dom
 import Browser.Navigation as Nav
 import Html exposing (..)
-import Html.Attributes exposing (autofocus, class, href, id, src, type_, value)
-import Html.Events exposing (onInput, onSubmit)
+import Html.Attributes exposing (autofocus, class, classList, href, id, placeholder, src, type_, value)
+import Html.Events exposing (onBlur, onInput, onSubmit)
 import Http exposing (Error(..))
 import Task
 import User exposing (User)
 import Utils exposing (getFieldErrors)
-import Validate exposing (Valid, Validator, ifBlank, ifFalse, ifInvalidEmail, validate)
+import Validate exposing (Valid, Validator, ifBlank, ifFalse, ifInvalidEmail, ifTrue, validate)
 
 
 
@@ -54,6 +54,7 @@ type Msg
     | EnteredEmail String
     | EnteredPassword String
     | EnteredPassConfirm String
+    | Blurred Field
     | CompletedSignup (Result Http.Error User)
     | GotUser User
 
@@ -70,6 +71,29 @@ update msg model =
                     ( model
                     , sendSignupRequest validModel
                     )
+
+                Err errs ->
+                    ( { model | errors = errs }, Cmd.none )
+
+        Blurred field ->
+            let
+                validator =
+                    case field of
+                        Email ->
+                            emailValidator
+
+                        Password ->
+                            passwordValidator
+
+                        PasswordConfirm ->
+                            passwordConfirmValidator
+
+                        Form ->
+                            ifTrue (always True) ( Form, "" )
+            in
+            case validate validator model of
+                Ok _ ->
+                    ( { model | errors = [] }, Cmd.none )
 
                 Err errs ->
                     ( { model | errors = errs }, Cmd.none )
@@ -116,18 +140,36 @@ update msg model =
             ( { model | user = user }, Nav.replaceUrl (User.navKey user) "/" )
 
 
+emailValidator : Validator ( Field, String ) Model
+emailValidator =
+    Validate.firstError
+        [ ifBlank .email ( Email, "Please enter an email address." )
+        , ifInvalidEmail .email (\eml -> ( Email, eml ++ " does not seem to be a valid email." ))
+        ]
+
+
+passwordValidator : Validator ( Field, String ) Model
+passwordValidator =
+    Validate.firstError
+        [ ifBlank .password ( Password, "Please enter a password." )
+        , ifTrue (\model -> String.length model.password <= 8) ( Password, "Password should be 8 characters or more." )
+        ]
+
+
+passwordConfirmValidator : Validator ( Field, String ) Model
+passwordConfirmValidator =
+    Validate.firstError
+        [ ifBlank .passwordConfirm ( PasswordConfirm, "Please enter your password twice." )
+        , ifFalse (\m -> m.password == m.passwordConfirm) ( PasswordConfirm, "Passwords do not match." )
+        ]
+
+
 modelValidator : Validator ( Field, String ) Model
 modelValidator =
     Validate.all
-        [ Validate.firstError
-            [ ifBlank .email ( Email, "Please enter an email address." )
-            , ifInvalidEmail .email (\eml -> ( Email, eml ++ " does not seem to be a valid email." ))
-            ]
-        , ifBlank .password ( Password, "Please enter a password." )
-        , Validate.firstError
-            [ ifBlank .passwordConfirm ( PasswordConfirm, "Please enter your password twice." )
-            , ifFalse (\m -> m.password == m.passwordConfirm) ( PasswordConfirm, "Passwords do not match." )
-            ]
+        [ emailValidator
+        , passwordValidator
+        , passwordConfirmValidator
         ]
 
 
@@ -164,32 +206,36 @@ view model =
         , div [ class "center-form" ]
             [ form [ onSubmit SubmittedForm ]
                 [ div [] [ text (String.join "\n" formErrors) ]
-                , label [] [ text "Email" ]
-                , div [] [ text (String.join "\n" emailErrors) ]
+                , div [ class "input-error" ] [ text (String.join "\n" emailErrors) ]
                 , input
                     [ id "signup-email"
+                    , placeholder "Email"
+                    , classList [ ( "has-error", List.length emailErrors > 0 ) ]
                     , onInput EnteredEmail
                     , type_ "email"
                     , value model.email
                     , autofocus True
+                    , onBlur (Blurred Email)
                     ]
                     []
-                , label [] [ text "Password" ]
-                , div [] [ text (String.join "\n" passwordErrors) ]
+                , div [ class "input-error" ] [ text (String.join "\n" passwordErrors) ]
                 , input
                     [ id "signup-password"
+                    , placeholder "Password (min. 8 characters)"
                     , onInput EnteredPassword
                     , type_ "password"
                     , value model.password
+                    , onBlur (Blurred Password)
                     ]
                     []
-                , label [] [ text "Confirm Password" ]
-                , div [] [ text (String.join "\n" passwordConfirmErrors) ]
+                , div [ class "input-error" ] [ text (String.join "\n" passwordConfirmErrors) ]
                 , input
                     [ id "signup-password-confirm"
+                    , placeholder "Confirm Password"
                     , onInput EnteredPassConfirm
                     , type_ "password"
                     , value model.passwordConfirm
+                    , onBlur (Blurred PasswordConfirm)
                     ]
                     []
                 , button [] [ text "Signup" ]

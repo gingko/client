@@ -192,6 +192,11 @@ body {
   text-align: center;
 }
 
+.input-error {
+  color: red;
+  font-size: 12px;
+}
+
 /* ======== THEMES ======== */
 
 .dark-theme {
