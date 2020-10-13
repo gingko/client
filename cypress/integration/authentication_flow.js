@@ -1,5 +1,9 @@
+const config = require("../../config.js");
+const helpers = require("../../src/shared/doc-helpers.js");
+
 describe('User Signup Flow', () => {
-  let testEmail;
+  let testEmail = 'test'+Date.now()+'@testing.com'
+  let testUserDb = helpers.toHex(testEmail);
 
   beforeEach(() => {
     Cypress.Cookies.preserveOnce('AuthSession')
@@ -8,8 +12,6 @@ describe('User Signup Flow', () => {
   it('Redirects to /signup', () => {
     cy.visit('http://localhost:3000/')
     cy.location('pathname').should('eq', '/signup')
-
-    Cypress.Cookies.debug(true)
   })
 
   it('Displays errors on submitting empty form', () => {
@@ -23,7 +25,6 @@ describe('User Signup Flow', () => {
   })
 
   it('Creates a new account', () => {
-    testEmail = 'test'+Date.now()+'@testing.com'
     cy.get('#signup-email')
       .type(testEmail)
 
@@ -37,26 +38,15 @@ describe('User Signup Flow', () => {
       .contains('Signup')
       .click()
 
+  })
+
+  it('Has an AuthSession cookie & database', () => {
+    cy.getCookie('AuthSession').should('exist')
+    cy.request({url: config.COUCHDB_SERVER + '/userdb-' + testUserDb, retryOnStatusCodeFailure: true})
+  })
+
+  it('Redirects to Home page', ()=> {
     cy.location('pathname').should('eq', '/')
     cy.contains('Blank Tree')
-  })
-
-  it('Creates a new blank tree', () => {
-    cy.contains('Blank Tree')
-      .click()
-
-    cy.url().should('match', /\/[a-zA-Z0-9]{5}/)
-
-    cy.contains('Untitled')
-    cy.contains('New Document...')
-  })
-
-  it('Is focused on editing card', () => {
-    cy.get('textarea').should('have.focus')
-      .type('Hello World :)')
-
-    cy.get('body').type('{ctrl}{enter}')
-
-    cy.get('#card-1 .view').contains('Hello World :)')
   })
 })

@@ -493,7 +493,7 @@ update msg ({ workingTree } as model) =
                 ( { model
                     | titleField = Metadata.getDocName model.metadata |> Maybe.withDefault "" |> Just
                   }
-                , Cmd.none
+                , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "title-rename")
                 )
 
             else

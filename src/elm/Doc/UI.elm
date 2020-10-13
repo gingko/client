@@ -60,7 +60,7 @@ viewHeader msgs title_ model =
         Just editingField ->
             div [ id "document-header" ]
                 [ span [ id "title" ]
-                    [ input [ onInput msgs.titleFieldChanged, value editingField ] []
+                    [ input [ id "title-rename", onInput msgs.titleFieldChanged, value editingField ] []
                     , button [ onClick msgs.titleEdited ] [ text "Rename" ]
                     ]
                 , viewAccount msgs.toggledAccountMenu model.accountMenuOpen model.user
