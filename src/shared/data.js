@@ -69,6 +69,7 @@ async function saveData(localDb, treeId, elmData, savedImmutablesIds) {
     saveResponses
       .filter(r => r.ok)
       .map(r => {delete r.ok; return r;})
+      .map(d => unprefix(d, treeId, "id"))
 
 
   // Get saved metadata (with new _rev), if it was saved

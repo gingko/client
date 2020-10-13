@@ -37,6 +37,8 @@ describe('Remote Documents', () => {
     cy.contains('Untitled')
       .click()
 
-    cy.contains('Hello Test doc')
+    cy.contains('#document', 'Hello Test doc')
+      .contains('#document', 'Child card')
+      .contains('#document', 'Another Child card')
   })
 })
