@@ -1,10 +1,12 @@
 module Page.Signup exposing (Model, Msg, init, subscriptions, toUser, update, view)
 
+import Browser.Dom
 import Browser.Navigation as Nav
 import Html exposing (..)
 import Html.Attributes exposing (autofocus, class, href, id, src, type_, value)
 import Html.Events exposing (onInput, onSubmit)
 import Http exposing (Error(..))
+import Task
 import User exposing (User)
 import Utils exposing (getFieldErrors)
 import Validate exposing (Valid, Validator, ifBlank, ifFalse, ifInvalidEmail, validate)
@@ -30,10 +32,10 @@ type Field
     | PasswordConfirm
 
 
-init : User -> ( Model, Cmd msg )
+init : User -> ( Model, Cmd Msg )
 init user =
     ( { user = user, email = "", password = "", passwordConfirm = "", errors = [] }
-    , Cmd.none
+    , Task.attempt (\_ -> NoOp) <| Browser.Dom.focus "signup-email"
     )
 
 
@@ -47,7 +49,8 @@ toUser { user } =
 
 
 type Msg
-    = SubmittedForm
+    = NoOp
+    | SubmittedForm
     | EnteredEmail String
     | EnteredPassword String
     | EnteredPassConfirm String
@@ -58,6 +61,9 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        NoOp ->
+            ( model, Cmd.none )
+
         SubmittedForm ->
             case validate modelValidator model of
                 Ok validModel ->
