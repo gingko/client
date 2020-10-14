@@ -225,11 +225,6 @@ const fromElm = (msg, elmData) => {
     LoadDocument : async () => {
       TREE_ID = elmData;
 
-      // Load document-specific settings.
-      localStore.db(db, elmData);
-      let store = await localStore.load();
-      toElm(store, "docMsgs", "LocalStoreLoaded");
-
       // Load local document data.
       let [loadedData, savedIds] = await data.load(db, elmData);
       savedObjectIds = savedObjectIds.concat(savedIds);
@@ -241,6 +236,11 @@ const fromElm = (msg, elmData) => {
       savedObjectIds = savedObjectIds.concat(pullResult[1]);
       PULL_LOCK = false;
       toElm(pullResult[0], "docMsgs", "DataReceived");
+
+      // Load document-specific settings.
+      localStore.db(db, elmData);
+      let store = await localStore.load();
+      toElm(store, "docMsgs", "LocalStoreLoaded");
     },
 
     GetDocumentList: () => {
