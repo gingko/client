@@ -178,7 +178,7 @@ type Msg
     | SearchFieldUpdated String
       -- === Card Editing  ===
     | OpenCard String String
-    | OpenCardFullscreen String String
+    | FullscreenMsg Fullscreen.Msg
     | DeleteCard String
       -- === Card Insertion  ===
     | InsertAbove String
@@ -304,7 +304,7 @@ update msg ({ workingTree } as model) =
             )
                 |> openCard id str
 
-        OpenCardFullscreen id str ->
+        FullscreenMsg (Fullscreen.OpenCard id str) ->
             ( model
             , Cmd.none
             )
@@ -1387,7 +1387,9 @@ openCardFullscreen id str ( model, prevCmd ) =
                     vs =
                         m.viewState
                 in
-                ( { m | viewState = { vs | active = id, viewMode = FullscreenEditing }, field = str }, c )
+                ( { m | viewState = { vs | active = id, viewMode = FullscreenEditing }, field = str }
+                , Cmd.batch [ c, send <| SetFullscreen True ]
+                )
            )
 
 
@@ -2138,15 +2140,8 @@ pre, code, .group.has-active .card textarea {
     case Data.conflictList model.data of
         [] ->
             if model.viewState.viewMode == FullscreenEditing then
-                div
-                    [ id "app-root" ]
-                    [ if model.fontSelectorOpen then
-                        Fonts.viewSelector (User.language model.user) model.fonts |> Html.map FontsMsg
-
-                      else
-                        text ""
-                    , lazy3 (Fullscreen.view OpenCardFullscreen) (User.language model.user) model.viewState model.workingTree
-                    ]
+                lazy3 Fullscreen.view (User.language model.user) model.viewState model.workingTree
+                    |> Html.map FullscreenMsg
 
             else
                 let

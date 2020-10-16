@@ -599,38 +599,26 @@ li.sidebar-document-item.active::after {
 
 /* ======== FULLSCREEN ======== */
 
-#document.fullscreen {
-  display: flex;
-  justify-content: space-between;
-  flex: 1;
-  overflow-x: auto;
-  overflow-y: hidden;
-  transform: translateZ(0);
-  background: url('./handmadepaper.png');
+#app.fullscreen {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) 4fr;
+  grid-template-areas: "parent main";
+  background: lightgray url('./handmadepaper.png');
 }
 
 .fullscreen-parent {
-  flex: .3 0;
-  height: 100%;
-  overflow-x: hidden;
-  overflow-y: scroll;
-  transform: translateZ(0);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 20px;
 }
-
-.fullscreen-main {
-  flex: 1 0;
-  height: 100%;
-  overflow-x: hidden;
-  overflow-y: scroll;
-  transform: translateZ(0);
-}
-
-.fullscreen-children {
-  flex: .3 0;
-  height: 100%;
-  overflow-x: hidden;
-  overflow-y: scroll;
-  transform: translateZ(0);
+.fullscreen-parent .card {
+  background: hsla(0,100%,100%, 0.2);
+  padding: 17px;
+  word-wrap: break-word;
 }
 
 .fullscreen-parent::-webkit-scrollbar, .fullscreen-children::-webkit-scrollbar {
@@ -640,10 +628,11 @@ li.sidebar-document-item.active::after {
 .card-fullscreen {
   padding: 40px;
   border-bottom: 1px dotted #dedede;
+  background: hsla(0,100%,100%, 0.2);
 }
 
 .card-fullscreen.active-fullscreen {
-  background: hsla(0,100%,100%, 0.2);
+  background: hsla(0,100%,100%, 0.3);
 }
 
 .card-fullscreen textarea.edit {
@@ -657,11 +646,10 @@ li.sidebar-document-item.active::after {
   background: transparent;
   font-family: 'Droid Sans Mono', monospace;
   font-size: 24px;
-  line-height: 23px;
+  line-height: 1.25;
   color: hsl(27,28%,35%);
   resize: none;
   outline: none;
-  border: none;
 }
 .card-fullscreen.active-fullscreen textarea.edit {
   color: hsl(27,28%,22%);

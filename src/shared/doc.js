@@ -375,6 +375,14 @@ const fromElm = (msg, elmData) => {
       setTimeout(() => document.activeElement.setSelectionRange(pos, pos), 0);
     },
 
+    SetFullscreen: () => {
+      if (elmData && !document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else if (!elmData && document.fullscreenElement) {
+        document.exitFullscreen();
+      }
+    },
+
     // === UI ===
     SaveMetadata: async () => {
       elmData._id = prefix(elmData._id);
