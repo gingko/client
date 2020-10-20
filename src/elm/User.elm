@@ -1,9 +1,9 @@
-port module User exposing (User, db, decode, language, loggedIn, loginChanges, logout, name, navKey, requestLogin, requestSignup, seed, setLanguage, settingsChange, storeLogin, storeSignup)
+port module User exposing (User, db, decode, language, loggedIn, loginChanges, logout, name, navKey, requestLogin, requestSignup, seed, setLanguage, setShortcutTrayOpen, settingsChange, shortcutTrayOpen, storeLogin, storeSignup)
 
 import Browser.Navigation as Nav
 import Http
 import Json.Decode as Dec
-import Json.Decode.Pipeline exposing (optionalAt, required)
+import Json.Decode.Pipeline exposing (optional, optionalAt, required)
 import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
 import Translation exposing (Language(..), langFromString, langToString, languageDecoder)
@@ -23,6 +23,7 @@ type alias UserData =
     { email : String
     , seed : Int
     , language : Translation.Language
+    , shortcutTrayOpen : Bool
     }
 
 
@@ -86,6 +87,16 @@ language user =
             data.language
 
 
+shortcutTrayOpen : User -> Bool
+shortcutTrayOpen user =
+    case user of
+        LoggedIn _ data ->
+            data.shortcutTrayOpen
+
+        Guest _ _ ->
+            False
+
+
 loggedIn : User -> Bool
 loggedIn user =
     case user of
@@ -108,6 +119,16 @@ setLanguage lang user =
 
         Guest key data ->
             Guest key { data | language = lang }
+
+
+setShortcutTrayOpen : Bool -> User -> User
+setShortcutTrayOpen isOpen user =
+    case user of
+        LoggedIn key data ->
+            LoggedIn key { data | shortcutTrayOpen = isOpen }
+
+        Guest _ _ ->
+            user
 
 
 
@@ -140,10 +161,11 @@ decoder key =
 
 decodeLoggedIn : Nav.Key -> Dec.Decoder User
 decodeLoggedIn key =
-    Dec.map3 UserData
-        (Dec.field "email" Dec.string)
-        (Dec.field "seed" Dec.int)
-        (Dec.field "language" (Dec.string |> Dec.map langFromString))
+    Dec.succeed UserData
+        |> required "email" Dec.string
+        |> required "seed" Dec.int
+        |> optional "language" (Dec.string |> Dec.map langFromString) En
+        |> optional "shortcutTrayOpen" Dec.bool True
         |> Dec.map (LoggedIn key)
 
 
@@ -158,10 +180,10 @@ decodeGuest key =
 responseDecoder : User -> Dec.Decoder User
 responseDecoder user =
     let
-        builder email lang =
+        builder email lang trayOpen =
             case user of
                 Guest key data ->
-                    LoggedIn key (UserData email data.seed lang)
+                    LoggedIn key (UserData email data.seed lang trayOpen)
 
                 LoggedIn _ _ ->
                     user
@@ -169,6 +191,7 @@ responseDecoder user =
     Dec.succeed builder
         |> required "email" Dec.string
         |> optionalAt [ "settings", "language" ] (Dec.map langFromString Dec.string) En
+        |> optionalAt [ "settings", "shortcutTrayOpen" ] Dec.bool True
 
 
 encode : User -> Enc.Value

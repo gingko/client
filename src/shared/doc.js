@@ -58,12 +58,13 @@ async function initElmAndPorts() {
   }
 
 
+  settings.email = email;
+  settings.seed = Date.now();
   console.log("loaded settings" ,settings)
-  const initFlags = { email: email, seed: Date.now(), language: settings.language || "en"};
 
   gingko = Elm.Main.init({
     node: document.getElementById("elm"),
-    flags: initFlags,
+    flags: settings,
   });
 
   // All messages from Elm
@@ -415,7 +416,7 @@ const fromElm = (msg, elmData) => {
     },
 
     SetShortcutTray: () => {
-      userStore.set("shortcut-tray-is-open", elmData);
+      userStore.set("shortcutTrayOpen", elmData);
     },
 
     // === Misc ===

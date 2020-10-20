@@ -66,7 +66,6 @@ type alias Model =
     , exportPreview : Bool
     , exportSettings : ( ExportSelection, ExportFormat )
     , accountMenuOpen : Bool
-    , shortcutTrayOpen : Bool
     , wordcountTrayOpen : Bool
     , videoModalOpen : Bool
     , fontSelectorOpen : Bool
@@ -125,7 +124,6 @@ defaultModel isNew session docId =
     , exportPreview = False
     , exportSettings = ( ExportEverything, DOCX )
     , accountMenuOpen = False
-    , shortcutTrayOpen = False -- TODO
     , wordcountTrayOpen = False
     , videoModalOpen = False
     , fontSelectorOpen = False
@@ -571,10 +569,10 @@ update msg ({ workingTree } as model) =
         ShortcutTrayToggle ->
             let
                 newIsOpen =
-                    not model.shortcutTrayOpen
+                    not <| User.shortcutTrayOpen model.user
             in
             ( { model
-                | shortcutTrayOpen = newIsOpen
+                | user = User.setShortcutTrayOpen newIsOpen model.user
               }
             , send (SetShortcutTray newIsOpen)
             )

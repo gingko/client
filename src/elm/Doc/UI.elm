@@ -10,7 +10,7 @@ import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Html exposing (Html, a, br, button, del, div, fieldset, h1, h3, h4, h5, hr, iframe, img, input, ins, label, li, span, text, ul)
 import Html.Attributes as A exposing (..)
-import Html.Events exposing (on, onCheck, onClick, onInput)
+import Html.Events exposing (onCheck, onClick, onInput)
 import List.Extra as ListExtra exposing (getAt)
 import Octicons as Icon exposing (defaultOptions)
 import Page.Doc.Export exposing (ExportFormat(..), ExportSelection(..))
@@ -295,9 +295,25 @@ viewSearchField searchFieldMsg { viewState, user } =
                 []
 
 
-viewFooter : msg -> msg -> { m | viewState : ViewState, workingTree : TreeStructure.Model, startingWordcount : Int, shortcutTrayOpen : Bool, wordcountTrayOpen : Bool, user : User, isMac : Bool, textCursorInfo : TextCursorInfo } -> Html msg
+viewFooter :
+    msg
+    -> msg
+    ->
+        { m
+            | viewState : ViewState
+            , workingTree : TreeStructure.Model
+            , startingWordcount : Int
+            , wordcountTrayOpen : Bool
+            , user : User
+            , isMac : Bool
+            , textCursorInfo : TextCursorInfo
+        }
+    -> Html msg
 viewFooter wordCountToggle shortcutToggle model =
     let
+        shortcutTrayOpen =
+            User.shortcutTrayOpen model.user
+
         language =
             User.language model.user
 
@@ -345,7 +361,15 @@ viewFooter wordCountToggle shortcutToggle model =
     in
     div
         [ class "footer" ]
-        ([ viewShortcutsToggle shortcutToggle language model.shortcutTrayOpen model.isMac isOnly model.textCursorInfo model.viewState ]
+        ([ viewShortcutsToggle
+            shortcutToggle
+            language
+            shortcutTrayOpen
+            model.isMac
+            isOnly
+            model.textCursorInfo
+            model.viewState
+         ]
             ++ viewWordCount
         )
 
