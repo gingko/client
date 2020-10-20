@@ -8,7 +8,7 @@ import Doc.List as DocList
 import Doc.Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
-import Html exposing (Html, a, br, button, del, div, fieldset, h1, h3, hr, iframe, img, input, ins, label, li, span, text, ul)
+import Html exposing (Html, a, br, button, del, div, fieldset, h1, h3, h4, h5, hr, iframe, img, input, ins, label, li, span, text, ul)
 import Html.Attributes as A exposing (..)
 import Html.Events exposing (on, onCheck, onClick, onInput)
 import List.Extra as ListExtra exposing (getAt)
@@ -424,15 +424,18 @@ viewShortcutsToggle trayToggleMsg lang isOpen isMac isOnly textCursorInfo vs =
         isTextSelected =
             textCursorInfo.selected
 
-        viewIf cond content =
-            if cond then
+        viewIfNotOnly content =
+            if not isOnly then
                 content
 
             else
                 text ""
 
+        addInsteadOfSplit =
+            textCursorInfo.position == End || textCursorInfo.position == Empty
+
         spanSplit key descAdd descSplit =
-            if textCursorInfo.position == End || textCursorInfo.position == Empty then
+            if addInsteadOfSplit then
                 shortcutSpan [ ctrlOrCmd, key ] descAdd
 
             else
@@ -477,19 +480,26 @@ viewShortcutsToggle trayToggleMsg lang isOpen isMac isOnly textCursorInfo vs =
         case vs.viewMode of
             Normal ->
                 div
-                    [ id "shortcuts-tray", class "inset", onClick trayToggleMsg ]
+                    [ id "shortcuts-tray", onClick trayToggleMsg ]
                     [ div [ class "popup" ]
-                        [ shortcutSpan [ tr lang EnterKey ] (tr lang EnterAction)
-                        , viewIf (not isOnly) <| shortcutSpan [ "↑", "↓", "←", "→" ] (tr lang ArrowsAction)
+                        [ h4 [] [ text "Keyboard Shortcuts" ]
+                        , h5 [] [ text "Edit Cards" ]
+                        , shortcutSpan [ tr lang EnterKey ] (tr lang EnterAction)
+                        , shortcutSpan [ "Shift", tr lang EnterKey ] "to Edit in Fullscreen"
+                        , viewIfNotOnly <| h5 [] [ text "Navigate" ]
+                        , viewIfNotOnly <| shortcutSpan [ "↑", "↓", "←", "→" ] (tr lang ArrowsAction)
+                        , h5 [] [ text "Add New Cards" ]
                         , shortcutSpan [ ctrlOrCmd, "→" ] (tr lang AddChildAction)
                         , shortcutSpan [ ctrlOrCmd, "↓" ] (tr lang AddBelowAction)
                         , shortcutSpan [ ctrlOrCmd, "↑" ] (tr lang AddAboveAction)
-                        , viewIf (not isOnly) <| shortcutSpan [ "Alt", tr lang ArrowKeys ] (tr lang MoveAction)
-                        , viewIf (not isOnly) <| shortcutSpan [ ctrlOrCmd, tr lang Backspace ] (tr lang DeleteAction)
-                        , shortcutSpan [ ctrlOrCmd, "Shift", "↓" ] (tr lang MergeDownAction)
-                        , shortcutSpan [ ctrlOrCmd, "Shift", "↑" ] (tr lang MergeUpAction)
+                        , viewIfNotOnly <| h5 [] [ text "Move Cards" ]
+                        , viewIfNotOnly <| shortcutSpan [ "Alt", tr lang ArrowKeys ] (tr lang MoveAction)
+                        , viewIfNotOnly <| shortcutSpan [ ctrlOrCmd, tr lang Backspace ] (tr lang DeleteAction)
+                        , viewIfNotOnly <| h5 [] [ text "Merge Cards" ]
+                        , viewIfNotOnly <| shortcutSpan [ ctrlOrCmd, "Shift", "↓" ] (tr lang MergeDownAction)
+                        , viewIfNotOnly <| shortcutSpan [ ctrlOrCmd, "Shift", "↑" ] (tr lang MergeUpAction)
                         ]
-                    , div [ class "icon-stack" ]
+                    , div [ classList [ ( "icon-stack", True ), ( "open", isOpen ) ] ]
                         [ Icon.keyboard (defaultOptions |> iconColor)
                         , Icon.question (defaultOptions |> iconColor |> Icon.size 14)
                         ]
@@ -497,13 +507,21 @@ viewShortcutsToggle trayToggleMsg lang isOpen isMac isOnly textCursorInfo vs =
 
             _ ->
                 div
-                    [ id "shortcuts-tray", class "inset", onClick trayToggleMsg ]
+                    [ id "shortcuts-tray", onClick trayToggleMsg ]
                     [ div [ class "popup" ]
-                        [ shortcutSpan [ ctrlOrCmd, tr lang EnterKey ] (tr lang ToSaveChanges)
+                        [ h4 [] [ text "Keyboard Shortcuts (Edit Mode)" ]
+                        , h5 [] [ text "Save/Cancel Changes" ]
+                        , shortcutSpan [ ctrlOrCmd, tr lang EnterKey ] (tr lang ToSaveChanges)
                         , shortcutSpan [ tr lang EscKey ] (tr lang ToCancelChanges)
+                        , if addInsteadOfSplit then
+                            h5 [] [ text "Add New Cards" ]
+
+                          else
+                            h5 [] [ text "Split At Cursor" ]
                         , splitChild
                         , splitBelow
                         , splitAbove
+                        , h5 [] [ text "Formatting" ]
                         , shortcutSpanEnabled isTextSelected [ ctrlOrCmd, "B" ] (tr lang ForBold)
                         , shortcutSpanEnabled isTextSelected [ ctrlOrCmd, "I" ] (tr lang ForItalic)
                         , span [ class "markdown-guide" ]
@@ -513,7 +531,7 @@ viewShortcutsToggle trayToggleMsg lang isOpen isMac isOnly textCursorInfo vs =
                                 ]
                             ]
                         ]
-                    , div [ class "icon-stack" ]
+                    , div [ classList [ ( "icon-stack", True ), ( "open", isOpen ) ] ]
                         [ Icon.keyboard (defaultOptions |> iconColor)
                         , Icon.question (defaultOptions |> iconColor |> Icon.size 14)
                         ]
@@ -525,8 +543,8 @@ viewShortcutsToggle trayToggleMsg lang isOpen isMac isOnly textCursorInfo vs =
                 Icon.color "#6c7c84"
         in
         div
-            [ id "shortcuts-tray", class "inset", onClick trayToggleMsg, title <| tr lang KeyboardHelp ]
-            [ div [ class "icon-stack" ]
+            [ id "shortcuts-tray", onClick trayToggleMsg, title <| tr lang KeyboardHelp ]
+            [ div [ classList [ ( "icon-stack", True ), ( "open", isOpen ) ] ]
                 [ Icon.keyboard (defaultOptions |> iconColor)
                 , Icon.question (defaultOptions |> iconColor |> Icon.size 14)
                 ]

@@ -1371,7 +1371,7 @@ pre {
   font-size: 12px;
   font-family: sans-serif;
   color: #334;
-  background-color: hsl(199, 11%, 67%);
+  background-color: hsl(0, 0%, 85%);
   border-top: 1px solid #c8d3d8;
 }
 
@@ -1441,22 +1441,20 @@ pre {
 
 #shortcuts-tray {
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column;
   padding: 1px 6px;
   z-index: 9999;
   cursor: pointer;
 }
 
 #shortcuts-tray div.popup {
-  position: absolute;
-  bottom: 20px;
-  left: 6px;
+  position: relative;
   display: flex;
   flex-direction: column;
   padding: 2px 8px 8px 6px;
   border-radius: 4px 4px 4px 0;
   border-bottom: 1px solid #84939a;
-  background-color: #a2aeb4;
+  background-color: var(--active-bg);
   cursor: default;
 }
 #shortcuts-tray div.popup::before {
@@ -1471,17 +1469,29 @@ pre {
 }
 #shortcuts-tray div.popup::after {
   content: '';
-  width: 43px;
-  height: 1px;
-  background-color: #a2aeb4;
+  width: 42px;
+  height: 4px;
+  background-color: var(--active-bg);
   position: absolute;
-  bottom: -1px;
-  left: 1px;
+  bottom: -4px;
+  left: 0;
 }
 
 #shortcuts-tray div.icon-stack {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  padding: 3px 6px;
+  width: min-content;
+}
+div.icon-stack.open {
+  background-color: var(--active-bg);
+}
+#shortcuts-tray h4 {
+  border-bottom: 1px solid var(--edit-bg);
+}
+#shortcuts-tray h5 {
+  margin-top: 10px;
+  margin-bottom: 0px;
 }
 
 span.shortcut-key {
@@ -1492,7 +1502,7 @@ span.shortcut-key {
   margin-top: 4px;
   margin-right: 3px;
   padding: 1px 4px;
-  background: #d0d0d0;
+  background: #e4e4e4;
   border: 1px #b3b3b3 solid;
   border-radius: 3px;
   text-align: center;
