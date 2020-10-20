@@ -416,9 +416,14 @@ body {
   font-weight: bold;
 }
 
-#account {
-  cursor: pointer;
+#top-right-buttons {
+  display: flex;
+  align-items: center;
   padding: 6px 10px;
+}
+#top-right-buttons div {
+  cursor: pointer;
+  margin-left: 10px;
 }
 
 #account-dropdown {

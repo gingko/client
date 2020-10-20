@@ -198,6 +198,7 @@ type Msg
     | ToggledTitleEdit Bool
     | TitleFieldChanged String
     | TitleEdited
+    | HelpClicked
     | ToggledAccountMenu Bool
     | SidebarStateChanged SidebarState
     | ExportPreviewToggled Bool
@@ -513,6 +514,9 @@ update msg ({ workingTree } as model) =
 
                 Nothing ->
                     ( model, Cmd.none )
+
+        HelpClicked ->
+            ( model, send <| TriggerMailto )
 
         ToggledAccountMenu isOpen ->
             ( { model | accountMenuOpen = isOpen }, Cmd.none )
@@ -2183,7 +2187,13 @@ pre, code, .group.has-active .card textarea {
                     [ id "app-root", applyTheme model.theme ]
                     ([ UI.viewHomeLink (not (model.sidebarState == SidebarClosed))
                      , documentView
-                     , UI.viewHeader { toggledTitleEdit = ToggledTitleEdit, titleFieldChanged = TitleFieldChanged, titleEdited = TitleEdited, toggledAccountMenu = ToggledAccountMenu }
+                     , UI.viewHeader
+                        { toggledTitleEdit = ToggledTitleEdit
+                        , titleFieldChanged = TitleFieldChanged
+                        , titleEdited = TitleEdited
+                        , helpClicked = HelpClicked
+                        , toggledAccountMenu = ToggledAccountMenu
+                        }
                         (Metadata.getDocName model.metadata)
                         model
                      ]

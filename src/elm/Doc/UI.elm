@@ -46,6 +46,7 @@ type alias HeaderMsgs msg =
     { toggledTitleEdit : Bool -> msg
     , titleFieldChanged : String -> msg
     , titleEdited : msg
+    , helpClicked : msg
     , toggledAccountMenu : Bool -> msg
     }
 
@@ -55,27 +56,27 @@ viewHeader msgs title_ model =
     let
         language =
             User.language model.user
-    in
-    case model.titleField of
-        Just editingField ->
-            div [ id "document-header" ]
-                [ span [ id "title" ]
-                    [ input [ id "title-rename", onInput msgs.titleFieldChanged, value editingField ] []
-                    , button [ onClick msgs.titleEdited ] [ text "Rename" ]
-                    ]
-                , viewAccount msgs.toggledAccountMenu model.accountMenuOpen model.user
-                ]
 
-        Nothing ->
-            div [ id "document-header" ]
-                [ span [ id "title" ]
-                    [ h1 [ onClick (msgs.toggledTitleEdit True) ]
-                        [ text (title_ |> Maybe.withDefault "Untitled")
+        titleArea =
+            case model.titleField of
+                Just editingField ->
+                    span [ id "title" ]
+                        [ input [ id "title-rename", onInput msgs.titleFieldChanged, value editingField ] []
+                        , button [ onClick msgs.titleEdited ] [ text "Rename" ]
                         ]
-                    , viewSaveIndicator language model
-                    ]
-                , viewAccount msgs.toggledAccountMenu model.accountMenuOpen model.user
-                ]
+
+                Nothing ->
+                    span [ id "title" ]
+                        [ h1 [ onClick (msgs.toggledTitleEdit True) ]
+                            [ text (title_ |> Maybe.withDefault "Untitled")
+                            ]
+                        , viewSaveIndicator language model
+                        ]
+    in
+    div [ id "document-header" ]
+        [ titleArea
+        , viewTopRightButtons msgs.helpClicked msgs.toggledAccountMenu model.accountMenuOpen model.user
+        ]
 
 
 viewSaveIndicator :
@@ -119,23 +120,29 @@ viewSaveIndicator language { dirty, lastLocalSave, lastRemoteSave, currentTime }
         ]
 
 
-viewAccount : (Bool -> msg) -> Bool -> User -> Html msg
-viewAccount toggleMsg isOpen user =
+viewTopRightButtons : msg -> (Bool -> msg) -> Bool -> User -> Html msg
+viewTopRightButtons helpClickedMsg toggleMsg isOpen user =
     let
+        helpIcon =
+            Icon.question (defaultOptions |> Icon.color "#333" |> Icon.size 18)
+
         userIcon =
             Icon.person (defaultOptions |> Icon.color "#333" |> Icon.size 18)
     in
-    div [ id "account", onClick (toggleMsg (not isOpen)) ]
-        [ userIcon
-        , if isOpen then
-            div [ id "account-dropdown" ]
-                [ text (User.name user |> Maybe.withDefault "")
-                , hr [] []
-                , a [ href (Route.toString Route.Logout) ] [ text "Logout" ]
-                ]
+    div [ id "top-right-buttons" ]
+        [ div [ onClick helpClickedMsg ] [ helpIcon ]
+        , div [ id "account", onClick (toggleMsg (not isOpen)) ]
+            [ userIcon
+            , if isOpen then
+                div [ id "account-dropdown" ]
+                    [ text (User.name user |> Maybe.withDefault "")
+                    , hr [] []
+                    , a [ href (Route.toString Route.Logout) ] [ text "Logout" ]
+                    ]
 
-          else
-            text ""
+              else
+                text ""
+            ]
         ]
 
 
