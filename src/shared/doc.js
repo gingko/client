@@ -232,10 +232,14 @@ const fromElm = (msg, elmData) => {
 
       // Pull data from remote
       PULL_LOCK = true;
-      let pullResult = await data.pull(db, remoteDB, elmData, "LoadDocument");
-      savedObjectIds = savedObjectIds.concat(pullResult[1]);
-      PULL_LOCK = false;
-      toElm(pullResult[0], "docMsgs", "DataReceived");
+      try {
+        let pullResult = await data.pull(db, remoteDB, elmData, "LoadDocument");
+        savedObjectIds = savedObjectIds.concat(pullResult[1]);
+        toElm(pullResult[0], "docMsgs", "DataReceived");
+      } catch {
+      } finally {
+        PULL_LOCK = false;
+      }
 
       // Load document-specific settings.
       localStore.db(db, elmData);
