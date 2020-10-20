@@ -1,4 +1,4 @@
-module Doc.Fullscreen exposing (view)
+module Doc.Fullscreen exposing (Msg(..), view)
 
 import Doc.TreeUtils exposing (getChildren, getColumnById, getParent, getTree)
 import Html exposing (..)
@@ -6,8 +6,13 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onFocus)
 import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy2)
+import Markdown
 import Translation exposing (Language, TranslationId(..))
 import Types exposing (..)
+
+
+
+-- MODEL
 
 
 type alias Model =
@@ -16,12 +21,21 @@ type alias Model =
     }
 
 
-view : (String -> String -> msg) -> Language -> ViewState -> Model -> Html msg
-view openCardFullscreen _ vstate model =
-    let
-        current_ =
-            getTree vstate.active model.tree
 
+-- UPDATE
+
+
+type Msg
+    = OpenCard String String
+
+
+
+-- VIEW
+
+
+view : Language -> ViewState -> Model -> Html Msg
+view _ vstate model =
+    let
         parent_ =
             getParent vstate.active model.tree
                 |> Maybe.map (\t -> ( t.id, t.content ))
@@ -29,27 +43,37 @@ view openCardFullscreen _ vstate model =
         currentColumn =
             getColumnById vstate.active model.tree
                 |> Maybe.withDefault []
-
-        children =
-            current_
-                |> Maybe.map getChildren
-                |> Maybe.withDefault []
     in
     div
         [ id "app"
         , class "fullscreen"
         ]
-        [ viewMaybeParent parent_
-        , viewColumn openCardFullscreen vstate.active currentColumn
-        , viewChildren children
+        [ div [ class "fullscreen-parent" ] [ viewMaybeParent parent_ ]
+        , viewColumn OpenCard vstate.active currentColumn
         ]
 
 
 viewMaybeParent : Maybe ( String, String ) -> Html msg
 viewMaybeParent parentTuple_ =
+    let
+        options =
+            { githubFlavored = Just { tables = True, breaks = True }
+            , defaultHighlighting = Nothing
+            , sanitize = False
+            , smartypants = False
+            }
+    in
     case parentTuple_ of
-        Just ( _, content ) ->
-            div [ class "fullscreen-parent" ] [ text content ]
+        Just ( cardId, content ) ->
+            div
+                [ id ("card-" ++ cardId)
+                , class "card"
+                , dir "auto"
+                ]
+                [ Markdown.toHtmlWith options
+                    []
+                    content
+                ]
 
         Nothing ->
             div [ class "fullscreen-parent" ] []

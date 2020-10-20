@@ -36,6 +36,7 @@ type Msg
     | CopyCurrentSubtree Enc.Value
     | TextSurround String String
     | SetCursorPosition Int
+    | SetFullscreen Bool
       -- === UI ===
     | UpdateCommits ( Enc.Value, Maybe String )
     | SetVideoModal Bool
@@ -128,6 +129,9 @@ send info =
 
         SetCursorPosition pos ->
             dataToSend "SetCursorPosition" (int pos)
+
+        SetFullscreen shouldFullscreen ->
+            dataToSend "SetFullscreen" (bool shouldFullscreen)
 
         -- === UI ===
         UpdateCommits ( objectsValue, head_ ) ->

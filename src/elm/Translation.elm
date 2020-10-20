@@ -450,7 +450,7 @@ tr lang trans =
                     }
 
                 FormattingGuide ->
-                    { en = "Formatting Syntax Guide"
+                    { en = "More Formatting Options..."
                     , zh = "格式指南"
                     , es = "Guía de Sintaxis para Formato"
                     , fr = ""

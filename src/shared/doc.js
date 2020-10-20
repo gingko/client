@@ -58,12 +58,13 @@ async function initElmAndPorts() {
   }
 
 
+  settings.email = email;
+  settings.seed = Date.now();
   console.log("loaded settings" ,settings)
-  const initFlags = { email: email, seed: Date.now(), language: settings.language || "en"};
 
   gingko = Elm.Main.init({
     node: document.getElementById("elm"),
-    flags: initFlags,
+    flags: settings,
   });
 
   // All messages from Elm
@@ -379,6 +380,14 @@ const fromElm = (msg, elmData) => {
       setTimeout(() => document.activeElement.setSelectionRange(pos, pos), 0);
     },
 
+    SetFullscreen: () => {
+      if (elmData && !document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else if (!elmData && document.fullscreenElement) {
+        document.exitFullscreen();
+      }
+    },
+
     // === UI ===
     SaveMetadata: async () => {
       elmData._id = prefix(elmData._id);
@@ -411,7 +420,7 @@ const fromElm = (msg, elmData) => {
     },
 
     SetShortcutTray: () => {
-      userStore.set("shortcut-tray-is-open", elmData);
+      userStore.set("shortcutTrayOpen", elmData);
     },
 
     // === Misc ===

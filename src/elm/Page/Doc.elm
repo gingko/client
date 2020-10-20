@@ -66,7 +66,6 @@ type alias Model =
     , exportPreview : Bool
     , exportSettings : ( ExportSelection, ExportFormat )
     , accountMenuOpen : Bool
-    , shortcutTrayOpen : Bool
     , wordcountTrayOpen : Bool
     , videoModalOpen : Bool
     , fontSelectorOpen : Bool
@@ -125,7 +124,6 @@ defaultModel isNew session docId =
     , exportPreview = False
     , exportSettings = ( ExportEverything, DOCX )
     , accountMenuOpen = False
-    , shortcutTrayOpen = False -- TODO
     , wordcountTrayOpen = False
     , videoModalOpen = False
     , fontSelectorOpen = False
@@ -178,7 +176,7 @@ type Msg
     | SearchFieldUpdated String
       -- === Card Editing  ===
     | OpenCard String String
-    | OpenCardFullscreen String String
+    | FullscreenMsg Fullscreen.Msg
     | DeleteCard String
       -- === Card Insertion  ===
     | InsertAbove String
@@ -304,7 +302,7 @@ update msg ({ workingTree } as model) =
             )
                 |> openCard id str
 
-        OpenCardFullscreen id str ->
+        FullscreenMsg (Fullscreen.OpenCard id str) ->
             ( model
             , Cmd.none
             )
@@ -571,10 +569,10 @@ update msg ({ workingTree } as model) =
         ShortcutTrayToggle ->
             let
                 newIsOpen =
-                    not model.shortcutTrayOpen
+                    not <| User.shortcutTrayOpen model.user
             in
             ( { model
-                | shortcutTrayOpen = newIsOpen
+                | user = User.setShortcutTrayOpen newIsOpen model.user
               }
             , send (SetShortcutTray newIsOpen)
             )
@@ -1387,7 +1385,9 @@ openCardFullscreen id str ( model, prevCmd ) =
                     vs =
                         m.viewState
                 in
-                ( { m | viewState = { vs | active = id, viewMode = FullscreenEditing }, field = str }, c )
+                ( { m | viewState = { vs | active = id, viewMode = FullscreenEditing }, field = str }
+                , Cmd.batch [ c, send <| SetFullscreen True ]
+                )
            )
 
 
@@ -2138,15 +2138,8 @@ pre, code, .group.has-active .card textarea {
     case Data.conflictList model.data of
         [] ->
             if model.viewState.viewMode == FullscreenEditing then
-                div
-                    [ id "app-root" ]
-                    [ if model.fontSelectorOpen then
-                        Fonts.viewSelector (User.language model.user) model.fonts |> Html.map FontsMsg
-
-                      else
-                        text ""
-                    , lazy3 (Fullscreen.view OpenCardFullscreen) (User.language model.user) model.viewState model.workingTree
-                    ]
+                lazy3 Fullscreen.view (User.language model.user) model.viewState model.workingTree
+                    |> Html.map FullscreenMsg
 
             else
                 let
