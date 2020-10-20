@@ -202,7 +202,12 @@ view model =
             getFieldErrors PasswordConfirm model.errors
     in
     div [ id "form-page" ]
-        [ img [ id "logo", src "gingko-leaf-logo.svg" ] []
+        [ div [ class "brand" ]
+            [ img [ id "logo", src "gingko-leaf-logo.svg" ] []
+            , h1 [] [ text "Gingko" ]
+            ]
+        , div [ class "page-bg" ] []
+        , h1 [ class "headline" ] [ text "Write better, faster." ]
         , div [ class "center-form" ]
             [ form [ onSubmit SubmittedForm ]
                 [ div [] [ text (String.join "\n" formErrors) ]
@@ -238,7 +243,7 @@ view model =
                     , onBlur (Blurred PasswordConfirm)
                     ]
                     []
-                , button [] [ text "Signup" ]
+                , button [] [ text "Start Writing" ]
                 , span [ class "alt-action" ] [ text "or ", a [ href "/login" ] [ text "Login" ] ]
                 ]
             ]
