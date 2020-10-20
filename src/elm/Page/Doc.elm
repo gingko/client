@@ -840,8 +840,11 @@ update msg ({ workingTree } as model) =
                                             Normal ->
                                                 openCard vs.active (getContent vs.active m.workingTree.tree) ( m, c )
 
-                                            _ ->
+                                            Editing ->
                                                 closeCard ( m, c )
+
+                                            FullscreenEditing ->
+                                                ( m, c )
                                    )
                                 |> activate vs.active False
 
@@ -1162,30 +1165,27 @@ activate tryId instant ( model, prevCmd ) =
 
                     Nothing ->
                         getFirstCard model.workingTree.tree
-
-            newPast =
-                if tryId == vs.active then
-                    vs.activePast
-
-                else
-                    vs.active :: vs.activePast |> List.take 40
         in
         case activeTree_ of
+            Nothing ->
+                ( model, prevCmd )
+
             Just activeTree ->
                 let
+                    newPast =
+                        if tryId == vs.active then
+                            vs.activePast
+
+                        else
+                            vs.active :: vs.activePast |> List.take 40
+
                     id =
                         activeTree.id
-
-                    scrollPositions =
-                        getScrollPositions activeTree newPast model.workingTree.tree
 
                     desc =
                         activeTree
                             |> getDescendants
                             |> List.map .id
-
-                    colIdx =
-                        getDepth 0 model.workingTree.tree activeTree.id
 
                     anc =
                         getAncestors model.workingTree.tree activeTree []
@@ -1193,29 +1193,41 @@ activate tryId instant ( model, prevCmd ) =
 
                     newField =
                         activeTree.content
-                in
-                ( { model
-                    | viewState =
-                        { vs
-                            | active = id
-                            , activePast = newPast
-                            , descendants = desc
-                            , ancestors = anc
-                        }
-                    , field = newField
-                  }
-                , Cmd.batch
-                    [ prevCmd
-                    , send
-                        (ScrollCards (id :: newPast) scrollPositions colIdx instant)
-                    ]
-                )
-                    |> sendCollabState (CollabState model.uid (CollabActive id) "")
 
-            Nothing ->
-                ( model
-                , prevCmd
-                )
+                    newModel =
+                        { model
+                            | viewState =
+                                { vs
+                                    | active = id
+                                    , activePast = newPast
+                                    , descendants = desc
+                                    , ancestors = anc
+                                }
+                            , field = newField
+                        }
+                in
+                case vs.viewMode of
+                    FullscreenEditing ->
+                        ( newModel
+                        , Cmd.batch [ prevCmd, send <| ScrollFullscreenCards id ]
+                        )
+
+                    _ ->
+                        let
+                            scrollPositions =
+                                getScrollPositions activeTree newPast model.workingTree.tree
+
+                            colIdx =
+                                getDepth 0 model.workingTree.tree activeTree.id
+                        in
+                        ( newModel
+                        , Cmd.batch
+                            [ prevCmd
+                            , send
+                                (ScrollCards (id :: newPast) scrollPositions colIdx instant)
+                            ]
+                        )
+                            |> sendCollabState (CollabState model.uid (CollabActive id) "")
 
 
 goLeft : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1348,6 +1360,13 @@ openCard id str ( model, prevCmd ) =
         vs =
             model.viewState
 
+        ( newViewMode, maybeScroll ) =
+            if vs.viewMode == FullscreenEditing then
+                ( FullscreenEditing, send <| ScrollFullscreenCards id )
+
+            else
+                ( Editing, Cmd.none )
+
         isLocked =
             vs.collaborators
                 |> List.filter (\c -> c.mode == CollabEditing id)
@@ -1368,10 +1387,10 @@ openCard id str ( model, prevCmd ) =
 
     else
         ( { model
-            | viewState = { vs | active = id, viewMode = Editing }
+            | viewState = { vs | active = id, viewMode = newViewMode }
             , field = str
           }
-        , Cmd.batch [ prevCmd, focus id ]
+        , Cmd.batch [ prevCmd, focus id, maybeScroll ]
         )
             |> sendCollabState (CollabState model.uid (CollabEditing id) str)
 

@@ -51,6 +51,26 @@ var scrollColumns = (scrollInfo) => {
   });
 }
 
+var scrollFullscreen = function (cid) {
+  _.delay(scrollFullscreenTo, 20, cid);
+}
+
+var scrollFullscreenTo = function (cid) {
+  var card = document.getElementById("card-" + cid.toString());
+  var col = document.getElementById("fullscreen-main");
+  if (card == null) {
+    console.log("scroll error: not found", cid);
+    return;
+  }
+  var rect = card.getBoundingClientRect();
+
+  TweenMax.to(col,  0.25, {
+    scrollTop:
+      col.scrollTop + (rect.top + rect.height * 0.5 - col.offsetHeight * 0.5),
+    ease: Power2.easeInOut,
+  });
+}
+
 var scrollTo = function (cid, colIdx, instant, position) {
   var card = document.getElementById("card-" + cid.toString());
   var col = document.getElementsByClassName("column")[colIdx ];
@@ -177,6 +197,7 @@ var needOverride = [
 module.exports = {
   scrollHorizontal: scrollHorizontal,
   scrollColumns: scrollColumns,
+  scrollFullscreen: scrollFullscreen,
   errorAlert: errorAlert,
   shortcuts: shortcuts,
   needOverride: needOverride,

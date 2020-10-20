@@ -32,6 +32,7 @@ type Msg
     | SaveImportedData Enc.Value
       -- === DOM ===
     | ScrollCards (List String) (List ( Int, ScrollPosition )) Int Bool
+    | ScrollFullscreenCards String
     | DragStart Enc.Value
     | CopyCurrentSubtree Enc.Value
     | TextSurround String String
@@ -117,6 +118,9 @@ send info =
                     , ( "instant", bool instant )
                     ]
                 )
+
+        ScrollFullscreenCards cardId ->
+            dataToSend "ScrollFullscreenCards" (string cardId)
 
         DragStart event ->
             dataToSend "DragStart" event

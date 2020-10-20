@@ -336,6 +336,10 @@ const fromElm = (msg, elmData) => {
       localStore.set('last-actives', elmData.lastActives);
     },
 
+    ScrollFullscreenCards: () => {
+      helpers.scrollFullscreen(elmData);
+    },
+
     DragStart: () => {
       elmData.dataTransfer.setData("text", "");
       toElm(elmData.target.id.replace(/^card-/, ""), "docMsgs", "DragStarted");

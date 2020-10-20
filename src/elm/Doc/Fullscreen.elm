@@ -82,7 +82,7 @@ viewMaybeParent parentTuple_ =
 viewColumn : (String -> String -> msg) -> String -> Column -> Html msg
 viewColumn openCardFullscreen active col =
     div
-        [ class "fullscreen-main" ]
+        [ id "fullscreen-main" ]
         (List.map (lazy2 (viewGroup openCardFullscreen) active) col)
 
 
