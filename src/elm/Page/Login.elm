@@ -1,7 +1,7 @@
 module Page.Login exposing (Model, Msg, init, subscriptions, toUser, update, view)
 
 import Html exposing (..)
-import Html.Attributes exposing (autofocus, class, href, id, src, type_, value)
+import Html.Attributes exposing (autofocus, class, href, id, placeholder, src, type_, value)
 import Html.Events exposing (onInput, onSubmit)
 import Http exposing (Error(..))
 import Result exposing (Result)
@@ -138,29 +138,36 @@ view model =
             getFieldErrors Password model.errors
     in
     div [ id "form-page" ]
-        [ img [ id "logo", src "gingko-leaf-logo.svg" ] []
+        [ div [ class "brand" ]
+            [ img [ id "logo", src "gingko-leaf-logo.svg" ] []
+            , h1 [] [ text "Gingko" ]
+            ]
+        , div [ class "page-bg" ] []
+        , h1 [ class "headline" ] [ text "Write better, faster." ]
+        , div [ class "header" ] [ span [ class "alt-action" ] [ text "New to Gingko? ", a [ href "/signup" ] [ text "Signup" ] ] ]
         , div [ class "center-form" ]
             [ form [ onSubmit SubmittedForm ]
                 [ div [] [ text (String.join "\n" formErrors) ]
-                , label [] [ text "Email" ]
-                , div [] [ text (String.join "\n" emailErrors) ]
+                , div [ class "input-error" ] [ text (String.join "\n" emailErrors) ]
                 , input
                     [ onInput EnteredEmail
+                    , placeholder "Email"
                     , type_ "email"
                     , value model.email
                     , autofocus True
                     ]
                     []
-                , label [] [ text "Password" ]
-                , div [] [ text (String.join "\n" passwordErrors) ]
+                , div [ class "input-error" ] [ text (String.join "\n" passwordErrors) ]
                 , input
                     [ onInput EnteredPassword
+                    , placeholder "Password"
                     , type_ "password"
                     , value model.password
                     ]
                     []
-                , button [] [ text "Login" ]
-                , span [ class "alt-action" ] [ text "or ", a [ href "/signup" ] [ text "Signup" ] ]
+                , button [ class "cta" ] [ text "Login" ]
+                , br [] []
+                , small [ class "extra-info" ] [ text "(Note: this is separate from existing gingkoapp.com accounts)" ]
                 ]
             ]
         ]

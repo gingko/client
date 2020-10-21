@@ -177,10 +177,17 @@ body {
 #form-page .brand {
   grid-area: brand;
   display: flex;
+  align-items: center;
   padding-left: 20px;
+}
+#form-page .brand h1 {
+  font-family: Catamaran, Helvetica, Arial, sans-serif;
+  font-size: 2rem;
 }
 #form-page #logo {
   width: 40px;
+  margin-bottom: 3px;
+  margin-right: 8px;
 }
 #form-page .page-bg {
   background-color: aliceblue;
@@ -194,6 +201,30 @@ body {
   font-family: Catamaran,Helvetica,Arial,sans-serif;
   font-weight: 200;
   font-size: 2.4em;
+}
+#form-page .header {
+  grid-area: header;
+  display: flex;
+  justify-content: flex-end;
+  padding: 20px;
+}
+#form-page span.alt-action {
+  color: #888;
+}
+#form-page .extra-info {
+  color: #888;
+  width: 30ch;
+}
+#form-page .cta {
+  background-color: var(--selection-color);
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #358b11;
+  cursor: pointer;
+  box-shadow: 1px 1px 2px hsla(0, 0%, 0%, 0.2);
+}
+#form-page .cta:hover {
+  background-color: #94cb56;
 }
 
 .center-form {

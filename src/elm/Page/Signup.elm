@@ -208,6 +208,7 @@ view model =
             ]
         , div [ class "page-bg" ] []
         , h1 [ class "headline" ] [ text "Write better, faster." ]
+        , div [ class "header" ] [ span [ class "alt-action" ] [ text "Already have an account? ", a [ href "/login" ] [ text "Login" ] ] ]
         , div [ class "center-form" ]
             [ form [ onSubmit SubmittedForm ]
                 [ div [] [ text (String.join "\n" formErrors) ]
@@ -243,8 +244,7 @@ view model =
                     , onBlur (Blurred PasswordConfirm)
                     ]
                     []
-                , button [] [ text "Start Writing" ]
-                , span [ class "alt-action" ] [ text "or ", a [ href "/login" ] [ text "Login" ] ]
+                , button [ class "cta" ] [ text "Start Writing" ]
                 ]
             ]
         ]
