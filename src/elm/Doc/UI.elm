@@ -261,7 +261,8 @@ viewSidebar msgs currentDocument docList ( exportSelection, exportFormat ) sideb
     [ div [ id "sidebar", classList [ ( "open", isOpen ) ] ]
         [ sidebarButton File fileIcon
         , sidebarButton Export exportIcon
-        , sidebarButton Import importIcon
+
+        --, sidebarButton Import importIcon -- TODO: Removed temporarily
         , sidebarButton Settings settingsIcon
         ]
     , sidebarMenu
