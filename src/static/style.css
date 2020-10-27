@@ -956,8 +956,6 @@ p {
   line-height: 1.4;
 }
 
-p:last-child, ul:last-child { padding-bottom: 0 }
-
 pre, code {
   font-family: 'Droid Sans Mono', monospace;
   color: #333333;

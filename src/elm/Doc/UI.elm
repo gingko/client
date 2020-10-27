@@ -10,7 +10,7 @@ import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Html exposing (Html, a, br, button, del, div, fieldset, h1, h3, h4, h5, hr, iframe, img, input, ins, label, li, span, text, ul)
 import Html.Attributes as A exposing (..)
-import Html.Events exposing (onCheck, onClick, onInput)
+import Html.Events exposing (onCheck, onClick, onInput, onSubmit)
 import List.Extra as ListExtra exposing (getAt)
 import Octicons as Icon exposing (defaultOptions)
 import Page.Doc.Export exposing (ExportFormat(..), ExportSelection(..))
@@ -61,8 +61,11 @@ viewHeader msgs title_ model =
             case model.titleField of
                 Just editingField ->
                     span [ id "title" ]
-                        [ input [ id "title-rename", onInput msgs.titleFieldChanged, value editingField ] []
-                        , button [ onClick msgs.titleEdited ] [ text "Rename" ]
+                        [ Html.form
+                            [ onSubmit msgs.titleEdited ]
+                            [ input [ id "title-rename", onInput msgs.titleFieldChanged, value editingField ] []
+                            , button [] [ text "Rename" ]
+                            ]
                         ]
 
                 Nothing ->
