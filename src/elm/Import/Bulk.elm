@@ -1,4 +1,4 @@
-module Import exposing (decoder, encode)
+module Import.Bulk exposing (decoder, encode)
 
 import Dict exposing (Dict)
 import Doc.Data as Data exposing (Data)

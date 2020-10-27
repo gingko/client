@@ -56,6 +56,7 @@ type SidebarState
     = SidebarClosed
     | File
     | Export
+    | Import
     | Settings
 
 

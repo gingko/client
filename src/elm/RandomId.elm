@@ -1,4 +1,4 @@
-module RandomId exposing (fromObjectId, generate)
+module RandomId exposing (fromObjectId, generate, stringGenerator)
 
 import Random
 
@@ -19,16 +19,16 @@ fromObjectId objId =
         |> String.fromList
 
 
-
--- INTERNAL
-
-
 stringGenerator : Random.Generator String
 stringGenerator =
     Random.int 0 61
         |> Random.map intToValidChar
         |> Random.list 5
         |> Random.map String.fromList
+
+
+
+-- INTERNAL
 
 
 intToValidChar : Int -> Char

@@ -156,6 +156,7 @@ type alias SidebarMsgs msg =
     , exportSelectionChanged : ExportSelection -> msg
     , exportFormatChanged : ExportFormat -> msg
     , export : msg
+    , importJSONRequested : msg
     , themeChanged : Theme -> msg
     }
 
@@ -207,6 +208,12 @@ viewSidebar msgs currentDocument docList ( exportSelection, exportFormat ) sideb
                         , button [ onClick msgs.export, class "sidebar-item" ] [ text "Export" ]
                         ]
 
+                Import ->
+                    div [ id "sidebar-menu" ]
+                        [ h3 [] [ text "Import" ]
+                        , button [ onClick msgs.importJSONRequested ] [ text "Import JSON" ]
+                        ]
+
                 Settings ->
                     div [ id "sidebar-menu" ]
                         [ h3 [] [ text "Settings" ]
@@ -233,6 +240,9 @@ viewSidebar msgs currentDocument docList ( exportSelection, exportFormat ) sideb
         exportIcon =
             Icon.signOut (defaultOptions |> Icon.color fileIconColor |> Icon.size 18)
 
+        importIcon =
+            Icon.signIn (defaultOptions |> Icon.color fileIconColor |> Icon.size 18)
+
         settingsIcon =
             Icon.settings (defaultOptions |> Icon.color fileIconColor |> Icon.size 18)
 
@@ -251,6 +261,7 @@ viewSidebar msgs currentDocument docList ( exportSelection, exportFormat ) sideb
     [ div [ id "sidebar", classList [ ( "open", isOpen ) ] ]
         [ sidebarButton File fileIcon
         , sidebarButton Export exportIcon
+        , sidebarButton Import importIcon
         , sidebarButton Settings settingsIcon
         ]
     , sidebarMenu

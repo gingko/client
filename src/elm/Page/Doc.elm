@@ -13,7 +13,9 @@ import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Doc.UI as UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSearchField, viewVideo)
+import File exposing (File)
 import File.Download as Download
+import File.Select as Select
 import Html exposing (Html, button, div, h1, input, node, span, text, textarea, ul)
 import Html.Attributes exposing (class, classList, dir, id, style, title, value)
 import Html.Events exposing (onClick, onDoubleClick, onInput)
@@ -21,6 +23,7 @@ import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy2, lazy3)
 import Html5.DragDrop as DragDrop
 import Http
+import Import.Single
 import Json.Decode as Json
 import Json.Encode as Enc
 import List.Extra as ListExtra exposing (getAt)
@@ -36,6 +39,7 @@ import Time
 import Translation exposing (..)
 import Types exposing (..)
 import User exposing (User)
+import Utils exposing (randomPositiveInt)
 
 
 
@@ -204,6 +208,9 @@ type Msg
     | ExportPreviewToggled Bool
     | ExportSelectionChanged ExportSelection
     | ExportFormatChanged ExportFormat
+    | ImportJSONRequested
+    | ImportJSONSelected File
+    | ImportJSONLoaded String
     | ThemeChanged Theme
     | TimeUpdate Time.Posix
     | VideoModal Bool
@@ -538,6 +545,24 @@ update msg ({ workingTree } as model) =
 
         ExportFormatChanged expFormat ->
             ( { model | exportSettings = Tuple.mapSecond (always expFormat) model.exportSettings }, Cmd.none )
+
+        ImportJSONRequested ->
+            ( model, Select.file [ "application/json", "text/plain" ] ImportJSONSelected )
+
+        ImportJSONSelected file ->
+            ( model, Task.perform ImportJSONLoaded (File.toString file) )
+
+        ImportJSONLoaded jsonString ->
+            let
+                ( importTreeDecoder, newSeed ) =
+                    Import.Single.decoder model.seed
+            in
+            case Json.decodeString importTreeDecoder jsonString of
+                Ok tree ->
+                    ( { model | workingTree = TreeStructure.setTree tree model.workingTree, seed = newSeed }, Cmd.none )
+
+                Err _ ->
+                    ( { model | seed = newSeed }, Cmd.none )
 
         ThemeChanged newTheme ->
             ( { model | theme = newTheme }, send <| SaveThemeSetting newTheme )
@@ -1604,7 +1629,7 @@ insert : String -> Int -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 insert pid pos initText ( model, prevCmd ) =
     let
         ( newId, newSeed ) =
-            Random.step randomId model.seed
+            Random.step randomPositiveInt model.seed
 
         newIdString =
             "node-" ++ (newId |> String.fromInt)
@@ -1913,7 +1938,7 @@ pasteBelow : String -> Tree -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 pasteBelow id copiedTree ( model, prevCmd ) =
     let
         ( newId, newSeed ) =
-            Random.step randomId model.seed
+            Random.step randomPositiveInt model.seed
 
         treeToPaste =
             TreeStructure.renameNodes (newId |> String.fromInt) copiedTree
@@ -1934,7 +1959,7 @@ pasteInto : String -> Tree -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 pasteInto id copiedTree ( model, prevCmd ) =
     let
         ( newId, newSeed ) =
-            Random.step randomId model.seed
+            Random.step randomPositiveInt model.seed
 
         treeToPaste =
             TreeStructure.renameNodes (newId |> String.fromInt) copiedTree
@@ -2203,6 +2228,7 @@ pre, code, .group.has-active .card textarea {
                             , exportSelectionChanged = ExportSelectionChanged
                             , exportFormatChanged = ExportFormatChanged
                             , export = Export
+                            , importJSONRequested = ImportJSONRequested
                             , themeChanged = ThemeChanged
                             }
                             model.metadata
@@ -2698,11 +2724,6 @@ subscriptions _ =
 
 
 -- HELPERS
-
-
-randomId : Random.Generator Int
-randomId =
-    Random.int 0 Random.maxInt
 
 
 focus : String -> Cmd Msg

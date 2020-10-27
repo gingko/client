@@ -7,7 +7,7 @@ import File.Select as Select
 import Html exposing (Html, a, br, button, div, h1, h4, iframe, input, li, p, span, text, ul)
 import Html.Attributes exposing (checked, class, classList, height, href, id, src, target, type_, width)
 import Html.Events exposing (on, onCheck, onClick)
-import Import
+import Import.Bulk
 import Json.Decode as Dec
 import Octicons as Icon
 import Outgoing exposing (Msg(..), send)
@@ -176,7 +176,7 @@ updateImportModal msg ({ importModal, user } as model) =
                     ( model, Cmd.none )
 
         ( FileLoaded _ contents, ModalOpen _ ) ->
-            case Dec.decodeString Import.decoder contents of
+            case Dec.decodeString Import.Bulk.decoder contents of
                 Ok dataList ->
                     let
                         listWithSelectState =
@@ -214,7 +214,7 @@ updateImportModal msg ({ importModal, user } as model) =
                     selectList
                         |> List.filter .selected
                         |> List.map .tree
-                        |> Import.encode author
+                        |> Import.Bulk.encode author
             in
             ( { model | importModal = ImportSaving selectList }, send <| SaveImportedData treesToSave )
 
