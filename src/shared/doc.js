@@ -406,20 +406,6 @@ const fromElm = (msg, elmData) => {
     },
 
     // === UI ===
-    SaveMetadata: async () => {
-      elmData._id = prefix(elmData._id);
-      let saveRes = await db.put(elmData).catch(async (e) => e);
-      if (saveRes.ok) {
-        await db.replicate.to(remoteDB, { doc_ids: [prefix("metadata")] });
-        elmData._rev = saveRes.rev;
-        elmData._id = unprefix(elmData._id);
-        toElm(elmData, "docMsgs", "MetadataSaved");
-      } else {
-        console.error(elmData, saveRes);
-        toElm(null, "docMsgs", "MetadataSaveError");
-      }
-    },
-
     UpdateCommits: () => {},
 
     SetVideoModal: () => {

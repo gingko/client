@@ -141,26 +141,28 @@ defaultModel isNew session docId =
 
 init : User -> String -> Bool -> ( Model, Cmd Msg )
 init session dbName isNew =
-    ( defaultModel isNew session dbName
-    , if not isNew then
-        Cmd.batch
-            [ DocList.fetch session
-            , send <| LoadDocument dbName
-            ]
-
-      else
-        Cmd.batch
+    let
+        initModel =
+            defaultModel isNew session dbName
+    in
+    if isNew then
+        ( initModel
+        , Cmd.batch
             [ DocList.fetch session
             , send <| InitDocument dbName
             , focus "1"
             ]
-    )
-        |> (if isNew then
-                activate "1" True
+        )
+            |> activate "1" True
+            |> addToHistoryDo
 
-            else
-                identity
-           )
+    else
+        ( initModel
+        , Cmd.batch
+            [ DocList.fetch session
+            , send <| LoadDocument dbName
+            ]
+        )
 
 
 toUser : Model -> User
