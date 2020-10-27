@@ -47,7 +47,7 @@ describe('Remote Documents', () => {
     Cypress.Cookies.preserveOnce('AuthSession')
   })
 
-  it('Should show the creates trees in document list', () => {
+  it('Should show the created trees in document list', () => {
     cy.visit('http://localhost:3000/')
 
     cy.contains('#documents-block', 'Untitled')
@@ -74,5 +74,11 @@ describe('Remote Documents', () => {
     cy.get('#sidebar-menu').contains('Second').click()
 
     cy.url().should('equal', this.secondDocUrl)
+  })
+
+  it('Should navigate to home on clicking home icon', function () {
+    cy.get('#home-link').click()
+
+    cy.url().should('equal', 'http://localhost:3000/')
   })
 })
