@@ -8,9 +8,11 @@ import Html exposing (Html, a, br, button, div, h1, h4, iframe, input, li, p, sp
 import Html.Attributes exposing (checked, class, classList, height, href, id, src, target, type_, width)
 import Html.Events exposing (on, onCheck, onClick)
 import Import.Bulk
+import Import.Single
 import Json.Decode as Dec
 import Octicons as Icon
 import Outgoing exposing (Msg(..), send)
+import RandomId
 import Route
 import Task
 import Time
@@ -26,6 +28,7 @@ import User exposing (User)
 type alias Model =
     { documents : DocList.Model
     , importModal : ImportModalState
+    , loading : Bool
     , languageMenu : Bool
     , currentTime : Time.Posix
     , user : User
@@ -57,6 +60,7 @@ init user =
     ( { documents = DocList.init
       , languageMenu = False
       , importModal = Closed
+      , loading = True
       , currentTime = Time.millisToPosix 0
       , user = user
       }
@@ -82,6 +86,11 @@ type Msg
     | Open String
     | DeleteDoc String
     | ImportModal ImportModalMsg
+    | ImportJSONRequested
+    | ImportJSONSelected File
+    | ImportJSONLoaded String String
+    | ImportJSONIdGenerated Tree String String
+    | ImportJSONCompleted String
     | ToggleLanguageMenu
     | ChangeLanguage Language
     | SettingsChanged Language
@@ -106,7 +115,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ReceivedDocuments newList ->
-            ( { model | documents = newList }, Cmd.none )
+            ( { model | documents = newList, loading = False }, Cmd.none )
 
         Open docId ->
             ( model, Route.pushUrl (User.navKey model.user) (Route.DocUntitled docId) )
@@ -125,6 +134,36 @@ update msg model =
 
         ImportModal importMsg ->
             updateImportModal importMsg model |> Tuple.mapSecond (Cmd.map ImportModal)
+
+        ImportJSONRequested ->
+            ( model, Select.file [ "application/json", "text/plain" ] ImportJSONSelected )
+
+        ImportJSONSelected file ->
+            ( model, Task.perform (ImportJSONLoaded (File.name file)) (File.toString file) )
+
+        ImportJSONLoaded fileName jsonString ->
+            let
+                ( importTreeDecoder, newSeed ) =
+                    Import.Single.decoder (User.seed model.user)
+            in
+            case Dec.decodeString importTreeDecoder jsonString of
+                Ok tree ->
+                    ( { model | loading = True, user = User.setSeed newSeed model.user }
+                    , RandomId.generate (ImportJSONIdGenerated tree fileName)
+                    )
+
+                Err _ ->
+                    ( model, Cmd.none )
+
+        ImportJSONIdGenerated tree fileName docId ->
+            let
+                author =
+                    model.user |> User.name |> Maybe.withDefault "jane.doe@gmail.com"
+            in
+            ( model, send <| SaveImportedData (Import.Single.encode { author = author, docId = docId, fileName = fileName } tree) )
+
+        ImportJSONCompleted docId ->
+            ( model, Route.pushUrl (User.navKey model.user) (Route.DocUntitled docId) )
 
         Tick currTime ->
             ( { model | currentTime = currTime }, Cmd.none )
@@ -246,6 +285,12 @@ view { user, importModal, languageMenu, currentTime, documents } =
                 , div [ class "template-title" ] [ text <| tr language HomeImportLegacy ]
                 , div [ class "template-description" ]
                     [ text <| tr language HomeLegacyFrom ]
+                ]
+            , div [ id "template-import", class "template-item", onClick ImportJSONRequested ]
+                [ div [ classList [ ( "template-thumbnail", True ), ( "import", True ) ] ] [ Icon.file (Icon.defaultOptions |> Icon.size 48) ]
+                , div [ class "template-title" ] [ text "Import Single JSON" ]
+                , div [ class "template-description" ]
+                    [ text "Import one tree from Legacy or Desktop Gingko." ]
                 ]
             ]
          , div [ id "documents-block" ]
@@ -390,7 +435,7 @@ viewSelectionEntry { selected, tree } =
 -- SUBSCRIPTIONS
 
 
-port importComplete : (() -> msg) -> Sub msg
+port importComplete : (Maybe String -> msg) -> Sub msg
 
 
 port iframeLoginStateChange : (Bool -> msg) -> Sub msg
@@ -399,7 +444,15 @@ port iframeLoginStateChange : (Bool -> msg) -> Sub msg
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
-        [ importComplete (always (ImportModal Completed))
+        [ importComplete
+            (\docId_ ->
+                case docId_ of
+                    Just docId ->
+                        ImportJSONCompleted docId
+
+                    Nothing ->
+                        ImportModal Completed
+            )
         , iframeLoginStateChange (ImportModal << LoginStateChanged)
         , DocList.subscribe ReceivedDocuments
         , User.settingsChange SettingsChanged

@@ -1,12 +1,14 @@
-module Import.Single exposing (decoder)
+module Import.Single exposing (decoder, encode)
 
 import Coders exposing (lazyRecurse)
+import Doc.Data as Data
+import Doc.Metadata as Metadata
 import Doc.TreeStructure as TreeStructure
 import Json.Decode as Dec exposing (Decoder, field, list, oneOf, string, succeed)
-import Random exposing (maxInt)
+import Json.Encode as Enc
+import Random
 import RandomId
 import Types exposing (Children(..), Tree)
-import Utils exposing (randomPositiveInt)
 
 
 
@@ -39,6 +41,15 @@ decoder seed =
         |> Dec.map (TreeStructure.renameNodes salt)
     , newSeed
     )
+
+
+encode : { author : String, docId : String, fileName : String } -> Tree -> Enc.Value
+encode { author, docId, fileName } tree =
+    Enc.object
+        [ ( "id", Enc.string docId )
+        , ( "metadata", Metadata.new docId |> Metadata.renameAndEncode fileName )
+        , ( "data", Data.commitTree author [] 0 tree Data.emptyData |> Data.toValue )
+        ]
 
 
 

@@ -25,7 +25,6 @@ import Html5.DragDrop as DragDrop
 import Http
 import Import.Single
 import Json.Decode as Json
-import Json.Encode as Enc
 import List.Extra as ListExtra exposing (getAt)
 import Markdown
 import Outgoing exposing (Msg(..), send)
@@ -136,7 +135,7 @@ defaultModel isNew session docId =
     , startingWordcount = 0
     , historyState = Closed
     , currentTime = Time.millisToPosix 0
-    , seed = Random.initialSeed (User.seed session)
+    , seed = User.seed session
     }
 
 
@@ -514,7 +513,7 @@ update msg ({ workingTree } as model) =
             case model.titleField of
                 Just editedTitle ->
                     if Just editedTitle /= Metadata.getDocName model.metadata then
-                        ( model, send <| SaveData <| Metadata.rename editedTitle model.metadata )
+                        ( model, send <| SaveData <| Metadata.renameAndListEncode editedTitle model.metadata )
 
                     else
                         ( model, Cmd.none )

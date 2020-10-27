@@ -1,4 +1,4 @@
-port module User exposing (User, db, decode, language, loggedIn, loginChanges, logout, name, navKey, requestLogin, requestSignup, seed, setLanguage, setShortcutTrayOpen, settingsChange, shortcutTrayOpen, storeLogin, storeSignup)
+port module User exposing (User, db, decode, language, loggedIn, loginChanges, logout, name, navKey, requestLogin, requestSignup, seed, setLanguage, setSeed, setShortcutTrayOpen, settingsChange, shortcutTrayOpen, storeLogin, storeSignup)
 
 import Browser.Navigation as Nav
 import Http
@@ -6,6 +6,7 @@ import Json.Decode as Dec
 import Json.Decode.Pipeline exposing (optional, optionalAt, required)
 import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
+import Random
 import Translation exposing (Language(..), langFromString, langToString, languageDecoder)
 import Utils exposing (hexEncode)
 
@@ -21,14 +22,14 @@ type User
 
 type alias UserData =
     { email : String
-    , seed : Int
+    , seed : Random.Seed
     , language : Translation.Language
     , shortcutTrayOpen : Bool
     }
 
 
 type alias GuestData =
-    { seed : Int
+    { seed : Random.Seed
     , language : Translation.Language
     }
 
@@ -57,7 +58,7 @@ name user =
             Nothing
 
 
-seed : User -> Int
+seed : User -> Random.Seed
 seed user =
     case user of
         LoggedIn _ data ->
@@ -121,6 +122,16 @@ setLanguage lang user =
             Guest key { data | language = lang }
 
 
+setSeed : Random.Seed -> User -> User
+setSeed newSeed user =
+    case user of
+        LoggedIn key data ->
+            LoggedIn key { data | seed = newSeed }
+
+        Guest key data ->
+            Guest key { data | seed = newSeed }
+
+
 setShortcutTrayOpen : Bool -> User -> User
 setShortcutTrayOpen isOpen user =
     case user of
@@ -150,6 +161,7 @@ decode key json =
                         |> String.toList
                         |> List.map Char.toCode
                         |> List.foldl (+) 12345
+                        |> Random.initialSeed
             in
             Guest key (GuestData errToSeed En)
 
@@ -163,7 +175,7 @@ decodeLoggedIn : Nav.Key -> Dec.Decoder User
 decodeLoggedIn key =
     Dec.succeed UserData
         |> required "email" Dec.string
-        |> required "seed" Dec.int
+        |> required "seed" (Dec.int |> Dec.map Random.initialSeed)
         |> optional "language" (Dec.string |> Dec.map langFromString) En
         |> optional "shortcutTrayOpen" Dec.bool True
         |> Dec.map (LoggedIn key)
@@ -172,7 +184,7 @@ decodeLoggedIn key =
 decodeGuest : Nav.Key -> Dec.Decoder User
 decodeGuest key =
     Dec.map2 GuestData
-        (Dec.field "seed" Dec.int)
+        (Dec.field "seed" (Dec.int |> Dec.map Random.initialSeed))
         (Dec.field "language" (Dec.string |> Dec.map langFromString))
         |> Dec.map (Guest key)
 
@@ -201,13 +213,11 @@ encode user =
             Enc.object
                 [ ( "email", Enc.string data.email )
                 , ( "language", data.language |> langToString |> Enc.string )
-                , ( "seed", Enc.int data.seed )
                 ]
 
         Guest _ data ->
             Enc.object
-                [ ( "seed", Enc.int data.seed )
-                , ( "language", data.language |> langToString |> Enc.string )
+                [ ( "language", data.language |> langToString |> Enc.string )
                 ]
 
 

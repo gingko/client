@@ -308,7 +308,15 @@ const fromElm = (msg, elmData) => {
     },
 
     SaveImportedData: async () => {
-      let savePromises = elmData.map((doc) => {
+      let isBulk = Array.isArray(elmData);
+      if (!isBulk) {
+        let now = Date.now();
+        elmData.metadata.createdAt = now;
+        elmData.metadata.updatedAt = now;
+      }
+
+      let dataArray = isBulk ? elmData : [elmData];
+      let savePromises = dataArray.map((doc) => {
         let dataRows = [
           ...doc.data.commits,
           ...doc.data.treeObjects,
@@ -322,7 +330,12 @@ const fromElm = (msg, elmData) => {
         return remoteDB.bulkDocs(toSave);
       });
       await Promise.all(savePromises);
-      toElm(null, "importComplete");
+
+      if (isBulk) {
+        toElm(null, "importComplete");
+      } else {
+        toElm(elmData.metadata.docId, "importComplete")
+      }
     },
 
 
