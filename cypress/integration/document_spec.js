@@ -65,7 +65,7 @@ describe('Document Editing', () => {
 
   it('Can rename the document', () => {
     cy.get('#title h1').click()
-    cy.get('#title > input')
+    cy.get('#title input')
       .should('have.focus')
       .type('A new doc title here')
 

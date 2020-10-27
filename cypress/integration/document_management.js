@@ -29,7 +29,7 @@ describe('Remote Documents', () => {
     cy.contains('Synced')
 
     cy.get('#title h1').click()
-    cy.get('#title > input')
+    cy.get('#title input')
       .type('Second doc, with title')
 
     cy.contains('Rename')
