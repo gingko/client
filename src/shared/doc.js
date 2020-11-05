@@ -177,6 +177,7 @@ const fromElm = (msg, elmData) => {
           JSON.stringify(_.omit(elmData, "seed"))
         );
         setUserDbs(elmData.email);
+        elmData.seed = Date.now();
         setTimeout(() => gingko.ports.userLoginChange.send(elmData), 0);
       }
     },

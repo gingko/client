@@ -1,4 +1,4 @@
-port module User exposing (User, db, decode, language, loggedIn, loginChanges, logout, name, navKey, requestLogin, requestResetPassword, requestSignup, seed, setLanguage, setSeed, setShortcutTrayOpen, settingsChange, shortcutTrayOpen, storeLogin, storeSignup)
+port module User exposing (User, db, decode, language, loggedIn, loginChanges, logout, name, navKey, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setLanguage, setSeed, setShortcutTrayOpen, settingsChange, shortcutTrayOpen, storeLogin, storeSignup)
 
 import Browser.Navigation as Nav
 import Http
@@ -162,6 +162,7 @@ decode key json =
                         |> List.map Char.toCode
                         |> List.foldl (+) 12345
                         |> Random.initialSeed
+                        |> Debug.log "failed default to guest"
             in
             Guest key (GuestData errToSeed En)
 
@@ -270,7 +271,23 @@ requestLogin toMsg email password user =
 
 storeLogin : User -> Cmd msg
 storeLogin user =
-    store (Just user)
+    store (Just (user |> Debug.log "user to store"))
+
+
+requestForgotPassword : (Result Http.Error User -> msg) -> String -> User -> Cmd msg
+requestForgotPassword toMsg email user =
+    let
+        requestBody =
+            Enc.object
+                [ ( "email", Enc.string email )
+                ]
+                |> Http.jsonBody
+    in
+    Http.post
+        { url = "/forgot-password"
+        , body = requestBody
+        , expect = Http.expectJson toMsg (responseDecoder user)
+        }
 
 
 requestResetPassword : (Result Http.Error User -> msg) -> { newPassword : String, token : String } -> User -> Cmd msg

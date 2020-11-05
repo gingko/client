@@ -6,6 +6,7 @@ import Html
 import Json.Decode exposing (Decoder, Value)
 import Page.Doc
 import Page.DocNew
+import Page.ForgotPassword
 import Page.Home
 import Page.Login
 import Page.NotFound
@@ -25,6 +26,7 @@ type Model
     | NotFound User
     | Signup Page.Signup.Model
     | Login Page.Login.Model
+    | ForgotPassword Page.ForgotPassword.Model
     | ResetPassword Page.ResetPassword.Model
     | Home Page.Home.Model
     | DocNew User
@@ -43,6 +45,9 @@ init json url navKey =
 
         ( False, Just Route.Login ) ->
             changeRouteTo (Just Route.Login) (Redirect user)
+
+        ( False, Just (Route.ForgotPassword token) ) ->
+            changeRouteTo (Just (Route.ForgotPassword token)) (Redirect user)
 
         ( False, Just (Route.ResetPassword token) ) ->
             changeRouteTo (Just (Route.ResetPassword token)) (Redirect user)
@@ -75,6 +80,15 @@ changeRouteTo maybeRoute model =
                 in
                 Page.Login.init loggedOutUser
                     |> updateWith Login GotLoginMsg
+                    |> withCmd logoutCmd
+
+            Just (Route.ForgotPassword email_) ->
+                let
+                    ( loggedOutUser, logoutCmd ) =
+                        User.logout user
+                in
+                Page.ForgotPassword.init loggedOutUser email_
+                    |> updateWith ForgotPassword GotForgotPasswordMsg
                     |> withCmd logoutCmd
 
             Just (Route.ResetPassword token) ->
@@ -124,6 +138,10 @@ changeRouteTo maybeRoute model =
             Just Route.Login ->
                 ( loginModel, loginCmds )
 
+            Just (Route.ForgotPassword email_) ->
+                Page.ForgotPassword.init user email_
+                    |> updateWith ForgotPassword GotForgotPasswordMsg
+
             Just (Route.ResetPassword token) ->
                 Page.ResetPassword.init user token
                     |> updateWith ResetPassword GotResetPasswordMsg
@@ -147,8 +165,11 @@ toUser page =
         Login login ->
             Page.Login.toUser login
 
-        ResetPassword signup ->
-            Page.ResetPassword.toUser signup
+        ForgotPassword forgot ->
+            Page.ForgotPassword.toUser forgot
+
+        ResetPassword reset ->
+            Page.ResetPassword.toUser reset
 
         Home home ->
             Page.Home.toUser home
@@ -169,6 +190,7 @@ type Msg
     | ClickedLink Browser.UrlRequest
     | GotSignupMsg Page.Signup.Msg
     | GotLoginMsg Page.Login.Msg
+    | GotForgotPasswordMsg Page.ForgotPassword.Msg
     | GotResetPasswordMsg Page.ResetPassword.Msg
     | GotHomeMsg Page.Home.Msg
     | GotDocNewMsg Page.DocNew.Msg
@@ -204,6 +226,10 @@ update msg model =
         ( GotLoginMsg loginMsg, Login loginModel ) ->
             Page.Login.update loginMsg loginModel
                 |> updateWith Login GotLoginMsg
+
+        ( GotForgotPasswordMsg forgotPassMsg, ForgotPassword forgotPassModel ) ->
+            Page.ForgotPassword.update forgotPassMsg forgotPassModel
+                |> updateWith ForgotPassword GotForgotPasswordMsg
 
         ( GotResetPasswordMsg resetPassMsg, ResetPassword resetPassModel ) ->
             Page.ResetPassword.update resetPassMsg resetPassModel
@@ -256,6 +282,9 @@ view model =
         Login login ->
             { title = "Gingko - Login", body = [ Html.map GotLoginMsg (Page.Login.view login) ] }
 
+        ForgotPassword forgotPass ->
+            { title = "Gingko - Forgot Password", body = [ Html.map GotForgotPasswordMsg (Page.ForgotPassword.view forgotPass) ] }
+
         ResetPassword resetPass ->
             { title = "Gingko - Reset Password", body = [ Html.map GotResetPasswordMsg (Page.ResetPassword.view resetPass) ] }
 
@@ -284,6 +313,9 @@ subscriptions model =
 
         Signup pageModel ->
             Sub.map GotSignupMsg (Page.Signup.subscriptions pageModel)
+
+        ForgotPassword pageModel ->
+            Sub.map GotForgotPasswordMsg (Page.ForgotPassword.subscriptions pageModel)
 
         ResetPassword pageModel ->
             Sub.map GotResetPasswordMsg (Page.ResetPassword.subscriptions pageModel)

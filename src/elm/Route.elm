@@ -2,7 +2,9 @@ module Route exposing (Route(..), fromUrl, pushUrl, replaceUrl, toString)
 
 import Browser.Navigation as Nav
 import Url exposing (Url)
+import Url.Builder as Builder
 import Url.Parser as Parser exposing ((</>), (<?>), Parser, oneOf, s, string)
+import Url.Parser.Query as Query
 
 
 type Route
@@ -10,6 +12,7 @@ type Route
     | Signup
     | Login
     | Logout
+    | ForgotPassword (Maybe String)
     | ResetPassword String
     | DocNew
     | DocUntitled String
@@ -23,6 +26,7 @@ parser =
         , Parser.map Signup (s "signup")
         , Parser.map Login (s "login")
         , Parser.map Logout (s "logout")
+        , Parser.map ForgotPassword (s "forgot-password" <?> Query.string "email")
         , Parser.map ResetPassword (s "reset-password" </> string)
         , Parser.map DocNew (s "new")
         , Parser.map DocUntitled string
@@ -49,6 +53,14 @@ toString route =
 
         Logout ->
             "/logout"
+
+        ForgotPassword email_ ->
+            case email_ of
+                Just email ->
+                    "/forgot-password" ++ ([ Builder.string "email" email ] |> Builder.toQuery)
+
+                Nothing ->
+                    "/forgot-password"
 
         ResetPassword token ->
             "/reset-password/" ++ token
