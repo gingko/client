@@ -1,4 +1,4 @@
-port module User exposing (User, db, decode, language, loggedIn, loginChanges, logout, name, navKey, requestLogin, requestSignup, seed, setLanguage, setSeed, setShortcutTrayOpen, settingsChange, shortcutTrayOpen, storeLogin, storeSignup)
+port module User exposing (User, db, decode, language, loggedIn, loginChanges, logout, name, navKey, requestLogin, requestResetPassword, requestSignup, seed, setLanguage, setSeed, setShortcutTrayOpen, settingsChange, shortcutTrayOpen, storeLogin, storeSignup)
 
 import Browser.Navigation as Nav
 import Http
@@ -271,6 +271,23 @@ requestLogin toMsg email password user =
 storeLogin : User -> Cmd msg
 storeLogin user =
     store (Just user)
+
+
+requestResetPassword : (Result Http.Error User -> msg) -> { newPassword : String, token : String } -> User -> Cmd msg
+requestResetPassword toMsg { newPassword, token } user =
+    let
+        requestBody =
+            Enc.object
+                [ ( "token", Enc.string token )
+                , ( "password", Enc.string newPassword )
+                ]
+                |> Http.jsonBody
+    in
+    Http.post
+        { url = "/reset-password"
+        , body = requestBody
+        , expect = Http.expectJson toMsg (responseDecoder user)
+        }
 
 
 logout : User -> ( User, Cmd msg )

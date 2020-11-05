@@ -3,12 +3,13 @@ module Main exposing (main)
 import Browser exposing (Document)
 import Browser.Navigation as Nav
 import Html
-import Json.Decode as Dec exposing (Decoder, Value)
+import Json.Decode exposing (Decoder, Value)
 import Page.Doc
 import Page.DocNew
 import Page.Home
 import Page.Login
 import Page.NotFound
+import Page.ResetPassword
 import Page.Signup
 import Route exposing (Route)
 import Url exposing (Url)
@@ -24,6 +25,7 @@ type Model
     | NotFound User
     | Signup Page.Signup.Model
     | Login Page.Login.Model
+    | ResetPassword Page.ResetPassword.Model
     | Home Page.Home.Model
     | DocNew User
     | Doc Page.Doc.Model
@@ -41,6 +43,9 @@ init json url navKey =
 
         ( False, Just Route.Login ) ->
             changeRouteTo (Just Route.Login) (Redirect user)
+
+        ( False, Just (Route.ResetPassword token) ) ->
+            changeRouteTo (Just (Route.ResetPassword token)) (Redirect user)
 
         ( False, _ ) ->
             changeRouteTo (Just Route.Signup) (Redirect user)
@@ -70,6 +75,15 @@ changeRouteTo maybeRoute model =
                 in
                 Page.Login.init loggedOutUser
                     |> updateWith Login GotLoginMsg
+                    |> withCmd logoutCmd
+
+            Just (Route.ResetPassword token) ->
+                let
+                    ( loggedOutUser, logoutCmd ) =
+                        User.logout user
+                in
+                Page.ResetPassword.init loggedOutUser token
+                    |> updateWith ResetPassword GotResetPasswordMsg
                     |> withCmd logoutCmd
 
             Just Route.DocNew ->
@@ -110,6 +124,10 @@ changeRouteTo maybeRoute model =
             Just Route.Login ->
                 ( loginModel, loginCmds )
 
+            Just (Route.ResetPassword token) ->
+                Page.ResetPassword.init user token
+                    |> updateWith ResetPassword GotResetPasswordMsg
+
             _ ->
                 ( loginModel, Cmd.batch [ loginCmds, Route.replaceUrl (User.navKey user) Route.Login ] )
 
@@ -128,6 +146,9 @@ toUser page =
 
         Login login ->
             Page.Login.toUser login
+
+        ResetPassword signup ->
+            Page.ResetPassword.toUser signup
 
         Home home ->
             Page.Home.toUser home
@@ -148,6 +169,7 @@ type Msg
     | ClickedLink Browser.UrlRequest
     | GotSignupMsg Page.Signup.Msg
     | GotLoginMsg Page.Login.Msg
+    | GotResetPasswordMsg Page.ResetPassword.Msg
     | GotHomeMsg Page.Home.Msg
     | GotDocNewMsg Page.DocNew.Msg
     | GotDocMsg Page.Doc.Msg
@@ -182,6 +204,10 @@ update msg model =
         ( GotLoginMsg loginMsg, Login loginModel ) ->
             Page.Login.update loginMsg loginModel
                 |> updateWith Login GotLoginMsg
+
+        ( GotResetPasswordMsg resetPassMsg, ResetPassword resetPassModel ) ->
+            Page.ResetPassword.update resetPassMsg resetPassModel
+                |> updateWith ResetPassword GotResetPasswordMsg
 
         ( GotHomeMsg homeMsg, Home homeModel ) ->
             Page.Home.update homeMsg homeModel
@@ -230,6 +256,9 @@ view model =
         Login login ->
             { title = "Gingko - Login", body = [ Html.map GotLoginMsg (Page.Login.view login) ] }
 
+        ResetPassword resetPass ->
+            { title = "Gingko - Reset Password", body = [ Html.map GotResetPasswordMsg (Page.ResetPassword.view resetPass) ] }
+
         Home home ->
             { title = "Gingko - Home", body = [ Html.map GotHomeMsg (Page.Home.view home) ] }
 
@@ -255,6 +284,9 @@ subscriptions model =
 
         Signup pageModel ->
             Sub.map GotSignupMsg (Page.Signup.subscriptions pageModel)
+
+        ResetPassword pageModel ->
+            Sub.map GotResetPasswordMsg (Page.ResetPassword.subscriptions pageModel)
 
         Login pageModel ->
             Sub.map GotLoginMsg (Page.Login.subscriptions pageModel)

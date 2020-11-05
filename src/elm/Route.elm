@@ -10,6 +10,7 @@ type Route
     | Signup
     | Login
     | Logout
+    | ResetPassword String
     | DocNew
     | DocUntitled String
     | Doc String String
@@ -22,6 +23,7 @@ parser =
         , Parser.map Signup (s "signup")
         , Parser.map Login (s "login")
         , Parser.map Logout (s "logout")
+        , Parser.map ResetPassword (s "reset-password" </> string)
         , Parser.map DocNew (s "new")
         , Parser.map DocUntitled string
         , Parser.map Doc (string </> string)
@@ -47,6 +49,9 @@ toString route =
 
         Logout ->
             "/logout"
+
+        ResetPassword token ->
+            "/reset-password/" ++ token
 
         DocNew ->
             "/new"
