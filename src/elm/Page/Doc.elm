@@ -1,4 +1,4 @@
-module Page.Doc exposing (Model, Msg, init, subscriptions, toUser, update, view)
+module Page.Doc exposing (Model, Msg, getTitle, init, subscriptions, toUser, update, view)
 
 import Browser.Dom
 import Bytes exposing (Bytes)
@@ -168,6 +168,12 @@ init session dbName isNew =
 toUser : Model -> User
 toUser model =
     model.user
+
+
+getTitle : Model -> String
+getTitle model =
+    Metadata.getDocName model.metadata
+        |> Maybe.withDefault "Untitled"
 
 
 

@@ -286,7 +286,7 @@ view model =
             { title = "Gingko - New", body = [ Html.div [] [ Html.text "LOADING..." ] ] }
 
         Doc doc ->
-            { title = "Gingko", body = [ Html.map GotDocMsg (Page.Doc.view doc) ] }
+            { title = Page.Doc.getTitle doc ++ " - Gingko", body = [ Html.map GotDocMsg (Page.Doc.view doc) ] }
 
 
 
