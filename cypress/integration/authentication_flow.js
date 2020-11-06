@@ -23,8 +23,7 @@ describe('User Signup Flow', () => {
   })
 
   it('Displays errors on submitting empty form', () => {
-    cy.get('button')
-      .contains('Signup')
+    cy.get('button.cta')
       .click()
 
     cy.contains('Please enter an email address')
@@ -42,8 +41,7 @@ describe('User Signup Flow', () => {
     cy.get('#signup-password-confirm')
       .type('testing')
 
-    cy.get('button')
-      .contains('Signup')
+    cy.get('button.cta')
       .click()
 
   })
@@ -57,5 +55,11 @@ describe('User Signup Flow', () => {
   it('Redirects to Home page', ()=> {
     cy.location('pathname').should('eq', '/')
     cy.contains('Blank Tree')
+  })
+
+  it('Removes Cookies on /logout', () =>{
+    cy.visit('http://localhost:3000/logout')
+    cy.wait(1400)
+    cy.getCookie('AuthSession').should('have.property', 'value', '')
   })
 })
