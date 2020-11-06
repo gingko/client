@@ -40,8 +40,8 @@ init json url navKey =
             User.decode navKey json
     in
     case ( User.loggedIn user, Route.fromUrl url ) of
-        ( True, _ ) ->
-            changeRouteTo (Route.fromUrl url) (Redirect user)
+        ( True, route_ ) ->
+            changeRouteTo route_ (Redirect user)
 
         ( False, Just Route.Login ) ->
             changeRouteTo (Just Route.Login) (Redirect user)
@@ -61,6 +61,9 @@ changeRouteTo maybeRoute model =
     let
         user =
             toUser model
+
+        ( loggedOutUser, logoutCmd ) =
+            User.logout user
     in
     if User.loggedIn user then
         case maybeRoute of
@@ -74,28 +77,16 @@ changeRouteTo maybeRoute model =
                 Page.Login.init user |> updateWith Login GotLoginMsg
 
             Just Route.Logout ->
-                let
-                    ( loggedOutUser, logoutCmd ) =
-                        User.logout user
-                in
                 Page.Login.init loggedOutUser
                     |> updateWith Login GotLoginMsg
                     |> withCmd logoutCmd
 
             Just (Route.ForgotPassword email_) ->
-                let
-                    ( loggedOutUser, logoutCmd ) =
-                        User.logout user
-                in
                 Page.ForgotPassword.init loggedOutUser email_
                     |> updateWith ForgotPassword GotForgotPasswordMsg
                     |> withCmd logoutCmd
 
             Just (Route.ResetPassword token) ->
-                let
-                    ( loggedOutUser, logoutCmd ) =
-                        User.logout user
-                in
                 Page.ResetPassword.init loggedOutUser token
                     |> updateWith ResetPassword GotResetPasswordMsg
                     |> withCmd logoutCmd

@@ -3,6 +3,7 @@ import * as data from "./data.js";
 
 const jQuery = require("jquery");
 const _ = require("lodash");
+const axios = require('axios');
 require("textarea-autosize");
 const Mousetrap = require("mousetrap");
 const container = require("Container");
@@ -167,10 +168,11 @@ const fromElm = (msg, elmData) => {
   let cases = {
     // === SPA ===
 
-    StoreUser: () => {
+    StoreUser: async () => {
       if (elmData == null) {
         localStorage.removeItem(sessionStorageKey);
         deleteLocalUserDbs();
+        await axios.delete(config.COUCHDB_SERVER+"/_session");
       } else {
         localStorage.setItem(
           sessionStorageKey,
