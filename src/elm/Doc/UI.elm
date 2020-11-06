@@ -224,7 +224,6 @@ viewSidebar msgs currentDocument docList ( exportSelection, exportFormat ) sideb
                         , button [ onClick <| msgs.themeChanged Default ] [ text "Set Default" ]
                         , button [ onClick <| msgs.themeChanged Gray ] [ text "Set Gray" ]
                         , button [ onClick <| msgs.themeChanged Turquoise ] [ text "Set Turquoise" ]
-                        , button [ onClick <| msgs.themeChanged Dark ] [ text "Set Dark Theme" ]
                         ]
 
                 SidebarClosed ->
