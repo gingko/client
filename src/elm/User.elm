@@ -162,7 +162,6 @@ decode key json =
                         |> List.map Char.toCode
                         |> List.foldl (+) 12345
                         |> Random.initialSeed
-                        |> Debug.log "failed default to guest"
             in
             Guest key (GuestData errToSeed En)
 
@@ -271,7 +270,7 @@ requestLogin toMsg email password user =
 
 storeLogin : User -> Cmd msg
 storeLogin user =
-    store (Just (user |> Debug.log "user to store"))
+    store (Just user)
 
 
 requestForgotPassword : (Result Http.Error User -> msg) -> String -> User -> Cmd msg

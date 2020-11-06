@@ -100,7 +100,7 @@ update msg model =
             ( { model | passwordConfirm = passwordConfirm }, Cmd.none )
 
         CompletedResetPassword (Ok user) ->
-            ( model, User.storeLogin (user |> Debug.log "Reset user") )
+            ( model, User.storeLogin user )
 
         CompletedResetPassword (Err error) ->
             let
