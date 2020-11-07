@@ -57,7 +57,7 @@ describe('User Signup Flow', () => {
     cy.contains('Blank Tree')
   })
 
-  it('Removes Cookies on /logout', () =>{
+  it.skip('Removes Cookies on /logout', () =>{
     cy.visit('http://localhost:3000/logout')
     cy.wait(1400)
     cy.getCookie('AuthSession').should('have.property', 'value', '')
