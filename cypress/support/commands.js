@@ -7,7 +7,6 @@ Cypress.Commands.add('deleteUser', (userEmail)=> {
     { url: config.COUCHDB_SERVER + '/_users/org.couchdb.user:'+userEmail
       , method: 'GET'
       , auth: {user: config.COUCHDB_ADMIN_USERNAME, password: config.COUCHDB_ADMIN_PASSWORD}
-      , failOnStatusCode: false
     })
     .then((response) => {
       if(response.status === 200) {
