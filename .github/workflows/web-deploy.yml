@@ -14,13 +14,28 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: cp $HOME/client.config.js ./config.js
+
+      - uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Copy config.js file
+        run: cp $HOME/client.config.js ./config.js
+
       - run: npm i
       - run: npm run build --if-present
-      - run: npx cypress run
-      - run: cp -r /web $HOME/production/client/web
-      - run: pm2 restart GingkoProduction
+
+      - name: Cypress e2e Tests
+        run: npx cypress run
+
+      - name: Copy Build Files
+        run: cp -r /web $HOME/production/client/web
+
+      - name: Restart Server
+        run: pm2 restart GingkoProduction
