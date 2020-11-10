@@ -34,8 +34,10 @@ jobs:
           path: '**/node_modules'
           key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
 
+      - run: cd client
+
       - name: Copy client config.js file
-        run: cp $HOME/client.config.js ./client/config.js
+        run: cp $HOME/client.config.js ./config.js
 
       - name: Copy server config.js file
         run: cp $HOME/server.config.js $GITHUB_WORKSPACE/server/config.js
