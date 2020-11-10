@@ -169,7 +169,7 @@ const fromElm = (msg, elmData) => {
         console.log("AT StoreUser")
         try {
           await db.replicate.to(remoteDB);
-          await axios.post(config.SERVER_URL + "/logout");
+          await axios.post(document.location.origin + "/logout");
           localStorage.removeItem(sessionStorageKey);
           await db.destroy();
           setTimeout(() => gingko.ports.userLoginChange.send(null), 0);

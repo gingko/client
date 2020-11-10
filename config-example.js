@@ -1,5 +1,5 @@
 module.exports = {
-  SERVER_URL: "https://app.somedomain.com",
+  TEST_SERVER: "http://localhost:8000",
   COUCHDB_SERVER: "https://app.somedomain.com/db",
   COUCHDB_ADMIN_USERNAME: "username",
   COUCHDB_ADMIN_PASSWORD: "password",

@@ -14,7 +14,7 @@ describe('User Signup Flow', () => {
   })
 
   it('Redirects to /signup', () => {
-    cy.visit(config.SERVER_URL)
+    cy.visit(config.TEST_SERVER)
     cy.location('pathname').should('eq', '/signup')
   })
 
@@ -60,7 +60,7 @@ describe('User Signup Flow', () => {
   })
 
   it('Logs Out Correctly', () =>{
-    cy.get('div.logout').click()
+    cy.get('button.logout').click()
     cy.wait(400)
     cy.getCookie('AuthSession').should('have.property', 'value', '')
     cy.location('pathname').should('eq', '/login')
