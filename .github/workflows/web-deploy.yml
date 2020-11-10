@@ -15,14 +15,12 @@ jobs:
     steps:
       - name: Checkout client
         uses: actions/checkout@v2
-        with:
-          path: client
 
       - name: Checkout server
         uses: actions/checkout@v2
         with:
           repository: 'gingko/server'
-          path: server
+          path: '../server'
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
