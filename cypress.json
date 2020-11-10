@@ -1,4 +1,5 @@
 {
+  "experimentalNetworkStubbing": true,
   "cypress-watch-and-reload": {
     "watch": "app/*"
   }

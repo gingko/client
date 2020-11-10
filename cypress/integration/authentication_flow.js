@@ -61,6 +61,7 @@ describe('User Signup Flow', () => {
 
   it('Logs Out Correctly', () =>{
     cy.get('button.logout').click()
+    cy.wait(400)
     cy.getCookie('AuthSession').should('have.property', 'value', '')
     cy.location('pathname').should('eq', '/login')
   })

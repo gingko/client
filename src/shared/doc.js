@@ -138,10 +138,6 @@ function setUserDbs(email) {
     });
 }
 
-async function deleteLocalUserDbs() {
-  console.log("Deleting local copies of documents, for privacy.");
-  await db.destroy();
-}
 
 /* === Elm / JS Interop === */
 
@@ -172,9 +168,10 @@ const fromElm = (msg, elmData) => {
       if (elmData == null) {
         console.log("AT StoreUser")
         try {
+          await db.replicate.to(remoteDB);
           await axios.post(config.APP_URL + "/logout");
           localStorage.removeItem(sessionStorageKey);
-          deleteLocalUserDbs();
+          await db.destroy();
           setTimeout(() => gingko.ports.userLoginChange.send(null), 0);
         } catch (err) {
           console.error(err)
