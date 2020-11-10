@@ -311,11 +311,6 @@ view { user, importModal, languageMenu, currentTime, documents } =
                 ]
             , DocList.viewLarge { openDoc = Open, deleteDoc = DeleteDoc } language currentTime documents
             ]
-         , div
-            [ onClick LogoutRequested
-            , classList [ ( "document-item", True ), ( "logout", True ) ]
-            ]
-            [ text "Logout" ]
          , div [ id "buttons-block" ]
             [ div [ onClick ToggleLanguageMenu, classList [ ( "document-item", True ), ( "language-button", True ) ] ]
                 (if languageMenu then
@@ -332,6 +327,7 @@ view { user, importModal, languageMenu, currentTime, documents } =
                  else
                     [ div [ class "language-item" ] [ text <| Translation.languageName language ] ]
                 )
+            , button [ onClick LogoutRequested, class "logout" ] [ text "Logout" ]
             ]
          ]
             ++ viewImportModal importModal
