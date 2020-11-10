@@ -138,6 +138,9 @@ viewTopRightButtons msgs isOpen user =
 
         userIcon =
             Icon.person (defaultOptions |> Icon.color "#333" |> Icon.size 18)
+
+        logoutIcon =
+            Icon.signOut (defaultOptions |> Icon.color "#333" |> Icon.size 18)
     in
     div [ id "top-right-buttons" ]
         [ div [ onClick msgs.helpClicked ] [ helpIcon ]
@@ -147,7 +150,7 @@ viewTopRightButtons msgs isOpen user =
                 div [ id "account-dropdown" ]
                     [ text (User.name user |> Maybe.withDefault "")
                     , hr [] []
-                    , button [ onClick msgs.logoutRequested ] [ text "Logout" ]
+                    , div [ onClick msgs.logoutRequested ] [ logoutIcon, text "Logout" ]
                     ]
 
               else

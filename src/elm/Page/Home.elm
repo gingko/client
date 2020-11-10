@@ -327,7 +327,11 @@ view { user, importModal, languageMenu, currentTime, documents } =
                  else
                     [ div [ class "language-item" ] [ text <| Translation.languageName language ] ]
                 )
-            , button [ onClick LogoutRequested, class "logout" ] [ text "Logout" ]
+            , div
+                [ onClick LogoutRequested
+                , classList [ ( "document-item", True ), ( "logout", True ) ]
+                ]
+                [ text "Logout" ]
             ]
          ]
             ++ viewImportModal importModal
