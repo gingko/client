@@ -14,7 +14,7 @@ describe('User Signup Flow', () => {
   })
 
   it('Redirects to /signup', () => {
-    cy.visit('http://localhost:3000/')
+    cy.visit(config.SERVER_URL)
     cy.location('pathname').should('eq', '/signup')
   })
 
