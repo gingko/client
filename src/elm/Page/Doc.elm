@@ -33,6 +33,7 @@ import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Doc.Theme as Theme exposing (Theme(..), applyTheme)
 import Random
 import Regex
+import Route
 import Task
 import Time
 import Translation exposing (..)
@@ -206,6 +207,8 @@ type Msg
       -- === UI ===
     | ReceivedDocuments DocList.Model
     | SettingsChanged Language
+    | LogoutRequested
+    | LoginStateChanged User
     | ToggledTitleEdit Bool
     | TitleFieldChanged String
     | TitleEdited
@@ -531,6 +534,12 @@ update msg ({ workingTree } as model) =
 
         HelpClicked ->
             ( model, send <| TriggerMailto )
+
+        LogoutRequested ->
+            ( model, User.logout )
+
+        LoginStateChanged _ ->
+            ( model, Route.pushUrl (User.navKey model.user) Route.Login )
 
         ToggledAccountMenu isOpen ->
             ( { model | accountMenuOpen = isOpen }, Cmd.none )
@@ -2224,6 +2233,7 @@ pre, code, .group.has-active .card textarea {
                         , titleFieldChanged = TitleFieldChanged
                         , titleEdited = TitleEdited
                         , helpClicked = HelpClicked
+                        , logoutRequested = LogoutRequested
                         , toggledAccountMenu = ToggledAccountMenu
                         }
                         (Metadata.getDocName model.metadata)
@@ -2719,11 +2729,12 @@ collabsSpan collabsOnCard collabsEditingCard =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
+subscriptions model =
     Sub.batch
         [ Incoming.subscribe Incoming LogErr
         , DocList.subscribe ReceivedDocuments
         , User.settingsChange SettingsChanged
+        , User.loginChanges LoginStateChanged (User.navKey model.user)
         , Time.every (9 * 1000) TimeUpdate
         , Time.every (20 * 1000) (always Pull)
         ]

@@ -47,6 +47,7 @@ type alias HeaderMsgs msg =
     , titleFieldChanged : String -> msg
     , titleEdited : msg
     , helpClicked : msg
+    , logoutRequested : msg
     , toggledAccountMenu : Bool -> msg
     }
 
@@ -78,7 +79,13 @@ viewHeader msgs title_ model =
     in
     div [ id "document-header" ]
         [ titleArea
-        , viewTopRightButtons msgs.helpClicked msgs.toggledAccountMenu model.accountMenuOpen model.user
+        , viewTopRightButtons
+            { helpClicked = msgs.helpClicked
+            , logoutRequested = msgs.logoutRequested
+            , toggledAccountMenu = msgs.toggledAccountMenu
+            }
+            model.accountMenuOpen
+            model.user
         ]
 
 
@@ -123,8 +130,8 @@ viewSaveIndicator language { dirty, lastLocalSave, lastRemoteSave, currentTime }
         ]
 
 
-viewTopRightButtons : msg -> (Bool -> msg) -> Bool -> User -> Html msg
-viewTopRightButtons helpClickedMsg toggleMsg isOpen user =
+viewTopRightButtons : { helpClicked : msg, logoutRequested : msg, toggledAccountMenu : Bool -> msg } -> Bool -> User -> Html msg
+viewTopRightButtons msgs isOpen user =
     let
         helpIcon =
             Icon.question (defaultOptions |> Icon.color "#333" |> Icon.size 18)
@@ -133,14 +140,14 @@ viewTopRightButtons helpClickedMsg toggleMsg isOpen user =
             Icon.person (defaultOptions |> Icon.color "#333" |> Icon.size 18)
     in
     div [ id "top-right-buttons" ]
-        [ div [ onClick helpClickedMsg ] [ helpIcon ]
-        , div [ id "account", onClick (toggleMsg (not isOpen)) ]
+        [ div [ onClick msgs.helpClicked ] [ helpIcon ]
+        , div [ id "account", onClick (msgs.toggledAccountMenu (not isOpen)) ]
             [ userIcon
             , if isOpen then
                 div [ id "account-dropdown" ]
                     [ text (User.name user |> Maybe.withDefault "")
                     , hr [] []
-                    , a [ href (Route.toString Route.Logout) ] [ text "Logout" ]
+                    , button [ onClick msgs.logoutRequested ] [ text "Logout" ]
                     ]
 
               else

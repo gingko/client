@@ -1,5 +1,4 @@
 const {ipcRenderer, dialog, remote} = require("electron");
-import {Elm} from "../elm/Page/HomeElectron";
 const dbMapping = require("../electron/doc-list");
 const Store = require("electron-store");
 

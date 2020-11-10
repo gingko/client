@@ -170,9 +170,15 @@ const fromElm = (msg, elmData) => {
 
     StoreUser: async () => {
       if (elmData == null) {
-        localStorage.removeItem(sessionStorageKey);
-        deleteLocalUserDbs();
-        await axios.delete(config.COUCHDB_SERVER+"/_session");
+        console.log("AT StoreUser")
+        try {
+          await axios.post(config.APP_URL + "/logout");
+          localStorage.removeItem(sessionStorageKey);
+          deleteLocalUserDbs();
+          setTimeout(() => gingko.ports.userLoginChange.send(null), 0);
+        } catch (err) {
+          console.error(err)
+        }
       } else {
         localStorage.setItem(
           sessionStorageKey,

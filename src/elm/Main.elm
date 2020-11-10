@@ -61,9 +61,6 @@ changeRouteTo maybeRoute model =
     let
         user =
             toUser model
-
-        ( loggedOutUser, logoutCmd ) =
-            User.logout user
     in
     if User.loggedIn user then
         case maybeRoute of
@@ -76,20 +73,13 @@ changeRouteTo maybeRoute model =
             Just Route.Login ->
                 Page.Login.init user |> updateWith Login GotLoginMsg
 
-            Just Route.Logout ->
-                Page.Login.init loggedOutUser
-                    |> updateWith Login GotLoginMsg
-                    |> withCmd logoutCmd
-
             Just (Route.ForgotPassword email_) ->
-                Page.ForgotPassword.init loggedOutUser email_
+                Page.ForgotPassword.init user email_
                     |> updateWith ForgotPassword GotForgotPasswordMsg
-                    |> withCmd logoutCmd
 
             Just (Route.ResetPassword token) ->
-                Page.ResetPassword.init loggedOutUser token
+                Page.ResetPassword.init user token
                     |> updateWith ResetPassword GotResetPasswordMsg
-                    |> withCmd logoutCmd
 
             Just Route.DocNew ->
                 Page.DocNew.init user |> updateWith DocNew GotDocNewMsg

@@ -11,7 +11,6 @@ type Route
     = Home
     | Signup
     | Login
-    | Logout
     | ForgotPassword (Maybe String)
     | ResetPassword String
     | DocNew
@@ -25,7 +24,6 @@ parser =
         [ Parser.map Home Parser.top
         , Parser.map Signup (s "signup")
         , Parser.map Login (s "login")
-        , Parser.map Logout (s "logout")
         , Parser.map ForgotPassword (s "forgot-password" <?> Query.string "email")
         , Parser.map ResetPassword (s "reset-password" </> string)
         , Parser.map DocNew (s "new")
@@ -50,9 +48,6 @@ toString route =
 
         Login ->
             "/login"
-
-        Logout ->
-            "/logout"
 
         ForgotPassword email_ ->
             case email_ of

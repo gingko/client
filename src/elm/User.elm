@@ -306,16 +306,9 @@ requestResetPassword toMsg { newPassword, token } user =
         }
 
 
-logout : User -> ( User, Cmd msg )
-logout user =
-    case user of
-        LoggedIn key data ->
-            ( Guest key (GuestData data.seed data.language)
-            , store Nothing
-            )
-
-        Guest _ _ ->
-            ( user, Cmd.none )
+logout : Cmd msg
+logout =
+    store Nothing
 
 
 

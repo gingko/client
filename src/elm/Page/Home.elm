@@ -94,13 +94,15 @@ type Msg
     | ToggleLanguageMenu
     | ChangeLanguage Language
     | SettingsChanged Language
+    | LogoutRequested
+    | LoginStateChanged User
     | Tick Time.Posix
     | LogErr String
 
 
 type ImportModalMsg
     = ModalToggled Bool
-    | LoginStateChanged Bool
+    | LegacyLoginStateChanged Bool
     | Retry
     | FileRequested
     | FileDraggedOver Bool
@@ -131,6 +133,12 @@ update msg model =
 
         SettingsChanged lang ->
             ( { model | user = User.setLanguage lang model.user }, Cmd.none )
+
+        LogoutRequested ->
+            ( model, User.logout )
+
+        LoginStateChanged _ ->
+            ( model, Route.pushUrl (User.navKey model.user) Route.Login )
 
         ImportModal importMsg ->
             updateImportModal importMsg model |> Tuple.mapSecond (Cmd.map ImportModal)
@@ -186,7 +194,7 @@ updateImportModal msg ({ importModal, user } as model) =
         ( ModalToggled False, _ ) ->
             ( { model | importModal = Closed }, Cmd.none )
 
-        ( LoginStateChanged isLoggedIn, _ ) ->
+        ( LegacyLoginStateChanged isLoggedIn, _ ) ->
             let
                 newState =
                     if isLoggedIn then
@@ -319,6 +327,7 @@ view { user, importModal, languageMenu, currentTime, documents } =
                  else
                     [ div [ class "language-item" ] [ text <| Translation.languageName language ] ]
                 )
+            , button [ onClick LogoutRequested, class "logout" ] [ text "Logout" ]
             ]
          ]
             ++ viewImportModal importModal
@@ -442,7 +451,7 @@ port iframeLoginStateChange : (Bool -> msg) -> Sub msg
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
+subscriptions model =
     Sub.batch
         [ importComplete
             (\docId_ ->
@@ -453,8 +462,9 @@ subscriptions _ =
                     Nothing ->
                         ImportModal Completed
             )
-        , iframeLoginStateChange (ImportModal << LoginStateChanged)
+        , iframeLoginStateChange (ImportModal << LegacyLoginStateChanged)
         , DocList.subscribe ReceivedDocuments
         , User.settingsChange SettingsChanged
+        , User.loginChanges LoginStateChanged (User.navKey model.user)
         , Time.every (30 * 1000) Tick
         ]
