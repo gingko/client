@@ -45,6 +45,9 @@ jobs:
       - name: Copy server config.js file
         run: cp $HOME/server.config.js $GITHUB_WORKSPACE/server/config.js
 
+      - name: Install Test Server Dependencies
+        run: cd ../server; npm i
+
       - name: Start Test Server
         run: PORT=8000 pm2 start ../server/index.js --name GingkoTest
 
