@@ -45,11 +45,17 @@ jobs:
       - name: Copy server config.js file
         run: cp $HOME/server.config.js $GITHUB_WORKSPACE/server/config.js
 
+      - name: Start Test Server
+        run: PORT=8000 pm2 start ../server/index.js --name GingkoTest
+
       - run: npm i
       - run: npm run build --if-present
 
       - name: Cypress e2e Tests
         run: npx cypress run
+
+      - name: Stop Test Server
+        run: pm2 stop GingkoTest
 
       - name: Copy Build Files
         run: cp -r /web $HOME/production/client/web
