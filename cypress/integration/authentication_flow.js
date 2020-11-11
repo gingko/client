@@ -48,7 +48,7 @@ describe('User Signup Flow', () => {
 
   it('Has a user database', () => {
     cy.wait(400)
-    cy.request({url: config.COUCHDB_SERVER + '/userdb-' + testUserDb, retryOnStatusCodeFailure: true})
+    cy.request({url: config.TEST_SERVER + '/db/userdb-' + testUserDb, retryOnStatusCodeFailure: true})
   })
 
   it('Has an AuthSession cookie', () => {
