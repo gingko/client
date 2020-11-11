@@ -1,10 +1,13 @@
+const config = require("../../config.js");
+
+
 describe('Remote Documents', () => {
   const testEmail = 'cypress@testing.com'
 
   before(() => {
     cy.deleteUser(testEmail)
     cy.signup(testEmail)
-    cy.visit(config.SERVER_URL + '/new')
+    cy.visit(config.TEST_SERVER + '/new')
     cy.wait(400)
     cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
 
@@ -16,7 +19,7 @@ describe('Remote Documents', () => {
     cy.shortcut('{ctrl}{enter}')
     cy.contains('Synced')
 
-    cy.visit(config.SERVER_URL + '/new')
+    cy.visit(config.TEST_SERVER + '/new')
     cy.wait(400)
     cy.url().as('secondDocUrl').should('match', /\/[a-zA-Z0-9]{5}$/)
 
@@ -36,7 +39,7 @@ describe('Remote Documents', () => {
       .click()
     cy.wait(400)
 
-    cy.request('POST', config.SERVER_URL + '/logout')
+    cy.request('POST', config.TEST_SERVER + '/logout')
     cy.clearCookie('AuthSession')
 
     cy.wait(400)
@@ -48,7 +51,7 @@ describe('Remote Documents', () => {
   })
 
   it('Should show the created trees in document list', () => {
-    cy.visit(config.SERVER_URL)
+    cy.visit(config.TEST_SERVER)
 
     cy.contains('#documents-block', 'Untitled')
       .contains('#documents-block', 'Second doc, with title')
@@ -79,6 +82,6 @@ describe('Remote Documents', () => {
   it('Should navigate to home on clicking home icon', function () {
     cy.get('#home-link').click()
 
-    cy.url().should('equal', config.SERVER_URL)
+    cy.url().should('equal', config.TEST_SERVER + '/')
   })
 })
