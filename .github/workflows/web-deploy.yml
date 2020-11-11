@@ -48,6 +48,9 @@ jobs:
       - name: Install Test Server Dependencies
         run: cd ../server; npm i
 
+      - name: Stop Test Server
+        run: pm2 stop GingkoTest
+
       - name: Start Test Server
         run: PORT=8000 pm2 start ../server/index.js --name GingkoTest
 
