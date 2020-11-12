@@ -11,7 +11,7 @@ describe('Document Editing', () => {
   })
 
   it('Creates a new blank tree', () => {
-    cy.visit('http://localhost:3000/')
+    cy.visit(config.TEST_SERVER)
     cy.contains('Blank Tree')
       .click()
 
