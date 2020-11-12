@@ -28,7 +28,7 @@ Cypress.Commands.add('deleteUser', (userEmail)=> {
 
 Cypress.Commands.add('signup', (userEmail) => {
   cy.request(
-    { url: 'http://localhost:3000/signup'
+    { url: config.TEST_SERVER + '/signup'
       , method: 'POST'
       , body: {email: userEmail, password: 'testing'}
     })
@@ -40,7 +40,7 @@ Cypress.Commands.add('signup', (userEmail) => {
 
 Cypress.Commands.add('login', (userEmail) => {
   cy.request(
-    { url: 'http://localhost:3000/login'
+    { url: config.TEST_SERVER + '/login'
       , method: 'POST'
       , body: {email: userEmail, password: 'testing'}
     })
