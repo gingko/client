@@ -2,9 +2,6 @@ const config = require("../../config.js");
 const helpers = require("../../src/shared/doc-helpers.js");
 
 
-Cypress.Commands.overwrite('log', (subject, message) => cy.task('log', message));
-
-
 Cypress.Commands.add('deleteUser', (userEmail)=> {
   cy.clearCookie('AuthSession')
   cy.request(
@@ -14,8 +11,8 @@ Cypress.Commands.add('deleteUser', (userEmail)=> {
       , failOnStatusCode: false
     })
     .then((response) => {
-      cy.log('deleteUser get request response', response)
-      
+      cy.log('delU', response)
+
       if(response.status === 200) {
         cy.request(
           { url: `${config.COUCHDB_SERVER}/_users/org.couchdb.user:${userEmail}?rev=${response.body._rev}`
