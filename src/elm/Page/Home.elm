@@ -289,7 +289,7 @@ view { user, importModal, languageMenu, currentTime, documents } =
                 , div [ class "template-title" ] [ text <| tr language HomeBlank ]
                 ]
             , div [ id "template-import", class "template-item", onClick <| ImportModal (ModalToggled True) ]
-                [ div [ classList [ ( "template-thumbnail", True ), ( "import", True ) ] ] [ Icon.file (Icon.defaultOptions |> Icon.size 48) ]
+                [ div [ classList [ ( "template-thumbnail", True ), ( "import-bulk", True ) ] ] [ Icon.file (Icon.defaultOptions |> Icon.size 48) ]
                 , div [ class "template-title" ] [ text <| tr language HomeImportLegacy ]
                 , div [ class "template-description" ]
                     [ text <| tr language HomeLegacyFrom ]

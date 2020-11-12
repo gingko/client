@@ -1,0 +1,175 @@
+{
+  "trees": [
+    {
+      "__v": 0,
+      "_id": "5fad7e60c1ab3b03759b9603",
+      "deleted": true,
+      "name": "Example Tree",
+      "owner": "5fad7e60c1ab3b03759b9600",
+      "updatedAt": "2020-11-12T18:38:43.857Z",
+      "createdAt": "2020-11-12T18:26:40.000Z",
+      "users": [
+        "5fad7e60c1ab3b03759b9600"
+      ],
+      "inviteUrl": "5fad7e60c1ab3b03759b9602"
+    },
+    {
+      "name": "Untitled tree",
+      "owner": "5fad7e60c1ab3b03759b9600",
+      "_id": "43390e4eb943aead9a000011",
+      "__v": 0,
+      "updatedAt": "2020-11-12T18:27:29.809Z",
+      "createdAt": "2020-11-12T18:27:29.809Z",
+      "users": [
+        "5fad7e60c1ab3b03759b9600"
+      ],
+      "inviteUrl": "5fad7e91c1ab3b03759b9615"
+    }
+  ],
+  "cards": [
+    {
+      "_id": "43390e1db943aead9a000014",
+      "treeId": "43390e4eb943aead9a000011",
+      "seq": 21740553,
+      "position": 0.5,
+      "parentId": null,
+      "content": "# Test tree \"root\""
+    },
+    {
+      "_id": "43390c8fb943aead9a000017",
+      "treeId": "43390e4eb943aead9a000011",
+      "seq": 21740558,
+      "position": 1,
+      "parentId": "43390d2eb943aead9a000015",
+      "content": "Second's child"
+    },
+    {
+      "_id": "43390c25b943aead9a000018",
+      "treeId": "43390e4eb943aead9a000011",
+      "seq": 21740559,
+      "position": 2,
+      "parentId": "43390d2eb943aead9a000015",
+      "content": "Second's other child"
+    },
+    {
+      "_id": "43390e43b943aead9a000013",
+      "treeId": "43390e4eb943aead9a000011",
+      "seq": 21740555,
+      "position": 1,
+      "parentId": "43390e1db943aead9a000014",
+      "content": "First Child"
+    },
+    {
+      "_id": "43390d2eb943aead9a000015",
+      "treeId": "43390e4eb943aead9a000011",
+      "seq": 21740556,
+      "position": 2,
+      "parentId": "43390e1db943aead9a000014",
+      "content": "Second Child"
+    },
+    {
+      "_id": "43390cc8b943aead9a000016",
+      "treeId": "43390e4eb943aead9a000011",
+      "seq": 21740557,
+      "position": 3,
+      "parentId": "43390e1db943aead9a000014",
+      "content": "Third Child"
+    },
+    {
+      "_id": "5fad7e60c1ab3b03759b9604",
+      "treeId": "5fad7e60c1ab3b03759b9603",
+      "seq": 21740540,
+      "position": 1,
+      "parentId": null,
+      "content": "# Welcome to this **example gingko tree**."
+    },
+    {
+      "_id": "5fad7e60c1ab3b03759b960f",
+      "treeId": "5fad7e60c1ab3b03759b9603",
+      "seq": 21740551,
+      "position": 2,
+      "parentId": null,
+      "content": "To start a New Tree, click on the menu at top left:\n![](https://dl.dropbox.com/s/nfwsay7bsrz7fja/New-Tree.png)\n\n##### *(You can always find this info, and more, on the help menu at top right.)*"
+    },
+    {
+      "_id": "5fad7e60c1ab3b03759b9605",
+      "treeId": "5fad7e60c1ab3b03759b9603",
+      "seq": 21740541,
+      "position": 1,
+      "parentId": "5fad7e60c1ab3b03759b9604",
+      "content": "# What can I use Gingko for?\n- Writing:\n  - your book or novel.\n  - your screenplay.\n  -   your thesis or research paper.\n  - software specs.\n- Organizing:\n  - your projects.\n  - personal todos.\n  - your development workflow.\n  - your ideas.\n  - your study notes.\n- Working together on any of the above."
+    },
+    {
+      "_id": "5fad7e60c1ab3b03759b9606",
+      "treeId": "5fad7e60c1ab3b03759b9603",
+      "seq": 21740542,
+      "position": 2,
+      "parentId": "5fad7e60c1ab3b03759b9604",
+      "content": "# How do I use Gingko?\n\nThe basics:\n- Enter or double-click to edit a card.\n- Ctrl+Enter to save changes.\n- Arrows to move around\n- Ctrl+Backspace to delete\n- Drag & Drop to rearrange"
+    },
+    {
+      "_id": "5fad7e60c1ab3b03759b960c",
+      "treeId": "5fad7e60c1ab3b03759b9603",
+      "seq": 21740548,
+      "position": 3,
+      "parentId": "5fad7e60c1ab3b03759b9604",
+      "content": "# Need more help?\nClick the <span class=\"glyphicon glyphicon-question-sign\"/> icon at the top right.\n\nYou can access **resources**, **examples**, **templates** and get more help at the FAQ."
+    },
+    {
+      "_id": "5fad7e60c1ab3b03759b960d",
+      "treeId": "5fad7e60c1ab3b03759b9603",
+      "seq": 21740549,
+      "position": 4,
+      "parentId": "5fad7e60c1ab3b03759b9604",
+      "content": "## Gingko Global\nWe believe in [global software](http://blog.gingkoapp.com/essays/global-software), and do the best we can to make Gingko available in your language. We've just started the effort, so for now, we have this tree available also in Japanese & Russian:\n* [日本語](http://gingkoapp.com/example-tree-jp)\n* [русский](https://gingkoapp.com/example-tree-RU)"
+    },
+    {
+      "_id": "5fad7e60c1ab3b03759b9607",
+      "treeId": "5fad7e60c1ab3b03759b9603",
+      "seq": 21740543,
+      "position": 1,
+      "parentId": "5fad7e60c1ab3b03759b9606",
+      "content": "# Step `1`: Enter or double-click to Edit.\nEach card should contain a single thought or topic. Usually no more than a paragraph or two.\n\n`Try editing this card!`\n\n(Ctrl+Enter again to save.)"
+    },
+    {
+      "_id": "5fad7e60c1ab3b03759b9608",
+      "treeId": "5fad7e60c1ab3b03759b9603",
+      "seq": 21740544,
+      "position": 2,
+      "parentId": "5fad7e60c1ab3b03759b9606",
+      "content": "# Step `2`: Arrows to Move\nMove around with arrow keys, or by clicking the card you want to focus on. \n\n###### *Protip: you can also use **hjkl**.*"
+    },
+    {
+      "_id": "5fad7e60c1ab3b03759b9609",
+      "treeId": "5fad7e60c1ab3b03759b9603",
+      "seq": 21740545,
+      "position": 3,
+      "parentId": "5fad7e60c1ab3b03759b9606",
+      "content": "# Step `3`: Ctrl + Backspace to Delete\nTry deleting the card to the right."
+    },
+    {
+      "_id": "5fad7e60c1ab3b03759b960b",
+      "treeId": "5fad7e60c1ab3b03759b9603",
+      "seq": 21740547,
+      "position": 4,
+      "parentId": "5fad7e60c1ab3b03759b9606",
+      "content": "# Step `4`: Drag & Drop to rearrange\nClick and drag the green bar at the left of the card to move it to the bottom."
+    },
+    {
+      "_id": "5fad7e60c1ab3b03759b960a",
+      "treeId": "5fad7e60c1ab3b03759b9603",
+      "seq": 21740546,
+      "position": 1,
+      "parentId": "5fad7e60c1ab3b03759b9609",
+      "content": "Delete Me!\n<small><em>(Navigate here, and press Ctrl-Backspace)</em></small>"
+    },
+    {
+      "_id": "5fad7e60c1ab3b03759b960e",
+      "treeId": "5fad7e60c1ab3b03759b9603",
+      "seq": 21740550,
+      "position": 1,
+      "parentId": "5fad7e60c1ab3b03759b960d",
+      "content": ""
+    }
+  ]
+}
