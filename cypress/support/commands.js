@@ -5,7 +5,7 @@ const helpers = require("../../src/shared/doc-helpers.js");
 Cypress.Commands.add('deleteUser', (userEmail)=> {
   cy.clearCookie('AuthSession')
   cy.request(
-    { url: config.COUCHDB_SERVER + '/_users/org.couchdb.user:'+userEmail
+    { url: config.TEST_SERVER + '/db/_users/org.couchdb.user:'+userEmail
       , method: 'GET'
       , auth: {user: config.COUCHDB_ADMIN_USERNAME, password: config.COUCHDB_ADMIN_PASSWORD}
       , failOnStatusCode: false
@@ -15,7 +15,7 @@ Cypress.Commands.add('deleteUser', (userEmail)=> {
 
       if(response.status === 200) {
         cy.request(
-          { url: `${config.COUCHDB_SERVER}/_users/org.couchdb.user:${userEmail}?rev=${response.body._rev}`
+          { url: `${config.TEST_SERVER}/db/_users/org.couchdb.user:${userEmail}?rev=${response.body._rev}`
             , method: 'DELETE'
             , auth: {user: config.COUCHDB_ADMIN_USERNAME, password: config.COUCHDB_ADMIN_PASSWORD}
           })
