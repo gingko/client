@@ -17,4 +17,6 @@
 import './commands'
 
 require('cypress-watch-and-reload/support')
-require('cypress-terminal-report/src/installLogsCollector')();
+require('cypress-terminal-report/src/installLogsCollector')({
+  printLogs: 'always'
+})

@@ -19,13 +19,5 @@ module.exports = (on, config) => {
   require('cypress-watch-and-reload/plugins');
   // `on` is used to hook into various events Cypress emits
   // `config` is the resolved Cypress config
-  const options = {
-    outputRoot: config.projectRoot + '/logs/',
-    outputTarget: {
-      'cypress-log.txt': 'txt',
-      'cypress-log.json': 'json',
-    }
-  };
-
-  require('cypress-terminal-report/src/installLogsPrinter')(on, options);
+  require('cypress-terminal-report/src/installLogsPrinter')(on);
 }

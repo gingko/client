@@ -11,7 +11,7 @@ Cypress.Commands.add('deleteUser', (userEmail)=> {
       , failOnStatusCode: false
     })
     .then((response) => {
-      cy.log('delU', response)
+      cy.log('delU', JSON.stringify(response))
 
       if(response.status === 200) {
         cy.request(
