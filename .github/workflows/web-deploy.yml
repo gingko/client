@@ -64,7 +64,7 @@ jobs:
         run: pm2 stop GingkoTest
 
       - name: Copy Build Files
-        run: cp -r $GITHUB_WORKSPACE/client/web $HOME/production/client/web
+        run: cp -r $GITHUB_WORKSPACE/client/web/* $HOME/production/client/web
 
       - name: Restart Server
         run: pm2 restart GingkoProduction
