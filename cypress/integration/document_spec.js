@@ -2,11 +2,10 @@ const config = require("../../config.js");
 
 
 describe('Document Editing', () => {
-  let testEmail = 'cypress@testing.com'
+  const testEmail = 'cypress@testing.com'
 
   before(() => {
     cy.deleteUser(testEmail)
-    cy.wait(400)
     cy.signup(testEmail)
   })
 

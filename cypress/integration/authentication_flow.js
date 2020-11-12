@@ -46,13 +46,13 @@ describe('User Signup Flow', () => {
 
   })
 
-  it('Has a user database', () => {
+  it('Has an AuthSession cookie', () => {
     cy.wait(400)
-    cy.request({url: config.TEST_SERVER + '/db/userdb-' + testUserDb, retryOnStatusCodeFailure: true})
+    cy.getCookie('AuthSession').should('exist')
   })
 
-  it('Has an AuthSession cookie', () => {
-    cy.getCookie('AuthSession').should('exist')
+  it('Has a user database', () => {
+    cy.request({url: config.TEST_SERVER + '/db/userdb-' + testUserDb, retryOnStatusCodeFailure: true})
   })
 
   it('Redirects to Home page', ()=> {
