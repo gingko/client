@@ -1,5 +1,8 @@
 const config = require("../../config.js");
 
+Cypress.LocalStorage.clear = function (keys, ls, rs) {
+  return;
+}
 
 describe('Document Editing', () => {
   const testEmail = 'cypress@testing.com'
@@ -7,6 +10,7 @@ describe('Document Editing', () => {
   before(() => {
     cy.deleteUser(testEmail)
     cy.signup(testEmail)
+    cy.visit(config.TEST_SERVER)
   })
 
   beforeEach(() => {
@@ -14,11 +18,10 @@ describe('Document Editing', () => {
   })
 
   it('Creates a new blank tree', () => {
-    cy.visit(config.TEST_SERVER)
     cy.contains('Blank Tree')
       .click()
 
-    cy.url().should('match', /\/[a-zA-Z0-9]{5}/)
+    cy.url().as('testTreeUrl').should('match', /\/[a-zA-Z0-9]{5}/)
 
     cy.contains('Untitled')
     cy.contains('New Document...')
@@ -64,9 +67,11 @@ describe('Document Editing', () => {
 
     cy.get('div.card.active')
       .contains('Another one below')
+
+    cy.contains('Synced')
   })
 
-  it('Can rename the document', () => {
+  it('Can rename the document', function () {
     cy.get('#title h1').click()
     cy.get('#title input')
       .should('have.focus')
@@ -76,5 +81,25 @@ describe('Document Editing', () => {
       .click()
 
     cy.get('#title h1').contains('A new doc title here')
+  })
+
+  it('Has saved the content', function () {
+    cy.wait(400)
+    cy.visit(this.testTreeUrl)
+    cy.get(':nth-child(3) > .group:nth-child(2)')
+      .contains('Another one below')
+  })
+
+  it('Has saved the activation state', () => {
+    cy.wait(400)
+    cy.get('#card-1')
+      .should('have.class', 'ancestor')
+
+    cy.get(':nth-child(3) > .group')
+      .should('have.class', 'has-active')
+      .should('not.have.class', 'active-descendant')
+
+    cy.get(':nth-child(3) > .group :nth-child(2)')
+      .should('have.class', 'active')
   })
 })
