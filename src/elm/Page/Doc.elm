@@ -688,16 +688,18 @@ update msg ({ workingTree } as model) =
 
                 LocalStoreLoaded dataIn ->
                     let
-                        newViewstate =
+                        ( newViewState, maybeActivateCmd ) =
                             case Json.decodeValue (Json.field "last-actives" (Json.list Json.string)) dataIn of
                                 Ok (lastActive :: activePast) ->
-                                    { vs | active = lastActive, activePast = activePast }
+                                    ( { vs | active = lastActive, activePast = activePast }
+                                    , activate lastActive True
+                                    )
 
                                 Ok [] ->
-                                    vs
+                                    ( vs, identity )
 
                                 Err _ ->
-                                    vs
+                                    ( vs, identity )
 
                         newTheme =
                             case Json.decodeValue Theme.decoder dataIn of
@@ -707,7 +709,8 @@ update msg ({ workingTree } as model) =
                                 Err _ ->
                                     Default
                     in
-                    ( { model | viewState = newViewstate, theme = newTheme }, Cmd.none )
+                    ( { model | viewState = newViewState, theme = newTheme }, Cmd.none )
+                        |> maybeActivateCmd
 
                 MetadataSynced json ->
                     case Json.decodeValue Metadata.decoder json of
