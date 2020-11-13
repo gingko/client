@@ -3,21 +3,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Catamaran:wght@200&display=swap');
 
 @font-face {
-  font-family: 'Bitter';
-  src: url('./fonts/Bitter/Bitter-Regular.ttf');
-}
-@font-face {
-  font-family: 'Bitter';
-  src: url('./fonts/Bitter/Bitter-Bold.ttf');
-  font-weight: bold;
-}
-@font-face {
-  font-family: 'Bitter';
-  src: url('./fonts/Bitter/Bitter-Italic.ttf');
-  font-style: italic;
-}
-
-@font-face {
   font-family: 'Eczar';
   src: url('./fonts/eczar/Eczar-Regular.ttf');
 }
@@ -96,39 +81,6 @@
   src: url('./fonts/OpenDyslexic/OpenDyslexic-BoldItalic.otf');
   font-weight: bold;
   font-style: italic;
-}
-
-
-@font-face {
-  font-family: 'Open Sans';
-  src: url('./fonts/Open_Sans/OpenSans-Regular.ttf');
-}
-@font-face {
-  font-family: 'Open Sans';
-  src: url('./fonts/Open_Sans/OpenSans-Bold.ttf');
-  font-weight: bold;
-}
-@font-face {
-  font-family: 'Open Sans';
-  src: url('./fonts/Open_Sans/OpenSans-Italic.ttf');
-  font-style: italic;
-}
-@font-face {
-  font-family: 'Open Sans';
-  src: url('./fonts/Open_Sans/OpenSans-BoldItalic.ttf');
-  font-weight: bold;
-  font-style: italic;
-}
-
-
-@font-face {
-  font-family: 'Roboto Mono';
-  src: url('./fonts/Roboto_Mono/RobotoMono-Regular.ttf');
-}
-@font-face {
-  font-family: 'Roboto Mono';
-  src: url('./fonts/Roboto_Mono/RobotoMono-Bold.ttf');
-  font-weight: bold;
 }
 
 html {
@@ -715,7 +667,7 @@ li.sidebar-document-item.active::after {
   border: none;
   border-radius: inherit;
   background: transparent;
-  font-family: 'Droid Sans Mono', monospace;
+  font-family: 'Roboto Mono', monospace;
   font-size: 24px;
   line-height: 1.25;
   color: hsl(27,28%,35%);
@@ -957,7 +909,7 @@ p {
 }
 
 pre, code {
-  font-family: 'Droid Sans Mono', monospace;
+  font-family: 'Roboto Mono', monospace;
   color: #333333;
 }
 
@@ -1036,7 +988,7 @@ pre {
 }
 
 .group.has-active .card.editing {
-  padding: 15px 0px 5px 0px; 
+  padding: 15px 0px 5px 0px;
   border: none;
   border-radius: inherit;
   background: var(--edit-bg, url('./handmadepaper.png'));
@@ -1062,7 +1014,7 @@ pre {
   font-size: 16px;
   line-height: 23px;
   padding: 5px 15px;
-  font-family: 'Droid Sans Mono', monospace;
+  font-family: 'Roboto Mono', monospace;
 }
 
 

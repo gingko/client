@@ -45,11 +45,11 @@ default =
     Model
         { heading = "Bitter"
         , content = "Open Sans"
-        , monospace = "Droid Sans Mono"
+        , monospace = "Roboto Mono"
         , builtin =
             [ "Bitter"
             , "Open Sans"
-            , "Droid Sans Mono"
+            , "Roboto Mono"
             , "Merriweather"
             , "Libre Baskerville"
             , "Eczar"
