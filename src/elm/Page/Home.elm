@@ -4,8 +4,8 @@ import Doc.List as DocList
 import Doc.Metadata as Metadata exposing (Metadata)
 import File exposing (File)
 import File.Select as Select
-import Html exposing (Html, a, br, button, div, h1, h4, iframe, input, li, p, span, text, ul)
-import Html.Attributes exposing (checked, class, classList, height, href, id, src, target, type_, width)
+import Html exposing (Html, a, br, button, div, h1, h3, h4, iframe, input, li, p, span, text, ul)
+import Html.Attributes exposing (checked, class, classList, disabled, height, href, id, src, style, target, type_, width)
 import Html.Events exposing (on, onCheck, onClick)
 import Import.Bulk
 import Import.Single
@@ -227,7 +227,10 @@ updateImportModal msg ({ importModal, user } as model) =
                 Ok dataList ->
                     let
                         listWithSelectState =
-                            dataList |> List.map (\t -> { selected = False, tree = t })
+                            dataList
+                                |> List.sortBy (\( _, mdata, _ ) -> Metadata.getUpdatedAt mdata |> Time.posixToMillis)
+                                |> List.reverse
+                                |> List.map (\t -> { selected = False, tree = t })
                     in
                     ( { model | importModal = ImportSelecting listWithSelectState }, Cmd.none )
 
@@ -330,12 +333,12 @@ view { user, importModal, languageMenu, currentTime, documents } =
             , button [ onClick LogoutRequested, class "logout" ] [ text "Logout" ]
             ]
          ]
-            ++ viewImportModal importModal
+            ++ viewImportModal language importModal
         )
 
 
-viewImportModal : ImportModalState -> List (Html Msg)
-viewImportModal modalState =
+viewImportModal : Language -> ImportModalState -> List (Html Msg)
+viewImportModal lang modalState =
     case modalState of
         Closed ->
             [ text "" ]
@@ -401,9 +404,16 @@ viewImportModal modalState =
                         |> modalWrapper
 
         ImportSelecting importSelection ->
+            let
+                isDisabled =
+                    importSelection
+                        |> List.any .selected
+                        |> not
+            in
             [ h1 [] [ text "Import From Gingko v1" ]
-            , div [] [ ul [] (List.map viewSelectionEntry importSelection) ]
-            , button [ onClick (ImportModal SelectionDone) ] [ text "Import Selected Trees" ]
+            , div [ style "display" "flex", style "margin-top" "10px" ] [ span [ style "flex" "auto" ] [ text "Name" ], span [] [ text "Last Modified" ] ]
+            , div [ id "import-selection-list" ] [ ul [] (List.map (viewSelectionEntry lang) importSelection) ]
+            , button [ onClick (ImportModal SelectionDone), disabled isDisabled ] [ text "Import Selected Trees" ]
             ]
                 |> modalWrapper
 
@@ -431,13 +441,19 @@ modalWrapper body =
     ]
 
 
-viewSelectionEntry : { selected : Bool, tree : ( String, Metadata, Tree ) } -> Html Msg
-viewSelectionEntry { selected, tree } =
+viewSelectionEntry : Language -> { selected : Bool, tree : ( String, Metadata, Tree ) } -> Html Msg
+viewSelectionEntry lang { selected, tree } =
     let
         ( id, mdata, _ ) =
             tree
     in
-    li [] [ input [ type_ "checkbox", checked selected, onCheck (ImportModal << TreeSelected id) ] [], text (Metadata.getDocName mdata |> Maybe.withDefault "Untitled") ]
+    li []
+        [ span []
+            [ input [ type_ "checkbox", checked selected, onCheck (ImportModal << TreeSelected id) ] []
+            , text (Metadata.getDocName mdata |> Maybe.withDefault "Untitled")
+            ]
+        , span [] [ text (Metadata.getUpdatedAt mdata |> Translation.dateFormat lang) ]
+        ]
 
 
 

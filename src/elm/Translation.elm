@@ -1,9 +1,14 @@
-module Translation exposing (Language(..), TranslationId(..), activeLanguages, langFromString, langToString, languageDecoder, languageName, timeDistInWords, tr)
+module Translation exposing (Language(..), TranslationId(..), activeLanguages, dateFormat, langFromString, langToString, languageDecoder, languageName, timeDistInWords, tr)
 
 import Json.Decode as Json exposing (..)
 import Time
 import Time.Distance as TimeDistance
 import Time.Distance.I18n as I18n
+import Time.Format exposing (format)
+import Time.Format.Config.Config_en_us
+import Time.Format.Config.Config_es_es
+import Time.Format.Config.Config_fr_fr
+import Time.Format.Config.Config_sv_se
 
 
 type TranslationId
@@ -619,6 +624,29 @@ timeDistInWords lang t1 t2 =
 
         Sv ->
             TimeDistance.inWordsWithConfig { withAffix = True } I18n.en t1 t2
+
+
+dateFormat : Language -> Time.Posix -> String
+dateFormat lang time =
+    let
+        formatString =
+            "%B%e, %Y"
+    in
+    case lang of
+        En ->
+            format Time.Format.Config.Config_en_us.config formatString Time.utc time
+
+        Zh ->
+            format Time.Format.Config.Config_en_us.config formatString Time.utc time
+
+        Es ->
+            format Time.Format.Config.Config_es_es.config formatString Time.utc time
+
+        Fr ->
+            format Time.Format.Config.Config_fr_fr.config formatString Time.utc time
+
+        Sv ->
+            format Time.Format.Config.Config_sv_se.config formatString Time.utc time
 
 
 languageDecoder : Decoder Language

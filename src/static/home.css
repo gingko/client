@@ -147,7 +147,7 @@ a.template-item {
   background-position-y: center;
 }
 
-.template-thumbnail.import {
+.template-thumbnail.import, .template-thumbnail.import-bulk {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -214,4 +214,27 @@ a.template-item {
 }
 .doc-buttons *:hover path {
   background-color: white;
+}
+
+#import-selection-list {
+  height: 80%;
+  overflow-y: scroll;
+  box-shadow: inset 2px 2px 3px #e5e1e1;
+  border: 1px solid #c6c6c6;
+  margin-bottom: 10px;
+}
+#import-selection-list ul {
+  list-style: none;
+  padding: 10px;
+  margin: 0;
+  line-height: 1.4;
+}
+#import-selection-list ul input[type="checkbox"] {
+  margin-right: 10px;
+}
+#import-selection-list li {
+  display: flex;
+}
+#import-selection-list li span:first-child {
+  flex: auto;
 }
