@@ -133,8 +133,8 @@ viewDocumentItem msgs lang currTime metadata =
             ]
     in
     div
-        [ class "document-item", onClick (msgs.openDoc docId) ]
-        [ div [ class "doc-title" ] [ text (docName_ |> Maybe.withDefault "Untitled") ]
+        [ class "document-item", onClick <| msgs.openDoc docId ]
+        [ a [ href <| "/" ++ docId, class "doc-title" ] [ text (docName_ |> Maybe.withDefault "Untitled") ]
         , div [ class "doc-opened", title titleString ] [ text dateString ]
         , div [ class "doc-buttons" ] buttons
         ]

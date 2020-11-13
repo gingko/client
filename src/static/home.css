@@ -84,6 +84,7 @@ label {
   position: absolute;
   left: 20px;
   bottom: 10px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   background: #588094;
@@ -185,7 +186,7 @@ a.template-item {
     justify-content: space-between;
     align-items: center;
     background: hsl(0, 1%, 90%);
-    padding: 10px;
+    padding: 0 10px;
     margin-bottom: 4px;
     cursor: pointer;
     box-shadow: 1px 0px 2px hsla(0,0%,0%,0.4);
@@ -203,10 +204,13 @@ a.template-item {
 
 .doc-title {
   flex: auto;
+  color: black;
+  text-decoration: none;
 }
 
 .doc-title, .doc-opened {
   margin-right: 10px;
+  padding: 10px 0;
 }
 
 .doc-buttons * {
