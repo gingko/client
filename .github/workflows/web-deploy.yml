@@ -64,7 +64,9 @@ jobs:
         run: pm2 stop GingkoTest
 
       - name: Copy Build Files
+        if: "!contains(github.event.head_commit.message, 'ci skip deploy')"
         run: cp -r $GITHUB_WORKSPACE/client/web/* $HOME/production/client/web
 
-      - name: Restart Server
+      - name: Restart Production Server
+        if: "!contains(github.event.head_commit.message, 'ci skip deploy')"
         run: pm2 restart GingkoProduction

@@ -15,3 +15,5 @@ npm-debug.log
 *.env
 config.js
 .idea
+cypress/screenshots
+cypress/videos
