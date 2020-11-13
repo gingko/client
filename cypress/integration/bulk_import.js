@@ -74,7 +74,7 @@ describe('User Signup Flow', () => {
     cy.get(':nth-child(3) > .group')
       .then((el) => {
         expect(el.children('.card').toArray().map(c => c.innerText))
-          .to.equal(["First Child", "Second Child", "Third Child"])
+          .to.eql(["First Child", "Second Child", "Third Child"])
       })
   })
 })

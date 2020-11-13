@@ -122,6 +122,7 @@ getChildren parentId_ cards =
     cards
         |> Dict.filter (\_ c -> c.parentId == parentId_)
         |> Dict.toList
+        |> List.sortBy (\( _, c ) -> c.position)
         |> List.map mapFn
         |> Children
 
