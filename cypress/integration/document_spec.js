@@ -102,4 +102,20 @@ describe('Document Editing', () => {
     cy.get(':nth-child(3) > .group :nth-child(2)')
       .should('have.class', 'active')
   })
+
+  it('Filters cards on search', () => {
+    cy.get('#search-field')
+      .click()
+      .type('another')
+
+    cy.get('#app-root')
+      .should('not.contain', 'Hello World :)')
+  })
+
+  it.skip('Clears the search terms on "Esc"', () => {
+    cy.get('#search-input')
+      .type('{esc}')
+
+    cy.contains('Hello World :)')
+  })
 })
