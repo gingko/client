@@ -112,9 +112,9 @@ describe('Document Editing', () => {
       .should('not.contain', 'Hello World :)')
   })
 
-  it.skip('Clears the search terms on "Esc"', () => {
+  it('Removes filters on clearing search', () => {
     cy.get('#search-input')
-      .type('{esc}')
+      .clear()
 
     cy.contains('Hello World :)')
   })
