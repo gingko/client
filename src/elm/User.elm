@@ -1,4 +1,4 @@
-port module User exposing (User, db, decode, language, loggedIn, loginChanges, logout, name, navKey, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setLanguage, setSeed, setShortcutTrayOpen, settingsChange, shortcutTrayOpen, storeLogin, storeSignup)
+port module User exposing (User, db, decode, fileMenuOpen, language, loggedIn, loginChanges, logout, name, navKey, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, settingsChange, shortcutTrayOpen, storeLogin, storeSignup)
 
 import Browser.Navigation as Nav
 import Http
@@ -16,21 +16,29 @@ import Utils exposing (hexEncode)
 
 
 type User
-    = LoggedIn Nav.Key UserData
-    | Guest Nav.Key GuestData
+    = LoggedIn SessionData UserData
+    | Guest SessionData GuestData
+
+
+type alias SessionData =
+    -- Not persisted
+    { navKey : Nav.Key
+    , seed : Random.Seed
+    , fileMenuOpen : Bool
+    }
 
 
 type alias UserData =
+    -- Persisted in userdb settings
     { email : String
-    , seed : Random.Seed
     , language : Translation.Language
     , shortcutTrayOpen : Bool
     }
 
 
 type alias GuestData =
-    { seed : Random.Seed
-    , language : Translation.Language
+    -- Persisted in localStorage
+    { language : Translation.Language
     }
 
 
@@ -38,14 +46,19 @@ type alias GuestData =
 -- GETTERS
 
 
+getFromSession : (SessionData -> a) -> User -> a
+getFromSession getter user =
+    case user of
+        LoggedIn session _ ->
+            getter session
+
+        Guest session _ ->
+            getter session
+
+
 navKey : User -> Nav.Key
 navKey user =
-    case user of
-        LoggedIn key _ ->
-            key
-
-        Guest key _ ->
-            key
+    getFromSession .navKey user
 
 
 name : User -> Maybe String
@@ -60,12 +73,7 @@ name user =
 
 seed : User -> Random.Seed
 seed user =
-    case user of
-        LoggedIn _ data ->
-            data.seed
-
-        Guest _ data ->
-            data.seed
+    getFromSession .seed user
 
 
 db : User -> Maybe String
@@ -76,6 +84,11 @@ db user =
 
         Guest _ _ ->
             Nothing
+
+
+fileMenuOpen : User -> Bool
+fileMenuOpen user =
+    getFromSession .fileMenuOpen user
 
 
 language : User -> Language
@@ -112,6 +125,26 @@ loggedIn user =
 -- UPDATE
 
 
+updateSession : (SessionData -> SessionData) -> User -> User
+updateSession updateFn user =
+    case user of
+        LoggedIn session data ->
+            LoggedIn (updateFn session) data
+
+        Guest session data ->
+            Guest (updateFn session) data
+
+
+setSeed : Random.Seed -> User -> User
+setSeed newSeed user =
+    updateSession (\s -> { s | seed = newSeed }) user
+
+
+setFileOpen : Bool -> User -> User
+setFileOpen isOpen user =
+    updateSession (\s -> { s | fileMenuOpen = isOpen }) user
+
+
 setLanguage : Language -> User -> User
 setLanguage lang user =
     case user of
@@ -120,16 +153,6 @@ setLanguage lang user =
 
         Guest key data ->
             Guest key { data | language = lang }
-
-
-setSeed : Random.Seed -> User -> User
-setSeed newSeed user =
-    case user of
-        LoggedIn key data ->
-            LoggedIn key { data | seed = newSeed }
-
-        Guest key data ->
-            Guest key { data | seed = newSeed }
 
 
 setShortcutTrayOpen : Bool -> User -> User
@@ -163,7 +186,7 @@ decode key json =
                         |> List.foldl (+) 12345
                         |> Random.initialSeed
             in
-            Guest key (GuestData errToSeed En)
+            Guest (SessionData key errToSeed False) (GuestData En)
 
 
 decoder : Nav.Key -> Dec.Decoder User
@@ -173,20 +196,18 @@ decoder key =
 
 decodeLoggedIn : Nav.Key -> Dec.Decoder User
 decodeLoggedIn key =
-    Dec.succeed UserData
+    Dec.succeed (\email s lang trayOpen -> LoggedIn (SessionData key s True) (UserData email lang trayOpen))
         |> required "email" Dec.string
         |> required "seed" (Dec.int |> Dec.map Random.initialSeed)
         |> optional "language" (Dec.string |> Dec.map langFromString) En
         |> optional "shortcutTrayOpen" Dec.bool True
-        |> Dec.map (LoggedIn key)
 
 
 decodeGuest : Nav.Key -> Dec.Decoder User
 decodeGuest key =
-    Dec.map2 GuestData
+    Dec.map2 (\s l -> Guest (SessionData key s False) (GuestData l))
         (Dec.field "seed" (Dec.int |> Dec.map Random.initialSeed))
         (Dec.field "language" (Dec.string |> Dec.map langFromString))
-        |> Dec.map (Guest key)
 
 
 responseDecoder : User -> Dec.Decoder User
@@ -194,8 +215,8 @@ responseDecoder user =
     let
         builder email lang trayOpen =
             case user of
-                Guest key data ->
-                    LoggedIn key (UserData email data.seed lang trayOpen)
+                Guest session data ->
+                    LoggedIn session (UserData email lang trayOpen)
 
                 LoggedIn _ _ ->
                     user

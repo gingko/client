@@ -124,7 +124,12 @@ defaultModel isNew session docId =
     , textCursorInfo = { selected = False, position = End, text = ( "", "" ) }
     , isMac = False
     , titleField = Nothing
-    , sidebarState = SidebarClosed
+    , sidebarState =
+        if User.fileMenuOpen session then
+            File
+
+        else
+            SidebarClosed
     , exportPreview = False
     , exportSettings = ( ExportEverything, DOCX )
     , accountMenuOpen = False
@@ -545,7 +550,16 @@ update msg ({ workingTree } as model) =
             ( { model | accountMenuOpen = isOpen }, Cmd.none )
 
         SidebarStateChanged newSidebarState ->
-            ( { model | sidebarState = newSidebarState }, Cmd.none )
+            let
+                newSessionData =
+                    case newSidebarState of
+                        File ->
+                            User.setFileOpen True model.user
+
+                        _ ->
+                            User.setFileOpen False model.user
+            in
+            ( { model | user = newSessionData, sidebarState = newSidebarState }, Cmd.none )
 
         ExportPreviewToggled previewEnabled ->
             ( { model | exportPreview = previewEnabled }, Cmd.none )
