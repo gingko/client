@@ -501,6 +501,7 @@ body {
 .sidebar-document-list {
   list-style: none;
   padding: 10px 0 10px 10px;
+  margin-top: 0px;
   background: hsl(200deg 22% 84%);
 }
 li.sidebar-document-item {

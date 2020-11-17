@@ -5,7 +5,7 @@ import Diff exposing (..)
 import Doc.Data as Data
 import Doc.Data.Conflict as Conflict exposing (Conflict, Op(..), Selection(..), opString)
 import Doc.List as DocList
-import Doc.Metadata exposing (Metadata)
+import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Html exposing (Html, a, br, button, del, div, fieldset, h1, h3, h4, h5, hr, iframe, img, input, ins, label, li, span, text, ul)
@@ -165,6 +165,7 @@ viewTopRightButtons msgs isOpen user =
 
 type alias SidebarMsgs msg =
     { sidebarStateChanged : SidebarState -> msg
+    , fileSearchChanged : String -> msg
     , exportPreviewToggled : Bool -> msg
     , exportSelectionChanged : ExportSelection -> msg
     , exportFormatChanged : ExportFormat -> msg
@@ -174,8 +175,8 @@ type alias SidebarMsgs msg =
     }
 
 
-viewSidebar : SidebarMsgs msg -> Metadata -> DocList.Model -> ( ExportSelection, ExportFormat ) -> SidebarState -> List (Html msg)
-viewSidebar msgs currentDocument docList ( exportSelection, exportFormat ) sidebarState =
+viewSidebar : SidebarMsgs msg -> Metadata -> String -> DocList.Model -> ( ExportSelection, ExportFormat ) -> SidebarState -> List (Html msg)
+viewSidebar msgs currentDocument fileFilter docList ( exportSelection, exportFormat ) sidebarState =
     let
         isOpen =
             not (sidebarState == SidebarClosed)
@@ -193,11 +194,16 @@ viewSidebar msgs currentDocument docList ( exportSelection, exportFormat ) sideb
         sidebarMenu =
             case sidebarState of
                 File ->
+                    let
+                        filteredList =
+                            DocList.filter fileFilter docList
+                    in
                     div [ id "sidebar-menu" ]
                         [ h3 [] [ text "File" ]
                         , a [ href (Route.toString Route.DocNew), class "sidebar-item" ] [ text "New" ]
                         , hr [ style "width" "80%" ] []
-                        , DocList.viewSmall currentDocument docList
+                        , input [ type_ "search", onInput msgs.fileSearchChanged ] []
+                        , DocList.viewSmall currentDocument filteredList
                         ]
 
                 Export ->

@@ -1,4 +1,4 @@
-port module Doc.List exposing (Model, current, fetch, init, subscribe, viewLarge, viewSmall)
+port module Doc.List exposing (Model, current, fetch, filter, init, subscribe, viewLarge, viewSmall)
 
 import Date
 import Doc.Metadata as Metadata exposing (Metadata)
@@ -38,6 +38,25 @@ fetch session =
 
         Nothing ->
             Cmd.none
+
+
+filter : String -> Model -> Model
+filter term model =
+    case model of
+        Success docList ->
+            docList
+                |> List.filter
+                    (\m ->
+                        m
+                            |> Metadata.getDocName
+                            |> Maybe.withDefault "Untitled"
+                            |> String.toLower
+                            |> String.contains (term |> String.toLower)
+                    )
+                |> Success
+
+        _ ->
+            model
 
 
 current : Metadata -> Model -> Maybe Metadata

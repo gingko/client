@@ -67,6 +67,7 @@ type alias Model =
     , debouncerStateCommit : Debouncer () ()
     , titleField : Maybe String
     , sidebarState : SidebarState
+    , fileSearchField : String
     , exportPreview : Bool
     , exportSettings : ( ExportSelection, ExportFormat )
     , accountMenuOpen : Bool
@@ -130,6 +131,7 @@ defaultModel isNew session docId =
 
         else
             SidebarClosed
+    , fileSearchField = ""
     , exportPreview = False
     , exportSettings = ( ExportEverything, DOCX )
     , accountMenuOpen = False
@@ -220,6 +222,7 @@ type Msg
     | HelpClicked
     | ToggledAccountMenu Bool
     | SidebarStateChanged SidebarState
+    | FileSearchChanged String
     | ExportPreviewToggled Bool
     | ExportSelectionChanged ExportSelection
     | ExportFormatChanged ExportFormat
@@ -560,6 +563,9 @@ update msg ({ workingTree } as model) =
                             User.setFileOpen False model.user
             in
             ( { model | user = newSessionData, sidebarState = newSidebarState }, Cmd.none )
+
+        FileSearchChanged term ->
+            ( { model | fileSearchField = term }, Cmd.none )
 
         ExportPreviewToggled previewEnabled ->
             ( { model | exportPreview = previewEnabled }, Cmd.none )
@@ -2263,6 +2269,7 @@ pre, code, .group.has-active .card textarea {
                      ]
                         ++ UI.viewSidebar
                             { sidebarStateChanged = SidebarStateChanged
+                            , fileSearchChanged = FileSearchChanged
                             , exportPreviewToggled = ExportPreviewToggled
                             , exportSelectionChanged = ExportSelectionChanged
                             , exportFormatChanged = ExportFormatChanged
@@ -2271,6 +2278,7 @@ pre, code, .group.has-active .card textarea {
                             , themeChanged = ThemeChanged
                             }
                             model.metadata
+                            model.fileSearchField
                             model.documents
                             model.exportSettings
                             model.sidebarState
