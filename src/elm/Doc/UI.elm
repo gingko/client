@@ -281,11 +281,22 @@ viewSidebar msgs currentDocument docList ( exportSelection, exportFormat ) sideb
     ]
 
 
-viewSidebarStatic : Html msg
-viewSidebarStatic =
-    div [ id "sidebar" ]
-        [ div [ classList [ ( "sidebar-button", True ) ] ] []
+viewSidebarStatic : Bool -> List (Html msg)
+viewSidebarStatic sidebarOpen =
+    [ div [ id "sidebar", classList [ ( "open", sidebarOpen ) ] ]
+        [ div [ classList [ ( "sidebar-button", True ) ] ] [ text " " ]
         ]
+    , if sidebarOpen then
+        div [ id "sidebar-menu" ]
+            [ h3 [] [ text "File" ]
+            , a [ href (Route.toString Route.DocNew), class "sidebar-item" ] [ text "New" ]
+            , hr [ style "width" "80%" ] []
+            , div [ style "width" "150px" ] []
+            ]
+
+      else
+        text ""
+    ]
 
 
 

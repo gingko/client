@@ -2177,13 +2177,18 @@ toggleVideoModal shouldOpen ( model, prevCmd ) =
 
 view : Model -> Html Msg
 view model =
+    let
+        sidebarOpen =
+            User.fileMenuOpen model.user
+    in
     if model.loading then
         div [ id "app-root", class "loading" ]
-            [ UI.viewHomeLink False
-            , div [ id "document-header" ] []
-            , div [ id "loading-overlay" ] []
-            , UI.viewSidebarStatic
-            ]
+            ([ UI.viewHomeLink False
+             , div [ id "document-header" ] []
+             , div [ id "loading-overlay" ] []
+             ]
+                ++ UI.viewSidebarStatic sidebarOpen
+            )
 
     else
         viewLoaded model
