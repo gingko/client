@@ -1,6 +1,7 @@
 module Route exposing (Route(..), fromUrl, pushUrl, replaceUrl, toString)
 
 import Browser.Navigation as Nav
+import Import.Template as Template exposing (Template)
 import Url exposing (Url)
 import Url.Builder as Builder
 import Url.Parser as Parser exposing ((</>), (<?>), Parser, oneOf, s, string)
@@ -16,6 +17,7 @@ type Route
     | DocNew
     | DocUntitled String
     | Doc String String
+    | Import Template
 
 
 parser : Parser (Route -> a) a
@@ -26,6 +28,7 @@ parser =
         , Parser.map Login (s "login")
         , Parser.map ForgotPassword (s "forgot-password" <?> Query.string "email")
         , Parser.map ResetPassword (s "reset-password" </> string)
+        , Parser.map Import (s "import" </> Parser.custom "IMPORT" Template.fromString)
         , Parser.map DocNew (s "new")
         , Parser.map DocUntitled string
         , Parser.map Doc (string </> string)
@@ -68,6 +71,9 @@ toString route =
 
         Doc dbName docName ->
             "/" ++ dbName ++ "/" ++ docName
+
+        Import template ->
+            "/import/" ++ Template.toString template
 
 
 replaceUrl : Nav.Key -> Route -> Cmd msg

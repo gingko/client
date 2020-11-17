@@ -8,7 +8,9 @@ import Html exposing (Html, a, br, button, div, h1, h3, h4, iframe, input, li, p
 import Html.Attributes exposing (checked, class, classList, disabled, height, href, id, src, style, target, type_, width)
 import Html.Events exposing (on, onCheck, onClick)
 import Import.Bulk
+import Import.Incoming
 import Import.Single
+import Import.Template exposing (Template(..))
 import Json.Decode as Dec
 import Octicons as Icon
 import Outgoing exposing (Msg(..), send)
@@ -291,17 +293,23 @@ view { user, importModal, languageMenu, currentTime, documents } =
                 [ div [ classList [ ( "template-thumbnail", True ), ( "new", True ) ] ] []
                 , div [ class "template-title" ] [ text <| tr language HomeBlank ]
                 ]
-            , div [ id "template-import", class "template-item", onClick <| ImportModal (ModalToggled True) ]
-                [ div [ classList [ ( "template-thumbnail", True ), ( "import-bulk", True ) ] ] [ Icon.file (Icon.defaultOptions |> Icon.size 48) ]
+            , div [ id "template-import-bulk", class "template-item", onClick <| ImportModal (ModalToggled True) ]
+                [ div [ classList [ ( "template-thumbnail", True ) ] ] [ Icon.fileZip (Icon.defaultOptions |> Icon.size 48) ]
                 , div [ class "template-title" ] [ text <| tr language HomeImportLegacy ]
                 , div [ class "template-description" ]
                     [ text <| tr language HomeLegacyFrom ]
                 ]
             , div [ id "template-import", class "template-item", onClick ImportJSONRequested ]
-                [ div [ classList [ ( "template-thumbnail", True ), ( "import", True ) ] ] [ Icon.file (Icon.defaultOptions |> Icon.size 48) ]
+                [ div [ classList [ ( "template-thumbnail", True ) ] ] [ Icon.fileCode (Icon.defaultOptions |> Icon.size 48) ]
                 , div [ class "template-title" ] [ text "Import Single JSON" ]
                 , div [ class "template-description" ]
                     [ text "Import one tree from Legacy or Desktop Gingko." ]
+                ]
+            , a [ id "template-academic", class "template-item", href <| Route.toString (Route.Import AcademicPaper) ]
+                [ div [ classList [ ( "template-thumbnail", True ) ] ] [ Icon.lightBulb (Icon.defaultOptions |> Icon.size 48) ]
+                , div [ class "template-title" ] [ text "Academic Paper" ]
+                , div [ class "template-description" ]
+                    [ text "Academic Paper" ]
                 ]
             ]
          , div [ id "documents-block" ]
@@ -460,16 +468,13 @@ viewSelectionEntry lang { selected, tree } =
 -- SUBSCRIPTIONS
 
 
-port importComplete : (Maybe String -> msg) -> Sub msg
-
-
 port iframeLoginStateChange : (Bool -> msg) -> Sub msg
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ importComplete
+        [ Import.Incoming.importComplete
             (\docId_ ->
                 case docId_ of
                     Just docId ->

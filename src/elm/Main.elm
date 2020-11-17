@@ -3,11 +3,13 @@ module Main exposing (main)
 import Browser exposing (Document)
 import Browser.Navigation as Nav
 import Html
+import Import.Template as Template
 import Json.Decode exposing (Decoder, Value)
 import Page.Doc
 import Page.DocNew
 import Page.ForgotPassword
 import Page.Home
+import Page.Import
 import Page.Login
 import Page.NotFound
 import Page.ResetPassword
@@ -29,6 +31,7 @@ type Model
     | ForgotPassword Page.ForgotPassword.Model
     | ResetPassword Page.ResetPassword.Model
     | Home Page.Home.Model
+    | Import Page.Import.Model
     | DocNew User
     | Doc Page.Doc.Model
 
@@ -99,6 +102,10 @@ changeRouteTo maybeRoute model =
             Just (Route.Doc dbName _) ->
                 Page.Doc.init user dbName False |> updateWith Doc GotDocMsg
 
+            Just (Route.Import template) ->
+                Page.Import.init user template
+                    |> updateWith Import GotImportMsg
+
             Nothing ->
                 ( NotFound user, Cmd.none )
 
@@ -155,6 +162,9 @@ toUser page =
         Home home ->
             Page.Home.toUser home
 
+        Import user ->
+            user
+
         DocNew user ->
             user
 
@@ -174,6 +184,7 @@ type Msg
     | GotForgotPasswordMsg Page.ForgotPassword.Msg
     | GotResetPasswordMsg Page.ResetPassword.Msg
     | GotHomeMsg Page.Home.Msg
+    | GotImportMsg Page.Import.Msg
     | GotDocNewMsg Page.DocNew.Msg
     | GotDocMsg Page.Doc.Msg
 
@@ -219,6 +230,10 @@ update msg model =
         ( GotHomeMsg homeMsg, Home homeModel ) ->
             Page.Home.update homeMsg homeModel
                 |> updateWith Home GotHomeMsg
+
+        ( GotImportMsg homeMsg, Import homeModel ) ->
+            Page.Import.update homeMsg homeModel
+                |> updateWith Import GotImportMsg
 
         ( GotDocNewMsg docNewMsg, DocNew docNewModel ) ->
             Page.DocNew.update docNewMsg docNewModel
@@ -272,6 +287,9 @@ view model =
         Home home ->
             { title = "Gingko - Home", body = [ Html.map GotHomeMsg (Page.Home.view home) ] }
 
+        Import importModel ->
+            { title = "Importing...", body = [ Html.div [] [ Html.text "Importing..." ] ] }
+
         DocNew _ ->
             { title = "Gingko - New", body = [ Html.div [] [ Html.text "LOADING..." ] ] }
 
@@ -306,6 +324,9 @@ subscriptions model =
 
         Home pageModel ->
             Sub.map GotHomeMsg (Page.Home.subscriptions pageModel)
+
+        Import pageModel ->
+            Sub.map GotImportMsg (Page.Import.subscriptions pageModel)
 
         DocNew _ ->
             Sub.none

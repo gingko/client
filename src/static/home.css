@@ -148,7 +148,7 @@ a.template-item {
   background-position-y: center;
 }
 
-.template-thumbnail.import, .template-thumbnail.import-bulk {
+.template-thumbnail {
   display: flex;
   justify-content: center;
   align-items: center;

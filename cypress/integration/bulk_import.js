@@ -16,7 +16,7 @@ describe('User Signup Flow', () => {
 
   it('Toggles the Import Modal', () => {
     cy.visit(config.TEST_SERVER)
-    cy.get('.import-bulk')
+    cy.get('#template-import-bulk')
       .click()
       .then(()=> {
         cy.contains('Import From Gingko v1')
