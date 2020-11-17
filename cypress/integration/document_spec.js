@@ -84,6 +84,8 @@ describe('Document Editing', () => {
     cy.should(() => {
       expect(confirmCalled).to.be.true
     })
+    cy.get('#app-root')
+      .should('not.contain', 'to cancel xxx')
   })
 
   it('Can rename the document', function () {
