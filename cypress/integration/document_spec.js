@@ -1,4 +1,5 @@
 const config = require("../../config.js");
+const { tr } = require("../../src/shared/translation.js");
 
 Cypress.LocalStorage.clear = function (keys, ls, rs) {
   return;
@@ -69,6 +70,20 @@ describe('Document Editing', () => {
       .contains('Another one below')
 
     cy.contains('Synced')
+  })
+
+  it('Cancels changes correctly after confirmation', () => {
+    let confirmCalled
+    cy.on('window:confirm', (str) => {
+      expect(str).to.eq(tr.areYouSureCancel["en"])
+      confirmCalled = true
+    })
+    cy.shortcut('{enter}')
+    cy.writeInCard(' changes to cancel xxx')
+    cy.shortcut('{esc}')
+    cy.should(() => {
+      expect(confirmCalled).to.be.true
+    })
   })
 
   it('Can rename the document', function () {

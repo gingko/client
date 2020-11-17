@@ -353,7 +353,7 @@ export const tr =
       }
 
   , areYouSureCancel :
-      { en : "Are you sure you want to cancel your changes?"
+      { en : "Are you sure you want to undo your changes?"
       , zh : "您确定要取消更改吗？"
       , es : "¿Seguro que quieres cancelar tus cambios?"
       , fr : ""

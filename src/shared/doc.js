@@ -20,7 +20,7 @@ import { Elm } from "../elm/Main";
 
 let lastActivesScrolled = null;
 let lastColumnScrolled = null;
-let lang;
+let lang = "en";
 let helpVisible;
 let helpWidgetLauncher;
 
@@ -61,6 +61,7 @@ async function initElmAndPorts() {
 
   settings.email = email;
   settings.seed = Date.now();
+  lang = settings.language || "en";
   console.log("loaded settings" ,settings)
 
   gingko = Elm.Main.init({
@@ -419,6 +420,7 @@ const fromElm = (msg, elmData) => {
     },
 
     SetLanguage: () => {
+      lang = elmData;
       userStore.set("language", elmData);
     },
 
