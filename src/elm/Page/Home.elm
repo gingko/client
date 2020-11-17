@@ -64,7 +64,7 @@ init user =
       , importModal = Closed
       , loading = True
       , currentTime = Time.millisToPosix 0
-      , user = user
+      , user = User.setFileOpen False user
       }
     , Cmd.batch
         [ Task.perform Tick Time.now
