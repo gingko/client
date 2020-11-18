@@ -297,7 +297,6 @@ viewSidebarStatic sidebarOpen =
             [ h3 [] [ text "File" ]
             , a [ href (Route.toString Route.DocNew), class "sidebar-item" ] [ text "New" ]
             , hr [ style "width" "80%" ] []
-            , div [ style "width" "150px" ] []
             ]
 
       else

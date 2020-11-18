@@ -476,6 +476,7 @@ body {
 #sidebar-menu {
   grid-area: sidebar-menu;
   background: white;
+  width: 200px;
   border-right: 1px solid hsl(212deg 5% 58%);
   box-shadow: 0 0 4px #00000085;
   display: flex;
