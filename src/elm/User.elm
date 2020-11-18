@@ -196,7 +196,7 @@ decoder key =
 
 decodeLoggedIn : Nav.Key -> Dec.Decoder User
 decodeLoggedIn key =
-    Dec.succeed (\email s lang trayOpen -> LoggedIn (SessionData key s True) (UserData email lang trayOpen))
+    Dec.succeed (\email s lang trayOpen -> LoggedIn (SessionData key s False) (UserData email lang trayOpen))
         |> required "email" Dec.string
         |> required "seed" (Dec.int |> Dec.map Random.initialSeed)
         |> optional "language" (Dec.string |> Dec.map langFromString) En
