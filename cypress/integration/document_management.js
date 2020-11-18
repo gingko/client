@@ -67,6 +67,8 @@ describe('Remote Documents', () => {
   })
 
   it('Should show the trees in sidebar document list', () => {
+    cy.get('.sidebar-button').first().click()
+
     cy.contains('#sidebar-menu', 'Untitled')
       .contains('#sidebar-menu', 'Second doc, with title')
   })
