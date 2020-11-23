@@ -71,7 +71,7 @@ describe('User Signup Flow', () => {
 
     cy.contains('Test tree "root"')
 
-    cy.get(':nth-child(3) > .group')
+    cy.get(':nth-child(2) > .group')
       .then((el) => {
         expect(el.children('.card').toArray().map(c => c.innerText))
           .to.eql(["First Child", "Second Child", "Third Child"])

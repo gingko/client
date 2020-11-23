@@ -103,7 +103,7 @@ describe('Document Editing', () => {
   it('Has saved the content', function () {
     cy.wait(400)
     cy.visit(this.testTreeUrl)
-    cy.get(':nth-child(3) > .group:nth-child(2)')
+    cy.get(':nth-child(2) > .group:nth-child(2)')
       .contains('Another one below')
   })
 
@@ -112,11 +112,11 @@ describe('Document Editing', () => {
     cy.get('#card-1')
       .should('have.class', 'ancestor')
 
-    cy.get(':nth-child(3) > .group')
+    cy.get(':nth-child(2) > .group')
       .should('have.class', 'has-active')
       .should('not.have.class', 'active-descendant')
 
-    cy.get(':nth-child(3) > .group :nth-child(2)')
+    cy.get(':nth-child(2) > .group :nth-child(2)')
       .should('have.class', 'active')
   })
 
