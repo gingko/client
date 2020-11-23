@@ -73,7 +73,8 @@ var scrollFullscreenTo = function (cid) {
 
 var scrollTo = function (cid, colIdx, instant, position) {
   var card = document.getElementById("card-" + cid.toString());
-  var col = document.getElementsByClassName("column")[colIdx ];
+  var col = document.getElementsByClassName("column")[colIdx - 1];
+  let docRect = document.getElementById("document").getBoundingClientRect();
   if (card == null) {
     console.log("scroll error: not found", cid);
     return;
@@ -83,14 +84,14 @@ var scrollTo = function (cid, colIdx, instant, position) {
 
   TweenMax.to(col, instant ? 0 : 0.25, {
     scrollTop:
-      col.scrollTop + (rect.top + rect.height * positionMultiplier - col.offsetHeight * 0.5),
+      col.scrollTop + (rect.top + rect.height * positionMultiplier - (docRect.top+docRect.bottom)*0.5),
     ease: Power2.easeInOut,
   });
 };
 
 var scrollHorizTo = function (colIdx, instant) {
   let scrollDuration = instant ? 0 : 0.3;
-  var col = document.getElementsByClassName("column")[colIdx];
+  var col = document.getElementsByClassName("column")[colIdx - 1];
   var appEl = document.getElementById("document");
   if (col == null) {
     console.log("scroll horiz error: not found", colIdx);

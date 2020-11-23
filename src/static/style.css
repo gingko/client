@@ -571,19 +571,46 @@ li.sidebar-document-item.active::after {
 /* ======== COLUMNS ======== */
 
 #document {
-  display: flex;
-  justify-content: space-between;
-  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(60px,0.613fr) 1fr minmax(60px,0.613fr);
   overflow-x: auto;
   overflow-y: hidden;
   transform: translateZ(0);
 }
+#column-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(50ch,80ch));
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(50ch,80ch);
+}
+
+@media (max-width: 50ch) {
+  #app-root {
+    grid-template-columns: 40px auto 1fr;
+    grid-template-rows: 40px 40px auto 1fr 25px;
+    grid-template-areas:
+      "home home document-header"
+      "sidebar sidebar sidebar"
+      "sidebar-menu sidebar-menu sidebar-menu"
+      "document document document"
+      "document-footer document-footer document-footer";
+  }
+  #document {
+    grid-template-columns: minmax(20px,0.613fr) 1fr minmax(20px,0.613fr);
+  }
+  #column-container {
+    grid-template-columns: repeat(auto-fill, 90vw);
+    grid-auto-flow: column;
+    grid-auto-columns: 90vw
+  }
+  #sidebar, #sidebar-menu {
+    flex-direction: row;
+  }
+
+}
 
 .column {
-  flex: 1 0;
   height: 100%;
-  max-width: 600px;
-  min-width: 450px;
   overflow-x: hidden;
   overflow-y: scroll;
   scrollbar-width: none;
@@ -594,19 +621,10 @@ li.sidebar-document-item.active::after {
   width: 0 !important;
 }
 
-.column.first {
+.left-padding-column {
   background-color: var(--bg-left);
   border-right: 2px solid hsla(0, 0%, 0%, 0.15);
   margin-right: 40px;
-}
-
-.column:first-child, .column:last-child{
-  flex: 0.15 0;
-  min-width: 80px;
-}
-
-.column:first-child .buffer, .column:last-child .buffer {
-  display: none;
 }
 
 .buffer {

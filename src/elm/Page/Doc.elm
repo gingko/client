@@ -2376,15 +2376,16 @@ treeView lang vstate model =
 
         columns =
             columnsFiltered
-                ++ [ [ [] ] ]
                 |> List.map (\c -> lazy2 viewColumn (getViewArgs c) c)
     in
     div
         [ id "document"
         ]
-        (div [ class "column", class "first" ] [ div [ class "buffer" ] [] ]
-            :: columns
-        )
+        [ div [ class "left-padding-column" ] []
+        , div [ id "column-container" ]
+            columns
+        , div [ class "right-padding-column" ] []
+        ]
 
 
 viewColumn : VisibleViewState -> Column -> Html Msg
