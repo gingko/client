@@ -49,7 +49,7 @@ jobs:
         run: cd ../server; npm i
 
       - name: Stop Test Server
-        run: pm2 stop GingkoTest
+        run: pm2 stop --silent GingkoTest
 
       - name: Start Test Server
         run: PORT=8000 pm2 start ../server/index.js --name GingkoTest
