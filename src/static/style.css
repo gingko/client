@@ -629,7 +629,7 @@ li.sidebar-document-item.active::after {
 
 .buffer {
   margin: 0 16px;
-  height: 90%;
+  height: 100%;
   z-index: 1;
 }
 
