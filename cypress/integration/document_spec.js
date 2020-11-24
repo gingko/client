@@ -135,4 +135,13 @@ describe('Document Editing', () => {
 
     cy.contains('Hello World :)')
   })
+
+  it('Can undo last change', () => {
+    cy.shortcut('{ctrl}z')
+
+    cy.contains('Restore this Version')
+
+    cy.get('#app-root')
+      .should('not.contain', 'Another one below')
+  })
 })

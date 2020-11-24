@@ -428,16 +428,13 @@ viewHistory noopMsg checkoutMsg restoreMsg cancelMsg lang currHead dataModel =
             Data.head "heads/master" dataModel
 
         historyList =
-            case master of
-                Just refObj ->
-                    (refObj.value :: refObj.ancestors)
-                        |> List.reverse
-
-                _ ->
-                    []
+            Data.historyList currHead dataModel
 
         maxIdx =
-            historyList |> List.length |> (\x -> x - 1) |> String.fromInt
+            historyList
+                |> List.length
+                |> (\x -> x - 1)
+                |> String.fromInt
 
         currIdx =
             historyList
@@ -459,7 +456,7 @@ viewHistory noopMsg checkoutMsg restoreMsg cancelMsg lang currHead dataModel =
                     noopMsg
     in
     div [ id "history" ]
-        [ input [ type_ "range", A.min "0", A.max maxIdx, value currIdx, step "1", onInput checkoutCommit ] []
+        [ input [ type_ "range", A.min "0", A.max maxIdx, step "1", onInput checkoutCommit ] []
         , button [ onClick restoreMsg ] [ text <| tr lang RestoreThisVersion ]
         , button [ onClick cancelMsg ] [ text <| tr lang Cancel ]
         ]

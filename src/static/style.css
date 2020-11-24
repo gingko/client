@@ -1608,7 +1608,8 @@ span.shortcut-key {
   position: absolute;
   width: 100%;
   padding: 10px 5px;
-  z-index: 999;
+  grid-area: document;
+  display: flex;
 }
 #history input {
   width: 100%;

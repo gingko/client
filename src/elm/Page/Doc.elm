@@ -1080,19 +1080,19 @@ update msg ({ workingTree } as model) =
                             normalMode model (copy vs.active)
 
                         "mod+z" ->
-                            case model.historyState of
-                                From currHead ->
-                                    normalMode model (historyStep Backward currHead)
+                            case Data.head "heads/master" model.data of
+                                Just refObj ->
+                                    normalMode model (historyStep Backward refObj.value)
 
-                                Closed ->
+                                Nothing ->
                                     ( model, Cmd.none )
 
                         "mod+shift+z" ->
-                            case model.historyState of
-                                From currHead ->
-                                    normalMode model (historyStep Forward currHead)
+                            case Data.head "heads/master" model.data of
+                                Just refObj ->
+                                    normalMode model (historyStep Forward refObj.value)
 
-                                Closed ->
+                                Nothing ->
                                     ( model, Cmd.none )
 
                         "mod+s" ->
@@ -2025,9 +2025,9 @@ checkoutCommit commitSha ( model, prevCmd ) =
                 | workingTree = TreeStructure.setTree newTree model.workingTree
               }
             , Cmd.none
-              --, send (UpdateCommits ( Data.encode model.objects, getHead newStatus ))
             )
                 |> maybeColumnsChanged model.workingTree.columns
+                |> activate model.viewState.active False
 
         Nothing ->
             ( model
@@ -2059,8 +2059,7 @@ historyStep dir currHead ( model, prevCmd ) =
             case master of
                 Just refObj ->
                     ( Just refObj.value
-                    , (refObj.value :: refObj.ancestors)
-                        |> List.reverse
+                    , Data.historyList currHead model.data
                     )
 
                 _ ->
