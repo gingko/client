@@ -140,7 +140,7 @@ view model =
     div [ id "form-page" ]
         [ div [ class "brand" ]
             [ img [ id "logo", src "gingko-leaf-logo.svg" ] []
-            , h1 [] [ text "Gingko" ]
+            , h1 [] [ text "Gingko Writer" ]
             ]
         , div [ class "page-bg" ] []
         , h1 [ class "headline" ] [ text "Write better, faster." ]
