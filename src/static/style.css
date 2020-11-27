@@ -572,7 +572,7 @@ li.sidebar-document-item.active::after {
 
 #document {
   display: grid;
-  grid-template-columns: minmax(60px,0.613fr) 1fr minmax(60px,0.613fr);
+  grid-template-columns: minmax(60px,0.30fr) 1fr minmax(60px,0.30fr);
   overflow-x: auto;
   overflow-y: hidden;
   transform: translateZ(0);
