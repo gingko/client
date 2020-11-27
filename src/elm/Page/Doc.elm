@@ -23,6 +23,7 @@ import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy2, lazy3)
 import Html5.DragDrop as DragDrop
 import Http
+import Import.Incoming
 import Import.Single
 import Json.Decode as Json
 import List.Extra as ListExtra exposing (getAt)
@@ -32,6 +33,7 @@ import Page.Doc.Export as Export exposing (ExportFormat(..), ExportSelection(..)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Doc.Theme as Theme exposing (Theme(..), applyTheme)
 import Random
+import RandomId
 import Regex
 import Route
 import Task
@@ -238,8 +240,12 @@ type Msg
     | ExportPreviewToggled Bool
     | ExportSelectionChanged ExportSelection
     | ExportFormatChanged ExportFormat
+      -- Import
     | ImportJSONSelected File
-    | ImportJSONLoaded String
+    | ImportJSONLoaded String String
+    | ImportJSONIdGenerated Tree String String
+    | ImportJSONCompleted String
+      -- Misc UI
     | ThemeChanged Theme
     | TimeUpdate Time.Posix
     | VideoModal Bool
@@ -606,23 +612,31 @@ update msg ({ workingTree } as model) =
             ( model, Select.file [ "application/json", "text/plain" ] ImportJSONSelected )
 
         ImportJSONSelected file ->
-            ( model, Task.perform ImportJSONLoaded (File.toString file) )
+            ( model, Task.perform (ImportJSONLoaded (File.name file)) (File.toString file) )
 
-        ImportJSONLoaded jsonString ->
+        ImportJSONLoaded fileName jsonString ->
             let
                 ( importTreeDecoder, newSeed ) =
-                    Import.Single.decoder model.seed
+                    Import.Single.decoder (User.seed model.user)
             in
             case Json.decodeString importTreeDecoder jsonString of
                 Ok tree ->
-                    ( { model | workingTree = TreeStructure.setTree tree model.workingTree, seed = newSeed }, Cmd.none )
+                    ( { model | loading = True, user = User.setSeed newSeed model.user }
+                    , RandomId.generate (ImportJSONIdGenerated tree fileName)
+                    )
 
                 Err err ->
-                    let
-                        _ =
-                            Debug.log "import error" err
-                    in
                     ( { model | seed = newSeed }, Cmd.none )
+
+        ImportJSONIdGenerated tree fileName docId ->
+            let
+                author =
+                    model.user |> User.name |> Maybe.withDefault "jane.doe@gmail.com"
+            in
+            ( model, send <| SaveImportedData (Import.Single.encode { author = author, docId = docId, fileName = fileName } tree) )
+
+        ImportJSONCompleted docId ->
+            ( model, Route.pushUrl (User.navKey model.user) (Route.DocUntitled docId) )
 
         ThemeChanged newTheme ->
             ( { model | theme = newTheme }, send <| SaveThemeSetting newTheme )
@@ -2790,7 +2804,7 @@ viewModal language model =
             UI.viewTemplateSelector language
                 { modalClosed = ModalClosed
                 , importBulkClicked = ImportBulkClicked
-                , importJsonRequested = ImportJSONRequested
+                , importJSONRequested = ImportJSONRequested
                 }
 
 
@@ -2802,6 +2816,15 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Incoming.subscribe Incoming LogErr
+        , Import.Incoming.importComplete
+            (\docId_ ->
+                case docId_ of
+                    Just docId ->
+                        ImportJSONCompleted docId
+
+                    Nothing ->
+                        NoOp
+            )
         , DocList.subscribe ReceivedDocuments
         , User.settingsChange SettingsChanged
         , User.loginChanges LoginStateChanged (User.navKey model.user)

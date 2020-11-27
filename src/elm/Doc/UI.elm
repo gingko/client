@@ -318,7 +318,7 @@ modalWrapper closeMsg body =
 
 
 type alias TemplateSelectorMsgs msg =
-    { modalClosed : msg, importBulkClicked : msg, importJsonRequested : msg }
+    { modalClosed : msg, importBulkClicked : msg, importJSONRequested : msg }
 
 
 viewTemplateSelector : Language -> TemplateSelectorMsgs msg -> List (Html msg)
@@ -334,7 +334,7 @@ viewTemplateSelector language msgs =
             , div [ class "template-description" ]
                 [ text <| tr language HomeLegacyFrom ]
             ]
-        , div [ id "template-import", class "template-item", onClick msgs.importJsonRequested ]
+        , div [ id "template-import", class "template-item", onClick msgs.importJSONRequested ]
             [ div [ classList [ ( "template-thumbnail", True ) ] ] [ Icon.fileCode (Icon.defaultOptions |> Icon.size 48) ]
             , div [ class "template-title" ] [ text "Import Single JSON" ]
             , div [ class "template-description" ]
