@@ -67,6 +67,7 @@ type alias Model =
     , debouncerStateCommit : Debouncer () ()
     , titleField : Maybe String
     , sidebarState : SidebarState
+    , modalState : ModalState
     , fileSearchField : String
     , exportPreview : Bool
     , exportSettings : ( ExportSelection, ExportFormat )
@@ -85,6 +86,11 @@ type alias Model =
     , currentTime : Time.Posix
     , seed : Random.Seed
     }
+
+
+type ModalState
+    = None
+    | TemplateSelector
 
 
 defaultModel : Bool -> User -> String -> Model
@@ -131,6 +137,7 @@ defaultModel isNew session docId =
 
         else
             SidebarClosed
+    , modalState = None
     , fileSearchField = ""
     , exportPreview = False
     , exportSettings = ( ExportEverything, DOCX )
@@ -221,12 +228,16 @@ type Msg
     | TitleEdited
     | HelpClicked
     | ToggledAccountMenu Bool
+      -- Sidebar & Modals
     | SidebarStateChanged SidebarState
+    | TemplateSelectorOpened
+    | ModalClosed
+    | ImportBulkClicked
+    | ImportJSONRequested
     | FileSearchChanged String
     | ExportPreviewToggled Bool
     | ExportSelectionChanged ExportSelection
     | ExportFormatChanged ExportFormat
-    | ImportJSONRequested
     | ImportJSONSelected File
     | ImportJSONLoaded String
     | ThemeChanged Theme
@@ -564,6 +575,15 @@ update msg ({ workingTree } as model) =
             in
             ( { model | user = newSessionData, sidebarState = newSidebarState }, Cmd.none )
 
+        TemplateSelectorOpened ->
+            ( { model | modalState = TemplateSelector }, Cmd.none )
+
+        ModalClosed ->
+            ( { model | modalState = None }, Cmd.none )
+
+        ImportBulkClicked ->
+            ( model, Cmd.none )
+
         FileSearchChanged term ->
             ( { model | fileSearchField = term }, Cmd.none )
 
@@ -597,7 +617,11 @@ update msg ({ workingTree } as model) =
                 Ok tree ->
                     ( { model | workingTree = TreeStructure.setTree tree model.workingTree, seed = newSeed }, Cmd.none )
 
-                Err _ ->
+                Err err ->
+                    let
+                        _ =
+                            Debug.log "import error" err
+                    in
                     ( { model | seed = newSeed }, Cmd.none )
 
         ThemeChanged newTheme ->
@@ -2268,6 +2292,7 @@ pre, code, .group.has-active .card textarea {
                      ]
                         ++ UI.viewSidebar
                             { sidebarStateChanged = SidebarStateChanged
+                            , templateSelectorOpened = TemplateSelectorOpened
                             , fileSearchChanged = FileSearchChanged
                             , exportPreviewToggled = ExportPreviewToggled
                             , exportSelectionChanged = ExportSelectionChanged
@@ -2294,6 +2319,7 @@ pre, code, .group.has-active .card textarea {
                            , div [ id "loading-overlay" ] []
                            , div [ id "preloader" ] []
                            ]
+                        ++ viewModal (User.language model.user) model
                     )
 
         conflicts ->
@@ -2752,6 +2778,20 @@ collabsSpan collabsOnCard collabsEditingCard =
                 |> String.join ", "
     in
     span [ class "collaborators" ] [ text collabsString ]
+
+
+viewModal : Language -> { m | modalState : ModalState } -> List (Html Msg)
+viewModal language model =
+    case model.modalState of
+        None ->
+            [ text "" ]
+
+        TemplateSelector ->
+            UI.viewTemplateSelector language
+                { modalClosed = ModalClosed
+                , importBulkClicked = ImportBulkClicked
+                , importJsonRequested = ImportJSONRequested
+                }
 
 
 
