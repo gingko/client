@@ -5,12 +5,16 @@ import Json.Decode as Json exposing (Decoder)
 
 
 type Template
-    = AcademicPaper
+    = WelcomeTree
+    | AcademicPaper
 
 
 fromString : String -> Maybe Template
 fromString str =
     case str of
+        "welcome" ->
+            Just WelcomeTree
+
         "academic-paper" ->
             Just AcademicPaper
 
@@ -21,6 +25,9 @@ fromString str =
 toString : Template -> String
 toString template =
     case template of
+        WelcomeTree ->
+            "welcome"
+
         AcademicPaper ->
             "academic-paper"
 

@@ -150,7 +150,7 @@ viewTopRightButtons msgs isOpen user =
                 div [ id "account-dropdown" ]
                     [ text (User.name user |> Maybe.withDefault "")
                     , hr [] []
-                    , div [ onClick msgs.logoutRequested ] [ logoutIcon, text "Logout" ]
+                    , div [ id "logout-button", onClick msgs.logoutRequested ] [ logoutIcon, text "Logout" ]
                     ]
 
               else

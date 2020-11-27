@@ -1,0 +1,19 @@
+[
+  {
+    "content": "# Welcome to Gingko\n\nThis is an example \"tree document\" that you can play with.",
+    "children": [
+      {
+        "content": "## First Child\nThis is the first child.",
+        "children": []
+      },
+      {
+        "content": "## Second Child\nThis is the second child.",
+        "children": []
+      },
+      {
+        "content": "## Third Child\nThis is the third child.",
+        "children": []
+      }
+    ]
+  }
+]

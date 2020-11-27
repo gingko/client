@@ -55,15 +55,17 @@ describe('User Signup Flow', () => {
     cy.request({url: config.TEST_SERVER + '/db/userdb-' + testUserDb, retryOnStatusCodeFailure: true})
   })
 
-  it('Redirects to Home page', ()=> {
-    cy.location('pathname').should('eq', '/')
-    cy.contains('Blank Tree')
+  it('Imports "Welcome Tree"', ()=> {
+    cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
+    cy.contains('Welcome to Gingko')
   })
 
   it('Logs Out Correctly', () =>{
-    cy.get('button.logout').click()
+    cy.get('#account').click()
+    cy.get('#logout-button').click()
     cy.wait(400)
     cy.getCookie('AuthSession').should('have.property', 'value', '')
     cy.location('pathname').should('eq', '/login')
+    cy.get('button.cta').contains('Login')
   })
 })

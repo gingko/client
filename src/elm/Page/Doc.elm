@@ -546,8 +546,8 @@ update msg ({ workingTree } as model) =
         LogoutRequested ->
             ( model, User.logout )
 
-        LoginStateChanged _ ->
-            ( model, Route.pushUrl (User.navKey model.user) Route.Login )
+        LoginStateChanged newUser ->
+            ( { model | user = newUser }, Route.pushUrl (User.navKey newUser) Route.Login )
 
         ToggledAccountMenu isOpen ->
             ( { model | accountMenuOpen = isOpen }, Cmd.none )

@@ -1,11 +1,12 @@
 module Page.Signup exposing (Model, Msg, init, subscriptions, toUser, update, view)
 
 import Browser.Dom
-import Browser.Navigation as Nav
 import Html exposing (..)
 import Html.Attributes exposing (autofocus, class, classList, href, id, placeholder, src, type_, value)
 import Html.Events exposing (onBlur, onInput, onSubmit)
 import Http exposing (Error(..))
+import Import.Template as Template
+import Route
 import Task
 import User exposing (User)
 import Utils exposing (getFieldErrors)
@@ -137,7 +138,7 @@ update msg model =
             ( { model | errors = [ errorMsg ], password = "", passwordConfirm = "" }, Cmd.none )
 
         GotUser user ->
-            ( { model | user = user }, Nav.replaceUrl (User.navKey user) "/" )
+            ( { model | user = user }, Route.replaceUrl (User.navKey user) (Route.Import Template.WelcomeTree) )
 
 
 emailValidator : Validator ( Field, String ) Model
