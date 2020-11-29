@@ -16,7 +16,11 @@ import Validate exposing (Valid, Validator, ifBlank, ifInvalidEmail, validate)
 
 
 type alias Model =
-    { user : User, email : String, errors : List ( Field, String ) }
+    { user : User
+    , email : String
+    , errors : List ( Field, String )
+    , sent : Bool
+    }
 
 
 type Field
@@ -26,7 +30,11 @@ type Field
 
 init : User -> Maybe String -> ( Model, Cmd msg )
 init user email_ =
-    ( { user = user, email = email_ |> Maybe.withDefault "", errors = [] }
+    ( { user = user
+      , email = email_ |> Maybe.withDefault ""
+      , errors = []
+      , sent = False
+      }
     , Cmd.none
     )
 
@@ -63,8 +71,8 @@ update msg model =
         EnteredEmail email ->
             ( { model | email = email }, Cmd.none )
 
-        CompletedForgotPassword (Ok user) ->
-            ( model, Cmd.none )
+        CompletedForgotPassword (Ok _) ->
+            ( { model | sent = True }, Cmd.none )
 
         CompletedForgotPassword (Err error) ->
             let
@@ -129,29 +137,43 @@ view model =
             getFieldErrors Email model.errors
     in
     div [ id "form-page" ]
-        [ div [ class "brand" ]
+        ([ div [ class "brand" ]
             [ img [ id "logo", src "gingko-leaf-logo.svg" ] []
             , h1 [] [ text "Gingko" ]
             ]
-        , div [ class "page-bg" ] []
-        , h1 [ class "headline" ] [ text "Write better, faster." ]
-        , div [ class "header" ] [ span [ class "alt-action" ] [ text "New to Gingko? ", a [ href "/signup" ] [ text "Signup" ] ] ]
-        , div [ class "center-form" ]
-            [ form [ onSubmit SubmittedForm ]
-                [ div [] [ text (String.join "\n" formErrors) ]
-                , div [ class "input-error" ] [ text (String.join "\n" emailErrors) ]
-                , input
-                    [ onInput EnteredEmail
-                    , placeholder "Email"
-                    , type_ "email"
-                    , value model.email
-                    , autofocus True
+         , div [ class "page-bg" ] []
+         ]
+            ++ (if not model.sent then
+                    [ h1 [ class "headline" ] [ text "Password Reset" ]
+                    , div [ class "header" ] [ span [ class "alt-action" ] [ text "New to Gingko? ", a [ href "/signup" ] [ text "Signup" ] ] ]
+                    , div [ class "center-form" ]
+                        [ form [ onSubmit SubmittedForm ]
+                            [ div [] [ text (String.join "\n" formErrors) ]
+                            , div [ class "input-error" ] [ text (String.join "\n" emailErrors) ]
+                            , input
+                                [ onInput EnteredEmail
+                                , placeholder "Email"
+                                , type_ "email"
+                                , value model.email
+                                , autofocus True
+                                ]
+                                []
+                            , button [ class "cta" ] [ text "Send Reset Token" ]
+                            ]
+                        ]
                     ]
-                    []
-                , button [ class "cta" ] [ text "Send Reset Token" ]
-                ]
-            ]
-        ]
+
+                else
+                    [ h1 [ class "headline" ] [ text "Reset Email Sent" ]
+                    , div [ class "center-form" ]
+                        [ text "Check your email for your password reset link."
+                        , br [] []
+                        , br [] []
+                        , small [] [ text "No email received? ", a [ href <| Route.toString (Route.ForgotPassword Nothing) ] [ text "Try again" ] ]
+                        ]
+                    ]
+               )
+        )
 
 
 
