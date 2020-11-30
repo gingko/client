@@ -457,7 +457,7 @@ viewHistory noopMsg checkoutMsg restoreMsg cancelMsg lang currHead dataModel =
     in
     div [ id "history" ]
         [ input [ type_ "range", A.min "0", A.max maxIdx, step "1", onInput checkoutCommit ] []
-        , button [ onClick restoreMsg ] [ text <| tr lang RestoreThisVersion ]
+        , button [ id "history-restore", onClick restoreMsg ] [ text <| tr lang RestoreThisVersion ]
         , button [ onClick cancelMsg ] [ text <| tr lang Cancel ]
         ]
 

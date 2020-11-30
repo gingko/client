@@ -136,12 +136,21 @@ describe('Document Editing', () => {
     cy.contains('Hello World :)')
   })
 
-  it('Can undo last change', () => {
+  it('Can move back to last change', () => {
     cy.shortcut('{ctrl}z')
 
     cy.contains('Restore this Version')
 
     cy.get('#app-root')
       .should('not.contain', 'Another one below')
+  })
+
+  it('Restores last change', () => {
+    cy.get('#history-restore').click()
+
+    cy.get('#app-root')
+      .should('not.contain', 'Another one below')
+
+    cy.get('#history').should('not.exist')
   })
 })
