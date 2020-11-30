@@ -191,6 +191,7 @@ var needOverride = [
   "mod+j",
   "mod+k",
   "mod+l",
+  "alt+left",
 ];
 
 /* ===== CommonJS Module exports ===== */
