@@ -50,4 +50,23 @@ describe('Welcome Tree & Templates', () => {
     cy.get('#template-academic')
       .should('be.visible')
   })
+
+  it('Should show all templates on narrow screens', () => {
+    cy.viewport(600,900)
+
+    cy.get('#template-new')
+      .should('be.visible')
+
+    cy.get('#template-import-bulk')
+      .should('be.visible')
+
+    cy.get('#template-import')
+      .should('be.visible')
+
+    cy.get('#template-timeline')
+      .should('be.visible')
+
+    cy.get('#template-academic')
+      .should('be.visible')
+  })
 })
