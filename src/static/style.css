@@ -1472,7 +1472,7 @@ pre {
   display: flex;
   flex-direction: column;
   padding: 1px 6px;
-  z-index: 9999;
+  z-index: 99;
   cursor: pointer;
 }
 
