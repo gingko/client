@@ -70,6 +70,7 @@ type alias Model =
     , fileSearchField : String
     , exportPreview : Bool
     , exportSettings : ( ExportSelection, ExportFormat )
+    , helpMenuOpen : Bool
     , accountMenuOpen : Bool
     , wordcountTrayOpen : Bool
     , videoModalOpen : Bool
@@ -134,6 +135,7 @@ defaultModel isNew session docId =
     , fileSearchField = ""
     , exportPreview = False
     , exportSettings = ( ExportEverything, DOCX )
+    , helpMenuOpen = False
     , accountMenuOpen = False
     , wordcountTrayOpen = False
     , videoModalOpen = False
@@ -219,8 +221,9 @@ type Msg
     | ToggledTitleEdit Bool
     | TitleFieldChanged String
     | TitleEdited
-    | HelpClicked
+    | ToggledHelpMenu Bool
     | ToggledAccountMenu Bool
+    | ClickedEmailSupport
     | SidebarStateChanged SidebarState
     | FileSearchChanged String
     | ExportPreviewToggled Bool
@@ -540,17 +543,20 @@ update msg ({ workingTree } as model) =
                 Nothing ->
                     ( model, Cmd.none )
 
-        HelpClicked ->
-            ( model, send <| TriggerMailto )
-
         LogoutRequested ->
             ( model, User.logout )
 
         LoginStateChanged _ ->
             ( model, Route.pushUrl (User.navKey model.user) Route.Login )
 
+        ToggledHelpMenu isOpen ->
+            ( { model | helpMenuOpen = isOpen }, Cmd.none )
+
         ToggledAccountMenu isOpen ->
             ( { model | accountMenuOpen = isOpen }, Cmd.none )
+
+        ClickedEmailSupport ->
+            ( model, send <| TriggerMailto )
 
         SidebarStateChanged newSidebarState ->
             let
@@ -2259,7 +2265,8 @@ pre, code, .group.has-active .card textarea {
                         { toggledTitleEdit = ToggledTitleEdit
                         , titleFieldChanged = TitleFieldChanged
                         , titleEdited = TitleEdited
-                        , helpClicked = HelpClicked
+                        , toggledHelpMenu = ToggledHelpMenu
+                        , clickedEmailSupport = ClickedEmailSupport
                         , logoutRequested = LogoutRequested
                         , toggledAccountMenu = ToggledAccountMenu
                         }

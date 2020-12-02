@@ -23,6 +23,7 @@ let lastColumnScrolled = null;
 let lang = "en";
 let helpVisible;
 let helpWidgetLauncher;
+window.elmMessages = [];
 
 let remoteDB;
 let db;
@@ -161,7 +162,9 @@ function toElm(data, portName, tagName) {
 }
 
 const fromElm = (msg, elmData) => {
-  //console.debug("fromElm", msg, elmData);
+  window.elmMessages.push(msg);
+  window.elmMessages = window.elmMessages.slice(-10);
+
   let cases = {
     // === SPA ===
 

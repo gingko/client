@@ -46,13 +46,28 @@ type alias HeaderMsgs msg =
     { toggledTitleEdit : Bool -> msg
     , titleFieldChanged : String -> msg
     , titleEdited : msg
-    , helpClicked : msg
+    , toggledHelpMenu : Bool -> msg
+    , clickedEmailSupport : msg
     , logoutRequested : msg
     , toggledAccountMenu : Bool -> msg
     }
 
 
-viewHeader : HeaderMsgs msg -> Maybe String -> { m | titleField : Maybe String, accountMenuOpen : Bool, dirty : Bool, lastLocalSave : Maybe Time.Posix, lastRemoteSave : Maybe Time.Posix, currentTime : Time.Posix, user : User } -> Html msg
+viewHeader :
+    HeaderMsgs msg
+    -> Maybe String
+    ->
+        { m
+            | titleField : Maybe String
+            , helpMenuOpen : Bool
+            , accountMenuOpen : Bool
+            , dirty : Bool
+            , lastLocalSave : Maybe Time.Posix
+            , lastRemoteSave : Maybe Time.Posix
+            , currentTime : Time.Posix
+            , user : User
+        }
+    -> Html msg
 viewHeader msgs title_ model =
     let
         language =
@@ -80,10 +95,12 @@ viewHeader msgs title_ model =
     div [ id "document-header" ]
         [ titleArea
         , viewTopRightButtons
-            { helpClicked = msgs.helpClicked
+            { toggledHelpMenu = msgs.toggledHelpMenu
+            , clickedEmailSupport = msgs.clickedEmailSupport
             , logoutRequested = msgs.logoutRequested
             , toggledAccountMenu = msgs.toggledAccountMenu
             }
+            model.helpMenuOpen
             model.accountMenuOpen
             model.user
         ]
@@ -130,8 +147,13 @@ viewSaveIndicator language { dirty, lastLocalSave, lastRemoteSave, currentTime }
         ]
 
 
-viewTopRightButtons : { helpClicked : msg, logoutRequested : msg, toggledAccountMenu : Bool -> msg } -> Bool -> User -> Html msg
-viewTopRightButtons msgs isOpen user =
+viewTopRightButtons :
+    { toggledHelpMenu : Bool -> msg, clickedEmailSupport : msg, logoutRequested : msg, toggledAccountMenu : Bool -> msg }
+    -> Bool
+    -> Bool
+    -> User
+    -> Html msg
+viewTopRightButtons msgs isHelpDropdown isAccountDropdown user =
     let
         helpIcon =
             Icon.question (defaultOptions |> Icon.color "#333" |> Icon.size 18)
@@ -143,10 +165,18 @@ viewTopRightButtons msgs isOpen user =
             Icon.signOut (defaultOptions |> Icon.color "#333" |> Icon.size 18)
     in
     div [ id "top-right-buttons" ]
-        [ div [ onClick msgs.helpClicked ] [ helpIcon ]
-        , div [ id "account", onClick (msgs.toggledAccountMenu (not isOpen)) ]
+        [ div [ id "help-icon", onClick (msgs.toggledHelpMenu (not isHelpDropdown)) ]
+            [ helpIcon
+            , if isHelpDropdown then
+                div [ id "help-dropdown" ]
+                    [ span [ id "email-support", onClick msgs.clickedEmailSupport ] [ text "Email Support..." ] ]
+
+              else
+                text ""
+            ]
+        , div [ id "account", onClick (msgs.toggledAccountMenu (not isAccountDropdown)) ]
             [ userIcon
-            , if isOpen then
+            , if isAccountDropdown then
                 div [ id "account-dropdown" ]
                     [ text (User.name user |> Maybe.withDefault "")
                     , hr [] []

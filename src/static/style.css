@@ -439,6 +439,17 @@ body {
   margin-left: 10px;
 }
 
+
+#help-dropdown {
+  cursor: default;
+  position: absolute;
+  right: 38px;
+  top: 39px;
+  padding: 16px;
+  background: whitesmoke;
+  border-radius: 5px 0 5px 5px;
+}
+
 #account-dropdown {
   cursor: default;
   position: absolute;

@@ -290,6 +290,13 @@ export const tr =
       , fr : ""
       , sv : "Kontakta Adriano..."
       }
+    , emailSupport :
+      { en : "Email Support..."
+      , zh : "联系客户支持"
+      , es : "Enviar correo al desarrollador..."
+      , fr : "Assistance par e-mail..."
+      , sv : "E-poststöd..."
+      }
   , buyLicense :
       { en : "&Buy a License..."
       , zh : "购买一个许可"
