@@ -19,7 +19,7 @@ import Regex exposing (Regex, replace)
 import Route
 import Time exposing (posixToMillis)
 import Translation exposing (Language, TranslationId(..), timeDistInWords, tr)
-import Types exposing (Children(..), CursorPosition(..), SidebarState(..), TextCursorInfo, ViewMode(..), ViewState)
+import Types exposing (Children(..), CursorPosition(..), DropdownState(..), SidebarState(..), TextCursorInfo, ViewMode(..), ViewState)
 import User exposing (User)
 
 
@@ -59,8 +59,7 @@ viewHeader :
     ->
         { m
             | titleField : Maybe String
-            , helpMenuOpen : Bool
-            , accountMenuOpen : Bool
+            , dropdownState : DropdownState
             , dirty : Bool
             , lastLocalSave : Maybe Time.Posix
             , lastRemoteSave : Maybe Time.Posix
@@ -100,8 +99,7 @@ viewHeader msgs title_ model =
             , logoutRequested = msgs.logoutRequested
             , toggledAccountMenu = msgs.toggledAccountMenu
             }
-            model.helpMenuOpen
-            model.accountMenuOpen
+            model.dropdownState
             model.user
         ]
 
@@ -149,12 +147,17 @@ viewSaveIndicator language { dirty, lastLocalSave, lastRemoteSave, currentTime }
 
 viewTopRightButtons :
     { toggledHelpMenu : Bool -> msg, clickedEmailSupport : msg, logoutRequested : msg, toggledAccountMenu : Bool -> msg }
-    -> Bool
-    -> Bool
+    -> DropdownState
     -> User
     -> Html msg
-viewTopRightButtons msgs isHelpDropdown isAccountDropdown user =
+viewTopRightButtons msgs dropdownState user =
     let
+        isHelpDropdown =
+            dropdownState == Help
+
+        isAccountDropdown =
+            dropdownState == Account
+
         helpIcon =
             Icon.question (defaultOptions |> Icon.color "#333" |> Icon.size 18)
 

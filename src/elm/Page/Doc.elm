@@ -67,11 +67,10 @@ type alias Model =
     , debouncerStateCommit : Debouncer () ()
     , titleField : Maybe String
     , sidebarState : SidebarState
+    , dropdownState : DropdownState
     , fileSearchField : String
     , exportPreview : Bool
     , exportSettings : ( ExportSelection, ExportFormat )
-    , helpMenuOpen : Bool
-    , accountMenuOpen : Bool
     , wordcountTrayOpen : Bool
     , videoModalOpen : Bool
     , fontSelectorOpen : Bool
@@ -132,11 +131,10 @@ defaultModel isNew session docId =
 
         else
             SidebarClosed
+    , dropdownState = None
     , fileSearchField = ""
     , exportPreview = False
     , exportSettings = ( ExportEverything, DOCX )
-    , helpMenuOpen = False
-    , accountMenuOpen = False
     , wordcountTrayOpen = False
     , videoModalOpen = False
     , fontSelectorOpen = False
@@ -550,10 +548,28 @@ update msg ({ workingTree } as model) =
             ( model, Route.pushUrl (User.navKey model.user) Route.Login )
 
         ToggledHelpMenu isOpen ->
-            ( { model | helpMenuOpen = isOpen }, Cmd.none )
+            ( { model
+                | dropdownState =
+                    if isOpen then
+                        Help
+
+                    else
+                        None
+              }
+            , Cmd.none
+            )
 
         ToggledAccountMenu isOpen ->
-            ( { model | accountMenuOpen = isOpen }, Cmd.none )
+            ( { model
+                | dropdownState =
+                    if isOpen then
+                        Account
+
+                    else
+                        None
+              }
+            , Cmd.none
+            )
 
         ClickedEmailSupport ->
             ( model, send <| TriggerMailto )
