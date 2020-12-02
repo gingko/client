@@ -301,17 +301,20 @@ viewSidebar msgs currentDocument fileFilter docList ( exportSelection, exportFor
             else
                 msgs.sidebarStateChanged <| menu
 
-        sidebarButton menu icon =
+        sidebarButton menu icon titleString =
             div
-                [ classList [ ( "sidebar-button", True ), ( "open", sidebarState == menu ) ], onClick <| toggle menu ]
+                [ classList [ ( "sidebar-button", True ), ( "open", sidebarState == menu ) ]
+                , onClick <| toggle menu
+                , title titleString
+                ]
                 [ icon ]
     in
     [ div [ id "sidebar", classList [ ( "open", isOpen ) ] ]
-        [ sidebarButton File fileIcon
-        , sidebarButton Export exportIcon
+        [ sidebarButton File fileIcon "File"
+        , sidebarButton Export exportIcon "Export"
 
         --, sidebarButton Import importIcon -- TODO: Removed temporarily
-        , sidebarButton Settings settingsIcon
+        , sidebarButton Settings settingsIcon "Settings"
         ]
     , sidebarMenu
     ]
