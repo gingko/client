@@ -54,7 +54,7 @@ describe('User Signup Flow', () => {
 
   it('Adds selected trees to document list', () => {
     cy.get('input')
-      .click()
+      .click({multiple : true})
 
     cy.get('.modal-guts button')
       .click()
@@ -68,16 +68,17 @@ describe('User Signup Flow', () => {
 
   it('Correctly imported the data', () => {
     cy.get('.doc-title')
+      .contains('Screenplay')
       .click()
 
-    cy.url().as('importedDocUrl').should('match', /\/[a-zA-Z0-9]{5}$/)
+    cy.url().as('importedScreenplayUrl').should('match', /\/[a-zA-Z0-9]{5}$/)
 
-    cy.contains('Test tree "root"')
+    cy.contains('tips to improve your logline')
+  })
 
-    cy.get(':nth-child(2) > .group')
-      .then((el) => {
-        expect(el.children('.card').toArray().map(c => c.innerText))
-          .to.eql(["First Child", "Second Child", "Third Child"])
-      })
+  it('Does not contain data from other trees', () => {
+    cy.get('#document')
+      .should('not.contain', 'October')
+      .and('not.contain', 'example gingko tree')
   })
 })
