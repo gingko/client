@@ -61,3 +61,18 @@ Cypress.Commands.add('writeInCard', (textToType) => {
 Cypress.Commands.add('shortcut', (keys) => {
   cy.get('body').type(keys)
 })
+
+
+Cypress.Commands.add('getColumn', (colNum) => {
+  cy.get(`#column-container > .column:nth-child(${colNum})`)
+})
+
+
+Cypress.Commands.add('getGroup', (colNum, groupNum) => {
+  cy.get(`#column-container > .column:nth-child(${colNum}) > .group:nth-child(${groupNum + 1})`)
+})
+
+
+Cypress.Commands.add('getCard', (colNum, groupNum, cardNum) => {
+  cy.get(`#column-container > .column:nth-child(${colNum}) > .group:nth-child(${groupNum + 1}) > .card:nth-child(${cardNum})`)
+})
