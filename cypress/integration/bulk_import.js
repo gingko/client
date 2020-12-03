@@ -46,7 +46,10 @@ describe('User Signup Flow', () => {
     cy.get('.file-drop-zone')
       .attachFile('bulk-import-test.txt', { subjectType: 'drag-n-drop' })
 
-    cy.contains('Untitled tree')
+    cy.get('#import-selection-list')
+      .should('contain', 'Screenplay')
+      .and('contain', 'Timeline')
+      .and('contain', 'Example Tree')
   })
 
   it('Adds selected trees to document list', () => {
@@ -57,10 +60,10 @@ describe('User Signup Flow', () => {
       .click()
 
     cy.get('.document-list > .document-item')
-      .should('have.length', 1)
+      .should('have.length', 3)
 
     cy.get('.doc-title')
-      .contains('Untitled tree')
+      .contains('Screenplay')
   })
 
   it('Correctly imported the data', () => {
