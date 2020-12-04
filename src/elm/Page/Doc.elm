@@ -2262,6 +2262,9 @@ view model =
 viewLoaded : Model -> Html Msg
 viewLoaded model =
     let
+        language =
+            User.language model.user
+
         replace orig new =
             Regex.replace (Regex.fromString orig |> Maybe.withDefault Regex.never) (\_ -> new)
 
@@ -2289,7 +2292,7 @@ pre, code, .group.has-active .card textarea {
     case Data.conflictList model.data of
         [] ->
             if model.viewState.viewMode == FullscreenEditing then
-                lazy3 Fullscreen.view (User.language model.user) model.viewState model.workingTree
+                lazy3 Fullscreen.view language model.viewState model.workingTree
                     |> Html.map FullscreenMsg
 
             else
@@ -2343,8 +2346,16 @@ pre, code, .group.has-active .card textarea {
                             model.documents
                             model.exportSettings
                             model.sidebarState
+                        ++ UI.viewShortcuts
+                            ShortcutTrayToggle
+                            language
+                            (User.shortcutTrayOpen model.user)
+                            model.isMac
+                            model.workingTree.tree.children
+                            model.textCursorInfo
+                            model.viewState
                         ++ [ viewSearchField SearchFieldUpdated model
-                           , viewFooter WordcountTrayToggle ShortcutTrayToggle model
+                           , viewFooter WordcountTrayToggle model
                            , case model.historyState of
                                 From currHead ->
                                     viewHistory NoOp CheckoutCommit Restore CancelHistory (User.language model.user) currHead model.data

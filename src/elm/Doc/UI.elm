@@ -1,4 +1,4 @@
-module Doc.UI exposing (countWords, viewConflict, viewFooter, viewHeader, viewHistory, viewHomeLink, viewSaveIndicator, viewSearchField, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewVideo)
+module Doc.UI exposing (countWords, viewConflict, viewFooter, viewHeader, viewHistory, viewHomeLink, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewVideo)
 
 import Coders exposing (treeToMarkdownString)
 import Diff exposing (..)
@@ -454,7 +454,6 @@ viewSearchField searchFieldMsg { viewState, user } =
 
 viewFooter :
     msg
-    -> msg
     ->
         { m
             | viewState : ViewState
@@ -462,15 +461,10 @@ viewFooter :
             , startingWordcount : Int
             , wordcountTrayOpen : Bool
             , user : User
-            , isMac : Bool
-            , textCursorInfo : TextCursorInfo
         }
     -> Html msg
-viewFooter wordCountToggle shortcutToggle model =
+viewFooter wordCountToggle model =
     let
-        shortcutTrayOpen =
-            User.shortcutTrayOpen model.user
-
         language =
             User.language model.user
 
@@ -503,32 +497,10 @@ viewFooter wordCountToggle shortcutToggle model =
 
                 _ ->
                     []
-
-        isOnly =
-            case model.workingTree.tree.children of
-                Children [ singleRoot ] ->
-                    if singleRoot.children == Children [] then
-                        True
-
-                    else
-                        False
-
-                _ ->
-                    False
     in
     div
         [ class "footer" ]
-        ([ viewShortcutsToggle
-            shortcutToggle
-            language
-            shortcutTrayOpen
-            model.isMac
-            isOnly
-            model.textCursorInfo
-            model.viewState
-         ]
-            ++ viewWordCount
-        )
+        viewWordCount
 
 
 viewHistory : msg -> (String -> msg) -> msg -> msg -> Translation.Language -> String -> Data.Model -> Html msg
@@ -596,11 +568,23 @@ viewVideo modalMsg { videoModalOpen } =
         div [] []
 
 
-viewShortcutsToggle : msg -> Language -> Bool -> Bool -> Bool -> TextCursorInfo -> ViewState -> Html msg
-viewShortcutsToggle trayToggleMsg lang isOpen isMac isOnly textCursorInfo vs =
+viewShortcuts : msg -> Language -> Bool -> Bool -> Children -> TextCursorInfo -> ViewState -> List (Html msg)
+viewShortcuts trayToggleMsg lang isOpen isMac children textCursorInfo vs =
     let
         isTextSelected =
             textCursorInfo.selected
+
+        isOnly =
+            case children of
+                Children [ singleRoot ] ->
+                    if singleRoot.children == Children [] then
+                        True
+
+                    else
+                        False
+
+                _ ->
+                    False
 
         viewIfNotOnly content =
             if not isOnly then
@@ -657,10 +641,10 @@ viewShortcutsToggle trayToggleMsg lang isOpen isMac isOnly textCursorInfo vs =
         in
         case vs.viewMode of
             Normal ->
-                div
+                [ div
                     [ id "shortcuts-tray", onClick trayToggleMsg ]
-                    [ div [ class "popup" ]
-                        [ h4 [] [ text "Keyboard Shortcuts" ]
+                    [ div [ id "shortcuts" ]
+                        [ h3 [] [ text "Keyboard Shortcuts" ]
                         , h5 [] [ text "Edit Cards" ]
                         , shortcutSpan [ tr lang EnterKey ] (tr lang EnterAction)
                         , shortcutSpan [ "Shift", tr lang EnterKey ] "to Edit in Fullscreen"
@@ -677,17 +661,14 @@ viewShortcutsToggle trayToggleMsg lang isOpen isMac isOnly textCursorInfo vs =
                         , viewIfNotOnly <| shortcutSpan [ ctrlOrCmd, "Shift", "↓" ] (tr lang MergeDownAction)
                         , viewIfNotOnly <| shortcutSpan [ ctrlOrCmd, "Shift", "↑" ] (tr lang MergeUpAction)
                         ]
-                    , div [ classList [ ( "icon-stack", True ), ( "open", isOpen ) ] ]
-                        [ Icon.keyboard (defaultOptions |> iconColor)
-                        , Icon.question (defaultOptions |> iconColor |> Icon.size 14)
-                        ]
                     ]
+                ]
 
             _ ->
-                div
+                [ div
                     [ id "shortcuts-tray", onClick trayToggleMsg ]
-                    [ div [ class "popup" ]
-                        [ h4 [] [ text "Keyboard Shortcuts (Edit Mode)" ]
+                    [ div [ id "shortcuts" ]
+                        [ h3 [] [ text "Keyboard Shortcuts (Edit Mode)" ]
                         , h5 [] [ text "Save/Cancel Changes" ]
                         , shortcutSpan [ ctrlOrCmd, tr lang EnterKey ] (tr lang ToSaveChanges)
                         , shortcutSpan [ tr lang EscKey ] (tr lang ToCancelChanges)
@@ -709,24 +690,20 @@ viewShortcutsToggle trayToggleMsg lang isOpen isMac isOnly textCursorInfo vs =
                                 ]
                             ]
                         ]
-                    , div [ classList [ ( "icon-stack", True ), ( "open", isOpen ) ] ]
-                        [ Icon.keyboard (defaultOptions |> iconColor)
-                        , Icon.question (defaultOptions |> iconColor |> Icon.size 14)
-                        ]
                     ]
+                ]
 
     else
         let
             iconColor =
                 Icon.color "#6c7c84"
         in
-        div
+        [ div
             [ id "shortcuts-tray", onClick trayToggleMsg, title <| tr lang KeyboardHelp ]
             [ div [ classList [ ( "icon-stack", True ), ( "open", isOpen ) ] ]
-                [ Icon.keyboard (defaultOptions |> iconColor)
-                , Icon.question (defaultOptions |> iconColor |> Icon.size 14)
-                ]
+                [ Icon.keyboard (defaultOptions |> iconColor) ]
             ]
+        ]
 
 
 

@@ -290,12 +290,12 @@ body {
   height: 100%;
   width: 100%;
   display: grid;
-  grid-template-columns: 40px auto 1fr;
+  grid-template-columns: 40px auto 1fr auto;
   grid-template-rows: 40px 1fr 25px;
   grid-template-areas:
-    "home home document-header"
-    "sidebar sidebar-menu document"
-    "sidebar sidebar-menu document-footer";
+    "home home document-header document-header"
+    "sidebar sidebar-menu document right-sidebar"
+    "sidebar sidebar-menu document-footer right-sidebar";
 }
 
 #loading-overlay {
@@ -1405,7 +1405,7 @@ pre {
 .footer {
   grid-area: document-footer;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: flex-end;
   width: 100%;
   padding: 2px 6px;
@@ -1425,8 +1425,9 @@ pre {
 }
 
 #search-field {
-  position: fixed;
-  top: 50px;
+  grid-area: document;
+  position: absolute;
+  top: 10px;
   right: 10px;
 }
 
@@ -1481,48 +1482,29 @@ pre {
 }
 
 #shortcuts-tray {
+  grid-area: right-sidebar;
   display: flex;
   flex-direction: column;
-  padding: 1px 6px;
-  z-index: 99;
+  padding: 10px;
+  background-color: hsl(202, 34%, 96%);
+  border-left: 1px solid hsl(212deg, 5%, 58%);
+  box-shadow: 0 0 4px #00000085;
+  z-index: 5;
   cursor: pointer;
 }
 
-#shortcuts-tray div.popup {
-  position: relative;
+#shortcuts {
   display: flex;
   flex-direction: column;
-  padding: 2px 8px 8px 6px;
-  border-radius: 4px 4px 4px 0;
-  border-bottom: 1px solid #84939a;
-  background-color: var(--active-bg);
-  cursor: default;
+  overflow-y: auto;
 }
-#shortcuts-tray div.popup::before {
-  content: '';
-  position: absolute;
-  width: 100%;
-  height: 99%;
-  left: 0px;
-  border-radius: 4px 4px 4px 0;
-  z-index: -1;
-  box-shadow: 1px -2px 3px #3c484e;
-}
-#shortcuts-tray div.popup::after {
-  content: '';
-  width: 42px;
-  height: 4px;
-  background-color: var(--active-bg);
-  position: absolute;
-  bottom: -4px;
-  left: 0;
+
+#shortcuts span {
+  font-size: 0.6rem;
 }
 
 #shortcuts-tray div.icon-stack {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 6px;
-  width: min-content;
+  margin-top: 3px;
 }
 div.icon-stack.open {
   background-color: var(--active-bg);
