@@ -312,6 +312,12 @@ body {
 }
 
 
+#empty-message {
+  grid-area: document;
+  align-self: center;
+  justify-self: center;
+}
+
 #home {
   grid-area: home;
   padding: 5px;

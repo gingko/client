@@ -40,7 +40,7 @@ view model =
         ([ UI.viewHomeLink False
          , div [ id "document-header" ] []
          , div [ id "loading-overlay" ] []
-         , div []
+         , div [ id "empty-message" ]
             [ text "You don't have any documents. Create one here:"
             , a [ href <| Route.toString Route.DocNew ] [ text "NEW" ]
             ]
