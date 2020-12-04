@@ -1,4 +1,4 @@
-module Doc.UI exposing (countWords, viewConflict, viewFooter, viewHeader, viewHistory, viewHomeLink, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewVideo)
+module Doc.UI exposing (countWords, viewConflict, viewFileSwitcher, viewFooter, viewHeader, viewHistory, viewHomeLink, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewVideo)
 
 import Coders exposing (treeToMarkdownString)
 import Diff exposing (..)
@@ -369,8 +369,33 @@ viewSidebarStatic sidebarOpen =
 
 modalWrapper : msg -> List (Html msg) -> List (Html msg)
 modalWrapper closeMsg body =
-    [ div [ class "modal-overlay" ] []
-    , div [ class "modal" ] [ button [ class "close-button", onClick closeMsg ] [ text "X" ], div [ class "modal-guts" ] body ]
+    [ div [ class "modal-container" ]
+        [ div [ class "modal-overlay" ] []
+        , div [ class "modal" ] [ button [ class "close-button", onClick closeMsg ] [ text "X" ], div [ class "modal-guts" ] body ]
+        ]
+    ]
+
+
+viewFileSwitcher : (String -> msg) -> Metadata -> String -> DocList.Model -> List (Html msg)
+viewFileSwitcher searchInput currentDocument searchField docList =
+    let
+        filteredList =
+            DocList.filter searchField docList
+    in
+    [ div [ class "modal-container" ]
+        [ div [ class "modal-overlay" ] []
+        , div [ id "switcher-modal" ]
+            [ input
+                [ id "switcher-input"
+                , type_ "search"
+                , value searchField
+                , onInput searchInput
+                , class "mousetrap"
+                ]
+                []
+            , DocList.viewSmall currentDocument filteredList
+            ]
+        ]
     ]
 
 

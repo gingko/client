@@ -167,6 +167,7 @@ var shortcuts = [
   "alt+end",
   "[",
   "]",
+  "mod+o",
   "mod+x",
   "mod+c",
   "mod+v",

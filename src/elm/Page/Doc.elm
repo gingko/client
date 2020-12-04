@@ -92,6 +92,7 @@ type alias Model =
 
 type ModalState
     = NoModal
+    | FileSwitcher
     | TemplateSelector
 
 
@@ -983,7 +984,12 @@ update msg ({ workingTree } as model) =
                             normalMode model (deleteCard vs.active)
 
                         "esc" ->
-                            model |> intentCancelCard
+                            case model.modalState of
+                                NoModal ->
+                                    model |> intentCancelCard
+
+                                _ ->
+                                    ( { model | modalState = NoModal }, Cmd.none )
 
                         "mod+j" ->
                             if model.viewState.viewMode == Normal then
@@ -1154,6 +1160,16 @@ update msg ({ workingTree } as model) =
 
                                 Nothing ->
                                     ( model, Cmd.none )
+
+                        "mod+o" ->
+                            case model.modalState of
+                                FileSwitcher ->
+                                    ( { model | modalState = NoModal }, Cmd.none )
+
+                                _ ->
+                                    ( { model | modalState = FileSwitcher }
+                                    , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "switcher-input")
+                                    )
 
                         "mod+s" ->
                             ( model
@@ -2828,11 +2844,14 @@ collabsSpan collabsOnCard collabsEditingCard =
     span [ class "collaborators" ] [ text collabsString ]
 
 
-viewModal : Language -> { m | modalState : ModalState } -> List (Html Msg)
+viewModal : Language -> { m | modalState : ModalState, metadata : Metadata, fileSearchField : String, documents : DocList.Model } -> List (Html Msg)
 viewModal language model =
     case model.modalState of
         NoModal ->
             [ text "" ]
+
+        FileSwitcher ->
+            UI.viewFileSwitcher FileSearchChanged model.metadata model.fileSearchField model.documents
 
         TemplateSelector ->
             UI.viewTemplateSelector language
