@@ -23,7 +23,7 @@ describe('Remote Documents', () => {
     cy.wait(400)
     cy.url().as('secondDocUrl').should('match', /\/[a-zA-Z0-9]{5}$/)
 
-    cy.writeInCard('Second Test doc')
+    cy.writeInCard('Another Test doc')
     cy.shortcut('{ctrl}l')
     cy.writeInCard('# 2\nChild card')
     cy.shortcut('{ctrl}j')
@@ -33,7 +33,7 @@ describe('Remote Documents', () => {
 
     cy.get('#title h1').click()
     cy.get('#title input')
-      .type('Second doc, with title')
+      .type('Another doc, with title')
 
     cy.contains('Rename')
       .click()
@@ -54,7 +54,7 @@ describe('Remote Documents', () => {
     cy.visit(config.TEST_SERVER)
 
     cy.contains('#documents-block', 'Untitled')
-      .contains('#documents-block', 'Second doc, with title')
+      .contains('#documents-block', 'Another doc, with title')
   })
 
   it('Should go to the first tree on click', () => {
@@ -70,11 +70,11 @@ describe('Remote Documents', () => {
     cy.get('.sidebar-button').first().click()
 
     cy.contains('#sidebar-menu', 'Untitled')
-      .contains('#sidebar-menu', 'Second doc, with title')
+      .contains('#sidebar-menu', 'Another doc, with title')
   })
 
   it('Should navigate to tree on clicking sidebar document', function () {
-    cy.get('#sidebar-menu').contains('Second').click()
+    cy.get('#sidebar-menu').contains('Another').click()
 
     cy.url().should('equal', this.secondDocUrl)
   })
@@ -97,16 +97,16 @@ describe('Remote Documents', () => {
 
   it('Displays list of trees in switcher', () => {
     cy.get('#switcher-modal .switcher-document-list .switcher-document-item').then($list => {
-      expect($list[0].innerHTML).to.contain('Second doc, with title')
+      expect($list[0].innerHTML).to.contain('Another doc, with title')
       expect($list[1].innerHTML).to.contain('Untitled')
     })
   })
 
   it('Filters list of trees', ()=> {
-    cy.get('#switcher-modal input').type('sec')
+    cy.get('#switcher-modal input').type('ano')
 
     cy.get('#switcher-modal .switcher-document-list')
-      .should('contain', 'Second doc, with title')
+      .should('contain', 'Another doc, with title')
       .should('not.contain', 'Untitled')
   })
 

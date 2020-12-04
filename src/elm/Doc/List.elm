@@ -1,4 +1,4 @@
-port module Doc.List exposing (Model, current, fetch, filter, init, subscribe, viewLarge, viewSmall, viewSwitcher)
+port module Doc.List exposing (Model, current, fetch, filter, init, sortByUpdated, subscribe, viewLarge, viewSmall, viewSwitcher)
 
 import Date
 import Doc.Metadata as Metadata exposing (Metadata)
@@ -53,6 +53,19 @@ filter term model =
                             |> String.toLower
                             |> String.contains (term |> String.toLower)
                     )
+                |> Success
+
+        _ ->
+            model
+
+
+sortByUpdated : Model -> Model
+sortByUpdated model =
+    case model of
+        Success docList ->
+            docList
+                |> List.sortBy (Metadata.getUpdatedAt >> Time.posixToMillis)
+                |> List.reverse
                 |> Success
 
         _ ->
