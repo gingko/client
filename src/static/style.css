@@ -555,6 +555,39 @@ li.sidebar-document-item.active::after {
   z-index: 21;
 }
 
+#switcher-modal input {
+  width: 100%;
+}
+
+.switcher-document-list {
+  padding-top: 10px;
+  overflow-y: auto;
+}
+
+.switcher-document-item {
+  cursor: default;
+  padding: 10px;
+}
+
+.switcher-document-item.current {
+  font-weight: bold;
+}
+
+.switcher-document-item a {
+  width: 100%;
+  display: block;
+}
+.switcher-document-item a,
+.switcher-document-item a:active,
+.switcher-document-item a:visited {
+  text-decoration: none;
+  color: var(--normal-text-color);
+}
+
+.switcher-instructions {
+  font-size: 13px;
+}
+
 
 
 #document {

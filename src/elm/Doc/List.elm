@@ -1,4 +1,4 @@
-port module Doc.List exposing (Model, current, fetch, filter, init, subscribe, viewLarge, viewSmall)
+port module Doc.List exposing (Model, current, fetch, filter, init, subscribe, viewLarge, viewSmall, viewSwitcher)
 
 import Date
 import Doc.Metadata as Metadata exposing (Metadata)
@@ -174,6 +174,26 @@ viewSmall currentDocument model =
 
         Success docs ->
             ul [ class "sidebar-document-list" ] (List.map viewDocItem docs)
+
+        Failure _ ->
+            text "Failed to load documents list."
+
+
+viewSwitcher : Metadata -> Model -> Html msg
+viewSwitcher currentDocument model =
+    let
+        viewDocItem d =
+            div [ classList [ ( "switcher-document-item", True ), ( "current", Metadata.isSameDocId d currentDocument ) ] ]
+                [ a [ href <| Route.toString (Route.DocUntitled (Metadata.getDocId d)) ]
+                    [ Metadata.getDocName d |> Maybe.withDefault "Untitled" |> text ]
+                ]
+    in
+    case model of
+        Loading ->
+            text "Loading..."
+
+        Success docs ->
+            div [ class "switcher-document-list" ] (List.map viewDocItem docs)
 
         Failure _ ->
             text "Failed to load documents list."

@@ -393,7 +393,10 @@ viewFileSwitcher searchInput currentDocument searchField docList =
                 , class "mousetrap"
                 ]
                 []
-            , DocList.viewSmall currentDocument filteredList
+            , DocList.viewSwitcher currentDocument filteredList
+            , div [ class "switcher-instructions" ]
+                [--div [ class "switcher-instruction" ] [ span [ class "shortcut-key" ] [ text "↓ ↑" ], text " to navigate" ]
+                ]
             ]
         ]
     ]
