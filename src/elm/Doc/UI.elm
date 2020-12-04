@@ -685,7 +685,7 @@ viewShortcuts trayToggleMsg lang isOpen isMac children textCursorInfo vs =
                         , shortcutSpanEnabled isTextSelected [ ctrlOrCmd, "B" ] (tr lang ForBold)
                         , shortcutSpanEnabled isTextSelected [ ctrlOrCmd, "I" ] (tr lang ForItalic)
                         , span [ class "markdown-guide" ]
-                            [ a [ href "http://commonmark.org/help" ]
+                            [ a [ href "http://commonmark.org/help", target "_blank" ]
                                 [ text <| tr lang FormattingGuide
                                 , span [ class "icon-container" ] [ Icon.linkExternal (defaultOptions |> iconColor |> Icon.size 14) ]
                                 ]

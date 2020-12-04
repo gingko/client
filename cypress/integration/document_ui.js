@@ -59,4 +59,9 @@ describe('Document UI', () => {
 
     cy.get('#app-root').should('not.contain', '(Edit Mode)')
   })
+
+  it('Opens Markdown Format guide in external window', () => {
+    cy.shortcut('{enter}')
+    cy.get('#shortcuts a').should('have.attr', 'target', '_blank')
+  })
 })
