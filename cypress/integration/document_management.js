@@ -96,15 +96,16 @@ describe('Remote Documents', () => {
   })
 
   it('Displays list of trees in switcher', () => {
-    cy.get('#switcher-modal ul')
-      .should('contain', 'Untitled')
-      .should('contain', 'Second doc, with title')
+    cy.get('#switcher-modal .switcher-document-list .switcher-document-item').then($list => {
+      expect($list[0].innerHTML).to.contain('Second doc, with title')
+      expect($list[1].innerHTML).to.contain('Untitled')
+    })
   })
 
   it('Filters list of trees', ()=> {
     cy.get('#switcher-modal input').type('sec')
 
-    cy.get('#switcher-modal ul')
+    cy.get('#switcher-modal .switcher-document-list')
       .should('contain', 'Second doc, with title')
       .should('not.contain', 'Untitled')
   })
