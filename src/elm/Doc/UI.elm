@@ -1,4 +1,4 @@
-module Doc.UI exposing (countWords, viewConflict, viewFooter, viewHeader, viewHistory, viewHomeLink, viewSaveIndicator, viewSearchField, viewSidebar, viewSidebarStatic, viewVideo)
+module Doc.UI exposing (countWords, viewConflict, viewFooter, viewHeader, viewHistory, viewHomeLink, viewSaveIndicator, viewSearchField, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewVideo)
 
 import Coders exposing (treeToMarkdownString)
 import Diff exposing (..)
@@ -11,6 +11,7 @@ import Doc.TreeUtils exposing (..)
 import Html exposing (Html, a, br, button, del, div, fieldset, h1, h3, h4, h5, hr, iframe, img, input, ins, label, li, span, text, ul)
 import Html.Attributes as A exposing (..)
 import Html.Events exposing (onCheck, onClick, onInput, onSubmit)
+import Import.Template exposing (Template(..))
 import List.Extra as ListExtra exposing (getAt)
 import Octicons as Icon exposing (defaultOptions)
 import Page.Doc.Export exposing (ExportFormat(..), ExportSelection(..))
@@ -183,7 +184,7 @@ viewTopRightButtons msgs dropdownState user =
                 div [ id "account-dropdown" ]
                     [ text (User.name user |> Maybe.withDefault "")
                     , hr [] []
-                    , div [ onClick msgs.logoutRequested ] [ logoutIcon, text "Logout" ]
+                    , div [ id "logout-button", onClick msgs.logoutRequested ] [ logoutIcon, text "Logout" ]
                     ]
 
               else
@@ -198,6 +199,7 @@ viewTopRightButtons msgs dropdownState user =
 
 type alias SidebarMsgs msg =
     { sidebarStateChanged : SidebarState -> msg
+    , templateSelectorOpened : msg
     , fileSearchChanged : String -> msg
     , exportPreviewToggled : Bool -> msg
     , exportSelectionChanged : ExportSelection -> msg
@@ -233,7 +235,9 @@ viewSidebar msgs currentDocument fileFilter docList ( exportSelection, exportFor
                     in
                     div [ id "sidebar-menu" ]
                         [ h3 [] [ text "File" ]
-                        , a [ href (Route.toString Route.DocNew), class "sidebar-item" ] [ text "New" ]
+                        , button
+                            [ id "new-button", onClick msgs.templateSelectorOpened, class "sidebar-item" ]
+                            [ text "New" ]
                         , hr [ style "width" "80%" ] []
                         , input [ type_ "search", onInput msgs.fileSearchChanged ] []
                         , DocList.viewSmall currentDocument filteredList
@@ -285,18 +289,6 @@ viewSidebar msgs currentDocument fileFilter docList ( exportSelection, exportFor
             else
                 "hsl(202 22% 66%)"
 
-        fileIcon =
-            Icon.fileDirectory (defaultOptions |> Icon.color fileIconColor |> Icon.size 18)
-
-        exportIcon =
-            Icon.signOut (defaultOptions |> Icon.color fileIconColor |> Icon.size 18)
-
-        importIcon =
-            Icon.signIn (defaultOptions |> Icon.color fileIconColor |> Icon.size 18)
-
-        settingsIcon =
-            Icon.settings (defaultOptions |> Icon.color fileIconColor |> Icon.size 18)
-
         toggle menu =
             if sidebarState == menu then
                 msgs.sidebarStateChanged <| SidebarClosed
@@ -304,20 +296,51 @@ viewSidebar msgs currentDocument fileFilter docList ( exportSelection, exportFor
             else
                 msgs.sidebarStateChanged <| menu
 
-        sidebarButton menu icon titleString =
-            div
-                [ classList [ ( "sidebar-button", True ), ( "open", sidebarState == menu ) ]
-                , onClick <| toggle menu
-                , title titleString
-                ]
-                [ icon ]
+        sidebarButton menu =
+            case menu of
+                File ->
+                    div
+                        [ id "file-button"
+                        , title "File"
+                        , classList [ ( "sidebar-button", True ), ( "open", sidebarState == menu ) ]
+                        , onClick <| toggle menu
+                        ]
+                        [ Icon.fileDirectory (defaultOptions |> Icon.color fileIconColor |> Icon.size 18) ]
+
+                SidebarClosed ->
+                    div
+                        [ classList [ ( "sidebar-button", True ), ( "open", sidebarState == menu ) ], onClick <| toggle menu ]
+                        []
+
+                Export ->
+                    div
+                        [ id "export-button"
+                        , title "Export"
+                        , classList [ ( "sidebar-button", True ), ( "open", sidebarState == menu ) ]
+                        , onClick <| toggle menu
+                        ]
+                        [ Icon.signOut (defaultOptions |> Icon.color fileIconColor |> Icon.size 18) ]
+
+                Import ->
+                    div
+                        [ classList [ ( "sidebar-button", True ), ( "open", sidebarState == menu ) ], onClick <| toggle menu ]
+                        [ Icon.signIn (defaultOptions |> Icon.color fileIconColor |> Icon.size 18) ]
+
+                Settings ->
+                    div
+                        [ id "settings-button"
+                        , title "Settings"
+                        , classList [ ( "sidebar-button", True ), ( "open", sidebarState == menu ) ]
+                        , onClick <| toggle menu
+                        ]
+                        [ Icon.settings (defaultOptions |> Icon.color fileIconColor |> Icon.size 18) ]
     in
     [ div [ id "sidebar", classList [ ( "open", isOpen ) ] ]
-        [ sidebarButton File fileIcon "File"
-        , sidebarButton Export exportIcon "Export"
+        [ sidebarButton File
+        , sidebarButton Export
 
         --, sidebarButton Import importIcon -- TODO: Removed temporarily
-        , sidebarButton Settings settingsIcon "Settings"
+        , sidebarButton Settings
         ]
     , sidebarMenu
     ]
@@ -338,6 +361,57 @@ viewSidebarStatic sidebarOpen =
       else
         text ""
     ]
+
+
+
+-- MODALS
+
+
+modalWrapper : msg -> List (Html msg) -> List (Html msg)
+modalWrapper closeMsg body =
+    [ div [ class "modal-overlay" ] []
+    , div [ class "modal" ] [ button [ class "close-button", onClick closeMsg ] [ text "X" ], div [ class "modal-guts" ] body ]
+    ]
+
+
+type alias TemplateSelectorMsgs msg =
+    { modalClosed : msg, importBulkClicked : msg, importJSONRequested : msg }
+
+
+viewTemplateSelector : Language -> TemplateSelectorMsgs msg -> List (Html msg)
+viewTemplateSelector language msgs =
+    [ div [ id "templates-block" ]
+        [ a [ id "template-new", class "template-item", href (Route.toString Route.DocNew) ]
+            [ div [ classList [ ( "template-thumbnail", True ), ( "new", True ) ] ] []
+            , div [ class "template-title" ] [ text <| tr language HomeBlank ]
+            ]
+        , div [ id "template-import-bulk", class "template-item", onClick msgs.importBulkClicked ]
+            [ div [ classList [ ( "template-thumbnail", True ) ] ] [ Icon.fileZip (Icon.defaultOptions |> Icon.size 48) ]
+            , div [ class "template-title" ] [ text <| tr language HomeImportLegacy ]
+            , div [ class "template-description" ]
+                [ text <| tr language HomeLegacyFrom ]
+            ]
+        , div [ id "template-import", class "template-item", onClick msgs.importJSONRequested ]
+            [ div [ classList [ ( "template-thumbnail", True ) ] ] [ Icon.fileCode (Icon.defaultOptions |> Icon.size 48) ]
+            , div [ class "template-title" ] [ text "Import Single JSON" ]
+            , div [ class "template-description" ]
+                [ text "Import one tree from Legacy or Desktop Gingko." ]
+            ]
+        , a [ id "template-timeline", class "template-item", href <| Route.toString (Route.Import Timeline) ]
+            [ div [ classList [ ( "template-thumbnail", True ) ] ] [ Icon.lightBulb (Icon.defaultOptions |> Icon.size 48) ]
+            , div [ class "template-title" ] [ text "Timeline 2021" ]
+            , div [ class "template-description" ]
+                [ text "A tree-based calendar" ]
+            ]
+        , a [ id "template-academic", class "template-item", href <| Route.toString (Route.Import AcademicPaper) ]
+            [ div [ classList [ ( "template-thumbnail", True ) ] ] [ Icon.lightBulb (Icon.defaultOptions |> Icon.size 48) ]
+            , div [ class "template-title" ] [ text "Academic Paper" ]
+            , div [ class "template-description" ]
+                [ text "Academic Paper" ]
+            ]
+        ]
+    ]
+        |> modalWrapper msgs.modalClosed
 
 
 

@@ -74,7 +74,7 @@ changeRouteTo maybeRoute model =
                 Page.Signup.init user |> updateWith Signup GotSignupMsg
 
             Just Route.Login ->
-                Page.Login.init user |> updateWith Login GotLoginMsg
+                Page.Home.init user |> updateWith Home GotHomeMsg
 
             Just (Route.ForgotPassword email_) ->
                 Page.ForgotPassword.init user email_

@@ -1,0 +1,43 @@
+[
+  {
+    "content": "# Welcome to Gingko Writer\n\nHi there!\n\nThe basic idea of Gingko Writer is simple:\n1. You **write in cards**.\n2. Cards can have **one or more children** (shown to the right &rarr;).\n\nThis is an example \"tree document\" that you can play with. Go ahead and **double-click to edit** any card, or **drag-and-drop to move** it around.",
+    "children": [
+      {
+        "content": "## Adding New Cards\nYou can add cards in three ways:\n1. **Beginner**: Click on the `+` buttons that appear on the edges of existing cards\n2. **Intermediate**: Use `Ctrl+arrow keys`\n3. **Advanced**: Use `Ctrl+j/k/l` to add cards below/above/to-the-right",
+        "children": [
+          {
+            "content": "### Benefits of h/j/k/l to navigate & edit\nBy using these shortcut keys to move around your document, you get two key benefits:\n1. You can keep your hands on **the home row**.\n2. You can create cards **directly from edit mode**, unlike with Ctrl+arrows\n\nIt may take some getting used to, but possibly less than you'd expect.",
+            "children": []
+          }
+        ]
+      },
+      {
+        "content": "## Moving Cards\nJust **drag cards around** to rearrange them.\n\nWhen you move a card that has children, it moves all of them together.",
+        "children": [
+          {
+            "content": "### Deeper and Deeper\nThere's no depth limit to your trees, and standard laptops can handle 8-10 or more without issue.\n\nSo, if you feel the need to elaborate on an idea/argument/plot point, go as deep as you need to!",
+            "children": []
+          }
+        ]
+      },
+      {
+        "content": "## Undo/Redo & History\nGingko Writer **stores your full edit history**, including rearrangements. That means you can try out any changes, without fear, and undo them easily.\n\nTo do so, just hit `Ctrl+z` (or Cmd+z on mac), to bring up the history navigation slider.",
+        "children": [
+          {
+            "content": "### Blast from the Past\n\nWhile in history navigation mode, you can even click on a card and press `Ctrl+c` to copy it and it's children. You can then hit \"Cancel\" to exit history navigation, and `Ctrl+v` to paste that card and all its children into the current version (or even a different document).\n\nIn other words, **you can feel confident in making changes**, because you can always bring back old versions, or even just parts of them.",
+            "children": []
+          }
+        ]
+      },
+      {
+        "content": "## Keyboard Shortcuts & More Help\nGingko Writer becomes *much more powerful* once you get used to using the keyboard shortcuts.\n\nYou'll find a list of shortcuts by clicking the keyboard icon at the bottom-left.",
+        "children": [
+          {
+            "content": "### Contacting Support\n\nNeed more help? Come across a bug?\n\nJust click the ❓ at the top right to send us an email.",
+            "children": []
+          }
+        ]
+      }
+    ]
+  }
+]

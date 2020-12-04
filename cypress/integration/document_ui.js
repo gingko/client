@@ -5,7 +5,7 @@ Cypress.LocalStorage.clear = function (keys, ls, rs) {
   return;
 }
 
-describe('Document Editing', () => {
+describe('Document UI', () => {
   const testEmail = 'cypress@testing.com'
 
   before(() => {

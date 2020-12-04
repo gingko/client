@@ -23,6 +23,7 @@ import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy2, lazy3)
 import Html5.DragDrop as DragDrop
 import Http
+import Import.Incoming
 import Import.Single
 import Json.Decode as Json
 import List.Extra as ListExtra exposing (getAt)
@@ -32,6 +33,7 @@ import Page.Doc.Export as Export exposing (ExportFormat(..), ExportSelection(..)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Doc.Theme as Theme exposing (Theme(..), applyTheme)
 import Random
+import RandomId
 import Regex
 import Route
 import Task
@@ -68,6 +70,7 @@ type alias Model =
     , titleField : Maybe String
     , sidebarState : SidebarState
     , dropdownState : DropdownState
+    , modalState : ModalState
     , fileSearchField : String
     , exportPreview : Bool
     , exportSettings : ( ExportSelection, ExportFormat )
@@ -85,6 +88,11 @@ type alias Model =
     , currentTime : Time.Posix
     , seed : Random.Seed
     }
+
+
+type ModalState
+    = NoModal
+    | TemplateSelector
 
 
 defaultModel : Bool -> User -> String -> Model
@@ -131,7 +139,8 @@ defaultModel isNew session docId =
 
         else
             SidebarClosed
-    , dropdownState = None
+    , dropdownState = NoDropdown
+    , modalState = NoModal
     , fileSearchField = ""
     , exportPreview = False
     , exportSettings = ( ExportEverything, DOCX )
@@ -222,14 +231,22 @@ type Msg
     | ToggledHelpMenu Bool
     | ToggledAccountMenu Bool
     | ClickedEmailSupport
+      -- Sidebar & Modals
     | SidebarStateChanged SidebarState
+    | TemplateSelectorOpened
+    | ModalClosed
+    | ImportBulkClicked
+    | ImportJSONRequested
     | FileSearchChanged String
     | ExportPreviewToggled Bool
     | ExportSelectionChanged ExportSelection
     | ExportFormatChanged ExportFormat
-    | ImportJSONRequested
+      -- Import
     | ImportJSONSelected File
-    | ImportJSONLoaded String
+    | ImportJSONLoaded String String
+    | ImportJSONIdGenerated Tree String String
+    | ImportJSONCompleted String
+      -- Misc UI
     | ThemeChanged Theme
     | TimeUpdate Time.Posix
     | VideoModal Bool
@@ -544,8 +561,8 @@ update msg ({ workingTree } as model) =
         LogoutRequested ->
             ( model, User.logout )
 
-        LoginStateChanged _ ->
-            ( model, Route.pushUrl (User.navKey model.user) Route.Login )
+        LoginStateChanged newUser ->
+            ( { model | user = newUser }, Route.pushUrl (User.navKey newUser) Route.Login )
 
         ToggledHelpMenu isOpen ->
             ( { model
@@ -554,7 +571,7 @@ update msg ({ workingTree } as model) =
                         Help
 
                     else
-                        None
+                        NoDropdown
               }
             , Cmd.none
             )
@@ -566,7 +583,7 @@ update msg ({ workingTree } as model) =
                         Account
 
                     else
-                        None
+                        NoDropdown
               }
             , Cmd.none
             )
@@ -585,6 +602,15 @@ update msg ({ workingTree } as model) =
                             User.setFileOpen False model.user
             in
             ( { model | user = newSessionData, sidebarState = newSidebarState }, Cmd.none )
+
+        TemplateSelectorOpened ->
+            ( { model | modalState = TemplateSelector }, Cmd.none )
+
+        ModalClosed ->
+            ( { model | modalState = NoModal }, Cmd.none )
+
+        ImportBulkClicked ->
+            ( model, Cmd.none )
 
         FileSearchChanged term ->
             ( { model | fileSearchField = term }, Cmd.none )
@@ -608,19 +634,31 @@ update msg ({ workingTree } as model) =
             ( model, Select.file [ "application/json", "text/plain" ] ImportJSONSelected )
 
         ImportJSONSelected file ->
-            ( model, Task.perform ImportJSONLoaded (File.toString file) )
+            ( model, Task.perform (ImportJSONLoaded (File.name file)) (File.toString file) )
 
-        ImportJSONLoaded jsonString ->
+        ImportJSONLoaded fileName jsonString ->
             let
                 ( importTreeDecoder, newSeed ) =
-                    Import.Single.decoder model.seed
+                    Import.Single.decoder (User.seed model.user)
             in
             case Json.decodeString importTreeDecoder jsonString of
                 Ok tree ->
-                    ( { model | workingTree = TreeStructure.setTree tree model.workingTree, seed = newSeed }, Cmd.none )
+                    ( { model | loading = True, user = User.setSeed newSeed model.user }
+                    , RandomId.generate (ImportJSONIdGenerated tree fileName)
+                    )
 
-                Err _ ->
+                Err err ->
                     ( { model | seed = newSeed }, Cmd.none )
+
+        ImportJSONIdGenerated tree fileName docId ->
+            let
+                author =
+                    model.user |> User.name |> Maybe.withDefault "jane.doe@gmail.com"
+            in
+            ( model, send <| SaveImportedData (Import.Single.encode { author = author, docId = docId, fileName = fileName } tree) )
+
+        ImportJSONCompleted docId ->
+            ( model, Route.pushUrl (User.navKey model.user) (Route.DocUntitled docId) )
 
         ThemeChanged newTheme ->
             ( { model | theme = newTheme }, send <| SaveThemeSetting newTheme )
@@ -2291,6 +2329,7 @@ pre, code, .group.has-active .card textarea {
                      ]
                         ++ UI.viewSidebar
                             { sidebarStateChanged = SidebarStateChanged
+                            , templateSelectorOpened = TemplateSelectorOpened
                             , fileSearchChanged = FileSearchChanged
                             , exportPreviewToggled = ExportPreviewToggled
                             , exportSelectionChanged = ExportSelectionChanged
@@ -2317,6 +2356,7 @@ pre, code, .group.has-active .card textarea {
                            , div [ id "loading-overlay" ] []
                            , div [ id "preloader" ] []
                            ]
+                        ++ viewModal (User.language model.user) model
                     )
 
         conflicts ->
@@ -2777,6 +2817,20 @@ collabsSpan collabsOnCard collabsEditingCard =
     span [ class "collaborators" ] [ text collabsString ]
 
 
+viewModal : Language -> { m | modalState : ModalState } -> List (Html Msg)
+viewModal language model =
+    case model.modalState of
+        NoModal ->
+            [ text "" ]
+
+        TemplateSelector ->
+            UI.viewTemplateSelector language
+                { modalClosed = ModalClosed
+                , importBulkClicked = ImportBulkClicked
+                , importJSONRequested = ImportJSONRequested
+                }
+
+
 
 -- SUBSCRIPTIONS
 
@@ -2785,6 +2839,15 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Incoming.subscribe Incoming LogErr
+        , Import.Incoming.importComplete
+            (\docId_ ->
+                case docId_ of
+                    Just docId ->
+                        ImportJSONCompleted docId
+
+                    Nothing ->
+                        NoOp
+            )
         , DocList.subscribe ReceivedDocuments
         , User.settingsChange SettingsChanged
         , User.loginChanges LoginStateChanged (User.navKey model.user)

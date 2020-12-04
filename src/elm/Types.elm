@@ -61,7 +61,7 @@ type SidebarState
 
 
 type DropdownState
-    = None
+    = NoDropdown
     | Help
     | Account
 
