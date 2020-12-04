@@ -15,11 +15,11 @@ type alias Model =
 init : User -> ( Model, Cmd msg )
 init user =
     case User.lastDocId user of
-        Nothing ->
-            ( { user = user, documents = DocList.init }, DocList.fetch user )
-
         Just docId ->
             ( { user = user, documents = DocList.init }, Route.replaceUrl (User.navKey user) (Route.DocUntitled docId) )
+
+        Nothing ->
+            ( { user = user, documents = DocList.init }, DocList.fetch user )
 
 
 toUser : Model -> User
@@ -38,7 +38,17 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    case msg of
+        NoOp ->
+            ( model, Cmd.none )
+
+        ReceivedDocuments docList ->
+            case DocList.getLastUpdated docList of
+                Nothing ->
+                    ( { model | documents = docList }, Cmd.none )
+
+                Just docId ->
+                    ( model, Route.replaceUrl (User.navKey model.user) (Route.DocUntitled docId) )
 
 
 

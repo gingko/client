@@ -237,6 +237,10 @@ update msg model =
             Page.Home.update homeMsg homeModel
                 |> updateWith Home GotHomeMsg
 
+        ( GotEmptyMsg emptyMsg, Empty emptyModel ) ->
+            Page.Empty.update emptyMsg emptyModel
+                |> updateWith Empty GotEmptyMsg
+
         ( GotImportMsg homeMsg, Import homeModel ) ->
             Page.Import.update homeMsg homeModel
                 |> updateWith Import GotImportMsg

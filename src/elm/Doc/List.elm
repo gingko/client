@@ -1,4 +1,4 @@
-port module Doc.List exposing (Model, current, fetch, filter, init, isLoading, sortByUpdated, subscribe, viewLarge, viewSmall, viewSwitcher)
+port module Doc.List exposing (Model, current, fetch, filter, getLastUpdated, init, isLoading, sortByUpdated, subscribe, viewLarge, viewSmall, viewSwitcher)
 
 import Date
 import Doc.Metadata as Metadata exposing (Metadata)
@@ -37,6 +37,20 @@ isLoading model =
 
     else
         False
+
+
+getLastUpdated : Model -> Maybe String
+getLastUpdated model =
+    case model of
+        Success list ->
+            list
+                |> List.sortBy (Metadata.getUpdatedAt >> Time.posixToMillis)
+                |> List.map Metadata.getDocId
+                |> List.reverse
+                |> List.head
+
+        _ ->
+            Nothing
 
 
 fetch : User -> Cmd msg
