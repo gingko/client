@@ -47,7 +47,7 @@ update msg user =
                     )
 
                 Err _ ->
-                    ( user, Route.replaceUrl (User.navKey user) Route.Home )
+                    ( user, Route.replaceUrl (User.navKey user) Route.Root )
 
         TemplateImported tree fileName docId ->
             let
@@ -62,7 +62,7 @@ update msg user =
                     ( user, Route.pushUrl (User.navKey user) (Route.DocUntitled docId) )
 
                 Nothing ->
-                    ( user, Route.replaceUrl (User.navKey user) Route.Home )
+                    ( user, Route.replaceUrl (User.navKey user) Route.Root )
 
 
 

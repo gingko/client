@@ -31,7 +31,7 @@ import User exposing (User)
 viewHomeLink : Bool -> Html msg
 viewHomeLink sidebarOpen =
     div [ id "home" ]
-        [ a [ id "home-link", href (Route.toString Route.Home) ]
+        [ a [ id "home-link", href (Route.toString Route.Root) ]
             [ img [ src "../gingko-leaf-logo.svg", width 28 ]
                 []
             , if sidebarOpen then

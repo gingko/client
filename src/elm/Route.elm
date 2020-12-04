@@ -9,7 +9,7 @@ import Url.Parser.Query as Query
 
 
 type Route
-    = Home
+    = Root
     | Signup
     | Login
     | ForgotPassword (Maybe String)
@@ -23,7 +23,7 @@ type Route
 parser : Parser (Route -> a) a
 parser =
     oneOf
-        [ Parser.map Home Parser.top
+        [ Parser.map Root Parser.top
         , Parser.map Signup (s "signup")
         , Parser.map Login (s "login")
         , Parser.map ForgotPassword (s "forgot-password" <?> Query.string "email")
@@ -43,7 +43,7 @@ fromUrl url =
 toString : Route -> String
 toString route =
     case route of
-        Home ->
+        Root ->
             "/"
 
         Signup ->

@@ -98,7 +98,7 @@ update msg model =
             ( { model | errors = [ errorMsg ], password = "" }, Cmd.none )
 
         GotUser user ->
-            ( { model | user = user }, Route.pushUrl (User.navKey user) Route.Home )
+            ( { model | user = user }, Route.pushUrl (User.navKey user) Route.Root )
 
 
 modelValidator : Validator ( Field, String ) Model

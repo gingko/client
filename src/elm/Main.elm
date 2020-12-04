@@ -7,6 +7,7 @@ import Import.Template as Template
 import Json.Decode exposing (Decoder, Value)
 import Page.Doc
 import Page.DocNew
+import Page.Empty
 import Page.ForgotPassword
 import Page.Home
 import Page.Import
@@ -31,6 +32,7 @@ type Model
     | ForgotPassword Page.ForgotPassword.Model
     | ResetPassword Page.ResetPassword.Model
     | Home Page.Home.Model
+    | Empty Page.Empty.Model
     | Import Page.Import.Model
     | DocNew User
     | Doc Page.Doc.Model
@@ -67,8 +69,8 @@ changeRouteTo maybeRoute model =
     in
     if User.loggedIn user then
         case maybeRoute of
-            Just Route.Home ->
-                Page.Home.init user |> updateWith Home GotHomeMsg
+            Just Route.Root ->
+                Page.Empty.init user |> updateWith Empty GotEmptyMsg
 
             Just Route.Signup ->
                 Page.Signup.init user |> updateWith Signup GotSignupMsg
@@ -162,6 +164,9 @@ toUser page =
         Home home ->
             Page.Home.toUser home
 
+        Empty home ->
+            Page.Empty.toUser home
+
         Import user ->
             user
 
@@ -183,6 +188,7 @@ type Msg
     | GotLoginMsg Page.Login.Msg
     | GotForgotPasswordMsg Page.ForgotPassword.Msg
     | GotResetPasswordMsg Page.ResetPassword.Msg
+    | GotEmptyMsg Page.Empty.Msg
     | GotHomeMsg Page.Home.Msg
     | GotImportMsg Page.Import.Msg
     | GotDocNewMsg Page.DocNew.Msg
@@ -287,6 +293,9 @@ view model =
         Home home ->
             { title = "Gingko - Home", body = [ Html.map GotHomeMsg (Page.Home.view home) ] }
 
+        Empty empty ->
+            { title = "Gingko - Empty", body = [ Html.map GotEmptyMsg (Page.Empty.view empty) ] }
+
         Import importModel ->
             { title = "Importing...", body = [ Html.div [] [ Html.text "Importing..." ] ] }
 
@@ -324,6 +333,9 @@ subscriptions model =
 
         Home pageModel ->
             Sub.map GotHomeMsg (Page.Home.subscriptions pageModel)
+
+        Empty _ ->
+            Sub.none
 
         Import pageModel ->
             Sub.map GotImportMsg (Page.Import.subscriptions pageModel)
