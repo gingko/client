@@ -79,6 +79,27 @@ describe('Remote Documents', () => {
     cy.url().should('equal', this.secondDocUrl)
   })
 
+  it('Toggles "Open" modal on "Ctrl+O"', () => {
+    cy.get('#switcher-modal').should('not.exist')
+
+    cy.shortcut('{ctrl}o')
+    cy.get('#switcher-modal').should('exist')
+
+    cy.shortcut('{ctrl}o')
+    cy.get('#switcher-modal').should('not.exist')
+  })
+
+  it('It autofocuses on "Open" modal input', () => {
+    cy.shortcut('{ctrl}o')
+
+    cy.get('#switcher-modal input').should('have.focus')
+  })
+
+  it('Closes "Open" modal on "Esc"', () => {
+    cy.shortcut('{esc}')
+    cy.get('#switcher-modal').should('not.exist')
+  })
+
   it('Should navigate to home on clicking home icon', function () {
     cy.get('#home-link').click()
 
