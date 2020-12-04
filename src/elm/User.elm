@@ -1,4 +1,4 @@
-port module User exposing (User, db, decode, fileMenuOpen, language, loggedIn, loginChanges, logout, name, navKey, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, settingsChange, shortcutTrayOpen, storeLogin, storeSignup)
+port module User exposing (User, db, decode, fileMenuOpen, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, settingsChange, shortcutTrayOpen, storeLogin, storeSignup)
 
 import Browser.Navigation as Nav
 import Http
@@ -25,6 +25,7 @@ type alias SessionData =
     { navKey : Nav.Key
     , seed : Random.Seed
     , fileMenuOpen : Bool
+    , lastDocId : Maybe String
     }
 
 
@@ -74,6 +75,11 @@ name user =
 seed : User -> Random.Seed
 seed user =
     getFromSession .seed user
+
+
+lastDocId : User -> Maybe String
+lastDocId user =
+    getFromSession .lastDocId user
 
 
 db : User -> Maybe String
@@ -186,7 +192,7 @@ decode key json =
                         |> List.foldl (+) 12345
                         |> Random.initialSeed
             in
-            Guest (SessionData key errToSeed False) (GuestData En)
+            Guest (SessionData key errToSeed False Nothing) (GuestData En)
 
 
 decoder : Nav.Key -> Dec.Decoder User
@@ -196,16 +202,20 @@ decoder key =
 
 decodeLoggedIn : Nav.Key -> Dec.Decoder User
 decodeLoggedIn key =
-    Dec.succeed (\email s lang trayOpen -> LoggedIn (SessionData key s False) (UserData email lang trayOpen))
+    Dec.succeed
+        (\email s lang trayOpen lastDoc ->
+            LoggedIn (SessionData key s False lastDoc) (UserData email lang trayOpen)
+        )
         |> required "email" Dec.string
         |> required "seed" (Dec.int |> Dec.map Random.initialSeed)
         |> optional "language" (Dec.string |> Dec.map langFromString) En
         |> optional "shortcutTrayOpen" Dec.bool True
+        |> optional "lastDocId" (Dec.maybe Dec.string) Nothing
 
 
 decodeGuest : Nav.Key -> Dec.Decoder User
 decodeGuest key =
-    Dec.map2 (\s l -> Guest (SessionData key s False) (GuestData l))
+    Dec.map2 (\s l -> Guest (SessionData key s False Nothing) (GuestData l))
         (Dec.field "seed" (Dec.int |> Dec.map Random.initialSeed))
         (Dec.field "language" (Dec.string |> Dec.map langFromString))
 

@@ -334,8 +334,8 @@ subscriptions model =
         Home pageModel ->
             Sub.map GotHomeMsg (Page.Home.subscriptions pageModel)
 
-        Empty _ ->
-            Sub.none
+        Empty pageModel ->
+            Sub.map GotEmptyMsg (Page.Empty.subscriptions pageModel)
 
         Import pageModel ->
             Sub.map GotImportMsg (Page.Import.subscriptions pageModel)

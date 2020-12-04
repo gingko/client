@@ -1,4 +1,4 @@
-port module Doc.List exposing (Model, current, fetch, filter, init, sortByUpdated, subscribe, viewLarge, viewSmall, viewSwitcher)
+port module Doc.List exposing (Model, current, fetch, filter, init, isLoading, sortByUpdated, subscribe, viewLarge, viewSmall, viewSwitcher)
 
 import Date
 import Doc.Metadata as Metadata exposing (Metadata)
@@ -28,6 +28,15 @@ type Model
 init : Model
 init =
     Loading
+
+
+isLoading : Model -> Bool
+isLoading model =
+    if model == Loading then
+        True
+
+    else
+        False
 
 
 fetch : User -> Cmd msg
