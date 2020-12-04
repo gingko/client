@@ -1,0 +1,1 @@
+module Page.Empty exposing (..)

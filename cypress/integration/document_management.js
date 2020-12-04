@@ -1,7 +1,7 @@
 const config = require("../../config.js");
 
 
-describe('Remote Documents', () => {
+describe('Managing Documents', () => {
   const testEmail = 'cypress@testing.com'
 
   before(() => {
