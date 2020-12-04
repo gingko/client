@@ -40,4 +40,23 @@ describe('Document UI', () => {
       expect(win.elmMessages.slice(-1)[0]).to.eq("TriggerMailto")
     })
   })
+
+  it('Toggles shortcut tray on clicking right-sidebar', () => {
+    cy.contains('Keyboard Shortcuts')
+
+    cy.get('#shortcuts-tray').click({position: "top"})
+
+    cy.get('#app-root').should('not.contain', 'Keyboard Shortcuts')
+  })
+
+  it('Shows different shortcuts based on mode', () => {
+    cy.get('#shortcuts-tray').click({position: "top"})
+    cy.contains('(Edit Mode)')
+
+    cy.writeInCard('This is a test')
+
+    cy.shortcut('{ctrl}{enter}')
+
+    cy.get('#app-root').should('not.contain', '(Edit Mode)')
+  })
 })

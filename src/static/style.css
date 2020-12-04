@@ -1491,12 +1491,12 @@ pre {
   box-shadow: 0 0 4px #00000085;
   z-index: 5;
   cursor: pointer;
+  overflow-y: auto;
 }
 
 #shortcuts {
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
 }
 
 #shortcuts span {

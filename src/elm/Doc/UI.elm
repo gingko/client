@@ -668,7 +668,8 @@ viewShortcuts trayToggleMsg lang isOpen isMac children textCursorInfo vs =
                 [ div
                     [ id "shortcuts-tray", onClick trayToggleMsg ]
                     [ div [ id "shortcuts" ]
-                        [ h3 [] [ text "Keyboard Shortcuts (Edit Mode)" ]
+                        [ h3 [] [ text "Keyboard Shortcuts" ]
+                        , h3 [] [ text "(Edit Mode)" ]
                         , h5 [] [ text "Save/Cancel Changes" ]
                         , shortcutSpan [ ctrlOrCmd, tr lang EnterKey ] (tr lang ToSaveChanges)
                         , shortcutSpan [ tr lang EscKey ] (tr lang ToCancelChanges)
