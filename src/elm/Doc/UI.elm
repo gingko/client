@@ -403,11 +403,10 @@ viewFileSwitcher searchInput currentDocument searchField docList =
     ]
 
 
-type alias TemplateSelectorMsgs msg =
-    { modalClosed : msg, importBulkClicked : msg, importJSONRequested : msg }
-
-
-viewTemplateSelector : Language -> TemplateSelectorMsgs msg -> List (Html msg)
+viewTemplateSelector :
+    Language
+    -> { modalClosed : msg, importBulkClicked : msg, importJSONRequested : msg }
+    -> List (Html msg)
 viewTemplateSelector language msgs =
     [ div [ id "templates-block" ]
         [ a [ id "template-new", class "template-item", href (Route.toString Route.DocNew) ]

@@ -14,4 +14,10 @@ describe('Managing Documents', () => {
     cy.url().should('eq', config.TEST_SERVER + '/')
     cy.contains("You don't have any documents. Create one here:")
   })
+
+  it('Should show Template Selector on clicking "New"', () => {
+    cy.get('#new-button').click()
+
+    cy.get('#templates-block')
+  })
 })
