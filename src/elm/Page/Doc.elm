@@ -23,6 +23,7 @@ import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy2, lazy3)
 import Html5.DragDrop as DragDrop
 import Http
+import Import.Bulk.UI as ImportModal
 import Import.Incoming
 import Import.Single
 import Json.Decode as Json
@@ -94,6 +95,7 @@ type ModalState
     = NoModal
     | FileSwitcher
     | TemplateSelector
+    | ImportModal ImportModal.Model
 
 
 defaultModel : Bool -> User -> String -> Model
@@ -243,6 +245,7 @@ type Msg
     | ExportSelectionChanged ExportSelection
     | ExportFormatChanged ExportFormat
       -- Import
+    | ImportModalMsg ImportModal.Msg
     | ImportJSONSelected File
     | ImportJSONLoaded String String
     | ImportJSONIdGenerated Tree String String
@@ -630,6 +633,9 @@ update msg ({ workingTree } as model) =
 
         ExportFormatChanged expFormat ->
             ( { model | exportSettings = Tuple.mapSecond (always expFormat) model.exportSettings }, Cmd.none )
+
+        ImportModalMsg modalMsg ->
+            ( model, Cmd.none )
 
         ImportJSONRequested ->
             ( model, Select.file [ "application/json", "text/plain" ] ImportJSONSelected )
@@ -2859,6 +2865,10 @@ viewModal language model =
                 , importBulkClicked = ImportBulkClicked
                 , importJSONRequested = ImportJSONRequested
                 }
+
+        ImportModal modalModel ->
+            ImportModal.view language modalModel
+                |> List.map (Html.map ImportModalMsg)
 
 
 
