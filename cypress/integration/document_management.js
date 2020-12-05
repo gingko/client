@@ -114,4 +114,8 @@ describe('Managing Documents', () => {
     cy.shortcut('{esc}')
     cy.get('#switcher-modal').should('not.exist')
   })
+
+  it('Clears search filtering after "Esc"', () => {
+    cy.contains('Untitled')
+  })
 })

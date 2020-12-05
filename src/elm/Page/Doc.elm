@@ -989,7 +989,7 @@ update msg ({ workingTree } as model) =
                                     model |> intentCancelCard
 
                                 _ ->
-                                    ( { model | modalState = NoModal }, Cmd.none )
+                                    ( { model | fileSearchField = "", modalState = NoModal }, Cmd.none )
 
                         "mod+j" ->
                             if model.viewState.viewMode == Normal then
