@@ -5,6 +5,7 @@ import Doc.UI as UI
 import Html exposing (Html, a, br, button, div, text)
 import Html.Attributes exposing (class, href, id)
 import Html.Events exposing (onClick)
+import Import.Bulk.UI as ImportModal
 import Route
 import User exposing (User, language)
 
@@ -12,6 +13,7 @@ import User exposing (User, language)
 type alias Model =
     { user : User
     , documents : DocList.Model
+    , importModalState : ImportModal.Model
     , selectorOpen : Bool
     }
 
@@ -21,6 +23,7 @@ defaultModel user =
     { user = user
     , documents = DocList.init
     , selectorOpen = False
+    , importModalState = ImportModal.init user
     }
 
 
@@ -47,6 +50,8 @@ type Msg
     = NoOp
     | NewClicked
     | ModalClosed
+    | ImportBulkClicked
+    | ImportJSONRequested
     | ReceivedDocuments DocList.Model
 
 
@@ -69,6 +74,12 @@ update msg model =
 
         ModalClosed ->
             ( { model | selectorOpen = False }, Cmd.none )
+
+        ImportBulkClicked ->
+            ( { model | importModalState = ImportModal.init model.user }, Cmd.none )
+
+        ImportJSONRequested ->
+            ( model, Cmd.none )
 
 
 
@@ -97,8 +108,8 @@ view { user, documents, selectorOpen } =
             ++ (if selectorOpen then
                     UI.viewTemplateSelector (User.language user)
                         { modalClosed = ModalClosed
-                        , importBulkClicked = NoOp
-                        , importJSONRequested = NoOp
+                        , importBulkClicked = ImportBulkClicked
+                        , importJSONRequested = ImportJSONRequested
                         }
 
                 else
