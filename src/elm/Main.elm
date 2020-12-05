@@ -3,13 +3,11 @@ module Main exposing (main)
 import Browser exposing (Document)
 import Browser.Navigation as Nav
 import Html
-import Import.Template as Template
 import Json.Decode exposing (Decoder, Value)
 import Page.Doc
 import Page.DocNew
 import Page.Empty
 import Page.ForgotPassword
-import Page.Home
 import Page.Import
 import Page.Login
 import Page.NotFound
@@ -31,7 +29,6 @@ type Model
     | Login Page.Login.Model
     | ForgotPassword Page.ForgotPassword.Model
     | ResetPassword Page.ResetPassword.Model
-    | Home Page.Home.Model
     | Empty Page.Empty.Model
     | Import Page.Import.Model
     | DocNew User
@@ -76,7 +73,7 @@ changeRouteTo maybeRoute model =
                 Page.Signup.init user |> updateWith Signup GotSignupMsg
 
             Just Route.Login ->
-                Page.Home.init user |> updateWith Home GotHomeMsg
+                Page.Empty.init user |> updateWith Empty GotEmptyMsg
 
             Just (Route.ForgotPassword email_) ->
                 Page.ForgotPassword.init user email_
@@ -161,9 +158,6 @@ toUser page =
         ResetPassword reset ->
             Page.ResetPassword.toUser reset
 
-        Home home ->
-            Page.Home.toUser home
-
         Empty home ->
             Page.Empty.toUser home
 
@@ -189,7 +183,6 @@ type Msg
     | GotForgotPasswordMsg Page.ForgotPassword.Msg
     | GotResetPasswordMsg Page.ResetPassword.Msg
     | GotEmptyMsg Page.Empty.Msg
-    | GotHomeMsg Page.Home.Msg
     | GotImportMsg Page.Import.Msg
     | GotDocNewMsg Page.DocNew.Msg
     | GotDocMsg Page.Doc.Msg
@@ -232,10 +225,6 @@ update msg model =
         ( GotResetPasswordMsg resetPassMsg, ResetPassword resetPassModel ) ->
             Page.ResetPassword.update resetPassMsg resetPassModel
                 |> updateWith ResetPassword GotResetPasswordMsg
-
-        ( GotHomeMsg homeMsg, Home homeModel ) ->
-            Page.Home.update homeMsg homeModel
-                |> updateWith Home GotHomeMsg
 
         ( GotEmptyMsg emptyMsg, Empty emptyModel ) ->
             Page.Empty.update emptyMsg emptyModel
@@ -294,11 +283,8 @@ view model =
         ResetPassword resetPass ->
             { title = "Gingko - Reset Password", body = [ Html.map GotResetPasswordMsg (Page.ResetPassword.view resetPass) ] }
 
-        Home home ->
-            { title = "Gingko - Home", body = [ Html.map GotHomeMsg (Page.Home.view home) ] }
-
         Empty empty ->
-            { title = "Gingko - Empty", body = [ Html.map GotEmptyMsg (Page.Empty.view empty) ] }
+            { title = "Gingko Writer", body = [ Html.map GotEmptyMsg (Page.Empty.view empty) ] }
 
         Import importModel ->
             { title = "Importing...", body = [ Html.div [] [ Html.text "Importing..." ] ] }
@@ -334,9 +320,6 @@ subscriptions model =
 
         Login pageModel ->
             Sub.map GotLoginMsg (Page.Login.subscriptions pageModel)
-
-        Home pageModel ->
-            Sub.map GotHomeMsg (Page.Home.subscriptions pageModel)
 
         Empty pageModel ->
             Sub.map GotEmptyMsg (Page.Empty.subscriptions pageModel)
