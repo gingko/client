@@ -50,11 +50,17 @@ describe('Managing Documents', () => {
     Cypress.Cookies.preserveOnce('AuthSession')
   })
 
-  it('Should show the created trees in document list', () => {
+  it('Should navigate to last edited tree', function () {
     cy.visit(config.TEST_SERVER)
 
-    cy.contains('#documents-block', 'Untitled')
-      .contains('#documents-block', 'Another doc, with title')
+    cy.url().should('eq', this.secondDocUrl )
+  })
+
+  it('Should show the trees in sidebar document list', () => {
+    cy.get('.sidebar-button').first().click()
+
+    cy.contains('#sidebar-menu', 'Untitled')
+      .contains('#sidebar-menu', 'Another doc, with title')
   })
 
   it('Should go to the first tree on click', () => {
@@ -66,12 +72,6 @@ describe('Managing Documents', () => {
       .contains('#document', 'Another Child card')
   })
 
-  it('Should show the trees in sidebar document list', () => {
-    cy.get('.sidebar-button').first().click()
-
-    cy.contains('#sidebar-menu', 'Untitled')
-      .contains('#sidebar-menu', 'Another doc, with title')
-  })
 
   it('Should navigate to tree on clicking sidebar document', function () {
     cy.get('#sidebar-menu').contains('Another').click()
@@ -113,12 +113,5 @@ describe('Managing Documents', () => {
   it('Closes "Open" modal on "Esc"', () => {
     cy.shortcut('{esc}')
     cy.get('#switcher-modal').should('not.exist')
-  })
-
-
-  it('Should navigate to home on clicking home icon', function () {
-    cy.get('#home-link').click()
-
-    cy.url().should('equal', config.TEST_SERVER + '/')
   })
 })
