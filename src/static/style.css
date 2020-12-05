@@ -318,21 +318,22 @@ body {
   justify-self: center;
 }
 
-#home {
+#brand {
   grid-area: home;
+  display: flex;
   padding: 5px;
   background: white;
   border-bottom: 1px solid hsl(212deg 0% 58%);
+  border-right: 1px solid hsl(0, 0%, 80%);
   z-index: 20;
 }
-#home-link {
+#brand-name {
+  margin: 6px 0 6px 14px;
   display: flex;
   color: #334;
   text-decoration: none;
   align-items: center;
-}
-#home-link-name {
-  margin-left: 6px;
+  font-family: 'Open Sans';
 }
 
 #document-header {

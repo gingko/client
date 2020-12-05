@@ -8,7 +8,7 @@ import Doc.List as DocList
 import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
-import Html exposing (Html, a, br, button, del, div, fieldset, h1, h3, h4, h5, hr, iframe, img, input, ins, label, li, span, text, ul)
+import Html exposing (Html, a, br, button, del, div, fieldset, h1, h2, h3, h4, h5, hr, iframe, img, input, ins, label, li, span, text, ul)
 import Html.Attributes as A exposing (..)
 import Html.Events exposing (onCheck, onClick, onInput, onSubmit)
 import Import.Template exposing (Template(..))
@@ -30,16 +30,14 @@ import User exposing (User)
 
 viewHomeLink : Bool -> Html msg
 viewHomeLink sidebarOpen =
-    div [ id "home" ]
-        [ a [ id "home-link", href (Route.toString Route.Root) ]
-            [ img [ src "../gingko-leaf-logo.svg", width 28 ]
-                []
-            , if sidebarOpen then
-                span [ id "home-link-name" ] [ text "Home" ]
+    div [ id "brand" ]
+        [ img [ src "../gingko-leaf-logo.svg", width 28 ]
+            []
+        , if sidebarOpen then
+            h2 [ id "brand-name" ] [ text "Gingko Writer" ]
 
-              else
-                text ""
-            ]
+          else
+            text ""
         ]
 
 
