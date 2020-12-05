@@ -19,6 +19,9 @@ describe('Document Editing', () => {
   })
 
   it('Creates a new blank tree', () => {
+    cy.get('button')
+      .click()
+
     cy.contains('Blank Tree')
       .click()
 
