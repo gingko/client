@@ -250,6 +250,7 @@ type Msg
     | ImportJSONLoaded String String
     | ImportJSONIdGenerated Tree String String
     | ImportJSONCompleted String
+    | ImportBulkCompleted
       -- Misc UI
     | ThemeChanged Theme
     | TimeUpdate Time.Posix
@@ -676,6 +677,9 @@ update msg ({ workingTree } as model) =
 
         ImportJSONCompleted docId ->
             ( model, Route.pushUrl (User.navKey model.user) (Route.DocUntitled docId) )
+
+        ImportBulkCompleted ->
+            ( { model | modalState = NoModal }, Cmd.none )
 
         ThemeChanged newTheme ->
             ( { model | theme = newTheme }, send <| SaveThemeSetting newTheme )
@@ -2896,7 +2900,7 @@ subscriptions model =
                         ImportJSONCompleted docId
 
                     Nothing ->
-                        NoOp
+                        ImportBulkCompleted
             )
         , DocList.subscribe ReceivedDocuments
         , case model.modalState of

@@ -115,15 +115,16 @@ describe('Welcome Tree & Templates', () => {
     cy.get('.modal-guts button')
       .click()
 
-    cy.get('.document-list > .document-item')
-      .should('have.length', 3)
+    cy.get('.sidebar-document-list > .sidebar-document-item')
+      .should('have.length', 4)
+  })
 
-    cy.get('.doc-title')
-      .contains('Screenplay')
+  it('Closed the Import Modal on success', ()=>{
+    cy.get('#app-root').should('not.contain', 'Import From Gingko v1')
   })
 
   it('Correctly imported the data', () => {
-    cy.get('.doc-title')
+    cy.get('.sidebar-document-list')
       .contains('Screenplay')
       .click()
 
