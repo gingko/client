@@ -1,4 +1,4 @@
-port module Page.Home exposing (Model, Msg, init, subscriptions, toUser, update, view)
+module Page.Home exposing (Model, Msg, init, subscriptions, toUser, update, view)
 
 import Doc.List as DocList
 import Doc.Metadata as Metadata exposing (Metadata)
@@ -468,9 +468,6 @@ viewSelectionEntry lang { selected, tree } =
 -- SUBSCRIPTIONS
 
 
-port iframeLoginStateChange : (Bool -> msg) -> Sub msg
-
-
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
@@ -483,7 +480,6 @@ subscriptions model =
                     Nothing ->
                         ImportModal Completed
             )
-        , iframeLoginStateChange (ImportModal << LegacyLoginStateChanged)
         , DocList.subscribe ReceivedDocuments
         , User.settingsChange SettingsChanged
         , User.loginChanges LoginStateChanged (User.navKey model.user)

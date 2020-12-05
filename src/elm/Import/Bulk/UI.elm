@@ -1,4 +1,4 @@
-module Import.Bulk.UI exposing (Model, Msg, update, view)
+port module Import.Bulk.UI exposing (Model, Msg, init, subscriptions, update, view)
 
 import Doc.List as DocList
 import Doc.Metadata as Metadata exposing (Metadata)
@@ -43,6 +43,11 @@ type alias ImportSelection =
         { selected : Bool
         , tree : ( String, Metadata, Tree )
         }
+
+
+init : User -> Model
+init user =
+    { state = ModalOpen { loginState = Unknown, isFileDragging = False }, user = user }
 
 
 
@@ -274,3 +279,15 @@ viewSelectionEntry lang { selected, tree } =
             ]
         , span [] [ text (Metadata.getUpdatedAt mdata |> Translation.dateFormat lang) ]
         ]
+
+
+
+-- SUBSCRIPTIONS
+
+
+port iframeLoginStateChange : (Bool -> msg) -> Sub msg
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    iframeLoginStateChange LegacyLoginStateChanged

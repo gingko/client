@@ -614,7 +614,7 @@ update msg ({ workingTree } as model) =
             ( { model | modalState = NoModal }, Cmd.none )
 
         ImportBulkClicked ->
-            ( model, Cmd.none )
+            ( { model | modalState = ImportModal (ImportModal.init model.user) }, Cmd.none )
 
         FileSearchChanged term ->
             ( { model | fileSearchField = term }, Cmd.none )
@@ -635,7 +635,17 @@ update msg ({ workingTree } as model) =
             ( { model | exportSettings = Tuple.mapSecond (always expFormat) model.exportSettings }, Cmd.none )
 
         ImportModalMsg modalMsg ->
-            ( model, Cmd.none )
+            case model.modalState of
+                ImportModal importModal ->
+                    let
+                        ( newModalState, newCmd ) =
+                            ImportModal.update modalMsg importModal
+                                |> Tuple.mapBoth ImportModal (Cmd.map ImportModalMsg)
+                    in
+                    ( { model | modalState = newModalState }, newCmd )
+
+                _ ->
+                    ( model, Cmd.none )
 
         ImportJSONRequested ->
             ( model, Select.file [ "application/json", "text/plain" ] ImportJSONSelected )
@@ -2889,6 +2899,13 @@ subscriptions model =
                         NoOp
             )
         , DocList.subscribe ReceivedDocuments
+        , case model.modalState of
+            ImportModal importModalModel ->
+                ImportModal.subscriptions importModalModel
+                    |> Sub.map ImportModalMsg
+
+            _ ->
+                Sub.none
         , User.settingsChange SettingsChanged
         , User.loginChanges LoginStateChanged (User.navKey model.user)
         , Time.every (9 * 1000) TimeUpdate
