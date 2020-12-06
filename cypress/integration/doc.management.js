@@ -1,44 +1,16 @@
 const config = require("../../config.js");
+const helpers = require("../../src/shared/doc-helpers.js");
 
 
 describe('Managing Documents', () => {
   const testEmail = 'cypress@testing.com'
+  const testUserDb = 'userdb-' + helpers.toHex(testEmail);
 
   before(() => {
     cy.deleteUser(testEmail)
-    cy.signup(testEmail)
-    cy.visit(config.TEST_SERVER + '/new')
-    cy.wait(400)
-    cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
+    cy.signup_blank(testEmail)
 
-    cy.writeInCard('Hello Test doc')
-    cy.shortcut('{ctrl}l')
-    cy.writeInCard('Child card')
-    cy.shortcut('{ctrl}j')
-    cy.writeInCard('Another Child card')
-    cy.shortcut('{ctrl}{enter}')
-    cy.contains('Synced')
-
-    cy.visit(config.TEST_SERVER + '/new')
-    cy.wait(400)
-
-    cy.url().as('secondDocUrl').should('match', /\/[a-zA-Z0-9]{5}$/)
-
-    cy.writeInCard('Another Test doc')
-    cy.shortcut('{ctrl}l')
-    cy.writeInCard('# 2\nChild card')
-    cy.shortcut('{ctrl}j')
-    cy.writeInCard('# 3\nAnother Child card')
-    cy.shortcut('{ctrl}{enter}')
-    cy.contains('Synced')
-
-    cy.get('#title h1').click()
-    cy.get('#title input')
-      .type('Another doc, with title')
-
-    cy.contains('Rename')
-      .click()
-    cy.wait(400)
+    cy.task('db:seed',{dbName: testUserDb, seedName: 'twoTrees'})
 
     cy.request('POST', config.TEST_SERVER + '/logout')
     cy.clearCookie('AuthSession')
@@ -48,17 +20,18 @@ describe('Managing Documents', () => {
   })
 
   beforeEach(() => {
+    cy.fixture('twoTrees.ids.json').as('treeIds')
     Cypress.Cookies.preserveOnce('AuthSession')
   })
 
   it('Should navigate to last edited tree', function () {
     cy.visit(config.TEST_SERVER)
 
-    cy.url().should('eq', this.secondDocUrl )
+    cy.url().should('contain', this.treeIds[1] )
   })
 
   it('Should show the trees in sidebar document list', () => {
-    cy.get('.sidebar-button').first().click()
+    cy.get('#file-button').click()
 
     cy.contains('#sidebar-menu', 'Untitled')
       .contains('#sidebar-menu', 'Another doc, with title')
@@ -77,7 +50,7 @@ describe('Managing Documents', () => {
   it('Should navigate to tree on clicking sidebar document', function () {
     cy.get('#sidebar-menu').contains('Another').click()
 
-    cy.url().should('equal', this.secondDocUrl)
+    cy.url().should('contain', this.treeIds[1] )
   })
 
   it('Toggles switcher modal on "Ctrl+O"', () => {

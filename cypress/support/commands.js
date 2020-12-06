@@ -47,11 +47,32 @@ Cypress.Commands.add('signup', (userEmail) => {
 })
 
 
+Cypress.Commands.add('signup_blank', (userEmail) => {
+  let body =
+    { '_id': `org.couchdb.user:${userEmail}`
+    , type: "user"
+    , roles: []
+    , name: userEmail
+    , password: 'testing'
+    };
+
+  cy.request(
+    { url: config.COUCHDB_SERVER + '/_users'
+    , method: 'POST'
+    , body: body
+    , 'auth': {
+        'user': config.COUCHDB_ADMIN_USERNAME,
+        'pass': config.COUCHDB_ADMIN_PASSWORD,
+      }
+    })
+})
+
+
 Cypress.Commands.add('login', (userEmail) => {
   cy.request(
     { url: config.TEST_SERVER + '/login'
-      , method: 'POST'
-      , body: {email: userEmail, password: 'testing'}
+    , method: 'POST'
+    , body: {email: userEmail, password: 'testing'}
     })
     .then((response) => {
       localStorage.setItem('gingko-session-storage', JSON.stringify({email: userEmail, language: 'en'}))

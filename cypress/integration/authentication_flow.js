@@ -3,7 +3,7 @@ const helpers = require("../../src/shared/doc-helpers.js");
 
 describe('User Signup Flow', () => {
   let testEmail = 'cypress@testing.com'
-  let testUserDb = helpers.toHex(testEmail);
+  let testUserDb = 'userdb-' + helpers.toHex(testEmail);
 
   before(() => {
     cy.deleteUser(testEmail)
@@ -52,7 +52,7 @@ describe('User Signup Flow', () => {
   })
 
   it('Has a user database', () => {
-    cy.request({url: config.TEST_SERVER + '/db/userdb-' + testUserDb, retryOnStatusCodeFailure: true})
+    cy.request({url: config.TEST_SERVER + '/db/' + testUserDb, retryOnStatusCodeFailure: true})
   })
 
   it('Imports "Welcome Tree"', ()=> {

@@ -1,3 +1,6 @@
+const { execSync } = require('child_process');
+const cfg = require("../../config.js");
+
 /// <reference types="cypress" />
 // ***********************************************************
 // This example plugins/index.js can be used to load plugins
@@ -19,4 +22,14 @@ module.exports = (on, config) => {
   // `on` is used to hook into various events Cypress emits
   // `config` is the resolved Cypress config
   require('cypress-watch-and-reload/plugins');
+
+  on('task', {
+    'db:seed': ({dbName, seedName}) => {
+      try {
+        return execSync(`couchdb-backup -r -H "${cfg.COUCHDB_HOST}" -P "${cfg.COUCHDB_PORT}" -u "${cfg.COUCHDB_ADMIN_USERNAME}" -p "${cfg.COUCHDB_ADMIN_PASSWORD}" -d "${dbName}" -f "${__dirname}/../fixtures/${seedName}.json"`)
+      } catch(e) {
+        return e.toString()
+      }
+    }
+  })
 }
