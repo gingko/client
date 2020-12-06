@@ -7,20 +7,16 @@ describe('Managing Documents', () => {
   before(() => {
     cy.deleteUser(testEmail)
     cy.signup(testEmail)
-    cy.visit(config.TEST_SERVER + '/new')
+    cy.visit(config.TEST_SERVER)
     cy.wait(400)
-    cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
 
-    cy.writeInCard('Hello Test doc')
-    cy.shortcut('{ctrl}l')
-    cy.writeInCard('Child card')
-    cy.shortcut('{ctrl}j')
-    cy.writeInCard('Another Child card')
-    cy.shortcut('{ctrl}{enter}')
-    cy.contains('Synced')
+    cy.get('#new-button')
+      .click()
 
-    cy.visit(config.TEST_SERVER + '/new')
-    cy.wait(400)
+    cy.get('#template-import')
+      .click()
+
+    cy.wait(4000)
     cy.url().as('secondDocUrl').should('match', /\/[a-zA-Z0-9]{5}$/)
 
     cy.writeInCard('Another Test doc')
