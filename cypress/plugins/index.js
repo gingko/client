@@ -16,8 +16,7 @@
  * @type {Cypress.PluginConfig}
  */
 module.exports = (on, config) => {
-  require('cypress-watch-and-reload/plugins');
   // `on` is used to hook into various events Cypress emits
   // `config` is the resolved Cypress config
-  require('cypress-terminal-report/src/installLogsPrinter')(on);
+  require('cypress-watch-and-reload/plugins');
 }
