@@ -787,6 +787,9 @@ update msg ({ workingTree } as model) =
                 DataReceived dataIn ->
                     dataReceived dataIn model
 
+                NotFound ->
+                    ( model, Route.replaceUrl (User.navKey model.user) Route.Root )
+
                 LocalStoreLoaded dataIn ->
                     let
                         ( newViewState, maybeActivateCmd ) =

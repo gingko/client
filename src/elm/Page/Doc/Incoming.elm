@@ -14,6 +14,7 @@ type
       -- === Database ===
     | DataSaved Dec.Value
     | DataReceived Dec.Value
+    | NotFound
     | LocalStoreLoaded Dec.Value
     | GetDataToSave
     | SavedLocally (Maybe Time.Posix)
@@ -90,6 +91,9 @@ subscribe tagger onError =
 
                 "DataReceived" ->
                     tagger <| DataReceived outsideInfo.data
+
+                "NotFound" ->
+                    tagger <| NotFound
 
                 "LocalStoreLoaded" ->
                     tagger <| LocalStoreLoaded outsideInfo.data
