@@ -14,7 +14,6 @@ type alias Model =
     { user : User
     , documents : DocList.Model
     , modalState : ModalState
-    , importModalState : ImportModal.Model
     , selectorOpen : Bool
     }
 
@@ -31,7 +30,6 @@ defaultModel user =
     , documents = DocList.init
     , modalState = Closed
     , selectorOpen = False
-    , importModalState = ImportModal.init user
     }
 
 
@@ -153,8 +151,13 @@ viewModal ({ user } as model) =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions { importModalState } =
+subscriptions { modalState } =
     Sub.batch
         [ DocList.subscribe ReceivedDocuments
-        , ImportModal.subscriptions importModalState |> Sub.map ImportModalMsg
+        , case modalState of
+            ImportModal importModalState ->
+                ImportModal.subscriptions importModalState |> Sub.map ImportModalMsg
+
+            _ ->
+                Sub.none
         ]
