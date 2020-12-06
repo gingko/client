@@ -14,7 +14,6 @@ type alias Model =
     { user : User
     , documents : DocList.Model
     , modalState : ModalState
-    , selectorOpen : Bool
     }
 
 
@@ -29,7 +28,6 @@ defaultModel user =
     { user = user
     , documents = DocList.init
     , modalState = Closed
-    , selectorOpen = False
     }
 
 
