@@ -6,6 +6,7 @@ import Html exposing (Html, a, br, button, div, text)
 import Html.Attributes exposing (class, href, id)
 import Html.Events exposing (onClick)
 import Import.Bulk.UI as ImportModal
+import Import.Incoming
 import Route
 import User exposing (User, language)
 
@@ -56,7 +57,9 @@ type Msg
     | ModalClosed
     | ImportModalMsg ImportModal.Msg
     | ImportBulkClicked
+    | ImportBulkCompleted
     | ImportJSONRequested
+    | ImportJSONCompleted String
     | ReceivedDocuments DocList.Model
 
 
@@ -96,7 +99,13 @@ update msg model =
         ImportBulkClicked ->
             ( { model | modalState = ImportModal <| ImportModal.init model.user }, Cmd.none )
 
+        ImportBulkCompleted ->
+            ( { model | modalState = Closed }, DocList.fetch model.user )
+
         ImportJSONRequested ->
+            ( model, Cmd.none )
+
+        ImportJSONCompleted docId ->
             ( model, Cmd.none )
 
 
@@ -158,4 +167,13 @@ subscriptions { modalState } =
 
             _ ->
                 Sub.none
+        , Import.Incoming.importComplete
+            (\docId_ ->
+                case docId_ of
+                    Just docId ->
+                        ImportJSONCompleted docId
+
+                    Nothing ->
+                        ImportBulkCompleted
+            )
         ]
