@@ -1,6 +1,13 @@
 const config = require("../../config.js");
 const helpers = require("../../src/shared/doc-helpers.js");
 
+Cypress.on('log:changed', options => {
+  if (options.instrument === 'command' && options.consoleProps) {
+    options.wallClockStoppedAt = Date.now()
+    options.duration = +options.wallClockStoppedAt - (+ new Date(options.wallClockStartedAt))
+    options.consoleProps.Duration = options.duration
+  }
+})
 
 Cypress.Commands.add('deleteUser', (userEmail)=> {
   cy.clearCookie('AuthSession')
