@@ -79,21 +79,26 @@ update msg model =
                     ( model, Route.replaceUrl (User.navKey model.user) (Route.DocUntitled docId) )
 
         NewClicked ->
-            ( { model | selectorOpen = True }, Cmd.none )
+            ( { model | modalState = TemplateSelector }, Cmd.none )
 
         ModalClosed ->
-            ( { model | selectorOpen = False }, Cmd.none )
+            ( { model | modalState = Closed }, Cmd.none )
 
         ImportModalMsg importModalMsg ->
-            let
-                ( newModalState, newCmd ) =
-                    ImportModal.update importModalMsg model.importModalState
-                        |> Tuple.mapSecond (Cmd.map ImportModalMsg)
-            in
-            ( { model | importModalState = newModalState }, newCmd )
+            case model.modalState of
+                ImportModal importModalState ->
+                    let
+                        ( newModalState, newCmd ) =
+                            ImportModal.update importModalMsg importModalState
+                                |> Tuple.mapSecond (Cmd.map ImportModalMsg)
+                    in
+                    ( { model | modalState = ImportModal newModalState }, newCmd )
+
+                _ ->
+                    ( model, Cmd.none )
 
         ImportBulkClicked ->
-            ( { model | importModalState = ImportModal.init model.user }, Cmd.none )
+            ( { model | modalState = ImportModal <| ImportModal.init model.user }, Cmd.none )
 
         ImportJSONRequested ->
             ( model, Cmd.none )
