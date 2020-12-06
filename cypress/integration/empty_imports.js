@@ -10,6 +10,10 @@ describe('Imports from Empty State', () => {
     cy.visit(config.TEST_SERVER)
   })
 
+  beforeEach(() => {
+    Cypress.Cookies.preserveOnce('AuthSession')
+  })
+
   it('Should bring up the Import Modal on clicking', () => {
     cy.get('#new-button').click()
 
@@ -49,4 +53,29 @@ describe('Imports from Empty State', () => {
       .and('contain', 'Example Tree')
   })
 
+  it('Adds selected trees to document list', () => {
+    cy.get('#import-selection-list input')
+      .click({multiple : true})
+
+    cy.get('.modal-guts button')
+      .click()
+
+    cy.wait(400)
+
+    cy.get('#file-button')
+      .click()
+
+    cy.get('.sidebar-document-list > .sidebar-document-item')
+      .should('have.length', 3)
+  })
+
+  it('Should navigate to last modified document', () => {
+    cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
+
+    cy.contains('tips to improve your logline')
+  })
+
+  it('Closed the Import Modal on success', ()=>{
+    cy.get('#app-root').should('not.contain', 'Import From Gingko v1')
+  })
 })
