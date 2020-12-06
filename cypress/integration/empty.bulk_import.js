@@ -1,6 +1,6 @@
 const config = require("../../config.js");
 
-describe('Imports from Empty State', () => {
+describe('Legacy Imports from Empty State', () => {
   const testEmail = 'cypress@testing.com'
 
   before(() => {
