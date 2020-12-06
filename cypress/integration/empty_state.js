@@ -1,7 +1,7 @@
 const config = require("../../config.js");
 
 
-describe('Managing Documents', () => {
+describe('Empty State', () => {
   const testEmail = 'cypress@testing.com'
 
   before(() => {
