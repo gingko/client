@@ -13,15 +13,23 @@ import User exposing (User, language)
 type alias Model =
     { user : User
     , documents : DocList.Model
+    , modalState : ModalState
     , importModalState : ImportModal.Model
     , selectorOpen : Bool
     }
+
+
+type ModalState
+    = Closed
+    | TemplateSelector
+    | ImportModal ImportModal.Model
 
 
 defaultModel : User -> Model
 defaultModel user =
     { user = user
     , documents = DocList.init
+    , modalState = Closed
     , selectorOpen = False
     , importModalState = ImportModal.init user
     }
@@ -50,6 +58,7 @@ type Msg
     = NoOp
     | NewClicked
     | ModalClosed
+    | ImportModalMsg ImportModal.Msg
     | ImportBulkClicked
     | ImportJSONRequested
     | ReceivedDocuments DocList.Model
@@ -75,6 +84,14 @@ update msg model =
         ModalClosed ->
             ( { model | selectorOpen = False }, Cmd.none )
 
+        ImportModalMsg importModalMsg ->
+            let
+                ( newModalState, newCmd ) =
+                    ImportModal.update importModalMsg model.importModalState
+                        |> Tuple.mapSecond (Cmd.map ImportModalMsg)
+            in
+            ( { model | importModalState = newModalState }, newCmd )
+
         ImportBulkClicked ->
             ( { model | importModalState = ImportModal.init model.user }, Cmd.none )
 
@@ -87,7 +104,7 @@ update msg model =
 
 
 view : Model -> Html Msg
-view { user, documents, selectorOpen } =
+view ({ user, documents } as model) =
     div
         [ id "app-root", class "loading" ]
         ([ UI.viewHomeLink False
@@ -105,17 +122,25 @@ view { user, documents, selectorOpen } =
                 ]
          ]
             ++ UI.viewSidebarStatic False
-            ++ (if selectorOpen then
-                    UI.viewTemplateSelector (User.language user)
-                        { modalClosed = ModalClosed
-                        , importBulkClicked = ImportBulkClicked
-                        , importJSONRequested = ImportJSONRequested
-                        }
-
-                else
-                    []
-               )
+            ++ viewModal model
         )
+
+
+viewModal : Model -> List (Html Msg)
+viewModal ({ user } as model) =
+    case model.modalState of
+        Closed ->
+            []
+
+        TemplateSelector ->
+            UI.viewTemplateSelector (User.language user)
+                { modalClosed = ModalClosed
+                , importBulkClicked = ImportBulkClicked
+                , importJSONRequested = ImportJSONRequested
+                }
+
+        ImportModal importModalState ->
+            ImportModal.view (User.language user) importModalState |> List.map (Html.map ImportModalMsg)
 
 
 
@@ -123,5 +148,8 @@ view { user, documents, selectorOpen } =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
-    DocList.subscribe ReceivedDocuments
+subscriptions { importModalState } =
+    Sub.batch
+        [ DocList.subscribe ReceivedDocuments
+        , ImportModal.subscriptions importModalState |> Sub.map ImportModalMsg
+        ]
