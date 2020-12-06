@@ -118,6 +118,8 @@ async function pull(localDb, remoteDb, treeId, source) {
 
   if (results.ok && results.docs_written > 0) {
     return await load(localDb, treeId);
+  } else {
+    return null;
   }
 }
 

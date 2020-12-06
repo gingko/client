@@ -237,17 +237,34 @@ const fromElm = (msg, elmData) => {
       TREE_ID = elmData;
 
       // Load local document data.
+      let localExists;
       let [loadedData, savedIds] = await data.load(db, elmData);
       savedObjectIds = savedObjectIds.concat(savedIds);
-      toElm(loadedData, "docMsgs", "DataReceived");
+      if (savedIds.length !== 0) {
+        localExists = true;
+        toElm(loadedData, "docMsgs", "DataReceived");
+      } else {
+        localExists = false;
+      }
 
       // Pull data from remote
+      let remoteExists;
       PULL_LOCK = true;
       try {
         let pullResult = await data.pull(db, remoteDB, elmData, "LoadDocument");
-        savedObjectIds = savedObjectIds.concat(pullResult[1]);
-        toElm(pullResult[0], "docMsgs", "DataReceived");
-      } catch {
+
+        if (pullResult !== null) {
+          remoteExists = true;
+          savedObjectIds = savedObjectIds.concat(pullResult[1]);
+          toElm(pullResult[0], "docMsgs", "DataReceived");
+        } else {
+          remoteExists = false;
+          if (!localExists && !remoteExists) {
+            toElm(null, "docMsgs", "NotFound")
+          }
+        }
+      } catch (e){
+        console.error(e)
       } finally {
         PULL_LOCK = false;
       }
