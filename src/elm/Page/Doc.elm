@@ -2893,7 +2893,7 @@ viewModal language model =
                 , style "top" (String.fromFloat y ++ "px")
                 , style "left" (String.fromFloat x ++ "px")
                 ]
-                [ div [ onClick (DeleteDoc docId), class "context-menu-item" ] [ text <| "Delete Tree " ++ docId ] ]
+                [ div [ onClick (DeleteDoc docId), class "context-menu-item" ] [ text "Delete Tree" ] ]
             ]
 
         TemplateSelector ->
