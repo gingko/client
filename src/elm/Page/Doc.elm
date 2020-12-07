@@ -627,7 +627,7 @@ update msg ({ workingTree } as model) =
             ( { model | modalState = SidebarContextMenu docId ( x, y ) }, Cmd.none )
 
         DeleteDoc docId ->
-            ( model, send <| RequestDelete docId )
+            ( { model | modalState = NoModal }, send <| RequestDelete docId )
 
         ExportPreviewToggled previewEnabled ->
             ( { model | exportPreview = previewEnabled }, Cmd.none )
@@ -843,9 +843,6 @@ update msg ({ workingTree } as model) =
 
                 MetadataSaveError ->
                     ( { model | titleField = Nothing }, Cmd.none )
-
-                DocumentDeleted docId ->
-                    ( { model | modalState = NoModal }, Cmd.none )
 
                 GetDataToSave ->
                     case vs.viewMode of
