@@ -94,6 +94,7 @@ type alias Model =
 type ModalState
     = NoModal
     | FileSwitcher
+    | SidebarContextMenu String ( Float, Float )
     | TemplateSelector
     | ImportModal ImportModal.Model
 
@@ -622,7 +623,7 @@ update msg ({ workingTree } as model) =
             ( { model | fileSearchField = term }, Cmd.none )
 
         SidebarContextClicked docId ( x, y ) ->
-            ( model, Cmd.none )
+            ( { model | modalState = SidebarContextMenu docId ( x, y ) }, Cmd.none )
 
         ExportPreviewToggled previewEnabled ->
             ( { model | exportPreview = previewEnabled }, Cmd.none )
@@ -2880,6 +2881,16 @@ viewModal language model =
 
         FileSwitcher ->
             UI.viewFileSwitcher FileSearchChanged model.metadata model.fileSearchField model.documents
+
+        SidebarContextMenu docId ( x, y ) ->
+            [ div [ id "sidebar-context-overlay" ] []
+            , div
+                [ id "sidebar-context-menu"
+                , style "top" (String.fromFloat y ++ "px")
+                , style "left" (String.fromFloat x ++ "px")
+                ]
+                [ text <| "Delete Tree " ++ docId ]
+            ]
 
         TemplateSelector ->
             UI.viewTemplateSelector language
