@@ -15,7 +15,6 @@ describe('Managing Documents', () => {
     cy.request('POST', config.TEST_SERVER + '/logout')
     cy.clearCookie('AuthSession')
 
-    cy.wait(400)
     cy.login(testEmail)
   })
 
@@ -53,20 +52,19 @@ describe('Managing Documents', () => {
       cy.url().should('contain', this.treeIds[1] )
     })
 
-    it('Should bring up context menu on right-click of tree', () => {
+    it('Should delete the tree via context menu', () => {
       cy.get('#sidebar-menu .sidebar-document-item')
         .first()
         .rightclick()
 
       cy.contains('Delete Tree')
-    })
+        .click()
 
-    it('Should close the context menu on clicking elsewhere', () => {
-
+      cy.get('#sidebar-menu').should('not.contain', 'Untitled')
     })
   })
 
-  describe('Quick Switcher', ()=>{
+  describe.skip('Quick Switcher', ()=>{
     it('Toggles switcher modal on "Ctrl+O"', () => {
       cy.get('#switcher-modal').should('not.exist')
 
