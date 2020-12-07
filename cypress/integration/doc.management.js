@@ -30,23 +30,23 @@ describe('Managing Documents', () => {
       cy.url().should('contain', this.treeIds[1] )
     })
 
-    it('Should show the trees in sidebar document list', () => {
+    it('Should navigate correctly using sidebar', function () {
+      // Open sidebar
       cy.get('#file-button').click()
 
       cy.contains('#sidebar-menu', 'Untitled')
         .contains('#sidebar-menu', 'Another doc, with title')
-    })
 
-    it('Should go to the first tree on click', () => {
+      // Go to Untitled doc
       cy.contains('Untitled')
         .click()
 
+      // Check Untitled doc contents
       cy.contains('#document', 'Hello Test doc')
         .contains('#document', 'Child card')
         .contains('#document', 'Another Child card')
-    })
 
-    it('Should navigate to tree on clicking sidebar document', function () {
+      // Got to second doc
       cy.get('#sidebar-menu').contains('Another').click()
 
       cy.url().should('contain', this.treeIds[1] )
