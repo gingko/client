@@ -2887,7 +2887,7 @@ viewModal language model =
             UI.viewFileSwitcher FileSearchChanged model.metadata model.fileSearchField model.documents
 
         SidebarContextMenu docId ( x, y ) ->
-            [ div [ id "sidebar-context-overlay" ] []
+            [ div [ onClick ModalClosed, id "sidebar-context-overlay" ] []
             , div
                 [ id "sidebar-context-menu"
                 , style "top" (String.fromFloat y ++ "px")

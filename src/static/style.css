@@ -563,12 +563,11 @@ li.sidebar-document-item.active::after {
   width: 100%;
   height: 100%;
   opacity: 0;
-  pointer-events: none;
   z-index: 20;
 }
 
 .context-menu-item {
-  cursor: default;
+  cursor: pointer;
   padding: 10px;
 }
 .context-menu-item:hover {
