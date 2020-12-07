@@ -8,6 +8,7 @@ import Html.Events exposing (onClick, stopPropagationOn)
 import Json.Decode as Dec
 import Octicons as Icon
 import Outgoing exposing (Msg(..), send)
+import Page.Doc.ContextMenu as ContextMenu
 import Route
 import Strftime
 import Time
@@ -195,12 +196,19 @@ viewDocumentItem msgs lang currTime metadata =
         ]
 
 
-viewSmall : Metadata -> Model -> Html msg
-viewSmall currentDocument model =
+viewSmall : (String -> ( Float, Float ) -> msg) -> Metadata -> Model -> Html msg
+viewSmall msg currentDocument model =
     let
         viewDocItem d =
+            let
+                docId =
+                    Metadata.getDocId d
+            in
             li [ classList [ ( "sidebar-document-item", True ), ( "active", Metadata.isSameDocId d currentDocument ) ] ]
-                [ a [ href <| Route.toString (Route.DocUntitled (Metadata.getDocId d)) ]
+                [ a
+                    [ ContextMenu.open (msg docId)
+                    , href <| Route.toString (Route.DocUntitled docId)
+                    ]
                     [ Metadata.getDocName d |> Maybe.withDefault "Untitled" |> text ]
                 ]
     in

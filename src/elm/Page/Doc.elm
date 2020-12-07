@@ -93,7 +93,6 @@ type alias Model =
 
 type ModalState
     = NoModal
-    | SidebarContextMenu ( Int, Int )
     | FileSwitcher
     | TemplateSelector
     | ImportModal ImportModal.Model
@@ -242,6 +241,7 @@ type Msg
     | ImportBulkClicked
     | ImportJSONRequested
     | FileSearchChanged String
+    | SidebarContextClicked String ( Float, Float )
     | ExportPreviewToggled Bool
     | ExportSelectionChanged ExportSelection
     | ExportFormatChanged ExportFormat
@@ -621,6 +621,9 @@ update msg ({ workingTree } as model) =
         FileSearchChanged term ->
             ( { model | fileSearchField = term }, Cmd.none )
 
+        SidebarContextClicked docId ( x, y ) ->
+            ( model, Cmd.none )
+
         ExportPreviewToggled previewEnabled ->
             ( { model | exportPreview = previewEnabled }, Cmd.none )
                 |> (if not previewEnabled then
@@ -948,9 +951,6 @@ update msg ({ workingTree } as model) =
                             in
                             ( { model | workingTree = newTree, dirty = True }, Cmd.none )
                                 |> addToHistory
-
-                SidebarRightClicked ( x, y ) ->
-                    ( { model | modalState = SidebarContextMenu ( x, y ) }, Cmd.none )
 
                 -- === UI ===
                 LanguageChanged lang ->
@@ -2377,6 +2377,7 @@ pre, code, .group.has-active .card textarea {
                             { sidebarStateChanged = SidebarStateChanged
                             , templateSelectorOpened = TemplateSelectorOpened
                             , fileSearchChanged = FileSearchChanged
+                            , contextMenuOpened = SidebarContextClicked
                             , exportPreviewToggled = ExportPreviewToggled
                             , exportSelectionChanged = ExportSelectionChanged
                             , exportFormatChanged = ExportFormatChanged
@@ -2876,9 +2877,6 @@ viewModal language model =
     case model.modalState of
         NoModal ->
             [ text "" ]
-
-        SidebarContextMenu ( x, y ) ->
-            [ div [] [ text "Delete Tree" ] ]
 
         FileSwitcher ->
             UI.viewFileSwitcher FileSearchChanged model.metadata model.fileSearchField model.documents

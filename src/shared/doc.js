@@ -79,13 +79,6 @@ async function initElmAndPorts() {
     toElm([cardId, number], "docMsgs", "CheckboxClicked");
   };
 
-  window.addEventListener("contextmenu", (event)=>{
-    if(event.path[1].classList.contains("sidebar-document-item")) {
-      event.preventDefault();
-      toElm([event.x, event.y], "docMsgs", "SidebarRightClicked");
-    }
-  })
-
   // Whenever localStorage changes in another tab, report it if necessary.
   window.addEventListener(
     "storage",

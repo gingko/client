@@ -30,7 +30,6 @@ type
     | FieldChanged String
     | TextCursor TextCursorInfo
     | CheckboxClicked String Int
-    | SidebarRightClicked ( Int, Int )
       -- === UI ===
     | LanguageChanged Translation.Language
     | ViewVideos
@@ -169,14 +168,6 @@ subscribe tagger onError =
                     case decodeValue (tupleDecoder Dec.string Dec.int) outsideInfo.data of
                         Ok ( cardId, checkboxNumber ) ->
                             tagger <| CheckboxClicked cardId checkboxNumber
-
-                        Err e ->
-                            onError (errorToString e)
-
-                "SidebarRightClicked" ->
-                    case decodeValue (tupleDecoder Dec.int Dec.int) outsideInfo.data of
-                        Ok ( x, y ) ->
-                            tagger <| SidebarRightClicked ( x, y )
 
                         Err e ->
                             onError (errorToString e)

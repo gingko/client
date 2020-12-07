@@ -199,6 +199,7 @@ type alias SidebarMsgs msg =
     { sidebarStateChanged : SidebarState -> msg
     , templateSelectorOpened : msg
     , fileSearchChanged : String -> msg
+    , contextMenuOpened : String -> ( Float, Float ) -> msg
     , exportPreviewToggled : Bool -> msg
     , exportSelectionChanged : ExportSelection -> msg
     , exportFormatChanged : ExportFormat -> msg
@@ -238,7 +239,7 @@ viewSidebar msgs currentDocument fileFilter docList ( exportSelection, exportFor
                             [ text "New" ]
                         , hr [ style "width" "80%" ] []
                         , input [ type_ "search", onInput msgs.fileSearchChanged ] []
-                        , DocList.viewSmall currentDocument filteredList
+                        , DocList.viewSmall msgs.contextMenuOpened currentDocument filteredList
                         ]
 
                 Export ->

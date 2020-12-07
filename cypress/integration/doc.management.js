@@ -60,6 +60,10 @@ describe('Managing Documents', () => {
 
       cy.contains('Delete Tree')
     })
+
+    it('Should close the context menu on clicking elsewhere', () => {
+
+    })
   })
 
   describe('Quick Switcher', ()=>{
