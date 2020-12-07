@@ -243,6 +243,7 @@ type Msg
     | ImportJSONRequested
     | FileSearchChanged String
     | SidebarContextClicked String ( Float, Float )
+    | DeleteDoc String
     | ExportPreviewToggled Bool
     | ExportSelectionChanged ExportSelection
     | ExportFormatChanged ExportFormat
@@ -624,6 +625,9 @@ update msg ({ workingTree } as model) =
 
         SidebarContextClicked docId ( x, y ) ->
             ( { model | modalState = SidebarContextMenu docId ( x, y ) }, Cmd.none )
+
+        DeleteDoc docId ->
+            ( model, send <| RequestDelete docId )
 
         ExportPreviewToggled previewEnabled ->
             ( { model | exportPreview = previewEnabled }, Cmd.none )
@@ -2889,7 +2893,7 @@ viewModal language model =
                 , style "top" (String.fromFloat y ++ "px")
                 , style "left" (String.fromFloat x ++ "px")
                 ]
-                [ text <| "Delete Tree " ++ docId ]
+                [ div [ onClick (DeleteDoc docId), class "context-menu-item" ] [ text <| "Delete Tree " ++ docId ] ]
             ]
 
         TemplateSelector ->

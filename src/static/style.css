@@ -552,7 +552,6 @@ li.sidebar-document-item.active::after {
 
 #sidebar-context-menu {
   position: absolute;
-  padding: 10px;
   border-radius: 2px;
   border: 1px solid lightgray;
   background-color: white;
@@ -566,6 +565,14 @@ li.sidebar-document-item.active::after {
   opacity: 0;
   pointer-events: none;
   z-index: 20;
+}
+
+.context-menu-item {
+  cursor: default;
+  padding: 10px;
+}
+.context-menu-item:hover {
+  background-color: lightblue;
 }
 
 #switcher-modal {
