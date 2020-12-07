@@ -52,16 +52,31 @@ describe('Managing Documents', () => {
       cy.url().should('contain', this.treeIds[1] )
     })
 
-    it('Should delete the tree via context menu', () => {
+    it('Should have a working context menu', () => {
+      // Menu opens on right click
       cy.get('#sidebar-menu .sidebar-document-item')
         .first()
         .rightclick()
 
       cy.contains('Delete Tree')
+
+      // Should close context menu on clicking elsewhere
+      cy.get('#sidebar-context-overlay').click()
+      cy.get('#sidebar-context-menu').should('not.exist')
+
+      // Open menu again
+      cy.get('#sidebar-menu .sidebar-document-item')
+        .first()
+        .rightclick()
+
+      // Click the Delete Tree
+      cy.contains('Delete Tree')
         .click()
 
+      // Document should be deleted
       cy.get('#sidebar-menu').should('not.contain', 'Untitled')
 
+      // And menu should be gone
       cy.get('#sidebar-context-menu').should('not.exist')
     })
   })
