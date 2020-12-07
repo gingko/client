@@ -61,6 +61,8 @@ describe('Managing Documents', () => {
         .click()
 
       cy.get('#sidebar-menu').should('not.contain', 'Untitled')
+
+      cy.get('#sidebar-context-menu').should('not.exist')
     })
   })
 
