@@ -293,6 +293,7 @@ const fromElm = (msg, elmData) => {
         // Delete from local and remote DBs
         remoteDB.bulkDocs(docsToDelete);
         await db.bulkDocs(docsToDelete);
+        toElm(elmData, "docMsgs", "DocumentDeleted")
 
         // Get new (local) list of documents
         loadAndUpdateDocList();

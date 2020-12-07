@@ -23,6 +23,7 @@ type
     | MetadataSynced Dec.Value
     | MetadataSaved Dec.Value
     | MetadataSaveError
+    | DocumentDeleted String
       -- === DOM ===
     | DragStarted String
     | Paste Tree
@@ -103,6 +104,14 @@ subscribe tagger onError =
 
                 "MetadataSaved" ->
                     tagger <| MetadataSaved outsideInfo.data
+
+                "DocumentDeleted" ->
+                    case decodeValue Dec.string outsideInfo.data of
+                        Ok docId ->
+                            tagger <| DocumentDeleted docId
+
+                        Err e ->
+                            onError (errorToString e)
 
                 "GetDataToSave" ->
                     tagger <| GetDataToSave
