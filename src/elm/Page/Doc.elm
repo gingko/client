@@ -93,6 +93,7 @@ type alias Model =
 
 type ModalState
     = NoModal
+    | SidebarContextMenu ( Int, Int )
     | FileSwitcher
     | TemplateSelector
     | ImportModal ImportModal.Model
@@ -947,6 +948,9 @@ update msg ({ workingTree } as model) =
                             in
                             ( { model | workingTree = newTree, dirty = True }, Cmd.none )
                                 |> addToHistory
+
+                SidebarRightClicked ( x, y ) ->
+                    ( { model | modalState = SidebarContextMenu ( x, y ) }, Cmd.none )
 
                 -- === UI ===
                 LanguageChanged lang ->
@@ -2872,6 +2876,9 @@ viewModal language model =
     case model.modalState of
         NoModal ->
             [ text "" ]
+
+        SidebarContextMenu ( x, y ) ->
+            [ div [] [ text "Delete Tree" ] ]
 
         FileSwitcher ->
             UI.viewFileSwitcher FileSearchChanged model.metadata model.fileSearchField model.documents
