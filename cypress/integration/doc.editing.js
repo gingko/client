@@ -76,10 +76,6 @@ describe('Document Editing', () => {
   })
 
   it('Saves data with correct author info', () => {
-    cy.shortcut('{enter}')
-    cy.writeInCard('{enter}A change')
-    cy.shortcut('{ctrl}{enter}')
-
     cy.window().then((win) => {
       console.log(win.elmMessages)
       let {elmMessage, elmData} = win.elmMessages.filter(m => m.elmMessage === "SaveData").slice(-1)[0];
