@@ -2208,10 +2208,13 @@ historyStep dir currHead ( model, prevCmd ) =
 
 
 addToHistoryDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-addToHistoryDo ( { workingTree, currentTime } as model, prevCmd ) =
+addToHistoryDo ( { workingTree, currentTime, user } as model, prevCmd ) =
     let
+        author =
+            user |> User.name |> Maybe.withDefault "unknown" |> (\a -> "<" ++ a ++ ">")
+
         newData =
-            Data.commit "Jane Doe <jane.doe@gmail.com" (currentTime |> Time.posixToMillis) workingTree.tree model.data
+            Data.commit author (currentTime |> Time.posixToMillis) workingTree.tree model.data
     in
     if newData /= model.data then
         ( { model | data = newData }

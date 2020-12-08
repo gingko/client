@@ -1,5 +1,6 @@
 const config = require("../../config.js");
 const helpers = require("../../src/shared/doc-helpers.js");
+const _ = require("lodash");
 const data = require("../../src/shared/data.js")
 import PouchDB from "pouchdb";
 
@@ -49,9 +50,9 @@ describe('Managing Documents', () => {
 
       expect(elmMessage).to.eq("SaveData")
 
-      console.log(elmData)
-      expect(elmData.filter(d => d.type == 'commit').map(d => d.author))
-        .to.eq((new Array(4)).fill(`<${testEmail}>`))
+      let lastCommit = _.sortBy(elmData.filter(d => d.type == 'commit'), 'timestamp').reverse()[0];
+      expect(lastCommit.author)
+        .to.eq(`<${testEmail}>`)
     })
   })
 })
