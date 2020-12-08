@@ -1,6 +1,6 @@
 module Page.Empty exposing (..)
 
-import Doc.List as DocList
+import Doc.List as DocList exposing (Model(..))
 import Doc.UI as UI
 import Html exposing (Html, a, br, button, div, img, text)
 import Html.Attributes exposing (class, href, id, src)
@@ -126,17 +126,18 @@ view ({ user, documents } as model) =
         ([ UI.viewHomeLink NoOp False
          , div [ id "document-header" ] []
          , div [ id "loading-overlay" ] []
-         , if DocList.isLoading documents then
-            div [ id "empty-message" ]
-                [ text "Loading..." ]
+         , case documents of
+            Success [] ->
+                div [ id "empty-message" ]
+                    [ text "You don't have any documents. Create one here:"
+                    , br [] []
+                    , button [ id "new-button", onClick NewClicked ] [ text "New" ]
+                    , img [ src "", on "error" (Dec.succeed EmptyMessage) ] []
+                    ]
 
-           else
-            div [ id "empty-message" ]
-                [ text "You don't have any documents. Create one here:"
-                , br [] []
-                , button [ id "new-button", onClick NewClicked ] [ text "New" ]
-                , img [ src "", on "error" (Dec.succeed EmptyMessage) ] []
-                ]
+            _ ->
+                div [ id "loading-spinner" ]
+                    [ text "Loading..." ]
          ]
             ++ UI.viewSidebarStatic False
             ++ viewModal model

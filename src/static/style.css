@@ -311,6 +311,11 @@ body {
   background: url("./handmadepaper.png");
 }
 
+#loading-spinner {
+  grid-area: document;
+  align-self: center;
+  justify-self: center;
+}
 
 #empty-message {
   grid-area: document;

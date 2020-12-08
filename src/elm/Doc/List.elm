@@ -1,4 +1,4 @@
-port module Doc.List exposing (Model, current, fetch, filter, getLastUpdated, init, isLoading, sortByUpdated, subscribe, viewSmall, viewSwitcher)
+port module Doc.List exposing (Model(..), current, fetch, filter, getLastUpdated, init, isLoading, sortByUpdated, subscribe, viewSmall, viewSwitcher)
 
 import Date
 import Doc.Metadata as Metadata exposing (Metadata)
