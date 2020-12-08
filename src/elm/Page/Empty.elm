@@ -117,7 +117,7 @@ view : Model -> Html Msg
 view ({ user, documents } as model) =
     div
         [ id "app-root", class "loading" ]
-        ([ UI.viewHomeLink False
+        ([ UI.viewHomeLink NoOp False
          , div [ id "document-header" ] []
          , div [ id "loading-overlay" ] []
          , if DocList.isLoading documents then

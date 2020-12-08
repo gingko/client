@@ -236,6 +236,7 @@ type Msg
     | ToggledAccountMenu Bool
     | ClickedEmailSupport
       -- Sidebar & Modals
+    | ToggleSidebar
     | SidebarStateChanged SidebarState
     | TemplateSelectorOpened
     | ModalClosed
@@ -598,6 +599,14 @@ update msg ({ workingTree } as model) =
 
         ClickedEmailSupport ->
             ( model, send <| TriggerMailto )
+
+        ToggleSidebar ->
+            case model.sidebarState of
+                SidebarClosed ->
+                    ( { model | sidebarState = File }, Cmd.none )
+
+                _ ->
+                    ( { model | sidebarState = SidebarClosed }, Cmd.none )
 
         SidebarStateChanged newSidebarState ->
             let
@@ -2299,7 +2308,7 @@ view model =
     in
     if model.loading then
         div [ id "app-root", class "loading" ]
-            ([ UI.viewHomeLink False
+            ([ UI.viewHomeLink ToggleSidebar False
              , div [ id "document-header" ] []
              , div [ id "loading-overlay" ] []
              ]
@@ -2367,7 +2376,7 @@ pre, code, .group.has-active .card textarea {
                 in
                 div
                     [ id "app-root", applyTheme model.theme ]
-                    ([ UI.viewHomeLink (not (model.sidebarState == SidebarClosed))
+                    ([ UI.viewHomeLink ToggleSidebar (not (model.sidebarState == SidebarClosed))
                      , documentView
                      , UI.viewHeader
                         { toggledTitleEdit = ToggledTitleEdit

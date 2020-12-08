@@ -41,6 +41,14 @@ describe('Document UI', () => {
     })
   })
 
+  it('Toggles the sidebar on clicking brand icon', () => {
+    cy.get('#sidebar-menu').should('not.exist')
+    cy.get('#brand').click()
+    cy.get('#sidebar-menu').should('be.visible')
+    cy.get('#brand').click()
+    cy.get('#sidebar-menu').should('not.exist')
+  })
+
   it('Toggles shortcut tray on clicking right-sidebar', () => {
     cy.contains('Keyboard Shortcuts')
 

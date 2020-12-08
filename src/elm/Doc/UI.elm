@@ -28,9 +28,9 @@ import User exposing (User)
 -- HEADER
 
 
-viewHomeLink : Bool -> Html msg
-viewHomeLink sidebarOpen =
-    div [ id "brand" ]
+viewHomeLink : msg -> Bool -> Html msg
+viewHomeLink toggleSidebar sidebarOpen =
+    div [ id "brand", onClick toggleSidebar ]
         [ img [ src "../gingko-leaf-logo.svg", width 28 ]
             []
         , if sidebarOpen then
