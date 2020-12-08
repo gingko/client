@@ -75,6 +75,23 @@ describe('Document Editing', () => {
     cy.contains('Synced')
   })
 
+  it('Saves data with correct author info', () => {
+    cy.shortcut('{enter}')
+    cy.writeInCard('{enter}A change')
+    cy.shortcut('{ctrl}{enter}')
+
+    cy.window().then((win) => {
+      console.log(win.elmMessages)
+      let {elmMessage, elmData} = win.elmMessages.filter(m => m.elmMessage === "SaveData").slice(-1)[0];
+
+      expect(elmMessage).to.eq("SaveData")
+
+      let lastCommit = _.sortBy(elmData.filter(d => d.type === 'commit'), 'timestamp').reverse()[0];
+      expect(lastCommit.author)
+        .to.eq(`<${testEmail}>`)
+    })
+  })
+
   it('Cancels changes correctly after confirmation', () => {
     let confirmCalled
     cy.on('window:confirm', (str) => {
