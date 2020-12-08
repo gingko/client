@@ -530,11 +530,15 @@ update msg ({ workingTree } as model) =
         -- === UI ===
         ReceivedDocuments newList ->
             let
-                newMetadata =
+                currentDoc_ =
                     DocList.current model.metadata newList
-                        |> Maybe.withDefault model.metadata
             in
-            ( { model | metadata = newMetadata, documents = newList }, Cmd.none )
+            case currentDoc_ of
+                Just currentDoc ->
+                    ( { model | metadata = currentDoc, documents = newList }, Cmd.none )
+
+                Nothing ->
+                    ( model, Route.replaceUrl (User.navKey model.user) Route.Root )
 
         SettingsChanged lang ->
             ( { model | user = User.setLanguage lang model.user }, Cmd.none )
