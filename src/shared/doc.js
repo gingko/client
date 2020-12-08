@@ -456,6 +456,8 @@ const fromElm = (msg, elmData) => {
 
     // === Misc ===
 
+    EmptyMessageShown: () => {},
+
     TriggerMailto: () => {
       // Hack to avoid committing personal email address:
       let mail = document.createElement("a");

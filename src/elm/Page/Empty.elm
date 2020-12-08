@@ -2,11 +2,13 @@ module Page.Empty exposing (..)
 
 import Doc.List as DocList
 import Doc.UI as UI
-import Html exposing (Html, a, br, button, div, text)
-import Html.Attributes exposing (class, href, id)
-import Html.Events exposing (onClick)
+import Html exposing (Html, a, br, button, div, img, text)
+import Html.Attributes exposing (class, href, id, src)
+import Html.Events exposing (on, onClick)
 import Import.Bulk.UI as ImportModal
 import Import.Incoming
+import Json.Decode as Dec
+import Outgoing exposing (Msg(..), send)
 import Route
 import User exposing (User, language)
 
@@ -53,6 +55,7 @@ toUser model =
 
 type Msg
     = NoOp
+    | EmptyMessage
     | NewClicked
     | ModalClosed
     | ImportModalMsg ImportModal.Msg
@@ -76,6 +79,9 @@ update msg model =
 
                 Just docId ->
                     ( model, Route.replaceUrl (User.navKey model.user) (Route.DocUntitled docId) )
+
+        EmptyMessage ->
+            ( model, send <| EmptyMessageShown )
 
         NewClicked ->
             ( { model | modalState = TemplateSelector }, Cmd.none )
@@ -129,6 +135,7 @@ view ({ user, documents } as model) =
                 [ text "You don't have any documents. Create one here:"
                 , br [] []
                 , button [ id "new-button", onClick NewClicked ] [ text "New" ]
+                , img [ src "", on "error" (Dec.succeed EmptyMessage) ] []
                 ]
          ]
             ++ UI.viewSidebarStatic False

@@ -46,6 +46,7 @@ type Msg
     | SetFonts Fonts.Settings
     | SetShortcutTray Bool
       -- === Misc ===
+    | EmptyMessageShown
     | TriggerMailto
     | SocketSend CollabState
     | ConsoleLogRequested String
@@ -167,6 +168,9 @@ send info =
             dataToSend "SetShortcutTray" (bool isOpen)
 
         -- === Misc ===
+        EmptyMessageShown ->
+            dataToSend "EmptyMessageShown" null
+
         TriggerMailto ->
             dataToSend "TriggerMailto" null
 
