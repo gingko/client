@@ -1,8 +1,8 @@
-port module Doc.List exposing (Model, current, fetch, filter, getLastUpdated, init, isLoading, sortByUpdated, subscribe, viewLarge, viewSmall, viewSwitcher)
+port module Doc.List exposing (Model, current, fetch, filter, getLastUpdated, init, isLoading, sortByUpdated, subscribe, viewSmall, viewSwitcher)
 
 import Date
 import Doc.Metadata as Metadata exposing (Metadata)
-import Html exposing (Html, a, div, h1, li, text, ul)
+import Html exposing (Html, a, div, li, text, ul)
 import Html.Attributes exposing (class, classList, href, title)
 import Html.Events exposing (onClick, stopPropagationOn)
 import Json.Decode as Dec
@@ -116,29 +116,6 @@ type alias ListMsgs msg =
     { openDoc : String -> msg
     , deleteDoc : String -> msg
     }
-
-
-viewLarge : ListMsgs msg -> Translation.Language -> Time.Posix -> Model -> Html msg
-viewLarge msgs lang currTime model =
-    case model of
-        Loading ->
-            h1 [] [ text "LOADING" ]
-
-        Success docList ->
-            viewDocListLoaded msgs lang currTime docList
-
-        Failure _ ->
-            text <| "error!"
-
-
-viewDocListLoaded : ListMsgs msg -> Translation.Language -> Time.Posix -> List Metadata -> Html msg
-viewDocListLoaded msgs lang currTime docList =
-    div [ classList [ ( "document-list", True ) ] ]
-        (docList
-            |> List.sortBy (Time.posixToMillis << Metadata.getUpdatedAt)
-            |> List.reverse
-            |> List.map (viewDocumentItem msgs lang currTime)
-        )
 
 
 viewDocumentItem : ListMsgs msg -> Translation.Language -> Time.Posix -> Metadata -> Html msg
