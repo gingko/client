@@ -47,7 +47,7 @@ describe('User Signup Flow', () => {
   })
 
   it('Has an AuthSession cookie', () => {
-    cy.wait(400)
+    cy.get('button.cta').should('not.exist')
     cy.getCookie('AuthSession').should('exist')
   })
 
@@ -63,9 +63,8 @@ describe('User Signup Flow', () => {
   it('Logs Out Correctly', () =>{
     cy.get('#account').click()
     cy.get('#logout-button').click()
-    cy.wait(400)
-    cy.getCookie('AuthSession').should('have.property', 'value', '')
     cy.location('pathname').should('eq', '/login')
+    cy.getCookie('AuthSession').should('have.property', 'value', '')
     cy.get('button.cta').contains('Login')
   })
 })
