@@ -8,7 +8,7 @@ import Doc.Data as Data
 import Doc.Data.Conflict exposing (Selection)
 import Doc.Fonts as Fonts
 import Doc.Fullscreen as Fullscreen
-import Doc.List as DocList
+import Doc.List as DocList exposing (Model(..))
 import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
@@ -520,8 +520,20 @@ update msg ({ workingTree } as model) =
                 |> addToHistory
 
         -- === UI ===
-        ReceivedDocuments newList ->
-            ( { model | session = Session.updateDocuments newList model.session }, Cmd.none )
+        ReceivedDocuments newListState ->
+            let
+                updatedSession =
+                    Session.updateDocuments newListState model.session
+
+                routeCmd =
+                    case DocList.current model.metadata newListState of
+                        Just _ ->
+                            Cmd.none
+
+                        Nothing ->
+                            Route.replaceUrl (Session.navKey model.session) Route.Root
+            in
+            ( { model | session = updatedSession }, routeCmd )
 
         SettingsChanged lang ->
             ( { model | session = Session.setLanguage lang model.session }, Cmd.none )
