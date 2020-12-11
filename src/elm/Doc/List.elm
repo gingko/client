@@ -1,4 +1,4 @@
-port module Doc.List exposing (Model(..), current, fetch, filter, getLastUpdated, init, isLoading, sortByUpdated, subscribe, viewSmall, viewSwitcher)
+port module Doc.List exposing (Model(..), current, filter, getLastUpdated, init, isLoading, sortByUpdated, subscribe, viewSmall, viewSwitcher)
 
 import Date
 import Doc.Metadata as Metadata exposing (Metadata)
@@ -7,13 +7,11 @@ import Html.Attributes exposing (class, classList, href, title)
 import Html.Events exposing (onClick, stopPropagationOn)
 import Json.Decode as Dec
 import Octicons as Icon
-import Outgoing exposing (Msg(..), send)
 import Page.Doc.ContextMenu as ContextMenu
 import Route
 import Strftime
 import Time
 import Translation exposing (TranslationId(..), timeDistInWords, tr)
-import User exposing (User)
 
 
 
@@ -52,16 +50,6 @@ getLastUpdated model =
 
         _ ->
             Nothing
-
-
-fetch : User -> Cmd msg
-fetch session =
-    case User.db session of
-        Just userDb ->
-            send <| GetDocumentList userDb
-
-        Nothing ->
-            Cmd.none
 
 
 filter : String -> Model -> Model

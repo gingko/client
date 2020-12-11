@@ -169,8 +169,7 @@ init session dbName isNew =
     if isNew then
         ( initModel
         , Cmd.batch
-            [ DocList.fetch session
-            , send <| InitDocument dbName
+            [ send <| InitDocument dbName
             , focus "1"
             ]
         )
@@ -178,12 +177,7 @@ init session dbName isNew =
             |> addToHistoryDo
 
     else
-        ( initModel
-        , Cmd.batch
-            [ DocList.fetch session
-            , send <| LoadDocument dbName
-            ]
-        )
+        ( initModel, send <| LoadDocument dbName )
 
 
 toUser : Model -> User

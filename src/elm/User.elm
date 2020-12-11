@@ -1,6 +1,7 @@
 port module User exposing (User, db, decode, fileMenuOpen, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, settingsChange, shortcutTrayOpen, storeLogin, storeSignup)
 
 import Browser.Navigation as Nav
+import Doc.List as DocList
 import Http
 import Json.Decode as Dec
 import Json.Decode.Pipeline exposing (optional, optionalAt, required)
@@ -34,6 +35,7 @@ type alias UserData =
     { email : String
     , language : Translation.Language
     , shortcutTrayOpen : Bool
+    , documents : DocList.Model
     }
 
 
@@ -204,7 +206,7 @@ decodeLoggedIn : Nav.Key -> Dec.Decoder User
 decodeLoggedIn key =
     Dec.succeed
         (\email s lang trayOpen lastDoc ->
-            LoggedIn (SessionData key s False lastDoc) (UserData email lang trayOpen)
+            LoggedIn (SessionData key s False lastDoc) (UserData email lang trayOpen DocList.init)
         )
         |> required "email" Dec.string
         |> required "seed" (Dec.int |> Dec.map Random.initialSeed)
@@ -226,7 +228,7 @@ responseDecoder user =
         builder email lang trayOpen =
             case user of
                 Guest session data ->
-                    LoggedIn session (UserData email lang trayOpen)
+                    LoggedIn session (UserData email lang trayOpen DocList.init)
 
                 LoggedIn _ _ ->
                     user

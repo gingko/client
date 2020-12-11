@@ -152,7 +152,7 @@ update msg ({ state, user } as model) =
             ( { model | state = ImportSaving selectList }, send <| SaveImportedData treesToSave )
 
         ( Completed, ImportSaving _ ) ->
-            ( { model | state = Closed }, DocList.fetch user )
+            ( { model | state = Closed }, Cmd.none )
 
         _ ->
             ( model, Cmd.none )

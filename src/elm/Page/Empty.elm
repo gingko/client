@@ -41,7 +41,7 @@ init user =
             ( defaultModel user, Route.replaceUrl (User.navKey user) (Route.DocUntitled docId) )
 
         Nothing ->
-            ( defaultModel user, DocList.fetch user )
+            ( defaultModel user, Cmd.none )
 
 
 toUser : Model -> User
@@ -106,7 +106,7 @@ update msg model =
             ( { model | modalState = ImportModal <| ImportModal.init model.user }, Cmd.none )
 
         ImportBulkCompleted ->
-            ( { model | modalState = Closed }, DocList.fetch model.user )
+            ( { model | modalState = Closed }, Cmd.none )
 
         ImportJSONRequested ->
             ( model, Cmd.none )
