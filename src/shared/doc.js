@@ -236,6 +236,10 @@ const fromElm = (msg, elmData) => {
     LoadDocument : async () => {
       TREE_ID = elmData;
 
+      // Load title
+      let metadata = await data.loadMetadata(db, elmData);
+      toElm(metadata, "docMsgs", "MetadataSaved")
+
       // Load local document data.
       let localExists;
       let [loadedData, savedIds] = await data.load(db, elmData);
