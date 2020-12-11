@@ -38,8 +38,7 @@ describe('Managing Documents', () => {
         .contains('#sidebar-menu', 'Another doc, with title')
 
       // Go to Untitled doc
-      cy.contains('Untitled')
-        .click()
+      cy.get('#sidebar-menu').contains('Untitled').click()
 
       // Check Untitled doc contents
       cy.contains('#document', 'Hello Test doc')
