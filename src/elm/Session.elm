@@ -187,7 +187,7 @@ updateDocuments : DocList.Model -> Session -> Session
 updateDocuments docList session =
     case session of
         LoggedIn sessionData data ->
-            LoggedIn sessionData { data | documents = DocList.update docList data.documents |> Debug.log "new docs" }
+            LoggedIn sessionData { data | documents = DocList.update docList data.documents }
 
         Guest _ _ ->
             session
