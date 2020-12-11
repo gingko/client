@@ -487,12 +487,7 @@ const fromElm = (msg, elmData) => {
 
 async function loadAndUpdateDocList() {
   let docList = await data.getDocumentList(db);
-  if (docList.rows.length == 0) {
-    let remoteDocList = await data.getDocumentList(remoteDB);
-    toElm(remoteDocList, "documentListChanged");
-  } else {
-    toElm(docList, "documentListChanged");
-  }
+  toElm(docList, "documentListChanged");
 }
 
 
