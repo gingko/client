@@ -2,6 +2,11 @@ const config = require("../../config.js");
 const helpers = require("../../src/shared/doc-helpers.js");
 
 
+Cypress.LocalStorage.clear = function (keys, ls, rs) {
+  return;
+}
+
+
 describe('Managing Documents', () => {
   const testEmail = 'cypress@testing.com'
   const testUserDb = 'userdb-' + helpers.toHex(testEmail);
@@ -31,6 +36,8 @@ describe('Managing Documents', () => {
     })
 
     it('Should navigate correctly using sidebar', function () {
+      cy.visit(config.TEST_SERVER + '/' + this.treeIds[1]);
+
       // Open sidebar
       cy.get('#file-button').click()
 
