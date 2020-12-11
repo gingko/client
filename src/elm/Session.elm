@@ -380,7 +380,7 @@ store session_ =
 
 loginChanges : (Session -> msg) -> Nav.Key -> Sub msg
 loginChanges toMsg key =
-    sessionLoginChange (decode key >> toMsg)
+    userLoginChange (decode key >> toMsg)
 
 
 settingsChange : (Language -> msg) -> Sub msg
@@ -397,7 +397,7 @@ settingsChange toMsg =
     userSettingsChange (decodeSettings >> toMsg)
 
 
-port sessionLoginChange : (Dec.Value -> msg) -> Sub msg
+port userLoginChange : (Dec.Value -> msg) -> Sub msg
 
 
 port userSettingsChange : (Dec.Value -> msg) -> Sub msg
