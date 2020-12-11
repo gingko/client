@@ -3,6 +3,10 @@ import _ from "lodash";
 Object.defineProperty(Array.prototype, "tap", { value(f) { f(this); return this; }});
 
 
+async function getDocumentList(db) {
+  return (await db.query("testDocList/docList").catch(async (e) => e));
+}
+
 async function load (localDb, treeId) {
   let allDocs = await loadAll(localDb, treeId);
   let elmDocs = loadedResToElmData(allDocs, treeId);
@@ -309,4 +313,4 @@ function unprefix(doc, treeId, idField = "_id") {
 
 /* === Exports === */
 
-export { load, loadMetadata, saveData, pull, sync };
+export { getDocumentList, load, loadMetadata, saveData, pull, sync };
