@@ -1,4 +1,4 @@
-port module Doc.List exposing (Model(..), current, filter, getLastUpdated, init, isLoading, sortByUpdated, subscribe, viewSmall, viewSwitcher)
+port module Doc.List exposing (Model(..), current, filter, getLastUpdated, init, isLoading, sortByUpdated, subscribe, update, viewSmall, viewSwitcher)
 
 import Date
 import Doc.Metadata as Metadata exposing (Metadata)
@@ -94,6 +94,15 @@ current metadata model =
 
         _ ->
             Nothing
+
+
+
+-- UPDATE
+
+
+update : Model -> Model -> Model
+update newModel oldModel =
+    newModel
 
 
 

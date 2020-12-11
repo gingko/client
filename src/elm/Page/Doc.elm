@@ -521,7 +521,7 @@ update msg ({ workingTree } as model) =
 
         -- === UI ===
         ReceivedDocuments newList ->
-            ( model, Cmd.none )
+            ( { model | session = Session.updateDocuments newList model.session }, Cmd.none )
 
         SettingsChanged lang ->
             ( { model | session = Session.setLanguage lang model.session }, Cmd.none )

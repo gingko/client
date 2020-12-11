@@ -1,4 +1,4 @@
-port module Session exposing (Session, db, decode, documents, fileMenuOpen, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, settingsChange, shortcutTrayOpen, storeLogin, storeSignup)
+port module Session exposing (Session, db, decode, documents, fileMenuOpen, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, settingsChange, shortcutTrayOpen, storeLogin, storeSignup, updateDocuments)
 
 import Browser.Navigation as Nav
 import Doc.List as DocList
@@ -178,6 +178,16 @@ setShortcutTrayOpen isOpen session =
     case session of
         LoggedIn key data ->
             LoggedIn key { data | shortcutTrayOpen = isOpen }
+
+        Guest _ _ ->
+            session
+
+
+updateDocuments : DocList.Model -> Session -> Session
+updateDocuments docList session =
+    case session of
+        LoggedIn sessionData data ->
+            LoggedIn sessionData { data | documents = DocList.update docList data.documents |> Debug.log "new docs" }
 
         Guest _ _ ->
             session
