@@ -12,7 +12,6 @@ describe('Document UI', () => {
     cy.deleteUser(testEmail)
     cy.signup(testEmail)
     cy.visit(config.TEST_SERVER + '/new')
-    cy.wait(400)
   })
 
   beforeEach(() => {
