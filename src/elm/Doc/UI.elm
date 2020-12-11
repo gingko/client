@@ -63,13 +63,13 @@ viewHeader :
             , lastLocalSave : Maybe Time.Posix
             , lastRemoteSave : Maybe Time.Posix
             , currentTime : Time.Posix
-            , user : Session
+            , session : Session
         }
     -> Html msg
 viewHeader msgs title_ model =
     let
         language =
-            Session.language model.user
+            Session.language model.session
 
         titleArea =
             case model.titleField of
@@ -99,7 +99,7 @@ viewHeader msgs title_ model =
             , toggledAccountMenu = msgs.toggledAccountMenu
             }
             model.dropdownState
-            model.user
+            model.session
         ]
 
 
@@ -149,7 +149,7 @@ viewTopRightButtons :
     -> DropdownState
     -> Session
     -> Html msg
-viewTopRightButtons msgs dropdownState user =
+viewTopRightButtons msgs dropdownState session =
     let
         isHelpDropdown =
             dropdownState == Help
@@ -180,7 +180,7 @@ viewTopRightButtons msgs dropdownState user =
             [ userIcon
             , if isAccountDropdown then
                 div [ id "account-dropdown" ]
-                    [ text (Session.name user |> Maybe.withDefault "")
+                    [ text (Session.name session |> Maybe.withDefault "")
                     , hr [] []
                     , div [ id "logout-button", onClick msgs.logoutRequested ] [ logoutIcon, text "Logout" ]
                     ]
@@ -445,11 +445,11 @@ viewTemplateSelector language msgs =
 -- DOCUMENT
 
 
-viewSearchField : (String -> msg) -> { m | viewState : ViewState, user : Session } -> Html msg
-viewSearchField searchFieldMsg { viewState, user } =
+viewSearchField : (String -> msg) -> { m | viewState : ViewState, session : Session } -> Html msg
+viewSearchField searchFieldMsg { viewState, session } =
     let
         language =
-            Session.language user
+            Session.language session
 
         maybeSearchIcon =
             if viewState.searchField == Nothing then
@@ -487,13 +487,13 @@ viewFooter :
             , workingTree : TreeStructure.Model
             , startingWordcount : Int
             , wordcountTrayOpen : Bool
-            , user : Session
+            , session : Session
         }
     -> Html msg
 viewFooter wordCountToggle model =
     let
         language =
-            Session.language model.user
+            Session.language model.session
 
         wordCounts =
             getWordCounts model

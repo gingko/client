@@ -56,7 +56,7 @@ type alias Model =
     , metadata : Metadata
 
     -- SPA Page State
-    , user : Session
+    , session : Session
     , documents : DocList.Model
     , loading : Bool
 
@@ -104,7 +104,7 @@ defaultModel isNew session docId =
     { workingTree = TreeStructure.defaultModel
     , data = Data.empty
     , metadata = Metadata.new docId
-    , user = session
+    , session = session
     , documents = DocList.init
     , loading = not isNew
     , debouncerStateCommit =
@@ -182,7 +182,7 @@ init session dbName isNew =
 
 toUser : Model -> Session
 toUser model =
-    model.user
+    model.session
 
 
 getTitle : Model -> String
@@ -532,10 +532,10 @@ update msg ({ workingTree } as model) =
                     ( { model | metadata = currentDoc, documents = newList }, Cmd.none )
 
                 Nothing ->
-                    ( model, Route.replaceUrl (Session.navKey model.user) Route.Root )
+                    ( model, Route.replaceUrl (Session.navKey model.session) Route.Root )
 
         SettingsChanged lang ->
-            ( { model | user = Session.setLanguage lang model.user }, Cmd.none )
+            ( { model | session = Session.setLanguage lang model.session }, Cmd.none )
 
         ToggledTitleEdit isEditingTitle ->
             if isEditingTitle then
@@ -569,7 +569,7 @@ update msg ({ workingTree } as model) =
             ( model, Session.logout )
 
         LoginStateChanged newUser ->
-            ( { model | user = newUser }, Route.pushUrl (Session.navKey newUser) Route.Login )
+            ( { model | session = newUser }, Route.pushUrl (Session.navKey newUser) Route.Login )
 
         ToggledHelpMenu isOpen ->
             ( { model
@@ -611,12 +611,12 @@ update msg ({ workingTree } as model) =
                 newSessionData =
                     case newSidebarState of
                         File ->
-                            Session.setFileOpen True model.user
+                            Session.setFileOpen True model.session
 
                         _ ->
-                            Session.setFileOpen False model.user
+                            Session.setFileOpen False model.session
             in
-            ( { model | user = newSessionData, sidebarState = newSidebarState }, Cmd.none )
+            ( { model | session = newSessionData, sidebarState = newSidebarState }, Cmd.none )
 
         TemplateSelectorOpened ->
             ( { model | modalState = TemplateSelector }, Cmd.none )
@@ -625,7 +625,7 @@ update msg ({ workingTree } as model) =
             ( { model | modalState = NoModal }, Cmd.none )
 
         ImportBulkClicked ->
-            ( { model | modalState = ImportModal (ImportModal.init model.user) }, Cmd.none )
+            ( { model | modalState = ImportModal (ImportModal.init model.session) }, Cmd.none )
 
         FileSearchChanged term ->
             ( { model | fileSearchField = term }, Cmd.none )
@@ -673,11 +673,11 @@ update msg ({ workingTree } as model) =
         ImportJSONLoaded fileName jsonString ->
             let
                 ( importTreeDecoder, newSeed ) =
-                    Import.Single.decoder (Session.seed model.user)
+                    Import.Single.decoder (Session.seed model.session)
             in
             case Json.decodeString importTreeDecoder jsonString of
                 Ok tree ->
-                    ( { model | loading = True, user = Session.setSeed newSeed model.user }
+                    ( { model | loading = True, session = Session.setSeed newSeed model.session }
                     , RandomId.generate (ImportJSONIdGenerated tree fileName)
                     )
 
@@ -687,12 +687,12 @@ update msg ({ workingTree } as model) =
         ImportJSONIdGenerated tree fileName docId ->
             let
                 author =
-                    model.user |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
+                    model.session |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
             in
             ( model, send <| SaveImportedData (Import.Single.encode { author = author, docId = docId, fileName = fileName } tree) )
 
         ImportJSONCompleted docId ->
-            ( model, Route.pushUrl (Session.navKey model.user) (Route.DocUntitled docId) )
+            ( model, Route.pushUrl (Session.navKey model.session) (Route.DocUntitled docId) )
 
         ImportBulkCompleted ->
             ( { model | modalState = NoModal }, Cmd.none )
@@ -731,10 +731,10 @@ update msg ({ workingTree } as model) =
         ShortcutTrayToggle ->
             let
                 newIsOpen =
-                    not <| Session.shortcutTrayOpen model.user
+                    not <| Session.shortcutTrayOpen model.session
             in
             ( { model
-                | user = Session.setShortcutTrayOpen newIsOpen model.user
+                | session = Session.setShortcutTrayOpen newIsOpen model.session
               }
             , send (SetShortcutTray newIsOpen)
             )
@@ -804,7 +804,7 @@ update msg ({ workingTree } as model) =
                     dataReceived dataIn model
 
                 NotFound ->
-                    ( model, Route.replaceUrl (Session.navKey model.user) Route.Root )
+                    ( model, Route.replaceUrl (Session.navKey model.session) Route.Root )
 
                 LocalStoreLoaded dataIn ->
                     let
@@ -966,7 +966,7 @@ update msg ({ workingTree } as model) =
 
                 -- === UI ===
                 LanguageChanged lang ->
-                    ( { model | user = Session.setLanguage lang model.user }
+                    ( { model | session = Session.setLanguage lang model.session }
                     , Cmd.none
                     )
 
@@ -2215,10 +2215,10 @@ historyStep dir currHead ( model, prevCmd ) =
 
 
 addToHistoryDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-addToHistoryDo ( { workingTree, currentTime, user } as model, prevCmd ) =
+addToHistoryDo ( { workingTree, currentTime, session } as model, prevCmd ) =
     let
         author =
-            user |> Session.name |> Maybe.withDefault "unknown" |> (\a -> "<" ++ a ++ ">")
+            session |> Session.name |> Maybe.withDefault "unknown" |> (\a -> "<" ++ a ++ ">")
 
         newData =
             Data.commit author (currentTime |> Time.posixToMillis) workingTree.tree model.data
@@ -2302,7 +2302,7 @@ view : Model -> Html Msg
 view model =
     let
         sidebarOpen =
-            Session.fileMenuOpen model.user
+            Session.fileMenuOpen model.session
     in
     if model.loading then
         div [ id "app-root", class "loading" ]
@@ -2321,7 +2321,7 @@ viewLoaded : Model -> Html Msg
 viewLoaded model =
     let
         language =
-            Session.language model.user
+            Session.language model.session
 
         replace orig new =
             Regex.replace (Regex.fromString orig |> Maybe.withDefault Regex.never) (\_ -> new)
@@ -2358,7 +2358,7 @@ pre, code, .group.has-active .card textarea {
                     documentView =
                         case model.exportPreview of
                             False ->
-                                lazy3 treeView (Session.language model.user) model.viewState model.workingTree
+                                lazy3 treeView (Session.language model.session) model.viewState model.workingTree
 
                             True ->
                                 let
@@ -2408,7 +2408,7 @@ pre, code, .group.has-active .card textarea {
                         ++ UI.viewShortcuts
                             ShortcutTrayToggle
                             language
-                            (Session.shortcutTrayOpen model.user)
+                            (Session.shortcutTrayOpen model.session)
                             model.isMac
                             model.workingTree.tree.children
                             model.textCursorInfo
@@ -2417,7 +2417,7 @@ pre, code, .group.has-active .card textarea {
                            , viewFooter WordcountTrayToggle model
                            , case model.historyState of
                                 From currHead ->
-                                    viewHistory NoOp CheckoutCommit Restore CancelHistory (Session.language model.user) currHead model.data
+                                    viewHistory NoOp CheckoutCommit Restore CancelHistory (Session.language model.session) currHead model.data
 
                                 _ ->
                                     text ""
@@ -2426,7 +2426,7 @@ pre, code, .group.has-active .card textarea {
                            , div [ id "loading-overlay" ] []
                            , div [ id "preloader" ] []
                            ]
-                        ++ viewModal (Session.language model.user) model
+                        ++ viewModal (Session.language model.session) model
                     )
 
         conflicts ->
@@ -2450,7 +2450,7 @@ repeating-linear-gradient(-45deg
                 ]
                 [ ul [ class "conflicts-list" ]
                     (List.map (viewConflict SetSelection Resolve) conflicts)
-                , lazy3 treeView (Session.language model.user) model.viewState model.workingTree
+                , lazy3 treeView (Session.language model.session) model.viewState model.workingTree
                 , styleNode
                 ]
 
@@ -2887,14 +2887,14 @@ collabsSpan collabsOnCard collabsEditingCard =
     span [ class "collaborators" ] [ text collabsString ]
 
 
-viewModal : Language -> { m | modalState : ModalState, metadata : Metadata, fileSearchField : String, documents : DocList.Model } -> List (Html Msg)
+viewModal : Language -> { m | modalState : ModalState, metadata : Metadata, fileSearchField : String, session : Session } -> List (Html Msg)
 viewModal language model =
     case model.modalState of
         NoModal ->
             [ text "" ]
 
         FileSwitcher ->
-            UI.viewFileSwitcher FileSearchChanged model.metadata model.fileSearchField model.documents
+            UI.viewFileSwitcher FileSearchChanged model.metadata model.fileSearchField (Session.documents model.session)
 
         SidebarContextMenu docId ( x, y ) ->
             [ div [ onClick ModalClosed, id "sidebar-context-overlay" ] []
@@ -2944,7 +2944,7 @@ subscriptions model =
             _ ->
                 Sub.none
         , Session.settingsChange SettingsChanged
-        , Session.loginChanges LoginStateChanged (Session.navKey model.user)
+        , Session.loginChanges LoginStateChanged (Session.navKey model.session)
         , Time.every (9 * 1000) TimeUpdate
         , Time.every (20 * 1000) (always Pull)
         ]

@@ -1,4 +1,4 @@
-port module Session exposing (Session, db, decode, fileMenuOpen, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, settingsChange, shortcutTrayOpen, storeLogin, storeSignup)
+port module Session exposing (Session, db, decode, documents, fileMenuOpen, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, settingsChange, shortcutTrayOpen, storeLogin, storeSignup)
 
 import Browser.Navigation as Nav
 import Doc.List as DocList
@@ -117,6 +117,16 @@ shortcutTrayOpen session =
 
         Guest _ _ ->
             False
+
+
+documents : Session -> DocList.Model
+documents session =
+    case session of
+        LoggedIn _ data ->
+            data.documents
+
+        Guest _ _ ->
+            DocList.init
 
 
 loggedIn : Session -> Bool
