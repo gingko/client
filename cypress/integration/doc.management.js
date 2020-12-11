@@ -33,6 +33,8 @@ describe('Managing Documents', () => {
       cy.visit(config.TEST_SERVER)
 
       cy.url().should('contain', this.treeIds[1] )
+
+      cy.get('#title').contains('Another doc, with title')
     })
 
     it('Should navigate correctly using sidebar', function () {
