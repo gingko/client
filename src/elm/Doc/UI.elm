@@ -124,8 +124,12 @@ viewSaveIndicator language { dirty, lastLocalSave, lastRemoteSave, currentTime }
                     ( Nothing, Nothing ) ->
                         span [] [ text <| tr language NeverSaved ]
 
-                    ( Just _, Nothing ) ->
-                        span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language SavedInternally ]
+                    ( Just time, Nothing ) ->
+                        if Time.posixToMillis time == 0 then
+                            span [] [ text <| tr language NeverSaved ]
+
+                        else
+                            span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language SavedInternally ]
 
                     ( Just commitTime, Just fileTime ) ->
                         if posixToMillis commitTime <= posixToMillis fileTime then
