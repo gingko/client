@@ -24,7 +24,7 @@ type Msg
       -- === Database ===
     | InitDocument String
     | LoadDocument String
-    | GetDocumentList String
+    | GetDocumentList
     | RequestDelete String
     | NoDataToSave
     | SaveData Enc.Value
@@ -91,8 +91,8 @@ send info =
         LoadDocument dbName ->
             dataToSend "LoadDocument" (string dbName)
 
-        GetDocumentList dbName ->
-            dataToSend "GetDocumentList" (string dbName)
+        GetDocumentList ->
+            dataToSend "GetDocumentList" null
 
         RequestDelete dbName ->
             dataToSend "RequestDelete" (string dbName)

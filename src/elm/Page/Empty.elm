@@ -33,13 +33,13 @@ defaultModel user =
 
 
 init : Session -> ( Model, Cmd msg )
-init user =
-    case Session.lastDocId user of
+init session =
+    case Session.lastDocId session of
         Just docId ->
-            ( defaultModel user, Route.replaceUrl (Session.navKey user) (Route.DocUntitled docId) )
+            ( defaultModel session, Route.replaceUrl (Session.navKey session) (Route.DocUntitled docId) )
 
         Nothing ->
-            ( defaultModel user, Cmd.none )
+            ( defaultModel session, send <| GetDocumentList )
 
 
 toUser : Model -> Session
