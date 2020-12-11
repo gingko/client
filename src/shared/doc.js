@@ -273,6 +273,8 @@ const fromElm = (msg, elmData) => {
       localStore.db(db, elmData);
       let store = await localStore.load();
       toElm(store, "docMsgs", "LocalStoreLoaded");
+
+      loadAndUpdateDocList();
     },
 
     GetDocumentList: () => {
