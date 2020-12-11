@@ -88,7 +88,7 @@ update msg model =
                         _ ->
                             Cmd.none
             in
-            ( { model | session = updatedSession }, routeCmd |> Debug.log "routeCmd" )
+            ( { model | session = updatedSession }, routeCmd )
 
         EmptyMessage ->
             ( model, send <| EmptyMessageShown )
