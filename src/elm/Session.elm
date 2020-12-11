@@ -50,23 +50,23 @@ type alias GuestData =
 
 
 getFromSession : (SessionData -> a) -> Session -> a
-getFromSession getter user =
-    case user of
-        LoggedIn session _ ->
-            getter session
+getFromSession getter session =
+    case session of
+        LoggedIn sessionData _ ->
+            getter sessionData
 
-        Guest session _ ->
-            getter session
+        Guest sessionData _ ->
+            getter sessionData
 
 
 navKey : Session -> Nav.Key
-navKey user =
-    getFromSession .navKey user
+navKey session =
+    getFromSession .navKey session
 
 
 name : Session -> Maybe String
-name user =
-    case user of
+name session =
+    case session of
         LoggedIn _ { email } ->
             Just email
 
@@ -75,18 +75,18 @@ name user =
 
 
 seed : Session -> Random.Seed
-seed user =
-    getFromSession .seed user
+seed session =
+    getFromSession .seed session
 
 
 lastDocId : Session -> Maybe String
-lastDocId user =
-    getFromSession .lastDocId user
+lastDocId session =
+    getFromSession .lastDocId session
 
 
 db : Session -> Maybe String
-db user =
-    case user of
+db session =
+    case session of
         LoggedIn _ { email } ->
             Just ("userdb-" ++ hexEncode email)
 
@@ -95,13 +95,13 @@ db user =
 
 
 fileMenuOpen : Session -> Bool
-fileMenuOpen user =
-    getFromSession .fileMenuOpen user
+fileMenuOpen session =
+    getFromSession .fileMenuOpen session
 
 
 language : Session -> Language
-language user =
-    case user of
+language session =
+    case session of
         LoggedIn _ data ->
             data.language
 
@@ -110,8 +110,8 @@ language user =
 
 
 shortcutTrayOpen : Session -> Bool
-shortcutTrayOpen user =
-    case user of
+shortcutTrayOpen session =
+    case session of
         LoggedIn _ data ->
             data.shortcutTrayOpen
 
@@ -120,8 +120,8 @@ shortcutTrayOpen user =
 
 
 loggedIn : Session -> Bool
-loggedIn user =
-    case user of
+loggedIn session =
+    case session of
         LoggedIn _ _ ->
             True
 
@@ -134,28 +134,28 @@ loggedIn user =
 
 
 updateSession : (SessionData -> SessionData) -> Session -> Session
-updateSession updateFn user =
-    case user of
-        LoggedIn session data ->
-            LoggedIn (updateFn session) data
+updateSession updateFn session =
+    case session of
+        LoggedIn sessionData data ->
+            LoggedIn (updateFn sessionData) data
 
-        Guest session data ->
-            Guest (updateFn session) data
+        Guest sessionData data ->
+            Guest (updateFn sessionData) data
 
 
 setSeed : Random.Seed -> Session -> Session
-setSeed newSeed user =
-    updateSession (\s -> { s | seed = newSeed }) user
+setSeed newSeed session =
+    updateSession (\s -> { s | seed = newSeed }) session
 
 
 setFileOpen : Bool -> Session -> Session
-setFileOpen isOpen user =
-    updateSession (\s -> { s | fileMenuOpen = isOpen }) user
+setFileOpen isOpen session =
+    updateSession (\s -> { s | fileMenuOpen = isOpen }) session
 
 
 setLanguage : Language -> Session -> Session
-setLanguage lang user =
-    case user of
+setLanguage lang session =
+    case session of
         LoggedIn key data ->
             LoggedIn key { data | language = lang }
 
@@ -164,13 +164,13 @@ setLanguage lang user =
 
 
 setShortcutTrayOpen : Bool -> Session -> Session
-setShortcutTrayOpen isOpen user =
-    case user of
+setShortcutTrayOpen isOpen session =
+    case session of
         LoggedIn key data ->
             LoggedIn key { data | shortcutTrayOpen = isOpen }
 
         Guest _ _ ->
-            user
+            session
 
 
 
@@ -180,8 +180,8 @@ setShortcutTrayOpen isOpen user =
 decode : Nav.Key -> Dec.Value -> Session
 decode key json =
     case Dec.decodeValue (decoder key) json of
-        Ok user ->
-            user
+        Ok session ->
+            session
 
         Err err ->
             let
@@ -223,15 +223,15 @@ decodeGuest key =
 
 
 responseDecoder : Session -> Dec.Decoder Session
-responseDecoder user =
+responseDecoder session =
     let
         builder email lang trayOpen =
-            case user of
-                Guest session data ->
-                    LoggedIn session (UserData email lang trayOpen DocList.init)
+            case session of
+                Guest sessionData data ->
+                    LoggedIn sessionData (UserData email lang trayOpen DocList.init)
 
                 LoggedIn _ _ ->
-                    user
+                    session
     in
     Dec.succeed builder
         |> required "email" Dec.string
@@ -240,8 +240,8 @@ responseDecoder user =
 
 
 encode : Session -> Enc.Value
-encode user =
-    case user of
+encode session =
+    case session of
         LoggedIn _ data ->
             Enc.object
                 [ ( "email", Enc.string data.email )
@@ -259,7 +259,7 @@ encode user =
 
 
 requestSignup : (Result Http.Error Session -> msg) -> String -> String -> Session -> Cmd msg
-requestSignup toMsg email password user =
+requestSignup toMsg email password session =
     let
         requestBody =
             Enc.object
@@ -271,17 +271,17 @@ requestSignup toMsg email password user =
     Http.post
         { url = "/signup"
         , body = requestBody
-        , expect = Http.expectJson toMsg (responseDecoder user)
+        , expect = Http.expectJson toMsg (responseDecoder session)
         }
 
 
 storeSignup : Session -> Cmd msg
-storeSignup user =
-    store (Just user)
+storeSignup session =
+    store (Just session)
 
 
 requestLogin : (Result Http.Error Session -> msg) -> String -> String -> Session -> Cmd msg
-requestLogin toMsg email password user =
+requestLogin toMsg email password session =
     let
         requestBody =
             Enc.object
@@ -295,19 +295,19 @@ requestLogin toMsg email password user =
         , url = "/login"
         , headers = []
         , body = requestBody
-        , expect = Http.expectJson toMsg (responseDecoder user)
+        , expect = Http.expectJson toMsg (responseDecoder session)
         , timeout = Nothing
         , tracker = Nothing
         }
 
 
 storeLogin : Session -> Cmd msg
-storeLogin user =
-    store (Just user)
+storeLogin session =
+    store (Just session)
 
 
 requestForgotPassword : (Result Http.Error Session -> msg) -> String -> Session -> Cmd msg
-requestForgotPassword toMsg email user =
+requestForgotPassword toMsg email session =
     let
         requestBody =
             Enc.object
@@ -318,12 +318,12 @@ requestForgotPassword toMsg email user =
     Http.post
         { url = "/forgot-password"
         , body = requestBody
-        , expect = Http.expectJson toMsg (responseDecoder user)
+        , expect = Http.expectJson toMsg (responseDecoder session)
         }
 
 
 requestResetPassword : (Result Http.Error Session -> msg) -> { newPassword : String, token : String } -> Session -> Cmd msg
-requestResetPassword toMsg { newPassword, token } user =
+requestResetPassword toMsg { newPassword, token } session =
     let
         requestBody =
             Enc.object
@@ -335,7 +335,7 @@ requestResetPassword toMsg { newPassword, token } user =
     Http.post
         { url = "/reset-password"
         , body = requestBody
-        , expect = Http.expectJson toMsg (responseDecoder user)
+        , expect = Http.expectJson toMsg (responseDecoder session)
         }
 
 
@@ -349,10 +349,10 @@ logout =
 
 
 store : Maybe Session -> Cmd msg
-store user_ =
-    case user_ of
-        Just user ->
-            send <| StoreUser (encode user)
+store session_ =
+    case session_ of
+        Just session ->
+            send <| StoreUser (encode session)
 
         Nothing ->
             send <| StoreUser Enc.null
@@ -360,7 +360,7 @@ store user_ =
 
 loginChanges : (Session -> msg) -> Nav.Key -> Sub msg
 loginChanges toMsg key =
-    userLoginChange (decode key >> toMsg)
+    sessionLoginChange (decode key >> toMsg)
 
 
 settingsChange : (Language -> msg) -> Sub msg
@@ -377,7 +377,7 @@ settingsChange toMsg =
     userSettingsChange (decodeSettings >> toMsg)
 
 
-port userLoginChange : (Dec.Value -> msg) -> Sub msg
+port sessionLoginChange : (Dec.Value -> msg) -> Sub msg
 
 
 port userSettingsChange : (Dec.Value -> msg) -> Sub msg
