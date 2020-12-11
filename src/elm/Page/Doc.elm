@@ -57,7 +57,6 @@ type alias Model =
 
     -- SPA Page State
     , session : Session
-    , documents : DocList.Model
     , loading : Bool
 
     -- Transient state
@@ -105,7 +104,6 @@ defaultModel isNew session docId =
     , data = Data.empty
     , metadata = Metadata.new docId
     , session = session
-    , documents = DocList.init
     , loading = not isNew
     , debouncerStateCommit =
         Debouncer.throttle (fromSeconds 3)
@@ -523,16 +521,7 @@ update msg ({ workingTree } as model) =
 
         -- === UI ===
         ReceivedDocuments newList ->
-            let
-                currentDoc_ =
-                    DocList.current model.metadata newList
-            in
-            case currentDoc_ of
-                Just currentDoc ->
-                    ( { model | metadata = currentDoc, documents = newList }, Cmd.none )
-
-                Nothing ->
-                    ( model, Route.replaceUrl (Session.navKey model.session) Route.Root )
+            ( model, Cmd.none )
 
         SettingsChanged lang ->
             ( { model | session = Session.setLanguage lang model.session }, Cmd.none )
@@ -2402,7 +2391,7 @@ pre, code, .group.has-active .card textarea {
                             }
                             model.metadata
                             model.fileSearchField
-                            model.documents
+                            (Session.documents model.session)
                             model.exportSettings
                             model.sidebarState
                         ++ UI.viewShortcuts
