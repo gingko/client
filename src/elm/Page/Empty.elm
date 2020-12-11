@@ -74,8 +74,21 @@ update msg model =
             let
                 updatedSession =
                     Session.updateDocuments newList model.session
+
+                routeCmd =
+                    case Session.documents updatedSession of
+                        Success [] ->
+                            Cmd.none
+
+                        Success docList ->
+                            DocList.getLastUpdated (Success docList)
+                                |> Maybe.map (\s -> Route.replaceUrl (Session.navKey model.session) (Route.DocUntitled s))
+                                |> Maybe.withDefault Cmd.none
+
+                        _ ->
+                            Cmd.none
             in
-            ( { model | session = updatedSession }, Cmd.none )
+            ( { model | session = updatedSession }, routeCmd |> Debug.log "routeCmd" )
 
         EmptyMessage ->
             ( model, send <| EmptyMessageShown )
