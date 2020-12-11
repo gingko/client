@@ -14,8 +14,7 @@ import Session exposing (Session, language)
 
 
 type alias Model =
-    { user : Session
-    , documents : DocList.Model
+    { session : Session
     , modalState : ModalState
     }
 
@@ -28,8 +27,7 @@ type ModalState
 
 defaultModel : Session -> Model
 defaultModel user =
-    { user = user
-    , documents = DocList.init
+    { session = user
     , modalState = Closed
     }
 
@@ -46,7 +44,7 @@ init user =
 
 toUser : Model -> Session
 toUser model =
-    model.user
+    model.session
 
 
 
@@ -72,13 +70,12 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
-        ReceivedDocuments docList ->
-            case DocList.getLastUpdated docList of
-                Nothing ->
-                    ( { model | documents = docList }, Cmd.none )
-
-                Just docId ->
-                    ( model, Route.replaceUrl (Session.navKey model.user) (Route.DocUntitled docId) )
+        ReceivedDocuments newList ->
+            let
+                updatedSession =
+                    Session.updateDocuments newList model.session
+            in
+            ( { model | session = updatedSession }, Cmd.none )
 
         EmptyMessage ->
             ( model, send <| EmptyMessageShown )
@@ -103,7 +100,7 @@ update msg model =
                     ( model, Cmd.none )
 
         ImportBulkClicked ->
-            ( { model | modalState = ImportModal <| ImportModal.init model.user }, Cmd.none )
+            ( { model | modalState = ImportModal <| ImportModal.init model.session }, Cmd.none )
 
         ImportBulkCompleted ->
             ( { model | modalState = Closed }, Cmd.none )
@@ -120,13 +117,13 @@ update msg model =
 
 
 view : Model -> Html Msg
-view ({ user, documents } as model) =
+view ({ session } as model) =
     div
         [ id "app-root", class "loading" ]
         ([ UI.viewHomeLink NoOp False
          , div [ id "document-header" ] []
          , div [ id "loading-overlay" ] []
-         , case documents of
+         , case Session.documents session of
             Success [] ->
                 div [ id "empty-message" ]
                     [ text "You don't have any documents. Create one here:"
@@ -145,20 +142,20 @@ view ({ user, documents } as model) =
 
 
 viewModal : Model -> List (Html Msg)
-viewModal ({ user } as model) =
+viewModal ({ session } as model) =
     case model.modalState of
         Closed ->
             []
 
         TemplateSelector ->
-            UI.viewTemplateSelector (Session.language user)
+            UI.viewTemplateSelector (Session.language session)
                 { modalClosed = ModalClosed
                 , importBulkClicked = ImportBulkClicked
                 , importJSONRequested = ImportJSONRequested
                 }
 
         ImportModal importModalState ->
-            ImportModal.view (Session.language user) importModalState |> List.map (Html.map ImportModalMsg)
+            ImportModal.view (Session.language session) importModalState |> List.map (Html.map ImportModalMsg)
 
 
 
