@@ -525,15 +525,17 @@ update msg ({ workingTree } as model) =
                 updatedSession =
                     Session.updateDocuments newListState model.session
 
-                routeCmd =
+                ( newModel, newCmd ) =
                     case DocList.current model.metadata newListState of
-                        Just _ ->
-                            Cmd.none
+                        Just currentMetadata ->
+                            ( { model | metadata = currentMetadata, session = updatedSession }, Cmd.none )
 
                         Nothing ->
-                            Route.replaceUrl (Session.navKey model.session) Route.Root
+                            ( { model | session = updatedSession }
+                            , Route.replaceUrl (Session.navKey model.session) Route.Root
+                            )
             in
-            ( { model | session = updatedSession }, routeCmd )
+            ( newModel, newCmd )
 
         SettingsChanged lang ->
             ( { model | session = Session.setLanguage lang model.session }, Cmd.none )
