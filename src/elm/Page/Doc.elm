@@ -37,11 +37,11 @@ import Random
 import RandomId
 import Regex
 import Route
+import Session exposing (Session)
 import Task
 import Time
 import Translation exposing (..)
 import Types exposing (..)
-import User exposing (User)
 import Utils exposing (randomPositiveInt)
 
 
@@ -56,7 +56,7 @@ type alias Model =
     , metadata : Metadata
 
     -- SPA Page State
-    , user : User
+    , user : Session
     , documents : DocList.Model
     , loading : Bool
 
@@ -99,7 +99,7 @@ type ModalState
     | ImportModal ImportModal.Model
 
 
-defaultModel : Bool -> User -> String -> Model
+defaultModel : Bool -> Session -> String -> Model
 defaultModel isNew session docId =
     { workingTree = TreeStructure.defaultModel
     , data = Data.empty
@@ -138,7 +138,7 @@ defaultModel isNew session docId =
     , isMac = False
     , titleField = Nothing
     , sidebarState =
-        if User.fileMenuOpen session then
+        if Session.fileMenuOpen session then
             File
 
         else
@@ -156,11 +156,11 @@ defaultModel isNew session docId =
     , startingWordcount = 0
     , historyState = Closed
     , currentTime = Time.millisToPosix 0
-    , seed = User.seed session
+    , seed = Session.seed session
     }
 
 
-init : User -> String -> Bool -> ( Model, Cmd Msg )
+init : Session -> String -> Bool -> ( Model, Cmd Msg )
 init session dbName isNew =
     let
         initModel =
@@ -180,7 +180,7 @@ init session dbName isNew =
         ( initModel, send <| LoadDocument dbName )
 
 
-toUser : Model -> User
+toUser : Model -> Session
 toUser model =
     model.user
 
@@ -222,7 +222,7 @@ type Msg
     | ReceivedDocuments DocList.Model
     | SettingsChanged Language
     | LogoutRequested
-    | LoginStateChanged User
+    | LoginStateChanged Session
     | ToggledTitleEdit Bool
     | TitleFieldChanged String
     | TitleEdited
@@ -532,10 +532,10 @@ update msg ({ workingTree } as model) =
                     ( { model | metadata = currentDoc, documents = newList }, Cmd.none )
 
                 Nothing ->
-                    ( model, Route.replaceUrl (User.navKey model.user) Route.Root )
+                    ( model, Route.replaceUrl (Session.navKey model.user) Route.Root )
 
         SettingsChanged lang ->
-            ( { model | user = User.setLanguage lang model.user }, Cmd.none )
+            ( { model | user = Session.setLanguage lang model.user }, Cmd.none )
 
         ToggledTitleEdit isEditingTitle ->
             if isEditingTitle then
@@ -566,10 +566,10 @@ update msg ({ workingTree } as model) =
                     ( model, Cmd.none )
 
         LogoutRequested ->
-            ( model, User.logout )
+            ( model, Session.logout )
 
         LoginStateChanged newUser ->
-            ( { model | user = newUser }, Route.pushUrl (User.navKey newUser) Route.Login )
+            ( { model | user = newUser }, Route.pushUrl (Session.navKey newUser) Route.Login )
 
         ToggledHelpMenu isOpen ->
             ( { model
@@ -611,10 +611,10 @@ update msg ({ workingTree } as model) =
                 newSessionData =
                     case newSidebarState of
                         File ->
-                            User.setFileOpen True model.user
+                            Session.setFileOpen True model.user
 
                         _ ->
-                            User.setFileOpen False model.user
+                            Session.setFileOpen False model.user
             in
             ( { model | user = newSessionData, sidebarState = newSidebarState }, Cmd.none )
 
@@ -673,11 +673,11 @@ update msg ({ workingTree } as model) =
         ImportJSONLoaded fileName jsonString ->
             let
                 ( importTreeDecoder, newSeed ) =
-                    Import.Single.decoder (User.seed model.user)
+                    Import.Single.decoder (Session.seed model.user)
             in
             case Json.decodeString importTreeDecoder jsonString of
                 Ok tree ->
-                    ( { model | loading = True, user = User.setSeed newSeed model.user }
+                    ( { model | loading = True, user = Session.setSeed newSeed model.user }
                     , RandomId.generate (ImportJSONIdGenerated tree fileName)
                     )
 
@@ -687,12 +687,12 @@ update msg ({ workingTree } as model) =
         ImportJSONIdGenerated tree fileName docId ->
             let
                 author =
-                    model.user |> User.name |> Maybe.withDefault "jane.doe@gmail.com"
+                    model.user |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
             in
             ( model, send <| SaveImportedData (Import.Single.encode { author = author, docId = docId, fileName = fileName } tree) )
 
         ImportJSONCompleted docId ->
-            ( model, Route.pushUrl (User.navKey model.user) (Route.DocUntitled docId) )
+            ( model, Route.pushUrl (Session.navKey model.user) (Route.DocUntitled docId) )
 
         ImportBulkCompleted ->
             ( { model | modalState = NoModal }, Cmd.none )
@@ -731,10 +731,10 @@ update msg ({ workingTree } as model) =
         ShortcutTrayToggle ->
             let
                 newIsOpen =
-                    not <| User.shortcutTrayOpen model.user
+                    not <| Session.shortcutTrayOpen model.user
             in
             ( { model
-                | user = User.setShortcutTrayOpen newIsOpen model.user
+                | user = Session.setShortcutTrayOpen newIsOpen model.user
               }
             , send (SetShortcutTray newIsOpen)
             )
@@ -804,7 +804,7 @@ update msg ({ workingTree } as model) =
                     dataReceived dataIn model
 
                 NotFound ->
-                    ( model, Route.replaceUrl (User.navKey model.user) Route.Root )
+                    ( model, Route.replaceUrl (Session.navKey model.user) Route.Root )
 
                 LocalStoreLoaded dataIn ->
                     let
@@ -966,7 +966,7 @@ update msg ({ workingTree } as model) =
 
                 -- === UI ===
                 LanguageChanged lang ->
-                    ( { model | user = User.setLanguage lang model.user }
+                    ( { model | user = Session.setLanguage lang model.user }
                     , Cmd.none
                     )
 
@@ -2218,7 +2218,7 @@ addToHistoryDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 addToHistoryDo ( { workingTree, currentTime, user } as model, prevCmd ) =
     let
         author =
-            user |> User.name |> Maybe.withDefault "unknown" |> (\a -> "<" ++ a ++ ">")
+            user |> Session.name |> Maybe.withDefault "unknown" |> (\a -> "<" ++ a ++ ">")
 
         newData =
             Data.commit author (currentTime |> Time.posixToMillis) workingTree.tree model.data
@@ -2302,7 +2302,7 @@ view : Model -> Html Msg
 view model =
     let
         sidebarOpen =
-            User.fileMenuOpen model.user
+            Session.fileMenuOpen model.user
     in
     if model.loading then
         div [ id "app-root", class "loading" ]
@@ -2321,7 +2321,7 @@ viewLoaded : Model -> Html Msg
 viewLoaded model =
     let
         language =
-            User.language model.user
+            Session.language model.user
 
         replace orig new =
             Regex.replace (Regex.fromString orig |> Maybe.withDefault Regex.never) (\_ -> new)
@@ -2358,7 +2358,7 @@ pre, code, .group.has-active .card textarea {
                     documentView =
                         case model.exportPreview of
                             False ->
-                                lazy3 treeView (User.language model.user) model.viewState model.workingTree
+                                lazy3 treeView (Session.language model.user) model.viewState model.workingTree
 
                             True ->
                                 let
@@ -2408,7 +2408,7 @@ pre, code, .group.has-active .card textarea {
                         ++ UI.viewShortcuts
                             ShortcutTrayToggle
                             language
-                            (User.shortcutTrayOpen model.user)
+                            (Session.shortcutTrayOpen model.user)
                             model.isMac
                             model.workingTree.tree.children
                             model.textCursorInfo
@@ -2417,7 +2417,7 @@ pre, code, .group.has-active .card textarea {
                            , viewFooter WordcountTrayToggle model
                            , case model.historyState of
                                 From currHead ->
-                                    viewHistory NoOp CheckoutCommit Restore CancelHistory (User.language model.user) currHead model.data
+                                    viewHistory NoOp CheckoutCommit Restore CancelHistory (Session.language model.user) currHead model.data
 
                                 _ ->
                                     text ""
@@ -2426,7 +2426,7 @@ pre, code, .group.has-active .card textarea {
                            , div [ id "loading-overlay" ] []
                            , div [ id "preloader" ] []
                            ]
-                        ++ viewModal (User.language model.user) model
+                        ++ viewModal (Session.language model.user) model
                     )
 
         conflicts ->
@@ -2450,7 +2450,7 @@ repeating-linear-gradient(-45deg
                 ]
                 [ ul [ class "conflicts-list" ]
                     (List.map (viewConflict SetSelection Resolve) conflicts)
-                , lazy3 treeView (User.language model.user) model.viewState model.workingTree
+                , lazy3 treeView (Session.language model.user) model.viewState model.workingTree
                 , styleNode
                 ]
 
@@ -2943,8 +2943,8 @@ subscriptions model =
 
             _ ->
                 Sub.none
-        , User.settingsChange SettingsChanged
-        , User.loginChanges LoginStateChanged (User.navKey model.user)
+        , Session.settingsChange SettingsChanged
+        , Session.loginChanges LoginStateChanged (Session.navKey model.user)
         , Time.every (9 * 1000) TimeUpdate
         , Time.every (20 * 1000) (always Pull)
         ]

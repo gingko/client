@@ -10,11 +10,11 @@ import Html.Events exposing (on, onCheck, onClick)
 import Import.Bulk
 import Json.Decode as Dec
 import Outgoing exposing (Msg(..), send)
+import Session exposing (Session)
 import Task
 import Time
 import Translation exposing (Language)
 import Types exposing (Tree)
-import User exposing (User)
 
 
 
@@ -22,7 +22,7 @@ import User exposing (User)
 
 
 type alias Model =
-    { state : ImportModalState, user : User }
+    { state : ImportModalState, user : Session }
 
 
 type ImportModalState
@@ -45,7 +45,7 @@ type alias ImportSelection =
         }
 
 
-init : User -> Model
+init : Session -> Model
 init user =
     { state = ModalOpen { loginState = Unknown, isFileDragging = False }, user = user }
 
@@ -98,7 +98,7 @@ update msg ({ state, user } as model) =
             ( { model | state = ModalOpen { modalState | isFileDragging = isDraggedOver } }, Cmd.none )
 
         ( FileSelected file, _ ) ->
-            case User.name model.user of
+            case Session.name model.user of
                 Just username ->
                     ( model, Task.perform (FileLoaded username) (File.toString file) )
 
@@ -141,7 +141,7 @@ update msg ({ state, user } as model) =
         ( SelectionDone, ImportSelecting selectList ) ->
             let
                 author =
-                    user |> User.name |> Maybe.withDefault "jane.doe@gmail.com"
+                    user |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
 
                 treesToSave =
                     selectList

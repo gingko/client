@@ -6,8 +6,8 @@ import Html exposing (..)
 import Html.Attributes exposing (autofocus, class, classList, href, id, placeholder, src, type_, value)
 import Html.Events exposing (onBlur, onInput, onSubmit)
 import Http exposing (Error(..))
+import Session exposing (Session)
 import Task
-import User exposing (User)
 import Utils exposing (getFieldErrors)
 import Validate exposing (Valid, Validator, ifBlank, ifFalse, ifInvalidEmail, ifTrue, validate)
 
@@ -17,7 +17,7 @@ import Validate exposing (Valid, Validator, ifBlank, ifFalse, ifInvalidEmail, if
 
 
 type alias Model =
-    { user : User
+    { user : Session
     , password : String
     , passwordConfirm : String
     , resetToken : String
@@ -31,14 +31,14 @@ type Field
     | PasswordConfirm
 
 
-init : User -> String -> ( Model, Cmd Msg )
+init : Session -> String -> ( Model, Cmd Msg )
 init user resetToken =
     ( { user = user, resetToken = resetToken, password = "", passwordConfirm = "", errors = [] }
     , Task.attempt (\_ -> NoOp) <| Browser.Dom.focus "signup-password"
     )
 
 
-toUser : Model -> User
+toUser : Model -> Session
 toUser { user } =
     user
 
@@ -53,8 +53,8 @@ type Msg
     | EnteredPassword String
     | EnteredPassConfirm String
     | Blurred Field
-    | CompletedResetPassword (Result Http.Error User)
-    | GotUser User
+    | CompletedResetPassword (Result Http.Error Session)
+    | GotUser Session
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -100,7 +100,7 @@ update msg model =
             ( { model | passwordConfirm = passwordConfirm }, Cmd.none )
 
         CompletedResetPassword (Ok user) ->
-            ( model, User.storeLogin user )
+            ( model, Session.storeLogin user )
 
         CompletedResetPassword (Err error) ->
             let
@@ -129,7 +129,7 @@ update msg model =
             ( { model | errors = [ errorMsg ], password = "", passwordConfirm = "" }, Cmd.none )
 
         GotUser user ->
-            ( { model | user = user }, Nav.replaceUrl (User.navKey user) "/" )
+            ( { model | user = user }, Nav.replaceUrl (Session.navKey user) "/" )
 
 
 passwordValidator : Validator ( Field, String ) Model
@@ -162,7 +162,7 @@ sendResetPasswordRequest validModel =
         { password, resetToken, user } =
             Validate.fromValid validModel
     in
-    User.requestResetPassword CompletedResetPassword { newPassword = password, token = resetToken } user
+    Session.requestResetPassword CompletedResetPassword { newPassword = password, token = resetToken } user
 
 
 
@@ -224,4 +224,4 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    User.loginChanges GotUser (User.navKey model.user)
+    Session.loginChanges GotUser (Session.navKey model.user)

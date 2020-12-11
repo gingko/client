@@ -14,8 +14,8 @@ import Page.NotFound
 import Page.ResetPassword
 import Page.Signup
 import Route exposing (Route)
+import Session exposing (Session)
 import Url exposing (Url)
-import User exposing (User)
 
 
 
@@ -23,15 +23,15 @@ import User exposing (User)
 
 
 type Model
-    = Redirect User
-    | NotFound User
+    = Redirect Session
+    | NotFound Session
     | Signup Page.Signup.Model
     | Login Page.Login.Model
     | ForgotPassword Page.ForgotPassword.Model
     | ResetPassword Page.ResetPassword.Model
     | Empty Page.Empty.Model
     | Import Page.Import.Model
-    | DocNew User
+    | DocNew Session
     | Doc Page.Doc.Model
 
 
@@ -39,9 +39,9 @@ init : Value -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init json url navKey =
     let
         user =
-            User.decode navKey json
+            Session.decode navKey json
     in
-    case ( User.loggedIn user, Route.fromUrl url ) of
+    case ( Session.loggedIn user, Route.fromUrl url ) of
         ( True, route_ ) ->
             changeRouteTo route_ (Redirect user)
 
@@ -64,7 +64,7 @@ changeRouteTo maybeRoute model =
         user =
             toUser model
     in
-    if User.loggedIn user then
+    if Session.loggedIn user then
         case maybeRoute of
             Just Route.Root ->
                 Page.Empty.init user |> updateWith Empty GotEmptyMsg
@@ -120,7 +120,7 @@ changeRouteTo maybeRoute model =
         in
         case maybeRoute of
             Just Route.Signup ->
-                ( signupModel, Cmd.batch [ signupCmds, Route.replaceUrl (User.navKey user) Route.Signup ] )
+                ( signupModel, Cmd.batch [ signupCmds, Route.replaceUrl (Session.navKey user) Route.Signup ] )
 
             Just Route.Login ->
                 ( loginModel, loginCmds )
@@ -134,10 +134,10 @@ changeRouteTo maybeRoute model =
                     |> updateWith ResetPassword GotResetPasswordMsg
 
             _ ->
-                ( loginModel, Cmd.batch [ loginCmds, Route.replaceUrl (User.navKey user) Route.Login ] )
+                ( loginModel, Cmd.batch [ loginCmds, Route.replaceUrl (Session.navKey user) Route.Login ] )
 
 
-toUser : Model -> User
+toUser : Model -> Session
 toUser page =
     case page of
         Redirect user ->
@@ -205,7 +205,7 @@ update msg model =
         ( ClickedLink urlRequest, _ ) ->
             case urlRequest of
                 Browser.Internal url ->
-                    ( model, Nav.pushUrl (User.navKey (toUser model)) (Url.toString url) )
+                    ( model, Nav.pushUrl (Session.navKey (toUser model)) (Url.toString url) )
 
                 Browser.External href ->
                     ( model, Nav.load href )

@@ -6,7 +6,7 @@ import Html.Events exposing (onInput, onSubmit)
 import Http exposing (Error(..))
 import Result exposing (Result)
 import Route
-import User exposing (User)
+import Session exposing (Session)
 import Utils exposing (getFieldErrors)
 import Validate exposing (Valid, Validator, ifBlank, ifInvalidEmail, validate)
 
@@ -16,7 +16,7 @@ import Validate exposing (Valid, Validator, ifBlank, ifInvalidEmail, validate)
 
 
 type alias Model =
-    { user : User, email : String, password : String, errors : List ( Field, String ) }
+    { user : Session, email : String, password : String, errors : List ( Field, String ) }
 
 
 type Field
@@ -25,14 +25,14 @@ type Field
     | Password
 
 
-init : User -> ( Model, Cmd msg )
+init : Session -> ( Model, Cmd msg )
 init user =
     ( { user = user, email = "", password = "", errors = [] }
     , Cmd.none
     )
 
 
-toUser : Model -> User
+toUser : Model -> Session
 toUser model =
     model.user
 
@@ -45,8 +45,8 @@ type Msg
     = SubmittedForm
     | EnteredEmail String
     | EnteredPassword String
-    | CompletedLogin (Result Http.Error User)
-    | GotUser User
+    | CompletedLogin (Result Http.Error Session)
+    | GotUser Session
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -69,7 +69,7 @@ update msg model =
             ( { model | password = password }, Cmd.none )
 
         CompletedLogin (Ok user) ->
-            ( model, User.storeLogin user )
+            ( model, Session.storeLogin user )
 
         CompletedLogin (Err error) ->
             let
@@ -98,7 +98,7 @@ update msg model =
             ( { model | errors = [ errorMsg ], password = "" }, Cmd.none )
 
         GotUser user ->
-            ( { model | user = user }, Route.pushUrl (User.navKey user) Route.Root )
+            ( { model | user = user }, Route.pushUrl (Session.navKey user) Route.Root )
 
 
 modelValidator : Validator ( Field, String ) Model
@@ -118,7 +118,7 @@ sendLoginRequest validModel =
         { email, password, user } =
             Validate.fromValid validModel
     in
-    User.requestLogin CompletedLogin email password user
+    Session.requestLogin CompletedLogin email password user
 
 
 
@@ -179,4 +179,4 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    User.loginChanges GotUser (User.navKey model.user)
+    Session.loginChanges GotUser (Session.navKey model.user)

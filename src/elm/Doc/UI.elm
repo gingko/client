@@ -18,10 +18,10 @@ import Page.Doc.Export exposing (ExportFormat(..), ExportSelection(..))
 import Page.Doc.Theme exposing (Theme(..))
 import Regex exposing (Regex, replace)
 import Route
+import Session exposing (Session)
 import Time exposing (posixToMillis)
 import Translation exposing (Language, TranslationId(..), timeDistInWords, tr)
 import Types exposing (Children(..), CursorPosition(..), DropdownState(..), SidebarState(..), TextCursorInfo, ViewMode(..), ViewState)
-import User exposing (User)
 
 
 
@@ -63,13 +63,13 @@ viewHeader :
             , lastLocalSave : Maybe Time.Posix
             , lastRemoteSave : Maybe Time.Posix
             , currentTime : Time.Posix
-            , user : User
+            , user : Session
         }
     -> Html msg
 viewHeader msgs title_ model =
     let
         language =
-            User.language model.user
+            Session.language model.user
 
         titleArea =
             case model.titleField of
@@ -147,7 +147,7 @@ viewSaveIndicator language { dirty, lastLocalSave, lastRemoteSave, currentTime }
 viewTopRightButtons :
     { toggledHelpMenu : Bool -> msg, clickedEmailSupport : msg, logoutRequested : msg, toggledAccountMenu : Bool -> msg }
     -> DropdownState
-    -> User
+    -> Session
     -> Html msg
 viewTopRightButtons msgs dropdownState user =
     let
@@ -180,7 +180,7 @@ viewTopRightButtons msgs dropdownState user =
             [ userIcon
             , if isAccountDropdown then
                 div [ id "account-dropdown" ]
-                    [ text (User.name user |> Maybe.withDefault "")
+                    [ text (Session.name user |> Maybe.withDefault "")
                     , hr [] []
                     , div [ id "logout-button", onClick msgs.logoutRequested ] [ logoutIcon, text "Logout" ]
                     ]
@@ -445,11 +445,11 @@ viewTemplateSelector language msgs =
 -- DOCUMENT
 
 
-viewSearchField : (String -> msg) -> { m | viewState : ViewState, user : User } -> Html msg
+viewSearchField : (String -> msg) -> { m | viewState : ViewState, user : Session } -> Html msg
 viewSearchField searchFieldMsg { viewState, user } =
     let
         language =
-            User.language user
+            Session.language user
 
         maybeSearchIcon =
             if viewState.searchField == Nothing then
@@ -487,13 +487,13 @@ viewFooter :
             , workingTree : TreeStructure.Model
             , startingWordcount : Int
             , wordcountTrayOpen : Bool
-            , user : User
+            , user : Session
         }
     -> Html msg
 viewFooter wordCountToggle model =
     let
         language =
-            User.language model.user
+            Session.language model.user
 
         wordCounts =
             getWordCounts model

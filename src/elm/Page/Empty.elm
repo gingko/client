@@ -10,11 +10,11 @@ import Import.Incoming
 import Json.Decode as Dec
 import Outgoing exposing (Msg(..), send)
 import Route
-import User exposing (User, language)
+import Session exposing (Session, language)
 
 
 type alias Model =
-    { user : User
+    { user : Session
     , documents : DocList.Model
     , modalState : ModalState
     }
@@ -26,7 +26,7 @@ type ModalState
     | ImportModal ImportModal.Model
 
 
-defaultModel : User -> Model
+defaultModel : Session -> Model
 defaultModel user =
     { user = user
     , documents = DocList.init
@@ -34,17 +34,17 @@ defaultModel user =
     }
 
 
-init : User -> ( Model, Cmd msg )
+init : Session -> ( Model, Cmd msg )
 init user =
-    case User.lastDocId user of
+    case Session.lastDocId user of
         Just docId ->
-            ( defaultModel user, Route.replaceUrl (User.navKey user) (Route.DocUntitled docId) )
+            ( defaultModel user, Route.replaceUrl (Session.navKey user) (Route.DocUntitled docId) )
 
         Nothing ->
             ( defaultModel user, Cmd.none )
 
 
-toUser : Model -> User
+toUser : Model -> Session
 toUser model =
     model.user
 
@@ -78,7 +78,7 @@ update msg model =
                     ( { model | documents = docList }, Cmd.none )
 
                 Just docId ->
-                    ( model, Route.replaceUrl (User.navKey model.user) (Route.DocUntitled docId) )
+                    ( model, Route.replaceUrl (Session.navKey model.user) (Route.DocUntitled docId) )
 
         EmptyMessage ->
             ( model, send <| EmptyMessageShown )
@@ -151,14 +151,14 @@ viewModal ({ user } as model) =
             []
 
         TemplateSelector ->
-            UI.viewTemplateSelector (User.language user)
+            UI.viewTemplateSelector (Session.language user)
                 { modalClosed = ModalClosed
                 , importBulkClicked = ImportBulkClicked
                 , importJSONRequested = ImportJSONRequested
                 }
 
         ImportModal importModalState ->
-            ImportModal.view (User.language user) importModalState |> List.map (Html.map ImportModalMsg)
+            ImportModal.view (Session.language user) importModalState |> List.map (Html.map ImportModalMsg)
 
 
 

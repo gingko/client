@@ -7,8 +7,8 @@ import Html.Events exposing (onBlur, onInput, onSubmit)
 import Http exposing (Error(..))
 import Import.Template as Template
 import Route
+import Session exposing (Session)
 import Task
-import User exposing (User)
 import Utils exposing (getFieldErrors)
 import Validate exposing (Valid, Validator, ifBlank, ifFalse, ifInvalidEmail, ifTrue, validate)
 
@@ -18,7 +18,7 @@ import Validate exposing (Valid, Validator, ifBlank, ifFalse, ifInvalidEmail, if
 
 
 type alias Model =
-    { user : User
+    { user : Session
     , email : String
     , password : String
     , passwordConfirm : String
@@ -33,14 +33,14 @@ type Field
     | PasswordConfirm
 
 
-init : User -> ( Model, Cmd Msg )
+init : Session -> ( Model, Cmd Msg )
 init user =
     ( { user = user, email = "", password = "", passwordConfirm = "", errors = [] }
     , Task.attempt (\_ -> NoOp) <| Browser.Dom.focus "signup-email"
     )
 
 
-toUser : Model -> User
+toUser : Model -> Session
 toUser { user } =
     user
 
@@ -56,8 +56,8 @@ type Msg
     | EnteredPassword String
     | EnteredPassConfirm String
     | Blurred Field
-    | CompletedSignup (Result Http.Error User)
-    | GotUser User
+    | CompletedSignup (Result Http.Error Session)
+    | GotUser Session
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -109,7 +109,7 @@ update msg model =
             ( { model | passwordConfirm = passwordConfirm }, Cmd.none )
 
         CompletedSignup (Ok user) ->
-            ( model, User.storeSignup user )
+            ( model, Session.storeSignup user )
 
         CompletedSignup (Err error) ->
             let
@@ -138,7 +138,7 @@ update msg model =
             ( { model | errors = [ errorMsg ], password = "", passwordConfirm = "" }, Cmd.none )
 
         GotUser user ->
-            ( { model | user = user }, Route.replaceUrl (User.navKey user) (Route.Import Template.WelcomeTree) )
+            ( { model | user = user }, Route.replaceUrl (Session.navKey user) (Route.Import Template.WelcomeTree) )
 
 
 emailValidator : Validator ( Field, String ) Model
@@ -180,7 +180,7 @@ sendSignupRequest validModel =
         { email, password, user } =
             Validate.fromValid validModel
     in
-    User.requestSignup CompletedSignup email password user
+    Session.requestSignup CompletedSignup email password user
 
 
 
@@ -257,4 +257,4 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    User.loginChanges GotUser (User.navKey model.user)
+    Session.loginChanges GotUser (Session.navKey model.user)

@@ -1,4 +1,4 @@
-port module User exposing (User, db, decode, fileMenuOpen, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, settingsChange, shortcutTrayOpen, storeLogin, storeSignup)
+port module Session exposing (Session, db, decode, fileMenuOpen, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, settingsChange, shortcutTrayOpen, storeLogin, storeSignup)
 
 import Browser.Navigation as Nav
 import Doc.List as DocList
@@ -16,7 +16,7 @@ import Utils exposing (hexEncode)
 -- MODEL
 
 
-type User
+type Session
     = LoggedIn SessionData UserData
     | Guest SessionData GuestData
 
@@ -49,7 +49,7 @@ type alias GuestData =
 -- GETTERS
 
 
-getFromSession : (SessionData -> a) -> User -> a
+getFromSession : (SessionData -> a) -> Session -> a
 getFromSession getter user =
     case user of
         LoggedIn session _ ->
@@ -59,12 +59,12 @@ getFromSession getter user =
             getter session
 
 
-navKey : User -> Nav.Key
+navKey : Session -> Nav.Key
 navKey user =
     getFromSession .navKey user
 
 
-name : User -> Maybe String
+name : Session -> Maybe String
 name user =
     case user of
         LoggedIn _ { email } ->
@@ -74,17 +74,17 @@ name user =
             Nothing
 
 
-seed : User -> Random.Seed
+seed : Session -> Random.Seed
 seed user =
     getFromSession .seed user
 
 
-lastDocId : User -> Maybe String
+lastDocId : Session -> Maybe String
 lastDocId user =
     getFromSession .lastDocId user
 
 
-db : User -> Maybe String
+db : Session -> Maybe String
 db user =
     case user of
         LoggedIn _ { email } ->
@@ -94,12 +94,12 @@ db user =
             Nothing
 
 
-fileMenuOpen : User -> Bool
+fileMenuOpen : Session -> Bool
 fileMenuOpen user =
     getFromSession .fileMenuOpen user
 
 
-language : User -> Language
+language : Session -> Language
 language user =
     case user of
         LoggedIn _ data ->
@@ -109,7 +109,7 @@ language user =
             data.language
 
 
-shortcutTrayOpen : User -> Bool
+shortcutTrayOpen : Session -> Bool
 shortcutTrayOpen user =
     case user of
         LoggedIn _ data ->
@@ -119,7 +119,7 @@ shortcutTrayOpen user =
             False
 
 
-loggedIn : User -> Bool
+loggedIn : Session -> Bool
 loggedIn user =
     case user of
         LoggedIn _ _ ->
@@ -133,7 +133,7 @@ loggedIn user =
 -- UPDATE
 
 
-updateSession : (SessionData -> SessionData) -> User -> User
+updateSession : (SessionData -> SessionData) -> Session -> Session
 updateSession updateFn user =
     case user of
         LoggedIn session data ->
@@ -143,17 +143,17 @@ updateSession updateFn user =
             Guest (updateFn session) data
 
 
-setSeed : Random.Seed -> User -> User
+setSeed : Random.Seed -> Session -> Session
 setSeed newSeed user =
     updateSession (\s -> { s | seed = newSeed }) user
 
 
-setFileOpen : Bool -> User -> User
+setFileOpen : Bool -> Session -> Session
 setFileOpen isOpen user =
     updateSession (\s -> { s | fileMenuOpen = isOpen }) user
 
 
-setLanguage : Language -> User -> User
+setLanguage : Language -> Session -> Session
 setLanguage lang user =
     case user of
         LoggedIn key data ->
@@ -163,7 +163,7 @@ setLanguage lang user =
             Guest key { data | language = lang }
 
 
-setShortcutTrayOpen : Bool -> User -> User
+setShortcutTrayOpen : Bool -> Session -> Session
 setShortcutTrayOpen isOpen user =
     case user of
         LoggedIn key data ->
@@ -177,7 +177,7 @@ setShortcutTrayOpen isOpen user =
 -- ENCODER & DECODER
 
 
-decode : Nav.Key -> Dec.Value -> User
+decode : Nav.Key -> Dec.Value -> Session
 decode key json =
     case Dec.decodeValue (decoder key) json of
         Ok user ->
@@ -197,12 +197,12 @@ decode key json =
             Guest (SessionData key errToSeed False Nothing) (GuestData En)
 
 
-decoder : Nav.Key -> Dec.Decoder User
+decoder : Nav.Key -> Dec.Decoder Session
 decoder key =
     Dec.oneOf [ decodeLoggedIn key, decodeGuest key ]
 
 
-decodeLoggedIn : Nav.Key -> Dec.Decoder User
+decodeLoggedIn : Nav.Key -> Dec.Decoder Session
 decodeLoggedIn key =
     Dec.succeed
         (\email s lang trayOpen lastDoc ->
@@ -215,14 +215,14 @@ decodeLoggedIn key =
         |> optional "lastDocId" (Dec.maybe Dec.string) Nothing
 
 
-decodeGuest : Nav.Key -> Dec.Decoder User
+decodeGuest : Nav.Key -> Dec.Decoder Session
 decodeGuest key =
     Dec.map2 (\s l -> Guest (SessionData key s False Nothing) (GuestData l))
         (Dec.field "seed" (Dec.int |> Dec.map Random.initialSeed))
         (Dec.field "language" (Dec.string |> Dec.map langFromString))
 
 
-responseDecoder : User -> Dec.Decoder User
+responseDecoder : Session -> Dec.Decoder Session
 responseDecoder user =
     let
         builder email lang trayOpen =
@@ -239,7 +239,7 @@ responseDecoder user =
         |> optionalAt [ "settings", "shortcutTrayOpen" ] Dec.bool True
 
 
-encode : User -> Enc.Value
+encode : Session -> Enc.Value
 encode user =
     case user of
         LoggedIn _ data ->
@@ -258,7 +258,7 @@ encode user =
 -- AUTHENTICATION
 
 
-requestSignup : (Result Http.Error User -> msg) -> String -> String -> User -> Cmd msg
+requestSignup : (Result Http.Error Session -> msg) -> String -> String -> Session -> Cmd msg
 requestSignup toMsg email password user =
     let
         requestBody =
@@ -275,12 +275,12 @@ requestSignup toMsg email password user =
         }
 
 
-storeSignup : User -> Cmd msg
+storeSignup : Session -> Cmd msg
 storeSignup user =
     store (Just user)
 
 
-requestLogin : (Result Http.Error User -> msg) -> String -> String -> User -> Cmd msg
+requestLogin : (Result Http.Error Session -> msg) -> String -> String -> Session -> Cmd msg
 requestLogin toMsg email password user =
     let
         requestBody =
@@ -301,12 +301,12 @@ requestLogin toMsg email password user =
         }
 
 
-storeLogin : User -> Cmd msg
+storeLogin : Session -> Cmd msg
 storeLogin user =
     store (Just user)
 
 
-requestForgotPassword : (Result Http.Error User -> msg) -> String -> User -> Cmd msg
+requestForgotPassword : (Result Http.Error Session -> msg) -> String -> Session -> Cmd msg
 requestForgotPassword toMsg email user =
     let
         requestBody =
@@ -322,7 +322,7 @@ requestForgotPassword toMsg email user =
         }
 
 
-requestResetPassword : (Result Http.Error User -> msg) -> { newPassword : String, token : String } -> User -> Cmd msg
+requestResetPassword : (Result Http.Error Session -> msg) -> { newPassword : String, token : String } -> Session -> Cmd msg
 requestResetPassword toMsg { newPassword, token } user =
     let
         requestBody =
@@ -348,7 +348,7 @@ logout =
 -- PORTS
 
 
-store : Maybe User -> Cmd msg
+store : Maybe Session -> Cmd msg
 store user_ =
     case user_ of
         Just user ->
@@ -358,7 +358,7 @@ store user_ =
             send <| StoreUser Enc.null
 
 
-loginChanges : (User -> msg) -> Nav.Key -> Sub msg
+loginChanges : (Session -> msg) -> Nav.Key -> Sub msg
 loginChanges toMsg key =
     userLoginChange (decode key >> toMsg)
 

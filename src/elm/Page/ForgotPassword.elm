@@ -6,7 +6,7 @@ import Html.Events exposing (onInput, onSubmit)
 import Http exposing (Error(..))
 import Result exposing (Result)
 import Route
-import User exposing (User)
+import Session exposing (Session)
 import Utils exposing (getFieldErrors)
 import Validate exposing (Valid, Validator, ifBlank, ifInvalidEmail, validate)
 
@@ -16,7 +16,7 @@ import Validate exposing (Valid, Validator, ifBlank, ifInvalidEmail, validate)
 
 
 type alias Model =
-    { user : User
+    { user : Session
     , email : String
     , errors : List ( Field, String )
     , sent : Bool
@@ -28,7 +28,7 @@ type Field
     | Email
 
 
-init : User -> Maybe String -> ( Model, Cmd msg )
+init : Session -> Maybe String -> ( Model, Cmd msg )
 init user email_ =
     ( { user = user
       , email = email_ |> Maybe.withDefault ""
@@ -39,7 +39,7 @@ init user email_ =
     )
 
 
-toUser : Model -> User
+toUser : Model -> Session
 toUser model =
     model.user
 
@@ -51,8 +51,8 @@ toUser model =
 type Msg
     = SubmittedForm
     | EnteredEmail String
-    | CompletedForgotPassword (Result Http.Error User)
-    | GotUser User
+    | CompletedForgotPassword (Result Http.Error Session)
+    | GotUser Session
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -101,7 +101,7 @@ update msg model =
             ( { model | errors = [ errorMsg ] }, Cmd.none )
 
         GotUser user ->
-            ( { model | user = user }, Route.pushUrl (User.navKey user) Route.Root )
+            ( { model | user = user }, Route.pushUrl (Session.navKey user) Route.Root )
 
 
 modelValidator : Validator ( Field, String ) Model
@@ -120,7 +120,7 @@ sendForgotPasswordRequest validModel =
         { email, user } =
             Validate.fromValid validModel
     in
-    User.requestForgotPassword CompletedForgotPassword email user
+    Session.requestForgotPassword CompletedForgotPassword email user
 
 
 
@@ -182,4 +182,4 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    User.loginChanges GotUser (User.navKey model.user)
+    Session.loginChanges GotUser (Session.navKey model.user)

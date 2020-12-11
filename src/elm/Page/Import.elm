@@ -9,21 +9,21 @@ import Import.Template as Template exposing (Template)
 import Outgoing exposing (Msg(..), send)
 import RandomId
 import Route
+import Session exposing (Session)
 import Types exposing (Tree)
-import User exposing (User)
 
 
 type alias Model =
-    User
+    Session
 
 
-init : User -> Template -> ( Model, Cmd Msg )
+init : Session -> Template -> ( Model, Cmd Msg )
 init user template =
     let
         ( importTreeDecoder, newSeed ) =
-            Import.Single.decoder (User.seed user)
+            Import.Single.decoder (Session.seed user)
     in
-    ( User.setSeed newSeed user, Template.fetchJSON (TemplateJSONReceived (Template.toString template)) importTreeDecoder template )
+    ( Session.setSeed newSeed user, Template.fetchJSON (TemplateJSONReceived (Template.toString template)) importTreeDecoder template )
 
 
 
@@ -47,22 +47,22 @@ update msg user =
                     )
 
                 Err _ ->
-                    ( user, Route.replaceUrl (User.navKey user) Route.Root )
+                    ( user, Route.replaceUrl (Session.navKey user) Route.Root )
 
         TemplateImported tree fileName docId ->
             let
                 author =
-                    user |> User.name |> Maybe.withDefault "jane.doe@gmail.com"
+                    user |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
             in
             ( user, send <| SaveImportedData (Import.Single.encode { author = author, docId = docId, fileName = fileName } tree) )
 
         TemplateImportSaved docId_ ->
             case docId_ of
                 Just docId ->
-                    ( user, Route.pushUrl (User.navKey user) (Route.DocUntitled docId) )
+                    ( user, Route.pushUrl (Session.navKey user) (Route.DocUntitled docId) )
 
                 Nothing ->
-                    ( user, Route.replaceUrl (User.navKey user) Route.Root )
+                    ( user, Route.replaceUrl (Session.navKey user) Route.Root )
 
 
 
