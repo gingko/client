@@ -2,7 +2,7 @@ const config = require("../../config.js");
 const helpers = require("../../src/shared/doc-helpers.js");
 
 
-describe.skip('Loading indicators', () => {
+describe('Loading indicators', () => {
   const testEmail = 'cypress@testing.com'
   const testUserDb = 'userdb-' + helpers.toHex(testEmail);
 
