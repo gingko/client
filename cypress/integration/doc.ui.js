@@ -21,6 +21,8 @@ describe('Document UI', () => {
   it('Opens Help menu dropdown on clicking icon', () => {
     let emailText = tr["emailSupport"]["en"];
 
+    cy.url().should('match', /\/[a-zA-Z0-9]{5}/)
+
     cy.get('#app-root')
       .should('not.contain', emailText)
 
