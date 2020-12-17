@@ -75,7 +75,7 @@ Cypress.Commands.add('login', (userEmail) => {
     , body: {email: userEmail, password: 'testing'}
     })
     .then((response) => {
-      localStorage.setItem('gingko-session-storage', JSON.stringify({email: userEmail, language: 'en'}))
+      localStorage.setItem('gingko-session-storage', JSON.stringify(response.body))
     })
 })
 
