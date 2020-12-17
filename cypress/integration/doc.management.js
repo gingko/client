@@ -19,6 +19,7 @@ describe('Managing Documents', () => {
 
     cy.request('POST', config.TEST_SERVER + '/logout')
     cy.clearCookie('AuthSession')
+    cy.login(testEmail)
   })
 
   beforeEach(() => {
@@ -28,7 +29,6 @@ describe('Managing Documents', () => {
 
   describe('Navigation', function () {
     it('Should navigate to last edited tree', function () {
-      cy.login(testEmail)
       cy.visit(config.TEST_SERVER)
 
       cy.get('#file-button').click()
