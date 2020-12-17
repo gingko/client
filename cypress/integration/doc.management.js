@@ -15,26 +15,31 @@ describe('Managing Documents', () => {
     cy.deleteUser(testEmail)
     cy.signup_blank(testEmail)
 
-    cy.task('db:seed',{dbName: testUserDb, seedName: 'twoTrees'})
+    cy.task('db:seed',{dbName: testUserDb, seedName: 'sevenTrees'})
 
     cy.request('POST', config.TEST_SERVER + '/logout')
     cy.clearCookie('AuthSession')
-
-    cy.login(testEmail)
   })
 
   beforeEach(() => {
-    cy.fixture('twoTrees.ids.json').as('treeIds')
+    cy.fixture('sevenTrees.ids.json').as('treeIds')
     Cypress.Cookies.preserveOnce('AuthSession')
   })
 
   describe('Navigation', function () {
     it('Should navigate to last edited tree', function () {
+      cy.login(testEmail)
       cy.visit(config.TEST_SERVER)
 
-      cy.url().should('contain', this.treeIds[1] )
+      cy.get('#file-button').click()
 
-      cy.get('#title').contains('Another doc, with title')
+      cy.get('#sidebar-menu .sidebar-document-item', {timeout: 0})
+        .should('have.length', 7)
+
+      cy.url().should('contain', this.treeIds[6] )
+
+      cy.get('#title').contains('Random letters')
+
     })
 
     it('Should navigate correctly using sidebar', function () {
@@ -43,21 +48,22 @@ describe('Managing Documents', () => {
       // Open sidebar
       cy.get('#file-button').click()
 
-      cy.contains('#sidebar-menu', 'Untitled')
-        .contains('#sidebar-menu', 'Another doc, with title')
+      cy.contains('#sidebar-menu', 'welcome')
+        .contains('#sidebar-menu', 'timeline 2021')
 
-      // Go to Untitled doc
-      cy.get('#sidebar-menu').contains('Untitled').click()
+      // Go to Welcome doc
+      cy.get('#sidebar-menu').contains('welcome').click()
 
-      // Check Untitled doc contents
-      cy.contains('#document', 'Hello Test doc')
-        .contains('#document', 'Child card')
-        .contains('#document', 'Another Child card')
+      // Check Welcome doc contents
+      cy.contains('#document', 'Welcome to Gingko Writer')
+        .contains('#document', 'Adding New Cards')
+        .contains('#document', 'Moving Cards')
 
-      // Got to second doc
-      cy.get('#sidebar-menu').contains('Another').click()
+      // Got to another doc
+      cy.get('#sidebar-menu').contains('Screenplay')
+        .click()
 
-      cy.url().should('contain', this.treeIds[1] )
+      cy.url().should('contain', this.treeIds[5] )
     })
 
     it('Should have a working context menu', () => {
