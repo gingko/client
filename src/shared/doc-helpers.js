@@ -74,11 +74,12 @@ var scrollFullscreenTo = function (cid) {
 var scrollTo = function (cid, colIdx, instant, position) {
   var card = document.getElementById("card-" + cid.toString());
   var col = document.getElementsByClassName("column")[colIdx - 1];
-  let docRect = document.getElementById("document").getBoundingClientRect();
-  if (card == null) {
+  let doc = document.getElementById("document");
+  if (card == null || doc == null) {
     console.log("scroll error: not found", cid);
     return;
   }
+  let docRect = doc.getBoundingClientRect();
   var rect = card.getBoundingClientRect();
   let positionMultiplier = position === "top" ? 0 : position === "center" ? 0.5 : 1;
 
