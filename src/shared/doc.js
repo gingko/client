@@ -135,7 +135,7 @@ function setUserDbs(email) {
   // Sync document list with server
   PouchDB.sync(db, remoteDB, { filter: "_view", view: "testDocList/docList", include_docs: true, live: true, retry: true })
     .on('change',(change) =>{
-      loadDocListAndSend("sync.changes");
+      loadDocListAndSend(db, "sync.changes");
     })
 }
 
@@ -233,8 +233,6 @@ const fromElm = (msg, elmData) => {
     },
 
     LoadDocument : async () => {
-      loadDocListAndSend("LoadDocument");
-
       TREE_ID = elmData;
 
       // Load title
@@ -278,10 +276,14 @@ const fromElm = (msg, elmData) => {
       localStore.db(db, elmData);
       let store = await localStore.load();
       toElm(store, "docMsgs", "LocalStoreLoaded");
+
+      // Load doc list
+      loadDocListAndSend(remoteDB, "LoadDocument");
+
     },
 
     GetDocumentList: () => {
-      loadDocListAndSend("GetDocumentList");
+      loadDocListAndSend(remoteDB, "GetDocumentList");
     },
 
     RequestDelete: async () => {
@@ -485,16 +487,12 @@ const fromElm = (msg, elmData) => {
 
 /* === Database === */
 
-async function loadDocListAndSend(source) {
-  let docList = await data.getDocumentList(db);
-  if (docList.rows.length == 0) {
-    let remoteList = await data.getDocumentList(remoteDB);
-    console.log("loadDocListAndSend:remote", source, remoteList);
-    toElm(remoteList, "documentListChanged");
-  } else {
-    toElm(docList, "documentListChanged");
-    console.log("loadDocListAndSend:local", source, docList);
-  }
+async function loadDocListAndSend(dbToLoadFrom, source) {
+  let docList = await data.getDocumentList(dbToLoadFrom);
+  toElm(docList, "documentListChanged");
+  dbToLoadFrom.info().then((info) =>{
+    console.log("loadDocListAndSend", info, source, docList);
+  })
 }
 
 

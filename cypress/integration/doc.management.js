@@ -42,12 +42,12 @@ describe('Managing Documents', () => {
     })
 
     it('Should navigate correctly using sidebar', function () {
-      cy.visit(config.TEST_SERVER + '/' + this.treeIds[1]);
-
-      cy.url().should('contain', this.treeIds[1] )
+      cy.visit(config.TEST_SERVER + '/' + this.treeIds[2]);
 
       // Open sidebar
       cy.get('#file-button', {timeout: 20000}).click()
+
+      cy.url().should('contain', this.treeIds[2] )
 
       cy.contains('#sidebar-menu', 'welcome', {timeout: 20000})
         .contains('#sidebar-menu', 'timeline 2021')
