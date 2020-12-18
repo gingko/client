@@ -44,7 +44,7 @@ describe('Managing Documents', () => {
     it('Should navigate correctly using sidebar', function () {
       cy.visit(config.TEST_SERVER + '/' + this.treeIds[1]);
 
-      cy.url().should('contain', this.treeIds[5] )
+      cy.url().should('contain', this.treeIds[1] )
 
       // Open sidebar
       cy.get('#file-button', {timeout: 20000}).click()
@@ -63,6 +63,7 @@ describe('Managing Documents', () => {
       // Got to another doc
       cy.get('#sidebar-menu').contains('Screenplay')
         .click()
+      cy.url().should('contain', this.treeIds[5] )
     })
 
     it('Should have a working context menu', () => {
