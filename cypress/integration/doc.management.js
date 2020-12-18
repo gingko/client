@@ -17,8 +17,6 @@ describe('Managing Documents', () => {
 
     cy.task('db:seed',{dbName: testUserDb, seedName: 'sevenTrees'})
 
-    cy.request('POST', config.TEST_SERVER + '/logout')
-    cy.clearCookie('AuthSession')
     cy.login(testEmail)
   })
 
