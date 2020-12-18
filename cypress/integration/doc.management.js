@@ -29,12 +29,13 @@ describe('Managing Documents', () => {
     it('Should navigate to last edited tree', function () {
       cy.visit(config.TEST_SERVER)
 
+      cy.url().should('contain', this.treeIds[6] )
+
       cy.get('#file-button', {timeout: 20000}).click()
 
       cy.get('#sidebar-menu .sidebar-document-item', {timeout: 0})
         .should('have.length', 7)
 
-      cy.url().should('contain', this.treeIds[6] )
 
       cy.get('#title').contains('Random letters')
 
@@ -43,8 +44,10 @@ describe('Managing Documents', () => {
     it('Should navigate correctly using sidebar', function () {
       cy.visit(config.TEST_SERVER + '/' + this.treeIds[1]);
 
+      cy.url().should('contain', this.treeIds[5] )
+
       // Open sidebar
-      cy.get('#file-button').click()
+      cy.get('#file-button', {timeout: 20000}).click()
 
       cy.contains('#sidebar-menu', 'welcome')
         .contains('#sidebar-menu', 'timeline 2021')
@@ -60,8 +63,6 @@ describe('Managing Documents', () => {
       // Got to another doc
       cy.get('#sidebar-menu').contains('Screenplay')
         .click()
-
-      cy.url().should('contain', this.treeIds[5] )
     })
 
     it('Should have a working context menu', () => {
