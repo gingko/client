@@ -8,7 +8,7 @@ Cypress.LocalStorage.clear = function (keys, ls, rs) {
 
 
 describe('Managing Documents', () => {
-  const testEmail = `cypress.${Date.now()}@testing.com`
+  const testEmail = 'cypress@testing.com'
   const testUserDb = 'userdb-' + helpers.toHex(testEmail);
 
   before(() => {
@@ -49,7 +49,7 @@ describe('Managing Documents', () => {
       // Open sidebar
       cy.get('#file-button', {timeout: 20000}).click()
 
-      cy.contains('#sidebar-menu', 'welcome')
+      cy.contains('#sidebar-menu', 'welcome', {timeout: 20000})
         .contains('#sidebar-menu', 'timeline 2021')
 
       // Go to Welcome doc
