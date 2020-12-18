@@ -8,7 +8,7 @@ Cypress.LocalStorage.clear = function (keys, ls, rs) {
 
 
 describe('Managing Documents', () => {
-  const testEmail = 'cypress@testing.com'
+  const testEmail = `cypress.${Date.now()}@testing.com`
   const testUserDb = 'userdb-' + helpers.toHex(testEmail);
 
   before(() => {
