@@ -29,7 +29,7 @@ describe('Managing Documents', () => {
     it('Should navigate to last edited tree', function () {
       cy.visit(config.TEST_SERVER)
 
-      cy.get('#file-button').click()
+      cy.get('#file-button', {timeout: 20000}).click()
 
       cy.get('#sidebar-menu .sidebar-document-item', {timeout: 0})
         .should('have.length', 7)
