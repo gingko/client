@@ -199,16 +199,28 @@ viewSmall msg currentDocument model =
             text "Failed to load documents list."
 
 
-viewSwitcher : Metadata -> Model -> Html msg
+type alias SwitcherModel =
+    { docList : Model
+    , selected : Metadata
+    }
+
+
+viewSwitcher : Metadata -> SwitcherModel -> Html msg
 viewSwitcher currentDocument model =
     let
         viewDocItem d =
-            div [ classList [ ( "switcher-document-item", True ), ( "current", Metadata.isSameDocId d currentDocument ) ] ]
+            div
+                [ classList
+                    [ ( "switcher-document-item", True )
+                    , ( "current", Metadata.isSameDocId d currentDocument )
+                    , ( "selected", Metadata.isSameDocId d model.selected )
+                    ]
+                ]
                 [ a [ href <| Route.toString (Route.DocUntitled (Metadata.getDocId d)) ]
                     [ Metadata.getDocName d |> Maybe.withDefault "Untitled" |> text ]
                 ]
     in
-    case model of
+    case model.docList of
         Loading ->
             text "Loading..."
 

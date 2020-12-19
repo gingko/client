@@ -609,6 +609,9 @@ li.sidebar-document-item.active::after {
 .switcher-document-item.current {
   font-weight: bold;
 }
+.switcher-document-item.selected {
+  background-color: #dcf6c4;
+}
 
 .switcher-document-item a {
   width: 100%;
