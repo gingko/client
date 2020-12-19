@@ -1,4 +1,4 @@
-module Doc.Switcher exposing (..)
+module Doc.Switcher exposing (view)
 
 import Doc.List as DocList
 import Doc.Metadata exposing (Metadata)
@@ -7,8 +7,16 @@ import Html.Attributes exposing (class, id, type_, value)
 import Html.Events exposing (onInput)
 
 
-viewFileSwitcher : (String -> msg) -> Metadata -> String -> DocList.Model -> List (Html msg)
-viewFileSwitcher searchInput currentDocument searchField docList =
+type alias Model =
+    { currentDocument : Metadata
+    , selectedDocument : Maybe String
+    , searchField : String
+    , docList : DocList.Model
+    }
+
+
+view : (String -> msg) -> Model -> List (Html msg)
+view searchInput { currentDocument, searchField, docList } =
     let
         filteredList =
             docList

@@ -2898,8 +2898,14 @@ viewModal language model =
             [ text "" ]
 
         FileSwitcher ->
-            Doc.Switcher.viewFileSwitcher FileSearchChanged model.metadata model.fileSearchField (Session.documents model.session)
+            Doc.Switcher.view FileSearchChanged
+                { currentDocument = model.metadata
+                , selectedDocument = Nothing
+                , searchField = model.fileSearchField
+                , docList = Session.documents model.session
+                }
 
+        --model.metadata model.fileSearchField (Session.documents model.session)
         SidebarContextMenu docId ( x, y ) ->
             [ div [ onClick ModalClosed, id "sidebar-context-overlay" ] []
             , div
