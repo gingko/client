@@ -1,4 +1,4 @@
-module Doc.Switcher exposing (Model, down, up, view)
+module Doc.Switcher exposing (Model, down, search, up, view)
 
 import Doc.List as DocList
 import Doc.Metadata as Metadata exposing (Metadata)
@@ -26,18 +26,11 @@ type alias Model =
 
 down : Model -> Model
 down ({ currentDocument, selectedDocument, searchField, docList } as model) =
-    let
-        filteredDocs =
-            docList
-                |> DocList.switchListSort currentDocument
-                |> DocList.filter searchField
-                |> DocList.toList
-    in
     case selectedDocument of
         Just selected ->
             let
                 newSel =
-                    case filteredDocs of
+                    case filteredDocs model of
                         Just docs ->
                             docs
                                 |> List.map (\md -> ( md, selected == Metadata.getDocId md ))
@@ -55,7 +48,7 @@ down ({ currentDocument, selectedDocument, searchField, docList } as model) =
         Nothing ->
             { model
                 | selectedDocument =
-                    filteredDocs
+                    filteredDocs model
                         |> Maybe.andThen List.head
                         |> Maybe.map Metadata.getDocId
             }
@@ -63,18 +56,11 @@ down ({ currentDocument, selectedDocument, searchField, docList } as model) =
 
 up : Model -> Model
 up ({ currentDocument, selectedDocument, searchField, docList } as model) =
-    let
-        filteredDocs =
-            docList
-                |> DocList.switchListSort currentDocument
-                |> DocList.filter searchField
-                |> DocList.toList
-    in
     case selectedDocument of
         Just selected ->
             let
                 newSel =
-                    case filteredDocs of
+                    case filteredDocs model of
                         Just docs ->
                             docs
                                 |> List.map (\md -> ( md, selected == Metadata.getDocId md ))
@@ -93,10 +79,24 @@ up ({ currentDocument, selectedDocument, searchField, docList } as model) =
         Nothing ->
             { model
                 | selectedDocument =
-                    filteredDocs
+                    filteredDocs model
                         |> Maybe.andThen List.head
                         |> Maybe.map Metadata.getDocId
             }
+
+
+search : String -> Model -> Model
+search term model =
+    let
+        newModel =
+            { model | searchField = term }
+    in
+    { newModel
+        | selectedDocument =
+            filteredDocs newModel
+                |> Maybe.andThen List.head
+                |> Maybe.map Metadata.getDocId
+    }
 
 
 
@@ -132,3 +132,15 @@ view searchInput { currentDocument, selectedDocument, searchField, docList } =
             ]
         ]
     ]
+
+
+
+-- HELPERS
+
+
+filteredDocs : Model -> Maybe (List Metadata)
+filteredDocs { docList, currentDocument, searchField } =
+    docList
+        |> DocList.switchListSort currentDocument
+        |> DocList.filter searchField
+        |> DocList.toList

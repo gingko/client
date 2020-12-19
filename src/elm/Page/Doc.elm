@@ -636,7 +636,7 @@ update msg ({ workingTree } as model) =
                 updatedModal =
                     case model.modalState of
                         FileSwitcher switcherModel ->
-                            FileSwitcher { switcherModel | searchField = term }
+                            FileSwitcher (Doc.Switcher.search term switcherModel)
 
                         _ ->
                             model.modalState

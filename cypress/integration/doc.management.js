@@ -161,9 +161,13 @@ describe('Managing Documents', () => {
       cy.get('#switcher-modal input').type('welc')
 
       cy.get('#switcher-modal .switcher-document-list .switcher-document-item').then($list => {
-        expect($list[0]).to.have.class('selected').and.to.not.have.class('selected')
+        expect($list[0]).to.have.class('selected').and.to.not.have.class('current')
         expect($list).to.have.length(1)
       })
+      cy.shortcut('{enter}')
+      cy.url().should('contain', this.treeIds[1] )
+
+      cy.contains('Welcome to Gingko Writer')
     })
   })
 })
