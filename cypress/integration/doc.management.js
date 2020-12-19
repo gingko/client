@@ -112,7 +112,7 @@ describe('Managing Documents', () => {
 
       cy.get('#switcher-modal .switcher-document-list .switcher-document-item').then($list => {
         expect($list.toArray().map(li => li.innerText))
-          .to.eql(['Random letters', 'timeline 2021', 'Timeline 2019/2020', 'welcome', 'Screenplay', 'Example Tree'])
+          .to.eql(['Screenplay', 'Random letters', 'timeline 2021', 'Timeline 2019/2020', 'welcome', 'Example Tree'])
       })
 
       // Test filtering
