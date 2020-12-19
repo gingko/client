@@ -383,8 +383,9 @@ viewFileSwitcher : (String -> msg) -> Metadata -> String -> DocList.Model -> Lis
 viewFileSwitcher searchInput currentDocument searchField docList =
     let
         filteredList =
-            DocList.filter searchField docList
-                |> DocList.sortByUpdated
+            docList
+                |> DocList.switchListSort currentDocument
+                |> DocList.filter searchField
     in
     [ div [ class "modal-container" ]
         [ div [ class "modal-overlay" ] []

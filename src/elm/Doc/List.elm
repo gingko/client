@@ -1,4 +1,4 @@
-port module Doc.List exposing (Model(..), current, filter, getLastUpdated, init, isLoading, sortByUpdated, subscribe, update, viewSmall, viewSwitcher)
+port module Doc.List exposing (Model(..), current, filter, getLastUpdated, init, isLoading, subscribe, switchListSort, update, viewSmall, viewSwitcher)
 
 import Date
 import Doc.Metadata as Metadata exposing (Metadata)
@@ -71,13 +71,15 @@ filter term model =
             model
 
 
-sortByUpdated : Model -> Model
-sortByUpdated model =
+switchListSort : Metadata -> Model -> Model
+switchListSort currentDoc model =
     case model of
         Success docList ->
             docList
                 |> List.sortBy (Metadata.getUpdatedAt >> Time.posixToMillis)
                 |> List.reverse
+                |> List.filter (\d -> not (Metadata.isSameDocId d currentDoc))
+                |> List.append [ currentDoc ]
                 |> Success
 
         _ ->
