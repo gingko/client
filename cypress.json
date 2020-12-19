@@ -1,5 +1,5 @@
 {
   "cypress-watch-and-reload": {
-    "watch": "app/*"
+    "watch": "web/*.js"
   }
 }
