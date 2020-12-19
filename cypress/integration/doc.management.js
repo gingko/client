@@ -95,45 +95,37 @@ describe('Managing Documents', () => {
     })
   })
 
-  describe.skip('Quick Switcher', ()=>{
+  describe('Quick Switcher', ()=>{
     it('Toggles switcher modal on "Ctrl+O"', () => {
+      // Check for toggling and autofocus
       cy.get('#switcher-modal').should('not.exist')
 
       cy.shortcut('{ctrl}o')
       cy.get('#switcher-modal').should('exist')
+      cy.get('#switcher-modal input').should('have.focus')
 
       cy.shortcut('{ctrl}o')
       cy.get('#switcher-modal').should('not.exist')
-    })
 
-    it('It autofocuses on switcher modal input', () => {
+      // Check contents
       cy.shortcut('{ctrl}o')
 
-      cy.get('#switcher-modal input').should('have.focus')
-    })
-
-    it('Displays list of trees in switcher', () => {
       cy.get('#switcher-modal .switcher-document-list .switcher-document-item').then($list => {
-        expect($list[0].innerHTML).to.contain('Another doc, with title')
-        expect($list[1].innerHTML).to.contain('Untitled')
+        expect($list.toArray().map(li => li.innerText))
+          .to.eql(['Random letters', 'timeline 2021', 'Timeline 2019/2020', 'welcome', 'Screenplay', 'Example Tree'])
       })
-    })
 
-    it('Filters list of trees', ()=> {
-      cy.get('#switcher-modal input').type('ano')
+      // Test filtering
+      cy.get('#switcher-modal input').type('exa')
 
       cy.get('#switcher-modal .switcher-document-list')
-        .should('contain', 'Another doc, with title')
-        .should('not.contain', 'Untitled')
-    })
+        .should('contain', 'Example Tree')
+        .should('not.contain', 'Screenplay')
 
-    it('Closes "Open" modal on "Esc"', () => {
+      // Should close on esc
       cy.shortcut('{esc}')
       cy.get('#switcher-modal').should('not.exist')
-    })
-
-    it('Clears search filtering after "Esc"', () => {
-      cy.contains('Untitled')
+      cy.contains('Screenplay')
     })
   })
 })
