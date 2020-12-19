@@ -93,7 +93,7 @@ type alias Model =
 
 type ModalState
     = NoModal
-    | FileSwitcher
+    | FileSwitcher Doc.Switcher.Model
     | SidebarContextMenu String ( Float, Float )
     | TemplateSelector
     | ImportModal ImportModal.Model
@@ -1206,11 +1206,19 @@ update msg ({ workingTree } as model) =
 
                         "mod+o" ->
                             case model.modalState of
-                                FileSwitcher ->
+                                FileSwitcher _ ->
                                     ( { model | modalState = NoModal }, Cmd.none )
 
                                 _ ->
-                                    ( { model | modalState = FileSwitcher }
+                                    ( { model
+                                        | modalState =
+                                            FileSwitcher
+                                                { currentDocument = model.metadata
+                                                , selectedDocument = Nothing
+                                                , searchField = model.fileSearchField
+                                                , docList = Session.documents model.session
+                                                }
+                                      }
                                     , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "switcher-input")
                                     )
 
@@ -2897,13 +2905,8 @@ viewModal language model =
         NoModal ->
             [ text "" ]
 
-        FileSwitcher ->
-            Doc.Switcher.view FileSearchChanged
-                { currentDocument = model.metadata
-                , selectedDocument = Nothing
-                , searchField = model.fileSearchField
-                , docList = Session.documents model.session
-                }
+        FileSwitcher switcherModel ->
+            Doc.Switcher.view FileSearchChanged switcherModel
 
         --model.metadata model.fileSearchField (Session.documents model.session)
         SidebarContextMenu docId ( x, y ) ->

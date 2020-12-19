@@ -1,4 +1,4 @@
-module Doc.Switcher exposing (view)
+module Doc.Switcher exposing (Model, view)
 
 import Doc.List as DocList
 import Doc.Metadata exposing (Metadata)
