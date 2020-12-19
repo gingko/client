@@ -153,6 +153,17 @@ describe('Managing Documents', () => {
       cy.shortcut('{downarrow}')
       cy.shortcut('{enter}')
       cy.url().should('contain', this.treeIds[4] )
+
+
+      // Should select first tree when filtering
+      cy.shortcut('{ctrl}o')
+      cy.get('#switcher-modal').should('exist')
+      cy.get('#switcher-modal input').type('welc')
+
+      cy.get('#switcher-modal .switcher-document-list .switcher-document-item').then($list => {
+        expect($list[0]).to.have.class('selected').and.to.not.have.class('selected')
+        expect($list).to.have.length(1)
+      })
     })
   })
 })
