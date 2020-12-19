@@ -1030,7 +1030,17 @@ update msg ({ workingTree } as model) =
                                 |> activate vs.active False
 
                         "enter" ->
-                            normalMode model (openCard vs.active (getContent vs.active model.workingTree.tree))
+                            case model.modalState of
+                                FileSwitcher switcherModel ->
+                                    case switcherModel.selectedDocument of
+                                        Just docId ->
+                                            ( model, Route.pushUrl (Session.navKey model.session) (Route.DocUntitled docId) )
+
+                                        Nothing ->
+                                            ( model, Cmd.none )
+
+                                _ ->
+                                    normalMode model (openCard vs.active (getContent vs.active model.workingTree.tree))
 
                         "mod+backspace" ->
                             normalMode model (deleteCard vs.active)
