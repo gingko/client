@@ -115,6 +115,11 @@ describe('Managing Documents', () => {
           .to.eql(['Screenplay', 'Random letters', 'timeline 2021', 'Timeline 2019/2020', 'welcome', 'Example Tree'])
       })
 
+      cy.get('#switcher-modal .switcher-document-list .switcher-document-item')
+        .first()
+        .should('have.class', 'current')
+        .should('have.class', 'selected')
+
       // Test filtering
       cy.get('#switcher-modal input').type('exa')
 
