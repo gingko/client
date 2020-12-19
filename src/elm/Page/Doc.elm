@@ -1108,18 +1108,26 @@ update msg ({ workingTree } as model) =
                             normalMode model (goDown vs.active)
 
                         "down" ->
-                            case vs.viewMode of
-                                Normal ->
-                                    ( model, Cmd.none )
-                                        |> goDown vs.active
+                            case model.modalState of
+                                NoModal ->
+                                    case vs.viewMode of
+                                        Normal ->
+                                            ( model, Cmd.none )
+                                                |> goDown vs.active
 
-                                FullscreenEditing ->
-                                    {- check if at end
-                                       if so, getNextInColumn and openCardFullscreen it
-                                    -}
+                                        FullscreenEditing ->
+                                            {- check if at end
+                                               if so, getNextInColumn and openCardFullscreen it
+                                            -}
+                                            ( model, Cmd.none )
+
+                                        Editing ->
+                                            ( model, Cmd.none )
+
+                                FileSwitcher switcherModel ->
                                     ( model, Cmd.none )
 
-                                Editing ->
+                                _ ->
                                     ( model, Cmd.none )
 
                         "k" ->
@@ -1214,7 +1222,7 @@ update msg ({ workingTree } as model) =
                                         | modalState =
                                             FileSwitcher
                                                 { currentDocument = model.metadata
-                                                , selectedDocument = Nothing
+                                                , selectedDocument = Just (Metadata.getDocId model.metadata)
                                                 , searchField = model.fileSearchField
                                                 , docList = Session.documents model.session
                                                 }
