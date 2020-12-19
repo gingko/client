@@ -490,9 +490,6 @@ const fromElm = (msg, elmData) => {
 async function loadDocListAndSend(dbToLoadFrom, source) {
   let docList = await data.getDocumentList(dbToLoadFrom);
   toElm(docList, "documentListChanged");
-  dbToLoadFrom.info().then((info) =>{
-    console.log("loadDocListAndSend", info, source, docList);
-  })
 }
 
 
