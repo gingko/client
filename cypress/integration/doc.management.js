@@ -96,7 +96,7 @@ describe('Managing Documents', () => {
   })
 
   describe('Quick Switcher', ()=>{
-    it('Toggles switcher modal on "Ctrl+O"', () => {
+    it('Toggles switcher modal on "Ctrl+O"', function () {
       // Check for toggling and autofocus
       cy.get('#switcher-modal').should('not.exist')
 
@@ -144,6 +144,15 @@ describe('Managing Documents', () => {
       cy.shortcut('{esc}')
       cy.get('#switcher-modal').should('not.exist')
       cy.contains('Screenplay')
+
+
+      // Should go to selected tree on {enter}
+      cy.shortcut('{ctrl}o')
+      cy.shortcut('{downarrow}')
+      cy.shortcut('{downarrow}')
+      cy.shortcut('{downarrow}')
+      cy.shortcut('{enter}')
+      cy.url().should('contain', this.treeIds[4] )
     })
   })
 })
