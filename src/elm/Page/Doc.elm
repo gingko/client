@@ -1134,7 +1134,15 @@ update msg ({ workingTree } as model) =
                             normalMode model (goUp vs.active)
 
                         "up" ->
-                            normalMode model (goUp vs.active)
+                            case model.modalState of
+                                NoModal ->
+                                    normalMode model (goUp vs.active)
+
+                                FileSwitcher switcherModel ->
+                                    ( { model | modalState = FileSwitcher (Doc.Switcher.up switcherModel) }, Cmd.none )
+
+                                _ ->
+                                    ( model, Cmd.none )
 
                         "l" ->
                             normalMode model (goRight vs.active)

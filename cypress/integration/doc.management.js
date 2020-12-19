@@ -122,10 +122,15 @@ describe('Managing Documents', () => {
 
       // Check list navigation
       cy.shortcut('{downarrow}')
+      cy.shortcut('{downarrow}')
+      cy.shortcut('{downarrow}')
+      cy.shortcut('{uparrow}')
 
       cy.get('#switcher-modal .switcher-document-list .switcher-document-item').then($list => {
         expect($list[0]).to.have.class('current').and.to.not.have.class('selected')
-        expect($list[1]).to.have.class('selected')
+        expect($list[1]).to.not.have.class('selected')
+        expect($list[2]).to.have.class('selected')
+        expect($list[3]).to.not.have.class('selected')
       })
 
       // Test filtering

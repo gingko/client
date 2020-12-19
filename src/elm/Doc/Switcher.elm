@@ -1,4 +1,4 @@
-module Doc.Switcher exposing (Model, down, view)
+module Doc.Switcher exposing (Model, down, up, view)
 
 import Doc.List as DocList
 import Doc.Metadata as Metadata exposing (Metadata)
@@ -42,6 +42,44 @@ down ({ currentDocument, selectedDocument, searchField, docList } as model) =
                             docs
                                 |> List.map (\md -> ( md, selected == Metadata.getDocId md ))
                                 |> ListExtra.takeWhileRight (not << Tuple.second)
+                                |> List.head
+                                |> Maybe.map Tuple.first
+                                |> Maybe.map Metadata.getDocId
+                                |> Maybe.withDefault selected
+
+                        Nothing ->
+                            selected
+            in
+            { model | selectedDocument = Just newSel }
+
+        Nothing ->
+            { model
+                | selectedDocument =
+                    filteredDocs
+                        |> Maybe.andThen List.head
+                        |> Maybe.map Metadata.getDocId
+            }
+
+
+up : Model -> Model
+up ({ currentDocument, selectedDocument, searchField, docList } as model) =
+    let
+        filteredDocs =
+            docList
+                |> DocList.switchListSort currentDocument
+                |> DocList.filter searchField
+                |> DocList.toList
+    in
+    case selectedDocument of
+        Just selected ->
+            let
+                newSel =
+                    case filteredDocs of
+                        Just docs ->
+                            docs
+                                |> List.map (\md -> ( md, selected == Metadata.getDocId md ))
+                                |> ListExtra.takeWhile (not << Tuple.second)
+                                |> List.reverse
                                 |> List.head
                                 |> Maybe.map Tuple.first
                                 |> Maybe.map Metadata.getDocId
