@@ -632,7 +632,16 @@ update msg ({ workingTree } as model) =
             ( { model | modalState = ImportModal (ImportModal.init model.session) }, Cmd.none )
 
         FileSearchChanged term ->
-            ( { model | fileSearchField = term }, Cmd.none )
+            let
+                updatedModal =
+                    case model.modalState of
+                        FileSwitcher switcherModel ->
+                            FileSwitcher { switcherModel | searchField = term }
+
+                        _ ->
+                            model.modalState
+            in
+            ( { model | fileSearchField = term, modalState = updatedModal }, Cmd.none )
 
         SidebarContextClicked docId ( x, y ) ->
             ( { model | modalState = SidebarContextMenu docId ( x, y ) }, Cmd.none )
