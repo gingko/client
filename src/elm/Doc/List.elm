@@ -1,4 +1,4 @@
-port module Doc.List exposing (Model(..), current, filter, getLastUpdated, init, isLoading, subscribe, switchListSort, update, viewSmall, viewSwitcher)
+port module Doc.List exposing (Model(..), current, filter, getLastUpdated, init, isLoading, subscribe, switchListSort, toList, update, viewSmall, viewSwitcher)
 
 import Date
 import Doc.Metadata as Metadata exposing (Metadata)
@@ -93,6 +93,16 @@ current metadata model =
             list
                 |> List.filter (\m -> Metadata.isSameDocId metadata m)
                 |> List.head
+
+        _ ->
+            Nothing
+
+
+toList : Model -> Maybe (List Metadata)
+toList model =
+    case model of
+        Success docs ->
+            Just docs
 
         _ ->
             Nothing
@@ -201,7 +211,7 @@ viewSmall msg currentDocument model =
 
 type alias SwitcherModel =
     { docList : Model
-    , selected : Metadata
+    , selected : String
     }
 
 
@@ -213,7 +223,7 @@ viewSwitcher currentDocument model =
                 [ classList
                     [ ( "switcher-document-item", True )
                     , ( "current", Metadata.isSameDocId d currentDocument )
-                    , ( "selected", Metadata.isSameDocId d model.selected )
+                    , ( "selected", Metadata.getDocId d == model.selected )
                     ]
                 ]
                 [ a [ href <| Route.toString (Route.DocUntitled (Metadata.getDocId d)) ]

@@ -1125,7 +1125,7 @@ update msg ({ workingTree } as model) =
                                             ( model, Cmd.none )
 
                                 FileSwitcher switcherModel ->
-                                    ( model, Cmd.none )
+                                    ( { model | modalState = FileSwitcher (Doc.Switcher.down switcherModel) }, Cmd.none )
 
                                 _ ->
                                     ( model, Cmd.none )
