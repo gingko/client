@@ -10,6 +10,7 @@ import Doc.Fonts as Fonts
 import Doc.Fullscreen as Fullscreen
 import Doc.List as DocList exposing (Model(..))
 import Doc.Metadata as Metadata exposing (Metadata)
+import Doc.Switcher
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Doc.UI as UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSearchField, viewVideo)
@@ -2897,7 +2898,7 @@ viewModal language model =
             [ text "" ]
 
         FileSwitcher ->
-            UI.viewFileSwitcher FileSearchChanged model.metadata model.fileSearchField (Session.documents model.session)
+            Doc.Switcher.viewFileSwitcher FileSearchChanged model.metadata model.fileSearchField (Session.documents model.session)
 
         SidebarContextMenu docId ( x, y ) ->
             [ div [ onClick ModalClosed, id "sidebar-context-overlay" ] []
