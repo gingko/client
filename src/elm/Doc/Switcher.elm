@@ -2,8 +2,8 @@ module Doc.Switcher exposing (Model, down, search, up, view)
 
 import Doc.List as DocList
 import Doc.Metadata as Metadata exposing (Metadata)
-import Html exposing (Html, div, input)
-import Html.Attributes exposing (class, id, type_, value)
+import Html exposing (Html, div, input, span, text)
+import Html.Attributes exposing (class, id, placeholder, type_, value)
 import Html.Events exposing (onInput)
 import List.Extra as ListExtra
 
@@ -120,6 +120,7 @@ view searchInput { currentDocument, selectedDocument, searchField, docList } =
                 , value searchField
                 , onInput searchInput
                 , class "mousetrap"
+                , placeholder "Type file name to select"
                 ]
                 []
             , DocList.viewSwitcher currentDocument
@@ -127,7 +128,9 @@ view searchInput { currentDocument, selectedDocument, searchField, docList } =
                 , selected = selectedDocument |> Maybe.withDefault (Metadata.getDocId currentDocument)
                 }
             , div [ class "switcher-instructions" ]
-                [--div [ class "switcher-instruction" ] [ span [ class "shortcut-key" ] [ text "↓ ↑" ], text " to navigate" ]
+                [ div [ class "switcher-instruction" ] [ span [ class "shortcut-key" ] [ text "↓ ↑" ], text " to select" ]
+                , div [ class "switcher-instruction" ] [ span [ class "shortcut-key" ] [ text "Enter" ], text " to open" ]
+                , div [ class "switcher-instruction" ] [ span [ class "shortcut-key" ] [ text "Esc" ], text " to dismiss" ]
                 ]
             ]
         ]

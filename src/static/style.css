@@ -594,6 +594,8 @@ li.sidebar-document-item.active::after {
 
 #switcher-modal input {
   width: 100%;
+  padding: 10px;
+  font-size: 16px;
 }
 
 .switcher-document-list {
@@ -625,6 +627,11 @@ li.sidebar-document-item.active::after {
 }
 
 .switcher-instructions {
+  display: flex;
+  justify-content: space-around;
+  padding: 5px;
+  opacity: 0.5;
+  border-top: 1px solid lightgray;
   font-size: 13px;
 }
 
