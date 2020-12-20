@@ -25,6 +25,10 @@ describe('Welcome Tree & Templates', () => {
   })
 
   it('Starts with the Welcome Tree after signup', () => {
+    cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
+
+    cy.contains('#title', 'welcome')
+
     cy.get('#welcome-to-gingko-writer')
       .should('be.visible')
       .should('contain', 'Welcome to Gingko Writer')

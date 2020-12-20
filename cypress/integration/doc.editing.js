@@ -25,7 +25,7 @@ describe('Document Editing', () => {
     cy.contains('Blank Tree')
       .click()
 
-    cy.url().as('testTreeUrl').should('match', /\/[a-zA-Z0-9]{5}/)
+    cy.url().as('testTreeUrl').should('match', /\/[a-zA-Z0-9]{5}$/)
 
     cy.contains('Untitled')
     cy.contains('New Document...')
