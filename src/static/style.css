@@ -1601,6 +1601,11 @@ div.icon-stack.open {
   margin-top: 10px;
   margin-bottom: 0px;
 }
+#shortcuts-tray hr {
+  width: 80%;
+  border-bottom: 1px solid lightblue;
+  margin-top: 20px;
+}
 
 span.shortcut-key {
   display: inline-block;

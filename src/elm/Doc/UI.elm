@@ -664,6 +664,9 @@ viewShortcuts trayToggleMsg lang isOpen isMac children textCursorInfo vs =
                         , viewIfNotOnly <| h5 [] [ text "Merge Cards" ]
                         , viewIfNotOnly <| shortcutSpan [ ctrlOrCmd, "Shift", "↓" ] (tr lang MergeDownAction)
                         , viewIfNotOnly <| shortcutSpan [ ctrlOrCmd, "Shift", "↑" ] (tr lang MergeUpAction)
+                        , hr [] []
+                        , h5 [] [ text "File Shortcuts" ]
+                        , shortcutSpan [ ctrlOrCmd, "O" ] "Quick Document Switcher"
                         ]
                     ]
                 ]
