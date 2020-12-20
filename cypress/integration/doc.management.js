@@ -90,7 +90,7 @@ describe('Managing Documents', () => {
         .click()
 
       // Document should be deleted
-      cy.get('#sidebar-menu .sidebar-document-item')
+      cy.get('#sidebar-menu .sidebar-document-item', {timeout: 20000})
         .should('have.length', 6)
         .should('not.contain', 'Romeo and Juliet')
 
