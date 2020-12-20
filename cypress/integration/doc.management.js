@@ -64,6 +64,8 @@ describe('Managing Documents', () => {
       cy.get('#sidebar-menu').contains('Screenplay')
         .click()
       cy.url().should('contain', this.treeIds[5] )
+
+      cy.contains('tips to improve your logline')
     })
 
     it('Should have a working context menu', () => {
@@ -88,7 +90,9 @@ describe('Managing Documents', () => {
         .click()
 
       // Document should be deleted
-      cy.get('#sidebar-menu').should('not.contain', 'Untitled')
+      cy.get('#sidebar-menu .sidebar-document-item')
+        .should('have.length', 6)
+        .should('not.contain', 'Romeo and Juliet')
 
       // And menu should be gone
       cy.get('#sidebar-context-menu').should('not.exist')
