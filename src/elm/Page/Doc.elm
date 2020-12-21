@@ -87,7 +87,6 @@ type alias Model =
     , theme : Theme
     , startingWordcount : Int
     , currentTime : Time.Posix
-    , seed : Random.Seed
     }
 
 
@@ -155,7 +154,6 @@ defaultModel isNew session docId =
     , startingWordcount = 0
     , historyState = Closed
     , currentTime = Time.millisToPosix 0
-    , seed = Session.seed session
     }
 
 
@@ -687,15 +685,18 @@ update msg ({ workingTree } as model) =
             let
                 ( importTreeDecoder, newSeed ) =
                     Import.Single.decoder (Session.seed model.session)
+
+                newSession =
+                    Session.setSeed newSeed model.session
             in
             case Json.decodeString importTreeDecoder jsonString of
                 Ok tree ->
-                    ( { model | loading = True, session = Session.setSeed newSeed model.session }
+                    ( { model | loading = True, session = newSession }
                     , RandomId.generate (ImportJSONIdGenerated tree fileName)
                     )
 
                 Err err ->
-                    ( { model | seed = newSeed }, Cmd.none )
+                    ( { model | session = newSession }, Cmd.none )
 
         ImportJSONIdGenerated tree fileName docId ->
             let
@@ -1830,14 +1831,14 @@ insert : String -> Int -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 insert pid pos initText ( model, prevCmd ) =
     let
         ( newId, newSeed ) =
-            Random.step randomPositiveInt model.seed
+            Random.step randomPositiveInt (Session.seed model.session)
 
         newIdString =
             "node-" ++ (newId |> String.fromInt)
     in
     ( { model
         | workingTree = TreeStructure.update (TreeStructure.Ins newIdString initText pid pos) model.workingTree
-        , seed = newSeed
+        , session = Session.setSeed newSeed model.session
       }
     , prevCmd
     )
@@ -2139,7 +2140,7 @@ pasteBelow : String -> Tree -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 pasteBelow id copiedTree ( model, prevCmd ) =
     let
         ( newId, newSeed ) =
-            Random.step randomPositiveInt model.seed
+            Random.step randomPositiveInt (Session.seed model.session)
 
         treeToPaste =
             TreeStructure.renameNodes (newId |> String.fromInt) copiedTree
@@ -2150,7 +2151,7 @@ pasteBelow id copiedTree ( model, prevCmd ) =
         pos =
             (getIndex id model.workingTree.tree |> Maybe.withDefault 0) + 1
     in
-    ( { model | seed = newSeed }
+    ( { model | session = Session.setSeed newSeed model.session }
     , prevCmd
     )
         |> paste treeToPaste pid pos
@@ -2160,12 +2161,12 @@ pasteInto : String -> Tree -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 pasteInto id copiedTree ( model, prevCmd ) =
     let
         ( newId, newSeed ) =
-            Random.step randomPositiveInt model.seed
+            Random.step randomPositiveInt (Session.seed model.session)
 
         treeToPaste =
             TreeStructure.renameNodes (newId |> String.fromInt) copiedTree
     in
-    ( { model | seed = newSeed }
+    ( { model | session = Session.setSeed newSeed model.session }
     , prevCmd
     )
         |> paste treeToPaste id 999999

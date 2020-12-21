@@ -161,7 +161,7 @@ function toElm(data, portName, tagName) {
 }
 
 const fromElm = (msg, elmData) => {
-  window.elmMessages.push({elmMessage: msg, elmData: elmData});
+  window.elmMessages.push({tag: msg, data: elmData});
   window.elmMessages = window.elmMessages.slice(-10);
 
   let cases = {

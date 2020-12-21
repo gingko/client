@@ -44,9 +44,8 @@ describe('Loading indicators', () => {
     cy.get('#switcher-modal input').type('unt')
     cy.shortcut('{enter}')
 
-
+    cy.wait(200)
     cy.contains('mod')
-      .should('be.visible')
       .click()
 
     // Check for one textarea only
