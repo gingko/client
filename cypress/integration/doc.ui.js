@@ -38,7 +38,7 @@ describe('Document UI', () => {
       .click()
 
     cy.window().then((win) => {
-      expect(win.elmMessages.slice(-1)[0].elmMessage).to.eq("TriggerMailto")
+      expect(win.elmMessages.slice(-1)[0].tag).to.eq("TriggerMailto")
     })
   })
 

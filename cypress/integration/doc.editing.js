@@ -78,11 +78,11 @@ describe('Document Editing', () => {
   it('Saves data with correct author info', () => {
     cy.window().then((win) => {
       console.log(win.elmMessages)
-      let {elmMessage, elmData} = win.elmMessages.filter(m => m.elmMessage === "SaveData").slice(-1)[0];
+      let {tag, data} = win.elmMessages.filter(m => m.tag === "SaveData").slice(-1)[0];
 
-      expect(elmMessage).to.eq("SaveData")
+      expect(tag).to.eq("SaveData")
 
-      let lastCommit = _.sortBy(elmData.filter(d => d.type === 'commit'), 'timestamp').reverse()[0];
+      let lastCommit = _.sortBy(data.filter(d => d.type === 'commit'), 'timestamp').reverse()[0];
       expect(lastCommit.author)
         .to.eq(`<${testEmail}>`)
     })
