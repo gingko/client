@@ -8,6 +8,7 @@ import Time.Format exposing (format)
 import Time.Format.Config.Config_en_us
 import Time.Format.Config.Config_es_es
 import Time.Format.Config.Config_fr_fr
+import Time.Format.Config.Config_nl_nl
 import Time.Format.Config.Config_sv_se
 
 
@@ -78,6 +79,7 @@ type Language
     | Zh
     | Es
     | Fr
+    | Nl
     | Sv
 
 
@@ -96,13 +98,16 @@ languageName lang =
         Fr ->
             "Français"
 
+        Nl ->
+            "Nederlands"
+
         Sv ->
             "Svenska"
 
 
 activeLanguages : List ( Language, String )
 activeLanguages =
-    [ En, Zh, Es, Sv ] |> List.map (\l -> ( l, languageName l ))
+    [ En, Zh, Es, Fr, Nl, Sv ] |> List.map (\l -> ( l, languageName l ))
 
 
 tr : Language -> TranslationId -> String
@@ -122,6 +127,7 @@ tr lang trans =
                     , zh = "取消"
                     , es = "Cancelar"
                     , fr = ""
+                    , nl = ""
                     , sv = "Avbryt"
                     }
 
@@ -130,6 +136,7 @@ tr lang trans =
                     , zh = "空白"
                     , es = "Vacío"
                     , fr = ""
+                    , nl = ""
                     , sv = "Tom"
                     }
 
@@ -138,6 +145,7 @@ tr lang trans =
                     , zh = "导入JSON"
                     , es = "Importar JSON"
                     , fr = ""
+                    , nl = ""
                     , sv = "Importera JSON"
                     }
 
@@ -146,6 +154,7 @@ tr lang trans =
                     , zh = "从本地或线上"
                     , es = "Del App Escritorio o Web"
                     , fr = ""
+                    , nl = ""
                     , sv = "Från Skrivbordsmiljö till Online"
                     }
 
@@ -154,6 +163,7 @@ tr lang trans =
                     , zh = ""
                     , es = ""
                     , fr = ""
+                    , nl = ""
                     , sv = ""
                     }
 
@@ -162,6 +172,7 @@ tr lang trans =
                     , zh = ""
                     , es = ""
                     , fr = ""
+                    , nl = ""
                     , sv = ""
                     }
 
@@ -170,6 +181,7 @@ tr lang trans =
                     , zh = "最近的文档"
                     , es = "Documentos Recientes"
                     , fr = ""
+                    , nl = ""
                     , sv = "Senaste dokumenten"
                     }
 
@@ -178,6 +190,7 @@ tr lang trans =
                     , zh = ""
                     , es = "Última Modificación"
                     , fr = ""
+                    , nl = ""
                     , sv = "Senast öppnade"
                     }
 
@@ -186,6 +199,7 @@ tr lang trans =
                     , zh = "上一个打开"
                     , es = "Última Apertura"
                     , fr = ""
+                    , nl = ""
                     , sv = "Senast öppnade"
                     }
 
@@ -194,6 +208,7 @@ tr lang trans =
                     , zh = "打开另一个文档"
                     , es = "Abrir Otros Documentos"
                     , fr = ""
+                    , nl = ""
                     , sv = "Öppna andra dokument"
                     }
 
@@ -202,6 +217,7 @@ tr lang trans =
                     , zh = ""
                     , es = ""
                     , fr = ""
+                    , nl = ""
                     , sv = ""
                     }
 
@@ -210,6 +226,7 @@ tr lang trans =
                     , zh = "从列表中移除"
                     , es = "Elminiar de la Lista"
                     , fr = ""
+                    , nl = ""
                     , sv = "Ta bort från lista"
                     }
 
@@ -218,6 +235,7 @@ tr lang trans =
                     , zh = "新的文档"
                     , es = "Documento Nuevo..."
                     , fr = ""
+                    , nl = ""
                     , sv = "Nytt dokument"
                     }
 
@@ -226,6 +244,7 @@ tr lang trans =
                     , zh = "未保存的更改"
                     , es = "Cambios No Guardados..."
                     , fr = ""
+                    , nl = ""
                     , sv = "Osparade Ändringar"
                     }
 
@@ -235,6 +254,7 @@ tr lang trans =
                     , zh = "保存备份"
                     , es = "Copia De Seguridad Guardada"
                     , fr = ""
+                    , nl = ""
                     , sv = "Säkerhetskopiering Klar"
                     }
 
@@ -243,6 +263,7 @@ tr lang trans =
                     , zh = "保存"
                     , es = "Cambios Guardados"
                     , fr = ""
+                    , nl = ""
                     , sv = "Sparade"
                     }
 
@@ -251,6 +272,7 @@ tr lang trans =
                     , zh = ""
                     , es = "Sincronizado"
                     , fr = ""
+                    , nl = ""
                     , sv = ""
                     }
 
@@ -259,6 +281,7 @@ tr lang trans =
                     , zh = "数据库错误"
                     , es = "Error de Database..."
                     , fr = ""
+                    , nl = ""
                     , sv = "Databasfel..."
                     }
 
@@ -267,6 +290,7 @@ tr lang trans =
                     , zh = "上一个保存"
                     , es = "Guardado"
                     , fr = ""
+                    , nl = ""
                     , sv = "Senast sparad"
                     }
 
@@ -275,6 +299,7 @@ tr lang trans =
                     , zh = "上一次编辑 "
                     , es = "Último cambio"
                     , fr = ""
+                    , nl = ""
                     , sv = "Senast ändrad"
                     }
 
@@ -283,6 +308,7 @@ tr lang trans =
                     , zh = "快捷键帮助"
                     , es = "Atajos de Teclado"
                     , fr = ""
+                    , nl = ""
                     , sv = "Kortkommandon (Hjälp)"
                     }
 
@@ -291,6 +317,7 @@ tr lang trans =
                     , zh = "恢复此版本"
                     , es = "Restaurar esta Versión"
                     , fr = ""
+                    , nl = ""
                     , sv = "Återställ denna version"
                     }
 
@@ -299,6 +326,7 @@ tr lang trans =
                     , zh = "回车"
                     , es = "Enter"
                     , fr = ""
+                    , nl = ""
                     , sv = "Retur"
                     }
 
@@ -307,6 +335,7 @@ tr lang trans =
                     , zh = "编辑"
                     , es = "para Editar"
                     , fr = ""
+                    , nl = ""
                     , sv = "Redigera"
                     }
 
@@ -315,6 +344,7 @@ tr lang trans =
                     , zh = "编辑卡片（回车）"
                     , es = "Editar Tarjeta (Enter)"
                     , fr = ""
+                    , nl = ""
                     , sv = "Redigera Kort (Retur)"
                     }
 
@@ -323,6 +353,7 @@ tr lang trans =
                     , zh = "导航"
                     , es = "para Navegar"
                     , fr = ""
+                    , nl = ""
                     , sv = "Navigera"
                     }
 
@@ -331,6 +362,7 @@ tr lang trans =
                     , zh = "添加子卡片"
                     , es = "para Agregar un Hijo"
                     , fr = ""
+                    , nl = ""
                     , sv = "Lägg till Barn"
                     }
 
@@ -339,6 +371,7 @@ tr lang trans =
                     , zh = "向右拆分卡"
                     , es = "para Dividir la Tarjeta hacia la Derecha"
                     , fr = ""
+                    , nl = ""
                     , sv = "Slå Ihop Kort till Höger"
                     }
 
@@ -347,6 +380,7 @@ tr lang trans =
                     , zh = "插入子卡片"
                     , es = "Agregar un Hijo (Ctrl+L)"
                     , fr = ""
+                    , nl = ""
                     , sv = "Lägg till Barn (Ctrl+L)"
                     }
 
@@ -355,6 +389,7 @@ tr lang trans =
                     , zh = "在下方添加"
                     , es = "para Agregar Abajo"
                     , fr = ""
+                    , nl = ""
                     , sv = "Lägg till Nedan"
                     }
 
@@ -363,6 +398,7 @@ tr lang trans =
                     , zh = "向下拆分卡"
                     , es = "para Dividir la Tarjeta hacia la Abajo"
                     , fr = ""
+                    , nl = ""
                     , sv = "Dela Kort Nedåt"
                     }
 
@@ -371,6 +407,7 @@ tr lang trans =
                     , zh = "合并到下一个"
                     , es = "para Combinar la Tarjeta a la Siguiente"
                     , fr = ""
+                    , nl = ""
                     , sv = "Slå ihop med Efterföljande"
                     }
 
@@ -379,6 +416,7 @@ tr lang trans =
                     , zh = "在下方插入"
                     , es = "Agregar Abajo (Ctrl+J)"
                     , fr = ""
+                    , nl = ""
                     , sv = "Lägg till nedan (Ctrl+J)"
                     }
 
@@ -387,6 +425,7 @@ tr lang trans =
                     , zh = "在上方添加"
                     , es = "para Agregar Arriba"
                     , fr = ""
+                    , nl = ""
                     , sv = "Lägg till Ovan"
                     }
 
@@ -395,6 +434,7 @@ tr lang trans =
                     , zh = "向上拆分卡"
                     , es = "para Dividir la Tarjeta hacia la Arriba"
                     , fr = ""
+                    , nl = ""
                     , sv = "Dela Kort Uppåt"
                     }
 
@@ -403,6 +443,7 @@ tr lang trans =
                     , zh = "合并到上一个"
                     , es = "para Combinar la Tarjeta a la Anterior"
                     , fr = ""
+                    , nl = ""
                     , sv = "Slå ihop med Föregående"
                     }
 
@@ -411,6 +452,7 @@ tr lang trans =
                     , zh = "在上方插入"
                     , es = "Agregar Arriba (Ctrl+K)"
                     , fr = ""
+                    , nl = ""
                     , sv = "Lägg till Ovan (Ctrl+K)"
                     }
 
@@ -419,6 +461,7 @@ tr lang trans =
                     , zh = "（箭头）"
                     , es = "(flechas)"
                     , fr = ""
+                    , nl = ""
                     , sv = "(pilar)"
                     }
 
@@ -427,6 +470,7 @@ tr lang trans =
                     , zh = "移动"
                     , es = "para Mover"
                     , fr = ""
+                    , nl = ""
                     , sv = "för att Flytta"
                     }
 
@@ -435,6 +479,7 @@ tr lang trans =
                     , zh = "退格键"
                     , es = "Backspace"
                     , fr = ""
+                    , nl = ""
                     , sv = "Backslag"
                     }
 
@@ -443,6 +488,7 @@ tr lang trans =
                     , zh = "删除"
                     , es = "para Eliminar"
                     , fr = ""
+                    , nl = ""
                     , sv = "för att Radera"
                     }
 
@@ -451,6 +497,7 @@ tr lang trans =
                     , zh = "删除卡片"
                     , es = "Eliminar Tarjeta (Ctrl+Backspace)"
                     , fr = ""
+                    , nl = ""
                     , sv = "Radera Kort (Ctrl+Backslag)"
                     }
 
@@ -459,6 +506,7 @@ tr lang trans =
                     , zh = "格式指南"
                     , es = "Guía de Sintaxis para Formato"
                     , fr = ""
+                    , nl = ""
                     , sv = "Formatteringsguide"
                     }
 
@@ -467,6 +515,7 @@ tr lang trans =
                     , zh = "粗体"
                     , es = "para Negrita"
                     , fr = ""
+                    , nl = ""
                     , sv = "för Fet stil"
                     }
 
@@ -475,6 +524,7 @@ tr lang trans =
                     , zh = "斜体"
                     , es = "para Itálica"
                     , fr = ""
+                    , nl = ""
                     , sv = "för Kursiv stil"
                     }
 
@@ -483,6 +533,7 @@ tr lang trans =
                     , zh = "保存更改"
                     , es = "para Guardar Cambios"
                     , fr = ""
+                    , nl = ""
                     , sv = "för att Spara Ändringar"
                     }
 
@@ -491,6 +542,7 @@ tr lang trans =
                     , zh = "保存更改 (Ctrl+Enter)"
                     , es = "Guardar Cambios (Ctrl+Enter)"
                     , fr = ""
+                    , nl = ""
                     , sv = "Spara ändringar (Ctrl+Enter)"
                     }
 
@@ -499,6 +551,7 @@ tr lang trans =
                     , zh = "退出"
                     , es = "Esc"
                     , fr = ""
+                    , nl = ""
                     , sv = "Esc"
                     }
 
@@ -507,6 +560,7 @@ tr lang trans =
                     , zh = "取消更改"
                     , es = "para Cancelar Cambios"
                     , fr = ""
+                    , nl = ""
                     , sv = "för att Slänga Ändringar"
                     }
 
@@ -515,6 +569,7 @@ tr lang trans =
                     , zh = "输入“/”进行搜索"
                     , es = "Presiona '/' para buscar"
                     , fr = ""
+                    , nl = ""
                     , sv = "Tryck '/' för att söka"
                     }
 
@@ -523,6 +578,7 @@ tr lang trans =
                     , zh = "标题字体"
                     , es = "Fuente de Titulos"
                     , fr = ""
+                    , nl = ""
                     , sv = "Rubrik"
                     }
 
@@ -531,6 +587,7 @@ tr lang trans =
                     , zh = "内容字体"
                     , es = "Fuente de Contenido"
                     , fr = ""
+                    , nl = ""
                     , sv = "Innehållstypsnitt"
                     }
 
@@ -539,6 +596,7 @@ tr lang trans =
                     , zh = "编辑/等宽字体"
                     , es = "Fuente de Edición"
                     , fr = ""
+                    , nl = ""
                     , sv = "Redigera/Monospace Typsnitt"
                     }
 
@@ -547,6 +605,7 @@ tr lang trans =
                     , zh = "本节：" ++ String.fromInt n ++ "个字"
                     , es = "Sesión: " ++ String.fromInt n ++ pluralize n " palabra"
                     , fr = ""
+                    , nl = ""
                     , sv = "Session: " ++ String.fromInt n ++ " ord"
                     }
 
@@ -555,6 +614,7 @@ tr lang trans =
                     , zh = "总共：" ++ String.fromInt n ++ "个字"
                     , es = "Total : " ++ String.fromInt n ++ pluralize n " palabra"
                     , fr = ""
+                    , nl = ""
                     , sv = "Totalt: " ++ String.fromInt n ++ " ord"
                     }
 
@@ -563,6 +623,7 @@ tr lang trans =
                     , zh = "卡片：" ++ String.fromInt n ++ "个字"
                     , es = "Tarjeta : " ++ String.fromInt n ++ pluralize n " palabra"
                     , fr = ""
+                    , nl = ""
                     , sv = "Kort: " ++ String.fromInt n ++ " ord"
                     }
 
@@ -571,6 +632,7 @@ tr lang trans =
                     , zh = "树节点下：" ++ String.fromInt n ++ "个字"
                     , es = "Subárbol : " ++ String.fromInt n ++ pluralize n " palabra"
                     , fr = ""
+                    , nl = ""
                     , sv = "Delträd: " ++ String.fromInt n ++ " ord"
                     }
 
@@ -579,6 +641,7 @@ tr lang trans =
                     , zh = "组：" ++ String.fromInt n ++ "个字"
                     , es = "Grupo : " ++ String.fromInt n ++ pluralize n " palabra"
                     , fr = ""
+                    , nl = ""
                     , sv = "Grupp: " ++ String.fromInt n ++ " ord"
                     }
 
@@ -587,6 +650,7 @@ tr lang trans =
                     , zh = "列：" ++ String.fromInt n ++ "个字"
                     , es = "Columna : " ++ String.fromInt n ++ pluralize n " palabra"
                     , fr = ""
+                    , nl = ""
                     , sv = "Kolumn: " ++ String.fromInt n ++ " ord"
                     }
     in
@@ -602,6 +666,9 @@ tr lang trans =
 
         Fr ->
             .fr translationSet
+
+        Nl ->
+            .nl translationSet
 
         Sv ->
             .sv translationSet
@@ -621,6 +688,9 @@ timeDistInWords lang t1 t2 =
 
         Fr ->
             TimeDistance.inWordsWithConfig { withAffix = True } I18n.fr t1 t2
+
+        Nl ->
+            TimeDistance.inWordsWithConfig { withAffix = True } I18n.en t1 t2
 
         Sv ->
             TimeDistance.inWordsWithConfig { withAffix = True } I18n.en t1 t2
@@ -644,6 +714,9 @@ dateFormat lang time =
 
         Fr ->
             format Time.Format.Config.Config_fr_fr.config formatString Time.utc time
+
+        Nl ->
+            format Time.Format.Config.Config_nl_nl.config formatString Time.utc time
 
         Sv ->
             format Time.Format.Config.Config_sv_se.config formatString Time.utc time
@@ -669,6 +742,9 @@ langFromString str =
         "fr" ->
             Fr
 
+        "nl" ->
+            Nl
+
         "sv" ->
             Sv
 
@@ -690,6 +766,9 @@ langToString lang =
 
         Fr ->
             "fr"
+
+        Nl ->
+            "nl"
 
         Sv ->
             "sv"

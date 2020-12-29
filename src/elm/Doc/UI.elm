@@ -21,7 +21,7 @@ import Regex exposing (Regex, replace)
 import Route
 import Session exposing (Session)
 import Time exposing (posixToMillis)
-import Translation exposing (Language(..), TranslationId(..), languageName, timeDistInWords, tr)
+import Translation exposing (Language(..), TranslationId(..), langFromString, langToString, languageName, timeDistInWords, tr)
 import Types exposing (Children(..), CursorPosition(..), DropdownState(..), SidebarState(..), TextCursorInfo, ViewMode(..), ViewState)
 
 
@@ -280,12 +280,12 @@ viewSidebar msgs currentDocument fileFilter docList ( exportSelection, exportFor
                         [ h2 [] [ text "Settings" ]
                         , h5 [] [ text "Language" ]
                         , select [ onChange msgs.languageChanged ]
-                            [ option [ value "en" ] [ text (languageName En) ]
-                            , option [ value "zh" ] [ text (languageName Zh) ]
-                            , option [ value "es" ] [ text (languageName Es) ]
-                            , option [ value "fr" ] [ text (languageName Fr) ]
-                            , option [ value "sv" ] [ text (languageName Sv) ]
-                            ]
+                            (Translation.activeLanguages
+                                |> List.map
+                                    (\( lang, langName ) ->
+                                        option [ value <| langToString lang ] [ text langName ]
+                                    )
+                            )
                         , br [] []
                         , h5 [] [ text "Themes" ]
                         , button [ onClick <| msgs.themeChanged Default ] [ text "Set Default" ]
