@@ -5,7 +5,7 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-msgid "Blank"
+msgid "Blank Tree"
 msgstr ""
 
 msgid "Import JSON"
@@ -14,13 +14,25 @@ msgstr ""
 msgid "From Desktop or Online"
 msgstr ""
 
+msgid "From Old Account"
+msgstr ""
+
+msgid "Bulk transfer of trees from your legacy account"
+msgstr ""
+
 msgid "Recent Documents"
+msgstr ""
+
+msgid "Last Updated"
 msgstr ""
 
 msgid "Last Opened"
 msgstr ""
 
 msgid "Open Other Documents"
+msgstr ""
+
+msgid "Delete Document"
 msgstr ""
 
 msgid "Remove From List"
@@ -32,11 +44,14 @@ msgstr ""
 msgid "Unsaved Changes..."
 msgstr ""
 
-msgid "Backup Saved"
+msgid "Saved Offline"
 msgstr ""
 
 msgctxt "Changes Saved"
 msgid "Saved"
+msgstr ""
+
+msgid "Synced"
 msgstr ""
 
 msgid "Database Error..."
@@ -114,7 +129,7 @@ msgstr ""
 msgid "Delete Card (Ctrl+Backspace)"
 msgstr ""
 
-msgid "Formatting Syntax Guide"
+msgid "More Formatting Options..."
 msgstr ""
 
 msgid "for Bold"
@@ -177,7 +192,7 @@ msgid_plural "Column : %1 words"
 msgstr[0] ""
 msgstr[1] ""
 
-#:    file
+#: file
 msgid "&File"
 msgstr ""
 
@@ -345,6 +360,10 @@ msgstr ""
 msgid "&Contact Adriano..."
 msgstr ""
 
+#: emailSupport
+msgid "Email Support..."
+msgstr "Assistance par e-mail..."
+
 #: buyLicense
 msgid "&Buy a License..."
 msgstr ""
@@ -368,6 +387,8 @@ msgstr ""
 #, // === DIALOGS AND ERROR MESSAGES ===
 
 #: cancel
+msgid "Cancel"
+msgstr ""
 
 #: updatePopup
 msgid "%1 will be updated to v%2 on exit"
@@ -378,7 +399,7 @@ msgid "<a href=\"https://github.com/gingko/client/blob/master/CHANGELOG.md\">Cha
 msgstr ""
 
 #: areYouSureCancel
-msgid "Are you sure you want to cancel your changes?"
+msgid "Are you sure you want to undo your changes?"
 msgstr ""
 
 #: save
@@ -389,6 +410,7 @@ msgstr ""
 msgid "Save changes"
 msgstr ""
 
+#: saveChangesMsg
 msgid "Save changes before closing?"
 msgstr ""
 
@@ -400,6 +422,7 @@ msgstr ""
 msgid "Close Without Saving"
 msgstr ""
 
+#: unsavedChangesMsg
 msgid "Recover unsaved changes, or Discard them?"
 msgstr ""
 

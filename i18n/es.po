@@ -5,7 +5,7 @@ msgstr ""
 msgid "Cancel"
 msgstr "Cancelar"
 
-msgid "Blank"
+msgid "Blank Tree"
 msgstr "Vacío"
 
 msgid "Import JSON"
@@ -14,14 +14,26 @@ msgstr "Importar JSON"
 msgid "From Desktop or Online"
 msgstr "Del App Escritorio o Web"
 
+msgid "From Old Account"
+msgstr ""
+
+msgid "Bulk transfer of trees from your legacy account"
+msgstr ""
+
 msgid "Recent Documents"
 msgstr "Documentos Recientes"
+
+msgid "Last Updated"
+msgstr "Última Modificación"
 
 msgid "Last Opened"
 msgstr "Última Apertura"
 
 msgid "Open Other Documents"
 msgstr "Abrir Otros Documentos"
+
+msgid "Delete Document"
+msgstr ""
 
 msgid "Remove From List"
 msgstr "Elminiar de la Lista"
@@ -32,12 +44,15 @@ msgstr "Documento Nuevo..."
 msgid "Unsaved Changes..."
 msgstr "Cambios No Guardados..."
 
-msgid "Backup Saved"
+msgid "Saved Offline"
 msgstr "Copia De Seguridad Guardada"
 
 msgctxt "Changes Saved"
 msgid "Saved"
 msgstr "Cambios Guardados"
+
+msgid "Synced"
+msgstr "Sincronizado"
 
 msgid "Database Error..."
 msgstr "Error de Database..."
@@ -114,7 +129,7 @@ msgstr "para Eliminar"
 msgid "Delete Card (Ctrl+Backspace)"
 msgstr "Eliminar Tarjeta (Ctrl+Backspace)"
 
-msgid "Formatting Syntax Guide"
+msgid "More Formatting Options..."
 msgstr "Guía de Sintaxis para Formato"
 
 msgid "for Bold"
@@ -177,7 +192,7 @@ msgid_plural "Column : %1 words"
 msgstr[0] "Columna : %1 palabra"
 msgstr[1] "Columna : %1 palabras"
 
-#:    file
+#: file
 msgid "&File"
 msgstr "&Archivo"
 
@@ -230,8 +245,8 @@ msgid "Current Card and Children..."
 msgstr "Tarjeta Actual y Sus Hijos..."
 
 #: column
-msgid "Column %1"
-msgstr "Columna %1"
+msgid (num) => `Column ${num}`
+msgstr (num) => `Columna ${num}`
 
 #: repeatExport
 msgid "Repeat Last E&xport"
@@ -345,6 +360,10 @@ msgstr "&Lista de Características y Errores Conocidos..."
 msgid "&Contact Adriano..."
 msgstr "&Contactar Adriano..."
 
+#: emailSupport
+msgid "Email Support..."
+msgstr "Enviar correo al desarrollador..."
+
 #: buyLicense
 msgid "&Buy a License..."
 msgstr "Comprar una Licencia..."
@@ -368,6 +387,8 @@ msgstr "Versión actual de Gingko : %1"
 #, // === DIALOGS AND ERROR MESSAGES ===
 
 #: cancel
+msgid "Cancel"
+msgstr "Cancelar"
 
 #: updatePopup
 msgid "%1 will be updated to v%2 on exit"
@@ -378,7 +399,7 @@ msgid "<a href=\"https://github.com/gingko/client/blob/master/CHANGELOG.md\">Cha
 msgstr "<a href=\"https://github.com/gingko/client/blob/master/CHANGELOG.md\">Lista de cambios</a>:\n%1"
 
 #: areYouSureCancel
-msgid "Are you sure you want to cancel your changes?"
+msgid "Are you sure you want to undo your changes?"
 msgstr "¿Seguro que quieres cancelar tus cambios?"
 
 #: save
@@ -436,3 +457,4 @@ msgstr "Error al Exportar"
 #: exportErrorMsg
 msgid "Couldn't export.\nTry again."
 msgstr "No se pudo exportar.\nInténtalo de nuevo."
+

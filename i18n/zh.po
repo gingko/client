@@ -8,196 +8,162 @@ msgstr ""
 "Language: zh-Hans\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: 
 msgid "Cancel"
 msgstr "取消"
 
-#: 
-msgid "Blank"
+msgid "Blank Tree"
 msgstr "空白"
 
-#: 
 msgid "Import JSON"
 msgstr "导入JSON"
 
-#: 
 msgid "From Desktop or Online"
 msgstr "从本地或线上"
 
-#: 
+msgid "From Old Account"
+msgstr ""
+
+msgid "Bulk transfer of trees from your legacy account"
+msgstr ""
+
 msgid "Recent Documents"
 msgstr "最近的文档"
 
-#: 
+msgid "Last Updated"
+msgstr ""
+
 msgid "Last Opened"
 msgstr "上一个打开"
 
-#: 
 msgid "Open Other Documents"
 msgstr "打开另一个文档"
 
-#: 
+msgid "Delete Document"
+msgstr ""
+
 msgid "Remove From List"
 msgstr "从列表中移除"
 
-#: 
 msgid "New Document..."
 msgstr "新的文档"
 
-#: 
 msgid "Unsaved Changes..."
 msgstr "未保存的更改"
 
-#: 
-msgid "Backup Saved"
+msgid "Saved Offline"
 msgstr "保存备份"
 
-#: 
-msgctxt "Changes Saved"
 msgid "Saved"
 msgstr "保存"
 
-#: 
+msgid "Synced"
+msgstr ""
+
 msgid "Database Error..."
 msgstr "数据库错误"
 
-#: 
 msgid "Last saved"
 msgstr "上一个保存"
 
-#: 
 msgid "Last edit"
 msgstr "上一次编辑 "
 
-#: 
 msgid "Keyboard Shortcuts Help"
 msgstr "快捷键帮助"
 
-#: 
 msgid "Restore this Version"
 msgstr "恢复此版本"
 
-#: 
 msgid "Enter"
 msgstr "回车"
 
-#: 
 msgid "to Edit"
 msgstr "编辑"
 
-#: 
 msgid "Edit Card (Enter)"
 msgstr "编辑卡片（回车）"
 
-#: 
 msgid "to Navigate"
 msgstr "导航"
 
-#: 
 msgid "to Add Child"
 msgstr "添加子卡片"
 
-#: 
 msgid "to Split Card to the Right"
 msgstr "向右拆分卡"
 
-#: 
 msgid "Insert Child (Ctrl+L)"
 msgstr "插入子卡片"
 
-#: 
 msgid "to Add Below"
 msgstr "在下方添加"
 
-#: 
 msgid "to Split Card Down"
 msgstr "向下拆分卡"
 
-#: 
 msgid "to Merge into Next"
 msgstr "合并到下一个"
 
-#: 
 msgid "Insert Below (Ctrl+J)"
 msgstr "在下方插入"
 
-#: 
 msgid "to Add Above"
 msgstr "在上方添加"
 
-#: 
 msgid "to Split Card Upward"
 msgstr "向上拆分卡"
 
-#: 
 msgid "to Merge into Previous"
 msgstr "合并到上一个"
 
-#: 
 msgid "Insert Above (Ctrl+K)"
 msgstr "在上方插入"
 
-#: 
 msgid "(arrows)"
 msgstr "（箭头）"
 
-#: 
 msgid "to Move"
 msgstr "移动"
 
-#: 
 msgid "Backspace"
 msgstr "退格键"
 
-#: 
 msgid "to Delete"
 msgstr "删除"
 
-#: 
 msgid "Delete Card (Ctrl+Backspace)"
 msgstr "删除卡片"
 
-#: 
-msgid "Formatting Syntax Guide"
+msgid "More Formatting Options..."
 msgstr "格式指南"
 
-#: 
 msgid "for Bold"
 msgstr "粗体"
 
-#: 
 msgid "for Italic"
 msgstr "斜体"
 
-#: 
 msgid "to Save Changes"
 msgstr "保存更改"
 
-#: 
 msgid "Save Changes (Ctrl+Enter)"
-msgstr "保存更改"
+msgstr "保存更改 (Ctrl+Enter)"
 
-#: 
 msgid "Esc"
 msgstr "退出"
 
-#: 
 msgid "to Cancel Changes"
 msgstr "取消更改"
 
-#: 
 msgid "Press '/' to search"
 msgstr "输入“/”进行搜索"
 
-#: 
 msgid "Heading Font"
 msgstr "标题字体"
 
-#: 
 msgid "Content Font"
 msgstr "内容字体"
 
-#: 
 msgid "Editing/Monospace Font"
 msgstr "编辑/等宽字体"
 
@@ -231,25 +197,25 @@ msgid "Column : %1 word"
 msgid_plural "Column : %1 words"
 msgstr[0] "列：%1个字"
 
-#:    file
+#: file
 msgid "&File"
-msgstr "&文件"
+msgstr "文件"
 
 #: new
 msgid "&New"
-msgstr "&新的"
+msgstr "新的"
 
 #: open
 msgid "&Open..."
-msgstr "&打开……"
+msgstr "打开……"
 
 #: openRecent
 msgid "Open &Recent"
-msgstr "打开&最新"
+msgstr "打开最新"
 
 #: menuSave
 msgid "&Save"
-msgstr "&保存"
+msgstr "保存"
 
 #: saved
 msgid "Saved"
@@ -257,23 +223,23 @@ msgstr "已保存"
 
 #: saveAs
 msgid "Save &As..."
-msgstr "保存&为……"
+msgstr "保存为……"
 
 #: importJSON
 msgid "&Import JSON File..."
-msgstr "&导入JSON 文件……"
+msgstr "导入JSON 文件……"
 
 #: exportAsWord
 msgid "Export as MS &Word"
-msgstr "导出为MS&Word "
+msgstr "导出为MSWord "
 
 #: exportAsText
 msgid "Export as &Text"
-msgstr "导出为&文本"
+msgstr "导出为文本"
 
 #: exportAsJSON
 msgid "Export as &JSON..."
-msgstr "导出为&JSON ……"
+msgstr "导出为JSON ……"
 
 #: entireDocument
 msgid "Entire Document..."
@@ -295,49 +261,53 @@ msgstr "重复上一次导出"
 msgid "Show Complete List..."
 msgstr "显示完整列表……"
 
+#: close
+msgid "&Close"
+msgstr "关闭"
+
 #: quit
 msgid "&Quit Gingko..."
-msgstr "&退出Gingko ……"
+msgstr "退出Gingko ……"
 
 #: edit
 msgid "&Edit"
-msgstr "&编辑"
+msgstr "编辑"
 
 #: undo
 msgid "&Undo"
-msgstr "&撤销"
+msgstr "撤销"
 
 #: redo
 msgid "&Redo"
-msgstr "&重做"
+msgstr "重做"
 
 #: cut
 msgid "Cu&t"
-msgstr "断&开"
+msgstr "断开"
 
 #: copy
 msgid "&Copy"
-msgstr "&复制"
+msgstr "复制"
 
 #: paste
 msgid "&Paste"
-msgstr "&粘贴"
+msgstr "粘贴"
 
 #: selectAll
 msgid "Select &All"
-msgstr "选择&所有"
+msgstr "选择所有"
 
 #: cutCards
 msgid "Cu&t Cards"
-msgstr "切断&卡"
+msgstr "切断卡"
 
 #: copyCards
 msgid "&Copy Cards"
-msgstr "&复制卡"
+msgstr "复制卡"
 
 #: pasteCards
 msgid "&Paste Cards"
-msgstr "&粘贴卡"
+msgstr "粘贴卡"
 
 #: pasteCardsInto
 msgid "Paste Cards as Children"
@@ -345,27 +315,27 @@ msgstr "将卡粘贴为孩子"
 
 #: view
 msgid "&View"
-msgstr "&查看"
+msgstr "查看"
 
 #: selectFonts
 msgid "Select &Fonts..."
-msgstr "选择&字体"
+msgstr "选择字体"
 
 #: selectLanguage
 msgid "Select &Language"
-msgstr "选择&语言"
+msgstr "选择语言"
 
 #: zoomIn
 msgid "&Zoom In"
-msgstr " &放大"
+msgstr " 放大"
 
 #: zoomOut
 msgid "Zoom &Out"
-msgstr "缩&小"
+msgstr "缩小"
 
 #: resetZoom
 msgid "&Reset Zoom"
-msgstr "&重置缩放"
+msgstr "重置缩放"
 
 #: toggleFullscreen
 msgid "Toggle Full Screen"
@@ -385,23 +355,27 @@ msgstr "显示帮助按钮"
 
 #: faq
 msgid "&FAQ..."
-msgstr "&常见问题解答"
+msgstr "常见问题解答"
 
 #: issuesList
 msgid "Features &List && Known Bugs..."
-msgstr "功能&列表&&已知缺陷……"
+msgstr "功能列表&&已知缺陷……"
 
 #: contactAdri
 msgid "&Contact Adriano..."
-msgstr "&联系Adriano ……"
+msgstr "联系Adriano ……"
+
+#: emailSupport
+msgid "Email Support..."
+msgstr "联系客户支持"
 
 #: buyLicense
 msgid "&Buy a License..."
-msgstr "&购买一个许可"
+msgstr "购买一个许可"
 
 #: enterLicense
 msgid "&Enter License..."
-msgstr "&输入许可……"
+msgstr "输入许可……"
 
 #: backupFolder
 msgid "Open Backups Folder..."
@@ -409,13 +383,16 @@ msgstr "打开备份文件夹……"
 
 #: openDevTools
 msgid "Open &Debugging Tools"
-msgstr "打开&调试工具"
+msgstr "打开调试工具"
 
 #: gingkoVersion
 msgid "Current Gingko Version : %1"
 msgstr "$当前Gingko 版本: %1"
 
 #: cancel
+msgid "Cancel"
+msgstr "取消"
+
 #: updatePopup
 msgid "%1 will be updated to v%2 on exit"
 msgstr "%1 将在退出时被更新至v %2"
@@ -427,7 +404,7 @@ msgstr "<a href=\"https://github.com/gingko/client/blob/master/CHANGELOG.md\">�
 "%1"
 
 #: areYouSureCancel
-msgid "Are you sure you want to cancel your changes?"
+msgid "Are you sure you want to undo your changes?"
 msgstr "您确定要取消更改吗？"
 
 #: save
@@ -438,7 +415,7 @@ msgstr "保存"
 msgid "Save changes"
 msgstr "保存更改"
 
-#: 
+#: saveChangesMsg
 msgid "Save changes before closing?"
 msgstr "在关闭前保存更改"
 
@@ -450,7 +427,7 @@ msgstr "一些未保存的更改"
 msgid "Close Without Saving"
 msgstr "不保存，直接关闭"
 
-#: 
+#: unsavedChangesMsg
 msgid "Recover unsaved changes, or Discard them?"
 msgstr "恢复未保存的更改，或放弃它们"
 
@@ -475,22 +452,14 @@ msgid "Save Error"
 msgstr "保存时出错"
 
 #: saveErrorMsg
-msgid "The file wasn't saved.\n"
-"Please try again."
-msgstr "文件未保存。\n"
-"请再试一次。"
+msgid "The file wasn't saved.\nPlease try again."
+msgstr "文件未保存。\ n请再试一次。"
 
 #: exportError
 msgid "Export Error"
 msgstr "导出时出错"
 
 #: exportErrorMsg
-msgid "Couldn't export.\n"
-"Try again."
-msgstr "无法导出。\n"
-"请重试。"
-
-#: close
-msgid "&Close"
-msgstr "&关闭"
+msgid "Couldn't export.\nTry again."
+msgstr "无法导出。\ n请重试。"
 
