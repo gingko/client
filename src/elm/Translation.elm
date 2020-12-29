@@ -127,7 +127,7 @@ tr lang trans =
                     , zh = "取消"
                     , es = "Cancelar"
                     , fr = ""
-                    , nl = ""
+                    , nl = "Afbreken"
                     , sv = "Avbryt"
                     }
 
@@ -136,7 +136,7 @@ tr lang trans =
                     , zh = "空白"
                     , es = "Vacío"
                     , fr = ""
-                    , nl = ""
+                    , nl = "Blanco"
                     , sv = "Tom"
                     }
 
@@ -145,7 +145,7 @@ tr lang trans =
                     , zh = "导入JSON"
                     , es = "Importar JSON"
                     , fr = ""
-                    , nl = ""
+                    , nl = "Importeer JSON"
                     , sv = "Importera JSON"
                     }
 
@@ -154,7 +154,7 @@ tr lang trans =
                     , zh = "从本地或线上"
                     , es = "Del App Escritorio o Web"
                     , fr = ""
-                    , nl = ""
+                    , nl = "Van desktop of online"
                     , sv = "Från Skrivbordsmiljö till Online"
                     }
 
@@ -181,7 +181,7 @@ tr lang trans =
                     , zh = "最近的文档"
                     , es = "Documentos Recientes"
                     , fr = ""
-                    , nl = ""
+                    , nl = "Recente documenten"
                     , sv = "Senaste dokumenten"
                     }
 
@@ -199,7 +199,7 @@ tr lang trans =
                     , zh = "上一个打开"
                     , es = "Última Apertura"
                     , fr = ""
-                    , nl = ""
+                    , nl = "Laatst geopend"
                     , sv = "Senast öppnade"
                     }
 
@@ -208,7 +208,7 @@ tr lang trans =
                     , zh = "打开另一个文档"
                     , es = "Abrir Otros Documentos"
                     , fr = ""
-                    , nl = ""
+                    , nl = "Open andere documenten"
                     , sv = "Öppna andra dokument"
                     }
 
@@ -226,7 +226,7 @@ tr lang trans =
                     , zh = "从列表中移除"
                     , es = "Elminiar de la Lista"
                     , fr = ""
-                    , nl = ""
+                    , nl = "Verwijder van de lijst"
                     , sv = "Ta bort från lista"
                     }
 
@@ -235,7 +235,7 @@ tr lang trans =
                     , zh = "新的文档"
                     , es = "Documento Nuevo..."
                     , fr = ""
-                    , nl = ""
+                    , nl = "Nieuw document"
                     , sv = "Nytt dokument"
                     }
 
@@ -244,7 +244,7 @@ tr lang trans =
                     , zh = "未保存的更改"
                     , es = "Cambios No Guardados..."
                     , fr = ""
-                    , nl = ""
+                    , nl = "Niet opgeslagen wijzigingen"
                     , sv = "Osparade Ändringar"
                     }
 
@@ -254,7 +254,7 @@ tr lang trans =
                     , zh = "保存备份"
                     , es = "Copia De Seguridad Guardada"
                     , fr = ""
-                    , nl = ""
+                    , nl = "Backup opgeslagen"
                     , sv = "Säkerhetskopiering Klar"
                     }
 
@@ -263,7 +263,7 @@ tr lang trans =
                     , zh = "保存"
                     , es = "Cambios Guardados"
                     , fr = ""
-                    , nl = ""
+                    , nl = "Opgeslagen"
                     , sv = "Sparade"
                     }
 
@@ -281,7 +281,7 @@ tr lang trans =
                     , zh = "数据库错误"
                     , es = "Error de Database..."
                     , fr = ""
-                    , nl = ""
+                    , nl = "Database fout..."
                     , sv = "Databasfel..."
                     }
 
@@ -290,7 +290,7 @@ tr lang trans =
                     , zh = "上一个保存"
                     , es = "Guardado"
                     , fr = ""
-                    , nl = ""
+                    , nl = "Laatst opgeslagen"
                     , sv = "Senast sparad"
                     }
 
@@ -299,7 +299,7 @@ tr lang trans =
                     , zh = "上一次编辑 "
                     , es = "Último cambio"
                     , fr = ""
-                    , nl = ""
+                    , nl = "Laatst gewijzigd"
                     , sv = "Senast ändrad"
                     }
 
@@ -308,7 +308,7 @@ tr lang trans =
                     , zh = "快捷键帮助"
                     , es = "Atajos de Teclado"
                     , fr = ""
-                    , nl = ""
+                    , nl = "Toetsenbord sneltoetsen hulp"
                     , sv = "Kortkommandon (Hjälp)"
                     }
 
@@ -317,7 +317,7 @@ tr lang trans =
                     , zh = "恢复此版本"
                     , es = "Restaurar esta Versión"
                     , fr = ""
-                    , nl = ""
+                    , nl = "Haal deze versie terug"
                     , sv = "Återställ denna version"
                     }
 
@@ -326,7 +326,7 @@ tr lang trans =
                     , zh = "回车"
                     , es = "Enter"
                     , fr = ""
-                    , nl = ""
+                    , nl = "Invoeren"
                     , sv = "Retur"
                     }
 
@@ -335,7 +335,7 @@ tr lang trans =
                     , zh = "编辑"
                     , es = "para Editar"
                     , fr = ""
-                    , nl = ""
+                    , nl = "te wijzigen"
                     , sv = "Redigera"
                     }
 
@@ -344,7 +344,7 @@ tr lang trans =
                     , zh = "编辑卡片（回车）"
                     , es = "Editar Tarjeta (Enter)"
                     , fr = ""
-                    , nl = ""
+                    , nl = "Wijzig kaart (enter)"
                     , sv = "Redigera Kort (Retur)"
                     }
 
@@ -353,7 +353,7 @@ tr lang trans =
                     , zh = "导航"
                     , es = "para Navegar"
                     , fr = ""
-                    , nl = ""
+                    , nl = "naar navigatie"
                     , sv = "Navigera"
                     }
 
@@ -362,7 +362,7 @@ tr lang trans =
                     , zh = "添加子卡片"
                     , es = "para Agregar un Hijo"
                     , fr = ""
-                    , nl = ""
+                    , nl = "naar toevoegen kind"
                     , sv = "Lägg till Barn"
                     }
 
@@ -371,7 +371,7 @@ tr lang trans =
                     , zh = "向右拆分卡"
                     , es = "para Dividir la Tarjeta hacia la Derecha"
                     , fr = ""
-                    , nl = ""
+                    , nl = "naar splits kaart naar rechts"
                     , sv = "Slå Ihop Kort till Höger"
                     }
 
@@ -380,7 +380,7 @@ tr lang trans =
                     , zh = "插入子卡片"
                     , es = "Agregar un Hijo (Ctrl+L)"
                     , fr = ""
-                    , nl = ""
+                    , nl = "Voeg kind in (Ctrl+L)"
                     , sv = "Lägg till Barn (Ctrl+L)"
                     }
 
@@ -389,7 +389,7 @@ tr lang trans =
                     , zh = "在下方添加"
                     , es = "para Agregar Abajo"
                     , fr = ""
-                    , nl = ""
+                    , nl = "naar toevoegen onder"
                     , sv = "Lägg till Nedan"
                     }
 
@@ -398,7 +398,7 @@ tr lang trans =
                     , zh = "向下拆分卡"
                     , es = "para Dividir la Tarjeta hacia la Abajo"
                     , fr = ""
-                    , nl = ""
+                    , nl = "naar splits kaart naar onder"
                     , sv = "Dela Kort Nedåt"
                     }
 
@@ -407,7 +407,7 @@ tr lang trans =
                     , zh = "合并到下一个"
                     , es = "para Combinar la Tarjeta a la Siguiente"
                     , fr = ""
-                    , nl = ""
+                    , nl = "naar samenvoegen in volgende"
                     , sv = "Slå ihop med Efterföljande"
                     }
 
@@ -416,7 +416,7 @@ tr lang trans =
                     , zh = "在下方插入"
                     , es = "Agregar Abajo (Ctrl+J)"
                     , fr = ""
-                    , nl = ""
+                    , nl = "Invoegen onder (Ctrl+J)"
                     , sv = "Lägg till nedan (Ctrl+J)"
                     }
 
@@ -425,7 +425,7 @@ tr lang trans =
                     , zh = "在上方添加"
                     , es = "para Agregar Arriba"
                     , fr = ""
-                    , nl = ""
+                    , nl = "naar toevoegen boven"
                     , sv = "Lägg till Ovan"
                     }
 
@@ -434,7 +434,7 @@ tr lang trans =
                     , zh = "向上拆分卡"
                     , es = "para Dividir la Tarjeta hacia la Arriba"
                     , fr = ""
-                    , nl = ""
+                    , nl = "naar splits kaart naar boven"
                     , sv = "Dela Kort Uppåt"
                     }
 
@@ -443,7 +443,7 @@ tr lang trans =
                     , zh = "合并到上一个"
                     , es = "para Combinar la Tarjeta a la Anterior"
                     , fr = ""
-                    , nl = ""
+                    , nl = "naar samenvoegen in vorige"
                     , sv = "Slå ihop med Föregående"
                     }
 
@@ -452,7 +452,7 @@ tr lang trans =
                     , zh = "在上方插入"
                     , es = "Agregar Arriba (Ctrl+K)"
                     , fr = ""
-                    , nl = ""
+                    , nl = "Invoegen boven (Crtl+K)"
                     , sv = "Lägg till Ovan (Ctrl+K)"
                     }
 
@@ -461,7 +461,7 @@ tr lang trans =
                     , zh = "（箭头）"
                     , es = "(flechas)"
                     , fr = ""
-                    , nl = ""
+                    , nl = "(pijltjes)"
                     , sv = "(pilar)"
                     }
 
@@ -470,7 +470,7 @@ tr lang trans =
                     , zh = "移动"
                     , es = "para Mover"
                     , fr = ""
-                    , nl = ""
+                    , nl = "naar verplaatsen"
                     , sv = "för att Flytta"
                     }
 
@@ -479,7 +479,7 @@ tr lang trans =
                     , zh = "退格键"
                     , es = "Backspace"
                     , fr = ""
-                    , nl = ""
+                    , nl = "Backspace"
                     , sv = "Backslag"
                     }
 
@@ -488,7 +488,7 @@ tr lang trans =
                     , zh = "删除"
                     , es = "para Eliminar"
                     , fr = ""
-                    , nl = ""
+                    , nl = "naar verwijderen"
                     , sv = "för att Radera"
                     }
 
@@ -497,7 +497,7 @@ tr lang trans =
                     , zh = "删除卡片"
                     , es = "Eliminar Tarjeta (Ctrl+Backspace)"
                     , fr = ""
-                    , nl = ""
+                    , nl = "Verwijder kaart (Ctrl+Backspace)"
                     , sv = "Radera Kort (Ctrl+Backslag)"
                     }
 
@@ -506,7 +506,7 @@ tr lang trans =
                     , zh = "格式指南"
                     , es = "Guía de Sintaxis para Formato"
                     , fr = ""
-                    , nl = ""
+                    , nl = "Formatteer syntax gid"
                     , sv = "Formatteringsguide"
                     }
 
@@ -515,7 +515,7 @@ tr lang trans =
                     , zh = "粗体"
                     , es = "para Negrita"
                     , fr = ""
-                    , nl = ""
+                    , nl = "voor Vet"
                     , sv = "för Fet stil"
                     }
 
@@ -524,7 +524,7 @@ tr lang trans =
                     , zh = "斜体"
                     , es = "para Itálica"
                     , fr = ""
-                    , nl = ""
+                    , nl = "voor Schuin"
                     , sv = "för Kursiv stil"
                     }
 
@@ -533,7 +533,7 @@ tr lang trans =
                     , zh = "保存更改"
                     , es = "para Guardar Cambios"
                     , fr = ""
-                    , nl = ""
+                    , nl = "naar Opslaan wijzigingen"
                     , sv = "för att Spara Ändringar"
                     }
 
@@ -542,7 +542,7 @@ tr lang trans =
                     , zh = "保存更改 (Ctrl+Enter)"
                     , es = "Guardar Cambios (Ctrl+Enter)"
                     , fr = ""
-                    , nl = ""
+                    , nl = "Opslaan wijzigingen (Ctrl+Enter)"
                     , sv = "Spara ändringar (Ctrl+Enter)"
                     }
 
@@ -551,7 +551,7 @@ tr lang trans =
                     , zh = "退出"
                     , es = "Esc"
                     , fr = ""
-                    , nl = ""
+                    , nl = "Esc"
                     , sv = "Esc"
                     }
 
@@ -560,7 +560,7 @@ tr lang trans =
                     , zh = "取消更改"
                     , es = "para Cancelar Cambios"
                     , fr = ""
-                    , nl = ""
+                    , nl = "naar afbreken wijzigingen"
                     , sv = "för att Slänga Ändringar"
                     }
 
@@ -569,7 +569,7 @@ tr lang trans =
                     , zh = "输入“/”进行搜索"
                     , es = "Presiona '/' para buscar"
                     , fr = ""
-                    , nl = ""
+                    , nl = "Druk op '/' om te zoeken"
                     , sv = "Tryck '/' för att söka"
                     }
 
