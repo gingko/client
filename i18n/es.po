@@ -245,8 +245,8 @@ msgid "Current Card and Children..."
 msgstr "Tarjeta Actual y Sus Hijos..."
 
 #: column
-msgid (num) => `Column ${num}`
-msgstr (num) => `Columna ${num}`
+msgid "Column %1"
+msgstr "Columna %1"
 
 #: repeatExport
 msgid "Repeat Last E&xport"
