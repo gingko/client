@@ -290,7 +290,7 @@ export const tr =
       , fr : ""
       , sv : "Kontakta Adriano..."
       }
-    , emailSupport :
+  , emailSupport :
       { en : "Email Support..."
       , zh : "联系客户支持"
       , es : "Enviar correo al desarrollador..."
