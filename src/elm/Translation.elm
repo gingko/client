@@ -107,7 +107,7 @@ languageName lang =
 
 activeLanguages : List ( Language, String )
 activeLanguages =
-    [ En, Zh, Es, Fr, Nl, Sv ] |> List.map (\l -> ( l, languageName l ))
+    [ En, Zh, Es, Nl, Sv ] |> List.map (\l -> ( l, languageName l ))
 
 
 tr : Language -> TranslationId -> String
