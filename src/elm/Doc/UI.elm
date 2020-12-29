@@ -8,7 +8,7 @@ import Doc.List as DocList
 import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
-import Html exposing (Html, a, br, button, del, div, fieldset, h1, h2, h3, h4, h5, hr, iframe, img, input, ins, label, li, option, select, span, text, ul)
+import Html exposing (Html, a, br, button, del, div, fieldset, h1, h2, h3, h4, h5, hr, iframe, img, input, ins, label, li, option, select, small, span, text, ul)
 import Html.Attributes as A exposing (..)
 import Html.Events exposing (onCheck, onClick, onInput, onSubmit)
 import Html.Events.Extra exposing (onChange)
@@ -286,6 +286,11 @@ viewSidebar msgs currentDocument fileFilter docList ( exportSelection, exportFor
                                         option [ value <| langToString lang ] [ text langName ]
                                     )
                             )
+                        , small []
+                            [ text "(Contribute translations "
+                            , a [ href "https://poeditor.com/join/project?hash=k8Br3k0JVz" ] [ text "here" ]
+                            , text ")"
+                            ]
                         , br [] []
                         , h5 [] [ text "Themes" ]
                         , button [ onClick <| msgs.themeChanged Default ] [ text "Set Default" ]
