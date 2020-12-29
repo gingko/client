@@ -8,48 +8,49 @@ msgstr ""
 "Language: sv\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: 
 msgid "Cancel"
 msgstr "Avbryt"
 
-#: 
-msgid "Blank"
+msgid "Blank Tree"
 msgstr "Tom"
 
-#: 
 msgid "Import JSON"
 msgstr "Importera JSON"
 
-#: 
 msgid "From Desktop or Online"
 msgstr "Från Skrivbordsmiljö till Online"
 
-#: 
+msgid "From Old Account"
+msgstr ""
+
+msgid "Bulk transfer of trees from your legacy account"
+msgstr ""
+
 msgid "Recent Documents"
 msgstr "Senaste dokumenten"
 
-#: 
+msgid "Last Updated"
+msgstr "Senast öppnade"
+
 msgid "Last Opened"
 msgstr "Senast öppnade"
 
-#: 
 msgid "Open Other Documents"
 msgstr "Öppna andra dokument"
 
-#: 
+msgid "Delete Document"
+msgstr ""
+
 msgid "Remove From List"
 msgstr "Ta bort från lista"
 
-#: 
 msgid "New Document..."
 msgstr "Nytt dokument"
 
-#: 
 msgid "Unsaved Changes..."
 msgstr "Osparade Ändringar"
 
-#: 
-msgid "Backup Saved"
+msgid "Saved Offline"
 msgstr "Säkerhetskopiering Klar"
 
 #: 
@@ -57,147 +58,114 @@ msgctxt "Changes Saved"
 msgid "Saved"
 msgstr "Sparade"
 
-#: 
+msgid "Synced"
+msgstr ""
+
 msgid "Database Error..."
 msgstr "Databasfel..."
 
-#: 
 msgid "Last saved"
 msgstr "Senast sparad"
 
-#: 
 msgid "Last edit"
 msgstr "Senast ändrad"
 
-#: 
 msgid "Keyboard Shortcuts Help"
 msgstr "Kortkommandon (Hjälp)"
 
-#: 
 msgid "Restore this Version"
 msgstr "Återställ denna version"
 
-#: 
 msgid "Enter"
 msgstr "Retur"
 
-#: 
 msgid "to Edit"
 msgstr "Redigera"
 
-#: 
 msgid "Edit Card (Enter)"
 msgstr "Redigera Kort (Retur)"
 
-#: 
 msgid "to Navigate"
 msgstr "Navigera"
 
-#: 
 msgid "to Add Child"
 msgstr "Lägg till Barn"
 
-#: 
 msgid "to Split Card to the Right"
 msgstr "Slå Ihop Kort till Höger"
 
-#: 
 msgid "Insert Child (Ctrl+L)"
 msgstr "Lägg till Barn (Ctrl+L)"
 
-#: 
 msgid "to Add Below"
 msgstr "Lägg till Nedan"
 
-#: 
 msgid "to Split Card Down"
 msgstr "Dela Kort Nedåt"
 
-#: 
 msgid "to Merge into Next"
 msgstr "Slå ihop med Efterföljande"
 
-#: 
 msgid "Insert Below (Ctrl+J)"
 msgstr "Lägg till nedan (Ctrl+J)"
 
-#: 
 msgid "to Add Above"
 msgstr "Lägg till Ovan"
 
-#: 
 msgid "to Split Card Upward"
 msgstr "Dela Kort Uppåt"
 
-#: 
 msgid "to Merge into Previous"
 msgstr "Slå ihop med Föregående"
 
-#: 
 msgid "Insert Above (Ctrl+K)"
 msgstr "Lägg till Ovan (Ctrl+K)"
 
-#: 
 msgid "(arrows)"
 msgstr "(pilar)"
 
-#: 
 msgid "to Move"
 msgstr "för att Flytta"
 
-#: 
 msgid "Backspace"
 msgstr "Backslag"
 
-#: 
 msgid "to Delete"
 msgstr "för att Radera"
 
-#: 
 msgid "Delete Card (Ctrl+Backspace)"
 msgstr "Radera Kort (Ctrl+Backslag)"
 
-#: 
-msgid "Formatting Syntax Guide"
+msgid "More Formatting Options..."
 msgstr "Formatteringsguide"
 
-#: 
 msgid "for Bold"
 msgstr "för Fet stil"
 
-#: 
 msgid "for Italic"
 msgstr "för Kursiv stil"
 
-#: 
 msgid "to Save Changes"
 msgstr "för att Spara Ändringar"
 
-#: 
 msgid "Save Changes (Ctrl+Enter)"
 msgstr "Spara ändringar (Ctrl+Enter)"
 
-#: 
 msgid "Esc"
 msgstr "Esc"
 
-#: 
 msgid "to Cancel Changes"
 msgstr "för att Slänga Ändringar"
 
-#: 
 msgid "Press '/' to search"
 msgstr "Tryck '/' för att söka"
 
-#: 
 msgid "Heading Font"
 msgstr "Rubrik"
 
-#: 
 msgid "Content Font"
 msgstr "Innehållstypsnitt"
 
-#: 
 msgid "Editing/Monospace Font"
 msgstr "Redigera/Monospace Typsnitt"
 
@@ -237,7 +205,7 @@ msgid_plural "Column : %1 words"
 msgstr[0] "Kolumn: %1 ord"
 msgstr[1] "Kolumn: %1 ord"
 
-#:    file
+#: file
 msgid "&File"
 msgstr "Arkiv"
 
@@ -300,6 +268,10 @@ msgstr "Upprepa Senaste Exportering"
 #: showList
 msgid "Show Complete List..."
 msgstr "Visa Fullständig Lista"
+
+#: close
+msgid "&Close"
+msgstr "Stäng"
 
 #: quit
 msgid "&Quit Gingko..."
@@ -401,6 +373,10 @@ msgstr "Funktionslista  Kända Problem"
 msgid "&Contact Adriano..."
 msgstr "Kontakta Adriano..."
 
+#: emailSupport
+msgid "Email Support..."
+msgstr "E-poststöd..."
+
 #: buyLicense
 msgid "&Buy a License..."
 msgstr "Köp en Licens"
@@ -422,6 +398,9 @@ msgid "Current Gingko Version : %1"
 msgstr "Aktuell version: %1"
 
 #: cancel
+msgid "Cancel"
+msgstr "Avbryt"
+
 #: updatePopup
 msgid "%1 will be updated to v%2 on exit"
 msgstr "%1 kommer uppdateras till v%2 när du avslutar"
@@ -433,7 +412,7 @@ msgstr "<a href=\"https://github.com/gingko/client/blob/master/CHANGELOG.md\">F�
 "%1"
 
 #: areYouSureCancel
-msgid "Are you sure you want to cancel your changes?"
+msgid "Are you sure you want to undo your changes?"
 msgstr "Är du säker att du vill slänga dina ändringar?"
 
 #: save
@@ -444,7 +423,7 @@ msgstr "Spara"
 msgid "Save changes"
 msgstr "Spara ändringar"
 
-#: 
+#: saveChangesMsg
 msgid "Save changes before closing?"
 msgstr "Spara ändringar innan stängning?"
 
@@ -456,7 +435,7 @@ msgstr "Vissa ändringar sparades ej"
 msgid "Close Without Saving"
 msgstr "Stäng utan att spara"
 
-#: 
+#: unsavedChangesMsg
 msgid "Recover unsaved changes, or Discard them?"
 msgstr "Återskapa osparade ändringar, eller släng dem?"
 
@@ -481,22 +460,14 @@ msgid "Save Error"
 msgstr "Fel vid Sparande"
 
 #: saveErrorMsg
-msgid "The file wasn't saved.\n"
-"Please try again."
-msgstr "Filen kunde inte sparas.\n"
-"Försök igen."
+msgid "The file wasn't saved.\nPlease try again."
+msgstr "Filen kunde inte sparas.\nFörsök igen."
 
 #: exportError
 msgid "Export Error"
 msgstr "Exporteringsfel"
 
 #: exportErrorMsg
-msgid "Couldn't export.\n"
-"Try again."
-msgstr "Kunde inte exportera.\n"
-"Försök igen."
-
-#: close
-msgid "&Close"
-msgstr "Stäng"
+msgid "Couldn't export.\nTry again."
+msgstr "Kunde inte exportera.\nFörsök igen."
 
