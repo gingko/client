@@ -97,7 +97,7 @@ s/^.*sv : (.*)$/msgstr \1\n/
 ' ../src/shared/translation.js > sv-js.po
 
 # Merge files
-printf 'msgid ""\nmsgstr ""\n"Plural-Forms: nplurals=2; plural=(n > 1)\\n"\n\n' | cat - sv-elm.po sv-js.po > sv.po
+printf 'msgid ""\nmsgstr ""\n"MIME-Version: 1.0\\n"\n"Content-Type: text/plain; charset=UTF-8\\n"\n"Content-Transfer-Encoding: 8bit\\n"\n"X-Generator: POEditor.com\\n"\n"Project-Id-Version: Gingko Desktop\\n"\n"Language: sv\\n"\n"Plural-Forms: nplurals=2; plural=(n != 1);\\n"\n\n' | cat - sv-elm.po sv-js.po > sv.po
 
 # Delete temp files
 rm sv-*.po

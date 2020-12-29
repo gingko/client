@@ -118,7 +118,7 @@ export const tr =
   , close :
       { en : "&Close"
       , zh : "关闭"
-      , es :"&Cerrar"
+      , es : "&Cerrar"
       , fr : ""
       , sv : "Stäng"
       }
