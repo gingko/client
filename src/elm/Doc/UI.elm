@@ -11,6 +11,7 @@ import Doc.TreeUtils exposing (..)
 import Html exposing (Html, a, br, button, del, div, fieldset, h1, h2, h3, h4, h5, hr, iframe, img, input, ins, label, li, option, select, span, text, ul)
 import Html.Attributes as A exposing (..)
 import Html.Events exposing (onCheck, onClick, onInput, onSubmit)
+import Html.Events.Extra exposing (onChange)
 import Import.Template exposing (Template(..))
 import List.Extra as ListExtra exposing (getAt)
 import Octicons as Icon exposing (defaultOptions)
@@ -209,6 +210,7 @@ type alias SidebarMsgs msg =
     , exportFormatChanged : ExportFormat -> msg
     , export : msg
     , importJSONRequested : msg
+    , languageChanged : String -> msg
     , themeChanged : Theme -> msg
     }
 
@@ -277,7 +279,7 @@ viewSidebar msgs currentDocument fileFilter docList ( exportSelection, exportFor
                     div [ id "sidebar-menu" ]
                         [ h2 [] [ text "Settings" ]
                         , h5 [] [ text "Language" ]
-                        , select []
+                        , select [ onChange msgs.languageChanged ]
                             [ option [ value "en" ] [ text (languageName En) ]
                             , option [ value "zh" ] [ text (languageName Zh) ]
                             , option [ value "es" ] [ text (languageName Es) ]

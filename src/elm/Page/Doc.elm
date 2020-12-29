@@ -247,6 +247,7 @@ type Msg
     | ImportJSONCompleted String
     | ImportBulkCompleted
       -- Misc UI
+    | LanguageChanged String
     | ThemeChanged Theme
     | TimeUpdate Time.Posix
     | VideoModal Bool
@@ -711,6 +712,19 @@ update msg ({ workingTree } as model) =
         ImportBulkCompleted ->
             ( { model | modalState = NoModal }, Cmd.none )
 
+        LanguageChanged newLangString ->
+            let
+                newLang =
+                    langFromString newLangString
+            in
+            if newLang /= Session.language model.session then
+                ( { model | session = Session.setLanguage newLang model.session }
+                , send <| SetLanguage (langFromString newLangString)
+                )
+
+            else
+                ( model, Cmd.none )
+
         ThemeChanged newTheme ->
             ( { model | theme = newTheme }, send <| SaveThemeSetting newTheme )
 
@@ -979,11 +993,6 @@ update msg ({ workingTree } as model) =
                                 |> addToHistory
 
                 -- === UI ===
-                LanguageChanged lang ->
-                    ( { model | session = Session.setLanguage lang model.session }
-                    , Cmd.none
-                    )
-
                 ViewVideos ->
                     ( model
                     , Cmd.none
@@ -2446,6 +2455,7 @@ pre, code, .group.has-active .card textarea {
                             , exportFormatChanged = ExportFormatChanged
                             , export = Export
                             , importJSONRequested = ImportJSONRequested
+                            , languageChanged = LanguageChanged
                             , themeChanged = ThemeChanged
                             }
                             model.metadata

@@ -31,7 +31,6 @@ type
     | TextCursor TextCursorInfo
     | CheckboxClicked String Int
       -- === UI ===
-    | LanguageChanged Translation.Language
     | ViewVideos
     | FontSelectorOpen (List String)
     | Keyboard String
@@ -173,14 +172,6 @@ subscribe tagger onError =
                             onError (errorToString e)
 
                 -- === UI ===
-                "LanguageChanged" ->
-                    case decodeValue languageDecoder outsideInfo.data of
-                        Ok lang ->
-                            tagger <| LanguageChanged lang
-
-                        Err e ->
-                            onError (errorToString e)
-
                 "ViewVideos" ->
                     tagger <| ViewVideos
 
