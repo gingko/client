@@ -1,0 +1,502 @@
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: POEditor.com\n"
+"Project-Id-Version: Gingko Writer\n"
+"Language: nl\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: 
+msgid "Cancel"
+msgstr "Afbreken"
+
+#: 
+msgid "Blank"
+msgstr "Blanco"
+
+#: 
+msgid "Import JSON"
+msgstr "Importeer JSON"
+
+#: 
+msgid "From Desktop or Online"
+msgstr "Van desktop of online"
+
+#: 
+msgid "Recent Documents"
+msgstr "Recente documenten"
+
+#: 
+msgid "Last Opened"
+msgstr "Laatst geopend"
+
+#: 
+msgid "Open Other Documents"
+msgstr "Open andere documenten"
+
+#: 
+msgid "Remove From List"
+msgstr "Verwijder van de lijst"
+
+#: 
+msgid "New Document..."
+msgstr "Nieuw document"
+
+#: 
+msgid "Unsaved Changes..."
+msgstr "Niet opgeslagen wijzigingen"
+
+#: 
+msgid "Backup Saved"
+msgstr "Backup opgeslagen"
+
+#: 
+msgctxt "Changes Saved"
+msgid "Saved"
+msgstr "Opgeslagen"
+
+#: 
+msgid "Database Error..."
+msgstr "Database fout..."
+
+#: 
+msgid "Last saved"
+msgstr "Laatst opgeslagen"
+
+#: 
+msgid "Last edit"
+msgstr "Laatst gewijzigd"
+
+#: 
+msgid "Keyboard Shortcuts Help"
+msgstr "Toetsenbord sneltoetsen hulp"
+
+#: 
+msgid "Restore this Version"
+msgstr "Haal deze versie terug"
+
+#: 
+msgid "Enter"
+msgstr "Invoeren"
+
+#: 
+msgid "to Edit"
+msgstr "te wijzigen"
+
+#: 
+msgid "Edit Card (Enter)"
+msgstr "Wijzig kaart (enter)"
+
+#: 
+msgid "to Navigate"
+msgstr "naar navigatie"
+
+#: 
+msgid "to Add Child"
+msgstr "naar toevoegen kind"
+
+#: 
+msgid "to Split Card to the Right"
+msgstr "naar splits kaart naar rechts"
+
+#: 
+msgid "Insert Child (Ctrl+L)"
+msgstr "Voeg kind in (Ctrl+L)"
+
+#: 
+msgid "to Add Below"
+msgstr "naar toevoegen onder"
+
+#: 
+msgid "to Split Card Down"
+msgstr "naar splits kaart naar onder"
+
+#: 
+msgid "to Merge into Next"
+msgstr "naar samenvoegen in volgende"
+
+#: 
+msgid "Insert Below (Ctrl+J)"
+msgstr "Invoegen onder (Ctrl+J)"
+
+#: 
+msgid "to Add Above"
+msgstr "naar toevoegen boven"
+
+#: 
+msgid "to Split Card Upward"
+msgstr "naar splits kaart naar boven"
+
+#: 
+msgid "to Merge into Previous"
+msgstr "naar samenvoegen in vorige"
+
+#: 
+msgid "Insert Above (Ctrl+K)"
+msgstr "Invoegen boven (Crtl+K)"
+
+#: 
+msgid "(arrows)"
+msgstr "(pijltjes)"
+
+#: 
+msgid "to Move"
+msgstr "naar verplaatsen"
+
+#: 
+msgid "Backspace"
+msgstr "Backspace"
+
+#: 
+msgid "to Delete"
+msgstr "naar verwijderen"
+
+#: 
+msgid "Delete Card (Ctrl+Backspace)"
+msgstr "Verwijder kaart (Ctrl+Backspace)"
+
+#: 
+msgid "Formatting Syntax Guide"
+msgstr "Formatteer syntax gids "
+
+#: 
+msgid "for Bold"
+msgstr "voor Vet"
+
+#: 
+msgid "for Italic"
+msgstr "voor Schuin"
+
+#: 
+msgid "to Save Changes"
+msgstr "naar Opslaan wijzigingen"
+
+#: 
+msgid "Save Changes (Ctrl+Enter)"
+msgstr "Opslaan wijzigingen (Ctrl+Enter)"
+
+#: 
+msgid "Esc"
+msgstr "Esc"
+
+#: 
+msgid "to Cancel Changes"
+msgstr "naar afbreken wijzigingen"
+
+#: 
+msgid "Press '/' to search"
+msgstr "Druk op '/' om te zoeken"
+
+#: 
+msgid "Heading Font"
+msgstr "Headline Font"
+
+#: 
+msgid "Content Font"
+msgstr "Inhoud Font"
+
+#: 
+msgid "Editing/Monospace Font"
+msgstr "Wijzigen/Monospace font"
+
+#: 
+msgid "Session: %1 word"
+msgid_plural "Session: %1 words"
+msgstr[0] "Sessie: %1 woord"
+msgstr[1] "Sessie: %1 woorden"
+
+#: 
+msgid "Total : %1 word"
+msgid_plural "Total : %1 words"
+msgstr[0] "Totaal: %1 woord"
+msgstr[1] "Totaal: %1 woorden"
+
+#: 
+msgid "Card : %1 word"
+msgid_plural "Card : %1 words"
+msgstr[0] "Kaart: %1 woord"
+msgstr[1] "Kaart: %1 woorden"
+
+#: 
+msgid "Subtree : %1 word"
+msgid_plural "Subtree : %1 words"
+msgstr[0] "Subtree: %1 woord"
+msgstr[1] "Subtree: %1 woorden"
+
+#: 
+msgid "Group : %1 word"
+msgid_plural "Group : %1 words"
+msgstr[0] "Groep: %1 woord"
+msgstr[1] "Groep: %1 woorden"
+
+#: 
+msgid "Column : %1 word"
+msgid_plural "Column : %1 words"
+msgstr[0] "Kolom: %1 woord"
+msgstr[1] "Kolom: %1 woorden"
+
+#:    file
+msgid "&File"
+msgstr "&Bestand"
+
+#: new
+msgid "&New"
+msgstr "&Nieuw"
+
+#: open
+msgid "&Open..."
+msgstr "&Openen..."
+
+#: openRecent
+msgid "Open &Recent"
+msgstr "Openen &Recent"
+
+#: menuSave
+msgid "&Save"
+msgstr "&Opslaan"
+
+#: saved
+msgid "Saved"
+msgstr "Opgeslagen"
+
+#: saveAs
+msgid "Save &As..."
+msgstr "Opslaan &Als"
+
+#: importJSON
+msgid "&Import JSON File..."
+msgstr "&Import JSON bestand..."
+
+#: exportAsWord
+msgid "Export as MS &Word"
+msgstr "Exporteer als MS &Word"
+
+#: exportAsText
+msgid "Export as &Text"
+msgstr "Exporteer als &Text"
+
+#: exportAsJSON
+msgid "Export as &JSON..."
+msgstr "Exporteer as &JSON..."
+
+#: entireDocument
+msgid "Entire Document..."
+msgstr "Hele document..."
+
+#: currentSubtree
+msgid "Current Card and Children..."
+msgstr "Huidige kaart en kinderen..."
+
+#: column
+msgid "Column %1"
+msgstr "Kolom %1"
+
+#: repeatExport
+msgid "Repeat Last E&xport"
+msgstr "Herhaal laatste E&xporteren"
+
+#: showList
+msgid "Show Complete List..."
+msgstr "Toon complete lijst..."
+
+#: quit
+msgid "&Quit Gingko..."
+msgstr "&Afsluiten Gingko..."
+
+#: edit
+msgid "&Edit"
+msgstr "&Bewerken"
+
+#: undo
+msgid "&Undo"
+msgstr "&Ongedaan maken"
+
+#: redo
+msgid "&Redo"
+msgstr "&Opnieuw"
+
+#: cut
+msgid "Cu&t"
+msgstr "Knippe&n"
+
+#: copy
+msgid "&Copy"
+msgstr "&Kopieer"
+
+#: paste
+msgid "&Paste"
+msgstr "&Plakken"
+
+#: selectAll
+msgid "Select &All"
+msgstr "Selecteer &alles"
+
+#: cutCards
+msgid "Cu&t Cards"
+msgstr "Kni&p kaarten"
+
+#: copyCards
+msgid "&Copy Cards"
+msgstr "&Kopieer kaarten"
+
+#: pasteCards
+msgid "&Paste Cards"
+msgstr "&Plak kaarten"
+
+#: pasteCardsInto
+msgid "Paste Cards as Children"
+msgstr "Plak kaarten als kinderen"
+
+#: view
+msgid "&View"
+msgstr "&Kijken"
+
+#: selectFonts
+msgid "Select &Fonts..."
+msgstr "Selecteer &Fonts..."
+
+#: selectLanguage
+msgid "Select &Language"
+msgstr "Selecteer &Taal"
+
+#: zoomIn
+msgid "&Zoom In"
+msgstr "&Zoom in"
+
+#: zoomOut
+msgid "Zoom &Out"
+msgstr "Zoom &uit"
+
+#: resetZoom
+msgid "&Reset Zoom"
+msgstr "&Reset zoom"
+
+#: toggleFullscreen
+msgid "Toggle Full Screen"
+msgstr "Toggle volledig scherm"
+
+#: help
+msgid "Help"
+msgstr "Help"
+
+#: toggleHelp hide
+msgid "Hide Help button"
+msgstr "Verstop Help knop"
+
+#: toggleHelp show
+msgid "Show Help button"
+msgstr "Toon Help knop"
+
+#: faq
+msgid "&FAQ..."
+msgstr "&FAQ..."
+
+#: issuesList
+msgid "Features &List && Known Bugs..."
+msgstr "Mogelijkheden &lijst && Bekende bugs..."
+
+#: contactAdri
+msgid "&Contact Adriano..."
+msgstr "&Neem contact op met Adriano..."
+
+#: buyLicense
+msgid "&Buy a License..."
+msgstr "&Koop een licentie..."
+
+#: enterLicense
+msgid "&Enter License..."
+msgstr "&Voer licentie in..."
+
+#: backupFolder
+msgid "Open Backups Folder..."
+msgstr "Open backup mappen"
+
+#: openDevTools
+msgid "Open &Debugging Tools"
+msgstr "Open &debug hulpmiddelen"
+
+#: gingkoVersion
+msgid "Current Gingko Version : %1"
+msgstr "Huidige Gingko Versie : %1"
+
+#: cancel
+#: updatePopup
+msgid "%1 will be updated to v%2 on exit"
+msgstr "%1 wordt geupdated naar v%2 bij afsluiten"
+
+#: updatePopupBody
+msgid "<a href=\"https://github.com/gingko/client/blob/master/CHANGELOG.md\">Change list</a>:\n"
+"%1"
+msgstr "<a href=\"https://github.com/gingko/client/blob/master/CHANGELOG.md\">Lijst met wijzigingen</a>:\n"
+"%1"
+
+#: areYouSureCancel
+msgid "Are you sure you want to cancel your changes?"
+msgstr "Weet je zeker dat je de wijzigingen wil afbreken?"
+
+#: save
+msgid "Save"
+msgstr "Opslaan"
+
+#: saveChanges
+msgid "Save changes"
+msgstr "Sla wijzigingen op"
+
+#: 
+msgid "Save changes before closing?"
+msgstr "Wijzigingen opslaan voordat je afsluit?"
+
+#: unsavedChangesFound
+msgid "Some Changes Weren't Saved"
+msgstr "Sommige wijzigingen zijn niet opgeslagen"
+
+#: closeWithoutSaving
+msgid "Close Without Saving"
+msgstr "Afsluiten zonder op te slaan"
+
+#: 
+msgid "Recover unsaved changes, or Discard them?"
+msgstr "Terughalen niet opgeslagen wijzigingen, of negeren?"
+
+#: discard
+msgid "Discard Unsaved Changes"
+msgstr "Negeer niet opgeslagen wijzigingen"
+
+#: recover
+msgid "Recover"
+msgstr "Terughalen"
+
+#: loadingError
+msgid "Loading Error"
+msgstr "Fout bij laden"
+
+#: loadingErrorMsg
+msgid "Couldn't load file."
+msgstr "Kan het bestand niet laden."
+
+#: saveError
+msgid "Save Error"
+msgstr "Fout bij opslaan"
+
+#: saveErrorMsg
+msgid "The file wasn't saved.\n"
+"Please try again."
+msgstr "Het bestand is niet opgeslagen.\n"
+"Probeer het nog een keer."
+
+#: exportError
+msgid "Export Error"
+msgstr "Fout bij exporteren"
+
+#: exportErrorMsg
+msgid "Couldn't export.\n"
+"Try again."
+msgstr "Exporteren niet gelukt.\n"
+"Probeer het nog een keer."
+
+#: close
+msgid "&Close"
+msgstr "&Sluiten"
+
