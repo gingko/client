@@ -32,5 +32,10 @@ describe('Loading indicators', () => {
       .click()
 
     cy.contains('#sidebar-menu', 'Language')
+
+    cy.get('#sidebar-menu select')
+      .select("es")
+
+    cy.contains('Sincronizado')
   })
 })

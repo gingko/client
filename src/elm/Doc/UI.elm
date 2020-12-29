@@ -8,7 +8,7 @@ import Doc.List as DocList
 import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
-import Html exposing (Html, a, br, button, del, div, fieldset, h1, h2, h3, h4, h5, hr, iframe, img, input, ins, label, li, span, text, ul)
+import Html exposing (Html, a, br, button, del, div, fieldset, h1, h2, h3, h4, h5, hr, iframe, img, input, ins, label, li, option, select, span, text, ul)
 import Html.Attributes as A exposing (..)
 import Html.Events exposing (onCheck, onClick, onInput, onSubmit)
 import Import.Template exposing (Template(..))
@@ -20,7 +20,7 @@ import Regex exposing (Regex, replace)
 import Route
 import Session exposing (Session)
 import Time exposing (posixToMillis)
-import Translation exposing (Language, TranslationId(..), timeDistInWords, tr)
+import Translation exposing (Language(..), TranslationId(..), languageName, timeDistInWords, tr)
 import Types exposing (Children(..), CursorPosition(..), DropdownState(..), SidebarState(..), TextCursorInfo, ViewMode(..), ViewState)
 
 
@@ -275,8 +275,17 @@ viewSidebar msgs currentDocument fileFilter docList ( exportSelection, exportFor
 
                 Settings ->
                     div [ id "sidebar-menu" ]
-                        [ h3 [] [ text "Settings" ]
-                        , text "Some test themes:"
+                        [ h2 [] [ text "Settings" ]
+                        , h5 [] [ text "Language" ]
+                        , select []
+                            [ option [ value "en" ] [ text (languageName En) ]
+                            , option [ value "zh" ] [ text (languageName Zh) ]
+                            , option [ value "es" ] [ text (languageName Es) ]
+                            , option [ value "fr" ] [ text (languageName Fr) ]
+                            , option [ value "sv" ] [ text (languageName Sv) ]
+                            ]
+                        , br [] []
+                        , h5 [] [ text "Themes" ]
                         , button [ onClick <| msgs.themeChanged Default ] [ text "Set Default" ]
                         , button [ onClick <| msgs.themeChanged Gray ] [ text "Set Gray" ]
                         , button [ onClick <| msgs.themeChanged Turquoise ] [ text "Set Turquoise" ]
