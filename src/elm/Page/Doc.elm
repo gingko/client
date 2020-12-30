@@ -1828,7 +1828,7 @@ intentCancelCard model =
 
         _ ->
             ( model
-            , send (ConfirmCancelCard vs.active originalContent)
+            , send (ConfirmCancelCard vs.active originalContent (tr (Session.language model.session) AreYouSureCancel))
             )
 
 
