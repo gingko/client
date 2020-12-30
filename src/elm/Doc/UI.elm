@@ -215,8 +215,8 @@ type alias SidebarMsgs msg =
     }
 
 
-viewSidebar : SidebarMsgs msg -> Metadata -> String -> DocList.Model -> ( ExportSelection, ExportFormat ) -> SidebarState -> List (Html msg)
-viewSidebar msgs currentDocument fileFilter docList ( exportSelection, exportFormat ) sidebarState =
+viewSidebar : Language -> SidebarMsgs msg -> Metadata -> String -> DocList.Model -> ( ExportSelection, ExportFormat ) -> SidebarState -> List (Html msg)
+viewSidebar modelLanguage msgs currentDocument fileFilter docList ( exportSelection, exportFormat ) sidebarState =
     let
         isOpen =
             not (sidebarState == SidebarClosed)
@@ -283,7 +283,7 @@ viewSidebar msgs currentDocument fileFilter docList ( exportSelection, exportFor
                             (Translation.activeLanguages
                                 |> List.map
                                     (\( lang, langName ) ->
-                                        option [ value <| langToString lang ] [ text langName ]
+                                        option [ value <| langToString lang, selected (lang == modelLanguage) ] [ text langName ]
                                     )
                             )
                         , small []

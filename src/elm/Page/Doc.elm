@@ -2446,6 +2446,7 @@ pre, code, .group.has-active .card textarea {
                         model
                      ]
                         ++ UI.viewSidebar
+                            language
                             { sidebarStateChanged = SidebarStateChanged
                             , templateSelectorOpened = TemplateSelectorOpened
                             , fileSearchChanged = FileSearchChanged
