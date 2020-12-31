@@ -1,0 +1,500 @@
+[
+    {
+        "term": "Cancel",
+        "definition": "M\u00e9gse",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Cancel",
+        "comment": ""
+    },
+    {
+        "term": "Import JSON",
+        "definition": "Import\u00e1l\u00e1s (JSON)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HomeImportJSON",
+        "comment": ""
+    },
+    {
+        "term": "From Desktop or Online",
+        "definition": "Desktop vagy Online fel\u00fcletr\u0151l",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HomeJSONFrom",
+        "comment": ""
+    },
+    {
+        "term": "Recent Documents",
+        "definition": "Legut\u00f3bbi dokumentumok",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:RecentDocuments",
+        "comment": ""
+    },
+    {
+        "term": "Last Opened",
+        "definition": "Legut\u00f3bb megnyitott",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:LastOpened",
+        "comment": ""
+    },
+    {
+        "term": "Open Other Documents",
+        "definition": "M\u00e1s dokumentum megnyit\u00e1sa",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:OpenOtherDocuments",
+        "comment": ""
+    },
+    {
+        "term": "Remove From List",
+        "definition": "Elt\u00e1vol\u00edt\u00e1s a list\u00e1r\u00f3l",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:RemoveFromList",
+        "comment": ""
+    },
+    {
+        "term": "New Document...",
+        "definition": "\u00daj dokumentum",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:NeverSaved",
+        "comment": ""
+    },
+    {
+        "term": "Unsaved Changes...",
+        "definition": "Nem mentett v\u00e1ltoz\u00e1sok",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:UnsavedChanges",
+        "comment": ""
+    },
+    {
+        "term": "Database Error...",
+        "definition": "Adatb\u00e1zis hiba...",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DatabaseError",
+        "comment": ""
+    },
+    {
+        "term": "Last saved",
+        "definition": "Legut\u00f3bb mentett",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:LastSaved",
+        "comment": ""
+    },
+    {
+        "term": "Last edit",
+        "definition": "Legut\u00f3bb szerkesztett",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:LastEdit",
+        "comment": ""
+    },
+    {
+        "term": "Keyboard Shortcuts Help",
+        "definition": "Seg\u00edts\u00e9g a Billenty\u0171kombin\u00e1ci\u00f3kkal kapcsolatban",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:KeyboardHelp",
+        "comment": ""
+    },
+    {
+        "term": "Restore this Version",
+        "definition": "E verzi\u00f3 vissza\u00e1ll\u00edt\u00e1sa",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:RestoreThisVersion",
+        "comment": ""
+    },
+    {
+        "term": "Enter",
+        "definition": "Enter",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EnterKey",
+        "comment": ""
+    },
+    {
+        "term": "to Edit",
+        "definition": "Szerkeszt\u00e9s",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EnterAction",
+        "comment": ""
+    },
+    {
+        "term": "Edit Card (Enter)",
+        "definition": "K\u00e1rtya szerkeszt\u00e9se (Enter)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EditCardTitle",
+        "comment": ""
+    },
+    {
+        "term": "to Navigate",
+        "definition": "Navig\u00e1l\u00e1s",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ArrowsAction",
+        "comment": ""
+    },
+    {
+        "term": "to Add Child",
+        "definition": "Hozz\u00e1ad\u00e1s mell\u00e9",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AddChildAction",
+        "comment": ""
+    },
+    {
+        "term": "to Split Card to the Right",
+        "definition": "K\u00e1rtya sz\u00e9tv\u00e1g\u00e1sa jobbra",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SplitChildAction",
+        "comment": ""
+    },
+    {
+        "term": "Insert Child (Ctrl+L)",
+        "definition": "Besz\u00far\u00e1s mell\u00e9",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:InsertChildTitle",
+        "comment": ""
+    },
+    {
+        "term": "to Add Below",
+        "definition": "Hozz\u00e1ad\u00e1s al\u00e1",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AddBelowAction",
+        "comment": ""
+    },
+    {
+        "term": "to Split Card Down",
+        "definition": "K\u00e1rtya sz\u00e9tv\u00e1g\u00e1sa lefel\u00e9",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SplitBelowAction",
+        "comment": ""
+    },
+    {
+        "term": "to Merge into Next",
+        "definition": "\u00d6sszef\u0171z\u00e9s a k\u00f6vetkez\u0151be",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:MergeDownAction",
+        "comment": ""
+    },
+    {
+        "term": "Insert Below (Ctrl+J)",
+        "definition": "Besz\u00far\u00e1s al\u00e1",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:InsertBelowTitle",
+        "comment": ""
+    },
+    {
+        "term": "to Add Above",
+        "definition": "Hozz\u00e1ad\u00e1s f\u00f6l\u00e9",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AddAboveAction",
+        "comment": ""
+    },
+    {
+        "term": "to Split Card Upward",
+        "definition": "K\u00e1rtya sz\u00e9tv\u00e1g\u00e1sa felfel\u00e9",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SplitUpwardAction",
+        "comment": ""
+    },
+    {
+        "term": "to Merge into Previous",
+        "definition": "\u00d6sszef\u0171z\u00e9s az el\u0151z\u0151be",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:MergeUpAction",
+        "comment": ""
+    },
+    {
+        "term": "Insert Above (Ctrl+K)",
+        "definition": "Besz\u00far\u00e1s f\u00f6l\u00e9",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:InsertAboveTitle",
+        "comment": ""
+    },
+    {
+        "term": "(arrows)",
+        "definition": "(nyilak)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ArrowKeys",
+        "comment": ""
+    },
+    {
+        "term": "to Move",
+        "definition": "Mozgat\u00e1s",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:MoveAction",
+        "comment": ""
+    },
+    {
+        "term": "Backspace",
+        "definition": "Visszat\u00f6rl\u00e9s",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Backspace",
+        "comment": ""
+    },
+    {
+        "term": "to Delete",
+        "definition": "T\u00f6rl\u00e9s",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DeleteAction",
+        "comment": ""
+    },
+    {
+        "term": "Delete Card (Ctrl+Backspace)",
+        "definition": "K\u00e1rtya t\u00f6rl\u00e9se",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DeleteCardTitle",
+        "comment": ""
+    },
+    {
+        "term": "for Bold",
+        "definition": "Vastag",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ForBold",
+        "comment": ""
+    },
+    {
+        "term": "for Italic",
+        "definition": "D\u0151lt",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ForItalic",
+        "comment": ""
+    },
+    {
+        "term": "to Save Changes",
+        "definition": "V\u00e1ltoz\u00e1sok ment\u00e9se",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ToSaveChanges",
+        "comment": ""
+    },
+    {
+        "term": "Save Changes (Ctrl+Enter)",
+        "definition": "V\u00e1ltoz\u00e1sok ment\u00e9se (Ctrl+Enter)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SaveChangesTitle",
+        "comment": ""
+    },
+    {
+        "term": "Esc",
+        "definition": "Esc",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EscKey",
+        "comment": ""
+    },
+    {
+        "term": "to Cancel Changes",
+        "definition": "M\u00f3dos\u00edt\u00e1sok visszavon\u00e1sa",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ToCancelChanges",
+        "comment": ""
+    },
+    {
+        "term": "Press '\/' to search",
+        "definition": "A keres\u00e9shez nyomja meg a '\/' gombot",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:PressToSearch",
+        "comment": ""
+    },
+    {
+        "term": "Heading Font",
+        "definition": "C\u00edmsor bet\u0171t\u00edpusa",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HeadingFont",
+        "comment": ""
+    },
+    {
+        "term": "Content Font",
+        "definition": "Tartalom bet\u0171t\u00edpusa",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ContentFont",
+        "comment": ""
+    },
+    {
+        "term": "Editing\/Monospace Font",
+        "definition": "Szerkeszt\u00e9si\/fix m\u00e9ret\u0171 bet\u0171t\u00edpus",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EditingFont",
+        "comment": ""
+    },
+    {
+        "term": "Session : %1 word",
+        "definition": {
+            "one": "Munkamenet: %1 sz\u00f3",
+            "other": "Munkamenet: %1 sz\u00f3"
+        },
+        "context": "",
+        "term_plural": "Session : %1 words",
+        "reference": "Elm:WordCountSession",
+        "comment": ""
+    },
+    {
+        "term": "Total : %1 word",
+        "definition": {
+            "one": "\u00d6sszesen : %1 sz\u00f3",
+            "other": "\u00d6sszesen : %1 sz\u00f3"
+        },
+        "context": "",
+        "term_plural": "Total : %1 words",
+        "reference": "Elm:WordCountTotal",
+        "comment": ""
+    },
+    {
+        "term": "Card : %1 word",
+        "definition": {
+            "one": "Karton : %1 sz\u00f3",
+            "other": "K\u00e1rtya : %1 sz\u00f3"
+        },
+        "context": "",
+        "term_plural": "Card : %1 words",
+        "reference": "Elm:WordCountCard",
+        "comment": ""
+    },
+    {
+        "term": "Subtree : %1 word",
+        "definition": {
+            "one": "Albejegyz\u00e9sek : %1 sz\u00f3",
+            "other": "Albejegyz\u00e9sek : %1 sz\u00f3"
+        },
+        "context": "",
+        "term_plural": "Subtree : %1 words",
+        "reference": "Elm:WordCountSubtree",
+        "comment": ""
+    },
+    {
+        "term": "Group : %1 word",
+        "definition": {
+            "one": "Csoport : %1 sz\u00f3",
+            "other": "Csoport : %1 sz\u00f3"
+        },
+        "context": "",
+        "term_plural": "Group : %1 words",
+        "reference": "Elm:WordCountGroup",
+        "comment": ""
+    },
+    {
+        "term": "Column : %1 word",
+        "definition": {
+            "one": "Oszlop : %1 sz\u00f3",
+            "other": "Oszlop : %1 sz\u00f3"
+        },
+        "context": "",
+        "term_plural": "Column : %1 words",
+        "reference": "Elm:WordCountColumn",
+        "comment": ""
+    },
+    {
+        "term": "Saved",
+        "definition": "Mentett",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ChangesSaved",
+        "comment": ""
+    },
+    {
+        "term": "Blank Tree",
+        "definition": "\u00dcres",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HomeBlank",
+        "comment": ""
+    },
+    {
+        "term": "From Old Account",
+        "definition": "R\u00e9gi sz\u00e1ml\u00e1r\u00f3l",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HomeImportLegacy",
+        "comment": ""
+    },
+    {
+        "term": "Bulk transfer of trees from your legacy account",
+        "definition": "A f\u00e1k t\u00f6meges \u00e1tvitele a r\u00e9gi fi\u00f3kb\u00f3l",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HomeLegacyFrom",
+        "comment": ""
+    },
+    {
+        "term": "Last Updated",
+        "definition": "Utols\u00f3 friss\u00edt\u00e9s",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:LastUpdated",
+        "comment": ""
+    },
+    {
+        "term": "Delete Document",
+        "definition": "Dokumentum t\u00f6rl\u00e9se",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DeleteDocument",
+        "comment": ""
+    },
+    {
+        "term": "Saved Offline",
+        "definition": "Mentve offline",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SavedInternally",
+        "comment": ""
+    },
+    {
+        "term": "Synced",
+        "definition": "Szinkroniz\u00e1lva",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ChangesSynced",
+        "comment": ""
+    },
+    {
+        "term": "More Formatting Options...",
+        "definition": "Tov\u00e1bbi form\u00e1z\u00e1si lehet\u0151s\u00e9gek ...",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:FormattingGuide",
+        "comment": ""
+    },
+    {
+        "term": "Are you sure you want to undo your changes?",
+        "definition": "Biztosan visszavonja a m\u00f3dos\u00edt\u00e1sokat?",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AreYouSureCancel",
+        "comment": ""
+    }
+]

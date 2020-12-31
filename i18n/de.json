@@ -1,0 +1,500 @@
+[
+    {
+        "term": "Cancel",
+        "definition": "Abbrechen",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Cancel",
+        "comment": ""
+    },
+    {
+        "term": "Import JSON",
+        "definition": "JSON importieren",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HomeImportJSON",
+        "comment": ""
+    },
+    {
+        "term": "From Desktop or Online",
+        "definition": "Vom Desktop oder online",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HomeJSONFrom",
+        "comment": ""
+    },
+    {
+        "term": "Recent Documents",
+        "definition": "Benutzte Dokumente",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:RecentDocuments",
+        "comment": ""
+    },
+    {
+        "term": "Last Opened",
+        "definition": "Zuletzt ge\u00f6ffnet",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:LastOpened",
+        "comment": ""
+    },
+    {
+        "term": "Open Other Documents",
+        "definition": "Andere Dokumente \u00f6ffnen",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:OpenOtherDocuments",
+        "comment": ""
+    },
+    {
+        "term": "Remove From List",
+        "definition": "Aus Liste entfernen",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:RemoveFromList",
+        "comment": ""
+    },
+    {
+        "term": "New Document...",
+        "definition": "Neues Dokument...",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:NeverSaved",
+        "comment": ""
+    },
+    {
+        "term": "Unsaved Changes...",
+        "definition": "Nicht gespeicherte \u00c4nderungen...",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:UnsavedChanges",
+        "comment": ""
+    },
+    {
+        "term": "Database Error...",
+        "definition": "Datenbankfehler...",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DatabaseError",
+        "comment": ""
+    },
+    {
+        "term": "Last saved",
+        "definition": "Zuletzt gespeichert",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:LastSaved",
+        "comment": ""
+    },
+    {
+        "term": "Last edit",
+        "definition": "Zuletzt editiert",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:LastEdit",
+        "comment": ""
+    },
+    {
+        "term": "Keyboard Shortcuts Help",
+        "definition": "Hilfe zu Tastaturk\u00fcrzeln",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:KeyboardHelp",
+        "comment": ""
+    },
+    {
+        "term": "Restore this Version",
+        "definition": "Diese Version wiederherstellen",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:RestoreThisVersion",
+        "comment": ""
+    },
+    {
+        "term": "Enter",
+        "definition": "Enter",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EnterKey",
+        "comment": ""
+    },
+    {
+        "term": "to Edit",
+        "definition": "bearbeiten",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EnterAction",
+        "comment": ""
+    },
+    {
+        "term": "Edit Card (Enter)",
+        "definition": "Karte bearbeiten (Enter)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EditCardTitle",
+        "comment": ""
+    },
+    {
+        "term": "to Navigate",
+        "definition": "navigieren",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ArrowsAction",
+        "comment": ""
+    },
+    {
+        "term": "to Add Child",
+        "definition": "Kind hinzuf\u00fcgen",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AddChildAction",
+        "comment": ""
+    },
+    {
+        "term": "to Split Card to the Right",
+        "definition": "Karte nach rechts teilen",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SplitChildAction",
+        "comment": ""
+    },
+    {
+        "term": "Insert Child (Ctrl+L)",
+        "definition": "Kind einf\u00fcgen (Strg + L)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:InsertChildTitle",
+        "comment": ""
+    },
+    {
+        "term": "to Add Below",
+        "definition": "unten hinzuf\u00fcgen",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AddBelowAction",
+        "comment": ""
+    },
+    {
+        "term": "to Split Card Down",
+        "definition": "Karte nach unten teilen",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SplitBelowAction",
+        "comment": ""
+    },
+    {
+        "term": "to Merge into Next",
+        "definition": "in Next verschmelzen",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:MergeDownAction",
+        "comment": ""
+    },
+    {
+        "term": "Insert Below (Ctrl+J)",
+        "definition": "Unterhalb einf\u00fcgen (Ctrl+J)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:InsertBelowTitle",
+        "comment": ""
+    },
+    {
+        "term": "to Add Above",
+        "definition": "oben hinzuf\u00fcgen",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AddAboveAction",
+        "comment": ""
+    },
+    {
+        "term": "to Split Card Upward",
+        "definition": "Karte nach oben teilen",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SplitUpwardAction",
+        "comment": ""
+    },
+    {
+        "term": "to Merge into Previous",
+        "definition": "in Vorheriges verschmelzen",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:MergeUpAction",
+        "comment": ""
+    },
+    {
+        "term": "Insert Above (Ctrl+K)",
+        "definition": "Oberhalb einf\u00fcgen (Ctrl+K)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:InsertAboveTitle",
+        "comment": ""
+    },
+    {
+        "term": "(arrows)",
+        "definition": "(Pfeile)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ArrowKeys",
+        "comment": ""
+    },
+    {
+        "term": "to Move",
+        "definition": "bewegen",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:MoveAction",
+        "comment": ""
+    },
+    {
+        "term": "Backspace",
+        "definition": "Backspace",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Backspace",
+        "comment": ""
+    },
+    {
+        "term": "to Delete",
+        "definition": "l\u00f6schen",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DeleteAction",
+        "comment": ""
+    },
+    {
+        "term": "Delete Card (Ctrl+Backspace)",
+        "definition": "Karte l\u00f6schen (Ctrl+Backspace)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DeleteCardTitle",
+        "comment": ""
+    },
+    {
+        "term": "for Bold",
+        "definition": "f\u00fcr Mut",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ForBold",
+        "comment": ""
+    },
+    {
+        "term": "for Italic",
+        "definition": "f\u00fcr kursiv",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ForItalic",
+        "comment": ""
+    },
+    {
+        "term": "to Save Changes",
+        "definition": "\u00c4nderungen speichern",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ToSaveChanges",
+        "comment": ""
+    },
+    {
+        "term": "Save Changes (Ctrl+Enter)",
+        "definition": "\u00c4nderungen speichern (Ctrl+Enter)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SaveChangesTitle",
+        "comment": ""
+    },
+    {
+        "term": "Esc",
+        "definition": "Esc",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EscKey",
+        "comment": ""
+    },
+    {
+        "term": "to Cancel Changes",
+        "definition": "\u00c4nderungen abbrechen",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ToCancelChanges",
+        "comment": ""
+    },
+    {
+        "term": "Press '\/' to search",
+        "definition": "Dr\u00fccke '\/' um zu suchen",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:PressToSearch",
+        "comment": ""
+    },
+    {
+        "term": "Heading Font",
+        "definition": "\u00dcberschrift-Font",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HeadingFont",
+        "comment": ""
+    },
+    {
+        "term": "Content Font",
+        "definition": "Inhalts-Font",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ContentFont",
+        "comment": ""
+    },
+    {
+        "term": "Editing\/Monospace Font",
+        "definition": "Editing \/ Monospace Font",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EditingFont",
+        "comment": ""
+    },
+    {
+        "term": "Session : %1 word",
+        "definition": {
+            "one": "Sitzung:% 1 Wort",
+            "other": ""
+        },
+        "context": "",
+        "term_plural": "Session : %1 words",
+        "reference": "Elm:WordCountSession",
+        "comment": ""
+    },
+    {
+        "term": "Total : %1 word",
+        "definition": {
+            "one": "Gesamt:% 1 Wort",
+            "other": ""
+        },
+        "context": "",
+        "term_plural": "Total : %1 words",
+        "reference": "Elm:WordCountTotal",
+        "comment": ""
+    },
+    {
+        "term": "Card : %1 word",
+        "definition": {
+            "one": "Karte:% 1 Wort",
+            "other": ""
+        },
+        "context": "",
+        "term_plural": "Card : %1 words",
+        "reference": "Elm:WordCountCard",
+        "comment": ""
+    },
+    {
+        "term": "Subtree : %1 word",
+        "definition": {
+            "one": "Teilbaum:% 1 Wort",
+            "other": ""
+        },
+        "context": "",
+        "term_plural": "Subtree : %1 words",
+        "reference": "Elm:WordCountSubtree",
+        "comment": ""
+    },
+    {
+        "term": "Group : %1 word",
+        "definition": {
+            "one": "Gruppe:% 1 Wort",
+            "other": ""
+        },
+        "context": "",
+        "term_plural": "Group : %1 words",
+        "reference": "Elm:WordCountGroup",
+        "comment": ""
+    },
+    {
+        "term": "Column : %1 word",
+        "definition": {
+            "one": "Spalte:% 1 Wort",
+            "other": ""
+        },
+        "context": "",
+        "term_plural": "Column : %1 words",
+        "reference": "Elm:WordCountColumn",
+        "comment": ""
+    },
+    {
+        "term": "Saved",
+        "definition": "Gespeichert",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ChangesSaved",
+        "comment": ""
+    },
+    {
+        "term": "Blank Tree",
+        "definition": "Leer",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HomeBlank",
+        "comment": ""
+    },
+    {
+        "term": "From Old Account",
+        "definition": "Vom alten Konto",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HomeImportLegacy",
+        "comment": ""
+    },
+    {
+        "term": "Bulk transfer of trees from your legacy account",
+        "definition": "Massen\u00fcbertragung von B\u00e4umen von Ihrem Legacy-Konto",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HomeLegacyFrom",
+        "comment": ""
+    },
+    {
+        "term": "Last Updated",
+        "definition": "Zuletzt aktualisiert",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:LastUpdated",
+        "comment": ""
+    },
+    {
+        "term": "Delete Document",
+        "definition": "Dokument l\u00f6schen",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DeleteDocument",
+        "comment": ""
+    },
+    {
+        "term": "Saved Offline",
+        "definition": "Offline gespeichert",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SavedInternally",
+        "comment": ""
+    },
+    {
+        "term": "Synced",
+        "definition": "Synchronisiert",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ChangesSynced",
+        "comment": ""
+    },
+    {
+        "term": "More Formatting Options...",
+        "definition": "Weitere Formatierungsoptionen ...",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:FormattingGuide",
+        "comment": ""
+    },
+    {
+        "term": "Are you sure you want to undo your changes?",
+        "definition": "M\u00f6chten Sie Ihre \u00c4nderungen wirklich r\u00fcckg\u00e4ngig machen?",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AreYouSureCancel",
+        "comment": ""
+    }
+]

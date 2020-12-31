@@ -1,0 +1,500 @@
+[
+    {
+        "term": "Cancel",
+        "definition": "Avbryt",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Cancel",
+        "comment": ""
+    },
+    {
+        "term": "Import JSON",
+        "definition": "Importera JSON",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HomeImportJSON",
+        "comment": ""
+    },
+    {
+        "term": "From Desktop or Online",
+        "definition": "Fr\u00e5n Skrivbordsmilj\u00f6 till Online",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HomeJSONFrom",
+        "comment": ""
+    },
+    {
+        "term": "Recent Documents",
+        "definition": "Senaste dokumenten",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:RecentDocuments",
+        "comment": ""
+    },
+    {
+        "term": "Last Opened",
+        "definition": "Senast \u00f6ppnade",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:LastOpened",
+        "comment": ""
+    },
+    {
+        "term": "Open Other Documents",
+        "definition": "\u00d6ppna andra dokument",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:OpenOtherDocuments",
+        "comment": ""
+    },
+    {
+        "term": "Remove From List",
+        "definition": "Ta bort fr\u00e5n lista",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:RemoveFromList",
+        "comment": ""
+    },
+    {
+        "term": "New Document...",
+        "definition": "Nytt dokument",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:NeverSaved",
+        "comment": ""
+    },
+    {
+        "term": "Unsaved Changes...",
+        "definition": "Osparade \u00c4ndringar",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:UnsavedChanges",
+        "comment": ""
+    },
+    {
+        "term": "Database Error...",
+        "definition": "Databasfel...",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DatabaseError",
+        "comment": ""
+    },
+    {
+        "term": "Last saved",
+        "definition": "Senast sparad",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:LastSaved",
+        "comment": ""
+    },
+    {
+        "term": "Last edit",
+        "definition": "Senast \u00e4ndrad",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:LastEdit",
+        "comment": ""
+    },
+    {
+        "term": "Keyboard Shortcuts Help",
+        "definition": "Kortkommandon (Hj\u00e4lp)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:KeyboardHelp",
+        "comment": ""
+    },
+    {
+        "term": "Restore this Version",
+        "definition": "\u00c5terst\u00e4ll denna version",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:RestoreThisVersion",
+        "comment": ""
+    },
+    {
+        "term": "Enter",
+        "definition": "Retur",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EnterKey",
+        "comment": ""
+    },
+    {
+        "term": "to Edit",
+        "definition": "Redigera",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EnterAction",
+        "comment": ""
+    },
+    {
+        "term": "Edit Card (Enter)",
+        "definition": "Redigera Kort (Retur)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EditCardTitle",
+        "comment": ""
+    },
+    {
+        "term": "to Navigate",
+        "definition": "Navigera",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ArrowsAction",
+        "comment": ""
+    },
+    {
+        "term": "to Add Child",
+        "definition": "L\u00e4gg till Barn",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AddChildAction",
+        "comment": ""
+    },
+    {
+        "term": "to Split Card to the Right",
+        "definition": "Sl\u00e5 Ihop Kort till H\u00f6ger",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SplitChildAction",
+        "comment": ""
+    },
+    {
+        "term": "Insert Child (Ctrl+L)",
+        "definition": "L\u00e4gg till Barn (Ctrl+L)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:InsertChildTitle",
+        "comment": ""
+    },
+    {
+        "term": "to Add Below",
+        "definition": "L\u00e4gg till Nedan",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AddBelowAction",
+        "comment": ""
+    },
+    {
+        "term": "to Split Card Down",
+        "definition": "Dela Kort Ned\u00e5t",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SplitBelowAction",
+        "comment": ""
+    },
+    {
+        "term": "to Merge into Next",
+        "definition": "Sl\u00e5 ihop med Efterf\u00f6ljande",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:MergeDownAction",
+        "comment": ""
+    },
+    {
+        "term": "Insert Below (Ctrl+J)",
+        "definition": "L\u00e4gg till nedan (Ctrl+J)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:InsertBelowTitle",
+        "comment": ""
+    },
+    {
+        "term": "to Add Above",
+        "definition": "L\u00e4gg till Ovan",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AddAboveAction",
+        "comment": ""
+    },
+    {
+        "term": "to Split Card Upward",
+        "definition": "Dela Kort Upp\u00e5t",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SplitUpwardAction",
+        "comment": ""
+    },
+    {
+        "term": "to Merge into Previous",
+        "definition": "Sl\u00e5 ihop med F\u00f6reg\u00e5ende",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:MergeUpAction",
+        "comment": ""
+    },
+    {
+        "term": "Insert Above (Ctrl+K)",
+        "definition": "L\u00e4gg till Ovan (Ctrl+K)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:InsertAboveTitle",
+        "comment": ""
+    },
+    {
+        "term": "(arrows)",
+        "definition": "(pilar)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ArrowKeys",
+        "comment": ""
+    },
+    {
+        "term": "to Move",
+        "definition": "f\u00f6r att Flytta",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:MoveAction",
+        "comment": ""
+    },
+    {
+        "term": "Backspace",
+        "definition": "Backslag",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Backspace",
+        "comment": ""
+    },
+    {
+        "term": "to Delete",
+        "definition": "f\u00f6r att Radera",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DeleteAction",
+        "comment": ""
+    },
+    {
+        "term": "Delete Card (Ctrl+Backspace)",
+        "definition": "Radera Kort (Ctrl+Backslag)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DeleteCardTitle",
+        "comment": ""
+    },
+    {
+        "term": "for Bold",
+        "definition": "f\u00f6r Fet stil",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ForBold",
+        "comment": ""
+    },
+    {
+        "term": "for Italic",
+        "definition": "f\u00f6r Kursiv stil",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ForItalic",
+        "comment": ""
+    },
+    {
+        "term": "to Save Changes",
+        "definition": "f\u00f6r att Spara \u00c4ndringar",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ToSaveChanges",
+        "comment": ""
+    },
+    {
+        "term": "Save Changes (Ctrl+Enter)",
+        "definition": "Spara \u00e4ndringar (Ctrl+Enter)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SaveChangesTitle",
+        "comment": ""
+    },
+    {
+        "term": "Esc",
+        "definition": "Esc",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EscKey",
+        "comment": ""
+    },
+    {
+        "term": "to Cancel Changes",
+        "definition": "f\u00f6r att Sl\u00e4nga \u00c4ndringar",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ToCancelChanges",
+        "comment": ""
+    },
+    {
+        "term": "Press '\/' to search",
+        "definition": "Tryck '\/' f\u00f6r att s\u00f6ka",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:PressToSearch",
+        "comment": ""
+    },
+    {
+        "term": "Heading Font",
+        "definition": "Rubrik",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HeadingFont",
+        "comment": ""
+    },
+    {
+        "term": "Content Font",
+        "definition": "Inneh\u00e5llstypsnitt",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ContentFont",
+        "comment": ""
+    },
+    {
+        "term": "Editing\/Monospace Font",
+        "definition": "Redigera\/Monospace Typsnitt",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EditingFont",
+        "comment": ""
+    },
+    {
+        "term": "Session : %1 word",
+        "definition": {
+            "one": "Session: %1 ord",
+            "other": "Session: %1 ord"
+        },
+        "context": "",
+        "term_plural": "Session : %1 words",
+        "reference": "Elm:WordCountSession",
+        "comment": ""
+    },
+    {
+        "term": "Total : %1 word",
+        "definition": {
+            "one": "Totalt: %1 ord",
+            "other": "Totalt: %1 ord"
+        },
+        "context": "",
+        "term_plural": "Total : %1 words",
+        "reference": "Elm:WordCountTotal",
+        "comment": ""
+    },
+    {
+        "term": "Card : %1 word",
+        "definition": {
+            "one": "Kort: %1 ord",
+            "other": "Kort: %1 ord"
+        },
+        "context": "",
+        "term_plural": "Card : %1 words",
+        "reference": "Elm:WordCountCard",
+        "comment": ""
+    },
+    {
+        "term": "Subtree : %1 word",
+        "definition": {
+            "one": "Deltr\u00e4d: %1 ord",
+            "other": "Deltr\u00e4d: %1 ord"
+        },
+        "context": "",
+        "term_plural": "Subtree : %1 words",
+        "reference": "Elm:WordCountSubtree",
+        "comment": ""
+    },
+    {
+        "term": "Group : %1 word",
+        "definition": {
+            "one": "Grupp: %1 ord",
+            "other": "Grupp: %1 ord"
+        },
+        "context": "",
+        "term_plural": "Group : %1 words",
+        "reference": "Elm:WordCountGroup",
+        "comment": ""
+    },
+    {
+        "term": "Column : %1 word",
+        "definition": {
+            "one": "Kolumn: %1 ord",
+            "other": "Kolumn: %1 ord"
+        },
+        "context": "",
+        "term_plural": "Column : %1 words",
+        "reference": "Elm:WordCountColumn",
+        "comment": ""
+    },
+    {
+        "term": "Saved",
+        "definition": "Sparat",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ChangesSaved",
+        "comment": ""
+    },
+    {
+        "term": "Blank Tree",
+        "definition": "Tom",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HomeBlank",
+        "comment": ""
+    },
+    {
+        "term": "From Old Account",
+        "definition": "Fr\u00e5n gammalt konto",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HomeImportLegacy",
+        "comment": ""
+    },
+    {
+        "term": "Bulk transfer of trees from your legacy account",
+        "definition": "Bulk\u00f6verf\u00f6ring av tr\u00e4d fr\u00e5n ditt \u00e4ldre konto",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HomeLegacyFrom",
+        "comment": ""
+    },
+    {
+        "term": "Last Updated",
+        "definition": "Senast uppdaterad",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:LastUpdated",
+        "comment": ""
+    },
+    {
+        "term": "Delete Document",
+        "definition": "Ta bort dokument",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DeleteDocument",
+        "comment": ""
+    },
+    {
+        "term": "Saved Offline",
+        "definition": "Sparad offline",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SavedInternally",
+        "comment": ""
+    },
+    {
+        "term": "Synced",
+        "definition": "Synkroniserad",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ChangesSynced",
+        "comment": ""
+    },
+    {
+        "term": "More Formatting Options...",
+        "definition": "Fler formateringsalternativ ...",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:FormattingGuide",
+        "comment": ""
+    },
+    {
+        "term": "Are you sure you want to undo your changes?",
+        "definition": "\u00c4r du s\u00e4ker p\u00e5 att du vill \u00e5ngra dina \u00e4ndringar?",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AreYouSureCancel",
+        "comment": ""
+    }
+]
