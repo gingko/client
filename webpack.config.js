@@ -18,12 +18,21 @@ const sv = require("./i18n/sv.json");
 const prepTranslation = (langCode, langData) => {
   return langData.flatMap(t => {
     let target = t.reference.replace('Elm:', `%${langCode}:`);
-    let replacement = typeof t.definition === "string" ? t.definition : t.term;
+    let replacement = t.definition;
     if (typeof target === "string" && target.startsWith(`%${langCode}`) && typeof replacement === "string" ) {
+      // Regular replacement
       return [{ search: target
         , replace: replacement.replace(/'/g,"\\'")
         , flags : 'g'
       }];
+  } else if (t.hasOwnProperty("term_plural") && typeof replacement == "object" && replacement.hasOwnProperty("one")) {
+      // Plural replacement
+      let singReplace = replacement.one.replace(/'/g,"\\'");
+      let plurReplace = replacement.other.replace(/'/g, "\\'");
+      plurReplace = plurReplace == "" ? t.term_plural : plurReplace;
+      return [
+        { search: target+":0" , replace: singReplace, flags : 'g' },
+        { search: target+":1" , replace: plurReplace, flags:  'g' }];
     } else {
       return [];
     }
