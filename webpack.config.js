@@ -42,10 +42,20 @@ const webConfig = {
       {
         test: /\.elm$/,
         exclude: [/elm-stuff/, /node_modules/],
-        use: {
-          loader: "elm-webpack-loader",
-          options: {optimize: true, verbose: true, pathToElm: "./elm-log-colors.sh"}
-        }
+        use: [
+          {
+            loader: "string-replace-loader",
+            options : { multiple :
+              [ { search : "%zh:ChangesSynced", replace : "Hi ZH"}
+              , { search : "%es:ChangesSynced", replace : "HOLA ES"}
+              ]
+            }
+          },
+          {
+            loader: "elm-webpack-loader",
+            options: {optimize: true, verbose: true, pathToElm: "./elm-log-colors.sh"}
+          }
+        ]
       },
       {
         test: require.resolve("textarea-autosize"),
