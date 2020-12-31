@@ -617,7 +617,7 @@ tr lang trans =
                     }
 
                 WordCountSession n ->
-                    { en = numberPlural n "Session: %1 word" "Session: %1 words"
+                    { en = numberPlural n "Session : %1 word" "Session : %1 words"
                     , zh = numberPlural n "%zh:WordCountSession:0" "%zh:WordCountSession:1"
                     , es = numberPlural n "%es:WordCountSession:0" "%es:WordCountSession:1"
                     , fr = numberPlural n "%fr:WordCountSession:0" "%fr:WordCountSession:1"
@@ -626,7 +626,7 @@ tr lang trans =
                     }
 
                 WordCountTotal n ->
-                    { en = numberPlural n "Total: %1 word" "Total: %1 words"
+                    { en = numberPlural n "Total : %1 word" "Total : %1 words"
                     , zh = numberPlural n "%zh:WordCountTotal:0" "%zh:WordCountTotal:1"
                     , es = numberPlural n "%es:WordCountTotal:0" "%es:WordCountTotal:1"
                     , fr = numberPlural n "%fr:WordCountTotal:0" "%fr:WordCountTotal:1"
@@ -635,7 +635,7 @@ tr lang trans =
                     }
 
                 WordCountCard n ->
-                    { en = numberPlural n "Card: %1 word" "Card: %1 words"
+                    { en = numberPlural n "Card : %1 word" "Card : %1 words"
                     , zh = numberPlural n "%zh:WordCountCard:0" "%zh:WordCountCard:1"
                     , es = numberPlural n "%es:WordCountCard:0" "%es:WordCountCard:1"
                     , fr = numberPlural n "%fr:WordCountCard:0" "%fr:WordCountCard:1"
@@ -644,7 +644,7 @@ tr lang trans =
                     }
 
                 WordCountSubtree n ->
-                    { en = numberPlural n "Subtree: %1 word" "Subtree: %1 words"
+                    { en = numberPlural n "Subtree : %1 word" "Subtree : %1 words"
                     , zh = numberPlural n "%zh:WordCountSubtree:0" "%zh:WordCountSubtree:1"
                     , es = numberPlural n "%es:WordCountSubtree:0" "%es:WordCountSubtree:1"
                     , fr = numberPlural n "%fr:WordCountSubtree:0" "%fr:WordCountSubtree:1"
@@ -653,7 +653,7 @@ tr lang trans =
                     }
 
                 WordCountGroup n ->
-                    { en = numberPlural n "Group: %1 word" "Group: %1 words"
+                    { en = numberPlural n "Group : %1 word" "Group : %1 words"
                     , zh = numberPlural n "%zh:WordCountGroup:0" "%zh:WordCountGroup:1"
                     , es = numberPlural n "%es:WordCountGroup:0" "%es:WordCountGroup:1"
                     , fr = numberPlural n "%fr:WordCountGroup:0" "%fr:WordCountGroup:1"
@@ -662,7 +662,7 @@ tr lang trans =
                     }
 
                 WordCountColumn n ->
-                    { en = numberPlural n "Column: %1 word" "Column: %1 words"
+                    { en = numberPlural n "Column : %1 word" "Column : %1 words"
                     , zh = numberPlural n "%zh:WordCountColumn:0" "%zh:WordCountColumn:1"
                     , es = numberPlural n "%es:WordCountColumn:0" "%es:WordCountColumn:1"
                     , fr = numberPlural n "%fr:WordCountColumn:0" "%fr:WordCountColumn:1"
