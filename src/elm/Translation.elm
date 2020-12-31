@@ -38,6 +38,7 @@ type TranslationId
     | RestoreThisVersion
     | EnterKey
     | EnterAction
+    | EditFullscreenAction
     | EditCardTitle
     | ArrowsAction
     | AddChildAction
@@ -65,6 +66,9 @@ type TranslationId
     | AreYouSureCancel
     | ToCancelChanges
     | PressToSearch
+    | QuickDocumentSwitcher
+    | EmailSupport
+    | Logout
     | HeadingFont
     | ContentFont
     | EditingFont
@@ -431,6 +435,18 @@ tr lang trans =
                     , sv = "%sv:EnterAction"
                     }
 
+                EditFullscreenAction ->
+                    { en = "to Edit in Fullscreen"
+                    , zh_hans = "%zh_hans:EditFullscreenAction"
+                    , zh_hant = "%zh_hant:EditFullscreenAction"
+                    , es = "%es:EditFullscreenAction"
+                    , fr = "%fr:EditFullscreenAction"
+                    , de = "%de:EditFullscreenAction"
+                    , nl = "%nl:EditFullscreenAction"
+                    , hu = "%hu:EditFullscreenAction"
+                    , sv = "%sv:EditFullscreenAction"
+                    }
+
                 EditCardTitle ->
                     { en = "Edit Card (Enter)"
                     , zh_hans = "%zh_hans:EditCardTitle"
@@ -753,6 +769,42 @@ tr lang trans =
                     , nl = "%nl:PressToSearch"
                     , hu = "%hu:PressToSearch"
                     , sv = "%sv:PressToSearch"
+                    }
+
+                QuickDocumentSwitcher ->
+                    { en = "Quick Document Switcher"
+                    , zh_hans = "%zh_hans:QuickDocumentSwitcher"
+                    , zh_hant = "%zh_hant:QuickDocumentSwitcher"
+                    , es = "%es:QuickDocumentSwitcher"
+                    , fr = "%fr:QuickDocumentSwitcher"
+                    , de = "%de:QuickDocumentSwitcher"
+                    , nl = "%nl:QuickDocumentSwitcher"
+                    , hu = "%hu:QuickDocumentSwitcher"
+                    , sv = "%sv:QuickDocumentSwitcher"
+                    }
+
+                EmailSupport ->
+                    { en = "Email Support..."
+                    , zh_hans = "%zh_hans:EmailSupport"
+                    , zh_hant = "%zh_hant:EmailSupport"
+                    , es = "%es:EmailSupport"
+                    , fr = "%fr:EmailSupport"
+                    , de = "%de:EmailSupport"
+                    , nl = "%nl:EmailSupport"
+                    , hu = "%hu:EmailSupport"
+                    , sv = "%sv:EmailSupport"
+                    }
+
+                Logout ->
+                    { en = "Logout"
+                    , zh_hans = "%zh_hans:Logout"
+                    , zh_hant = "%zh_hant:Logout"
+                    , es = "%es:Logout"
+                    , fr = "%fr:Logout"
+                    , de = "%de:Logout"
+                    , nl = "%nl:Logout"
+                    , hu = "%hu:Logout"
+                    , sv = "%sv:Logout"
                     }
 
                 HeadingFont ->

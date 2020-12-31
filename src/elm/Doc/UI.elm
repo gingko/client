@@ -156,6 +156,9 @@ viewTopRightButtons :
     -> Html msg
 viewTopRightButtons msgs dropdownState session =
     let
+        lang =
+            Session.language session
+
         isHelpDropdown =
             dropdownState == Help
 
@@ -176,7 +179,7 @@ viewTopRightButtons msgs dropdownState session =
             [ helpIcon
             , if isHelpDropdown then
                 div [ id "help-dropdown" ]
-                    [ span [ id "email-support", onClick msgs.clickedEmailSupport ] [ text "Email Support..." ] ]
+                    [ span [ id "email-support", onClick msgs.clickedEmailSupport ] [ text <| tr lang EmailSupport ] ]
 
               else
                 text ""
@@ -187,7 +190,7 @@ viewTopRightButtons msgs dropdownState session =
                 div [ id "account-dropdown" ]
                     [ text (Session.name session |> Maybe.withDefault "")
                     , hr [] []
-                    , div [ id "logout-button", onClick msgs.logoutRequested ] [ logoutIcon, text "Logout" ]
+                    , div [ id "logout-button", onClick msgs.logoutRequested ] [ logoutIcon, text <| tr lang Logout ]
                     ]
 
               else
@@ -667,7 +670,7 @@ viewShortcuts trayToggleMsg lang isOpen isMac children textCursorInfo vs =
                         [ h3 [] [ text "Keyboard Shortcuts" ]
                         , h5 [] [ text "Edit Cards" ]
                         , shortcutSpan [ tr lang EnterKey ] (tr lang EnterAction)
-                        , shortcutSpan [ "Shift", tr lang EnterKey ] "to Edit in Fullscreen"
+                        , shortcutSpan [ "Shift", tr lang EnterKey ] (tr lang EditFullscreenAction)
                         , viewIfNotOnly <| h5 [] [ text "Navigate" ]
                         , viewIfNotOnly <| shortcutSpan [ "↑", "↓", "←", "→" ] (tr lang ArrowsAction)
                         , h5 [] [ text "Add New Cards" ]
@@ -682,7 +685,7 @@ viewShortcuts trayToggleMsg lang isOpen isMac children textCursorInfo vs =
                         , viewIfNotOnly <| shortcutSpan [ ctrlOrCmd, "Shift", "↑" ] (tr lang MergeUpAction)
                         , hr [] []
                         , h5 [] [ text "File Shortcuts" ]
-                        , shortcutSpan [ ctrlOrCmd, "O" ] "Quick Document Switcher"
+                        , shortcutSpan [ ctrlOrCmd, "O" ] (tr lang QuickDocumentSwitcher)
                         ]
                     ]
                 ]

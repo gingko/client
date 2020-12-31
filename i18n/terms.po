@@ -95,6 +95,10 @@ msgstr ""
 msgid "to Edit"
 msgstr ""
 
+#: Elm:EditFullscreenAction
+msgid "to Edit in Fullscreen"
+msgstr ""
+
 #: Elm:EditCardTitle
 msgid "Edit Card (Enter)"
 msgstr ""
@@ -201,6 +205,18 @@ msgstr ""
 
 #: Elm:PressToSearch
 msgid "Press '/' to search"
+msgstr ""
+
+#: Elm:QuickDocumentSwitcher
+msgid "Quick Document Switcher"
+msgstr ""
+
+#: Elm:EmailSupport
+msgid "Email Support..."
+msgstr ""
+
+#: Elm:Logout
+msgid "Logout"
 msgstr ""
 
 #: Elm:HeadingFont
