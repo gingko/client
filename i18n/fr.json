@@ -354,7 +354,7 @@
     {
         "term": "Session : %1 word",
         "definition": {
-            "one": "Session:% 1 mot",
+            "one": "Session: %1 mot",
             "other": ""
         },
         "context": "",
@@ -365,7 +365,7 @@
     {
         "term": "Total : %1 word",
         "definition": {
-            "one": "Total:% 1 mot",
+            "one": "Total: %1 mot",
             "other": ""
         },
         "context": "",
@@ -376,7 +376,7 @@
     {
         "term": "Card : %1 word",
         "definition": {
-            "one": "Carte:% 1 mot",
+            "one": "Carte: %1 mot",
             "other": ""
         },
         "context": "",
@@ -387,7 +387,7 @@
     {
         "term": "Subtree : %1 word",
         "definition": {
-            "one": "Sous-arborescence:% 1 mot",
+            "one": "Sous-arbre: %1 mot",
             "other": ""
         },
         "context": "",
@@ -398,7 +398,7 @@
     {
         "term": "Group : %1 word",
         "definition": {
-            "one": "Groupe:% 1 mot",
+            "one": "Groupe: %1 mot",
             "other": ""
         },
         "context": "",
@@ -409,7 +409,7 @@
     {
         "term": "Column : %1 word",
         "definition": {
-            "one": "Colonne:% 1 mot",
+            "one": "Colonne: %1 mot",
             "other": ""
         },
         "context": "",
