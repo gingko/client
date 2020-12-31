@@ -5,6 +5,7 @@ import Time
 import Time.Distance as TimeDistance
 import Time.Distance.I18n as I18n
 import Time.Format exposing (format)
+import Time.Format.Config.Config_de_de
 import Time.Format.Config.Config_en_us
 import Time.Format.Config.Config_es_es
 import Time.Format.Config.Config_fr_fr
@@ -61,6 +62,7 @@ type TranslationId
     | ToSaveChanges
     | SaveChangesTitle
     | EscKey
+    | AreYouSureCancel
     | ToCancelChanges
     | PressToSearch
     | HeadingFont
@@ -76,10 +78,13 @@ type TranslationId
 
 type Language
     = En
-    | Zh
+    | Zh_HANS
+    | Zh_HANT
     | Es
     | Fr
+    | De
     | Nl
+    | Hu
     | Sv
 
 
@@ -89,8 +94,11 @@ languageName lang =
         En ->
             "English"
 
-        Zh ->
-            "中文"
+        Zh_HANS ->
+            "简体中文"
+
+        Zh_HANT ->
+            "繁體中文"
 
         Es ->
             "Español"
@@ -98,8 +106,14 @@ languageName lang =
         Fr ->
             "Français"
 
+        De ->
+            "Deutsch"
+
         Nl ->
             "Nederlands"
+
+        Hu ->
+            "magyar nyelv"
 
         Sv ->
             "Svenska"
@@ -107,7 +121,7 @@ languageName lang =
 
 activeLanguages : List ( Language, String )
 activeLanguages =
-    [ En, Zh, Es, Nl, Sv ] |> List.map (\l -> ( l, languageName l ))
+    [ En, Zh_HANS, Zh_HANT, Es, Fr, De, Nl, Hu, Sv ] |> List.map (\l -> ( l, languageName l ))
 
 
 tr : Language -> TranslationId -> String
@@ -120,546 +134,744 @@ tr lang trans =
             else
                 str ++ "s"
 
+        numberPlural n sing pl =
+            if n == 1 then
+                sing |> String.replace "%1" (String.fromInt n)
+
+            else
+                pl |> String.replace "%1" (String.fromInt n)
+
         translationSet =
             case trans of
                 Cancel ->
                     { en = "Cancel"
-                    , zh = "取消"
-                    , es = "Cancelar"
-                    , fr = ""
-                    , nl = "Afbreken"
-                    , sv = "Avbryt"
+                    , zh_hans = "%zh_hans:Cancel"
+                    , zh_hant = "%zh_hant:Cancel"
+                    , es = "%es:Cancel"
+                    , fr = "%fr:Cancel"
+                    , de = "%de:Cancel"
+                    , nl = "%nl:Cancel"
+                    , hu = "%hu:Cancel"
+                    , sv = "%sv:Cancel"
                     }
 
                 HomeBlank ->
                     { en = "Blank Tree"
-                    , zh = "空白"
-                    , es = "Vacío"
-                    , fr = ""
-                    , nl = "Blanco"
-                    , sv = "Tom"
+                    , zh_hans = "%zh_hans:HomeBlank"
+                    , zh_hant = "%zh_hant:HomeBlank"
+                    , es = "%es:HomeBlank"
+                    , fr = "%fr:HomeBlank"
+                    , de = "%de:HomeBlank"
+                    , nl = "%nl:HomeBlank"
+                    , hu = "%hu:HomeBlank"
+                    , sv = "%sv:HomeBlank"
                     }
 
                 HomeImportJSON ->
                     { en = "Import JSON"
-                    , zh = "导入JSON"
-                    , es = "Importar JSON"
-                    , fr = ""
-                    , nl = "Importeer JSON"
-                    , sv = "Importera JSON"
+                    , zh_hans = "%zh_hans:HomeImportJSON"
+                    , zh_hant = "%zh_hant:HomeImportJSON"
+                    , es = "%es:HomeImportJSON"
+                    , fr = "%fr:HomeImportJSON"
+                    , de = "%de:HomeImportJSON"
+                    , nl = "%nl:HomeImportJSON"
+                    , hu = "%hu:HomeImportJSON"
+                    , sv = "%sv:HomeImportJSON"
                     }
 
                 HomeJSONFrom ->
                     { en = "From Desktop or Online"
-                    , zh = "从本地或线上"
-                    , es = "Del App Escritorio o Web"
-                    , fr = ""
-                    , nl = "Van desktop of online"
-                    , sv = "Från Skrivbordsmiljö till Online"
+                    , zh_hans = "%zh_hans:HomeJSONFrom"
+                    , zh_hant = "%zh_hant:HomeJSONFrom"
+                    , es = "%es:HomeJSONFrom"
+                    , fr = "%fr:HomeJSONFrom"
+                    , de = "%de:HomeJSONFrom"
+                    , nl = "%nl:HomeJSONFrom"
+                    , hu = "%hu:HomeJSONFrom"
+                    , sv = "%sv:HomeJSONFrom"
                     }
 
                 HomeImportLegacy ->
                     { en = "From Old Account"
-                    , zh = ""
-                    , es = ""
-                    , fr = ""
-                    , nl = ""
-                    , sv = ""
+                    , zh_hans = "%zh_hans:HomeImportLegacy"
+                    , zh_hant = "%zh_hant:HomeImportLegacy"
+                    , es = "%es:HomeImportLegacy"
+                    , fr = "%fr:HomeImportLegacy"
+                    , de = "%de:HomeImportLegacy"
+                    , nl = "%nl:HomeImportLegacy"
+                    , hu = "%hu:HomeImportLegacy"
+                    , sv = "%sv:HomeImportLegacy"
                     }
 
                 HomeLegacyFrom ->
                     { en = "Bulk transfer of trees from your legacy account"
-                    , zh = ""
-                    , es = ""
-                    , fr = ""
-                    , nl = ""
-                    , sv = ""
+                    , zh_hans = "%zh_hans:HomeLegacyFrom"
+                    , zh_hant = "%zh_hant:HomeLegacyFrom"
+                    , es = "%es:HomeLegacyFrom"
+                    , fr = "%fr:HomeLegacyFrom"
+                    , de = "%de:HomeLegacyFrom"
+                    , nl = "%nl:HomeLegacyFrom"
+                    , hu = "%hu:HomeLegacyFrom"
+                    , sv = "%sv:HomeLegacyFrom"
                     }
 
                 RecentDocuments ->
                     { en = "Recent Documents"
-                    , zh = "最近的文档"
-                    , es = "Documentos Recientes"
-                    , fr = ""
-                    , nl = "Recente documenten"
-                    , sv = "Senaste dokumenten"
+                    , zh_hans = "%zh_hans:RecentDocuments"
+                    , zh_hant = "%zh_hant:RecentDocuments"
+                    , es = "%es:RecentDocuments"
+                    , fr = "%fr:RecentDocuments"
+                    , de = "%de:RecentDocuments"
+                    , nl = "%nl:RecentDocuments"
+                    , hu = "%hu:RecentDocuments"
+                    , sv = "%sv:RecentDocuments"
                     }
 
                 LastUpdated ->
                     { en = "Last Updated"
-                    , zh = ""
-                    , es = "Última Modificación"
-                    , fr = ""
-                    , nl = ""
-                    , sv = "Senast öppnade"
+                    , zh_hans = "%zh_hans:LastUpdated"
+                    , zh_hant = "%zh_hant:LastUpdated"
+                    , es = "%es:LastUpdated"
+                    , fr = "%fr:LastUpdated"
+                    , de = "%de:LastUpdated"
+                    , nl = "%nl:LastUpdated"
+                    , hu = "%hu:LastUpdated"
+                    , sv = "%sv:LastUpdated"
                     }
 
                 LastOpened ->
                     { en = "Last Opened"
-                    , zh = "上一个打开"
-                    , es = "Última Apertura"
-                    , fr = ""
-                    , nl = "Laatst geopend"
-                    , sv = "Senast öppnade"
+                    , zh_hans = "%zh_hans:LastOpened"
+                    , zh_hant = "%zh_hant:LastOpened"
+                    , es = "%es:LastOpened"
+                    , fr = "%fr:LastOpened"
+                    , de = "%de:LastOpened"
+                    , nl = "%nl:LastOpened"
+                    , hu = "%hu:LastOpened"
+                    , sv = "%sv:LastOpened"
                     }
 
                 OpenOtherDocuments ->
                     { en = "Open Other Documents"
-                    , zh = "打开另一个文档"
-                    , es = "Abrir Otros Documentos"
-                    , fr = ""
-                    , nl = "Open andere documenten"
-                    , sv = "Öppna andra dokument"
+                    , zh_hans = "%zh_hans:OpenOtherDocuments"
+                    , zh_hant = "%zh_hant:OpenOtherDocuments"
+                    , es = "%es:OpenOtherDocuments"
+                    , fr = "%fr:OpenOtherDocuments"
+                    , de = "%de:OpenOtherDocuments"
+                    , nl = "%nl:OpenOtherDocuments"
+                    , hu = "%hu:OpenOtherDocuments"
+                    , sv = "%sv:OpenOtherDocuments"
                     }
 
                 DeleteDocument ->
                     { en = "Delete Document"
-                    , zh = ""
-                    , es = ""
-                    , fr = ""
-                    , nl = ""
-                    , sv = ""
+                    , zh_hans = "%zh_hans:DeleteDocument"
+                    , zh_hant = "%zh_hant:DeleteDocument"
+                    , es = "%es:DeleteDocument"
+                    , fr = "%fr:DeleteDocument"
+                    , de = "%de:DeleteDocument"
+                    , nl = "%nl:DeleteDocument"
+                    , hu = "%hu:DeleteDocument"
+                    , sv = "%sv:DeleteDocument"
                     }
 
                 RemoveFromList ->
                     { en = "Remove From List"
-                    , zh = "从列表中移除"
-                    , es = "Elminiar de la Lista"
-                    , fr = ""
-                    , nl = "Verwijder van de lijst"
-                    , sv = "Ta bort från lista"
+                    , zh_hans = "%zh_hans:RemoveFromList"
+                    , zh_hant = "%zh_hant:RemoveFromList"
+                    , es = "%es:RemoveFromList"
+                    , fr = "%fr:RemoveFromList"
+                    , de = "%de:RemoveFromList"
+                    , nl = "%nl:RemoveFromList"
+                    , hu = "%hu:RemoveFromList"
+                    , sv = "%sv:RemoveFromList"
                     }
 
                 NeverSaved ->
                     { en = "New Document..."
-                    , zh = "新的文档"
-                    , es = "Documento Nuevo..."
-                    , fr = ""
-                    , nl = "Nieuw document"
-                    , sv = "Nytt dokument"
+                    , zh_hans = "%zh_hans:NeverSaved"
+                    , zh_hant = "%zh_hant:NeverSaved"
+                    , es = "%es:NeverSaved"
+                    , fr = "%fr:NeverSaved"
+                    , de = "%de:NeverSaved"
+                    , nl = "%nl:NeverSaved"
+                    , hu = "%hu:NeverSaved"
+                    , sv = "%sv:NeverSaved"
                     }
 
                 UnsavedChanges ->
                     { en = "Unsaved Changes..."
-                    , zh = "未保存的更改"
-                    , es = "Cambios No Guardados..."
-                    , fr = ""
-                    , nl = "Niet opgeslagen wijzigingen"
-                    , sv = "Osparade Ändringar"
+                    , zh_hans = "%zh_hans:UnsavedChanges"
+                    , zh_hant = "%zh_hant:UnsavedChanges"
+                    , es = "%es:UnsavedChanges"
+                    , fr = "%fr:UnsavedChanges"
+                    , de = "%de:UnsavedChanges"
+                    , nl = "%nl:UnsavedChanges"
+                    , hu = "%hu:UnsavedChanges"
+                    , sv = "%sv:UnsavedChanges"
                     }
 
                 SavedInternally ->
-                    -- TODO: Update translations
                     { en = "Saved Offline"
-                    , zh = "保存备份"
-                    , es = "Copia De Seguridad Guardada"
-                    , fr = ""
-                    , nl = "Backup opgeslagen"
-                    , sv = "Säkerhetskopiering Klar"
+                    , zh_hans = "%zh_hans:SavedInternally"
+                    , zh_hant = "%zh_hant:SavedInternally"
+                    , es = "%es:SavedInternally"
+                    , fr = "%fr:SavedInternally"
+                    , de = "%de:SavedInternally"
+                    , nl = "%nl:SavedInternally"
+                    , hu = "%hu:SavedInternally"
+                    , sv = "%sv:SavedInternally"
                     }
 
                 ChangesSaved ->
                     { en = "Saved"
-                    , zh = "保存"
-                    , es = "Cambios Guardados"
-                    , fr = ""
-                    , nl = "Opgeslagen"
-                    , sv = "Sparade"
+                    , zh_hans = "%zh_hans:ChangesSaved"
+                    , zh_hant = "%zh_hant:ChangesSaved"
+                    , es = "%es:ChangesSaved"
+                    , fr = "%fr:ChangesSaved"
+                    , de = "%de:ChangesSaved"
+                    , nl = "%nl:ChangesSaved"
+                    , hu = "%hu:ChangesSaved"
+                    , sv = "%sv:ChangesSaved"
                     }
 
                 ChangesSynced ->
                     { en = "Synced"
-                    , zh = ""
-                    , es = "Sincronizado"
-                    , fr = ""
-                    , nl = ""
-                    , sv = ""
+                    , zh_hans = "%zh_hans:ChangesSynced"
+                    , zh_hant = "%zh_hant:ChangesSynced"
+                    , es = "%es:ChangesSynced"
+                    , fr = "%fr:ChangesSynced"
+                    , de = "%de:ChangesSynced"
+                    , nl = "%nl:ChangesSynced"
+                    , hu = "%hu:ChangesSynced"
+                    , sv = "%sv:ChangesSynced"
                     }
 
                 DatabaseError ->
                     { en = "Database Error..."
-                    , zh = "数据库错误"
-                    , es = "Error de Database..."
-                    , fr = ""
-                    , nl = "Database fout..."
-                    , sv = "Databasfel..."
+                    , zh_hans = "%zh_hans:DatabaseError"
+                    , zh_hant = "%zh_hant:DatabaseError"
+                    , es = "%es:DatabaseError"
+                    , fr = "%fr:DatabaseError"
+                    , de = "%de:DatabaseError"
+                    , nl = "%nl:DatabaseError"
+                    , hu = "%hu:DatabaseError"
+                    , sv = "%sv:DatabaseError"
                     }
 
                 LastSaved ->
                     { en = "Last saved"
-                    , zh = "上一个保存"
-                    , es = "Guardado"
-                    , fr = ""
-                    , nl = "Laatst opgeslagen"
-                    , sv = "Senast sparad"
+                    , zh_hans = "%zh_hans:LastSaved"
+                    , zh_hant = "%zh_hant:LastSaved"
+                    , es = "%es:LastSaved"
+                    , fr = "%fr:LastSaved"
+                    , de = "%de:LastSaved"
+                    , nl = "%nl:LastSaved"
+                    , hu = "%hu:LastSaved"
+                    , sv = "%sv:LastSaved"
                     }
 
                 LastEdit ->
                     { en = "Last edit"
-                    , zh = "上一次编辑 "
-                    , es = "Último cambio"
-                    , fr = ""
-                    , nl = "Laatst gewijzigd"
-                    , sv = "Senast ändrad"
+                    , zh_hans = "%zh_hans:LastEdit"
+                    , zh_hant = "%zh_hant:LastEdit"
+                    , es = "%es:LastEdit"
+                    , fr = "%fr:LastEdit"
+                    , de = "%de:LastEdit"
+                    , nl = "%nl:LastEdit"
+                    , hu = "%hu:LastEdit"
+                    , sv = "%sv:LastEdit"
                     }
 
                 KeyboardHelp ->
                     { en = "Keyboard Shortcuts Help"
-                    , zh = "快捷键帮助"
-                    , es = "Atajos de Teclado"
-                    , fr = ""
-                    , nl = "Toetsenbord sneltoetsen hulp"
-                    , sv = "Kortkommandon (Hjälp)"
+                    , zh_hans = "%zh_hans:KeyboardHelp"
+                    , zh_hant = "%zh_hant:KeyboardHelp"
+                    , es = "%es:KeyboardHelp"
+                    , fr = "%fr:KeyboardHelp"
+                    , de = "%de:KeyboardHelp"
+                    , nl = "%nl:KeyboardHelp"
+                    , hu = "%hu:KeyboardHelp"
+                    , sv = "%sv:KeyboardHelp"
                     }
 
                 RestoreThisVersion ->
                     { en = "Restore this Version"
-                    , zh = "恢复此版本"
-                    , es = "Restaurar esta Versión"
-                    , fr = ""
-                    , nl = "Haal deze versie terug"
-                    , sv = "Återställ denna version"
+                    , zh_hans = "%zh_hans:RestoreThisVersion"
+                    , zh_hant = "%zh_hant:RestoreThisVersion"
+                    , es = "%es:RestoreThisVersion"
+                    , fr = "%fr:RestoreThisVersion"
+                    , de = "%de:RestoreThisVersion"
+                    , nl = "%nl:RestoreThisVersion"
+                    , hu = "%hu:RestoreThisVersion"
+                    , sv = "%sv:RestoreThisVersion"
                     }
 
                 EnterKey ->
                     { en = "Enter"
-                    , zh = "回车"
-                    , es = "Enter"
-                    , fr = ""
-                    , nl = "Invoeren"
-                    , sv = "Retur"
+                    , zh_hans = "%zh_hans:EnterKey"
+                    , zh_hant = "%zh_hant:EnterKey"
+                    , es = "%es:EnterKey"
+                    , fr = "%fr:EnterKey"
+                    , de = "%de:EnterKey"
+                    , nl = "%nl:EnterKey"
+                    , hu = "%hu:EnterKey"
+                    , sv = "%sv:EnterKey"
                     }
 
                 EnterAction ->
                     { en = "to Edit"
-                    , zh = "编辑"
-                    , es = "para Editar"
-                    , fr = ""
-                    , nl = "te wijzigen"
-                    , sv = "Redigera"
+                    , zh_hans = "%zh_hans:EnterAction"
+                    , zh_hant = "%zh_hant:EnterAction"
+                    , es = "%es:EnterAction"
+                    , fr = "%fr:EnterAction"
+                    , de = "%de:EnterAction"
+                    , nl = "%nl:EnterAction"
+                    , hu = "%hu:EnterAction"
+                    , sv = "%sv:EnterAction"
                     }
 
                 EditCardTitle ->
                     { en = "Edit Card (Enter)"
-                    , zh = "编辑卡片（回车）"
-                    , es = "Editar Tarjeta (Enter)"
-                    , fr = ""
-                    , nl = "Wijzig kaart (enter)"
-                    , sv = "Redigera Kort (Retur)"
+                    , zh_hans = "%zh_hans:EditCardTitle"
+                    , zh_hant = "%zh_hant:EditCardTitle"
+                    , es = "%es:EditCardTitle"
+                    , fr = "%fr:EditCardTitle"
+                    , de = "%de:EditCardTitle"
+                    , nl = "%nl:EditCardTitle"
+                    , hu = "%hu:EditCardTitle"
+                    , sv = "%sv:EditCardTitle"
                     }
 
                 ArrowsAction ->
                     { en = "to Navigate"
-                    , zh = "导航"
-                    , es = "para Navegar"
-                    , fr = ""
-                    , nl = "naar navigatie"
-                    , sv = "Navigera"
+                    , zh_hans = "%zh_hans:ArrowsAction"
+                    , zh_hant = "%zh_hant:ArrowsAction"
+                    , es = "%es:ArrowsAction"
+                    , fr = "%fr:ArrowsAction"
+                    , de = "%de:ArrowsAction"
+                    , nl = "%nl:ArrowsAction"
+                    , hu = "%hu:ArrowsAction"
+                    , sv = "%sv:ArrowsAction"
                     }
 
                 AddChildAction ->
                     { en = "to Add Child"
-                    , zh = "添加子卡片"
-                    , es = "para Agregar un Hijo"
-                    , fr = ""
-                    , nl = "naar toevoegen kind"
-                    , sv = "Lägg till Barn"
+                    , zh_hans = "%zh_hans:AddChildAction"
+                    , zh_hant = "%zh_hant:AddChildAction"
+                    , es = "%es:AddChildAction"
+                    , fr = "%fr:AddChildAction"
+                    , de = "%de:AddChildAction"
+                    , nl = "%nl:AddChildAction"
+                    , hu = "%hu:AddChildAction"
+                    , sv = "%sv:AddChildAction"
                     }
 
                 SplitChildAction ->
                     { en = "to Split Card to the Right"
-                    , zh = "向右拆分卡"
-                    , es = "para Dividir la Tarjeta hacia la Derecha"
-                    , fr = ""
-                    , nl = "naar splits kaart naar rechts"
-                    , sv = "Slå Ihop Kort till Höger"
+                    , zh_hans = "%zh_hans:SplitChildAction"
+                    , zh_hant = "%zh_hant:SplitChildAction"
+                    , es = "%es:SplitChildAction"
+                    , fr = "%fr:SplitChildAction"
+                    , de = "%de:SplitChildAction"
+                    , nl = "%nl:SplitChildAction"
+                    , hu = "%hu:SplitChildAction"
+                    , sv = "%sv:SplitChildAction"
                     }
 
                 InsertChildTitle ->
                     { en = "Insert Child (Ctrl+L)"
-                    , zh = "插入子卡片"
-                    , es = "Agregar un Hijo (Ctrl+L)"
-                    , fr = ""
-                    , nl = "Voeg kind in (Ctrl+L)"
-                    , sv = "Lägg till Barn (Ctrl+L)"
+                    , zh_hans = "%zh_hans:InsertChildTitle"
+                    , zh_hant = "%zh_hant:InsertChildTitle"
+                    , es = "%es:InsertChildTitle"
+                    , fr = "%fr:InsertChildTitle"
+                    , de = "%de:InsertChildTitle"
+                    , nl = "%nl:InsertChildTitle"
+                    , hu = "%hu:InsertChildTitle"
+                    , sv = "%sv:InsertChildTitle"
                     }
 
                 AddBelowAction ->
                     { en = "to Add Below"
-                    , zh = "在下方添加"
-                    , es = "para Agregar Abajo"
-                    , fr = ""
-                    , nl = "naar toevoegen onder"
-                    , sv = "Lägg till Nedan"
+                    , zh_hans = "%zh_hans:AddBelowAction"
+                    , zh_hant = "%zh_hant:AddBelowAction"
+                    , es = "%es:AddBelowAction"
+                    , fr = "%fr:AddBelowAction"
+                    , de = "%de:AddBelowAction"
+                    , nl = "%nl:AddBelowAction"
+                    , hu = "%hu:AddBelowAction"
+                    , sv = "%sv:AddBelowAction"
                     }
 
                 SplitBelowAction ->
                     { en = "to Split Card Down"
-                    , zh = "向下拆分卡"
-                    , es = "para Dividir la Tarjeta hacia la Abajo"
-                    , fr = ""
-                    , nl = "naar splits kaart naar onder"
-                    , sv = "Dela Kort Nedåt"
+                    , zh_hans = "%zh_hans:SplitBelowAction"
+                    , zh_hant = "%zh_hant:SplitBelowAction"
+                    , es = "%es:SplitBelowAction"
+                    , fr = "%fr:SplitBelowAction"
+                    , de = "%de:SplitBelowAction"
+                    , nl = "%nl:SplitBelowAction"
+                    , hu = "%hu:SplitBelowAction"
+                    , sv = "%sv:SplitBelowAction"
                     }
 
                 MergeDownAction ->
                     { en = "to Merge into Next"
-                    , zh = "合并到下一个"
-                    , es = "para Combinar la Tarjeta a la Siguiente"
-                    , fr = ""
-                    , nl = "naar samenvoegen in volgende"
-                    , sv = "Slå ihop med Efterföljande"
+                    , zh_hans = "%zh_hans:MergeDownAction"
+                    , zh_hant = "%zh_hant:MergeDownAction"
+                    , es = "%es:MergeDownAction"
+                    , fr = "%fr:MergeDownAction"
+                    , de = "%de:MergeDownAction"
+                    , nl = "%nl:MergeDownAction"
+                    , hu = "%hu:MergeDownAction"
+                    , sv = "%sv:MergeDownAction"
                     }
 
                 InsertBelowTitle ->
                     { en = "Insert Below (Ctrl+J)"
-                    , zh = "在下方插入"
-                    , es = "Agregar Abajo (Ctrl+J)"
-                    , fr = ""
-                    , nl = "Invoegen onder (Ctrl+J)"
-                    , sv = "Lägg till nedan (Ctrl+J)"
+                    , zh_hans = "%zh_hans:InsertBelowTitle"
+                    , zh_hant = "%zh_hant:InsertBelowTitle"
+                    , es = "%es:InsertBelowTitle"
+                    , fr = "%fr:InsertBelowTitle"
+                    , de = "%de:InsertBelowTitle"
+                    , nl = "%nl:InsertBelowTitle"
+                    , hu = "%hu:InsertBelowTitle"
+                    , sv = "%sv:InsertBelowTitle"
                     }
 
                 AddAboveAction ->
                     { en = "to Add Above"
-                    , zh = "在上方添加"
-                    , es = "para Agregar Arriba"
-                    , fr = ""
-                    , nl = "naar toevoegen boven"
-                    , sv = "Lägg till Ovan"
+                    , zh_hans = "%zh_hans:AddAboveAction"
+                    , zh_hant = "%zh_hant:AddAboveAction"
+                    , es = "%es:AddAboveAction"
+                    , fr = "%fr:AddAboveAction"
+                    , de = "%de:AddAboveAction"
+                    , nl = "%nl:AddAboveAction"
+                    , hu = "%hu:AddAboveAction"
+                    , sv = "%sv:AddAboveAction"
                     }
 
                 SplitUpwardAction ->
                     { en = "to Split Card Upward"
-                    , zh = "向上拆分卡"
-                    , es = "para Dividir la Tarjeta hacia la Arriba"
-                    , fr = ""
-                    , nl = "naar splits kaart naar boven"
-                    , sv = "Dela Kort Uppåt"
+                    , zh_hans = "%zh_hans:SplitUpwardAction"
+                    , zh_hant = "%zh_hant:SplitUpwardAction"
+                    , es = "%es:SplitUpwardAction"
+                    , fr = "%fr:SplitUpwardAction"
+                    , de = "%de:SplitUpwardAction"
+                    , nl = "%nl:SplitUpwardAction"
+                    , hu = "%hu:SplitUpwardAction"
+                    , sv = "%sv:SplitUpwardAction"
                     }
 
                 MergeUpAction ->
                     { en = "to Merge into Previous"
-                    , zh = "合并到上一个"
-                    , es = "para Combinar la Tarjeta a la Anterior"
-                    , fr = ""
-                    , nl = "naar samenvoegen in vorige"
-                    , sv = "Slå ihop med Föregående"
+                    , zh_hans = "%zh_hans:MergeUpAction"
+                    , zh_hant = "%zh_hant:MergeUpAction"
+                    , es = "%es:MergeUpAction"
+                    , fr = "%fr:MergeUpAction"
+                    , de = "%de:MergeUpAction"
+                    , nl = "%nl:MergeUpAction"
+                    , hu = "%hu:MergeUpAction"
+                    , sv = "%sv:MergeUpAction"
                     }
 
                 InsertAboveTitle ->
                     { en = "Insert Above (Ctrl+K)"
-                    , zh = "在上方插入"
-                    , es = "Agregar Arriba (Ctrl+K)"
-                    , fr = ""
-                    , nl = "Invoegen boven (Crtl+K)"
-                    , sv = "Lägg till Ovan (Ctrl+K)"
+                    , zh_hans = "%zh_hans:InsertAboveTitle"
+                    , zh_hant = "%zh_hant:InsertAboveTitle"
+                    , es = "%es:InsertAboveTitle"
+                    , fr = "%fr:InsertAboveTitle"
+                    , de = "%de:InsertAboveTitle"
+                    , nl = "%nl:InsertAboveTitle"
+                    , hu = "%hu:InsertAboveTitle"
+                    , sv = "%sv:InsertAboveTitle"
                     }
 
                 ArrowKeys ->
                     { en = "(arrows)"
-                    , zh = "（箭头）"
-                    , es = "(flechas)"
-                    , fr = ""
-                    , nl = "(pijltjes)"
-                    , sv = "(pilar)"
+                    , zh_hans = "%zh_hans:ArrowKeys"
+                    , zh_hant = "%zh_hant:ArrowKeys"
+                    , es = "%es:ArrowKeys"
+                    , fr = "%fr:ArrowKeys"
+                    , de = "%de:ArrowKeys"
+                    , nl = "%nl:ArrowKeys"
+                    , hu = "%hu:ArrowKeys"
+                    , sv = "%sv:ArrowKeys"
                     }
 
                 MoveAction ->
                     { en = "to Move"
-                    , zh = "移动"
-                    , es = "para Mover"
-                    , fr = ""
-                    , nl = "naar verplaatsen"
-                    , sv = "för att Flytta"
+                    , zh_hans = "%zh_hans:MoveAction"
+                    , zh_hant = "%zh_hant:MoveAction"
+                    , es = "%es:MoveAction"
+                    , fr = "%fr:MoveAction"
+                    , de = "%de:MoveAction"
+                    , nl = "%nl:MoveAction"
+                    , hu = "%hu:MoveAction"
+                    , sv = "%sv:MoveAction"
                     }
 
                 Backspace ->
                     { en = "Backspace"
-                    , zh = "退格键"
-                    , es = "Backspace"
-                    , fr = ""
-                    , nl = "Backspace"
-                    , sv = "Backslag"
+                    , zh_hans = "%zh_hans:Backspace"
+                    , zh_hant = "%zh_hant:Backspace"
+                    , es = "%es:Backspace"
+                    , fr = "%fr:Backspace"
+                    , de = "%de:Backspace"
+                    , nl = "%nl:Backspace"
+                    , hu = "%hu:Backspace"
+                    , sv = "%sv:Backspace"
                     }
 
                 DeleteAction ->
                     { en = "to Delete"
-                    , zh = "删除"
-                    , es = "para Eliminar"
-                    , fr = ""
-                    , nl = "naar verwijderen"
-                    , sv = "för att Radera"
+                    , zh_hans = "%zh_hans:DeleteAction"
+                    , zh_hant = "%zh_hant:DeleteAction"
+                    , es = "%es:DeleteAction"
+                    , fr = "%fr:DeleteAction"
+                    , de = "%de:DeleteAction"
+                    , nl = "%nl:DeleteAction"
+                    , hu = "%hu:DeleteAction"
+                    , sv = "%sv:DeleteAction"
                     }
 
                 DeleteCardTitle ->
                     { en = "Delete Card (Ctrl+Backspace)"
-                    , zh = "删除卡片"
-                    , es = "Eliminar Tarjeta (Ctrl+Backspace)"
-                    , fr = ""
-                    , nl = "Verwijder kaart (Ctrl+Backspace)"
-                    , sv = "Radera Kort (Ctrl+Backslag)"
+                    , zh_hans = "%zh_hans:DeleteCardTitle"
+                    , zh_hant = "%zh_hant:DeleteCardTitle"
+                    , es = "%es:DeleteCardTitle"
+                    , fr = "%fr:DeleteCardTitle"
+                    , de = "%de:DeleteCardTitle"
+                    , nl = "%nl:DeleteCardTitle"
+                    , hu = "%hu:DeleteCardTitle"
+                    , sv = "%sv:DeleteCardTitle"
                     }
 
                 FormattingGuide ->
                     { en = "More Formatting Options..."
-                    , zh = "格式指南"
-                    , es = "Guía de Sintaxis para Formato"
-                    , fr = ""
-                    , nl = "Formatteer syntax gid"
-                    , sv = "Formatteringsguide"
+                    , zh_hans = "%zh_hans:FormattingGuide"
+                    , zh_hant = "%zh_hant:FormattingGuide"
+                    , es = "%es:FormattingGuide"
+                    , fr = "%fr:FormattingGuide"
+                    , de = "%de:FormattingGuide"
+                    , nl = "%nl:FormattingGuide"
+                    , hu = "%hu:FormattingGuide"
+                    , sv = "%sv:FormattingGuide"
                     }
 
                 ForBold ->
                     { en = "for Bold"
-                    , zh = "粗体"
-                    , es = "para Negrita"
-                    , fr = ""
-                    , nl = "voor Vet"
-                    , sv = "för Fet stil"
+                    , zh_hans = "%zh_hans:ForBold"
+                    , zh_hant = "%zh_hant:ForBold"
+                    , es = "%es:ForBold"
+                    , fr = "%fr:ForBold"
+                    , de = "%de:ForBold"
+                    , nl = "%nl:ForBold"
+                    , hu = "%hu:ForBold"
+                    , sv = "%sv:ForBold"
                     }
 
                 ForItalic ->
                     { en = "for Italic"
-                    , zh = "斜体"
-                    , es = "para Itálica"
-                    , fr = ""
-                    , nl = "voor Schuin"
-                    , sv = "för Kursiv stil"
+                    , zh_hans = "%zh_hans:ForItalic"
+                    , zh_hant = "%zh_hant:ForItalic"
+                    , es = "%es:ForItalic"
+                    , fr = "%fr:ForItalic"
+                    , de = "%de:ForItalic"
+                    , nl = "%nl:ForItalic"
+                    , hu = "%hu:ForItalic"
+                    , sv = "%sv:ForItalic"
                     }
 
                 ToSaveChanges ->
                     { en = "to Save Changes"
-                    , zh = "保存更改"
-                    , es = "para Guardar Cambios"
-                    , fr = ""
-                    , nl = "naar Opslaan wijzigingen"
-                    , sv = "för att Spara Ändringar"
+                    , zh_hans = "%zh_hans:ToSaveChanges"
+                    , zh_hant = "%zh_hant:ToSaveChanges"
+                    , es = "%es:ToSaveChanges"
+                    , fr = "%fr:ToSaveChanges"
+                    , de = "%de:ToSaveChanges"
+                    , nl = "%nl:ToSaveChanges"
+                    , hu = "%hu:ToSaveChanges"
+                    , sv = "%sv:ToSaveChanges"
                     }
 
                 SaveChangesTitle ->
                     { en = "Save Changes (Ctrl+Enter)"
-                    , zh = "保存更改 (Ctrl+Enter)"
-                    , es = "Guardar Cambios (Ctrl+Enter)"
-                    , fr = ""
-                    , nl = "Opslaan wijzigingen (Ctrl+Enter)"
-                    , sv = "Spara ändringar (Ctrl+Enter)"
+                    , zh_hans = "%zh_hans:SaveChangesTitle"
+                    , zh_hant = "%zh_hant:SaveChangesTitle"
+                    , es = "%es:SaveChangesTitle"
+                    , fr = "%fr:SaveChangesTitle"
+                    , de = "%de:SaveChangesTitle"
+                    , nl = "%nl:SaveChangesTitle"
+                    , hu = "%hu:SaveChangesTitle"
+                    , sv = "%sv:SaveChangesTitle"
                     }
 
                 EscKey ->
                     { en = "Esc"
-                    , zh = "退出"
-                    , es = "Esc"
-                    , fr = ""
-                    , nl = "Esc"
-                    , sv = "Esc"
+                    , zh_hans = "%zh_hans:EscKey"
+                    , zh_hant = "%zh_hant:EscKey"
+                    , es = "%es:EscKey"
+                    , fr = "%fr:EscKey"
+                    , de = "%de:EscKey"
+                    , nl = "%nl:EscKey"
+                    , hu = "%hu:EscKey"
+                    , sv = "%sv:EscKey"
+                    }
+
+                AreYouSureCancel ->
+                    { en = "Are you sure you want to undo your changes?"
+                    , zh_hans = "%zh_hans:AreYouSureCancel"
+                    , zh_hant = "%zh_hant:AreYouSureCancel"
+                    , es = "%es:AreYouSureCancel"
+                    , fr = "%fr:AreYouSureCancel"
+                    , de = "%de:AreYouSureCancel"
+                    , nl = "%nl:AreYouSureCancel"
+                    , hu = "%hu:AreYouSureCancel"
+                    , sv = "%sv:AreYouSureCancel"
                     }
 
                 ToCancelChanges ->
                     { en = "to Cancel Changes"
-                    , zh = "取消更改"
-                    , es = "para Cancelar Cambios"
-                    , fr = ""
-                    , nl = "naar afbreken wijzigingen"
-                    , sv = "för att Slänga Ändringar"
+                    , zh_hans = "%zh_hans:ToCancelChanges"
+                    , zh_hant = "%zh_hant:ToCancelChanges"
+                    , es = "%es:ToCancelChanges"
+                    , fr = "%fr:ToCancelChanges"
+                    , de = "%de:ToCancelChanges"
+                    , nl = "%nl:ToCancelChanges"
+                    , hu = "%hu:ToCancelChanges"
+                    , sv = "%sv:ToCancelChanges"
                     }
 
                 PressToSearch ->
                     { en = "Press '/' to search"
-                    , zh = "输入“/”进行搜索"
-                    , es = "Presiona '/' para buscar"
-                    , fr = ""
-                    , nl = "Druk op '/' om te zoeken"
-                    , sv = "Tryck '/' för att söka"
+                    , zh_hans = "%zh_hans:PressToSearch"
+                    , zh_hant = "%zh_hant:PressToSearch"
+                    , es = "%es:PressToSearch"
+                    , fr = "%fr:PressToSearch"
+                    , de = "%de:PressToSearch"
+                    , nl = "%nl:PressToSearch"
+                    , hu = "%hu:PressToSearch"
+                    , sv = "%sv:PressToSearch"
                     }
 
                 HeadingFont ->
                     { en = "Heading Font"
-                    , zh = "标题字体"
-                    , es = "Fuente de Titulos"
-                    , fr = ""
-                    , nl = ""
-                    , sv = "Rubrik"
+                    , zh_hans = "%zh_hans:HeadingFont"
+                    , zh_hant = "%zh_hant:HeadingFont"
+                    , es = "%es:HeadingFont"
+                    , fr = "%fr:HeadingFont"
+                    , de = "%de:HeadingFont"
+                    , nl = "%nl:HeadingFont"
+                    , hu = "%hu:HeadingFont"
+                    , sv = "%sv:HeadingFont"
                     }
 
                 ContentFont ->
                     { en = "Content Font"
-                    , zh = "内容字体"
-                    , es = "Fuente de Contenido"
-                    , fr = ""
-                    , nl = ""
-                    , sv = "Innehållstypsnitt"
+                    , zh_hans = "%zh_hans:ContentFont"
+                    , zh_hant = "%zh_hant:ContentFont"
+                    , es = "%es:ContentFont"
+                    , fr = "%fr:ContentFont"
+                    , de = "%de:ContentFont"
+                    , nl = "%nl:ContentFont"
+                    , hu = "%hu:ContentFont"
+                    , sv = "%sv:ContentFont"
                     }
 
                 EditingFont ->
                     { en = "Editing/Monospace Font"
-                    , zh = "编辑/等宽字体"
-                    , es = "Fuente de Edición"
-                    , fr = ""
-                    , nl = ""
-                    , sv = "Redigera/Monospace Typsnitt"
+                    , zh_hans = "%zh_hans:EditingFont"
+                    , zh_hant = "%zh_hant:EditingFont"
+                    , es = "%es:EditingFont"
+                    , fr = "%fr:EditingFont"
+                    , de = "%de:EditingFont"
+                    , nl = "%nl:EditingFont"
+                    , hu = "%hu:EditingFont"
+                    , sv = "%sv:EditingFont"
                     }
 
                 WordCountSession n ->
-                    { en = "Session: " ++ String.fromInt n ++ pluralize n " word"
-                    , zh = "本节：" ++ String.fromInt n ++ "个字"
-                    , es = "Sesión: " ++ String.fromInt n ++ pluralize n " palabra"
-                    , fr = ""
-                    , nl = ""
-                    , sv = "Session: " ++ String.fromInt n ++ " ord"
+                    { en = numberPlural n "Session : %1 word" "Session : %1 words"
+                    , zh_hans = numberPlural n "%zh_hans:WordCountSession:0" "%zh_hans:WordCountSession:1"
+                    , zh_hant = numberPlural n "%zh_hant:WordCountSession:0" "%zh_hant:WordCountSession:1"
+                    , es = numberPlural n "%es:WordCountSession:0" "%es:WordCountSession:1"
+                    , fr = numberPlural n "%fr:WordCountSession:0" "%fr:WordCountSession:1"
+                    , de = numberPlural n "%de:WordCountSession:0" "%de:WordCountSession:1"
+                    , nl = numberPlural n "%nl:WordCountSession:0" "%nl:WordCountSession:1"
+                    , hu = numberPlural n "%hu:WordCountSession:0" "%hu:WordCountSession:1"
+                    , sv = numberPlural n "%sv:WordCountSession:0" "%sv:WordCountSession:1"
                     }
 
                 WordCountTotal n ->
-                    { en = "Total : " ++ String.fromInt n ++ pluralize n " word"
-                    , zh = "总共：" ++ String.fromInt n ++ "个字"
-                    , es = "Total : " ++ String.fromInt n ++ pluralize n " palabra"
-                    , fr = ""
-                    , nl = ""
-                    , sv = "Totalt: " ++ String.fromInt n ++ " ord"
+                    { en = numberPlural n "Total : %1 word" "Total : %1 words"
+                    , zh_hans = numberPlural n "%zh_hans:WordCountTotal:0" "%zh_hans:WordCountTotal:1"
+                    , zh_hant = numberPlural n "%zh_hant:WordCountTotal:0" "%zh_hant:WordCountTotal:1"
+                    , es = numberPlural n "%es:WordCountTotal:0" "%es:WordCountTotal:1"
+                    , fr = numberPlural n "%fr:WordCountTotal:0" "%fr:WordCountTotal:1"
+                    , de = numberPlural n "%de:WordCountTotal:0" "%de:WordCountTotal:1"
+                    , nl = numberPlural n "%nl:WordCountTotal:0" "%nl:WordCountTotal:1"
+                    , hu = numberPlural n "%hu:WordCountTotal:0" "%hu:WordCountTotal:1"
+                    , sv = numberPlural n "%sv:WordCountTotal:0" "%sv:WordCountTotal:1"
                     }
 
                 WordCountCard n ->
-                    { en = "Card : " ++ String.fromInt n ++ pluralize n " word"
-                    , zh = "卡片：" ++ String.fromInt n ++ "个字"
-                    , es = "Tarjeta : " ++ String.fromInt n ++ pluralize n " palabra"
-                    , fr = ""
-                    , nl = ""
-                    , sv = "Kort: " ++ String.fromInt n ++ " ord"
+                    { en = numberPlural n "Card : %1 word" "Card : %1 words"
+                    , zh_hans = numberPlural n "%zh_hans:WordCountCard:0" "%zh_hans:WordCountCard:1"
+                    , zh_hant = numberPlural n "%zh_hant:WordCountCard:0" "%zh_hant:WordCountCard:1"
+                    , es = numberPlural n "%es:WordCountCard:0" "%es:WordCountCard:1"
+                    , fr = numberPlural n "%fr:WordCountCard:0" "%fr:WordCountCard:1"
+                    , de = numberPlural n "%de:WordCountCard:0" "%de:WordCountCard:1"
+                    , nl = numberPlural n "%nl:WordCountCard:0" "%nl:WordCountCard:1"
+                    , hu = numberPlural n "%hu:WordCountCard:0" "%hu:WordCountCard:1"
+                    , sv = numberPlural n "%sv:WordCountCard:0" "%sv:WordCountCard:1"
                     }
 
                 WordCountSubtree n ->
-                    { en = "Subtree : " ++ String.fromInt n ++ pluralize n " word"
-                    , zh = "树节点下：" ++ String.fromInt n ++ "个字"
-                    , es = "Subárbol : " ++ String.fromInt n ++ pluralize n " palabra"
-                    , fr = ""
-                    , nl = ""
-                    , sv = "Delträd: " ++ String.fromInt n ++ " ord"
+                    { en = numberPlural n "Subtree : %1 word" "Subtree : %1 words"
+                    , zh_hans = numberPlural n "%zh_hans:WordCountSubtree:0" "%zh_hans:WordCountSubtree:1"
+                    , zh_hant = numberPlural n "%zh_hant:WordCountSubtree:0" "%zh_hant:WordCountSubtree:1"
+                    , es = numberPlural n "%es:WordCountSubtree:0" "%es:WordCountSubtree:1"
+                    , fr = numberPlural n "%fr:WordCountSubtree:0" "%fr:WordCountSubtree:1"
+                    , de = numberPlural n "%de:WordCountSubtree:0" "%de:WordCountSubtree:1"
+                    , nl = numberPlural n "%nl:WordCountSubtree:0" "%nl:WordCountSubtree:1"
+                    , hu = numberPlural n "%hu:WordCountSubtree:0" "%hu:WordCountSubtree:1"
+                    , sv = numberPlural n "%sv:WordCountSubtree:0" "%sv:WordCountSubtree:1"
                     }
 
                 WordCountGroup n ->
-                    { en = "Group : " ++ String.fromInt n ++ pluralize n " word"
-                    , zh = "组：" ++ String.fromInt n ++ "个字"
-                    , es = "Grupo : " ++ String.fromInt n ++ pluralize n " palabra"
-                    , fr = ""
-                    , nl = ""
-                    , sv = "Grupp: " ++ String.fromInt n ++ " ord"
+                    { en = numberPlural n "Group : %1 word" "Group : %1 words"
+                    , zh_hans = numberPlural n "%zh_hans:WordCountGroup:0" "%zh_hans:WordCountGroup:1"
+                    , zh_hant = numberPlural n "%zh_hant:WordCountGroup:0" "%zh_hant:WordCountGroup:1"
+                    , es = numberPlural n "%es:WordCountGroup:0" "%es:WordCountGroup:1"
+                    , fr = numberPlural n "%fr:WordCountGroup:0" "%fr:WordCountGroup:1"
+                    , de = numberPlural n "%de:WordCountGroup:0" "%de:WordCountGroup:1"
+                    , nl = numberPlural n "%nl:WordCountGroup:0" "%nl:WordCountGroup:1"
+                    , hu = numberPlural n "%hu:WordCountGroup:0" "%hu:WordCountGroup:1"
+                    , sv = numberPlural n "%sv:WordCountGroup:0" "%sv:WordCountGroup:1"
                     }
 
                 WordCountColumn n ->
-                    { en = "Column : " ++ String.fromInt n ++ pluralize n " word"
-                    , zh = "列：" ++ String.fromInt n ++ "个字"
-                    , es = "Columna : " ++ String.fromInt n ++ pluralize n " palabra"
-                    , fr = ""
-                    , nl = ""
-                    , sv = "Kolumn: " ++ String.fromInt n ++ " ord"
+                    { en = numberPlural n "Column : %1 word" "Column : %1 words"
+                    , zh_hans = numberPlural n "%zh_hans:WordCountColumn:0" "%zh_hans:WordCountColumn:1"
+                    , zh_hant = numberPlural n "%zh_hant:WordCountColumn:0" "%zh_hant:WordCountColumn:1"
+                    , es = numberPlural n "%es:WordCountColumn:0" "%es:WordCountColumn:1"
+                    , fr = numberPlural n "%fr:WordCountColumn:0" "%fr:WordCountColumn:1"
+                    , de = numberPlural n "%de:WordCountColumn:0" "%de:WordCountColumn:1"
+                    , nl = numberPlural n "%nl:WordCountColumn:0" "%nl:WordCountColumn:1"
+                    , hu = numberPlural n "%hu:WordCountColumn:0" "%hu:WordCountColumn:1"
+                    , sv = numberPlural n "%sv:WordCountColumn:0" "%sv:WordCountColumn:1"
                     }
     in
     case lang of
         En ->
             .en translationSet
 
-        Zh ->
-            .zh translationSet
+        Zh_HANS ->
+            .zh_hans translationSet
+
+        Zh_HANT ->
+            .zh_hant translationSet
 
         Es ->
             .es translationSet
@@ -667,8 +879,14 @@ tr lang trans =
         Fr ->
             .fr translationSet
 
+        De ->
+            .de translationSet
+
         Nl ->
             .nl translationSet
+
+        Hu ->
+            .hu translationSet
 
         Sv ->
             .sv translationSet
@@ -680,7 +898,10 @@ timeDistInWords lang t1 t2 =
         En ->
             TimeDistance.inWordsWithConfig { withAffix = True } I18n.en t1 t2
 
-        Zh ->
+        Zh_HANS ->
+            TimeDistance.inWordsWithConfig { withAffix = True } I18n.en t1 t2
+
+        Zh_HANT ->
             TimeDistance.inWordsWithConfig { withAffix = True } I18n.en t1 t2
 
         Es ->
@@ -689,7 +910,13 @@ timeDistInWords lang t1 t2 =
         Fr ->
             TimeDistance.inWordsWithConfig { withAffix = True } I18n.fr t1 t2
 
+        De ->
+            TimeDistance.inWordsWithConfig { withAffix = True } I18n.en t1 t2
+
         Nl ->
+            TimeDistance.inWordsWithConfig { withAffix = True } I18n.en t1 t2
+
+        Hu ->
             TimeDistance.inWordsWithConfig { withAffix = True } I18n.en t1 t2
 
         Sv ->
@@ -706,7 +933,10 @@ dateFormat lang time =
         En ->
             format Time.Format.Config.Config_en_us.config formatString Time.utc time
 
-        Zh ->
+        Zh_HANS ->
+            format Time.Format.Config.Config_en_us.config formatString Time.utc time
+
+        Zh_HANT ->
             format Time.Format.Config.Config_en_us.config formatString Time.utc time
 
         Es ->
@@ -715,8 +945,14 @@ dateFormat lang time =
         Fr ->
             format Time.Format.Config.Config_fr_fr.config formatString Time.utc time
 
+        De ->
+            format Time.Format.Config.Config_de_de.config formatString Time.utc time
+
         Nl ->
             format Time.Format.Config.Config_nl_nl.config formatString Time.utc time
+
+        Hu ->
+            format Time.Format.Config.Config_en_us.config formatString Time.utc time
 
         Sv ->
             format Time.Format.Config.Config_sv_se.config formatString Time.utc time
@@ -734,7 +970,13 @@ langFromString str =
             En
 
         "zh" ->
-            Zh
+            Zh_HANS
+
+        "zh_HANS" ->
+            Zh_HANS
+
+        "zh_HANT" ->
+            Zh_HANT
 
         "es" ->
             Es
@@ -742,8 +984,14 @@ langFromString str =
         "fr" ->
             Fr
 
+        "de" ->
+            De
+
         "nl" ->
             Nl
+
+        "hu" ->
+            Hu
 
         "sv" ->
             Sv
@@ -758,8 +1006,11 @@ langToString lang =
         En ->
             "en"
 
-        Zh ->
-            "zh"
+        Zh_HANS ->
+            "zh_HANS"
+
+        Zh_HANT ->
+            "zh_HANT"
 
         Es ->
             "es"
@@ -767,8 +1018,14 @@ langToString lang =
         Fr ->
             "fr"
 
+        De ->
+            "de"
+
         Nl ->
             "nl"
+
+        Hu ->
+            "hu"
 
         Sv ->
             "sv"

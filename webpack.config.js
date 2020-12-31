@@ -2,10 +2,53 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const merge = require("webpack-merge");
+const zh_hans = require("./i18n/zh_hans.json");
+const zh_hant = require("./i18n/zh_hant.json");
+const es = require("./i18n/es.json");
+const fr = require("./i18n/fr.json");
+const de = require("./i18n/de.json");
+const nl = require("./i18n/nl.json");
+const hu = require("./i18n/hu.json");
+const sv = require("./i18n/sv.json");
 
 
 
 /* ======= WEB TARGET ======= */
+
+const prepTranslation = (langCode, langData) => {
+  return langData.flatMap(t => {
+    let target = t.reference.replace('Elm:', `%${langCode}:`);
+    let replacement = t.definition;
+    if (typeof target === "string" && target.startsWith(`%${langCode}`) && typeof replacement === "string" ) {
+      // Regular replacement
+      return [{ search: target
+        , replace: replacement.replace(/'/g,"\\'")
+        , flags : 'g'
+      }];
+  } else if (t.hasOwnProperty("term_plural") && typeof replacement == "object" && replacement.hasOwnProperty("one")) {
+      // Plural replacement
+      let singReplace = replacement.one.replace(/'/g,"\\'");
+      let plurReplace = replacement.other.replace(/'/g, "\\'");
+      plurReplace = plurReplace == "" ? t.term_plural : plurReplace;
+      return [
+        { search: target+":0" , replace: singReplace, flags : 'g' },
+        { search: target+":1" , replace: plurReplace, flags:  'g' }];
+    } else {
+      return [];
+    }
+  });
+}
+
+const zhHansT = prepTranslation("zh_hans", zh_hans);
+const zhHantT = prepTranslation("zh_hant", zh_hant);
+const esT = prepTranslation("es", es);
+const frT = prepTranslation("fr", fr);
+const deT = prepTranslation("de", de);
+const nlT = prepTranslation("nl", nl);
+const huT = prepTranslation("hu", hu);
+const svT = prepTranslation("sv", sv);
+
+const allLanguageStrings = [].concat(zhHansT, zhHantT, esT, frT, deT, nlT, huT, svT)
 
 const webConfig = {
   // "production" or "development" flag.
@@ -42,10 +85,16 @@ const webConfig = {
       {
         test: /\.elm$/,
         exclude: [/elm-stuff/, /node_modules/],
-        use: {
-          loader: "elm-webpack-loader",
-          options: {optimize: true, verbose: true, pathToElm: "./elm-log-colors.sh"}
-        }
+        use: [
+          {
+            loader: "string-replace-loader",
+            options : { multiple : allLanguageStrings }
+          },
+          {
+            loader: "elm-webpack-loader",
+            options: {optimize: true, verbose: true, pathToElm: "./elm-log-colors.sh"}
+          }
+        ]
       },
       {
         test: require.resolve("textarea-autosize"),

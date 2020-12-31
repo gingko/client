@@ -1,0 +1,252 @@
+
+#: Elm:Cancel
+msgid "Cancel"
+msgstr ""
+
+#: Elm:HomeBlank
+msgid "Blank Tree"
+msgstr ""
+
+#: Elm:HomeImportJSON
+msgid "Import JSON"
+msgstr ""
+
+#: Elm:HomeJSONFrom
+msgid "From Desktop or Online"
+msgstr ""
+
+#: Elm:HomeImportLegacy
+msgid "From Old Account"
+msgstr ""
+
+#: Elm:HomeLegacyFrom
+msgid "Bulk transfer of trees from your legacy account"
+msgstr ""
+
+#: Elm:RecentDocuments
+msgid "Recent Documents"
+msgstr ""
+
+#: Elm:LastUpdated
+msgid "Last Updated"
+msgstr ""
+
+#: Elm:LastOpened
+msgid "Last Opened"
+msgstr ""
+
+#: Elm:OpenOtherDocuments
+msgid "Open Other Documents"
+msgstr ""
+
+#: Elm:DeleteDocument
+msgid "Delete Document"
+msgstr ""
+
+#: Elm:RemoveFromList
+msgid "Remove From List"
+msgstr ""
+
+#: Elm:NeverSaved
+msgid "New Document..."
+msgstr ""
+
+#: Elm:UnsavedChanges
+msgid "Unsaved Changes..."
+msgstr ""
+
+#: Elm:SavedInternally
+msgid "Saved Offline"
+msgstr ""
+
+#: Elm:ChangesSaved
+msgid "Saved"
+msgstr ""
+
+#: Elm:ChangesSynced
+msgid "Synced"
+msgstr ""
+
+#: Elm:DatabaseError
+msgid "Database Error..."
+msgstr ""
+
+#: Elm:LastSaved
+msgid "Last saved"
+msgstr ""
+
+#: Elm:LastEdit
+msgid "Last edit"
+msgstr ""
+
+#: Elm:KeyboardHelp
+msgid "Keyboard Shortcuts Help"
+msgstr ""
+
+#: Elm:RestoreThisVersion
+msgid "Restore this Version"
+msgstr ""
+
+#: Elm:EnterKey
+msgid "Enter"
+msgstr ""
+
+#: Elm:EnterAction
+msgid "to Edit"
+msgstr ""
+
+#: Elm:EditCardTitle
+msgid "Edit Card (Enter)"
+msgstr ""
+
+#: Elm:ArrowsAction
+msgid "to Navigate"
+msgstr ""
+
+#: Elm:AddChildAction
+msgid "to Add Child"
+msgstr ""
+
+#: Elm:SplitChildAction
+msgid "to Split Card to the Right"
+msgstr ""
+
+#: Elm:InsertChildTitle
+msgid "Insert Child (Ctrl+L)"
+msgstr ""
+
+#: Elm:AddBelowAction
+msgid "to Add Below"
+msgstr ""
+
+#: Elm:SplitBelowAction
+msgid "to Split Card Down"
+msgstr ""
+
+#: Elm:MergeDownAction
+msgid "to Merge into Next"
+msgstr ""
+
+#: Elm:InsertBelowTitle
+msgid "Insert Below (Ctrl+J)"
+msgstr ""
+
+#: Elm:AddAboveAction
+msgid "to Add Above"
+msgstr ""
+
+#: Elm:SplitUpwardAction
+msgid "to Split Card Upward"
+msgstr ""
+
+#: Elm:MergeUpAction
+msgid "to Merge into Previous"
+msgstr ""
+
+#: Elm:InsertAboveTitle
+msgid "Insert Above (Ctrl+K)"
+msgstr ""
+
+#: Elm:ArrowKeys
+msgid "(arrows)"
+msgstr ""
+
+#: Elm:MoveAction
+msgid "to Move"
+msgstr ""
+
+#: Elm:Backspace
+msgid "Backspace"
+msgstr ""
+
+#: Elm:DeleteAction
+msgid "to Delete"
+msgstr ""
+
+#: Elm:DeleteCardTitle
+msgid "Delete Card (Ctrl+Backspace)"
+msgstr ""
+
+#: Elm:FormattingGuide
+msgid "More Formatting Options..."
+msgstr ""
+
+#: Elm:ForBold
+msgid "for Bold"
+msgstr ""
+
+#: Elm:ForItalic
+msgid "for Italic"
+msgstr ""
+
+#: Elm:ToSaveChanges
+msgid "to Save Changes"
+msgstr ""
+
+#: Elm:SaveChangesTitle
+msgid "Save Changes (Ctrl+Enter)"
+msgstr ""
+
+#: Elm:EscKey
+msgid "Esc"
+msgstr ""
+
+#: Elm:AreYouSureCancel
+msgid "Are you sure you want to undo your changes?"
+msgstr ""
+
+#: Elm:ToCancelChanges
+msgid "to Cancel Changes"
+msgstr ""
+
+#: Elm:PressToSearch
+msgid "Press '/' to search"
+msgstr ""
+
+#: Elm:HeadingFont
+msgid "Heading Font"
+msgstr ""
+
+#: Elm:ContentFont
+msgid "Content Font"
+msgstr ""
+
+#: Elm:EditingFont
+msgid "Editing/Monospace Font"
+msgstr ""
+
+#: Elm:WordCountSession
+msgid "Session : %1 word"
+msgid_plural "Session : %1 words"
+msgstr[0] ""
+msgstr[1] ""
+
+#: Elm:WordCountTotal
+msgid "Total : %1 word"
+msgid_plural "Total : %1 words"
+msgstr[0] ""
+msgstr[1] ""
+
+#: Elm:WordCountCard
+msgid "Card : %1 word"
+msgid_plural "Card : %1 words"
+msgstr[0] ""
+msgstr[1] ""
+
+#: Elm:WordCountSubtree
+msgid "Subtree : %1 word"
+msgid_plural "Subtree : %1 words"
+msgstr[0] ""
+msgstr[1] ""
+
+#: Elm:WordCountGroup
+msgid "Group : %1 word"
+msgid_plural "Group : %1 words"
+msgstr[0] ""
+msgstr[1] ""
+
+#: Elm:WordCountColumn
+msgid "Column : %1 word"
+msgid_plural "Column : %1 words"
+msgstr[0] ""
+msgstr[1] ""

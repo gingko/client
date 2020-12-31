@@ -19,7 +19,7 @@ type Msg
       -- === Dialogs, Menus, Window State ===
     | Alert String
     | SetDirty Bool
-    | ConfirmCancelCard String String
+    | ConfirmCancelCard String String String
     | ColumnNumberChange Int
       -- === Database ===
     | InitDocument String
@@ -69,8 +69,8 @@ send info =
         SetDirty changed ->
             dataToSend "SetDirty" (bool changed)
 
-        ConfirmCancelCard id origContent ->
-            dataToSend "ConfirmCancelCard" (list string [ id, origContent ])
+        ConfirmCancelCard id origContent confirmText ->
+            dataToSend "ConfirmCancelCard" (list string [ id, origContent, confirmText ])
 
         ColumnNumberChange cols ->
             dataToSend "ColumnNumberChange" (int cols)

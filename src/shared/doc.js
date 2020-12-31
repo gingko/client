@@ -13,7 +13,6 @@ require("../shared/GitGraph.js");
 import PouchDB from "pouchdb";
 
 const helpers = require("./doc-helpers");
-const { tr } = require("../shared/translation.js");
 import { Elm } from "../elm/Main";
 
 /* === Global Variables === */
@@ -206,7 +205,7 @@ const fromElm = (msg, elmData) => {
       if (tarea === null) {
         console.log("tarea not found");
       } else {
-        if (tarea.value === elmData[1] || confirm(tr.areYouSureCancel[lang])) {
+        if (tarea.value === elmData[1] || confirm(elmData[2])) {
           toElm(null, "docMsgs", "CancelCardConfirmed");
         }
       }
