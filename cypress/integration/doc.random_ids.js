@@ -40,11 +40,12 @@ describe('Loading indicators', () => {
     cy.shortcut('{ctrl}o')
     cy.get('#switcher-modal input').type('ano')
     cy.shortcut('{enter}')
+    cy.url().should('contain', this.treeIds[1] )
     cy.shortcut('{ctrl}o')
     cy.get('#switcher-modal input').type('unt')
     cy.shortcut('{enter}')
+    cy.url().should('contain', this.treeIds[0] )
 
-    cy.wait(200)
     cy.contains('mod')
       .click()
 
