@@ -233,7 +233,7 @@
     },
     {
         "term": "(arrows)",
-        "definition": "(\u7bad\u982d)\n",
+        "definition": "(\u7bad\u982d)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ArrowKeys",
