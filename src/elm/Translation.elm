@@ -69,6 +69,9 @@ type TranslationId
     | QuickDocumentSwitcher
     | EmailSupport
     | Logout
+    | Language
+    | ContributeTranslations
+    | Here
     | HeadingFont
     | ContentFont
     | EditingFont
@@ -805,6 +808,42 @@ tr lang trans =
                     , nl = "%nl:Logout"
                     , hu = "%hu:Logout"
                     , sv = "%sv:Logout"
+                    }
+
+                Language ->
+                    { en = "Language"
+                    , zh_hans = "%zh_hans:Language"
+                    , zh_hant = "%zh_hant:Language"
+                    , es = "%es:Language"
+                    , fr = "%fr:Language"
+                    , de = "%de:Language"
+                    , nl = "%nl:Language"
+                    , hu = "%hu:Language"
+                    , sv = "%sv:Language"
+                    }
+
+                ContributeTranslations ->
+                    { en = "Contribute translations"
+                    , zh_hans = "%zh_hans:ContributeTranslations"
+                    , zh_hant = "%zh_hant:ContributeTranslations"
+                    , es = "%es:ContributeTranslations"
+                    , fr = "%fr:ContributeTranslations"
+                    , de = "%de:ContributeTranslations"
+                    , nl = "%nl:ContributeTranslations"
+                    , hu = "%hu:ContributeTranslations"
+                    , sv = "%sv:ContributeTranslations"
+                    }
+
+                Here ->
+                    { en = "here"
+                    , zh_hans = "%zh_hans:Here"
+                    , zh_hant = "%zh_hant:Here"
+                    , es = "%es:Here"
+                    , fr = "%fr:Here"
+                    , de = "%de:Here"
+                    , nl = "%nl:Here"
+                    , hu = "%hu:Here"
+                    , sv = "%sv:Here"
                     }
 
                 HeadingFont ->

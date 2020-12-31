@@ -281,7 +281,7 @@ viewSidebar modelLanguage msgs currentDocument fileFilter docList ( exportSelect
                 Settings ->
                     div [ id "sidebar-menu" ]
                         [ h2 [] [ text "Settings" ]
-                        , h5 [] [ text "Language" ]
+                        , h5 [] [ text <| tr modelLanguage Language ]
                         , select [ onChange msgs.languageChanged ]
                             (Translation.activeLanguages
                                 |> List.map
@@ -290,8 +290,8 @@ viewSidebar modelLanguage msgs currentDocument fileFilter docList ( exportSelect
                                     )
                             )
                         , small []
-                            [ text "(Contribute translations "
-                            , a [ href "https://poeditor.com/join/project?hash=k8Br3k0JVz" ] [ text "here" ]
+                            [ text <| "(" ++ tr modelLanguage ContributeTranslations ++ " "
+                            , a [ href "https://poeditor.com/join/project?hash=k8Br3k0JVz" ] [ text <| tr modelLanguage Here ]
                             , text ")"
                             ]
                         , br [] []

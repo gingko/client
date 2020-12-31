@@ -219,6 +219,18 @@ msgstr ""
 msgid "Logout"
 msgstr ""
 
+#: Elm:Language
+msgid "Language"
+msgstr ""
+
+#: Elm:ContributeTranslations
+msgid "Contribute translations"
+msgstr ""
+
+#: Elm:Here
+msgid "here"
+msgstr ""
+
 #: Elm:HeadingFont
 msgid "Heading Font"
 msgstr ""
