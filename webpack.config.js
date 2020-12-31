@@ -2,10 +2,30 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const merge = require("webpack-merge");
+const es = require("./i18n/es.json");
+const zh = require("./i18n/zh.json");
 
 
 
 /* ======= WEB TARGET ======= */
+
+const prepTranslation = (langCode, langData) => {
+  return langData.flatMap(t => {
+    let target = t.reference.replace('Elm:', `%${langCode}:`);
+    let replacement = typeof t.definition === "string" ? t.definition : t.term;
+    if (typeof target === "string" && target.startsWith(`%${langCode}`) && typeof replacement === "string" ) {
+      return [{ search: target
+        , replace: replacement
+        , flags : 'g'
+      }];
+    } else {
+      return [];
+    }
+  });
+}
+
+const esTranslations = prepTranslation("es", es);
+const zhTranslations = prepTranslation("zh", zh);
 
 const webConfig = {
   // "production" or "development" flag.
@@ -45,11 +65,7 @@ const webConfig = {
         use: [
           {
             loader: "string-replace-loader",
-            options : { multiple :
-              [ { search : "%zh:ChangesSynced", replace : "Hi ZH"}
-              , { search : "%es:ChangesSynced", replace : "HOLA ES"}
-              ]
-            }
+            options : { multiple : [].concat(esTranslations, zhTranslations) }
           },
           {
             loader: "elm-webpack-loader",
