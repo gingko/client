@@ -496,5 +496,61 @@
         "term_plural": "",
         "reference": "Elm:AreYouSureCancel",
         "comment": ""
+    },
+    {
+        "term": "to Edit in Fullscreen",
+        "definition": "para Editar en Pantalla Completa",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EditFullscreenAction",
+        "comment": ""
+    },
+    {
+        "term": "Quick Document Switcher",
+        "definition": "Cambiador de Documentos R\u00e1pido",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:QuickDocumentSwitcher",
+        "comment": ""
+    },
+    {
+        "term": "Email Support...",
+        "definition": "Ayuda por correo electr\u00f3nico...",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EmailSupport",
+        "comment": ""
+    },
+    {
+        "term": "Logout",
+        "definition": "Cerrar sesi\u00f3n",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Logout",
+        "comment": ""
+    },
+    {
+        "term": "Language",
+        "definition": "Idioma",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Language",
+        "comment": ""
+    },
+    {
+        "term": "Contribute translations",
+        "definition": "Contribuya traducciones",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ContributeTranslations",
+        "comment": ""
+    },
+    {
+        "term": "here",
+        "definition": "aqu\u00ed",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Here",
+        "comment": ""
     }
 ]
