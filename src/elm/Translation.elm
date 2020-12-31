@@ -77,7 +77,8 @@ type TranslationId
 
 type Language
     = En
-    | Zh
+    | Zh_HANS
+    | Zh_HANT
     | Es
     | Fr
     | Nl
@@ -90,8 +91,11 @@ languageName lang =
         En ->
             "English"
 
-        Zh ->
-            "中文"
+        Zh_HANS ->
+            "简体中文"
+
+        Zh_HANT ->
+            "繁體中文"
 
         Es ->
             "Español"
@@ -108,7 +112,7 @@ languageName lang =
 
 activeLanguages : List ( Language, String )
 activeLanguages =
-    [ En, Zh, Es, Nl, Sv ] |> List.map (\l -> ( l, languageName l ))
+    [ En, Zh_HANS, Zh_HANT, Es, Nl, Sv ] |> List.map (\l -> ( l, languageName l ))
 
 
 tr : Language -> TranslationId -> String
@@ -132,7 +136,8 @@ tr lang trans =
             case trans of
                 Cancel ->
                     { en = "Cancel"
-                    , zh = "%zh:Cancel"
+                    , zh_hans = "%zh_hans:Cancel"
+                    , zh_hant = "%zh_hant:Cancel"
                     , es = "%es:Cancel"
                     , fr = "%fr:Cancel"
                     , nl = "%nl:Cancel"
@@ -141,7 +146,8 @@ tr lang trans =
 
                 HomeBlank ->
                     { en = "Blank Tree"
-                    , zh = "%zh:HomeBlank"
+                    , zh_hans = "%zh_hans:HomeBlank"
+                    , zh_hant = "%zh_hant:HomeBlank"
                     , es = "%es:HomeBlank"
                     , fr = "%fr:HomeBlank"
                     , nl = "%nl:HomeBlank"
@@ -150,7 +156,8 @@ tr lang trans =
 
                 HomeImportJSON ->
                     { en = "Import JSON"
-                    , zh = "%zh:HomeImportJSON"
+                    , zh_hans = "%zh_hans:HomeImportJSON"
+                    , zh_hant = "%zh_hant:HomeImportJSON"
                     , es = "%es:HomeImportJSON"
                     , fr = "%fr:HomeImportJSON"
                     , nl = "%nl:HomeImportJSON"
@@ -159,7 +166,8 @@ tr lang trans =
 
                 HomeJSONFrom ->
                     { en = "From Desktop or Online"
-                    , zh = "%zh:HomeJSONFrom"
+                    , zh_hans = "%zh_hans:HomeJSONFrom"
+                    , zh_hant = "%zh_hant:HomeJSONFrom"
                     , es = "%es:HomeJSONFrom"
                     , fr = "%fr:HomeJSONFrom"
                     , nl = "%nl:HomeJSONFrom"
@@ -168,7 +176,8 @@ tr lang trans =
 
                 HomeImportLegacy ->
                     { en = "From Old Account"
-                    , zh = "%zh:HomeImportLegacy"
+                    , zh_hans = "%zh_hans:HomeImportLegacy"
+                    , zh_hant = "%zh_hant:HomeImportLegacy"
                     , es = "%es:HomeImportLegacy"
                     , fr = "%fr:HomeImportLegacy"
                     , nl = "%nl:HomeImportLegacy"
@@ -177,7 +186,8 @@ tr lang trans =
 
                 HomeLegacyFrom ->
                     { en = "Bulk transfer of trees from your legacy account"
-                    , zh = "%zh:HomeLegacyFrom"
+                    , zh_hans = "%zh_hans:HomeLegacyFrom"
+                    , zh_hant = "%zh_hant:HomeLegacyFrom"
                     , es = "%es:HomeLegacyFrom"
                     , fr = "%fr:HomeLegacyFrom"
                     , nl = "%nl:HomeLegacyFrom"
@@ -186,7 +196,8 @@ tr lang trans =
 
                 RecentDocuments ->
                     { en = "Recent Documents"
-                    , zh = "%zh:RecentDocuments"
+                    , zh_hans = "%zh_hans:RecentDocuments"
+                    , zh_hant = "%zh_hant:RecentDocuments"
                     , es = "%es:RecentDocuments"
                     , fr = "%fr:RecentDocuments"
                     , nl = "%nl:RecentDocuments"
@@ -195,7 +206,8 @@ tr lang trans =
 
                 LastUpdated ->
                     { en = "Last Updated"
-                    , zh = "%zh:LastUpdated"
+                    , zh_hans = "%zh_hans:LastUpdated"
+                    , zh_hant = "%zh_hant:LastUpdated"
                     , es = "%es:LastUpdated"
                     , fr = "%fr:LastUpdated"
                     , nl = "%nl:LastUpdated"
@@ -204,7 +216,8 @@ tr lang trans =
 
                 LastOpened ->
                     { en = "Last Opened"
-                    , zh = "%zh:LastOpened"
+                    , zh_hans = "%zh_hans:LastOpened"
+                    , zh_hant = "%zh_hant:LastOpened"
                     , es = "%es:LastOpened"
                     , fr = "%fr:LastOpened"
                     , nl = "%nl:LastOpened"
@@ -213,7 +226,8 @@ tr lang trans =
 
                 OpenOtherDocuments ->
                     { en = "Open Other Documents"
-                    , zh = "%zh:OpenOtherDocuments"
+                    , zh_hans = "%zh_hans:OpenOtherDocuments"
+                    , zh_hant = "%zh_hant:OpenOtherDocuments"
                     , es = "%es:OpenOtherDocuments"
                     , fr = "%fr:OpenOtherDocuments"
                     , nl = "%nl:OpenOtherDocuments"
@@ -222,7 +236,8 @@ tr lang trans =
 
                 DeleteDocument ->
                     { en = "Delete Document"
-                    , zh = "%zh:DeleteDocument"
+                    , zh_hans = "%zh_hans:DeleteDocument"
+                    , zh_hant = "%zh_hant:DeleteDocument"
                     , es = "%es:DeleteDocument"
                     , fr = "%fr:DeleteDocument"
                     , nl = "%nl:DeleteDocument"
@@ -231,7 +246,8 @@ tr lang trans =
 
                 RemoveFromList ->
                     { en = "Remove From List"
-                    , zh = "%zh:RemoveFromList"
+                    , zh_hans = "%zh_hans:RemoveFromList"
+                    , zh_hant = "%zh_hant:RemoveFromList"
                     , es = "%es:RemoveFromList"
                     , fr = "%fr:RemoveFromList"
                     , nl = "%nl:RemoveFromList"
@@ -240,7 +256,8 @@ tr lang trans =
 
                 NeverSaved ->
                     { en = "New Document..."
-                    , zh = "%zh:NeverSaved"
+                    , zh_hans = "%zh_hans:NeverSaved"
+                    , zh_hant = "%zh_hant:NeverSaved"
                     , es = "%es:NeverSaved"
                     , fr = "%fr:NeverSaved"
                     , nl = "%nl:NeverSaved"
@@ -249,7 +266,8 @@ tr lang trans =
 
                 UnsavedChanges ->
                     { en = "Unsaved Changes..."
-                    , zh = "%zh:UnsavedChanges"
+                    , zh_hans = "%zh_hans:UnsavedChanges"
+                    , zh_hant = "%zh_hant:UnsavedChanges"
                     , es = "%es:UnsavedChanges"
                     , fr = "%fr:UnsavedChanges"
                     , nl = "%nl:UnsavedChanges"
@@ -258,7 +276,8 @@ tr lang trans =
 
                 SavedInternally ->
                     { en = "Saved Offline"
-                    , zh = "%zh:SavedInternally"
+                    , zh_hans = "%zh_hans:SavedInternally"
+                    , zh_hant = "%zh_hant:SavedInternally"
                     , es = "%es:SavedInternally"
                     , fr = "%fr:SavedInternally"
                     , nl = "%nl:SavedInternally"
@@ -267,7 +286,8 @@ tr lang trans =
 
                 ChangesSaved ->
                     { en = "Saved"
-                    , zh = "%zh:ChangesSaved"
+                    , zh_hans = "%zh_hans:ChangesSaved"
+                    , zh_hant = "%zh_hant:ChangesSaved"
                     , es = "%es:ChangesSaved"
                     , fr = "%fr:ChangesSaved"
                     , nl = "%nl:ChangesSaved"
@@ -276,7 +296,8 @@ tr lang trans =
 
                 ChangesSynced ->
                     { en = "Synced"
-                    , zh = "%zh:ChangesSynced"
+                    , zh_hans = "%zh_hans:ChangesSynced"
+                    , zh_hant = "%zh_hant:ChangesSynced"
                     , es = "%es:ChangesSynced"
                     , fr = "%fr:ChangesSynced"
                     , nl = "%nl:ChangesSynced"
@@ -285,7 +306,8 @@ tr lang trans =
 
                 DatabaseError ->
                     { en = "Database Error..."
-                    , zh = "%zh:DatabaseError"
+                    , zh_hans = "%zh_hans:DatabaseError"
+                    , zh_hant = "%zh_hant:DatabaseError"
                     , es = "%es:DatabaseError"
                     , fr = "%fr:DatabaseError"
                     , nl = "%nl:DatabaseError"
@@ -294,7 +316,8 @@ tr lang trans =
 
                 LastSaved ->
                     { en = "Last saved"
-                    , zh = "%zh:LastSaved"
+                    , zh_hans = "%zh_hans:LastSaved"
+                    , zh_hant = "%zh_hant:LastSaved"
                     , es = "%es:LastSaved"
                     , fr = "%fr:LastSaved"
                     , nl = "%nl:LastSaved"
@@ -303,7 +326,8 @@ tr lang trans =
 
                 LastEdit ->
                     { en = "Last edit"
-                    , zh = "%zh:LastEdit"
+                    , zh_hans = "%zh_hans:LastEdit"
+                    , zh_hant = "%zh_hant:LastEdit"
                     , es = "%es:LastEdit"
                     , fr = "%fr:LastEdit"
                     , nl = "%nl:LastEdit"
@@ -312,7 +336,8 @@ tr lang trans =
 
                 KeyboardHelp ->
                     { en = "Keyboard Shortcuts Help"
-                    , zh = "%zh:KeyboardHelp"
+                    , zh_hans = "%zh_hans:KeyboardHelp"
+                    , zh_hant = "%zh_hant:KeyboardHelp"
                     , es = "%es:KeyboardHelp"
                     , fr = "%fr:KeyboardHelp"
                     , nl = "%nl:KeyboardHelp"
@@ -321,7 +346,8 @@ tr lang trans =
 
                 RestoreThisVersion ->
                     { en = "Restore this Version"
-                    , zh = "%zh:RestoreThisVersion"
+                    , zh_hans = "%zh_hans:RestoreThisVersion"
+                    , zh_hant = "%zh_hant:RestoreThisVersion"
                     , es = "%es:RestoreThisVersion"
                     , fr = "%fr:RestoreThisVersion"
                     , nl = "%nl:RestoreThisVersion"
@@ -330,7 +356,8 @@ tr lang trans =
 
                 EnterKey ->
                     { en = "Enter"
-                    , zh = "%zh:EnterKey"
+                    , zh_hans = "%zh_hans:EnterKey"
+                    , zh_hant = "%zh_hant:EnterKey"
                     , es = "%es:EnterKey"
                     , fr = "%fr:EnterKey"
                     , nl = "%nl:EnterKey"
@@ -339,7 +366,8 @@ tr lang trans =
 
                 EnterAction ->
                     { en = "to Edit"
-                    , zh = "%zh:EnterAction"
+                    , zh_hans = "%zh_hans:EnterAction"
+                    , zh_hant = "%zh_hant:EnterAction"
                     , es = "%es:EnterAction"
                     , fr = "%fr:EnterAction"
                     , nl = "%nl:EnterAction"
@@ -348,7 +376,8 @@ tr lang trans =
 
                 EditCardTitle ->
                     { en = "Edit Card (Enter)"
-                    , zh = "%zh:EditCardTitle"
+                    , zh_hans = "%zh_hans:EditCardTitle"
+                    , zh_hant = "%zh_hant:EditCardTitle"
                     , es = "%es:EditCardTitle"
                     , fr = "%fr:EditCardTitle"
                     , nl = "%nl:EditCardTitle"
@@ -357,7 +386,8 @@ tr lang trans =
 
                 ArrowsAction ->
                     { en = "to Navigate"
-                    , zh = "%zh:ArrowsAction"
+                    , zh_hans = "%zh_hans:ArrowsAction"
+                    , zh_hant = "%zh_hant:ArrowsAction"
                     , es = "%es:ArrowsAction"
                     , fr = "%fr:ArrowsAction"
                     , nl = "%nl:ArrowsAction"
@@ -366,7 +396,8 @@ tr lang trans =
 
                 AddChildAction ->
                     { en = "to Add Child"
-                    , zh = "%zh:AddChildAction"
+                    , zh_hans = "%zh_hans:AddChildAction"
+                    , zh_hant = "%zh_hant:AddChildAction"
                     , es = "%es:AddChildAction"
                     , fr = "%fr:AddChildAction"
                     , nl = "%nl:AddChildAction"
@@ -375,7 +406,8 @@ tr lang trans =
 
                 SplitChildAction ->
                     { en = "to Split Card to the Right"
-                    , zh = "%zh:SplitChildAction"
+                    , zh_hans = "%zh_hans:SplitChildAction"
+                    , zh_hant = "%zh_hant:SplitChildAction"
                     , es = "%es:SplitChildAction"
                     , fr = "%fr:SplitChildAction"
                     , nl = "%nl:SplitChildAction"
@@ -384,7 +416,8 @@ tr lang trans =
 
                 InsertChildTitle ->
                     { en = "Insert Child (Ctrl+L)"
-                    , zh = "%zh:InsertChildTitle"
+                    , zh_hans = "%zh_hans:InsertChildTitle"
+                    , zh_hant = "%zh_hant:InsertChildTitle"
                     , es = "%es:InsertChildTitle"
                     , fr = "%fr:InsertChildTitle"
                     , nl = "%nl:InsertChildTitle"
@@ -393,7 +426,8 @@ tr lang trans =
 
                 AddBelowAction ->
                     { en = "to Add Below"
-                    , zh = "%zh:AddBelowAction"
+                    , zh_hans = "%zh_hans:AddBelowAction"
+                    , zh_hant = "%zh_hant:AddBelowAction"
                     , es = "%es:AddBelowAction"
                     , fr = "%fr:AddBelowAction"
                     , nl = "%nl:AddBelowAction"
@@ -402,7 +436,8 @@ tr lang trans =
 
                 SplitBelowAction ->
                     { en = "to Split Card Down"
-                    , zh = "%zh:SplitBelowAction"
+                    , zh_hans = "%zh_hans:SplitBelowAction"
+                    , zh_hant = "%zh_hant:SplitBelowAction"
                     , es = "%es:SplitBelowAction"
                     , fr = "%fr:SplitBelowAction"
                     , nl = "%nl:SplitBelowAction"
@@ -411,7 +446,8 @@ tr lang trans =
 
                 MergeDownAction ->
                     { en = "to Merge into Next"
-                    , zh = "%zh:MergeDownAction"
+                    , zh_hans = "%zh_hans:MergeDownAction"
+                    , zh_hant = "%zh_hant:MergeDownAction"
                     , es = "%es:MergeDownAction"
                     , fr = "%fr:MergeDownAction"
                     , nl = "%nl:MergeDownAction"
@@ -420,7 +456,8 @@ tr lang trans =
 
                 InsertBelowTitle ->
                     { en = "Insert Below (Ctrl+J)"
-                    , zh = "%zh:InsertBelowTitle"
+                    , zh_hans = "%zh_hans:InsertBelowTitle"
+                    , zh_hant = "%zh_hant:InsertBelowTitle"
                     , es = "%es:InsertBelowTitle"
                     , fr = "%fr:InsertBelowTitle"
                     , nl = "%nl:InsertBelowTitle"
@@ -429,7 +466,8 @@ tr lang trans =
 
                 AddAboveAction ->
                     { en = "to Add Above"
-                    , zh = "%zh:AddAboveAction"
+                    , zh_hans = "%zh_hans:AddAboveAction"
+                    , zh_hant = "%zh_hant:AddAboveAction"
                     , es = "%es:AddAboveAction"
                     , fr = "%fr:AddAboveAction"
                     , nl = "%nl:AddAboveAction"
@@ -438,7 +476,8 @@ tr lang trans =
 
                 SplitUpwardAction ->
                     { en = "to Split Card Upward"
-                    , zh = "%zh:SplitUpwardAction"
+                    , zh_hans = "%zh_hans:SplitUpwardAction"
+                    , zh_hant = "%zh_hant:SplitUpwardAction"
                     , es = "%es:SplitUpwardAction"
                     , fr = "%fr:SplitUpwardAction"
                     , nl = "%nl:SplitUpwardAction"
@@ -447,7 +486,8 @@ tr lang trans =
 
                 MergeUpAction ->
                     { en = "to Merge into Previous"
-                    , zh = "%zh:MergeUpAction"
+                    , zh_hans = "%zh_hans:MergeUpAction"
+                    , zh_hant = "%zh_hant:MergeUpAction"
                     , es = "%es:MergeUpAction"
                     , fr = "%fr:MergeUpAction"
                     , nl = "%nl:MergeUpAction"
@@ -456,7 +496,8 @@ tr lang trans =
 
                 InsertAboveTitle ->
                     { en = "Insert Above (Ctrl+K)"
-                    , zh = "%zh:InsertAboveTitle"
+                    , zh_hans = "%zh_hans:InsertAboveTitle"
+                    , zh_hant = "%zh_hant:InsertAboveTitle"
                     , es = "%es:InsertAboveTitle"
                     , fr = "%fr:InsertAboveTitle"
                     , nl = "%nl:InsertAboveTitle"
@@ -465,7 +506,8 @@ tr lang trans =
 
                 ArrowKeys ->
                     { en = "(arrows)"
-                    , zh = "%zh:ArrowKeys"
+                    , zh_hans = "%zh_hans:ArrowKeys"
+                    , zh_hant = "%zh_hant:ArrowKeys"
                     , es = "%es:ArrowKeys"
                     , fr = "%fr:ArrowKeys"
                     , nl = "%nl:ArrowKeys"
@@ -474,7 +516,8 @@ tr lang trans =
 
                 MoveAction ->
                     { en = "to Move"
-                    , zh = "%zh:MoveAction"
+                    , zh_hans = "%zh_hans:MoveAction"
+                    , zh_hant = "%zh_hant:MoveAction"
                     , es = "%es:MoveAction"
                     , fr = "%fr:MoveAction"
                     , nl = "%nl:MoveAction"
@@ -483,7 +526,8 @@ tr lang trans =
 
                 Backspace ->
                     { en = "Backspace"
-                    , zh = "%zh:Backspace"
+                    , zh_hans = "%zh_hans:Backspace"
+                    , zh_hant = "%zh_hant:Backspace"
                     , es = "%es:Backspace"
                     , fr = "%fr:Backspace"
                     , nl = "%nl:Backspace"
@@ -492,7 +536,8 @@ tr lang trans =
 
                 DeleteAction ->
                     { en = "to Delete"
-                    , zh = "%zh:DeleteAction"
+                    , zh_hans = "%zh_hans:DeleteAction"
+                    , zh_hant = "%zh_hant:DeleteAction"
                     , es = "%es:DeleteAction"
                     , fr = "%fr:DeleteAction"
                     , nl = "%nl:DeleteAction"
@@ -501,7 +546,8 @@ tr lang trans =
 
                 DeleteCardTitle ->
                     { en = "Delete Card (Ctrl+Backspace)"
-                    , zh = "%zh:DeleteCardTitle"
+                    , zh_hans = "%zh_hans:DeleteCardTitle"
+                    , zh_hant = "%zh_hant:DeleteCardTitle"
                     , es = "%es:DeleteCardTitle"
                     , fr = "%fr:DeleteCardTitle"
                     , nl = "%nl:DeleteCardTitle"
@@ -510,7 +556,8 @@ tr lang trans =
 
                 FormattingGuide ->
                     { en = "More Formatting Options..."
-                    , zh = "%zh:FormattingGuide"
+                    , zh_hans = "%zh_hans:FormattingGuide"
+                    , zh_hant = "%zh_hant:FormattingGuide"
                     , es = "%es:FormattingGuide"
                     , fr = "%fr:FormattingGuide"
                     , nl = "%nl:FormattingGuide"
@@ -519,7 +566,8 @@ tr lang trans =
 
                 ForBold ->
                     { en = "for Bold"
-                    , zh = "%zh:ForBold"
+                    , zh_hans = "%zh_hans:ForBold"
+                    , zh_hant = "%zh_hant:ForBold"
                     , es = "%es:ForBold"
                     , fr = "%fr:ForBold"
                     , nl = "%nl:ForBold"
@@ -528,7 +576,8 @@ tr lang trans =
 
                 ForItalic ->
                     { en = "for Italic"
-                    , zh = "%zh:ForItalic"
+                    , zh_hans = "%zh_hans:ForItalic"
+                    , zh_hant = "%zh_hant:ForItalic"
                     , es = "%es:ForItalic"
                     , fr = "%fr:ForItalic"
                     , nl = "%nl:ForItalic"
@@ -537,7 +586,8 @@ tr lang trans =
 
                 ToSaveChanges ->
                     { en = "to Save Changes"
-                    , zh = "%zh:ToSaveChanges"
+                    , zh_hans = "%zh_hans:ToSaveChanges"
+                    , zh_hant = "%zh_hant:ToSaveChanges"
                     , es = "%es:ToSaveChanges"
                     , fr = "%fr:ToSaveChanges"
                     , nl = "%nl:ToSaveChanges"
@@ -546,7 +596,8 @@ tr lang trans =
 
                 SaveChangesTitle ->
                     { en = "Save Changes (Ctrl+Enter)"
-                    , zh = "%zh:SaveChangesTitle"
+                    , zh_hans = "%zh_hans:SaveChangesTitle"
+                    , zh_hant = "%zh_hant:SaveChangesTitle"
                     , es = "%es:SaveChangesTitle"
                     , fr = "%fr:SaveChangesTitle"
                     , nl = "%nl:SaveChangesTitle"
@@ -555,7 +606,8 @@ tr lang trans =
 
                 EscKey ->
                     { en = "Esc"
-                    , zh = "%zh:EscKey"
+                    , zh_hans = "%zh_hans:EscKey"
+                    , zh_hant = "%zh_hant:EscKey"
                     , es = "%es:EscKey"
                     , fr = "%fr:EscKey"
                     , nl = "%nl:EscKey"
@@ -564,7 +616,8 @@ tr lang trans =
 
                 AreYouSureCancel ->
                     { en = "Are you sure you want to undo your changes?"
-                    , zh = "%zh:AreYouSureCancel"
+                    , zh_hans = "%zh_hans:AreYouSureCancel"
+                    , zh_hant = "%zh_hant:AreYouSureCancel"
                     , es = "%es:AreYouSureCancel"
                     , fr = "%fr:AreYouSureCancel"
                     , nl = "%nl:AreYouSureCancel"
@@ -573,7 +626,8 @@ tr lang trans =
 
                 ToCancelChanges ->
                     { en = "to Cancel Changes"
-                    , zh = "%zh:ToCancelChanges"
+                    , zh_hans = "%zh_hans:ToCancelChanges"
+                    , zh_hant = "%zh_hant:ToCancelChanges"
                     , es = "%es:ToCancelChanges"
                     , fr = "%fr:ToCancelChanges"
                     , nl = "%nl:ToCancelChanges"
@@ -582,7 +636,8 @@ tr lang trans =
 
                 PressToSearch ->
                     { en = "Press '/' to search"
-                    , zh = "%zh:PressToSearch"
+                    , zh_hans = "%zh_hans:PressToSearch"
+                    , zh_hant = "%zh_hant:PressToSearch"
                     , es = "%es:PressToSearch"
                     , fr = "%fr:PressToSearch"
                     , nl = "%nl:PressToSearch"
@@ -591,7 +646,8 @@ tr lang trans =
 
                 HeadingFont ->
                     { en = "Heading Font"
-                    , zh = "%zh:HeadingFont"
+                    , zh_hans = "%zh_hans:HeadingFont"
+                    , zh_hant = "%zh_hant:HeadingFont"
                     , es = "%es:HeadingFont"
                     , fr = "%fr:HeadingFont"
                     , nl = "%nl:HeadingFont"
@@ -600,7 +656,8 @@ tr lang trans =
 
                 ContentFont ->
                     { en = "Content Font"
-                    , zh = "%zh:ContentFont"
+                    , zh_hans = "%zh_hans:ContentFont"
+                    , zh_hant = "%zh_hant:ContentFont"
                     , es = "%es:ContentFont"
                     , fr = "%fr:ContentFont"
                     , nl = "%nl:ContentFont"
@@ -609,7 +666,8 @@ tr lang trans =
 
                 EditingFont ->
                     { en = "Editing/Monospace Font"
-                    , zh = "%zh:EditingFont"
+                    , zh_hans = "%zh_hans:EditingFont"
+                    , zh_hant = "%zh_hant:EditingFont"
                     , es = "%es:EditingFont"
                     , fr = "%fr:EditingFont"
                     , nl = "%nl:EditingFont"
@@ -618,7 +676,8 @@ tr lang trans =
 
                 WordCountSession n ->
                     { en = numberPlural n "Session : %1 word" "Session : %1 words"
-                    , zh = numberPlural n "%zh:WordCountSession:0" "%zh:WordCountSession:1"
+                    , zh_hans = numberPlural n "%zh_hans:WordCountSession:0" "%zh_hans:WordCountSession:1"
+                    , zh_hant = numberPlural n "%zh_hant:WordCountSession:0" "%zh_hant:WordCountSession:1"
                     , es = numberPlural n "%es:WordCountSession:0" "%es:WordCountSession:1"
                     , fr = numberPlural n "%fr:WordCountSession:0" "%fr:WordCountSession:1"
                     , nl = numberPlural n "%nl:WordCountSession:0" "%nl:WordCountSession:1"
@@ -627,7 +686,8 @@ tr lang trans =
 
                 WordCountTotal n ->
                     { en = numberPlural n "Total : %1 word" "Total : %1 words"
-                    , zh = numberPlural n "%zh:WordCountTotal:0" "%zh:WordCountTotal:1"
+                    , zh_hans = numberPlural n "%zh_hans:WordCountTotal:0" "%zh_hans:WordCountTotal:1"
+                    , zh_hant = numberPlural n "%zh_hant:WordCountTotal:0" "%zh_hant:WordCountTotal:1"
                     , es = numberPlural n "%es:WordCountTotal:0" "%es:WordCountTotal:1"
                     , fr = numberPlural n "%fr:WordCountTotal:0" "%fr:WordCountTotal:1"
                     , nl = numberPlural n "%nl:WordCountTotal:0" "%nl:WordCountTotal:1"
@@ -636,7 +696,8 @@ tr lang trans =
 
                 WordCountCard n ->
                     { en = numberPlural n "Card : %1 word" "Card : %1 words"
-                    , zh = numberPlural n "%zh:WordCountCard:0" "%zh:WordCountCard:1"
+                    , zh_hans = numberPlural n "%zh_hans:WordCountCard:0" "%zh_hans:WordCountCard:1"
+                    , zh_hant = numberPlural n "%zh_hant:WordCountCard:0" "%zh_hant:WordCountCard:1"
                     , es = numberPlural n "%es:WordCountCard:0" "%es:WordCountCard:1"
                     , fr = numberPlural n "%fr:WordCountCard:0" "%fr:WordCountCard:1"
                     , nl = numberPlural n "%nl:WordCountCard:0" "%nl:WordCountCard:1"
@@ -645,7 +706,8 @@ tr lang trans =
 
                 WordCountSubtree n ->
                     { en = numberPlural n "Subtree : %1 word" "Subtree : %1 words"
-                    , zh = numberPlural n "%zh:WordCountSubtree:0" "%zh:WordCountSubtree:1"
+                    , zh_hans = numberPlural n "%zh_hans:WordCountSubtree:0" "%zh_hans:WordCountSubtree:1"
+                    , zh_hant = numberPlural n "%zh_hant:WordCountSubtree:0" "%zh_hant:WordCountSubtree:1"
                     , es = numberPlural n "%es:WordCountSubtree:0" "%es:WordCountSubtree:1"
                     , fr = numberPlural n "%fr:WordCountSubtree:0" "%fr:WordCountSubtree:1"
                     , nl = numberPlural n "%nl:WordCountSubtree:0" "%nl:WordCountSubtree:1"
@@ -654,7 +716,8 @@ tr lang trans =
 
                 WordCountGroup n ->
                     { en = numberPlural n "Group : %1 word" "Group : %1 words"
-                    , zh = numberPlural n "%zh:WordCountGroup:0" "%zh:WordCountGroup:1"
+                    , zh_hans = numberPlural n "%zh_hans:WordCountGroup:0" "%zh_hans:WordCountGroup:1"
+                    , zh_hant = numberPlural n "%zh_hant:WordCountGroup:0" "%zh_hant:WordCountGroup:1"
                     , es = numberPlural n "%es:WordCountGroup:0" "%es:WordCountGroup:1"
                     , fr = numberPlural n "%fr:WordCountGroup:0" "%fr:WordCountGroup:1"
                     , nl = numberPlural n "%nl:WordCountGroup:0" "%nl:WordCountGroup:1"
@@ -663,7 +726,8 @@ tr lang trans =
 
                 WordCountColumn n ->
                     { en = numberPlural n "Column : %1 word" "Column : %1 words"
-                    , zh = numberPlural n "%zh:WordCountColumn:0" "%zh:WordCountColumn:1"
+                    , zh_hans = numberPlural n "%zh_hans:WordCountColumn:0" "%zh_hans:WordCountColumn:1"
+                    , zh_hant = numberPlural n "%zh_hant:WordCountColumn:0" "%zh_hant:WordCountColumn:1"
                     , es = numberPlural n "%es:WordCountColumn:0" "%es:WordCountColumn:1"
                     , fr = numberPlural n "%fr:WordCountColumn:0" "%fr:WordCountColumn:1"
                     , nl = numberPlural n "%nl:WordCountColumn:0" "%nl:WordCountColumn:1"
@@ -674,8 +738,11 @@ tr lang trans =
         En ->
             .en translationSet
 
-        Zh ->
-            .zh translationSet
+        Zh_HANS ->
+            .zh_hans translationSet
+
+        Zh_HANT ->
+            .zh_hant translationSet
 
         Es ->
             .es translationSet
@@ -696,7 +763,10 @@ timeDistInWords lang t1 t2 =
         En ->
             TimeDistance.inWordsWithConfig { withAffix = True } I18n.en t1 t2
 
-        Zh ->
+        Zh_HANS ->
+            TimeDistance.inWordsWithConfig { withAffix = True } I18n.en t1 t2
+
+        Zh_HANT ->
             TimeDistance.inWordsWithConfig { withAffix = True } I18n.en t1 t2
 
         Es ->
@@ -722,7 +792,10 @@ dateFormat lang time =
         En ->
             format Time.Format.Config.Config_en_us.config formatString Time.utc time
 
-        Zh ->
+        Zh_HANS ->
+            format Time.Format.Config.Config_en_us.config formatString Time.utc time
+
+        Zh_HANT ->
             format Time.Format.Config.Config_en_us.config formatString Time.utc time
 
         Es ->
@@ -750,7 +823,13 @@ langFromString str =
             En
 
         "zh" ->
-            Zh
+            Zh_HANS
+
+        "zh_HANS" ->
+            Zh_HANS
+
+        "zh_HANT" ->
+            Zh_HANT
 
         "es" ->
             Es
@@ -774,8 +853,11 @@ langToString lang =
         En ->
             "en"
 
-        Zh ->
-            "zh"
+        Zh_HANS ->
+            "zh_HANS"
+
+        Zh_HANT ->
+            "zh_HANT"
 
         Es ->
             "es"

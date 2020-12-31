@@ -25,7 +25,7 @@ const prepTranslation = (langCode, langData) => {
 }
 
 const esTranslations = prepTranslation("es", es);
-const zhTranslations = prepTranslation("zh", zh);
+const zhTranslations = prepTranslation("zh_hans", zh);
 
 const webConfig = {
   // "production" or "development" flag.
