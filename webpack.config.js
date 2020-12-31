@@ -2,8 +2,14 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const merge = require("webpack-merge");
+const zh_hans = require("./i18n/zh_hans.json");
+const zh_hant = require("./i18n/zh_hant.json");
 const es = require("./i18n/es.json");
-const zh = require("./i18n/zh.json");
+const fr = require("./i18n/fr.json");
+const de = require("./i18n/de.json");
+const nl = require("./i18n/nl.json");
+const hu = require("./i18n/hu.json");
+const sv = require("./i18n/sv.json");
 
 
 
@@ -15,7 +21,7 @@ const prepTranslation = (langCode, langData) => {
     let replacement = typeof t.definition === "string" ? t.definition : t.term;
     if (typeof target === "string" && target.startsWith(`%${langCode}`) && typeof replacement === "string" ) {
       return [{ search: target
-        , replace: replacement
+        , replace: replacement.replace(/'/g,"\\'")
         , flags : 'g'
       }];
     } else {
@@ -24,8 +30,16 @@ const prepTranslation = (langCode, langData) => {
   });
 }
 
-const esTranslations = prepTranslation("es", es);
-const zhTranslations = prepTranslation("zh_hans", zh);
+const zhHansT = prepTranslation("zh_hans", zh_hans);
+const zhHantT = prepTranslation("zh_hant", zh_hant);
+const esT = prepTranslation("es", es);
+const frT = prepTranslation("fr", fr);
+const deT = prepTranslation("de", de);
+const nlT = prepTranslation("nl", nl);
+const huT = prepTranslation("hu", hu);
+const svT = prepTranslation("sv", sv);
+
+const allLanguageStrings = [].concat(zhHansT, zhHantT, esT, frT, deT, nlT, huT, svT)
 
 const webConfig = {
   // "production" or "development" flag.
@@ -65,7 +79,7 @@ const webConfig = {
         use: [
           {
             loader: "string-replace-loader",
-            options : { multiple : [].concat(esTranslations, zhTranslations) }
+            options : { multiple : allLanguageStrings }
           },
           {
             loader: "elm-webpack-loader",
