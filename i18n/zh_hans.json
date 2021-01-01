@@ -41,7 +41,7 @@
     },
     {
         "term": "Open Other Documents",
-        "definition": "\u6253\u5f00\u53e6\u4e00\u4e2a\u6587\u6863",
+        "definition": "\u6253\u5f00\u5176\u4ed6\u6587\u6863",
         "context": "",
         "term_plural": "",
         "reference": "Elm:OpenOtherDocuments",
@@ -81,7 +81,7 @@
     },
     {
         "term": "Last saved",
-        "definition": "\u4e0a\u4e00\u4e2a\u4fdd\u5b58",
+        "definition": "\u4e0a\u6b21\u4fdd\u5b58",
         "context": "",
         "term_plural": "",
         "reference": "Elm:LastSaved",
@@ -89,7 +89,7 @@
     },
     {
         "term": "Last edit",
-        "definition": "\u4e0a\u4e00\u6b21\u7f16\u8f91 ",
+        "definition": "\u4e0a\u6b21\u7f16\u8f91 ",
         "context": "",
         "term_plural": "",
         "reference": "Elm:LastEdit",
@@ -153,7 +153,7 @@
     },
     {
         "term": "to Split Card to the Right",
-        "definition": "\u5411\u53f3\u62c6\u5206\u5361",
+        "definition": "\u5411\u53f3\u62c6\u5206\u5361\u7247",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SplitChildAction",
@@ -177,7 +177,7 @@
     },
     {
         "term": "to Split Card Down",
-        "definition": "\u5411\u4e0b\u62c6\u5206\u5361",
+        "definition": "\u5411\u4e0b\u62c6\u5206\u5361\u7247",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SplitBelowAction",
@@ -193,7 +193,7 @@
     },
     {
         "term": "Insert Below (Ctrl+J)",
-        "definition": "\u5728\u4e0b\u65b9\u63d2\u5165",
+        "definition": "\u5728\u4e0b\u65b9\u63d2\u5165\uff08Ctrl+J\uff09",
         "context": "",
         "term_plural": "",
         "reference": "Elm:InsertBelowTitle",
@@ -209,7 +209,7 @@
     },
     {
         "term": "to Split Card Upward",
-        "definition": "\u5411\u4e0a\u62c6\u5206\u5361",
+        "definition": "\u5411\u4e0a\u62c6\u5206\u5361\u7247",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SplitUpwardAction",
@@ -225,7 +225,7 @@
     },
     {
         "term": "Insert Above (Ctrl+K)",
-        "definition": "\u5728\u4e0a\u65b9\u63d2\u5165",
+        "definition": "\u5728\u4e0a\u65b9\u63d2\u5165\uff08Ctrl+K\uff09",
         "context": "",
         "term_plural": "",
         "reference": "Elm:InsertAboveTitle",
@@ -265,7 +265,7 @@
     },
     {
         "term": "Delete Card (Ctrl+Backspace)",
-        "definition": "\u5220\u9664\u5361\u7247",
+        "definition": "\u5220\u9664\u5361\u7247(Ctrl+Backspace)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DeleteCardTitle",
@@ -437,7 +437,7 @@
     },
     {
         "term": "Bulk transfer of trees from your legacy account",
-        "definition": "\u4ece\u60a8\u7684\u65e7\u5e10\u6237\u4e2d\u6279\u91cf\u8f6c\u79fb\u6811\u6728",
+        "definition": "\u4ece\u65e7\u5e10\u6237\u4e2d\u6279\u91cf\u5bfc\u5165",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HomeLegacyFrom",
@@ -445,7 +445,7 @@
     },
     {
         "term": "Last Updated",
-        "definition": "\u6700\u8fd1\u66f4\u65b0\u65f6\u95f4",
+        "definition": "\u4e0a\u6b21\u66f4\u65b0",
         "context": "",
         "term_plural": "",
         "reference": "Elm:LastUpdated",
@@ -453,7 +453,7 @@
     },
     {
         "term": "Delete Document",
-        "definition": "\u5220\u9664\u6587\u4ef6",
+        "definition": "\u5220\u9664\u5e10\u6237",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DeleteDocument",
@@ -477,7 +477,7 @@
     },
     {
         "term": "More Formatting Options...",
-        "definition": "\u66f4\u591a\u683c\u5f0f\u5316\u9009\u9879...",
+        "definition": "\u66f4\u591a\u683c\u5f0f...",
         "context": "",
         "term_plural": "",
         "reference": "Elm:FormattingGuide",
@@ -489,6 +489,62 @@
         "context": "",
         "term_plural": "",
         "reference": "Elm:AreYouSureCancel",
+        "comment": ""
+    },
+    {
+        "term": "to Edit in Fullscreen",
+        "definition": "\u5168\u5c4f\u7f16\u8f91",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EditFullscreenAction",
+        "comment": ""
+    },
+    {
+        "term": "Quick Document Switcher",
+        "definition": "\u5feb\u6377\u6587\u6863\u5207\u6362\u9762\u677f",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:QuickDocumentSwitcher",
+        "comment": ""
+    },
+    {
+        "term": "Email Support...",
+        "definition": "Email \u652f\u6301",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EmailSupport",
+        "comment": ""
+    },
+    {
+        "term": "Logout",
+        "definition": "\u9000\u51fa",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Logout",
+        "comment": ""
+    },
+    {
+        "term": "Language",
+        "definition": "\u8bed\u8a00",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Language",
+        "comment": ""
+    },
+    {
+        "term": "Contribute translations",
+        "definition": "\u53c2\u4e0e\u7ffb\u8bd1",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ContributeTranslations",
+        "comment": ""
+    },
+    {
+        "term": "here",
+        "definition": "\u8fd9\u91cc",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Here",
         "comment": ""
     }
 ]
