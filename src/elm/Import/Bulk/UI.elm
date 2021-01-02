@@ -225,6 +225,12 @@ view lang { state } =
                         ]
                     , p []
                         [ text "2. Then, come back and ", button [ onClick Retry ] [ text "Try again" ], text "." ]
+                    , br [] []
+                    , small []
+                        [ text "(Or, if you already have a Gingko backup file, you can upload it by clicking "
+                        , button [ onClick FileRequested ] [ text "here" ]
+                        , text ")"
+                        ]
                     ]
                         |> modalWrapper
 
