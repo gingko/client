@@ -25,6 +25,11 @@ const prepTranslation = (langCode, langData) => {
         , replace: replacement.replace(/'/g,"\\'")
         , flags : 'g'
       }];
+  } else if (replacement === null) {
+      return [{ search: target
+        , replace: t.term.replace(/'/g, "\\'")
+        , flags : 'g'
+      }];
   } else if (t.hasOwnProperty("term_plural") && typeof replacement == "object" && replacement.hasOwnProperty("one")) {
       // Plural replacement
       let singReplace = replacement.one.replace(/'/g,"\\'");
