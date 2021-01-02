@@ -49,7 +49,7 @@ describe('Legacy Imports from Startup State', () => {
         let loginData = { email: testEmail, password: config.LEGACY_TEST_PASSWORD, _csrf: csrf };
         cy.request({ url: config.LEGACY_URL + '/auth/login', method: 'POST', body: loginData, form: true })
 
-        cy.get('.modal-guts button')
+        cy.get('#retry-button')
           .click()
 
         cy.contains('Download Full Backup')

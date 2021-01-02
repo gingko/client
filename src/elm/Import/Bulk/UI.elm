@@ -224,7 +224,7 @@ view lang { state } =
                         , text "."
                         ]
                     , p []
-                        [ text "2. Then, come back and ", button [ onClick Retry ] [ text "Try again" ], text "." ]
+                        [ text "2. Then, come back and ", button [ id "retry-button", onClick Retry ] [ text "Try again" ], text "." ]
                     , br [] []
                     , small []
                         [ text "(Or, if you already have a Gingko backup file, you can upload it by clicking "
