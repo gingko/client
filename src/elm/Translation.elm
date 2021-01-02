@@ -175,7 +175,7 @@ tr lang trans =
                     }
 
                 HomeImportJSON ->
-                    { en = "Import JSON"
+                    { en = "Import JSON tree"
                     , zh_hans = "%zh_hans:HomeImportJSON"
                     , zh_hant = "%zh_hant:HomeImportJSON"
                     , es = "%es:HomeImportJSON"
@@ -187,7 +187,7 @@ tr lang trans =
                     }
 
                 HomeJSONFrom ->
-                    { en = "From Desktop or Online"
+                    { en = "From Gingko Desktop or Online export file"
                     , zh_hans = "%zh_hans:HomeJSONFrom"
                     , zh_hant = "%zh_hant:HomeJSONFrom"
                     , es = "%es:HomeJSONFrom"

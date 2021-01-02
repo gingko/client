@@ -8,11 +8,11 @@ msgid "Blank Tree"
 msgstr ""
 
 #: Elm:HomeImportJSON
-msgid "Import JSON"
+msgid "Import JSON tree"
 msgstr ""
 
 #: Elm:HomeJSONFrom
-msgid "From Desktop or Online"
+msgid "From Gingko Desktop or Online export file"
 msgstr ""
 
 #: Elm:HomeImportLegacy
