@@ -8,22 +8,6 @@
         "comment": ""
     },
     {
-        "term": "Import JSON",
-        "definition": "Importar JSON",
-        "context": "",
-        "term_plural": "",
-        "reference": "Elm:HomeImportJSON",
-        "comment": ""
-    },
-    {
-        "term": "From Desktop or Online",
-        "definition": "Del App Escritorio o Web",
-        "context": "",
-        "term_plural": "",
-        "reference": "Elm:HomeJSONFrom",
-        "comment": ""
-    },
-    {
         "term": "Recent Documents",
         "definition": "Documentos Recientes",
         "context": "",
@@ -551,6 +535,22 @@
         "context": "",
         "term_plural": "",
         "reference": "Elm:Here",
+        "comment": ""
+    },
+    {
+        "term": "Import JSON tree",
+        "definition": "Importar \u00e1rbol JSON",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HomeImportJSON",
+        "comment": ""
+    },
+    {
+        "term": "From Gingko Desktop or Online export file",
+        "definition": "Del App Escritorio o Web",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HomeJSONFrom",
         "comment": ""
     }
 ]

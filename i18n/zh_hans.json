@@ -8,22 +8,6 @@
         "comment": ""
     },
     {
-        "term": "Import JSON",
-        "definition": "\u5bfc\u5165JSON",
-        "context": "",
-        "term_plural": "",
-        "reference": "Elm:HomeImportJSON",
-        "comment": ""
-    },
-    {
-        "term": "From Desktop or Online",
-        "definition": "\u4ece\u672c\u5730\u6216\u7ebf\u4e0a",
-        "context": "",
-        "term_plural": "",
-        "reference": "Elm:HomeJSONFrom",
-        "comment": ""
-    },
-    {
         "term": "Recent Documents",
         "definition": "\u6700\u8fd1\u7684\u6587\u6863",
         "context": "",
@@ -33,7 +17,7 @@
     },
     {
         "term": "Last Opened",
-        "definition": "\u4e0a\u4e00\u4e2a\u6253\u5f00",
+        "definition": "\u4e0a\u6b21\u6253\u5f00",
         "context": "",
         "term_plural": "",
         "reference": "Elm:LastOpened",
@@ -501,7 +485,7 @@
     },
     {
         "term": "Quick Document Switcher",
-        "definition": "\u5feb\u6377\u6587\u6863\u5207\u6362\u9762\u677f",
+        "definition": "\u5feb\u901f\u6253\u5f00\u6587\u6863",
         "context": "",
         "term_plural": "",
         "reference": "Elm:QuickDocumentSwitcher",
@@ -533,7 +517,7 @@
     },
     {
         "term": "Contribute translations",
-        "definition": "\u53c2\u4e0e\u7ffb\u8bd1",
+        "definition": "\u53c2\u4e0e\u7ffb\u8bd1\uff1a",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ContributeTranslations",
@@ -541,10 +525,26 @@
     },
     {
         "term": "here",
-        "definition": "\u8fd9\u91cc",
+        "definition": "\u94fe\u63a5",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Here",
+        "comment": ""
+    },
+    {
+        "term": "Import JSON tree",
+        "definition": "\u5bfc\u5165JSON\u6811",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HomeImportJSON",
+        "comment": ""
+    },
+    {
+        "term": "From Gingko Desktop or Online export file",
+        "definition": "\u4ece\u672c\u5730\u6216\u7ebf\u4e0a",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HomeJSONFrom",
         "comment": ""
     }
 ]

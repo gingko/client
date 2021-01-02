@@ -8,22 +8,6 @@
         "comment": ""
     },
     {
-        "term": "Import JSON",
-        "definition": "\u532f\u5165 JSON",
-        "context": "",
-        "term_plural": "",
-        "reference": "Elm:HomeImportJSON",
-        "comment": ""
-    },
-    {
-        "term": "From Desktop or Online",
-        "definition": "\u5f9e\u672c\u6a5f\u6216\u7dda\u4e0a",
-        "context": "",
-        "term_plural": "",
-        "reference": "Elm:HomeJSONFrom",
-        "comment": ""
-    },
-    {
         "term": "Recent Documents",
         "definition": "\u6700\u8fd1\u4f7f\u7528\u6587\u4ef6",
         "context": "",
@@ -501,7 +485,7 @@
     },
     {
         "term": "Quick Document Switcher",
-        "definition": "\u5feb\u6377\u6a94\u6848\u5207\u63db\u5668",
+        "definition": "\u5feb\u6377\u958b\u555f\u6a94\u6848",
         "context": "",
         "term_plural": "",
         "reference": "Elm:QuickDocumentSwitcher",
@@ -541,10 +525,26 @@
     },
     {
         "term": "here",
-        "definition": "\u6b64\u8655",
+        "definition": "\u7db2\u5740 ",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Here",
+        "comment": ""
+    },
+    {
+        "term": "Import JSON tree",
+        "definition": "\u532f\u5165 JSON\u6a39",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HomeImportJSON",
+        "comment": ""
+    },
+    {
+        "term": "From Gingko Desktop or Online export file",
+        "definition": "\u5f9e\u672c\u6a5f\u6216\u7dda\u4e0a",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HomeJSONFrom",
         "comment": ""
     }
 ]

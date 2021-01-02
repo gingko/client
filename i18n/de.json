@@ -8,22 +8,6 @@
         "comment": ""
     },
     {
-        "term": "Import JSON",
-        "definition": "JSON importieren",
-        "context": "",
-        "term_plural": "",
-        "reference": "Elm:HomeImportJSON",
-        "comment": ""
-    },
-    {
-        "term": "From Desktop or Online",
-        "definition": "Vom Desktop oder online",
-        "context": "",
-        "term_plural": "",
-        "reference": "Elm:HomeJSONFrom",
-        "comment": ""
-    },
-    {
         "term": "Recent Documents",
         "definition": "Benutzte Dokumente",
         "context": "",
@@ -495,6 +479,78 @@
         "context": "",
         "term_plural": "",
         "reference": "Elm:AreYouSureCancel",
+        "comment": ""
+    },
+    {
+        "term": "to Edit in Fullscreen",
+        "definition": null,
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EditFullscreenAction",
+        "comment": ""
+    },
+    {
+        "term": "Quick Document Switcher",
+        "definition": null,
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:QuickDocumentSwitcher",
+        "comment": ""
+    },
+    {
+        "term": "Email Support...",
+        "definition": null,
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EmailSupport",
+        "comment": ""
+    },
+    {
+        "term": "Logout",
+        "definition": null,
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Logout",
+        "comment": ""
+    },
+    {
+        "term": "Language",
+        "definition": null,
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Language",
+        "comment": ""
+    },
+    {
+        "term": "Contribute translations",
+        "definition": null,
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ContributeTranslations",
+        "comment": ""
+    },
+    {
+        "term": "here",
+        "definition": null,
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Here",
+        "comment": ""
+    },
+    {
+        "term": "Import JSON tree",
+        "definition": "JSON-Baum importieren",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HomeImportJSON",
+        "comment": ""
+    },
+    {
+        "term": "From Gingko Desktop or Online export file",
+        "definition": "Vom Desktop oder online",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HomeJSONFrom",
         "comment": ""
     }
 ]
