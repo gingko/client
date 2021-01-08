@@ -178,7 +178,7 @@ viewTopRightButtons msgs dropdownState session =
         [ div [ id "help-icon", onClick (msgs.toggledHelpMenu (not isHelpDropdown)) ]
             [ helpIcon
             , if isHelpDropdown then
-                div [ id "help-dropdown" ]
+                div [ id "help-dropdown", class "dropdown" ]
                     [ span [ id "email-support", onClick msgs.clickedEmailSupport ] [ text <| tr lang EmailSupport ] ]
 
               else
@@ -187,7 +187,7 @@ viewTopRightButtons msgs dropdownState session =
         , div [ id "account", onClick (msgs.toggledAccountMenu (not isAccountDropdown)) ]
             [ userIcon
             , if isAccountDropdown then
-                div [ id "account-dropdown" ]
+                div [ id "account-dropdown", class "dropdown" ]
                     [ text (Session.name session |> Maybe.withDefault "")
                     , hr [] []
                     , div [ id "logout-button", onClick msgs.logoutRequested ] [ logoutIcon, text <| tr lang Logout ]
@@ -505,10 +505,11 @@ viewFooter wordCountToggle model =
                 Normal ->
                     [ div
                         [ id "wordcount"
-                        , classList [ ( "inset", True ), ( "open", model.wordcountTrayOpen ) ]
+                        , classList [ ( "open", model.wordcountTrayOpen ) ]
                         , onClick wordCountToggle
                         ]
-                        [ span [] [ text "Word count" ]
+                        [ div [] [ text "Word counts" ]
+                        , br [] []
                         , span [] [ text (tr language (WordCountSession session)) ]
                         , span [] [ text (tr language (WordCountTotal current)) ]
                         , span [] [ text (tr language (WordCountCard wordCounts.card)) ]

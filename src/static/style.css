@@ -441,24 +441,27 @@ body {
 }
 
 
-#help-dropdown {
+.dropdown {
+  background-color: white;
+  box-shadow: 0px 2px 4px hsla(0,0%,0%,0.3);
+  padding: 16px;
+  border-bottom: 1px solid #aaa;
+  border-right: 1px solid #aaa;
+  border-left: 1px solid #aaa;
+  border-radius: 5px 0 5px 5px;
   cursor: default;
+}
+
+#help-dropdown {
   position: absolute;
   right: 38px;
   top: 39px;
-  padding: 16px;
-  background: whitesmoke;
-  border-radius: 5px 0 5px 5px;
 }
 
 #account-dropdown {
-  cursor: default;
   position: absolute;
   right: 0px;
   top: 39px;
-  padding: 16px;
-  background: whitesmoke;
-  border-radius: 5px 0 5px 5px;
 }
 
 #sidebar {
@@ -1558,19 +1561,22 @@ pre {
   overflow: hidden;
   height: 20px;
   transition: none;
+  padding: 6px 6px 0 6px;
 }
 
 #wordcount.open, #wordcount:hover {
-  background-color: #a2aeb4;
-  height: 110px;
+  background-color: whitesmoke;
+  height: 120px;
   border-radius: 4px 4px 0 0;
   transition: height 0.2s ease-out;
   box-shadow: 14px -12px 4px -13px #3c484e;
   z-index: 9999;
 }
 
-#wordcount:active {
-  background-color: #bcc6cc;
+#wordcount div:first-child {
+  background: whitesmoke;
+  text-align: center;
+  padding: 3px;
 }
 
 #shortcuts-tray {
