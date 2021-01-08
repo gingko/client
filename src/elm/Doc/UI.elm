@@ -8,7 +8,7 @@ import Doc.List as DocList
 import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
-import Html exposing (Html, a, br, button, del, div, fieldset, h1, h2, h3, h4, h5, hr, iframe, img, input, ins, label, li, option, select, small, span, text, ul)
+import Html exposing (Html, a, br, button, del, div, fieldset, h1, h2, h3, h4, h5, hr, iframe, img, input, ins, label, li, option, pre, select, small, span, text, ul)
 import Html.Attributes as A exposing (..)
 import Html.Events exposing (onCheck, onClick, onInput, onSubmit)
 import Html.Events.Extra exposing (onChange)
@@ -650,6 +650,9 @@ viewShortcuts trayToggleMsg lang isOpen isMac children textCursorInfo vs =
         shortcutSpan =
             shortcutSpanEnabled True
 
+        formattingSpan markup =
+            span [] [ pre [ class "formatting-text" ] [ text markup ] ]
+
         ctrlOrCmd =
             if isMac then
                 "⌘"
@@ -710,6 +713,9 @@ viewShortcuts trayToggleMsg lang isOpen isMac children textCursorInfo vs =
                         , h5 [] [ text "Formatting" ]
                         , shortcutSpanEnabled isTextSelected [ ctrlOrCmd, "B" ] (tr lang ForBold)
                         , shortcutSpanEnabled isTextSelected [ ctrlOrCmd, "I" ] (tr lang ForItalic)
+                        , formattingSpan "# Title\n## Subtitle"
+                        , formattingSpan "- List item\n  - Subitem"
+                        , formattingSpan "[name](http://t.co)"
                         , span [ class "markdown-guide" ]
                             [ a [ href "http://commonmark.org/help", target "_blank" ]
                                 [ text <| tr lang FormattingGuide

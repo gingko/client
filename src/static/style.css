@@ -1631,6 +1631,11 @@ span.shortcut-key {
 #shortcuts-tray span.disabled {
   color: #6c7c84;
 }
+pre.formatting-text {
+  display: inline-block;
+  padding: 2px 4px;
+  margin: 6px 0 0 0;
+}
 #shortcuts-tray span.markdown-guide {
   margin-top: 4px;
   cursor: pointer;
