@@ -64,7 +64,7 @@ describe('Legacy Imports from Startup State', () => {
 
   it('Shows tree list from the dropped file', () => {
     cy.get('.file-drop-zone')
-      .attachFile('bulk-import-test.txt', { subjectType: 'drag-n-drop' })
+      .attachFile('bulk-import-test-larger.txt', { subjectType: 'drag-n-drop' })
 
     cy.get('#import-selection-list')
       .should('contain', 'Screenplay')
@@ -73,6 +73,8 @@ describe('Legacy Imports from Startup State', () => {
   })
 
   it('Adds selected trees to document list', () => {
+    cy.viewport('samsung-s10', 'landscape')
+
     cy.get('#import-selection-list input')
       .click({ multiple: true })
 
@@ -80,7 +82,7 @@ describe('Legacy Imports from Startup State', () => {
       .click()
 
     cy.get('.sidebar-document-list > .sidebar-document-item')
-      .should('have.length', 4)
+      .should('have.length', 11)
   })
 
   it('Closed the Import Modal on success', () => {
