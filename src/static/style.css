@@ -393,6 +393,7 @@ body {
   flex-direction: column;
   overflow: auto;
   padding: 40px 0;
+  max-height: 100vh;
 }
 .file-drop-zone.dragged-over {
     border: 4px solid green;
