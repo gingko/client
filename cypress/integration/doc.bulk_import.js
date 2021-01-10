@@ -1,5 +1,11 @@
 const config = require("../../config.js");
 
+/*
+
+NOTE: This only works in Headless mode, for some reason.
+In browser mode, doesn't login to legacy gingko correctly.
+
+ */
 describe('Legacy Imports from Startup State', () => {
   const testEmail = 'cypress@testing.com'
 
