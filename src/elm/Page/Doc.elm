@@ -43,6 +43,7 @@ import Task
 import Time
 import Translation exposing (..)
 import Types exposing (..)
+import Upgrade.UI
 import Utils exposing (randomPositiveInt)
 
 
@@ -96,6 +97,7 @@ type ModalState
     | SidebarContextMenu String ( Float, Float )
     | TemplateSelector
     | ImportModal ImportModal.Model
+    | UpgradeModal
 
 
 defaultModel : Bool -> Session -> String -> Model
@@ -225,7 +227,7 @@ type Msg
     | TitleEdited
     | ToggledHelpMenu Bool
     | ToggledAccountMenu Bool
-    | CheckoutClicked
+    | ToggledUpgradeModal Bool
     | ClickedEmailSupport
       -- Sidebar & Modals
     | ToggleSidebar
@@ -599,8 +601,17 @@ update msg ({ workingTree } as model) =
             , Cmd.none
             )
 
-        CheckoutClicked ->
-            ( model, send <| CheckoutButtonClicked )
+        ToggledUpgradeModal isOpen ->
+            ( { model
+                | modalState =
+                    if isOpen then
+                        UpgradeModal
+
+                    else
+                        NoModal
+              }
+            , Cmd.none
+            )
 
         ClickedEmailSupport ->
             ( model, send <| TriggerMailto )
@@ -2445,7 +2456,7 @@ pre, code, .group.has-active .card textarea {
                         , clickedEmailSupport = ClickedEmailSupport
                         , logoutRequested = LogoutRequested
                         , toggledAccountMenu = ToggledAccountMenu
-                        , checkoutClicked = CheckoutClicked
+                        , toggledUpgradeModal = ToggledUpgradeModal
                         }
                         (Metadata.getDocName model.metadata)
                         model
@@ -2981,6 +2992,9 @@ viewModal language model =
         ImportModal modalModel ->
             ImportModal.view language modalModel
                 |> List.map (Html.map ImportModalMsg)
+
+        UpgradeModal ->
+            Upgrade.UI.view
 
 
 

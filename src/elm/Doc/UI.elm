@@ -50,7 +50,7 @@ type alias HeaderMsgs msg =
     , clickedEmailSupport : msg
     , logoutRequested : msg
     , toggledAccountMenu : Bool -> msg
-    , checkoutClicked : msg
+    , toggledUpgradeModal : Bool -> msg
     }
 
 
@@ -99,7 +99,7 @@ viewHeader msgs title_ model =
             , clickedEmailSupport = msgs.clickedEmailSupport
             , logoutRequested = msgs.logoutRequested
             , toggledAccountMenu = msgs.toggledAccountMenu
-            , checkoutClicked = msgs.checkoutClicked
+            , toggledUpgradeModal = msgs.toggledUpgradeModal
             }
             model.dropdownState
             model.session
@@ -156,7 +156,7 @@ viewTopRightButtons :
     , clickedEmailSupport : msg
     , logoutRequested : msg
     , toggledAccountMenu : Bool -> msg
-    , checkoutClicked : msg
+    , toggledUpgradeModal : Bool -> msg
     }
     -> DropdownState
     -> Session
@@ -196,7 +196,7 @@ viewTopRightButtons msgs dropdownState session =
             , if isAccountDropdown then
                 div [ id "account-dropdown", class "dropdown" ]
                     [ text (Session.name session |> Maybe.withDefault "")
-                    , button [ onClick msgs.checkoutClicked ] [ text "Upgrade" ]
+                    , button [ id "upgrade-button", onClick <| msgs.toggledUpgradeModal True ] [ text "Upgrade" ]
                     , hr [] []
                     , div [ id "logout-button", onClick msgs.logoutRequested ] [ logoutIcon, text <| tr lang Logout ]
                     ]
