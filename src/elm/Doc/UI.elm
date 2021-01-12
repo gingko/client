@@ -716,7 +716,7 @@ viewShortcuts trayToggleMsg lang isOpen isMac children textCursorInfo vs =
                         , shortcutSpanEnabled isTextSelected [ ctrlOrCmd, "I" ] (tr lang ForItalic)
                         , formattingSpan "# Title\n## Subtitle"
                         , formattingSpan "- List item\n  - Subitem"
-                        , formattingSpan "[name](http://t.co)"
+                        , formattingSpan "[link](http://t.co)"
                         , span [ class "markdown-guide" ]
                             [ a [ href "http://commonmark.org/help", target "_blank" ]
                                 [ text <| tr lang FormattingGuide
