@@ -9,6 +9,7 @@ import Html.Attributes exposing (checked, class, classList, disabled, height, hr
 import Html.Events exposing (on, onCheck, onClick)
 import Import.Bulk
 import Json.Decode as Dec
+import Octicons as Icon exposing (defaultOptions)
 import Outgoing exposing (Msg(..), send)
 import Session exposing (Session)
 import Task
@@ -33,9 +34,10 @@ type ImportModalState
 
 
 type LoginState
-    = Unknown
+    = Checking
     | LoggedIn
     | LoggedOut
+    | Manual
 
 
 type alias ImportSelection =
@@ -47,7 +49,7 @@ type alias ImportSelection =
 
 init : Session -> Model
 init user =
-    { state = ModalOpen { loginState = Unknown, isFileDragging = False }, user = user }
+    { state = ModalOpen { loginState = Checking, isFileDragging = False }, user = user }
 
 
 
@@ -58,6 +60,7 @@ type Msg
     = NoOp
     | ModalToggled Bool
     | LegacyLoginStateChanged Bool
+    | ManualChosen
     | Retry
     | FileRequested
     | FileDraggedOver Bool
@@ -72,7 +75,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg ({ state, user } as model) =
     case ( msg, state ) of
         ( ModalToggled True, Closed ) ->
-            ( { model | state = ModalOpen { loginState = Unknown, isFileDragging = False } }, Cmd.none )
+            ( { model | state = ModalOpen { loginState = Checking, isFileDragging = False } }, Cmd.none )
 
         ( ModalToggled False, _ ) ->
             ( { model | state = Closed }, Cmd.none )
@@ -88,8 +91,11 @@ update msg ({ state, user } as model) =
             in
             ( { model | state = ModalOpen { loginState = newState, isFileDragging = False } }, Cmd.none )
 
+        ( ManualChosen, _ ) ->
+            ( { model | state = ModalOpen { loginState = Manual, isFileDragging = False } }, Cmd.none )
+
         ( Retry, ModalOpen modalData ) ->
-            ( { model | state = ModalOpen { modalData | loginState = Unknown } }, Cmd.none )
+            ( { model | state = ModalOpen { modalData | loginState = Checking } }, Cmd.none )
 
         ( FileRequested, _ ) ->
             ( model, Select.file [ "text/*", "application/json" ] FileSelected )
@@ -164,34 +170,41 @@ update msg ({ state, user } as model) =
 
 view : Language -> Model -> List (Html Msg)
 view lang { state } =
+    let
+        fileDropDecoder =
+            Dec.map
+                (\files ->
+                    case List.head files of
+                        Just file ->
+                            FileSelected file
+
+                        Nothing ->
+                            NoOp
+                )
+                (Dec.field "dataTransfer" (Dec.field "files" (Dec.list File.decoder)))
+    in
     case state of
         Closed ->
             [ text "" ]
 
         ModalOpen { loginState, isFileDragging } ->
             case loginState of
-                Unknown ->
+                Checking ->
                     [ h1 [] [ text "Import From Gingko v1" ]
-                    , text "Checking to see if you're logged in or not:"
+                    , text "Checking to see if you're logged in or not..."
                     , br [] []
                     , iframe [ src "https://gingkoapp.com/loggedin", width 0, height 0 ] []
+                    , br [] []
+                    , p []
+                        [ h4 [] [ text "Taking too long?" ]
+                        , text "Click "
+                        , button [ onClick ManualChosen ] [ text "here" ]
+                        , text " to download your v1 files manually."
+                        ]
                     ]
                         |> modalWrapper
 
                 LoggedIn ->
-                    let
-                        fileDropDecoder =
-                            Dec.map
-                                (\files ->
-                                    case List.head files of
-                                        Just file ->
-                                            FileSelected file
-
-                                        Nothing ->
-                                            NoOp
-                                )
-                                (Dec.field "dataTransfer" (Dec.field "files" (Dec.list File.decoder)))
-                    in
                     [ h1 [] [ text "Import From Gingko v1" ]
                     , p [] [ text "To transfer multiple trees from your old account to this new one, follow these steps." ]
                     , p []
@@ -226,10 +239,37 @@ view lang { state } =
                     , p []
                         [ text "2. Then, come back and ", button [ id "retry-button", onClick Retry ] [ text "Try again" ], text "." ]
                     , br [] []
-                    , small []
-                        [ text "(Or, if you already have a Gingko backup file, you can upload it by clicking "
-                        , button [ onClick FileRequested ] [ text "here" ]
-                        , text ")"
+                    , p []
+                        [ h4 [] [ text "Having issues?" ]
+                        , text "Click "
+                        , button [ onClick ManualChosen ] [ text "here" ]
+                        , text " to download your v1 files manually."
+                        ]
+                    ]
+                        |> modalWrapper
+
+                Manual ->
+                    [ h1 [] [ text "Import From Gingko v1" ]
+                    , p []
+                        [ text "1. "
+                        , a [ href "https://gingkoapp.com/login", target "_blank" ] [ text "Login" ]
+                        , text " to your old Gingko App account."
+                        ]
+                    , p []
+                        [ text "2. Click on the Settings (", Icon.gear defaultOptions, text ") icon." ]
+                    , p []
+                        [ text "3. Click 'Backup All Files'." ]
+                    , p []
+                        [ text "4. Drag the backup file here:"
+                        , div
+                            [ classList [ ( "file-drop-zone", True ), ( "dragged-over", isFileDragging ) ]
+                            , on "dragenter" (Dec.succeed (FileDraggedOver True))
+                            , on "dragleave" (Dec.succeed (FileDraggedOver False))
+                            , on "drop" fileDropDecoder
+                            ]
+                            []
+                        , text "or find the file in your system: "
+                        , button [ onClick FileRequested ] [ text "Browse..." ]
                         ]
                     ]
                         |> modalWrapper
