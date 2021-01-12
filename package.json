@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/gingko/client",
   "scripts": {
-    "start": "webpack --watch",
+    "start": "webpack --progress --watch",
     "build": "webpack",
     "electron": "electron ./app",
     "pack": "electron-builder --dir",
