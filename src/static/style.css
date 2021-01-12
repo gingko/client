@@ -361,7 +361,6 @@ body {
   position: fixed;
   display: grid;
   grid-template-columns: minmax(200px, 800px);
-  overflow-y: scroll;
   z-index: 100;
   left: 50%;
   top: 50%;
@@ -1825,6 +1824,7 @@ ul.changelist {
   #shortcuts-tray {
     box-shadow: none;
     grid-area: 4 / 3;
+    overflow: hidden;
     border-top: 1px solid #aaa;
     border-right: 1px solid #aaa;
     border-radius: 0 0 0 8px;
