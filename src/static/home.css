@@ -50,7 +50,9 @@ label {
 
 #templates-block {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(90px, 150px));
+  justify-content: center;
+  justify-items: center;
   grid-gap: 30px;
   padding: 20px;
   box-shadow: inset 0px -2px 4px hsla(0,0%,0%,0.4);

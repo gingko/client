@@ -291,9 +291,10 @@ body {
   width: 100%;
   display: grid;
   grid-template-columns: 40px auto 1fr auto;
-  grid-template-rows: 40px 1fr 25px;
+  grid-template-rows: 40px 40px 1fr 25px;
   grid-template-areas:
     "home home document-header document-header"
+    "sidebar sidebar-menu document right-sidebar"
     "sidebar sidebar-menu document right-sidebar"
     "sidebar sidebar-menu document-footer right-sidebar";
 }
@@ -357,10 +358,10 @@ body {
 }
 
 .modal {
-  display: block;
-  max-width: 100%;
-  max-height: 100%;
   position: fixed;
+  display: grid;
+  grid-template-columns: minmax(200px, 800px);
+  overflow-y: scroll;
   z-index: 100;
   left: 50%;
   top: 50%;
@@ -380,8 +381,9 @@ body {
 .modal .close-button {
   position: absolute;
   z-index: 1;
-  top: 10px;
-  right: 20px;
+  top: 7px;
+  right: 3px;
+  border-radius: 50%;
   border: 0;
   background: black;
   color: white;
@@ -393,7 +395,7 @@ body {
   flex-direction: column;
   overflow: auto;
   padding: 40px 0;
-  max-height: 100vh;
+  max-height: 90vh;
 }
 .file-drop-zone.dragged-over {
     border: 4px solid green;
@@ -461,7 +463,7 @@ body {
 
 #account-dropdown {
   position: absolute;
-  right: 0px;
+  right: 4px;
   top: 39px;
 }
 
@@ -510,6 +512,7 @@ body {
   background: #cdd9df;
   border-radius: 4px;
   color: black;
+  margin-top: .4rem;
 }
 .sidebar-item a {
   text-decoration: none;
@@ -519,7 +522,7 @@ body {
 .sidebar-document-list {
   list-style: none;
   padding: 10px 0 10px 10px;
-  margin-top: 0px;
+  /* margin-top: 0px; */
   background: hsl(200deg 22% 84%);
 }
 li.sidebar-document-item {
@@ -678,31 +681,6 @@ li.sidebar-document-item.active::after {
   grid-template-columns: repeat(auto-fill, minmax(50ch,80ch));
   grid-auto-flow: column;
   grid-auto-columns: minmax(50ch,80ch);
-}
-
-@media (max-width: 50ch) {
-  #app-root {
-    grid-template-columns: 40px auto 1fr;
-    grid-template-rows: 40px 40px auto 1fr 25px;
-    grid-template-areas:
-      "home home document-header"
-      "sidebar sidebar sidebar"
-      "sidebar-menu sidebar-menu sidebar-menu"
-      "document document document"
-      "document-footer document-footer document-footer";
-  }
-  #document {
-    grid-template-columns: minmax(20px,0.613fr) 1fr minmax(20px,0.613fr);
-  }
-  #column-container {
-    grid-template-columns: repeat(auto-fill, 90vw);
-    grid-auto-flow: column;
-    grid-auto-columns: 90vw
-  }
-  #sidebar, #sidebar-menu {
-    flex-direction: row;
-  }
-
 }
 
 .column {
@@ -1011,7 +989,7 @@ h1 { font-size: 24px; margin-bottom: 8px }
 h2 { font-size: 20px; margin-bottom: 6px }
 h3 { font-size: 16px; margin-bottom: 5px }
 h4 { font-size: 14px; margin-bottom: 4px }
-h5 { font-size: 12px; margin-bottom: 3px }
+h5 { font-size: 12px; margin-bottom: 20px }
 h6 { font-size: 10px; margin-bottom: 0 }
 
 p {
@@ -1781,4 +1759,100 @@ ul.changelist {
 #history-graph {
   position: absolute;
   top: 40px;
+}
+
+/*400px =25em */
+@media only screen and (max-width:25em) {
+  #app-root {
+    grid-template-areas: "home document-header document-header"
+      "sidebar sidebar sidebar"
+      "document document document"
+      "document document document"
+      "document document document"
+      "document-footer document-footer document-footer";
+    grid-template-columns: 40px 1fr minmax(25px, auto);
+    grid-template-rows: 40px 40px auto 40px 1fr 25px;
+
+  }
+
+
+  #document {
+    grid-template-columns: minmax(20px, 0.613fr) 1fr minmax(20px, 0.613fr);
+  }
+
+  #document-header {
+    box-shadow: none;
+  }
+
+  #column-container {
+    grid-template-columns: repeat(auto-fill, 90vw);
+    grid-auto-flow: column;
+    grid-auto-columns: 90vw
+  }
+
+  #sidebar {
+    flex-direction: row;
+  }
+
+  .column {
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    scrollbar-width: none;
+    transform: translateZ(0);
+  }
+
+  .column::-webkit-scrollbar {
+    width: 0 !important;
+  }
+
+  .left-padding-column {
+    background-color: var(--bg-left);
+    border-right: 2px solid hsla(0, 0%, 0%, 0.15);
+    margin-right: 40px;
+  }
+
+  .buffer {
+    margin: 0 16px;
+    height: 100%;
+    z-index: 1;
+  }
+
+  #search-field {
+    right: 44px;
+  }
+
+  #shortcuts-tray {
+    box-shadow: none;
+    grid-area: 4 / 3;
+    border-top: 1px solid #aaa;
+    border-right: 1px solid #aaa;
+    border-radius: 0 0 0 8px;
+  }
+
+  #shortcuts-tray.open {
+    box-shadow: none;
+    grid-area: 4 / 3 / document-end / document-end;
+    border-radius: 0;
+  }
+
+  #shortcuts h3 {
+    font-size: 14px;
+  }
+
+  h2#brand-name {
+    display: none;
+  }
+
+  div#sidebar-menu {
+    flex-direction: column;
+    grid-area: document;
+    z-index: 20;
+
+    height: 275px;
+  }
+
+  li.sidebar-document-item {
+    position: inherit;
+  }
 }
