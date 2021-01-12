@@ -225,6 +225,7 @@ type Msg
     | TitleEdited
     | ToggledHelpMenu Bool
     | ToggledAccountMenu Bool
+    | CheckoutClicked
     | ClickedEmailSupport
       -- Sidebar & Modals
     | ToggleSidebar
@@ -597,6 +598,9 @@ update msg ({ workingTree } as model) =
               }
             , Cmd.none
             )
+
+        CheckoutClicked ->
+            ( model, send <| CheckoutButtonClicked )
 
         ClickedEmailSupport ->
             ( model, send <| TriggerMailto )
@@ -2441,6 +2445,7 @@ pre, code, .group.has-active .card textarea {
                         , clickedEmailSupport = ClickedEmailSupport
                         , logoutRequested = LogoutRequested
                         , toggledAccountMenu = ToggledAccountMenu
+                        , checkoutClicked = CheckoutClicked
                         }
                         (Metadata.getDocName model.metadata)
                         model
