@@ -9,6 +9,7 @@ import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
 import Random
 import Translation exposing (Language(..), langFromString, langToString, languageDecoder)
+import Upgrade
 import Utils exposing (hexEncode)
 
 
@@ -31,9 +32,9 @@ type alias SessionData =
 
 
 type alias UserData =
-    -- Persisted in userdb settings
     { email : String
     , language : Translation.Language
+    , upgradeModalState : Upgrade.Model
     , shortcutTrayOpen : Bool
     , documents : DocList.Model
     }
@@ -226,7 +227,7 @@ decodeLoggedIn : Nav.Key -> Dec.Decoder Session
 decodeLoggedIn key =
     Dec.succeed
         (\email s lang trayOpen lastDoc ->
-            LoggedIn (SessionData key s False lastDoc) (UserData email lang trayOpen DocList.init)
+            LoggedIn (SessionData key s False lastDoc) (UserData email lang Upgrade.init trayOpen DocList.init)
         )
         |> required "email" Dec.string
         |> required "seed" (Dec.int |> Dec.map Random.initialSeed)
@@ -248,7 +249,7 @@ responseDecoder session =
         builder email lang trayOpen =
             case session of
                 Guest sessionData data ->
-                    LoggedIn sessionData (UserData email lang trayOpen DocList.init)
+                    LoggedIn sessionData (UserData email lang Upgrade.init trayOpen DocList.init)
 
                 LoggedIn _ _ ->
                     session
