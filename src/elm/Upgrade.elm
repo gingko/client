@@ -1,8 +1,9 @@
-module Upgrade exposing (Model, init, view)
+module Upgrade exposing (Model, Msg, init, update, view)
 
 import Html exposing (Html, button, div, option, select, text)
 import Html.Attributes exposing (id, value)
 import Html.Events exposing (onClick, onInput)
+import Html.Events.Extra exposing (onChange)
 import SharedUI exposing (modalWrapper)
 
 
@@ -41,26 +42,36 @@ init =
 
 
 type Msg
-    = CurrencySelected Currency
+    = CurrencySelected String
+    | CheckoutClicked
+    | ModalClosed
 
 
 update : Msg -> Model -> Model
 update msg model =
     case msg of
-        CurrencySelected currency ->
-            { model | currency = Currency currency }
+        CurrencySelected currencyString ->
+            case currencyFromString currencyString of
+                Just currency ->
+                    { model | currency = Currency currency }
+
+                Nothing ->
+                    model
+
+        _ ->
+            model
 
 
 
 -- VIEW
 
 
-view : { modalClosedMsg : msg, checkoutClickedMsg : msg } -> Model -> List (Html msg)
-view { modalClosedMsg, checkoutClickedMsg } model =
+view : Model -> List (Html Msg)
+view model =
     [ viewCopy
-    , viewPaymentForm checkoutClickedMsg model
+    , viewPaymentForm model
     ]
-        |> modalWrapper modalClosedMsg (Just "upgrade-modal") "Upgrade Gingko Writer"
+        |> modalWrapper ModalClosed (Just "upgrade-modal") "Upgrade Gingko Writer"
 
 
 viewCopy : Html msg
@@ -68,25 +79,25 @@ viewCopy =
     div [ id "upgrade-copy" ] [ text "body copy here" ]
 
 
-viewPaymentForm : msg -> Model -> Html msg
-viewPaymentForm checkoutClickedMsg model =
+viewPaymentForm : Model -> Html Msg
+viewPaymentForm model =
     case model.currency of
         UnknownCurrency ->
             div [ id "upgrade-checkout" ]
-                [ viewCurrencySelector
+                [ viewCurrencySelector CurrencySelected
                 ]
 
         Currency curr ->
             div [ id "upgrade-checkout" ]
-                [ viewCurrencySelector
+                [ viewCurrencySelector CurrencySelected
                 , text "Price is $10/mo"
-                , button [ onClick checkoutClickedMsg ] [ text "Pay Now" ]
+                , button [ onClick CheckoutClicked ] [ text "Pay Now" ]
                 ]
 
 
-viewCurrencySelector : Html msg
-viewCurrencySelector =
-    select [ id "currency-selector" ]
+viewCurrencySelector : (String -> Msg) -> Html Msg
+viewCurrencySelector selectMsg =
+    select [ id "currency-selector", onChange selectMsg ]
         [ option [ value "" ] [ text "Select your currency" ]
         , option [ value "usd" ] [ text "USD" ]
         ]
@@ -110,3 +121,13 @@ currencyToString currency =
     case currency of
         USD ->
             "USD"
+
+
+currencyFromString : String -> Maybe Currency
+currencyFromString currencyString =
+    case currencyString of
+        "usd" ->
+            Just USD
+
+        _ ->
+            Nothing

@@ -227,9 +227,6 @@ type Msg
     | TitleEdited
     | ToggledHelpMenu Bool
     | ToggledAccountMenu Bool
-    | ToggledUpgradeModal Bool
-    | CheckoutClicked
-    | ClickedEmailSupport
       -- Sidebar & Modals
     | ToggleSidebar
     | SidebarStateChanged SidebarState
@@ -243,6 +240,10 @@ type Msg
     | ExportPreviewToggled Bool
     | ExportSelectionChanged ExportSelection
     | ExportFormatChanged ExportFormat
+      -- Upgrade
+    | ToggledUpgradeModal Bool
+    | UpgradeModalMsg Upgrade.Msg
+    | ClickedEmailSupport
       -- Import
     | ImportModalMsg ImportModal.Msg
     | ImportJSONSelected File
@@ -614,8 +615,12 @@ update msg ({ workingTree } as model) =
             , Cmd.none
             )
 
-        CheckoutClicked ->
-            ( model, send <| CheckoutButtonClicked "price_id_here" )
+        UpgradeModalMsg upgradeModalMsg ->
+            let
+                newSession =
+                    Session.updateUpgrade upgradeModalMsg model.session
+            in
+            ( { model | session = newSession }, Cmd.none )
 
         ClickedEmailSupport ->
             ( model, send <| TriggerMailto )
@@ -3000,9 +3005,8 @@ viewModal language model =
         UpgradeModal ->
             case Session.upgradeModel model.session of
                 Just upgradeModel ->
-                    Upgrade.view
-                        { modalClosedMsg = ModalClosed, checkoutClickedMsg = CheckoutClicked }
-                        upgradeModel
+                    Upgrade.view upgradeModel
+                        |> List.map (Html.map UpgradeModalMsg)
 
                 Nothing ->
                     []
