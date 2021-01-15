@@ -32,5 +32,9 @@ describe('Loading indicators', () => {
       .click()
 
     cy.contains('Upgrade Gingko Writer')
+
+    cy.get('#currency-selector')
+      .should('contain', 'Select your currency')
+      .select('usd')
   })
 })

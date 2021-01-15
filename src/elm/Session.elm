@@ -1,4 +1,4 @@
-port module Session exposing (Session, db, decode, documents, fileMenuOpen, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, settingsChange, shortcutTrayOpen, storeLogin, storeSignup, updateDocuments)
+port module Session exposing (Session, db, decode, documents, fileMenuOpen, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, settingsChange, shortcutTrayOpen, storeLogin, storeSignup, updateDocuments, upgradeModel)
 
 import Browser.Navigation as Nav
 import Doc.List as DocList
@@ -34,7 +34,7 @@ type alias SessionData =
 type alias UserData =
     { email : String
     , language : Translation.Language
-    , upgradeModalState : Upgrade.Model
+    , upgradeModel : Upgrade.Model
     , shortcutTrayOpen : Bool
     , documents : DocList.Model
     }
@@ -108,6 +108,16 @@ language session =
 
         Guest _ data ->
             data.language
+
+
+upgradeModel : Session -> Maybe Upgrade.Model
+upgradeModel session =
+    case session of
+        LoggedIn _ data ->
+            Just data.upgradeModel
+
+        Guest _ _ ->
+            Nothing
 
 
 shortcutTrayOpen : Session -> Bool

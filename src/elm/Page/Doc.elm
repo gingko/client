@@ -2998,7 +2998,14 @@ viewModal language model =
                 |> List.map (Html.map ImportModalMsg)
 
         UpgradeModal ->
-            Upgrade.view { modalClosedMsg = ModalClosed, checkoutClickedMsg = CheckoutClicked }
+            case Session.upgradeModel model.session of
+                Just upgradeModel ->
+                    Upgrade.view
+                        { modalClosedMsg = ModalClosed, checkoutClickedMsg = CheckoutClicked }
+                        upgradeModel
+
+                Nothing ->
+                    []
 
 
 
