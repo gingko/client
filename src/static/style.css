@@ -469,7 +469,11 @@ body {
 }
 
 #upgrade-modal {
-
+  display: grid;
+  grid-template-rows: 1fr;
+  grid-template-columns: 3fr 1fr;
+  grid-template-areas:
+    "body checkout"
 }
 
 #sidebar {
