@@ -43,7 +43,7 @@ import Task
 import Time
 import Translation exposing (..)
 import Types exposing (..)
-import Upgrade.UI
+import Upgrade
 import Utils exposing (randomPositiveInt)
 
 
@@ -228,6 +228,7 @@ type Msg
     | ToggledHelpMenu Bool
     | ToggledAccountMenu Bool
     | ToggledUpgradeModal Bool
+    | CheckoutClicked
     | ClickedEmailSupport
       -- Sidebar & Modals
     | ToggleSidebar
@@ -612,6 +613,9 @@ update msg ({ workingTree } as model) =
               }
             , Cmd.none
             )
+
+        CheckoutClicked ->
+            ( model, send <| CheckoutButtonClicked "price_id_here" )
 
         ClickedEmailSupport ->
             ( model, send <| TriggerMailto )
@@ -2994,7 +2998,7 @@ viewModal language model =
                 |> List.map (Html.map ImportModalMsg)
 
         UpgradeModal ->
-            Upgrade.UI.view ModalClosed
+            Upgrade.view { modalClosedMsg = ModalClosed, checkoutClickedMsg = CheckoutClicked }
 
 
 

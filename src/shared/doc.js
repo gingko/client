@@ -464,29 +464,10 @@ const fromElm = (msg, elmData) => {
 
     EmptyMessageShown: () => {},
 
-    CheckoutButtonClicked: () => {
-      // Create a new Checkout Session using the server-side endpoint you
-      // created in step 3.
-      fetch('/create-checkout-session', {
-        method: 'POST',
-      })
-        .then(function(response) {
-          return response.json();
-        })
-        .then(function(session) {
-          return stripe.redirectToCheckout({ sessionId: session.id });
-        })
-        .then(function(result) {
-          // If `redirectToCheckout` fails due to a browser or network
-          // error, you should display the localized error message to your
-          // customer using `error.message`.
-          if (result.error) {
-            alert(result.error.message);
-          }
-        })
-        .catch(function(error) {
-          console.error('Error:', error);
-        });
+    CheckoutButtonClicked: async () => {
+      let data = await createCheckoutSession(elmData);
+      let checkoutResult = stripe.redirectToCheckout({sessionId: data.sessionId});
+      console.log(checkoutResult);
     },
 
     TriggerMailto: () => {
@@ -520,6 +501,21 @@ async function loadDocListAndSend(dbToLoadFrom, source) {
 }
 
 
+/* === Stripe === */
+
+var createCheckoutSession = function(priceId) {
+  return fetch("/create-checkout-session", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      priceId: priceId
+    })
+  }).then(function(result) {
+    return result.json();
+  });
+};
 
 
 /* === Helper Functions === */
