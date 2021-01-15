@@ -15,7 +15,7 @@ import SharedUI exposing (modalWrapper)
 type alias Model =
     { currency : CurrencySelection
     , billing : BillingFrequency
-    , pwywSelection : PwywSelection
+    , plan : Plan
     }
 
 
@@ -24,23 +24,51 @@ type BillingFrequency
     | Yearly
 
 
-type PwywSelection
+type Plan
     = Regular
     | Discount
     | Bonus
+
+
+planToString : Plan -> String
+planToString plan =
+    case plan of
+        Regular ->
+            "regular"
+
+        Discount ->
+            "discount"
+
+        Bonus ->
+            "bonus"
 
 
 init : Model
 init =
     { currency = UnknownCurrency
     , billing = Monthly
-    , pwywSelection = Regular
+    , plan = Regular
     }
 
 
 toValue : Model -> Enc.Value
 toValue model =
-    Enc.null
+    case model.currency of
+        UnknownCurrency ->
+            Enc.null
+
+        Currency curr ->
+            Enc.object
+                [ ( "currency", Enc.string (currencyToString curr) )
+                , ( "billing"
+                  , if model.billing == Monthly then
+                        "monthly" |> Enc.string
+
+                    else
+                        "yearly" |> Enc.string
+                  )
+                , ( "plan", Enc.string (planToString model.plan) )
+                ]
 
 
 
@@ -105,7 +133,7 @@ viewCurrencySelector : (String -> Msg) -> Model -> Html Msg
 viewCurrencySelector selectMsg model =
     select [ id "currency-selector", onChange selectMsg ]
         [ option [ value "" ] [ text "Select your currency" ]
-        , option [ value "usd", selected (model.currency == Currency USD) ] [ text "USD" ]
+        , option [ value "USD", selected (model.currency == Currency USD) ] [ text "USD" ]
         ]
 
 
@@ -132,7 +160,7 @@ currencyToString currency =
 currencyFromString : String -> Maybe Currency
 currencyFromString currencyString =
     case currencyString of
-        "usd" ->
+        "USD" ->
             Just USD
 
         _ ->

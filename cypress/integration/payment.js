@@ -35,7 +35,7 @@ describe('Loading indicators', () => {
 
     cy.get('#currency-selector')
       .should('contain', 'Select your currency')
-      .select('usd')
+      .select('USD')
 
     cy.get('#upgrade-checkout')
       .should('contain', '$10/mo')
@@ -51,17 +51,17 @@ describe('Loading indicators', () => {
       .click()
 
     cy.get('#currency-selector')
-      .should('have.value', 'usd')
+      .should('have.value', 'USD')
     cy.get('#upgrade-checkout')
       .should('contain', '$10/mo')
 
     // Correct priceId set
-    let expectedData = {currency: "usd", billing: "monthly", plan: "regular"}
+    let expectedData = {currency: "USD", billing: "monthly", plan: "regular"}
     cy.get('.modal-guts button')
       .click()
 
     cy.window().then((win) => {
-      expect(win.elmMessages.slice(-1)[0]).to.eq({tag: "CheckoutButtonClicked", data: expectedData})
+      expect(win.elmMessages.slice(-1)[0]).to.deep.equal({tag: "CheckoutButtonClicked", data: expectedData})
     })
   })
 })
