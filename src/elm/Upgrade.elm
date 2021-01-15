@@ -1,7 +1,7 @@
 module Upgrade exposing (Model, Msg(..), init, update, view)
 
-import Html exposing (Html, button, div, option, select, text)
-import Html.Attributes exposing (id, selected, value)
+import Html exposing (Html, br, button, div, input, label, option, select, text)
+import Html.Attributes exposing (checked, for, id, selected, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onChange)
 import Json.Encode as Enc
@@ -77,6 +77,7 @@ toValue model =
 
 type Msg
     = CurrencySelected String
+    | BillingChanged BillingFrequency
     | CheckoutClicked Enc.Value
     | UpgradeModalClosed
 
@@ -91,6 +92,9 @@ update msg model =
 
                 Nothing ->
                     model
+
+        BillingChanged billFreq ->
+            { model | billing = billFreq }
 
         _ ->
             model
@@ -124,6 +128,25 @@ viewPaymentForm model =
         Currency curr ->
             div [ id "upgrade-checkout" ]
                 [ viewCurrencySelector CurrencySelected model
+                , br [] []
+                , input
+                    [ id "monthly"
+                    , type_ "radio"
+                    , checked (model.billing == Monthly)
+                    , onInput (always (BillingChanged Monthly))
+                    ]
+                    []
+                , label [ for "monthly" ] [ text "Monthly" ]
+                , br [] []
+                , input
+                    [ id "yearly"
+                    , type_ "radio"
+                    , checked (model.billing == Yearly)
+                    , onInput (always (BillingChanged Yearly))
+                    ]
+                    []
+                , label [ for "yearly" ] [ text "Yearly" ]
+                , br [] []
                 , text "Price is $10/mo"
                 , button [ onClick <| CheckoutClicked (toValue model) ] [ text "Pay Now" ]
                 ]
@@ -131,10 +154,19 @@ viewPaymentForm model =
 
 viewCurrencySelector : (String -> Msg) -> Model -> Html Msg
 viewCurrencySelector selectMsg model =
+    let
+        unknownOption =
+            if model.currency == UnknownCurrency then
+                [ option [ value "" ] [ text "Select your currency" ] ]
+
+            else
+                []
+    in
     select [ id "currency-selector", onChange selectMsg ]
-        [ option [ value "" ] [ text "Select your currency" ]
-        , option [ value "USD", selected (model.currency == Currency USD) ] [ text "USD" ]
-        ]
+        (unknownOption
+            ++ [ option [ value "USD", selected (model.currency == Currency USD) ] [ text "USD" ]
+               ]
+        )
 
 
 
