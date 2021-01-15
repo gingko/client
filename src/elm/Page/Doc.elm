@@ -2994,7 +2994,7 @@ viewModal language model =
                 |> List.map (Html.map ImportModalMsg)
 
         UpgradeModal ->
-            Upgrade.UI.view
+            Upgrade.UI.view ModalClosed
 
 
 
