@@ -31,6 +31,6 @@ describe('Loading indicators', () => {
       .get('#upgrade-button')
       .click()
 
-    cy.contains('Upgrade modal')
+    cy.contains('Upgrade Gingko Writer')
   })
 })
