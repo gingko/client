@@ -43,7 +43,7 @@ import Task
 import Time
 import Translation exposing (..)
 import Types exposing (..)
-import Upgrade
+import Upgrade exposing (Msg(..))
 import Utils exposing (randomPositiveInt)
 
 
@@ -616,11 +616,16 @@ update msg ({ workingTree } as model) =
             )
 
         UpgradeModalMsg upgradeModalMsg ->
-            let
-                newSession =
-                    Session.updateUpgrade upgradeModalMsg model.session
-            in
-            ( { model | session = newSession }, Cmd.none )
+            case upgradeModalMsg of
+                UpgradeModalClosed ->
+                    ( { model | modalState = NoModal }, Cmd.none )
+
+                _ ->
+                    let
+                        newSession =
+                            Session.updateUpgrade upgradeModalMsg model.session
+                    in
+                    ( { model | session = newSession }, Cmd.none )
 
         ClickedEmailSupport ->
             ( model, send <| TriggerMailto )

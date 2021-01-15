@@ -39,5 +39,20 @@ describe('Loading indicators', () => {
 
     cy.get('#upgrade-checkout')
       .should('contain', '$10/mo')
+
+    // Modal closes correctly
+    cy.get('.close-button').click()
+    cy.get('.modal').should('not.exist')
+
+    // Modal persists Upgrade model
+    cy.get('#account')
+      .click()
+      .get('#upgrade-button')
+      .click()
+
+    cy.get('#currency-selector')
+      .should('have.value', 'usd')
+    cy.get('#upgrade-checkout')
+      .should('contain', '$10/mo')
   })
 })

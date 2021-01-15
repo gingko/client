@@ -1,9 +1,10 @@
-module Upgrade exposing (Model, Msg, init, update, view)
+module Upgrade exposing (Model, Msg(..), init, update, view)
 
 import Html exposing (Html, button, div, option, select, text)
 import Html.Attributes exposing (id, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onChange)
+import Json.Encode as Enc
 import SharedUI exposing (modalWrapper)
 
 
@@ -44,7 +45,7 @@ init =
 type Msg
     = CurrencySelected String
     | CheckoutClicked
-    | ModalClosed
+    | UpgradeModalClosed
 
 
 update : Msg -> Model -> Model
@@ -71,7 +72,7 @@ view model =
     [ viewCopy
     , viewPaymentForm model
     ]
-        |> modalWrapper ModalClosed (Just "upgrade-modal") "Upgrade Gingko Writer"
+        |> modalWrapper UpgradeModalClosed (Just "upgrade-modal") "Upgrade Gingko Writer"
 
 
 viewCopy : Html msg
