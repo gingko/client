@@ -468,6 +468,10 @@ body {
   top: 39px;
 }
 
+#upgrade-modal {
+
+}
+
 #sidebar {
   grid-area: sidebar;
   min-width: 40px;
