@@ -1,7 +1,7 @@
 module Upgrade exposing (Model, Msg(..), init, update, view)
 
 import Html exposing (Html, button, div, option, select, text)
-import Html.Attributes exposing (id, value)
+import Html.Attributes exposing (id, selected, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onChange)
 import Json.Encode as Enc
@@ -85,22 +85,22 @@ viewPaymentForm model =
     case model.currency of
         UnknownCurrency ->
             div [ id "upgrade-checkout" ]
-                [ viewCurrencySelector CurrencySelected
+                [ viewCurrencySelector CurrencySelected model
                 ]
 
         Currency curr ->
             div [ id "upgrade-checkout" ]
-                [ viewCurrencySelector CurrencySelected
+                [ viewCurrencySelector CurrencySelected model
                 , text "Price is $10/mo"
                 , button [ onClick CheckoutClicked ] [ text "Pay Now" ]
                 ]
 
 
-viewCurrencySelector : (String -> Msg) -> Html Msg
-viewCurrencySelector selectMsg =
+viewCurrencySelector : (String -> Msg) -> Model -> Html Msg
+viewCurrencySelector selectMsg model =
     select [ id "currency-selector", onChange selectMsg ]
         [ option [ value "" ] [ text "Select your currency" ]
-        , option [ value "usd" ] [ text "USD" ]
+        , option [ value "usd", selected (model.currency == Currency USD) ] [ text "USD" ]
         ]
 
 
