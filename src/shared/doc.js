@@ -466,10 +466,9 @@ const fromElm = (msg, elmData) => {
 
     CheckoutButtonClicked: async () => {
       let priceId = config.PRICE_DATA[elmData.currency][elmData.billing][elmData.plan];
-      console.log("priceId", priceId)
-      //let data = await createCheckoutSession(priceId);
-      //let checkoutResult = stripe.redirectToCheckout({sessionId: data.sessionId});
-      //console.log(checkoutResult);
+      let data = await createCheckoutSession(priceId);
+      let checkoutResult = stripe.redirectToCheckout({sessionId: data.sessionId});
+      console.log(checkoutResult);
     },
 
     TriggerMailto: () => {

@@ -161,11 +161,20 @@ viewCurrencySelector selectMsg model =
 
             else
                 []
+
+        activeCurrencies =
+            [ USD, INR ]
+
+        currencyOption curr =
+            let
+                currText =
+                    currencyToString curr
+            in
+            option [ value currText, selected (model.currency == Currency curr) ] [ text currText ]
     in
     select [ id "currency-selector", onChange selectMsg ]
         (unknownOption
-            ++ [ option [ value "USD", selected (model.currency == Currency USD) ] [ text "USD" ]
-               ]
+            ++ (activeCurrencies |> List.map currencyOption)
         )
 
 
@@ -180,6 +189,7 @@ type CurrencySelection
 
 type Currency
     = USD
+    | INR
 
 
 currencyToString : Currency -> String
@@ -188,12 +198,18 @@ currencyToString currency =
         USD ->
             "USD"
 
+        INR ->
+            "INR"
+
 
 currencyFromString : String -> Maybe Currency
 currencyFromString currencyString =
     case currencyString of
         "USD" ->
             Just USD
+
+        "INR" ->
+            Just INR
 
         _ ->
             Nothing
