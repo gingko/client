@@ -5,6 +5,7 @@ import Html.Attributes exposing (checked, for, id, selected, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onChange)
 import Json.Encode as Enc
+import Money exposing (Currency(..))
 import SharedUI exposing (modalWrapper)
 
 
@@ -59,7 +60,7 @@ toValue model =
 
         Currency curr ->
             Enc.object
-                [ ( "currency", Enc.string (currencyToString curr) )
+                [ ( "currency", Enc.string (Money.toString curr) )
                 , ( "billing"
                   , if model.billing == Monthly then
                         "monthly" |> Enc.string
@@ -86,7 +87,7 @@ update : Msg -> Model -> Model
 update msg model =
     case msg of
         CurrencySelected currencyString ->
-            case currencyFromString currencyString of
+            case Money.fromString currencyString of
                 Just currency ->
                     { model | currency = Currency currency }
 
@@ -168,9 +169,9 @@ viewCurrencySelector selectMsg model =
         currencyOption curr =
             let
                 currText =
-                    currencyToString curr
+                    Money.toString curr
             in
-            option [ value currText, selected (model.currency == Currency curr) ] [ text currText ]
+            option [ value currText, selected (model.currency == Currency curr) ] [ text <| currText ++ " - " ++ Money.toName { plural = True } curr ]
     in
     select [ id "currency-selector", onChange selectMsg ]
         (unknownOption
@@ -185,31 +186,3 @@ viewCurrencySelector selectMsg model =
 type CurrencySelection
     = UnknownCurrency
     | Currency Currency
-
-
-type Currency
-    = USD
-    | INR
-
-
-currencyToString : Currency -> String
-currencyToString currency =
-    case currency of
-        USD ->
-            "USD"
-
-        INR ->
-            "INR"
-
-
-currencyFromString : String -> Maybe Currency
-currencyFromString currencyString =
-    case currencyString of
-        "USD" ->
-            Just USD
-
-        "INR" ->
-            Just INR
-
-        _ ->
-            Nothing

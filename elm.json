@@ -6,6 +6,7 @@
     "elm-version": "0.19.1",
     "dependencies": {
         "direct": {
+            "Chadtech/elm-money": "4.1.0",
             "CoderDennis/elm-time-format": "1.0.0",
             "Gizra/elm-debouncer": "2.0.0",
             "NoRedInk/elm-json-decode-pipeline": "1.0.0",
