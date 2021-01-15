@@ -620,6 +620,9 @@ update msg ({ workingTree } as model) =
                 UpgradeModalClosed ->
                     ( { model | modalState = NoModal }, Cmd.none )
 
+                CheckoutClicked checkoutData ->
+                    ( model, send <| CheckoutButtonClicked checkoutData )
+
                 _ ->
                     let
                         newSession =

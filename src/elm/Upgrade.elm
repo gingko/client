@@ -38,13 +38,18 @@ init =
     }
 
 
+toValue : Model -> Enc.Value
+toValue model =
+    Enc.null
+
+
 
 -- UPDATE
 
 
 type Msg
     = CurrencySelected String
-    | CheckoutClicked
+    | CheckoutClicked Enc.Value
     | UpgradeModalClosed
 
 
@@ -92,7 +97,7 @@ viewPaymentForm model =
             div [ id "upgrade-checkout" ]
                 [ viewCurrencySelector CurrencySelected model
                 , text "Price is $10/mo"
-                , button [ onClick CheckoutClicked ] [ text "Pay Now" ]
+                , button [ onClick <| CheckoutClicked (toValue model) ] [ text "Pay Now" ]
                 ]
 
 

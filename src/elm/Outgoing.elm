@@ -47,7 +47,7 @@ type Msg
     | SetShortcutTray Bool
       -- === Misc ===
     | EmptyMessageShown
-    | CheckoutButtonClicked String
+    | CheckoutButtonClicked Enc.Value
     | TriggerMailto
     | SocketSend CollabState
     | ConsoleLogRequested String
@@ -172,8 +172,8 @@ send info =
         EmptyMessageShown ->
             dataToSend "EmptyMessageShown" null
 
-        CheckoutButtonClicked priceId ->
-            dataToSend "CheckoutButtonClicked" (string priceId)
+        CheckoutButtonClicked checkoutData ->
+            dataToSend "CheckoutButtonClicked" checkoutData
 
         TriggerMailto ->
             dataToSend "TriggerMailto" null

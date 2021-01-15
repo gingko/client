@@ -9,4 +9,13 @@ module.exports = {
   COUCHDB_ADMIN_PASSWORD: "password",
   SUPPORT_EMAIL: "some@email.com",
   STRIPE_PUBLIC_KEY: "pk_test_123412341234",
+  PRICE_DATA :
+    { usd :
+        { monthly :
+            { regular: "price_id_12341234"
+            , discount: "price_id_234234"
+            , bonus: "price_id_542543"
+            }
+        }
+    }
 };

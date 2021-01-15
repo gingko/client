@@ -54,5 +54,14 @@ describe('Loading indicators', () => {
       .should('have.value', 'usd')
     cy.get('#upgrade-checkout')
       .should('contain', '$10/mo')
+
+    // Correct priceId set
+    let expectedData = {currency: "usd", billing: "monthly", plan: "regular"}
+    cy.get('.modal-guts button')
+      .click()
+
+    cy.window().then((win) => {
+      expect(win.elmMessages.slice(-1)[0]).to.eq({tag: "CheckoutButtonClicked", data: expectedData})
+    })
   })
 })
