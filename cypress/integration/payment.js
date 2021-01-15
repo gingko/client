@@ -55,8 +55,12 @@ describe('Loading indicators', () => {
     cy.get('#upgrade-checkout')
       .should('contain', '$10/mo')
 
+    // Change billing frequency
+    cy.get('input#yearly')
+      .click()
+
     // Correct priceId set
-    let expectedData = {currency: "USD", billing: "monthly", plan: "regular"}
+    let expectedData = {currency: "USD", billing: "yearly", plan: "regular"}
     cy.get('.modal-guts button')
       .click()
 

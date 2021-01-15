@@ -12,10 +12,15 @@ module.exports = {
   PRICE_DATA :
     { USD :
         { monthly :
-            { regular: "price_id_12341234"
-            , discount: "price_id_234234"
-            , bonus: "price_id_542543"
-            }
+          { regular: "price_id_12341234"
+          , discount: "price_id_234234"
+          , bonus: "price_id_542543"
+          }
+        , yearly :
+          { regular: "price_id_1234"
+          , discount: "price_id_1234"
+          , bonus: "price_id_1234"
+          }
         }
     }
 };
