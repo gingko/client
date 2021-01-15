@@ -36,5 +36,8 @@ describe('Loading indicators', () => {
     cy.get('#currency-selector')
       .should('contain', 'Select your currency')
       .select('usd')
+
+    cy.get('#upgrade-checkout')
+      .should('contain', '$10/mo')
   })
 })

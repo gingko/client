@@ -73,17 +73,23 @@ viewPaymentForm checkoutClickedMsg model =
     case model.currency of
         UnknownCurrency ->
             div [ id "upgrade-checkout" ]
-                [ select [ id "currency-selector" ]
-                    [ option [ value "" ] [ text "Select your currency" ]
-                    , option [ value "usd" ] [ text "USD" ]
-                    ]
+                [ viewCurrencySelector
                 ]
 
         Currency curr ->
             div [ id "upgrade-checkout" ]
-                [ text "pricing and checkout here"
+                [ viewCurrencySelector
+                , text "Price is $10/mo"
                 , button [ onClick checkoutClickedMsg ] [ text "Pay Now" ]
                 ]
+
+
+viewCurrencySelector : Html msg
+viewCurrencySelector =
+    select [ id "currency-selector" ]
+        [ option [ value "" ] [ text "Select your currency" ]
+        , option [ value "usd" ] [ text "USD" ]
+        ]
 
 
 
