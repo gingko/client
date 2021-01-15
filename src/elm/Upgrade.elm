@@ -12,6 +12,7 @@ import SharedUI exposing (modalWrapper)
 
 type alias Model =
     { currency : CurrencySelection
+    , billing : BillingFrequency
     , pwywSelection : PwywSelection
     }
 
@@ -25,6 +26,11 @@ type Currency
     = USD
 
 
+type BillingFrequency
+    = Monthly
+    | Yearly
+
+
 type PwywSelection
     = Regular
     | Discount
@@ -33,7 +39,10 @@ type PwywSelection
 
 init : Model
 init =
-    { currency = UnknownCurrency, pwywSelection = Regular }
+    { currency = UnknownCurrency
+    , billing = Monthly
+    , pwywSelection = Regular
+    }
 
 
 
