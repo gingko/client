@@ -6,8 +6,7 @@ import SharedUI exposing (modalWrapper)
 
 
 view modalToggleMsg =
-    [ h1 [] [ text "Upgrade Gingko Writer" ]
-    , div [ id "upgrade-copy" ] [ text "body copy here" ]
+    [ div [ id "upgrade-copy" ] [ text "body copy here" ]
     , div [ id "upgrade-checkout" ] [ text "pricing and checkout here" ]
     ]
-        |> modalWrapper modalToggleMsg
+        |> modalWrapper modalToggleMsg "Upgrade Gingko Writer"
