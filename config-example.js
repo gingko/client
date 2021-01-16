@@ -22,19 +22,7 @@ module.exports = {
         , bonus: "price_id_1234"
         }
       }
-    , INR :
-      { monthly :
-        { discount: "price_1234"
-        , regular: "price_1234"
-        , bonus: "price_1234"
-        }
-      , yearly :
-        { discount: "price_1234"
-        , regular: "price_1234"
-        , bonus: "price_1234"
-        }
-      }
-    , GBP :
+    , etc :
       { monthly :
         { discount: "price_1234"
         , regular: "price_1234"
