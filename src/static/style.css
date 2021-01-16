@@ -476,6 +476,15 @@ body {
     "body checkout"
 }
 
+#price-display {
+  text-align: center;
+  font-size: 120%;
+}
+
+#price-amount {
+  font-size: 150%;
+}
+
 #sidebar {
   grid-area: sidebar;
   min-width: 40px;

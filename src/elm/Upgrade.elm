@@ -1,6 +1,6 @@
 module Upgrade exposing (Model, Msg(..), init, update, view)
 
-import Html exposing (Html, br, button, div, input, label, option, select, text)
+import Html exposing (Html, br, button, div, hr, input, label, option, select, small, span, text)
 import Html.Attributes exposing (checked, for, id, selected, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onChange)
@@ -18,6 +18,11 @@ type alias Model =
     , billing : BillingFrequency
     , plan : Plan
     }
+
+
+type CurrencySelection
+    = UnknownCurrency
+    | Currency Currency
 
 
 type BillingFrequency
@@ -147,8 +152,15 @@ viewPaymentForm model =
                     ]
                     []
                 , label [ for "yearly" ] [ text "Yearly" ]
-                , br [] []
-                , text "Price is $10/mo"
+                , hr [] []
+                , div [ id "price-display" ]
+                    [ div [ id "price-amount" ]
+                        [ small [] [ text <| Money.toNativeSymbol curr ]
+                        , text (priceAmount curr model.billing model.plan)
+                        ]
+                    , small [] [ text (billingToString model.billing) ]
+                    ]
+                , hr [] []
                 , button [ onClick <| CheckoutClicked (toValue model) ] [ text "Pay Now" ]
                 ]
 
@@ -171,7 +183,8 @@ viewCurrencySelector selectMsg model =
                 currText =
                     Money.toString curr
             in
-            option [ value currText, selected (model.currency == Currency curr) ] [ text <| currText ++ " - " ++ Money.toName { plural = True } curr ]
+            option [ value currText, selected (model.currency == Currency curr) ]
+                [ text <| currText ++ " - " ++ Money.toName { plural = True } curr ]
     in
     select [ id "currency-selector", onChange selectMsg ]
         (unknownOption
@@ -180,9 +193,39 @@ viewCurrencySelector selectMsg model =
 
 
 
--- CURRENCIES
+-- PLAN AMOUNTS
 
 
-type CurrencySelection
-    = UnknownCurrency
-    | Currency Currency
+priceAmount : Currency -> BillingFrequency -> Plan -> String
+priceAmount currency freq plan =
+    case ( currency, freq, plan ) of
+        ( USD, Monthly, Regular ) ->
+            "10"
+
+        ( USD, Monthly, Discount ) ->
+            "5"
+
+        ( USD, Monthly, Bonus ) ->
+            "15"
+
+        ( USD, Yearly, Regular ) ->
+            "99"
+
+        ( USD, Yearly, Discount ) ->
+            "49"
+
+        ( USD, Yearly, Bonus ) ->
+            "149"
+
+        _ ->
+            "unset"
+
+
+billingToString : BillingFrequency -> String
+billingToString billing =
+    case billing of
+        Monthly ->
+            "per month"
+
+        Yearly ->
+            "per year"
