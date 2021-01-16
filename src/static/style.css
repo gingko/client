@@ -388,6 +388,7 @@ body {
   color: white;
   padding: 5px 10px;
   font-size: 1.3rem;
+  cursor: pointer;
 }
 .modal-guts {
   display: flex;
@@ -998,7 +999,7 @@ span.collaborators {
 /* --- Typography --- */
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Bitter', serif;
+  /*font-family: '', serif;*/
   margin: 0;
   line-height: 1.5;
 }
@@ -1018,6 +1019,9 @@ p {
 .card .view {
   font-family: 'Open Sans', serif;
   line-height: 1.4;
+}
+.card .view h1, .card .view h2, .card .view h3, .card .view h4, .card .view h5, .card .view h6 {
+  font-family: 'Bitter', serif;
 }
 
 pre, code {

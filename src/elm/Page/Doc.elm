@@ -2420,7 +2420,7 @@ viewLoaded model =
                 []
                 [ text
                     ("""
-h1, h2, h3, h4, h5, h6 {
+.card .view h1, .card .view h2, .card .view h3, .card .view h4, .card .view h5, .card .view h6 {
   font-family: '@HEADING', serif;
 }
 .card .view {
