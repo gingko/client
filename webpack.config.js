@@ -10,6 +10,7 @@ const de = require("./i18n/de.json");
 const nl = require("./i18n/nl.json");
 const hu = require("./i18n/hu.json");
 const sv = require("./i18n/sv.json");
+const ca = require("./i18n/ca.json");
 
 
 
@@ -52,8 +53,9 @@ const deT = prepTranslation("de", de);
 const nlT = prepTranslation("nl", nl);
 const huT = prepTranslation("hu", hu);
 const svT = prepTranslation("sv", sv);
+const caT = prepTranslation("ca", ca);
 
-const allLanguageStrings = [].concat(zhHansT, zhHantT, esT, frT, deT, nlT, huT, svT)
+const allLanguageStrings = [].concat(zhHansT, zhHantT, esT, frT, deT, nlT, huT, svT, caT)
 
 const webConfig = {
   // "production" or "development" flag.
