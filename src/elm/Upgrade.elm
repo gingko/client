@@ -1,6 +1,6 @@
 module Upgrade exposing (Model, Msg(..), init, update, view)
 
-import Html exposing (Html, br, button, div, hr, input, label, option, select, small, span, text)
+import Html exposing (Html, br, button, div, hr, input, label, option, p, select, small, span, text)
 import Html.Attributes exposing (checked, for, id, name, selected, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onChange)
@@ -129,7 +129,9 @@ view model =
 viewCopy : Model -> Html Msg
 viewCopy model =
     div [ id "upgrade-copy" ]
-        [ text "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam imperdiet odio sit amet mauris aliquam, quis rutrum nibh pulvinar. Sed luctus volutpat est vitae tristique. Duis mattis venenatis pulvinar."
+        [ p [] [ text "Gingko has helped people shave years off their thesis, helped bestselling writers finish their novels, and reduced overwhelm for thousands." ]
+        , p [] [ text "If you've found the free trial useful to you, you can upgrade to the full version." ]
+        , p [] [ text "With gratitude,", br [] [], text "Adriano Ferrari" ]
         , hr [] []
         , input
             [ id "plan-discount"
