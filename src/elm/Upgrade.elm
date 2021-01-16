@@ -26,7 +26,7 @@ type CurrencySelection
 
 
 activeCurrencies =
-    [ USD, INR, GBP ]
+    [ USD, EUR, INR, GBP ]
 
 
 type BillingFrequency
@@ -253,6 +253,24 @@ priceAmount currency freq plan =
 
         ( USD, Yearly, Bonus ) ->
             "149"
+
+        ( EUR, Monthly, Discount ) ->
+            "3.40"
+
+        ( EUR, Monthly, Regular ) ->
+            "6.80"
+
+        ( EUR, Monthly, Bonus ) ->
+            "10.20"
+
+        ( EUR, Yearly, Discount ) ->
+            "34"
+
+        ( EUR, Yearly, Regular ) ->
+            "68"
+
+        ( EUR, Yearly, Bonus ) ->
+            "100"
 
         ( INR, Monthly, Discount ) ->
             "100"
