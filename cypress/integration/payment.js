@@ -38,7 +38,7 @@ describe('Loading indicators', () => {
       .select('USD')
 
     cy.get('#upgrade-checkout')
-      .should('contain', '$10/mo')
+      .should('contain', '$10')
 
     // Modal closes correctly
     cy.get('.close-button').click()
@@ -53,14 +53,22 @@ describe('Loading indicators', () => {
     cy.get('#currency-selector')
       .should('have.value', 'USD')
     cy.get('#upgrade-checkout')
-      .should('contain', '$10/mo')
+      .should('contain', '$10')
 
     // Change billing frequency
     cy.get('input#yearly')
       .click()
 
+    cy.contains("$99")
+    cy.contains("per year")
+
+    // Change in currency should reflect in displayed price
+    cy.get('#currency-selector')
+      .select('INR')
+    cy.contains('₹2000')
+
     // Correct priceId set
-    let expectedData = {currency: "USD", billing: "yearly", plan: "regular"}
+    let expectedData = {currency: "INR", billing: "yearly", plan: "regular"}
     cy.get('.modal-guts button')
       .click()
 

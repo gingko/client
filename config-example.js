@@ -12,27 +12,39 @@ module.exports = {
   PRICE_DATA :
     { USD :
       { monthly :
-        { regular: "price_id_12341234"
-        , discount: "price_id_234234"
+        { discount: "price_id_234234"
+        , regular: "price_id_12341234"
         , bonus: "price_id_542543"
         }
       , yearly :
-        { regular: "price_id_1234"
-        , discount: "price_id_1234"
+        { discount: "price_id_1234"
+        , regular: "price_id_1234"
         , bonus: "price_id_1234"
         }
       }
     , INR :
       { monthly :
-        { regular: "price_0I9sEibEm7WWhuzY1mBaArgx"
-        , discount: "price_0I9sEibEm7WWhuzYFsufwbEc"
-        , bonus: "price_0I9sEjbEm7WWhuzY6Z88IprN"
+        { discount: "price_1234"
+        , regular: "price_1234"
+        , bonus: "price_1234"
         }
       , yearly :
-        { regular: "price_0I9sEjbEm7WWhuzYeqXwYr59"
-        , discount: "price_0I9sEjbEm7WWhuzYaoRXvNL7"
-        , bonus: "price_0I9sEjbEm7WWhuzYCPhDUSI7"
+        { discount: "price_1234"
+        , regular: "price_1234"
+        , bonus: "price_1234"
         }
       }
-    }
+    , GBP :
+      { monthly :
+        { discount: "price_1234"
+        , regular: "price_1234"
+        , bonus: "price_1234"
+        }
+      , yearly :
+        { discount: "price_1234"
+        , regular: "price_1234"
+        , bonus: "price_1234"
+        }
+      }
+   }
 };

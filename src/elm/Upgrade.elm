@@ -1,7 +1,7 @@
 module Upgrade exposing (Model, Msg(..), init, update, view)
 
 import Html exposing (Html, br, button, div, hr, input, label, option, select, small, span, text)
-import Html.Attributes exposing (checked, for, id, selected, type_, value)
+import Html.Attributes exposing (checked, for, id, name, selected, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onChange)
 import Json.Encode as Enc
@@ -23,6 +23,10 @@ type alias Model =
 type CurrencySelection
     = UnknownCurrency
     | Currency Currency
+
+
+activeCurrencies =
+    [ USD, INR, GBP ]
 
 
 type BillingFrequency
@@ -84,6 +88,7 @@ toValue model =
 type Msg
     = CurrencySelected String
     | BillingChanged BillingFrequency
+    | PlanChanged Plan
     | CheckoutClicked Enc.Value
     | UpgradeModalClosed
 
@@ -101,6 +106,9 @@ update msg model =
 
         BillingChanged billFreq ->
             { model | billing = billFreq }
+
+        PlanChanged plan ->
+            { model | plan = plan }
 
         _ ->
             model
@@ -120,7 +128,7 @@ view model =
 
 viewCopy : Html msg
 viewCopy =
-    div [ id "upgrade-copy" ] [ text "body copy here" ]
+    div [ id "upgrade-copy" ] [ text "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam imperdiet odio sit amet mauris aliquam, quis rutrum nibh pulvinar. Sed luctus volutpat est vitae tristique. Duis mattis venenatis pulvinar." ]
 
 
 viewPaymentForm : Model -> Html Msg
@@ -138,6 +146,7 @@ viewPaymentForm model =
                 , input
                     [ id "monthly"
                     , type_ "radio"
+                    , name "billing"
                     , checked (model.billing == Monthly)
                     , onInput (always (BillingChanged Monthly))
                     ]
@@ -147,6 +156,7 @@ viewPaymentForm model =
                 , input
                     [ id "yearly"
                     , type_ "radio"
+                    , name "billing"
                     , checked (model.billing == Yearly)
                     , onInput (always (BillingChanged Yearly))
                     ]
@@ -162,6 +172,34 @@ viewPaymentForm model =
                     ]
                 , hr [] []
                 , button [ onClick <| CheckoutClicked (toValue model) ] [ text "Pay Now" ]
+                , hr [] []
+                , input
+                    [ id "plan-discount"
+                    , type_ "radio"
+                    , name "plan"
+                    , checked (model.plan == Discount)
+                    , onInput (always (PlanChanged Discount))
+                    ]
+                    []
+                , label [ for "plan-discount" ] [ text "Discount" ]
+                , input
+                    [ id "plan-regular"
+                    , type_ "radio"
+                    , name "plan"
+                    , checked (model.plan == Regular)
+                    , onInput (always (PlanChanged Regular))
+                    ]
+                    []
+                , label [ for "plan-regular" ] [ text "Regular" ]
+                , input
+                    [ id "plan-bonus"
+                    , type_ "radio"
+                    , name "plan"
+                    , checked (model.plan == Bonus)
+                    , onInput (always (PlanChanged Bonus))
+                    ]
+                    []
+                , label [ for "plan-bonus" ] [ text "Bonus" ]
                 ]
 
 
@@ -174,9 +212,6 @@ viewCurrencySelector selectMsg model =
 
             else
                 []
-
-        activeCurrencies =
-            [ USD, INR ]
 
         currencyOption curr =
             let
@@ -199,23 +234,59 @@ viewCurrencySelector selectMsg model =
 priceAmount : Currency -> BillingFrequency -> Plan -> String
 priceAmount currency freq plan =
     case ( currency, freq, plan ) of
-        ( USD, Monthly, Regular ) ->
-            "10"
-
         ( USD, Monthly, Discount ) ->
             "5"
+
+        ( USD, Monthly, Regular ) ->
+            "10"
 
         ( USD, Monthly, Bonus ) ->
             "15"
 
-        ( USD, Yearly, Regular ) ->
-            "99"
-
         ( USD, Yearly, Discount ) ->
             "49"
 
+        ( USD, Yearly, Regular ) ->
+            "99"
+
         ( USD, Yearly, Bonus ) ->
             "149"
+
+        ( INR, Monthly, Discount ) ->
+            "100"
+
+        ( INR, Monthly, Regular ) ->
+            "200"
+
+        ( INR, Monthly, Bonus ) ->
+            "300"
+
+        ( INR, Yearly, Discount ) ->
+            "1000"
+
+        ( INR, Yearly, Regular ) ->
+            "2000"
+
+        ( INR, Yearly, Bonus ) ->
+            "3000"
+
+        ( GBP, Monthly, Discount ) ->
+            "3.30"
+
+        ( GBP, Monthly, Regular ) ->
+            "6.60"
+
+        ( GBP, Monthly, Bonus ) ->
+            "9.90"
+
+        ( GBP, Yearly, Discount ) ->
+            "33"
+
+        ( GBP, Yearly, Regular ) ->
+            "66"
+
+        ( GBP, Yearly, Bonus ) ->
+            "99"
 
         _ ->
             "unset"
