@@ -120,15 +120,45 @@ update msg model =
 
 view : Model -> List (Html Msg)
 view model =
-    [ viewCopy
+    [ viewCopy model
     , viewPaymentForm model
     ]
         |> modalWrapper UpgradeModalClosed (Just "upgrade-modal") "Upgrade Gingko Writer"
 
 
-viewCopy : Html msg
-viewCopy =
-    div [ id "upgrade-copy" ] [ text "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam imperdiet odio sit amet mauris aliquam, quis rutrum nibh pulvinar. Sed luctus volutpat est vitae tristique. Duis mattis venenatis pulvinar." ]
+viewCopy : Model -> Html Msg
+viewCopy model =
+    div [ id "upgrade-copy" ]
+        [ text "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam imperdiet odio sit amet mauris aliquam, quis rutrum nibh pulvinar. Sed luctus volutpat est vitae tristique. Duis mattis venenatis pulvinar."
+        , hr [] []
+        , input
+            [ id "plan-discount"
+            , type_ "radio"
+            , name "plan"
+            , checked (model.plan == Discount)
+            , onInput (always (PlanChanged Discount))
+            ]
+            []
+        , label [ for "plan-discount" ] [ text "Discount" ]
+        , input
+            [ id "plan-regular"
+            , type_ "radio"
+            , name "plan"
+            , checked (model.plan == Regular)
+            , onInput (always (PlanChanged Regular))
+            ]
+            []
+        , label [ for "plan-regular" ] [ text "Regular" ]
+        , input
+            [ id "plan-bonus"
+            , type_ "radio"
+            , name "plan"
+            , checked (model.plan == Bonus)
+            , onInput (always (PlanChanged Bonus))
+            ]
+            []
+        , label [ for "plan-bonus" ] [ text "Bonus" ]
+        ]
 
 
 viewPaymentForm : Model -> Html Msg
@@ -172,34 +202,6 @@ viewPaymentForm model =
                     ]
                 , hr [] []
                 , button [ onClick <| CheckoutClicked (toValue model) ] [ text "Pay Now" ]
-                , hr [] []
-                , input
-                    [ id "plan-discount"
-                    , type_ "radio"
-                    , name "plan"
-                    , checked (model.plan == Discount)
-                    , onInput (always (PlanChanged Discount))
-                    ]
-                    []
-                , label [ for "plan-discount" ] [ text "Discount" ]
-                , input
-                    [ id "plan-regular"
-                    , type_ "radio"
-                    , name "plan"
-                    , checked (model.plan == Regular)
-                    , onInput (always (PlanChanged Regular))
-                    ]
-                    []
-                , label [ for "plan-regular" ] [ text "Regular" ]
-                , input
-                    [ id "plan-bonus"
-                    , type_ "radio"
-                    , name "plan"
-                    , checked (model.plan == Bonus)
-                    , onInput (always (PlanChanged Bonus))
-                    ]
-                    []
-                , label [ for "plan-bonus" ] [ text "Bonus" ]
                 ]
 
 
