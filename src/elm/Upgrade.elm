@@ -26,7 +26,7 @@ type CurrencySelection
 
 
 activeCurrencies =
-    [ USD, EUR, INR, GBP ]
+    [ USD, EUR, INR, GBP, CAD, CNY ]
 
 
 type BillingFrequency
@@ -170,6 +170,26 @@ viewPaymentForm model =
                 ]
 
         Currency curr ->
+            let
+                currSymbol =
+                    case curr of
+                        CNY ->
+                            "元"
+
+                        CAD ->
+                            Money.toSymbol curr
+
+                        _ ->
+                            Money.toNativeSymbol curr
+
+                symbolRight =
+                    case curr of
+                        CNY ->
+                            True
+
+                        _ ->
+                            False
+            in
             div [ id "upgrade-checkout" ]
                 [ viewCurrencySelector CurrencySelected model
                 , br [] []
@@ -191,13 +211,20 @@ viewPaymentForm model =
                     , onInput (always (BillingChanged Yearly))
                     ]
                     []
-                , label [ for "yearly" ] [ text "Yearly" ]
+                , label [ for "yearly" ] [ text "Yearly (2 months free)" ]
                 , hr [] []
                 , div [ id "price-display" ]
                     [ div [ id "price-amount" ]
-                        [ small [] [ text <| Money.toNativeSymbol curr ]
-                        , text (priceAmount curr model.billing model.plan)
-                        ]
+                        ([ small [] [ text currSymbol ]
+                         , text (priceAmount curr model.billing model.plan)
+                         ]
+                            |> (if symbolRight then
+                                    List.reverse
+
+                                else
+                                    identity
+                               )
+                        )
                     , small [] [ text (billingToString model.billing) ]
                     ]
                 , hr [] []
@@ -307,6 +334,42 @@ priceAmount currency freq plan =
 
         ( GBP, Yearly, Bonus ) ->
             "99"
+
+        ( CAD, Monthly, Discount ) ->
+            "6"
+
+        ( CAD, Monthly, Regular ) ->
+            "12"
+
+        ( CAD, Monthly, Bonus ) ->
+            "18"
+
+        ( CAD, Yearly, Discount ) ->
+            "60"
+
+        ( CAD, Yearly, Regular ) ->
+            "119"
+
+        ( CAD, Yearly, Bonus ) ->
+            "179"
+
+        ( CNY, Monthly, Discount ) ->
+            "21"
+
+        ( CNY, Monthly, Regular ) ->
+            "42"
+
+        ( CNY, Monthly, Bonus ) ->
+            "63"
+
+        ( CNY, Yearly, Discount ) ->
+            "210"
+
+        ( CNY, Yearly, Regular ) ->
+            "420"
+
+        ( CNY, Yearly, Bonus ) ->
+            "630"
 
         _ ->
             "unset"
