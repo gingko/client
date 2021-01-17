@@ -230,7 +230,7 @@ viewPaymentForm model =
                     , small [] [ text (billingToString model.billing) ]
                     ]
                 , hr [] []
-                , button [ onClick <| CheckoutClicked (toValue model) ] [ text "Pay Now" ]
+                , button [ id "payment-button", onClick <| CheckoutClicked (toValue model) ] [ text "Checkout" ]
                 ]
 
 
