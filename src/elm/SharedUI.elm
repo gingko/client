@@ -1,7 +1,8 @@
 module SharedUI exposing (modalWrapper)
 
-import Html exposing (Html, button, div, h1, text)
-import Html.Attributes exposing (class, id)
+import Ant.Icons.Svg as Icons
+import Html exposing (Html, a, button, div, h1, h2, text)
+import Html.Attributes exposing (class, height, id, width)
 import Html.Events exposing (onClick)
 
 
@@ -19,8 +20,8 @@ modalWrapper closeMsg id_ titleString body =
     [ div [ class "modal-overlay" ] []
     , div [ class "modal" ]
         [ div [ class "modal-header" ]
-            [ h1 [] [ text titleString ]
-            , button [ class "close-button", onClick closeMsg ] [ text "X" ]
+            [ h2 [] [ text titleString ]
+            , a [ class "close-button", onClick closeMsg ] [ Icons.closeCircleOutlined [ width 20, height 20 ] ]
             ]
         , div ([ class "modal-guts" ] ++ idAttr) body
         ]

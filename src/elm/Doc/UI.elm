@@ -20,6 +20,7 @@ import Page.Doc.Theme exposing (Theme(..))
 import Regex exposing (Regex, replace)
 import Route
 import Session exposing (Session)
+import SharedUI exposing (modalWrapper)
 import Time exposing (posixToMillis)
 import Translation exposing (Language(..), TranslationId(..), langFromString, langToString, languageName, timeDistInWords, tr)
 import Types exposing (Children(..), CursorPosition(..), DropdownState(..), SidebarState(..), TextCursorInfo, ViewMode(..), ViewState)
@@ -393,19 +394,6 @@ viewSidebarStatic sidebarOpen =
     ]
 
 
-
--- MODALS
-
-
-modalWrapper : msg -> List (Html msg) -> List (Html msg)
-modalWrapper closeMsg body =
-    [ div [ class "modal-container" ]
-        [ div [ class "modal-overlay" ] []
-        , div [ class "modal" ] [ button [ class "close-button", onClick closeMsg ] [ text "X" ], div [ class "modal-guts" ] body ]
-        ]
-    ]
-
-
 viewTemplateSelector :
     Language
     -> { modalClosed : msg, importBulkClicked : msg, importJSONRequested : msg }
@@ -442,7 +430,7 @@ viewTemplateSelector language msgs =
             ]
         ]
     ]
-        |> modalWrapper msgs.modalClosed
+        |> modalWrapper msgs.modalClosed Nothing "New Document"
 
 
 
