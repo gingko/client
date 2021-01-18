@@ -105,6 +105,14 @@ changeRouteTo maybeRoute model =
                 Page.Import.init user template
                     |> updateWith Import GotImportMsg
 
+            Just (Route.Upgrade isOk) ->
+                let
+                    newSession =
+                        user
+                            |> Debug.log "upgrade!"
+                in
+                Page.Empty.init newSession |> updateWith Empty GotEmptyMsg
+
             Nothing ->
                 ( NotFound user, Cmd.none )
 
