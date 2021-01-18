@@ -21,7 +21,7 @@ modalWrapper closeMsg id_ titleString body =
     , div [ class "modal" ]
         [ div [ class "modal-header" ]
             [ h2 [] [ text titleString ]
-            , a [ class "close-button", onClick closeMsg ] [ Icons.closeCircleOutlined [ width 20, height 20 ] ]
+            , div [ class "close-button", onClick closeMsg ] [ Icons.closeCircleOutlined [ width 20, height 20 ] ]
             ]
         , div ([ class "modal-guts" ] ++ idAttr) body
         ]
