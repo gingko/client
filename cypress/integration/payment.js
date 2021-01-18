@@ -2,7 +2,7 @@ const config = require("../../config.js");
 const helpers = require("../../src/shared/doc-helpers.js");
 
 
-describe('Loading indicators', () => {
+describe('Upgrade process', () => {
   const testEmail = 'cypress@testing.com'
   const testUserDb = 'userdb-' + helpers.toHex(testEmail);
 
@@ -21,6 +21,12 @@ describe('Loading indicators', () => {
   beforeEach(() => {
     cy.fixture('twoTrees.ids.json').as('treeIds')
     Cypress.Cookies.preserveOnce('AuthSession')
+  })
+
+  it('Has correct routes for success/cancel', () => {
+    cy.visit(config.TEST_SERVER + '/upgrade/success' )
+
+    cy.contains("Thank you for your payment")
   })
 
   it('Should have working Upgrade modal', function () {
