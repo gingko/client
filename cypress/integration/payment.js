@@ -1,6 +1,9 @@
 const config = require("../../config.js");
 const helpers = require("../../src/shared/doc-helpers.js");
 
+Cypress.LocalStorage.clear = function (keys, ls, rs) {
+  return;
+}
 
 describe('Upgrade process', () => {
   const testEmail = 'cypress@testing.com'
@@ -23,10 +26,15 @@ describe('Upgrade process', () => {
     Cypress.Cookies.preserveOnce('AuthSession')
   })
 
-  it('Has correct routes for success/cancel', () => {
+  it('Has correct routes for success', () => {
     cy.visit(config.TEST_SERVER + '/upgrade/success' )
 
     cy.contains("Thank you for your payment")
+  })
+  it('Has correct routes for cancelled', () => {
+    cy.visit(config.TEST_SERVER + '/upgrade/cancelled' )
+
+    cy.contains("Payment cancelled")
   })
 
   it('Should have working Upgrade modal', function () {

@@ -10,6 +10,7 @@ import Page.Empty
 import Page.ForgotPassword
 import Page.Import
 import Page.Login
+import Page.Message
 import Page.NotFound
 import Page.ResetPassword
 import Page.Signup
@@ -25,6 +26,7 @@ import Url exposing (Url)
 type Model
     = Redirect Session
     | NotFound Session
+    | Message Session String String
     | Signup Page.Signup.Model
     | Login Page.Login.Model
     | ForgotPassword Page.ForgotPassword.Model
@@ -107,11 +109,14 @@ changeRouteTo maybeRoute model =
 
             Just (Route.Upgrade isOk) ->
                 let
-                    newSession =
-                        user
-                            |> Debug.log "upgrade!"
+                    ( title, message ) =
+                        if isOk then
+                            ( "Success", "Thank you for your payment" )
+
+                        else
+                            ( "Cancelled", "Payment cancelled" )
                 in
-                Page.Empty.init newSession |> updateWith Empty GotEmptyMsg
+                ( Message user title message, Cmd.none )
 
             Nothing ->
                 ( NotFound user, Cmd.none )
@@ -152,6 +157,9 @@ toUser page =
             user
 
         NotFound user ->
+            user
+
+        Message user _ _ ->
             user
 
         Signup signup ->
@@ -279,6 +287,9 @@ view model =
         NotFound _ ->
             Page.NotFound.view
 
+        Message _ title body ->
+            Page.Message.view title body
+
         Signup signup ->
             { title = "Gingko - Signup", body = [ Html.map GotSignupMsg (Page.Signup.view signup) ] }
 
@@ -315,6 +326,9 @@ subscriptions model =
             Sub.none
 
         NotFound _ ->
+            Sub.none
+
+        Message _ _ _ ->
             Sub.none
 
         Signup pageModel ->
