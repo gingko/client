@@ -183,7 +183,8 @@ viewTopRightButtons msgs dropdownState session =
             Icon.signOut (defaultOptions |> Icon.color "#333" |> Icon.size 18)
     in
     div [ id "top-right-buttons" ]
-        [ div [ id "help-icon", onClick (msgs.toggledHelpMenu (not isHelpDropdown)) ]
+        [ div [ id "upgrade-button", onClick <| msgs.toggledUpgradeModal True ] [ text "Upgrade" ]
+        , div [ id "help-icon", onClick (msgs.toggledHelpMenu (not isHelpDropdown)) ]
             [ helpIcon
             , if isHelpDropdown then
                 div [ id "help-dropdown", class "dropdown" ]
@@ -197,7 +198,6 @@ viewTopRightButtons msgs dropdownState session =
             , if isAccountDropdown then
                 div [ id "account-dropdown", class "dropdown" ]
                     [ text (Session.name session |> Maybe.withDefault "")
-                    , button [ id "upgrade-button", class "payment-button", onClick <| msgs.toggledUpgradeModal True ] [ text "Upgrade" ]
                     , hr [] []
                     , div [ id "logout-button", onClick msgs.logoutRequested ] [ logoutIcon, text <| tr lang Logout ]
                     ]
