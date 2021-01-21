@@ -31,11 +31,6 @@ describe('Upgrade process', () => {
 
     cy.contains("Thank you for your payment")
   })
-  it('Has correct routes for cancelled', () => {
-    cy.visit(config.TEST_SERVER + '/upgrade/cancelled' )
-
-    cy.contains("Payment cancelled")
-  })
 
   it('Should have working Upgrade modal', function () {
     cy.visit(config.TEST_SERVER + '/' + this.treeIds[0])
@@ -80,6 +75,10 @@ describe('Upgrade process', () => {
     cy.get('#currency-selector')
       .select('INR')
     cy.contains('₹2000')
+
+    // Should toggle Pay What You Want pricing
+    cy.get('#upgrade-copy')
+      .should('not.contain', 'Discount')
 
     // Correct priceId set
     /*
