@@ -549,6 +549,15 @@ body {
 #pwyw-body {
   padding: 0 16px 16px 16px;
 }
+#pwyw-toggle h3 {
+  font-weight: normal;
+  color: gray;
+  margin: 0;
+}
+#pwyw-toggle.open h3{
+  color: black;
+  font-weight: bold;
+}
 
 .toggle-caret {
   margin-right: 10px;

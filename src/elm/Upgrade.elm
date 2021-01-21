@@ -157,38 +157,40 @@ viewPWYWForm model =
     in
     div [ id "pwyw" ]
         (if isOpen then
-            [ div [ id "pwyw-toggle", onClick <| PWYWToggled (not isOpen) ]
+            [ div [ id "pwyw-toggle", class "open", onClick <| PWYWToggled (not isOpen) ]
                 [ span [ class "toggle-caret" ] [ Icon.downOutlined [ width 12, height 12 ] ]
                 , h3 [] [ text "Price Adjustments" ]
                 ]
             , div [ id "pwyw-body" ]
-                [ input
-                    [ id "plan-discount"
-                    , type_ "radio"
-                    , name "plan"
-                    , checked (model.plan == Discount)
-                    , onInput (always (PlanChanged Discount))
+                [ div [ id "pwyw-buttons" ]
+                    [ input
+                        [ id "plan-discount"
+                        , type_ "radio"
+                        , name "plan"
+                        , checked (model.plan == Discount)
+                        , onInput (always (PlanChanged Discount))
+                        ]
+                        []
+                    , label [ for "plan-discount" ] [ text "Discount" ]
+                    , input
+                        [ id "plan-regular"
+                        , type_ "radio"
+                        , name "plan"
+                        , checked (model.plan == Regular)
+                        , onInput (always (PlanChanged Regular))
+                        ]
+                        []
+                    , label [ for "plan-regular" ] [ text "Regular" ]
+                    , input
+                        [ id "plan-bonus"
+                        , type_ "radio"
+                        , name "plan"
+                        , checked (model.plan == Bonus)
+                        , onInput (always (PlanChanged Bonus))
+                        ]
+                        []
+                    , label [ for "plan-bonus" ] [ text "Bonus" ]
                     ]
-                    []
-                , label [ for "plan-discount" ] [ text "Discount" ]
-                , input
-                    [ id "plan-regular"
-                    , type_ "radio"
-                    , name "plan"
-                    , checked (model.plan == Regular)
-                    , onInput (always (PlanChanged Regular))
-                    ]
-                    []
-                , label [ for "plan-regular" ] [ text "Regular" ]
-                , input
-                    [ id "plan-bonus"
-                    , type_ "radio"
-                    , name "plan"
-                    , checked (model.plan == Bonus)
-                    , onInput (always (PlanChanged Bonus))
-                    ]
-                    []
-                , label [ for "plan-bonus" ] [ text "Bonus" ]
                 ]
             ]
 
