@@ -511,19 +511,53 @@ body {
 
 #upgrade-modal {
   display: grid;
-  grid-template-rows: 1fr;
+  grid-template-rows: 1fr auto;
   grid-template-columns: 3fr 1fr;
   grid-template-areas:
-    "body checkout";
+    "body checkout"
+    "pwyw checkout";
   padding: 0;
 }
 #upgrade-copy {
   padding: 16px;
 }
 
+#pwyw {
+  grid-area: pwyw;
+  background: #eaeaea;
+  position: relative;
+}
+
+#pwyw-toggle {
+  cursor: pointer;
+  display: flex;
+  align-items: baseline;
+  padding: 16px;
+}
+#pwyw-toggle::before {
+  content: '';
+  position: absolute;
+  background: white;
+  width: 10px;
+  height: 10px;
+  top: -10px;
+  right: 0;
+  box-shadow: 5px 5px 0px 5px #eaeaea;
+  border-radius: 0 0 10px;
+}
+
+#pwyw-body {
+  padding: 0 16px 16px 16px;
+}
+
+.toggle-caret {
+  margin-right: 10px;
+}
+
 #upgrade-checkout {
   padding: 16px;
   background-color: #eaeaea;
+  grid-area: checkout;
 }
 
 #upgrade-checkout select {

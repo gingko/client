@@ -1,7 +1,8 @@
 module Upgrade exposing (Model, Msg(..), init, update, view)
 
-import Html exposing (Html, br, button, div, h3, hr, input, label, option, p, select, small, text)
-import Html.Attributes exposing (checked, class, classList, for, id, name, selected, type_, value)
+import Ant.Icons.Svg as Icon
+import Html exposing (Html, br, button, div, h3, hr, input, label, option, p, select, small, span, text)
+import Html.Attributes exposing (checked, class, classList, for, height, id, name, selected, type_, value, width)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onChange)
 import Json.Encode as Enc
@@ -126,20 +127,25 @@ update msg model =
 
 view : Model -> List (Html Msg)
 view model =
-    [ viewCopy model
-    , viewPaymentForm model
-    ]
+    ([ viewCopy
+     , viewPaymentForm model
+     ]
+        ++ (if model.currency == UnknownCurrency then
+                []
+
+            else
+                [ viewPWYWForm model ]
+           )
+    )
         |> modalWrapper UpgradeModalClosed (Just "upgrade-modal") "Upgrade Gingko Writer"
 
 
-viewCopy : Model -> Html Msg
-viewCopy model =
+viewCopy : Html Msg
+viewCopy =
     div [ id "upgrade-copy" ]
         [ p [] [ text "Gingko has helped people shave years off their thesis, helped bestselling writers finish their novels, and reduced overwhelm for thousands." ]
         , p [] [ text "If you've found the free trial useful, you can upgrade to the full version." ]
         , p [] [ text "With gratitude,", br [] [], text "Adriano Ferrari" ]
-        , hr [] []
-        , viewPWYWForm model
         ]
 
 
@@ -149,40 +155,49 @@ viewPWYWForm model =
         isOpen =
             model.pwywOpen
     in
-    div [ id "pwyw-toggle", onClick <| PWYWToggled (not isOpen) ]
+    div [ id "pwyw" ]
         (if isOpen then
-            [ h3 [] [ text "Price Adjustments" ]
-            , input
-                [ id "plan-discount"
-                , type_ "radio"
-                , name "plan"
-                , checked (model.plan == Discount)
-                , onInput (always (PlanChanged Discount))
+            [ div [ id "pwyw-toggle", onClick <| PWYWToggled (not isOpen) ]
+                [ span [ class "toggle-caret" ] [ Icon.downOutlined [ width 12, height 12 ] ]
+                , h3 [] [ text "Price Adjustments" ]
                 ]
-                []
-            , label [ for "plan-discount" ] [ text "Discount" ]
-            , input
-                [ id "plan-regular"
-                , type_ "radio"
-                , name "plan"
-                , checked (model.plan == Regular)
-                , onInput (always (PlanChanged Regular))
+            , div [ id "pwyw-body" ]
+                [ input
+                    [ id "plan-discount"
+                    , type_ "radio"
+                    , name "plan"
+                    , checked (model.plan == Discount)
+                    , onInput (always (PlanChanged Discount))
+                    ]
+                    []
+                , label [ for "plan-discount" ] [ text "Discount" ]
+                , input
+                    [ id "plan-regular"
+                    , type_ "radio"
+                    , name "plan"
+                    , checked (model.plan == Regular)
+                    , onInput (always (PlanChanged Regular))
+                    ]
+                    []
+                , label [ for "plan-regular" ] [ text "Regular" ]
+                , input
+                    [ id "plan-bonus"
+                    , type_ "radio"
+                    , name "plan"
+                    , checked (model.plan == Bonus)
+                    , onInput (always (PlanChanged Bonus))
+                    ]
+                    []
+                , label [ for "plan-bonus" ] [ text "Bonus" ]
                 ]
-                []
-            , label [ for "plan-regular" ] [ text "Regular" ]
-            , input
-                [ id "plan-bonus"
-                , type_ "radio"
-                , name "plan"
-                , checked (model.plan == Bonus)
-                , onInput (always (PlanChanged Bonus))
-                ]
-                []
-            , label [ for "plan-bonus" ] [ text "Bonus" ]
             ]
 
          else
-            [ h3 [] [ text "Price Adjustments" ] ]
+            [ div [ id "pwyw-toggle", onClick <| PWYWToggled (not isOpen) ]
+                [ span [ class "toggle-caret" ] [ Icon.rightOutlined [ width 12, height 12 ] ]
+                , h3 [] [ text "Price Adjustments" ]
+                ]
+            ]
         )
 
 
