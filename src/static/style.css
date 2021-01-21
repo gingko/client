@@ -517,6 +517,18 @@ body {
   background-color: #eaeaea;
 }
 
+#upgrade-checkout select {
+  font-size: 90%;
+  padding: 4px;
+}
+
+#upgrade-checkout select.unknown-currency {
+  font-size: 110%;
+  padding: 5px;
+  background: white;
+  box-shadow: 0 0 4px #84b1c7;
+}
+
 #price-display {
   text-align: center;
   font-size: 120%;

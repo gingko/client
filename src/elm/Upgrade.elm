@@ -1,7 +1,7 @@
 module Upgrade exposing (Model, Msg(..), init, update, view)
 
 import Html exposing (Html, br, button, div, hr, input, label, option, p, select, small, span, text)
-import Html.Attributes exposing (checked, class, for, id, name, selected, type_, value)
+import Html.Attributes exposing (checked, class, classList, for, id, name, selected, style, tabindex, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onChange)
 import Json.Encode as Enc
@@ -194,7 +194,7 @@ viewPaymentForm model =
             in
             div [ id "upgrade-checkout" ]
                 [ viewCurrencySelector CurrencySelected model
-                , br [] []
+                , hr [] []
                 , input
                     [ id "monthly"
                     , type_ "radio"
@@ -237,8 +237,11 @@ viewPaymentForm model =
 viewCurrencySelector : (String -> Msg) -> Model -> Html Msg
 viewCurrencySelector selectMsg model =
     let
+        isUnknown =
+            model.currency == UnknownCurrency
+
         unknownOption =
-            if model.currency == UnknownCurrency then
+            if isUnknown then
                 [ option [ value "" ] [ text "Select your currency" ] ]
 
             else
@@ -252,7 +255,7 @@ viewCurrencySelector selectMsg model =
             option [ value currText, selected (model.currency == Currency curr) ]
                 [ text <| currText ++ " - " ++ Money.toName { plural = True } curr ]
     in
-    select [ id "currency-selector", onChange selectMsg ]
+    select [ id "currency-selector", classList [ ( "unknown-currency", isUnknown ) ], onChange selectMsg ]
         (unknownOption
             ++ (activeCurrencies |> List.map currencyOption)
         )
