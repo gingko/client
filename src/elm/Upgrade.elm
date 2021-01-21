@@ -130,7 +130,7 @@ viewCopy : Model -> Html Msg
 viewCopy model =
     div [ id "upgrade-copy" ]
         [ p [] [ text "Gingko has helped people shave years off their thesis, helped bestselling writers finish their novels, and reduced overwhelm for thousands." ]
-        , p [] [ text "If you've found the free trial useful to you, you can upgrade to the full version." ]
+        , p [] [ text "If you've found the free trial useful, you can upgrade to the full version." ]
         , p [] [ text "With gratitude,", br [] [], text "Adriano Ferrari" ]
         , hr [] []
         , input
