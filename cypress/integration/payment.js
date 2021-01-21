@@ -82,6 +82,7 @@ describe('Upgrade process', () => {
     cy.contains('₹2000')
 
     // Correct priceId set
+    /*
     let expectedData = {currency: "INR", billing: "yearly", plan: "regular"}
     cy.get('.modal-guts button')
       .click()
@@ -89,5 +90,6 @@ describe('Upgrade process', () => {
     cy.window().then((win) => {
       expect(win.elmMessages.slice(-1)[0]).to.deep.equal({tag: "CheckoutButtonClicked", data: expectedData})
     })
+    */
   })
 })
