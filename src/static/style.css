@@ -209,6 +209,29 @@ body {
   font-size: 12px;
 }
 
+#message-page {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  align-items: center;
+  justify-content: center;
+}
+
+.message-card {
+  position: relative;
+  background: var(--active-bg);
+  color: var(--normal-text-color);
+  border: none;
+  box-shadow: 0px 1px 3px hsl(0deg 0% 0% / 79%), 0px 0px 40px hsl(0deg 0% 0% / 10%);
+  padding: 50px;
+  border-radius: 10px;
+}
+.message-cta {
+  position: absolute;
+  right: 50px;
+}
+
 /* ======== THEMES ======== */
 
 .dark-theme {
@@ -471,6 +494,12 @@ body {
   top: 39px;
 }
 
+#upgrade-button {
+  height: auto;
+  padding: 8px;
+  margin-top: 10px;
+}
+
 #upgrade-modal {
   display: grid;
   grid-template-rows: 1fr;
@@ -497,26 +526,29 @@ body {
   font-size: 150%;
 }
 
-#payment-button {
+.payment-button {
   width: 100%;
   font-size: 100%;
   height: 3rem;
   outline: 0;
   cursor: pointer;
   border-radius: 6px;
-  border-top: 1px solid #53b1ff;
-  border-bottom: 1px solid #002544;
   border-right: 0;
   border-left: 0;
   color: white;
-  background: linear-gradient(0deg, rgb(0 105 191), rgb(0, 116, 212), rgb(0 129 236));
+  border-top: 1px solid hsl(77, 100%, 66% );
+  border-bottom: 1px solid hsl(77, 100%,13% );
+  background: linear-gradient(0deg, hsl(77, 100%, 35%), hsl(77, 100%, 40%) 70%, hsl(77, 71%, 56%));
   font-weight: bold;
   text-shadow: 0 -1px 0 rgba(0,0,0,0.25);
   box-shadow: 0 1px 0 rgba(0,0,0,0.2);
   font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Ubuntu,sans-serif;
 }
-#payment-button:hover {
-  background: rgb(0, 129, 236);
+.payment-button:hover {
+  background: hsl(77, 100%, 35% );
+}
+.payment-button:active {
+  margin-top: 1px;
 }
 
 #sidebar {

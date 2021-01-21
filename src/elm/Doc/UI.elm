@@ -197,7 +197,7 @@ viewTopRightButtons msgs dropdownState session =
             , if isAccountDropdown then
                 div [ id "account-dropdown", class "dropdown" ]
                     [ text (Session.name session |> Maybe.withDefault "")
-                    , button [ id "upgrade-button", onClick <| msgs.toggledUpgradeModal True ] [ text "Upgrade" ]
+                    , button [ id "upgrade-button", class "payment-button", onClick <| msgs.toggledUpgradeModal True ] [ text "Upgrade" ]
                     , hr [] []
                     , div [ id "logout-button", onClick msgs.logoutRequested ] [ logoutIcon, text <| tr lang Logout ]
                     ]

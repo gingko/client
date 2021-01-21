@@ -26,7 +26,8 @@ import Url exposing (Url)
 type Model
     = Redirect Session
     | NotFound Session
-    | Message Session String String
+    | PaymentSuccess Session
+    | PaymentCancelled Session
     | Signup Page.Signup.Model
     | Login Page.Login.Model
     | ForgotPassword Page.ForgotPassword.Model
@@ -108,15 +109,11 @@ changeRouteTo maybeRoute model =
                     |> updateWith Import GotImportMsg
 
             Just (Route.Upgrade isOk) ->
-                let
-                    ( title, message ) =
-                        if isOk then
-                            ( "Success", "Thank you for your payment" )
+                if isOk then
+                    ( PaymentSuccess user, Cmd.none )
 
-                        else
-                            ( "Cancelled", "Payment cancelled" )
-                in
-                ( Message user title message, Cmd.none )
+                else
+                    ( PaymentCancelled user, Cmd.none )
 
             Nothing ->
                 ( NotFound user, Cmd.none )
@@ -159,7 +156,10 @@ toUser page =
         NotFound user ->
             user
 
-        Message user _ _ ->
+        PaymentSuccess user ->
+            user
+
+        PaymentCancelled user ->
             user
 
         Signup signup ->
@@ -287,8 +287,11 @@ view model =
         NotFound _ ->
             Page.NotFound.view
 
-        Message _ title body ->
-            Page.Message.view title body
+        PaymentSuccess _ ->
+            Page.Message.viewSuccess
+
+        PaymentCancelled _ ->
+            Page.Message.viewCancelled
 
         Signup signup ->
             { title = "Gingko - Signup", body = [ Html.map GotSignupMsg (Page.Signup.view signup) ] }
@@ -328,7 +331,10 @@ subscriptions model =
         NotFound _ ->
             Sub.none
 
-        Message _ _ _ ->
+        PaymentSuccess _ ->
+            Sub.none
+
+        PaymentCancelled _ ->
             Sub.none
 
         Signup pageModel ->

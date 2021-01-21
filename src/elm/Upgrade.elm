@@ -1,7 +1,7 @@
 module Upgrade exposing (Model, Msg(..), init, update, view)
 
 import Html exposing (Html, br, button, div, hr, input, label, option, p, select, small, span, text)
-import Html.Attributes exposing (checked, for, id, name, selected, type_, value)
+import Html.Attributes exposing (checked, class, for, id, name, selected, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onChange)
 import Json.Encode as Enc
@@ -230,7 +230,7 @@ viewPaymentForm model =
                     , small [] [ text (billingToString model.billing) ]
                     ]
                 , hr [] []
-                , button [ id "payment-button", onClick <| CheckoutClicked (toValue model) ] [ text "Checkout" ]
+                , button [ class "payment-button", onClick <| CheckoutClicked (toValue model) ] [ text "Checkout" ]
                 ]
 
 
