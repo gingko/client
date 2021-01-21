@@ -1,7 +1,7 @@
 module Upgrade exposing (Model, Msg(..), init, update, view)
 
-import Html exposing (Html, br, button, div, hr, input, label, option, p, select, small, span, text)
-import Html.Attributes exposing (checked, class, classList, for, id, name, selected, style, tabindex, type_, value)
+import Html exposing (Html, br, button, div, h3, hr, input, label, option, p, select, small, text)
+import Html.Attributes exposing (checked, class, classList, for, id, name, selected, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onChange)
 import Json.Encode as Enc
@@ -17,6 +17,7 @@ type alias Model =
     { currency : CurrencySelection
     , billing : BillingFrequency
     , plan : Plan
+    , pwywOpen : Bool
     }
 
 
@@ -58,6 +59,7 @@ init =
     { currency = UnknownCurrency
     , billing = Monthly
     , plan = Regular
+    , pwywOpen = False
     }
 
 
@@ -89,6 +91,7 @@ type Msg
     = CurrencySelected String
     | BillingChanged BillingFrequency
     | PlanChanged Plan
+    | PWYWToggled Bool
     | CheckoutClicked Enc.Value
     | UpgradeModalClosed
 
@@ -109,6 +112,9 @@ update msg model =
 
         PlanChanged plan ->
             { model | plan = plan }
+
+        PWYWToggled isOpen ->
+            { model | pwywOpen = isOpen }
 
         _ ->
             model
@@ -133,34 +139,51 @@ viewCopy model =
         , p [] [ text "If you've found the free trial useful, you can upgrade to the full version." ]
         , p [] [ text "With gratitude,", br [] [], text "Adriano Ferrari" ]
         , hr [] []
-        , input
-            [ id "plan-discount"
-            , type_ "radio"
-            , name "plan"
-            , checked (model.plan == Discount)
-            , onInput (always (PlanChanged Discount))
-            ]
-            []
-        , label [ for "plan-discount" ] [ text "Discount" ]
-        , input
-            [ id "plan-regular"
-            , type_ "radio"
-            , name "plan"
-            , checked (model.plan == Regular)
-            , onInput (always (PlanChanged Regular))
-            ]
-            []
-        , label [ for "plan-regular" ] [ text "Regular" ]
-        , input
-            [ id "plan-bonus"
-            , type_ "radio"
-            , name "plan"
-            , checked (model.plan == Bonus)
-            , onInput (always (PlanChanged Bonus))
-            ]
-            []
-        , label [ for "plan-bonus" ] [ text "Bonus" ]
+        , viewPWYWForm model
         ]
+
+
+viewPWYWForm : Model -> Html Msg
+viewPWYWForm model =
+    let
+        isOpen =
+            model.pwywOpen
+    in
+    div [ id "pwyw-toggle", onClick <| PWYWToggled (not isOpen) ]
+        (if isOpen then
+            [ h3 [] [ text "Price Adjustments" ]
+            , input
+                [ id "plan-discount"
+                , type_ "radio"
+                , name "plan"
+                , checked (model.plan == Discount)
+                , onInput (always (PlanChanged Discount))
+                ]
+                []
+            , label [ for "plan-discount" ] [ text "Discount" ]
+            , input
+                [ id "plan-regular"
+                , type_ "radio"
+                , name "plan"
+                , checked (model.plan == Regular)
+                , onInput (always (PlanChanged Regular))
+                ]
+                []
+            , label [ for "plan-regular" ] [ text "Regular" ]
+            , input
+                [ id "plan-bonus"
+                , type_ "radio"
+                , name "plan"
+                , checked (model.plan == Bonus)
+                , onInput (always (PlanChanged Bonus))
+                ]
+                []
+            , label [ for "plan-bonus" ] [ text "Bonus" ]
+            ]
+
+         else
+            [ h3 [] [ text "Price Adjustments" ] ]
+        )
 
 
 viewPaymentForm : Model -> Html Msg

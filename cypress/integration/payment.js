@@ -80,6 +80,12 @@ describe('Upgrade process', () => {
     cy.get('#upgrade-copy')
       .should('not.contain', 'Discount')
 
+    cy.get('#pwyw-toggle')
+      .click()
+
+    cy.get('#upgrade-copy')
+      .should('contain', 'Discount')
+
     // Correct priceId set
     /*
     let expectedData = {currency: "INR", billing: "yearly", plan: "regular"}
