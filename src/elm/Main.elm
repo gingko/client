@@ -27,7 +27,6 @@ type Model
     = Redirect Session
     | NotFound Session
     | PaymentSuccess Session
-    | PaymentCancelled Session
     | Signup Page.Signup.Model
     | Login Page.Login.Model
     | ForgotPassword Page.ForgotPassword.Model
@@ -113,7 +112,7 @@ changeRouteTo maybeRoute model =
                     ( PaymentSuccess user, Cmd.none )
 
                 else
-                    ( PaymentCancelled user, Cmd.none )
+                    ( Redirect user, Cmd.none )
 
             Nothing ->
                 ( NotFound user, Cmd.none )
@@ -157,9 +156,6 @@ toUser page =
             user
 
         PaymentSuccess user ->
-            user
-
-        PaymentCancelled user ->
             user
 
         Signup signup ->
@@ -290,9 +286,6 @@ view model =
         PaymentSuccess _ ->
             Page.Message.viewSuccess
 
-        PaymentCancelled _ ->
-            Page.Message.viewCancelled
-
         Signup signup ->
             { title = "Gingko - Signup", body = [ Html.map GotSignupMsg (Page.Signup.view signup) ] }
 
@@ -332,9 +325,6 @@ subscriptions model =
             Sub.none
 
         PaymentSuccess _ ->
-            Sub.none
-
-        PaymentCancelled _ ->
             Sub.none
 
         Signup pageModel ->

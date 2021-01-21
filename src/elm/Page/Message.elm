@@ -19,18 +19,3 @@ viewSuccess =
             ]
         ]
     }
-
-
-viewCancelled : { title : String, body : List (Html msg) }
-viewCancelled =
-    { title = "Payment Cancelled"
-    , body =
-        [ div [ id "message-page" ]
-            [ div [ class "message-card" ]
-                [ h1 [] [ text "Payment cancelled" ]
-                , br [] []
-                , a [ href (Route.toString Route.Root), class "message-cta" ] [ text "Continue" ]
-                ]
-            ]
-        ]
-    }
