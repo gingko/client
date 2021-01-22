@@ -193,8 +193,11 @@ var needOverride = [
   "mod+j",
   "mod+k",
   "mod+l",
-  "alt+left",
 ];
+
+if (window.navigator.platform.toUpperCase().indexOf('MAC') < 0 ) {
+  needOverride.push("alt+left");
+}
 
 /* ===== CommonJS Module exports ===== */
 
