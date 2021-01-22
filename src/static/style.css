@@ -774,6 +774,17 @@ li.sidebar-document-item.active::after {
   background-color: lightblue;
 }
 
+.modal-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0,0,0,0.5);
+  z-index: 99999;
+}
+
 #switcher-modal {
   position: absolute;
   top: 80px;
