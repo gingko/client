@@ -18,7 +18,7 @@ describe('Document Editing', () => {
     Cypress.Cookies.preserveOnce('AuthSession')
   })
 
-  it('Creates a new blank tree', () => {
+  it('Can perform basic actions on New tree', () => {
     cy.get('button')
       .click()
 
@@ -29,39 +29,33 @@ describe('Document Editing', () => {
 
     cy.contains('Untitled')
     cy.contains('New Document...')
-  })
 
-  it('Can edit and save card', () => {
+    // Can edit and save card
     cy.get('textarea').should('have.focus')
       .type('Hello World :)')
 
     cy.get('body').type('{ctrl}{enter}')
 
     cy.get('#card-1 .view').contains('Hello World :)')
-  })
 
-  it('Is marked as "Synced"', () => {
     cy.contains('Synced')
-  })
 
-  it('Create a new child on clicking right + button', () => {
+    // Create a new child on clicking right + button
     cy.get('#card-1').trigger('mouseover')
 
     cy.get('.ins-right').click()
 
     cy.get('textarea').should('have.focus')
       .type('A child')
-  })
 
-  it('Saves the card by clicking the checkmark', () => {
+    // Saves the card by clicking the checkmark
     cy.get('.card-btn')
       .click()
 
     cy.get('div.card.active')
       .contains('A child')
-  })
 
-  it('Create and saves a card below using shortcuts', () => {
+    // Create and saves a card below using shortcuts
     cy.get('body').type('{ctrl}j')
 
     cy.get('textarea').should('have.focus')
@@ -73,9 +67,8 @@ describe('Document Editing', () => {
       .contains('Another one below')
 
     cy.contains('Synced')
-  })
 
-  it('Saves data with correct author info', () => {
+    // Saves data with correct author info
     cy.window().then((win) => {
       console.log(win.elmMessages)
       let {tag, data} = win.elmMessages.filter(m => m.tag === "SaveData").slice(-1)[0];
@@ -86,9 +79,8 @@ describe('Document Editing', () => {
       expect(lastCommit.author)
         .to.eq(`<${testEmail}>`)
     })
-  })
 
-  it('Cancels changes correctly after confirmation', () => {
+    // Cancels changes correctly after confirmation
     let confirmCalled
     cy.on('window:confirm', (str) => {
       expect(str).to.eq(tr.areYouSureCancel["en"])
@@ -102,9 +94,8 @@ describe('Document Editing', () => {
     })
     cy.get('#app-root')
       .should('not.contain', 'to cancel xxx')
-  })
 
-  it('Can rename the document', function () {
+    // Can rename the document
     cy.get('#title h1').click()
     cy.get('#title input')
       .should('have.focus')
@@ -116,14 +107,13 @@ describe('Document Editing', () => {
     cy.get('#title h1').contains('A new doc title here')
   })
 
-  it('Has saved the content', function () {
+  it('Continues editing after load', function () {
     cy.wait(400)
     cy.visit(this.testTreeUrl)
     cy.getCard(2,1,2)
       .contains('Another one below')
-  })
 
-  it('Has saved the activation state', () => {
+    // Has saved the activation state
     cy.wait(400)
     cy.get('#card-1')
       .should('have.class', 'ancestor')
@@ -134,34 +124,30 @@ describe('Document Editing', () => {
 
     cy.getCard(2,1,2)
       .should('have.class', 'active')
-  })
 
-  it('Filters cards on search', () => {
+    // Filters cards on search
     cy.get('#search-field')
       .click()
       .type('another')
 
     cy.get('#app-root')
       .should('not.contain', 'Hello World :)')
-  })
 
-  it('Removes filters on clearing search', () => {
+    // Removes filters on clearing search
     cy.get('#search-input')
       .clear()
 
     cy.contains('Hello World :)')
-  })
 
-  it('Can move back to last change', () => {
+    // Can move back to last change
     cy.shortcut('{ctrl}z')
 
     cy.contains('Restore this Version')
 
     cy.get('#app-root')
       .should('not.contain', 'Another one below')
-  })
 
-  it('Restores last change', () => {
+    // Restores last change
     cy.get('#history-restore').click()
 
     cy.get('#app-root')
