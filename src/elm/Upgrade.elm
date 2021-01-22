@@ -1,8 +1,8 @@
 module Upgrade exposing (Model, Msg(..), init, update, view)
 
 import Ant.Icons.Svg as Icon
-import Html exposing (Html, a, br, button, div, h3, hr, input, label, li, option, p, select, small, span, text, textarea, ul)
-import Html.Attributes exposing (checked, class, classList, for, height, href, id, name, placeholder, selected, target, type_, value, width)
+import Html exposing (Html, a, br, button, div, h3, hr, img, input, label, li, option, p, select, small, span, strong, text, textarea, ul)
+import Html.Attributes exposing (checked, class, classList, for, height, href, id, name, placeholder, selected, src, target, type_, value, width)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onChange)
 import Json.Encode as Enc
@@ -143,9 +143,10 @@ view model =
 viewCopy : Html Msg
 viewCopy =
     div [ id "upgrade-copy" ]
-        [ p [] [ text "Gingko has helped people shave years off their thesis, helped bestselling writers finish their novels, and reduced overwhelm for thousands." ]
-        , p [] [ text "If you've found the free trial useful, you can upgrade to the full version." ]
+        [ p [] [ text "Gingko Writer has helped people shave years off their thesis, helped bestselling writers finish their novels, and reduced overwhelm for thousands." ]
+        , p [] [ text "If you've found the free trial useful, you can upgrade to the paid version." ]
         , p [] [ text "With gratitude,", br [] [], text "Adriano Ferrari" ]
+        , img [ src "adriano-small-circle.jpg", width 82 ] []
         ]
 
 
@@ -163,12 +164,12 @@ viewPWYWForm model =
                 ]
             , div [ id "pwyw-body" ]
                 [ p [] [ text "Gingko Writer is used in over 170 countries of the world, and by everyone from rural middle-school students to Silicon Valley software developers." ]
-                , p [] [ text "To cover that range fairly, you can adjust your own price by ±50%:" ]
+                , p [] [ text "To help cover that range fairly, I'm letting you adjust your price:" ]
                 , viewPWYWButtons model
                 , br [] []
-                , hr [] []
                 , small []
-                    [ a [ href "https://givewell.org", target "_blank" ] [ text "GiveWell.org" ]
+                    [ text "* No matter what you choose, "
+                    , a [ href "https://givewell.org", target "_blank" ] [ text "GiveWell.org" ]
                     , text " receives:"
                     , ul []
                         [ li [] [ text "10% of all revenue" ]
@@ -190,11 +191,11 @@ viewPWYWForm model =
 viewPWYWButtons model =
     div [ id "pwyw-buttons" ]
         [ div [ id "discount", classList [ ( "checked", model.plan == Discount ) ], onClick (PlanChanged Discount) ]
-            [ text "-50%" ]
+            [ text "Discount" ]
         , div [ id "regular", classList [ ( "checked", model.plan == Regular ) ], onClick (PlanChanged Regular) ]
             [ text "Regular" ]
         , div [ id "bonus", classList [ ( "checked", model.plan == Bonus ) ], onClick (PlanChanged Bonus) ]
-            [ text "+50%" ]
+            [ text "Extra Donation*" ]
         ]
 
 

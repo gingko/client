@@ -528,6 +528,7 @@ body {
   margin: 16px;
   border-radius: 6px;
   color: #555;
+  box-shadow: inset 1px 1px 3px #bdbdbd;
 }
 
 #pwyw-toggle {
@@ -571,7 +572,7 @@ body {
 #pwyw-buttons {
   display: flex;
   border: 1px solid darkgray;
-  width: min-content;
+  width: max-content;
   border-radius: 4px;
   overflow: hidden;
   box-shadow: inset 1px 1px 4px hsla(0, 0%, 0%, 0.15);
