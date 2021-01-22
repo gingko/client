@@ -6,6 +6,7 @@
     "elm-version": "0.19.1",
     "dependencies": {
         "direct": {
+            "Chadtech/elm-money": "4.1.0",
             "CoderDennis/elm-time-format": "1.0.0",
             "Gizra/elm-debouncer": "2.0.0",
             "NoRedInk/elm-json-decode-pipeline": "1.0.0",
@@ -31,6 +32,7 @@
             "jinjor/elm-diff": "1.0.6",
             "justinmimbs/date": "3.2.0",
             "justinmimbs/time-extra": "1.1.0",
+            "lemol/ant-design-icons-elm": "2.0.0",
             "norpan/elm-html5-drag-drop": "3.1.4",
             "rtfeldman/elm-hex": "1.0.0",
             "rtfeldman/elm-iso8601-date-strings": "1.1.3",

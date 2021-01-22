@@ -20,6 +20,7 @@ import Page.Doc.Theme exposing (Theme(..))
 import Regex exposing (Regex, replace)
 import Route
 import Session exposing (Session)
+import SharedUI exposing (modalWrapper)
 import Time exposing (posixToMillis)
 import Translation exposing (Language(..), TranslationId(..), langFromString, langToString, languageName, timeDistInWords, tr)
 import Types exposing (Children(..), CursorPosition(..), DropdownState(..), SidebarState(..), TextCursorInfo, ViewMode(..), ViewState)
@@ -50,6 +51,7 @@ type alias HeaderMsgs msg =
     , clickedEmailSupport : msg
     , logoutRequested : msg
     , toggledAccountMenu : Bool -> msg
+    , toggledUpgradeModal : Bool -> msg
     }
 
 
@@ -98,6 +100,7 @@ viewHeader msgs title_ model =
             , clickedEmailSupport = msgs.clickedEmailSupport
             , logoutRequested = msgs.logoutRequested
             , toggledAccountMenu = msgs.toggledAccountMenu
+            , toggledUpgradeModal = msgs.toggledUpgradeModal
             }
             model.dropdownState
             model.session
@@ -150,7 +153,12 @@ viewSaveIndicator language { dirty, lastLocalSave, lastRemoteSave, currentTime }
 
 
 viewTopRightButtons :
-    { toggledHelpMenu : Bool -> msg, clickedEmailSupport : msg, logoutRequested : msg, toggledAccountMenu : Bool -> msg }
+    { toggledHelpMenu : Bool -> msg
+    , clickedEmailSupport : msg
+    , logoutRequested : msg
+    , toggledAccountMenu : Bool -> msg
+    , toggledUpgradeModal : Bool -> msg
+    }
     -> DropdownState
     -> Session
     -> Html msg
@@ -175,7 +183,8 @@ viewTopRightButtons msgs dropdownState session =
             Icon.signOut (defaultOptions |> Icon.color "#333" |> Icon.size 18)
     in
     div [ id "top-right-buttons" ]
-        [ div [ id "help-icon", onClick (msgs.toggledHelpMenu (not isHelpDropdown)) ]
+        [ div [ id "upgrade-button", onClick <| msgs.toggledUpgradeModal True ] [ text "Upgrade" ]
+        , div [ id "help-icon", onClick (msgs.toggledHelpMenu (not isHelpDropdown)) ]
             [ helpIcon
             , if isHelpDropdown then
                 div [ id "help-dropdown", class "dropdown" ]
@@ -385,19 +394,6 @@ viewSidebarStatic sidebarOpen =
     ]
 
 
-
--- MODALS
-
-
-modalWrapper : msg -> List (Html msg) -> List (Html msg)
-modalWrapper closeMsg body =
-    [ div [ class "modal-container" ]
-        [ div [ class "modal-overlay" ] []
-        , div [ class "modal" ] [ button [ class "close-button", onClick closeMsg ] [ text "X" ], div [ class "modal-guts" ] body ]
-        ]
-    ]
-
-
 viewTemplateSelector :
     Language
     -> { modalClosed : msg, importBulkClicked : msg, importJSONRequested : msg }
@@ -434,7 +430,7 @@ viewTemplateSelector language msgs =
             ]
         ]
     ]
-        |> modalWrapper msgs.modalClosed
+        |> modalWrapper msgs.modalClosed Nothing "New Document"
 
 
 

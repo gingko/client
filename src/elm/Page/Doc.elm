@@ -43,6 +43,7 @@ import Task
 import Time
 import Translation exposing (..)
 import Types exposing (..)
+import Upgrade exposing (Msg(..))
 import Utils exposing (randomPositiveInt)
 
 
@@ -96,6 +97,7 @@ type ModalState
     | SidebarContextMenu String ( Float, Float )
     | TemplateSelector
     | ImportModal ImportModal.Model
+    | UpgradeModal
 
 
 defaultModel : Bool -> Session -> String -> Model
@@ -225,7 +227,6 @@ type Msg
     | TitleEdited
     | ToggledHelpMenu Bool
     | ToggledAccountMenu Bool
-    | ClickedEmailSupport
       -- Sidebar & Modals
     | ToggleSidebar
     | SidebarStateChanged SidebarState
@@ -239,6 +240,10 @@ type Msg
     | ExportPreviewToggled Bool
     | ExportSelectionChanged ExportSelection
     | ExportFormatChanged ExportFormat
+      -- Upgrade
+    | ToggledUpgradeModal Bool
+    | UpgradeModalMsg Upgrade.Msg
+    | ClickedEmailSupport
       -- Import
     | ImportModalMsg ImportModal.Msg
     | ImportJSONSelected File
@@ -597,6 +602,41 @@ update msg ({ workingTree } as model) =
               }
             , Cmd.none
             )
+
+        ToggledUpgradeModal isOpen ->
+            ( { model
+                | modalState =
+                    if isOpen then
+                        UpgradeModal
+
+                    else
+                        NoModal
+              }
+            , Cmd.none
+            )
+
+        UpgradeModalMsg upgradeModalMsg ->
+            case upgradeModalMsg of
+                UpgradeModalClosed ->
+                    ( { model | modalState = NoModal }, Cmd.none )
+
+                CheckoutClicked checkoutData ->
+                    ( model, send <| CheckoutButtonClicked checkoutData )
+
+                _ ->
+                    let
+                        newSession =
+                            Session.updateUpgrade upgradeModalMsg model.session
+
+                        maybeFlash =
+                            case upgradeModalMsg of
+                                PlanChanged _ ->
+                                    send <| FlashPrice
+
+                                _ ->
+                                    Cmd.none
+                    in
+                    ( { model | session = newSession }, maybeFlash )
 
         ClickedEmailSupport ->
             ( model, send <| TriggerMailto )
@@ -2388,7 +2428,7 @@ viewLoaded model =
                 []
                 [ text
                     ("""
-h1, h2, h3, h4, h5, h6 {
+.card .view h1, .card .view h2, .card .view h3, .card .view h4, .card .view h5, .card .view h6 {
   font-family: '@HEADING', serif;
 }
 .card .view {
@@ -2441,6 +2481,7 @@ pre, code, .group.has-active .card textarea {
                         , clickedEmailSupport = ClickedEmailSupport
                         , logoutRequested = LogoutRequested
                         , toggledAccountMenu = ToggledAccountMenu
+                        , toggledUpgradeModal = ToggledUpgradeModal
                         }
                         (Metadata.getDocName model.metadata)
                         model
@@ -2976,6 +3017,15 @@ viewModal language model =
         ImportModal modalModel ->
             ImportModal.view language modalModel
                 |> List.map (Html.map ImportModalMsg)
+
+        UpgradeModal ->
+            case Session.upgradeModel model.session of
+                Just upgradeModel ->
+                    Upgrade.view upgradeModel
+                        |> List.map (Html.map UpgradeModalMsg)
+
+                Nothing ->
+                    []
 
 
 

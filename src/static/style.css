@@ -209,6 +209,29 @@ body {
   font-size: 12px;
 }
 
+#message-page {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  align-items: center;
+  justify-content: center;
+}
+
+.message-card {
+  position: relative;
+  background: var(--active-bg);
+  color: var(--normal-text-color);
+  border: none;
+  box-shadow: 0px 1px 3px hsl(0deg 0% 0% / 79%), 0px 0px 40px hsl(0deg 0% 0% / 10%);
+  padding: 50px;
+  border-radius: 10px;
+}
+.message-cta {
+  position: absolute;
+  right: 50px;
+}
+
 /* ======== THEMES ======== */
 
 .dark-theme {
@@ -367,6 +390,7 @@ body {
   transform: translate(-50%, -50%); /* Use this for centering if unknown width/height */
   background: white;
   box-shadow: 0 0 60px 10px rgba(0, 0, 0, 0.9);
+  border-radius: 6px;
 }
 .modal-overlay {
   position: fixed;
@@ -380,20 +404,22 @@ body {
 .modal .close-button {
   position: absolute;
   z-index: 1;
-  top: 7px;
-  right: 3px;
-  border-radius: 50%;
-  border: 0;
-  background: black;
-  color: white;
-  padding: 5px 10px;
-  font-size: 1.3rem;
+  top: 14px;
+  right: 14px;
+  cursor: pointer;
+}
+.modal-header {
+  padding: 8px 16px;
+  border-bottom: 1px solid lightgray;
+}
+.modal-header h2 {
+  margin: 0;
 }
 .modal-guts {
   display: flex;
   flex-direction: column;
   overflow: auto;
-  padding: 40px 0;
+  padding: 16px;
   max-height: 90vh;
 }
 .file-drop-zone.dragged-over {
@@ -444,6 +470,8 @@ body {
 
 
 .dropdown {
+  display: flex;
+  flex-direction: column;
   background-color: white;
   box-shadow: 0px 2px 4px hsla(0,0%,0%,0.3);
   padding: 16px;
@@ -464,6 +492,166 @@ body {
   position: absolute;
   right: 4px;
   top: 39px;
+}
+
+#upgrade-button {
+  height: auto;
+  padding: 8px 12px;
+  background: #7439c0;
+  color: white;
+  font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Ubuntu,sans-serif;
+  font-weight: bold;
+  font-size: 90%;
+  border-radius: 4px;
+  cursor: pointer;
+}
+#upgrade-button:hover {
+  background: #69409a;
+}
+
+#upgrade-modal {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  grid-template-columns: 3fr 1fr;
+  grid-template-areas:
+    "body checkout"
+    "pwyw checkout";
+  padding: 0;
+}
+#upgrade-copy {
+  padding: 16px;
+}
+
+#pwyw {
+  grid-area: pwyw;
+  background: #eaeaea;
+  margin: 16px;
+  border-radius: 6px;
+  color: #555;
+  box-shadow: inset 1px 1px 3px #bdbdbd;
+}
+
+#pwyw-toggle {
+  cursor: pointer;
+  display: flex;
+  align-items: baseline;
+  padding: 10px;
+}
+
+#pwyw-body {
+  padding: 0 16px 16px 16px;
+}
+
+#pwyw-body a {
+  color: #428bca;
+  text-decoration: none;
+}
+#pwyw-body a:hover {
+  color: #2a70a8;
+  text-decoration: underline;
+}
+#pwyw-body small {
+  font-style: italic;
+}
+
+#pwyw-body ul {
+  margin:0;
+  padding-left: 36px;
+}
+
+#pwyw-toggle h3 {
+  font-weight: normal;
+  color: gray;
+  margin: 0;
+}
+#pwyw-toggle.open h3{
+  color: black;
+  font-weight: bold;
+}
+
+#pwyw-buttons {
+  display: flex;
+  border: 1px solid darkgray;
+  width: max-content;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: inset 1px 1px 4px hsla(0, 0%, 0%, 0.15);
+}
+
+#pwyw-buttons div {
+  padding: 6px;
+  cursor: pointer;
+  border-right: 1px solid darkgray;
+}
+#pwyw-buttons div:last-child {
+  border-right: none;
+}
+#pwyw-buttons div.checked {
+  background: #42A5F5;
+  color: white;
+
+}
+
+.toggle-caret {
+  margin-right: 10px;
+}
+.toggle-caret svg {
+  fill: gray;
+}
+
+#upgrade-checkout {
+  padding: 16px;
+  background-color: #eaeaea;
+  grid-area: checkout;
+}
+
+#upgrade-checkout select {
+  font-size: 90%;
+  padding: 4px;
+}
+
+#upgrade-checkout select.unknown-currency {
+  font-size: 110%;
+  padding: 5px;
+  background: white;
+  box-shadow: 0 0 4px #84b1c7;
+}
+
+#price-display {
+  text-align: center;
+  font-size: 120%;
+}
+
+#price-amount {
+  font-size: 150%;
+}
+#price-amount.flash {
+
+}
+
+.payment-button {
+  width: 100%;
+  font-size: 100%;
+  height: 3rem;
+  outline: 0;
+  cursor: pointer;
+  border-radius: 6px;
+  border-right: 0;
+  border-left: 0;
+  color: white;
+  border-top: 1px solid hsl(77, 100%, 66% );
+  border-bottom: 1px solid hsl(77, 100%,13% );
+  background: linear-gradient(0deg, hsl(77, 100%, 35%), hsl(77, 100%, 40%) 70%, hsl(77, 71%, 56%));
+  font-weight: bold;
+  text-shadow: 0 -1px 0 rgba(0,0,0,0.25);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.2);
+  font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Ubuntu,sans-serif;
+}
+.payment-button:hover {
+  background: hsl(77, 100%, 35% );
+}
+.payment-button:active {
+  margin-top: 1px;
 }
 
 #sidebar {
@@ -979,7 +1167,6 @@ span.collaborators {
 /* --- Typography --- */
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Bitter', serif;
   margin: 0;
   line-height: 1.5;
 }
@@ -999,6 +1186,9 @@ p {
 .card .view {
   font-family: 'Open Sans', serif;
   line-height: 1.4;
+}
+.card .view h1, .card .view h2, .card .view h3, .card .view h4, .card .view h5, .card .view h6 {
+  font-family: 'Bitter', serif;
 }
 
 pre, code {
@@ -1425,42 +1615,15 @@ pre {
   margin-right: 9px;
 }
 
-
-
-/* ======== MODAL ======== */
-
-.modal-container {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: rgba(0,0,0,0.5);
-  z-index: 99999;
+@keyframes flash-2 {
+  0% { box-shadow: 0px 0px 10px transparent; z-index: 99999; }
+  30% { box-shadow: 0px 0px 10px #42A5F5; z-index: 99999; }
+  100% { box-shadow: 0px 0px 10px transparent; z-index: 99999; }
+}
+.flash-2 {
+  animation: flash-2 0.4s;
 }
 
-.modal {
-  background: white;
-  padding: 16px;
-  border-radius: 6px;
-  box-shadow: 0px 3px 6px rgba(0,0,0,0.35);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-}
-
-.modal-header a {
-  cursor: pointer;
-  font-size: 25px;
-  font-weight: bold;
-  color: gray;
-}
-.modal-header a:hover {
-  color: black;
-}
 
 /* ======== FONT SELECTOR ======== */
 
@@ -1838,6 +2001,13 @@ ul.changelist {
 
   #shortcuts h3 {
     font-size: 14px;
+  }
+
+  #title h1 {
+    font-size: 16px;
+    max-width: 30vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   h2#brand-name {

@@ -139,6 +139,9 @@ function setUserDbs(email) {
 }
 
 
+const stripe = Stripe(config.STRIPE_PUBLIC_KEY);
+
+
 /* === Elm / JS Interop === */
 
 function toElm(data, portName, tagName) {
@@ -404,6 +407,19 @@ const fromElm = (msg, elmData) => {
       setTimeout(removeFlashClass, 200);
     },
 
+    FlashPrice: () => {
+      let addFlashClass = function () {
+        jQuery("#price-amount").addClass("flash-2");
+      };
+
+      let removeFlashClass = function () {
+        jQuery("#price-amount").removeClass("flash-2");
+      };
+
+      addFlashClass();
+      setTimeout(removeFlashClass, 400);
+    },
+
     TextSurround: () => {
       let id = elmData[0];
       let surroundString = elmData[1];
@@ -461,6 +477,12 @@ const fromElm = (msg, elmData) => {
 
     EmptyMessageShown: () => {},
 
+    CheckoutButtonClicked: async () => {
+      let priceId = config.PRICE_DATA[elmData.currency][elmData.billing][elmData.plan];
+      let data = await createCheckoutSession(priceId);
+      let checkoutResult = stripe.redirectToCheckout({sessionId: data.sessionId});
+    },
+
     TriggerMailto: () => {
       // Hack to avoid committing personal email address:
       let mail = document.createElement("a");
@@ -492,6 +514,21 @@ async function loadDocListAndSend(dbToLoadFrom, source) {
 }
 
 
+/* === Stripe === */
+
+var createCheckoutSession = function(priceId) {
+  return fetch("/create-checkout-session", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      priceId: priceId
+    })
+  }).then(function(result) {
+    return result.json();
+  });
+};
 
 
 /* === Helper Functions === */

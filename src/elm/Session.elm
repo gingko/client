@@ -1,4 +1,4 @@
-port module Session exposing (Session, db, decode, documents, fileMenuOpen, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, settingsChange, shortcutTrayOpen, storeLogin, storeSignup, updateDocuments)
+port module Session exposing (Session, db, decode, documents, fileMenuOpen, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, settingsChange, shortcutTrayOpen, storeLogin, storeSignup, updateDocuments, updateUpgrade, upgradeModel)
 
 import Browser.Navigation as Nav
 import Doc.List as DocList
@@ -9,6 +9,7 @@ import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
 import Random
 import Translation exposing (Language(..), langFromString, langToString, languageDecoder)
+import Upgrade
 import Utils exposing (hexEncode)
 
 
@@ -31,9 +32,9 @@ type alias SessionData =
 
 
 type alias UserData =
-    -- Persisted in userdb settings
     { email : String
     , language : Translation.Language
+    , upgradeModel : Upgrade.Model
     , shortcutTrayOpen : Bool
     , documents : DocList.Model
     }
@@ -107,6 +108,16 @@ language session =
 
         Guest _ data ->
             data.language
+
+
+upgradeModel : Session -> Maybe Upgrade.Model
+upgradeModel session =
+    case session of
+        LoggedIn _ data ->
+            Just data.upgradeModel
+
+        Guest _ _ ->
+            Nothing
 
 
 shortcutTrayOpen : Session -> Bool
@@ -193,6 +204,16 @@ updateDocuments docList session =
             session
 
 
+updateUpgrade : Upgrade.Msg -> Session -> Session
+updateUpgrade upgradeMsg session =
+    case session of
+        LoggedIn sessionData data ->
+            LoggedIn sessionData { data | upgradeModel = Upgrade.update upgradeMsg data.upgradeModel }
+
+        Guest _ _ ->
+            session
+
+
 
 -- ENCODER & DECODER
 
@@ -226,7 +247,7 @@ decodeLoggedIn : Nav.Key -> Dec.Decoder Session
 decodeLoggedIn key =
     Dec.succeed
         (\email s lang trayOpen lastDoc ->
-            LoggedIn (SessionData key s False lastDoc) (UserData email lang trayOpen DocList.init)
+            LoggedIn (SessionData key s False lastDoc) (UserData email lang Upgrade.init trayOpen DocList.init)
         )
         |> required "email" Dec.string
         |> required "seed" (Dec.int |> Dec.map Random.initialSeed)
@@ -248,7 +269,7 @@ responseDecoder session =
         builder email lang trayOpen =
             case session of
                 Guest sessionData data ->
-                    LoggedIn sessionData (UserData email lang trayOpen DocList.init)
+                    LoggedIn sessionData (UserData email lang Upgrade.init trayOpen DocList.init)
 
                 LoggedIn _ _ ->
                     session

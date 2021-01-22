@@ -18,6 +18,7 @@ type Route
     | DocUntitled String
     | Doc String String
     | Import Template
+    | Upgrade Bool
 
 
 parser : Parser (Route -> a) a
@@ -30,6 +31,11 @@ parser =
         , Parser.map ResetPassword (s "reset-password" </> string)
         , Parser.map Import (s "import" </> Parser.custom "IMPORT" Template.fromString)
         , Parser.map DocNew (s "new")
+        , s "upgrade"
+            </> Parser.oneOf
+                    [ Parser.map (Upgrade True) (s "success")
+                    , Parser.map (Upgrade False) (s "cancelled")
+                    ]
         , Parser.map DocUntitled string
         , Parser.map Doc (string </> string)
         ]
@@ -74,6 +80,15 @@ toString route =
 
         Import template ->
             "/import/" ++ Template.toString template
+
+        Upgrade isOk ->
+            "/upgrade/"
+                ++ (if isOk then
+                        "success"
+
+                    else
+                        "cancelled"
+                   )
 
 
 replaceUrl : Nav.Key -> Route -> Cmd msg

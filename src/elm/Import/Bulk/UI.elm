@@ -12,6 +12,7 @@ import Json.Decode as Dec
 import Octicons as Icon exposing (defaultOptions)
 import Outgoing exposing (Msg(..), send)
 import Session exposing (Session)
+import SharedUI exposing (modalWrapper)
 import Task
 import Time
 import Translation exposing (Language)
@@ -58,7 +59,7 @@ init user =
 
 type Msg
     = NoOp
-    | ModalToggled Bool
+    | ModalClosed
     | LegacyLoginStateChanged Bool
     | ManualChosen
     | Retry
@@ -74,10 +75,7 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg ({ state, user } as model) =
     case ( msg, state ) of
-        ( ModalToggled True, Closed ) ->
-            ( { model | state = ModalOpen { loginState = Checking, isFileDragging = False } }, Cmd.none )
-
-        ( ModalToggled False, _ ) ->
+        ( ModalClosed, _ ) ->
             ( { model | state = Closed }, Cmd.none )
 
         ( LegacyLoginStateChanged isLoggedIn, _ ) ->
@@ -190,8 +188,7 @@ view lang { state } =
         ModalOpen { loginState, isFileDragging } ->
             case loginState of
                 Checking ->
-                    [ h1 [] [ text "Import From Gingko v1" ]
-                    , text "Checking to see if you're logged in or not..."
+                    [ text "Checking to see if you're logged in or not..."
                     , br [] []
                     , iframe [ src "https://gingkoapp.com/loggedin", width 0, height 0 ] []
                     , br [] []
@@ -202,11 +199,10 @@ view lang { state } =
                         , text " to download your v1 files manually."
                         ]
                     ]
-                        |> modalWrapper
+                        |> modalWrapper ModalClosed Nothing "Import From Gingko v1"
 
                 LoggedIn ->
-                    [ h1 [] [ text "Import From Gingko v1" ]
-                    , p [] [ text "To transfer multiple trees from your old account to this new one, follow these steps." ]
+                    [ p [] [ text "To transfer multiple trees from your old account to this new one, follow these steps." ]
                     , p []
                         [ text "1. Click here to download a backup of all your trees: "
                         , br [] []
@@ -225,11 +221,10 @@ view lang { state } =
                         , button [ onClick FileRequested ] [ text "Browse..." ]
                         ]
                     ]
-                        |> modalWrapper
+                        |> modalWrapper ModalClosed Nothing "Import From Gingko v1"
 
                 LoggedOut ->
-                    [ h1 [] [ text "Import From Gingko v1" ]
-                    , p [] [ text "To transfer trees from your old account, you need to be logged in to it." ]
+                    [ p [] [ text "To transfer trees from your old account, you need to be logged in to it." ]
                     , p [] [ text "But it seems you are not logged in to your old account." ]
                     , p []
                         [ text "1. "
@@ -246,11 +241,10 @@ view lang { state } =
                         , text " to download your v1 files manually."
                         ]
                     ]
-                        |> modalWrapper
+                        |> modalWrapper ModalClosed Nothing "Import From Gingko v1"
 
                 Manual ->
-                    [ h1 [] [ text "Import From Gingko v1" ]
-                    , p []
+                    [ p []
                         [ text "1. "
                         , a [ href "https://gingkoapp.com/login", target "_blank" ] [ text "Login" ]
                         , text " to your old Gingko App account."
@@ -272,7 +266,7 @@ view lang { state } =
                         , button [ onClick FileRequested ] [ text "Browse..." ]
                         ]
                     ]
-                        |> modalWrapper
+                        |> modalWrapper ModalClosed Nothing "Import From Gingko v1"
 
         ImportSelecting importSelection ->
             let
@@ -281,12 +275,11 @@ view lang { state } =
                         |> List.any .selected
                         |> not
             in
-            [ h1 [] [ text "Import From Gingko v1" ]
-            , div [ style "display" "flex", style "margin-top" "10px" ] [ span [ style "flex" "auto" ] [ text "Name" ], span [] [ text "Last Modified" ] ]
+            [ div [ style "display" "flex", style "margin-top" "10px" ] [ span [ style "flex" "auto" ] [ text "Name" ], span [] [ text "Last Modified" ] ]
             , div [ id "import-selection-list" ] [ ul [] (List.map (viewSelectionEntry lang) importSelection) ]
             , button [ onClick SelectionDone, disabled isDisabled ] [ text "Import Selected Trees" ]
             ]
-                |> modalWrapper
+                |> modalWrapper ModalClosed Nothing "Import From Gingko v1"
 
         ImportSaving importSelection ->
             let
@@ -295,21 +288,13 @@ view lang { state } =
                         |> List.filter .selected
                         |> List.length
             in
-            [ h1 [] [ text "Import From Gingko v1" ]
-            , p []
+            [ p []
                 [ text <| "Importing selected " ++ String.fromInt importCount ++ " trees..."
                 , br [] []
                 , text "This might take a while..."
                 ]
             ]
-                |> modalWrapper
-
-
-modalWrapper : List (Html Msg) -> List (Html Msg)
-modalWrapper body =
-    [ div [ class "modal-overlay" ] []
-    , div [ class "modal" ] [ button [ class "close-button", onClick (ModalToggled False) ] [ text "X" ], div [ class "modal-guts" ] body ]
-    ]
+                |> modalWrapper ModalClosed Nothing "Import From Gingko v1"
 
 
 viewSelectionEntry : Language -> { selected : Bool, tree : ( String, Metadata, Tree ) } -> Html Msg

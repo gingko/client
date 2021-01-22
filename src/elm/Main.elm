@@ -10,6 +10,7 @@ import Page.Empty
 import Page.ForgotPassword
 import Page.Import
 import Page.Login
+import Page.Message
 import Page.NotFound
 import Page.ResetPassword
 import Page.Signup
@@ -25,6 +26,7 @@ import Url exposing (Url)
 type Model
     = Redirect Session
     | NotFound Session
+    | PaymentSuccess Session
     | Signup Page.Signup.Model
     | Login Page.Login.Model
     | ForgotPassword Page.ForgotPassword.Model
@@ -105,6 +107,13 @@ changeRouteTo maybeRoute model =
                 Page.Import.init user template
                     |> updateWith Import GotImportMsg
 
+            Just (Route.Upgrade isOk) ->
+                if isOk then
+                    ( PaymentSuccess user, Cmd.none )
+
+                else
+                    ( Redirect user, Cmd.none )
+
             Nothing ->
                 ( NotFound user, Cmd.none )
 
@@ -144,6 +153,9 @@ toUser page =
             user
 
         NotFound user ->
+            user
+
+        PaymentSuccess user ->
             user
 
         Signup signup ->
@@ -271,6 +283,9 @@ view model =
         NotFound _ ->
             Page.NotFound.view
 
+        PaymentSuccess _ ->
+            Page.Message.viewSuccess
+
         Signup signup ->
             { title = "Gingko - Signup", body = [ Html.map GotSignupMsg (Page.Signup.view signup) ] }
 
@@ -307,6 +322,9 @@ subscriptions model =
             Sub.none
 
         NotFound _ ->
+            Sub.none
+
+        PaymentSuccess _ ->
             Sub.none
 
         Signup pageModel ->
