@@ -1,8 +1,8 @@
 module Upgrade exposing (Model, Msg(..), init, update, view)
 
 import Ant.Icons.Svg as Icon
-import Html exposing (Html, br, button, div, h3, hr, input, label, option, p, select, small, span, text)
-import Html.Attributes exposing (checked, class, classList, for, height, id, name, selected, type_, value, width)
+import Html exposing (Html, a, br, button, div, h3, hr, input, label, li, option, p, select, small, span, text, textarea, ul)
+import Html.Attributes exposing (checked, class, classList, for, height, href, id, name, placeholder, selected, target, type_, value, width)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onChange)
 import Json.Encode as Enc
@@ -162,7 +162,19 @@ viewPWYWForm model =
                 , h3 [] [ text "Price Adjustments" ]
                 ]
             , div [ id "pwyw-body" ]
-                [ viewPWYWButtons model
+                [ p [] [ text "Gingko Writer is used in over 170 countries of the world, and by everyone from rural middle-school students to Silicon Valley software developers." ]
+                , p [] [ text "To cover that range fairly, you can adjust your own price by ±50%:" ]
+                , viewPWYWButtons model
+                , br [] []
+                , hr [] []
+                , small []
+                    [ a [ href "https://givewell.org", target "_blank" ] [ text "GiveWell.org" ]
+                    , text " receives:"
+                    , ul []
+                        [ li [] [ text "10% of all revenue" ]
+                        , li [] [ text "100% of personal profit over $35K/year" ]
+                        ]
+                    ]
                 ]
             ]
 
@@ -178,11 +190,11 @@ viewPWYWForm model =
 viewPWYWButtons model =
     div [ id "pwyw-buttons" ]
         [ div [ id "discount", classList [ ( "checked", model.plan == Discount ) ], onClick (PlanChanged Discount) ]
-            [ text "Discount" ]
+            [ text "-50%" ]
         , div [ id "regular", classList [ ( "checked", model.plan == Regular ) ], onClick (PlanChanged Regular) ]
             [ text "Regular" ]
         , div [ id "bonus", classList [ ( "checked", model.plan == Bonus ) ], onClick (PlanChanged Bonus) ]
-            [ text "Bonus" ]
+            [ text "+50%" ]
         ]
 
 

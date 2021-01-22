@@ -525,7 +525,9 @@ body {
 #pwyw {
   grid-area: pwyw;
   background: #eaeaea;
-  position: relative;
+  margin: 16px;
+  border-radius: 6px;
+  color: #555;
 }
 
 #pwyw-toggle {
@@ -534,21 +536,28 @@ body {
   align-items: baseline;
   padding: 10px;
 }
-#pwyw-toggle::before {
-  content: '';
-  position: absolute;
-  background: white;
-  width: 10px;
-  height: 10px;
-  top: -10px;
-  right: 0;
-  box-shadow: 5px 5px 0px 5px #eaeaea;
-  border-radius: 0 0 10px;
-}
 
 #pwyw-body {
   padding: 0 16px 16px 16px;
 }
+
+#pwyw-body a {
+  color: #428bca;
+  text-decoration: none;
+}
+#pwyw-body a:hover {
+  color: #2a70a8;
+  text-decoration: underline;
+}
+#pwyw-body small {
+  font-style: italic;
+}
+
+#pwyw-body ul {
+  margin:0;
+  padding-left: 36px;
+}
+
 #pwyw-toggle h3 {
   font-weight: normal;
   color: gray;
