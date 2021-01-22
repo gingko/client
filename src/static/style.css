@@ -559,6 +559,15 @@ body {
   font-weight: bold;
 }
 
+#pwyw-buttons {
+  display: flex;
+}
+
+#pwyw-buttons div.checked {
+  background: blue;
+  color: white;
+}
+
 .toggle-caret {
   margin-right: 10px;
 }

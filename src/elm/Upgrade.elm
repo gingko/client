@@ -162,35 +162,7 @@ viewPWYWForm model =
                 , h3 [] [ text "Price Adjustments" ]
                 ]
             , div [ id "pwyw-body" ]
-                [ div [ id "pwyw-buttons" ]
-                    [ input
-                        [ id "plan-discount"
-                        , type_ "radio"
-                        , name "plan"
-                        , checked (model.plan == Discount)
-                        , onInput (always (PlanChanged Discount))
-                        ]
-                        []
-                    , label [ for "plan-discount" ] [ text "Discount" ]
-                    , input
-                        [ id "plan-regular"
-                        , type_ "radio"
-                        , name "plan"
-                        , checked (model.plan == Regular)
-                        , onInput (always (PlanChanged Regular))
-                        ]
-                        []
-                    , label [ for "plan-regular" ] [ text "Regular" ]
-                    , input
-                        [ id "plan-bonus"
-                        , type_ "radio"
-                        , name "plan"
-                        , checked (model.plan == Bonus)
-                        , onInput (always (PlanChanged Bonus))
-                        ]
-                        []
-                    , label [ for "plan-bonus" ] [ text "Bonus" ]
-                    ]
+                [ viewPWYWButtons model
                 ]
             ]
 
@@ -201,6 +173,17 @@ viewPWYWForm model =
                 ]
             ]
         )
+
+
+viewPWYWButtons model =
+    div [ id "pwyw-buttons" ]
+        [ div [ id "discount", classList [ ( "checked", model.plan == Discount ) ], onClick (PlanChanged Discount) ]
+            [ text "Discount" ]
+        , div [ id "regular", classList [ ( "checked", model.plan == Regular ) ], onClick (PlanChanged Regular) ]
+            [ text "Regular" ]
+        , div [ id "bonus", classList [ ( "checked", model.plan == Bonus ) ], onClick (PlanChanged Bonus) ]
+            [ text "Bonus" ]
+        ]
 
 
 viewPaymentForm : Model -> Html Msg

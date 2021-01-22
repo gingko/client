@@ -77,14 +77,22 @@ describe('Upgrade process', () => {
     cy.contains('₹2000')
 
     // Should toggle Pay What You Want pricing
-    cy.get('#upgrade-copy')
+    cy.get('#pwyw')
       .should('not.contain', 'Discount')
 
     cy.get('#pwyw-toggle')
       .click()
 
-    cy.get('#upgrade-copy')
+    cy.get('#pwyw')
       .should('contain', 'Discount')
+
+    cy.get('#discount')
+      .click()
+      .should('have.class','checked')
+
+    cy.get('#upgrade-checkout')
+      .should('contain', '1000')
+
 
     // Correct priceId set
     /*
