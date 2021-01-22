@@ -532,7 +532,7 @@ body {
   cursor: pointer;
   display: flex;
   align-items: baseline;
-  padding: 16px;
+  padding: 10px;
 }
 #pwyw-toggle::before {
   content: '';
@@ -561,15 +561,32 @@ body {
 
 #pwyw-buttons {
   display: flex;
+  border: 1px solid darkgray;
+  width: min-content;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: inset 1px 1px 4px hsla(0, 0%, 0%, 0.15);
 }
 
+#pwyw-buttons div {
+  padding: 6px;
+  cursor: pointer;
+  border-right: 1px solid darkgray;
+}
+#pwyw-buttons div:last-child {
+  border-right: none;
+}
 #pwyw-buttons div.checked {
-  background: blue;
+  background: #42A5F5;
   color: white;
+
 }
 
 .toggle-caret {
   margin-right: 10px;
+}
+.toggle-caret svg {
+  fill: gray;
 }
 
 #upgrade-checkout {
