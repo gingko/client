@@ -35,6 +35,7 @@ type Msg
     | ScrollFullscreenCards String
     | DragStart Enc.Value
     | CopyCurrentSubtree Enc.Value
+    | FlashPrice
     | TextSurround String String
     | SetCursorPosition Int
     | SetFullscreen Bool
@@ -130,6 +131,9 @@ send info =
 
         CopyCurrentSubtree treeJSON ->
             dataToSend "CopyCurrentSubtree" treeJSON
+
+        FlashPrice ->
+            dataToSend "FlashPrice" null
 
         TextSurround id str ->
             dataToSend "TextSurround" (list string [ id, str ])

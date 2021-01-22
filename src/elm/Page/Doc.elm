@@ -627,8 +627,16 @@ update msg ({ workingTree } as model) =
                     let
                         newSession =
                             Session.updateUpgrade upgradeModalMsg model.session
+
+                        maybeFlash =
+                            case upgradeModalMsg of
+                                PlanChanged _ ->
+                                    send <| FlashPrice
+
+                                _ ->
+                                    Cmd.none
                     in
-                    ( { model | session = newSession }, Cmd.none )
+                    ( { model | session = newSession }, maybeFlash )
 
         ClickedEmailSupport ->
             ( model, send <| TriggerMailto )

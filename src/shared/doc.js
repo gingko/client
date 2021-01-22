@@ -407,6 +407,19 @@ const fromElm = (msg, elmData) => {
       setTimeout(removeFlashClass, 200);
     },
 
+    FlashPrice: () => {
+      let addFlashClass = function () {
+        jQuery("#price-amount").addClass("flash-2");
+      };
+
+      let removeFlashClass = function () {
+        jQuery("#price-amount").removeClass("flash-2");
+      };
+
+      addFlashClass();
+      setTimeout(removeFlashClass, 400);
+    },
+
     TextSurround: () => {
       let id = elmData[0];
       let surroundString = elmData[1];

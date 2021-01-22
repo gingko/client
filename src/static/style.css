@@ -625,6 +625,9 @@ body {
 #price-amount {
   font-size: 150%;
 }
+#price-amount.flash {
+
+}
 
 .payment-button {
   width: 100%;
@@ -1612,6 +1615,14 @@ pre {
   margin-right: 9px;
 }
 
+@keyframes flash-2 {
+  0% { box-shadow: 0px 0px 10px transparent; z-index: 99999; }
+  30% { box-shadow: 0px 0px 10px #42A5F5; z-index: 99999; }
+  100% { box-shadow: 0px 0px 10px transparent; z-index: 99999; }
+}
+.flash-2 {
+  animation: flash-2 0.4s;
+}
 
 
 /* ======== FONT SELECTOR ======== */
