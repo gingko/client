@@ -1,4 +1,4 @@
-module Upgrade exposing (Model, Msg(..), init, update, view)
+module Upgrade exposing (Model, Msg(..), init, toValue, update, view)
 
 import Ant.Icons.Svg as Icon
 import Html exposing (Html, a, br, button, div, h3, hr, img, input, label, li, option, p, select, small, span, strong, text, textarea, ul)
@@ -64,15 +64,16 @@ init =
     }
 
 
-toValue : Model -> Enc.Value
-toValue model =
+toValue : String -> Model -> Enc.Value
+toValue eml model =
     case model.currency of
         UnknownCurrency ->
             Enc.null
 
         Currency curr ->
             Enc.object
-                [ ( "currency", Enc.string (Money.toString curr) )
+                [ ( "email", Enc.string eml )
+                , ( "currency", Enc.string (Money.toString curr) )
                 , ( "billing"
                   , if model.billing == Monthly then
                         "monthly" |> Enc.string
@@ -93,7 +94,7 @@ type Msg
     | BillingChanged BillingFrequency
     | PlanChanged Plan
     | PWYWToggled Bool
-    | CheckoutClicked Enc.Value
+    | CheckoutClicked Model
     | UpgradeModalClosed
 
 
@@ -266,7 +267,7 @@ viewPaymentForm model =
                     , small [] [ text (billingToString model.billing) ]
                     ]
                 , hr [] []
-                , button [ class "payment-button", onClick <| CheckoutClicked (toValue model) ] [ text "Checkout" ]
+                , button [ class "payment-button", onClick <| CheckoutClicked model ] [ text "Checkout" ]
                 ]
 
 

@@ -479,7 +479,8 @@ const fromElm = (msg, elmData) => {
 
     CheckoutButtonClicked: async () => {
       let priceId = config.PRICE_DATA[elmData.currency][elmData.billing][elmData.plan];
-      let data = await createCheckoutSession(priceId);
+      let userEmail = elmData.email;
+      let data = await createCheckoutSession(userEmail, priceId);
       let checkoutResult = stripe.redirectToCheckout({sessionId: data.sessionId});
     },
 
@@ -516,14 +517,15 @@ async function loadDocListAndSend(dbToLoadFrom, source) {
 
 /* === Stripe === */
 
-var createCheckoutSession = function(priceId) {
+var createCheckoutSession = function(userEmail, priceId) {
   return fetch("/create-checkout-session", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      priceId: priceId
+      priceId: priceId,
+      customer_email: userEmail
     })
   }).then(function(result) {
     return result.json();

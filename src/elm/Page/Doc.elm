@@ -621,7 +621,16 @@ update msg ({ workingTree } as model) =
                     ( { model | modalState = NoModal }, Cmd.none )
 
                 CheckoutClicked checkoutData ->
-                    ( model, send <| CheckoutButtonClicked checkoutData )
+                    case Session.name model.session of
+                        Just email ->
+                            let
+                                data =
+                                    Upgrade.toValue email checkoutData
+                            in
+                            ( model, send <| CheckoutButtonClicked data )
+
+                        Nothing ->
+                            ( model, Cmd.none )
 
                 _ ->
                     let
