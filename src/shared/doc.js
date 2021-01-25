@@ -53,6 +53,7 @@ async function initElmAndPorts() {
     // Load user settings
     try {
       settings = await userStore.load();
+      console.log("loaded settings" ,settings)
     } catch (e) {
       console.log("failed", e)
     }
@@ -62,7 +63,6 @@ async function initElmAndPorts() {
   settings.email = email;
   settings.seed = Date.now();
   lang = settings.language || "en";
-  console.log("loaded settings" ,settings)
 
   gingko = Elm.Main.init({
     node: document.getElementById("elm"),
@@ -130,6 +130,15 @@ function setUserDbs(email) {
     language: "javascript",
   };
   db.put(ddoc).catch(async (e) => e); // ignore conflict error
+
+  // add default settings document
+  let defaultSettings = {
+    _id: "settings",
+    email: email,
+    language: lang,
+    shortcutTrayOpen: true
+  }
+  db.put(defaultSettings).catch(async (e) => e); // ignore conflict error
 
   // Sync document list with server
   PouchDB.sync(db, remoteDB, { filter: "_view", view: "testDocList/docList", include_docs: true, live: true, retry: true })
