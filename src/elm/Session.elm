@@ -1,9 +1,9 @@
-port module Session exposing (Session, customer, db, decode, documents, fileMenuOpen, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, settingsChange, shortcutTrayOpen, storeLogin, storeSignup, updateDocuments, updateUpgrade, upgradeModel)
+port module Session exposing (Session, customer, db, decode, documents, fileMenuOpen, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, shortcutTrayOpen, storeLogin, storeSignup, sync, updateDocuments, updateUpgrade, upgradeModel, userSettingsChange)
 
 import Browser.Navigation as Nav
 import Doc.List as DocList
 import Http
-import Json.Decode as Dec
+import Json.Decode as Dec exposing (Decoder)
 import Json.Decode.Pipeline exposing (optional, optionalAt, required)
 import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
@@ -163,6 +163,26 @@ loggedIn session =
 
 
 -- UPDATE
+
+
+sync : Dec.Value -> Session -> Session
+sync json session =
+    let
+        settingsDecoder : Decoder { language : Language, customer : Maybe String }
+        settingsDecoder =
+            Dec.succeed (\lang cust_ -> { language = lang, customer = cust_ })
+                |> optional "language" languageDecoder En
+                |> optional "customer" (Dec.maybe Dec.string) Nothing
+    in
+    case ( Dec.decodeValue settingsDecoder json, session ) of
+        ( Ok newSettings, LoggedIn sessData userData ) ->
+            LoggedIn sessData { userData | language = newSettings.language, customer = newSettings.customer }
+
+        ( Ok newSettings, Guest sessData guestData ) ->
+            Guest sessData { guestData | language = newSettings.language }
+
+        ( Err _, _ ) ->
+            session
 
 
 updateSession : (SessionData -> SessionData) -> Session -> Session
@@ -415,20 +435,6 @@ store session_ =
 loginChanges : (Session -> msg) -> Nav.Key -> Sub msg
 loginChanges toMsg key =
     userLoginChange (decode key >> toMsg)
-
-
-settingsChange : (Language -> msg) -> Sub msg
-settingsChange toMsg =
-    let
-        decodeSettings json =
-            case Dec.decodeValue (Dec.field "language" languageDecoder) json of
-                Ok lang ->
-                    lang
-
-                Err err ->
-                    En
-    in
-    userSettingsChange (decodeSettings >> toMsg)
 
 
 port userLoginChange : (Dec.Value -> msg) -> Sub msg

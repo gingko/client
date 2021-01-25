@@ -3,7 +3,7 @@ module Main exposing (main)
 import Browser exposing (Document)
 import Browser.Navigation as Nav
 import Html
-import Json.Decode exposing (Decoder, Value)
+import Json.Decode as Dec exposing (Decoder, Value)
 import Page.Doc
 import Page.DocNew
 import Page.Empty
@@ -190,6 +190,7 @@ toUser page =
 type Msg
     = ChangedUrl Url
     | ClickedLink Browser.UrlRequest
+    | SettingsChanged Dec.Value
     | GotSignupMsg Page.Signup.Msg
     | GotLoginMsg Page.Login.Msg
     | GotForgotPasswordMsg Page.ForgotPassword.Msg
@@ -221,6 +222,9 @@ update msg model =
 
                 Browser.External href ->
                     ( model, Nav.load href )
+
+        ( SettingsChanged json, PaymentSuccess session ) ->
+            ( PaymentSuccess (Session.sync json session), Cmd.none )
 
         ( GotSignupMsg signupMsg, Signup signupModel ) ->
             Page.Signup.update signupMsg signupModel
@@ -325,7 +329,7 @@ subscriptions model =
             Sub.none
 
         PaymentSuccess _ ->
-            Sub.none
+            Session.userSettingsChange SettingsChanged
 
         Signup pageModel ->
             Sub.map GotSignupMsg (Page.Signup.subscriptions pageModel)

@@ -219,7 +219,7 @@ type Msg
     | Resolve String
       -- === UI ===
     | ReceivedDocuments DocList.Model
-    | SettingsChanged Language
+    | SettingsChanged Json.Value
     | LogoutRequested
     | LoginStateChanged Session
     | ToggledTitleEdit Bool
@@ -542,8 +542,8 @@ update msg ({ workingTree } as model) =
             in
             ( newModel, newCmd )
 
-        SettingsChanged lang ->
-            ( { model | session = Session.setLanguage lang model.session }, Cmd.none )
+        SettingsChanged json ->
+            ( { model | session = Session.sync json model.session }, Cmd.none )
 
         ToggledTitleEdit isEditingTitle ->
             if isEditingTitle then
@@ -3062,7 +3062,7 @@ subscriptions model =
 
             _ ->
                 Sub.none
-        , Session.settingsChange SettingsChanged
+        , Session.userSettingsChange SettingsChanged
         , Session.loginChanges LoginStateChanged (Session.navKey model.session)
         , Time.every (9 * 1000) TimeUpdate
         , Time.every (20 * 1000) (always Pull)
