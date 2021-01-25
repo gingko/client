@@ -170,6 +170,9 @@ viewTopRightButtons msgs dropdownState session =
         isHelpDropdown =
             dropdownState == Help
 
+        customer_ =
+            Session.customer session
+
         isAccountDropdown =
             dropdownState == Account
 
@@ -183,7 +186,11 @@ viewTopRightButtons msgs dropdownState session =
             Icon.signOut (defaultOptions |> Icon.color "#333" |> Icon.size 18)
     in
     div [ id "top-right-buttons" ]
-        [ div [ id "upgrade-button", onClick <| msgs.toggledUpgradeModal True ] [ text "Upgrade" ]
+        [ if customer_ == Nothing then
+            div [ id "upgrade-button", onClick <| msgs.toggledUpgradeModal True ] [ text "Upgrade" ]
+
+          else
+            text ""
         , div [ id "help-icon", onClick (msgs.toggledHelpMenu (not isHelpDropdown)) ]
             [ helpIcon
             , if isHelpDropdown then

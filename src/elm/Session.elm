@@ -1,4 +1,4 @@
-port module Session exposing (Session, db, decode, documents, fileMenuOpen, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, settingsChange, shortcutTrayOpen, storeLogin, storeSignup, updateDocuments, updateUpgrade, upgradeModel)
+port module Session exposing (Session, customer, db, decode, documents, fileMenuOpen, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, settingsChange, shortcutTrayOpen, storeLogin, storeSignup, updateDocuments, updateUpgrade, upgradeModel)
 
 import Browser.Navigation as Nav
 import Doc.List as DocList
@@ -35,6 +35,7 @@ type alias UserData =
     { email : String
     , language : Translation.Language
     , upgradeModel : Upgrade.Model
+    , customer : Maybe String
     , shortcutTrayOpen : Bool
     , documents : DocList.Model
     }
@@ -115,6 +116,16 @@ upgradeModel session =
     case session of
         LoggedIn _ data ->
             Just data.upgradeModel
+
+        Guest _ _ ->
+            Nothing
+
+
+customer : Session -> Maybe String
+customer session =
+    case session of
+        LoggedIn _ data ->
+            data.customer
 
         Guest _ _ ->
             Nothing
@@ -246,12 +257,13 @@ decoder key =
 decodeLoggedIn : Nav.Key -> Dec.Decoder Session
 decodeLoggedIn key =
     Dec.succeed
-        (\email s lang trayOpen lastDoc ->
-            LoggedIn (SessionData key s False lastDoc) (UserData email lang Upgrade.init trayOpen DocList.init)
+        (\email s lang cust_ trayOpen lastDoc ->
+            LoggedIn (SessionData key s False lastDoc) (UserData email lang Upgrade.init cust_ trayOpen DocList.init)
         )
         |> required "email" Dec.string
         |> required "seed" (Dec.int |> Dec.map Random.initialSeed)
         |> optional "language" (Dec.string |> Dec.map langFromString) En
+        |> optional "customer" (Dec.maybe Dec.string) Nothing
         |> optional "shortcutTrayOpen" Dec.bool True
         |> optional "lastDocId" (Dec.maybe Dec.string) Nothing
 
@@ -266,10 +278,10 @@ decodeGuest key =
 responseDecoder : Session -> Dec.Decoder Session
 responseDecoder session =
     let
-        builder email lang trayOpen =
+        builder email lang cust_ trayOpen =
             case session of
                 Guest sessionData data ->
-                    LoggedIn sessionData (UserData email lang Upgrade.init trayOpen DocList.init)
+                    LoggedIn sessionData (UserData email lang Upgrade.init cust_ trayOpen DocList.init)
 
                 LoggedIn _ _ ->
                     session
@@ -277,6 +289,7 @@ responseDecoder session =
     Dec.succeed builder
         |> required "email" Dec.string
         |> optionalAt [ "settings", "language" ] (Dec.map langFromString Dec.string) En
+        |> optionalAt [ "settings", "customer" ] (Dec.maybe Dec.string) Nothing
         |> optionalAt [ "settings", "shortcutTrayOpen" ] Dec.bool True
 
 
