@@ -101,12 +101,21 @@ async function initElmAndPorts() {
   });
 }
 
-function setUserDbs(email) {
+async function setUserDbs(email) {
   console.log("Inside setUserDbs", email, helpers.toHex(email));
   const userDbName = `userdb-${helpers.toHex(email)}`;
   let userDbUrl = config.COUCHDB_SERVER + "/" + userDbName;
   var remoteOpts = { skip_setup: true };
   remoteDB = new PouchDB(userDbUrl, remoteOpts);
+  // Check remoteDB exists and accessible before continuing
+  let remoteDBinfo = await remoteDB.info();
+  if (remoteDBinfo.error === "unauthorized") {
+    //remove localStorage session redirect to login
+    localStorage.removeItem(sessionStorageKey);
+    alert("Your session expired.\nClick OK to login again");
+    document.location = document.location.origin + '/login';
+  }
+
   db = new PouchDB(userDbName);
   userStore.db(db, remoteDB);
 
