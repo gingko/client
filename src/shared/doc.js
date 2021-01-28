@@ -48,7 +48,7 @@ async function initElmAndPorts() {
     console.log("sessionData found", sessionData);
     sessionData = JSON.parse(sessionData);
     email = sessionData.email;
-    setUserDbs(sessionData.email);
+    await setUserDbs(sessionData.email);
 
     // Load user settings
     try {
@@ -108,7 +108,7 @@ async function setUserDbs(email) {
   var remoteOpts = { skip_setup: true };
   remoteDB = new PouchDB(userDbUrl, remoteOpts);
   // Check remoteDB exists and accessible before continuing
-  let remoteDBinfo = await remoteDB.info();
+  let remoteDBinfo = await remoteDB.info().catch((e) => e);
   if (remoteDBinfo.error === "unauthorized") {
     //remove localStorage session redirect to login
     localStorage.removeItem(sessionStorageKey);
@@ -204,7 +204,7 @@ const fromElm = (msg, elmData) => {
           sessionStorageKey,
           JSON.stringify(_.omit(elmData, "seed"))
         );
-        setUserDbs(elmData.email);
+        await setUserDbs(elmData.email);
         elmData.seed = Date.now();
         setTimeout(() => gingko.ports.userLoginChange.send(elmData), 0);
       }
