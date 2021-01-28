@@ -13,25 +13,23 @@ describe('User Signup Flow', () => {
     Cypress.Cookies.preserveOnce('AuthSession')
   })
 
-  it('Redirects to /signup', () => {
+  it('Can signup using form', () => {
+    // Redirects to /signup
     cy.visit(config.TEST_SERVER)
     cy.location('pathname').should('eq', '/signup')
-  })
 
-  it('Is focused on the first field', () => {
+    // Is focused on the first field
     cy.get('#signup-email').should('have.focus')
-  })
 
-  it('Displays errors on submitting empty form', () => {
+    // Displays errors on submitting empty form
     cy.get('button.cta')
       .click()
 
     cy.contains('Please enter an email address')
     cy.contains('Please enter a password')
     cy.contains('Please enter your password twice.')
-  })
 
-  it('Creates a new account', () => {
+    // Creates a new account
     cy.get('#signup-email')
       .type(testEmail)
 
@@ -44,23 +42,18 @@ describe('User Signup Flow', () => {
     cy.get('button.cta')
       .click()
 
-  })
-
-  it('Has an AuthSession cookie', () => {
+    // Has an AuthSession cookie
     cy.get('button.cta').should('not.exist')
     cy.getCookie('AuthSession').should('exist')
-  })
 
-  it('Has a user database', () => {
+    // Has a user database
     cy.request({url: config.TEST_SERVER + '/db/' + testUserDb, retryOnStatusCodeFailure: true})
-  })
 
-  it('Imports "Welcome Tree"', ()=> {
+    // Imports "Welcome Tree"
     cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
     cy.contains('Welcome to Gingko')
-  })
 
-  it('Logs Out Correctly', () =>{
+    // Logs Out Correctly
     cy.get('#account').click()
     cy.get('#logout-button').click()
     cy.location('pathname').should('eq', '/login')
