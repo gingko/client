@@ -13,14 +13,7 @@ describe('Loading indicators', () => {
 
   before(() => {
     cy.deleteUser(testEmail)
-    cy.signup_blank(testEmail)
-
-    cy.task('db:seed', { dbName: testUserDb, seedName: 'twoTrees' })
-
-    cy.request('POST', config.TEST_SERVER + '/logout')
-    cy.clearCookie('AuthSession')
-
-    cy.login(testEmail)
+    cy.signup_with(testEmail, 'twoTrees')
   })
 
   beforeEach(() => {

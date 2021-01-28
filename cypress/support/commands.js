@@ -47,7 +47,8 @@ Cypress.Commands.add('signup', (userEmail) => {
 })
 
 
-Cypress.Commands.add('signup_blank', (userEmail) => {
+Cypress.Commands.add('signup_with', (userEmail, seedName) => {
+  const testUserDb = 'userdb-' + helpers.toHex(userEmail);
   let body =
     { '_id': `org.couchdb.user:${userEmail}`
     , type: "user"
@@ -63,6 +64,14 @@ Cypress.Commands.add('signup_blank', (userEmail) => {
     , 'auth': {
         'user': config.COUCHDB_ADMIN_USERNAME,
         'pass': config.COUCHDB_ADMIN_PASSWORD,
+      }
+    })
+    .then((res)=>{
+      if (res.status === 201) {
+        cy.task('db:seed',{dbName: testUserDb, seedName: seedName})
+          .then((retVal) => {
+            cy.login(userEmail)
+          })
       }
     })
 })

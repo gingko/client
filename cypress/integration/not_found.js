@@ -8,10 +8,7 @@ describe('Not Found (Logged In User)', () => {
 
   before(() => {
     cy.deleteUser(testEmail)
-    cy.signup_blank(testEmail)
-
-    cy.task('db:seed',{dbName: testUserDb, seedName: 'twoTrees'})
-    cy.login(testEmail)
+    cy.signup_with(testEmail, 'twoTrees')
   })
 
   beforeEach(() => {
