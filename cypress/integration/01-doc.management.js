@@ -16,8 +16,15 @@ describe('Managing Documents', () => {
     cy.signup_blank(testEmail)
 
     cy.task('db:seed',{dbName: testUserDb, seedName: 'sevenTrees'})
+      .then((retVal) => {
+        if (typeof retVal === "object") {
+          console.log("db:seed success", retVal.data.map(i => String.fromCharCode(i)).join(""));
+        } else if (typeof retVal === "string") {
+          console.log("db:seed error", retVal)
+        }
 
-    cy.login(testEmail)
+        cy.login(testEmail)
+      })
   })
 
   beforeEach(() => {
