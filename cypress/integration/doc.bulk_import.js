@@ -31,7 +31,8 @@ describe('Legacy Imports from Startup State', () => {
     Cypress.Cookies.preserveOnce('AuthSession')
   })
 
-  it('Should bring up the Import Modal on clicking', () => {
+  it('Guides user to import legacy docs', () => {
+    // Should bring up the Import Modal on clicking
     cy.get('#file-button').click()
 
     cy.get('#new-button').click()
@@ -41,13 +42,11 @@ describe('Legacy Imports from Startup State', () => {
       .then(() => {
         cy.contains('Import From Gingko v1')
       })
-  })
 
-  it('If not logged in at legacy, asks user to', () => {
+    // If not logged in at legacy, asks user to
     cy.contains('you are not logged in')
-  })
 
-  it('If logged in at legacy, show download link', () => {
+    // If logged in at legacy, show download link
     let csrf = ''
     cy.request(config.LEGACY_URL + '/login')
       .then((resp) => {
@@ -60,9 +59,8 @@ describe('Legacy Imports from Startup State', () => {
 
         cy.contains('Download Full Backup')
       })
-  })
 
-  it('Shows tree list from the dropped file', () => {
+    // Shows tree list from the dropped file
     cy.get('.file-drop-zone')
       .attachFile('bulk-import-test-larger.txt', { subjectType: 'drag-n-drop' })
 
@@ -70,9 +68,8 @@ describe('Legacy Imports from Startup State', () => {
       .should('contain', 'Screenplay')
       .and('contain', 'Timeline')
       .and('contain', 'Example Tree')
-  })
 
-  it('Adds selected trees to document list', () => {
+    // Adds selected trees to document list
     cy.viewport('samsung-s10', 'landscape')
 
     cy.get('#import-selection-list input')
@@ -83,13 +80,11 @@ describe('Legacy Imports from Startup State', () => {
 
     cy.get('.sidebar-document-list > .sidebar-document-item')
       .should('have.length', 11)
-  })
 
-  it('Closed the Import Modal on success', () => {
+    // Closed the Import Modal on success
     cy.get('#app-root').should('not.contain', 'Import From Gingko v1')
-  })
 
-  it('Correctly imported the data', () => {
+    // Correctly imported the data
     cy.get('.sidebar-document-list')
       .contains('Screenplay')
       .click()
@@ -97,9 +92,8 @@ describe('Legacy Imports from Startup State', () => {
     cy.url().as('importedScreenplayUrl').should('match', /\/[a-zA-Z0-9]{5}$/)
 
     cy.contains('tips to improve your logline')
-  })
 
-  it('Does not contain data from other trees', () => {
+    // Does not contain data from other trees
     cy.get('#document')
       .should('not.contain', 'October')
       .and('not.contain', 'example gingko tree')

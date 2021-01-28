@@ -24,7 +24,7 @@ describe('Welcome Tree & Templates', () => {
     Cypress.Cookies.preserveOnce('AuthSession')
   })
 
-  it('Starts with the Welcome Tree after signup', () => {
+  it('Has working Welcome tree and templates', () => {
     cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
 
     cy.contains('#title', 'welcome')
@@ -32,9 +32,8 @@ describe('Welcome Tree & Templates', () => {
     cy.get('#welcome-to-gingko-writer')
       .should('be.visible')
       .should('contain', 'Welcome to Gingko Writer')
-  })
 
-  it('Should bring up the Template Selector on clicking "New"', () => {
+    // Should bring up the Template Selector on clicking "New"
     cy.get('#file-button').click()
 
     cy.get('#new-button').click()
@@ -53,9 +52,8 @@ describe('Welcome Tree & Templates', () => {
 
     cy.get('#template-academic')
       .should('be.visible')
-  })
 
-  it('Should show all templates on narrow screens', () => {
+    // Should show all templates on narrow screens
     cy.viewport(600,900)
 
     cy.get('#template-new')
