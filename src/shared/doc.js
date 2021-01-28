@@ -86,7 +86,7 @@ async function initElmAndPorts() {
         event.storageArea === localStorage &&
         event.key === sessionStorageKey
       ) {
-        gingko.ports.userStateChanged.send(event.newValue);
+        gingko.ports.userLoginChange.send(event.newValue);
       }
     },
     false
