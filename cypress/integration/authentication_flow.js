@@ -60,4 +60,13 @@ describe('User Signup Flow', () => {
     cy.getCookie('AuthSession').should('have.property', 'value', '')
     cy.get('button.cta').contains('Login')
   })
+
+  it('Redirects to login on expired cookie', ()=>{
+    cy.login(testEmail)
+      .then(()=>{
+        cy.clearCookie('AuthSession')
+        cy.visit(config.TEST_SERVER)
+        cy.location('pathname').should('eq', '/login')
+      })
+  })
 })
