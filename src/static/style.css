@@ -474,12 +474,30 @@ body {
   flex-direction: column;
   background-color: white;
   box-shadow: 0px 2px 4px hsla(0,0%,0%,0.3);
-  padding: 16px;
+  padding: 5px 0;
+  margin: 0;
   border-bottom: 1px solid #aaa;
   border-right: 1px solid #aaa;
   border-left: 1px solid #aaa;
   border-radius: 5px 0 5px 5px;
+  list-style: none;
   cursor: default;
+}
+
+ul.dropdown > li > * {
+  display: block;
+  padding: 8px 20px;
+  cursor: pointer;
+}
+ul.dropdown > li > *:hover {
+  background-color: #eeeeee;
+}
+
+ul.dropdown > li > span.no-interaction {
+  cursor: default;
+}
+ul.dropdown > li > span.no-interaction:hover {
+  background-color: white;
 }
 
 #help-dropdown {

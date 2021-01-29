@@ -30,7 +30,8 @@ describe('Document UI', () => {
       .click()
 
     cy.get('#help-dropdown')
-      .contains(emailText)
+      .should('contain', emailText)
+      .should('contain', 'FAQ')
   })
 
   it('Triggers mailto action on click', () => {

@@ -194,8 +194,10 @@ viewTopRightButtons msgs dropdownState session =
         , div [ id "help-icon", onClick (msgs.toggledHelpMenu (not isHelpDropdown)) ]
             [ helpIcon
             , if isHelpDropdown then
-                div [ id "help-dropdown", class "dropdown" ]
-                    [ span [ id "email-support", onClick msgs.clickedEmailSupport ] [ text <| tr lang EmailSupport ] ]
+                ul [ id "help-dropdown", class "dropdown" ]
+                    [ li [] [ a [ href "https://docs.gingkowriter.com", target "_blank" ] [ text "FAQ" ] ]
+                    , li [] [ span [ id "email-support", onClick msgs.clickedEmailSupport ] [ text <| tr lang EmailSupport ] ]
+                    ]
 
               else
                 text ""
@@ -203,10 +205,9 @@ viewTopRightButtons msgs dropdownState session =
         , div [ id "account", onClick (msgs.toggledAccountMenu (not isAccountDropdown)) ]
             [ userIcon
             , if isAccountDropdown then
-                div [ id "account-dropdown", class "dropdown" ]
-                    [ text (Session.name session |> Maybe.withDefault "")
-                    , hr [] []
-                    , div [ id "logout-button", onClick msgs.logoutRequested ] [ logoutIcon, text <| tr lang Logout ]
+                ul [ id "account-dropdown", class "dropdown" ]
+                    [ li [] [ span [ class "no-interaction" ] [ text (Session.name session |> Maybe.withDefault "") ] ]
+                    , li [] [ span [ id "logout-button", onClick msgs.logoutRequested ] [ logoutIcon, text <| tr lang Logout ] ]
                     ]
 
               else
