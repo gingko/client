@@ -30,13 +30,11 @@ describe('Loading indicators', () => {
     cy.contains('#save-indicator', 'Synced')
 
     // Switch to other tree and back
-    cy.shortcut('{ctrl}o')
-    cy.get('#switcher-modal input').type('ano')
-    cy.shortcut('{enter}')
+    cy.get('#file-button').click()
+    cy.get('#sidebar-menu').contains('Another doc').click()
     cy.url().should('contain', this.treeIds[1] )
-    cy.shortcut('{ctrl}o')
-    cy.get('#switcher-modal input').type('unt')
-    cy.shortcut('{enter}')
+
+    cy.get('#sidebar-menu').contains('Untitled').click()
     cy.url().should('contain', this.treeIds[0] )
 
     cy.contains('mod')
