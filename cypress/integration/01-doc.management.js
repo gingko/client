@@ -36,13 +36,12 @@ describe('Managing Documents', () => {
 
     })
 
-    it('Should navigate correctly using sidebar', function () {
+    it('Should have working sidebar and Quick Switcher', function () {
       cy.visit(config.TEST_SERVER + '/' + this.treeIds[2]);
+      cy.url().should('contain', this.treeIds[2] )
 
       // Open sidebar
       cy.get('#file-button', {timeout: 20000}).click()
-
-      cy.url().should('contain', this.treeIds[2] )
 
       cy.contains('#sidebar-menu', 'welcome', {timeout: 20000})
         .contains('#sidebar-menu', 'timeline 2021')
@@ -61,9 +60,8 @@ describe('Managing Documents', () => {
       cy.url().should('contain', this.treeIds[5] )
 
       cy.contains('tips to improve your logline')
-    })
 
-    it('Should have a working context menu', () => {
+      // Should have a working context menu
       // Menu opens on right click
       cy.get('#sidebar-menu .sidebar-document-item')
         .first()
@@ -91,11 +89,8 @@ describe('Managing Documents', () => {
 
       // And menu should be gone
       cy.get('#sidebar-context-menu').should('not.exist')
-    })
-  })
 
-  describe('Quick Switcher', ()=>{
-    it('Toggles switcher modal on "Ctrl+O"', function () {
+      // Toggles switcher modal on "Ctrl+O"
       // Check for toggling and autofocus
       cy.get('#switcher-modal').should('not.exist')
 
