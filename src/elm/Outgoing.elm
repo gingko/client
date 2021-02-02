@@ -28,6 +28,7 @@ type Msg
     | RequestDelete String
     | NoDataToSave
     | SaveData Enc.Value
+    | NewSave Enc.Value
     | PullData
     | SaveImportedData Enc.Value
       -- === DOM ===
@@ -80,6 +81,9 @@ send info =
         -- === Database ===
         SaveData data ->
             dataToSend "SaveData" data
+
+        NewSave data ->
+            dataToSend "NewSave" data
 
         PullData ->
             dataToSend "PullData" null

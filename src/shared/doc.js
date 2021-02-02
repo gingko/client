@@ -350,6 +350,10 @@ const fromElm = (msg, elmData) => {
       }
     },
 
+    NewSave: async () => {
+      await data.newSave(elmData);
+    },
+
     PullData: async () => {
       if (!PULL_LOCK ) {
         PULL_LOCK = true;

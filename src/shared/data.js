@@ -1,4 +1,5 @@
 import _ from "lodash";
+import { sha1 } from "hash-wasm";
 
 Object.defineProperty(Array.prototype, "tap", { value(f) { f(this); return this; }});
 
@@ -109,6 +110,10 @@ async function saveData(localDb, treeId, elmData, savedImmutablesIds) {
 }
 
 
+function newSave(workingTree) {
+  writeTree(workingTree);
+}
+
 async function pull(localDb, remoteDb, treeId, source) {
   let selector = { _id: { $regex: `${treeId}/` } };
   let results = await localDb.replicate.from(remoteDb, { selector })
@@ -156,6 +161,26 @@ async function sync(localDb, remoteDb, treeId, conflictsExist, documentsReceived
   }
 }
 
+
+/* === PRIVATE/INTERNAL === */
+
+async function writeTree(workingTree) {
+ //  writeTree : Tree -> ( String, Dict String TreeObject )
+  console.time('treeId')
+  let rootId = await treeId(workingTree)
+  console.timeEnd('treeId')
+  console.log(workingTree, rootId);
+}
+
+async function treeId(tree) {
+  if (tree.children.length == 0 ) {
+    return ([await sha1(tree.content + "\n"), tree.id] );
+  } else {
+    let childrenShaAndIds = await Promise.all(tree.children.map(async t => await treeId(t)));
+    let str = [tree.content, ...childrenShaAndIds.map(cid => cid[0] + " " + cid[1])].join("\n");
+    return ([await sha1(str), tree.id]);
+  }
+}
 
 async function loadAll(localDb, treeId) {
   let options = {include_docs: true , conflicts : true, startkey: treeId + "/", endkey: treeId + "/\ufff0"};
@@ -313,4 +338,4 @@ function unprefix(doc, treeId, idField = "_id") {
 
 /* === Exports === */
 
-export { getDocumentList, load, loadMetadata, saveData, pull, sync };
+export { getDocumentList, load, loadMetadata, saveData, newSave, pull, sync };

@@ -2322,23 +2322,12 @@ historyStep dir currHead ( model, prevCmd ) =
 
 addToHistoryDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 addToHistoryDo ( { workingTree, currentTime, session } as model, prevCmd ) =
-    let
-        author =
-            session |> Session.name |> Maybe.withDefault "unknown" |> (\a -> "<" ++ a ++ ">")
-
-        newData =
-            Data.commit author (currentTime |> Time.posixToMillis) workingTree.tree model.data
-    in
-    if newData /= model.data then
-        ( { model | data = newData }
-        , Cmd.batch
-            [ send <| SaveData (Data.encode newData (Metadata.encode model.metadata))
-            , prevCmd
-            ]
-        )
-
-    else
-        ( model, prevCmd )
+    ( model
+    , Cmd.batch
+        [ send <| NewSave (treeToValue workingTree.tree)
+        , prevCmd
+        ]
+    )
 
 
 addToHistory : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
