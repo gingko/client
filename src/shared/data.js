@@ -110,8 +110,10 @@ async function saveData(localDb, treeId, elmData, savedImmutablesIds) {
 }
 
 
-function newSave(workingTree) {
-  writeTree(workingTree);
+async function newSave(workingTree) {
+  let ret = await writeTree(workingTree);
+  console.log("newSave", ret);
+  return ret;
 }
 
 async function pull(localDb, remoteDb, treeId, source) {
@@ -165,12 +167,19 @@ async function sync(localDb, remoteDb, treeId, conflictsExist, documentsReceived
 /* === PRIVATE/INTERNAL === */
 
 async function writeTree(workingTree) {
- //  writeTree : Tree -> ( String, Dict String TreeObject )
-  console.time('treeId')
-  let rootId = await treeId(workingTree)
-  console.timeEnd('treeId')
-  console.log(workingTree, rootId);
+  console.time('getTreeObjects')
+  let treeObjects = await getTreeObjects([], workingTree);
+  console.timeEnd('getTreeObjects')
+  console.log("treeObjects" ,treeObjects);
+  return treeObjects;
 }
+
+async function getTreeObjects(accumulator, tree) {
+  let childrenObjects = await Promise.all(tree.children.map(async t => await getTreeObjects(accumulator, t)));
+  let str = tree.content + "\n" + childrenObjects.map(co => co[0] + " " + co[1]).join("\n");
+  return [...accumulator, [await sha1(str), tree.id]].concat(childrenObjects);
+}
+
 
 async function treeId(tree) {
   if (tree.children.length == 0 ) {
