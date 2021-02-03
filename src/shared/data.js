@@ -112,10 +112,12 @@ async function saveData(localDb, treeId, elmData, savedImmutablesIds) {
 }
 
 
-async function newSave(workingTree) {
-  let ret = await writeTree(workingTree);
-  console.log("newSave", ret);
-  return ret;
+async function newSave(localDb, treeId, workingTree, savedImmutablesIds) {
+  console.time('commitTree');
+  let toSave = await commitTree("author@test.com", ["sha_for_parent"], workingTree);
+  console.timeEnd('commitTree');
+  console.log("toSave", toSave);
+  return treeObjects;
 }
 
 async function pull(localDb, remoteDb, treeId, source) {
@@ -172,21 +174,31 @@ async function writeTree(workingTree) {
   async function addShaIds(tree) {
     if (tree.children.length === 0) {
       let shaId = await sha1(tree.content+"\n");
-      treeObjects.push({_id: shaId, content: tree.content, children: []});
+      treeObjects.push({_id: shaId, type: "tree", content: tree.content, children: []});
       return Object.assign(tree, {_id: shaId });
     } else {
       let childrenWithShas = await Promise.all(tree.children.map(async t => await addShaIds(t)));
       let str = tree.content + "\n" + childrenWithShas.map(c => c._id + " " + c.id).join("\n");
       let shaId = await sha1(str);
-      treeObjects.push({_id: shaId, content: tree.content, children: childrenWithShas.map(c => [c._id, c.id])});
+      treeObjects.push({_id: shaId, type: "tree", content: tree.content, children: childrenWithShas.map(c => [c._id, c.id])});
       return Object.assign(tree, {_id: shaId });
     }
   }
 
   await addShaIds(workingTree);
-
-  console.log(treeObjects);
   return treeObjects;
+}
+
+
+async function commitTree(author, parents, tree) {
+  let treeObjects = await writeTree(tree);
+  let rootId = treeObjects[treeObjects.length - 1]._id;
+  let timestamp = Date.now();
+  let str = rootId + "\n"
+    + (parents.length === 1 ? parents[0] + "\n" : parents.join("\n"))
+    + author + " " + (timestamp.toString());
+  let commitSha = await sha1(str);
+  return treeObjects.concat([{_id: commitSha, type: "commit", tree: rootId, parents: parents, author: author , timestamp: timestamp}]);
 }
 
 

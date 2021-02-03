@@ -351,7 +351,7 @@ const fromElm = (msg, elmData) => {
     },
 
     NewSave: async () => {
-      await data.newSave(elmData);
+      await data.newSave(db, TREE_ID, elmData, savedObjectIds);
     },
 
     PullData: async () => {
