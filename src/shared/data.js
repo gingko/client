@@ -3,6 +3,8 @@ import { sha1 } from "hash-wasm";
 
 Object.defineProperty(Array.prototype, "tap", { value(f) { f(this); return this; }});
 
+// Make initial call to load/initialize WASM code
+sha1('');
 
 async function getDocumentList(db) {
   return (await db.query("testDocList/docList").catch(async (e) => e));
@@ -166,39 +168,25 @@ async function sync(localDb, remoteDb, treeId, conflictsExist, documentsReceived
 
 async function writeTree(workingTree) {
   console.time('getTreeObjects')
-  let treeObjects = await getTreeObjects([], workingTree);
+  let treeWithShas = await addShaIds(workingTree);
   console.timeEnd('getTreeObjects')
-  console.log("treeObjects" ,treeObjects);
+  console.log("treeWithShas" ,treeWithShas);
   return treeObjects;
 }
 
-async function getTreeObjects(accumulator, tree) {
-  if (tree.children.length == 0) {
-    let ret = accumulator.concat([[await sha1(tree.content+"\n"), tree.id]]);
-    console.log(ret, tree.content.substring(0,7));
-    return ret;
+
+async function addShaIds(tree) {
+  if (tree.children.length === 0) {
+    let shaId = await sha1(tree.content+"\n");
+    return Object.assign(tree, {_id: shaId });
   } else {
-    let childrenObjects = await Promise.all(tree.children.flatMap(async (curr) => await getTreeObjects([],curr)));
-    let str = tree.content + "\n" + childrenObjects.map(co => co[0][0] + " " + co[0][1]).join("\n");
-    let ret  = accumulator.concat([[await sha1(str), tree.id]]).concat(childrenObjects.flat());
-    console.log(ret, tree.content.substring(0,7));
-    return ret;
-    //let str = tree.content + "\n" + childrenObjects.map(co => co[0] + " " + co[1]).join("\n");
-    //console.log(str);
-    //return accumulator.concat([[await sha1(str), tree.id]]);
+    let childrenWithShaIds = await Promise.all(tree.children.map(async t => await addShaIds(t)));
+    let str = tree.content + "\n" + childrenWithShaIds.map(c => c._id + " " + c.id).join("\n");
+    let shaId = await sha1(str);
+    return Object.assign(tree, {_id: shaId });
   }
 }
 
-
-async function treeId(tree) {
-  if (tree.children.length == 0 ) {
-    return ([await sha1(tree.content + "\n"), tree.id] );
-  } else {
-    let childrenShaAndIds = await Promise.all(tree.children.map(async t => await treeId(t)));
-    let str = [tree.content, ...childrenShaAndIds.map(cid => cid[0] + " " + cid[1])].join("\n");
-    return ([await sha1(str), tree.id]);
-  }
-}
 
 async function loadAll(localDb, treeId) {
   let options = {include_docs: true , conflicts : true, startkey: treeId + "/", endkey: treeId + "/\ufff0"};
