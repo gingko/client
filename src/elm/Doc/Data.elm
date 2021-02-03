@@ -1,6 +1,6 @@
 module Doc.Data exposing (Data, Model, checkout, commit, commitTree, conflictList, conflictSelection, empty, emptyData, encode, getData, head, historyList, lastCommitTime, received, resolve, success, toValue)
 
-import Coders exposing (tupleDecoder)
+import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
 import Diff3 exposing (diff3Merge)
 import Doc.Data.Conflict exposing (Conflict, Op(..), Selection(..), conflictWithSha, opString)
@@ -715,22 +715,14 @@ treeObjectDecoder =
         (Dec.field "children" (Dec.list (tupleDecoder Dec.string Dec.string)))
 
 
-encode : Model -> Enc.Value -> Enc.Value
-encode model metadata =
-    let
-        data =
-            getData model
-
-        refs =
-            List.map refToValue (Dict.toList data.refs)
-
-        commits =
-            List.map commitToValue (Dict.toList data.commits)
-
-        treeObjects =
-            List.map treeObjectToValue (Dict.toList data.treeObjects)
-    in
-    Enc.list identity (metadata :: refs ++ commits ++ treeObjects)
+encode : Tree -> String -> List String -> Enc.Value -> Enc.Value
+encode workingTree author parents metadata =
+    Enc.object
+        [ ( "workingTree", treeToValue workingTree )
+        , ( " author", Enc.string author )
+        , ( "parents", Enc.list Enc.string parents )
+        , ( "metadata", metadata )
+        ]
 
 
 toValue : Data -> Enc.Value

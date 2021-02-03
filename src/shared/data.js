@@ -112,12 +112,61 @@ async function saveData(localDb, treeId, elmData, savedImmutablesIds) {
 }
 
 
-async function newSave(localDb, treeId, workingTree, savedImmutablesIds) {
+async function newSave(localDb, treeId, elmData, savedImmutablesIds) {
   console.time('commitTree');
-  let toSave = await commitTree("author@test.com", ["sha_for_parent"], workingTree);
+  let objects = await commitTree(elmData.author, elmData.parents, elmData.workingTree, elmData.metadata);
   console.timeEnd('commitTree');
-  console.log("toSave", toSave);
-  return treeObjects;
+
+  // Function to modify metadata & get its _rev.
+  let updateMetadata;
+  let savedMetadata;
+  let oldMetadata = await localDb.get(treeId + "/metadata").catch(e => e);
+  updateMetadata = d => {
+      if (d._id === "metadata") {
+        d.updatedAt = Date.now();
+        if (oldMetadata.hasOwnProperty("_rev")) {
+          d._rev = oldMetadata._rev;
+          savedMetadata = Object.assign({}, d);
+        }
+      }
+      return d;
+    };
+
+  // Filter out already saved immutable objects.
+  // Add treeId prefix.
+  let toSave =
+    objects
+      .filter(d => !savedImmutablesIds.includes(treeId + "/" + d._id))
+      .map(updateMetadata)
+      .map(d => prefix(d, treeId))
+
+  // Save local head as _local PouchDB document.
+  // This allows us to later figure out which conflicting revision
+  // was picked as the arbitrary winner (the local or remote one).
+  let makeIdLocal = (doc) => {
+    let newDoc = Object.assign({}, doc);
+    newDoc._id = `_local/${treeId}/heads/master`;
+    return newDoc;
+  }
+  let localHeadToSave =
+    toSave
+      .filter(d => d._id === `${treeId}/heads/master`)
+      .map(makeIdLocal)
+      [0];
+  if (typeof localHeadToSave !== "undefined") {
+    await saveLocalHead(localDb, localHeadToSave);
+  }
+
+  // Save documents and return responses of successfully saved ones.
+  let saveResponses = await localDb.bulkDocs(toSave);
+  let successfulResponses =
+    saveResponses
+      .filter(r => r.ok)
+      .map(r => {delete r.ok; return r;})
+      .map(d => unprefix(d, treeId, "id"))
+
+  console.log({toSave, successfulResponses});
+  return toSave;
 }
 
 async function pull(localDb, remoteDb, treeId, source) {
@@ -190,7 +239,7 @@ async function writeTree(workingTree) {
 }
 
 
-async function commitTree(author, parents, tree) {
+async function commitTree(author, parents, tree, metadata) {
   let treeObjects = await writeTree(tree);
   let rootId = treeObjects[treeObjects.length - 1]._id;
   let timestamp = Date.now();
@@ -198,7 +247,8 @@ async function commitTree(author, parents, tree) {
     + (parents.length === 1 ? parents[0] + "\n" : parents.join("\n"))
     + author + " " + (timestamp.toString());
   let commitSha = await sha1(str);
-  return treeObjects.concat([{_id: commitSha, type: "commit", tree: rootId, parents: parents, author: author , timestamp: timestamp}]);
+  let commitObj = {_id: commitSha, type: "commit", tree: rootId, parents: parents, author: author , timestamp: timestamp};
+  return treeObjects.concat([commitObj, metadata]);
 }
 
 
