@@ -167,25 +167,29 @@ async function sync(localDb, remoteDb, treeId, conflictsExist, documentsReceived
 /* === PRIVATE/INTERNAL === */
 
 async function writeTree(workingTree) {
-  console.time('getTreeObjects')
-  let treeWithShas = await addShaIds(workingTree);
-  console.timeEnd('getTreeObjects')
-  console.log("treeWithShas" ,treeWithShas);
+  let treeObjects = [];
+
+  async function addShaIds(tree) {
+    if (tree.children.length === 0) {
+      let shaId = await sha1(tree.content+"\n");
+      treeObjects.push({_id: shaId, content: tree.content, children: []});
+      return Object.assign(tree, {_id: shaId });
+    } else {
+      let childrenWithShas = await Promise.all(tree.children.map(async t => await addShaIds(t)));
+      let str = tree.content + "\n" + childrenWithShas.map(c => c._id + " " + c.id).join("\n");
+      let shaId = await sha1(str);
+      treeObjects.push({_id: shaId, content: tree.content, children: childrenWithShas.map(c => [c._id, c.id])});
+      return Object.assign(tree, {_id: shaId });
+    }
+  }
+
+  await addShaIds(workingTree);
+
+  console.log(treeObjects);
   return treeObjects;
 }
 
 
-async function addShaIds(tree) {
-  if (tree.children.length === 0) {
-    let shaId = await sha1(tree.content+"\n");
-    return Object.assign(tree, {_id: shaId });
-  } else {
-    let childrenWithShaIds = await Promise.all(tree.children.map(async t => await addShaIds(t)));
-    let str = tree.content + "\n" + childrenWithShaIds.map(c => c._id + " " + c.id).join("\n");
-    let shaId = await sha1(str);
-    return Object.assign(tree, {_id: shaId });
-  }
-}
 
 
 async function loadAll(localDb, treeId) {
