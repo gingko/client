@@ -166,6 +166,10 @@ received json ( oldModel, oldTree ) =
                         |> Just
 
         Err err ->
+            let
+                _ =
+                    Debug.log "received Err" err
+            in
             Nothing
 
 
@@ -719,7 +723,7 @@ encode : Tree -> String -> List String -> Enc.Value -> Enc.Value
 encode workingTree author parents metadata =
     Enc.object
         [ ( "workingTree", treeToValue workingTree )
-        , ( " author", Enc.string author )
+        , ( "author", Enc.string author )
         , ( "parents", Enc.list Enc.string parents )
         , ( "metadata", metadata )
         ]

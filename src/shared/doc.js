@@ -351,7 +351,31 @@ const fromElm = (msg, elmData) => {
     },
 
     NewSave: async () => {
-      await data.newSave(db, TREE_ID, elmData, savedObjectIds);
+      let [ savedData
+        , savedImmutables
+        , conflictsExist
+        , savedMetadata
+      ] = await data.newSave(db, TREE_ID, elmData, savedObjectIds);
+      console.log(savedData)
+
+      // Add saved immutables to cache.
+      savedObjectIds = savedObjectIds.concat(savedImmutables);
+
+      // Send new data to Elm
+      toElm(savedData, "docMsgs", "DataReceived");
+
+      // Mark document as clean
+      DIRTY = false;
+
+      // Maybe send metadata to Elm
+      if (typeof savedMetadata !== "undefined") { toElm(savedMetadata, "docMsgs", "MetadataSaved")}
+
+      // Pull & Maybe push
+      if (!PULL_LOCK) {
+        PULL_LOCK = true;
+        await data.sync(db, remoteDB, TREE_ID, conflictsExist, pullSuccessHandler, pushSuccessHandler);
+        PULL_LOCK = false;
+      }
     },
 
     PullData: async () => {
