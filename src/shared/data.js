@@ -162,8 +162,6 @@ async function sync(localDb, remoteDb, treeId, conflictsExist, documentsReceived
     await push(localDb, remoteDb, treeId, false, pushSuccessHandler);
   }
 }
-
-
 /* === PRIVATE/INTERNAL === */
 
 async function writeTree(workingTree) {
@@ -175,9 +173,20 @@ async function writeTree(workingTree) {
 }
 
 async function getTreeObjects(accumulator, tree) {
-  let childrenObjects = await Promise.all(tree.children.map(async t => await getTreeObjects(accumulator, t)));
-  let str = tree.content + "\n" + childrenObjects.map(co => co[0] + " " + co[1]).join("\n");
-  return [...accumulator, [await sha1(str), tree.id]].concat(childrenObjects);
+  if (tree.children.length == 0) {
+    let ret = accumulator.concat([[await sha1(tree.content+"\n"), tree.id]]);
+    console.log(ret, tree.content.substring(0,7));
+    return ret;
+  } else {
+    let childrenObjects = await Promise.all(tree.children.flatMap(async (curr) => await getTreeObjects([],curr)));
+    let str = tree.content + "\n" + childrenObjects.map(co => co[0][0] + " " + co[0][1]).join("\n");
+    let ret  = accumulator.concat([[await sha1(str), tree.id]]).concat(childrenObjects.flat());
+    console.log(ret, tree.content.substring(0,7));
+    return ret;
+    //let str = tree.content + "\n" + childrenObjects.map(co => co[0] + " " + co[1]).join("\n");
+    //console.log(str);
+    //return accumulator.concat([[await sha1(str), tree.id]]);
+  }
 }
 
 
