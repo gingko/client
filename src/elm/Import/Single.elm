@@ -48,7 +48,7 @@ encode { author, docId, fileName } tree =
     Enc.object
         [ ( "id", Enc.string docId )
         , ( "metadata", Metadata.new docId |> Metadata.renameAndEncode fileName )
-        , ( "data", Data.commitTree author [] 0 tree Data.emptyData |> Data.toValue )
+        , ( "data", Enc.null ) --TODO
         ]
 
 

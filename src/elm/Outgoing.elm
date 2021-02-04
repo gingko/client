@@ -2,9 +2,8 @@ port module Outgoing exposing (Msg(..), infoForOutside, send)
 
 import Coders exposing (..)
 import Doc.Fonts as Fonts
-import Doc.TreeUtils exposing (ScrollPosition, getColumn, scrollPositionToValue)
+import Doc.TreeUtils exposing (ScrollPosition, scrollPositionToValue)
 import Json.Encode as Enc exposing (..)
-import Json.Encode.Extra exposing (maybe)
 import Page.Doc.Theme as Theme exposing (Theme)
 import Translation exposing (Language, langToString)
 import Types exposing (CollabState, CursorPosition(..), OutsideData, TextCursorInfo, Tree)
@@ -20,7 +19,6 @@ type Msg
     | Alert String
     | SetDirty Bool
     | ConfirmCancelCard String String String
-    | ColumnNumberChange Int
       -- === Database ===
     | InitDocument String
     | LoadDocument String
@@ -28,7 +26,7 @@ type Msg
     | RequestDelete String
     | NoDataToSave
     | SaveData Enc.Value
-    | NewSave Enc.Value
+    | CommitData Enc.Value
     | PullData
     | SaveImportedData Enc.Value
       -- === DOM ===
@@ -75,15 +73,12 @@ send info =
         ConfirmCancelCard id origContent confirmText ->
             dataToSend "ConfirmCancelCard" (list string [ id, origContent, confirmText ])
 
-        ColumnNumberChange cols ->
-            dataToSend "ColumnNumberChange" (int cols)
-
         -- === Database ===
         SaveData data ->
             dataToSend "SaveData" data
 
-        NewSave data ->
-            dataToSend "NewSave" data
+        CommitData data ->
+            dataToSend "CommitData" data
 
         PullData ->
             dataToSend "PullData" null

@@ -129,4 +129,5 @@ getChildren parentId_ cards =
 
 toData : String -> ( String, Metadata, Tree ) -> ( String, Metadata, Data )
 toData author ( tid, tmdata, tree ) =
-    ( tid, tmdata, Data.commitTree author [] 0 tree Data.emptyData )
+    -- TODO
+    ( tid, tmdata, Data.emptyData )

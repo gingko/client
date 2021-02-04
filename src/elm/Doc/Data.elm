@@ -1,4 +1,4 @@
-module Doc.Data exposing (Data, Model, checkout, commit, commitTree, conflictList, conflictSelection, empty, emptyData, encode, getData, head, historyList, lastCommitTime, received, resolve, success, toValue)
+module Doc.Data exposing (Data, Model, checkout, conflictList, conflictSelection, empty, emptyData, getData, head, historyList, lastCommitTime, received, requestCommit, resolve, success, toValue)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
@@ -175,94 +175,29 @@ received json ( oldModel, oldTree ) =
 
 success : Dec.Value -> Model -> Model
 success json model =
-    let
-        responseDecoder =
-            Dec.list
-                (Dec.map2 Tuple.pair
-                    (Dec.field "id" Dec.string)
-                    (Dec.field "rev" Dec.string)
-                )
-    in
-    case Dec.decodeValue responseDecoder json of
-        Ok responses ->
+    case Dec.decodeValue decode json of
+        Ok ( newData, conflict_ ) ->
             let
-                updater d ( id, newRev ) =
-                    Dict.get id d.refs
-                        |> Maybe.andThen (\r -> Just ( id, { r | rev = newRev } ))
-
-                resDict d =
-                    responses
-                        |> List.filterMap (updater d)
-                        |> Dict.fromList
-
-                newRefs d =
-                    Dict.union (resDict d) d.refs
+                updateData d =
+                    { d
+                        | refs = Dict.union newData.refs d.refs
+                        , commits = Dict.union newData.commits d.commits
+                        , treeObjects = Dict.union newData.treeObjects d.treeObjects
+                    }
             in
             case model of
                 Clean d ->
-                    Clean { d | refs = newRefs d }
+                    Clean (updateData d)
 
                 MergeConflict d cd ->
-                    MergeConflict { d | refs = newRefs d } cd
+                    MergeConflict (updateData d) cd
 
-        Err _ ->
-            model
-
-
-commit : String -> Int -> Tree -> Model -> Model
-commit author timestamp tree model =
-    case model of
-        Clean data ->
-            case Dict.get "heads/master" data.refs of
-                Nothing ->
-                    Clean (commitTree author [] timestamp tree data)
-
-                Just localHead ->
-                    Clean (commitTree author [ localHead.value ] timestamp tree data)
-
-        MergeConflict data { localHead, remoteHead, conflicts } ->
-            if List.isEmpty (List.filter (not << .resolved) conflicts) then
-                -- No unresolved conflicts.
-                Clean (commitTree author [ localHead, remoteHead ] timestamp tree data)
-
-            else
-                -- Unresolved conflicts exist, dont' commit.
-                model
-
-
-commitTree : String -> List String -> Int -> Tree -> Data -> Data
-commitTree author parents timestamp tree data =
-    let
-        ( newRootId, newTreeObjects ) =
-            writeTree tree
-
-        newCommit =
-            CommitObject
-                newRootId
-                parents
-                author
-                timestamp
-
-        newCommitSha =
-            newCommit |> generateCommitSha
-
-        updateHead ref_ =
+        Err err ->
             let
-                newRev =
-                    case ref_ of
-                        Just { rev } ->
-                            rev
-
-                        Nothing ->
-                            ""
+                _ =
+                    Debug.log "Data.success err" err
             in
-            Just (RefObject newCommitSha [] newRev)
-    in
-    { data
-        | refs = Dict.update "heads/master" updateHead data.refs
-        , commits = Dict.insert newCommitSha newCommit data.commits
-        , treeObjects = Dict.union newTreeObjects data.treeObjects
-    }
+            model
 
 
 conflictSelection : String -> Selection -> Model -> Model
@@ -719,14 +654,43 @@ treeObjectDecoder =
         (Dec.field "children" (Dec.list (tupleDecoder Dec.string Dec.string)))
 
 
-encode : Tree -> String -> List String -> Enc.Value -> Enc.Value
-encode workingTree author parents metadata =
-    Enc.object
-        [ ( "workingTree", treeToValue workingTree )
-        , ( "author", Enc.string author )
-        , ( "parents", Enc.list Enc.string parents )
-        , ( "metadata", metadata )
-        ]
+requestCommit : Tree -> String -> Model -> Enc.Value -> Maybe Enc.Value
+requestCommit workingTree author model metadata =
+    case model of
+        Clean data ->
+            case Dict.get "heads/master" data.refs of
+                Nothing ->
+                    Enc.object
+                        [ ( "workingTree", treeToValue workingTree )
+                        , ( "author", Enc.string author )
+                        , ( "parents", Enc.list Enc.string [] )
+                        , ( "metadata", metadata )
+                        ]
+                        |> Just
+
+                Just localHead ->
+                    Enc.object
+                        [ ( "workingTree", treeToValue workingTree )
+                        , ( "author", Enc.string author )
+                        , ( "parents", Enc.list Enc.string [ localHead.value ] )
+                        , ( "metadata", metadata )
+                        ]
+                        |> Just
+
+        MergeConflict data { localHead, remoteHead, conflicts } ->
+            if List.isEmpty (List.filter (not << .resolved) conflicts) then
+                -- No unresolved conflicts.
+                Enc.object
+                    [ ( "workingTree", treeToValue workingTree )
+                    , ( "author", Enc.string author )
+                    , ( "parents", Enc.list Enc.string [ localHead, remoteHead ] )
+                    , ( "metadata", metadata )
+                    ]
+                    |> Just
+
+            else
+                -- Unresolved conflicts exist, dont' commit.
+                Nothing
 
 
 toValue : Data -> Enc.Value

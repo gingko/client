@@ -1759,7 +1759,6 @@ deleteCard id ( model, prevCmd ) =
           }
         , Cmd.batch [ prevCmd, send <| SetDirty True ]
         )
-            |> maybeColumnsChanged model.workingTree.columns
             |> activate nextToActivate False
             |> addToHistory
 
@@ -1900,7 +1899,6 @@ insert pid pos initText ( model, prevCmd ) =
       }
     , prevCmd
     )
-        |> maybeColumnsChanged model.workingTree.columns
         |> openCard newIdString initText
         |> activate newIdString False
 
@@ -2001,27 +1999,6 @@ mergeDown id ( model, prevCmd ) =
             ( model, prevCmd )
 
 
-maybeColumnsChanged : List Column -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-maybeColumnsChanged oldColumns ( { workingTree } as model, prevCmd ) =
-    let
-        oldColNumber =
-            oldColumns |> List.length
-
-        newColNumber =
-            workingTree.columns |> List.length
-
-        colsChangedCmd =
-            if newColNumber /= oldColNumber then
-                send (ColumnNumberChange (newColNumber - 1))
-
-            else
-                Cmd.none
-    in
-    ( model
-    , Cmd.batch [ prevCmd, colsChangedCmd ]
-    )
-
-
 setCursorPosition : Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 setCursorPosition pos ( model, prevCmd ) =
     ( model, Cmd.batch [ prevCmd, send (SetCursorPosition pos) ] )
@@ -2038,7 +2015,6 @@ move subtree pid pos ( model, prevCmd ) =
       }
     , prevCmd
     )
-        |> maybeColumnsChanged model.workingTree.columns
         |> activate subtree.id False
         |> addToHistory
 
@@ -2189,7 +2165,6 @@ paste subtree pid pos ( model, prevCmd ) =
       }
     , prevCmd
     )
-        |> maybeColumnsChanged model.workingTree.columns
         |> activate subtree.id False
         |> addToHistory
 
@@ -2247,7 +2222,6 @@ checkoutCommit commitSha ( model, prevCmd ) =
               }
             , Cmd.none
             )
-                |> maybeColumnsChanged model.workingTree.columns
                 |> activate model.viewState.active False
 
         Nothing ->
@@ -2325,13 +2299,21 @@ addToHistoryDo ( { workingTree, currentTime, session } as model, prevCmd ) =
     let
         author =
             session |> Session.name |> Maybe.withDefault "unknown" |> (\a -> "<" ++ a ++ ">")
+
+        commitReq_ =
+            Data.requestCommit workingTree.tree author model.data (Metadata.encode model.metadata)
     in
-    ( model
-    , Cmd.batch
-        [ send <| NewSave (Data.encode workingTree.tree author [] (Metadata.encode model.metadata))
-        , prevCmd
-        ]
-    )
+    case commitReq_ of
+        Just commitReq ->
+            ( model
+            , Cmd.batch
+                [ send <| CommitData commitReq
+                , prevCmd
+                ]
+            )
+
+        Nothing ->
+            ( model, prevCmd )
 
 
 addToHistory : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -2365,7 +2347,6 @@ dataReceived dataIn model =
               }
             , Cmd.none
             )
-                |> maybeColumnsChanged model.workingTree.columns
                 |> (if model.loading then
                         activate model.viewState.active True
 
