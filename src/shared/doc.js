@@ -323,6 +323,13 @@ const fromElm = (msg, elmData) => {
       }
     },
 
+    SaveMetadata: async () => {
+      let saveRes = await data.saveMetadata(db, TREE_ID, elmData);
+      if (saveRes) {
+        toElm(saveRes, "docMsgs", "MetadataSaved");
+      }
+    },
+
     CommitData: async () => {
       let [ savedData
         , savedImmutables

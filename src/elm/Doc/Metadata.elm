@@ -1,4 +1,4 @@
-module Doc.Metadata exposing (Metadata, decoder, decoderImport, encode, getCreatedAt, getDocId, getDocName, getUpdatedAt, isSameDocId, listDecoder, new, renameAndEncode, renameAndListEncode)
+module Doc.Metadata exposing (Metadata, decoder, decoderImport, encode, getCreatedAt, getDocId, getDocName, getUpdatedAt, isSameDocId, listDecoder, new, renameAndEncode)
 
 import Coders exposing (maybeToValue)
 import Json.Decode as Dec exposing (Decoder)
@@ -124,14 +124,3 @@ renameAndEncode newDocName (Metadata docId record) =
             | docName = Just newDocName
         }
         |> encode
-
-
-renameAndListEncode : String -> Metadata -> Enc.Value
-renameAndListEncode newDocName (Metadata docId record) =
-    Metadata docId
-        { record
-            | docName = Just newDocName
-        }
-        |> List.singleton
-        |> List.map encode
-        |> Enc.list identity

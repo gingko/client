@@ -131,6 +131,18 @@ async function newSave(localDb, treeId, elmData, savedImmutablesIds) {
   return [loadedResToElmData(savedData, treeId), [], conflictsExist, savedMetadata];
 }
 
+
+async function saveMetadata(localDb, treeId, metadata) {
+  let res = await localDb.put(prefix(metadata, treeId));
+  if (res.ok) {
+    metadata._rev = res.rev;
+    return metadata;
+  } else {
+    return false;
+  }
+}
+
+
 async function pull(localDb, remoteDb, treeId, source) {
   let selector = { _id: { $regex: `${treeId}/` } };
   let results = await localDb.replicate.from(remoteDb, { selector })
@@ -371,4 +383,4 @@ function unprefix(doc, treeId, idField = "_id") {
 
 /* === Exports === */
 
-export { getDocumentList, load, loadMetadata, newSave, pull, sync };
+export { getDocumentList, load, loadMetadata, newSave, saveMetadata, pull, sync };
