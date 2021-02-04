@@ -61,7 +61,7 @@ async function newSave(localDb, treeId, elmData, timestamp, savedImmutablesIds) 
   // Add treeId prefix.
   let toSave =
     objects
-      .filter(d => !savedImmutablesIds.includes(treeId + "/" + d._id))
+      .filter(d => !savedImmutablesIds.has(treeId + "/" + d._id))
       .map(updateMetadata)
       .map(d => prefix(d, treeId))
       .concat([newHead]);
@@ -119,9 +119,9 @@ async function newSave(localDb, treeId, elmData, timestamp, savedImmutablesIds) 
 
   // Get ids of successfully saved immutable objects.
   let immutableObjFilter = (d) => !d.id.includes("heads/master") && !d.id.includes("metadata");
-  //let newSavedImmutables = successfulResponses.filter(immutableObjFilter).map(r => r.id);
+  let newSavedImmutables = saveResponses.filter(immutableObjFilter).map(r => r.id);
 
-  return [loadedResToElmData(savedData, treeId), [], conflictsExist, savedMetadata];
+  return [loadedResToElmData(savedData, treeId), newSavedImmutables, conflictsExist, savedMetadata];
 }
 
 

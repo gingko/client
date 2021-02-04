@@ -30,7 +30,7 @@ let gingko;
 let TREE_ID;
 let PULL_LOCK = false;
 let DIRTY = false;
-let savedObjectIds = [];
+let savedObjectIds = new Set();
 const userStore = container.userStore;
 const localStore = container.localStore;
 
@@ -262,7 +262,7 @@ const fromElm = (msg, elmData) => {
       // Load local document data.
       let localExists;
       let [loadedData, savedIds] = await data.load(db, elmData);
-      savedObjectIds = savedObjectIds.concat(savedIds);
+      savedIds.forEach(item => savedObjectIds.add(item));
       if (savedIds.length !== 0) {
         localExists = true;
         toElm(loadedData, "docMsgs", "DataReceived");
@@ -278,7 +278,7 @@ const fromElm = (msg, elmData) => {
 
         if (pullResult !== null) {
           remoteExists = true;
-          savedObjectIds = savedObjectIds.concat(pullResult[1]);
+          pullResult[1].forEach(item => savedObjectIds.add(item));
           toElm(pullResult[0], "docMsgs", "DataReceived");
         } else {
           remoteExists = false;
@@ -338,7 +338,7 @@ const fromElm = (msg, elmData) => {
       ] = await data.newSave(db, TREE_ID, elmData, Date.now(), savedObjectIds);
 
       // Add saved immutables to cache.
-      savedObjectIds = savedObjectIds.concat(savedImmutables);
+      savedImmutables.forEach(item => savedObjectIds.add(item));
 
       // Send new data to Elm
       toElm(savedData, "docMsgs", "DataSaved");
@@ -374,7 +374,7 @@ const fromElm = (msg, elmData) => {
       ] = await data.newSave(db, elmData.metadata.docId, elmData, Date.now(), savedObjectIds);
 
       // Add saved immutables to cache.
-      savedObjectIds = savedObjectIds.concat(savedImmutables);
+      savedImmutables.forEach(item => savedObjectIds.add(item));
 
       toElm(elmData.metadata.docId, "importComplete")
     },
