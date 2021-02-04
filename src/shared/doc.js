@@ -377,46 +377,15 @@ const fromElm = (msg, elmData) => {
       savedObjectIds = savedObjectIds.concat(savedImmutables);
 
       toElm(elmData.metadata.docId, "importComplete")
-
-      /*
-      let isBulk = Array.isArray(elmData);
-      if (!isBulk) {
-        let now = Date.now();
-        elmData.metadata.createdAt = now;
-        elmData.metadata.updatedAt = now;
-      }
-
-      let dataArray = isBulk ? elmData : [elmData];
-      let savePromises = dataArray.map((doc) => {
-        let dataRows = [
-          ...doc.data.commits,
-          ...doc.data.treeObjects,
-          ...doc.data.refs,
-          doc.metadata,
-        ];
-        let toSave = dataRows.map((r) => {
-          r._id = doc.id + "/" + r._id;
-          return _.omit(r, "_rev");
-        });
-        return remoteDB.bulkDocs(toSave);
-      });
-      await Promise.all(savePromises);
-
-      if (isBulk) {
-        toElm(null, "importComplete");
-      } else {
-        toElm(elmData.metadata.docId, "importComplete")
-      }
-       */
     },
 
     SaveBulkImportedData: async () => {
-      console.log({msg, elmData})
       let savePromises =
         elmData.map(async commitReq => {
           await data.newSave(db, commitReq.metadata.docId, commitReq, savedObjectIds);
         });
       await Promise.all(savePromises);
+      toElm(null, "importComplete");
     },
 
 
