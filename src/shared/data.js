@@ -121,7 +121,14 @@ async function newSave(localDb, treeId, elmData, savedImmutablesIds) {
 
 
   // Function to modify head ref & get its _rev
-  let newHead = await localDb.get(treeId + "/heads/master").catch(e => e);
+  let newHead = await localDb.get(treeId + "/heads/master").catch((e) => {
+    if (e.error && e.reason === "missing") {
+      // New Document/First commit
+      return {_id : treeId + "/heads/master", type: "ref", value: commitSha, ancestors: []};
+    }
+  }
+  );
+  console.log({newHead});
   newHead.value = commitSha;
 
 
