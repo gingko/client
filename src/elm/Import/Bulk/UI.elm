@@ -1,5 +1,6 @@
 port module Import.Bulk.UI exposing (Model, Msg, init, subscriptions, update, view)
 
+import Doc.Data as Data
 import Doc.List as DocList
 import Doc.Metadata as Metadata exposing (Metadata)
 import File exposing (File)
@@ -9,6 +10,7 @@ import Html.Attributes exposing (checked, class, classList, disabled, height, hr
 import Html.Events exposing (on, onCheck, onClick)
 import Import.Bulk
 import Json.Decode as Dec
+import Json.Encode as Enc
 import Octicons as Icon exposing (defaultOptions)
 import Outgoing exposing (Msg(..), send)
 import Session exposing (Session)
@@ -147,13 +149,18 @@ update msg ({ state, user } as model) =
                 author =
                     user |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
 
+                treeInfoToCommitReq ( id, mdata, tree ) =
+                    Data.requestCommit tree author Data.empty (Metadata.encode mdata)
+
                 treesToSave =
                     selectList
                         |> List.filter .selected
                         |> List.map .tree
-                        |> Import.Bulk.encode author
+                        |> List.map treeInfoToCommitReq
+                        |> List.filterMap identity
+                        |> Enc.list identity
             in
-            ( { model | state = ImportSaving selectList }, send <| SaveImportedData treesToSave )
+            ( { model | state = ImportSaving selectList }, send <| SaveBulkImportedData treesToSave )
 
         ( Completed, ImportSaving _ ) ->
             ( { model | state = Closed }, Cmd.none )

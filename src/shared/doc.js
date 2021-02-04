@@ -411,7 +411,12 @@ const fromElm = (msg, elmData) => {
     },
 
     SaveBulkImportedData: async () => {
-
+      console.log({msg, elmData})
+      let savePromises =
+        elmData.map(async commitReq => {
+          await data.newSave(db, commitReq.metadata.docId, commitReq, savedObjectIds);
+        });
+      await Promise.all(savePromises);
     },
 
 

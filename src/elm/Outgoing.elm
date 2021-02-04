@@ -29,6 +29,7 @@ type Msg
     | CommitData Enc.Value
     | PullData
     | SaveImportedData Enc.Value
+    | SaveBulkImportedData Enc.Value
       -- === DOM ===
     | ScrollCards (List String) (List ( Int, ScrollPosition )) Int Bool
     | ScrollFullscreenCards String
@@ -85,6 +86,9 @@ send info =
 
         SaveImportedData data ->
             dataToSend "SaveImportedData" data
+
+        SaveBulkImportedData data ->
+            dataToSend "SaveBulkImportedData" data
 
         InitDocument dbName ->
             dataToSend "InitDocument" (string dbName)

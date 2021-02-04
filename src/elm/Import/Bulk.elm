@@ -1,5 +1,6 @@
 module Import.Bulk exposing (decoder, encode)
 
+import Coders exposing (treeToValue)
 import Dict exposing (Dict)
 import Doc.Data as Data exposing (Data)
 import Doc.Metadata as Metadata exposing (Metadata)
@@ -40,13 +41,12 @@ decoder =
 encode : String -> List ( String, Metadata, Tree ) -> Enc.Value
 encode author dataList =
     dataList
-        |> List.map (toData author)
         |> Enc.list
-            (\( tid, mdata, tdata ) ->
+            (\( tid, mdata, tree ) ->
                 Enc.object
                     [ ( "id", Enc.string tid )
                     , ( "metadata", Metadata.encode mdata )
-                    , ( "data", Data.toValue tdata )
+                    , ( "tree", treeToValue tree )
                     ]
             )
 
