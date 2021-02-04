@@ -13,7 +13,6 @@ async function getDocumentList(db) {
 async function load (localDb, treeId) {
   let allDocs = await loadAll(localDb, treeId);
   let elmDocs = loadedResToElmData(allDocs, treeId);
-  console.log({allDocs, elmDocs});
   let conflictedDocs = await getConflicts(localDb, allDocs, treeId);
   let localHead = await loadLocalHead(localDb, treeId).catch(e => undefined);
   let immutablesIds = allDocs.map(d => d._id).filter(id => !id.includes("metadata") && !id.includes("heads"));
@@ -29,10 +28,8 @@ async function loadMetadata(localDb, treeId) {
 
 
 async function newSave(localDb, treeId, elmData, savedImmutablesIds) {
-  console.time('commitTree');
   let timestamp = Date.now();
   let [commitSha, objects] = await commitTree(elmData.author, elmData.parents, elmData.workingTree, timestamp, elmData.metadata);
-  console.timeEnd('commitTree');
 
 
   // Function to modify head ref & get its _rev
@@ -43,7 +40,6 @@ async function newSave(localDb, treeId, elmData, savedImmutablesIds) {
     }
   }
   );
-  console.log({newHead});
   newHead.value = commitSha;
 
 
@@ -70,8 +66,6 @@ async function newSave(localDb, treeId, elmData, savedImmutablesIds) {
       .map(updateMetadata)
       .map(d => prefix(d, treeId))
       .concat([newHead]);
-
-  console.log({toSave});
 
 
   // Save local head as _local PouchDB document.

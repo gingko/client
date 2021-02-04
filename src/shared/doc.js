@@ -336,7 +336,6 @@ const fromElm = (msg, elmData) => {
         , conflictsExist
         , savedMetadata
       ] = await data.newSave(db, TREE_ID, elmData, savedObjectIds);
-      console.log({savedData})
 
       // Add saved immutables to cache.
       savedObjectIds = savedObjectIds.concat(savedImmutables);
