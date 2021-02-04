@@ -166,10 +166,6 @@ received json ( oldModel, oldTree ) =
                         |> Just
 
         Err err ->
-            let
-                _ =
-                    Debug.log "received Err" err
-            in
             Nothing
 
 
@@ -193,10 +189,6 @@ success json model =
                     MergeConflict (updateData d) cd
 
         Err err ->
-            let
-                _ =
-                    Debug.log "Data.success err" err
-            in
             model
 
 

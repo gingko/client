@@ -335,7 +335,7 @@ const fromElm = (msg, elmData) => {
         , savedImmutables
         , conflictsExist
         , savedMetadata
-      ] = await data.newSave(db, TREE_ID, elmData, savedObjectIds);
+      ] = await data.newSave(db, TREE_ID, elmData, Date.now(), savedObjectIds);
 
       // Add saved immutables to cache.
       savedObjectIds = savedObjectIds.concat(savedImmutables);
@@ -371,7 +371,7 @@ const fromElm = (msg, elmData) => {
         , savedImmutables
         , conflictsExist
         , savedMetadata
-      ] = await data.newSave(db, elmData.metadata.docId, elmData, savedObjectIds);
+      ] = await data.newSave(db, elmData.metadata.docId, elmData, Date.now(), savedObjectIds);
 
       // Add saved immutables to cache.
       savedObjectIds = savedObjectIds.concat(savedImmutables);
@@ -382,7 +382,7 @@ const fromElm = (msg, elmData) => {
     SaveBulkImportedData: async () => {
       let savePromises =
         elmData.map(async commitReq => {
-          await data.newSave(db, commitReq.metadata.docId, commitReq, savedObjectIds);
+          await data.newSave(db, commitReq.metadata.docId, commitReq, commitReq.metadata.updatedAt, savedObjectIds);
         });
       await Promise.all(savePromises);
       toElm(null, "importComplete");

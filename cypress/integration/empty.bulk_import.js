@@ -6,7 +6,7 @@ describe('Legacy Imports from Empty State', () => {
   before(() => {
     cy.request(config.LEGACY_URL + '/logout')
     cy.deleteUser(testEmail)
-    cy.signup(testEmail)
+    cy.signup_with(testEmail, 'empty');
     cy.visit(config.TEST_SERVER)
   })
 
@@ -14,7 +14,7 @@ describe('Legacy Imports from Empty State', () => {
     Cypress.Cookies.preserveOnce('AuthSession')
   })
 
-  it('Should bring up the Import Modal on clicking', () => {
+  it('Should allow import of legacy docs from empty state', () => {
     cy.get('#new-button').click()
 
     cy.get('#template-import-bulk')
@@ -22,13 +22,11 @@ describe('Legacy Imports from Empty State', () => {
       .then(()=> {
         cy.contains('Import From Gingko v1')
       })
-  })
 
-  it('If not logged in at legacy, asks user to', () => {
+    // If not logged in at legacy, asks user to
     cy.contains('you are not logged in')
-  })
 
-  it('If logged in at legacy, show download link', () => {
+    // If logged in at legacy, show download link
     let csrf = ''
     cy.request(config.LEGACY_URL + '/login')
       .then((resp) => {
@@ -41,9 +39,8 @@ describe('Legacy Imports from Empty State', () => {
 
         cy.contains('Download Full Backup')
       })
-  })
 
-  it('Shows tree list from the dropped file', () => {
+    // Shows tree list from the dropped file
     cy.get('.file-drop-zone')
       .attachFile('bulk-import-test.txt', { subjectType: 'drag-n-drop' })
 
@@ -51,9 +48,8 @@ describe('Legacy Imports from Empty State', () => {
       .should('contain', 'Screenplay')
       .and('contain', 'Timeline')
       .and('contain', 'Example Tree')
-  })
 
-  it('Adds selected trees to document list', () => {
+    // Adds selected trees to document list
     cy.get('#import-selection-list input')
       .click({multiple : true})
 
@@ -67,15 +63,13 @@ describe('Legacy Imports from Empty State', () => {
 
     cy.get('.sidebar-document-list > .sidebar-document-item')
       .should('have.length', 3)
-  })
 
-  it('Should navigate to last modified document', () => {
+    // Should navigate to last modified document
     cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
 
     cy.contains('tips to improve your logline')
-  })
 
-  it('Closed the Import Modal on success', ()=>{
+    // Closed the Import Modal on success
     cy.get('#app-root').should('not.contain', 'Import From Gingko v1')
   })
 })

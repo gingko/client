@@ -27,8 +27,7 @@ async function loadMetadata(localDb, treeId) {
 
 
 
-async function newSave(localDb, treeId, elmData, savedImmutablesIds) {
-  let timestamp = Date.now();
+async function newSave(localDb, treeId, elmData, timestamp, savedImmutablesIds) {
   let [commitSha, objects] = await commitTree(elmData.author, elmData.parents, elmData.workingTree, timestamp, elmData.metadata);
 
 
