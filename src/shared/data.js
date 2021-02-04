@@ -26,91 +26,6 @@ async function loadMetadata(localDb, treeId) {
 }
 
 
-async function saveData(localDb, treeId, elmData, savedImmutablesIds) {
-  // Function to modify metadata & get its _rev.
-  let updateMetadata;
-  let savedMetadata;
-  if (elmData.filter(d => d._id === "metadata").length > 0) {
-    let oldMetadata = await localDb.get(treeId + "/metadata").catch(e => e);
-    updateMetadata = d => {
-      if (d._id === "metadata") {
-        d.updatedAt = Date.now();
-        if (oldMetadata.hasOwnProperty("_rev")) {
-          d._rev = oldMetadata._rev;
-          savedMetadata = Object.assign({}, d);
-        }
-      }
-      return d;
-    };
-  } else {
-    updateMetadata = d => d
-  }
-
-  // Filter out already saved immutable objects.
-  // Add treeId prefix.
-  let toSave =
-    elmData
-      .filter(d => !savedImmutablesIds.includes(treeId + "/" + d._id))
-      .map(updateMetadata)
-      .map(d => prefix(d, treeId))
-
-  // Save local head as _local PouchDB document.
-  // This allows us to later figure out which conflicting revision
-  // was picked as the arbitrary winner (the local or remote one).
-  let makeIdLocal = (doc) => {
-    let newDoc = Object.assign({}, doc);
-    newDoc._id = `_local/${treeId}/heads/master`;
-    return newDoc;
-  }
-  let localHeadToSave =
-    toSave
-      .filter(d => d._id === `${treeId}/heads/master`)
-      .map(makeIdLocal)
-      [0];
-  if (typeof localHeadToSave !== "undefined") {
-    await saveLocalHead(localDb, localHeadToSave);
-  }
-
-  // Save documents and return responses of successfully saved ones.
-  let saveResponses = await localDb.bulkDocs(toSave);
-  let successfulResponses =
-    saveResponses
-      .filter(r => r.ok)
-      .map(r => {delete r.ok; return r;})
-      .map(d => unprefix(d, treeId, "id"))
-
-
-  // Get saved metadata (with new _rev), if it was saved
-  let savedMetadataResponse = successfulResponses.find(r => r.id === "metadata");
-  if (typeof savedMetadataResponse !== "undefined" && savedMetadataResponse.hasOwnProperty("rev")) {
-    savedMetadata._rev = savedMetadataResponse.rev;
-    savedMetadata = unprefix(savedMetadata, treeId);
-  }
-
-  // Check if we've resolved a merge conflict
-  let conflictsExist;
-  let [head, headConflicts] = await getHeadAndConflicts(localDb, treeId);
-  if (headConflicts.length > 0) {
-    // If winning rev is greater than conflicting ones
-    // then the conflict was resolved. Delete conflicting revs.
-    if (revToInt(head._rev) > revToInt(headConflicts[0]._rev)) {
-      let confDelPromises = headConflicts.map(confDoc => localDb.remove(confDoc._id, confDoc._rev));
-      await Promise.allSettled(confDelPromises);
-      conflictsExist = false;
-    } else {
-      conflictsExist = true
-    }
-  } else {
-    conflictsExist = false;
-  }
-
-  // Get ids of successfully saved immutable objects.
-  let immutableObjFilter = (d) => !d.id.includes("heads/master") && !d.id.includes("metadata");
-  let newSavedImmutables = successfulResponses.filter(immutableObjFilter).map(r => r.id);
-
-
-  return [successfulResponses, newSavedImmutables, conflictsExist, savedMetadata];
-}
 
 
 async function newSave(localDb, treeId, elmData, savedImmutablesIds) {
@@ -456,4 +371,4 @@ function unprefix(doc, treeId, idField = "_id") {
 
 /* === Exports === */
 
-export { getDocumentList, load, loadMetadata, saveData, newSave, pull, sync };
+export { getDocumentList, load, loadMetadata, newSave, pull, sync };
