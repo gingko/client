@@ -2,6 +2,8 @@ module Page.Import exposing (..)
 
 -- MODEL
 
+import Doc.Data as Data
+import Doc.Metadata as Metadata
 import Http
 import Import.Incoming
 import Import.Single
@@ -53,8 +55,16 @@ update msg user =
             let
                 author =
                     user |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
+
+                commitReq_ =
+                    Data.requestCommit tree author Data.empty (Metadata.new docId |> Metadata.renameAndEncode fileName)
             in
-            ( user, send <| SaveImportedData (Import.Single.encode { author = author, docId = docId, fileName = fileName } tree) )
+            case commitReq_ of
+                Just commitReq ->
+                    ( user, send <| SaveImportedData commitReq )
+
+                Nothing ->
+                    ( user, Cmd.none )
 
         TemplateImportSaved docId_ ->
             case docId_ of

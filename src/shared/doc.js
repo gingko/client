@@ -366,6 +366,19 @@ const fromElm = (msg, elmData) => {
     },
 
     SaveImportedData: async () => {
+      console.log({msg, elmData});
+      let [ savedData
+        , savedImmutables
+        , conflictsExist
+        , savedMetadata
+      ] = await data.newSave(db, elmData.metadata.docId, elmData, savedObjectIds);
+
+      // Add saved immutables to cache.
+      savedObjectIds = savedObjectIds.concat(savedImmutables);
+
+      toElm(elmData.metadata.docId, "importComplete")
+
+      /*
       let isBulk = Array.isArray(elmData);
       if (!isBulk) {
         let now = Date.now();
@@ -394,6 +407,11 @@ const fromElm = (msg, elmData) => {
       } else {
         toElm(elmData.metadata.docId, "importComplete")
       }
+       */
+    },
+
+    SaveBulkImportedData: async () => {
+
     },
 
 

@@ -752,8 +752,16 @@ update msg ({ workingTree } as model) =
             let
                 author =
                     model.session |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
+
+                commitReq_ =
+                    Data.requestCommit tree author Data.empty (Metadata.new docId |> Metadata.renameAndEncode fileName)
             in
-            ( model, send <| SaveImportedData (Import.Single.encode { author = author, docId = docId, fileName = fileName } tree) )
+            case commitReq_ of
+                Just commitReq ->
+                    ( model, send <| SaveImportedData commitReq )
+
+                Nothing ->
+                    ( model, Cmd.none )
 
         ImportJSONCompleted docId ->
             ( model, Route.pushUrl (Session.navKey model.session) (Route.DocUntitled docId) )
