@@ -900,7 +900,7 @@ li.sidebar-document-item.active::after {
 }
 
 .column {
-  height: 100%;
+  height: 100vh;
   overflow-x: hidden;
   overflow-y: scroll;
   scrollbar-width: none;
@@ -919,7 +919,7 @@ li.sidebar-document-item.active::after {
 
 .buffer {
   margin: 0 16px;
-  height: 100%;
+  height: 50vh;
   z-index: 1;
 }
 
