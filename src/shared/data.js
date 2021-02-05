@@ -1,5 +1,6 @@
 import _ from "lodash";
 import { sha1 } from "hash-wasm";
+import PouchDB from "pouchdb";
 
 Object.defineProperty(Array.prototype, "tap", { value(f) { f(this); return this; }});
 
@@ -27,7 +28,8 @@ async function loadMetadata(localDb, treeId) {
 
 
 
-async function newSave(localDb, treeId, elmData, timestamp, savedImmutablesIds) {
+async function newSave(dbName, treeId, elmData, timestamp, savedImmutablesIds) {
+  let localDb = new PouchDB(dbName);
   let [commitSha, objects] = await commitTree(elmData.author, elmData.parents, elmData.workingTree, timestamp, elmData.metadata);
 
 

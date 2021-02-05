@@ -1,5 +1,7 @@
 // @format
 import * as data from "./data.js";
+import Worker from "worker-loader!./data.worker.js";
+const dataWorker = new Worker();
 
 const jQuery = require("jquery");
 const _ = require("lodash");
@@ -28,6 +30,7 @@ let remoteDB;
 let db;
 let gingko;
 let TREE_ID;
+let userDbName;
 let PULL_LOCK = false;
 let DIRTY = false;
 let savedObjectIds = new Set();
@@ -103,7 +106,7 @@ async function initElmAndPorts() {
 
 async function setUserDbs(email) {
   console.log("Inside setUserDbs", email, helpers.toHex(email));
-  const userDbName = `userdb-${helpers.toHex(email)}`;
+  userDbName = `userdb-${helpers.toHex(email)}`;
   let userDbUrl = config.COUCHDB_SERVER + "/" + userDbName;
   var remoteOpts = { skip_setup: true };
   remoteDB = new PouchDB(userDbUrl, remoteOpts);
@@ -331,30 +334,8 @@ const fromElm = (msg, elmData) => {
     },
 
     CommitData: async () => {
-      let [ savedData
-        , savedImmutables
-        , conflictsExist
-        , savedMetadata
-      ] = await data.newSave(db, TREE_ID, elmData, Date.now(), savedObjectIds);
-
-      // Add saved immutables to cache.
-      savedImmutables.forEach(item => savedObjectIds.add(item));
-
-      // Send new data to Elm
-      toElm(savedData, "docMsgs", "DataSaved");
-
-      // Mark document as clean
-      DIRTY = false;
-
-      // Maybe send metadata to Elm
-      if (typeof savedMetadata !== "undefined") { toElm(savedMetadata, "docMsgs", "MetadataSaved")}
-
-      // Pull & Maybe push
-      if (!PULL_LOCK) {
-        PULL_LOCK = true;
-        await data.sync(db, remoteDB, TREE_ID, conflictsExist, pullSuccessHandler, pushSuccessHandler);
-        PULL_LOCK = false;
-      }
+      let timestamp = Date.now()
+      dataWorker.postMessage({tag: "newSave", data: {db: userDbName, treeId: TREE_ID, elmData: elmData, timestamp: timestamp, savedImmutables: savedObjectIds}});
     },
 
     PullData: async () => {
