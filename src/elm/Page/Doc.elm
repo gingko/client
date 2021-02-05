@@ -2410,30 +2410,6 @@ viewLoaded model =
     let
         language =
             Session.language model.session
-
-        replace orig new =
-            Regex.replace (Regex.fromString orig |> Maybe.withDefault Regex.never) (\_ -> new)
-
-        styleNode =
-            node "style"
-                []
-                [ text
-                    ("""
-.card .view h1, .card .view h2, .card .view h3, .card .view h4, .card .view h5, .card .view h6 {
-  font-family: '@HEADING', serif;
-}
-.card .view {
-  font-family: '@CONTENT', sans-serif;
-}
-pre, code, .group.has-active .card textarea {
-  font-family: '@MONOSPACE', monospace;
-}
-"""
-                        |> replace "@HEADING" (Fonts.getHeading model.fonts)
-                        |> replace "@CONTENT" (Fonts.getContent model.fonts)
-                        |> replace "@MONOSPACE" (Fonts.getMonospace model.fonts)
-                    )
-                ]
     in
     case Data.conflictList model.data of
         [] ->
@@ -2513,7 +2489,6 @@ pre, code, .group.has-active .card textarea {
                                 _ ->
                                     text ""
                            , viewVideo VideoModal model
-                           , styleNode
                            , div [ id "loading-overlay" ] []
                            , div [ id "preloader" ] []
                            ]
@@ -2542,7 +2517,6 @@ repeating-linear-gradient(-45deg
                 [ ul [ class "conflicts-list" ]
                     (List.map (viewConflict SetSelection Resolve) conflicts)
                 , lazy3 treeView (Session.language model.session) model.viewState model.workingTree
-                , styleNode
                 ]
 
 
