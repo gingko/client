@@ -21,7 +21,7 @@ import Html exposing (Html, button, div, h1, input, node, span, text, textarea, 
 import Html.Attributes exposing (class, classList, dir, id, style, title, value)
 import Html.Events exposing (onClick, onDoubleClick, onInput)
 import Html.Keyed as Keyed
-import Html.Lazy exposing (lazy2, lazy3)
+import Html.Lazy exposing (lazy2, lazy3, lazy7, lazy8)
 import Html5.DragDrop as DragDrop
 import Http
 import Import.Bulk.UI as ImportModal
@@ -2658,13 +2658,13 @@ viewGroup vstate xs =
                         |> List.map .uid
             in
             if isActive && not isEditing then
-                ( t.id, viewCardActive vstate.language t.id t.content (hasChildren t) isLast collabsOnCard collabsEditingCard vstate.dragModel )
+                ( t.id, lazy8 viewCardActive vstate.language t.id t.content (hasChildren t) isLast collabsOnCard collabsEditingCard vstate.dragModel )
 
             else if isEditing then
                 ( t.id, viewCardEditing vstate.language t.id t.content (hasChildren t) )
 
             else
-                ( t.id, viewCardOther t.id t.content isEditing (hasChildren t) isAncestor isLast collabsOnCard collabsEditingCard vstate.dragModel )
+                ( t.id, lazy7 viewCardOther t.id t.content isEditing (hasChildren t) isAncestor isLast vstate.dragModel )
     in
     Keyed.node "div"
         [ classList
@@ -2676,16 +2676,14 @@ viewGroup vstate xs =
         (List.map viewFunction xs)
 
 
-viewCardOther : String -> String -> Bool -> Bool -> Bool -> Bool -> List String -> List String -> DragDrop.Model String DropId -> Html Msg
-viewCardOther cardId content isEditing isParent isAncestor isLast collabsOnCard collabsEditingCard dragModel =
+viewCardOther : String -> String -> Bool -> Bool -> Bool -> Bool -> DragDrop.Model String DropId -> Html Msg
+viewCardOther cardId content isEditing isParent isAncestor isLast dragModel =
     div
         ([ id ("card-" ++ cardId)
          , dir "auto"
          , classList
             [ ( "card", True )
             , ( "ancestor", isAncestor )
-            , ( "collab-active", not (List.isEmpty collabsOnCard) )
-            , ( "collab-editing", not (List.isEmpty collabsEditingCard) )
             , ( "has-children", isParent )
             ]
          ]
@@ -2703,7 +2701,6 @@ viewCardOther cardId content isEditing isParent isAncestor isLast collabsOnCard 
                     , onDoubleClick (OpenCard cardId content)
                     ]
                     [ lazy2 viewContent cardId content ]
-               , collabsSpan collabsOnCard collabsEditingCard
                ]
         )
 
