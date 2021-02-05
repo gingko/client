@@ -77,6 +77,11 @@ async function initElmAndPorts() {
     fromElm(elmdata.tag, elmdata.data);
   });
 
+  // Messages from dataWorker
+  dataWorker.onmessage = (e) => {
+    fromElm(e.data.tag, e.data.data);
+  };
+
   window.checkboxClicked = (cardId, number) => {
     toElm([cardId, number], "docMsgs", "CheckboxClicked");
   };
@@ -336,6 +341,33 @@ const fromElm = (msg, elmData) => {
     CommitData: async () => {
       let timestamp = Date.now()
       dataWorker.postMessage({tag: "newSave", data: {db: userDbName, treeId: TREE_ID, elmData: elmData, timestamp: timestamp, savedImmutables: savedObjectIds}});
+    },
+
+    CommitDataResult: async () => {
+      let [ savedData
+        , savedImmutables
+        , conflictsExist
+        , savedMetadata
+      ] = elmData;
+
+      // Add saved immutables to cache.
+      savedImmutables.forEach(item => savedObjectIds.add(item));
+
+      // Send new data to Elm
+      toElm(savedData, "docMsgs", "DataSaved");
+
+      // Mark document as clean
+      DIRTY = false;
+
+      // Maybe send metadata to Elm
+      if (typeof savedMetadata !== "undefined") { toElm(savedMetadata, "docMsgs", "MetadataSaved")}
+
+      // Pull & Maybe push
+      if (!PULL_LOCK) {
+        PULL_LOCK = true;
+        await data.sync(db, remoteDB, TREE_ID, conflictsExist, pullSuccessHandler, pushSuccessHandler);
+        PULL_LOCK = false;
+      }
     },
 
     PullData: async () => {
