@@ -25,7 +25,7 @@ type Msg
     | GetDocumentList
     | RequestDelete String
     | NoDataToSave
-    | SaveMetadata Enc.Value
+    | RenameDocument String
     | CommitData Enc.Value
     | PullData
     | SaveImportedData Enc.Value
@@ -75,8 +75,8 @@ send info =
             dataToSend "ConfirmCancelCard" (list string [ id, origContent, confirmText ])
 
         -- === Database ===
-        SaveMetadata data ->
-            dataToSend "SaveMetadata" data
+        RenameDocument newDocName ->
+            dataToSend "RenameDocument" (string newDocName)
 
         CommitData data ->
             dataToSend "CommitData" data

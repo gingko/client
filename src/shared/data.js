@@ -127,8 +127,10 @@ async function newSave(dbName, treeId, elmData, timestamp, savedImmutablesIds) {
 }
 
 
-async function saveMetadata(localDb, treeId, metadata) {
-  let res = await localDb.put(prefix(metadata, treeId));
+async function renameDocument(localDb, treeId, newDocName) {
+  let metadata = await localDb.get(treeId + "/metadata");
+  metadata.name = newDocName;
+  let res = await localDb.put(metadata);
   if (res.ok) {
     metadata._rev = res.rev;
     return metadata;
@@ -378,4 +380,4 @@ function unprefix(doc, treeId, idField = "_id") {
 
 /* === Exports === */
 
-export { getDocumentList, load, loadMetadata, newSave, saveMetadata, pull, sync };
+export { getDocumentList, load, loadMetadata, newSave, renameDocument, pull, sync };

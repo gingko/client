@@ -565,7 +565,7 @@ update msg ({ workingTree } as model) =
             case model.titleField of
                 Just editedTitle ->
                     if Just editedTitle /= Metadata.getDocName model.metadata then
-                        ( model, send <| SaveMetadata <| Metadata.renameAndEncode editedTitle model.metadata )
+                        ( model, send <| RenameDocument editedTitle )
 
                     else
                         ( model, Cmd.none )

@@ -331,8 +331,8 @@ const fromElm = (msg, elmData) => {
       }
     },
 
-    SaveMetadata: async () => {
-      let saveRes = await data.saveMetadata(db, TREE_ID, elmData);
+    RenameDocument: async () => {
+      let saveRes = await data.renameDocument(db, TREE_ID, elmData);
       if (saveRes) {
         toElm(saveRes, "docMsgs", "MetadataSaved");
       }
@@ -379,7 +379,6 @@ const fromElm = (msg, elmData) => {
     },
 
     SaveImportedData: async () => {
-      console.log({msg, elmData});
       let [ savedData
         , savedImmutables
         , conflictsExist
