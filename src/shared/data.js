@@ -337,7 +337,7 @@ async function resolveMetadataConflicts (localDb, metadataDocs) {
 
 
 function loadedResToElmData (docs, treeId) {
-  let newDocs = docs.map(d => unprefix(d, treeId));
+  let newDocs = docs.filter(d => !d.hasOwnProperty("_id")).map(d => unprefix(d, treeId));
   let groupFn = (r) => (r.hasOwnProperty("type") ? r.type : r._id);
   return _.groupBy(newDocs, groupFn);
 }
