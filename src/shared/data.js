@@ -370,9 +370,11 @@ function prefix(doc, treeId) {
 
 
 function unprefix(doc, treeId, idField = "_id") {
-  let newDoc = Object.assign({},doc);
-  newDoc[idField] = doc[idField].slice(treeId.length + 1);
-  return newDoc;
+  if(doc.hasOwnProperty(idField) && typeof treeId === "string") {
+    let newDoc = Object.assign({},doc);
+    newDoc[idField] = doc[idField].slice(treeId.length + 1);
+    return newDoc;
+  }
 }
 
 
