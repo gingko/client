@@ -230,7 +230,7 @@ async function loadAll(localDb, treeId) {
   let emptyExists = false;
   let docs = allDocsRes.rows.map(r =>
      { if(_.isEmpty(r.doc)) {
-         alert(`Missing: ${r.id.substr(0,13)}\n\nPart of tree couldn't be loaded.\nContact support to resolve.`)
+         alert(`Missing: ${r.id.substr(0,13)}\n\nPart of tree couldn't be loaded.\nTry logging out, and back in.`)
          emptyExists = true;
        }
        return r.doc;
