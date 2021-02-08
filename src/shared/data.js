@@ -227,7 +227,19 @@ async function commitTree(author, parents, tree, timestamp, metadata) {
 async function loadAll(localDb, treeId) {
   let options = {include_docs: true , conflicts : true, startkey: treeId + "/", endkey: treeId + "/\ufff0"};
   let allDocsRes = await localDb.allDocs(options);
-  return allDocsRes.rows.map(r => r.doc);
+  let emptyExists = false;
+  let docs = allDocsRes.rows.map(r =>
+     { if(_.isEmpty(r.doc)) {
+         alert(`Missing: ${r.id.substr(0,13)}\n\nPart of tree couldn't be loaded.\nContact support to resolve.`)
+         emptyExists = true;
+       }
+       return r.doc;
+     });
+  if(emptyExists) {
+    return docs.filter(d => d.hasOwnProperty("_id"));
+  } else {
+    return docs;
+  }
 }
 
 
@@ -337,7 +349,7 @@ async function resolveMetadataConflicts (localDb, metadataDocs) {
 
 
 function loadedResToElmData (docs, treeId) {
-  let newDocs = docs.filter(d => !d.hasOwnProperty("_id")).map(d => unprefix(d, treeId));
+  let newDocs = docs.map(d => unprefix(d, treeId));
   let groupFn = (r) => (r.hasOwnProperty("type") ? r.type : r._id);
   return _.groupBy(newDocs, groupFn);
 }
