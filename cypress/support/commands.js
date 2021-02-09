@@ -82,6 +82,7 @@ Cypress.Commands.add('login', (userEmail) => {
     { url: config.TEST_SERVER + '/login'
     , method: 'POST'
     , body: {email: userEmail, password: 'testing'}
+    , retryOnStatusCodeFailure: true
     })
     .then((response) => {
       localStorage.setItem('gingko-session-storage', JSON.stringify({"email": userEmail,"language":"en"}))
