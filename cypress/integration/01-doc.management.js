@@ -91,78 +91,76 @@ describe('Managing Documents', () => {
       // And menu should be gone
       cy.get('#sidebar-context-menu').should('not.exist')
 
-      // Toggles switcher modal on "Ctrl+O"
-      // Check for toggling and autofocus
-      cy.get('#switcher-modal').should('not.exist')
+      describe('Quick Switcher', () => {
+        // Toggles switcher modal on "Ctrl+O"
+        // Check for toggling and autofocus
+        cy.get('#switcher-modal').should('not.exist')
 
-      cy.shortcut('{ctrl}o')
-      cy.get('#switcher-modal').should('exist')
-      cy.get('#switcher-modal input').should('have.focus')
+        cy.shortcut('{ctrl}o')
+        cy.get('#switcher-modal').should('exist')
+        cy.get('#switcher-modal input').should('have.focus')
 
-      cy.shortcut('{ctrl}o')
-      cy.get('#switcher-modal').should('not.exist')
+        cy.shortcut('{ctrl}o')
+        cy.get('#switcher-modal').should('not.exist')
 
-      // Check contents
-      cy.shortcut('{ctrl}o')
+        // Check contents
+        cy.shortcut('{ctrl}o')
 
-      cy.get('#switcher-modal .switcher-document-list .switcher-document-item').then($list => {
-        expect($list.toArray().map(li => li.innerText))
-          .to.eql(['Screenplay', 'Random letters', 'timeline 2021', 'Timeline 2019/2020', 'welcome', 'Example Tree'])
+        cy.get('#switcher-modal .switcher-document-list .switcher-document-item').then($list => {
+          expect($list.toArray().map(li => li.innerText))
+            .to.eql(['Screenplay', 'Random letters', 'timeline 2021', 'Timeline 2019/2020', 'welcome', 'Example Tree'])
+        })
+
+        cy.get('#switcher-modal .switcher-document-list .switcher-document-item')
+          .first()
+          .should('have.class', 'current')
+          .should('have.class', 'selected')
+
+        // Check list navigation
+        cy.shortcut('{downarrow}{downarrow}{downarrow}{uparrow}')
+          .get('#switcher-modal .switcher-document-list .switcher-document-item').then($list => {
+            expect($list[0]).to.have.class('current').and.to.not.have.class('selected')
+            expect($list[1]).to.not.have.class('selected')
+            expect($list[2]).to.have.class('selected')
+            expect($list[3]).to.not.have.class('selected')
+          })
+
+        // Test filtering
+        cy.get('#switcher-modal input').type('exa')
+
+        cy.get('#switcher-modal .switcher-document-list')
+          .should('contain', 'Example Tree')
+          .should('not.contain', 'Screenplay')
+
+        // Should close on esc
+        cy.shortcut('{esc}')
+        cy.get('#switcher-modal').should('not.exist')
+        cy.contains('Screenplay')
+
+
+        // Should go to selected tree on {enter}
+        cy.shortcut('{ctrl}o')
+        cy.shortcut('{downarrow}')
+        cy.shortcut('{downarrow}')
+        cy.shortcut('{downarrow}')
+        cy.shortcut('{enter}')
+        cy.url().should('contain', this.treeIds[4] )
+
+
+        // Should select first tree when filtering
+        cy.shortcut('{ctrl}o')
+        cy.get('#switcher-modal').should('exist')
+        cy.get('#switcher-modal input').type('welc')
+
+        cy.get('#switcher-modal .switcher-document-list .switcher-document-item').then($list => {
+          expect($list[0]).to.have.class('selected').and.to.not.have.class('current')
+          expect($list).to.have.length(1)
+        })
+        cy.shortcut('{enter}')
+        cy.url().should('contain', this.treeIds[1] )
+
+        cy.contains('Welcome to Gingko Writer')
       })
-
-      cy.get('#switcher-modal .switcher-document-list .switcher-document-item')
-        .first()
-        .should('have.class', 'current')
-        .should('have.class', 'selected')
-
-      // Check list navigation
-      cy.shortcut('{downarrow}')
-      cy.shortcut('{downarrow}')
-      cy.shortcut('{downarrow}')
-      cy.shortcut('{uparrow}')
-
-      cy.get('#switcher-modal .switcher-document-list .switcher-document-item').then($list => {
-        expect($list[0]).to.have.class('current').and.to.not.have.class('selected')
-        expect($list[1]).to.not.have.class('selected')
-        expect($list[2]).to.have.class('selected')
-        expect($list[3]).to.not.have.class('selected')
-      })
-
-      // Test filtering
-      cy.get('#switcher-modal input').type('exa')
-
-      cy.get('#switcher-modal .switcher-document-list')
-        .should('contain', 'Example Tree')
-        .should('not.contain', 'Screenplay')
-
-      // Should close on esc
-      cy.shortcut('{esc}')
-      cy.get('#switcher-modal').should('not.exist')
-      cy.contains('Screenplay')
-
-
-      // Should go to selected tree on {enter}
-      cy.shortcut('{ctrl}o')
-      cy.shortcut('{downarrow}')
-      cy.shortcut('{downarrow}')
-      cy.shortcut('{downarrow}')
-      cy.shortcut('{enter}')
-      cy.url().should('contain', this.treeIds[4] )
-
-
-      // Should select first tree when filtering
-      cy.shortcut('{ctrl}o')
-      cy.get('#switcher-modal').should('exist')
-      cy.get('#switcher-modal input').type('welc')
-
-      cy.get('#switcher-modal .switcher-document-list .switcher-document-item').then($list => {
-        expect($list[0]).to.have.class('selected').and.to.not.have.class('current')
-        expect($list).to.have.length(1)
-      })
-      cy.shortcut('{enter}')
-      cy.url().should('contain', this.treeIds[1] )
-
-      cy.contains('Welcome to Gingko Writer')
     })
   })
 })
