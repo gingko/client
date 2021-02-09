@@ -11,8 +11,9 @@ describe('Managing Documents', () => {
   const testEmail = 'cypress@testing.com'
 
   before(() => {
-    cy.deleteUser(testEmail)
-    cy.signup_with(testEmail, 'sevenTrees')
+    cy.deleteUser(testEmail).then(() => {
+      cy.signup_with(testEmail, 'sevenTrees')
+    })
   })
 
   beforeEach(() => {

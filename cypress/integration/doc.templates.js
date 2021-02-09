@@ -4,20 +4,21 @@ describe('Welcome Tree & Templates', () => {
   const testEmail = 'cypress@testing.com'
 
   before(() => {
-    cy.deleteUser(testEmail)
-    cy.visit(config.TEST_SERVER)
+    cy.deleteUser(testEmail).then(() => {
+      cy.visit(config.TEST_SERVER)
 
-    cy.get('#signup-email')
-      .type(testEmail)
+      cy.get('#signup-email')
+        .type(testEmail)
 
-    cy.get('#signup-password')
-      .type('testing')
+      cy.get('#signup-password')
+        .type('testing')
 
-    cy.get('#signup-password-confirm')
-      .type('testing')
+      cy.get('#signup-password-confirm')
+        .type('testing')
 
-    cy.get('button.cta')
-      .click()
+      cy.get('button.cta')
+        .click()
+    })
   })
 
   beforeEach(() => {

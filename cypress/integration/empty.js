@@ -5,9 +5,11 @@ describe('Empty State', () => {
   const testEmail = 'cypress@testing.com'
 
   before(() => {
-    cy.deleteUser(testEmail)
-    cy.signup(testEmail)
-    cy.visit(config.TEST_SERVER)
+    cy.deleteUser(testEmail).then(()=>{
+      cy.signup(testEmail).then(()=>{
+        cy.visit(config.TEST_SERVER)
+      })
+    })
   })
 
   beforeEach(() => {

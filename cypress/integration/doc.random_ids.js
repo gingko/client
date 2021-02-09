@@ -2,13 +2,13 @@ const config = require("../../config.js");
 const helpers = require("../../src/shared/doc-helpers.js");
 
 
-describe('Loading indicators', () => {
+describe('Random seed initialization', () => {
   const testEmail = 'cypress@testing.com'
-  const testUserDb = 'userdb-' + helpers.toHex(testEmail);
 
   before(() => {
-    cy.deleteUser(testEmail)
-    cy.signup_with(testEmail, 'twoTrees')
+    cy.deleteUser(testEmail).then(() => {
+      cy.signup_with(testEmail, 'twoTrees')
+    })
   })
 
   beforeEach(() => {

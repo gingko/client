@@ -10,9 +10,13 @@ Cypress.on('log:changed', options => {
 })
 
 Cypress.Commands.add('deleteUser', (userEmail)=> {
+  indexedDB.databases().then((dbs) => {
+    dbs.filter((db) => db.name.includes(helpers.toHex(userEmail)))
+      .map((db) => { window.indexedDB.deleteDatabase(db.name); })
+  })
   cy.clearCookie('AuthSession')
   cy.request('POST', config.TEST_SERVER + '/logout')
-  cy.request(
+  return cy.request(
     { url: config.TEST_SERVER + '/db/_users/org.couchdb.user:'+userEmail
       , method: 'GET'
       , auth: {user: config.COUCHDB_ADMIN_USERNAME, password: config.COUCHDB_ADMIN_PASSWORD}
@@ -27,11 +31,6 @@ Cypress.Commands.add('deleteUser', (userEmail)=> {
           })
       }
     })
-
-  indexedDB.databases().then((dbs) => {
-    dbs.filter((db) => db.name.includes(helpers.toHex(userEmail)))
-      .map((db) => { window.indexedDB.deleteDatabase(db.name); })
-  })
 })
 
 

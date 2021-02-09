@@ -4,10 +4,13 @@ describe('JSON Imports from Empty State', () => {
   const testEmail = 'cypress@testing.com'
 
   before(() => {
-    cy.request(config.LEGACY_URL + '/logout')
-    cy.deleteUser(testEmail)
-    cy.signup(testEmail)
-    cy.visit(config.TEST_SERVER)
+    cy.request(config.LEGACY_URL + '/logout').then(()=>{
+      cy.deleteUser(testEmail).then(()=>{
+        cy.signup(testEmail).then(()=>{
+          cy.visit(config.TEST_SERVER)
+        })
+      })
+    })
   })
 
   beforeEach(() => {

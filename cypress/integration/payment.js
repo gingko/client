@@ -10,8 +10,9 @@ describe('Upgrade process', () => {
   const testUserDb = 'userdb-' + helpers.toHex(testEmail);
 
   before(() => {
-    cy.deleteUser(testEmail)
-    cy.signup_with(testEmail, 'twoTrees')
+    cy.deleteUser(testEmail).then(() => {
+      cy.signup_with(testEmail, 'twoTrees')
+    })
   })
 
   beforeEach(() => {

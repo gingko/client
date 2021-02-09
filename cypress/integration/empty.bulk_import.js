@@ -4,10 +4,13 @@ describe('Legacy Imports from Empty State', () => {
   const testEmail = 'cypress@testing.com'
 
   before(() => {
-    cy.request(config.LEGACY_URL + '/logout')
-    cy.deleteUser(testEmail)
-    cy.signup_with(testEmail, 'empty');
-    cy.visit(config.TEST_SERVER)
+    cy.request(config.LEGACY_URL + '/logout').then(()=>{
+      cy.deleteUser(testEmail).then(() => {
+        cy.signup_with(testEmail, 'empty').then(()=>{
+          cy.visit(config.TEST_SERVER)
+        })
+      })
+    })
   })
 
   beforeEach(() => {

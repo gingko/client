@@ -5,19 +5,20 @@ describe.skip('Offline Tests', () => {
   const testEmail = 'cypress@testing.com'
 
   before(() => {
-    cy.deleteUser(testEmail)
-    cy.signup(testEmail)
-    cy.visit('http://localhost:3000/new')
-    cy.wait(400)
-    cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
+    cy.deleteUser(testEmail).then(()=>{
+      cy.signup(testEmail).then(()=>{
+        cy.visit('http://localhost:3000/new')
+        cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
 
-    cy.writeInCard('Hello Test doc')
-    cy.shortcut('{ctrl}l')
-    cy.writeInCard('Child card')
-    cy.shortcut('{ctrl}j')
-    cy.writeInCard('Another Child card')
-    cy.shortcut('{ctrl}{enter}')
-    cy.contains('Synced')
+        cy.writeInCard('Hello Test doc')
+        cy.shortcut('{ctrl}l')
+        cy.writeInCard('Child card')
+        cy.shortcut('{ctrl}j')
+        cy.writeInCard('Another Child card')
+        cy.shortcut('{ctrl}{enter}')
+        cy.contains('Synced')
+      })
+    })
   })
 
   beforeEach(() => {

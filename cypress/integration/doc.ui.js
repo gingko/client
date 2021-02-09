@@ -9,9 +9,11 @@ describe('Document UI', () => {
   const testEmail = 'cypress@testing.com'
 
   before(() => {
-    cy.deleteUser(testEmail)
-    cy.signup(testEmail)
-    cy.visit(config.TEST_SERVER + '/new')
+    cy.deleteUser(testEmail).then(() => {
+      cy.signup(testEmail).then(()=>{
+        cy.visit(config.TEST_SERVER + '/new')
+      })
+    })
   })
 
   beforeEach(() => {
