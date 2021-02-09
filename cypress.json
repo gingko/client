@@ -1,5 +1,6 @@
 {
   "cypress-watch-and-reload": {
     "watch": "web/*.js"
-  }
+  },
+  "video": false
 }
