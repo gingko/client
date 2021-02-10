@@ -165,6 +165,7 @@ view model =
                     , value model.password
                     ]
                     []
+                , a [ href "/forgot-password", class "forgot-password" ] [ text "Forgot your Password?" ]
                 , button [ class "cta" ] [ text "Login" ]
                 , br [] []
                 , small [ class "extra-info" ] [ text "(Note: this is separate from existing gingkoapp.com accounts)" ]

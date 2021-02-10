@@ -207,6 +207,12 @@ body {
   box-shadow: inset 2px 2px 3px #eee;
   border-radius: 4px;
 }
+a.forgot-password {
+  margin-top: -10px;
+  margin-bottom: 18px;
+  font-size: smaller;
+  color: gray;
+}
 
 .input-error {
   color: red;

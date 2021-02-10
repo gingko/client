@@ -72,4 +72,24 @@ describe('User Signup Flow', () => {
         cy.location('pathname').should('eq', '/login')
       })
   })
+
+  it('Forgot Password works', () => {
+    cy.visit(config.TEST_SERVER+'/login')
+
+    cy.get('a.forgot-password').then(($el) => {
+        expect($el.attr('href')).to.eq('/forgot-password')
+      })
+      .click()
+
+    cy.url().should('contain', '/forgot-password')
+
+    cy.get('input[type=email]')
+      .then(($el) =>{
+        Cypress.dom.isFocused($el)
+      })
+      .type(testEmail)
+
+    cy.get('button.cta')
+      .click()
+  })
 })
