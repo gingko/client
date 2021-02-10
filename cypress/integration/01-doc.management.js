@@ -27,7 +27,9 @@ describe('Managing Documents', () => {
 
       cy.url().should('contain', this.treeIds[6] )
 
-      cy.get('#file-button', {timeout: 20000}).click()
+      cy.contains('sadlkfsalfj')
+
+      cy.get('#file-button').click()
 
       cy.get('#sidebar-menu .sidebar-document-item', {timeout: 0})
         .should('have.length', 7)
