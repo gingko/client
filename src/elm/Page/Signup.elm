@@ -2,7 +2,7 @@ module Page.Signup exposing (Model, Msg, init, subscriptions, toUser, update, vi
 
 import Browser.Dom
 import Html exposing (..)
-import Html.Attributes exposing (autofocus, class, classList, href, id, placeholder, src, type_, value)
+import Html.Attributes exposing (autocomplete, autofocus, class, classList, href, id, placeholder, src, type_, value)
 import Html.Events exposing (onBlur, onInput, onSubmit)
 import Http exposing (Error(..))
 import Import.Template as Template
@@ -222,6 +222,7 @@ view model =
                     , type_ "email"
                     , value model.email
                     , autofocus True
+                    , autocomplete True
                     , onBlur (Blurred Email)
                     ]
                     []
@@ -232,6 +233,7 @@ view model =
                     , onInput EnteredPassword
                     , type_ "password"
                     , value model.password
+                    , autocomplete True
                     , onBlur (Blurred Password)
                     ]
                     []
@@ -242,6 +244,7 @@ view model =
                     , onInput EnteredPassConfirm
                     , type_ "password"
                     , value model.passwordConfirm
+                    , autocomplete True
                     , onBlur (Blurred PasswordConfirm)
                     ]
                     []

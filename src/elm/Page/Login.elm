@@ -1,7 +1,7 @@
 module Page.Login exposing (Model, Msg, init, subscriptions, toUser, update, view)
 
 import Html exposing (..)
-import Html.Attributes exposing (autofocus, class, href, id, placeholder, src, type_, value)
+import Html.Attributes exposing (autocomplete, autofocus, class, href, id, placeholder, src, type_, value)
 import Html.Events exposing (onInput, onSubmit)
 import Http exposing (Error(..))
 import Result exposing (Result)
@@ -151,18 +151,22 @@ view model =
                 , div [ class "input-error" ] [ text (String.join "\n" emailErrors) ]
                 , input
                     [ onInput EnteredEmail
+                    , id "email-input"
                     , placeholder "Email"
                     , type_ "email"
                     , value model.email
                     , autofocus True
+                    , autocomplete True
                     ]
                     []
                 , div [ class "input-error" ] [ text (String.join "\n" passwordErrors) ]
                 , input
                     [ onInput EnteredPassword
+                    , id "password-input"
                     , placeholder "Password"
                     , type_ "password"
                     , value model.password
+                    , autocomplete True
                     ]
                     []
                 , a [ href "/forgot-password", class "forgot-password" ] [ text "Forgot your Password?" ]
