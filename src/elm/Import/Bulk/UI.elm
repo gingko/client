@@ -6,7 +6,7 @@ import Doc.Metadata as Metadata exposing (Metadata)
 import File exposing (File)
 import File.Select as Select
 import Html exposing (..)
-import Html.Attributes exposing (checked, class, classList, disabled, height, href, id, src, style, target, type_, width)
+import Html.Attributes exposing (checked, class, classList, disabled, for, height, href, id, src, style, target, type_, width)
 import Html.Events exposing (on, onCheck, onClick)
 import Import.Bulk
 import Json.Decode as Dec
@@ -69,6 +69,7 @@ type Msg
     | FileDraggedOver Bool
     | FileSelected File
     | FileLoaded String String
+    | SelectAllToggled Bool
     | TreeSelected String Bool
     | SelectionDone
     | Completed
@@ -125,6 +126,13 @@ update msg ({ state, user } as model) =
 
                 Err _ ->
                     ( model, Cmd.none )
+
+        ( SelectAllToggled selectAll, ImportSelecting selectList ) ->
+            let
+                mapFn item =
+                    { item | selected = selectAll }
+            in
+            ( { model | state = ImportSelecting (selectList |> List.map mapFn) }, Cmd.none )
 
         ( TreeSelected treeId isSelected, ImportSelecting selectList ) ->
             let
@@ -284,6 +292,10 @@ view lang { state } =
             in
             [ div [ style "display" "flex", style "margin-top" "10px" ] [ span [ style "flex" "auto" ] [ text "Name" ], span [] [ text "Last Modified" ] ]
             , div [ id "import-selection-list" ] [ ul [] (List.map (viewSelectionEntry lang) importSelection) ]
+            , span []
+                [ input [ id "import-select-all", type_ "checkbox", onCheck <| SelectAllToggled ] []
+                , label [ for "import-select-all" ] [ text "Select All" ]
+                ]
             , button [ onClick SelectionDone, disabled isDisabled ] [ text "Import Selected Trees" ]
             ]
                 |> modalWrapper ModalClosed Nothing "Import From Gingko v1"

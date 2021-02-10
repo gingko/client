@@ -66,8 +66,8 @@ describe('Legacy Imports from Startup State', () => {
     // Adds selected trees to document list
     cy.viewport('samsung-s10', 'landscape')
 
-    cy.get('#import-selection-list input')
-      .click({ multiple: true })
+    cy.get('#import-select-all')
+      .click()
 
     cy.get('.modal-guts button')
       .click()
