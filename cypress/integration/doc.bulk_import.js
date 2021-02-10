@@ -72,11 +72,13 @@ describe('Legacy Imports from Startup State', () => {
     cy.get('.modal-guts button')
       .click()
 
-    cy.get('.sidebar-document-list > .sidebar-document-item')
-      .should('have.length', 12)
+    cy.contains('Importing selected 10 trees...')
 
     // Closed the Import Modal on success
     cy.get('#app-root').should('not.contain', 'Import From Gingko v1')
+
+    cy.get('.sidebar-document-list > .sidebar-document-item')
+      .should('have.length', 12)
 
     // Correctly imported the data
     cy.get('.sidebar-document-list')
