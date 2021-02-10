@@ -91,5 +91,7 @@ describe('User Signup Flow', () => {
 
     cy.get('button.cta')
       .click()
+
+    cy.contains('Reset Email Sent')
   })
 })
