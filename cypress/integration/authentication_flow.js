@@ -54,11 +54,13 @@ describe('User Signup Flow', () => {
     cy.contains('Welcome to Gingko')
 
     // Logs Out Correctly
+    cy.intercept('/logout').as('logoutRequest')
     cy.get('#account').click()
     cy.get('#logout-button').click()
+    cy.wait('@logoutRequest')
+    cy.getCookie('AuthSession').should('have.property', 'value', '')
     expect(localStorage.getItem("gingko-session-storage")).to.be.null;
     cy.location('pathname').should('eq', '/login')
-    cy.getCookie('AuthSession').should('have.property', 'value', '')
     cy.get('button.cta').contains('Login')
   })
 

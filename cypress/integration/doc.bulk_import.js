@@ -11,27 +11,20 @@ describe('Legacy Imports from Startup State', () => {
 
   before(() => {
     cy.request(config.LEGACY_URL + '/logout')
-    cy.deleteUser(testEmail)
-    cy.visit(config.TEST_SERVER)
-
-    cy.get('#signup-email')
-      .type(testEmail)
-
-    cy.get('#signup-password')
-      .type('testing')
-
-    cy.get('#signup-password-confirm')
-      .type('testing')
-
-    cy.get('button.cta')
-      .click()
+    cy.deleteUser(testEmail).then(() => {
+      cy.signup_with(testEmail, 'twoTrees')
+    })
   })
 
   beforeEach(() => {
+    cy.fixture('twoTrees.ids.json').as('treeIds')
     Cypress.Cookies.preserveOnce('AuthSession')
   })
 
-  it('Guides user to import legacy docs', () => {
+  it('Guides user to import legacy docs', function () {
+    cy.visit(config.TEST_SERVER)
+    cy.url().should('contain', this.treeIds[1] )
+
     // Should bring up the Import Modal on clicking
     cy.get('#file-button').click()
 
@@ -79,7 +72,7 @@ describe('Legacy Imports from Startup State', () => {
       .click()
 
     cy.get('.sidebar-document-list > .sidebar-document-item')
-      .should('have.length', 11)
+      .should('have.length', 12)
 
     // Closed the Import Modal on success
     cy.get('#app-root').should('not.contain', 'Import From Gingko v1')

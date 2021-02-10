@@ -46,32 +46,16 @@ Cypress.Commands.add('signup', (userEmail) => {
 })
 
 
-Cypress.Commands.add('signup_with', (userEmail, seedName) => {
+Cypress.Commands.add('signup_with', (userEmail, seedName) =>{
   const testUserDb = 'userdb-' + helpers.toHex(userEmail);
-  let body =
-    { '_id': `org.couchdb.user:${userEmail}`
-    , type: "user"
-    , roles: []
-    , name: userEmail
-    , password: 'testing'
-    };
-
   cy.request(
-    { url: config.COUCHDB_SERVER + '/_users'
-    , method: 'POST'
-    , body: body
-    , 'auth': {
-        'user': config.COUCHDB_ADMIN_USERNAME,
-        'pass': config.COUCHDB_ADMIN_PASSWORD,
-      }
+    { url: config.TEST_SERVER + '/signup'
+      , method: 'POST'
+      , body: {email: userEmail, password: 'testing'}
     })
-    .then((res)=>{
-      if (res.status === 201) {
-        cy.task('db:seed',{dbName: testUserDb, seedName: seedName})
-          .then((retVal) => {
-            cy.login(userEmail)
-          })
-      }
+    .then((response) => {
+      localStorage.setItem('gingko-session-storage', JSON.stringify({ email: userEmail, language: 'en' }))
+      cy.task('db:seed',{dbName: testUserDb, seedName: seedName})
     })
 })
 

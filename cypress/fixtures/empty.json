@@ -1,3 +1,0 @@
-{"new_edits":false,"docs":[
-  {"_id":"_design/testDocList","_rev":"1-28d345dd242c3a29448f257c11d5ee10","views":{"docList":{"map":"function (doc) {\n  if (/metadata/.test(doc._id)) {\n    emit(doc._id, doc);\n  }\n}"}},"language":"javascript"}
-]}

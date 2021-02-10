@@ -28,6 +28,7 @@ describe('Upgrade process', () => {
 
   it('Should have working Upgrade modal', function () {
     cy.visit(config.TEST_SERVER + '/' + this.treeIds[0])
+    cy.url().should('contain', this.treeIds[0] )
 
     cy.get('#account')
       .click()

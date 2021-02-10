@@ -12,7 +12,6 @@
 {"_id":"CJoWu/db13547563d6f95761a58b9f7b24337a94edd7b5","_rev":"1-e3e787c49b3fe49eb44eed02f68d655d","type":"tree","content":"Child card","children":[]},
 {"_id":"CJoWu/heads/master","_rev":"3-fb26d230df33e7a188b4019df4265e59","type":"ref","value":"ad7e13a4a9e84973c1c7f25fb2259ef9785ee382","ancestors":[]},
 {"_id":"CJoWu/metadata","_rev":"4-54b7babc62b010c9bb4809f6bc08210a","docId":"CJoWu","name":null,"createdAt":0,"updatedAt":1607259388283},
-{"_id":"_design/testDocList","_rev":"1-28d345dd242c3a29448f257c11d5ee10","views":{"docList":{"map":"function (doc) {\n  if (/metadata/.test(doc._id)) {\n    emit(doc._id, doc);\n  }\n}"}},"language":"javascript"},
 {"_id":"lYTJe/2885fc88ece0df55c3f8bf3bb80136f0285a9470","_rev":"1-913850c8fcd59c56a75ec6bc73322ab6","type":"tree","content":"","children":[["a7d79e42062756ed7342a4f19a175d00b9242d01","1"]]},
 {"_id":"lYTJe/34d950fc2c0f6f1266aeadc84c3519d7d64a9d13","_rev":"1-3a1268e0c5d43d596c1d1c779127c9c1","type":"commit","tree":"db4530172b753cd0797e605113a5e19f42ab40c3","parents":["fd1e7ed976f414602e11ea48e8110289cbc150fe"],"author":"Jane Doe <jane.doe@gmail.com","timestamp":1607259392554},
 {"_id":"lYTJe/38b64ce2726abefc56db43a526ba88269c946751","_rev":"1-0962cc8eafb861b31ad9f3297c4d151c","type":"tree","content":"","children":[["adc83b19e793491b1c6ea0fd8b46cd9f32e592fc","1"]]},

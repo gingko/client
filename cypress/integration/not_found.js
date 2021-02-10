@@ -18,6 +18,7 @@ describe('Not Found (Logged In User)', () => {
 
   it('Should redirect to last updated tree', function () {
     cy.visit(config.TEST_SERVER+ '/aaaaa')
+    cy.wait(250)
 
     cy.url().should('eq', config.TEST_SERVER + '/' + this.treeIds[1])
   })
