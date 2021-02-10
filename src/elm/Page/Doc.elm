@@ -96,6 +96,7 @@ type ModalState
     | FileSwitcher Doc.Switcher.Model
     | SidebarContextMenu String ( Float, Float )
     | TemplateSelector
+    | Wordcount
     | ImportModal ImportModal.Model
     | UpgradeModal
 
@@ -231,6 +232,7 @@ type Msg
     | ToggleSidebar
     | SidebarStateChanged SidebarState
     | TemplateSelectorOpened
+    | WordcountModalOpened
     | ModalClosed
     | ImportBulkClicked
     | ImportJSONRequested
@@ -258,7 +260,6 @@ type Msg
     | VideoModal Bool
     | FontsMsg Fonts.Msg
     | ShortcutTrayToggle
-    | WordcountTrayToggle
       -- === Ports ===
     | Pull
     | Export
@@ -673,6 +674,9 @@ update msg ({ workingTree } as model) =
         TemplateSelectorOpened ->
             ( { model | modalState = TemplateSelector }, Cmd.none )
 
+        WordcountModalOpened ->
+            ( { model | modalState = Wordcount }, Cmd.none )
+
         ModalClosed ->
             ( { model | modalState = NoModal }, Cmd.none )
 
@@ -822,11 +826,6 @@ update msg ({ workingTree } as model) =
                 | session = Session.setShortcutTrayOpen newIsOpen model.session
               }
             , send (SetShortcutTray newIsOpen)
-            )
-
-        WordcountTrayToggle ->
-            ( { model | wordcountTrayOpen = not model.wordcountTrayOpen }
-            , Cmd.none
             )
 
         -- === Ports ===
@@ -2482,7 +2481,7 @@ viewLoaded model =
                             model.textCursorInfo
                             model.viewState
                         ++ [ viewSearchField SearchFieldUpdated model
-                           , viewFooter WordcountTrayToggle model
+                           , viewFooter WordcountModalOpened
                            , case model.historyState of
                                 From currHead ->
                                     viewHistory NoOp CheckoutCommit Restore CancelHistory (Session.language model.session) currHead model.data
@@ -2950,7 +2949,7 @@ collabsSpan collabsOnCard collabsEditingCard =
     span [ class "collaborators" ] [ text collabsString ]
 
 
-viewModal : Language -> { m | modalState : ModalState, metadata : Metadata, fileSearchField : String, session : Session } -> List (Html Msg)
+viewModal : Language -> Model -> List (Html Msg)
 viewModal language model =
     case model.modalState of
         NoModal ->
@@ -2976,6 +2975,9 @@ viewModal language model =
                 , importBulkClicked = ImportBulkClicked
                 , importJSONRequested = ImportJSONRequested
                 }
+
+        Wordcount ->
+            UI.viewWordCount model { modalClosed = ModalClosed }
 
         ImportModal modalModel ->
             ImportModal.view language modalModel

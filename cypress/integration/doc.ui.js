@@ -76,4 +76,11 @@ describe('Document UI', () => {
     cy.shortcut('{enter}')
     cy.get('#shortcuts a').should('have.attr', 'target', '_blank')
   })
+
+  it('Has working Word Count modal', () => {
+    cy.get('#wordcount')
+      .click()
+
+    cy.get('.modal-header h2').contains('Word Counts')
+  })
 })

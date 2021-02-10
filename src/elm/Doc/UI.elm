@@ -1,4 +1,4 @@
-module Doc.UI exposing (countWords, viewConflict, viewFooter, viewHeader, viewHistory, viewHomeLink, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewVideo)
+module Doc.UI exposing (countWords, viewConflict, viewFooter, viewHeader, viewHistory, viewHomeLink, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewVideo, viewWordCount)
 
 import Coders exposing (treeToMarkdownString)
 import Diff exposing (..)
@@ -402,6 +402,10 @@ viewSidebarStatic sidebarOpen =
     ]
 
 
+
+-- MODALS
+
+
 viewTemplateSelector :
     Language
     -> { modalClosed : msg, importBulkClicked : msg, importJSONRequested : msg }
@@ -439,6 +443,40 @@ viewTemplateSelector language msgs =
         ]
     ]
         |> modalWrapper msgs.modalClosed Nothing "New Document"
+
+
+viewWordCount :
+    { m
+        | viewState : ViewState
+        , workingTree : TreeStructure.Model
+        , startingWordcount : Int
+        , wordcountTrayOpen : Bool
+        , session : Session
+    }
+    -> { modalClosed : msg }
+    -> List (Html msg)
+viewWordCount model msgs =
+    let
+        language =
+            Session.language model.session
+
+        wordCounts =
+            getWordCounts model
+
+        current =
+            wordCounts.document
+
+        session =
+            current - model.startingWordcount
+    in
+    [ span [] [ text (tr language (WordCountSession session)) ]
+    , span [] [ text (tr language (WordCountTotal current)) ]
+    , span [] [ text (tr language (WordCountCard wordCounts.card)) ]
+    , span [] [ text (tr language (WordCountSubtree wordCounts.subtree)) ]
+    , span [] [ text (tr language (WordCountGroup wordCounts.group)) ]
+    , span [] [ text (tr language (WordCountColumn wordCounts.column)) ]
+    ]
+        |> modalWrapper msgs.modalClosed Nothing "Word Counts"
 
 
 
@@ -479,56 +517,11 @@ viewSearchField searchFieldMsg { viewState, session } =
                 []
 
 
-viewFooter :
-    msg
-    ->
-        { m
-            | viewState : ViewState
-            , workingTree : TreeStructure.Model
-            , startingWordcount : Int
-            , wordcountTrayOpen : Bool
-            , session : Session
-        }
-    -> Html msg
-viewFooter wordCountToggle model =
-    let
-        language =
-            Session.language model.session
-
-        wordCounts =
-            getWordCounts model
-
-        current =
-            wordCounts.document
-
-        session =
-            current - model.startingWordcount
-
-        viewWordCount =
-            case model.viewState.viewMode of
-                Normal ->
-                    [ div
-                        [ id "wordcount"
-                        , classList [ ( "open", model.wordcountTrayOpen ) ]
-                        , onClick wordCountToggle
-                        ]
-                        [ div [] [ text "Word counts" ]
-                        , br [] []
-                        , span [] [ text (tr language (WordCountSession session)) ]
-                        , span [] [ text (tr language (WordCountTotal current)) ]
-                        , span [] [ text (tr language (WordCountCard wordCounts.card)) ]
-                        , span [] [ text (tr language (WordCountSubtree wordCounts.subtree)) ]
-                        , span [] [ text (tr language (WordCountGroup wordCounts.group)) ]
-                        , span [] [ text (tr language (WordCountColumn wordCounts.column)) ]
-                        ]
-                    ]
-
-                _ ->
-                    []
-    in
+viewFooter : msg -> Html msg
+viewFooter wordCountToggle =
     div
         [ class "footer" ]
-        viewWordCount
+        [ div [ id "wordcount", onClick wordCountToggle ] [ text "Word Counts" ] ]
 
 
 viewHistory : msg -> (String -> msg) -> msg -> msg -> Translation.Language -> String -> Data.Model -> Html msg

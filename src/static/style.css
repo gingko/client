@@ -1722,14 +1722,16 @@ pre {
   grid-area: document-footer;
   display: flex;
   justify-content: flex-end;
-  align-items: flex-end;
+  align-items: center;
   width: 100%;
-  padding: 2px 6px;
+  padding: 2px 12px;
   font-size: 12px;
   font-family: sans-serif;
   color: #334;
   background-color: hsl(0, 0%, 85%);
   border-top: 1px solid #c8d3d8;
+  z-index: 1;
+  box-shadow: 0 0 4px #00000085;
 }
 
 .footer .inset {
@@ -1776,28 +1778,11 @@ pre {
 }
 
 #wordcount {
-  display: flex;
   cursor: pointer;
-  flex-direction: column-reverse;
-  overflow: hidden;
-  height: 20px;
-  transition: none;
-  padding: 6px 6px 0 6px;
-}
-
-#wordcount.open, #wordcount:hover {
   background-color: whitesmoke;
-  height: 120px;
-  border-radius: 4px 4px 0 0;
-  transition: height 0.2s ease-out;
-  box-shadow: 14px -12px 4px -13px #3c484e;
-  z-index: 9999;
-}
-
-#wordcount div:first-child {
-  background: whitesmoke;
-  text-align: center;
-  padding: 3px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  box-shadow: 0px 1px 1px #00000082;
 }
 
 #shortcuts-tray {
