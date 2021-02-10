@@ -735,6 +735,10 @@ ul.dropdown > li > span.no-interaction:hover {
   z-index: 5;
 }
 
+#fullscreen-button {
+  display: none;
+}
+
 #sidebar.open {
   border-right: none;
   box-shadow: none;
@@ -2019,6 +2023,10 @@ ul.changelist {
 
   #sidebar {
     flex-direction: row;
+  }
+
+  #fullscreen-button {
+    display: block;
   }
 
   .column {

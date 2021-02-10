@@ -44,6 +44,7 @@ type Msg
     | SetVideoModal Bool
     | SetLanguage Language
     | SaveThemeSetting Theme
+    | RequestFullscreen
     | SetFonts Fonts.Settings
     | SetShortcutTray Bool
       -- === Misc ===
@@ -168,6 +169,9 @@ send info =
 
         SaveThemeSetting newTheme ->
             dataToSend "SaveThemeSetting" (Theme.toValue newTheme)
+
+        RequestFullscreen ->
+            dataToSend "RequestFullscreen" null
 
         SetFonts fontSettings ->
             dataToSend "SetFonts" (fontSettingsEncoder fontSettings)

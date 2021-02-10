@@ -256,6 +256,7 @@ type Msg
       -- Misc UI
     | LanguageChanged String
     | ThemeChanged Theme
+    | FullscreenRequested
     | TimeUpdate Time.Posix
     | VideoModal Bool
     | FontsMsg Fonts.Msg
@@ -788,6 +789,9 @@ update msg ({ workingTree } as model) =
 
         ThemeChanged newTheme ->
             ( { model | theme = newTheme }, send <| SaveThemeSetting newTheme )
+
+        FullscreenRequested ->
+            ( model, send <| RequestFullscreen )
 
         TimeUpdate time ->
             ( { model | currentTime = time }
@@ -2466,6 +2470,7 @@ viewLoaded model =
                             , importJSONRequested = ImportJSONRequested
                             , languageChanged = LanguageChanged
                             , themeChanged = ThemeChanged
+                            , fullscreenRequested = FullscreenRequested
                             }
                             model.metadata
                             model.fileSearchField

@@ -232,6 +232,7 @@ type alias SidebarMsgs msg =
     , importJSONRequested : msg
     , languageChanged : String -> msg
     , themeChanged : Theme -> msg
+    , fullscreenRequested : msg
     }
 
 
@@ -380,6 +381,13 @@ viewSidebar modelLanguage msgs currentDocument fileFilter docList ( exportSelect
 
         --, sidebarButton Import importIcon -- TODO: Removed temporarily
         , sidebarButton Settings
+        , div
+            [ id "fullscreen-button"
+            , title "Fullscreen"
+            , class "sidebar-button"
+            , onClick msgs.fullscreenRequested
+            ]
+            [ Icon.screenFull (defaultOptions |> Icon.size 18) ]
         ]
     , sidebarMenu
     ]

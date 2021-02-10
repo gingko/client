@@ -498,6 +498,10 @@ const fromElm = (msg, elmData) => {
       localStore.set("theme", elmData);
     },
 
+    RequestFullscreen: () => {
+      document.body.requestFullscreen();
+    },
+
     SetShortcutTray: () => {
       userStore.set("shortcutTrayOpen", elmData);
     },
