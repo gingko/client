@@ -75,6 +75,7 @@ describe('Document UI', () => {
   it('Opens Markdown Format guide in external window', () => {
     cy.shortcut('{enter}')
     cy.get('#shortcuts a').should('have.attr', 'target', '_blank')
+    cy.shortcut('{esc}')
   })
 
   it('Has working Word Count modal', () => {
@@ -82,5 +83,7 @@ describe('Document UI', () => {
       .click()
 
     cy.get('.modal-header h2').contains('Word Counts')
+
+    cy.contains('Total : 4 words')
   })
 })

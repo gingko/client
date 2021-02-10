@@ -769,12 +769,50 @@ viewWordcountProgress current session =
 
 getWordCounts : { m | viewState : ViewState, workingTree : TreeStructure.Model } -> WordCount
 getWordCounts model =
+    let
+        activeCardId =
+            model.viewState.active
+
+        tree =
+            model.workingTree.tree
+
+        currentTree =
+            getTree activeCardId tree
+                |> Maybe.withDefault defaultTree
+
+        currentGroup =
+            getSiblings activeCardId tree
+
+        cardCount =
+            countWords currentTree.content
+
+        subtreeCount =
+            cardCount + countWords (treeToMarkdownString False currentTree)
+
+        groupCount =
+            currentGroup
+                |> List.map .content
+                |> String.join "\n\n"
+                |> countWords
+
+        columnCount =
+            getColumn (getDepth 0 tree activeCardId) tree
+                -- Maybe (List (List Tree))
+                |> Maybe.withDefault [ [] ]
+                |> List.concat
+                |> List.map .content
+                |> String.join "\n\n"
+                |> countWords
+
+        treeCount =
+            countWords (treeToMarkdownString False tree)
+    in
     WordCount
-        0
-        0
-        0
-        0
-        0
+        cardCount
+        subtreeCount
+        groupCount
+        columnCount
+        treeCount
 
 
 countWords : String -> Int
