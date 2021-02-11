@@ -65,7 +65,6 @@ viewHeader :
             , dirty : Bool
             , lastLocalSave : Maybe Time.Posix
             , lastRemoteSave : Maybe Time.Posix
-            , currentTime : Time.Posix
             , session : Session
         }
     -> Html msg
@@ -90,7 +89,7 @@ viewHeader msgs title_ model =
                         [ h1 [ onClick (msgs.toggledTitleEdit True) ]
                             [ text (title_ |> Maybe.withDefault "Untitled")
                             ]
-                        , viewSaveIndicator language model
+                        , viewSaveIndicator language model (Session.currentTime model.session)
                         ]
     in
     div [ id "document-header" ]
@@ -109,9 +108,10 @@ viewHeader msgs title_ model =
 
 viewSaveIndicator :
     Language
-    -> { m | dirty : Bool, lastLocalSave : Maybe Time.Posix, lastRemoteSave : Maybe Time.Posix, currentTime : Time.Posix }
+    -> { m | dirty : Bool, lastLocalSave : Maybe Time.Posix, lastRemoteSave : Maybe Time.Posix }
+    -> Time.Posix
     -> Html msg
-viewSaveIndicator language { dirty, lastLocalSave, lastRemoteSave, currentTime } =
+viewSaveIndicator language { dirty, lastLocalSave, lastRemoteSave } currentTime =
     let
         lastChangeString =
             timeDistInWords

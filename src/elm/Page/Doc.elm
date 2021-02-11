@@ -87,7 +87,6 @@ type alias Model =
     , fonts : Fonts.Model
     , theme : Theme
     , startingWordcount : Int
-    , currentTime : Time.Posix
     }
 
 
@@ -156,7 +155,6 @@ defaultModel isNew session docId =
     , theme = Default
     , startingWordcount = 0
     , historyState = Closed
-    , currentTime = Time.millisToPosix 0
     }
 
 
@@ -472,7 +470,7 @@ update msg ({ workingTree } as model) =
                     ( updatedModel, mappedCmd )
 
         Commit time ->
-            ( { model | currentTime = time }, Cmd.none )
+            ( { model | session = Session.updateTime time model.session }, Cmd.none )
                 |> addToHistoryDo
 
         CheckoutCommit commitSha ->
@@ -794,7 +792,7 @@ update msg ({ workingTree } as model) =
             ( model, send <| RequestFullscreen )
 
         TimeUpdate time ->
-            ( { model | currentTime = time }
+            ( { model | session = Session.updateTime time model.session }
             , Cmd.none
             )
 
@@ -2306,7 +2304,7 @@ historyStep dir currHead ( model, prevCmd ) =
 
 
 addToHistoryDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-addToHistoryDo ( { workingTree, currentTime, session } as model, prevCmd ) =
+addToHistoryDo ( { workingTree, session } as model, prevCmd ) =
     let
         author =
             session |> Session.name |> Maybe.withDefault "unknown" |> (\a -> "<" ++ a ++ ">")

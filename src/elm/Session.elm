@@ -1,4 +1,4 @@
-port module Session exposing (PaymentStatus(..), Session, currentTime, customer, db, decode, documents, fileMenuOpen, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, shortcutTrayOpen, storeLogin, storeSignup, sync, updateDocuments, updateUpgrade, upgradeModel, userSettingsChange)
+port module Session exposing (PaymentStatus(..), Session, currentTime, customer, db, decode, documents, fileMenuOpen, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, shortcutTrayOpen, storeLogin, storeSignup, sync, updateDocuments, updateTime, updateUpgrade, upgradeModel, userSettingsChange)
 
 import Browser.Navigation as Nav
 import Doc.List as DocList
@@ -226,6 +226,11 @@ updateSession updateFn session =
 setSeed : Random.Seed -> Session -> Session
 setSeed newSeed session =
     updateSession (\s -> { s | seed = newSeed }) session
+
+
+updateTime : Time.Posix -> Session -> Session
+updateTime newTime session =
+    updateSession (\s -> { s | currentTime = newTime }) session
 
 
 setFileOpen : Bool -> Session -> Session
