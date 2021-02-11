@@ -19,7 +19,7 @@ import Page.Doc.Export exposing (ExportFormat(..), ExportSelection(..))
 import Page.Doc.Theme exposing (Theme(..))
 import Regex exposing (Regex, replace)
 import Route
-import Session exposing (Session)
+import Session exposing (PaymentStatus(..), Session)
 import SharedUI exposing (modalWrapper)
 import Time exposing (posixToMillis)
 import Translation exposing (Language(..), TranslationId(..), langFromString, langToString, languageName, timeDistInWords, tr)
@@ -96,6 +96,7 @@ viewHeader msgs title_ model =
     div [ id "document-header" ]
         [ titleArea
         , viewTopRightButtons
+            model.currentTime
             { toggledHelpMenu = msgs.toggledHelpMenu
             , clickedEmailSupport = msgs.clickedEmailSupport
             , logoutRequested = msgs.logoutRequested
@@ -153,25 +154,48 @@ viewSaveIndicator language { dirty, lastLocalSave, lastRemoteSave, currentTime }
 
 
 viewTopRightButtons :
-    { toggledHelpMenu : Bool -> msg
-    , clickedEmailSupport : msg
-    , logoutRequested : msg
-    , toggledAccountMenu : Bool -> msg
-    , toggledUpgradeModal : Bool -> msg
-    }
+    Time.Posix
+    ->
+        { toggledHelpMenu : Bool -> msg
+        , clickedEmailSupport : msg
+        , logoutRequested : msg
+        , toggledAccountMenu : Bool -> msg
+        , toggledUpgradeModal : Bool -> msg
+        }
     -> DropdownState
     -> Session
     -> Html msg
-viewTopRightButtons msgs dropdownState session =
+viewTopRightButtons currentTime msgs dropdownState session =
     let
         lang =
             Session.language session
 
+        upgradeButton =
+            div [ id "upgrade-button", onClick <| msgs.toggledUpgradeModal True ] [ text "Upgrade" ]
+
+        maybeUpgrade =
+            case Session.paymentStatus session of
+                Customer _ ->
+                    [ text "" ]
+
+                Trial expiry ->
+                    let
+                        daysLeft =
+                            (Time.posixToMillis expiry - Time.posixToMillis currentTime)
+                                // (1000 * 3600 * 24)
+                                + 1
+                    in
+                    if daysLeft <= 30 then
+                        [ span [] [ text (String.fromInt daysLeft ++ " days left in Free Trial") ], upgradeButton ]
+
+                    else
+                        [ upgradeButton ]
+
+                Unknown ->
+                    [ upgradeButton ]
+
         isHelpDropdown =
             dropdownState == Help
-
-        customer_ =
-            Session.customer session
 
         isAccountDropdown =
             dropdownState == Account
@@ -186,34 +210,31 @@ viewTopRightButtons msgs dropdownState session =
             Icon.signOut (defaultOptions |> Icon.color "#333" |> Icon.size 18)
     in
     div [ id "top-right-buttons" ]
-        [ if customer_ == Nothing then
-            div [ id "upgrade-button", onClick <| msgs.toggledUpgradeModal True ] [ text "Upgrade" ]
+        (maybeUpgrade
+            ++ [ div [ id "help-icon", onClick (msgs.toggledHelpMenu (not isHelpDropdown)) ]
+                    [ helpIcon
+                    , if isHelpDropdown then
+                        ul [ id "help-dropdown", class "dropdown" ]
+                            [ li [] [ a [ href "https://docs.gingkowriter.com", target "_blank" ] [ text "FAQ" ] ]
+                            , li [] [ span [ id "email-support", onClick msgs.clickedEmailSupport ] [ text <| tr lang EmailSupport ] ]
+                            ]
 
-          else
-            text ""
-        , div [ id "help-icon", onClick (msgs.toggledHelpMenu (not isHelpDropdown)) ]
-            [ helpIcon
-            , if isHelpDropdown then
-                ul [ id "help-dropdown", class "dropdown" ]
-                    [ li [] [ a [ href "https://docs.gingkowriter.com", target "_blank" ] [ text "FAQ" ] ]
-                    , li [] [ span [ id "email-support", onClick msgs.clickedEmailSupport ] [ text <| tr lang EmailSupport ] ]
+                      else
+                        text ""
                     ]
+               , div [ id "account", onClick (msgs.toggledAccountMenu (not isAccountDropdown)) ]
+                    [ userIcon
+                    , if isAccountDropdown then
+                        ul [ id "account-dropdown", class "dropdown" ]
+                            [ li [] [ span [ class "no-interaction" ] [ text (Session.name session |> Maybe.withDefault "") ] ]
+                            , li [] [ span [ id "logout-button", onClick msgs.logoutRequested ] [ logoutIcon, text <| tr lang Logout ] ]
+                            ]
 
-              else
-                text ""
-            ]
-        , div [ id "account", onClick (msgs.toggledAccountMenu (not isAccountDropdown)) ]
-            [ userIcon
-            , if isAccountDropdown then
-                ul [ id "account-dropdown", class "dropdown" ]
-                    [ li [] [ span [ class "no-interaction" ] [ text (Session.name session |> Maybe.withDefault "") ] ]
-                    , li [] [ span [ id "logout-button", onClick msgs.logoutRequested ] [ logoutIcon, text <| tr lang Logout ] ]
+                      else
+                        text ""
                     ]
-
-              else
-                text ""
-            ]
-        ]
+               ]
+        )
 
 
 

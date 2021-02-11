@@ -1,4 +1,4 @@
-port module Session exposing (Session, customer, db, decode, documents, fileMenuOpen, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, shortcutTrayOpen, storeLogin, storeSignup, sync, updateDocuments, updateUpgrade, upgradeModel, userSettingsChange)
+port module Session exposing (PaymentStatus(..), Session, customer, db, decode, documents, fileMenuOpen, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, shortcutTrayOpen, storeLogin, storeSignup, sync, updateDocuments, updateUpgrade, upgradeModel, userSettingsChange)
 
 import Browser.Navigation as Nav
 import Doc.List as DocList
@@ -141,6 +141,16 @@ customer session =
 
         Guest _ _ ->
             Nothing
+
+
+paymentStatus : Session -> PaymentStatus
+paymentStatus session =
+    case session of
+        LoggedIn _ data ->
+            data.paymentStatus
+
+        Guest _ _ ->
+            Unknown
 
 
 shortcutTrayOpen : Session -> Bool
