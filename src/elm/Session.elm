@@ -4,10 +4,11 @@ import Browser.Navigation as Nav
 import Doc.List as DocList
 import Http
 import Json.Decode as Dec exposing (Decoder)
-import Json.Decode.Pipeline exposing (optional, optionalAt, required)
+import Json.Decode.Pipeline exposing (hardcoded, optional, optionalAt, required)
 import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
 import Random
+import Time
 import Translation exposing (Language(..), langFromString, langToString, languageDecoder)
 import Upgrade
 import Utils exposing (hexEncode)
@@ -35,10 +36,16 @@ type alias UserData =
     { email : String
     , language : Translation.Language
     , upgradeModel : Upgrade.Model
-    , customer : Maybe String
+    , paymentStatus : PaymentStatus
     , shortcutTrayOpen : Bool
     , documents : DocList.Model
     }
+
+
+type PaymentStatus
+    = Unknown
+    | Trial Time.Posix
+    | Customer String
 
 
 type alias GuestData =
@@ -125,7 +132,12 @@ customer : Session -> Maybe String
 customer session =
     case session of
         LoggedIn _ data ->
-            data.customer
+            case data.paymentStatus of
+                Customer custId ->
+                    Just custId
+
+                _ ->
+                    Nothing
 
         Guest _ _ ->
             Nothing
@@ -168,15 +180,15 @@ loggedIn session =
 sync : Dec.Value -> Session -> Session
 sync json session =
     let
-        settingsDecoder : Decoder { language : Language, customer : Maybe String }
+        settingsDecoder : Decoder { language : Language, paymentStatus : PaymentStatus }
         settingsDecoder =
-            Dec.succeed (\lang cust_ -> { language = lang, customer = cust_ })
+            Dec.succeed (\lang payStat -> { language = lang, paymentStatus = payStat })
                 |> optional "language" languageDecoder En
-                |> optional "customer" (Dec.maybe Dec.string) Nothing
+                |> optional "paymentStatus" decodePaymentStatus Unknown
     in
     case ( Dec.decodeValue settingsDecoder json, session ) of
         ( Ok newSettings, LoggedIn sessData userData ) ->
-            LoggedIn sessData { userData | language = newSettings.language, customer = newSettings.customer }
+            LoggedIn sessData { userData | language = newSettings.language, paymentStatus = newSettings.paymentStatus }
 
         ( Ok newSettings, Guest sessData guestData ) ->
             Guest sessData { guestData | language = newSettings.language }
@@ -283,9 +295,17 @@ decodeLoggedIn key =
         |> required "email" Dec.string
         |> required "seed" (Dec.int |> Dec.map Random.initialSeed)
         |> optional "language" (Dec.string |> Dec.map langFromString) En
-        |> optional "customer" (Dec.maybe Dec.string) Nothing
+        |> optional "paymentStatus" decodePaymentStatus Unknown
         |> optional "shortcutTrayOpen" Dec.bool True
         |> optional "lastDocId" (Dec.maybe Dec.string) Nothing
+
+
+decodePaymentStatus : Dec.Decoder PaymentStatus
+decodePaymentStatus =
+    Dec.oneOf
+        [ Dec.succeed Customer |> required "customer" Dec.string
+        , Dec.succeed Trial |> required "trialExpires" (Dec.int |> Dec.map Time.millisToPosix)
+        ]
 
 
 decodeGuest : Nav.Key -> Dec.Decoder Session
@@ -309,7 +329,7 @@ responseDecoder session =
     Dec.succeed builder
         |> required "email" Dec.string
         |> optionalAt [ "settings", "language" ] (Dec.map langFromString Dec.string) En
-        |> optionalAt [ "settings", "customer" ] (Dec.maybe Dec.string) Nothing
+        |> optionalAt [ "settings", "paymentStatus" ] (Dec.succeed Unknown) Unknown
         |> optionalAt [ "settings", "shortcutTrayOpen" ] Dec.bool True
 
 

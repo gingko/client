@@ -148,15 +148,6 @@ async function setUserDbs(email) {
   };
   db.put(ddoc).catch(async (e) => e); // ignore conflict error
 
-  // add default settings document
-  let defaultSettings = {
-    _id: "settings",
-    email: email,
-    language: lang,
-    shortcutTrayOpen: true
-  }
-  db.put(defaultSettings).catch(async (e) => e); // ignore conflict error
-
   // Sync document list with server
   PouchDB.sync(db, remoteDB, { filter: "_view", view: "testDocList/docList", include_docs: true, live: true, retry: true })
     .on('change',(change) =>{

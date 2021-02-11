@@ -20,12 +20,6 @@ describe('Upgrade process', () => {
     Cypress.Cookies.preserveOnce('AuthSession')
   })
 
-  it('Has correct routes for success', () => {
-    cy.visit(config.TEST_SERVER + '/upgrade/success' )
-
-    cy.contains("Thank you for your payment")
-  })
-
   it('Should have working Upgrade modal', function () {
     cy.visit(config.TEST_SERVER + '/' + this.treeIds[0])
     cy.url().should('contain', this.treeIds[0] )
@@ -87,17 +81,23 @@ describe('Upgrade process', () => {
 
     cy.get('#upgrade-checkout')
       .should('contain', '1000')
+  })
 
+  it('Correctly handles payment status', function () {
+    cy.visit(config.TEST_SERVER + '/upgrade/success' )
 
-    // Correct priceId set
-    /*
-    let expectedData = {currency: "INR", billing: "yearly", plan: "regular"}
-    cy.get('.modal-guts button')
+    cy.fixture('stripeSuccess').then((json) => {
+      cy.request('POST', config.TEST_SERVER+'/hooks',json);
+    })
+
+    cy.get('.message-cta')
       .click()
 
-    cy.window().then((win) => {
-      expect(win.elmMessages.slice(-1)[0]).to.deep.equal({tag: "CheckoutButtonClicked", data: expectedData})
-    })
-    */
+    cy.url().should('contain', this.treeIds[1] )
+
+    cy.get('#account')
+
+    cy.get('#document-header')
+      .should('not.contain', 'Upgrade')
   })
 })
