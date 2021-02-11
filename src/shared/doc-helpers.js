@@ -166,6 +166,13 @@ var shortcuts = [
   "alt+shift+down",
   "alt+home",
   "alt+end",
+  "alt+0",
+  "alt+1",
+  "alt+2",
+  "alt+3",
+  "alt+4",
+  "alt+5",
+  "alt+6",
   "[",
   "]",
   "mod+o",
@@ -193,6 +200,13 @@ var needOverride = [
   "mod+j",
   "mod+k",
   "mod+l",
+  "alt+0",
+  "alt+1",
+  "alt+2",
+  "alt+3",
+  "alt+4",
+  "alt+5",
+  "alt+6",
 ];
 
 if (window.navigator.platform.toUpperCase().indexOf('MAC') < 0 ) {

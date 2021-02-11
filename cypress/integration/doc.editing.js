@@ -155,5 +155,42 @@ describe('Document Editing', () => {
       .should('not.contain', 'Another one below')
 
     cy.get('#history').should('not.exist')
+
+    // New card, to test title shortcuts
+    cy.shortcut('{ctrl}{rightArrow}')
+    cy.writeInCard('A test title{enter}{enter}body')
+
+    cy.writeInCard('{alt}1')
+      .then(($el) => {
+        expect($el).to.have.value('# A test title\n\nbody')
+
+        cy.shortcut('{ctrl}{enter}')
+
+        cy.get('div.view h1')
+          .contains('A test title')
+      })
+
+    cy.shortcut('{enter}')
+    cy.writeInCard('{alt}3')
+      .then(($el) => {
+        expect($el).to.have.value('### A test title\n\nbody')
+
+        cy.shortcut('{ctrl}{enter}')
+
+        cy.get('div.view h3')
+          .contains('A test title');
+      })
+
+    cy.shortcut('{enter}')
+    cy.writeInCard('{alt}0')
+      .then(($el) => {
+        expect($el).to.have.value('A test title\n\nbody')
+
+        cy.shortcut('{ctrl}{enter}')
+
+        cy.get('div.active p')
+          .first()
+          .should('contain', 'A test title')
+      })
   })
 })

@@ -660,20 +660,40 @@ const selectionHandler = function () {
 document.onselectionchange = selectionHandler;
 
 Mousetrap.bind(helpers.shortcuts, function (e, s) {
-  if (s === "mod+v" || s === "mod+shift+v") {
-    let elmTag = s === "mod+v" ? "Paste" : "PasteInto";
+  switch (s) {
+    case "mod+v":
+    case "mod+shift+v":
+      let elmTag = s === "mod+v" ? "Paste" : "PasteInto";
 
-    navigator.clipboard.readText()
-      .then(clipString => {
-        try {
-          let clipObj = JSON.parse(clipString);
-          toElm(clipObj, "docMsgs", elmTag)
-        } catch {
-          toElm(clipString, "docMsgs", elmTag)
-        }
-      });
-  } else {
-    toElm(s, "docMsgs", "Keyboard");
+      navigator.clipboard.readText()
+        .then(clipString => {
+          try {
+            let clipObj = JSON.parse(clipString);
+            toElm(clipObj, "docMsgs", elmTag)
+          } catch {
+            toElm(clipString, "docMsgs", elmTag)
+          }
+        });
+      break;
+
+    case "alt+0":
+    case "alt+1":
+    case "alt+2":
+    case "alt+3":
+    case "alt+4":
+    case "alt+5":
+    case "alt+6":
+      if (document.activeElement.nodeName == "TEXTAREA") {
+        let num = Number(s[s.length - 1]);
+        let currentText = document.activeElement.value;
+        let newText = currentText.replace(/^(#{0,6}) ?(.*)/, num === 0 ? '$2' : '#'.repeat(num) + ' $2');
+        document.activeElement.value = newText;
+        toElm(newText, "docMsgs", "FieldChanged");
+      }
+      break;
+
+    default:
+      toElm(s, "docMsgs", "Keyboard");
   }
 
   if (helpers.needOverride.includes(s)) {
