@@ -1,4 +1,4 @@
-port module Session exposing (PaymentStatus(..), Session, customer, db, decode, documents, fileMenuOpen, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, shortcutTrayOpen, storeLogin, storeSignup, sync, updateDocuments, updateUpgrade, upgradeModel, userSettingsChange)
+port module Session exposing (PaymentStatus(..), Session, currentTime, customer, db, decode, documents, fileMenuOpen, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, shortcutTrayOpen, storeLogin, storeSignup, sync, updateDocuments, updateUpgrade, upgradeModel, userSettingsChange)
 
 import Browser.Navigation as Nav
 import Doc.List as DocList
@@ -27,6 +27,7 @@ type alias SessionData =
     -- Not persisted
     { navKey : Nav.Key
     , seed : Random.Seed
+    , currentTime : Time.Posix
     , fileMenuOpen : Bool
     , lastDocId : Maybe String
     }
@@ -86,6 +87,11 @@ name session =
 seed : Session -> Random.Seed
 seed session =
     getFromSession .seed session
+
+
+currentTime : Session -> Time.Posix
+currentTime session =
+    getFromSession .currentTime session
 
 
 lastDocId : Session -> Maybe String
@@ -288,7 +294,7 @@ decode key json =
                         |> List.foldl (+) 12345
                         |> Random.initialSeed
             in
-            Guest (SessionData key errToSeed False Nothing) (GuestData En)
+            Guest (SessionData key errToSeed (Time.millisToPosix 0) False Nothing) (GuestData En)
 
 
 decoder : Nav.Key -> Dec.Decoder Session
@@ -299,11 +305,12 @@ decoder key =
 decodeLoggedIn : Nav.Key -> Dec.Decoder Session
 decodeLoggedIn key =
     Dec.succeed
-        (\email s lang cust_ trayOpen lastDoc ->
-            LoggedIn (SessionData key s False lastDoc) (UserData email lang Upgrade.init cust_ trayOpen DocList.init)
+        (\email s t lang cust_ trayOpen lastDoc ->
+            LoggedIn (SessionData key s t False lastDoc) (UserData email lang Upgrade.init cust_ trayOpen DocList.init)
         )
         |> required "email" Dec.string
         |> required "seed" (Dec.int |> Dec.map Random.initialSeed)
+        |> required "currentTime" (Dec.int |> Dec.map Time.millisToPosix)
         |> optional "language" (Dec.string |> Dec.map langFromString) En
         |> optional "paymentStatus" decodePaymentStatus Unknown
         |> optional "shortcutTrayOpen" Dec.bool True
@@ -320,9 +327,10 @@ decodePaymentStatus =
 
 decodeGuest : Nav.Key -> Dec.Decoder Session
 decodeGuest key =
-    Dec.map2 (\s l -> Guest (SessionData key s False Nothing) (GuestData l))
-        (Dec.field "seed" (Dec.int |> Dec.map Random.initialSeed))
-        (Dec.field "language" (Dec.string |> Dec.map langFromString))
+    Dec.succeed (\s t l -> Guest (SessionData key s t False Nothing) (GuestData l))
+        |> required "seed" (Dec.int |> Dec.map Random.initialSeed)
+        |> hardcoded (Time.millisToPosix 0)
+        |> optional "language" (Dec.string |> Dec.map langFromString) En
 
 
 responseDecoder : Session -> Dec.Decoder Session
@@ -339,7 +347,7 @@ responseDecoder session =
     Dec.succeed builder
         |> required "email" Dec.string
         |> optionalAt [ "settings", "language" ] (Dec.map langFromString Dec.string) En
-        |> optionalAt [ "settings", "paymentStatus" ] (Dec.succeed Unknown) Unknown
+        |> optionalAt [ "settings", "paymentStatus" ] decodePaymentStatus Unknown
         |> optionalAt [ "settings", "shortcutTrayOpen" ] Dec.bool True
 
 

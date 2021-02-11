@@ -63,8 +63,10 @@ async function initElmAndPorts() {
   }
 
 
+  let timestamp = Date.now();
   settings.email = email;
-  settings.seed = Date.now();
+  settings.seed = timestamp;
+  settings.currentTime = timestamp;
   lang = settings.language || "en";
 
   gingko = Elm.Main.init({

@@ -96,7 +96,6 @@ viewHeader msgs title_ model =
     div [ id "document-header" ]
         [ titleArea
         , viewTopRightButtons
-            model.currentTime
             { toggledHelpMenu = msgs.toggledHelpMenu
             , clickedEmailSupport = msgs.clickedEmailSupport
             , logoutRequested = msgs.logoutRequested
@@ -154,19 +153,20 @@ viewSaveIndicator language { dirty, lastLocalSave, lastRemoteSave, currentTime }
 
 
 viewTopRightButtons :
-    Time.Posix
-    ->
-        { toggledHelpMenu : Bool -> msg
-        , clickedEmailSupport : msg
-        , logoutRequested : msg
-        , toggledAccountMenu : Bool -> msg
-        , toggledUpgradeModal : Bool -> msg
-        }
+    { toggledHelpMenu : Bool -> msg
+    , clickedEmailSupport : msg
+    , logoutRequested : msg
+    , toggledAccountMenu : Bool -> msg
+    , toggledUpgradeModal : Bool -> msg
+    }
     -> DropdownState
     -> Session
     -> Html msg
-viewTopRightButtons currentTime msgs dropdownState session =
+viewTopRightButtons msgs dropdownState session =
     let
+        currentTime =
+            Session.currentTime session
+
         lang =
             Session.language session
 

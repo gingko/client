@@ -89,8 +89,6 @@ describe('Upgrade process', () => {
 
     cy.get('#account')
 
-    cy.wait(5000)
-
     cy.get('#document-header').contains('30 days left')
   })
 
