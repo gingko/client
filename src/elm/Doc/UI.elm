@@ -701,7 +701,7 @@ viewShortcuts trayToggleMsg lang isOpen isMac children textCursorInfo vs =
 
             _ ->
                 [ div
-                    [ id "shortcuts-tray", onClick trayToggleMsg ]
+                    [ id "shortcuts-tray", classList [ ( "open", isOpen ) ], onClick trayToggleMsg ]
                     [ div [ id "shortcuts" ]
                         [ h3 [] [ text "Keyboard Shortcuts" ]
                         , h3 [] [ text "(Edit Mode)" ]

@@ -2053,27 +2053,8 @@ ul.changelist {
     z-index: 1;
   }
 
-  #search-field {
-    right: 44px;
-  }
-
   #shortcuts-tray {
-    box-shadow: none;
-    grid-area: 4 / 3;
-    overflow: hidden;
-    border-top: 1px solid #aaa;
-    border-right: 1px solid #aaa;
-    border-radius: 0 0 0 8px;
-  }
-
-  #shortcuts-tray.open {
-    box-shadow: none;
-    grid-area: 4 / 3 / document-end / document-end;
-    border-radius: 0;
-  }
-
-  #shortcuts h3 {
-    font-size: 14px;
+    display: none;
   }
 
   #title h1 {
