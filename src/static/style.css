@@ -563,6 +563,23 @@ ul.dropdown > li > span.no-interaction:hover {
   top: 39px;
 }
 
+span.trial {
+  cursor: pointer;
+}
+span.trial:hover {
+  color: #333;
+  text-decoration: underline;
+}
+span.trial-light {
+  color: #ddd;
+}
+span.trial-medium {
+  color: #aaa;
+}
+span.trial-dark {
+  color: #333;
+}
+
 #upgrade-button {
   height: auto;
   padding: 6px 12px;
@@ -2013,6 +2030,10 @@ ul.changelist {
 
   #document-header {
     box-shadow: none;
+  }
+
+  span.trial {
+    display: none;
   }
 
   #column-container {

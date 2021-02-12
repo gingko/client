@@ -181,12 +181,22 @@ viewTopRightButtons msgs dropdownState session =
                 Trial expiry ->
                     let
                         daysLeft =
-                            (Time.posixToMillis expiry - Time.posixToMillis currentTime)
-                                // (1000 * 3600 * 24)
-                                + 1
+                            ((Time.posixToMillis expiry - Time.posixToMillis currentTime) |> toFloat)
+                                / (1000 * 3600 * 24)
+                                |> round
+
+                        trialClass =
+                            if daysLeft <= 30 && daysLeft > 20 then
+                                "trial-light"
+
+                            else if daysLeft <= 20 && daysLeft > 10 then
+                                "trial-medium"
+
+                            else
+                                "trial-dark"
                     in
                     if daysLeft <= 30 then
-                        [ span [] [ text (String.fromInt daysLeft ++ " days left in Free Trial") ], upgradeButton ]
+                        [ span [ class "trial", class trialClass, onClick <| msgs.toggledUpgradeModal True ] [ text (String.fromInt daysLeft ++ " days left in Free Trial") ], upgradeButton ]
 
                     else
                         [ upgradeButton ]
