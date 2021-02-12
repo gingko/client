@@ -4,7 +4,7 @@ import Browser.Navigation as Nav
 import Doc.List as DocList
 import Http
 import Json.Decode as Dec exposing (Decoder)
-import Json.Decode.Pipeline exposing (hardcoded, optional, optionalAt, required)
+import Json.Decode.Pipeline exposing (optional, optionalAt, required)
 import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
 import Random
@@ -319,7 +319,7 @@ decodeGuest : Nav.Key -> Dec.Decoder Session
 decodeGuest key =
     Dec.succeed (\s t l -> Guest (SessionData key s t False Nothing) (GuestData l))
         |> required "seed" (Dec.int |> Dec.map Random.initialSeed)
-        |> hardcoded (Time.millisToPosix 0)
+        |> required "currentTime" (Dec.int |> Dec.map Time.millisToPosix)
         |> optional "language" (Dec.string |> Dec.map langFromString) En
 
 
