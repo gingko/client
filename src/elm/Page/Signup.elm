@@ -109,7 +109,7 @@ update msg model =
             ( { model | passwordConfirm = passwordConfirm }, Cmd.none )
 
         CompletedSignup (Ok user) ->
-            ( model, Session.storeSignup user )
+            ( { model | user = user }, Session.storeSignup user )
 
         CompletedSignup (Err error) ->
             let
@@ -138,7 +138,7 @@ update msg model =
             ( { model | errors = [ errorMsg ], password = "", passwordConfirm = "" }, Cmd.none )
 
         GotUser user ->
-            ( { model | user = user }, Route.replaceUrl (Session.navKey user) (Route.Import Template.WelcomeTree) )
+            ( model, Route.replaceUrl (Session.navKey user) (Route.Import Template.WelcomeTree) )
 
 
 emailValidator : Validator ( Field, String ) Model

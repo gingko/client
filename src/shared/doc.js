@@ -88,20 +88,6 @@ async function initElmAndPorts() {
     toElm([cardId, number], "docMsgs", "CheckboxClicked");
   };
 
-  // Whenever localStorage changes in another tab, report it if necessary.
-  window.addEventListener(
-    "storage",
-    function (event) {
-      if (
-        event.storageArea === localStorage &&
-        event.key === sessionStorageKey
-      ) {
-        gingko.ports.userLoginChange.send(event.newValue);
-      }
-    },
-    false
-  );
-
   // Prevent closing if unsaved changes exist.
   window.addEventListener('beforeunload', (event) => {
     if (DIRTY) {
@@ -203,7 +189,7 @@ const fromElm = (msg, elmData) => {
       } else {
         localStorage.setItem(
           sessionStorageKey,
-          JSON.stringify(_.omit(elmData, "seed"))
+          JSON.stringify(_.pick(elmData, ["email","language"]))
         );
         await setUserDbs(elmData.email);
         elmData.seed = Date.now();

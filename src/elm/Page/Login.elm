@@ -69,7 +69,7 @@ update msg model =
             ( { model | password = password }, Cmd.none )
 
         CompletedLogin (Ok user) ->
-            ( model, Session.storeLogin user )
+            ( { model | user = user }, Session.storeLogin user )
 
         CompletedLogin (Err error) ->
             let
@@ -98,7 +98,7 @@ update msg model =
             ( { model | errors = [ errorMsg ], password = "" }, Cmd.none )
 
         GotUser user ->
-            ( { model | user = user }, Route.pushUrl (Session.navKey user) Route.Root )
+            ( model, Route.pushUrl (Session.navKey user) Route.Root )
 
 
 modelValidator : Validator ( Field, String ) Model

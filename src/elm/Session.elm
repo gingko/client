@@ -1,4 +1,4 @@
-port module Session exposing (PaymentStatus(..), Session, currentTime, customer, db, decode, documents, fileMenuOpen, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, shortcutTrayOpen, storeLogin, storeSignup, sync, updateDocuments, updateTime, updateUpgrade, upgradeModel, userSettingsChange)
+port module Session exposing (PaymentStatus(..), Session, currentTime, db, decode, documents, fileMenuOpen, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, shortcutTrayOpen, storeLogin, storeSignup, sync, updateDocuments, updateTime, updateUpgrade, upgradeModel, userSettingsChange)
 
 import Browser.Navigation as Nav
 import Doc.List as DocList
@@ -129,21 +129,6 @@ upgradeModel session =
     case session of
         LoggedIn _ data ->
             Just data.upgradeModel
-
-        Guest _ _ ->
-            Nothing
-
-
-customer : Session -> Maybe String
-customer session =
-    case session of
-        LoggedIn _ data ->
-            case data.paymentStatus of
-                Customer custId ->
-                    Just custId
-
-                _ ->
-                    Nothing
 
         Guest _ _ ->
             Nothing
@@ -310,8 +295,8 @@ decoder key =
 decodeLoggedIn : Nav.Key -> Dec.Decoder Session
 decodeLoggedIn key =
     Dec.succeed
-        (\email s t lang cust_ trayOpen lastDoc ->
-            LoggedIn (SessionData key s t False lastDoc) (UserData email lang Upgrade.init cust_ trayOpen DocList.init)
+        (\email s t lang payStat trayOpen lastDoc ->
+            LoggedIn (SessionData key s t False lastDoc) (UserData email lang Upgrade.init payStat trayOpen DocList.init)
         )
         |> required "email" Dec.string
         |> required "seed" (Dec.int |> Dec.map Random.initialSeed)
@@ -341,10 +326,10 @@ decodeGuest key =
 responseDecoder : Session -> Dec.Decoder Session
 responseDecoder session =
     let
-        builder email lang cust_ trayOpen =
+        builder email lang payStat trayOpen =
             case session of
                 Guest sessionData data ->
-                    LoggedIn sessionData (UserData email lang Upgrade.init cust_ trayOpen DocList.init)
+                    LoggedIn sessionData (UserData email lang Upgrade.init payStat trayOpen DocList.init)
 
                 LoggedIn _ _ ->
                     session

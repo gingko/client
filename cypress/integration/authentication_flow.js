@@ -64,6 +64,36 @@ describe('User Signup Flow', () => {
     cy.get('button.cta').contains('Login')
   })
 
+  it('Logs in with form', () =>{
+    cy.visit(config.TEST_SERVER)
+
+    cy.get('a').contains('Login')
+      .click()
+
+    cy.location('pathname').should('eq', '/login')
+
+    cy.get('#email-input')
+      .type(testEmail)
+
+    cy.get('#password-input')
+      .type('testing')
+
+    cy.get('button.cta')
+      .click()
+
+    cy.url().should('not.contain', '/login')
+    cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
+    cy.contains('Welcome to Gingko')
+
+    // Has an AuthSession cookie
+    cy.get('button.cta').should('not.exist')
+    cy.getCookie('AuthSession').should('exist')
+
+    // Has a user database
+    cy.request({url: config.TEST_SERVER + '/db/' + testUserDb, retryOnStatusCodeFailure: true})
+
+  })
+
   it('Redirects to login on expired cookie', ()=>{
     cy.login(testEmail)
       .then(()=>{
