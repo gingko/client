@@ -186,10 +186,10 @@ viewTopRightButtons msgs dropdownState session =
                                 |> round
 
                         trialClass =
-                            if daysLeft <= 30 && daysLeft > 20 then
+                            if daysLeft <= 14 && daysLeft > 7 then
                                 "trial-light"
 
-                            else if daysLeft <= 20 && daysLeft > 10 then
+                            else if daysLeft <= 7 && daysLeft > 3 then
                                 "trial-medium"
 
                             else

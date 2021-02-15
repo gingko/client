@@ -89,7 +89,7 @@ describe('Upgrade process', () => {
 
     cy.get('#account')
 
-    cy.get('#document-header').contains('30 days left')
+    cy.get('#document-header').contains('14 days left')
   })
 
   it('Correctly handles payment status', function () {
