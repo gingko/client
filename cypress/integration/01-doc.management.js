@@ -31,7 +31,7 @@ describe('Managing Documents', () => {
 
       cy.get('#file-button').click()
 
-      cy.get('#sidebar-menu .sidebar-document-item', {timeout: 0})
+      cy.get('#sidebar-menu .sidebar-document-item')
         .should('have.length', 7)
 
 
