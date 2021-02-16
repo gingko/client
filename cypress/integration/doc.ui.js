@@ -20,7 +20,7 @@ describe('Document UI', () => {
     Cypress.Cookies.preserveOnce('AuthSession')
   })
 
-  it('Opens Help menu dropdown on clicking icon', () => {
+  it('Has working header menus and shortcut help', () => {
     let emailText = tr["emailSupport"]["en"];
 
     cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
@@ -28,40 +28,40 @@ describe('Document UI', () => {
     cy.get('#app-root')
       .should('not.contain', emailText)
 
+    // Wait for trial notice, to prevent DOM shift
+    // that causes cypress to miss the #help-icon click
+    cy.contains('14 days left')
+
     cy.get('#help-icon' )
       .click()
 
     cy.get('#help-dropdown')
       .should('contain', emailText)
       .should('contain', 'FAQ')
-  })
 
-  it('Triggers mailto action on click', () => {
+    // Triggers mailto action on click
     cy.get('#email-support')
       .click()
 
     cy.window().then((win) => {
       expect(win.elmMessages.slice(-1)[0].tag).to.eq("TriggerMailto")
     })
-  })
 
-  it('Toggles the sidebar on clicking brand icon', () => {
+    // Toggles the sidebar on clicking brand icon
     cy.get('#sidebar-menu').should('not.exist')
     cy.get('#brand').click()
     cy.get('#sidebar-menu').should('be.visible')
     cy.get('#brand').click()
     cy.get('#sidebar-menu').should('not.exist')
-  })
 
-  it('Toggles shortcut tray on clicking right-sidebar', () => {
+    // Toggles shortcut tray on clicking right-sidebar
     cy.contains('Keyboard Shortcuts')
 
     cy.get('#shortcuts-tray').click({position: "top"})
 
     cy.get('#app-root').should('not.contain', 'Keyboard Shortcuts')
-  })
 
-  it('Shows different shortcuts based on mode', () => {
+    // Shows different shortcuts based on mode
     cy.get('#shortcuts-tray').click({position: "top"})
     cy.contains('(Edit Mode)')
 
@@ -70,15 +70,13 @@ describe('Document UI', () => {
     cy.shortcut('{ctrl}{enter}')
 
     cy.get('#app-root').should('not.contain', '(Edit Mode)')
-  })
 
-  it('Opens Markdown Format guide in external window', () => {
+    // Opens Markdown Format guide in external window
     cy.shortcut('{enter}')
     cy.get('#shortcuts a').should('have.attr', 'target', '_blank')
     cy.shortcut('{esc}')
-  })
 
-  it('Has working Word Count modal', () => {
+    // Has working Word Count modal
     cy.get('#wordcount')
       .click()
 
