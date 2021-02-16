@@ -479,6 +479,12 @@ viewTemplateSelector language msgs =
             , div [ class "template-description" ]
                 [ text "Academic Paper" ]
             ]
+        , a [ id "template-heros-journey", class "template-item", href <| Route.toString (Route.Import HerosJourney) ]
+            [ div [ classList [ ( "template-thumbnail", True ) ] ] [ Icon.lightBulb (Icon.defaultOptions |> Icon.size 48) ]
+            , div [ class "template-title" ] [ text "Hero's Journey" ]
+            , div [ class "template-description" ]
+                [ text "A framework for fictional stories" ]
+            ]
         ]
     ]
         |> modalWrapper msgs.modalClosed Nothing "New Document"

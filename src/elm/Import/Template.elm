@@ -8,6 +8,7 @@ type Template
     = WelcomeTree
     | Timeline
     | AcademicPaper
+    | HerosJourney
 
 
 fromString : String -> Maybe Template
@@ -21,6 +22,9 @@ fromString str =
 
         "academic-paper" ->
             Just AcademicPaper
+
+        "heros-journey" ->
+            Just HerosJourney
 
         _ ->
             Nothing
@@ -37,6 +41,9 @@ toString template =
 
         AcademicPaper ->
             "academic-paper"
+
+        HerosJourney ->
+            "heros-journey"
 
 
 srcUrl : Template -> String
