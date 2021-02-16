@@ -8,6 +8,7 @@ type Template
     = WelcomeTree
     | Timeline
     | AcademicPaper
+    | ProjectBrainstorming
     | HerosJourney
 
 
@@ -22,6 +23,9 @@ fromString str =
 
         "academic-paper" ->
             Just AcademicPaper
+
+        "project-brainstorming" ->
+            Just ProjectBrainstorming
 
         "heros-journey" ->
             Just HerosJourney
@@ -41,6 +45,9 @@ toString template =
 
         AcademicPaper ->
             "academic-paper"
+
+        ProjectBrainstorming ->
+            "project-brainstorming"
 
         HerosJourney ->
             "heros-journey"
