@@ -3,7 +3,7 @@ const helpers = require("../../src/shared/doc-helpers.js");
 
 describe('User Signup Flow', () => {
   let testEmail = 'cypress@testing.com'
-  let testUserDb = 'userdb-' + helpers.toHex(testEmail);
+  let testUserDb = 'userdb-' + helpers.toHex(testEmail.toLowerCase());
 
   before(() => {
     cy.deleteUser(testEmail)
@@ -31,7 +31,7 @@ describe('User Signup Flow', () => {
 
     // Creates a new account
     cy.get('#signup-email')
-      .type(testEmail)
+      .type(testEmail.toUpperCase())
 
     cy.get('#signup-password')
       .type('testing')
