@@ -1368,16 +1368,15 @@ update msg ({ workingTree } as model) =
                                     )
 
                         "w" ->
-                            case vs.viewMode of
-                                Normal ->
-                                    ( { model | wordcountTrayOpen = not model.wordcountTrayOpen }
-                                    , Cmd.none
-                                    )
+                            case ( vs.viewMode, model.modalState ) of
+                                ( Normal, NoModal ) ->
+                                    ( { model | modalState = Wordcount }, Cmd.none )
+
+                                ( Normal, Wordcount ) ->
+                                    ( { model | modalState = NoModal }, Cmd.none )
 
                                 _ ->
-                                    ( model
-                                    , Cmd.none
-                                    )
+                                    ( model, Cmd.none )
 
                         _ ->
                             ( model

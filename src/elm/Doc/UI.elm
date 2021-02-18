@@ -736,7 +736,8 @@ viewShortcuts trayToggleMsg lang isOpen isMac children textCursorInfo vs =
                         , viewIfNotOnly <| shortcutSpan [ ctrlOrCmd, "Shift", "↓" ] (tr lang MergeDownAction)
                         , viewIfNotOnly <| shortcutSpan [ ctrlOrCmd, "Shift", "↑" ] (tr lang MergeUpAction)
                         , hr [] []
-                        , h5 [] [ text "File Shortcuts" ]
+                        , h5 [] [ text "Other Shortcuts" ]
+                        , shortcutSpan [ "w" ] "Display word counts"
                         , shortcutSpan [ ctrlOrCmd, "O" ] (tr lang QuickDocumentSwitcher)
                         ]
                     ]
@@ -762,6 +763,7 @@ viewShortcuts trayToggleMsg lang isOpen isMac children textCursorInfo vs =
                         , h5 [] [ text "Formatting" ]
                         , shortcutSpanEnabled isTextSelected [ ctrlOrCmd, "B" ] (tr lang ForBold)
                         , shortcutSpanEnabled isTextSelected [ ctrlOrCmd, "I" ] (tr lang ForItalic)
+                        , shortcutSpan [ "Alt", "(number)" ] "Set heading level (0-6)"
                         , formattingSpan "# Title\n## Subtitle"
                         , formattingSpan "- List item\n  - Subitem"
                         , formattingSpan "[link](http://t.co)"
