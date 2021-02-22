@@ -101,8 +101,7 @@ describe('Document UI', () => {
     cy.get('#mobile-buttons')
       .should('be.visible')
 
-    cy.get('#mobile-buttons .mobile-button')
-      .first()
+    cy.get('#mbtn-edit')
       .click()
 
     cy.get('textarea')
@@ -111,10 +110,20 @@ describe('Document UI', () => {
 
     cy.writeInCard('{enter}here')
 
-    cy.get('#mobile-buttons .mobile-button')
-      .first()
+    cy.get('#mbtn-save')
       .click()
 
     cy.get('.view').contains('here')
+
+    // Test "add child"
+    cy.get('#mbtn-add-right')
+      .click()
+
+    cy.writeInCard('axc')
+
+    cy.get('#mbtn-save')
+      .click()
+
+    cy.getColumn(2).contains('axc')
   })
 })
