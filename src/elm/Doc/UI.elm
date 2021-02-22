@@ -592,7 +592,7 @@ viewMobileButtons :
     -> Html msg
 viewMobileButtons msgs isEditing =
     if isEditing then
-        div [ id "mobile-buttons", class "footer", class "edit-mode" ]
+        div [ id "mobile-buttons", class "footer" ]
             [ span [ id "mbtn-cancel", class "mobile-button", onClick msgs.cancel ] [ AntIcons.stopOutlined [ width 18 ] ]
             , span [ id "mbtn-save", class "mobile-button", onClick msgs.save ] [ AntIcons.checkOutlined [ width 18 ] ]
             ]

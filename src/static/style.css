@@ -2050,21 +2050,16 @@ ul.changelist {
   #mobile-buttons {
     display: flex;
     grid-area: mobile-buttons;
-    height: 40px;
-  }
-  #mobile-buttons.edit-mode {
     justify-content: space-between;
-  }
-  #mbtn-cancel {
-    margin-left: 0;
+    height: 40px;
   }
 
   .mobile-button {
     background-color: white;
-    margin-left:10px;
     padding: 5px;
     display: flex;
     border-radius: 3px;
+    border-bottom: 1px solid #adadad;
   }
 
   #sidebar {
