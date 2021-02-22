@@ -88,11 +88,7 @@ describe('Document UI', () => {
 
   })
 
-  it.only('Has working mobile buttons', () => {
-    cy.writeInCard('This is a test')
-
-    cy.shortcut('{ctrl}{enter}')
-
+  it('Has working mobile buttons', () => {
     // Displays Mobile buttons on smaller screens
     cy.get('#mobile-buttons')
       .should('not.be.visible')
