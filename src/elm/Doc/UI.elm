@@ -48,6 +48,7 @@ type alias HeaderMsgs msg =
     { toggledTitleEdit : Bool -> msg
     , titleFieldChanged : String -> msg
     , titleEdited : msg
+    , titleEditCanceled : msg
     , toggledHelpMenu : Bool -> msg
     , clickedEmailSupport : msg
     , logoutRequested : msg
@@ -81,7 +82,8 @@ viewHeader msgs title_ model =
                         [ Html.form
                             [ onSubmit msgs.titleEdited ]
                             [ input [ id "title-rename", onInput msgs.titleFieldChanged, value editingField ] []
-                            , button [] [ text "Rename" ]
+                            , button [ type_ "submit" ] [ text "Rename" ]
+                            , button [ onClick msgs.titleEditCanceled ] [ text "Cancel" ]
                             ]
                         ]
 

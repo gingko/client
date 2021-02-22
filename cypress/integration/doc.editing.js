@@ -96,6 +96,11 @@ describe('Document Editing', () => {
     cy.get('#app-root')
       .should('not.contain', 'to cancel xxx')
 
+    // Can cancel renaming the document
+    cy.get('#title h1').click()
+    cy.get('#title').contains('Cancel').click()
+    cy.get('#title input').should('not.exist')
+
     // Can rename the document
     cy.get('#title h1').click()
     cy.get('#title input')

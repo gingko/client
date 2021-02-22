@@ -224,6 +224,7 @@ type Msg
     | ToggledTitleEdit Bool
     | TitleFieldChanged String
     | TitleEdited
+    | TitleEditCanceled
     | ToggledHelpMenu Bool
     | ToggledAccountMenu Bool
       -- Sidebar & Modals
@@ -572,6 +573,9 @@ update msg ({ workingTree } as model) =
 
                 Nothing ->
                     ( model, Cmd.none )
+
+        TitleEditCanceled ->
+            ( { model | titleField = Nothing }, Cmd.none )
 
         LogoutRequested ->
             ( model, Session.logout )
@@ -2448,6 +2452,7 @@ viewLoaded model =
                         { toggledTitleEdit = ToggledTitleEdit
                         , titleFieldChanged = TitleFieldChanged
                         , titleEdited = TitleEdited
+                        , titleEditCanceled = TitleEditCanceled
                         , toggledHelpMenu = ToggledHelpMenu
                         , clickedEmailSupport = ClickedEmailSupport
                         , logoutRequested = LogoutRequested
