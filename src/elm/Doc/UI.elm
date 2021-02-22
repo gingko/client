@@ -8,7 +8,7 @@ import Doc.Data.Conflict as Conflict exposing (Conflict, Op(..), Selection(..), 
 import Doc.List as DocList
 import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
-import Doc.TreeUtils exposing (..)
+import Doc.TreeUtils as TreeUtils exposing (..)
 import Html exposing (Html, a, br, button, del, div, fieldset, h1, h2, h3, h4, h5, hr, iframe, img, input, ins, label, li, option, pre, select, small, span, text, ul)
 import Html.Attributes as A exposing (..)
 import Html.Events exposing (onCheck, onClick, onInput, onSubmit)
@@ -514,21 +514,23 @@ viewWordCount model msgs =
         language =
             Session.language model.session
 
-        wordCounts =
-            getWordCounts model
+        stats =
+            getStats model
 
         current =
-            wordCounts.document
+            stats.documentWords
 
         session =
             current - model.startingWordcount
     in
     [ span [] [ text (tr language (WordCountSession session)) ]
     , span [] [ text (tr language (WordCountTotal current)) ]
-    , span [] [ text (tr language (WordCountCard wordCounts.card)) ]
-    , span [] [ text (tr language (WordCountSubtree wordCounts.subtree)) ]
-    , span [] [ text (tr language (WordCountGroup wordCounts.group)) ]
-    , span [] [ text (tr language (WordCountColumn wordCounts.column)) ]
+    , span [] [ text (tr language (WordCountCard stats.cardWords)) ]
+    , span [] [ text (tr language (WordCountSubtree stats.subtreeWords)) ]
+    , span [] [ text (tr language (WordCountGroup stats.groupWords)) ]
+    , span [] [ text (tr language (WordCountColumn stats.columnWords)) ]
+    , hr [] []
+    , span [] [ text ("Total Cards in Tree : " ++ String.fromInt stats.cards) ]
     ]
         |> modalWrapper msgs.modalClosed Nothing "Word Counts"
 
@@ -831,12 +833,13 @@ viewShortcuts trayToggleMsg lang isOpen isMac children textCursorInfo vs =
 -- Word count
 
 
-type alias WordCount =
-    { card : Int
-    , subtree : Int
-    , group : Int
-    , column : Int
-    , document : Int
+type alias Stats =
+    { cardWords : Int
+    , subtreeWords : Int
+    , groupWords : Int
+    , columnWords : Int
+    , documentWords : Int
+    , cards : Int
     }
 
 
@@ -857,14 +860,22 @@ viewWordcountProgress current session =
         ]
 
 
-getWordCounts : { m | viewState : ViewState, workingTree : TreeStructure.Model } -> WordCount
-getWordCounts model =
+getStats : { m | viewState : ViewState, workingTree : TreeStructure.Model } -> Stats
+getStats model =
     let
         activeCardId =
             model.viewState.active
 
         tree =
             model.workingTree.tree
+
+        cardsTotal =
+            (model.workingTree.tree
+                |> TreeUtils.preorderTraversal
+                |> List.length
+            )
+                -- Don't count hidden root
+                - 1
 
         currentTree =
             getTree activeCardId tree
@@ -897,12 +908,13 @@ getWordCounts model =
         treeCount =
             countWords (treeToMarkdownString False tree)
     in
-    WordCount
+    Stats
         cardCount
         subtreeCount
         groupCount
         columnCount
         treeCount
+        cardsTotal
 
 
 countWords : String -> Int

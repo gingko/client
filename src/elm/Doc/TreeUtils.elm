@@ -1,4 +1,4 @@
-module Doc.TreeUtils exposing (ScrollPosition, centerlineIds, dictUpdate, getAncestors, getChildren, getColumn, getColumnById, getColumns, getContent, getDepth, getDescendants, getFirstCard, getFirstInColumn, getIndex, getLastInColumn, getNext, getNextInColumn, getParent, getPrev, getPrevInColumn, getPrevNext, getPrevNextInColumn, getScrollPositions, getSiblings, getTree, getTreeWithPosition, newLine, scrollPositionToValue, sha1, withIdTree)
+module Doc.TreeUtils exposing (ScrollPosition, centerlineIds, dictUpdate, getAncestors, getChildren, getColumn, getColumnById, getColumns, getContent, getDepth, getDescendants, getFirstCard, getFirstInColumn, getIndex, getLastInColumn, getNext, getNextInColumn, getParent, getPrev, getPrevInColumn, getPrevNext, getPrevNextInColumn, getScrollPositions, getSiblings, getTree, getTreeWithPosition, newLine, preorderTraversal, scrollPositionToValue, sha1, withIdTree)
 
 import Dict exposing (..)
 import Json.Encode as Enc
