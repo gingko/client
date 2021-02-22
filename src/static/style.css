@@ -2053,6 +2053,14 @@ ul.changelist {
     height: 40px;
   }
 
+  .mobile-button {
+    background-color: white;
+    margin-left:10px;
+    padding: 5px;
+    display: flex;
+    border-radius: 3px;
+  }
+
   #sidebar {
     flex-direction: row;
   }

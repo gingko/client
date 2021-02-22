@@ -1,5 +1,6 @@
 module Doc.UI exposing (countWords, viewConflict, viewFooter, viewHeader, viewHistory, viewHomeLink, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewVideo, viewWordCount)
 
+import Ant.Icons.Svg as AntIcons
 import Coders exposing (treeToMarkdownString)
 import Diff exposing (..)
 import Doc.Data as Data
@@ -577,7 +578,16 @@ viewFooter wordCountToggle =
 
 viewMobileButtons : Html msg
 viewMobileButtons =
-    div [ id "mobile-buttons", class "footer" ] [ text "here" ]
+    div [ id "mobile-buttons", class "footer" ]
+        [ span [ class "mobile-button" ] [ AntIcons.editTwoTone [ width 18 ] ]
+        , span [ class "mobile-button" ] [ AntIcons.plusSquareTwoTone [ width 18 ], AntIcons.rightOutlined [ width 14 ] ]
+        , span [ class "mobile-button" ] [ AntIcons.plusSquareTwoTone [ width 18 ], AntIcons.downOutlined [ width 14 ] ]
+        , span [ class "mobile-button" ] [ AntIcons.plusSquareTwoTone [ width 18 ], AntIcons.upOutlined [ width 14 ] ]
+        , span [ class "mobile-button" ] [ AntIcons.caretLeftOutlined [ width 18 ] ]
+        , span [ class "mobile-button" ] [ AntIcons.caretUpOutlined [ width 18 ] ]
+        , span [ class "mobile-button" ] [ AntIcons.caretDownOutlined [ width 18 ] ]
+        , span [ class "mobile-button" ] [ AntIcons.caretRightOutlined [ width 18 ] ]
+        ]
 
 
 viewHistory : msg -> (String -> msg) -> msg -> msg -> Translation.Language -> String -> Data.Model -> Html msg
