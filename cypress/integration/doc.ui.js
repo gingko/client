@@ -116,14 +116,38 @@ describe('Document UI', () => {
     cy.get('.view').contains('here')
 
     // Test "add child"
-    cy.get('#mbtn-add-right')
-      .click()
-
+    cy.get('#mbtn-add-right').click()
     cy.writeInCard('axc')
-
-    cy.get('#mbtn-save')
-      .click()
-
+    cy.get('#mbtn-save').click()
     cy.getColumn(2).contains('axc')
+
+    // Test "add below"
+    cy.get('#mbtn-add-down').click()
+    cy.writeInCard('sdf')
+    cy.get('#mbtn-save').click()
+    cy.getCard(2,1, 2).contains('sdf')
+
+    // Test "add above"
+    cy.get('#mbtn-add-up').click()
+    cy.writeInCard('lak')
+    cy.get('#mbtn-save').click()
+    cy.getCard(2,1, 2).contains('lak')
+
+    // Test "nav up"
+    cy.get('#mbtn-nav-up').click()
+    cy.get('.card.active').should('contain', 'axc')
+
+    // Test "nav down"
+    cy.get('#mbtn-nav-down').click()
+    cy.get('#mbtn-nav-down').click()
+    cy.get('.card.active').should('contain', 'sdf')
+
+    // Test "nav left"
+    cy.get('#mbtn-nav-left').click()
+    cy.get('.card.active').should('contain', 'This is a test')
+
+    // Test "nav right"
+    cy.get('#mbtn-nav-right').click()
+    cy.get('.card.active').should('contain', 'sdf')
   })
 })
