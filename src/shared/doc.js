@@ -478,7 +478,11 @@ const fromElm = (msg, elmData) => {
     },
 
     RequestFullscreen: () => {
-      document.body.requestFullscreen();
+      if (!document.fullscreenElement) {
+        document.body.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
     },
 
     SetShortcutTray: () => {
