@@ -149,5 +149,10 @@ describe('Document UI', () => {
     // Test "nav right"
     cy.get('#mbtn-nav-right').click()
     cy.get('.card.active').should('contain', 'sdf')
+
+    // Test "cancel" button
+    cy.get('#mbtn-edit').click()
+    cy.get('#mbtn-cancel').click()
+    cy.get('textarea').should('not.exist')
   })
 })

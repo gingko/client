@@ -2487,8 +2487,9 @@ viewLoaded model =
                             model.viewState
                         ++ [ viewSearchField SearchFieldUpdated model
                            , viewMobileButtons
-                                { editButtonPressed = mobileBtnMsg "mod+enter"
-                                , saveButtonPressed = mobileBtnMsg "mod+enter"
+                                { edit = mobileBtnMsg "mod+enter"
+                                , save = mobileBtnMsg "mod+enter"
+                                , cancel = mobileBtnMsg "esc"
                                 , plusDown = mobileBtnMsg "mod+down"
                                 , plusUp = mobileBtnMsg "mod+up"
                                 , plusRight = mobileBtnMsg "mod+right"

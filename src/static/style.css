@@ -2052,6 +2052,12 @@ ul.changelist {
     grid-area: mobile-buttons;
     height: 40px;
   }
+  #mobile-buttons.edit-mode {
+    justify-content: space-between;
+  }
+  #mbtn-cancel {
+    margin-left: 0;
+  }
 
   .mobile-button {
     background-color: white;

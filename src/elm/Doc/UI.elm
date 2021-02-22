@@ -577,8 +577,9 @@ viewFooter wordCountToggle =
 
 
 viewMobileButtons :
-    { editButtonPressed : msg
-    , saveButtonPressed : msg
+    { edit : msg
+    , save : msg
+    , cancel : msg
     , plusRight : msg
     , plusDown : msg
     , plusUp : msg
@@ -591,15 +592,14 @@ viewMobileButtons :
     -> Html msg
 viewMobileButtons msgs isEditing =
     if isEditing then
-        div [ id "mobile-buttons", class "footer" ]
-            [ span [ id "mbtn-save", class "mobile-button", onClick msgs.saveButtonPressed ]
-                [ AntIcons.checkOutlined [ width 18 ]
-                ]
+        div [ id "mobile-buttons", class "footer", class "edit-mode" ]
+            [ span [ id "mbtn-cancel", class "mobile-button", onClick msgs.cancel ] [ AntIcons.stopOutlined [ width 18 ] ]
+            , span [ id "mbtn-save", class "mobile-button", onClick msgs.save ] [ AntIcons.checkOutlined [ width 18 ] ]
             ]
 
     else
         div [ id "mobile-buttons", class "footer" ]
-            [ span [ id "mbtn-edit", class "mobile-button", onClick msgs.editButtonPressed ] [ AntIcons.editTwoTone [ width 18 ] ]
+            [ span [ id "mbtn-edit", class "mobile-button", onClick msgs.edit ] [ AntIcons.editTwoTone [ width 18 ] ]
             , span [ id "mbtn-add-right", class "mobile-button", onClick msgs.plusRight ] [ AntIcons.plusSquareTwoTone [ width 18 ], AntIcons.rightOutlined [ width 14 ] ]
             , span [ id "mbtn-add-down", class "mobile-button", onClick msgs.plusDown ] [ AntIcons.plusSquareTwoTone [ width 18 ], AntIcons.downOutlined [ width 14 ] ]
             , span [ id "mbtn-add-up", class "mobile-button", onClick msgs.plusUp ] [ AntIcons.plusSquareTwoTone [ width 18 ], AntIcons.upOutlined [ width 14 ] ]
