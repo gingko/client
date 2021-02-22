@@ -86,6 +86,13 @@ describe('Document UI', () => {
 
     cy.shortcut('{esc}')
 
+  })
+
+  it.only('Has working mobile buttons', () => {
+    cy.writeInCard('This is a test')
+
+    cy.shortcut('{ctrl}{enter}')
+
     // Displays Mobile buttons on smaller screens
     cy.get('#mobile-buttons')
       .should('not.be.visible')
@@ -93,5 +100,21 @@ describe('Document UI', () => {
     cy.viewport(360, 640)
     cy.get('#mobile-buttons')
       .should('be.visible')
+
+    cy.get('#mobile-buttons .mobile-button')
+      .first()
+      .click()
+
+    cy.get('textarea')
+      .should('exist')
+      .should('have.focus')
+
+    cy.writeInCard('{enter}here')
+
+    cy.get('#mobile-buttons .mobile-button')
+      .first()
+      .click()
+
+    cy.get('.view').contains('here')
   })
 })

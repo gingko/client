@@ -576,18 +576,26 @@ viewFooter wordCountToggle =
         [ div [ id "wordcount", onClick wordCountToggle ] [ text "Word Counts" ] ]
 
 
-viewMobileButtons : Html msg
-viewMobileButtons =
-    div [ id "mobile-buttons", class "footer" ]
-        [ span [ class "mobile-button" ] [ AntIcons.editTwoTone [ width 18 ] ]
-        , span [ class "mobile-button" ] [ AntIcons.plusSquareTwoTone [ width 18 ], AntIcons.rightOutlined [ width 14 ] ]
-        , span [ class "mobile-button" ] [ AntIcons.plusSquareTwoTone [ width 18 ], AntIcons.downOutlined [ width 14 ] ]
-        , span [ class "mobile-button" ] [ AntIcons.plusSquareTwoTone [ width 18 ], AntIcons.upOutlined [ width 14 ] ]
-        , span [ class "mobile-button" ] [ AntIcons.caretLeftOutlined [ width 18 ] ]
-        , span [ class "mobile-button" ] [ AntIcons.caretUpOutlined [ width 18 ] ]
-        , span [ class "mobile-button" ] [ AntIcons.caretDownOutlined [ width 18 ] ]
-        , span [ class "mobile-button" ] [ AntIcons.caretRightOutlined [ width 18 ] ]
-        ]
+viewMobileButtons : { editButtonPressed : msg, saveButtonPressed : msg } -> Bool -> Html msg
+viewMobileButtons msgs isEditing =
+    if isEditing then
+        div [ id "mobile-buttons", class "footer" ]
+            [ span [ class "mobile-button", onClick msgs.saveButtonPressed ]
+                [ AntIcons.checkOutlined [ width 18 ]
+                ]
+            ]
+
+    else
+        div [ id "mobile-buttons", class "footer" ]
+            [ span [ class "mobile-button", onClick msgs.editButtonPressed ] [ AntIcons.editTwoTone [ width 18 ] ]
+            , span [ class "mobile-button" ] [ AntIcons.plusSquareTwoTone [ width 18 ], AntIcons.rightOutlined [ width 14 ] ]
+            , span [ class "mobile-button" ] [ AntIcons.plusSquareTwoTone [ width 18 ], AntIcons.downOutlined [ width 14 ] ]
+            , span [ class "mobile-button" ] [ AntIcons.plusSquareTwoTone [ width 18 ], AntIcons.upOutlined [ width 14 ] ]
+            , span [ class "mobile-button" ] [ AntIcons.caretLeftOutlined [ width 18 ] ]
+            , span [ class "mobile-button" ] [ AntIcons.caretUpOutlined [ width 18 ] ]
+            , span [ class "mobile-button" ] [ AntIcons.caretDownOutlined [ width 18 ] ]
+            , span [ class "mobile-button" ] [ AntIcons.caretRightOutlined [ width 18 ] ]
+            ]
 
 
 viewHistory : msg -> (String -> msg) -> msg -> msg -> Translation.Language -> String -> Data.Model -> Html msg

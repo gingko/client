@@ -2484,6 +2484,8 @@ viewLoaded model =
                             model.viewState
                         ++ [ viewSearchField SearchFieldUpdated model
                            , viewMobileButtons
+                                { editButtonPressed = Incoming (Keyboard "mod+enter"), saveButtonPressed = Incoming (Keyboard "mod+enter") }
+                                (model.viewState.viewMode /= Normal)
                            , viewFooter WordcountModalOpened
                            , case model.historyState of
                                 From currHead ->
