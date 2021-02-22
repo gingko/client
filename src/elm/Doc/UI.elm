@@ -576,7 +576,19 @@ viewFooter wordCountToggle =
         [ div [ id "wordcount", onClick wordCountToggle ] [ text "Word Counts" ] ]
 
 
-viewMobileButtons : { editButtonPressed : msg, saveButtonPressed : msg, plusRight : msg, plusDown : msg, plusUp : msg } -> Bool -> Html msg
+viewMobileButtons :
+    { editButtonPressed : msg
+    , saveButtonPressed : msg
+    , plusRight : msg
+    , plusDown : msg
+    , plusUp : msg
+    , navLeft : msg
+    , navUp : msg
+    , navDown : msg
+    , navRight : msg
+    }
+    -> Bool
+    -> Html msg
 viewMobileButtons msgs isEditing =
     if isEditing then
         div [ id "mobile-buttons", class "footer" ]
@@ -591,10 +603,10 @@ viewMobileButtons msgs isEditing =
             , span [ id "mbtn-add-right", class "mobile-button", onClick msgs.plusRight ] [ AntIcons.plusSquareTwoTone [ width 18 ], AntIcons.rightOutlined [ width 14 ] ]
             , span [ id "mbtn-add-down", class "mobile-button", onClick msgs.plusDown ] [ AntIcons.plusSquareTwoTone [ width 18 ], AntIcons.downOutlined [ width 14 ] ]
             , span [ id "mbtn-add-up", class "mobile-button", onClick msgs.plusUp ] [ AntIcons.plusSquareTwoTone [ width 18 ], AntIcons.upOutlined [ width 14 ] ]
-            , span [ id "mbtn-nav-left", class "mobile-button" ] [ AntIcons.caretLeftOutlined [ width 18 ] ]
-            , span [ id "mbtn-nav-up", class "mobile-button" ] [ AntIcons.caretUpOutlined [ width 18 ] ]
-            , span [ id "mbtn-nav-down", class "mobile-button" ] [ AntIcons.caretDownOutlined [ width 18 ] ]
-            , span [ id "mbtn-nav-right", class "mobile-button" ] [ AntIcons.caretRightOutlined [ width 18 ] ]
+            , span [ id "mbtn-nav-left", class "mobile-button", onClick msgs.navLeft ] [ AntIcons.caretLeftOutlined [ width 18 ] ]
+            , span [ id "mbtn-nav-up", class "mobile-button", onClick msgs.navUp ] [ AntIcons.caretUpOutlined [ width 18 ] ]
+            , span [ id "mbtn-nav-down", class "mobile-button", onClick msgs.navDown ] [ AntIcons.caretDownOutlined [ width 18 ] ]
+            , span [ id "mbtn-nav-right", class "mobile-button", onClick msgs.navRight ] [ AntIcons.caretRightOutlined [ width 18 ] ]
             ]
 
 

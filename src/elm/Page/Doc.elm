@@ -2436,6 +2436,9 @@ viewLoaded model =
 
                                     Nothing ->
                                         exportViewError "No card selected, cannot preview export."
+
+                    mobileBtnMsg shortcut =
+                        Incoming (Keyboard shortcut)
                 in
                 div
                     [ id "app-root", applyTheme model.theme ]
@@ -2484,11 +2487,15 @@ viewLoaded model =
                             model.viewState
                         ++ [ viewSearchField SearchFieldUpdated model
                            , viewMobileButtons
-                                { editButtonPressed = Incoming (Keyboard "mod+enter")
-                                , saveButtonPressed = Incoming (Keyboard "mod+enter")
-                                , plusDown = Incoming (Keyboard "mod+down")
-                                , plusUp = Incoming (Keyboard "mod+up")
-                                , plusRight = Incoming (Keyboard "mod+right")
+                                { editButtonPressed = mobileBtnMsg "mod+enter"
+                                , saveButtonPressed = mobileBtnMsg "mod+enter"
+                                , plusDown = mobileBtnMsg "mod+down"
+                                , plusUp = mobileBtnMsg "mod+up"
+                                , plusRight = mobileBtnMsg "mod+right"
+                                , navLeft = mobileBtnMsg "left"
+                                , navUp = mobileBtnMsg "up"
+                                , navDown = mobileBtnMsg "down"
+                                , navRight = mobileBtnMsg "right"
                                 }
                                 (model.viewState.viewMode /= Normal)
                            , viewFooter WordcountModalOpened
