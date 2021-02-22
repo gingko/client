@@ -3062,8 +3062,8 @@ normalMode model operation =
     ( model
     , Cmd.none
     )
-        |> (case model.viewState.viewMode of
-                Normal ->
+        |> (case ( model.viewState.viewMode, model.modalState ) of
+                ( Normal, NoModal ) ->
                     operation
 
                 _ ->
