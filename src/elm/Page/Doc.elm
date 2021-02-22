@@ -13,7 +13,7 @@ import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.Switcher
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
-import Doc.UI as UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewSearchField, viewVideo)
+import Doc.UI as UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewMobileButtons, viewSearchField, viewVideo)
 import File exposing (File)
 import File.Download as Download
 import File.Select as Select
@@ -2483,6 +2483,7 @@ viewLoaded model =
                             model.textCursorInfo
                             model.viewState
                         ++ [ viewSearchField SearchFieldUpdated model
+                           , viewMobileButtons
                            , viewFooter WordcountModalOpened
                            , case model.historyState of
                                 From currHead ->

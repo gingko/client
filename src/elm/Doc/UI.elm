@@ -1,4 +1,4 @@
-module Doc.UI exposing (countWords, viewConflict, viewFooter, viewHeader, viewHistory, viewHomeLink, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewVideo, viewWordCount)
+module Doc.UI exposing (countWords, viewConflict, viewFooter, viewHeader, viewHistory, viewHomeLink, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewVideo, viewWordCount)
 
 import Coders exposing (treeToMarkdownString)
 import Diff exposing (..)
@@ -573,6 +573,11 @@ viewFooter wordCountToggle =
     div
         [ class "footer" ]
         [ div [ id "wordcount", onClick wordCountToggle ] [ text "Word Counts" ] ]
+
+
+viewMobileButtons : Html msg
+viewMobileButtons =
+    div [ id "mobile-buttons", class "footer" ] [ text "here" ]
 
 
 viewHistory : msg -> (String -> msg) -> msg -> msg -> Translation.Language -> String -> Data.Model -> Html msg

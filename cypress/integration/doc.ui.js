@@ -83,5 +83,15 @@ describe('Document UI', () => {
     cy.get('.modal-header h2').contains('Word Counts')
 
     cy.contains('Total : 4 words')
+
+    cy.shortcut('{esc}')
+
+    // Displays Mobile buttons on smaller screens
+    cy.get('#mobile-buttons')
+      .should('not.be.visible')
+
+    cy.viewport(360, 640)
+    cy.get('#mobile-buttons')
+      .should('be.visible')
   })
 })

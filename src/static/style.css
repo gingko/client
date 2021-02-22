@@ -2009,6 +2009,10 @@ ul.changelist {
   top: 40px;
 }
 
+#mobile-buttons {
+  display: none;
+}
+
 /*400px =25em */
 @media only screen and (max-width:25em) {
   #app-root {
@@ -2017,9 +2021,10 @@ ul.changelist {
       "document document document"
       "document document document"
       "document document document"
-      "document-footer document-footer document-footer";
-    grid-template-columns: 40px 1fr minmax(25px, auto);
-    grid-template-rows: 40px 40px auto 40px 1fr 25px;
+      "document-footer document-footer document-footer"
+      "mobile-buttons mobile-buttons mobile-buttons";
+  grid-template-columns: 40px 1fr minmax(25px, auto);
+    grid-template-rows: 40px 40px auto 40px 1fr 25px auto;
 
   }
 
@@ -2040,6 +2045,12 @@ ul.changelist {
     grid-template-columns: repeat(auto-fill, 90vw);
     grid-auto-flow: column;
     grid-auto-columns: 90vw
+  }
+
+  #mobile-buttons {
+    display: flex;
+    grid-area: mobile-buttons;
+    height: 40px;
   }
 
   #sidebar {
