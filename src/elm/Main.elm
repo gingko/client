@@ -2,6 +2,7 @@ module Main exposing (main)
 
 import Browser exposing (Document)
 import Browser.Navigation as Nav
+import Doc.UI as UI
 import Html
 import Json.Decode as Dec exposing (Decoder, Value)
 import Page.Doc
@@ -188,7 +189,8 @@ toUser page =
 
 
 type Msg
-    = ChangedUrl Url
+    = NoOp
+    | ChangedUrl Url
     | ClickedLink Browser.UrlRequest
     | SettingsChanged Dec.Value
     | GotSignupMsg Page.Signup.Msg
@@ -282,7 +284,7 @@ view : Model -> Document Msg
 view model =
     case model of
         Redirect _ ->
-            { title = "Loading...", body = [ Html.div [] [ Html.text "LOADING..." ] ] }
+            { title = "Gingko Writer - Loading...", body = [ UI.viewLoadingSpinner NoOp False ] }
 
         NotFound _ ->
             Page.NotFound.view
@@ -306,7 +308,7 @@ view model =
             { title = "Gingko Writer", body = [ Html.map GotEmptyMsg (Page.Empty.view empty) ] }
 
         Import importModel ->
-            { title = "Importing...", body = [ Html.div [] [ Html.text "Importing..." ] ] }
+            { title = "Importing...", body = [ UI.viewLoadingSpinner NoOp False ] }
 
         DocNew _ ->
             { title = "Gingko - New", body = [ Html.div [] [ Html.text "LOADING..." ] ] }

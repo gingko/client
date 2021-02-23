@@ -60,13 +60,20 @@ async function newSave(dbName, treeId, elmData, timestamp, savedImmutablesIds) {
 
 
   // Filter out already saved immutable objects.
-  // Add treeId prefix.
   let toSave =
     objects
       .filter(d => !savedImmutablesIds.has(treeId + "/" + d._id))
-      .map(updateMetadata)
+      .filter(d => !d._id.includes('metadata')) // no metadata
       .map(d => prefix(d, treeId))
       .concat([newHead]);
+
+  // Save metadata separately to prevent 'NotFound' redirect loop
+  // If metadata is saved before data itself
+  let toSaveMetadata =
+    objects
+      .filter(d => d._id.includes('metadata')) // only metadata
+      .map(updateMetadata)
+      .map(d => prefix(d, treeId))
 
 
   // Save local head as _local PouchDB document.
@@ -89,6 +96,7 @@ async function newSave(dbName, treeId, elmData, timestamp, savedImmutablesIds) {
 
   // Save documents and return responses of successfully saved ones.
   let saveResponses = await localDb.bulkDocs(toSave);
+  await localDb.bulkDocs(toSaveMetadata);
   let getRev = (d) => {
     if (d.type === "ref") {
       let res = saveResponses.find(r => r.id == d._id);

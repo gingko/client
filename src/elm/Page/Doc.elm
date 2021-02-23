@@ -2397,14 +2397,7 @@ view model =
             Session.fileMenuOpen model.session
     in
     if model.loading then
-        div [ id "app-root", class "loading" ]
-            ([ UI.viewHomeLink ToggleSidebar False
-             , div [ id "document-header" ] []
-             , div [ id "loading-overlay" ] []
-             , div [ class "spinner" ] [ div [ class "bounce1" ] [], div [ class "bounce2" ] [], div [ class "bounce3" ] [] ]
-             ]
-                ++ UI.viewSidebarStatic sidebarOpen
-            )
+        UI.viewLoadingSpinner ToggleSidebar sidebarOpen
 
     else
         viewLoaded model

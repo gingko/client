@@ -1,4 +1,4 @@
-module Doc.UI exposing (countWords, viewConflict, viewFooter, viewHeader, viewHistory, viewHomeLink, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewVideo, viewWordCount)
+module Doc.UI exposing (countWords, viewConflict, viewFooter, viewHeader, viewHistory, viewHomeLink, viewLoadingSpinner, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewVideo, viewWordCount)
 
 import Ant.Icons.Svg as AntIcons
 import Coders exposing (treeToMarkdownString)
@@ -442,6 +442,18 @@ viewSidebarStatic sidebarOpen =
       else
         text ""
     ]
+
+
+viewLoadingSpinner : msg -> Bool -> Html msg
+viewLoadingSpinner toggleSidebarMsg sidebarOpen =
+    div [ id "app-root", class "loading" ]
+        ([ viewHomeLink toggleSidebarMsg False
+         , div [ id "document-header" ] []
+         , div [ id "loading-overlay" ] []
+         , div [ class "spinner" ] [ div [ class "bounce1" ] [], div [ class "bounce2" ] [], div [ class "bounce3" ] [] ]
+         ]
+            ++ viewSidebarStatic sidebarOpen
+        )
 
 
 
