@@ -97,6 +97,7 @@ type ModalState
     | TemplateSelector
     | Wordcount
     | ImportModal ImportModal.Model
+    | ContactForm
     | UpgradeModal
 
 
@@ -652,7 +653,7 @@ update msg ({ workingTree } as model) =
                     ( { model | session = newSession }, maybeFlash )
 
         ClickedEmailSupport ->
-            ( model, send <| TriggerMailto )
+            ( { model | modalState = ContactForm }, Cmd.none )
 
         ToggleSidebar ->
             case model.sidebarState of
@@ -2999,6 +3000,9 @@ viewModal language model =
         ImportModal modalModel ->
             ImportModal.view language modalModel
                 |> List.map (Html.map ImportModalMsg)
+
+        ContactForm ->
+            UI.viewContactForm language ModalClosed
 
         UpgradeModal ->
             case Session.upgradeModel model.session of

@@ -504,14 +504,6 @@ const fromElm = (msg, elmData) => {
       let checkoutResult = stripe.redirectToCheckout({sessionId: data.sessionId});
     },
 
-    TriggerMailto: () => {
-      // Hack to avoid committing personal email address:
-      let mail = document.createElement("a");
-      mail.href = `mailto:${config.SUPPORT_EMAIL}`;
-      mail.target = "_blank";
-      mail.click();
-    },
-
     SocketSend: () => {},
 
     ConsoleLogRequested: () => console.error(elmData),

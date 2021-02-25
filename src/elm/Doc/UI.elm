@@ -1,4 +1,4 @@
-module Doc.UI exposing (countWords, viewConflict, viewFooter, viewHeader, viewHistory, viewHomeLink, viewLoadingSpinner, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewVideo, viewWordCount)
+module Doc.UI exposing (countWords, viewConflict, viewContactForm, viewFooter, viewHeader, viewHistory, viewHomeLink, viewLoadingSpinner, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewVideo, viewWordCount)
 
 import Ant.Icons.Svg as AntIcons
 import Coders exposing (treeToMarkdownString)
@@ -509,6 +509,13 @@ viewTemplateSelector language msgs =
         ]
     ]
         |> modalWrapper msgs.modalClosed Nothing "New Document"
+
+
+viewContactForm : Language -> msg -> List (Html msg)
+viewContactForm lang closeMsg =
+    [ div [ id "contact-form" ] [ text "here" ]
+    ]
+        |> modalWrapper closeMsg Nothing (tr lang EmailSupport)
 
 
 viewWordCount :

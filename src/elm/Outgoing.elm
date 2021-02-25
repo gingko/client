@@ -50,7 +50,6 @@ type Msg
       -- === Misc ===
     | EmptyMessageShown
     | CheckoutButtonClicked Enc.Value
-    | TriggerMailto
     | SocketSend CollabState
     | ConsoleLogRequested String
 
@@ -185,9 +184,6 @@ send info =
 
         CheckoutButtonClicked checkoutData ->
             dataToSend "CheckoutButtonClicked" checkoutData
-
-        TriggerMailto ->
-            dataToSend "TriggerMailto" null
 
         SocketSend collabState ->
             dataToSend "SocketSend" (collabStateToValue collabState)
