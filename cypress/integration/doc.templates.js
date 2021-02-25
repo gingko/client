@@ -35,8 +35,6 @@ describe('Welcome Tree & Templates', () => {
       .should('contain', 'Welcome to Gingko Writer')
 
     // Should bring up the Template Selector on clicking "New"
-    cy.get('#file-button').click()
-
     cy.get('#new-button').click()
 
     cy.get('#template-new')
