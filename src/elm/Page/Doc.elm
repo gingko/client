@@ -249,6 +249,7 @@ type Msg
       -- HELP
     | ClickedEmailSupport
     | ContactFormMsg ContactForm.Model ContactForm.Msg
+    | CopyEmailClicked
     | ContactFormSubmitted ContactForm.Model
     | ContactFormSent (Result Http.Error ())
       -- Import
@@ -669,6 +670,9 @@ update msg ({ workingTree } as model) =
 
         ContactFormMsg formModel formMsg ->
             ( { model | modalState = ContactForm (ContactForm.update formMsg formModel) }, Cmd.none )
+
+        CopyEmailClicked ->
+            ( model, send <| CopyToClipboard "{%SUPPORT_EMAIL%}" "#email-copy-btn" )
 
         ContactFormSubmitted formModel ->
             ( model, ContactForm.send ContactFormSent formModel )
@@ -3028,7 +3032,13 @@ viewModal language model =
                 |> List.map (Html.map ImportModalMsg)
 
         ContactForm contactFormModel ->
-            ContactForm.view language { closeMsg = ModalClosed, submitMsg = ContactFormSubmitted, tagger = ContactFormMsg contactFormModel } contactFormModel
+            ContactForm.view language
+                { closeMsg = ModalClosed
+                , submitMsg = ContactFormSubmitted
+                , tagger = ContactFormMsg contactFormModel
+                , copyEmail = CopyEmailClicked
+                }
+                contactFormModel
 
         UpgradeModal ->
             case Session.upgradeModel model.session of

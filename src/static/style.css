@@ -200,7 +200,7 @@ body {
 .center-form .alt-action {
   text-align: center;
 }
-#form-page input {
+#form-page input, #contact-form input, #contact-form textarea {
   border: 1px solid gray;
   padding: .5em 1em;
   font-size: 1em;
@@ -561,6 +561,37 @@ ul.dropdown > li > span.no-interaction:hover {
   position: absolute;
   right: 4px;
   top: 39px;
+}
+
+#contact-form {
+  display: flex;
+  flex-direction: column;
+}
+#contact-form input, #contact-form textarea, #contact-form button {
+  margin-bottom: 10px;
+}
+#contact-send {
+  height: auto;
+  padding: 6px 12px;
+  background: var(--selection-color);
+  color: white;
+  font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Ubuntu,sans-serif;
+  font-weight: bold;
+  font-size: 90%;
+  border-radius: 4px;
+  cursor: pointer;
+  align-self: center;
+  border: none;
+}
+#contact-form ~ p {
+  text-align: center;
+}
+#email-copy-btn {
+  background-color: #e8e8e8;
+  padding: 4px;
+  border-radius: 4px;
+  margin-left: 4px;
+  cursor: pointer;
 }
 
 span.trial {

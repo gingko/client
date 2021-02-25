@@ -1,13 +1,13 @@
 module Doc.ContactForm exposing (Model, Msg, init, send, update, view)
 
-import Html exposing (Html, br, button, div, form, input, label, text, textarea)
-import Html.Attributes exposing (id, placeholder, readonly, type_, value)
-import Html.Events exposing (onInput, onSubmit)
+import Html exposing (Html, a, br, button, div, form, input, label, p, small, text, textarea)
+import Html.Attributes exposing (href, id, placeholder, readonly, rows, type_, value)
+import Html.Events exposing (onClick, onInput, onSubmit)
 import Http
 import Json.Encode as Enc
 import SharedUI exposing (modalWrapper)
 import Translation exposing (Language, TranslationId(..), tr)
-import Url exposing (Protocol(..))
+import Url.Builder exposing (string, toQuery)
 
 
 
@@ -25,7 +25,7 @@ init : String -> Model
 init email =
     { fromField = email
     , bodyField = ""
-    , subjectField = "Please help!"
+    , subjectField = "Could you help me with this?"
     }
 
 
@@ -75,11 +75,10 @@ toValue model =
 -- VIEW
 
 
-view : Language -> { closeMsg : msg, submitMsg : Model -> msg, tagger : Msg -> msg } -> Model -> List (Html msg)
-view lang { closeMsg, submitMsg, tagger } model =
+view : Language -> { closeMsg : msg, submitMsg : Model -> msg, tagger : Msg -> msg, copyEmail : msg } -> Model -> List (Html msg)
+view lang { closeMsg, submitMsg, tagger, copyEmail } model =
     [ form [ id "contact-form", onSubmit <| submitMsg model ]
-        [ label [] [ text "From:" ]
-        , input
+        [ input
             [ id "contact-from-email"
             , type_ "email"
             , value model.fromField
@@ -87,15 +86,20 @@ view lang { closeMsg, submitMsg, tagger } model =
             , onInput <| tagger << UpdateFromField
             ]
             []
-        , br [] []
-        , label [] [ text "To:" ]
-        , input [ id "contact-to-email", readonly True, value "{%SUPPORT_EMAIL%}" ] []
-        , br [] []
-        , label [] [ text "Subject:" ]
         , input [ id "contact-subject", value model.subjectField, onInput <| tagger << UpdateSubjectField ] []
-        , br [] []
-        , textarea [ id "contact-body", onInput <| tagger << UpdateBodyField ] []
-        , button [ id "contact-send", type_ "submit" ] [ text "Send" ]
+        , textarea [ id "contact-body", onInput <| tagger << UpdateBodyField, rows 7 ] []
+        , button [ id "contact-send", type_ "submit" ] [ text "Send Now" ]
         ]
+    , p [] [ text "or" ]
+    , p [] [ text "send us email instead : ", br [] [], a [ href <| mailto model ] [ text "{%SUPPORT_EMAIL%}" ], small [ id "email-copy-btn", onClick copyEmail ] [ text "copy" ] ]
     ]
         |> modalWrapper closeMsg Nothing (tr lang EmailSupport)
+
+
+mailto : Model -> String
+mailto model =
+    "mailto:{%SUPPORT_EMAIL%}"
+        ++ toQuery
+            [ string "subject" model.subjectField
+            , string "body" model.bodyField
+            ]

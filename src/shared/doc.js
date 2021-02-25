@@ -419,6 +419,21 @@ const fromElm = (msg, elmData) => {
       setTimeout(removeFlashClass, 200);
     },
 
+    CopyToClipboard: () => {
+      navigator.clipboard.writeText(elmData.content);
+
+      let addFlashClass = function () {
+        jQuery(elmData.element).addClass("flash");
+      };
+
+      let removeFlashClass = function () {
+        jQuery(elmData.element).removeClass("flash");
+      };
+
+      addFlashClass();
+      setTimeout(removeFlashClass, 200);
+    },
+
     FlashPrice: () => {
       let addFlashClass = function () {
         jQuery("#price-amount").addClass("flash-2");

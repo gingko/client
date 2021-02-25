@@ -35,6 +35,7 @@ type Msg
     | ScrollFullscreenCards String
     | DragStart Enc.Value
     | CopyCurrentSubtree Enc.Value
+    | CopyToClipboard String String
     | FlashPrice
     | TextSurround String String
     | SetCursorPosition Int
@@ -134,6 +135,9 @@ send info =
 
         CopyCurrentSubtree treeJSON ->
             dataToSend "CopyCurrentSubtree" treeJSON
+
+        CopyToClipboard what flash ->
+            dataToSend "CopyToClipboard" (object [ ( "content", string what ), ( "element", string flash ) ])
 
         FlashPrice ->
             dataToSend "FlashPrice" null
