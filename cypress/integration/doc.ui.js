@@ -49,11 +49,8 @@ describe('Document UI', () => {
     cy.get('#contact-from-email')
       .should('have.value', testEmail)
 
-    cy.get('#contact-to-email')
-      .should('have.value', config.SUPPORT_EMAIL)
-
     cy.get('#contact-subject')
-      .should('have.value', 'Please help!')
+      .should('have.value', 'Could you help me with this?')
 
     cy.get('#contact-body')
       .should('have.focus')
