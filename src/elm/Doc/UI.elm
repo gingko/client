@@ -81,7 +81,7 @@ viewHeader msgs title_ model =
                     span [ id "title" ]
                         [ Html.form
                             [ onSubmit msgs.titleEdited ]
-                            [ input [ id "title-rename", onInput msgs.titleFieldChanged, value editingField ] []
+                            [ input [ id "title-rename", onInput msgs.titleFieldChanged, value editingField, attribute "data-private" "lipsum" ] []
                             , button [ type_ "submit" ] [ text "Rename" ]
                             , button [ onClick msgs.titleEditCanceled ] [ text "Cancel" ]
                             ]
@@ -89,7 +89,7 @@ viewHeader msgs title_ model =
 
                 Nothing ->
                     span [ id "title" ]
-                        [ h1 [ onClick (msgs.toggledTitleEdit True) ]
+                        [ h1 [ onClick (msgs.toggledTitleEdit True), attribute "data-private" "lipsum" ]
                             [ text (title_ |> Maybe.withDefault "Untitled")
                             ]
                         , viewSaveIndicator language model (Session.currentTime model.session)

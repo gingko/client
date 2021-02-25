@@ -3,7 +3,7 @@ module Doc.Switcher exposing (Model, down, search, up, view)
 import Doc.List as DocList
 import Doc.Metadata as Metadata exposing (Metadata)
 import Html exposing (Html, div, input, span, text)
-import Html.Attributes exposing (class, id, placeholder, type_, value)
+import Html.Attributes exposing (attribute, class, id, placeholder, type_, value)
 import Html.Events exposing (onInput)
 import List.Extra as ListExtra
 
@@ -121,6 +121,7 @@ view searchInput { currentDocument, selectedDocument, searchField, docList } =
                 , onInput searchInput
                 , class "mousetrap"
                 , placeholder "Type file name to select"
+                , attribute "data-private" "lipsum"
                 ]
                 []
             , DocList.viewSwitcher currentDocument

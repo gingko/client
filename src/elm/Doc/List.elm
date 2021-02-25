@@ -3,7 +3,7 @@ port module Doc.List exposing (Model(..), current, filter, getLastUpdated, init,
 import Date
 import Doc.Metadata as Metadata exposing (Metadata)
 import Html exposing (Html, a, div, li, text, ul)
-import Html.Attributes exposing (class, classList, href, title)
+import Html.Attributes exposing (attribute, class, classList, href, title)
 import Html.Events exposing (onClick, stopPropagationOn)
 import Json.Decode as Dec
 import Octicons as Icon
@@ -194,6 +194,7 @@ viewSmall msg currentDocument model =
                 [ a
                     [ ContextMenu.open (msg docId)
                     , href <| Route.toString (Route.DocUntitled docId)
+                    , attribute "data-private" "lipsum"
                     ]
                     [ Metadata.getDocName d |> Maybe.withDefault "Untitled" |> text ]
                 ]
@@ -226,7 +227,7 @@ viewSwitcher currentDocument model =
                     , ( "selected", Metadata.getDocId d == model.selected )
                     ]
                 ]
-                [ a [ href <| Route.toString (Route.DocUntitled (Metadata.getDocId d)) ]
+                [ a [ href <| Route.toString (Route.DocUntitled (Metadata.getDocId d)), attribute "data-private" "lipsum" ]
                     [ Metadata.getDocName d |> Maybe.withDefault "Untitled" |> text ]
                 ]
     in

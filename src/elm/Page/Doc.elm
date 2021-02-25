@@ -18,7 +18,7 @@ import File exposing (File)
 import File.Download as Download
 import File.Select as Select
 import Html exposing (Html, button, div, h1, input, node, span, text, textarea, ul)
-import Html.Attributes exposing (class, classList, dir, id, style, title, value)
+import Html.Attributes exposing (attribute, class, classList, dir, id, style, title, value)
 import Html.Events exposing (onClick, onDoubleClick, onInput)
 import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy2, lazy3, lazy7, lazy8)
@@ -2808,6 +2808,7 @@ viewCardEditing lang cardId content isParent =
                 [ ( "edit", True )
                 , ( "mousetrap", True )
                 ]
+            , attribute "data-private" "lipsum"
             , value content
             ]
             []
@@ -2943,7 +2944,7 @@ viewContent cardId content =
                 |> Regex.replace checkboxes checkboxReplacer
     in
     Markdown.toHtmlWith options
-        []
+        [ attribute "data-private" "lipsum" ]
         processedContent
 
 
