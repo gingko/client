@@ -1,5 +1,6 @@
 module.exports = {
   TEST_SERVER: "http://localhost:8000",
+  PRODUCTION_SERVER: "https://somedomain.com",
   LEGACY_URL: "https://example.com",
   LEGACY_TEST_PASSWORD: "asdfasdf",
   COUCHDB_HOST: "localhost",

@@ -12,7 +12,9 @@ const container = require("Container");
 const config = require("../../config.js");
 
 import LogRocket from 'logrocket';
-LogRocket.init(config.LOGROCKET_APPID);
+if(window.location.origin === config.PRODUCTION_SERVER) {
+  LogRocket.init(config.LOGROCKET_APPID);
+}
 
 import PouchDB from "pouchdb";
 
