@@ -20,7 +20,7 @@ describe('Document UI', () => {
     Cypress.Cookies.preserveOnce('AuthSession')
   })
 
-  it.only('Has working header menus and shortcut help', () => {
+  it('Has working header menus and shortcut help', () => {
     let emailText = tr["emailSupport"]["en"];
 
     cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
@@ -44,6 +44,19 @@ describe('Document UI', () => {
       .click()
 
     cy.get('#contact-form')
+      .should('be.visible')
+
+    cy.get('#contact-from-email')
+      .should('have.value', testEmail)
+
+    cy.get('#contact-to-email')
+      .should('have.value', config.SUPPORT_EMAIL)
+
+    cy.get('#contact-body')
+      .should('have.focus')
+
+    cy.get('.close-button')
+      .click()
 
     // Toggles the sidebar on clicking brand icon
     cy.get('#sidebar-menu').should('not.exist')

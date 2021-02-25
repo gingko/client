@@ -657,9 +657,11 @@ update msg ({ workingTree } as model) =
             let
                 fromEmail =
                     Session.name model.session
-                        |> Maybe.withDefault "{%support"
+                        |> Maybe.withDefault ""
             in
-            ( { model | modalState = ContactForm (ContactForm.init fromEmail) }, Cmd.none )
+            ( { model | modalState = ContactForm (ContactForm.init fromEmail) }
+            , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "contact-body")
+            )
 
         ToggleSidebar ->
             case model.sidebarState of
