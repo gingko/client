@@ -59,8 +59,11 @@ describe('Document UI', () => {
       .should('have.focus')
       .type('Help me!')
 
-    cy.get('.close-button')
+    cy.get('#contact-send')
       .click()
+
+    cy.get('#contact-form')
+      .should('not.exist')
 
     // Toggles the sidebar on clicking brand icon
     cy.get('#sidebar-menu').should('not.exist')

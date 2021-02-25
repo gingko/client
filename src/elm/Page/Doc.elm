@@ -246,7 +246,11 @@ type Msg
       -- Upgrade
     | ToggledUpgradeModal Bool
     | UpgradeModalMsg Upgrade.Msg
+      -- HELP
     | ClickedEmailSupport
+    | ContactFormMsg ContactForm.Model ContactForm.Msg
+    | ContactFormSubmitted ContactForm.Model
+    | ContactFormSent (Result Http.Error ())
       -- Import
     | ImportModalMsg ImportModal.Msg
     | ImportJSONSelected File
@@ -662,6 +666,20 @@ update msg ({ workingTree } as model) =
             ( { model | modalState = ContactForm (ContactForm.init fromEmail) }
             , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "contact-body")
             )
+
+        ContactFormMsg formModel formMsg ->
+            ( { model | modalState = ContactForm (ContactForm.update formMsg formModel) }, Cmd.none )
+
+        ContactFormSubmitted formModel ->
+            ( model, ContactForm.send ContactFormSent formModel )
+
+        ContactFormSent res ->
+            case res of
+                Ok _ ->
+                    ( { model | modalState = NoModal }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
         ToggleSidebar ->
             case model.sidebarState of
@@ -3010,7 +3028,7 @@ viewModal language model =
                 |> List.map (Html.map ImportModalMsg)
 
         ContactForm contactFormModel ->
-            ContactForm.view language ModalClosed contactFormModel
+            ContactForm.view language { closeMsg = ModalClosed, submitMsg = ContactFormSubmitted, tagger = ContactFormMsg contactFormModel } contactFormModel
 
         UpgradeModal ->
             case Session.upgradeModel model.session of
