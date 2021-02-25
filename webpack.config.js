@@ -12,6 +12,7 @@ const hu = require("./i18n/hu.json");
 const sv = require("./i18n/sv.json");
 const ca = require("./i18n/ca.json");
 const br = require("./i18n/br.json");
+const config = require("./config");
 
 
 
@@ -58,6 +59,7 @@ const caT = prepTranslation("ca", ca);
 const brT = prepTranslation("br", br);
 
 const allLanguageStrings = [].concat(zhHansT, zhHantT, esT, frT, deT, nlT, huT, svT, caT, brT)
+const otherReplacements = [{search: "{%SUPPORT_EMAIL%}", replace: config.SUPPORT_EMAIL} ];
 
 const webConfig = {
   // "production" or "development" flag.
@@ -97,7 +99,7 @@ const webConfig = {
         use: [
           {
             loader: "string-replace-loader",
-            options : { multiple : allLanguageStrings }
+            options : { multiple : allLanguageStrings.concat(otherReplacements)  }
           },
           {
             loader: "elm-webpack-loader",

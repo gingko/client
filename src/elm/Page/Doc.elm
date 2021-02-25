@@ -4,6 +4,7 @@ import Browser.Dom
 import Bytes exposing (Bytes)
 import Coders exposing (treeToMarkdownString, treeToValue)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
+import Doc.ContactForm as ContactForm
 import Doc.Data as Data
 import Doc.Data.Conflict exposing (Selection)
 import Doc.Fonts as Fonts
@@ -97,7 +98,7 @@ type ModalState
     | TemplateSelector
     | Wordcount
     | ImportModal ImportModal.Model
-    | ContactForm
+    | ContactForm ContactForm.Model
     | UpgradeModal
 
 
@@ -653,7 +654,12 @@ update msg ({ workingTree } as model) =
                     ( { model | session = newSession }, maybeFlash )
 
         ClickedEmailSupport ->
-            ( { model | modalState = ContactForm }, Cmd.none )
+            let
+                fromEmail =
+                    Session.name model.session
+                        |> Maybe.withDefault "{%support"
+            in
+            ( { model | modalState = ContactForm (ContactForm.init fromEmail) }, Cmd.none )
 
         ToggleSidebar ->
             case model.sidebarState of
@@ -3001,8 +3007,8 @@ viewModal language model =
             ImportModal.view language modalModel
                 |> List.map (Html.map ImportModalMsg)
 
-        ContactForm ->
-            UI.viewContactForm language ModalClosed
+        ContactForm contactFormModel ->
+            ContactForm.view language ModalClosed contactFormModel
 
         UpgradeModal ->
             case Session.upgradeModel model.session of
