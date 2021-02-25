@@ -79,6 +79,7 @@
     "hash-wasm": "^4.4.1",
     "jquery": "^3.5.1",
     "lodash": "^4.17.15",
+    "logrocket": "^1.0.14",
     "memorystream": "^0.3.1",
     "moment": "^2.22.2",
     "mousetrap": "^1.6.1",

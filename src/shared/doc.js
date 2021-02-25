@@ -10,7 +10,9 @@ require("textarea-autosize");
 const Mousetrap = require("mousetrap");
 const container = require("Container");
 const config = require("../../config.js");
-require("../shared/GitGraph.js");
+
+import LogRocket from 'logrocket';
+LogRocket.init(config.LOGROCKET_APPID);
 
 import PouchDB from "pouchdb";
 
@@ -100,7 +102,7 @@ async function initElmAndPorts() {
 async function setUserDbs(email) {
   console.log("Inside setUserDbs", email, helpers.toHex(email));
   userDbName = `userdb-${helpers.toHex(email)}`;
-  let userDbUrl = config.COUCHDB_SERVER + "/" + userDbName;
+  let userDbUrl = window.location.origin + "/db/" + userDbName;
   var remoteOpts = { skip_setup: true };
   remoteDB = new PouchDB(userDbUrl, remoteOpts);
   // Check remoteDB exists and accessible before continuing
@@ -141,6 +143,8 @@ async function setUserDbs(email) {
     .on('change',(change) =>{
       loadDocListAndSend(db, "sync.changes");
     })
+
+  LogRocket.identify(email);
 }
 
 
