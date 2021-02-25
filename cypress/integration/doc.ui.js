@@ -52,8 +52,12 @@ describe('Document UI', () => {
     cy.get('#contact-to-email')
       .should('have.value', config.SUPPORT_EMAIL)
 
+    cy.get('#contact-subject')
+      .should('have.value', 'Please help!')
+
     cy.get('#contact-body')
       .should('have.focus')
+      .type('Help me!')
 
     cy.get('.close-button')
       .click()

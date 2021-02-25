@@ -13,6 +13,7 @@ import Translation exposing (Language, TranslationId(..), tr)
 type alias Model =
     { fromField : String
     , bodyField : String
+    , subjectField : String
     }
 
 
@@ -20,6 +21,7 @@ init : String -> Model
 init email =
     { fromField = email
     , bodyField = ""
+    , subjectField = "Please help!"
     }
 
 
@@ -35,6 +37,9 @@ view lang closeMsg model =
         , br [] []
         , label [] [ text "To:" ]
         , input [ id "contact-to-email", readonly True, value "{%SUPPORT_EMAIL%}" ] []
+        , br [] []
+        , label [] [ text "Subject:" ]
+        , input [ id "contact-subject", value model.subjectField ] []
         , br [] []
         , textarea [ id "contact-body" ] []
         , button [] [ text "Send" ]
