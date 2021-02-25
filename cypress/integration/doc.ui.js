@@ -56,8 +56,12 @@ describe('Document UI', () => {
       .should('have.focus')
       .type('Help me!')
 
+    cy.intercept('/pleasenospam', '').as('contactForm')
+
     cy.get('#contact-send')
       .click()
+
+    cy.wait('@contactForm')
 
     cy.get('#contact-form')
       .should('not.exist')
