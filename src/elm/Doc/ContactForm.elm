@@ -91,7 +91,7 @@ view lang { closeMsg, submitMsg, tagger, copyEmail } model =
         , button [ id "contact-send", type_ "submit" ] [ text "Send Now" ]
         ]
     , p [] [ text "or" ]
-    , p [] [ text "send us email instead : ", br [] [], a [ href <| mailto model ] [ text "{%SUPPORT_EMAIL%}" ], small [ id "email-copy-btn", onClick copyEmail ] [ text "copy" ] ]
+    , p [] [ text "send an email instead : ", br [] [], a [ href <| mailto model ] [ text "{%SUPPORT_EMAIL%}" ], small [ id "email-copy-btn", onClick copyEmail ] [ text "copy" ] ]
     ]
         |> modalWrapper closeMsg Nothing (tr lang EmailSupport)
 
