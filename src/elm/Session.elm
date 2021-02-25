@@ -317,7 +317,7 @@ decodePaymentStatus =
 
 decodeGuest : Nav.Key -> Dec.Decoder Session
 decodeGuest key =
-    Dec.succeed (\s t l -> Guest (SessionData key s t False Nothing) (GuestData l))
+    Dec.succeed (\s t l -> Guest (SessionData key s t True Nothing) (GuestData l))
         |> required "seed" (Dec.int |> Dec.map Random.initialSeed)
         |> required "currentTime" (Dec.int |> Dec.map Time.millisToPosix)
         |> optional "language" (Dec.string |> Dec.map langFromString) En
