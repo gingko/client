@@ -168,15 +168,6 @@ viewPWYWForm model =
                 , p [] [ text "To help cover that range fairly, I'm letting you adjust your price:" ]
                 , viewPWYWButtons model
                 , br [] []
-                , small []
-                    [ text "* No matter what you choose, "
-                    , a [ href "https://givewell.org", target "_blank" ] [ text "GiveWell.org" ]
-                    , text " receives:"
-                    , ul []
-                        [ li [] [ text "10% of all revenue" ]
-                        , li [] [ text "100% of personal profit over $35K/year" ]
-                        ]
-                    ]
                 ]
             ]
 
@@ -196,7 +187,7 @@ viewPWYWButtons model =
         , div [ id "regular", classList [ ( "checked", model.plan == Regular ) ], onClick (PlanChanged Regular) ]
             [ text "Regular" ]
         , div [ id "bonus", classList [ ( "checked", model.plan == Bonus ) ], onClick (PlanChanged Bonus) ]
-            [ text "Extra Donation*" ]
+            [ text "Extra Donation" ]
         ]
 
 
@@ -268,6 +259,7 @@ viewPaymentForm model =
                     ]
                 , hr [] []
                 , button [ class "payment-button", onClick <| CheckoutClicked model ] [ text "Checkout" ]
+                , small [ id "stripe-climate" ] [ strong [] [ text "3% of your purchase" ], text " goes to removing CO₂ from the atmosphere." ]
                 ]
 
 

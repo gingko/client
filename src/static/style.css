@@ -667,8 +667,14 @@ span.trial-dark {
   color: #2a70a8;
   text-decoration: underline;
 }
-#pwyw-body small {
-  font-style: italic;
+#stripe-climate {
+  display: block;
+  margin-top: 12px;
+  color: lightslategray;
+  text-align: center;
+}
+#stripe-climate-badge {
+  margin-right: 6px;
 }
 
 #pwyw-body ul {
