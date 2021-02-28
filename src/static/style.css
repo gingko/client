@@ -1040,27 +1040,13 @@ li.sidebar-document-item.active::after {
   height: 100%;
   width: 100%;
   display: grid;
-  grid-template-columns: minmax(200px, 1fr) 4fr;
-  grid-template-areas: "parent main";
+  overflow-y: auto;
+  grid-template-areas: "left-gutter main right-gutter";
   background: lightgray url('./handmadepaper.png');
-}
-
-.fullscreen-parent {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding-left: 20px;
-  grid-area: parent;
-}
-.fullscreen-parent .card {
-  background: hsla(0,100%,100%, 0.2);
-  padding: 17px;
-  word-wrap: break-word;
 }
 
 #fullscreen-main {
   grid-area: main;
-  overflow-y: auto;
 }
 
 .fullscreen-parent::-webkit-scrollbar, .fullscreen-children::-webkit-scrollbar {
