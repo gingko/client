@@ -36,10 +36,6 @@ type Msg
 view : Language -> ViewState -> Model -> Html Msg
 view _ vstate model =
     let
-        parent_ =
-            getParent vstate.active model.tree
-                |> Maybe.map (\t -> ( t.id, t.content ))
-
         currentColumn =
             getColumnById vstate.active model.tree
                 |> Maybe.withDefault []
@@ -48,35 +44,8 @@ view _ vstate model =
         [ id "app"
         , class "fullscreen"
         ]
-        [ div [ class "fullscreen-parent" ] [ viewMaybeParent parent_ ]
-        , viewColumn OpenCard vstate.active currentColumn
+        [ viewColumn OpenCard vstate.active currentColumn
         ]
-
-
-viewMaybeParent : Maybe ( String, String ) -> Html msg
-viewMaybeParent parentTuple_ =
-    let
-        options =
-            { githubFlavored = Just { tables = True, breaks = True }
-            , defaultHighlighting = Nothing
-            , sanitize = False
-            , smartypants = False
-            }
-    in
-    case parentTuple_ of
-        Just ( cardId, content ) ->
-            div
-                [ id ("card-" ++ cardId)
-                , class "card"
-                , dir "auto"
-                ]
-                [ Markdown.toHtmlWith options
-                    []
-                    content
-                ]
-
-        Nothing ->
-            div [ class "fullscreen-parent" ] []
 
 
 viewColumn : (String -> String -> msg) -> String -> Column -> Html msg
