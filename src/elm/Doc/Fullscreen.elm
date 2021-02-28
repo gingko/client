@@ -1,12 +1,11 @@
 module Doc.Fullscreen exposing (Msg(..), view)
 
-import Doc.TreeUtils exposing (getChildren, getColumnById, getParent, getTree)
+import Doc.TreeUtils exposing (getColumnById)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onFocus)
 import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy2)
-import Markdown
 import Translation exposing (Language, TranslationId(..))
 import Types exposing (..)
 
@@ -33,8 +32,8 @@ type Msg
 -- VIEW
 
 
-view : Language -> ViewState -> Model -> Html Msg
-view _ vstate model =
+view : Language -> ViewState -> Bool -> Model -> Html Msg
+view _ vstate dirty model =
     let
         currentColumn =
             getColumnById vstate.active model.tree
@@ -45,6 +44,11 @@ view _ vstate model =
         , class "fullscreen"
         ]
         [ viewColumn OpenCard vstate.active currentColumn
+        , if dirty then
+            div [ id "fullscreen-save-indicator" ] [ text "Unsaved changes..." ]
+
+          else
+            div [] []
         ]
 
 

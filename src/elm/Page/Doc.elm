@@ -22,7 +22,7 @@ import Html exposing (Html, button, div, h1, input, node, span, text, textarea, 
 import Html.Attributes exposing (attribute, class, classList, dir, id, style, title, value)
 import Html.Events exposing (onClick, onDoubleClick, onInput)
 import Html.Keyed as Keyed
-import Html.Lazy exposing (lazy2, lazy3, lazy7, lazy8)
+import Html.Lazy exposing (lazy2, lazy3, lazy4, lazy7, lazy8)
 import Html5.DragDrop as DragDrop
 import Http
 import Import.Bulk.UI as ImportModal
@@ -2443,7 +2443,7 @@ viewLoaded model =
     case Data.conflictList model.data of
         [] ->
             if model.viewState.viewMode == FullscreenEditing then
-                lazy3 Fullscreen.view language model.viewState model.workingTree
+                lazy4 Fullscreen.view language model.viewState model.dirty model.workingTree
                     |> Html.map FullscreenMsg
 
             else

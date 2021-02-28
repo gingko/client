@@ -1049,6 +1049,17 @@ li.sidebar-document-item.active::after {
   grid-area: main;
 }
 
+#fullscreen-save-indicator {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  animation: fadeIn 2s;
+  animation-delay: 500ms;
+  animation-fill-mode: forwards;
+  opacity: 0;
+  color: gray;
+}
+
 .fullscreen-parent::-webkit-scrollbar, .fullscreen-children::-webkit-scrollbar {
   width: 0 !important;
 }
