@@ -167,7 +167,6 @@ viewPWYWForm model =
                 [ p [] [ text "Gingko Writer is used in over 170 countries of the world, and by everyone from rural middle-school students to Silicon Valley software developers." ]
                 , p [] [ text "To help cover that range fairly, I'm letting you adjust your price:" ]
                 , viewPWYWButtons model
-                , br [] []
                 ]
             ]
 
