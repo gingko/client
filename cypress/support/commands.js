@@ -1,5 +1,6 @@
 const config = require("../../config.js");
 const helpers = require("../../src/shared/doc-helpers.js");
+import PouchDB from "pouchdb";
 
 Cypress.on('log:changed', options => {
   if (options.instrument === 'command' && options.consoleProps) {
@@ -11,7 +12,17 @@ Cypress.on('log:changed', options => {
 
 Cypress.Commands.add('deleteUser', (userEmail)=> {
   const testUserDb = 'userdb-' + helpers.toHex(userEmail);
-  indexedDB.deleteDatabase('_pouch_' + testUserDb)
+  if (indexedDB.hasOwnProperty('databases')) {
+    console.log('CHROME')
+    indexedDB.databases().then((dbs) => {
+      dbs.filter((db) => db.name.includes(testUserDb))
+        .map((db) => {window.indexedDB.deleteDatabase(db.name)})
+    })
+  } else {
+    console.log('FIREFOX')
+    let db = new PouchDB(testUserDb, {skip_setup: true});
+    db.destroy();
+  }
   cy.clearCookie('AuthSession')
   cy.request('POST', config.TEST_SERVER + '/logout')
   return cy.request(
