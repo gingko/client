@@ -10,10 +10,8 @@ Cypress.on('log:changed', options => {
 })
 
 Cypress.Commands.add('deleteUser', (userEmail)=> {
-  indexedDB.databases().then((dbs) => {
-    dbs.filter((db) => db.name.includes(helpers.toHex(userEmail)))
-      .map((db) => { window.indexedDB.deleteDatabase(db.name); })
-  })
+  const testUserDb = 'userdb-' + helpers.toHex(userEmail);
+  indexedDB.deleteDatabase('_pouch_' + testUserDb)
   cy.clearCookie('AuthSession')
   cy.request('POST', config.TEST_SERVER + '/logout')
   return cy.request(
