@@ -657,8 +657,6 @@ const selectionHandler = function () {
   }
 };
 
-document.onselectionchange = selectionHandler;
-
 Mousetrap.bind(helpers.shortcuts, function (e, s) {
   switch (s) {
     case "mod+v":
@@ -744,6 +742,7 @@ const observer = new MutationObserver(function (mutations) {
   if (textareas.length !== 0) {
     textareas.map((t) => {
       t.oninput = editingInputHandler;
+      t.onselect = selectionHandler;
     });
 
     jQuery(textareas).textareaAutoSize();
