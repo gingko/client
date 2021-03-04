@@ -200,6 +200,8 @@ var needOverride = [
   "mod+j",
   "mod+k",
   "mod+l",
+  "mod+b",
+  "mod+i",
   "alt+0",
   "alt+1",
   "alt+2",

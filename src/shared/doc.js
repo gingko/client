@@ -462,7 +462,11 @@ const fromElm = (msg, elmData) => {
         if (start !== end) {
           let text = tarea.value.slice(start, end);
           let modifiedText = surroundString + text + surroundString;
-          document.execCommand("insertText", true, modifiedText);
+          let newValue = tarea.value.substring(0, start) + modifiedText + tarea.value.substring(end);
+          tarea.value = newValue;
+          let cursorPos = start + modifiedText.length;
+          tarea.setSelectionRange(cursorPos, cursorPos);
+          toElm(newValue, "docMsgs", "FieldChanged")
         }
       }
     },
