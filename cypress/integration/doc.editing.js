@@ -161,6 +161,16 @@ describe('Document Editing', () => {
 
     cy.get('#history').should('not.exist')
 
+    // Can split card down
+    cy.shortcut('{enter}')
+    cy.shortcut('{leftarrow}{leftarrow}{leftarrow}{leftarrow}{leftarrow}{leftarrow}{leftarrow}')
+    cy.shortcut('{ctrl}j')
+    cy.get('textarea')
+      .should('have.value', 'orld :)')
+    cy.getCard(1,1,1)
+      .should('not.contain','orld :)')
+    cy.shortcut('{ctrl}{enter}')
+
     // New card, to test title shortcuts
     cy.shortcut('{ctrl}{rightArrow}')
     cy.writeInCard('A test title{enter}{enter}body')
