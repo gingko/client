@@ -367,6 +367,11 @@ update msg ({ workingTree } as model) =
                 |> saveCardIfEditing
                 |> openCardFullscreen id str
 
+        FullscreenMsg Fullscreen.ExitFullscreenRequested ->
+            ( { model | viewState = { vs | viewMode = Editing } }
+            , send <| SetField model.field
+            )
+
         DeleteCard id ->
             ( model
             , Cmd.none

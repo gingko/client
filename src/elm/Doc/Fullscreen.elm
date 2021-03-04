@@ -1,9 +1,10 @@
 module Doc.Fullscreen exposing (Msg(..), view)
 
+import Ant.Icons.Svg as Icons
 import Doc.TreeUtils exposing (getColumnById)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onFocus)
+import Html.Events exposing (onClick, onFocus)
 import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy2)
 import Translation exposing (Language, TranslationId(..))
@@ -26,6 +27,7 @@ type alias Model =
 
 type Msg
     = OpenCard String String
+    | ExitFullscreenRequested
 
 
 
@@ -44,11 +46,14 @@ view _ vstate dirty model =
         , class "fullscreen"
         ]
         [ viewColumn OpenCard vstate.active currentColumn
-        , if dirty then
-            div [ id "fullscreen-save-indicator" ] [ text "Unsaved changes..." ]
+        , div [ id "fullscreen-buttons" ]
+            [ Icons.fullscreenExitOutlined [ id "fullscreen-exit", width 24, onClick ExitFullscreenRequested ]
+            , if dirty then
+                div [ id "fullscreen-save-indicator" ] [ text "Unsaved changes..." ]
 
-          else
-            div [] []
+              else
+                div [] []
+            ]
         ]
 
 

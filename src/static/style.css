@@ -1049,10 +1049,22 @@ li.sidebar-document-item.active::after {
   grid-area: main;
 }
 
-#fullscreen-save-indicator {
+#fullscreen-buttons {
   position: fixed;
   top: 20px;
   left: 20px;
+  display: flex;
+  flex-direction: column;
+}
+#fullscreen-exit {
+  cursor: pointer;
+  opacity: 0.8;
+}
+#fullscreen-exit:hover {
+  opacity: 1;
+}
+
+#fullscreen-save-indicator {
   animation: fadeIn 2s;
   animation-delay: 500ms;
   animation-fill-mode: forwards;
