@@ -18,6 +18,8 @@
   "homepage": "https://github.com/gingko/client",
   "scripts": {
     "start": "webpack --progress --watch",
+    "test": "cypress run",
+    "test:firefox": "cypress run --browser firefox",
     "build": "webpack",
     "electron": "electron ./app",
     "pack": "electron-builder --dir",
