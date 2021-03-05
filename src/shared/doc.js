@@ -616,7 +616,6 @@ const debouncedScrollHorizontal = _.debounce(helpers.scrollHorizontal, 200);
 const editingInputHandler = function (ev) {
   DIRTY = true;
   toElm(ev.target.value, "docMsgs", "FieldChanged");
-  selectionHandler(ev);
 };
 
 const selectionHandler = function () {
@@ -742,7 +741,9 @@ const observer = new MutationObserver(function (mutations) {
   if (textareas.length !== 0) {
     textareas.map((t) => {
       t.oninput = editingInputHandler;
-      t.onselect = selectionHandler;
+      t.onkeyup = selectionHandler;
+      t.onclick = selectionHandler;
+      t.onfocus = selectionHandler;
     });
 
     jQuery(textareas).textareaAutoSize();
