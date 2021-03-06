@@ -202,6 +202,7 @@ type Msg
     | SearchFieldUpdated String
       -- === Card Editing  ===
     | OpenCard String String
+    | UpdateActiveField String String
     | FullscreenMsg Fullscreen.Msg
     | DeleteCard String
       -- === Card Insertion  ===
@@ -360,17 +361,27 @@ update msg ({ workingTree } as model) =
             )
                 |> openCard id str
 
-        FullscreenMsg (Fullscreen.OpenCard id str) ->
-            ( model
-            , Cmd.none
+        UpdateActiveField id str ->
+            ( { model
+                | field = str
+                , dirty = True
+              }
+            , send <| SetDirty True
             )
-                |> saveCardIfEditing
-                |> openCardFullscreen id str
 
-        FullscreenMsg Fullscreen.ExitFullscreenRequested ->
-            ( { model | viewState = { vs | viewMode = Editing } }
-            , send <| SetField model.field
-            )
+        FullscreenMsg fullscreenMsg ->
+            case fullscreenMsg of
+                Fullscreen.OpenCard id str ->
+                    ( model
+                    , Cmd.none
+                    )
+                        |> saveCardIfEditing
+                        |> openCardFullscreen id str
+
+                Fullscreen.ExitFullscreenRequested ->
+                    ( { model | viewState = { vs | viewMode = Editing } }
+                    , send <| SetField model.field
+                    )
 
         DeleteCard id ->
             ( model
@@ -908,7 +919,7 @@ update msg ({ workingTree } as model) =
                 -- === Dialogs, Menus, Window State ===
                 CancelCardConfirmed ->
                     ( { model | dirty = False }
-                    , Cmd.none
+                    , send <| SetDirty False
                     )
                         |> cancelCard
 
@@ -923,7 +934,7 @@ update msg ({ workingTree } as model) =
                         , lastLocalSave = Data.lastCommitTime newData |> Maybe.map Time.millisToPosix
                         , dirty = False
                       }
-                    , Cmd.none
+                    , send <| SetDirty False
                     )
 
                 DataReceived dataIn ->
@@ -1036,14 +1047,6 @@ update msg ({ workingTree } as model) =
 
                 PasteInto tree ->
                     normalMode model (pasteInto vs.active tree)
-
-                FieldChanged str ->
-                    ( { model
-                        | field = str
-                        , dirty = True
-                      }
-                    , Cmd.none
-                    )
 
                 TextCursor textCursorInfo ->
                     if model.textCursorInfo /= textCursorInfo then
@@ -2845,6 +2848,7 @@ viewCardEditing lang cardId content isParent =
                 , ( "mousetrap", True )
                 ]
             , attribute "data-private" "lipsum"
+            , onInput <| UpdateActiveField cardId
             , value content
             ]
             []

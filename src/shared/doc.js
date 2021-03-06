@@ -210,7 +210,7 @@ const fromElm = (msg, elmData) => {
     },
 
     SetDirty: () => {
-      DIRTY = true;
+      DIRTY = elmData;
     },
 
     ConfirmCancelCard: () => {
@@ -472,7 +472,6 @@ const fromElm = (msg, elmData) => {
           tarea.value = newValue;
           let cursorPos = start + modifiedText.length;
           tarea.setSelectionRange(cursorPos, cursorPos);
-          toElm(newValue, "docMsgs", "FieldChanged")
         }
       }
     },
@@ -619,11 +618,6 @@ window.onresize = () => {
 const debouncedScrollColumns = _.debounce(helpers.scrollColumns, 200);
 const debouncedScrollHorizontal = _.debounce(helpers.scrollHorizontal, 200);
 
-const editingInputHandler = function (ev) {
-  DIRTY = true;
-  toElm(ev.target.value, "docMsgs", "FieldChanged");
-};
-
 const selectionHandler = function () {
   if (document.activeElement.nodeName == "TEXTAREA") {
     let {
@@ -746,7 +740,6 @@ const observer = new MutationObserver(function (mutations) {
 
   if (textareas.length !== 0) {
     textareas.map((t) => {
-      t.oninput = editingInputHandler;
       t.onkeyup = selectionHandler;
       t.onclick = selectionHandler;
       t.onfocus = selectionHandler;

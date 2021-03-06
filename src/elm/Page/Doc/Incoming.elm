@@ -27,7 +27,6 @@ type
     | DragStarted String
     | Paste Tree
     | PasteInto Tree
-    | FieldChanged String
     | TextCursor TextCursorInfo
     | CheckboxClicked String Int
       -- === UI ===
@@ -143,14 +142,6 @@ subscribe tagger onError =
                     case decodeValue treeOrString outsideInfo.data of
                         Ok tree ->
                             tagger <| PasteInto tree
-
-                        Err e ->
-                            onError (errorToString e)
-
-                "FieldChanged" ->
-                    case decodeValue Dec.string outsideInfo.data of
-                        Ok newField ->
-                            tagger <| FieldChanged newField
 
                         Err e ->
                             onError (errorToString e)
