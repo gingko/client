@@ -8,6 +8,7 @@ const _ = require("lodash");
 const axios = require('axios');
 require("textarea-autosize");
 const Mousetrap = require("mousetrap");
+const screenfull = require("screenfull");
 const container = require("Container");
 const config = require("../../config.js");
 
@@ -99,6 +100,13 @@ async function initElmAndPorts() {
       event.returnValue = '';
     }
   });
+
+  // Fullscreen change event
+  if (screenfull.isEnabled) {
+    screenfull.on('change', () => {
+      toElm(screenfull.isFullscreen, "docMsgs", "FullscreenChanged")
+    });
+  }
 }
 
 async function setUserDbs(email) {
@@ -476,10 +484,12 @@ const fromElm = (msg, elmData) => {
     },
 
     SetFullscreen: () => {
-      if (elmData && !document.fullscreenElement) {
-        document.documentElement.requestFullscreen();
-      } else if (!elmData && document.fullscreenElement) {
-        document.exitFullscreen();
+      if(screenfull.isEnabled) {
+        if(elmData) {
+          screenfull.request();
+        } else {
+          screenfull.exit();
+        }
       }
     },
 

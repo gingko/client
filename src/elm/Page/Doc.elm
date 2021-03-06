@@ -1053,6 +1053,13 @@ update msg ({ workingTree } as model) =
                     else
                         ( { model | workingTree = newTree, viewState = { vs | draggedTree = draggedTree } }, Cmd.none )
 
+                FullscreenChanged isFullscreen ->
+                    if vs.viewMode == FullscreenEditing && not isFullscreen then
+                        ( { model | viewState = { vs | viewMode = Editing } }, focus vs.active )
+
+                    else
+                        ( model, Cmd.none )
+
                 Paste tree ->
                     normalMode model (pasteBelow vs.active tree)
 

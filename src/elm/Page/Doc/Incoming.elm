@@ -25,6 +25,7 @@ type
     | MetadataSaveError
       -- === DOM ===
     | DragStarted String
+    | FullscreenChanged Bool
     | Paste Tree
     | PasteInto Tree
     | TextCursor TextCursorInfo
@@ -126,6 +127,14 @@ subscribe tagger onError =
                     case decodeValue Dec.string outsideInfo.data of
                         Ok dragId ->
                             tagger <| DragStarted dragId
+
+                        Err e ->
+                            onError (errorToString e)
+
+                "FullscreenChanged" ->
+                    case decodeValue Dec.bool outsideInfo.data of
+                        Ok isFullscreen ->
+                            tagger <| FullscreenChanged isFullscreen
 
                         Err e ->
                             onError (errorToString e)

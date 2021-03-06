@@ -92,6 +92,7 @@
     "react-dom": "^15.6.2",
     "read-chunk": "^2.1.0",
     "rimraf": "^2.6.2",
+    "screenfull": "^5.1.0",
     "sha1": "^1.1.1",
     "system-font-families": "^0.4.1",
     "textarea-autosize": "^0.4.2",
