@@ -27,6 +27,7 @@ type alias Model =
 
 type Msg
     = OpenCard String String
+    | UpdateField String String
     | ExitFullscreenRequested
 
 
@@ -87,9 +88,11 @@ viewCard isActive cardId content =
             [ id ("card-edit-" ++ cardId)
             , dir "auto"
             , classList
-                [ ( "edit-fullscreen", True )
+                [ ( "edit", True )
                 , ( "mousetrap", True )
                 ]
+            , onFocus <| OpenCard cardId content
+            , onInput <| UpdateField cardId
             , attribute "data-private" "lipsum"
             , value content
             ]
