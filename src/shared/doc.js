@@ -449,12 +449,6 @@ const fromElm = (msg, elmData) => {
       setTimeout(removeFlashClass, 400);
     },
 
-    SetField: () => {
-      if (document.activeElement.nodeName == "TEXTAREA") {
-        document.activeElement.value = elmData;
-      }
-    },
-
     TextSurround: () => {
       let id = elmData[0];
       let surroundString = elmData[1];

@@ -37,7 +37,6 @@ type Msg
     | CopyCurrentSubtree Enc.Value
     | CopyToClipboard String String
     | FlashPrice
-    | SetField String
     | TextSurround String String
     | SetCursorPosition Int
     | SetFullscreen Bool
@@ -142,9 +141,6 @@ send info =
 
         FlashPrice ->
             dataToSend "FlashPrice" null
-
-        SetField str ->
-            dataToSend "SetField" (string str)
 
         TextSurround id str ->
             dataToSend "TextSurround" (list string [ id, str ])
