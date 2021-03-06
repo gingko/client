@@ -38,6 +38,7 @@ type Msg
     | CopyToClipboard String String
     | FlashPrice
     | TextSurround String String
+    | SetField String String
     | SetCursorPosition Int
     | SetFullscreen Bool
       -- === UI ===
@@ -144,6 +145,9 @@ send info =
 
         TextSurround id str ->
             dataToSend "TextSurround" (list string [ id, str ])
+
+        SetField id str ->
+            dataToSend "SetField" (list string [ id, str ])
 
         SetCursorPosition pos ->
             dataToSend "SetCursorPosition" (int pos)

@@ -390,9 +390,7 @@ update msg ({ workingTree } as model) =
                            )
 
                 Fullscreen.ExitFullscreenRequested ->
-                    ( { model | viewState = { vs | viewMode = Editing } }
-                    , Cmd.none
-                    )
+                    exitFullscreen model
 
         DeleteCard id ->
             ( model
@@ -1055,7 +1053,7 @@ update msg ({ workingTree } as model) =
 
                 FullscreenChanged isFullscreen ->
                     if vs.viewMode == FullscreenEditing && not isFullscreen then
-                        ( { model | viewState = { vs | viewMode = Editing } }, focus vs.active )
+                        exitFullscreen model
 
                     else
                         ( model, Cmd.none )
@@ -1766,6 +1764,17 @@ openCardFullscreen id str ( model, prevCmd ) =
                 , Cmd.batch [ c, send <| SetFullscreen True ]
                 )
            )
+
+
+exitFullscreen : Model -> ( Model, Cmd Msg )
+exitFullscreen model =
+    let
+        vs =
+            model.viewState
+    in
+    ( { model | viewState = { vs | viewMode = Editing } }
+    , Cmd.batch [ send <| SetField vs.active model.field, focus vs.active ]
+    )
 
 
 closeCard : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )

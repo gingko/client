@@ -478,6 +478,15 @@ const fromElm = (msg, elmData) => {
       }
     },
 
+    SetField: () => {
+      let id = elmData[0];
+      let field = elmData[1];
+      window.requestAnimationFrame(() => {
+        let tarea = document.getElementById("card-edit-" + id);
+        tarea.value = field;
+      })
+    },
+
     SetCursorPosition: () => {
       let pos = elmData[0];
       setTimeout(() => document.activeElement.setSelectionRange(pos, pos), 0);
