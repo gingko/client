@@ -67,5 +67,14 @@ describe('Fullscreen Editing', () => {
     cy.get('#fullscreen-exit').click()
     cy.focused()
       .should('have.value','# 2\nChild cardabclmn')
+
+    // Save and exit edit mode on Ctrl+Enter
+    cy.shortcut('{shift}{enter}')
+    cy.focused().type(' line')
+    cy.shortcut('{ctrl}{enter}')
+    cy.get('#app-fullscreen').should('not.exist')
+    cy.get('#fullscreen-main').should('not.exist')
+    cy.get('textarea').should('not.exist')
+    cy.getCard(2,1,1).should('contain', 'cardabclmn line')
   })
 })

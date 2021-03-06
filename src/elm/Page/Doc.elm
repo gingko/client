@@ -1138,22 +1138,17 @@ update msg ({ workingTree } as model) =
                                     exitFullscreen model
 
                         "mod+enter" ->
-                            ( model
-                            , Cmd.none
-                            )
-                                |> saveCardIfEditing
-                                |> (\( m, c ) ->
-                                        case vs.viewMode of
-                                            Normal ->
-                                                openCard vs.active (getContent vs.active m.workingTree.tree) ( m, c )
+                            case vs.viewMode of
+                                Normal ->
+                                    ( model, Cmd.none ) |> openCard vs.active (getContent vs.active model.workingTree.tree)
 
-                                            Editing ->
-                                                closeCard ( m, c )
+                                Editing ->
+                                    ( model, Cmd.none ) |> closeCard
 
-                                            FullscreenEditing ->
-                                                ( m, c )
-                                   )
-                                |> activate vs.active False
+                                FullscreenEditing ->
+                                    ( model, Cmd.none )
+                                        |> saveCardIfEditing
+                                        |> closeCard
 
                         "enter" ->
                             case model.modalState of
