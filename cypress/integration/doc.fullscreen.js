@@ -21,7 +21,7 @@ describe('Fullscreen Editing', () => {
       .should('be.visible')
       .click()
 
-    // Enters and exits fullscreen mode
+    // Enters and exits fullscreen mode on clicking
     cy.shortcut('{shift}{enter}')
     cy.get('#app-fullscreen').should('be.visible')
     cy.get('#fullscreen-main').should('be.visible')
@@ -31,8 +31,17 @@ describe('Fullscreen Editing', () => {
     cy.get('textarea.edit').should('have.value', '# 3\nAnother Child card')
     cy.shortcut('{esc}')
 
-    // Open Fullscreen again
+    // Toggles fullscreen mode with Shift+Enter
     cy.shortcut('{shift}{enter}')
+    cy.get('#app-fullscreen').should('be.visible')
+    cy.get('#fullscreen-main').should('be.visible')
+    cy.shortcut('{shift}{enter}')
+    cy.get('#app-fullscreen').should('not.exist')
+    cy.get('#fullscreen-main').should('not.exist')
+    cy.get('textarea').should('have.focus')
+    cy.shortcut('{shift}{enter}')
+    cy.get('#app-fullscreen').should('be.visible')
+    cy.get('#fullscreen-main').should('be.visible')
 
     // Textareas in fullscreen mode are private
     cy.get('textarea').each((el) => {

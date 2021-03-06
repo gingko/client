@@ -1124,19 +1124,18 @@ update msg ({ workingTree } as model) =
                 Keyboard shortcut ->
                     case shortcut of
                         "shift+enter" ->
-                            ( model
-                            , Cmd.none
-                            )
-                                |> saveCardIfEditing
-                                |> (\( m, c ) ->
-                                        case vs.viewMode of
-                                            Normal ->
-                                                openCardFullscreen vs.active (getContent vs.active m.workingTree.tree) ( m, c )
+                            case vs.viewMode of
+                                Normal ->
+                                    ( model
+                                    , Cmd.none
+                                    )
+                                        |> openCardFullscreen vs.active (getContent vs.active model.workingTree.tree)
 
-                                            _ ->
-                                                closeCard ( m, c )
-                                   )
-                                |> activate vs.active False
+                                Editing ->
+                                    enterFullscreen model
+
+                                FullscreenEditing ->
+                                    exitFullscreen model
 
                         "mod+enter" ->
                             ( model
@@ -1764,6 +1763,17 @@ openCardFullscreen id str ( model, prevCmd ) =
                 , Cmd.batch [ c, send <| SetFullscreen True ]
                 )
            )
+
+
+enterFullscreen : Model -> ( Model, Cmd Msg )
+enterFullscreen model =
+    let
+        vs =
+            model.viewState
+    in
+    ( { model | viewState = { vs | viewMode = FullscreenEditing } }
+    , focus vs.active
+    )
 
 
 exitFullscreen : Model -> ( Model, Cmd Msg )
