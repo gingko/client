@@ -96,6 +96,7 @@ viewCard openCardFullscreen isActive cardId content =
                 [ ( "edit", True )
                 , ( "mousetrap", True )
                 ]
+            , attribute "data-private" "lipsum"
             , value content
             ]
             []

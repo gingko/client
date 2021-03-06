@@ -29,5 +29,19 @@ describe('Fullscreen Editing', () => {
     cy.get('#app-fullscreen').should('not.exist')
     cy.get('#fullscreen-main').should('not.exist')
     cy.get('textarea.edit').should('have.value', '# 3\nAnother Child card')
+    cy.shortcut('{esc}')
+
+    // Open Fullscreen again
+    cy.shortcut('{shift}{enter}')
+
+    // Textareas in fullscreen mode are private
+    cy.get('textarea').each((el) => {
+      expect(el).to.have.attr("data-private","lipsum")
+    })
+
+    // Test typing
+    cy.focused().type(' test')
+    cy.get('#fullscreen-save-indicator').contains('Unsaved changes...')
+    cy.focused().should('have.value', '# 3\nAnother Child card test')
   })
 })
