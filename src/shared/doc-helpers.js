@@ -194,6 +194,7 @@ var shortcuts = [
 
 var needOverride = [
   "shift+enter",
+  "mod+s",
   "mod+n",
   "mod+o",
   "mod+shift+s",

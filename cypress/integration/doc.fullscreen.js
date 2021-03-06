@@ -76,5 +76,13 @@ describe('Fullscreen Editing', () => {
     cy.get('#fullscreen-main').should('not.exist')
     cy.get('textarea').should('not.exist')
     cy.getCard(2,1,1).should('contain', 'cardabclmn line')
+
+    // Save and don't exit edit mode on Ctrl+S
+    cy.shortcut('{downarrow}{shift}{enter}')
+    cy.focused().type('xyz')
+    cy.shortcut('{ctrl}s')
+    cy.get('#app-fullscreen')
+    cy.get('#fullscreen-main')
+    cy.get('#fullscreen-save-indicator').should('not.exist')
   })
 })

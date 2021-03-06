@@ -1138,17 +1138,10 @@ update msg ({ workingTree } as model) =
                                     exitFullscreen model
 
                         "mod+enter" ->
-                            case vs.viewMode of
-                                Normal ->
-                                    ( model, Cmd.none ) |> openCard vs.active (getContent vs.active model.workingTree.tree)
+                            saveAndStopEditing model
 
-                                Editing ->
-                                    ( model, Cmd.none ) |> closeCard
-
-                                FullscreenEditing ->
-                                    ( model, Cmd.none )
-                                        |> saveCardIfEditing
-                                        |> closeCard
+                        "mod+s" ->
+                            saveAndStopEditing model
 
                         "enter" ->
                             case model.modalState of
@@ -1377,12 +1370,6 @@ update msg ({ workingTree } as model) =
                                       }
                                     , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "switcher-input")
                                     )
-
-                        "mod+s" ->
-                            ( model
-                            , Cmd.none
-                            )
-                                |> saveCardIfEditing
 
                         "mod+b" ->
                             case vs.viewMode of
@@ -1671,6 +1658,25 @@ goRight id ( model, prevCmd ) =
 
 
 -- === Card Editing  ===
+
+
+saveAndStopEditing : Model -> ( Model, Cmd Msg )
+saveAndStopEditing model =
+    let
+        vs =
+            model.viewState
+    in
+    case vs.viewMode of
+        Normal ->
+            ( model, Cmd.none ) |> openCard vs.active (getContent vs.active model.workingTree.tree)
+
+        Editing ->
+            ( model, Cmd.none ) |> closeCard
+
+        FullscreenEditing ->
+            ( model, Cmd.none )
+                |> saveCardIfEditing
+                |> closeCard
 
 
 saveCardIfEditing : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
