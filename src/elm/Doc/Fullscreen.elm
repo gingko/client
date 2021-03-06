@@ -42,9 +42,7 @@ view _ vstate dirty model =
                 |> Maybe.withDefault []
     in
     div
-        [ id "app"
-        , class "fullscreen"
-        ]
+        [ id "app-fullscreen" ]
         [ viewColumn OpenCard vstate.active currentColumn
         , div [ id "fullscreen-buttons" ]
             [ Icons.fullscreenExitOutlined [ id "fullscreen-exit", width 24, onClick ExitFullscreenRequested ]
