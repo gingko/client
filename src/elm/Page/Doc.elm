@@ -1141,7 +1141,7 @@ update msg ({ workingTree } as model) =
                             saveAndStopEditing model
 
                         "mod+s" ->
-                            saveAndStopEditing model
+                            saveCardIfEditing ( model, Cmd.none )
 
                         "enter" ->
                             case model.modalState of

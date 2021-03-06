@@ -1,5 +1,10 @@
 const config = require("../../config.js");
 
+Cypress.LocalStorage.clear = function (keys, ls, rs) {
+  return;
+}
+
+
 describe('Fullscreen Editing', () => {
   const testEmail = 'cypress@testing.com'
 
@@ -76,13 +81,26 @@ describe('Fullscreen Editing', () => {
     cy.get('#fullscreen-main').should('not.exist')
     cy.get('textarea').should('not.exist')
     cy.getCard(2,1,1).should('contain', 'cardabclmn line')
+    cy.contains('Synced')
 
     // Save and don't exit edit mode on Ctrl+S
     cy.shortcut('{downarrow}{shift}{enter}')
     cy.focused().type('xyz')
+    cy.get('#fullscreen-save-indicator').should('be.visible')
     cy.shortcut('{ctrl}s')
     cy.get('#app-fullscreen')
     cy.get('#fullscreen-main')
     cy.get('#fullscreen-save-indicator').should('not.exist')
+
+    //Exit Fullscreen
+    cy.shortcut('{esc}')
+  })
+
+  it('Saved fullscreen changes correctly', function () {
+    cy.visit(config.TEST_SERVER + '/' + this.treeIds[1])
+
+    cy.getCard(1,1,1).should('contain.html', '<p>Another Test doc</p>')
+    cy.getCard(2,1,1).should('contain.html', '<p>Child cardabclmn line</p>')
+    cy.getCard(2,1,2).should('contain.html', '<p>Another Child card testxyz</p>')
   })
 })

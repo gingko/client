@@ -133,6 +133,7 @@ const errorAlert = (title, msg, err) => {
 var shortcuts = [
   "shift+enter",
   "mod+enter",
+  "mod+s",
   "enter",
   "esc",
   "mod+backspace",
