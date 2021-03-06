@@ -1064,6 +1064,9 @@ update msg ({ workingTree } as model) =
                 PasteInto tree ->
                     normalMode model (pasteInto vs.active tree)
 
+                FieldChanged str ->
+                    ( { model | field = str, dirty = True }, Cmd.none )
+
                 TextCursor textCursorInfo ->
                     if model.textCursorInfo /= textCursorInfo then
                         ( { model | textCursorInfo = textCursorInfo }
@@ -1671,7 +1674,9 @@ saveAndStopEditing model =
             ( model, Cmd.none ) |> openCard vs.active (getContent vs.active model.workingTree.tree)
 
         Editing ->
-            ( model, Cmd.none ) |> closeCard
+            ( model, Cmd.none )
+                |> saveCardIfEditing
+                |> closeCard
 
         FullscreenEditing ->
             ( model, Cmd.none )

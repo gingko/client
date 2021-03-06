@@ -474,6 +474,8 @@ const fromElm = (msg, elmData) => {
           tarea.value = newValue;
           let cursorPos = start + modifiedText.length;
           tarea.setSelectionRange(cursorPos, cursorPos);
+          DIRTY = true;
+          toElm(newValue, "docMsgs", "FieldChanged");
         }
       }
     },
@@ -698,6 +700,7 @@ Mousetrap.bind(helpers.shortcuts, function (e, s) {
         let currentText = document.activeElement.value;
         let newText = currentText.replace(/^(#{0,6}) ?(.*)/, num === 0 ? '$2' : '#'.repeat(num) + ' $2');
         document.activeElement.value = newText;
+        DIRTY = true;
         toElm(newText, "docMsgs", "FieldChanged");
       }
       break;
