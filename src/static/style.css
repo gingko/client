@@ -140,6 +140,10 @@ body {
   font-family: Catamaran, Helvetica, Arial, sans-serif;
   font-size: 2rem;
 }
+#form-page a.brand {
+  text-decoration: none;
+  color: black;
+}
 #form-page #logo {
   width: 40px;
   margin-bottom: 3px;

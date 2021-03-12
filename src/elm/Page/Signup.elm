@@ -203,7 +203,7 @@ view model =
             getFieldErrors PasswordConfirm model.errors
     in
     div [ id "form-page" ]
-        [ div [ class "brand" ]
+        [ a [ class "brand", href "{%HOMEPAGE_URL%}" ]
             [ img [ id "logo", src "gingko-leaf-logo.svg" ] []
             , h1 [] [ text "Gingko Writer" ]
             ]
