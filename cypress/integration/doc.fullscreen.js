@@ -62,7 +62,6 @@ describe('Fullscreen Editing', () => {
     cy.get('textarea').first().focus()
       .type('{enter}abc')
     cy.shortcut('{ctrl}{enter}')
-    cy.shortcut('{esc}')
     cy.getCard(2,1,1).should('contain', 'cardabc')
     cy.getCard(2,1,2).should('contain', 'card test')
 
@@ -71,7 +70,7 @@ describe('Fullscreen Editing', () => {
     cy.focused().type('lmn')
     cy.get('#fullscreen-exit').click()
     cy.focused()
-      .should('have.value','# 2\nChild cardabclmn')
+      .should('have.value','# 2\nChild card\nabclmn')
 
     // Save and exit edit mode on Ctrl+Enter
     cy.shortcut('{shift}{enter}')
@@ -81,7 +80,6 @@ describe('Fullscreen Editing', () => {
     cy.get('#fullscreen-main').should('not.exist')
     cy.get('textarea').should('not.exist')
     cy.getCard(2,1,1).should('contain', 'cardabclmn line')
-    cy.contains('Synced')
 
     // Save and don't exit edit mode on Ctrl+S
     cy.shortcut('{downarrow}{shift}{enter}')
@@ -102,13 +100,16 @@ describe('Fullscreen Editing', () => {
     cy.get('.active-fullscreen textarea').should('have.value', '# 3\nAnother Child card testxyzedit')
     cy.shortcut('{ctrl}{enter}')
     cy.getCard(2,1,2).should('contain.html', '<p>Another Child card testxyzedit</p>')
+
+    // Wait for synced before proceeding
+    cy.contains('Synced')
   })
 
   it('Saved fullscreen changes correctly', function () {
     cy.visit(config.TEST_SERVER + '/' + this.treeIds[1])
 
     cy.getCard(1,1,1).should('contain.html', '<p>Another Test doc</p>')
-    cy.getCard(2,1,1).should('contain.html', '<p>Child cardabclmn line</p>')
+    cy.getCard(2,1,1).should('contain.html', '<p>Child card<br>abclmn line</p>')
     cy.getCard(2,1,2).should('contain.html', '<p>Another Child card testxyzedit</p>')
   })
 })

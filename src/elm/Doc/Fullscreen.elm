@@ -35,11 +35,19 @@ type Msg
 -- VIEW
 
 
-view : Language -> ViewState -> Bool -> Model -> Html Msg
-view _ vstate dirty model =
+view : Language -> String -> ViewState -> Bool -> Model -> Html Msg
+view _ field vstate dirty model =
     let
+        updateField c =
+            if c.id == vstate.active then
+                { c | content = field }
+
+            else
+                c
+
         currentColumn =
             getColumnById vstate.active model.tree
+                |> Maybe.map (List.map (List.map updateField))
                 |> Maybe.withDefault []
     in
     div
