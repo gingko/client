@@ -1079,11 +1079,11 @@ li.sidebar-document-item.active::after {
 .card-fullscreen {
   padding: 40px;
   border-bottom: 1px dotted #dedede;
-  background: hsla(0,100%,100%, 0.2);
+  background: hsla(0,100%,100%, 0.1);
 }
 
 .card-fullscreen.active-fullscreen {
-  background: hsla(0,100%,100%, 0.3);
+  background: hsla(0,100%,100%, 0.4);
 }
 
 .card-fullscreen textarea.edit {
@@ -1098,7 +1098,7 @@ li.sidebar-document-item.active::after {
   font-family: 'Roboto Mono', monospace;
   font-size: 24px;
   line-height: 1.25;
-  color: hsl(27,28%,35%);
+  color: hsl(27,11%,75%);
   resize: none;
   outline: none;
 }
