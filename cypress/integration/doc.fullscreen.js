@@ -83,6 +83,7 @@ describe('Fullscreen Editing', () => {
 
     // Save and don't exit edit mode on Ctrl+S
     cy.shortcut('{downarrow}{shift}{enter}')
+    cy.get('#fullscreen-main').should('be.visible')
     cy.focused().type('xyz')
     cy.get('#fullscreen-save-indicator').should('be.visible')
     cy.shortcut('{ctrl}s')
