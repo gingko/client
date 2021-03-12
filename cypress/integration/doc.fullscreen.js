@@ -92,8 +92,16 @@ describe('Fullscreen Editing', () => {
     cy.get('#fullscreen-main')
     cy.get('#fullscreen-save-indicator').should('not.exist')
 
-    //Exit Fullscreen
     cy.shortcut('{esc}')
+
+    // Make sure that changes in non-fullscreen are "transferred" to fullscreen
+    // when toggled from Edit mode.
+    cy.shortcut('{enter}')
+    cy.get('textarea').type('edit')
+    cy.shortcut('{shift}{enter}')
+    cy.get('.active-fullscreen textarea').should('have.value', '# 3\nAnother Child card testxyzedit')
+    cy.shortcut('{ctrl}{enter}')
+    cy.getCard(2,1,2).should('contain.html', '<p>Another Child card testxyzedit</p>')
   })
 
   it('Saved fullscreen changes correctly', function () {
@@ -101,6 +109,6 @@ describe('Fullscreen Editing', () => {
 
     cy.getCard(1,1,1).should('contain.html', '<p>Another Test doc</p>')
     cy.getCard(2,1,1).should('contain.html', '<p>Child cardabclmn line</p>')
-    cy.getCard(2,1,2).should('contain.html', '<p>Another Child card testxyz</p>')
+    cy.getCard(2,1,2).should('contain.html', '<p>Another Child card testxyzedit</p>')
   })
 })
