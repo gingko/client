@@ -12,6 +12,8 @@
 
   --selection-color: hsl(86, 54%, 51%);
 
+  --emphasis-color: hsl(36, 100%, 50%);
+
   /* --edit-bg is not defined here,
      so that we can fallback to
      "handmadepaper.png" background

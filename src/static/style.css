@@ -1308,7 +1308,11 @@ span.collaborators {
 #app-root.step-4 .card.active.editing:before,
 #app-root.step-4 .card.active.editing:after {
   line-height: 1;
-  font-size: 12px;
+  font-size: 18px;
+  font-weight: bold;
+  font-family: "Roboto Mono", monospace;
+  text-shadow: 1px 1px 0px hsla(0,0%,0%,0.3);
+  box-shadow: 0px 2px 2px hsla(0,0%,0%, 0.5);
   pointer-events: none;
   position: absolute;
   box-sizing: border-box;
@@ -1328,13 +1332,12 @@ span.collaborators {
   content: attr(data-tooltip);
   text-align: center;
   min-width: 3em;
-  max-width: 21em;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
-  padding: 6px 8px;
+  padding: 8px 10px;
   border-radius: 3px;
-  background: #4621FF;
+  background: var(--emphasis-color);
+  border: 1px solid hsla(0,0%,0%,0.2);
   color: #FFFFFF;
   z-index: 99;
 }
@@ -1379,7 +1382,7 @@ span.collaborators {
 [data-tooltip][data-flow="top"]::before {
   bottom: 100%;
   border-bottom-width: 0;
-  border-top-color: #4621FF;
+  border-top-color: var(--emphasis-color);
 }
 [data-tooltip]:not([data-flow])::after,
 [data-tooltip][data-flow="top"]::after {
@@ -1395,7 +1398,7 @@ span.collaborators {
 [data-tooltip][data-flow="bottom"]::before {
   top: 100%;
   border-top-width: 0;
-  border-bottom-color: #4621FF;
+  border-bottom-color: var(--emphasis-color);
 }
 [data-tooltip][data-flow="bottom"]::after {
   top: calc(100% + 5px);
@@ -1408,7 +1411,7 @@ span.collaborators {
 [data-tooltip][data-flow="left"]::before {
   top: 50%;
   border-right-width: 0;
-  border-left-color: #4621FF;
+  border-left-color: var(--emphasis-color);
   left: calc(0em - 5px);
   -webkit-transform: translate(-8px, -50%);
   transform: translate(-8px, -50%);
@@ -1422,7 +1425,7 @@ span.collaborators {
 [data-tooltip][data-flow="right"]::before {
   top: 50%;
   border-left-width: 0;
-  border-right-color: #4621FF;
+  border-right-color: var(--emphasis-color);
   right: calc(0em - 5px);
   -webkit-transform: translate(8px, -50%);
   transform: translate(8px, -50%);
