@@ -5,6 +5,7 @@ import Browser.Navigation as Nav
 import Doc.UI as UI
 import Html
 import Json.Decode as Dec exposing (Decoder, Value)
+import Outgoing exposing (Msg(..), send)
 import Page.Doc
 import Page.DocNew
 import Page.Empty
@@ -216,6 +217,26 @@ update msg model =
 
         ( ChangedUrl url, _ ) ->
             changeRouteTo (Route.fromUrl url) model
+
+        ( ClickedLink urlRequest, Doc docModel ) ->
+            case urlRequest of
+                Browser.Internal url ->
+                    if docModel.dirty then
+                        let
+                            saveShortcut =
+                                if docModel.isMac then
+                                    "⌘+enter"
+
+                                else
+                                    "Ctrl+Enter"
+                        in
+                        ( model, send <| Alert ("You have unsaved changes!\n" ++ saveShortcut ++ " to save.") )
+
+                    else
+                        ( model, Nav.pushUrl (Session.navKey (toUser model)) (Url.toString url) )
+
+                Browser.External href ->
+                    ( model, Nav.load href )
 
         ( ClickedLink urlRequest, _ ) ->
             case urlRequest of
