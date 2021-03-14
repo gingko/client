@@ -34,7 +34,7 @@ import Markdown
 import Outgoing exposing (Msg(..), send)
 import Page.Doc.Export as Export exposing (ExportFormat(..), ExportSelection(..), exportView, exportViewError)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
-import Page.Doc.Theme as Theme exposing (Theme(..), applyTheme)
+import Page.Doc.Theme as Theme exposing (Theme(..), applyTheme, setTourStep)
 import Random
 import RandomId
 import Regex
@@ -78,6 +78,7 @@ type alias Model =
     , exportPreview : Bool
     , exportSettings : ( ExportSelection, ExportFormat )
     , wordcountTrayOpen : Bool
+    , tourStep : Maybe Int
     , videoModalOpen : Bool
     , fontSelectorOpen : Bool
     , historyState : HistoryState
@@ -151,6 +152,7 @@ defaultModel isNew session docId =
     , exportPreview = False
     , exportSettings = ( ExportEverything, DOCX )
     , wordcountTrayOpen = False
+    , tourStep = Nothing
     , videoModalOpen = False
     , fontSelectorOpen = False
     , fonts = Fonts.default
@@ -1113,6 +1115,9 @@ update msg ({ workingTree } as model) =
                                 |> addToHistory
 
                 -- === UI ===
+                StartTour ->
+                    ( { model | tourStep = Just 1 }, Cmd.none )
+
                 ViewVideos ->
                     ( model
                     , Cmd.none
@@ -2520,7 +2525,7 @@ viewLoaded model =
                         Incoming (Keyboard shortcut)
                 in
                 div
-                    [ id "app-root", applyTheme model.theme ]
+                    [ id "app-root", applyTheme model.theme, setTourStep model.tourStep ]
                     ([ UI.viewHomeLink ToggleSidebar (not (model.sidebarState == SidebarClosed))
                      , documentView
                      , UI.viewHeader

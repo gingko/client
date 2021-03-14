@@ -32,6 +32,7 @@ type
     | TextCursor TextCursorInfo
     | CheckboxClicked String Int
       -- === UI ===
+    | StartTour
     | ViewVideos
     | FontSelectorOpen (List String)
     | Keyboard String
@@ -181,6 +182,9 @@ subscribe tagger onError =
                             onError (errorToString e)
 
                 -- === UI ===
+                "StartTour" ->
+                    tagger <| StartTour
+
                 "ViewVideos" ->
                     tagger <| ViewVideos
 

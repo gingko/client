@@ -382,6 +382,12 @@ const fromElm = (msg, elmData) => {
       savedImmutables.forEach(item => savedObjectIds.add(item));
 
       toElm(elmData.metadata.docId, "importComplete")
+
+      if (elmData.workingTree.children[0].content.includes('Welcome to Gingko Writer')) {
+        requestAnimationFrame(()=>{
+          toElm(null, "docMsgs", "StartTour");
+        })
+      }
     },
 
     SaveBulkImportedData: async () => {
