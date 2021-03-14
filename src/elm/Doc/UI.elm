@@ -306,7 +306,7 @@ viewSidebar modelLanguage msgs currentDocument fileFilter docList ( exportSelect
                 Export ->
                     div [ id "sidebar-menu" ]
                         [ h3 [] [ text "Export" ]
-                        , label [] [ text "Toggle export preview", input [ type_ "checkbox", onCheck msgs.exportPreviewToggled ] [] ]
+                        , label [] [ text "Toggle export preview", input [ type_ "checkbox", id "export-preview-checkbox", onCheck msgs.exportPreviewToggled ] [] ]
                         , hr [] []
                         , div [ id "export-selection" ]
                             (exportSelectionRadio ExportEverything "export-everything" "Whole tree"

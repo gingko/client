@@ -2511,7 +2511,7 @@ viewLoaded model =
                                 in
                                 case activeTree_ of
                                     Just activeTree ->
-                                        exportView model.exportSettings activeTree model.workingTree.tree
+                                        lazy3 exportView model.exportSettings activeTree model.workingTree.tree
 
                                     Nothing ->
                                         exportViewError "No card selected, cannot preview export."
