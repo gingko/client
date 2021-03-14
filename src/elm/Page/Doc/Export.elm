@@ -3,19 +3,20 @@ module Page.Doc.Export exposing (ExportFormat(..), ExportSelection(..), command,
 import Api
 import Bytes exposing (Bytes)
 import Coders exposing (treeToJSON, treeToMarkdownString)
+import Doc.TreeUtils exposing (getColumnById)
 import File.Download as Download
 import Html exposing (Html, div, pre, text)
 import Html.Attributes exposing (class, id)
 import Http
 import Json.Encode as Enc
 import Markdown
-import Types exposing (Tree)
+import Types exposing (Children(..), Tree)
 
 
 type ExportSelection
     = ExportEverything
     | ExportSubtree
-    | ExportColumn Int
+    | ExportCurrentColumn
 
 
 type ExportFormat
@@ -50,6 +51,12 @@ toString ( exportSelection, exportFormat ) activeTree fullTree =
 
                 _ ->
                     treeToMarkdownString withRoot tree
+
+        currentColumnCards =
+            getColumnById activeTree.id fullTree
+                |> Maybe.withDefault []
+                |> List.concat
+                |> List.map (\c -> { c | children = Children [] })
     in
     case exportSelection of
         ExportEverything ->
@@ -58,8 +65,16 @@ toString ( exportSelection, exportFormat ) activeTree fullTree =
         ExportSubtree ->
             stringFn True activeTree
 
-        _ ->
-            stringFn True activeTree
+        ExportCurrentColumn ->
+            case exportFormat of
+                JSON ->
+                    treeToJSON False (Tree "0" "" (Children currentColumnCards))
+                        |> Enc.encode 2
+
+                _ ->
+                    currentColumnCards
+                        |> List.map .content
+                        |> String.join "\n\n"
 
 
 

@@ -312,6 +312,8 @@ viewSidebar modelLanguage msgs currentDocument fileFilter docList ( exportSelect
                             (exportSelectionRadio ExportEverything "export-everything" "Whole tree"
                                 ++ [ br [] [] ]
                                 ++ exportSelectionRadio ExportSubtree "export-subtree" "Current card & Subtree"
+                                ++ [ br [] [] ]
+                                ++ exportSelectionRadio ExportCurrentColumn "export-current-column" "Current column"
                             )
                         , hr [] []
                         , div [ id "export-selection" ]
