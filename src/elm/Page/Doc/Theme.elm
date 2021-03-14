@@ -33,8 +33,7 @@ setTourStep : Maybe Int -> Html.Attribute msg
 setTourStep step_ =
     case step_ of
         Nothing ->
-            -- TODO : Just for now
-            class "step-1"
+            class ""
 
         Just step ->
             class ("step-" ++ String.fromInt step)

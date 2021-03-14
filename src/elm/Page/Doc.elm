@@ -152,7 +152,7 @@ defaultModel isNew session docId =
     , exportPreview = False
     , exportSettings = ( ExportEverything, DOCX )
     , wordcountTrayOpen = False
-    , tourStep = Nothing
+    , tourStep = {- TESTING: -} Just 1
     , videoModalOpen = False
     , fontSelectorOpen = False
     , fonts = Fonts.default
@@ -1539,6 +1539,13 @@ activate tryId instant ( model, prevCmd ) =
                     newField =
                         activeTree.content
 
+                    newTourStep =
+                        if model.tourStep == Just 1 && String.contains "data-step-1" activeTree.content then
+                            Just 2
+
+                        else
+                            model.tourStep
+
                     newModel =
                         { model
                             | viewState =
@@ -1549,6 +1556,7 @@ activate tryId instant ( model, prevCmd ) =
                                     , ancestors = anc
                                 }
                             , field = newField
+                            , tourStep = newTourStep
                         }
                 in
                 case vs.viewMode of
@@ -2030,13 +2038,31 @@ insertAbove id initText tup =
 
 
 insertBelow : String -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-insertBelow id initText tup =
-    insertRelative id 1 initText tup
+insertBelow id initText ( model, prevCmd ) =
+    let
+        newTourStep =
+            case model.tourStep of
+                Just 3 ->
+                    Just 4
+
+                _ ->
+                    model.tourStep
+    in
+    insertRelative id 1 initText ( { model | tourStep = newTourStep }, prevCmd )
 
 
 insertChild : String -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 insertChild id initText ( model, prevCmd ) =
-    ( model
+    let
+        newTourStep =
+            case model.tourStep of
+                Just 2 ->
+                    Just 3
+
+                _ ->
+                    model.tourStep
+    in
+    ( { model | tourStep = newTourStep }
     , prevCmd
     )
         |> insert id 999999 initText

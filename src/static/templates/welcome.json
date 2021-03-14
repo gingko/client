@@ -7,7 +7,7 @@
         "children": [ ]
       },
       {
-        "content": "<span data-tooltip='Click Here' data-step-1></span>## Another card\n\nClicking a card selects it.",
+        "content": "<span data-tooltip='Click Here' data-step-1></span>## Another card\n\nClicking a card selects it.<span data-tooltip='Click this to add a Child card' data-step-2 data-flow='left'></span>",
         "children": [ ]
       },
       {

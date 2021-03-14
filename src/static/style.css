@@ -1302,7 +1302,11 @@ span.collaborators {
   cursor: pointer;
 }
 [data-tooltip]:before,
-[data-tooltip]:after {
+[data-tooltip]:after,
+#app-root.step-3 .card.active.editing:before,
+#app-root.step-3 .card.active.editing:after ,
+#app-root.step-4 .card.active.editing:before,
+#app-root.step-4 .card.active.editing:after {
   line-height: 1;
   font-size: .9em;
   pointer-events: none;
@@ -1311,12 +1315,16 @@ span.collaborators {
   display: none;
   opacity: 0;
 }
-[data-tooltip]:before {
+[data-tooltip]:before,
+#app-root.step-3 .card.active.editing:before,
+#app-root.step-4 .card.active.editing:before {
   content: "";
   border: 5px solid transparent;
   z-index: 100;
 }
-[data-tooltip]:after {
+[data-tooltip]:after,
+#app-root.step-3 .card.active.editing:after,
+#app-root.step-4 .card.active.editing:after {
   content: attr(data-tooltip);
   text-align: center;
   min-width: 3em;
@@ -1330,6 +1338,12 @@ span.collaborators {
   color: #FFFFFF;
   z-index: 99;
 }
+#app-root.step-3 .card.active.editing:after {
+  content: "Type something, then press Ctrl+J";
+}
+#app-root.step-4 .card.active.editing:after {
+  content: "Type, then press Ctrl+Enter to save";
+}
 #app-root.step-1 [data-tooltip][data-step-1]:before,
 #app-root.step-1 [data-tooltip][data-step-1]:after {
   display: block;
@@ -1341,8 +1355,13 @@ span.collaborators {
   display: block;
   opacity: 1;
 }
-#app-root.step-3 [data-tooltip][data-step-3]:before,
-#app-root.step-3 [data-tooltip][data-step-3]:after {
+#app-root.step-3 .card.active.editing:before,
+#app-root.step-3 .card.active.editing:after {
+  display: block;
+  opacity: 1;
+}
+#app-root.step-4 .card.active.editing:before,
+#app-root.step-4 .card.active.editing:after {
   display: block;
   opacity: 1;
 }
