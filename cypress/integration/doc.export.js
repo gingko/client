@@ -18,6 +18,7 @@ describe('Document Exporting', () => {
     // Romeo & Juliet tree
     cy.visit(config.TEST_SERVER + '/' + this.treeIds[0])
     cy.url().should('contain', this.treeIds[0] )
+    cy.get('div.spinner').should('not.exist')
 
     // Select a mid-column card
     cy.getCard(2,1,4)
