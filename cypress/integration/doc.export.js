@@ -29,11 +29,28 @@ describe('Document Exporting', () => {
     cy.get('#export-button').click()
     cy.get('#export-preview-checkbox').check()
 
-    describe('Rendered/Word format', () => {
-      describe('Whole tree', () => {
+    describe('Whole Tree', () => {
+      describe('Word format', () => {
         cy.get('#export-preview', {log: false})
           .should('contain.html', '<h1 id="act-i">Act I</h1>')
           .should('contain.html', '<h2 id="act-1-prologue">Act 1, Prologue</h2>')
+          .should('contain.html', '<p><strong>Sampson</strong></p>\n<p>Gregory, o\' my word, we\'ll not carry coals.</p>')
+      })
+
+      describe('Plain text', () => {
+        cy.get('#export-plain').click()
+        cy.get('#export-preview pre', {log: false})
+          .should('contain.text', '# Act I')
+          .should('contain.text', '## Act 1, Prologue')
+          .should('contain.text', '**Sampson**\n\nGregory, o\' my word, we\'ll not carry coals.')
+      })
+
+      describe('JSON format', () => {
+        cy.get('#export-json').click()
+        cy.get('#export-preview pre', {log: false})
+          .should('contain.text', '"content": "# Act I')
+          .should('contain.text', '"content": "## Act 1, Prologue')
+          .should('contain.text', '"content": "**Sampson**\\n\\nGregory, o\' my word, we\'ll not carry coals.')
       })
     })
   })
