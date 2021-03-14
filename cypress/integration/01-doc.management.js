@@ -37,6 +37,19 @@ describe('Managing Documents', () => {
 
       cy.get('#title').contains('Random letters')
 
+      // Prevent navigating away if editing
+      const stub = cy.stub()
+      cy.on('window:alert', stub)
+
+      cy.shortcut('{enter}')
+      cy.writeInCard('chhh')
+      cy.get('#sidebar-menu .sidebar-document-item')
+        .first()
+        .click()
+        .then(()=> {
+          expect(stub.getCall(0)).to.be.calledWith('You have unsaved changes!\nCtrl+Enter to save.')
+        })
+      cy.url().should('contain', this.treeIds[6] )
     })
 
     it('Should have working sidebar and Quick Switcher', function () {
