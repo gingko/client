@@ -18,9 +18,10 @@ describe('Document Exporting', () => {
     // Romeo & Juliet tree
     cy.visit(config.TEST_SERVER + '/' + this.treeIds[0])
     cy.url().should('contain', this.treeIds[0] )
-    cy.get('div.spinner').should('not.exist')
+    cy.get('div.spinner', {timeout: 10000}).should('not.exist')
 
     // Select a mid-column card
+    cy.get('div.view', {timeout: 10000})
     cy.getCard(2,1,4)
       .should('contain.html', '<h2 id="act-1-scene-3">Act 1, Scene 3</h2>')
       .click()
