@@ -59,7 +59,10 @@ const caT = prepTranslation("ca", ca);
 const brT = prepTranslation("br", br);
 
 const allLanguageStrings = [].concat(zhHansT, zhHantT, esT, frT, deT, nlT, huT, svT, caT, brT)
-const otherReplacements = [{search: "{%SUPPORT_EMAIL%}", replace: config.SUPPORT_EMAIL, flags: 'g'} ];
+const otherReplacements = [
+    {search: "{%SUPPORT_EMAIL%}", replace: config.SUPPORT_EMAIL, flags: 'g'}
+  , {search: "{%HOMEPAGE_URL%}", replace: config.HOMEPAGE_URL, flags: 'g'}
+];
 
 const webConfig = {
   // "production" or "development" flag.
