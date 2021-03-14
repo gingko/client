@@ -1681,13 +1681,21 @@ saveAndStopEditing model =
     let
         vs =
             model.viewState
+
+        newTourStep =
+            case model.tourStep of
+                Just 4 ->
+                    Just 5
+
+                _ ->
+                    model.tourStep
     in
     case vs.viewMode of
         Normal ->
             ( model, Cmd.none ) |> openCard vs.active (getContent vs.active model.workingTree.tree)
 
         Editing ->
-            ( model, Cmd.none )
+            ( { model | tourStep = newTourStep }, Cmd.none )
                 |> saveCardIfEditing
                 |> closeCard
 

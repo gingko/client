@@ -766,13 +766,16 @@ viewShortcuts trayToggleMsg lang isOpen isMac children textCursorInfo vs =
         let
             iconColor =
                 Icon.color "#445"
+
+            tourTooltip =
+                span [ attribute "data-step-5" "", attribute "data-tooltip" "These are the shortcuts available", attribute "data-flow" "left" ] []
         in
         case vs.viewMode of
             Normal ->
                 [ div
                     [ id "shortcuts-tray", classList [ ( "open", isOpen ) ], onClick trayToggleMsg ]
                     [ div [ id "shortcuts" ]
-                        [ h3 [] [ text "Keyboard Shortcuts" ]
+                        [ h3 [] [ text "Keyboard Shortcuts", tourTooltip ]
                         , h5 [] [ text "Edit Cards" ]
                         , shortcutSpan [ tr lang EnterKey ] (tr lang EnterAction)
                         , shortcutSpan [ "Shift", tr lang EnterKey ] (tr lang EditFullscreenAction)

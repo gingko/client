@@ -1308,7 +1308,7 @@ span.collaborators {
 #app-root.step-4 .card.active.editing:before,
 #app-root.step-4 .card.active.editing:after {
   line-height: 1;
-  font-size: .9em;
+  font-size: 12px;
   pointer-events: none;
   position: absolute;
   box-sizing: border-box;
@@ -1365,6 +1365,16 @@ span.collaborators {
   display: block;
   opacity: 1;
 }
+#app-root.step-5 [data-tooltip][data-step-5]:before,
+#app-root.step-5 [data-tooltip][data-step-5]:after {
+  position: fixed;
+  display: block;
+  opacity: 1;
+}
+#app-root.step-5 [data-tooltip][data-step-5]:before {
+  top: 62px;
+  right: 198px;
+}
 [data-tooltip]:not([data-flow])::before,
 [data-tooltip][data-flow="top"]::before {
   bottom: 100%;
@@ -1403,7 +1413,7 @@ span.collaborators {
   -webkit-transform: translate(-8px, -50%);
   transform: translate(-8px, -50%);
 }
-[data-tooltip][data-flow="left"]::after {
+[data-tooltip][data-flow="left"]:not([data-step-5])::after {
   top: 50%;
   right: calc(100% + 5px);
   -webkit-transform: translate(-8px, -50%);
