@@ -153,7 +153,7 @@ defaultModel isNew session docId =
     , exportPreview = False
     , exportSettings = ( ExportEverything, DOCX )
     , wordcountTrayOpen = False
-    , tourStep = {- TODO TESTING: -} Just 7
+    , tourStep = Nothing
     , videoModalOpen = False
     , fontSelectorOpen = False
     , fonts = Fonts.default
@@ -1710,7 +1710,7 @@ saveAndStopEditing model =
                 Just 4 ->
                     ( Just 5
                     , Session.setShortcutTrayOpen True model.session
-                    , Task.perform (always <| TourStep (Just 6)) (Process.sleep 1000)
+                    , Task.perform (always <| TourStep (Just 6)) (Process.sleep 3400)
                     )
 
                 _ ->

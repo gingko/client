@@ -777,7 +777,7 @@ viewShortcuts trayToggleMsg lang isOpen isMac children textCursorInfo vs =
                 [ div
                     [ id "shortcuts-tray", classList [ ( "open", isOpen ) ], onClick trayToggleMsg ]
                     [ div [ id "shortcuts" ]
-                        [ h3 [] [ text "Keyboard Shortcuts", tourTooltip "Keyboard Shortcuts" ]
+                        [ h3 [] [ text "Keyboard Shortcuts", tourTooltip "Shortcuts List" ]
                         , h5 [] [ text "Edit Cards" ]
                         , shortcutSpan [ tr lang EnterKey ] (tr lang EnterAction)
                         , shortcutSpan [ "Shift", tr lang EnterKey ] (tr lang EditFullscreenAction)

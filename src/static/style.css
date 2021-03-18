@@ -1323,7 +1323,7 @@ span.collaborators {
 #app-root.step-3 .card.active.editing:before,
 #app-root.step-4 .card.active.editing:before {
   content: "";
-  border: 5px solid transparent;
+  border: 10px solid transparent;
   z-index: 100;
 }
 [data-tooltip]:after,
@@ -1354,6 +1354,14 @@ span.collaborators {
   display: block;
   opacity: 1;
 }
+#app-root.step-1 [data-tooltip][data-step-1]:before {
+  bottom: 44px;
+  left: 44px;
+}
+#app-root.step-1 [data-tooltip][data-step-1]:after {
+  bottom: 57px;
+  left: -17px;
+}
 #app-root.step-2 [data-tooltip][data-step-2]:before,
 #app-root.step-2 [data-tooltip][data-step-2]:after {
   position: absolute;
@@ -1363,6 +1371,7 @@ span.collaborators {
 span[data-step-2] {
   position: absolute;
   right: 0px;
+  bottom: 50%;
 }
 #app-root.step-3 .card.active.editing:before,
 #app-root.step-3 .card.active.editing:after ,
@@ -1377,19 +1386,40 @@ span[data-step-2] {
   display: block;
   opacity: 1;
 }
+#app-root.step-5 [data-tooltip][data-step-5]:before {
+  right: 216px;
+  top: 51px;
+  left: auto;
+  transform: inherit;
+}
 #app-root.step-5 [data-tooltip][data-step-5]:after {
-  right: 43px;
-  top: 47px;
+  right: 225px;
+  top: 43px;
 }
 #app-root.step-6 [data-tooltip][data-step-6]:before,
 #app-root.step-6 [data-tooltip][data-step-6]:after {
   display: block;
   opacity: 1;
 }
+#app-root.step-6 [data-tooltip][data-step-6]:before{
+  top: 23px;
+  right: 0px;
+  transform: inherit;
+  left: auto;
+}
+#app-root.step-6 [data-tooltip][data-step-6]:after{
+  top: 32px;
+  right: -7px;
+  transform: inherit;
+  left: auto;
+}
 #app-root.step-7 [data-tooltip][data-step-7]:before,
 #app-root.step-7 [data-tooltip][data-step-7]:after {
   display: block;
   opacity: 1;
+}
+#app-root.step-7 [data-tooltip][data-step-7]:before {
+  z-index: 999;
 }
 span[data-step-7] {
   position:  fixed;
