@@ -1297,6 +1297,91 @@ span.collaborators {
 }
 
 /* === TOUR === */
+div.tour-step {
+  line-height: 1;
+  font-size: 18px;
+  font-weight: bold;
+  font-family: "Roboto Mono", monospace;
+  /*pointer-events: none;*/
+  position: absolute;
+  box-sizing: border-box;
+  padding: 8px 10px 16px 10px;
+  border-radius: 3px;
+  background: var(--emphasis-color);
+  text-shadow: 1px 1px 0px hsla(0,0%,0%,0.3);
+  box-shadow: 0px 2px 2px hsla(0,0%,0%, 0.5);
+  border: 1px solid hsla(0,0%,0%,0.2);
+  color: #FFFFFF;
+  animation: fadeIn 1s;
+  animation-fill-mode: forwards;
+  display: none;
+  opacity: 0;
+}
+.tour-step .arrow {
+  color: #FB8C00;
+  text-shadow: 0px 2px 2px hsla(0,0%,0%, 0.5);
+  position: absolute;
+  font-size: 28px;
+}
+.tour-step-progress {
+  background: #FB8C00;
+  position: absolute;
+  display: flex;
+  justify-content: space-around;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 3px;
+}
+.tour-step-progress * {
+  background-color: #ffa95c;
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+}
+.tour-step-progress *.on {
+  background-color: peachpuff;
+  z-index: 3;
+}
+.tour-step-progress .bg-line {
+  position: absolute;
+  height: 2px;
+  width: 86%;
+  top: 5px;
+  z-index: 0;
+}
+.tour-step-progress .bg-line.on {
+  z-index: 1;
+}
+#app-root.step-1 #welcome-step-1 {
+  display: block;
+  opacity: 1;
+  top: -32px;
+  left: -2px;
+}
+#welcome-step-1 .arrow {
+  bottom: -19px;
+  left: 55px;
+}
+#app-root.step-2 #welcome-step-2 {
+  display: block;
+  opacity: 1;
+  top: 17%;
+  right: 32px;
+  max-width: 206px;
+  text-align: right;
+}
+#welcome-step-2 .arrow {
+  top: 14px;
+  right: -17px;
+}
+#welcome-step-2 .bg-line.on {
+  width: 31px;
+  left: 18px;
+}
+#app-root.step-2 .ins-right {
+  opacity: 1;
+}
 [data-tooltip] {
   position: relative;
   cursor: pointer;

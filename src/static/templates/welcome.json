@@ -7,7 +7,7 @@
         "children": [ ]
       },
       {
-        "content": "## Another card\n\n<span data-tooltip='Click Here' data-step-1></span>Clicking a card selects it.<span data-tooltip='Click here to add a Child card' data-step-2 data-flow='left'></span>",
+        "content": "## Another card\n\n<div id='welcome-step-1' class='tour-step'>Click Here</div>Clicking a card selects it.<div id='gingko-tour-step-2'></div>",
         "children": [ ]
       },
       {

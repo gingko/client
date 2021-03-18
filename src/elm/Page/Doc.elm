@@ -153,7 +153,7 @@ defaultModel isNew session docId =
     , exportPreview = False
     , exportSettings = ( ExportEverything, DOCX )
     , wordcountTrayOpen = False
-    , tourStep = Nothing
+    , tourStep = Just 1
     , videoModalOpen = False
     , fontSelectorOpen = False
     , fonts = Fonts.default
@@ -1563,7 +1563,7 @@ activate tryId instant ( model, prevCmd ) =
                         activeTree.content
 
                     newTourStep =
-                        if model.tourStep == Just 1 && String.contains "data-step-1" activeTree.content then
+                        if model.tourStep == Just 1 && String.contains "welcome-step-1" activeTree.content then
                             Just 2
 
                         else
