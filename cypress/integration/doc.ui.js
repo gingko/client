@@ -74,14 +74,11 @@ describe('Document UI', () => {
     cy.get('#sidebar-menu').should('not.exist')
 
     // Toggles shortcut tray on clicking right-sidebar
+    cy.get('#app-root').should('not.contain', 'Keyboard Shortcuts')
+    cy.get('#shortcuts-tray').click({position: "top"})
     cy.contains('Keyboard Shortcuts')
 
-    cy.get('#shortcuts-tray').click({position: "top"})
-
-    cy.get('#app-root').should('not.contain', 'Keyboard Shortcuts')
-
     // Shows different shortcuts based on mode
-    cy.get('#shortcuts-tray').click({position: "top"})
     cy.contains('(Edit Mode)')
 
     cy.writeInCard('This is a test')
