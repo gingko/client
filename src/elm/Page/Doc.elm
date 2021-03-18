@@ -35,6 +35,7 @@ import Outgoing exposing (Msg(..), send)
 import Page.Doc.Export as Export exposing (ExportFormat(..), ExportSelection(..), exportView, exportViewError)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Doc.Theme as Theme exposing (Theme(..), applyTheme, setTourStep)
+import Process
 import Random
 import RandomId
 import Regex
@@ -152,7 +153,7 @@ defaultModel isNew session docId =
     , exportPreview = False
     , exportSettings = ( ExportEverything, DOCX )
     , wordcountTrayOpen = False
-    , tourStep = {- TESTING: -} Just 1
+    , tourStep = {- TODO TESTING: -} Just 7
     , videoModalOpen = False
     , fontSelectorOpen = False
     , fonts = Fonts.default
@@ -251,6 +252,7 @@ type Msg
     | UpgradeModalMsg Upgrade.Msg
       -- HELP
     | ClickedEmailSupport
+    | TourStep (Maybe Int)
     | ContactFormMsg ContactForm.Model ContactForm.Msg
     | CopyEmailClicked
     | ContactFormSubmitted ContactForm.Model
@@ -618,6 +620,14 @@ update msg ({ workingTree } as model) =
             ( { model | session = newUser }, Route.pushUrl (Session.navKey newUser) Route.Login )
 
         ToggledHelpMenu isOpen ->
+            let
+                ( newTourStep, newSidebarState ) =
+                    if model.tourStep == Just 6 then
+                        ( Just 7, File )
+
+                    else
+                        ( model.tourStep, model.sidebarState )
+            in
             ( { model
                 | dropdownState =
                     if isOpen then
@@ -625,6 +635,8 @@ update msg ({ workingTree } as model) =
 
                     else
                         NoDropdown
+                , tourStep = newTourStep
+                , sidebarState = newSidebarState
               }
             , Cmd.none
             )
@@ -695,6 +707,9 @@ update msg ({ workingTree } as model) =
             , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "contact-body")
             )
 
+        TourStep step_ ->
+            ( { model | tourStep = step_ }, Cmd.none )
+
         ContactFormMsg formModel formMsg ->
             ( { model | modalState = ContactForm (ContactForm.update formMsg formModel) }, Cmd.none )
 
@@ -733,7 +748,15 @@ update msg ({ workingTree } as model) =
             ( { model | session = newSessionData, sidebarState = newSidebarState }, Cmd.none )
 
         TemplateSelectorOpened ->
-            ( { model | modalState = TemplateSelector }, Cmd.none )
+            let
+                newTourStep =
+                    if model.tourStep == Just 7 then
+                        Nothing
+
+                    else
+                        model.tourStep
+            in
+            ( { model | modalState = TemplateSelector, tourStep = newTourStep }, Cmd.none )
 
         WordcountModalOpened ->
             ( { model | modalState = Wordcount }, Cmd.none )
@@ -1682,20 +1705,23 @@ saveAndStopEditing model =
         vs =
             model.viewState
 
-        newTourStep =
+        ( newTourStep, newSession, maybeTriggerNextTour ) =
             case model.tourStep of
                 Just 4 ->
-                    Just 5
+                    ( Just 5
+                    , Session.setShortcutTrayOpen True model.session
+                    , Task.perform (always <| TourStep (Just 6)) (Process.sleep 1000)
+                    )
 
                 _ ->
-                    model.tourStep
+                    ( model.tourStep, model.session, Cmd.none )
     in
     case vs.viewMode of
         Normal ->
             ( model, Cmd.none ) |> openCard vs.active (getContent vs.active model.workingTree.tree)
 
         Editing ->
-            ( { model | tourStep = newTourStep }, Cmd.none )
+            ( { model | tourStep = newTourStep, session = newSession }, maybeTriggerNextTour )
                 |> saveCardIfEditing
                 |> closeCard
 

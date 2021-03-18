@@ -303,7 +303,7 @@ decodeLoggedIn key =
         |> required "currentTime" (Dec.int |> Dec.map Time.millisToPosix)
         |> optional "language" (Dec.string |> Dec.map langFromString) En
         |> optional "paymentStatus" decodePaymentStatus Unknown
-        |> optional "shortcutTrayOpen" Dec.bool True
+        |> optional "shortcutTrayOpen" Dec.bool False
         |> optional "lastDocId" (Dec.maybe Dec.string) Nothing
 
 
@@ -338,7 +338,7 @@ responseDecoder session =
         |> required "email" Dec.string
         |> optionalAt [ "settings", "language" ] (Dec.map langFromString Dec.string) En
         |> optionalAt [ "settings", "paymentStatus" ] decodePaymentStatus Unknown
-        |> optionalAt [ "settings", "shortcutTrayOpen" ] Dec.bool True
+        |> optionalAt [ "settings", "shortcutTrayOpen" ] Dec.bool False
 
 
 encode : Session -> Enc.Value

@@ -226,6 +226,7 @@ viewTopRightButtons msgs dropdownState session =
         (maybeUpgrade
             ++ [ div [ id "help-icon", onClick (msgs.toggledHelpMenu (not isHelpDropdown)) ]
                     [ helpIcon
+                    , span [ attribute "data-step-6" "", attribute "data-tooltip" "Click to see help menu", attribute "data-flow" "bottom" ] []
                     , if isHelpDropdown then
                         ul [ id "help-dropdown", class "dropdown" ]
                             [ li [] [ a [ href "https://docs.gingkowriter.com", target "_blank" ] [ text "FAQ" ] ]
@@ -298,6 +299,7 @@ viewSidebar modelLanguage msgs currentDocument fileFilter docList ( exportSelect
                         , button
                             [ id "new-button", onClick msgs.templateSelectorOpened, class "sidebar-item" ]
                             [ text "New" ]
+                        , span [ attribute "data-tooltip" "Click here for new document", attribute "data-flow" "right", attribute "data-step-7" "" ] []
                         , hr [ style "width" "80%" ] []
                         , input [ type_ "search", onInput msgs.fileSearchChanged ] []
                         , DocList.viewSmall msgs.contextMenuOpened currentDocument filteredList
@@ -762,8 +764,8 @@ viewShortcuts trayToggleMsg lang isOpen isMac children textCursorInfo vs =
             else
                 "Ctrl"
 
-        tourTooltip =
-            span [ attribute "data-step-5" "", attribute "data-tooltip" "These are the shortcuts available", attribute "data-flow" "left" ] []
+        tourTooltip str =
+            span [ attribute "data-step-5" "", attribute "data-tooltip" str, attribute "data-flow" "left" ] []
     in
     if isOpen then
         let
@@ -775,7 +777,7 @@ viewShortcuts trayToggleMsg lang isOpen isMac children textCursorInfo vs =
                 [ div
                     [ id "shortcuts-tray", classList [ ( "open", isOpen ) ], onClick trayToggleMsg ]
                     [ div [ id "shortcuts" ]
-                        [ h3 [] [ text "Keyboard Shortcuts", tourTooltip ]
+                        [ h3 [] [ text "Keyboard Shortcuts", tourTooltip "Keyboard Shortcuts" ]
                         , h5 [] [ text "Edit Cards" ]
                         , shortcutSpan [ tr lang EnterKey ] (tr lang EnterAction)
                         , shortcutSpan [ "Shift", tr lang EnterKey ] (tr lang EditFullscreenAction)
@@ -841,7 +843,7 @@ viewShortcuts trayToggleMsg lang isOpen isMac children textCursorInfo vs =
         [ div
             [ id "shortcuts-tray", onClick trayToggleMsg, title <| tr lang KeyboardHelp ]
             [ div [ classList [ ( "icon-stack", True ), ( "open", isOpen ) ] ]
-                [ Icon.keyboard (defaultOptions |> iconColor), tourTooltip ]
+                [ Icon.keyboard (defaultOptions |> iconColor) ]
             ]
         ]
 
