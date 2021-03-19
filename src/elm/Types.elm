@@ -101,6 +101,7 @@ type alias VisibleViewState =
     , dragModel : DragDrop.Model String DropId
     , collaborators : List CollabState
     , language : Translation.Language
+    , isMac : Bool
     }
 
 

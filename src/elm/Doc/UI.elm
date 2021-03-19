@@ -226,7 +226,21 @@ viewTopRightButtons msgs dropdownState session =
         (maybeUpgrade
             ++ [ div [ id "help-icon", onClick (msgs.toggledHelpMenu (not isHelpDropdown)) ]
                     [ helpIcon
-                    , span [ attribute "data-step-6" "", attribute "data-tooltip" "Click to see help menu", attribute "data-flow" "bottom" ] []
+                    , div [ id "welcome-step-6", class "tour-step" ]
+                        [ text "Click to see Help Menu"
+                        , div [ class "arrow" ] [ text "▲" ]
+                        , div [ id "progress-step-6", class "tour-step-progress" ]
+                            [ div [ class "bg-line", class "on" ] []
+                            , div [ class "bg-line", class "off" ] []
+                            , div [ class "on" ] []
+                            , div [ class "on" ] []
+                            , div [ class "on" ] []
+                            , div [ class "on" ] []
+                            , div [ class "on" ] []
+                            , div [ class "on" ] []
+                            , div [] []
+                            ]
+                        ]
                     , if isHelpDropdown then
                         ul [ id "help-dropdown", class "dropdown" ]
                             [ li [] [ a [ href "https://docs.gingkowriter.com", target "_blank" ] [ text "FAQ" ] ]
@@ -299,7 +313,21 @@ viewSidebar modelLanguage msgs currentDocument fileFilter docList ( exportSelect
                         , button
                             [ id "new-button", onClick msgs.templateSelectorOpened, class "sidebar-item" ]
                             [ text "New" ]
-                        , span [ attribute "data-tooltip" "Click here for new document", attribute "data-flow" "right", attribute "data-step-7" "" ] []
+                        , div [ id "welcome-step-7", class "tour-step" ]
+                            [ text "Click here for New Document"
+                            , div [ class "arrow" ] [ text "◀" ]
+                            , div [ id "progress-step-7", class "tour-step-progress" ]
+                                [ div [ class "bg-line", class "on" ] []
+                                , div [ class "bg-line", class "off" ] []
+                                , div [ class "on" ] []
+                                , div [ class "on" ] []
+                                , div [ class "on" ] []
+                                , div [ class "on" ] []
+                                , div [ class "on" ] []
+                                , div [ class "on" ] []
+                                , div [ class "on" ] []
+                                ]
+                            ]
                         , hr [ style "width" "80%" ] []
                         , input [ type_ "search", onInput msgs.fileSearchChanged ] []
                         , DocList.viewSmall msgs.contextMenuOpened currentDocument filteredList
@@ -765,7 +793,21 @@ viewShortcuts trayToggleMsg lang isOpen isMac children textCursorInfo vs =
                 "Ctrl"
 
         tourTooltip str =
-            span [ attribute "data-step-5" "", attribute "data-tooltip" str, attribute "data-flow" "left" ] []
+            div [ id "welcome-step-5", class "tour-step" ]
+                [ text "Shortcuts List"
+                , div [ class "arrow" ] [ text "▶" ]
+                , div [ id "progress-step-5", class "tour-step-progress" ]
+                    [ div [ class "bg-line", class "on" ] []
+                    , div [ class "bg-line", class "off" ] []
+                    , div [ class "on" ] []
+                    , div [ class "on" ] []
+                    , div [ class "on" ] []
+                    , div [ class "on" ] []
+                    , div [ class "on" ] []
+                    , div [] []
+                    , div [] []
+                    ]
+                ]
     in
     if isOpen then
         let

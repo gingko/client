@@ -1382,82 +1382,85 @@ div.tour-step {
 #app-root.step-2 .ins-right {
   opacity: 1;
 }
-[data-tooltip] {
-  position: relative;
-  cursor: pointer;
-}
-[data-tooltip]:before,
-[data-tooltip]:after,
-#app-root.step-3 .card.active.editing:before,
-#app-root.step-3 .card.active.editing:after ,
-#app-root.step-4 .card.active.editing:before,
-#app-root.step-4 .card.active.editing:after {
-  line-height: 1;
-  font-size: 18px;
-  font-weight: bold;
-  font-family: "Roboto Mono", monospace;
-  pointer-events: none;
-  position: absolute;
-  box-sizing: border-box;
-  animation: fadeIn 1s;
-  animation-fill-mode: forwards;
-  display: none;
-  opacity: 0;
-}
-[data-tooltip]:before,
-#app-root.step-3 .card.active.editing:before,
-#app-root.step-4 .card.active.editing:before {
-  content: "";
-  border: 10px solid transparent;
-  z-index: 100;
-}
-[data-tooltip]:after,
-#app-root.step-3 .card.active.editing:after,
-#app-root.step-4 .card.active.editing:after {
-  content: attr(data-tooltip);
-  text-align: center;
-  min-width: 3em;
-  white-space: nowrap;
-  overflow: hidden;
-  padding: 8px 10px;
-  border-radius: 3px;
-  background: var(--emphasis-color);
-  text-shadow: 1px 1px 0px hsla(0,0%,0%,0.3);
-  box-shadow: 0px 2px 2px hsla(0,0%,0%, 0.5);
-  border: 1px solid hsla(0,0%,0%,0.2);
-  color: #FFFFFF;
-  z-index: 99;
-}
-#app-root.step-3 .card.active.editing:after {
-  content: "Type something, then press Ctrl+J";
-}
-#app-root.step-4 .card.active.editing:after {
-  content: "Type, then press Ctrl+Enter to save";
-}
-#app-root.step-1 [data-tooltip][data-step-1]:before,
-#app-root.step-1 [data-tooltip][data-step-1]:after {
+#app-root.step-3 #welcome-step-3 {
   display: block;
   opacity: 1;
+  max-width: 206px;
 }
-#app-root.step-1 [data-tooltip][data-step-1]:before {
-  bottom: 44px;
-  left: 44px;
+#welcome-step-3 .arrow {
+  text-shadow: none;
+  top: -25px;
 }
-#app-root.step-1 [data-tooltip][data-step-1]:after {
-  bottom: 57px;
+#welcome-step-3 .bg-line.on {
+  width: 57px;
+  left: 16px;
+}
+#app-root.step-4 #welcome-step-4 {
+  display: block;
+  opacity: 1;
+  max-width: 188px;
+}
+#welcome-step-4 .arrow {
+  text-shadow: none;
+  top: -25px;
+}
+#welcome-step-4 .bg-line.on {
+  width: 75px;
+  left: 16px;
+}
+#app-root.step-5 #welcome-step-5 {
+  display: block;
+  opacity: 1;
+  top: 42px;
+  right: 224px;
+}
+#welcome-step-5 .arrow {
+  text-shadow: none;
+  top: 2px;
+  right: -14px;
+  color: var(--emphasis-color);
+}
+#welcome-step-5 .bg-line.on {
+  width: 92px;
+  left: 16px;
+}
+#app-root.step-6 #welcome-step-6 {
+  display: block;
+  opacity: 1;
+  top: 41px;
+  right: 39px;
+}
+#welcome-step-6 .arrow {
+  text-shadow: none;
+  color: var(--emphasis-color);
+  top: -24px;
+  right: 3px;
+}
+#welcome-step-6 .tour-step-progress {
+  margin-left: 0;
+}
+#welcome-step-6 .bg-line.on {
+  width: 178px;
+  left: 16px;
+}
+#app-root.step-7 #welcome-step-7 {
+  display: block;
+  opacity: 1;
+  top: 81px;
+  left: 238px;
+  max-width: 174px;
+}
+#welcome-step-7 .arrow {
+  text-shadow: none;
+  color: var(--emphasis-color);
+  top: 3px;
   left: -17px;
 }
-#app-root.step-2 [data-tooltip][data-step-2]:before,
-#app-root.step-2 [data-tooltip][data-step-2]:after {
-  position: absolute;
-  display: block;
-  opacity: 1;
+#welcome-step-7 .bg-line.on{
+  width: 141px;
+  left: 16px;
 }
-span[data-step-2] {
-  position: absolute;
-  right: 0px;
-  bottom: 50%;
-}
+/* OLD TOUR TOOLTIPS */
 #app-root.step-3 .card.active.editing:before,
 #app-root.step-3 .card.active.editing:after ,
 #app-root.step-4 .card.active.editing:before,

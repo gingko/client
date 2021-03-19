@@ -153,7 +153,7 @@ defaultModel isNew session docId =
     , exportPreview = False
     , exportSettings = ( ExportEverything, DOCX )
     , wordcountTrayOpen = False
-    , tourStep = Just 1
+    , tourStep = Nothing
     , videoModalOpen = False
     , fontSelectorOpen = False
     , fonts = Fonts.default
@@ -2567,7 +2567,7 @@ viewLoaded model =
                     documentView =
                         case model.exportPreview of
                             False ->
-                                lazy3 treeView (Session.language model.session) model.viewState model.workingTree
+                                lazy4 treeView (Session.language model.session) model.isMac model.viewState model.workingTree
 
                             True ->
                                 let
@@ -2679,12 +2679,12 @@ repeating-linear-gradient(-45deg
                 ]
                 [ ul [ class "conflicts-list" ]
                     (List.map (viewConflict SetSelection Resolve) conflicts)
-                , lazy3 treeView (Session.language model.session) model.viewState model.workingTree
+                , lazy4 treeView (Session.language model.session) model.isMac model.viewState model.workingTree
                 ]
 
 
-treeView : Language -> ViewState -> TreeStructure.Model -> Html Msg
-treeView lang vstate model =
+treeView : Language -> Bool -> ViewState -> TreeStructure.Model -> Html Msg
+treeView lang isMac vstate model =
     let
         searchFilter term_ cols =
             case term_ of
@@ -2733,6 +2733,7 @@ treeView lang vstate model =
                 vstate.dragModel
                 vstate.collaborators
                 lang
+                isMac
 
         columns =
             columnsFiltered
@@ -2824,7 +2825,7 @@ viewGroup vstate xs =
                 ( t.id, lazy8 viewCardActive vstate.language t.id t.content (hasChildren t) isLast collabsOnCard collabsEditingCard vstate.dragModel )
 
             else if isEditing then
-                ( t.id, viewCardEditing vstate.language t.id t.content (hasChildren t) )
+                ( t.id, viewCardEditing vstate.language t.id t.content (hasChildren t) vstate.isMac )
 
             else
                 ( t.id, lazy7 viewCardOther t.id t.content isEditing (hasChildren t) isAncestor isLast vstate.dragModel )
@@ -2936,8 +2937,16 @@ viewCardActive lang cardId content isParent isLast collabsOnCard collabsEditingC
         )
 
 
-viewCardEditing : Language -> String -> String -> Bool -> Html Msg
-viewCardEditing lang cardId content isParent =
+viewCardEditing : Language -> String -> String -> Bool -> Bool -> Html Msg
+viewCardEditing lang cardId content isParent isMac =
+    let
+        ctrlOrCmd =
+            if isMac then
+                "⌘"
+
+            else
+                "Ctrl"
+    in
     div
         [ id ("card-" ++ cardId)
         , dir "auto"
@@ -2968,6 +2977,42 @@ viewCardEditing lang cardId content isParent =
                 ]
                 []
             ]
+        , div [ id "welcome-step-3", class "tour-step" ]
+            [ text <| "Type something, then press " ++ ctrlOrCmd ++ "+J"
+            , div [ class "arrow" ] [ text "▲" ]
+            , div [ id "progress-step-3", class "tour-step-progress" ]
+                [ div [ class "bg-line", class "on" ] []
+                , div [ class "bg-line", class "off" ] []
+                , div [ class "on" ] []
+                , div [ class "on" ] []
+                , div [ class "on" ] []
+                , div [] []
+                , div [] []
+                , div [] []
+                , div [] []
+                ]
+            ]
+        , div [ id "welcome-step-4", class "tour-step" ]
+            [ text <| "Type something, then press " ++ ctrlOrCmd ++ "+Enter"
+            , div [ class "arrow" ] [ text "▲" ]
+            , div [ id "progress-step-3", class "tour-step-progress" ]
+                [ div [ class "bg-line", class "on" ] []
+                , div [ class "bg-line", class "off" ] []
+                , div [ class "on" ] []
+                , div [ class "on" ] []
+                , div [ class "on" ] []
+                , div [ class "on" ] []
+                , div [] []
+                , div [] []
+                , div [] []
+                ]
+            ]
+
+        {-
+           <div id='welcome-step-2' class='tour-step'>
+           Click here to add a Child card<div class='arrow'>▶</div>
+           <div class='tour-step-progress' id='progress-step-2'><div class='bg-line on'></div><div class='bg-line off'></div><div class='on'></div><div class="on"></div><div></div><div></div><div></div><div></div><div></div></div></div>
+        -}
         ]
 
 
