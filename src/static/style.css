@@ -190,6 +190,7 @@ body {
 .center-form {
   grid-area: form;
   padding: 20px;
+  max-width: 275px;
 }
 
 .center-form form {
@@ -217,7 +218,9 @@ a.forgot-password {
   font-size: smaller;
   color: gray;
 }
-
+#form-error {
+  white-space: pre-wrap;
+}
 .input-error {
   color: red;
   font-size: 12px;

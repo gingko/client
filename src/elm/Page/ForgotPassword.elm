@@ -89,8 +89,8 @@ update msg model =
 
                         BadStatus statusCode ->
                             case statusCode of
-                                401 ->
-                                    ( Form, "Email or Password was incorrect. Please try again." )
+                                404 ->
+                                    ( Form, "Email not found.\n\nAre you trying to login with your gingkoapp.com username/password?\n\nYou'll need to create a new account to use the new version." )
 
                                 _ ->
                                     fallbackMsg
@@ -148,7 +148,7 @@ view model =
                     , div [ class "header" ] [ span [ class "alt-action" ] [ text "New to Gingko? ", a [ href "/signup" ] [ text "Signup" ] ] ]
                     , div [ class "center-form" ]
                         [ form [ onSubmit SubmittedForm ]
-                            [ div [] [ text (String.join "\n" formErrors) ]
+                            [ div [ id "form-error" ] [ text (String.join "\n" formErrors) ]
                             , div [ class "input-error" ] [ text (String.join "\n" emailErrors) ]
                             , input
                                 [ onInput EnteredEmail
