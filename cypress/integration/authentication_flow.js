@@ -114,9 +114,7 @@ describe('User Signup Flow', () => {
     cy.url().should('contain', '/forgot-password')
 
     cy.get('input[type=email]')
-      .then(($el) =>{
-        Cypress.dom.isFocused($el)
-      })
+      .focus()
       .type(testEmail)
 
     cy.get('button.cta')
