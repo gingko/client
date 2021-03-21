@@ -11,6 +11,7 @@ import Time.Format.Config.Config_es_es
 import Time.Format.Config.Config_fr_fr
 import Time.Format.Config.Config_nl_nl
 import Time.Format.Config.Config_pt_br
+import Time.Format.Config.Config_ru_ru
 import Time.Format.Config.Config_sv_se
 
 
@@ -90,6 +91,7 @@ type Language
     | Zh_HANT
     | Es
     | Fr
+    | Ru
     | De
     | Nl
     | Hu
@@ -116,6 +118,9 @@ languageName lang =
         Fr ->
             "Français"
 
+        Ru ->
+            "ру́сский"
+
         De ->
             "Deutsch"
 
@@ -137,19 +142,12 @@ languageName lang =
 
 activeLanguages : List ( Language, String )
 activeLanguages =
-    [ En, Zh_HANS, Zh_HANT, Es, Fr, Br, De, Nl, Hu, Sv, Ca ] |> List.map (\l -> ( l, languageName l ))
+    [ En, Zh_HANS, Zh_HANT, Es, Fr, Ru, Br, De, Nl, Hu, Sv, Ca ] |> List.map (\l -> ( l, languageName l ))
 
 
 tr : Language -> TranslationId -> String
 tr lang trans =
     let
-        pluralize n str =
-            if n == 1 then
-                str
-
-            else
-                str ++ "s"
-
         numberPlural n sing pl =
             if n == 1 then
                 sing |> String.replace "%1" (String.fromInt n)
@@ -165,6 +163,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:Cancel"
                     , es = "%es:Cancel"
                     , fr = "%fr:Cancel"
+                    , ru = "%ru:Cancel"
                     , de = "%de:Cancel"
                     , nl = "%nl:Cancel"
                     , hu = "%hu:Cancel"
@@ -179,6 +178,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:HomeBlank"
                     , es = "%es:HomeBlank"
                     , fr = "%fr:HomeBlank"
+                    , ru = "%ru:HomeBlank"
                     , de = "%de:HomeBlank"
                     , nl = "%nl:HomeBlank"
                     , hu = "%hu:HomeBlank"
@@ -193,6 +193,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:HomeImportJSON"
                     , es = "%es:HomeImportJSON"
                     , fr = "%fr:HomeImportJSON"
+                    , ru = "%ru:HomeImportJSON"
                     , de = "%de:HomeImportJSON"
                     , nl = "%nl:HomeImportJSON"
                     , hu = "%hu:HomeImportJSON"
@@ -207,6 +208,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:HomeJSONFrom"
                     , es = "%es:HomeJSONFrom"
                     , fr = "%fr:HomeJSONFrom"
+                    , ru = "%ru:HomeJSONFrom"
                     , de = "%de:HomeJSONFrom"
                     , nl = "%nl:HomeJSONFrom"
                     , hu = "%hu:HomeJSONFrom"
@@ -221,6 +223,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:HomeImportLegacy"
                     , es = "%es:HomeImportLegacy"
                     , fr = "%fr:HomeImportLegacy"
+                    , ru = "%ru:HomeImportLegacy"
                     , de = "%de:HomeImportLegacy"
                     , nl = "%nl:HomeImportLegacy"
                     , hu = "%hu:HomeImportLegacy"
@@ -235,6 +238,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:HomeLegacyFrom"
                     , es = "%es:HomeLegacyFrom"
                     , fr = "%fr:HomeLegacyFrom"
+                    , ru = "%ru:HomeLegacyFrom"
                     , de = "%de:HomeLegacyFrom"
                     , nl = "%nl:HomeLegacyFrom"
                     , hu = "%hu:HomeLegacyFrom"
@@ -249,6 +253,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:RecentDocuments"
                     , es = "%es:RecentDocuments"
                     , fr = "%fr:RecentDocuments"
+                    , ru = "%ru:RecentDocuments"
                     , de = "%de:RecentDocuments"
                     , nl = "%nl:RecentDocuments"
                     , hu = "%hu:RecentDocuments"
@@ -263,6 +268,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:LastUpdated"
                     , es = "%es:LastUpdated"
                     , fr = "%fr:LastUpdated"
+                    , ru = "%ru:LastUpdated"
                     , de = "%de:LastUpdated"
                     , nl = "%nl:LastUpdated"
                     , hu = "%hu:LastUpdated"
@@ -277,6 +283,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:LastOpened"
                     , es = "%es:LastOpened"
                     , fr = "%fr:LastOpened"
+                    , ru = "%ru:LastOpened"
                     , de = "%de:LastOpened"
                     , nl = "%nl:LastOpened"
                     , hu = "%hu:LastOpened"
@@ -291,6 +298,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:OpenOtherDocuments"
                     , es = "%es:OpenOtherDocuments"
                     , fr = "%fr:OpenOtherDocuments"
+                    , ru = "%ru:OpenOtherDocuments"
                     , de = "%de:OpenOtherDocuments"
                     , nl = "%nl:OpenOtherDocuments"
                     , hu = "%hu:OpenOtherDocuments"
@@ -305,6 +313,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:DeleteDocument"
                     , es = "%es:DeleteDocument"
                     , fr = "%fr:DeleteDocument"
+                    , ru = "%ru:DeleteDocument"
                     , de = "%de:DeleteDocument"
                     , nl = "%nl:DeleteDocument"
                     , hu = "%hu:DeleteDocument"
@@ -319,6 +328,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:RemoveFromList"
                     , es = "%es:RemoveFromList"
                     , fr = "%fr:RemoveFromList"
+                    , ru = "%ru:RemoveFromList"
                     , de = "%de:RemoveFromList"
                     , nl = "%nl:RemoveFromList"
                     , hu = "%hu:RemoveFromList"
@@ -333,6 +343,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:NeverSaved"
                     , es = "%es:NeverSaved"
                     , fr = "%fr:NeverSaved"
+                    , ru = "%ru:NeverSaved"
                     , de = "%de:NeverSaved"
                     , nl = "%nl:NeverSaved"
                     , hu = "%hu:NeverSaved"
@@ -347,6 +358,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:UnsavedChanges"
                     , es = "%es:UnsavedChanges"
                     , fr = "%fr:UnsavedChanges"
+                    , ru = "%ru:UnsavedChanges"
                     , de = "%de:UnsavedChanges"
                     , nl = "%nl:UnsavedChanges"
                     , hu = "%hu:UnsavedChanges"
@@ -361,6 +373,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:SavedInternally"
                     , es = "%es:SavedInternally"
                     , fr = "%fr:SavedInternally"
+                    , ru = "%ru:SavedInternally"
                     , de = "%de:SavedInternally"
                     , nl = "%nl:SavedInternally"
                     , hu = "%hu:SavedInternally"
@@ -375,6 +388,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:ChangesSaved"
                     , es = "%es:ChangesSaved"
                     , fr = "%fr:ChangesSaved"
+                    , ru = "%ru:ChangesSaved"
                     , de = "%de:ChangesSaved"
                     , nl = "%nl:ChangesSaved"
                     , hu = "%hu:ChangesSaved"
@@ -389,6 +403,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:ChangesSynced"
                     , es = "%es:ChangesSynced"
                     , fr = "%fr:ChangesSynced"
+                    , ru = "%ru:ChangesSynced"
                     , de = "%de:ChangesSynced"
                     , nl = "%nl:ChangesSynced"
                     , hu = "%hu:ChangesSynced"
@@ -403,6 +418,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:DatabaseError"
                     , es = "%es:DatabaseError"
                     , fr = "%fr:DatabaseError"
+                    , ru = "%ru:DatabaseError"
                     , de = "%de:DatabaseError"
                     , nl = "%nl:DatabaseError"
                     , hu = "%hu:DatabaseError"
@@ -417,6 +433,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:LastSaved"
                     , es = "%es:LastSaved"
                     , fr = "%fr:LastSaved"
+                    , ru = "%ru:LastSaved"
                     , de = "%de:LastSaved"
                     , nl = "%nl:LastSaved"
                     , hu = "%hu:LastSaved"
@@ -431,6 +448,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:LastEdit"
                     , es = "%es:LastEdit"
                     , fr = "%fr:LastEdit"
+                    , ru = "%ru:LastEdit"
                     , de = "%de:LastEdit"
                     , nl = "%nl:LastEdit"
                     , hu = "%hu:LastEdit"
@@ -445,6 +463,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:KeyboardHelp"
                     , es = "%es:KeyboardHelp"
                     , fr = "%fr:KeyboardHelp"
+                    , ru = "%ru:KeyboardHelp"
                     , de = "%de:KeyboardHelp"
                     , nl = "%nl:KeyboardHelp"
                     , hu = "%hu:KeyboardHelp"
@@ -459,6 +478,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:RestoreThisVersion"
                     , es = "%es:RestoreThisVersion"
                     , fr = "%fr:RestoreThisVersion"
+                    , ru = "%ru:RestoreThisVersion"
                     , de = "%de:RestoreThisVersion"
                     , nl = "%nl:RestoreThisVersion"
                     , hu = "%hu:RestoreThisVersion"
@@ -473,6 +493,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:EnterKey"
                     , es = "%es:EnterKey"
                     , fr = "%fr:EnterKey"
+                    , ru = "%ru:EnterKey"
                     , de = "%de:EnterKey"
                     , nl = "%nl:EnterKey"
                     , hu = "%hu:EnterKey"
@@ -487,6 +508,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:EnterAction"
                     , es = "%es:EnterAction"
                     , fr = "%fr:EnterAction"
+                    , ru = "%ru:EnterAction"
                     , de = "%de:EnterAction"
                     , nl = "%nl:EnterAction"
                     , hu = "%hu:EnterAction"
@@ -501,6 +523,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:EditFullscreenAction"
                     , es = "%es:EditFullscreenAction"
                     , fr = "%fr:EditFullscreenAction"
+                    , ru = "%ru:EditFullscreenAction"
                     , de = "%de:EditFullscreenAction"
                     , nl = "%nl:EditFullscreenAction"
                     , hu = "%hu:EditFullscreenAction"
@@ -515,6 +538,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:EditCardTitle"
                     , es = "%es:EditCardTitle"
                     , fr = "%fr:EditCardTitle"
+                    , ru = "%ru:EditCardTitle"
                     , de = "%de:EditCardTitle"
                     , nl = "%nl:EditCardTitle"
                     , hu = "%hu:EditCardTitle"
@@ -529,6 +553,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:ArrowsAction"
                     , es = "%es:ArrowsAction"
                     , fr = "%fr:ArrowsAction"
+                    , ru = "%ru:ArrowsAction"
                     , de = "%de:ArrowsAction"
                     , nl = "%nl:ArrowsAction"
                     , hu = "%hu:ArrowsAction"
@@ -543,6 +568,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:AddChildAction"
                     , es = "%es:AddChildAction"
                     , fr = "%fr:AddChildAction"
+                    , ru = "%ru:AddChildAction"
                     , de = "%de:AddChildAction"
                     , nl = "%nl:AddChildAction"
                     , hu = "%hu:AddChildAction"
@@ -557,6 +583,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:SplitChildAction"
                     , es = "%es:SplitChildAction"
                     , fr = "%fr:SplitChildAction"
+                    , ru = "%ru:SplitChildAction"
                     , de = "%de:SplitChildAction"
                     , nl = "%nl:SplitChildAction"
                     , hu = "%hu:SplitChildAction"
@@ -571,6 +598,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:InsertChildTitle"
                     , es = "%es:InsertChildTitle"
                     , fr = "%fr:InsertChildTitle"
+                    , ru = "%ru:InsertChildTitle"
                     , de = "%de:InsertChildTitle"
                     , nl = "%nl:InsertChildTitle"
                     , hu = "%hu:InsertChildTitle"
@@ -585,6 +613,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:AddBelowAction"
                     , es = "%es:AddBelowAction"
                     , fr = "%fr:AddBelowAction"
+                    , ru = "%ru:AddBelowAction"
                     , de = "%de:AddBelowAction"
                     , nl = "%nl:AddBelowAction"
                     , hu = "%hu:AddBelowAction"
@@ -599,6 +628,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:SplitBelowAction"
                     , es = "%es:SplitBelowAction"
                     , fr = "%fr:SplitBelowAction"
+                    , ru = "%ru:SplitBelowAction"
                     , de = "%de:SplitBelowAction"
                     , nl = "%nl:SplitBelowAction"
                     , hu = "%hu:SplitBelowAction"
@@ -613,6 +643,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:MergeDownAction"
                     , es = "%es:MergeDownAction"
                     , fr = "%fr:MergeDownAction"
+                    , ru = "%ru:MergeDownAction"
                     , de = "%de:MergeDownAction"
                     , nl = "%nl:MergeDownAction"
                     , hu = "%hu:MergeDownAction"
@@ -627,6 +658,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:InsertBelowTitle"
                     , es = "%es:InsertBelowTitle"
                     , fr = "%fr:InsertBelowTitle"
+                    , ru = "%ru:InsertBelowTitle"
                     , de = "%de:InsertBelowTitle"
                     , nl = "%nl:InsertBelowTitle"
                     , hu = "%hu:InsertBelowTitle"
@@ -641,6 +673,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:AddAboveAction"
                     , es = "%es:AddAboveAction"
                     , fr = "%fr:AddAboveAction"
+                    , ru = "%ru:AddAboveAction"
                     , de = "%de:AddAboveAction"
                     , nl = "%nl:AddAboveAction"
                     , hu = "%hu:AddAboveAction"
@@ -655,6 +688,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:SplitUpwardAction"
                     , es = "%es:SplitUpwardAction"
                     , fr = "%fr:SplitUpwardAction"
+                    , ru = "%ru:SplitUpwardAction"
                     , de = "%de:SplitUpwardAction"
                     , nl = "%nl:SplitUpwardAction"
                     , hu = "%hu:SplitUpwardAction"
@@ -669,6 +703,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:MergeUpAction"
                     , es = "%es:MergeUpAction"
                     , fr = "%fr:MergeUpAction"
+                    , ru = "%ru:MergeUpAction"
                     , de = "%de:MergeUpAction"
                     , nl = "%nl:MergeUpAction"
                     , hu = "%hu:MergeUpAction"
@@ -683,6 +718,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:InsertAboveTitle"
                     , es = "%es:InsertAboveTitle"
                     , fr = "%fr:InsertAboveTitle"
+                    , ru = "%ru:InsertAboveTitle"
                     , de = "%de:InsertAboveTitle"
                     , nl = "%nl:InsertAboveTitle"
                     , hu = "%hu:InsertAboveTitle"
@@ -697,6 +733,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:ArrowKeys"
                     , es = "%es:ArrowKeys"
                     , fr = "%fr:ArrowKeys"
+                    , ru = "%ru:ArrowKeys"
                     , de = "%de:ArrowKeys"
                     , nl = "%nl:ArrowKeys"
                     , hu = "%hu:ArrowKeys"
@@ -711,6 +748,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:MoveAction"
                     , es = "%es:MoveAction"
                     , fr = "%fr:MoveAction"
+                    , ru = "%ru:MoveAction"
                     , de = "%de:MoveAction"
                     , nl = "%nl:MoveAction"
                     , hu = "%hu:MoveAction"
@@ -725,6 +763,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:Backspace"
                     , es = "%es:Backspace"
                     , fr = "%fr:Backspace"
+                    , ru = "%ru:Backspace"
                     , de = "%de:Backspace"
                     , nl = "%nl:Backspace"
                     , hu = "%hu:Backspace"
@@ -739,6 +778,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:DeleteAction"
                     , es = "%es:DeleteAction"
                     , fr = "%fr:DeleteAction"
+                    , ru = "%ru:DeleteAction"
                     , de = "%de:DeleteAction"
                     , nl = "%nl:DeleteAction"
                     , hu = "%hu:DeleteAction"
@@ -753,6 +793,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:DeleteCardTitle"
                     , es = "%es:DeleteCardTitle"
                     , fr = "%fr:DeleteCardTitle"
+                    , ru = "%ru:DeleteCardTitle"
                     , de = "%de:DeleteCardTitle"
                     , nl = "%nl:DeleteCardTitle"
                     , hu = "%hu:DeleteCardTitle"
@@ -767,6 +808,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:FormattingGuide"
                     , es = "%es:FormattingGuide"
                     , fr = "%fr:FormattingGuide"
+                    , ru = "%ru:FormattingGuide"
                     , de = "%de:FormattingGuide"
                     , nl = "%nl:FormattingGuide"
                     , hu = "%hu:FormattingGuide"
@@ -781,6 +823,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:ForBold"
                     , es = "%es:ForBold"
                     , fr = "%fr:ForBold"
+                    , ru = "%ru:ForBold"
                     , de = "%de:ForBold"
                     , nl = "%nl:ForBold"
                     , hu = "%hu:ForBold"
@@ -795,6 +838,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:ForItalic"
                     , es = "%es:ForItalic"
                     , fr = "%fr:ForItalic"
+                    , ru = "%ru:ForItalic"
                     , de = "%de:ForItalic"
                     , nl = "%nl:ForItalic"
                     , hu = "%hu:ForItalic"
@@ -809,6 +853,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:ToSaveChanges"
                     , es = "%es:ToSaveChanges"
                     , fr = "%fr:ToSaveChanges"
+                    , ru = "%ru:ToSaveChanges"
                     , de = "%de:ToSaveChanges"
                     , nl = "%nl:ToSaveChanges"
                     , hu = "%hu:ToSaveChanges"
@@ -823,6 +868,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:SaveChangesTitle"
                     , es = "%es:SaveChangesTitle"
                     , fr = "%fr:SaveChangesTitle"
+                    , ru = "%ru:SaveChangesTitle"
                     , de = "%de:SaveChangesTitle"
                     , nl = "%nl:SaveChangesTitle"
                     , hu = "%hu:SaveChangesTitle"
@@ -837,6 +883,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:EscKey"
                     , es = "%es:EscKey"
                     , fr = "%fr:EscKey"
+                    , ru = "%ru:EscKey"
                     , de = "%de:EscKey"
                     , nl = "%nl:EscKey"
                     , hu = "%hu:EscKey"
@@ -851,6 +898,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:AreYouSureCancel"
                     , es = "%es:AreYouSureCancel"
                     , fr = "%fr:AreYouSureCancel"
+                    , ru = "%ru:AreYouSureCancel"
                     , de = "%de:AreYouSureCancel"
                     , nl = "%nl:AreYouSureCancel"
                     , hu = "%hu:AreYouSureCancel"
@@ -865,6 +913,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:ToCancelChanges"
                     , es = "%es:ToCancelChanges"
                     , fr = "%fr:ToCancelChanges"
+                    , ru = "%ru:ToCancelChanges"
                     , de = "%de:ToCancelChanges"
                     , nl = "%nl:ToCancelChanges"
                     , hu = "%hu:ToCancelChanges"
@@ -879,6 +928,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:PressToSearch"
                     , es = "%es:PressToSearch"
                     , fr = "%fr:PressToSearch"
+                    , ru = "%ru:PressToSearch"
                     , de = "%de:PressToSearch"
                     , nl = "%nl:PressToSearch"
                     , hu = "%hu:PressToSearch"
@@ -893,6 +943,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:QuickDocumentSwitcher"
                     , es = "%es:QuickDocumentSwitcher"
                     , fr = "%fr:QuickDocumentSwitcher"
+                    , ru = "%ru:QuickDocumentSwitcher"
                     , de = "%de:QuickDocumentSwitcher"
                     , nl = "%nl:QuickDocumentSwitcher"
                     , hu = "%hu:QuickDocumentSwitcher"
@@ -907,6 +958,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:EmailSupport"
                     , es = "%es:EmailSupport"
                     , fr = "%fr:EmailSupport"
+                    , ru = "%ru:EmailSupport"
                     , de = "%de:EmailSupport"
                     , nl = "%nl:EmailSupport"
                     , hu = "%hu:EmailSupport"
@@ -921,6 +973,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:Logout"
                     , es = "%es:Logout"
                     , fr = "%fr:Logout"
+                    , ru = "%ru:Logout"
                     , de = "%de:Logout"
                     , nl = "%nl:Logout"
                     , hu = "%hu:Logout"
@@ -935,6 +988,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:Language"
                     , es = "%es:Language"
                     , fr = "%fr:Language"
+                    , ru = "%ru:Language"
                     , de = "%de:Language"
                     , nl = "%nl:Language"
                     , hu = "%hu:Language"
@@ -949,6 +1003,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:ContributeTranslations"
                     , es = "%es:ContributeTranslations"
                     , fr = "%fr:ContributeTranslations"
+                    , ru = "%ru:ContributeTranslations"
                     , de = "%de:ContributeTranslations"
                     , nl = "%nl:ContributeTranslations"
                     , hu = "%hu:ContributeTranslations"
@@ -963,6 +1018,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:Here"
                     , es = "%es:Here"
                     , fr = "%fr:Here"
+                    , ru = "%ru:Here"
                     , de = "%de:Here"
                     , nl = "%nl:Here"
                     , hu = "%hu:Here"
@@ -977,6 +1033,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:HeadingFont"
                     , es = "%es:HeadingFont"
                     , fr = "%fr:HeadingFont"
+                    , ru = "%ru:HeadingFont"
                     , de = "%de:HeadingFont"
                     , nl = "%nl:HeadingFont"
                     , hu = "%hu:HeadingFont"
@@ -991,6 +1048,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:ContentFont"
                     , es = "%es:ContentFont"
                     , fr = "%fr:ContentFont"
+                    , ru = "%ru:ContentFont"
                     , de = "%de:ContentFont"
                     , nl = "%nl:ContentFont"
                     , hu = "%hu:ContentFont"
@@ -1005,6 +1063,7 @@ tr lang trans =
                     , zh_hant = "%zh_hant:EditingFont"
                     , es = "%es:EditingFont"
                     , fr = "%fr:EditingFont"
+                    , ru = "%ru:EditingFont"
                     , de = "%de:EditingFont"
                     , nl = "%nl:EditingFont"
                     , hu = "%hu:EditingFont"
@@ -1019,6 +1078,7 @@ tr lang trans =
                     , zh_hant = numberPlural n "%zh_hant:WordCountSession:0" "%zh_hant:WordCountSession:1"
                     , es = numberPlural n "%es:WordCountSession:0" "%es:WordCountSession:1"
                     , fr = numberPlural n "%fr:WordCountSession:0" "%fr:WordCountSession:1"
+                    , ru = numberPlural n "%ru:WordCountSession:0" "%ru:WordCountSession:1"
                     , de = numberPlural n "%de:WordCountSession:0" "%de:WordCountSession:1"
                     , nl = numberPlural n "%nl:WordCountSession:0" "%nl:WordCountSession:1"
                     , hu = numberPlural n "%hu:WordCountSession:0" "%hu:WordCountSession:1"
@@ -1033,6 +1093,7 @@ tr lang trans =
                     , zh_hant = numberPlural n "%zh_hant:WordCountTotal:0" "%zh_hant:WordCountTotal:1"
                     , es = numberPlural n "%es:WordCountTotal:0" "%es:WordCountTotal:1"
                     , fr = numberPlural n "%fr:WordCountTotal:0" "%fr:WordCountTotal:1"
+                    , ru = numberPlural n "%ru:WordCountTotal:0" "%ru:WordCountTotal:1"
                     , de = numberPlural n "%de:WordCountTotal:0" "%de:WordCountTotal:1"
                     , nl = numberPlural n "%nl:WordCountTotal:0" "%nl:WordCountTotal:1"
                     , hu = numberPlural n "%hu:WordCountTotal:0" "%hu:WordCountTotal:1"
@@ -1047,6 +1108,7 @@ tr lang trans =
                     , zh_hant = numberPlural n "%zh_hant:WordCountCard:0" "%zh_hant:WordCountCard:1"
                     , es = numberPlural n "%es:WordCountCard:0" "%es:WordCountCard:1"
                     , fr = numberPlural n "%fr:WordCountCard:0" "%fr:WordCountCard:1"
+                    , ru = numberPlural n "%ru:WordCountCard:0" "%ru:WordCountCard:1"
                     , de = numberPlural n "%de:WordCountCard:0" "%de:WordCountCard:1"
                     , nl = numberPlural n "%nl:WordCountCard:0" "%nl:WordCountCard:1"
                     , hu = numberPlural n "%hu:WordCountCard:0" "%hu:WordCountCard:1"
@@ -1061,6 +1123,7 @@ tr lang trans =
                     , zh_hant = numberPlural n "%zh_hant:WordCountSubtree:0" "%zh_hant:WordCountSubtree:1"
                     , es = numberPlural n "%es:WordCountSubtree:0" "%es:WordCountSubtree:1"
                     , fr = numberPlural n "%fr:WordCountSubtree:0" "%fr:WordCountSubtree:1"
+                    , ru = numberPlural n "%ru:WordCountSubtree:0" "%ru:WordCountSubtree:1"
                     , de = numberPlural n "%de:WordCountSubtree:0" "%de:WordCountSubtree:1"
                     , nl = numberPlural n "%nl:WordCountSubtree:0" "%nl:WordCountSubtree:1"
                     , hu = numberPlural n "%hu:WordCountSubtree:0" "%hu:WordCountSubtree:1"
@@ -1075,6 +1138,7 @@ tr lang trans =
                     , zh_hant = numberPlural n "%zh_hant:WordCountGroup:0" "%zh_hant:WordCountGroup:1"
                     , es = numberPlural n "%es:WordCountGroup:0" "%es:WordCountGroup:1"
                     , fr = numberPlural n "%fr:WordCountGroup:0" "%fr:WordCountGroup:1"
+                    , ru = numberPlural n "%ru:WordCountGroup:0" "%ru:WordCountGroup:1"
                     , de = numberPlural n "%de:WordCountGroup:0" "%de:WordCountGroup:1"
                     , nl = numberPlural n "%nl:WordCountGroup:0" "%nl:WordCountGroup:1"
                     , hu = numberPlural n "%hu:WordCountGroup:0" "%hu:WordCountGroup:1"
@@ -1089,6 +1153,7 @@ tr lang trans =
                     , zh_hant = numberPlural n "%zh_hant:WordCountColumn:0" "%zh_hant:WordCountColumn:1"
                     , es = numberPlural n "%es:WordCountColumn:0" "%es:WordCountColumn:1"
                     , fr = numberPlural n "%fr:WordCountColumn:0" "%fr:WordCountColumn:1"
+                    , ru = numberPlural n "%ru:WordCountColumn:0" "%ru:WordCountColumn:1"
                     , de = numberPlural n "%de:WordCountColumn:0" "%de:WordCountColumn:1"
                     , nl = numberPlural n "%nl:WordCountColumn:0" "%nl:WordCountColumn:1"
                     , hu = numberPlural n "%hu:WordCountColumn:0" "%hu:WordCountColumn:1"
@@ -1112,6 +1177,9 @@ tr lang trans =
 
         Fr ->
             .fr translationSet
+
+        Ru ->
+            .ru translationSet
 
         De ->
             .de translationSet
@@ -1149,6 +1217,9 @@ timeDistInWords lang t1 t2 =
 
         Fr ->
             TimeDistance.inWordsWithConfig { withAffix = True } I18n.fr t1 t2
+
+        Ru ->
+            TimeDistance.inWordsWithConfig { withAffix = True } I18n.en t1 t2
 
         De ->
             TimeDistance.inWordsWithConfig { withAffix = True } I18n.en t1 t2
@@ -1190,6 +1261,9 @@ dateFormat lang time =
 
         Fr ->
             format Time.Format.Config.Config_fr_fr.config formatString Time.utc time
+
+        Ru ->
+            format Time.Format.Config.Config_ru_ru.config formatString Time.utc time
 
         De ->
             format Time.Format.Config.Config_de_de.config formatString Time.utc time
@@ -1236,6 +1310,9 @@ langFromString str =
         "fr" ->
             Fr
 
+        "ru" ->
+            Ru
+
         "de" ->
             De
 
@@ -1275,6 +1352,9 @@ langToString lang =
 
         Fr ->
             "fr"
+
+        Ru ->
+            "ru"
 
         De ->
             "de"

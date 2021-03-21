@@ -6,6 +6,7 @@ const zh_hans = require("./i18n/zh_hans.json");
 const zh_hant = require("./i18n/zh_hant.json");
 const es = require("./i18n/es.json");
 const fr = require("./i18n/fr.json");
+const ru = require("./i18n/ru.json");
 const de = require("./i18n/de.json");
 const nl = require("./i18n/nl.json");
 const hu = require("./i18n/hu.json");
@@ -51,6 +52,7 @@ const zhHansT = prepTranslation("zh_hans", zh_hans);
 const zhHantT = prepTranslation("zh_hant", zh_hant);
 const esT = prepTranslation("es", es);
 const frT = prepTranslation("fr", fr);
+const ruT = prepTranslation("ru", ru);
 const deT = prepTranslation("de", de);
 const nlT = prepTranslation("nl", nl);
 const huT = prepTranslation("hu", hu);
@@ -58,7 +60,7 @@ const svT = prepTranslation("sv", sv);
 const caT = prepTranslation("ca", ca);
 const brT = prepTranslation("br", br);
 
-const allLanguageStrings = [].concat(zhHansT, zhHantT, esT, frT, deT, nlT, huT, svT, caT, brT)
+const allLanguageStrings = [].concat(zhHansT, zhHantT, esT, frT, ruT, deT, nlT, huT, svT, caT, brT)
 const otherReplacements = [
     {search: "{%SUPPORT_EMAIL%}", replace: config.SUPPORT_EMAIL, flags: 'g'}
   , {search: "{%HOMEPAGE_URL%}", replace: config.HOMEPAGE_URL, flags: 'g'}
