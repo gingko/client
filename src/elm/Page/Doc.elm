@@ -603,7 +603,7 @@ update msg ({ workingTree } as model) =
                         ( model, send <| RenameDocument editedTitle )
 
                     else
-                        ( model, Cmd.none )
+                        ( { model | titleField = Nothing }, Cmd.none )
 
                 Nothing ->
                     ( model, Cmd.none )

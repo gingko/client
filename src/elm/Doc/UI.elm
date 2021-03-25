@@ -75,6 +75,13 @@ viewHeader msgs title_ model =
         language =
             Session.language model.session
 
+        maybeBlurHandler str =
+            if str /= "" then
+                [ onBlur msgs.titleEdited ]
+
+            else
+                []
+
         titleArea =
             case model.titleField of
                 Just editingField ->
@@ -82,12 +89,13 @@ viewHeader msgs title_ model =
                         [ Html.form
                             [ onSubmit msgs.titleEdited ]
                             [ input
-                                [ id "title-rename"
-                                , onInput msgs.titleFieldChanged
-                                , onBlur msgs.titleEdited
-                                , value editingField
-                                , attribute "data-private" "lipsum"
-                                ]
+                                ([ id "title-rename"
+                                 , onInput msgs.titleFieldChanged
+                                 , value editingField
+                                 , attribute "data-private" "lipsum"
+                                 ]
+                                    ++ maybeBlurHandler editingField
+                                )
                                 []
                             , button [ type_ "submit" ] [ text "Rename" ]
                             , button [ onClick msgs.titleEditCanceled ] [ text "Cancel" ]
