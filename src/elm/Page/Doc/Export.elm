@@ -6,7 +6,7 @@ import Coders exposing (treeToJSON, treeToMarkdownString)
 import Doc.TreeUtils exposing (getColumnById)
 import File.Download as Download
 import Html exposing (Html, div, pre, text)
-import Html.Attributes exposing (class, id)
+import Html.Attributes exposing (attribute, class, id)
 import Http
 import Json.Encode as Enc
 import Markdown
@@ -95,13 +95,13 @@ exportView (( _, exportFormat ) as exportSettings) activeTree fullTree =
         DOCX ->
             div [ id "export-preview" ]
                 [ div [ class "top-buffer" ] []
-                , Markdown.toHtmlWith options [] (toString exportSettings activeTree fullTree)
+                , Markdown.toHtmlWith options [ attribute "data-private" "lipsum" ] (toString exportSettings activeTree fullTree)
                 ]
 
         _ ->
             div [ id "export-preview" ]
                 [ div [ class "top-buffer" ] []
-                , pre [] [ text (toString exportSettings activeTree fullTree) ]
+                , pre [ attribute "data-private" "lipsum" ] [ text (toString exportSettings activeTree fullTree) ]
                 ]
 
 
