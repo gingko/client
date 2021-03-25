@@ -224,7 +224,7 @@ update msg model =
                     if docModel.dirty then
                         let
                             saveShortcut =
-                                if docModel.isMac then
+                                if Session.isMac docModel.session then
                                     "⌘+enter"
 
                                 else

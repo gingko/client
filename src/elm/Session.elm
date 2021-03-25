@@ -1,4 +1,4 @@
-port module Session exposing (PaymentStatus(..), Session, currentTime, db, decode, documents, fileMenuOpen, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, shortcutTrayOpen, storeLogin, storeSignup, sync, updateDocuments, updateTime, updateUpgrade, upgradeModel, userSettingsChange)
+port module Session exposing (PaymentStatus(..), Session, currentTime, db, decode, documents, fileMenuOpen, isMac, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, shortcutTrayOpen, storeLogin, storeSignup, sync, updateDocuments, updateTime, updateUpgrade, upgradeModel, userSettingsChange)
 
 import Browser.Navigation as Nav
 import Doc.List as DocList
@@ -27,6 +27,7 @@ type alias SessionData =
     -- Not persisted
     { navKey : Nav.Key
     , seed : Random.Seed
+    , isMac : Bool
     , currentTime : Time.Posix
     , fileMenuOpen : Bool
     , lastDocId : Maybe String
@@ -87,6 +88,11 @@ name session =
 seed : Session -> Random.Seed
 seed session =
     getFromSession .seed session
+
+
+isMac : Session -> Bool
+isMac session =
+    getFromSession .isMac session
 
 
 currentTime : Session -> Time.Posix
@@ -284,7 +290,7 @@ decode key json =
                         |> List.foldl (+) 12345
                         |> Random.initialSeed
             in
-            Guest (SessionData key errToSeed (Time.millisToPosix 0) False Nothing) (GuestData En)
+            Guest (SessionData key errToSeed False (Time.millisToPosix 0) False Nothing) (GuestData En)
 
 
 decoder : Nav.Key -> Dec.Decoder Session
@@ -295,11 +301,12 @@ decoder key =
 decodeLoggedIn : Nav.Key -> Dec.Decoder Session
 decodeLoggedIn key =
     Dec.succeed
-        (\email s t lang payStat trayOpen lastDoc ->
-            LoggedIn (SessionData key s t False lastDoc) (UserData email lang Upgrade.init payStat trayOpen DocList.init)
+        (\email s os t lang payStat trayOpen lastDoc ->
+            LoggedIn (SessionData key s os t False lastDoc) (UserData email lang Upgrade.init payStat trayOpen DocList.init)
         )
         |> required "email" Dec.string
         |> required "seed" (Dec.int |> Dec.map Random.initialSeed)
+        |> required "isMac" Dec.bool
         |> required "currentTime" (Dec.int |> Dec.map Time.millisToPosix)
         |> optional "language" (Dec.string |> Dec.map langFromString) En
         |> optional "paymentStatus" decodePaymentStatus Unknown
@@ -317,8 +324,9 @@ decodePaymentStatus =
 
 decodeGuest : Nav.Key -> Dec.Decoder Session
 decodeGuest key =
-    Dec.succeed (\s t l -> Guest (SessionData key s t True Nothing) (GuestData l))
+    Dec.succeed (\s os t l -> Guest (SessionData key s os t True Nothing) (GuestData l))
         |> required "seed" (Dec.int |> Dec.map Random.initialSeed)
+        |> required "isMac" Dec.bool
         |> required "currentTime" (Dec.int |> Dec.map Time.millisToPosix)
         |> optional "language" (Dec.string |> Dec.map langFromString) En
 

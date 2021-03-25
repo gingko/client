@@ -86,7 +86,6 @@ type alias Model =
 
     -- Settings
     , uid : String
-    , isMac : Bool
     , fonts : Fonts.Model
     , theme : Theme
     , startingWordcount : Int
@@ -139,7 +138,6 @@ defaultModel isNew session docId =
     , lastRemoteSave = Nothing
     , field = ""
     , textCursorInfo = { selected = False, position = End, text = ( "", "" ) }
-    , isMac = False
     , titleField = Nothing
     , sidebarState =
         if Session.fileMenuOpen session then
@@ -2567,7 +2565,7 @@ viewLoaded model =
                     documentView =
                         case model.exportPreview of
                             False ->
-                                lazy4 treeView (Session.language model.session) model.isMac model.viewState model.workingTree
+                                lazy4 treeView (Session.language model.session) (Session.isMac model.session) model.viewState model.workingTree
 
                             True ->
                                 let
@@ -2626,7 +2624,7 @@ viewLoaded model =
                             ShortcutTrayToggle
                             language
                             (Session.shortcutTrayOpen model.session)
-                            model.isMac
+                            (Session.isMac model.session)
                             model.workingTree.tree.children
                             model.textCursorInfo
                             model.viewState
@@ -2679,7 +2677,7 @@ repeating-linear-gradient(-45deg
                 ]
                 [ ul [ class "conflicts-list" ]
                     (List.map (viewConflict SetSelection Resolve) conflicts)
-                , lazy4 treeView (Session.language model.session) model.isMac model.viewState model.workingTree
+                , lazy4 treeView (Session.language model.session) (Session.isMac model.session) model.viewState model.workingTree
                 ]
 
 

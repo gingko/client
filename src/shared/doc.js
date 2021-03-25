@@ -10,6 +10,7 @@ require("textarea-autosize");
 const Mousetrap = require("mousetrap");
 const screenfull = require("screenfull");
 const container = require("Container");
+const platform = require("platform");
 const config = require("../../config.js");
 
 import LogRocket from 'logrocket';
@@ -71,6 +72,7 @@ async function initElmAndPorts() {
   let timestamp = Date.now();
   settings.email = email;
   settings.seed = timestamp;
+  settings.isMac = platform.os.family === 'OS X';
   settings.currentTime = timestamp;
   lang = settings.language || "en";
 
