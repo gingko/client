@@ -53,6 +53,25 @@ describe('User Signup Flow', () => {
     cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
     cy.contains('Welcome to Gingko')
 
+    // Has working Tour
+    cy.get('#welcome-step-1').should('be.visible')
+    cy.getCard(2,1,2).click()
+    cy.get('#welcome-step-2').should('be.visible')
+    cy.get('.ins-right').click()
+    cy.get('#welcome-step-3').should('be.visible')
+    cy.writeInCard('x')
+    cy.shortcut('{ctrl}{j}')
+    cy.get('#welcome-step-4').should('be.visible')
+    cy.writeInCard('x')
+    cy.shortcut('{ctrl}{enter}')
+    cy.get('#welcome-step-5').should('be.visible')
+    cy.get('#welcome-step-6', {timeout: 4000}).should('be.visible')
+    cy.get('#help-icon').click()
+    cy.get('#welcome-step-7').should('be.visible')
+    cy.get('#new-button').click()
+    cy.get('#welcome-step-7').should('not.be.visible')
+    cy.get('.close-button').click()
+
     // Logs Out Correctly
     cy.intercept('/logout').as('logoutRequest')
     cy.get('#account').click()
