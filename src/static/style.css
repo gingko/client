@@ -503,6 +503,7 @@ a.forgot-password {
   display: flex;
   flex-direction: row;
   align-items: baseline;
+  white-space: nowrap;
 }
 
 #title h1 {
