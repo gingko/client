@@ -9,6 +9,7 @@ import Json.Encode as Enc
 type Theme
     = Default
     | Gray
+    | Green
     | Turquoise
     | Dark
 
@@ -21,6 +22,9 @@ applyTheme theme =
 
         Gray ->
             class "gray-theme"
+
+        Green ->
+            class "green-theme"
 
         Turquoise ->
             class "turquoise-theme"
@@ -48,6 +52,9 @@ toValue theme =
         Gray ->
             Enc.string "gray"
 
+        Green ->
+            Enc.string "green"
+
         Turquoise ->
             Enc.string "turquoise"
 
@@ -66,6 +73,9 @@ decoder =
 
                     "gray" ->
                         Gray
+
+                    "green" ->
+                        Green
 
                     "turquoise" ->
                         Turquoise
