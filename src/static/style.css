@@ -111,6 +111,15 @@ body {
     from { opacity: 1; }
     to   { opacity: 0; }
 }
+@keyframes shimmer {
+  0% {
+    background-position: -100px 0;
+  }
+
+  100% {
+    background-position: 600px 0;
+  }
+}
 
 ::selection { background: #9fe147; }
 
@@ -1322,7 +1331,7 @@ div.tour-step {
 }
 .tour-step .arrow {
   color: #FB8C00;
-  text-shadow: 0px 2px 2px hsla(0,0%,0%, 0.5);
+  text-shadow: 0px 2px 2px hsla(0,0%,0%, 0.6);
   position: absolute;
   font-size: 28px;
 }
@@ -1356,6 +1365,15 @@ div.tour-step {
 .tour-step-progress .bg-line.on {
   z-index: 1;
 }
+#welcome-step-1.shimmer {
+  background: var(--emphasis-color);
+  background-image: linear-gradient(to right, var(--emphasis-color) 0%, #ffe89a 20%, var(--emphasis-color) 40%, var(--emphasis-color) 100%);
+  animation-name: shimmer;
+  animation-duration: 2s;
+  animation-iteration-count: infinite;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+}
 #app-root.step-1 #welcome-step-1 {
   display: block;
   opacity: 1;
@@ -1365,6 +1383,18 @@ div.tour-step {
 #welcome-step-1 .arrow {
   bottom: -19px;
   left: 55px;
+}
+#app-root.step-1 #loading-overlay {
+  animation: none;
+  width: calc(100% - 20px);
+  height: calc(100% - 50px);
+  background: radial-gradient(transparent 50%, rgb(0 0 0 / 40%));
+  opacity: 1;
+  z-index: 99999;
+  align-self: center;
+  justify-self: center;
+  border-radius: 100px;
+  box-shadow: inset rgb(0 0 0 / 22%) 0px 0px 20px, rgb(0 0 0 / 58%) 0px 0px 0px 5000px;
 }
 #app-root.step-2 #welcome-step-2 {
   display: block;
