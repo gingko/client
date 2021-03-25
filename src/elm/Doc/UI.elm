@@ -11,7 +11,7 @@ import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils as TreeUtils exposing (..)
 import Html exposing (Html, a, br, button, del, div, fieldset, h1, h2, h3, h4, h5, hr, iframe, img, input, ins, label, li, option, pre, select, small, span, text, ul)
 import Html.Attributes as A exposing (..)
-import Html.Events exposing (onCheck, onClick, onInput, onSubmit)
+import Html.Events exposing (onBlur, onCheck, onClick, onInput, onSubmit)
 import Html.Events.Extra exposing (onChange)
 import Import.Template exposing (Template(..))
 import List.Extra as ListExtra exposing (getAt)
@@ -81,7 +81,14 @@ viewHeader msgs title_ model =
                     span [ id "title" ]
                         [ Html.form
                             [ onSubmit msgs.titleEdited ]
-                            [ input [ id "title-rename", onInput msgs.titleFieldChanged, value editingField, attribute "data-private" "lipsum" ] []
+                            [ input
+                                [ id "title-rename"
+                                , onInput msgs.titleFieldChanged
+                                , onBlur msgs.titleEdited
+                                , value editingField
+                                , attribute "data-private" "lipsum"
+                                ]
+                                []
                             , button [ type_ "submit" ] [ text "Rename" ]
                             , button [ onClick msgs.titleEditCanceled ] [ text "Cancel" ]
                             ]
