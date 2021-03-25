@@ -388,6 +388,7 @@ viewSidebar modelLanguage msgs currentDocument fileFilter docList ( exportSelect
                         , br [] []
                         , h5 [] [ text "Themes" ]
                         , button [ onClick <| msgs.themeChanged Default ] [ text "Set Default" ]
+                        , button [ onClick <| msgs.themeChanged Dark ] [ text "Set Dark Mode" ]
                         , button [ onClick <| msgs.themeChanged Gray ] [ text "Set Gray" ]
                         , button [ onClick <| msgs.themeChanged Turquoise ] [ text "Set Turquoise" ]
                         ]

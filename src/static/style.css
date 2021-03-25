@@ -261,22 +261,37 @@ a.forgot-password {
 /* ======== THEMES ======== */
 
 .dark-theme {
-  --bg-left: black;
-  --bg-main: hsl(0, 0%, 10%);
+  --bg-left: #04121a;
+  --bg-main: #0c344b;
 
-  --tree-bg-2: hsl(0, 0%, 20%);
-  --tree-bg-2-lighter: hsl(0, 0%, 25%);
+  --tree-bg-2: #102f40;
+  --tree-bg-2-lighter: #1e4561;
 
-  --tree-bg-1: hsl(0,0%,30%);
-  --tree-bg-1-lighter: hsl(0,0%, 35%);
+  --tree-bg-1: #1b2c35;
+  --tree-bg-1-lighter: #2b4352;
 
   --active-bg: black;
 
-  --selection-color: white;
+  --selection-color: #407602;
 
-  --edit-bg: black;
-  --edit-text-color: white;
+  --edit-bg: #1e1e1e;
+  --edit-text-color: hsl(0,0%, 80%);
+  --edit-text-shadow: -1px -1px 0px rgba(255,255,255,0.1), 1px 1px 0px rgba(0,0,0,0.8);
   --normal-text-color: white;
+  --normal-text-color-medium: #eee;
+
+  --ui-1-fg: white;
+  --ui-1-bg: #334;
+
+  --ui-2-fg: hsl(202, 34%, 96%);
+  --ui-2-bg: black;
+  --ui-2-border-color: black;
+
+  --ui-3-fg: #8f8fbf;
+  --ui-3-bg: rgb(64, 64, 64);
+  --ui-3-border-color: #252828;
+
+  --ui-4-fg: #eee;
 }
 .gray-theme {
   --bg-left: hsl(202, 0%, 30%);
@@ -418,7 +433,8 @@ a.forgot-password {
   grid-area: home;
   display: flex;
   padding: 5px;
-  background: white;
+  color: var(--ui-1-fg);
+  background: var(--ui-1-bg);
   border-right: 1px solid hsl(212deg 0% 58%);
   border-bottom: 1px solid hsl(0, 0%, 80%);
   z-index: 20;
@@ -440,8 +456,8 @@ a.forgot-password {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  color: #334;
-  background-color: white;
+  color: var(--ui-1-fg);
+  background-color: var(--ui-1-bg);
   z-index: 10;
   border-bottom: 1px solid hsl(212deg 5% 58%);
   box-shadow: 0 0 4px #00000085;
@@ -517,7 +533,7 @@ a.forgot-password {
   user-select: none;
   font-size: 12px;
   font-family: sans-serif;
-  color: hsl(212deg 4% 30%);
+  color: var(--ui-4-fg);
   mix-blend-mode: hard-light;
 }
 
@@ -797,11 +813,11 @@ span.trial-dark {
 #sidebar {
   grid-area: sidebar;
   min-width: 40px;
-  background: hsl(202 34% 96%);
+  background: var(--ui-2-bg);
   display: flex;
   flex-direction: column;
   align-items: center;
-  border-right: 1px solid hsl(212deg 5% 58%);
+  border-right: 1px solid var(--ui-2-border-color);
   box-shadow: 0 0 4px #00000085;
   z-index: 5;
 }
@@ -820,14 +836,15 @@ span.trial-dark {
   cursor: pointer;
 }
 .sidebar-button:hover , .sidebar-button.open {
-  background-color: white;
+  background-color: var(--ui-1-bg);
 }
 
 #sidebar-menu {
   grid-area: sidebar-menu;
-  background: white;
+  background: var(--ui-1-bg);
+  color: var(--ui-1-fg);
   width: 200px;
-  border-right: 1px solid hsl(212deg 5% 58%);
+  border-right: 1px solid var(--ui-2-border-color);
   box-shadow: 0 0 4px #00000085;
   display: flex;
   flex-direction: column;
@@ -1147,11 +1164,11 @@ li.sidebar-document-item.active::after {
 
 .group.has-active {
   background: var(--tree-bg-1);
-  color: #333;
+  color: var(--normal-text-color-medium);
 }
 
 .group.active-descendant {
-  color: #333;
+  color: var(--normal-text-color-medium);
   background: var(--active-bg);
   border-radius: 8px 0 0 8px;
 }
@@ -1242,14 +1259,14 @@ li.sidebar-document-item.active::after {
 
 .card.ancestor {
   background: var(--tree-bg-1);
-  color: #333;
+  color: var(--normal-text-color-medium);
   border-left: none;
   padding-left: 4px;
 }
 
 .card.ancestor:hover {
   background: var(--tree-bg-1-lighter);
-  color: #333;
+  color: var(--normal-text-color-medium);
 }
 
 .card.ancestor::after {
@@ -1746,7 +1763,7 @@ pre {
   display: block;
   background: transparent;
   max-height: 600px;
-  text-shadow: -1px -1px 0px rgba(0,0,0,0.1), 1px 1px 0px rgba(255,255,255,0.8);
+  text-shadow: var(--edit-text-shadow);
   color: var(--edit-text-color);
   resize: none;
 }
@@ -2112,9 +2129,9 @@ pre {
   padding: 2px 12px;
   font-size: 12px;
   font-family: sans-serif;
-  color: #334;
-  background-color: hsl(0, 0%, 85%);
-  border-top: 1px solid #c8d3d8;
+  color: var(--ui-3-fg);
+  background-color: var(--ui-3-bg);
+  border-top: 1px solid var(--ui-3-border-color);
   z-index: 1;
   box-shadow: 0 0 4px #00000085;
 }
@@ -2175,8 +2192,9 @@ pre {
   display: flex;
   flex-direction: column;
   padding: 10px;
-  background-color: hsl(202, 34%, 96%);
-  border-left: 1px solid hsl(212deg, 5%, 58%);
+  color: var(--ui-2-fg);
+  background-color: var(--ui-2-bg);
+  border-left: 1px solid var(--ui-2-border-color);
   box-shadow: 0 0 4px #00000085;
   z-index: 5;
   cursor: pointer;
@@ -2219,7 +2237,7 @@ span.shortcut-key {
   margin-top: 4px;
   margin-right: 3px;
   padding: 1px 4px;
-  background: #e4e4e4;
+  background: var(--ui-3-bg);
   border: 1px #b3b3b3 solid;
   border-radius: 3px;
   text-align: center;

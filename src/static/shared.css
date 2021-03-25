@@ -20,6 +20,21 @@
      image.
    */
   --edit-text-color: hsl(27,28%,22%);
+  --edit-text-shadow: -1px -1px 0px rgba(0,0,0,0.1), 1px 1px 0px rgba(255,255,255,0.8);
   --normal-text-color: hsl(0, 20%, 17%);
+  --normal-text-color-medium: #333;
+
+  --ui-1-fg: #334;
+  --ui-1-bg: white;
+
+  --ui-2-fg: black;
+  --ui-2-bg: hsl(202, 34%, 96%);
+  --ui-2-border-color: hsl(212deg 5% 58%);
+
+  --ui-3-fg: #334;
+  --ui-3-bg: rgb(217,217,217);
+  --ui-3-border-color: #c8d3d8;
+
+  --ui-4-fg: hsl(212deg 4% 30%);
 }
 
