@@ -204,16 +204,16 @@ viewTopRightButtons msgs dropdownState session =
                                 |> round
 
                         trialClass =
-                            if daysLeft <= 14 && daysLeft > 7 then
+                            if daysLeft <= 7 && daysLeft > 5 then
                                 "trial-light"
 
-                            else if daysLeft <= 7 && daysLeft > 3 then
+                            else if daysLeft <= 5 && daysLeft > 3 then
                                 "trial-medium"
 
                             else
                                 "trial-dark"
                     in
-                    if daysLeft <= 30 then
+                    if daysLeft <= 7 then
                         [ span [ class "trial", class trialClass, onClick <| msgs.toggledUpgradeModal True ] [ text (String.fromInt daysLeft ++ " days left in Free Trial") ], upgradeButton ]
 
                     else

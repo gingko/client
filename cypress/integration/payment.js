@@ -83,15 +83,6 @@ describe('Upgrade process', () => {
       .should('contain', '1000')
   })
 
-  it('Shows trial days remaining', function () {
-    cy.visit(config.TEST_SERVER)
-    cy.url().should('contain', this.treeIds[1] )
-
-    cy.get('#account')
-
-    cy.get('#document-header').contains('14 days left')
-  })
-
   it('Correctly handles payment status', function () {
     cy.visit(config.TEST_SERVER + '/upgrade/success' )
 

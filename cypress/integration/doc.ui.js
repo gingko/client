@@ -28,10 +28,6 @@ describe('Document UI', () => {
     cy.get('#app-root')
       .should('not.contain', emailText)
 
-    // Wait for trial notice, to prevent DOM shift
-    // that causes cypress to miss the #help-icon click
-    cy.contains('14 days left')
-
     cy.get('#help-icon' )
       .click()
 
