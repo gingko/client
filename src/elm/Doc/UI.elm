@@ -344,7 +344,7 @@ viewSidebar modelLanguage msgs currentDocument fileFilter docList ( exportSelect
                                 ]
                             ]
                         , hr [ style "width" "80%" ] []
-                        , input [ type_ "search", onInput msgs.fileSearchChanged ] []
+                        , input [ type_ "search", onInput msgs.fileSearchChanged, placeholder "Find document by name" ] []
                         , DocList.viewSmall msgs.contextMenuOpened currentDocument filteredList
                         ]
 
