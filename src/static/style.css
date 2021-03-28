@@ -184,6 +184,13 @@ body {
   color: #888;
   width: 30ch;
 }
+#form-page .extra-info.legacy {
+  background-color: #ffe89a;
+  color: #333;
+  padding: 12px;
+  border-radius: 10px;
+  box-shadow: 0px 1px 3px rgb(0 0 0 / 0.4);
+}
 #form-page .cta {
   background-color: var(--selection-color);
   padding: 10px;

@@ -74,6 +74,7 @@ async function initElmAndPorts() {
   settings.seed = timestamp;
   settings.isMac = platform.os.family === 'OS X';
   settings.currentTime = timestamp;
+  settings.fromLegacy = document.referrer.startsWith(config.LEGACY_URL);
   lang = settings.language || "en";
 
   gingko = Elm.Main.init({

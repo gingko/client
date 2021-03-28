@@ -136,6 +136,9 @@ view model =
 
         passwordErrors =
             getFieldErrors Password model.errors
+
+        fromLegacy =
+            Session.fromLegacy model.user
     in
     div [ id "form-page" ]
         [ a [ class "brand", href "{%HOMEPAGE_URL%}" ]
@@ -172,7 +175,19 @@ view model =
                 , a [ href "/forgot-password", class "forgot-password" ] [ text "Forgot your Password?" ]
                 , button [ class "cta" ] [ text "Login" ]
                 , br [] []
-                , small [ class "extra-info" ] [ text "(Note: this is separate from existing gingkoapp.com accounts)" ]
+                , if fromLegacy then
+                    small [ class "extra-info", class "legacy" ]
+                        [ text "This is "
+                        , strong [] [ text "not connected" ]
+                        , text " to your gingkoapp.com account."
+                        , br [] []
+                        , br [] []
+                        , a [ href <| Route.toString Route.Signup ] [ text "Signup here" ]
+                        , text " to get started."
+                        ]
+
+                  else
+                    small [ class "extra-info" ] [ text "(Note: this is separate from existing gingkoapp.com accounts)" ]
                 ]
             ]
         ]

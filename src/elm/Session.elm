@@ -1,4 +1,4 @@
-port module Session exposing (PaymentStatus(..), Session, currentTime, db, decode, documents, fileMenuOpen, isMac, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, shortcutTrayOpen, storeLogin, storeSignup, sync, updateDocuments, updateTime, updateUpgrade, upgradeModel, userSettingsChange)
+port module Session exposing (PaymentStatus(..), Session, currentTime, db, decode, documents, fileMenuOpen, fromLegacy, isMac, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, shortcutTrayOpen, storeLogin, storeSignup, sync, updateDocuments, updateTime, updateUpgrade, upgradeModel, userSettingsChange)
 
 import Browser.Navigation as Nav
 import Doc.List as DocList
@@ -31,6 +31,7 @@ type alias SessionData =
     , currentTime : Time.Posix
     , fileMenuOpen : Bool
     , lastDocId : Maybe String
+    , fromLegacy : Bool
     }
 
 
@@ -103,6 +104,11 @@ currentTime session =
 lastDocId : Session -> Maybe String
 lastDocId session =
     getFromSession .lastDocId session
+
+
+fromLegacy : Session -> Bool
+fromLegacy session =
+    getFromSession .fromLegacy session
 
 
 db : Session -> Maybe String
@@ -290,7 +296,16 @@ decode key json =
                         |> List.foldl (+) 12345
                         |> Random.initialSeed
             in
-            Guest (SessionData key errToSeed False (Time.millisToPosix 0) False Nothing) (GuestData En)
+            Guest
+                { navKey = key
+                , seed = errToSeed
+                , isMac = False
+                , currentTime = Time.millisToPosix 0
+                , fileMenuOpen = False
+                , lastDocId = Nothing
+                , fromLegacy = False
+                }
+                (GuestData En)
 
 
 decoder : Nav.Key -> Dec.Decoder Session
@@ -301,13 +316,23 @@ decoder key =
 decodeLoggedIn : Nav.Key -> Dec.Decoder Session
 decodeLoggedIn key =
     Dec.succeed
-        (\email s os t lang payStat trayOpen lastDoc ->
-            LoggedIn (SessionData key s os t False lastDoc) (UserData email lang Upgrade.init payStat trayOpen DocList.init)
+        (\email s os t legacy lang payStat trayOpen lastDoc ->
+            LoggedIn
+                { navKey = key
+                , seed = s
+                , isMac = os
+                , currentTime = t
+                , fileMenuOpen = False
+                , lastDocId = Nothing
+                , fromLegacy = legacy
+                }
+                (UserData email lang Upgrade.init payStat trayOpen DocList.init)
         )
         |> required "email" Dec.string
         |> required "seed" (Dec.int |> Dec.map Random.initialSeed)
         |> required "isMac" Dec.bool
         |> required "currentTime" (Dec.int |> Dec.map Time.millisToPosix)
+        |> optional "fromLegacy" Dec.bool False
         |> optional "language" (Dec.string |> Dec.map langFromString) En
         |> optional "paymentStatus" decodePaymentStatus Unknown
         |> optional "shortcutTrayOpen" Dec.bool False
@@ -324,10 +349,23 @@ decodePaymentStatus =
 
 decodeGuest : Nav.Key -> Dec.Decoder Session
 decodeGuest key =
-    Dec.succeed (\s os t l -> Guest (SessionData key s os t True Nothing) (GuestData l))
+    Dec.succeed
+        (\s os t legacy l ->
+            Guest
+                { navKey = key
+                , seed = s
+                , isMac = os
+                , currentTime = t
+                , fileMenuOpen = False
+                , lastDocId = Nothing
+                , fromLegacy = legacy
+                }
+                (GuestData l)
+        )
         |> required "seed" (Dec.int |> Dec.map Random.initialSeed)
         |> required "isMac" Dec.bool
         |> required "currentTime" (Dec.int |> Dec.map Time.millisToPosix)
+        |> optional "fromLegacy" Dec.bool False
         |> optional "language" (Dec.string |> Dec.map langFromString) En
 
 
