@@ -11,9 +11,10 @@ import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils as TreeUtils exposing (..)
 import Html exposing (Html, a, br, button, del, div, fieldset, h1, h2, h3, h4, h5, hr, iframe, img, input, ins, label, li, option, pre, select, small, span, text, ul)
 import Html.Attributes as A exposing (..)
-import Html.Events exposing (onBlur, onCheck, onClick, onInput, onSubmit)
+import Html.Events exposing (keyCode, on, onBlur, onCheck, onClick, onFocus, onInput, onSubmit)
 import Html.Events.Extra exposing (onChange)
 import Import.Template exposing (Template(..))
+import Json.Decode as Dec
 import List.Extra as ListExtra exposing (getAt)
 import Octicons as Icon exposing (defaultOptions)
 import Page.Doc.Export exposing (ExportFormat(..), ExportSelection(..))
@@ -45,7 +46,7 @@ viewHomeLink toggleSidebar sidebarOpen =
 
 
 type alias HeaderMsgs msg =
-    { toggledTitleEdit : Bool -> msg
+    { titleFocused : msg
     , titleFieldChanged : String -> msg
     , titleEdited : msg
     , titleEditCanceled : msg
@@ -75,40 +76,53 @@ viewHeader msgs title_ model =
         language =
             Session.language model.session
 
-        maybeBlurHandler str =
-            if str /= "" then
-                [ onBlur msgs.titleEdited ]
+        handleKeys =
+            on "keyup"
+                (Dec.andThen
+                    (\int ->
+                        case int of
+                            27 ->
+                                Dec.succeed msgs.titleEditCanceled
 
-            else
-                []
+                            13 ->
+                                Dec.succeed msgs.titleEdited
+
+                            _ ->
+                                Dec.fail "Ignore keyboard event"
+                    )
+                    keyCode
+                )
 
         titleArea =
-            case model.titleField of
-                Just editingField ->
-                    span [ id "title" ]
-                        [ Html.form
-                            [ onSubmit msgs.titleEdited ]
-                            [ input
-                                ([ id "title-rename"
-                                 , onInput msgs.titleFieldChanged
-                                 , value editingField
-                                 , attribute "data-private" "lipsum"
-                                 ]
-                                    ++ maybeBlurHandler editingField
-                                )
-                                []
-                            , button [ type_ "submit" ] [ text "Rename" ]
-                            , button [ onClick msgs.titleEditCanceled ] [ text "Cancel" ]
-                            ]
-                        ]
+            let
+                titleString =
+                    model.titleField |> Maybe.withDefault "Untitled"
+            in
+            span [ id "title" ]
+                [ div [ class "grow-wrap" ]
+                    [ div [ class "shadow" ]
+                        [ text <|
+                            if titleString /= "" then
+                                titleString
 
-                Nothing ->
-                    span [ id "title" ]
-                        [ h1 [ onClick (msgs.toggledTitleEdit True), attribute "data-private" "lipsum" ]
-                            [ text (title_ |> Maybe.withDefault "Untitled")
-                            ]
-                        , viewSaveIndicator language model (Session.currentTime model.session)
+                            else
+                                " "
                         ]
+                    , input
+                        [ id "title-rename"
+                        , type_ "text"
+                        , onInput msgs.titleFieldChanged
+                        , onBlur msgs.titleEdited
+                        , onFocus msgs.titleFocused
+                        , handleKeys
+                        , size 1
+                        , value titleString
+                        , attribute "data-private" "lipsum"
+                        ]
+                        []
+                    ]
+                , viewSaveIndicator language model (Session.currentTime model.session)
+                ]
     in
     div [ id "document-header" ]
         [ titleArea

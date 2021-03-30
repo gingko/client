@@ -225,7 +225,7 @@ type Msg
     | SettingsChanged Json.Value
     | LogoutRequested
     | LoginStateChanged Session
-    | ToggledTitleEdit Bool
+    | TitleFocused
     | TitleFieldChanged String
     | TitleEdited
     | TitleEditCanceled
@@ -568,7 +568,7 @@ update msg ({ workingTree } as model) =
                 ( newModel, newCmd ) =
                     case DocList.current model.metadata newListState of
                         Just currentMetadata ->
-                            ( { model | metadata = currentMetadata, session = updatedSession }, Cmd.none )
+                            ( { model | metadata = currentMetadata, titleField = Metadata.getDocName currentMetadata, session = updatedSession }, Cmd.none )
 
                         Nothing ->
                             ( { model | session = updatedSession }
@@ -580,18 +580,13 @@ update msg ({ workingTree } as model) =
         SettingsChanged json ->
             ( { model | session = Session.sync json model.session }, Cmd.none )
 
-        ToggledTitleEdit isEditingTitle ->
-            if isEditingTitle then
-                ( { model
-                    | titleField = Metadata.getDocName model.metadata |> Maybe.withDefault "" |> Just
-                  }
-                , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "title-rename")
-                )
+        TitleFocused ->
+            case model.titleField of
+                Nothing ->
+                    ( model, send <| SelectAll "title-rename" )
 
-            else
-                ( { model | titleField = Nothing }
-                , Cmd.none
-                )
+                Just _ ->
+                    ( model, Cmd.none )
 
         TitleFieldChanged newTitle ->
             ( { model | titleField = Just newTitle }, Cmd.none )
@@ -599,17 +594,20 @@ update msg ({ workingTree } as model) =
         TitleEdited ->
             case model.titleField of
                 Just editedTitle ->
-                    if Just editedTitle /= Metadata.getDocName model.metadata then
-                        ( model, send <| RenameDocument editedTitle )
+                    if String.trim editedTitle == "" then
+                        ( model, Cmd.batch [ send <| Alert "Title cannot be blank", Task.attempt (always NoOp) (Browser.Dom.focus "title-rename") ] )
+
+                    else if Just editedTitle /= Metadata.getDocName model.metadata then
+                        ( model, Cmd.batch [ send <| RenameDocument editedTitle, Task.attempt (always NoOp) (Browser.Dom.blur "title-rename") ] )
 
                     else
-                        ( { model | titleField = Nothing }, Cmd.none )
+                        ( model, Cmd.none )
 
                 Nothing ->
                     ( model, Cmd.none )
 
         TitleEditCanceled ->
-            ( { model | titleField = Nothing }, Cmd.none )
+            ( { model | titleField = Metadata.getDocName model.metadata }, Task.attempt (always NoOp) (Browser.Dom.blur "title-rename") )
 
         LogoutRequested ->
             ( model, Session.logout )
@@ -1004,7 +1002,7 @@ update msg ({ workingTree } as model) =
                 MetadataSynced json ->
                     case Json.decodeValue Metadata.decoder json of
                         Ok metadata ->
-                            ( { model | metadata = metadata }, Cmd.none )
+                            ( { model | metadata = metadata, titleField = Metadata.getDocName metadata }, Cmd.none )
 
                         Err _ ->
                             ( model, Cmd.none )
@@ -1012,7 +1010,7 @@ update msg ({ workingTree } as model) =
                 MetadataSaved json ->
                     case Json.decodeValue Metadata.decoder json of
                         Ok metadata ->
-                            ( { model | titleField = Nothing, metadata = metadata }, Cmd.none )
+                            ( { model | metadata = metadata, titleField = Metadata.getDocName metadata }, Cmd.none )
 
                         Err _ ->
                             ( model, Cmd.none )
@@ -2587,7 +2585,7 @@ viewLoaded model =
                     ([ UI.viewHomeLink ToggleSidebar (not (model.sidebarState == SidebarClosed))
                      , documentView
                      , UI.viewHeader
-                        { toggledTitleEdit = ToggledTitleEdit
+                        { titleFocused = TitleFocused
                         , titleFieldChanged = TitleFieldChanged
                         , titleEdited = TitleEdited
                         , titleEditCanceled = TitleEditCanceled
@@ -3005,30 +3003,7 @@ viewCardEditing lang cardId content isParent isMac =
                 , div [] []
                 ]
             ]
-
-        {-
-           <div id='welcome-step-2' class='tour-step'>
-           Click here to add a Child card<div class='arrow'>▶</div>
-           <div class='tour-step-progress' id='progress-step-2'><div class='bg-line on'></div><div class='bg-line off'></div><div class='on'></div><div class="on"></div><div></div><div></div><div></div><div></div><div></div></div></div>
-        -}
         ]
-
-
-viewHeader : Bool -> String -> Maybe String -> Html Msg
-viewHeader isEditing headingField docName_ =
-    if isEditing then
-        div [ style "position" "fixed", style "right" "100px" ]
-            [ input [ onInput TitleFieldChanged, value headingField ] []
-            , button [ onClick TitleEdited ] [ text "Rename" ]
-            ]
-
-    else
-        case docName_ of
-            Just docName ->
-                h1 [ onClick (ToggledTitleEdit True), style "position" "fixed", style "right" "100px" ] [ text docName ]
-
-            Nothing ->
-                h1 [ onClick (ToggledTitleEdit True), style "position" "fixed", style "right" "100px" ] [ text "Untitled" ]
 
 
 

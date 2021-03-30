@@ -453,6 +453,10 @@ const fromElm = (msg, elmData) => {
       setTimeout(removeFlashClass, 200);
     },
 
+    SelectAll: () => {
+      document.getElementById(elmData).select();
+    },
+
     FlashPrice: () => {
       let addFlashClass = function () {
         jQuery("#price-amount").addClass("flash-2");

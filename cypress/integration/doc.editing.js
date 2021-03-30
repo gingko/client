@@ -97,20 +97,18 @@ describe('Document Editing', () => {
       .should('not.contain', 'to cancel xxx')
 
     // Can cancel renaming the document
-    cy.get('#title h1').click()
-    cy.get('#title').contains('Cancel').click()
-    cy.get('#title input').should('not.exist')
+    cy.get('#title-rename').click()
+    cy.shortcut('{esc}')
+    cy.get('#title-rename').should('not.be.focused')
 
     // Can rename the document
-    cy.get('#title h1').click()
-    cy.get('#title input')
+    cy.get('#title-rename').click()
+    cy.get('#title-rename')
       .should('have.focus')
-      .type('A new doc title here')
+      .type('A new doc title here{enter}')
 
-    cy.contains('Rename')
-      .click()
-
-    cy.get('#title h1').contains('A new doc title here')
+    cy.title().should('eq', 'A new doc title here - Gingko')
+    cy.get('#title-rename').should('have.value', 'A new doc title here')
   })
 
   it('Continues editing after load', function () {

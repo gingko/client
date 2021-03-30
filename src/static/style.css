@@ -547,10 +547,36 @@ a.forgot-password {
   white-space: nowrap;
 }
 
-#title h1 {
+/* https://css-tricks.com/the-cleanest-trick-for-autogrowing-textareas/ */
+.grow-wrap {
+  display: grid;
+}
+.grow-wrap > input {
+  resize: none;
+  overflow: hidden;
+}
+.grow-wrap > input,
+.grow-wrap .shadow {
+  /* Identical styling required!! */
   font-size: 20px;
-  padding: 0 12px;
+  font-family: Arial, serif;
+  font-weight: 700;
+  padding: 2px 6px;
   margin: 0;
+  border: 2px solid transparent;
+  border-radius: 3px;
+
+  /* Place on top of each other */
+  grid-area: 1 / 1 / 2 / 2;
+}
+.shadow {
+  visibility: hidden;
+  white-space: pre-wrap;
+}
+#title-rename:focus {
+  border: 2px solid lightskyblue;
+  outline: none;
+  box-shadow: inset 1px 1px 3px var(--ui-3-bg);
 }
 
 #save-indicator {
@@ -560,6 +586,7 @@ a.forgot-password {
   font-family: sans-serif;
   color: var(--ui-4-fg);
   mix-blend-mode: hard-light;
+  margin-left: 6px;
 }
 
 #save-indicator.saving {
@@ -2506,7 +2533,7 @@ ul.changelist {
     display: none;
   }
 
-  #title h1 {
+  #title-rename {
     font-size: 16px;
     max-width: 30vw;
     overflow: hidden;

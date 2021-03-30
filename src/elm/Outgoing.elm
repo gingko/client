@@ -36,6 +36,7 @@ type Msg
     | DragStart Enc.Value
     | CopyCurrentSubtree Enc.Value
     | CopyToClipboard String String
+    | SelectAll String
     | FlashPrice
     | TextSurround String String
     | SetField String String
@@ -139,6 +140,9 @@ send info =
 
         CopyToClipboard what flash ->
             dataToSend "CopyToClipboard" (object [ ( "content", string what ), ( "element", string flash ) ])
+
+        SelectAll what ->
+            dataToSend "SelectAll" (string what)
 
         FlashPrice ->
             dataToSend "FlashPrice" null
