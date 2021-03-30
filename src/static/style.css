@@ -548,15 +548,15 @@ a.forgot-password {
 }
 
 /* https://css-tricks.com/the-cleanest-trick-for-autogrowing-textareas/ */
-.grow-wrap {
+.title-grow-wrap {
   display: grid;
 }
-.grow-wrap > input {
+.title-grow-wrap > input {
   resize: none;
   overflow: hidden;
 }
-.grow-wrap > input,
-.grow-wrap .shadow {
+.title-grow-wrap > input,
+.title-grow-wrap .shadow {
   /* Identical styling required!! */
   font-size: 20px;
   font-family: Arial, serif;

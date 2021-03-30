@@ -99,7 +99,7 @@ viewHeader msgs title_ model =
                     model.titleField |> Maybe.withDefault "Untitled"
             in
             span [ id "title" ]
-                [ div [ class "grow-wrap" ]
+                [ div [ class "title-grow-wrap" ]
                     [ div [ class "shadow" ]
                         [ text <|
                             if titleString /= "" then
