@@ -1,4 +1,4 @@
-module Doc.UI exposing (countWords, viewConflict, viewFooter, viewHeader, viewHistory, viewHomeLink, viewLoadingSpinner, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewVideo, viewWordCount)
+module Doc.UI exposing (countWords, viewConflict, viewHeader, viewHistory, viewLoadingSpinner, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewVideo, viewWordCount)
 
 import Ant.Icons.Svg as AntIcons
 import Coders exposing (treeToMarkdownString)
@@ -30,19 +30,6 @@ import Types exposing (Children(..), CursorPosition(..), DropdownState(..), Side
 
 
 -- HEADER
-
-
-viewHomeLink : msg -> Bool -> Html msg
-viewHomeLink toggleSidebar sidebarOpen =
-    div [ id "brand", onClick toggleSidebar ]
-        [ img [ src "../gingko-leaf-logo.svg", width 28 ]
-            []
-        , if sidebarOpen then
-            h2 [ id "brand-name" ] [ text "Gingko Writer" ]
-
-          else
-            text ""
-        ]
 
 
 type alias HeaderMsgs msg =
@@ -252,46 +239,7 @@ viewTopRightButtons msgs dropdownState session =
             Icon.signOut (defaultOptions |> Icon.color "#333" |> Icon.size 18)
     in
     div [ id "top-right-buttons" ]
-        (maybeUpgrade
-            ++ [ div [ id "help-icon", onClick (msgs.toggledHelpMenu (not isHelpDropdown)) ]
-                    [ helpIcon
-                    , div [ id "welcome-step-6", class "tour-step" ]
-                        [ text "Click to see Help Menu"
-                        , div [ class "arrow" ] [ text "▲" ]
-                        , div [ id "progress-step-6", class "tour-step-progress" ]
-                            [ div [ class "bg-line", class "on" ] []
-                            , div [ class "bg-line", class "off" ] []
-                            , div [ class "on" ] []
-                            , div [ class "on" ] []
-                            , div [ class "on" ] []
-                            , div [ class "on" ] []
-                            , div [ class "on" ] []
-                            , div [ class "on" ] []
-                            , div [] []
-                            ]
-                        ]
-                    , if isHelpDropdown then
-                        ul [ id "help-dropdown", class "dropdown" ]
-                            [ li [] [ a [ href "https://docs.gingkowriter.com", target "_blank" ] [ text "FAQ" ] ]
-                            , li [] [ span [ id "email-support", onClick msgs.clickedEmailSupport ] [ text <| tr lang EmailSupport ] ]
-                            ]
-
-                      else
-                        text ""
-                    ]
-               , div [ id "account", onClick (msgs.toggledAccountMenu (not isAccountDropdown)) ]
-                    [ userIcon
-                    , if isAccountDropdown then
-                        ul [ id "account-dropdown", class "dropdown" ]
-                            [ li [] [ span [ class "no-interaction" ] [ text (Session.name session |> Maybe.withDefault "") ] ]
-                            , li [] [ span [ id "logout-button", onClick msgs.logoutRequested ] [ logoutIcon, text <| tr lang Logout ] ]
-                            ]
-
-                      else
-                        text ""
-                    ]
-               ]
-        )
+        maybeUpgrade
 
 
 
@@ -300,7 +248,8 @@ viewTopRightButtons msgs dropdownState session =
 
 type alias SidebarMsgs msg =
     { sidebarStateChanged : SidebarState -> msg
-    , templateSelectorOpened : msg
+    , clickedNew : msg
+    , clickedSwitcher : msg
     , fileSearchChanged : String -> msg
     , contextMenuOpened : String -> ( Float, Float ) -> msg
     , exportPreviewToggled : Bool -> msg
@@ -320,173 +269,31 @@ viewSidebar modelLanguage msgs currentDocument fileFilter docList ( exportSelect
         isOpen =
             not (sidebarState == SidebarClosed)
 
-        exportSelectionRadio selection domId labelText =
-            [ input [ id domId, type_ "radio", onInput (always <| msgs.exportSelectionChanged selection), checked (exportSelection == selection) ] []
-            , label [ for domId ] [ text labelText ]
-            ]
-
-        exportFormatRadio selection domId labelText =
-            [ input [ id domId, type_ "radio", onInput (always <| msgs.exportFormatChanged selection), checked (exportFormat == selection) ] []
-            , label [ for domId ] [ text labelText ]
-            ]
-
-        sidebarMenu =
-            case sidebarState of
-                File ->
-                    let
-                        filteredList =
-                            DocList.filter fileFilter docList
-                    in
-                    div [ id "sidebar-menu" ]
-                        [ h3 [] [ text "File" ]
-                        , button
-                            [ id "new-button", onClick msgs.templateSelectorOpened, class "sidebar-item" ]
-                            [ text "New" ]
-                        , div [ id "welcome-step-7", class "tour-step" ]
-                            [ text "Click here for New Document"
-                            , div [ class "arrow" ] [ text "◀" ]
-                            , div [ id "progress-step-7", class "tour-step-progress" ]
-                                [ div [ class "bg-line", class "on" ] []
-                                , div [ class "bg-line", class "off" ] []
-                                , div [ class "on" ] []
-                                , div [ class "on" ] []
-                                , div [ class "on" ] []
-                                , div [ class "on" ] []
-                                , div [ class "on" ] []
-                                , div [ class "on" ] []
-                                , div [ class "on" ] []
-                                ]
-                            ]
-                        , hr [ style "width" "80%" ] []
-                        , input [ type_ "search", onInput msgs.fileSearchChanged, placeholder "Find document by name" ] []
-                        , DocList.viewSmall msgs.contextMenuOpened currentDocument filteredList
-                        ]
-
-                Export ->
-                    div [ id "sidebar-menu" ]
-                        [ h3 [] [ text "Export" ]
-                        , label [] [ text "Toggle export preview", input [ type_ "checkbox", id "export-preview-checkbox", onCheck msgs.exportPreviewToggled ] [] ]
-                        , hr [] []
-                        , div [ id "export-selection" ]
-                            (exportSelectionRadio ExportEverything "export-everything" "Whole tree"
-                                ++ [ br [] [] ]
-                                ++ exportSelectionRadio ExportSubtree "export-subtree" "Current card & Subtree"
-                                ++ [ br [] [] ]
-                                ++ exportSelectionRadio ExportCurrentColumn "export-current-column" "Current column"
-                            )
-                        , hr [] []
-                        , div [ id "export-selection" ]
-                            (exportFormatRadio DOCX "export-word" "Word format"
-                                ++ [ br [] [] ]
-                                ++ exportFormatRadio PlainText "export-plain" "Plain text"
-                                ++ [ br [] [] ]
-                                ++ exportFormatRadio JSON "export-json" "JSON format"
-                            )
-                        , button [ onClick msgs.export, class "sidebar-item" ] [ text "Export" ]
-                        ]
-
-                Import ->
-                    div [ id "sidebar-menu" ]
-                        [ h3 [] [ text "Import" ]
-                        , button [ onClick msgs.importJSONRequested ] [ text "Import JSON" ]
-                        ]
-
-                Settings ->
-                    div [ id "sidebar-menu" ]
-                        [ h2 [] [ text "Settings" ]
-                        , h5 [] [ text <| tr modelLanguage Language ]
-                        , select [ onChange msgs.languageChanged ]
-                            (Translation.activeLanguages
-                                |> List.map
-                                    (\( lang, langName ) ->
-                                        option [ value <| langToString lang, selected (lang == modelLanguage) ] [ text langName ]
-                                    )
-                            )
-                        , small []
-                            [ text <| "(" ++ tr modelLanguage ContributeTranslations ++ " "
-                            , a [ href "https://poeditor.com/join/project?hash=k8Br3k0JVz" ] [ text <| tr modelLanguage Here ]
-                            , text ")"
-                            ]
-                        , br [] []
-                        , h5 [] [ text "Themes" ]
-                        , button [ onClick <| msgs.themeChanged Default ] [ text "Set Default" ]
-                        , button [ onClick <| msgs.themeChanged Dark ] [ text "Set Dark Mode" ]
-                        , button [ onClick <| msgs.themeChanged Gray ] [ text "Set Gray" ]
-                        , button [ onClick <| msgs.themeChanged Green ] [ text "Set Green" ]
-                        , button [ onClick <| msgs.themeChanged Turquoise ] [ text "Set Turquoise" ]
-                        ]
-
-                SidebarClosed ->
-                    text ""
-
-        fileIconColor =
-            if isOpen then
-                "hsl(202 22% 44%)"
-
-            else
-                "hsl(202 22% 66%)"
-
         toggle menu =
             if sidebarState == menu then
                 msgs.sidebarStateChanged <| SidebarClosed
 
             else
                 msgs.sidebarStateChanged <| menu
-
-        sidebarButton menu =
-            case menu of
-                File ->
-                    div
-                        [ id "file-button"
-                        , title "File"
-                        , classList [ ( "sidebar-button", True ), ( "open", sidebarState == menu ) ]
-                        , onClick <| toggle menu
-                        ]
-                        [ Icon.fileDirectory (defaultOptions |> Icon.color fileIconColor |> Icon.size 18) ]
-
-                SidebarClosed ->
-                    div
-                        [ classList [ ( "sidebar-button", True ), ( "open", sidebarState == menu ) ], onClick <| toggle menu ]
-                        []
-
-                Export ->
-                    div
-                        [ id "export-button"
-                        , title "Export"
-                        , classList [ ( "sidebar-button", True ), ( "open", sidebarState == menu ) ]
-                        , onClick <| toggle menu
-                        ]
-                        [ Icon.signOut (defaultOptions |> Icon.color fileIconColor |> Icon.size 18) ]
-
-                Import ->
-                    div
-                        [ classList [ ( "sidebar-button", True ), ( "open", sidebarState == menu ) ], onClick <| toggle menu ]
-                        [ Icon.signIn (defaultOptions |> Icon.color fileIconColor |> Icon.size 18) ]
-
-                Settings ->
-                    div
-                        [ id "settings-button"
-                        , title "Settings"
-                        , classList [ ( "sidebar-button", True ), ( "open", sidebarState == menu ) ]
-                        , onClick <| toggle menu
-                        ]
-                        [ Icon.settings (defaultOptions |> Icon.color fileIconColor |> Icon.size 18) ]
     in
     [ div [ id "sidebar", classList [ ( "open", isOpen ) ] ]
-        [ sidebarButton File
-        , sidebarButton Export
+        [ div [ id "brand", onClick <| toggle File ]
+            ([ img [ src "../gingko-leaf-logo.svg", width 28 ] [] ]
+                ++ (if isOpen then
+                        [ h2 [ id "brand-name" ] [ text "Gingko Writer" ]
+                        , div [ id "sidebar-collapse-icon" ] [ AntIcons.leftOutlined [] ]
+                        ]
 
-        --, sidebarButton Import importIcon -- TODO: Removed temporarily
-        , sidebarButton Settings
-        , div
-            [ id "fullscreen-button"
-            , title "Fullscreen"
-            , class "sidebar-button"
-            , onClick msgs.fullscreenRequested
-            ]
-            [ Icon.screenFull (defaultOptions |> Icon.size 18) ]
+                    else
+                        [ text "" ]
+                   )
+            )
+        , div [ id "new-icon", onClick msgs.clickedNew, class "sidebar-button" ] [ AntIcons.fileOutlined [] ]
+        , div [ id "documents-icon", class "sidebar-button" ] [ AntIcons.folderOutlined [] ]
+        , div [ id "document-switcher-icon", onClick msgs.clickedSwitcher, class "sidebar-button" ] [ AntIcons.fileSearchOutlined [] ]
+        , div [ id "help-icon", class "sidebar-button" ] [ AntIcons.questionCircleOutlined [] ]
+        , div [ id "account-icon", class "sidebar-button" ] [ AntIcons.userOutlined [] ]
         ]
-    , sidebarMenu
     ]
 
 
@@ -510,8 +317,7 @@ viewSidebarStatic sidebarOpen =
 viewLoadingSpinner : msg -> Bool -> Html msg
 viewLoadingSpinner toggleSidebarMsg sidebarOpen =
     div [ id "app-root", class "loading" ]
-        ([ viewHomeLink toggleSidebarMsg False
-         , div [ id "document-header" ] []
+        ([ div [ id "document-header" ] []
          , div [ id "loading-overlay" ] []
          , div [ class "spinner" ] [ div [ class "bounce1" ] [], div [ class "bounce2" ] [], div [ class "bounce3" ] [] ]
          ]
@@ -646,13 +452,6 @@ viewSearchField searchFieldMsg { viewState, session } =
             div
                 [ id "search-field" ]
                 []
-
-
-viewFooter : msg -> Html msg
-viewFooter wordCountToggle =
-    div
-        [ class "footer" ]
-        [ div [ id "wordcount", onClick wordCountToggle ] [ text "Word Counts" ] ]
 
 
 viewMobileButtons :

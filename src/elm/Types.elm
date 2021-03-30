@@ -55,9 +55,6 @@ type ViewMode
 type SidebarState
     = SidebarClosed
     | File
-    | Export
-    | Import
-    | Settings
 
 
 type DropdownState

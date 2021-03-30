@@ -379,13 +379,66 @@ a.forgot-password {
   height: 100%;
   width: 100%;
   display: grid;
-  grid-template-columns: 40px auto 1fr auto;
-  grid-template-rows: 40px 40px 1fr 25px;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: 40px 1fr;
   grid-template-areas:
-    "home home document-header document-header"
-    "sidebar sidebar-menu document right-sidebar"
-    "sidebar sidebar-menu document right-sidebar"
-    "sidebar sidebar-menu document-footer right-sidebar";
+    "sidebar document-header right-sidebar"
+    "sidebar document right-sidebar"
+}
+#sidebar {
+  grid-area: sidebar;
+  display: grid;
+  grid-template-columns: 40px auto;
+  grid-template-rows: 40px 40px 40px 40px 1fr 40px 40px;
+  grid-template-areas:
+    "top-left top-left"
+    "row1-icon row-1-expanded"
+    "row2-icon doc-list"
+    "row3-icon doc-list"
+    ". doc-list"
+    "bott-row1-icon bott-row1-expanded"
+    "bott-row2-icon bott-row2-expanded";
+  background: var(--ui-2-bg);
+  border-right: 1px solid var(--ui-2-border-color);
+  box-shadow: 0 0 4px #00000085;
+  z-index: 5;
+}
+#brand {
+  grid-area: top-left;
+  display: flex;
+  padding: 5px;
+  color: var(--ui-1-fg);
+  background: var(--ui-1-bg);
+  border-right: 1px solid hsl(212deg 0% 58%);
+  border-bottom: 1px solid hsl(0, 0%, 80%);
+  z-index: 20;
+  cursor: pointer;
+}
+#brand-name {
+  margin: 6px 0 6px 14px;
+  display: flex;
+  color: #334;
+  text-decoration: none;
+  align-items: center;
+  font-family: 'Open Sans';
+}
+#sidebar-collapse-icon {
+  width: 16px;
+}
+#new-icon {
+  grid-area: row1-icon;
+}
+#documents-icon {
+  grid-area: row2-icon;
+}
+#document-switcher-icon {
+  grid-area: row3-icon;
+}
+#help-icon {
+  grid-area: bott-row1-icon;
+}
+#account-icon {
+  grid-area: bott-row2-icon;
 }
 
 #loading-overlay {
@@ -452,26 +505,6 @@ a.forgot-password {
   grid-area: document;
   align-self: center;
   justify-self: center;
-}
-
-#brand {
-  grid-area: home;
-  display: flex;
-  padding: 5px;
-  color: var(--ui-1-fg);
-  background: var(--ui-1-bg);
-  border-right: 1px solid hsl(212deg 0% 58%);
-  border-bottom: 1px solid hsl(0, 0%, 80%);
-  z-index: 20;
-  cursor: pointer;
-}
-#brand-name {
-  margin: 6px 0 6px 14px;
-  display: flex;
-  color: #334;
-  text-decoration: none;
-  align-items: center;
-  font-family: 'Open Sans';
 }
 
 #document-header {
@@ -861,18 +894,6 @@ span.trial-dark {
 }
 .payment-button:active {
   margin-top: 1px;
-}
-
-#sidebar {
-  grid-area: sidebar;
-  min-width: 40px;
-  background: var(--ui-2-bg);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  border-right: 1px solid var(--ui-2-border-color);
-  box-shadow: 0 0 4px #00000085;
-  z-index: 5;
 }
 
 #fullscreen-button {

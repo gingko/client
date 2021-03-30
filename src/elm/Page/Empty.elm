@@ -133,8 +133,7 @@ view : Model -> Html Msg
 view ({ session } as model) =
     div
         [ id "app-root", class "loading" ]
-        ([ UI.viewHomeLink NoOp False
-         , div [ id "document-header" ] []
+        ([ div [ id "document-header" ] []
          , div [ id "loading-overlay" ] []
          , case Session.documents session of
             Success [] ->

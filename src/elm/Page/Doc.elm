@@ -14,7 +14,7 @@ import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.Switcher
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
-import Doc.UI as UI exposing (countWords, viewConflict, viewFooter, viewHistory, viewMobileButtons, viewSearchField, viewVideo)
+import Doc.UI as UI exposing (countWords, viewConflict, viewHistory, viewMobileButtons, viewSearchField, viewVideo)
 import File exposing (File)
 import File.Download as Download
 import File.Select as Select
@@ -235,6 +235,7 @@ type Msg
     | ToggleSidebar
     | SidebarStateChanged SidebarState
     | TemplateSelectorOpened
+    | SwitcherOpened
     | WordcountModalOpened
     | ModalClosed
     | ImportBulkClicked
@@ -753,6 +754,9 @@ update msg ({ workingTree } as model) =
                         model.tourStep
             in
             ( { model | modalState = TemplateSelector, tourStep = newTourStep }, Cmd.none )
+
+        SwitcherOpened ->
+            openSwitcher model
 
         WordcountModalOpened ->
             ( { model | modalState = Wordcount }, Cmd.none )
@@ -1386,17 +1390,7 @@ update msg ({ workingTree } as model) =
                                     ( { model | modalState = NoModal }, Cmd.none )
 
                                 _ ->
-                                    ( { model
-                                        | modalState =
-                                            FileSwitcher
-                                                { currentDocument = model.metadata
-                                                , selectedDocument = Just (Metadata.getDocId model.metadata)
-                                                , searchField = model.fileSearchField
-                                                , docList = Session.documents model.session
-                                                }
-                                      }
-                                    , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "switcher-input")
-                                    )
+                                    model |> openSwitcher
 
                         "mod+b" ->
                             case vs.viewMode of
@@ -2529,6 +2523,21 @@ toggleVideoModal shouldOpen ( model, prevCmd ) =
     )
 
 
+openSwitcher : Model -> ( Model, Cmd Msg )
+openSwitcher model =
+    ( { model
+        | modalState =
+            FileSwitcher
+                { currentDocument = model.metadata
+                , selectedDocument = Just (Metadata.getDocId model.metadata)
+                , searchField = model.fileSearchField
+                , docList = Session.documents model.session
+                }
+      }
+    , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "switcher-input")
+    )
+
+
 
 -- VIEW
 
@@ -2582,8 +2591,7 @@ viewLoaded model =
                 in
                 div
                     [ id "app-root", applyTheme model.theme, setTourStep model.tourStep ]
-                    ([ UI.viewHomeLink ToggleSidebar (not (model.sidebarState == SidebarClosed))
-                     , documentView
+                    ([ documentView
                      , UI.viewHeader
                         { titleFocused = TitleFocused
                         , titleFieldChanged = TitleFieldChanged
@@ -2601,7 +2609,8 @@ viewLoaded model =
                         ++ UI.viewSidebar
                             language
                             { sidebarStateChanged = SidebarStateChanged
-                            , templateSelectorOpened = TemplateSelectorOpened
+                            , clickedNew = TemplateSelectorOpened
+                            , clickedSwitcher = SwitcherOpened
                             , fileSearchChanged = FileSearchChanged
                             , contextMenuOpened = SidebarContextClicked
                             , exportPreviewToggled = ExportPreviewToggled
@@ -2640,7 +2649,6 @@ viewLoaded model =
                                 , navRight = mobileBtnMsg "right"
                                 }
                                 (model.viewState.viewMode /= Normal)
-                           , viewFooter WordcountModalOpened
                            , case model.historyState of
                                 From currHead ->
                                     viewHistory NoOp CheckoutCommit Restore CancelHistory (Session.language model.session) currHead model.data
