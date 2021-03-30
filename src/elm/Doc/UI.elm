@@ -276,6 +276,13 @@ viewSidebar modelLanguage msgs currentDocument fileFilter docList ( exportSelect
             else
                 msgs.sidebarStateChanged <| menu
 
+        viewIf cond v =
+            if cond then
+                v
+
+            else
+                text ""
+
         onClickStop msg =
             stopPropagationOn "click" (Dec.succeed ( msg, True ))
     in
@@ -291,7 +298,10 @@ viewSidebar modelLanguage msgs currentDocument fileFilter docList ( exportSelect
                         [ text "" ]
                    )
             )
-        , div [ id "new-icon", onClickStop msgs.clickedNew, class "sidebar-button" ] [ AntIcons.fileOutlined [] ]
+        , div [ id "new", onClickStop msgs.clickedNew, class "sidebar-row" ]
+            [ div [ id "new-icon", class "sidebar-button" ] [ AntIcons.fileOutlined [] ]
+            , viewIf isOpen <| div [ id "new-label", class "sidebar-label" ] [ text "New Document" ]
+            ]
         , div [ id "documents-icon", class "sidebar-button" ]
             [ if isOpen then
                 AntIcons.folderOpenOutlined []

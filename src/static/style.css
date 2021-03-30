@@ -392,12 +392,12 @@ a.forgot-password {
   grid-template-rows: 40px 40px 40px 40px 1fr 40px 40px;
   grid-template-areas:
     "top-left top-left"
-    "row1-icon row-1-expanded"
+    "row1 row1"
     "row2-icon doc-list"
     "row3-icon doc-list"
     ". doc-list"
-    "bott-row1-icon bott-row1-expanded"
-    "bott-row2-icon bott-row2-expanded";
+    "bott-row1 bott-row1"
+    "bott-row2 bott-row2";
   background: var(--ui-2-bg);
   border-right: 1px solid var(--ui-2-border-color);
   box-shadow: 0 0 4px #00000085;
@@ -425,8 +425,24 @@ a.forgot-password {
   margin-top: 6px;
   opacity: 0.5;
 }
-#new-icon {
-  grid-area: row1-icon;
+.sidebar-row {
+  display: flex;
+  width: 100%;
+  cursor: pointer;
+}
+.sidebar-button {
+  width: 40px;
+  padding: 10px;
+  cursor: pointer;
+}
+.sidebar-button:hover , .sidebar-button.open, .sidebar-row:hover {
+  background-color: var(--ui-1-bg);
+}
+.sidebar-label {
+  margin-top: 13px;
+}
+#new {
+  grid-area: row1;
 }
 #documents-icon {
   grid-area: row2-icon;
@@ -435,10 +451,10 @@ a.forgot-password {
   grid-area: row3-icon;
 }
 #help-icon {
-  grid-area: bott-row1-icon;
+  grid-area: bott-row1;
 }
 #account-icon {
-  grid-area: bott-row2-icon;
+  grid-area: bott-row2;
 }
 
 #loading-overlay {
@@ -900,13 +916,6 @@ span.trial-dark {
 }
 
 
-.sidebar-button {
-  padding: 10px;
-  cursor: pointer;
-}
-.sidebar-button:hover , .sidebar-button.open {
-  background-color: var(--ui-1-bg);
-}
 
 #sidebar-menu {
   grid-area: sidebar-menu;
