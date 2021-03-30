@@ -11,7 +11,7 @@ import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils as TreeUtils exposing (..)
 import Html exposing (Html, a, br, button, del, div, fieldset, h1, h2, h3, h4, h5, hr, iframe, img, input, ins, label, li, option, pre, select, small, span, text, ul)
 import Html.Attributes as A exposing (..)
-import Html.Events exposing (keyCode, on, onBlur, onCheck, onClick, onFocus, onInput, onSubmit)
+import Html.Events exposing (keyCode, on, onBlur, onCheck, onClick, onFocus, onInput, onSubmit, stopPropagationOn)
 import Html.Events.Extra exposing (onChange)
 import Import.Template exposing (Template(..))
 import Json.Decode as Dec
@@ -263,7 +263,7 @@ type alias SidebarMsgs msg =
     }
 
 
-viewSidebar : Language -> SidebarMsgs msg -> Metadata -> String -> DocList.Model -> ( ExportSelection, ExportFormat ) -> SidebarState -> List (Html msg)
+viewSidebar : Language -> SidebarMsgs msg -> Metadata -> String -> DocList.Model -> ( ExportSelection, ExportFormat ) -> SidebarState -> Html msg
 viewSidebar modelLanguage msgs currentDocument fileFilter docList ( exportSelection, exportFormat ) sidebarState =
     let
         isOpen =
@@ -275,9 +275,12 @@ viewSidebar modelLanguage msgs currentDocument fileFilter docList ( exportSelect
 
             else
                 msgs.sidebarStateChanged <| menu
+
+        onClickStop msg =
+            stopPropagationOn "click" (Dec.succeed ( msg, True ))
     in
-    [ div [ id "sidebar", classList [ ( "open", isOpen ) ] ]
-        [ div [ id "brand", onClick <| toggle File ]
+    div [ id "sidebar", onClick <| toggle File, classList [ ( "open", isOpen ) ] ]
+        [ div [ id "brand" ]
             ([ img [ src "../gingko-leaf-logo.svg", width 28 ] [] ]
                 ++ (if isOpen then
                         [ h2 [ id "brand-name" ] [ text "Gingko Writer" ]
@@ -288,13 +291,12 @@ viewSidebar modelLanguage msgs currentDocument fileFilter docList ( exportSelect
                         [ text "" ]
                    )
             )
-        , div [ id "new-icon", onClick msgs.clickedNew, class "sidebar-button" ] [ AntIcons.fileOutlined [] ]
+        , div [ id "new-icon", onClickStop msgs.clickedNew, class "sidebar-button" ] [ AntIcons.fileOutlined [] ]
         , div [ id "documents-icon", class "sidebar-button" ] [ AntIcons.folderOutlined [] ]
-        , div [ id "document-switcher-icon", onClick msgs.clickedSwitcher, class "sidebar-button" ] [ AntIcons.fileSearchOutlined [] ]
+        , div [ id "document-switcher-icon", onClickStop msgs.clickedSwitcher, class "sidebar-button" ] [ AntIcons.fileSearchOutlined [] ]
         , div [ id "help-icon", class "sidebar-button" ] [ AntIcons.questionCircleOutlined [] ]
         , div [ id "account-icon", class "sidebar-button" ] [ AntIcons.userOutlined [] ]
         ]
-    ]
 
 
 viewSidebarStatic : Bool -> List (Html msg)

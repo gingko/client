@@ -401,29 +401,29 @@ a.forgot-password {
   background: var(--ui-2-bg);
   border-right: 1px solid var(--ui-2-border-color);
   box-shadow: 0 0 4px #00000085;
-  z-index: 5;
 }
 #brand {
   grid-area: top-left;
   display: flex;
+  align-items: center;
   padding: 5px;
   color: var(--ui-1-fg);
-  background: var(--ui-1-bg);
-  border-right: 1px solid hsl(212deg 0% 58%);
-  border-bottom: 1px solid hsl(0, 0%, 80%);
   z-index: 20;
   cursor: pointer;
 }
 #brand-name {
-  margin: 6px 0 6px 14px;
+  margin: 12px 0 6px 6px;
   display: flex;
   color: #334;
   text-decoration: none;
   align-items: center;
-  font-family: 'Open Sans';
+  font-family: Catamaran, Helvetica, Arial, sans-serif;
 }
 #sidebar-collapse-icon {
   width: 16px;
+  margin-left: 12px;
+  margin-top: 6px;
+  opacity: 0.5;
 }
 #new-icon {
   grid-area: row1-icon;
@@ -516,7 +516,6 @@ a.forgot-password {
   justify-content: space-between;
   color: var(--ui-1-fg);
   background-color: var(--ui-1-bg);
-  z-index: 10;
   border-bottom: 1px solid hsl(212deg 5% 58%);
   box-shadow: 0 0 4px #00000085;
 }
@@ -900,10 +899,6 @@ span.trial-dark {
   display: none;
 }
 
-#sidebar.open {
-  border-right: none;
-  box-shadow: none;
-}
 
 .sidebar-button {
   padding: 10px;

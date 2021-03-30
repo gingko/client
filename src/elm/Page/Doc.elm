@@ -2605,28 +2605,28 @@ viewLoaded model =
                         }
                         (Metadata.getDocName model.metadata)
                         model
+                     , UI.viewSidebar
+                        language
+                        { sidebarStateChanged = SidebarStateChanged
+                        , clickedNew = TemplateSelectorOpened
+                        , clickedSwitcher = SwitcherOpened
+                        , fileSearchChanged = FileSearchChanged
+                        , contextMenuOpened = SidebarContextClicked
+                        , exportPreviewToggled = ExportPreviewToggled
+                        , exportSelectionChanged = ExportSelectionChanged
+                        , exportFormatChanged = ExportFormatChanged
+                        , export = Export
+                        , importJSONRequested = ImportJSONRequested
+                        , languageChanged = LanguageChanged
+                        , themeChanged = ThemeChanged
+                        , fullscreenRequested = FullscreenRequested
+                        }
+                        model.metadata
+                        model.fileSearchField
+                        (Session.documents model.session)
+                        model.exportSettings
+                        model.sidebarState
                      ]
-                        ++ UI.viewSidebar
-                            language
-                            { sidebarStateChanged = SidebarStateChanged
-                            , clickedNew = TemplateSelectorOpened
-                            , clickedSwitcher = SwitcherOpened
-                            , fileSearchChanged = FileSearchChanged
-                            , contextMenuOpened = SidebarContextClicked
-                            , exportPreviewToggled = ExportPreviewToggled
-                            , exportSelectionChanged = ExportSelectionChanged
-                            , exportFormatChanged = ExportFormatChanged
-                            , export = Export
-                            , importJSONRequested = ImportJSONRequested
-                            , languageChanged = LanguageChanged
-                            , themeChanged = ThemeChanged
-                            , fullscreenRequested = FullscreenRequested
-                            }
-                            model.metadata
-                            model.fileSearchField
-                            (Session.documents model.session)
-                            model.exportSettings
-                            model.sidebarState
                         ++ UI.viewShortcuts
                             ShortcutTrayToggle
                             language
