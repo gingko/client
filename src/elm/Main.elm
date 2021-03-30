@@ -314,10 +314,10 @@ view model =
             Page.Message.viewSuccess
 
         Signup signup ->
-            { title = "Gingko - Signup", body = [ Html.map GotSignupMsg (Page.Signup.view signup) ] }
+            { title = "Gingko Writer - Signup", body = [ Html.map GotSignupMsg (Page.Signup.view signup) ] }
 
         Login login ->
-            { title = "Gingko - Login", body = [ Html.map GotLoginMsg (Page.Login.view login) ] }
+            { title = "Gingko Writer - Login", body = [ Html.map GotLoginMsg (Page.Login.view login) ] }
 
         ForgotPassword forgotPass ->
             { title = "Gingko - Forgot Password", body = [ Html.map GotForgotPasswordMsg (Page.ForgotPassword.view forgotPass) ] }
@@ -332,10 +332,10 @@ view model =
             { title = "Importing...", body = [ UI.viewLoadingSpinner NoOp False ] }
 
         DocNew _ ->
-            { title = "Gingko - New", body = [ Html.div [] [ Html.text "LOADING..." ] ] }
+            { title = "Gingko Writer - New", body = [ Html.div [] [ Html.text "LOADING..." ] ] }
 
         Doc doc ->
-            { title = Page.Doc.getTitle doc ++ " - Gingko", body = [ Html.map GotDocMsg (Page.Doc.view doc) ] }
+            { title = Page.Doc.getTitle doc ++ " - Gingko Writer", body = [ Html.map GotDocMsg (Page.Doc.view doc) ] }
 
 
 

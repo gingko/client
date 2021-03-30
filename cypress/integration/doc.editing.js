@@ -107,7 +107,7 @@ describe('Document Editing', () => {
       .should('have.focus')
       .type('A new doc title here{enter}')
 
-    cy.title().should('eq', 'A new doc title here - Gingko')
+    cy.title().should('eq', 'A new doc title here - Gingko Writer')
     cy.get('#title-rename').should('have.value', 'A new doc title here')
   })
 
