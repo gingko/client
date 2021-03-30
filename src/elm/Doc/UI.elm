@@ -292,7 +292,13 @@ viewSidebar modelLanguage msgs currentDocument fileFilter docList ( exportSelect
                    )
             )
         , div [ id "new-icon", onClickStop msgs.clickedNew, class "sidebar-button" ] [ AntIcons.fileOutlined [] ]
-        , div [ id "documents-icon", class "sidebar-button" ] [ AntIcons.folderOutlined [] ]
+        , div [ id "documents-icon", class "sidebar-button" ]
+            [ if isOpen then
+                AntIcons.folderOpenOutlined []
+
+              else
+                AntIcons.folderOutlined []
+            ]
         , div [ id "document-switcher-icon", onClickStop msgs.clickedSwitcher, class "sidebar-button" ] [ AntIcons.fileSearchOutlined [] ]
         , div [ id "help-icon", class "sidebar-button" ] [ AntIcons.questionCircleOutlined [] ]
         , div [ id "account-icon", class "sidebar-button" ] [ AntIcons.userOutlined [] ]
