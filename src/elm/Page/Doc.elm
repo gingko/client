@@ -2610,6 +2610,7 @@ viewLoaded model =
                         { sidebarStateChanged = SidebarStateChanged
                         , clickedNew = TemplateSelectorOpened
                         , clickedSwitcher = SwitcherOpened
+                        , clickedHelp = ToggledHelpMenu True
                         , fileSearchChanged = FileSearchChanged
                         , contextMenuOpened = SidebarContextClicked
                         , exportPreviewToggled = ExportPreviewToggled

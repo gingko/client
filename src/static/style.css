@@ -434,6 +434,7 @@ a.forgot-password {
   width: 40px;
   padding: 10px;
   cursor: pointer;
+  fill: var(--ui-1-fg);
 }
 .sidebar-button:hover , .sidebar-button.open, .sidebar-row:hover {
   background-color: var(--ui-1-bg);
@@ -453,7 +454,7 @@ a.forgot-password {
 #document-switcher-icon {
   grid-area: row3-icon;
 }
-#help-icon {
+#help {
   grid-area: bott-row1;
 }
 #account-icon {

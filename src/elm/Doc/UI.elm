@@ -250,6 +250,7 @@ type alias SidebarMsgs msg =
     { sidebarStateChanged : SidebarState -> msg
     , clickedNew : msg
     , clickedSwitcher : msg
+    , clickedHelp : msg
     , fileSearchChanged : String -> msg
     , contextMenuOpened : String -> ( Float, Float ) -> msg
     , exportPreviewToggled : Bool -> msg
@@ -311,7 +312,10 @@ viewSidebar modelLanguage msgs currentDocument fileFilter docList ( exportSelect
             ]
         , viewIf isOpen <| DocList.viewSmall msgs.contextMenuOpened currentDocument docList
         , div [ id "document-switcher-icon", onClickStop msgs.clickedSwitcher, class "sidebar-button" ] [ AntIcons.fileSearchOutlined [] ]
-        , div [ id "help-icon", class "sidebar-button" ] [ AntIcons.questionCircleOutlined [] ]
+        , div [ id "help", onClickStop msgs.clickedHelp, class "sidebar-row" ]
+            [ div [ id "help-icon", class "sidebar-button" ] [ AntIcons.questionCircleOutlined [] ]
+            , viewIf isOpen <| div [ id "help-label", class "sidebar-label" ] [ text "Help" ]
+            ]
         , div [ id "account-icon", class "sidebar-button" ] [ AntIcons.userOutlined [] ]
         ]
 
