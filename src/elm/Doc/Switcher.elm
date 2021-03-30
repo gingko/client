@@ -4,7 +4,7 @@ import Doc.List as DocList
 import Doc.Metadata as Metadata exposing (Metadata)
 import Html exposing (Html, div, input, span, text)
 import Html.Attributes exposing (attribute, class, id, placeholder, type_, value)
-import Html.Events exposing (onInput)
+import Html.Events exposing (onClick, onInput)
 import List.Extra as ListExtra
 
 
@@ -103,8 +103,8 @@ search term model =
 -- VIEW
 
 
-view : (String -> msg) -> Model -> List (Html msg)
-view searchInput { currentDocument, selectedDocument, searchField, docList } =
+view : msg -> (String -> msg) -> Model -> List (Html msg)
+view closeClicked searchInput { currentDocument, selectedDocument, searchField, docList } =
     let
         filteredList =
             docList
@@ -112,7 +112,7 @@ view searchInput { currentDocument, selectedDocument, searchField, docList } =
                 |> DocList.filter searchField
     in
     [ div [ class "modal-container" ]
-        [ div [ class "modal-overlay" ] []
+        [ div [ class "modal-overlay", onClick closeClicked ] []
         , div [ id "switcher-modal" ]
             [ input
                 [ id "switcher-input"

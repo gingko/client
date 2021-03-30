@@ -236,6 +236,7 @@ type Msg
     | SidebarStateChanged SidebarState
     | TemplateSelectorOpened
     | SwitcherOpened
+    | SwitcherClosed
     | WordcountModalOpened
     | ModalClosed
     | ImportBulkClicked
@@ -757,6 +758,9 @@ update msg ({ workingTree } as model) =
 
         SwitcherOpened ->
             openSwitcher model
+
+        SwitcherClosed ->
+            closeSwitcher model
 
         WordcountModalOpened ->
             ( { model | modalState = Wordcount }, Cmd.none )
@@ -2538,6 +2542,11 @@ openSwitcher model =
     )
 
 
+closeSwitcher : Model -> ( Model, Cmd Msg )
+closeSwitcher model =
+    ( { model | modalState = NoModal }, Cmd.none )
+
+
 
 -- VIEW
 
@@ -3148,7 +3157,7 @@ viewModal language model =
             [ text "" ]
 
         FileSwitcher switcherModel ->
-            Doc.Switcher.view FileSearchChanged switcherModel
+            Doc.Switcher.view SwitcherClosed FileSearchChanged switcherModel
 
         --model.metadata model.fileSearchField (Session.documents model.session)
         SidebarContextMenu docId ( x, y ) ->
