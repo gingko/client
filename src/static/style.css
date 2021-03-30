@@ -421,7 +421,7 @@ a.forgot-password {
 }
 #sidebar-collapse-icon {
   width: 16px;
-  margin-left: 12px;
+  margin-left: 6px;
   margin-top: 6px;
   opacity: 0.5;
 }
@@ -446,6 +446,9 @@ a.forgot-password {
 }
 #documents-icon {
   grid-area: row2-icon;
+}
+#sidebar-document-list {
+  grid-area: doc-list;
 }
 #document-switcher-icon {
   grid-area: row3-icon;
@@ -951,22 +954,22 @@ span.trial-dark {
   /* margin-top: 0px; */
   background: hsl(200deg 22% 84%);
 }
-li.sidebar-document-item {
+.sidebar-document-item {
   position: relative;
 }
-li.sidebar-document-item a {
+.sidebar-document-item a {
   display: block;
   padding: 10px;
   background: hsl(200deg 22% 84%);
   text-decoration: none;
   color: black;
 }
-li.sidebar-document-item.active a {
+.sidebar-document-item.active a {
   background: white;
   border-left: 4px solid var(--selection-color);
 }
-li.sidebar-document-item.active::before ,
-li.sidebar-document-item.active::after {
+.sidebar-document-item.active::before ,
+.sidebar-document-item.active::after {
   position: absolute;
   content: '';
   width: 10px;
@@ -974,14 +977,14 @@ li.sidebar-document-item.active::after {
   background: #cdd9df;
   z-index: 6;
 }
-li.sidebar-document-item.active::before {
+.sidebar-document-item.active::before {
   box-shadow: 2px 2px 0px 2px #ffffff;
   border-radius: 0 0 10px 0;
   position: absolute;
   top: -10px;
   right: 0;
 }
-li.sidebar-document-item.active::after {
+.sidebar-document-item.active::after {
   box-shadow: 2px -2px 0px 2px #ffffff;
   border-radius: 0  10px 0 0;
   position: absolute;

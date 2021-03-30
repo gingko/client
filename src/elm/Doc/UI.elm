@@ -309,6 +309,7 @@ viewSidebar modelLanguage msgs currentDocument fileFilter docList ( exportSelect
               else
                 AntIcons.folderOutlined []
             ]
+        , viewIf isOpen <| DocList.viewSmall msgs.contextMenuOpened currentDocument docList
         , div [ id "document-switcher-icon", onClickStop msgs.clickedSwitcher, class "sidebar-button" ] [ AntIcons.fileSearchOutlined [] ]
         , div [ id "help-icon", class "sidebar-button" ] [ AntIcons.questionCircleOutlined [] ]
         , div [ id "account-icon", class "sidebar-button" ] [ AntIcons.userOutlined [] ]

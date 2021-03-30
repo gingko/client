@@ -3,7 +3,7 @@ port module Doc.List exposing (Model(..), current, filter, getLastUpdated, init,
 import Date
 import Doc.Metadata as Metadata exposing (Metadata)
 import Html exposing (Html, a, div, li, text, ul)
-import Html.Attributes exposing (attribute, class, classList, href, title)
+import Html.Attributes exposing (attribute, class, classList, href, id, title)
 import Html.Events exposing (onClick, stopPropagationOn)
 import Json.Decode as Dec
 import Octicons as Icon
@@ -190,7 +190,7 @@ viewSmall msg currentDocument model =
                 docId =
                     Metadata.getDocId d
             in
-            li [ classList [ ( "sidebar-document-item", True ), ( "active", Metadata.isSameDocId d currentDocument ) ] ]
+            div [ classList [ ( "sidebar-document-item", True ), ( "active", Metadata.isSameDocId d currentDocument ) ] ]
                 [ a
                     [ ContextMenu.open (msg docId)
                     , href <| Route.toString (Route.DocUntitled docId)
@@ -204,7 +204,7 @@ viewSmall msg currentDocument model =
             text "Loading..."
 
         Success docs ->
-            ul [ class "sidebar-document-list" ] (List.map viewDocItem docs)
+            div [ id "sidebar-document-list" ] (List.map viewDocItem docs)
 
         Failure _ ->
             text "Failed to load documents list."
