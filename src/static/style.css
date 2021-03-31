@@ -389,9 +389,10 @@ a.forgot-password {
   grid-area: sidebar;
   display: grid;
   grid-template-columns: 40px auto;
-  grid-template-rows: 40px 40px 40px 40px 1fr 40px 40px;
+  grid-template-rows: 40px 15px 40px 40px 40px 1fr 40px 40px;
   grid-template-areas:
     "top-left top-left"
+    ". ."
     "row1 row1"
     "row2-icon doc-list"
     "row3-icon doc-list"
@@ -406,24 +407,25 @@ a.forgot-password {
   grid-area: top-left;
   display: flex;
   align-items: center;
+  position: relative;
   padding: 5px;
   color: var(--ui-1-fg);
   z-index: 20;
   cursor: pointer;
 }
 #brand-name {
-  margin: 12px 0 6px 6px;
+  margin: 12px 0 5px 10px;
   display: flex;
   color: #334;
-  text-decoration: none;
-  align-items: center;
+  font-size: 22px;
   font-family: Catamaran, Helvetica, Arial, sans-serif;
 }
 #sidebar-collapse-icon {
   width: 16px;
-  margin-left: 6px;
-  margin-top: 6px;
   opacity: 0.5;
+  right: 5px;
+  margin-top: 6px;
+  position: absolute;
 }
 .sidebar-row {
   display: flex;
