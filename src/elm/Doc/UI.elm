@@ -256,6 +256,8 @@ type alias SidebarMsgs msg =
     , tooltipClosed : msg
     , clickedSwitcher : msg
     , clickedHelp : msg
+    , clickedEmailSupport : msg
+    , clickedAccount : msg
     , fileSearchChanged : String -> msg
     , contextMenuOpened : String -> ( Float, Float ) -> msg
     , exportPreviewToggled : Bool -> msg
@@ -269,8 +271,8 @@ type alias SidebarMsgs msg =
     }
 
 
-viewSidebar : Language -> SidebarMsgs msg -> Metadata -> String -> DocList.Model -> ( ExportSelection, ExportFormat ) -> SidebarState -> Html msg
-viewSidebar modelLanguage msgs currentDocument fileFilter docList ( exportSelection, exportFormat ) sidebarState =
+viewSidebar : Language -> SidebarMsgs msg -> Metadata -> String -> DocList.Model -> DropdownState -> SidebarState -> Html msg
+viewSidebar lang msgs currentDocument fileFilter docList dropdownState sidebarState =
     let
         isOpen =
             not (sidebarState == SidebarClosed)
@@ -339,7 +341,7 @@ viewSidebar modelLanguage msgs currentDocument fileFilter docList ( exportSelect
             [ div
                 [ id "help-icon"
                 , class "sidebar-button"
-                , attributeIf (not isOpen) <| onMouseEnter <| msgs.tooltipRequested "help-icon" "Help"
+                , attributeIf (not isOpen && dropdownState /= Help) <| onMouseEnter <| msgs.tooltipRequested "help-icon" "Help"
                 , attributeIf (not isOpen) <| onMouseLeave msgs.tooltipClosed
                 ]
                 [ AntIcons.questionCircleOutlined [] ]
@@ -348,11 +350,29 @@ viewSidebar modelLanguage msgs currentDocument fileFilter docList ( exportSelect
         , div
             [ id "account-icon"
             , class "sidebar-button"
+            , onClickStop msgs.clickedAccount
             , attributeIf (not isOpen) <| onMouseEnter <| msgs.tooltipRequested "account-icon" "Account"
             , attributeIf (not isOpen) <| onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.userOutlined [] ]
+        , viewSidebarMenu lang { clickedEmailSupport = msgs.clickedEmailSupport } dropdownState
         ]
+
+
+viewSidebarMenu : Language -> { clickedEmailSupport : msg } -> DropdownState -> Html msg
+viewSidebarMenu lang msgs dropdownState =
+    case dropdownState of
+        Help ->
+            div [ id "help-menu", class "sidebar-menu" ]
+                [ div [] [ a [ href "https://docs.gingkowriter.com", target "_blank" ] [ text "FAQ" ] ]
+                , div [] [ span [ id "email-support", onClick msgs.clickedEmailSupport ] [ text <| tr lang EmailSupport ] ]
+                ]
+
+        Account ->
+            div [] [ text "ACCOUNT" ]
+
+        NoDropdown ->
+            text ""
 
 
 viewSidebarStatic : Bool -> List (Html msg)

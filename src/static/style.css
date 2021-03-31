@@ -401,7 +401,6 @@ a.forgot-password {
     "bott-row2 bott-row2";
   background: var(--ui-2-bg);
   border-right: 1px solid var(--ui-2-border-color);
-  box-shadow: 0 0 4px #00000085;
 }
 #brand {
   grid-area: top-left;
@@ -488,6 +487,21 @@ a.forgot-password {
 }
 #account-icon {
   grid-area: bott-row2;
+}
+
+.sidebar-menu {
+  background-color: white;
+  padding: 10px;
+}
+#help-menu {
+  position: fixed;
+  left: 40px;
+  bottom: 40px;
+  border-radius: 6px 6px 6px 0;
+  box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+}
+.sidebar-menu > div {
+  padding: 4px 10px;
 }
 
 #loading-overlay {

@@ -640,6 +640,7 @@ update msg ({ workingTree } as model) =
                         NoDropdown
                 , tourStep = newTourStep
                 , sidebarState = newSidebarState
+                , tooltip = Nothing
               }
             , Cmd.none
             )
@@ -2647,7 +2648,9 @@ viewLoaded model =
                         , tooltipRequested = TooltipRequested
                         , tooltipClosed = TooltipClosed
                         , clickedSwitcher = SwitcherOpened
-                        , clickedHelp = ToggledHelpMenu True
+                        , clickedHelp = ToggledHelpMenu (not (model.dropdownState == Help))
+                        , clickedEmailSupport = ClickedEmailSupport
+                        , clickedAccount = ToggledAccountMenu True
                         , fileSearchChanged = FileSearchChanged
                         , contextMenuOpened = SidebarContextClicked
                         , exportPreviewToggled = ExportPreviewToggled
@@ -2662,7 +2665,7 @@ viewLoaded model =
                         model.metadata
                         model.fileSearchField
                         (Session.documents model.session)
-                        model.exportSettings
+                        model.dropdownState
                         model.sidebarState
                      ]
                         ++ UI.viewShortcuts
