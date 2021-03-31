@@ -345,7 +345,13 @@ viewSidebar modelLanguage msgs currentDocument fileFilter docList ( exportSelect
                 [ AntIcons.questionCircleOutlined [] ]
             , viewIf isOpen <| div [ id "help-label", class "sidebar-label" ] [ text "Help" ]
             ]
-        , div [ id "account-icon", class "sidebar-button" ] [ AntIcons.userOutlined [] ]
+        , div
+            [ id "account-icon"
+            , class "sidebar-button"
+            , attributeIf (not isOpen) <| onMouseEnter <| msgs.tooltipRequested "account-icon" "Account"
+            , attributeIf (not isOpen) <| onMouseLeave msgs.tooltipClosed
+            ]
+            [ AntIcons.userOutlined [] ]
         ]
 
 
