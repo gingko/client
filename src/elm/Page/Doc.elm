@@ -1,6 +1,6 @@
 module Page.Doc exposing (Model, Msg, getTitle, init, subscriptions, toUser, update, view)
 
-import Browser.Dom
+import Browser.Dom exposing (Element)
 import Bytes exposing (Bytes)
 import Coders exposing (treeToMarkdownString, treeToValue)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
@@ -80,6 +80,7 @@ type alias Model =
     , exportSettings : ( ExportSelection, ExportFormat )
     , wordcountTrayOpen : Bool
     , tourStep : Maybe Int
+    , tooltip : Maybe ( String, Element )
     , videoModalOpen : Bool
     , fontSelectorOpen : Bool
     , historyState : HistoryState
@@ -152,6 +153,7 @@ defaultModel isNew session docId =
     , exportSettings = ( ExportEverything, DOCX )
     , wordcountTrayOpen = False
     , tourStep = Nothing
+    , tooltip = Nothing
     , videoModalOpen = False
     , fontSelectorOpen = False
     , fonts = Fonts.default
@@ -267,6 +269,9 @@ type Msg
       -- Misc UI
     | LanguageChanged String
     | ThemeChanged Theme
+    | TooltipRequested String String
+    | TooltipReceived String Element
+    | TooltipClosed
     | FullscreenRequested
     | TimeUpdate Time.Posix
     | VideoModal Bool
@@ -728,7 +733,7 @@ update msg ({ workingTree } as model) =
         ToggleSidebar ->
             case model.sidebarState of
                 SidebarClosed ->
-                    ( { model | sidebarState = File }, Cmd.none )
+                    ( { model | sidebarState = File, tooltip = Nothing }, Cmd.none )
 
                 _ ->
                     ( { model | sidebarState = SidebarClosed }, Cmd.none )
@@ -743,7 +748,7 @@ update msg ({ workingTree } as model) =
                         _ ->
                             Session.setFileOpen False model.session
             in
-            ( { model | session = newSessionData, sidebarState = newSidebarState }, Cmd.none )
+            ( { model | session = newSessionData, sidebarState = newSidebarState, tooltip = Nothing }, Cmd.none )
 
         TemplateSelectorOpened ->
             let
@@ -876,6 +881,26 @@ update msg ({ workingTree } as model) =
 
         ThemeChanged newTheme ->
             ( { model | theme = newTheme }, send <| SaveThemeSetting newTheme )
+
+        TooltipRequested elId content ->
+            ( model
+            , Browser.Dom.getElement elId
+                |> Task.attempt
+                    (\result ->
+                        case result of
+                            Ok el ->
+                                TooltipReceived content el
+
+                            Err _ ->
+                                NoOp
+                    )
+            )
+
+        TooltipReceived content el ->
+            ( { model | tooltip = Just ( content, el ) }, Cmd.none )
+
+        TooltipClosed ->
+            ( { model | tooltip = Nothing }, Cmd.none )
 
         FullscreenRequested ->
             ( model, send <| RequestFullscreen )
@@ -2619,6 +2644,8 @@ viewLoaded model =
                         { sidebarStateChanged = SidebarStateChanged
                         , noOp = NoOp
                         , clickedNew = TemplateSelectorOpened
+                        , tooltipRequested = TooltipRequested
+                        , tooltipClosed = TooltipClosed
                         , clickedSwitcher = SwitcherOpened
                         , clickedHelp = ToggledHelpMenu True
                         , fileSearchChanged = FileSearchChanged
@@ -2669,6 +2696,7 @@ viewLoaded model =
                            , viewVideo VideoModal model
                            , div [ id "loading-overlay" ] []
                            , div [ id "preloader" ] []
+                           , model.tooltip |> Maybe.map UI.viewTooltip |> Maybe.withDefault (text "")
                            ]
                         ++ viewModal (Session.language model.session) model
                     )

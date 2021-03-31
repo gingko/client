@@ -1,6 +1,7 @@
-module Doc.UI exposing (countWords, viewConflict, viewHeader, viewHistory, viewLoadingSpinner, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewVideo, viewWordCount)
+module Doc.UI exposing (countWords, viewConflict, viewHeader, viewHistory, viewLoadingSpinner, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewTooltip, viewVideo, viewWordCount)
 
 import Ant.Icons.Svg as AntIcons
+import Browser.Dom exposing (Element)
 import Coders exposing (treeToMarkdownString)
 import Diff exposing (..)
 import Doc.Data as Data
@@ -11,7 +12,8 @@ import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils as TreeUtils exposing (..)
 import Html exposing (Html, a, br, button, del, div, fieldset, h1, h2, h3, h4, h5, hr, iframe, img, input, ins, label, li, option, pre, select, small, span, text, ul)
 import Html.Attributes as A exposing (..)
-import Html.Events exposing (keyCode, on, onBlur, onCheck, onClick, onFocus, onInput, onSubmit, stopPropagationOn)
+import Html.Attributes.Extra exposing (attributeIf)
+import Html.Events exposing (keyCode, on, onBlur, onCheck, onClick, onFocus, onInput, onMouseEnter, onMouseLeave, onSubmit, stopPropagationOn)
 import Html.Events.Extra exposing (onChange)
 import Import.Template exposing (Template(..))
 import Json.Decode as Dec
@@ -250,6 +252,8 @@ type alias SidebarMsgs msg =
     { sidebarStateChanged : SidebarState -> msg
     , noOp : msg
     , clickedNew : msg
+    , tooltipRequested : String -> String -> msg
+    , tooltipClosed : msg
     , clickedSwitcher : msg
     , clickedHelp : msg
     , fileSearchChanged : String -> msg
@@ -301,10 +305,21 @@ viewSidebar modelLanguage msgs currentDocument fileFilter docList ( exportSelect
                    )
             )
         , div [ id "new", onClickStop msgs.clickedNew, class "sidebar-row" ]
-            [ div [ id "new-icon", class "sidebar-button" ] [ AntIcons.fileOutlined [] ]
+            [ div
+                [ id "new-icon"
+                , class "sidebar-button"
+                , attributeIf (not isOpen) <| onMouseEnter <| msgs.tooltipRequested "new-icon" "New Document"
+                , attributeIf (not isOpen) <| onMouseLeave msgs.tooltipClosed
+                ]
+                [ AntIcons.fileOutlined [] ]
             , viewIf isOpen <| div [ id "new-label", class "sidebar-label" ] [ text "New Document" ]
             ]
-        , div [ id "documents-icon", class "sidebar-button" ]
+        , div
+            [ id "documents-icon"
+            , class "sidebar-button"
+            , attributeIf (not isOpen) <| onMouseEnter <| msgs.tooltipRequested "documents-icon" "Show Document List"
+            , attributeIf (not isOpen) <| onMouseLeave msgs.tooltipClosed
+            ]
             [ if isOpen then
                 AntIcons.folderOpenOutlined []
 
@@ -312,9 +327,22 @@ viewSidebar modelLanguage msgs currentDocument fileFilter docList ( exportSelect
                 AntIcons.folderOutlined []
             ]
         , viewIf isOpen <| DocList.viewSmall msgs.noOp msgs.fileSearchChanged msgs.contextMenuOpened currentDocument fileFilter docList
-        , div [ id "document-switcher-icon", onClickStop msgs.clickedSwitcher, class "sidebar-button" ] [ AntIcons.fileSearchOutlined [] ]
+        , div
+            [ id "document-switcher-icon"
+            , onClickStop msgs.clickedSwitcher
+            , onMouseEnter <| msgs.tooltipRequested "document-switcher-icon" "Open quick switcher"
+            , onMouseLeave msgs.tooltipClosed
+            , class "sidebar-button"
+            ]
+            [ AntIcons.fileSearchOutlined [] ]
         , div [ id "help", onClickStop msgs.clickedHelp, class "sidebar-row" ]
-            [ div [ id "help-icon", class "sidebar-button" ] [ AntIcons.questionCircleOutlined [] ]
+            [ div
+                [ id "help-icon"
+                , class "sidebar-button"
+                , attributeIf (not isOpen) <| onMouseEnter <| msgs.tooltipRequested "help-icon" "Help"
+                , attributeIf (not isOpen) <| onMouseLeave msgs.tooltipClosed
+                ]
+                [ AntIcons.questionCircleOutlined [] ]
             , viewIf isOpen <| div [ id "help-label", class "sidebar-label" ] [ text "Help" ]
             ]
         , div [ id "account-icon", class "sidebar-button" ] [ AntIcons.userOutlined [] ]
@@ -773,6 +801,19 @@ viewWordcountProgress current session =
             , span [ style "flex" (String.fromFloat sessW), id "wc-progress-bar-session" ] []
             ]
         ]
+
+
+viewTooltip : ( String, Element ) -> Html msg
+viewTooltip ( content, el ) =
+    let
+        posLeft =
+            ((el.element.x + el.element.width + 5) |> String.fromFloat) ++ "px"
+
+        posTop =
+            ((el.element.y + el.element.height * 0.5) |> String.fromFloat) ++ "px"
+    in
+    div [ class "tooltip", style "left" posLeft, style "top" posTop, style "transform" "translateY(-50%)" ]
+        [ text content, div [ class "tooltip-arrow" ] [] ]
 
 
 getStats : { m | viewState : ViewState, workingTree : TreeStructure.Model } -> Stats

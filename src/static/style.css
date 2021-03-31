@@ -1383,6 +1383,31 @@ span.collaborators {
   border: none;
   border-left: 4px solid #6aab7e;
 }
+/* === Tooltips === */
+
+.tooltip {
+  animation: fadeIn 400ms;
+  background-color: rgba(0,0,0,0.8);
+  color: #dcddde;
+  font-size: 14px;
+  border-radius: 6px;
+  padding: 5px 14px;
+  line-height: 20px;
+  position: fixed;
+  pointer-events: none;
+}
+.tooltip-arrow {
+  border-right: 5px solid rgba(0,0,0,0.8);
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 5px solid transparent;
+  content: " ";
+  font-size: 0;
+  line-height: 0;
+  position: absolute;
+  top: calc(50% - 5px);
+  left: -10px;
+}
 
 /* === TOUR === */
 div.tour-step {
