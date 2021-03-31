@@ -443,6 +443,7 @@ a.forgot-password {
 }
 .sidebar-label {
   margin-top: 13px;
+  margin-left: 5px;
 }
 #new {
   grid-area: row1;
@@ -462,7 +463,7 @@ a.forgot-password {
   grid-area: doc-list;
   display: flex;
   flex-direction: column;
-  padding: 10px;
+  padding: 5px;
   background: hsl(200deg 22% 84%);
   border-radius: 0 5px 5px 5px;
   margin-right: 5px;
