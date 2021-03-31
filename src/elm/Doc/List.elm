@@ -2,9 +2,9 @@ port module Doc.List exposing (Model(..), current, filter, getLastUpdated, init,
 
 import Date
 import Doc.Metadata as Metadata exposing (Metadata)
-import Html exposing (Html, a, div, li, text, ul)
-import Html.Attributes exposing (attribute, class, classList, href, id, title)
-import Html.Events exposing (onClick, stopPropagationOn)
+import Html exposing (Html, a, div, input, li, text, ul)
+import Html.Attributes exposing (attribute, class, classList, href, id, placeholder, title, type_)
+import Html.Events exposing (onClick, onInput, stopPropagationOn)
 import Json.Decode as Dec
 import Octicons as Icon
 import Page.Doc.ContextMenu as ContextMenu
@@ -182,9 +182,12 @@ viewDocumentItem msgs lang currTime metadata =
         ]
 
 
-viewSmall : (String -> ( Float, Float ) -> msg) -> Metadata -> Model -> Html msg
-viewSmall msg currentDocument model =
+viewSmall : msg -> (String -> msg) -> (String -> ( Float, Float ) -> msg) -> Metadata -> String -> Model -> Html msg
+viewSmall noop filterMsg msg currentDocument filterField model =
     let
+        stopClickProp =
+            stopPropagationOn "click" (Dec.succeed ( noop, True ))
+
         viewDocItem d =
             let
                 docId =
@@ -194,17 +197,21 @@ viewSmall msg currentDocument model =
                 [ a
                     [ ContextMenu.open (msg docId)
                     , href <| Route.toString (Route.DocUntitled docId)
+                    , stopClickProp
                     , attribute "data-private" "lipsum"
                     ]
                     [ Metadata.getDocName d |> Maybe.withDefault "Untitled" |> text ]
                 ]
     in
-    case model of
+    case filter filterField model of
         Loading ->
             text "Loading..."
 
-        Success docs ->
-            div [ id "sidebar-document-list" ] (List.map viewDocItem docs)
+        Success filteredDocs ->
+            div [ id "sidebar-document-list-wrap" ]
+                [ input [ id "document-list-filter", placeholder "Type to find file", type_ "search", onInput filterMsg, stopClickProp ] []
+                , div [ id "sidebar-document-list" ] (List.map viewDocItem filteredDocs)
+                ]
 
         Failure _ ->
             text "Failed to load documents list."

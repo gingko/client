@@ -248,6 +248,7 @@ viewTopRightButtons msgs dropdownState session =
 
 type alias SidebarMsgs msg =
     { sidebarStateChanged : SidebarState -> msg
+    , noOp : msg
     , clickedNew : msg
     , clickedSwitcher : msg
     , clickedHelp : msg
@@ -310,7 +311,7 @@ viewSidebar modelLanguage msgs currentDocument fileFilter docList ( exportSelect
               else
                 AntIcons.folderOutlined []
             ]
-        , viewIf isOpen <| DocList.viewSmall msgs.contextMenuOpened currentDocument docList
+        , viewIf isOpen <| DocList.viewSmall msgs.noOp msgs.fileSearchChanged msgs.contextMenuOpened currentDocument fileFilter docList
         , div [ id "document-switcher-icon", onClickStop msgs.clickedSwitcher, class "sidebar-button" ] [ AntIcons.fileSearchOutlined [] ]
         , div [ id "help", onClickStop msgs.clickedHelp, class "sidebar-row" ]
             [ div [ id "help-icon", class "sidebar-button" ] [ AntIcons.questionCircleOutlined [] ]

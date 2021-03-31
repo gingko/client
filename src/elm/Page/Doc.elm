@@ -2617,6 +2617,7 @@ viewLoaded model =
                      , UI.viewSidebar
                         language
                         { sidebarStateChanged = SidebarStateChanged
+                        , noOp = NoOp
                         , clickedNew = TemplateSelectorOpened
                         , clickedSwitcher = SwitcherOpened
                         , clickedHelp = ToggledHelpMenu True
