@@ -389,7 +389,7 @@ a.forgot-password {
   grid-area: sidebar;
   display: grid;
   grid-template-columns: 40px auto;
-  grid-template-rows: 40px 15px 40px 40px 40px 1fr 40px 40px;
+  grid-template-rows: 40px 15px 40px 40px 40px 1fr 40px 40px 15px;
   grid-template-areas:
     "top-left top-left"
     ". ."
@@ -398,7 +398,8 @@ a.forgot-password {
     "row3-icon doc-list"
     ". doc-list"
     "bott-row1 doc-list"
-    "bott-row2 doc-list";
+    "bott-row2 doc-list"
+    ". .";
   background: var(--background-sidebar);
   border-right: 1px solid var(--ui-2-border-color);
   box-shadow: var(--small-shadow);
@@ -488,7 +489,7 @@ a.forgot-password {
   overflow-y: auto;
 }
 #document-list-filter {
-  margin: 0px 4px 6px 4px;
+  margin: 6px 4px;
   padding: 3px 7px;
   font-size: 14px;
 }
@@ -525,7 +526,7 @@ a.forgot-password {
 #help-menu{
   position: fixed;
   left: 40px;
-  bottom: 40px;
+  bottom: 55px;
   border-radius: 5px 5px 5px 0;
   box-shadow: var(--small-shadow);
 }
@@ -542,7 +543,7 @@ a.forgot-password {
 #help-menu-exit-top {
   position: fixed;
   left: 0;
-  bottom: 300px;
+  bottom: 355px;
   background: transparent;
   width: 100%;
   height: 100%;
@@ -560,7 +561,7 @@ a.forgot-password {
 #account-menu{
   position: fixed;
   left: 40px;
-  bottom: 0;
+  bottom: 15px;
   border-radius: 5px 5px 5px 0;
   box-shadow: var(--small-shadow);
 }
