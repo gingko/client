@@ -2016,6 +2016,10 @@ span[data-step-7] {
 #export-preview img {
   max-width: 80%;
 }
+#export-preview .plain {
+  white-space: pre-wrap;
+  font-family: "Roboto Mono", monospace;
+}
 
 
 /* --- Typography --- */

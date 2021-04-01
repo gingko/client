@@ -140,7 +140,7 @@ exportView msgs (( _, exportFormat ) as exportSettings) activeTree fullTree =
 
         _ ->
             div [ id "export-preview" ]
-                [ pre [ attribute "data-private" "lipsum" ] [ text (toString exportSettings activeTree fullTree) ]
+                [ div [ class "plain", attribute "data-private" "lipsum" ] [ text (toString exportSettings activeTree fullTree) ]
                 , actionButtons
                 ]
 
