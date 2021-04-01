@@ -513,6 +513,12 @@ a.forgot-password {
   cursor: pointer;
   position: relative;
 }
+.sidebar-menu > .no-action {
+  cursor: default;
+}
+.sidebar-menu > .no-action:hover {
+  background: var(--background-sidebar-menu);
+}
 .sidebar-menu > *:last-child {
   padding-bottom: 10px;
   border-radius: 0 0 5px 5px;

@@ -435,7 +435,7 @@ viewSidebarMenu lang msgs accountEmail dropdownState =
 
         Account langMenuEl_ ->
             [ div [ id "account-menu", class "sidebar-menu" ]
-                [ div [ onClickStop msgs.noOp ] [ text accountEmail ]
+                [ div [ onClickStop msgs.noOp, class "no-action" ] [ text accountEmail ]
                 , div
                     [ id "language-option"
                     , if langMenuEl_ == Nothing then
