@@ -37,6 +37,7 @@ type
     | FontSelectorOpen (List String)
     | Keyboard String
       -- === Misc ===
+    | WillPrint
     | RecvCollabState CollabState
     | CollaboratorDisconnected String
 
@@ -203,6 +204,9 @@ subscribe tagger onError =
 
                         Err e ->
                             onError (errorToString e)
+
+                "WillPrint" ->
+                    tagger <| WillPrint
 
                 -- === Misc ===
                 "RecvCollabState" ->

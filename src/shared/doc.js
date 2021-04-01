@@ -110,6 +110,10 @@ async function initElmAndPorts() {
       toElm(screenfull.isFullscreen, "docMsgs", "FullscreenChanged")
     });
   }
+
+  window.addEventListener('beforeprint', (event) => {
+    toElm(null, "docMsgs", "WillPrint");
+  })
 }
 
 async function setUserDbs(email) {

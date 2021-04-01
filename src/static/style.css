@@ -745,7 +745,7 @@ a.forgot-password {
   justify-items: center;
   align-items: center;
   background: var(--background-sidebar-menu);
-  box-shadow: 1px -1px 3px rgba(0,0,0,0.4);
+  box-shadow: 1px -1px 2px rgba(0,0,0,0.2);
 }
 #export-menu:after {
   content: " ";
@@ -756,6 +756,12 @@ a.forgot-password {
   top: 36px;
   right: 112px;
   z-index: 999;
+}
+#export-selection div {
+  width: 150px;
+}
+#export-format div {
+  width: 100px;
 }
 #export-action-buttons {
   display: flex;
@@ -786,10 +792,13 @@ a.forgot-password {
   padding: 3px 10px;
   border: 1px solid lightgray;
   cursor: pointer;
+  text-align: center;
 }
 .toggle-button div.selected {
-  background: aliceblue;
-  color: black;
+  background: #c8ceef;
+  color: #243586;
+  font-weight: bold;
+  border: 1px solid;
 }
 .toggle-button div:first-child {
   border-radius: 6px 0 0 6px;

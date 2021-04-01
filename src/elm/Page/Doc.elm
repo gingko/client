@@ -150,7 +150,7 @@ defaultModel isNew session docId =
     , modalState = NoModal
     , fileSearchField = ""
     , exportPreview = False
-    , exportSettings = ( ExportSubtree, DOCX )
+    , exportSettings = ( ExportEverything, DOCX )
     , wordcountTrayOpen = False
     , tourStep = Nothing
     , tooltip = Nothing
@@ -1482,6 +1482,9 @@ update msg ({ workingTree } as model) =
                             ( model
                             , Cmd.none
                             )
+
+                WillPrint ->
+                    ( { model | exportPreview = True }, Cmd.none )
 
                 -- === Misc ===
                 RecvCollabState collabState ->
