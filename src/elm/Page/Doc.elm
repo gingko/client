@@ -150,7 +150,7 @@ defaultModel isNew session docId =
     , modalState = NoModal
     , fileSearchField = ""
     , exportPreview = False
-    , exportSettings = ( ExportEverything, DOCX )
+    , exportSettings = ( ExportSubtree, DOCX )
     , wordcountTrayOpen = False
     , tourStep = Nothing
     , tooltip = Nothing
@@ -2616,6 +2616,17 @@ viewLoaded model =
                 let
                     mobileBtnMsg shortcut =
                         Incoming (Keyboard shortcut)
+
+                    maybeExportView =
+                        case ( model.exportPreview, getTree model.viewState.active model.workingTree.tree ) of
+                            ( True, Just activeTree ) ->
+                                lazy3 exportView model.exportSettings activeTree model.workingTree.tree
+
+                            ( True, Nothing ) ->
+                                exportViewError "No card selected, cannot preview export"
+
+                            _ ->
+                                text ""
                 in
                 div
                     [ id "app-root", applyTheme model.theme, setTourStep model.tourStep ]
@@ -2660,6 +2671,7 @@ viewLoaded model =
                         (Session.name model.session |> Maybe.withDefault "" {- TODO -})
                         model.dropdownState
                         model.sidebarState
+                     , maybeExportView
                      ]
                         ++ UI.viewShortcuts
                             ShortcutTrayToggle

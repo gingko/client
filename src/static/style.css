@@ -730,6 +730,7 @@ a.forgot-password {
 }
 #export-menu {
   grid-area: header-menu;
+  background: var(--background-sidebar-menu);
 }
 
 .modal {
@@ -1833,15 +1834,16 @@ span[data-step-7] {
 /* === Export Preview === */
 
 #export-preview {
-  grid-area: document;
+  grid-area: right-sidebar;
   background: white;
-  margin-left: 60px;
   padding: 40px;
   overflow-y: auto;
   box-shadow: -2px 4px 5px hsla(0, 0%, 0%, 0.4);
+  border-left: 1px solid #9e9e9e;
+  z-index: 2;
 }
 #export-preview .top-buffer {
-  height: 40px;
+  height: 20px;
 }
 #export-preview img {
   max-width: 80%;
