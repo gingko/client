@@ -125,7 +125,7 @@ exportView msgs (( _, exportFormat ) as exportSettings) activeTree fullTree =
                 , div
                     [ id "export-print"
                     , onClick msgs.printRequested
-                    , onMouseEnter <| msgs.tooltipRequested "export-print" BelowLeftTooltip "Print this view"
+                    , onMouseEnter <| msgs.tooltipRequested "export-print" BelowLeftTooltip "Print this"
                     , onMouseLeave msgs.tooltipClosed
                     ]
                     [ AntIcons.printerOutlined [] ]

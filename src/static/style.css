@@ -829,9 +829,9 @@ a.forgot-password {
 #export-action-buttons {
   display: flex;
   flex-direction: row;
-  position: absolute;
-  top: 15px;
-  right: 15px;
+  position: fixed;
+  top: 100px;
+  right: 30px;
   height: 40px;
 }
 #export-action-buttons div {
