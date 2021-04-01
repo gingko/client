@@ -138,7 +138,7 @@ viewHeader msgs title_ model =
             , class "header-button"
             , classList [ ( "open", model.headerMenu == Settings ) ]
             , onClick msgs.toggledDocSettings
-            , onMouseEnter <| msgs.tooltipRequested "doc-settings-icon" BelowTooltip "Document Settings"
+            , attributeIf (model.headerMenu /= Settings) <| onMouseEnter <| msgs.tooltipRequested "doc-settings-icon" BelowTooltip "Document Settings"
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.controlOutlined [] ]
@@ -157,7 +157,7 @@ viewHeader msgs title_ model =
             , class "header-button"
             , classList [ ( "open", model.headerMenu == ExportPreview ) ]
             , onClick msgs.toggledExport
-            , onMouseEnter <| msgs.tooltipRequested "export-icon" BelowTooltip "Export or Print"
+            , attributeIf (model.headerMenu /= ExportPreview) <| onMouseEnter <| msgs.tooltipRequested "export-icon" BelowTooltip "Export or Print"
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.fileDoneOutlined [] ]
