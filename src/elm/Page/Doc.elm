@@ -701,7 +701,7 @@ update msg ({ workingTree } as model) =
                     Session.name model.session
                         |> Maybe.withDefault ""
             in
-            ( { model | modalState = ContactForm (ContactForm.init fromEmail) }
+            ( { model | modalState = ContactForm (ContactForm.init fromEmail), dropdownState = NoDropdown }
             , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "contact-body")
             )
 
