@@ -375,7 +375,7 @@ a.forgot-password {
 
 
 #app-root {
-  position: absolute;
+  position: fixed;
   height: 100%;
   width: 100%;
   display: grid;
@@ -2739,111 +2739,8 @@ ul.changelist {
   display: none;
 }
 
-/*400px =25em */
 @media only screen and (max-width:25em) {
-  #app-root {
-    grid-template-areas: "home document-header document-header"
-      "sidebar sidebar sidebar"
-      "document document document"
-      "document document document"
-      "document document document"
-      "document-footer document-footer document-footer"
-      "mobile-buttons mobile-buttons mobile-buttons";
-  grid-template-columns: 40px 1fr minmax(25px, auto);
-    grid-template-rows: 40px 40px auto 40px 1fr 25px auto;
-
-  }
-
-
-  #document {
-    grid-template-columns: minmax(20px, 0.613fr) 1fr minmax(20px, 0.613fr);
-  }
-
-  #document-header {
-    box-shadow: none;
-  }
-
-  span.trial {
-    display: none;
-  }
-
-  #column-container {
-    grid-template-columns: repeat(auto-fill, 90vw);
-    grid-auto-flow: column;
-    grid-auto-columns: 90vw
-  }
-
-  #mobile-buttons {
-    display: flex;
-    grid-area: mobile-buttons;
-    justify-content: space-between;
-    height: 40px;
-  }
-
-  .mobile-button {
-    background-color: white;
-    padding: 5px;
-    display: flex;
-    border-radius: 3px;
-    border-bottom: 1px solid #adadad;
-  }
-
-  #sidebar {
-    flex-direction: row;
-  }
-
-  #fullscreen-button {
-    display: block;
-  }
-
-  .column {
-    height: 100%;
-    overflow-x: hidden;
-    overflow-y: scroll;
-    scrollbar-width: none;
-    transform: translateZ(0);
-  }
-
-  .column::-webkit-scrollbar {
-    width: 0 !important;
-  }
-
-  .left-padding-column {
-    background-color: var(--bg-left);
-    border-right: 2px solid hsla(0, 0%, 0%, 0.15);
-    margin-right: 40px;
-  }
-
-  .buffer {
-    margin: 0 16px;
-    height: 100%;
-    z-index: 1;
-  }
-
-  #shortcuts-tray {
-    display: none;
-  }
-
-  #title-rename {
-    font-size: 16px;
-    max-width: 30vw;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  h2#brand-name {
-    display: none;
-  }
-
-  div#sidebar-menu {
-    flex-direction: column;
-    grid-area: document;
-    z-index: 20;
-
-    height: 275px;
-  }
-
-  li.sidebar-document-item {
-    position: inherit;
+  #export-preview {
+    width: 100%;
   }
 }
