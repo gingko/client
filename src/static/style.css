@@ -572,6 +572,10 @@ a.forgot-password {
   border-radius: 5px 5px 5px 0;
   box-shadow: var(--small-shadow);
 }
+#language-menu .selected {
+  background: white;
+  font-weight: bold;
+}
 #account-menu{
   position: fixed;
   left: 40px;
