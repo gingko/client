@@ -189,7 +189,7 @@ body {
   color: #333;
   padding: 12px;
   border-radius: 10px;
-  box-shadow: 0px 1px 3px rgb(0 0 0 / 0.4);
+  box-shadow: var(--small-shadow);
 }
 #form-page .cta {
   background-color: var(--selection-color);
@@ -399,8 +399,10 @@ a.forgot-password {
     ". doc-list"
     "bott-row1 bott-row1"
     "bott-row2 bott-row2";
-  background: var(--ui-2-bg);
+  background: var(--background-sidebar);
   border-right: 1px solid var(--ui-2-border-color);
+  box-shadow: var(--small-shadow);
+  z-index: 1;
 }
 #brand {
   grid-area: top-left;
@@ -437,9 +439,17 @@ a.forgot-password {
   cursor: pointer;
   fill: var(--ui-1-fg);
 }
+.sidebar-button.open {
+  background: var(--background-sidebar-menu);
+  fill: var(--ui-2-fg);
+  border-radius: 5px 0 0 5px;
+  padding-left: 7px;
+  margin-left: 3px;
+  width: 37px;
+  box-shadow: var(--small-shadow);
+}
 .sidebar-button:hover , .sidebar-button.open, .sidebar-row:hover {
-  /*background-color: var(--ui-1-bg);*/
-  background: hsl(200deg 22% 84%);
+  background: var(--background-sidebar-menu);
   fill: var(--ui-2-fg);
 }
 .sidebar-label {
@@ -452,20 +462,15 @@ a.forgot-password {
 #documents-icon {
   grid-area: row2-icon;
 }
-#sidebar.open #documents-icon {
-  background: hsl(200deg 22% 84%);
-  fill: var(--ui-2-fg);
-  border-radius: 5px 0 0 5px;
-  padding-left: 7px;
+#documents-icon.open {
   margin-left: 4px;
-  width: 37px;
 }
 #sidebar-document-list-wrap {
   grid-area: doc-list;
   display: flex;
   flex-direction: column;
   padding: 5px;
-  background: hsl(200deg 22% 84%);
+  background: var(--background-sidebar-menu);
   border-radius: 0 5px 5px 5px;
   margin-right: 5px;
   width: 175px;
@@ -490,15 +495,25 @@ a.forgot-password {
 }
 
 .sidebar-menu {
-  background-color: white;
+  background: var(--background-sidebar-menu);
   padding: 10px;
 }
 #help-menu {
   position: fixed;
   left: 40px;
   bottom: 40px;
-  border-radius: 6px 6px 6px 0;
-  box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+  border-radius: 5px 5px 5px 0;
+  box-shadow: var(--small-shadow);
+}
+#help-menu::after {
+  content: " ";
+  height: 40px;
+  width: 4px;
+  background: var(--background-sidebar-menu);
+  position: absolute;
+  bottom: 0;
+  left: -2px;
+  z-index: 999;
 }
 .sidebar-menu > div {
   padding: 4px 10px;
@@ -580,7 +595,8 @@ a.forgot-password {
   color: var(--ui-1-fg);
   background-color: var(--ui-1-bg);
   border-bottom: 1px solid hsl(212deg 5% 58%);
-  box-shadow: 0 0 4px #00000085;
+  box-shadow: var(--small-shadow);
+  z-index: 2;
 }
 
 .modal {

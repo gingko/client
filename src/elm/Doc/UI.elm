@@ -277,6 +277,12 @@ viewSidebar lang msgs currentDocument fileFilter docList dropdownState sidebarSt
         isOpen =
             not (sidebarState == SidebarClosed)
 
+        helpOpen =
+            dropdownState == Help
+
+        accountOpen =
+            dropdownState == Account
+
         toggle menu =
             if sidebarState == menu then
                 msgs.sidebarStateChanged <| SidebarClosed
@@ -319,6 +325,7 @@ viewSidebar lang msgs currentDocument fileFilter docList dropdownState sidebarSt
         , div
             [ id "documents-icon"
             , class "sidebar-button"
+            , classList [ ( "open", isOpen ) ]
             , attributeIf (not isOpen) <| onMouseEnter <| msgs.tooltipRequested "documents-icon" "Show Document List"
             , attributeIf (not isOpen) <| onMouseLeave msgs.tooltipClosed
             ]
@@ -341,6 +348,7 @@ viewSidebar lang msgs currentDocument fileFilter docList dropdownState sidebarSt
             [ div
                 [ id "help-icon"
                 , class "sidebar-button"
+                , classList [ ( "open", helpOpen ) ]
                 , attributeIf (not isOpen && dropdownState /= Help) <| onMouseEnter <| msgs.tooltipRequested "help-icon" "Help"
                 , attributeIf (not isOpen) <| onMouseLeave msgs.tooltipClosed
                 ]

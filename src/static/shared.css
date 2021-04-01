@@ -24,6 +24,11 @@
   --normal-text-color: hsl(0, 20%, 17%);
   --normal-text-color-medium: #333;
 
+  --background-sidebar: hsl(200, 15%, 90%);
+  --background-sidebar-menu: hsl(200, 13%, 95%);
+
+  --small-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+
   --ui-1-fg: #334;
   --ui-1-bg: white;
 
