@@ -28,7 +28,7 @@ import Session exposing (PaymentStatus(..), Session)
 import SharedUI exposing (modalWrapper)
 import Time exposing (posixToMillis)
 import Translation exposing (Language(..), TranslationId(..), langFromString, langToString, languageName, timeDistInWords, tr)
-import Types exposing (Children(..), CursorPosition(..), SidebarMenuState(..), SidebarState(..), TextCursorInfo, TooltipPosition(..), ViewMode(..), ViewState)
+import Types exposing (Children(..), CursorPosition(..), HeaderMenuState(..), SidebarMenuState(..), SidebarState(..), TextCursorInfo, TooltipPosition(..), ViewMode(..), ViewState)
 
 
 
@@ -42,6 +42,7 @@ viewHeader :
     , titleEditCanceled : msg
     , tooltipRequested : String -> TooltipPosition -> String -> msg
     , tooltipClosed : msg
+    , toggledDocSettings : msg
     , toggledExport : msg
     , exportSelectionChanged : ExportSelection -> msg
     , exportFormatChanged : ExportFormat -> msg
@@ -53,8 +54,7 @@ viewHeader :
     ->
         { m
             | titleField : Maybe String
-            , dropdownState : SidebarMenuState
-            , exportPreview : Bool
+            , headerMenu : HeaderMenuState
             , exportSettings : ( ExportSelection, ExportFormat )
             , dirty : Bool
             , lastLocalSave : Maybe Time.Posix
@@ -134,9 +134,18 @@ viewHeader msgs title_ model =
     div [ id "document-header" ]
         [ titleArea
         , div
+            [ id "doc-settings-icon"
+            , class "header-button"
+            , classList [ ( "open", model.headerMenu == Settings ) ]
+            , onClick msgs.toggledDocSettings
+            , onMouseEnter <| msgs.tooltipRequested "doc-settings-icon" BelowTooltip "Document Settings"
+            , onMouseLeave msgs.tooltipClosed
+            ]
+            [ AntIcons.controlOutlined [] ]
+        , div
             [ id "export-icon"
             , class "header-button"
-            , classList [ ( "open", model.exportPreview ) ]
+            , classList [ ( "open", model.headerMenu == ExportPreview ) ]
             , onClick msgs.toggledExport
             , onMouseEnter <| msgs.tooltipRequested "export-icon" BelowTooltip "Export or Print"
             , onMouseLeave msgs.tooltipClosed
@@ -145,7 +154,7 @@ viewHeader msgs title_ model =
         , viewUpgradeButton
             msgs.toggledUpgradeModal
             model.session
-        , viewIf model.exportPreview <|
+        , viewIf (model.headerMenu == ExportPreview) <|
             div [ id "export-menu" ]
                 [ div [ id "export-selection", class "toggle-button" ]
                     [ div (exportSelectionBtnAttributes ExportEverything) [ text "Everything" ]
@@ -348,7 +357,7 @@ viewSidebar lang msgs currentDocument fileFilter docList accountEmail dropdownSt
          , div
             [ id "document-switcher-icon"
             , onClickStop msgs.clickedSwitcher
-            , onMouseEnter <| msgs.tooltipRequested "document-switcher-icon" RightTooltip "Open quick switcher"
+            , onMouseEnter <| msgs.tooltipRequested "document-switcher-icon" RightTooltip "Open Quick Switcher"
             , onMouseLeave msgs.tooltipClosed
             , class "sidebar-button"
             ]

@@ -76,7 +76,7 @@ type alias Model =
     , dropdownState : SidebarMenuState
     , modalState : ModalState
     , fileSearchField : String
-    , exportPreview : Bool
+    , headerMenu : HeaderMenuState
     , exportSettings : ( ExportSelection, ExportFormat )
     , wordcountTrayOpen : Bool
     , tourStep : Maybe Int
@@ -149,7 +149,7 @@ defaultModel isNew session docId =
     , dropdownState = NoSidebarMenu
     , modalState = NoModal
     , fileSearchField = ""
-    , exportPreview = False
+    , headerMenu = NoHeaderMenu
     , exportSettings = ( ExportEverything, DOCX )
     , wordcountTrayOpen = False
     , tourStep = Nothing
@@ -246,6 +246,7 @@ type Msg
     | FileSearchChanged String
     | SidebarContextClicked String ( Float, Float )
     | DeleteDoc String
+    | DocSettingsToggled Bool
     | ExportPreviewToggled Bool
     | ExportSelectionChanged ExportSelection
     | ExportFormatChanged ExportFormat
@@ -806,8 +807,30 @@ update msg ({ workingTree } as model) =
         DeleteDoc docId ->
             ( { model | modalState = NoModal }, send <| RequestDelete docId )
 
+        DocSettingsToggled isOpen ->
+            ( { model
+                | headerMenu =
+                    if isOpen then
+                        Settings
+
+                    else
+                        NoHeaderMenu
+              }
+            , Cmd.none
+            )
+
         ExportPreviewToggled previewEnabled ->
-            ( { model | exportPreview = previewEnabled, tooltip = Nothing }, Cmd.none )
+            ( { model
+                | headerMenu =
+                    if previewEnabled then
+                        ExportPreview
+
+                    else
+                        NoHeaderMenu
+                , tooltip = Nothing
+              }
+            , Cmd.none
+            )
                 |> activate vs.active True
 
         ExportSelectionChanged expSel ->
@@ -1484,7 +1507,7 @@ update msg ({ workingTree } as model) =
                             )
 
                 WillPrint ->
-                    ( { model | exportPreview = True }, Cmd.none )
+                    ( { model | headerMenu = ExportPreview }, Cmd.none )
 
                 -- === Misc ===
                 RecvCollabState collabState ->
@@ -2629,14 +2652,14 @@ viewLoaded model =
                             model.exportSettings
 
                     maybeExportView =
-                        case ( model.exportPreview, getTree model.viewState.active model.workingTree.tree, model.exportSettings ) of
-                            ( True, Just activeTree, _ ) ->
+                        case ( model.headerMenu, getTree model.viewState.active model.workingTree.tree, model.exportSettings ) of
+                            ( ExportPreview, Just activeTree, _ ) ->
                                 exportViewOk activeTree model.workingTree.tree
 
-                            ( True, Nothing, ( ExportEverything, _ ) ) ->
+                            ( ExportPreview, Nothing, ( ExportEverything, _ ) ) ->
                                 exportViewOk defaultTree model.workingTree.tree
 
-                            ( True, Nothing, _ ) ->
+                            ( ExportPreview, Nothing, _ ) ->
                                 exportViewError "No card selected, cannot preview document"
 
                             _ ->
@@ -2652,7 +2675,8 @@ viewLoaded model =
                         , titleEditCanceled = TitleEditCanceled
                         , tooltipRequested = TooltipRequested
                         , tooltipClosed = TooltipClosed
-                        , toggledExport = ExportPreviewToggled (not model.exportPreview)
+                        , toggledDocSettings = DocSettingsToggled (not <| model.headerMenu == Settings)
+                        , toggledExport = ExportPreviewToggled (not <| model.headerMenu == ExportPreview)
                         , exportSelectionChanged = ExportSelectionChanged
                         , exportFormatChanged = ExportFormatChanged
                         , export = Export
