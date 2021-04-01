@@ -382,7 +382,7 @@ a.forgot-password {
   grid-template-columns: auto 1fr auto;
   grid-template-rows: 40px 1fr;
   grid-template-areas:
-    "sidebar document-header right-sidebar"
+    "sidebar document-header document-header"
     "sidebar document right-sidebar"
 }
 #sidebar {
@@ -1034,10 +1034,14 @@ span.trial-dark {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  border-left: 3px solid transparent;
 }
 .sidebar-document-item.active a {
   background: white;
   color: var(--ui-2-fg);
+  box-shadow: var(--small-shadow);
+  border-radius: 3px;
+  border-left: 3px solid var(--selection-color);
 }
 
 #sidebar-context-menu {
@@ -2343,17 +2347,26 @@ pre {
 }
 
 #shortcuts-tray {
-  grid-area: right-sidebar;
+  position: fixed;
+  bottom: 30px;
+  right: 0;
   display: flex;
   flex-direction: column;
   padding: 10px;
   color: var(--ui-2-fg);
   background-color: var(--ui-2-bg);
   border-left: 1px solid var(--ui-2-border-color);
-  box-shadow: 0 0 4px #00000085;
-  z-index: 5;
+  box-shadow: var(--small-shadow);
+  border-radius: 6px 0 0 6px;
+  z-index: 1;
   cursor: pointer;
   overflow-y: auto;
+}
+#shortcuts-tray.open {
+  grid-area: right-sidebar;
+  position: unset;
+  top: 0;
+  border-radius: 0;
 }
 
 #shortcuts {
