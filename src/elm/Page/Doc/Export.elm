@@ -1,5 +1,6 @@
 module Page.Doc.Export exposing (ExportFormat(..), ExportSelection(..), command, exportView, exportViewError)
 
+import Ant.Icons.Svg as AntIcons
 import Api
 import Bytes exposing (Bytes)
 import Coders exposing (treeToJSON, treeToMarkdownString)
@@ -7,10 +8,11 @@ import Doc.TreeUtils exposing (getColumnById)
 import File.Download as Download
 import Html exposing (Html, div, pre, text)
 import Html.Attributes exposing (attribute, class, id)
+import Html.Events exposing (onClick, onMouseEnter, onMouseLeave)
 import Http
 import Json.Encode as Enc
 import Markdown
-import Types exposing (Children(..), Tree)
+import Types exposing (Children(..), TooltipPosition(..), Tree)
 
 
 type ExportSelection
@@ -81,8 +83,17 @@ toString ( exportSelection, exportFormat ) activeTree fullTree =
 -- VIEW
 
 
-exportView : ( ExportSelection, ExportFormat ) -> Tree -> Tree -> Html never
-exportView (( _, exportFormat ) as exportSettings) activeTree fullTree =
+exportView :
+    { export : msg
+    , printRequested : msg
+    , tooltipRequested : String -> TooltipPosition -> String -> msg
+    , tooltipClosed : msg
+    }
+    -> ( ExportSelection, ExportFormat )
+    -> Tree
+    -> Tree
+    -> Html msg
+exportView msgs (( _, exportFormat ) as exportSettings) activeTree fullTree =
     let
         options =
             { githubFlavored = Just { tables = True, breaks = True }
@@ -90,18 +101,47 @@ exportView (( _, exportFormat ) as exportSettings) activeTree fullTree =
             , sanitize = False
             , smartypants = False
             }
+
+        exportFormatString =
+            case exportSettings |> Tuple.second of
+                DOCX ->
+                    "Word file"
+
+                PlainText ->
+                    "Markdown text file"
+
+                JSON ->
+                    "JSON file"
+
+        actionButtons =
+            div [ id "export-action-buttons" ]
+                [ div
+                    [ id "export-download"
+                    , onClick msgs.export
+                    , onMouseEnter <| msgs.tooltipRequested "export-download" BelowTooltip ("Download " ++ exportFormatString)
+                    , onMouseLeave msgs.tooltipClosed
+                    ]
+                    [ AntIcons.downloadOutlined [] ]
+                , div
+                    [ id "export-print"
+                    , onClick msgs.printRequested
+                    , onMouseEnter <| msgs.tooltipRequested "export-print" BelowLeftTooltip "Print this view"
+                    , onMouseLeave msgs.tooltipClosed
+                    ]
+                    [ AntIcons.printerOutlined [] ]
+                ]
     in
     case exportFormat of
         DOCX ->
             div [ id "export-preview" ]
-                [ div [ class "top-buffer" ] []
-                , Markdown.toHtmlWith options [ attribute "data-private" "lipsum" ] (toString exportSettings activeTree fullTree)
+                [ Markdown.toHtmlWith options [ attribute "data-private" "lipsum" ] (toString exportSettings activeTree fullTree)
+                , actionButtons
                 ]
 
         _ ->
             div [ id "export-preview" ]
-                [ div [ class "top-buffer" ] []
-                , pre [ attribute "data-private" "lipsum" ] [ text (toString exportSettings activeTree fullTree) ]
+                [ pre [ attribute "data-private" "lipsum" ] [ text (toString exportSettings activeTree fullTree) ]
+                , actionButtons
                 ]
 
 

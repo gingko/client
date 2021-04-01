@@ -65,7 +65,9 @@ type SidebarMenuState
 
 type TooltipPosition
     = RightTooltip
+    | LeftTooltip
     | BelowTooltip
+    | BelowLeftTooltip
 
 
 type alias CollabState =

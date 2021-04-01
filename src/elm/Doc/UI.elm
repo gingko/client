@@ -35,7 +35,7 @@ import Types exposing (Children(..), CursorPosition(..), SidebarMenuState(..), S
 -- HEADER
 
 
-type alias HeaderMsgs msg =
+viewHeader :
     { titleFocused : msg
     , titleFieldChanged : String -> msg
     , titleEdited : msg
@@ -45,12 +45,10 @@ type alias HeaderMsgs msg =
     , toggledExport : msg
     , exportSelectionChanged : ExportSelection -> msg
     , exportFormatChanged : ExportFormat -> msg
+    , export : msg
+    , printRequested : msg
     , toggledUpgradeModal : Bool -> msg
     }
-
-
-viewHeader :
-    HeaderMsgs msg
     -> Maybe String
     ->
         { m
@@ -120,7 +118,7 @@ viewHeader msgs title_ model =
         isSelected expSel =
             (model.exportSettings |> Tuple.first) == expSel
 
-        selectionButtonAttributes expSel =
+        exportSelectionBtnAttributes expSel =
             [ onClick <| msgs.exportSelectionChanged expSel
             , classList [ ( "selected", isSelected expSel ) ]
             ]
@@ -128,7 +126,7 @@ viewHeader msgs title_ model =
         isFormat expFormat =
             (model.exportSettings |> Tuple.second) == expFormat
 
-        formatButtonAttributes expFormat =
+        exportFormatBtnAttributes expFormat =
             [ onClick <| msgs.exportFormatChanged expFormat
             , classList [ ( "selected", isFormat expFormat ) ]
             ]
@@ -150,14 +148,14 @@ viewHeader msgs title_ model =
         , viewIf model.exportPreview <|
             div [ id "export-menu" ]
                 [ div [ id "export-selection", class "toggle-button" ]
-                    [ div (selectionButtonAttributes ExportEverything) [ text "Everything" ]
-                    , div (selectionButtonAttributes ExportSubtree) [ text "Current Subtree" ]
-                    , div (selectionButtonAttributes ExportCurrentColumn) [ text "Current Column" ]
+                    [ div (exportSelectionBtnAttributes ExportEverything) [ text "Everything" ]
+                    , div (exportSelectionBtnAttributes ExportSubtree) [ text "Current Subtree" ]
+                    , div (exportSelectionBtnAttributes ExportCurrentColumn) [ text "Current Column" ]
                     ]
                 , div [ id "export-format", class "toggle-button" ]
-                    [ div (formatButtonAttributes DOCX) [ text "Word" ]
-                    , div (formatButtonAttributes PlainText) [ text "Plain Text" ]
-                    , div (formatButtonAttributes JSON) [ text "JSON" ]
+                    [ div (exportFormatBtnAttributes DOCX) [ text "Word" ]
+                    , div (exportFormatBtnAttributes PlainText) [ text "Plain Text" ]
+                    , div (exportFormatBtnAttributes JSON) [ text "JSON" ]
                     ]
                 ]
         ]
@@ -884,11 +882,25 @@ viewTooltip ( el, tipPos, content ) =
                     , class "tip-right"
                     ]
 
+                LeftTooltip ->
+                    [ style "left" <| ((el.element.x - 5) |> String.fromFloat) ++ "px"
+                    , style "top" <| ((el.element.y + el.element.height * 0.5) |> String.fromFloat) ++ "px"
+                    , style "transform" "translate(-100%, -50%)"
+                    , class "tip-left"
+                    ]
+
                 BelowTooltip ->
                     [ style "left" <| ((el.element.x + el.element.width * 0.5) |> String.fromFloat) ++ "px"
                     , style "top" <| ((el.element.y + el.element.height + 5) |> String.fromFloat) ++ "px"
                     , style "transform" "translateX(-50%)"
                     , class "tip-below"
+                    ]
+
+                BelowLeftTooltip ->
+                    [ style "left" <| ((el.element.x + el.element.width * 0.5) |> String.fromFloat) ++ "px"
+                    , style "top" <| ((el.element.y + el.element.height + 5) |> String.fromFloat) ++ "px"
+                    , style "transform" "translateX(calc(-100% + 5px))"
+                    , class "tip-below-left"
                     ]
     in
     div ([ class "tooltip" ] ++ posAttributes)

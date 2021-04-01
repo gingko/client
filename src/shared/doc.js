@@ -543,6 +543,10 @@ const fromElm = (msg, elmData) => {
       }
     },
 
+    Print: () => {
+      window.print();
+    },
+
     SetShortcutTray: () => {
       userStore.set("shortcutTrayOpen", elmData);
     },

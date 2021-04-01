@@ -48,6 +48,7 @@ type Msg
     | SetLanguage Language
     | SaveThemeSetting Theme
     | RequestFullscreen
+    | Print
     | SetFonts Fonts.Settings
     | SetShortcutTray Bool
       -- === Misc ===
@@ -183,6 +184,9 @@ send info =
 
         RequestFullscreen ->
             dataToSend "RequestFullscreen" null
+
+        Print ->
+            dataToSend "Print" null
 
         SetFonts fontSettings ->
             dataToSend "SetFonts" (fontSettingsEncoder fontSettings)
