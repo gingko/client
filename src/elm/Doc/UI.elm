@@ -258,7 +258,8 @@ type alias SidebarMsgs msg =
     , clickedHelp : msg
     , toggledShortcuts : msg
     , clickedEmailSupport : msg
-    , clickedAccount : msg
+    , toggledAccount : msg
+    , logout : msg
     , fileSearchChanged : String -> msg
     , contextMenuOpened : String -> ( Float, Float ) -> msg
     , exportPreviewToggled : Bool -> msg
@@ -272,8 +273,8 @@ type alias SidebarMsgs msg =
     }
 
 
-viewSidebar : Language -> SidebarMsgs msg -> Metadata -> String -> DocList.Model -> DropdownState -> SidebarState -> Html msg
-viewSidebar lang msgs currentDocument fileFilter docList dropdownState sidebarState =
+viewSidebar : Language -> SidebarMsgs msg -> Metadata -> String -> DocList.Model -> String -> DropdownState -> SidebarState -> Html msg
+viewSidebar lang msgs currentDocument fileFilter docList accountEmail dropdownState sidebarState =
     let
         isOpen =
             not (sidebarState == SidebarClosed)
@@ -352,7 +353,8 @@ viewSidebar lang msgs currentDocument fileFilter docList dropdownState sidebarSt
          , div
             [ id "account-icon"
             , class "sidebar-button"
-            , onClickStop msgs.clickedAccount
+            , classList [ ( "open", accountOpen ) ]
+            , onClickStop msgs.toggledAccount
             , onMouseEnter <| msgs.tooltipRequested "account-icon" "Account"
             , onMouseLeave msgs.tooltipClosed
             ]
@@ -362,14 +364,22 @@ viewSidebar lang msgs currentDocument fileFilter docList dropdownState sidebarSt
                 { toggledShortcuts = msgs.toggledShortcuts
                 , clickedEmailSupport = msgs.clickedEmailSupport
                 , helpClosed = msgs.clickedHelp
+                , logout = msgs.logout
+                , accountClosed = msgs.toggledAccount
                 , noOp = msgs.noOp
                 }
+                accountEmail
                 dropdownState
         )
 
 
-viewSidebarMenu : Language -> { toggledShortcuts : msg, clickedEmailSupport : msg, helpClosed : msg, noOp : msg } -> DropdownState -> List (Html msg)
-viewSidebarMenu lang msgs dropdownState =
+viewSidebarMenu :
+    Language
+    -> { toggledShortcuts : msg, clickedEmailSupport : msg, helpClosed : msg, logout : msg, accountClosed : msg, noOp : msg }
+    -> String
+    -> DropdownState
+    -> List (Html msg)
+viewSidebarMenu lang msgs accountEmail dropdownState =
     case dropdownState of
         Help ->
             [ div [ id "help-menu", class "sidebar-menu" ]
@@ -382,7 +392,13 @@ viewSidebarMenu lang msgs dropdownState =
             ]
 
         Account ->
-            [ div [] [ text "ACCOUNT" ] ]
+            [ div [ id "account-menu", class "sidebar-menu" ]
+                [ div [ onClickStop msgs.noOp ] [ text accountEmail ]
+                , div [ onClickStop msgs.logout ] [ text <| tr lang Logout ]
+                ]
+            , div [ id "help-menu-exit-top", onMouseEnter msgs.accountClosed ] []
+            , div [ id "help-menu-exit-right", onMouseEnter msgs.accountClosed ] []
+            ]
 
         NoDropdown ->
             [ text "" ]

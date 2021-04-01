@@ -640,13 +640,18 @@ update msg ({ workingTree } as model) =
             )
 
         ToggledAccountMenu isOpen ->
-            ( { model
-                | dropdownState =
+            let
+                ( newDropdownState, newSidebarState ) =
                     if isOpen then
-                        Account
+                        ( Account, SidebarClosed )
 
                     else
-                        NoDropdown
+                        ( NoDropdown, model.sidebarState )
+            in
+            ( { model
+                | dropdownState = newDropdownState
+                , sidebarState = newSidebarState
+                , tooltip = Nothing
               }
             , Cmd.none
             )
@@ -2656,7 +2661,8 @@ viewLoaded model =
                         , clickedHelp = ToggledHelpMenu (not (model.dropdownState == Help))
                         , toggledShortcuts = ShortcutTrayToggle
                         , clickedEmailSupport = ClickedEmailSupport
-                        , clickedAccount = ToggledAccountMenu True
+                        , toggledAccount = ToggledAccountMenu (not (model.dropdownState == Account))
+                        , logout = LogoutRequested
                         , fileSearchChanged = FileSearchChanged
                         , contextMenuOpened = SidebarContextClicked
                         , exportPreviewToggled = ExportPreviewToggled
@@ -2671,6 +2677,7 @@ viewLoaded model =
                         model.metadata
                         model.fileSearchField
                         (Session.documents model.session)
+                        (Session.name model.session |> Maybe.withDefault "" {- TODO -})
                         model.dropdownState
                         model.sidebarState
                      ]

@@ -557,6 +557,23 @@ a.forgot-password {
   height: 100%;
   z-index: 999999;
 }
+#account-menu{
+  position: fixed;
+  left: 40px;
+  bottom: 0;
+  border-radius: 5px 5px 5px 0;
+  box-shadow: var(--small-shadow);
+}
+#account-menu::after {
+  content: " ";
+  height: 40px;
+  width: 4px;
+  background: var(--background-sidebar-menu);
+  position: absolute;
+  bottom: 0;
+  left: -2px;
+  z-index: 999;
+}
 
 #loading-overlay {
   grid-area: document;
