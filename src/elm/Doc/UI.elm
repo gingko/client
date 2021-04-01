@@ -289,7 +289,7 @@ type alias SidebarMsgs msg =
     , clickedHelp : msg
     , toggledShortcuts : msg
     , clickedEmailSupport : msg
-    , toggledLanguageMenu : Bool -> msg
+    , languageMenuRequested : Maybe String -> msg
     , toggledAccount : Bool -> msg
     , logout : msg
     , fileSearchChanged : String -> msg
@@ -395,7 +395,7 @@ viewSidebar lang msgs currentDocument fileFilter docList accountEmail dropdownSt
                 { toggledShortcuts = msgs.toggledShortcuts
                 , clickedEmailSupport = msgs.clickedEmailSupport
                 , helpClosed = msgs.clickedHelp
-                , toggledLanguageMenu = msgs.toggledLanguageMenu
+                , languageMenuRequested = msgs.languageMenuRequested
                 , languageChanged = msgs.languageChanged
                 , logout = msgs.logout
                 , toggledAccount = msgs.toggledAccount
@@ -412,7 +412,7 @@ viewSidebarMenu :
         { toggledShortcuts : msg
         , clickedEmailSupport : msg
         , helpClosed : msg
-        , toggledLanguageMenu : Bool -> msg
+        , languageMenuRequested : Maybe String -> msg
         , languageChanged : Language -> msg
         , logout : msg
         , toggledAccount : Bool -> msg
@@ -433,23 +433,40 @@ viewSidebarMenu lang msgs accountEmail dropdownState =
             , div [ id "help-menu-exit-right", onMouseEnter msgs.helpClosed ] []
             ]
 
-        Account langMenu ->
+        Account langMenuEl_ ->
             [ div [ id "account-menu", class "sidebar-menu" ]
                 [ div [ onClickStop msgs.noOp ] [ text accountEmail ]
-                , div [ onClickStop <| msgs.toggledLanguageMenu (not langMenu), onMouseEnter <| msgs.toggledLanguageMenu True ]
+                , div
+                    [ id "language-option"
+                    , if langMenuEl_ == Nothing then
+                        onClickStop <| msgs.languageMenuRequested (Just "language-option")
+
+                      else
+                        onClickStop <| msgs.languageMenuRequested Nothing
+                    , onMouseEnter <| msgs.languageMenuRequested (Just "language-option")
+                    ]
                     [ text <| tr lang Language, div [ class "right-icon" ] [ AntIcons.rightOutlined [] ] ]
                 , div [ onClickStop msgs.logout ] [ text <| tr lang Logout ]
                 ]
-            , viewIf langMenu <|
-                div [ id "language-menu", class "sidebar-menu" ]
-                    (Translation.activeLanguages
-                        |> List.map
-                            (\( langOpt, langName ) ->
-                                div [ onClickStop <| msgs.languageChanged langOpt, classList [ ( "selected", langOpt == lang ) ] ] [ text langName ]
-                            )
-                    )
-            , viewIf (not langMenu) <| div [ id "help-menu-exit-top", onMouseEnter <| msgs.toggledAccount False ] []
-            , viewIf (not langMenu) <| div [ id "help-menu-exit-right", onMouseEnter <| msgs.toggledAccount False ] []
+            , case langMenuEl_ of
+                Just langMenuEl ->
+                    div
+                        [ id "language-menu"
+                        , class "sidebar-menu"
+                        , style "left" ((langMenuEl.element.x + langMenuEl.element.width |> String.fromFloat) ++ "px")
+                        , style "bottom" ((langMenuEl.scene.height - langMenuEl.element.y - langMenuEl.element.height |> String.fromFloat) ++ "px")
+                        ]
+                        (Translation.activeLanguages
+                            |> List.map
+                                (\( langOpt, langName ) ->
+                                    div [ onClickStop <| msgs.languageChanged langOpt, classList [ ( "selected", langOpt == lang ) ] ] [ text langName ]
+                                )
+                        )
+
+                Nothing ->
+                    text ""
+            , viewIf (langMenuEl_ == Nothing) <| div [ id "help-menu-exit-top", onMouseEnter <| msgs.toggledAccount False ] []
+            , viewIf (langMenuEl_ == Nothing) <| div [ id "help-menu-exit-right", onMouseEnter <| msgs.toggledAccount False ] []
             ]
 
         NoSidebarMenu ->

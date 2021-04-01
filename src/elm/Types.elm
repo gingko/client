@@ -1,5 +1,6 @@
 module Types exposing (Children(..), CollabState, Column, CursorPosition(..), DropId(..), Group, HeaderMenuState(..), Mode(..), OutsideData, SidebarMenuState(..), SidebarState(..), TextCursorInfo, TooltipPosition(..), Tree, ViewMode(..), ViewState, VisibleViewState)
 
+import Browser.Dom exposing (Element)
 import Html5.DragDrop as DragDrop
 import Json.Encode as Enc
 import Translation
@@ -60,7 +61,7 @@ type SidebarState
 type SidebarMenuState
     = NoSidebarMenu
     | Help
-    | Account Bool
+    | Account (Maybe Element)
 
 
 type HeaderMenuState

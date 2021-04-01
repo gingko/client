@@ -232,7 +232,8 @@ type Msg
     | TitleEdited
     | TitleEditCanceled
     | ToggledHelpMenu Bool
-    | ToggledLanguageMenu Bool
+    | LanguageMenuRequested (Maybe String)
+    | LanguageMenuReceived Element
     | ToggledAccountMenu Bool
       -- Sidebar & Modals
     | ToggleSidebar
@@ -642,14 +643,33 @@ update msg ({ workingTree } as model) =
             , Cmd.none
             )
 
-        ToggledLanguageMenu isOpen ->
-            ( { model | sidebarMenuState = Account isOpen }, Cmd.none )
+        LanguageMenuRequested elId_ ->
+            case ( elId_, model.sidebarMenuState ) of
+                ( Just elId, Account _ ) ->
+                    ( model
+                    , Browser.Dom.getElement elId
+                        |> Task.attempt
+                            (\result ->
+                                case result of
+                                    Ok el ->
+                                        LanguageMenuReceived el
+
+                                    Err _ ->
+                                        NoOp
+                            )
+                    )
+
+                _ ->
+                    ( { model | sidebarMenuState = Account Nothing }, Cmd.none )
+
+        LanguageMenuReceived el ->
+            ( { model | sidebarMenuState = Account (Just el) }, Cmd.none )
 
         ToggledAccountMenu isOpen ->
             let
                 ( newDropdownState, newSidebarState ) =
                     if isOpen then
-                        ( Account False, SidebarClosed )
+                        ( Account Nothing, SidebarClosed )
 
                     else
                         ( NoSidebarMenu, model.sidebarState )
@@ -2707,7 +2727,7 @@ viewLoaded model =
                         , clickedHelp = ToggledHelpMenu (not (model.sidebarMenuState == Help))
                         , toggledShortcuts = ShortcutTrayToggle
                         , clickedEmailSupport = ClickedEmailSupport
-                        , toggledLanguageMenu = ToggledLanguageMenu
+                        , languageMenuRequested = LanguageMenuRequested
                         , logout = LogoutRequested
                         , toggledAccount = ToggledAccountMenu
                         , fileSearchChanged = FileSearchChanged
