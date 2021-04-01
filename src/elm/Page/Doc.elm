@@ -815,6 +815,7 @@ update msg ({ workingTree } as model) =
 
                     else
                         NoHeaderMenu
+                , tooltip = Nothing
               }
             , Cmd.none
             )
@@ -973,6 +974,12 @@ update msg ({ workingTree } as model) =
             in
             ( { model
                 | session = Session.setShortcutTrayOpen newIsOpen model.session
+                , headerMenu =
+                    if model.headerMenu == ExportPreview && newIsOpen then
+                        NoHeaderMenu
+
+                    else
+                        model.headerMenu
               }
             , send (SetShortcutTray newIsOpen)
             )

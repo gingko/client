@@ -654,7 +654,7 @@ a.forgot-password {
   background-color: var(--ui-1-bg);
   border-bottom: 1px solid hsl(212deg 5% 58%);
   box-shadow: var(--small-shadow);
-  z-index: 2;
+  z-index: 3;
 }
 .header-button {
   width: 40px;
@@ -736,6 +736,61 @@ a.forgot-password {
 
 #doc-settings-icon {
   grid-area: button1;
+}
+#doc-settings-menu {
+  position: fixed;
+  right: 152px;
+  top: 40px;
+  border-radius: 5px 0 5px 5px;
+  box-shadow: var(--small-shadow);
+}
+#doc-settings-menu-exit-bottom {
+  position: fixed;
+  right: 0;
+  top: 400px;
+  background: transparent;
+  width: 100%;
+  height: 100%;
+  z-index: 999999;
+}
+#doc-settings-menu-exit-left {
+  position: fixed;
+  right: 350px;
+  top: 0;
+  background:transparent;
+  width: 100%;
+  height: 100%;
+  z-index: 999999;
+}
+.header-menu {
+  background: var(--background-sidebar-menu);
+}
+.header-menu > * {
+  padding: 6px 20px;
+  display: block;
+  width: 100%;
+  cursor: pointer;
+}
+.header-menu > *:last-child {
+  padding-bottom: 10px;
+  border-radius: 0 0 5px 5px;
+}
+.header-menu > *:first-child {
+  padding-top: 10px;
+  border-radius: 5px 5px 0 0;
+}
+.header-menu > *:hover {
+  background: white;
+}
+#doc-settings-menu:after {
+  content: " ";
+  width: 40px;
+  height: 4px;
+  background: var(--background-sidebar-menu);
+  position: absolute;
+  top: -3px;
+  right: 0;
+  z-index: 999;
 }
 #export-icon {
   grid-area: button2;
@@ -1948,7 +2003,7 @@ span[data-step-7] {
   overflow-y: auto;
   box-shadow: -3px 0px 3px hsla(0, 0%, 0%, 0.4);
   border-left: 1px solid #9e9e9e;
-  z-index: 1;
+  z-index: 2;
 }
 #export-preview .top-buffer {
   height: 20px;

@@ -142,6 +142,13 @@ viewHeader msgs title_ model =
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.controlOutlined [] ]
+        , viewIf (model.headerMenu == Settings) <|
+            div [ id "doc-settings-menu", class "header-menu" ]
+                [ div [] [ text "one" ]
+                , div [] [ text "one" ]
+                ]
+        , viewIf (model.headerMenu == Settings) <| div [ id "doc-settings-menu-exit-left", onMouseEnter msgs.toggledDocSettings ] []
+        , viewIf (model.headerMenu == Settings) <| div [ id "doc-settings-menu-exit-bottom", onMouseEnter msgs.toggledDocSettings ] []
         , div
             [ id "export-icon"
             , class "header-button"
