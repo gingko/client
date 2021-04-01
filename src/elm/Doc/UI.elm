@@ -456,11 +456,19 @@ viewSidebarMenu lang msgs accountEmail dropdownState =
                         , style "left" ((langMenuEl.element.x + langMenuEl.element.width |> String.fromFloat) ++ "px")
                         , style "bottom" ((langMenuEl.scene.height - langMenuEl.element.y - langMenuEl.element.height |> String.fromFloat) ++ "px")
                         ]
-                        (Translation.activeLanguages
+                        ((Translation.activeLanguages
                             |> List.map
                                 (\( langOpt, langName ) ->
                                     div [ onClickStop <| msgs.languageChanged langOpt, classList [ ( "selected", langOpt == lang ) ] ] [ text langName ]
                                 )
+                         )
+                            ++ [ a
+                                    [ href "https://poeditor.com/join/project?hash=k8Br3k0JVz"
+                                    , target "_blank"
+                                    , onClickStop <| msgs.toggledAccount False
+                                    ]
+                                    [ text <| tr lang ContributeTranslations ]
+                               ]
                         )
 
                 Nothing ->
