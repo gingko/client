@@ -41,6 +41,7 @@ type alias HeaderMsgs msg =
     , titleEdited : msg
     , titleEditCanceled : msg
     , toggledExport : msg
+    , exportSelectionChanged : ExportSelection -> msg
     , toggledUpgradeModal : Bool -> msg
     }
 
@@ -53,6 +54,7 @@ viewHeader :
             | titleField : Maybe String
             , dropdownState : SidebarMenuState
             , exportPreview : Bool
+            , exportSettings : ( ExportSelection, ExportFormat )
             , dirty : Bool
             , lastLocalSave : Maybe Time.Posix
             , lastRemoteSave : Maybe Time.Posix
@@ -111,6 +113,14 @@ viewHeader msgs title_ model =
                     ]
                 , viewSaveIndicator language model (Session.currentTime model.session)
                 ]
+
+        isSelected expSel =
+            (model.exportSettings |> Tuple.first) == expSel
+
+        selectionButtonAttributes expSel =
+            [ onClick <| msgs.exportSelectionChanged expSel
+            , classList [ ( "selected", isSelected expSel ) ]
+            ]
     in
     div [ id "document-header" ]
         [ titleArea
@@ -118,7 +128,14 @@ viewHeader msgs title_ model =
         , viewUpgradeButton
             msgs.toggledUpgradeModal
             model.session
-        , viewIf model.exportPreview <| div [ id "export-menu" ] [ text "here" ]
+        , viewIf model.exportPreview <|
+            div [ id "export-menu" ]
+                [ div [ id "export-selection", class "toggle-button" ]
+                    [ div (selectionButtonAttributes ExportEverything) [ text "Everything" ]
+                    , div (selectionButtonAttributes ExportSubtree) [ text "Current Subtree" ]
+                    , div (selectionButtonAttributes ExportCurrentColumn) [ text "Current Column" ]
+                    ]
+                ]
         ]
 
 

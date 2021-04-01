@@ -732,6 +732,27 @@ a.forgot-password {
   grid-area: header-menu;
   background: var(--background-sidebar-menu);
 }
+.toggle-button {
+  display: flex;
+  height: 30px;
+  align-items: center;
+  color: gray
+}
+.toggle-button div {
+  padding: 3px 10px;
+  border: 1px solid lightgray;
+  cursor: pointer;
+}
+.toggle-button div.selected {
+  background: aliceblue;
+  color: black;
+}
+.toggle-button div:first-child {
+  border-radius: 6px 0 0 6px;
+}
+.toggle-button div:last-child {
+  border-radius: 0 6px 6px 0;
+}
 
 .modal {
   position: fixed;

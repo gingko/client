@@ -2637,6 +2637,7 @@ viewLoaded model =
                         , titleEdited = TitleEdited
                         , titleEditCanceled = TitleEditCanceled
                         , toggledExport = ExportPreviewToggled (not model.exportPreview)
+                        , exportSelectionChanged = ExportSelectionChanged
                         , toggledUpgradeModal = ToggledUpgradeModal
                         }
                         (Metadata.getDocName model.metadata)
