@@ -296,12 +296,9 @@ viewSidebar lang msgs currentDocument fileFilter docList dropdownState sidebarSt
 
             else
                 text ""
-
-        onClickStop msg =
-            stopPropagationOn "click" (Dec.succeed ( msg, True ))
     in
     div [ id "sidebar", onClick <| toggle File, classList [ ( "open", isOpen ) ] ]
-        [ div [ id "brand" ]
+        ([ div [ id "brand" ]
             ([ img [ src "../gingko-leaf-logo.svg", width 28 ] [] ]
                 ++ (if isOpen then
                         [ h2 [ id "brand-name" ] [ text "Gingko Writer" ]
@@ -312,17 +309,15 @@ viewSidebar lang msgs currentDocument fileFilter docList dropdownState sidebarSt
                         [ text "" ]
                    )
             )
-        , div [ id "new", onClickStop msgs.clickedNew, class "sidebar-row" ]
-            [ div
-                [ id "new-icon"
-                , class "sidebar-button"
-                , attributeIf (not isOpen) <| onMouseEnter <| msgs.tooltipRequested "new-icon" "New Document"
-                , attributeIf (not isOpen) <| onMouseLeave msgs.tooltipClosed
-                ]
-                [ AntIcons.fileOutlined [] ]
-            , viewIf isOpen <| div [ id "new-label", class "sidebar-label" ] [ text "New Document" ]
+         , div
+            [ id "new-icon"
+            , class "sidebar-button"
+            , onClickStop msgs.clickedNew
+            , onMouseEnter <| msgs.tooltipRequested "new-icon" "New Document"
+            , onMouseLeave msgs.tooltipClosed
             ]
-        , div
+            [ AntIcons.fileOutlined [] ]
+         , div
             [ id "documents-icon"
             , class "sidebar-button"
             , classList [ ( "open", isOpen ) ]
@@ -335,8 +330,8 @@ viewSidebar lang msgs currentDocument fileFilter docList dropdownState sidebarSt
               else
                 AntIcons.folderOutlined []
             ]
-        , viewIf isOpen <| DocList.viewSmall msgs.noOp msgs.fileSearchChanged msgs.contextMenuOpened currentDocument fileFilter docList
-        , div
+         , viewIf isOpen <| DocList.viewSmall msgs.noOp msgs.fileSearchChanged msgs.contextMenuOpened currentDocument fileFilter docList
+         , div
             [ id "document-switcher-icon"
             , onClickStop msgs.clickedSwitcher
             , onMouseEnter <| msgs.tooltipRequested "document-switcher-icon" "Open quick switcher"
@@ -344,43 +339,46 @@ viewSidebar lang msgs currentDocument fileFilter docList dropdownState sidebarSt
             , class "sidebar-button"
             ]
             [ AntIcons.fileSearchOutlined [] ]
-        , div [ id "help", onClickStop msgs.clickedHelp, class "sidebar-row" ]
-            [ div
-                [ id "help-icon"
-                , class "sidebar-button"
-                , classList [ ( "open", helpOpen ) ]
-                , attributeIf (not isOpen && dropdownState /= Help) <| onMouseEnter <| msgs.tooltipRequested "help-icon" "Help"
-                , attributeIf (not isOpen) <| onMouseLeave msgs.tooltipClosed
-                ]
-                [ AntIcons.questionCircleOutlined [] ]
-            , viewIf isOpen <| div [ id "help-label", class "sidebar-label" ] [ text "Help" ]
+         , div
+            [ id "help-icon"
+            , class "sidebar-button"
+            , classList [ ( "open", helpOpen ) ]
+            , onClickStop msgs.clickedHelp
+            , attributeIf (dropdownState /= Help) <| onMouseEnter <| msgs.tooltipRequested "help-icon" "Help"
+            , onMouseLeave msgs.tooltipClosed
             ]
-        , div
+            [ AntIcons.questionCircleOutlined [] ]
+         , div
             [ id "account-icon"
             , class "sidebar-button"
             , onClickStop msgs.clickedAccount
-            , attributeIf (not isOpen) <| onMouseEnter <| msgs.tooltipRequested "account-icon" "Account"
-            , attributeIf (not isOpen) <| onMouseLeave msgs.tooltipClosed
+            , onMouseEnter <| msgs.tooltipRequested "account-icon" "Account"
+            , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.userOutlined [] ]
-        , viewSidebarMenu lang { clickedEmailSupport = msgs.clickedEmailSupport } dropdownState
-        ]
+         ]
+            ++ viewSidebarMenu lang { clickedEmailSupport = msgs.clickedEmailSupport, helpClosed = msgs.clickedHelp, noOp = msgs.noOp } dropdownState
+        )
 
 
-viewSidebarMenu : Language -> { clickedEmailSupport : msg } -> DropdownState -> Html msg
+viewSidebarMenu : Language -> { clickedEmailSupport : msg, helpClosed : msg, noOp : msg } -> DropdownState -> List (Html msg)
 viewSidebarMenu lang msgs dropdownState =
     case dropdownState of
         Help ->
-            div [ id "help-menu", class "sidebar-menu" ]
-                [ div [] [ a [ href "https://docs.gingkowriter.com", target "_blank" ] [ text "FAQ" ] ]
-                , div [] [ span [ id "email-support", onClick msgs.clickedEmailSupport ] [ text <| tr lang EmailSupport ] ]
+            [ div [ id "help-menu", class "sidebar-menu" ]
+                [ a [ href "https://docs.gingkowriter.com", target "_blank", onClickStop msgs.noOp ] [ text "FAQ" ]
+                , div [ onClickStop msgs.clickedEmailSupport ] [ text <| tr lang EmailSupport ]
                 ]
 
+            --, div [ id "help-menu-exit-top", onMouseEnter msgs.helpClosed ] []
+            --, div [ id "help-menu-exit-right", onMouseEnter msgs.helpClosed ] []
+            ]
+
         Account ->
-            div [] [ text "ACCOUNT" ]
+            [ div [] [ text "ACCOUNT" ] ]
 
         NoDropdown ->
-            text ""
+            [ text "" ]
 
 
 viewSidebarStatic : Bool -> List (Html msg)
@@ -1023,3 +1021,8 @@ radio msg bool labelElement =
         [ input [ type_ "radio", checked bool, onClick msg ] []
         , labelElement
         ]
+
+
+onClickStop : msg -> Html.Attribute msg
+onClickStop msg =
+    stopPropagationOn "click" (Dec.succeed ( msg, True ))

@@ -17,7 +17,7 @@ modalWrapper closeMsg id_ titleString body =
                 Nothing ->
                     []
     in
-    [ div [ class "modal-overlay" ] []
+    [ div [ class "modal-overlay", onClick closeMsg ] []
     , div [ class "modal" ]
         [ div [ class "modal-header" ]
             [ h2 [] [ text titleString ]

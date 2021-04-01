@@ -393,12 +393,12 @@ a.forgot-password {
   grid-template-areas:
     "top-left top-left"
     ". ."
-    "row1 row1"
+    "row1-icon doc-list"
     "row2-icon doc-list"
     "row3-icon doc-list"
     ". doc-list"
-    "bott-row1 bott-row1"
-    "bott-row2 bott-row2";
+    "bott-row1 doc-list"
+    "bott-row2 doc-list";
   background: var(--background-sidebar);
   border-right: 1px solid var(--ui-2-border-color);
   box-shadow: var(--small-shadow);
@@ -448,21 +448,21 @@ a.forgot-password {
   width: 37px;
   box-shadow: var(--small-shadow);
 }
-.sidebar-button:hover , .sidebar-button.open, .sidebar-row:hover {
-  background: var(--background-sidebar-menu);
+.sidebar-button:hover {
   fill: var(--ui-2-fg);
 }
 .sidebar-label {
   margin-top: 13px;
   margin-left: 5px;
 }
-#new {
-  grid-area: row1;
+#new-icon {
+  grid-area: row1-icon;
 }
 #documents-icon {
   grid-area: row2-icon;
 }
 #documents-icon.open {
+  background: var(--background-sidebar-menu);
   margin-left: 4px;
 }
 #sidebar-document-list-wrap {
@@ -471,23 +471,31 @@ a.forgot-password {
   flex-direction: column;
   padding: 5px;
   background: var(--background-sidebar-menu);
-  border-radius: 0 5px 5px 5px;
-  margin-right: 5px;
+  border-radius: 5px 0 0 5px;
   width: 175px;
+  box-shadow: var(--small-shadow);
+}
+#sidebar-document-list-wrap::before {
+  content: " ";
+  width: 4px;
+  height: 40px;
+  position: fixed;
+  left: 37px;
+  top: 95px;
+  background: var(--background-sidebar-menu);
 }
 #sidebar-document-list {
   overflow-y: auto;
 }
 #document-list-filter {
-  width: 100%;
-  margin-bottom: 5px;
+  margin: 0px 4px 6px 4px;
   padding: 3px 7px;
   font-size: 14px;
 }
 #document-switcher-icon {
   grid-area: row3-icon;
 }
-#help {
+#help-icon {
   grid-area: bott-row1;
 }
 #account-icon {
@@ -496,9 +504,25 @@ a.forgot-password {
 
 .sidebar-menu {
   background: var(--background-sidebar-menu);
-  padding: 10px;
 }
-#help-menu {
+.sidebar-menu > * {
+  padding: 6px 20px;
+  display: block;
+  width: 100%;
+  cursor: pointer;
+}
+.sidebar-menu > *:last-child {
+  padding-bottom: 10px;
+  border-radius: 0 0 5px 5px;
+}
+.sidebar-menu > *:first-child {
+  padding-top: 10px;
+  border-radius: 5px 5px 0 0;
+}
+.sidebar-menu > *:hover {
+  background: white;
+}
+#help-menu{
   position: fixed;
   left: 40px;
   bottom: 40px;
@@ -515,8 +539,23 @@ a.forgot-password {
   left: -2px;
   z-index: 999;
 }
-.sidebar-menu > div {
-  padding: 4px 10px;
+#help-menu-exit-top {
+  position: fixed;
+  left: 0;
+  bottom: 300px;
+  background: transparent;
+  width: 100%;
+  height: 100%;
+  z-index: 999999;
+}
+#help-menu-exit-right {
+  position: fixed;
+  left: 300px;
+  bottom: 0;
+  background: transparent;
+  width: 100%;
+  height: 100%;
+  z-index: 999999;
 }
 
 #loading-overlay {
@@ -1418,18 +1457,19 @@ span.collaborators {
 /* === Tooltips === */
 
 .tooltip {
+  position: fixed;
   animation: fadeIn 400ms;
-  background-color: rgba(0,0,0,0.8);
+  background-color: rgba(0,0,0,0.9);
   color: #dcddde;
   font-size: 14px;
   border-radius: 6px;
   padding: 5px 14px;
   line-height: 20px;
-  position: fixed;
   pointer-events: none;
+  z-index: 2;
 }
 .tooltip-arrow {
-  border-right: 5px solid rgba(0,0,0,0.8);
+  border-right: 5px solid rgba(0,0,0,0.9);
   border-top: 5px solid transparent;
   border-bottom: 5px solid transparent;
   border-left: 5px solid transparent;

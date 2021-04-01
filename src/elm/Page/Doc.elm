@@ -624,21 +624,15 @@ update msg ({ workingTree } as model) =
 
         ToggledHelpMenu isOpen ->
             let
-                ( newTourStep, newSidebarState ) =
-                    if model.tourStep == Just 6 then
-                        ( Just 7, File )
+                ( newDropdownState, newSidebarState ) =
+                    if isOpen then
+                        ( Help, SidebarClosed )
 
                     else
-                        ( model.tourStep, model.sidebarState )
+                        ( NoDropdown, model.sidebarState )
             in
             ( { model
-                | dropdownState =
-                    if isOpen then
-                        Help
-
-                    else
-                        NoDropdown
-                , tourStep = newTourStep
+                | dropdownState = newDropdownState
                 , sidebarState = newSidebarState
                 , tooltip = Nothing
               }
@@ -748,8 +742,19 @@ update msg ({ workingTree } as model) =
 
                         _ ->
                             Session.setFileOpen False model.session
+
+                newDropdownState =
+                    case ( newSidebarState, model.dropdownState ) of
+                        ( File, Help ) ->
+                            NoDropdown
+
+                        ( File, Account ) ->
+                            NoDropdown
+
+                        ( _, _ ) ->
+                            model.dropdownState
             in
-            ( { model | session = newSessionData, sidebarState = newSidebarState, tooltip = Nothing }, Cmd.none )
+            ( { model | session = newSessionData, sidebarState = newSidebarState, tooltip = Nothing, dropdownState = newDropdownState }, Cmd.none )
 
         TemplateSelectorOpened ->
             let
