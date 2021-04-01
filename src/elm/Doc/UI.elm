@@ -289,7 +289,8 @@ type alias SidebarMsgs msg =
     , clickedHelp : msg
     , toggledShortcuts : msg
     , clickedEmailSupport : msg
-    , toggledAccount : msg
+    , toggledLanguageMenu : Bool -> msg
+    , toggledAccount : Bool -> msg
     , logout : msg
     , fileSearchChanged : String -> msg
     , contextMenuOpened : String -> ( Float, Float ) -> msg
@@ -314,7 +315,12 @@ viewSidebar lang msgs currentDocument fileFilter docList accountEmail dropdownSt
             dropdownState == Help
 
         accountOpen =
-            dropdownState == Account
+            case dropdownState of
+                Account _ ->
+                    True
+
+                _ ->
+                    False
 
         toggle menu =
             if sidebarState == menu then
@@ -385,8 +391,8 @@ viewSidebar lang msgs currentDocument fileFilter docList accountEmail dropdownSt
             [ id "account-icon"
             , class "sidebar-button"
             , classList [ ( "open", accountOpen ) ]
-            , onClickStop msgs.toggledAccount
-            , attributeIf (dropdownState /= Account) <| onMouseEnter <| msgs.tooltipRequested "account-icon" RightTooltip "Account"
+            , onClickStop <| msgs.toggledAccount (not accountOpen)
+            , attributeIf (not accountOpen) <| onMouseEnter <| msgs.tooltipRequested "account-icon" RightTooltip "Account"
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.userOutlined [] ]
@@ -395,8 +401,9 @@ viewSidebar lang msgs currentDocument fileFilter docList accountEmail dropdownSt
                 { toggledShortcuts = msgs.toggledShortcuts
                 , clickedEmailSupport = msgs.clickedEmailSupport
                 , helpClosed = msgs.clickedHelp
+                , toggledLanguageMenu = msgs.toggledLanguageMenu
                 , logout = msgs.logout
-                , accountClosed = msgs.toggledAccount
+                , toggledAccount = msgs.toggledAccount
                 , noOp = msgs.noOp
                 }
                 accountEmail
@@ -406,7 +413,15 @@ viewSidebar lang msgs currentDocument fileFilter docList accountEmail dropdownSt
 
 viewSidebarMenu :
     Language
-    -> { toggledShortcuts : msg, clickedEmailSupport : msg, helpClosed : msg, logout : msg, accountClosed : msg, noOp : msg }
+    ->
+        { toggledShortcuts : msg
+        , clickedEmailSupport : msg
+        , helpClosed : msg
+        , toggledLanguageMenu : Bool -> msg
+        , logout : msg
+        , toggledAccount : Bool -> msg
+        , noOp : msg
+        }
     -> String
     -> SidebarMenuState
     -> List (Html msg)
@@ -422,13 +437,15 @@ viewSidebarMenu lang msgs accountEmail dropdownState =
             , div [ id "help-menu-exit-right", onMouseEnter msgs.helpClosed ] []
             ]
 
-        Account ->
+        Account langMenu ->
             [ div [ id "account-menu", class "sidebar-menu" ]
                 [ div [ onClickStop msgs.noOp ] [ text accountEmail ]
+                , div [ onClickStop <| msgs.toggledLanguageMenu (not langMenu) ] [ text <| tr lang Language ]
                 , div [ onClickStop msgs.logout ] [ text <| tr lang Logout ]
                 ]
-            , div [ id "help-menu-exit-top", onMouseEnter msgs.accountClosed ] []
-            , div [ id "help-menu-exit-right", onMouseEnter msgs.accountClosed ] []
+            , viewIf langMenu <| div [ id "language-menu" ] [ div [] [ text "English" ], div [] [ text "French" ] ]
+            , div [ id "help-menu-exit-top", onMouseEnter <| msgs.toggledAccount False ] []
+            , div [ id "help-menu-exit-right", onMouseEnter <| msgs.toggledAccount False ] []
             ]
 
         NoSidebarMenu ->

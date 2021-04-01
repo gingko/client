@@ -60,7 +60,7 @@ type SidebarState
 type SidebarMenuState
     = NoSidebarMenu
     | Help
-    | Account
+    | Account Bool
 
 
 type HeaderMenuState

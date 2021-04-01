@@ -18,11 +18,11 @@ import Doc.UI as UI exposing (countWords, viewConflict, viewHistory, viewMobileB
 import File exposing (File)
 import File.Download as Download
 import File.Select as Select
-import Html exposing (Html, button, div, h1, input, node, span, text, textarea, ul)
+import Html exposing (Html, div, span, text, textarea, ul)
 import Html.Attributes exposing (attribute, class, classList, dir, id, style, title, value)
 import Html.Events exposing (onClick, onDoubleClick, onInput)
 import Html.Keyed as Keyed
-import Html.Lazy exposing (lazy2, lazy3, lazy4, lazy5, lazy7, lazy8)
+import Html.Lazy exposing (lazy2, lazy4, lazy5, lazy7, lazy8)
 import Html5.DragDrop as DragDrop
 import Http
 import Import.Bulk.UI as ImportModal
@@ -232,6 +232,7 @@ type Msg
     | TitleEdited
     | TitleEditCanceled
     | ToggledHelpMenu Bool
+    | ToggledLanguageMenu Bool
     | ToggledAccountMenu Bool
       -- Sidebar & Modals
     | ToggleSidebar
@@ -641,11 +642,14 @@ update msg ({ workingTree } as model) =
             , Cmd.none
             )
 
+        ToggledLanguageMenu isOpen ->
+            ( { model | dropdownState = Account isOpen }, Cmd.none )
+
         ToggledAccountMenu isOpen ->
             let
                 ( newDropdownState, newSidebarState ) =
                     if isOpen then
-                        ( Account, SidebarClosed )
+                        ( Account False, SidebarClosed )
 
                     else
                         ( NoSidebarMenu, model.sidebarState )
@@ -755,7 +759,7 @@ update msg ({ workingTree } as model) =
                         ( File, Help ) ->
                             NoSidebarMenu
 
-                        ( File, Account ) ->
+                        ( File, Account _ ) ->
                             NoSidebarMenu
 
                         ( _, _ ) ->
@@ -2704,8 +2708,9 @@ viewLoaded model =
                         , clickedHelp = ToggledHelpMenu (not (model.dropdownState == Help))
                         , toggledShortcuts = ShortcutTrayToggle
                         , clickedEmailSupport = ClickedEmailSupport
-                        , toggledAccount = ToggledAccountMenu (not (model.dropdownState == Account))
+                        , toggledLanguageMenu = ToggledLanguageMenu
                         , logout = LogoutRequested
+                        , toggledAccount = ToggledAccountMenu
                         , fileSearchChanged = FileSearchChanged
                         , contextMenuOpened = SidebarContextClicked
                         , exportPreviewToggled = ExportPreviewToggled
