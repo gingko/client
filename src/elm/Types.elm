@@ -1,4 +1,4 @@
-module Types exposing (Children(..), CollabState, Column, CursorPosition(..), DropId(..), DropdownState(..), Group, Mode(..), OutsideData, SidebarState(..), TextCursorInfo, Tree, ViewMode(..), ViewState, VisibleViewState)
+module Types exposing (Children(..), CollabState, Column, CursorPosition(..), DropId(..), Group, Mode(..), OutsideData, SidebarMenuState(..), SidebarState(..), TextCursorInfo, Tree, ViewMode(..), ViewState, VisibleViewState)
 
 import Html5.DragDrop as DragDrop
 import Json.Encode as Enc
@@ -57,8 +57,8 @@ type SidebarState
     | File
 
 
-type DropdownState
-    = NoDropdown
+type SidebarMenuState
+    = NoSidebarMenu
     | Help
     | Account
 

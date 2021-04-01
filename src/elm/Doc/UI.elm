@@ -15,6 +15,7 @@ import Html.Attributes as A exposing (..)
 import Html.Attributes.Extra exposing (attributeIf)
 import Html.Events exposing (keyCode, on, onBlur, onCheck, onClick, onFocus, onInput, onMouseEnter, onMouseLeave, onSubmit, stopPropagationOn)
 import Html.Events.Extra exposing (onChange)
+import Html.Extra exposing (viewIf)
 import Import.Template exposing (Template(..))
 import Json.Decode as Dec
 import List.Extra as ListExtra exposing (getAt)
@@ -27,7 +28,7 @@ import Session exposing (PaymentStatus(..), Session)
 import SharedUI exposing (modalWrapper)
 import Time exposing (posixToMillis)
 import Translation exposing (Language(..), TranslationId(..), langFromString, langToString, languageName, timeDistInWords, tr)
-import Types exposing (Children(..), CursorPosition(..), DropdownState(..), SidebarState(..), TextCursorInfo, ViewMode(..), ViewState)
+import Types exposing (Children(..), CursorPosition(..), SidebarMenuState(..), SidebarState(..), TextCursorInfo, ViewMode(..), ViewState)
 
 
 
@@ -39,10 +40,7 @@ type alias HeaderMsgs msg =
     , titleFieldChanged : String -> msg
     , titleEdited : msg
     , titleEditCanceled : msg
-    , toggledHelpMenu : Bool -> msg
-    , clickedEmailSupport : msg
-    , logoutRequested : msg
-    , toggledAccountMenu : Bool -> msg
+    , toggledExport : msg
     , toggledUpgradeModal : Bool -> msg
     }
 
@@ -53,7 +51,8 @@ viewHeader :
     ->
         { m
             | titleField : Maybe String
-            , dropdownState : DropdownState
+            , dropdownState : SidebarMenuState
+            , exportPreview : Bool
             , dirty : Bool
             , lastLocalSave : Maybe Time.Posix
             , lastRemoteSave : Maybe Time.Posix
@@ -115,15 +114,11 @@ viewHeader msgs title_ model =
     in
     div [ id "document-header" ]
         [ titleArea
-        , viewTopRightButtons
-            { toggledHelpMenu = msgs.toggledHelpMenu
-            , clickedEmailSupport = msgs.clickedEmailSupport
-            , logoutRequested = msgs.logoutRequested
-            , toggledAccountMenu = msgs.toggledAccountMenu
-            , toggledUpgradeModal = msgs.toggledUpgradeModal
-            }
-            model.dropdownState
+        , div [ id "export-icon", class "header-button", onClick msgs.toggledExport ] [ AntIcons.fileDoneOutlined [] ]
+        , viewUpgradeButton
+            msgs.toggledUpgradeModal
             model.session
+        , viewIf model.exportPreview <| div [ id "export-menu" ] [ text "here" ]
         ]
 
 
@@ -173,17 +168,11 @@ viewSaveIndicator language { dirty, lastLocalSave, lastRemoteSave } currentTime 
         ]
 
 
-viewTopRightButtons :
-    { toggledHelpMenu : Bool -> msg
-    , clickedEmailSupport : msg
-    , logoutRequested : msg
-    , toggledAccountMenu : Bool -> msg
-    , toggledUpgradeModal : Bool -> msg
-    }
-    -> DropdownState
+viewUpgradeButton :
+    (Bool -> msg)
     -> Session
     -> Html msg
-viewTopRightButtons msgs dropdownState session =
+viewUpgradeButton toggledUpgradeModal session =
     let
         currentTime =
             Session.currentTime session
@@ -192,12 +181,12 @@ viewTopRightButtons msgs dropdownState session =
             Session.language session
 
         upgradeButton =
-            div [ id "upgrade-button", onClick <| msgs.toggledUpgradeModal True ] [ text "Upgrade" ]
+            div [ id "upgrade-button", onClick <| toggledUpgradeModal True ] [ text "Upgrade" ]
 
         maybeUpgrade =
             case Session.paymentStatus session of
                 Customer _ ->
-                    [ text "" ]
+                    text ""
 
                 Trial expiry ->
                     let
@@ -217,31 +206,15 @@ viewTopRightButtons msgs dropdownState session =
                                 "trial-dark"
                     in
                     if daysLeft <= 7 then
-                        [ span [ class "trial", class trialClass, onClick <| msgs.toggledUpgradeModal True ] [ text (String.fromInt daysLeft ++ " days left in Free Trial") ], upgradeButton ]
+                        upgradeButton
 
                     else
-                        [ upgradeButton ]
+                        upgradeButton
 
                 Unknown ->
-                    [ upgradeButton ]
-
-        isHelpDropdown =
-            dropdownState == Help
-
-        isAccountDropdown =
-            dropdownState == Account
-
-        helpIcon =
-            Icon.question (defaultOptions |> Icon.color "#333" |> Icon.size 18)
-
-        userIcon =
-            Icon.person (defaultOptions |> Icon.color "#333" |> Icon.size 18)
-
-        logoutIcon =
-            Icon.signOut (defaultOptions |> Icon.color "#333" |> Icon.size 18)
+                    upgradeButton
     in
-    div [ id "top-right-buttons" ]
-        maybeUpgrade
+    maybeUpgrade
 
 
 
@@ -273,7 +246,7 @@ type alias SidebarMsgs msg =
     }
 
 
-viewSidebar : Language -> SidebarMsgs msg -> Metadata -> String -> DocList.Model -> String -> DropdownState -> SidebarState -> Html msg
+viewSidebar : Language -> SidebarMsgs msg -> Metadata -> String -> DocList.Model -> String -> SidebarMenuState -> SidebarState -> Html msg
 viewSidebar lang msgs currentDocument fileFilter docList accountEmail dropdownState sidebarState =
     let
         isOpen =
@@ -377,7 +350,7 @@ viewSidebarMenu :
     Language
     -> { toggledShortcuts : msg, clickedEmailSupport : msg, helpClosed : msg, logout : msg, accountClosed : msg, noOp : msg }
     -> String
-    -> DropdownState
+    -> SidebarMenuState
     -> List (Html msg)
 viewSidebarMenu lang msgs accountEmail dropdownState =
     case dropdownState of
@@ -400,7 +373,7 @@ viewSidebarMenu lang msgs accountEmail dropdownState =
             , div [ id "help-menu-exit-right", onMouseEnter msgs.accountClosed ] []
             ]
 
-        NoDropdown ->
+        NoSidebarMenu ->
             [ text "" ]
 
 

@@ -73,7 +73,7 @@ type alias Model =
     , debouncerStateCommit : Debouncer () ()
     , titleField : Maybe String
     , sidebarState : SidebarState
-    , dropdownState : DropdownState
+    , dropdownState : SidebarMenuState
     , modalState : ModalState
     , fileSearchField : String
     , exportPreview : Bool
@@ -146,7 +146,7 @@ defaultModel isNew session docId =
 
         else
             SidebarClosed
-    , dropdownState = NoDropdown
+    , dropdownState = NoSidebarMenu
     , modalState = NoModal
     , fileSearchField = ""
     , exportPreview = False
@@ -629,7 +629,7 @@ update msg ({ workingTree } as model) =
                         ( Help, SidebarClosed )
 
                     else
-                        ( NoDropdown, model.sidebarState )
+                        ( NoSidebarMenu, model.sidebarState )
             in
             ( { model
                 | dropdownState = newDropdownState
@@ -646,7 +646,7 @@ update msg ({ workingTree } as model) =
                         ( Account, SidebarClosed )
 
                     else
-                        ( NoDropdown, model.sidebarState )
+                        ( NoSidebarMenu, model.sidebarState )
             in
             ( { model
                 | dropdownState = newDropdownState
@@ -706,7 +706,7 @@ update msg ({ workingTree } as model) =
                     Session.name model.session
                         |> Maybe.withDefault ""
             in
-            ( { model | modalState = ContactForm (ContactForm.init fromEmail), dropdownState = NoDropdown }
+            ( { model | modalState = ContactForm (ContactForm.init fromEmail), dropdownState = NoSidebarMenu }
             , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "contact-body")
             )
 
@@ -751,10 +751,10 @@ update msg ({ workingTree } as model) =
                 newDropdownState =
                     case ( newSidebarState, model.dropdownState ) of
                         ( File, Help ) ->
-                            NoDropdown
+                            NoSidebarMenu
 
                         ( File, Account ) ->
-                            NoDropdown
+                            NoSidebarMenu
 
                         ( _, _ ) ->
                             model.dropdownState
@@ -2614,38 +2614,18 @@ viewLoaded model =
 
             else
                 let
-                    documentView =
-                        case model.exportPreview of
-                            False ->
-                                lazy4 treeView (Session.language model.session) (Session.isMac model.session) model.viewState model.workingTree
-
-                            True ->
-                                let
-                                    activeTree_ =
-                                        getTree model.viewState.active model.workingTree.tree
-                                in
-                                case activeTree_ of
-                                    Just activeTree ->
-                                        lazy3 exportView model.exportSettings activeTree model.workingTree.tree
-
-                                    Nothing ->
-                                        exportViewError "No card selected, cannot preview export."
-
                     mobileBtnMsg shortcut =
                         Incoming (Keyboard shortcut)
                 in
                 div
                     [ id "app-root", applyTheme model.theme, setTourStep model.tourStep ]
-                    ([ documentView
+                    ([ lazy4 treeView (Session.language model.session) (Session.isMac model.session) model.viewState model.workingTree
                      , UI.viewHeader
                         { titleFocused = TitleFocused
                         , titleFieldChanged = TitleFieldChanged
                         , titleEdited = TitleEdited
                         , titleEditCanceled = TitleEditCanceled
-                        , toggledHelpMenu = ToggledHelpMenu
-                        , clickedEmailSupport = ClickedEmailSupport
-                        , logoutRequested = LogoutRequested
-                        , toggledAccountMenu = ToggledAccountMenu
+                        , toggledExport = ExportPreviewToggled (not model.exportPreview)
                         , toggledUpgradeModal = ToggledUpgradeModal
                         }
                         (Metadata.getDocName model.metadata)

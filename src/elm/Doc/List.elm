@@ -209,7 +209,7 @@ viewSmall noop filterMsg msg currentDocument filterField model =
 
         Success filteredDocs ->
             div [ id "sidebar-document-list-wrap" ]
-                [ input [ id "document-list-filter", placeholder "Type to find file", type_ "search", onInput filterMsg, stopClickProp ] []
+                [ input [ id "document-list-filter", placeholder "Find file by name", type_ "search", onInput filterMsg, stopClickProp ] []
                 , div [ id "sidebar-document-list" ] (List.map viewDocItem filteredDocs)
                 ]
 

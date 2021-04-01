@@ -380,7 +380,7 @@ a.forgot-password {
   width: 100%;
   display: grid;
   grid-template-columns: auto 1fr auto;
-  grid-template-rows: 40px 1fr;
+  grid-template-rows: min-content 1fr;
   grid-template-areas:
     "sidebar document-header document-header"
     "sidebar document right-sidebar"
@@ -644,16 +644,92 @@ a.forgot-password {
 
 #document-header {
   grid-area: document-header;
-  padding: 4px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 15px max-content 1fr 40px min-content 15px;
+  grid-template-rows: 40px min-content;
+  grid-template-areas:
+    ". title . button2 upgrade ."
+    "header-menu header-menu header-menu header-menu header-menu header-menu";
   color: var(--ui-1-fg);
   background-color: var(--ui-1-bg);
   border-bottom: 1px solid hsl(212deg 5% 58%);
   box-shadow: var(--small-shadow);
   z-index: 2;
+}
+.header-button {
+  width: 40px;
+  height: 40px;
+  padding: 10px;
+  cursor: pointer;
+  fill: var(--ui-1-fg);
+}
+.header-button:hover {
+  background: var(--background-sidebar-menu);
+  fill: var(--ui-2-fg);
+}
+
+#title {
+  grid-area: title;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  white-space: nowrap;
+}
+
+/* https://css-tricks.com/the-cleanest-trick-for-autogrowing-textareas/ */
+.title-grow-wrap {
+  display: grid;
+}
+.title-grow-wrap > input {
+  resize: none;
+  overflow: hidden;
+}
+.title-grow-wrap > input,
+.title-grow-wrap .shadow {
+  /* Identical styling required!! */
+  font-size: 20px;
+  font-family: Arial, serif;
+  font-weight: 700;
+  padding: 2px 6px;
+  margin: 0;
+  line-height: 5px;
+  border: 2px solid transparent;
+  border-radius: 3px;
+
+  /* Place on top of each other */
+  grid-area: 1 / 1 / 2 / 2;
+}
+.shadow {
+  visibility: hidden;
+  white-space: pre-wrap;
+}
+#title-rename:focus {
+  border: 2px solid lightskyblue;
+  outline: none;
+  box-shadow: inset 1px 1px 3px var(--ui-3-bg);
+}
+
+#save-indicator {
+  cursor: default;
+  user-select: none;
+  font-size: 12px;
+  font-family: sans-serif;
+  color: var(--ui-4-fg);
+  mix-blend-mode: hard-light;
+  margin-left: 6px;
+  margin-top: 4px;
+}
+
+#save-indicator.saving {
+  transition: none;
+  font-weight: bold;
+}
+
+#export-icon {
+  grid-area: button2;
+}
+#export-menu {
+  grid-area: header-menu;
 }
 
 .modal {
@@ -706,60 +782,6 @@ a.forgot-password {
   height: 80px;
   background-color: lightgray;
   box-shadow: inset 2px 2px 4px darkgray;
-}
-
-#title {
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-  white-space: nowrap;
-}
-
-/* https://css-tricks.com/the-cleanest-trick-for-autogrowing-textareas/ */
-.title-grow-wrap {
-  display: grid;
-}
-.title-grow-wrap > input {
-  resize: none;
-  overflow: hidden;
-}
-.title-grow-wrap > input,
-.title-grow-wrap .shadow {
-  /* Identical styling required!! */
-  font-size: 20px;
-  font-family: Arial, serif;
-  font-weight: 700;
-  padding: 2px 6px;
-  margin: 0;
-  border: 2px solid transparent;
-  border-radius: 3px;
-
-  /* Place on top of each other */
-  grid-area: 1 / 1 / 2 / 2;
-}
-.shadow {
-  visibility: hidden;
-  white-space: pre-wrap;
-}
-#title-rename:focus {
-  border: 2px solid lightskyblue;
-  outline: none;
-  box-shadow: inset 1px 1px 3px var(--ui-3-bg);
-}
-
-#save-indicator {
-  cursor: default;
-  user-select: none;
-  font-size: 12px;
-  font-family: sans-serif;
-  color: var(--ui-4-fg);
-  mix-blend-mode: hard-light;
-  margin-left: 6px;
-}
-
-#save-indicator.saving {
-  transition: none;
-  font-weight: bold;
 }
 
 #top-right-buttons {
@@ -866,8 +888,11 @@ span.trial-dark {
 }
 
 #upgrade-button {
-  height: auto;
+  grid-area: upgrade;
+  height: 30px;
+  align-self: center;
   padding: 6px 12px;
+  margin-left: 15px;
   background: #7439c0;
   color: white;
   font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Ubuntu,sans-serif;
