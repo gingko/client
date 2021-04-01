@@ -2778,6 +2778,7 @@ ul.changelist {
 
 @media print {
   #app-root {
+    display: block;
     position: absolute;
     height: auto;
   }

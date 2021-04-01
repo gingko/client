@@ -386,7 +386,7 @@ viewSidebar lang msgs currentDocument fileFilter docList accountEmail dropdownSt
             , class "sidebar-button"
             , classList [ ( "open", accountOpen ) ]
             , onClickStop msgs.toggledAccount
-            , onMouseEnter <| msgs.tooltipRequested "account-icon" RightTooltip "Account"
+            , attributeIf (dropdownState /= Account) <| onMouseEnter <| msgs.tooltipRequested "account-icon" RightTooltip "Account"
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.userOutlined [] ]
