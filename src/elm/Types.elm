@@ -1,4 +1,4 @@
-module Types exposing (Children(..), CollabState, Column, CursorPosition(..), DropId(..), Group, Mode(..), OutsideData, SidebarMenuState(..), SidebarState(..), TextCursorInfo, Tree, ViewMode(..), ViewState, VisibleViewState)
+module Types exposing (Children(..), CollabState, Column, CursorPosition(..), DropId(..), Group, Mode(..), OutsideData, SidebarMenuState(..), SidebarState(..), TextCursorInfo, TooltipPosition(..), Tree, ViewMode(..), ViewState, VisibleViewState)
 
 import Html5.DragDrop as DragDrop
 import Json.Encode as Enc
@@ -61,6 +61,11 @@ type SidebarMenuState
     = NoSidebarMenu
     | Help
     | Account
+
+
+type TooltipPosition
+    = RightTooltip
+    | BelowTooltip
 
 
 type alias CollabState =

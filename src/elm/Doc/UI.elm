@@ -28,7 +28,7 @@ import Session exposing (PaymentStatus(..), Session)
 import SharedUI exposing (modalWrapper)
 import Time exposing (posixToMillis)
 import Translation exposing (Language(..), TranslationId(..), langFromString, langToString, languageName, timeDistInWords, tr)
-import Types exposing (Children(..), CursorPosition(..), SidebarMenuState(..), SidebarState(..), TextCursorInfo, ViewMode(..), ViewState)
+import Types exposing (Children(..), CursorPosition(..), SidebarMenuState(..), SidebarState(..), TextCursorInfo, TooltipPosition(..), ViewMode(..), ViewState)
 
 
 
@@ -40,6 +40,8 @@ type alias HeaderMsgs msg =
     , titleFieldChanged : String -> msg
     , titleEdited : msg
     , titleEditCanceled : msg
+    , tooltipRequested : String -> TooltipPosition -> String -> msg
+    , tooltipClosed : msg
     , toggledExport : msg
     , exportSelectionChanged : ExportSelection -> msg
     , exportFormatChanged : ExportFormat -> msg
@@ -133,7 +135,15 @@ viewHeader msgs title_ model =
     in
     div [ id "document-header" ]
         [ titleArea
-        , div [ id "export-icon", class "header-button", onClick msgs.toggledExport ] [ AntIcons.fileDoneOutlined [] ]
+        , div
+            [ id "export-icon"
+            , class "header-button"
+            , classList [ ( "open", model.exportPreview ) ]
+            , onClick msgs.toggledExport
+            , onMouseEnter <| msgs.tooltipRequested "export-icon" BelowTooltip "Export or Print"
+            , onMouseLeave msgs.tooltipClosed
+            ]
+            [ AntIcons.fileDoneOutlined [] ]
         , viewUpgradeButton
             msgs.toggledUpgradeModal
             model.session
@@ -256,7 +266,7 @@ type alias SidebarMsgs msg =
     { sidebarStateChanged : SidebarState -> msg
     , noOp : msg
     , clickedNew : msg
-    , tooltipRequested : String -> String -> msg
+    , tooltipRequested : String -> TooltipPosition -> String -> msg
     , tooltipClosed : msg
     , clickedSwitcher : msg
     , clickedHelp : msg
@@ -319,7 +329,7 @@ viewSidebar lang msgs currentDocument fileFilter docList accountEmail dropdownSt
             [ id "new-icon"
             , class "sidebar-button"
             , onClickStop msgs.clickedNew
-            , onMouseEnter <| msgs.tooltipRequested "new-icon" "New Document"
+            , onMouseEnter <| msgs.tooltipRequested "new-icon" RightTooltip "New Document"
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.fileOutlined [] ]
@@ -327,7 +337,7 @@ viewSidebar lang msgs currentDocument fileFilter docList accountEmail dropdownSt
             [ id "documents-icon"
             , class "sidebar-button"
             , classList [ ( "open", isOpen ) ]
-            , attributeIf (not isOpen) <| onMouseEnter <| msgs.tooltipRequested "documents-icon" "Show Document List"
+            , attributeIf (not isOpen) <| onMouseEnter <| msgs.tooltipRequested "documents-icon" RightTooltip "Show Document List"
             , attributeIf (not isOpen) <| onMouseLeave msgs.tooltipClosed
             ]
             [ if isOpen then
@@ -340,7 +350,7 @@ viewSidebar lang msgs currentDocument fileFilter docList accountEmail dropdownSt
          , div
             [ id "document-switcher-icon"
             , onClickStop msgs.clickedSwitcher
-            , onMouseEnter <| msgs.tooltipRequested "document-switcher-icon" "Open quick switcher"
+            , onMouseEnter <| msgs.tooltipRequested "document-switcher-icon" RightTooltip "Open quick switcher"
             , onMouseLeave msgs.tooltipClosed
             , class "sidebar-button"
             ]
@@ -350,7 +360,7 @@ viewSidebar lang msgs currentDocument fileFilter docList accountEmail dropdownSt
             , class "sidebar-button"
             , classList [ ( "open", helpOpen ) ]
             , onClickStop msgs.clickedHelp
-            , attributeIf (dropdownState /= Help) <| onMouseEnter <| msgs.tooltipRequested "help-icon" "Help"
+            , attributeIf (dropdownState /= Help) <| onMouseEnter <| msgs.tooltipRequested "help-icon" RightTooltip "Help"
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.questionCircleOutlined [] ]
@@ -359,7 +369,7 @@ viewSidebar lang msgs currentDocument fileFilter docList accountEmail dropdownSt
             , class "sidebar-button"
             , classList [ ( "open", accountOpen ) ]
             , onClickStop msgs.toggledAccount
-            , onMouseEnter <| msgs.tooltipRequested "account-icon" "Account"
+            , onMouseEnter <| msgs.tooltipRequested "account-icon" RightTooltip "Account"
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.userOutlined [] ]
@@ -862,16 +872,26 @@ viewWordcountProgress current session =
         ]
 
 
-viewTooltip : ( String, Element ) -> Html msg
-viewTooltip ( content, el ) =
+viewTooltip : ( Element, TooltipPosition, String ) -> Html msg
+viewTooltip ( el, tipPos, content ) =
     let
-        posLeft =
-            ((el.element.x + el.element.width + 5) |> String.fromFloat) ++ "px"
+        posAttributes =
+            case tipPos of
+                RightTooltip ->
+                    [ style "left" <| ((el.element.x + el.element.width + 5) |> String.fromFloat) ++ "px"
+                    , style "top" <| ((el.element.y + el.element.height * 0.5) |> String.fromFloat) ++ "px"
+                    , style "transform" "translateY(-50%)"
+                    , class "tip-right"
+                    ]
 
-        posTop =
-            ((el.element.y + el.element.height * 0.5) |> String.fromFloat) ++ "px"
+                BelowTooltip ->
+                    [ style "left" <| ((el.element.x + el.element.width * 0.5) |> String.fromFloat) ++ "px"
+                    , style "top" <| ((el.element.y + el.element.height + 5) |> String.fromFloat) ++ "px"
+                    , style "transform" "translateX(-50%)"
+                    , class "tip-below"
+                    ]
     in
-    div [ class "tooltip", style "left" posLeft, style "top" posTop, style "transform" "translateY(-50%)" ]
+    div ([ class "tooltip" ] ++ posAttributes)
         [ text content, div [ class "tooltip-arrow" ] [] ]
 
 

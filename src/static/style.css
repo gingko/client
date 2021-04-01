@@ -667,6 +667,15 @@ a.forgot-password {
   background: var(--background-sidebar-menu);
   fill: var(--ui-2-fg);
 }
+.header-button.open {
+  background: var(--background-sidebar-menu);
+  fill: var(--ui-2-fg);
+  border-radius: 5px 5px 0 0;
+  padding-top: 7px;
+  margin-top: 3px;
+  height: 37px;
+  box-shadow: var(--small-shadow);
+}
 
 #title {
   grid-area: title;
@@ -736,6 +745,17 @@ a.forgot-password {
   justify-items: center;
   align-items: center;
   background: var(--background-sidebar-menu);
+  box-shadow: 1px -1px 3px rgba(0,0,0,0.4);
+}
+#export-menu:after {
+  content: " ";
+  width: 40px;
+  height: 4px;
+  background: var(--background-sidebar-menu);
+  position: absolute;
+  top: 36px;
+  right: 112px;
+  z-index: 999;
 }
 .toggle-button {
   display: flex;
@@ -1554,6 +1574,14 @@ span.collaborators {
   top: calc(50% - 5px);
   left: -10px;
 }
+.tip-below .tooltip-arrow {
+  border-bottom: 5px solid rgba(0,0,0,0.9);
+  border-top: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-left: 5px solid transparent;
+  top: -10px;
+  left: calc(50% - 5px);
+}
 
 /* === TOUR === */
 div.tour-step {
@@ -1865,9 +1893,9 @@ span[data-step-7] {
   background: white;
   padding: 40px;
   overflow-y: auto;
-  box-shadow: -2px 4px 5px hsla(0, 0%, 0%, 0.4);
+  box-shadow: -3px 0px 3px hsla(0, 0%, 0%, 0.4);
   border-left: 1px solid #9e9e9e;
-  z-index: 2;
+  z-index: 1;
 }
 #export-preview .top-buffer {
   height: 20px;

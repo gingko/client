@@ -80,7 +80,7 @@ type alias Model =
     , exportSettings : ( ExportSelection, ExportFormat )
     , wordcountTrayOpen : Bool
     , tourStep : Maybe Int
-    , tooltip : Maybe ( String, Element )
+    , tooltip : Maybe ( Element, TooltipPosition, String )
     , videoModalOpen : Bool
     , fontSelectorOpen : Bool
     , historyState : HistoryState
@@ -269,8 +269,8 @@ type Msg
       -- Misc UI
     | LanguageChanged String
     | ThemeChanged Theme
-    | TooltipRequested String String
-    | TooltipReceived String Element
+    | TooltipRequested String TooltipPosition String
+    | TooltipReceived Element TooltipPosition String
     | TooltipClosed
     | FullscreenRequested
     | TimeUpdate Time.Posix
@@ -806,13 +806,8 @@ update msg ({ workingTree } as model) =
             ( { model | modalState = NoModal }, send <| RequestDelete docId )
 
         ExportPreviewToggled previewEnabled ->
-            ( { model | exportPreview = previewEnabled }, Cmd.none )
-                |> (if not previewEnabled then
-                        activate vs.active True
-
-                    else
-                        identity
-                   )
+            ( { model | exportPreview = previewEnabled, tooltip = Nothing }, Cmd.none )
+                |> activate vs.active True
 
         ExportSelectionChanged expSel ->
             ( { model | exportSettings = Tuple.mapFirst (always expSel) model.exportSettings }, Cmd.none )
@@ -893,22 +888,22 @@ update msg ({ workingTree } as model) =
         ThemeChanged newTheme ->
             ( { model | theme = newTheme }, send <| SaveThemeSetting newTheme )
 
-        TooltipRequested elId content ->
+        TooltipRequested elId tipPos content ->
             ( model
             , Browser.Dom.getElement elId
                 |> Task.attempt
                     (\result ->
                         case result of
                             Ok el ->
-                                TooltipReceived content el
+                                TooltipReceived el tipPos content
 
                             Err _ ->
                                 NoOp
                     )
             )
 
-        TooltipReceived content el ->
-            ( { model | tooltip = Just ( content, el ) }, Cmd.none )
+        TooltipReceived el tipPos content ->
+            ( { model | tooltip = Just ( el, tipPos, content ) }, Cmd.none )
 
         TooltipClosed ->
             ( { model | tooltip = Nothing }, Cmd.none )
@@ -2639,6 +2634,8 @@ viewLoaded model =
                         , titleFieldChanged = TitleFieldChanged
                         , titleEdited = TitleEdited
                         , titleEditCanceled = TitleEditCanceled
+                        , tooltipRequested = TooltipRequested
+                        , tooltipClosed = TooltipClosed
                         , toggledExport = ExportPreviewToggled (not model.exportPreview)
                         , exportSelectionChanged = ExportSelectionChanged
                         , exportFormatChanged = ExportFormatChanged
