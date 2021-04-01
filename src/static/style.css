@@ -2778,9 +2778,8 @@ ul.changelist {
 
 @media print {
   #app-root {
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr;
-    grid-template-areas: "right-sidebar";
+    position: absolute;
+    height: auto;
   }
   #document {
     display: none;
