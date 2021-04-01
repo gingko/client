@@ -2654,6 +2654,7 @@ viewLoaded model =
                         , tooltipClosed = TooltipClosed
                         , clickedSwitcher = SwitcherOpened
                         , clickedHelp = ToggledHelpMenu (not (model.dropdownState == Help))
+                        , toggledShortcuts = ShortcutTrayToggle
                         , clickedEmailSupport = ClickedEmailSupport
                         , clickedAccount = ToggledAccountMenu True
                         , fileSearchChanged = FileSearchChanged

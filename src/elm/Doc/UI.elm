@@ -256,6 +256,7 @@ type alias SidebarMsgs msg =
     , tooltipClosed : msg
     , clickedSwitcher : msg
     , clickedHelp : msg
+    , toggledShortcuts : msg
     , clickedEmailSupport : msg
     , clickedAccount : msg
     , fileSearchChanged : String -> msg
@@ -357,21 +358,27 @@ viewSidebar lang msgs currentDocument fileFilter docList dropdownState sidebarSt
             ]
             [ AntIcons.userOutlined [] ]
          ]
-            ++ viewSidebarMenu lang { clickedEmailSupport = msgs.clickedEmailSupport, helpClosed = msgs.clickedHelp, noOp = msgs.noOp } dropdownState
+            ++ viewSidebarMenu lang
+                { toggledShortcuts = msgs.toggledShortcuts
+                , clickedEmailSupport = msgs.clickedEmailSupport
+                , helpClosed = msgs.clickedHelp
+                , noOp = msgs.noOp
+                }
+                dropdownState
         )
 
 
-viewSidebarMenu : Language -> { clickedEmailSupport : msg, helpClosed : msg, noOp : msg } -> DropdownState -> List (Html msg)
+viewSidebarMenu : Language -> { toggledShortcuts : msg, clickedEmailSupport : msg, helpClosed : msg, noOp : msg } -> DropdownState -> List (Html msg)
 viewSidebarMenu lang msgs dropdownState =
     case dropdownState of
         Help ->
             [ div [ id "help-menu", class "sidebar-menu" ]
                 [ a [ href "https://docs.gingkowriter.com", target "_blank", onClickStop msgs.noOp ] [ text "FAQ" ]
+                , div [ onClickStop msgs.toggledShortcuts ] [ text <| tr lang KeyboardHelp ]
                 , div [ onClickStop msgs.clickedEmailSupport ] [ text <| tr lang EmailSupport ]
                 ]
-
-            --, div [ id "help-menu-exit-top", onMouseEnter msgs.helpClosed ] []
-            --, div [ id "help-menu-exit-right", onMouseEnter msgs.helpClosed ] []
+            , div [ id "help-menu-exit-top", onMouseEnter msgs.helpClosed ] []
+            , div [ id "help-menu-exit-right", onMouseEnter msgs.helpClosed ] []
             ]
 
         Account ->
