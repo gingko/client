@@ -747,7 +747,7 @@ a.forgot-password {
 #doc-settings-menu-exit-bottom {
   position: fixed;
   right: 0;
-  top: 400px;
+  top: 300px;
   background: transparent;
   width: 100%;
   height: 100%;
@@ -765,10 +765,15 @@ a.forgot-password {
 .header-menu {
   background: var(--background-sidebar-menu);
 }
-.header-menu > * {
-  padding: 6px 20px;
-  display: block;
+.header-menu h4 {
+  padding: 20px 10px 0 10px;
   width: 100%;
+  margin-bottom: 0;
+}
+.header-menu > div {
+  padding: 6px 20px;
+  width: 100%;
+  display: block;
   cursor: pointer;
 }
 .header-menu > *:last-child {
@@ -779,7 +784,7 @@ a.forgot-password {
   padding-top: 10px;
   border-radius: 5px 5px 0 0;
 }
-.header-menu > *:hover {
+.header-menu > div:hover {
   background: white;
 }
 #doc-settings-menu:after {

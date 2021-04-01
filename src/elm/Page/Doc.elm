@@ -2683,6 +2683,7 @@ viewLoaded model =
                         , tooltipRequested = TooltipRequested
                         , tooltipClosed = TooltipClosed
                         , toggledDocSettings = DocSettingsToggled (not <| model.headerMenu == Settings)
+                        , themeChanged = ThemeChanged
                         , toggledExport = ExportPreviewToggled (not <| model.headerMenu == ExportPreview)
                         , exportSelectionChanged = ExportSelectionChanged
                         , exportFormatChanged = ExportFormatChanged

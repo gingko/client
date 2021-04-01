@@ -14,7 +14,6 @@ import Html exposing (Html, a, br, button, del, div, fieldset, h1, h2, h3, h4, h
 import Html.Attributes as A exposing (..)
 import Html.Attributes.Extra exposing (attributeIf)
 import Html.Events exposing (keyCode, on, onBlur, onCheck, onClick, onFocus, onInput, onMouseEnter, onMouseLeave, onSubmit, stopPropagationOn)
-import Html.Events.Extra exposing (onChange)
 import Html.Extra exposing (viewIf)
 import Import.Template exposing (Template(..))
 import Json.Decode as Dec
@@ -43,6 +42,7 @@ viewHeader :
     , tooltipRequested : String -> TooltipPosition -> String -> msg
     , tooltipClosed : msg
     , toggledDocSettings : msg
+    , themeChanged : Theme -> msg
     , toggledExport : msg
     , exportSelectionChanged : ExportSelection -> msg
     , exportFormatChanged : ExportFormat -> msg
@@ -144,8 +144,9 @@ viewHeader msgs title_ model =
             [ AntIcons.controlOutlined [] ]
         , viewIf (model.headerMenu == Settings) <|
             div [ id "doc-settings-menu", class "header-menu" ]
-                [ div [] [ text "one" ]
-                , div [] [ text "one" ]
+                [ h4 [] [ text "Document Theme" ]
+                , div [ onClick <| msgs.themeChanged Default ] [ text "Default" ]
+                , div [ onClick <| msgs.themeChanged Dark ] [ text "Dark Mode" ]
                 ]
         , viewIf (model.headerMenu == Settings) <| div [ id "doc-settings-menu-exit-left", onMouseEnter msgs.toggledDocSettings ] []
         , viewIf (model.headerMenu == Settings) <| div [ id "doc-settings-menu-exit-bottom", onMouseEnter msgs.toggledDocSettings ] []
