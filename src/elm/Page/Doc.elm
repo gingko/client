@@ -2618,12 +2618,15 @@ viewLoaded model =
                         Incoming (Keyboard shortcut)
 
                     maybeExportView =
-                        case ( model.exportPreview, getTree model.viewState.active model.workingTree.tree ) of
-                            ( True, Just activeTree ) ->
+                        case ( model.exportPreview, getTree model.viewState.active model.workingTree.tree, model.exportSettings ) of
+                            ( True, Just activeTree, _ ) ->
                                 lazy3 exportView model.exportSettings activeTree model.workingTree.tree
 
-                            ( True, Nothing ) ->
-                                exportViewError "No card selected, cannot preview export"
+                            ( True, Nothing, ( ExportEverything, _ ) ) ->
+                                lazy3 exportView model.exportSettings defaultTree model.workingTree.tree
+
+                            ( True, Nothing, _ ) ->
+                                exportViewError "No card selected, cannot preview document"
 
                             _ ->
                                 text ""
@@ -2638,6 +2641,7 @@ viewLoaded model =
                         , titleEditCanceled = TitleEditCanceled
                         , toggledExport = ExportPreviewToggled (not model.exportPreview)
                         , exportSelectionChanged = ExportSelectionChanged
+                        , exportFormatChanged = ExportFormatChanged
                         , toggledUpgradeModal = ToggledUpgradeModal
                         }
                         (Metadata.getDocName model.metadata)

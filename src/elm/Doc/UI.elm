@@ -42,6 +42,7 @@ type alias HeaderMsgs msg =
     , titleEditCanceled : msg
     , toggledExport : msg
     , exportSelectionChanged : ExportSelection -> msg
+    , exportFormatChanged : ExportFormat -> msg
     , toggledUpgradeModal : Bool -> msg
     }
 
@@ -121,6 +122,14 @@ viewHeader msgs title_ model =
             [ onClick <| msgs.exportSelectionChanged expSel
             , classList [ ( "selected", isSelected expSel ) ]
             ]
+
+        isFormat expFormat =
+            (model.exportSettings |> Tuple.second) == expFormat
+
+        formatButtonAttributes expFormat =
+            [ onClick <| msgs.exportFormatChanged expFormat
+            , classList [ ( "selected", isFormat expFormat ) ]
+            ]
     in
     div [ id "document-header" ]
         [ titleArea
@@ -134,6 +143,11 @@ viewHeader msgs title_ model =
                     [ div (selectionButtonAttributes ExportEverything) [ text "Everything" ]
                     , div (selectionButtonAttributes ExportSubtree) [ text "Current Subtree" ]
                     , div (selectionButtonAttributes ExportCurrentColumn) [ text "Current Column" ]
+                    ]
+                , div [ id "export-format", class "toggle-button" ]
+                    [ div (formatButtonAttributes DOCX) [ text "Word" ]
+                    , div (formatButtonAttributes PlainText) [ text "Plain Text" ]
+                    , div (formatButtonAttributes JSON) [ text "JSON" ]
                     ]
                 ]
         ]

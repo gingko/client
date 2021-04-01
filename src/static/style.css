@@ -730,6 +730,11 @@ a.forgot-password {
 }
 #export-menu {
   grid-area: header-menu;
+  height: 40px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  justify-items: center;
+  align-items: center;
   background: var(--background-sidebar-menu);
 }
 .toggle-button {
@@ -1856,6 +1861,7 @@ span[data-step-7] {
 
 #export-preview {
   grid-area: right-sidebar;
+  width: calc(50vw - 40px);
   background: white;
   padding: 40px;
   overflow-y: auto;
