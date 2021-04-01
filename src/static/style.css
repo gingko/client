@@ -511,6 +511,7 @@ a.forgot-password {
   display: block;
   width: 100%;
   cursor: pointer;
+  position: relative;
 }
 .sidebar-menu > *:last-child {
   padding-bottom: 10px;
@@ -522,6 +523,12 @@ a.forgot-password {
 }
 .sidebar-menu > *:hover {
   background: white;
+}
+.sidebar-menu .right-icon {
+  width: 11px;
+  position: absolute;
+  right: 8px;
+  top: 6px;
 }
 #help-menu{
   position: fixed;
@@ -557,6 +564,13 @@ a.forgot-password {
   width: 100%;
   height: 100%;
   z-index: 999999;
+}
+#language-menu {
+  position: fixed;
+  left: 40px;
+  bottom: 15px;
+  border-radius: 5px 5px 5px 0;
+  box-shadow: var(--small-shadow);
 }
 #account-menu{
   position: fixed;

@@ -43,7 +43,7 @@ import Route
 import Session exposing (Session)
 import Task
 import Time
-import Translation exposing (..)
+import Translation exposing (Language, TranslationId(..), tr)
 import Types exposing (..)
 import Upgrade exposing (Msg(..))
 import Utils exposing (randomPositiveInt)
@@ -73,7 +73,7 @@ type alias Model =
     , debouncerStateCommit : Debouncer () ()
     , titleField : Maybe String
     , sidebarState : SidebarState
-    , dropdownState : SidebarMenuState
+    , sidebarMenuState : SidebarMenuState
     , modalState : ModalState
     , fileSearchField : String
     , headerMenu : HeaderMenuState
@@ -146,7 +146,7 @@ defaultModel isNew session docId =
 
         else
             SidebarClosed
-    , dropdownState = NoSidebarMenu
+    , sidebarMenuState = NoSidebarMenu
     , modalState = NoModal
     , fileSearchField = ""
     , headerMenu = NoHeaderMenu
@@ -269,7 +269,7 @@ type Msg
     | ImportJSONCompleted String
     | ImportBulkCompleted
       -- Misc UI
-    | LanguageChanged String
+    | LanguageChanged Language
     | ThemeChanged Theme
     | TooltipRequested String TooltipPosition String
     | TooltipReceived Element TooltipPosition String
@@ -635,7 +635,7 @@ update msg ({ workingTree } as model) =
                         ( NoSidebarMenu, model.sidebarState )
             in
             ( { model
-                | dropdownState = newDropdownState
+                | sidebarMenuState = newDropdownState
                 , sidebarState = newSidebarState
                 , tooltip = Nothing
               }
@@ -643,7 +643,7 @@ update msg ({ workingTree } as model) =
             )
 
         ToggledLanguageMenu isOpen ->
-            ( { model | dropdownState = Account isOpen }, Cmd.none )
+            ( { model | sidebarMenuState = Account isOpen }, Cmd.none )
 
         ToggledAccountMenu isOpen ->
             let
@@ -655,7 +655,7 @@ update msg ({ workingTree } as model) =
                         ( NoSidebarMenu, model.sidebarState )
             in
             ( { model
-                | dropdownState = newDropdownState
+                | sidebarMenuState = newDropdownState
                 , sidebarState = newSidebarState
                 , tooltip = Nothing
               }
@@ -712,7 +712,7 @@ update msg ({ workingTree } as model) =
                     Session.name model.session
                         |> Maybe.withDefault ""
             in
-            ( { model | modalState = ContactForm (ContactForm.init fromEmail), dropdownState = NoSidebarMenu }
+            ( { model | modalState = ContactForm (ContactForm.init fromEmail), sidebarMenuState = NoSidebarMenu }
             , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "contact-body")
             )
 
@@ -755,7 +755,7 @@ update msg ({ workingTree } as model) =
                             Session.setFileOpen False model.session
 
                 newDropdownState =
-                    case ( newSidebarState, model.dropdownState ) of
+                    case ( newSidebarState, model.sidebarMenuState ) of
                         ( File, Help ) ->
                             NoSidebarMenu
 
@@ -763,9 +763,9 @@ update msg ({ workingTree } as model) =
                             NoSidebarMenu
 
                         ( _, _ ) ->
-                            model.dropdownState
+                            model.sidebarMenuState
             in
-            ( { model | session = newSessionData, sidebarState = newSidebarState, tooltip = Nothing, dropdownState = newDropdownState }, Cmd.none )
+            ( { model | session = newSessionData, sidebarState = newSidebarState, tooltip = Nothing, sidebarMenuState = newDropdownState }, Cmd.none )
 
         TemplateSelectorOpened ->
             let
@@ -901,14 +901,13 @@ update msg ({ workingTree } as model) =
         ImportBulkCompleted ->
             ( { model | modalState = NoModal }, Cmd.none )
 
-        LanguageChanged newLangString ->
-            let
-                newLang =
-                    langFromString newLangString
-            in
+        LanguageChanged newLang ->
             if newLang /= Session.language model.session then
-                ( { model | session = Session.setLanguage newLang model.session }
-                , send <| SetLanguage (langFromString newLangString)
+                ( { model
+                    | session = Session.setLanguage newLang model.session
+                    , sidebarMenuState = NoSidebarMenu
+                  }
+                , send <| SetLanguage newLang
                 )
 
             else
@@ -2705,7 +2704,7 @@ viewLoaded model =
                         , tooltipRequested = TooltipRequested
                         , tooltipClosed = TooltipClosed
                         , clickedSwitcher = SwitcherOpened
-                        , clickedHelp = ToggledHelpMenu (not (model.dropdownState == Help))
+                        , clickedHelp = ToggledHelpMenu (not (model.sidebarMenuState == Help))
                         , toggledShortcuts = ShortcutTrayToggle
                         , clickedEmailSupport = ClickedEmailSupport
                         , toggledLanguageMenu = ToggledLanguageMenu
@@ -2713,20 +2712,14 @@ viewLoaded model =
                         , toggledAccount = ToggledAccountMenu
                         , fileSearchChanged = FileSearchChanged
                         , contextMenuOpened = SidebarContextClicked
-                        , exportPreviewToggled = ExportPreviewToggled
-                        , exportSelectionChanged = ExportSelectionChanged
-                        , exportFormatChanged = ExportFormatChanged
-                        , export = Export
-                        , importJSONRequested = ImportJSONRequested
                         , languageChanged = LanguageChanged
-                        , themeChanged = ThemeChanged
                         , fullscreenRequested = FullscreenRequested
                         }
                         model.metadata
                         model.fileSearchField
                         (Session.documents model.session)
                         (Session.name model.session |> Maybe.withDefault "" {- TODO -})
-                        model.dropdownState
+                        model.sidebarMenuState
                         model.sidebarState
                      , maybeExportView
                      ]

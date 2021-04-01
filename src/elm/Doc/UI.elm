@@ -294,13 +294,7 @@ type alias SidebarMsgs msg =
     , logout : msg
     , fileSearchChanged : String -> msg
     , contextMenuOpened : String -> ( Float, Float ) -> msg
-    , exportPreviewToggled : Bool -> msg
-    , exportSelectionChanged : ExportSelection -> msg
-    , exportFormatChanged : ExportFormat -> msg
-    , export : msg
-    , importJSONRequested : msg
-    , languageChanged : String -> msg
-    , themeChanged : Theme -> msg
+    , languageChanged : Language -> msg
     , fullscreenRequested : msg
     }
 
@@ -402,6 +396,7 @@ viewSidebar lang msgs currentDocument fileFilter docList accountEmail dropdownSt
                 , clickedEmailSupport = msgs.clickedEmailSupport
                 , helpClosed = msgs.clickedHelp
                 , toggledLanguageMenu = msgs.toggledLanguageMenu
+                , languageChanged = msgs.languageChanged
                 , logout = msgs.logout
                 , toggledAccount = msgs.toggledAccount
                 , noOp = msgs.noOp
@@ -418,6 +413,7 @@ viewSidebarMenu :
         , clickedEmailSupport : msg
         , helpClosed : msg
         , toggledLanguageMenu : Bool -> msg
+        , languageChanged : Language -> msg
         , logout : msg
         , toggledAccount : Bool -> msg
         , noOp : msg
@@ -440,12 +436,20 @@ viewSidebarMenu lang msgs accountEmail dropdownState =
         Account langMenu ->
             [ div [ id "account-menu", class "sidebar-menu" ]
                 [ div [ onClickStop msgs.noOp ] [ text accountEmail ]
-                , div [ onClickStop <| msgs.toggledLanguageMenu (not langMenu) ] [ text <| tr lang Language ]
+                , div [ onClickStop <| msgs.toggledLanguageMenu (not langMenu), onMouseEnter <| msgs.toggledLanguageMenu True ]
+                    [ text <| tr lang Language, div [ class "right-icon" ] [ AntIcons.rightOutlined [] ] ]
                 , div [ onClickStop msgs.logout ] [ text <| tr lang Logout ]
                 ]
-            , viewIf langMenu <| div [ id "language-menu" ] [ div [] [ text "English" ], div [] [ text "French" ] ]
-            , div [ id "help-menu-exit-top", onMouseEnter <| msgs.toggledAccount False ] []
-            , div [ id "help-menu-exit-right", onMouseEnter <| msgs.toggledAccount False ] []
+            , viewIf langMenu <|
+                div [ id "language-menu", class "sidebar-menu" ]
+                    (Translation.activeLanguages
+                        |> List.map
+                            (\( langOpt, langName ) ->
+                                div [ onClickStop <| msgs.languageChanged langOpt, classList [ ( "selected", langOpt == lang ) ] ] [ text langName ]
+                            )
+                    )
+            , viewIf (not langMenu) <| div [ id "help-menu-exit-top", onMouseEnter <| msgs.toggledAccount False ] []
+            , viewIf (not langMenu) <| div [ id "help-menu-exit-right", onMouseEnter <| msgs.toggledAccount False ] []
             ]
 
         NoSidebarMenu ->
