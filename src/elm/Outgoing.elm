@@ -46,6 +46,7 @@ type Msg
     | UpdateCommits ( Enc.Value, Maybe String )
     | SetVideoModal Bool
     | SetLanguage Language
+    | SetSidebarState Bool
     | SaveThemeSetting Theme
     | RequestFullscreen
     | Print
@@ -178,6 +179,9 @@ send info =
 
         SetLanguage lang ->
             dataToSend "SetLanguage" (lang |> langToString |> string)
+
+        SetSidebarState isOpen ->
+            dataToSend "SetSidebarState" (bool isOpen)
 
         SaveThemeSetting newTheme ->
             dataToSend "SaveThemeSetting" (Theme.toValue newTheme)

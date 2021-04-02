@@ -299,8 +299,18 @@ type alias SidebarMsgs msg =
     }
 
 
-viewSidebar : Language -> SidebarMsgs msg -> Metadata -> String -> DocList.Model -> String -> SidebarMenuState -> SidebarState -> Html msg
-viewSidebar lang msgs currentDocument fileFilter docList accountEmail dropdownState sidebarState =
+viewSidebar :
+    Language
+    -> SidebarMsgs msg
+    -> Metadata
+    -> String
+    -> DocList.Model
+    -> String
+    -> Maybe String
+    -> SidebarMenuState
+    -> SidebarState
+    -> Html msg
+viewSidebar lang msgs currentDocument fileFilter docList accountEmail contextTarget_ dropdownState sidebarState =
     let
         isOpen =
             not (sidebarState == SidebarClosed)
@@ -363,7 +373,7 @@ viewSidebar lang msgs currentDocument fileFilter docList accountEmail dropdownSt
               else
                 AntIcons.folderOutlined []
             ]
-         , viewIf isOpen <| DocList.viewSmall msgs.noOp msgs.fileSearchChanged msgs.contextMenuOpened currentDocument fileFilter docList
+         , viewIf isOpen <| DocList.viewSmall msgs.noOp msgs.fileSearchChanged msgs.contextMenuOpened currentDocument contextTarget_ fileFilter docList
          , div
             [ id "document-switcher-icon"
             , onClickStop msgs.clickedSwitcher
@@ -483,23 +493,38 @@ viewSidebarMenu lang msgs accountEmail dropdownState =
 
 viewSidebarStatic : Bool -> List (Html msg)
 viewSidebarStatic sidebarOpen =
-    [ div [ id "sidebar", classList [ ( "open", sidebarOpen ) ] ]
-        [ div [ classList [ ( "sidebar-button", True ) ] ] [ text " " ]
-        ]
-    , if sidebarOpen then
-        div [ id "sidebar-menu" ]
-            [ h3 [] [ text "File" ]
-            , a [ href (Route.toString Route.DocNew), class "sidebar-item" ] [ text "New" ]
-            , hr [ style "width" "80%" ] []
-            ]
+    [ div [ id "sidebar", classList [ ( "open", sidebarOpen ) ], class "static" ]
+        [ div [ id "brand" ]
+            ([ img [ src "../gingko-leaf-logo.svg", width 28 ] [] ]
+                ++ (if sidebarOpen then
+                        [ h2 [ id "brand-name" ] [ text "Gingko Writer" ]
+                        , div [ id "sidebar-collapse-icon" ] [ AntIcons.leftOutlined [] ]
+                        ]
 
-      else
-        text ""
+                    else
+                        [ text "" ]
+                   )
+            )
+        , viewIf sidebarOpen <| div [ id "sidebar-document-list-wrap" ] []
+        , div [ id "new-icon", class "sidebar-button" ] [ AntIcons.fileOutlined [] ]
+        , div [ id "documents-icon", class "sidebar-button", classList [ ( "open", sidebarOpen ) ] ]
+            [ if sidebarOpen then
+                AntIcons.folderOpenOutlined []
+
+              else
+                AntIcons.folderOutlined []
+            ]
+        , div [ id "document-switcher-icon", class "sidebar-button" ] [ AntIcons.fileSearchOutlined [] ]
+        , div
+            [ id "help-icon", class "sidebar-button" ]
+            [ AntIcons.questionCircleOutlined [] ]
+        , div [ id "account-icon", class "sidebar-button" ] [ AntIcons.userOutlined [] ]
+        ]
     ]
 
 
-viewLoadingSpinner : msg -> Bool -> Html msg
-viewLoadingSpinner toggleSidebarMsg sidebarOpen =
+viewLoadingSpinner : Bool -> Html msg
+viewLoadingSpinner sidebarOpen =
     div [ id "app-root", class "loading" ]
         ([ div [ id "document-header" ] []
          , div [ id "loading-overlay" ] []

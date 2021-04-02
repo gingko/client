@@ -766,13 +766,13 @@ update msg ({ workingTree } as model) =
 
         SidebarStateChanged newSidebarState ->
             let
-                newSessionData =
+                ( newSessionData, maybeSaveSidebarState ) =
                     case newSidebarState of
                         File ->
-                            Session.setFileOpen True model.session
+                            ( Session.setFileOpen True model.session, send <| SetSidebarState True )
 
                         _ ->
-                            Session.setFileOpen False model.session
+                            ( Session.setFileOpen True model.session, send <| SetSidebarState False )
 
                 newDropdownState =
                     case ( newSidebarState, model.sidebarMenuState ) of
@@ -785,7 +785,14 @@ update msg ({ workingTree } as model) =
                         ( _, _ ) ->
                             model.sidebarMenuState
             in
-            ( { model | session = newSessionData, sidebarState = newSidebarState, tooltip = Nothing, sidebarMenuState = newDropdownState }, Cmd.none )
+            ( { model
+                | session = newSessionData
+                , sidebarState = newSidebarState
+                , tooltip = Nothing
+                , sidebarMenuState = newDropdownState
+              }
+            , maybeSaveSidebarState
+            )
 
         TemplateSelectorOpened ->
             let
@@ -2649,7 +2656,7 @@ view model =
             Session.fileMenuOpen model.session
     in
     if model.loading then
-        UI.viewLoadingSpinner ToggleSidebar sidebarOpen
+        UI.viewLoadingSpinner sidebarOpen
 
     else
         viewLoaded model
@@ -2739,6 +2746,13 @@ viewLoaded model =
                         model.fileSearchField
                         (Session.documents model.session)
                         (Session.name model.session |> Maybe.withDefault "" {- TODO -})
+                        (case model.modalState of
+                            SidebarContextMenu docId _ ->
+                                Just docId
+
+                            _ ->
+                                Nothing
+                        )
                         model.sidebarMenuState
                         model.sidebarState
                      , maybeExportView

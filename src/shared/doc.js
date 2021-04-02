@@ -73,6 +73,7 @@ async function initElmAndPorts() {
   settings.email = email;
   settings.seed = timestamp;
   settings.isMac = platform.os.family === 'OS X';
+  settings.sidebarOpen = sessionData.sidebarOpen || false;
   settings.currentTime = timestamp;
   settings.fromLegacy = document.referrer.startsWith(config.LEGACY_URL);
   lang = settings.language || "en";
@@ -531,6 +532,12 @@ const fromElm = (msg, elmData) => {
     SetLanguage: () => {
       lang = elmData;
       userStore.set("language", elmData);
+    },
+
+    SetSidebarState: () => {
+      let currSessionData = JSON.parse(localStorage.getItem(sessionStorageKey));
+      currSessionData.sidebarOpen = elmData;
+      localStorage.setItem(sessionStorageKey, JSON.stringify(currSessionData));
     },
 
     SetFonts: () => {},

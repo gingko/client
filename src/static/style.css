@@ -452,9 +452,8 @@ a.forgot-password {
 .sidebar-button:hover {
   fill: var(--ui-2-fg);
 }
-.sidebar-label {
-  margin-top: 13px;
-  margin-left: 5px;
+#sidebar.static .sidebar-button {
+  fill: #aaa;
 }
 #new-icon {
   grid-area: row1-icon;
@@ -478,15 +477,17 @@ a.forgot-password {
 }
 #sidebar-document-list-wrap::before {
   content: " ";
-  width: 4px;
+  width: 6px;
   height: 40px;
   position: fixed;
-  left: 37px;
+  left: 38px;
   top: 95px;
   background: var(--background-sidebar-menu);
 }
 #sidebar-document-list {
   overflow-y: auto;
+  padding-bottom: 3px;
+  padding-right: 2px;
 }
 #document-list-filter {
   margin: 6px 4px;
@@ -1248,6 +1249,12 @@ span.trial-dark {
   border-radius: 3px;
   border-left: 3px solid var(--selection-color);
 }
+.sidebar-document-item a:hover, .sidebar-document-item.context-target a {
+  color: var(--ui-1-fg);
+}
+.sidebar-document-item.context-target a {
+  background: #fcfcfc;
+}
 
 #sidebar-context-menu {
   position: absolute;
@@ -1267,7 +1274,8 @@ span.trial-dark {
 
 .context-menu-item {
   cursor: pointer;
-  padding: 10px;
+  padding: 6px 10px;
+  font-size: 16px;
 }
 .context-menu-item:hover {
   background-color: lightblue;

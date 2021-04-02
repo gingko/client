@@ -121,69 +121,8 @@ update newModel oldModel =
 -- VIEW
 
 
-type alias ListMsgs msg =
-    { openDoc : String -> msg
-    , deleteDoc : String -> msg
-    }
-
-
-viewDocumentItem : ListMsgs msg -> Translation.Language -> Time.Posix -> Metadata -> Html msg
-viewDocumentItem msgs lang currTime metadata =
-    let
-        docId =
-            Metadata.getDocId metadata
-
-        docName_ =
-            Metadata.getDocName metadata
-
-        onClickThis msg =
-            stopPropagationOn "click" (Dec.succeed ( msg, True ))
-
-        -- TODO: fix timezone
-        currDate =
-            Date.fromPosix Time.utc currTime
-
-        updatedTime =
-            Metadata.getUpdatedAt metadata
-
-        -- TODO: fix timezone
-        updatedDate =
-            Date.fromPosix Time.utc updatedTime
-
-        -- TODO: fix timezone
-        updatedString =
-            updatedTime
-                |> Strftime.format "%Y-%m-%d, %H:%M" Time.utc
-
-        relativeString =
-            timeDistInWords
-                lang
-                updatedTime
-                currTime
-
-        ( titleString, dateString ) =
-            if Date.diff Date.Days updatedDate currDate <= 2 then
-                ( updatedString, relativeString )
-
-            else
-                ( relativeString, updatedString )
-
-        buttons =
-            [ div
-                [ onClickThis (msgs.deleteDoc docId), title <| tr lang DeleteDocument ]
-                [ Icon.x Icon.defaultOptions ]
-            ]
-    in
-    div
-        [ class "document-item", onClick <| msgs.openDoc docId ]
-        [ a [ href <| "/" ++ docId, class "doc-title" ] [ text (docName_ |> Maybe.withDefault "Untitled") ]
-        , div [ class "doc-opened", title titleString ] [ text dateString ]
-        , div [ class "doc-buttons" ] buttons
-        ]
-
-
-viewSmall : msg -> (String -> msg) -> (String -> ( Float, Float ) -> msg) -> Metadata -> String -> Model -> Html msg
-viewSmall noop filterMsg msg currentDocument filterField model =
+viewSmall : msg -> (String -> msg) -> (String -> ( Float, Float ) -> msg) -> Metadata -> Maybe String -> String -> Model -> Html msg
+viewSmall noop filterMsg contextMenuMsg currentDocument contextTarget_ filterField model =
     let
         stopClickProp =
             stopPropagationOn "click" (Dec.succeed ( noop, True ))
@@ -193,9 +132,15 @@ viewSmall noop filterMsg msg currentDocument filterField model =
                 docId =
                     Metadata.getDocId d
             in
-            div [ classList [ ( "sidebar-document-item", True ), ( "active", Metadata.isSameDocId d currentDocument ) ] ]
+            div
+                [ classList
+                    [ ( "sidebar-document-item", True )
+                    , ( "active", Metadata.isSameDocId d currentDocument )
+                    , ( "context-target", Just docId == contextTarget_ )
+                    ]
+                ]
                 [ a
-                    [ ContextMenu.open (msg docId)
+                    [ ContextMenu.open (contextMenuMsg docId)
                     , href <| Route.toString (Route.DocUntitled docId)
                     , stopClickProp
                     , attribute "data-private" "lipsum"
@@ -205,7 +150,10 @@ viewSmall noop filterMsg msg currentDocument filterField model =
     in
     case filter filterField model of
         Loading ->
-            text "Loading..."
+            div [ id "sidebar-document-list-wrap" ]
+                [ input [ id "document-list-filter", placeholder "Find file by name", type_ "search", onInput filterMsg, stopClickProp ] []
+                , div [ id "sidebar-document-list" ] [ text "" ]
+                ]
 
         Success filteredDocs ->
             div [ id "sidebar-document-list-wrap" ]

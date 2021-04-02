@@ -316,13 +316,13 @@ decoder key =
 decodeLoggedIn : Nav.Key -> Dec.Decoder Session
 decodeLoggedIn key =
     Dec.succeed
-        (\email s os t legacy lang payStat trayOpen lastDoc ->
+        (\email s os t legacy lang side payStat trayOpen lastDoc ->
             LoggedIn
                 { navKey = key
                 , seed = s
                 , isMac = os
                 , currentTime = t
-                , fileMenuOpen = False
+                , fileMenuOpen = side
                 , lastDocId = Nothing
                 , fromLegacy = legacy
                 }
@@ -334,6 +334,7 @@ decodeLoggedIn key =
         |> required "currentTime" (Dec.int |> Dec.map Time.millisToPosix)
         |> optional "fromLegacy" Dec.bool False
         |> optional "language" (Dec.string |> Dec.map langFromString) En
+        |> optional "sidebarOpen" Dec.bool False
         |> optional "paymentStatus" decodePaymentStatus Unknown
         |> optional "shortcutTrayOpen" Dec.bool False
         |> optional "lastDocId" (Dec.maybe Dec.string) Nothing
@@ -350,13 +351,13 @@ decodePaymentStatus =
 decodeGuest : Nav.Key -> Dec.Decoder Session
 decodeGuest key =
     Dec.succeed
-        (\s os t legacy l ->
+        (\s os t legacy l side ->
             Guest
                 { navKey = key
                 , seed = s
                 , isMac = os
                 , currentTime = t
-                , fileMenuOpen = False
+                , fileMenuOpen = side
                 , lastDocId = Nothing
                 , fromLegacy = legacy
                 }
@@ -367,6 +368,7 @@ decodeGuest key =
         |> required "currentTime" (Dec.int |> Dec.map Time.millisToPosix)
         |> optional "fromLegacy" Dec.bool False
         |> optional "language" (Dec.string |> Dec.map langFromString) En
+        |> optional "sidebarOpen" Dec.bool False
 
 
 responseDecoder : Session -> Dec.Decoder Session

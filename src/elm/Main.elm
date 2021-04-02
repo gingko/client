@@ -305,7 +305,7 @@ view : Model -> Document Msg
 view model =
     case model of
         Redirect _ ->
-            { title = "Gingko Writer - Loading...", body = [ UI.viewLoadingSpinner NoOp False ] }
+            { title = "Gingko Writer - Loading...", body = [ UI.viewLoadingSpinner False ] }
 
         NotFound _ ->
             Page.NotFound.view
@@ -329,7 +329,7 @@ view model =
             { title = "Gingko Writer", body = [ Html.map GotEmptyMsg (Page.Empty.view empty) ] }
 
         Import importModel ->
-            { title = "Importing...", body = [ UI.viewLoadingSpinner NoOp False ] }
+            { title = "Importing...", body = [ UI.viewLoadingSpinner False ] }
 
         DocNew _ ->
             { title = "Gingko Writer - New", body = [ Html.div [] [ Html.text "LOADING..." ] ] }
