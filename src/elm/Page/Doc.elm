@@ -248,6 +248,7 @@ type Msg
     | FileSearchChanged String
     | SidebarContextClicked String ( Float, Float )
     | DeleteDoc String
+    | HistoryToggled Bool
     | DocSettingsToggled Bool
     | ExportPreviewToggled Bool
     | ExportSelectionChanged ExportSelection
@@ -837,6 +838,28 @@ update msg ({ workingTree } as model) =
 
         DeleteDoc docId ->
             ( { model | modalState = NoModal }, send <| RequestDelete docId )
+
+        HistoryToggled isOpen ->
+            let
+                newHistState =
+                    case Data.head "heads/master" model.data of
+                        Just refObj ->
+                            From refObj.value
+
+                        Nothing ->
+                            Closed
+            in
+            ( { model
+                | headerMenu =
+                    if isOpen then
+                        HistoryView
+
+                    else
+                        NoHeaderMenu
+                , historyState = newHistState
+              }
+            , Cmd.none
+            )
 
         DocSettingsToggled isOpen ->
             ( { model
@@ -2712,6 +2735,7 @@ viewLoaded model =
                         , titleEditCanceled = TitleEditCanceled
                         , tooltipRequested = TooltipRequested
                         , tooltipClosed = TooltipClosed
+                        , toggledHistory = HistoryToggled
                         , toggledDocSettings = DocSettingsToggled (not <| model.headerMenu == Settings)
                         , themeChanged = ThemeChanged
                         , toggledExport = ExportPreviewToggled (not <| model.headerMenu == ExportPreview)

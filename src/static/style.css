@@ -670,11 +670,11 @@ a.forgot-password {
 #document-header {
   grid-area: document-header;
   display: grid;
-  grid-template-columns: 15px max-content 1fr 40px 40px min-content 15px;
+  grid-template-columns: 15px max-content 1fr 40px 40px 40px min-content 15px;
   grid-template-rows: 40px min-content;
   grid-template-areas:
-    ". title . button1 button2 upgrade ."
-    "header-menu header-menu header-menu header-menu header-menu header-menu header-menu";
+    ". title . button1 button2 button3 upgrade ."
+    "header-menu header-menu header-menu header-menu header-menu header-menu header-menu header-menu";
   color: var(--ui-1-fg);
   background-color: var(--ui-1-bg);
   border-bottom: 1px solid hsl(212deg 5% 58%);
@@ -759,8 +759,11 @@ a.forgot-password {
   font-weight: bold;
 }
 
+#history-icon {
+grid-area: button1;
+}
 #doc-settings-icon {
-  grid-area: button1;
+  grid-area: button2;
 }
 #doc-settings-menu {
   position: fixed;
@@ -823,7 +826,7 @@ a.forgot-password {
   z-index: 999;
 }
 #export-icon {
-  grid-area: button2;
+  grid-area: button3;
 }
 #export-menu {
   grid-area: header-menu;
@@ -2555,7 +2558,7 @@ pre {
 #search-field {
   grid-area: document;
   position: absolute;
-  top: 10px;
+  bottom: 20px;
   right: 10px;
 }
 
@@ -2597,7 +2600,7 @@ pre {
 
 #shortcuts-tray {
   position: fixed;
-  bottom: 30px;
+  top: 40px;
   right: 0;
   display: flex;
   flex-direction: column;
@@ -2606,7 +2609,7 @@ pre {
   background-color: var(--ui-2-bg);
   border-left: 1px solid var(--ui-2-border-color);
   box-shadow: var(--small-shadow);
-  border-radius: 6px 0 0 6px;
+  border-radius: 0 0 0 6px;
   z-index: 1;
   cursor: pointer;
   overflow-y: auto;

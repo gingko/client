@@ -41,6 +41,7 @@ viewHeader :
     , titleEditCanceled : msg
     , tooltipRequested : String -> TooltipPosition -> String -> msg
     , tooltipClosed : msg
+    , toggledHistory : Bool -> msg
     , toggledDocSettings : msg
     , themeChanged : Theme -> msg
     , toggledExport : msg
@@ -133,6 +134,15 @@ viewHeader msgs title_ model =
     in
     div [ id "document-header" ]
         [ titleArea
+        , div
+            [ id "history-icon"
+            , class "header-button"
+            , classList [ ( "open", model.headerMenu == HistoryView ) ]
+            , onClick <| msgs.toggledHistory (model.headerMenu /= HistoryView)
+            , attributeIf (model.headerMenu /= HistoryView) <| onMouseEnter <| msgs.tooltipRequested "history-icon" BelowTooltip "Version History"
+            , onMouseLeave msgs.tooltipClosed
+            ]
+            [ AntIcons.historyOutlined [] ]
         , div
             [ id "doc-settings-icon"
             , class "header-button"
@@ -359,7 +369,7 @@ viewSidebar lang msgs currentDocument fileFilter docList accountEmail contextTar
             , onMouseEnter <| msgs.tooltipRequested "new-icon" RightTooltip "New Document"
             , onMouseLeave msgs.tooltipClosed
             ]
-            [ AntIcons.fileOutlined [] ]
+            [ AntIcons.fileAddOutlined [] ]
          , div
             [ id "documents-icon"
             , class "sidebar-button"
@@ -832,10 +842,10 @@ viewShortcuts trayToggleMsg lang isOpen isMac children textCursorInfo vs =
                 "Ctrl"
 
         tourTooltip str =
-            div [ id "welcome-step-5", class "tour-step" ]
+            div [ id "welcome-step-6", class "tour-step" ]
                 [ text "Shortcuts List"
                 , div [ class "arrow" ] [ text "▶" ]
-                , div [ id "progress-step-5", class "tour-step-progress" ]
+                , div [ id "progress-step-6", class "tour-step-progress" ]
                     [ div [ class "bg-line", class "on" ] []
                     , div [ class "bg-line", class "off" ] []
                     , div [ class "on" ] []
@@ -843,7 +853,7 @@ viewShortcuts trayToggleMsg lang isOpen isMac children textCursorInfo vs =
                     , div [ class "on" ] []
                     , div [ class "on" ] []
                     , div [ class "on" ] []
-                    , div [] []
+                    , div [ class "on" ] []
                     , div [] []
                     ]
                 ]
