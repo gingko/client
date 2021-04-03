@@ -769,7 +769,7 @@ a.forgot-password {
   grid-area: header-menu;
   height: 40px;
   display: grid;
-  grid-template-columns: 1fr min-content;
+  grid-template-columns: 1fr auto;
   align-items: center;
   background: var(--background-sidebar-menu);
   box-shadow: 1px -1px 2px rgba(0,0,0,0.2);
