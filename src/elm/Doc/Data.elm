@@ -1,4 +1,4 @@
-module Doc.Data exposing (Data, Model, checkout, conflictList, conflictSelection, empty, emptyData, getData, head, historyList, lastCommitTime, received, requestCommit, resolve, success, toValue)
+module Doc.Data exposing (CommitObject, Data, Model, checkout, conflictList, conflictSelection, empty, emptyData, getCommit, getData, head, historyList, lastCommitTime, received, requestCommit, resolve, success, toValue)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
@@ -91,8 +91,16 @@ head id model =
     Dict.get id (getData model).refs
 
 
-historyList : String -> Model -> List String
+historyList : String -> Model -> List ( String, CommitObject )
 historyList startingSha model =
+    let
+        startingCommit =
+            model
+                |> getData
+                |> .commits
+                |> Dict.get startingSha
+                |> Maybe.withDefault (CommitObject "" [] "" 0)
+    in
     (model
         |> getData
         |> .commits
@@ -100,10 +108,17 @@ historyList startingSha model =
         |> List.sortBy (\( cid, c ) -> c.timestamp)
         |> ListExtra.splitWhen (\( cid, c ) -> cid == startingSha)
         |> Maybe.map Tuple.first
-        |> Maybe.map (List.map Tuple.first)
         |> Maybe.withDefault []
     )
-        ++ [ startingSha ]
+        ++ [ ( startingSha, startingCommit ) ]
+
+
+getCommit : String -> Model -> Maybe CommitObject
+getCommit sha model =
+    model
+        |> getData
+        |> .commits
+        |> Dict.get sha
 
 
 conflictList : Model -> List Conflict

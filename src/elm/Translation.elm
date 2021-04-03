@@ -1,4 +1,4 @@
-module Translation exposing (Language(..), TranslationId(..), activeLanguages, dateFormat, langFromString, langToString, languageDecoder, languageName, timeDistInWords, tr)
+module Translation exposing (Language(..), TranslationId(..), activeLanguages, dateFormat, datetimeFormat, langFromString, langToString, languageDecoder, languageName, timeDistInWords, tr)
 
 import Json.Decode as Json exposing (..)
 import Time
@@ -1242,10 +1242,16 @@ timeDistInWords lang t1 t2 =
 
 dateFormat : Language -> Time.Posix -> String
 dateFormat lang time =
-    let
-        formatString =
-            "%B%e, %Y"
-    in
+    posixToString "%B%e, %Y" lang time
+
+
+datetimeFormat : Language -> Time.Posix -> String
+datetimeFormat lang time =
+    posixToString "%B%e, %Y, %-I:%M %p" lang time
+
+
+posixToString : String -> Language -> Time.Posix -> String
+posixToString formatString lang time =
     case lang of
         En ->
             format Time.Format.Config.Config_en_us.config formatString Time.utc time

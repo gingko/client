@@ -29,7 +29,7 @@ import Import.Bulk.UI as ImportModal
 import Import.Incoming
 import Import.Single
 import Json.Decode as Json
-import List.Extra as ListExtra exposing (getAt)
+import List.Extra as ListExtra
 import Markdown
 import Outgoing exposing (Msg(..), send)
 import Page.Doc.Export as Export exposing (ExportFormat(..), ExportSelection(..), exportView, exportViewError)
@@ -519,10 +519,15 @@ update msg ({ workingTree } as model) =
                 |> addToHistoryDo
 
         CheckoutCommit commitSha ->
-            ( model
-            , Cmd.none
-            )
-                |> checkoutCommit commitSha
+            case model.headerMenu of
+                HistoryView historyState ->
+                    ( { model | headerMenu = HistoryView { historyState | currentView = commitSha } }
+                    , Cmd.none
+                    )
+                        |> checkoutCommit commitSha
+
+                _ ->
+                    ( model, Cmd.none )
 
         Restore ->
             ( { model | headerMenu = NoHeaderMenu }
@@ -532,11 +537,11 @@ update msg ({ workingTree } as model) =
 
         CancelHistory ->
             case model.headerMenu of
-                HistoryView origSha ->
+                HistoryView historyState ->
                     ( { model | headerMenu = NoHeaderMenu }
                     , Cmd.none
                     )
-                        |> checkoutCommit origSha
+                        |> checkoutCommit historyState.start
 
                 _ ->
                     ( model
@@ -840,7 +845,7 @@ update msg ({ workingTree } as model) =
         HistoryToggled isOpen ->
             case ( isOpen, Data.head "heads/master" model.data ) of
                 ( True, Just refObj ) ->
-                    ( { model | headerMenu = HistoryView refObj.value, tooltip = Nothing }, Cmd.none )
+                    ( { model | headerMenu = HistoryView { start = refObj.value, currentView = refObj.value }, tooltip = Nothing }, Cmd.none )
 
                 _ ->
                     ( { model | headerMenu = NoHeaderMenu }, Cmd.none )
@@ -1475,20 +1480,12 @@ update msg ({ workingTree } as model) =
                             normalMode model (copy vs.active)
 
                         "mod+z" ->
-                            case Data.head "heads/master" model.data of
-                                Just refObj ->
-                                    normalMode model (historyStep Backward refObj.value)
-
-                                Nothing ->
-                                    ( model, Cmd.none )
+                            --TODO
+                            ( model, Cmd.none )
 
                         "mod+shift+z" ->
-                            case Data.head "heads/master" model.data of
-                                Just refObj ->
-                                    normalMode model (historyStep Forward refObj.value)
-
-                                Nothing ->
-                                    ( model, Cmd.none )
+                            --TODO
+                            ( model, Cmd.none )
 
                         "mod+o" ->
                             case model.modalState of
@@ -2505,56 +2502,6 @@ type Direction
 type HistoryState
     = Closed
     | From String
-
-
-historyStep : Direction -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-historyStep dir currHead ( model, prevCmd ) =
-    let
-        master =
-            Data.head "heads/master" model.data
-
-        ( currCommit_, historyList ) =
-            case master of
-                Just refObj ->
-                    ( Just refObj.value
-                    , Data.historyList currHead model.data
-                    )
-
-                _ ->
-                    ( Nothing, [] )
-
-        newCommitIdx_ =
-            case dir of
-                Backward ->
-                    historyList
-                        |> ListExtra.elemIndex currHead
-                        |> Maybe.map (\x -> Basics.max 0 (x - 1))
-                        |> Maybe.withDefault -1
-
-                Forward ->
-                    historyList
-                        |> ListExtra.elemIndex currHead
-                        |> Maybe.map (\x -> Basics.min (List.length historyList - 1) (x + 1))
-                        |> Maybe.withDefault -1
-
-        newCommit_ =
-            getAt newCommitIdx_ historyList
-    in
-    case ( model.headerMenu, currCommit_, newCommit_ ) of
-        ( HistoryView _, _, Just newSha ) ->
-            ( model
-            , prevCmd
-            )
-                |> checkoutCommit newSha
-
-        ( _, Just currCommit, Just newSha ) ->
-            ( { model | headerMenu = HistoryView currCommit }
-            , prevCmd
-            )
-                |> checkoutCommit newSha
-
-        _ ->
-            ( model, prevCmd )
 
 
 addToHistoryDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )

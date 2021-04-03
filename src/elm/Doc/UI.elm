@@ -4,7 +4,7 @@ import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
 import Coders exposing (treeToMarkdownString)
 import Diff exposing (..)
-import Doc.Data as Data
+import Doc.Data as Data exposing (CommitObject)
 import Doc.Data.Conflict as Conflict exposing (Conflict, Op(..), Selection(..), opString)
 import Doc.List as DocList
 import Doc.Metadata as Metadata exposing (Metadata)
@@ -26,7 +26,7 @@ import Route
 import Session exposing (PaymentStatus(..), Session)
 import SharedUI exposing (modalWrapper)
 import Time exposing (posixToMillis)
-import Translation exposing (Language(..), TranslationId(..), langFromString, langToString, languageName, timeDistInWords, tr)
+import Translation exposing (Language(..), TranslationId(..), datetimeFormat, langFromString, langToString, languageName, timeDistInWords, tr)
 import Types exposing (Children(..), CursorPosition(..), HeaderMenuState(..), SidebarMenuState(..), SidebarState(..), TextCursorInfo, TooltipPosition(..), ViewMode(..), ViewState)
 
 
@@ -72,6 +72,9 @@ viewHeader msgs title_ model =
     let
         language =
             Session.language model.session
+
+        currentTime =
+            Session.currentTime model.session
 
         handleKeys =
             on "keyup"
@@ -157,15 +160,18 @@ viewHeader msgs title_ model =
             ]
             [ AntIcons.historyOutlined [] ]
         , case model.headerMenu of
-            HistoryView currHead ->
+            HistoryView historyState ->
                 viewHistory language
                     { noOp = msgs.noOp
                     , checkout = msgs.checkoutCommit
                     , restore = msgs.restore
                     , cancel = msgs.cancelHistory
+                    , tooltipRequested = msgs.tooltipRequested
+                    , tooltipClosed = msgs.tooltipClosed
                     }
-                    currHead
+                    currentTime
                     model.data
+                    historyState
 
             _ ->
                 text ""
@@ -735,14 +741,39 @@ viewMobileButtons msgs isEditing =
 
 viewHistory :
     Translation.Language
-    -> { noOp : msg, checkout : String -> msg, restore : msg, cancel : msg }
-    -> String
+    ->
+        { noOp : msg
+        , checkout : String -> msg
+        , restore : msg
+        , cancel : msg
+        , tooltipRequested : String -> TooltipPosition -> String -> msg
+        , tooltipClosed : msg
+        }
+    -> Time.Posix
     -> Data.Model
+    -> { start : String, currentView : String }
     -> Html msg
-viewHistory lang msgs currHead dataModel =
+viewHistory lang msgs currentTime dataModel historyState =
     let
         historyList =
-            Data.historyList currHead dataModel
+            Data.historyList historyState.start dataModel
+
+        maybeTimeDisplay =
+            case Data.getCommit historyState.currentView dataModel of
+                Just commit ->
+                    let
+                        commitPosix =
+                            commit.timestamp |> Time.millisToPosix
+                    in
+                    div
+                        [ id "history-time-info"
+                        , onMouseEnter <| msgs.tooltipRequested "history-time-info" BelowTooltip (timeDistInWords lang commitPosix currentTime)
+                        , onMouseLeave msgs.tooltipClosed
+                        ]
+                        [ text <| datetimeFormat lang commitPosix ]
+
+                Nothing ->
+                    text ""
 
         maxIdx =
             historyList
@@ -755,7 +786,7 @@ viewHistory lang msgs currHead dataModel =
                 Just idx ->
                     case getAt idx historyList of
                         Just commit ->
-                            msgs.checkout commit
+                            msgs.checkout (Tuple.first commit)
 
                         Nothing ->
                             msgs.noOp
@@ -766,7 +797,8 @@ viewHistory lang msgs currHead dataModel =
     div [ id "history-menu" ]
         [ input [ type_ "range", A.min "0", A.max maxIdx, step "1", onInput checkoutCommit ] []
         , div [ id "history-buttons" ]
-            [ button [ id "history-restore", onClick msgs.restore ] [ text <| tr lang RestoreThisVersion ]
+            [ maybeTimeDisplay
+            , button [ id "history-restore", onClick msgs.restore ] [ text <| tr lang RestoreThisVersion ]
             , button [ onClick msgs.cancel ] [ text <| tr lang Cancel ]
             ]
         ]
