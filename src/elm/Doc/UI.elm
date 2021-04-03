@@ -1,4 +1,4 @@
-module Doc.UI exposing (countWords, viewConflict, viewHeader, viewHistory, viewLoadingSpinner, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewTooltip, viewVideo, viewWordCount)
+module Doc.UI exposing (countWords, viewConflict, viewHeader, viewLoadingSpinner, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewTooltip, viewVideo, viewWordCount)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -10,7 +10,7 @@ import Doc.List as DocList
 import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils as TreeUtils exposing (..)
-import Html exposing (Html, a, br, button, del, div, fieldset, h1, h2, h3, h4, h5, hr, iframe, img, input, ins, label, li, option, pre, select, small, span, text, ul)
+import Html exposing (Html, a, br, button, datalist, del, div, fieldset, h1, h2, h3, h4, h5, hr, iframe, img, input, ins, label, li, option, pre, select, small, span, text, ul)
 import Html.Attributes as A exposing (..)
 import Html.Attributes.Extra exposing (attributeIf)
 import Html.Events exposing (keyCode, on, onBlur, onCheck, onClick, onFocus, onInput, onMouseEnter, onMouseLeave, onSubmit, stopPropagationOn)
@@ -35,13 +35,17 @@ import Types exposing (Children(..), CursorPosition(..), HeaderMenuState(..), Si
 
 
 viewHeader :
-    { titleFocused : msg
+    { noOp : msg
+    , titleFocused : msg
     , titleFieldChanged : String -> msg
     , titleEdited : msg
     , titleEditCanceled : msg
     , tooltipRequested : String -> TooltipPosition -> String -> msg
     , tooltipClosed : msg
     , toggledHistory : Bool -> msg
+    , checkoutCommit : String -> msg
+    , restore : msg
+    , cancelHistory : msg
     , toggledDocSettings : msg
     , themeChanged : Theme -> msg
     , toggledExport : msg
@@ -55,6 +59,7 @@ viewHeader :
     ->
         { m
             | titleField : Maybe String
+            , data : Data.Model
             , headerMenu : HeaderMenuState
             , exportSettings : ( ExportSelection, ExportFormat )
             , dirty : Bool
@@ -116,6 +121,14 @@ viewHeader msgs title_ model =
                 , viewSaveIndicator language model (Session.currentTime model.session)
                 ]
 
+        isHistoryView =
+            case model.headerMenu of
+                HistoryView _ ->
+                    True
+
+                _ ->
+                    False
+
         isSelected expSel =
             (model.exportSettings |> Tuple.first) == expSel
 
@@ -137,12 +150,25 @@ viewHeader msgs title_ model =
         , div
             [ id "history-icon"
             , class "header-button"
-            , classList [ ( "open", model.headerMenu == HistoryView ) ]
-            , onClick <| msgs.toggledHistory (model.headerMenu /= HistoryView)
-            , attributeIf (model.headerMenu /= HistoryView) <| onMouseEnter <| msgs.tooltipRequested "history-icon" BelowTooltip "Version History"
+            , classList [ ( "open", isHistoryView ) ]
+            , onClick <| msgs.toggledHistory (not isHistoryView)
+            , attributeIf (not isHistoryView) <| onMouseEnter <| msgs.tooltipRequested "history-icon" BelowTooltip "Version History"
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.historyOutlined [] ]
+        , case model.headerMenu of
+            HistoryView currHead ->
+                viewHistory language
+                    { noOp = msgs.noOp
+                    , checkout = msgs.checkoutCommit
+                    , restore = msgs.restore
+                    , cancel = msgs.cancelHistory
+                    }
+                    currHead
+                    model.data
+
+            _ ->
+                text ""
         , div
             [ id "doc-settings-icon"
             , class "header-button"
@@ -707,12 +733,14 @@ viewMobileButtons msgs isEditing =
             ]
 
 
-viewHistory : msg -> (String -> msg) -> msg -> msg -> Translation.Language -> String -> Data.Model -> Html msg
-viewHistory noopMsg checkoutMsg restoreMsg cancelMsg lang currHead dataModel =
+viewHistory :
+    Translation.Language
+    -> { noOp : msg, checkout : String -> msg, restore : msg, cancel : msg }
+    -> String
+    -> Data.Model
+    -> Html msg
+viewHistory lang msgs currHead dataModel =
     let
-        master =
-            Data.head "heads/master" dataModel
-
         historyList =
             Data.historyList currHead dataModel
 
@@ -722,29 +750,25 @@ viewHistory noopMsg checkoutMsg restoreMsg cancelMsg lang currHead dataModel =
                 |> (\x -> x - 1)
                 |> String.fromInt
 
-        currIdx =
-            historyList
-                |> ListExtra.elemIndex currHead
-                |> Maybe.map String.fromInt
-                |> Maybe.withDefault maxIdx
-
         checkoutCommit idxStr =
             case String.toInt idxStr of
                 Just idx ->
                     case getAt idx historyList of
                         Just commit ->
-                            checkoutMsg commit
+                            msgs.checkout commit
 
                         Nothing ->
-                            noopMsg
+                            msgs.noOp
 
                 Nothing ->
-                    noopMsg
+                    msgs.noOp
     in
-    div [ id "history" ]
+    div [ id "history-menu" ]
         [ input [ type_ "range", A.min "0", A.max maxIdx, step "1", onInput checkoutCommit ] []
-        , button [ id "history-restore", onClick restoreMsg ] [ text <| tr lang RestoreThisVersion ]
-        , button [ onClick cancelMsg ] [ text <| tr lang Cancel ]
+        , div [ id "history-buttons" ]
+            [ button [ id "history-restore", onClick msgs.restore ] [ text <| tr lang RestoreThisVersion ]
+            , button [ onClick msgs.cancel ] [ text <| tr lang Cancel ]
+            ]
         ]
 
 

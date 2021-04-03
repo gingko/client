@@ -67,7 +67,7 @@ type SidebarMenuState
 type HeaderMenuState
     = NoHeaderMenu
     | ExportPreview
-    | HistoryView
+    | HistoryView String
     | Settings
 
 

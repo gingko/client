@@ -14,7 +14,7 @@ import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.Switcher
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
-import Doc.UI as UI exposing (countWords, viewConflict, viewHistory, viewMobileButtons, viewSearchField, viewVideo)
+import Doc.UI as UI exposing (countWords, viewConflict, viewMobileButtons, viewSearchField, viewVideo)
 import File exposing (File)
 import File.Download as Download
 import File.Select as Select
@@ -83,7 +83,6 @@ type alias Model =
     , tooltip : Maybe ( Element, TooltipPosition, String )
     , videoModalOpen : Bool
     , fontSelectorOpen : Bool
-    , historyState : HistoryState
 
     -- Settings
     , uid : String
@@ -159,7 +158,6 @@ defaultModel isNew session docId =
     , fonts = Fonts.default
     , theme = Default
     , startingWordcount = 0
-    , historyState = Closed
     }
 
 
@@ -527,20 +525,20 @@ update msg ({ workingTree } as model) =
                 |> checkoutCommit commitSha
 
         Restore ->
-            ( { model | historyState = Closed }
+            ( { model | headerMenu = NoHeaderMenu }
             , Cmd.none
             )
                 |> addToHistoryDo
 
         CancelHistory ->
-            case model.historyState of
-                From origSha ->
-                    ( { model | historyState = Closed }
+            case model.headerMenu of
+                HistoryView origSha ->
+                    ( { model | headerMenu = NoHeaderMenu }
                     , Cmd.none
                     )
                         |> checkoutCommit origSha
 
-                Closed ->
+                _ ->
                     ( model
                     , Cmd.none
                     )
@@ -840,26 +838,12 @@ update msg ({ workingTree } as model) =
             ( { model | modalState = NoModal }, send <| RequestDelete docId )
 
         HistoryToggled isOpen ->
-            let
-                newHistState =
-                    case Data.head "heads/master" model.data of
-                        Just refObj ->
-                            From refObj.value
+            case ( isOpen, Data.head "heads/master" model.data ) of
+                ( True, Just refObj ) ->
+                    ( { model | headerMenu = HistoryView refObj.value, tooltip = Nothing }, Cmd.none )
 
-                        Nothing ->
-                            Closed
-            in
-            ( { model
-                | headerMenu =
-                    if isOpen then
-                        HistoryView
-
-                    else
-                        NoHeaderMenu
-                , historyState = newHistState
-              }
-            , Cmd.none
-            )
+                _ ->
+                    ( { model | headerMenu = NoHeaderMenu }, Cmd.none )
 
         DocSettingsToggled isOpen ->
             ( { model
@@ -1896,7 +1880,12 @@ openCard id str ( model, prevCmd ) =
                 |> (not << List.isEmpty)
 
         isHistoryView =
-            model.historyState /= Closed
+            case model.headerMenu of
+                HistoryView _ ->
+                    True
+
+                _ ->
+                    False
     in
     if isHistoryView then
         ( model
@@ -2551,15 +2540,15 @@ historyStep dir currHead ( model, prevCmd ) =
         newCommit_ =
             getAt newCommitIdx_ historyList
     in
-    case ( model.historyState, currCommit_, newCommit_ ) of
-        ( From _, _, Just newSha ) ->
+    case ( model.headerMenu, currCommit_, newCommit_ ) of
+        ( HistoryView _, _, Just newSha ) ->
             ( model
             , prevCmd
             )
                 |> checkoutCommit newSha
 
-        ( Closed, Just currCommit, Just newSha ) ->
-            ( { model | historyState = From currCommit }
+        ( _, Just currCommit, Just newSha ) ->
+            ( { model | headerMenu = HistoryView currCommit }
             , prevCmd
             )
                 |> checkoutCommit newSha
@@ -2729,13 +2718,17 @@ viewLoaded model =
                     [ id "app-root", applyTheme model.theme, setTourStep model.tourStep ]
                     ([ lazy4 treeView (Session.language model.session) (Session.isMac model.session) model.viewState model.workingTree
                      , UI.viewHeader
-                        { titleFocused = TitleFocused
+                        { noOp = NoOp
+                        , titleFocused = TitleFocused
                         , titleFieldChanged = TitleFieldChanged
                         , titleEdited = TitleEdited
                         , titleEditCanceled = TitleEditCanceled
                         , tooltipRequested = TooltipRequested
                         , tooltipClosed = TooltipClosed
                         , toggledHistory = HistoryToggled
+                        , checkoutCommit = CheckoutCommit
+                        , restore = Restore
+                        , cancelHistory = CancelHistory
                         , toggledDocSettings = DocSettingsToggled (not <| model.headerMenu == Settings)
                         , themeChanged = ThemeChanged
                         , toggledExport = ExportPreviewToggled (not <| model.headerMenu == ExportPreview)
@@ -2803,12 +2796,6 @@ viewLoaded model =
                                 , navRight = mobileBtnMsg "right"
                                 }
                                 (model.viewState.viewMode /= Normal)
-                           , case model.historyState of
-                                From currHead ->
-                                    viewHistory NoOp CheckoutCommit Restore CancelHistory (Session.language model.session) currHead model.data
-
-                                _ ->
-                                    text ""
                            , viewVideo VideoModal model
                            , div [ id "loading-overlay" ] []
                            , div [ id "preloader" ] []
