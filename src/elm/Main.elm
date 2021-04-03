@@ -329,7 +329,7 @@ view model =
             { title = "Gingko Writer", body = [ Html.map GotEmptyMsg (Page.Empty.view empty) ] }
 
         Import importModel ->
-            { title = "Importing...", body = [ UI.viewLoadingSpinner False ] }
+            { title = "Importing...", body = [ UI.viewLoadingSpinner (Session.fileMenuOpen importModel) ] }
 
         DocNew _ ->
             { title = "Gingko Writer - New", body = [ Html.div [] [ Html.text "LOADING..." ] ] }
