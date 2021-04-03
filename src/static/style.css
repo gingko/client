@@ -769,7 +769,10 @@ a.forgot-password {
   grid-area: header-menu;
   height: 40px;
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto auto 40px;
+  grid-template-areas: "slider info restore close";
+  grid-column-gap: 15px;
+  padding-left: 15px;
   align-items: center;
   background: var(--background-sidebar-menu);
   box-shadow: 1px -1px 2px rgba(0,0,0,0.2);
@@ -784,8 +787,14 @@ a.forgot-password {
   right: 192px;
   z-index: 999;
 }
-#history-buttons {
-  display: flex;
+#history-close-button {
+  width: 40px;
+  padding: 10px;
+  cursor: pointer;
+  fill: #555;
+}
+#history-close-button:hover {
+  fill: black;
 }
 #doc-settings-icon {
   grid-area: button2;
@@ -1703,7 +1712,10 @@ span.collaborators {
 
 .tooltip {
   position: fixed;
-  animation: fadeIn 400ms;
+  animation-name: fadeIn;
+  animation-duration: 400ms;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-out;
   background-color: rgba(0,0,0,0.9);
   color: #dcddde;
   font-size: 14px;
@@ -1713,6 +1725,7 @@ span.collaborators {
   white-space: nowrap;
   pointer-events: none;
   z-index: 3;
+  opacity: 0;
 }
 .tooltip-arrow {
   border-right: 5px solid rgba(0,0,0,0.9);

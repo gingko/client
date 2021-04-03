@@ -796,11 +796,15 @@ viewHistory lang msgs currentTime dataModel historyState =
     in
     div [ id "history-menu" ]
         [ input [ type_ "range", A.min "0", A.max maxIdx, step "1", onInput checkoutCommit ] []
-        , div [ id "history-buttons" ]
-            [ maybeTimeDisplay
-            , button [ id "history-restore", onClick msgs.restore ] [ text <| tr lang RestoreThisVersion ]
-            , button [ onClick msgs.cancel ] [ text <| tr lang Cancel ]
+        , maybeTimeDisplay
+        , button [ id "history-restore", onClick msgs.restore ] [ text <| tr lang RestoreThisVersion ]
+        , div
+            [ id "history-close-button"
+            , onClick msgs.cancel
+            , onMouseEnter <| msgs.tooltipRequested "history-close-button" BelowLeftTooltip "Cancel"
+            , onMouseLeave <| msgs.tooltipClosed
             ]
+            [ AntIcons.closeOutlined [] ]
         ]
 
 

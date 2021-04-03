@@ -538,7 +538,7 @@ update msg ({ workingTree } as model) =
         CancelHistory ->
             case model.headerMenu of
                 HistoryView historyState ->
-                    ( { model | headerMenu = NoHeaderMenu }
+                    ( { model | headerMenu = NoHeaderMenu, tooltip = Nothing }
                     , Cmd.none
                     )
                         |> checkoutCommit historyState.start
