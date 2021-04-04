@@ -638,11 +638,19 @@ update msg ({ workingTree } as model) =
 
                     else
                         ( NoSidebarMenu, model.sidebarState )
+
+                newTourStep =
+                    if model.tourStep == Just 6 then
+                        Just 7
+
+                    else
+                        model.tourStep
             in
             ( { model
                 | sidebarMenuState = newDropdownState
                 , sidebarState = newSidebarState
                 , tooltip = Nothing
+                , tourStep = newTourStep
               }
             , Cmd.none
             )
@@ -1802,23 +1810,23 @@ saveAndStopEditing model =
         vs =
             model.viewState
 
-        ( newTourStep, newSession, maybeTriggerNextTour ) =
+        newTourStep =
             case model.tourStep of
                 Just 4 ->
-                    ( Just 5
-                    , Session.setShortcutTrayOpen True model.session
-                    , Task.perform (always <| TourStep (Just 6)) (Process.sleep 3400)
-                    )
+                    Just 5
+
+                Just 5 ->
+                    Just 6
 
                 _ ->
-                    ( model.tourStep, model.session, Cmd.none )
+                    model.tourStep
     in
     case vs.viewMode of
         Normal ->
             ( model, Cmd.none ) |> openCard vs.active (getContent vs.active model.workingTree.tree)
 
         Editing ->
-            ( { model | tourStep = newTourStep, session = newSession }, maybeTriggerNextTour )
+            ( { model | tourStep = newTourStep }, Cmd.none )
                 |> saveCardIfEditing
                 |> closeCard
 
@@ -2271,8 +2279,18 @@ setCursorPosition pos ( model, prevCmd ) =
 
 move : Tree -> String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 move subtree pid pos ( model, prevCmd ) =
+    let
+        newTourStep =
+            case model.tourStep of
+                Just 5 ->
+                    Just 6
+
+                _ ->
+                    model.tourStep
+    in
     ( { model
         | workingTree = TreeStructure.update (TreeStructure.Mov subtree pid pos) model.workingTree
+        , tourStep = newTourStep
       }
     , prevCmd
     )

@@ -403,7 +403,23 @@ viewSidebar lang msgs currentDocument fileFilter docList accountEmail contextTar
             , onMouseEnter <| msgs.tooltipRequested "new-icon" RightTooltip "New Document"
             , onMouseLeave msgs.tooltipClosed
             ]
-            [ AntIcons.fileAddOutlined [] ]
+            [ AntIcons.fileAddOutlined []
+            , div [ id "welcome-step-7", class "tour-step" ]
+                [ text "Click for New Document"
+                , div [ class "arrow" ] [ text "◀" ]
+                , div [ id "progress-step-7", class "tour-step-progress" ]
+                    [ div [ class "bg-line", class "on" ] []
+                    , div [ class "bg-line", class "off" ] []
+                    , div [ class "on" ] []
+                    , div [ class "on" ] []
+                    , div [ class "on" ] []
+                    , div [ class "on" ] []
+                    , div [ class "on" ] []
+                    , div [ class "on" ] []
+                    , div [ class "on" ] []
+                    ]
+                ]
+            ]
          , div
             [ id "documents-icon"
             , class "sidebar-button"
@@ -434,7 +450,23 @@ viewSidebar lang msgs currentDocument fileFilter docList accountEmail contextTar
             , attributeIf (dropdownState /= Help) <| onMouseEnter <| msgs.tooltipRequested "help-icon" RightTooltip "Help"
             , onMouseLeave msgs.tooltipClosed
             ]
-            [ AntIcons.questionCircleOutlined [] ]
+            [ AntIcons.questionCircleOutlined []
+            , div [ id "welcome-step-6", class "tour-step" ]
+                [ text "Click to see Help Menu"
+                , div [ class "arrow" ] [ text "◀" ]
+                , div [ id "progress-step-6", class "tour-step-progress" ]
+                    [ div [ class "bg-line", class "on" ] []
+                    , div [ class "bg-line", class "off" ] []
+                    , div [ class "on" ] []
+                    , div [ class "on" ] []
+                    , div [ class "on" ] []
+                    , div [ class "on" ] []
+                    , div [ class "on" ] []
+                    , div [ class "on" ] []
+                    , div [] []
+                    ]
+                ]
+            ]
          , div
             [ id "account-icon"
             , class "sidebar-button"
@@ -910,23 +942,6 @@ viewShortcuts msgs lang isOpen isMac children textCursorInfo vs =
 
             else
                 "Ctrl"
-
-        tourTooltip str =
-            div [ id "welcome-step-6", class "tour-step" ]
-                [ text "Shortcuts List"
-                , div [ class "arrow" ] [ text "▶" ]
-                , div [ id "progress-step-6", class "tour-step-progress" ]
-                    [ div [ class "bg-line", class "on" ] []
-                    , div [ class "bg-line", class "off" ] []
-                    , div [ class "on" ] []
-                    , div [ class "on" ] []
-                    , div [ class "on" ] []
-                    , div [ class "on" ] []
-                    , div [ class "on" ] []
-                    , div [ class "on" ] []
-                    , div [] []
-                    ]
-                ]
     in
     if isOpen then
         let
@@ -938,7 +953,7 @@ viewShortcuts msgs lang isOpen isMac children textCursorInfo vs =
                 [ div
                     [ id "shortcuts-tray", classList [ ( "open", isOpen ) ], onClick msgs.toggledShortcutTray ]
                     [ div [ id "shortcuts" ]
-                        [ h3 [] [ text "Keyboard Shortcuts", tourTooltip "Shortcuts List" ]
+                        [ h3 [] [ text "Keyboard Shortcuts" ]
                         , h5 [] [ text "Edit Cards" ]
                         , shortcutSpan [ tr lang EnterKey ] (tr lang EnterAction)
                         , shortcutSpan [ "Shift", tr lang EnterKey ] (tr lang EditFullscreenAction)

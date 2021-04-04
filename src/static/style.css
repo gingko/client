@@ -1874,6 +1874,10 @@ div.tour-step {
 }
 #app-root.step-2 .ins-right {
   opacity: 1;
+  box-shadow: 1px 0 5px 1px rgba(255, 153, 0, 0.8);
+}
+#app-root.step-2 .ins-right:before,  #app-root.step-2 .ins-right:after {
+  display: none;
 }
 #app-root.step-3 #welcome-step-3 {
   display: block;
@@ -1904,44 +1908,46 @@ div.tour-step {
 #app-root.step-5 #welcome-step-5 {
   display: block;
   opacity: 1;
-  top: 42px;
-  right: 224px;
+  top: -32px;
 }
 #welcome-step-5 .arrow {
   text-shadow: none;
-  top: 2px;
-  right: -14px;
+  bottom: -19px;
+  left: 110px;
   color: var(--emphasis-color);
 }
 #welcome-step-5 .bg-line.on {
-  width: 92px;
+  width: 133px;
   left: 16px;
 }
 #app-root.step-6 #welcome-step-6 {
   display: block;
   opacity: 1;
-  top: 41px;
-  right: 39px;
+  left: 47px;
+  bottom: 53px;
+}
+#app-root.step-6 .tooltip, #app-root.step-7 .tooltip {
+  /* Hide regular tooltips if on steps 6 & 7 */
+  display: none;
 }
 #welcome-step-6 .arrow {
   text-shadow: none;
   color: var(--emphasis-color);
-  top: -24px;
-  right: 3px;
+  top: 4px;
+  left: -17px;
 }
 #welcome-step-6 .tour-step-progress {
   margin-left: 0;
 }
 #welcome-step-6 .bg-line.on {
   width: 178px;
-  left: 16px;
+  left: 21px;
 }
 #app-root.step-7 #welcome-step-7 {
   display: block;
   opacity: 1;
-  top: 81px;
-  left: 238px;
-  max-width: 174px;
+  top: 55px;
+  left: 47px;
 }
 #welcome-step-7 .arrow {
   text-shadow: none;
@@ -1950,123 +1956,8 @@ div.tour-step {
   left: -17px;
 }
 #welcome-step-7 .bg-line.on{
-  width: 141px;
-  left: 16px;
-}
-/* OLD TOUR TOOLTIPS */
-#app-root.step-3 .card.active.editing:before,
-#app-root.step-3 .card.active.editing:after ,
-#app-root.step-4 .card.active.editing:before,
-#app-root.step-4 .card.active.editing:after {
-  display: block;
-  opacity: 1;
-}
-#app-root.step-5 [data-tooltip][data-step-5]:before,
-#app-root.step-5 [data-tooltip][data-step-5]:after {
-  position: fixed;
-  display: block;
-  opacity: 1;
-}
-#app-root.step-5 [data-tooltip][data-step-5]:before {
-  right: 216px;
-  top: 51px;
-  left: auto;
-  transform: inherit;
-}
-#app-root.step-5 [data-tooltip][data-step-5]:after {
-  right: 225px;
-  top: 43px;
-}
-#app-root.step-6 [data-tooltip][data-step-6]:before,
-#app-root.step-6 [data-tooltip][data-step-6]:after {
-  display: block;
-  opacity: 1;
-}
-#app-root.step-6 [data-tooltip][data-step-6]:before{
-  top: 23px;
-  right: 0px;
-  transform: inherit;
-  left: auto;
-}
-#app-root.step-6 [data-tooltip][data-step-6]:after{
-  top: 32px;
-  right: -7px;
-  transform: inherit;
-  left: auto;
-}
-#app-root.step-7 [data-tooltip][data-step-7]:before,
-#app-root.step-7 [data-tooltip][data-step-7]:after {
-  display: block;
-  opacity: 1;
-}
-#app-root.step-7 [data-tooltip][data-step-7]:before {
-  z-index: 999;
-}
-span[data-step-7] {
-  position:  fixed;
-  top: 103px;
-  left: 222px;
-}
-[data-tooltip]:not([data-flow])::before,
-[data-tooltip][data-flow="top"]::before {
-  bottom: 100%;
-  border-bottom-width: 0;
-  border-top-color: var(--emphasis-color);
-}
-[data-tooltip]:not([data-flow])::after,
-[data-tooltip][data-flow="top"]::after {
-  bottom: calc(100% + 5px);
-}
-[data-tooltip]:not([data-flow])::before, [tooltip]:not([data-flow])::after,
-[data-tooltip][data-flow="top"]::before,
-[data-tooltip][data-flow="top"]::after {
-  left: 50%;
-  -webkit-transform: translate(-50%, -4px);
-  transform: translate(-50%, -4px);
-}
-[data-tooltip][data-flow="bottom"]::before {
-  top: 100%;
-  border-top-width: 0;
-  border-bottom-color: var(--emphasis-color);
-}
-[data-tooltip][data-flow="bottom"]::after {
-  top: calc(100% + 5px);
-}
-[data-tooltip][data-flow="bottom"]::before, [data-tooltip][data-flow="bottom"]::after {
-  left: 50%;
-  -webkit-transform: translate(-50%, 8px);
-  transform: translate(-50%, 8px);
-}
-[data-tooltip][data-flow="left"]::before {
-  top: 50%;
-  border-right-width: 0;
-  border-left-color: var(--emphasis-color);
-  left: calc(0em - 5px);
-  -webkit-transform: translate(-8px, -50%);
-  transform: translate(-8px, -50%);
-}
-[data-tooltip][data-flow="left"]:not([data-step-5])::after {
-  top: 50%;
-  right: calc(100% + 5px);
-  -webkit-transform: translate(-8px, -50%);
-  transform: translate(-8px, -50%);
-}
-[data-tooltip][data-flow="right"]::before {
-  top: 50%;
-  border-left-width: 0;
-  border-right-color: var(--emphasis-color);
-  right: calc(0em - 5px);
-  -webkit-transform: translate(8px, -50%);
-  transform: translate(8px, -50%);
-}
-[data-tooltip][data-flow="right"]::after {
-  top: 50%;
-  left: calc(100% + 5px);
-  -webkit-transform: translate(8px, -50%);
-  transform: translate(8px, -50%);
-}
-[data-tooltip=""]::after, [data-tooltip=""]::before {
-  display: none !important;
+  width: 215px;
+  left: 21px;
 }
 
 

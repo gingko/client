@@ -7,7 +7,7 @@
         "children": [ ]
       },
       {
-        "content": "## Another card\n\n<div id='welcome-step-1' class='tour-step shimmer'>1. Click Here<div class='arrow'>▼</div><div class='tour-step-progress' id='progress-step-1'><div class='bg-line off'></div><div class='on'></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div>Clicking a card selects it.<div id='welcome-step-2' class='tour-step'>Click here to add a Child card<div class='arrow'>▶</div><div class='tour-step-progress' id='progress-step-2'><div class='bg-line on'></div><div class='bg-line off'></div><div class='on'></div><div class=\"on\"></div><div></div><div></div><div></div><div></div><div></div></div></div>",
+        "content": "## Another card\n\n<div id='welcome-step-1' class='tour-step shimmer'>1. Click Here<div class='arrow'>▼</div><div class='tour-step-progress' id='progress-step-1'><div class='bg-line off'></div><div class='on'></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div>Clicking a card selects it.<div id='welcome-step-2' class='tour-step'>Click here to add a Child card<div class='arrow'>▶</div><div class='tour-step-progress' id='progress-step-2'><div class='bg-line on'></div><div class='bg-line off'></div><div class='on'></div><div class=\"on\"></div><div></div><div></div><div></div><div></div><div></div></div></div>\n<div id='welcome-step-5' class='tour-step'>Drag card to move it<div class='arrow'>▼</div><div class='tour-step-progress' id='progress-step-5'><div class='bg-line on'></div><div class='bg-line off'></div><div class='on'></div><div class='on'></div><div class='on'></div><div class='on'></div><div class='on'></div><div></div><div></div></div></div>",
         "children": [ ]
       },
       {
