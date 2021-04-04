@@ -18,13 +18,15 @@ import Html.Extra exposing (viewIf)
 import Import.Template exposing (Template(..))
 import Json.Decode as Dec
 import List.Extra as ListExtra exposing (getAt)
-import Octicons as Icon exposing (defaultOptions)
+import Octicons as Icon exposing (defaultOptions, fillRule)
 import Page.Doc.Export exposing (ExportFormat(..), ExportSelection(..))
 import Page.Doc.Theme exposing (Theme(..))
 import Regex exposing (Regex, replace)
 import Route
 import Session exposing (PaymentStatus(..), Session)
 import SharedUI exposing (modalWrapper)
+import Svg exposing (g, svg)
+import Svg.Attributes exposing (d, fill, fontFamily, fontSize, fontWeight, stroke, strokeDasharray, strokeDashoffset, strokeLinecap, strokeLinejoin, strokeMiterlimit, strokeWidth, textAnchor, version, viewBox)
 import Time exposing (posixToMillis)
 import Translation exposing (Language(..), TranslationId(..), datetimeFormat, langFromString, langToString, languageName, timeDistInWords, tr)
 import Types exposing (Children(..), CursorPosition(..), HeaderMenuState(..), SidebarMenuState(..), SidebarState(..), TextCursorInfo, TooltipPosition(..), ViewMode(..), ViewState)
@@ -832,8 +834,16 @@ viewVideo modalMsg { videoModalOpen } =
         div [] []
 
 
-viewShortcuts : msg -> Language -> Bool -> Bool -> Children -> TextCursorInfo -> ViewState -> List (Html msg)
-viewShortcuts trayToggleMsg lang isOpen isMac children textCursorInfo vs =
+viewShortcuts :
+    { toggledShortcutTray : msg, tooltipRequested : String -> TooltipPosition -> String -> msg, tooltipClosed : msg }
+    -> Language
+    -> Bool
+    -> Bool
+    -> Children
+    -> TextCursorInfo
+    -> ViewState
+    -> List (Html msg)
+viewShortcuts msgs lang isOpen isMac children textCursorInfo vs =
     let
         isTextSelected =
             textCursorInfo.selected
@@ -926,7 +936,7 @@ viewShortcuts trayToggleMsg lang isOpen isMac children textCursorInfo vs =
         case vs.viewMode of
             Normal ->
                 [ div
-                    [ id "shortcuts-tray", classList [ ( "open", isOpen ) ], onClick trayToggleMsg ]
+                    [ id "shortcuts-tray", classList [ ( "open", isOpen ) ], onClick msgs.toggledShortcutTray ]
                     [ div [ id "shortcuts" ]
                         [ h3 [] [ text "Keyboard Shortcuts", tourTooltip "Shortcuts List" ]
                         , h5 [] [ text "Edit Cards" ]
@@ -954,7 +964,7 @@ viewShortcuts trayToggleMsg lang isOpen isMac children textCursorInfo vs =
 
             _ ->
                 [ div
-                    [ id "shortcuts-tray", classList [ ( "open", isOpen ) ], onClick trayToggleMsg ]
+                    [ id "shortcuts-tray", classList [ ( "open", isOpen ) ], onClick msgs.toggledShortcutTray ]
                     [ div [ id "shortcuts" ]
                         [ h3 [] [ text "Keyboard Shortcuts" ]
                         , h3 [] [ text "(Edit Mode)" ]
@@ -987,15 +997,13 @@ viewShortcuts trayToggleMsg lang isOpen isMac children textCursorInfo vs =
                 ]
 
     else
-        let
-            iconColor =
-                Icon.color "#6c7c84"
-        in
         [ div
-            [ id "shortcuts-tray", onClick trayToggleMsg, title <| tr lang KeyboardHelp ]
-            [ div [ classList [ ( "icon-stack", True ), ( "open", isOpen ) ] ]
-                [ Icon.keyboard (defaultOptions |> iconColor) ]
+            [ id "shortcuts-tray"
+            , onClick msgs.toggledShortcutTray
+            , onMouseEnter <| msgs.tooltipRequested "shortcuts-tray" LeftTooltip "Keyboard Shortcuts"
+            , onMouseLeave msgs.tooltipClosed
             ]
+            [ keyboardIconSvg 24 ]
         ]
 
 
@@ -1245,3 +1253,7 @@ radio msg bool labelElement =
 onClickStop : msg -> Html.Attribute msg
 onClickStop msg =
     stopPropagationOn "click" (Dec.succeed ( msg, True ))
+
+
+keyboardIconSvg w =
+    svg [ version "1.1", viewBox "0 0 172 172", width w ] [ g [ fill "none", Svg.Attributes.fillRule "nonzero", stroke "none", strokeWidth "1", strokeLinecap "butt", strokeLinejoin "miter", strokeMiterlimit "10", strokeDasharray "", strokeDashoffset "0", fontFamily "none", fontWeight "none", fontSize "none", textAnchor "none", Svg.Attributes.style "mix-blend-mode: normal" ] [ Svg.path [ d "M0,172v-172h172v172z", fill "none" ] [], g [ id "original-icon", fill "#000000" ] [ Svg.path [ d "M16.125,32.25c-8.86035,0 -16.125,7.26465 -16.125,16.125v64.5c0,8.86035 7.26465,16.125 16.125,16.125h129c8.86035,0 16.125,-7.26465 16.125,-16.125v-64.5c0,-8.86035 -7.26465,-16.125 -16.125,-16.125zM16.125,43h129c3.02344,0 5.375,2.35156 5.375,5.375v64.5c0,3.02344 -2.35156,5.375 -5.375,5.375h-129c-3.02344,0 -5.375,-2.35156 -5.375,-5.375v-64.5c0,-3.02344 2.35156,-5.375 5.375,-5.375zM21.5,53.75v10.75h10.75v-10.75zM43,53.75v10.75h10.75v-10.75zM64.5,53.75v10.75h10.75v-10.75zM86,53.75v10.75h10.75v-10.75zM107.5,53.75v10.75h10.75v-10.75zM129,53.75v10.75h10.75v-10.75zM21.5,75.25v10.75h10.75v-10.75zM43,75.25v10.75h10.75v-10.75zM64.5,75.25v10.75h10.75v-10.75zM86,75.25v10.75h10.75v-10.75zM107.5,75.25v10.75h10.75v-10.75zM129,75.25v10.75h10.75v-10.75zM53.75,96.75v10.75h53.75v-10.75zM21.5,96.83399v10.79199h21.5v-10.79199zM118.41797,96.83399v10.79199h21.5v-10.79199z" ] [] ] ] ]

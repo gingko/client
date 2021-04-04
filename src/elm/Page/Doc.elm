@@ -1022,6 +1022,7 @@ update msg ({ workingTree } as model) =
 
                     else
                         model.headerMenu
+                , tooltip = Nothing
               }
             , send (SetShortcutTray newIsOpen)
             )
@@ -2722,7 +2723,7 @@ viewLoaded model =
                      , maybeExportView
                      ]
                         ++ UI.viewShortcuts
-                            ShortcutTrayToggle
+                            { toggledShortcutTray = ShortcutTrayToggle, tooltipRequested = TooltipRequested, tooltipClosed = TooltipClosed }
                             language
                             (Session.shortcutTrayOpen model.session)
                             (Session.isMac model.session)

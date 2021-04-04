@@ -2642,7 +2642,7 @@ pre {
   right: 0;
   display: flex;
   flex-direction: column;
-  padding: 10px;
+  padding: 5px 10px;
   color: var(--ui-2-fg);
   background-color: var(--ui-2-bg);
   border-left: 1px solid var(--ui-2-border-color);
@@ -2650,13 +2650,13 @@ pre {
   border-radius: 0 0 0 6px;
   z-index: 1;
   cursor: pointer;
-  overflow-y: auto;
 }
 #shortcuts-tray.open {
   grid-area: right-sidebar;
   position: unset;
   top: 0;
   border-radius: 0;
+  overflow-y: auto;
 }
 
 #shortcuts {
