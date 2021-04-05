@@ -30,12 +30,12 @@ describe('Random seed initialization', () => {
     cy.contains('#save-indicator', 'Synced')
 
     // Switch to other tree and back
-    cy.get('#file-button').click()
-    cy.get('#sidebar-menu').contains('Another doc').click()
+    cy.get('#documents-icon').click()
+    cy.get('#sidebar-document-list-wrap').contains('Another doc').click()
     cy.url().should('contain', this.treeIds[1] )
-    cy.get('#title > h1').contains('Another doc, with title')
+    cy.get('#title').contains('Another doc, with title')
 
-    cy.get('#sidebar-menu').contains('Untitled').click()
+    cy.get('#sidebar-document-list-wrap').contains('Untitled').click()
     cy.url().should('contain', this.treeIds[0] )
 
     cy.contains('mod')
