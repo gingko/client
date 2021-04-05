@@ -137,16 +137,18 @@ viewHeader msgs title_ model =
         isSelected expSel =
             (model.exportSettings |> Tuple.first) == expSel
 
-        exportSelectionBtnAttributes expSel =
-            [ onClick <| msgs.exportSelectionChanged expSel
+        exportSelectionBtnAttributes expSel expSelString =
+            [ id <| "export-select-" ++ expSelString
+            , onClick <| msgs.exportSelectionChanged expSel
             , classList [ ( "selected", isSelected expSel ) ]
             ]
 
         isFormat expFormat =
             (model.exportSettings |> Tuple.second) == expFormat
 
-        exportFormatBtnAttributes expFormat =
-            [ onClick <| msgs.exportFormatChanged expFormat
+        exportFormatBtnAttributes expFormat expFormatString =
+            [ id <| "export-format-" ++ expFormatString
+            , onClick <| msgs.exportFormatChanged expFormat
             , classList [ ( "selected", isFormat expFormat ) ]
             ]
     in
@@ -211,14 +213,14 @@ viewHeader msgs title_ model =
         , viewIf (model.headerMenu == ExportPreview) <|
             div [ id "export-menu" ]
                 [ div [ id "export-selection", class "toggle-button" ]
-                    [ div (exportSelectionBtnAttributes ExportEverything) [ text "Everything" ]
-                    , div (exportSelectionBtnAttributes ExportSubtree) [ text "Current Subtree" ]
-                    , div (exportSelectionBtnAttributes ExportCurrentColumn) [ text "Current Column" ]
+                    [ div (exportSelectionBtnAttributes ExportEverything "all") [ text "Everything" ]
+                    , div (exportSelectionBtnAttributes ExportSubtree "subtree") [ text "Current Subtree" ]
+                    , div (exportSelectionBtnAttributes ExportCurrentColumn "column") [ text "Current Column" ]
                     ]
                 , div [ id "export-format", class "toggle-button" ]
-                    [ div (exportFormatBtnAttributes DOCX) [ text "Word" ]
-                    , div (exportFormatBtnAttributes PlainText) [ text "Plain Text" ]
-                    , div (exportFormatBtnAttributes JSON) [ text "JSON" ]
+                    [ div (exportFormatBtnAttributes DOCX "word") [ text "Word" ]
+                    , div (exportFormatBtnAttributes PlainText "text") [ text "Plain Text" ]
+                    , div (exportFormatBtnAttributes JSON "json") [ text "JSON" ]
                     ]
                 ]
         ]
