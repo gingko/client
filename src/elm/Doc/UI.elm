@@ -532,7 +532,7 @@ viewSidebarMenu lang msgs accountEmail dropdownState =
                     , onMouseEnter <| msgs.languageMenuRequested (Just "language-option")
                     ]
                     [ text <| tr lang Language, div [ class "right-icon" ] [ AntIcons.rightOutlined [] ] ]
-                , div [ onClickStop msgs.logout ] [ text <| tr lang Logout ]
+                , div [ id "logout-button", onClickStop msgs.logout ] [ text <| tr lang Logout ]
                 ]
             , case langMenuEl_ of
                 Just langMenuEl ->
