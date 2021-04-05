@@ -29,9 +29,9 @@ describe('Managing Documents', () => {
 
       cy.contains('sadlkfsalfj')
 
-      cy.get('#file-button').click()
+      cy.get('#documents-icon').click()
 
-      cy.get('#sidebar-menu .sidebar-document-item')
+      cy.get('#sidebar-document-list-wrap .sidebar-document-item')
         .should('have.length', 7)
 
 
@@ -43,7 +43,7 @@ describe('Managing Documents', () => {
 
       cy.shortcut('{enter}')
       cy.writeInCard('chhh')
-      cy.get('#sidebar-menu .sidebar-document-item')
+      cy.get('#sidebar-document-list-wrap .sidebar-document-item')
         .first()
         .click()
         .then(()=> {
@@ -57,13 +57,14 @@ describe('Managing Documents', () => {
       cy.url().should('contain', this.treeIds[2] )
 
       // Open sidebar
-      cy.get('#file-button', {timeout: 20000}).click()
+      cy.get('.spinner').should('not.exist')
+      //cy.get('#documents-icon', {timeout: 20000}).click()
 
-      cy.contains('#sidebar-menu', 'welcome', {timeout: 20000})
-        .contains('#sidebar-menu', 'timeline 2021')
+      cy.contains('#sidebar-document-list-wrap', 'welcome', {timeout: 20000})
+        .contains('#sidebar-document-list-wrap', 'timeline 2021')
 
       // Go to Welcome doc
-      cy.get('#sidebar-menu').contains('welcome').click()
+      cy.get('#sidebar-document-list-wrap').contains('welcome').click()
 
       // Check Welcome doc contents
       cy.contains('#document', 'Welcome to Gingko Writer')
@@ -71,7 +72,7 @@ describe('Managing Documents', () => {
         .contains('#document', 'Moving Cards')
 
       // Got to another doc
-      cy.get('#sidebar-menu').contains('Screenplay')
+      cy.get('#sidebar-document-list-wrap').contains('Screenplay')
         .click()
       cy.url().should('contain', this.treeIds[5] )
 
@@ -79,7 +80,7 @@ describe('Managing Documents', () => {
 
       // Should have a working context menu
       // Menu opens on right click
-      cy.get('#sidebar-menu .sidebar-document-item')
+      cy.get('#sidebar-document-list-wrap .sidebar-document-item')
         .first()
         .rightclick()
 
@@ -90,7 +91,7 @@ describe('Managing Documents', () => {
       cy.get('#sidebar-context-menu').should('not.exist')
 
       // Open menu again
-      cy.get('#sidebar-menu .sidebar-document-item')
+      cy.get('#sidebar-document-list-wrap .sidebar-document-item')
         .first()
         .rightclick()
 
@@ -99,7 +100,7 @@ describe('Managing Documents', () => {
         .click()
 
       // Document should be deleted
-      cy.get('#sidebar-menu .sidebar-document-item', {timeout: 20000})
+      cy.get('#sidebar-document-list-wrap .sidebar-document-item', {timeout: 20000})
         .should('have.length', 6)
         .should('not.contain', 'Romeo and Juliet')
 
