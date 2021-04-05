@@ -17,10 +17,9 @@ describe('JSON Imports from Startup State', () => {
   it('Should bring up the Import Modal on clicking', function () {
     cy.visit(config.TEST_SERVER)
     cy.url().should('contain', this.treeIds[1] )
+    cy.get('.spinner').should('not.exist')
 
-    cy.get('#file-button').click()
-
-    cy.get('#new-button').click()
+    cy.get('#new-icon').click()
 
     cy.get('#template-import')
       .click()
