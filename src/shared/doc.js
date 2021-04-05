@@ -58,14 +58,13 @@ async function initElmAndPorts() {
     sessionData = JSON.parse(sessionData);
     email = sessionData.email;
     await setUserDbs(sessionData.email);
-    settings.sidebarOpen = (sessionData.hasOwnProperty('sidebarOpen')) ?  sessionData.sidebarOpen : false;
     // Load user settings
     try {
       settings = await userStore.load();
-      console.log("loaded settings" ,settings)
     } catch (e) {
       console.log("failed", e)
     }
+    settings.sidebarOpen = (sessionData.hasOwnProperty('sidebarOpen')) ?  sessionData.sidebarOpen : false;
   }
 
 
