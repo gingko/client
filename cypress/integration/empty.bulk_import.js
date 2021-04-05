@@ -18,7 +18,7 @@ describe('Legacy Imports from Empty State', () => {
   })
 
   it('Should allow import of legacy docs from empty state', () => {
-    cy.get('#new-button').click()
+    cy.get('#new-icon').click()
 
     cy.get('#template-import-bulk')
       .click()

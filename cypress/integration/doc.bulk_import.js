@@ -25,6 +25,7 @@ describe('Legacy Imports from Startup State', () => {
     cy.visit(config.TEST_SERVER)
     cy.url().should('contain', this.treeIds[1] )
     cy.get('.spinner').should('not.exist')
+    cy.contains('Another Test doc')
 
     // Should bring up the Import Modal on clicking
     cy.get('#new-icon').click()

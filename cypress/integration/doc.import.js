@@ -18,6 +18,7 @@ describe('JSON Imports from Startup State', () => {
     cy.visit(config.TEST_SERVER)
     cy.url().should('contain', this.treeIds[1] )
     cy.get('.spinner').should('not.exist')
+    cy.contains('Another Test doc')
 
     cy.get('#new-icon').click()
 
