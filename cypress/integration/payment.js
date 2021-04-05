@@ -23,10 +23,9 @@ describe('Upgrade process', () => {
   it('Should have working Upgrade modal', function () {
     cy.visit(config.TEST_SERVER + '/' + this.treeIds[0])
     cy.url().should('contain', this.treeIds[0] )
+    cy.get('.spinner').should('not.exist')
 
-    cy.get('#account')
-      .click()
-      .get('#upgrade-button')
+    cy.get('#upgrade-button')
       .click()
 
     cy.contains('Upgrade Gingko Writer')
@@ -43,9 +42,7 @@ describe('Upgrade process', () => {
     cy.get('.modal').should('not.exist')
 
     // Modal persists Upgrade model
-    cy.get('#account')
-      .click()
-      .get('#upgrade-button')
+    cy.get('#upgrade-button')
       .click()
 
     cy.get('#currency-selector')
@@ -94,8 +91,7 @@ describe('Upgrade process', () => {
       .click()
 
     cy.url().should('contain', this.treeIds[1] )
-
-    cy.get('#account')
+    cy.get('.spinner').should('not.exist')
 
     cy.get('#document-header')
       .should('not.contain', 'Upgrade')

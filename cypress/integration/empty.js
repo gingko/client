@@ -37,9 +37,9 @@ describe('Empty State', () => {
   })
 
   it('Goes back to Empty page on deletion', () => {
-    cy.get('#file-button').click()
+    cy.get('#documents-icon').click()
 
-    cy.get('#sidebar-menu .sidebar-document-item')
+    cy.get('#sidebar-document-list-wrap .sidebar-document-item')
       .first()
       .rightclick()
 
