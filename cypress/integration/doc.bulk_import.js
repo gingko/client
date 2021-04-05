@@ -24,11 +24,10 @@ describe('Legacy Imports from Startup State', () => {
   it('Guides user to import legacy docs', function () {
     cy.visit(config.TEST_SERVER)
     cy.url().should('contain', this.treeIds[1] )
+    cy.get('.spinner').should('not.exist')
 
     // Should bring up the Import Modal on clicking
-    cy.get('#file-button').click()
-
-    cy.get('#new-button').click()
+    cy.get('#new-icon').click()
 
     cy.get('#template-import-bulk')
       .click()
@@ -77,11 +76,12 @@ describe('Legacy Imports from Startup State', () => {
     // Closed the Import Modal on success
     cy.get('#app-root').should('not.contain', 'Import From Gingko v1')
 
-    cy.get('.sidebar-document-list > .sidebar-document-item')
+    cy.get('#documents-icon').click()
+    cy.get('#sidebar-document-list > .sidebar-document-item')
       .should('have.length', 12)
 
     // Correctly imported the data
-    cy.get('.sidebar-document-list')
+    cy.get('#sidebar-document-list')
       .contains('Screenplay')
       .click()
 
