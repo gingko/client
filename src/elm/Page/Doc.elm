@@ -851,12 +851,7 @@ update msg ({ workingTree } as model) =
             ( { model | modalState = NoModal }, send <| RequestDelete docId )
 
         HistoryToggled isOpen ->
-            case ( isOpen, Data.head "heads/master" model.data ) of
-                ( True, Just refObj ) ->
-                    ( { model | headerMenu = HistoryView { start = refObj.value, currentView = refObj.value }, tooltip = Nothing }, Cmd.none )
-
-                _ ->
-                    ( { model | headerMenu = NoHeaderMenu }, Cmd.none )
+            model |> toggleHistory isOpen
 
         DocSettingsToggled isOpen ->
             ( { model
@@ -1489,12 +1484,10 @@ update msg ({ workingTree } as model) =
                             normalMode model (copy vs.active)
 
                         "mod+z" ->
-                            --TODO
-                            ( model, Cmd.none )
+                            normalMode model (\( m, _ ) -> toggleHistory True m)
 
                         "mod+shift+z" ->
-                            --TODO
-                            ( model, Cmd.none )
+                            normalMode model (\( m, _ ) -> toggleHistory True m)
 
                         "mod+o" ->
                             case model.modalState of
@@ -2507,6 +2500,16 @@ checkoutCommit commitSha ( model, prevCmd ) =
             ( model
             , prevCmd
             )
+
+
+toggleHistory : Bool -> Model -> ( Model, Cmd msg )
+toggleHistory isOpen model =
+    case ( isOpen, Data.head "heads/master" model.data ) of
+        ( True, Just refObj ) ->
+            ( { model | headerMenu = HistoryView { start = refObj.value, currentView = refObj.value }, tooltip = Nothing }, Cmd.none )
+
+        _ ->
+            ( { model | headerMenu = NoHeaderMenu }, Cmd.none )
 
 
 
