@@ -524,6 +524,16 @@ const fromElm = (msg, elmData) => {
     // === UI ===
     UpdateCommits: () => {},
 
+    HistorySlider: () => {
+      window.requestAnimationFrame(() => {
+        let slider = document.getElementById('history-slider')
+        if (slider != null) {
+          slider.stepUp(elmData);
+          slider.dispatchEvent(new Event('input'));
+        }
+      })
+    },
+
     SetVideoModal: () => {
       userStore.set("video-modal-is-open", elmData);
     },

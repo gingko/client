@@ -182,6 +182,7 @@ var shortcuts = [
   "mod+v",
   "mod+shift+v",
   "mod+z",
+  "mod+shift+z",
   "mod+r",
   "mod+b",
   "mod+i",

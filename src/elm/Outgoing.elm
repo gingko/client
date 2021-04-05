@@ -44,6 +44,7 @@ type Msg
     | SetFullscreen Bool
       -- === UI ===
     | UpdateCommits ( Enc.Value, Maybe String )
+    | HistorySlider Int
     | SetVideoModal Bool
     | SetLanguage Language
     | SetSidebarState Bool
@@ -173,6 +174,9 @@ send info =
                             null
             in
             dataToSend "UpdateCommits" (tupleToValue identity ( objectsValue, headToValue head_ ))
+
+        HistorySlider delta ->
+            dataToSend "HistorySlider" (int delta)
 
         SetVideoModal isOpen ->
             dataToSend "SetVideoModal" (bool isOpen)

@@ -1306,8 +1306,12 @@ update msg ({ workingTree } as model) =
                             normalMode model (deleteCard vs.active)
 
                         "esc" ->
-                            case model.modalState of
-                                NoModal ->
+                            case ( model.modalState, model.headerMenu ) of
+                                ( NoModal, HistoryView historyState ) ->
+                                    ( { model | headerMenu = NoHeaderMenu }, Cmd.none )
+                                        |> checkoutCommit historyState.start
+
+                                ( NoModal, _ ) ->
                                     model |> intentCancelCard
 
                                 _ ->
@@ -1485,9 +1489,11 @@ update msg ({ workingTree } as model) =
 
                         "mod+z" ->
                             normalMode model (\( m, _ ) -> toggleHistory True m)
+                                |> Tuple.mapSecond (\c -> Cmd.batch [ c, send <| HistorySlider -1 ])
 
                         "mod+shift+z" ->
                             normalMode model (\( m, _ ) -> toggleHistory True m)
+                                |> Tuple.mapSecond (\c -> Cmd.batch [ c, send <| HistorySlider 1 ])
 
                         "mod+o" ->
                             case model.modalState of

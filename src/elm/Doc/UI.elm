@@ -829,7 +829,7 @@ viewHistory lang msgs currentTime dataModel historyState =
                     msgs.noOp
     in
     div [ id "history-menu" ]
-        [ input [ type_ "range", A.min "0", A.max maxIdx, step "1", onInput checkoutCommit ] []
+        [ input [ id "history-slider", type_ "range", A.min "0", A.max maxIdx, step "1", onInput checkoutCommit ] []
         , maybeTimeDisplay
         , button [ id "history-restore", onClick msgs.restore ] [ text <| tr lang RestoreThisVersion ]
         , div
