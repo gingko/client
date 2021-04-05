@@ -58,7 +58,7 @@ async function initElmAndPorts() {
     sessionData = JSON.parse(sessionData);
     email = sessionData.email;
     await setUserDbs(sessionData.email);
-
+    settings.sidebarOpen = (sessionData.hasOwnProperty('sidebarOpen')) ?  sessionData.sidebarOpen : false;
     // Load user settings
     try {
       settings = await userStore.load();
@@ -73,7 +73,6 @@ async function initElmAndPorts() {
   settings.email = email;
   settings.seed = timestamp;
   settings.isMac = platform.os.family === 'OS X';
-  settings.sidebarOpen = sessionData.sidebarOpen || false;
   settings.currentTime = timestamp;
   settings.fromLegacy = document.referrer.startsWith(config.LEGACY_URL);
   lang = settings.language || "en";
