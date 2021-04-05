@@ -547,7 +547,12 @@ viewSidebarMenu lang msgs accountEmail dropdownState =
                         ((Translation.activeLanguages
                             |> List.map
                                 (\( langOpt, langName ) ->
-                                    div [ onClickStop <| msgs.languageChanged langOpt, classList [ ( "selected", langOpt == lang ) ] ] [ text langName ]
+                                    div
+                                        [ id <| "lang-" ++ langToString langOpt
+                                        , onClickStop <| msgs.languageChanged langOpt
+                                        , classList [ ( "selected", langOpt == lang ) ]
+                                        ]
+                                        [ text langName ]
                                 )
                          )
                             ++ [ a

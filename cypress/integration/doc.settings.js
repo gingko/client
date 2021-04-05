@@ -23,16 +23,13 @@ describe('Loading indicators', () => {
 
   it('Can change the document language', () => {
     cy.visit(config.TEST_SERVER)
-
     cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
+    cy.get('.spinner').should('not.exist')
+    cy.contains('Synced')
 
-    cy.get('#settings-button')
-      .click()
-
-    cy.contains('#sidebar-menu', 'Language')
-
-    cy.get('#sidebar-menu select')
-      .select("es")
+    cy.get('#account-icon').click()
+    cy.get('#language-option').click()
+    cy.get('#lang-es').click()
 
     cy.contains('Sincronizado')
   })
