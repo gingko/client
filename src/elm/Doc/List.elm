@@ -152,15 +152,18 @@ viewSmall noop filterMsg contextMenuMsg currentDocument contextTarget_ filterFie
     case filter filterField model of
         Loading ->
             div [ id "sidebar-document-list-wrap" ]
-                [ input [ id "document-list-filter", placeholder "Find file by name", type_ "search", onInput filterMsg, stopClickProp ] []
-                , div [ id "sidebar-document-list" ] [ text "" ]
-                ]
+                [ div [ id "sidebar-document-list" ] [ text "" ] ]
 
         Success filteredDocs ->
-            div [ id "sidebar-document-list-wrap" ]
-                [ viewIf (List.length filteredDocs > 0) <| input [ id "document-list-filter", placeholder "Find file by name", type_ "search", onInput filterMsg, stopClickProp ] []
-                , div [ id "sidebar-document-list" ] (List.map viewDocItem filteredDocs)
-                ]
+            if List.length filteredDocs == 0 then
+                div [ id "sidebar-document-list-wrap" ]
+                    [ div [ id "no-documents" ] [ text "No documents" ] ]
+
+            else
+                div [ id "sidebar-document-list-wrap" ]
+                    [ input [ id "document-list-filter", placeholder "Find file by name", type_ "search", onInput filterMsg, stopClickProp ] []
+                    , div [ id "sidebar-document-list" ] (List.map viewDocItem filteredDocs)
+                    ]
 
         Failure _ ->
             text "Failed to load documents list."

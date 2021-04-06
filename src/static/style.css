@@ -490,6 +490,11 @@ a.forgot-password {
   padding-bottom: 3px;
   padding-right: 2px;
 }
+#no-documents {
+  text-align: center;
+  opacity: 0.3;
+  margin-top: 7px;
+}
 #document-list-filter {
   margin: 6px 4px;
   padding: 3px 7px;
