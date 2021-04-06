@@ -57,7 +57,7 @@ describe('Managing Documents', () => {
       cy.url().should('contain', this.treeIds[2] )
 
       // Open sidebar
-      cy.get('.spinner').should('not.exist')
+      cy.get('.spinner', {timeout: 20000}).should('not.exist')
       //cy.get('#documents-icon', {timeout: 20000}).click()
 
       cy.contains('#sidebar-document-list-wrap', 'welcome', {timeout: 20000})
