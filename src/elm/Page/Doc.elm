@@ -815,7 +815,7 @@ update msg ({ workingTree } as model) =
             closeSwitcher model
 
         WordcountModalOpened ->
-            ( { model | modalState = Wordcount }, Cmd.none )
+            ( { model | modalState = Wordcount, headerMenu = NoHeaderMenu }, Cmd.none )
 
         ModalClosed ->
             ( { model | modalState = NoModal }, Cmd.none )
@@ -2696,6 +2696,7 @@ viewLoaded model =
                         , restore = Restore
                         , cancelHistory = CancelHistory
                         , toggledDocSettings = DocSettingsToggled (not <| model.headerMenu == Settings)
+                        , wordCountClicked = WordcountModalOpened
                         , themeChanged = ThemeChanged
                         , toggledExport = ExportPreviewToggled (not <| model.headerMenu == ExportPreview)
                         , exportSelectionChanged = ExportSelectionChanged

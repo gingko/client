@@ -89,7 +89,10 @@ describe('Document UI', () => {
     cy.shortcut('{esc}')
 
     // Has working Word Count modal
-    cy.get('#wordcount')
+    cy.get('#doc-settings-icon')
+      .click()
+
+    cy.get('#wordcount-menu-item')
       .click()
 
     cy.get('.modal-header h2').contains('Word Counts')

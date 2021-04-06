@@ -49,6 +49,7 @@ viewHeader :
     , restore : msg
     , cancelHistory : msg
     , toggledDocSettings : msg
+    , wordCountClicked : msg
     , themeChanged : Theme -> msg
     , toggledExport : msg
     , exportSelectionChanged : ExportSelection -> msg
@@ -190,7 +191,8 @@ viewHeader msgs title_ model =
             [ AntIcons.controlOutlined [] ]
         , viewIf (model.headerMenu == Settings) <|
             div [ id "doc-settings-menu", class "header-menu" ]
-                [ h4 [] [ text "Document Theme" ]
+                [ div [ id "wordcount-menu-item", onClick msgs.wordCountClicked ] [ text "Word count..." ]
+                , h4 [] [ text "Document Theme" ]
                 , div [ onClick <| msgs.themeChanged Default ] [ text "Default" ]
                 , div [ onClick <| msgs.themeChanged Gray ] [ text "Gray" ]
                 , div [ onClick <| msgs.themeChanged Green ] [ text "Green" ]
