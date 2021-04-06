@@ -2484,30 +2484,6 @@ pre {
 
 /* ======== STATUS BAR ======== */
 
-.footer {
-  grid-area: document-footer;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  width: 100%;
-  padding: 2px 12px;
-  font-size: 12px;
-  font-family: sans-serif;
-  color: var(--ui-3-fg);
-  background-color: var(--ui-3-bg);
-  border-top: 1px solid var(--ui-3-border-color);
-  z-index: 1;
-  box-shadow: 0 0 4px #00000085;
-}
-
-.footer .inset {
-  border-top: 1px solid #84939a;
-  border-left: 1px solid #84939a;
-  border-bottom: 1px solid #c8d3d8;
-  border-right: 1px solid #c8d3d8;
-  padding: 2px 6px;
-}
-
 #search-field {
   grid-area: document;
   position: absolute;
@@ -2810,7 +2786,67 @@ ul.changelist {
 }
 
 @media only screen and (max-width:25em) {
+  #app-root {
+    grid-template-rows: min-content 1fr min-content;
+    grid-template-areas:
+        "sidebar document-header document-header"
+        "document document right-sidebar"
+        "bottom bottom bottom";
+  }
+  #hamburger-icon {
+    display: block;
+    width: 40px;
+    padding: 10px;
+  }
+  #sidebar.open #hamburger-icon {
+    display: none;
+  }
+  #sidebar:not(.open) #brand img {
+    display: none;
+  }
+  #upgrade-button {
+    display: none;
+  }
+  #document-header {
+    grid-template-columns: 5px max-content 1fr 40px 40px 40px min-content 0;
+  }
+  #sidebar {
+    height: 40px;
+    overflow-y: hidden;
+  }
+  #sidebar.open {
+    height: 100%;
+    overflow-y: visible;
+    position: fixed;
+    z-index: 3;
+  }
+  #shortcuts-tray {
+    display: none;
+  }
+  #mobile-buttons {
+    grid-area: bottom;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    bottom: 0;
+    text-align: center;
+    font-size: 12px;
+    font-family: sans-serif;
+    color: var(--ui-3-fg);
+    background-color: var(--ui-3-bg);
+    z-index: 1;
+    box-shadow: 0 0 4px #00000085;
+  }
+  #mobile-buttons .mobile-button {
+    width: 100%;
+    display: flex;
+    height: 30px;
+    justify-content: center;
+    border: 1px solid rgba(0,0,0,0.2);
+  }
   #export-preview {
     width: 100%;
+    grid-area: document;
   }
 }

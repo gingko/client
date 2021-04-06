@@ -399,6 +399,7 @@ viewSidebar lang msgs currentDocument fileFilter docList accountEmail contextTar
                     else
                         [ text "" ]
                    )
+                ++ [ div [ id "hamburger-icon" ] [ AntIcons.menuOutlined [] ] ]
             )
          , div
             [ id "new-icon"
