@@ -234,7 +234,6 @@ type Msg
     | LanguageMenuReceived Element
     | ToggledAccountMenu Bool
       -- Sidebar & Modals
-    | ToggleSidebar
     | SidebarStateChanged SidebarState
     | TemplateSelectorOpened
     | SwitcherOpened
@@ -767,14 +766,6 @@ update msg ({ workingTree } as model) =
 
                 _ ->
                     ( model, Cmd.none )
-
-        ToggleSidebar ->
-            case model.sidebarState of
-                SidebarClosed ->
-                    ( { model | sidebarState = File, tooltip = Nothing }, Cmd.none )
-
-                _ ->
-                    ( { model | sidebarState = SidebarClosed }, Cmd.none )
 
         SidebarStateChanged newSidebarState ->
             let

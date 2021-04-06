@@ -6,7 +6,7 @@ import Coders exposing (treeToMarkdownString)
 import Diff exposing (..)
 import Doc.Data as Data exposing (CommitObject)
 import Doc.Data.Conflict as Conflict exposing (Conflict, Op(..), Selection(..), opString)
-import Doc.List as DocList
+import Doc.List as DocList exposing (Model(..))
 import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils as TreeUtils exposing (..)
@@ -442,6 +442,7 @@ viewSidebar lang msgs currentDocument fileFilter docList accountEmail contextTar
             , onMouseEnter <| msgs.tooltipRequested "document-switcher-icon" RightTooltip "Open Quick Switcher"
             , onMouseLeave msgs.tooltipClosed
             , class "sidebar-button"
+            , attributeIf (docList == Success []) (class "disabled")
             ]
             [ AntIcons.fileSearchOutlined [] ]
          , div
@@ -589,7 +590,7 @@ viewSidebarStatic sidebarOpen =
                    )
             )
         , viewIf sidebarOpen <| div [ id "sidebar-document-list-wrap" ] []
-        , div [ id "new-icon", class "sidebar-button" ] [ AntIcons.fileOutlined [] ]
+        , div [ id "new-icon", class "sidebar-button" ] [ AntIcons.fileAddOutlined [] ]
         , div [ id "documents-icon", class "sidebar-button", classList [ ( "open", sidebarOpen ) ] ]
             [ if sidebarOpen then
                 AntIcons.folderOpenOutlined []
@@ -597,7 +598,7 @@ viewSidebarStatic sidebarOpen =
               else
                 AntIcons.folderOutlined []
             ]
-        , div [ id "document-switcher-icon", class "sidebar-button" ] [ AntIcons.fileSearchOutlined [] ]
+        , div [ id "document-switcher-icon", class "sidebar-button", class "disabled" ] [ AntIcons.fileSearchOutlined [] ]
         , div
             [ id "help-icon", class "sidebar-button" ]
             [ AntIcons.questionCircleOutlined [] ]

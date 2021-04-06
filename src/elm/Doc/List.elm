@@ -5,6 +5,7 @@ import Doc.Metadata as Metadata exposing (Metadata)
 import Html exposing (Html, a, div, input, li, text, ul)
 import Html.Attributes exposing (attribute, class, classList, href, id, placeholder, title, type_)
 import Html.Events exposing (onClick, onInput, stopPropagationOn)
+import Html.Extra exposing (viewIf)
 import Json.Decode as Dec
 import Octicons as Icon
 import Page.Doc.ContextMenu as ContextMenu
@@ -157,7 +158,7 @@ viewSmall noop filterMsg contextMenuMsg currentDocument contextTarget_ filterFie
 
         Success filteredDocs ->
             div [ id "sidebar-document-list-wrap" ]
-                [ input [ id "document-list-filter", placeholder "Find file by name", type_ "search", onInput filterMsg, stopClickProp ] []
+                [ viewIf (List.length filteredDocs > 0) <| input [ id "document-list-filter", placeholder "Find file by name", type_ "search", onInput filterMsg, stopClickProp ] []
                 , div [ id "sidebar-document-list" ] (List.map viewDocItem filteredDocs)
                 ]
 
