@@ -21,7 +21,7 @@ describe('Document Editing', () => {
   })
 
   it('Can perform basic actions on New tree', () => {
-    cy.get('button')
+    cy.get('#new-button')
       .click()
 
     cy.contains('Blank Tree')

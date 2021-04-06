@@ -516,7 +516,7 @@ viewSidebarMenu lang msgs accountEmail dropdownState =
             [ div [ id "help-menu", class "sidebar-menu" ]
                 [ a [ href "https://docs.gingkowriter.com", target "_blank", onClickStop msgs.noOp ] [ text "FAQ" ]
                 , div [ onClickStop msgs.toggledShortcuts ] [ text <| tr lang KeyboardHelp ]
-                , div [ onClickStop msgs.clickedEmailSupport ] [ text <| tr lang EmailSupport ]
+                , div [ id "email-support", onClickStop msgs.clickedEmailSupport ] [ text <| tr lang EmailSupport ]
                 ]
             , div [ id "help-menu-exit-top", onMouseEnter msgs.helpClosed ] []
             , div [ id "help-menu-exit-right", onMouseEnter msgs.helpClosed ] []

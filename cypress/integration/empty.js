@@ -18,7 +18,7 @@ describe('Empty State', () => {
 
   it('Shows Empty page', ()=> {
     cy.url().should('eq', config.TEST_SERVER + '/')
-    cy.contains("You don't have any documents. Create one here:")
+    cy.contains("You don't have any documents")
   })
 
   it('Goes to newly created tree', () => {

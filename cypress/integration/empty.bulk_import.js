@@ -56,15 +56,16 @@ describe('Legacy Imports from Empty State', () => {
     cy.get('#import-selection-list input')
       .click({multiple : true})
 
+    // import selected trees
     cy.get('.modal-guts button')
       .click()
 
     cy.wait(400)
 
-    cy.get('#file-button')
+    cy.get('#documents-icon')
       .click()
 
-    cy.get('.sidebar-document-list > .sidebar-document-item')
+    cy.get('#sidebar-document-list > .sidebar-document-item')
       .should('have.length', 3)
 
     // Should navigate to last modified document

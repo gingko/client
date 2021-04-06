@@ -31,7 +31,7 @@ describe('Document UI', () => {
     cy.get('#help-icon' )
       .click()
 
-    cy.get('#help-dropdown')
+    cy.get('#help-menu')
       .should('contain', emailText)
       .should('contain', 'FAQ')
 
@@ -63,15 +63,15 @@ describe('Document UI', () => {
       .should('not.exist')
 
     // Toggles the sidebar on clicking brand icon
-    cy.get('#sidebar-menu').should('not.exist')
+    cy.get('#sidebar-document-list-wrap').should('not.exist')
     cy.get('#brand').click()
-    cy.get('#sidebar-menu').should('be.visible')
+    cy.get('#sidebar-document-list-wrap').should('be.visible')
     cy.get('#brand').click()
-    cy.get('#sidebar-menu').should('not.exist')
+    cy.get('#sidebar-document-list-wrap').should('not.exist')
 
     // Toggles shortcut tray on clicking right-sidebar
     cy.get('#app-root').should('not.contain', 'Keyboard Shortcuts')
-    cy.get('#shortcuts-tray').click({position: "top"})
+    cy.get('#shortcuts-tray').click()
     cy.contains('Keyboard Shortcuts')
 
     // Shows different shortcuts based on mode
