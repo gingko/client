@@ -1,13 +1,16 @@
-# Gingko 2 [![Build Status](https://travis-ci.org/gingko/client.svg?branch=master)](https://travis-ci.org/gingko/client) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/gingko/client)](https://ci.appveyor.com/project/AdrianoFerrari/client)
+# Gingko Writer [![Web Deploy](https://github.com/gingko/client/actions/workflows/web-deploy.yml/badge.svg)](https://github.com/gingko/client/actions/workflows/web-deploy.yml)
+
 ![](./docs/images/screenshot-alien-screenplay.png)
 
 Writing software to help organize and draft complex documents. Anything from novels and screenplays to legal briefs and graduate theses.
 
-This is a ground-up rewrite of [GingkoApp.com](https://gingkoapp.com). The latest version is available for download at [gingko.io](https://gingko.io) (Linux, Windows, and Mac).
+This is a ground-up rewrite of [GingkoApp.com](https://gingkoapp.com). The latest version is available online at [gingkowriter.com](https://gingkowriter.com).
+
+The desktop version (on branch [desktop](https://github.com/gingko/client/tree/desktop)), is currently **well behind** the web app version. It will eventually be brought up to par, but if you need it now, it's available to download on [the releases page](https://github.com/gingko/client/releases) (for Linux, Windows, and Mac).
 
 # Contributions Welcome!
 
-If you want to help **translate Gingko**, you can join [the translation project](https://poeditor.com/join/project/k8Br3k0JVz).
+If you want to help **translate Gingko Writer**, you can join [the translation project](https://poeditor.com/join/project/k8Br3k0JVz).
 
 For code contributions, see [CONTRIBUTING.md](./CONTRIBUTING.md) for a guide to getting started.
 
@@ -22,11 +25,7 @@ Prerequisites:
 * Elm-Platform : https://guide.elm-lang.org/install.html
 
 ```bash
-# 1. Build code:
 npm install
 npm start
-
-# 2. In separate terminal:
-npm run electron
 ```
 
