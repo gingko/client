@@ -3,10 +3,8 @@ import * as data from "./data.js";
 import Worker from "worker-loader!./data.worker.js";
 const dataWorker = new Worker();
 
-const jQuery = require("jquery");
 const _ = require("lodash");
 const axios = require('axios');
-require("textarea-autosize");
 const Mousetrap = require("mousetrap");
 const screenfull = require("screenfull");
 const container = require("Container");
@@ -428,13 +426,17 @@ const fromElm = (msg, elmData) => {
     CopyCurrentSubtree: () => {
       navigator.clipboard.writeText(JSON.stringify(elmData));
       let addFlashClass = function () {
-        jQuery(".card.active").addClass("flash");
-        jQuery(".group.active-descendant").addClass("flash");
+        let activeCard = document.querySelectorAll(".card.active");
+        let activeDescendants = document.querySelectorAll(".group.active-descendant");
+        activeCard.forEach((c) => c.classList.add("flash"));
+        activeDescendants.forEach((c) => c.classList.add("flash"));
       };
 
       let removeFlashClass = function () {
-        jQuery(".card.active").removeClass("flash");
-        jQuery(".group.active-descendant").removeClass("flash");
+        let activeCard = document.querySelectorAll(".card.active");
+        let activeDescendants = document.querySelectorAll(".group.active-descendant");
+        activeCard.forEach((c) => c.classList.remove("flash"));
+        activeDescendants.forEach((c) => c.classList.remove("flash"));
       };
 
       addFlashClass();
@@ -445,11 +447,11 @@ const fromElm = (msg, elmData) => {
       navigator.clipboard.writeText(elmData.content);
 
       let addFlashClass = function () {
-        jQuery(elmData.element).addClass("flash");
+        document.querySelectorAll(elmData.element).forEach((e) => {e.classList.add("flash")});
       };
 
       let removeFlashClass = function () {
-        jQuery(elmData.element).removeClass("flash");
+        document.querySelectorAll(elmData.element).forEach((e) => {e.classList.remove("flash")});
       };
 
       addFlashClass();
@@ -462,11 +464,11 @@ const fromElm = (msg, elmData) => {
 
     FlashPrice: () => {
       let addFlashClass = function () {
-        jQuery("#price-amount").addClass("flash-2");
+        document.getElementById('price-amount').classList.add("flash-2");
       };
 
       let removeFlashClass = function () {
-        jQuery("#price-amount").removeClass("flash-2");
+        document.getElementById('price-amount').classList.remove("flash-2");
       };
 
       addFlashClass();
