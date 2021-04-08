@@ -377,7 +377,10 @@ update msg ({ workingTree } as model) =
                 | field = str
                 , dirty = True
               }
-            , send <| SetDirty True
+            , Cmd.batch
+                [ send <| SetDirty True
+                , send <| SetTextareaClone id str
+                ]
             )
 
         FullscreenMsg fullscreenMsg ->
@@ -3069,6 +3072,7 @@ viewCardEditing lang cardId content isParent isMac =
             , ( "editing", True )
             , ( "has-children", isParent )
             ]
+        , attribute "data-cloned-content" content
         ]
         [ textarea
             [ id ("card-edit-" ++ cardId)

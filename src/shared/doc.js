@@ -496,6 +496,16 @@ const fromElm = (msg, elmData) => {
       }
     },
 
+    SetTextareaClone: () => {
+      let id = elmData[0];
+      let card = document.getElementById("card-" + id);
+      if (card === null) {
+        console.error("Card not found for autogrowing textarea");
+      } else {
+        card.dataset.clonedContent = elmData[1];
+      }
+    },
+
     SetField: () => {
       let id = elmData[0];
       let field = elmData[1];
@@ -796,8 +806,6 @@ const observer = new MutationObserver(function (mutations) {
       t.onclick = selectionHandler;
       t.onfocus = selectionHandler;
     });
-
-    jQuery(textareas).textareaAutoSize();
   }
 });
 

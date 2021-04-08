@@ -40,6 +40,7 @@ type Msg
     | FlashPrice
     | TextSurround String String
     | SetField String String
+    | SetTextareaClone String String
     | SetCursorPosition Int
     | SetFullscreen Bool
       -- === UI ===
@@ -155,6 +156,9 @@ send info =
 
         SetField id str ->
             dataToSend "SetField" (list string [ id, str ])
+
+        SetTextareaClone id str ->
+            dataToSend "SetTextareaClone" (list string [ id, str ])
 
         SetCursorPosition pos ->
             dataToSend "SetCursorPosition" (int pos)
