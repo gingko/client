@@ -719,6 +719,14 @@ const selectionHandler = function () {
 
 Mousetrap.bind(helpers.shortcuts, function (e, s) {
   switch (s) {
+    case "enter":
+      if (document.activeElement.nodeName == "TEXTAREA") {
+        return;
+      } else {
+        toElm("enter","docMsgs", "Keyboard");
+      }
+      break;
+
     case "mod+v":
     case "mod+shift+v":
       let elmTag = s === "mod+v" ? "Paste" : "PasteInto";
