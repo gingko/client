@@ -1827,6 +1827,7 @@ saveAndStopEditing model =
             ( model, Cmd.none )
                 |> saveCardIfEditing
                 |> closeCard
+                |> activate model.viewState.active True
 
 
 saveCardIfEditing : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
