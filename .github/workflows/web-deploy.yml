@@ -2,7 +2,7 @@ name: Web Deploy
 
 on:
   push:
-    branches: [ spa ]
+    branches: [ master ]
 
 jobs:
   build:
