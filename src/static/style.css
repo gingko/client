@@ -1482,6 +1482,7 @@ span.trial-dark {
   width: 100%;
   display: grid;
   overflow-y: auto;
+  grid-template-columns: minmax(20px, 0.3fr) 1fr minmax(20px, 0.3fr);
   grid-template-areas: "left-gutter main right-gutter";
   background: lightgray url('./handmadepaper.png');
 }
@@ -1518,7 +1519,6 @@ span.trial-dark {
 }
 
 .card-fullscreen {
-  padding: 40px;
   border-bottom: 1px dotted #dedede;
   background: hsla(0,100%,100%, 0.1);
 }
@@ -1526,13 +1526,15 @@ span.trial-dark {
 .card-fullscreen.active-fullscreen {
   background: hsla(0,100%,100%, 0.4);
 }
-
-.card-fullscreen textarea.edit {
+.card-fullscreen {
+  display: grid;
+}
+.card-fullscreen textarea.edit, .card-fullscreen::before {
+  grid-area: 1/1/2/2;
   display: block;
   width: 100%;
   min-height: 60px;
-  padding: 15px 0px 5px 0px;
-  overflow-x: hidden;
+  padding: 40px;
   border: none;
   border-radius: inherit;
   background: transparent;
@@ -1542,6 +1544,14 @@ span.trial-dark {
   color: hsl(27,11%,75%);
   resize: none;
   outline: none;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  max-width: 100vw;
+}
+.card-fullscreen::before {
+  content: attr(data-cloned-content) " ";
+  white-space: pre-wrap;
+  visibility: hidden;
 }
 .card-fullscreen.active-fullscreen textarea.edit {
   color: hsl(27,28%,22%);

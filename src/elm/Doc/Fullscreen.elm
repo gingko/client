@@ -91,6 +91,7 @@ viewCard isActive cardId content =
             [ ( "card-fullscreen", True )
             , ( "active-fullscreen", isActive )
             ]
+        , attribute "data-cloned-content" content
         ]
         [ textarea
             [ id ("card-edit-" ++ cardId)
