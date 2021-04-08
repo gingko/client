@@ -111,13 +111,6 @@ const webConfig = {
             options: {optimize: true, verbose: true, pathToElm: "./elm-log-colors.sh"}
           }
         ]
-      },
-      {
-        test: require.resolve("textarea-autosize"),
-        use: {
-          loader: "imports-loader",
-          options: {jQuery : "jquery"}
-        }
       }
     ]
   },
@@ -217,13 +210,6 @@ const rendererConfig = merge(baseElectronConfig, {
         use: {
           loader: "elm-webpack-loader",
           options: {verbose: true, pathToElm: "./elm-log-colors.sh"}
-        }
-      },
-      {
-        test: require.resolve("textarea-autosize"),
-        use: {
-          loader: "imports-loader",
-          options: {jQuery : "jquery"}
         }
       }
     ]
