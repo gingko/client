@@ -2144,8 +2144,7 @@ pre {
 .card.editing::before {
   content: attr(data-cloned-content) " ";
   white-space: pre-wrap;
-  opacity: 0.5;
-  color: red;
+  visibility: hidden;
 }
 
 

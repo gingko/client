@@ -477,6 +477,7 @@ const fromElm = (msg, elmData) => {
       let id = elmData[0];
       let surroundString = elmData[1];
       let tarea = document.getElementById("card-edit-" + id);
+      let card = document.getElementById("card-" + id);
 
       if (tarea === null) {
         console.log("Textarea not found for TextSurround command.");
@@ -492,6 +493,10 @@ const fromElm = (msg, elmData) => {
           tarea.setSelectionRange(cursorPos, cursorPos);
           DIRTY = true;
           toElm(newValue, "docMsgs", "FieldChanged");
+
+          if (card !== null) {
+            card.dataset.clonedContent = newValue;
+          }
         }
       }
     },
@@ -756,6 +761,12 @@ Mousetrap.bind(helpers.shortcuts, function (e, s) {
         document.activeElement.value = newText;
         DIRTY = true;
         toElm(newText, "docMsgs", "FieldChanged");
+
+        let cardElementId = document.activeElement.id.replace(/^card-edit/, "card");
+        let card = document.getElementById(cardElementId);
+        if (card !== null) {
+          card.dataset.clonedContent = newText;
+        }
       }
       break;
 
