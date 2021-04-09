@@ -2801,7 +2801,7 @@ ul.changelist {
   display: none;
 }
 
-@media only screen and (max-width:25em) {
+@media only screen and (max-width:28em) {
   #app-root {
     grid-template-rows: min-content 1fr min-content;
     grid-template-areas:
@@ -2834,6 +2834,12 @@ ul.changelist {
   }
   #document-header {
     grid-template-columns: 5px max-content 1fr 40px 40px 40px min-content 0;
+  }
+  .title-grow-wrap {
+    max-width: 37vw;
+  }
+  .title-grow-wrap > input, .title-grow-wrap .shadow {
+    font-size: 14px;
   }
   #sidebar {
     height: 40px;
