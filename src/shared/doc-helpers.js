@@ -98,24 +98,10 @@ var scrollHorizTo = function (colIdx, instant) {
     console.log("scroll horiz error: not found", colIdx);
     return;
   }
-  var rect = col.getBoundingClientRect();
-  if (rect.width >= appEl.offsetWidth) {
-    TweenMax.to(appEl, scrollDuration, {
-      scrollLeft: appEl.scrollLeft + rect.left,
-      ease: Power2.easeInOut,
-    });
-  } else if (rect.left < 100) {
-    TweenMax.to(appEl, scrollDuration, {
-      scrollLeft: appEl.scrollLeft - 100 + rect.left,
-      ease: Power2.easeInOut,
-    });
-  } else if (rect.right > appEl.offsetWidth - 100) {
-    TweenMax.to(appEl, scrollDuration, {
-      scrollLeft: appEl.scrollLeft + 100 + rect.right - appEl.offsetWidth,
-      ease: Power2.easeInOut,
-    });
-  } else {
-  }
+  TweenMax.to(appEl, scrollDuration, {
+    scrollLeft: col.offsetLeft + 0.5  * (col.offsetWidth - appEl.offsetWidth),
+    ease: Power2.easeInOut,
+  });
 };
 
 /* ===== Shared variables ===== */
