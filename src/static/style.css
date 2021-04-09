@@ -1482,8 +1482,10 @@ span.trial-dark {
   width: 100%;
   display: grid;
   overflow-y: auto;
-  grid-template-columns: minmax(20px, 0.3fr) 1fr minmax(20px, 0.3fr);
-  grid-template-areas: "left-gutter main right-gutter";
+  overflow-x: hidden;
+  font-size: 24px;
+  grid-template-columns: auto minmax(min(100vw,80ch), 80ch) auto;
+  grid-template-areas: ". main .";
   background: lightgray url('./handmadepaper.png');
 }
 
