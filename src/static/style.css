@@ -129,6 +129,7 @@ body {
   position: absolute;
   width: 100%;
   height: 100%;
+  overflow-y: auto;
   display: grid;
   grid-template-columns: minmax(0px, 1fr) 20px max-content 1fr;
   grid-template-rows: min-content minmax(60px, 0.2fr) min-content 1fr;
