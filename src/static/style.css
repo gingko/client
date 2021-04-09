@@ -422,6 +422,9 @@ a.forgot-password {
   font-size: 22px;
   font-family: Catamaran, Helvetica, Arial, sans-serif;
 }
+#hamburger-icon {
+  display: none;
+}
 #sidebar-collapse-icon {
   width: 16px;
   opacity: 0.5;
