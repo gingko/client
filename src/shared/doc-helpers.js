@@ -94,6 +94,15 @@ var scrollHorizTo = function (colIdx, instant) {
   let scrollDuration = instant ? 0 : 0.3;
   var col = document.getElementsByClassName("column")[colIdx - 1];
   var appEl = document.getElementById("document");
+
+
+  let scrollDoneCallback = () => {};
+  if (!instant) {
+    /* Remove CSS scroll-snap behavior, otherwise won't animate */
+    appEl.classList.add("scroll-animation");
+    scrollDoneCallback = () => { appEl.classList.remove("scroll-animation") }
+  }
+
   if (col == null) {
     console.log("scroll horiz error: not found", colIdx);
     return;
@@ -101,6 +110,7 @@ var scrollHorizTo = function (colIdx, instant) {
   TweenMax.to(appEl, scrollDuration, {
     scrollLeft: col.offsetLeft + 0.5  * (col.offsetWidth - appEl.offsetWidth),
     ease: Power2.easeInOut,
+    onComplete: scrollDoneCallback
   });
 };
 

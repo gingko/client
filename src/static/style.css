@@ -2809,6 +2809,15 @@ ul.changelist {
         "document document right-sidebar"
         "bottom bottom bottom";
   }
+  #document {
+    scroll-snap-type: x mandatory;
+  }
+  .column {
+    scroll-snap-align: center;
+  }
+  #document.scroll-animation {
+    scroll-snap-type: none;
+  }
   #hamburger-icon {
     display: block;
     width: 40px;
