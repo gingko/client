@@ -734,6 +734,15 @@ Mousetrap.bind(helpers.shortcuts, function (e, s) {
       }
       break;
 
+    case "mod+c":
+      let exportPreview = document.getElementById("export-preview");
+      if (exportPreview !== null) {
+        return;
+      } else {
+        toElm("mod+c","docMsgs", "Keyboard");
+      }
+      break;
+
     case "mod+v":
     case "mod+shift+v":
       let elmTag = s === "mod+v" ? "Paste" : "PasteInto";
