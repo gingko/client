@@ -1593,7 +1593,7 @@ span.trial-dark {
 .group.active-descendant {
   color: var(--normal-text-color-medium);
   background: var(--active-bg);
-  border-radius: 8px 0 0 8px;
+  border-radius: unset;
 }
 
 .group .card .view img {
@@ -1663,7 +1663,7 @@ span.trial-dark {
   box-shadow: 0px 1px 3px gray;
 }
 
-.group.has-active .card.active.has-children::after {
+.group.has-active .card.active.has-children::before {
   content: '';
   background: var(--active-bg);
   position: absolute;
@@ -1673,11 +1673,6 @@ span.trial-dark {
   top: 0;
   opacity: 1;
   transition: none;
-  box-shadow: 3px 1px 3px gray;
-}
-.group.has-active .card.editing.has-children::after {
-  opacity: 0;
-  transition: opacity 2s ease;
 }
 
 .card.ancestor {
@@ -2233,6 +2228,53 @@ pre {
   opacity: 0.4;
 }
 
+
+/* --- Fillet --- */
+
+#fillet-top {
+  position: absolute;
+  top: -20px;
+  right: -9px;
+  width: 20px;
+  height: 20px;
+}
+#fillet-top-mask circle {
+  fill: black;
+}
+#fillet-top-mask rect {
+  fill: white;
+}
+#fillet-top-fill {
+  fill: white;
+}
+#fillet-top.flipped #fillet-top-fill {
+  fill: var(--tree-bg-1);
+  transform-origin: center;
+  transform: scaleY(-1);
+}
+
+#fillet-bottom {
+  position: absolute;
+  bottom: -20px;
+  right: -9px;
+  width: 20px;
+  height: 20px;
+  z-index: 3;
+}
+#fillet-bottom-mask circle {
+  fill: black;
+}
+#fillet-bottom-mask rect {
+  fill: white;
+}
+#fillet-bottom-fill {
+  fill: white;
+}
+#fillet-bottom.flipped #fillet-bottom-fill {
+  fill: var(--tree-bg-1);
+  transform-origin: center;
+  transform: scaleY(-1);
+}
 
 
 /* --- Button positioning & colors --- */

@@ -21,6 +21,7 @@ import File.Select as Select
 import Html exposing (Html, div, span, text, textarea, ul)
 import Html.Attributes exposing (attribute, class, classList, dir, id, style, title, value)
 import Html.Events exposing (onClick, onDoubleClick, onInput)
+import Html.Extra exposing (viewIf)
 import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy2, lazy4, lazy5, lazy7, lazy8)
 import Html5.DragDrop as DragDrop
@@ -41,6 +42,8 @@ import RandomId
 import Regex
 import Route
 import Session exposing (Session)
+import Svg exposing (circle, mask, rect, svg)
+import Svg.Attributes exposing (cx, cy, height, preserveAspectRatio, r, rx, ry, viewBox, width, x, y)
 import Task
 import Time
 import Translation exposing (Language, TranslationId(..), tr)
@@ -3026,6 +3029,22 @@ viewCardActive lang cardId content isParent isLast collabsOnCard collabsEditingC
                     ]
                     [ text "+" ]
                 ]
+            , viewIf isParent <|
+                svg [ id "fillet-top", preserveAspectRatio "none", viewBox "0 0 30 30" ]
+                    [ mask [ id "fillet-top-mask" ]
+                        [ rect [ x "0", y "0", width "30", height "30" ] []
+                        , circle [ cx "0", cy "0", r "30" ] []
+                        ]
+                    , rect [ id "fillet-top-fill", x "0", y "0", width "30", height "30", Svg.Attributes.mask "url(#fillet-top-mask)" ] []
+                    ]
+            , viewIf isParent <|
+                svg [ id "fillet-bottom", preserveAspectRatio "none", viewBox "0 0 30 30" ]
+                    [ mask [ id "fillet-bottom-mask" ]
+                        [ rect [ x "0", y "0", width "30", height "30" ] []
+                        , circle [ cx "0", cy "30", r "30" ] []
+                        ]
+                    , rect [ id "fillet-bottom-fill", x "0", y "0", width "30", height "30", Svg.Attributes.mask "url(#fillet-bottom-mask)" ] []
+                    ]
             ]
     in
     div

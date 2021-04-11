@@ -412,6 +412,11 @@ const fromElm = (msg, elmData) => {
       lastActivesScrolled = elmData;
       lastColumnScrolled = elmData.columnIdx;
       localStore.set('last-actives', elmData.lastActives);
+      window.requestAnimationFrame(()=>{
+        let columns = document.getElementsByClassName("column");
+        let currCol = columns[elmData.columnIdx - 1];
+        currCol.onscroll = columnFilletScrollHandler;
+      });
     },
 
     ScrollFullscreenCards: () => {
@@ -682,6 +687,38 @@ window.onresize = () => {
     debouncedScrollHorizontal(lastColumnScrolled);
   }
 };
+
+const columnFilletScrollHandler = (ev) => {
+  let currCol = ev.target;
+  let colIdx = Array.prototype.indexOf.call(currCol.parentNode.children, currCol);
+  let columns = document.getElementsByClassName("column");
+  let nextCol = columns[colIdx+1];
+  let activeCard = document.getElementsByClassName("card active")[0].getBoundingClientRect();
+  let filletTop = document.getElementById("fillet-top");
+  let filletBottom = document.getElementById("fillet-bottom");
+  let childGroup = nextCol.getElementsByClassName("group active-descendant")[0].getBoundingClientRect();
+  let topDelta = Math.min(Math.max(activeCard.y - childGroup.y, -20), 20);
+  let bottomDelta = Math.min(Math.max(activeCard.y + activeCard.height - childGroup.y - childGroup.height, -20), 20);
+  if (topDelta > 0) {
+    filletTop.style.height = topDelta + "px";
+    filletTop.style.top = "-" + topDelta + "px";
+    filletTop.classList.remove("flipped");
+  } else {
+    filletTop.style.height = -topDelta + "px";
+    filletTop.style.top = 0;
+    filletTop.classList.add("flipped");
+  }
+  if (bottomDelta > 0) {
+    filletBottom.style.height = bottomDelta + "px";
+    filletBottom.style.bottom = 0;
+    filletBottom.classList.add("flipped");
+  } else {
+    filletBottom.style.height = -bottomDelta + "px";
+    filletBottom.style.bottom = bottomDelta + "px";
+    filletBottom.classList.remove("flipped");
+  }
+  console.log(bottomDelta);
+}
 
 const debouncedScrollColumns = _.debounce(helpers.scrollColumns, 200);
 const debouncedScrollHorizontal = _.debounce(helpers.scrollHorizontal, 200);
