@@ -1662,7 +1662,7 @@ activate tryId instant ( model, prevCmd ) =
                         activeTree.content
 
                     ( newTourStep, tourPositionCmd ) =
-                        if model.tourStep == Just 1 && String.contains "welcome-step-1" activeTree.content then
+                        if model.tourStep == Just 1 && String.contains "Clicking a card selects it." activeTree.content then
                             ( Just 2, send <| PositionTourStep 2 "another-card" )
 
                         else
@@ -1805,23 +1805,23 @@ saveAndStopEditing model =
         vs =
             model.viewState
 
-        newTourStep =
+        ( newTourStep, tourStepPositionCmd ) =
             case model.tourStep of
                 Just 4 ->
-                    Just 5
+                    ( Just 5, send <| PositionTourStep 5 "another-card" )
 
                 Just 5 ->
-                    Just 6
+                    ( Just 6, Cmd.none )
 
                 _ ->
-                    model.tourStep
+                    ( model.tourStep, Cmd.none )
     in
     case vs.viewMode of
         Normal ->
             ( model, Cmd.none ) |> openCard vs.active (getContent vs.active model.workingTree.tree)
 
         Editing ->
-            ( { model | tourStep = newTourStep }, Cmd.none )
+            ( { model | tourStep = newTourStep }, tourStepPositionCmd )
                 |> saveCardIfEditing
                 |> closeCard
 
@@ -2771,6 +2771,21 @@ viewLoaded model =
                                 , div [] []
                                 , div [] []
                                 , div [] []
+                                , div [] []
+                                , div [] []
+                                ]
+                            ]
+                     , viewIf (model.tourStep == Just 5 && DragDrop.getDragId model.viewState.dragModel == Nothing) <|
+                        div [ id "welcome-step-5", class "tour-step", class "shimmer" ]
+                            [ text "Drag a card to move it"
+                            , div [ class "arrow" ] [ text "▼" ]
+                            , div [ id "progress-step-5", class "tour-step-progress" ]
+                                [ div [ class "bg-line", class "off" ] []
+                                , div [ class "on" ] []
+                                , div [ class "on" ] []
+                                , div [ class "on" ] []
+                                , div [ class "on" ] []
+                                , div [ class "on" ] []
                                 , div [] []
                                 , div [] []
                                 ]
