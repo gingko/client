@@ -1898,10 +1898,10 @@ div.tour-step {
 #app-root.step-2 #welcome-step-2 {
   display: block;
   opacity: 1;
-  top: 17%;
-  right: 32px;
+  width: 100%;
   max-width: 206px;
   text-align: right;
+  transform: translateX(-108%);
 }
 #welcome-step-2 .arrow {
   top: 14px;
@@ -1922,6 +1922,7 @@ div.tour-step {
   display: block;
   opacity: 1;
   max-width: 206px;
+  top: 100%;
 }
 #welcome-step-3 .arrow {
   text-shadow: none;
@@ -1935,6 +1936,7 @@ div.tour-step {
   display: block;
   opacity: 1;
   max-width: 188px;
+  top: 100%;
 }
 #welcome-step-4 .arrow {
   text-shadow: none;

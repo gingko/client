@@ -810,7 +810,13 @@ Mousetrap.bind(["shift+tab"], function () {
 
 
 const positionTourStep = function (stepNum, refElementId) {
-  let refElement = document.getElementById(refElementId);
+  let refElement;
+  if (stepNum == 1) {
+    refElement = document.getElementById(refElementId);
+  } else if (stepNum == 2) {
+    refElement = document.getElementById(refElementId).parentElement.parentElement.parentElement.getElementsByClassName('ins-right')[0];
+    console.log({refElement})
+  }
   let tourElement = document.getElementById("welcome-step-"+stepNum);
   if (refElementId !== null && tourElement !== null) {
     let refRect = refElement.getBoundingClientRect();

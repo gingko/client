@@ -1661,12 +1661,12 @@ activate tryId instant ( model, prevCmd ) =
                     newField =
                         activeTree.content
 
-                    newTourStep =
+                    ( newTourStep, tourPositionCmd ) =
                         if model.tourStep == Just 1 && String.contains "welcome-step-1" activeTree.content then
-                            Just 2
+                            ( Just 2, send <| PositionTourStep 2 "another-card" )
 
                         else
-                            model.tourStep
+                            ( model.tourStep, Cmd.none )
 
                     newModel =
                         { model
@@ -1700,6 +1700,7 @@ activate tryId instant ( model, prevCmd ) =
                             [ prevCmd
                             , send
                                 (ScrollCards (id :: newPast) scrollPositions colIdx instant)
+                            , tourPositionCmd
                             ]
                         )
                             |> sendCollabState (CollabState model.uid (CollabActive id) "")
@@ -2752,6 +2753,21 @@ viewLoaded model =
                                 [ div [ class "bg-line", class "off" ] []
                                 , div [ class "on" ] []
                                 , div [] []
+                                , div [] []
+                                , div [] []
+                                , div [] []
+                                , div [] []
+                                , div [] []
+                                ]
+                            ]
+                     , viewIf (model.tourStep == Just 2) <|
+                        div [ id "welcome-step-2", class "tour-step", class "shimmer" ]
+                            [ text "Click here to add a Child card"
+                            , div [ class "arrow" ] [ text "▶" ]
+                            , div [ id "progress-step-2", class "tour-step-progress" ]
+                                [ div [ class "bg-line", class "off" ] []
+                                , div [ class "on" ] []
+                                , div [ class "on" ] []
                                 , div [] []
                                 , div [] []
                                 , div [] []
