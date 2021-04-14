@@ -18,9 +18,10 @@ import Doc.UI as UI exposing (countWords, viewConflict, viewMobileButtons, viewS
 import File exposing (File)
 import File.Download as Download
 import File.Select as Select
-import Html exposing (Html, div, span, text, textarea, ul)
+import Html exposing (Html, div, h1, span, text, textarea, ul)
 import Html.Attributes exposing (attribute, class, classList, dir, id, style, title, value)
 import Html.Events exposing (onClick, onDoubleClick, onInput)
+import Html.Extra exposing (viewIf)
 import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy2, lazy4, lazy5, lazy7, lazy8)
 import Html5.DragDrop as DragDrop
@@ -1248,7 +1249,7 @@ update msg ({ workingTree } as model) =
 
                 -- === UI ===
                 StartTour ->
-                    ( { model | tourStep = Just 1 }, Cmd.none )
+                    ( { model | tourStep = Just 1 }, send <| PositionTourStep 1 "another-card" )
 
                 ViewVideos ->
                     ( model
@@ -2743,6 +2744,21 @@ viewLoaded model =
                         )
                         model.sidebarMenuState
                         model.sidebarState
+                     , viewIf (model.tourStep == Just 1) <|
+                        div [ id "welcome-step-1", class "tour-step", class "shimmer" ]
+                            [ text "1. Click Here"
+                            , div [ class "arrow" ] [ text "▼" ]
+                            , div [ id "progress-step-1", class "tour-step-progress" ]
+                                [ div [ class "bg-line", class "off" ] []
+                                , div [ class "on" ] []
+                                , div [] []
+                                , div [] []
+                                , div [] []
+                                , div [] []
+                                , div [] []
+                                , div [] []
+                                ]
+                            ]
                      , maybeExportView
                      ]
                         ++ UI.viewShortcuts

@@ -43,6 +43,7 @@ type Msg
     | SetTextareaClone String String
     | SetCursorPosition Int
     | SetFullscreen Bool
+    | PositionTourStep Int String
       -- === UI ===
     | UpdateCommits ( Enc.Value, Maybe String )
     | HistorySlider Int
@@ -165,6 +166,9 @@ send info =
 
         SetFullscreen shouldFullscreen ->
             dataToSend "SetFullscreen" (bool shouldFullscreen)
+
+        PositionTourStep step elId ->
+            dataToSend "PositionTourStep" (tupleToValue identity ( int step, string elId ))
 
         -- === UI ===
         UpdateCommits ( objectsValue, head_ ) ->

@@ -537,6 +537,13 @@ const fromElm = (msg, elmData) => {
       }
     },
 
+    PositionTourStep: () => {
+      let stepNum = elmData[0];
+      let refElementId = elmData[1];
+      setTimeout(positionTourStep, 200, stepNum, refElementId);
+      setTimeout(addTourStepScrollHandler, 250, stepNum, refElementId, 2);
+    },
+
     // === UI ===
     UpdateCommits: () => {},
 
@@ -800,6 +807,34 @@ Mousetrap.bind(["shift+tab"], function () {
 });
 
 /* === DOM manipulation === */
+
+
+const positionTourStep = function (stepNum, refElementId) {
+  let refElement = document.getElementById(refElementId);
+  let tourElement = document.getElementById("welcome-step-"+stepNum);
+  if (refElementId !== null && tourElement !== null) {
+    let refRect = refElement.getBoundingClientRect();
+    tourElement.style.top = refRect.top + "px";
+    tourElement.style.left = refRect.left + "px";
+  } else {
+    console.log("NOT FOUND BOTH")
+  }
+}
+
+const addTourStepScrollHandler = (stepNum, refElementId, colNum) => {
+  let col = document.getElementsByClassName("column")[colNum-1];
+  let ticking =  false;
+  col.onscroll = () => {
+    if (!ticking) {
+      window.requestAnimationFrame(()=> {
+        positionTourStep(stepNum, refElementId);
+        ticking = false;
+      })
+
+      ticking = true;
+    }
+  }
+}
 
 const observer = new MutationObserver(function (mutations) {
   const isTextarea = function (node) {

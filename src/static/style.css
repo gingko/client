@@ -1877,8 +1877,7 @@ div.tour-step {
 #app-root.step-1 #welcome-step-1 {
   display: block;
   opacity: 1;
-  top: -32px;
-  left: -2px;
+  transform: translateY(-120%);
 }
 #welcome-step-1 .arrow {
   bottom: -19px;
