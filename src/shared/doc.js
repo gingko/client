@@ -26,8 +26,8 @@ import { Elm } from "../elm/Main";
 let lastActivesScrolled = null;
 let lastColumnScrolled = null;
 let lang = "en";
-let helpVisible;
-let helpWidgetLauncher;
+let tourStepPositionStepNum = false;
+let tourStepPositionRefElementId = "";
 window.elmMessages = [];
 
 let remoteDB;
@@ -540,8 +540,13 @@ const fromElm = (msg, elmData) => {
     PositionTourStep: () => {
       let stepNum = elmData[0];
       let refElementId = elmData[1];
-      setTimeout(positionTourStep, 200, stepNum, refElementId);
-      setTimeout(addTourStepScrollHandler, 250, stepNum, refElementId, 2);
+      if (stepNum == 1) {
+        tourStepPositionStepNum = elmData[0];
+        tourStepPositionRefElementId = elmData[1];
+      } else {
+        setTimeout(positionTourStep, 100, stepNum, refElementId);
+        setTimeout(addTourStepScrollHandler, 120, stepNum, refElementId, 2);
+      }
     },
 
     // === UI ===
@@ -821,22 +826,22 @@ const positionTourStep = function (stepNum, refElementId) {
     let refRect = refElement.getBoundingClientRect();
     tourElement.style.top = refRect.top + "px";
     tourElement.style.left = refRect.left + "px";
-  } else {
-    console.log("NOT FOUND BOTH")
   }
 }
 
 const addTourStepScrollHandler = (stepNum, refElementId, colNum) => {
   let col = document.getElementsByClassName("column")[colNum-1];
-  let ticking =  false;
-  col.onscroll = () => {
-    if (!ticking) {
-      window.requestAnimationFrame(()=> {
-        positionTourStep(stepNum, refElementId);
-        ticking = false;
-      })
+  if (col) {
+    let ticking =  false;
+    col.onscroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(()=> {
+          positionTourStep(stepNum, refElementId);
+          ticking = false;
+        })
 
-      ticking = true;
+        ticking = true;
+      }
     }
   }
 }
@@ -846,8 +851,8 @@ const observer = new MutationObserver(function (mutations) {
     return node.nodeName == "TEXTAREA" && node.className == "edit mousetrap";
   };
 
-  const isHelpWidget = function (node) {
-    return node.nodeName == "IFRAME" && node.id == "launcher-frame";
+  const isTourStepOne = function (node) {
+    return document.getElementById('welcome-step-1');
   };
 
   let textareas = [];
@@ -856,11 +861,10 @@ const observer = new MutationObserver(function (mutations) {
     [].slice.call(m.addedNodes).map((n) => {
       if (isTextarea(n)) {
         textareas.push(n);
-      } else if (isHelpWidget(n)) {
-        helpWidgetLauncher = n;
-        if (!helpVisible) {
-          helpWidgetLauncher.style.visibility = "hidden";
-        }
+      } else if (isTourStepOne(n)) {
+        // Add handlers with MutationObserver for first step
+        positionTourStep(tourStepPositionStepNum, tourStepPositionRefElementId);
+        addTourStepScrollHandler(tourStepPositionStepNum, tourStepPositionRefElementId, 2)
       } else {
         if (n.querySelectorAll) {
           let tareas = [].slice.call(n.querySelectorAll("textarea.edit"));
