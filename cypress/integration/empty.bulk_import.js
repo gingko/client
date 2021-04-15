@@ -60,7 +60,7 @@ describe('Legacy Imports from Empty State', () => {
     cy.get('.modal-guts button')
       .click()
 
-    cy.wait(400)
+    cy.wait(2000)
 
     cy.get('#documents-icon')
       .click()
