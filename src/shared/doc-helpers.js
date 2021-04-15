@@ -144,8 +144,10 @@ const setColumnFillets = (currColumn, colIdx, filletData) => {
     let bottomDelta = Math.min(Math.max((filletData[colIdx].bottom - filletData[colIdx+1].bottom)*0.5, -16), 16);
     let [filletTop, filletBottom] = activeCard.getElementsByClassName("fillet");
 
-    setTop(topDelta, filletTop);
-    setBottom(bottomDelta, filletBottom);
+    if (filletTop && filletBottom) {
+      setTop(topDelta, filletTop);
+      setBottom(bottomDelta, filletBottom);
+    }
 
   } else if(filletData[colIdx] != null && filletData[colIdx-1] != null) {
     // Active Descendant
@@ -156,29 +158,33 @@ const setColumnFillets = (currColumn, colIdx, filletData) => {
     let filletTopLeft = allTopLeftFillets[0];
     let filletBottomLeft = allBottomLeftFillets[allBottomLeftFillets.length - 1];
 
-    filletTopLeft.style.display = "block";
-    filletBottomLeft.style.display = "block";
-    Array.from(allTopLeftFillets).map((f,i) => {if (i!=0) {f.style.display = "none";}})
-    Array.from(allBottomLeftFillets).map((f,i,a) => {if (i != a.length - 1) {f.style.display = "none";}})
+    if(filletTopLeft && filletBottomLeft) {
+      filletTopLeft.style.display = "block";
+      filletBottomLeft.style.display = "block";
+      Array.from(allTopLeftFillets).map((f,i) => {if (i!=0) {f.style.display = "none";}})
+      Array.from(allBottomLeftFillets).map((f,i,a) => {if (i != a.length - 1) {f.style.display = "none";}})
 
-    setTop(topLeftDelta, filletTopLeft);
-    setBottom(bottomLeftDelta, filletBottomLeft);
+      setTop(topLeftDelta, filletTopLeft);
+      setBottom(bottomLeftDelta, filletBottomLeft);
+    }
 
     // Active Descendant Right (Nested If)
     let filletTopRight = currColumn.getElementsByClassName("fillet top-right")[0];
     let allBottomRightFillets= currColumn.getElementsByClassName("fillet bottom-right");
     let filletBottomRight = allBottomRightFillets[allBottomRightFillets.length - 1];
-    if (filletData[colIdx + 1] != null) {
-      filletTopRight.style.display = "block";
-      filletBottomRight.style.display = "block";
-      let topRightDelta = Math.min(Math.max((filletData[colIdx].top - filletData[colIdx+1].top)*0.5, -16), 16);
-      let bottomRightDelta = Math.min(Math.max(filletData[colIdx].bottom - filletData[colIdx+1].bottom, -16), 16);
+    if (filletTopRight && filletBottomRight) {
+      if (filletData[colIdx + 1] != null) {
+        filletTopRight.style.display = "block";
+        filletBottomRight.style.display = "block";
+        let topRightDelta = Math.min(Math.max((filletData[colIdx].top - filletData[colIdx+1].top)*0.5, -16), 16);
+        let bottomRightDelta = Math.min(Math.max(filletData[colIdx].bottom - filletData[colIdx+1].bottom, -16), 16);
 
-      setTop(topRightDelta, filletTopRight);
-      setBottom(bottomRightDelta, filletBottomRight);
-    } else {
-      filletTopRight.style.display = "none";
-      filletBottomRight.style.display = "none";
+        setTop(topRightDelta, filletTopRight);
+        setBottom(bottomRightDelta, filletBottomRight);
+      } else {
+        filletTopRight.style.display = "none";
+        filletBottomRight.style.display = "none";
+      }
     }
   }
 }
