@@ -17,6 +17,7 @@ type Route
     | DocNew
     | DocUntitled String
     | Doc String String
+    | Copy String
     | Import Template
     | Upgrade Bool
 
@@ -29,6 +30,7 @@ parser =
         , Parser.map Login (s "login")
         , Parser.map ForgotPassword (s "forgot-password" <?> Query.string "email")
         , Parser.map ResetPassword (s "reset-password" </> string)
+        , Parser.map Copy (s "copy" </> string)
         , Parser.map Import (s "import" </> Parser.custom "IMPORT" Template.fromString)
         , Parser.map DocNew (s "new")
         , s "upgrade"
@@ -77,6 +79,9 @@ toString route =
 
         Doc dbName docName ->
             "/" ++ dbName ++ "/" ++ docName
+
+        Copy dbName ->
+            "/copy/" ++ dbName
 
         Import template ->
             "/import/" ++ Template.toString template

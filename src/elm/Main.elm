@@ -6,6 +6,7 @@ import Doc.UI as UI
 import Html
 import Json.Decode as Dec exposing (Decoder, Value)
 import Outgoing exposing (Msg(..), send)
+import Page.Copy
 import Page.Doc
 import Page.DocNew
 import Page.Empty
@@ -34,6 +35,7 @@ type Model
     | ForgotPassword Page.ForgotPassword.Model
     | ResetPassword Page.ResetPassword.Model
     | Empty Page.Empty.Model
+    | Copy Page.Copy.Model
     | Import Page.Import.Model
     | DocNew Session
     | Doc Page.Doc.Model
@@ -105,6 +107,9 @@ changeRouteTo maybeRoute model =
             Just (Route.Doc dbName _) ->
                 Page.Doc.init user dbName False |> updateWith Doc GotDocMsg
 
+            Just (Route.Copy dbName) ->
+                Page.Copy.init user dbName |> updateWith Copy GotCopyMsg
+
             Just (Route.Import template) ->
                 Page.Import.init user template
                     |> updateWith Import GotImportMsg
@@ -175,6 +180,9 @@ toUser page =
         Empty home ->
             Page.Empty.toUser home
 
+        Copy copy ->
+            Page.Copy.toUser copy
+
         Import user ->
             user
 
@@ -199,6 +207,7 @@ type Msg
     | GotForgotPasswordMsg Page.ForgotPassword.Msg
     | GotResetPasswordMsg Page.ResetPassword.Msg
     | GotEmptyMsg Page.Empty.Msg
+    | GotCopyMsg Page.Copy.Msg
     | GotImportMsg Page.Import.Msg
     | GotDocNewMsg Page.DocNew.Msg
     | GotDocMsg Page.Doc.Msg
@@ -269,6 +278,10 @@ update msg model =
             Page.Empty.update emptyMsg emptyModel
                 |> updateWith Empty GotEmptyMsg
 
+        ( GotCopyMsg copyMsg, Copy copyModel ) ->
+            Page.Copy.update copyMsg copyModel
+                |> updateWith Copy GotCopyMsg
+
         ( GotImportMsg homeMsg, Import homeModel ) ->
             Page.Import.update homeMsg homeModel
                 |> updateWith Import GotImportMsg
@@ -328,6 +341,9 @@ view model =
         Empty empty ->
             { title = "Gingko Writer", body = [ Html.map GotEmptyMsg (Page.Empty.view empty) ] }
 
+        Copy copyModel ->
+            { title = "Duplicating...", body = [ UI.viewLoadingSpinner (Session.fileMenuOpen copyModel.session) ] }
+
         Import importModel ->
             { title = "Importing...", body = [ UI.viewLoadingSpinner (Session.fileMenuOpen importModel) ] }
 
@@ -368,6 +384,9 @@ subscriptions model =
 
         Empty pageModel ->
             Sub.map GotEmptyMsg (Page.Empty.subscriptions pageModel)
+
+        Copy pageModel ->
+            Sub.map GotCopyMsg (Page.Copy.subscriptions pageModel)
 
         Import pageModel ->
             Sub.map GotImportMsg (Page.Import.subscriptions pageModel)

@@ -309,6 +309,16 @@ const fromElm = (msg, elmData) => {
 
     },
 
+    CopyDocument: async () => {
+      // Load title
+      let metadata = await data.loadMetadata(db, elmData);
+
+      // Load local document data.
+      let [loadedData, savedIds] = await data.load(db, elmData);
+      savedIds.forEach(item => savedObjectIds.add(item));
+      toElm([metadata.name, loadedData], "copyLoaded");
+    },
+
     GetDocumentList: () => {
       loadDocListAndSend(remoteDB, "GetDocumentList");
     },
