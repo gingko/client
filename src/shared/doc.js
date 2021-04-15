@@ -318,7 +318,7 @@ const fromElm = (msg, elmData) => {
       let [loadedData, savedIds] = await data.load(db, elmData);
       savedIds.forEach(item => savedObjectIds.add(item));
 
-      if (loadedData.length > 5) {
+      if (loadedData.hasOwnProperty("commit") && loadedData.commit.length > 0) {
         localExists = true;
         toElm([metadata.name, loadedData], "copyLoaded");
       } else {
