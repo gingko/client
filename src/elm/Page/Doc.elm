@@ -2957,7 +2957,18 @@ viewGroup vstate xs =
             , ( "active-descendant", isActiveDescendant )
             ]
         ]
-        (List.map viewFunction xs)
+        ((if isActiveDescendant then
+            [ ( "fillet-top-left", UI.fillet "top-left" )
+            , ( "fillet-bottom-left", UI.fillet "bottom-left" )
+            , ( "fillet-top-right", UI.fillet "top-right" )
+            , ( "fillet-bottom-right", UI.fillet "bottom-right" )
+            ]
+
+          else
+            []
+         )
+            ++ List.map viewFunction xs
+        )
 
 
 viewCardOther : String -> String -> Bool -> Bool -> Bool -> Bool -> DragDrop.Model String DropId -> Html Msg
@@ -3029,22 +3040,8 @@ viewCardActive lang cardId content isParent isLast collabsOnCard collabsEditingC
                     ]
                     [ text "+" ]
                 ]
-            , viewIf isParent <|
-                svg [ id "fillet-top", preserveAspectRatio "none", viewBox "0 0 30 30" ]
-                    [ mask [ id "fillet-top-mask" ]
-                        [ rect [ x "0", y "0", width "30", height "30" ] []
-                        , circle [ cx "0", cy "0", r "30" ] []
-                        ]
-                    , rect [ id "fillet-top-fill", x "0", y "0", width "30", height "30", Svg.Attributes.mask "url(#fillet-top-mask)" ] []
-                    ]
-            , viewIf isParent <|
-                svg [ id "fillet-bottom", preserveAspectRatio "none", viewBox "0 0 30 30" ]
-                    [ mask [ id "fillet-bottom-mask" ]
-                        [ rect [ x "0", y "0", width "30", height "30" ] []
-                        , circle [ cx "0", cy "30", r "30" ] []
-                        ]
-                    , rect [ id "fillet-bottom-fill", x "0", y "0", width "30", height "30", Svg.Attributes.mask "url(#fillet-bottom-mask)" ] []
-                    ]
+            , viewIf isParent <| UI.fillet "top-right"
+            , viewIf isParent <| UI.fillet "bottom-right"
             ]
     in
     div
