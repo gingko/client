@@ -25,6 +25,8 @@ import { Elm } from "../elm/Main";
 
 let lastActivesScrolled = null;
 let lastColumnScrolled = null;
+let filletData = [];
+let ticking = false;
 let lang = "en";
 window.elmMessages = [];
 
@@ -414,7 +416,18 @@ const fromElm = (msg, elmData) => {
         updateFillets();
         let columns = Array.from(document.getElementsByClassName("column"));
         columns.map((c, i) => {
-          c.onscroll = () => {updateFillets();}
+          c.addEventListener('scroll', () => {
+            updateFilletData();
+
+            if(!ticking) {
+              window.requestAnimationFrame(() => {
+                updateFillets();
+                ticking = false;
+              })
+
+              ticking = true;
+            }
+          })
         })
       });
     },

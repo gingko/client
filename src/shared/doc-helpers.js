@@ -151,9 +151,15 @@ const setColumnFillets = (currColumn, colIdx, filletData) => {
     // Active Descendant
     let topLeftDelta = Math.min(Math.max((filletData[colIdx].top - filletData[colIdx-1].top)*0.5, -16), 16);
     let bottomLeftDelta = Math.min(Math.max(filletData[colIdx].bottom - filletData[colIdx-1].bottom, -16), 16);
-    let filletTopLeft = currColumn.getElementsByClassName("fillet top-left")[0];
+    let allTopLeftFillets = currColumn.getElementsByClassName("fillet top-left");
     let allBottomLeftFillets= currColumn.getElementsByClassName("fillet bottom-left");
+    let filletTopLeft = allTopLeftFillets[0];
     let filletBottomLeft = allBottomLeftFillets[allBottomLeftFillets.length - 1];
+
+    filletTopLeft.style.display = "block";
+    filletBottomLeft.style.display = "block";
+    Array.from(allTopLeftFillets).map((f,i) => {if (i!=0) {f.style.display = "none";}})
+    Array.from(allBottomLeftFillets).map((f,i,a) => {if (i != a.length - 1) {f.style.display = "none";}})
 
     setTop(topLeftDelta, filletTopLeft);
     setBottom(bottomLeftDelta, filletBottomLeft);
@@ -163,12 +169,16 @@ const setColumnFillets = (currColumn, colIdx, filletData) => {
     let allBottomRightFillets= currColumn.getElementsByClassName("fillet bottom-right");
     let filletBottomRight = allBottomRightFillets[allBottomRightFillets.length - 1];
     if (filletData[colIdx + 1] != null) {
+      filletTopRight.style.display = "block";
+      filletBottomRight.style.display = "block";
       let topRightDelta = Math.min(Math.max((filletData[colIdx].top - filletData[colIdx+1].top)*0.5, -16), 16);
       let bottomRightDelta = Math.min(Math.max(filletData[colIdx].bottom - filletData[colIdx+1].bottom, -16), 16);
 
       setTop(topRightDelta, filletTopRight);
       setBottom(bottomRightDelta, filletBottomRight);
     } else {
+      filletTopRight.style.display = "none";
+      filletBottomRight.style.display = "none";
     }
   }
 }

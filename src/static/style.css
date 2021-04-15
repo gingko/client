@@ -1594,6 +1594,7 @@ span.trial-dark {
   color: var(--normal-text-color-medium);
   background: var(--active-bg);
   border-radius: unset;
+  z-index: 9;
 }
 
 .group .card .view img {
