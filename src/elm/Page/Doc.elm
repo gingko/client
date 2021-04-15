@@ -1,5 +1,6 @@
 module Page.Doc exposing (Model, Msg, getTitle, init, subscriptions, toUser, update, view)
 
+import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
 import Bytes exposing (Bytes)
 import Coders exposing (treeToMarkdownString, treeToValue)
@@ -247,6 +248,7 @@ type Msg
     | ImportJSONRequested
     | FileSearchChanged String
     | SidebarContextClicked String ( Float, Float )
+    | DuplicateDoc String
     | DeleteDoc String
     | HistoryToggled Bool
     | DocSettingsToggled Bool
@@ -843,6 +845,9 @@ update msg ({ workingTree } as model) =
 
         SidebarContextClicked docId ( x, y ) ->
             ( { model | modalState = SidebarContextMenu docId ( x, y ) }, Cmd.none )
+
+        DuplicateDoc docId ->
+            ( { model | modalState = NoModal }, Route.replaceUrl (Session.navKey model.session) (Route.Copy docId) )
 
         DeleteDoc docId ->
             ( { model | modalState = NoModal }, send <| RequestDelete docId )
@@ -3333,7 +3338,11 @@ viewModal language model =
                 , style "top" (String.fromFloat y ++ "px")
                 , style "left" (String.fromFloat x ++ "px")
                 ]
-                [ div [ onClick (DeleteDoc docId), class "context-menu-item" ] [ text "Delete Tree" ] ]
+                [ div [ onClick (DuplicateDoc docId), class "context-menu-item" ]
+                    [ AntIcons.copyOutlined [ Svg.Attributes.class "icon" ], text "Duplicate Tree" ]
+                , div [ onClick (DeleteDoc docId), class "context-menu-item" ]
+                    [ AntIcons.deleteOutlined [ Svg.Attributes.class "icon" ], text "Delete Tree" ]
+                ]
             ]
 
         TemplateSelector ->

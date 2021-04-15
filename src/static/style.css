@@ -1338,12 +1338,17 @@ span.trial-dark {
 }
 
 .context-menu-item {
+  display: flex;
   cursor: pointer;
   padding: 6px 10px;
   font-size: 16px;
 }
 .context-menu-item:hover {
   background-color: lightblue;
+}
+.context-menu-item .icon {
+  width: 16px;
+  margin-right: 10px;
 }
 
 .modal-container {
