@@ -1458,7 +1458,6 @@ span.trial-dark {
   overflow-x: hidden;
   overflow-y: scroll;
   scrollbar-width: none;
-  transform: translateZ(0);
 }
 
 .column::-webkit-scrollbar {
