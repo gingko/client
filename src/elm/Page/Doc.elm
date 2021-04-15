@@ -3003,17 +3003,17 @@ viewGroup vstate xs =
             , ( "active-descendant", isActiveDescendant )
             ]
         ]
-        ((if isActiveDescendant then
-            [ ( "fillet-top-left", UI.fillet "top-left" )
-            , ( "fillet-bottom-left", UI.fillet "bottom-left" )
-            , ( "fillet-top-right", UI.fillet "top-right" )
-            , ( "fillet-bottom-right", UI.fillet "bottom-right" )
-            ]
+        (List.map viewFunction xs
+            ++ (if isActiveDescendant then
+                    [ ( "fillet-top-left", UI.fillet "top-left" )
+                    , ( "fillet-bottom-left", UI.fillet "bottom-left" )
+                    , ( "fillet-top-right", UI.fillet "top-right" )
+                    , ( "fillet-bottom-right", UI.fillet "bottom-right" )
+                    ]
 
-          else
-            []
-         )
-            ++ List.map viewFunction xs
+                else
+                    []
+               )
         )
 
 
