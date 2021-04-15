@@ -314,9 +314,37 @@ const fromElm = (msg, elmData) => {
       let metadata = await data.loadMetadata(db, elmData);
 
       // Load local document data.
+      let localExists;
       let [loadedData, savedIds] = await data.load(db, elmData);
       savedIds.forEach(item => savedObjectIds.add(item));
-      toElm([metadata.name, loadedData], "copyLoaded");
+
+      if (loadedData.length > 5) {
+        localExists = true;
+        toElm([metadata.name, loadedData], "copyLoaded");
+      } else {
+        localExists = false;
+        let remoteExists;
+        PULL_LOCK = true;
+        try {
+          let pullResult = await data.pull(db, remoteDB, elmData, "LoadDocument");
+
+          if (pullResult !== null) {
+            remoteExists = true;
+            pullResult[1].forEach(item => savedObjectIds.add(item));
+            toElm([metadata.name, pullResult[0]], "copyLoaded");
+          } else {
+            remoteExists = false;
+            if (!localExists && !remoteExists) {
+              toElm(null, "docMsgs", "NotFound")
+            }
+          }
+        } catch (e){
+          console.error(e)
+        } finally {
+          PULL_LOCK = false;
+        }
+      }
+
     },
 
     GetDocumentList: () => {
