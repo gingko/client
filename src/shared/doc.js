@@ -25,6 +25,8 @@ import { Elm } from "../elm/Main";
 
 let lastActivesScrolled = null;
 let lastColumnScrolled = null;
+let filletData = [];
+let ticking = false;
 let lang = "en";
 let tourStepPositionStepNum = false;
 let tourStepPositionRefElementId = "";
@@ -412,6 +414,24 @@ const fromElm = (msg, elmData) => {
       lastActivesScrolled = elmData;
       lastColumnScrolled = elmData.columnIdx;
       localStore.set('last-actives', elmData.lastActives);
+      window.requestAnimationFrame(()=>{
+        updateFillets();
+        let columns = Array.from(document.getElementsByClassName("column"));
+        columns.map((c, i) => {
+          c.addEventListener('scroll', () => {
+            updateFilletData();
+
+            if(!ticking) {
+              window.requestAnimationFrame(() => {
+                updateFillets();
+                ticking = false;
+              })
+
+              ticking = true;
+            }
+          })
+        })
+      });
     },
 
     ScrollFullscreenCards: () => {
@@ -694,6 +714,19 @@ window.onresize = () => {
     debouncedScrollHorizontal(lastColumnScrolled);
   }
 };
+
+const updateFilletData = () => {
+  let columns = Array.from(document.getElementsByClassName("column"));
+  let filletData = helpers.getFilletData(columns);
+}
+
+const updateFillets = () => {
+  let columns = Array.from(document.getElementsByClassName("column"));
+  let filletData = helpers.getFilletData(columns);
+  columns.map((c,i) => {
+    helpers.setColumnFillets(c,i, filletData);
+  })
+}
 
 const debouncedScrollColumns = _.debounce(helpers.scrollColumns, 200);
 const debouncedScrollHorizontal = _.debounce(helpers.scrollHorizontal, 200);

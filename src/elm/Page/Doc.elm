@@ -42,6 +42,8 @@ import RandomId
 import Regex
 import Route
 import Session exposing (Session)
+import Svg exposing (circle, mask, rect, svg)
+import Svg.Attributes exposing (cx, cy, height, preserveAspectRatio, r, rx, ry, viewBox, width, x, y)
 import Task
 import Time
 import Translation exposing (Language, TranslationId(..), tr)
@@ -3001,7 +3003,18 @@ viewGroup vstate xs =
             , ( "active-descendant", isActiveDescendant )
             ]
         ]
-        (List.map viewFunction xs)
+        ((if isActiveDescendant then
+            [ ( "fillet-top-left", UI.fillet "top-left" )
+            , ( "fillet-bottom-left", UI.fillet "bottom-left" )
+            , ( "fillet-top-right", UI.fillet "top-right" )
+            , ( "fillet-bottom-right", UI.fillet "bottom-right" )
+            ]
+
+          else
+            []
+         )
+            ++ List.map viewFunction xs
+        )
 
 
 viewCardOther : String -> String -> Bool -> Bool -> Bool -> Bool -> DragDrop.Model String DropId -> Html Msg
@@ -3073,6 +3086,8 @@ viewCardActive lang cardId content isParent isLast collabsOnCard collabsEditingC
                     ]
                     [ text "+" ]
                 ]
+            , viewIf isParent <| UI.fillet "top-right"
+            , viewIf isParent <| UI.fillet "bottom-right"
             ]
     in
     div
