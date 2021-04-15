@@ -1371,6 +1371,8 @@ span.trial-dark {
   padding: 10px;
   border-radius: 8px;
   background-color: var(--active-bg);
+  display: flex;
+  flex-direction: column;
   z-index: 21;
 }
 
