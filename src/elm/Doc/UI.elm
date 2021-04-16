@@ -30,6 +30,7 @@ import Svg.Attributes exposing (d, fill, fontFamily, fontSize, fontWeight, prese
 import Time exposing (posixToMillis)
 import Translation exposing (Language(..), TranslationId(..), datetimeFormat, langFromString, langToString, languageName, timeDistInWords, tr)
 import Types exposing (Children(..), CursorPosition(..), HeaderMenuState(..), SidebarMenuState(..), SidebarState(..), TextCursorInfo, TooltipPosition(..), ViewMode(..), ViewState)
+import Utils exposing (onClickStop)
 
 
 
@@ -438,7 +439,18 @@ viewSidebar lang msgs currentDocument fileFilter docList accountEmail contextTar
               else
                 AntIcons.folderOutlined []
             ]
-         , viewIf isOpen <| DocList.viewSidebarList msgs.noOp msgs.fileSearchChanged msgs.contextMenuOpened currentDocument contextTarget_ fileFilter docList
+         , viewIf isOpen <|
+            DocList.viewSidebarList
+                { noOp = msgs.noOp
+                , filter = msgs.fileSearchChanged
+                , contextMenu = msgs.contextMenuOpened
+                , tooltipRequested = msgs.tooltipRequested
+                , tooltipClosed = msgs.tooltipClosed
+                }
+                currentDocument
+                contextTarget_
+                fileFilter
+                docList
          , div
             [ id "document-switcher-icon"
             , onClickStop msgs.clickedSwitcher
@@ -1274,11 +1286,6 @@ radio msg bool labelElement =
         [ input [ type_ "radio", checked bool, onClick msg ] []
         , labelElement
         ]
-
-
-onClickStop : msg -> Html.Attribute msg
-onClickStop msg =
-    stopPropagationOn "click" (Dec.succeed ( msg, True ))
 
 
 keyboardIconSvg w =

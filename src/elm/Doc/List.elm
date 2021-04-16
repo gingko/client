@@ -4,12 +4,14 @@ import Ant.Icons.Svg as AntIcons
 import Doc.Metadata as Metadata exposing (Metadata)
 import Html exposing (Html, a, div, input, li, text, ul)
 import Html.Attributes exposing (attribute, class, classList, href, id, placeholder, title, type_)
-import Html.Events exposing (onClick, onInput, stopPropagationOn)
+import Html.Events exposing (onClick, onInput, onMouseEnter, onMouseLeave, stopPropagationOn)
 import Json.Decode as Dec
 import Page.Doc.ContextMenu as ContextMenu
 import Route
 import Time
 import Translation exposing (TranslationId(..), timeDistInWords, tr)
+import Types exposing (TooltipPosition(..))
+import Utils exposing (onClickStop)
 
 
 
@@ -143,11 +145,25 @@ update newModel oldModel =
 -- VIEW
 
 
-viewSidebarList : msg -> (String -> msg) -> (String -> ( Float, Float ) -> msg) -> Metadata -> Maybe String -> String -> Model -> Html msg
-viewSidebarList noop filterMsg contextMenuMsg currentDocument contextTarget_ filterField model =
+viewSidebarList :
+    { noOp : msg
+    , filter : String -> msg
+    , contextMenu : String -> ( Float, Float ) -> msg
+    , tooltipRequested : String -> TooltipPosition -> String -> msg
+    , tooltipClosed : msg
+    }
+    -> Metadata
+    -> Maybe String
+    -> String
+    -> Model
+    -> Html msg
+viewSidebarList msgs currentDocument contextTarget_ filterField model =
     let
+        sortCriteria =
+            ModifiedAt
+
         stopClickProp =
-            stopPropagationOn "click" (Dec.succeed ( noop, True ))
+            stopPropagationOn "click" (Dec.succeed ( msgs.noOp, True ))
 
         viewDocItem d =
             let
@@ -162,7 +178,7 @@ viewSidebarList noop filterMsg contextMenuMsg currentDocument contextTarget_ fil
                     ]
                 ]
                 [ a
-                    [ ContextMenu.open (contextMenuMsg docId)
+                    [ ContextMenu.open (msgs.contextMenu docId)
                     , href <| Route.toString (Route.DocUntitled docId)
                     , stopClickProp
                     , attribute "data-private" "lipsum"
@@ -183,12 +199,31 @@ viewSidebarList noop filterMsg contextMenuMsg currentDocument contextTarget_ fil
             else
                 div [ id "sidebar-document-list-wrap" ]
                     [ div [ id "document-list-buttons" ]
-                        [ div [ id "sort-alphabetical", class "list-icon" ] [ text "Abc" ]
-                        , div [ id "sort-modified", class "list-icon", class "selected" ] [ AntIcons.editOutlined [] ]
-                        , div [ id "sort-created", class "list-icon" ] [ AntIcons.fileOutlined [] ]
+                        [ div
+                            [ id "sort-alphabetical"
+                            , class "list-icon"
+                            , onMouseEnter <| msgs.tooltipRequested "sort-alphabetical" BelowTooltip "Sort by Name"
+                            , onMouseLeave msgs.tooltipClosed
+                            ]
+                            [ text "Abc" ]
+                        , div
+                            [ id "sort-modified"
+                            , class "list-icon"
+                            , class "selected"
+                            , onMouseEnter <| msgs.tooltipRequested "sort-modified" BelowTooltip "Sort by Last Modified"
+                            , onMouseLeave msgs.tooltipClosed
+                            ]
+                            [ AntIcons.editOutlined [] ]
+                        , div
+                            [ id "sort-created"
+                            , class "list-icon"
+                            , onMouseEnter <| msgs.tooltipRequested "sort-created" BelowTooltip "Sort by Date Created"
+                            , onMouseLeave msgs.tooltipClosed
+                            ]
+                            [ AntIcons.fileOutlined [] ]
                         ]
-                    , input [ id "document-list-filter", placeholder "Find file by name", type_ "search", onInput filterMsg, stopClickProp ] []
-                    , div [ id "sidebar-document-list" ] (List.map viewDocItem (sortBy ModifiedAt filteredDocs))
+                    , input [ id "document-list-filter", placeholder "Find file by name", type_ "search", onInput msgs.filter, stopClickProp ] []
+                    , div [ id "sidebar-document-list" ] (List.map viewDocItem (sortBy sortCriteria filteredDocs))
                     ]
 
         Failure _ ->
