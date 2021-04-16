@@ -198,7 +198,7 @@ viewSidebarList msgs currentDocument sortCriteria contextTarget_ filterField mod
 
             else
                 div [ id "sidebar-document-list-wrap" ]
-                    [ div [ id "document-list-buttons" ]
+                    [ div [ id "document-list-buttons", onClickStop msgs.noOp ]
                         [ div
                             [ id "sort-alphabetical"
                             , class "sort-button"
