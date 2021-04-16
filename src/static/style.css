@@ -1797,6 +1797,14 @@ span.collaborators {
   top: calc(50% - 5px);
   left: -10px;
 }
+.tip-above .tooltip-arrow {
+  border-top: 5px solid rgba(0,0,0,0.9);
+  border-bottom: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-left: 5px solid transparent;
+  top: 100%;
+  left: calc(50% - 5px);
+}
 .tip-below .tooltip-arrow {
   border-bottom: 5px solid rgba(0,0,0,0.9);
   border-top: 5px solid transparent;

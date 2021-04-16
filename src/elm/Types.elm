@@ -74,6 +74,7 @@ type HeaderMenuState
 type TooltipPosition
     = RightTooltip
     | LeftTooltip
+    | AboveTooltip
     | BelowTooltip
     | BelowLeftTooltip
 

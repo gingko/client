@@ -1095,6 +1095,13 @@ viewTooltip ( el, tipPos, content ) =
                     , class "tip-left"
                     ]
 
+                AboveTooltip ->
+                    [ style "left" <| ((el.element.x + el.element.width * 0.5) |> String.fromFloat) ++ "px"
+                    , style "top" <| ((el.element.y + 5) |> String.fromFloat) ++ "px"
+                    , style "transform" "translate(-50%, calc(-100% - 10px))"
+                    , class "tip-above"
+                    ]
+
                 BelowTooltip ->
                     [ style "left" <| ((el.element.x + el.element.width * 0.5) |> String.fromFloat) ++ "px"
                     , style "top" <| ((el.element.y + el.element.height + 5) |> String.fromFloat) ++ "px"

@@ -202,7 +202,7 @@ viewSidebarList msgs currentDocument contextTarget_ filterField model =
                         [ div
                             [ id "sort-alphabetical"
                             , class "list-icon"
-                            , onMouseEnter <| msgs.tooltipRequested "sort-alphabetical" BelowTooltip "Sort by Name"
+                            , onMouseEnter <| msgs.tooltipRequested "sort-alphabetical" AboveTooltip "Sort by Name"
                             , onMouseLeave msgs.tooltipClosed
                             ]
                             [ text "Abc" ]
@@ -210,14 +210,14 @@ viewSidebarList msgs currentDocument contextTarget_ filterField model =
                             [ id "sort-modified"
                             , class "list-icon"
                             , class "selected"
-                            , onMouseEnter <| msgs.tooltipRequested "sort-modified" BelowTooltip "Sort by Last Modified"
+                            , onMouseEnter <| msgs.tooltipRequested "sort-modified" AboveTooltip "Sort by Last Modified"
                             , onMouseLeave msgs.tooltipClosed
                             ]
                             [ AntIcons.editOutlined [] ]
                         , div
                             [ id "sort-created"
                             , class "list-icon"
-                            , onMouseEnter <| msgs.tooltipRequested "sort-created" BelowTooltip "Sort by Date Created"
+                            , onMouseEnter <| msgs.tooltipRequested "sort-created" AboveTooltip "Sort by Date Created"
                             , onMouseLeave msgs.tooltipClosed
                             ]
                             [ AntIcons.fileOutlined [] ]
