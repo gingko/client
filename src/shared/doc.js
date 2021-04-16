@@ -620,10 +620,6 @@ const fromElm = (msg, elmData) => {
       })
     },
 
-    SetVideoModal: () => {
-      userStore.set("video-modal-is-open", elmData);
-    },
-
     SaveUserSetting: () => {
       let key = elmData[0];
       let value = elmData[1];
@@ -637,11 +633,6 @@ const fromElm = (msg, elmData) => {
           userStore.set(key, value);
           break;
       }
-    },
-
-    SetLanguage: () => {
-      lang = elmData;
-      userStore.set("language", elmData);
     },
 
     SetSidebarState: () => {

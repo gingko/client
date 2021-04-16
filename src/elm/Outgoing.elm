@@ -49,14 +49,11 @@ type Msg
       -- === UI ===
     | UpdateCommits ( Enc.Value, Maybe String )
     | HistorySlider Int
-    | SetVideoModal Bool
-    | SetLanguage Language
     | SetSidebarState Bool
     | SaveThemeSetting Theme
     | RequestFullscreen
     | Print
     | SetFonts Fonts.Settings
-    | SetShortcutTray Bool
       -- === Misc ===
     | EmptyMessageShown
     | CheckoutButtonClicked Enc.Value
@@ -194,12 +191,6 @@ send info =
         HistorySlider delta ->
             dataToSend "HistorySlider" (int delta)
 
-        SetVideoModal isOpen ->
-            dataToSend "SetVideoModal" (bool isOpen)
-
-        SetLanguage lang ->
-            dataToSend "SetLanguage" (lang |> langToString |> string)
-
         SetSidebarState isOpen ->
             dataToSend "SetSidebarState" (bool isOpen)
 
@@ -214,9 +205,6 @@ send info =
 
         SetFonts fontSettings ->
             dataToSend "SetFonts" (fontSettingsEncoder fontSettings)
-
-        SetShortcutTray isOpen ->
-            dataToSend "SetShortcutTray" (bool isOpen)
 
         -- === Misc ===
         EmptyMessageShown ->

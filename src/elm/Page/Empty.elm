@@ -11,11 +11,12 @@ import Html.Events exposing (on, onClick)
 import Import.Bulk.UI as ImportModal
 import Import.Incoming
 import Json.Decode as Dec
+import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
 import Route
 import Session exposing (Session)
 import Task
-import Translation exposing (Language)
+import Translation exposing (Language, langToString)
 import Types exposing (SidebarMenuState(..), SidebarState(..), SortBy(..), TooltipPosition)
 
 
@@ -222,7 +223,7 @@ update msg model =
                     | session = Session.setLanguage newLang model.session
                     , sidebarMenuState = NoSidebarMenu
                   }
-                , send <| SetLanguage newLang
+                , send <| SaveUserSetting ( "language", langToString newLang |> Enc.string )
                 )
 
             else
