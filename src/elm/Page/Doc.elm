@@ -10,7 +10,7 @@ import Doc.Data as Data
 import Doc.Data.Conflict exposing (Selection)
 import Doc.Fonts as Fonts
 import Doc.Fullscreen as Fullscreen
-import Doc.List as DocList exposing (Model(..))
+import Doc.List as DocList exposing (Model(..), SortBy(..))
 import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.Switcher
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
@@ -80,6 +80,7 @@ type alias Model =
     , sidebarMenuState : SidebarMenuState
     , modalState : ModalState
     , fileSearchField : String
+    , sortBy : SortBy
     , headerMenu : HeaderMenuState
     , exportSettings : ( ExportSelection, ExportFormat )
     , wordcountTrayOpen : Bool
@@ -152,6 +153,7 @@ defaultModel isNew session docId =
     , sidebarMenuState = NoSidebarMenu
     , modalState = NoModal
     , fileSearchField = ""
+    , sortBy = ModifiedAt
     , headerMenu = NoHeaderMenu
     , exportSettings = ( ExportEverything, DOCX )
     , wordcountTrayOpen = False
@@ -247,6 +249,7 @@ type Msg
     | ImportBulkClicked
     | ImportJSONRequested
     | FileSearchChanged String
+    | SortByChanged SortBy
     | SidebarContextClicked String ( Float, Float )
     | DuplicateDoc String
     | DeleteDoc String
@@ -842,6 +845,9 @@ update msg ({ workingTree } as model) =
                             model.modalState
             in
             ( { model | fileSearchField = term, modalState = updatedModal }, Cmd.none )
+
+        SortByChanged newSort ->
+            ( { model | sortBy = newSort }, Cmd.none )
 
         SidebarContextClicked docId ( x, y ) ->
             ( { model | modalState = SidebarContextMenu docId ( x, y ) }, Cmd.none )
@@ -2735,11 +2741,13 @@ viewLoaded model =
                         , logout = LogoutRequested
                         , toggledAccount = ToggledAccountMenu
                         , fileSearchChanged = FileSearchChanged
+                        , changeSortBy = SortByChanged
                         , contextMenuOpened = SidebarContextClicked
                         , languageChanged = LanguageChanged
                         , fullscreenRequested = FullscreenRequested
                         }
                         model.metadata
+                        model.sortBy
                         model.fileSearchField
                         (Session.documents model.session)
                         (Session.name model.session |> Maybe.withDefault "" {- TODO -})

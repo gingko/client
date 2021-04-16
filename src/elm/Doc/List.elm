@@ -1,4 +1,4 @@
-port module Doc.List exposing (Model(..), current, filter, getLastUpdated, init, isLoading, subscribe, switchListSort, toList, update, viewSidebarList, viewSwitcher)
+port module Doc.List exposing (Model(..), SortBy(..), current, filter, getLastUpdated, init, isLoading, subscribe, switchListSort, toList, update, viewSidebarList, viewSwitcher)
 
 import Ant.Icons.Svg as AntIcons
 import Doc.Metadata as Metadata exposing (Metadata)
@@ -8,6 +8,7 @@ import Html.Events exposing (onClick, onInput, onMouseEnter, onMouseLeave, stopP
 import Json.Decode as Dec
 import Page.Doc.ContextMenu as ContextMenu
 import Route
+import Svg.Attributes
 import Time
 import Translation exposing (TranslationId(..), timeDistInWords, tr)
 import Types exposing (TooltipPosition(..))
@@ -82,7 +83,7 @@ sortBy criteria docList =
     case criteria of
         Alphabetical ->
             docList
-                |> List.sortBy (Metadata.getDocName >> Maybe.withDefault "Untitled")
+                |> List.sortBy (Metadata.getDocName >> Maybe.withDefault "Untitled" >> String.toLower)
 
         ModifiedAt ->
             docList
@@ -148,20 +149,19 @@ update newModel oldModel =
 viewSidebarList :
     { noOp : msg
     , filter : String -> msg
+    , changeSortBy : SortBy -> msg
     , contextMenu : String -> ( Float, Float ) -> msg
     , tooltipRequested : String -> TooltipPosition -> String -> msg
     , tooltipClosed : msg
     }
     -> Metadata
+    -> SortBy
     -> Maybe String
     -> String
     -> Model
     -> Html msg
-viewSidebarList msgs currentDocument contextTarget_ filterField model =
+viewSidebarList msgs currentDocument sortCriteria contextTarget_ filterField model =
     let
-        sortCriteria =
-            ModifiedAt
-
         stopClickProp =
             stopPropagationOn "click" (Dec.succeed ( msgs.noOp, True ))
 
@@ -201,26 +201,31 @@ viewSidebarList msgs currentDocument contextTarget_ filterField model =
                     [ div [ id "document-list-buttons" ]
                         [ div
                             [ id "sort-alphabetical"
-                            , class "list-icon"
+                            , class "sort-button"
+                            , classList [ ( "selected", sortCriteria == Alphabetical ) ]
+                            , onClickStop <| msgs.changeSortBy Alphabetical
                             , onMouseEnter <| msgs.tooltipRequested "sort-alphabetical" AboveTooltip "Sort by Name"
                             , onMouseLeave msgs.tooltipClosed
                             ]
                             [ text "Abc" ]
                         , div
                             [ id "sort-modified"
-                            , class "list-icon"
-                            , class "selected"
+                            , class "sort-button"
+                            , classList [ ( "selected", sortCriteria == ModifiedAt ) ]
+                            , onClickStop <| msgs.changeSortBy ModifiedAt
                             , onMouseEnter <| msgs.tooltipRequested "sort-modified" AboveTooltip "Sort by Last Modified"
                             , onMouseLeave msgs.tooltipClosed
                             ]
-                            [ AntIcons.editOutlined [] ]
+                            [ AntIcons.editOutlined [ Svg.Attributes.class "sort-icon" ] ]
                         , div
                             [ id "sort-created"
-                            , class "list-icon"
+                            , class "sort-button"
+                            , classList [ ( "selected", sortCriteria == CreatedAt ) ]
+                            , onClickStop <| msgs.changeSortBy CreatedAt
                             , onMouseEnter <| msgs.tooltipRequested "sort-created" AboveTooltip "Sort by Date Created"
                             , onMouseLeave msgs.tooltipClosed
                             ]
-                            [ AntIcons.fileOutlined [] ]
+                            [ AntIcons.fileOutlined [ Svg.Attributes.class "sort-icon" ] ]
                         ]
                     , input [ id "document-list-filter", placeholder "Find file by name", type_ "search", onInput msgs.filter, stopClickProp ] []
                     , div [ id "sidebar-document-list" ] (List.map viewDocItem (sortBy sortCriteria filteredDocs))

@@ -2,7 +2,7 @@ module Page.Empty exposing (..)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
-import Doc.List as DocList exposing (Model(..))
+import Doc.List as DocList exposing (Model(..), SortBy(..))
 import Doc.Metadata as Metadata
 import Doc.UI as UI
 import Html exposing (Html, a, br, button, div, h1, img, p, text)
@@ -319,11 +319,13 @@ view ({ session } as model) =
             , logout = LogoutRequested
             , toggledAccount = ToggledAccountMenu
             , fileSearchChanged = always NoOp
+            , changeSortBy = always NoOp
             , contextMenuOpened = \_ -> \_ -> NoOp
             , languageChanged = LanguageChanged
             , fullscreenRequested = NoOp
             }
             (Metadata.new "")
+            ModifiedAt
             ""
             (Session.documents model.session)
             (Session.name model.session |> Maybe.withDefault "" {- TODO -})

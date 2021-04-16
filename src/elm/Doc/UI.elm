@@ -6,7 +6,7 @@ import Coders exposing (treeToMarkdownString)
 import Diff exposing (..)
 import Doc.Data as Data exposing (CommitObject)
 import Doc.Data.Conflict as Conflict exposing (Conflict, Op(..), Selection(..), opString)
-import Doc.List as DocList exposing (Model(..))
+import Doc.List as DocList exposing (Model(..), SortBy(..))
 import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils as TreeUtils exposing (..)
@@ -342,6 +342,7 @@ type alias SidebarMsgs msg =
     , toggledAccount : Bool -> msg
     , logout : msg
     , fileSearchChanged : String -> msg
+    , changeSortBy : SortBy -> msg
     , contextMenuOpened : String -> ( Float, Float ) -> msg
     , languageChanged : Language -> msg
     , fullscreenRequested : msg
@@ -352,6 +353,7 @@ viewSidebar :
     Language
     -> SidebarMsgs msg
     -> Metadata
+    -> SortBy
     -> String
     -> DocList.Model
     -> String
@@ -359,7 +361,7 @@ viewSidebar :
     -> SidebarMenuState
     -> SidebarState
     -> Html msg
-viewSidebar lang msgs currentDocument fileFilter docList accountEmail contextTarget_ dropdownState sidebarState =
+viewSidebar lang msgs currentDocument sortCriteria fileFilter docList accountEmail contextTarget_ dropdownState sidebarState =
     let
         isOpen =
             not (sidebarState == SidebarClosed)
@@ -443,11 +445,13 @@ viewSidebar lang msgs currentDocument fileFilter docList accountEmail contextTar
             DocList.viewSidebarList
                 { noOp = msgs.noOp
                 , filter = msgs.fileSearchChanged
+                , changeSortBy = msgs.changeSortBy
                 , contextMenu = msgs.contextMenuOpened
                 , tooltipRequested = msgs.tooltipRequested
                 , tooltipClosed = msgs.tooltipClosed
                 }
                 currentDocument
+                sortCriteria
                 contextTarget_
                 fileFilter
                 docList

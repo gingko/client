@@ -507,16 +507,15 @@ a.forgot-password {
 #document-list-buttons {
   display: flex;
   justify-content: space-around;
-  padding-top: 8px;
-  padding-bottom: 8px;
 }
-#document-list-buttons .list-icon {
+#document-list-buttons .sort-button {
   color: var(--ui-2-border-color);
   fill: var(--ui-2-border-color);
-  width: 15px;
+  width: 40px;
+  padding: 8px 12px;
   cursor: pointer;
 }
-#document-list-buttons .list-icon.selected {
+#document-list-buttons .sort-button.selected, #document-list-buttons .sort-button:hover {
   fill: black;
   color: black;
 }
