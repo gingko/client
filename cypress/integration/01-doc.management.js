@@ -44,7 +44,7 @@ describe('Managing Documents', () => {
       cy.shortcut('{enter}')
       cy.writeInCard('chhh')
       cy.get('#sidebar-document-list-wrap .sidebar-document-item')
-        .first()
+        .last()
         .click()
         .then(()=> {
           expect(stub.getCall(0)).to.be.calledWith('You have unsaved changes!\nCtrl+Enter to save.')
@@ -80,8 +80,7 @@ describe('Managing Documents', () => {
 
       // Should have a working context menu
       // Menu opens on right click
-      cy.get('#sidebar-document-list-wrap .sidebar-document-item')
-        .first()
+      cy.get('#sidebar-document-list-wrap .sidebar-document-item:nth-child(4)')
         .rightclick()
 
       cy.contains('Delete Tree')
@@ -91,8 +90,7 @@ describe('Managing Documents', () => {
       cy.get('#sidebar-context-menu').should('not.exist')
 
       // Open menu again
-      cy.get('#sidebar-document-list-wrap .sidebar-document-item')
-        .first()
+      cy.get('#sidebar-document-list-wrap .sidebar-document-item:nth-child(4)')
         .rightclick()
 
       // Click the Delete Tree
