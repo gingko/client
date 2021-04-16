@@ -1,6 +1,7 @@
-port module Session exposing (PaymentStatus(..), Session, currentTime, db, decode, documents, fileMenuOpen, fromLegacy, isMac, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, shortcutTrayOpen, storeLogin, storeSignup, sync, updateDocuments, updateTime, updateUpgrade, upgradeModel, userSettingsChange)
+port module Session exposing (PaymentStatus(..), Session, currentTime, db, decode, documents, fileMenuOpen, fromLegacy, isMac, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, updateDocuments, updateTime, updateUpgrade, upgradeModel, userSettingsChange)
 
 import Browser.Navigation as Nav
+import Coders exposing (sortByDecoder)
 import Doc.List as DocList
 import Http
 import Json.Decode as Dec exposing (Decoder)
@@ -10,6 +11,7 @@ import Outgoing exposing (Msg(..), send)
 import Random
 import Time
 import Translation exposing (Language(..), langFromString, langToString, languageDecoder)
+import Types exposing (SortBy(..))
 import Upgrade
 import Utils exposing (hexEncode)
 
@@ -41,6 +43,7 @@ type alias UserData =
     , upgradeModel : Upgrade.Model
     , paymentStatus : PaymentStatus
     , shortcutTrayOpen : Bool
+    , sortBy : SortBy
     , documents : DocList.Model
     }
 
@@ -166,6 +169,16 @@ shortcutTrayOpen session =
             False
 
 
+sortBy : Session -> SortBy
+sortBy session =
+    case session of
+        LoggedIn _ data ->
+            data.sortBy
+
+        Guest _ _ ->
+            ModifiedAt
+
+
 documents : Session -> DocList.Model
 documents session =
     case session of
@@ -255,6 +268,16 @@ setShortcutTrayOpen isOpen session =
             session
 
 
+setSortBy : SortBy -> Session -> Session
+setSortBy newSort session =
+    case session of
+        LoggedIn key data ->
+            LoggedIn key { data | sortBy = newSort }
+
+        Guest _ _ ->
+            session
+
+
 updateDocuments : DocList.Model -> Session -> Session
 updateDocuments docList session =
     case session of
@@ -316,7 +339,7 @@ decoder key =
 decodeLoggedIn : Nav.Key -> Dec.Decoder Session
 decodeLoggedIn key =
     Dec.succeed
-        (\email s os t legacy lang side payStat trayOpen lastDoc ->
+        (\email s os t legacy lang side payStat trayOpen sortCriteria lastDoc ->
             LoggedIn
                 { navKey = key
                 , seed = s
@@ -326,7 +349,7 @@ decodeLoggedIn key =
                 , lastDocId = Nothing
                 , fromLegacy = legacy
                 }
-                (UserData email lang Upgrade.init payStat trayOpen DocList.init)
+                (UserData email lang Upgrade.init payStat trayOpen sortCriteria DocList.init)
         )
         |> required "email" Dec.string
         |> required "seed" (Dec.int |> Dec.map Random.initialSeed)
@@ -337,6 +360,7 @@ decodeLoggedIn key =
         |> optional "sidebarOpen" Dec.bool False
         |> optional "paymentStatus" decodePaymentStatus Unknown
         |> optional "shortcutTrayOpen" Dec.bool False
+        |> optional "sortBy" sortByDecoder ModifiedAt
         |> optional "lastDocId" (Dec.maybe Dec.string) Nothing
 
 
@@ -374,10 +398,10 @@ decodeGuest key =
 responseDecoder : Session -> Dec.Decoder Session
 responseDecoder session =
     let
-        builder email lang payStat trayOpen =
+        builder email lang payStat trayOpen sortCriteria =
             case session of
                 Guest sessionData data ->
-                    LoggedIn sessionData (UserData email lang Upgrade.init payStat trayOpen DocList.init)
+                    LoggedIn sessionData (UserData email lang Upgrade.init payStat trayOpen sortCriteria DocList.init)
 
                 LoggedIn _ _ ->
                     session
@@ -387,6 +411,7 @@ responseDecoder session =
         |> optionalAt [ "settings", "language" ] (Dec.map langFromString Dec.string) En
         |> optionalAt [ "settings", "paymentStatus" ] decodePaymentStatus Unknown
         |> optionalAt [ "settings", "shortcutTrayOpen" ] Dec.bool False
+        |> optionalAt [ "settings", "sortBy" ] sortByDecoder ModifiedAt
 
 
 encode : Session -> Enc.Value

@@ -504,6 +504,21 @@ a.forgot-password {
   padding: 3px 7px;
   font-size: 14px;
 }
+#document-list-buttons {
+  display: flex;
+  justify-content: space-around;
+}
+#document-list-buttons .sort-button {
+  color: var(--ui-2-border-color);
+  fill: var(--ui-2-border-color);
+  width: 40px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+#document-list-buttons .sort-button.selected, #document-list-buttons .sort-button:hover {
+  fill: black;
+  color: black;
+}
 #document-switcher-icon {
   grid-area: row3-icon;
 }
@@ -1769,6 +1784,14 @@ span.collaborators {
   position: absolute;
   top: calc(50% - 5px);
   left: -10px;
+}
+.tip-above .tooltip-arrow {
+  border-top: 5px solid rgba(0,0,0,0.9);
+  border-bottom: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-left: 5px solid transparent;
+  top: 100%;
+  left: calc(50% - 5px);
 }
 .tip-below .tooltip-arrow {
   border-bottom: 5px solid rgba(0,0,0,0.9);

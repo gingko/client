@@ -11,12 +11,13 @@ import Html.Events exposing (on, onClick)
 import Import.Bulk.UI as ImportModal
 import Import.Incoming
 import Json.Decode as Dec
+import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
 import Route
 import Session exposing (Session)
 import Task
-import Translation exposing (Language)
-import Types exposing (SidebarMenuState(..), SidebarState(..), TooltipPosition)
+import Translation exposing (Language, langToString)
+import Types exposing (SidebarMenuState(..), SidebarState(..), SortBy(..), TooltipPosition)
 
 
 type alias Model =
@@ -222,7 +223,7 @@ update msg model =
                     | session = Session.setLanguage newLang model.session
                     , sidebarMenuState = NoSidebarMenu
                   }
-                , send <| SetLanguage newLang
+                , send <| SaveUserSetting ( "language", langToString newLang |> Enc.string )
                 )
 
             else
@@ -319,11 +320,13 @@ view ({ session } as model) =
             , logout = LogoutRequested
             , toggledAccount = ToggledAccountMenu
             , fileSearchChanged = always NoOp
+            , changeSortBy = always NoOp
             , contextMenuOpened = \_ -> \_ -> NoOp
             , languageChanged = LanguageChanged
             , fullscreenRequested = NoOp
             }
             (Metadata.new "")
+            ModifiedAt
             ""
             (Session.documents model.session)
             (Session.name model.session |> Maybe.withDefault "" {- TODO -})

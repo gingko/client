@@ -1,8 +1,15 @@
-module Utils exposing (decodeDebug, getFieldErrors, hexEncode, randomPositiveInt)
+module Utils exposing (decodeDebug, getFieldErrors, hexEncode, onClickStop, randomPositiveInt)
 
 import Hex
+import Html
+import Html.Events exposing (stopPropagationOn)
 import Json.Decode as Dec exposing (Decoder)
 import Random
+
+
+onClickStop : msg -> Html.Attribute msg
+onClickStop msg =
+    stopPropagationOn "click" (Dec.succeed ( msg, True ))
 
 
 hexEncode : String -> String

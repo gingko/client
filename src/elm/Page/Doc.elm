@@ -3,7 +3,7 @@ module Page.Doc exposing (Model, Msg, getTitle, init, subscriptions, toUser, upd
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
 import Bytes exposing (Bytes)
-import Coders exposing (treeToMarkdownString, treeToValue)
+import Coders exposing (sortByEncoder, treeToMarkdownString, treeToValue)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
 import Doc.ContactForm as ContactForm
 import Doc.Data as Data
@@ -15,7 +15,7 @@ import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.Switcher
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
-import Doc.UI as UI exposing (countWords, viewConflict, viewMobileButtons, viewSearchField, viewVideo)
+import Doc.UI as UI exposing (countWords, viewConflict, viewMobileButtons, viewSearchField)
 import File exposing (File)
 import File.Download as Download
 import File.Select as Select
@@ -31,6 +31,7 @@ import Import.Bulk.UI as ImportModal
 import Import.Incoming
 import Import.Single
 import Json.Decode as Json
+import Json.Encode as Enc
 import List.Extra as ListExtra
 import Markdown
 import Outgoing exposing (Msg(..), send)
@@ -47,7 +48,7 @@ import Svg exposing (circle, mask, rect, svg)
 import Svg.Attributes exposing (cx, cy, height, preserveAspectRatio, r, rx, ry, viewBox, width, x, y)
 import Task
 import Time
-import Translation exposing (Language, TranslationId(..), tr)
+import Translation exposing (Language, TranslationId(..), langToString, tr)
 import Types exposing (..)
 import Upgrade exposing (Msg(..))
 import Utils exposing (randomPositiveInt)
@@ -85,7 +86,6 @@ type alias Model =
     , wordcountTrayOpen : Bool
     , tourStep : Maybe Int
     , tooltip : Maybe ( Element, TooltipPosition, String )
-    , videoModalOpen : Bool
     , fontSelectorOpen : Bool
 
     -- Settings
@@ -157,7 +157,6 @@ defaultModel isNew session docId =
     , wordcountTrayOpen = False
     , tourStep = Nothing
     , tooltip = Nothing
-    , videoModalOpen = False
     , fontSelectorOpen = False
     , fonts = Fonts.default
     , theme = Default
@@ -247,6 +246,7 @@ type Msg
     | ImportBulkClicked
     | ImportJSONRequested
     | FileSearchChanged String
+    | SortByChanged SortBy
     | SidebarContextClicked String ( Float, Float )
     | DuplicateDoc String
     | DeleteDoc String
@@ -281,7 +281,6 @@ type Msg
     | FullscreenRequested
     | PrintRequested
     | TimeUpdate Time.Posix
-    | VideoModal Bool
     | FontsMsg Fonts.Msg
     | ShortcutTrayToggle
       -- === Ports ===
@@ -843,6 +842,13 @@ update msg ({ workingTree } as model) =
             in
             ( { model | fileSearchField = term, modalState = updatedModal }, Cmd.none )
 
+        SortByChanged newSort ->
+            let
+                newSession =
+                    Session.setSortBy newSort model.session
+            in
+            ( { model | session = newSession }, send <| SaveUserSetting ( "sortBy", sortByEncoder newSort ) )
+
         SidebarContextClicked docId ( x, y ) ->
             ( { model | modalState = SidebarContextMenu docId ( x, y ) }, Cmd.none )
 
@@ -951,7 +957,7 @@ update msg ({ workingTree } as model) =
                     | session = Session.setLanguage newLang model.session
                     , sidebarMenuState = NoSidebarMenu
                   }
-                , send <| SetLanguage newLang
+                , send <| SaveUserSetting ( "language", langToString newLang |> Enc.string )
                 )
 
             else
@@ -991,12 +997,6 @@ update msg ({ workingTree } as model) =
             , Cmd.none
             )
 
-        VideoModal shouldOpen ->
-            ( model
-            , Cmd.none
-            )
-                |> toggleVideoModal shouldOpen
-
         FontsMsg fontsMsg ->
             let
                 ( newModel, selectorOpen, newFontsTriple_ ) =
@@ -1029,7 +1029,7 @@ update msg ({ workingTree } as model) =
                         model.headerMenu
                 , tooltip = Nothing
               }
-            , send (SetShortcutTray newIsOpen)
+            , send <| SaveUserSetting ( "shortcutTrayOpen", Enc.bool newIsOpen )
             )
 
         -- === Ports ===
@@ -1257,12 +1257,6 @@ update msg ({ workingTree } as model) =
                 -- === UI ===
                 StartTour ->
                     ( { model | tourStep = Just 1 }, send <| PositionTourStep 1 "another-card" )
-
-                ViewVideos ->
-                    ( model
-                    , Cmd.none
-                    )
-                        |> toggleVideoModal True
 
                 FontSelectorOpen fonts ->
                     ( { model | fonts = Fonts.setSystem fonts model.fonts, fontSelectorOpen = True }
@@ -2607,15 +2601,6 @@ sendCollabState collabState ( model, prevCmd ) =
     )
 
 
-toggleVideoModal : Bool -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-toggleVideoModal shouldOpen ( model, prevCmd ) =
-    ( { model
-        | videoModalOpen = shouldOpen
-      }
-    , Cmd.batch [ prevCmd, send (SetVideoModal shouldOpen) ]
-    )
-
-
 openSwitcher : Model -> ( Model, Cmd Msg )
 openSwitcher model =
     ( { model
@@ -2735,11 +2720,13 @@ viewLoaded model =
                         , logout = LogoutRequested
                         , toggledAccount = ToggledAccountMenu
                         , fileSearchChanged = FileSearchChanged
+                        , changeSortBy = SortByChanged
                         , contextMenuOpened = SidebarContextClicked
                         , languageChanged = LanguageChanged
                         , fullscreenRequested = FullscreenRequested
                         }
                         model.metadata
+                        (Session.sortBy model.session)
                         model.fileSearchField
                         (Session.documents model.session)
                         (Session.name model.session |> Maybe.withDefault "" {- TODO -})
@@ -2821,7 +2808,6 @@ viewLoaded model =
                                 , navRight = mobileBtnMsg "right"
                                 }
                                 (model.viewState.viewMode /= Normal)
-                           , viewVideo VideoModal model
                            , div [ id "loading-overlay" ] []
                            , div [ id "preloader" ] []
                            , model.tooltip |> Maybe.map UI.viewTooltip |> Maybe.withDefault (text "")

@@ -29,7 +29,8 @@ import Svg exposing (g, svg)
 import Svg.Attributes exposing (d, fill, fontFamily, fontSize, fontWeight, preserveAspectRatio, stroke, strokeDasharray, strokeDashoffset, strokeLinecap, strokeLinejoin, strokeMiterlimit, strokeWidth, textAnchor, version, viewBox)
 import Time exposing (posixToMillis)
 import Translation exposing (Language(..), TranslationId(..), datetimeFormat, langFromString, langToString, languageName, timeDistInWords, tr)
-import Types exposing (Children(..), CursorPosition(..), HeaderMenuState(..), SidebarMenuState(..), SidebarState(..), TextCursorInfo, TooltipPosition(..), ViewMode(..), ViewState)
+import Types exposing (Children(..), CursorPosition(..), HeaderMenuState(..), SidebarMenuState(..), SidebarState(..), SortBy(..), TextCursorInfo, TooltipPosition(..), ViewMode(..), ViewState)
+import Utils exposing (onClickStop)
 
 
 
@@ -341,6 +342,7 @@ type alias SidebarMsgs msg =
     , toggledAccount : Bool -> msg
     , logout : msg
     , fileSearchChanged : String -> msg
+    , changeSortBy : SortBy -> msg
     , contextMenuOpened : String -> ( Float, Float ) -> msg
     , languageChanged : Language -> msg
     , fullscreenRequested : msg
@@ -351,6 +353,7 @@ viewSidebar :
     Language
     -> SidebarMsgs msg
     -> Metadata
+    -> SortBy
     -> String
     -> DocList.Model
     -> String
@@ -358,7 +361,7 @@ viewSidebar :
     -> SidebarMenuState
     -> SidebarState
     -> Html msg
-viewSidebar lang msgs currentDocument fileFilter docList accountEmail contextTarget_ dropdownState sidebarState =
+viewSidebar lang msgs currentDocument sortCriteria fileFilter docList accountEmail contextTarget_ dropdownState sidebarState =
     let
         isOpen =
             not (sidebarState == SidebarClosed)
@@ -438,7 +441,20 @@ viewSidebar lang msgs currentDocument fileFilter docList accountEmail contextTar
               else
                 AntIcons.folderOutlined []
             ]
-         , viewIf isOpen <| DocList.viewSmall msgs.noOp msgs.fileSearchChanged msgs.contextMenuOpened currentDocument contextTarget_ fileFilter docList
+         , viewIf isOpen <|
+            DocList.viewSidebarList
+                { noOp = msgs.noOp
+                , filter = msgs.fileSearchChanged
+                , changeSortBy = msgs.changeSortBy
+                , contextMenu = msgs.contextMenuOpened
+                , tooltipRequested = msgs.tooltipRequested
+                , tooltipClosed = msgs.tooltipClosed
+                }
+                currentDocument
+                sortCriteria
+                contextTarget_
+                fileFilter
+                docList
          , div
             [ id "document-switcher-icon"
             , onClickStop msgs.clickedSwitcher
@@ -1083,6 +1099,13 @@ viewTooltip ( el, tipPos, content ) =
                     , class "tip-left"
                     ]
 
+                AboveTooltip ->
+                    [ style "left" <| ((el.element.x + el.element.width * 0.5) |> String.fromFloat) ++ "px"
+                    , style "top" <| ((el.element.y + 5) |> String.fromFloat) ++ "px"
+                    , style "transform" "translate(-50%, calc(-100% - 10px))"
+                    , class "tip-above"
+                    ]
+
                 BelowTooltip ->
                     [ style "left" <| ((el.element.x + el.element.width * 0.5) |> String.fromFloat) ++ "px"
                     , style "top" <| ((el.element.y + el.element.height + 5) |> String.fromFloat) ++ "px"
@@ -1274,11 +1297,6 @@ radio msg bool labelElement =
         [ input [ type_ "radio", checked bool, onClick msg ] []
         , labelElement
         ]
-
-
-onClickStop : msg -> Html.Attribute msg
-onClickStop msg =
-    stopPropagationOn "click" (Dec.succeed ( msg, True ))
 
 
 keyboardIconSvg w =

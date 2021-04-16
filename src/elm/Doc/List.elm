@@ -1,18 +1,18 @@
-port module Doc.List exposing (Model(..), current, filter, getLastUpdated, init, isLoading, subscribe, switchListSort, toList, update, viewSmall, viewSwitcher)
+port module Doc.List exposing (Model(..), current, filter, getLastUpdated, init, isLoading, subscribe, switchListSort, toList, update, viewSidebarList, viewSwitcher)
 
-import Date
+import Ant.Icons.Svg as AntIcons
 import Doc.Metadata as Metadata exposing (Metadata)
 import Html exposing (Html, a, div, input, li, text, ul)
 import Html.Attributes exposing (attribute, class, classList, href, id, placeholder, title, type_)
-import Html.Events exposing (onClick, onInput, stopPropagationOn)
-import Html.Extra exposing (viewIf)
+import Html.Events exposing (onClick, onInput, onMouseEnter, onMouseLeave, stopPropagationOn)
 import Json.Decode as Dec
-import Octicons as Icon
 import Page.Doc.ContextMenu as ContextMenu
 import Route
-import Strftime
+import Svg.Attributes
 import Time
 import Translation exposing (TranslationId(..), timeDistInWords, tr)
+import Types exposing (SortBy(..), TooltipPosition(..))
+import Utils exposing (onClickStop)
 
 
 
@@ -72,6 +72,24 @@ filter term model =
             model
 
 
+sortBy : SortBy -> List Metadata -> List Metadata
+sortBy criteria docList =
+    case criteria of
+        Alphabetical ->
+            docList
+                |> List.sortBy (Metadata.getDocName >> Maybe.withDefault "Untitled" >> String.toLower)
+
+        ModifiedAt ->
+            docList
+                |> List.sortBy (Metadata.getUpdatedAt >> Time.posixToMillis)
+                |> List.reverse
+
+        CreatedAt ->
+            docList
+                |> List.sortBy (Metadata.getCreatedAt >> Time.posixToMillis)
+                |> List.reverse
+
+
 switchListSort : Metadata -> Model -> Model
 switchListSort currentDoc model =
     case model of
@@ -122,11 +140,24 @@ update newModel oldModel =
 -- VIEW
 
 
-viewSmall : msg -> (String -> msg) -> (String -> ( Float, Float ) -> msg) -> Metadata -> Maybe String -> String -> Model -> Html msg
-viewSmall noop filterMsg contextMenuMsg currentDocument contextTarget_ filterField model =
+viewSidebarList :
+    { noOp : msg
+    , filter : String -> msg
+    , changeSortBy : SortBy -> msg
+    , contextMenu : String -> ( Float, Float ) -> msg
+    , tooltipRequested : String -> TooltipPosition -> String -> msg
+    , tooltipClosed : msg
+    }
+    -> Metadata
+    -> SortBy
+    -> Maybe String
+    -> String
+    -> Model
+    -> Html msg
+viewSidebarList msgs currentDocument sortCriteria contextTarget_ filterField model =
     let
         stopClickProp =
-            stopPropagationOn "click" (Dec.succeed ( noop, True ))
+            stopPropagationOn "click" (Dec.succeed ( msgs.noOp, True ))
 
         viewDocItem d =
             let
@@ -141,7 +172,7 @@ viewSmall noop filterMsg contextMenuMsg currentDocument contextTarget_ filterFie
                     ]
                 ]
                 [ a
-                    [ ContextMenu.open (contextMenuMsg docId)
+                    [ ContextMenu.open (msgs.contextMenu docId)
                     , href <| Route.toString (Route.DocUntitled docId)
                     , stopClickProp
                     , attribute "data-private" "lipsum"
@@ -161,8 +192,37 @@ viewSmall noop filterMsg contextMenuMsg currentDocument contextTarget_ filterFie
 
             else
                 div [ id "sidebar-document-list-wrap" ]
-                    [ input [ id "document-list-filter", placeholder "Find file by name", type_ "search", onInput filterMsg, stopClickProp ] []
-                    , div [ id "sidebar-document-list" ] (List.map viewDocItem filteredDocs)
+                    [ div [ id "document-list-buttons", onClickStop msgs.noOp ]
+                        [ div
+                            [ id "sort-alphabetical"
+                            , class "sort-button"
+                            , classList [ ( "selected", sortCriteria == Alphabetical ) ]
+                            , onClickStop <| msgs.changeSortBy Alphabetical
+                            , onMouseEnter <| msgs.tooltipRequested "sort-alphabetical" AboveTooltip "Sort by Name"
+                            , onMouseLeave msgs.tooltipClosed
+                            ]
+                            [ text "Abc" ]
+                        , div
+                            [ id "sort-modified"
+                            , class "sort-button"
+                            , classList [ ( "selected", sortCriteria == ModifiedAt ) ]
+                            , onClickStop <| msgs.changeSortBy ModifiedAt
+                            , onMouseEnter <| msgs.tooltipRequested "sort-modified" AboveTooltip "Sort by Last Modified"
+                            , onMouseLeave msgs.tooltipClosed
+                            ]
+                            [ AntIcons.editOutlined [ Svg.Attributes.class "sort-icon" ] ]
+                        , div
+                            [ id "sort-created"
+                            , class "sort-button"
+                            , classList [ ( "selected", sortCriteria == CreatedAt ) ]
+                            , onClickStop <| msgs.changeSortBy CreatedAt
+                            , onMouseEnter <| msgs.tooltipRequested "sort-created" AboveTooltip "Sort by Date Created"
+                            , onMouseLeave msgs.tooltipClosed
+                            ]
+                            [ AntIcons.fileOutlined [ Svg.Attributes.class "sort-icon" ] ]
+                        ]
+                    , input [ id "document-list-filter", placeholder "Find file by name", type_ "search", onInput msgs.filter, stopClickProp ] []
+                    , div [ id "sidebar-document-list" ] (List.map viewDocItem (sortBy sortCriteria filteredDocs))
                     ]
 
         Failure _ ->

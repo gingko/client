@@ -15,6 +15,7 @@ import Types exposing (CollabState, CursorPosition(..), OutsideData, TextCursorI
 
 type Msg
     = StoreUser Enc.Value
+    | SaveUserSetting ( String, Enc.Value )
       -- === Dialogs, Menus, Window State ===
     | Alert String
     | SetDirty Bool
@@ -48,14 +49,11 @@ type Msg
       -- === UI ===
     | UpdateCommits ( Enc.Value, Maybe String )
     | HistorySlider Int
-    | SetVideoModal Bool
-    | SetLanguage Language
     | SetSidebarState Bool
     | SaveThemeSetting Theme
     | RequestFullscreen
     | Print
     | SetFonts Fonts.Settings
-    | SetShortcutTray Bool
       -- === Misc ===
     | EmptyMessageShown
     | CheckoutButtonClicked Enc.Value
@@ -72,6 +70,9 @@ send info =
     case info of
         StoreUser user ->
             dataToSend "StoreUser" user
+
+        SaveUserSetting ( key, val ) ->
+            dataToSend "SaveUserSetting" (list identity [ string key, val ])
 
         -- === Dialogs, Menus, Window State ===
         Alert str ->
@@ -190,12 +191,6 @@ send info =
         HistorySlider delta ->
             dataToSend "HistorySlider" (int delta)
 
-        SetVideoModal isOpen ->
-            dataToSend "SetVideoModal" (bool isOpen)
-
-        SetLanguage lang ->
-            dataToSend "SetLanguage" (lang |> langToString |> string)
-
         SetSidebarState isOpen ->
             dataToSend "SetSidebarState" (bool isOpen)
 
@@ -210,9 +205,6 @@ send info =
 
         SetFonts fontSettings ->
             dataToSend "SetFonts" (fontSettingsEncoder fontSettings)
-
-        SetShortcutTray isOpen ->
-            dataToSend "SetShortcutTray" (bool isOpen)
 
         -- === Misc ===
         EmptyMessageShown ->

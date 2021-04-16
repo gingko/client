@@ -33,7 +33,6 @@ type
     | CheckboxClicked String Int
       -- === UI ===
     | StartTour
-    | ViewVideos
     | FontSelectorOpen (List String)
     | Keyboard String
       -- === Misc ===
@@ -185,9 +184,6 @@ subscribe tagger onError =
                 -- === UI ===
                 "StartTour" ->
                     tagger <| StartTour
-
-                "ViewVideos" ->
-                    tagger <| ViewVideos
 
                 "FontSelectorOpen" ->
                     case decodeValue (Dec.list Dec.string) outsideInfo.data of
