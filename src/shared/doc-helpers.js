@@ -140,13 +140,15 @@ const setColumnFillets = (currColumn, colIdx, filletData) => {
   if(filletData[colIdx-1] == null && filletData[colIdx] != null && filletData[colIdx + 1] != null) {
     // Active Card
     let activeCard = currColumn.getElementsByClassName("card active")[0];
-    let topDelta = Math.min(Math.max((filletData[colIdx].top - filletData[colIdx+1].top)*0.5, -16), 16);
-    let bottomDelta = Math.min(Math.max((filletData[colIdx].bottom - filletData[colIdx+1].bottom)*0.5, -16), 16);
-    let [filletTop, filletBottom] = activeCard.getElementsByClassName("fillet");
+    if (activeCard) {
+      let topDelta = Math.min(Math.max((filletData[colIdx].top - filletData[colIdx+1].top)*0.5, -16), 16);
+      let bottomDelta = Math.min(Math.max((filletData[colIdx].bottom - filletData[colIdx+1].bottom)*0.5, -16), 16);
+      let [filletTop, filletBottom] = activeCard.getElementsByClassName("fillet");
 
-    if (filletTop && filletBottom) {
-      setTop(topDelta, filletTop);
-      setBottom(bottomDelta, filletBottom);
+      if (filletTop && filletBottom) {
+        setTop(topDelta, filletTop);
+        setBottom(bottomDelta, filletBottom);
+      }
     }
 
   } else if(filletData[colIdx] != null && filletData[colIdx-1] != null) {

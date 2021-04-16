@@ -755,12 +755,11 @@ window.onresize = () => {
 
 const updateFilletData = () => {
   let columns = Array.from(document.getElementsByClassName("column"));
-  let filletData = helpers.getFilletData(columns);
+  filletData = helpers.getFilletData(columns);
 }
 
 const updateFillets = () => {
   let columns = Array.from(document.getElementsByClassName("column"));
-  let filletData = helpers.getFilletData(columns);
   columns.map((c,i) => {
     helpers.setColumnFillets(c,i, filletData);
   })
@@ -943,6 +942,14 @@ const observer = new MutationObserver(function (mutations) {
         }
       }
     });
+
+    [].slice.call(m.removedNodes).map((n) => {
+      if (n.hasOwnProperty("getElementsByClassName") && n.getElementsByClassName("edit mousetrap").length != 0) {
+        updateFilletData();
+        updateFillets();
+      } else {
+      }
+    })
   });
 
   if (textareas.length !== 0) {
