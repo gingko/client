@@ -438,7 +438,7 @@ viewSidebar lang msgs currentDocument fileFilter docList accountEmail contextTar
               else
                 AntIcons.folderOutlined []
             ]
-         , viewIf isOpen <| DocList.viewSmall msgs.noOp msgs.fileSearchChanged msgs.contextMenuOpened currentDocument contextTarget_ fileFilter docList
+         , viewIf isOpen <| DocList.viewSidebarList msgs.noOp msgs.fileSearchChanged msgs.contextMenuOpened currentDocument contextTarget_ fileFilter docList
          , div
             [ id "document-switcher-icon"
             , onClickStop msgs.clickedSwitcher

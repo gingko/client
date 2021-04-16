@@ -504,6 +504,22 @@ a.forgot-password {
   padding: 3px 7px;
   font-size: 14px;
 }
+#document-list-buttons {
+  display: flex;
+  justify-content: space-around;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+#document-list-buttons .list-icon {
+  color: var(--ui-2-border-color);
+  fill: var(--ui-2-border-color);
+  width: 15px;
+  cursor: pointer;
+}
+#document-list-buttons .list-icon.selected {
+  fill: black;
+  color: black;
+}
 #document-switcher-icon {
   grid-area: row3-icon;
 }

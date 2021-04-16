@@ -1,16 +1,13 @@
-port module Doc.List exposing (Model(..), current, filter, getLastUpdated, init, isLoading, subscribe, switchListSort, toList, update, viewSmall, viewSwitcher)
+port module Doc.List exposing (Model(..), current, filter, getLastUpdated, init, isLoading, subscribe, switchListSort, toList, update, viewSidebarList, viewSwitcher)
 
-import Date
+import Ant.Icons.Svg as AntIcons
 import Doc.Metadata as Metadata exposing (Metadata)
 import Html exposing (Html, a, div, input, li, text, ul)
 import Html.Attributes exposing (attribute, class, classList, href, id, placeholder, title, type_)
 import Html.Events exposing (onClick, onInput, stopPropagationOn)
-import Html.Extra exposing (viewIf)
 import Json.Decode as Dec
-import Octicons as Icon
 import Page.Doc.ContextMenu as ContextMenu
 import Route
-import Strftime
 import Time
 import Translation exposing (TranslationId(..), timeDistInWords, tr)
 
@@ -23,6 +20,12 @@ type Model
     = Loading
     | Success (List Metadata)
     | Failure Dec.Error
+
+
+type SortBy
+    = Alphabetical
+    | ModifiedAt
+    | CreatedAt
 
 
 init : Model
@@ -70,6 +73,24 @@ filter term model =
 
         _ ->
             model
+
+
+sortBy : SortBy -> List Metadata -> List Metadata
+sortBy criteria docList =
+    case criteria of
+        Alphabetical ->
+            docList
+                |> List.sortBy (Metadata.getDocName >> Maybe.withDefault "Untitled")
+
+        ModifiedAt ->
+            docList
+                |> List.sortBy (Metadata.getUpdatedAt >> Time.posixToMillis)
+                |> List.reverse
+
+        CreatedAt ->
+            docList
+                |> List.sortBy (Metadata.getCreatedAt >> Time.posixToMillis)
+                |> List.reverse
 
 
 switchListSort : Metadata -> Model -> Model
@@ -122,8 +143,8 @@ update newModel oldModel =
 -- VIEW
 
 
-viewSmall : msg -> (String -> msg) -> (String -> ( Float, Float ) -> msg) -> Metadata -> Maybe String -> String -> Model -> Html msg
-viewSmall noop filterMsg contextMenuMsg currentDocument contextTarget_ filterField model =
+viewSidebarList : msg -> (String -> msg) -> (String -> ( Float, Float ) -> msg) -> Metadata -> Maybe String -> String -> Model -> Html msg
+viewSidebarList noop filterMsg contextMenuMsg currentDocument contextTarget_ filterField model =
     let
         stopClickProp =
             stopPropagationOn "click" (Dec.succeed ( noop, True ))
@@ -161,8 +182,13 @@ viewSmall noop filterMsg contextMenuMsg currentDocument contextTarget_ filterFie
 
             else
                 div [ id "sidebar-document-list-wrap" ]
-                    [ input [ id "document-list-filter", placeholder "Find file by name", type_ "search", onInput filterMsg, stopClickProp ] []
-                    , div [ id "sidebar-document-list" ] (List.map viewDocItem filteredDocs)
+                    [ div [ id "document-list-buttons" ]
+                        [ div [ id "sort-alphabetical", class "list-icon" ] [ text "Abc" ]
+                        , div [ id "sort-modified", class "list-icon", class "selected" ] [ AntIcons.editOutlined [] ]
+                        , div [ id "sort-created", class "list-icon" ] [ AntIcons.fileOutlined [] ]
+                        ]
+                    , input [ id "document-list-filter", placeholder "Find file by name", type_ "search", onInput filterMsg, stopClickProp ] []
+                    , div [ id "sidebar-document-list" ] (List.map viewDocItem (sortBy ModifiedAt filteredDocs))
                     ]
 
         Failure _ ->
