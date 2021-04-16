@@ -1670,17 +1670,6 @@ span.trial-dark {
   box-shadow: 0px 1px 3px gray;
 }
 
-.group.has-active .card.active.has-children::before {
-  content: '';
-  background: var(--active-bg);
-  position: absolute;
-  width: 12px;
-  height: 100%;
-  right: -10px;
-  top: 0;
-  opacity: 1;
-  transition: none;
-}
 
 .card.ancestor {
   background: var(--tree-bg-1);
@@ -2163,7 +2152,14 @@ pre {
 .card.editing::before {
   content: attr(data-cloned-content) " ";
   white-space: pre-wrap;
+  word-break: break-word;
   visibility: hidden;
+}
+
+.card.active.has-children:not(.editing) {
+  margin-right: -9px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 
@@ -2258,7 +2254,7 @@ pre {
   right: 1px;
 }
 .card.active .fillet.top-right, .card.active .fillet.bottom-right {
-  right: -9px;
+  right: 0;
 }
 .fillet.top-right.flipped {
   top: 0;
