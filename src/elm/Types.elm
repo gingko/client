@@ -1,4 +1,4 @@
-module Types exposing (Children(..), CollabState, Column, CursorPosition(..), DropId(..), Group, HeaderMenuState(..), Mode(..), OutsideData, SidebarMenuState(..), SidebarState(..), TextCursorInfo, TooltipPosition(..), Tree, ViewMode(..), ViewState, VisibleViewState)
+module Types exposing (Children(..), CollabState, Column, CursorPosition(..), DropId(..), Group, HeaderMenuState(..), Mode(..), OutsideData, SidebarMenuState(..), SidebarState(..), SortBy(..), TextCursorInfo, TooltipPosition(..), Tree, ViewMode(..), ViewState, VisibleViewState)
 
 import Browser.Dom exposing (Element)
 import Html5.DragDrop as DragDrop
@@ -62,6 +62,12 @@ type SidebarMenuState
     = NoSidebarMenu
     | Help
     | Account (Maybe Element)
+
+
+type SortBy
+    = Alphabetical
+    | ModifiedAt
+    | CreatedAt
 
 
 type HeaderMenuState

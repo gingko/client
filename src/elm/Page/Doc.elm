@@ -3,14 +3,14 @@ module Page.Doc exposing (Model, Msg, getTitle, init, subscriptions, toUser, upd
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
 import Bytes exposing (Bytes)
-import Coders exposing (treeToMarkdownString, treeToValue)
+import Coders exposing (sortByEncoder, treeToMarkdownString, treeToValue)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
 import Doc.ContactForm as ContactForm
 import Doc.Data as Data
 import Doc.Data.Conflict exposing (Selection)
 import Doc.Fonts as Fonts
 import Doc.Fullscreen as Fullscreen
-import Doc.List as DocList exposing (Model(..), SortBy(..))
+import Doc.List as DocList exposing (Model(..))
 import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.Switcher
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
@@ -31,6 +31,7 @@ import Import.Bulk.UI as ImportModal
 import Import.Incoming
 import Import.Single
 import Json.Decode as Json
+import Json.Encode as Enc
 import List.Extra as ListExtra
 import Markdown
 import Outgoing exposing (Msg(..), send)
@@ -80,7 +81,6 @@ type alias Model =
     , sidebarMenuState : SidebarMenuState
     , modalState : ModalState
     , fileSearchField : String
-    , sortBy : SortBy
     , headerMenu : HeaderMenuState
     , exportSettings : ( ExportSelection, ExportFormat )
     , wordcountTrayOpen : Bool
@@ -153,7 +153,6 @@ defaultModel isNew session docId =
     , sidebarMenuState = NoSidebarMenu
     , modalState = NoModal
     , fileSearchField = ""
-    , sortBy = ModifiedAt
     , headerMenu = NoHeaderMenu
     , exportSettings = ( ExportEverything, DOCX )
     , wordcountTrayOpen = False
@@ -847,7 +846,11 @@ update msg ({ workingTree } as model) =
             ( { model | fileSearchField = term, modalState = updatedModal }, Cmd.none )
 
         SortByChanged newSort ->
-            ( { model | sortBy = newSort }, Cmd.none )
+            let
+                newSession =
+                    Session.setSortBy newSort model.session
+            in
+            ( { model | session = newSession }, send <| SaveUserSetting ( "sortBy", sortByEncoder newSort ) )
 
         SidebarContextClicked docId ( x, y ) ->
             ( { model | modalState = SidebarContextMenu docId ( x, y ) }, Cmd.none )
@@ -2747,7 +2750,7 @@ viewLoaded model =
                         , fullscreenRequested = FullscreenRequested
                         }
                         model.metadata
-                        model.sortBy
+                        (Session.sortBy model.session)
                         model.fileSearchField
                         (Session.documents model.session)
                         (Session.name model.session |> Maybe.withDefault "" {- TODO -})

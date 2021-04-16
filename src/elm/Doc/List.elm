@@ -1,4 +1,4 @@
-port module Doc.List exposing (Model(..), SortBy(..), current, filter, getLastUpdated, init, isLoading, subscribe, switchListSort, toList, update, viewSidebarList, viewSwitcher)
+port module Doc.List exposing (Model(..), current, filter, getLastUpdated, init, isLoading, subscribe, switchListSort, toList, update, viewSidebarList, viewSwitcher)
 
 import Ant.Icons.Svg as AntIcons
 import Doc.Metadata as Metadata exposing (Metadata)
@@ -11,7 +11,7 @@ import Route
 import Svg.Attributes
 import Time
 import Translation exposing (TranslationId(..), timeDistInWords, tr)
-import Types exposing (TooltipPosition(..))
+import Types exposing (SortBy(..), TooltipPosition(..))
 import Utils exposing (onClickStop)
 
 
@@ -23,12 +23,6 @@ type Model
     = Loading
     | Success (List Metadata)
     | Failure Dec.Error
-
-
-type SortBy
-    = Alphabetical
-    | ModifiedAt
-    | CreatedAt
 
 
 init : Model

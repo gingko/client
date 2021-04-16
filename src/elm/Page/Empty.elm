@@ -2,7 +2,7 @@ module Page.Empty exposing (..)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
-import Doc.List as DocList exposing (Model(..), SortBy(..))
+import Doc.List as DocList exposing (Model(..))
 import Doc.Metadata as Metadata
 import Doc.UI as UI
 import Html exposing (Html, a, br, button, div, h1, img, p, text)
@@ -16,7 +16,7 @@ import Route
 import Session exposing (Session)
 import Task
 import Translation exposing (Language)
-import Types exposing (SidebarMenuState(..), SidebarState(..), TooltipPosition)
+import Types exposing (SidebarMenuState(..), SidebarState(..), SortBy(..), TooltipPosition)
 
 
 type alias Model =

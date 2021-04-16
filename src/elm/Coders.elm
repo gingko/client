@@ -1,4 +1,4 @@
-module Coders exposing (collabStateDecoder, collabStateToValue, fontSettingsEncoder, lazyRecurse, maybeToValue, modeDecoder, modeToValue, treeDecoder, treeListDecoder, treeOrString, treeToJSON, treeToJSONrecurse, treeToMarkdown, treeToMarkdownRecurse, treeToMarkdownString, treeToValue, treesModelDecoder, tripleDecoder, tupleDecoder, tupleToValue)
+module Coders exposing (collabStateDecoder, collabStateToValue, fontSettingsEncoder, lazyRecurse, maybeToValue, modeDecoder, modeToValue, sortByDecoder, sortByEncoder, treeDecoder, treeListDecoder, treeOrString, treeToJSON, treeToJSONrecurse, treeToMarkdown, treeToMarkdownRecurse, treeToMarkdownString, treeToValue, treesModelDecoder, tripleDecoder, tupleDecoder, tupleToValue)
 
 import Doc.Fonts as Fonts
 import Doc.TreeStructure as TreeStructure
@@ -165,6 +165,39 @@ treeToMarkdownRecurse tree =
             [ tree.content ]
                 ++ List.map treeToMarkdownRecurse c
                 |> String.join "\n\n"
+
+
+sortByDecoder : Decoder SortBy
+sortByDecoder =
+    let
+        get id =
+            case id of
+                "Alphabetical" ->
+                    succeed Alphabetical
+
+                "ModifiedAt" ->
+                    succeed ModifiedAt
+
+                "CreatedAt" ->
+                    succeed CreatedAt
+
+                _ ->
+                    fail ("unknown value for SortBy: " ++ id)
+    in
+    string |> andThen get
+
+
+sortByEncoder : SortBy -> Enc.Value
+sortByEncoder sortBy =
+    case sortBy of
+        Alphabetical ->
+            Enc.string "Alphabetical"
+
+        ModifiedAt ->
+            Enc.string "ModifiedAt"
+
+        CreatedAt ->
+            Enc.string "CreatedAt"
 
 
 

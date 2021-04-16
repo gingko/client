@@ -15,6 +15,7 @@ import Types exposing (CollabState, CursorPosition(..), OutsideData, TextCursorI
 
 type Msg
     = StoreUser Enc.Value
+    | SaveUserSetting ( String, Enc.Value )
       -- === Dialogs, Menus, Window State ===
     | Alert String
     | SetDirty Bool
@@ -72,6 +73,9 @@ send info =
     case info of
         StoreUser user ->
             dataToSend "StoreUser" user
+
+        SaveUserSetting ( key, val ) ->
+            dataToSend "SaveUserSetting" (list identity [ string key, val ])
 
         -- === Dialogs, Menus, Window State ===
         Alert str ->
