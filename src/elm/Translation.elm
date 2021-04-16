@@ -1247,7 +1247,7 @@ dateFormat lang time =
 
 datetimeFormat : Language -> Time.Posix -> String
 datetimeFormat lang time =
-    posixToString "%B %-d, %Y, %-I:%M:%S %p" lang time
+    posixToString "%b %-d, %Y, %-I:%M:%S %p" lang time
 
 
 posixToString : String -> Language -> Time.Posix -> String
