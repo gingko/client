@@ -25,7 +25,6 @@ import { Elm } from "../elm/Main";
 
 let lastActivesScrolled = null;
 let lastColumnScrolled = null;
-let filletData = [];
 let ticking = false;
 let lang = "en";
 let tourStepPositionStepNum = false;
@@ -457,8 +456,6 @@ const fromElm = (msg, elmData) => {
         let columns = Array.from(document.getElementsByClassName("column"));
         columns.map((c, i) => {
           c.addEventListener('scroll', () => {
-            updateFilletData();
-
             if(!ticking) {
               window.requestAnimationFrame(() => {
                 updateFillets();
@@ -753,13 +750,9 @@ window.onresize = () => {
   }
 };
 
-const updateFilletData = () => {
-  let columns = Array.from(document.getElementsByClassName("column"));
-  filletData = helpers.getFilletData(columns);
-}
-
 const updateFillets = () => {
   let columns = Array.from(document.getElementsByClassName("column"));
+  let filletData = helpers.getFilletData(columns);
   columns.map((c,i) => {
     helpers.setColumnFillets(c,i, filletData);
   })
@@ -945,7 +938,6 @@ const observer = new MutationObserver(function (mutations) {
 
     [].slice.call(m.removedNodes).map((n) => {
       if (n.hasOwnProperty("getElementsByClassName") && n.getElementsByClassName("edit mousetrap").length != 0) {
-        updateFilletData();
         updateFillets();
       } else {
       }

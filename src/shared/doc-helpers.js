@@ -146,6 +146,8 @@ const setColumnFillets = (currColumn, colIdx, filletData) => {
       let [filletTop, filletBottom] = activeCard.getElementsByClassName("fillet");
 
       if (filletTop && filletBottom) {
+        filletTop.style.display = "block";
+        filletBottom.style.display = "block";
         setTop(topDelta, filletTop);
         setBottom(bottomDelta, filletBottom);
       }
