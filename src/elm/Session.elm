@@ -282,7 +282,7 @@ updateDocuments : DocList.Model -> Session -> Session
 updateDocuments docList session =
     case session of
         LoggedIn sessionData data ->
-            LoggedIn sessionData { data | documents = DocList.update docList data.documents }
+            LoggedIn sessionData { data | documents = DocList.update data.sortBy docList data.documents }
 
         Guest _ _ ->
             session
