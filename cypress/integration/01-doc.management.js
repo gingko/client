@@ -12,12 +12,12 @@ describe('Managing Documents', () => {
 
   before(() => {
     cy.deleteUser(testEmail).then(() => {
-      cy.signup_with(testEmail, 'fourTrees')
+      cy.signup_with(testEmail, 'fourSmallTrees')
     })
   })
 
   beforeEach(() => {
-    cy.fixture('fourTrees.ids.json').as('treeIds')
+    cy.fixture('fourSmallTrees.ids.json').as('treeIds')
     Cypress.Cookies.preserveOnce('AuthSession')
   })
 
@@ -25,10 +25,10 @@ describe('Managing Documents', () => {
     it('Should navigate to last edited tree', function () {
       cy.visit(config.TEST_SERVER)
 
-      cy.url().should('contain', this.treeIds[3] )
+      cy.url().should('contain', this.treeIds[1] )
       cy.get('.spinner', {timeout: 20000}).should('not.exist')
 
-      cy.contains('sadlkfsalfj')
+      cy.contains('123')
 
       cy.get('#documents-icon').click()
 
@@ -36,7 +36,7 @@ describe('Managing Documents', () => {
         .should('have.length', 4)
 
 
-      cy.get('#title').contains('Random letters')
+      cy.get('#title').contains('tree-1')
 
       // Prevent navigating away if editing
       const stub = cy.stub()
@@ -50,7 +50,7 @@ describe('Managing Documents', () => {
         .then(()=> {
           expect(stub.getCall(0)).to.be.calledWith('You have unsaved changes!\nCtrl+Enter to save.')
         })
-      cy.url().should('contain', this.treeIds[3] )
+      cy.url().should('contain', this.treeIds[1] )
     })
 
     it('Should have working sidebar and Quick Switcher', function () {
@@ -61,23 +61,18 @@ describe('Managing Documents', () => {
       cy.get('.spinner', {timeout: 20000}).should('not.exist')
       //cy.get('#documents-icon', {timeout: 20000}).click()
 
-      cy.contains('#sidebar-document-list-wrap', 'welcome', {timeout: 20000})
-        .contains('#sidebar-document-list-wrap', 'timeline 2021')
+      cy.contains('#sidebar-document-list-wrap', 'tree-u', {timeout: 20000})
+        .contains('#sidebar-document-list-wrap', 'tree-a')
 
-      // Go to Welcome doc
-      cy.get('#sidebar-document-list-wrap').contains('welcome').click()
-
-      // Check Welcome doc contents
-      cy.contains('#document', 'Welcome to Gingko Writer')
-        .contains('#document', 'Adding New Cards')
-        .contains('#document', 'Moving Cards')
+      // Go to uvw doc
+      cy.get('#sidebar-document-list-wrap').contains('tree-u').click()
+      cy.contains('#document', 'uvw')
 
       // Got to another doc
-      cy.get('#sidebar-document-list-wrap').contains('Screenplay')
+      cy.get('#sidebar-document-list-wrap').contains('tree-a')
         .click()
-      cy.url().should('contain', this.treeIds[2] )
-
-      cy.contains('tips to improve your logline')
+      cy.url().should('contain', this.treeIds[0] )
+      cy.contains('abc')
 
       // Should have a working context menu
       // Menu opens on right click
@@ -101,7 +96,7 @@ describe('Managing Documents', () => {
       // Document should be deleted
       cy.get('#sidebar-document-list-wrap .sidebar-document-item', {timeout: 20000})
         .should('have.length', 3)
-        .should('not.contain', 'timeline 2021')
+        .should('not.contain', 'tree-u')
 
       // And menu should be gone
       cy.get('#sidebar-context-menu').should('not.exist')
@@ -123,7 +118,7 @@ describe('Managing Documents', () => {
 
         cy.get('#switcher-modal .switcher-document-list .switcher-document-item').then($list => {
           expect($list.toArray().map(li => li.innerText))
-            .to.eql(['Screenplay', 'Random letters', 'welcome'])
+            .to.eql(['tree-a', 'tree-1', 'tree-x'])
         })
 
         cy.get('#switcher-modal .switcher-document-list .switcher-document-item')
@@ -140,39 +135,39 @@ describe('Managing Documents', () => {
           })
 
         // Test filtering
-        cy.get('#switcher-modal input').type('welc')
+        cy.get('#switcher-modal input').type('x')
 
         cy.get('#switcher-modal .switcher-document-list')
-          .should('contain', 'welcome')
-          .should('not.contain', 'Random')
-          .should('not.contain', 'Screenplay')
+          .should('contain', 'tree-x')
+          .should('not.contain', 'tree-a')
+          .should('not.contain', 'tree-1')
 
         // Should close on esc
         cy.shortcut('{esc}')
         cy.get('#switcher-modal').should('not.exist')
-        cy.contains('Screenplay')
+        cy.contains('abc')
 
 
         // Should go to selected tree on {enter}
         cy.shortcut('{ctrl}o')
         cy.shortcut('{downarrow}')
         cy.shortcut('{enter}')
-        cy.url().should('contain', this.treeIds[3] )
+        cy.url().should('contain', this.treeIds[1] )
 
 
         // Should select first tree when filtering
         cy.shortcut('{ctrl}o')
         cy.get('#switcher-modal').should('exist')
-        cy.get('#switcher-modal input').type('welc')
+        cy.get('#switcher-modal input').type('x')
 
         cy.get('#switcher-modal .switcher-document-list .switcher-document-item').then($list => {
           expect($list[0]).to.have.class('selected').and.to.not.have.class('current')
           expect($list).to.have.length(1)
         })
         cy.shortcut('{enter}')
-        cy.url().should('contain', this.treeIds[0] )
+        cy.url().should('contain', this.treeIds[2] )
 
-        cy.contains('Welcome to Gingko Writer')
+        cy.contains('xyz')
       })
     })
   })
