@@ -26,6 +26,7 @@ import { Elm } from "../elm/Main";
 let lastActivesScrolled = null;
 let lastColumnScrolled = null;
 let ticking = false;
+let renaming = false;
 let lang = "en";
 let tourStepPositionStepNum = false;
 let tourStepPositionRefElementId = "";
@@ -368,9 +369,13 @@ const fromElm = (msg, elmData) => {
     },
 
     RenameDocument: async () => {
-      let saveRes = await data.renameDocument(db, TREE_ID, elmData);
-      if (saveRes) {
-        toElm(saveRes, "docMsgs", "MetadataSaved");
+      if (!renaming) { // Hack to prevent double rename attempt due to Browser.Dom.blur
+        renaming = true;
+        let saveRes = await data.renameDocument(db, TREE_ID, elmData);
+        if (saveRes) {
+          toElm(saveRes, "docMsgs", "MetadataSaved");
+        }
+        renaming = false;
       }
     },
 
