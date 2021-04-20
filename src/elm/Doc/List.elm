@@ -131,9 +131,14 @@ toList model =
 -- UPDATE
 
 
-update : Model -> Model -> Model
-update newModel oldModel =
-    newModel
+update : SortBy -> Model -> Model -> Model
+update sortCriteria newModel oldModel =
+    case newModel of
+        Success docList ->
+            sortBy sortCriteria docList |> Success
+
+        _ ->
+            newModel
 
 
 
