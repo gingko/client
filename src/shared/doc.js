@@ -450,7 +450,9 @@ const fromElm = (msg, elmData) => {
       helpers.scrollHorizontal(elmData.columnIdx, elmData.instant);
       lastActivesScrolled = elmData;
       lastColumnScrolled = elmData.columnIdx;
-      localStore.set('last-actives', elmData.lastActives);
+      if (localStore.isReady()) {
+        localStore.set('last-actives', elmData.lastActives);
+      }
       window.requestAnimationFrame(()=>{
         updateFillets();
         let columns = Array.from(document.getElementsByClassName("column"));

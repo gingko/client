@@ -37,6 +37,9 @@ const localStore = {
     treeId = tree_id;
     localStoreId = `_local/${tree_id}/settings`;
   },
+  isReady: () => {
+    return (typeof localDB != "undefined");
+  },
   load: async () => {
     let store = await localDB.get(localStoreId).catch(() => {
       return { _id: localStoreId };
