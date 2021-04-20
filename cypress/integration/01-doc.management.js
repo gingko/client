@@ -26,6 +26,7 @@ describe('Managing Documents', () => {
       cy.visit(config.TEST_SERVER)
 
       cy.url().should('contain', this.treeIds[6] )
+      cy.get('.spinner', {timeout: 20000}).should('not.exist')
 
       cy.contains('sadlkfsalfj')
 

@@ -79,7 +79,7 @@ describe('Fullscreen Editing', () => {
     cy.get('#app-fullscreen').should('not.exist')
     cy.get('#fullscreen-main').should('not.exist')
     // Wait for synced before proceeding
-    cy.contains('Synced')
+    cy.contains('Synced', {timeout: 20000})
     cy.get('textarea').should('not.exist')
     cy.getCard(2,1,1).should('contain', 'cardabclmn line')
 
@@ -105,7 +105,7 @@ describe('Fullscreen Editing', () => {
     cy.getCard(2,1,2).should('contain.html', '<p>Another Child card testxyzedit</p>')
 
     // Wait for synced before proceeding
-    cy.contains('Synced')
+    cy.contains('Synced', {timeout: 20000})
   })
 
   it('Saved fullscreen changes correctly', function () {
