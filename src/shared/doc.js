@@ -587,7 +587,7 @@ const fromElm = (msg, elmData) => {
     SetFullscreen: () => {
       if(screenfull.isEnabled) {
         if(elmData) {
-          screenfull.request();
+          screenfull.request().catch((e)=> console.log(e));
         } else {
           screenfull.exit();
         }
