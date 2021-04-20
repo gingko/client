@@ -5,12 +5,12 @@ describe('Document Exporting', () => {
 
   before(() => {
     cy.deleteUser(testEmail).then(() => {
-      cy.signup_with(testEmail, 'sevenTrees')
+      cy.signup_with(testEmail, 'oneTree')
     })
   })
 
   beforeEach(() => {
-    cy.fixture('sevenTrees.ids.json').as('treeIds')
+    cy.fixture('oneTree.ids.json').as('treeIds')
     Cypress.Cookies.preserveOnce('AuthSession')
   })
 
