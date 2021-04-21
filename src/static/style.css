@@ -2336,6 +2336,9 @@ pre {
   width: 20px;
   right: -9px;
 }
+.card.has-children .ins-right {
+  right: 0;
+}
 .card-btn.ins-right::before {
     content: '';
     width: 7px;
