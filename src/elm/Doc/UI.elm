@@ -338,6 +338,7 @@ type alias SidebarMsgs msg =
     , clickedHelp : msg
     , toggledShortcuts : msg
     , clickedEmailSupport : msg
+    , clickedManageSubscription : String -> msg
     , languageMenuRequested : Maybe String -> msg
     , toggledAccount : Bool -> msg
     , logout : msg
@@ -350,7 +351,7 @@ type alias SidebarMsgs msg =
 
 
 viewSidebar :
-    Language
+    Session
     -> SidebarMsgs msg
     -> Metadata
     -> SortBy
@@ -361,8 +362,19 @@ viewSidebar :
     -> SidebarMenuState
     -> SidebarState
     -> Html msg
-viewSidebar lang msgs currentDocument sortCriteria fileFilter docList accountEmail contextTarget_ dropdownState sidebarState =
+viewSidebar session msgs currentDocument sortCriteria fileFilter docList accountEmail contextTarget_ dropdownState sidebarState =
     let
+        lang =
+            Session.language session
+
+        custId_ =
+            case Session.paymentStatus session of
+                Customer custId ->
+                    Just custId
+
+                _ ->
+                    Nothing
+
         isOpen =
             not (sidebarState == SidebarClosed)
 
@@ -500,8 +512,10 @@ viewSidebar lang msgs currentDocument sortCriteria fileFilter docList accountEma
             [ AntIcons.userOutlined [] ]
          ]
             ++ viewSidebarMenu lang
+                custId_
                 { toggledShortcuts = msgs.toggledShortcuts
                 , clickedEmailSupport = msgs.clickedEmailSupport
+                , clickedManageSubscription = msgs.clickedManageSubscription
                 , helpClosed = msgs.clickedHelp
                 , languageMenuRequested = msgs.languageMenuRequested
                 , languageChanged = msgs.languageChanged
@@ -516,9 +530,11 @@ viewSidebar lang msgs currentDocument sortCriteria fileFilter docList accountEma
 
 viewSidebarMenu :
     Language
+    -> Maybe String
     ->
         { toggledShortcuts : msg
         , clickedEmailSupport : msg
+        , clickedManageSubscription : String -> msg
         , helpClosed : msg
         , languageMenuRequested : Maybe String -> msg
         , languageChanged : Language -> msg
@@ -529,7 +545,7 @@ viewSidebarMenu :
     -> String
     -> SidebarMenuState
     -> List (Html msg)
-viewSidebarMenu lang msgs accountEmail dropdownState =
+viewSidebarMenu lang custId_ msgs accountEmail dropdownState =
     case dropdownState of
         Help ->
             [ div [ id "help-menu", class "sidebar-menu" ]
@@ -542,8 +558,18 @@ viewSidebarMenu lang msgs accountEmail dropdownState =
             ]
 
         Account langMenuEl_ ->
+            let
+                manageSubBtn =
+                    case custId_ of
+                        Just custId ->
+                            div [ onClickStop <| msgs.clickedManageSubscription custId ] [ text "Manage Subscription" ]
+
+                        Nothing ->
+                            text ""
+            in
             [ div [ id "account-menu", class "sidebar-menu" ]
                 [ div [ onClickStop msgs.noOp, class "no-action" ] [ text accountEmail ]
+                , manageSubBtn
                 , div
                     [ id "language-option"
                     , if langMenuEl_ == Nothing then

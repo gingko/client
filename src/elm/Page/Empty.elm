@@ -8,6 +8,7 @@ import Doc.UI as UI
 import Html exposing (Html, a, br, button, div, h1, img, p, text)
 import Html.Attributes exposing (class, href, id, src)
 import Html.Events exposing (on, onClick)
+import Http
 import Import.Bulk.UI as ImportModal
 import Import.Incoming
 import Json.Decode as Dec
@@ -77,6 +78,7 @@ type Msg
     | SidebarStateChanged SidebarState
     | ToggledHelpMenu Bool
     | ClickedEmailSupport
+    | ClickedManageSubscription String
     | ToggledAccountMenu Bool
     | LanguageMenuRequested (Maybe String)
     | LanguageMenuReceived Element
@@ -177,6 +179,15 @@ update msg model =
 
         ClickedEmailSupport ->
             ( model, Cmd.none )
+
+        ClickedManageSubscription custId ->
+            ( model
+            , Http.post
+                { body = Http.jsonBody (Enc.object [ ( "customer_id", Enc.string custId ) ])
+                , expect = Http.expectWhatever (always NoOp)
+                , url = "/create-portal-session"
+                }
+            )
 
         ToggledAccountMenu isOpen ->
             let
@@ -306,7 +317,7 @@ view ({ session } as model) =
                 div [ id "loading-spinner" ]
                     [ text "Loading..." ]
          , UI.viewSidebar
-            lang
+            session
             { sidebarStateChanged = SidebarStateChanged
             , noOp = NoOp
             , clickedNew = NewClicked
@@ -316,6 +327,7 @@ view ({ session } as model) =
             , clickedHelp = ToggledHelpMenu (not (model.sidebarMenuState == Help))
             , toggledShortcuts = NoOp
             , clickedEmailSupport = ClickedEmailSupport
+            , clickedManageSubscription = ClickedManageSubscription
             , languageMenuRequested = LanguageMenuRequested
             , logout = LogoutRequested
             , toggledAccount = ToggledAccountMenu

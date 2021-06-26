@@ -260,6 +260,7 @@ type Msg
     | UpgradeModalMsg Upgrade.Msg
       -- HELP
     | ClickedEmailSupport
+    | ClickedManageSubscription String
     | TourStep (Maybe Int)
     | ContactFormMsg ContactForm.Model ContactForm.Msg
     | CopyEmailClicked
@@ -752,6 +753,15 @@ update msg ({ workingTree } as model) =
             in
             ( { model | modalState = ContactForm (ContactForm.init fromEmail), sidebarMenuState = NoSidebarMenu }
             , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "contact-body")
+            )
+
+        ClickedManageSubscription custId ->
+            ( model
+            , Http.post
+                { body = Http.jsonBody (Enc.object [ ( "customer_id", Enc.string custId ) ])
+                , expect = Http.expectWhatever (always NoOp)
+                , url = "/create-portal-session"
+                }
             )
 
         TourStep step_ ->
@@ -2706,7 +2716,7 @@ viewLoaded model =
                         (Metadata.getDocName model.metadata)
                         model
                      , UI.viewSidebar
-                        language
+                        model.session
                         { sidebarStateChanged = SidebarStateChanged
                         , noOp = NoOp
                         , clickedNew = TemplateSelectorOpened
@@ -2716,6 +2726,7 @@ viewLoaded model =
                         , clickedHelp = ToggledHelpMenu (not (model.sidebarMenuState == Help))
                         , toggledShortcuts = ShortcutTrayToggle
                         , clickedEmailSupport = ClickedEmailSupport
+                        , clickedManageSubscription = ClickedManageSubscription
                         , languageMenuRequested = LanguageMenuRequested
                         , logout = LogoutRequested
                         , toggledAccount = ToggledAccountMenu
