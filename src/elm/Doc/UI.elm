@@ -338,7 +338,6 @@ type alias SidebarMsgs msg =
     , clickedHelp : msg
     , toggledShortcuts : msg
     , clickedEmailSupport : msg
-    , clickedManageSubscription : String -> msg
     , languageMenuRequested : Maybe String -> msg
     , toggledAccount : Bool -> msg
     , logout : msg
@@ -515,7 +514,6 @@ viewSidebar session msgs currentDocument sortCriteria fileFilter docList account
                 custId_
                 { toggledShortcuts = msgs.toggledShortcuts
                 , clickedEmailSupport = msgs.clickedEmailSupport
-                , clickedManageSubscription = msgs.clickedManageSubscription
                 , helpClosed = msgs.clickedHelp
                 , languageMenuRequested = msgs.languageMenuRequested
                 , languageChanged = msgs.languageChanged
@@ -534,7 +532,6 @@ viewSidebarMenu :
     ->
         { toggledShortcuts : msg
         , clickedEmailSupport : msg
-        , clickedManageSubscription : String -> msg
         , helpClosed : msg
         , languageMenuRequested : Maybe String -> msg
         , languageChanged : Language -> msg
@@ -562,7 +559,10 @@ viewSidebarMenu lang custId_ msgs accountEmail dropdownState =
                 manageSubBtn =
                     case custId_ of
                         Just custId ->
-                            div [ onClickStop <| msgs.clickedManageSubscription custId ] [ text "Manage Subscription" ]
+                            Html.form [ method "POST", action "/create-portal-session" ]
+                                [ input [ type_ "hidden", name "customer_id", value custId ] []
+                                , button [ id "manage-subscription-button", type_ "submit" ] [ text "Manage Subscription" ]
+                                ]
 
                         Nothing ->
                             text ""

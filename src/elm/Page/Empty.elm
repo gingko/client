@@ -78,7 +78,6 @@ type Msg
     | SidebarStateChanged SidebarState
     | ToggledHelpMenu Bool
     | ClickedEmailSupport
-    | ClickedManageSubscription String
     | ToggledAccountMenu Bool
     | LanguageMenuRequested (Maybe String)
     | LanguageMenuReceived Element
@@ -179,15 +178,6 @@ update msg model =
 
         ClickedEmailSupport ->
             ( model, Cmd.none )
-
-        ClickedManageSubscription custId ->
-            ( model
-            , Http.post
-                { body = Http.jsonBody (Enc.object [ ( "customer_id", Enc.string custId ) ])
-                , expect = Http.expectWhatever (always NoOp)
-                , url = "/create-portal-session"
-                }
-            )
 
         ToggledAccountMenu isOpen ->
             let
@@ -327,7 +317,6 @@ view ({ session } as model) =
             , clickedHelp = ToggledHelpMenu (not (model.sidebarMenuState == Help))
             , toggledShortcuts = NoOp
             , clickedEmailSupport = ClickedEmailSupport
-            , clickedManageSubscription = ClickedManageSubscription
             , languageMenuRequested = LanguageMenuRequested
             , logout = LogoutRequested
             , toggledAccount = ToggledAccountMenu
