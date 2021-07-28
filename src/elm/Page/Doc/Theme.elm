@@ -8,6 +8,7 @@ import Json.Encode as Enc
 
 type Theme
     = Default
+    | Classic
     | Gray
     | Green
     | Turquoise
@@ -19,6 +20,9 @@ applyTheme theme =
     case theme of
         Default ->
             class ""
+
+        Classic ->
+            class "classic-theme"
 
         Gray ->
             class "gray-theme"
@@ -49,6 +53,9 @@ toValue theme =
         Default ->
             Enc.string "default"
 
+        Classic ->
+            Enc.string "classic"
+
         Gray ->
             Enc.string "gray"
 
@@ -70,6 +77,9 @@ decoder =
                 case s of
                     "default" ->
                         Default
+
+                    "classic" ->
+                        Classic
 
                     "gray" ->
                         Gray

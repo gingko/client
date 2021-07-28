@@ -23,6 +23,8 @@
   --edit-text-shadow: -1px -1px 0px rgba(0,0,0,0.1), 1px 1px 0px rgba(255,255,255,0.8);
   --normal-text-color: hsl(0, 20%, 17%);
   --normal-text-color-medium: #333;
+  --body-font: "Open Sans";
+  --header-font: "Bitter";
 
   --background-sidebar: hsl(200, 15%, 90%);
   --background-sidebar-menu: hsl(200, 13%, 95%);

@@ -195,6 +195,7 @@ viewHeader msgs title_ model =
                 [ div [ id "wordcount-menu-item", onClick msgs.wordCountClicked ] [ text "Word count..." ]
                 , h4 [] [ text "Document Theme" ]
                 , div [ onClick <| msgs.themeChanged Default ] [ text "Default" ]
+                , div [ onClick <| msgs.themeChanged Classic ] [ text "Classic Gingkoapp" ]
                 , div [ onClick <| msgs.themeChanged Gray ] [ text "Gray" ]
                 , div [ onClick <| msgs.themeChanged Green ] [ text "Green" ]
                 , div [ onClick <| msgs.themeChanged Turquoise ] [ text "Turquoise" ]

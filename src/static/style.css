@@ -268,6 +268,33 @@ a.forgot-password {
 
 /* ======== THEMES ======== */
 
+.classic-theme {
+  --bg-left: hsl(214, 20%, 80%);
+  --bg-main: hsl(214, 20%, 80%);
+
+  --tree-bg-2: hsl(240, 6%, 88%);
+  --tree-bg-2-lighter: hsl(240, 6%, 92%);
+
+  --tree-bg-1: hsl(240, 7%, 94%);
+  --tree-bg-1-lighter: hsl(240, 7%, 98%);
+
+  --active-bg: hsl(202, 100%, 100%);
+
+  --selection-color: hsl(86, 54%, 51%);
+
+  --edit-bg: #fcfcfc;
+  --edit-text-color: hsl(27,28%,22%);
+  --edit-boxshadow: inset 1px 1px 3px rgba(0, 0, 0, 0.2), 0 0 10px #d8f1bc;
+  --edit-border: 1px solid #8cc63f;
+  --normal-text-color: hsl(0, 20%, 17%);
+
+  --body-font: serif;
+  --header-font: "Open Sans";
+  --buffer-bg: rgba(255,255,255,.4);
+  --buffer-border: 1px solid rgba(0,0,0,.2);
+  --left-column-border-right: none;
+
+}
 .dark-theme {
   --bg-left: #04121a;
   --bg-main: #0c344b;
@@ -1488,7 +1515,7 @@ span.trial-dark {
 
 .left-padding-column {
   background-color: var(--bg-left);
-  border-right: 2px solid hsla(0, 0%, 0%, 0.15);
+  border-right: var(--left-col-border-right), 2px solid hsla(0, 0%, 0%, 0.15);
   margin-right: 40px;
 }
 
@@ -1496,6 +1523,8 @@ span.trial-dark {
   margin: 0 16px;
   height: 50vh;
   z-index: 1;
+  background: var(--buffer-bg);
+  border: var(--buffer-border);
 }
 
 
@@ -2061,11 +2090,11 @@ p {
 }
 
 .card .view {
-  font-family: 'Open Sans', serif;
+  font-family: var(--body-font), 'Open Sans', serif;
   line-height: 1.4;
 }
 .card .view h1, .card .view h2, .card .view h3, .card .view h4, .card .view h5, .card .view h6 {
-  font-family: 'Bitter', serif;
+  font-family: var(--header-font), 'Bitter', serif;
 }
 
 pre, code {
@@ -2150,9 +2179,10 @@ pre {
 .group.has-active .card.editing {
   display: grid;
   padding: 15px 0px 5px 0px;
-  border: none;
+  border: var(--edit-border);
   border-radius: inherit;
   background: var(--edit-bg, url('./handmadepaper.png'));
+  box-shadow: var(--edit-boxshadow);
 }
 
 .group.has-active .card.editing textarea, .card.editing::before {
