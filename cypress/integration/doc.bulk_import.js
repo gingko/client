@@ -78,6 +78,10 @@ describe('Legacy Imports from Startup State', () => {
     cy.get('#app-root').should('not.contain', 'Import From Gingko v1')
 
     cy.get('#documents-icon').click()
+
+    // Additional delay needed since "legacy import non-sync" bugfix
+    // TODO: Replace with more assertions
+    cy.wait(4000);
     cy.get('#sidebar-document-list > .sidebar-document-item')
       .should('have.length', 12)
 
