@@ -439,11 +439,17 @@ const fromElm = (msg, elmData) => {
     },
 
     SaveBulkImportedData: async () => {
-      let savePromises =
+      let localSavePromises =
         elmData.map(async commitReq => {
           await data.newSave(userDbName, commitReq.metadata.docId, commitReq, commitReq.metadata.updatedAt, savedObjectIds);
         });
-      await Promise.all(savePromises);
+      await Promise.all(localSavePromises);
+
+      // Push newly imported trees to remote
+      elmData.map(async commitReq => {
+        await data.sync(db, remoteDB, commitReq.metadata.docId, null, () => {}, pushSuccessHandler);
+      });
+
       toElm(null, "importComplete");
     },
 
