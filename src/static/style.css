@@ -2787,16 +2787,6 @@ pre.formatting-text {
 
 /* ======== HISTORY ======== */
 
-#history {
-  position: absolute;
-  width: 100%;
-  padding: 10px 5px;
-  grid-area: document;
-  display: flex;
-}
-#history input {
-  width: 100%;
-}
 .conflicts-list {
   position: absolute;
   z-index: 999;
