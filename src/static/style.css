@@ -181,7 +181,7 @@ body {
 #form-page span.alt-action {
   color: #888;
 }
-#form-page .extra-info {
+.extra-info {
   color: #888;
   width: 30ch;
 }
@@ -222,7 +222,7 @@ body {
 .center-form .alt-action {
   text-align: center;
 }
-#form-page input, #contact-form input, #contact-form textarea {
+#form-page input, #contact-form input:not([type='radio']), #contact-form textarea {
   border: 1px solid gray;
   padding: .5em 1em;
   font-size: 1em;
@@ -1107,6 +1107,23 @@ ul.dropdown > li > span.no-interaction:hover {
   position: absolute;
   right: 4px;
   top: 39px;
+}
+
+.modal.red-alert {
+  background: #ffebee;
+}
+.modal.red-alert .modal-header{
+  background: #ef5350;
+  color: white;
+}
+.modal.red-alert #contact-send {
+  background: #f44336;
+}
+.modal:not(.red-alert) #urg-req-info, .modal.red-alert #std-req-info {
+  visibility: hidden;
+}
+.modal.red-alert #urg-req-info, .modal:not(.red-alert) #std-req-info {
+  visibility: visible;
 }
 
 #contact-form {

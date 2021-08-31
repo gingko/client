@@ -138,7 +138,7 @@ view model =
                 [ viewPWYWForm model ]
            )
     )
-        |> modalWrapper UpgradeModalClosed (Just "upgrade-modal") "Upgrade Gingko Writer"
+        |> modalWrapper UpgradeModalClosed (Just "upgrade-modal") Nothing "Upgrade Gingko Writer"
 
 
 viewCopy : Html Msg

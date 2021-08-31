@@ -2,12 +2,12 @@ module SharedUI exposing (modalWrapper)
 
 import Ant.Icons.Svg as Icons
 import Html exposing (Html, a, button, div, h1, h2, text)
-import Html.Attributes exposing (class, height, id, width)
+import Html.Attributes exposing (class, classList, height, id, width)
 import Html.Events exposing (onClick)
 
 
-modalWrapper : msg -> Maybe String -> String -> List (Html msg) -> List (Html msg)
-modalWrapper closeMsg id_ titleString body =
+modalWrapper : msg -> Maybe String -> Maybe (List ( String, Bool )) -> String -> List (Html msg) -> List (Html msg)
+modalWrapper closeMsg id_ classList_ titleString body =
     let
         idAttr =
             case id_ of
@@ -16,9 +16,17 @@ modalWrapper closeMsg id_ titleString body =
 
                 Nothing ->
                     []
+
+        otherClasses =
+            case classList_ of
+                Just list ->
+                    list
+
+                Nothing ->
+                    []
     in
     [ div [ class "modal-overlay", onClick closeMsg ] []
-    , div [ class "modal" ]
+    , div [ classList ([ ( "modal", True ) ] ++ otherClasses) ]
         [ div [ class "modal-header" ]
             [ h2 [] [ text titleString ]
             , div [ class "close-button", onClick closeMsg ] [ Icons.closeCircleOutlined [ width 20, height 20 ] ]

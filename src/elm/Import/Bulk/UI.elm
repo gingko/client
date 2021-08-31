@@ -214,7 +214,7 @@ view lang { state } =
                         , text " to download your v1 files manually."
                         ]
                     ]
-                        |> modalWrapper ModalClosed Nothing "Import From Gingko v1"
+                        |> modalWrapper ModalClosed Nothing Nothing "Import From Gingko v1"
 
                 LoggedIn ->
                     [ p [] [ text "To transfer multiple trees from your old account to this new one, follow these steps." ]
@@ -236,7 +236,7 @@ view lang { state } =
                         , button [ onClick FileRequested ] [ text "Browse..." ]
                         ]
                     ]
-                        |> modalWrapper ModalClosed Nothing "Import From Gingko v1"
+                        |> modalWrapper ModalClosed Nothing Nothing "Import From Gingko v1"
 
                 LoggedOut ->
                     [ p [] [ text "To transfer trees from your old account, you need to be logged in to it." ]
@@ -256,7 +256,7 @@ view lang { state } =
                         , text " to download your v1 files manually."
                         ]
                     ]
-                        |> modalWrapper ModalClosed Nothing "Import From Gingko v1"
+                        |> modalWrapper ModalClosed Nothing Nothing "Import From Gingko v1"
 
                 Manual ->
                     [ p []
@@ -281,7 +281,7 @@ view lang { state } =
                         , button [ onClick FileRequested ] [ text "Browse..." ]
                         ]
                     ]
-                        |> modalWrapper ModalClosed Nothing "Import From Gingko v1"
+                        |> modalWrapper ModalClosed Nothing Nothing "Import From Gingko v1"
 
         ImportSelecting importSelection ->
             let
@@ -298,7 +298,7 @@ view lang { state } =
                 ]
             , button [ onClick SelectionDone, disabled isDisabled ] [ text "Import Selected Trees" ]
             ]
-                |> modalWrapper ModalClosed Nothing "Import From Gingko v1"
+                |> modalWrapper ModalClosed Nothing Nothing "Import From Gingko v1"
 
         ImportSaving importSelection ->
             let
@@ -313,7 +313,7 @@ view lang { state } =
                 , text "This might take a while..."
                 ]
             ]
-                |> modalWrapper ModalClosed Nothing "Import From Gingko v1"
+                |> modalWrapper ModalClosed Nothing Nothing "Import From Gingko v1"
 
 
 viewSelectionEntry : Language -> { selected : Bool, tree : ( String, Metadata, Tree ) } -> Html Msg

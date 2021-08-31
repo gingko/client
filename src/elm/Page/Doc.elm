@@ -262,7 +262,7 @@ type Msg
     | ClickedEmailSupport
     | TourStep (Maybe Int)
     | ContactFormMsg ContactForm.Model ContactForm.Msg
-    | CopyEmailClicked
+    | CopyEmailClicked Bool
     | ContactFormSubmitted ContactForm.Model
     | ContactFormSent (Result Http.Error ())
       -- Import
@@ -760,8 +760,12 @@ update msg ({ workingTree } as model) =
         ContactFormMsg formModel formMsg ->
             ( { model | modalState = ContactForm (ContactForm.update formMsg formModel) }, Cmd.none )
 
-        CopyEmailClicked ->
-            ( model, send <| CopyToClipboard "{%SUPPORT_EMAIL%}" "#email-copy-btn" )
+        CopyEmailClicked isUrgent ->
+            if isUrgent then
+                ( model, send <| CopyToClipboard "{%SUPPORT_URGENT_EMAIL%}" "#email-copy-btn" )
+
+            else
+                ( model, send <| CopyToClipboard "{%SUPPORT_EMAIL%}" "#email-copy-btn" )
 
         ContactFormSubmitted formModel ->
             ( model, ContactForm.send ContactFormSent formModel )

@@ -716,7 +716,7 @@ viewTemplateSelector language msgs =
             ]
         ]
     ]
-        |> modalWrapper msgs.modalClosed Nothing "New Document"
+        |> modalWrapper msgs.modalClosed Nothing Nothing "New Document"
 
 
 viewWordCount :
@@ -752,7 +752,7 @@ viewWordCount model msgs =
     , hr [] []
     , span [] [ text ("Total Cards in Tree : " ++ String.fromInt stats.cards) ]
     ]
-        |> modalWrapper msgs.modalClosed Nothing "Word Counts"
+        |> modalWrapper msgs.modalClosed Nothing Nothing "Word Counts"
 
 
 

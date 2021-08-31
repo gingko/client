@@ -63,6 +63,7 @@ const brT = prepTranslation("br", br);
 const allLanguageStrings = [].concat(zhHansT, zhHantT, esT, frT, ruT, deT, nlT, huT, svT, caT, brT)
 const otherReplacements = [
     {search: "{%SUPPORT_EMAIL%}", replace: config.SUPPORT_EMAIL, flags: 'g'}
+  , {search: "{%SUPPORT_URGENT_EMAIL%}", replace: config.SUPPORT_URGENT_EMAIL, flags: 'g'}
   , {search: "{%HOMEPAGE_URL%}", replace: config.HOMEPAGE_URL, flags: 'g'}
 ];
 

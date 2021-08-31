@@ -10,6 +10,7 @@ module.exports = {
   COUCHDB_ADMIN_USERNAME: "username",
   COUCHDB_ADMIN_PASSWORD: "password",
   SUPPORT_EMAIL: "some@email.com",
+  SUPPORT_URGENT_EMAIL: "urgent@email.com",
   LOGROCKET_APPID: "asdf/app-name",
   STRIPE_PUBLIC_KEY: "pk_test_123412341234",
   PRICE_DATA :
