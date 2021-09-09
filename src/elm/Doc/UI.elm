@@ -670,7 +670,7 @@ viewLoadingSpinner sidebarOpen =
 
 viewTemplateSelector :
     Language
-    -> { modalClosed : msg, importBulkClicked : msg, importJSONRequested : msg }
+    -> { modalClosed : msg, importBulkClicked : msg, importMarkdownRequested : msg, importJSONRequested : msg }
     -> List (Html msg)
 viewTemplateSelector language msgs =
     [ div [ id "templates-block" ]
@@ -683,6 +683,12 @@ viewTemplateSelector language msgs =
             , div [ class "template-title" ] [ text <| tr language HomeImportLegacy ]
             , div [ class "template-description" ]
                 [ text <| tr language HomeLegacyFrom ]
+            ]
+        , div [ id "template-import-markdown", class "template-item", onClick msgs.importMarkdownRequested ]
+            [ div [ classList [ ( "template-thumbnail", True ) ] ] [ Icon.file (Icon.defaultOptions |> Icon.size 48) ]
+            , div [ class "template-title" ] [ text "Import Markdown Files" ]
+            , div [ class "template-description" ]
+                [ text "Import multiple markdown or regular text files." ]
             ]
         , div [ id "template-import", class "template-item", onClick msgs.importJSONRequested ]
             [ div [ classList [ ( "template-thumbnail", True ) ] ] [ Icon.fileCode (Icon.defaultOptions |> Icon.size 48) ]

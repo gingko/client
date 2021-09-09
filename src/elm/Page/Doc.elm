@@ -29,6 +29,7 @@ import Html5.DragDrop as DragDrop
 import Http
 import Import.Bulk.UI as ImportModal
 import Import.Incoming
+import Import.Markdown
 import Import.Single
 import Json.Decode as Json
 import Json.Encode as Enc
@@ -244,6 +245,7 @@ type Msg
     | WordcountModalOpened
     | ModalClosed
     | ImportBulkClicked
+    | ImportMarkdownRequested
     | ImportJSONRequested
     | FileSearchChanged String
     | SortByChanged SortBy
@@ -267,6 +269,9 @@ type Msg
     | ContactFormSent (Result Http.Error ())
       -- Import
     | ImportModalMsg ImportModal.Msg
+    | ImportMarkdownSelected File (List File)
+    | ImportMarkdownLoaded (List String)
+    | ImportMarkdownIdGenerated Tree String
     | ImportJSONSelected File
     | ImportJSONLoaded String String
     | ImportJSONIdGenerated Tree String String
@@ -909,6 +914,41 @@ update msg ({ workingTree } as model) =
                     ( { model | modalState = newModalState }, newCmd )
 
                 _ ->
+                    ( model, Cmd.none )
+
+        ImportMarkdownRequested ->
+            ( model, Select.files [ "text/markdown", "text/x-markdown", "text/plain" ] ImportMarkdownSelected )
+
+        ImportMarkdownSelected firstFile restFiles ->
+            let
+                tasks =
+                    firstFile :: restFiles |> List.map File.toString |> Task.sequence
+            in
+            ( model, Task.perform ImportMarkdownLoaded tasks )
+
+        ImportMarkdownLoaded markdownStrings ->
+            let
+                ( importedTree, newSeed ) =
+                    Import.Markdown.toTree (Session.seed model.session) markdownStrings
+
+                newSession =
+                    Session.setSeed newSeed model.session
+            in
+            ( { model | loading = True, session = newSession }, RandomId.generate (ImportMarkdownIdGenerated importedTree) )
+
+        ImportMarkdownIdGenerated tree docId ->
+            let
+                author =
+                    model.session |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
+
+                commitReq_ =
+                    Data.requestCommit tree author Data.empty (Metadata.new docId |> Metadata.encode)
+            in
+            case commitReq_ of
+                Just commitReq ->
+                    ( model, send <| SaveImportedData commitReq )
+
+                Nothing ->
                     ( model, Cmd.none )
 
         ImportJSONRequested ->
@@ -3339,6 +3379,7 @@ viewModal language model =
             UI.viewTemplateSelector language
                 { modalClosed = ModalClosed
                 , importBulkClicked = ImportBulkClicked
+                , importMarkdownRequested = ImportMarkdownRequested
                 , importJSONRequested = ImportJSONRequested
                 }
 

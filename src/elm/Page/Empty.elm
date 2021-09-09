@@ -5,6 +5,8 @@ import Browser.Dom exposing (Element)
 import Doc.List as DocList exposing (Model(..))
 import Doc.Metadata as Metadata
 import Doc.UI as UI
+import File exposing (File)
+import File.Select as Select
 import Html exposing (Html, a, br, button, div, h1, img, p, text)
 import Html.Attributes exposing (class, href, id, src)
 import Html.Events exposing (on, onClick)
@@ -86,6 +88,8 @@ type Msg
     | ImportModalMsg ImportModal.Msg
     | ImportBulkClicked
     | ImportBulkCompleted
+    | ImportMarkdownRequested
+    | ImportMarkdownSelected File (List File)
     | ImportJSONRequested
     | ImportJSONCompleted String
     | ReceivedDocuments DocList.Model
@@ -252,6 +256,12 @@ update msg model =
         ImportBulkCompleted ->
             ( { model | modalState = Closed }, Cmd.none )
 
+        ImportMarkdownRequested ->
+            ( model, Cmd.none )
+
+        ImportMarkdownSelected firstFile restFiles ->
+            ( model, Cmd.none )
+
         ImportJSONRequested ->
             ( model, Cmd.none )
 
@@ -350,6 +360,7 @@ viewModal ({ session } as model) =
             UI.viewTemplateSelector (Session.language session)
                 { modalClosed = ModalClosed
                 , importBulkClicked = ImportBulkClicked
+                , importMarkdownRequested = ImportMarkdownRequested
                 , importJSONRequested = ImportJSONRequested
                 }
 
