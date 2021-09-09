@@ -270,7 +270,7 @@ type Msg
       -- Import
     | ImportModalMsg ImportModal.Msg
     | ImportMarkdownSelected File (List File)
-    | ImportMarkdownLoaded (List String)
+    | ImportMarkdownLoaded (List String) (List String)
     | ImportMarkdownIdGenerated Tree String
     | ImportJSONSelected File
     | ImportJSONLoaded String String
@@ -917,19 +917,24 @@ update msg ({ workingTree } as model) =
                     ( model, Cmd.none )
 
         ImportMarkdownRequested ->
-            ( model, Select.files [ "text/markdown", "text/x-markdown", "text/plain" ] ImportMarkdownSelected )
+            ( model, Select.files [ ".md", ".markdown", ".mdown", "text/markdown", "text/x-markdown", "text/plain" ] ImportMarkdownSelected )
 
         ImportMarkdownSelected firstFile restFiles ->
             let
                 tasks =
                     firstFile :: restFiles |> List.map File.toString |> Task.sequence
-            in
-            ( model, Task.perform ImportMarkdownLoaded tasks )
 
-        ImportMarkdownLoaded markdownStrings ->
+                metadata =
+                    firstFile
+                        :: restFiles
+                        |> List.map File.name
+            in
+            ( model, Task.perform (ImportMarkdownLoaded metadata) tasks )
+
+        ImportMarkdownLoaded metadata markdownStrings ->
             let
                 ( importedTree, newSeed ) =
-                    Import.Markdown.toTree (Session.seed model.session) markdownStrings
+                    Import.Markdown.toTree (Session.seed model.session) metadata markdownStrings
 
                 newSession =
                     Session.setSeed newSeed model.session
