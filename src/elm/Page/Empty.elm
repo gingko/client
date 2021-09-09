@@ -2,6 +2,7 @@ module Page.Empty exposing (..)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
+import Doc.Data as Data
 import Doc.List as DocList exposing (Model(..))
 import Doc.Metadata as Metadata
 import Doc.UI as UI
@@ -13,14 +14,16 @@ import Html.Events exposing (on, onClick)
 import Http
 import Import.Bulk.UI as ImportModal
 import Import.Incoming
+import Import.Markdown
 import Json.Decode as Dec
 import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
+import RandomId
 import Route
 import Session exposing (Session)
 import Task
 import Translation exposing (Language, langToString)
-import Types exposing (SidebarMenuState(..), SidebarState(..), SortBy(..), TooltipPosition)
+import Types exposing (SidebarMenuState(..), SidebarState(..), SortBy(..), TooltipPosition, Tree)
 
 
 type alias Model =
@@ -90,6 +93,8 @@ type Msg
     | ImportBulkCompleted
     | ImportMarkdownRequested
     | ImportMarkdownSelected File (List File)
+    | ImportMarkdownLoaded (List String) (List String)
+    | ImportMarkdownIdGenerated Tree String
     | ImportJSONRequested
     | ImportJSONCompleted String
     | ReceivedDocuments DocList.Model
@@ -257,10 +262,44 @@ update msg model =
             ( { model | modalState = Closed }, Cmd.none )
 
         ImportMarkdownRequested ->
-            ( model, Cmd.none )
+            ( model, Select.files [ ".md", ".markdown", ".mdown", "text/markdown", "text/x-markdown", "text/plain" ] ImportMarkdownSelected )
 
         ImportMarkdownSelected firstFile restFiles ->
-            ( model, Cmd.none )
+            let
+                tasks =
+                    firstFile :: restFiles |> List.map File.toString |> Task.sequence
+
+                metadata =
+                    firstFile
+                        :: restFiles
+                        |> List.map File.name
+            in
+            ( model, Task.perform (ImportMarkdownLoaded metadata) tasks )
+
+        ImportMarkdownLoaded metadata markdownStrings ->
+            let
+                ( importedTree, newSeed ) =
+                    Import.Markdown.toTree (Session.seed model.session) metadata markdownStrings
+
+                newSession =
+                    Session.setSeed newSeed model.session
+            in
+            ( { model | session = newSession }, RandomId.generate (ImportMarkdownIdGenerated importedTree) )
+
+        ImportMarkdownIdGenerated tree docId ->
+            let
+                author =
+                    model.session |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
+
+                commitReq_ =
+                    Data.requestCommit tree author Data.empty (Metadata.new docId |> Metadata.encode)
+            in
+            case commitReq_ of
+                Just commitReq ->
+                    ( model, send <| SaveImportedData commitReq )
+
+                Nothing ->
+                    ( model, Cmd.none )
 
         ImportJSONRequested ->
             ( model, Cmd.none )
