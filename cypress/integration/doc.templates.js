@@ -61,13 +61,13 @@ describe('Welcome Tree & Templates', () => {
     cy.get('#template-import-bulk')
       .should('be.visible')
 
+    cy.get('#template-import-markdown')
+      .should('be.visible')
+
     cy.get('#template-import')
       .should('be.visible')
 
     cy.get('#template-timeline')
-      .should('be.visible')
-
-    cy.get('#template-academic')
       .should('be.visible')
   })
 })
