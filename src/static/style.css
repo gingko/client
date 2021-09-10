@@ -2631,14 +2631,15 @@ pre {
 /* ======== STATUS BAR ======== */
 
 #breadcrumbs {
-  grid-area: document-header;
-  position: relative;
+  grid-area: document;
+  position: absolute;
   display: flex;
-  top: 41px;
+  top: 8px;
+  left: 10px;
   height: min-content;
   width: max-content;
   padding: 5px 10px;
-  border-radius: 0 0 6px 0;
+  border-radius: 2px 8px 8px 2px;
   background: var(--background-sidebar);
   font-size: 10px;
   font-family: var(--header-font), 'Bitter', serif;
@@ -2648,6 +2649,10 @@ pre {
   user-select: none;
   overflow-x: auto;
   max-width: calc(100% - 50px);
+  opacity: 0.85;
+}
+#breadcrumbs:hover {
+  opacity: 1;
 }
 #breadcrumbs div {
   cursor: pointer;

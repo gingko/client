@@ -2730,25 +2730,34 @@ viewLoaded model =
                             _ ->
                                 text ""
 
-                    cardTitleReplacer inputString =
+                    cardTitleReplacer ( id, inputString ) =
                         case inputString |> String.split "\n" of
                             firstLine :: _ ->
-                                firstLine
+                                ( id
+                                , firstLine
                                     |> String.replace "#" ""
                                     |> String.replace ">" ""
                                     |> String.trim
+                                    |> (\str ->
+                                            if String.isEmpty str then
+                                                "(empty)"
+
+                                            else
+                                                str
+                                       )
+                                )
 
                             [] ->
-                                "<empty>"
+                                ( id, "(empty)" )
 
                     cardTitles =
                         case activeTree_ of
                             Just activeTree ->
                                 (getAncestors model.workingTree.tree activeTree []
-                                    |> List.map .content
+                                    |> List.map (\t -> ( t.id, t.content ))
                                     |> List.drop 1
                                 )
-                                    ++ [ activeTree.content ]
+                                    ++ [ ( activeTree.id, activeTree.content ) ]
                                     |> List.map cardTitleReplacer
 
                             Nothing ->
@@ -2782,7 +2791,7 @@ viewLoaded model =
                         (Metadata.getDocName model.metadata)
                         model
                      , if (not << List.isEmpty) cardTitles then
-                        UI.viewBreadcrumbs cardTitles
+                        UI.viewBreadcrumbs Activate cardTitles
 
                        else
                         text ""

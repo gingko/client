@@ -325,9 +325,13 @@ viewUpgradeButton toggledUpgradeModal session =
     maybeUpgrade
 
 
-viewBreadcrumbs : List String -> Html msg
-viewBreadcrumbs cardTitles =
-    div [ id "breadcrumbs" ] (List.map (\ct -> div [] [ span [] [ text ct ] ]) cardTitles)
+viewBreadcrumbs : (String -> msg) -> List ( String, String ) -> Html msg
+viewBreadcrumbs clickedCrumbMsg cardIdsAndTitles =
+    let
+        viewCrumb ( id, content ) =
+            div [] [ span [ onClick <| clickedCrumbMsg id ] [ text content ] ]
+    in
+    div [ id "breadcrumbs" ] (List.map viewCrumb cardIdsAndTitles)
 
 
 

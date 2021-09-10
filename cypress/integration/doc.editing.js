@@ -134,7 +134,7 @@ describe('Document Editing', () => {
       .click()
       .type('another')
 
-    cy.get('#app-root')
+    cy.get('#document')
       .should('not.contain', 'Hello World :)')
 
     // Removes filters on clearing search
