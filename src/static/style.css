@@ -2643,6 +2643,22 @@ pre {
   color: var(--ui-1-fg);
   box-shadow: var(--small-shadow);
 }
+#breadcrumbs span {
+  cursor: pointer;
+}
+#breadcrumbs span:hover {
+  color: var(--ui-2-fg);
+  text-decoration: underline;
+}
+#breadcrumbs span:not(:last-child):after {
+  content: '>';
+  margin-left: 6px;
+  display: inline-block;
+  text-decoration: none;
+}
+#breadcrumbs span:not(:last-child) {
+  margin-right: 6px;
+}
 
 #search-field {
   grid-area: document;

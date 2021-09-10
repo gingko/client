@@ -327,7 +327,14 @@ viewUpgradeButton toggledUpgradeModal session =
 
 viewBreadcrumbs : Html msg
 viewBreadcrumbs =
-    div [ id "breadcrumbs" ] [ text "Root > Grandparent > Parent" ]
+    let
+        cardTitles =
+            [ "Root", "Grandparent", "Parent", "More" ]
+
+        crumbs =
+            cardTitles |> List.map (\ct -> span [] [ text ct ])
+    in
+    div [ id "breadcrumbs" ] crumbs
 
 
 
