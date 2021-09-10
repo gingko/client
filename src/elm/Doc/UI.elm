@@ -329,7 +329,7 @@ viewBreadcrumbs : (String -> msg) -> List ( String, String ) -> Html msg
 viewBreadcrumbs clickedCrumbMsg cardIdsAndTitles =
     let
         viewCrumb ( id, content ) =
-            div [] [ span [ onClick <| clickedCrumbMsg id ] [ text content ] ]
+            div [ onClick <| clickedCrumbMsg id ] [ span [] [ text content ] ]
     in
     div [ id "breadcrumbs" ] (List.map viewCrumb cardIdsAndTitles)
 

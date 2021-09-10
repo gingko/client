@@ -2638,16 +2638,14 @@ pre {
   left: 10px;
   height: min-content;
   width: max-content;
-  padding: 5px 10px;
-  border-radius: 2px 8px 8px 2px;
-  background: var(--background-sidebar);
+  background: var(--bg-left);
   font-size: 10px;
   font-family: var(--header-font), 'Bitter', serif;
   font-weight: bold;
   color: var(--ui-1-fg);
   box-shadow: var(--small-shadow);
+  border-radius: 2px 8px 8px 2px;
   user-select: none;
-  overflow-x: auto;
   max-width: calc(100% - 50px);
   opacity: 0.85;
 }
@@ -2657,27 +2655,63 @@ pre {
 #breadcrumbs div {
   cursor: pointer;
   display: flex;
+  position: relative;
+  padding: 5px 5px 5px 0;
+  margin-right: 13px;
+  background: var(--background-sidebar);
 }
-#breadcrumbs div span:hover {
+#breadcrumbs div:hover {
+  background: var(--active-bg);
   color: var(--ui-2-fg);
-  text-decoration: underline;
 }
-#breadcrumbs div:not(:last-child):after {
-  content: '>';
-  margin-left: 4px;
-  display: inline-block;
-  text-decoration: none;
-  font-weight: normal;
+#breadcrumbs div span:before, #breadcrumbs div span:after{
+  content: '';
+  position: absolute;
+  top: 0;
+  border: 0 solid var(--background-sidebar);
+  border-width: 11px 6px;
+  width: 0;
+  height: 0;
 }
-#breadcrumbs div:not(:last-child) {
-  margin-right: 4px;
+#breadcrumbs div span:before {
+  left: -12px;
+  border-left-color: transparent;
+}
+#breadcrumbs div span:after {
+  left: 100%;
+  border-color: transparent;
+  border-left-color: var(--background-sidebar);
+}
+#breadcrumbs div:hover span:after {
+  border-left-color: var(--active-bg);
+}
+#breadcrumbs div:hover span:before {
+  border-color: var(--active-bg);
+  border-left-color: transparent;
+}
+#breadcrumbs div:first-child span:before {
+  display: none;
+}
+#breadcrumbs div:last-child span:after {
+  display: none;
+}
+#breadcrumbs div:last-child {
+  margin-right: 0;
+  padding-right: 10px;
+  border-radius: 0 8px 8px 0;
+}
+#breadcrumbs div:first-child {
+  padding-left: 10px;
+  border-radius: 2px 0 0 2px;
+}
+#breadcrumbs div:first-child:last-child {
+  border-radius: 2px 8px 8px 2px;
 }
 #breadcrumbs div span {
   max-width: 20ch;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  display: inline-block;
 }
 div#breadcrumbs::-webkit-scrollbar {
   height: 4px;
