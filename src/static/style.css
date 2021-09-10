@@ -2633,31 +2633,49 @@ pre {
 #breadcrumbs {
   grid-area: document-header;
   position: relative;
+  display: flex;
   top: 41px;
   height: min-content;
   width: max-content;
   padding: 5px 10px;
   border-radius: 0 0 6px 0;
   background: var(--background-sidebar);
-  font-size: 12px;
+  font-size: 10px;
+  font-family: var(--header-font), 'Bitter', serif;
+  font-weight: bold;
   color: var(--ui-1-fg);
   box-shadow: var(--small-shadow);
+  user-select: none;
+  overflow-x: auto;
+  max-width: calc(100% - 50px);
 }
-#breadcrumbs span {
+#breadcrumbs div {
   cursor: pointer;
+  display: flex;
 }
-#breadcrumbs span:hover {
+#breadcrumbs div span:hover {
   color: var(--ui-2-fg);
   text-decoration: underline;
 }
-#breadcrumbs span:not(:last-child):after {
+#breadcrumbs div:not(:last-child):after {
   content: '>';
-  margin-left: 6px;
+  margin-left: 4px;
   display: inline-block;
   text-decoration: none;
+  font-weight: normal;
 }
-#breadcrumbs span:not(:last-child) {
-  margin-right: 6px;
+#breadcrumbs div:not(:last-child) {
+  margin-right: 4px;
+}
+#breadcrumbs div span {
+  max-width: 20ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+}
+div#breadcrumbs::-webkit-scrollbar {
+  height: 4px;
 }
 
 #search-field {

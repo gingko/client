@@ -2701,6 +2701,9 @@ viewLoaded model =
 
             else
                 let
+                    activeTree_ =
+                        getTree model.viewState.active model.workingTree.tree
+
                     mobileBtnMsg shortcut =
                         Incoming (Keyboard shortcut)
 
@@ -2714,7 +2717,7 @@ viewLoaded model =
                             model.exportSettings
 
                     maybeExportView =
-                        case ( model.headerMenu, getTree model.viewState.active model.workingTree.tree, model.exportSettings ) of
+                        case ( model.headerMenu, activeTree_, model.exportSettings ) of
                             ( ExportPreview, Just activeTree, _ ) ->
                                 exportViewOk activeTree model.workingTree.tree
 
@@ -2726,6 +2729,30 @@ viewLoaded model =
 
                             _ ->
                                 text ""
+
+                    cardTitleReplacer inputString =
+                        case inputString |> String.split "\n" of
+                            firstLine :: _ ->
+                                firstLine
+                                    |> String.replace "#" ""
+                                    |> String.replace ">" ""
+                                    |> String.trim
+
+                            [] ->
+                                "<empty>"
+
+                    cardTitles =
+                        case activeTree_ of
+                            Just activeTree ->
+                                (getAncestors model.workingTree.tree activeTree []
+                                    |> List.map .content
+                                    |> List.drop 1
+                                )
+                                    ++ [ activeTree.content ]
+                                    |> List.map cardTitleReplacer
+
+                            Nothing ->
+                                []
                 in
                 div
                     [ id "app-root", applyTheme model.theme, setTourStep model.tourStep ]
@@ -2754,7 +2781,11 @@ viewLoaded model =
                         }
                         (Metadata.getDocName model.metadata)
                         model
-                     , UI.viewBreadcrumbs
+                     , if (not << List.isEmpty) cardTitles then
+                        UI.viewBreadcrumbs cardTitles
+
+                       else
+                        text ""
                      , UI.viewSidebar
                         model.session
                         { sidebarStateChanged = SidebarStateChanged
