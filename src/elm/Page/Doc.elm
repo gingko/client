@@ -2754,6 +2754,7 @@ viewLoaded model =
                         }
                         (Metadata.getDocName model.metadata)
                         model
+                     , UI.viewBreadcrumbs
                      , UI.viewSidebar
                         model.session
                         { sidebarStateChanged = SidebarStateChanged

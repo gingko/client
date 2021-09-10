@@ -1,4 +1,4 @@
-module Doc.UI exposing (countWords, fillet, viewConflict, viewHeader, viewLoadingSpinner, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewTooltip, viewVideo, viewWordCount)
+module Doc.UI exposing (countWords, fillet, viewBreadcrumbs, viewConflict, viewHeader, viewLoadingSpinner, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewTooltip, viewVideo, viewWordCount)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -323,6 +323,11 @@ viewUpgradeButton toggledUpgradeModal session =
                     upgradeButton
     in
     maybeUpgrade
+
+
+viewBreadcrumbs : Html msg
+viewBreadcrumbs =
+    div [ id "breadcrumbs" ] [ text "Root > Grandparent > Parent" ]
 
 
 

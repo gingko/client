@@ -2630,6 +2630,20 @@ pre {
 
 /* ======== STATUS BAR ======== */
 
+#breadcrumbs {
+  grid-area: document-header;
+  position: relative;
+  top: 41px;
+  height: min-content;
+  width: max-content;
+  padding: 5px 10px;
+  border-radius: 0 0 6px 0;
+  background: var(--background-sidebar);
+  font-size: 12px;
+  color: var(--ui-1-fg);
+  box-shadow: var(--small-shadow);
+}
+
 #search-field {
   grid-area: document;
   position: absolute;
