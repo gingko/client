@@ -3,7 +3,7 @@ module Import.Single exposing (decoder, encode)
 import Coders exposing (lazyRecurse)
 import Doc.Data as Data
 import Doc.Metadata as Metadata
-import Doc.TreeStructure as TreeStructure
+import Doc.TreeStructure as TreeStructure exposing (labelTree)
 import Json.Decode as Dec exposing (Decoder, field, list, oneOf, string, succeed)
 import Json.Encode as Enc
 import Random
@@ -36,7 +36,7 @@ decoder seed =
         ( salt, newSeed ) =
             Random.step RandomId.stringGenerator seed
     in
-    ( decodeNumbered
+    ( decode
         |> Dec.map (\ult -> labelTree 0 "" ult)
         |> Dec.map (TreeStructure.renameNodes salt)
     , newSeed
@@ -56,44 +56,23 @@ encode { author, docId, fileName } tree =
 -- INTERNAL
 
 
-labelTree : Int -> String -> NumberedTree -> Tree
-labelTree idx pid ult =
-    let
-        newId =
-            pid ++ "." ++ String.fromInt idx
-    in
-    case ult.children of
-        NumberedChildren [] ->
-            Tree newId ult.content (Children [])
-
-        NumberedChildren childs ->
-            Tree
-                newId
-                ult.content
-                (Children
-                    (childs
-                        |> List.indexedMap (\i ut -> labelTree i newId ut)
-                    )
-                )
-
-
-decodeNumbered : Decoder NumberedTree
-decodeNumbered =
+decode : Decoder Tree
+decode =
     Dec.list unlabelledTreeDecoder
-        |> Dec.map (\children -> NumberedTree "" "" (NumberedChildren children))
+        |> Dec.map (\children -> Tree "" "" (Children children))
 
 
-unlabelledTreeDecoder : Decoder NumberedTree
+unlabelledTreeDecoder : Decoder Tree
 unlabelledTreeDecoder =
-    Dec.map3 NumberedTree
+    Dec.map3 Tree
         (Dec.succeed "")
         (field "content" string)
         (oneOf
             [ field
                 "children"
                 (list (lazyRecurse (\_ -> unlabelledTreeDecoder))
-                    |> Dec.map NumberedChildren
+                    |> Dec.map Children
                 )
-            , succeed (NumberedChildren [])
+            , succeed (Children [])
             ]
         )

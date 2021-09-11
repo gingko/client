@@ -30,6 +30,7 @@ import Http
 import Import.Bulk.UI as ImportModal
 import Import.Incoming
 import Import.Markdown
+import Import.Opml
 import Import.Single
 import Json.Decode as Json
 import Json.Encode as Enc
@@ -246,6 +247,7 @@ type Msg
     | ModalClosed
     | ImportBulkClicked
     | ImportMarkdownRequested
+    | ImportOpmlRequested
     | ImportJSONRequested
     | FileSearchChanged String
     | SortByChanged SortBy
@@ -272,6 +274,10 @@ type Msg
     | ImportMarkdownSelected File (List File)
     | ImportMarkdownLoaded (List String) (List String)
     | ImportMarkdownIdGenerated Tree String
+    | ImportOpmlSelected File
+    | ImportOpmlLoaded String String
+    | ImportOpmlIdGenerated Tree String String
+    | ImportOpmlCompleted String
     | ImportJSONSelected File
     | ImportJSONLoaded String String
     | ImportJSONIdGenerated Tree String String
@@ -955,6 +961,47 @@ update msg ({ workingTree } as model) =
 
                 Nothing ->
                     ( model, Cmd.none )
+
+        ImportOpmlRequested ->
+            ( model, Select.file [ "application/xml", "text/xml", "text/x-opml", ".opml" ] ImportOpmlSelected )
+
+        ImportOpmlSelected file ->
+            ( model, Task.perform (ImportOpmlLoaded (File.name file)) (File.toString file) )
+
+        ImportOpmlLoaded fileName opmlString ->
+            let
+                ( importTreeResult, newSeed ) =
+                    Import.Opml.treeResult (Session.seed model.session) opmlString
+
+                newSession =
+                    Session.setSeed newSeed model.session
+            in
+            case importTreeResult of
+                Ok tree ->
+                    ( { model | loading = True, session = newSession }
+                    , RandomId.generate (ImportOpmlIdGenerated tree fileName)
+                    )
+
+                Err err ->
+                    ( { model | session = newSession }, Cmd.none )
+
+        ImportOpmlIdGenerated tree fileName docId ->
+            let
+                author =
+                    model.session |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
+
+                commitReq_ =
+                    Data.requestCommit tree author Data.empty (Metadata.new docId |> Metadata.renameAndEncode fileName)
+            in
+            case commitReq_ of
+                Just commitReq ->
+                    ( model, send <| SaveImportedData commitReq )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        ImportOpmlCompleted docId ->
+            ( model, Route.pushUrl (Session.navKey model.session) (Route.DocUntitled docId) )
 
         ImportJSONRequested ->
             ( model, Select.file [ "application/json", "text/plain" ] ImportJSONSelected )
@@ -3426,6 +3473,7 @@ viewModal language model =
                 { modalClosed = ModalClosed
                 , importBulkClicked = ImportBulkClicked
                 , importMarkdownRequested = ImportMarkdownRequested
+                , importOpmlRequested = ImportOpmlRequested
                 , importJSONRequested = ImportJSONRequested
                 }
 

@@ -1,4 +1,4 @@
-module Doc.TreeStructure exposing (Model, Msg(..), apply, conflictToMsg, defaultModel, defaultTree, opToMsg, renameNodes, setTree, setTreeWithConflicts, update)
+module Doc.TreeStructure exposing (Model, Msg(..), apply, conflictToMsg, defaultModel, defaultTree, labelTree, opToMsg, renameNodes, setTree, setTreeWithConflicts, update)
 
 import Diff exposing (..)
 import Diff3 exposing (diff3Merge)
@@ -349,3 +349,24 @@ renameNodes salt tree =
                 |> List.map (renameNodes salt)
                 |> Children
     }
+
+
+labelTree : Int -> String -> Tree -> Tree
+labelTree idx pid ult =
+    let
+        newId =
+            pid ++ "." ++ String.fromInt idx
+    in
+    case ult.children of
+        Children [] ->
+            Tree newId ult.content (Children [])
+
+        Children childs ->
+            Tree
+                newId
+                ult.content
+                (Children
+                    (childs
+                        |> List.indexedMap (\i ut -> labelTree i newId ut)
+                    )
+                )

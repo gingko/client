@@ -679,7 +679,13 @@ viewLoadingSpinner sidebarOpen =
 
 viewTemplateSelector :
     Language
-    -> { modalClosed : msg, importBulkClicked : msg, importMarkdownRequested : msg, importJSONRequested : msg }
+    ->
+        { modalClosed : msg
+        , importBulkClicked : msg
+        , importMarkdownRequested : msg
+        , importOpmlRequested : msg
+        , importJSONRequested : msg
+        }
     -> List (Html msg)
 viewTemplateSelector language msgs =
     [ div [ id "templates-block" ]
@@ -704,6 +710,12 @@ viewTemplateSelector language msgs =
             , div [ class "template-title" ] [ text <| tr language HomeImportJSON ]
             , div [ class "template-description" ]
                 [ text <| tr language HomeJSONFrom ]
+            ]
+        , div [ id "template-import-opml", class "template-item", onClick msgs.importOpmlRequested ]
+            [ div [ classList [ ( "template-thumbnail", True ) ] ] [ Icon.fileCode (Icon.defaultOptions |> Icon.size 48) ]
+            , div [ class "template-title" ] [ text "Import Opml Files" ]
+            , div [ class "template-description" ]
+                [ text "Import from Workflowy or other outliners." ]
             ]
         , a [ id "template-timeline", class "template-item", href <| Route.toString (Route.Import Timeline) ]
             [ div [ classList [ ( "template-thumbnail", True ) ] ] [ Icon.lightBulb (Icon.defaultOptions |> Icon.size 48) ]

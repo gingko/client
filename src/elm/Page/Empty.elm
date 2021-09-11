@@ -400,6 +400,9 @@ viewModal ({ session } as model) =
                 { modalClosed = ModalClosed
                 , importBulkClicked = ImportBulkClicked
                 , importMarkdownRequested = ImportMarkdownRequested
+
+                {- TODO -}
+                , importOpmlRequested = NoOp
                 , importJSONRequested = ImportJSONRequested
                 }
 

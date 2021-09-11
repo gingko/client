@@ -49,9 +49,6 @@ describe('Welcome Tree & Templates', () => {
     cy.get('#template-timeline')
       .should('be.visible')
 
-    cy.get('#template-academic')
-      .should('be.visible')
-
     // Should show all templates on narrow screens
     cy.viewport(600,900)
 
@@ -65,9 +62,6 @@ describe('Welcome Tree & Templates', () => {
       .should('be.visible')
 
     cy.get('#template-import')
-      .should('be.visible')
-
-    cy.get('#template-timeline')
       .should('be.visible')
   })
 })
