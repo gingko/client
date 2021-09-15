@@ -6,7 +6,7 @@ import Doc.TreeUtils exposing (ScrollPosition, scrollPositionToValue)
 import Json.Encode as Enc exposing (..)
 import Page.Doc.Theme as Theme exposing (Theme)
 import Translation exposing (Language, langToString)
-import Types exposing (CollabState, CursorPosition(..), OutsideData, TextCursorInfo, Tree)
+import Types exposing (CollabState, CursorPosition(..), DropId, OutsideData, TextCursorInfo, Tree, dropIdToValue)
 
 
 
@@ -36,6 +36,7 @@ type Msg
     | ScrollCards (List String) (List ( Int, ScrollPosition )) Int Bool
     | ScrollFullscreenCards String
     | DragStart Enc.Value
+    | DragExternalStart
     | CopyCurrentSubtree Enc.Value
     | CopyToClipboard String String
     | SelectAll String
@@ -144,6 +145,9 @@ send info =
 
         DragStart event ->
             dataToSend "DragStart" event
+
+        DragExternalStart ->
+            dataToSend "DragExternalStart" null
 
         CopyCurrentSubtree treeJSON ->
             dataToSend "CopyCurrentSubtree" treeJSON

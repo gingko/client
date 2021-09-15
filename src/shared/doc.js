@@ -39,6 +39,7 @@ let TREE_ID;
 let userDbName;
 let PULL_LOCK = false;
 let DIRTY = false;
+let externalDrag = false;
 let savedObjectIds = new Set();
 const userStore = container.userStore;
 const localStore = container.localStore;
@@ -491,6 +492,10 @@ const fromElm = (msg, elmData) => {
       toElm(elmData.target.id.replace(/^card-/, ""), "docMsgs", "DragStarted");
     },
 
+    DragExternalStart: () => {
+      externalDrag = true;
+    },
+
     CopyCurrentSubtree: () => {
       navigator.clipboard.writeText(JSON.stringify(elmData));
       let addFlashClass = function () {
@@ -749,6 +754,10 @@ function pushSuccessHandler (info) {
 
 // Prevent default events, for file dragging.
 document.ondragover = document.ondrop = (ev) => {
+  if (externalDrag && ev.type == "drop") {
+    externalDrag = false;
+    toElm(ev.dataTransfer.getData("text"), "docMsgs", "DropExternal")
+  }
   ev.preventDefault();
 };
 

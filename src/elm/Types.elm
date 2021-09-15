@@ -1,4 +1,4 @@
-module Types exposing (Children(..), CollabState, Column, CursorPosition(..), DropId(..), Group, HeaderMenuState(..), Mode(..), OutsideData, SidebarMenuState(..), SidebarState(..), SortBy(..), TextCursorInfo, TooltipPosition(..), Tree, ViewMode(..), ViewState, VisibleViewState)
+module Types exposing (Children(..), CollabState, Column, CursorPosition(..), DropId(..), Group, HeaderMenuState(..), Mode(..), OutsideData, SidebarMenuState(..), SidebarState(..), SortBy(..), TextCursorInfo, TooltipPosition(..), Tree, ViewMode(..), ViewState, VisibleViewState, dropIdToValue)
 
 import Browser.Dom exposing (Element)
 import Html5.DragDrop as DragDrop
@@ -41,6 +41,19 @@ type DropId
     = Above String
     | Below String
     | Into String
+
+
+dropIdToValue : DropId -> Enc.Value
+dropIdToValue dropId =
+    case dropId of
+        Above str ->
+            Enc.object [ ( "dropPosition", Enc.string "above" ), ( "dropId", Enc.string str ) ]
+
+        Below str ->
+            Enc.object [ ( "dropPosition", Enc.string "below" ), ( "dropId", Enc.string str ) ]
+
+        Into str ->
+            Enc.object [ ( "dropPosition", Enc.string "into" ), ( "dropId", Enc.string str ) ]
 
 
 
@@ -104,7 +117,7 @@ type alias ViewState =
     , ancestors : List String
     , viewMode : ViewMode
     , searchField : Maybe String
-    , dragModel : DragDrop.Model String DropId
+    , dragModel : ( DragDrop.Model String DropId, Maybe DropId )
     , draggedTree : Maybe ( Tree, String, Int )
     , copiedTree : Maybe Tree
     , clipboardTree : Maybe Tree
@@ -117,7 +130,7 @@ type alias VisibleViewState =
     , viewMode : ViewMode
     , descendants : List String
     , ancestors : List String
-    , dragModel : DragDrop.Model String DropId
+    , dragModel : ( DragDrop.Model String DropId, Maybe DropId )
     , collaborators : List CollabState
     , language : Translation.Language
     , isMac : Bool

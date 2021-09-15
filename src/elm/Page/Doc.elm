@@ -19,9 +19,9 @@ import Doc.UI as UI exposing (countWords, viewConflict, viewMobileButtons, viewS
 import File exposing (File)
 import File.Download as Download
 import File.Select as Select
-import Html exposing (Html, div, h1, span, text, textarea, ul)
+import Html exposing (Attribute, Html, div, h1, span, text, textarea, ul)
 import Html.Attributes exposing (attribute, class, classList, dir, id, style, title, value)
-import Html.Events exposing (onClick, onDoubleClick, onInput)
+import Html.Events exposing (custom, onClick, onDoubleClick, onInput)
 import Html.Extra exposing (viewIf)
 import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy2, lazy4, lazy5, lazy7, lazy8)
@@ -133,7 +133,7 @@ defaultModel isNew session docId =
         , descendants = []
         , ancestors = [ "0" ]
         , searchField = Nothing
-        , dragModel = DragDrop.init
+        , dragModel = ( DragDrop.init, Nothing )
         , draggedTree = Nothing
         , copiedTree = Nothing
         , clipboardTree = Nothing
@@ -215,8 +215,9 @@ type Msg
     | InsertAbove String
     | InsertBelow String
     | InsertChild String
-      -- === Card Moving  ===
+      -- === Dragging ===
     | DragDropMsg (DragDrop.Msg String DropId)
+    | DragExternal DragExternalMsg
       -- === History ===
     | ThrottledCommit (Debouncer.Msg ())
     | Commit Time.Posix
@@ -300,6 +301,11 @@ type Msg
     | Exported String (Result Http.Error Bytes)
     | Incoming Incoming.Msg
     | LogErr String
+
+
+type DragExternalMsg
+    = DragEnter DropId
+    | DragLeave DropId
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -450,13 +456,13 @@ update msg ({ workingTree } as model) =
         DragDropMsg dragDropMsg ->
             let
                 ( newDragModel, dragResult_ ) =
-                    DragDrop.update dragDropMsg vs.dragModel
+                    DragDrop.update dragDropMsg (Tuple.first vs.dragModel)
 
                 modelDragUpdated =
                     { model
                         | viewState =
                             { vs
-                                | dragModel = newDragModel
+                                | dragModel = ( newDragModel, Tuple.second vs.dragModel )
                             }
                     }
             in
@@ -504,11 +510,27 @@ update msg ({ workingTree } as model) =
                                 |> move draggedTree parentId idx
 
                         Nothing ->
+                            let
+                                _ =
+                                    Debug.log "Dragging Externally" "here"
+                            in
                             ( modelDragUpdated, Cmd.none )
 
                 ( Just _, Just _ ) ->
                     -- Should be Impossible: both Dragging and Dropped
                     ( modelDragUpdated, Cmd.none )
+
+        DragExternal dragExternalMsg ->
+            case dragExternalMsg of
+                DragEnter dId ->
+                    ( { model | viewState = { vs | dragModel = ( Tuple.first vs.dragModel, Just dId ) } }, send <| DragExternalStart )
+
+                DragLeave dId ->
+                    if Tuple.second vs.dragModel == Just dId then
+                        ( { model | viewState = { vs | dragModel = ( Tuple.first vs.dragModel, Nothing ) } }, Cmd.none )
+
+                    else
+                        ( model, Cmd.none )
 
         -- === History ===
         ThrottledCommit subMsg ->
@@ -1288,6 +1310,31 @@ update msg ({ workingTree } as model) =
 
                     else
                         ( { model | workingTree = newTree, viewState = { vs | draggedTree = draggedTree } }, Cmd.none )
+
+                DropExternal dropText ->
+                    case Tuple.second vs.dragModel of
+                        Just dropId ->
+                            let
+                                modelNoDrag =
+                                    { model | viewState = { vs | dragModel = ( Tuple.first vs.dragModel, Nothing ) } }
+
+                                baseModelCmdTuple =
+                                    case dropId of
+                                        Above cardId ->
+                                            ( modelNoDrag, Cmd.none ) |> insertAbove cardId dropText
+
+                                        Into cardId ->
+                                            ( modelNoDrag, Cmd.none ) |> insertChild cardId dropText
+
+                                        Below cardId ->
+                                            ( modelNoDrag, Cmd.none ) |> insertBelow cardId dropText
+                            in
+                            baseModelCmdTuple
+                                |> closeCard
+                                |> addToHistory
+
+                        Nothing ->
+                            ( model, Cmd.none )
 
                 FullscreenChanged isFullscreen ->
                     if vs.viewMode == FullscreenEditing && not isFullscreen then
@@ -2906,7 +2953,7 @@ viewLoaded model =
                                 , div [] []
                                 ]
                             ]
-                     , viewIf (model.tourStep == Just 5 && DragDrop.getDragId model.viewState.dragModel == Nothing) <|
+                     , viewIf (model.tourStep == Just 5 && DragDrop.getDragId (Tuple.first model.viewState.dragModel) == Nothing) <|
                         div [ id "welcome-step-5", class "tour-step", class "shimmer" ]
                             [ text "Drag a card to move it"
                             , div [ class "arrow" ] [ text "▼" ]
@@ -3145,8 +3192,8 @@ viewGroup vstate xs =
         )
 
 
-viewCardOther : String -> String -> Bool -> Bool -> Bool -> Bool -> DragDrop.Model String DropId -> Html Msg
-viewCardOther cardId content isEditing isParent isAncestor isLast dragModel =
+viewCardOther : String -> String -> Bool -> Bool -> Bool -> Bool -> ( DragDrop.Model String DropId, Maybe DropId ) -> Html Msg
+viewCardOther cardId content isEditing isParent isAncestor isLast dragModels =
     div
         ([ id ("card-" ++ cardId)
          , dir "auto"
@@ -3163,7 +3210,7 @@ viewCardOther cardId content isEditing isParent isAncestor isLast dragModel =
                     []
                )
         )
-        (dropRegions cardId isEditing isLast dragModel
+        (dropRegions cardId isEditing isLast dragModels
             ++ [ div
                     [ class "view"
                     , onClick (Activate cardId)
@@ -3174,8 +3221,8 @@ viewCardOther cardId content isEditing isParent isAncestor isLast dragModel =
         )
 
 
-viewCardActive : Language -> String -> String -> Bool -> Bool -> List String -> List String -> DragDrop.Model String DropId -> Html Msg
-viewCardActive lang cardId content isParent isLast collabsOnCard collabsEditingCard dragModel =
+viewCardActive : Language -> String -> String -> Bool -> Bool -> List String -> List String -> ( DragDrop.Model String DropId, Maybe DropId ) -> Html Msg
+viewCardActive lang cardId content isParent isLast collabsOnCard collabsEditingCard dragModels =
     let
         buttons =
             [ div [ class "flex-row card-top-overlay" ]
@@ -3232,7 +3279,7 @@ viewCardActive lang cardId content isParent isLast collabsOnCard collabsEditingC
             ++ DragDrop.draggable DragDropMsg cardId
         )
         (buttons
-            ++ dropRegions cardId False isLast dragModel
+            ++ dropRegions cardId False isLast dragModels
             ++ [ div
                     [ class "view"
                     , onClick (Activate cardId)
@@ -3332,8 +3379,8 @@ hasChildren { children } =
                 /= 0
 
 
-dropRegions : String -> Bool -> Bool -> DragDrop.Model String DropId -> List (Html Msg)
-dropRegions cardId isEditing isLast dragModel =
+dropRegions : String -> Bool -> Bool -> ( DragDrop.Model String DropId, Maybe DropId ) -> List (Html Msg)
+dropRegions cardId isEditing isLast ( dragModel, externalDrag_ ) =
     let
         dragId_ =
             DragDrop.getDragId dragModel
@@ -3351,6 +3398,17 @@ dropRegions cardId isEditing isLast dragModel =
                     ++ DragDrop.droppable DragDropMsg dId
                 )
                 []
+
+        dropDivExternal str dId =
+            div
+                [ classList
+                    [ ( "drop-region-" ++ str, True )
+                    , ( "drop-hover", externalDrag_ == Just dId )
+                    ]
+                , onWithOptions "dragenter" { stopPropagation = True, preventDefault = True } <| Json.succeed <| DragExternal <| DragEnter dId
+                , onWithOptions "dragleave" { stopPropagation = True, preventDefault = True } <| Json.succeed <| DragExternal <| DragLeave dId
+                ]
+                []
     in
     case ( dragId_, isEditing ) of
         ( Just _, False ) ->
@@ -3359,6 +3417,17 @@ dropRegions cardId isEditing isLast dragModel =
             ]
                 ++ (if isLast then
                         [ dropDiv "below" (Below cardId) ]
+
+                    else
+                        []
+                   )
+
+        ( Nothing, False ) ->
+            [ dropDivExternal "above" (Above cardId)
+            , dropDivExternal "into" (Into cardId)
+            ]
+                ++ (if isLast then
+                        [ dropDivExternal "below" (Below cardId) ]
 
                     else
                         []
@@ -3556,3 +3625,17 @@ normalMode model operation =
                 _ ->
                     identity
            )
+
+
+onWithOptions :
+    String
+    ->
+        { stopPropagation : Bool
+        , preventDefault : Bool
+        }
+    -> Json.Decoder msg
+    -> Attribute msg
+onWithOptions name { stopPropagation, preventDefault } decoder =
+    decoder
+        |> Json.map (\msg -> { message = msg, stopPropagation = stopPropagation, preventDefault = preventDefault })
+        |> custom name
