@@ -756,7 +756,14 @@ function pushSuccessHandler (info) {
 document.ondragover = document.ondrop = (ev) => {
   if (externalDrag && ev.type == "drop") {
     externalDrag = false;
-    toElm(ev.dataTransfer.getData("text"), "docMsgs", "DropExternal")
+    let dropText = ev.dataTransfer.getData("text");
+    if (dropText.startsWith("obsidian://open?")) {
+      let url = new URL(dropText);
+      let title = "# " + url.searchParams.get("file");
+      toElm(title, "docMsgs", "DropExternal");
+    } else {
+      toElm(dropText, "docMsgs", "DropExternal");
+    }
   }
   ev.preventDefault();
 };
