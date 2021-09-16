@@ -25,6 +25,7 @@ type
     | MetadataSaveError
       -- === DOM ===
     | DragStarted String
+    | DragExternalStarted
     | DropExternal String
     | FullscreenChanged Bool
     | Paste Tree
@@ -133,6 +134,9 @@ subscribe tagger onError =
 
                         Err e ->
                             onError (errorToString e)
+
+                "DragExternalStarted" ->
+                    tagger <| DragExternalStarted
 
                 "DropExternal" ->
                     case decodeValue Dec.string outsideInfo.data of

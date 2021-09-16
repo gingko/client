@@ -36,7 +36,6 @@ type Msg
     | ScrollCards (List String) (List ( Int, ScrollPosition )) Int Bool
     | ScrollFullscreenCards String
     | DragStart Enc.Value
-    | DragExternalStart
     | CopyCurrentSubtree Enc.Value
     | CopyToClipboard String String
     | SelectAll String
@@ -145,9 +144,6 @@ send info =
 
         DragStart event ->
             dataToSend "DragStart" event
-
-        DragExternalStart ->
-            dataToSend "DragExternalStart" null
 
         CopyCurrentSubtree treeJSON ->
             dataToSend "CopyCurrentSubtree" treeJSON

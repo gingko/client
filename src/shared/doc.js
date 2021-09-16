@@ -39,6 +39,7 @@ let TREE_ID;
 let userDbName;
 let PULL_LOCK = false;
 let DIRTY = false;
+let draggingInternal = false;
 let externalDrag = false;
 let savedObjectIds = new Set();
 const userStore = container.userStore;
@@ -225,6 +226,7 @@ const fromElm = (msg, elmData) => {
     },
 
     SetDirty: () => {
+      draggingInternal = false;
       DIRTY = elmData;
     },
 
@@ -488,12 +490,9 @@ const fromElm = (msg, elmData) => {
     },
 
     DragStart: () => {
+      draggingInternal = true;
       elmData.dataTransfer.setData("text", "");
       toElm(elmData.target.id.replace(/^card-/, ""), "docMsgs", "DragStarted");
-    },
-
-    DragExternalStart: () => {
-      externalDrag = true;
     },
 
     CopyCurrentSubtree: () => {
@@ -752,6 +751,12 @@ function pushSuccessHandler (info) {
 
 /* === DOM Events and Handlers === */
 
+document.ondragenter = (ev) => {
+  if (!draggingInternal && !externalDrag) {
+    externalDrag = true;
+    toElm(null, "docMsgs", "DragExternalStarted");
+  }
+};
 // Prevent default events, for file dragging.
 document.ondragover = document.ondrop = (ev) => {
   if (externalDrag && ev.type == "drop") {
@@ -764,6 +769,8 @@ document.ondragover = document.ondrop = (ev) => {
     } else {
       toElm(dropText, "docMsgs", "DropExternal");
     }
+  } else if (draggingInternal && ev.type == "drop") {
+    draggingInternal = false;
   }
   ev.preventDefault();
 };
