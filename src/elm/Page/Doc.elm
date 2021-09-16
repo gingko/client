@@ -2778,12 +2778,10 @@ viewLoaded model =
                                 text ""
 
                     cardTitleReplacer ( id, inputString ) =
-                        case inputString |> String.split "\n" of
+                        case String.lines inputString of
                             firstLine :: _ ->
                                 ( id
                                 , firstLine
-                                    |> String.replace "#" ""
-                                    |> String.replace ">" ""
                                     |> String.trim
                                     |> (\str ->
                                             if String.isEmpty str then

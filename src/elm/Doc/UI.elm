@@ -18,6 +18,10 @@ import Html.Extra exposing (viewIf)
 import Import.Template exposing (Template(..))
 import Json.Decode as Dec
 import List.Extra as ListExtra exposing (getAt)
+import Markdown.Block
+import Markdown.Html
+import Markdown.Parser
+import Markdown.Renderer exposing (Renderer)
 import Octicons as Icon exposing (defaultOptions, fillRule)
 import Page.Doc.Export exposing (ExportFormat(..), ExportSelection(..))
 import Page.Doc.Theme exposing (Theme(..))
@@ -328,8 +332,54 @@ viewUpgradeButton toggledUpgradeModal session =
 viewBreadcrumbs : (String -> msg) -> List ( String, String ) -> Html msg
 viewBreadcrumbs clickedCrumbMsg cardIdsAndTitles =
     let
+        defaultMarkdown =
+            Markdown.Renderer.defaultHtmlRenderer
+
+        firstElementOnly : a -> List a -> a
+        firstElementOnly d l =
+            List.head l |> Maybe.withDefault d
+
+        markdownParser tag =
+            Markdown.Html.tag tag (\rc -> List.head rc |> Maybe.withDefault (text ""))
+
+        textRenderer : Renderer (Html msg)
+        textRenderer =
+            { defaultMarkdown
+                | text = text
+                , codeSpan = text
+                , image = always (text "")
+                , heading = \{ rawText } -> text (String.trim rawText)
+                , paragraph = firstElementOnly (text "")
+                , blockQuote = firstElementOnly (text "")
+                , orderedList = \i l -> List.map (firstElementOnly (text "")) l |> firstElementOnly (text "")
+                , unorderedList =
+                    \l ->
+                        List.map
+                            (\li ->
+                                case li of
+                                    Markdown.Block.ListItem _ children ->
+                                        children |> firstElementOnly (text "")
+                            )
+                            l
+                            |> firstElementOnly (text "")
+                , html = Markdown.Html.oneOf ([ "p", "h1", "h2", "h3", "h4", "h5", "h6", "style", "code", "span", "pre" ] |> List.map markdownParser)
+            }
+
+        renderedContent : String -> List (Html msg)
+        renderedContent content =
+            content
+                |> Markdown.Parser.parse
+                |> Result.mapError deadEndsToString
+                |> Result.andThen (\ast -> Markdown.Renderer.render textRenderer ast)
+                |> Result.withDefault [ text "<parse error>" ]
+
+        deadEndsToString deadEnds =
+            deadEnds
+                |> List.map Markdown.Parser.deadEndToString
+                |> String.join "\n"
+
         viewCrumb ( id, content ) =
-            div [ onClick <| clickedCrumbMsg id ] [ span [] [ text content ] ]
+            div [ onClick <| clickedCrumbMsg id ] [ span [] (renderedContent content) ]
     in
     div [ id "breadcrumbs" ] (List.map viewCrumb cardIdsAndTitles)
 
