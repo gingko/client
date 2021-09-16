@@ -6,7 +6,7 @@ import Doc.TreeUtils exposing (ScrollPosition, scrollPositionToValue)
 import Json.Encode as Enc exposing (..)
 import Page.Doc.Theme as Theme exposing (Theme)
 import Translation exposing (Language, langToString)
-import Types exposing (CollabState, CursorPosition(..), OutsideData, TextCursorInfo, Tree)
+import Types exposing (CollabState, CursorPosition(..), DropId, OutsideData, TextCursorInfo, Tree, dropIdToValue)
 
 
 
