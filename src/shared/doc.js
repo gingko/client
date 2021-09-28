@@ -226,8 +226,11 @@ const fromElm = (msg, elmData) => {
     },
 
     SetDirty: () => {
-      draggingInternal = false;
       DIRTY = elmData;
+    },
+
+    DragDone: () => {
+      draggingInternal = false;
     },
 
     ConfirmCancelCard: () => {

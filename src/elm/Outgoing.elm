@@ -19,6 +19,7 @@ type Msg
       -- === Dialogs, Menus, Window State ===
     | Alert String
     | SetDirty Bool
+    | DragDone
     | ConfirmCancelCard String String String
       -- === Database ===
     | InitDocument String
@@ -80,6 +81,9 @@ send info =
 
         SetDirty changed ->
             dataToSend "SetDirty" (bool changed)
+
+        DragDone ->
+            dataToSend "DragDone" null
 
         ConfirmCancelCard id origContent confirmText ->
             dataToSend "ConfirmCancelCard" (list string [ id, origContent, confirmText ])

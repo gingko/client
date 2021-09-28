@@ -496,7 +496,7 @@ update msg ({ workingTree } as model) =
                                                 ((getParent id model.workingTree.tree |> Maybe.map .id) |> Maybe.withDefault "0")
                                                 ((getIndex id model.workingTree.tree |> Maybe.withDefault 0) + 1)
                             in
-                            ( { modelDragUpdated | viewState = { vs | draggedTree = Nothing }, dirty = True }, send <| SetDirty True )
+                            ( { modelDragUpdated | viewState = { vs | draggedTree = Nothing }, dirty = True }, Cmd.batch [ send <| SetDirty True, send <| DragDone ] )
                                 |> moveOperation
 
                         Nothing ->
