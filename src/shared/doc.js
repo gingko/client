@@ -995,8 +995,28 @@ const observer = new MutationObserver(function (mutations) {
       t.onclick = selectionHandler;
       t.onfocus = selectionHandler;
     });
+    window.addEventListener('click', editBlurHandler)
+  } else {
+    window.removeEventListener('click', editBlurHandler);
   }
 });
+
+const editBlurHandler = (ev) => {
+  let targetClasses = ev.target.classList;
+  if (ev.target.nodeName == "SPAN" && targetClasses.contains("card-btn") && targetClasses.contains("save")) {
+    return;
+  } else if (isEditTextarea(ev.target)) {
+    return;
+  } else {
+    if(!(isEditTextarea(document.activeElement))) {
+      toElm(null, "docMsgs", "ClickedOutsideCard");
+    }
+  }
+};
+
+const isEditTextarea = (node) => {
+  return node.nodeName == "TEXTAREA" && node.classList.contains("edit") && node.classList.contains("mousetrap");
+}
 
 const observerConfig = { childList: true, subtree: true };
 

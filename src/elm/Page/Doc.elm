@@ -1360,6 +1360,11 @@ update msg ({ workingTree } as model) =
                     else
                         ( model, Cmd.none )
 
+                ClickedOutsideCard ->
+                    ( model, Cmd.none )
+                        |> saveCardIfEditing
+                        |> closeCard
+
                 CheckboxClicked cardId checkboxNumber ->
                     case getTree cardId model.workingTree.tree of
                         Nothing ->

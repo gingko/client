@@ -32,6 +32,7 @@ type
     | PasteInto Tree
     | FieldChanged String
     | TextCursor TextCursorInfo
+    | ClickedOutsideCard
     | CheckboxClicked String Int
       -- === UI ===
     | StartTour
@@ -185,6 +186,9 @@ subscribe tagger onError =
 
                         Err e ->
                             onError (errorToString e)
+
+                "ClickedOutsideCard" ->
+                    tagger <| ClickedOutsideCard
 
                 "CheckboxClicked" ->
                     case decodeValue (tupleDecoder Dec.string Dec.int) outsideInfo.data of
