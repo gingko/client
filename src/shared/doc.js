@@ -995,7 +995,9 @@ const observer = new MutationObserver(function (mutations) {
       t.onclick = selectionHandler;
       t.onfocus = selectionHandler;
     });
-    window.addEventListener('click', editBlurHandler)
+    if (document.getElementById("app-fullscreen") === null) {
+      window.addEventListener('click', editBlurHandler)
+    }
   } else {
     window.removeEventListener('click', editBlurHandler);
   }
