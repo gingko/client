@@ -113,11 +113,11 @@ body {
 }
 @keyframes shimmer {
   0% {
-    background-position: -100px 0;
+    background-position: 0 -100px;
   }
 
   100% {
-    background-position: 600px 0;
+    background-position: 0 600px;
   }
 }
 
@@ -1927,9 +1927,9 @@ div.tour-step {
 }
 #welcome-step-1.shimmer {
   background: var(--emphasis-color);
-  background-image: linear-gradient(to right, var(--emphasis-color) 0%, #ffe89a 20%, var(--emphasis-color) 40%, var(--emphasis-color) 100%);
+  background-image: linear-gradient(to bottom, var(--emphasis-color) 0%, #ffe89a 20%, var(--emphasis-color) 40%, var(--emphasis-color) 100%);
   animation-name: shimmer;
-  animation-duration: 2s;
+  animation-duration: 4s;
   animation-iteration-count: infinite;
   background-repeat: no-repeat;
   background-position: 0 0;
@@ -1940,8 +1940,9 @@ div.tour-step {
   transform: translateY(-120%);
 }
 #welcome-step-1 .arrow {
-  bottom: -19px;
+  bottom: -29px;
   left: 55px;
+  font-size: 54px;
 }
 #app-root.step-1 #loading-overlay {
   animation: none;

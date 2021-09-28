@@ -2932,7 +2932,7 @@ viewLoaded model =
                      , viewIf (model.tourStep == Just 1) <|
                         div [ id "welcome-step-1", class "tour-step", class "shimmer" ]
                             [ text "1. Click Here"
-                            , div [ class "arrow" ] [ text "▼" ]
+                            , div [ class "arrow" ] [ text "⬇" ]
                             , div [ id "progress-step-1", class "tour-step-progress" ]
                                 [ div [ class "bg-line", class "off" ] []
                                 , div [ class "on" ] []
