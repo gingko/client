@@ -1094,7 +1094,7 @@ viewShortcuts msgs lang isOpen isMac children textCursorInfo vs =
                         , shortcutSpan [ ctrlOrCmd, "→" ] (tr lang AddChildAction)
                         , shortcutSpan [ ctrlOrCmd, "↓" ] (tr lang AddBelowAction)
                         , shortcutSpan [ ctrlOrCmd, "↑" ] (tr lang AddAboveAction)
-                        , viewIfNotOnly <| h5 [] [ text "Move Cards" ]
+                        , viewIfNotOnly <| h5 [] [ text "Move & Delete Cards" ]
                         , viewIfNotOnly <| shortcutSpan [ "Alt", tr lang ArrowKeys ] (tr lang MoveAction)
                         , viewIfNotOnly <| shortcutSpan [ ctrlOrCmd, tr lang Backspace ] (tr lang DeleteAction)
                         , viewIfNotOnly <| h5 [] [ text "Merge Cards" ]
