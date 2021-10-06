@@ -381,7 +381,7 @@ viewBreadcrumbs clickedCrumbMsg cardIdsAndTitles =
         viewCrumb ( id, content ) =
             div [ onClick <| clickedCrumbMsg id ] [ span [] (renderedContent content) ]
     in
-    div [ id "breadcrumbs" ] (List.map viewCrumb cardIdsAndTitles)
+    div [ id "breadcrumbs", attribute "data-private" "lipsum" ] (List.map viewCrumb cardIdsAndTitles)
 
 
 
