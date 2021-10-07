@@ -13,9 +13,6 @@ describe('Welcome Tree & Templates', () => {
       cy.get('#signup-password')
         .type('testing')
 
-      cy.get('#signup-password-confirm')
-        .type('testing')
-
       cy.get('button.cta')
         .click()
     })
