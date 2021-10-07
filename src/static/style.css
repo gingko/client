@@ -132,14 +132,24 @@ body {
   overflow-y: auto;
   display: grid;
   grid-template-columns: minmax(0px, 0.5fr) 20px max-content 1fr;
-  grid-template-rows: 0 min-content minmax(60px, 0.2fr) min-content 1fr;
-  gap: 1em 1em;
+  grid-template-rows: minmax(60px, 0.2fr) min-content 1fr;
   grid-template-areas:
-    ". . . ."
-    "brand header header header"
     ". . . ."
     ". . headline headline"
     ". . form .";
+}
+@media only screen and (max-width:28em) {
+  #form-page .subtitle {
+    display: none;
+  }
+  #form-page a.brand {
+    display: none;
+  }
+}
+@media only screen and (max-width: 28em) and (orientation: landscape) {
+  #form-page .page-backdrop {
+    display: none;
+  }
 }
 #form-page * {
   z-index: 1;
@@ -155,10 +165,9 @@ body {
   grid-area: headline;
 }
 #form-page .brand {
-  grid-area: brand;
-  display: flex;
   align-items: center;
   padding-left: 20px;
+  padding-top: 20px;
 }
 #form-page .brand h1 {
   font-family: Catamaran, Helvetica, Arial, sans-serif;
@@ -176,7 +185,7 @@ body {
 }
 #form-page .page-bg {
   background-color: aliceblue;
-  grid-area: 1 / 2 / 6 / 5;
+  grid-area: 1 / 2 / 6 / 7;
   box-shadow: -3px 0px 3px hsla(0, 0%, 0%,0.5);
 }
 
@@ -210,8 +219,25 @@ body {
   margin-right: 4px;
   fill: #808080;
 }
-#show-hide-password .icon:hover {
+#show-hide-password:hover {
+  color: black;
+}
+#show-hide-password:hover .icon {
   fill: black;
+}
+#post-cta-divider {
+  margin-top: 26px;
+  margin-bottom: 12px;
+  display: flex;
+  color: #b1b1b1;
+}
+#post-cta-divider hr {
+  width: 80%;
+  height: 0;
+  border: 1px solid #ccc;
+}
+#post-cta-divider div {
+  margin: 0 8px;
 }
 .extra-info {
   color: #888;
@@ -267,6 +293,10 @@ body {
 .center-form .alt-action {
   text-align: center;
 }
+.center-form .alt-action a {
+  text-decoration: none;
+  color: #84b1c7;
+}
 #form-page input, #contact-form input:not([type='radio']), #contact-form textarea {
   border: 1px solid gray;
   padding: .5em 1em;
@@ -275,13 +305,20 @@ body {
   border-radius: 4px;
 }
 a.forgot-password {
-  margin-top: -10px;
+  margin-top: 0px;
   margin-bottom: 18px;
+  text-align: right;
   font-size: smaller;
-  color: gray;
+  color: #b1b1b1;
 }
 #form-error {
   white-space: pre-wrap;
+  color: darkred;
+  padding: 10px;
+  background: white;
+  border-radius: 8px;
+  margin-top: -33px;
+  margin-bottom: 8px;
 }
 .input-error {
   color: red;

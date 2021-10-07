@@ -1,14 +1,18 @@
 module Page.Login exposing (Model, Msg, init, subscriptions, toUser, update, view)
 
+import Ant.Icons.Svg as AntIcons
+import Browser.Dom
 import Html exposing (..)
-import Html.Attributes exposing (autocomplete, autofocus, class, href, id, placeholder, src, type_, value)
-import Html.Events exposing (onInput, onSubmit)
+import Html.Attributes exposing (autocomplete, autofocus, class, for, href, id, placeholder, src, type_, value)
+import Html.Events exposing (onClick, onInput, onSubmit)
 import Http exposing (Error(..))
 import Result exposing (Result)
 import Route
 import Session exposing (Session)
+import Svg.Attributes
+import Task
 import Utils exposing (getFieldErrors)
-import Validate exposing (Valid, Validator, ifBlank, ifInvalidEmail, validate)
+import Validate exposing (Valid, Validator, ifBlank, ifInvalidEmail, ifTrue, validate)
 
 
 
@@ -16,7 +20,7 @@ import Validate exposing (Valid, Validator, ifBlank, ifInvalidEmail, validate)
 
 
 type alias Model =
-    { user : Session, email : String, password : String, errors : List ( Field, String ) }
+    { user : Session, email : String, password : String, showPassword : Bool, errors : List ( Field, String ) }
 
 
 type Field
@@ -27,7 +31,7 @@ type Field
 
 init : Session -> ( Model, Cmd msg )
 init user =
-    ( { user = user, email = "", password = "", errors = [] }
+    ( { user = user, email = "", password = "", showPassword = False, errors = [] }
     , Cmd.none
     )
 
@@ -42,9 +46,11 @@ toUser model =
 
 
 type Msg
-    = SubmittedForm
+    = NoOp
+    | SubmittedForm
     | EnteredEmail String
     | EnteredPassword String
+    | ToggleShowPassword
     | CompletedLogin (Result Http.Error Session)
     | GotUser Session
 
@@ -52,6 +58,9 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        NoOp ->
+            ( model, Cmd.none )
+
         SubmittedForm ->
             case validate modelValidator model of
                 Ok validModel ->
@@ -67,6 +76,9 @@ update msg model =
 
         EnteredPassword password ->
             ( { model | password = password }, Cmd.none )
+
+        ToggleShowPassword ->
+            ( { model | showPassword = not model.showPassword }, Task.attempt (\_ -> NoOp) (Browser.Dom.focus "password-input") )
 
         CompletedLogin (Ok user) ->
             ( { model | user = user }, Session.storeLogin user )
@@ -87,7 +99,7 @@ update msg model =
                         BadStatus statusCode ->
                             case statusCode of
                                 401 ->
-                                    ( Form, "Email or Password was incorrect. Please try again." )
+                                    ( Form, "Email or Password was incorrect.\n\nNOTE: that this is separate from existing gingkoapp.com accounts.\n\n" )
 
                                 _ ->
                                     fallbackMsg
@@ -108,6 +120,7 @@ modelValidator =
             [ ifBlank .email ( Email, "Please enter an email address." )
             , ifInvalidEmail .email (\_ -> ( Email, "This does not seem to be a valid email." ))
             ]
+        , ifTrue (\model -> String.length model.password < 7) ( Password, "Password should be 7 characters or more." )
         , ifBlank .password ( Password, "Please enter a password." )
         ]
 
@@ -139,41 +152,65 @@ view model =
 
         fromLegacy =
             Session.fromLegacy model.user
+
+        showHidePassword =
+            if model.showPassword then
+                div [ id "show-hide-password", onClick ToggleShowPassword ] [ AntIcons.eyeInvisibleOutlined [ Svg.Attributes.class "icon" ], text "Hide" ]
+
+            else
+                div [ id "show-hide-password", onClick ToggleShowPassword ] [ AntIcons.eyeOutlined [ Svg.Attributes.class "icon" ], text "Show" ]
     in
     div [ id "form-page" ]
-        [ a [ class "brand", href "{%HOMEPAGE_URL%}" ]
-            [ img [ id "logo", src "gingko-leaf-logo.svg" ] []
-            , h1 [] [ text "Gingko Writer" ]
-            ]
+        [ div [ class "page-backdrop" ] []
         , div [ class "page-bg" ] []
-        , h1 [ class "headline" ] [ text "Write better, faster." ]
-        , div [ class "header" ] [ span [ class "alt-action" ] [ text "New to Gingko? ", a [ href "/signup" ] [ text "Signup" ] ] ]
+        , a [ class "brand", href "{%HOMEPAGE_URL%}" ] [ img [ id "logo", src "gingko-leaf-logo.svg" ] [] ]
+        , div [ class "form-header-container" ]
+            [ h1 [ class "headline" ] [ text "Welcome Back!" ]
+            , p [ class "subtitle" ] [ text "May your words flow freely..." ]
+            ]
         , div [ class "center-form" ]
             [ form [ onSubmit SubmittedForm ]
-                [ div [] [ text (String.join "\n" formErrors) ]
-                , div [ class "input-error" ] [ text (String.join "\n" emailErrors) ]
+                [ if List.length formErrors > 0 then
+                    div [ id "form-error" ] [ text (String.join "\n" formErrors) ]
+
+                  else
+                    text ""
+                , label [ for "email-input" ] [ text "Email" ]
                 , input
                     [ onInput EnteredEmail
                     , id "email-input"
-                    , placeholder "Email"
                     , type_ "email"
                     , value model.email
                     , autofocus True
                     , autocomplete True
                     ]
                     []
-                , div [ class "input-error" ] [ text (String.join "\n" passwordErrors) ]
+                , div [ class "input-error" ] [ text (String.join "\n" emailErrors) ]
+                , label [ for "singup-password" ] [ text "Password", showHidePassword ]
                 , input
                     [ onInput EnteredPassword
                     , id "password-input"
-                    , placeholder "Password"
-                    , type_ "password"
+                    , type_
+                        (if model.showPassword then
+                            "text"
+
+                         else
+                            "password"
+                        )
                     , value model.password
                     , autocomplete True
                     ]
                     []
-                , a [ href "/forgot-password", class "forgot-password" ] [ text "Forgot your Password?" ]
-                , button [ class "cta" ] [ text "Login" ]
+                , div [ class "input-error" ] [ text (String.join "\n" passwordErrors) ]
+                , button [ id "login-button", class "cta" ] [ text "Login" ]
+                , div [ id "post-cta-divider" ] [ hr [] [], div [] [ text "or" ], hr [] [] ]
+                , span [ class "alt-action" ]
+                    [ text "New to Gingko? "
+                    , a [ href "/signup" ] [ text "Signup" ]
+                    , br [] []
+                    , br [] []
+                    , a [ class "forgot-password", href "/forgot-password" ] [ text "Forgot your Password?" ]
+                    ]
                 , br [] []
                 , if fromLegacy then
                     small [ class "extra-info", class "legacy" ]
@@ -187,7 +224,7 @@ view model =
                         ]
 
                   else
-                    small [ class "extra-info" ] [ text "(Note: this is separate from existing gingkoapp.com accounts)" ]
+                    text ""
                 ]
             ]
         ]

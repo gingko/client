@@ -182,7 +182,6 @@ view model =
             [ h1 [ class "headline" ] [ text "Welcome to Gingko Writer" ]
             , p [ class "subtitle" ] [ text "Write the way you think, organize as you go, and let your words flow." ]
             ]
-        , div [ class "header" ] [ span [ class "alt-action" ] [ text "Already have an account? ", a [ href "/login" ] [ text "Login" ] ] ]
         , div [ class "center-form" ]
             [ form [ onSubmit SubmittedForm ]
                 [ div [] [ text (String.join "\n" formErrors) ]
@@ -214,7 +213,9 @@ view model =
                     , autocomplete True
                     ]
                     []
-                , button [ class "cta" ] [ text "Start Writing" ]
+                , button [ id "signup-button", class "cta" ] [ text "Start Writing" ]
+                , div [ id "post-cta-divider" ] [ hr [] [], div [] [ text "or" ], hr [] [] ]
+                , span [ class "alt-action" ] [ text "Already have an account? ", a [ href "/login" ] [ text "Login" ] ]
                 ]
             ]
         ]
