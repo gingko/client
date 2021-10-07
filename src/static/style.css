@@ -131,14 +131,28 @@ body {
   height: 100%;
   overflow-y: auto;
   display: grid;
-  grid-template-columns: minmax(0px, 1fr) 20px max-content 1fr;
-  grid-template-rows: min-content minmax(60px, 0.2fr) min-content 1fr;
+  grid-template-columns: minmax(0px, 0.5fr) 20px max-content 1fr;
+  grid-template-rows: 0 min-content minmax(60px, 0.2fr) min-content 1fr;
   gap: 1em 1em;
   grid-template-areas:
-    ". header header header"
     ". . . ."
-    "brand . headline headline"
+    "brand header header header"
+    ". . . ."
+    ". . headline headline"
     ". . form .";
+}
+#form-page * {
+  z-index: 1;
+}
+.page-backdrop {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  background: url("https://gingkowriter.com/img/cork-wallet.png");
+  mix-blend-mode: multiply;
+}
+#form-page .form-header-container {
+  grid-area: headline;
 }
 #form-page .brand {
   grid-area: brand;
@@ -153,24 +167,30 @@ body {
 #form-page a.brand {
   text-decoration: none;
   color: black;
+  width: fit-content;
 }
 #form-page #logo {
-  width: 40px;
+  width: 72px;
   margin-bottom: 3px;
   margin-right: 8px;
 }
 #form-page .page-bg {
   background-color: aliceblue;
-  grid-area: 1 / 2 / 5 / 5;
+  grid-area: 1 / 2 / 6 / 5;
   box-shadow: -3px 0px 3px hsla(0, 0%, 0%,0.5);
 }
 
 #form-page .headline {
-  grid-area: headline;
   padding-left: 20px;
   font-family: Catamaran,Helvetica,Arial,sans-serif;
   font-weight: 200;
   font-size: 2.4em;
+}
+#form-page .subtitle {
+  padding-left: 20px;
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 200;
+  font-size: 1em;
 }
 #form-page .header {
   grid-area: header;
@@ -180,6 +200,18 @@ body {
 }
 #form-page span.alt-action {
   color: #888;
+}
+#show-hide-password {
+  display: flex;
+  cursor: pointer;
+}
+#show-hide-password .icon {
+  width: 16px;
+  margin-right: 4px;
+  fill: #808080;
+}
+#show-hide-password .icon:hover {
+  fill: black;
 }
 .extra-info {
   color: #888;
@@ -194,20 +226,33 @@ body {
 }
 #form-page .cta {
   background-color: var(--selection-color);
+  color: #122000;
+  text-shadow: 0px 1px 1px #b7e779;
+  font-size: 110%;
+  font-weight: bold;
   padding: 10px;
   border-radius: 10px;
   border: 1px solid #358b11;
   cursor: pointer;
+  margin-top: 21px;
   box-shadow: 1px 1px 2px hsla(0, 0%, 0%, 0.2);
 }
 #form-page .cta:hover {
   background-color: #94cb56;
 }
+#form-page label {
+  color: #808080;
+  margin-bottom: 5px;
+  position: relative;
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+}
 
 .center-form {
   grid-area: form;
   padding: 20px;
-  max-width: 275px;
+  max-width: 300px;
 }
 
 .center-form form {
