@@ -2038,6 +2038,10 @@ div.tour-step {
   border-radius: 100px;
   box-shadow: inset rgb(0 0 0 / 22%) 0px 0px 20px, rgb(0 0 0 / 58%) 0px 0px 0px 5000px;
 }
+#app-root.step-1 #column-container .column:nth-child(2) .group .card:nth-child(2) {
+  outline: 4px solid orange;
+  z-index: 99;
+}
 #app-root.step-2 #welcome-step-2 {
   display: block;
   opacity: 1;
