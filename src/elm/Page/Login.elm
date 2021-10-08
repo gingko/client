@@ -5,6 +5,7 @@ import Browser.Dom
 import Html exposing (..)
 import Html.Attributes exposing (autocomplete, autofocus, class, for, href, id, placeholder, src, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
+import Html.Extra exposing (viewIf)
 import Http exposing (Error(..))
 import Result exposing (Result)
 import Route
@@ -171,7 +172,7 @@ view model =
         , div [ class "center-form" ]
             [ form [ onSubmit SubmittedForm ]
                 [ if List.length formErrors > 0 then
-                    div [ id "form-error" ] [ text (String.join "\n" formErrors) ]
+                    div [ id "form-errors" ] [ text (String.join "\n" formErrors) ]
 
                   else
                     text ""
@@ -185,8 +186,8 @@ view model =
                     , autocomplete True
                     ]
                     []
-                , div [ class "input-error" ] [ text (String.join "\n" emailErrors) ]
-                , label [ for "singup-password" ] [ text "Password", showHidePassword ]
+                , viewIf (not <| List.isEmpty emailErrors) <| div [ class "input-errors" ] [ text (String.join "\n" emailErrors) ]
+                , label [ for "password-input" ] [ text "Password", showHidePassword ]
                 , input
                     [ onInput EnteredPassword
                     , id "password-input"
@@ -201,7 +202,7 @@ view model =
                     , autocomplete True
                     ]
                     []
-                , div [ class "input-error" ] [ text (String.join "\n" passwordErrors) ]
+                , viewIf (not <| List.isEmpty passwordErrors) <| div [ class "input-errors" ] [ text (String.join "\n" passwordErrors) ]
                 , button [ id "login-button", class "cta" ] [ text "Login" ]
                 , div [ id "post-cta-divider" ] [ hr [] [], div [] [ text "or" ], hr [] [] ]
                 , span [ class "alt-action" ]

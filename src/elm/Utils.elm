@@ -26,7 +26,7 @@ randomPositiveInt =
     Random.int 0 Random.maxInt
 
 
-getFieldErrors : field -> List ( field, String ) -> List String
+getFieldErrors : field -> List ( field, a ) -> List a
 getFieldErrors field errs =
     errs
         |> List.filter ((==) field << Tuple.first)
