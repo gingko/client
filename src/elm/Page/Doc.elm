@@ -103,6 +103,7 @@ type ModalState
     | FileSwitcher Doc.Switcher.Model
     | SidebarContextMenu String ( Float, Float )
     | TemplateSelector
+    | VideoViewer
     | Wordcount
     | ImportModal ImportModal.Model
     | ContactForm ContactForm.Model
@@ -242,6 +243,7 @@ type Msg
       -- Sidebar & Modals
     | SidebarStateChanged SidebarState
     | TemplateSelectorOpened
+    | VideoViewerOpened
     | SwitcherOpened
     | SwitcherClosed
     | WordcountModalOpened
@@ -264,6 +266,7 @@ type Msg
     | ToggledUpgradeModal Bool
     | UpgradeModalMsg Upgrade.Msg
       -- HELP
+    | ClickedShowVideos
     | ClickedEmailSupport
     | TourStep (Maybe Int)
     | ContactFormMsg ContactForm.Model ContactForm.Msg
@@ -773,6 +776,9 @@ update msg ({ workingTree } as model) =
                     in
                     ( { model | session = newSession }, maybeFlash )
 
+        ClickedShowVideos ->
+            ( { model | modalState = VideoViewer }, Cmd.none )
+
         ClickedEmailSupport ->
             let
                 fromEmail =
@@ -847,6 +853,9 @@ update msg ({ workingTree } as model) =
                         model.tourStep
             in
             ( { model | modalState = TemplateSelector, tourStep = newTourStep }, Cmd.none )
+
+        VideoViewerOpened ->
+            ( { model | modalState = VideoViewer }, Cmd.none )
 
         SwitcherOpened ->
             openSwitcher model
@@ -2906,6 +2915,7 @@ viewLoaded model =
                         , clickedHelp = ToggledHelpMenu (not (model.sidebarMenuState == Help))
                         , toggledShortcuts = ShortcutTrayToggle
                         , clickedEmailSupport = ClickedEmailSupport
+                        , clickedShowVideos = ClickedShowVideos
                         , languageMenuRequested = LanguageMenuRequested
                         , logout = LogoutRequested
                         , toggledAccount = ToggledAccountMenu
@@ -3551,6 +3561,9 @@ viewModal language model =
                 , importOpmlRequested = ImportOpmlRequested
                 , importJSONRequested = ImportJSONRequested
                 }
+
+        VideoViewer ->
+            UI.viewVideo language ModalClosed
 
         Wordcount ->
             UI.viewWordCount model { modalClosed = ModalClosed }

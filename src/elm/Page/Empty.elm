@@ -2,6 +2,7 @@ module Page.Empty exposing (..)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
+import Doc.ContactForm as ContactForm
 import Doc.Data as Data
 import Doc.List as DocList exposing (Model(..))
 import Doc.Metadata as Metadata
@@ -38,7 +39,9 @@ type alias Model =
 type ModalState
     = Closed
     | TemplateSelector
+    | VideoViewer
     | ImportModal ImportModal.Model
+    | ContactForm ContactForm.Model
 
 
 defaultModel : Session -> Model
@@ -83,6 +86,11 @@ type Msg
     | SidebarStateChanged SidebarState
     | ToggledHelpMenu Bool
     | ClickedEmailSupport
+    | ClickedShowVideos
+    | ContactFormMsg ContactForm.Model ContactForm.Msg
+    | CopyEmailClicked Bool
+    | ContactFormSubmitted ContactForm.Model
+    | ContactFormSent (Result Http.Error ())
     | ToggledAccountMenu Bool
     | LanguageMenuRequested (Maybe String)
     | LanguageMenuReceived Element
@@ -185,8 +193,39 @@ update msg model =
             , Cmd.none
             )
 
+        ClickedShowVideos ->
+            ( { model | modalState = VideoViewer }, Cmd.none )
+
         ClickedEmailSupport ->
-            ( model, Cmd.none )
+            let
+                fromEmail =
+                    Session.name model.session
+                        |> Maybe.withDefault ""
+            in
+            ( { model | modalState = ContactForm (ContactForm.init fromEmail), sidebarMenuState = NoSidebarMenu }
+            , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "contact-body")
+            )
+
+        ContactFormMsg formModel formMsg ->
+            ( { model | modalState = ContactForm (ContactForm.update formMsg formModel) }, Cmd.none )
+
+        CopyEmailClicked isUrgent ->
+            if isUrgent then
+                ( model, send <| CopyToClipboard "{%SUPPORT_URGENT_EMAIL%}" "#email-copy-btn" )
+
+            else
+                ( model, send <| CopyToClipboard "{%SUPPORT_EMAIL%}" "#email-copy-btn" )
+
+        ContactFormSubmitted formModel ->
+            ( model, ContactForm.send ContactFormSent formModel )
+
+        ContactFormSent res ->
+            case res of
+                Ok _ ->
+                    ( { model | modalState = Closed }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
         ToggledAccountMenu isOpen ->
             let
@@ -366,6 +405,7 @@ view ({ session } as model) =
             , clickedHelp = ToggledHelpMenu (not (model.sidebarMenuState == Help))
             , toggledShortcuts = NoOp
             , clickedEmailSupport = ClickedEmailSupport
+            , clickedShowVideos = ClickedShowVideos
             , languageMenuRequested = LanguageMenuRequested
             , logout = LogoutRequested
             , toggledAccount = ToggledAccountMenu
@@ -391,6 +431,10 @@ view ({ session } as model) =
 
 viewModal : Model -> List (Html Msg)
 viewModal ({ session } as model) =
+    let
+        language =
+            Session.language session
+    in
     case model.modalState of
         Closed ->
             []
@@ -406,8 +450,20 @@ viewModal ({ session } as model) =
                 , importJSONRequested = ImportJSONRequested
                 }
 
+        VideoViewer ->
+            UI.viewVideo language ModalClosed
+
         ImportModal importModalState ->
             ImportModal.view (Session.language session) importModalState |> List.map (Html.map ImportModalMsg)
+
+        ContactForm contactFormModel ->
+            ContactForm.view language
+                { closeMsg = ModalClosed
+                , submitMsg = ContactFormSubmitted
+                , tagger = ContactFormMsg contactFormModel
+                , copyEmail = CopyEmailClicked
+                }
+                contactFormModel
 
 
 

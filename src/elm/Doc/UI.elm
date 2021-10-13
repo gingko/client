@@ -398,6 +398,7 @@ type alias SidebarMsgs msg =
     , clickedHelp : msg
     , toggledShortcuts : msg
     , clickedEmailSupport : msg
+    , clickedShowVideos : msg
     , languageMenuRequested : Maybe String -> msg
     , toggledAccount : Bool -> msg
     , logout : msg
@@ -574,6 +575,7 @@ viewSidebar session msgs currentDocument sortCriteria fileFilter docList account
                 custId_
                 { toggledShortcuts = msgs.toggledShortcuts
                 , clickedEmailSupport = msgs.clickedEmailSupport
+                , clickedShowVideos = msgs.clickedShowVideos
                 , helpClosed = msgs.clickedHelp
                 , languageMenuRequested = msgs.languageMenuRequested
                 , languageChanged = msgs.languageChanged
@@ -592,6 +594,7 @@ viewSidebarMenu :
     ->
         { toggledShortcuts : msg
         , clickedEmailSupport : msg
+        , clickedShowVideos : msg
         , helpClosed : msg
         , languageMenuRequested : Maybe String -> msg
         , languageChanged : Language -> msg
@@ -607,6 +610,7 @@ viewSidebarMenu lang custId_ msgs accountEmail dropdownState =
         Help ->
             [ div [ id "help-menu", class "sidebar-menu" ]
                 [ a [ href "https://docs.gingkowriter.com", target "_blank", onClickStop msgs.noOp ] [ text "FAQ" ]
+                , div [ id "show-videos", onClickStop msgs.clickedShowVideos ] [ text "Tutorial Videos" ]
                 , div [ onClickStop msgs.toggledShortcuts ] [ text <| tr lang KeyboardHelp ]
                 , div [ id "email-support", onClickStop msgs.clickedEmailSupport ] [ text <| tr lang EmailSupport ]
                 ]
@@ -796,6 +800,20 @@ viewTemplateSelector language msgs =
         |> modalWrapper msgs.modalClosed Nothing Nothing "New Document"
 
 
+viewVideo : Translation.Language -> msg -> List (Html msg)
+viewVideo language modalMsg =
+    [ iframe
+        [ width 650
+        , height 366
+        , src "https://www.youtube.com/embed/ZOGgwKAU3vg?rel=0&amp;showinfo=0"
+        , attribute "frameborder" "0"
+        , attribute "allowfullscreen" ""
+        ]
+        []
+    ]
+        |> modalWrapper modalMsg Nothing Nothing "Learning Videos"
+
+
 viewWordCount :
     { m
         | viewState : ViewState
@@ -971,30 +989,6 @@ viewHistory lang msgs currentTime dataModel historyState =
             ]
             [ AntIcons.closeOutlined [] ]
         ]
-
-
-viewVideo : (Bool -> msg) -> { m | videoModalOpen : Bool } -> Html msg
-viewVideo modalMsg { videoModalOpen } =
-    if videoModalOpen then
-        div [ class "modal-container" ]
-            [ div [ class "modal" ]
-                [ div [ class "modal-header" ]
-                    [ h1 [] [ text "Learning Videos" ]
-                    , a [ onClick (modalMsg False) ] [ text "×" ]
-                    ]
-                , iframe
-                    [ width 650
-                    , height 366
-                    , src "https://www.youtube.com/embed/ZOGgwKAU3vg?rel=0&amp;showinfo=0"
-                    , attribute "frameborder" "0"
-                    , attribute "allowfullscreen" ""
-                    ]
-                    []
-                ]
-            ]
-
-    else
-        div [] []
 
 
 viewShortcuts :
