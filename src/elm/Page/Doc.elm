@@ -16,6 +16,7 @@ import Doc.Switcher
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Doc.UI as UI exposing (countWords, viewConflict, viewMobileButtons, viewSearchField)
+import Doc.VideoViewer as VideoViewer
 import File exposing (File)
 import File.Download as Download
 import File.Select as Select
@@ -103,7 +104,7 @@ type ModalState
     | FileSwitcher Doc.Switcher.Model
     | SidebarContextMenu String ( Float, Float )
     | TemplateSelector
-    | VideoViewer
+    | VideoViewer VideoViewer.Model
     | Wordcount
     | ImportModal ImportModal.Model
     | ContactForm ContactForm.Model
@@ -777,7 +778,7 @@ update msg ({ workingTree } as model) =
                     ( { model | session = newSession }, maybeFlash )
 
         ClickedShowVideos ->
-            ( { model | modalState = VideoViewer }, Cmd.none )
+            ( { model | modalState = VideoViewer VideoViewer.init, sidebarMenuState = NoSidebarMenu }, Cmd.none )
 
         ClickedEmailSupport ->
             let
@@ -855,7 +856,7 @@ update msg ({ workingTree } as model) =
             ( { model | modalState = TemplateSelector, tourStep = newTourStep }, Cmd.none )
 
         VideoViewerOpened ->
-            ( { model | modalState = VideoViewer }, Cmd.none )
+            ( { model | modalState = VideoViewer VideoViewer.init }, Cmd.none )
 
         SwitcherOpened ->
             openSwitcher model
@@ -3562,8 +3563,8 @@ viewModal language model =
                 , importJSONRequested = ImportJSONRequested
                 }
 
-        VideoViewer ->
-            UI.viewVideo language ModalClosed
+        VideoViewer videoViewerState ->
+            VideoViewer.view language ModalClosed videoViewerState
 
         Wordcount ->
             UI.viewWordCount model { modalClosed = ModalClosed }

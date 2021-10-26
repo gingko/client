@@ -1,4 +1,4 @@
-module Doc.UI exposing (countWords, fillet, viewBreadcrumbs, viewConflict, viewHeader, viewLoadingSpinner, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewTooltip, viewVideo, viewWordCount)
+module Doc.UI exposing (countWords, fillet, viewBreadcrumbs, viewConflict, viewHeader, viewLoadingSpinner, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewTooltip, viewWordCount)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -798,20 +798,6 @@ viewTemplateSelector language msgs =
         ]
     ]
         |> modalWrapper msgs.modalClosed Nothing Nothing "New Document"
-
-
-viewVideo : Translation.Language -> msg -> List (Html msg)
-viewVideo language modalMsg =
-    [ iframe
-        [ width 650
-        , height 366
-        , src "https://www.youtube.com/embed/ZOGgwKAU3vg?rel=0&amp;showinfo=0"
-        , attribute "frameborder" "0"
-        , attribute "allowfullscreen" ""
-        ]
-        []
-    ]
-        |> modalWrapper modalMsg Nothing Nothing "Learning Videos"
 
 
 viewWordCount :

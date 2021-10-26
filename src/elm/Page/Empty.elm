@@ -7,6 +7,7 @@ import Doc.Data as Data
 import Doc.List as DocList exposing (Model(..))
 import Doc.Metadata as Metadata
 import Doc.UI as UI
+import Doc.VideoViewer as VideoViewer
 import File exposing (File)
 import File.Select as Select
 import Html exposing (Html, a, br, button, div, h1, img, p, text)
@@ -39,7 +40,7 @@ type alias Model =
 type ModalState
     = Closed
     | TemplateSelector
-    | VideoViewer
+    | VideoViewer VideoViewer.Model
     | ImportModal ImportModal.Model
     | ContactForm ContactForm.Model
 
@@ -194,7 +195,7 @@ update msg model =
             )
 
         ClickedShowVideos ->
-            ( { model | modalState = VideoViewer }, Cmd.none )
+            ( { model | modalState = VideoViewer VideoViewer.init }, Cmd.none )
 
         ClickedEmailSupport ->
             let
@@ -450,8 +451,8 @@ viewModal ({ session } as model) =
                 , importJSONRequested = ImportJSONRequested
                 }
 
-        VideoViewer ->
-            UI.viewVideo language ModalClosed
+        VideoViewer viewerState ->
+            VideoViewer.view language ModalClosed viewerState
 
         ImportModal importModalState ->
             ImportModal.view (Session.language session) importModalState |> List.map (Html.map ImportModalMsg)

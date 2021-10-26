@@ -1243,6 +1243,14 @@ ul.dropdown > li > span.no-interaction:hover {
   cursor: pointer;
 }
 
+div#video-viewer-container {
+  flex-direction: row;
+  justify-content: space-between;
+}
+#video-viewer-content {
+  flex: 1;
+}
+
 span.trial {
   cursor: pointer;
 }
