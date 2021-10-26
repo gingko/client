@@ -769,7 +769,7 @@ viewTemplateSelector language msgs =
             ]
         , a [ id "template-timeline", class "template-item", href <| Route.toString (Route.Import Timeline) ]
             [ div [ classList [ ( "template-thumbnail", True ) ] ] [ Icon.lightBulb (Icon.defaultOptions |> Icon.size 48) ]
-            , div [ class "template-title" ] [ text "Timeline 2021" ]
+            , div [ class "template-title" ] [ text "Timeline 2022" ]
             , div [ class "template-description" ]
                 [ text "A tree-based calendar" ]
             ]
