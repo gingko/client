@@ -88,6 +88,7 @@ type Msg
     | ToggledHelpMenu Bool
     | ClickedEmailSupport
     | ClickedShowVideos
+    | VideoViewerMsg VideoViewer.Msg
     | ContactFormMsg ContactForm.Model ContactForm.Msg
     | CopyEmailClicked Bool
     | ContactFormSubmitted ContactForm.Model
@@ -196,6 +197,9 @@ update msg model =
 
         ClickedShowVideos ->
             ( { model | modalState = VideoViewer VideoViewer.init }, Cmd.none )
+
+        VideoViewerMsg videoViewerMsg ->
+            ( { model | modalState = VideoViewer (VideoViewer.update videoViewerMsg) }, Cmd.none )
 
         ClickedEmailSupport ->
             let
@@ -452,7 +456,7 @@ viewModal ({ session } as model) =
                 }
 
         VideoViewer viewerState ->
-            VideoViewer.view language ModalClosed viewerState
+            VideoViewer.view language ModalClosed VideoViewerMsg viewerState
 
         ImportModal importModalState ->
             ImportModal.view (Session.language session) importModalState |> List.map (Html.map ImportModalMsg)

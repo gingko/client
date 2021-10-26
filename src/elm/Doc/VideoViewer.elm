@@ -1,7 +1,8 @@
-module Doc.VideoViewer exposing (Model, init, view)
+module Doc.VideoViewer exposing (Model, Msg, init, update, view)
 
 import Html exposing (Html, div, iframe, text)
 import Html.Attributes as A exposing (classList, id, src)
+import Html.Events exposing (onClick)
 import SharedUI exposing (modalWrapper)
 import Translation
 
@@ -22,11 +23,25 @@ init =
 
 
 -- UPDATE
+
+
+type Msg
+    = SetActive Model
+
+
+update : Msg -> Model
+update msg =
+    case msg of
+        SetActive newModel ->
+            newModel
+
+
+
 -- VIEW
 
 
-view : Translation.Language -> msg -> Model -> List (Html msg)
-view language modalMsg viewerState =
+view : Translation.Language -> msg -> (Msg -> msg) -> Model -> List (Html msg)
+view language modalMsg msgWrapper viewerState =
     let
         videoSrc =
             case viewerState of
@@ -34,7 +49,7 @@ view language modalMsg viewerState =
                     "https://player.vimeo.com/video/639232763?h=7a465b6f4f&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479"
 
                 EditingVideo ->
-                    "https://notfound.com"
+                    "https://example.com"
     in
     [ div [ id "video-viewer-content" ]
         [ iframe
@@ -46,8 +61,13 @@ view language modalMsg viewerState =
             []
         ]
     , div [ id "video-viewer-list" ]
-        [ div [ classList [ ( "video-item", True ), ( "active-video", viewerState == NavigationVideo ) ] ] [ text "Navigation Basics" ]
-        , div [ classList [ ( "video-item", True ), ( "active-video", viewerState == EditingVideo ) ] ] [ text "Writing Basics" ]
+        [ viewVideoItem "Navigation Basics" viewerState NavigationVideo |> Html.map msgWrapper
+        , viewVideoItem "Writing Basics" viewerState EditingVideo |> Html.map msgWrapper
         ]
     ]
         |> modalWrapper modalMsg (Just "video-viewer-container") (Just [ ( "video-viewer", True ) ]) "Learning Videos"
+
+
+viewVideoItem : String -> Model -> Model -> Html Msg
+viewVideoItem videoText selectedVideo videoItem =
+    div [ classList [ ( "video-item", True ), ( "active-video", videoItem == selectedVideo ) ], onClick (SetActive videoItem) ] [ text videoText ]

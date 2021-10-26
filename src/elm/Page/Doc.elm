@@ -245,6 +245,7 @@ type Msg
     | SidebarStateChanged SidebarState
     | TemplateSelectorOpened
     | VideoViewerOpened
+    | VideoViewerMsg VideoViewer.Msg
     | SwitcherOpened
     | SwitcherClosed
     | WordcountModalOpened
@@ -857,6 +858,9 @@ update msg ({ workingTree } as model) =
 
         VideoViewerOpened ->
             ( { model | modalState = VideoViewer VideoViewer.init }, Cmd.none )
+
+        VideoViewerMsg videoViewerMsg ->
+            ( { model | modalState = VideoViewer (VideoViewer.update videoViewerMsg) }, Cmd.none )
 
         SwitcherOpened ->
             openSwitcher model
@@ -3564,7 +3568,7 @@ viewModal language model =
                 }
 
         VideoViewer videoViewerState ->
-            VideoViewer.view language ModalClosed videoViewerState
+            VideoViewer.view language ModalClosed VideoViewerMsg videoViewerState
 
         Wordcount ->
             UI.viewWordCount model { modalClosed = ModalClosed }
