@@ -1246,9 +1246,49 @@ ul.dropdown > li > span.no-interaction:hover {
 div#video-viewer-container {
   flex-direction: row;
   justify-content: space-between;
+  background-color: var(--ui-2-bg);
 }
 #video-viewer-content {
-  flex: 1;
+  display: grid;
+  width: 100%;
+  height: 300px;
+  grid-template-columns: max-content 1fr;
+}
+#video-viewer-content iframe {
+  width: 100%;
+  height: 100%;
+}
+#video-viewer-list {
+  padding: 8px 0;
+}
+.video-item {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  padding: 8px;
+  color: var(--ui-2-border-color);
+  font-size: 14px;
+  line-height: 20px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  border-left: 3px solid transparent;
+}
+.video-item.active-video {
+  color: var(--ui-2-fg);
+  box-shadow: var(--small-shadow);
+  border-radius: 3px 0 0 3px ;
+  border-left: 3px solid var(--selection-color);
+  background: white;
+  border-left: 4px solid var(--selection-color);
+}
+#video-container {
+  background-color: var(--active-bg);
+  padding: 16px;
+  z-index: 4;
+  border-radius: 8px;
+  margin-left: -1px;
+  box-shadow: var(--small-shadow);
 }
 
 span.trial {

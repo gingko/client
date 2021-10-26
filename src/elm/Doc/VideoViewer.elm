@@ -52,20 +52,22 @@ view language modalMsg msgWrapper viewerState =
                     "https://example.com"
     in
     [ div [ id "video-viewer-content" ]
-        [ iframe
-            [ src videoSrc
-            , A.attribute "frameborder" "0"
-            , A.attribute "allow" "autoplay; fullscreen; picture-in-picture"
-            , A.attribute "allowfullscreen" ""
+        [ div [ id "video-viewer-list" ]
+            [ viewVideoItem "Navigation Basics (45s)" viewerState NavigationVideo |> Html.map msgWrapper
+            , viewVideoItem "Writing Basics (60s)" viewerState EditingVideo |> Html.map msgWrapper
             ]
-            []
-        ]
-    , div [ id "video-viewer-list" ]
-        [ viewVideoItem "Navigation Basics" viewerState NavigationVideo |> Html.map msgWrapper
-        , viewVideoItem "Writing Basics" viewerState EditingVideo |> Html.map msgWrapper
+        , div [ id "video-container" ]
+            [ iframe
+                [ src videoSrc
+                , A.attribute "frameborder" "0"
+                , A.attribute "allow" "autoplay; fullscreen; picture-in-picture"
+                , A.attribute "allowfullscreen" ""
+                ]
+                []
+            ]
         ]
     ]
-        |> modalWrapper modalMsg (Just "video-viewer-container") (Just [ ( "video-viewer", True ) ]) "Learning Videos"
+        |> modalWrapper modalMsg (Just "video-viewer-container") (Just [ ( "video-viewer", True ) ]) "Tutorial Videos"
 
 
 viewVideoItem : String -> Model -> Model -> Html Msg
