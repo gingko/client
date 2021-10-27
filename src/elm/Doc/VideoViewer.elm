@@ -49,12 +49,12 @@ view language modalMsg msgWrapper viewerState =
                     "https://player.vimeo.com/video/639232763?h=7a465b6f4f&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479"
 
                 EditingVideo ->
-                    "https://example.com"
+                    "https://player.vimeo.com/video/639667560?h=26f784fab2&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479"
     in
     [ div [ id "video-viewer-content" ]
         [ div [ id "video-viewer-list" ]
             [ viewVideoItem "Navigation Basics (45s)" viewerState NavigationVideo |> Html.map msgWrapper
-            , viewVideoItem "Writing Basics (60s)" viewerState EditingVideo |> Html.map msgWrapper
+            , viewVideoItem "Writing Basics (50s)" viewerState EditingVideo |> Html.map msgWrapper
             ]
         , div [ id "video-container" ]
             [ iframe

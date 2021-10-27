@@ -1251,7 +1251,7 @@ div#video-viewer-container {
 #video-viewer-content {
   display: grid;
   width: 100%;
-  height: 300px;
+  height: 350px;
   grid-template-columns: max-content 1fr;
 }
 #video-viewer-content iframe {
