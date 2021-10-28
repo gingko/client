@@ -1848,7 +1848,9 @@ span.trial-dark {
   min-height: 56px;
   cursor: pointer;
 }
-
+.card.active.has-children .view {
+  padding-right: 26px;
+}
 .card .view * {
   unicode-bidi: plaintext;
 }
@@ -2293,9 +2295,25 @@ pre {
 
 .card img {
   max-width: 100%;
-  pointer-events: none; /* Prevents dragging images instead of cards */
 }
-
+.drag-region {
+  visibility: hidden;
+  position: absolute;
+  width: 20px;
+  cursor: move;
+  height: 100%;
+  left: -6px;
+  padding: 4px 6px 4px 8px;
+}
+.handle {
+  width: 100%;
+  height: 100%;
+  background-size: 2px 4px;
+  background-image: linear-gradient(0deg, hsla(0, 0%, 44.7%, 0.25) 20%, transparent 50%);
+}
+.card:hover .drag-region {
+  visibility: visible;
+}
 .card input[type="checkbox"] {
   cursor: pointer;
 }

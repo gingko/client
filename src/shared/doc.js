@@ -494,8 +494,11 @@ const fromElm = (msg, elmData) => {
 
     DragStart: () => {
       draggingInternal = true;
+      let cardElement = elmData.target.parentElement;
+      let cardId = cardElement.id.replace(/^card-/, "");
+      elmData.dataTransfer.setDragImage(cardElement, 0 , 0);
       elmData.dataTransfer.setData("text", "");
-      toElm(elmData.target.id.replace(/^card-/, ""), "docMsgs", "DragStarted");
+      toElm(cardId, "docMsgs", "DragStarted");
     },
 
     CopyCurrentSubtree: () => {

@@ -3216,22 +3216,21 @@ viewGroup vstate xs =
 viewCardOther : String -> String -> Bool -> Bool -> Bool -> Bool -> ( DragDrop.Model String DropId, DragExternalModel ) -> Html Msg
 viewCardOther cardId content isEditing isParent isAncestor isLast dragModels =
     div
-        ([ id ("card-" ++ cardId)
-         , dir "auto"
-         , classList
+        [ id ("card-" ++ cardId)
+        , dir "auto"
+        , classList
             [ ( "card", True )
             , ( "ancestor", isAncestor )
             , ( "has-children", isParent )
             ]
-         ]
-            ++ (if not isEditing then
-                    DragDrop.draggable DragDropMsg cardId
+        ]
+        ((if not isEditing then
+            [ div ([ class "drag-region", title "Drag to move" ] ++ DragDrop.draggable DragDropMsg cardId) [ div [ class "handle" ] [] ] ]
 
-                else
-                    []
-               )
-        )
-        (dropRegions cardId isEditing isLast dragModels
+          else
+            []
+         )
+            ++ dropRegions cardId isEditing isLast dragModels
             ++ [ div
                     [ class "view"
                     , onClick (Activate cardId)
@@ -3287,19 +3286,18 @@ viewCardActive lang cardId content isParent isLast collabsOnCard collabsEditingC
             ]
     in
     div
-        ([ id ("card-" ++ cardId)
-         , dir "auto"
-         , classList
+        [ id ("card-" ++ cardId)
+        , dir "auto"
+        , classList
             [ ( "card", True )
             , ( "active", True )
             , ( "collab-active", not (List.isEmpty collabsOnCard) )
             , ( "collab-editing", not (List.isEmpty collabsEditingCard) )
             , ( "has-children", isParent )
             ]
-         ]
-            ++ DragDrop.draggable DragDropMsg cardId
-        )
-        (buttons
+        ]
+        ([ div ([ class "drag-region", title "Drag to move" ] ++ DragDrop.draggable DragDropMsg cardId) [ div [ class "handle" ] [] ] ]
+            ++ buttons
             ++ dropRegions cardId False isLast dragModels
             ++ [ div
                     [ class "view"
