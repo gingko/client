@@ -27,6 +27,8 @@ describe('Welcome Tree & Templates', () => {
 
     cy.contains('#title', 'welcome')
 
+    cy.get('.close-button').click()
+
     cy.get('#welcome-to-gingko-writer')
       .should('be.visible')
       .should('contain', 'Welcome to Gingko Writer')
