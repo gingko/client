@@ -872,7 +872,15 @@ update msg ({ workingTree } as model) =
             ( { model | modalState = Wordcount, headerMenu = NoHeaderMenu }, Cmd.none )
 
         ModalClosed ->
-            ( { model | modalState = NoModal }, Cmd.none )
+            let
+                newTourStep =
+                    if model.tourStep == Just -1 then
+                        Just 6
+
+                    else
+                        model.tourStep
+            in
+            ( { model | modalState = NoModal, tourStep = newTourStep }, Cmd.none )
 
         ImportBulkClicked ->
             ( { model | modalState = ImportModal (ImportModal.init model.session) }, Cmd.none )
@@ -1421,7 +1429,7 @@ update msg ({ workingTree } as model) =
 
                 -- === UI ===
                 StartTour ->
-                    ( { model | tourStep = Just 1 }, send <| PositionTourStep 1 "another-card" )
+                    ( { model | modalState = VideoViewer VideoViewer.init, tourStep = Just -1 }, Cmd.none )
 
                 FontSelectorOpen fonts ->
                     ( { model | fonts = Fonts.setSystem fonts model.fonts, fontSelectorOpen = True }
@@ -1624,10 +1632,10 @@ update msg ({ workingTree } as model) =
                         "alt+shift+down" ->
                             normalMode model (moveWithin vs.active 5)
 
-                        "alt+home" ->
+                        "alt+pageup" ->
                             normalMode model (moveWithin vs.active -999999)
 
-                        "alt+end" ->
+                        "alt+pagedown" ->
                             normalMode model (moveWithin vs.active 999999)
 
                         "home" ->

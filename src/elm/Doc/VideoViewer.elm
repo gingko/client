@@ -57,27 +57,23 @@ view language modalMsg msgWrapper viewerState =
                     "https://player.vimeo.com/video/639795192?h=7cc9f0a099&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479"
 
                 MovingCardsVideo ->
-                    "https://example.com"
+                    "https://player.vimeo.com/video/640443224?h=b894587d96&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479"
     in
     [ div [ id "video-viewer-content" ]
         [ div [ id "video-viewer-list" ]
             [ viewVideoItem "Navigation Basics (45s)" viewerState NavigationVideo |> Html.map msgWrapper
             , viewVideoItem "Writing Basics (52s)" viewerState EditingVideo |> Html.map msgWrapper
-            , viewVideoItem "Creating Cards (1m20s)" viewerState CreatingCardsVideo |> Html.map msgWrapper
-            , viewVideoItem "Moving Cards (?)" viewerState MovingCardsVideo |> Html.map msgWrapper
+            , viewVideoItem "Creating Cards (1m20)" viewerState CreatingCardsVideo |> Html.map msgWrapper
+            , viewVideoItem "Moving Cards (60s)" viewerState MovingCardsVideo |> Html.map msgWrapper
             ]
         , div [ id "video-container" ]
-            [ if viewerState /= MovingCardsVideo then
-                iframe
-                    [ src videoSrc
-                    , A.attribute "frameborder" "0"
-                    , A.attribute "allow" "autoplay; fullscreen; picture-in-picture"
-                    , A.attribute "allowfullscreen" ""
-                    ]
-                    []
-
-              else
-                text "(video coming soon)"
+            [ iframe
+                [ src videoSrc
+                , A.attribute "frameborder" "0"
+                , A.attribute "allow" "autoplay; fullscreen; picture-in-picture"
+                , A.attribute "allowfullscreen" ""
+                ]
+                []
             ]
         ]
     ]
