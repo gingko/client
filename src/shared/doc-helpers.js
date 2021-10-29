@@ -266,6 +266,8 @@ var shortcuts = [
   "alt+shift+down",
   "alt+home",
   "alt+end",
+  "alt+pageup",
+  "alt+pagedown",
   "alt+0",
   "alt+1",
   "alt+2",

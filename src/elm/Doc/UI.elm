@@ -1,4 +1,4 @@
-module Doc.UI exposing (countWords, fillet, viewBreadcrumbs, viewConflict, viewHeader, viewLoadingSpinner, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewTooltip, viewVideo, viewWordCount)
+module Doc.UI exposing (countWords, fillet, viewBreadcrumbs, viewConflict, viewHeader, viewLoadingSpinner, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewTooltip, viewWordCount)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -398,6 +398,7 @@ type alias SidebarMsgs msg =
     , clickedHelp : msg
     , toggledShortcuts : msg
     , clickedEmailSupport : msg
+    , clickedShowVideos : msg
     , languageMenuRequested : Maybe String -> msg
     , toggledAccount : Bool -> msg
     , logout : msg
@@ -486,17 +487,7 @@ viewSidebar session msgs currentDocument sortCriteria fileFilter docList account
             , div [ id "welcome-step-7", class "tour-step" ]
                 [ text "Click for New Document"
                 , div [ class "arrow" ] [ text "◀" ]
-                , div [ id "progress-step-7", class "tour-step-progress" ]
-                    [ div [ class "bg-line", class "on" ] []
-                    , div [ class "bg-line", class "off" ] []
-                    , div [ class "on" ] []
-                    , div [ class "on" ] []
-                    , div [ class "on" ] []
-                    , div [ class "on" ] []
-                    , div [ class "on" ] []
-                    , div [ class "on" ] []
-                    , div [ class "on" ] []
-                    ]
+                , div [ id "progress-step-7", class "tour-step-progress" ] []
                 ]
             ]
          , div
@@ -547,17 +538,7 @@ viewSidebar session msgs currentDocument sortCriteria fileFilter docList account
             , div [ id "welcome-step-6", class "tour-step" ]
                 [ text "Click to see Help Menu"
                 , div [ class "arrow" ] [ text "◀" ]
-                , div [ id "progress-step-6", class "tour-step-progress" ]
-                    [ div [ class "bg-line", class "on" ] []
-                    , div [ class "bg-line", class "off" ] []
-                    , div [ class "on" ] []
-                    , div [ class "on" ] []
-                    , div [ class "on" ] []
-                    , div [ class "on" ] []
-                    , div [ class "on" ] []
-                    , div [ class "on" ] []
-                    , div [] []
-                    ]
+                , div [ id "progress-step-6", class "tour-step-progress" ] []
                 ]
             ]
          , div
@@ -574,6 +555,7 @@ viewSidebar session msgs currentDocument sortCriteria fileFilter docList account
                 custId_
                 { toggledShortcuts = msgs.toggledShortcuts
                 , clickedEmailSupport = msgs.clickedEmailSupport
+                , clickedShowVideos = msgs.clickedShowVideos
                 , helpClosed = msgs.clickedHelp
                 , languageMenuRequested = msgs.languageMenuRequested
                 , languageChanged = msgs.languageChanged
@@ -592,6 +574,7 @@ viewSidebarMenu :
     ->
         { toggledShortcuts : msg
         , clickedEmailSupport : msg
+        , clickedShowVideos : msg
         , helpClosed : msg
         , languageMenuRequested : Maybe String -> msg
         , languageChanged : Language -> msg
@@ -607,6 +590,7 @@ viewSidebarMenu lang custId_ msgs accountEmail dropdownState =
         Help ->
             [ div [ id "help-menu", class "sidebar-menu" ]
                 [ a [ href "https://docs.gingkowriter.com", target "_blank", onClickStop msgs.noOp ] [ text "FAQ" ]
+                , div [ id "show-videos", onClickStop msgs.clickedShowVideos ] [ text "Tutorial Videos" ]
                 , div [ onClickStop msgs.toggledShortcuts ] [ text <| tr lang KeyboardHelp ]
                 , div [ id "email-support", onClickStop msgs.clickedEmailSupport ] [ text <| tr lang EmailSupport ]
                 ]
@@ -971,30 +955,6 @@ viewHistory lang msgs currentTime dataModel historyState =
             ]
             [ AntIcons.closeOutlined [] ]
         ]
-
-
-viewVideo : (Bool -> msg) -> { m | videoModalOpen : Bool } -> Html msg
-viewVideo modalMsg { videoModalOpen } =
-    if videoModalOpen then
-        div [ class "modal-container" ]
-            [ div [ class "modal" ]
-                [ div [ class "modal-header" ]
-                    [ h1 [] [ text "Learning Videos" ]
-                    , a [ onClick (modalMsg False) ] [ text "×" ]
-                    ]
-                , iframe
-                    [ width 650
-                    , height 366
-                    , src "https://www.youtube.com/embed/ZOGgwKAU3vg?rel=0&amp;showinfo=0"
-                    , attribute "frameborder" "0"
-                    , attribute "allowfullscreen" ""
-                    ]
-                    []
-                ]
-            ]
-
-    else
-        div [] []
 
 
 viewShortcuts :

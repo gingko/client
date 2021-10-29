@@ -16,6 +16,7 @@ import Doc.Switcher
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Doc.UI as UI exposing (countWords, viewConflict, viewMobileButtons, viewSearchField)
+import Doc.VideoViewer as VideoViewer
 import File exposing (File)
 import File.Download as Download
 import File.Select as Select
@@ -103,6 +104,7 @@ type ModalState
     | FileSwitcher Doc.Switcher.Model
     | SidebarContextMenu String ( Float, Float )
     | TemplateSelector
+    | VideoViewer VideoViewer.Model
     | Wordcount
     | ImportModal ImportModal.Model
     | ContactForm ContactForm.Model
@@ -242,6 +244,8 @@ type Msg
       -- Sidebar & Modals
     | SidebarStateChanged SidebarState
     | TemplateSelectorOpened
+    | VideoViewerOpened
+    | VideoViewerMsg VideoViewer.Msg
     | SwitcherOpened
     | SwitcherClosed
     | WordcountModalOpened
@@ -264,6 +268,7 @@ type Msg
     | ToggledUpgradeModal Bool
     | UpgradeModalMsg Upgrade.Msg
       -- HELP
+    | ClickedShowVideos
     | ClickedEmailSupport
     | TourStep (Maybe Int)
     | ContactFormMsg ContactForm.Model ContactForm.Msg
@@ -773,6 +778,9 @@ update msg ({ workingTree } as model) =
                     in
                     ( { model | session = newSession }, maybeFlash )
 
+        ClickedShowVideos ->
+            ( { model | modalState = VideoViewer VideoViewer.init, sidebarMenuState = NoSidebarMenu }, Cmd.none )
+
         ClickedEmailSupport ->
             let
                 fromEmail =
@@ -848,6 +856,12 @@ update msg ({ workingTree } as model) =
             in
             ( { model | modalState = TemplateSelector, tourStep = newTourStep }, Cmd.none )
 
+        VideoViewerOpened ->
+            ( { model | modalState = VideoViewer VideoViewer.init }, Cmd.none )
+
+        VideoViewerMsg videoViewerMsg ->
+            ( { model | modalState = VideoViewer (VideoViewer.update videoViewerMsg) }, Cmd.none )
+
         SwitcherOpened ->
             openSwitcher model
 
@@ -858,7 +872,15 @@ update msg ({ workingTree } as model) =
             ( { model | modalState = Wordcount, headerMenu = NoHeaderMenu }, Cmd.none )
 
         ModalClosed ->
-            ( { model | modalState = NoModal }, Cmd.none )
+            let
+                newTourStep =
+                    if model.tourStep == Just -1 then
+                        Just 6
+
+                    else
+                        model.tourStep
+            in
+            ( { model | modalState = NoModal, tourStep = newTourStep }, Cmd.none )
 
         ImportBulkClicked ->
             ( { model | modalState = ImportModal (ImportModal.init model.session) }, Cmd.none )
@@ -1407,7 +1429,7 @@ update msg ({ workingTree } as model) =
 
                 -- === UI ===
                 StartTour ->
-                    ( { model | tourStep = Just 1 }, send <| PositionTourStep 1 "another-card" )
+                    ( { model | modalState = VideoViewer VideoViewer.init, tourStep = Just -1 }, Cmd.none )
 
                 FontSelectorOpen fonts ->
                     ( { model | fonts = Fonts.setSystem fonts model.fonts, fontSelectorOpen = True }
@@ -1610,10 +1632,10 @@ update msg ({ workingTree } as model) =
                         "alt+shift+down" ->
                             normalMode model (moveWithin vs.active 5)
 
-                        "alt+home" ->
+                        "alt+pageup" ->
                             normalMode model (moveWithin vs.active -999999)
 
-                        "alt+end" ->
+                        "alt+pagedown" ->
                             normalMode model (moveWithin vs.active 999999)
 
                         "home" ->
@@ -2906,6 +2928,7 @@ viewLoaded model =
                         , clickedHelp = ToggledHelpMenu (not (model.sidebarMenuState == Help))
                         , toggledShortcuts = ShortcutTrayToggle
                         , clickedEmailSupport = ClickedEmailSupport
+                        , clickedShowVideos = ClickedShowVideos
                         , languageMenuRequested = LanguageMenuRequested
                         , logout = LogoutRequested
                         , toggledAccount = ToggledAccountMenu
@@ -3201,22 +3224,21 @@ viewGroup vstate xs =
 viewCardOther : String -> String -> Bool -> Bool -> Bool -> Bool -> ( DragDrop.Model String DropId, DragExternalModel ) -> Html Msg
 viewCardOther cardId content isEditing isParent isAncestor isLast dragModels =
     div
-        ([ id ("card-" ++ cardId)
-         , dir "auto"
-         , classList
+        [ id ("card-" ++ cardId)
+        , dir "auto"
+        , classList
             [ ( "card", True )
             , ( "ancestor", isAncestor )
             , ( "has-children", isParent )
             ]
-         ]
-            ++ (if not isEditing then
-                    DragDrop.draggable DragDropMsg cardId
+        ]
+        ((if not isEditing then
+            [ div ([ class "drag-region", title "Drag to move" ] ++ DragDrop.draggable DragDropMsg cardId) [ div [ class "handle" ] [] ] ]
 
-                else
-                    []
-               )
-        )
-        (dropRegions cardId isEditing isLast dragModels
+          else
+            []
+         )
+            ++ dropRegions cardId isEditing isLast dragModels
             ++ [ div
                     [ class "view"
                     , onClick (Activate cardId)
@@ -3272,19 +3294,18 @@ viewCardActive lang cardId content isParent isLast collabsOnCard collabsEditingC
             ]
     in
     div
-        ([ id ("card-" ++ cardId)
-         , dir "auto"
-         , classList
+        [ id ("card-" ++ cardId)
+        , dir "auto"
+        , classList
             [ ( "card", True )
             , ( "active", True )
             , ( "collab-active", not (List.isEmpty collabsOnCard) )
             , ( "collab-editing", not (List.isEmpty collabsEditingCard) )
             , ( "has-children", isParent )
             ]
-         ]
-            ++ DragDrop.draggable DragDropMsg cardId
-        )
-        (buttons
+        ]
+        ([ div ([ class "drag-region", title "Drag to move" ] ++ DragDrop.draggable DragDropMsg cardId) [ div [ class "handle" ] [] ] ]
+            ++ buttons
             ++ dropRegions cardId False isLast dragModels
             ++ [ div
                     [ class "view"
@@ -3551,6 +3572,9 @@ viewModal language model =
                 , importOpmlRequested = ImportOpmlRequested
                 , importJSONRequested = ImportJSONRequested
                 }
+
+        VideoViewer videoViewerState ->
+            VideoViewer.view language ModalClosed VideoViewerMsg videoViewerState
 
         Wordcount ->
             UI.viewWordCount model { modalClosed = ModalClosed }
