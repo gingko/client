@@ -1,19 +1,45 @@
 [
   {
-    "content": "# Welcome to Gingko Writer",
+    "content": "# Welcome to this example Gingko tree.",
     "children": [
       {
-        "content": "## A card\n\nWith some *content*",
-        "children": [ ]
+        "content": "# What can I use Gingko for?\n- Writing:\n  - your book or novel\n  - your screenplay\n  -   your thesis or research paper\n  - software specs\n- Organizing:\n  - your projects\n  - personal todos\n  - your development workflow\n  - your ideas\n  - your study notes",
+        "children": []
       },
       {
-        "content": "## Another card\n\nClicking a card selects it.",
-        "children": [ ]
+        "content": "# How do I use Gingko?\n\nThe basics:\n- Enter or double-click to edit a card.\n- Ctrl+Enter to save changes.\n- Arrows to move around\n- Ctrl+Backspace to delete\n- Drag & Drop to rearrange",
+        "children": [
+          {
+            "content": "## Step 1: Enter or double-click to Edit.\nEach card should contain a single thought or topic. Usually no more than a paragraph or two.\n\n> Try editing this card!\n\n(Ctrl+Enter again to save.)",
+            "children": []
+          },
+          {
+            "content": "## Step 2: Arrows to Move\nMove around with arrow keys, or by clicking the card you want to focus on. \n\n###### *Protip: you can also use **hjkl**.*",
+            "children": []
+          },
+          {
+            "content": "## Step 3: Ctrl + Backspace to Delete\nTry deleting the card to the right.",
+            "children": [
+              {
+                "content": "Delete Me!\n<small><em>(Navigate here, and press Ctrl-Backspace)</em></small>",
+                "children": []
+              }
+            ]
+          },
+          {
+            "content": "## Step 4: Drag & Drop to rearrange\nClick and drag the green bar at the left of the card to move it to the bottom.",
+            "children": []
+          }
+        ]
       },
       {
-        "content": "## A third card\n\nAnd more content here.",
-        "children": [ ]
+        "content": "# Need more help?\nClick the ? icon at the bottom left:\n![](/help-menu.png)\n\nYou can access video tutorials, and get more help at the FAQ.",
+        "children": []
       }
     ]
+  },
+  {
+    "content": "To start a New Tree, click on the button at top left:\n![](/new-doc.png)\n\nYou can always find this info, and more, on the help menu at bottom left:\n![](/help-menu.png)",
+    "children": []
   }
 ]

@@ -437,7 +437,7 @@ const fromElm = (msg, elmData) => {
 
       toElm(elmData.metadata.docId, "importComplete")
 
-      if (elmData.workingTree.children[0].content.includes('Welcome to Gingko Writer')) {
+      if (elmData.workingTree.children[0].content.includes('Welcome to this example Gingko tree')) {
         requestAnimationFrame(()=>{
           toElm(null, "docMsgs", "StartTour");
         })

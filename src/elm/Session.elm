@@ -410,7 +410,7 @@ responseDecoder session =
         |> required "email" Dec.string
         |> optionalAt [ "settings", "language" ] (Dec.map langFromString Dec.string) En
         |> optionalAt [ "settings", "paymentStatus" ] decodePaymentStatus Unknown
-        |> optionalAt [ "settings", "shortcutTrayOpen" ] Dec.bool False
+        |> optionalAt [ "settings", "shortcutTrayOpen" ] Dec.bool True
         |> optionalAt [ "settings", "sortBy" ] sortByDecoder ModifiedAt
 
 
