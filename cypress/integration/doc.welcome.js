@@ -82,5 +82,18 @@ describe('Welcome Tree & Checklist', () => {
 
     cy.get('#welcome-checklist li.create-with-keyboard')
       .should('have.class', 'done')
+
+    cy.shortcut('{esc}')
+    cy.shortcut('{leftArrow}')
+    cy.shortcut('{leftArrow}')
+    cy.wait(300)
+
+    // Drag card checklist item
+    // (since drag-drop in Cypress is tricky, we cheat by using keyboard
+    // and marking all card moves as success )
+    cy.shortcut('{alt}{downArrow}')
+
+    cy.get('#welcome-checklist li.drag-card')
+      .should('have.class', 'done')
   })
 })

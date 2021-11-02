@@ -38,6 +38,7 @@ type Msg
     | EditedWithKeyboard
     | SaveWithKeyboard
     | CreateWithKeyboard
+    | DraggedCard
 
 
 update : Msg -> Model -> Model
@@ -57,6 +58,9 @@ update msg model =
                 CreateWithKeyboard ->
                     Just { state | createWithKeyboard = True }
 
+                DraggedCard ->
+                    Just { state | draggedCard = True }
+
         Nothing ->
             Nothing
 
@@ -71,13 +75,34 @@ view model =
         Just state ->
             [ div [ id "welcome-checklist" ]
                 [ ul []
-                    [ li [ classList [ ( "nav-with-arrows", True ), ( "done", state.navWithArrows ) ] ] [ text "Move around (", span [ class "shortcut-key" ] [ text "-> etc" ], text ")" ]
-                    , li [ classList [ ( "edit-with-keyboard", True ), ( "done", state.editWithKeyboard ) ] ] [ text "Edit a card (", span [ class "shortcut-key" ] [ text "Enter" ], text ")" ]
-                    , li [ classList [ ( "save-with-keyboard", True ), ( "done", state.saveWithKeyboard ) ] ] [ text "Save card edits (ctrl+enter)" ]
-                    , li [ classList [ ( "create-with-keyboard", True ), ( "done", state.createWithKeyboard ) ] ] [ text "Create" ]
+                    [ viewChecklistItem
+                        "nav-with-arrows"
+                        state.navWithArrows
+                        [ text "Move around (", span [ class "shortcut-key" ] [ text "-> etc" ], text ")" ]
+                    , viewChecklistItem
+                        "edit-with-keyboard"
+                        state.editWithKeyboard
+                        [ text "Edit a card (", span [ class "shortcut-key" ] [ text "Enter" ], text ")" ]
+                    , viewChecklistItem
+                        "save-with-keyboard"
+                        state.saveWithKeyboard
+                        [ text "Save card edits (ctrl+enter)" ]
+                    , viewChecklistItem
+                        "create-with-keyboard"
+                        state.createWithKeyboard
+                        [ text "Create" ]
+                    , viewChecklistItem
+                        "drag-card"
+                        state.draggedCard
+                        [ text "Drag" ]
                     ]
                 ]
             ]
 
         Nothing ->
             []
+
+
+viewChecklistItem : String -> Bool -> List (Html msg) -> Html msg
+viewChecklistItem className isDone children =
+    li [ classList [ ( className, True ), ( "done", isDone ) ] ] children

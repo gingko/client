@@ -510,6 +510,7 @@ update msg ({ workingTree } as model) =
                             in
                             ( { modelDragUpdated | viewState = { vs | draggedTree = Nothing }, dirty = True }, Cmd.batch [ send <| SetDirty True, send <| DragDone ] )
                                 |> moveOperation
+                                |> checklistEvent DraggedCard
 
                         Nothing ->
                             ( modelDragUpdated, Cmd.none )
@@ -1461,10 +1462,11 @@ update msg ({ workingTree } as model) =
 
                         "mod+enter" ->
                             saveAndStopEditing model
-                                |> (\( m, c ) -> ( { m | welcomeChecklist = WelcomeChecklist.update SaveWithKeyboard m.welcomeChecklist }, c ))
+                                |> checklistEvent SaveWithKeyboard
 
                         "mod+s" ->
                             saveCardIfEditing ( model, Cmd.none )
+                                |> checklistEvent SaveWithKeyboard
 
                         "enter" ->
                             case model.modalState of
@@ -1478,7 +1480,7 @@ update msg ({ workingTree } as model) =
 
                                 _ ->
                                     normalMode model (openCard vs.active (getContent vs.active model.workingTree.tree))
-                                        |> (\( m, c ) -> ( { m | welcomeChecklist = WelcomeChecklist.update EditedWithKeyboard m.welcomeChecklist }, c ))
+                                        |> checklistEvent EditedWithKeyboard
 
                         "mod+backspace" ->
                             normalMode model (deleteCard vs.active)
@@ -1498,6 +1500,7 @@ update msg ({ workingTree } as model) =
                         "mod+j" ->
                             if model.viewState.viewMode == Normal then
                                 insertBelow vs.active "" ( model, Cmd.none )
+                                    |> checklistEvent CreateWithKeyboard
 
                             else
                                 let
@@ -1513,10 +1516,12 @@ update msg ({ workingTree } as model) =
 
                         "mod+down" ->
                             normalMode model (insertBelow vs.active "")
+                                |> checklistEvent CreateWithKeyboard
 
                         "mod+k" ->
                             if model.viewState.viewMode == Normal then
                                 insertAbove vs.active "" ( model, Cmd.none )
+                                    |> checklistEvent CreateWithKeyboard
 
                             else
                                 let
@@ -1531,6 +1536,7 @@ update msg ({ workingTree } as model) =
 
                         "mod+up" ->
                             normalMode model (insertAbove vs.active "")
+                                |> checklistEvent CreateWithKeyboard
 
                         "mod+l" ->
                             let
@@ -1543,10 +1549,11 @@ update msg ({ workingTree } as model) =
                                 |> saveCardIfEditing
                                 |> insertChild vs.active afterText
                                 |> setCursorPosition 0
+                                |> checklistEvent CreateWithKeyboard
 
                         "mod+right" ->
                             normalMode model (insertChild vs.active "")
-                                |> (\( m, c ) -> ( { m | welcomeChecklist = WelcomeChecklist.update CreateWithKeyboard m.welcomeChecklist }, c ))
+                                |> checklistEvent CreateWithKeyboard
 
                         "mod+shift+j" ->
                             normalMode model (mergeDown vs.active)
@@ -1565,6 +1572,7 @@ update msg ({ workingTree } as model) =
 
                         "left" ->
                             normalMode model (goLeft vs.active)
+                                |> checklistEvent NavigatedWithArrows
 
                         "j" ->
                             normalMode model (goDown vs.active)
@@ -1576,6 +1584,7 @@ update msg ({ workingTree } as model) =
                                         Normal ->
                                             ( model, Cmd.none )
                                                 |> goDown vs.active
+                                                |> checklistEvent NavigatedWithArrows
 
                                         FullscreenEditing ->
                                             {- check if at end
@@ -1599,6 +1608,7 @@ update msg ({ workingTree } as model) =
                             case model.modalState of
                                 NoModal ->
                                     normalMode model (goUp vs.active)
+                                        |> checklistEvent NavigatedWithArrows
 
                                 FileSwitcher switcherModel ->
                                     ( { model | modalState = FileSwitcher (Doc.Switcher.up switcherModel) }, Cmd.none )
@@ -1611,31 +1621,39 @@ update msg ({ workingTree } as model) =
 
                         "right" ->
                             normalMode model (goRight vs.active)
-                                |> (\( m, c ) -> ( { m | welcomeChecklist = WelcomeChecklist.update NavigatedWithArrows m.welcomeChecklist }, c ))
+                                |> checklistEvent NavigatedWithArrows
 
                         "alt+up" ->
                             normalMode model (moveWithin vs.active -1)
+                                |> checklistEvent DraggedCard
 
                         "alt+k" ->
                             normalMode model (moveWithin vs.active -1)
+                                |> checklistEvent DraggedCard
 
                         "alt+down" ->
                             normalMode model (moveWithin vs.active 1)
+                                |> checklistEvent DraggedCard
 
                         "alt+j" ->
                             normalMode model (moveWithin vs.active 1)
+                                |> checklistEvent DraggedCard
 
                         "alt+left" ->
                             normalMode model (moveLeft vs.active)
+                                |> checklistEvent DraggedCard
 
                         "alt+h" ->
                             normalMode model (moveLeft vs.active)
+                                |> checklistEvent DraggedCard
 
                         "alt+right" ->
                             normalMode model (moveRight vs.active)
+                                |> checklistEvent DraggedCard
 
                         "alt+l" ->
                             normalMode model (moveRight vs.active)
+                                |> checklistEvent DraggedCard
 
                         "alt+shift+up" ->
                             normalMode model (moveWithin vs.active -5)
@@ -2663,6 +2681,15 @@ pasteInto id copiedTree ( model, prevCmd ) =
     , prevCmd
     )
         |> paste treeToPaste id 999999
+
+
+
+-- === Welcome Checklist  ===
+
+
+checklistEvent : WelcomeChecklist.Msg -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+checklistEvent msg ( model, prevCmd ) =
+    ( { model | welcomeChecklist = WelcomeChecklist.update msg model.welcomeChecklist }, prevCmd )
 
 
 
