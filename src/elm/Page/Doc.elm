@@ -17,6 +17,7 @@ import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Doc.UI as UI exposing (countWords, viewConflict, viewMobileButtons, viewSearchField)
 import Doc.VideoViewer as VideoViewer
+import Doc.WelcomeChecklist as WelcomeChecklist exposing (Msg(..))
 import File exposing (File)
 import File.Download as Download
 import File.Select as Select
@@ -87,6 +88,7 @@ type alias Model =
     , headerMenu : HeaderMenuState
     , exportSettings : ( ExportSelection, ExportFormat )
     , wordcountTrayOpen : Bool
+    , welcomeChecklist : WelcomeChecklist.Model
     , tourStep : Maybe Int
     , tooltip : Maybe ( Element, TooltipPosition, String )
     , fontSelectorOpen : Bool
@@ -159,6 +161,7 @@ defaultModel isNew session docId =
     , headerMenu = NoHeaderMenu
     , exportSettings = ( ExportEverything, DOCX )
     , wordcountTrayOpen = False
+    , welcomeChecklist = WelcomeChecklist.init
     , tourStep = Nothing
     , tooltip = Nothing
     , fontSelectorOpen = False
@@ -211,6 +214,7 @@ type Msg
       -- === Card Editing  ===
     | OpenCard String String
     | UpdateActiveField String String
+    | SaveCard
     | FullscreenMsg Fullscreen.Msg
     | DeleteCard String
       -- === Card Insertion  ===
@@ -408,6 +412,9 @@ update msg ({ workingTree } as model) =
                 , send <| SetTextareaClone id str
                 ]
             )
+
+        SaveCard ->
+            saveAndStopEditing model
 
         FullscreenMsg fullscreenMsg ->
             case fullscreenMsg of
@@ -1454,6 +1461,7 @@ update msg ({ workingTree } as model) =
 
                         "mod+enter" ->
                             saveAndStopEditing model
+                                |> (\( m, c ) -> ( { m | welcomeChecklist = WelcomeChecklist.update SaveWithKeyboard m.welcomeChecklist }, c ))
 
                         "mod+s" ->
                             saveCardIfEditing ( model, Cmd.none )
@@ -1470,6 +1478,7 @@ update msg ({ workingTree } as model) =
 
                                 _ ->
                                     normalMode model (openCard vs.active (getContent vs.active model.workingTree.tree))
+                                        |> (\( m, c ) -> ( { m | welcomeChecklist = WelcomeChecklist.update EditedWithKeyboard m.welcomeChecklist }, c ))
 
                         "mod+backspace" ->
                             normalMode model (deleteCard vs.active)
@@ -1537,6 +1546,7 @@ update msg ({ workingTree } as model) =
 
                         "mod+right" ->
                             normalMode model (insertChild vs.active "")
+                                |> (\( m, c ) -> ( { m | welcomeChecklist = WelcomeChecklist.update CreateWithKeyboard m.welcomeChecklist }, c ))
 
                         "mod+shift+j" ->
                             normalMode model (mergeDown vs.active)
@@ -1601,6 +1611,7 @@ update msg ({ workingTree } as model) =
 
                         "right" ->
                             normalMode model (goRight vs.active)
+                                |> (\( m, c ) -> ( { m | welcomeChecklist = WelcomeChecklist.update NavigatedWithArrows m.welcomeChecklist }, c ))
 
                         "alt+up" ->
                             normalMode model (moveWithin vs.active -1)
@@ -3007,6 +3018,7 @@ viewLoaded model =
                             model.workingTree.tree.children
                             model.textCursorInfo
                             model.viewState
+                        ++ WelcomeChecklist.view model.welcomeChecklist
                         ++ [ viewSearchField SearchFieldUpdated model
                            , viewMobileButtons
                                 { edit = mobileBtnMsg "mod+enter"
@@ -3355,7 +3367,7 @@ viewCardEditing lang cardId content isParent isMac =
             [ span
                 [ class "card-btn save"
                 , title <| tr lang SaveChangesTitle
-                , onClick (Incoming (Keyboard "mod+enter"))
+                , onClick SaveCard
                 ]
                 []
             ]

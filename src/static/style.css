@@ -2004,6 +2004,26 @@ span.collaborators {
   right: -9px;
 }
 
+/* === WELCOME CHECKLIST === */
+#welcome-checklist {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  z-index: 1;
+  background: white;
+  padding: 10px;
+  box-shadow: var(--small-shadow);
+}
+#welcome-checklist ul {
+  list-style: none;
+}
+#welcome-checklist ul li:before {
+  content: '[]';
+}
+#welcome-checklist ul li.done:before {
+  content: '✓';
+}
+
 /* === TOUR === */
 div.tour-step {
   line-height: 1;

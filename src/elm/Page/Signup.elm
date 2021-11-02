@@ -116,6 +116,7 @@ update msg model =
             ( { model | errors = [ errorMsg ], password = "" }, Cmd.none )
 
         GotUser user ->
+            -- If I want to route to different welcome trees, based on e.g. isMac or language, here is where I can.
             ( model, Route.replaceUrl (Session.navKey user) (Route.Import Template.WelcomeTree) )
 
 
