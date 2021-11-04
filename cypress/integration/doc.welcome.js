@@ -122,5 +122,29 @@ describe('Welcome Tree & Checklist', () => {
         .should('not.exist')
     })
 
+    // Should not show welcomeChecklist on login
+    cy.intercept('/logout').as('logoutRequest')
+    cy.get('#account-icon').click()
+    cy.get('#logout-button').click()
+    cy.wait('@logoutRequest')
+
+    cy.location('pathname').should('eq', '/login')
+
+    cy.get('#email-input')
+      .type(testEmail)
+
+    cy.get('#password-input')
+      .type('testing')
+
+    cy.get('button.cta')
+      .click()
+
+    cy.url().should('not.contain', '/login')
+    cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
+
+    cy.contains('#title', 'welcome')
+
+    cy.get('#welcome-checklist-container')
+      .should('not.exist')
   })
 })

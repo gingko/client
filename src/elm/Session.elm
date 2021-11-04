@@ -420,10 +420,10 @@ decodeGuest key =
 responseDecoder : Session -> Dec.Decoder Session
 responseDecoder session =
     let
-        builder email lang payStat trayOpen sortCriteria =
+        builder email lang payStat checklist trayOpen sortCriteria =
             case session of
                 Guest sessionData data ->
-                    LoggedIn sessionData (UserData email lang Upgrade.init payStat True trayOpen sortCriteria DocList.init)
+                    LoggedIn sessionData (UserData email lang Upgrade.init payStat checklist trayOpen sortCriteria DocList.init)
 
                 LoggedIn _ _ ->
                     session
@@ -432,6 +432,7 @@ responseDecoder session =
         |> required "email" Dec.string
         |> optionalAt [ "settings", "language" ] (Dec.map langFromString Dec.string) En
         |> optionalAt [ "settings", "paymentStatus" ] decodePaymentStatus Unknown
+        |> optionalAt [ "settings", "welcomeChecklist" ] Dec.bool True
         |> optionalAt [ "settings", "shortcutTrayOpen" ] Dec.bool False
         |> optionalAt [ "settings", "sortBy" ] sortByDecoder ModifiedAt
 
