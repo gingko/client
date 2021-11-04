@@ -2008,7 +2008,7 @@ span.collaborators {
 #welcome-checklist {
   position: fixed;
   bottom: 0;
-  right: 0;
+  left: 48px;
   z-index: 1;
   background: white;
   padding: 10px;

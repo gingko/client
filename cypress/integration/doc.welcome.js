@@ -27,8 +27,6 @@ describe('Welcome Tree & Checklist', () => {
 
     cy.contains('#title', 'welcome')
 
-    cy.get('.close-button').click()
-
     cy.get('#welcome-to-this-example-gingko-tree-')
       .should('be.visible')
       .should('contain', 'Welcome to this example Gingko tree')
