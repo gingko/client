@@ -953,7 +953,7 @@ tr lang trans =
                     }
 
                 EmailSupport ->
-                    { en = "\u{1F92F} Help!"
+                    { en = "Contact Support"
                     , zh_hans = "%zh_hans:EmailSupport"
                     , zh_hant = "%zh_hant:EmailSupport"
                     , es = "%es:EmailSupport"

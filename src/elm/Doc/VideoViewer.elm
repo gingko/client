@@ -77,7 +77,7 @@ view language modalMsg msgWrapper viewerState =
             ]
         ]
     ]
-        |> modalWrapper modalMsg (Just "video-viewer-container") (Just [ ( "video-viewer", True ) ]) "Tutorial Videos"
+        |> modalWrapper modalMsg (Just "video-viewer-container") (Just [ ( "video-viewer", True ) ]) "Video Tutorials"
 
 
 viewVideoItem : String -> Model -> Model -> Html Msg

@@ -589,10 +589,10 @@ viewSidebarMenu lang custId_ msgs accountEmail dropdownState =
     case dropdownState of
         Help ->
             [ div [ id "help-menu", class "sidebar-menu" ]
-                [ a [ href "https://docs.gingkowriter.com", target "_blank", onClickStop msgs.noOp ] [ text "FAQ" ]
-                , div [ id "show-videos", onClickStop msgs.clickedShowVideos ] [ text "Tutorial Videos" ]
+                [ div [ id "email-support", onClickStop msgs.clickedEmailSupport ] [ text <| tr lang EmailSupport ]
+                , a [ href "https://docs.gingkowriter.com", target "_blank", onClickStop msgs.noOp ] [ text "FAQ" ]
+                , div [ id "show-videos", onClickStop msgs.clickedShowVideos ] [ text "Video Tutorials" ]
                 , div [ onClickStop msgs.toggledShortcuts ] [ text <| tr lang KeyboardHelp ]
-                , div [ id "email-support", onClickStop msgs.clickedEmailSupport ] [ text <| tr lang EmailSupport ]
                 ]
             , div [ id "help-menu-exit-top", onMouseEnter msgs.helpClosed ] []
             , div [ id "help-menu-exit-right", onMouseEnter msgs.helpClosed ] []
