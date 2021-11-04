@@ -23,7 +23,7 @@ describe('Welcome Tree & Checklist', () => {
   })
 
   it('Has working Welcome tree and checklist', () => {
-    cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
+    cy.url().as('welcomeTreeUrl').should('match', /\/[a-zA-Z0-9]{5}$/)
 
     cy.contains('#title', 'welcome')
 
@@ -32,7 +32,7 @@ describe('Welcome Tree & Checklist', () => {
       .should('contain', 'Welcome to this example Gingko tree')
 
     // Welcome checklist is visible and none are done
-    cy.get('#welcome-checklist')
+    cy.get('#welcome-checklist-container')
       .should('be.visible')
       .find('ul li')
       .should('not.have.class', 'done')
@@ -40,7 +40,7 @@ describe('Welcome Tree & Checklist', () => {
     // Shortcut for moving triggers "done" on nav-with-arrows
     cy.shortcut('{rightArrow}')
 
-    cy.get('#welcome-checklist li.nav-with-arrows')
+    cy.get('#welcome-checklist-container li.nav-with-arrows')
       .should('have.class', 'done')
 
     // Using mouse should not count as success
@@ -48,15 +48,15 @@ describe('Welcome Tree & Checklist', () => {
     cy.writeInCard('k')
     cy.get('.card-btn').click()
 
-    cy.get('#welcome-checklist li.edit-with-keyboard')
+    cy.get('#welcome-checklist-container li.edit-with-keyboard')
       .should('not.have.class', 'done')
-    cy.get('#welcome-checklist li.save-with-keyboard')
+    cy.get('#welcome-checklist-container li.save-with-keyboard')
       .should('not.have.class', 'done')
 
     // Edit with shortcut checklist item
     cy.shortcut('{enter}')
 
-    cy.get('#welcome-checklist li.edit-with-keyboard')
+    cy.get('#welcome-checklist-container li.edit-with-keyboard')
       .should('have.class', 'done')
 
     cy.writeInCard('s')
@@ -64,13 +64,13 @@ describe('Welcome Tree & Checklist', () => {
     // Save with shortcut checklist item
     cy.shortcut('{ctrl}{enter}')
 
-    cy.get('#welcome-checklist li.save-with-keyboard')
+    cy.get('#welcome-checklist-container li.save-with-keyboard')
       .should('have.class', 'done')
 
     // Create via + button click shouldn't count as success
     cy.get('.ins-right').click()
 
-    cy.get('#welcome-checklist li.create-with-keyboard')
+    cy.get('#welcome-checklist-container li.create-with-keyboard')
       .should('not.have.class', 'done')
 
     cy.shortcut('{esc}')
@@ -78,10 +78,10 @@ describe('Welcome Tree & Checklist', () => {
     // Create below with shortcut checklist item
     cy.shortcut('{ctrl}{downArrow}')
 
-    cy.get('#welcome-checklist li.create-with-keyboard')
+    cy.get('#welcome-checklist-container li.create-with-keyboard')
       .should('have.class', 'done')
 
-    cy.get('#welcome-checklist li.create-child-with-keyboard')
+    cy.get('#welcome-checklist-container li.create-child-with-keyboard')
       .should('not.have.class', 'done')
 
     cy.shortcut('{esc}')
@@ -89,7 +89,7 @@ describe('Welcome Tree & Checklist', () => {
     // Create below with shortcut checklist item
     cy.shortcut('{ctrl}{rightArrow}')
 
-    cy.get('#welcome-checklist li.create-child-with-keyboard')
+    cy.get('#welcome-checklist-container li.create-child-with-keyboard')
       .should('have.class', 'done')
 
     cy.shortcut('{esc}')
@@ -102,7 +102,20 @@ describe('Welcome Tree & Checklist', () => {
     // and marking all card moves as success )
     cy.shortcut('{alt}{downArrow}')
 
-    cy.get('#welcome-checklist li.drag-card')
+    cy.get('#welcome-checklist-container li.drag-card')
       .should('have.class', 'done')
+
+    // Shouldn't show welcome checklist on reload
+    cy.get('@welcomeTreeUrl').then((url) => {
+      cy.visit(url)
+
+      cy.url().should('eq', url)
+
+      cy.contains('#title', 'welcome')
+
+      cy.get('#welcome-checklist-container')
+        .should('not.exist')
+    })
+
   })
 })
