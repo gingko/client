@@ -14,6 +14,7 @@ type alias Model =
         , editWithKeyboard : Bool
         , saveWithKeyboard : Bool
         , createWithKeyboard : Bool
+        , createChildWithKeyboard : Bool
         , draggedCard : Bool
         , isMac : Bool
         }
@@ -26,6 +27,7 @@ init isMac =
         , editWithKeyboard = False
         , saveWithKeyboard = False
         , createWithKeyboard = False
+        , createChildWithKeyboard = False
         , draggedCard = False
         , isMac = isMac
         }
@@ -40,6 +42,7 @@ type Msg
     | EditedWithKeyboard
     | SaveWithKeyboard
     | CreateWithKeyboard
+    | CreateChildWithKeyboard
     | DraggedCard
 
 
@@ -59,6 +62,9 @@ update msg model =
 
                 CreateWithKeyboard ->
                     Just { state | createWithKeyboard = True }
+
+                CreateChildWithKeyboard ->
+                    Just { state | createChildWithKeyboard = True }
 
                 DraggedCard ->
                     Just { state | draggedCard = True }
@@ -103,12 +109,12 @@ view model =
                         state.saveWithKeyboard
                         ([ text "Type something, then ", strong [] [ text "Save Changes" ], text " (" ] ++ shortcutSpan [ ctrlOrCmd, "Enter" ] ++ [ text ")" ])
                     , viewChecklistItem
-                        "create-below-with-keyboard"
+                        "create-with-keyboard"
                         state.createWithKeyboard
                         ([ text "Create a ", strong [] [ text "New Card Below" ], text " (" ] ++ shortcutSpan [ ctrlOrCmd, "↓" ] ++ [ text ")" ])
                     , viewChecklistItem
-                        "create-with-keyboard"
-                        state.createWithKeyboard
+                        "create-child-with-keyboard"
+                        state.createChildWithKeyboard
                         ([ text "Create a ", strong [] [ text "New Child Card" ], text " (" ] ++ shortcutSpan [ ctrlOrCmd, "→" ] ++ [ text ")" ])
                     , viewChecklistItem
                         "drag-card"

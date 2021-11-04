@@ -44,7 +44,7 @@ describe('Welcome Tree & Checklist', () => {
       .should('have.class', 'done')
 
     // Using mouse should not count as success
-    cy.get('.card-btn.edit') .click()
+    cy.get('.card-btn.edit').click()
     cy.writeInCard('k')
     cy.get('.card-btn').click()
 
@@ -75,10 +75,21 @@ describe('Welcome Tree & Checklist', () => {
 
     cy.shortcut('{esc}')
 
-    // Create with shortcut checklist item
-    cy.shortcut('{ctrl}{rightArrow}')
+    // Create below with shortcut checklist item
+    cy.shortcut('{ctrl}{downArrow}')
 
     cy.get('#welcome-checklist li.create-with-keyboard')
+      .should('have.class', 'done')
+
+    cy.get('#welcome-checklist li.create-child-with-keyboard')
+      .should('not.have.class', 'done')
+
+    cy.shortcut('{esc}')
+
+    // Create below with shortcut checklist item
+    cy.shortcut('{ctrl}{rightArrow}')
+
+    cy.get('#welcome-checklist li.create-child-with-keyboard')
       .should('have.class', 'done')
 
     cy.shortcut('{esc}')

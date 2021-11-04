@@ -1549,11 +1549,11 @@ update msg ({ workingTree } as model) =
                                 |> saveCardIfEditing
                                 |> insertChild vs.active afterText
                                 |> setCursorPosition 0
-                                |> checklistEvent CreateWithKeyboard
+                                |> checklistEvent CreateChildWithKeyboard
 
                         "mod+right" ->
                             normalMode model (insertChild vs.active "")
-                                |> checklistEvent CreateWithKeyboard
+                                |> checklistEvent CreateChildWithKeyboard
 
                         "mod+shift+j" ->
                             normalMode model (mergeDown vs.active)
