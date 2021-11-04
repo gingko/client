@@ -27,13 +27,11 @@ describe('Welcome Tree & Templates', () => {
 
     cy.contains('#title', 'welcome')
 
-    cy.get('.close-button').click()
-
     cy.get('#welcome-to-this-example-gingko-tree-')
       .should('be.visible')
       .should('contain', 'Welcome to this example Gingko tree')
 
-    cy.get('#welcome-checklist')
+    cy.get('#welcome-checklist-container')
       .should('be.visible')
       .find('ul li')
       .should('not.have.class', 'done')

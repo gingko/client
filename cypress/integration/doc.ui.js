@@ -21,7 +21,7 @@ describe('Document UI', () => {
   })
 
   it('Has working header menus and shortcut help', () => {
-    let emailText = "Help!";
+    let emailText = "Contact Support";
 
     cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
 

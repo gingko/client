@@ -128,7 +128,7 @@ view model =
                     [ viewChecklistItem
                         "nav-with-arrows"
                         state.navWithArrows
-                        [ strong [] [ text "Move Around" ], text " (arrow keys)" ]
+                        [ strong [] [ text "Move Around" ], text " (arrow keys or hjkl)" ]
                     , viewChecklistItem
                         "edit-with-keyboard"
                         state.editWithKeyboard

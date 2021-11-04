@@ -727,6 +727,7 @@ input.has-error {
   bottom: 15px;
   border-radius: 5px 5px 5px 0;
   box-shadow: var(--small-shadow);
+  z-index: 2;
 }
 #account-menu::after {
   content: " ";
@@ -2007,13 +2008,14 @@ span.collaborators {
 
 /* === WELCOME CHECKLIST === */
 #welcome-checklist-container {
-  trasition: opacity;
+  grid-area: document;
+  transition: opacity;
   transition-duration: 2s;
   transition-timing-function: ease-out;
   transition-delay: 2s;
-  position: fixed;
+  position: absolute;
   bottom: 16px;
-  left: 52px;
+  left: 16px;
   z-index: 1;
   background: var(--active-bg);
   padding: 8px 16px 8px 32px;

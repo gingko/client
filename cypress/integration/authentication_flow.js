@@ -49,16 +49,8 @@ describe('User Signup Flow', () => {
     cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
     cy.contains('Welcome to this example Gingko tree')
 
-    // Has working Tour
-    cy.get('#video-viewer-content').should('be.visible')
-    cy.get('.close-button').click()
-    cy.get('#welcome-step-6').should('be.visible')
-    cy.get('#help-icon').click()
-    cy.get('#help-icon').click()
-    cy.get('#welcome-step-7').should('be.visible')
-    cy.get('#new-icon').click()
-    cy.get('#welcome-step-7').should('not.be.visible')
-    cy.get('.close-button').click()
+    // Has working Welcome checklist
+    cy.get('#welcome-checklist-container').should('be.visible')
 
     // Logs Out Correctly
     cy.intercept('/logout').as('logoutRequest')
