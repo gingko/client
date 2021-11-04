@@ -4,6 +4,7 @@ import Ant.Icons.Svg as AntIcons
 import Html exposing (Html, div, h2, h3, li, s, span, strong, text, ul)
 import Html.Attributes exposing (class, classList, id)
 import Html.Extra exposing (viewIf)
+import Session exposing (Session)
 
 
 
@@ -25,17 +26,25 @@ type alias State =
     }
 
 
-init : Bool -> Model
-init isMac =
-    Just
-        { navWithArrows = False
-        , editWithKeyboard = False
-        , saveWithKeyboard = False
-        , createWithKeyboard = False
-        , createChildWithKeyboard = False
-        , draggedCard = False
-        , isMac = isMac
-        }
+init : Session -> Model
+init session =
+    let
+        shouldShowWelcomeChecklist =
+            Session.welcomeChecklist session
+    in
+    if shouldShowWelcomeChecklist then
+        Just
+            { navWithArrows = False
+            , editWithKeyboard = False
+            , saveWithKeyboard = False
+            , createWithKeyboard = False
+            , createChildWithKeyboard = False
+            , draggedCard = False
+            , isMac = Session.isMac session
+            }
+
+    else
+        Nothing
 
 
 

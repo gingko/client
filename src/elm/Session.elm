@@ -1,4 +1,4 @@
-port module Session exposing (PaymentStatus(..), Session, currentTime, db, decode, documents, fileMenuOpen, fromLegacy, isMac, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, updateDocuments, updateTime, updateUpgrade, upgradeModel, userSettingsChange)
+port module Session exposing (PaymentStatus(..), Session, currentTime, db, decode, documents, fileMenuOpen, fromLegacy, isMac, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, setSortBy, setWelcomeChecklist, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, updateDocuments, updateTime, updateUpgrade, upgradeModel, userSettingsChange, welcomeChecklist)
 
 import Browser.Navigation as Nav
 import Coders exposing (sortByDecoder)
@@ -42,6 +42,7 @@ type alias UserData =
     , language : Translation.Language
     , upgradeModel : Upgrade.Model
     , paymentStatus : PaymentStatus
+    , welcomeChecklist : Bool
     , shortcutTrayOpen : Bool
     , sortBy : SortBy
     , documents : DocList.Model
@@ -159,6 +160,16 @@ paymentStatus session =
             Unknown
 
 
+welcomeChecklist : Session -> Bool
+welcomeChecklist session =
+    case session of
+        LoggedIn _ data ->
+            data.welcomeChecklist
+
+        Guest _ _ ->
+            False
+
+
 shortcutTrayOpen : Session -> Bool
 shortcutTrayOpen session =
     case session of
@@ -258,6 +269,16 @@ setLanguage lang session =
             Guest key { data | language = lang }
 
 
+setWelcomeChecklist : Bool -> Session -> Session
+setWelcomeChecklist shouldShow session =
+    case session of
+        LoggedIn key data ->
+            LoggedIn key { data | welcomeChecklist = shouldShow }
+
+        Guest _ _ ->
+            session
+
+
 setShortcutTrayOpen : Bool -> Session -> Session
 setShortcutTrayOpen isOpen session =
     case session of
@@ -339,7 +360,7 @@ decoder key =
 decodeLoggedIn : Nav.Key -> Dec.Decoder Session
 decodeLoggedIn key =
     Dec.succeed
-        (\email s os t legacy lang side payStat trayOpen sortCriteria lastDoc ->
+        (\email s os t legacy lang side payStat _ trayOpen sortCriteria lastDoc ->
             LoggedIn
                 { navKey = key
                 , seed = s
@@ -349,7 +370,7 @@ decodeLoggedIn key =
                 , lastDocId = Nothing
                 , fromLegacy = legacy
                 }
-                (UserData email lang Upgrade.init payStat trayOpen sortCriteria DocList.init)
+                (UserData email lang Upgrade.init payStat True trayOpen sortCriteria DocList.init)
         )
         |> required "email" Dec.string
         |> required "seed" (Dec.int |> Dec.map Random.initialSeed)
@@ -359,6 +380,7 @@ decodeLoggedIn key =
         |> optional "language" (Dec.string |> Dec.map langFromString) En
         |> optional "sidebarOpen" Dec.bool False
         |> optional "paymentStatus" decodePaymentStatus Unknown
+        |> optional "welcomeChecklist" Dec.bool True
         |> optional "shortcutTrayOpen" Dec.bool False
         |> optional "sortBy" sortByDecoder ModifiedAt
         |> optional "lastDocId" (Dec.maybe Dec.string) Nothing
@@ -401,7 +423,7 @@ responseDecoder session =
         builder email lang payStat trayOpen sortCriteria =
             case session of
                 Guest sessionData data ->
-                    LoggedIn sessionData (UserData email lang Upgrade.init payStat trayOpen sortCriteria DocList.init)
+                    LoggedIn sessionData (UserData email lang Upgrade.init payStat True trayOpen sortCriteria DocList.init)
 
                 LoggedIn _ _ ->
                     session

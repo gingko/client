@@ -161,7 +161,7 @@ defaultModel isNew session docId =
     , headerMenu = NoHeaderMenu
     , exportSettings = ( ExportEverything, DOCX )
     , wordcountTrayOpen = False
-    , welcomeChecklist = WelcomeChecklist.init (Session.isMac session)
+    , welcomeChecklist = WelcomeChecklist.init session
     , tourStep = Nothing
     , tooltip = Nothing
     , fontSelectorOpen = False
@@ -2696,15 +2696,21 @@ checklistEvent msg ( model, prevCmd ) =
     let
         ( newChecklistState, shouldEnd ) =
             WelcomeChecklist.update msg model.welcomeChecklist
-
-        newCmd =
-            if shouldEnd then
-                Cmd.batch [ Process.sleep 4000 |> Task.perform (\_ -> WelcomeChecklistDone), prevCmd ]
-
-            else
-                prevCmd
     in
-    ( { model | welcomeChecklist = newChecklistState }, newCmd )
+    if shouldEnd then
+        ( { model
+            | welcomeChecklist = newChecklistState
+            , session = Session.setWelcomeChecklist False model.session
+          }
+        , Cmd.batch
+            [ Process.sleep 4000 |> Task.perform (\_ -> WelcomeChecklistDone)
+            , send <| SaveUserSetting ( "welcomeChecklist", Enc.bool False )
+            , prevCmd
+            ]
+        )
+
+    else
+        ( { model | welcomeChecklist = newChecklistState }, prevCmd )
 
 
 
