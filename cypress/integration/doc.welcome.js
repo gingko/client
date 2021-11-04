@@ -37,6 +37,11 @@ describe('Welcome Tree & Checklist', () => {
       .find('ul li')
       .should('not.have.class', 'done')
 
+    // Welcome checklist doesn't hide Help Menu
+    cy.get('#help-icon').click()
+    cy.get('#help-menu').should('be.visible')
+    cy.get('#help-icon').click()
+
     // Shortcut for moving triggers "done" on nav-with-arrows
     cy.shortcut('{rightArrow}')
 

@@ -517,7 +517,6 @@ input.has-error {
   background: var(--background-sidebar);
   border-right: 1px solid var(--ui-2-border-color);
   box-shadow: var(--small-shadow);
-  z-index: 1;
 }
 #brand {
   grid-area: top-left;
@@ -681,6 +680,7 @@ input.has-error {
   bottom: 55px;
   border-radius: 5px 5px 5px 0;
   box-shadow: var(--small-shadow);
+  z-index: 2;
 }
 #help-menu::after {
   content: " ";
@@ -1617,6 +1617,7 @@ span.trial-dark {
 #document {
   grid-area: document;
   background-color: var(--bg-main);
+  z-index: -1;
 }
 
 #document::-webkit-scrollbar {

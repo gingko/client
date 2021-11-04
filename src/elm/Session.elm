@@ -360,7 +360,7 @@ decoder key =
 decodeLoggedIn : Nav.Key -> Dec.Decoder Session
 decodeLoggedIn key =
     Dec.succeed
-        (\email s os t legacy lang side payStat _ trayOpen sortCriteria lastDoc ->
+        (\email s os t legacy lang side payStat checklist trayOpen sortCriteria lastDoc ->
             LoggedIn
                 { navKey = key
                 , seed = s
@@ -370,7 +370,7 @@ decodeLoggedIn key =
                 , lastDocId = Nothing
                 , fromLegacy = legacy
                 }
-                (UserData email lang Upgrade.init payStat True trayOpen sortCriteria DocList.init)
+                (UserData email lang Upgrade.init payStat checklist trayOpen sortCriteria DocList.init)
         )
         |> required "email" Dec.string
         |> required "seed" (Dec.int |> Dec.map Random.initialSeed)
