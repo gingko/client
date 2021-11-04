@@ -3377,6 +3377,9 @@ ul.changelist {
   #document {
     scroll-snap-type: x mandatory;
   }
+  #welcome-checklist-container {
+    display: none;
+  }
   .column {
     scroll-snap-align: center;
   }
