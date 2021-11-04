@@ -150,12 +150,16 @@ view model =
                         state.draggedCard
                         [ strong [] [ text "Drag a Card" ], text " (by its left edge)" ]
                     ]
-                , viewIf (isAllDone state) (div [ class "confetti" ] (List.repeat 13 (div [ class "confetti-piece" ] [])))
+                , if isAllDone state then
+                    div [ class "confetti" ] (List.repeat 13 (div [ class "confetti-piece" ] []))
+
+                  else
+                    div [] []
                 ]
             ]
 
         Nothing ->
-            []
+            [ div [] [] ]
 
 
 viewChecklistItem : String -> Bool -> List (Html msg) -> Html msg

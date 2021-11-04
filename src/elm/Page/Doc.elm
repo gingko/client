@@ -1573,6 +1573,7 @@ update msg ({ workingTree } as model) =
 
                         "h" ->
                             normalMode model (goLeft vs.active)
+                                |> checklistEvent NavigatedWithArrows
 
                         "left" ->
                             normalMode model (goLeft vs.active)
@@ -1580,6 +1581,7 @@ update msg ({ workingTree } as model) =
 
                         "j" ->
                             normalMode model (goDown vs.active)
+                                |> checklistEvent NavigatedWithArrows
 
                         "down" ->
                             case model.modalState of
@@ -1607,6 +1609,7 @@ update msg ({ workingTree } as model) =
 
                         "k" ->
                             normalMode model (goUp vs.active)
+                                |> checklistEvent NavigatedWithArrows
 
                         "up" ->
                             case model.modalState of
@@ -1622,6 +1625,7 @@ update msg ({ workingTree } as model) =
 
                         "l" ->
                             normalMode model (goRight vs.active)
+                                |> checklistEvent NavigatedWithArrows
 
                         "right" ->
                             normalMode model (goRight vs.active)
