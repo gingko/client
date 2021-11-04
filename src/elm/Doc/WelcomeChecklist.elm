@@ -1,7 +1,9 @@
 module Doc.WelcomeChecklist exposing (Model, Msg(..), init, update, view)
 
-import Html exposing (Html, div, li, span, strong, text, ul)
+import Ant.Icons.Svg as AntIcons
+import Html exposing (Html, div, h2, h3, li, s, span, strong, text, ul)
 import Html.Attributes exposing (class, classList, id)
+import Html.Extra exposing (viewIf)
 
 
 
@@ -9,15 +11,18 @@ import Html.Attributes exposing (class, classList, id)
 
 
 type alias Model =
-    Maybe
-        { navWithArrows : Bool
-        , editWithKeyboard : Bool
-        , saveWithKeyboard : Bool
-        , createWithKeyboard : Bool
-        , createChildWithKeyboard : Bool
-        , draggedCard : Bool
-        , isMac : Bool
-        }
+    Maybe State
+
+
+type alias State =
+    { navWithArrows : Bool
+    , editWithKeyboard : Bool
+    , saveWithKeyboard : Bool
+    , createWithKeyboard : Bool
+    , createChildWithKeyboard : Bool
+    , draggedCard : Bool
+    , isMac : Bool
+    }
 
 
 init : Bool -> Model
@@ -46,31 +51,45 @@ type Msg
     | DraggedCard
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Bool )
 update msg model =
     case model of
         Just state ->
-            case msg of
-                NavigatedWithArrows ->
-                    Just { state | navWithArrows = True }
+            let
+                newState =
+                    case msg of
+                        NavigatedWithArrows ->
+                            { state | navWithArrows = True }
 
-                EditedWithKeyboard ->
-                    Just { state | editWithKeyboard = True }
+                        EditedWithKeyboard ->
+                            { state | editWithKeyboard = True }
 
-                SaveWithKeyboard ->
-                    Just { state | saveWithKeyboard = True }
+                        SaveWithKeyboard ->
+                            { state | saveWithKeyboard = True }
 
-                CreateWithKeyboard ->
-                    Just { state | createWithKeyboard = True }
+                        CreateWithKeyboard ->
+                            { state | createWithKeyboard = True }
 
-                CreateChildWithKeyboard ->
-                    Just { state | createChildWithKeyboard = True }
+                        CreateChildWithKeyboard ->
+                            { state | createChildWithKeyboard = True }
 
-                DraggedCard ->
-                    Just { state | draggedCard = True }
+                        DraggedCard ->
+                            { state | draggedCard = True }
+            in
+            ( Just newState, isAllDone newState )
 
         Nothing ->
-            Nothing
+            ( Nothing, False )
+
+
+isAllDone : State -> Bool
+isAllDone state =
+    state.navWithArrows
+        && state.editWithKeyboard
+        && state.saveWithKeyboard
+        && state.createWithKeyboard
+        && state.createChildWithKeyboard
+        && state.draggedCard
 
 
 
@@ -94,8 +113,9 @@ view model =
                     else
                         "Ctrl"
             in
-            [ div [ id "welcome-checklist" ]
-                [ ul []
+            [ div [ id "welcome-checklist-container", classList [ ( "all-done", isAllDone state ) ] ]
+                [ h3 [] [ text "Getting Started" ]
+                , ul []
                     [ viewChecklistItem
                         "nav-with-arrows"
                         state.navWithArrows
@@ -121,6 +141,7 @@ view model =
                         state.draggedCard
                         [ strong [] [ text "Drag a Card" ], text " (by its left edge)" ]
                     ]
+                , viewIf (isAllDone state) (div [ class "confetti" ] (List.repeat 13 (div [ class "confetti-piece" ] [])))
                 ]
             ]
 
@@ -130,4 +151,8 @@ view model =
 
 viewChecklistItem : String -> Bool -> List (Html msg) -> Html msg
 viewChecklistItem className isDone children =
-    li [ classList [ ( className, True ), ( "done", isDone ) ] ] children
+    if isDone then
+        li [ classList [ ( className, True ), ( "done", True ) ] ] [ AntIcons.checkCircleTwoTone [], span [ class "content" ] children ]
+
+    else
+        li [ classList [ ( className, True ), ( "done", False ) ] ] [ AntIcons.borderOutlined [], span [ class "content" ] children ]

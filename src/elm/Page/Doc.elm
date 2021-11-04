@@ -274,6 +274,7 @@ type Msg
       -- HELP
     | ClickedShowVideos
     | ClickedEmailSupport
+    | WelcomeChecklistDone
     | TourStep (Maybe Int)
     | ContactFormMsg ContactForm.Model ContactForm.Msg
     | CopyEmailClicked Bool
@@ -798,6 +799,9 @@ update msg ({ workingTree } as model) =
             ( { model | modalState = ContactForm (ContactForm.init fromEmail), sidebarMenuState = NoSidebarMenu }
             , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "contact-body")
             )
+
+        WelcomeChecklistDone ->
+            ( { model | welcomeChecklist = Nothing }, Cmd.none )
 
         TourStep step_ ->
             ( { model | tourStep = step_ }, Cmd.none )
@@ -2689,7 +2693,18 @@ pasteInto id copiedTree ( model, prevCmd ) =
 
 checklistEvent : WelcomeChecklist.Msg -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 checklistEvent msg ( model, prevCmd ) =
-    ( { model | welcomeChecklist = WelcomeChecklist.update msg model.welcomeChecklist }, prevCmd )
+    let
+        ( newChecklistState, shouldEnd ) =
+            WelcomeChecklist.update msg model.welcomeChecklist
+
+        newCmd =
+            if shouldEnd then
+                Cmd.batch [ Process.sleep 4000 |> Task.perform (\_ -> WelcomeChecklistDone), prevCmd ]
+
+            else
+                prevCmd
+    in
+    ( { model | welcomeChecklist = newChecklistState }, newCmd )
 
 
 
