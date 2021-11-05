@@ -139,7 +139,7 @@ view model =
                 , div [ id "welcome-progress-track" ] [ div [ id "welcome-progress-bar", style "width" barWidth ] [] ]
                 , ul []
                     [ viewChecklistItem
-                        "nav-with-arrows"
+                        "nav-with-mouse"
                         state.navWithMouse
                         [ strong [] [ text "Navigate with Mouse" ], text " (click on a card to select)" ]
                     , viewChecklistItem

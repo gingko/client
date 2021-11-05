@@ -28,7 +28,7 @@ describe('Welcome Tree & Checklist', () => {
     cy.contains('#title', 'welcome')
 
     cy.get('#welcome-to-this-example-gingko-tree-')
-      .should('be.visible')
+      .should('exist')
       .should('contain', 'Welcome to this example Gingko tree')
 
     // Welcome checklist is visible and none are done
@@ -41,6 +41,12 @@ describe('Welcome Tree & Checklist', () => {
     cy.get('#help-icon').click()
     cy.get('#help-menu').should('be.visible')
     cy.get('#help-icon').click()
+
+    // Clicking on a card triggers "done" on nav-with-mouse
+    cy.getCard(1,1,1).click()
+
+    cy.get('#welcome-checklist-container li.nav-with-mouse')
+      .should('have.class', 'done')
 
     // Shortcut for moving triggers "done" on nav-with-arrows
     cy.shortcut('{rightArrow}')

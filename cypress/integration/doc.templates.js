@@ -28,7 +28,7 @@ describe('Welcome Tree & Templates', () => {
     cy.contains('#title', 'welcome')
 
     cy.get('#welcome-to-this-example-gingko-tree-')
-      .should('be.visible')
+      .should('exist')
       .should('contain', 'Welcome to this example Gingko tree')
 
     cy.get('#welcome-checklist-container')
