@@ -1573,16 +1573,13 @@ update msg ({ workingTree } as model) =
                             normalMode model (mergeUp vs.active)
 
                         "h" ->
-                            normalMode model (goLeft vs.active)
-                                |> checklistEvent NavigatedWithArrows
+                            normalMode model (goLeft vs.active >> checklistEvent NavigatedWithArrows)
 
                         "left" ->
-                            normalMode model (goLeft vs.active)
-                                |> checklistEvent NavigatedWithArrows
+                            normalMode model (goLeft vs.active >> checklistEvent NavigatedWithArrows)
 
                         "j" ->
-                            normalMode model (goDown vs.active)
-                                |> checklistEvent NavigatedWithArrows
+                            normalMode model (goDown vs.active >> checklistEvent NavigatedWithArrows)
 
                         "down" ->
                             case model.modalState of
@@ -1609,14 +1606,12 @@ update msg ({ workingTree } as model) =
                                     ( model, Cmd.none )
 
                         "k" ->
-                            normalMode model (goUp vs.active)
-                                |> checklistEvent NavigatedWithArrows
+                            normalMode model (goUp vs.active >> checklistEvent NavigatedWithArrows)
 
                         "up" ->
                             case model.modalState of
                                 NoModal ->
-                                    normalMode model (goUp vs.active)
-                                        |> checklistEvent NavigatedWithArrows
+                                    normalMode model (goUp vs.active >> checklistEvent NavigatedWithArrows)
 
                                 FileSwitcher switcherModel ->
                                     ( { model | modalState = FileSwitcher (Doc.Switcher.up switcherModel) }, Cmd.none )
@@ -1625,12 +1620,10 @@ update msg ({ workingTree } as model) =
                                     ( model, Cmd.none )
 
                         "l" ->
-                            normalMode model (goRight vs.active)
-                                |> checklistEvent NavigatedWithArrows
+                            normalMode model (goRight vs.active >> checklistEvent NavigatedWithArrows)
 
                         "right" ->
-                            normalMode model (goRight vs.active)
-                                |> checklistEvent NavigatedWithArrows
+                            normalMode model (goRight vs.active >> checklistEvent NavigatedWithArrows)
 
                         "alt+up" ->
                             normalMode model (moveWithin vs.active -1)
