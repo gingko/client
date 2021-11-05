@@ -2018,22 +2018,45 @@ span.collaborators {
   left: 16px;
   z-index: 1;
   background: var(--active-bg);
-  padding: 8px 16px 8px 32px;
-  box-shadow: var(--small-shadow);
+  padding: 8px 16px;
+  box-shadow: 3px 3px 16px black;
+  border: 2px outset aliceblue;
   border-radius: 4px;
 }
 #welcome-checklist-container h3 {
   font-size: 17px;
   font-family: 'Bitter';
   margin-bottom: 5px;
-  margin-left: -20px;
+  position: relative;
+}
+#welcome-progress-fraction {
+  position: absolute;
+  font-size: 0.8rem;
+  font-weight: normal;
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  right: 0;
+  bottom: 0;
+}
+#welcome-progress-track {
+  width: 100%;
+  height: 8px;
+  box-shadow: inset 0px 0px 2px gray;
+  border-radius: 4px;
+  position: relative;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+#welcome-progress-bar {
+  background: var(--selection-color);
+  position: absolute;
+  left:0;
+  height: 100%;
 }
 #welcome-checklist-container ul {
   font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 80%;
   list-style: none;
   padding-left: 0;
-  margin-left: -20px;
   margin-top: 0;
 }
 #welcome-checklist-container .shortcut-key {
@@ -2041,11 +2064,19 @@ span.collaborators {
 }
 #welcome-checklist-container ul li {
   margin-right: 4px;
+  height: 32px;
+  line-height: 32px;
 }
-#welcome-checklist-container svg {
+#welcome-checklist-container svg, #welcome-checklist-container .undone-item {
   width: 16px;
-  margin-bottom: -2px;
+  height: 16px;
+  margin-bottom: -4px;
   margin-right: 6px;
+}
+#welcome-checklist-container .undone-item {
+  display: inline-block;
+  border: 1px solid black;
+  border-radius: 50%;
 }
 #welcome-checklist-container li .content {
   opacity: 1;

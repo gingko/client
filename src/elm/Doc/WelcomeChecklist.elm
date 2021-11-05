@@ -2,7 +2,7 @@ module Doc.WelcomeChecklist exposing (Model, Msg(..), init, update, view)
 
 import Ant.Icons.Svg as AntIcons
 import Html exposing (Html, div, h2, h3, li, s, span, strong, text, ul)
-import Html.Attributes exposing (class, classList, id)
+import Html.Attributes exposing (class, classList, id, style)
 import Html.Extra exposing (viewIf)
 import Session exposing (Session)
 
@@ -16,7 +16,8 @@ type alias Model =
 
 
 type alias State =
-    { navWithArrows : Bool
+    { navWithMouse : Bool
+    , navWithArrows : Bool
     , editWithKeyboard : Bool
     , saveWithKeyboard : Bool
     , createWithKeyboard : Bool
@@ -34,7 +35,8 @@ init session =
     in
     if shouldShowWelcomeChecklist then
         Just
-            { navWithArrows = False
+            { navWithMouse = False
+            , navWithArrows = False
             , editWithKeyboard = False
             , saveWithKeyboard = False
             , createWithKeyboard = False
@@ -52,7 +54,8 @@ init session =
 
 
 type Msg
-    = NavigatedWithArrows
+    = NavigatedWithMouse
+    | NavigatedWithArrows
     | EditedWithKeyboard
     | SaveWithKeyboard
     | CreateWithKeyboard
@@ -67,6 +70,9 @@ update msg model =
             let
                 newState =
                     case msg of
+                        NavigatedWithMouse ->
+                            { state | navWithMouse = True }
+
                         NavigatedWithArrows ->
                             { state | navWithArrows = True }
 
@@ -93,12 +99,8 @@ update msg model =
 
 isAllDone : State -> Bool
 isAllDone state =
-    state.navWithArrows
-        && state.editWithKeyboard
-        && state.saveWithKeyboard
-        && state.createWithKeyboard
-        && state.createChildWithKeyboard
-        && state.draggedCard
+    progressSteps state
+        |> (\( d, t ) -> d == t)
 
 
 
@@ -121,14 +123,29 @@ view model =
 
                     else
                         "Ctrl"
+
+                fractionText =
+                    progressSteps state
+                        |> (\( d, t ) -> String.fromInt d ++ "/" ++ String.fromInt t)
+
+                barWidth =
+                    progressSteps state
+                        |> (\( d, t ) -> toFloat d / toFloat t * 100)
+                        |> String.fromFloat
+                        |> (\s -> s ++ "%")
             in
             [ div [ id "welcome-checklist-container", classList [ ( "all-done", isAllDone state ) ] ]
-                [ h3 [] [ text "Getting Started" ]
+                [ h3 [] [ text "Your First Steps", span [ id "welcome-progress-fraction" ] [ text fractionText ] ]
+                , div [ id "welcome-progress-track" ] [ div [ id "welcome-progress-bar", style "width" barWidth ] [] ]
                 , ul []
                     [ viewChecklistItem
                         "nav-with-arrows"
+                        state.navWithMouse
+                        [ strong [] [ text "Navigate with Mouse" ], text " (click on a card to select)" ]
+                    , viewChecklistItem
+                        "nav-with-arrows"
                         state.navWithArrows
-                        [ strong [] [ text "Move Around" ], text " (arrow keys or hjkl)" ]
+                        [ strong [] [ text "Navigate with Keyboard" ], text " (arrow keys or hjkl)" ]
                     , viewChecklistItem
                         "edit-with-keyboard"
                         state.editWithKeyboard
@@ -168,4 +185,27 @@ viewChecklistItem className isDone children =
         li [ classList [ ( className, True ), ( "done", True ) ] ] [ AntIcons.checkCircleTwoTone [], span [ class "content" ] children ]
 
     else
-        li [ classList [ ( className, True ), ( "done", False ) ] ] [ AntIcons.borderOutlined [], span [ class "content" ] children ]
+        li [ classList [ ( className, True ), ( "done", False ) ] ] [ div [ class "undone-item" ] [], span [ class "content" ] children ]
+
+
+progressSteps : State -> ( Int, Int )
+progressSteps state =
+    let
+        toBit b =
+            if b then
+                1
+
+            else
+                0
+
+        bits =
+            [ ( toBit state.navWithMouse, 1 )
+            , ( toBit state.navWithArrows, 1 )
+            , ( toBit state.editWithKeyboard, 1 )
+            , ( toBit state.saveWithKeyboard, 1 )
+            , ( toBit state.createWithKeyboard, 1 )
+            , ( toBit state.createChildWithKeyboard, 1 )
+            , ( toBit state.draggedCard, 1 )
+            ]
+    in
+    ( bits |> List.map Tuple.first |> List.sum, bits |> List.map Tuple.second |> List.sum )

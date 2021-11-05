@@ -332,6 +332,7 @@ update msg ({ workingTree } as model) =
             )
                 |> saveCardIfEditing
                 |> activate id False
+                |> checklistEvent NavigatedWithMouse
 
         SearchFieldUpdated inputField ->
             let
