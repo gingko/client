@@ -314,9 +314,7 @@ a.forgot-password {
 #form-errors {
   background: #ffebee;
   padding: 10px;
-  margin-bottom: 10px;
   border-radius: 8px;
-  margin-top: -20px;
   border: 1px solid #b71c1c;
 }
 input.has-error {

@@ -178,13 +178,12 @@ view model =
         , div [ class "page-bg" ] []
         , a [ class "brand", href "{%HOMEPAGE_URL%}" ] [ img [ id "logo", src "gingko-leaf-logo.svg" ] [] ]
         , div [ class "form-header-container" ]
-            [ h1 [ class "headline" ] [ text "Welcome to Gingko Writer" ]
+            [ h1 [ class "headline" ] [ text "Signup to Gingko Writer" ]
             , p [ class "subtitle" ] [ text "Write the way you think, organize as you go, and let your words flow." ]
             ]
         , div [ class "center-form" ]
             [ form [ onSubmit SubmittedForm ]
-                [ viewErrors Form model.errors
-                , label [ for "singup-email" ] [ text "Email" ]
+                [ label [ for "singup-email" ] [ text "Email" ]
                 , input
                     [ id "signup-email"
                     , classList [ ( "has-error", List.length emailErrors > 0 ) ]
@@ -213,6 +212,7 @@ view model =
                     ]
                     []
                 , viewErrors Password model.errors
+                , viewErrors Form model.errors
                 , button [ id "signup-button", class "cta" ] [ text "Start Writing" ]
                 , div [ id "post-cta-divider" ] [ hr [] [], div [] [ text "or" ], hr [] [] ]
                 , span [ class "alt-action" ] [ text "Already have an account? ", a [ href "/login" ] [ text "Login" ] ]

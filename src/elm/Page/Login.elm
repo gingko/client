@@ -166,17 +166,12 @@ view model =
         , div [ class "page-bg" ] []
         , a [ class "brand", href "{%HOMEPAGE_URL%}" ] [ img [ id "logo", src "gingko-leaf-logo.svg" ] [] ]
         , div [ class "form-header-container" ]
-            [ h1 [ class "headline" ] [ text "Welcome Back!" ]
-            , p [ class "subtitle" ] [ text "May your words flow freely..." ]
+            [ h1 [ class "headline" ] [ text "Login" ]
+            , p [ class "subtitle" ] [ text "Welcome back!" ]
             ]
         , div [ class "center-form" ]
             [ form [ onSubmit SubmittedForm ]
-                [ if List.length formErrors > 0 then
-                    div [ id "form-errors" ] [ text (String.join "\n" formErrors) ]
-
-                  else
-                    text ""
-                , label [ for "email-input" ] [ text "Email" ]
+                [ label [ for "email-input" ] [ text "Email" ]
                 , input
                     [ onInput EnteredEmail
                     , id "email-input"
@@ -203,6 +198,11 @@ view model =
                     ]
                     []
                 , viewIf (not <| List.isEmpty passwordErrors) <| div [ class "input-errors" ] [ text (String.join "\n" passwordErrors) ]
+                , if List.length formErrors > 0 then
+                    div [ id "form-errors" ] [ text (String.join "\n" formErrors) ]
+
+                  else
+                    text ""
                 , button [ id "login-button", class "cta" ] [ text "Login" ]
                 , div [ id "post-cta-divider" ] [ hr [] [], div [] [ text "or" ], hr [] [] ]
                 , span [ class "alt-action" ]
