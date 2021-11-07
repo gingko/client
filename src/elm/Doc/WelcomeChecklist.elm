@@ -1,8 +1,9 @@
 module Doc.WelcomeChecklist exposing (Model, Msg(..), init, update, view)
 
 import Ant.Icons.Svg as AntIcons
-import Html exposing (Html, div, h2, h3, li, s, span, strong, text, ul)
-import Html.Attributes exposing (class, classList, id, style)
+import Html exposing (Html, button, div, h2, h3, li, s, span, strong, text, ul)
+import Html.Attributes exposing (class, classList, height, id, style, title, width)
+import Html.Events exposing (onClick)
 import Html.Extra exposing (viewIf)
 import Session exposing (Session)
 
@@ -107,8 +108,8 @@ isAllDone state =
 -- VIEW
 
 
-view : Model -> List (Html msg)
-view model =
+view : msg -> Model -> List (Html msg)
+view skipMsg model =
     let
         shortcutSpan keys =
             keys
@@ -137,6 +138,7 @@ view model =
             [ div [ id "welcome-checklist-container", classList [ ( "all-done", isAllDone state ) ] ]
                 [ h3 [] [ text "Your First Steps", span [ id "welcome-progress-fraction" ] [ text fractionText ] ]
                 , div [ id "welcome-progress-track" ] [ div [ id "welcome-progress-bar", style "width" barWidth ] [] ]
+                , div [ class "skip-tutorial", onClick skipMsg, title "Skip Tutorial" ] [ AntIcons.closeCircleOutlined [ width 16, height 16 ] ]
                 , ul []
                     [ viewChecklistItem
                         "nav-with-mouse"

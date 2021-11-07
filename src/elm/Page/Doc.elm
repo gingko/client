@@ -274,7 +274,7 @@ type Msg
       -- HELP
     | ClickedShowVideos
     | ClickedEmailSupport
-    | WelcomeChecklistDone
+    | WelcomeChecklistDone Bool
     | TourStep (Maybe Int)
     | ContactFormMsg ContactForm.Model ContactForm.Msg
     | CopyEmailClicked Bool
@@ -801,8 +801,14 @@ update msg ({ workingTree } as model) =
             , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "contact-body")
             )
 
-        WelcomeChecklistDone ->
-            ( { model | welcomeChecklist = Nothing }, Cmd.none )
+        WelcomeChecklistDone saveNeeded ->
+            ( { model | welcomeChecklist = Nothing }
+            , if saveNeeded then
+                send <| SaveUserSetting ( "welcomeChecklist", Enc.bool False )
+
+              else
+                Cmd.none
+            )
 
         TourStep step_ ->
             ( { model | tourStep = step_ }, Cmd.none )
@@ -2701,7 +2707,7 @@ checklistEvent msg ( model, prevCmd ) =
             , session = Session.setWelcomeChecklist False model.session
           }
         , Cmd.batch
-            [ Process.sleep 4000 |> Task.perform (\_ -> WelcomeChecklistDone)
+            [ Process.sleep 4000 |> Task.perform (\_ -> WelcomeChecklistDone False)
             , send <| SaveUserSetting ( "welcomeChecklist", Enc.bool False )
             , prevCmd
             ]
@@ -3064,7 +3070,7 @@ viewLoaded model =
                             model.workingTree.tree.children
                             model.textCursorInfo
                             model.viewState
-                        ++ WelcomeChecklist.view model.welcomeChecklist
+                        ++ WelcomeChecklist.view (WelcomeChecklistDone True) model.welcomeChecklist
                         ++ [ viewSearchField SearchFieldUpdated model
                            , viewMobileButtons
                                 { edit = mobileBtnMsg "mod+enter"

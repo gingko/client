@@ -2017,7 +2017,7 @@ span.collaborators {
   left: 16px;
   z-index: 1;
   background: var(--active-bg);
-  padding: 8px 16px;
+  padding: 16px 16px 8px 16px;
   box-shadow: 3px 3px 16px black;
   border: 2px outset aliceblue;
   border-radius: 4px;
@@ -2030,11 +2030,25 @@ span.collaborators {
 }
 #welcome-progress-fraction {
   position: absolute;
+  color: gray;
   font-size: 0.8rem;
   font-weight: normal;
   font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  right: 0;
-  bottom: 0;
+  right: 6px;
+  bottom: -6px;
+}
+#welcome-checklist-container .skip-tutorial {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  cursor: pointer;
+}
+#welcome-checklist-container .skip-tutorial svg {
+  fill: gray;
+  margin: 0;
+}
+#welcome-checklist-container .skip-tutorial:hover svg {
+  fill: black;
 }
 #welcome-progress-track {
   width: 100%;
@@ -2057,6 +2071,7 @@ span.collaborators {
   list-style: none;
   padding-left: 0;
   margin-top: 0;
+  margin-bottom: 0;
 }
 #welcome-checklist-container .shortcut-key {
   font-size: 0.6rem;
