@@ -106,6 +106,7 @@ async function initElmAndPorts() {
   });
 
   // Fullscreen change event
+  // This is so that we can use "Esc" once to leave fullscreen mode.
   if (screenfull.isEnabled) {
     screenfull.on('change', () => {
       toElm(screenfull.isFullscreen, "docMsgs", "FullscreenChanged")

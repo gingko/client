@@ -1697,6 +1697,8 @@ span.trial-dark {
 
 #fullscreen-main {
   grid-area: main;
+  padding-top: 50px;
+  padding-bottom: 350px;
 }
 
 #fullscreen-buttons {
