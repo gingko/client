@@ -1708,6 +1708,25 @@ span.trial-dark {
   display: flex;
   flex-direction: column;
 }
+#fullscreen-save-button, #fullscreen-buttons #save-indicator {
+  transition: opacity 0.5s ease-in;
+}
+#fullscreen-buttons > * {
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+#fullscreen-buttons #save-indicator {
+  margin: 0;
+}
+#fullscreen-save-button, #fullscreen-buttons #save-indicator {
+  opacity: 0.2;
+}
+#fullscreen-save-button:hover,
+#fullscreen-buttons.dirty #fullscreen-save-button,
+#fullscreen-buttons.dirty #save-indicator {
+  opacity: 1;
+  transition: opacity 2s ease-in;
+}
 #fullscreen-exit {
   cursor: pointer;
   opacity: 0.8;
@@ -1716,13 +1735,6 @@ span.trial-dark {
   opacity: 1;
 }
 
-#fullscreen-save-indicator {
-  animation: fadeIn 2s;
-  animation-delay: 500ms;
-  animation-fill-mode: forwards;
-  opacity: 0;
-  color: gray;
-}
 
 .fullscreen-parent::-webkit-scrollbar, .fullscreen-children::-webkit-scrollbar {
   width: 0 !important;
@@ -3411,6 +3423,12 @@ ul.changelist {
 
 #mobile-buttons {
   display: none;
+}
+
+@media only screen and (max-width: 70em) {
+  #fullscreen-buttons {
+    background-color: white;
+  }
 }
 
 @media only screen and (max-width:28em) {

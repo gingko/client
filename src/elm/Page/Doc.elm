@@ -26,7 +26,7 @@ import Html.Attributes exposing (attribute, class, classList, dir, id, style, ti
 import Html.Events exposing (custom, onClick, onDoubleClick, onInput)
 import Html.Extra exposing (viewIf)
 import Html.Keyed as Keyed
-import Html.Lazy exposing (lazy2, lazy4, lazy5, lazy7, lazy8)
+import Html.Lazy exposing (lazy2, lazy3, lazy4, lazy7, lazy8)
 import Html5.DragDrop as DragDrop
 import Http
 import Import.Bulk.UI as ImportModal
@@ -437,6 +437,10 @@ update msg ({ workingTree } as model) =
                             else
                                 identity
                            )
+
+                Fullscreen.SaveChanges ->
+                    ( model, Cmd.none )
+                        |> saveCardIfEditing
 
                 Fullscreen.ExitFullscreenRequested ->
                     exitFullscreen model
@@ -2879,11 +2883,24 @@ viewLoaded model =
     let
         language =
             Session.language model.session
+
+        isMac =
+            Session.isMac model.session
     in
     case Data.conflictList model.data of
         [] ->
             if model.viewState.viewMode == FullscreenEditing then
-                lazy5 Fullscreen.view language model.field model.viewState model.dirty model.workingTree
+                lazy3 Fullscreen.view
+                    { language = language
+                    , isMac = isMac
+                    , dirty = model.dirty
+                    , model = model.workingTree
+                    , lastLocalSave = model.lastLocalSave
+                    , lastRemoteSave = model.lastRemoteSave
+                    , currentTime = Session.currentTime model.session
+                    }
+                    model.field
+                    model.viewState
                     |> Html.map FullscreenMsg
 
             else

@@ -55,7 +55,7 @@ describe('Fullscreen Editing', () => {
 
     // Test typing
     cy.focused().type(' test')
-    cy.get('#fullscreen-save-indicator').contains('Unsaved changes...')
+    cy.get('#fullscreen-buttons #save-indicator').contains('Unsaved Changes...')
     cy.focused().should('have.value', '# 3\nAnother Child card test')
 
     // Test change card focus
@@ -87,11 +87,11 @@ describe('Fullscreen Editing', () => {
     cy.shortcut('{downarrow}{shift}{enter}')
     cy.get('#fullscreen-main').should('be.visible')
     cy.focused().type('xyz')
-    cy.get('#fullscreen-save-indicator').should('be.visible')
+    cy.get('#fullscreen-buttons #save-indicator').should('be.visible')
     cy.shortcut('{ctrl}s')
     cy.get('#app-fullscreen')
     cy.get('#fullscreen-main')
-    cy.get('#fullscreen-save-indicator').should('not.exist')
+    cy.get('#fullscreen-buttons #save-indicator').should('contain', 'Synced')
 
     cy.shortcut('{esc}')
 

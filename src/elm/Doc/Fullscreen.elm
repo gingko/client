@@ -2,11 +2,13 @@ module Doc.Fullscreen exposing (Msg(..), view)
 
 import Ant.Icons.Svg as Icons
 import Doc.TreeUtils exposing (getColumnById)
+import Doc.UI exposing (viewSaveIndicator)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onFocus, onInput)
 import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy2)
+import Time
 import Translation exposing (Language, TranslationId(..))
 import Types exposing (..)
 
@@ -28,6 +30,7 @@ type alias Model =
 type Msg
     = OpenCard String String
     | UpdateField String String
+    | SaveChanges
     | ExitFullscreenRequested
 
 
@@ -35,8 +38,19 @@ type Msg
 -- VIEW
 
 
-view : Language -> String -> ViewState -> Bool -> Model -> Html Msg
-view _ field vstate dirty model =
+view :
+    { language : Language
+    , isMac : Bool
+    , dirty : Bool
+    , lastLocalSave : Maybe Time.Posix
+    , lastRemoteSave : Maybe Time.Posix
+    , currentTime : Time.Posix
+    , model : Model
+    }
+    -> String
+    -> ViewState
+    -> Html Msg
+view { language, isMac, dirty, model, lastLocalSave, lastRemoteSave, currentTime } field vstate =
     let
         updateField c =
             if c.id == vstate.active then
@@ -49,17 +63,23 @@ view _ field vstate dirty model =
             getColumnById vstate.active model.tree
                 |> Maybe.map (List.map (List.map updateField))
                 |> Maybe.withDefault []
+
+        saveShortcutTip =
+            if isMac then
+                "⌘+S to Save"
+
+            else
+                "Ctrl+S to Save"
     in
     div
         [ id "app-fullscreen" ]
         [ viewColumn vstate.active currentColumn
-        , div [ id "fullscreen-buttons" ]
-            [ Icons.fullscreenExitOutlined [ id "fullscreen-exit", width 24, onClick ExitFullscreenRequested ]
-            , if dirty then
-                div [ id "fullscreen-save-indicator" ] [ text "Unsaved changes..." ]
-
-              else
-                div [] []
+        , div [ id "fullscreen-buttons", classList [ ( "dirty", dirty ) ] ]
+            [ Icons.fullscreenExitOutlined [ id "fullscreen-exit", width 24, onClick ExitFullscreenRequested, title "Exit Fullscreen Mode" ]
+            , div []
+                [ div [ id "fullscreen-save-button", onClick SaveChanges, title saveShortcutTip ] [ Icons.saveOutlined [ width 24 ] ]
+                , viewSaveIndicator language { dirty = dirty, lastLocalSave = lastLocalSave, lastRemoteSave = lastRemoteSave } currentTime
+                ]
             ]
         ]
 
