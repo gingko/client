@@ -214,7 +214,8 @@ type Msg
       -- === Card Editing  ===
     | OpenCard String String
     | UpdateActiveField String String
-    | SaveCard
+    | AutoSave
+    | SaveAndCloseCard
     | FullscreenMsg Fullscreen.Msg
     | DeleteCard String
       -- === Card Insertion  ===
@@ -415,7 +416,10 @@ update msg ({ workingTree } as model) =
                 ]
             )
 
-        SaveCard ->
+        AutoSave ->
+            ( model, Cmd.none ) |> saveCardIfEditing
+
+        SaveAndCloseCard ->
             saveAndStopEditing model
 
         FullscreenMsg fullscreenMsg ->
@@ -3436,7 +3440,7 @@ viewCardEditing lang cardId content isParent isMac =
             [ span
                 [ class "card-btn save"
                 , title <| tr lang SaveChangesTitle
-                , onClick SaveCard
+                , onClick SaveAndCloseCard
                 ]
                 []
             ]
@@ -3710,8 +3714,13 @@ subscriptions model =
                 Sub.none
         , Session.userSettingsChange SettingsChanged
         , Session.loginChanges LoginStateChanged (Session.navKey model.session)
+        , if model.dirty then
+            Time.every (19 * 1000) (always AutoSave)
+
+          else
+            Sub.none
         , Time.every (9 * 1000) TimeUpdate
-        , Time.every (20 * 1000) (always Pull)
+        , Time.every (23 * 1000) (always Pull)
         ]
 
 

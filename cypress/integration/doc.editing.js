@@ -96,6 +96,14 @@ describe('Document Editing', () => {
     cy.get('#app-root')
       .should('not.contain', 'to cancel xxx')
 
+    // Saves every 19s in edit mode, if "dirty"
+    cy.shortcut('{enter}')
+    cy.writeInCard('p')
+    cy.contains('Unsaved Changes...')
+    cy.get('textarea')
+      .should('have.value', 'Another one belowp')
+    cy.contains('Synced', {timeout: 22000})
+
     // Can cancel renaming the document
     cy.get('#title-rename').click()
     cy.shortcut('{esc}')
@@ -149,7 +157,10 @@ describe('Document Editing', () => {
     cy.contains('Restore this Version')
 
     cy.get('#app-root')
-      .should('not.contain', 'Another one below')
+      .should('not.contain', 'Another one belowp')
+
+    // Can move back once more
+    cy.shortcut('{ctrl}z')
 
     // Restores last change
     cy.get('#history-restore').click()
