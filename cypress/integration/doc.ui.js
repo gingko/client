@@ -31,6 +31,7 @@ describe('Document UI', () => {
     cy.get('#help-icon' )
       .click()
 
+    cy.get('.modal.help-modal')
     cy.get('#help-menu')
       .should('contain', emailText)
       .should('contain', 'FAQ')
