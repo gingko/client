@@ -875,15 +875,15 @@ update msg ({ workingTree } as model) =
             ( { model | modalState = Wordcount, headerMenu = NoHeaderMenu }, Cmd.none )
 
         ModalClosed ->
-            let
-                newTourStep =
-                    if model.tourStep == Just -1 then
-                        Just 6
+            case model.modalState of
+                VideoViewer _ ->
+                    ( { model | modalState = HelpScreen }, Cmd.none )
 
-                    else
-                        model.tourStep
-            in
-            ( { model | modalState = NoModal, tourStep = newTourStep }, Cmd.none )
+                ContactForm _ ->
+                    ( { model | modalState = HelpScreen }, Cmd.none )
+
+                _ ->
+                    ( { model | modalState = NoModal }, Cmd.none )
 
         ImportBulkClicked ->
             ( { model | modalState = ImportModal (ImportModal.init model.session) }, Cmd.none )

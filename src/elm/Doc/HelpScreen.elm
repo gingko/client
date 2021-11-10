@@ -17,8 +17,8 @@ view msg =
                 , div [ class "close-button", onClick msg.closeModal ] [ Icons.closeCircleOutlined [ width 20, height 20 ] ]
                 ]
             , div [ class "modal-guts" ]
-                [ h3 [] [ text "Keyboard Shortcuts" ]
-                , div [ style "display" "flex", style "gap" "16px", style "justify-content" "space-between" ]
+                [ h2 [ style "text-align" "center" ] [ text "Keyboard Shortcuts" ]
+                , div [ style "display" "flex", style "justify-content" "space-evenly" ]
                     [ div [ class "shortcut-table" ]
                         ([ div [ class "shortcut-table-title" ] [ text "Normal Mode" ]
                          ]
@@ -32,9 +32,12 @@ view msg =
                     ]
                 ]
             , div [ class "modal-buttons" ]
-                [ button [ onClick msg.showVideoTutorials ] [ text "Video Tutorials" ]
-                , a [ href "https://docs.gingkowriter.com", target "_blank" ] [ text "FAQ" ]
-                , button [ onClick msg.contactSupport ] [ text "Contact Support" ]
+                [ div [ onClick msg.showVideoTutorials ] [ text "Video Tutorials" ]
+                , a [ href "https://docs.gingkowriter.com", target "_blank" ]
+                    [ text "FAQ"
+                    , Icons.linkOutlined [ width 16, height 16, style "margin-left" "4px", style "margin-top" "2px", style "fill" "hsl(86deg 54% 25%)" ]
+                    ]
+                , div [ onClick msg.contactSupport ] [ text "Contact Support" ]
                 ]
             ]
         ]
@@ -53,7 +56,7 @@ editingShortcuts =
 
 shortcutRow : String -> List (Html msg) -> Html msg
 shortcutRow desc keys =
-    div [ class "shortcut-row" ] [ div [] [ text desc ], div [] keys ]
+    div [ class "shortcut-row" ] [ div [] [ text desc ], div [ style "margin-left" "16px" ] keys ]
 
 
 key : String -> Html msg
