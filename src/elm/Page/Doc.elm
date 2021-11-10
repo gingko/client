@@ -272,6 +272,7 @@ type Msg
     | UpgradeModalMsg Upgrade.Msg
       -- HELP
     | ClickedShowVideos
+    | ClickedShowWidget
     | ClickedEmailSupport
     | ContactFormMsg ContactForm.Model ContactForm.Msg
     | CopyEmailClicked Bool
@@ -770,6 +771,9 @@ update msg ({ workingTree } as model) =
 
         ClickedShowVideos ->
             ( { model | modalState = VideoViewer VideoViewer.init, sidebarMenuState = NoSidebarMenu }, Cmd.none )
+
+        ClickedShowWidget ->
+            ( { model | modalState = NoModal }, send <| ShowWidget )
 
         ClickedEmailSupport ->
             let
@@ -3481,7 +3485,12 @@ viewModal language model =
                 }
 
         HelpScreen ->
-            HelpScreen.view (Session.isMac model.session) { closeModal = ModalClosed, showVideoTutorials = VideoViewerOpened, contactSupport = ClickedEmailSupport }
+            HelpScreen.view (Session.isMac model.session)
+                { closeModal = ModalClosed
+                , showVideoTutorials = VideoViewerOpened
+                , showWidget = ClickedShowWidget
+                , contactSupport = ClickedEmailSupport
+                }
 
         VideoViewer videoViewerState ->
             VideoViewer.view language ModalClosed VideoViewerMsg videoViewerState

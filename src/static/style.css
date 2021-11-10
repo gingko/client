@@ -1220,6 +1220,12 @@ input.has-error {
   color: hsl(86deg 54% 25%);
   cursor: pointer;
 }
+#freshworks-frame-wrapper {
+  left: 0 !important;
+  right: 0 !important;
+  margin: 0 auto;
+  box-shadow: 3px 3px 16px black !important;
+}
 .modal-overlay {
   position: fixed;
   top: 0;

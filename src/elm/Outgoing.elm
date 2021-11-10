@@ -57,6 +57,7 @@ type Msg
     | SetFonts Fonts.Settings
       -- === Misc ===
     | EmptyMessageShown
+    | ShowWidget
     | CheckoutButtonClicked Enc.Value
     | SocketSend CollabState
     | ConsoleLogRequested String
@@ -213,6 +214,9 @@ send info =
         -- === Misc ===
         EmptyMessageShown ->
             dataToSend "EmptyMessageShown" null
+
+        ShowWidget ->
+            dataToSend "ShowWidget" null
 
         CheckoutButtonClicked checkoutData ->
             dataToSend "CheckoutButtonClicked" checkoutData

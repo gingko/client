@@ -7,7 +7,7 @@ import Html.Events exposing (onClick)
 import SharedUI exposing (ctrlOrCmdText)
 
 
-view : Bool -> { closeModal : msg, showVideoTutorials : msg, contactSupport : msg } -> List (Html msg)
+view : Bool -> { closeModal : msg, showVideoTutorials : msg, showWidget : msg, contactSupport : msg } -> List (Html msg)
 view isMac msg =
     let
         ctrlOrCmd =
@@ -41,10 +41,7 @@ view isMac msg =
                 ]
             , div [ class "modal-buttons" ]
                 [ div [ onClick msg.showVideoTutorials ] [ text "Help Videos" ]
-                , a [ href "https://docs.gingkowriter.com", target "_blank" ]
-                    [ text "FAQ"
-                    , Icons.linkOutlined [ width 16, height 16, style "margin-left" "4px", style "margin-top" "2px", style "fill" "hsl(86deg 54% 25%)" ]
-                    ]
+                , div [ onClick msg.showWidget ] [ text "FAQ & Documentation" ]
                 , div [ id "email-support", onClick msg.contactSupport ] [ text "Contact Support" ]
                 ]
             ]

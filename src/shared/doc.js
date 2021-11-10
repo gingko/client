@@ -167,7 +167,9 @@ async function setUserDbs(email) {
 }
 
 
+// External Scripts
 const stripe = Stripe(config.STRIPE_PUBLIC_KEY);
+FreshworksWidget('hide', 'launcher');
 
 
 /* === Elm / JS Interop === */
@@ -681,6 +683,10 @@ const fromElm = (msg, elmData) => {
     // === Misc ===
 
     EmptyMessageShown: () => {},
+
+    ShowWidget: () => {
+      FreshworksWidget('open');
+    },
 
     CheckoutButtonClicked: async () => {
       let priceId = config.PRICE_DATA[elmData.currency][elmData.billing][elmData.plan];

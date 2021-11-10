@@ -126,6 +126,7 @@ const webConfig = {
 
     // Plugin to insert only needed chunks of JS into HTML output files.
     new HtmlWebpackPlugin({
+      freshdeskAppId: config.FRESHDESK_APPID,
       template: "./index.ejs",
       filename: "../web/index.html",
       chunks: ["doc"]
@@ -243,4 +244,4 @@ const rendererConfig = merge(baseElectronConfig, {
 });
 
 
-module.exports = [ webConfig, mainConfig, rendererConfig ];
+module.exports = [ webConfig ];
