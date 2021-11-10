@@ -28,7 +28,7 @@ import Page.Doc.Theme exposing (Theme(..))
 import Regex exposing (Regex, replace)
 import Route
 import Session exposing (PaymentStatus(..), Session)
-import SharedUI exposing (modalWrapper)
+import SharedUI exposing (ctrlOrCmdText, modalWrapper)
 import Svg exposing (g, svg)
 import Svg.Attributes exposing (d, fill, fontFamily, fontSize, fontWeight, preserveAspectRatio, stroke, strokeDasharray, strokeDashoffset, strokeLinecap, strokeLinejoin, strokeMiterlimit, strokeWidth, textAnchor, version, viewBox)
 import Time exposing (posixToMillis)
@@ -534,7 +534,7 @@ viewSidebar session msgs currentDocument sortCriteria fileFilter docList account
             , attributeIf (dropdownState /= Help) <| onMouseEnter <| msgs.tooltipRequested "help-icon" RightTooltip "Help"
             , onMouseLeave msgs.tooltipClosed
             ]
-            [ AntIcons.questionCircleOutlined []
+            [ AntIcons.questionCircleFilled []
             , div [ id "welcome-step-6", class "tour-step" ]
                 [ text "Click to see Help Menu"
                 , div [ class "arrow" ] [ text "◀" ]
@@ -1028,11 +1028,7 @@ viewShortcuts msgs lang isOpen isMac children textCursorInfo vs =
             span [] [ pre [ class "formatting-text" ] [ text markup ] ]
 
         ctrlOrCmd =
-            if isMac then
-                "⌘"
-
-            else
-                "Ctrl"
+            ctrlOrCmdText isMac
     in
     if isOpen then
         let

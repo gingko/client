@@ -49,6 +49,7 @@ import RandomId
 import Regex
 import Route
 import Session exposing (Session)
+import SharedUI exposing (ctrlOrCmdText)
 import Svg exposing (circle, mask, rect, svg)
 import Svg.Attributes exposing (cx, cy, height, preserveAspectRatio, r, rx, ry, viewBox, width, x, y)
 import Task
@@ -3382,11 +3383,7 @@ viewCardEditing : Language -> String -> String -> Bool -> Bool -> Html Msg
 viewCardEditing lang cardId content isParent isMac =
     let
         ctrlOrCmd =
-            if isMac then
-                "⌘"
-
-            else
-                "Ctrl"
+            ctrlOrCmdText isMac
     in
     div
         [ id ("card-" ++ cardId)
@@ -3634,7 +3631,7 @@ viewModal language model =
                 }
 
         HelpScreen ->
-            HelpScreen.view { closeModal = ModalClosed, showVideoTutorials = VideoViewerOpened, contactSupport = ClickedEmailSupport }
+            HelpScreen.view (Session.isMac model.session) { closeModal = ModalClosed, showVideoTutorials = VideoViewerOpened, contactSupport = ClickedEmailSupport }
 
         VideoViewer videoViewerState ->
             VideoViewer.view language ModalClosed VideoViewerMsg videoViewerState

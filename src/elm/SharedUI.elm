@@ -1,4 +1,4 @@
-module SharedUI exposing (modalWrapper)
+module SharedUI exposing (ctrlOrCmdText, modalWrapper)
 
 import Ant.Icons.Svg as Icons
 import Html exposing (Html, a, button, div, h1, h2, text)
@@ -34,3 +34,12 @@ modalWrapper closeMsg id_ classList_ titleString body =
         , div ([ class "modal-guts" ] ++ idAttr) body
         ]
     ]
+
+
+ctrlOrCmdText : Bool -> String
+ctrlOrCmdText isMac =
+    if isMac then
+        "⌘"
+
+    else
+        "Ctrl"

@@ -1117,16 +1117,38 @@ input.has-error {
   display: block;
   position: unset;
   transform: unset;
-  max-width: 800px;
+  max-width: 1200px;
+  width: 100%;
   background: white;
   box-shadow: 0 0 60px 10px rgba(0, 0, 0, 0.9);
   border-radius: 6px;
 }
 .help-modal .modal-guts {
   max-height: 70vh;
+  background-color: hsl(199deg 100% 98%);
+}
+#shortcut-modes-wrapper {
+  font-size: 0.85rem;
+  display: flex;
+  justify-content: space-evenly;
+  gap: 24px;
+}
+.shortcut-table-wrapper {
+  background-color: white;
+  border-radius: 4px;
+  border: 1px solid lightgray;
+  overflow: hidden;
+  margin-bottom: 24px;
 }
 .shortcut-table {
-  border: 1px solid lightgray;
+  line-height: 2.75;
+  border-collapse: collapse;
+  width: 100%;
+}
+.shortcut-row .shortcut-key {
+  margin: 0;
+  padding: 2px 4px;
+  height: unset;
 }
 .shortcut-table-title {
   background-color: lightgray;
@@ -1135,10 +1157,17 @@ input.has-error {
   font-weight: bold;
 }
 .shortcut-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 4px;
+  cursor: default;
+  border: 1px solid hsl(0deg 0% 95%);
+}
+.shortcut-row:hover {
+  background-color: hsl(199deg 95% 95%);
+}
+.shortcut-row td:first-child {
+  padding-left: 16px;
+}
+.shortcut-row td:last-child {
+  padding-right: 16px;
 }
 .modal-buttons {
   display: flex;
