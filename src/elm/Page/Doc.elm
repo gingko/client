@@ -10,6 +10,7 @@ import Doc.Data as Data
 import Doc.Data.Conflict exposing (Selection)
 import Doc.Fonts as Fonts
 import Doc.Fullscreen as Fullscreen
+import Doc.HelpScreen as HelpScreen
 import Doc.List as DocList exposing (Model(..))
 import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.Switcher
@@ -48,6 +49,7 @@ import RandomId
 import Regex
 import Route
 import Session exposing (Session)
+import SharedUI exposing (ctrlOrCmdText)
 import Svg exposing (circle, mask, rect, svg)
 import Svg.Attributes exposing (cx, cy, height, preserveAspectRatio, r, rx, ry, viewBox, width, x, y)
 import Task
@@ -106,6 +108,7 @@ type ModalState
     | FileSwitcher Doc.Switcher.Model
     | SidebarContextMenu String ( Float, Float )
     | TemplateSelector
+    | HelpScreen
     | VideoViewer VideoViewer.Model
     | Wordcount
     | ImportModal ImportModal.Model
@@ -689,29 +692,7 @@ update msg ({ workingTree } as model) =
             ( { model | session = newUser }, Route.pushUrl (Session.navKey newUser) Route.Login )
 
         ToggledHelpMenu isOpen ->
-            let
-                ( newDropdownState, newSidebarState ) =
-                    if isOpen then
-                        ( Help, SidebarClosed )
-
-                    else
-                        ( NoSidebarMenu, model.sidebarState )
-
-                newTourStep =
-                    if model.tourStep == Just 6 then
-                        Just 7
-
-                    else
-                        model.tourStep
-            in
-            ( { model
-                | sidebarMenuState = newDropdownState
-                , sidebarState = newSidebarState
-                , tooltip = Nothing
-                , tourStep = newTourStep
-              }
-            , Cmd.none
-            )
+            ( { model | modalState = HelpScreen }, Cmd.none )
 
         LanguageMenuRequested elId_ ->
             case ( elId_, model.sidebarMenuState ) of
@@ -899,15 +880,15 @@ update msg ({ workingTree } as model) =
             ( { model | modalState = Wordcount, headerMenu = NoHeaderMenu }, Cmd.none )
 
         ModalClosed ->
-            let
-                newTourStep =
-                    if model.tourStep == Just -1 then
-                        Just 6
+            case model.modalState of
+                VideoViewer _ ->
+                    ( { model | modalState = HelpScreen }, Cmd.none )
 
-                    else
-                        model.tourStep
-            in
-            ( { model | modalState = NoModal, tourStep = newTourStep }, Cmd.none )
+                ContactForm _ ->
+                    ( { model | modalState = HelpScreen }, Cmd.none )
+
+                _ ->
+                    ( { model | modalState = NoModal }, Cmd.none )
 
         ImportBulkClicked ->
             ( { model | modalState = ImportModal (ImportModal.init model.session) }, Cmd.none )
@@ -1760,6 +1741,17 @@ update msg ({ workingTree } as model) =
 
                                 ( Normal, Wordcount ) ->
                                     ( { model | modalState = NoModal }, Cmd.none )
+
+                                _ ->
+                                    ( model, Cmd.none )
+
+                        "?" ->
+                            case ( vs.viewMode, model.modalState ) of
+                                ( Normal, HelpScreen ) ->
+                                    ( { model | modalState = NoModal }, Cmd.none )
+
+                                ( Normal, _ ) ->
+                                    ( { model | modalState = HelpScreen }, Cmd.none )
 
                                 _ ->
                                     ( model, Cmd.none )
@@ -3009,7 +3001,7 @@ viewLoaded model =
                         , tooltipRequested = TooltipRequested
                         , tooltipClosed = TooltipClosed
                         , clickedSwitcher = SwitcherOpened
-                        , clickedHelp = ToggledHelpMenu (not (model.sidebarMenuState == Help))
+                        , clickedHelp = ToggledHelpMenu True
                         , toggledShortcuts = ShortcutTrayToggle
                         , clickedEmailSupport = ClickedEmailSupport
                         , clickedShowVideos = ClickedShowVideos
@@ -3091,7 +3083,6 @@ viewLoaded model =
                             model.workingTree.tree.children
                             model.textCursorInfo
                             model.viewState
-                        ++ WelcomeChecklist.view (WelcomeChecklistDone True) model.welcomeChecklist
                         ++ [ viewSearchField SearchFieldUpdated model
                            , viewMobileButtons
                                 { edit = mobileBtnMsg "mod+enter"
@@ -3407,11 +3398,7 @@ viewCardEditing : Language -> String -> String -> Bool -> Bool -> Html Msg
 viewCardEditing lang cardId content isParent isMac =
     let
         ctrlOrCmd =
-            if isMac then
-                "⌘"
-
-            else
-                "Ctrl"
+            ctrlOrCmdText isMac
     in
     div
         [ id ("card-" ++ cardId)
@@ -3657,6 +3644,9 @@ viewModal language model =
                 , importOpmlRequested = ImportOpmlRequested
                 , importJSONRequested = ImportJSONRequested
                 }
+
+        HelpScreen ->
+            HelpScreen.view (Session.isMac model.session) { closeModal = ModalClosed, showVideoTutorials = VideoViewerOpened, contactSupport = ClickedEmailSupport }
 
         VideoViewer videoViewerState ->
             VideoViewer.view language ModalClosed VideoViewerMsg videoViewerState

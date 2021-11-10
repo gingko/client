@@ -6,6 +6,7 @@ import Html.Attributes exposing (class, classList, height, id, style, title, wid
 import Html.Events exposing (onClick)
 import Html.Extra exposing (viewIf)
 import Session exposing (Session)
+import SharedUI exposing (ctrlOrCmdText)
 
 
 
@@ -119,11 +120,7 @@ view skipMsg model =
         Just state ->
             let
                 ctrlOrCmd =
-                    if state.isMac then
-                        "⌘"
-
-                    else
-                        "Ctrl"
+                    ctrlOrCmdText state.isMac
 
                 fractionText =
                     progressSteps state

@@ -1088,6 +1088,19 @@ input.has-error {
   border-radius: 0 6px 6px 0;
 }
 
+.max-width-grid {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  right: 0;
+  z-index: 21;
+  padding: 16px;
+  justify-content: center;
+  align-items: center;
+}
 .modal {
   position: fixed;
   display: grid;
@@ -1099,6 +1112,113 @@ input.has-error {
   background: white;
   box-shadow: 0 0 60px 10px rgba(0, 0, 0, 0.9);
   border-radius: 6px;
+}
+.help-modal {
+  display: block;
+  position: unset;
+  transform: unset;
+  max-width: 1200px;
+  width: 100%;
+  background: white;
+  box-shadow: 0 0 60px 10px rgba(0, 0, 0, 0.9);
+  border-radius: 6px;
+}
+.help-modal .modal-guts {
+  max-height: 70vh;
+  background-color: hsl(202deg 62% 92%);
+}
+#shortcut-main-title {
+  text-align: center;
+  margin-bottom: 24px;
+}
+#shortcut-modes-wrapper {
+  font-size: 0.85rem;
+  display: flex;
+  justify-content: space-evenly;
+  gap: 24px;
+}
+#mode-divider {
+  border-left: 1px solid gray;
+}
+#view-mode-shortcuts-title, #edit-mode-shortcuts-title   {
+  padding: 16px 24px;
+  margin-bottom: 24px;
+  box-shadow: 0px 1px 3px gray;
+}
+#view-mode-shortcuts-title {
+  border-radius: 3px;
+  position: relative;
+  background-color: var(--tree-bg-2);
+  background: var(--active-bg);
+  color: var(--normal-text-color);
+  border: none;
+  border-left: 4px solid var(--selection-color);
+}
+#edit-mode-shortcuts-title {
+  border: var(--edit-border);
+  border-radius: 3px;
+  background: var(--edit-bg, url('./handmadepaper.png'));
+  font-family: "Roboto Mono", monospace;
+  font-weight: normal;
+  color: hsl(27,28%,22%);
+  text-shadow: -1px -1px 0px rgba(0,0,0,0.1), 1px 1px 0px rgba(255,255,255,0.8);
+}
+.shortcut-table-wrapper {
+  margin-bottom: 24px;
+}
+.shortcut-table {
+  line-height: 2.75;
+  width: 100%;
+  border-spacing: 0;
+  border: 1px solid hsl(201, 24%, 64%);
+  border-radius: 4px;
+  background-color: white;
+  overflow: hidden;
+  box-shadow: 0px 1px 3px gray;
+}
+.shortcut-row .shortcut-key {
+  margin: 0 4px 0 0;
+  padding: 2px 4px;
+  height: unset;
+}
+.shortcut-key.drag-command {
+  cursor: move;
+  background-color: white;
+  box-shadow: none;
+}
+.shortcut-table-title {
+  text-align: center;
+}
+.shortcut-row {
+  cursor: default;
+}
+.shortcut-row td {
+  border-bottom: 1px solid hsl(0deg 0% 95%);
+}
+.shortcut-row:hover {
+  background-color: hsl(199deg 95% 95%);
+}
+.shortcut-row td:first-child {
+  padding-left: 16px;
+}
+.shortcut-row td:last-child {
+  padding-right: 16px;
+}
+.modal-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  padding: 16px;
+  border-top: 1px solid lightgray;
+}
+.modal-buttons div, .modal-buttons a {
+  font-size: 1.2rem;
+  background-color: hsla(86deg 54% 51% / 0.5);
+  padding: 16px 24px;
+  border-radius: 4px;
+  border: 2px solid hsl(86deg 54% 51%);
+  color: hsl(86deg 54% 25%);
+  cursor: pointer;
 }
 .modal-overlay {
   position: fixed;
@@ -1117,6 +1237,7 @@ input.has-error {
   cursor: pointer;
 }
 .modal-header {
+  position: relative;
   padding: 8px 16px;
   border-bottom: 1px solid lightgray;
 }
