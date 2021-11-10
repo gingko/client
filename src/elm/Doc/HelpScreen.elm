@@ -45,7 +45,7 @@ view isMac msg =
                     [ text "FAQ"
                     , Icons.linkOutlined [ width 16, height 16, style "margin-left" "4px", style "margin-top" "2px", style "fill" "hsl(86deg 54% 25%)" ]
                     ]
-                , div [ onClick msg.contactSupport ] [ text "Contact Support" ]
+                , div [ id "email-support", onClick msg.contactSupport ] [ text "Contact Support" ]
                 ]
             ]
         ]

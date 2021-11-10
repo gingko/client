@@ -49,12 +49,10 @@ describe('User Signup Flow', () => {
     cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
     cy.contains('Welcome to this example Gingko tree')
 
-    // Has working Welcome checklist
-    cy.get('#welcome-checklist-container').should('be.visible')
-
     // Logs Out Correctly
     cy.intercept('/logout').as('logoutRequest')
     cy.get('#account-icon').click()
+    cy.get('#account-menu')
     cy.get('#logout-button').click()
     cy.wait('@logoutRequest')
     cy.getCookie('AuthSession').should('have.property', 'value', '')

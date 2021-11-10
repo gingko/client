@@ -31,11 +31,6 @@ describe('Welcome Tree & Templates', () => {
       .should('exist')
       .should('contain', 'Welcome to this example Gingko tree')
 
-    cy.get('#welcome-checklist-container')
-      .should('be.visible')
-      .find('ul li')
-      .should('not.have.class', 'done')
-
 
     // Should bring up the Template Selector on clicking "New"
     cy.get('#new-icon').click()

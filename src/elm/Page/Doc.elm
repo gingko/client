@@ -18,7 +18,6 @@ import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Doc.UI as UI exposing (countWords, viewConflict, viewMobileButtons, viewSearchField)
 import Doc.VideoViewer as VideoViewer
-import Doc.WelcomeChecklist as WelcomeChecklist exposing (Msg(..))
 import File exposing (File)
 import File.Download as Download
 import File.Select as Select
@@ -42,7 +41,7 @@ import Markdown
 import Outgoing exposing (Msg(..), send)
 import Page.Doc.Export as Export exposing (ExportFormat(..), ExportSelection(..), exportView, exportViewError)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
-import Page.Doc.Theme as Theme exposing (Theme(..), applyTheme, setTourStep)
+import Page.Doc.Theme as Theme exposing (Theme(..), applyTheme)
 import Process
 import Random
 import RandomId
@@ -90,8 +89,6 @@ type alias Model =
     , headerMenu : HeaderMenuState
     , exportSettings : ( ExportSelection, ExportFormat )
     , wordcountTrayOpen : Bool
-    , welcomeChecklist : WelcomeChecklist.Model
-    , tourStep : Maybe Int
     , tooltip : Maybe ( Element, TooltipPosition, String )
     , fontSelectorOpen : Bool
 
@@ -164,8 +161,6 @@ defaultModel isNew session docId =
     , headerMenu = NoHeaderMenu
     , exportSettings = ( ExportEverything, DOCX )
     , wordcountTrayOpen = False
-    , welcomeChecklist = WelcomeChecklist.init session
-    , tourStep = Nothing
     , tooltip = Nothing
     , fontSelectorOpen = False
     , fonts = Fonts.default
@@ -278,8 +273,6 @@ type Msg
       -- HELP
     | ClickedShowVideos
     | ClickedEmailSupport
-    | WelcomeChecklistDone Bool
-    | TourStep (Maybe Int)
     | ContactFormMsg ContactForm.Model ContactForm.Msg
     | CopyEmailClicked Bool
     | ContactFormSubmitted ContactForm.Model
@@ -336,7 +329,6 @@ update msg ({ workingTree } as model) =
             )
                 |> saveCardIfEditing
                 |> activate id False
-                |> checklistEvent NavigatedWithMouse
 
         SearchFieldUpdated inputField ->
             let
@@ -523,7 +515,6 @@ update msg ({ workingTree } as model) =
                             in
                             ( { modelDragUpdated | viewState = { vs | draggedTree = Nothing }, dirty = True }, Cmd.batch [ send <| SetDirty True, send <| DragDone ] )
                                 |> moveOperation
-                                |> checklistEvent DraggedCard
 
                         Nothing ->
                             ( modelDragUpdated, Cmd.none )
@@ -790,18 +781,6 @@ update msg ({ workingTree } as model) =
             , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "contact-body")
             )
 
-        WelcomeChecklistDone saveNeeded ->
-            ( { model | welcomeChecklist = Nothing }
-            , if saveNeeded then
-                send <| SaveUserSetting ( "welcomeChecklist", Enc.bool False )
-
-              else
-                Cmd.none
-            )
-
-        TourStep step_ ->
-            ( { model | tourStep = step_ }, Cmd.none )
-
         ContactFormMsg formModel formMsg ->
             ( { model | modalState = ContactForm (ContactForm.update formMsg formModel) }, Cmd.none )
 
@@ -854,15 +833,7 @@ update msg ({ workingTree } as model) =
             )
 
         TemplateSelectorOpened ->
-            let
-                newTourStep =
-                    if model.tourStep == Just 7 then
-                        Nothing
-
-                    else
-                        model.tourStep
-            in
-            ( { model | modalState = TemplateSelector, tourStep = newTourStep }, Cmd.none )
+            ( { model | modalState = TemplateSelector }, Cmd.none )
 
         VideoViewerOpened ->
             ( { model | modalState = VideoViewer VideoViewer.init }, Cmd.none )
@@ -1437,7 +1408,7 @@ update msg ({ workingTree } as model) =
 
                 -- === UI ===
                 StartTour ->
-                    ( { model | modalState = VideoViewer VideoViewer.init, tourStep = Just -1 }, Cmd.none )
+                    ( { model | modalState = VideoViewer VideoViewer.init }, Cmd.none )
 
                 FontSelectorOpen fonts ->
                     ( { model | fonts = Fonts.setSystem fonts model.fonts, fontSelectorOpen = True }
@@ -1462,11 +1433,9 @@ update msg ({ workingTree } as model) =
 
                         "mod+enter" ->
                             saveAndStopEditing model
-                                |> checklistEvent SaveWithKeyboard
 
                         "mod+s" ->
                             saveCardIfEditing ( model, Cmd.none )
-                                |> checklistEvent SaveWithKeyboard
 
                         "enter" ->
                             case model.modalState of
@@ -1480,7 +1449,6 @@ update msg ({ workingTree } as model) =
 
                                 _ ->
                                     normalMode model (openCard vs.active (getContent vs.active model.workingTree.tree))
-                                        |> checklistEvent EditedWithKeyboard
 
                         "mod+backspace" ->
                             normalMode model (deleteCard vs.active)
@@ -1500,7 +1468,6 @@ update msg ({ workingTree } as model) =
                         "mod+j" ->
                             if model.viewState.viewMode == Normal then
                                 insertBelow vs.active "" ( model, Cmd.none )
-                                    |> checklistEvent CreateWithKeyboard
 
                             else
                                 let
@@ -1516,12 +1483,10 @@ update msg ({ workingTree } as model) =
 
                         "mod+down" ->
                             normalMode model (insertBelow vs.active "")
-                                |> checklistEvent CreateWithKeyboard
 
                         "mod+k" ->
                             if model.viewState.viewMode == Normal then
                                 insertAbove vs.active "" ( model, Cmd.none )
-                                    |> checklistEvent CreateWithKeyboard
 
                             else
                                 let
@@ -1536,7 +1501,6 @@ update msg ({ workingTree } as model) =
 
                         "mod+up" ->
                             normalMode model (insertAbove vs.active "")
-                                |> checklistEvent CreateWithKeyboard
 
                         "mod+l" ->
                             let
@@ -1549,11 +1513,9 @@ update msg ({ workingTree } as model) =
                                 |> saveCardIfEditing
                                 |> insertChild vs.active afterText
                                 |> setCursorPosition 0
-                                |> checklistEvent CreateChildWithKeyboard
 
                         "mod+right" ->
                             normalMode model (insertChild vs.active "")
-                                |> checklistEvent CreateChildWithKeyboard
 
                         "mod+shift+j" ->
                             normalMode model (mergeDown vs.active)
@@ -1568,13 +1530,13 @@ update msg ({ workingTree } as model) =
                             normalMode model (mergeUp vs.active)
 
                         "h" ->
-                            normalMode model (goLeft vs.active >> checklistEvent NavigatedWithArrows)
+                            normalMode model (goLeft vs.active)
 
                         "left" ->
-                            normalMode model (goLeft vs.active >> checklistEvent NavigatedWithArrows)
+                            normalMode model (goLeft vs.active)
 
                         "j" ->
-                            normalMode model (goDown vs.active >> checklistEvent NavigatedWithArrows)
+                            normalMode model (goDown vs.active)
 
                         "down" ->
                             case model.modalState of
@@ -1583,7 +1545,6 @@ update msg ({ workingTree } as model) =
                                         Normal ->
                                             ( model, Cmd.none )
                                                 |> goDown vs.active
-                                                |> checklistEvent NavigatedWithArrows
 
                                         FullscreenEditing ->
                                             {- check if at end
@@ -1601,12 +1562,12 @@ update msg ({ workingTree } as model) =
                                     ( model, Cmd.none )
 
                         "k" ->
-                            normalMode model (goUp vs.active >> checklistEvent NavigatedWithArrows)
+                            normalMode model (goUp vs.active)
 
                         "up" ->
                             case model.modalState of
                                 NoModal ->
-                                    normalMode model (goUp vs.active >> checklistEvent NavigatedWithArrows)
+                                    normalMode model (goUp vs.active)
 
                                 FileSwitcher switcherModel ->
                                     ( { model | modalState = FileSwitcher (Doc.Switcher.up switcherModel) }, Cmd.none )
@@ -1615,42 +1576,34 @@ update msg ({ workingTree } as model) =
                                     ( model, Cmd.none )
 
                         "l" ->
-                            normalMode model (goRight vs.active >> checklistEvent NavigatedWithArrows)
+                            normalMode model (goRight vs.active)
 
                         "right" ->
-                            normalMode model (goRight vs.active >> checklistEvent NavigatedWithArrows)
+                            normalMode model (goRight vs.active)
 
                         "alt+up" ->
                             normalMode model (moveWithin vs.active -1)
-                                |> checklistEvent DraggedCard
 
                         "alt+k" ->
                             normalMode model (moveWithin vs.active -1)
-                                |> checklistEvent DraggedCard
 
                         "alt+down" ->
                             normalMode model (moveWithin vs.active 1)
-                                |> checklistEvent DraggedCard
 
                         "alt+j" ->
                             normalMode model (moveWithin vs.active 1)
-                                |> checklistEvent DraggedCard
 
                         "alt+left" ->
                             normalMode model (moveLeft vs.active)
-                                |> checklistEvent DraggedCard
 
                         "alt+h" ->
                             normalMode model (moveLeft vs.active)
-                                |> checklistEvent DraggedCard
 
                         "alt+right" ->
                             normalMode model (moveRight vs.active)
-                                |> checklistEvent DraggedCard
 
                         "alt+l" ->
                             normalMode model (moveRight vs.active)
-                                |> checklistEvent DraggedCard
 
                         "alt+shift+up" ->
                             normalMode model (moveWithin vs.active -5)
@@ -1872,13 +1825,6 @@ activate tryId instant ( model, prevCmd ) =
                     newField =
                         activeTree.content
 
-                    ( newTourStep, tourPositionCmd ) =
-                        if model.tourStep == Just 1 && String.contains "Clicking a card selects it." activeTree.content then
-                            ( Just 2, send <| PositionTourStep 2 "another-card" )
-
-                        else
-                            ( model.tourStep, Cmd.none )
-
                     newModel =
                         { model
                             | viewState =
@@ -1889,7 +1835,6 @@ activate tryId instant ( model, prevCmd ) =
                                     , ancestors = anc
                                 }
                             , field = newField
-                            , tourStep = newTourStep
                         }
                 in
                 case vs.viewMode of
@@ -1911,7 +1856,6 @@ activate tryId instant ( model, prevCmd ) =
                             [ prevCmd
                             , send
                                 (ScrollCards (id :: newPast) scrollPositions colIdx instant)
-                            , tourPositionCmd
                             ]
                         )
                             |> sendCollabState (CollabState model.uid (CollabActive id) "")
@@ -2015,24 +1959,13 @@ saveAndStopEditing model =
     let
         vs =
             model.viewState
-
-        ( newTourStep, tourStepPositionCmd ) =
-            case model.tourStep of
-                Just 4 ->
-                    ( Just 5, send <| PositionTourStep 5 "another-card" )
-
-                Just 5 ->
-                    ( Just 6, Cmd.none )
-
-                _ ->
-                    ( model.tourStep, Cmd.none )
     in
     case vs.viewMode of
         Normal ->
             ( model, Cmd.none ) |> openCard vs.active (getContent vs.active model.workingTree.tree)
 
         Editing ->
-            ( { model | tourStep = newTourStep }, tourStepPositionCmd )
+            ( model, Cmd.none )
                 |> saveCardIfEditing
                 |> closeCard
 
@@ -2390,30 +2323,12 @@ insertAbove id initText tup =
 
 insertBelow : String -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 insertBelow id initText ( model, prevCmd ) =
-    let
-        newTourStep =
-            case model.tourStep of
-                Just 3 ->
-                    Just 4
-
-                _ ->
-                    model.tourStep
-    in
-    insertRelative id 1 initText ( { model | tourStep = newTourStep }, prevCmd )
+    insertRelative id 1 initText ( model, prevCmd )
 
 
 insertChild : String -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 insertChild id initText ( model, prevCmd ) =
-    let
-        newTourStep =
-            case model.tourStep of
-                Just 2 ->
-                    Just 3
-
-                _ ->
-                    model.tourStep
-    in
-    ( { model | tourStep = newTourStep }
+    ( model
     , prevCmd
     )
         |> insert id 999999 initText
@@ -2486,18 +2401,8 @@ setCursorPosition pos ( model, prevCmd ) =
 
 move : Tree -> String -> Int -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 move subtree pid pos ( model, prevCmd ) =
-    let
-        newTourStep =
-            case model.tourStep of
-                Just 5 ->
-                    Just 6
-
-                _ ->
-                    model.tourStep
-    in
     ( { model
         | workingTree = TreeStructure.update (TreeStructure.Mov subtree pid pos) model.workingTree
-        , tourStep = newTourStep
       }
     , prevCmd
     )
@@ -2693,31 +2598,6 @@ pasteInto id copiedTree ( model, prevCmd ) =
 
 
 -- === Welcome Checklist  ===
-
-
-checklistEvent : WelcomeChecklist.Msg -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-checklistEvent msg ( model, prevCmd ) =
-    let
-        ( newChecklistState, shouldEnd ) =
-            WelcomeChecklist.update msg model.welcomeChecklist
-    in
-    if shouldEnd then
-        ( { model
-            | welcomeChecklist = newChecklistState
-            , session = Session.setWelcomeChecklist False model.session
-          }
-        , Cmd.batch
-            [ Process.sleep 4000 |> Task.perform (\_ -> WelcomeChecklistDone False)
-            , send <| SaveUserSetting ( "welcomeChecklist", Enc.bool False )
-            , prevCmd
-            ]
-        )
-
-    else
-        ( { model | welcomeChecklist = newChecklistState }, prevCmd )
-
-
-
 -- === History ===
 
 
@@ -2962,7 +2842,7 @@ viewLoaded model =
                                 []
                 in
                 div
-                    [ id "app-root", applyTheme model.theme, setTourStep model.tourStep ]
+                    [ id "app-root", applyTheme model.theme ]
                     ([ lazy4 treeView (Session.language model.session) (Session.isMac model.session) model.viewState model.workingTree
                      , UI.viewHeader
                         { noOp = NoOp
@@ -3028,51 +2908,6 @@ viewLoaded model =
                         )
                         model.sidebarMenuState
                         model.sidebarState
-                     , viewIf (model.tourStep == Just 1) <|
-                        div [ id "welcome-step-1", class "tour-step", class "shimmer" ]
-                            [ text "1. Click Here"
-                            , div [ class "arrow" ] [ text "⬇" ]
-                            , div [ id "progress-step-1", class "tour-step-progress" ]
-                                [ div [ class "bg-line", class "off" ] []
-                                , div [ class "on" ] []
-                                , div [] []
-                                , div [] []
-                                , div [] []
-                                , div [] []
-                                , div [] []
-                                , div [] []
-                                ]
-                            ]
-                     , viewIf (model.tourStep == Just 2) <|
-                        div [ id "welcome-step-2", class "tour-step", class "shimmer" ]
-                            [ text "Click here to add a Child card"
-                            , div [ class "arrow" ] [ text "▶" ]
-                            , div [ id "progress-step-2", class "tour-step-progress" ]
-                                [ div [ class "bg-line", class "off" ] []
-                                , div [ class "on" ] []
-                                , div [ class "on" ] []
-                                , div [] []
-                                , div [] []
-                                , div [] []
-                                , div [] []
-                                , div [] []
-                                ]
-                            ]
-                     , viewIf (model.tourStep == Just 5 && DragDrop.getDragId (Tuple.first model.viewState.dragModel) == Nothing) <|
-                        div [ id "welcome-step-5", class "tour-step", class "shimmer" ]
-                            [ text "Drag a card to move it"
-                            , div [ class "arrow" ] [ text "▼" ]
-                            , div [ id "progress-step-5", class "tour-step-progress" ]
-                                [ div [ class "bg-line", class "off" ] []
-                                , div [ class "on" ] []
-                                , div [ class "on" ] []
-                                , div [ class "on" ] []
-                                , div [ class "on" ] []
-                                , div [ class "on" ] []
-                                , div [] []
-                                , div [] []
-                                ]
-                            ]
                      , maybeExportView
                      ]
                         ++ UI.viewShortcuts

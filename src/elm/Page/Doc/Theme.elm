@@ -1,4 +1,4 @@
-module Page.Doc.Theme exposing (Theme(..), applyTheme, decoder, setTourStep, toValue)
+module Page.Doc.Theme exposing (Theme(..), applyTheme, decoder, toValue)
 
 import Html
 import Html.Attributes exposing (class)
@@ -35,16 +35,6 @@ applyTheme theme =
 
         Dark ->
             class "dark-theme"
-
-
-setTourStep : Maybe Int -> Html.Attribute msg
-setTourStep step_ =
-    case step_ of
-        Nothing ->
-            class ""
-
-        Just step ->
-            class ("step-" ++ String.fromInt step)
 
 
 toValue : Theme -> Enc.Value
