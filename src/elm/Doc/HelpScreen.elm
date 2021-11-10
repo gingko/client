@@ -93,9 +93,9 @@ normalAdvancedShortcuts ctrlOrCmd =
 
 normalCopyShortcuts : String -> List (Html msg)
 normalCopyShortcuts ctrlOrCmd =
-    [ shortcutRow "Copy current subtree" [ key ctrlOrCmd, text "C" ]
-    , shortcutRow "Paste subtree below current card" [ key ctrlOrCmd, text "V" ]
-    , shortcutRow "Paste subtree as child of current card" [ key ctrlOrCmd, key "Shift", text "V" ]
+    [ shortcutRow "Copy current subtree" [ key ctrlOrCmd, key "C" ]
+    , shortcutRow "Paste subtree below current card" [ key ctrlOrCmd, key "V" ]
+    , shortcutRow "Paste subtree as child of current card" [ key ctrlOrCmd, key "Shift", key "V" ]
     , shortcutRow "Insert selected text as new card" [ dragCommand "Drag selected text into tree" ]
     ]
 
