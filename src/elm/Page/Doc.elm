@@ -1741,6 +1741,17 @@ update msg ({ workingTree } as model) =
                                 _ ->
                                     ( model, Cmd.none )
 
+                        "?" ->
+                            case ( vs.viewMode, model.modalState ) of
+                                ( Normal, HelpScreen ) ->
+                                    ( { model | modalState = NoModal }, Cmd.none )
+
+                                ( Normal, _ ) ->
+                                    ( { model | modalState = HelpScreen }, Cmd.none )
+
+                                _ ->
+                                    ( model, Cmd.none )
+
                         _ ->
                             ( model
                             , Cmd.none

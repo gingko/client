@@ -1,7 +1,7 @@
 module Doc.HelpScreen exposing (view)
 
 import Ant.Icons.Svg as Icons
-import Html exposing (Html, a, button, div, h2, h3, kbd, li, span, table, td, text, th, thead, tr, ul)
+import Html exposing (Html, a, button, div, h2, h3, h4, kbd, li, span, table, td, text, th, thead, tr, ul)
 import Html.Attributes exposing (class, colspan, height, href, id, style, target, width)
 import Html.Events exposing (onClick)
 import SharedUI exposing (ctrlOrCmdText)
@@ -21,15 +21,19 @@ view isMac msg =
                 , div [ class "close-button", onClick msg.closeModal ] [ Icons.closeCircleOutlined [ width 20, height 20 ] ]
                 ]
             , div [ class "modal-guts" ]
-                [ h2 [ style "text-align" "center" ] [ text "Keyboard Shortcuts" ]
+                [ h2 [ id "shortcut-main-title" ] [ text "Keyboard Shortcuts" ]
                 , div [ id "shortcut-modes-wrapper" ]
                     [ div []
-                        [ h3 [] [ text "Viewing Mode :" ]
+                        [ h3 [ id "view-mode-shortcuts-title" ] [ text "View Mode Shortcuts :" ]
                         , shortcutTable "Card Edit, Create, Delete" (normalEditShortcuts ctrlOrCmd)
                         , shortcutTable "Navigation, Moving Cards" (normalNavigationShortcuts ctrlOrCmd)
+                        , shortcutTable "Copy/Paste" (normalCopyShortcuts ctrlOrCmd)
+                        , shortcutTable "Searching, Merging Cards" (normalAdvancedShortcuts ctrlOrCmd)
+                        , shortcutTable "Help, Info, Documents" (normalOtherShortcuts ctrlOrCmd)
                         ]
+                    , div [ id "mode-divider" ] []
                     , div []
-                        [ h3 [] [ text "Editing Mode :" ]
+                        [ h3 [ id "edit-mode-shortcuts-title" ] [ text "Edit Mode Shortcuts :" ]
                         , shortcutTable "Card Save, Create" (editSaveShortcuts ctrlOrCmd)
                         , shortcutTable "Formatting" (editFormatShortcuts ctrlOrCmd)
                         ]
@@ -51,11 +55,8 @@ view isMac msg =
 shortcutTable : String -> List (Html msg) -> Html msg
 shortcutTable tableTitle tableRows =
     div [ class "shortcut-table-wrapper" ]
-        [ table [ class "shortcut-table" ]
-            ([ thead [ class "shortcut-table-title" ] [ td [ colspan 2 ] [ text tableTitle ] ]
-             ]
-                ++ tableRows
-            )
+        [ h4 [ class "shortcut-table-title" ] [ text tableTitle ]
+        , table [ class "shortcut-table" ] tableRows
         ]
 
 
@@ -77,7 +78,33 @@ normalNavigationShortcuts ctrlOrCmd =
     , shortcutRow "Go to end of group" [ key "PageDown" ]
     , shortcutRow "Go to beginning of column" [ key "Home" ]
     , shortcutRow "Go to end of column" [ key "End" ]
-    , shortcutRow "Move current card (and children)" [ key "Alt", key "(any of the above)" ]
+    , shortcutRow "Move current card (and children)" [ key "Alt", key "(any of above)", text " or ", dragCommand "Drag card by left edge" ]
+    ]
+
+
+normalAdvancedShortcuts : String -> List (Html msg)
+normalAdvancedShortcuts ctrlOrCmd =
+    [ shortcutRow "Search" [ key "/" ]
+    , shortcutRow "Clear search, focus current card" [ key "Esc" ]
+    , shortcutRow "Merge card up" [ key ctrlOrCmd, key "Shift", key "↑", text " or ", key ctrlOrCmd, key "Shift", key "J" ]
+    , shortcutRow "Merge card down" [ key ctrlOrCmd, key "Shift", key "↓", text " or ", key ctrlOrCmd, key "Shift", key "K" ]
+    ]
+
+
+normalCopyShortcuts : String -> List (Html msg)
+normalCopyShortcuts ctrlOrCmd =
+    [ shortcutRow "Copy current subtree" [ key ctrlOrCmd, text "C" ]
+    , shortcutRow "Paste subtree below current card" [ key ctrlOrCmd, text "V" ]
+    , shortcutRow "Paste subtree as child of current card" [ key ctrlOrCmd, key "Shift", text "V" ]
+    , shortcutRow "Insert selected text as new card" [ dragCommand "Drag selected text into tree" ]
+    ]
+
+
+normalOtherShortcuts : String -> List (Html msg)
+normalOtherShortcuts ctrlOrCmd =
+    [ shortcutRow "Word counts" [ key "W" ]
+    , shortcutRow "Switch to different document" [ key ctrlOrCmd, key "O" ]
+    , shortcutRow "This help screen" [ key "?" ]
     ]
 
 
@@ -96,6 +123,7 @@ editFormatShortcuts : String -> List (Html msg)
 editFormatShortcuts ctrlOrCmd =
     [ shortcutRow "Bold selection" [ key ctrlOrCmd, key "B" ]
     , shortcutRow "Italicize selection" [ key ctrlOrCmd, key "I" ]
+    , shortcutRow "Set title level (# to #####)" [ key "Alt", key "1", text " ... ", key "6" ]
     ]
 
 
@@ -107,3 +135,8 @@ shortcutRow desc keys =
 key : String -> Html msg
 key str =
     span [ class "shortcut-key" ] [ text str ]
+
+
+dragCommand : String -> Html msg
+dragCommand str =
+    span [ class "shortcut-key", class "drag-command" ] [ text str ]

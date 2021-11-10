@@ -293,6 +293,7 @@ var shortcuts = [
   "pagedown",
   "/",
   "w",
+  "?",
 ];
 
 var needOverride = [

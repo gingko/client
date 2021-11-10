@@ -690,7 +690,7 @@ viewSidebarStatic sidebarOpen =
         , div [ id "document-switcher-icon", class "sidebar-button", class "disabled" ] [ AntIcons.fileSearchOutlined [] ]
         , div
             [ id "help-icon", class "sidebar-button" ]
-            [ AntIcons.questionCircleOutlined [] ]
+            [ AntIcons.questionCircleFilled [] ]
         , div [ id "account-icon", class "sidebar-button" ] [ AntIcons.userOutlined [] ]
         ]
     ]
