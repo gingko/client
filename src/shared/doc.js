@@ -779,7 +779,9 @@ document.ondragover = document.ondrop = (ev) => {
   } else if (draggingInternal && ev.type == "drop") {
     draggingInternal = false;
   }
-  ev.preventDefault();
+  if (ev.target.className !== "edit mousetrap") {
+    ev.preventDefault();
+  }
 };
 
 
