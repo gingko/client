@@ -986,9 +986,8 @@ const observer = new MutationObserver(function (mutations) {
     });
 
     [].slice.call(m.removedNodes).map((n) => {
-      if (n.hasOwnProperty("getElementsByClassName") && n.getElementsByClassName("edit mousetrap").length != 0) {
+      if ("getElementsByClassName" in n && n.getElementsByClassName("edit mousetrap").length != 0) {
         updateFillets();
-      } else {
       }
     })
   });
