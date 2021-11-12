@@ -105,7 +105,8 @@ describe('Fullscreen Editing', () => {
     cy.getCard(2,1,2).should('contain.html', '<p>Another Child card testxyzedit</p>')
 
     // Wait for synced before proceeding
-    cy.contains('Synced', {timeout: 20000})
+    cy.contains('Saved Offline', {timeout: 30000})
+    cy.contains('Synced', {timeout: 30000})
   })
 
   it('Saved fullscreen changes correctly', function () {
