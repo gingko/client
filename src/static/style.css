@@ -1100,6 +1100,7 @@ input.has-error {
   padding: 16px;
   justify-content: center;
   align-items: center;
+  pointer-events: none;
 }
 .modal {
   position: fixed;
@@ -1122,6 +1123,7 @@ input.has-error {
   background: white;
   box-shadow: 0 0 60px 10px rgba(0, 0, 0, 0.9);
   border-radius: 6px;
+  pointer-events: all;
 }
 .help-modal .modal-guts {
   max-height: 70vh;
