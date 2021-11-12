@@ -542,6 +542,14 @@ viewSidebar session msgs currentDocument sortCriteria fileFilter docList account
                 ]
             ]
          , div
+            [ id "notifications-icon"
+            , class "sidebar-button"
+            , onClickStop <| msgs.noOp
+            , onMouseEnter <| msgs.tooltipRequested "notifications-icon" RightTooltip "What's New"
+            , onMouseLeave msgs.tooltipClosed
+            ]
+            [ AntIcons.bellOutlined [] ]
+         , div
             [ id "account-icon"
             , class "sidebar-button"
             , classList [ ( "open", accountOpen ) ]
@@ -691,6 +699,7 @@ viewSidebarStatic sidebarOpen =
         , div
             [ id "help-icon", class "sidebar-button" ]
             [ AntIcons.questionCircleFilled [] ]
+        , div [ id "notifications-icon", class "sidebar-button" ] [ AntIcons.bellOutlined [] ]
         , div [ id "account-icon", class "sidebar-button" ] [ AntIcons.userOutlined [] ]
         ]
     ]

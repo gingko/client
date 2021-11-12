@@ -164,6 +164,17 @@ async function setUserDbs(email) {
     })
 
   LogRocket.identify(email);
+
+  self.beamer_config = {
+    product_id : config.BEAMER_APPID,
+    selector: "#notifications-icon",
+    user_id: email,
+    user_email: email
+  };
+  let beamerScript = document.createElement('script');
+  beamerScript.setAttribute('src', 'https://app.getbeamer.com/js/beamer-embed.js');
+  beamerScript.setAttribute('defer','defer');
+  document.head.appendChild(beamerScript);
 }
 
 
@@ -686,6 +697,10 @@ const fromElm = (msg, elmData) => {
 
     ShowWidget: () => {
       FreshworksWidget('open');
+    },
+
+    InitBeamer: () => {
+
     },
 
     CheckoutButtonClicked: async () => {
