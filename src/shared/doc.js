@@ -766,6 +766,9 @@ document.ondragenter = (ev) => {
 };
 // Prevent default events, for file dragging.
 document.ondragover = document.ondrop = (ev) => {
+  if (ev.target.className == "edit mousetrap") {
+    return;
+  }
   if (externalDrag && ev.type == "drop") {
     externalDrag = false;
     let dropText = ev.dataTransfer.getData("text");
@@ -779,9 +782,7 @@ document.ondragover = document.ondrop = (ev) => {
   } else if (draggingInternal && ev.type == "drop") {
     draggingInternal = false;
   }
-  if (ev.target.className !== "edit mousetrap") {
-    ev.preventDefault();
-  }
+  ev.preventDefault();
 };
 
 

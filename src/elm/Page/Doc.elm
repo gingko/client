@@ -1313,7 +1313,11 @@ update msg ({ workingTree } as model) =
                         ( { model | workingTree = newTree, viewState = { vs | draggedTree = draggedTree } }, Cmd.none )
 
                 DragExternalStarted ->
-                    ( { model | viewState = { vs | dragModel = ( Tuple.first vs.dragModel, { dropId = Nothing, isDragging = True } ) } }, Cmd.none )
+                    if model.viewState.viewMode == Normal then
+                        ( { model | viewState = { vs | dragModel = ( Tuple.first vs.dragModel, { dropId = Nothing, isDragging = True } ) } }, Cmd.none )
+
+                    else
+                        ( model, Cmd.none )
 
                 DropExternal dropText ->
                     case Tuple.second vs.dragModel |> .dropId of
