@@ -501,7 +501,7 @@ input.has-error {
   grid-area: sidebar;
   display: grid;
   grid-template-columns: 40px auto;
-  grid-template-rows: 40px 15px 40px 40px 40px 1fr 40px 40px 15px;
+  grid-template-rows: 40px 15px 40px 40px 40px 1fr 40px 40px 40px 15px;
   grid-template-areas:
     "top-left top-left"
     ". ."
@@ -511,6 +511,7 @@ input.has-error {
     ". doc-list"
     "bott-row1 doc-list"
     "bott-row2 doc-list"
+    "bott-row3 doc-list"
     ". .";
   background: var(--background-sidebar);
   border-right: 1px solid var(--ui-2-border-color);
@@ -635,8 +636,11 @@ input.has-error {
 #help-icon {
   grid-area: bott-row1;
 }
-#account-icon {
+#notifications-icon {
   grid-area: bott-row2;
+}
+#account-icon {
+  grid-area: bott-row3;
 }
 
 .sidebar-menu {

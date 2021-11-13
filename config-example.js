@@ -12,6 +12,7 @@ module.exports = {
   SUPPORT_EMAIL: "some@email.com",
   SUPPORT_URGENT_EMAIL: "urgent@email.com",
   FRESHDESK_APPID: 12341234,
+  BEAMER_APPID: "myappidforbeamer",
   LOGROCKET_APPID: "asdf/app-name",
   STRIPE_PUBLIC_KEY: "pk_test_123412341234",
   PRICE_DATA :
