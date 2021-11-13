@@ -165,6 +165,17 @@ async function setUserDbs(email) {
 
   LogRocket.identify(email);
 
+  self.fwSettings={
+    'widget_id': config.FRESHDESK_APPID
+  };
+  !function(){if("function"!=typeof window.FreshworksWidget){var n=function(){n.q.push(arguments)};n.q=[],window.FreshworksWidget=n}}()
+  let freshdeskScript = document.createElement('script');
+  freshdeskScript.setAttribute('src', `https://euc-widget.freshworks.com/widgets/${config.FRESHDESK_APPID}.js`)
+  freshdeskScript.setAttribute('async','');
+  freshdeskScript.setAttribute('defer','');
+  document.head.appendChild(freshdeskScript);
+  FreshworksWidget('hide', 'launcher');
+
   self.beamer_config = {
     product_id : config.BEAMER_APPID,
     selector: "#notifications-icon",
@@ -180,7 +191,6 @@ async function setUserDbs(email) {
 
 // External Scripts
 const stripe = Stripe(config.STRIPE_PUBLIC_KEY);
-FreshworksWidget('hide', 'launcher');
 
 
 /* === Elm / JS Interop === */
