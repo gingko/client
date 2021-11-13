@@ -95,18 +95,6 @@ describe('Fullscreen Editing', () => {
 
     cy.shortcut('{esc}')
 
-    // Make sure that changes in non-fullscreen are "transferred" to fullscreen
-    // when toggled from Edit mode.
-    cy.shortcut('{enter}')
-    cy.get('textarea').type('edit')
-    cy.shortcut('{shift}{enter}')
-    cy.get('.active-fullscreen textarea').should('have.value', '# 3\nAnother Child card testxyzedit')
-    cy.shortcut('{ctrl}{enter}')
-    cy.getCard(2,1,2).should('contain.html', '<p>Another Child card testxyzedit</p>')
-
-    // Wait for synced before proceeding
-    cy.contains('Saved Offline', {timeout: 30000})
-    cy.contains('Synced', {timeout: 30000})
   })
 
   it('Saved fullscreen changes correctly', function () {
@@ -114,6 +102,6 @@ describe('Fullscreen Editing', () => {
 
     cy.getCard(1,1,1).should('contain.html', '<p>Another Test doc</p>')
     cy.getCard(2,1,1).should('contain.html', '<p>Child card<br>abclmn line</p>')
-    cy.getCard(2,1,2).should('contain.html', '<p>Another Child card testxyzedit</p>')
+    cy.getCard(2,1,2).should('contain.html', '<p>Another Child card testxyz</p>')
   })
 })

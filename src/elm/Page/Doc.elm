@@ -3553,7 +3553,7 @@ subscriptions model =
         , Session.userSettingsChange SettingsChanged
         , Session.loginChanges LoginStateChanged (Session.navKey model.session)
         , if model.dirty then
-            Time.every (19 * 1000) (always AutoSave)
+            Time.every (241 * 1000) (always AutoSave)
 
           else
             Sub.none
