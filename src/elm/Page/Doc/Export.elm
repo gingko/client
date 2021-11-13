@@ -4,7 +4,7 @@ import Ant.Icons.Svg as AntIcons
 import Api
 import Bytes exposing (Bytes)
 import Coders exposing (treeToJSON, treeToMarkdownString)
-import Doc.TreeUtils exposing (getColumnById)
+import Doc.TreeUtils exposing (getColumnById, getLeaves)
 import File.Download as Download
 import Html exposing (Html, div, pre, text)
 import Html.Attributes exposing (attribute, class, id)
@@ -18,6 +18,7 @@ import Types exposing (Children(..), TooltipPosition(..), Tree)
 type ExportSelection
     = ExportEverything
     | ExportSubtree
+    | ExportLeaves
     | ExportCurrentColumn
 
 
@@ -66,6 +67,17 @@ toString ( exportSelection, exportFormat ) activeTree fullTree =
 
         ExportSubtree ->
             stringFn True activeTree
+
+        ExportLeaves ->
+            case exportFormat of
+                JSON ->
+                    treeToJSON False (Tree "0" "" (Children (getLeaves fullTree [])))
+                        |> Enc.encode 2
+
+                _ ->
+                    getLeaves fullTree []
+                        |> List.map .content
+                        |> String.join "\n\n"
 
         ExportCurrentColumn ->
             case exportFormat of

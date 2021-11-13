@@ -1,4 +1,4 @@
-module Doc.TreeUtils exposing (ScrollPosition, centerlineIds, dictUpdate, getAncestors, getChildren, getColumn, getColumnById, getColumns, getContent, getDepth, getDescendants, getFirstCard, getFirstInColumn, getIndex, getLastInColumn, getNext, getNextInColumn, getParent, getPrev, getPrevInColumn, getPrevNext, getPrevNextInColumn, getScrollPositions, getSiblings, getTree, getTreeWithPosition, newLine, preorderTraversal, scrollPositionToValue, sha1, withIdTree)
+module Doc.TreeUtils exposing (ScrollPosition, centerlineIds, dictUpdate, getAncestors, getChildren, getColumn, getColumnById, getColumns, getContent, getDepth, getDescendants, getFirstCard, getFirstInColumn, getIndex, getLastInColumn, getLeaves, getNext, getNextInColumn, getParent, getPrev, getPrevInColumn, getPrevNext, getPrevNextInColumn, getScrollPositions, getSiblings, getTree, getTreeWithPosition, newLine, preorderTraversal, scrollPositionToValue, sha1, withIdTree)
 
 import Dict exposing (..)
 import Json.Encode as Enc
@@ -79,6 +79,16 @@ getChildren x =
     case x.children of
         Children c ->
             c
+
+
+getLeaves : Tree -> List Tree -> List Tree
+getLeaves x accum =
+    case x.children of
+        Children [] ->
+            accum ++ [ x ]
+
+        Children c ->
+            List.foldl getLeaves accum c
 
 
 getSiblings : String -> Tree -> List Tree

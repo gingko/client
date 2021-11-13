@@ -143,10 +143,12 @@ viewHeader msgs title_ model =
         isSelected expSel =
             (model.exportSettings |> Tuple.first) == expSel
 
-        exportSelectionBtnAttributes expSel expSelString =
+        exportSelectionBtnAttributes expSel expSelString tooltipText =
             [ id <| "export-select-" ++ expSelString
             , onClick <| msgs.exportSelectionChanged expSel
             , classList [ ( "selected", isSelected expSel ) ]
+            , onMouseEnter <| msgs.tooltipRequested ("export-select-" ++ expSelString) BelowTooltip tooltipText
+            , onMouseLeave msgs.tooltipClosed
             ]
 
         isFormat expFormat =
@@ -221,9 +223,10 @@ viewHeader msgs title_ model =
         , viewIf (model.headerMenu == ExportPreview) <|
             div [ id "export-menu" ]
                 [ div [ id "export-selection", class "toggle-button" ]
-                    [ div (exportSelectionBtnAttributes ExportEverything "all") [ text "Everything" ]
-                    , div (exportSelectionBtnAttributes ExportSubtree "subtree") [ text "Current Subtree" ]
-                    , div (exportSelectionBtnAttributes ExportCurrentColumn "column") [ text "Current Column" ]
+                    [ div (exportSelectionBtnAttributes ExportEverything "all" "All cards in the tree (in depth-first order)") [ text "Everything" ]
+                    , div (exportSelectionBtnAttributes ExportSubtree "subtree" "Current card and all its children") [ text "Current Subtree" ]
+                    , div (exportSelectionBtnAttributes ExportLeaves "leaves" "Only cards without children") [ text "Leaves-only" ]
+                    , div (exportSelectionBtnAttributes ExportCurrentColumn "column" "Only cards in the current (vertical) column") [ text "Current Column" ]
                     ]
                 , div [ id "export-format", class "toggle-button" ]
                     [ div (exportFormatBtnAttributes DOCX "word") [ text "Word" ]
