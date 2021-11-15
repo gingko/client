@@ -2668,6 +2668,13 @@ blockquote {
   border: 1px solid #999;
   page-break-inside: avoid;
 }
+.card .view blockquote {
+  padding: 10px 20px;
+  margin: 0 0 20px;
+  border-left: 5px solid;
+  background: #f8f8f8;
+  border-color: gray;
+}
 
 code {
   padding: 2px 4px;
