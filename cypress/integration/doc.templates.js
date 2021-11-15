@@ -27,9 +27,9 @@ describe('Welcome Tree & Templates', () => {
 
     cy.contains('#title', 'welcome')
 
-    cy.get('#welcome-to-this-example-gingko-tree-')
+    cy.get('#-welcome-to-gingko-writer')
       .should('exist')
-      .should('contain', 'Welcome to this example Gingko tree')
+      .should('contain', 'Welcome to Gingko Writer')
 
 
     // Should bring up the Template Selector on clicking "New"

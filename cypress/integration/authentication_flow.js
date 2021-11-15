@@ -47,7 +47,7 @@ describe('User Signup Flow', () => {
 
     // Imports "Welcome Tree"
     cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
-    cy.contains('Welcome to this example Gingko tree')
+    cy.contains('Welcome to Gingko Writer')
 
     // Logs Out Correctly
     cy.intercept('/logout').as('logoutRequest')
@@ -80,7 +80,7 @@ describe('User Signup Flow', () => {
 
     cy.url().should('not.contain', '/login')
     cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
-    cy.contains('Welcome to this example Gingko tree')
+    cy.contains('Welcome to Gingko Writer')
 
     // Has an AuthSession cookie
     cy.get('button.cta').should('not.exist')
