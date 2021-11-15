@@ -31,6 +31,7 @@ type Msg
     = OpenCard String String
     | UpdateField String String
     | SaveChanges
+    | SaveAndClose
     | ExitFullscreenRequested
 
 
@@ -70,16 +71,27 @@ view { language, isMac, dirty, model, lastLocalSave, lastRemoteSave, currentTime
 
             else
                 "Ctrl+S to Save"
+
+        saveAndCloseTip =
+            if isMac then
+                "⌘+Enter to Save and Exit Fullscreen"
+
+            else
+                "Ctrl+Enter to Save and Exit Fullscreen"
     in
     div
         [ id "app-fullscreen" ]
         [ viewColumn vstate.active currentColumn
         , div [ id "fullscreen-buttons", classList [ ( "dirty", dirty ) ] ]
-            [ Icons.fullscreenExitOutlined [ id "fullscreen-exit", width 24, onClick ExitFullscreenRequested, title "Exit Fullscreen Mode" ]
+            [ div
+                [ id "fullscreen-exit", onClick ExitFullscreenRequested, title "Exit Fullscreen Mode" ]
+                [ Icons.fullscreenExitOutlined [ width 24 ] ]
             , div []
                 [ div [ id "fullscreen-save-button", onClick SaveChanges, title saveShortcutTip ] [ Icons.saveOutlined [ width 24 ] ]
                 , viewSaveIndicator language { dirty = dirty, lastLocalSave = lastLocalSave, lastRemoteSave = lastRemoteSave } currentTime
                 ]
+            , div [ id "fullscreen-save-and-exit-button", onClick SaveAndClose, title saveAndCloseTip ]
+                []
             ]
         ]
 

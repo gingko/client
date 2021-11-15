@@ -446,6 +446,9 @@ update msg ({ workingTree } as model) =
                     ( model, Cmd.none )
                         |> saveCardIfEditing
 
+                Fullscreen.SaveAndClose ->
+                    model |> saveAndStopEditing
+
                 Fullscreen.ExitFullscreenRequested ->
                     exitFullscreen model
 

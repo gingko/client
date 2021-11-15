@@ -1836,33 +1836,43 @@ span.trial-dark {
 
 #fullscreen-buttons {
   position: fixed;
-  top: 20px;
-  left: 20px;
+  top: 0;
+  bottom: 0;
+  right: 36px;
   display: flex;
+  height: 100%;
+  justify-content: space-between;
   flex-direction: column;
 }
-#fullscreen-save-button, #fullscreen-buttons #save-indicator {
-  transition: opacity 0.5s ease-in;
-}
 #fullscreen-buttons > * {
-  margin-bottom: 12px;
+  margin: 24px 0;
   cursor: pointer;
 }
 #fullscreen-buttons #save-indicator {
   margin: 0;
+  position: absolute;
+  right: 0;
+  width: max-content;
 }
 #fullscreen-save-button, #fullscreen-buttons #save-indicator {
-  opacity: 0.2;
+  opacity: 0.1;
 }
-#fullscreen-save-button:hover,
+#fullscreen-save-button:hover {
+  opacity: 1;
+  transition: none;
+}
 #fullscreen-buttons.dirty #fullscreen-save-button,
 #fullscreen-buttons.dirty #save-indicator {
   opacity: 1;
   transition: opacity 2s ease-in;
 }
+#fullscreen-buttons.dirty #save-indicator {
+  opacity: 1;
+  transition: opacity 60s ease-in;
+}
 #fullscreen-exit {
   cursor: pointer;
-  opacity: 0.8;
+  opacity: 0.4;
 }
 #fullscreen-exit:hover {
   opacity: 1;
@@ -2793,6 +2803,18 @@ pre {
 .card-btn.delete {
   font-family: 'Glyphicons Halflings';
   font-size: 13px;
+}
+#fullscreen-save-and-exit-button {
+  font-family: 'Glyphicons Halflings';
+  font-size: 24px;
+  opacity: 0.4;
+}
+#fullscreen-save-and-exit-button::before {
+  content: "\e013";
+}
+#fullscreen-save-and-exit-button:hover {
+  opacity: 1;
+  color: hsl(86, 54%, 51%);
 }
 .card-btn.edit::before {
   content: "\270f";
