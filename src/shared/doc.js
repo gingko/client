@@ -176,16 +176,18 @@ async function setUserDbs(email) {
   document.head.appendChild(freshdeskScript);
   FreshworksWidget('hide', 'launcher');
 
-  self.beamer_config = {
-    product_id : config.BEAMER_APPID,
-    selector: "#notifications-icon",
-    user_id: email,
-    user_email: email
-  };
-  let beamerScript = document.createElement('script');
-  beamerScript.setAttribute('src', 'https://app.getbeamer.com/js/beamer-embed.js');
-  beamerScript.setAttribute('defer','defer');
-  document.head.appendChild(beamerScript);
+  if(window.location.origin === config.PRODUCTION_SERVER) {
+    self.beamer_config = {
+      product_id: config.BEAMER_APPID,
+      selector: "#notifications-icon",
+      user_id: email,
+      user_email: email
+    };
+    let beamerScript = document.createElement('script');
+    beamerScript.setAttribute('src', 'https://app.getbeamer.com/js/beamer-embed.js');
+    beamerScript.setAttribute('defer', 'defer');
+    document.head.appendChild(beamerScript);
+  }
 }
 
 
