@@ -1036,7 +1036,9 @@ const observer = new MutationObserver(function (mutations) {
 
 const editBlurHandler = (ev) => {
   let targetClasses = ev.target.classList;
-  if (ev.target.nodeName == "SPAN" && targetClasses.contains("card-btn") && targetClasses.contains("save")) {
+  if (ev.target.nodeName == "DIV" && targetClasses.contains("card-btn") && targetClasses.contains("save")) {
+    return;
+  } else if (ev.target.nodeName == "DIV" && targetClasses.contains("fullscreen-card-btn")) {
     return;
   } else if (isEditTextarea(ev.target)) {
     return;

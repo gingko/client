@@ -22,7 +22,7 @@ import File exposing (File)
 import File.Download as Download
 import File.Select as Select
 import Html exposing (Attribute, Html, div, h1, span, text, textarea, ul)
-import Html.Attributes exposing (attribute, class, classList, dir, id, style, title, value)
+import Html.Attributes as Attributes exposing (attribute, class, classList, dir, id, style, title, value)
 import Html.Events exposing (custom, onClick, onDoubleClick, onInput)
 import Html.Extra exposing (viewIf)
 import Html.Keyed as Keyed
@@ -214,6 +214,7 @@ type Msg
     | UpdateActiveField String String
     | AutoSave
     | SaveAndCloseCard
+    | EditToFullscreenMode
     | FullscreenMsg Fullscreen.Msg
     | DeleteCard String
       -- === Card Insertion  ===
@@ -417,6 +418,9 @@ update msg ({ workingTree } as model) =
 
         SaveAndCloseCard ->
             saveAndStopEditing model
+
+        EditToFullscreenMode ->
+            model |> enterFullscreen
 
         FullscreenMsg fullscreenMsg ->
             case fullscreenMsg of
@@ -1433,11 +1437,8 @@ update msg ({ workingTree } as model) =
                                     )
                                         |> openCardFullscreen vs.active (getContent vs.active model.workingTree.tree)
 
-                                Editing ->
-                                    enterFullscreen model
-
-                                FullscreenEditing ->
-                                    exitFullscreen model
+                                _ ->
+                                    ( model, Cmd.none )
 
                         "mod+enter" ->
                             saveAndStopEditing model
@@ -2071,7 +2072,7 @@ openCardFullscreen id str ( model, prevCmd ) =
                         m.viewState
                 in
                 ( { m | viewState = { vs | active = id, viewMode = FullscreenEditing }, field = str }
-                , Cmd.batch [ c, send <| SetFullscreen True ]
+                , focus id
                 )
            )
 
@@ -2256,6 +2257,7 @@ cancelCard ( model, prevCmd ) =
     , prevCmd
     )
         |> sendCollabState (CollabState model.uid (CollabActive vs.active) "")
+        |> activate vs.active True
 
 
 intentCancelCard : Model -> ( Model, Cmd Msg )
@@ -3267,42 +3269,18 @@ viewCardEditing lang cardId content isParent isMac =
             ]
             []
         , div [ class "flex-column card-right-overlay" ]
-            [ span
+            [ div
+                [ class "fullscreen-card-btn"
+                , title "Edit in Fullscreen"
+                , onClick EditToFullscreenMode
+                ]
+                [ AntIcons.fullscreenOutlined [ Attributes.width 16, Attributes.height 16 ] ]
+            , div
                 [ class "card-btn save"
                 , title <| tr lang SaveChangesTitle
                 , onClick SaveAndCloseCard
                 ]
                 []
-            ]
-        , div [ id "welcome-step-3", class "tour-step" ]
-            [ text <| "Type something, then press " ++ ctrlOrCmd ++ "+J"
-            , div [ class "arrow" ] [ text "▲" ]
-            , div [ id "progress-step-3", class "tour-step-progress" ]
-                [ div [ class "bg-line", class "on" ] []
-                , div [ class "bg-line", class "off" ] []
-                , div [ class "on" ] []
-                , div [ class "on" ] []
-                , div [ class "on" ] []
-                , div [] []
-                , div [] []
-                , div [] []
-                , div [] []
-                ]
-            ]
-        , div [ id "welcome-step-4", class "tour-step" ]
-            [ text <| "Type something, then press " ++ ctrlOrCmd ++ "+Enter"
-            , div [ class "arrow" ] [ text "▲" ]
-            , div [ id "progress-step-3", class "tour-step-progress" ]
-                [ div [ class "bg-line", class "on" ] []
-                , div [ class "bg-line", class "off" ] []
-                , div [ class "on" ] []
-                , div [ class "on" ] []
-                , div [ class "on" ] []
-                , div [ class "on" ] []
-                , div [] []
-                , div [] []
-                , div [] []
-                ]
             ]
         ]
 

@@ -2806,6 +2806,19 @@ pre {
 .card-btn.delete::before {
   content: "\e014";
 }
+.fullscreen-card-btn {
+  position: absolute;
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 100;
+  top: 5px;
+  right: 5px;
+  opacity: 0.4;
+}
+.fullscreen-card-btn:hover {
+  opacity: 1.0;
+  transition: none;
+}
 
 /* --- Containers --- */
 
