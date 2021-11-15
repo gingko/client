@@ -40,13 +40,7 @@ describe('Fullscreen Editing', () => {
     cy.shortcut('{shift}{enter}')
     cy.get('#app-fullscreen').should('be.visible')
     cy.get('#fullscreen-main').should('be.visible')
-    cy.shortcut('{shift}{enter}')
-    cy.get('#app-fullscreen').should('not.exist')
-    cy.get('#fullscreen-main').should('not.exist')
     cy.get('textarea').should('have.focus')
-    cy.shortcut('{shift}{enter}')
-    cy.get('#app-fullscreen').should('be.visible')
-    cy.get('#fullscreen-main').should('be.visible')
 
     // Textareas in fullscreen mode are private
     cy.get('textarea').each((el) => {
@@ -73,7 +67,7 @@ describe('Fullscreen Editing', () => {
       .should('have.value','# 2\nChild card\nabclmn')
 
     // Save and exit edit mode on Ctrl+Enter
-    cy.shortcut('{shift}{enter}')
+    cy.get('.fullscreen-card-btn').click()
     cy.focused().type(' line')
     cy.shortcut('{ctrl}{enter}')
     cy.get('#app-fullscreen').should('not.exist')
