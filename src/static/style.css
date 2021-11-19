@@ -1283,6 +1283,28 @@ input.has-error {
   margin-left: 10px;
 }
 
+#templates-block {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  box-shadow: inset 0px -2px 4px hsla(0,0%,0%,0.4);
+  background-color: hsl(219, 13%, 21%);
+  color: hsl(0,0%,94%);
+}
+.template-row {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  margin-bottom: 36px;
+}
+.template-row:last-child {
+  margin-bottom: 0;
+}
+#templates-block h2 {
+  margin-bottom: 18px;
+  border-bottom: 1px solid #5f5f5f;
+  font-family: "Bitter", serif;
+}
 
 .dropdown {
   display: flex;

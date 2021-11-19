@@ -45,12 +45,14 @@ describe('Welcome Tree & Templates', () => {
       .should('be.visible')
 
     cy.get('#template-timeline')
+      .scrollIntoView()
       .should('be.visible')
 
     // Should show all templates on narrow screens
     cy.viewport(600,900)
 
     cy.get('#template-new')
+      .scrollIntoView()
       .should('be.visible')
 
     cy.get('#template-import-bulk')

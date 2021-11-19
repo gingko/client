@@ -48,18 +48,6 @@ label {
   grid-template-areas: "header" "lists" "footer";
 }
 
-#templates-block {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(90px, 150px));
-  justify-content: center;
-  justify-items: center;
-  grid-gap: 30px;
-  padding: 20px;
-  box-shadow: inset 0px -2px 4px hsla(0,0%,0%,0.4);
-  background-color: hsl(219, 13%, 21%);
-  color: hsl(0,0%,94%);
-}
-
 #documents-block {
   grid-area: lists;
   padding: 10px 15px 0px;
