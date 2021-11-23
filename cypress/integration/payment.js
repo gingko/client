@@ -31,11 +31,10 @@ describe('Upgrade process', () => {
     cy.contains('Upgrade Gingko Writer')
 
     cy.get('#currency-selector')
-      .should('contain', 'Select your currency')
-      .select('USD')
+      .should('contain', 'USD')
 
     cy.get('#upgrade-checkout')
-      .should('contain', '$10')
+      .should('contain', '$12.75')
 
     // Modal closes correctly
     cy.get('.close-button').click()
@@ -48,36 +47,19 @@ describe('Upgrade process', () => {
     cy.get('#currency-selector')
       .should('have.value', 'USD')
     cy.get('#upgrade-checkout')
-      .should('contain', '$10')
+      .should('contain', '$12.75')
 
     // Change billing frequency
     cy.get('input#yearly')
       .click()
 
-    cy.contains("$99")
+    cy.contains("$117")
     cy.contains("per year")
 
     // Change in currency should reflect in displayed price
     cy.get('#currency-selector')
       .select('INR')
-    cy.contains('₹2000')
-
-    // Should toggle Pay What You Want pricing
-    cy.get('#pwyw')
-      .should('not.contain', 'Discount')
-
-    cy.get('#pwyw-toggle')
-      .click()
-
-    cy.get('#pwyw')
-      .should('contain', 'Discount')
-
-    cy.get('#discount')
-      .click()
-      .should('have.class','checked')
-
-    cy.get('#upgrade-checkout')
-      .should('contain', '1000')
+    cy.contains('₹2400')
   })
 
   it('Correctly handles payment status', function () {

@@ -2,7 +2,7 @@ module Upgrade exposing (Model, Msg(..), init, toValue, update, view)
 
 import Ant.Icons.Svg as Icon
 import Html exposing (Html, a, br, button, div, h3, hr, img, input, label, li, option, p, select, small, span, strong, text, textarea, ul)
-import Html.Attributes exposing (checked, class, classList, for, height, href, id, name, placeholder, selected, src, target, type_, value, width)
+import Html.Attributes exposing (checked, class, classList, for, height, href, id, name, placeholder, selected, src, style, target, type_, value, width)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onChange)
 import Json.Encode as Enc
@@ -38,8 +38,6 @@ type BillingFrequency
 
 type Plan
     = Regular
-    | Discount
-    | Bonus
 
 
 planToString : Plan -> String
@@ -48,16 +46,10 @@ planToString plan =
         Regular ->
             "regular"
 
-        Discount ->
-            "discount"
-
-        Bonus ->
-            "bonus"
-
 
 init : Model
 init =
-    { currency = UnknownCurrency
+    { currency = Currency USD
     , billing = Monthly
     , plan = Regular
     , pwywOpen = False
@@ -128,16 +120,9 @@ update msg model =
 
 view : Model -> List (Html Msg)
 view model =
-    ([ viewCopy
-     , viewPaymentForm model
-     ]
-        ++ (if model.currency == UnknownCurrency then
-                []
-
-            else
-                [ viewPWYWForm model ]
-           )
-    )
+    [ viewCopy
+    , viewPaymentForm model
+    ]
         |> modalWrapper UpgradeModalClosed (Just "upgrade-modal") Nothing "Upgrade Gingko Writer"
 
 
@@ -148,45 +133,6 @@ viewCopy =
         , p [] [ text "If you've found the free trial useful, you can upgrade to the paid version." ]
         , p [] [ text "With gratitude,", br [] [], text "Adriano Ferrari" ]
         , img [ src "adriano-small-circle.jpg", width 82 ] []
-        ]
-
-
-viewPWYWForm : Model -> Html Msg
-viewPWYWForm model =
-    let
-        isOpen =
-            model.pwywOpen
-    in
-    div [ id "pwyw" ]
-        (if isOpen then
-            [ div [ id "pwyw-toggle", class "open", onClick <| PWYWToggled (not isOpen) ]
-                [ span [ class "toggle-caret" ] [ Icon.downOutlined [ width 12, height 12 ] ]
-                , h3 [] [ text "Price Adjustments" ]
-                ]
-            , div [ id "pwyw-body" ]
-                [ p [] [ text "Gingko Writer is used in over 170 countries of the world, and by everyone from rural middle-school students to Silicon Valley software developers." ]
-                , p [] [ text "To help cover that range fairly, I'm letting you adjust your price:" ]
-                , viewPWYWButtons model
-                ]
-            ]
-
-         else
-            [ div [ id "pwyw-toggle", onClick <| PWYWToggled (not isOpen) ]
-                [ span [ class "toggle-caret" ] [ Icon.rightOutlined [ width 12, height 12 ] ]
-                , h3 [] [ text "Price Adjustments" ]
-                ]
-            ]
-        )
-
-
-viewPWYWButtons model =
-    div [ id "pwyw-buttons" ]
-        [ div [ id "discount", classList [ ( "checked", model.plan == Discount ) ], onClick (PlanChanged Discount) ]
-            [ text "Discount" ]
-        , div [ id "regular", classList [ ( "checked", model.plan == Regular ) ], onClick (PlanChanged Regular) ]
-            [ text "Regular" ]
-        , div [ id "bonus", classList [ ( "checked", model.plan == Bonus ) ], onClick (PlanChanged Bonus) ]
-            [ text "Extra Donation" ]
         ]
 
 
@@ -218,6 +164,12 @@ viewPaymentForm model =
 
                         _ ->
                             False
+
+                amountString =
+                    priceAmount curr model.billing model.plan
+
+                yearlySaving =
+                    savingAmount curr
             in
             div [ id "upgrade-checkout" ]
                 [ viewCurrencySelector CurrencySelected model
@@ -240,12 +192,12 @@ viewPaymentForm model =
                     , onInput (always (BillingChanged Yearly))
                     ]
                     []
-                , label [ for "yearly" ] [ text "Yearly (2 months free)" ]
+                , label [ for "yearly" ] [ text <| "Yearly (Save " ++ yearlySaving ++ ")" ]
                 , hr [] []
                 , div [ id "price-display" ]
                     [ div [ id "price-amount" ]
                         ([ small [] [ text currSymbol ]
-                         , text (priceAmount curr model.billing model.plan)
+                         , text amountString
                          ]
                             |> (if symbolRight then
                                     List.reverse
@@ -258,7 +210,7 @@ viewPaymentForm model =
                     ]
                 , hr [] []
                 , button [ class "payment-button", onClick <| CheckoutClicked model ] [ text "Checkout" ]
-                , small [ id "stripe-climate" ] [ strong [] [ text "3% of your purchase" ], text " goes to removing CO₂ from the atmosphere." ]
+                , small [ id "stripe-climate" ] [ img [ src "stripe-climate-badge.svg", width 14, style "margin-bottom" "-3px", style "margin-right" "5px" ] [], a [ href "https://climate.stripe.com/yqdXvm", target "_blank", class "climate-link" ] [ text "3% of your purchase" ], text " goes to removing CO₂ from the atmosphere." ]
                 ]
 
 
@@ -296,113 +248,65 @@ viewCurrencySelector selectMsg model =
 priceAmount : Currency -> BillingFrequency -> Plan -> String
 priceAmount currency freq plan =
     case ( currency, freq, plan ) of
-        ( USD, Monthly, Discount ) ->
-            "5"
-
         ( USD, Monthly, Regular ) ->
-            "10"
-
-        ( USD, Monthly, Bonus ) ->
-            "15"
-
-        ( USD, Yearly, Discount ) ->
-            "49"
+            "12.75"
 
         ( USD, Yearly, Regular ) ->
-            "99"
-
-        ( USD, Yearly, Bonus ) ->
-            "149"
-
-        ( EUR, Monthly, Discount ) ->
-            "3.40"
+            "117"
 
         ( EUR, Monthly, Regular ) ->
-            "6.80"
-
-        ( EUR, Monthly, Bonus ) ->
-            "10.20"
-
-        ( EUR, Yearly, Discount ) ->
-            "34"
+            "8.66"
 
         ( EUR, Yearly, Regular ) ->
-            "68"
-
-        ( EUR, Yearly, Bonus ) ->
-            "100"
-
-        ( INR, Monthly, Discount ) ->
-            "100"
+            "80"
 
         ( INR, Monthly, Regular ) ->
-            "200"
-
-        ( INR, Monthly, Bonus ) ->
-            "300"
-
-        ( INR, Yearly, Discount ) ->
-            "1000"
+            "255"
 
         ( INR, Yearly, Regular ) ->
-            "2000"
-
-        ( INR, Yearly, Bonus ) ->
-            "3000"
-
-        ( GBP, Monthly, Discount ) ->
-            "3.30"
+            "2400"
 
         ( GBP, Monthly, Regular ) ->
-            "6.60"
-
-        ( GBP, Monthly, Bonus ) ->
-            "9.90"
-
-        ( GBP, Yearly, Discount ) ->
-            "33"
+            "8.40"
 
         ( GBP, Yearly, Regular ) ->
-            "66"
-
-        ( GBP, Yearly, Bonus ) ->
-            "99"
-
-        ( CAD, Monthly, Discount ) ->
-            "6"
+            "78"
 
         ( CAD, Monthly, Regular ) ->
-            "12"
-
-        ( CAD, Monthly, Bonus ) ->
-            "18"
-
-        ( CAD, Yearly, Discount ) ->
-            "60"
+            "12.75"
 
         ( CAD, Yearly, Regular ) ->
-            "119"
-
-        ( CAD, Yearly, Bonus ) ->
-            "179"
-
-        ( CNY, Monthly, Discount ) ->
-            "21"
+            "117"
 
         ( CNY, Monthly, Regular ) ->
-            "42"
-
-        ( CNY, Monthly, Bonus ) ->
-            "63"
-
-        ( CNY, Yearly, Discount ) ->
-            "210"
+            "55.55"
 
         ( CNY, Yearly, Regular ) ->
-            "420"
+            "500"
 
-        ( CNY, Yearly, Bonus ) ->
-            "630"
+        _ ->
+            "unset"
+
+
+savingAmount curr =
+    case curr of
+        USD ->
+            "24%"
+
+        EUR ->
+            "23%"
+
+        INR ->
+            "22%"
+
+        GBP ->
+            "23%"
+
+        CAD ->
+            "24%"
+
+        CNY ->
+            "25%"
 
         _ ->
             "unset"
