@@ -118,12 +118,30 @@ update msg model =
 -- VIEW
 
 
-view : Model -> List (Html Msg)
-view model =
-    [ viewCopy
+view : Maybe Int -> Model -> List (Html Msg)
+view daysLeft_ model =
+    [ viewTrialInfo daysLeft_
+    , viewCopy
     , viewPaymentForm model
     ]
         |> modalWrapper UpgradeModalClosed (Just "upgrade-modal") Nothing "Upgrade Gingko Writer"
+
+
+viewTrialInfo : Maybe Int -> Html Msg
+viewTrialInfo daysLeft_ =
+    case daysLeft_ of
+        Just daysLeft ->
+            if daysLeft <= 7 && daysLeft >= 0 then
+                text ""
+
+            else if daysLeft > 7 && daysLeft >= 0 then
+                div [ id "upgrade-trial-info" ] [ text <| "You have " ++ String.fromInt daysLeft ++ " days left in your free trial." ]
+
+            else
+                div [ id "upgrade-trial-info" ] [ text "Your free trial has expired." ]
+
+        Nothing ->
+            text ""
 
 
 viewCopy : Html Msg

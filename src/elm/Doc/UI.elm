@@ -192,7 +192,7 @@ viewHeader msgs title_ model =
             , class "header-button"
             , classList [ ( "open", model.headerMenu == Settings ) ]
             , onClick msgs.toggledDocSettings
-            , attributeIf (model.headerMenu /= Settings) <| onMouseEnter <| msgs.tooltipRequested "doc-settings-icon" BelowTooltip "Document Settings"
+            , attributeIf (model.headerMenu /= Settings) <| onMouseEnter <| msgs.tooltipRequested "doc-settings-icon" BelowLeftTooltip "Document Settings"
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.controlOutlined [] ]
@@ -213,7 +213,7 @@ viewHeader msgs title_ model =
             , class "header-button"
             , classList [ ( "open", model.headerMenu == ExportPreview ) ]
             , onClick msgs.toggledExport
-            , attributeIf (model.headerMenu /= ExportPreview) <| onMouseEnter <| msgs.tooltipRequested "export-icon" BelowTooltip "Export or Print"
+            , attributeIf (model.headerMenu /= ExportPreview) <| onMouseEnter <| msgs.tooltipRequested "export-icon" BelowLeftTooltip "Export or Print"
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.fileDoneOutlined [] ]
@@ -295,21 +295,13 @@ viewUpgradeButton toggledUpgradeModal session =
         lang =
             Session.language session
 
-        upgradeButton =
-            div [ id "upgrade-button", onClick <| toggledUpgradeModal True ] [ text "Upgrade" ]
+        upgradeCTA isExpired prepends =
+            div [ id "upgrade-cta", onClick <| toggledUpgradeModal True, classList [ ( "trial-expired", isExpired ) ] ] (prepends ++ [ div [ id "upgrade-button" ] [ text "Upgrade" ] ])
 
         maybeUpgrade =
-            case Session.paymentStatus session of
-                Customer _ ->
-                    text ""
-
-                Trial expiry ->
+            case Session.daysLeft session of
+                Just daysLeft ->
                     let
-                        daysLeft =
-                            ((Time.posixToMillis expiry - Time.posixToMillis currentTime) |> toFloat)
-                                / (1000 * 3600 * 24)
-                                |> round
-
                         trialClass =
                             if daysLeft <= 7 && daysLeft > 5 then
                                 "trial-light"
@@ -320,14 +312,22 @@ viewUpgradeButton toggledUpgradeModal session =
                             else
                                 "trial-dark"
                     in
-                    if daysLeft <= 7 then
-                        upgradeButton
+                    if daysLeft <= 0 then
+                        upgradeCTA True
+                            [ span []
+                                [ AntIcons.exclamationCircleOutlined [ width 16, style "margin-bottom" "-3px", style "margin-right" "6px" ]
+                                , text "Trial Expired"
+                                ]
+                            ]
+
+                    else if daysLeft <= 7 then
+                        upgradeCTA False [ span [ class trialClass ] [ text <| String.fromInt daysLeft ++ " days left in trial" ] ]
 
                     else
-                        upgradeButton
+                        upgradeCTA False []
 
-                Unknown ->
-                    upgradeButton
+                Nothing ->
+                    text ""
     in
     maybeUpgrade
 
@@ -1197,7 +1197,7 @@ viewTooltip ( el, tipPos, content ) =
                 BelowLeftTooltip ->
                     [ style "left" <| ((el.element.x + el.element.width * 0.5) |> String.fromFloat) ++ "px"
                     , style "top" <| ((el.element.y + el.element.height + 5) |> String.fromFloat) ++ "px"
-                    , style "transform" "translateX(calc(-100% + 5px))"
+                    , style "transform" "translateX(calc(-100% + 10px))"
                     , class "tip-below-left"
                     ]
     in

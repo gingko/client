@@ -830,11 +830,11 @@ input.has-error {
 #document-header {
   grid-area: document-header;
   display: grid;
-  grid-template-columns: 15px max-content 1fr 40px 40px 40px min-content 15px;
+  grid-template-columns: 15px max-content 1fr 40px 40px 40px;
   grid-template-rows: 40px min-content;
   grid-template-areas:
-    ". title . button1 button2 button3 upgrade ."
-    "header-menu header-menu header-menu header-menu header-menu header-menu header-menu header-menu";
+    ". title . button1 button2 button3"
+    "header-menu header-menu header-menu header-menu header-menu header-menu";
   color: var(--ui-1-fg);
   background-color: var(--ui-1-bg);
   border-bottom: 1px solid hsl(212deg 5% 58%);
@@ -1463,12 +1463,32 @@ span.trial-dark {
   color: #333;
 }
 
+#upgrade-cta {
+  position: fixed;
+  top: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-self: center;
+}
+#upgrade-cta > *:first-child {
+  margin-right: 15px;
+}
+#upgrade-cta.trial-expired {
+  box-shadow: var(--small-shadow);
+  background-color: var(--ui-2-bg);
+  padding: 0 16px;
+  border-radius: 40px;
+  border: 1px solid var(--emphasis-color);
+  height: 54px;
+}
+#upgrade-cta.trial-expired:hover {
+  background-color: var(--ui-1-bg);
+}
 #upgrade-button {
-  grid-area: upgrade;
   height: 30px;
   align-self: center;
   padding: 6px 12px;
-  margin-left: 15px;
   background: #7439c0;
   color: white;
   font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Ubuntu,sans-serif;
@@ -1477,17 +1497,23 @@ span.trial-dark {
   border-radius: 4px;
   cursor: pointer;
 }
-#upgrade-button:hover {
+#upgrade-cta:hover #upgrade-button {
   background: #69409a;
 }
-
+#upgrade-trial-info {
+  padding: 8px 16px;
+  background: #fff3c9;
+  height: min-content;
+  color: #c3a746;
+  font-size: 14px;
+  text-align: center;
+}
 #upgrade-modal {
   display: grid;
-  grid-template-rows: 1fr auto;
   grid-template-columns: 3fr 1fr;
   grid-template-areas:
-    "body checkout"
-    "pwyw checkout";
+    ". checkout"
+    ". checkout";
   padding: 0;
 }
 #upgrade-copy {
@@ -2177,11 +2203,11 @@ span.collaborators {
   border-right: 5px solid transparent;
   border-left: 5px solid transparent;
   top: -10px;
-  right: 0px;
+  right: 5px;
   left: unset;
 }
 .tip-below-left {
-  border-top-right-radius: 0;
+  border-top-right-radius: 3px;
 }
 .tip-left .tooltip-arrow {
   border-left: 5px solid rgba(0,0,0,0.9);
@@ -3666,7 +3692,7 @@ ul.changelist {
     display: none;
   }
   #document-header {
-    grid-template-columns: 5px max-content 1fr 40px 40px 40px min-content 0;
+    grid-template-columns: 5px max-content 1fr 40px 40px 40px;
   }
   .title-grow-wrap {
     max-width: 37vw;

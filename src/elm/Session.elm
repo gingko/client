@@ -1,4 +1,4 @@
-port module Session exposing (PaymentStatus(..), Session, currentTime, db, decode, documents, fileMenuOpen, fromLegacy, isMac, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, setSortBy, setWelcomeChecklist, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, updateDocuments, updateTime, updateUpgrade, upgradeModel, userSettingsChange, welcomeChecklist)
+port module Session exposing (PaymentStatus(..), Session, currentTime, daysLeft, db, decode, documents, fileMenuOpen, fromLegacy, isMac, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, setSortBy, setWelcomeChecklist, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, updateDocuments, updateTime, updateUpgrade, upgradeModel, userSettingsChange, welcomeChecklist)
 
 import Browser.Navigation as Nav
 import Coders exposing (sortByDecoder)
@@ -9,7 +9,7 @@ import Json.Decode.Pipeline exposing (optional, optionalAt, required)
 import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
 import Random
-import Time
+import Time exposing (Posix)
 import Translation exposing (Language(..), langFromString, langToString, languageDecoder)
 import Types exposing (SortBy(..))
 import Upgrade
@@ -50,8 +50,7 @@ type alias UserData =
 
 
 type PaymentStatus
-    = Unknown
-    | Trial Time.Posix
+    = Trial Time.Posix
     | Customer String
 
 
@@ -157,7 +156,26 @@ paymentStatus session =
             data.paymentStatus
 
         Guest _ _ ->
-            Unknown
+            Trial (currentTime session |> add14days)
+
+
+add14days : Posix -> Posix
+add14days time =
+    Time.posixToMillis time
+        |> (\ms -> 3600 * 24 * 1000 * 14 + ms |> Time.millisToPosix)
+
+
+daysLeft : Session -> Maybe Int
+daysLeft session =
+    case paymentStatus session of
+        Trial expiry ->
+            ((Time.posixToMillis expiry - Time.posixToMillis (currentTime session)) |> toFloat)
+                / (1000 * 3600 * 24)
+                |> round
+                |> Just
+
+        Customer _ ->
+            Nothing
 
 
 welcomeChecklist : Session -> Bool
@@ -221,7 +239,7 @@ sync json session =
         settingsDecoder =
             Dec.succeed (\lang payStat -> { language = lang, paymentStatus = payStat })
                 |> optional "language" languageDecoder En
-                |> optional "paymentStatus" decodePaymentStatus Unknown
+                |> optional "paymentStatus" decodePaymentStatus (Trial (currentTime session |> add14days))
     in
     case ( Dec.decodeValue settingsDecoder json, session ) of
         ( Ok newSettings, LoggedIn sessData userData ) ->
@@ -361,6 +379,14 @@ decodeLoggedIn : Nav.Key -> Dec.Decoder Session
 decodeLoggedIn key =
     Dec.succeed
         (\email s os t legacy lang side payStat checklist trayOpen sortCriteria lastDoc ->
+            let
+                newPayStat =
+                    if payStat == Trial (Time.millisToPosix 0) then
+                        Trial (t |> add14days)
+
+                    else
+                        payStat
+            in
             LoggedIn
                 { navKey = key
                 , seed = s
@@ -370,7 +396,7 @@ decodeLoggedIn key =
                 , lastDocId = Nothing
                 , fromLegacy = legacy
                 }
-                (UserData email lang Upgrade.init payStat checklist trayOpen sortCriteria DocList.init)
+                (UserData email lang Upgrade.init newPayStat checklist trayOpen sortCriteria DocList.init)
         )
         |> required "email" Dec.string
         |> required "seed" (Dec.int |> Dec.map Random.initialSeed)
@@ -379,7 +405,7 @@ decodeLoggedIn key =
         |> optional "fromLegacy" Dec.bool False
         |> optional "language" (Dec.string |> Dec.map langFromString) En
         |> optional "sidebarOpen" Dec.bool False
-        |> optional "paymentStatus" decodePaymentStatus Unknown
+        |> optional "paymentStatus" decodePaymentStatus (Trial (Time.millisToPosix 0))
         |> optional "welcomeChecklist" Dec.bool True
         |> optional "shortcutTrayOpen" Dec.bool False
         |> optional "sortBy" sortByDecoder ModifiedAt
@@ -431,7 +457,7 @@ responseDecoder session =
     Dec.succeed builder
         |> required "email" Dec.string
         |> optionalAt [ "settings", "language" ] (Dec.map langFromString Dec.string) En
-        |> optionalAt [ "settings", "paymentStatus" ] decodePaymentStatus Unknown
+        |> optionalAt [ "settings", "paymentStatus" ] decodePaymentStatus (Trial (Time.millisToPosix 0))
         |> optionalAt [ "settings", "welcomeChecklist" ] Dec.bool True
         |> optionalAt [ "settings", "shortcutTrayOpen" ] Dec.bool False
         |> optionalAt [ "settings", "sortBy" ] sortByDecoder ModifiedAt

@@ -47,7 +47,7 @@ import Random
 import RandomId
 import Regex
 import Route
-import Session exposing (Session)
+import Session exposing (PaymentStatus(..), Session)
 import SharedUI exposing (ctrlOrCmdText)
 import Svg exposing (circle, mask, rect, svg)
 import Svg.Attributes exposing (cx, cy, height, preserveAspectRatio, r, rx, ry, viewBox, width, x, y)
@@ -2291,20 +2291,32 @@ intentCancelCard model =
 insert : String -> Int -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 insert pid pos initText ( model, prevCmd ) =
     let
+        isExpired =
+            case Session.daysLeft model.session of
+                Just days ->
+                    days <= 0
+
+                Nothing ->
+                    False
+
         ( newId, newSeed ) =
             Random.step randomPositiveInt (Session.seed model.session)
 
         newIdString =
             "node-" ++ (newId |> String.fromInt)
     in
-    ( { model
-        | workingTree = TreeStructure.update (TreeStructure.Ins newIdString initText pid pos) model.workingTree
-        , session = Session.setSeed newSeed model.session
-      }
-    , prevCmd
-    )
-        |> openCard newIdString initText
-        |> activate newIdString False
+    if not isExpired then
+        ( { model
+            | workingTree = TreeStructure.update (TreeStructure.Ins newIdString initText pid pos) model.workingTree
+            , session = Session.setSeed newSeed model.session
+          }
+        , prevCmd
+        )
+            |> openCard newIdString initText
+            |> activate newIdString False
+
+    else
+        ( model, send <| Alert "Your Free Trial is Over.\n\nYou can view and edit your existing cards, but cannot create new ones." )
 
 
 insertRelative : String -> Int -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -3499,7 +3511,11 @@ viewModal language model =
         UpgradeModal ->
             case Session.upgradeModel model.session of
                 Just upgradeModel ->
-                    Upgrade.view upgradeModel
+                    let
+                        daysLeft_ =
+                            Session.daysLeft model.session
+                    in
+                    Upgrade.view daysLeft_ upgradeModel
                         |> List.map (Html.map UpgradeModalMsg)
 
                 Nothing ->

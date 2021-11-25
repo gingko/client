@@ -25,6 +25,9 @@ describe('Upgrade process', () => {
     cy.url().should('contain', this.treeIds[0] )
     cy.get('.spinner').should('not.exist')
 
+    cy.get("#upgrade-cta")
+      .should('not.contain', 'Trial Expired')
+
     cy.get('#upgrade-button')
       .click()
 
