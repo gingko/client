@@ -30,18 +30,19 @@ describe('Legacy Imports from Empty State', () => {
     cy.contains('you are not logged in')
 
     // If logged in at legacy, show download link
-    let csrf = ''
-    cy.request(config.LEGACY_URL + '/login')
-      .then((resp) => {
-        csrf = /<meta.*"csrf" content="(.*)">/.exec(resp.body)[1];
-        let loginData = {email: testEmail, password: config.LEGACY_TEST_PASSWORD, _csrf: csrf};
-        cy.request({url: config.LEGACY_URL + '/auth/login', method: 'POST', body: loginData, form: true})
+    cy.intercept(config.LEGACY_URL + '/loggedin',
+      "<html>\n" +
+      "<head></head>\n" +
+      "<body>\n" +
+      "<script>\n" +
+      "window.parent.postMessage({loggedin: true}, \"*\");\n" +
+      "</script>\n" +
+      "</body>\n" +
+      "</html>")
+    cy.get('#retry-button')
+      .click()
 
-        cy.get('#retry-button')
-          .click()
-
-        cy.contains('Download Full Backup')
-      })
+    cy.contains('Download Full Backup')
 
     // Shows tree list from the dropped file
     cy.get('.file-drop-zone')
