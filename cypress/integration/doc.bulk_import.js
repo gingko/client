@@ -81,7 +81,7 @@ describe('Legacy Imports from Startup State', () => {
 
     // Additional delay needed since "legacy import non-sync" bugfix
     // TODO: Replace with more assertions
-    cy.wait(4000);
+    cy.wait(20000);
     cy.get('#sidebar-document-list > .sidebar-document-item')
       .should('have.length', 12)
 
