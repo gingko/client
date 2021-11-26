@@ -44,6 +44,8 @@ let viewportWidth = document.documentElement.clientWidth;
 let viewportHeight = document.documentElement.clientHeight;
 let horizontalScrollInterval;
 let verticalScrollInterval;
+let docElement;
+let sidebarWidth;
 let externalDrag = false;
 let savedObjectIds = new Set();
 const userStore = container.userStore;
@@ -71,6 +73,7 @@ async function initElmAndPorts() {
       console.log("failed", e)
     }
     settings.sidebarOpen = (sessionData.hasOwnProperty('sidebarOpen')) ?  sessionData.sidebarOpen : false;
+    sidebarWidth = settings.sidebarOpen ? 215 : 40;
   }
 
 
@@ -683,6 +686,9 @@ const fromElm = (msg, elmData) => {
       let currSessionData = JSON.parse(localStorage.getItem(sessionStorageKey));
       currSessionData.sidebarOpen = elmData;
       localStorage.setItem(sessionStorageKey, JSON.stringify(currSessionData));
+      window.requestAnimationFrame(()=>{
+        sidebarWidth = document.getElementById('sidebar').clientWidth;
+      });
     },
 
     SetFonts: () => {},
@@ -816,8 +822,8 @@ document.ondragover = document.ondrop = (ev) => {
 
   // Autoscroll
   if (ev.type == "dragover") {
-    let relX = ev.clientX / viewportWidth;
-    let relY = ev.clientY / viewportHeight;
+    let relX = (ev.clientX - sidebarWidth )/ (viewportWidth - sidebarWidth);
+    let relY = (ev.clientY - 40) / (viewportHeight - 40); // 40 for header height
 
     if (relY <= 0.1) {
       //scroll column up
@@ -839,14 +845,15 @@ document.ondragover = document.ondrop = (ev) => {
       verticalScrollInterval = null;
     }
 
-    let docElement = document.getElementById('document');
     if (relX <= 0.1) {
+      docElement = document.getElementById('document');
       if(!horizontalScrollInterval) {
         horizontalScrollInterval = setInterval(()=>{
           docElement.scrollBy(-1*scrollHorizontalAmount, 0);
         }, scrollHorizontalInterval);
       }
     } else if (relX >= 0.9) {
+      docElement = document.getElementById('document');
       if(!horizontalScrollInterval) {
         horizontalScrollInterval = setInterval(()=>{
           docElement.scrollBy(scrollHorizontalAmount, 0);
@@ -889,6 +896,10 @@ window.onresize = () => {
   if (lastColumnScrolled) {
     debouncedScrollHorizontal(lastColumnScrolled);
   }
+  _.debounce(()=>{
+    viewportWidth = document.documentElement.clientWidth;
+    viewportHeight = document.documentElement.clientHeight;
+  })
 };
 
 const updateFillets = () => {
