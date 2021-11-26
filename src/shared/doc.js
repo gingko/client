@@ -40,6 +40,10 @@ let userDbName;
 let PULL_LOCK = false;
 let DIRTY = false;
 let draggingInternal = false;
+let viewportWidth = document.documentElement.clientWidth;
+let viewportHeight = document.documentElement.clientHeight;
+let horizontalScrollInterval;
+let verticalScrollInterval;
 let externalDrag = false;
 let savedObjectIds = new Set();
 const userStore = container.userStore;
@@ -791,10 +795,68 @@ document.ondragenter = (ev) => {
     toElm(null, "docMsgs", "DragExternalStarted");
   }
 };
+let scrollHorizontalAmount = 20;
+let scrollHorizontalInterval = 15;
+let scrollVerticalAmount = 20;
+let scrollVerticalInterval = 15;
 // Prevent default events, for file dragging.
 document.ondragover = document.ondrop = (ev) => {
+  // Clear autoscroll
+  if (ev.type == "dragend" || ev.type == "drop") {
+    clearInterval(horizontalScrollInterval);
+    clearInterval(verticalScrollInterval);
+    horizontalScrollInterval = null;
+    verticalScrollInterval = null;
+  }
+
+  // Don't modify anything if dragging/dropping in textareas
   if (ev.target.className == "edit mousetrap") {
     return;
+  }
+
+  // Autoscroll
+  if (ev.type == "dragover") {
+    let relX = ev.clientX / viewportWidth;
+    let relY = ev.clientY / viewportHeight;
+
+    if (relY <= 0.1) {
+      //scroll column up
+      let colToScroll = ev.path.filter(x => x.classList && x.classList.contains('column'))[0];
+      if(!verticalScrollInterval) {
+        verticalScrollInterval = setInterval(()=>{
+          colToScroll.scrollBy(0, -1*scrollVerticalAmount);
+        }, scrollVerticalInterval);
+      }
+    } else if (relY >= 0.9) {
+      let colToScroll = ev.path.filter(x => x.classList && x.classList.contains('column'))[0];
+      if(!verticalScrollInterval) {
+        verticalScrollInterval = setInterval(()=>{
+          colToScroll.scrollBy(0, 1*scrollVerticalAmount);
+        }, scrollVerticalInterval);
+      }
+    } else {
+      clearInterval(verticalScrollInterval);
+      verticalScrollInterval = null;
+    }
+
+    let docElement = document.getElementById('document');
+    if (relX <= 0.1) {
+      if(!horizontalScrollInterval) {
+        horizontalScrollInterval = setInterval(()=>{
+          docElement.scrollBy(-1*scrollHorizontalAmount, 0);
+        }, scrollHorizontalInterval);
+      }
+    } else if (relX >= 0.9) {
+      if(!horizontalScrollInterval) {
+        horizontalScrollInterval = setInterval(()=>{
+          docElement.scrollBy(scrollHorizontalAmount, 0);
+        }, scrollHorizontalInterval);
+      }
+    } else {
+      //stop horizontal scrolling
+      clearInterval(horizontalScrollInterval);
+      horizontalScrollInterval = null;
+    }
   }
   if (externalDrag && ev.type == "drop") {
     externalDrag = false;
