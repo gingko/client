@@ -87,6 +87,7 @@ describe('User Signup Flow', () => {
     cy.getCookie('AuthSession').should('exist')
 
     // Has a user database
+    cy.wait(2000)
     cy.request({url: config.TEST_SERVER + '/db/' + testUserDb, retryOnStatusCodeFailure: true})
 
   })
