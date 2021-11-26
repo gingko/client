@@ -172,16 +172,18 @@ async function setUserDbs(email) {
 
   LogRocket.identify(email);
 
-  self.fwSettings={
-    'widget_id': config.FRESHDESK_APPID
-  };
-  !function(){if("function"!=typeof window.FreshworksWidget){var n=function(){n.q.push(arguments)};n.q=[],window.FreshworksWidget=n}}()
-  let freshdeskScript = document.createElement('script');
-  freshdeskScript.setAttribute('src', `https://euc-widget.freshworks.com/widgets/${config.FRESHDESK_APPID}.js`)
-  freshdeskScript.setAttribute('async','');
-  freshdeskScript.setAttribute('defer','');
-  document.head.appendChild(freshdeskScript);
-  FreshworksWidget('hide', 'launcher');
+  if (email !== "cypress@testing.com") {
+    self.fwSettings={
+      'widget_id': config.FRESHDESK_APPID
+    };
+    !function(){if("function"!=typeof window.FreshworksWidget){var n=function(){n.q.push(arguments)};n.q=[],window.FreshworksWidget=n}}()
+    let freshdeskScript = document.createElement('script');
+    freshdeskScript.setAttribute('src', `https://euc-widget.freshworks.com/widgets/${config.FRESHDESK_APPID}.js`)
+    freshdeskScript.setAttribute('async','');
+    freshdeskScript.setAttribute('defer','');
+    document.head.appendChild(freshdeskScript);
+    FreshworksWidget('hide', 'launcher');
+  }
 
   if(window.location.origin === config.PRODUCTION_SERVER) {
     self.beamer_config = {
