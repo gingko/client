@@ -51,7 +51,7 @@ jobs:
       - run: npm run build --if-present
 
       - name: Cypress e2e Tests
-        run: npx cypress run
+        uses: cypress-io/github-action@v2
 
       - name: Stop Test Server
         run: pm2 stop GingkoTest
