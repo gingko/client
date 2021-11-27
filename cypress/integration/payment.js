@@ -78,6 +78,8 @@ describe('Upgrade process', () => {
     cy.url().should('contain', this.treeIds[1] )
     cy.get('.spinner').should('not.exist')
 
+    cy.contains('Synced')
+    cy.contains('Another doc, with title')
     cy.get('#document-header')
       .should('not.contain', 'Upgrade')
   })

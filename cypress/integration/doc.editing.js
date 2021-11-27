@@ -97,12 +97,12 @@ describe('Document Editing', () => {
       .should('not.contain', 'to cancel xxx')
 
     // Can cancel renaming the document
-    cy.get('#title-rename').click()
+    cy.get('#title-rename').click({force: true}) // force hack : Upgrade button covers it only on headless runs
     cy.shortcut('{esc}')
     cy.get('#title-rename').should('not.be.focused')
 
     // Can rename the document
-    cy.get('#title-rename').click()
+    cy.get('#title-rename').click({force: true}) // force hack : Upgrade button covers it only on headless runs
     cy.get('#title-rename')
       .should('have.focus')
       .type('A new doc title here{enter}')
