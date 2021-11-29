@@ -728,7 +728,7 @@ viewTemplateSelector :
     ->
         { modalClosed : msg
         , importBulkClicked : msg
-        , importMarkdownRequested : msg
+        , importTextClicked : msg
         , importOpmlRequested : msg
         , importJSONRequested : msg
         }
@@ -750,9 +750,9 @@ viewTemplateSelector language msgs =
                 , div [ class "template-description" ]
                     [ text <| tr language HomeLegacyFrom ]
                 ]
-            , div [ id "template-import-markdown", class "template-item", onClick msgs.importMarkdownRequested ]
+            , div [ id "template-import-text", class "template-item", onClick msgs.importTextClicked ]
                 [ div [ classList [ ( "template-thumbnail", True ) ] ] [ Icon.file (Icon.defaultOptions |> Icon.size 48) ]
-                , div [ class "template-title" ] [ text "Import Markdown Files" ]
+                , div [ class "template-title" ] [ text "Import Text Files" ]
                 , div [ class "template-description" ]
                     [ text "Import multiple markdown or regular text files." ]
                 ]

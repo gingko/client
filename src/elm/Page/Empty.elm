@@ -16,7 +16,7 @@ import Html.Events exposing (on, onClick)
 import Http
 import Import.Bulk.UI as ImportModal
 import Import.Incoming
-import Import.Markdown
+import Import.Text
 import Json.Decode as Dec
 import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
@@ -323,7 +323,7 @@ update msg model =
         ImportMarkdownLoaded metadata markdownStrings ->
             let
                 ( importedTree, newSeed ) =
-                    Import.Markdown.toTree (Session.seed model.session) metadata markdownStrings
+                    Import.Text.toTree (Session.seed model.session) metadata markdownStrings
 
                 newSession =
                     Session.setSeed newSeed model.session
@@ -448,7 +448,7 @@ viewModal ({ session } as model) =
             UI.viewTemplateSelector (Session.language session)
                 { modalClosed = ModalClosed
                 , importBulkClicked = ImportBulkClicked
-                , importMarkdownRequested = ImportMarkdownRequested
+                , importTextClicked = ImportMarkdownRequested
 
                 {- TODO -}
                 , importOpmlRequested = NoOp

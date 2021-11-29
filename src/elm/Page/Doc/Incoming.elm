@@ -1,6 +1,7 @@
 port module Page.Doc.Incoming exposing (Msg(..), subscribe)
 
 import Coders exposing (..)
+import File exposing (File)
 import Json.Decode as Dec exposing (Decoder, decodeValue, errorToString, field, oneOf)
 import Time
 import Translation exposing (languageDecoder)
@@ -42,6 +43,8 @@ type
     | WillPrint
     | RecvCollabState CollabState
     | CollaboratorDisconnected String
+      -- === TESTING ===
+    | TestTextImportLoaded File
 
 
 
@@ -234,6 +237,14 @@ subscribe tagger onError =
                     case decodeValue Dec.string outsideInfo.data of
                         Ok uid ->
                             tagger <| CollaboratorDisconnected uid
+
+                        Err e ->
+                            onError (errorToString e)
+
+                "TestTextImportLoaded" ->
+                    case decodeValue File.decoder outsideInfo.data of
+                        Ok file ->
+                            tagger <| TestTextImportLoaded file
 
                         Err e ->
                             onError (errorToString e)

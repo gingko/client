@@ -717,6 +717,16 @@ const fromElm = (msg, elmData) => {
 
     // === Misc ===
 
+    IntegrationTestEvent: () => {
+      if (window.Cypress) {
+        switch (elmData) {
+          case "ImportTextRequested":
+            let file = new File(["foo"], "foo.txt", { type: "text/plain", });
+            toElm(file, "docMsgs", "TestTextImportLoaded");
+        }
+      }
+    },
+
     EmptyMessageShown: () => {},
 
     ShowWidget: () => {

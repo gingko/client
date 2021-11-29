@@ -1,11 +1,21 @@
-module Import.Markdown exposing (toTree)
+module Import.Text exposing (toTree, view)
 
 import Doc.TreeStructure as TreeStructure
+import Html exposing (Html, button, div, input)
+import Html.Attributes exposing (id, type_)
+import Html.Events exposing (onClick)
 import List.Extra as ListExtra
 import Random
 import RandomId
 import Regex
+import SharedUI exposing (modalWrapper)
 import Types exposing (Children(..), Tree)
+
+
+view : msg -> msg -> List (Html msg)
+view closeMsg fileSelectorClicked =
+    [ div [] [ button [ id "import-text-file-input", onClick fileSelectorClicked ] [] ] ]
+        |> modalWrapper closeMsg (Just "import-text-modal") Nothing "Import Text Files"
 
 
 toTree : Random.Seed -> List String -> List String -> ( Tree, Random.Seed )

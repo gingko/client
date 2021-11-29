@@ -31,9 +31,9 @@ import Html5.DragDrop as DragDrop
 import Http
 import Import.Bulk.UI as ImportModal
 import Import.Incoming
-import Import.Markdown
 import Import.Opml
 import Import.Single
+import Import.Text
 import Json.Decode as Json
 import Json.Encode as Enc
 import List.Extra as ListExtra
@@ -109,6 +109,7 @@ type ModalState
     | VideoViewer VideoViewer.Model
     | Wordcount
     | ImportModal ImportModal.Model
+    | ImportTextModal
     | ContactForm ContactForm.Model
     | UpgradeModal
 
@@ -255,7 +256,8 @@ type Msg
     | WordcountModalOpened
     | ModalClosed
     | ImportBulkClicked
-    | ImportMarkdownRequested
+    | ImportTextClicked
+    | ImportTextRequested
     | ImportOpmlRequested
     | ImportJSONRequested
     | FileSearchChanged String
@@ -281,9 +283,9 @@ type Msg
     | ContactFormSent (Result Http.Error ())
       -- Import
     | ImportModalMsg ImportModal.Msg
-    | ImportMarkdownSelected File (List File)
-    | ImportMarkdownLoaded (List String) (List String)
-    | ImportMarkdownIdGenerated Tree String
+    | ImportTextSelected File (List File)
+    | ImportTextLoaded (List String) (List String)
+    | ImportTextIdGenerated Tree String
     | ImportOpmlSelected File
     | ImportOpmlLoaded String String
     | ImportOpmlIdGenerated Tree String String
@@ -952,10 +954,18 @@ update msg ({ workingTree } as model) =
                 _ ->
                     ( model, Cmd.none )
 
-        ImportMarkdownRequested ->
-            ( model, Select.files [ ".md", ".markdown", ".mdown", "text/markdown", "text/x-markdown", "text/plain" ] ImportMarkdownSelected )
+        ImportTextClicked ->
+            ( { model | modalState = ImportTextModal }, Cmd.none )
 
-        ImportMarkdownSelected firstFile restFiles ->
+        ImportTextRequested ->
+            ( model
+            , Cmd.batch
+                [ Select.files [ ".md", ".markdown", ".mdown", "text/markdown", "text/x-markdown", "text/plain" ] ImportTextSelected
+                , send <| IntegrationTestEvent "ImportTextRequested"
+                ]
+            )
+
+        ImportTextSelected firstFile restFiles ->
             let
                 tasks =
                     firstFile :: restFiles |> List.map File.toString |> Task.sequence
@@ -965,19 +975,19 @@ update msg ({ workingTree } as model) =
                         :: restFiles
                         |> List.map File.name
             in
-            ( model, Task.perform (ImportMarkdownLoaded metadata) tasks )
+            ( model, Task.perform (ImportTextLoaded metadata) tasks )
 
-        ImportMarkdownLoaded metadata markdownStrings ->
+        ImportTextLoaded metadata markdownStrings ->
             let
                 ( importedTree, newSeed ) =
-                    Import.Markdown.toTree (Session.seed model.session) metadata markdownStrings
+                    Import.Text.toTree (Session.seed model.session) metadata markdownStrings
 
                 newSession =
                     Session.setSeed newSeed model.session
             in
-            ( { model | loading = True, session = newSession }, RandomId.generate (ImportMarkdownIdGenerated importedTree) )
+            ( { model | loading = True, session = newSession }, RandomId.generate (ImportTextIdGenerated importedTree) )
 
-        ImportMarkdownIdGenerated tree docId ->
+        ImportTextIdGenerated tree docId ->
             let
                 author =
                     model.session |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
@@ -1769,6 +1779,10 @@ update msg ({ workingTree } as model) =
                       }
                     , Cmd.none
                     )
+
+                -- === INTEGRATION TEST HOOKS ===
+                TestTextImportLoaded file ->
+                    update (ImportTextSelected file []) model
 
         LogErr err ->
             ( model
@@ -3476,7 +3490,7 @@ viewModal language model =
             UI.viewTemplateSelector language
                 { modalClosed = ModalClosed
                 , importBulkClicked = ImportBulkClicked
-                , importMarkdownRequested = ImportMarkdownRequested
+                , importTextClicked = ImportTextClicked
                 , importOpmlRequested = ImportOpmlRequested
                 , importJSONRequested = ImportJSONRequested
                 }
@@ -3498,6 +3512,9 @@ viewModal language model =
         ImportModal modalModel ->
             ImportModal.view language modalModel
                 |> List.map (Html.map ImportModalMsg)
+
+        ImportTextModal ->
+            Import.Text.view TemplateSelectorOpened ImportTextRequested
 
         ContactForm contactFormModel ->
             ContactForm.view language

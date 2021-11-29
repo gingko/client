@@ -56,6 +56,7 @@ type Msg
     | Print
     | SetFonts Fonts.Settings
       -- === Misc ===
+    | IntegrationTestEvent String
     | EmptyMessageShown
     | ShowWidget
     | CheckoutButtonClicked Enc.Value
@@ -212,6 +213,9 @@ send info =
             dataToSend "SetFonts" (fontSettingsEncoder fontSettings)
 
         -- === Misc ===
+        IntegrationTestEvent eventData ->
+            dataToSend "IntegrationTestEvent" (string eventData)
+
         EmptyMessageShown ->
             dataToSend "EmptyMessageShown" null
 

@@ -22,7 +22,27 @@ describe('JSON Imports from Startup State', () => {
 
     cy.get('#new-icon').click()
 
-    cy.get('#template-import')
+    //Brings up Import Text Files dialog
+    cy.get('#template-import-text')
+      .click()
+
+    cy.get('#import-text-modal')
+      .should('be.visible')
+    cy.get('.modal-header')
+      .contains('Import Text Files')
+
+    // Goes back to template selector on close button
+    cy.get('.close-button')
+      .click()
+
+    cy.get('#template-import-text')
+      .should('be.visible')
+
+    // Imports a text file successfully
+    cy.get('#template-import-text')
+      .click()
+
+    cy.get('#import-text-file-input')
       .click()
   })
 })
