@@ -44,5 +44,7 @@ describe('JSON Imports from Startup State', () => {
 
     cy.get('#import-text-file-input')
       .click()
+
+    cy.contains('This is a test file')
   })
 })
