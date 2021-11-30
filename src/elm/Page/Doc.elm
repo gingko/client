@@ -33,7 +33,7 @@ import Import.Bulk.UI as ImportModal
 import Import.Incoming
 import Import.Opml
 import Import.Single
-import Import.Text
+import Import.Text as ImportText
 import Json.Decode as Json
 import Json.Encode as Enc
 import List.Extra as ListExtra
@@ -109,7 +109,7 @@ type ModalState
     | VideoViewer VideoViewer.Model
     | Wordcount
     | ImportModal ImportModal.Model
-    | ImportTextModal
+    | ImportTextModal ImportText.Model
     | ContactForm ContactForm.Model
     | UpgradeModal
 
@@ -257,7 +257,6 @@ type Msg
     | ModalClosed
     | ImportBulkClicked
     | ImportTextClicked
-    | ImportTextRequested
     | ImportOpmlRequested
     | ImportJSONRequested
     | FileSearchChanged String
@@ -283,7 +282,7 @@ type Msg
     | ContactFormSent (Result Http.Error ())
       -- Import
     | ImportModalMsg ImportModal.Msg
-    | ImportTextSelected File (List File)
+    | ImportTextModalMsg ImportText.Msg
     | ImportTextLoaded (List String) (List String)
     | ImportTextIdGenerated Tree String
     | ImportOpmlSelected File
@@ -954,33 +953,50 @@ update msg ({ workingTree } as model) =
                 _ ->
                     ( model, Cmd.none )
 
+        ImportTextModalMsg modalMsg ->
+            case model.modalState of
+                ImportTextModal modalModel ->
+                    let
+                        u =
+                            ImportText.update modalMsg modalModel
+
+                        newCmd =
+                            Cmd.batch
+                                ([ Cmd.map ImportTextModalMsg u.cmd ]
+                                    ++ (if u.sendTestHack then
+                                            [ send <| IntegrationTestEvent "ImportTextRequested" ]
+
+                                        else
+                                            []
+                                       )
+                                    ++ (case u.importRequested of
+                                            Just files ->
+                                                let
+                                                    tasks =
+                                                        files |> List.map File.toString |> Task.sequence
+
+                                                    metadata =
+                                                        files |> List.map File.name
+                                                in
+                                                [ Task.perform (ImportTextLoaded metadata) tasks ]
+
+                                            Nothing ->
+                                                []
+                                       )
+                                )
+                    in
+                    ( { model | modalState = ImportTextModal u.model }, newCmd )
+
+                _ ->
+                    ( model, Cmd.none )
+
         ImportTextClicked ->
-            ( { model | modalState = ImportTextModal }, Cmd.none )
-
-        ImportTextRequested ->
-            ( model
-            , Cmd.batch
-                [ Select.files [ ".md", ".markdown", ".mdown", "text/markdown", "text/x-markdown", "text/plain" ] ImportTextSelected
-                , send <| IntegrationTestEvent "ImportTextRequested"
-                ]
-            )
-
-        ImportTextSelected firstFile restFiles ->
-            let
-                tasks =
-                    firstFile :: restFiles |> List.map File.toString |> Task.sequence
-
-                metadata =
-                    firstFile
-                        :: restFiles
-                        |> List.map File.name
-            in
-            ( model, Task.perform (ImportTextLoaded metadata) tasks )
+            ( { model | modalState = ImportTextModal ImportText.init }, Cmd.none )
 
         ImportTextLoaded metadata markdownStrings ->
             let
                 ( importedTree, newSeed ) =
-                    Import.Text.toTree (Session.seed model.session) metadata markdownStrings
+                    ImportText.toTree (Session.seed model.session) metadata markdownStrings
 
                 newSession =
                     Session.setSeed newSeed model.session
@@ -1782,7 +1798,14 @@ update msg ({ workingTree } as model) =
 
                 -- === INTEGRATION TEST HOOKS ===
                 TestTextImportLoaded file ->
-                    update (ImportTextSelected file []) model
+                    case model.modalState of
+                        ImportTextModal modalState ->
+                            ( { model | modalState = ImportText.setFileList [ file ] modalState |> ImportTextModal }
+                            , Cmd.none
+                            )
+
+                        _ ->
+                            ( model, Cmd.none )
 
         LogErr err ->
             ( model
@@ -3513,8 +3536,10 @@ viewModal language model =
             ImportModal.view language modalModel
                 |> List.map (Html.map ImportModalMsg)
 
-        ImportTextModal ->
-            Import.Text.view TemplateSelectorOpened ImportTextRequested
+        ImportTextModal modalModel ->
+            ImportText.view
+                { closeMsg = TemplateSelectorOpened, tagger = ImportTextModalMsg }
+                modalModel
 
         ContactForm contactFormModel ->
             ContactForm.view language

@@ -38,11 +38,35 @@ describe('JSON Imports from Startup State', () => {
     cy.get('#template-import-text')
       .should('be.visible')
 
-    // Imports a text file successfully
     cy.get('#template-import-text')
       .click()
 
+    cy.get('#import-text-modal')
+      .should('be.visible')
+
+    cy.get('#card-per-file-radio')
+      .should('be.checked')
+
+    cy.get('#split-by-paragraph')
+      .should('not.exist')
+
+    cy.get('#split-import')
+      .should('be.visible')
+      .should('not.be.checked')
+      .click()
+      .should('be.checked')
+
+    cy.get('#card-per-file-radio')
+      .should('not.be.checked')
+
+    cy.get('#split-by-paragraph')
+      .should('be.visible')
+
+    // Imports a text file successfully
     cy.get('#import-text-file-input')
+      .click()
+
+    cy.get('#import-text-perform')
       .click()
 
     cy.contains('This is a test file')
