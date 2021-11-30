@@ -721,7 +721,7 @@ const fromElm = (msg, elmData) => {
       if (window.Cypress) {
         switch (elmData) {
           case "ImportTextRequested":
-            let file = new File(["# foo\nThis is a test file"], "foo.txt", { type: "text/plain", });
+            let file = new File(["This is a test file.\n\nWith a paragraph break.\n\n---\n\nAnd a split break."], "foo.txt", { type: "text/plain", });
             toElm(file, "docMsgs", "TestTextImportLoaded");
         }
       }

@@ -69,6 +69,11 @@ describe('JSON Imports from Startup State', () => {
     cy.get('#import-text-perform')
       .click()
 
-    cy.contains('This is a test file')
+    cy.getCard(1,1,1)
+      .should('contain','This is a test file.')
+      .should('not.contain', 'With a paragraph break.')
+
+    cy.getCard(1,1,4)
+      .should('contain', 'And a split break.')
   })
 })

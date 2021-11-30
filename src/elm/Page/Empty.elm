@@ -101,10 +101,6 @@ type Msg
     | ImportModalMsg ImportModal.Msg
     | ImportBulkClicked
     | ImportBulkCompleted
-    | ImportMarkdownRequested
-    | ImportMarkdownSelected File (List File)
-    | ImportMarkdownLoaded (List String) (List String)
-    | ImportMarkdownIdGenerated Tree String
     | ImportJSONRequested
     | ImportJSONCompleted String
     | ReceivedDocuments DocList.Model
@@ -305,46 +301,6 @@ update msg model =
         ImportBulkCompleted ->
             ( { model | modalState = Closed }, Cmd.none )
 
-        ImportMarkdownRequested ->
-            ( model, Select.files [ ".md", ".markdown", ".mdown", "text/markdown", "text/x-markdown", "text/plain" ] ImportMarkdownSelected )
-
-        ImportMarkdownSelected firstFile restFiles ->
-            let
-                tasks =
-                    firstFile :: restFiles |> List.map File.toString |> Task.sequence
-
-                metadata =
-                    firstFile
-                        :: restFiles
-                        |> List.map File.name
-            in
-            ( model, Task.perform (ImportMarkdownLoaded metadata) tasks )
-
-        ImportMarkdownLoaded metadata markdownStrings ->
-            let
-                ( importedTree, newSeed ) =
-                    Import.Text.toTree (Session.seed model.session) metadata markdownStrings
-
-                newSession =
-                    Session.setSeed newSeed model.session
-            in
-            ( { model | session = newSession }, RandomId.generate (ImportMarkdownIdGenerated importedTree) )
-
-        ImportMarkdownIdGenerated tree docId ->
-            let
-                author =
-                    model.session |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
-
-                commitReq_ =
-                    Data.requestCommit tree author Data.empty (Metadata.new docId |> Metadata.encode)
-            in
-            case commitReq_ of
-                Just commitReq ->
-                    ( model, send <| SaveImportedData commitReq )
-
-                Nothing ->
-                    ( model, Cmd.none )
-
         ImportJSONRequested ->
             ( model, Cmd.none )
 
@@ -448,9 +404,9 @@ viewModal ({ session } as model) =
             UI.viewTemplateSelector (Session.language session)
                 { modalClosed = ModalClosed
                 , importBulkClicked = ImportBulkClicked
-                , importTextClicked = ImportMarkdownRequested
 
                 {- TODO -}
+                , importTextClicked = NoOp
                 , importOpmlRequested = NoOp
                 , importJSONRequested = ImportJSONRequested
                 }

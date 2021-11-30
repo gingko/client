@@ -283,7 +283,7 @@ type Msg
       -- Import
     | ImportModalMsg ImportModal.Msg
     | ImportTextModalMsg ImportText.Msg
-    | ImportTextLoaded (List String) (List String)
+    | ImportTextLoaded ImportText.Settings (List String) (List String)
     | ImportTextIdGenerated Tree String
     | ImportOpmlSelected File
     | ImportOpmlLoaded String String
@@ -970,7 +970,7 @@ update msg ({ workingTree } as model) =
                                             []
                                        )
                                     ++ (case u.importRequested of
-                                            Just files ->
+                                            Just ( files, importSettings ) ->
                                                 let
                                                     tasks =
                                                         files |> List.map File.toString |> Task.sequence
@@ -978,7 +978,7 @@ update msg ({ workingTree } as model) =
                                                     metadata =
                                                         files |> List.map File.name
                                                 in
-                                                [ Task.perform (ImportTextLoaded metadata) tasks ]
+                                                [ Task.perform (ImportTextLoaded importSettings metadata) tasks ]
 
                                             Nothing ->
                                                 []
@@ -993,10 +993,10 @@ update msg ({ workingTree } as model) =
         ImportTextClicked ->
             ( { model | modalState = ImportTextModal ImportText.init }, Cmd.none )
 
-        ImportTextLoaded metadata markdownStrings ->
+        ImportTextLoaded settings metadata markdownStrings ->
             let
                 ( importedTree, newSeed ) =
-                    ImportText.toTree (Session.seed model.session) metadata markdownStrings
+                    ImportText.toTree (Session.seed model.session) metadata markdownStrings settings
 
                 newSession =
                     Session.setSeed newSeed model.session

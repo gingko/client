@@ -1,6 +1,6 @@
-module Import.Text exposing (Model, Msg, init, setFileList, toTree, update, view)
+module Import.Text exposing (Model, Msg, Settings, init, setFileList, toTree, update, view)
 
-import Doc.TreeStructure as TreeStructure
+import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import File exposing (File)
 import File.Select
 import Html exposing (Html, button, div, input, label, li, text, ul)
@@ -22,11 +22,11 @@ import Types exposing (Children(..), Tree)
 
 type alias Model =
     { files : List File
-    , importSettings : ImportSettings
+    , importSettings : Settings
     }
 
 
-type ImportSettings
+type Settings
     = CardPerFile Bool
     | Split Separator
 
@@ -53,7 +53,7 @@ type Msg
     | RequestImport
 
 
-update : Msg -> Model -> { model : Model, cmd : Cmd Msg, sendTestHack : Bool, importRequested : Maybe (List File) }
+update : Msg -> Model -> { model : Model, cmd : Cmd Msg, sendTestHack : Bool, importRequested : Maybe ( List File, Settings ) }
 update msg model =
     case msg of
         FilesRequested ->
@@ -77,7 +77,7 @@ update msg model =
             { model = { model | importSettings = Split sep }, cmd = Cmd.none, sendTestHack = False, importRequested = Nothing }
 
         RequestImport ->
-            { model = model, cmd = Cmd.none, sendTestHack = False, importRequested = Just model.files }
+            { model = model, cmd = Cmd.none, sendTestHack = False, importRequested = Just ( model.files, model.importSettings ) }
 
 
 setFileList : List File -> Model -> Model
@@ -124,36 +124,72 @@ view msgs model =
         |> modalWrapper msgs.closeMsg (Just "import-text-modal") Nothing "Import Text Files"
 
 
-toTree : Random.Seed -> List String -> List String -> ( Tree, Random.Seed )
-toTree seed metadata markdownStrings =
+toTree : Random.Seed -> List String -> List String -> Settings -> ( Tree, Random.Seed )
+toTree seed metadata markdownStrings settings =
     let
         ( salt, newSeed ) =
             Random.step RandomId.stringGenerator seed
-
-        filenameAndContent =
-            ListExtra.zip metadata markdownStrings
-
-        removeExtensionRegex_ =
-            Regex.fromString "\\..*$"
-
-        titleContentToString title content =
-            case removeExtensionRegex_ of
-                Just regex ->
-                    "# " ++ (title |> Regex.replace regex (\_ -> "")) ++ "\n" ++ content
-
-                Nothing ->
-                    "# " ++ title ++ "\n" ++ content
-
-        mapFn idx ( title, content ) =
-            Tree (String.fromInt (idx + 1))
-                (titleContentToString title content)
-                (Children [])
-
-        newTree =
-            filenameAndContent
-                |> List.indexedMap mapFn
-                |> Children
-                |> Tree "0" ""
-                |> TreeStructure.renameNodes salt
     in
-    ( newTree, newSeed )
+    case settings of
+        CardPerFile filenameTitle ->
+            let
+                filenameAndContent =
+                    ListExtra.zip metadata markdownStrings
+
+                removeExtensionRegex_ =
+                    Regex.fromString "\\..*$"
+
+                titleContentToString title content =
+                    if filenameTitle then
+                        case removeExtensionRegex_ of
+                            Just regex ->
+                                "# " ++ (title |> Regex.replace regex (\_ -> "")) ++ "\n" ++ content
+
+                            Nothing ->
+                                "# " ++ title ++ "\n" ++ content
+
+                    else
+                        content
+
+                mapFn idx ( title, content ) =
+                    Tree (String.fromInt (idx + 1))
+                        (titleContentToString title content)
+                        (Children [])
+
+                newTree =
+                    filenameAndContent
+                        |> List.indexedMap mapFn
+                        |> Children
+                        |> Tree "0" ""
+                        |> TreeStructure.renameNodes salt
+            in
+            ( newTree, newSeed )
+
+        Split sep ->
+            let
+                sepString =
+                    case sep of
+                        Paragraph ->
+                            "\n\n"
+
+                        Other str ->
+                            String.trim str
+
+                separatedContent =
+                    markdownStrings
+                        |> List.concatMap (String.split sepString)
+                        |> Debug.log "separatedContent"
+
+                mapFn idx content =
+                    Tree (String.fromInt (idx + 1))
+                        content
+                        (Children [])
+
+                newTree =
+                    separatedContent
+                        |> List.indexedMap mapFn
+                        |> Children
+                        |> Tree "0" ""
+                        |> TreeStructure.renameNodes salt
+            in
+            ( newTree, newSeed )
