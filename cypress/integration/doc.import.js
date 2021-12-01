@@ -44,20 +44,19 @@ describe('JSON Imports from Startup State', () => {
     cy.get('#import-text-modal')
       .should('be.visible')
 
-    cy.get('#no-splitting')
+    cy.get('#split-by-paragraph')
       .should('be.checked')
 
+
+    cy.get('#no-splitting')
+      .should('not.be.checked')
+      .click()
+      .should('be.checked')
 
     cy.get('#split-by-paragraph')
       .should('not.be.checked')
       .click()
       .should('be.checked')
-
-    cy.get('#no-splitting')
-      .should('not.be.checked')
-
-    cy.get('#split-by-paragraph')
-      .should('be.visible')
 
     describe('Imports a text file successfully with split-by-paragraph', () =>{
       cy.get('#import-text-file-input')
@@ -102,6 +101,7 @@ describe('JSON Imports from Startup State', () => {
       cy.get('#new-icon').click()
       cy.get('#template-import-text').click()
       cy.get('#import-text-file-input').click()
+      cy.get('#no-splitting').click()
       cy.get('#import-text-perform').click()
 
       cy.get('#title-rename')

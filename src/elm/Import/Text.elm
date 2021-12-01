@@ -3,9 +3,10 @@ module Import.Text exposing (Model, Msg, Settings, init, setFileList, toTree, up
 import Doc.TreeStructure as TreeStructure exposing (defaultTree, labelTree, renameNodes)
 import File exposing (File)
 import File.Select
-import Html exposing (Html, button, div, input, label, li, text, ul)
+import Html exposing (Html, button, div, h3, hr, input, label, li, ol, text, ul)
 import Html.Attributes exposing (checked, class, disabled, for, id, style, type_, value)
 import Html.Events exposing (on, onClick, onInput)
+import Html.Extra exposing (viewIf)
 import List.Extra as ListExtra
 import Random
 import RandomId
@@ -33,7 +34,7 @@ type Settings
 
 init : Model
 init =
-    { files = [], importSettings = NoSplit, field = "---" }
+    { files = [], importSettings = SplitByParagraph, field = "---" }
 
 
 
@@ -98,17 +99,20 @@ setFileList files model =
 
 view : { closeMsg : msg, tagger : Msg -> msg } -> Model -> List (Html msg)
 view msgs { files, importSettings, field } =
-    [ button [ id "import-text-file-input", onClick (msgs.tagger FilesRequested) ] [ text "Browse Files" ]
-    , ul []
-        [ li []
-            [ input [ type_ "radio", id "no-splitting", checked (importSettings == NoSplit), onClick (msgs.tagger SetNoSplit) ] []
-            , label [ for "no-splitting" ] [ text "No Splitting (one card per file)" ]
-            ]
-        , li []
+    let
+        viewFile f =
+            li [ class "file-item" ] [ text <| File.name f ]
+    in
+    [ h3 [] [ text "File Selection" ]
+    , button [ id "import-text-file-input", onClick (msgs.tagger FilesRequested), style "height" "48px" ] [ text "Browse Files" ]
+    , viewIf (not <| List.isEmpty files) <| ol [] (files |> List.map viewFile)
+    , h3 [ style "margin-top" "32px" ] [ text "Splitting Options" ]
+    , div [ id "splitting-options-list" ]
+        [ div []
             [ input [ type_ "radio", id "split-by-paragraph", checked (importSettings == SplitByParagraph), onClick (msgs.tagger SetSplitByParagraph) ] []
             , label [ for "split-by-paragraph" ] [ text "Split By Paragraph and Blank Lines" ]
             ]
-        , li []
+        , div []
             [ input [ id "split-by-separator", type_ "radio", checked (not (importSettings == NoSplit || importSettings == SplitByParagraph)), onClick (msgs.tagger SetSplitBy) ] []
             , label [ for "split-by-separator" ]
                 [ text "Split by Separator : "
@@ -120,10 +124,21 @@ view msgs { files, importSettings, field } =
                     []
                 ]
             ]
+        , div []
+            [ input [ type_ "radio", id "no-splitting", checked (importSettings == NoSplit), onClick (msgs.tagger SetNoSplit) ] []
+            , label [ for "no-splitting" ] [ text "No Splitting (one card per file)" ]
+            ]
         ]
-    , button [ id "import-text-perform", disabled (List.isEmpty files), onClick (msgs.tagger RequestImport) ] [ text "Import" ]
+    , button
+        [ id "import-text-perform"
+        , disabled (List.isEmpty files)
+        , onClick (msgs.tagger RequestImport)
+        , style "margin-top" "32px"
+        , style "height" "48px"
+        ]
+        [ text "Import" ]
     ]
-        |> modalWrapper msgs.closeMsg (Just "import-text-modal") Nothing "Import Text Files"
+        |> modalWrapper msgs.closeMsg (Just "import-text-modal") (Just [ ( "import-text-modal-container", True ) ]) "Import Text Files"
 
 
 toTree : Random.Seed -> List String -> List String -> Settings -> ( Tree, Random.Seed, Maybe String )

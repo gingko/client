@@ -58,7 +58,7 @@ describe('Welcome Tree & Templates', () => {
     cy.get('#template-import-bulk')
       .should('be.visible')
 
-    cy.get('#template-import-markdown')
+    cy.get('#template-import-text')
       .should('be.visible')
 
     cy.get('#template-import')
