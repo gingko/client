@@ -44,19 +44,16 @@ describe('JSON Imports from Startup State', () => {
     cy.get('#import-text-modal')
       .should('be.visible')
 
-    cy.get('#card-per-file-radio')
+    cy.get('#no-splitting')
       .should('be.checked')
 
-    cy.get('#split-by-paragraph')
-      .should('not.exist')
 
-    cy.get('#split-import')
-      .should('be.visible')
+    cy.get('#split-by-paragraph')
       .should('not.be.checked')
       .click()
       .should('be.checked')
 
-    cy.get('#card-per-file-radio')
+    cy.get('#no-splitting')
       .should('not.be.checked')
 
     cy.get('#split-by-paragraph')
@@ -86,7 +83,6 @@ describe('JSON Imports from Startup State', () => {
       cy.get('#new-icon').click()
       cy.get('#template-import-text').click()
       cy.get('#import-text-file-input').click()
-      cy.get('#split-import').click()
       cy.get('#split-by-separator').click()
       cy.get('#import-text-perform').click()
 
@@ -100,6 +96,22 @@ describe('JSON Imports from Startup State', () => {
 
       cy.getCard(1,1,2)
         .contains('And a split break.')
+    })
+
+    describe('Imports multiple files, one per card', ()=>{
+      cy.get('#new-icon').click()
+      cy.get('#template-import-text').click()
+      cy.get('#import-text-file-input').click()
+      cy.get('#import-text-perform').click()
+
+      cy.get('#title-rename')
+        .should('have.value', 'Untitled')
+
+      cy.getCard(1,1,1)
+        .should('contain', 'bar1')
+
+      cy.getCard(1,1,2)
+        .should('contain', 'bar2')
     })
   })
 })

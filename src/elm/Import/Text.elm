@@ -1,6 +1,6 @@
 module Import.Text exposing (Model, Msg, Settings, init, setFileList, toTree, update, view)
 
-import Doc.TreeStructure as TreeStructure exposing (defaultTree)
+import Doc.TreeStructure as TreeStructure exposing (defaultTree, labelTree, renameNodes)
 import File exposing (File)
 import File.Select
 import Html exposing (Html, button, div, input, label, li, text, ul)
@@ -27,18 +27,14 @@ type alias Model =
 
 
 type Settings
-    = CardPerFile Bool
-    | Split Separator
-
-
-type Separator
-    = Paragraph
-    | Other String
+    = NoSplit
+    | SplitByParagraph
+    | SplitBy String
 
 
 init : Model
 init =
-    { files = [], importSettings = CardPerFile True }
+    { files = [], importSettings = NoSplit }
 
 
 
@@ -48,8 +44,9 @@ init =
 type Msg
     = FilesRequested
     | GotFiles File (List File)
-    | SetCardPerFile Bool
-    | SetSplit Separator
+    | SetNoSplit
+    | SetSplitByParagraph
+    | SetSplitBy String
     | RequestImport
 
 
@@ -70,11 +67,14 @@ update msg model =
             , importRequested = Nothing
             }
 
-        SetCardPerFile fileTitle ->
-            { model = { model | importSettings = CardPerFile fileTitle }, cmd = Cmd.none, sendTestHack = False, importRequested = Nothing }
+        SetNoSplit ->
+            { model = { model | importSettings = NoSplit }, cmd = Cmd.none, sendTestHack = False, importRequested = Nothing }
 
-        SetSplit sep ->
-            { model = { model | importSettings = Split sep }, cmd = Cmd.none, sendTestHack = False, importRequested = Nothing }
+        SetSplitByParagraph ->
+            { model = { model | importSettings = SplitByParagraph }, cmd = Cmd.none, sendTestHack = False, importRequested = Nothing }
+
+        SetSplitBy sep ->
+            { model = { model | importSettings = SplitBy sep }, cmd = Cmd.none, sendTestHack = False, importRequested = Nothing }
 
         RequestImport ->
             { model = model, cmd = Cmd.none, sendTestHack = False, importRequested = Just ( model.files, model.importSettings ) }
@@ -90,36 +90,23 @@ setFileList files model =
 
 
 view : { closeMsg : msg, tagger : Msg -> msg } -> Model -> List (Html msg)
-view msgs model =
-    let
-        ( isCardPerFile, isFilenameTitle, isParagraph ) =
-            case model.importSettings of
-                CardPerFile fileTitle ->
-                    ( True, fileTitle, False )
-
-                Split sep ->
-                    ( False, True, sep == Paragraph )
-    in
+view msgs { files, importSettings } =
     [ button [ id "import-text-file-input", onClick (msgs.tagger FilesRequested) ] [ text "Browse Files" ]
     , ul []
         [ li []
-            [ input [ type_ "radio", id "card-per-file-radio", checked isCardPerFile, onClick (msgs.tagger (SetCardPerFile True)) ] []
-            , label [ for "card-per-file-radio" ] [ text "One card per file" ]
-            , viewIf isCardPerFile <| div [] [ input [ id "filename-as-card-title", type_ "checkbox", checked isFilenameTitle ] [], label [ for "filename-as-card-title" ] [ text "Use Filename as Card Title" ] ]
+            [ input [ type_ "radio", id "no-splitting", checked (importSettings == NoSplit), onClick (msgs.tagger SetNoSplit) ] []
+            , label [ for "no-splitting" ] [ text "No Splitting (one card per file)" ]
             ]
         , li []
-            [ input [ type_ "radio", id "split-import", checked (not isCardPerFile), onClick (msgs.tagger (SetSplit Paragraph)) ] []
-            , label [ for "split-import" ] [ text "Split Into Multiple Cards" ]
-            , viewIf (not isCardPerFile) <|
-                div [ style "display" "flex" ]
-                    [ input [ id "split-by-paragraph", type_ "radio", checked isParagraph, onClick (msgs.tagger (SetSplit Paragraph)) ] []
-                    , label [ for "split-by-paragraph" ] [ text "Split at Paragraph Breaks & New Lines" ]
-                    , input [ id "split-by-separator", type_ "radio", checked (not isParagraph), onClick (msgs.tagger (SetSplit (Other "---"))) ] []
-                    , label [ for "split-by-separator" ] [ text "Split by Separator : ", input [ id "separator-input", value "---" ] [] ]
-                    ]
+            [ input [ type_ "radio", id "split-by-paragraph", checked (importSettings == SplitByParagraph), onClick (msgs.tagger SetSplitByParagraph) ] []
+            , label [ for "split-by-paragraph" ] [ text "Split By Paragraph and Blank Lines" ]
+            ]
+        , li []
+            [ input [ id "split-by-separator", type_ "radio", checked (not (importSettings == NoSplit || importSettings == SplitByParagraph)), onClick (msgs.tagger (SetSplitBy "---")) ] []
+            , label [ for "split-by-separator" ] [ text "Split by Separator : ", input [ id "separator-input", value "---" ] [] ]
             ]
         ]
-    , button [ id "import-text-perform", disabled (List.isEmpty model.files), onClick (msgs.tagger RequestImport) ] [ text "Import" ]
+    , button [ id "import-text-perform", disabled (List.isEmpty files), onClick (msgs.tagger RequestImport) ] [ text "Import" ]
     ]
         |> modalWrapper msgs.closeMsg (Just "import-text-modal") Nothing "Import Text Files"
 
@@ -144,31 +131,60 @@ toTree seed metadata markdownStrings settings =
 
                 _ ->
                     Nothing
+
+        splitter str =
+            case settings of
+                NoSplit ->
+                    [ str ]
+
+                SplitByParagraph ->
+                    String.split "\n\n" str
+
+                SplitBy sepString ->
+                    String.split sepString str
+
+        filenameAndSplitContent =
+            ListExtra.zip metadata markdownStrings
+                |> List.map (\( title, content ) -> ( maybeRemoveExtension title, splitter content ))
+
+        mapOne idx content =
+            Tree (String.fromInt (idx + 1))
+                content
+                (Children [])
+
+        mapMultiple idx ( title, content ) =
+            Tree (String.fromInt (idx + 1))
+                ("# " ++ title)
+                (Children (content |> List.indexedMap mapOne))
+                |> labelTree idx (String.fromInt (idx + 1))
+                |> renameNodes salt
+
+        ( newTree, newTitle_ ) =
+            case filenameAndSplitContent of
+                ( title, contents ) :: [] ->
+                    ( Tree "0" "" (Children (contents |> List.indexedMap mapOne))
+                        |> labelTree 0 (String.fromInt 1)
+                        |> renameNodes salt
+                    , Just title
+                    )
+
+                [] ->
+                    ( defaultTree, Nothing )
+
+                multiple ->
+                    ( Tree "0" "" (Children (multiple |> List.indexedMap mapMultiple)), Nothing )
     in
+    ( newTree, newSeed, newTitle_ )
+
+
+
+{--
     case settings of
-        CardPerFile filenameTitle ->
+        NoSplit ->
             let
-                filenameAndContent =
-                    ListExtra.zip metadata markdownStrings
-
-                removeExtensionRegex_ =
-                    Regex.fromString "\\..*$"
-
-                titleContentToString title content =
-                    if filenameTitle then
-                        case removeExtensionRegex_ of
-                            Just regex ->
-                                "# " ++ (title |> Regex.replace regex (\_ -> "")) ++ "\n" ++ content
-
-                            Nothing ->
-                                "# " ++ title ++ "\n" ++ content
-
-                    else
-                        content
-
                 mapFn idx ( title, content ) =
                     Tree (String.fromInt (idx + 1))
-                        (titleContentToString title content)
+                        content
                         (Children [])
 
                 newTree =
@@ -180,16 +196,29 @@ toTree seed metadata markdownStrings settings =
             in
             ( newTree, newSeed, newTitle )
 
-        Split sep ->
+        SplitByParagraph ->
             let
-                sepString =
-                    case sep of
-                        Paragraph ->
-                            "\n\n"
+                separatedContent =
+                    markdownStrings
+                        |> List.concatMap (String.split "\n\n")
+                        |> List.map String.trim
 
-                        Other str ->
-                            String.trim str
+                mapFn idx content =
+                    Tree (String.fromInt (idx + 1))
+                        content
+                        (Children [])
 
+                newTree =
+                    separatedContent
+                        |> List.indexedMap mapFn
+                        |> Children
+                        |> Tree "0" ""
+                        |> TreeStructure.renameNodes salt
+            in
+            ( newTree, newSeed, newTitle )
+
+        SplitBy sepString ->
+            let
                 separatedContent =
                     markdownStrings
                         |> List.concatMap (String.split sepString)
@@ -208,3 +237,4 @@ toTree seed metadata markdownStrings settings =
                         |> TreeStructure.renameNodes salt
             in
             ( newTree, newSeed, newTitle )
+    --}

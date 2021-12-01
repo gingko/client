@@ -728,8 +728,14 @@ const fromElm = (msg, elmData) => {
             } else if (window.importTestRequestedCount == 1) {
               files = [new File(["Test file two.\n\nWith a paragraph break.\n\n---\n\nAnd a split break."], "foo2.md", { type: "text/plain", })];
               window.importTestRequestedCount++;
+            } else if (window.importTestRequestedCount == 2) {
+              files =
+                [ new File(["Test file three.\n\nWith a paragraph break.\n\n---\n\nAnd a split break."], "bar1.txt", { type: "text/plain", })
+                , new File(["Test file four.\n\nWith a paragraph break.\n\n---\n\nAnd a split break."], "bar2", { type: "text/plain", })
+                ];
+              window.importTestRequestedCount++;
             }
-            toElm(files, "docMsgs", "TestTextImportLoaded");
+          toElm(files, "docMsgs", "TestTextImportLoaded");
         }
       }
     },
