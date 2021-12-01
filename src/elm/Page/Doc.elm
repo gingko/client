@@ -284,7 +284,7 @@ type Msg
     | ImportModalMsg ImportModal.Msg
     | ImportTextModalMsg ImportText.Msg
     | ImportTextLoaded ImportText.Settings (List String) (List String)
-    | ImportTextIdGenerated Tree String
+    | ImportTextIdGenerated Tree (Maybe String) String
     | ImportOpmlSelected File
     | ImportOpmlLoaded String String
     | ImportOpmlIdGenerated Tree String String
@@ -995,21 +995,28 @@ update msg ({ workingTree } as model) =
 
         ImportTextLoaded settings metadata markdownStrings ->
             let
-                ( importedTree, newSeed ) =
+                ( importedTree, newSeed, newTitle_ ) =
                     ImportText.toTree (Session.seed model.session) metadata markdownStrings settings
 
                 newSession =
                     Session.setSeed newSeed model.session
             in
-            ( { model | loading = True, session = newSession }, RandomId.generate (ImportTextIdGenerated importedTree) )
+            ( { model | loading = True, session = newSession }
+            , RandomId.generate (ImportTextIdGenerated importedTree newTitle_)
+            )
 
-        ImportTextIdGenerated tree docId ->
+        ImportTextIdGenerated tree newTitle_ docId ->
             let
                 author =
                     model.session |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
 
+                encodeMaybeRename =
+                    newTitle_
+                        |> Maybe.map (\title -> Metadata.renameAndEncode title)
+                        |> Maybe.withDefault Metadata.encode
+
                 commitReq_ =
-                    Data.requestCommit tree author Data.empty (Metadata.new docId |> Metadata.encode)
+                    Data.requestCommit tree author Data.empty (Metadata.new docId |> encodeMaybeRename)
             in
             case commitReq_ of
                 Just commitReq ->
@@ -1797,10 +1804,10 @@ update msg ({ workingTree } as model) =
                     )
 
                 -- === INTEGRATION TEST HOOKS ===
-                TestTextImportLoaded file ->
+                TestTextImportLoaded files ->
                     case model.modalState of
                         ImportTextModal modalState ->
-                            ( { model | modalState = ImportText.setFileList [ file ] modalState |> ImportTextModal }
+                            ( { model | modalState = ImportText.setFileList files modalState |> ImportTextModal }
                             , Cmd.none
                             )
 

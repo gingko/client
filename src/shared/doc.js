@@ -721,8 +721,15 @@ const fromElm = (msg, elmData) => {
       if (window.Cypress) {
         switch (elmData) {
           case "ImportTextRequested":
-            let file = new File(["This is a test file.\n\nWith a paragraph break.\n\n---\n\nAnd a split break."], "foo.txt", { type: "text/plain", });
-            toElm(file, "docMsgs", "TestTextImportLoaded");
+            let files;
+            if (typeof window.importTestRequestedCount == "undefined") {
+              files = [new File(["This is a test file.\n\nWith a paragraph break.\n\n---\n\nAnd a split break."], "foo.txt", { type: "text/plain", })];
+              window.importTestRequestedCount = 1;
+            } else if (window.importTestRequestedCount == 1) {
+              files = [new File(["Test file two.\n\nWith a paragraph break.\n\n---\n\nAnd a split break."], "foo2.md", { type: "text/plain", })];
+              window.importTestRequestedCount++;
+            }
+            toElm(files, "docMsgs", "TestTextImportLoaded");
         }
       }
     },

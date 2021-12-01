@@ -62,18 +62,44 @@ describe('JSON Imports from Startup State', () => {
     cy.get('#split-by-paragraph')
       .should('be.visible')
 
-    // Imports a text file successfully
-    cy.get('#import-text-file-input')
-      .click()
+    describe('Imports a text file successfully with split-by-paragraph', () =>{
+      cy.get('#import-text-file-input')
+        .click()
 
-    cy.get('#import-text-perform')
-      .click()
+      cy.get('#import-text-perform')
+        .click()
 
-    cy.getCard(1,1,1)
-      .should('contain','This is a test file.')
-      .should('not.contain', 'With a paragraph break.')
+      // Importing one file should title the
+      // document based on filename
+      cy.get('#title-rename')
+        .should('have.value', 'foo')
 
-    cy.getCard(1,1,4)
-      .should('contain', 'And a split break.')
+      cy.getCard(1,1,1)
+        .should('contain','This is a test file.')
+        .should('not.contain', 'With a paragraph break.')
+
+      cy.getCard(1,1,4)
+        .should('contain', 'And a split break.')
+    })
+
+    describe('Imports a text file successfully with split-by-separator', () => {
+      cy.get('#new-icon').click()
+      cy.get('#template-import-text').click()
+      cy.get('#import-text-file-input').click()
+      cy.get('#split-import').click()
+      cy.get('#split-by-separator').click()
+      cy.get('#import-text-perform').click()
+
+      cy.get('#title-rename')
+        .should('have.value', 'foo2')
+
+      cy.getCard(1,1,1)
+        .should('contain', 'Test file two.')
+        .should('contain', 'With a paragraph break.')
+        .should('not.contain', 'And a split break.')
+
+      cy.getCard(1,1,2)
+        .contains('And a split break.')
+    })
   })
 })

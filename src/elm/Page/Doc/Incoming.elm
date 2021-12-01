@@ -44,7 +44,7 @@ type
     | RecvCollabState CollabState
     | CollaboratorDisconnected String
       -- === TESTING ===
-    | TestTextImportLoaded File
+    | TestTextImportLoaded (List File)
 
 
 
@@ -242,9 +242,9 @@ subscribe tagger onError =
                             onError (errorToString e)
 
                 "TestTextImportLoaded" ->
-                    case decodeValue File.decoder outsideInfo.data of
-                        Ok file ->
-                            tagger <| TestTextImportLoaded file
+                    case decodeValue (Dec.list File.decoder) outsideInfo.data of
+                        Ok files ->
+                            tagger <| TestTextImportLoaded files
 
                         Err e ->
                             onError (errorToString e)

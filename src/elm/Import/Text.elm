@@ -124,11 +124,26 @@ view msgs model =
         |> modalWrapper msgs.closeMsg (Just "import-text-modal") Nothing "Import Text Files"
 
 
-toTree : Random.Seed -> List String -> List String -> Settings -> ( Tree, Random.Seed )
+toTree : Random.Seed -> List String -> List String -> Settings -> ( Tree, Random.Seed, Maybe String )
 toTree seed metadata markdownStrings settings =
     let
         ( salt, newSeed ) =
             Random.step RandomId.stringGenerator seed
+
+        maybeRemoveExtension str =
+            Regex.fromString "\\..*$"
+                |> Maybe.map (\rgx -> Regex.replace rgx (always "") str)
+                |> Maybe.withDefault str
+
+        newTitle =
+            case metadata of
+                only :: [] ->
+                    only
+                        |> maybeRemoveExtension
+                        |> Just
+
+                _ ->
+                    Nothing
     in
     case settings of
         CardPerFile filenameTitle ->
@@ -163,7 +178,7 @@ toTree seed metadata markdownStrings settings =
                         |> Tree "0" ""
                         |> TreeStructure.renameNodes salt
             in
-            ( newTree, newSeed )
+            ( newTree, newSeed, newTitle )
 
         Split sep ->
             let
@@ -178,7 +193,7 @@ toTree seed metadata markdownStrings settings =
                 separatedContent =
                     markdownStrings
                         |> List.concatMap (String.split sepString)
-                        |> Debug.log "separatedContent"
+                        |> List.map String.trim
 
                 mapFn idx content =
                     Tree (String.fromInt (idx + 1))
@@ -192,4 +207,4 @@ toTree seed metadata markdownStrings settings =
                         |> Tree "0" ""
                         |> TreeStructure.renameNodes salt
             in
-            ( newTree, newSeed )
+            ( newTree, newSeed, newTitle )
