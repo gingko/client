@@ -722,20 +722,26 @@ const fromElm = (msg, elmData) => {
         switch (elmData) {
           case "ImportTextRequested":
             let files;
-            if (typeof window.importTestRequestedCount == "undefined") {
+            if (typeof window.importTestIdx == "undefined") {
               files = [new File(["This is a test file.\n\nWith a paragraph break.\n\n---\n\nAnd a split break."], "foo.txt", { type: "text/plain", })];
-              window.importTestRequestedCount = 1;
-            } else if (window.importTestRequestedCount == 1) {
+              window.importTestIdx = 1;
+            } else if (window.importTestIdx == 1) {
               files = [new File(["Test file two.\n\nWith a paragraph break.\n\n---\n\nAnd a split break."], "foo2.md", { type: "text/plain", })];
-              window.importTestRequestedCount++;
-            } else if (window.importTestRequestedCount == 2) {
+              window.importTestIdx++;
+            } else if (window.importTestIdx == 2 || window.importTestIdx == 3 || window.importTestIdx == 4) {
               files =
                 [ new File(["Test file three.\n\nWith a paragraph break.\n\n---\n\nAnd a split break."], "bar1.txt", { type: "text/plain", })
                 , new File(["Test file four.\n\nWith a paragraph break.\n\n---\n\nAnd a split break."], "bar2", { type: "text/plain", })
                 ];
-              window.importTestRequestedCount++;
+              window.importTestIdx++;
+            } else if (window.importTestIdx == 5) {
+              files =
+                [ new File(["Test file five.\n\nWith a paragraph break.\n!g\n\nAnd a split break."], "baz1.txt", { type: "text/plain", })
+                , new File(["Test file six.\n\nWith a paragraph break.!gAnd a split break."], "baz2", { type: "text/plain", })
+                ];
+              window.importTestIdx++;
             }
-          toElm(files, "docMsgs", "TestTextImportLoaded");
+        toElm(files, "docMsgs", "TestTextImportLoaded");
         }
       }
     },

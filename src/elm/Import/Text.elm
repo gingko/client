@@ -5,14 +5,12 @@ import File exposing (File)
 import File.Select
 import Html exposing (Html, button, div, input, label, li, text, ul)
 import Html.Attributes exposing (checked, class, disabled, for, id, style, type_, value)
-import Html.Events exposing (on, onClick)
-import Html.Extra exposing (viewIf)
+import Html.Events exposing (on, onClick, onInput)
 import List.Extra as ListExtra
 import Random
 import RandomId
 import Regex
 import SharedUI exposing (modalWrapper)
-import Task
 import Types exposing (Children(..), Tree)
 
 
@@ -23,6 +21,7 @@ import Types exposing (Children(..), Tree)
 type alias Model =
     { files : List File
     , importSettings : Settings
+    , field : String
     }
 
 
@@ -34,7 +33,7 @@ type Settings
 
 init : Model
 init =
-    { files = [], importSettings = NoSplit }
+    { files = [], importSettings = NoSplit, field = "---" }
 
 
 
@@ -46,7 +45,8 @@ type Msg
     | GotFiles File (List File)
     | SetNoSplit
     | SetSplitByParagraph
-    | SetSplitBy String
+    | SetSplitBy
+    | SepFieldChanged String
     | RequestImport
 
 
@@ -73,8 +73,15 @@ update msg model =
         SetSplitByParagraph ->
             { model = { model | importSettings = SplitByParagraph }, cmd = Cmd.none, sendTestHack = False, importRequested = Nothing }
 
-        SetSplitBy sep ->
-            { model = { model | importSettings = SplitBy sep }, cmd = Cmd.none, sendTestHack = False, importRequested = Nothing }
+        SetSplitBy ->
+            { model = { model | importSettings = SplitBy model.field }, cmd = Cmd.none, sendTestHack = False, importRequested = Nothing }
+
+        SepFieldChanged sepString ->
+            { model = { model | field = sepString, importSettings = SplitBy sepString }
+            , cmd = Cmd.none
+            , sendTestHack = False
+            , importRequested = Nothing
+            }
 
         RequestImport ->
             { model = model, cmd = Cmd.none, sendTestHack = False, importRequested = Just ( model.files, model.importSettings ) }
@@ -90,7 +97,7 @@ setFileList files model =
 
 
 view : { closeMsg : msg, tagger : Msg -> msg } -> Model -> List (Html msg)
-view msgs { files, importSettings } =
+view msgs { files, importSettings, field } =
     [ button [ id "import-text-file-input", onClick (msgs.tagger FilesRequested) ] [ text "Browse Files" ]
     , ul []
         [ li []
@@ -102,8 +109,16 @@ view msgs { files, importSettings } =
             , label [ for "split-by-paragraph" ] [ text "Split By Paragraph and Blank Lines" ]
             ]
         , li []
-            [ input [ id "split-by-separator", type_ "radio", checked (not (importSettings == NoSplit || importSettings == SplitByParagraph)), onClick (msgs.tagger (SetSplitBy "---")) ] []
-            , label [ for "split-by-separator" ] [ text "Split by Separator : ", input [ id "separator-input", value "---" ] [] ]
+            [ input [ id "split-by-separator", type_ "radio", checked (not (importSettings == NoSplit || importSettings == SplitByParagraph)), onClick (msgs.tagger SetSplitBy) ] []
+            , label [ for "split-by-separator" ]
+                [ text "Split by Separator : "
+                , input
+                    [ id "separator-input"
+                    , onInput (msgs.tagger << SepFieldChanged)
+                    , value field
+                    ]
+                    []
+                ]
             ]
         ]
     , button [ id "import-text-perform", disabled (List.isEmpty files), onClick (msgs.tagger RequestImport) ] [ text "Import" ]
@@ -122,16 +137,6 @@ toTree seed metadata markdownStrings settings =
                 |> Maybe.map (\rgx -> Regex.replace rgx (always "") str)
                 |> Maybe.withDefault str
 
-        newTitle =
-            case metadata of
-                only :: [] ->
-                    only
-                        |> maybeRemoveExtension
-                        |> Just
-
-                _ ->
-                    Nothing
-
         splitter str =
             case settings of
                 NoSplit ->
@@ -149,7 +154,7 @@ toTree seed metadata markdownStrings settings =
 
         mapOne idx content =
             Tree (String.fromInt (idx + 1))
-                content
+                (String.trim content)
                 (Children [])
 
         mapMultiple idx ( title, content ) =
@@ -175,66 +180,3 @@ toTree seed metadata markdownStrings settings =
                     ( Tree "0" "" (Children (multiple |> List.indexedMap mapMultiple)), Nothing )
     in
     ( newTree, newSeed, newTitle_ )
-
-
-
-{--
-    case settings of
-        NoSplit ->
-            let
-                mapFn idx ( title, content ) =
-                    Tree (String.fromInt (idx + 1))
-                        content
-                        (Children [])
-
-                newTree =
-                    filenameAndContent
-                        |> List.indexedMap mapFn
-                        |> Children
-                        |> Tree "0" ""
-                        |> TreeStructure.renameNodes salt
-            in
-            ( newTree, newSeed, newTitle )
-
-        SplitByParagraph ->
-            let
-                separatedContent =
-                    markdownStrings
-                        |> List.concatMap (String.split "\n\n")
-                        |> List.map String.trim
-
-                mapFn idx content =
-                    Tree (String.fromInt (idx + 1))
-                        content
-                        (Children [])
-
-                newTree =
-                    separatedContent
-                        |> List.indexedMap mapFn
-                        |> Children
-                        |> Tree "0" ""
-                        |> TreeStructure.renameNodes salt
-            in
-            ( newTree, newSeed, newTitle )
-
-        SplitBy sepString ->
-            let
-                separatedContent =
-                    markdownStrings
-                        |> List.concatMap (String.split sepString)
-                        |> List.map String.trim
-
-                mapFn idx content =
-                    Tree (String.fromInt (idx + 1))
-                        content
-                        (Children [])
-
-                newTree =
-                    separatedContent
-                        |> List.indexedMap mapFn
-                        |> Children
-                        |> Tree "0" ""
-                        |> TreeStructure.renameNodes salt
-            in
-            ( newTree, newSeed, newTitle )
-    --}
