@@ -82,9 +82,6 @@ type alias Model =
     , textCursorInfo : TextCursorInfo
     , debouncerStateCommit : Debouncer () ()
     , titleField : Maybe String
-    , sidebarState : SidebarState
-    , sidebarMenuState : SidebarMenuState
-    , modalState : ModalState
     , fileSearchField : String
     , headerMenu : HeaderMenuState
     , exportSettings : ( ExportSelection, ExportFormat )
@@ -150,14 +147,6 @@ defaultModel isNew session docId =
     , field = ""
     , textCursorInfo = { selected = False, position = End, text = ( "", "" ) }
     , titleField = Nothing
-    , sidebarState =
-        if Session.fileMenuOpen session then
-            File
-
-        else
-            SidebarClosed
-    , sidebarMenuState = NoSidebarMenu
-    , modalState = NoModal
     , fileSearchField = ""
     , headerMenu = NoHeaderMenu
     , exportSettings = ( ExportEverything, DOCX )
@@ -234,77 +223,20 @@ type Msg
     | SetSelection String Selection String
     | Resolve String
       -- === UI ===
-    | ReceivedDocuments DocList.Model
-    | SettingsChanged Json.Value
-    | LogoutRequested
-    | LoginStateChanged Session
     | TitleFocused
     | TitleFieldChanged String
     | TitleEdited
     | TitleEditCanceled
-    | ToggledHelpMenu Bool
-    | LanguageMenuRequested (Maybe String)
-    | LanguageMenuReceived Element
-    | ToggledAccountMenu Bool
-      -- Sidebar & Modals
-    | SidebarStateChanged SidebarState
-    | TemplateSelectorOpened
-    | VideoViewerOpened
-    | VideoViewerMsg VideoViewer.Msg
-    | SwitcherOpened
-    | SwitcherClosed
-    | WordcountModalOpened
-    | ModalClosed
-    | ImportBulkClicked
-    | ImportTextClicked
-    | ImportOpmlRequested
-    | ImportJSONRequested
-    | FileSearchChanged String
-    | SortByChanged SortBy
-    | SidebarContextClicked String ( Float, Float )
-    | DuplicateDoc String
-    | DeleteDoc String
     | HistoryToggled Bool
     | DocSettingsToggled Bool
     | ExportPreviewToggled Bool
     | ExportSelectionChanged ExportSelection
     | ExportFormatChanged ExportFormat
-      -- Upgrade
-    | ToggledUpgradeModal Bool
-    | UpgradeModalMsg Upgrade.Msg
-      -- HELP
-    | ClickedShowVideos
-    | ClickedShowWidget
-    | ClickedEmailSupport
-    | ContactFormMsg ContactForm.Model ContactForm.Msg
-    | CopyEmailClicked Bool
-    | ContactFormSubmitted ContactForm.Model
-    | ContactFormSent (Result Http.Error ())
-      -- Import
-    | ImportModalMsg ImportModal.Msg
-    | ImportTextModalMsg ImportText.Msg
-    | ImportTextLoaded ImportText.Settings (List String) (List String)
-    | ImportTextIdGenerated Tree (Maybe String) String
-    | ImportOpmlSelected File
-    | ImportOpmlLoaded String String
-    | ImportOpmlIdGenerated Tree String String
-    | ImportOpmlCompleted String
-    | ImportJSONSelected File
-    | ImportJSONLoaded String String
-    | ImportJSONIdGenerated Tree String String
-    | ImportJSONCompleted String
-    | ImportBulkCompleted
       -- Misc UI
-    | LanguageChanged Language
     | ThemeChanged Theme
-    | TooltipRequested String TooltipPosition String
-    | TooltipReceived Element TooltipPosition String
-    | TooltipClosed
     | FullscreenRequested
     | PrintRequested
-    | TimeUpdate Time.Posix
     | FontsMsg Fonts.Msg
-    | ShortcutTrayToggle
       -- === Ports ===
     | Pull
     | Export
@@ -636,26 +568,6 @@ update msg ({ workingTree } as model) =
                 |> addToHistory
 
         -- === UI ===
-        ReceivedDocuments newListState ->
-            let
-                updatedSession =
-                    Session.updateDocuments newListState model.session
-
-                ( newModel, newCmd ) =
-                    case DocList.current model.metadata newListState of
-                        Just currentMetadata ->
-                            ( { model | metadata = currentMetadata, titleField = Metadata.getDocName currentMetadata, session = updatedSession }, Cmd.none )
-
-                        Nothing ->
-                            ( { model | session = updatedSession }
-                            , Route.replaceUrl (Session.navKey model.session) Route.Root
-                            )
-            in
-            ( newModel, newCmd )
-
-        SettingsChanged json ->
-            ( { model | session = Session.sync json model.session }, Cmd.none )
-
         TitleFocused ->
             case model.titleField of
                 Nothing ->
@@ -684,225 +596,6 @@ update msg ({ workingTree } as model) =
 
         TitleEditCanceled ->
             ( { model | titleField = Metadata.getDocName model.metadata }, Task.attempt (always NoOp) (Browser.Dom.blur "title-rename") )
-
-        LogoutRequested ->
-            ( model, Session.logout )
-
-        LoginStateChanged newUser ->
-            ( { model | session = newUser }, Route.pushUrl (Session.navKey newUser) Route.Login )
-
-        ToggledHelpMenu isOpen ->
-            ( { model | modalState = HelpScreen }, Cmd.none )
-
-        LanguageMenuRequested elId_ ->
-            case ( elId_, model.sidebarMenuState ) of
-                ( Just elId, Account _ ) ->
-                    ( model
-                    , Browser.Dom.getElement elId
-                        |> Task.attempt
-                            (\result ->
-                                case result of
-                                    Ok el ->
-                                        LanguageMenuReceived el
-
-                                    Err _ ->
-                                        NoOp
-                            )
-                    )
-
-                _ ->
-                    ( { model | sidebarMenuState = Account Nothing }, Cmd.none )
-
-        LanguageMenuReceived el ->
-            ( { model | sidebarMenuState = Account (Just el) }, Cmd.none )
-
-        ToggledAccountMenu isOpen ->
-            let
-                ( newDropdownState, newSidebarState ) =
-                    if isOpen then
-                        ( Account Nothing, SidebarClosed )
-
-                    else
-                        ( NoSidebarMenu, model.sidebarState )
-            in
-            ( { model
-                | sidebarMenuState = newDropdownState
-                , sidebarState = newSidebarState
-                , tooltip = Nothing
-              }
-            , Cmd.none
-            )
-
-        ToggledUpgradeModal isOpen ->
-            ( { model
-                | modalState =
-                    if isOpen then
-                        UpgradeModal
-
-                    else
-                        NoModal
-              }
-            , Cmd.none
-            )
-
-        UpgradeModalMsg upgradeModalMsg ->
-            case upgradeModalMsg of
-                UpgradeModalClosed ->
-                    ( { model | modalState = NoModal }, Cmd.none )
-
-                CheckoutClicked checkoutData ->
-                    case Session.name model.session of
-                        Just email ->
-                            let
-                                data =
-                                    Upgrade.toValue email checkoutData
-                            in
-                            ( model, send <| CheckoutButtonClicked data )
-
-                        Nothing ->
-                            ( model, Cmd.none )
-
-                _ ->
-                    let
-                        newSession =
-                            Session.updateUpgrade upgradeModalMsg model.session
-
-                        maybeFlash =
-                            case upgradeModalMsg of
-                                PlanChanged _ ->
-                                    send <| FlashPrice
-
-                                _ ->
-                                    Cmd.none
-                    in
-                    ( { model | session = newSession }, maybeFlash )
-
-        ClickedShowVideos ->
-            ( { model | modalState = VideoViewer VideoViewer.init, sidebarMenuState = NoSidebarMenu }, Cmd.none )
-
-        ClickedShowWidget ->
-            ( { model | modalState = NoModal }, send <| ShowWidget )
-
-        ClickedEmailSupport ->
-            let
-                fromEmail =
-                    Session.name model.session
-                        |> Maybe.withDefault ""
-            in
-            ( { model | modalState = ContactForm (ContactForm.init fromEmail), sidebarMenuState = NoSidebarMenu }
-            , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "contact-body")
-            )
-
-        ContactFormMsg formModel formMsg ->
-            ( { model | modalState = ContactForm (ContactForm.update formMsg formModel) }, Cmd.none )
-
-        CopyEmailClicked isUrgent ->
-            if isUrgent then
-                ( model, send <| CopyToClipboard "{%SUPPORT_URGENT_EMAIL%}" "#email-copy-btn" )
-
-            else
-                ( model, send <| CopyToClipboard "{%SUPPORT_EMAIL%}" "#email-copy-btn" )
-
-        ContactFormSubmitted formModel ->
-            ( model, ContactForm.send ContactFormSent formModel )
-
-        ContactFormSent res ->
-            case res of
-                Ok _ ->
-                    ( { model | modalState = NoModal }, Cmd.none )
-
-                _ ->
-                    ( model, Cmd.none )
-
-        SidebarStateChanged newSidebarState ->
-            let
-                ( newSessionData, maybeSaveSidebarState ) =
-                    case newSidebarState of
-                        File ->
-                            ( Session.setFileOpen True model.session, send <| SetSidebarState True )
-
-                        _ ->
-                            ( Session.setFileOpen True model.session, send <| SetSidebarState False )
-
-                newDropdownState =
-                    case ( newSidebarState, model.sidebarMenuState ) of
-                        ( File, Help ) ->
-                            NoSidebarMenu
-
-                        ( File, Account _ ) ->
-                            NoSidebarMenu
-
-                        ( _, _ ) ->
-                            model.sidebarMenuState
-            in
-            ( { model
-                | session = newSessionData
-                , sidebarState = newSidebarState
-                , tooltip = Nothing
-                , sidebarMenuState = newDropdownState
-              }
-            , maybeSaveSidebarState
-            )
-
-        TemplateSelectorOpened ->
-            ( { model | modalState = TemplateSelector }, Cmd.none )
-
-        VideoViewerOpened ->
-            ( { model | modalState = VideoViewer VideoViewer.init }, Cmd.none )
-
-        VideoViewerMsg videoViewerMsg ->
-            ( { model | modalState = VideoViewer (VideoViewer.update videoViewerMsg) }, Cmd.none )
-
-        SwitcherOpened ->
-            openSwitcher model
-
-        SwitcherClosed ->
-            closeSwitcher model
-
-        WordcountModalOpened ->
-            ( { model | modalState = Wordcount, headerMenu = NoHeaderMenu }, Cmd.none )
-
-        ModalClosed ->
-            case model.modalState of
-                VideoViewer _ ->
-                    ( { model | modalState = HelpScreen }, Cmd.none )
-
-                ContactForm _ ->
-                    ( { model | modalState = HelpScreen }, Cmd.none )
-
-                _ ->
-                    ( { model | modalState = NoModal }, Cmd.none )
-
-        ImportBulkClicked ->
-            ( { model | modalState = ImportModal (ImportModal.init model.session) }, Cmd.none )
-
-        FileSearchChanged term ->
-            let
-                updatedModal =
-                    case model.modalState of
-                        FileSwitcher switcherModel ->
-                            FileSwitcher (Doc.Switcher.search term switcherModel)
-
-                        _ ->
-                            model.modalState
-            in
-            ( { model | fileSearchField = term, modalState = updatedModal }, Cmd.none )
-
-        SortByChanged newSort ->
-            let
-                newSession =
-                    Session.setSortBy newSort model.session
-            in
-            ( { model | session = newSession }, send <| SaveUserSetting ( "sortBy", sortByEncoder newSort ) )
-
-        SidebarContextClicked docId ( x, y ) ->
-            ( { model | modalState = SidebarContextMenu docId ( x, y ) }, Cmd.none )
-
-        DuplicateDoc docId ->
-            ( { model | modalState = NoModal }, Route.replaceUrl (Session.navKey model.session) (Route.Copy docId) )
-
-        DeleteDoc docId ->
-            ( { model | modalState = NoModal }, send <| RequestDelete docId )
 
         HistoryToggled isOpen ->
             model |> toggleHistory isOpen
@@ -940,221 +633,14 @@ update msg ({ workingTree } as model) =
         ExportFormatChanged expFormat ->
             ( { model | exportSettings = Tuple.mapSecond (always expFormat) model.exportSettings }, Cmd.none )
 
-        ImportModalMsg modalMsg ->
-            case model.modalState of
-                ImportModal importModal ->
-                    let
-                        ( newModalState, newCmd ) =
-                            ImportModal.update modalMsg importModal
-                                |> Tuple.mapBoth ImportModal (Cmd.map ImportModalMsg)
-                    in
-                    ( { model | modalState = newModalState }, newCmd )
-
-                _ ->
-                    ( model, Cmd.none )
-
-        ImportTextModalMsg modalMsg ->
-            case model.modalState of
-                ImportTextModal modalModel ->
-                    let
-                        u =
-                            ImportText.update modalMsg modalModel
-
-                        newCmd =
-                            Cmd.batch
-                                ([ Cmd.map ImportTextModalMsg u.cmd ]
-                                    ++ (if u.sendTestHack then
-                                            [ send <| IntegrationTestEvent "ImportTextRequested" ]
-
-                                        else
-                                            []
-                                       )
-                                    ++ (case u.importRequested of
-                                            Just ( files, importSettings ) ->
-                                                let
-                                                    tasks =
-                                                        files |> List.map File.toString |> Task.sequence
-
-                                                    metadata =
-                                                        files |> List.map File.name
-                                                in
-                                                [ Task.perform (ImportTextLoaded importSettings metadata) tasks ]
-
-                                            Nothing ->
-                                                []
-                                       )
-                                )
-                    in
-                    ( { model | modalState = ImportTextModal u.model }, newCmd )
-
-                _ ->
-                    ( model, Cmd.none )
-
-        ImportTextClicked ->
-            ( { model | modalState = ImportTextModal ImportText.init }, Cmd.none )
-
-        ImportTextLoaded settings metadata markdownStrings ->
-            let
-                ( importedTree, newSeed, newTitle_ ) =
-                    ImportText.toTree (Session.seed model.session) metadata markdownStrings settings
-
-                newSession =
-                    Session.setSeed newSeed model.session
-            in
-            ( { model | loading = True, session = newSession }
-            , RandomId.generate (ImportTextIdGenerated importedTree newTitle_)
-            )
-
-        ImportTextIdGenerated tree newTitle_ docId ->
-            let
-                author =
-                    model.session |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
-
-                encodeMaybeRename =
-                    newTitle_
-                        |> Maybe.map (\title -> Metadata.renameAndEncode title)
-                        |> Maybe.withDefault Metadata.encode
-
-                commitReq_ =
-                    Data.requestCommit tree author Data.empty (Metadata.new docId |> encodeMaybeRename)
-            in
-            case commitReq_ of
-                Just commitReq ->
-                    ( model, send <| SaveImportedData commitReq )
-
-                Nothing ->
-                    ( model, Cmd.none )
-
-        ImportOpmlRequested ->
-            ( model, Select.file [ "application/xml", "text/xml", "text/x-opml", ".opml" ] ImportOpmlSelected )
-
-        ImportOpmlSelected file ->
-            ( model, Task.perform (ImportOpmlLoaded (File.name file)) (File.toString file) )
-
-        ImportOpmlLoaded fileName opmlString ->
-            let
-                ( importTreeResult, newSeed ) =
-                    Import.Opml.treeResult (Session.seed model.session) opmlString
-
-                newSession =
-                    Session.setSeed newSeed model.session
-            in
-            case importTreeResult of
-                Ok tree ->
-                    ( { model | loading = True, session = newSession }
-                    , RandomId.generate (ImportOpmlIdGenerated tree fileName)
-                    )
-
-                Err err ->
-                    ( { model | session = newSession }, Cmd.none )
-
-        ImportOpmlIdGenerated tree fileName docId ->
-            let
-                author =
-                    model.session |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
-
-                commitReq_ =
-                    Data.requestCommit tree author Data.empty (Metadata.new docId |> Metadata.renameAndEncode fileName)
-            in
-            case commitReq_ of
-                Just commitReq ->
-                    ( model, send <| SaveImportedData commitReq )
-
-                Nothing ->
-                    ( model, Cmd.none )
-
-        ImportOpmlCompleted docId ->
-            ( model, Route.pushUrl (Session.navKey model.session) (Route.DocUntitled docId) )
-
-        ImportJSONRequested ->
-            ( model, Select.file [ "application/json", "text/plain" ] ImportJSONSelected )
-
-        ImportJSONSelected file ->
-            ( model, Task.perform (ImportJSONLoaded (File.name file)) (File.toString file) )
-
-        ImportJSONLoaded fileName jsonString ->
-            let
-                ( importTreeDecoder, newSeed ) =
-                    Import.Single.decoder (Session.seed model.session)
-
-                newSession =
-                    Session.setSeed newSeed model.session
-            in
-            case Json.decodeString importTreeDecoder jsonString of
-                Ok tree ->
-                    ( { model | loading = True, session = newSession }
-                    , RandomId.generate (ImportJSONIdGenerated tree fileName)
-                    )
-
-                Err err ->
-                    ( { model | session = newSession }, Cmd.none )
-
-        ImportJSONIdGenerated tree fileName docId ->
-            let
-                author =
-                    model.session |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
-
-                commitReq_ =
-                    Data.requestCommit tree author Data.empty (Metadata.new docId |> Metadata.renameAndEncode fileName)
-            in
-            case commitReq_ of
-                Just commitReq ->
-                    ( model, send <| SaveImportedData commitReq )
-
-                Nothing ->
-                    ( model, Cmd.none )
-
-        ImportJSONCompleted docId ->
-            ( model, Route.pushUrl (Session.navKey model.session) (Route.DocUntitled docId) )
-
-        ImportBulkCompleted ->
-            ( { model | modalState = NoModal }, Cmd.none )
-
-        LanguageChanged newLang ->
-            if newLang /= Session.language model.session then
-                ( { model
-                    | session = Session.setLanguage newLang model.session
-                    , sidebarMenuState = NoSidebarMenu
-                  }
-                , send <| SaveUserSetting ( "language", langToString newLang |> Enc.string )
-                )
-
-            else
-                ( model, Cmd.none )
-
         ThemeChanged newTheme ->
             ( { model | theme = newTheme }, send <| SaveThemeSetting newTheme )
-
-        TooltipRequested elId tipPos content ->
-            ( model
-            , Browser.Dom.getElement elId
-                |> Task.attempt
-                    (\result ->
-                        case result of
-                            Ok el ->
-                                TooltipReceived el tipPos content
-
-                            Err _ ->
-                                NoOp
-                    )
-            )
-
-        TooltipReceived el tipPos content ->
-            ( { model | tooltip = Just ( el, tipPos, content ) }, Cmd.none )
-
-        TooltipClosed ->
-            ( { model | tooltip = Nothing }, Cmd.none )
 
         FullscreenRequested ->
             ( model, send <| RequestFullscreen )
 
         PrintRequested ->
             ( model, send <| Print )
-
-        TimeUpdate time ->
-            ( { model | session = Session.updateTime time model.session }
-            , Cmd.none
-            )
 
         FontsMsg fontsMsg ->
             let
@@ -1171,24 +657,6 @@ update msg ({ workingTree } as model) =
             in
             ( { model | fonts = newModel, fontSelectorOpen = selectorOpen }
             , cmd
-            )
-
-        ShortcutTrayToggle ->
-            let
-                newIsOpen =
-                    not <| Session.shortcutTrayOpen model.session
-            in
-            ( { model
-                | session = Session.setShortcutTrayOpen newIsOpen model.session
-                , headerMenu =
-                    if model.headerMenu == ExportPreview && newIsOpen then
-                        NoHeaderMenu
-
-                    else
-                        model.headerMenu
-                , tooltip = Nothing
-              }
-            , send <| SaveUserSetting ( "shortcutTrayOpen", Enc.bool newIsOpen )
             )
 
         -- === Ports ===
@@ -1455,9 +923,6 @@ update msg ({ workingTree } as model) =
                                 |> addToHistory
 
                 -- === UI ===
-                StartTour ->
-                    ( { model | modalState = VideoViewer VideoViewer.init }, Cmd.none )
-
                 FontSelectorOpen fonts ->
                     ( { model | fonts = Fonts.setSystem fonts model.fonts, fontSelectorOpen = True }
                     , Cmd.none
@@ -1483,6 +948,7 @@ update msg ({ workingTree } as model) =
                             saveCardIfEditing ( model, Cmd.none )
 
                         "enter" ->
+                            {--
                             case model.modalState of
                                 FileSwitcher switcherModel ->
                                     case switcherModel.selectedDocument of
@@ -1494,11 +960,14 @@ update msg ({ workingTree } as model) =
 
                                 _ ->
                                     normalMode model (openCard vs.active (getContent vs.active model.workingTree.tree))
+                            --}
+                            ( model, Cmd.none )
 
                         "mod+backspace" ->
                             normalMode model (deleteCard vs.active)
 
                         "esc" ->
+                            {--
                             case ( model.modalState, model.headerMenu ) of
                                 ( NoModal, HistoryView historyState ) ->
                                     ( { model | headerMenu = NoHeaderMenu }, Cmd.none )
@@ -1509,6 +978,8 @@ update msg ({ workingTree } as model) =
 
                                 _ ->
                                     ( { model | fileSearchField = "", modalState = NoModal }, Cmd.none )
+                            --}
+                            ( model, Cmd.none )
 
                         "mod+j" ->
                             if model.viewState.viewMode == Normal then
@@ -1584,6 +1055,7 @@ update msg ({ workingTree } as model) =
                             normalMode model (goDown vs.active)
 
                         "down" ->
+                            {--
                             case model.modalState of
                                 NoModal ->
                                     case vs.viewMode of
@@ -1605,11 +1077,14 @@ update msg ({ workingTree } as model) =
 
                                 _ ->
                                     ( model, Cmd.none )
+                            --}
+                            ( model, Cmd.none )
 
                         "k" ->
                             normalMode model (goUp vs.active)
 
                         "up" ->
+                            {--
                             case model.modalState of
                                 NoModal ->
                                     normalMode model (goUp vs.active)
@@ -1619,6 +1094,8 @@ update msg ({ workingTree } as model) =
 
                                 _ ->
                                     ( model, Cmd.none )
+                            --}
+                            ( model, Cmd.none )
 
                         "l" ->
                             normalMode model (goRight vs.active)
@@ -1689,12 +1166,15 @@ update msg ({ workingTree } as model) =
                                 |> Tuple.mapSecond (\c -> Cmd.batch [ c, send <| HistorySlider 1 ])
 
                         "mod+o" ->
+                            {--
                             case model.modalState of
                                 FileSwitcher _ ->
                                     ( { model | modalState = NoModal }, Cmd.none )
 
                                 _ ->
                                     model |> openSwitcher
+                                    --}
+                            ( model, Cmd.none )
 
                         "mod+b" ->
                             case vs.viewMode of
@@ -1733,6 +1213,7 @@ update msg ({ workingTree } as model) =
                                     )
 
                         "w" ->
+                            {--
                             case ( vs.viewMode, model.modalState ) of
                                 ( Normal, NoModal ) ->
                                     ( { model | modalState = Wordcount }, Cmd.none )
@@ -1741,9 +1222,11 @@ update msg ({ workingTree } as model) =
                                     ( { model | modalState = NoModal }, Cmd.none )
 
                                 _ ->
-                                    ( model, Cmd.none )
+                                    --}
+                            ( model, Cmd.none )
 
                         "?" ->
+                            {--
                             case ( vs.viewMode, model.modalState ) of
                                 ( Normal, HelpScreen ) ->
                                     ( { model | modalState = NoModal }, Cmd.none )
@@ -1753,6 +1236,8 @@ update msg ({ workingTree } as model) =
 
                                 _ ->
                                     ( model, Cmd.none )
+                            --}
+                            ( model, Cmd.none )
 
                         _ ->
                             ( model
@@ -1805,6 +1290,7 @@ update msg ({ workingTree } as model) =
 
                 -- === INTEGRATION TEST HOOKS ===
                 TestTextImportLoaded files ->
+                    {--
                     case model.modalState of
                         ImportTextModal modalState ->
                             ( { model | modalState = ImportText.setFileList files modalState |> ImportTextModal }
@@ -1813,6 +1299,8 @@ update msg ({ workingTree } as model) =
 
                         _ ->
                             ( model, Cmd.none )
+                    --}
+                    ( model, Cmd.none )
 
         LogErr err ->
             ( model
@@ -2786,26 +2274,6 @@ sendCollabState collabState ( model, prevCmd ) =
     )
 
 
-openSwitcher : Model -> ( Model, Cmd Msg )
-openSwitcher model =
-    ( { model
-        | modalState =
-            FileSwitcher
-                { currentDocument = model.metadata
-                , selectedDocument = Just (Metadata.getDocId model.metadata)
-                , searchField = model.fileSearchField
-                , docList = Session.documents model.session
-                }
-      }
-    , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "switcher-input")
-    )
-
-
-closeSwitcher : Model -> ( Model, Cmd Msg )
-closeSwitcher model =
-    ( { model | modalState = NoModal }, Cmd.none )
-
-
 
 -- VIEW
 
@@ -2860,8 +2328,8 @@ viewLoaded model =
                         lazy4 exportView
                             { export = Export
                             , printRequested = PrintRequested
-                            , tooltipRequested = TooltipRequested
-                            , tooltipClosed = TooltipClosed
+                            , tooltipRequested = (always << always << always) NoOp
+                            , tooltipClosed = NoOp
                             }
                             model.exportSettings
 
@@ -2919,21 +2387,21 @@ viewLoaded model =
                         , titleFieldChanged = TitleFieldChanged
                         , titleEdited = TitleEdited
                         , titleEditCanceled = TitleEditCanceled
-                        , tooltipRequested = TooltipRequested
-                        , tooltipClosed = TooltipClosed
+                        , tooltipRequested = (always << always << always) NoOp
+                        , tooltipClosed = NoOp
                         , toggledHistory = HistoryToggled
                         , checkoutCommit = CheckoutCommit
                         , restore = Restore
                         , cancelHistory = CancelHistory
                         , toggledDocSettings = DocSettingsToggled (not <| model.headerMenu == Settings)
-                        , wordCountClicked = WordcountModalOpened
+                        , wordCountClicked = NoOp
                         , themeChanged = ThemeChanged
                         , toggledExport = ExportPreviewToggled (not <| model.headerMenu == ExportPreview)
                         , exportSelectionChanged = ExportSelectionChanged
                         , exportFormatChanged = ExportFormatChanged
                         , export = Export
                         , printRequested = PrintRequested
-                        , toggledUpgradeModal = ToggledUpgradeModal
+                        , toggledUpgradeModal = always NoOp
                         }
                         (Metadata.getDocName model.metadata)
                         model
@@ -2942,51 +2410,8 @@ viewLoaded model =
 
                        else
                         text ""
-                     , UI.viewSidebar
-                        model.session
-                        { sidebarStateChanged = SidebarStateChanged
-                        , noOp = NoOp
-                        , clickedNew = TemplateSelectorOpened
-                        , tooltipRequested = TooltipRequested
-                        , tooltipClosed = TooltipClosed
-                        , clickedSwitcher = SwitcherOpened
-                        , clickedHelp = ToggledHelpMenu True
-                        , toggledShortcuts = ShortcutTrayToggle
-                        , clickedEmailSupport = ClickedEmailSupport
-                        , clickedShowVideos = ClickedShowVideos
-                        , languageMenuRequested = LanguageMenuRequested
-                        , logout = LogoutRequested
-                        , toggledAccount = ToggledAccountMenu
-                        , fileSearchChanged = FileSearchChanged
-                        , changeSortBy = SortByChanged
-                        , contextMenuOpened = SidebarContextClicked
-                        , languageChanged = LanguageChanged
-                        , fullscreenRequested = FullscreenRequested
-                        }
-                        model.metadata
-                        (Session.sortBy model.session)
-                        model.fileSearchField
-                        (Session.documents model.session)
-                        (Session.name model.session |> Maybe.withDefault "" {- TODO -})
-                        (case model.modalState of
-                            SidebarContextMenu docId _ ->
-                                Just docId
-
-                            _ ->
-                                Nothing
-                        )
-                        model.sidebarMenuState
-                        model.sidebarState
                      , maybeExportView
                      ]
-                        ++ UI.viewShortcuts
-                            { toggledShortcutTray = ShortcutTrayToggle, tooltipRequested = TooltipRequested, tooltipClosed = TooltipClosed }
-                            language
-                            (Session.shortcutTrayOpen model.session)
-                            (Session.isMac model.session)
-                            model.workingTree.tree.children
-                            model.textCursorInfo
-                            model.viewState
                         ++ [ viewSearchField SearchFieldUpdated model
                            , viewMobileButtons
                                 { edit = mobileBtnMsg "mod+enter"
@@ -3005,7 +2430,6 @@ viewLoaded model =
                            , div [ id "preloader" ] []
                            , model.tooltip |> Maybe.map UI.viewTooltip |> Maybe.withDefault (text "")
                            ]
-                        ++ viewModal (Session.language model.session) model
                     )
 
         conflicts ->
@@ -3492,85 +2916,6 @@ collabsSpan collabsOnCard collabsEditingCard =
     span [ class "collaborators" ] [ text collabsString ]
 
 
-viewModal : Language -> Model -> List (Html Msg)
-viewModal language model =
-    case model.modalState of
-        NoModal ->
-            [ text "" ]
-
-        FileSwitcher switcherModel ->
-            Doc.Switcher.view SwitcherClosed FileSearchChanged switcherModel
-
-        --model.metadata model.fileSearchField (Session.documents model.session)
-        SidebarContextMenu docId ( x, y ) ->
-            [ div [ onClick ModalClosed, id "sidebar-context-overlay" ] []
-            , div
-                [ id "sidebar-context-menu"
-                , style "top" (String.fromFloat y ++ "px")
-                , style "left" (String.fromFloat x ++ "px")
-                ]
-                [ div [ onClick (DuplicateDoc docId), class "context-menu-item" ]
-                    [ AntIcons.copyOutlined [ Svg.Attributes.class "icon" ], text "Duplicate Tree" ]
-                , div [ onClick (DeleteDoc docId), class "context-menu-item" ]
-                    [ AntIcons.deleteOutlined [ Svg.Attributes.class "icon" ], text "Delete Tree" ]
-                ]
-            ]
-
-        TemplateSelector ->
-            UI.viewTemplateSelector language
-                { modalClosed = ModalClosed
-                , importBulkClicked = ImportBulkClicked
-                , importTextClicked = ImportTextClicked
-                , importOpmlRequested = ImportOpmlRequested
-                , importJSONRequested = ImportJSONRequested
-                }
-
-        HelpScreen ->
-            HelpScreen.view (Session.isMac model.session)
-                { closeModal = ModalClosed
-                , showVideoTutorials = VideoViewerOpened
-                , showWidget = ClickedShowWidget
-                , contactSupport = ClickedEmailSupport
-                }
-
-        VideoViewer videoViewerState ->
-            VideoViewer.view language ModalClosed VideoViewerMsg videoViewerState
-
-        Wordcount ->
-            UI.viewWordCount model { modalClosed = ModalClosed }
-
-        ImportModal modalModel ->
-            ImportModal.view language modalModel
-                |> List.map (Html.map ImportModalMsg)
-
-        ImportTextModal modalModel ->
-            ImportText.view
-                { closeMsg = TemplateSelectorOpened, tagger = ImportTextModalMsg }
-                modalModel
-
-        ContactForm contactFormModel ->
-            ContactForm.view language
-                { closeMsg = ModalClosed
-                , submitMsg = ContactFormSubmitted
-                , tagger = ContactFormMsg contactFormModel
-                , copyEmail = CopyEmailClicked
-                }
-                contactFormModel
-
-        UpgradeModal ->
-            case Session.upgradeModel model.session of
-                Just upgradeModel ->
-                    let
-                        daysLeft_ =
-                            Session.daysLeft model.session
-                    in
-                    Upgrade.view daysLeft_ upgradeModel
-                        |> List.map (Html.map UpgradeModalMsg)
-
-                Nothing ->
-                    []
-
-
 
 -- SUBSCRIPTIONS
 
@@ -3579,31 +2924,11 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Incoming.subscribe Incoming LogErr
-        , Import.Incoming.importComplete
-            (\docId_ ->
-                case docId_ of
-                    Just docId ->
-                        ImportJSONCompleted docId
-
-                    Nothing ->
-                        ImportBulkCompleted
-            )
-        , DocList.subscribe ReceivedDocuments
-        , case model.modalState of
-            ImportModal importModalModel ->
-                ImportModal.subscriptions importModalModel
-                    |> Sub.map ImportModalMsg
-
-            _ ->
-                Sub.none
-        , Session.userSettingsChange SettingsChanged
-        , Session.loginChanges LoginStateChanged (Session.navKey model.session)
         , if model.dirty then
             Time.every (241 * 1000) (always AutoSave)
 
           else
             Sub.none
-        , Time.every (9 * 1000) TimeUpdate
         , Time.every (23 * 1000) (always Pull)
         ]
 
@@ -3622,8 +2947,8 @@ normalMode model operation =
     ( model
     , Cmd.none
     )
-        |> (case ( model.viewState.viewMode, model.modalState ) of
-                ( Normal, NoModal ) ->
+        |> (case model.viewState.viewMode of
+                Normal ->
                     operation
 
                 _ ->
