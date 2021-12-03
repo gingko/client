@@ -366,8 +366,8 @@ subscriptions model =
         Redirect _ ->
             Sub.none
 
-        TestAppPage _ ->
-            Sub.none
+        TestAppPage appModel ->
+            Sub.map GotAppMsg (Page.App.subscriptions appModel)
 
         NotFound _ ->
             Sub.none

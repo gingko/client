@@ -1,4 +1,4 @@
-module Page.App exposing (Model, Msg, init, toUser, update, view)
+module Page.App exposing (Model, Msg, init, subscriptions, toUser, update, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -6,7 +6,7 @@ import Coders exposing (sortByEncoder)
 import Doc.ContactForm as ContactForm
 import Doc.Data as Data
 import Doc.HelpScreen as HelpScreen
-import Doc.List as DocList
+import Doc.List as DocList exposing (Model(..))
 import Doc.Metadata as Metadata
 import Doc.Switcher
 import Doc.UI as UI
@@ -104,7 +104,12 @@ init session dbData_ =
                 ( defaultModel session, send <| LoadDocument dbData.dbName )
 
         Nothing ->
-            ( defaultModel session, Cmd.none )
+            case Session.lastDocId session of
+                Just docId ->
+                    ( defaultModel session, Route.replaceUrl (Session.navKey session) (Route.DocUntitled docId) )
+
+                Nothing ->
+                    ( defaultModel session, send <| GetDocumentList )
 
 
 toUser : Model -> Session
@@ -353,19 +358,20 @@ update msg model =
                 updatedSession =
                     Session.updateDocuments newListState model.session
 
-                ( newModel, newCmd ) =
-                    {--case DocList.current model.metadata newListState of
-                        Just currentMetadata ->
-                            ( { model | metadata = currentMetadata, titleField = Metadata.getDocName currentMetadata, session = updatedSession }, Cmd.none )
+                routeCmd =
+                    case Session.documents updatedSession of
+                        Success [] ->
+                            Cmd.none
 
-                        Nothing ->
-                            ( { model | session = updatedSession }
-                            , Route.replaceUrl (Session.navKey model.session) Route.Root
-                            )
-                            --}
-                    ( model, Cmd.none )
+                        Success docList ->
+                            DocList.getLastUpdated (Success docList)
+                                |> Maybe.map (\s -> Route.replaceUrl (Session.navKey model.session) (Route.DocUntitled s))
+                                |> Maybe.withDefault Cmd.none
+
+                        _ ->
+                            Cmd.none
             in
-            ( newModel, newCmd )
+            ( { model | session = updatedSession }, routeCmd )
 
         SettingsChanged json ->
             ( { model | session = Session.sync json model.session }, Cmd.none )
