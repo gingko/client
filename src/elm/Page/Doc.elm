@@ -957,38 +957,13 @@ incoming incomingMsg model =
                     saveCardIfEditing ( model, Cmd.none )
 
                 "enter" ->
-                    {--
-                            case model.modalState of
-                                FileSwitcher switcherModel ->
-                                    case switcherModel.selectedDocument of
-                                        Just docId ->
-                                            ( model, Route.pushUrl (Session.navKey model.session) (Route.DocUntitled docId) )
-
-                                        Nothing ->
-                                            ( model, Cmd.none )
-
-                                _ ->
-                                    normalMode model (openCard vs.active (getContent vs.active model.workingTree.tree))
-                            --}
-                    ( model, Cmd.none )
+                    normalMode model (openCard vs.active (getContent vs.active model.workingTree.tree))
 
                 "mod+backspace" ->
                     normalMode model (deleteCard vs.active)
 
                 "esc" ->
-                    {--
-                            case ( model.modalState, model.headerMenu ) of
-                                ( NoModal, HistoryView historyState ) ->
-                                    ( { model | headerMenu = NoHeaderMenu }, Cmd.none )
-                                        |> checkoutCommit historyState.start
-
-                                ( NoModal, _ ) ->
-                                    model |> intentCancelCard
-
-                                _ ->
-                                    ( { model | fileSearchField = "", modalState = NoModal }, Cmd.none )
-                            --}
-                    ( model, Cmd.none )
+                    model |> intentCancelCard
 
                 "mod+j" ->
                     if model.viewState.viewMode == Normal then

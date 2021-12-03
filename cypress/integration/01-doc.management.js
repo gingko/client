@@ -35,6 +35,8 @@ describe('Managing Documents', () => {
       cy.get('#sidebar-document-list-wrap .sidebar-document-item')
         .should('have.length', 4)
 
+      cy.get('#sidebar-document-list-wrap .sidebar-document-item.active')
+        .contains('tree-1')
 
       cy.get('#title').contains('tree-1')
 

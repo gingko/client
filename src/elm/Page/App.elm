@@ -689,17 +689,38 @@ update msg model =
             ( model, Cmd.none )
 
         Incoming incomingMsg ->
+            let
+                passThroughTo docModel =
+                    Page.Doc.incoming incomingMsg docModel
+                        |> (\( d, c ) ->
+                                ( { model | document = Just d }, Cmd.map GotDocMsg c )
+                           )
+            in
             case ( incomingMsg, model.document ) of
                 ( DataReceived _, Nothing ) ->
                     ( model, Cmd.none )
 
+                ( Keyboard shortcut, Just docModel ) ->
+                    case ( shortcut, model.modalState ) of
+                        ( "enter", FileSwitcher switcherModel ) ->
+                            case switcherModel.selectedDocument of
+                                Just docId ->
+                                    ( model, Route.pushUrl (Session.navKey model.session) (Route.DocUntitled docId) )
+
+                                Nothing ->
+                                    ( model, Cmd.none )
+
+                        ( "esc", NoModal ) ->
+                            passThroughTo docModel
+
+                        ( "esc", _ ) ->
+                            ( { model | fileSearchField = "", modalState = NoModal }, Cmd.none )
+
+                        _ ->
+                            passThroughTo docModel
+
                 ( _, Just docModel ) ->
-                    let
-                        ( newDocModel, newCmd ) =
-                            Page.Doc.incoming incomingMsg docModel
-                                |> Tuple.mapSecond (Cmd.map GotDocMsg)
-                    in
-                    ( { model | document = Just newDocModel }, newCmd )
+                    passThroughTo docModel
 
                 _ ->
                     ( model, Cmd.none )
@@ -768,9 +789,9 @@ view ({ session, document } as model) =
                 ((Page.Doc.view doc |> List.map (Html.map GotDocMsg))
                     ++ [ UI.viewSidebar session
                             sidebarMsgs
-                            (Metadata.new "")
+                            doc.metadata
                             ModifiedAt
-                            ""
+                            model.fileSearchField
                             (Session.documents session)
                             (Session.name session |> Maybe.withDefault "" {- TODO -})
                             Nothing
