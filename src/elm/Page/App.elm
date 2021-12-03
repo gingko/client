@@ -1,4 +1,4 @@
-module Page.App exposing (Model, Msg, init, subscriptions, toUser, update, view)
+module Page.App exposing (Model, Msg, getTitle, init, isDirty, subscriptions, toUser, update, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -14,7 +14,7 @@ import Doc.VideoViewer as VideoViewer
 import File exposing (File)
 import File.Select as Select
 import Html exposing (Html, div, text)
-import Html.Attributes exposing (class, id, style)
+import Html.Attributes exposing (class, classList, id, style)
 import Html.Events exposing (onClick)
 import Http
 import Import.Bulk.UI as ImportModal
@@ -26,7 +26,7 @@ import Json.Decode as Json
 import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
 import Page.Doc
-import Page.Doc.Incoming as Incoming
+import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Empty
 import RandomId
 import Route
@@ -73,11 +73,11 @@ type ModalState
     | UpgradeModal
 
 
-defaultModel : Session -> Model
-defaultModel session =
+defaultModel : Session -> Maybe Page.Doc.Model -> Model
+defaultModel session docModel_ =
     { session = session
     , loading = True
-    , document = Nothing
+    , document = docModel_
     , sidebarState =
         if Session.fileMenuOpen session then
             File
@@ -96,20 +96,38 @@ init session dbData_ =
     case dbData_ of
         Just dbData ->
             if dbData.isNew then
-                ( defaultModel session
+                ( defaultModel session (Just (Page.Doc.defaultModel True session dbData.dbName))
                 , send <| InitDocument dbData.dbName
                 )
 
             else
-                ( defaultModel session, send <| LoadDocument dbData.dbName )
+                ( defaultModel session (Just (Page.Doc.defaultModel False session dbData.dbName))
+                , send <| LoadDocument dbData.dbName
+                )
 
         Nothing ->
             case Session.lastDocId session of
                 Just docId ->
-                    ( defaultModel session, Route.replaceUrl (Session.navKey session) (Route.DocUntitled docId) )
+                    ( defaultModel session Nothing, Route.replaceUrl (Session.navKey session) (Route.DocUntitled docId) )
 
                 Nothing ->
-                    ( defaultModel session, send <| GetDocumentList )
+                    ( defaultModel session Nothing, send <| GetDocumentList )
+
+
+isDirty : Model -> Bool
+isDirty model =
+    case model.document of
+        Just docModel ->
+            docModel.dirty
+
+        Nothing ->
+            False
+
+
+getTitle : Model -> Maybe String
+getTitle model =
+    model.document
+        |> Maybe.andThen (\d -> Metadata.getDocName d.metadata)
 
 
 toUser : Model -> Session
@@ -359,7 +377,7 @@ update msg model =
                     Session.updateDocuments newListState model.session
 
                 routeCmd =
-                    case Session.documents updatedSession of
+                    case Session.documents updatedSession |> Debug.log "updatedSession" of
                         Success [] ->
                             Cmd.none
 
@@ -648,7 +666,45 @@ update msg model =
             , send <| SaveUserSetting ( "shortcutTrayOpen", Enc.bool newIsOpen )
             )
 
-        _ ->
+        NoOp ->
+            ( model, Cmd.none )
+
+        LoginStateChanged session ->
+            ( model, Cmd.none )
+
+        GotDocMsg docMsg ->
+            case model.document of
+                Just docModel ->
+                    let
+                        ( newDocModel, newCmd ) =
+                            Page.Doc.update docMsg docModel
+                                |> Tuple.mapSecond (Cmd.map GotDocMsg)
+                    in
+                    ( { model | document = Just newDocModel }, newCmd )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        FullscreenRequested ->
+            ( model, Cmd.none )
+
+        Incoming incomingMsg ->
+            case ( incomingMsg, model.document ) of
+                ( DataReceived _, Nothing ) ->
+                    ( model, Cmd.none )
+
+                ( _, Just docModel ) ->
+                    let
+                        ( newDocModel, newCmd ) =
+                            Page.Doc.incoming incomingMsg docModel
+                                |> Tuple.mapSecond (Cmd.map GotDocMsg)
+                    in
+                    ( { model | document = Just newDocModel }, newCmd )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        LogErr string ->
             ( model, Cmd.none )
 
 
@@ -684,34 +740,48 @@ closeSwitcher model =
 
 view : Model -> Html Msg
 view ({ session, document } as model) =
+    let
+        sidebarMsgs =
+            { sidebarStateChanged = SidebarStateChanged
+            , noOp = NoOp
+            , clickedNew = TemplateSelectorOpened
+            , tooltipRequested = TooltipRequested
+            , tooltipClosed = TooltipClosed
+            , clickedSwitcher = SwitcherOpened
+            , clickedHelp = ToggledHelpMenu True
+            , toggledShortcuts = ShortcutTrayToggle
+            , clickedEmailSupport = ClickedEmailSupport
+            , clickedShowVideos = ClickedShowVideos
+            , languageMenuRequested = LanguageMenuRequested
+            , logout = LogoutRequested
+            , toggledAccount = ToggledAccountMenu
+            , fileSearchChanged = FileSearchChanged
+            , changeSortBy = SortByChanged
+            , contextMenuOpened = SidebarContextClicked
+            , languageChanged = LanguageChanged
+            , fullscreenRequested = FullscreenRequested
+            }
+    in
     case document of
         Just doc ->
-            Page.Doc.view doc |> Html.map GotDocMsg
+            div [ id "app-root", classList [ ( "loading", model.loading ) ] ]
+                ((Page.Doc.view doc |> List.map (Html.map GotDocMsg))
+                    ++ [ UI.viewSidebar session
+                            sidebarMsgs
+                            (Metadata.new "")
+                            ModifiedAt
+                            ""
+                            (Session.documents session)
+                            (Session.name session |> Maybe.withDefault "" {- TODO -})
+                            Nothing
+                            model.sidebarMenuState
+                            model.sidebarState
+                       ]
+                    ++ viewModal session model.modalState
+                )
 
         Nothing ->
-            let
-                sidebarMsgs =
-                    { sidebarStateChanged = SidebarStateChanged
-                    , noOp = NoOp
-                    , clickedNew = TemplateSelectorOpened
-                    , tooltipRequested = TooltipRequested
-                    , tooltipClosed = TooltipClosed
-                    , clickedSwitcher = SwitcherOpened
-                    , clickedHelp = ToggledHelpMenu True
-                    , toggledShortcuts = ShortcutTrayToggle
-                    , clickedEmailSupport = ClickedEmailSupport
-                    , clickedShowVideos = ClickedShowVideos
-                    , languageMenuRequested = LanguageMenuRequested
-                    , logout = LogoutRequested
-                    , toggledAccount = ToggledAccountMenu
-                    , fileSearchChanged = FileSearchChanged
-                    , changeSortBy = SortByChanged
-                    , contextMenuOpened = SidebarContextClicked
-                    , languageChanged = LanguageChanged
-                    , fullscreenRequested = FullscreenRequested
-                    }
-            in
-            div [ id "app-root", class "loading" ]
+            div [ id "app-root", classList [ ( "loading", model.loading ) ] ]
                 (Page.Empty.view TemplateSelectorOpened
                     ++ [ UI.viewSidebar session
                             sidebarMsgs

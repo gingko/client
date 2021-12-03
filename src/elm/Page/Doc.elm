@@ -1,4 +1,4 @@
-module Page.Doc exposing (Model, Msg, getTitle, init, subscriptions, toUser, update, view)
+module Page.Doc exposing (Model, Msg, defaultModel, incoming, init, subscriptions, toUser, update, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -176,18 +176,12 @@ init session dbName isNew =
             |> addToHistoryDo
 
     else
-        ( initModel, send <| LoadDocument dbName )
+        ( initModel, Cmd.none )
 
 
 toUser : Model -> Session
 toUser model =
     model.session
-
-
-getTitle : Model -> String
-getTitle model =
-    Metadata.getDocName model.metadata
-        |> Maybe.withDefault "Untitled"
 
 
 
@@ -241,7 +235,6 @@ type Msg
     | Pull
     | Export
     | Exported String (Result Http.Error Bytes)
-    | Incoming Incoming.Msg
     | LogErr String
 
 
@@ -692,263 +685,279 @@ update msg ({ workingTree } as model) =
         Exported _ (Err _) ->
             ( model, Cmd.none )
 
-        Incoming incomingMsg ->
-            case incomingMsg of
-                -- === Dialogs, Menus, Window State ===
-                CancelCardConfirmed ->
-                    ( { model | dirty = False }
-                    , send <| SetDirty False
-                    )
-                        |> cancelCard
+        LogErr err ->
+            ( model
+            , send (ConsoleLogRequested err)
+            )
 
-                -- === Database ===
-                DataSaved dataIn ->
-                    let
-                        newData =
-                            Data.success dataIn model.data
-                    in
-                    ( { model
-                        | data = newData
-                        , lastLocalSave = Data.lastCommitTime newData |> Maybe.map Time.millisToPosix
-                        , dirty = False
-                      }
-                    , send <| SetDirty False
-                    )
+        NoOp ->
+            ( model
+            , Cmd.none
+            )
 
-                DataReceived dataIn ->
-                    dataReceived dataIn model
 
-                NotFound ->
-                    ( model, Route.replaceUrl (Session.navKey model.session) Route.Root )
+incoming : Incoming.Msg -> Model -> ( Model, Cmd Msg )
+incoming incomingMsg model =
+    let
+        vs =
+            model.viewState
+    in
+    case incomingMsg of
+        -- === Dialogs, Menus, Window State ===
+        CancelCardConfirmed ->
+            ( { model | dirty = False }
+            , send <| SetDirty False
+            )
+                |> cancelCard
 
-                LocalStoreLoaded dataIn ->
-                    let
-                        ( newViewState, maybeActivateCmd ) =
-                            case Json.decodeValue (Json.field "last-actives" (Json.list Json.string)) dataIn of
-                                Ok (lastActive :: activePast) ->
-                                    ( { vs | active = lastActive, activePast = activePast }
-                                    , activate lastActive True
-                                    )
+        -- === Database ===
+        DataSaved dataIn ->
+            let
+                newData =
+                    Data.success dataIn model.data
+            in
+            ( { model
+                | data = newData
+                , lastLocalSave = Data.lastCommitTime newData |> Maybe.map Time.millisToPosix
+                , dirty = False
+              }
+            , send <| SetDirty False
+            )
 
-                                Ok [] ->
-                                    ( vs, identity )
+        DataReceived dataIn ->
+            dataReceived dataIn model
 
-                                Err _ ->
-                                    ( vs, identity )
+        NotFound ->
+            ( model, Route.replaceUrl (Session.navKey model.session) Route.Root )
 
-                        newTheme =
-                            case Json.decodeValue Theme.decoder dataIn of
-                                Ok decodedTheme ->
-                                    decodedTheme
+        LocalStoreLoaded dataIn ->
+            let
+                ( newViewState, maybeActivateCmd ) =
+                    case Json.decodeValue (Json.field "last-actives" (Json.list Json.string)) dataIn of
+                        Ok (lastActive :: activePast) ->
+                            ( { vs | active = lastActive, activePast = activePast }
+                            , activate lastActive True
+                            )
 
-                                Err _ ->
-                                    Default
-                    in
-                    ( { model | viewState = newViewState, theme = newTheme }, Cmd.none )
-                        |> maybeActivateCmd
-
-                MetadataSynced json ->
-                    case Json.decodeValue Metadata.decoder json of
-                        Ok metadata ->
-                            ( { model | metadata = metadata, titleField = Metadata.getDocName metadata }, Cmd.none )
+                        Ok [] ->
+                            ( vs, identity )
 
                         Err _ ->
-                            ( model, Cmd.none )
+                            ( vs, identity )
 
-                MetadataSaved json ->
-                    case Json.decodeValue Metadata.decoder json of
-                        Ok metadata ->
-                            ( { model | metadata = metadata, titleField = Metadata.getDocName metadata }, Cmd.none )
+                newTheme =
+                    case Json.decodeValue Theme.decoder dataIn of
+                        Ok decodedTheme ->
+                            decodedTheme
 
                         Err _ ->
-                            ( model, Cmd.none )
+                            Default
+            in
+            ( { model | viewState = newViewState, theme = newTheme }, Cmd.none )
+                |> maybeActivateCmd
 
-                MetadataSaveError ->
-                    ( { model | titleField = Nothing }, Cmd.none )
+        MetadataSynced json ->
+            case Json.decodeValue Metadata.decoder json of
+                Ok metadata ->
+                    ( { model | metadata = metadata, titleField = Metadata.getDocName metadata }, Cmd.none )
 
-                GetDataToSave ->
+                Err _ ->
+                    ( model, Cmd.none )
+
+        MetadataSaved json ->
+            case Json.decodeValue Metadata.decoder json of
+                Ok metadata ->
+                    ( { model | metadata = metadata, titleField = Metadata.getDocName metadata }, Cmd.none )
+
+                Err _ ->
+                    ( model, Cmd.none )
+
+        MetadataSaveError ->
+            ( { model | titleField = Nothing }, Cmd.none )
+
+        GetDataToSave ->
+            case vs.viewMode of
+                Normal ->
+                    ( model
+                    , Cmd.none
+                      --, send (SaveToDB ( Metadata.encode model.metadata, statusToValue model.status, Data.encode model.objects ))
+                    )
+
+                _ ->
+                    let
+                        newTree =
+                            TreeStructure.update (TreeStructure.Upd vs.active model.field) model.workingTree
+                    in
+                    if newTree.tree /= model.workingTree.tree then
+                        ( { model | workingTree = newTree }
+                        , Cmd.none
+                        )
+                            |> addToHistoryDo
+
+                    else
+                        ( model
+                        , Cmd.none
+                          --, send (SaveToDB ( Metadata.encode model.metadata, statusToValue model.status, Data.encode model.objects ))
+                        )
+
+        SavedLocally time_ ->
+            ( { model
+                | lastLocalSave = time_
+              }
+            , Cmd.none
+            )
+
+        SavedRemotely time ->
+            ( { model
+                | lastRemoteSave = Just time
+              }
+            , Cmd.none
+            )
+
+        -- === DOM ===
+        DragStarted dragId ->
+            let
+                newTree =
+                    TreeStructure.update (TreeStructure.Rmv dragId) model.workingTree
+
+                draggedTree =
+                    getTreeWithPosition dragId model.workingTree.tree
+            in
+            if List.isEmpty <| getChildren newTree.tree then
+                ( model, Cmd.none )
+
+            else
+                ( { model | workingTree = newTree, viewState = { vs | draggedTree = draggedTree } }, Cmd.none )
+
+        DragExternalStarted ->
+            if model.viewState.viewMode == Normal then
+                ( { model | viewState = { vs | dragModel = ( Tuple.first vs.dragModel, { dropId = Nothing, isDragging = True } ) } }, Cmd.none )
+
+            else
+                ( model, Cmd.none )
+
+        DropExternal dropText ->
+            case Tuple.second vs.dragModel |> .dropId of
+                Just dropId ->
+                    let
+                        modelNoDrag =
+                            { model | viewState = { vs | dragModel = ( Tuple.first vs.dragModel, { dropId = Nothing, isDragging = False } ) } }
+
+                        baseModelCmdTuple =
+                            case dropId of
+                                Above cardId ->
+                                    ( modelNoDrag, Cmd.none ) |> insertAbove cardId dropText
+
+                                Into cardId ->
+                                    ( modelNoDrag, Cmd.none ) |> insertChild cardId dropText
+
+                                Below cardId ->
+                                    ( modelNoDrag, Cmd.none ) |> insertBelow cardId dropText
+                    in
+                    baseModelCmdTuple
+                        |> closeCard
+                        |> addToHistory
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        FullscreenChanged isFullscreen ->
+            if vs.viewMode == FullscreenEditing && not isFullscreen then
+                exitFullscreen model
+
+            else
+                ( model, Cmd.none )
+
+        Paste tree ->
+            normalMode model (pasteBelow vs.active tree)
+
+        PasteInto tree ->
+            normalMode model (pasteInto vs.active tree)
+
+        FieldChanged str ->
+            ( { model | field = str, dirty = True }, Cmd.none )
+
+        TextCursor textCursorInfo ->
+            if model.textCursorInfo /= textCursorInfo then
+                ( { model | textCursorInfo = textCursorInfo }
+                , Cmd.none
+                )
+
+            else
+                ( model, Cmd.none )
+
+        ClickedOutsideCard ->
+            if model.viewState.viewMode == Editing then
+                ( model, Cmd.none )
+                    |> saveCardIfEditing
+                    |> closeCard
+
+            else
+                ( model, Cmd.none )
+
+        CheckboxClicked cardId checkboxNumber ->
+            case getTree cardId model.workingTree.tree of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just originalCard ->
+                    let
+                        checkboxes =
+                            Regex.fromStringWith { caseInsensitive = True, multiline = True }
+                                "\\[(x| )\\]"
+                                |> Maybe.withDefault Regex.never
+
+                        checkboxReplacer { match, number } =
+                            case ( number == checkboxNumber, match ) of
+                                ( True, "[ ]" ) ->
+                                    "[X]"
+
+                                ( True, "[x]" ) ->
+                                    "[ ]"
+
+                                ( True, "[X]" ) ->
+                                    "[ ]"
+
+                                _ ->
+                                    match
+
+                        newContent =
+                            originalCard.content
+                                |> Regex.replace checkboxes checkboxReplacer
+
+                        newTree =
+                            TreeStructure.update (TreeStructure.Upd cardId newContent) model.workingTree
+                    in
+                    ( { model | workingTree = newTree, dirty = True }, Cmd.none )
+                        |> addToHistory
+
+        -- === UI ===
+        FontSelectorOpen fonts ->
+            ( { model | fonts = Fonts.setSystem fonts model.fonts, fontSelectorOpen = True }
+            , Cmd.none
+            )
+
+        Keyboard shortcut ->
+            case shortcut of
+                "shift+enter" ->
                     case vs.viewMode of
                         Normal ->
                             ( model
                             , Cmd.none
-                              --, send (SaveToDB ( Metadata.encode model.metadata, statusToValue model.status, Data.encode model.objects ))
                             )
+                                |> openCardFullscreen vs.active (getContent vs.active model.workingTree.tree)
 
                         _ ->
-                            let
-                                newTree =
-                                    TreeStructure.update (TreeStructure.Upd vs.active model.field) model.workingTree
-                            in
-                            if newTree.tree /= model.workingTree.tree then
-                                ( { model | workingTree = newTree }
-                                , Cmd.none
-                                )
-                                    |> addToHistoryDo
-
-                            else
-                                ( model
-                                , Cmd.none
-                                  --, send (SaveToDB ( Metadata.encode model.metadata, statusToValue model.status, Data.encode model.objects ))
-                                )
-
-                SavedLocally time_ ->
-                    ( { model
-                        | lastLocalSave = time_
-                      }
-                    , Cmd.none
-                    )
-
-                SavedRemotely time ->
-                    ( { model
-                        | lastRemoteSave = Just time
-                      }
-                    , Cmd.none
-                    )
-
-                -- === DOM ===
-                DragStarted dragId ->
-                    let
-                        newTree =
-                            TreeStructure.update (TreeStructure.Rmv dragId) model.workingTree
-
-                        draggedTree =
-                            getTreeWithPosition dragId model.workingTree.tree
-                    in
-                    if List.isEmpty <| getChildren newTree.tree then
-                        ( model, Cmd.none )
-
-                    else
-                        ( { model | workingTree = newTree, viewState = { vs | draggedTree = draggedTree } }, Cmd.none )
-
-                DragExternalStarted ->
-                    if model.viewState.viewMode == Normal then
-                        ( { model | viewState = { vs | dragModel = ( Tuple.first vs.dragModel, { dropId = Nothing, isDragging = True } ) } }, Cmd.none )
-
-                    else
-                        ( model, Cmd.none )
-
-                DropExternal dropText ->
-                    case Tuple.second vs.dragModel |> .dropId of
-                        Just dropId ->
-                            let
-                                modelNoDrag =
-                                    { model | viewState = { vs | dragModel = ( Tuple.first vs.dragModel, { dropId = Nothing, isDragging = False } ) } }
-
-                                baseModelCmdTuple =
-                                    case dropId of
-                                        Above cardId ->
-                                            ( modelNoDrag, Cmd.none ) |> insertAbove cardId dropText
-
-                                        Into cardId ->
-                                            ( modelNoDrag, Cmd.none ) |> insertChild cardId dropText
-
-                                        Below cardId ->
-                                            ( modelNoDrag, Cmd.none ) |> insertBelow cardId dropText
-                            in
-                            baseModelCmdTuple
-                                |> closeCard
-                                |> addToHistory
-
-                        Nothing ->
                             ( model, Cmd.none )
 
-                FullscreenChanged isFullscreen ->
-                    if vs.viewMode == FullscreenEditing && not isFullscreen then
-                        exitFullscreen model
+                "mod+enter" ->
+                    saveAndStopEditing model
 
-                    else
-                        ( model, Cmd.none )
+                "mod+s" ->
+                    saveCardIfEditing ( model, Cmd.none )
 
-                Paste tree ->
-                    normalMode model (pasteBelow vs.active tree)
-
-                PasteInto tree ->
-                    normalMode model (pasteInto vs.active tree)
-
-                FieldChanged str ->
-                    ( { model | field = str, dirty = True }, Cmd.none )
-
-                TextCursor textCursorInfo ->
-                    if model.textCursorInfo /= textCursorInfo then
-                        ( { model | textCursorInfo = textCursorInfo }
-                        , Cmd.none
-                        )
-
-                    else
-                        ( model, Cmd.none )
-
-                ClickedOutsideCard ->
-                    if model.viewState.viewMode == Editing then
-                        ( model, Cmd.none )
-                            |> saveCardIfEditing
-                            |> closeCard
-
-                    else
-                        ( model, Cmd.none )
-
-                CheckboxClicked cardId checkboxNumber ->
-                    case getTree cardId model.workingTree.tree of
-                        Nothing ->
-                            ( model, Cmd.none )
-
-                        Just originalCard ->
-                            let
-                                checkboxes =
-                                    Regex.fromStringWith { caseInsensitive = True, multiline = True }
-                                        "\\[(x| )\\]"
-                                        |> Maybe.withDefault Regex.never
-
-                                checkboxReplacer { match, number } =
-                                    case ( number == checkboxNumber, match ) of
-                                        ( True, "[ ]" ) ->
-                                            "[X]"
-
-                                        ( True, "[x]" ) ->
-                                            "[ ]"
-
-                                        ( True, "[X]" ) ->
-                                            "[ ]"
-
-                                        _ ->
-                                            match
-
-                                newContent =
-                                    originalCard.content
-                                        |> Regex.replace checkboxes checkboxReplacer
-
-                                newTree =
-                                    TreeStructure.update (TreeStructure.Upd cardId newContent) model.workingTree
-                            in
-                            ( { model | workingTree = newTree, dirty = True }, Cmd.none )
-                                |> addToHistory
-
-                -- === UI ===
-                FontSelectorOpen fonts ->
-                    ( { model | fonts = Fonts.setSystem fonts model.fonts, fontSelectorOpen = True }
-                    , Cmd.none
-                    )
-
-                Keyboard shortcut ->
-                    case shortcut of
-                        "shift+enter" ->
-                            case vs.viewMode of
-                                Normal ->
-                                    ( model
-                                    , Cmd.none
-                                    )
-                                        |> openCardFullscreen vs.active (getContent vs.active model.workingTree.tree)
-
-                                _ ->
-                                    ( model, Cmd.none )
-
-                        "mod+enter" ->
-                            saveAndStopEditing model
-
-                        "mod+s" ->
-                            saveCardIfEditing ( model, Cmd.none )
-
-                        "enter" ->
-                            {--
+                "enter" ->
+                    {--
                             case model.modalState of
                                 FileSwitcher switcherModel ->
                                     case switcherModel.selectedDocument of
@@ -961,13 +970,13 @@ update msg ({ workingTree } as model) =
                                 _ ->
                                     normalMode model (openCard vs.active (getContent vs.active model.workingTree.tree))
                             --}
-                            ( model, Cmd.none )
+                    ( model, Cmd.none )
 
-                        "mod+backspace" ->
-                            normalMode model (deleteCard vs.active)
+                "mod+backspace" ->
+                    normalMode model (deleteCard vs.active)
 
-                        "esc" ->
-                            {--
+                "esc" ->
+                    {--
                             case ( model.modalState, model.headerMenu ) of
                                 ( NoModal, HistoryView historyState ) ->
                                     ( { model | headerMenu = NoHeaderMenu }, Cmd.none )
@@ -979,83 +988,83 @@ update msg ({ workingTree } as model) =
                                 _ ->
                                     ( { model | fileSearchField = "", modalState = NoModal }, Cmd.none )
                             --}
-                            ( model, Cmd.none )
+                    ( model, Cmd.none )
 
-                        "mod+j" ->
-                            if model.viewState.viewMode == Normal then
-                                insertBelow vs.active "" ( model, Cmd.none )
+                "mod+j" ->
+                    if model.viewState.viewMode == Normal then
+                        insertBelow vs.active "" ( model, Cmd.none )
 
-                            else
-                                let
-                                    ( beforeText, afterText ) =
-                                        model.textCursorInfo.text
-                                in
-                                ( { model | field = beforeText }
-                                , Cmd.none
-                                )
-                                    |> saveCardIfEditing
-                                    |> insertBelow vs.active afterText
-                                    |> setCursorPosition 0
+                    else
+                        let
+                            ( beforeText, afterText ) =
+                                model.textCursorInfo.text
+                        in
+                        ( { model | field = beforeText }
+                        , Cmd.none
+                        )
+                            |> saveCardIfEditing
+                            |> insertBelow vs.active afterText
+                            |> setCursorPosition 0
 
-                        "mod+down" ->
-                            normalMode model (insertBelow vs.active "")
+                "mod+down" ->
+                    normalMode model (insertBelow vs.active "")
 
-                        "mod+k" ->
-                            if model.viewState.viewMode == Normal then
-                                insertAbove vs.active "" ( model, Cmd.none )
+                "mod+k" ->
+                    if model.viewState.viewMode == Normal then
+                        insertAbove vs.active "" ( model, Cmd.none )
 
-                            else
-                                let
-                                    ( beforeText, afterText ) =
-                                        model.textCursorInfo.text
-                                in
-                                ( { model | field = afterText }
-                                , Cmd.none
-                                )
-                                    |> saveCardIfEditing
-                                    |> insertAbove vs.active beforeText
+                    else
+                        let
+                            ( beforeText, afterText ) =
+                                model.textCursorInfo.text
+                        in
+                        ( { model | field = afterText }
+                        , Cmd.none
+                        )
+                            |> saveCardIfEditing
+                            |> insertAbove vs.active beforeText
 
-                        "mod+up" ->
-                            normalMode model (insertAbove vs.active "")
+                "mod+up" ->
+                    normalMode model (insertAbove vs.active "")
 
-                        "mod+l" ->
-                            let
-                                ( beforeText, afterText ) =
-                                    model.textCursorInfo.text
-                            in
-                            ( { model | field = beforeText }
-                            , Cmd.none
-                            )
-                                |> saveCardIfEditing
-                                |> insertChild vs.active afterText
-                                |> setCursorPosition 0
+                "mod+l" ->
+                    let
+                        ( beforeText, afterText ) =
+                            model.textCursorInfo.text
+                    in
+                    ( { model | field = beforeText }
+                    , Cmd.none
+                    )
+                        |> saveCardIfEditing
+                        |> insertChild vs.active afterText
+                        |> setCursorPosition 0
 
-                        "mod+right" ->
-                            normalMode model (insertChild vs.active "")
+                "mod+right" ->
+                    normalMode model (insertChild vs.active "")
 
-                        "mod+shift+j" ->
-                            normalMode model (mergeDown vs.active)
+                "mod+shift+j" ->
+                    normalMode model (mergeDown vs.active)
 
-                        "mod+shift+down" ->
-                            normalMode model (mergeDown vs.active)
+                "mod+shift+down" ->
+                    normalMode model (mergeDown vs.active)
 
-                        "mod+shift+k" ->
-                            normalMode model (mergeUp vs.active)
+                "mod+shift+k" ->
+                    normalMode model (mergeUp vs.active)
 
-                        "mod+shift+up" ->
-                            normalMode model (mergeUp vs.active)
+                "mod+shift+up" ->
+                    normalMode model (mergeUp vs.active)
 
-                        "h" ->
-                            normalMode model (goLeft vs.active)
+                "h" ->
+                    normalMode model (goLeft vs.active)
 
-                        "left" ->
-                            normalMode model (goLeft vs.active)
+                "left" ->
+                    normalMode model (goLeft vs.active)
 
-                        "j" ->
-                            normalMode model (goDown vs.active)
+                "j" ->
+                    normalMode model (goDown vs.active)
 
-                        "down" ->
-                            {--
+                "down" ->
+                    {--
                             case model.modalState of
                                 NoModal ->
                                     case vs.viewMode of
@@ -1078,13 +1087,13 @@ update msg ({ workingTree } as model) =
                                 _ ->
                                     ( model, Cmd.none )
                             --}
-                            ( model, Cmd.none )
+                    ( model, Cmd.none )
 
-                        "k" ->
-                            normalMode model (goUp vs.active)
+                "k" ->
+                    normalMode model (goUp vs.active)
 
-                        "up" ->
-                            {--
+                "up" ->
+                    {--
                             case model.modalState of
                                 NoModal ->
                                     normalMode model (goUp vs.active)
@@ -1095,78 +1104,78 @@ update msg ({ workingTree } as model) =
                                 _ ->
                                     ( model, Cmd.none )
                             --}
-                            ( model, Cmd.none )
+                    ( model, Cmd.none )
 
-                        "l" ->
-                            normalMode model (goRight vs.active)
+                "l" ->
+                    normalMode model (goRight vs.active)
 
-                        "right" ->
-                            normalMode model (goRight vs.active)
+                "right" ->
+                    normalMode model (goRight vs.active)
 
-                        "alt+up" ->
-                            normalMode model (moveWithin vs.active -1)
+                "alt+up" ->
+                    normalMode model (moveWithin vs.active -1)
 
-                        "alt+k" ->
-                            normalMode model (moveWithin vs.active -1)
+                "alt+k" ->
+                    normalMode model (moveWithin vs.active -1)
 
-                        "alt+down" ->
-                            normalMode model (moveWithin vs.active 1)
+                "alt+down" ->
+                    normalMode model (moveWithin vs.active 1)
 
-                        "alt+j" ->
-                            normalMode model (moveWithin vs.active 1)
+                "alt+j" ->
+                    normalMode model (moveWithin vs.active 1)
 
-                        "alt+left" ->
-                            normalMode model (moveLeft vs.active)
+                "alt+left" ->
+                    normalMode model (moveLeft vs.active)
 
-                        "alt+h" ->
-                            normalMode model (moveLeft vs.active)
+                "alt+h" ->
+                    normalMode model (moveLeft vs.active)
 
-                        "alt+right" ->
-                            normalMode model (moveRight vs.active)
+                "alt+right" ->
+                    normalMode model (moveRight vs.active)
 
-                        "alt+l" ->
-                            normalMode model (moveRight vs.active)
+                "alt+l" ->
+                    normalMode model (moveRight vs.active)
 
-                        "alt+shift+up" ->
-                            normalMode model (moveWithin vs.active -5)
+                "alt+shift+up" ->
+                    normalMode model (moveWithin vs.active -5)
 
-                        "alt+shift+down" ->
-                            normalMode model (moveWithin vs.active 5)
+                "alt+shift+down" ->
+                    normalMode model (moveWithin vs.active 5)
 
-                        "alt+pageup" ->
-                            normalMode model (moveWithin vs.active -999999)
+                "alt+pageup" ->
+                    normalMode model (moveWithin vs.active -999999)
 
-                        "alt+pagedown" ->
-                            normalMode model (moveWithin vs.active 999999)
+                "alt+pagedown" ->
+                    normalMode model (moveWithin vs.active 999999)
 
-                        "home" ->
-                            normalMode model (goToTopOfColumn vs.active)
+                "home" ->
+                    normalMode model (goToTopOfColumn vs.active)
 
-                        "end" ->
-                            normalMode model (goToBottomOfColumn vs.active)
+                "end" ->
+                    normalMode model (goToBottomOfColumn vs.active)
 
-                        "pageup" ->
-                            normalMode model (goToTopOfGroup vs.active True)
+                "pageup" ->
+                    normalMode model (goToTopOfGroup vs.active True)
 
-                        "pagedown" ->
-                            normalMode model (goToBottomOfGroup vs.active True)
+                "pagedown" ->
+                    normalMode model (goToBottomOfGroup vs.active True)
 
-                        "mod+x" ->
-                            normalMode model (cut vs.active)
+                "mod+x" ->
+                    normalMode model (cut vs.active)
 
-                        "mod+c" ->
-                            normalMode model (copy vs.active)
+                "mod+c" ->
+                    normalMode model (copy vs.active)
 
-                        "mod+z" ->
-                            normalMode model (\( m, _ ) -> toggleHistory True m)
-                                |> Tuple.mapSecond (\c -> Cmd.batch [ c, send <| HistorySlider -1 ])
+                "mod+z" ->
+                    normalMode model (\( m, _ ) -> toggleHistory True m)
+                        |> Tuple.mapSecond (\c -> Cmd.batch [ c, send <| HistorySlider -1 ])
 
-                        "mod+shift+z" ->
-                            normalMode model (\( m, _ ) -> toggleHistory True m)
-                                |> Tuple.mapSecond (\c -> Cmd.batch [ c, send <| HistorySlider 1 ])
+                "mod+shift+z" ->
+                    normalMode model (\( m, _ ) -> toggleHistory True m)
+                        |> Tuple.mapSecond (\c -> Cmd.batch [ c, send <| HistorySlider 1 ])
 
-                        "mod+o" ->
-                            {--
+                "mod+o" ->
+                    {--
                             case model.modalState of
                                 FileSwitcher _ ->
                                     ( { model | modalState = NoModal }, Cmd.none )
@@ -1174,46 +1183,46 @@ update msg ({ workingTree } as model) =
                                 _ ->
                                     model |> openSwitcher
                                     --}
-                            ( model, Cmd.none )
+                    ( model, Cmd.none )
 
-                        "mod+b" ->
-                            case vs.viewMode of
-                                Normal ->
-                                    ( model
-                                    , Cmd.none
-                                    )
+                "mod+b" ->
+                    case vs.viewMode of
+                        Normal ->
+                            ( model
+                            , Cmd.none
+                            )
 
-                                _ ->
-                                    ( model
-                                    , send (TextSurround vs.active "**")
-                                    )
+                        _ ->
+                            ( model
+                            , send (TextSurround vs.active "**")
+                            )
 
-                        "mod+i" ->
-                            case vs.viewMode of
-                                Normal ->
-                                    ( model
-                                    , Cmd.none
-                                    )
+                "mod+i" ->
+                    case vs.viewMode of
+                        Normal ->
+                            ( model
+                            , Cmd.none
+                            )
 
-                                _ ->
-                                    ( model
-                                    , send (TextSurround vs.active "*")
-                                    )
+                        _ ->
+                            ( model
+                            , send (TextSurround vs.active "*")
+                            )
 
-                        "/" ->
-                            case vs.viewMode of
-                                Normal ->
-                                    ( model
-                                    , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "search-input")
-                                    )
+                "/" ->
+                    case vs.viewMode of
+                        Normal ->
+                            ( model
+                            , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "search-input")
+                            )
 
-                                _ ->
-                                    ( model
-                                    , Cmd.none
-                                    )
+                        _ ->
+                            ( model
+                            , Cmd.none
+                            )
 
-                        "w" ->
-                            {--
+                "w" ->
+                    {--
                             case ( vs.viewMode, model.modalState ) of
                                 ( Normal, NoModal ) ->
                                     ( { model | modalState = Wordcount }, Cmd.none )
@@ -1223,10 +1232,10 @@ update msg ({ workingTree } as model) =
 
                                 _ ->
                                     --}
-                            ( model, Cmd.none )
+                    ( model, Cmd.none )
 
-                        "?" ->
-                            {--
+                "?" ->
+                    {--
                             case ( vs.viewMode, model.modalState ) of
                                 ( Normal, HelpScreen ) ->
                                     ( { model | modalState = NoModal }, Cmd.none )
@@ -1237,60 +1246,60 @@ update msg ({ workingTree } as model) =
                                 _ ->
                                     ( model, Cmd.none )
                             --}
-                            ( model, Cmd.none )
+                    ( model, Cmd.none )
+
+                _ ->
+                    ( model
+                    , Cmd.none
+                    )
+
+        WillPrint ->
+            ( { model | headerMenu = ExportPreview }, Cmd.none )
+
+        -- === Misc ===
+        RecvCollabState collabState ->
+            let
+                newCollabs =
+                    if List.member collabState.uid (vs.collaborators |> List.map .uid) then
+                        vs.collaborators
+                            |> List.map
+                                (\c ->
+                                    if c.uid == collabState.uid then
+                                        collabState
+
+                                    else
+                                        c
+                                )
+
+                    else
+                        collabState :: vs.collaborators
+
+                newTree =
+                    case collabState.mode of
+                        CollabEditing editId ->
+                            TreeStructure.update (TreeStructure.Upd editId collabState.field) model.workingTree
 
                         _ ->
-                            ( model
-                            , Cmd.none
-                            )
+                            model.workingTree
+            in
+            ( { model
+                | workingTree = newTree
+                , viewState = { vs | collaborators = newCollabs }
+              }
+            , Cmd.none
+            )
 
-                WillPrint ->
-                    ( { model | headerMenu = ExportPreview }, Cmd.none )
+        CollaboratorDisconnected uid ->
+            ( { model
+                | viewState =
+                    { vs | collaborators = vs.collaborators |> List.filter (\c -> c.uid /= uid) }
+              }
+            , Cmd.none
+            )
 
-                -- === Misc ===
-                RecvCollabState collabState ->
-                    let
-                        newCollabs =
-                            if List.member collabState.uid (vs.collaborators |> List.map .uid) then
-                                vs.collaborators
-                                    |> List.map
-                                        (\c ->
-                                            if c.uid == collabState.uid then
-                                                collabState
-
-                                            else
-                                                c
-                                        )
-
-                            else
-                                collabState :: vs.collaborators
-
-                        newTree =
-                            case collabState.mode of
-                                CollabEditing editId ->
-                                    TreeStructure.update (TreeStructure.Upd editId collabState.field) model.workingTree
-
-                                _ ->
-                                    model.workingTree
-                    in
-                    ( { model
-                        | workingTree = newTree
-                        , viewState = { vs | collaborators = newCollabs }
-                      }
-                    , Cmd.none
-                    )
-
-                CollaboratorDisconnected uid ->
-                    ( { model
-                        | viewState =
-                            { vs | collaborators = vs.collaborators |> List.filter (\c -> c.uid /= uid) }
-                      }
-                    , Cmd.none
-                    )
-
-                -- === INTEGRATION TEST HOOKS ===
-                TestTextImportLoaded files ->
-                    {--
+        -- === INTEGRATION TEST HOOKS ===
+        TestTextImportLoaded files ->
+            {--
                     case model.modalState of
                         ImportTextModal modalState ->
                             ( { model | modalState = ImportText.setFileList files modalState |> ImportTextModal }
@@ -1300,17 +1309,7 @@ update msg ({ workingTree } as model) =
                         _ ->
                             ( model, Cmd.none )
                     --}
-                    ( model, Cmd.none )
-
-        LogErr err ->
-            ( model
-            , send (ConsoleLogRequested err)
-            )
-
-        NoOp ->
-            ( model
-            , Cmd.none
-            )
+            ( model, Cmd.none )
 
 
 
@@ -2278,21 +2277,8 @@ sendCollabState collabState ( model, prevCmd ) =
 -- VIEW
 
 
-view : Model -> Html Msg
+view : Model -> List (Html Msg)
 view model =
-    let
-        sidebarOpen =
-            Session.fileMenuOpen model.session
-    in
-    if model.loading then
-        UI.viewLoadingSpinner sidebarOpen
-
-    else
-        viewLoaded model
-
-
-viewLoaded : Model -> Html Msg
-viewLoaded model =
     let
         language =
             Session.language model.session
@@ -2315,6 +2301,7 @@ viewLoaded model =
                     model.field
                     model.viewState
                     |> Html.map FullscreenMsg
+                    |> List.singleton
 
             else
                 let
@@ -2322,7 +2309,8 @@ viewLoaded model =
                         getTree model.viewState.active model.workingTree.tree
 
                     mobileBtnMsg shortcut =
-                        Incoming (Keyboard shortcut)
+                        --TODO: Incoming (Keyboard shortcut)
+                        NoOp
 
                     exportViewOk =
                         lazy4 exportView
@@ -2378,59 +2366,56 @@ viewLoaded model =
                             Nothing ->
                                 []
                 in
-                div
-                    [ id "app-root", applyTheme model.theme ]
-                    ([ lazy4 treeView (Session.language model.session) (Session.isMac model.session) model.viewState model.workingTree
-                     , UI.viewHeader
-                        { noOp = NoOp
-                        , titleFocused = TitleFocused
-                        , titleFieldChanged = TitleFieldChanged
-                        , titleEdited = TitleEdited
-                        , titleEditCanceled = TitleEditCanceled
-                        , tooltipRequested = (always << always << always) NoOp
-                        , tooltipClosed = NoOp
-                        , toggledHistory = HistoryToggled
-                        , checkoutCommit = CheckoutCommit
-                        , restore = Restore
-                        , cancelHistory = CancelHistory
-                        , toggledDocSettings = DocSettingsToggled (not <| model.headerMenu == Settings)
-                        , wordCountClicked = NoOp
-                        , themeChanged = ThemeChanged
-                        , toggledExport = ExportPreviewToggled (not <| model.headerMenu == ExportPreview)
-                        , exportSelectionChanged = ExportSelectionChanged
-                        , exportFormatChanged = ExportFormatChanged
-                        , export = Export
-                        , printRequested = PrintRequested
-                        , toggledUpgradeModal = always NoOp
-                        }
-                        (Metadata.getDocName model.metadata)
-                        model
-                     , if (not << List.isEmpty) cardTitles then
-                        UI.viewBreadcrumbs Activate cardTitles
+                [ lazy4 treeView (Session.language model.session) (Session.isMac model.session) model.viewState model.workingTree
+                , UI.viewHeader
+                    { noOp = NoOp
+                    , titleFocused = TitleFocused
+                    , titleFieldChanged = TitleFieldChanged
+                    , titleEdited = TitleEdited
+                    , titleEditCanceled = TitleEditCanceled
+                    , tooltipRequested = (always << always << always) NoOp
+                    , tooltipClosed = NoOp
+                    , toggledHistory = HistoryToggled
+                    , checkoutCommit = CheckoutCommit
+                    , restore = Restore
+                    , cancelHistory = CancelHistory
+                    , toggledDocSettings = DocSettingsToggled (not <| model.headerMenu == Settings)
+                    , wordCountClicked = NoOp
+                    , themeChanged = ThemeChanged
+                    , toggledExport = ExportPreviewToggled (not <| model.headerMenu == ExportPreview)
+                    , exportSelectionChanged = ExportSelectionChanged
+                    , exportFormatChanged = ExportFormatChanged
+                    , export = Export
+                    , printRequested = PrintRequested
+                    , toggledUpgradeModal = always NoOp
+                    }
+                    (Metadata.getDocName model.metadata)
+                    model
+                , if (not << List.isEmpty) cardTitles then
+                    UI.viewBreadcrumbs Activate cardTitles
 
-                       else
-                        text ""
-                     , maybeExportView
-                     ]
-                        ++ [ viewSearchField SearchFieldUpdated model
-                           , viewMobileButtons
-                                { edit = mobileBtnMsg "mod+enter"
-                                , save = mobileBtnMsg "mod+enter"
-                                , cancel = mobileBtnMsg "esc"
-                                , plusDown = mobileBtnMsg "mod+down"
-                                , plusUp = mobileBtnMsg "mod+up"
-                                , plusRight = mobileBtnMsg "mod+right"
-                                , navLeft = mobileBtnMsg "left"
-                                , navUp = mobileBtnMsg "up"
-                                , navDown = mobileBtnMsg "down"
-                                , navRight = mobileBtnMsg "right"
-                                }
-                                (model.viewState.viewMode /= Normal)
-                           , div [ id "loading-overlay" ] []
-                           , div [ id "preloader" ] []
-                           , model.tooltip |> Maybe.map UI.viewTooltip |> Maybe.withDefault (text "")
-                           ]
-                    )
+                  else
+                    text ""
+                , maybeExportView
+                ]
+                    ++ [ viewSearchField SearchFieldUpdated model
+                       , viewMobileButtons
+                            { edit = mobileBtnMsg "mod+enter"
+                            , save = mobileBtnMsg "mod+enter"
+                            , cancel = mobileBtnMsg "esc"
+                            , plusDown = mobileBtnMsg "mod+down"
+                            , plusUp = mobileBtnMsg "mod+up"
+                            , plusRight = mobileBtnMsg "mod+right"
+                            , navLeft = mobileBtnMsg "left"
+                            , navUp = mobileBtnMsg "up"
+                            , navDown = mobileBtnMsg "down"
+                            , navRight = mobileBtnMsg "right"
+                            }
+                            (model.viewState.viewMode /= Normal)
+                       , div [ id "loading-overlay" ] []
+                       , div [ id "preloader" ] []
+                       , model.tooltip |> Maybe.map UI.viewTooltip |> Maybe.withDefault (text "")
+                       ]
 
         conflicts ->
             let
@@ -2444,17 +2429,10 @@ repeating-linear-gradient(-45deg
 )
           """
             in
-            div
-                [ id "app-root"
-                , style "background" bgString
-                , style "position" "absolute"
-                , style "width" "100%"
-                , style "height" "100%"
-                ]
-                [ ul [ class "conflicts-list" ]
-                    (List.map (viewConflict SetSelection Resolve) conflicts)
-                , lazy4 treeView (Session.language model.session) (Session.isMac model.session) model.viewState model.workingTree
-                ]
+            [ ul [ class "conflicts-list" ]
+                (List.map (viewConflict SetSelection Resolve) conflicts)
+            , lazy4 treeView (Session.language model.session) (Session.isMac model.session) model.viewState model.workingTree
+            ]
 
 
 treeView : Language -> Bool -> ViewState -> TreeStructure.Model -> Html Msg
@@ -2923,8 +2901,7 @@ collabsSpan collabsOnCard collabsEditingCard =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Incoming.subscribe Incoming LogErr
-        , if model.dirty then
+        [ if model.dirty then
             Time.every (241 * 1000) (always AutoSave)
 
           else

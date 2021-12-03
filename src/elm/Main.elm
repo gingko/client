@@ -8,7 +8,6 @@ import Json.Decode as Dec exposing (Decoder, Value)
 import Outgoing exposing (Msg(..), send)
 import Page.App
 import Page.Copy
-import Page.Doc
 import Page.DocNew
 import Page.ForgotPassword
 import Page.Import
@@ -28,7 +27,6 @@ import Url exposing (Url)
 
 type Model
     = Redirect Session
-    | TestAppPage Page.App.Model
     | NotFound Session
     | PaymentSuccess Session
     | Signup Page.Signup.Model
@@ -38,7 +36,7 @@ type Model
     | Copy Page.Copy.Model
     | Import Page.Import.Model
     | DocNew Session
-    | Doc Page.Doc.Model
+    | App Page.App.Model
 
 
 init : Value -> Url -> Nav.Key -> ( Model, Cmd Msg )
@@ -73,16 +71,13 @@ changeRouteTo maybeRoute model =
     if Session.loggedIn user then
         case maybeRoute of
             Just Route.Root ->
-                Page.App.init user Nothing |> updateWith TestAppPage GotAppMsg
-
-            Just Route.TestApp ->
-                Page.App.init user Nothing |> updateWith TestAppPage GotAppMsg
+                Page.App.init user Nothing |> updateWith App GotAppMsg
 
             Just Route.Signup ->
                 Page.Signup.init user |> updateWith Signup GotSignupMsg
 
             Just Route.Login ->
-                Page.App.init user Nothing |> updateWith TestAppPage GotAppMsg
+                Page.App.init user Nothing |> updateWith App GotAppMsg
 
             Just (Route.ForgotPassword email_) ->
                 Page.ForgotPassword.init user email_
@@ -105,10 +100,10 @@ changeRouteTo maybeRoute model =
                             _ ->
                                 False
                 in
-                Page.Doc.init user dbName isNew |> updateWith Doc GotDocMsg
+                Page.App.init user (Just { dbName = dbName, isNew = isNew } |> Debug.log "DocUntitled") |> updateWith App GotAppMsg
 
             Just (Route.Doc dbName _) ->
-                Page.Doc.init user dbName False |> updateWith Doc GotDocMsg
+                Page.App.init user (Just { dbName = dbName, isNew = False }) |> updateWith App GotAppMsg
 
             Just (Route.Copy dbName) ->
                 Page.Copy.init user dbName |> updateWith Copy GotCopyMsg
@@ -162,9 +157,6 @@ toUser page =
         Redirect user ->
             user
 
-        TestAppPage testAppPage ->
-            Page.App.toUser testAppPage
-
         NotFound user ->
             user
 
@@ -192,8 +184,8 @@ toUser page =
         DocNew user ->
             user
 
-        Doc doc ->
-            Page.Doc.toUser doc
+        App appModel ->
+            Page.App.toUser appModel
 
 
 
@@ -205,7 +197,6 @@ type Msg
     | ChangedUrl Url
     | ClickedLink Browser.UrlRequest
     | SettingsChanged Dec.Value
-    | GotAppMsg Page.App.Msg
     | GotSignupMsg Page.Signup.Msg
     | GotLoginMsg Page.Login.Msg
     | GotForgotPasswordMsg Page.ForgotPassword.Msg
@@ -213,7 +204,7 @@ type Msg
     | GotCopyMsg Page.Copy.Msg
     | GotImportMsg Page.Import.Msg
     | GotDocNewMsg Page.DocNew.Msg
-    | GotDocMsg Page.Doc.Msg
+    | GotAppMsg Page.App.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -230,13 +221,13 @@ update msg model =
         ( ChangedUrl url, _ ) ->
             changeRouteTo (Route.fromUrl url) model
 
-        ( ClickedLink urlRequest, Doc docModel ) ->
+        ( ClickedLink urlRequest, App appModel ) ->
             case urlRequest of
                 Browser.Internal url ->
-                    if docModel.dirty then
+                    if Page.App.isDirty appModel then
                         let
                             saveShortcut =
-                                if Session.isMac docModel.session then
+                                if Session.isMac appModel.session then
                                     "⌘+enter"
 
                                 else
@@ -260,9 +251,6 @@ update msg model =
 
         ( SettingsChanged json, PaymentSuccess session ) ->
             ( PaymentSuccess (Session.sync json session), Cmd.none )
-
-        ( GotAppMsg appMsg, TestAppPage appModel ) ->
-            Page.App.update appMsg appModel |> updateWith TestAppPage GotAppMsg
 
         ( GotSignupMsg signupMsg, Signup signupModel ) ->
             Page.Signup.update signupMsg signupModel
@@ -292,9 +280,9 @@ update msg model =
             Page.DocNew.update docNewMsg docNewModel
                 |> updateWith DocNew GotDocNewMsg
 
-        ( GotDocMsg docMsg, Doc docModel ) ->
-            Page.Doc.update docMsg docModel
-                |> updateWith Doc GotDocMsg
+        ( GotAppMsg appMsg, App appModel ) ->
+            Page.App.update appMsg appModel
+                |> updateWith App GotAppMsg
 
         _ ->
             ( model, Cmd.none )
@@ -321,9 +309,6 @@ view model =
     case model of
         Redirect _ ->
             { title = "Gingko Writer - Loading...", body = [ UI.viewLoadingSpinner False ] }
-
-        TestAppPage app ->
-            { title = "Gingko Writer - Test Page", body = [ Html.map GotAppMsg (Page.App.view app) ] }
 
         NotFound _ ->
             Page.NotFound.view
@@ -352,8 +337,17 @@ view model =
         DocNew _ ->
             { title = "Gingko Writer - New", body = [ Html.div [] [ Html.text "LOADING..." ] ] }
 
-        Doc doc ->
-            { title = Page.Doc.getTitle doc ++ " - Gingko Writer", body = [ Html.map GotDocMsg (Page.Doc.view doc) ] }
+        App app ->
+            let
+                title =
+                    case Page.App.getTitle app of
+                        Just docTitle ->
+                            docTitle ++ " - Gingko Writer"
+
+                        Nothing ->
+                            "Gingko Writer"
+            in
+            { title = title, body = [ Html.map GotAppMsg (Page.App.view app) ] }
 
 
 
@@ -365,9 +359,6 @@ subscriptions model =
     case model of
         Redirect _ ->
             Sub.none
-
-        TestAppPage appModel ->
-            Sub.map GotAppMsg (Page.App.subscriptions appModel)
 
         NotFound _ ->
             Sub.none
@@ -396,8 +387,8 @@ subscriptions model =
         DocNew _ ->
             Sub.none
 
-        Doc pageModel ->
-            Sub.map GotDocMsg (Page.Doc.subscriptions pageModel)
+        App appModel ->
+            Sub.map GotAppMsg (Page.App.subscriptions appModel)
 
 
 
