@@ -14,6 +14,7 @@ type Route
     | Login
     | ForgotPassword (Maybe String)
     | ResetPassword String
+    | TestApp
     | DocNew
     | DocUntitled String
     | Doc String String
@@ -26,6 +27,7 @@ parser : Parser (Route -> a) a
 parser =
     oneOf
         [ Parser.map Root Parser.top
+        , Parser.map TestApp (s "testapp")
         , Parser.map Signup (s "signup")
         , Parser.map Login (s "login")
         , Parser.map ForgotPassword (s "forgot-password" <?> Query.string "email")
@@ -53,6 +55,9 @@ toString route =
     case route of
         Root ->
             "/"
+
+        TestApp ->
+            "/testapp"
 
         Signup ->
             "/signup"

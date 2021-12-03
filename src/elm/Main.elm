@@ -6,10 +6,10 @@ import Doc.UI as UI
 import Html
 import Json.Decode as Dec exposing (Decoder, Value)
 import Outgoing exposing (Msg(..), send)
+import Page.App
 import Page.Copy
 import Page.Doc
 import Page.DocNew
-import Page.Empty
 import Page.ForgotPassword
 import Page.Import
 import Page.Login
@@ -28,13 +28,13 @@ import Url exposing (Url)
 
 type Model
     = Redirect Session
+    | TestAppPage Page.App.Model
     | NotFound Session
     | PaymentSuccess Session
     | Signup Page.Signup.Model
     | Login Page.Login.Model
     | ForgotPassword Page.ForgotPassword.Model
     | ResetPassword Page.ResetPassword.Model
-    | Empty Page.Empty.Model
     | Copy Page.Copy.Model
     | Import Page.Import.Model
     | DocNew Session
@@ -73,13 +73,16 @@ changeRouteTo maybeRoute model =
     if Session.loggedIn user then
         case maybeRoute of
             Just Route.Root ->
-                Page.Empty.init user |> updateWith Empty GotEmptyMsg
+                Page.App.init user Nothing |> updateWith TestAppPage GotAppMsg
+
+            Just Route.TestApp ->
+                Page.App.init user Nothing |> updateWith TestAppPage GotAppMsg
 
             Just Route.Signup ->
                 Page.Signup.init user |> updateWith Signup GotSignupMsg
 
             Just Route.Login ->
-                Page.Empty.init user |> updateWith Empty GotEmptyMsg
+                Page.App.init user Nothing |> updateWith TestAppPage GotAppMsg
 
             Just (Route.ForgotPassword email_) ->
                 Page.ForgotPassword.init user email_
@@ -159,6 +162,9 @@ toUser page =
         Redirect user ->
             user
 
+        TestAppPage testAppPage ->
+            Page.App.toUser testAppPage
+
         NotFound user ->
             user
 
@@ -176,9 +182,6 @@ toUser page =
 
         ResetPassword reset ->
             Page.ResetPassword.toUser reset
-
-        Empty home ->
-            Page.Empty.toUser home
 
         Copy copy ->
             Page.Copy.toUser copy
@@ -202,11 +205,11 @@ type Msg
     | ChangedUrl Url
     | ClickedLink Browser.UrlRequest
     | SettingsChanged Dec.Value
+    | GotAppMsg Page.App.Msg
     | GotSignupMsg Page.Signup.Msg
     | GotLoginMsg Page.Login.Msg
     | GotForgotPasswordMsg Page.ForgotPassword.Msg
     | GotResetPasswordMsg Page.ResetPassword.Msg
-    | GotEmptyMsg Page.Empty.Msg
     | GotCopyMsg Page.Copy.Msg
     | GotImportMsg Page.Import.Msg
     | GotDocNewMsg Page.DocNew.Msg
@@ -258,6 +261,9 @@ update msg model =
         ( SettingsChanged json, PaymentSuccess session ) ->
             ( PaymentSuccess (Session.sync json session), Cmd.none )
 
+        ( GotAppMsg appMsg, TestAppPage appModel ) ->
+            Page.App.update appMsg appModel |> updateWith TestAppPage GotAppMsg
+
         ( GotSignupMsg signupMsg, Signup signupModel ) ->
             Page.Signup.update signupMsg signupModel
                 |> updateWith Signup GotSignupMsg
@@ -273,10 +279,6 @@ update msg model =
         ( GotResetPasswordMsg resetPassMsg, ResetPassword resetPassModel ) ->
             Page.ResetPassword.update resetPassMsg resetPassModel
                 |> updateWith ResetPassword GotResetPasswordMsg
-
-        ( GotEmptyMsg emptyMsg, Empty emptyModel ) ->
-            Page.Empty.update emptyMsg emptyModel
-                |> updateWith Empty GotEmptyMsg
 
         ( GotCopyMsg copyMsg, Copy copyModel ) ->
             Page.Copy.update copyMsg copyModel
@@ -320,6 +322,9 @@ view model =
         Redirect _ ->
             { title = "Gingko Writer - Loading...", body = [ UI.viewLoadingSpinner False ] }
 
+        TestAppPage app ->
+            { title = "Gingko Writer - Test Page", body = [ Html.map GotAppMsg (Page.App.view app) ] }
+
         NotFound _ ->
             Page.NotFound.view
 
@@ -337,9 +342,6 @@ view model =
 
         ResetPassword resetPass ->
             { title = "Gingko - Reset Password", body = [ Html.map GotResetPasswordMsg (Page.ResetPassword.view resetPass) ] }
-
-        Empty empty ->
-            { title = "Gingko Writer", body = [ Html.map GotEmptyMsg (Page.Empty.view empty) ] }
 
         Copy copyModel ->
             { title = "Duplicating...", body = [ UI.viewLoadingSpinner (Session.fileMenuOpen copyModel.session) ] }
@@ -364,6 +366,9 @@ subscriptions model =
         Redirect _ ->
             Sub.none
 
+        TestAppPage _ ->
+            Sub.none
+
         NotFound _ ->
             Sub.none
 
@@ -381,9 +386,6 @@ subscriptions model =
 
         Login pageModel ->
             Sub.map GotLoginMsg (Page.Login.subscriptions pageModel)
-
-        Empty pageModel ->
-            Sub.map GotEmptyMsg (Page.Empty.subscriptions pageModel)
 
         Copy pageModel ->
             Sub.map GotCopyMsg (Page.Copy.subscriptions pageModel)
