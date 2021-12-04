@@ -754,6 +754,12 @@ update msg model =
                                 Nothing ->
                                     ( model, Cmd.none )
 
+                        ( "mod+o", FileSwitcher _ ) ->
+                            ( { model | modalState = NoModal }, Cmd.none )
+
+                        ( "mod+o", _ ) ->
+                            model |> openSwitcher
+
                         ( "esc", NoModal ) ->
                             passThroughTo docModel
 

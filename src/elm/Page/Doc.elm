@@ -1129,17 +1129,6 @@ incoming incomingMsg model =
                     normalMode model (\( m, _ ) -> toggleHistory True m)
                         |> Tuple.mapSecond (\c -> Cmd.batch [ c, send <| HistorySlider 1 ])
 
-                "mod+o" ->
-                    {--
-                            case model.modalState of
-                                FileSwitcher _ ->
-                                    ( { model | modalState = NoModal }, Cmd.none )
-
-                                _ ->
-                                    model |> openSwitcher
-                                    --}
-                    ( model, Cmd.none )
-
                 "mod+b" ->
                     case vs.viewMode of
                         Normal ->
