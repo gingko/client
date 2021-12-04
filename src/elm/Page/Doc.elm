@@ -708,7 +708,7 @@ incoming incomingMsg model =
             dataReceived dataIn model
 
         NotFound ->
-            ( model, Route.replaceUrl (Session.navKey model.session) Route.Root )
+            ( model, Cmd.none )
 
         LocalStoreLoaded dataIn ->
             let
