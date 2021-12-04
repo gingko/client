@@ -780,7 +780,6 @@ const fromElm = (msg, elmData) => {
 /* === Database === */
 
 async function loadDocListAndSend(dbToLoadFrom, source) {
-  console.log("loadDocListAndSend", source);
   let docList = await data.getDocumentList(dbToLoadFrom);
   toElm(docList, "documentListChanged");
 }

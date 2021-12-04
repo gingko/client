@@ -1,7 +1,7 @@
 module Page.App exposing (Model, Msg, getTitle, init, isDirty, subscriptions, toSession, update, view)
 
 import Ant.Icons.Svg as AntIcons
-import Browser.Dom exposing (Element)
+import Browser.Dom exposing (Element, focus)
 import Coders exposing (sortByEncoder)
 import Doc.ContactForm as ContactForm
 import Doc.Data as Data
@@ -100,13 +100,16 @@ defaultModel session docModel_ =
     }
 
 
-init : Session -> Maybe DbData -> ( Model, Cmd msg )
+init : Session -> Maybe DbData -> ( Model, Cmd Msg )
 init session dbData_ =
     case dbData_ of
         Just dbData ->
             if dbData.isNew then
                 ( defaultModel session (Just (Page.Doc.init True session dbData.dbName))
-                , send <| InitDocument dbData.dbName
+                , Cmd.batch
+                    [ send <| InitDocument dbData.dbName
+                    , Task.attempt (always NoOp) (Browser.Dom.focus "card-edit-1")
+                    ]
                 )
 
             else
