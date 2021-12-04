@@ -412,10 +412,10 @@ update msg model =
                 newSession =
                     Session.updateDocuments newListState session
 
-                routeCmd =
+                ( routeCmd, isLoading ) =
                     case ( model.documentState, Session.documents newSession ) of
                         ( Doc docModel, Success docList ) ->
-                            docList
+                            ( docList
                                 |> List.map (Metadata.isSameDocId docModel.metadata)
                                 |> List.any identity
                                 |> (\docStillExists ->
@@ -425,16 +425,23 @@ update msg model =
                                         else
                                             Route.replaceUrl (Session.navKey session) Route.Root
                                    )
+                            , True
+                            )
+
+                        ( Empty _, Success [] ) ->
+                            ( Cmd.none, False )
 
                         ( Empty _, Success docList ) ->
-                            DocList.getLastUpdated (Success docList)
+                            ( DocList.getLastUpdated (Success docList)
                                 |> Maybe.map (\s -> Route.replaceUrl (Session.navKey session) (Route.DocUntitled s))
                                 |> Maybe.withDefault Cmd.none
+                            , True
+                            )
 
                         _ ->
-                            Cmd.none
+                            ( Cmd.none, True )
             in
-            ( model |> updateSession newSession, routeCmd )
+            ( { model | loading = isLoading } |> updateSession newSession, routeCmd )
 
         SettingsChanged json ->
             ( model |> updateSession (Session.sync json session), Cmd.none )
