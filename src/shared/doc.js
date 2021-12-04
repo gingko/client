@@ -346,8 +346,7 @@ const fromElm = (msg, elmData) => {
       toElm(store, "docMsgs", "LocalStoreLoaded");
 
       // Load doc list
-      //loadDocListAndSend(remoteDB, "LoadDocument");
-
+      loadDocListAndSend(remoteDB, "LoadDocument");
     },
 
     CopyDocument: async () => {

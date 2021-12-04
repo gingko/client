@@ -22,7 +22,7 @@ describe('Managing Documents', () => {
   })
 
   describe('Navigation', function () {
-    it('Should navigate to last edited tree', function () {
+    it.only('Should navigate to last edited tree', function () {
       cy.visit(config.TEST_SERVER)
 
       cy.url().should('contain', this.treeIds[1] )
@@ -40,6 +40,7 @@ describe('Managing Documents', () => {
 
       cy.get('#title').contains('tree-1')
 
+      cy.pause()
       // Prevent navigating away if editing
       const stub = cy.stub()
       cy.on('window:alert', stub)

@@ -96,12 +96,12 @@ init session dbData_ =
     case dbData_ of
         Just dbData ->
             if dbData.isNew then
-                ( defaultModel session (Just (Page.Doc.defaultModel True session dbData.dbName))
+                ( defaultModel session (Just (Page.Doc.init True session dbData.dbName))
                 , send <| InitDocument dbData.dbName
                 )
 
             else
-                ( defaultModel session (Just (Page.Doc.defaultModel False session dbData.dbName))
+                ( defaultModel session (Just (Page.Doc.init False session dbData.dbName))
                 , send <| LoadDocument dbData.dbName
                 )
 
@@ -377,11 +377,20 @@ update msg model =
                     Session.updateDocuments newListState model.session
 
                 routeCmd =
-                    case Session.documents updatedSession |> Debug.log "updatedSession" of
-                        Success [] ->
-                            Cmd.none
+                    case ( model.document, Session.documents updatedSession ) of
+                        ( Just docModel, Success docList ) ->
+                            docList
+                                |> List.map (Metadata.isSameDocId docModel.metadata)
+                                |> List.any identity
+                                |> (\docStillExists ->
+                                        if docStillExists then
+                                            Cmd.none
 
-                        Success docList ->
+                                        else
+                                            Route.replaceUrl (Session.navKey model.session) Route.Root
+                                   )
+
+                        ( Nothing, Success docList ) ->
                             DocList.getLastUpdated (Success docList)
                                 |> Maybe.map (\s -> Route.replaceUrl (Session.navKey model.session) (Route.DocUntitled s))
                                 |> Maybe.withDefault Cmd.none

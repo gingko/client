@@ -1,4 +1,4 @@
-module Page.Doc exposing (Model, Msg, defaultModel, incoming, init, subscriptions, toUser, update, view)
+module Page.Doc exposing (Model, Msg, incoming, init, subscriptions, toUser, update, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -111,8 +111,8 @@ type ModalState
     | UpgradeModal
 
 
-defaultModel : Bool -> Session -> String -> Model
-defaultModel isNew session docId =
+init : Bool -> Session -> String -> Model
+init isNew session docId =
     { workingTree = TreeStructure.defaultModel
     , data = Data.empty
     , metadata = Metadata.new docId
@@ -157,26 +157,6 @@ defaultModel isNew session docId =
     , theme = Default
     , startingWordcount = 0
     }
-
-
-init : Session -> String -> Bool -> ( Model, Cmd Msg )
-init session dbName isNew =
-    let
-        initModel =
-            defaultModel isNew session dbName
-    in
-    if isNew then
-        ( initModel
-        , Cmd.batch
-            [ send <| InitDocument dbName
-            , focus "1"
-            ]
-        )
-            |> activate "1" True
-            |> addToHistoryDo
-
-    else
-        ( initModel, Cmd.none )
 
 
 toUser : Model -> Session

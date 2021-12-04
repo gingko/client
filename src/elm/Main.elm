@@ -100,7 +100,7 @@ changeRouteTo maybeRoute model =
                             _ ->
                                 False
                 in
-                Page.App.init user (Just { dbName = dbName, isNew = isNew } |> Debug.log "DocUntitled") |> updateWith App GotAppMsg
+                Page.App.init user (Just { dbName = dbName, isNew = isNew }) |> updateWith App GotAppMsg
 
             Just (Route.Doc dbName _) ->
                 Page.App.init user (Just { dbName = dbName, isNew = False }) |> updateWith App GotAppMsg
