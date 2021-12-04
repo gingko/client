@@ -46,13 +46,18 @@ import Upgrade exposing (Msg(..))
 type alias Model =
     { session : Session
     , loading : Bool
-    , document : Maybe Page.Doc.Model
+    , documentState : DocumentState
     , sidebarState : SidebarState
     , sidebarMenuState : SidebarMenuState
     , modalState : ModalState
     , fileSearchField : String -- TODO: not needed if switcher isn't open
     , tooltip : Maybe ( Element, TooltipPosition, String )
     }
+
+
+type DocumentState
+    = Empty Session
+    | Doc Page.Doc.Model
 
 
 type alias DbData =
@@ -77,7 +82,13 @@ defaultModel : Session -> Maybe Page.Doc.Model -> Model
 defaultModel session docModel_ =
     { session = session
     , loading = True
-    , document = docModel_
+    , documentState =
+        case docModel_ of
+            Just docModel ->
+                Doc docModel
+
+            Nothing ->
+                Empty session
     , sidebarState =
         if Session.fileMenuOpen session then
             File
@@ -116,18 +127,22 @@ init session dbData_ =
 
 isDirty : Model -> Bool
 isDirty model =
-    case model.document of
-        Just docModel ->
+    case model.documentState of
+        Doc docModel ->
             docModel.dirty
 
-        Nothing ->
+        Empty _ ->
             False
 
 
 getTitle : Model -> Maybe String
 getTitle model =
-    model.document
-        |> Maybe.andThen (\d -> Metadata.getDocName d.metadata)
+    case model.documentState of
+        Doc docModel ->
+            Metadata.getDocName docModel.metadata
+
+        Empty _ ->
+            Nothing
 
 
 toUser : Model -> Session
@@ -377,8 +392,8 @@ update msg model =
                     Session.updateDocuments newListState model.session
 
                 routeCmd =
-                    case ( model.document, Session.documents updatedSession ) of
-                        ( Just docModel, Success docList ) ->
+                    case ( model.documentState, Session.documents updatedSession ) of
+                        ( Doc docModel, Success docList ) ->
                             docList
                                 |> List.map (Metadata.isSameDocId docModel.metadata)
                                 |> List.any identity
@@ -390,7 +405,7 @@ update msg model =
                                             Route.replaceUrl (Session.navKey model.session) Route.Root
                                    )
 
-                        ( Nothing, Success docList ) ->
+                        ( Empty _, Success docList ) ->
                             DocList.getLastUpdated (Success docList)
                                 |> Maybe.map (\s -> Route.replaceUrl (Session.navKey model.session) (Route.DocUntitled s))
                                 |> Maybe.withDefault Cmd.none
@@ -682,16 +697,16 @@ update msg model =
             ( model, Cmd.none )
 
         GotDocMsg docMsg ->
-            case model.document of
-                Just docModel ->
+            case model.documentState of
+                Doc docModel ->
                     let
                         ( newDocModel, newCmd ) =
                             Page.Doc.update docMsg docModel
                                 |> Tuple.mapSecond (Cmd.map GotDocMsg)
                     in
-                    ( { model | document = Just newDocModel }, newCmd )
+                    ( { model | documentState = Doc newDocModel }, newCmd )
 
-                Nothing ->
+                Empty _ ->
                     ( model, Cmd.none )
 
         FullscreenRequested ->
@@ -702,14 +717,14 @@ update msg model =
                 passThroughTo docModel =
                     Page.Doc.incoming incomingMsg docModel
                         |> (\( d, c ) ->
-                                ( { model | document = Just d }, Cmd.map GotDocMsg c )
+                                ( { model | documentState = Doc d }, Cmd.map GotDocMsg c )
                            )
             in
-            case ( incomingMsg, model.document ) of
-                ( DataReceived _, Nothing ) ->
+            case ( incomingMsg, model.documentState ) of
+                ( DataReceived _, Empty _ ) ->
                     ( model, Cmd.none )
 
-                ( Keyboard shortcut, Just docModel ) ->
+                ( Keyboard shortcut, Doc docModel ) ->
                     case ( shortcut, model.modalState ) of
                         ( "enter", FileSwitcher switcherModel ) ->
                             case switcherModel.selectedDocument of
@@ -728,7 +743,7 @@ update msg model =
                         _ ->
                             passThroughTo docModel
 
-                ( _, Just docModel ) ->
+                ( _, Doc docModel ) ->
                     passThroughTo docModel
 
                 _ ->
@@ -769,7 +784,7 @@ closeSwitcher model =
 
 
 view : Model -> Html Msg
-view ({ session, document } as model) =
+view ({ session, documentState } as model) =
     let
         sidebarMsgs =
             { sidebarStateChanged = SidebarStateChanged
@@ -792,8 +807,8 @@ view ({ session, document } as model) =
             , fullscreenRequested = FullscreenRequested
             }
     in
-    case document of
-        Just doc ->
+    case documentState of
+        Doc doc ->
             div [ id "app-root", classList [ ( "loading", model.loading ) ] ]
                 ((Page.Doc.view doc |> List.map (Html.map GotDocMsg))
                     ++ [ UI.viewSidebar session
@@ -810,7 +825,7 @@ view ({ session, document } as model) =
                     ++ viewModal session model.modalState
                 )
 
-        Nothing ->
+        Empty _ ->
             div [ id "app-root", classList [ ( "loading", model.loading ) ] ]
                 (Page.Empty.view TemplateSelectorOpened
                     ++ [ UI.viewSidebar session
