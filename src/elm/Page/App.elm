@@ -1,4 +1,4 @@
-module Page.App exposing (Model, Msg, getTitle, init, isDirty, subscriptions, toUser, update, view)
+module Page.App exposing (Model, Msg, getTitle, init, isDirty, subscriptions, toSession, update, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -44,8 +44,7 @@ import Upgrade exposing (Msg(..))
 
 
 type alias Model =
-    { session : Session
-    , loading : Bool
+    { loading : Bool
     , documentState : DocumentState
     , sidebarState : SidebarState
     , sidebarMenuState : SidebarMenuState
@@ -80,8 +79,7 @@ type ModalState
 
 defaultModel : Session -> Maybe Page.Doc.Model -> Model
 defaultModel session docModel_ =
-    { session = session
-    , loading = True
+    { loading = True
     , documentState =
         case docModel_ of
             Just docModel ->
@@ -145,9 +143,24 @@ getTitle model =
             Nothing
 
 
-toUser : Model -> Session
-toUser { session } =
-    session
+toSession : Model -> Session
+toSession { documentState } =
+    case documentState of
+        Doc docModel ->
+            Page.Doc.toUser docModel
+
+        Empty session ->
+            session
+
+
+updateSession : Session -> Model -> Model
+updateSession newSession ({ documentState } as model) =
+    case documentState of
+        Doc docModel ->
+            { model | documentState = Doc { docModel | session = newSession } }
+
+        Empty _ ->
+            { model | documentState = Empty newSession }
 
 
 
@@ -157,6 +170,7 @@ toUser { session } =
 type Msg
     = NoOp
     | TemplateSelectorOpened
+    | EmptyMessage
     | SwitcherOpened
     | SwitcherClosed
     | WordcountModalOpened
@@ -220,6 +234,10 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    let
+        session =
+            toSession model
+    in
     case msg of
         ToggledHelpMenu isOpen ->
             ( { model | modalState = HelpScreen }, Cmd.none )
@@ -281,7 +299,7 @@ update msg model =
                     ( { model | modalState = NoModal }, Cmd.none )
 
                 CheckoutClicked checkoutData ->
-                    case Session.name model.session of
+                    case Session.name session of
                         Just email ->
                             let
                                 data =
@@ -295,7 +313,7 @@ update msg model =
                 _ ->
                     let
                         newSession =
-                            Session.updateUpgrade upgradeModalMsg model.session
+                            Session.updateUpgrade upgradeModalMsg session
 
                         maybeFlash =
                             case upgradeModalMsg of
@@ -305,7 +323,7 @@ update msg model =
                                 _ ->
                                     Cmd.none
                     in
-                    ( { model | session = newSession }, maybeFlash )
+                    ( model |> updateSession newSession, maybeFlash )
 
         ClickedShowVideos ->
             ( { model | modalState = VideoViewer VideoViewer.init, sidebarMenuState = NoSidebarMenu }, Cmd.none )
@@ -316,7 +334,7 @@ update msg model =
         ClickedEmailSupport ->
             let
                 fromEmail =
-                    Session.name model.session
+                    Session.name session
                         |> Maybe.withDefault ""
             in
             ( { model | modalState = ContactForm (ContactForm.init fromEmail), sidebarMenuState = NoSidebarMenu }
@@ -352,10 +370,10 @@ update msg model =
                 ( newSessionData, maybeSaveSidebarState ) =
                     case newSidebarState of
                         File ->
-                            ( Session.setFileOpen True model.session, send <| SetSidebarState True )
+                            ( Session.setFileOpen True session, send <| SetSidebarState True )
 
                         _ ->
-                            ( Session.setFileOpen True model.session, send <| SetSidebarState False )
+                            ( Session.setFileOpen True session, send <| SetSidebarState False )
 
                 newDropdownState =
                     case ( newSidebarState, model.sidebarMenuState ) of
@@ -369,16 +387,19 @@ update msg model =
                             model.sidebarMenuState
             in
             ( { model
-                | session = newSessionData
-                , sidebarState = newSidebarState
+                | sidebarState = newSidebarState
                 , tooltip = Nothing
                 , sidebarMenuState = newDropdownState
               }
+                |> updateSession newSessionData
             , maybeSaveSidebarState
             )
 
         TemplateSelectorOpened ->
             ( { model | modalState = TemplateSelector }, Cmd.none )
+
+        EmptyMessage ->
+            ( model, send <| EmptyMessageShown )
 
         VideoViewerOpened ->
             ( { model | modalState = VideoViewer VideoViewer.init }, Cmd.none )
@@ -388,11 +409,11 @@ update msg model =
 
         ReceivedDocuments newListState ->
             let
-                updatedSession =
-                    Session.updateDocuments newListState model.session
+                newSession =
+                    Session.updateDocuments newListState session
 
                 routeCmd =
-                    case ( model.documentState, Session.documents updatedSession ) of
+                    case ( model.documentState, Session.documents newSession ) of
                         ( Doc docModel, Success docList ) ->
                             docList
                                 |> List.map (Metadata.isSameDocId docModel.metadata)
@@ -402,21 +423,21 @@ update msg model =
                                             Cmd.none
 
                                         else
-                                            Route.replaceUrl (Session.navKey model.session) Route.Root
+                                            Route.replaceUrl (Session.navKey session) Route.Root
                                    )
 
                         ( Empty _, Success docList ) ->
                             DocList.getLastUpdated (Success docList)
-                                |> Maybe.map (\s -> Route.replaceUrl (Session.navKey model.session) (Route.DocUntitled s))
+                                |> Maybe.map (\s -> Route.replaceUrl (Session.navKey session) (Route.DocUntitled s))
                                 |> Maybe.withDefault Cmd.none
 
                         _ ->
                             Cmd.none
             in
-            ( { model | session = updatedSession }, routeCmd )
+            ( model |> updateSession newSession, routeCmd )
 
         SettingsChanged json ->
-            ( { model | session = Session.sync json model.session }, Cmd.none )
+            ( model |> updateSession (Session.sync json session), Cmd.none )
 
         SwitcherOpened ->
             openSwitcher model
@@ -439,10 +460,10 @@ update msg model =
                     ( { model | modalState = NoModal }, Cmd.none )
 
         ImportBulkClicked ->
-            ( { model | modalState = ImportModal (ImportModal.init model.session) }, Cmd.none )
+            ( { model | modalState = ImportModal (ImportModal.init session) }, Cmd.none )
 
         TimeUpdate time ->
-            ( { model | session = Session.updateTime time model.session }
+            ( model |> updateSession (Session.updateTime time session)
             , Cmd.none
             )
 
@@ -461,15 +482,15 @@ update msg model =
         SortByChanged newSort ->
             let
                 newSession =
-                    Session.setSortBy newSort model.session
+                    Session.setSortBy newSort session
             in
-            ( { model | session = newSession }, send <| SaveUserSetting ( "sortBy", sortByEncoder newSort ) )
+            ( model |> updateSession newSession, send <| SaveUserSetting ( "sortBy", sortByEncoder newSort ) )
 
         SidebarContextClicked docId ( x, y ) ->
             ( { model | modalState = SidebarContextMenu docId ( x, y ) }, Cmd.none )
 
         DuplicateDoc docId ->
-            ( { model | modalState = NoModal }, Route.replaceUrl (Session.navKey model.session) (Route.Copy docId) )
+            ( { model | modalState = NoModal }, Route.replaceUrl (Session.navKey session) (Route.Copy docId) )
 
         DeleteDoc docId ->
             ( { model | modalState = NoModal }, send <| RequestDelete docId )
@@ -530,19 +551,19 @@ update msg model =
         ImportTextLoaded settings metadata markdownStrings ->
             let
                 ( importedTree, newSeed, newTitle_ ) =
-                    ImportText.toTree (Session.seed model.session) metadata markdownStrings settings
+                    ImportText.toTree (Session.seed session) metadata markdownStrings settings
 
                 newSession =
-                    Session.setSeed newSeed model.session
+                    Session.setSeed newSeed session
             in
-            ( { model | loading = True, session = newSession }
+            ( { model | loading = True } |> updateSession newSession
             , RandomId.generate (ImportTextIdGenerated importedTree newTitle_)
             )
 
         ImportTextIdGenerated tree newTitle_ docId ->
             let
                 author =
-                    model.session |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
+                    session |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
 
                 encodeMaybeRename =
                     newTitle_
@@ -568,24 +589,24 @@ update msg model =
         ImportOpmlLoaded fileName opmlString ->
             let
                 ( importTreeResult, newSeed ) =
-                    Import.Opml.treeResult (Session.seed model.session) opmlString
+                    Import.Opml.treeResult (Session.seed session) opmlString
 
                 newSession =
-                    Session.setSeed newSeed model.session
+                    Session.setSeed newSeed session
             in
             case importTreeResult of
                 Ok tree ->
-                    ( { model | loading = True, session = newSession }
+                    ( { model | loading = True } |> updateSession newSession
                     , RandomId.generate (ImportOpmlIdGenerated tree fileName)
                     )
 
                 Err err ->
-                    ( { model | session = newSession }, Cmd.none )
+                    ( model |> updateSession newSession, Cmd.none )
 
         ImportOpmlIdGenerated tree fileName docId ->
             let
                 author =
-                    model.session |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
+                    session |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
 
                 commitReq_ =
                     Data.requestCommit tree author Data.empty (Metadata.new docId |> Metadata.renameAndEncode fileName)
@@ -598,7 +619,7 @@ update msg model =
                     ( model, Cmd.none )
 
         ImportOpmlCompleted docId ->
-            ( model, Route.pushUrl (Session.navKey model.session) (Route.DocUntitled docId) )
+            ( model, Route.pushUrl (Session.navKey session) (Route.DocUntitled docId) )
 
         ImportJSONRequested ->
             ( model, Select.file [ "application/json", "text/plain" ] ImportJSONSelected )
@@ -609,24 +630,24 @@ update msg model =
         ImportJSONLoaded fileName jsonString ->
             let
                 ( importTreeDecoder, newSeed ) =
-                    Import.Single.decoder (Session.seed model.session)
+                    Import.Single.decoder (Session.seed session)
 
                 newSession =
-                    Session.setSeed newSeed model.session
+                    Session.setSeed newSeed session
             in
             case Json.decodeString importTreeDecoder jsonString of
                 Ok tree ->
-                    ( { model | loading = True, session = newSession }
+                    ( { model | loading = True } |> updateSession newSession
                     , RandomId.generate (ImportJSONIdGenerated tree fileName)
                     )
 
                 Err err ->
-                    ( { model | session = newSession }, Cmd.none )
+                    ( model |> updateSession newSession, Cmd.none )
 
         ImportJSONIdGenerated tree fileName docId ->
             let
                 author =
-                    model.session |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
+                    session |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
 
                 commitReq_ =
                     Data.requestCommit tree author Data.empty (Metadata.new docId |> Metadata.renameAndEncode fileName)
@@ -639,17 +660,17 @@ update msg model =
                     ( model, Cmd.none )
 
         ImportJSONCompleted docId ->
-            ( model, Route.pushUrl (Session.navKey model.session) (Route.DocUntitled docId) )
+            ( model, Route.pushUrl (Session.navKey session) (Route.DocUntitled docId) )
 
         ImportBulkCompleted ->
             ( { model | modalState = NoModal }, Cmd.none )
 
         LanguageChanged newLang ->
-            if newLang /= Session.language model.session then
+            if newLang /= Session.language session then
                 ( { model
-                    | session = Session.setLanguage newLang model.session
-                    , sidebarMenuState = NoSidebarMenu
+                    | sidebarMenuState = NoSidebarMenu
                   }
+                    |> updateSession (Session.setLanguage newLang session)
                 , send <| SaveUserSetting ( "language", langToString newLang |> Enc.string )
                 )
 
@@ -679,21 +700,20 @@ update msg model =
         ShortcutTrayToggle ->
             let
                 newIsOpen =
-                    not <| Session.shortcutTrayOpen model.session
+                    not <| Session.shortcutTrayOpen session
             in
             ( { model
-                | session = Session.setShortcutTrayOpen newIsOpen model.session
-
                 -- TODO
-                , tooltip = Nothing
+                | tooltip = Nothing
               }
+                |> updateSession (Session.setShortcutTrayOpen newIsOpen session)
             , send <| SaveUserSetting ( "shortcutTrayOpen", Enc.bool newIsOpen )
             )
 
         NoOp ->
             ( model, Cmd.none )
 
-        LoginStateChanged session ->
+        LoginStateChanged newSession ->
             ( model, Cmd.none )
 
         GotDocMsg docMsg ->
@@ -729,7 +749,7 @@ update msg model =
                         ( "enter", FileSwitcher switcherModel ) ->
                             case switcherModel.selectedDocument of
                                 Just docId ->
-                                    ( model, Route.pushUrl (Session.navKey model.session) (Route.DocUntitled docId) )
+                                    ( model, Route.pushUrl (Session.navKey session) (Route.DocUntitled docId) )
 
                                 Nothing ->
                                     ( model, Cmd.none )
@@ -767,7 +787,7 @@ openSwitcher model =
                 { currentDocument = metadata
                 , selectedDocument = Just (Metadata.getDocId metadata)
                 , searchField = "" --TODO
-                , docList = Session.documents model.session
+                , docList = Session.documents (toSession model)
                 }
       }
     , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "switcher-input")
@@ -784,8 +804,11 @@ closeSwitcher model =
 
 
 view : Model -> Html Msg
-view ({ session, documentState } as model) =
+view ({ documentState } as model) =
     let
+        session =
+            toSession model
+
         sidebarMsgs =
             { sidebarStateChanged = SidebarStateChanged
             , noOp = NoOp
@@ -826,21 +849,25 @@ view ({ session, documentState } as model) =
                 )
 
         Empty _ ->
-            div [ id "app-root", classList [ ( "loading", model.loading ) ] ]
-                (Page.Empty.view TemplateSelectorOpened
-                    ++ [ UI.viewSidebar session
-                            sidebarMsgs
-                            (Metadata.new "")
-                            ModifiedAt
-                            ""
-                            (Session.documents session)
-                            (Session.name session |> Maybe.withDefault "" {- TODO -})
-                            Nothing
-                            model.sidebarMenuState
-                            model.sidebarState
-                       ]
-                    ++ viewModal session model.modalState
-                )
+            if model.loading then
+                UI.viewLoadingSpinner (Session.fileMenuOpen session)
+
+            else
+                div [ id "app-root", classList [ ( "loading", model.loading ) ] ]
+                    (Page.Empty.view { newClicked = TemplateSelectorOpened, emptyMessage = EmptyMessage }
+                        ++ [ UI.viewSidebar session
+                                sidebarMsgs
+                                (Metadata.new "")
+                                ModifiedAt
+                                ""
+                                (Session.documents session)
+                                (Session.name session |> Maybe.withDefault "" {- TODO -})
+                                Nothing
+                                model.sidebarMenuState
+                                model.sidebarState
+                           ]
+                        ++ viewModal session model.modalState
+                    )
 
 
 viewModal : Session -> ModalState -> List (Html Msg)
@@ -946,7 +973,7 @@ subscriptions model =
             )
         , DocList.subscribe ReceivedDocuments
         , Session.userSettingsChange SettingsChanged
-        , Session.loginChanges LoginStateChanged (Session.navKey model.session)
+        , Session.loginChanges LoginStateChanged (Session.navKey (toSession model))
         , case model.modalState of
             ImportModal importModalModel ->
                 ImportModal.subscriptions importModalModel

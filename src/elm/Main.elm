@@ -66,7 +66,7 @@ changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )
 changeRouteTo maybeRoute model =
     let
         user =
-            toUser model
+            toSession model
     in
     if Session.loggedIn user then
         case maybeRoute of
@@ -151,8 +151,8 @@ changeRouteTo maybeRoute model =
                 ( loginModel, Cmd.batch [ loginCmds, Route.replaceUrl (Session.navKey user) Route.Login ] )
 
 
-toUser : Model -> Session
-toUser page =
+toSession : Model -> Session
+toSession page =
     case page of
         Redirect user ->
             user
@@ -185,7 +185,7 @@ toUser page =
             user
 
         App appModel ->
-            Page.App.toUser appModel
+            Page.App.toSession appModel
 
 
 
@@ -227,7 +227,7 @@ update msg model =
                     if Page.App.isDirty appModel then
                         let
                             saveShortcut =
-                                if Session.isMac appModel.session then
+                                if Session.isMac (toSession model) then
                                     "⌘+enter"
 
                                 else
@@ -236,7 +236,7 @@ update msg model =
                         ( model, send <| Alert ("You have unsaved changes!\n" ++ saveShortcut ++ " to save.") )
 
                     else
-                        ( model, Nav.pushUrl (Session.navKey (toUser model)) (Url.toString url) )
+                        ( model, Nav.pushUrl (Session.navKey (toSession model)) (Url.toString url) )
 
                 Browser.External href ->
                     ( model, Nav.load href )
@@ -244,7 +244,7 @@ update msg model =
         ( ClickedLink urlRequest, _ ) ->
             case urlRequest of
                 Browser.Internal url ->
-                    ( model, Nav.pushUrl (Session.navKey (toUser model)) (Url.toString url) )
+                    ( model, Nav.pushUrl (Session.navKey (toSession model)) (Url.toString url) )
 
                 Browser.External href ->
                     ( model, Nav.load href )

@@ -22,7 +22,7 @@ describe('Loading indicators', () => {
     cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
 
     cy.window().then((win) => {
-      expect(win.elmMessages.map(m => m.elmMessage))
+      expect(win.elmMessages.map(m => m.tag))
         .to.not.include('EmptyMessageShown');
     })
   })
