@@ -724,7 +724,7 @@ update msg model =
             ( model, Cmd.none )
 
         LoginStateChanged newSession ->
-            ( model, Cmd.none )
+            ( model |> updateSession newSession, Route.pushUrl (Session.navKey newSession) Route.Login )
 
         GotDocMsg docMsg ->
             case model.documentState of
@@ -744,6 +744,9 @@ update msg model =
 
         Incoming incomingMsg ->
             let
+                doNothing =
+                    ( model, Cmd.none )
+
                 passThroughTo docModel =
                     Page.Doc.incoming incomingMsg docModel
                         |> (\( d, c ) ->
@@ -782,8 +785,19 @@ update msg model =
                 ( _, Doc docModel ) ->
                     passThroughTo docModel
 
+                -- === INTEGRATION TEST HOOKS ===
+                ( TestTextImportLoaded files, _ ) ->
+                    case model.modalState of
+                        ImportTextModal modalState ->
+                            ( { model | modalState = ImportText.setFileList files modalState |> ImportTextModal }
+                            , Cmd.none
+                            )
+
+                        _ ->
+                            doNothing
+
                 _ ->
-                    ( model, Cmd.none )
+                    doNothing
 
         LogErr string ->
             ( model, Cmd.none )

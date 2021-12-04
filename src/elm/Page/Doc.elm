@@ -97,20 +97,6 @@ type alias Model =
     }
 
 
-type ModalState
-    = NoModal
-    | FileSwitcher Doc.Switcher.Model
-    | SidebarContextMenu String ( Float, Float )
-    | TemplateSelector
-    | HelpScreen
-    | VideoViewer VideoViewer.Model
-    | Wordcount
-    | ImportModal ImportModal.Model
-    | ImportTextModal ImportText.Model
-    | ContactForm ContactForm.Model
-    | UpgradeModal
-
-
 init : Bool -> Session -> String -> Model
 init isNew session docId =
     { workingTree = TreeStructure.defaultModel
@@ -1243,16 +1229,6 @@ incoming incomingMsg model =
 
         -- === INTEGRATION TEST HOOKS ===
         TestTextImportLoaded files ->
-            {--
-                    case model.modalState of
-                        ImportTextModal modalState ->
-                            ( { model | modalState = ImportText.setFileList files modalState |> ImportTextModal }
-                            , Cmd.none
-                            )
-
-                        _ ->
-                            ( model, Cmd.none )
-                    --}
             ( model, Cmd.none )
 
 
