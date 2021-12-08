@@ -725,7 +725,11 @@ incoming incomingMsg model =
         MetadataSynced json ->
             case Json.decodeValue Metadata.decoder json of
                 Ok metadata ->
-                    ( { model | titleField = Session.getDocName model.session model.docId }, Cmd.none )
+                    if Metadata.getDocId metadata == model.docId then
+                        ( { model | titleField = Metadata.getDocName metadata }, Cmd.none )
+
+                    else
+                        ( model, Cmd.none )
 
                 Err _ ->
                     ( model, Cmd.none )
@@ -733,7 +737,11 @@ incoming incomingMsg model =
         MetadataSaved json ->
             case Json.decodeValue Metadata.decoder json of
                 Ok metadata ->
-                    ( { model | titleField = Session.getDocName model.session model.docId }, Cmd.none )
+                    if Metadata.getDocId metadata == model.docId then
+                        ( { model | titleField = Metadata.getDocName metadata }, Cmd.none )
+
+                    else
+                        ( model, Cmd.none )
 
                 Err _ ->
                     ( model, Cmd.none )
