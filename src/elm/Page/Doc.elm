@@ -181,6 +181,7 @@ type Msg
     | SetSelection String Selection String
     | Resolve String
       -- === UI ===
+    | LoadingDone
     | TitleFocused
     | TitleFieldChanged String
     | TitleEdited
@@ -526,6 +527,9 @@ update msg ({ workingTree } as model) =
                 |> addToHistory
 
         -- === UI ===
+        LoadingDone ->
+            ( { model | loading = False }, Cmd.none )
+
         TitleFocused ->
             case model.titleField of
                 Nothing ->
@@ -2171,13 +2175,16 @@ dataReceived dataIn model =
             in
             ( { model
                 | data = newModel
-                , loading = False
                 , workingTree = newWorkingTree
                 , lastLocalSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
                 , lastRemoteSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
                 , startingWordcount = startingWordcount
               }
-            , Cmd.none
+            , if model.loading then
+                Process.sleep 100 |> Task.perform (always LoadingDone)
+
+              else
+                Cmd.none
             )
                 |> (if model.loading then
                         activate model.viewState.active True
@@ -2356,7 +2363,7 @@ view ({ docMsg } as appMsg) model =
                             , navRight = mobileBtnMsg "right"
                             }
                             (model.viewState.viewMode /= Normal)
-                       , div [ id "loading-overlay" ] []
+                       , viewIf model.loading <| div [ id "loading-overlay" ] []
                        , div [ id "preloader" ] []
                        ]
 
