@@ -62,6 +62,9 @@ describe('JSON Imports from Startup State', () => {
       cy.get('#import-text-file-input')
         .click()
 
+      cy.get('li.file-item')
+        .contains('foo.txt')
+
       cy.get('#import-text-perform')
         .click()
 

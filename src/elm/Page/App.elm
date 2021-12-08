@@ -787,19 +787,18 @@ update msg model =
                         _ ->
                             passThroughTo docModel
 
-                ( _, Doc docModel ) ->
-                    passThroughTo docModel
-
-                -- === INTEGRATION TEST HOOKS ===
                 ( TestTextImportLoaded files, _ ) ->
                     case model.modalState of
                         ImportTextModal modalState ->
-                            ( { model | modalState = ImportText.setFileList files modalState |> ImportTextModal }
+                            ( { model | modalState = ImportText.setFileList files modalState |> Debug.log "TestTextImportLoaded" |> ImportTextModal }
                             , Cmd.none
                             )
 
                         _ ->
                             doNothing
+
+                ( _, Doc docModel ) ->
+                    passThroughTo docModel
 
                 _ ->
                     doNothing
@@ -938,7 +937,6 @@ viewModal session modalState =
         FileSwitcher switcherModel ->
             Doc.Switcher.view SwitcherClosed FileSearchChanged switcherModel
 
-        --model.metadata model.fileSearchField (Session.documents model.session)
         SidebarContextMenu docId ( x, y ) ->
             [ div [ onClick ModalClosed, id "sidebar-context-overlay" ] []
             , div
