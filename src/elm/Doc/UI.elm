@@ -416,7 +416,7 @@ type alias SidebarMsgs msg =
 viewSidebar :
     Session
     -> SidebarMsgs msg
-    -> Metadata
+    -> String
     -> SortBy
     -> String
     -> DocList.Model
@@ -425,7 +425,7 @@ viewSidebar :
     -> SidebarMenuState
     -> SidebarState
     -> Html msg
-viewSidebar session msgs currentDocument sortCriteria fileFilter docList accountEmail contextTarget_ dropdownState sidebarState =
+viewSidebar session msgs currentDocId sortCriteria fileFilter docList accountEmail contextTarget_ dropdownState sidebarState =
     let
         lang =
             Session.language session
@@ -515,7 +515,7 @@ viewSidebar session msgs currentDocument sortCriteria fileFilter docList account
                 , tooltipRequested = msgs.tooltipRequested
                 , tooltipClosed = msgs.tooltipClosed
                 }
-                currentDocument
+                currentDocId
                 sortCriteria
                 contextTarget_
                 fileFilter

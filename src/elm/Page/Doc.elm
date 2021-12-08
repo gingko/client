@@ -67,7 +67,7 @@ type alias Model =
     -- Document state
     { workingTree : TreeStructure.Model
     , data : Data.Model
-    , metadata : Metadata
+    , docId : String
 
     -- SPA Page State
     , session : Session
@@ -101,7 +101,7 @@ init : Bool -> Session -> String -> Model
 init isNew session docId =
     { workingTree = TreeStructure.defaultModel
     , data = Data.empty
-    , metadata = Metadata.new docId
+    , docId = docId
     , session = session
     , loading = not isNew
     , debouncerStateCommit =
@@ -132,7 +132,7 @@ init isNew session docId =
     , lastRemoteSave = Nothing
     , field = ""
     , textCursorInfo = { selected = False, position = End, text = ( "", "" ) }
-    , titleField = Nothing
+    , titleField = Session.getDocName session docId
     , fileSearchField = ""
     , headerMenu = NoHeaderMenu
     , exportSettings = ( ExportEverything, DOCX )
@@ -544,7 +544,7 @@ update msg ({ workingTree } as model) =
                     if String.trim editedTitle == "" then
                         ( model, Cmd.batch [ send <| Alert "Title cannot be blank", Task.attempt (always NoOp) (Browser.Dom.focus "title-rename") ] )
 
-                    else if Just editedTitle /= Metadata.getDocName model.metadata then
+                    else if Just editedTitle /= Session.getDocName model.session model.docId then
                         ( model, Cmd.batch [ send <| RenameDocument editedTitle, Task.attempt (always NoOp) (Browser.Dom.blur "title-rename") ] )
 
                     else
@@ -554,7 +554,7 @@ update msg ({ workingTree } as model) =
                     ( model, Cmd.none )
 
         TitleEditCanceled ->
-            ( { model | titleField = Metadata.getDocName model.metadata }, Task.attempt (always NoOp) (Browser.Dom.blur "title-rename") )
+            ( { model | titleField = Session.getDocName model.session model.docId }, Task.attempt (always NoOp) (Browser.Dom.blur "title-rename") )
 
         HistoryToggled isOpen ->
             model |> toggleHistory isOpen
@@ -631,8 +631,8 @@ update msg ({ workingTree } as model) =
             ( model
             , Export.command
                 Exported
-                (Metadata.getDocId model.metadata)
-                (Metadata.getDocName model.metadata |> Maybe.withDefault "Untitled")
+                model.docId
+                (Session.getDocName model.session model.docId |> Maybe.withDefault "Untitled")
                 model.exportSettings
                 activeTree
                 model.workingTree.tree
@@ -725,7 +725,7 @@ incoming incomingMsg model =
         MetadataSynced json ->
             case Json.decodeValue Metadata.decoder json of
                 Ok metadata ->
-                    ( { model | metadata = metadata, titleField = Metadata.getDocName metadata }, Cmd.none )
+                    ( { model | titleField = Session.getDocName model.session model.docId }, Cmd.none )
 
                 Err _ ->
                     ( model, Cmd.none )
@@ -733,7 +733,7 @@ incoming incomingMsg model =
         MetadataSaved json ->
             case Json.decodeValue Metadata.decoder json of
                 Ok metadata ->
-                    ( { model | metadata = metadata, titleField = Metadata.getDocName metadata }, Cmd.none )
+                    ( { model | titleField = Session.getDocName model.session model.docId }, Cmd.none )
 
                 Err _ ->
                     ( model, Cmd.none )
@@ -1005,47 +1005,25 @@ incoming incomingMsg model =
                     normalMode model (goDown vs.active)
 
                 "down" ->
-                    {--
-                            case model.modalState of
-                                NoModal ->
-                                    case vs.viewMode of
-                                        Normal ->
-                                            ( model, Cmd.none )
-                                                |> goDown vs.active
+                    case vs.viewMode of
+                        Normal ->
+                            ( model, Cmd.none )
+                                |> goDown vs.active
 
-                                        FullscreenEditing ->
-                                            {- check if at end
-                                               if so, getNextInColumn and openCardFullscreen it
-                                            -}
-                                            ( model, Cmd.none )
+                        FullscreenEditing ->
+                            {- check if at end
+                               if so, getNextInColumn and openCardFullscreen it
+                            -}
+                            ( model, Cmd.none )
 
-                                        Editing ->
-                                            ( model, Cmd.none )
-
-                                FileSwitcher switcherModel ->
-                                    ( { model | modalState = FileSwitcher (Doc.Switcher.down switcherModel) }, Cmd.none )
-
-                                _ ->
-                                    ( model, Cmd.none )
-                            --}
-                    ( model, Cmd.none )
+                        Editing ->
+                            ( model, Cmd.none )
 
                 "k" ->
                     normalMode model (goUp vs.active)
 
                 "up" ->
-                    {--
-                            case model.modalState of
-                                NoModal ->
-                                    normalMode model (goUp vs.active)
-
-                                FileSwitcher switcherModel ->
-                                    ( { model | modalState = FileSwitcher (Doc.Switcher.up switcherModel) }, Cmd.none )
-
-                                _ ->
-                                    ( model, Cmd.none )
-                            --}
-                    ( model, Cmd.none )
+                    normalMode model (goUp vs.active)
 
                 "l" ->
                     normalMode model (goRight vs.active)
@@ -2128,8 +2106,12 @@ addToHistoryDo ( { workingTree, session } as model, prevCmd ) =
         author =
             session |> Session.name |> Maybe.withDefault "unknown" |> (\a -> "<" ++ a ++ ">")
 
+        metadata =
+            Session.getMetadata model.session model.docId
+                |> Maybe.withDefault (Metadata.new model.docId)
+
         commitReq_ =
-            Data.requestCommit workingTree.tree author model.data (Metadata.encode model.metadata)
+            Data.requestCommit workingTree.tree author model.data (Metadata.encode metadata)
     in
     case commitReq_ of
         Just commitReq ->
@@ -2309,7 +2291,7 @@ view model =
                     , printRequested = PrintRequested
                     , toggledUpgradeModal = always NoOp
                     }
-                    (Metadata.getDocName model.metadata)
+                    (Session.getDocName model.session model.docId)
                     model
                 , if (not << List.isEmpty) cardTitles then
                     UI.viewBreadcrumbs Activate cardTitles

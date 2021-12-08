@@ -1,12 +1,14 @@
-port module Session exposing (PaymentStatus(..), Session, currentTime, daysLeft, db, decode, documents, fileMenuOpen, fromLegacy, isMac, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, setSortBy, setWelcomeChecklist, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, updateDocuments, updateTime, updateUpgrade, upgradeModel, userSettingsChange, welcomeChecklist)
+port module Session exposing (PaymentStatus(..), Session, currentTime, daysLeft, db, decode, documents, fileMenuOpen, fromLegacy, getDocName, getMetadata, isMac, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, setSortBy, setWelcomeChecklist, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, updateDocuments, updateTime, updateUpgrade, upgradeModel, userSettingsChange, welcomeChecklist)
 
 import Browser.Navigation as Nav
 import Coders exposing (sortByDecoder)
-import Doc.List as DocList
+import Doc.List as DocList exposing (Model(..))
+import Doc.Metadata as Metadata exposing (Metadata)
 import Http
 import Json.Decode as Dec exposing (Decoder)
 import Json.Decode.Pipeline exposing (optional, optionalAt, required)
 import Json.Encode as Enc
+import List.Extra as ListExtra
 import Outgoing exposing (Msg(..), send)
 import Random
 import Time exposing (Posix)
@@ -216,6 +218,23 @@ documents session =
 
         Guest _ _ ->
             DocList.init
+
+
+getMetadata : Session -> String -> Maybe Metadata
+getMetadata session docId =
+    case documents session of
+        Success docList ->
+            docList
+                |> ListExtra.find (\d -> Metadata.getDocId d == docId)
+
+        _ ->
+            Nothing
+
+
+getDocName : Session -> String -> Maybe String
+getDocName session docId =
+    getMetadata session docId
+        |> Maybe.andThen Metadata.getDocName
 
 
 loggedIn : Session -> Bool

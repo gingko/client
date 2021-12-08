@@ -140,7 +140,7 @@ getTitle : Model -> Maybe String
 getTitle model =
     case model.documentState of
         Doc docModel ->
-            Metadata.getDocName docModel.metadata
+            Session.getDocName docModel.session docModel.docId
 
         Empty _ ->
             Nothing
@@ -419,7 +419,7 @@ update msg model =
                     case ( model.documentState, Session.documents newSession ) of
                         ( Doc docModel, Success docList ) ->
                             ( docList
-                                |> List.map (Metadata.isSameDocId docModel.metadata)
+                                |> List.map (\d -> Metadata.getDocId d == docModel.docId)
                                 |> List.any identity
                                 |> (\docStillExists ->
                                         if docStillExists then
@@ -450,7 +450,12 @@ update msg model =
             ( model |> updateSession (Session.sync json session), Cmd.none )
 
         SwitcherOpened ->
-            openSwitcher model
+            case model.documentState of
+                Doc docModel ->
+                    openSwitcher docModel model
+
+                Empty _ ->
+                    ( model, Cmd.none )
 
         SwitcherClosed ->
             closeSwitcher model
@@ -771,7 +776,13 @@ update msg model =
                             ( { model | modalState = NoModal }, Cmd.none )
 
                         ( "mod+o", _ ) ->
-                            model |> openSwitcher
+                            model |> openSwitcher docModel
+
+                        ( "down", FileSwitcher switcherModel ) ->
+                            ( { model | modalState = FileSwitcher (Doc.Switcher.down switcherModel) }, Cmd.none )
+
+                        ( "up", FileSwitcher switcherModel ) ->
+                            ( { model | modalState = FileSwitcher (Doc.Switcher.up switcherModel) }, Cmd.none )
 
                         ( "esc", NoModal ) ->
                             passThroughTo docModel
@@ -803,25 +814,28 @@ update msg model =
             ( model, Cmd.none )
 
 
-openSwitcher : Model -> ( Model, Cmd Msg )
-openSwitcher model =
+openSwitcher : Page.Doc.Model -> Model -> ( Model, Cmd Msg )
+openSwitcher docModel model =
     let
-        metadata =
-            Metadata.new ""
-
-        --TODO
+        metadata_ =
+            Session.getMetadata docModel.session docModel.docId
     in
-    ( { model
-        | modalState =
-            FileSwitcher
-                { currentDocument = metadata
-                , selectedDocument = Just (Metadata.getDocId metadata)
-                , searchField = "" --TODO
-                , docList = Session.documents (toSession model)
-                }
-      }
-    , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "switcher-input")
-    )
+    case metadata_ of
+        Just currentMetadata ->
+            ( { model
+                | modalState =
+                    FileSwitcher
+                        { currentDocument = currentMetadata
+                        , selectedDocument = Just docModel.docId
+                        , searchField = ""
+                        , docList = Session.documents (toSession model)
+                        }
+              }
+            , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "switcher-input")
+            )
+
+        Nothing ->
+            ( model, Cmd.none )
 
 
 closeSwitcher : Model -> ( Model, Cmd Msg )
@@ -866,7 +880,7 @@ view ({ documentState } as model) =
                 ((Page.Doc.view doc |> List.map (Html.map GotDocMsg))
                     ++ [ UI.viewSidebar session
                             sidebarMsgs
-                            doc.metadata
+                            doc.docId
                             ModifiedAt
                             model.fileSearchField
                             (Session.documents session)
@@ -887,7 +901,7 @@ view ({ documentState } as model) =
                     (Page.Empty.view { newClicked = TemplateSelectorOpened, emptyMessage = EmptyMessage }
                         ++ [ UI.viewSidebar session
                                 sidebarMsgs
-                                (Metadata.new "")
+                                ""
                                 ModifiedAt
                                 ""
                                 (Session.documents session)

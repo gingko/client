@@ -153,32 +153,32 @@ viewSidebarList :
     , tooltipRequested : String -> TooltipPosition -> String -> msg
     , tooltipClosed : msg
     }
-    -> Metadata
+    -> String
     -> SortBy
     -> Maybe String
     -> String
     -> Model
     -> Html msg
-viewSidebarList msgs currentDocument sortCriteria contextTarget_ filterField model =
+viewSidebarList msgs currentDocId sortCriteria contextTarget_ filterField model =
     let
         stopClickProp =
             stopPropagationOn "click" (Dec.succeed ( msgs.noOp, True ))
 
         viewDocItem d =
             let
-                docId =
+                itemDocId =
                     Metadata.getDocId d
             in
             div
                 [ classList
                     [ ( "sidebar-document-item", True )
-                    , ( "active", Metadata.isSameDocId d currentDocument )
-                    , ( "context-target", Just docId == contextTarget_ )
+                    , ( "active", itemDocId == currentDocId )
+                    , ( "context-target", Just itemDocId == contextTarget_ )
                     ]
                 ]
                 [ a
-                    [ ContextMenu.open (msgs.contextMenu docId)
-                    , href <| Route.toString (Route.DocUntitled docId)
+                    [ ContextMenu.open (msgs.contextMenu itemDocId)
+                    , href <| Route.toString (Route.DocUntitled itemDocId)
                     , stopClickProp
                     , attribute "data-private" "lipsum"
                     ]
@@ -247,7 +247,7 @@ viewSwitcher currentDocument model =
             div
                 [ classList
                     [ ( "switcher-document-item", True )
-                    , ( "current", Metadata.isSameDocId d currentDocument )
+                    , ( "current", Metadata.getDocId d == Metadata.getDocId currentDocument )
                     , ( "selected", Metadata.getDocId d == model.selected )
                     ]
                 ]
