@@ -86,7 +86,6 @@ type alias Model =
     , headerMenu : HeaderMenuState
     , exportSettings : ( ExportSelection, ExportFormat )
     , wordcountTrayOpen : Bool
-    , tooltip : Maybe ( Element, TooltipPosition, String )
     , fontSelectorOpen : Bool
 
     -- Settings
@@ -137,7 +136,6 @@ init isNew session docId =
     , headerMenu = NoHeaderMenu
     , exportSettings = ( ExportEverything, DOCX )
     , wordcountTrayOpen = False
-    , tooltip = Nothing
     , fontSelectorOpen = False
     , fonts = Fonts.default
     , theme = Default
@@ -491,7 +489,7 @@ update msg ({ workingTree } as model) =
         CancelHistory ->
             case model.headerMenu of
                 HistoryView historyState ->
-                    ( { model | headerMenu = NoHeaderMenu, tooltip = Nothing }
+                    ( { model | headerMenu = NoHeaderMenu }
                     , Cmd.none
                     )
                         |> checkoutCommit historyState.start
@@ -570,7 +568,6 @@ update msg ({ workingTree } as model) =
 
                     else
                         model.headerMenu
-                , tooltip = Nothing
               }
             , send <| SaveUserSetting ( "shortcutTrayOpen", Enc.bool newIsOpen )
             )
@@ -586,7 +583,6 @@ update msg ({ workingTree } as model) =
 
                     else
                         NoHeaderMenu
-                , tooltip = Nothing
               }
             , Cmd.none
             )
@@ -599,7 +595,6 @@ update msg ({ workingTree } as model) =
 
                     else
                         NoHeaderMenu
-                , tooltip = Nothing
               }
             , Cmd.none
             )
@@ -2107,7 +2102,7 @@ toggleHistory : Bool -> Model -> ( Model, Cmd msg )
 toggleHistory isOpen model =
     case ( isOpen, Data.head "heads/master" model.data ) of
         ( True, Just refObj ) ->
-            ( { model | headerMenu = HistoryView { start = refObj.value, currentView = refObj.value }, tooltip = Nothing }, Cmd.none )
+            ( { model | headerMenu = HistoryView { start = refObj.value, currentView = refObj.value } }, Cmd.none )
 
         _ ->
             ( { model | headerMenu = NoHeaderMenu }, Cmd.none )
@@ -2206,8 +2201,8 @@ sendCollabState collabState ( model, prevCmd ) =
 -- VIEW
 
 
-view : Model -> List (Html Msg)
-view model =
+view : { docMsg : Msg -> msg, tooltipRequested : String -> TooltipPosition -> String -> msg, tooltipClosed : msg } -> Model -> List (Html msg)
+view ({ docMsg } as appMsg) model =
     let
         language =
             Session.language model.session
@@ -2229,7 +2224,7 @@ view model =
                     }
                     model.field
                     model.viewState
-                    |> Html.map FullscreenMsg
+                    |> Html.map (docMsg << FullscreenMsg)
                     |> List.singleton
 
             else
@@ -2243,10 +2238,10 @@ view model =
 
                     exportViewOk =
                         lazy4 exportView
-                            { export = Export
-                            , printRequested = PrintRequested
-                            , tooltipRequested = (always << always << always) NoOp
-                            , tooltipClosed = NoOp
+                            { export = docMsg Export
+                            , printRequested = docMsg PrintRequested
+                            , tooltipRequested = appMsg.tooltipRequested
+                            , tooltipClosed = appMsg.tooltipClosed
                             }
                             model.exportSettings
 
@@ -2295,42 +2290,42 @@ view model =
                             Nothing ->
                                 []
                 in
-                [ lazy4 treeView (Session.language model.session) (Session.isMac model.session) model.viewState model.workingTree
+                [ lazy4 treeView (Session.language model.session) (Session.isMac model.session) model.viewState model.workingTree |> Html.map docMsg
                 , UI.viewHeader
-                    { noOp = NoOp
-                    , titleFocused = TitleFocused
-                    , titleFieldChanged = TitleFieldChanged
-                    , titleEdited = TitleEdited
-                    , titleEditCanceled = TitleEditCanceled
-                    , tooltipRequested = (always << always << always) NoOp
-                    , tooltipClosed = NoOp
-                    , toggledHistory = HistoryToggled
-                    , checkoutCommit = CheckoutCommit
-                    , restore = Restore
-                    , cancelHistory = CancelHistory
-                    , toggledDocSettings = DocSettingsToggled (not <| model.headerMenu == Settings)
-                    , wordCountClicked = NoOp
-                    , themeChanged = ThemeChanged
-                    , toggledExport = ExportPreviewToggled (not <| model.headerMenu == ExportPreview)
-                    , exportSelectionChanged = ExportSelectionChanged
-                    , exportFormatChanged = ExportFormatChanged
-                    , export = Export
-                    , printRequested = PrintRequested
-                    , toggledUpgradeModal = always NoOp
+                    { noOp = docMsg NoOp
+                    , titleFocused = docMsg TitleFocused
+                    , titleFieldChanged = docMsg << TitleFieldChanged
+                    , titleEdited = docMsg TitleEdited
+                    , titleEditCanceled = docMsg TitleEditCanceled
+                    , tooltipRequested = appMsg.tooltipRequested
+                    , tooltipClosed = appMsg.tooltipClosed
+                    , toggledHistory = docMsg << HistoryToggled
+                    , checkoutCommit = docMsg << CheckoutCommit
+                    , restore = docMsg Restore
+                    , cancelHistory = docMsg CancelHistory
+                    , toggledDocSettings = docMsg <| DocSettingsToggled (not <| model.headerMenu == Settings)
+                    , wordCountClicked = docMsg NoOp
+                    , themeChanged = docMsg << ThemeChanged
+                    , toggledExport = docMsg <| ExportPreviewToggled (not <| model.headerMenu == ExportPreview)
+                    , exportSelectionChanged = docMsg << ExportSelectionChanged
+                    , exportFormatChanged = docMsg << ExportFormatChanged
+                    , export = docMsg Export
+                    , printRequested = docMsg PrintRequested
+                    , toggledUpgradeModal = always (docMsg NoOp)
                     }
                     (Session.getDocName model.session model.docId)
                     model
                 , if (not << List.isEmpty) cardTitles then
-                    UI.viewBreadcrumbs Activate cardTitles
+                    UI.viewBreadcrumbs Activate cardTitles |> Html.map docMsg
 
                   else
                     text ""
                 , maybeExportView
                 ]
                     ++ UI.viewShortcuts
-                        { toggledShortcutTray = ShortcutTrayToggle
-                        , tooltipRequested = (always << always << always) NoOp
-                        , tooltipClosed = NoOp
+                        { toggledShortcutTray = docMsg ShortcutTrayToggle
+                        , tooltipRequested = appMsg.tooltipRequested
+                        , tooltipClosed = appMsg.tooltipClosed
                         }
                         language
                         (Session.shortcutTrayOpen model.session)
@@ -2338,7 +2333,7 @@ view model =
                         model.workingTree.tree.children
                         model.textCursorInfo
                         model.viewState
-                    ++ [ viewSearchField SearchFieldUpdated model
+                    ++ [ viewSearchField SearchFieldUpdated model |> Html.map docMsg
                        , viewMobileButtons
                             { edit = mobileBtnMsg "mod+enter"
                             , save = mobileBtnMsg "mod+enter"
@@ -2352,9 +2347,9 @@ view model =
                             , navRight = mobileBtnMsg "right"
                             }
                             (model.viewState.viewMode /= Normal)
+                            |> Html.map docMsg
                        , div [ id "loading-overlay" ] []
                        , div [ id "preloader" ] []
-                       , model.tooltip |> Maybe.map UI.viewTooltip |> Maybe.withDefault (text "")
                        ]
 
         conflicts ->
@@ -2371,7 +2366,8 @@ repeating-linear-gradient(-45deg
             in
             [ ul [ class "conflicts-list" ]
                 (List.map (viewConflict SetSelection Resolve) conflicts)
-            , lazy4 treeView (Session.language model.session) (Session.isMac model.session) model.viewState model.workingTree
+                |> Html.map docMsg
+            , lazy4 treeView (Session.language model.session) (Session.isMac model.session) model.viewState model.workingTree |> Html.map docMsg
             ]
 
 

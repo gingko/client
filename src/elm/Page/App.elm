@@ -867,7 +867,7 @@ view ({ documentState } as model) =
     case documentState of
         Doc doc ->
             div [ id "app-root", classList [ ( "loading", model.loading ) ] ]
-                ((Page.Doc.view doc |> List.map (Html.map GotDocMsg))
+                (Page.Doc.view { docMsg = GotDocMsg, tooltipRequested = TooltipRequested, tooltipClosed = TooltipClosed } doc
                     ++ [ UI.viewSidebar session
                             sidebarMsgs
                             doc.docId
