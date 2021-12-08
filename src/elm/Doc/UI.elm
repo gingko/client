@@ -399,7 +399,6 @@ type alias SidebarMsgs msg =
     , tooltipClosed : msg
     , clickedSwitcher : msg
     , clickedHelp : msg
-    , toggledShortcuts : msg
     , clickedEmailSupport : msg
     , clickedShowVideos : msg
     , languageMenuRequested : Maybe String -> msg
@@ -440,9 +439,6 @@ viewSidebar session msgs currentDocId sortCriteria fileFilter docList accountEma
 
         isOpen =
             not (sidebarState == SidebarClosed)
-
-        helpOpen =
-            dropdownState == Help
 
         accountOpen =
             case dropdownState of
@@ -532,9 +528,7 @@ viewSidebar session msgs currentDocId sortCriteria fileFilter docList accountEma
          , div
             [ id "help-icon"
             , class "sidebar-button"
-            , classList [ ( "open", helpOpen ) ]
             , onClickStop msgs.clickedHelp
-            , attributeIf (dropdownState /= Help) <| onMouseEnter <| msgs.tooltipRequested "help-icon" RightTooltip "Help"
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.questionCircleFilled []
@@ -564,8 +558,7 @@ viewSidebar session msgs currentDocId sortCriteria fileFilter docList accountEma
          ]
             ++ viewSidebarMenu lang
                 custId_
-                { toggledShortcuts = msgs.toggledShortcuts
-                , clickedEmailSupport = msgs.clickedEmailSupport
+                { clickedEmailSupport = msgs.clickedEmailSupport
                 , clickedShowVideos = msgs.clickedShowVideos
                 , helpClosed = msgs.clickedHelp
                 , languageMenuRequested = msgs.languageMenuRequested
@@ -583,8 +576,7 @@ viewSidebarMenu :
     Language
     -> Maybe String
     ->
-        { toggledShortcuts : msg
-        , clickedEmailSupport : msg
+        { clickedEmailSupport : msg
         , clickedShowVideos : msg
         , helpClosed : msg
         , languageMenuRequested : Maybe String -> msg
@@ -598,17 +590,6 @@ viewSidebarMenu :
     -> List (Html msg)
 viewSidebarMenu lang custId_ msgs accountEmail dropdownState =
     case dropdownState of
-        Help ->
-            [ div [ id "help-menu", class "sidebar-menu" ]
-                [ div [ id "email-support", onClickStop msgs.clickedEmailSupport ] [ text <| tr lang EmailSupport ]
-                , a [ href "https://docs.gingkowriter.com", target "_blank", onClickStop msgs.noOp ] [ text "FAQ" ]
-                , div [ id "show-videos", onClickStop msgs.clickedShowVideos ] [ text "Video Tutorials" ]
-                , div [ onClickStop msgs.toggledShortcuts ] [ text <| tr lang KeyboardHelp ]
-                ]
-            , div [ id "help-menu-exit-top", onMouseEnter msgs.helpClosed ] []
-            , div [ id "help-menu-exit-right", onMouseEnter msgs.helpClosed ] []
-            ]
-
         Account langMenuEl_ ->
             let
                 manageSubBtn =

@@ -77,7 +77,6 @@ type SidebarState
 
 type SidebarMenuState
     = NoSidebarMenu
-    | Help
     | Account (Maybe Element)
 
 

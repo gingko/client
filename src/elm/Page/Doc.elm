@@ -187,6 +187,7 @@ type Msg
     | TitleFieldChanged String
     | TitleEdited
     | TitleEditCanceled
+    | ShortcutTrayToggle
     | HistoryToggled Bool
     | DocSettingsToggled Bool
     | ExportPreviewToggled Bool
@@ -555,6 +556,24 @@ update msg ({ workingTree } as model) =
 
         TitleEditCanceled ->
             ( { model | titleField = Session.getDocName model.session model.docId }, Task.attempt (always NoOp) (Browser.Dom.blur "title-rename") )
+
+        ShortcutTrayToggle ->
+            let
+                newIsOpen =
+                    not <| Session.shortcutTrayOpen model.session
+            in
+            ( { model
+                | session = Session.setShortcutTrayOpen newIsOpen model.session
+                , headerMenu =
+                    if model.headerMenu == ExportPreview && newIsOpen then
+                        NoHeaderMenu
+
+                    else
+                        model.headerMenu
+                , tooltip = Nothing
+              }
+            , send <| SaveUserSetting ( "shortcutTrayOpen", Enc.bool newIsOpen )
+            )
 
         HistoryToggled isOpen ->
             model |> toggleHistory isOpen
@@ -2308,6 +2327,17 @@ view model =
                     text ""
                 , maybeExportView
                 ]
+                    ++ UI.viewShortcuts
+                        { toggledShortcutTray = ShortcutTrayToggle
+                        , tooltipRequested = (always << always << always) NoOp
+                        , tooltipClosed = NoOp
+                        }
+                        language
+                        (Session.shortcutTrayOpen model.session)
+                        (Session.isMac model.session)
+                        model.workingTree.tree.children
+                        model.textCursorInfo
+                        model.viewState
                     ++ [ viewSearchField SearchFieldUpdated model
                        , viewMobileButtons
                             { edit = mobileBtnMsg "mod+enter"

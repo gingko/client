@@ -224,7 +224,6 @@ type Msg
     | TooltipClosed
     | FullscreenRequested
     | ToggledHelpMenu Bool
-    | ShortcutTrayToggle
     | LanguageMenuRequested (Maybe String)
     | LanguageMenuReceived Element
     | ToggledAccountMenu Bool
@@ -380,9 +379,6 @@ update msg model =
 
                 newDropdownState =
                     case ( newSidebarState, model.sidebarMenuState ) of
-                        ( File, Help ) ->
-                            NoSidebarMenu
-
                         ( File, Account _ ) ->
                             NoSidebarMenu
 
@@ -712,19 +708,6 @@ update msg model =
         TooltipClosed ->
             ( { model | tooltip = Nothing }, Cmd.none )
 
-        ShortcutTrayToggle ->
-            let
-                newIsOpen =
-                    not <| Session.shortcutTrayOpen session
-            in
-            ( { model
-                -- TODO
-                | tooltip = Nothing
-              }
-                |> updateSession (Session.setShortcutTrayOpen newIsOpen session)
-            , send <| SaveUserSetting ( "shortcutTrayOpen", Enc.bool newIsOpen )
-            )
-
         NoOp ->
             ( model, Cmd.none )
 
@@ -861,7 +844,6 @@ view ({ documentState } as model) =
             , tooltipClosed = TooltipClosed
             , clickedSwitcher = SwitcherOpened
             , clickedHelp = ToggledHelpMenu True
-            , toggledShortcuts = ShortcutTrayToggle
             , clickedEmailSupport = ClickedEmailSupport
             , clickedShowVideos = ClickedShowVideos
             , languageMenuRequested = LanguageMenuRequested
