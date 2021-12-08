@@ -1,4 +1,4 @@
-module Page.Doc exposing (Model, Msg, incoming, init, subscriptions, toUser, update, view)
+module Page.Doc exposing (Model, Msg(..), incoming, init, subscriptions, toUser, update, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -2201,7 +2201,15 @@ sendCollabState collabState ( model, prevCmd ) =
 -- VIEW
 
 
-view : { docMsg : Msg -> msg, tooltipRequested : String -> TooltipPosition -> String -> msg, tooltipClosed : msg } -> Model -> List (Html msg)
+type alias AppMsgs msg =
+    { docMsg : Msg -> msg
+    , tooltipRequested : String -> TooltipPosition -> String -> msg
+    , tooltipClosed : msg
+    , toggleWordcount : Model -> msg
+    }
+
+
+view : AppMsgs msg -> Model -> List (Html msg)
 view ({ docMsg } as appMsg) model =
     let
         language =
@@ -2304,7 +2312,7 @@ view ({ docMsg } as appMsg) model =
                     , restore = docMsg Restore
                     , cancelHistory = docMsg CancelHistory
                     , toggledDocSettings = docMsg <| DocSettingsToggled (not <| model.headerMenu == Settings)
-                    , wordCountClicked = docMsg NoOp
+                    , wordCountClicked = appMsg.toggleWordcount model
                     , themeChanged = docMsg << ThemeChanged
                     , toggledExport = docMsg <| ExportPreviewToggled (not <| model.headerMenu == ExportPreview)
                     , exportSelectionChanged = docMsg << ExportSelectionChanged

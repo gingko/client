@@ -25,7 +25,7 @@ import Import.Text as ImportText
 import Json.Decode as Json
 import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
-import Page.Doc
+import Page.Doc exposing (Msg(..))
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Empty
 import RandomId
@@ -35,7 +35,7 @@ import Svg.Attributes
 import Task
 import Time
 import Translation exposing (Language, langToString)
-import Types exposing (SidebarMenuState(..), SidebarState(..), SortBy(..), TooltipPosition, Tree)
+import Types exposing (HeaderMenuState(..), SidebarMenuState(..), SidebarState(..), SortBy(..), TooltipPosition, Tree)
 import Upgrade exposing (Msg(..))
 
 
@@ -70,7 +70,7 @@ type ModalState
     | TemplateSelector
     | HelpScreen
     | VideoViewer VideoViewer.Model
-    | Wordcount
+    | Wordcount Page.Doc.Model
     | ImportModal ImportModal.Model
     | ImportTextModal ImportText.Model
     | ContactForm ContactForm.Model
@@ -176,7 +176,7 @@ type Msg
     | EmptyMessage
     | SwitcherOpened
     | SwitcherClosed
-    | WordcountModalOpened
+    | WordcountModalOpened Page.Doc.Model
     | ModalClosed
     | ImportBulkClicked
     | ImportTextClicked
@@ -456,8 +456,13 @@ update msg model =
         SwitcherClosed ->
             closeSwitcher model
 
-        WordcountModalOpened ->
-            ( { model | modalState = Wordcount }, Cmd.none )
+        WordcountModalOpened docModel ->
+            ( { model
+                | documentState = Doc { docModel | headerMenu = NoHeaderMenu }
+                , modalState = Wordcount docModel
+              }
+            , Cmd.none
+            )
 
         ModalClosed ->
             case model.modalState of
@@ -722,7 +727,13 @@ update msg model =
                             Page.Doc.update docMsg docModel
                                 |> Tuple.mapSecond (Cmd.map GotDocMsg)
                     in
-                    ( { model | documentState = Doc newDocModel }, newCmd )
+                    case docMsg of
+                        ShortcutTrayToggle ->
+                            -- TODO: This is the only reason Doc.Msgs is fully exposed
+                            ( { model | documentState = Doc newDocModel, tooltip = Nothing }, newCmd )
+
+                        _ ->
+                            ( { model | documentState = Doc newDocModel }, newCmd )
 
                 Empty _ ->
                     ( model, Cmd.none )
@@ -867,7 +878,13 @@ view ({ documentState } as model) =
     case documentState of
         Doc doc ->
             div [ id "app-root", classList [ ( "loading", model.loading ) ] ]
-                (Page.Doc.view { docMsg = GotDocMsg, tooltipRequested = TooltipRequested, tooltipClosed = TooltipClosed } doc
+                (Page.Doc.view
+                    { docMsg = GotDocMsg
+                    , tooltipRequested = TooltipRequested
+                    , tooltipClosed = TooltipClosed
+                    , toggleWordcount = WordcountModalOpened
+                    }
+                    doc
                     ++ [ UI.viewSidebar session
                             sidebarMsgs
                             doc.docId
@@ -954,9 +971,8 @@ viewModal session modalState =
         VideoViewer videoViewerState ->
             VideoViewer.view language ModalClosed VideoViewerMsg videoViewerState
 
-        Wordcount ->
-            --UI.viewWordCount model { modalClosed = ModalClosed }
-            []
+        Wordcount docModel ->
+            UI.viewWordCount docModel { modalClosed = ModalClosed }
 
         ImportModal modalModel ->
             ImportModal.view language modalModel
