@@ -2207,6 +2207,7 @@ type alias AppMsgs msg =
     , tooltipRequested : String -> TooltipPosition -> String -> msg
     , tooltipClosed : msg
     , toggleWordcount : Model -> msg
+    , toggleUpgradeModal : Bool -> msg
     }
 
 
@@ -2319,7 +2320,7 @@ view ({ docMsg } as appMsg) model =
                     , exportFormatChanged = docMsg << ExportFormatChanged
                     , export = docMsg Export
                     , printRequested = docMsg PrintRequested
-                    , toggledUpgradeModal = always (docMsg NoOp)
+                    , toggledUpgradeModal = appMsg.toggleUpgradeModal
                     }
                     (Session.getDocName model.session model.docId)
                     model

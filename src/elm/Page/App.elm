@@ -884,6 +884,7 @@ view ({ documentState } as model) =
                     , tooltipRequested = TooltipRequested
                     , tooltipClosed = TooltipClosed
                     , toggleWordcount = WordcountModalOpened
+                    , toggleUpgradeModal = ToggledUpgradeModal
                     }
                     doc
                     ++ [ UI.viewSidebar session
