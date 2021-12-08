@@ -836,6 +836,14 @@ view ({ documentState } as model) =
         session =
             toSession model
 
+        viewTooltip =
+            case model.tooltip of
+                Just tooltip ->
+                    UI.viewTooltip tooltip
+
+                Nothing ->
+                    text ""
+
         sidebarMsgs =
             { sidebarStateChanged = SidebarStateChanged
             , noOp = NoOp
@@ -870,6 +878,7 @@ view ({ documentState } as model) =
                             Nothing
                             model.sidebarMenuState
                             model.sidebarState
+                       , viewTooltip
                        ]
                     ++ viewModal session model.modalState
                 )
@@ -891,6 +900,7 @@ view ({ documentState } as model) =
                                 Nothing
                                 model.sidebarMenuState
                                 model.sidebarState
+                           , viewTooltip
                            ]
                         ++ viewModal session model.modalState
                     )

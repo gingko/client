@@ -529,6 +529,7 @@ viewSidebar session msgs currentDocId sortCriteria fileFilter docList accountEma
             [ id "help-icon"
             , class "sidebar-button"
             , onClickStop msgs.clickedHelp
+            , onMouseEnter <| msgs.tooltipRequested "help-icon" RightTooltip "Help"
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.questionCircleFilled []
