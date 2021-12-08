@@ -2203,6 +2203,7 @@ sendCollabState collabState ( model, prevCmd ) =
 
 type alias AppMsgs msg =
     { docMsg : Msg -> msg
+    , keyboard : String -> msg
     , tooltipRequested : String -> TooltipPosition -> String -> msg
     , tooltipClosed : msg
     , toggleWordcount : Model -> msg
@@ -2241,8 +2242,7 @@ view ({ docMsg } as appMsg) model =
                         getTree model.viewState.active model.workingTree.tree
 
                     mobileBtnMsg shortcut =
-                        --TODO: Incoming (Keyboard shortcut)
-                        NoOp
+                        appMsg.keyboard shortcut
 
                     exportViewOk =
                         lazy4 exportView
@@ -2355,7 +2355,6 @@ view ({ docMsg } as appMsg) model =
                             , navRight = mobileBtnMsg "right"
                             }
                             (model.viewState.viewMode /= Normal)
-                            |> Html.map docMsg
                        , div [ id "loading-overlay" ] []
                        , div [ id "preloader" ] []
                        ]

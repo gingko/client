@@ -880,6 +880,7 @@ view ({ documentState } as model) =
             div [ id "app-root", classList [ ( "loading", model.loading ) ] ]
                 (Page.Doc.view
                     { docMsg = GotDocMsg
+                    , keyboard = \s -> Incoming (Keyboard s)
                     , tooltipRequested = TooltipRequested
                     , tooltipClosed = TooltipClosed
                     , toggleWordcount = WordcountModalOpened
