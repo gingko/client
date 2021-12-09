@@ -524,7 +524,6 @@ input.has-error {
   position: relative;
   padding: 5px;
   color: var(--ui-1-fg);
-  z-index: 20;
   cursor: pointer;
 }
 #brand-name {
@@ -1888,6 +1887,7 @@ span.trial-dark {
   grid-template-columns: auto minmax(min(100vw,80ch), 80ch) auto;
   grid-template-areas: ". main .";
   background: lightgray url('./handmadepaper.png');
+  z-index: 1;
 }
 
 #fullscreen-main {
@@ -2791,12 +2791,6 @@ pre {
 }
 
 /* ======== CARD (Edit view) ======== */
-
-/* --- Autofocus --- */
-#document,
-#document .buffer {
-  transition: all 0.25s ease;
-}
 
 #document.editing .group {
   background-color: var(--tree-bg-2);
