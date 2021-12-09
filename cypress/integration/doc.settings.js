@@ -39,4 +39,70 @@ describe('Loading indicators', () => {
     cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
     cy.contains('Sincronizado')
   })
+
+  it('Saves last active position', () => {
+    cy.get('#app-root')
+      .contains('Another Test doc')
+
+    cy.get('#loading-overlay')
+      .should('not.exist')
+
+    cy.getCard(1,1,1)
+      .should('have.class', 'active')
+
+    // Select first child
+    cy.shortcut('{rightArrow}')
+
+    cy.getCard(2,1,1)
+      .should('have.class', 'active')
+
+    // Reload
+    cy.reload()
+
+    cy.get('#loading-overlay')
+      .should('not.exist')
+
+    cy.wait(200)
+
+    // First child should still be selected
+    cy.getCard(2,1,1)
+      .should('have.class', 'active')
+
+    cy.get('#documents-icon')
+      .click()
+
+    cy.get('#sidebar-document-list-wrap').contains('Untitled').click()
+
+    cy.get('#loading-overlay')
+      .should('not.exist')
+
+    cy.getCard(1,1,1)
+      .should('have.class', 'active')
+
+    // Select second child
+    cy.shortcut('{rightArrow}{downArrow}')
+
+    cy.getCard(2,1,2)
+      .should('have.class', 'active')
+
+    // Go back to first document
+    cy.get('#sidebar-document-list-wrap').contains('Another doc, with title').click()
+
+    cy.get('#loading-overlay')
+      .should('not.exist')
+
+    // First child should still be selected
+    cy.getCard(2,1,1)
+      .should('have.class', 'active')
+
+    // Go back to second document
+    cy.get('#sidebar-document-list-wrap').contains('Untitled').click()
+
+    cy.get('#loading-overlay')
+      .should('not.exist')
+
+    // Second child should still be selected
+    cy.getCard(2,1,2)
+      .should('have.class', 'active')
+  })
 })

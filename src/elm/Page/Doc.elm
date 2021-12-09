@@ -91,7 +91,7 @@ init isNew session docId =
             |> toDebouncer
     , uid = "0"
     , viewState =
-        { active = "1"
+        { active = "0"
         , viewMode =
             if isNew then
                 Editing
@@ -703,11 +703,8 @@ incoming incomingMsg model =
                             , activate lastActive True
                             )
 
-                        Ok [] ->
-                            ( vs, identity )
-
-                        Err _ ->
-                            ( vs, identity )
+                        _ ->
+                            ( vs, activate "1" True )
 
                 newTheme =
                     case Json.decodeValue Theme.decoder dataIn of
@@ -2166,12 +2163,6 @@ dataReceived dataIn model =
               else
                 Cmd.none
             )
-                |> (if model.loading then
-                        activate model.viewState.active True
-
-                    else
-                        identity
-                   )
 
         Nothing ->
             ( model, Cmd.none )
