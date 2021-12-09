@@ -21,7 +21,9 @@ describe('Document Exporting', () => {
     cy.get('div.spinner', {timeout: 20000}).should('not.exist')
 
     // Select a mid-column card
-    cy.get('div.view', {timeout: 20000})
+    cy.getCard(1,1,1)
+      .should('have.class', 'active')
+
     cy.getCard(2,1,4)
       .should('contain.html', '<h2 id="act-1-scene-3">Act 1, Scene 3</h2>')
       .click()
