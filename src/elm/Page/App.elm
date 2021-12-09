@@ -399,7 +399,7 @@ update msg model =
                 ( TestTextImportLoaded files, _ ) ->
                     case model.modalState of
                         ImportTextModal modalState ->
-                            ( { model | modalState = ImportText.setFileList files modalState |> Debug.log "TestTextImportLoaded" |> ImportTextModal }
+                            ( { model | modalState = ImportText.setFileList files modalState |> ImportTextModal }
                             , Cmd.none
                             )
 
