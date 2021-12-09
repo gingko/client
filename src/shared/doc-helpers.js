@@ -24,7 +24,7 @@ var setTextarea = (m, f) => {
 
 var scrollHorizontal = (colIdx, instant) => {
   lastColumnIdx = colIdx;
-  scrollHorizTo(colIdx, instant)
+  scrollHorizTo(colIdx, instant, 0)
 };
 
 var scrollColumns = (scrollInfo) => {
@@ -47,7 +47,7 @@ var scrollColumns = (scrollInfo) => {
         positionParam = "bottom"
         break;
     }
-    scrollTo(column.scrollData.target, column.columnIdx, scrollInfo.instant, positionParam)
+    scrollTo(column.scrollData.target, column.columnIdx, scrollInfo.instant, positionParam, 0)
   });
 }
 
@@ -71,12 +71,17 @@ var scrollFullscreenTo = function (cid) {
   });
 }
 
-var scrollTo = function (cid, colIdx, instant, position) {
+var scrollTo = function (cid, colIdx, instant, position, errorCount) {
   var card = document.getElementById("card-" + cid.toString());
   var col = document.getElementsByClassName("column")[colIdx - 1];
   let doc = document.getElementById("document");
   if (card == null || doc == null) {
-    console.log("scroll error: not found", cid);
+    console.log("scroll error: not found", cid, errorCount);
+    window.requestAnimationFrame(()=>{
+      if (errorCount <= 3) {
+        scrollTo(cid, colIdx, instant, position, errorCount++);
+      }
+    })
     return;
   }
   let docRect = doc.getBoundingClientRect();
@@ -90,7 +95,7 @@ var scrollTo = function (cid, colIdx, instant, position) {
   });
 };
 
-var scrollHorizTo = function (colIdx, instant) {
+var scrollHorizTo = function (colIdx, instant, errorCount) {
   let scrollDuration = instant ? 0 : 0.3;
   var col = document.getElementsByClassName("column")[colIdx - 1];
   var appEl = document.getElementById("document");
@@ -104,7 +109,12 @@ var scrollHorizTo = function (colIdx, instant) {
   }
 
   if (col == null) {
-    console.log("scroll horiz error: not found", colIdx);
+    console.log("scroll horiz error: not found", colIdx, errorCount);
+    window.requestAnimationFrame(()=>{
+      if (errorCount <= 3) {
+        scrollHorizTo(colIdx, instant, errorCount++);
+      }
+    })
     return;
   }
   TweenMax.to(appEl, scrollDuration, {
