@@ -295,7 +295,7 @@ const fromElm = (msg, elmData) => {
       };
       await db.put(metadata).catch(async (e) => e);
 
-      localStore.db(db, elmData);
+      localStore.db(elmData);
       let store = await localStore.load();
       toElm(store, "docMsgs", "LocalStoreLoaded");
     },
@@ -341,7 +341,7 @@ const fromElm = (msg, elmData) => {
       }
 
       // Load document-specific settings.
-      localStore.db(db, elmData);
+      localStore.db(elmData);
       let store = await localStore.load();
       toElm(store, "docMsgs", "LocalStoreLoaded");
 

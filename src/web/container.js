@@ -28,39 +28,32 @@ const userStore = {
   }
 };
 
-var localDB;
 var localStoreId;
 var treeId;
 const localStore = {
-  db: (db, tree_id) => {
-    localDB = db;
+  db: (tree_id) => {
     treeId = tree_id;
-    localStoreId = `_local/${tree_id}/settings`;
+    localStoreId = `gingko-local-store/${tree_id}/settings`;
   },
   isReady: () => {
-    return (typeof localDB != "undefined");
+    return (typeof treeId != "undefined");
   },
-  load: async () => {
-    let store = await localDB.get(localStoreId).catch(() => {
-      return { _id: localStoreId };
-    });
-    return _.omit(store, ["_id", "_rev"]);
+  load: () => {
+    let store = JSON.parse(localStorage.getItem(localStoreId)) || {};
+    return store;
   },
-  get: async (key, fallback) => {
-    let store = await localDB.get(localStoreId).catch(async (e) => e);
-    if (!store.error && typeof store[key] !== "undefined") {
+  get: (key, fallback) => {
+    let store = JSON.parse(localStorage.getItem(localStoreId));
+    if (typeof store[key] !== "undefined") {
       return store[key];
     } else {
       return fallback;
     }
   },
-  set: async (key, value) => {
-    let store = await localDB.get(localStoreId).catch(() => {
-      return { _id: localStoreId };
-    });
+  set: (key, value) => {
+    let store = JSON.parse(localStorage.getItem(localStoreId)) || {};
     store[key] = value;
-    let putRes = await localDB.put(store).catch(async (e) => e);
-    return putRes;
+    localStorage.setItem(localStoreId, JSON.stringify(store));
   },
 };
 
