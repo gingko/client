@@ -49,6 +49,39 @@ describe('Keyboard Shortcuts', () => {
       cy.get('.modal-header h2')
         .should('not.exist')
     })
+
+    describe('Does not trigger from Quick Switcher', () => {
+      cy.shortcut('{ctrl}{enter}')
+      cy.shortcut('{rightArrow}')
+      cy.getCard(2,1,1)
+        .should('have.class', 'active')
+
+      cy.shortcut('{ctrl}o')
+
+      cy.get('#switcher-modal')
+        .should('be.visible')
+
+      cy.shortcut('j')
+
+      cy.getCard(2,1,1)
+        .should('have.class', 'active')
+
+      cy.shortcut('k')
+
+      cy.getCard(2,1,1)
+        .should('have.class', 'active')
+
+      cy.shortcut('h')
+
+      cy.getCard(2,1,1)
+        .should('have.class', 'active')
+
+      cy.shortcut('{esc}')
+
+      cy.get('#switcher-modal')
+        .should('not.exist')
+
+    })
   })
 })
 

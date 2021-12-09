@@ -305,53 +305,96 @@ update msg model =
                     ( model, Cmd.none )
 
                 ( Keyboard shortcut, Doc docModel ) ->
-                    case ( shortcut, model.modalState ) of
-                        ( "enter", FileSwitcher switcherModel ) ->
-                            case switcherModel.selectedDocument of
-                                Just docId ->
-                                    ( model, Route.pushUrl (Session.navKey session) (Route.DocUntitled docId) )
+                    case model.modalState of
+                        FileSwitcher switcherModel ->
+                            case shortcut of
+                                "enter" ->
+                                    case switcherModel.selectedDocument of
+                                        Just docId ->
+                                            ( model, Route.pushUrl (Session.navKey session) (Route.DocUntitled docId) )
 
-                                Nothing ->
+                                        Nothing ->
+                                            ( model, Cmd.none )
+
+                                "down" ->
+                                    ( { model | modalState = FileSwitcher (Doc.Switcher.down switcherModel) }, Cmd.none )
+
+                                "up" ->
+                                    ( { model | modalState = FileSwitcher (Doc.Switcher.up switcherModel) }, Cmd.none )
+
+                                "mod+o" ->
+                                    ( { model | modalState = NoModal }, Cmd.none )
+
+                                "esc" ->
+                                    ( { model | fileSearchField = "", modalState = NoModal }, Cmd.none )
+
+                                _ ->
                                     ( model, Cmd.none )
 
-                        ( "mod+o", FileSwitcher _ ) ->
-                            ( { model | modalState = NoModal }, Cmd.none )
+                        Wordcount _ ->
+                            case shortcut of
+                                "w" ->
+                                    ( { model | modalState = NoModal }, Cmd.none )
 
-                        ( "mod+o", _ ) ->
-                            normalMode docModel
-                                (model |> openSwitcher docModel)
-                                (passThroughTo docModel)
+                                "mod+o" ->
+                                    normalMode docModel
+                                        (model |> openSwitcher docModel)
+                                        (passThroughTo docModel)
 
-                        ( "down", FileSwitcher switcherModel ) ->
-                            ( { model | modalState = FileSwitcher (Doc.Switcher.down switcherModel) }, Cmd.none )
+                                "esc" ->
+                                    ( { model | modalState = NoModal }, Cmd.none )
 
-                        ( "up", FileSwitcher switcherModel ) ->
-                            ( { model | modalState = FileSwitcher (Doc.Switcher.up switcherModel) }, Cmd.none )
+                                _ ->
+                                    ( model, Cmd.none )
 
-                        ( "w", Wordcount _ ) ->
-                            ( { model | modalState = NoModal }, Cmd.none )
+                        HelpScreen ->
+                            case shortcut of
+                                "?" ->
+                                    ( { model | modalState = NoModal }, Cmd.none )
 
-                        ( "w", NoModal ) ->
-                            normalMode docModel
-                                ( { model | modalState = Wordcount docModel }, Cmd.none )
-                                (passThroughTo docModel)
+                                "mod+o" ->
+                                    normalMode docModel
+                                        (model |> openSwitcher docModel)
+                                        (passThroughTo docModel)
 
-                        ( "?", HelpScreen ) ->
-                            ( { model | modalState = NoModal }, Cmd.none )
+                                "esc" ->
+                                    ( { model | modalState = NoModal }, Cmd.none )
 
-                        ( "?", NoModal ) ->
-                            normalMode docModel
-                                ( { model | modalState = HelpScreen }, Cmd.none )
-                                (passThroughTo docModel)
+                                _ ->
+                                    ( model, Cmd.none )
 
-                        ( "esc", NoModal ) ->
-                            passThroughTo docModel
+                        NoModal ->
+                            case shortcut of
+                                "w" ->
+                                    normalMode docModel
+                                        ( { model | modalState = Wordcount docModel }, Cmd.none )
+                                        (passThroughTo docModel)
 
-                        ( "esc", _ ) ->
-                            ( { model | fileSearchField = "", modalState = NoModal }, Cmd.none )
+                                "?" ->
+                                    normalMode docModel
+                                        ( { model | modalState = HelpScreen }, Cmd.none )
+                                        (passThroughTo docModel)
+
+                                "mod+o" ->
+                                    normalMode docModel
+                                        (model |> openSwitcher docModel)
+                                        (passThroughTo docModel)
+
+                                _ ->
+                                    passThroughTo docModel
 
                         _ ->
-                            passThroughTo docModel
+                            case shortcut of
+                                "esc" ->
+                                    ( { model | modalState = NoModal }, Cmd.none )
+
+                                "mod+o" ->
+                                    normalMode docModel
+                                        (model |> openSwitcher docModel)
+                                        (passThroughTo docModel)
+
+                                _ ->
+                                    passThroughTo docModel
 
                 ( TestTextImportLoaded files, _ ) ->
                     case model.modalState of
