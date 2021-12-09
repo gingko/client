@@ -56,10 +56,12 @@ describe('Loading indicators', () => {
     cy.getCard(2,1,1)
       .should('have.class', 'active')
 
+    cy.wait(400)
+
     // Reload
     cy.reload()
 
-    cy.wait(200)
+    cy.wait(400)
 
     // First child should still be selected
     cy.getCard(2,1,1)
@@ -81,6 +83,8 @@ describe('Loading indicators', () => {
 
     cy.getCard(2,1,2)
       .should('have.class', 'active')
+
+    cy.wait(400)
 
     // Go back to first document
     cy.get('#sidebar-document-list-wrap').contains('Another doc, with title').click()
