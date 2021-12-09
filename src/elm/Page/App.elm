@@ -35,7 +35,7 @@ import Svg.Attributes
 import Task
 import Time
 import Translation exposing (Language, langToString)
-import Types exposing (HeaderMenuState(..), SidebarMenuState(..), SidebarState(..), SortBy(..), TooltipPosition, Tree)
+import Types exposing (HeaderMenuState(..), SidebarMenuState(..), SidebarState(..), SortBy(..), TooltipPosition, Tree, ViewMode(..))
 import Upgrade exposing (Msg(..))
 
 
@@ -317,13 +317,31 @@ update msg model =
                             ( { model | modalState = NoModal }, Cmd.none )
 
                         ( "mod+o", _ ) ->
-                            model |> openSwitcher docModel
+                            normalMode docModel
+                                (model |> openSwitcher docModel)
+                                (passThroughTo docModel)
 
                         ( "down", FileSwitcher switcherModel ) ->
                             ( { model | modalState = FileSwitcher (Doc.Switcher.down switcherModel) }, Cmd.none )
 
                         ( "up", FileSwitcher switcherModel ) ->
                             ( { model | modalState = FileSwitcher (Doc.Switcher.up switcherModel) }, Cmd.none )
+
+                        ( "w", Wordcount _ ) ->
+                            ( { model | modalState = NoModal }, Cmd.none )
+
+                        ( "w", NoModal ) ->
+                            normalMode docModel
+                                ( { model | modalState = Wordcount docModel }, Cmd.none )
+                                (passThroughTo docModel)
+
+                        ( "?", HelpScreen ) ->
+                            ( { model | modalState = NoModal }, Cmd.none )
+
+                        ( "?", NoModal ) ->
+                            normalMode docModel
+                                ( { model | modalState = HelpScreen }, Cmd.none )
+                                (passThroughTo docModel)
 
                         ( "esc", NoModal ) ->
                             passThroughTo docModel
@@ -823,6 +841,15 @@ update msg model =
 
                 _ ->
                     ( { model | modalState = NoModal }, Cmd.none )
+
+
+normalMode : Page.Doc.Model -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+normalMode docModel modified noOp =
+    if docModel.viewState.viewMode == Normal then
+        modified
+
+    else
+        noOp
 
 
 openSwitcher : Page.Doc.Model -> Model -> ( Model, Cmd Msg )
