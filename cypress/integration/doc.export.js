@@ -20,7 +20,7 @@ describe('Document Exporting', () => {
     cy.url().should('contain', this.treeIds[0] )
     cy.get('div.spinner', {timeout: 20000}).should('not.exist')
 
-    cy.contains('Two noble families')
+    cy.contains('Two noble families', {timeout: 20000})
 
     // Select a mid-column card
     cy.getCard(1,1,1)
