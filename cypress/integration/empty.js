@@ -28,13 +28,6 @@ describe('Empty State', () => {
         .click()
 
       cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
-
-      cy.get('textarea')
-        .should('have.focus')
-      cy.writeInCard('words')
-      cy.shortcut('{ctrl}{enter}')
-
-      cy.contains('Synced')
     })
 
     describe('Goes back to Empty page on deletion', () => {
