@@ -16,36 +16,42 @@ describe('Empty State', () => {
     Cypress.Cookies.preserveOnce('AuthSession')
   })
 
-  it('Shows Empty page', ()=> {
+  it('Shows Empty page when appropriate', ()=> {
     cy.url().should('eq', config.TEST_SERVER + '/')
     cy.contains("You don't have any documents")
-  })
 
-  it('Goes to newly created tree', () => {
-    cy.get('#new-button').click()
+    describe('Goes to newly created tree', () => {
+      cy.get('#new-button').click()
 
-    cy.get('#templates-block')
-      .get('#template-new')
-      .click()
+      cy.get('#templates-block')
+        .get('#template-new')
+        .click()
 
-    cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
+      cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
 
-    cy.writeInCard('words')
-    cy.shortcut('{ctrl}{enter}')
+      cy.get('textarea')
+        .should('have.focus')
+      cy.writeInCard('words')
+      cy.shortcut('{ctrl}{enter}')
 
-    cy.contains('Synced')
-  })
+      cy.contains('Synced')
+    })
 
-  it('Goes back to Empty page on deletion', () => {
-    cy.get('#documents-icon').click()
+    describe('Goes back to Empty page on deletion', () => {
+      cy.get('#documents-icon').click()
 
-    cy.get('#sidebar-document-list-wrap .sidebar-document-item')
-      .first()
-      .rightclick()
+      cy.get('#sidebar-document-list-wrap .sidebar-document-item')
+        .first()
+        .rightclick()
 
-    cy.contains('Delete Tree')
-      .click()
+      cy.contains('Delete Tree')
+        .click()
 
-    cy.url().should('equal', config.TEST_SERVER + '/')
+      cy.url().should('equal', config.TEST_SERVER + '/')
+
+      cy.get('#no-documents')
+
+      cy.contains("You don't have any documents")
+    })
   })
 })
