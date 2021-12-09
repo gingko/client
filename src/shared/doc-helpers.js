@@ -24,7 +24,7 @@ var setTextarea = (m, f) => {
 
 var scrollHorizontal = (colIdx, instant) => {
   lastColumnIdx = colIdx;
-  _.delay(scrollHorizTo, 20, colIdx, instant);
+  scrollHorizTo(colIdx, instant)
 };
 
 var scrollColumns = (scrollInfo) => {
@@ -47,12 +47,12 @@ var scrollColumns = (scrollInfo) => {
         positionParam = "bottom"
         break;
     }
-    _.delay(scrollTo, 20, column.scrollData.target, column.columnIdx, scrollInfo.instant, positionParam);
+    scrollTo(column.scrollData.target, column.columnIdx, scrollInfo.instant, positionParam)
   });
 }
 
 var scrollFullscreen = function (cid) {
-  _.delay(scrollFullscreenTo, 20, cid);
+  scrollFullscreenTo(cid)
 }
 
 var scrollFullscreenTo = function (cid) {

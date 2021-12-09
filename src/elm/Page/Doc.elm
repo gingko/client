@@ -90,7 +90,7 @@ init isNew session docId =
             |> toDebouncer
     , uid = "0"
     , viewState =
-        { active = "0"
+        { active = "1"
         , viewMode =
             if isNew then
                 Editing
