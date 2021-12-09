@@ -308,7 +308,7 @@ view : Model -> Document Msg
 view model =
     case model of
         Redirect _ ->
-            { title = "Gingko Writer - Loading...", body = [ UI.viewLoadingSpinner False ] }
+            { title = "Gingko Writer - Loading...", body = [ UI.viewAppLoadingSpinner False ] }
 
         NotFound _ ->
             Page.NotFound.view
@@ -329,10 +329,10 @@ view model =
             { title = "Gingko - Reset Password", body = [ Html.map GotResetPasswordMsg (Page.ResetPassword.view resetPass) ] }
 
         Copy copyModel ->
-            { title = "Duplicating...", body = [ UI.viewLoadingSpinner (Session.fileMenuOpen copyModel.session) ] }
+            { title = "Duplicating...", body = [ UI.viewAppLoadingSpinner (Session.fileMenuOpen copyModel.session) ] }
 
         Import importModel ->
-            { title = "Importing...", body = [ UI.viewLoadingSpinner (Session.fileMenuOpen importModel) ] }
+            { title = "Importing...", body = [ UI.viewAppLoadingSpinner (Session.fileMenuOpen importModel) ] }
 
         DocNew _ ->
             { title = "Gingko Writer - New", body = [ Html.div [] [ Html.text "LOADING..." ] ] }

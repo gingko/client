@@ -1,4 +1,4 @@
-module Doc.UI exposing (countWords, fillet, viewBreadcrumbs, viewConflict, viewHeader, viewLoadingSpinner, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewTooltip, viewWordCount)
+module Doc.UI exposing (countWords, fillet, viewAppLoadingSpinner, viewBreadcrumbs, viewConflict, viewDocumentLoadingSpinner, viewHeader, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewTooltip, viewWordCount)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -689,8 +689,8 @@ viewSidebarStatic sidebarOpen =
     ]
 
 
-viewLoadingSpinner : Bool -> Html msg
-viewLoadingSpinner sidebarOpen =
+viewAppLoadingSpinner : Bool -> Html msg
+viewAppLoadingSpinner sidebarOpen =
     div [ id "app-root", class "loading" ]
         ([ div [ id "document-header" ] []
          , div [ id "loading-overlay" ] []
@@ -698,6 +698,14 @@ viewLoadingSpinner sidebarOpen =
          ]
             ++ viewSidebarStatic sidebarOpen
         )
+
+
+viewDocumentLoadingSpinner : List (Html msg)
+viewDocumentLoadingSpinner =
+    [ div [ id "document-header" ] []
+    , div [ id "loading-overlay" ] []
+    , div [ class "spinner" ] [ div [ class "bounce1" ] [], div [ class "bounce2" ] [], div [ class "bounce3" ] [] ]
+    ]
 
 
 

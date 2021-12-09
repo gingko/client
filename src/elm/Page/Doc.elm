@@ -30,7 +30,6 @@ import Outgoing exposing (Msg(..), send)
 import Page.Doc.Export as Export exposing (ExportFormat(..), ExportSelection(..), exportView, exportViewError)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Doc.Theme as Theme exposing (Theme(..))
-import Process
 import Random
 import Regex
 import Session exposing (PaymentStatus(..), Session)
@@ -163,7 +162,6 @@ type Msg
     | SetSelection String Selection String
     | Resolve String
       -- === UI ===
-    | LoadingDone
     | TitleFocused
     | TitleFieldChanged String
     | TitleEdited
@@ -509,9 +507,6 @@ update msg ({ workingTree } as model) =
                 |> addToHistory
 
         -- === UI ===
-        LoadingDone ->
-            ( { model | loading = False }, Cmd.none )
-
         TitleFocused ->
             case model.titleField of
                 Nothing ->
@@ -2152,16 +2147,13 @@ dataReceived dataIn model =
             in
             ( { model
                 | data = newModel
+                , loading = False
                 , workingTree = newWorkingTree
                 , lastLocalSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
                 , lastRemoteSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
                 , startingWordcount = startingWordcount
               }
-            , if model.loading then
-                Process.sleep 100 |> Task.perform (always LoadingDone)
-
-              else
-                Cmd.none
+            , Cmd.none
             )
 
         Nothing ->
@@ -2190,7 +2182,16 @@ type alias AppMsgs msg =
 
 
 view : AppMsgs msg -> Model -> List (Html msg)
-view ({ docMsg } as appMsg) model =
+view appMsg model =
+    if model.loading then
+        UI.viewDocumentLoadingSpinner
+
+    else
+        viewLoaded appMsg model
+
+
+viewLoaded : AppMsgs msg -> Model -> List (Html msg)
+viewLoaded ({ docMsg } as appMsg) model =
     let
         language =
             Session.language model.session

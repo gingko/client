@@ -948,7 +948,7 @@ view ({ documentState } as model) =
 
         Empty _ ->
             if model.loading then
-                UI.viewLoadingSpinner (Session.fileMenuOpen session)
+                UI.viewAppLoadingSpinner (Session.fileMenuOpen session)
 
             else
                 div [ id "app-root", classList [ ( "loading", model.loading ) ] ]
