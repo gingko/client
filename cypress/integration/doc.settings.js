@@ -84,7 +84,7 @@ describe('Loading indicators', () => {
     cy.getCard(2,1,2)
       .should('have.class', 'active')
 
-    cy.wait(400)
+    cy.wait(4000)
 
     // Go back to first document
     cy.get('#sidebar-document-list-wrap').contains('Another doc, with title').click()
