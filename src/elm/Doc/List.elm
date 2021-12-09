@@ -191,44 +191,45 @@ viewSidebarList msgs currentDocId sortCriteria contextTarget_ filterField model 
                 [ div [ id "sidebar-document-list" ] [ text "" ] ]
 
         Success filteredDocs ->
-            if List.length filteredDocs == 0 then
-                div [ id "sidebar-document-list-wrap" ]
-                    [ div [ id "no-documents" ] [ text "No documents" ] ]
-
-            else
-                div [ id "sidebar-document-list-wrap" ]
-                    [ div [ id "document-list-buttons", onClickStop msgs.noOp ]
-                        [ div
-                            [ id "sort-alphabetical"
-                            , class "sort-button"
-                            , classList [ ( "selected", sortCriteria == Alphabetical ) ]
-                            , onClickStop <| msgs.changeSortBy Alphabetical
-                            , onMouseEnter <| msgs.tooltipRequested "sort-alphabetical" AboveTooltip "Sort by Name"
-                            , onMouseLeave msgs.tooltipClosed
-                            ]
-                            [ text "Abc" ]
-                        , div
-                            [ id "sort-modified"
-                            , class "sort-button"
-                            , classList [ ( "selected", sortCriteria == ModifiedAt ) ]
-                            , onClickStop <| msgs.changeSortBy ModifiedAt
-                            , onMouseEnter <| msgs.tooltipRequested "sort-modified" AboveTooltip "Sort by Last Modified"
-                            , onMouseLeave msgs.tooltipClosed
-                            ]
-                            [ AntIcons.editOutlined [ Svg.Attributes.class "sort-icon" ] ]
-                        , div
-                            [ id "sort-created"
-                            , class "sort-button"
-                            , classList [ ( "selected", sortCriteria == CreatedAt ) ]
-                            , onClickStop <| msgs.changeSortBy CreatedAt
-                            , onMouseEnter <| msgs.tooltipRequested "sort-created" AboveTooltip "Sort by Date Created"
-                            , onMouseLeave msgs.tooltipClosed
-                            ]
-                            [ AntIcons.fileOutlined [ Svg.Attributes.class "sort-icon" ] ]
+            div [ id "sidebar-document-list-wrap" ]
+                [ div [ id "document-list-buttons", onClickStop msgs.noOp ]
+                    [ div
+                        [ id "sort-alphabetical"
+                        , class "sort-button"
+                        , classList [ ( "selected", sortCriteria == Alphabetical ) ]
+                        , onClickStop <| msgs.changeSortBy Alphabetical
+                        , onMouseEnter <| msgs.tooltipRequested "sort-alphabetical" AboveTooltip "Sort by Name"
+                        , onMouseLeave msgs.tooltipClosed
                         ]
-                    , input [ id "document-list-filter", placeholder "Find file by name", type_ "search", onInput msgs.filter, stopClickProp ] []
-                    , div [ id "sidebar-document-list" ] (List.map viewDocItem (sortBy sortCriteria filteredDocs))
+                        [ text "Abc" ]
+                    , div
+                        [ id "sort-modified"
+                        , class "sort-button"
+                        , classList [ ( "selected", sortCriteria == ModifiedAt ) ]
+                        , onClickStop <| msgs.changeSortBy ModifiedAt
+                        , onMouseEnter <| msgs.tooltipRequested "sort-modified" AboveTooltip "Sort by Last Modified"
+                        , onMouseLeave msgs.tooltipClosed
+                        ]
+                        [ AntIcons.editOutlined [ Svg.Attributes.class "sort-icon" ] ]
+                    , div
+                        [ id "sort-created"
+                        , class "sort-button"
+                        , classList [ ( "selected", sortCriteria == CreatedAt ) ]
+                        , onClickStop <| msgs.changeSortBy CreatedAt
+                        , onMouseEnter <| msgs.tooltipRequested "sort-created" AboveTooltip "Sort by Date Created"
+                        , onMouseLeave msgs.tooltipClosed
+                        ]
+                        [ AntIcons.fileOutlined [ Svg.Attributes.class "sort-icon" ] ]
                     ]
+                , input [ id "document-list-filter", placeholder "Find file by name", type_ "search", onInput msgs.filter, stopClickProp ] []
+                , div [ id "sidebar-document-list" ]
+                    (if not <| List.isEmpty filteredDocs then
+                        List.map viewDocItem (sortBy sortCriteria filteredDocs)
+
+                     else
+                        [ div [ id "no-documents" ] [ text "No Documents Found" ] ]
+                    )
+                ]
 
         Failure _ ->
             text "Failed to load documents list."

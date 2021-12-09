@@ -76,6 +76,29 @@ describe('Managing Documents', () => {
       cy.url().should('contain', this.treeIds[0] )
       cy.contains('abc')
 
+      describe('Filters by name correctly in sidebar', () => {
+        cy.get('#document-list-filter').type('-u')
+
+        cy.get('#sidebar-document-list-wrap .sidebar-document-item', {timeout: 20000})
+          .should('have.length', 1)
+          .should('contain', 'tree-u')
+          .should('not.contain', 'tree-a')
+          .should('not.contain', 'tree-1')
+
+        cy.get('#document-list-filter').type('x')
+
+        cy.get('#no-documents')
+          .should('be.visible')
+
+        cy.get('#sidebar-document-list-wrap .sidebar-document-item', {timeout: 20000})
+          .should('not.exist')
+
+        cy.get('#document-list-filter').type('{selectall}{backspace}')
+
+        cy.get('#sidebar-document-list-wrap .sidebar-document-item', {timeout: 20000})
+          .should('have.length', 4)
+      })
+
       // Should have a working context menu
       // Menu opens on right click
       cy.get('#sidebar-document-list-wrap .sidebar-document-item:nth-child(2)')
