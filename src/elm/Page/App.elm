@@ -27,6 +27,7 @@ import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
 import Page.Doc exposing (Msg(..))
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
+import Page.Doc.Theme exposing (applyTheme)
 import Page.Empty
 import RandomId
 import Route
@@ -921,7 +922,7 @@ view ({ documentState } as model) =
     in
     case documentState of
         Doc doc ->
-            div [ id "app-root", classList [ ( "loading", model.loading ) ] ]
+            div [ id "app-root", classList [ ( "loading", model.loading ) ], applyTheme doc.theme ]
                 (Page.Doc.view
                     { docMsg = GotDocMsg
                     , keyboard = \s -> Incoming (Keyboard s)
