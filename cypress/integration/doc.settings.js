@@ -79,7 +79,7 @@ describe('Loading indicators', () => {
       .should('have.class', 'active-descendant')
 
     // Select second child
-    cy.shortcut('{rightArrow}{downArrow}')
+    cy.shortcut('{rightArrow}{downArrow}', {delay: 250})
 
     cy.getCard(2,1,2)
       .should('have.class', 'active')
