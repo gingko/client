@@ -33,6 +33,8 @@ describe('Document Editing', () => {
     cy.contains('New Document...')
 
     // Can edit and save card
+    cy.wait(250)
+
     cy.get('textarea').should('have.focus')
       .type('Hello World :)')
 

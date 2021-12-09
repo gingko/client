@@ -44,11 +44,11 @@ describe('Loading indicators', () => {
     cy.get('#app-root')
       .contains('Another Test doc')
 
-    cy.get('#loading-overlay')
-      .should('not.exist')
-
     cy.getCard(1,1,1)
       .should('have.class', 'active')
+
+    cy.getGroup(2,1)
+      .should('have.class', 'active-descendant')
 
     // Select first child
     cy.shortcut('{rightArrow}')
@@ -58,9 +58,6 @@ describe('Loading indicators', () => {
 
     // Reload
     cy.reload()
-
-    cy.get('#loading-overlay')
-      .should('not.exist')
 
     cy.wait(200)
 
@@ -73,11 +70,11 @@ describe('Loading indicators', () => {
 
     cy.get('#sidebar-document-list-wrap').contains('Untitled').click()
 
-    cy.get('#loading-overlay')
-      .should('not.exist')
-
     cy.getCard(1,1,1)
       .should('have.class', 'active')
+
+    cy.getGroup(2,1)
+      .should('have.class', 'active-descendant')
 
     // Select second child
     cy.shortcut('{rightArrow}{downArrow}')
@@ -88,18 +85,12 @@ describe('Loading indicators', () => {
     // Go back to first document
     cy.get('#sidebar-document-list-wrap').contains('Another doc, with title').click()
 
-    cy.get('#loading-overlay')
-      .should('not.exist')
-
     // First child should still be selected
     cy.getCard(2,1,1)
       .should('have.class', 'active')
 
     // Go back to second document
     cy.get('#sidebar-document-list-wrap').contains('Untitled').click()
-
-    cy.get('#loading-overlay')
-      .should('not.exist')
 
     // Second child should still be selected
     cy.getCard(2,1,2)
