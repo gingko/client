@@ -3,37 +3,25 @@ module Page.Doc exposing (Model, Msg(..), incoming, init, subscriptions, toUser,
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
 import Bytes exposing (Bytes)
-import Coders exposing (sortByEncoder, treeToMarkdownString, treeToValue)
+import Coders exposing (treeToMarkdownString, treeToValue)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
-import Doc.ContactForm as ContactForm
 import Doc.Data as Data
 import Doc.Data.Conflict exposing (Selection)
 import Doc.Fonts as Fonts
 import Doc.Fullscreen as Fullscreen
-import Doc.HelpScreen as HelpScreen
-import Doc.List as DocList exposing (Model(..))
 import Doc.Metadata as Metadata exposing (Metadata)
-import Doc.Switcher
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Doc.UI as UI exposing (countWords, viewConflict, viewMobileButtons, viewSearchField)
-import Doc.VideoViewer as VideoViewer
-import File exposing (File)
 import File.Download as Download
-import File.Select as Select
-import Html exposing (Attribute, Html, div, h1, span, text, textarea, ul)
-import Html.Attributes as Attributes exposing (attribute, class, classList, dir, id, style, title, value)
+import Html exposing (Attribute, Html, div, span, text, textarea, ul)
+import Html.Attributes as Attributes exposing (attribute, class, classList, dir, id, title, value)
 import Html.Events exposing (custom, onClick, onDoubleClick, onInput)
 import Html.Extra exposing (viewIf)
 import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy2, lazy3, lazy4, lazy7, lazy8)
 import Html5.DragDrop as DragDrop
 import Http
-import Import.Bulk.UI as ImportModal
-import Import.Incoming
-import Import.Opml
-import Import.Single
-import Import.Text as ImportText
 import Json.Decode as Json
 import Json.Encode as Enc
 import List.Extra as ListExtra
@@ -41,21 +29,15 @@ import Markdown
 import Outgoing exposing (Msg(..), send)
 import Page.Doc.Export as Export exposing (ExportFormat(..), ExportSelection(..), exportView, exportViewError)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
-import Page.Doc.Theme as Theme exposing (Theme(..), applyTheme)
+import Page.Doc.Theme as Theme exposing (Theme(..))
 import Process
 import Random
-import RandomId
 import Regex
-import Route
 import Session exposing (PaymentStatus(..), Session)
-import SharedUI exposing (ctrlOrCmdText)
-import Svg exposing (circle, mask, rect, svg)
-import Svg.Attributes exposing (cx, cy, height, preserveAspectRatio, r, rx, ry, viewBox, width, x, y)
 import Task
 import Time
-import Translation exposing (Language, TranslationId(..), langToString, tr)
+import Translation exposing (Language, TranslationId(..), tr)
 import Types exposing (..)
-import Upgrade exposing (Msg(..))
 import Utils exposing (randomPositiveInt)
 
 
@@ -669,10 +651,8 @@ update msg ({ workingTree } as model) =
         Exported _ (Err _) ->
             ( model, Cmd.none )
 
-        LogErr err ->
-            ( model
-            , send (ConsoleLogRequested err)
-            )
+        LogErr _ ->
+            ( model, Cmd.none )
 
         NoOp ->
             ( model
@@ -1232,7 +1212,7 @@ incoming incomingMsg model =
             )
 
         -- === INTEGRATION TEST HOOKS ===
-        TestTextImportLoaded files ->
+        TestTextImportLoaded _ ->
             ( model, Cmd.none )
 
 
@@ -1530,7 +1510,7 @@ openCardFullscreen id str ( model, prevCmd ) =
                         m.viewState
                 in
                 ( { m | viewState = { vs | active = id, viewMode = FullscreenEditing }, field = str }
-                , focus id
+                , Cmd.batch [ c, focus id ]
                 )
            )
 
@@ -2653,10 +2633,6 @@ viewCardActive lang cardId content isParent isLast collabsOnCard collabsEditingC
 
 viewCardEditing : Language -> String -> String -> Bool -> Bool -> Html Msg
 viewCardEditing lang cardId content isParent isMac =
-    let
-        ctrlOrCmd =
-            ctrlOrCmdText isMac
-    in
     div
         [ id ("card-" ++ cardId)
         , dir "auto"

@@ -1,7 +1,7 @@
 module Page.App exposing (Model, Msg, getTitle, init, isDirty, subscriptions, toSession, update, view)
 
 import Ant.Icons.Svg as AntIcons
-import Browser.Dom exposing (Element, focus)
+import Browser.Dom exposing (Element)
 import Coders exposing (sortByEncoder)
 import Doc.ContactForm as ContactForm
 import Doc.Data as Data
@@ -172,66 +172,68 @@ updateSession newSession ({ documentState } as model) =
 
 type Msg
     = NoOp
-    | TemplateSelectorOpened
-    | EmptyMessage
-    | SwitcherOpened
-    | SwitcherClosed
-    | WordcountModalOpened Page.Doc.Model
-    | ModalClosed
-    | ImportBulkClicked
-    | ImportTextClicked
-    | ImportOpmlRequested
-    | ImportJSONRequested
-    | SidebarStateChanged SidebarState
-    | FileSearchChanged String
+    | GotDocMsg Page.Doc.Msg
+    | LoginStateChanged Session
     | TimeUpdate Time.Posix
+    | SettingsChanged Json.Value
+    | LogoutRequested
+    | Incoming Incoming.Msg
+    | LogErr String
+      -- Sidebar
+    | TemplateSelectorOpened
+    | SortByChanged SortBy
+    | SidebarStateChanged SidebarState
+    | SidebarContextClicked String ( Float, Float )
     | DuplicateDoc String
     | DeleteDoc String
+    | ReceivedDocuments DocList.Model
+    | SwitcherOpened
+    | SwitcherClosed
+      -- HELP Modal
+    | ToggledHelpMenu Bool
+    | ClickedShowVideos
     | VideoViewerOpened
     | VideoViewerMsg VideoViewer.Msg
-    | ReceivedDocuments DocList.Model
-    | SettingsChanged Json.Value
-    | LoginStateChanged Session
-    | ToggledUpgradeModal Bool
-    | UpgradeModalMsg Upgrade.Msg
-      -- HELP
-    | ClickedShowVideos
     | ClickedShowWidget
     | ClickedEmailSupport
     | ContactFormMsg ContactForm.Model ContactForm.Msg
     | CopyEmailClicked Bool
     | ContactFormSubmitted ContactForm.Model
     | ContactFormSent (Result Http.Error ())
+      -- Account menu
+    | ToggledAccountMenu Bool
+    | LanguageMenuRequested (Maybe String)
+    | LanguageMenuReceived Element
+    | LanguageChanged Language
       -- Import
+    | ImportBulkClicked
+    | ImportBulkCompleted
+    | ImportTextClicked
     | ImportModalMsg ImportModal.Msg
     | ImportTextModalMsg ImportText.Msg
     | ImportTextLoaded ImportText.Settings (List String) (List String)
     | ImportTextIdGenerated Tree (Maybe String) String
+    | ImportOpmlRequested
     | ImportOpmlSelected File
     | ImportOpmlLoaded String String
     | ImportOpmlIdGenerated Tree String String
     | ImportOpmlCompleted String
+    | ImportJSONRequested
     | ImportJSONSelected File
     | ImportJSONLoaded String String
     | ImportJSONIdGenerated Tree String String
     | ImportJSONCompleted String
-    | ImportBulkCompleted
       -- Misc UI
-    | LanguageChanged Language
-    | GotDocMsg Page.Doc.Msg
+    | ToggledUpgradeModal Bool
+    | UpgradeModalMsg Upgrade.Msg
+    | WordcountModalOpened Page.Doc.Model
+    | FileSearchChanged String
     | TooltipRequested String TooltipPosition String
     | TooltipReceived Element TooltipPosition String
     | TooltipClosed
     | FullscreenRequested
-    | ToggledHelpMenu Bool
-    | LanguageMenuRequested (Maybe String)
-    | LanguageMenuReceived Element
-    | ToggledAccountMenu Bool
-    | LogoutRequested
-    | SidebarContextClicked String ( Float, Float )
-    | SortByChanged SortBy
-    | Incoming Incoming.Msg
-    | LogErr String
+    | EmptyMessage
+    | ModalClosed
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -241,131 +243,128 @@ update msg model =
             toSession model
     in
     case msg of
-        ToggledHelpMenu isOpen ->
-            ( { model | modalState = HelpScreen }, Cmd.none )
+        NoOp ->
+            ( model, Cmd.none )
 
-        LanguageMenuRequested elId_ ->
-            case ( elId_, model.sidebarMenuState ) of
-                ( Just elId, Account _ ) ->
-                    ( model
-                    , Browser.Dom.getElement elId
-                        |> Task.attempt
-                            (\result ->
-                                case result of
-                                    Ok el ->
-                                        LanguageMenuReceived el
-
-                                    Err _ ->
-                                        NoOp
-                            )
-                    )
-
-                _ ->
-                    ( { model | sidebarMenuState = Account Nothing }, Cmd.none )
-
-        LanguageMenuReceived el ->
-            ( { model | sidebarMenuState = Account (Just el) }, Cmd.none )
-
-        ToggledAccountMenu isOpen ->
-            let
-                ( newDropdownState, newSidebarState ) =
-                    if isOpen then
-                        ( Account Nothing, SidebarClosed )
-
-                    else
-                        ( NoSidebarMenu, model.sidebarState )
-            in
-            ( { model
-                | sidebarMenuState = newDropdownState
-                , sidebarState = newSidebarState
-                , tooltip = Nothing
-              }
-            , Cmd.none
-            )
-
-        ToggledUpgradeModal isOpen ->
-            ( { model
-                | modalState =
-                    if isOpen then
-                        UpgradeModal
-
-                    else
-                        NoModal
-              }
-            , Cmd.none
-            )
-
-        UpgradeModalMsg upgradeModalMsg ->
-            case upgradeModalMsg of
-                UpgradeModalClosed ->
-                    ( { model | modalState = NoModal }, Cmd.none )
-
-                CheckoutClicked checkoutData ->
-                    case Session.name session of
-                        Just email ->
-                            let
-                                data =
-                                    Upgrade.toValue email checkoutData
-                            in
-                            ( model, send <| CheckoutButtonClicked data )
-
-                        Nothing ->
-                            ( model, Cmd.none )
-
-                _ ->
+        GotDocMsg docMsg ->
+            case model.documentState of
+                Doc docModel ->
                     let
-                        newSession =
-                            Session.updateUpgrade upgradeModalMsg session
-
-                        maybeFlash =
-                            case upgradeModalMsg of
-                                PlanChanged _ ->
-                                    send <| FlashPrice
-
-                                _ ->
-                                    Cmd.none
+                        ( newDocModel, newCmd ) =
+                            Page.Doc.update docMsg docModel
+                                |> Tuple.mapSecond (Cmd.map GotDocMsg)
                     in
-                    ( model |> updateSession newSession, maybeFlash )
+                    case docMsg of
+                        -- TODO: Removing tooltips is the only reason Doc.Msgs is fully exposed
+                        ShortcutTrayToggle ->
+                            ( { model | documentState = Doc newDocModel, tooltip = Nothing }, newCmd )
 
-        ClickedShowVideos ->
-            ( { model | modalState = VideoViewer VideoViewer.init, sidebarMenuState = NoSidebarMenu }, Cmd.none )
+                        DocSettingsToggled _ ->
+                            ( { model | documentState = Doc newDocModel, tooltip = Nothing }, Cmd.none )
 
-        ClickedShowWidget ->
-            ( { model | modalState = NoModal }, send <| ShowWidget )
+                        HistoryToggled _ ->
+                            ( { model | documentState = Doc newDocModel, tooltip = Nothing }, Cmd.none )
 
-        ClickedEmailSupport ->
-            let
-                fromEmail =
-                    Session.name session
-                        |> Maybe.withDefault ""
-            in
-            ( { model | modalState = ContactForm (ContactForm.init fromEmail), sidebarMenuState = NoSidebarMenu }
-            , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "contact-body")
+                        ExportPreviewToggled _ ->
+                            ( { model | documentState = Doc newDocModel, tooltip = Nothing }, Cmd.none )
+
+                        _ ->
+                            ( { model | documentState = Doc newDocModel }, newCmd )
+
+                Empty _ ->
+                    ( model, Cmd.none )
+
+        LoginStateChanged newSession ->
+            ( model |> updateSession newSession, Route.pushUrl (Session.navKey newSession) Route.Login )
+
+        TimeUpdate time ->
+            ( model |> updateSession (Session.updateTime time session)
+            , Cmd.none
             )
 
-        ContactFormMsg formModel formMsg ->
-            ( { model | modalState = ContactForm (ContactForm.update formMsg formModel) }, Cmd.none )
+        SettingsChanged json ->
+            ( model |> updateSession (Session.sync json session), Cmd.none )
 
         LogoutRequested ->
             ( model, Session.logout )
 
-        CopyEmailClicked isUrgent ->
-            if isUrgent then
-                ( model, send <| CopyToClipboard "{%SUPPORT_URGENT_EMAIL%}" "#email-copy-btn" )
+        Incoming incomingMsg ->
+            let
+                doNothing =
+                    ( model, Cmd.none )
 
-            else
-                ( model, send <| CopyToClipboard "{%SUPPORT_EMAIL%}" "#email-copy-btn" )
+                passThroughTo docModel =
+                    Page.Doc.incoming incomingMsg docModel
+                        |> (\( d, c ) ->
+                                ( { model | documentState = Doc d }, Cmd.map GotDocMsg c )
+                           )
+            in
+            case ( incomingMsg, model.documentState ) of
+                ( DataReceived _, Empty _ ) ->
+                    ( model, Cmd.none )
 
-        ContactFormSubmitted formModel ->
-            ( model, ContactForm.send ContactFormSent formModel )
+                ( Keyboard shortcut, Doc docModel ) ->
+                    case ( shortcut, model.modalState ) of
+                        ( "enter", FileSwitcher switcherModel ) ->
+                            case switcherModel.selectedDocument of
+                                Just docId ->
+                                    ( model, Route.pushUrl (Session.navKey session) (Route.DocUntitled docId) )
 
-        ContactFormSent res ->
-            case res of
-                Ok _ ->
-                    ( { model | modalState = NoModal }, Cmd.none )
+                                Nothing ->
+                                    ( model, Cmd.none )
+
+                        ( "mod+o", FileSwitcher _ ) ->
+                            ( { model | modalState = NoModal }, Cmd.none )
+
+                        ( "mod+o", _ ) ->
+                            model |> openSwitcher docModel
+
+                        ( "down", FileSwitcher switcherModel ) ->
+                            ( { model | modalState = FileSwitcher (Doc.Switcher.down switcherModel) }, Cmd.none )
+
+                        ( "up", FileSwitcher switcherModel ) ->
+                            ( { model | modalState = FileSwitcher (Doc.Switcher.up switcherModel) }, Cmd.none )
+
+                        ( "esc", NoModal ) ->
+                            passThroughTo docModel
+
+                        ( "esc", _ ) ->
+                            ( { model | fileSearchField = "", modalState = NoModal }, Cmd.none )
+
+                        _ ->
+                            passThroughTo docModel
+
+                ( TestTextImportLoaded files, _ ) ->
+                    case model.modalState of
+                        ImportTextModal modalState ->
+                            ( { model | modalState = ImportText.setFileList files modalState |> Debug.log "TestTextImportLoaded" |> ImportTextModal }
+                            , Cmd.none
+                            )
+
+                        _ ->
+                            doNothing
+
+                ( _, Doc docModel ) ->
+                    passThroughTo docModel
 
                 _ ->
-                    ( model, Cmd.none )
+                    doNothing
+
+        LogErr err ->
+            ( model
+            , send (ConsoleLogRequested err)
+            )
+
+        -- Sidebar
+        TemplateSelectorOpened ->
+            ( { model | modalState = TemplateSelector }, Cmd.none )
+
+        SortByChanged newSort ->
+            let
+                newSession =
+                    Session.setSortBy newSort session
+            in
+            ( model |> updateSession newSession, send <| SaveUserSetting ( "sortBy", sortByEncoder newSort ) )
 
         SidebarStateChanged newSidebarState ->
             let
@@ -394,17 +393,14 @@ update msg model =
             , maybeSaveSidebarState
             )
 
-        TemplateSelectorOpened ->
-            ( { model | modalState = TemplateSelector }, Cmd.none )
+        SidebarContextClicked docId ( x, y ) ->
+            ( { model | modalState = SidebarContextMenu docId ( x, y ) }, Cmd.none )
 
-        EmptyMessage ->
-            ( model, send <| EmptyMessageShown )
+        DuplicateDoc docId ->
+            ( { model | modalState = NoModal }, Route.replaceUrl (Session.navKey session) (Route.Copy docId) )
 
-        VideoViewerOpened ->
-            ( { model | modalState = VideoViewer VideoViewer.init }, Cmd.none )
-
-        VideoViewerMsg videoViewerMsg ->
-            ( { model | modalState = VideoViewer (VideoViewer.update videoViewerMsg) }, Cmd.none )
+        DeleteDoc docId ->
+            ( { model | modalState = NoModal }, send <| RequestDelete docId )
 
         ReceivedDocuments newListState ->
             let
@@ -442,9 +438,6 @@ update msg model =
             in
             ( { model | loading = isLoading } |> updateSession newSession, routeCmd )
 
-        SettingsChanged json ->
-            ( model |> updateSession (Session.sync json session), Cmd.none )
-
         SwitcherOpened ->
             case model.documentState of
                 Doc docModel ->
@@ -456,60 +449,114 @@ update msg model =
         SwitcherClosed ->
             closeSwitcher model
 
-        WordcountModalOpened docModel ->
+        -- HELP Modal
+        ToggledHelpMenu isOpen ->
+            ( { model | modalState = HelpScreen }, Cmd.none )
+
+        ClickedShowVideos ->
+            ( { model | modalState = VideoViewer VideoViewer.init, sidebarMenuState = NoSidebarMenu }, Cmd.none )
+
+        VideoViewerOpened ->
+            ( { model | modalState = VideoViewer VideoViewer.init }, Cmd.none )
+
+        VideoViewerMsg videoViewerMsg ->
+            ( { model | modalState = VideoViewer (VideoViewer.update videoViewerMsg) }, Cmd.none )
+
+        ClickedShowWidget ->
+            ( { model | modalState = NoModal }, send <| ShowWidget )
+
+        ClickedEmailSupport ->
+            let
+                fromEmail =
+                    Session.name session
+                        |> Maybe.withDefault ""
+            in
+            ( { model | modalState = ContactForm (ContactForm.init fromEmail), sidebarMenuState = NoSidebarMenu }
+            , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "contact-body")
+            )
+
+        ContactFormMsg formModel formMsg ->
+            ( { model | modalState = ContactForm (ContactForm.update formMsg formModel) }, Cmd.none )
+
+        CopyEmailClicked isUrgent ->
+            if isUrgent then
+                ( model, send <| CopyToClipboard "{%SUPPORT_URGENT_EMAIL%}" "#email-copy-btn" )
+
+            else
+                ( model, send <| CopyToClipboard "{%SUPPORT_EMAIL%}" "#email-copy-btn" )
+
+        ContactFormSubmitted formModel ->
+            ( model, ContactForm.send ContactFormSent formModel )
+
+        ContactFormSent res ->
+            case res of
+                Ok _ ->
+                    ( { model | modalState = NoModal }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        -- Account menu TODO
+        ToggledAccountMenu isOpen ->
+            let
+                ( newDropdownState, newSidebarState ) =
+                    if isOpen then
+                        ( Account Nothing, SidebarClosed )
+
+                    else
+                        ( NoSidebarMenu, model.sidebarState )
+            in
             ( { model
-                | documentState = Doc { docModel | headerMenu = NoHeaderMenu }
-                , modalState = Wordcount docModel
+                | sidebarMenuState = newDropdownState
+                , sidebarState = newSidebarState
+                , tooltip = Nothing
               }
             , Cmd.none
             )
 
-        ModalClosed ->
-            case model.modalState of
-                VideoViewer _ ->
-                    ( { model | modalState = HelpScreen }, Cmd.none )
+        LanguageMenuRequested elId_ ->
+            case ( elId_, model.sidebarMenuState ) of
+                ( Just elId, Account _ ) ->
+                    ( model
+                    , Browser.Dom.getElement elId
+                        |> Task.attempt
+                            (\result ->
+                                case result of
+                                    Ok el ->
+                                        LanguageMenuReceived el
 
-                ContactForm _ ->
-                    ( { model | modalState = HelpScreen }, Cmd.none )
+                                    Err _ ->
+                                        NoOp
+                            )
+                    )
 
                 _ ->
-                    ( { model | modalState = NoModal }, Cmd.none )
+                    ( { model | sidebarMenuState = Account Nothing }, Cmd.none )
 
+        LanguageMenuReceived el ->
+            ( { model | sidebarMenuState = Account (Just el) }, Cmd.none )
+
+        LanguageChanged newLang ->
+            if newLang /= Session.language session then
+                ( { model
+                    | sidebarMenuState = NoSidebarMenu
+                  }
+                    |> updateSession (Session.setLanguage newLang session)
+                , send <| SaveUserSetting ( "language", langToString newLang |> Enc.string )
+                )
+
+            else
+                ( model, Cmd.none )
+
+        -- Import
         ImportBulkClicked ->
             ( { model | modalState = ImportModal (ImportModal.init session) }, Cmd.none )
 
-        TimeUpdate time ->
-            ( model |> updateSession (Session.updateTime time session)
-            , Cmd.none
-            )
+        ImportBulkCompleted ->
+            ( { model | modalState = NoModal }, Cmd.none )
 
-        FileSearchChanged term ->
-            let
-                updatedModal =
-                    case model.modalState of
-                        FileSwitcher switcherModel ->
-                            FileSwitcher (Doc.Switcher.search term switcherModel)
-
-                        _ ->
-                            model.modalState
-            in
-            ( { model | fileSearchField = term, modalState = updatedModal }, Cmd.none )
-
-        SortByChanged newSort ->
-            let
-                newSession =
-                    Session.setSortBy newSort session
-            in
-            ( model |> updateSession newSession, send <| SaveUserSetting ( "sortBy", sortByEncoder newSort ) )
-
-        SidebarContextClicked docId ( x, y ) ->
-            ( { model | modalState = SidebarContextMenu docId ( x, y ) }, Cmd.none )
-
-        DuplicateDoc docId ->
-            ( { model | modalState = NoModal }, Route.replaceUrl (Session.navKey session) (Route.Copy docId) )
-
-        DeleteDoc docId ->
-            ( { model | modalState = NoModal }, send <| RequestDelete docId )
+        ImportTextClicked ->
+            ( { model | modalState = ImportTextModal ImportText.init }, Cmd.none )
 
         ImportModalMsg modalMsg ->
             case model.modalState of
@@ -560,9 +607,6 @@ update msg model =
 
                 _ ->
                     ( model, Cmd.none )
-
-        ImportTextClicked ->
-            ( { model | modalState = ImportTextModal ImportText.init }, Cmd.none )
 
         ImportTextLoaded settings metadata markdownStrings ->
             let
@@ -678,20 +722,70 @@ update msg model =
         ImportJSONCompleted docId ->
             ( model, Route.pushUrl (Session.navKey session) (Route.DocUntitled docId) )
 
-        ImportBulkCompleted ->
-            ( { model | modalState = NoModal }, Cmd.none )
+        -- Misc UI
+        ToggledUpgradeModal isOpen ->
+            ( { model
+                | modalState =
+                    if isOpen then
+                        UpgradeModal
 
-        LanguageChanged newLang ->
-            if newLang /= Session.language session then
-                ( { model
-                    | sidebarMenuState = NoSidebarMenu
-                  }
-                    |> updateSession (Session.setLanguage newLang session)
-                , send <| SaveUserSetting ( "language", langToString newLang |> Enc.string )
-                )
+                    else
+                        NoModal
+              }
+            , Cmd.none
+            )
 
-            else
-                ( model, Cmd.none )
+        UpgradeModalMsg upgradeModalMsg ->
+            case upgradeModalMsg of
+                UpgradeModalClosed ->
+                    ( { model | modalState = NoModal }, Cmd.none )
+
+                CheckoutClicked checkoutData ->
+                    case Session.name session of
+                        Just email ->
+                            let
+                                data =
+                                    Upgrade.toValue email checkoutData
+                            in
+                            ( model, send <| CheckoutButtonClicked data )
+
+                        Nothing ->
+                            ( model, Cmd.none )
+
+                _ ->
+                    let
+                        newSession =
+                            Session.updateUpgrade upgradeModalMsg session
+
+                        maybeFlash =
+                            case upgradeModalMsg of
+                                PlanChanged _ ->
+                                    send <| FlashPrice
+
+                                _ ->
+                                    Cmd.none
+                    in
+                    ( model |> updateSession newSession, maybeFlash )
+
+        WordcountModalOpened docModel ->
+            ( { model
+                | documentState = Doc { docModel | headerMenu = NoHeaderMenu }
+                , modalState = Wordcount docModel
+              }
+            , Cmd.none
+            )
+
+        FileSearchChanged term ->
+            let
+                updatedModal =
+                    case model.modalState of
+                        FileSwitcher switcherModel ->
+                            FileSwitcher (Doc.Switcher.search term switcherModel)
+
+                        _ ->
+                            model.modalState
+            in
+            ( { model | fileSearchField = term, modalState = updatedModal }, Cmd.none )
 
         TooltipRequested elId tipPos content ->
             ( model
@@ -713,98 +807,22 @@ update msg model =
         TooltipClosed ->
             ( { model | tooltip = Nothing }, Cmd.none )
 
-        NoOp ->
-            ( model, Cmd.none )
-
-        LoginStateChanged newSession ->
-            ( model |> updateSession newSession, Route.pushUrl (Session.navKey newSession) Route.Login )
-
-        GotDocMsg docMsg ->
-            case model.documentState of
-                Doc docModel ->
-                    let
-                        ( newDocModel, newCmd ) =
-                            Page.Doc.update docMsg docModel
-                                |> Tuple.mapSecond (Cmd.map GotDocMsg)
-                    in
-                    case docMsg of
-                        ShortcutTrayToggle ->
-                            -- TODO: This is the only reason Doc.Msgs is fully exposed
-                            ( { model | documentState = Doc newDocModel, tooltip = Nothing }, newCmd )
-
-                        _ ->
-                            ( { model | documentState = Doc newDocModel }, newCmd )
-
-                Empty _ ->
-                    ( model, Cmd.none )
-
         FullscreenRequested ->
             ( model, Cmd.none )
 
-        Incoming incomingMsg ->
-            let
-                doNothing =
-                    ( model, Cmd.none )
+        EmptyMessage ->
+            ( model, send <| EmptyMessageShown )
 
-                passThroughTo docModel =
-                    Page.Doc.incoming incomingMsg docModel
-                        |> (\( d, c ) ->
-                                ( { model | documentState = Doc d }, Cmd.map GotDocMsg c )
-                           )
-            in
-            case ( incomingMsg, model.documentState ) of
-                ( DataReceived _, Empty _ ) ->
-                    ( model, Cmd.none )
+        ModalClosed ->
+            case model.modalState of
+                VideoViewer _ ->
+                    ( { model | modalState = HelpScreen }, Cmd.none )
 
-                ( Keyboard shortcut, Doc docModel ) ->
-                    case ( shortcut, model.modalState ) of
-                        ( "enter", FileSwitcher switcherModel ) ->
-                            case switcherModel.selectedDocument of
-                                Just docId ->
-                                    ( model, Route.pushUrl (Session.navKey session) (Route.DocUntitled docId) )
-
-                                Nothing ->
-                                    ( model, Cmd.none )
-
-                        ( "mod+o", FileSwitcher _ ) ->
-                            ( { model | modalState = NoModal }, Cmd.none )
-
-                        ( "mod+o", _ ) ->
-                            model |> openSwitcher docModel
-
-                        ( "down", FileSwitcher switcherModel ) ->
-                            ( { model | modalState = FileSwitcher (Doc.Switcher.down switcherModel) }, Cmd.none )
-
-                        ( "up", FileSwitcher switcherModel ) ->
-                            ( { model | modalState = FileSwitcher (Doc.Switcher.up switcherModel) }, Cmd.none )
-
-                        ( "esc", NoModal ) ->
-                            passThroughTo docModel
-
-                        ( "esc", _ ) ->
-                            ( { model | fileSearchField = "", modalState = NoModal }, Cmd.none )
-
-                        _ ->
-                            passThroughTo docModel
-
-                ( TestTextImportLoaded files, _ ) ->
-                    case model.modalState of
-                        ImportTextModal modalState ->
-                            ( { model | modalState = ImportText.setFileList files modalState |> Debug.log "TestTextImportLoaded" |> ImportTextModal }
-                            , Cmd.none
-                            )
-
-                        _ ->
-                            doNothing
-
-                ( _, Doc docModel ) ->
-                    passThroughTo docModel
+                ContactForm _ ->
+                    ( { model | modalState = HelpScreen }, Cmd.none )
 
                 _ ->
-                    doNothing
-
-        LogErr string ->
-            ( model, Cmd.none )
+                    ( { model | modalState = NoModal }, Cmd.none )
 
 
 openSwitcher : Page.Doc.Model -> Model -> ( Model, Cmd Msg )

@@ -943,7 +943,7 @@ input.has-error {
   background: var(--background-sidebar-menu);
   position: absolute;
   top: 36px;
-  right: 192px;
+  right: 80px;
   z-index: 999;
 }
 #history-close-button {
@@ -960,7 +960,7 @@ input.has-error {
 }
 #doc-settings-menu {
   position: fixed;
-  right: 152px;
+  right: 40px;
   top: 40px;
   border-radius: 5px 0 5px 5px;
   box-shadow: var(--small-shadow);
@@ -1038,7 +1038,7 @@ input.has-error {
   background: var(--background-sidebar-menu);
   position: absolute;
   top: 36px;
-  right: 112px;
+  right: 0px;
   z-index: 999;
 }
 #export-selection div {

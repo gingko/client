@@ -2,7 +2,7 @@ module Page.Empty exposing (..)
 
 import Ant.Icons.Svg as AntIcons
 import Html exposing (Html, br, div, h1, img, p, text)
-import Html.Attributes exposing (class, id, src)
+import Html.Attributes exposing (id, src)
 import Html.Events exposing (on, onClick)
 import Json.Decode as Dec
 

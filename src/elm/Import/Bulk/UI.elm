@@ -1,12 +1,11 @@
 port module Import.Bulk.UI exposing (Model, Msg, init, subscriptions, update, view)
 
 import Doc.Data as Data
-import Doc.List as DocList
 import Doc.Metadata as Metadata exposing (Metadata)
 import File exposing (File)
 import File.Select as Select
 import Html exposing (..)
-import Html.Attributes exposing (checked, class, classList, disabled, for, height, href, id, src, style, target, type_, width)
+import Html.Attributes exposing (checked, classList, disabled, for, height, href, id, src, style, target, type_, width)
 import Html.Events exposing (on, onCheck, onClick)
 import Import.Bulk
 import Json.Decode as Dec
