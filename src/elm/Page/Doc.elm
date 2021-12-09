@@ -15,7 +15,7 @@ import Doc.TreeUtils exposing (..)
 import Doc.UI as UI exposing (countWords, viewConflict, viewMobileButtons, viewSearchField)
 import File.Download as Download
 import Html exposing (Attribute, Html, div, span, text, textarea, ul)
-import Html.Attributes as Attributes exposing (attribute, class, classList, dir, id, title, value)
+import Html.Attributes as Attributes exposing (attribute, class, classList, dir, id, style, title, value)
 import Html.Events exposing (custom, onClick, onDoubleClick, onInput)
 import Html.Extra exposing (viewIf)
 import Html.Keyed as Keyed
@@ -2334,7 +2334,7 @@ view ({ docMsg } as appMsg) model =
                             , navRight = mobileBtnMsg "right"
                             }
                             (model.viewState.viewMode /= Normal)
-                       , viewIf model.loading <| div [ id "loading-overlay" ] []
+                       , Keyed.node "div" [ style "display" "contents" ] [ ( model.docId, div [ id "loading-overlay" ] [] ) ]
                        , div [ id "preloader" ] []
                        ]
 
