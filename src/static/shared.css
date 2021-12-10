@@ -4,6 +4,7 @@
 
   --tree-bg-2: hsl(202, 59%, 47%);
   --tree-bg-2-lighter: hsl(202, 50%, 56%);
+  --tree-fg-2: hsl(202, 0%, 30%);
 
   --tree-bg-1: hsl(202, 48%, 60%);
   --tree-bg-1-lighter: hsl(202, 43%, 67%);
@@ -30,6 +31,8 @@
   --background-sidebar-menu: hsl(200, 13%, 95%);
 
   --small-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+  --translucent-emphasis-1: hsla(0,100%,100%, 0.4);
+  --translucent-emphasis-2: hsla(0,100%,100%, 0.1);
 
   --ui-1-fg: #334;
   --ui-1-bg: white;
@@ -43,5 +46,16 @@
   --ui-3-border-color: #c8d3d8;
 
   --ui-4-fg: hsl(212deg 4% 30%);
+
+  --fullscreen-card-borders: #dedede;
+  --fullscreen-inactive-text-color: hsl(27,11%,75%);
+
+  --card-btn-color: hsl(0,0%,20%);
+
+  --scrollbar-bg-color: #ddd;
+  --scrollbar-thumb-color: #61808e;
+  --scrollbar-shadow-color: #312c2c;
+  --scrollbar-thumb-border-top: #8499a2;
+  --scrollbar-thumb-border-bottom: #566e78;
 }
 
