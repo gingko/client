@@ -15,7 +15,6 @@ type
     | DataSaved Dec.Value
     | DataReceived Dec.Value
     | NotFound
-    | LocalStoreLoaded Dec.Value
     | GetDataToSave
     | SavedLocally (Maybe Time.Posix)
     | SavedRemotely Time.Posix
@@ -99,9 +98,6 @@ subscribe tagger onError =
 
                 "NotFound" ->
                     tagger <| NotFound
-
-                "LocalStoreLoaded" ->
-                    tagger <| LocalStoreLoaded outsideInfo.data
 
                 "MetadataSynced" ->
                     tagger <| MetadataSynced outsideInfo.data

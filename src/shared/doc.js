@@ -295,9 +295,8 @@ const fromElm = (msg, elmData) => {
       };
       await db.put(metadata).catch(async (e) => e);
 
+      // Set localStore db
       localStore.db(elmData);
-      let store = await localStore.load();
-      toElm(store, "docMsgs", "LocalStoreLoaded");
     },
 
     LoadDocument : async () => {
@@ -307,12 +306,17 @@ const fromElm = (msg, elmData) => {
       let metadata = await data.loadMetadata(db, elmData);
       toElm(metadata, "docMsgs", "MetadataSaved")
 
+      // Load document-specific settings.
+      localStore.db(elmData);
+      let store = localStore.load();
+
       // Load local document data.
       let localExists;
       let [loadedData, savedIds] = await data.load(db, elmData);
       savedIds.forEach(item => savedObjectIds.add(item));
       if (savedIds.length !== 0) {
         localExists = true;
+        loadedData.localStore = store;
         toElm(loadedData, "docMsgs", "DataReceived");
       } else {
         localExists = false;
@@ -339,11 +343,6 @@ const fromElm = (msg, elmData) => {
       } finally {
         PULL_LOCK = false;
       }
-
-      // Load document-specific settings.
-      localStore.db(elmData);
-      let store = await localStore.load();
-      toElm(store, "docMsgs", "LocalStoreLoaded");
 
       // Load doc list
       loadDocListAndSend(remoteDB, "LoadDocument");

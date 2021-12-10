@@ -79,7 +79,8 @@ var scrollTo = function (cid, colIdx, instant, position, errorCount) {
     console.log("scroll error: not found", cid, errorCount);
     window.requestAnimationFrame(()=>{
       if (errorCount <= 3) {
-        scrollTo(cid, colIdx, instant, position, errorCount++);
+        errorCount++;
+        scrollTo(cid, colIdx, instant, position, errorCount);
       }
     })
     return;
@@ -112,7 +113,8 @@ var scrollHorizTo = function (colIdx, instant, errorCount) {
     console.log("scroll horiz error: not found", colIdx, errorCount);
     window.requestAnimationFrame(()=>{
       if (errorCount <= 3) {
-        scrollHorizTo(colIdx, instant, errorCount++);
+        errorCount++;
+        scrollHorizTo(colIdx, instant, errorCount);
       }
     })
     return;

@@ -689,29 +689,6 @@ incoming incomingMsg model =
         NotFound ->
             ( model, Cmd.none )
 
-        LocalStoreLoaded dataIn ->
-            let
-                ( newViewState, maybeActivateCmd ) =
-                    case Json.decodeValue (Json.field "last-actives" (Json.list Json.string)) dataIn of
-                        Ok (lastActive :: activePast) ->
-                            ( { vs | active = lastActive, activePast = activePast }
-                            , activate lastActive True
-                            )
-
-                        _ ->
-                            ( vs, activate "1" True )
-
-                newTheme =
-                    case Json.decodeValue Theme.decoder dataIn of
-                        Ok decodedTheme ->
-                            decodedTheme
-
-                        Err _ ->
-                            Default
-            in
-            ( { model | viewState = newViewState, theme = newTheme }, Cmd.none )
-                |> maybeActivateCmd
-
         MetadataSynced json ->
             case Json.decodeValue Metadata.decoder json of
                 Ok metadata ->
@@ -2139,22 +2116,40 @@ dataReceived dataIn model =
     case Data.received dataIn ( model.data, model.workingTree.tree ) of
         Just { newModel, newTree } ->
             let
+                vs =
+                    model.viewState
+
                 newWorkingTree =
                     TreeStructure.setTreeWithConflicts (Data.conflictList newModel) newTree model.workingTree
 
                 startingWordcount =
                     countWords (treeToMarkdownString False newTree)
+
+                ( newViewState, maybeScroll ) =
+                    case Json.decodeValue (Json.at [ "localStore", "last-actives" ] (Json.list Json.string)) dataIn of
+                        Ok (lastActive :: activePast) ->
+                            ( { vs | active = lastActive, activePast = activePast }, activate lastActive True )
+
+                        _ ->
+                            ( vs, activate "1" True )
+
+                newTheme =
+                    Json.decodeValue (Json.at [ "localStore" ] Theme.decoder) dataIn
+                        |> Result.withDefault Default
             in
             ( { model
                 | data = newModel
                 , loading = False
                 , workingTree = newWorkingTree
+                , viewState = newViewState
                 , lastLocalSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
                 , lastRemoteSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
+                , theme = newTheme
                 , startingWordcount = startingWordcount
               }
             , Cmd.none
             )
+                |> maybeScroll
 
         Nothing ->
             ( model, Cmd.none )
