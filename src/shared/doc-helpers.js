@@ -89,18 +89,20 @@ var scrollTo = function (cid, colIdx, instant, position, errorCount) {
   var rect = card.getBoundingClientRect();
   let positionMultiplier = position === "top" ? 0 : position === "center" ? 0.5 : 1;
 
-  TweenMax.to(col, instant ? 0 : 0.25, {
-    scrollTop:
-      col.scrollTop + (rect.top + rect.height * positionMultiplier - (docRect.top+docRect.bottom)*0.5),
-    ease: Power2.easeInOut,
-  });
+  if (instant) {
+    col.scrollTop = col.scrollTop + (rect.top + rect.height * positionMultiplier - (docRect.top+docRect.bottom)*0.5);
+  } else {
+    TweenMax.to(col, 0.25, {
+      scrollTop:
+        col.scrollTop + (rect.top + rect.height * positionMultiplier - (docRect.top+docRect.bottom)*0.5),
+      ease: Power2.easeInOut,
+    });
+  }
 };
 
 var scrollHorizTo = function (colIdx, instant, errorCount) {
-  let scrollDuration = instant ? 0 : 0.3;
   var col = document.getElementsByClassName("column")[colIdx - 1];
   var appEl = document.getElementById("document");
-
 
   let scrollDoneCallback = () => {};
   if (!instant) {
@@ -119,11 +121,15 @@ var scrollHorizTo = function (colIdx, instant, errorCount) {
     })
     return;
   }
-  TweenMax.to(appEl, scrollDuration, {
-    scrollLeft: col.offsetLeft + 0.5  * (col.offsetWidth - appEl.offsetWidth),
-    ease: Power2.easeInOut,
-    onComplete: scrollDoneCallback
-  });
+  if (instant) {
+    appEl.scrollLeft = col.offsetLeft + 0.5  * (col.offsetWidth - appEl.offsetWidth);
+  } else {
+    TweenMax.to(appEl, 0.3, {
+      scrollLeft: col.offsetLeft + 0.5  * (col.offsetWidth - appEl.offsetWidth),
+      ease: Power2.easeInOut,
+      onComplete: scrollDoneCallback
+    });
+  }
 };
 
 /* ===== Fillet Calculations ===== */
