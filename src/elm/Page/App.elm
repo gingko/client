@@ -35,7 +35,7 @@ import Session exposing (Session)
 import Svg.Attributes
 import Task
 import Time
-import Translation exposing (Language, langToString)
+import Translation exposing (Language, TranslationId, langToString)
 import Types exposing (HeaderMenuState(..), SidebarMenuState(..), SidebarState(..), SortBy(..), TooltipPosition, Tree, ViewMode(..))
 import Upgrade exposing (Msg(..))
 
@@ -51,7 +51,7 @@ type alias Model =
     , sidebarMenuState : SidebarMenuState
     , modalState : ModalState
     , fileSearchField : String -- TODO: not needed if switcher isn't open
-    , tooltip : Maybe ( Element, TooltipPosition, String )
+    , tooltip : Maybe ( Element, TooltipPosition, TranslationId )
     }
 
 
@@ -229,8 +229,8 @@ type Msg
     | UpgradeModalMsg Upgrade.Msg
     | WordcountModalOpened Page.Doc.Model
     | FileSearchChanged String
-    | TooltipRequested String TooltipPosition String
-    | TooltipReceived Element TooltipPosition String
+    | TooltipRequested String TooltipPosition TranslationId
+    | TooltipReceived Element TooltipPosition TranslationId
     | TooltipClosed
     | FullscreenRequested
     | EmptyMessage
@@ -938,7 +938,7 @@ view ({ documentState } as model) =
         viewTooltip =
             case model.tooltip of
                 Just tooltip ->
-                    UI.viewTooltip tooltip
+                    UI.viewTooltip (Session.language session) tooltip
 
                 Nothing ->
                     text ""

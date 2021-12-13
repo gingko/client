@@ -16,12 +16,35 @@ import Time.Format.Config.Config_sv_se
 
 
 type TranslationId
-    = Cancel
+    = NoTr String
+    | Cancel
+      -- Template and Import modal
+    | NewDocument
+    | ShowDocumentList
+    | SortByName
+    | SortByLastModified
+    | SortByDateCreated
+    | TemplatesAndExamples
+    | New
     | HomeBlank
     | HomeImportJSON
     | HomeJSONFrom
+    | ImportSectionTitle
     | HomeImportLegacy
     | HomeLegacyFrom
+    | ImportTextFiles
+    | ImportTextFilesDesc
+    | ImportOpmlFiles
+    | ImportOpmlFilesDesc
+    | TimelineTemplate
+    | TimelineTemplateDesc
+    | AcademicPaperTemplate
+    | AcademicPaperTemplateDesc
+    | ProjectBrainstormingTemplate
+    | ProjectBrainstormingTemplateDesc
+    | HerosJourneyTemplate
+    | HerosJourneyTemplateDesc
+      --
     | RecentDocuments
     | LastUpdated
     | LastOpened
@@ -36,25 +59,38 @@ type TranslationId
     | DatabaseError
     | LastSaved
     | LastEdit
+    | Help
+    | WhatsNew
+    | AccountTooltip
+      -- Keyboard Shortcut Help
+    | KeyboardShortcuts
+    | EditCards
     | KeyboardHelp
     | RestoreThisVersion
     | EnterKey
+    | ShiftKey
     | EnterAction
+    | AltKey
     | EditFullscreenAction
+    | Navigate
     | EditCardTitle
     | ArrowsAction
+    | AddNewCards
     | AddChildAction
-    | SplitChildAction
     | InsertChildTitle
     | AddBelowAction
-    | SplitBelowAction
-    | MergeDownAction
     | InsertBelowTitle
     | AddAboveAction
+    | SplitAtCursor
+    | SplitChildAction
+    | SplitBelowAction
     | SplitUpwardAction
+    | MergeCards
+    | MergeDownAction
     | MergeUpAction
     | InsertAboveTitle
     | ArrowKeys
+    | MoveAndDelete
     | MoveAction
     | Backspace
     | DeleteAction
@@ -65,10 +101,22 @@ type TranslationId
     | ToSaveChanges
     | SaveChangesTitle
     | EscKey
+    | OtherShortcuts
+    | DisplayWordCounts
+    | EditMode
+    | SaveOrCancelChanges
+    | Formatting
+    | FormattingTitle
+    | FormattingList
+    | FormattingLink
+    | ParenNumber
+    | SetHeadingLevel
+      --
     | AreYouSureCancel
     | ToCancelChanges
     | PressToSearch
     | QuickDocumentSwitcher
+    | OpenQuickSwitcher
     | EmailSupport
     | Logout
     | Language
@@ -77,12 +125,45 @@ type TranslationId
     | HeadingFont
     | ContentFont
     | EditingFont
+    | VersionHistory
+    | DocumentSettings
+    | WordCount
     | WordCountSession Int
     | WordCountTotal Int
     | WordCountCard Int
     | WordCountSubtree Int
     | WordCountGroup Int
     | WordCountColumn Int
+    | WordCountTotalCards Int
+    | DocumentTheme
+    | ThemeDefault
+    | ThemeDarkMode
+    | ThemeClassic
+    | ThemeGray
+    | ThemeGreen
+    | ThemeTurquoise
+      -- Exporting
+    | ExportOrPrint
+    | ExportSettingEverything
+    | ExportSettingEverythingDesc
+    | ExportSettingCurrentSubtree
+    | ExportSettingCurrentSubtreeDesc
+    | ExportSettingLeavesOnly
+    | ExportSettingLeavesOnlyDesc
+    | ExportSettingCurrentColumn
+    | ExportSettingCurrentColumnDesc
+    | ExportSettingWord
+    | ExportSettingPlainText
+    | ExportSettingJSON
+    | DownloadWordFile
+    | DownloadTextFile
+    | DownloadJSONFile
+    | PrintThis
+      -- Upgrade & Subscription
+    | Upgrade
+    | DaysLeft Int
+    | TrialExpired
+    | ManageSubscription
 
 
 type Language
@@ -157,6 +238,21 @@ tr lang trans =
 
         translationSet =
             case trans of
+                NoTr str ->
+                    { en = str
+                    , zh_hans = str
+                    , zh_hant = str
+                    , es = str
+                    , fr = str
+                    , ru = str
+                    , de = str
+                    , nl = str
+                    , hu = str
+                    , sv = str
+                    , ca = str
+                    , br = str
+                    }
+
                 Cancel ->
                     { en = "Cancel"
                     , zh_hans = "%zh_hans:Cancel"
@@ -170,6 +266,112 @@ tr lang trans =
                     , sv = "%sv:Cancel"
                     , ca = "%ca:Cancel"
                     , br = "%br:Cancel"
+                    }
+
+                -- Template and Import modal
+                NewDocument ->
+                    { en = "New Document"
+                    , zh_hans = "%zh_hans:NewDocument"
+                    , zh_hant = "%zh_hant:NewDocument"
+                    , es = "%es:NewDocument"
+                    , fr = "%fr:NewDocument"
+                    , ru = "%ru:NewDocument"
+                    , de = "%de:NewDocument"
+                    , nl = "%nl:NewDocument"
+                    , hu = "%hu:NewDocument"
+                    , sv = "%sv:NewDocument"
+                    , ca = "%ca:NewDocument"
+                    , br = "%br:NewDocument"
+                    }
+
+                ShowDocumentList ->
+                    { en = "Show Document List"
+                    , zh_hans = "%zh_hans:ShowDocumentList"
+                    , zh_hant = "%zh_hant:ShowDocumentList"
+                    , es = "%es:ShowDocumentList"
+                    , fr = "%fr:ShowDocumentList"
+                    , ru = "%ru:ShowDocumentList"
+                    , de = "%de:ShowDocumentList"
+                    , nl = "%nl:ShowDocumentList"
+                    , hu = "%hu:ShowDocumentList"
+                    , sv = "%sv:ShowDocumentList"
+                    , ca = "%ca:ShowDocumentList"
+                    , br = "%br:ShowDocumentList"
+                    }
+
+                SortByName ->
+                    { en = "Sort by Name"
+                    , zh_hans = "%zh_hans:SortByName"
+                    , zh_hant = "%zh_hant:SortByName"
+                    , es = "%es:SortByName"
+                    , fr = "%fr:SortByName"
+                    , ru = "%ru:SortByName"
+                    , de = "%de:SortByName"
+                    , nl = "%nl:SortByName"
+                    , hu = "%hu:SortByName"
+                    , sv = "%sv:SortByName"
+                    , ca = "%ca:SortByName"
+                    , br = "%br:SortByName"
+                    }
+
+                SortByLastModified ->
+                    { en = "Sort by Last Modified"
+                    , zh_hans = "%zh_hans:SortByLastModified"
+                    , zh_hant = "%zh_hant:SortByLastModified"
+                    , es = "%es:SortByLastModified"
+                    , fr = "%fr:SortByLastModified"
+                    , ru = "%ru:SortByLastModified"
+                    , de = "%de:SortByLastModified"
+                    , nl = "%nl:SortByLastModified"
+                    , hu = "%hu:SortByLastModified"
+                    , sv = "%sv:SortByLastModified"
+                    , ca = "%ca:SortByLastModified"
+                    , br = "%br:SortByLastModified"
+                    }
+
+                SortByDateCreated ->
+                    { en = "Sort by Date Created"
+                    , zh_hans = "%zh_hans:SortByDateCreated"
+                    , zh_hant = "%zh_hant:SortByDateCreated"
+                    , es = "%es:SortByDateCreated"
+                    , fr = "%fr:SortByDateCreated"
+                    , ru = "%ru:SortByDateCreated"
+                    , de = "%de:SortByDateCreated"
+                    , nl = "%nl:SortByDateCreated"
+                    , hu = "%hu:SortByDateCreated"
+                    , sv = "%sv:SortByDateCreated"
+                    , ca = "%ca:SortByDateCreated"
+                    , br = "%br:SortByDateCreated"
+                    }
+
+                TemplatesAndExamples ->
+                    { en = "Templates & Examples"
+                    , zh_hans = "%zh_hans:TemplatesAndExamples"
+                    , zh_hant = "%zh_hant:TemplatesAndExamples"
+                    , es = "%es:TemplatesAndExamples"
+                    , fr = "%fr:TemplatesAndExamples"
+                    , ru = "%ru:TemplatesAndExamples"
+                    , de = "%de:TemplatesAndExamples"
+                    , nl = "%nl:TemplatesAndExamples"
+                    , hu = "%hu:TemplatesAndExamples"
+                    , sv = "%sv:TemplatesAndExamples"
+                    , ca = "%ca:TemplatesAndExamples"
+                    , br = "%br:TemplatesAndExamples"
+                    }
+
+                New ->
+                    { en = "New"
+                    , zh_hans = "%zh_hans:New"
+                    , zh_hant = "%zh_hant:New"
+                    , es = "%es:New"
+                    , fr = "%fr:New"
+                    , ru = "%ru:New"
+                    , de = "%de:New"
+                    , nl = "%nl:New"
+                    , hu = "%hu:New"
+                    , sv = "%sv:New"
+                    , ca = "%ca:New"
+                    , br = "%br:New"
                     }
 
                 HomeBlank ->
@@ -217,6 +419,21 @@ tr lang trans =
                     , br = "%br:HomeJSONFrom"
                     }
 
+                ImportSectionTitle ->
+                    { en = "Import"
+                    , zh_hans = "%zh_hans:ImportSectionTitle"
+                    , zh_hant = "%zh_hant:ImportSectionTitle"
+                    , es = "%es:ImportSectionTitle"
+                    , fr = "%fr:ImportSectionTitle"
+                    , ru = "%ru:ImportSectionTitle"
+                    , de = "%de:ImportSectionTitle"
+                    , nl = "%nl:ImportSectionTitle"
+                    , hu = "%hu:ImportSectionTitle"
+                    , sv = "%sv:ImportSectionTitle"
+                    , ca = "%ca:ImportSectionTitle"
+                    , br = "%br:ImportSectionTitle"
+                    }
+
                 HomeImportLegacy ->
                     { en = "From Old Account"
                     , zh_hans = "%zh_hans:HomeImportLegacy"
@@ -247,6 +464,187 @@ tr lang trans =
                     , br = "%br:HomeLegacyFrom"
                     }
 
+                ImportTextFiles ->
+                    { en = "Import Text Files"
+                    , zh_hans = "%zh_hans:ImportTextFiles"
+                    , zh_hant = "%zh_hant:ImportTextFiles"
+                    , es = "%es:ImportTextFiles"
+                    , fr = "%fr:ImportTextFiles"
+                    , ru = "%ru:ImportTextFiles"
+                    , de = "%de:ImportTextFiles"
+                    , nl = "%nl:ImportTextFiles"
+                    , hu = "%hu:ImportTextFiles"
+                    , sv = "%sv:ImportTextFiles"
+                    , ca = "%ca:ImportTextFiles"
+                    , br = "%br:ImportTextFiles"
+                    }
+
+                ImportTextFilesDesc ->
+                    { en = "Import multiple markdown or regular text files."
+                    , zh_hans = "%zh_hans:ImportTextFilesDesc"
+                    , zh_hant = "%zh_hant:ImportTextFilesDesc"
+                    , es = "%es:ImportTextFilesDesc"
+                    , fr = "%fr:ImportTextFilesDesc"
+                    , ru = "%ru:ImportTextFilesDesc"
+                    , de = "%de:ImportTextFilesDesc"
+                    , nl = "%nl:ImportTextFilesDesc"
+                    , hu = "%hu:ImportTextFilesDesc"
+                    , sv = "%sv:ImportTextFilesDesc"
+                    , ca = "%ca:ImportTextFilesDesc"
+                    , br = "%br:ImportTextFilesDesc"
+                    }
+
+                ImportOpmlFiles ->
+                    { en = "Import Opml Files"
+                    , zh_hans = "%zh_hans:ImportOpmlFiles"
+                    , zh_hant = "%zh_hant:ImportOpmlFiles"
+                    , es = "%es:ImportOpmlFiles"
+                    , fr = "%fr:ImportOpmlFiles"
+                    , ru = "%ru:ImportOpmlFiles"
+                    , de = "%de:ImportOpmlFiles"
+                    , nl = "%nl:ImportOpmlFiles"
+                    , hu = "%hu:ImportOpmlFiles"
+                    , sv = "%sv:ImportOpmlFiles"
+                    , ca = "%ca:ImportOpmlFiles"
+                    , br = "%br:ImportOpmlFiles"
+                    }
+
+                ImportOpmlFilesDesc ->
+                    { en = "Import from Workflowy or other outliners."
+                    , zh_hans = "%zh_hans:ImportOpmlFilesDesc"
+                    , zh_hant = "%zh_hant:ImportOpmlFilesDesc"
+                    , es = "%es:ImportOpmlFilesDesc"
+                    , fr = "%fr:ImportOpmlFilesDesc"
+                    , ru = "%ru:ImportOpmlFilesDesc"
+                    , de = "%de:ImportOpmlFilesDesc"
+                    , nl = "%nl:ImportOpmlFilesDesc"
+                    , hu = "%hu:ImportOpmlFilesDesc"
+                    , sv = "%sv:ImportOpmlFilesDesc"
+                    , ca = "%ca:ImportOpmlFilesDesc"
+                    , br = "%br:ImportOpmlFilesDesc"
+                    }
+
+                TimelineTemplate ->
+                    { en = "Timeline 2022"
+                    , zh_hans = "%zh_hans:TimelineTemplate"
+                    , zh_hant = "%zh_hant:TimelineTemplate"
+                    , es = "%es:TimelineTemplate"
+                    , fr = "%fr:TimelineTemplate"
+                    , ru = "%ru:TimelineTemplate"
+                    , de = "%de:TimelineTemplate"
+                    , nl = "%nl:TimelineTemplate"
+                    , hu = "%hu:TimelineTemplate"
+                    , sv = "%sv:TimelineTemplate"
+                    , ca = "%ca:TimelineTemplate"
+                    , br = "%br:TimelineTemplate"
+                    }
+
+                TimelineTemplateDesc ->
+                    { en = "A tree-based calendar"
+                    , zh_hans = "%zh_hans:TimelineTemplateDesc"
+                    , zh_hant = "%zh_hant:TimelineTemplateDesc"
+                    , es = "%es:TimelineTemplateDesc"
+                    , fr = "%fr:TimelineTemplateDesc"
+                    , ru = "%ru:TimelineTemplateDesc"
+                    , de = "%de:TimelineTemplateDesc"
+                    , nl = "%nl:TimelineTemplateDesc"
+                    , hu = "%hu:TimelineTemplateDesc"
+                    , sv = "%sv:TimelineTemplateDesc"
+                    , ca = "%ca:TimelineTemplateDesc"
+                    , br = "%br:TimelineTemplateDesc"
+                    }
+
+                AcademicPaperTemplate ->
+                    { en = "Academic Paper"
+                    , zh_hans = "%zh_hans:AcademicPaperTemplate"
+                    , zh_hant = "%zh_hant:AcademicPaperTemplate"
+                    , es = "%es:AcademicPaperTemplate"
+                    , fr = "%fr:AcademicPaperTemplate"
+                    , ru = "%ru:AcademicPaperTemplate"
+                    , de = "%de:AcademicPaperTemplate"
+                    , nl = "%nl:AcademicPaperTemplate"
+                    , hu = "%hu:AcademicPaperTemplate"
+                    , sv = "%sv:AcademicPaperTemplate"
+                    , ca = "%ca:AcademicPaperTemplate"
+                    , br = "%br:AcademicPaperTemplate"
+                    }
+
+                AcademicPaperTemplateDesc ->
+                    { en = "Starting point for journal paper"
+                    , zh_hans = "%zh_hans:AcademicPaperTemplateDesc"
+                    , zh_hant = "%zh_hant:AcademicPaperTemplateDesc"
+                    , es = "%es:AcademicPaperTemplateDesc"
+                    , fr = "%fr:AcademicPaperTemplateDesc"
+                    , ru = "%ru:AcademicPaperTemplateDesc"
+                    , de = "%de:AcademicPaperTemplateDesc"
+                    , nl = "%nl:AcademicPaperTemplateDesc"
+                    , hu = "%hu:AcademicPaperTemplateDesc"
+                    , sv = "%sv:AcademicPaperTemplateDesc"
+                    , ca = "%ca:AcademicPaperTemplateDesc"
+                    , br = "%br:AcademicPaperTemplateDesc"
+                    }
+
+                ProjectBrainstormingTemplate ->
+                    { en = "Project Brainstorming"
+                    , zh_hans = "%zh_hans:ProjectBrainstormingTemplate"
+                    , zh_hant = "%zh_hant:ProjectBrainstormingTemplate"
+                    , es = "%es:ProjectBrainstormingTemplate"
+                    , fr = "%fr:ProjectBrainstormingTemplate"
+                    , ru = "%ru:ProjectBrainstormingTemplate"
+                    , de = "%de:ProjectBrainstormingTemplate"
+                    , nl = "%nl:ProjectBrainstormingTemplate"
+                    , hu = "%hu:ProjectBrainstormingTemplate"
+                    , sv = "%sv:ProjectBrainstormingTemplate"
+                    , ca = "%ca:ProjectBrainstormingTemplate"
+                    , br = "%br:ProjectBrainstormingTemplate"
+                    }
+
+                ProjectBrainstormingTemplateDesc ->
+                    { en = "Example on clarifying project goals"
+                    , zh_hans = "%zh_hans:ProjectBrainstormingTemplateDesc"
+                    , zh_hant = "%zh_hant:ProjectBrainstormingTemplateDesc"
+                    , es = "%es:ProjectBrainstormingTemplateDesc"
+                    , fr = "%fr:ProjectBrainstormingTemplateDesc"
+                    , ru = "%ru:ProjectBrainstormingTemplateDesc"
+                    , de = "%de:ProjectBrainstormingTemplateDesc"
+                    , nl = "%nl:ProjectBrainstormingTemplateDesc"
+                    , hu = "%hu:ProjectBrainstormingTemplateDesc"
+                    , sv = "%sv:ProjectBrainstormingTemplateDesc"
+                    , ca = "%ca:ProjectBrainstormingTemplateDesc"
+                    , br = "%br:ProjectBrainstormingTemplateDesc"
+                    }
+
+                HerosJourneyTemplate ->
+                    { en = "Hero's Journey"
+                    , zh_hans = "%zh_hans:HerosJourneyTemplate"
+                    , zh_hant = "%zh_hant:HerosJourneyTemplate"
+                    , es = "%es:HerosJourneyTemplate"
+                    , fr = "%fr:HerosJourneyTemplate"
+                    , ru = "%ru:HerosJourneyTemplate"
+                    , de = "%de:HerosJourneyTemplate"
+                    , nl = "%nl:HerosJourneyTemplate"
+                    , hu = "%hu:HerosJourneyTemplate"
+                    , sv = "%sv:HerosJourneyTemplate"
+                    , ca = "%ca:HerosJourneyTemplate"
+                    , br = "%br:HerosJourneyTemplate"
+                    }
+
+                HerosJourneyTemplateDesc ->
+                    { en = "A framework for fictional stories"
+                    , zh_hans = "%zh_hans:HerosJourneyTemplateDesc"
+                    , zh_hant = "%zh_hant:HerosJourneyTemplateDesc"
+                    , es = "%es:HerosJourneyTemplateDesc"
+                    , fr = "%fr:HerosJourneyTemplateDesc"
+                    , ru = "%ru:HerosJourneyTemplateDesc"
+                    , de = "%de:HerosJourneyTemplateDesc"
+                    , nl = "%nl:HerosJourneyTemplateDesc"
+                    , hu = "%hu:HerosJourneyTemplateDesc"
+                    , sv = "%sv:HerosJourneyTemplateDesc"
+                    , ca = "%ca:HerosJourneyTemplateDesc"
+                    , br = "%br:HerosJourneyTemplateDesc"
+                    }
+
+                --
                 RecentDocuments ->
                     { en = "Recent Documents"
                     , zh_hans = "%zh_hans:RecentDocuments"
@@ -457,6 +855,82 @@ tr lang trans =
                     , br = "%br:LastEdit"
                     }
 
+                Help ->
+                    { en = "Help"
+                    , zh_hans = "%zh_hans:Help"
+                    , zh_hant = "%zh_hant:Help"
+                    , es = "%es:Help"
+                    , fr = "%fr:Help"
+                    , ru = "%ru:Help"
+                    , de = "%de:Help"
+                    , nl = "%nl:Help"
+                    , hu = "%hu:Help"
+                    , sv = "%sv:Help"
+                    , ca = "%ca:Help"
+                    , br = "%br:Help"
+                    }
+
+                WhatsNew ->
+                    { en = "What's New"
+                    , zh_hans = "%zh_hans:WhatsNew"
+                    , zh_hant = "%zh_hant:WhatsNew"
+                    , es = "%es:WhatsNew"
+                    , fr = "%fr:WhatsNew"
+                    , ru = "%ru:WhatsNew"
+                    , de = "%de:WhatsNew"
+                    , nl = "%nl:WhatsNew"
+                    , hu = "%hu:WhatsNew"
+                    , sv = "%sv:WhatsNew"
+                    , ca = "%ca:WhatsNew"
+                    , br = "%br:WhatsNew"
+                    }
+
+                AccountTooltip ->
+                    { en = "Account"
+                    , zh_hans = "%zh_hans:AccountTooltip"
+                    , zh_hant = "%zh_hant:AccountTooltip"
+                    , es = "%es:AccountTooltip"
+                    , fr = "%fr:AccountTooltip"
+                    , ru = "%ru:AccountTooltip"
+                    , de = "%de:AccountTooltip"
+                    , nl = "%nl:AccountTooltip"
+                    , hu = "%hu:AccountTooltip"
+                    , sv = "%sv:AccountTooltip"
+                    , ca = "%ca:AccountTooltip"
+                    , br = "%br:AccountTooltip"
+                    }
+
+                -- Keyboard Shortcut Help
+                KeyboardShortcuts ->
+                    { en = "Keyboard Shortcuts"
+                    , zh_hans = "%zh_hans:KeyboardShortcuts"
+                    , zh_hant = "%zh_hant:KeyboardShortcuts"
+                    , es = "%es:KeyboardShortcuts"
+                    , fr = "%fr:KeyboardShortcuts"
+                    , ru = "%ru:KeyboardShortcuts"
+                    , de = "%de:KeyboardShortcuts"
+                    , nl = "%nl:KeyboardShortcuts"
+                    , hu = "%hu:KeyboardShortcuts"
+                    , sv = "%sv:KeyboardShortcuts"
+                    , ca = "%ca:KeyboardShortcuts"
+                    , br = "%br:KeyboardShortcuts"
+                    }
+
+                EditCards ->
+                    { en = "Edit Cards"
+                    , zh_hans = "%zh_hans:EditCards"
+                    , zh_hant = "%zh_hant:EditCards"
+                    , es = "%es:EditCards"
+                    , fr = "%fr:EditCards"
+                    , ru = "%ru:EditCards"
+                    , de = "%de:EditCards"
+                    , nl = "%nl:EditCards"
+                    , hu = "%hu:EditCards"
+                    , sv = "%sv:EditCards"
+                    , ca = "%ca:EditCards"
+                    , br = "%br:EditCards"
+                    }
+
                 KeyboardHelp ->
                     { en = "Keyboard Shortcuts Help"
                     , zh_hans = "%zh_hans:KeyboardHelp"
@@ -502,6 +976,21 @@ tr lang trans =
                     , br = "%br:EnterKey"
                     }
 
+                ShiftKey ->
+                    { en = "Shift"
+                    , zh_hans = "%zh_hans:ShiftKey"
+                    , zh_hant = "%zh_hant:ShiftKey"
+                    , es = "%es:ShiftKey"
+                    , fr = "%fr:ShiftKey"
+                    , ru = "%ru:ShiftKey"
+                    , de = "%de:ShiftKey"
+                    , nl = "%nl:ShiftKey"
+                    , hu = "%hu:ShiftKey"
+                    , sv = "%sv:ShiftKey"
+                    , ca = "%ca:ShiftKey"
+                    , br = "%br:ShiftKey"
+                    }
+
                 EnterAction ->
                     { en = "to Edit"
                     , zh_hans = "%zh_hans:EnterAction"
@@ -517,6 +1006,21 @@ tr lang trans =
                     , br = "%br:EnterAction"
                     }
 
+                AltKey ->
+                    { en = "AltKey"
+                    , zh_hans = "%zh_hans:AltKey"
+                    , zh_hant = "%zh_hant:AltKey"
+                    , es = "%es:AltKey"
+                    , fr = "%fr:AltKey"
+                    , ru = "%ru:AltKey"
+                    , de = "%de:AltKey"
+                    , nl = "%nl:AltKey"
+                    , hu = "%hu:AltKey"
+                    , sv = "%sv:AltKey"
+                    , ca = "%ca:AltKey"
+                    , br = "%br:AltKey"
+                    }
+
                 EditFullscreenAction ->
                     { en = "to Edit in Fullscreen"
                     , zh_hans = "%zh_hans:EditFullscreenAction"
@@ -530,6 +1034,21 @@ tr lang trans =
                     , sv = "%sv:EditFullscreenAction"
                     , ca = "%ca:EditFullscreenAction"
                     , br = "%br:EditFullscreenAction"
+                    }
+
+                Navigate ->
+                    { en = "Navigate"
+                    , zh_hans = "%zh_hans:Navigate"
+                    , zh_hant = "%zh_hant:Navigate"
+                    , es = "%es:Navigate"
+                    , fr = "%fr:Navigate"
+                    , ru = "%ru:Navigate"
+                    , de = "%de:Navigate"
+                    , nl = "%nl:Navigate"
+                    , hu = "%hu:Navigate"
+                    , sv = "%sv:Navigate"
+                    , ca = "%ca:Navigate"
+                    , br = "%br:Navigate"
                     }
 
                 EditCardTitle ->
@@ -562,6 +1081,21 @@ tr lang trans =
                     , br = "%br:ArrowsAction"
                     }
 
+                AddNewCards ->
+                    { en = "Add New Cards"
+                    , zh_hans = "%zh_hans:AddNewCards"
+                    , zh_hant = "%zh_hant:AddNewCards"
+                    , es = "%es:AddNewCards"
+                    , fr = "%fr:AddNewCards"
+                    , ru = "%ru:AddNewCards"
+                    , de = "%de:AddNewCards"
+                    , nl = "%nl:AddNewCards"
+                    , hu = "%hu:AddNewCards"
+                    , sv = "%sv:AddNewCards"
+                    , ca = "%ca:AddNewCards"
+                    , br = "%br:AddNewCards"
+                    }
+
                 AddChildAction ->
                     { en = "to Add Child"
                     , zh_hans = "%zh_hans:AddChildAction"
@@ -575,21 +1109,6 @@ tr lang trans =
                     , sv = "%sv:AddChildAction"
                     , ca = "%ca:AddChildAction"
                     , br = "%br:AddChildAction"
-                    }
-
-                SplitChildAction ->
-                    { en = "to Split Card to the Right"
-                    , zh_hans = "%zh_hans:SplitChildAction"
-                    , zh_hant = "%zh_hant:SplitChildAction"
-                    , es = "%es:SplitChildAction"
-                    , fr = "%fr:SplitChildAction"
-                    , ru = "%ru:SplitChildAction"
-                    , de = "%de:SplitChildAction"
-                    , nl = "%nl:SplitChildAction"
-                    , hu = "%hu:SplitChildAction"
-                    , sv = "%sv:SplitChildAction"
-                    , ca = "%ca:SplitChildAction"
-                    , br = "%br:SplitChildAction"
                     }
 
                 InsertChildTitle ->
@@ -622,36 +1141,6 @@ tr lang trans =
                     , br = "%br:AddBelowAction"
                     }
 
-                SplitBelowAction ->
-                    { en = "to Split Card Down"
-                    , zh_hans = "%zh_hans:SplitBelowAction"
-                    , zh_hant = "%zh_hant:SplitBelowAction"
-                    , es = "%es:SplitBelowAction"
-                    , fr = "%fr:SplitBelowAction"
-                    , ru = "%ru:SplitBelowAction"
-                    , de = "%de:SplitBelowAction"
-                    , nl = "%nl:SplitBelowAction"
-                    , hu = "%hu:SplitBelowAction"
-                    , sv = "%sv:SplitBelowAction"
-                    , ca = "%ca:SplitBelowAction"
-                    , br = "%br:SplitBelowAction"
-                    }
-
-                MergeDownAction ->
-                    { en = "to Merge into Next"
-                    , zh_hans = "%zh_hans:MergeDownAction"
-                    , zh_hant = "%zh_hant:MergeDownAction"
-                    , es = "%es:MergeDownAction"
-                    , fr = "%fr:MergeDownAction"
-                    , ru = "%ru:MergeDownAction"
-                    , de = "%de:MergeDownAction"
-                    , nl = "%nl:MergeDownAction"
-                    , hu = "%hu:MergeDownAction"
-                    , sv = "%sv:MergeDownAction"
-                    , ca = "%ca:MergeDownAction"
-                    , br = "%br:MergeDownAction"
-                    }
-
                 InsertBelowTitle ->
                     { en = "Insert Below (Ctrl+J)"
                     , zh_hans = "%zh_hans:InsertBelowTitle"
@@ -682,6 +1171,51 @@ tr lang trans =
                     , br = "%br:AddAboveAction"
                     }
 
+                SplitAtCursor ->
+                    { en = "Split At Cursor"
+                    , zh_hans = "%zh_hans:SplitAtCursor"
+                    , zh_hant = "%zh_hant:SplitAtCursor"
+                    , es = "%es:SplitAtCursor"
+                    , fr = "%fr:SplitAtCursor"
+                    , ru = "%ru:SplitAtCursor"
+                    , de = "%de:SplitAtCursor"
+                    , nl = "%nl:SplitAtCursor"
+                    , hu = "%hu:SplitAtCursor"
+                    , sv = "%sv:SplitAtCursor"
+                    , ca = "%ca:SplitAtCursor"
+                    , br = "%br:SplitAtCursor"
+                    }
+
+                SplitChildAction ->
+                    { en = "to Split Card to the Right"
+                    , zh_hans = "%zh_hans:SplitChildAction"
+                    , zh_hant = "%zh_hant:SplitChildAction"
+                    , es = "%es:SplitChildAction"
+                    , fr = "%fr:SplitChildAction"
+                    , ru = "%ru:SplitChildAction"
+                    , de = "%de:SplitChildAction"
+                    , nl = "%nl:SplitChildAction"
+                    , hu = "%hu:SplitChildAction"
+                    , sv = "%sv:SplitChildAction"
+                    , ca = "%ca:SplitChildAction"
+                    , br = "%br:SplitChildAction"
+                    }
+
+                SplitBelowAction ->
+                    { en = "to Split Card Down"
+                    , zh_hans = "%zh_hans:SplitBelowAction"
+                    , zh_hant = "%zh_hant:SplitBelowAction"
+                    , es = "%es:SplitBelowAction"
+                    , fr = "%fr:SplitBelowAction"
+                    , ru = "%ru:SplitBelowAction"
+                    , de = "%de:SplitBelowAction"
+                    , nl = "%nl:SplitBelowAction"
+                    , hu = "%hu:SplitBelowAction"
+                    , sv = "%sv:SplitBelowAction"
+                    , ca = "%ca:SplitBelowAction"
+                    , br = "%br:SplitBelowAction"
+                    }
+
                 SplitUpwardAction ->
                     { en = "to Split Card Upward"
                     , zh_hans = "%zh_hans:SplitUpwardAction"
@@ -695,6 +1229,36 @@ tr lang trans =
                     , sv = "%sv:SplitUpwardAction"
                     , ca = "%ca:SplitUpwardAction"
                     , br = "%br:SplitUpwardAction"
+                    }
+
+                MergeCards ->
+                    { en = "Merge Cards"
+                    , zh_hans = "%zh_hans:MergeCards"
+                    , zh_hant = "%zh_hant:MergeCards"
+                    , es = "%es:MergeCards"
+                    , fr = "%fr:MergeCards"
+                    , ru = "%ru:MergeCards"
+                    , de = "%de:MergeCards"
+                    , nl = "%nl:MergeCards"
+                    , hu = "%hu:MergeCards"
+                    , sv = "%sv:MergeCards"
+                    , ca = "%ca:MergeCards"
+                    , br = "%br:MergeCards"
+                    }
+
+                MergeDownAction ->
+                    { en = "to Merge into Next"
+                    , zh_hans = "%zh_hans:MergeDownAction"
+                    , zh_hant = "%zh_hant:MergeDownAction"
+                    , es = "%es:MergeDownAction"
+                    , fr = "%fr:MergeDownAction"
+                    , ru = "%ru:MergeDownAction"
+                    , de = "%de:MergeDownAction"
+                    , nl = "%nl:MergeDownAction"
+                    , hu = "%hu:MergeDownAction"
+                    , sv = "%sv:MergeDownAction"
+                    , ca = "%ca:MergeDownAction"
+                    , br = "%br:MergeDownAction"
                     }
 
                 MergeUpAction ->
@@ -740,6 +1304,21 @@ tr lang trans =
                     , sv = "%sv:ArrowKeys"
                     , ca = "%ca:ArrowKeys"
                     , br = "%br:ArrowKeys"
+                    }
+
+                MoveAndDelete ->
+                    { en = "Move & Delete Cards"
+                    , zh_hans = "%zh_hans:MoveAndDelete"
+                    , zh_hant = "%zh_hant:MoveAndDelete"
+                    , es = "%es:MoveAndDelete"
+                    , fr = "%fr:MoveAndDelete"
+                    , ru = "%ru:MoveAndDelete"
+                    , de = "%de:MoveAndDelete"
+                    , nl = "%nl:MoveAndDelete"
+                    , hu = "%hu:MoveAndDelete"
+                    , sv = "%sv:MoveAndDelete"
+                    , ca = "%ca:MoveAndDelete"
+                    , br = "%br:MoveAndDelete"
                     }
 
                 MoveAction ->
@@ -892,6 +1471,157 @@ tr lang trans =
                     , br = "%br:EscKey"
                     }
 
+                OtherShortcuts ->
+                    { en = "Other Shortcuts"
+                    , zh_hans = "%zh_hans:OtherShortcuts"
+                    , zh_hant = "%zh_hant:OtherShortcuts"
+                    , es = "%es:OtherShortcuts"
+                    , fr = "%fr:OtherShortcuts"
+                    , ru = "%ru:OtherShortcuts"
+                    , de = "%de:OtherShortcuts"
+                    , nl = "%nl:OtherShortcuts"
+                    , hu = "%hu:OtherShortcuts"
+                    , sv = "%sv:OtherShortcuts"
+                    , ca = "%ca:OtherShortcuts"
+                    , br = "%br:OtherShortcuts"
+                    }
+
+                DisplayWordCounts ->
+                    { en = "Display word counts"
+                    , zh_hans = "%zh_hans:DisplayWordCounts"
+                    , zh_hant = "%zh_hant:DisplayWordCounts"
+                    , es = "%es:DisplayWordCounts"
+                    , fr = "%fr:DisplayWordCounts"
+                    , ru = "%ru:DisplayWordCounts"
+                    , de = "%de:DisplayWordCounts"
+                    , nl = "%nl:DisplayWordCounts"
+                    , hu = "%hu:DisplayWordCounts"
+                    , sv = "%sv:DisplayWordCounts"
+                    , ca = "%ca:DisplayWordCounts"
+                    , br = "%br:DisplayWordCounts"
+                    }
+
+                EditMode ->
+                    { en = "(Edit Mode)"
+                    , zh_hans = "%zh_hans:EditMode"
+                    , zh_hant = "%zh_hant:EditMode"
+                    , es = "%es:EditMode"
+                    , fr = "%fr:EditMode"
+                    , ru = "%ru:EditMode"
+                    , de = "%de:EditMode"
+                    , nl = "%nl:EditMode"
+                    , hu = "%hu:EditMode"
+                    , sv = "%sv:EditMode"
+                    , ca = "%ca:EditMode"
+                    , br = "%br:EditMode"
+                    }
+
+                SaveOrCancelChanges ->
+                    { en = "Save/Cancel Changes"
+                    , zh_hans = "%zh_hans:SaveOrCancelChanges"
+                    , zh_hant = "%zh_hant:SaveOrCancelChanges"
+                    , es = "%es:SaveOrCancelChanges"
+                    , fr = "%fr:SaveOrCancelChanges"
+                    , ru = "%ru:SaveOrCancelChanges"
+                    , de = "%de:SaveOrCancelChanges"
+                    , nl = "%nl:SaveOrCancelChanges"
+                    , hu = "%hu:SaveOrCancelChanges"
+                    , sv = "%sv:SaveOrCancelChanges"
+                    , ca = "%ca:SaveOrCancelChanges"
+                    , br = "%br:SaveOrCancelChanges"
+                    }
+
+                Formatting ->
+                    { en = "Formatting"
+                    , zh_hans = "%zh_hans:Formatting"
+                    , zh_hant = "%zh_hant:Formatting"
+                    , es = "%es:Formatting"
+                    , fr = "%fr:Formatting"
+                    , ru = "%ru:Formatting"
+                    , de = "%de:Formatting"
+                    , nl = "%nl:Formatting"
+                    , hu = "%hu:Formatting"
+                    , sv = "%sv:Formatting"
+                    , ca = "%ca:Formatting"
+                    , br = "%br:Formatting"
+                    }
+
+                FormattingTitle ->
+                    { en = "# Title\n## Subtitle"
+                    , zh_hans = "%zh_hans:FormattingTitle"
+                    , zh_hant = "%zh_hant:FormattingTitle"
+                    , es = "%es:FormattingTitle"
+                    , fr = "%fr:FormattingTitle"
+                    , ru = "%ru:FormattingTitle"
+                    , de = "%de:FormattingTitle"
+                    , nl = "%nl:FormattingTitle"
+                    , hu = "%hu:FormattingTitle"
+                    , sv = "%sv:FormattingTitle"
+                    , ca = "%ca:FormattingTitle"
+                    , br = "%br:FormattingTitle"
+                    }
+
+                FormattingList ->
+                    { en = "- List item\n  - Subitem"
+                    , zh_hans = "%zh_hans:FormattingList"
+                    , zh_hant = "%zh_hant:FormattingList"
+                    , es = "%es:FormattingList"
+                    , fr = "%fr:FormattingList"
+                    , ru = "%ru:FormattingList"
+                    , de = "%de:FormattingList"
+                    , nl = "%nl:FormattingList"
+                    , hu = "%hu:FormattingList"
+                    , sv = "%sv:FormattingList"
+                    , ca = "%ca:FormattingList"
+                    , br = "%br:FormattingList"
+                    }
+
+                FormattingLink ->
+                    { en = "[link](http://t.co)"
+                    , zh_hans = "%zh_hans:FormattingLink"
+                    , zh_hant = "%zh_hant:FormattingLink"
+                    , es = "%es:FormattingLink"
+                    , fr = "%fr:FormattingLink"
+                    , ru = "%ru:FormattingLink"
+                    , de = "%de:FormattingLink"
+                    , nl = "%nl:FormattingLink"
+                    , hu = "%hu:FormattingLink"
+                    , sv = "%sv:FormattingLink"
+                    , ca = "%ca:FormattingLink"
+                    , br = "%br:FormattingLink"
+                    }
+
+                ParenNumber ->
+                    { en = "ParenNumber"
+                    , zh_hans = "%zh_hans:ParenNumber"
+                    , zh_hant = "%zh_hant:ParenNumber"
+                    , es = "%es:ParenNumber"
+                    , fr = "%fr:ParenNumber"
+                    , ru = "%ru:ParenNumber"
+                    , de = "%de:ParenNumber"
+                    , nl = "%nl:ParenNumber"
+                    , hu = "%hu:ParenNumber"
+                    , sv = "%sv:ParenNumber"
+                    , ca = "%ca:ParenNumber"
+                    , br = "%br:ParenNumber"
+                    }
+
+                SetHeadingLevel ->
+                    { en = "SetHeadingLevel"
+                    , zh_hans = "%zh_hans:SetHeadingLevel"
+                    , zh_hant = "%zh_hant:SetHeadingLevel"
+                    , es = "%es:SetHeadingLevel"
+                    , fr = "%fr:SetHeadingLevel"
+                    , ru = "%ru:SetHeadingLevel"
+                    , de = "%de:SetHeadingLevel"
+                    , nl = "%nl:SetHeadingLevel"
+                    , hu = "%hu:SetHeadingLevel"
+                    , sv = "%sv:SetHeadingLevel"
+                    , ca = "%ca:SetHeadingLevel"
+                    , br = "%br:SetHeadingLevel"
+                    }
+
+                --
                 AreYouSureCancel ->
                     { en = "Are you sure you want to undo your changes?"
                     , zh_hans = "%zh_hans:AreYouSureCancel"
@@ -950,6 +1680,21 @@ tr lang trans =
                     , sv = "%sv:QuickDocumentSwitcher"
                     , ca = "%ca:QuickDocumentSwitcher"
                     , br = "%br:QuickDocumentSwitcher"
+                    }
+
+                OpenQuickSwitcher ->
+                    { en = "Open Quick Switcher"
+                    , zh_hans = "%zh_hans:OpenQuickSwitcher"
+                    , zh_hant = "%zh_hant:OpenQuickSwitcher"
+                    , es = "%es:OpenQuickSwitcher"
+                    , fr = "%fr:OpenQuickSwitcher"
+                    , ru = "%ru:OpenQuickSwitcher"
+                    , de = "%de:OpenQuickSwitcher"
+                    , nl = "%nl:OpenQuickSwitcher"
+                    , hu = "%hu:OpenQuickSwitcher"
+                    , sv = "%sv:OpenQuickSwitcher"
+                    , ca = "%ca:OpenQuickSwitcher"
+                    , br = "%br:OpenQuickSwitcher"
                     }
 
                 EmailSupport ->
@@ -1072,6 +1817,51 @@ tr lang trans =
                     , br = "%br:EditingFont"
                     }
 
+                VersionHistory ->
+                    { en = "Version History"
+                    , zh_hans = "%zh_hans:VersionHistory"
+                    , zh_hant = "%zh_hant:VersionHistory"
+                    , es = "%es:VersionHistory"
+                    , fr = "%fr:VersionHistory"
+                    , ru = "%ru:VersionHistory"
+                    , de = "%de:VersionHistory"
+                    , nl = "%nl:VersionHistory"
+                    , hu = "%hu:VersionHistory"
+                    , sv = "%sv:VersionHistory"
+                    , ca = "%ca:VersionHistory"
+                    , br = "%br:VersionHistory"
+                    }
+
+                DocumentSettings ->
+                    { en = "Document Settings"
+                    , zh_hans = "%zh_hans:DocumentSettings"
+                    , zh_hant = "%zh_hant:DocumentSettings"
+                    , es = "%es:DocumentSettings"
+                    , fr = "%fr:DocumentSettings"
+                    , ru = "%ru:DocumentSettings"
+                    , de = "%de:DocumentSettings"
+                    , nl = "%nl:DocumentSettings"
+                    , hu = "%hu:DocumentSettings"
+                    , sv = "%sv:DocumentSettings"
+                    , ca = "%ca:DocumentSettings"
+                    , br = "%br:DocumentSettings"
+                    }
+
+                WordCount ->
+                    { en = "Word count..."
+                    , zh_hans = "%zh_hans:WordCount"
+                    , zh_hant = "%zh_hant:WordCount"
+                    , es = "%es:WordCount"
+                    , fr = "%fr:WordCount"
+                    , ru = "%ru:WordCount"
+                    , de = "%de:WordCount"
+                    , nl = "%nl:WordCount"
+                    , hu = "%hu:WordCount"
+                    , sv = "%sv:WordCount"
+                    , ca = "%ca:WordCount"
+                    , br = "%br:WordCount"
+                    }
+
                 WordCountSession n ->
                     { en = numberPlural n "Session : %1 word" "Session : %1 words"
                     , zh_hans = numberPlural n "%zh_hans:WordCountSession:0" "%zh_hans:WordCountSession:1"
@@ -1160,6 +1950,428 @@ tr lang trans =
                     , sv = numberPlural n "%sv:WordCountColumn:0" "%sv:WordCountColumn:1"
                     , ca = numberPlural n "%ca:WordCountColumn:0" "%ca:WordCountColumn:1"
                     , br = numberPlural n "%br:WordCountColumn:0" "%br:WordCountColumn:1"
+                    }
+
+                WordCountTotalCards n ->
+                    { en = numberPlural n "Total Cards in Tree : %1" "Total Cards in Tree : %1"
+                    , zh_hans = numberPlural n "%zh_hans:WordCountTotalCards:0" "%zh_hans:WordCountTotalCards:1"
+                    , zh_hant = numberPlural n "%zh_hant:WordCountTotalCards:0" "%zh_hant:WordCountTotalCards:1"
+                    , es = numberPlural n "%es:WordCountTotalCards:0" "%es:WordCountTotalCards:1"
+                    , fr = numberPlural n "%fr:WordCountTotalCards:0" "%fr:WordCountTotalCards:1"
+                    , ru = numberPlural n "%ru:WordCountTotalCards:0" "%ru:WordCountTotalCards:1"
+                    , de = numberPlural n "%de:WordCountTotalCards:0" "%de:WordCountTotalCards:1"
+                    , nl = numberPlural n "%nl:WordCountTotalCards:0" "%nl:WordCountTotalCards:1"
+                    , hu = numberPlural n "%hu:WordCountTotalCards:0" "%hu:WordCountTotalCards:1"
+                    , sv = numberPlural n "%sv:WordCountTotalCards:0" "%sv:WordCountTotalCards:1"
+                    , ca = numberPlural n "%ca:WordCountTotalCards:0" "%ca:WordCountTotalCards:1"
+                    , br = numberPlural n "%br:WordCountTotalCards:0" "%br:WordCountTotalCards:1"
+                    }
+
+                DocumentTheme ->
+                    { en = "Document Theme"
+                    , zh_hans = "%zh_hans:DocumentTheme"
+                    , zh_hant = "%zh_hant:DocumentTheme"
+                    , es = "%es:DocumentTheme"
+                    , fr = "%fr:DocumentTheme"
+                    , ru = "%ru:DocumentTheme"
+                    , de = "%de:DocumentTheme"
+                    , nl = "%nl:DocumentTheme"
+                    , hu = "%hu:DocumentTheme"
+                    , sv = "%sv:DocumentTheme"
+                    , ca = "%ca:DocumentTheme"
+                    , br = "%br:DocumentTheme"
+                    }
+
+                ThemeDefault ->
+                    { en = "Default"
+                    , zh_hans = "%zh_hans:ThemeDefault"
+                    , zh_hant = "%zh_hant:ThemeDefault"
+                    , es = "%es:ThemeDefault"
+                    , fr = "%fr:ThemeDefault"
+                    , ru = "%ru:ThemeDefault"
+                    , de = "%de:ThemeDefault"
+                    , nl = "%nl:ThemeDefault"
+                    , hu = "%hu:ThemeDefault"
+                    , sv = "%sv:ThemeDefault"
+                    , ca = "%ca:ThemeDefault"
+                    , br = "%br:ThemeDefault"
+                    }
+
+                ThemeDarkMode ->
+                    { en = "Dark Mode"
+                    , zh_hans = "%zh_hans:ThemeDarkMode"
+                    , zh_hant = "%zh_hant:ThemeDarkMode"
+                    , es = "%es:ThemeDarkMode"
+                    , fr = "%fr:ThemeDarkMode"
+                    , ru = "%ru:ThemeDarkMode"
+                    , de = "%de:ThemeDarkMode"
+                    , nl = "%nl:ThemeDarkMode"
+                    , hu = "%hu:ThemeDarkMode"
+                    , sv = "%sv:ThemeDarkMode"
+                    , ca = "%ca:ThemeDarkMode"
+                    , br = "%br:ThemeDarkMode"
+                    }
+
+                ThemeClassic ->
+                    { en = "Classic Gingkoapp"
+                    , zh_hans = "%zh_hans:ThemeClassic"
+                    , zh_hant = "%zh_hant:ThemeClassic"
+                    , es = "%es:ThemeClassic"
+                    , fr = "%fr:ThemeClassic"
+                    , ru = "%ru:ThemeClassic"
+                    , de = "%de:ThemeClassic"
+                    , nl = "%nl:ThemeClassic"
+                    , hu = "%hu:ThemeClassic"
+                    , sv = "%sv:ThemeClassic"
+                    , ca = "%ca:ThemeClassic"
+                    , br = "%br:ThemeClassic"
+                    }
+
+                ThemeGray ->
+                    { en = "Gray"
+                    , zh_hans = "%zh_hans:ThemeGray"
+                    , zh_hant = "%zh_hant:ThemeGray"
+                    , es = "%es:ThemeGray"
+                    , fr = "%fr:ThemeGray"
+                    , ru = "%ru:ThemeGray"
+                    , de = "%de:ThemeGray"
+                    , nl = "%nl:ThemeGray"
+                    , hu = "%hu:ThemeGray"
+                    , sv = "%sv:ThemeGray"
+                    , ca = "%ca:ThemeGray"
+                    , br = "%br:ThemeGray"
+                    }
+
+                ThemeGreen ->
+                    { en = "Green"
+                    , zh_hans = "%zh_hans:ThemeGreen"
+                    , zh_hant = "%zh_hant:ThemeGreen"
+                    , es = "%es:ThemeGreen"
+                    , fr = "%fr:ThemeGreen"
+                    , ru = "%ru:ThemeGreen"
+                    , de = "%de:ThemeGreen"
+                    , nl = "%nl:ThemeGreen"
+                    , hu = "%hu:ThemeGreen"
+                    , sv = "%sv:ThemeGreen"
+                    , ca = "%ca:ThemeGreen"
+                    , br = "%br:ThemeGreen"
+                    }
+
+                ThemeTurquoise ->
+                    { en = "Turquoise"
+                    , zh_hans = "%zh_hans:ThemeTurquoise"
+                    , zh_hant = "%zh_hant:ThemeTurquoise"
+                    , es = "%es:ThemeTurquoise"
+                    , fr = "%fr:ThemeTurquoise"
+                    , ru = "%ru:ThemeTurquoise"
+                    , de = "%de:ThemeTurquoise"
+                    , nl = "%nl:ThemeTurquoise"
+                    , hu = "%hu:ThemeTurquoise"
+                    , sv = "%sv:ThemeTurquoise"
+                    , ca = "%ca:ThemeTurquoise"
+                    , br = "%br:ThemeTurquoise"
+                    }
+
+                -- Exporting
+                ExportOrPrint ->
+                    { en = "Export or Print"
+                    , zh_hans = "%zh_hans:ExportOrPrint"
+                    , zh_hant = "%zh_hant:ExportOrPrint"
+                    , es = "%es:ExportOrPrint"
+                    , fr = "%fr:ExportOrPrint"
+                    , ru = "%ru:ExportOrPrint"
+                    , de = "%de:ExportOrPrint"
+                    , nl = "%nl:ExportOrPrint"
+                    , hu = "%hu:ExportOrPrint"
+                    , sv = "%sv:ExportOrPrint"
+                    , ca = "%ca:ExportOrPrint"
+                    , br = "%br:ExportOrPrint"
+                    }
+
+                ExportSettingEverything ->
+                    { en = "Everything"
+                    , zh_hans = "%zh_hans:ExportSettingEverything"
+                    , zh_hant = "%zh_hant:ExportSettingEverything"
+                    , es = "%es:ExportSettingEverything"
+                    , fr = "%fr:ExportSettingEverything"
+                    , ru = "%ru:ExportSettingEverything"
+                    , de = "%de:ExportSettingEverything"
+                    , nl = "%nl:ExportSettingEverything"
+                    , hu = "%hu:ExportSettingEverything"
+                    , sv = "%sv:ExportSettingEverything"
+                    , ca = "%ca:ExportSettingEverything"
+                    , br = "%br:ExportSettingEverything"
+                    }
+
+                ExportSettingEverythingDesc ->
+                    { en = "All cards in the tree (in depth-first order)"
+                    , zh_hans = "%zh_hans:ExportSettingEverythingDesc"
+                    , zh_hant = "%zh_hant:ExportSettingEverythingDesc"
+                    , es = "%es:ExportSettingEverythingDesc"
+                    , fr = "%fr:ExportSettingEverythingDesc"
+                    , ru = "%ru:ExportSettingEverythingDesc"
+                    , de = "%de:ExportSettingEverythingDesc"
+                    , nl = "%nl:ExportSettingEverythingDesc"
+                    , hu = "%hu:ExportSettingEverythingDesc"
+                    , sv = "%sv:ExportSettingEverythingDesc"
+                    , ca = "%ca:ExportSettingEverythingDesc"
+                    , br = "%br:ExportSettingEverythingDesc"
+                    }
+
+                ExportSettingCurrentSubtree ->
+                    { en = "Current Subtree"
+                    , zh_hans = "%zh_hans:ExportSettingCurrentSubtree"
+                    , zh_hant = "%zh_hant:ExportSettingCurrentSubtree"
+                    , es = "%es:ExportSettingCurrentSubtree"
+                    , fr = "%fr:ExportSettingCurrentSubtree"
+                    , ru = "%ru:ExportSettingCurrentSubtree"
+                    , de = "%de:ExportSettingCurrentSubtree"
+                    , nl = "%nl:ExportSettingCurrentSubtree"
+                    , hu = "%hu:ExportSettingCurrentSubtree"
+                    , sv = "%sv:ExportSettingCurrentSubtree"
+                    , ca = "%ca:ExportSettingCurrentSubtree"
+                    , br = "%br:ExportSettingCurrentSubtree"
+                    }
+
+                ExportSettingCurrentSubtreeDesc ->
+                    { en = "Current card and all its children"
+                    , zh_hans = "%zh_hans:ExportSettingCurrentSubtreeDesc"
+                    , zh_hant = "%zh_hant:ExportSettingCurrentSubtreeDesc"
+                    , es = "%es:ExportSettingCurrentSubtreeDesc"
+                    , fr = "%fr:ExportSettingCurrentSubtreeDesc"
+                    , ru = "%ru:ExportSettingCurrentSubtreeDesc"
+                    , de = "%de:ExportSettingCurrentSubtreeDesc"
+                    , nl = "%nl:ExportSettingCurrentSubtreeDesc"
+                    , hu = "%hu:ExportSettingCurrentSubtreeDesc"
+                    , sv = "%sv:ExportSettingCurrentSubtreeDesc"
+                    , ca = "%ca:ExportSettingCurrentSubtreeDesc"
+                    , br = "%br:ExportSettingCurrentSubtreeDesc"
+                    }
+
+                ExportSettingLeavesOnly ->
+                    { en = "Leaves-only"
+                    , zh_hans = "%zh_hans:ExportSettingLeavesOnly"
+                    , zh_hant = "%zh_hant:ExportSettingLeavesOnly"
+                    , es = "%es:ExportSettingLeavesOnly"
+                    , fr = "%fr:ExportSettingLeavesOnly"
+                    , ru = "%ru:ExportSettingLeavesOnly"
+                    , de = "%de:ExportSettingLeavesOnly"
+                    , nl = "%nl:ExportSettingLeavesOnly"
+                    , hu = "%hu:ExportSettingLeavesOnly"
+                    , sv = "%sv:ExportSettingLeavesOnly"
+                    , ca = "%ca:ExportSettingLeavesOnly"
+                    , br = "%br:ExportSettingLeavesOnly"
+                    }
+
+                ExportSettingLeavesOnlyDesc ->
+                    { en = "Only cards without children"
+                    , zh_hans = "%zh_hans:ExportSettingLeavesOnlyDesc"
+                    , zh_hant = "%zh_hant:ExportSettingLeavesOnlyDesc"
+                    , es = "%es:ExportSettingLeavesOnlyDesc"
+                    , fr = "%fr:ExportSettingLeavesOnlyDesc"
+                    , ru = "%ru:ExportSettingLeavesOnlyDesc"
+                    , de = "%de:ExportSettingLeavesOnlyDesc"
+                    , nl = "%nl:ExportSettingLeavesOnlyDesc"
+                    , hu = "%hu:ExportSettingLeavesOnlyDesc"
+                    , sv = "%sv:ExportSettingLeavesOnlyDesc"
+                    , ca = "%ca:ExportSettingLeavesOnlyDesc"
+                    , br = "%br:ExportSettingLeavesOnlyDesc"
+                    }
+
+                ExportSettingCurrentColumn ->
+                    { en = "Current Column"
+                    , zh_hans = "%zh_hans:ExportSettingCurrentColumn"
+                    , zh_hant = "%zh_hant:ExportSettingCurrentColumn"
+                    , es = "%es:ExportSettingCurrentColumn"
+                    , fr = "%fr:ExportSettingCurrentColumn"
+                    , ru = "%ru:ExportSettingCurrentColumn"
+                    , de = "%de:ExportSettingCurrentColumn"
+                    , nl = "%nl:ExportSettingCurrentColumn"
+                    , hu = "%hu:ExportSettingCurrentColumn"
+                    , sv = "%sv:ExportSettingCurrentColumn"
+                    , ca = "%ca:ExportSettingCurrentColumn"
+                    , br = "%br:ExportSettingCurrentColumn"
+                    }
+
+                ExportSettingCurrentColumnDesc ->
+                    { en = "Only carsd in the current (vertical) column"
+                    , zh_hans = "%zh_hans:ExportSettingCurrentColumnDesc"
+                    , zh_hant = "%zh_hant:ExportSettingCurrentColumnDesc"
+                    , es = "%es:ExportSettingCurrentColumnDesc"
+                    , fr = "%fr:ExportSettingCurrentColumnDesc"
+                    , ru = "%ru:ExportSettingCurrentColumnDesc"
+                    , de = "%de:ExportSettingCurrentColumnDesc"
+                    , nl = "%nl:ExportSettingCurrentColumnDesc"
+                    , hu = "%hu:ExportSettingCurrentColumnDesc"
+                    , sv = "%sv:ExportSettingCurrentColumnDesc"
+                    , ca = "%ca:ExportSettingCurrentColumnDesc"
+                    , br = "%br:ExportSettingCurrentColumnDesc"
+                    }
+
+                ExportSettingWord ->
+                    { en = "Word"
+                    , zh_hans = "%zh_hans:ExportSettingWord"
+                    , zh_hant = "%zh_hant:ExportSettingWord"
+                    , es = "%es:ExportSettingWord"
+                    , fr = "%fr:ExportSettingWord"
+                    , ru = "%ru:ExportSettingWord"
+                    , de = "%de:ExportSettingWord"
+                    , nl = "%nl:ExportSettingWord"
+                    , hu = "%hu:ExportSettingWord"
+                    , sv = "%sv:ExportSettingWord"
+                    , ca = "%ca:ExportSettingWord"
+                    , br = "%br:ExportSettingWord"
+                    }
+
+                ExportSettingPlainText ->
+                    { en = "Plain Text"
+                    , zh_hans = "%zh_hans:ExportSettingPlainText"
+                    , zh_hant = "%zh_hant:ExportSettingPlainText"
+                    , es = "%es:ExportSettingPlainText"
+                    , fr = "%fr:ExportSettingPlainText"
+                    , ru = "%ru:ExportSettingPlainText"
+                    , de = "%de:ExportSettingPlainText"
+                    , nl = "%nl:ExportSettingPlainText"
+                    , hu = "%hu:ExportSettingPlainText"
+                    , sv = "%sv:ExportSettingPlainText"
+                    , ca = "%ca:ExportSettingPlainText"
+                    , br = "%br:ExportSettingPlainText"
+                    }
+
+                ExportSettingJSON ->
+                    { en = "JSON"
+                    , zh_hans = "%zh_hans:ExportSettingJSON"
+                    , zh_hant = "%zh_hant:ExportSettingJSON"
+                    , es = "%es:ExportSettingJSON"
+                    , fr = "%fr:ExportSettingJSON"
+                    , ru = "%ru:ExportSettingJSON"
+                    , de = "%de:ExportSettingJSON"
+                    , nl = "%nl:ExportSettingJSON"
+                    , hu = "%hu:ExportSettingJSON"
+                    , sv = "%sv:ExportSettingJSON"
+                    , ca = "%ca:ExportSettingJSON"
+                    , br = "%br:ExportSettingJSON"
+                    }
+
+                DownloadWordFile ->
+                    { en = "Download Word File"
+                    , zh_hans = "%zh_hans:DownloadWordFile"
+                    , zh_hant = "%zh_hant:DownloadWordFile"
+                    , es = "%es:DownloadWordFile"
+                    , fr = "%fr:DownloadWordFile"
+                    , ru = "%ru:DownloadWordFile"
+                    , de = "%de:DownloadWordFile"
+                    , nl = "%nl:DownloadWordFile"
+                    , hu = "%hu:DownloadWordFile"
+                    , sv = "%sv:DownloadWordFile"
+                    , ca = "%ca:DownloadWordFile"
+                    , br = "%br:DownloadWordFile"
+                    }
+
+                DownloadTextFile ->
+                    { en = "Download Markdown text file"
+                    , zh_hans = "%zh_hans:DownloadTextFile"
+                    , zh_hant = "%zh_hant:DownloadTextFile"
+                    , es = "%es:DownloadTextFile"
+                    , fr = "%fr:DownloadTextFile"
+                    , ru = "%ru:DownloadTextFile"
+                    , de = "%de:DownloadTextFile"
+                    , nl = "%nl:DownloadTextFile"
+                    , hu = "%hu:DownloadTextFile"
+                    , sv = "%sv:DownloadTextFile"
+                    , ca = "%ca:DownloadTextFile"
+                    , br = "%br:DownloadTextFile"
+                    }
+
+                DownloadJSONFile ->
+                    { en = "Download JSON file"
+                    , zh_hans = "%zh_hans:DownloadJSONFile"
+                    , zh_hant = "%zh_hant:DownloadJSONFile"
+                    , es = "%es:DownloadJSONFile"
+                    , fr = "%fr:DownloadJSONFile"
+                    , ru = "%ru:DownloadJSONFile"
+                    , de = "%de:DownloadJSONFile"
+                    , nl = "%nl:DownloadJSONFile"
+                    , hu = "%hu:DownloadJSONFile"
+                    , sv = "%sv:DownloadJSONFile"
+                    , ca = "%ca:DownloadJSONFile"
+                    , br = "%br:DownloadJSONFile"
+                    }
+
+                PrintThis ->
+                    { en = "Print this"
+                    , zh_hans = "%zh_hans:PrintThis"
+                    , zh_hant = "%zh_hant:PrintThis"
+                    , es = "%es:PrintThis"
+                    , fr = "%fr:PrintThis"
+                    , ru = "%ru:PrintThis"
+                    , de = "%de:PrintThis"
+                    , nl = "%nl:PrintThis"
+                    , hu = "%hu:PrintThis"
+                    , sv = "%sv:PrintThis"
+                    , ca = "%ca:PrintThis"
+                    , br = "%br:PrintThis"
+                    }
+
+                -- Upgrade & Subscription
+                Upgrade ->
+                    { en = "Upgrade"
+                    , zh_hans = "%zh_hans:Upgrade"
+                    , zh_hant = "%zh_hant:Upgrade"
+                    , es = "%es:Upgrade"
+                    , fr = "%fr:Upgrade"
+                    , ru = "%ru:Upgrade"
+                    , de = "%de:Upgrade"
+                    , nl = "%nl:Upgrade"
+                    , hu = "%hu:Upgrade"
+                    , sv = "%sv:Upgrade"
+                    , ca = "%ca:Upgrade"
+                    , br = "%br:Upgrade"
+                    }
+
+                DaysLeft n ->
+                    { en = numberPlural n "%1 day left in trial" "%1 days left in trial"
+                    , zh_hans = numberPlural n "%zh_hans:DaysLeft:0" "%zh_hans:DaysLeft:1"
+                    , zh_hant = numberPlural n "%zh_hant:DaysLeft:0" "%zh_hant:DaysLeft:1"
+                    , es = numberPlural n "%es:DaysLeft:0" "%es:DaysLeft:1"
+                    , fr = numberPlural n "%fr:DaysLeft:0" "%fr:DaysLeft:1"
+                    , ru = numberPlural n "%ru:DaysLeft:0" "%ru:DaysLeft:1"
+                    , de = numberPlural n "%de:DaysLeft:0" "%de:DaysLeft:1"
+                    , nl = numberPlural n "%nl:DaysLeft:0" "%nl:DaysLeft:1"
+                    , hu = numberPlural n "%hu:DaysLeft:0" "%hu:DaysLeft:1"
+                    , sv = numberPlural n "%sv:DaysLeft:0" "%sv:DaysLeft:1"
+                    , ca = numberPlural n "%ca:DaysLeft:0" "%ca:DaysLeft:1"
+                    , br = numberPlural n "%br:DaysLeft:0" "%br:DaysLeft:1"
+                    }
+
+                TrialExpired ->
+                    { en = "Trial Expired"
+                    , zh_hans = "%zh_hans:TrialExpired"
+                    , zh_hant = "%zh_hant:TrialExpired"
+                    , es = "%es:TrialExpired"
+                    , fr = "%fr:TrialExpired"
+                    , ru = "%ru:TrialExpired"
+                    , de = "%de:TrialExpired"
+                    , nl = "%nl:TrialExpired"
+                    , hu = "%hu:TrialExpired"
+                    , sv = "%sv:TrialExpired"
+                    , ca = "%ca:TrialExpired"
+                    , br = "%br:TrialExpired"
+                    }
+
+                ManageSubscription ->
+                    { en = "Manage Subscription"
+                    , zh_hans = "%zh_hans:ManageSubscription"
+                    , zh_hant = "%zh_hant:ManageSubscription"
+                    , es = "%es:ManageSubscription"
+                    , fr = "%fr:ManageSubscription"
+                    , ru = "%ru:ManageSubscription"
+                    , de = "%de:ManageSubscription"
+                    , nl = "%nl:ManageSubscription"
+                    , hu = "%hu:ManageSubscription"
+                    , sv = "%sv:ManageSubscription"
+                    , ca = "%ca:ManageSubscription"
+                    , br = "%br:ManageSubscription"
                     }
     in
     case lang of

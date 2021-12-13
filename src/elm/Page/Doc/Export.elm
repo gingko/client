@@ -12,6 +12,7 @@ import Html.Events exposing (onClick, onMouseEnter, onMouseLeave)
 import Http
 import Json.Encode as Enc
 import Markdown
+import Translation exposing (TranslationId(..))
 import Types exposing (Children(..), TooltipPosition(..), Tree)
 
 
@@ -98,7 +99,7 @@ toString ( exportSelection, exportFormat ) activeTree fullTree =
 exportView :
     { export : msg
     , printRequested : msg
-    , tooltipRequested : String -> TooltipPosition -> String -> msg
+    , tooltipRequested : String -> TooltipPosition -> TranslationId -> msg
     , tooltipClosed : msg
     }
     -> ( ExportSelection, ExportFormat )
@@ -117,27 +118,27 @@ exportView msgs (( _, exportFormat ) as exportSettings) activeTree fullTree =
         exportFormatString =
             case exportSettings |> Tuple.second of
                 DOCX ->
-                    "Word file"
+                    DownloadWordFile
 
                 PlainText ->
-                    "Markdown text file"
+                    DownloadTextFile
 
                 JSON ->
-                    "JSON file"
+                    DownloadJSONFile
 
         actionButtons =
             div [ id "export-action-buttons" ]
                 [ div
                     [ id "export-download"
                     , onClick msgs.export
-                    , onMouseEnter <| msgs.tooltipRequested "export-download" BelowTooltip ("Download " ++ exportFormatString)
+                    , onMouseEnter <| msgs.tooltipRequested "export-download" BelowTooltip exportFormatString
                     , onMouseLeave msgs.tooltipClosed
                     ]
                     [ AntIcons.downloadOutlined [] ]
                 , div
                     [ id "export-print"
                     , onClick msgs.printRequested
-                    , onMouseEnter <| msgs.tooltipRequested "export-print" BelowLeftTooltip "Print this"
+                    , onMouseEnter <| msgs.tooltipRequested "export-print" BelowLeftTooltip PrintThis
                     , onMouseLeave msgs.tooltipClosed
                     ]
                     [ AntIcons.printerOutlined [] ]

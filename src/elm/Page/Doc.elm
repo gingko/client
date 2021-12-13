@@ -2169,7 +2169,7 @@ sendCollabState collabState ( model, prevCmd ) =
 type alias AppMsgs msg =
     { docMsg : Msg -> msg
     , keyboard : String -> msg
-    , tooltipRequested : String -> TooltipPosition -> String -> msg
+    , tooltipRequested : String -> TooltipPosition -> TranslationId -> msg
     , tooltipClosed : msg
     , toggleWordcount : Model -> msg
     , toggleUpgradeModal : Bool -> msg
@@ -2347,7 +2347,7 @@ repeating-linear-gradient(-45deg
           """
             in
             [ ul [ class "conflicts-list" ]
-                (List.map (viewConflict SetSelection Resolve) conflicts)
+                (List.map (viewConflict language SetSelection Resolve) conflicts)
                 |> Html.map docMsg
             , lazy4 treeView (Session.language model.session) (Session.isMac model.session) model.viewState model.workingTree |> Html.map docMsg
             ]

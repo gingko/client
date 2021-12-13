@@ -150,7 +150,7 @@ viewSidebarList :
     , filter : String -> msg
     , changeSortBy : SortBy -> msg
     , contextMenu : String -> ( Float, Float ) -> msg
-    , tooltipRequested : String -> TooltipPosition -> String -> msg
+    , tooltipRequested : String -> TooltipPosition -> TranslationId -> msg
     , tooltipClosed : msg
     }
     -> String
@@ -198,7 +198,7 @@ viewSidebarList msgs currentDocId sortCriteria contextTarget_ filterField model 
                         , class "sort-button"
                         , classList [ ( "selected", sortCriteria == Alphabetical ) ]
                         , onClickStop <| msgs.changeSortBy Alphabetical
-                        , onMouseEnter <| msgs.tooltipRequested "sort-alphabetical" AboveTooltip "Sort by Name"
+                        , onMouseEnter <| msgs.tooltipRequested "sort-alphabetical" AboveTooltip SortByName
                         , onMouseLeave msgs.tooltipClosed
                         ]
                         [ text "Abc" ]
@@ -207,7 +207,7 @@ viewSidebarList msgs currentDocId sortCriteria contextTarget_ filterField model 
                         , class "sort-button"
                         , classList [ ( "selected", sortCriteria == ModifiedAt ) ]
                         , onClickStop <| msgs.changeSortBy ModifiedAt
-                        , onMouseEnter <| msgs.tooltipRequested "sort-modified" AboveTooltip "Sort by Last Modified"
+                        , onMouseEnter <| msgs.tooltipRequested "sort-modified" AboveTooltip SortByLastModified
                         , onMouseLeave msgs.tooltipClosed
                         ]
                         [ AntIcons.editOutlined [ Svg.Attributes.class "sort-icon" ] ]
@@ -216,7 +216,7 @@ viewSidebarList msgs currentDocId sortCriteria contextTarget_ filterField model 
                         , class "sort-button"
                         , classList [ ( "selected", sortCriteria == CreatedAt ) ]
                         , onClickStop <| msgs.changeSortBy CreatedAt
-                        , onMouseEnter <| msgs.tooltipRequested "sort-created" AboveTooltip "Sort by Date Created"
+                        , onMouseEnter <| msgs.tooltipRequested "sort-created" AboveTooltip SortByDateCreated
                         , onMouseLeave msgs.tooltipClosed
                         ]
                         [ AntIcons.fileOutlined [ Svg.Attributes.class "sort-icon" ] ]

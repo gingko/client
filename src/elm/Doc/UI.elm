@@ -9,7 +9,7 @@ import Doc.Data.Conflict as Conflict exposing (Conflict, Op(..), Selection(..), 
 import Doc.List as DocList exposing (Model(..))
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils as TreeUtils exposing (..)
-import Html exposing (Html, a, button, del, div, fieldset, h2, h3, h4, h5, hr, img, input, ins, label, li, pre, span, text, ul)
+import Html exposing (Html, a, button, del, div, fieldset, h2, h3, h4, h5, hr, img, input, ins, label, li, pre, span, ul)
 import Html.Attributes as A exposing (..)
 import Html.Attributes.Extra exposing (attributeIf)
 import Html.Events exposing (keyCode, on, onBlur, onClick, onFocus, onInput, onMouseEnter, onMouseLeave)
@@ -37,6 +37,25 @@ import Utils exposing (onClickStop)
 
 
 
+-- Translation Helper Function
+
+
+text : Language -> TranslationId -> Html msg
+text lang tid =
+    Html.text <| tr lang tid
+
+
+textNoTr : String -> Html msg
+textNoTr str =
+    Html.text str
+
+
+emptyText : Html msg
+emptyText =
+    Html.text ""
+
+
+
 -- HEADER
 
 
@@ -46,7 +65,7 @@ viewHeader :
     , titleFieldChanged : String -> msg
     , titleEdited : msg
     , titleEditCanceled : msg
-    , tooltipRequested : String -> TooltipPosition -> String -> msg
+    , tooltipRequested : String -> TooltipPosition -> TranslationId -> msg
     , tooltipClosed : msg
     , toggledHistory : Bool -> msg
     , checkoutCommit : String -> msg
@@ -108,7 +127,7 @@ viewHeader msgs title_ model =
             span [ id "title" ]
                 [ div [ class "title-grow-wrap" ]
                     [ div [ class "shadow" ]
-                        [ text <|
+                        [ Html.text <|
                             if titleString /= "" then
                                 titleString
 
@@ -166,7 +185,7 @@ viewHeader msgs title_ model =
             , class "header-button"
             , classList [ ( "open", isHistoryView ) ]
             , onClick <| msgs.toggledHistory (not isHistoryView)
-            , attributeIf (not isHistoryView) <| onMouseEnter <| msgs.tooltipRequested "history-icon" BelowTooltip "Version History"
+            , attributeIf (not isHistoryView) <| onMouseEnter <| msgs.tooltipRequested "history-icon" BelowTooltip VersionHistory
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.historyOutlined [] ]
@@ -185,26 +204,26 @@ viewHeader msgs title_ model =
                     historyState
 
             _ ->
-                text ""
+                emptyText
         , div
             [ id "doc-settings-icon"
             , class "header-button"
             , classList [ ( "open", model.headerMenu == Settings ) ]
             , onClick msgs.toggledDocSettings
-            , attributeIf (model.headerMenu /= Settings) <| onMouseEnter <| msgs.tooltipRequested "doc-settings-icon" BelowLeftTooltip "Document Settings"
+            , attributeIf (model.headerMenu /= Settings) <| onMouseEnter <| msgs.tooltipRequested "doc-settings-icon" BelowLeftTooltip DocumentSettings
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.controlOutlined [] ]
         , viewIf (model.headerMenu == Settings) <|
             div [ id "doc-settings-menu", class "header-menu" ]
-                [ div [ id "wordcount-menu-item", onClick msgs.wordCountClicked ] [ text "Word count..." ]
-                , h4 [] [ text "Document Theme" ]
-                , div [ onClick <| msgs.themeChanged Default ] [ text "Default" ]
-                , div [ onClick <| msgs.themeChanged Dark ] [ text "Dark Mode" ]
-                , div [ onClick <| msgs.themeChanged Classic ] [ text "Classic Gingkoapp" ]
-                , div [ onClick <| msgs.themeChanged Gray ] [ text "Gray" ]
-                , div [ onClick <| msgs.themeChanged Green ] [ text "Green" ]
-                , div [ onClick <| msgs.themeChanged Turquoise ] [ text "Turquoise" ]
+                [ div [ id "wordcount-menu-item", onClick msgs.wordCountClicked ] [ text language WordCount ]
+                , h4 [] [ text language DocumentTheme ]
+                , div [ onClick <| msgs.themeChanged Default ] [ text language ThemeDefault ]
+                , div [ onClick <| msgs.themeChanged Dark ] [ text language ThemeDarkMode ]
+                , div [ onClick <| msgs.themeChanged Classic ] [ text language ThemeClassic ]
+                , div [ onClick <| msgs.themeChanged Gray ] [ text language ThemeGray ]
+                , div [ onClick <| msgs.themeChanged Green ] [ text language ThemeGreen ]
+                , div [ onClick <| msgs.themeChanged Turquoise ] [ text language ThemeTurquoise ]
                 ]
         , viewIf (model.headerMenu == Settings) <| div [ id "doc-settings-menu-exit-left", onMouseEnter msgs.toggledDocSettings ] []
         , viewIf (model.headerMenu == Settings) <| div [ id "doc-settings-menu-exit-bottom", onMouseEnter msgs.toggledDocSettings ] []
@@ -213,7 +232,7 @@ viewHeader msgs title_ model =
             , class "header-button"
             , classList [ ( "open", model.headerMenu == ExportPreview ) ]
             , onClick msgs.toggledExport
-            , attributeIf (model.headerMenu /= ExportPreview) <| onMouseEnter <| msgs.tooltipRequested "export-icon" BelowLeftTooltip "Export or Print"
+            , attributeIf (model.headerMenu /= ExportPreview) <| onMouseEnter <| msgs.tooltipRequested "export-icon" BelowLeftTooltip ExportOrPrint
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.fileDoneOutlined [] ]
@@ -223,15 +242,15 @@ viewHeader msgs title_ model =
         , viewIf (model.headerMenu == ExportPreview) <|
             div [ id "export-menu" ]
                 [ div [ id "export-selection", class "toggle-button" ]
-                    [ div (exportSelectionBtnAttributes ExportEverything "all" "All cards in the tree (in depth-first order)") [ text "Everything" ]
-                    , div (exportSelectionBtnAttributes ExportSubtree "subtree" "Current card and all its children") [ text "Current Subtree" ]
-                    , div (exportSelectionBtnAttributes ExportLeaves "leaves" "Only cards without children") [ text "Leaves-only" ]
-                    , div (exportSelectionBtnAttributes ExportCurrentColumn "column" "Only cards in the current (vertical) column") [ text "Current Column" ]
+                    [ div (exportSelectionBtnAttributes ExportEverything "all" ExportSettingEverythingDesc) [ text language ExportSettingEverything ]
+                    , div (exportSelectionBtnAttributes ExportSubtree "subtree" ExportSettingCurrentSubtreeDesc) [ text language ExportSettingCurrentSubtree ]
+                    , div (exportSelectionBtnAttributes ExportLeaves "leaves" ExportSettingLeavesOnlyDesc) [ text language ExportSettingLeavesOnly ]
+                    , div (exportSelectionBtnAttributes ExportCurrentColumn "column" ExportSettingCurrentColumnDesc) [ text language ExportSettingCurrentColumn ]
                     ]
                 , div [ id "export-format", class "toggle-button" ]
-                    [ div (exportFormatBtnAttributes DOCX "word") [ text "Word" ]
-                    , div (exportFormatBtnAttributes PlainText "text") [ text "Plain Text" ]
-                    , div (exportFormatBtnAttributes JSON "json") [ text "JSON" ]
+                    [ div (exportFormatBtnAttributes DOCX "word") [ text language ExportSettingWord ]
+                    , div (exportFormatBtnAttributes PlainText "text") [ text language ExportSettingPlainText ]
+                    , div (exportFormatBtnAttributes JSON "json") [ text language ExportSettingJSON ]
                     ]
                 ]
         ]
@@ -252,30 +271,30 @@ viewSaveIndicator language { dirty, lastLocalSave, lastRemoteSave } currentTime 
 
         saveStateSpan =
             if dirty then
-                span [ title (tr language LastSaved ++ " " ++ lastChangeString) ] [ text <| tr language UnsavedChanges ]
+                span [ title (tr language LastSaved ++ " " ++ lastChangeString) ] [ text language UnsavedChanges ]
 
             else
                 case ( lastLocalSave, lastRemoteSave ) of
                     ( Nothing, Nothing ) ->
-                        span [] [ text <| tr language NeverSaved ]
+                        span [] [ text language NeverSaved ]
 
                     ( Just time, Nothing ) ->
                         if Time.posixToMillis time == 0 then
-                            span [] [ text <| tr language NeverSaved ]
+                            span [] [ text language NeverSaved ]
 
                         else
-                            span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language SavedInternally ]
+                            span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text language SavedInternally ]
 
                     ( Just commitTime, Just fileTime ) ->
                         if posixToMillis commitTime <= posixToMillis fileTime then
                             span [ title (tr language LastEdit ++ " " ++ lastChangeString) ]
-                                [ text <| tr language ChangesSynced ]
+                                [ text language ChangesSynced ]
 
                         else
-                            span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language SavedInternally ]
+                            span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text language SavedInternally ]
 
                     ( Nothing, Just _ ) ->
-                        span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text <| tr language DatabaseError ]
+                        span [ title (tr language LastEdit ++ " " ++ lastChangeString) ] [ text language DatabaseError ]
     in
     div
         [ id "save-indicator", classList [ ( "inset", True ), ( "saving", dirty ) ] ]
@@ -296,7 +315,12 @@ viewUpgradeButton toggledUpgradeModal session =
             Session.language session
 
         upgradeCTA isExpired prepends =
-            div [ id "upgrade-cta", onClick <| toggledUpgradeModal True, classList [ ( "trial-expired", isExpired ) ] ] (prepends ++ [ div [ id "upgrade-button" ] [ text "Upgrade" ] ])
+            div
+                [ id "upgrade-cta"
+                , onClick <| toggledUpgradeModal True
+                , classList [ ( "trial-expired", isExpired ) ]
+                ]
+                (prepends ++ [ div [ id "upgrade-button" ] [ text lang Upgrade ] ])
 
         maybeUpgrade =
             case Session.daysLeft session of
@@ -316,18 +340,18 @@ viewUpgradeButton toggledUpgradeModal session =
                         upgradeCTA True
                             [ span []
                                 [ AntIcons.exclamationCircleOutlined [ width 16, style "margin-bottom" "-3px", style "margin-right" "6px" ]
-                                , text "Trial Expired"
+                                , text lang TrialExpired
                                 ]
                             ]
 
                     else if daysLeft <= 7 then
-                        upgradeCTA False [ span [ class trialClass ] [ text <| String.fromInt daysLeft ++ " days left in trial" ] ]
+                        upgradeCTA False [ span [ class trialClass ] [ text lang (DaysLeft daysLeft) ] ]
 
                     else
                         upgradeCTA False []
 
                 Nothing ->
-                    text ""
+                    emptyText
     in
     maybeUpgrade
 
@@ -343,28 +367,28 @@ viewBreadcrumbs clickedCrumbMsg cardIdsAndTitles =
             List.head l |> Maybe.withDefault d
 
         markdownParser tag =
-            Markdown.Html.tag tag (\rc -> List.head rc |> Maybe.withDefault (text ""))
+            Markdown.Html.tag tag (\rc -> List.head rc |> Maybe.withDefault emptyText)
 
         textRenderer : Renderer (Html msg)
         textRenderer =
             { defaultMarkdown
-                | text = text
-                , codeSpan = text
-                , image = always (text "")
-                , heading = \{ rawText } -> text (String.trim rawText)
-                , paragraph = firstElementOnly (text "")
-                , blockQuote = firstElementOnly (text "")
-                , orderedList = \i l -> List.map (firstElementOnly (text "")) l |> firstElementOnly (text "")
+                | text = Html.text
+                , codeSpan = Html.text
+                , image = always emptyText
+                , heading = \{ rawText } -> Html.text (String.trim rawText)
+                , paragraph = firstElementOnly emptyText
+                , blockQuote = firstElementOnly emptyText
+                , orderedList = \i l -> List.map (firstElementOnly emptyText) l |> firstElementOnly emptyText
                 , unorderedList =
                     \l ->
                         List.map
                             (\li ->
                                 case li of
                                     Markdown.Block.ListItem _ children ->
-                                        children |> firstElementOnly (text "")
+                                        children |> firstElementOnly emptyText
                             )
                             l
-                            |> firstElementOnly (text "")
+                            |> firstElementOnly emptyText
                 , html = Markdown.Html.oneOf ([ "p", "h1", "h2", "h3", "h4", "h5", "h6", "style", "code", "span", "pre" ] |> List.map markdownParser)
             }
 
@@ -374,7 +398,7 @@ viewBreadcrumbs clickedCrumbMsg cardIdsAndTitles =
                 |> Markdown.Parser.parse
                 |> Result.mapError deadEndsToString
                 |> Result.andThen (\ast -> Markdown.Renderer.render textRenderer ast)
-                |> Result.withDefault [ text "<parse error>" ]
+                |> Result.withDefault [ Html.text "<parse error>" ]
 
         deadEndsToString deadEnds =
             deadEnds
@@ -395,7 +419,7 @@ type alias SidebarMsgs msg =
     { sidebarStateChanged : SidebarState -> msg
     , noOp : msg
     , clickedNew : msg
-    , tooltipRequested : String -> TooltipPosition -> String -> msg
+    , tooltipRequested : String -> TooltipPosition -> TranslationId -> msg
     , tooltipClosed : msg
     , clickedSwitcher : msg
     , clickedHelp : msg
@@ -460,18 +484,18 @@ viewSidebar session msgs currentDocId sortCriteria fileFilter docList accountEma
                 v
 
             else
-                text ""
+                emptyText
     in
     div [ id "sidebar", onClick <| toggle File, classList [ ( "open", isOpen ) ] ]
         ([ div [ id "brand" ]
             ([ img [ src "../gingko-leaf-logo.svg", width 28 ] [] ]
                 ++ (if isOpen then
-                        [ h2 [ id "brand-name" ] [ text "Gingko Writer" ]
+                        [ h2 [ id "brand-name" ] [ Html.text "Gingko Writer" ]
                         , div [ id "sidebar-collapse-icon" ] [ AntIcons.leftOutlined [] ]
                         ]
 
                     else
-                        [ text "" ]
+                        [ emptyText ]
                    )
                 ++ [ div [ id "hamburger-icon" ] [ AntIcons.menuOutlined [] ] ]
             )
@@ -479,21 +503,15 @@ viewSidebar session msgs currentDocId sortCriteria fileFilter docList accountEma
             [ id "new-icon"
             , class "sidebar-button"
             , onClickStop msgs.clickedNew
-            , onMouseEnter <| msgs.tooltipRequested "new-icon" RightTooltip "New Document"
+            , onMouseEnter <| msgs.tooltipRequested "new-icon" RightTooltip NewDocument
             , onMouseLeave msgs.tooltipClosed
             ]
-            [ AntIcons.fileAddOutlined []
-            , div [ id "welcome-step-7", class "tour-step" ]
-                [ text "Click for New Document"
-                , div [ class "arrow" ] [ text "◀" ]
-                , div [ id "progress-step-7", class "tour-step-progress" ] []
-                ]
-            ]
+            [ AntIcons.fileAddOutlined [] ]
          , div
             [ id "documents-icon"
             , class "sidebar-button"
             , classList [ ( "open", isOpen ) ]
-            , attributeIf (not isOpen) <| onMouseEnter <| msgs.tooltipRequested "documents-icon" RightTooltip "Show Document List"
+            , attributeIf (not isOpen) <| onMouseEnter <| msgs.tooltipRequested "documents-icon" RightTooltip ShowDocumentList
             , attributeIf (not isOpen) <| onMouseLeave msgs.tooltipClosed
             ]
             [ if isOpen then
@@ -519,7 +537,7 @@ viewSidebar session msgs currentDocId sortCriteria fileFilter docList accountEma
          , div
             [ id "document-switcher-icon"
             , onClickStop msgs.clickedSwitcher
-            , onMouseEnter <| msgs.tooltipRequested "document-switcher-icon" RightTooltip "Open Quick Switcher"
+            , onMouseEnter <| msgs.tooltipRequested "document-switcher-icon" RightTooltip OpenQuickSwitcher
             , onMouseLeave msgs.tooltipClosed
             , class "sidebar-button"
             , attributeIf (docList == Success []) (class "disabled")
@@ -529,21 +547,15 @@ viewSidebar session msgs currentDocId sortCriteria fileFilter docList accountEma
             [ id "help-icon"
             , class "sidebar-button"
             , onClickStop msgs.clickedHelp
-            , onMouseEnter <| msgs.tooltipRequested "help-icon" RightTooltip "Help"
+            , onMouseEnter <| msgs.tooltipRequested "help-icon" RightTooltip Help
             , onMouseLeave msgs.tooltipClosed
             ]
-            [ AntIcons.questionCircleFilled []
-            , div [ id "welcome-step-6", class "tour-step" ]
-                [ text "Click to see Help Menu"
-                , div [ class "arrow" ] [ text "◀" ]
-                , div [ id "progress-step-6", class "tour-step-progress" ] []
-                ]
-            ]
+            [ AntIcons.questionCircleFilled [] ]
          , div
             [ id "notifications-icon"
             , class "sidebar-button"
             , onClickStop <| msgs.noOp
-            , onMouseEnter <| msgs.tooltipRequested "notifications-icon" RightTooltip "What's New"
+            , onMouseEnter <| msgs.tooltipRequested "notifications-icon" RightTooltip WhatsNew
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.bellOutlined [] ]
@@ -552,7 +564,7 @@ viewSidebar session msgs currentDocId sortCriteria fileFilter docList accountEma
             , class "sidebar-button"
             , classList [ ( "open", accountOpen ) ]
             , onClickStop <| msgs.toggledAccount (not accountOpen)
-            , attributeIf (not accountOpen) <| onMouseEnter <| msgs.tooltipRequested "account-icon" RightTooltip "Account"
+            , attributeIf (not accountOpen) <| onMouseEnter <| msgs.tooltipRequested "account-icon" RightTooltip AccountTooltip
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.userOutlined [] ]
@@ -598,14 +610,14 @@ viewSidebarMenu lang custId_ msgs accountEmail dropdownState =
                         Just custId ->
                             Html.form [ method "POST", action "/create-portal-session" ]
                                 [ input [ type_ "hidden", name "customer_id", value custId ] []
-                                , button [ id "manage-subscription-button", type_ "submit" ] [ text "Manage Subscription" ]
+                                , button [ id "manage-subscription-button", type_ "submit" ] [ text lang ManageSubscription ]
                                 ]
 
                         Nothing ->
-                            text ""
+                            emptyText
             in
             [ div [ id "account-menu", class "sidebar-menu" ]
-                [ div [ onClickStop msgs.noOp, class "no-action" ] [ text accountEmail ]
+                [ div [ onClickStop msgs.noOp, class "no-action" ] [ Html.text accountEmail ]
                 , manageSubBtn
                 , div
                     [ id "language-option"
@@ -616,8 +628,8 @@ viewSidebarMenu lang custId_ msgs accountEmail dropdownState =
                         onClickStop <| msgs.languageMenuRequested Nothing
                     , onMouseEnter <| msgs.languageMenuRequested (Just "language-option")
                     ]
-                    [ text <| tr lang Language, div [ class "right-icon" ] [ AntIcons.rightOutlined [] ] ]
-                , div [ id "logout-button", onClickStop msgs.logout ] [ text <| tr lang Logout ]
+                    [ text lang Language, div [ class "right-icon" ] [ AntIcons.rightOutlined [] ] ]
+                , div [ id "logout-button", onClickStop msgs.logout ] [ text lang Logout ]
                 ]
             , case langMenuEl_ of
                 Just langMenuEl ->
@@ -635,7 +647,7 @@ viewSidebarMenu lang custId_ msgs accountEmail dropdownState =
                                         , onClickStop <| msgs.languageChanged langOpt
                                         , classList [ ( "selected", langOpt == lang ) ]
                                         ]
-                                        [ text langName ]
+                                        [ textNoTr langName ]
                                 )
                          )
                             ++ [ a
@@ -643,18 +655,18 @@ viewSidebarMenu lang custId_ msgs accountEmail dropdownState =
                                     , target "_blank"
                                     , onClickStop <| msgs.toggledAccount False
                                     ]
-                                    [ text <| tr lang ContributeTranslations ]
+                                    [ text lang ContributeTranslations ]
                                ]
                         )
 
                 Nothing ->
-                    text ""
+                    emptyText
             , viewIf (langMenuEl_ == Nothing) <| div [ id "help-menu-exit-top", onMouseEnter <| msgs.toggledAccount False ] []
             , viewIf (langMenuEl_ == Nothing) <| div [ id "help-menu-exit-right", onMouseEnter <| msgs.toggledAccount False ] []
             ]
 
         NoSidebarMenu ->
-            [ text "" ]
+            [ emptyText ]
 
 
 viewSidebarStatic : Bool -> List (Html msg)
@@ -663,12 +675,12 @@ viewSidebarStatic sidebarOpen =
         [ div [ id "brand" ]
             ([ img [ src "../gingko-leaf-logo.svg", width 28 ] [] ]
                 ++ (if sidebarOpen then
-                        [ h2 [ id "brand-name" ] [ text "Gingko Writer" ]
+                        [ h2 [ id "brand-name" ] [ text En (NoTr "Gingko Writer") ]
                         , div [ id "sidebar-collapse-icon" ] [ AntIcons.leftOutlined [] ]
                         ]
 
                     else
-                        [ text "" ]
+                        [ emptyText ]
                    )
             )
         , viewIf sidebarOpen <| div [ id "sidebar-document-list-wrap" ] []
@@ -725,70 +737,70 @@ viewTemplateSelector :
     -> List (Html msg)
 viewTemplateSelector language msgs =
     [ div [ id "templates-block" ]
-        [ h2 [] [ text "New" ]
+        [ h2 [] [ text language New ]
         , div [ class "template-row" ]
             [ a [ id "template-new", class "template-item", href (Route.toString Route.DocNew) ]
                 [ div [ classList [ ( "template-thumbnail", True ), ( "new", True ) ] ] []
-                , div [ class "template-title" ] [ text <| tr language HomeBlank ]
+                , div [ class "template-title" ] [ text language HomeBlank ]
                 ]
             ]
-        , h2 [] [ text "Import" ]
+        , h2 [] [ text language ImportSectionTitle ]
         , div [ class "template-row" ]
             [ div [ id "template-import-bulk", class "template-item", onClick msgs.importBulkClicked ]
                 [ div [ classList [ ( "template-thumbnail", True ) ] ] [ Icon.fileZip (Icon.defaultOptions |> Icon.size 48) ]
-                , div [ class "template-title" ] [ text <| tr language HomeImportLegacy ]
+                , div [ class "template-title" ] [ text language HomeImportLegacy ]
                 , div [ class "template-description" ]
-                    [ text <| tr language HomeLegacyFrom ]
+                    [ text language HomeLegacyFrom ]
                 ]
             , div [ id "template-import-text", class "template-item", onClick msgs.importTextClicked ]
                 [ div [ classList [ ( "template-thumbnail", True ) ] ] [ Icon.file (Icon.defaultOptions |> Icon.size 48) ]
-                , div [ class "template-title" ] [ text "Import Text Files" ]
+                , div [ class "template-title" ] [ text language ImportTextFiles ]
                 , div [ class "template-description" ]
-                    [ text "Import multiple markdown or regular text files." ]
+                    [ text language ImportTextFilesDesc ]
                 ]
             , div [ id "template-import", class "template-item", onClick msgs.importJSONRequested ]
                 [ div [ classList [ ( "template-thumbnail", True ) ] ] [ Icon.fileCode (Icon.defaultOptions |> Icon.size 48) ]
-                , div [ class "template-title" ] [ text <| tr language HomeImportJSON ]
+                , div [ class "template-title" ] [ text language HomeImportJSON ]
                 , div [ class "template-description" ]
-                    [ text <| tr language HomeJSONFrom ]
+                    [ text language HomeJSONFrom ]
                 ]
             , div [ id "template-import-opml", class "template-item", onClick msgs.importOpmlRequested ]
                 [ div [ classList [ ( "template-thumbnail", True ) ] ] [ Icon.fileCode (Icon.defaultOptions |> Icon.size 48) ]
-                , div [ class "template-title" ] [ text "Import Opml Files" ]
+                , div [ class "template-title" ] [ text language ImportOpmlFiles ]
                 , div [ class "template-description" ]
-                    [ text "Import from Workflowy or other outliners." ]
+                    [ text language ImportOpmlFilesDesc ]
                 ]
             ]
-        , h2 [] [ text "Templates & Examples" ]
+        , h2 [] [ text language TemplatesAndExamples ]
         , div [ class "template-row" ]
             [ a [ id "template-timeline", class "template-item", href <| Route.toString (Route.Import Timeline) ]
                 [ div [ classList [ ( "template-thumbnail", True ) ] ] [ AntIcons.calendarOutlined [ width 48, height 48 ] ]
-                , div [ class "template-title" ] [ text "Timeline 2022" ]
+                , div [ class "template-title" ] [ text language TimelineTemplate ]
                 , div [ class "template-description" ]
-                    [ text "A tree-based calendar" ]
+                    [ text language TimelineTemplateDesc ]
                 ]
             , a [ id "template-academic", class "template-item", href <| Route.toString (Route.Import AcademicPaper) ]
                 [ div [ classList [ ( "template-thumbnail", True ) ] ] [ AntIcons.experimentOutlined [ width 48, height 48 ] ]
-                , div [ class "template-title" ] [ text "Academic Paper" ]
+                , div [ class "template-title" ] [ text language AcademicPaperTemplate ]
                 , div [ class "template-description" ]
-                    [ text "Starting point for journal paper" ]
+                    [ text language AcademicPaperTemplateDesc ]
                 ]
             , a [ id "template-project", class "template-item", href <| Route.toString (Route.Import ProjectBrainstorming) ]
                 [ div [ classList [ ( "template-thumbnail", True ) ] ] [ AntIcons.bulbOutlined [ width 48, height 48 ] ]
-                , div [ class "template-title" ] [ text "Project Brainstorming" ]
+                , div [ class "template-title" ] [ text language ProjectBrainstormingTemplate ]
                 , div [ class "template-description" ]
-                    [ text "Example on clarifying project goals" ]
+                    [ text language ProjectBrainstormingTemplateDesc ]
                 ]
             , a [ id "template-heros-journey", class "template-item", href <| Route.toString (Route.Import HerosJourney) ]
                 [ div [ classList [ ( "template-thumbnail", True ) ] ] [ AntIcons.thunderboltOutlined [ width 48, height 48 ] ]
-                , div [ class "template-title" ] [ text "Hero's Journey" ]
+                , div [ class "template-title" ] [ text language HerosJourneyTemplate ]
                 , div [ class "template-description" ]
-                    [ text "A framework for fictional stories" ]
+                    [ text language HerosJourneyTemplateDesc ]
                 ]
             ]
         ]
     ]
-        |> modalWrapper msgs.modalClosed Nothing Nothing "New Document"
+        |> modalWrapper msgs.modalClosed Nothing Nothing (tr language NewDocument)
 
 
 viewWordCount :
@@ -815,14 +827,14 @@ viewWordCount model msgs =
         session =
             current - model.startingWordcount
     in
-    [ span [] [ text (tr language (WordCountSession session)) ]
-    , span [] [ text (tr language (WordCountTotal current)) ]
-    , span [] [ text (tr language (WordCountCard stats.cardWords)) ]
-    , span [] [ text (tr language (WordCountSubtree stats.subtreeWords)) ]
-    , span [] [ text (tr language (WordCountGroup stats.groupWords)) ]
-    , span [] [ text (tr language (WordCountColumn stats.columnWords)) ]
+    [ span [] [ text language (WordCountSession session) ]
+    , span [] [ text language (WordCountTotal current) ]
+    , span [] [ text language (WordCountCard stats.cardWords) ]
+    , span [] [ text language (WordCountSubtree stats.subtreeWords) ]
+    , span [] [ text language (WordCountGroup stats.groupWords) ]
+    , span [] [ text language (WordCountColumn stats.columnWords) ]
     , hr [] []
-    , span [] [ text ("Total Cards in Tree : " ++ String.fromInt stats.cards) ]
+    , span [] [ text language (WordCountTotalCards stats.cards) ]
     ]
         |> modalWrapper msgs.modalClosed Nothing Nothing "Word Counts"
 
@@ -842,7 +854,7 @@ viewSearchField searchFieldMsg { viewState, session } =
                 Icon.search (defaultOptions |> Icon.color "#445" |> Icon.size 12)
 
             else
-                text ""
+                emptyText
     in
     case viewState.viewMode of
         Normal ->
@@ -906,7 +918,7 @@ viewHistory :
         , checkout : String -> msg
         , restore : msg
         , cancel : msg
-        , tooltipRequested : String -> TooltipPosition -> String -> msg
+        , tooltipRequested : String -> TooltipPosition -> TranslationId -> msg
         , tooltipClosed : msg
         }
     -> Time.Posix
@@ -927,13 +939,13 @@ viewHistory lang msgs currentTime dataModel historyState =
                     in
                     div
                         [ id "history-time-info"
-                        , onMouseEnter <| msgs.tooltipRequested "history-time-info" BelowTooltip (timeDistInWords lang commitPosix currentTime)
+                        , onMouseEnter <| msgs.tooltipRequested "history-time-info" BelowTooltip (NoTr <| timeDistInWords lang commitPosix currentTime)
                         , onMouseLeave msgs.tooltipClosed
                         ]
-                        [ text <| datetimeFormat lang commitPosix ]
+                        [ text lang (NoTr (datetimeFormat lang commitPosix)) ]
 
                 Nothing ->
-                    text ""
+                    emptyText
 
         maxIdx =
             historyList
@@ -957,11 +969,11 @@ viewHistory lang msgs currentTime dataModel historyState =
     div [ id "history-menu" ]
         [ input [ id "history-slider", type_ "range", A.min "0", A.max maxIdx, step "1", onInput checkoutCommit ] []
         , maybeTimeDisplay
-        , button [ id "history-restore", onClick msgs.restore ] [ text <| tr lang RestoreThisVersion ]
+        , button [ id "history-restore", onClick msgs.restore ] [ text lang RestoreThisVersion ]
         , div
             [ id "history-close-button"
             , onClick msgs.cancel
-            , onMouseEnter <| msgs.tooltipRequested "history-close-button" BelowLeftTooltip "Cancel"
+            , onMouseEnter <| msgs.tooltipRequested "history-close-button" BelowLeftTooltip Cancel
             , onMouseLeave <| msgs.tooltipClosed
             ]
             [ AntIcons.closeOutlined [] ]
@@ -969,7 +981,7 @@ viewHistory lang msgs currentTime dataModel historyState =
 
 
 viewShortcuts :
-    { toggledShortcutTray : msg, tooltipRequested : String -> TooltipPosition -> String -> msg, tooltipClosed : msg }
+    { toggledShortcutTray : msg, tooltipRequested : String -> TooltipPosition -> TranslationId -> msg, tooltipClosed : msg }
     -> Language
     -> Bool
     -> Bool
@@ -999,44 +1011,44 @@ viewShortcuts msgs lang isOpen isMac children textCursorInfo vs =
                 content
 
             else
-                text ""
+                emptyText
 
         addInsteadOfSplit =
             textCursorInfo.position == End || textCursorInfo.position == Empty
 
         spanSplit key descAdd descSplit =
             if addInsteadOfSplit then
-                shortcutSpan [ ctrlOrCmd, key ] descAdd
+                shortcutSpan [ NoTr ctrlOrCmd, NoTr key ] descAdd
 
             else
-                shortcutSpan [ ctrlOrCmd, key ] descSplit
+                shortcutSpan [ NoTr ctrlOrCmd, NoTr key ] descSplit
 
         splitChild =
-            spanSplit "L" (tr lang AddChildAction) (tr lang SplitChildAction)
+            spanSplit "L" AddChildAction SplitChildAction
 
         splitBelow =
-            spanSplit "J" (tr lang AddBelowAction) (tr lang SplitBelowAction)
+            spanSplit "J" AddBelowAction SplitBelowAction
 
         splitAbove =
-            spanSplit "K" (tr lang AddAboveAction) (tr lang SplitUpwardAction)
+            spanSplit "K" AddAboveAction SplitUpwardAction
 
         shortcutSpanEnabled enabled keys desc =
             let
                 keySpans =
                     keys
-                        |> List.map (\k -> span [ class "shortcut-key" ] [ text k ])
+                        |> List.map (\k -> span [ class "shortcut-key" ] [ text lang k ])
             in
             span
                 [ classList [ ( "disabled", not enabled ) ] ]
                 (keySpans
-                    ++ [ text (" " ++ desc) ]
+                    ++ [ textNoTr (" " ++ tr lang desc) ]
                 )
 
         shortcutSpan =
             shortcutSpanEnabled True
 
         formattingSpan markup =
-            span [] [ pre [ class "formatting-text" ] [ text markup ] ]
+            span [] [ pre [ class "formatting-text" ] [ text lang markup ] ]
 
         ctrlOrCmd =
             ctrlOrCmdText isMac
@@ -1051,26 +1063,26 @@ viewShortcuts msgs lang isOpen isMac children textCursorInfo vs =
                 [ div
                     [ id "shortcuts-tray", classList [ ( "open", isOpen ) ], onClick msgs.toggledShortcutTray ]
                     [ div [ id "shortcuts" ]
-                        [ h3 [] [ text "Keyboard Shortcuts" ]
-                        , h5 [] [ text "Edit Cards" ]
-                        , shortcutSpan [ tr lang EnterKey ] (tr lang EnterAction)
-                        , shortcutSpan [ "Shift", tr lang EnterKey ] (tr lang EditFullscreenAction)
-                        , viewIfNotOnly <| h5 [] [ text "Navigate" ]
-                        , viewIfNotOnly <| shortcutSpan [ "↑", "↓", "←", "→" ] (tr lang ArrowsAction)
-                        , h5 [] [ text "Add New Cards" ]
-                        , shortcutSpan [ ctrlOrCmd, "→" ] (tr lang AddChildAction)
-                        , shortcutSpan [ ctrlOrCmd, "↓" ] (tr lang AddBelowAction)
-                        , shortcutSpan [ ctrlOrCmd, "↑" ] (tr lang AddAboveAction)
-                        , viewIfNotOnly <| h5 [] [ text "Move & Delete Cards" ]
-                        , viewIfNotOnly <| shortcutSpan [ "Alt", tr lang ArrowKeys ] (tr lang MoveAction)
-                        , viewIfNotOnly <| shortcutSpan [ ctrlOrCmd, tr lang Backspace ] (tr lang DeleteAction)
-                        , viewIfNotOnly <| h5 [] [ text "Merge Cards" ]
-                        , viewIfNotOnly <| shortcutSpan [ ctrlOrCmd, "Shift", "↓" ] (tr lang MergeDownAction)
-                        , viewIfNotOnly <| shortcutSpan [ ctrlOrCmd, "Shift", "↑" ] (tr lang MergeUpAction)
+                        [ h3 [] [ text lang KeyboardShortcuts ]
+                        , h5 [] [ text lang EditCards ]
+                        , shortcutSpan [ EnterKey ] EnterAction
+                        , shortcutSpan [ ShiftKey, EnterKey ] EditFullscreenAction
+                        , viewIfNotOnly <| h5 [] [ text lang Navigate ]
+                        , viewIfNotOnly <| shortcutSpan [ NoTr "↑", NoTr "↓", NoTr "←", NoTr "→" ] ArrowsAction
+                        , h5 [] [ text lang AddNewCards ]
+                        , shortcutSpan [ NoTr ctrlOrCmd, NoTr "→" ] AddChildAction
+                        , shortcutSpan [ NoTr ctrlOrCmd, NoTr "↓" ] AddBelowAction
+                        , shortcutSpan [ NoTr ctrlOrCmd, NoTr "↑" ] AddAboveAction
+                        , viewIfNotOnly <| h5 [] [ text lang MoveAndDelete ]
+                        , viewIfNotOnly <| shortcutSpan [ AltKey, ArrowKeys ] MoveAction
+                        , viewIfNotOnly <| shortcutSpan [ NoTr ctrlOrCmd, Backspace ] DeleteAction
+                        , viewIfNotOnly <| h5 [] [ text lang MergeCards ]
+                        , viewIfNotOnly <| shortcutSpan [ NoTr ctrlOrCmd, ShiftKey, NoTr "↓" ] MergeDownAction
+                        , viewIfNotOnly <| shortcutSpan [ NoTr ctrlOrCmd, ShiftKey, NoTr "↑" ] MergeUpAction
                         , hr [] []
-                        , h5 [] [ text "Other Shortcuts" ]
-                        , shortcutSpan [ "w" ] "Display word counts"
-                        , shortcutSpan [ ctrlOrCmd, "O" ] (tr lang QuickDocumentSwitcher)
+                        , h5 [] [ text lang OtherShortcuts ]
+                        , shortcutSpan [ NoTr "w" ] DisplayWordCounts
+                        , shortcutSpan [ NoTr ctrlOrCmd, NoTr "O" ] QuickDocumentSwitcher
                         ]
                     ]
                 ]
@@ -1079,29 +1091,29 @@ viewShortcuts msgs lang isOpen isMac children textCursorInfo vs =
                 [ div
                     [ id "shortcuts-tray", classList [ ( "open", isOpen ) ], onClick msgs.toggledShortcutTray ]
                     [ div [ id "shortcuts" ]
-                        [ h3 [] [ text "Keyboard Shortcuts" ]
-                        , h3 [] [ text "(Edit Mode)" ]
-                        , h5 [] [ text "Save/Cancel Changes" ]
-                        , shortcutSpan [ ctrlOrCmd, tr lang EnterKey ] (tr lang ToSaveChanges)
-                        , shortcutSpan [ tr lang EscKey ] (tr lang ToCancelChanges)
+                        [ h3 [] [ text lang KeyboardShortcuts ]
+                        , h3 [] [ text lang EditMode ]
+                        , h5 [] [ text lang SaveOrCancelChanges ]
+                        , shortcutSpan [ NoTr ctrlOrCmd, EnterKey ] ToSaveChanges
+                        , shortcutSpan [ EscKey ] ToCancelChanges
                         , if addInsteadOfSplit then
-                            h5 [] [ text "Add New Cards" ]
+                            h5 [] [ text lang AddNewCards ]
 
                           else
-                            h5 [] [ text "Split At Cursor" ]
+                            h5 [] [ text lang SplitAtCursor ]
                         , splitChild
                         , splitBelow
                         , splitAbove
-                        , h5 [] [ text "Formatting" ]
-                        , shortcutSpanEnabled isTextSelected [ ctrlOrCmd, "B" ] (tr lang ForBold)
-                        , shortcutSpanEnabled isTextSelected [ ctrlOrCmd, "I" ] (tr lang ForItalic)
-                        , shortcutSpan [ "Alt", "(number)" ] "Set heading level (0-6)"
-                        , formattingSpan "# Title\n## Subtitle"
-                        , formattingSpan "- List item\n  - Subitem"
-                        , formattingSpan "[link](http://t.co)"
+                        , h5 [] [ text lang Formatting ]
+                        , shortcutSpanEnabled isTextSelected [ NoTr ctrlOrCmd, NoTr "B" ] ForBold
+                        , shortcutSpanEnabled isTextSelected [ NoTr ctrlOrCmd, NoTr "I" ] ForItalic
+                        , shortcutSpan [ AltKey, ParenNumber ] SetHeadingLevel
+                        , formattingSpan FormattingTitle
+                        , formattingSpan FormattingList
+                        , formattingSpan FormattingLink
                         , span [ class "markdown-guide" ]
                             [ a [ href "http://commonmark.org/help", target "_blank" ]
-                                [ text <| tr lang FormattingGuide
+                                [ text lang FormattingGuide
                                 , span [ class "icon-container" ] [ Icon.linkExternal (defaultOptions |> iconColor |> Icon.size 14) ]
                                 ]
                             ]
@@ -1113,7 +1125,7 @@ viewShortcuts msgs lang isOpen isMac children textCursorInfo vs =
         [ div
             [ id "shortcuts-tray"
             , onClick msgs.toggledShortcutTray
-            , onMouseEnter <| msgs.tooltipRequested "shortcuts-tray" LeftTooltip "Keyboard Shortcuts"
+            , onMouseEnter <| msgs.tooltipRequested "shortcuts-tray" LeftTooltip KeyboardShortcuts
             , onMouseLeave msgs.tooltipClosed
             ]
             [ keyboardIconSvg 24 ]
@@ -1151,8 +1163,8 @@ viewWordcountProgress current session =
         ]
 
 
-viewTooltip : ( Element, TooltipPosition, String ) -> Html msg
-viewTooltip ( el, tipPos, content ) =
+viewTooltip : Language -> ( Element, TooltipPosition, TranslationId ) -> Html msg
+viewTooltip lang ( el, tipPos, content ) =
     let
         posAttributes =
             case tipPos of
@@ -1192,7 +1204,7 @@ viewTooltip ( el, tipPos, content ) =
                     ]
     in
     div ([ class "tooltip" ] ++ posAttributes)
-        [ text content, div [ class "tooltip-arrow" ] [] ]
+        [ text lang content, div [ class "tooltip-arrow" ] [] ]
 
 
 getStats : { m | viewState : ViewState, workingTree : TreeStructure.Model } -> Stats
@@ -1267,20 +1279,20 @@ countWords str =
         |> List.length
 
 
-viewConflict : (String -> Selection -> String -> msg) -> (String -> msg) -> Conflict -> Html msg
-viewConflict setSelectionMsg resolveMsg { id, opA, opB, selection, resolved } =
+viewConflict : Language -> (String -> Selection -> String -> msg) -> (String -> msg) -> Conflict -> Html msg
+viewConflict language setSelectionMsg resolveMsg { id, opA, opB, selection, resolved } =
     let
         withManual cardId oursElement theirsElement =
             li
                 []
                 [ fieldset []
-                    [ radio (setSelectionMsg id Original cardId) (selection == Original) (text "Original")
+                    [ radio (setSelectionMsg id Original cardId) (selection == Original) emptyText
                     , radio (setSelectionMsg id Ours cardId) (selection == Ours) oursElement
                     , radio (setSelectionMsg id Theirs cardId) (selection == Theirs) theirsElement
-                    , radio (setSelectionMsg id Manual cardId) (selection == Manual) (text "Merged")
+                    , radio (setSelectionMsg id Manual cardId) (selection == Manual) emptyText
                     , label []
                         [ input [ checked resolved, type_ "checkbox", onClick (resolveMsg id) ] []
-                        , text "Resolved"
+                        , emptyText
                         ]
                     ]
                 ]
@@ -1289,12 +1301,12 @@ viewConflict setSelectionMsg resolveMsg { id, opA, opB, selection, resolved } =
             li
                 []
                 [ fieldset []
-                    [ radio (setSelectionMsg id Original "") (selection == Original) (text "Original")
-                    , radio (setSelectionMsg id Ours cardIdA) (selection == Ours) (text ("Ours:" ++ (opString opA |> String.left 3)))
-                    , radio (setSelectionMsg id Theirs cardIdB) (selection == Theirs) (text ("Theirs:" ++ (opString opB |> String.left 3)))
+                    [ radio (setSelectionMsg id Original "") (selection == Original) emptyText
+                    , radio (setSelectionMsg id Ours cardIdA) (selection == Ours) (text language <| NoTr <| ("Ours:" ++ (opString opA |> String.left 3)))
+                    , radio (setSelectionMsg id Theirs cardIdB) (selection == Theirs) (text language <| NoTr <| ("Theirs:" ++ (opString opB |> String.left 3)))
                     , label []
                         [ input [ checked resolved, type_ "checkbox", onClick (resolveMsg id) ] []
-                        , text "Resolved"
+                        , emptyText
                         ]
                     ]
                 ]
@@ -1306,20 +1318,20 @@ viewConflict setSelectionMsg resolveMsg { id, opA, opB, selection, resolved } =
                         [ classList [ ( "row option", True ), ( "selected", selection == Original ) ]
                         , onClick (setSelectionMsg id Original cardId)
                         ]
-                        [ text "Original" ]
+                        [ emptyText ]
                     , div [ class "row flex-row" ]
                         [ div
                             [ classList [ ( "option", True ), ( "selected", selection == Ours ) ]
                             , onClick (setSelectionMsg id Ours cardId)
                             ]
-                            [ text "Ours"
+                            [ emptyText
                             , ul [ class "changelist" ] ourChanges
                             ]
                         , div
                             [ classList [ ( "option", True ), ( "selected", selection == Theirs ) ]
                             , onClick (setSelectionMsg id Theirs cardId)
                             ]
-                            [ text "Theirs"
+                            [ emptyText
                             , ul [ class "changelist" ] theirChanges
                             ]
                         ]
@@ -1327,9 +1339,9 @@ viewConflict setSelectionMsg resolveMsg { id, opA, opB, selection, resolved } =
                         [ classList [ ( "row option", True ), ( "selected", selection == Manual ) ]
                         , onClick (setSelectionMsg id Manual cardId)
                         ]
-                        [ text "Merged" ]
+                        [ emptyText ]
                     ]
-                , button [ onClick (resolveMsg id) ] [ text "Resolved" ]
+                , button [ onClick (resolveMsg id) ] [ emptyText ]
                 ]
     in
     case ( opA, opB ) of
@@ -1344,10 +1356,10 @@ viewConflict setSelectionMsg resolveMsg { id, opA, opB, selection, resolved } =
                                         Nothing
 
                                     Added s ->
-                                        Just (li [] [ ins [ class "diff" ] [ text s ] ])
+                                        Just (li [] [ ins [ class "diff" ] [ textNoTr s ] ])
 
                                     Removed s ->
-                                        Just (li [] [ del [ class "diff" ] [ text s ] ])
+                                        Just (li [] [ del [ class "diff" ] [ textNoTr s ] ])
                             )
             in
             newConflictView idA [] []
