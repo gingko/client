@@ -5,9 +5,13 @@ const merge = require("webpack-merge");
 const zh_hans = require("./i18n/zh_hans.json");
 const zh_hant = require("./i18n/zh_hant.json");
 const es = require("./i18n/es.json");
+const ar = require("./i18n/ar.json");
 const fr = require("./i18n/fr.json");
 const ru = require("./i18n/ru.json");
 const de = require("./i18n/de.json");
+const ja = require("./i18n/ja.json");
+const pes = require("./i18n/pes.json");
+const it = require("./i18n/it.json");
 const nl = require("./i18n/nl.json");
 const hu = require("./i18n/hu.json");
 const sv = require("./i18n/sv.json");
@@ -51,16 +55,20 @@ const prepTranslation = (langCode, langData) => {
 const zhHansT = prepTranslation("zh_hans", zh_hans);
 const zhHantT = prepTranslation("zh_hant", zh_hant);
 const esT = prepTranslation("es", es);
+const arT = prepTranslation("ar", ar);
 const frT = prepTranslation("fr", fr);
 const ruT = prepTranslation("ru", ru);
 const deT = prepTranslation("de", de);
+const jaT = prepTranslation("ja", ja);
+const pesT = prepTranslation("pes", pes);
+const itT = prepTranslation("it", it);
 const nlT = prepTranslation("nl", nl);
 const huT = prepTranslation("hu", hu);
 const svT = prepTranslation("sv", sv);
 const caT = prepTranslation("ca", ca);
 const brT = prepTranslation("br", br);
 
-const allLanguageStrings = [].concat(zhHansT, zhHantT, esT, frT, ruT, deT, nlT, huT, svT, caT, brT)
+const allLanguageStrings = [].concat(zhHansT, zhHantT, esT, arT, frT, ruT, deT, jaT, pesT, itT, nlT, huT, svT, caT, brT)
 const otherReplacements = [
     {search: "{%SUPPORT_EMAIL%}", replace: config.SUPPORT_EMAIL, flags: 'g'}
   , {search: "{%SUPPORT_URGENT_EMAIL%}", replace: config.SUPPORT_URGENT_EMAIL, flags: 'g'}
