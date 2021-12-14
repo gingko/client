@@ -3,6 +3,34 @@
 msgid "Cancel"
 msgstr ""
 
+#: Elm:NewDocument
+msgid "New Document"
+msgstr ""
+
+#: Elm:ShowDocumentList
+msgid "Show Document List"
+msgstr ""
+
+#: Elm:SortByName
+msgid "Sort by Name"
+msgstr ""
+
+#: Elm:SortByLastModified
+msgid "Sort by Last Modified"
+msgstr ""
+
+#: Elm:SortByDateCreated
+msgid "Sort by Date Created"
+msgstr ""
+
+#: Elm:TemplatesAndExamples
+msgid "Templates & Examples"
+msgstr ""
+
+#: Elm:New
+msgid "New"
+msgstr ""
+
 #: Elm:HomeBlank
 msgid "Blank Tree"
 msgstr ""
@@ -15,12 +43,64 @@ msgstr ""
 msgid "From Gingko Desktop or Online export file"
 msgstr ""
 
+#: Elm:ImportSectionTitle
+msgid "Import"
+msgstr ""
+
 #: Elm:HomeImportLegacy
 msgid "From Old Account"
 msgstr ""
 
 #: Elm:HomeLegacyFrom
 msgid "Bulk transfer of trees from your legacy account"
+msgstr ""
+
+#: Elm:ImportTextFiles
+msgid "Import Text Files"
+msgstr ""
+
+#: Elm:ImportTextFilesDesc
+msgid "Import multiple markdown or regular text files."
+msgstr ""
+
+#: Elm:ImportOpmlFiles
+msgid "Import Opml Files"
+msgstr ""
+
+#: Elm:ImportOpmlFilesDesc
+msgid "Import from Workflowy or other outliners."
+msgstr ""
+
+#: Elm:TimelineTemplate
+msgid "Timeline 2022"
+msgstr ""
+
+#: Elm:TimelineTemplateDesc
+msgid "A tree-based calendar"
+msgstr ""
+
+#: Elm:AcademicPaperTemplate
+msgid "Academic Paper"
+msgstr ""
+
+#: Elm:AcademicPaperTemplateDesc
+msgid "Starting point for journal paper"
+msgstr ""
+
+#: Elm:ProjectBrainstormingTemplate
+msgid "Project Brainstorming"
+msgstr ""
+
+#: Elm:ProjectBrainstormingTemplateDesc
+msgid "Example on clarifying project goals"
+msgstr ""
+
+#: Elm:HerosJourneyTemplate
+msgid "Hero's Journey"
+msgstr ""
+
+#: Elm:HerosJourneyTemplateDesc
+msgid "A framework for fictional stories"
 msgstr ""
 
 #: Elm:RecentDocuments
@@ -79,6 +159,194 @@ msgstr ""
 msgid "Last edit"
 msgstr ""
 
+#: Elm:Help
+msgid "Help"
+msgstr ""
+
+#: Elm:WhatsNew
+msgid "What's New"
+msgstr ""
+
+#: Elm:AccountTooltip
+msgid "Account"
+msgstr ""
+
+#: Elm:KeyboardShortcuts
+msgid "Keyboard Shortcuts"
+msgstr ""
+
+#: Elm:ViewModeShortcuts
+msgid "View Mode Shortcuts : "
+msgstr ""
+
+#: Elm:CardEditCreateDelete
+msgid "Card Edit, Create, Delete"
+msgstr ""
+
+#: Elm:NavigationMovingCards
+msgid "Navigation, Moving Cards"
+msgstr ""
+
+#: Elm:CopyPaste
+msgid "Copy/Paste"
+msgstr ""
+
+#: Elm:SearchingMerging
+msgid "Searching, Merging Cards"
+msgstr ""
+
+#: Elm:HelpInfoDocs
+msgid "Help, Info, Documents"
+msgstr ""
+
+#: Elm:EditModeShortcuts
+msgid "Edit Mode Shortcuts : "
+msgstr ""
+
+#: Elm:CardSaveCreate
+msgid "Card Save, Create"
+msgstr ""
+
+#: Elm:EditCard
+msgid "Edit card"
+msgstr ""
+
+#: Elm:AddCardBelow
+msgid "Add card below"
+msgstr ""
+
+#: Elm:AddCardAbove
+msgid "Add card above"
+msgstr ""
+
+#: Elm:AddCardToRight
+msgid "Add card to the right (as child)"
+msgstr ""
+
+#: Elm:AddCardBelowSplit
+msgid "Add card below (split at cursor)"
+msgstr ""
+
+#: Elm:AddCardAboveSplit
+msgid "Add card above (split at cursor)"
+msgstr ""
+
+#: Elm:AddCardToRightSplit
+msgid "Add card to the right (split at cursor)"
+msgstr ""
+
+#: Elm:DeleteCard
+msgid "Delete card (and its children)"
+msgstr ""
+
+#: Elm:GoUpDownLeftRight
+msgid "Go up/down/left/right"
+msgstr ""
+
+#: Elm:GoToBeginningOfGroup
+msgid "Go to beginning of group"
+msgstr ""
+
+#: Elm:GoToEndOfGroup
+msgid "Go to end of group"
+msgstr ""
+
+#: Elm:GoToBeginningOfColumn
+msgid "Go to beginning of column"
+msgstr ""
+
+#: Elm:GoToEndOfColumn
+msgid "Go to end of column"
+msgstr ""
+
+#: Elm:MoveCurrentCard
+msgid "Move current card (and children)"
+msgstr ""
+
+#: Elm:PageUp
+msgid "PageUp"
+msgstr ""
+
+#: Elm:PageDown
+msgid "PageDown"
+msgstr ""
+
+#: Elm:HomeKey
+msgid "Home"
+msgstr ""
+
+#: Elm:EndKey
+msgid "End"
+msgstr ""
+
+#: Elm:AnyOfAbove
+msgid "(any of above)"
+msgstr ""
+
+#: Elm:DragCard
+msgid "Drag card by left edge"
+msgstr ""
+
+#: Elm:Search
+msgid "Search"
+msgstr ""
+
+#: Elm:ClearSearch
+msgid "Clear search, focus current card"
+msgstr ""
+
+#: Elm:MergeCardUp
+msgid "Merge card up"
+msgstr ""
+
+#: Elm:MergeCardDown
+msgid "Merge card down"
+msgstr ""
+
+#: Elm:CopyCurrent
+msgid "Copy current subtree"
+msgstr ""
+
+#: Elm:PasteBelow
+msgid "Paste subtree below current card"
+msgstr ""
+
+#: Elm:PasteAsChild
+msgid "Paste subtree as child of current card"
+msgstr ""
+
+#: Elm:InsertSelected
+msgid "Insert selected text as new card"
+msgstr ""
+
+#: Elm:DragSelected
+msgid "Drag selected text into tree"
+msgstr ""
+
+#: Elm:WordCounts
+msgid "Word counts"
+msgstr ""
+
+#: Elm:SwitchDocuments
+msgid "Switch to different document"
+msgstr ""
+
+#: Elm:ThisHelpScreen
+msgid "This help screen"
+msgstr ""
+
+#: Elm:Or
+msgid " or "
+msgstr ""
+
+#: Elm:EditCardFullscreen
+msgid "Edit card in fullscreen mode"
+msgstr ""
+
+#: Elm:EditCards
+msgid "Edit Cards"
+msgstr ""
+
 #: Elm:KeyboardHelp
 msgid "Keyboard Shortcuts Help"
 msgstr ""
@@ -91,12 +359,24 @@ msgstr ""
 msgid "Enter"
 msgstr ""
 
+#: Elm:ShiftKey
+msgid "Shift"
+msgstr ""
+
 #: Elm:EnterAction
 msgid "to Edit"
 msgstr ""
 
+#: Elm:AltKey
+msgid "AltKey"
+msgstr ""
+
 #: Elm:EditFullscreenAction
 msgid "to Edit in Fullscreen"
+msgstr ""
+
+#: Elm:Navigate
+msgid "Navigate"
 msgstr ""
 
 #: Elm:EditCardTitle
@@ -107,12 +387,12 @@ msgstr ""
 msgid "to Navigate"
 msgstr ""
 
-#: Elm:AddChildAction
-msgid "to Add Child"
+#: Elm:AddNewCards
+msgid "Add New Cards"
 msgstr ""
 
-#: Elm:SplitChildAction
-msgid "to Split Card to the Right"
+#: Elm:AddChildAction
+msgid "to Add Child"
 msgstr ""
 
 #: Elm:InsertChildTitle
@@ -123,14 +403,6 @@ msgstr ""
 msgid "to Add Below"
 msgstr ""
 
-#: Elm:SplitBelowAction
-msgid "to Split Card Down"
-msgstr ""
-
-#: Elm:MergeDownAction
-msgid "to Merge into Next"
-msgstr ""
-
 #: Elm:InsertBelowTitle
 msgid "Insert Below (Ctrl+J)"
 msgstr ""
@@ -139,8 +411,28 @@ msgstr ""
 msgid "to Add Above"
 msgstr ""
 
+#: Elm:SplitAtCursor
+msgid "Split At Cursor"
+msgstr ""
+
+#: Elm:SplitChildAction
+msgid "to Split Card to the Right"
+msgstr ""
+
+#: Elm:SplitBelowAction
+msgid "to Split Card Down"
+msgstr ""
+
 #: Elm:SplitUpwardAction
 msgid "to Split Card Upward"
+msgstr ""
+
+#: Elm:MergeCards
+msgid "Merge Cards"
+msgstr ""
+
+#: Elm:MergeDownAction
+msgid "to Merge into Next"
 msgstr ""
 
 #: Elm:MergeUpAction
@@ -153,6 +445,10 @@ msgstr ""
 
 #: Elm:ArrowKeys
 msgid "(arrows)"
+msgstr ""
+
+#: Elm:MoveAndDelete
+msgid "Move & Delete Cards"
 msgstr ""
 
 #: Elm:MoveAction
@@ -179,8 +475,28 @@ msgstr ""
 msgid "for Bold"
 msgstr ""
 
+#: Elm:BoldSelection
+msgid "Bold selection"
+msgstr ""
+
 #: Elm:ForItalic
 msgid "for Italic"
+msgstr ""
+
+#: Elm:ItalicizeSelection
+msgid "Italicize selection"
+msgstr ""
+
+#: Elm:SaveChanges
+msgid "Save changes"
+msgstr ""
+
+#: Elm:SaveChangesAndExit
+msgid "Save changes and exit card"
+msgstr ""
+
+#: Elm:ExitEditMode
+msgid "Exit edit mode"
 msgstr ""
 
 #: Elm:ToSaveChanges
@@ -193,6 +509,58 @@ msgstr ""
 
 #: Elm:EscKey
 msgid "Esc"
+msgstr ""
+
+#: Elm:OtherShortcuts
+msgid "Other Shortcuts"
+msgstr ""
+
+#: Elm:DisplayWordCounts
+msgid "Display word counts"
+msgstr ""
+
+#: Elm:EditMode
+msgid "(Edit Mode)"
+msgstr ""
+
+#: Elm:SaveOrCancelChanges
+msgid "Save/Cancel Changes"
+msgstr ""
+
+#: Elm:Formatting
+msgid "Formatting"
+msgstr ""
+
+#: Elm:FormattingTitle
+msgid "# Title\n## Subtitle"
+msgstr ""
+
+#: Elm:SetTitleLevel
+msgid "Set title level (# to #####)"
+msgstr ""
+
+#: Elm:FormattingList
+msgid "- List item\n  - Subitem"
+msgstr ""
+
+#: Elm:FormattingLink
+msgid "[link](http://t.co)"
+msgstr ""
+
+#: Elm:ParenNumber
+msgid "ParenNumber"
+msgstr ""
+
+#: Elm:SetHeadingLevel
+msgid "SetHeadingLevel"
+msgstr ""
+
+#: Elm:HelpVideos
+msgid "Help Videos"
+msgstr ""
+
+#: Elm:FAQAndDocs
+msgid "FAQ & Documentation"
 msgstr ""
 
 #: Elm:AreYouSureCancel
@@ -211,8 +579,12 @@ msgstr ""
 msgid "Quick Document Switcher"
 msgstr ""
 
-#: Elm:EmailSupport
-msgid "Email Support..."
+#: Elm:OpenQuickSwitcher
+msgid "Open Quick Switcher"
+msgstr ""
+
+#: Elm:ContactSupport
+msgid "Contact Support"
 msgstr ""
 
 #: Elm:Logout
@@ -241,6 +613,18 @@ msgstr ""
 
 #: Elm:EditingFont
 msgid "Editing/Monospace Font"
+msgstr ""
+
+#: Elm:VersionHistory
+msgid "Version History"
+msgstr ""
+
+#: Elm:DocumentSettings
+msgid "Document Settings"
+msgstr ""
+
+#: Elm:WordCount
+msgid "Word count..."
 msgstr ""
 
 #: Elm:WordCountSession
@@ -278,3 +662,119 @@ msgid "Column : %1 word"
 msgid_plural "Column : %1 words"
 msgstr[0] ""
 msgstr[1] ""
+
+#: Elm:WordCountTotalCards
+msgid "Total Cards in Tree : %1"
+msgid_plural "Total Cards in Tree : %1"
+msgstr[0] ""
+msgstr[1] ""
+
+#: Elm:DocumentTheme
+msgid "Document Theme"
+msgstr ""
+
+#: Elm:ThemeDefault
+msgid "Default"
+msgstr ""
+
+#: Elm:ThemeDarkMode
+msgid "Dark Mode"
+msgstr ""
+
+#: Elm:ThemeClassic
+msgid "Classic Gingkoapp"
+msgstr ""
+
+#: Elm:ThemeGray
+msgid "Gray"
+msgstr ""
+
+#: Elm:ThemeGreen
+msgid "Green"
+msgstr ""
+
+#: Elm:ThemeTurquoise
+msgid "Turquoise"
+msgstr ""
+
+#: Elm:ExportOrPrint
+msgid "Export or Print"
+msgstr ""
+
+#: Elm:ExportSettingEverything
+msgid "Everything"
+msgstr ""
+
+#: Elm:ExportSettingEverythingDesc
+msgid "All cards in the tree (in depth-first order)"
+msgstr ""
+
+#: Elm:ExportSettingCurrentSubtree
+msgid "Current Subtree"
+msgstr ""
+
+#: Elm:ExportSettingCurrentSubtreeDesc
+msgid "Current card and all its children"
+msgstr ""
+
+#: Elm:ExportSettingLeavesOnly
+msgid "Leaves-only"
+msgstr ""
+
+#: Elm:ExportSettingLeavesOnlyDesc
+msgid "Only cards without children"
+msgstr ""
+
+#: Elm:ExportSettingCurrentColumn
+msgid "Current Column"
+msgstr ""
+
+#: Elm:ExportSettingCurrentColumnDesc
+msgid "Only carsd in the current (vertical) column"
+msgstr ""
+
+#: Elm:ExportSettingWord
+msgid "Word"
+msgstr ""
+
+#: Elm:ExportSettingPlainText
+msgid "Plain Text"
+msgstr ""
+
+#: Elm:ExportSettingJSON
+msgid "JSON"
+msgstr ""
+
+#: Elm:DownloadWordFile
+msgid "Download Word File"
+msgstr ""
+
+#: Elm:DownloadTextFile
+msgid "Download Markdown text file"
+msgstr ""
+
+#: Elm:DownloadJSONFile
+msgid "Download JSON file"
+msgstr ""
+
+#: Elm:PrintThis
+msgid "Print this"
+msgstr ""
+
+#: Elm:Upgrade
+msgid "Upgrade"
+msgstr ""
+
+#: Elm:DaysLeft
+msgid "%1 day left in trial"
+msgid_plural "%1 days left in trial"
+msgstr[0] ""
+msgstr[1] ""
+
+#: Elm:TrialExpired
+msgid "Trial Expired"
+msgstr ""
+
+#: Elm:ManageSubscription
+msgid "Manage Subscription"
+msgstr ""
