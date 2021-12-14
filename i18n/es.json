@@ -1526,7 +1526,7 @@
     },
     {
         "term": "Upgrade",
-        "definition": "Actualizar",
+        "definition": "Suscríbase",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Upgrade",
