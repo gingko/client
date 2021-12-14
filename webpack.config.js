@@ -21,12 +21,12 @@ const config = require("./config");
 
 const prepTranslation = (langCode, langData) => {
   return langData.flatMap(t => {
-    let target = t.reference.replace('Elm:', `%${langCode}:`);
+    let target = t.reference.replace('Elm:', `%${langCode}:`) + "%";
     let replacement = t.definition;
     if (typeof target === "string" && target.startsWith(`%${langCode}`) && typeof replacement === "string" ) {
       // Regular replacement
       return [{ search: target
-        , replace: replacement.replace(/'/g,"\\'")
+        , replace: replacement.replace('\n', '\\n').replace(/'/g,"\\'")
         , flags : 'g'
       }];
   } else if (replacement === null) {
