@@ -1,7 +1,7 @@
 [
     {
         "term": "Cancel",
-        "definition": "Avbryt",
+        "definition": "Annulla",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Cancel",
@@ -9,7 +9,7 @@
     },
     {
         "term": "Recent Documents",
-        "definition": "Senaste dokumenten",
+        "definition": "Documenti recenti",
         "context": "",
         "term_plural": "",
         "reference": "Elm:RecentDocuments",
@@ -17,7 +17,7 @@
     },
     {
         "term": "Last Opened",
-        "definition": "Senast \u00f6ppnade",
+        "definition": "Ultimi Documenti aperti",
         "context": "",
         "term_plural": "",
         "reference": "Elm:LastOpened",
@@ -25,7 +25,7 @@
     },
     {
         "term": "Open Other Documents",
-        "definition": "\u00d6ppna andra dokument",
+        "definition": "Apri altri Documenti",
         "context": "",
         "term_plural": "",
         "reference": "Elm:OpenOtherDocuments",
@@ -33,7 +33,7 @@
     },
     {
         "term": "Remove From List",
-        "definition": "Ta bort fr\u00e5n lista",
+        "definition": "Rimuovi dalla Lista",
         "context": "",
         "term_plural": "",
         "reference": "Elm:RemoveFromList",
@@ -41,7 +41,7 @@
     },
     {
         "term": "New Document...",
-        "definition": "Nytt dokument",
+        "definition": "Nuovo Documento...",
         "context": "",
         "term_plural": "",
         "reference": "Elm:NeverSaved",
@@ -49,7 +49,7 @@
     },
     {
         "term": "Unsaved Changes...",
-        "definition": "Osparade \u00c4ndringar",
+        "definition": "Cambiamenti Non Salvati...",
         "context": "",
         "term_plural": "",
         "reference": "Elm:UnsavedChanges",
@@ -57,7 +57,7 @@
     },
     {
         "term": "Database Error...",
-        "definition": "Databasfel...",
+        "definition": "Errore del Database...",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DatabaseError",
@@ -65,7 +65,7 @@
     },
     {
         "term": "Last saved",
-        "definition": "Senast sparad",
+        "definition": "Ultimo salvato",
         "context": "",
         "term_plural": "",
         "reference": "Elm:LastSaved",
@@ -73,7 +73,7 @@
     },
     {
         "term": "Last edit",
-        "definition": "Senast \u00e4ndrad",
+        "definition": "Ultima modifica",
         "context": "",
         "term_plural": "",
         "reference": "Elm:LastEdit",
@@ -81,7 +81,7 @@
     },
     {
         "term": "Keyboard Shortcuts Help",
-        "definition": "Kortkommandon (Hj\u00e4lp)",
+        "definition": "Scorciatoie da Tastiera",
         "context": "",
         "term_plural": "",
         "reference": "Elm:KeyboardHelp",
@@ -89,7 +89,7 @@
     },
     {
         "term": "Restore this Version",
-        "definition": "\u00c5terst\u00e4ll denna version",
+        "definition": "Ripristina questa Versione",
         "context": "",
         "term_plural": "",
         "reference": "Elm:RestoreThisVersion",
@@ -97,7 +97,7 @@
     },
     {
         "term": "Enter",
-        "definition": "Retur",
+        "definition": "Invio",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EnterKey",
@@ -105,7 +105,7 @@
     },
     {
         "term": "to Edit",
-        "definition": "Redigera",
+        "definition": "per Modificare",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EnterAction",
@@ -113,7 +113,7 @@
     },
     {
         "term": "Edit Card (Enter)",
-        "definition": "Redigera Kort (Retur)",
+        "definition": "Modifica Scheda (Invio)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditCardTitle",
@@ -121,7 +121,7 @@
     },
     {
         "term": "to Navigate",
-        "definition": "Navigera",
+        "definition": "per Navigare",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ArrowsAction",
@@ -129,7 +129,7 @@
     },
     {
         "term": "to Add Child",
-        "definition": "L\u00e4gg till Barn",
+        "definition": "per Aggiungere Scheda figlia",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddChildAction",
@@ -137,7 +137,7 @@
     },
     {
         "term": "to Split Card to the Right",
-        "definition": "Sl\u00e5 Ihop Kort till H\u00f6ger",
+        "definition": "per Dividere la Scheda a destra",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SplitChildAction",
@@ -145,7 +145,7 @@
     },
     {
         "term": "Insert Child (Ctrl+L)",
-        "definition": "L\u00e4gg till Barn (Ctrl+L)",
+        "definition": "Inserisci Scheda Figlia (Ctrl+L)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:InsertChildTitle",
@@ -153,7 +153,7 @@
     },
     {
         "term": "to Add Below",
-        "definition": "L\u00e4gg till Nedan",
+        "definition": "per Aggiungere Sotto",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddBelowAction",
@@ -161,7 +161,7 @@
     },
     {
         "term": "to Split Card Down",
-        "definition": "Dela Kort Ned\u00e5t",
+        "definition": "per Dividere Scheda gi\u00f9",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SplitBelowAction",
@@ -169,7 +169,7 @@
     },
     {
         "term": "to Merge into Next",
-        "definition": "Sl\u00e5 ihop med N\u00e4stkommande",
+        "definition": "per Unire con Scheda successiva",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MergeDownAction",
@@ -177,7 +177,7 @@
     },
     {
         "term": "Insert Below (Ctrl+J)",
-        "definition": "Infoga Nedan (Ctrl+J)",
+        "definition": "Inserisci sotto (Ctrl+J)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:InsertBelowTitle",
@@ -185,7 +185,7 @@
     },
     {
         "term": "to Add Above",
-        "definition": "L\u00e4gg till Ovan",
+        "definition": "per Aggiungere sopra",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddAboveAction",
@@ -193,7 +193,7 @@
     },
     {
         "term": "to Split Card Upward",
-        "definition": "Dela Kort Upp\u00e5t",
+        "definition": "per Dividere Scheda sopra",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SplitUpwardAction",
@@ -201,7 +201,7 @@
     },
     {
         "term": "to Merge into Previous",
-        "definition": "Sl\u00e5 ihop med F\u00f6reg\u00e5ende",
+        "definition": "per Unire con Scheda precedente",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MergeUpAction",
@@ -209,7 +209,7 @@
     },
     {
         "term": "Insert Above (Ctrl+K)",
-        "definition": "Infoga Ovan (Ctrl+K)",
+        "definition": "Inserisci sopra (Ctrl+K)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:InsertAboveTitle",
@@ -217,7 +217,7 @@
     },
     {
         "term": "(arrows)",
-        "definition": "(pilar)",
+        "definition": "(frecce)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ArrowKeys",
@@ -225,7 +225,7 @@
     },
     {
         "term": "to Move",
-        "definition": "f\u00f6r att Flytta",
+        "definition": "per Muovere",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MoveAction",
@@ -233,7 +233,7 @@
     },
     {
         "term": "Backspace",
-        "definition": "Backslag",
+        "definition": "tasto Backspace",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Backspace",
@@ -241,7 +241,7 @@
     },
     {
         "term": "to Delete",
-        "definition": "f\u00f6r att Radera",
+        "definition": "per Cancellare",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DeleteAction",
@@ -249,7 +249,7 @@
     },
     {
         "term": "Delete Card (Ctrl+Backspace)",
-        "definition": "Radera Kort (Ctrl+Backslag)",
+        "definition": "Cancella Scheda (Ctrl+Backspace)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DeleteCardTitle",
@@ -257,7 +257,7 @@
     },
     {
         "term": "for Bold",
-        "definition": "f\u00f6r Fet stil",
+        "definition": "per Grassetto",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ForBold",
@@ -265,7 +265,7 @@
     },
     {
         "term": "for Italic",
-        "definition": "f\u00f6r Kursiv stil",
+        "definition": "per Corsivo",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ForItalic",
@@ -273,7 +273,7 @@
     },
     {
         "term": "to Save Changes",
-        "definition": "f\u00f6r att Spara \u00c4ndringar",
+        "definition": "per Salvare Modifiche",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ToSaveChanges",
@@ -281,7 +281,7 @@
     },
     {
         "term": "Save Changes (Ctrl+Enter)",
-        "definition": "Spara \u00e4ndringar (Ctrl+Enter)",
+        "definition": "Salva Modifiche (Ctrl+Invio)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SaveChangesTitle",
@@ -297,7 +297,7 @@
     },
     {
         "term": "to Cancel Changes",
-        "definition": "f\u00f6r att Sl\u00e4nga \u00c4ndringar",
+        "definition": "per Annullare Modifiche",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ToCancelChanges",
@@ -305,7 +305,7 @@
     },
     {
         "term": "Press '\/' to search",
-        "definition": "Tryck '\/' f\u00f6r att s\u00f6ka",
+        "definition": "Premi '\/' per cercare",
         "context": "",
         "term_plural": "",
         "reference": "Elm:PressToSearch",
@@ -313,7 +313,7 @@
     },
     {
         "term": "Heading Font",
-        "definition": "Rubrik",
+        "definition": "Font del Titolo",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HeadingFont",
@@ -321,7 +321,7 @@
     },
     {
         "term": "Content Font",
-        "definition": "Inneh\u00e5llstypsnitt",
+        "definition": "Font del Contenuto",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ContentFont",
@@ -329,7 +329,7 @@
     },
     {
         "term": "Editing\/Monospace Font",
-        "definition": "Redigera\/Monospace Typsnitt",
+        "definition": "Font per l'Editing\/Monospazio",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditingFont",
@@ -338,8 +338,8 @@
     {
         "term": "Session : %1 word",
         "definition": {
-            "one": "Session: %1 ord",
-            "other": "Session: %1 ord"
+            "one": "Sessione : %1 parola",
+            "other": "Sessione : %1 parole"
         },
         "context": "",
         "term_plural": "Session : %1 words",
@@ -349,8 +349,8 @@
     {
         "term": "Total : %1 word",
         "definition": {
-            "one": "Totalt: %1 ord",
-            "other": "Totalt: %1 ord"
+            "one": "Totale : %1 parola",
+            "other": "Totale : %1 parole"
         },
         "context": "",
         "term_plural": "Total : %1 words",
@@ -360,8 +360,8 @@
     {
         "term": "Card : %1 word",
         "definition": {
-            "one": "Kort: %1 ord",
-            "other": "Kort: %1 ord"
+            "one": "Scheda : %1 parola",
+            "other": "Scheda : %1 parole"
         },
         "context": "",
         "term_plural": "Card : %1 words",
@@ -371,8 +371,8 @@
     {
         "term": "Subtree : %1 word",
         "definition": {
-            "one": "Deltr\u00e4d: %1 ord",
-            "other": "Deltr\u00e4d: %1 ord"
+            "one": "Sotto-albero : %1 parola",
+            "other": "Sotto-albero : %1 parole"
         },
         "context": "",
         "term_plural": "Subtree : %1 words",
@@ -382,8 +382,8 @@
     {
         "term": "Group : %1 word",
         "definition": {
-            "one": "Grupp: %1 ord",
-            "other": "Grupp: %1 ord"
+            "one": "Gruppo : %1 parola",
+            "other": "Gruppo : %1 parole"
         },
         "context": "",
         "term_plural": "Group : %1 words",
@@ -393,8 +393,8 @@
     {
         "term": "Column : %1 word",
         "definition": {
-            "one": "Kolumn: %1 ord",
-            "other": "Kolumn: %1 ord"
+            "one": "Colonna : %1 parola",
+            "other": "Colonna : %1 parole"
         },
         "context": "",
         "term_plural": "Column : %1 words",
@@ -403,7 +403,7 @@
     },
     {
         "term": "Saved",
-        "definition": "Sparat",
+        "definition": "Salvato",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ChangesSaved",
@@ -411,7 +411,7 @@
     },
     {
         "term": "Blank Tree",
-        "definition": "Tom",
+        "definition": "Albero Vuoto",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HomeBlank",
@@ -419,7 +419,7 @@
     },
     {
         "term": "From Old Account",
-        "definition": "Fr\u00e5n gammalt konto",
+        "definition": "Da Vecchio Account",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HomeImportLegacy",
@@ -427,7 +427,7 @@
     },
     {
         "term": "Bulk transfer of trees from your legacy account",
-        "definition": "Bulk\u00f6verf\u00f6ring av tr\u00e4d fr\u00e5n ditt \u00e4ldre konto",
+        "definition": "Trasferimento in massa di Alberi dal tuo account obsoleto",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HomeLegacyFrom",
@@ -435,7 +435,7 @@
     },
     {
         "term": "Last Updated",
-        "definition": "Senast uppdaterad",
+        "definition": "Ultimo Aggiornato",
         "context": "",
         "term_plural": "",
         "reference": "Elm:LastUpdated",
@@ -443,7 +443,7 @@
     },
     {
         "term": "Delete Document",
-        "definition": "Ta bort dokument",
+        "definition": "Cancella Documento",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DeleteDocument",
@@ -451,7 +451,7 @@
     },
     {
         "term": "Saved Offline",
-        "definition": "Sparad offline",
+        "definition": "Salvato Offline",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SavedInternally",
@@ -459,7 +459,7 @@
     },
     {
         "term": "Synced",
-        "definition": "Synkroniserad",
+        "definition": "Sincronizzato",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ChangesSynced",
@@ -467,7 +467,7 @@
     },
     {
         "term": "More Formatting Options...",
-        "definition": "Fler formateringsalternativ ...",
+        "definition": "Altre opzioni per la formattazione...",
         "context": "",
         "term_plural": "",
         "reference": "Elm:FormattingGuide",
@@ -475,7 +475,7 @@
     },
     {
         "term": "Are you sure you want to undo your changes?",
-        "definition": "\u00c4r du s\u00e4ker att du \u00e5ngrar dina \u00e4ndringar?",
+        "definition": "Sei sicuro di voler annullare le tue modifiche?",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AreYouSureCancel",
@@ -483,7 +483,7 @@
     },
     {
         "term": "to Edit in Fullscreen",
-        "definition": "Redigera i fullsk\u00e4rmsl\u00e4ge",
+        "definition": "per Modificare a Schermo Intero",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditFullscreenAction",
@@ -491,7 +491,7 @@
     },
     {
         "term": "Quick Document Switcher",
-        "definition": "Snabbv\u00e4xla mellan dokument",
+        "definition": "Selettore Rapido di Documenti",
         "context": "",
         "term_plural": "",
         "reference": "Elm:QuickDocumentSwitcher",
@@ -499,7 +499,7 @@
     },
     {
         "term": "Email Support...",
-        "definition": "E-post support",
+        "definition": "Supporto Email...",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EmailSupport",
@@ -507,7 +507,7 @@
     },
     {
         "term": "Logout",
-        "definition": "Logga ut",
+        "definition": "Logout",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Logout",
@@ -515,7 +515,7 @@
     },
     {
         "term": "Language",
-        "definition": "Spr\u00e5k",
+        "definition": "Lingua",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Language",
@@ -523,7 +523,7 @@
     },
     {
         "term": "Contribute translations",
-        "definition": "F\u00f6resl\u00e5 \u00f6vers\u00e4ttning",
+        "definition": "Contribuisci alle traduzioni",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ContributeTranslations",
@@ -531,7 +531,7 @@
     },
     {
         "term": "here",
-        "definition": "h\u00e4r",
+        "definition": "qui",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Here",
@@ -539,7 +539,7 @@
     },
     {
         "term": "Import JSON tree",
-        "definition": "Importera JSON-tr\u00e4d",
+        "definition": "Importa Albero JSON",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HomeImportJSON",
@@ -547,7 +547,7 @@
     },
     {
         "term": "From Gingko Desktop or Online export file",
-        "definition": "Fr\u00e5n Gingko Skrivbord eller Online exportfil",
+        "definition": "Da Gingko Desktop o file esportato Online",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HomeJSONFrom",
@@ -555,7 +555,7 @@
     },
     {
         "term": "New Document",
-        "definition": "Nytt dokument",
+        "definition": "Nuovo documento",
         "context": "",
         "term_plural": "",
         "reference": "Elm:NewDocument",
@@ -563,7 +563,7 @@
     },
     {
         "term": "Show Document List",
-        "definition": "Visa dokumentlistan",
+        "definition": "Mostra l'elenco dei documenti",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ShowDocumentList",
@@ -571,7 +571,7 @@
     },
     {
         "term": "Sort by Name",
-        "definition": "Sortera efter namn",
+        "definition": "Ordina per nome",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SortByName",
@@ -579,7 +579,7 @@
     },
     {
         "term": "Sort by Last Modified",
-        "definition": "Sortera efter Senast \u00e4ndrad",
+        "definition": "Ordina per Ultimo modificato",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SortByLastModified",
@@ -587,7 +587,7 @@
     },
     {
         "term": "Sort by Date Created",
-        "definition": "Sortera efter datum f\u00f6r skapande",
+        "definition": "Ordina per Data di creazione",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SortByDateCreated",
@@ -595,7 +595,7 @@
     },
     {
         "term": "Templates & Examples",
-        "definition": "Mallar och exempel",
+        "definition": "Modelli ed esempi",
         "context": "",
         "term_plural": "",
         "reference": "Elm:TemplatesAndExamples",
@@ -603,7 +603,7 @@
     },
     {
         "term": "New",
-        "definition": "Ny",
+        "definition": "Nuovo",
         "context": "",
         "term_plural": "",
         "reference": "Elm:New",
@@ -611,7 +611,7 @@
     },
     {
         "term": "Import",
-        "definition": "Import",
+        "definition": "Importazione",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ImportSectionTitle",
@@ -619,7 +619,7 @@
     },
     {
         "term": "Import Text Files",
-        "definition": "Importera textfiler",
+        "definition": "Importare file di testo",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ImportTextFiles",
@@ -627,7 +627,7 @@
     },
     {
         "term": "Import multiple markdown or regular text files.",
-        "definition": "Importera flera markdown- eller vanliga textfiler.",
+        "definition": "Importazione di pi\u00f9 file markdown o di testo regolare.",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ImportTextFilesDesc",
@@ -635,7 +635,7 @@
     },
     {
         "term": "Import Opml Files",
-        "definition": "Importera Opml-filer",
+        "definition": "Importazione di file Opml",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ImportOpmlFiles",
@@ -643,7 +643,7 @@
     },
     {
         "term": "Import from Workflowy or other outliners.",
-        "definition": "Importera fr\u00e5n Workflowy eller andra outliners.",
+        "definition": "Importazione da Workflowy o altri outliner.",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ImportOpmlFilesDesc",
@@ -651,7 +651,7 @@
     },
     {
         "term": "Timeline 2022",
-        "definition": "Tidsplan 2022",
+        "definition": "Timeline 2022",
         "context": "",
         "term_plural": "",
         "reference": "Elm:TimelineTemplate",
@@ -659,7 +659,7 @@
     },
     {
         "term": "A tree-based calendar",
-        "definition": "En tr\u00e4dbaserad kalender",
+        "definition": "Un calendario ad albero",
         "context": "",
         "term_plural": "",
         "reference": "Elm:TimelineTemplateDesc",
@@ -667,7 +667,7 @@
     },
     {
         "term": "Academic Paper",
-        "definition": "Akademisk uppsats",
+        "definition": "Carta accademica",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AcademicPaperTemplate",
@@ -675,7 +675,7 @@
     },
     {
         "term": "Starting point for journal paper",
-        "definition": "Utg\u00e5ngspunkt f\u00f6r en tidskriftsartikel",
+        "definition": "Punto di partenza per il giornale",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AcademicPaperTemplateDesc",
@@ -683,7 +683,7 @@
     },
     {
         "term": "Project Brainstorming",
-        "definition": "Brainstorming av projekt",
+        "definition": "Brainstorming del progetto",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ProjectBrainstormingTemplate",
@@ -691,7 +691,7 @@
     },
     {
         "term": "Example on clarifying project goals",
-        "definition": "Exempel p\u00e5 klarg\u00f6rande av projektets m\u00e5l",
+        "definition": "Esempio per chiarire gli obiettivi del progetto",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ProjectBrainstormingTemplateDesc",
@@ -699,7 +699,7 @@
     },
     {
         "term": "Hero's Journey",
-        "definition": "Hj\u00e4ltens resa",
+        "definition": "Il viaggio dell'eroe",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HerosJourneyTemplate",
@@ -707,7 +707,7 @@
     },
     {
         "term": "A framework for fictional stories",
-        "definition": "Ett ramverk f\u00f6r fiktiva ber\u00e4ttelser",
+        "definition": "Un quadro di riferimento per le storie di fantasia",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HerosJourneyTemplateDesc",
@@ -715,7 +715,7 @@
     },
     {
         "term": "Help",
-        "definition": "Hj\u00e4lp",
+        "definition": "Aiuto",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Help",
@@ -723,7 +723,7 @@
     },
     {
         "term": "What's New",
-        "definition": "Vad \u00e4r nytt?",
+        "definition": "Cosa c'\u00e8 di nuovo",
         "context": "",
         "term_plural": "",
         "reference": "Elm:WhatsNew",
@@ -731,7 +731,7 @@
     },
     {
         "term": "Account",
-        "definition": "Konto",
+        "definition": "Conto",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AccountTooltip",
@@ -739,7 +739,7 @@
     },
     {
         "term": "Keyboard Shortcuts",
-        "definition": "Tangentbordsgenv\u00e4gar",
+        "definition": "Scorciatoie da tastiera",
         "context": "",
         "term_plural": "",
         "reference": "Elm:KeyboardShortcuts",
@@ -747,7 +747,7 @@
     },
     {
         "term": "View Mode Shortcuts : ",
-        "definition": "Genv\u00e4gar f\u00f6r visningsl\u00e4ge : ",
+        "definition": "Scorciatoie della modalit\u00e0 di visualizzazione : ",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ViewModeShortcuts",
@@ -755,7 +755,7 @@
     },
     {
         "term": "Card Edit, Create, Delete",
-        "definition": "Kort Redigera, skapa, ta bort",
+        "definition": "Scheda Modifica, Crea, Elimina",
         "context": "",
         "term_plural": "",
         "reference": "Elm:CardEditCreateDelete",
@@ -763,7 +763,7 @@
     },
     {
         "term": "Navigation, Moving Cards",
-        "definition": "Navigering, flyttande kort",
+        "definition": "Navigazione, Carte mobili",
         "context": "",
         "term_plural": "",
         "reference": "Elm:NavigationMovingCards",
@@ -771,7 +771,7 @@
     },
     {
         "term": "Copy\/Paste",
-        "definition": "Kopiera\/klistra in",
+        "definition": "Copia\/Incolla",
         "context": "",
         "term_plural": "",
         "reference": "Elm:CopyPaste",
@@ -779,7 +779,7 @@
     },
     {
         "term": "Searching, Merging Cards",
-        "definition": "S\u00f6kning, sammanslagning av kort",
+        "definition": "Ricerca, fusione di carte",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SearchingMerging",
@@ -787,7 +787,7 @@
     },
     {
         "term": "Help, Info, Documents",
-        "definition": "Hj\u00e4lp, information, dokument",
+        "definition": "Aiuto, Info, Documenti",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HelpInfoDocs",
@@ -795,7 +795,7 @@
     },
     {
         "term": "Edit Mode Shortcuts : ",
-        "definition": "Genv\u00e4gar i redigeringsl\u00e4get : ",
+        "definition": "Scorciatoie del modo Modifica : ",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditModeShortcuts",
@@ -803,7 +803,7 @@
     },
     {
         "term": "Card Save, Create",
-        "definition": "Kort Spara, skapa",
+        "definition": "Salvare la carta, creare",
         "context": "",
         "term_plural": "",
         "reference": "Elm:CardSaveCreate",
@@ -811,7 +811,7 @@
     },
     {
         "term": "Edit card",
-        "definition": "Redigera kortet",
+        "definition": "Modifica scheda",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditCard",
@@ -819,7 +819,7 @@
     },
     {
         "term": "Add card below",
-        "definition": "L\u00e4gg till kortet nedan",
+        "definition": "Aggiungi la scheda qui sotto",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddCardBelow",
@@ -827,7 +827,7 @@
     },
     {
         "term": "Add card above",
-        "definition": "L\u00e4gg till kortet ovan",
+        "definition": "Aggiungi la scheda qui sopra",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddCardAbove",
@@ -835,7 +835,7 @@
     },
     {
         "term": "Add card to the right (as child)",
-        "definition": "L\u00e4gg till kortet till h\u00f6ger (som barn)",
+        "definition": "Aggiungi la carta a destra (come bambino)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddCardToRight",
@@ -843,7 +843,7 @@
     },
     {
         "term": "Add card below (split at cursor)",
-        "definition": "L\u00e4gg till kortet nedan (delas vid mark\u00f6ren)",
+        "definition": "Aggiungi la scheda qui sotto (divisa al cursore)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddCardBelowSplit",
@@ -851,7 +851,7 @@
     },
     {
         "term": "Add card above (split at cursor)",
-        "definition": "L\u00e4gg till kortet ovan (delas vid mark\u00f6ren)",
+        "definition": "Aggiungi la scheda qui sopra (divisa al cursore)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddCardAboveSplit",
@@ -859,7 +859,7 @@
     },
     {
         "term": "Add card to the right (split at cursor)",
-        "definition": "L\u00e4gg till ett kort till h\u00f6ger (delat vid mark\u00f6ren)",
+        "definition": "Aggiungi la carta a destra (divisa al cursore)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddCardToRightSplit",
@@ -867,7 +867,7 @@
     },
     {
         "term": "Delete card (and its children)",
-        "definition": "Ta bort kortet (och dess barn)",
+        "definition": "Cancellare la scheda (e i suoi figli)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DeleteCard",
@@ -875,7 +875,7 @@
     },
     {
         "term": "Go up\/down\/left\/right",
-        "definition": "G\u00e5 upp\u00e5t\/ned\u00e5t\/v\u00e4nster\/h\u00f6ger",
+        "definition": "Vai su\/gi\u00f9\/sinistra\/destra",
         "context": "",
         "term_plural": "",
         "reference": "Elm:GoUpDownLeftRight",
@@ -883,7 +883,7 @@
     },
     {
         "term": "Go to beginning of group",
-        "definition": "G\u00e5 till b\u00f6rjan av gruppen",
+        "definition": "Vai all'inizio del gruppo",
         "context": "",
         "term_plural": "",
         "reference": "Elm:GoToBeginningOfGroup",
@@ -891,7 +891,7 @@
     },
     {
         "term": "Go to end of group",
-        "definition": "G\u00e5 till slutet av gruppen",
+        "definition": "Vai alla fine del gruppo",
         "context": "",
         "term_plural": "",
         "reference": "Elm:GoToEndOfGroup",
@@ -899,7 +899,7 @@
     },
     {
         "term": "Go to beginning of column",
-        "definition": "G\u00e5 till b\u00f6rjan av kolumnen",
+        "definition": "Vai all'inizio della colonna",
         "context": "",
         "term_plural": "",
         "reference": "Elm:GoToBeginningOfColumn",
@@ -907,7 +907,7 @@
     },
     {
         "term": "Go to end of column",
-        "definition": "G\u00e5 till slutet av kolumnen",
+        "definition": "Vai alla fine della colonna",
         "context": "",
         "term_plural": "",
         "reference": "Elm:GoToEndOfColumn",
@@ -915,7 +915,7 @@
     },
     {
         "term": "Move current card (and children)",
-        "definition": "Flytta det nuvarande kortet (och barnen)",
+        "definition": "Spostare la scheda attuale (e i bambini)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MoveCurrentCard",
@@ -939,7 +939,7 @@
     },
     {
         "term": "Home",
-        "definition": "Hem",
+        "definition": "Casa",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HomeKey",
@@ -947,7 +947,7 @@
     },
     {
         "term": "End",
-        "definition": "Slut",
+        "definition": "Fine",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EndKey",
@@ -955,7 +955,7 @@
     },
     {
         "term": "(any of above)",
-        "definition": "(n\u00e5got av ovanst\u00e5ende)",
+        "definition": "(uno qualsiasi dei precedenti)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AnyOfAbove",
@@ -963,7 +963,7 @@
     },
     {
         "term": "Drag card by left edge",
-        "definition": "Dra kortet i den v\u00e4nstra kanten",
+        "definition": "Trascina la carta dal bordo sinistro",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DragCard",
@@ -971,7 +971,7 @@
     },
     {
         "term": "Search",
-        "definition": "S\u00f6k p\u00e5",
+        "definition": "Cerca",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Search",
@@ -979,7 +979,7 @@
     },
     {
         "term": "Clear search, focus current card",
-        "definition": "Rensa s\u00f6kningen, fokusera det aktuella kortet",
+        "definition": "Cancella la ricerca, focalizza la scheda corrente",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ClearSearch",
@@ -987,7 +987,7 @@
     },
     {
         "term": "Merge card up",
-        "definition": "Sammanfoga kortet upp",
+        "definition": "Unire la carta in alto",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MergeCardUp",
@@ -995,7 +995,7 @@
     },
     {
         "term": "Merge card down",
-        "definition": "Sammanfoga kortet ned\u00e5t",
+        "definition": "Unire la carta in basso",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MergeCardDown",
@@ -1003,7 +1003,7 @@
     },
     {
         "term": "Copy current subtree",
-        "definition": "Kopiera aktuellt deltr\u00e4d",
+        "definition": "Copiare il sottoalbero corrente",
         "context": "",
         "term_plural": "",
         "reference": "Elm:CopyCurrent",
@@ -1011,7 +1011,7 @@
     },
     {
         "term": "Paste subtree below current card",
-        "definition": "Klistra in undertr\u00e4det under det aktuella kortet",
+        "definition": "Incolla il sottoalbero sotto la carta corrente",
         "context": "",
         "term_plural": "",
         "reference": "Elm:PasteBelow",
@@ -1019,7 +1019,7 @@
     },
     {
         "term": "Paste subtree as child of current card",
-        "definition": "Klistra in deltr\u00e4d som barn till det aktuella kortet",
+        "definition": "Incolla il sottoalbero come figlio della scheda corrente",
         "context": "",
         "term_plural": "",
         "reference": "Elm:PasteAsChild",
@@ -1027,7 +1027,7 @@
     },
     {
         "term": "Insert selected text as new card",
-        "definition": "Infoga markerad text som ett nytt kort",
+        "definition": "Inserisci il testo selezionato come nuova scheda",
         "context": "",
         "term_plural": "",
         "reference": "Elm:InsertSelected",
@@ -1035,7 +1035,7 @@
     },
     {
         "term": "Drag selected text into tree",
-        "definition": "Dra markerad text till tr\u00e4det",
+        "definition": "Trascina il testo selezionato nell'albero",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DragSelected",
@@ -1043,7 +1043,7 @@
     },
     {
         "term": "Word counts",
-        "definition": "Antal ord",
+        "definition": "Conteggio delle parole",
         "context": "",
         "term_plural": "",
         "reference": "Elm:WordCounts",
@@ -1051,7 +1051,7 @@
     },
     {
         "term": "Switch to different document",
-        "definition": "V\u00e4xla till ett annat dokument",
+        "definition": "Passare a un altro documento",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SwitchDocuments",
@@ -1059,7 +1059,7 @@
     },
     {
         "term": "This help screen",
-        "definition": "Denna hj\u00e4lpsk\u00e4rm",
+        "definition": "Questa schermata di aiuto",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ThisHelpScreen",
@@ -1067,7 +1067,7 @@
     },
     {
         "term": " or ",
-        "definition": " eller . ",
+        "definition": " o ",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Or",
@@ -1075,7 +1075,7 @@
     },
     {
         "term": "Edit card in fullscreen mode",
-        "definition": "Redigera kortet i helsk\u00e4rmsl\u00e4ge",
+        "definition": "Modifica della scheda in modalit\u00e0 a schermo intero",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditCardFullscreen",
@@ -1083,7 +1083,7 @@
     },
     {
         "term": "Edit Cards",
-        "definition": "Redigera kort",
+        "definition": "Modifica delle carte",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditCards",
@@ -1091,7 +1091,7 @@
     },
     {
         "term": "Shift",
-        "definition": "Skift",
+        "definition": "Turno",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ShiftKey",
@@ -1107,7 +1107,7 @@
     },
     {
         "term": "Navigate",
-        "definition": "Navigera",
+        "definition": "Navigare su",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Navigate",
@@ -1115,7 +1115,7 @@
     },
     {
         "term": "Add New Cards",
-        "definition": "L\u00e4gg till nya kort",
+        "definition": "Aggiungere nuove carte",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddNewCards",
@@ -1123,7 +1123,7 @@
     },
     {
         "term": "Split At Cursor",
-        "definition": "Dela vid mark\u00f6ren",
+        "definition": "Dividere al cursore",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SplitAtCursor",
@@ -1131,7 +1131,7 @@
     },
     {
         "term": "Merge Cards",
-        "definition": "Sl\u00e5 ihop kort",
+        "definition": "Unire le carte",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MergeCards",
@@ -1139,7 +1139,7 @@
     },
     {
         "term": "Move & Delete Cards",
-        "definition": "Flytta och ta bort kort",
+        "definition": "Spostare e cancellare le carte",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MoveAndDelete",
@@ -1147,7 +1147,7 @@
     },
     {
         "term": "Bold selection",
-        "definition": "Fet val",
+        "definition": "Selezione in grassetto",
         "context": "",
         "term_plural": "",
         "reference": "Elm:BoldSelection",
@@ -1155,7 +1155,7 @@
     },
     {
         "term": "Italicize selection",
-        "definition": "Kursivera urvalet",
+        "definition": "Selezione in corsivo",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ItalicizeSelection",
@@ -1163,7 +1163,7 @@
     },
     {
         "term": "Save changes",
-        "definition": "Spara \u00e4ndringar",
+        "definition": "Salvare le modifiche",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SaveChanges",
@@ -1171,7 +1171,7 @@
     },
     {
         "term": "Save changes and exit card",
-        "definition": "Spara \u00e4ndringarna och avsluta kortet",
+        "definition": "Salvare le modifiche e uscire dalla scheda",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SaveChangesAndExit",
@@ -1179,7 +1179,7 @@
     },
     {
         "term": "Exit edit mode",
-        "definition": "L\u00e4mna redigeringsl\u00e4get",
+        "definition": "Esci dalla modalit\u00e0 di modifica",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExitEditMode",
@@ -1187,7 +1187,7 @@
     },
     {
         "term": "Other Shortcuts",
-        "definition": "Andra genv\u00e4gar",
+        "definition": "Altre scorciatoie",
         "context": "",
         "term_plural": "",
         "reference": "Elm:OtherShortcuts",
@@ -1195,7 +1195,7 @@
     },
     {
         "term": "Display word counts",
-        "definition": "Visa antalet ord",
+        "definition": "Visualizza i conteggi delle parole",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DisplayWordCounts",
@@ -1203,7 +1203,7 @@
     },
     {
         "term": "(Edit Mode)",
-        "definition": "(redigeringsl\u00e4ge)",
+        "definition": "(Modalit\u00e0 di modifica)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditMode",
@@ -1211,7 +1211,7 @@
     },
     {
         "term": "Save\/Cancel Changes",
-        "definition": "Spara\/avbryta \u00e4ndringar",
+        "definition": "Salvare\/annullare le modifiche",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SaveOrCancelChanges",
@@ -1219,7 +1219,7 @@
     },
     {
         "term": "Formatting",
-        "definition": "Formatering av",
+        "definition": "Formattazione",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Formatting",
@@ -1227,7 +1227,7 @@
     },
     {
         "term": "# Title\n## Subtitle",
-        "definition": "# Titel\n## Undertitel",
+        "definition": "# Titolo\n## Sottotitolo",
         "context": "",
         "term_plural": "",
         "reference": "Elm:FormattingTitle",
@@ -1235,7 +1235,7 @@
     },
     {
         "term": "Set title level (# to #####)",
-        "definition": "St\u00e4ll in titelniv\u00e5 (# till #####)",
+        "definition": "Imposta il livello del titolo (# a #####)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SetTitleLevel",
@@ -1243,7 +1243,7 @@
     },
     {
         "term": "- List item\n  - Subitem",
-        "definition": "- Lista objekt\n  - Underpunkt",
+        "definition": "- Elemento dell'elenco\n  - Sottovoce",
         "context": "",
         "term_plural": "",
         "reference": "Elm:FormattingList",
@@ -1251,7 +1251,7 @@
     },
     {
         "term": "[link](http:\/\/t.co)",
-        "definition": "[l\u00e4nk] (http:\/\/t.co)",
+        "definition": "[link](http:\/\/t.co)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:FormattingLink",
@@ -1275,7 +1275,7 @@
     },
     {
         "term": "Help Videos",
-        "definition": "Videor f\u00f6r hj\u00e4lp",
+        "definition": "Video di aiuto",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HelpVideos",
@@ -1283,7 +1283,7 @@
     },
     {
         "term": "FAQ & Documentation",
-        "definition": "Vanliga fr\u00e5gor och dokumentation",
+        "definition": "FAQ e documentazione",
         "context": "",
         "term_plural": "",
         "reference": "Elm:FAQAndDocs",
@@ -1291,7 +1291,7 @@
     },
     {
         "term": "Open Quick Switcher",
-        "definition": "\u00d6ppna snabbv\u00e4xlaren",
+        "definition": "Aprire Quick Switcher",
         "context": "",
         "term_plural": "",
         "reference": "Elm:OpenQuickSwitcher",
@@ -1299,7 +1299,7 @@
     },
     {
         "term": "Contact Support",
-        "definition": "E-post support",
+        "definition": "Supporto Email...",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ContactSupport",
@@ -1307,7 +1307,7 @@
     },
     {
         "term": "Version History",
-        "definition": "Versionshistorik",
+        "definition": "Storia della versione",
         "context": "",
         "term_plural": "",
         "reference": "Elm:VersionHistory",
@@ -1315,7 +1315,7 @@
     },
     {
         "term": "Document Settings",
-        "definition": "Inst\u00e4llningar f\u00f6r dokument",
+        "definition": "Impostazioni del documento",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DocumentSettings",
@@ -1323,7 +1323,7 @@
     },
     {
         "term": "Word count...",
-        "definition": "Antal ord...",
+        "definition": "Conteggio delle parole...",
         "context": "",
         "term_plural": "",
         "reference": "Elm:WordCount",
@@ -1332,7 +1332,7 @@
     {
         "term": "Total Cards in Tree : %1",
         "definition": {
-            "one": "Antal kort i tr\u00e4det : %1",
+            "one": "Totale carte in albero: %1",
             "other": ""
         },
         "context": "",
@@ -1342,7 +1342,7 @@
     },
     {
         "term": "Document Theme",
-        "definition": "Tema f\u00f6r dokumentet",
+        "definition": "Tema del documento",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DocumentTheme",
@@ -1350,7 +1350,7 @@
     },
     {
         "term": "Default",
-        "definition": "Standard",
+        "definition": "Default",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ThemeDefault",
@@ -1358,7 +1358,7 @@
     },
     {
         "term": "Dark Mode",
-        "definition": "M\u00f6rkt l\u00e4ge",
+        "definition": "Modo scuro",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ThemeDarkMode",
@@ -1366,7 +1366,7 @@
     },
     {
         "term": "Classic Gingkoapp",
-        "definition": "Klassisk Gingkoapp",
+        "definition": "Gingkoapp classico",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ThemeClassic",
@@ -1374,7 +1374,7 @@
     },
     {
         "term": "Gray",
-        "definition": "Gr\u00e5tt",
+        "definition": "Grigio",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ThemeGray",
@@ -1382,7 +1382,7 @@
     },
     {
         "term": "Green",
-        "definition": "Gr\u00f6n",
+        "definition": "Verde",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ThemeGreen",
@@ -1390,7 +1390,7 @@
     },
     {
         "term": "Turquoise",
-        "definition": "Turkos",
+        "definition": "Turchese",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ThemeTurquoise",
@@ -1398,7 +1398,7 @@
     },
     {
         "term": "Export or Print",
-        "definition": "Exportera eller skriva ut",
+        "definition": "Esportazione o stampa",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportOrPrint",
@@ -1406,7 +1406,7 @@
     },
     {
         "term": "Everything",
-        "definition": "Allting",
+        "definition": "Tutto",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingEverything",
@@ -1414,7 +1414,7 @@
     },
     {
         "term": "All cards in the tree (in depth-first order)",
-        "definition": "Alla kort i tr\u00e4det (i djup f\u00f6rsta ordning)",
+        "definition": "Tutte le carte dell'albero (in ordine di profondit\u00e0)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingEverythingDesc",
@@ -1422,7 +1422,7 @@
     },
     {
         "term": "Current Subtree",
-        "definition": "Nuvarande undertr\u00e4d",
+        "definition": "Sottoalbero corrente",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingCurrentSubtree",
@@ -1430,7 +1430,7 @@
     },
     {
         "term": "Current card and all its children",
-        "definition": "Aktuellt kort och alla dess barn",
+        "definition": "Scheda corrente e tutti i suoi figli",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingCurrentSubtreeDesc",
@@ -1438,7 +1438,7 @@
     },
     {
         "term": "Leaves-only",
-        "definition": "Endast blad",
+        "definition": "Solo foglie",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingLeavesOnly",
@@ -1446,7 +1446,7 @@
     },
     {
         "term": "Only cards without children",
-        "definition": "Endast kort utan barn",
+        "definition": "Solo carte senza bambini",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingLeavesOnlyDesc",
@@ -1454,7 +1454,7 @@
     },
     {
         "term": "Current Column",
-        "definition": "Aktuell kolumn",
+        "definition": "Colonna corrente",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingCurrentColumn",
@@ -1462,7 +1462,7 @@
     },
     {
         "term": "Only carsd in the current (vertical) column",
-        "definition": "Endast bilar i den aktuella (vertikala) kolumnen",
+        "definition": "Solo le auto nella colonna corrente (verticale)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingCurrentColumnDesc",
@@ -1470,7 +1470,7 @@
     },
     {
         "term": "Word",
-        "definition": "Ord",
+        "definition": "Parola",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingWord",
@@ -1478,7 +1478,7 @@
     },
     {
         "term": "Plain Text",
-        "definition": "Klartext",
+        "definition": "Testo semplice",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingPlainText",
@@ -1494,7 +1494,7 @@
     },
     {
         "term": "Download Word File",
-        "definition": "Ladda ner Word-fil",
+        "definition": "Scaricare il file Word",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DownloadWordFile",
@@ -1502,7 +1502,7 @@
     },
     {
         "term": "Download Markdown text file",
-        "definition": "Ladda ner Markdown-textfil",
+        "definition": "Scarica il file di testo Markdown",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DownloadTextFile",
@@ -1510,7 +1510,7 @@
     },
     {
         "term": "Download JSON file",
-        "definition": "Ladda ner JSON-filen",
+        "definition": "Scarica il file JSON",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DownloadJSONFile",
@@ -1518,7 +1518,7 @@
     },
     {
         "term": "Print this",
-        "definition": "Skriv ut detta",
+        "definition": "Stampa questo",
         "context": "",
         "term_plural": "",
         "reference": "Elm:PrintThis",
@@ -1526,7 +1526,7 @@
     },
     {
         "term": "Upgrade",
-        "definition": "Uppgradera",
+        "definition": "Aggiornare",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Upgrade",
@@ -1535,7 +1535,7 @@
     {
         "term": "%1 day left in trial",
         "definition": {
-            "one": "%1 dag kvar p\u00e5 provperioden",
+            "one": "%1 giorno rimasto in prova",
             "other": ""
         },
         "context": "",
@@ -1545,7 +1545,7 @@
     },
     {
         "term": "Trial Expired",
-        "definition": "Pr\u00f6vning upph\u00f6rde",
+        "definition": "Prova scaduta",
         "context": "",
         "term_plural": "",
         "reference": "Elm:TrialExpired",
@@ -1553,7 +1553,7 @@
     },
     {
         "term": "Manage Subscription",
-        "definition": "Hantera prenumeration",
+        "definition": "Gestire l'abbonamento",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ManageSubscription",

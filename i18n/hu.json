@@ -483,7 +483,7 @@
     },
     {
         "term": "to Edit in Fullscreen",
-        "definition": null,
+        "definition": "Szerkeszt\u00e9s teljes k\u00e9perny\u0151n",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditFullscreenAction",
@@ -491,7 +491,7 @@
     },
     {
         "term": "Quick Document Switcher",
-        "definition": null,
+        "definition": "Gyors dokumentum v\u00e1lt\u00f3",
         "context": "",
         "term_plural": "",
         "reference": "Elm:QuickDocumentSwitcher",
@@ -499,7 +499,7 @@
     },
     {
         "term": "Email Support...",
-        "definition": null,
+        "definition": "Email-es t\u00e1mogat\u00e1s...",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EmailSupport",
@@ -507,7 +507,7 @@
     },
     {
         "term": "Logout",
-        "definition": null,
+        "definition": "Kijelentkez\u00e9s",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Logout",
@@ -515,7 +515,7 @@
     },
     {
         "term": "Language",
-        "definition": null,
+        "definition": "Nyelv",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Language",
@@ -523,7 +523,7 @@
     },
     {
         "term": "Contribute translations",
-        "definition": null,
+        "definition": "R\u00e9szv\u00e9tel a ford\u00edt\u00e1sban",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ContributeTranslations",
@@ -531,7 +531,7 @@
     },
     {
         "term": "here",
-        "definition": null,
+        "definition": "itt",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Here",
@@ -551,6 +551,1012 @@
         "context": "",
         "term_plural": "",
         "reference": "Elm:HomeJSONFrom",
+        "comment": ""
+    },
+    {
+        "term": "New Document",
+        "definition": "\u00daj dokumentum",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:NewDocument",
+        "comment": ""
+    },
+    {
+        "term": "Show Document List",
+        "definition": "Dokumentumlista megjelen\u00edt\u00e9se",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ShowDocumentList",
+        "comment": ""
+    },
+    {
+        "term": "Sort by Name",
+        "definition": "Rendez\u00e9s n\u00e9v szerint",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SortByName",
+        "comment": ""
+    },
+    {
+        "term": "Sort by Last Modified",
+        "definition": "Rendez\u00e9s Utols\u00f3 m\u00f3dos\u00edt\u00e1s szerint",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SortByLastModified",
+        "comment": ""
+    },
+    {
+        "term": "Sort by Date Created",
+        "definition": "L\u00e9trehoz\u00e1s d\u00e1tuma szerint rendezve",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SortByDateCreated",
+        "comment": ""
+    },
+    {
+        "term": "Templates & Examples",
+        "definition": "Sablonok \u00e9s p\u00e9ld\u00e1k",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:TemplatesAndExamples",
+        "comment": ""
+    },
+    {
+        "term": "New",
+        "definition": "\u00daj",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:New",
+        "comment": ""
+    },
+    {
+        "term": "Import",
+        "definition": "Import",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ImportSectionTitle",
+        "comment": ""
+    },
+    {
+        "term": "Import Text Files",
+        "definition": "Sz\u00f6veges f\u00e1jlok import\u00e1l\u00e1sa",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ImportTextFiles",
+        "comment": ""
+    },
+    {
+        "term": "Import multiple markdown or regular text files.",
+        "definition": "T\u00f6bb markdown vagy norm\u00e1l sz\u00f6veges f\u00e1jl import\u00e1l\u00e1sa.",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ImportTextFilesDesc",
+        "comment": ""
+    },
+    {
+        "term": "Import Opml Files",
+        "definition": "Opml f\u00e1jlok import\u00e1l\u00e1sa",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ImportOpmlFiles",
+        "comment": ""
+    },
+    {
+        "term": "Import from Workflowy or other outliners.",
+        "definition": "Import\u00e1l\u00e1s a Workflowy-b\u00f3l vagy m\u00e1s v\u00e1zlatk\u00e9sz\u00edt\u0151kb\u0151l.",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ImportOpmlFilesDesc",
+        "comment": ""
+    },
+    {
+        "term": "Timeline 2022",
+        "definition": "Id\u0151vonal 2022",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:TimelineTemplate",
+        "comment": ""
+    },
+    {
+        "term": "A tree-based calendar",
+        "definition": "Egy fa alap\u00fa napt\u00e1r",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:TimelineTemplateDesc",
+        "comment": ""
+    },
+    {
+        "term": "Academic Paper",
+        "definition": "Akad\u00e9miai tanulm\u00e1ny",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AcademicPaperTemplate",
+        "comment": ""
+    },
+    {
+        "term": "Starting point for journal paper",
+        "definition": "Kiindul\u00f3pont a foly\u00f3iratban megjelen\u0151 cikkhez",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AcademicPaperTemplateDesc",
+        "comment": ""
+    },
+    {
+        "term": "Project Brainstorming",
+        "definition": "Projekt \u00f6tletel\u00e9s",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ProjectBrainstormingTemplate",
+        "comment": ""
+    },
+    {
+        "term": "Example on clarifying project goals",
+        "definition": "P\u00e9lda a projektc\u00e9lok tiszt\u00e1z\u00e1s\u00e1ra",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ProjectBrainstormingTemplateDesc",
+        "comment": ""
+    },
+    {
+        "term": "Hero's Journey",
+        "definition": "A h\u0151s \u00fatja",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HerosJourneyTemplate",
+        "comment": ""
+    },
+    {
+        "term": "A framework for fictional stories",
+        "definition": "A fikt\u00edv t\u00f6rt\u00e9netek kerete",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HerosJourneyTemplateDesc",
+        "comment": ""
+    },
+    {
+        "term": "Help",
+        "definition": "Seg\u00edts\u00e9g",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Help",
+        "comment": ""
+    },
+    {
+        "term": "What's New",
+        "definition": "\u00dajdons\u00e1gok",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:WhatsNew",
+        "comment": ""
+    },
+    {
+        "term": "Account",
+        "definition": "Sz\u00e1mla",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AccountTooltip",
+        "comment": ""
+    },
+    {
+        "term": "Keyboard Shortcuts",
+        "definition": "Billenty\u0171zet gyorsbillenty\u0171k",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:KeyboardShortcuts",
+        "comment": ""
+    },
+    {
+        "term": "View Mode Shortcuts : ",
+        "definition": "N\u00e9zet m\u00f3d parancsikonok : ",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ViewModeShortcuts",
+        "comment": ""
+    },
+    {
+        "term": "Card Edit, Create, Delete",
+        "definition": "K\u00e1rtya szerkeszt\u00e9se, l\u00e9trehoz\u00e1sa, t\u00f6rl\u00e9se",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:CardEditCreateDelete",
+        "comment": ""
+    },
+    {
+        "term": "Navigation, Moving Cards",
+        "definition": "Navig\u00e1ci\u00f3, Mozg\u00f3 k\u00e1rty\u00e1k",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:NavigationMovingCards",
+        "comment": ""
+    },
+    {
+        "term": "Copy\/Paste",
+        "definition": "M\u00e1sol\u00e1s\/beilleszt\u00e9s",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:CopyPaste",
+        "comment": ""
+    },
+    {
+        "term": "Searching, Merging Cards",
+        "definition": "K\u00e1rty\u00e1k keres\u00e9se, egyes\u00edt\u00e9se",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SearchingMerging",
+        "comment": ""
+    },
+    {
+        "term": "Help, Info, Documents",
+        "definition": "S\u00fag\u00f3, Info, Dokumentumok",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HelpInfoDocs",
+        "comment": ""
+    },
+    {
+        "term": "Edit Mode Shortcuts : ",
+        "definition": "Szerkeszt\u00e9si m\u00f3d gyorsbillenty\u0171k : ",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EditModeShortcuts",
+        "comment": ""
+    },
+    {
+        "term": "Card Save, Create",
+        "definition": "K\u00e1rtya Ment\u00e9s, l\u00e9trehoz\u00e1s",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:CardSaveCreate",
+        "comment": ""
+    },
+    {
+        "term": "Edit card",
+        "definition": "K\u00e1rtya szerkeszt\u00e9se",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EditCard",
+        "comment": ""
+    },
+    {
+        "term": "Add card below",
+        "definition": "K\u00e1rtya hozz\u00e1ad\u00e1sa alul",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AddCardBelow",
+        "comment": ""
+    },
+    {
+        "term": "Add card above",
+        "definition": "K\u00e1rtya hozz\u00e1ad\u00e1sa fent",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AddCardAbove",
+        "comment": ""
+    },
+    {
+        "term": "Add card to the right (as child)",
+        "definition": "K\u00e1rtya hozz\u00e1ad\u00e1sa jobbra (gyermekk\u00e9nt)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AddCardToRight",
+        "comment": ""
+    },
+    {
+        "term": "Add card below (split at cursor)",
+        "definition": "Adja hozz\u00e1 a k\u00e1rty\u00e1t alul (a kurzorn\u00e1l sz\u00e9tv\u00e1lasztva)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AddCardBelowSplit",
+        "comment": ""
+    },
+    {
+        "term": "Add card above (split at cursor)",
+        "definition": "K\u00e1rtya hozz\u00e1ad\u00e1sa fent (a kurzorn\u00e1l sz\u00e9tv\u00e1lasztva)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AddCardAboveSplit",
+        "comment": ""
+    },
+    {
+        "term": "Add card to the right (split at cursor)",
+        "definition": "K\u00e1rtya hozz\u00e1ad\u00e1sa jobbra (oszt\u00e1s a kurzorn\u00e1l)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AddCardToRightSplit",
+        "comment": ""
+    },
+    {
+        "term": "Delete card (and its children)",
+        "definition": "K\u00e1rtya (\u00e9s gyermekei) t\u00f6rl\u00e9se",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DeleteCard",
+        "comment": ""
+    },
+    {
+        "term": "Go up\/down\/left\/right",
+        "definition": "Menj fel\/le\/balra\/jobbra",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:GoUpDownLeftRight",
+        "comment": ""
+    },
+    {
+        "term": "Go to beginning of group",
+        "definition": "Menj a csoport elej\u00e9re",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:GoToBeginningOfGroup",
+        "comment": ""
+    },
+    {
+        "term": "Go to end of group",
+        "definition": "Menj a csoport v\u00e9g\u00e9re",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:GoToEndOfGroup",
+        "comment": ""
+    },
+    {
+        "term": "Go to beginning of column",
+        "definition": "Menj az oszlop elej\u00e9re",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:GoToBeginningOfColumn",
+        "comment": ""
+    },
+    {
+        "term": "Go to end of column",
+        "definition": "Menj az oszlop v\u00e9g\u00e9re",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:GoToEndOfColumn",
+        "comment": ""
+    },
+    {
+        "term": "Move current card (and children)",
+        "definition": "Az aktu\u00e1lis k\u00e1rtya (\u00e9s a gyermekek) \u00e1thelyez\u00e9se",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:MoveCurrentCard",
+        "comment": ""
+    },
+    {
+        "term": "PageUp",
+        "definition": "PageUp",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:PageUp",
+        "comment": ""
+    },
+    {
+        "term": "PageDown",
+        "definition": "PageDown",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:PageDown",
+        "comment": ""
+    },
+    {
+        "term": "Home",
+        "definition": "Home",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HomeKey",
+        "comment": ""
+    },
+    {
+        "term": "End",
+        "definition": "V\u00e9ge",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EndKey",
+        "comment": ""
+    },
+    {
+        "term": "(any of above)",
+        "definition": "(a fentiek b\u00e1rmelyike)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AnyOfAbove",
+        "comment": ""
+    },
+    {
+        "term": "Drag card by left edge",
+        "definition": "H\u00fazza a k\u00e1rty\u00e1t a bal sz\u00e9l\u00e9n\u00e9l",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DragCard",
+        "comment": ""
+    },
+    {
+        "term": "Search",
+        "definition": "Keres\u00e9s",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Search",
+        "comment": ""
+    },
+    {
+        "term": "Clear search, focus current card",
+        "definition": "Keres\u00e9s t\u00f6rl\u00e9se, f\u00f3kusz\u00e1l\u00e1s az aktu\u00e1lis k\u00e1rty\u00e1ra",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ClearSearch",
+        "comment": ""
+    },
+    {
+        "term": "Merge card up",
+        "definition": "Merge k\u00e1rtya fel",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:MergeCardUp",
+        "comment": ""
+    },
+    {
+        "term": "Merge card down",
+        "definition": "Merge k\u00e1rtya lefel\u00e9",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:MergeCardDown",
+        "comment": ""
+    },
+    {
+        "term": "Copy current subtree",
+        "definition": "Aktu\u00e1lis r\u00e9szfa m\u00e1sol\u00e1sa",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:CopyCurrent",
+        "comment": ""
+    },
+    {
+        "term": "Paste subtree below current card",
+        "definition": "R\u00e9szfa beilleszt\u00e9se az aktu\u00e1lis k\u00e1rtya al\u00e1",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:PasteBelow",
+        "comment": ""
+    },
+    {
+        "term": "Paste subtree as child of current card",
+        "definition": "R\u00e9szfa beilleszt\u00e9se az aktu\u00e1lis k\u00e1rtya gyermekek\u00e9nt",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:PasteAsChild",
+        "comment": ""
+    },
+    {
+        "term": "Insert selected text as new card",
+        "definition": "Kijel\u00f6lt sz\u00f6veg beilleszt\u00e9se \u00faj k\u00e1rtyak\u00e9nt",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:InsertSelected",
+        "comment": ""
+    },
+    {
+        "term": "Drag selected text into tree",
+        "definition": "Kiv\u00e1lasztott sz\u00f6veg \u00e1th\u00faz\u00e1sa a f\u00e1ba",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DragSelected",
+        "comment": ""
+    },
+    {
+        "term": "Word counts",
+        "definition": "Szavak sz\u00e1ma",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:WordCounts",
+        "comment": ""
+    },
+    {
+        "term": "Switch to different document",
+        "definition": "M\u00e1sik dokumentumra v\u00e1lt\u00e1s",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SwitchDocuments",
+        "comment": ""
+    },
+    {
+        "term": "This help screen",
+        "definition": "Ez a s\u00fag\u00f3 k\u00e9perny\u0151",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ThisHelpScreen",
+        "comment": ""
+    },
+    {
+        "term": " or ",
+        "definition": " vagy ",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Or",
+        "comment": ""
+    },
+    {
+        "term": "Edit card in fullscreen mode",
+        "definition": "K\u00e1rtya szerkeszt\u00e9se teljes k\u00e9perny\u0151s m\u00f3dban",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EditCardFullscreen",
+        "comment": ""
+    },
+    {
+        "term": "Edit Cards",
+        "definition": "K\u00e1rty\u00e1k szerkeszt\u00e9se",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EditCards",
+        "comment": ""
+    },
+    {
+        "term": "Shift",
+        "definition": "M\u0171szak",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ShiftKey",
+        "comment": ""
+    },
+    {
+        "term": "AltKey",
+        "definition": "AltKey",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AltKey",
+        "comment": ""
+    },
+    {
+        "term": "Navigate",
+        "definition": "Navig\u00e1l\u00e1s",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Navigate",
+        "comment": ""
+    },
+    {
+        "term": "Add New Cards",
+        "definition": "\u00daj k\u00e1rty\u00e1k hozz\u00e1ad\u00e1sa",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AddNewCards",
+        "comment": ""
+    },
+    {
+        "term": "Split At Cursor",
+        "definition": "Oszt\u00e1s a kurzorn\u00e1l",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SplitAtCursor",
+        "comment": ""
+    },
+    {
+        "term": "Merge Cards",
+        "definition": "K\u00e1rty\u00e1k egyes\u00edt\u00e9se",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:MergeCards",
+        "comment": ""
+    },
+    {
+        "term": "Move & Delete Cards",
+        "definition": "K\u00e1rty\u00e1k mozgat\u00e1sa \u00e9s t\u00f6rl\u00e9se",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:MoveAndDelete",
+        "comment": ""
+    },
+    {
+        "term": "Bold selection",
+        "definition": "Mer\u00e9sz kiv\u00e1laszt\u00e1s",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:BoldSelection",
+        "comment": ""
+    },
+    {
+        "term": "Italicize selection",
+        "definition": "D\u0151lt bet\u0171s kiv\u00e1laszt\u00e1s",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ItalicizeSelection",
+        "comment": ""
+    },
+    {
+        "term": "Save changes",
+        "definition": "V\u00e1ltoz\u00e1sok ment\u00e9se",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SaveChanges",
+        "comment": ""
+    },
+    {
+        "term": "Save changes and exit card",
+        "definition": "A m\u00f3dos\u00edt\u00e1sok ment\u00e9se \u00e9s a k\u00e1rty\u00e1r\u00f3l val\u00f3 kil\u00e9p\u00e9s",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SaveChangesAndExit",
+        "comment": ""
+    },
+    {
+        "term": "Exit edit mode",
+        "definition": "Szerkeszt\u00e9si m\u00f3db\u00f3l val\u00f3 kil\u00e9p\u00e9s",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExitEditMode",
+        "comment": ""
+    },
+    {
+        "term": "Other Shortcuts",
+        "definition": "Egy\u00e9b r\u00f6vid\u00edt\u00e9sek",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:OtherShortcuts",
+        "comment": ""
+    },
+    {
+        "term": "Display word counts",
+        "definition": "Sz\u00f3sz\u00e1mok megjelen\u00edt\u00e9se",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DisplayWordCounts",
+        "comment": ""
+    },
+    {
+        "term": "(Edit Mode)",
+        "definition": "(Szerkeszt\u00e9si m\u00f3d)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EditMode",
+        "comment": ""
+    },
+    {
+        "term": "Save\/Cancel Changes",
+        "definition": "V\u00e1ltoz\u00e1sok ment\u00e9se\/ t\u00f6rl\u00e9se",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SaveOrCancelChanges",
+        "comment": ""
+    },
+    {
+        "term": "Formatting",
+        "definition": "Form\u00e1z\u00e1s",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Formatting",
+        "comment": ""
+    },
+    {
+        "term": "# Title\n## Subtitle",
+        "definition": "# C\u00edm\n## Alc\u00edm",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:FormattingTitle",
+        "comment": ""
+    },
+    {
+        "term": "Set title level (# to #####)",
+        "definition": "C\u00edmszint be\u00e1ll\u00edt\u00e1sa (# a ##### c\u00edmre)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SetTitleLevel",
+        "comment": ""
+    },
+    {
+        "term": "- List item\n  - Subitem",
+        "definition": "- Listaelem\n  - Alt\u00e9tel",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:FormattingList",
+        "comment": ""
+    },
+    {
+        "term": "[link](http:\/\/t.co)",
+        "definition": "[link](http:\/\/t.co)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:FormattingLink",
+        "comment": ""
+    },
+    {
+        "term": "ParenNumber",
+        "definition": "ParenNumber",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ParenNumber",
+        "comment": ""
+    },
+    {
+        "term": "SetHeadingLevel",
+        "definition": "SetHeadingLevel",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SetHeadingLevel",
+        "comment": ""
+    },
+    {
+        "term": "Help Videos",
+        "definition": "S\u00fag\u00f3 vide\u00f3k",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HelpVideos",
+        "comment": ""
+    },
+    {
+        "term": "FAQ & Documentation",
+        "definition": "GYIK \u00e9s dokument\u00e1ci\u00f3",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:FAQAndDocs",
+        "comment": ""
+    },
+    {
+        "term": "Open Quick Switcher",
+        "definition": "Gyorsv\u00e1lt\u00f3 megnyit\u00e1sa",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:OpenQuickSwitcher",
+        "comment": ""
+    },
+    {
+        "term": "Contact Support",
+        "definition": "Email-es t\u00e1mogat\u00e1s...",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ContactSupport",
+        "comment": ""
+    },
+    {
+        "term": "Version History",
+        "definition": "Verzi\u00f3t\u00f6rt\u00e9net",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:VersionHistory",
+        "comment": ""
+    },
+    {
+        "term": "Document Settings",
+        "definition": "Dokumentum be\u00e1ll\u00edt\u00e1sok",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DocumentSettings",
+        "comment": ""
+    },
+    {
+        "term": "Word count...",
+        "definition": "Szavak sz\u00e1ma...",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:WordCount",
+        "comment": ""
+    },
+    {
+        "term": "Total Cards in Tree : %1",
+        "definition": {
+            "one": "\u00d6sszes k\u00e1rtya a f\u00e1n : %1",
+            "other": ""
+        },
+        "context": "",
+        "term_plural": "Total Cards in Tree : %1",
+        "reference": "Elm:WordCountTotalCards",
+        "comment": ""
+    },
+    {
+        "term": "Document Theme",
+        "definition": "Dokumentum t\u00e9ma",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DocumentTheme",
+        "comment": ""
+    },
+    {
+        "term": "Default",
+        "definition": "Alap\u00e9rtelmezett",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ThemeDefault",
+        "comment": ""
+    },
+    {
+        "term": "Dark Mode",
+        "definition": "S\u00f6t\u00e9t \u00fczemm\u00f3d",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ThemeDarkMode",
+        "comment": ""
+    },
+    {
+        "term": "Classic Gingkoapp",
+        "definition": "Klasszikus Gingkoapp",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ThemeClassic",
+        "comment": ""
+    },
+    {
+        "term": "Gray",
+        "definition": "Sz\u00fcrke",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ThemeGray",
+        "comment": ""
+    },
+    {
+        "term": "Green",
+        "definition": "Z\u00f6ld",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ThemeGreen",
+        "comment": ""
+    },
+    {
+        "term": "Turquoise",
+        "definition": "T\u00fcrkizk\u00e9k",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ThemeTurquoise",
+        "comment": ""
+    },
+    {
+        "term": "Export or Print",
+        "definition": "Export\u00e1l\u00e1s vagy nyomtat\u00e1s",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportOrPrint",
+        "comment": ""
+    },
+    {
+        "term": "Everything",
+        "definition": "Minden",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportSettingEverything",
+        "comment": ""
+    },
+    {
+        "term": "All cards in the tree (in depth-first order)",
+        "definition": "Az \u00f6sszes k\u00e1rtya a f\u00e1n (m\u00e9lys\u00e9g szerinti sorrendben)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportSettingEverythingDesc",
+        "comment": ""
+    },
+    {
+        "term": "Current Subtree",
+        "definition": "Jelenlegi alfa",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportSettingCurrentSubtree",
+        "comment": ""
+    },
+    {
+        "term": "Current card and all its children",
+        "definition": "Jelenlegi k\u00e1rtya \u00e9s annak \u00f6sszes gyermeke",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportSettingCurrentSubtreeDesc",
+        "comment": ""
+    },
+    {
+        "term": "Leaves-only",
+        "definition": "Csak levelek",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportSettingLeavesOnly",
+        "comment": ""
+    },
+    {
+        "term": "Only cards without children",
+        "definition": "Csak a gyermekek n\u00e9lk\u00fcli k\u00e1rty\u00e1k",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportSettingLeavesOnlyDesc",
+        "comment": ""
+    },
+    {
+        "term": "Current Column",
+        "definition": "Jelenlegi oszlop",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportSettingCurrentColumn",
+        "comment": ""
+    },
+    {
+        "term": "Only carsd in the current (vertical) column",
+        "definition": "Csak az aktu\u00e1lis (f\u00fcgg\u0151leges) oszlopban l\u00e9v\u0151 aut\u00f3kd",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportSettingCurrentColumnDesc",
+        "comment": ""
+    },
+    {
+        "term": "Word",
+        "definition": "Sz\u00f3",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportSettingWord",
+        "comment": ""
+    },
+    {
+        "term": "Plain Text",
+        "definition": "Egyszer\u0171 sz\u00f6veg",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportSettingPlainText",
+        "comment": ""
+    },
+    {
+        "term": "JSON",
+        "definition": "JSON",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportSettingJSON",
+        "comment": ""
+    },
+    {
+        "term": "Download Word File",
+        "definition": "Word f\u00e1jl let\u00f6lt\u00e9se",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DownloadWordFile",
+        "comment": ""
+    },
+    {
+        "term": "Download Markdown text file",
+        "definition": "Markdown sz\u00f6veges f\u00e1jl let\u00f6lt\u00e9se",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DownloadTextFile",
+        "comment": ""
+    },
+    {
+        "term": "Download JSON file",
+        "definition": "JSON f\u00e1jl let\u00f6lt\u00e9se",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DownloadJSONFile",
+        "comment": ""
+    },
+    {
+        "term": "Print this",
+        "definition": "Nyomtassa ki ezt",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:PrintThis",
+        "comment": ""
+    },
+    {
+        "term": "Upgrade",
+        "definition": "Friss\u00edt\u00e9s",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Upgrade",
+        "comment": ""
+    },
+    {
+        "term": "%1 day left in trial",
+        "definition": {
+            "one": "%1 nap maradt a pr\u00f3b\u00e1b\u00f3l",
+            "other": ""
+        },
+        "context": "",
+        "term_plural": "%1 days left in trial",
+        "reference": "Elm:DaysLeft",
+        "comment": ""
+    },
+    {
+        "term": "Trial Expired",
+        "definition": "Trial Lej\u00e1rt",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:TrialExpired",
+        "comment": ""
+    },
+    {
+        "term": "Manage Subscription",
+        "definition": "El\u0151fizet\u00e9s kezel\u00e9se",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ManageSubscription",
         "comment": ""
     }
 ]

@@ -9,7 +9,7 @@
     },
     {
         "term": "Recent Documents",
-        "definition": "\u041f\u043e\u0441\u043b\u0435\u0434\u043d\u0438\u0435 \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u044b",
+        "definition": "\u041d\u0435\u0434\u0430\u0432\u043d\u0438\u0435 \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u044b",
         "context": "",
         "term_plural": "",
         "reference": "Elm:RecentDocuments",
@@ -49,7 +49,7 @@
     },
     {
         "term": "Unsaved Changes...",
-        "definition": "\u041d\u0435\u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u043d\u044b\u0435 \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f...",
+        "definition": "\u041d\u0435\u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u043d\u044b\u0435 \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f\u2026",
         "context": "",
         "term_plural": "",
         "reference": "Elm:UnsavedChanges",
@@ -73,7 +73,7 @@
     },
     {
         "term": "Last edit",
-        "definition": "\u041f\u043e\u0441\u043b\u0435\u0434\u043d\u0435\u0435 \u0440\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435",
+        "definition": "\u041f\u043e\u0441\u043b\u0435\u0434\u043d\u044f\u044f \u043f\u043e\u043f\u0440\u0430\u0432\u043a\u0430",
         "context": "",
         "term_plural": "",
         "reference": "Elm:LastEdit",
@@ -81,7 +81,7 @@
     },
     {
         "term": "Keyboard Shortcuts Help",
-        "definition": "\u0421\u043f\u0440\u0430\u0432\u043a\u0430 \u043f\u043e \u0431\u044b\u0441\u0442\u0440\u044b\u043c \u043a\u043b\u0430\u0432\u0438\u0448\u0430\u043c",
+        "definition": "\u0413\u043e\u0440\u044f\u0447\u0438\u0435 \u043a\u043b\u0430\u0432\u0438\u0448\u0438 \u0421\u043f\u0440\u0430\u0432\u043a\u0430",
         "context": "",
         "term_plural": "",
         "reference": "Elm:KeyboardHelp",
@@ -97,7 +97,7 @@
     },
     {
         "term": "Enter",
-        "definition": "\u0412\u0430\u043e\u0434",
+        "definition": "Enter",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EnterKey",
@@ -105,7 +105,7 @@
     },
     {
         "term": "to Edit",
-        "definition": "\u0434\u043b\u044f \u041f\u0440\u0430\u0432\u043a\u0438",
+        "definition": "\u0447\u0442\u043e\u0431\u044b \u0438\u0437\u043c\u0435\u043d\u0438\u0442\u044c",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EnterAction",
@@ -113,7 +113,7 @@
     },
     {
         "term": "Edit Card (Enter)",
-        "definition": "\u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0443 (\u0412\u0432\u043e\u0434)",
+        "definition": "\u0418\u0437\u043c\u0435\u043d\u0438\u0442\u044c \u0437\u0430\u043f\u0438\u0441\u044c (Enter)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditCardTitle",
@@ -121,7 +121,7 @@
     },
     {
         "term": "to Navigate",
-        "definition": "\u0434\u043b\u044f \u041f\u0435\u0440\u0435\u0445\u043e\u0434\u0430",
+        "definition": "\u0434\u043b\u044f \u0434\u0432\u0438\u0436\u043a\u0430",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ArrowsAction",
@@ -129,7 +129,7 @@
     },
     {
         "term": "to Add Child",
-        "definition": "\u0434\u043b\u044f \u0434\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u0438\u044f \u0414\u043e\u0447\u043a\u0438",
+        "definition": "\u0447\u0442\u043e\u0431\u044b \u0434\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u043f\u043e\u0442\u043e\u043c\u043a\u0430",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddChildAction",
@@ -137,7 +137,7 @@
     },
     {
         "term": "to Split Card to the Right",
-        "definition": "\u0434\u043b\u044f \u0440\u0430\u0437\u0434\u0435\u043b\u0435\u043d\u0438\u044f \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0438 \u0412\u043f\u0440\u0430\u0432\u043e",
+        "definition": "\u0447\u0442\u043e\u0431\u044b \u0440\u0430\u0437\u0431\u0438\u0442\u044c \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0443 \u0432\u043f\u0440\u0430\u0432\u043e",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SplitChildAction",
@@ -145,7 +145,7 @@
     },
     {
         "term": "Insert Child (Ctrl+L)",
-        "definition": "\u0412\u0441\u0442\u0430\u0432\u0438\u0442\u044c \u0414\u043e\u0447\u043a\u0443",
+        "definition": "\u0412\u0441\u0442\u0430\u0432\u043a\u0430 \u043f\u043e\u0442\u043e\u043c\u043a\u0430",
         "context": "",
         "term_plural": "",
         "reference": "Elm:InsertChildTitle",
@@ -153,7 +153,7 @@
     },
     {
         "term": "to Add Below",
-        "definition": "\u0414\u043b\u044f \u0434\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u0438\u044f \u043d\u0438\u0436\u0435",
+        "definition": "\u0447\u0442\u043e\u0431\u044b \u0434\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u043d\u0438\u0436\u0435",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddBelowAction",
@@ -161,7 +161,7 @@
     },
     {
         "term": "to Split Card Down",
-        "definition": "\u0420\u0430\u0437\u0434\u0435\u043b\u0438\u0442\u044c \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0443 \u0432\u043d\u0438\u0437",
+        "definition": "\u0447\u0442\u043e\u0431\u044b \u0440\u0430\u0437\u0431\u0438\u0442\u044c \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0443 \u0432\u043d\u0438\u0437",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SplitBelowAction",
@@ -169,7 +169,7 @@
     },
     {
         "term": "to Merge into Next",
-        "definition": "\u041e\u0431\u044a\u0435\u0434\u0438\u043d\u0438\u0442\u044c \u0441\u043e \u0441\u043b\u0435\u0434\u0443\u0449\u0435\u0439",
+        "definition": "\u0447\u0442\u043e\u0431\u044b \u0441\u043b\u0438\u0442\u044c \u0437\u0430\u043f\u0438\u0441\u044c \u0441 \u043f\u043e\u0441\u043b\u0435\u0434\u0443\u044e\u0449\u0435\u0439",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MergeDownAction",
@@ -177,7 +177,7 @@
     },
     {
         "term": "Insert Below (Ctrl+J)",
-        "definition": "\u0412\u0441\u0442\u0430\u0432\u0438\u0442\u044c \u043d\u0438\u0436\u0435",
+        "definition": "\u0412\u0441\u0442\u0430\u0432\u043a\u0430 \u043d\u0438\u0436\u0435 (\u0421trl+J)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:InsertBelowTitle",
@@ -185,7 +185,7 @@
     },
     {
         "term": "to Add Above",
-        "definition": "\u0414\u043b\u044f \u0434\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u0438\u044f \u0432\u044b\u0448\u0435",
+        "definition": "\u0434\u043b\u044f \u0434\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u0438\u044f \u0441\u0432\u0435\u0440\u0445\u0443",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddAboveAction",
@@ -193,7 +193,7 @@
     },
     {
         "term": "to Split Card Upward",
-        "definition": "\u0420\u0430\u0437\u0434\u0435\u043b\u0438\u0442\u044c \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0443 \u0432\u0432\u0435\u0440\u0445",
+        "definition": "\u0447\u0442\u043e\u0431\u044b \u0440\u0430\u0437\u0431\u0438\u0442\u044c \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0443 \u0432\u0432\u0435\u0440\u0445",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SplitUpwardAction",
@@ -201,7 +201,7 @@
     },
     {
         "term": "to Merge into Previous",
-        "definition": "\u041e\u0431\u044a\u0435\u0434\u0438\u043d\u0438\u0442\u044c \u0441 \u043f\u0440\u0435\u0434\u044b\u0434\u0443\u0449\u0435\u0439",
+        "definition": "\u0447\u0442\u043e\u0431\u044b \u0441\u043b\u0438\u0442\u044c \u0437\u0430\u043f\u0438\u0441\u044c \u0441 \u043f\u0440\u0435\u0434\u044b\u0434\u0443\u0449\u0435\u0439",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MergeUpAction",
@@ -209,7 +209,7 @@
     },
     {
         "term": "Insert Above (Ctrl+K)",
-        "definition": "\u0412\u0441\u0442\u0430\u0432\u0438\u0442\u044c \u0432\u044b\u0448\u0435",
+        "definition": "\u0412\u0441\u0442\u0430\u0432\u043a\u0430 \u0432\u044b\u0448\u0435 (Ctrl+K)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:InsertAboveTitle",
@@ -225,7 +225,7 @@
     },
     {
         "term": "to Move",
-        "definition": "\u0414\u043b\u044f \u043f\u0435\u0440\u0435\u043c\u0435\u0449\u0435\u043d\u0438\u044f",
+        "definition": "\u0447\u0442\u043e\u0431\u044b \u043f\u0435\u0440\u0435\u0434\u0432\u043d\u0443\u0442\u044c",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MoveAction",
@@ -233,7 +233,7 @@
     },
     {
         "term": "Backspace",
-        "definition": "\u0417\u0430\u0431\u043e\u0439",
+        "definition": "Backspace",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Backspace",
@@ -241,7 +241,7 @@
     },
     {
         "term": "to Delete",
-        "definition": "\u0414\u043b\u044f \u0443\u0434\u0430\u043b\u0435\u043d\u0438\u044f",
+        "definition": "\u0434\u043b\u044f \u0443\u0434\u0430\u043b\u0435\u043d\u0438\u044f",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DeleteAction",
@@ -249,7 +249,7 @@
     },
     {
         "term": "Delete Card (Ctrl+Backspace)",
-        "definition": "\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0443 (Ctrl+Backspace)",
+        "definition": "\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0437\u0430\u043f\u0438\u0441\u044c (Ctrl+Backspace)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DeleteCardTitle",
@@ -257,7 +257,7 @@
     },
     {
         "term": "for Bold",
-        "definition": "\u0416\u0438\u0440\u043d\u044b\u0439",
+        "definition": "\u0414\u043b\u044f \u0416\u0438\u0440\u043d\u043e\u0433\u043e",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ForBold",
@@ -265,7 +265,7 @@
     },
     {
         "term": "for Italic",
-        "definition": "\u041a\u0443\u0440\u0441\u0438\u0432",
+        "definition": "\u0414\u043b\u044f \u041a\u0443\u0440\u0441\u0438\u0432\u0430",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ForItalic",
@@ -273,7 +273,7 @@
     },
     {
         "term": "to Save Changes",
-        "definition": "\u0414\u043b\u044f \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u044f \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0439",
+        "definition": "\u0441\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ToSaveChanges",
@@ -281,7 +281,7 @@
     },
     {
         "term": "Save Changes (Ctrl+Enter)",
-        "definition": "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0447",
+        "definition": "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f (Ctrl+Enter)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SaveChangesTitle",
@@ -297,7 +297,7 @@
     },
     {
         "term": "to Cancel Changes",
-        "definition": "\u0414\u043b\u044f \u043e\u0442\u043c\u0435\u043d\u044b \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0439",
+        "definition": "\u043e\u0442\u043c\u0435\u043d\u0438\u0442\u044c \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ToCancelChanges",
@@ -313,7 +313,7 @@
     },
     {
         "term": "Heading Font",
-        "definition": "\u0428\u0440\u0438\u0444\u0442 \u0437\u0430\u0433\u043e\u043b\u043e\u0432\u043a\u0430",
+        "definition": "\u0417\u0430\u0433\u043b\u0430\u0432\u043d\u044b\u0439 \u0448\u0440\u0438\u0444\u0442",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HeadingFont",
@@ -463,7 +463,7 @@
     },
     {
         "term": "Saved Offline",
-        "definition": "\u0421\u043e\u0445\u0440\u0430\u043d\u0451\u043d \u0434\u043b\u044f \u0430\u0432\u0442\u043e\u043d\u043e\u043c\u043d\u043e\u0439 \u0440\u0430\u0431\u043e\u0442\u044b",
+        "definition": "\u0421\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u0435 \u0434\u043b\u044f \u0430\u0432\u0442\u043e\u043d\u043e\u043c\u043d\u043e\u0439 \u0440\u0430\u0431\u043e\u0442\u044b",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SavedInternally",
@@ -471,7 +471,7 @@
     },
     {
         "term": "Synced",
-        "definition": "\u0421\u0438\u043d\u0445\u0440\u043e\u043d\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d",
+        "definition": "\u0421\u0438\u043d\u0445\u0440\u043e\u043d\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u043e",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ChangesSynced",
@@ -479,7 +479,7 @@
     },
     {
         "term": "More Formatting Options...",
-        "definition": "\u0414\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044c\u043d\u044b\u0435 \u0432\u0430\u0440\u0438\u0430\u043d\u0442\u044b \u0444\u043e\u0440\u043c\u0430\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u044f",
+        "definition": "\u0414\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044c\u043d\u044b\u0435 \u0432\u0430\u0440\u0438\u0430\u043d\u0442\u044b \u0444\u043e\u0440\u043c\u0430\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u044f\u2026",
         "context": "",
         "term_plural": "",
         "reference": "Elm:FormattingGuide",
@@ -487,7 +487,7 @@
     },
     {
         "term": "Are you sure you want to undo your changes?",
-        "definition": "\u0412\u044b \u0442\u043e\u0447\u043d\u043e \u043d\u0435 \u0445\u043e\u0442\u0438\u0442\u0435 \u0441\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f?",
+        "definition": "\u0412\u044b \u0443\u0432\u0435\u0440\u0435\u043d\u043d\u044b \u0447\u0442\u043e \u0445\u043e\u0442\u0438\u0442\u0435 \u043e\u0442\u043c\u0435\u043d\u0438\u0442\u044c \u043f\u043e\u0441\u043b\u0435\u0434\u043d\u0438\u0435 \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f?",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AreYouSureCancel",
@@ -495,7 +495,7 @@
     },
     {
         "term": "to Edit in Fullscreen",
-        "definition": "\u0414\u043b\u044f \u043f\u043e\u043b\u043d\u043e\u044d\u043a\u0440\u0430\u043d\u043d\u043e\u0433\u043e \u0440\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u044f",
+        "definition": "\u0447\u0442\u043e\u0431\u044b \u0440\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u043f\u043e\u043b\u043d\u043e\u044d\u043a\u0440\u0430\u043d\u043d\u043e\u043c \u0440\u0435\u0436\u0438\u043c\u0435",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditFullscreenAction",
@@ -503,7 +503,7 @@
     },
     {
         "term": "Quick Document Switcher",
-        "definition": "\u0411\u044b\u0441\u0442\u0440\u043e\u0435 \u043f\u0435\u0440\u0435\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u0435 \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u043e\u0432",
+        "definition": "\u043f\u0435\u0440\u0435\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u0435 \u043c\u0435\u0436 \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u0430\u043c\u0438",
         "context": "",
         "term_plural": "",
         "reference": "Elm:QuickDocumentSwitcher",
@@ -519,7 +519,7 @@
     },
     {
         "term": "Logout",
-        "definition": "\u0412\u044b\u0439\u0442\u0438 \u0438\u0437 \u0443\u0447\u0435\u0442\u043d\u043e\u0439 \u0437\u0430\u043f\u0438\u0441\u0438",
+        "definition": "\u0412\u044b\u0445\u043e\u0434 \u0438\u0437 \u0443\u0447\u0435\u0442\u043d\u043e\u0439 \u0437\u0430\u043f\u0438\u0441\u0438",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Logout",
@@ -543,7 +543,7 @@
     },
     {
         "term": "here",
-        "definition": "\u0442\u0443\u0442",
+        "definition": "\u0437\u0434\u0435\u0441\u044c",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Here",
@@ -551,7 +551,7 @@
     },
     {
         "term": "Import JSON tree",
-        "definition": "\u0418\u043c\u043f\u043e\u0440\u0442 \u0434\u0435\u0440\u0435\u0432\u0430 JSON",
+        "definition": "\u0418\u043c\u043f\u043e\u0440\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c JSON \u0434\u0435\u0440\u0435\u0432\u043e",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HomeImportJSON",
@@ -559,10 +559,1020 @@
     },
     {
         "term": "From Gingko Desktop or Online export file",
-        "definition": "\u0418\u0437 \u0444\u0430\u0439\u043b\u0430 \u044d\u043a\u0441\u043f\u043e\u0440\u0442\u0430 \u0434\u043b\u044f Gingko Desktop \u0438\u043b\u0438 Online",
+        "definition": "\u0418\u0437 Gingko Desktop \u0438\u043b\u0438 \u044d\u043a\u0441\u043f\u043e\u0440\u0442 online-\u0444\u0430\u0439\u043b\u0430",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HomeJSONFrom",
+        "comment": ""
+    },
+    {
+        "term": "New Document",
+        "definition": "\u041d\u043e\u0432\u044b\u0439 \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:NewDocument",
+        "comment": ""
+    },
+    {
+        "term": "Show Document List",
+        "definition": "\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u0441\u043f\u0438\u0441\u043e\u043a \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u043e\u0432",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ShowDocumentList",
+        "comment": ""
+    },
+    {
+        "term": "Sort by Name",
+        "definition": "\u0421\u043e\u0440\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u043f\u043e \u0438\u043c\u0435\u043d\u0438",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SortByName",
+        "comment": ""
+    },
+    {
+        "term": "Sort by Last Modified",
+        "definition": "\u0421\u043e\u0440\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u043f\u043e \u043f\u043e\u0441\u043b\u0435\u0434\u043d\u0435\u043c\u0443 \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044e",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SortByLastModified",
+        "comment": ""
+    },
+    {
+        "term": "Sort by Date Created",
+        "definition": "\u0421\u043e\u0440\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u043f\u043e \u0434\u0430\u0442\u0435 \u0441\u043e\u0437\u0434\u0430\u043d\u0438\u044f",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SortByDateCreated",
+        "comment": ""
+    },
+    {
+        "term": "Templates & Examples",
+        "definition": "\u0428\u0430\u0431\u043b\u043e\u043d\u044b \u0438 \u043f\u0440\u0438\u043c\u0435\u0440\u044b",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:TemplatesAndExamples",
+        "comment": ""
+    },
+    {
+        "term": "New",
+        "definition": "\u041d\u043e\u0432\u044b\u0439",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:New",
+        "comment": ""
+    },
+    {
+        "term": "Import",
+        "definition": "\u0418\u043c\u043f\u043e\u0440\u0442",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ImportSectionTitle",
+        "comment": ""
+    },
+    {
+        "term": "Import Text Files",
+        "definition": "\u0418\u043c\u043f\u043e\u0440\u0442 \u0442\u0435\u043a\u0441\u0442\u043e\u0432\u044b\u0445 \u0444\u0430\u0439\u043b\u043e\u0432",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ImportTextFiles",
+        "comment": ""
+    },
+    {
+        "term": "Import multiple markdown or regular text files.",
+        "definition": "\u0418\u043c\u043f\u043e\u0440\u0442\u0438\u0440\u0443\u0439\u0442\u0435 \u043d\u0435\u0441\u043a\u043e\u043b\u044c\u043a\u043e \u0444\u0430\u0439\u043b\u043e\u0432 \u0441 \u0440\u0430\u0437\u043c\u0435\u0442\u043a\u043e\u0439 \u0438\u043b\u0438 \u043e\u0431\u044b\u0447\u043d\u044b\u043c \u0442\u0435\u043a\u0441\u0442\u043e\u043c.",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ImportTextFilesDesc",
+        "comment": ""
+    },
+    {
+        "term": "Import Opml Files",
+        "definition": "\u0418\u043c\u043f\u043e\u0440\u0442 \u0444\u0430\u0439\u043b\u043e\u0432 Opml",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ImportOpmlFiles",
+        "comment": ""
+    },
+    {
+        "term": "Import from Workflowy or other outliners.",
+        "definition": "\u0418\u043c\u043f\u043e\u0440\u0442 \u0438\u0437 Workflowy \u0438\u043b\u0438 \u0434\u0440\u0443\u0433\u0438\u0445 \u0430\u0443\u0442\u043b\u0430\u0439\u043d\u0435\u0440\u043e\u0432.",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ImportOpmlFilesDesc",
+        "comment": ""
+    },
+    {
+        "term": "Timeline 2022",
+        "definition": "\u0413\u0440\u0430\u0444\u0438\u043a 2022 \u0433\u043e\u0434\u0430",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:TimelineTemplate",
+        "comment": ""
+    },
+    {
+        "term": "A tree-based calendar",
+        "definition": "\u041a\u0430\u043b\u0435\u043d\u0434\u0430\u0440\u044c \u043d\u0430 \u043e\u0441\u043d\u043e\u0432\u0435 \u0434\u0435\u0440\u0435\u0432\u0430",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:TimelineTemplateDesc",
+        "comment": ""
+    },
+    {
+        "term": "Academic Paper",
+        "definition": "\u0410\u043a\u0430\u0434\u0435\u043c\u0438\u0447\u0435\u0441\u043a\u0430\u044f \u0441\u0442\u0430\u0442\u044c\u044f",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AcademicPaperTemplate",
+        "comment": ""
+    },
+    {
+        "term": "Starting point for journal paper",
+        "definition": "\u041e\u0442\u043f\u0440\u0430\u0432\u043d\u0430\u044f \u0442\u043e\u0447\u043a\u0430 \u0434\u043b\u044f \u0436\u0443\u0440\u043d\u0430\u043b\u044c\u043d\u043e\u0439 \u0441\u0442\u0430\u0442\u044c\u0438",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AcademicPaperTemplateDesc",
+        "comment": ""
+    },
+    {
+        "term": "Project Brainstorming",
+        "definition": "\u041c\u043e\u0437\u0433\u043e\u0432\u043e\u0439 \u0448\u0442\u0443\u0440\u043c \u043f\u0440\u043e\u0435\u043a\u0442\u0430",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ProjectBrainstormingTemplate",
+        "comment": ""
+    },
+    {
+        "term": "Example on clarifying project goals",
+        "definition": "\u041f\u0440\u0438\u043c\u0435\u0440 \u043f\u043e \u0443\u0442\u043e\u0447\u043d\u0435\u043d\u0438\u044e \u0446\u0435\u043b\u0435\u0439 \u043f\u0440\u043e\u0435\u043a\u0442\u0430",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ProjectBrainstormingTemplateDesc",
+        "comment": ""
+    },
+    {
+        "term": "Hero's Journey",
+        "definition": "\u041f\u0443\u0442\u0435\u0448\u0435\u0441\u0442\u0432\u0438\u0435 \u0433\u0435\u0440\u043e\u044f",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HerosJourneyTemplate",
+        "comment": ""
+    },
+    {
+        "term": "A framework for fictional stories",
+        "definition": "\u0420\u0430\u043c\u043a\u0438 \u0434\u043b\u044f \u0432\u044b\u043c\u044b\u0448\u043b\u0435\u043d\u043d\u044b\u0445 \u0438\u0441\u0442\u043e\u0440\u0438\u0439",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HerosJourneyTemplateDesc",
+        "comment": ""
+    },
+    {
+        "term": "Help",
+        "definition": "\u041f\u043e\u043c\u043e\u0449\u044c",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Help",
+        "comment": ""
+    },
+    {
+        "term": "What's New",
+        "definition": "\u0427\u0442\u043e \u043d\u043e\u0432\u043e\u0433\u043e",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:WhatsNew",
+        "comment": ""
+    },
+    {
+        "term": "Account",
+        "definition": "\u0421\u0447\u0435\u0442",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AccountTooltip",
+        "comment": ""
+    },
+    {
+        "term": "Keyboard Shortcuts",
+        "definition": "\u042f\u0440\u043b\u044b\u043a\u0438 \u043a\u043b\u0430\u0432\u0438\u0430\u0442\u0443\u0440\u044b",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:KeyboardShortcuts",
+        "comment": ""
+    },
+    {
+        "term": "View Mode Shortcuts : ",
+        "definition": "\u042f\u0440\u043b\u044b\u043a\u0438 \u0440\u0435\u0436\u0438\u043c\u0430 \u043f\u0440\u043e\u0441\u043c\u043e\u0442\u0440\u0430 : ",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ViewModeShortcuts",
+        "comment": ""
+    },
+    {
+        "term": "Card Edit, Create, Delete",
+        "definition": "\u041a\u0430\u0440\u0442\u043e\u0447\u043a\u0430 \u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c, \u0421\u043e\u0437\u0434\u0430\u0442\u044c, \u0423\u0434\u0430\u043b\u0438\u0442\u044c",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:CardEditCreateDelete",
+        "comment": ""
+    },
+    {
+        "term": "Navigation, Moving Cards",
+        "definition": "\u041d\u0430\u0432\u0438\u0433\u0430\u0446\u0438\u044f, \u043f\u0435\u0440\u0435\u043c\u0435\u0449\u0435\u043d\u0438\u0435 \u043a\u0430\u0440\u0442",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:NavigationMovingCards",
+        "comment": ""
+    },
+    {
+        "term": "Copy\/Paste",
+        "definition": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c\/\u0412\u0441\u0442\u0430\u0432\u0438\u0442\u044c",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:CopyPaste",
+        "comment": ""
+    },
+    {
+        "term": "Searching, Merging Cards",
+        "definition": "\u041f\u043e\u0438\u0441\u043a, \u043e\u0431\u044a\u0435\u0434\u0438\u043d\u0435\u043d\u0438\u0435 \u043a\u0430\u0440\u0442",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SearchingMerging",
+        "comment": ""
+    },
+    {
+        "term": "Help, Info, Documents",
+        "definition": "\u041f\u043e\u043c\u043e\u0449\u044c, \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u044f, \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u044b",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HelpInfoDocs",
+        "comment": ""
+    },
+    {
+        "term": "Edit Mode Shortcuts : ",
+        "definition": "\u042f\u0440\u043b\u044b\u043a\u0438 \u0440\u0435\u0436\u0438\u043c\u0430 \u0440\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u044f : ",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EditModeShortcuts",
+        "comment": ""
+    },
+    {
+        "term": "Card Save, Create",
+        "definition": "\u041e\u0442\u043a\u0440\u044b\u0442\u043a\u0430 \u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c, \u0441\u043e\u0437\u0434\u0430\u0442\u044c",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:CardSaveCreate",
+        "comment": ""
+    },
+    {
+        "term": "Edit card",
+        "definition": "\u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435 \u043a\u0430\u0440\u0442\u044b",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EditCard",
+        "comment": ""
+    },
+    {
+        "term": "Add card below",
+        "definition": "\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u043a\u0430\u0440\u0442\u0443 \u043d\u0438\u0436\u0435",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AddCardBelow",
+        "comment": ""
+    },
+    {
+        "term": "Add card above",
+        "definition": "\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u043a\u0430\u0440\u0442\u0443 \u0432\u044b\u0448\u0435",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AddCardAbove",
+        "comment": ""
+    },
+    {
+        "term": "Add card to the right (as child)",
+        "definition": "\u0414\u043e\u0431\u0430\u0432\u044c\u0442\u0435 \u043a\u0430\u0440\u0442\u0443 \u0441\u043f\u0440\u0430\u0432\u0430 (\u043a\u0430\u043a \u0440\u0435\u0431\u0435\u043d\u043e\u043a)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AddCardToRight",
+        "comment": ""
+    },
+    {
+        "term": "Add card below (split at cursor)",
+        "definition": "\u0414\u043e\u0431\u0430\u0432\u044c\u0442\u0435 \u043a\u0430\u0440\u0442\u0443 \u043d\u0438\u0436\u0435 (\u0440\u0430\u0437\u0434\u0435\u043b\u0438\u0442\u0435 \u043a\u0443\u0440\u0441\u043e\u0440\u043e\u043c)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AddCardBelowSplit",
+        "comment": ""
+    },
+    {
+        "term": "Add card above (split at cursor)",
+        "definition": "\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u043a\u0430\u0440\u0442\u0443 \u0432\u044b\u0448\u0435 (\u0440\u0430\u0437\u0434\u0435\u043b\u0438\u0442\u044c \u043a\u0443\u0440\u0441\u043e\u0440\u043e\u043c)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AddCardAboveSplit",
+        "comment": ""
+    },
+    {
+        "term": "Add card to the right (split at cursor)",
+        "definition": "\u0414\u043e\u0431\u0430\u0432\u044c\u0442\u0435 \u043a\u0430\u0440\u0442\u0443 \u0441\u043f\u0440\u0430\u0432\u0430 (\u0440\u0430\u0437\u0434\u0435\u043b\u0438\u0442\u0435 \u043a\u0443\u0440\u0441\u043e\u0440\u043e\u043c)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AddCardToRightSplit",
+        "comment": ""
+    },
+    {
+        "term": "Delete card (and its children)",
+        "definition": "\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u043a\u0430\u0440\u0442\u0443 (\u0438 \u0435\u0435 \u0434\u043e\u0447\u0435\u0440\u043d\u0438\u0435 \u044d\u043b\u0435\u043c\u0435\u043d\u0442\u044b)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DeleteCard",
+        "comment": ""
+    },
+    {
+        "term": "Go up\/down\/left\/right",
+        "definition": "\u041f\u0435\u0440\u0435\u0445\u043e\u0434 \u0432\u0432\u0435\u0440\u0445\/\u0432\u043d\u0438\u0437\/\u0432\u043b\u0435\u0432\u043e\/\u0432\u043f\u0440\u0430\u0432\u043e",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:GoUpDownLeftRight",
+        "comment": ""
+    },
+    {
+        "term": "Go to beginning of group",
+        "definition": "\u041f\u0435\u0440\u0435\u0439\u0442\u0438 \u043a \u043d\u0430\u0447\u0430\u043b\u0443 \u0433\u0440\u0443\u043f\u043f\u044b",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:GoToBeginningOfGroup",
+        "comment": ""
+    },
+    {
+        "term": "Go to end of group",
+        "definition": "\u041f\u0435\u0440\u0435\u0439\u0442\u0438 \u043a \u043a\u043e\u043d\u0446\u0443 \u0433\u0440\u0443\u043f\u043f\u044b",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:GoToEndOfGroup",
+        "comment": ""
+    },
+    {
+        "term": "Go to beginning of column",
+        "definition": "\u041f\u0435\u0440\u0435\u0439\u0442\u0438 \u043a \u043d\u0430\u0447\u0430\u043b\u0443 \u043a\u043e\u043b\u043e\u043d\u043a\u0438",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:GoToBeginningOfColumn",
+        "comment": ""
+    },
+    {
+        "term": "Go to end of column",
+        "definition": "\u041f\u0435\u0440\u0435\u0439\u0442\u0438 \u0432 \u043a\u043e\u043d\u0435\u0446 \u0440\u0443\u0431\u0440\u0438\u043a\u0438",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:GoToEndOfColumn",
+        "comment": ""
+    },
+    {
+        "term": "Move current card (and children)",
+        "definition": "\u041f\u0435\u0440\u0435\u043c\u0435\u0441\u0442\u0438\u0442\u044c \u0442\u0435\u043a\u0443\u0449\u0443\u044e \u043a\u0430\u0440\u0442\u0443 (\u0438 \u0434\u0435\u0442\u0435\u0439)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:MoveCurrentCard",
+        "comment": ""
+    },
+    {
+        "term": "PageUp",
+        "definition": "PageUp",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:PageUp",
+        "comment": ""
+    },
+    {
+        "term": "PageDown",
+        "definition": "PageDown",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:PageDown",
+        "comment": ""
+    },
+    {
+        "term": "Home",
+        "definition": "\u0413\u043b\u0430\u0432\u043d\u0430\u044f",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HomeKey",
+        "comment": ""
+    },
+    {
+        "term": "End",
+        "definition": "\u041a\u043e\u043d\u0435\u0446",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EndKey",
+        "comment": ""
+    },
+    {
+        "term": "(any of above)",
+        "definition": "(\u043b\u044e\u0431\u043e\u0439 \u0438\u0437 \u0432\u044b\u0448\u0435\u043f\u0435\u0440\u0435\u0447\u0438\u0441\u043b\u0435\u043d\u043d\u044b\u0445)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AnyOfAbove",
+        "comment": ""
+    },
+    {
+        "term": "Drag card by left edge",
+        "definition": "\u041f\u0435\u0440\u0435\u0442\u0430\u0449\u0438\u0442\u0435 \u043a\u0430\u0440\u0442\u0443 \u0437\u0430 \u043b\u0435\u0432\u044b\u0439 \u043a\u0440\u0430\u0439",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DragCard",
+        "comment": ""
+    },
+    {
+        "term": "Search",
+        "definition": "\u041f\u043e\u0438\u0441\u043a",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Search",
+        "comment": ""
+    },
+    {
+        "term": "Clear search, focus current card",
+        "definition": "\u041e\u0447\u0438\u0441\u0442\u0438\u0442\u044c \u043f\u043e\u0438\u0441\u043a, \u0441\u0444\u043e\u043a\u0443\u0441\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0442\u0435\u043a\u0443\u0449\u0443\u044e \u043a\u0430\u0440\u0442\u0443",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ClearSearch",
+        "comment": ""
+    },
+    {
+        "term": "Merge card up",
+        "definition": "\u041e\u0431\u044a\u0435\u0434\u0438\u043d\u0438\u0442\u044c \u043a\u0430\u0440\u0442\u0443",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:MergeCardUp",
+        "comment": ""
+    },
+    {
+        "term": "Merge card down",
+        "definition": "\u041a\u0430\u0440\u0442\u043e\u0447\u043a\u0430 \u0441\u043b\u0438\u044f\u043d\u0438\u044f \u0432\u043d\u0438\u0437",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:MergeCardDown",
+        "comment": ""
+    },
+    {
+        "term": "Copy current subtree",
+        "definition": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435 \u0442\u0435\u043a\u0443\u0449\u0435\u0433\u043e \u043f\u043e\u0434\u0434\u0435\u0440\u0435\u0432\u0430",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:CopyCurrent",
+        "comment": ""
+    },
+    {
+        "term": "Paste subtree below current card",
+        "definition": "\u0412\u0441\u0442\u0430\u0432\u044c\u0442\u0435 \u043f\u043e\u0434\u0434\u0435\u0440\u0435\u0432\u043e \u043d\u0438\u0436\u0435 \u0442\u0435\u043a\u0443\u0449\u0435\u0439 \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0438",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:PasteBelow",
+        "comment": ""
+    },
+    {
+        "term": "Paste subtree as child of current card",
+        "definition": "\u0412\u0441\u0442\u0430\u0432\u044c\u0442\u0435 \u043f\u043e\u0434\u0434\u0435\u0440\u0435\u0432\u043e \u0432 \u043a\u0430\u0447\u0435\u0441\u0442\u0432\u0435 \u0434\u043e\u0447\u0435\u0440\u043d\u0435\u0433\u043e \u0434\u0435\u0440\u0435\u0432\u0430 \u0442\u0435\u043a\u0443\u0449\u0435\u0439 \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0438",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:PasteAsChild",
+        "comment": ""
+    },
+    {
+        "term": "Insert selected text as new card",
+        "definition": "\u0412\u0441\u0442\u0430\u0432\u043a\u0430 \u0432\u044b\u0434\u0435\u043b\u0435\u043d\u043d\u043e\u0433\u043e \u0442\u0435\u043a\u0441\u0442\u0430 \u0432 \u043a\u0430\u0447\u0435\u0441\u0442\u0432\u0435 \u043d\u043e\u0432\u043e\u0439 \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0438",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:InsertSelected",
+        "comment": ""
+    },
+    {
+        "term": "Drag selected text into tree",
+        "definition": "\u041f\u0435\u0440\u0435\u0442\u0430\u0449\u0438\u0442\u0435 \u0432\u044b\u0434\u0435\u043b\u0435\u043d\u043d\u044b\u0439 \u0442\u0435\u043a\u0441\u0442 \u0432 \u0434\u0435\u0440\u0435\u0432\u043e",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DragSelected",
+        "comment": ""
+    },
+    {
+        "term": "Word counts",
+        "definition": "\u041a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e \u0441\u043b\u043e\u0432",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:WordCounts",
+        "comment": ""
+    },
+    {
+        "term": "Switch to different document",
+        "definition": "\u041f\u0435\u0440\u0435\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u0435 \u043d\u0430 \u0434\u0440\u0443\u0433\u043e\u0439 \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SwitchDocuments",
+        "comment": ""
+    },
+    {
+        "term": "This help screen",
+        "definition": "\u042d\u0442\u043e\u0442 \u044d\u043a\u0440\u0430\u043d \u0441\u043f\u0440\u0430\u0432\u043a\u0438",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ThisHelpScreen",
+        "comment": ""
+    },
+    {
+        "term": " or ",
+        "definition": " \u0438\u043b\u0438 ",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Or",
+        "comment": ""
+    },
+    {
+        "term": "Edit card in fullscreen mode",
+        "definition": "\u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435 \u043a\u0430\u0440\u0442\u044b \u0432 \u043f\u043e\u043b\u043d\u043e\u044d\u043a\u0440\u0430\u043d\u043d\u043e\u043c \u0440\u0435\u0436\u0438\u043c\u0435",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EditCardFullscreen",
+        "comment": ""
+    },
+    {
+        "term": "Edit Cards",
+        "definition": "\u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u043a\u0430\u0440\u0442\u044b",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EditCards",
+        "comment": ""
+    },
+    {
+        "term": "Shift",
+        "definition": "\u0421\u043c\u0435\u043d\u0430",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ShiftKey",
+        "comment": ""
+    },
+    {
+        "term": "AltKey",
+        "definition": "AltKey",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AltKey",
+        "comment": ""
+    },
+    {
+        "term": "Navigate",
+        "definition": "\u041f\u0435\u0440\u0435\u0439\u0434\u0438\u0442\u0435 \u043f\u043e \u0441\u0441\u044b\u043b\u043a\u0435",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Navigate",
+        "comment": ""
+    },
+    {
+        "term": "Add New Cards",
+        "definition": "\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u043d\u043e\u0432\u044b\u0435 \u043a\u0430\u0440\u0442\u044b",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:AddNewCards",
+        "comment": ""
+    },
+    {
+        "term": "Split At Cursor",
+        "definition": "\u0420\u0430\u0437\u0434\u0435\u043b\u0435\u043d\u0438\u0435 \u043f\u043e \u043a\u0443\u0440\u0441\u043e\u0440\u0443",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SplitAtCursor",
+        "comment": ""
+    },
+    {
+        "term": "Merge Cards",
+        "definition": "\u041e\u0431\u044a\u0435\u0434\u0438\u043d\u0438\u0442\u044c \u043a\u0430\u0440\u0442\u044b",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:MergeCards",
+        "comment": ""
+    },
+    {
+        "term": "Move & Delete Cards",
+        "definition": "\u041f\u0435\u0440\u0435\u043c\u0435\u0449\u0435\u043d\u0438\u0435 \u0438 \u0443\u0434\u0430\u043b\u0435\u043d\u0438\u0435 \u043a\u0430\u0440\u0442",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:MoveAndDelete",
+        "comment": ""
+    },
+    {
+        "term": "Bold selection",
+        "definition": "\u0421\u043c\u0435\u043b\u044b\u0439 \u0432\u044b\u0431\u043e\u0440",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:BoldSelection",
+        "comment": ""
+    },
+    {
+        "term": "Italicize selection",
+        "definition": "\u0412\u044b\u0434\u0435\u043b\u0435\u043d\u0438\u0435 \u043a\u0443\u0440\u0441\u0438\u0432\u043e\u043c",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ItalicizeSelection",
+        "comment": ""
+    },
+    {
+        "term": "Save changes",
+        "definition": "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SaveChanges",
+        "comment": ""
+    },
+    {
+        "term": "Save changes and exit card",
+        "definition": "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u0435 \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f \u0438 \u0432\u044b\u0439\u0434\u0438\u0442\u0435 \u0438\u0437 \u043a\u0430\u0440\u0442\u044b",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SaveChangesAndExit",
+        "comment": ""
+    },
+    {
+        "term": "Exit edit mode",
+        "definition": "\u0412\u044b\u0445\u043e\u0434 \u0438\u0437 \u0440\u0435\u0436\u0438\u043c\u0430 \u0440\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u044f",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExitEditMode",
+        "comment": ""
+    },
+    {
+        "term": "Other Shortcuts",
+        "definition": "\u0414\u0440\u0443\u0433\u0438\u0435 \u044f\u0440\u043b\u044b\u043a\u0438",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:OtherShortcuts",
+        "comment": ""
+    },
+    {
+        "term": "Display word counts",
+        "definition": "\u041e\u0442\u043e\u0431\u0440\u0430\u0436\u0435\u043d\u0438\u0435 \u043a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u0430 \u0441\u043b\u043e\u0432",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DisplayWordCounts",
+        "comment": ""
+    },
+    {
+        "term": "(Edit Mode)",
+        "definition": "(\u0420\u0435\u0436\u0438\u043c \u0440\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u044f)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:EditMode",
+        "comment": ""
+    },
+    {
+        "term": "Save\/Cancel Changes",
+        "definition": "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c\/\u043e\u0442\u043c\u0435\u043d\u0438\u0442\u044c \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SaveOrCancelChanges",
+        "comment": ""
+    },
+    {
+        "term": "Formatting",
+        "definition": "\u0424\u043e\u0440\u043c\u0430\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Formatting",
+        "comment": ""
+    },
+    {
+        "term": "# Title\n## Subtitle",
+        "definition": "# \u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435\n## \u041f\u043e\u0434\u0437\u0430\u0433\u043e\u043b\u043e\u0432\u043e\u043a",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:FormattingTitle",
+        "comment": ""
+    },
+    {
+        "term": "Set title level (# to #####)",
+        "definition": "\u0423\u0441\u0442\u0430\u043d\u043e\u0432\u0438\u0442\u0435 \u0443\u0440\u043e\u0432\u0435\u043d\u044c \u0437\u0430\u0433\u043e\u043b\u043e\u0432\u043a\u0430 (\u043e\u0442 # \u0434\u043e #####)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SetTitleLevel",
+        "comment": ""
+    },
+    {
+        "term": "- List item\n  - Subitem",
+        "definition": "- \u042d\u043b\u0435\u043c\u0435\u043d\u0442 \u0441\u043f\u0438\u0441\u043a\u0430\n  - \u041f\u043e\u0434\u043f\u0443\u043d\u043a\u0442",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:FormattingList",
+        "comment": ""
+    },
+    {
+        "term": "[link](http:\/\/t.co)",
+        "definition": "[\u0441\u0441\u044b\u043b\u043a\u0430](http:\/\/t.co)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:FormattingLink",
+        "comment": ""
+    },
+    {
+        "term": "ParenNumber",
+        "definition": "ParenNumber",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ParenNumber",
+        "comment": ""
+    },
+    {
+        "term": "SetHeadingLevel",
+        "definition": "SetHeadingLevel",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:SetHeadingLevel",
+        "comment": ""
+    },
+    {
+        "term": "Help Videos",
+        "definition": "\u0421\u043f\u0440\u0430\u0432\u043e\u0447\u043d\u044b\u0435 \u0432\u0438\u0434\u0435\u043e\u043c\u0430\u0442\u0435\u0440\u0438\u0430\u043b\u044b",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:HelpVideos",
+        "comment": ""
+    },
+    {
+        "term": "FAQ & Documentation",
+        "definition": "\u0427\u0430\u0441\u0442\u043e \u0437\u0430\u0434\u0430\u0432\u0430\u0435\u043c\u044b\u0435 \u0432\u043e\u043f\u0440\u043e\u0441\u044b \u0438 \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u0430\u0446\u0438\u044f",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:FAQAndDocs",
+        "comment": ""
+    },
+    {
+        "term": "Open Quick Switcher",
+        "definition": "\u041e\u0442\u043a\u0440\u044b\u0442\u044c \u0411\u044b\u0441\u0442\u0440\u044b\u0439 \u043f\u0435\u0440\u0435\u043a\u043b\u044e\u0447\u0430\u0442\u0435\u043b\u044c",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:OpenQuickSwitcher",
+        "comment": ""
+    },
+    {
+        "term": "Contact Support",
+        "definition": "\u041f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430 \u044d\u043b\u0435\u043a\u0442\u0440\u043e\u043d\u043d\u043e\u0439 \u043f\u043e\u0447\u0442\u044b",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ContactSupport",
+        "comment": ""
+    },
+    {
+        "term": "Version History",
+        "definition": "\u0418\u0441\u0442\u043e\u0440\u0438\u044f \u0432\u0435\u0440\u0441\u0438\u0439",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:VersionHistory",
+        "comment": ""
+    },
+    {
+        "term": "Document Settings",
+        "definition": "\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u0430",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DocumentSettings",
+        "comment": ""
+    },
+    {
+        "term": "Word count...",
+        "definition": "\u041a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e \u0441\u043b\u043e\u0432...",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:WordCount",
+        "comment": ""
+    },
+    {
+        "term": "Total Cards in Tree : %1",
+        "definition": {
+            "one": "\u0412\u0441\u0435\u0433\u043e \u043a\u0430\u0440\u0442 \u0432 \u0434\u0435\u0440\u0435\u0432\u0435: %1",
+            "few": "\u0412\u0441\u0435\u0433\u043e \u043a\u0430\u0440\u0442 \u0432 \u0434\u0435\u0440\u0435\u0432\u0435: %1",
+            "many": "\u0412\u0441\u0435\u0433\u043e \u043a\u0430\u0440\u0442 \u0432 \u0434\u0435\u0440\u0435\u0432\u0435: %1",
+            "other": "\u0412\u0441\u0435\u0433\u043e \u043a\u0430\u0440\u0442 \u0432 \u0434\u0435\u0440\u0435\u0432\u0435: %1"
+        },
+        "context": "",
+        "term_plural": "Total Cards in Tree : %1",
+        "reference": "Elm:WordCountTotalCards",
+        "comment": ""
+    },
+    {
+        "term": "Document Theme",
+        "definition": "\u0422\u0435\u043c\u0430 \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u0430",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DocumentTheme",
+        "comment": ""
+    },
+    {
+        "term": "Default",
+        "definition": "\u041f\u043e \u0443\u043c\u043e\u043b\u0447\u0430\u043d\u0438\u044e",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ThemeDefault",
+        "comment": ""
+    },
+    {
+        "term": "Dark Mode",
+        "definition": "\u0422\u0435\u043c\u043d\u044b\u0439 \u0440\u0435\u0436\u0438\u043c",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ThemeDarkMode",
+        "comment": ""
+    },
+    {
+        "term": "Classic Gingkoapp",
+        "definition": "\u041a\u043b\u0430\u0441\u0441\u0438\u0447\u0435\u0441\u043a\u0438\u0439 \u0433\u0438\u043d\u0433\u043a\u043e\u0430\u043f\u043f",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ThemeClassic",
+        "comment": ""
+    },
+    {
+        "term": "Gray",
+        "definition": "\u0421\u0435\u0440\u044b\u0439",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ThemeGray",
+        "comment": ""
+    },
+    {
+        "term": "Green",
+        "definition": "\u0417\u0435\u043b\u0435\u043d\u044b\u0439",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ThemeGreen",
+        "comment": ""
+    },
+    {
+        "term": "Turquoise",
+        "definition": "\u0411\u0438\u0440\u044e\u0437\u0430",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ThemeTurquoise",
+        "comment": ""
+    },
+    {
+        "term": "Export or Print",
+        "definition": "\u042d\u043a\u0441\u043f\u043e\u0440\u0442 \u0438\u043b\u0438 \u043f\u0435\u0447\u0430\u0442\u044c",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportOrPrint",
+        "comment": ""
+    },
+    {
+        "term": "Everything",
+        "definition": "\u0412\u0441\u0435",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportSettingEverything",
+        "comment": ""
+    },
+    {
+        "term": "All cards in the tree (in depth-first order)",
+        "definition": "\u0412\u0441\u0435 \u043a\u0430\u0440\u0442\u044b \u0432 \u0434\u0435\u0440\u0435\u0432\u0435 (\u0432 \u043f\u043e\u0440\u044f\u0434\u043a\u0435 \u0432\u043e\u0437\u0440\u0430\u0441\u0442\u0430\u043d\u0438\u044f \u0433\u043b\u0443\u0431\u0438\u043d\u044b)",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportSettingEverythingDesc",
+        "comment": ""
+    },
+    {
+        "term": "Current Subtree",
+        "definition": "\u0422\u0435\u043a\u0443\u0449\u0435\u0435 \u043f\u043e\u0434\u0434\u0435\u0440\u0435\u0432\u043e",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportSettingCurrentSubtree",
+        "comment": ""
+    },
+    {
+        "term": "Current card and all its children",
+        "definition": "\u0422\u0435\u043a\u0443\u0449\u0430\u044f \u043a\u0430\u0440\u0442\u0430 \u0438 \u0432\u0441\u0435 \u0435\u0435 \u0434\u043e\u0447\u0435\u0440\u043d\u0438\u0435 \u043a\u0430\u0440\u0442\u044b",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportSettingCurrentSubtreeDesc",
+        "comment": ""
+    },
+    {
+        "term": "Leaves-only",
+        "definition": "\u0422\u043e\u043b\u044c\u043a\u043e \u043b\u0438\u0441\u0442\u044c\u044f",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportSettingLeavesOnly",
+        "comment": ""
+    },
+    {
+        "term": "Only cards without children",
+        "definition": "\u0422\u043e\u043b\u044c\u043a\u043e \u043a\u0430\u0440\u0442\u044b \u0431\u0435\u0437 \u0434\u0435\u0442\u0435\u0439",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportSettingLeavesOnlyDesc",
+        "comment": ""
+    },
+    {
+        "term": "Current Column",
+        "definition": "\u0422\u0435\u043a\u0443\u0449\u0430\u044f \u043a\u043e\u043b\u043e\u043d\u043a\u0430",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportSettingCurrentColumn",
+        "comment": ""
+    },
+    {
+        "term": "Only carsd in the current (vertical) column",
+        "definition": "\u0422\u043e\u043b\u044c\u043a\u043e \u0430\u0432\u0442\u043e\u043c\u043e\u0431\u0438\u043b\u0438 \u0432 \u0442\u0435\u043a\u0443\u0449\u0435\u043c (\u0432\u0435\u0440\u0442\u0438\u043a\u0430\u043b\u044c\u043d\u043e\u043c) \u0441\u0442\u043e\u043b\u0431\u0446\u0435",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportSettingCurrentColumnDesc",
+        "comment": ""
+    },
+    {
+        "term": "Word",
+        "definition": "\u0421\u043b\u043e\u0432\u043e",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportSettingWord",
+        "comment": ""
+    },
+    {
+        "term": "Plain Text",
+        "definition": "\u041e\u0431\u044b\u0447\u043d\u044b\u0439 \u0442\u0435\u043a\u0441\u0442",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportSettingPlainText",
+        "comment": ""
+    },
+    {
+        "term": "JSON",
+        "definition": "JSON",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ExportSettingJSON",
+        "comment": ""
+    },
+    {
+        "term": "Download Word File",
+        "definition": "\u0421\u043a\u0430\u0447\u0430\u0442\u044c \u0444\u0430\u0439\u043b Word",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DownloadWordFile",
+        "comment": ""
+    },
+    {
+        "term": "Download Markdown text file",
+        "definition": "\u0417\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u0442\u0435\u043a\u0441\u0442\u043e\u0432\u044b\u0439 \u0444\u0430\u0439\u043b Markdown",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DownloadTextFile",
+        "comment": ""
+    },
+    {
+        "term": "Download JSON file",
+        "definition": "\u0417\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u0444\u0430\u0439\u043b JSON",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DownloadJSONFile",
+        "comment": ""
+    },
+    {
+        "term": "Print this",
+        "definition": "\u041d\u0430\u043f\u0435\u0447\u0430\u0442\u0430\u0439\u0442\u0435 \u044d\u0442\u043e",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:PrintThis",
+        "comment": ""
+    },
+    {
+        "term": "Upgrade",
+        "definition": "\u041e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:Upgrade",
+        "comment": ""
+    },
+    {
+        "term": "%1 day left in trial",
+        "definition": {
+            "one": "%1 \u043e\u0441\u0442\u0430\u0432\u0448\u0438\u0439\u0441\u044f \u0434\u0435\u043d\u044c",
+            "few": "%1 \u043e\u0441\u0442\u0430\u0432\u0448\u0438\u0439\u0441\u044f \u0434\u0435\u043d\u044c",
+            "many": "%1 \u043e\u0441\u0442\u0430\u0432\u0448\u0438\u0439\u0441\u044f \u0434\u0435\u043d\u044c",
+            "other": "%1 \u043e\u0441\u0442\u0430\u0432\u0448\u0438\u0439\u0441\u044f \u0434\u0435\u043d\u044c"
+        },
+        "context": "",
+        "term_plural": "%1 days left in trial",
+        "reference": "Elm:DaysLeft",
+        "comment": ""
+    },
+    {
+        "term": "Trial Expired",
+        "definition": "\u0421\u0440\u043e\u043a \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u044f \u0438\u0441\u0442\u0435\u043a",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:TrialExpired",
+        "comment": ""
+    },
+    {
+        "term": "Manage Subscription",
+        "definition": "\u0423\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u0435 \u043f\u043e\u0434\u043f\u0438\u0441\u043a\u043e\u0439",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ManageSubscription",
         "comment": ""
     }
 ]
