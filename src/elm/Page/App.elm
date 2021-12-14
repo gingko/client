@@ -1050,7 +1050,8 @@ viewModal session modalState =
                 }
 
         HelpScreen ->
-            HelpScreen.view (Session.isMac session)
+            HelpScreen.view language
+                (Session.isMac session)
                 { closeModal = ModalClosed
                 , showVideoTutorials = VideoViewerOpened
                 , showWidget = ClickedShowWidget

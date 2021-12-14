@@ -64,6 +64,48 @@ type TranslationId
     | AccountTooltip
       -- Keyboard Shortcut Help
     | KeyboardShortcuts
+    | ViewModeShortcuts
+    | CardEditCreateDelete
+    | NavigationMovingCards
+    | CopyPaste
+    | SearchingMerging
+    | HelpInfoDocs
+    | EditModeShortcuts
+    | CardSaveCreate
+    | EditCard
+    | AddCardBelow
+    | AddCardAbove
+    | AddCardToRight
+    | AddCardBelowSplit
+    | AddCardAboveSplit
+    | AddCardToRightSplit
+    | DeleteCard
+    | GoUpDownLeftRight
+    | GoToBeginningOfGroup
+    | GoToEndOfGroup
+    | GoToBeginningOfColumn
+    | GoToEndOfColumn
+    | MoveCurrentCard
+    | PageUp
+    | PageDown
+    | HomeKey
+    | EndKey
+    | AnyOfAbove
+    | DragCard
+    | Search
+    | ClearSearch
+    | MergeCardUp
+    | MergeCardDown
+    | CopyCurrent
+    | PasteBelow
+    | PasteAsChild
+    | InsertSelected
+    | DragSelected
+    | WordCounts
+    | SwitchDocuments
+    | ThisHelpScreen
+    | Or
+    | EditCardFullscreen
     | EditCards
     | KeyboardHelp
     | RestoreThisVersion
@@ -97,7 +139,12 @@ type TranslationId
     | DeleteCardTitle
     | FormattingGuide
     | ForBold
+    | BoldSelection
     | ForItalic
+    | ItalicizeSelection
+    | SaveChanges
+    | SaveChangesAndExit
+    | ExitEditMode
     | ToSaveChanges
     | SaveChangesTitle
     | EscKey
@@ -107,17 +154,20 @@ type TranslationId
     | SaveOrCancelChanges
     | Formatting
     | FormattingTitle
+    | SetTitleLevel
     | FormattingList
     | FormattingLink
     | ParenNumber
     | SetHeadingLevel
+    | HelpVideos
+    | FAQAndDocs
       --
     | AreYouSureCancel
     | ToCancelChanges
     | PressToSearch
     | QuickDocumentSwitcher
     | OpenQuickSwitcher
-    | EmailSupport
+    | ContactSupport
     | Logout
     | Language
     | ContributeTranslations
@@ -916,6 +966,636 @@ tr lang trans =
                     , br = "%br:KeyboardShortcuts"
                     }
 
+                ViewModeShortcuts ->
+                    { en = "View Mode Shortcuts : "
+                    , zh_hans = "%zh_hans:ViewModeShortcuts"
+                    , zh_hant = "%zh_hant:ViewModeShortcuts"
+                    , es = "%es:ViewModeShortcuts"
+                    , fr = "%fr:ViewModeShortcuts"
+                    , ru = "%ru:ViewModeShortcuts"
+                    , de = "%de:ViewModeShortcuts"
+                    , nl = "%nl:ViewModeShortcuts"
+                    , hu = "%hu:ViewModeShortcuts"
+                    , sv = "%sv:ViewModeShortcuts"
+                    , ca = "%ca:ViewModeShortcuts"
+                    , br = "%br:ViewModeShortcuts"
+                    }
+
+                CardEditCreateDelete ->
+                    { en = "Card Edit, Create, Delete"
+                    , zh_hans = "%zh_hans:CardEditCreateDelete"
+                    , zh_hant = "%zh_hant:CardEditCreateDelete"
+                    , es = "%es:CardEditCreateDelete"
+                    , fr = "%fr:CardEditCreateDelete"
+                    , ru = "%ru:CardEditCreateDelete"
+                    , de = "%de:CardEditCreateDelete"
+                    , nl = "%nl:CardEditCreateDelete"
+                    , hu = "%hu:CardEditCreateDelete"
+                    , sv = "%sv:CardEditCreateDelete"
+                    , ca = "%ca:CardEditCreateDelete"
+                    , br = "%br:CardEditCreateDelete"
+                    }
+
+                NavigationMovingCards ->
+                    { en = "Navigation, Moving Cards"
+                    , zh_hans = "%zh_hans:NavigationMovingCards"
+                    , zh_hant = "%zh_hant:NavigationMovingCards"
+                    , es = "%es:NavigationMovingCards"
+                    , fr = "%fr:NavigationMovingCards"
+                    , ru = "%ru:NavigationMovingCards"
+                    , de = "%de:NavigationMovingCards"
+                    , nl = "%nl:NavigationMovingCards"
+                    , hu = "%hu:NavigationMovingCards"
+                    , sv = "%sv:NavigationMovingCards"
+                    , ca = "%ca:NavigationMovingCards"
+                    , br = "%br:NavigationMovingCards"
+                    }
+
+                CopyPaste ->
+                    { en = "Copy/Paste"
+                    , zh_hans = "%zh_hans:CopyPaste"
+                    , zh_hant = "%zh_hant:CopyPaste"
+                    , es = "%es:CopyPaste"
+                    , fr = "%fr:CopyPaste"
+                    , ru = "%ru:CopyPaste"
+                    , de = "%de:CopyPaste"
+                    , nl = "%nl:CopyPaste"
+                    , hu = "%hu:CopyPaste"
+                    , sv = "%sv:CopyPaste"
+                    , ca = "%ca:CopyPaste"
+                    , br = "%br:CopyPaste"
+                    }
+
+                SearchingMerging ->
+                    { en = "Searching, Merging Cards"
+                    , zh_hans = "%zh_hans:SearchingMerging"
+                    , zh_hant = "%zh_hant:SearchingMerging"
+                    , es = "%es:SearchingMerging"
+                    , fr = "%fr:SearchingMerging"
+                    , ru = "%ru:SearchingMerging"
+                    , de = "%de:SearchingMerging"
+                    , nl = "%nl:SearchingMerging"
+                    , hu = "%hu:SearchingMerging"
+                    , sv = "%sv:SearchingMerging"
+                    , ca = "%ca:SearchingMerging"
+                    , br = "%br:SearchingMerging"
+                    }
+
+                HelpInfoDocs ->
+                    { en = "Help, Info, Documents"
+                    , zh_hans = "%zh_hans:HelpInfoDocs"
+                    , zh_hant = "%zh_hant:HelpInfoDocs"
+                    , es = "%es:HelpInfoDocs"
+                    , fr = "%fr:HelpInfoDocs"
+                    , ru = "%ru:HelpInfoDocs"
+                    , de = "%de:HelpInfoDocs"
+                    , nl = "%nl:HelpInfoDocs"
+                    , hu = "%hu:HelpInfoDocs"
+                    , sv = "%sv:HelpInfoDocs"
+                    , ca = "%ca:HelpInfoDocs"
+                    , br = "%br:HelpInfoDocs"
+                    }
+
+                EditModeShortcuts ->
+                    { en = "Edit Mode Shortcuts : "
+                    , zh_hans = "%zh_hans:EditModeShortcuts"
+                    , zh_hant = "%zh_hant:EditModeShortcuts"
+                    , es = "%es:EditModeShortcuts"
+                    , fr = "%fr:EditModeShortcuts"
+                    , ru = "%ru:EditModeShortcuts"
+                    , de = "%de:EditModeShortcuts"
+                    , nl = "%nl:EditModeShortcuts"
+                    , hu = "%hu:EditModeShortcuts"
+                    , sv = "%sv:EditModeShortcuts"
+                    , ca = "%ca:EditModeShortcuts"
+                    , br = "%br:EditModeShortcuts"
+                    }
+
+                CardSaveCreate ->
+                    { en = "Card Save, Create"
+                    , zh_hans = "%zh_hans:CardSaveCreate"
+                    , zh_hant = "%zh_hant:CardSaveCreate"
+                    , es = "%es:CardSaveCreate"
+                    , fr = "%fr:CardSaveCreate"
+                    , ru = "%ru:CardSaveCreate"
+                    , de = "%de:CardSaveCreate"
+                    , nl = "%nl:CardSaveCreate"
+                    , hu = "%hu:CardSaveCreate"
+                    , sv = "%sv:CardSaveCreate"
+                    , ca = "%ca:CardSaveCreate"
+                    , br = "%br:CardSaveCreate"
+                    }
+
+                EditCard ->
+                    { en = "Edit card"
+                    , zh_hans = "%zh_hans:EditCard"
+                    , zh_hant = "%zh_hant:EditCard"
+                    , es = "%es:EditCard"
+                    , fr = "%fr:EditCard"
+                    , ru = "%ru:EditCard"
+                    , de = "%de:EditCard"
+                    , nl = "%nl:EditCard"
+                    , hu = "%hu:EditCard"
+                    , sv = "%sv:EditCard"
+                    , ca = "%ca:EditCard"
+                    , br = "%br:EditCard"
+                    }
+
+                AddCardBelow ->
+                    { en = "Add card below"
+                    , zh_hans = "%zh_hans:AddCardBelow"
+                    , zh_hant = "%zh_hant:AddCardBelow"
+                    , es = "%es:AddCardBelow"
+                    , fr = "%fr:AddCardBelow"
+                    , ru = "%ru:AddCardBelow"
+                    , de = "%de:AddCardBelow"
+                    , nl = "%nl:AddCardBelow"
+                    , hu = "%hu:AddCardBelow"
+                    , sv = "%sv:AddCardBelow"
+                    , ca = "%ca:AddCardBelow"
+                    , br = "%br:AddCardBelow"
+                    }
+
+                AddCardAbove ->
+                    { en = "Add card above"
+                    , zh_hans = "%zh_hans:AddCardAbolve"
+                    , zh_hant = "%zh_hant:AddCardAbolve"
+                    , es = "%es:AddCardAbolve"
+                    , fr = "%fr:AddCardAbolve"
+                    , ru = "%ru:AddCardAbolve"
+                    , de = "%de:AddCardAbolve"
+                    , nl = "%nl:AddCardAbolve"
+                    , hu = "%hu:AddCardAbolve"
+                    , sv = "%sv:AddCardAbolve"
+                    , ca = "%ca:AddCardAbolve"
+                    , br = "%br:AddCardAbolve"
+                    }
+
+                AddCardToRight ->
+                    { en = "Add card to the right (as child)"
+                    , zh_hans = "%zh_hans:AddCardToRight"
+                    , zh_hant = "%zh_hant:AddCardToRight"
+                    , es = "%es:AddCardToRight"
+                    , fr = "%fr:AddCardToRight"
+                    , ru = "%ru:AddCardToRight"
+                    , de = "%de:AddCardToRight"
+                    , nl = "%nl:AddCardToRight"
+                    , hu = "%hu:AddCardToRight"
+                    , sv = "%sv:AddCardToRight"
+                    , ca = "%ca:AddCardToRight"
+                    , br = "%br:AddCardToRight"
+                    }
+
+                AddCardBelowSplit ->
+                    { en = "Add card below (split at cursor)"
+                    , zh_hans = "%zh_hans:AddCardBelowSplit"
+                    , zh_hant = "%zh_hant:AddCardBelowSplit"
+                    , es = "%es:AddCardBelowSplit"
+                    , fr = "%fr:AddCardBelowSplit"
+                    , ru = "%ru:AddCardBelowSplit"
+                    , de = "%de:AddCardBelowSplit"
+                    , nl = "%nl:AddCardBelowSplit"
+                    , hu = "%hu:AddCardBelowSplit"
+                    , sv = "%sv:AddCardBelowSplit"
+                    , ca = "%ca:AddCardBelowSplit"
+                    , br = "%br:AddCardBelowSplit"
+                    }
+
+                AddCardAboveSplit ->
+                    { en = "Add card above (split at cursor)"
+                    , zh_hans = "%zh_hans:AddCardAboveSplit"
+                    , zh_hant = "%zh_hant:AddCardAboveSplit"
+                    , es = "%es:AddCardAboveSplit"
+                    , fr = "%fr:AddCardAboveSplit"
+                    , ru = "%ru:AddCardAboveSplit"
+                    , de = "%de:AddCardAboveSplit"
+                    , nl = "%nl:AddCardAboveSplit"
+                    , hu = "%hu:AddCardAboveSplit"
+                    , sv = "%sv:AddCardAboveSplit"
+                    , ca = "%ca:AddCardAboveSplit"
+                    , br = "%br:AddCardAboveSplit"
+                    }
+
+                AddCardToRightSplit ->
+                    { en = "Add card to the right (split at cursor)"
+                    , zh_hans = "%zh_hans:AddCardToRightSplit"
+                    , zh_hant = "%zh_hant:AddCardToRightSplit"
+                    , es = "%es:AddCardToRightSplit"
+                    , fr = "%fr:AddCardToRightSplit"
+                    , ru = "%ru:AddCardToRightSplit"
+                    , de = "%de:AddCardToRightSplit"
+                    , nl = "%nl:AddCardToRightSplit"
+                    , hu = "%hu:AddCardToRightSplit"
+                    , sv = "%sv:AddCardToRightSplit"
+                    , ca = "%ca:AddCardToRightSplit"
+                    , br = "%br:AddCardToRightSplit"
+                    }
+
+                DeleteCard ->
+                    { en = "Delete card (and its children)"
+                    , zh_hans = "%zh_hans:DeleteCard"
+                    , zh_hant = "%zh_hant:DeleteCard"
+                    , es = "%es:DeleteCard"
+                    , fr = "%fr:DeleteCard"
+                    , ru = "%ru:DeleteCard"
+                    , de = "%de:DeleteCard"
+                    , nl = "%nl:DeleteCard"
+                    , hu = "%hu:DeleteCard"
+                    , sv = "%sv:DeleteCard"
+                    , ca = "%ca:DeleteCard"
+                    , br = "%br:DeleteCard"
+                    }
+
+                GoUpDownLeftRight ->
+                    { en = "Go up/down/left/right"
+                    , zh_hans = "%zh_hans:GoUpDownLeftRight"
+                    , zh_hant = "%zh_hant:GoUpDownLeftRight"
+                    , es = "%es:GoUpDownLeftRight"
+                    , fr = "%fr:GoUpDownLeftRight"
+                    , ru = "%ru:GoUpDownLeftRight"
+                    , de = "%de:GoUpDownLeftRight"
+                    , nl = "%nl:GoUpDownLeftRight"
+                    , hu = "%hu:GoUpDownLeftRight"
+                    , sv = "%sv:GoUpDownLeftRight"
+                    , ca = "%ca:GoUpDownLeftRight"
+                    , br = "%br:GoUpDownLeftRight"
+                    }
+
+                GoToBeginningOfGroup ->
+                    { en = "Go to beginning of group"
+                    , zh_hans = "%zh_hans:GoToBeginningOfGroup"
+                    , zh_hant = "%zh_hant:GoToBeginningOfGroup"
+                    , es = "%es:GoToBeginningOfGroup"
+                    , fr = "%fr:GoToBeginningOfGroup"
+                    , ru = "%ru:GoToBeginningOfGroup"
+                    , de = "%de:GoToBeginningOfGroup"
+                    , nl = "%nl:GoToBeginningOfGroup"
+                    , hu = "%hu:GoToBeginningOfGroup"
+                    , sv = "%sv:GoToBeginningOfGroup"
+                    , ca = "%ca:GoToBeginningOfGroup"
+                    , br = "%br:GoToBeginningOfGroup"
+                    }
+
+                GoToEndOfGroup ->
+                    { en = "Go to end of group"
+                    , zh_hans = "%zh_hans:GoToEndOfGroup"
+                    , zh_hant = "%zh_hant:GoToEndOfGroup"
+                    , es = "%es:GoToEndOfGroup"
+                    , fr = "%fr:GoToEndOfGroup"
+                    , ru = "%ru:GoToEndOfGroup"
+                    , de = "%de:GoToEndOfGroup"
+                    , nl = "%nl:GoToEndOfGroup"
+                    , hu = "%hu:GoToEndOfGroup"
+                    , sv = "%sv:GoToEndOfGroup"
+                    , ca = "%ca:GoToEndOfGroup"
+                    , br = "%br:GoToEndOfGroup"
+                    }
+
+                GoToBeginningOfColumn ->
+                    { en = "Go to beginning of column"
+                    , zh_hans = "%zh_hans:GoToBeginningOfColumn"
+                    , zh_hant = "%zh_hant:GoToBeginningOfColumn"
+                    , es = "%es:GoToBeginningOfColumn"
+                    , fr = "%fr:GoToBeginningOfColumn"
+                    , ru = "%ru:GoToBeginningOfColumn"
+                    , de = "%de:GoToBeginningOfColumn"
+                    , nl = "%nl:GoToBeginningOfColumn"
+                    , hu = "%hu:GoToBeginningOfColumn"
+                    , sv = "%sv:GoToBeginningOfColumn"
+                    , ca = "%ca:GoToBeginningOfColumn"
+                    , br = "%br:GoToBeginningOfColumn"
+                    }
+
+                GoToEndOfColumn ->
+                    { en = "Go to end of column"
+                    , zh_hans = "%zh_hans:GoToEndOfColumn"
+                    , zh_hant = "%zh_hant:GoToEndOfColumn"
+                    , es = "%es:GoToEndOfColumn"
+                    , fr = "%fr:GoToEndOfColumn"
+                    , ru = "%ru:GoToEndOfColumn"
+                    , de = "%de:GoToEndOfColumn"
+                    , nl = "%nl:GoToEndOfColumn"
+                    , hu = "%hu:GoToEndOfColumn"
+                    , sv = "%sv:GoToEndOfColumn"
+                    , ca = "%ca:GoToEndOfColumn"
+                    , br = "%br:GoToEndOfColumn"
+                    }
+
+                MoveCurrentCard ->
+                    { en = "Move current card (and children)"
+                    , zh_hans = "%zh_hans:MoveCurrentCard"
+                    , zh_hant = "%zh_hant:MoveCurrentCard"
+                    , es = "%es:MoveCurrentCard"
+                    , fr = "%fr:MoveCurrentCard"
+                    , ru = "%ru:MoveCurrentCard"
+                    , de = "%de:MoveCurrentCard"
+                    , nl = "%nl:MoveCurrentCard"
+                    , hu = "%hu:MoveCurrentCard"
+                    , sv = "%sv:MoveCurrentCard"
+                    , ca = "%ca:MoveCurrentCard"
+                    , br = "%br:MoveCurrentCard"
+                    }
+
+                PageUp ->
+                    { en = "PageUp"
+                    , zh_hans = "%zh_hans:PageUp"
+                    , zh_hant = "%zh_hant:PageUp"
+                    , es = "%es:PageUp"
+                    , fr = "%fr:PageUp"
+                    , ru = "%ru:PageUp"
+                    , de = "%de:PageUp"
+                    , nl = "%nl:PageUp"
+                    , hu = "%hu:PageUp"
+                    , sv = "%sv:PageUp"
+                    , ca = "%ca:PageUp"
+                    , br = "%br:PageUp"
+                    }
+
+                PageDown ->
+                    { en = "PageDown"
+                    , zh_hans = "%zh_hans:PageDown"
+                    , zh_hant = "%zh_hant:PageDown"
+                    , es = "%es:PageDown"
+                    , fr = "%fr:PageDown"
+                    , ru = "%ru:PageDown"
+                    , de = "%de:PageDown"
+                    , nl = "%nl:PageDown"
+                    , hu = "%hu:PageDown"
+                    , sv = "%sv:PageDown"
+                    , ca = "%ca:PageDown"
+                    , br = "%br:PageDown"
+                    }
+
+                HomeKey ->
+                    { en = "Home"
+                    , zh_hans = "%zh_hans:HomeKey"
+                    , zh_hant = "%zh_hant:HomeKey"
+                    , es = "%es:HomeKey"
+                    , fr = "%fr:HomeKey"
+                    , ru = "%ru:HomeKey"
+                    , de = "%de:HomeKey"
+                    , nl = "%nl:HomeKey"
+                    , hu = "%hu:HomeKey"
+                    , sv = "%sv:HomeKey"
+                    , ca = "%ca:HomeKey"
+                    , br = "%br:HomeKey"
+                    }
+
+                EndKey ->
+                    { en = "End"
+                    , zh_hans = "%zh_hans:EndKey"
+                    , zh_hant = "%zh_hant:EndKey"
+                    , es = "%es:EndKey"
+                    , fr = "%fr:EndKey"
+                    , ru = "%ru:EndKey"
+                    , de = "%de:EndKey"
+                    , nl = "%nl:EndKey"
+                    , hu = "%hu:EndKey"
+                    , sv = "%sv:EndKey"
+                    , ca = "%ca:EndKey"
+                    , br = "%br:EndKey"
+                    }
+
+                AnyOfAbove ->
+                    { en = "(any of above)"
+                    , zh_hans = "%zh_hans:AnyOfAbove"
+                    , zh_hant = "%zh_hant:AnyOfAbove"
+                    , es = "%es:AnyOfAbove"
+                    , fr = "%fr:AnyOfAbove"
+                    , ru = "%ru:AnyOfAbove"
+                    , de = "%de:AnyOfAbove"
+                    , nl = "%nl:AnyOfAbove"
+                    , hu = "%hu:AnyOfAbove"
+                    , sv = "%sv:AnyOfAbove"
+                    , ca = "%ca:AnyOfAbove"
+                    , br = "%br:AnyOfAbove"
+                    }
+
+                DragCard ->
+                    { en = "Drag card by left edge"
+                    , zh_hans = "%zh_hans:DragCard"
+                    , zh_hant = "%zh_hant:DragCard"
+                    , es = "%es:DragCard"
+                    , fr = "%fr:DragCard"
+                    , ru = "%ru:DragCard"
+                    , de = "%de:DragCard"
+                    , nl = "%nl:DragCard"
+                    , hu = "%hu:DragCard"
+                    , sv = "%sv:DragCard"
+                    , ca = "%ca:DragCard"
+                    , br = "%br:DragCard"
+                    }
+
+                Search ->
+                    { en = "Search"
+                    , zh_hans = "%zh_hans:Search"
+                    , zh_hant = "%zh_hant:Search"
+                    , es = "%es:Search"
+                    , fr = "%fr:Search"
+                    , ru = "%ru:Search"
+                    , de = "%de:Search"
+                    , nl = "%nl:Search"
+                    , hu = "%hu:Search"
+                    , sv = "%sv:Search"
+                    , ca = "%ca:Search"
+                    , br = "%br:Search"
+                    }
+
+                ClearSearch ->
+                    { en = "Clear search, focus current card"
+                    , zh_hans = "%zh_hans:ClearSearch"
+                    , zh_hant = "%zh_hant:ClearSearch"
+                    , es = "%es:ClearSearch"
+                    , fr = "%fr:ClearSearch"
+                    , ru = "%ru:ClearSearch"
+                    , de = "%de:ClearSearch"
+                    , nl = "%nl:ClearSearch"
+                    , hu = "%hu:ClearSearch"
+                    , sv = "%sv:ClearSearch"
+                    , ca = "%ca:ClearSearch"
+                    , br = "%br:ClearSearch"
+                    }
+
+                MergeCardUp ->
+                    { en = "Merge card up"
+                    , zh_hans = "%zh_hans:MergeCardUp"
+                    , zh_hant = "%zh_hant:MergeCardUp"
+                    , es = "%es:MergeCardUp"
+                    , fr = "%fr:MergeCardUp"
+                    , ru = "%ru:MergeCardUp"
+                    , de = "%de:MergeCardUp"
+                    , nl = "%nl:MergeCardUp"
+                    , hu = "%hu:MergeCardUp"
+                    , sv = "%sv:MergeCardUp"
+                    , ca = "%ca:MergeCardUp"
+                    , br = "%br:MergeCardUp"
+                    }
+
+                MergeCardDown ->
+                    { en = "Merge card down"
+                    , zh_hans = "%zh_hans:MergeCardDown"
+                    , zh_hant = "%zh_hant:MergeCardDown"
+                    , es = "%es:MergeCardDown"
+                    , fr = "%fr:MergeCardDown"
+                    , ru = "%ru:MergeCardDown"
+                    , de = "%de:MergeCardDown"
+                    , nl = "%nl:MergeCardDown"
+                    , hu = "%hu:MergeCardDown"
+                    , sv = "%sv:MergeCardDown"
+                    , ca = "%ca:MergeCardDown"
+                    , br = "%br:MergeCardDown"
+                    }
+
+                CopyCurrent ->
+                    { en = "Copy current subtree"
+                    , zh_hans = "%zh_hans:CopyCurrent"
+                    , zh_hant = "%zh_hant:CopyCurrent"
+                    , es = "%es:CopyCurrent"
+                    , fr = "%fr:CopyCurrent"
+                    , ru = "%ru:CopyCurrent"
+                    , de = "%de:CopyCurrent"
+                    , nl = "%nl:CopyCurrent"
+                    , hu = "%hu:CopyCurrent"
+                    , sv = "%sv:CopyCurrent"
+                    , ca = "%ca:CopyCurrent"
+                    , br = "%br:CopyCurrent"
+                    }
+
+                PasteBelow ->
+                    { en = "Paste subtree below current card"
+                    , zh_hans = "%zh_hans:PasteBelow"
+                    , zh_hant = "%zh_hant:PasteBelow"
+                    , es = "%es:PasteBelow"
+                    , fr = "%fr:PasteBelow"
+                    , ru = "%ru:PasteBelow"
+                    , de = "%de:PasteBelow"
+                    , nl = "%nl:PasteBelow"
+                    , hu = "%hu:PasteBelow"
+                    , sv = "%sv:PasteBelow"
+                    , ca = "%ca:PasteBelow"
+                    , br = "%br:PasteBelow"
+                    }
+
+                PasteAsChild ->
+                    { en = "Paste subtree as child of current card"
+                    , zh_hans = "%zh_hans:PasteAsChild"
+                    , zh_hant = "%zh_hant:PasteAsChild"
+                    , es = "%es:PasteAsChild"
+                    , fr = "%fr:PasteAsChild"
+                    , ru = "%ru:PasteAsChild"
+                    , de = "%de:PasteAsChild"
+                    , nl = "%nl:PasteAsChild"
+                    , hu = "%hu:PasteAsChild"
+                    , sv = "%sv:PasteAsChild"
+                    , ca = "%ca:PasteAsChild"
+                    , br = "%br:PasteAsChild"
+                    }
+
+                InsertSelected ->
+                    { en = "Insert selected text as new card"
+                    , zh_hans = "%zh_hans:InsertSelected"
+                    , zh_hant = "%zh_hant:InsertSelected"
+                    , es = "%es:InsertSelected"
+                    , fr = "%fr:InsertSelected"
+                    , ru = "%ru:InsertSelected"
+                    , de = "%de:InsertSelected"
+                    , nl = "%nl:InsertSelected"
+                    , hu = "%hu:InsertSelected"
+                    , sv = "%sv:InsertSelected"
+                    , ca = "%ca:InsertSelected"
+                    , br = "%br:InsertSelected"
+                    }
+
+                DragSelected ->
+                    { en = "Drag selected text into tree"
+                    , zh_hans = "%zh_hans:DragSelected"
+                    , zh_hant = "%zh_hant:DragSelected"
+                    , es = "%es:DragSelected"
+                    , fr = "%fr:DragSelected"
+                    , ru = "%ru:DragSelected"
+                    , de = "%de:DragSelected"
+                    , nl = "%nl:DragSelected"
+                    , hu = "%hu:DragSelected"
+                    , sv = "%sv:DragSelected"
+                    , ca = "%ca:DragSelected"
+                    , br = "%br:DragSelected"
+                    }
+
+                WordCounts ->
+                    { en = "Word counts"
+                    , zh_hans = "%zh_hans:WordCounts"
+                    , zh_hant = "%zh_hant:WordCounts"
+                    , es = "%es:WordCounts"
+                    , fr = "%fr:WordCounts"
+                    , ru = "%ru:WordCounts"
+                    , de = "%de:WordCounts"
+                    , nl = "%nl:WordCounts"
+                    , hu = "%hu:WordCounts"
+                    , sv = "%sv:WordCounts"
+                    , ca = "%ca:WordCounts"
+                    , br = "%br:WordCounts"
+                    }
+
+                SwitchDocuments ->
+                    { en = "Switch to different document"
+                    , zh_hans = "%zh_hans:SwitchDocuments"
+                    , zh_hant = "%zh_hant:SwitchDocuments"
+                    , es = "%es:SwitchDocuments"
+                    , fr = "%fr:SwitchDocuments"
+                    , ru = "%ru:SwitchDocuments"
+                    , de = "%de:SwitchDocuments"
+                    , nl = "%nl:SwitchDocuments"
+                    , hu = "%hu:SwitchDocuments"
+                    , sv = "%sv:SwitchDocuments"
+                    , ca = "%ca:SwitchDocuments"
+                    , br = "%br:SwitchDocuments"
+                    }
+
+                ThisHelpScreen ->
+                    { en = "This help screen"
+                    , zh_hans = "%zh_hans:ThisHelpScreen"
+                    , zh_hant = "%zh_hant:ThisHelpScreen"
+                    , es = "%es:ThisHelpScreen"
+                    , fr = "%fr:ThisHelpScreen"
+                    , ru = "%ru:ThisHelpScreen"
+                    , de = "%de:ThisHelpScreen"
+                    , nl = "%nl:ThisHelpScreen"
+                    , hu = "%hu:ThisHelpScreen"
+                    , sv = "%sv:ThisHelpScreen"
+                    , ca = "%ca:ThisHelpScreen"
+                    , br = "%br:ThisHelpScreen"
+                    }
+
+                Or ->
+                    { en = " or "
+                    , zh_hans = "%zh_hans:Or"
+                    , zh_hant = "%zh_hant:Or"
+                    , es = "%es:Or"
+                    , fr = "%fr:Or"
+                    , ru = "%ru:Or"
+                    , de = "%de:Or"
+                    , nl = "%nl:Or"
+                    , hu = "%hu:Or"
+                    , sv = "%sv:Or"
+                    , ca = "%ca:Or"
+                    , br = "%br:Or"
+                    }
+
+                EditCardFullscreen ->
+                    { en = "Edit card in fullscreen mode"
+                    , zh_hans = "%zh_hans:EditCardFullscreen"
+                    , zh_hant = "%zh_hant:EditCardFullscreen"
+                    , es = "%es:EditCardFullscreen"
+                    , fr = "%fr:EditCardFullscreen"
+                    , ru = "%ru:EditCardFullscreen"
+                    , de = "%de:EditCardFullscreen"
+                    , nl = "%nl:EditCardFullscreen"
+                    , hu = "%hu:EditCardFullscreen"
+                    , sv = "%sv:EditCardFullscreen"
+                    , ca = "%ca:EditCardFullscreen"
+                    , br = "%br:EditCardFullscreen"
+                    }
+
                 EditCards ->
                     { en = "Edit Cards"
                     , zh_hans = "%zh_hans:EditCards"
@@ -1411,6 +2091,21 @@ tr lang trans =
                     , br = "%br:ForBold"
                     }
 
+                BoldSelection ->
+                    { en = "Bold selection"
+                    , zh_hans = "%zh_hans:BoldSelection"
+                    , zh_hant = "%zh_hant:BoldSelection"
+                    , es = "%es:BoldSelection"
+                    , fr = "%fr:BoldSelection"
+                    , ru = "%ru:BoldSelection"
+                    , de = "%de:BoldSelection"
+                    , nl = "%nl:BoldSelection"
+                    , hu = "%hu:BoldSelection"
+                    , sv = "%sv:BoldSelection"
+                    , ca = "%ca:BoldSelection"
+                    , br = "%br:BoldSelection"
+                    }
+
                 ForItalic ->
                     { en = "for Italic"
                     , zh_hans = "%zh_hans:ForItalic"
@@ -1424,6 +2119,66 @@ tr lang trans =
                     , sv = "%sv:ForItalic"
                     , ca = "%ca:ForItalic"
                     , br = "%br:ForItalic"
+                    }
+
+                ItalicizeSelection ->
+                    { en = "Italicize selection"
+                    , zh_hans = "%zh_hans:ItalicizeSelection"
+                    , zh_hant = "%zh_hant:ItalicizeSelection"
+                    , es = "%es:ItalicizeSelection"
+                    , fr = "%fr:ItalicizeSelection"
+                    , ru = "%ru:ItalicizeSelection"
+                    , de = "%de:ItalicizeSelection"
+                    , nl = "%nl:ItalicizeSelection"
+                    , hu = "%hu:ItalicizeSelection"
+                    , sv = "%sv:ItalicizeSelection"
+                    , ca = "%ca:ItalicizeSelection"
+                    , br = "%br:ItalicizeSelection"
+                    }
+
+                SaveChanges ->
+                    { en = "Save changes"
+                    , zh_hans = "%zh_hans:SaveChanges"
+                    , zh_hant = "%zh_hant:SaveChanges"
+                    , es = "%es:SaveChanges"
+                    , fr = "%fr:SaveChanges"
+                    , ru = "%ru:SaveChanges"
+                    , de = "%de:SaveChanges"
+                    , nl = "%nl:SaveChanges"
+                    , hu = "%hu:SaveChanges"
+                    , sv = "%sv:SaveChanges"
+                    , ca = "%ca:SaveChanges"
+                    , br = "%br:SaveChanges"
+                    }
+
+                SaveChangesAndExit ->
+                    { en = "Save changes and exit card"
+                    , zh_hans = "%zh_hans:SaveChangesAndExit"
+                    , zh_hant = "%zh_hant:SaveChangesAndExit"
+                    , es = "%es:SaveChangesAndExit"
+                    , fr = "%fr:SaveChangesAndExit"
+                    , ru = "%ru:SaveChangesAndExit"
+                    , de = "%de:SaveChangesAndExit"
+                    , nl = "%nl:SaveChangesAndExit"
+                    , hu = "%hu:SaveChangesAndExit"
+                    , sv = "%sv:SaveChangesAndExit"
+                    , ca = "%ca:SaveChangesAndExit"
+                    , br = "%br:SaveChangesAndExit"
+                    }
+
+                ExitEditMode ->
+                    { en = "Exit edit mode"
+                    , zh_hans = "%zh_hans:ExitEditMode"
+                    , zh_hant = "%zh_hant:ExitEditMode"
+                    , es = "%es:ExitEditMode"
+                    , fr = "%fr:ExitEditMode"
+                    , ru = "%ru:ExitEditMode"
+                    , de = "%de:ExitEditMode"
+                    , nl = "%nl:ExitEditMode"
+                    , hu = "%hu:ExitEditMode"
+                    , sv = "%sv:ExitEditMode"
+                    , ca = "%ca:ExitEditMode"
+                    , br = "%br:ExitEditMode"
                     }
 
                 ToSaveChanges ->
@@ -1561,6 +2316,21 @@ tr lang trans =
                     , br = "%br:FormattingTitle"
                     }
 
+                SetTitleLevel ->
+                    { en = "Set title level (# to #####)"
+                    , zh_hans = "%zh_hans:SetTitleLevel"
+                    , zh_hant = "%zh_hant:SetTitleLevel"
+                    , es = "%es:SetTitleLevel"
+                    , fr = "%fr:SetTitleLevel"
+                    , ru = "%ru:SetTitleLevel"
+                    , de = "%de:SetTitleLevel"
+                    , nl = "%nl:SetTitleLevel"
+                    , hu = "%hu:SetTitleLevel"
+                    , sv = "%sv:SetTitleLevel"
+                    , ca = "%ca:SetTitleLevel"
+                    , br = "%br:SetTitleLevel"
+                    }
+
                 FormattingList ->
                     { en = "- List item\n  - Subitem"
                     , zh_hans = "%zh_hans:FormattingList"
@@ -1619,6 +2389,36 @@ tr lang trans =
                     , sv = "%sv:SetHeadingLevel"
                     , ca = "%ca:SetHeadingLevel"
                     , br = "%br:SetHeadingLevel"
+                    }
+
+                HelpVideos ->
+                    { en = "Help Videos"
+                    , zh_hans = "%zh_hans:HelpVideos"
+                    , zh_hant = "%zh_hant:HelpVideos"
+                    , es = "%es:HelpVideos"
+                    , fr = "%fr:HelpVideos"
+                    , ru = "%ru:HelpVideos"
+                    , de = "%de:HelpVideos"
+                    , nl = "%nl:HelpVideos"
+                    , hu = "%hu:HelpVideos"
+                    , sv = "%sv:HelpVideos"
+                    , ca = "%ca:HelpVideos"
+                    , br = "%br:HelpVideos"
+                    }
+
+                FAQAndDocs ->
+                    { en = "FAQ & Documentation"
+                    , zh_hans = "%zh_hans:FAQAndDocs"
+                    , zh_hant = "%zh_hant:FAQAndDocs"
+                    , es = "%es:FAQAndDocs"
+                    , fr = "%fr:FAQAndDocs"
+                    , ru = "%ru:FAQAndDocs"
+                    , de = "%de:FAQAndDocs"
+                    , nl = "%nl:FAQAndDocs"
+                    , hu = "%hu:FAQAndDocs"
+                    , sv = "%sv:FAQAndDocs"
+                    , ca = "%ca:FAQAndDocs"
+                    , br = "%br:FAQAndDocs"
                     }
 
                 --
@@ -1697,7 +2497,7 @@ tr lang trans =
                     , br = "%br:OpenQuickSwitcher"
                     }
 
-                EmailSupport ->
+                ContactSupport ->
                     { en = "Contact Support"
                     , zh_hans = "%zh_hans:EmailSupport"
                     , zh_hant = "%zh_hant:EmailSupport"

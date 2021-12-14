@@ -1,14 +1,38 @@
 module Doc.HelpScreen exposing (view)
 
 import Ant.Icons.Svg as Icons
-import Html exposing (Html, a, button, div, h2, h3, h4, kbd, li, span, table, td, text, th, thead, tr, ul)
+import Html exposing (Html, a, button, div, h2, h3, h4, kbd, li, span, table, td, th, thead, ul)
 import Html.Attributes exposing (class, colspan, height, href, id, style, target, width)
 import Html.Events exposing (onClick)
 import SharedUI exposing (ctrlOrCmdText)
+import Translation exposing (Language(..), TranslationId(..), tr)
 
 
-view : Bool -> { closeModal : msg, showVideoTutorials : msg, showWidget : msg, contactSupport : msg } -> List (Html msg)
-view isMac msg =
+
+-- Translation Helper Function
+
+
+text : Language -> TranslationId -> Html msg
+text lang tid =
+    Html.text <| tr lang tid
+
+
+textNoTr : String -> Html msg
+textNoTr str =
+    Html.text str
+
+
+emptyText : Html msg
+emptyText =
+    Html.text ""
+
+
+
+-- VIEW
+
+
+view : Language -> Bool -> { closeModal : msg, showVideoTutorials : msg, showWidget : msg, contactSupport : msg } -> List (Html msg)
+view lang isMac msg =
     let
         ctrlOrCmd =
             ctrlOrCmdText isMac
@@ -17,123 +41,128 @@ view isMac msg =
     , div [ class "max-width-grid" ]
         [ div [ class "modal", class "help-modal" ]
             [ div [ class "modal-header" ]
-                [ h2 [] [ text "Help" ]
+                [ h2 [] [ text lang Help ]
                 , div [ class "close-button", onClick msg.closeModal ] [ Icons.closeCircleOutlined [ width 20, height 20 ] ]
                 ]
             , div [ class "modal-guts" ]
-                [ h2 [ id "shortcut-main-title" ] [ text "Keyboard Shortcuts" ]
+                [ h2 [ id "shortcut-main-title" ] [ text lang KeyboardShortcuts ]
                 , div [ id "shortcut-modes-wrapper" ]
                     [ div []
-                        [ h3 [ id "view-mode-shortcuts-title" ] [ text "View Mode Shortcuts :" ]
-                        , shortcutTable "Card Edit, Create, Delete" (normalEditShortcuts ctrlOrCmd)
-                        , shortcutTable "Navigation, Moving Cards" (normalNavigationShortcuts ctrlOrCmd)
-                        , shortcutTable "Copy/Paste" (normalCopyShortcuts ctrlOrCmd)
-                        , shortcutTable "Searching, Merging Cards" (normalAdvancedShortcuts ctrlOrCmd)
-                        , shortcutTable "Help, Info, Documents" (normalOtherShortcuts ctrlOrCmd)
+                        [ h3 [ id "view-mode-shortcuts-title" ] [ text lang ViewModeShortcuts ]
+                        , shortcutTable lang CardEditCreateDelete (normalEditShortcuts lang ctrlOrCmd)
+                        , shortcutTable lang NavigationMovingCards (normalNavigationShortcuts lang ctrlOrCmd)
+                        , shortcutTable lang CopyPaste (normalCopyShortcuts lang ctrlOrCmd)
+                        , shortcutTable lang SearchingMerging (normalAdvancedShortcuts lang ctrlOrCmd)
+                        , shortcutTable lang HelpInfoDocs (normalOtherShortcuts lang ctrlOrCmd)
                         ]
                     , div [ id "mode-divider" ] []
                     , div []
-                        [ h3 [ id "edit-mode-shortcuts-title" ] [ text "Edit Mode Shortcuts :" ]
-                        , shortcutTable "Card Save, Create" (editSaveShortcuts ctrlOrCmd)
-                        , shortcutTable "Formatting" (editFormatShortcuts ctrlOrCmd)
+                        [ h3 [ id "edit-mode-shortcuts-title" ] [ text lang EditModeShortcuts ]
+                        , shortcutTable lang CardSaveCreate (editSaveShortcuts lang ctrlOrCmd)
+                        , shortcutTable lang Formatting (editFormatShortcuts lang ctrlOrCmd)
                         ]
                     ]
                 ]
             , div [ class "modal-buttons" ]
-                [ div [ onClick msg.showVideoTutorials ] [ text "Help Videos" ]
-                , div [ onClick msg.showWidget ] [ text "FAQ & Documentation" ]
-                , div [ id "email-support", onClick msg.contactSupport ] [ text "Contact Support" ]
+                [ div [ onClick msg.showVideoTutorials ] [ text lang HelpVideos ]
+                , div [ onClick msg.showWidget ] [ text lang FAQAndDocs ]
+                , div [ id "email-support", onClick msg.contactSupport ] [ text lang ContactSupport ]
                 ]
             ]
         ]
     ]
 
 
-shortcutTable : String -> List (Html msg) -> Html msg
-shortcutTable tableTitle tableRows =
+shortcutTable : Language -> TranslationId -> List (Html msg) -> Html msg
+shortcutTable lang tableTitle tableRows =
     div [ class "shortcut-table-wrapper" ]
-        [ h4 [ class "shortcut-table-title" ] [ text tableTitle ]
+        [ h4 [ class "shortcut-table-title" ] [ text lang tableTitle ]
         , table [ class "shortcut-table" ] tableRows
         ]
 
 
-normalEditShortcuts : String -> List (Html msg)
-normalEditShortcuts ctrlOrCmd =
-    [ shortcutRow "Edit card" [ key "Enter" ]
-    , shortcutRow "Edit card in fullscreen mode" [ key "Shift", key "Enter" ]
-    , shortcutRow "Add card below" [ key ctrlOrCmd, key "↓", text " or ", key ctrlOrCmd, key "J" ]
-    , shortcutRow "Add card above" [ key ctrlOrCmd, key "↑", text " or ", key ctrlOrCmd, key "K" ]
-    , shortcutRow "Add card to the right (as child)" [ key ctrlOrCmd, key "→", text " or ", key ctrlOrCmd, key "L" ]
-    , shortcutRow "Delete card (and its children)" [ key ctrlOrCmd, key "Backspace" ]
+keyNoTr : String -> Html msg
+keyNoTr str =
+    key En (NoTr str)
+
+
+normalEditShortcuts : Language -> String -> List (Html msg)
+normalEditShortcuts lang ctrlOrCmd =
+    [ shortcutRow lang EditCard [ key lang EnterKey ]
+    , shortcutRow lang EditCardFullscreen [ key lang ShiftKey, key lang EnterKey ]
+    , shortcutRow lang AddCardBelow [ keyNoTr ctrlOrCmd, keyNoTr "↓", text lang Or, keyNoTr ctrlOrCmd, keyNoTr "J" ]
+    , shortcutRow lang AddCardAbove [ keyNoTr ctrlOrCmd, keyNoTr "↑", text lang Or, keyNoTr ctrlOrCmd, keyNoTr "K" ]
+    , shortcutRow lang AddCardToRight [ keyNoTr ctrlOrCmd, keyNoTr "→", text lang Or, keyNoTr ctrlOrCmd, keyNoTr "L" ]
+    , shortcutRow lang DeleteCard [ keyNoTr ctrlOrCmd, key lang Backspace ]
     ]
 
 
-normalNavigationShortcuts : String -> List (Html msg)
-normalNavigationShortcuts ctrlOrCmd =
-    [ shortcutRow "Go up/down/left/right" [ key "↑", key "↓", key "←", key "→", text " or ", key "H", key "J", key "K", key "L" ]
-    , shortcutRow "Go to beginning of group" [ key "PageUp" ]
-    , shortcutRow "Go to end of group" [ key "PageDown" ]
-    , shortcutRow "Go to beginning of column" [ key "Home" ]
-    , shortcutRow "Go to end of column" [ key "End" ]
-    , shortcutRow "Move current card (and children)" [ key "Alt", key "(any of above)", text " or ", dragCommand "Drag card by left edge" ]
+normalNavigationShortcuts : Language -> String -> List (Html msg)
+normalNavigationShortcuts lang ctrlOrCmd =
+    [ shortcutRow lang GoUpDownLeftRight [ keyNoTr "↑", keyNoTr "↓", keyNoTr "←", keyNoTr "→", text lang Or, keyNoTr "H", keyNoTr "J", keyNoTr "K", keyNoTr "L" ]
+    , shortcutRow lang GoToBeginningOfGroup [ key lang PageUp ]
+    , shortcutRow lang GoToEndOfGroup [ key lang PageDown ]
+    , shortcutRow lang GoToBeginningOfColumn [ key lang HomeKey ]
+    , shortcutRow lang GoToEndOfColumn [ key lang EndKey ]
+    , shortcutRow lang MoveCurrentCard [ key lang AltKey, key lang AnyOfAbove, text lang Or, dragCommand lang DragCard ]
     ]
 
 
-normalAdvancedShortcuts : String -> List (Html msg)
-normalAdvancedShortcuts ctrlOrCmd =
-    [ shortcutRow "Search" [ key "/" ]
-    , shortcutRow "Clear search, focus current card" [ key "Esc" ]
-    , shortcutRow "Merge card up" [ key ctrlOrCmd, key "Shift", key "↑", text " or ", key ctrlOrCmd, key "Shift", key "J" ]
-    , shortcutRow "Merge card down" [ key ctrlOrCmd, key "Shift", key "↓", text " or ", key ctrlOrCmd, key "Shift", key "K" ]
+normalAdvancedShortcuts : Language -> String -> List (Html msg)
+normalAdvancedShortcuts lang ctrlOrCmd =
+    [ shortcutRow lang Search [ keyNoTr "/" ]
+    , shortcutRow lang ClearSearch [ key lang EscKey ]
+    , shortcutRow lang MergeCardUp [ keyNoTr ctrlOrCmd, key lang ShiftKey, keyNoTr "↑", text lang Or, keyNoTr ctrlOrCmd, key lang ShiftKey, keyNoTr "J" ]
+    , shortcutRow lang MergeCardDown [ keyNoTr ctrlOrCmd, key lang ShiftKey, keyNoTr "↓", text lang Or, keyNoTr ctrlOrCmd, key lang ShiftKey, keyNoTr "K" ]
     ]
 
 
-normalCopyShortcuts : String -> List (Html msg)
-normalCopyShortcuts ctrlOrCmd =
-    [ shortcutRow "Copy current subtree" [ key ctrlOrCmd, key "C" ]
-    , shortcutRow "Paste subtree below current card" [ key ctrlOrCmd, key "V" ]
-    , shortcutRow "Paste subtree as child of current card" [ key ctrlOrCmd, key "Shift", key "V" ]
-    , shortcutRow "Insert selected text as new card" [ dragCommand "Drag selected text into tree" ]
+normalCopyShortcuts : Language -> String -> List (Html msg)
+normalCopyShortcuts lang ctrlOrCmd =
+    [ shortcutRow lang CopyCurrent [ keyNoTr ctrlOrCmd, keyNoTr "C" ]
+    , shortcutRow lang PasteBelow [ keyNoTr ctrlOrCmd, keyNoTr "V" ]
+    , shortcutRow lang PasteAsChild [ keyNoTr ctrlOrCmd, key lang ShiftKey, keyNoTr "V" ]
+    , shortcutRow lang InsertSelected [ dragCommand lang DragSelected ]
     ]
 
 
-normalOtherShortcuts : String -> List (Html msg)
-normalOtherShortcuts ctrlOrCmd =
-    [ shortcutRow "Word counts" [ key "W" ]
-    , shortcutRow "Switch to different document" [ key ctrlOrCmd, key "O" ]
-    , shortcutRow "This help screen" [ key "?" ]
+normalOtherShortcuts : Language -> String -> List (Html msg)
+normalOtherShortcuts lang ctrlOrCmd =
+    [ shortcutRow lang WordCounts [ keyNoTr "W" ]
+    , shortcutRow lang SwitchDocuments [ keyNoTr ctrlOrCmd, keyNoTr "O" ]
+    , shortcutRow lang ThisHelpScreen [ keyNoTr "?" ]
     ]
 
 
-editSaveShortcuts : String -> List (Html msg)
-editSaveShortcuts ctrlOrCmd =
-    [ shortcutRow "Save changes" [ key ctrlOrCmd, key "S" ]
-    , shortcutRow "Save changes and exit card" [ key ctrlOrCmd, key "Enter" ]
-    , shortcutRow "Add card below (split at cursor)" [ key ctrlOrCmd, key "J" ]
-    , shortcutRow "Add card above (split at cursor)" [ key ctrlOrCmd, key "K" ]
-    , shortcutRow "Add card to the right (split at cursor)" [ key ctrlOrCmd, key "L" ]
-    , shortcutRow "Exit edit mode" [ key "Esc" ]
+editSaveShortcuts : Language -> String -> List (Html msg)
+editSaveShortcuts lang ctrlOrCmd =
+    [ shortcutRow lang SaveChanges [ keyNoTr ctrlOrCmd, keyNoTr "S" ]
+    , shortcutRow lang SaveChangesAndExit [ keyNoTr ctrlOrCmd, key lang EnterKey ]
+    , shortcutRow lang AddCardBelowSplit [ keyNoTr ctrlOrCmd, keyNoTr "J" ]
+    , shortcutRow lang AddCardAboveSplit [ keyNoTr ctrlOrCmd, keyNoTr "K" ]
+    , shortcutRow lang AddCardToRightSplit [ keyNoTr ctrlOrCmd, keyNoTr "L" ]
+    , shortcutRow lang ExitEditMode [ key lang EscKey ]
     ]
 
 
-editFormatShortcuts : String -> List (Html msg)
-editFormatShortcuts ctrlOrCmd =
-    [ shortcutRow "Bold selection" [ key ctrlOrCmd, key "B" ]
-    , shortcutRow "Italicize selection" [ key ctrlOrCmd, key "I" ]
-    , shortcutRow "Set title level (# to #####)" [ key "Alt", key "1", text " ... ", key "6" ]
+editFormatShortcuts : Language -> String -> List (Html msg)
+editFormatShortcuts lang ctrlOrCmd =
+    [ shortcutRow lang BoldSelection [ keyNoTr ctrlOrCmd, keyNoTr "B" ]
+    , shortcutRow lang ItalicizeSelection [ keyNoTr ctrlOrCmd, keyNoTr "I" ]
+    , shortcutRow lang SetTitleLevel [ key lang AltKey, keyNoTr "1", text lang (NoTr " ... "), keyNoTr "6" ]
     ]
 
 
-shortcutRow : String -> List (Html msg) -> Html msg
-shortcutRow desc keys =
-    tr [ class "shortcut-row" ] [ td [ style "text-align" "right" ] keys, td [] [ text (": " ++ desc) ] ]
+shortcutRow : Language -> TranslationId -> List (Html msg) -> Html msg
+shortcutRow lang desc keys =
+    Html.tr [ class "shortcut-row" ] [ td [ style "text-align" "right" ] keys, td [] [ Html.text (": " ++ tr lang desc) ] ]
 
 
-key : String -> Html msg
-key str =
-    span [ class "shortcut-key" ] [ text str ]
+key : Language -> TranslationId -> Html msg
+key lang str =
+    span [ class "shortcut-key" ] [ text lang str ]
 
 
-dragCommand : String -> Html msg
-dragCommand str =
-    span [ class "shortcut-key", class "drag-command" ] [ text str ]
+dragCommand : Language -> TranslationId -> Html msg
+dragCommand lang str =
+    span [ class "shortcut-key", class "drag-command" ] [ text lang str ]

@@ -134,7 +134,7 @@ view lang { closeMsg, submitMsg, tagger, copyEmail } model =
         , small [ id "email-copy-btn", onClick <| copyEmail (model.requestType == Urgent) ] [ text "copy" ]
         ]
     ]
-        |> modalWrapper closeMsg Nothing (Just [ ( "red-alert", model.requestType == Urgent ) ]) (tr lang EmailSupport)
+        |> modalWrapper closeMsg Nothing (Just [ ( "red-alert", model.requestType == Urgent ) ]) (tr lang ContactSupport)
 
 
 supportEmailString req =
