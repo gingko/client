@@ -14,6 +14,7 @@ type Route
     | Login
     | ForgotPassword (Maybe String)
     | ResetPassword String
+    | EmailConfirmed
     | DocNew
     | DocUntitled String
     | Doc String String
@@ -30,6 +31,7 @@ parser =
         , Parser.map Login (s "login")
         , Parser.map ForgotPassword (s "forgot-password" <?> Query.string "email")
         , Parser.map ResetPassword (s "reset-password" </> string)
+        , Parser.map EmailConfirmed (s "confirm")
         , Parser.map Copy (s "copy" </> string)
         , Parser.map Import (s "import" </> Parser.custom "IMPORT" Template.fromString)
         , Parser.map DocNew (s "new")
@@ -70,6 +72,9 @@ toString route =
 
         ResetPassword token ->
             "/reset-password/" ++ token
+
+        EmailConfirmed ->
+            "/confirm/"
 
         DocNew ->
             "/new"

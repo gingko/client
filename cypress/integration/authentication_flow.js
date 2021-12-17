@@ -13,7 +13,7 @@ describe('User Signup Flow', () => {
     Cypress.Cookies.preserveOnce('AuthSession')
   })
 
-  it('Can signup using form', () => {
+  it.only('Can signup using form', () => {
     // Redirects to /signup
     cy.visit(config.TEST_SERVER)
     cy.location('pathname').should('eq', '/signup')
@@ -48,6 +48,19 @@ describe('User Signup Flow', () => {
     // Imports "Welcome Tree"
     cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
     cy.contains('Welcome to Gingko Writer')
+
+    // Has email verification banner
+    cy.get('#email-confirm-banner')
+      .contains('Please confirm your email')
+
+    cy.visit(config.TEST_SERVER + '/confirm')
+
+    // Redirected to welcome, Confirmation banner gone
+    cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
+    cy.contains('Welcome to Gingko Writer')
+
+    cy.get('#email-confirm-banner')
+      .should('not.exist')
 
     // Logs Out Correctly
     cy.intercept('/logout').as('logoutRequest')

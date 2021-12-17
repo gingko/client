@@ -87,6 +87,13 @@ changeRouteTo maybeRoute model =
                 Page.ResetPassword.init user token
                     |> updateWith ResetPassword GotResetPasswordMsg
 
+            Just Route.EmailConfirmed ->
+                let
+                    newSession =
+                        Session.confirmEmail user
+                in
+                ( Redirect newSession, Route.replaceUrl (Session.navKey newSession) Route.Root )
+
             Just Route.DocNew ->
                 Page.DocNew.init user |> updateWith DocNew GotDocNewMsg
 

@@ -16,6 +16,7 @@ import File.Select as Select
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, classList, id, style)
 import Html.Events exposing (onClick)
+import Html.Extra exposing (viewIf)
 import Http
 import Import.Bulk.UI as ImportModal
 import Import.Incoming
@@ -50,6 +51,7 @@ type alias Model =
     , sidebarState : SidebarState
     , sidebarMenuState : SidebarMenuState
     , modalState : ModalState
+    , emailConfirmBanner : Bool
     , fileSearchField : String -- TODO: not needed if switcher isn't open
     , tooltip : Maybe ( Element, TooltipPosition, TranslationId )
     }
@@ -96,6 +98,7 @@ defaultModel session docModel_ =
             SidebarClosed
     , sidebarMenuState = NoSidebarMenu
     , modalState = NoModal
+    , emailConfirmBanner = True
     , fileSearchField = ""
     , tooltip = Nothing
     }
@@ -985,6 +988,7 @@ view ({ documentState } as model) =
                             Nothing
                             model.sidebarMenuState
                             model.sidebarState
+                       , viewIf (Session.isNotConfirmed session) viewConfirmBanner
                        , viewTooltip
                        ]
                     ++ viewModal session model.modalState
@@ -1007,6 +1011,7 @@ view ({ documentState } as model) =
                                 Nothing
                                 model.sidebarMenuState
                                 model.sidebarState
+                           , viewIf (Session.isNotConfirmed session) viewConfirmBanner
                            , viewTooltip
                            ]
                         ++ viewModal session model.modalState
@@ -1094,6 +1099,11 @@ viewModal session modalState =
 
                 Nothing ->
                     []
+
+
+viewConfirmBanner : Html msg
+viewConfirmBanner =
+    div [ id "email-confirm-banner", class "top-banner" ] [ text "Please confirm your email" ]
 
 
 

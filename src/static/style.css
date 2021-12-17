@@ -521,10 +521,12 @@ input.has-error {
   width: 100%;
   display: grid;
   grid-template-columns: auto 1fr auto;
-  grid-template-rows: min-content 1fr;
+  grid-template-rows: min-content min-content 1fr min-content;
   grid-template-areas:
+    "app-header app-header app-header"
     "sidebar document-header document-header"
     "sidebar document right-sidebar"
+    "footer footer footer"
 }
 #sidebar {
   grid-area: sidebar;
@@ -868,7 +870,7 @@ input.has-error {
   grid-template-columns: 15px max-content 1fr 40px 40px 40px;
   grid-template-rows: 40px min-content;
   grid-template-areas:
-    ". title . button1 button2 button3"
+    ". title doc-header-center button1 button2 button3"
     "header-menu header-menu header-menu header-menu header-menu header-menu";
   color: var(--ui-1-fg);
   background-color: var(--ui-1-bg);
@@ -1143,6 +1145,15 @@ input.has-error {
   justify-content: center;
   align-items: center;
   pointer-events: none;
+}
+.top-banner {
+  grid-area: document;
+  z-index: 1;
+  padding: 10px 10px 10px 50px;
+  text-align: center;
+  background: #d7eaf5;
+  height: min-content;
+  box-shadow: var(--small-shadow);
 }
 .modal {
   position: fixed;
@@ -1509,8 +1520,7 @@ span.trial-dark {
 }
 
 #upgrade-cta {
-  position: fixed;
-  top: 5px;
+  grid-area: doc-header-center;
   cursor: pointer;
   display: flex;
   align-items: center;

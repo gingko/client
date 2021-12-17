@@ -1,4 +1,4 @@
-port module Session exposing (PaymentStatus(..), Session, currentTime, daysLeft, db, decode, documents, fileMenuOpen, fromLegacy, getDocName, getMetadata, isMac, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, setSortBy, setWelcomeChecklist, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, updateDocuments, updateTime, updateUpgrade, upgradeModel, userSettingsChange, welcomeChecklist)
+port module Session exposing (PaymentStatus(..), Session, confirmEmail, currentTime, daysLeft, db, decode, documents, fileMenuOpen, fromLegacy, getDocName, getMetadata, isMac, isNotConfirmed, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, updateDocuments, updateTime, updateUpgrade, upgradeModel, userSettingsChange)
 
 import Browser.Navigation as Nav
 import Coders exposing (sortByDecoder)
@@ -44,7 +44,7 @@ type alias UserData =
     , language : Translation.Language
     , upgradeModel : Upgrade.Model
     , paymentStatus : PaymentStatus
-    , welcomeChecklist : Bool
+    , confirmedAt : Maybe Time.Posix
     , shortcutTrayOpen : Bool
     , sortBy : SortBy
     , documents : DocList.Model
@@ -180,14 +180,14 @@ daysLeft session =
             Nothing
 
 
-welcomeChecklist : Session -> Bool
-welcomeChecklist session =
+isNotConfirmed : Session -> Bool
+isNotConfirmed session =
     case session of
         LoggedIn _ data ->
-            data.welcomeChecklist
+            data.confirmedAt == Nothing
 
         Guest _ _ ->
-            False
+            True
 
 
 shortcutTrayOpen : Session -> Bool
@@ -306,11 +306,11 @@ setLanguage lang session =
             Guest key { data | language = lang }
 
 
-setWelcomeChecklist : Bool -> Session -> Session
-setWelcomeChecklist shouldShow session =
+confirmEmail : Session -> Session
+confirmEmail session =
     case session of
         LoggedIn key data ->
-            LoggedIn key { data | welcomeChecklist = shouldShow }
+            LoggedIn key { data | confirmedAt = Just (currentTime session) }
 
         Guest _ _ ->
             session
@@ -397,7 +397,7 @@ decoder key =
 decodeLoggedIn : Nav.Key -> Dec.Decoder Session
 decodeLoggedIn key =
     Dec.succeed
-        (\email s os t legacy lang side payStat checklist trayOpen sortCriteria lastDoc ->
+        (\email s os t legacy lang side payStat confirmTime trayOpen sortCriteria lastDoc ->
             let
                 newPayStat =
                     if payStat == Trial (Time.millisToPosix 0) then
@@ -415,7 +415,7 @@ decodeLoggedIn key =
                 , lastDocId = Nothing
                 , fromLegacy = legacy
                 }
-                (UserData email lang Upgrade.init newPayStat checklist trayOpen sortCriteria DocList.init)
+                (UserData email lang Upgrade.init newPayStat confirmTime trayOpen sortCriteria DocList.init)
         )
         |> required "email" Dec.string
         |> required "seed" (Dec.int |> Dec.map Random.initialSeed)
@@ -425,7 +425,7 @@ decodeLoggedIn key =
         |> optional "language" (Dec.string |> Dec.map langFromString) En
         |> optional "sidebarOpen" Dec.bool False
         |> optional "paymentStatus" decodePaymentStatus (Trial (Time.millisToPosix 0))
-        |> optional "welcomeChecklist" Dec.bool True
+        |> optional "confirmedAt" (Dec.int |> Dec.map Time.millisToPosix |> Dec.maybe) Nothing
         |> optional "shortcutTrayOpen" Dec.bool False
         |> optional "sortBy" sortByDecoder ModifiedAt
         |> optional "lastDocId" (Dec.maybe Dec.string) Nothing
@@ -477,7 +477,7 @@ responseDecoder session =
         |> required "email" Dec.string
         |> optionalAt [ "settings", "language" ] (Dec.map langFromString Dec.string) En
         |> optionalAt [ "settings", "paymentStatus" ] decodePaymentStatus (Trial (Time.millisToPosix 0))
-        |> optionalAt [ "settings", "welcomeChecklist" ] Dec.bool True
+        |> optionalAt [ "settings", "confirmedAt" ] (Dec.int |> Dec.map Time.millisToPosix |> Dec.maybe) Nothing
         |> optionalAt [ "settings", "shortcutTrayOpen" ] Dec.bool False
         |> optionalAt [ "settings", "sortBy" ] sortByDecoder ModifiedAt
 
