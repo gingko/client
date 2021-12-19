@@ -13,7 +13,7 @@ describe('User Signup Flow', () => {
     Cypress.Cookies.preserveOnce('AuthSession')
   })
 
-  it.only('Can signup using form', () => {
+  it('Can signup using form', () => {
     // Redirects to /signup
     cy.visit(config.TEST_SERVER)
     cy.location('pathname').should('eq', '/signup')
@@ -62,6 +62,13 @@ describe('User Signup Flow', () => {
     cy.get('#email-confirm-banner')
       .should('not.exist')
 
+    // Send email confirmation webhook before logging out
+    cy.request('POST', config.TEST_SERVER + '/mlhooks',
+      {events: [{data: {subscriber: {email: testEmail, confirmation_timestamp: (new Date()).toISOString()}}}]}
+    ).as('mlhook')
+
+    cy.waitFor('@mlhook')
+
     // Logs Out Correctly
     cy.intercept('/logout').as('logoutRequest')
     cy.get('#account-icon').click()
@@ -94,6 +101,10 @@ describe('User Signup Flow', () => {
     cy.url().should('not.contain', '/login')
     cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
     cy.contains('Welcome to Gingko Writer')
+
+    // Doesn't have confirmation banner
+    cy.get('#email-confirm-banner')
+      .should('not.exist')
 
     // Has an AuthSession cookie
     cy.get('button.cta').should('not.exist')
