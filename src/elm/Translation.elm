@@ -50,6 +50,7 @@ type TranslationId
     | LastUpdated
     | LastOpened
     | OpenOtherDocuments
+    | DuplicateDocument
     | DeleteDocument
     | RemoveFromList
     | NeverSaved
@@ -60,6 +61,8 @@ type TranslationId
     | DatabaseError
     | LastSaved
     | LastEdit
+    | ConfirmBannerStrong
+    | ConfirmBannerBody
     | Help
     | WhatsNew
     | AccountTooltip
@@ -896,6 +899,25 @@ tr lang trans =
                     , br = "%br:OpenOtherDocuments%"
                     }
 
+                DuplicateDocument ->
+                    { en = "Duplicate Document"
+                    , zh_hans = "%zh_hans:DuplicateDocument%"
+                    , zh_hant = "%zh_hant:DuplicateDocument%"
+                    , es = "%es:DuplicateDocument%"
+                    , ar = "%ar:DuplicateDocument%"
+                    , fr = "%fr:DuplicateDocument%"
+                    , ru = "%ru:DuplicateDocument%"
+                    , de = "%de:DuplicateDocument%"
+                    , ja = "%ja:DuplicateDocument%"
+                    , pes = "%pes:DuplicateDocument%"
+                    , it = "%it:DuplicateDocument%"
+                    , nl = "%nl:DuplicateDocument%"
+                    , hu = "%hu:DuplicateDocument%"
+                    , sv = "%sv:DuplicateDocument%"
+                    , ca = "%ca:DuplicateDocument%"
+                    , br = "%br:DuplicateDocument%"
+                    }
+
                 DeleteDocument ->
                     { en = "Delete Document"
                     , zh_hans = "%zh_hans:DeleteDocument%"
@@ -1084,6 +1106,44 @@ tr lang trans =
                     , sv = "%sv:LastEdit%"
                     , ca = "%ca:LastEdit%"
                     , br = "%br:LastEdit%"
+                    }
+
+                ConfirmBannerStrong ->
+                    { en = "Please confirm your email."
+                    , zh_hans = "%zh_hans:ConfirmBannerStrong%"
+                    , zh_hant = "%zh_hant:ConfirmBannerStrong%"
+                    , es = "%es:ConfirmBannerStrong%"
+                    , ar = "%ar:ConfirmBannerStrong%"
+                    , fr = "%fr:ConfirmBannerStrong%"
+                    , ru = "%ru:ConfirmBannerStrong%"
+                    , de = "%de:ConfirmBannerStrong%"
+                    , ja = "%ja:ConfirmBannerStrong%"
+                    , pes = "%pes:ConfirmBannerStrong%"
+                    , it = "%it:ConfirmBannerStrong%"
+                    , nl = "%nl:ConfirmBannerStrong%"
+                    , hu = "%hu:ConfirmBannerStrong%"
+                    , sv = "%sv:ConfirmBannerStrong%"
+                    , ca = "%ca:ConfirmBannerStrong%"
+                    , br = "%br:ConfirmBannerStrong%"
+                    }
+
+                ConfirmBannerBody ->
+                    { en = "We've sent instructions to "
+                    , zh_hans = "%zh_hans:ConfirmBannerStrong%"
+                    , zh_hant = "%zh_hant:ConfirmBannerStrong%"
+                    , es = "%es:ConfirmBannerStrong%"
+                    , ar = "%ar:ConfirmBannerStrong%"
+                    , fr = "%fr:ConfirmBannerStrong%"
+                    , ru = "%ru:ConfirmBannerStrong%"
+                    , de = "%de:ConfirmBannerStrong%"
+                    , ja = "%ja:ConfirmBannerStrong%"
+                    , pes = "%pes:ConfirmBannerStrong%"
+                    , it = "%it:ConfirmBannerStrong%"
+                    , nl = "%nl:ConfirmBannerStrong%"
+                    , hu = "%hu:ConfirmBannerStrong%"
+                    , sv = "%sv:ConfirmBannerStrong%"
+                    , ca = "%ca:ConfirmBannerStrong%"
+                    , br = "%br:ConfirmBannerStrong%"
                     }
 
                 Help ->
@@ -3903,7 +3963,7 @@ tr lang trans =
                     }
 
                 DaysLeft n ->
-                    { en = numberPlural n "%1 day left in trial" "%1 days left in trial%"
+                    { en = numberPlural n "%1 day left in trial" "%1 days left in trial"
                     , zh_hans = numberPlural n "%zh_hans:DaysLeft%:0" "%zh_hans:DaysLeft%:1"
                     , zh_hant = numberPlural n "%zh_hant:DaysLeft%:0" "%zh_hant:DaysLeft%:1"
                     , es = numberPlural n "%es:DaysLeft%:0" "%es:DaysLeft%:1"

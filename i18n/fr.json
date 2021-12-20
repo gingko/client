@@ -1558,5 +1558,29 @@
         "term_plural": "",
         "reference": "Elm:ManageSubscription",
         "comment": ""
+    },
+    {
+        "term": "Duplicate Document",
+        "definition": "Document en double",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DuplicateDocument",
+        "comment": ""
+    },
+    {
+        "term": "Please confirm your email.",
+        "definition": "Veuillez confirmer votre email.",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ConfirmBannerStrong",
+        "comment": ""
+    },
+    {
+        "term": "We've sent instructions to ",
+        "definition": "Nous avons envoy\u00e9 des instructions \u00e0 ",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ConfirmBannerBody",
+        "comment": ""
     }
 ]

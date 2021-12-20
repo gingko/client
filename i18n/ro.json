@@ -1,7 +1,7 @@
 [
     {
         "term": "Cancel",
-        "definition": "Abbrechen",
+        "definition": "Anuleaz\u0103",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Cancel",
@@ -9,7 +9,7 @@
     },
     {
         "term": "Recent Documents",
-        "definition": "Benutzte Dokumente",
+        "definition": "Documente recente",
         "context": "",
         "term_plural": "",
         "reference": "Elm:RecentDocuments",
@@ -17,7 +17,7 @@
     },
     {
         "term": "Last Opened",
-        "definition": "Zuletzt ge\u00f6ffnet",
+        "definition": "Deschis ultima dat\u0103",
         "context": "",
         "term_plural": "",
         "reference": "Elm:LastOpened",
@@ -25,7 +25,7 @@
     },
     {
         "term": "Open Other Documents",
-        "definition": "Andere Dokumente \u00f6ffnen",
+        "definition": "Deschide alte documente",
         "context": "",
         "term_plural": "",
         "reference": "Elm:OpenOtherDocuments",
@@ -33,7 +33,7 @@
     },
     {
         "term": "Remove From List",
-        "definition": "Aus Liste entfernen",
+        "definition": "Elimin\u0103 din list\u0103",
         "context": "",
         "term_plural": "",
         "reference": "Elm:RemoveFromList",
@@ -41,7 +41,7 @@
     },
     {
         "term": "New Document...",
-        "definition": "Neues Dokument...",
+        "definition": "Document nou...",
         "context": "",
         "term_plural": "",
         "reference": "Elm:NeverSaved",
@@ -49,7 +49,7 @@
     },
     {
         "term": "Unsaved Changes...",
-        "definition": "Nicht gespeicherte \u00c4nderungen...",
+        "definition": "Modific\u0103ri nesalvate...",
         "context": "",
         "term_plural": "",
         "reference": "Elm:UnsavedChanges",
@@ -57,7 +57,7 @@
     },
     {
         "term": "Database Error...",
-        "definition": "Datenbankfehler...",
+        "definition": "Eroare de baz\u0103 de date...",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DatabaseError",
@@ -65,7 +65,7 @@
     },
     {
         "term": "Last saved",
-        "definition": "Zuletzt gespeichert",
+        "definition": "Ultima salvare",
         "context": "",
         "term_plural": "",
         "reference": "Elm:LastSaved",
@@ -73,7 +73,7 @@
     },
     {
         "term": "Last edit",
-        "definition": "Zuletzt editiert",
+        "definition": "Ultima modificare",
         "context": "",
         "term_plural": "",
         "reference": "Elm:LastEdit",
@@ -81,7 +81,7 @@
     },
     {
         "term": "Keyboard Shortcuts Help",
-        "definition": "Hilfe zu Tastaturk\u00fcrzeln",
+        "definition": "Ajutor pentru combina\u021bii de taste",
         "context": "",
         "term_plural": "",
         "reference": "Elm:KeyboardHelp",
@@ -89,7 +89,7 @@
     },
     {
         "term": "Restore this Version",
-        "definition": "Diese Version wiederherstellen",
+        "definition": "Restaureaz\u0103 aceast\u0103 versiune",
         "context": "",
         "term_plural": "",
         "reference": "Elm:RestoreThisVersion",
@@ -97,7 +97,7 @@
     },
     {
         "term": "Enter",
-        "definition": "Enter",
+        "definition": "Introducere",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EnterKey",
@@ -105,7 +105,7 @@
     },
     {
         "term": "to Edit",
-        "definition": "bearbeiten",
+        "definition": "de Modificat",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EnterAction",
@@ -113,7 +113,7 @@
     },
     {
         "term": "Edit Card (Enter)",
-        "definition": "Karte bearbeiten (Enter)",
+        "definition": "Editare fi\u0219\u0103 (Enter)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditCardTitle",
@@ -121,7 +121,7 @@
     },
     {
         "term": "to Navigate",
-        "definition": "navigieren",
+        "definition": "pentru Navigare",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ArrowsAction",
@@ -129,7 +129,7 @@
     },
     {
         "term": "to Add Child",
-        "definition": "Kind hinzuf\u00fcgen",
+        "definition": "pentru Ad\u0103ugare de ramur\u0103 dependent\u0103",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddChildAction",
@@ -137,7 +137,7 @@
     },
     {
         "term": "to Split Card to the Right",
-        "definition": "Karte nach rechts teilen",
+        "definition": "pentru a Diviza fi\u0219a c\u0103tre Dreapta",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SplitChildAction",
@@ -145,7 +145,7 @@
     },
     {
         "term": "Insert Child (Ctrl+L)",
-        "definition": "Kind einf\u00fcgen (Strg + L)",
+        "definition": "Inserare Subarbore (Ctrl+L)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:InsertChildTitle",
@@ -153,7 +153,7 @@
     },
     {
         "term": "to Add Below",
-        "definition": "unten hinzuf\u00fcgen",
+        "definition": "pentru Ad\u0103ugare dedesubt",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddBelowAction",
@@ -161,7 +161,7 @@
     },
     {
         "term": "to Split Card Down",
-        "definition": "Karte nach unten teilen",
+        "definition": "pentru Divizat Fi\u0219a \u00een Jos",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SplitBelowAction",
@@ -169,7 +169,7 @@
     },
     {
         "term": "to Merge into Next",
-        "definition": "in Next verschmelzen",
+        "definition": "pentru Combinat \u00een Continuare",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MergeDownAction",
@@ -177,7 +177,7 @@
     },
     {
         "term": "Insert Below (Ctrl+J)",
-        "definition": "Unterhalb einf\u00fcgen (Ctrl+J)",
+        "definition": "Insereaz\u0103 Dedesubt (Ctrl+J)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:InsertBelowTitle",
@@ -185,7 +185,7 @@
     },
     {
         "term": "to Add Above",
-        "definition": "oben hinzuf\u00fcgen",
+        "definition": "pentru Ad\u0103ugat Deasupra",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddAboveAction",
@@ -193,7 +193,7 @@
     },
     {
         "term": "to Split Card Upward",
-        "definition": "Karte nach oben teilen",
+        "definition": "pentru Divizat Fi\u0219a \u00een Sus",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SplitUpwardAction",
@@ -201,7 +201,7 @@
     },
     {
         "term": "to Merge into Previous",
-        "definition": "in Vorheriges verschmelzen",
+        "definition": "pentru Combinat \u00een Precedenta",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MergeUpAction",
@@ -209,7 +209,7 @@
     },
     {
         "term": "Insert Above (Ctrl+K)",
-        "definition": "Oberhalb einf\u00fcgen (Ctrl+K)",
+        "definition": "Insereaz\u0103 Deasupra (Ctrl+K)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:InsertAboveTitle",
@@ -217,7 +217,7 @@
     },
     {
         "term": "(arrows)",
-        "definition": "(Pfeile)",
+        "definition": "(s\u0103ge\u021bi)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ArrowKeys",
@@ -225,7 +225,7 @@
     },
     {
         "term": "to Move",
-        "definition": "bewegen",
+        "definition": "pentru a Deplasa",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MoveAction",
@@ -233,7 +233,7 @@
     },
     {
         "term": "Backspace",
-        "definition": "Backspace",
+        "definition": "Inapoi",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Backspace",
@@ -241,7 +241,7 @@
     },
     {
         "term": "to Delete",
-        "definition": "l\u00f6schen",
+        "definition": "pentru a \u0218terge",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DeleteAction",
@@ -249,7 +249,7 @@
     },
     {
         "term": "Delete Card (Ctrl+Backspace)",
-        "definition": "Karte l\u00f6schen (Ctrl+Backspace)",
+        "definition": "\u0218tergere Fi\u0219\u0103 (Ctrl+Backspace)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DeleteCardTitle",
@@ -257,7 +257,7 @@
     },
     {
         "term": "for Bold",
-        "definition": "f\u00fcr Mut",
+        "definition": "pentru Bold",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ForBold",
@@ -265,7 +265,7 @@
     },
     {
         "term": "for Italic",
-        "definition": "f\u00fcr kursiv",
+        "definition": "pentru Italic",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ForItalic",
@@ -273,7 +273,7 @@
     },
     {
         "term": "to Save Changes",
-        "definition": "\u00c4nderungen speichern",
+        "definition": "pentru a Salva Modific\u0103rile",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ToSaveChanges",
@@ -281,7 +281,7 @@
     },
     {
         "term": "Save Changes (Ctrl+Enter)",
-        "definition": "\u00c4nderungen speichern (Ctrl+Enter)",
+        "definition": "Salvare de Modific\u0103ri (Ctrl+Enter)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SaveChangesTitle",
@@ -297,7 +297,7 @@
     },
     {
         "term": "to Cancel Changes",
-        "definition": "\u00c4nderungen abbrechen",
+        "definition": "pentru Anulare de Modific\u0103ri",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ToCancelChanges",
@@ -305,7 +305,7 @@
     },
     {
         "term": "Press '\/' to search",
-        "definition": "Dr\u00fccke '\/' um zu suchen",
+        "definition": "Apas\u0103 '\/' pentru c\u0103utare",
         "context": "",
         "term_plural": "",
         "reference": "Elm:PressToSearch",
@@ -313,7 +313,7 @@
     },
     {
         "term": "Heading Font",
-        "definition": "\u00dcberschrift-Font",
+        "definition": "Fontul pentru Titlu",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HeadingFont",
@@ -321,7 +321,7 @@
     },
     {
         "term": "Content Font",
-        "definition": "Inhalts-Font",
+        "definition": "Fontul pentru con\u021binut",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ContentFont",
@@ -329,7 +329,7 @@
     },
     {
         "term": "Editing\/Monospace Font",
-        "definition": "Editing \/ Monospace Font",
+        "definition": "Fontul pentru Editare\/Monospace",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditingFont",
@@ -338,8 +338,9 @@
     {
         "term": "Session : %1 word",
         "definition": {
-            "one": "Sitzung:% 1 Wort",
-            "other": ""
+            "one": "Sesiune: %1 cuvant",
+            "few": "Sesiune: %1 cuvinte",
+            "other": "Sesiune: %1 cuvinte"
         },
         "context": "",
         "term_plural": "Session : %1 words",
@@ -349,8 +350,9 @@
     {
         "term": "Total : %1 word",
         "definition": {
-            "one": "Gesamt:% 1 Wort",
-            "other": ""
+            "one": "Total: %1 cuvant",
+            "few": "Total: %1 cuvinte",
+            "other": "Total: %1 cuvinte"
         },
         "context": "",
         "term_plural": "Total : %1 words",
@@ -360,8 +362,9 @@
     {
         "term": "Card : %1 word",
         "definition": {
-            "one": "Karte:% 1 Wort",
-            "other": ""
+            "one": "Fi\u0219\u0103: %1 cuvant",
+            "few": "Fisa: %1 cuvinte",
+            "other": "Fisa: %1 cuvinte"
         },
         "context": "",
         "term_plural": "Card : %1 words",
@@ -371,8 +374,9 @@
     {
         "term": "Subtree : %1 word",
         "definition": {
-            "one": "Teilbaum:% 1 Wort",
-            "other": ""
+            "one": "Subarbore: %1 cuvant",
+            "few": "Subarbore: %1 cuvinte",
+            "other": "Subarbore: %1 cuvinte"
         },
         "context": "",
         "term_plural": "Subtree : %1 words",
@@ -382,8 +386,9 @@
     {
         "term": "Group : %1 word",
         "definition": {
-            "one": "Gruppe:% 1 Wort",
-            "other": ""
+            "one": "Grup: %1 cuvant",
+            "few": "Grup: %1 cuvinte",
+            "other": "Grup: %1 cuvinte"
         },
         "context": "",
         "term_plural": "Group : %1 words",
@@ -393,8 +398,9 @@
     {
         "term": "Column : %1 word",
         "definition": {
-            "one": "Spalte:% 1 Wort",
-            "other": ""
+            "one": "Coloan\u0103: %1 cuvant",
+            "few": "Coloana: %1 cuvinte",
+            "other": "Coloana: %1 cuvinte"
         },
         "context": "",
         "term_plural": "Column : %1 words",
@@ -403,7 +409,7 @@
     },
     {
         "term": "Saved",
-        "definition": "Gespeichert",
+        "definition": "Salvat",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ChangesSaved",
@@ -411,7 +417,7 @@
     },
     {
         "term": "Blank Tree",
-        "definition": "Leer",
+        "definition": "Arbore Vid",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HomeBlank",
@@ -419,7 +425,7 @@
     },
     {
         "term": "From Old Account",
-        "definition": "Vom alten Konto",
+        "definition": "Din Cont Vechi",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HomeImportLegacy",
@@ -427,7 +433,7 @@
     },
     {
         "term": "Bulk transfer of trees from your legacy account",
-        "definition": "Massen\u00fcbertragung von B\u00e4umen von Ihrem Legacy-Konto",
+        "definition": "Transfer masiv de arbori din contul dvs. mo\u0219tenit",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HomeLegacyFrom",
@@ -435,7 +441,7 @@
     },
     {
         "term": "Last Updated",
-        "definition": "Zuletzt aktualisiert",
+        "definition": "Ultima Actualizare",
         "context": "",
         "term_plural": "",
         "reference": "Elm:LastUpdated",
@@ -443,7 +449,7 @@
     },
     {
         "term": "Delete Document",
-        "definition": "Dokument l\u00f6schen",
+        "definition": "\u0218tergere Document",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DeleteDocument",
@@ -451,7 +457,7 @@
     },
     {
         "term": "Saved Offline",
-        "definition": "Offline gespeichert",
+        "definition": "Salvat offline",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SavedInternally",
@@ -459,7 +465,7 @@
     },
     {
         "term": "Synced",
-        "definition": "Synchronisiert",
+        "definition": "Sincronizat",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ChangesSynced",
@@ -467,7 +473,7 @@
     },
     {
         "term": "More Formatting Options...",
-        "definition": "Weitere Formatierungsoptionen ...",
+        "definition": "Mai multe op\u021biuni de formatare...",
         "context": "",
         "term_plural": "",
         "reference": "Elm:FormattingGuide",
@@ -475,7 +481,7 @@
     },
     {
         "term": "Are you sure you want to undo your changes?",
-        "definition": "M\u00f6chten Sie Ihre \u00c4nderungen wirklich r\u00fcckg\u00e4ngig machen?",
+        "definition": "Sunteti sigur c\u0103 vre\u021bi s\u0103 anulati modific\u0103rile?",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AreYouSureCancel",
@@ -483,7 +489,7 @@
     },
     {
         "term": "to Edit in Fullscreen",
-        "definition": "zum Bearbeiten im Vollbildmodus",
+        "definition": "de Modificat \u00een plin Ecran",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditFullscreenAction",
@@ -491,7 +497,7 @@
     },
     {
         "term": "Quick Document Switcher",
-        "definition": "Quick Document Switcher",
+        "definition": "Schimbare rapid\u0103 de Document",
         "context": "",
         "term_plural": "",
         "reference": "Elm:QuickDocumentSwitcher",
@@ -499,7 +505,7 @@
     },
     {
         "term": "Email Support...",
-        "definition": "E-Mail-Unterst\u00fctzung...",
+        "definition": "Suport prin Email...",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EmailSupport",
@@ -507,7 +513,7 @@
     },
     {
         "term": "Logout",
-        "definition": "Abmeldung",
+        "definition": "Deconectare",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Logout",
@@ -515,7 +521,7 @@
     },
     {
         "term": "Language",
-        "definition": "Sprache",
+        "definition": "Limb\u0103",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Language",
@@ -523,7 +529,7 @@
     },
     {
         "term": "Contribute translations",
-        "definition": "\u00dcbersetzungen beisteuern",
+        "definition": "Contribuie traduceri",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ContributeTranslations",
@@ -531,7 +537,7 @@
     },
     {
         "term": "here",
-        "definition": "hier",
+        "definition": "aici",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Here",
@@ -539,7 +545,7 @@
     },
     {
         "term": "Import JSON tree",
-        "definition": "JSON-Baum importieren",
+        "definition": "Import\u0103 arbore JSON",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HomeImportJSON",
@@ -547,7 +553,7 @@
     },
     {
         "term": "From Gingko Desktop or Online export file",
-        "definition": "Vom Desktop oder online",
+        "definition": "Dinspre Gingko Desktop sau fi\u0219ier exportat Online",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HomeJSONFrom",
@@ -555,7 +561,7 @@
     },
     {
         "term": "New Document",
-        "definition": "Neues Dokument",
+        "definition": "Document nou",
         "context": "",
         "term_plural": "",
         "reference": "Elm:NewDocument",
@@ -563,7 +569,7 @@
     },
     {
         "term": "Show Document List",
-        "definition": "Dokumentenliste anzeigen",
+        "definition": "Afi\u0219a\u021bi lista de documente",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ShowDocumentList",
@@ -571,7 +577,7 @@
     },
     {
         "term": "Sort by Name",
-        "definition": "Nach Name sortieren",
+        "definition": "Sorteaz\u0103 dup\u0103 nume",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SortByName",
@@ -579,7 +585,7 @@
     },
     {
         "term": "Sort by Last Modified",
-        "definition": "Sortieren nach Zuletzt ge\u00e4ndert",
+        "definition": "Sorteaz\u0103 dup\u0103 Ultima modificare",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SortByLastModified",
@@ -587,7 +593,7 @@
     },
     {
         "term": "Sort by Date Created",
-        "definition": "Sortieren nach Erstellungsdatum",
+        "definition": "Sorteaz\u0103 dup\u0103 data cre\u0103rii",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SortByDateCreated",
@@ -595,7 +601,7 @@
     },
     {
         "term": "Templates & Examples",
-        "definition": "Vorlagen und Beispiele",
+        "definition": "Modele \u0219i exemple",
         "context": "",
         "term_plural": "",
         "reference": "Elm:TemplatesAndExamples",
@@ -603,7 +609,7 @@
     },
     {
         "term": "New",
-        "definition": "Neu",
+        "definition": "Nou",
         "context": "",
         "term_plural": "",
         "reference": "Elm:New",
@@ -611,7 +617,7 @@
     },
     {
         "term": "Import",
-        "definition": "Importieren",
+        "definition": "Import",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ImportSectionTitle",
@@ -619,7 +625,7 @@
     },
     {
         "term": "Import Text Files",
-        "definition": "Textdateien importieren",
+        "definition": "Import fi\u0219iere text",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ImportTextFiles",
@@ -627,7 +633,7 @@
     },
     {
         "term": "Import multiple markdown or regular text files.",
-        "definition": "Importieren Sie mehrere Markdown- oder normale Textdateien.",
+        "definition": "Importa\u021bi mai multe fi\u0219iere markdown sau de text normal.",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ImportTextFilesDesc",
@@ -635,7 +641,7 @@
     },
     {
         "term": "Import Opml Files",
-        "definition": "Opml-Dateien importieren",
+        "definition": "Import fi\u0219iere Opml",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ImportOpmlFiles",
@@ -643,7 +649,7 @@
     },
     {
         "term": "Import from Workflowy or other outliners.",
-        "definition": "Import aus Workflowy oder anderen Outlinern.",
+        "definition": "Importa\u021bi din Workflowy sau alte programe de schi\u021be.",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ImportOpmlFilesDesc",
@@ -651,7 +657,7 @@
     },
     {
         "term": "Timeline 2022",
-        "definition": "Zeitplan 2022",
+        "definition": "Calendarul 2022",
         "context": "",
         "term_plural": "",
         "reference": "Elm:TimelineTemplate",
@@ -659,7 +665,7 @@
     },
     {
         "term": "A tree-based calendar",
-        "definition": "Ein baumbasierter Kalender",
+        "definition": "Un calendar bazat pe arbori",
         "context": "",
         "term_plural": "",
         "reference": "Elm:TimelineTemplateDesc",
@@ -667,7 +673,7 @@
     },
     {
         "term": "Academic Paper",
-        "definition": "Akademisches Papier",
+        "definition": "Lucrare academic\u0103",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AcademicPaperTemplate",
@@ -675,7 +681,7 @@
     },
     {
         "term": "Starting point for journal paper",
-        "definition": "Ausgangspunkt f\u00fcr Zeitschriftenartikel",
+        "definition": "Punctul de plecare pentru articolul de jurnal",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AcademicPaperTemplateDesc",
@@ -683,7 +689,7 @@
     },
     {
         "term": "Project Brainstorming",
-        "definition": "Projekt-Brainstorming",
+        "definition": "Brainstorming de proiecte",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ProjectBrainstormingTemplate",
@@ -691,7 +697,7 @@
     },
     {
         "term": "Example on clarifying project goals",
-        "definition": "Beispiel zur Kl\u00e4rung der Projektziele",
+        "definition": "Exemplu privind clarificarea obiectivelor proiectului",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ProjectBrainstormingTemplateDesc",
@@ -699,7 +705,7 @@
     },
     {
         "term": "Hero's Journey",
-        "definition": "Die Reise des Helden",
+        "definition": "C\u0103l\u0103toria eroului",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HerosJourneyTemplate",
@@ -707,7 +713,7 @@
     },
     {
         "term": "A framework for fictional stories",
-        "definition": "Ein Rahmen f\u00fcr fiktive Geschichten",
+        "definition": "Un cadru pentru pove\u0219ti de fic\u021biune",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HerosJourneyTemplateDesc",
@@ -715,7 +721,7 @@
     },
     {
         "term": "Help",
-        "definition": "Hilfe",
+        "definition": "Ajutor",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Help",
@@ -723,7 +729,7 @@
     },
     {
         "term": "What's New",
-        "definition": "Was gibt's Neues?",
+        "definition": "Ce este nou",
         "context": "",
         "term_plural": "",
         "reference": "Elm:WhatsNew",
@@ -731,7 +737,7 @@
     },
     {
         "term": "Account",
-        "definition": "Konto",
+        "definition": "Cont",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AccountTooltip",
@@ -739,7 +745,7 @@
     },
     {
         "term": "Keyboard Shortcuts",
-        "definition": "Tastaturkurzbefehle",
+        "definition": "Comenzi rapide de la tastatur\u0103",
         "context": "",
         "term_plural": "",
         "reference": "Elm:KeyboardShortcuts",
@@ -747,7 +753,7 @@
     },
     {
         "term": "View Mode Shortcuts : ",
-        "definition": "Kurzbefehle im Ansichtsmodus : ",
+        "definition": "Comenzi rapide pentru modul de vizualizare : ",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ViewModeShortcuts",
@@ -755,7 +761,7 @@
     },
     {
         "term": "Card Edit, Create, Delete",
-        "definition": "Karte bearbeiten, erstellen, l\u00f6schen",
+        "definition": "Card Editare, creare, \u0219tergere",
         "context": "",
         "term_plural": "",
         "reference": "Elm:CardEditCreateDelete",
@@ -763,7 +769,7 @@
     },
     {
         "term": "Navigation, Moving Cards",
-        "definition": "Navigation, Karten verschieben",
+        "definition": "Naviga\u021bie, C\u0103r\u021bi de mi\u0219care",
         "context": "",
         "term_plural": "",
         "reference": "Elm:NavigationMovingCards",
@@ -771,7 +777,7 @@
     },
     {
         "term": "Copy\/Paste",
-        "definition": "Kopieren\/Einf\u00fcgen",
+        "definition": "Copy\/Paste",
         "context": "",
         "term_plural": "",
         "reference": "Elm:CopyPaste",
@@ -779,7 +785,7 @@
     },
     {
         "term": "Searching, Merging Cards",
-        "definition": "Suchen, Zusammenf\u00fchren von Karten",
+        "definition": "C\u0103utarea, \u00eembinarea cardurilor",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SearchingMerging",
@@ -787,7 +793,7 @@
     },
     {
         "term": "Help, Info, Documents",
-        "definition": "Hilfe, Infos, Dokumente",
+        "definition": "Ajutor, Informa\u021bii, Documente",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HelpInfoDocs",
@@ -795,7 +801,7 @@
     },
     {
         "term": "Edit Mode Shortcuts : ",
-        "definition": "Tastaturk\u00fcrzel im Bearbeitungsmodus : ",
+        "definition": "Comenzi rapide pentru modul de editare : ",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditModeShortcuts",
@@ -803,7 +809,7 @@
     },
     {
         "term": "Card Save, Create",
-        "definition": "Karte speichern, erstellen",
+        "definition": "Card Salva\u021bi, Crea\u021bi",
         "context": "",
         "term_plural": "",
         "reference": "Elm:CardSaveCreate",
@@ -811,7 +817,7 @@
     },
     {
         "term": "Edit card",
-        "definition": "Karte bearbeiten",
+        "definition": "Editare card",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditCard",
@@ -819,7 +825,7 @@
     },
     {
         "term": "Add card below",
-        "definition": "Karte unten hinzuf\u00fcgen",
+        "definition": "Ad\u0103uga\u021bi cardul de mai jos",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddCardBelow",
@@ -827,7 +833,7 @@
     },
     {
         "term": "Add card above",
-        "definition": "Karte oben hinzuf\u00fcgen",
+        "definition": "Ad\u0103uga\u021bi cardul de mai sus",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddCardAbove",
@@ -835,7 +841,7 @@
     },
     {
         "term": "Add card to the right (as child)",
-        "definition": "Karte auf der rechten Seite hinzuf\u00fcgen (als Kind)",
+        "definition": "Ad\u0103uga\u021bi un card \u00een dreapta (ca \u0219i copilul)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddCardToRight",
@@ -843,7 +849,7 @@
     },
     {
         "term": "Add card below (split at cursor)",
-        "definition": "Karte unten hinzuf\u00fcgen (am Cursor geteilt)",
+        "definition": "Ad\u0103uga\u021bi cardul de mai jos (\u00eemp\u0103r\u021bit la cursor)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddCardBelowSplit",
@@ -851,7 +857,7 @@
     },
     {
         "term": "Add card above (split at cursor)",
-        "definition": "Karte oben hinzuf\u00fcgen (Trennung am Cursor)",
+        "definition": "Ad\u0103uga\u021bi cardul de mai sus (\u00eemp\u0103r\u021bit la cursor)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddCardAboveSplit",
@@ -859,7 +865,7 @@
     },
     {
         "term": "Add card to the right (split at cursor)",
-        "definition": "Karte auf der rechten Seite hinzuf\u00fcgen (Teilung am Cursor)",
+        "definition": "Ad\u0103uga\u021bi o carte \u00een dreapta (\u00eemp\u0103r\u021bit la cursor)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddCardToRightSplit",
@@ -867,7 +873,7 @@
     },
     {
         "term": "Delete card (and its children)",
-        "definition": "Karte (und ihre Kinder) l\u00f6schen",
+        "definition": "\u0218tergerea cardului (\u0219i a copiilor s\u0103i)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DeleteCard",
@@ -875,7 +881,7 @@
     },
     {
         "term": "Go up\/down\/left\/right",
-        "definition": "Nach oben\/unten\/links\/rechts gehen",
+        "definition": "Merge\u021bi \u00een sus\/jos\/st\u00e2nga\/dreapta",
         "context": "",
         "term_plural": "",
         "reference": "Elm:GoUpDownLeftRight",
@@ -883,7 +889,7 @@
     },
     {
         "term": "Go to beginning of group",
-        "definition": "Zum Anfang der Gruppe gehen",
+        "definition": "Merge\u021bi la \u00eenceputul grupului",
         "context": "",
         "term_plural": "",
         "reference": "Elm:GoToBeginningOfGroup",
@@ -891,7 +897,7 @@
     },
     {
         "term": "Go to end of group",
-        "definition": "Zum Ende der Gruppe gehen",
+        "definition": "Merge\u021bi la sf\u00e2r\u0219itul grupului",
         "context": "",
         "term_plural": "",
         "reference": "Elm:GoToEndOfGroup",
@@ -899,7 +905,7 @@
     },
     {
         "term": "Go to beginning of column",
-        "definition": "Zum Anfang der Spalte gehen",
+        "definition": "Merge\u021bi la \u00eenceputul coloanei",
         "context": "",
         "term_plural": "",
         "reference": "Elm:GoToBeginningOfColumn",
@@ -907,7 +913,7 @@
     },
     {
         "term": "Go to end of column",
-        "definition": "Zum Ende der Spalte gehen",
+        "definition": "Merge\u021bi la sf\u00e2r\u0219itul coloanei",
         "context": "",
         "term_plural": "",
         "reference": "Elm:GoToEndOfColumn",
@@ -915,7 +921,7 @@
     },
     {
         "term": "Move current card (and children)",
-        "definition": "Aktuelle Karte (und Kinder) verschieben",
+        "definition": "Mutarea cardului actual (\u0219i a copiilor)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MoveCurrentCard",
@@ -939,7 +945,7 @@
     },
     {
         "term": "Home",
-        "definition": "Startseite",
+        "definition": "Acas\u0103",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HomeKey",
@@ -947,7 +953,7 @@
     },
     {
         "term": "End",
-        "definition": "Ende",
+        "definition": "Sf\u00e2r\u0219itul",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EndKey",
@@ -955,7 +961,7 @@
     },
     {
         "term": "(any of above)",
-        "definition": "(eines der oben genannten)",
+        "definition": "(oricare dintre cele de mai sus)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AnyOfAbove",
@@ -963,7 +969,7 @@
     },
     {
         "term": "Drag card by left edge",
-        "definition": "Karte am linken Rand ziehen",
+        "definition": "Trage\u021bi cardul de marginea st\u00e2ng\u0103",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DragCard",
@@ -971,7 +977,7 @@
     },
     {
         "term": "Search",
-        "definition": "Suche",
+        "definition": "C\u0103utare",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Search",
@@ -979,7 +985,7 @@
     },
     {
         "term": "Clear search, focus current card",
-        "definition": "Suche l\u00f6schen, aktuelle Karte fokussieren",
+        "definition": "\u0218terge\u021bi c\u0103utarea, concentra\u021bi-v\u0103 pe cardul curent",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ClearSearch",
@@ -987,7 +993,7 @@
     },
     {
         "term": "Merge card up",
-        "definition": "Karte nach oben zusammenf\u00fchren",
+        "definition": "Card de fuziune sus",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MergeCardUp",
@@ -995,7 +1001,7 @@
     },
     {
         "term": "Merge card down",
-        "definition": "Karte nach unten zusammenf\u00fchren",
+        "definition": "Card de fuziune \u00een jos",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MergeCardDown",
@@ -1003,7 +1009,7 @@
     },
     {
         "term": "Copy current subtree",
-        "definition": "Aktuellen Teilbaum kopieren",
+        "definition": "Copiaz\u0103 subarborele curent",
         "context": "",
         "term_plural": "",
         "reference": "Elm:CopyCurrent",
@@ -1011,7 +1017,7 @@
     },
     {
         "term": "Paste subtree below current card",
-        "definition": "Teilbaum unter der aktuellen Karte einf\u00fcgen",
+        "definition": "Lipirea subarborelui sub cardul curent",
         "context": "",
         "term_plural": "",
         "reference": "Elm:PasteBelow",
@@ -1019,7 +1025,7 @@
     },
     {
         "term": "Paste subtree as child of current card",
-        "definition": "Teilbaum als Kind der aktuellen Karte einf\u00fcgen",
+        "definition": "Lipirea subarborelui ca copil al cardului curent",
         "context": "",
         "term_plural": "",
         "reference": "Elm:PasteAsChild",
@@ -1027,7 +1033,7 @@
     },
     {
         "term": "Insert selected text as new card",
-        "definition": "Markierten Text als neue Karte einf\u00fcgen",
+        "definition": "Inserarea textului selectat ca o carte nou\u0103",
         "context": "",
         "term_plural": "",
         "reference": "Elm:InsertSelected",
@@ -1035,7 +1041,7 @@
     },
     {
         "term": "Drag selected text into tree",
-        "definition": "Markierten Text in den Baum ziehen",
+        "definition": "Trage\u021bi textul selectat \u00een copac",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DragSelected",
@@ -1043,7 +1049,7 @@
     },
     {
         "term": "Word counts",
-        "definition": "W\u00f6rter z\u00e4hlen",
+        "definition": "Num\u0103rul de cuvinte",
         "context": "",
         "term_plural": "",
         "reference": "Elm:WordCounts",
@@ -1051,7 +1057,7 @@
     },
     {
         "term": "Switch to different document",
-        "definition": "Zu einem anderen Dokument wechseln",
+        "definition": "Trece\u021bi la un alt document",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SwitchDocuments",
@@ -1059,7 +1065,7 @@
     },
     {
         "term": "This help screen",
-        "definition": "Dieser Hilfebildschirm",
+        "definition": "Acest ecran de ajutor",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ThisHelpScreen",
@@ -1067,7 +1073,7 @@
     },
     {
         "term": " or ",
-        "definition": " oder ",
+        "definition": " sau ",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Or",
@@ -1075,7 +1081,7 @@
     },
     {
         "term": "Edit card in fullscreen mode",
-        "definition": "Karte im Vollbildmodus bearbeiten",
+        "definition": "Editarea cardului \u00een modul ecran complet",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditCardFullscreen",
@@ -1083,7 +1089,7 @@
     },
     {
         "term": "Edit Cards",
-        "definition": "Karten bearbeiten",
+        "definition": "Edita\u021bi c\u0103r\u021bi",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditCards",
@@ -1091,7 +1097,7 @@
     },
     {
         "term": "Shift",
-        "definition": "Schicht",
+        "definition": "Schimbul",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ShiftKey",
@@ -1099,7 +1105,7 @@
     },
     {
         "term": "AltKey",
-        "definition": "AltTaste",
+        "definition": "AltKey",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AltKey",
@@ -1107,7 +1113,7 @@
     },
     {
         "term": "Navigate",
-        "definition": "navigieren.",
+        "definition": "Naviga\u021bi pe",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Navigate",
@@ -1115,7 +1121,7 @@
     },
     {
         "term": "Add New Cards",
-        "definition": "Neue Karten hinzuf\u00fcgen",
+        "definition": "Ad\u0103uga\u021bi c\u0103r\u021bi noi",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddNewCards",
@@ -1123,7 +1129,7 @@
     },
     {
         "term": "Split At Cursor",
-        "definition": "Teilen am Cursor",
+        "definition": "\u00cemp\u0103r\u021bit la cursor",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SplitAtCursor",
@@ -1131,7 +1137,7 @@
     },
     {
         "term": "Merge Cards",
-        "definition": "Karten zusammenf\u00fchren",
+        "definition": "\u00cembinarea cardurilor",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MergeCards",
@@ -1139,7 +1145,7 @@
     },
     {
         "term": "Move & Delete Cards",
-        "definition": "Karten verschieben und l\u00f6schen",
+        "definition": "Mutarea \u0219i \u0219tergerea cardurilor",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MoveAndDelete",
@@ -1147,7 +1153,7 @@
     },
     {
         "term": "Bold selection",
-        "definition": "Mutige Auswahl",
+        "definition": "Selec\u021bie \u00eendr\u0103znea\u021b\u0103",
         "context": "",
         "term_plural": "",
         "reference": "Elm:BoldSelection",
@@ -1155,7 +1161,7 @@
     },
     {
         "term": "Italicize selection",
-        "definition": "Auswahl kursiv darstellen",
+        "definition": "Selec\u021bie cu italice",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ItalicizeSelection",
@@ -1163,7 +1169,7 @@
     },
     {
         "term": "Save changes",
-        "definition": "\u00c4nderungen speichern",
+        "definition": "Salva\u021bi modific\u0103rile",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SaveChanges",
@@ -1171,7 +1177,7 @@
     },
     {
         "term": "Save changes and exit card",
-        "definition": "\u00c4nderungen speichern und Karte verlassen",
+        "definition": "Salva\u021bi modific\u0103rile \u0219i ie\u0219i\u021bi din card",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SaveChangesAndExit",
@@ -1179,7 +1185,7 @@
     },
     {
         "term": "Exit edit mode",
-        "definition": "Beenden des Bearbeitungsmodus",
+        "definition": "Ie\u0219i\u021bi din modul de editare",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExitEditMode",
@@ -1187,7 +1193,7 @@
     },
     {
         "term": "Other Shortcuts",
-        "definition": "Andere Abk\u00fcrzungen",
+        "definition": "Alte scurt\u0103turi",
         "context": "",
         "term_plural": "",
         "reference": "Elm:OtherShortcuts",
@@ -1195,7 +1201,7 @@
     },
     {
         "term": "Display word counts",
-        "definition": "Wortanzahl anzeigen",
+        "definition": "Afi\u0219area num\u0103rului de cuvinte",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DisplayWordCounts",
@@ -1203,7 +1209,7 @@
     },
     {
         "term": "(Edit Mode)",
-        "definition": "(Bearbeitungsmodus)",
+        "definition": "(Mod de editare)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditMode",
@@ -1211,7 +1217,7 @@
     },
     {
         "term": "Save\/Cancel Changes",
-        "definition": "\u00c4nderungen speichern\/verwerfen",
+        "definition": "Salva\u021bi\/anula\u021bi modific\u0103rile",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SaveOrCancelChanges",
@@ -1219,7 +1225,7 @@
     },
     {
         "term": "Formatting",
-        "definition": "Formatierung",
+        "definition": "Formatarea",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Formatting",
@@ -1227,7 +1233,7 @@
     },
     {
         "term": "# Title\n## Subtitle",
-        "definition": "# Titel\n## Untertitel",
+        "definition": "# Titlu\n## Subtitlu",
         "context": "",
         "term_plural": "",
         "reference": "Elm:FormattingTitle",
@@ -1235,7 +1241,7 @@
     },
     {
         "term": "Set title level (# to #####)",
-        "definition": "Titelniveau einstellen (# bis #####)",
+        "definition": "Seta\u021bi nivelul titlului (# la #####)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SetTitleLevel",
@@ -1243,7 +1249,7 @@
     },
     {
         "term": "- List item\n  - Subitem",
-        "definition": "- Artikel auflisten\n  - Unterpunkt",
+        "definition": "- Element de list\u0103\n  - Subpost",
         "context": "",
         "term_plural": "",
         "reference": "Elm:FormattingList",
@@ -1251,7 +1257,7 @@
     },
     {
         "term": "[link](http:\/\/t.co)",
-        "definition": "[Link] (http:\/\/t.co)",
+        "definition": "[link](http:\/\/t.co)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:FormattingLink",
@@ -1259,7 +1265,7 @@
     },
     {
         "term": "ParenNumber",
-        "definition": "ParenNumber",
+        "definition": "Num\u0103r de p\u0103rinte",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ParenNumber",
@@ -1275,7 +1281,7 @@
     },
     {
         "term": "Help Videos",
-        "definition": "Hilfe-Videos",
+        "definition": "Videoclipuri de ajutor",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HelpVideos",
@@ -1283,7 +1289,7 @@
     },
     {
         "term": "FAQ & Documentation",
-        "definition": "FAQ & Dokumentation",
+        "definition": "\u00centreb\u0103ri frecvente \u0219i documenta\u021bie",
         "context": "",
         "term_plural": "",
         "reference": "Elm:FAQAndDocs",
@@ -1291,7 +1297,7 @@
     },
     {
         "term": "Open Quick Switcher",
-        "definition": "Quick Switcher \u00f6ffnen",
+        "definition": "Deschide\u021bi Quick Switcher",
         "context": "",
         "term_plural": "",
         "reference": "Elm:OpenQuickSwitcher",
@@ -1299,7 +1305,7 @@
     },
     {
         "term": "Contact Support",
-        "definition": "Kontakt zum Support",
+        "definition": "Suport prin Email...",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ContactSupport",
@@ -1307,7 +1313,7 @@
     },
     {
         "term": "Version History",
-        "definition": "Versionsgeschichte",
+        "definition": "Istoricul versiunii",
         "context": "",
         "term_plural": "",
         "reference": "Elm:VersionHistory",
@@ -1315,7 +1321,7 @@
     },
     {
         "term": "Document Settings",
-        "definition": "Dokument-Einstellungen",
+        "definition": "Set\u0103ri document",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DocumentSettings",
@@ -1323,7 +1329,7 @@
     },
     {
         "term": "Word count...",
-        "definition": "Anzahl der W\u00f6rter...",
+        "definition": "Num\u0103rul de cuvinte...",
         "context": "",
         "term_plural": "",
         "reference": "Elm:WordCount",
@@ -1332,7 +1338,8 @@
     {
         "term": "Total Cards in Tree : %1",
         "definition": {
-            "one": "Karten im Baum insgesamt : %1",
+            "one": "Total carduri \u00een copac : %1",
+            "few": "",
             "other": ""
         },
         "context": "",
@@ -1342,7 +1349,7 @@
     },
     {
         "term": "Document Theme",
-        "definition": "Thema des Dokuments",
+        "definition": "Tema documentului",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DocumentTheme",
@@ -1350,7 +1357,7 @@
     },
     {
         "term": "Default",
-        "definition": "Standard",
+        "definition": "Implicit",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ThemeDefault",
@@ -1358,7 +1365,7 @@
     },
     {
         "term": "Dark Mode",
-        "definition": "Dunkler Modus",
+        "definition": "Modul \u00eentunecat",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ThemeDarkMode",
@@ -1366,7 +1373,7 @@
     },
     {
         "term": "Classic Gingkoapp",
-        "definition": "Klassischer Gingkoapp",
+        "definition": "Gingkoapp clasic",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ThemeClassic",
@@ -1374,7 +1381,7 @@
     },
     {
         "term": "Gray",
-        "definition": "Gray",
+        "definition": "Gri",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ThemeGray",
@@ -1382,7 +1389,7 @@
     },
     {
         "term": "Green",
-        "definition": "Gr\u00fcn",
+        "definition": "Verde",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ThemeGreen",
@@ -1390,7 +1397,7 @@
     },
     {
         "term": "Turquoise",
-        "definition": "T\u00fcrkis",
+        "definition": "Turcoaz",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ThemeTurquoise",
@@ -1398,7 +1405,7 @@
     },
     {
         "term": "Export or Print",
-        "definition": "Exportieren oder Drucken",
+        "definition": "Export sau imprimare",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportOrPrint",
@@ -1406,7 +1413,7 @@
     },
     {
         "term": "Everything",
-        "definition": "Alles",
+        "definition": "Totul",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingEverything",
@@ -1414,7 +1421,7 @@
     },
     {
         "term": "All cards in the tree (in depth-first order)",
-        "definition": "Alle Karten in der Baumstruktur (in der Reihenfolge \"Tiefe zuerst\")",
+        "definition": "Toate c\u0103r\u021bile din arbore (\u00een ordine de ad\u00e2ncime \u00eent\u00e2i)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingEverythingDesc",
@@ -1422,7 +1429,7 @@
     },
     {
         "term": "Current Subtree",
-        "definition": "Aktueller Teilbaum",
+        "definition": "Subarborele curent",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingCurrentSubtree",
@@ -1430,7 +1437,7 @@
     },
     {
         "term": "Current card and all its children",
-        "definition": "Aktuelle Karte und alle ihre untergeordneten Karten",
+        "definition": "Cardul curent \u0219i to\u021bi copiii acestuia",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingCurrentSubtreeDesc",
@@ -1438,7 +1445,7 @@
     },
     {
         "term": "Leaves-only",
-        "definition": "Nur Laub",
+        "definition": "Numai frunze",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingLeavesOnly",
@@ -1446,7 +1453,7 @@
     },
     {
         "term": "Only cards without children",
-        "definition": "Nur Karten ohne Kinder",
+        "definition": "Numai c\u0103r\u021bi f\u0103r\u0103 copii",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingLeavesOnlyDesc",
@@ -1454,7 +1461,7 @@
     },
     {
         "term": "Current Column",
-        "definition": "Aktuelle Kolumne",
+        "definition": "Coloana curent\u0103",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingCurrentColumn",
@@ -1462,7 +1469,7 @@
     },
     {
         "term": "Only carsd in the current (vertical) column",
-        "definition": "Nur Autos in der aktuellen (vertikalen) Spalte",
+        "definition": "Numai ma\u0219inile din coloana curent\u0103 (vertical\u0103)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingCurrentColumnDesc",
@@ -1470,7 +1477,7 @@
     },
     {
         "term": "Word",
-        "definition": "Wort",
+        "definition": "Cuv\u00e2nt",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingWord",
@@ -1478,7 +1485,7 @@
     },
     {
         "term": "Plain Text",
-        "definition": "Klartext",
+        "definition": "Text simplu",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingPlainText",
@@ -1494,7 +1501,7 @@
     },
     {
         "term": "Download Word File",
-        "definition": "Word-Datei herunterladen",
+        "definition": "Desc\u0103rca\u021bi fi\u0219ierul Word",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DownloadWordFile",
@@ -1502,7 +1509,7 @@
     },
     {
         "term": "Download Markdown text file",
-        "definition": "Markdown-Textdatei herunterladen",
+        "definition": "Desc\u0103rca\u021bi fi\u0219ierul text Markdown",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DownloadTextFile",
@@ -1510,7 +1517,7 @@
     },
     {
         "term": "Download JSON file",
-        "definition": "JSON-Datei herunterladen",
+        "definition": "Desc\u0103rca\u021bi fi\u0219ierul JSON",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DownloadJSONFile",
@@ -1518,7 +1525,7 @@
     },
     {
         "term": "Print this",
-        "definition": "Drucken Sie dies",
+        "definition": "Imprima\u021bi acest",
         "context": "",
         "term_plural": "",
         "reference": "Elm:PrintThis",
@@ -1526,7 +1533,7 @@
     },
     {
         "term": "Upgrade",
-        "definition": "Upgrade",
+        "definition": "Actualizare",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Upgrade",
@@ -1535,7 +1542,8 @@
     {
         "term": "%1 day left in trial",
         "definition": {
-            "one": "%1 Tag verbleibend im Versuch",
+            "one": "%1 zi r\u0103mas\u0103 \u00een proces",
+            "few": "",
             "other": ""
         },
         "context": "",
@@ -1545,7 +1553,7 @@
     },
     {
         "term": "Trial Expired",
-        "definition": "Probezeit abgelaufen",
+        "definition": "Procesul a expirat",
         "context": "",
         "term_plural": "",
         "reference": "Elm:TrialExpired",
@@ -1553,7 +1561,7 @@
     },
     {
         "term": "Manage Subscription",
-        "definition": "Abonnement verwalten",
+        "definition": "Gestiona\u021bi abonamentul",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ManageSubscription",
@@ -1561,7 +1569,7 @@
     },
     {
         "term": "Duplicate Document",
-        "definition": "Doppeltes Dokument",
+        "definition": "Document duplicat",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DuplicateDocument",
@@ -1569,7 +1577,7 @@
     },
     {
         "term": "Please confirm your email.",
-        "definition": "Bitte best\u00e4tige deine Email.",
+        "definition": "V\u0103 rug\u0103m s\u0103 v\u0103 confirma\u021bi adresa de e-mail.",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ConfirmBannerStrong",
@@ -1577,7 +1585,7 @@
     },
     {
         "term": "We've sent instructions to ",
-        "definition": "Wir haben Anweisungen an . gesendet ",
+        "definition": "Am trimis instruc\u021biuni c\u0103tre ",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ConfirmBannerBody",

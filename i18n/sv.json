@@ -1558,5 +1558,29 @@
         "term_plural": "",
         "reference": "Elm:ManageSubscription",
         "comment": ""
+    },
+    {
+        "term": "Duplicate Document",
+        "definition": "Duplicera dokument",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DuplicateDocument",
+        "comment": ""
+    },
+    {
+        "term": "Please confirm your email.",
+        "definition": "V\u00e4nligen bekr\u00e4fta din e-postadress.",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ConfirmBannerStrong",
+        "comment": ""
+    },
+    {
+        "term": "We've sent instructions to ",
+        "definition": "Vi har skickat instruktioner till ",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ConfirmBannerBody",
+        "comment": ""
     }
 ]

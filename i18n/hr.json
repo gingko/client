@@ -1,7 +1,7 @@
 [
     {
         "term": "Cancel",
-        "definition": "Abbrechen",
+        "definition": "Prekini",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Cancel",
@@ -9,7 +9,7 @@
     },
     {
         "term": "Recent Documents",
-        "definition": "Benutzte Dokumente",
+        "definition": "Nedavni dokumenti",
         "context": "",
         "term_plural": "",
         "reference": "Elm:RecentDocuments",
@@ -17,7 +17,7 @@
     },
     {
         "term": "Last Opened",
-        "definition": "Zuletzt ge\u00f6ffnet",
+        "definition": "Zadnji otvoreni",
         "context": "",
         "term_plural": "",
         "reference": "Elm:LastOpened",
@@ -25,7 +25,7 @@
     },
     {
         "term": "Open Other Documents",
-        "definition": "Andere Dokumente \u00f6ffnen",
+        "definition": "Otvori druge dokumente",
         "context": "",
         "term_plural": "",
         "reference": "Elm:OpenOtherDocuments",
@@ -33,7 +33,7 @@
     },
     {
         "term": "Remove From List",
-        "definition": "Aus Liste entfernen",
+        "definition": "Ukloni s popisa",
         "context": "",
         "term_plural": "",
         "reference": "Elm:RemoveFromList",
@@ -41,7 +41,7 @@
     },
     {
         "term": "New Document...",
-        "definition": "Neues Dokument...",
+        "definition": "Novi dokument \u2026",
         "context": "",
         "term_plural": "",
         "reference": "Elm:NeverSaved",
@@ -49,7 +49,7 @@
     },
     {
         "term": "Unsaved Changes...",
-        "definition": "Nicht gespeicherte \u00c4nderungen...",
+        "definition": "Nespremljene promjene \u2026",
         "context": "",
         "term_plural": "",
         "reference": "Elm:UnsavedChanges",
@@ -57,7 +57,7 @@
     },
     {
         "term": "Database Error...",
-        "definition": "Datenbankfehler...",
+        "definition": "Gre\u0161ka baze podataka \u2026",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DatabaseError",
@@ -65,7 +65,7 @@
     },
     {
         "term": "Last saved",
-        "definition": "Zuletzt gespeichert",
+        "definition": "Zadnji spremljeni",
         "context": "",
         "term_plural": "",
         "reference": "Elm:LastSaved",
@@ -73,7 +73,7 @@
     },
     {
         "term": "Last edit",
-        "definition": "Zuletzt editiert",
+        "definition": "Zadnje ure\u0111ivanje",
         "context": "",
         "term_plural": "",
         "reference": "Elm:LastEdit",
@@ -81,7 +81,7 @@
     },
     {
         "term": "Keyboard Shortcuts Help",
-        "definition": "Hilfe zu Tastaturk\u00fcrzeln",
+        "definition": "Pomo\u0107 za tipkovne pre\u010dace",
         "context": "",
         "term_plural": "",
         "reference": "Elm:KeyboardHelp",
@@ -89,7 +89,7 @@
     },
     {
         "term": "Restore this Version",
-        "definition": "Diese Version wiederherstellen",
+        "definition": "Obnovi ovu verziju",
         "context": "",
         "term_plural": "",
         "reference": "Elm:RestoreThisVersion",
@@ -105,7 +105,7 @@
     },
     {
         "term": "to Edit",
-        "definition": "bearbeiten",
+        "definition": "za ure\u0111ivanje",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EnterAction",
@@ -113,7 +113,7 @@
     },
     {
         "term": "Edit Card (Enter)",
-        "definition": "Karte bearbeiten (Enter)",
+        "definition": "Uredi karticu (Enter)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditCardTitle",
@@ -121,7 +121,7 @@
     },
     {
         "term": "to Navigate",
-        "definition": "navigieren",
+        "definition": "za navigiranje",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ArrowsAction",
@@ -129,7 +129,7 @@
     },
     {
         "term": "to Add Child",
-        "definition": "Kind hinzuf\u00fcgen",
+        "definition": "za dodavanje podelementa",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddChildAction",
@@ -137,7 +137,7 @@
     },
     {
         "term": "to Split Card to the Right",
-        "definition": "Karte nach rechts teilen",
+        "definition": "za dijeljenje kartice na desno",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SplitChildAction",
@@ -145,7 +145,7 @@
     },
     {
         "term": "Insert Child (Ctrl+L)",
-        "definition": "Kind einf\u00fcgen (Strg + L)",
+        "definition": "Umetni podelement (Ctrl+L)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:InsertChildTitle",
@@ -153,7 +153,7 @@
     },
     {
         "term": "to Add Below",
-        "definition": "unten hinzuf\u00fcgen",
+        "definition": "za dodavanje ispod",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddBelowAction",
@@ -161,7 +161,7 @@
     },
     {
         "term": "to Split Card Down",
-        "definition": "Karte nach unten teilen",
+        "definition": "za dijeljenje kartice prema dolje",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SplitBelowAction",
@@ -169,7 +169,7 @@
     },
     {
         "term": "to Merge into Next",
-        "definition": "in Next verschmelzen",
+        "definition": "za sjedinjavanje u sljede\u0107u",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MergeDownAction",
@@ -177,7 +177,7 @@
     },
     {
         "term": "Insert Below (Ctrl+J)",
-        "definition": "Unterhalb einf\u00fcgen (Ctrl+J)",
+        "definition": "Umetni ispod (Ctrl+J)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:InsertBelowTitle",
@@ -185,7 +185,7 @@
     },
     {
         "term": "to Add Above",
-        "definition": "oben hinzuf\u00fcgen",
+        "definition": "za dodavanje iznad",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddAboveAction",
@@ -193,7 +193,7 @@
     },
     {
         "term": "to Split Card Upward",
-        "definition": "Karte nach oben teilen",
+        "definition": "za dijeljenje kartice prema gore",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SplitUpwardAction",
@@ -201,7 +201,7 @@
     },
     {
         "term": "to Merge into Previous",
-        "definition": "in Vorheriges verschmelzen",
+        "definition": "za sjedinjavanje u prethodnu",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MergeUpAction",
@@ -209,7 +209,7 @@
     },
     {
         "term": "Insert Above (Ctrl+K)",
-        "definition": "Oberhalb einf\u00fcgen (Ctrl+K)",
+        "definition": "Umetni iznad (Ctrl+K)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:InsertAboveTitle",
@@ -217,7 +217,7 @@
     },
     {
         "term": "(arrows)",
-        "definition": "(Pfeile)",
+        "definition": "(strelice)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ArrowKeys",
@@ -225,7 +225,7 @@
     },
     {
         "term": "to Move",
-        "definition": "bewegen",
+        "definition": "za premje\u0161tanje",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MoveAction",
@@ -241,7 +241,7 @@
     },
     {
         "term": "to Delete",
-        "definition": "l\u00f6schen",
+        "definition": "za brisanje",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DeleteAction",
@@ -249,7 +249,7 @@
     },
     {
         "term": "Delete Card (Ctrl+Backspace)",
-        "definition": "Karte l\u00f6schen (Ctrl+Backspace)",
+        "definition": "Izbri\u0161i karticu (Ctrl+Backspace)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DeleteCardTitle",
@@ -257,7 +257,7 @@
     },
     {
         "term": "for Bold",
-        "definition": "f\u00fcr Mut",
+        "definition": "za podebljano",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ForBold",
@@ -265,7 +265,7 @@
     },
     {
         "term": "for Italic",
-        "definition": "f\u00fcr kursiv",
+        "definition": "za kurziv",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ForItalic",
@@ -273,7 +273,7 @@
     },
     {
         "term": "to Save Changes",
-        "definition": "\u00c4nderungen speichern",
+        "definition": "za spremanje promjena",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ToSaveChanges",
@@ -281,7 +281,7 @@
     },
     {
         "term": "Save Changes (Ctrl+Enter)",
-        "definition": "\u00c4nderungen speichern (Ctrl+Enter)",
+        "definition": "Spremi promjene (Ctrl+Enter)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SaveChangesTitle",
@@ -297,7 +297,7 @@
     },
     {
         "term": "to Cancel Changes",
-        "definition": "\u00c4nderungen abbrechen",
+        "definition": "za prekidanje promjena",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ToCancelChanges",
@@ -305,7 +305,7 @@
     },
     {
         "term": "Press '\/' to search",
-        "definition": "Dr\u00fccke '\/' um zu suchen",
+        "definition": "Pritisni \u201e\/\u201d za pretra\u017eivanje",
         "context": "",
         "term_plural": "",
         "reference": "Elm:PressToSearch",
@@ -313,7 +313,7 @@
     },
     {
         "term": "Heading Font",
-        "definition": "\u00dcberschrift-Font",
+        "definition": "Font za naslov",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HeadingFont",
@@ -321,7 +321,7 @@
     },
     {
         "term": "Content Font",
-        "definition": "Inhalts-Font",
+        "definition": "Font za sadr\u017eaj",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ContentFont",
@@ -329,7 +329,7 @@
     },
     {
         "term": "Editing\/Monospace Font",
-        "definition": "Editing \/ Monospace Font",
+        "definition": "Font za ure\u0111ivanje",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditingFont",
@@ -338,8 +338,9 @@
     {
         "term": "Session : %1 word",
         "definition": {
-            "one": "Sitzung:% 1 Wort",
-            "other": ""
+            "one": "Sesija: %1 rije\u010d",
+            "few": "Sesija: %1 rije\u010di",
+            "other": "Sesija: %1 rije\u010di"
         },
         "context": "",
         "term_plural": "Session : %1 words",
@@ -349,8 +350,9 @@
     {
         "term": "Total : %1 word",
         "definition": {
-            "one": "Gesamt:% 1 Wort",
-            "other": ""
+            "one": "Ukupno: %1 rije\u010d",
+            "few": "Ukupno: %1 rije\u010di",
+            "other": "Ukupno: %1 rije\u010di"
         },
         "context": "",
         "term_plural": "Total : %1 words",
@@ -360,8 +362,9 @@
     {
         "term": "Card : %1 word",
         "definition": {
-            "one": "Karte:% 1 Wort",
-            "other": ""
+            "one": "Kartica: %1 rije\u010d",
+            "few": "Kartica: %1 rije\u010di",
+            "other": "Kartica: %1 rije\u010di"
         },
         "context": "",
         "term_plural": "Card : %1 words",
@@ -371,8 +374,9 @@
     {
         "term": "Subtree : %1 word",
         "definition": {
-            "one": "Teilbaum:% 1 Wort",
-            "other": ""
+            "one": "Podstablo: %1 rije\u010d",
+            "few": "Podstablo: %1 rije\u010di",
+            "other": "Podstablo: %1 rije\u010di"
         },
         "context": "",
         "term_plural": "Subtree : %1 words",
@@ -382,8 +386,9 @@
     {
         "term": "Group : %1 word",
         "definition": {
-            "one": "Gruppe:% 1 Wort",
-            "other": ""
+            "one": "Grupa: %1 rije\u010d",
+            "few": "Grupa: %1 rije\u010di",
+            "other": "Grupa: %1 rije\u010di"
         },
         "context": "",
         "term_plural": "Group : %1 words",
@@ -393,8 +398,9 @@
     {
         "term": "Column : %1 word",
         "definition": {
-            "one": "Spalte:% 1 Wort",
-            "other": ""
+            "one": "Stupac: %1 rije\u010d",
+            "few": "Stupac: %1 rije\u010di",
+            "other": "Stupac: %1 rije\u010di"
         },
         "context": "",
         "term_plural": "Column : %1 words",
@@ -403,7 +409,7 @@
     },
     {
         "term": "Saved",
-        "definition": "Gespeichert",
+        "definition": "Spremljeno",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ChangesSaved",
@@ -411,7 +417,7 @@
     },
     {
         "term": "Blank Tree",
-        "definition": "Leer",
+        "definition": "Prazno stablo",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HomeBlank",
@@ -419,7 +425,7 @@
     },
     {
         "term": "From Old Account",
-        "definition": "Vom alten Konto",
+        "definition": "Iz starog ra\u010duna",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HomeImportLegacy",
@@ -427,7 +433,7 @@
     },
     {
         "term": "Bulk transfer of trees from your legacy account",
-        "definition": "Massen\u00fcbertragung von B\u00e4umen von Ihrem Legacy-Konto",
+        "definition": "Prenesi stabla iz tvog starog ra\u010duna",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HomeLegacyFrom",
@@ -435,7 +441,7 @@
     },
     {
         "term": "Last Updated",
-        "definition": "Zuletzt aktualisiert",
+        "definition": "Zadnji aktualizirani",
         "context": "",
         "term_plural": "",
         "reference": "Elm:LastUpdated",
@@ -443,7 +449,7 @@
     },
     {
         "term": "Delete Document",
-        "definition": "Dokument l\u00f6schen",
+        "definition": "Izbri\u0161i dokument",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DeleteDocument",
@@ -451,7 +457,7 @@
     },
     {
         "term": "Saved Offline",
-        "definition": "Offline gespeichert",
+        "definition": "Spremljeno lokalno",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SavedInternally",
@@ -459,7 +465,7 @@
     },
     {
         "term": "Synced",
-        "definition": "Synchronisiert",
+        "definition": "Sinkronizirano",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ChangesSynced",
@@ -467,7 +473,7 @@
     },
     {
         "term": "More Formatting Options...",
-        "definition": "Weitere Formatierungsoptionen ...",
+        "definition": "Daljnje opcije za formatiranje \u2026",
         "context": "",
         "term_plural": "",
         "reference": "Elm:FormattingGuide",
@@ -475,7 +481,7 @@
     },
     {
         "term": "Are you sure you want to undo your changes?",
-        "definition": "M\u00f6chten Sie Ihre \u00c4nderungen wirklich r\u00fcckg\u00e4ngig machen?",
+        "definition": "Stvarno \u017eeli\u0161 poni\u0161titi promjene?",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AreYouSureCancel",
@@ -483,7 +489,7 @@
     },
     {
         "term": "to Edit in Fullscreen",
-        "definition": "zum Bearbeiten im Vollbildmodus",
+        "definition": "za ure\u0111ivanje u cjeloekranskom prikazu",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditFullscreenAction",
@@ -491,7 +497,7 @@
     },
     {
         "term": "Quick Document Switcher",
-        "definition": "Quick Document Switcher",
+        "definition": "Prebacivanje izme\u0111u dokumenata",
         "context": "",
         "term_plural": "",
         "reference": "Elm:QuickDocumentSwitcher",
@@ -499,7 +505,7 @@
     },
     {
         "term": "Email Support...",
-        "definition": "E-Mail-Unterst\u00fctzung...",
+        "definition": "Email podr\u0161ka \u2026",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EmailSupport",
@@ -507,7 +513,7 @@
     },
     {
         "term": "Logout",
-        "definition": "Abmeldung",
+        "definition": "Odjava",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Logout",
@@ -515,7 +521,7 @@
     },
     {
         "term": "Language",
-        "definition": "Sprache",
+        "definition": "Jezik",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Language",
@@ -523,7 +529,7 @@
     },
     {
         "term": "Contribute translations",
-        "definition": "\u00dcbersetzungen beisteuern",
+        "definition": "Doprinesi prijevodima",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ContributeTranslations",
@@ -531,7 +537,7 @@
     },
     {
         "term": "here",
-        "definition": "hier",
+        "definition": "ovdje",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Here",
@@ -539,7 +545,7 @@
     },
     {
         "term": "Import JSON tree",
-        "definition": "JSON-Baum importieren",
+        "definition": "Uvezi JSON stablo",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HomeImportJSON",
@@ -547,7 +553,7 @@
     },
     {
         "term": "From Gingko Desktop or Online export file",
-        "definition": "Vom Desktop oder online",
+        "definition": "Iz Gingko desktopa ili online izvezene datoteke",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HomeJSONFrom",
@@ -555,7 +561,7 @@
     },
     {
         "term": "New Document",
-        "definition": "Neues Dokument",
+        "definition": "Novi dokument",
         "context": "",
         "term_plural": "",
         "reference": "Elm:NewDocument",
@@ -563,7 +569,7 @@
     },
     {
         "term": "Show Document List",
-        "definition": "Dokumentenliste anzeigen",
+        "definition": "Prika\u017ei popis dokumenata",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ShowDocumentList",
@@ -571,7 +577,7 @@
     },
     {
         "term": "Sort by Name",
-        "definition": "Nach Name sortieren",
+        "definition": "Poredaj po imenu",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SortByName",
@@ -579,7 +585,7 @@
     },
     {
         "term": "Sort by Last Modified",
-        "definition": "Sortieren nach Zuletzt ge\u00e4ndert",
+        "definition": "Poredaj po posljednjoj izmjeni",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SortByLastModified",
@@ -587,7 +593,7 @@
     },
     {
         "term": "Sort by Date Created",
-        "definition": "Sortieren nach Erstellungsdatum",
+        "definition": "Poredaj po datumu izrade",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SortByDateCreated",
@@ -595,7 +601,7 @@
     },
     {
         "term": "Templates & Examples",
-        "definition": "Vorlagen und Beispiele",
+        "definition": "Predlo\u0161ci i primjeri",
         "context": "",
         "term_plural": "",
         "reference": "Elm:TemplatesAndExamples",
@@ -603,7 +609,7 @@
     },
     {
         "term": "New",
-        "definition": "Neu",
+        "definition": "Novi",
         "context": "",
         "term_plural": "",
         "reference": "Elm:New",
@@ -611,7 +617,7 @@
     },
     {
         "term": "Import",
-        "definition": "Importieren",
+        "definition": "Uvoz",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ImportSectionTitle",
@@ -619,7 +625,7 @@
     },
     {
         "term": "Import Text Files",
-        "definition": "Textdateien importieren",
+        "definition": "Uvoz tekstualnih datoteka",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ImportTextFiles",
@@ -627,7 +633,7 @@
     },
     {
         "term": "Import multiple markdown or regular text files.",
-        "definition": "Importieren Sie mehrere Markdown- oder normale Textdateien.",
+        "definition": "Uvezite vi\u0161e markdown ili obi\u010dnih tekstualnih datoteka.",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ImportTextFilesDesc",
@@ -635,7 +641,7 @@
     },
     {
         "term": "Import Opml Files",
-        "definition": "Opml-Dateien importieren",
+        "definition": "Uvezite Opml datoteke",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ImportOpmlFiles",
@@ -643,7 +649,7 @@
     },
     {
         "term": "Import from Workflowy or other outliners.",
-        "definition": "Import aus Workflowy oder anderen Outlinern.",
+        "definition": "Uvoz iz Workflowyja ili drugih outlinera.",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ImportOpmlFilesDesc",
@@ -651,7 +657,7 @@
     },
     {
         "term": "Timeline 2022",
-        "definition": "Zeitplan 2022",
+        "definition": "Vremenska traka 2022",
         "context": "",
         "term_plural": "",
         "reference": "Elm:TimelineTemplate",
@@ -659,7 +665,7 @@
     },
     {
         "term": "A tree-based calendar",
-        "definition": "Ein baumbasierter Kalender",
+        "definition": "Kalendar baziran na stablu",
         "context": "",
         "term_plural": "",
         "reference": "Elm:TimelineTemplateDesc",
@@ -667,7 +673,7 @@
     },
     {
         "term": "Academic Paper",
-        "definition": "Akademisches Papier",
+        "definition": "Akademski rad",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AcademicPaperTemplate",
@@ -675,7 +681,7 @@
     },
     {
         "term": "Starting point for journal paper",
-        "definition": "Ausgangspunkt f\u00fcr Zeitschriftenartikel",
+        "definition": "Polazna to\u010dka za rad u \u010dasopisu",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AcademicPaperTemplateDesc",
@@ -683,7 +689,7 @@
     },
     {
         "term": "Project Brainstorming",
-        "definition": "Projekt-Brainstorming",
+        "definition": "Projekt Brainstorming",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ProjectBrainstormingTemplate",
@@ -691,7 +697,7 @@
     },
     {
         "term": "Example on clarifying project goals",
-        "definition": "Beispiel zur Kl\u00e4rung der Projektziele",
+        "definition": "Primjer razja\u0161njavanja ciljeva projekta",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ProjectBrainstormingTemplateDesc",
@@ -699,7 +705,7 @@
     },
     {
         "term": "Hero's Journey",
-        "definition": "Die Reise des Helden",
+        "definition": "Herojsko putovanje",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HerosJourneyTemplate",
@@ -707,7 +713,7 @@
     },
     {
         "term": "A framework for fictional stories",
-        "definition": "Ein Rahmen f\u00fcr fiktive Geschichten",
+        "definition": "Okvir za izmi\u0161ljene pri\u010de",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HerosJourneyTemplateDesc",
@@ -715,7 +721,7 @@
     },
     {
         "term": "Help",
-        "definition": "Hilfe",
+        "definition": "Pomozite",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Help",
@@ -723,7 +729,7 @@
     },
     {
         "term": "What's New",
-        "definition": "Was gibt's Neues?",
+        "definition": "\u0160to ima novog",
         "context": "",
         "term_plural": "",
         "reference": "Elm:WhatsNew",
@@ -731,7 +737,7 @@
     },
     {
         "term": "Account",
-        "definition": "Konto",
+        "definition": "Ra\u010dun",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AccountTooltip",
@@ -739,7 +745,7 @@
     },
     {
         "term": "Keyboard Shortcuts",
-        "definition": "Tastaturkurzbefehle",
+        "definition": "Tipkovni\u010dki pre\u010daci",
         "context": "",
         "term_plural": "",
         "reference": "Elm:KeyboardShortcuts",
@@ -747,7 +753,7 @@
     },
     {
         "term": "View Mode Shortcuts : ",
-        "definition": "Kurzbefehle im Ansichtsmodus : ",
+        "definition": "Pre\u010daci na\u010dina prikaza: ",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ViewModeShortcuts",
@@ -755,7 +761,7 @@
     },
     {
         "term": "Card Edit, Create, Delete",
-        "definition": "Karte bearbeiten, erstellen, l\u00f6schen",
+        "definition": "Ure\u0111ivanje kartice, stvaranje, brisanje",
         "context": "",
         "term_plural": "",
         "reference": "Elm:CardEditCreateDelete",
@@ -763,7 +769,7 @@
     },
     {
         "term": "Navigation, Moving Cards",
-        "definition": "Navigation, Karten verschieben",
+        "definition": "Navigacija, Pokretne kartice",
         "context": "",
         "term_plural": "",
         "reference": "Elm:NavigationMovingCards",
@@ -771,7 +777,7 @@
     },
     {
         "term": "Copy\/Paste",
-        "definition": "Kopieren\/Einf\u00fcgen",
+        "definition": "Kopiraj\/Zalijepi",
         "context": "",
         "term_plural": "",
         "reference": "Elm:CopyPaste",
@@ -779,7 +785,7 @@
     },
     {
         "term": "Searching, Merging Cards",
-        "definition": "Suchen, Zusammenf\u00fchren von Karten",
+        "definition": "Pretra\u017eivanje, spajanje kartica",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SearchingMerging",
@@ -787,7 +793,7 @@
     },
     {
         "term": "Help, Info, Documents",
-        "definition": "Hilfe, Infos, Dokumente",
+        "definition": "Pomo\u0107, informacije, dokumenti",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HelpInfoDocs",
@@ -795,7 +801,7 @@
     },
     {
         "term": "Edit Mode Shortcuts : ",
-        "definition": "Tastaturk\u00fcrzel im Bearbeitungsmodus : ",
+        "definition": "Pre\u010daci za na\u010din ure\u0111ivanja: ",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditModeShortcuts",
@@ -803,7 +809,7 @@
     },
     {
         "term": "Card Save, Create",
-        "definition": "Karte speichern, erstellen",
+        "definition": "Spremi karticu, stvori",
         "context": "",
         "term_plural": "",
         "reference": "Elm:CardSaveCreate",
@@ -811,7 +817,7 @@
     },
     {
         "term": "Edit card",
-        "definition": "Karte bearbeiten",
+        "definition": "Uredi karticu",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditCard",
@@ -819,7 +825,7 @@
     },
     {
         "term": "Add card below",
-        "definition": "Karte unten hinzuf\u00fcgen",
+        "definition": "Dodajte karticu ispod",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddCardBelow",
@@ -827,7 +833,7 @@
     },
     {
         "term": "Add card above",
-        "definition": "Karte oben hinzuf\u00fcgen",
+        "definition": "Dodajte karticu iznad",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddCardAbove",
@@ -835,7 +841,7 @@
     },
     {
         "term": "Add card to the right (as child)",
-        "definition": "Karte auf der rechten Seite hinzuf\u00fcgen (als Kind)",
+        "definition": "Dodaj karticu s desne strane (kao dijete)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddCardToRight",
@@ -843,7 +849,7 @@
     },
     {
         "term": "Add card below (split at cursor)",
-        "definition": "Karte unten hinzuf\u00fcgen (am Cursor geteilt)",
+        "definition": "Dodajte karticu ispod (podijelite na pokaziva\u010du)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddCardBelowSplit",
@@ -851,7 +857,7 @@
     },
     {
         "term": "Add card above (split at cursor)",
-        "definition": "Karte oben hinzuf\u00fcgen (Trennung am Cursor)",
+        "definition": "Dodaj karticu iznad (podijeli na pokaziva\u010du)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddCardAboveSplit",
@@ -859,7 +865,7 @@
     },
     {
         "term": "Add card to the right (split at cursor)",
-        "definition": "Karte auf der rechten Seite hinzuf\u00fcgen (Teilung am Cursor)",
+        "definition": "Dodajte karticu s desne strane (podijelite na pokaziva\u010du)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddCardToRightSplit",
@@ -867,7 +873,7 @@
     },
     {
         "term": "Delete card (and its children)",
-        "definition": "Karte (und ihre Kinder) l\u00f6schen",
+        "definition": "Izbri\u0161i karticu (i njezinu djecu)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DeleteCard",
@@ -875,7 +881,7 @@
     },
     {
         "term": "Go up\/down\/left\/right",
-        "definition": "Nach oben\/unten\/links\/rechts gehen",
+        "definition": "Idite gore\/dolje\/lijevo\/desno",
         "context": "",
         "term_plural": "",
         "reference": "Elm:GoUpDownLeftRight",
@@ -883,7 +889,7 @@
     },
     {
         "term": "Go to beginning of group",
-        "definition": "Zum Anfang der Gruppe gehen",
+        "definition": "Idi na po\u010detak grupe",
         "context": "",
         "term_plural": "",
         "reference": "Elm:GoToBeginningOfGroup",
@@ -891,7 +897,7 @@
     },
     {
         "term": "Go to end of group",
-        "definition": "Zum Ende der Gruppe gehen",
+        "definition": "Idi na kraj grupe",
         "context": "",
         "term_plural": "",
         "reference": "Elm:GoToEndOfGroup",
@@ -899,7 +905,7 @@
     },
     {
         "term": "Go to beginning of column",
-        "definition": "Zum Anfang der Spalte gehen",
+        "definition": "Idi na po\u010detak stupca",
         "context": "",
         "term_plural": "",
         "reference": "Elm:GoToBeginningOfColumn",
@@ -907,7 +913,7 @@
     },
     {
         "term": "Go to end of column",
-        "definition": "Zum Ende der Spalte gehen",
+        "definition": "Idi na kraj stupca",
         "context": "",
         "term_plural": "",
         "reference": "Elm:GoToEndOfColumn",
@@ -915,7 +921,7 @@
     },
     {
         "term": "Move current card (and children)",
-        "definition": "Aktuelle Karte (und Kinder) verschieben",
+        "definition": "Premjesti trenutnu karticu (i djecu)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MoveCurrentCard",
@@ -931,7 +937,7 @@
     },
     {
         "term": "PageDown",
-        "definition": "PageDown",
+        "definition": "Stranica ni\u017ee",
         "context": "",
         "term_plural": "",
         "reference": "Elm:PageDown",
@@ -939,7 +945,7 @@
     },
     {
         "term": "Home",
-        "definition": "Startseite",
+        "definition": "Dom",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HomeKey",
@@ -947,7 +953,7 @@
     },
     {
         "term": "End",
-        "definition": "Ende",
+        "definition": "Kraj",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EndKey",
@@ -955,7 +961,7 @@
     },
     {
         "term": "(any of above)",
-        "definition": "(eines der oben genannten)",
+        "definition": "(bilo \u0161to od gore navedenog)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AnyOfAbove",
@@ -963,7 +969,7 @@
     },
     {
         "term": "Drag card by left edge",
-        "definition": "Karte am linken Rand ziehen",
+        "definition": "Povucite karticu po lijevom rubu",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DragCard",
@@ -971,7 +977,7 @@
     },
     {
         "term": "Search",
-        "definition": "Suche",
+        "definition": "tra\u017ei",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Search",
@@ -979,7 +985,7 @@
     },
     {
         "term": "Clear search, focus current card",
-        "definition": "Suche l\u00f6schen, aktuelle Karte fokussieren",
+        "definition": "O\u010disti pretragu, fokusiraj trenutnu karticu",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ClearSearch",
@@ -987,7 +993,7 @@
     },
     {
         "term": "Merge card up",
-        "definition": "Karte nach oben zusammenf\u00fchren",
+        "definition": "Spojite karticu gore",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MergeCardUp",
@@ -995,7 +1001,7 @@
     },
     {
         "term": "Merge card down",
-        "definition": "Karte nach unten zusammenf\u00fchren",
+        "definition": "Spoji karticu prema dolje",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MergeCardDown",
@@ -1003,7 +1009,7 @@
     },
     {
         "term": "Copy current subtree",
-        "definition": "Aktuellen Teilbaum kopieren",
+        "definition": "Kopiraj trenutno podstablo",
         "context": "",
         "term_plural": "",
         "reference": "Elm:CopyCurrent",
@@ -1011,7 +1017,7 @@
     },
     {
         "term": "Paste subtree below current card",
-        "definition": "Teilbaum unter der aktuellen Karte einf\u00fcgen",
+        "definition": "Zalijepi podstablo ispod trenutne kartice",
         "context": "",
         "term_plural": "",
         "reference": "Elm:PasteBelow",
@@ -1019,7 +1025,7 @@
     },
     {
         "term": "Paste subtree as child of current card",
-        "definition": "Teilbaum als Kind der aktuellen Karte einf\u00fcgen",
+        "definition": "Zalijepi podstablo kao dijete trenutne kartice",
         "context": "",
         "term_plural": "",
         "reference": "Elm:PasteAsChild",
@@ -1027,7 +1033,7 @@
     },
     {
         "term": "Insert selected text as new card",
-        "definition": "Markierten Text als neue Karte einf\u00fcgen",
+        "definition": "Umetnite odabrani tekst kao novu karticu",
         "context": "",
         "term_plural": "",
         "reference": "Elm:InsertSelected",
@@ -1035,7 +1041,7 @@
     },
     {
         "term": "Drag selected text into tree",
-        "definition": "Markierten Text in den Baum ziehen",
+        "definition": "Povucite odabrani tekst u stablo",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DragSelected",
@@ -1043,7 +1049,7 @@
     },
     {
         "term": "Word counts",
-        "definition": "W\u00f6rter z\u00e4hlen",
+        "definition": "Rije\u010d se ra\u010duna",
         "context": "",
         "term_plural": "",
         "reference": "Elm:WordCounts",
@@ -1051,7 +1057,7 @@
     },
     {
         "term": "Switch to different document",
-        "definition": "Zu einem anderen Dokument wechseln",
+        "definition": "Prije\u0111ite na drugi dokument",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SwitchDocuments",
@@ -1059,7 +1065,7 @@
     },
     {
         "term": "This help screen",
-        "definition": "Dieser Hilfebildschirm",
+        "definition": "Ovaj zaslon pomo\u0107i",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ThisHelpScreen",
@@ -1067,7 +1073,7 @@
     },
     {
         "term": " or ",
-        "definition": " oder ",
+        "definition": " ili ",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Or",
@@ -1075,7 +1081,7 @@
     },
     {
         "term": "Edit card in fullscreen mode",
-        "definition": "Karte im Vollbildmodus bearbeiten",
+        "definition": "Uredite karticu u na\u010dinu cijelog zaslona",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditCardFullscreen",
@@ -1083,7 +1089,7 @@
     },
     {
         "term": "Edit Cards",
-        "definition": "Karten bearbeiten",
+        "definition": "Uredite kartice",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditCards",
@@ -1091,7 +1097,7 @@
     },
     {
         "term": "Shift",
-        "definition": "Schicht",
+        "definition": "Shift",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ShiftKey",
@@ -1099,7 +1105,7 @@
     },
     {
         "term": "AltKey",
-        "definition": "AltTaste",
+        "definition": "AltKey",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AltKey",
@@ -1107,7 +1113,7 @@
     },
     {
         "term": "Navigate",
-        "definition": "navigieren.",
+        "definition": "Kre\u0107ite se",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Navigate",
@@ -1115,7 +1121,7 @@
     },
     {
         "term": "Add New Cards",
-        "definition": "Neue Karten hinzuf\u00fcgen",
+        "definition": "Dodaj nove kartice",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddNewCards",
@@ -1123,7 +1129,7 @@
     },
     {
         "term": "Split At Cursor",
-        "definition": "Teilen am Cursor",
+        "definition": "Podijeli na pokaziva\u010du",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SplitAtCursor",
@@ -1131,7 +1137,7 @@
     },
     {
         "term": "Merge Cards",
-        "definition": "Karten zusammenf\u00fchren",
+        "definition": "Spojite kartice",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MergeCards",
@@ -1139,7 +1145,7 @@
     },
     {
         "term": "Move & Delete Cards",
-        "definition": "Karten verschieben und l\u00f6schen",
+        "definition": "Premjesti i izbri\u0161i kartice",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MoveAndDelete",
@@ -1147,7 +1153,7 @@
     },
     {
         "term": "Bold selection",
-        "definition": "Mutige Auswahl",
+        "definition": "Podebljani odabir",
         "context": "",
         "term_plural": "",
         "reference": "Elm:BoldSelection",
@@ -1155,7 +1161,7 @@
     },
     {
         "term": "Italicize selection",
-        "definition": "Auswahl kursiv darstellen",
+        "definition": "Odabir u kurzivu",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ItalicizeSelection",
@@ -1163,7 +1169,7 @@
     },
     {
         "term": "Save changes",
-        "definition": "\u00c4nderungen speichern",
+        "definition": "Spremi promjene",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SaveChanges",
@@ -1171,7 +1177,7 @@
     },
     {
         "term": "Save changes and exit card",
-        "definition": "\u00c4nderungen speichern und Karte verlassen",
+        "definition": "Spremite promjene i iza\u0111ite iz kartice",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SaveChangesAndExit",
@@ -1179,7 +1185,7 @@
     },
     {
         "term": "Exit edit mode",
-        "definition": "Beenden des Bearbeitungsmodus",
+        "definition": "Iza\u0111ite iz na\u010dina ure\u0111ivanja",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExitEditMode",
@@ -1187,7 +1193,7 @@
     },
     {
         "term": "Other Shortcuts",
-        "definition": "Andere Abk\u00fcrzungen",
+        "definition": "Ostali pre\u010daci",
         "context": "",
         "term_plural": "",
         "reference": "Elm:OtherShortcuts",
@@ -1195,7 +1201,7 @@
     },
     {
         "term": "Display word counts",
-        "definition": "Wortanzahl anzeigen",
+        "definition": "Prikaz broja rije\u010di",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DisplayWordCounts",
@@ -1203,7 +1209,7 @@
     },
     {
         "term": "(Edit Mode)",
-        "definition": "(Bearbeitungsmodus)",
+        "definition": "(Na\u010din ure\u0111ivanja)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditMode",
@@ -1211,7 +1217,7 @@
     },
     {
         "term": "Save\/Cancel Changes",
-        "definition": "\u00c4nderungen speichern\/verwerfen",
+        "definition": "Spremi\/Otka\u017ei promjene",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SaveOrCancelChanges",
@@ -1219,7 +1225,7 @@
     },
     {
         "term": "Formatting",
-        "definition": "Formatierung",
+        "definition": "Formatiranje",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Formatting",
@@ -1227,7 +1233,7 @@
     },
     {
         "term": "# Title\n## Subtitle",
-        "definition": "# Titel\n## Untertitel",
+        "definition": "# Naslov\n## Podnaslov",
         "context": "",
         "term_plural": "",
         "reference": "Elm:FormattingTitle",
@@ -1235,7 +1241,7 @@
     },
     {
         "term": "Set title level (# to #####)",
-        "definition": "Titelniveau einstellen (# bis #####)",
+        "definition": "Postavite razinu naslova (# do #####)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SetTitleLevel",
@@ -1243,7 +1249,7 @@
     },
     {
         "term": "- List item\n  - Subitem",
-        "definition": "- Artikel auflisten\n  - Unterpunkt",
+        "definition": "- Stavka popisa\n  - Podstavka",
         "context": "",
         "term_plural": "",
         "reference": "Elm:FormattingList",
@@ -1251,7 +1257,7 @@
     },
     {
         "term": "[link](http:\/\/t.co)",
-        "definition": "[Link] (http:\/\/t.co)",
+        "definition": "[link](http:\/\/t.co)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:FormattingLink",
@@ -1259,7 +1265,7 @@
     },
     {
         "term": "ParenNumber",
-        "definition": "ParenNumber",
+        "definition": "ParenBroj",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ParenNumber",
@@ -1275,7 +1281,7 @@
     },
     {
         "term": "Help Videos",
-        "definition": "Hilfe-Videos",
+        "definition": "Videozapisi pomo\u0107i",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HelpVideos",
@@ -1283,7 +1289,7 @@
     },
     {
         "term": "FAQ & Documentation",
-        "definition": "FAQ & Dokumentation",
+        "definition": "\u010cesto postavljana pitanja i dokumentacija",
         "context": "",
         "term_plural": "",
         "reference": "Elm:FAQAndDocs",
@@ -1291,7 +1297,7 @@
     },
     {
         "term": "Open Quick Switcher",
-        "definition": "Quick Switcher \u00f6ffnen",
+        "definition": "Otvorite Quick Switcher",
         "context": "",
         "term_plural": "",
         "reference": "Elm:OpenQuickSwitcher",
@@ -1299,7 +1305,7 @@
     },
     {
         "term": "Contact Support",
-        "definition": "Kontakt zum Support",
+        "definition": "Email podr\u0161ka \u2026",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ContactSupport",
@@ -1307,7 +1313,7 @@
     },
     {
         "term": "Version History",
-        "definition": "Versionsgeschichte",
+        "definition": "Povijest verzija",
         "context": "",
         "term_plural": "",
         "reference": "Elm:VersionHistory",
@@ -1315,7 +1321,7 @@
     },
     {
         "term": "Document Settings",
-        "definition": "Dokument-Einstellungen",
+        "definition": "Postavke dokumenta",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DocumentSettings",
@@ -1323,7 +1329,7 @@
     },
     {
         "term": "Word count...",
-        "definition": "Anzahl der W\u00f6rter...",
+        "definition": "Brojanje rije\u010di...",
         "context": "",
         "term_plural": "",
         "reference": "Elm:WordCount",
@@ -1332,7 +1338,8 @@
     {
         "term": "Total Cards in Tree : %1",
         "definition": {
-            "one": "Karten im Baum insgesamt : %1",
+            "one": "Ukupno karata u stablu: %1",
+            "few": "",
             "other": ""
         },
         "context": "",
@@ -1342,7 +1349,7 @@
     },
     {
         "term": "Document Theme",
-        "definition": "Thema des Dokuments",
+        "definition": "Tema dokumenta",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DocumentTheme",
@@ -1350,7 +1357,7 @@
     },
     {
         "term": "Default",
-        "definition": "Standard",
+        "definition": "Zadano",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ThemeDefault",
@@ -1358,7 +1365,7 @@
     },
     {
         "term": "Dark Mode",
-        "definition": "Dunkler Modus",
+        "definition": "Tamni na\u010din rada",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ThemeDarkMode",
@@ -1366,7 +1373,7 @@
     },
     {
         "term": "Classic Gingkoapp",
-        "definition": "Klassischer Gingkoapp",
+        "definition": "Klasi\u010dni Gingkoapp",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ThemeClassic",
@@ -1374,7 +1381,7 @@
     },
     {
         "term": "Gray",
-        "definition": "Gray",
+        "definition": "Siva",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ThemeGray",
@@ -1382,7 +1389,7 @@
     },
     {
         "term": "Green",
-        "definition": "Gr\u00fcn",
+        "definition": "Zelena",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ThemeGreen",
@@ -1390,7 +1397,7 @@
     },
     {
         "term": "Turquoise",
-        "definition": "T\u00fcrkis",
+        "definition": "Tirkiz",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ThemeTurquoise",
@@ -1398,7 +1405,7 @@
     },
     {
         "term": "Export or Print",
-        "definition": "Exportieren oder Drucken",
+        "definition": "Izvoz ili ispis",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportOrPrint",
@@ -1406,7 +1413,7 @@
     },
     {
         "term": "Everything",
-        "definition": "Alles",
+        "definition": "Sve",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingEverything",
@@ -1414,7 +1421,7 @@
     },
     {
         "term": "All cards in the tree (in depth-first order)",
-        "definition": "Alle Karten in der Baumstruktur (in der Reihenfolge \"Tiefe zuerst\")",
+        "definition": "Sve karte u stablu (prvi redoslijed u dubinu)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingEverythingDesc",
@@ -1422,7 +1429,7 @@
     },
     {
         "term": "Current Subtree",
-        "definition": "Aktueller Teilbaum",
+        "definition": "Trenutno podstablo",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingCurrentSubtree",
@@ -1430,7 +1437,7 @@
     },
     {
         "term": "Current card and all its children",
-        "definition": "Aktuelle Karte und alle ihre untergeordneten Karten",
+        "definition": "Trenutna kartica i sva njezina djeca",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingCurrentSubtreeDesc",
@@ -1438,7 +1445,7 @@
     },
     {
         "term": "Leaves-only",
-        "definition": "Nur Laub",
+        "definition": "Samo li\u0161\u0107e",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingLeavesOnly",
@@ -1446,7 +1453,7 @@
     },
     {
         "term": "Only cards without children",
-        "definition": "Nur Karten ohne Kinder",
+        "definition": "Samo karte bez djece",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingLeavesOnlyDesc",
@@ -1454,7 +1461,7 @@
     },
     {
         "term": "Current Column",
-        "definition": "Aktuelle Kolumne",
+        "definition": "Trenutni stupac",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingCurrentColumn",
@@ -1462,7 +1469,7 @@
     },
     {
         "term": "Only carsd in the current (vertical) column",
-        "definition": "Nur Autos in der aktuellen (vertikalen) Spalte",
+        "definition": "Samo carsd u trenutnom (okomitim) stupcu",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingCurrentColumnDesc",
@@ -1470,7 +1477,7 @@
     },
     {
         "term": "Word",
-        "definition": "Wort",
+        "definition": "Rije\u010d",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingWord",
@@ -1478,7 +1485,7 @@
     },
     {
         "term": "Plain Text",
-        "definition": "Klartext",
+        "definition": "Obi\u010dan tekst",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingPlainText",
@@ -1494,7 +1501,7 @@
     },
     {
         "term": "Download Word File",
-        "definition": "Word-Datei herunterladen",
+        "definition": "Preuzmite Word datoteku",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DownloadWordFile",
@@ -1502,7 +1509,7 @@
     },
     {
         "term": "Download Markdown text file",
-        "definition": "Markdown-Textdatei herunterladen",
+        "definition": "Preuzmite Markdown tekstualnu datoteku",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DownloadTextFile",
@@ -1510,7 +1517,7 @@
     },
     {
         "term": "Download JSON file",
-        "definition": "JSON-Datei herunterladen",
+        "definition": "Preuzmite JSON datoteku",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DownloadJSONFile",
@@ -1518,7 +1525,7 @@
     },
     {
         "term": "Print this",
-        "definition": "Drucken Sie dies",
+        "definition": "Ispi\u0161i ovo",
         "context": "",
         "term_plural": "",
         "reference": "Elm:PrintThis",
@@ -1526,7 +1533,7 @@
     },
     {
         "term": "Upgrade",
-        "definition": "Upgrade",
+        "definition": "Nadogradite",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Upgrade",
@@ -1535,7 +1542,8 @@
     {
         "term": "%1 day left in trial",
         "definition": {
-            "one": "%1 Tag verbleibend im Versuch",
+            "one": "Ostao je %1 dan probnog razdoblja",
+            "few": "",
             "other": ""
         },
         "context": "",
@@ -1545,7 +1553,7 @@
     },
     {
         "term": "Trial Expired",
-        "definition": "Probezeit abgelaufen",
+        "definition": "Probni rok je istekao",
         "context": "",
         "term_plural": "",
         "reference": "Elm:TrialExpired",
@@ -1553,7 +1561,7 @@
     },
     {
         "term": "Manage Subscription",
-        "definition": "Abonnement verwalten",
+        "definition": "Upravljajte pretplatom",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ManageSubscription",
@@ -1561,7 +1569,7 @@
     },
     {
         "term": "Duplicate Document",
-        "definition": "Doppeltes Dokument",
+        "definition": "Duplikat dokumenta",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DuplicateDocument",
@@ -1569,7 +1577,7 @@
     },
     {
         "term": "Please confirm your email.",
-        "definition": "Bitte best\u00e4tige deine Email.",
+        "definition": "Molimo potvrdite svoju e-po\u0161tu.",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ConfirmBannerStrong",
@@ -1577,7 +1585,7 @@
     },
     {
         "term": "We've sent instructions to ",
-        "definition": "Wir haben Anweisungen an . gesendet ",
+        "definition": "Poslali smo upute na ",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ConfirmBannerBody",

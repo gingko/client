@@ -13,8 +13,8 @@ import Doc.UI as UI
 import Doc.VideoViewer as VideoViewer
 import File exposing (File)
 import File.Select as Select
-import Html exposing (Html, div, text)
-import Html.Attributes exposing (class, classList, id, style)
+import Html exposing (Html, div, strong)
+import Html.Attributes exposing (class, classList, height, id, style, width)
 import Html.Events exposing (onClick)
 import Html.Extra exposing (viewIf)
 import Http
@@ -36,7 +36,7 @@ import Session exposing (Session)
 import Svg.Attributes
 import Task
 import Time
-import Translation exposing (Language, TranslationId, langToString)
+import Translation exposing (Language, TranslationId(..), langToString, tr)
 import Types exposing (HeaderMenuState(..), SidebarMenuState(..), SidebarState(..), SortBy(..), TooltipPosition, Tree, ViewMode(..))
 import Upgrade exposing (Msg(..))
 
@@ -228,6 +228,7 @@ type Msg
     | ImportJSONIdGenerated Tree String String
     | ImportJSONCompleted String
       -- Misc UI
+    | CloseEmailConfirmBanner
     | ToggledUpgradeModal Bool
     | UpgradeModalMsg Upgrade.Msg
     | WordcountModalOpened Page.Doc.Model
@@ -788,6 +789,9 @@ update msg model =
             ( model, Route.pushUrl (Session.navKey session) (Route.DocUntitled docId) )
 
         -- Misc UI
+        CloseEmailConfirmBanner ->
+            ( model |> updateSession (Session.confirmEmail session), Cmd.none )
+
         ToggledUpgradeModal isOpen ->
             ( { model
                 | modalState =
@@ -929,6 +933,25 @@ closeSwitcher model =
 
 
 
+-- Translation Helper Function
+
+
+text : Language -> TranslationId -> Html msg
+text lang tid =
+    Html.text <| tr lang tid
+
+
+textNoTr : String -> Html msg
+textNoTr str =
+    Html.text str
+
+
+emptyText : Html msg
+emptyText =
+    Html.text ""
+
+
+
 -- VIEW
 
 
@@ -938,13 +961,20 @@ view ({ documentState } as model) =
         session =
             toSession model
 
+        lang =
+            Session.language session
+
+        email =
+            Session.name session
+                |> Maybe.withDefault "<email error>"
+
         viewTooltip =
             case model.tooltip of
                 Just tooltip ->
-                    UI.viewTooltip (Session.language session) tooltip
+                    UI.viewTooltip lang tooltip
 
                 Nothing ->
-                    text ""
+                    emptyText
 
         sidebarMsgs =
             { sidebarStateChanged = SidebarStateChanged
@@ -988,7 +1018,7 @@ view ({ documentState } as model) =
                             Nothing
                             model.sidebarMenuState
                             model.sidebarState
-                       , viewIf (Session.isNotConfirmed session) viewConfirmBanner
+                       , viewIf (Session.isNotConfirmed session) (viewConfirmBanner lang CloseEmailConfirmBanner email)
                        , viewTooltip
                        ]
                     ++ viewModal session model.modalState
@@ -1011,7 +1041,7 @@ view ({ documentState } as model) =
                                 Nothing
                                 model.sidebarMenuState
                                 model.sidebarState
-                           , viewIf (Session.isNotConfirmed session) viewConfirmBanner
+                           , viewIf (Session.isNotConfirmed session) (viewConfirmBanner lang CloseEmailConfirmBanner email)
                            , viewTooltip
                            ]
                         ++ viewModal session model.modalState
@@ -1026,7 +1056,7 @@ viewModal session modalState =
     in
     case modalState of
         NoModal ->
-            [ text "" ]
+            [ emptyText ]
 
         FileSwitcher switcherModel ->
             Doc.Switcher.view SwitcherClosed FileSearchChanged switcherModel
@@ -1039,9 +1069,9 @@ viewModal session modalState =
                 , style "left" (String.fromFloat x ++ "px")
                 ]
                 [ div [ onClick (DuplicateDoc docId), class "context-menu-item" ]
-                    [ AntIcons.copyOutlined [ Svg.Attributes.class "icon" ], text "Duplicate Tree" ]
+                    [ AntIcons.copyOutlined [ Svg.Attributes.class "icon" ], text language DuplicateDocument ]
                 , div [ onClick (DeleteDoc docId), class "context-menu-item" ]
-                    [ AntIcons.deleteOutlined [ Svg.Attributes.class "icon" ], text "Delete Tree" ]
+                    [ AntIcons.deleteOutlined [ Svg.Attributes.class "icon" ], text language DeleteDocument ]
                 ]
             ]
 
@@ -1101,9 +1131,16 @@ viewModal session modalState =
                     []
 
 
-viewConfirmBanner : Html msg
-viewConfirmBanner =
-    div [ id "email-confirm-banner", class "top-banner" ] [ text "Please confirm your email" ]
+viewConfirmBanner : Language -> msg -> String -> Html msg
+viewConfirmBanner lang closeMsg email =
+    div [ id "email-confirm-banner", class "top-banner" ]
+        [ AntIcons.warningOutlined [ width 16 ]
+        , strong [] [ text lang ConfirmBannerStrong ]
+        , textNoTr " "
+        , text lang ConfirmBannerBody
+        , textNoTr (email ++ " .")
+        , AntIcons.closeCircleOutlined [ width 16, height 16, id "email-confirm-close-btn", onClick closeMsg ]
+        ]
 
 
 

@@ -1333,7 +1333,7 @@
         "term": "Total Cards in Tree : %1",
         "definition": {
             "one": "Total de cartes a l'arbre: %1",
-            "other": ""
+            "other": "Total de cartes a l'arbre: %1"
         },
         "context": "",
         "term_plural": "Total Cards in Tree : %1",
@@ -1536,7 +1536,7 @@
         "term": "%1 day left in trial",
         "definition": {
             "one": "Queda % 1 dia en prova",
-            "other": ""
+            "other": "Quedan % 1 dias en prova"
         },
         "context": "",
         "term_plural": "%1 days left in trial",
@@ -1557,6 +1557,30 @@
         "context": "",
         "term_plural": "",
         "reference": "Elm:ManageSubscription",
+        "comment": ""
+    },
+    {
+        "term": "Duplicate Document",
+        "definition": "Document duplicat",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:DuplicateDocument",
+        "comment": ""
+    },
+    {
+        "term": "Please confirm your email.",
+        "definition": "Si us plau, confirmeu el vostre correu electr\u00f2nic.",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ConfirmBannerStrong",
+        "comment": ""
+    },
+    {
+        "term": "We've sent instructions to ",
+        "definition": "Hem enviat instruccions a ",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:ConfirmBannerBody",
         "comment": ""
     }
 ]

@@ -1321,7 +1321,23 @@ input.has-error {
   background-color: lightgray;
   box-shadow: inset 2px 2px 4px darkgray;
 }
-
+#email-confirm-banner {
+  display: flex;
+  justify-content: center;
+  color: #425c6a;
+}
+#email-confirm-banner * {
+  margin-right: 8px;
+}
+#email-confirm-banner svg {
+  fill: #425c6a;
+}
+#email-confirm-close-btn {
+  position: absolute;
+  right: 5px;
+  margin-top: 1px;
+  cursor: pointer;
+}
 #top-right-buttons {
   display: flex;
   align-items: center;

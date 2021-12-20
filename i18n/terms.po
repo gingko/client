@@ -119,6 +119,10 @@ msgstr ""
 msgid "Open Other Documents"
 msgstr ""
 
+#: Elm:DuplicateDocument
+msgid "Duplicate Document"
+msgstr ""
+
 #: Elm:DeleteDocument
 msgid "Delete Document"
 msgstr ""
@@ -157,6 +161,14 @@ msgstr ""
 
 #: Elm:LastEdit
 msgid "Last edit"
+msgstr ""
+
+#: Elm:ConfirmBannerStrong
+msgid "Please confirm your email."
+msgstr ""
+
+#: Elm:ConfirmBannerBody
+msgid "We've sent instructions to "
 msgstr ""
 
 #: Elm:Help
