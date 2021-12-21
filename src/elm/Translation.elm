@@ -970,7 +970,7 @@ tr lang trans =
                     }
 
                 DuplicateDocument ->
-                    { en = "Duplicate Document"
+                    { en = "Duplicate Tree"
                     , zh_hans = "%zh_hans:DuplicateDocument%"
                     , zh_hant = "%zh_hant:DuplicateDocument%"
                     , es = "%es:DuplicateDocument%"
@@ -991,7 +991,7 @@ tr lang trans =
                     }
 
                 DeleteDocument ->
-                    { en = "Delete Document"
+                    { en = "Delete Tree"
                     , zh_hans = "%zh_hans:DeleteDocument%"
                     , zh_hant = "%zh_hant:DeleteDocument%"
                     , es = "%es:DeleteDocument%"
