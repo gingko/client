@@ -1018,7 +1018,6 @@ view ({ documentState } as model) =
                             Nothing
                             model.sidebarMenuState
                             model.sidebarState
-                       , viewIf (Session.isNotConfirmed session) (viewConfirmBanner lang CloseEmailConfirmBanner email)
                        , viewTooltip
                        ]
                     ++ viewModal session model.modalState
@@ -1041,7 +1040,6 @@ view ({ documentState } as model) =
                                 Nothing
                                 model.sidebarMenuState
                                 model.sidebarState
-                           , viewIf (Session.isNotConfirmed session) (viewConfirmBanner lang CloseEmailConfirmBanner email)
                            , viewTooltip
                            ]
                         ++ viewModal session model.modalState
