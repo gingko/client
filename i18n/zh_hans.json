@@ -829,7 +829,7 @@
     },
     {
         "term": "Add card to the right (as child)",
-        "definition": "\u5728\u53f3\u4fa7\u6dfb\u52a0\u5361\u7247\uff08\u4f5c\u4e3a\u5b69\u5b50\uff09",
+        "definition": "\u5728\u53f3\u4fa7\u6dfb\u52a0\u5361\u7247\uff08\u4f5c\u4e3a\u5b50\u5361\uff09",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddCardToRight",
@@ -909,7 +909,7 @@
     },
     {
         "term": "Move current card (and children)",
-        "definition": "\u79fb\u52a8\u5f53\u524d\u5361\uff08\u548c\u5b69\u5b50\uff09",
+        "definition": "\u79fb\u52a8\u5f53\u524d\u5361\uff08\u548c\u5b50\u5361\uff09",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MoveCurrentCard",
@@ -1053,7 +1053,7 @@
     },
     {
         "term": "This help screen",
-        "definition": "\u8fd9\u4e2a\u5e2e\u52a9\u753b\u9762",
+        "definition": "\u5e2e\u52a9",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ThisHelpScreen",
@@ -1141,7 +1141,7 @@
     },
     {
         "term": "Bold selection",
-        "definition": "\u5927\u80c6\u7684\u9009\u62e9",
+        "definition": "\u7c97\u4f53\/\u52a0\u7c97",
         "context": "",
         "term_plural": "",
         "reference": "Elm:BoldSelection",
@@ -1149,7 +1149,7 @@
     },
     {
         "term": "Italicize selection",
-        "definition": "\u659c\u4f53\u9009\u62e9",
+        "definition": "\u659c\u4f53",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ItalicizeSelection",
