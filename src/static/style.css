@@ -3365,7 +3365,7 @@ pre {
   cursor: pointer;
   display: flex;
   position: relative;
-  padding: 5px 5px 4px 0;
+  padding: 5px 5px 5px 0;
   margin-right: 13px;
   background: var(--background-sidebar);
 }
