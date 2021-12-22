@@ -89,12 +89,16 @@ var scrollTo = function (cid, colIdx, instant, position, errorCount) {
   var rect = card.getBoundingClientRect();
   let positionMultiplier = position === "top" ? 0 : position === "center" ? 0.5 : 1;
 
+  // For cards larger than the viewing area, scroll to the top of the card, not its middle
+  let adjustedHeight = (rect.height > docRect.height - 51) ? docRect.height * 0.5 + 51 : rect.height;
+
+  let newScrollTop = col.scrollTop + (rect.top + adjustedHeight * positionMultiplier - (docRect.top+docRect.bottom)*0.5);
+
   if (instant) {
-    col.scrollTop = col.scrollTop + (rect.top + rect.height * positionMultiplier - (docRect.top+docRect.bottom)*0.5);
+    col.scrollTop = newScrollTop;
   } else {
     TweenMax.to(col, 0.25, {
-      scrollTop:
-        col.scrollTop + (rect.top + rect.height * positionMultiplier - (docRect.top+docRect.bottom)*0.5),
+      scrollTop: newScrollTop,
       ease: Power2.easeInOut,
     });
   }
