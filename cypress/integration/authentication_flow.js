@@ -50,8 +50,8 @@ describe('User Signup Flow', () => {
     cy.contains('Welcome to Gingko Writer')
 
     // Has email verification banner
-    //cy.get('#email-confirm-banner')
-    // .contains('Please confirm your email')
+    cy.get('#email-confirm-banner')
+      .contains('Please confirm your email')
 
     cy.visit(config.TEST_SERVER + '/confirm')
 
@@ -59,8 +59,8 @@ describe('User Signup Flow', () => {
     cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
     cy.contains('Welcome to Gingko Writer')
 
-    //cy.get('#email-confirm-banner')
-      //.should('not.exist')
+    cy.get('#email-confirm-banner')
+      .should('not.exist')
 
     // Send email confirmation webhook before logging out
     cy.request('POST', config.TEST_SERVER + '/mlhooks',
@@ -103,8 +103,8 @@ describe('User Signup Flow', () => {
     cy.contains('Welcome to Gingko Writer')
 
     // Doesn't have confirmation banner
-    //cy.get('#email-confirm-banner')
-      //.should('not.exist')
+    cy.get('#email-confirm-banner')
+      .should('not.exist')
 
     // Has an AuthSession cookie
     cy.get('button.cta').should('not.exist')

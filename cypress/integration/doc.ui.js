@@ -71,7 +71,7 @@ describe('Document UI', () => {
 
     // Toggles shortcut tray on clicking right-sidebar
     cy.get('#app-root').should('not.contain', 'Keyboard Shortcuts')
-    //cy.get('#email-confirm-close-btn').click()
+    cy.get('#email-confirm-close-btn').click()
     cy.get('#shortcuts-tray').click()
     cy.contains('Keyboard Shortcuts')
 

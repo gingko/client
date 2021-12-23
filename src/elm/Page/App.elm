@@ -51,7 +51,6 @@ type alias Model =
     , sidebarState : SidebarState
     , sidebarMenuState : SidebarMenuState
     , modalState : ModalState
-    , emailConfirmBanner : Bool
     , fileSearchField : String -- TODO: not needed if switcher isn't open
     , tooltip : Maybe ( Element, TooltipPosition, TranslationId )
     }
@@ -98,7 +97,6 @@ defaultModel session docModel_ =
             SidebarClosed
     , sidebarMenuState = NoSidebarMenu
     , modalState = NoModal
-    , emailConfirmBanner = True
     , fileSearchField = ""
     , tooltip = Nothing
     }
@@ -1018,6 +1016,7 @@ view ({ documentState } as model) =
                             Nothing
                             model.sidebarMenuState
                             model.sidebarState
+                       , viewIf (Session.isNotConfirmed session) (viewConfirmBanner lang CloseEmailConfirmBanner email)
                        , viewTooltip
                        ]
                     ++ viewModal session model.modalState
@@ -1040,6 +1039,7 @@ view ({ documentState } as model) =
                                 Nothing
                                 model.sidebarMenuState
                                 model.sidebarState
+                           , viewIf (Session.isNotConfirmed session) (viewConfirmBanner lang CloseEmailConfirmBanner email)
                            , viewTooltip
                            ]
                         ++ viewModal session model.modalState

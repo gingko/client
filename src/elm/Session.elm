@@ -254,15 +254,21 @@ loggedIn session =
 sync : Dec.Value -> Session -> Session
 sync json session =
     let
-        settingsDecoder : Decoder { language : Language, paymentStatus : PaymentStatus }
+        settingsDecoder : Decoder { language : Language, paymentStatus : PaymentStatus, confirmedAt : Maybe Time.Posix }
         settingsDecoder =
-            Dec.succeed (\lang payStat -> { language = lang, paymentStatus = payStat })
+            Dec.succeed (\lang payStat confAt -> { language = lang, paymentStatus = payStat, confirmedAt = confAt })
                 |> optional "language" languageDecoder En
                 |> optional "paymentStatus" decodePaymentStatus (Trial (currentTime session |> add14days))
+                |> optional "confirmedAt" decodeConfirmedStatus (Just (Time.millisToPosix 0))
     in
     case ( Dec.decodeValue settingsDecoder json, session ) of
         ( Ok newSettings, LoggedIn sessData userData ) ->
-            LoggedIn sessData { userData | language = newSettings.language, paymentStatus = newSettings.paymentStatus }
+            LoggedIn sessData
+                { userData
+                    | language = newSettings.language
+                    , paymentStatus = newSettings.paymentStatus
+                    , confirmedAt = newSettings.confirmedAt
+                }
 
         ( Ok newSettings, Guest sessData guestData ) ->
             Guest sessData { guestData | language = newSettings.language }
@@ -425,10 +431,18 @@ decodeLoggedIn key =
         |> optional "language" (Dec.string |> Dec.map langFromString) En
         |> optional "sidebarOpen" Dec.bool False
         |> optional "paymentStatus" decodePaymentStatus (Trial (Time.millisToPosix 0))
-        |> optional "confirmedAt" (Dec.int |> Dec.map Time.millisToPosix |> Dec.maybe) Nothing
+        |> optional "confirmedAt" decodeConfirmedStatus (Just (Time.millisToPosix 0))
         |> optional "shortcutTrayOpen" Dec.bool False
         |> optional "sortBy" sortByDecoder ModifiedAt
         |> optional "lastDocId" (Dec.maybe Dec.string) Nothing
+
+
+decodeConfirmedStatus : Decoder (Maybe Time.Posix)
+decodeConfirmedStatus =
+    Dec.oneOf
+        [ Dec.null Nothing
+        , Dec.int |> Dec.map Time.millisToPosix |> Dec.maybe
+        ]
 
 
 decodePaymentStatus : Dec.Decoder PaymentStatus
@@ -477,7 +491,7 @@ responseDecoder session =
         |> required "email" Dec.string
         |> optionalAt [ "settings", "language" ] (Dec.map langFromString Dec.string) En
         |> optionalAt [ "settings", "paymentStatus" ] decodePaymentStatus (Trial (Time.millisToPosix 0))
-        |> optionalAt [ "settings", "confirmedAt" ] (Dec.int |> Dec.map Time.millisToPosix |> Dec.maybe) Nothing
+        |> optionalAt [ "settings", "confirmedAt" ] decodeConfirmedStatus (Just (Time.millisToPosix 0))
         |> optionalAt [ "settings", "shortcutTrayOpen" ] Dec.bool False
         |> optionalAt [ "settings", "sortBy" ] sortByDecoder ModifiedAt
 
