@@ -681,15 +681,25 @@ input.has-error {
   background: var(--background-sidebar-menu);
   color: var(--ui-1-fg);
 }
-.sidebar-menu > * {
-  padding: 6px 20px;
-  display: block;
-  width: 100%;
+.sidebar-menu .sidebar-menu-item, #manage-subscription-button {
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
   cursor: pointer;
   position: relative;
 }
+.sidebar-menu-item .icon, #manage-subscription-button .icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+}
 .sidebar-menu > .no-action {
   cursor: default;
+}
+#manage-subscription-button {
+  background-color: transparent;
+  border: none;
+  font-size: 16px;
 }
 .sidebar-menu > .no-action:hover {
   background: var(--background-sidebar-menu);
@@ -709,8 +719,8 @@ input.has-error {
 .sidebar-menu .right-icon {
   width: 11px;
   position: absolute;
-  right: 8px;
-  top: 6px;
+  right: 6px;
+  top: 8px;
 }
 #help-menu{
   position: fixed;

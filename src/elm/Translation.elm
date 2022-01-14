@@ -217,6 +217,8 @@ type TranslationId
     | Upgrade
     | DaysLeft Int
     | TrialExpired
+    | WordOfMouthCTA1
+    | WordOfMouthCTA2
     | ManageSubscription
 
 
@@ -4394,6 +4396,48 @@ tr lang trans =
                     , sv = "%sv:TrialExpired%"
                     , ca = "%ca:TrialExpired%"
                     , br = "%br:TrialExpired%"
+                    }
+
+                WordOfMouthCTA1 ->
+                    { en = "Love Gingko Writer?"
+                    , zh_hans = "%zh_hans:WordOfMouthCTA1%"
+                    , zh_hant = "%zh_hant:WordOfMouthCTA1%"
+                    , es = "%es:WordOfMouthCTA1%"
+                    , ar = "%ar:WordOfMouthCTA1%"
+                    , fr = "%fr:WordOfMouthCTA1%"
+                    , ru = "%ru:WordOfMouthCTA1%"
+                    , de = "%de:WordOfMouthCTA1%"
+                    , ja = "%ja:WordOfMouthCTA1%"
+                    , pes = "%pes:WordOfMouthCTA1%"
+                    , it = "%it:WordOfMouthCTA1%"
+                    , ro = "%ro:WordOfMouthCTA1%"
+                    , hr = "%hr:WordOfMouthCTA1%"
+                    , nl = "%nl:WordOfMouthCTA1%"
+                    , hu = "%hu:WordOfMouthCTA1%"
+                    , sv = "%sv:WordOfMouthCTA1%"
+                    , ca = "%ca:WordOfMouthCTA1%"
+                    , br = "%br:WordOfMouthCTA1%"
+                    }
+
+                WordOfMouthCTA2 ->
+                    { en = "Share your discovery..."
+                    , zh_hans = "%zh_hans:WordOfMouthCTA2%"
+                    , zh_hant = "%zh_hant:WordOfMouthCTA2%"
+                    , es = "%es:WordOfMouthCTA2%"
+                    , ar = "%ar:WordOfMouthCTA2%"
+                    , fr = "%fr:WordOfMouthCTA2%"
+                    , ru = "%ru:WordOfMouthCTA2%"
+                    , de = "%de:WordOfMouthCTA2%"
+                    , ja = "%ja:WordOfMouthCTA2%"
+                    , pes = "%pes:WordOfMouthCTA2%"
+                    , it = "%it:WordOfMouthCTA2%"
+                    , ro = "%ro:WordOfMouthCTA2%"
+                    , hr = "%hr:WordOfMouthCTA2%"
+                    , nl = "%nl:WordOfMouthCTA2%"
+                    , hu = "%hu:WordOfMouthCTA2%"
+                    , sv = "%sv:WordOfMouthCTA2%"
+                    , ca = "%ca:WordOfMouthCTA2%"
+                    , br = "%br:WordOfMouthCTA2%"
                     }
 
                 ManageSubscription ->

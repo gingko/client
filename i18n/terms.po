@@ -787,6 +787,14 @@ msgstr[1] ""
 msgid "Trial Expired"
 msgstr ""
 
+#: Elm:WordOfMouthCTA1
+msgid "Love Gingko Writer?"
+msgstr ""
+
+#: Elm:WordOfMouthCTA2
+msgid "Share your discovery..."
+msgstr ""
+
 #: Elm:ManageSubscription
 msgid "Manage Subscription"
 msgstr ""

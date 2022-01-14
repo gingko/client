@@ -9,7 +9,7 @@ import Doc.Data.Conflict as Conflict exposing (Conflict, Op(..), Selection(..), 
 import Doc.List as DocList exposing (Model(..))
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils as TreeUtils exposing (..)
-import Html exposing (Html, a, button, del, div, fieldset, h2, h3, h4, h5, hr, img, input, ins, label, li, pre, span, ul)
+import Html exposing (Html, a, br, button, del, div, fieldset, h2, h3, h4, h5, hr, img, input, ins, label, li, pre, span, ul)
 import Html.Attributes as A exposing (..)
 import Html.Attributes.Extra exposing (attributeIf)
 import Html.Events exposing (keyCode, on, onBlur, onClick, onFocus, onInput, onMouseEnter, onMouseLeave)
@@ -17,6 +17,7 @@ import Html.Extra exposing (viewIf)
 import Import.Template exposing (Template(..))
 import Json.Decode as Dec
 import List.Extra exposing (getAt)
+import MD5
 import Markdown.Block
 import Markdown.Html
 import Markdown.Parser
@@ -31,7 +32,7 @@ import SharedUI exposing (ctrlOrCmdText, modalWrapper)
 import Svg exposing (g, svg)
 import Svg.Attributes exposing (d, fill, fontFamily, fontSize, fontWeight, preserveAspectRatio, stroke, strokeDasharray, strokeDashoffset, strokeLinecap, strokeLinejoin, strokeMiterlimit, strokeWidth, textAnchor, version, viewBox)
 import Time exposing (posixToMillis)
-import Translation exposing (Language(..), TranslationId(..), datetimeFormat, langToString, timeDistInWords, tr)
+import Translation exposing (Language(..), TranslationId(..), datetimeFormat, langToString, languageName, timeDistInWords, tr)
 import Types exposing (Children(..), CursorPosition(..), HeaderMenuState(..), SidebarMenuState(..), SidebarState(..), SortBy(..), TextCursorInfo, TooltipPosition(..), ViewMode(..), ViewState)
 import Utils exposing (onClickStop)
 
@@ -427,6 +428,7 @@ type alias SidebarMsgs msg =
     , clickedShowVideos : msg
     , languageMenuRequested : Maybe String -> msg
     , toggledAccount : Bool -> msg
+    , upgrade : msg
     , logout : msg
     , fileSearchChanged : String -> msg
     , changeSortBy : SortBy -> msg
@@ -578,6 +580,7 @@ viewSidebar session msgs currentDocId sortCriteria fileFilter docList accountEma
                 , languageChanged = msgs.languageChanged
                 , logout = msgs.logout
                 , toggledAccount = msgs.toggledAccount
+                , upgrade = msgs.upgrade
                 , noOp = msgs.noOp
                 }
                 accountEmail
@@ -596,6 +599,7 @@ viewSidebarMenu :
         , languageChanged : Language -> msg
         , logout : msg
         , toggledAccount : Bool -> msg
+        , upgrade : msg
         , noOp : msg
         }
     -> String
@@ -605,31 +609,62 @@ viewSidebarMenu lang custId_ msgs accountEmail dropdownState =
     case dropdownState of
         Account langMenuEl_ ->
             let
+                gravatarImg =
+                    img
+                        [ src ("https://www.gravatar.com/avatar/" ++ (accountEmail |> String.trim |> String.toLower |> MD5.hex) ++ "?d=mp")
+                        , class "icon"
+                        ]
+                        []
+
                 manageSubBtn =
                     case custId_ of
                         Just custId ->
                             Html.form [ method "POST", action "/create-portal-session" ]
                                 [ input [ type_ "hidden", name "customer_id", value custId ] []
-                                , button [ id "manage-subscription-button", type_ "submit" ] [ text lang ManageSubscription ]
+                                , button [ id "manage-subscription-button", type_ "submit" ]
+                                    [ div [ class "icon" ] [ AntIcons.creditCardOutlined [] ]
+                                    , text lang ManageSubscription
+                                    ]
                                 ]
 
                         Nothing ->
-                            emptyText
+                            div
+                                [ onClickStop msgs.upgrade
+                                , class "sidebar-menu-item"
+                                ]
+                                [ div [ class "icon" ] [ AntIcons.creditCardOutlined [] ], text lang Upgrade ]
             in
             [ div [ id "account-menu", class "sidebar-menu" ]
-                [ div [ onClickStop msgs.noOp, class "no-action" ] [ Html.text accountEmail ]
+                [ div [ onClickStop msgs.noOp, class "sidebar-menu-item", class "no-action" ]
+                    [ gravatarImg, Html.text accountEmail ]
+                , hr [] []
+                , div [ class "sidebar-menu-item" ]
+                    [ div [ class "icon" ] [ AntIcons.giftOutlined [] ]
+                    , text lang WordOfMouthCTA1
+                    , br [] []
+                    , text lang WordOfMouthCTA2
+                    ]
+                , hr [] []
                 , manageSubBtn
                 , div
                     [ id "language-option"
+                    , class "sidebar-menu-item"
                     , if langMenuEl_ == Nothing then
                         onClickStop <| msgs.languageMenuRequested (Just "language-option")
 
                       else
                         onClickStop <| msgs.languageMenuRequested Nothing
-                    , onMouseEnter <| msgs.languageMenuRequested (Just "language-option")
                     ]
-                    [ text lang Language, div [ class "right-icon" ] [ AntIcons.rightOutlined [] ] ]
-                , div [ id "logout-button", onClickStop msgs.logout ] [ text lang Logout ]
+                    [ div [ class "icon" ] [ AntIcons.globalOutlined [] ]
+                    , textNoTr (languageName lang)
+                    , div [ class "right-icon" ] [ AntIcons.rightOutlined [] ]
+                    ]
+                , hr [] []
+                , div
+                    [ id "logout-button", class "sidebar-menu-item", onClickStop msgs.logout ]
+                    [ div [ class "icon" ] [ AntIcons.logoutOutlined [] ]
+                    , text lang Logout
+                    ]
                 ]
             , case langMenuEl_ of
                 Just langMenuEl ->
@@ -645,6 +680,7 @@ viewSidebarMenu lang custId_ msgs accountEmail dropdownState =
                                     div
                                         [ id <| "lang-" ++ langToString langOpt
                                         , onClickStop <| msgs.languageChanged langOpt
+                                        , class "sidebar-menu-item"
                                         , classList [ ( "selected", langOpt == lang ) ]
                                         ]
                                         [ textNoTr langName ]
@@ -653,6 +689,7 @@ viewSidebarMenu lang custId_ msgs accountEmail dropdownState =
                             ++ [ a
                                     [ href "https://poeditor.com/join/project?hash=k8Br3k0JVz"
                                     , target "_blank"
+                                    , class "sidebar-menu-item"
                                     , onClickStop <| msgs.toggledAccount False
                                     ]
                                     [ text lang ContributeTranslations ]

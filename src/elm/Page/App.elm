@@ -798,6 +798,7 @@ update msg model =
 
                     else
                         NoModal
+                , sidebarMenuState = NoSidebarMenu
               }
             , Cmd.none
             )
@@ -987,6 +988,7 @@ view ({ documentState } as model) =
             , languageMenuRequested = LanguageMenuRequested
             , logout = LogoutRequested
             , toggledAccount = ToggledAccountMenu
+            , upgrade = ToggledUpgradeModal True
             , fileSearchChanged = FileSearchChanged
             , changeSortBy = SortByChanged
             , contextMenuOpened = SidebarContextClicked
