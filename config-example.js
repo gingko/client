@@ -14,6 +14,7 @@ module.exports = {
   FRESHDESK_APPID: 12341234,
   BEAMER_APPID: "myappidforbeamer",
   LOGROCKET_APPID: "asdf/app-name",
+  TESTIMONIAL_URL: "https://example.testimonialdomain.com",
   STRIPE_PUBLIC_KEY: "pk_test_123412341234",
   PRICE_DATA :
     { USD :

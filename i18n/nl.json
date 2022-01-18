@@ -1582,5 +1582,21 @@
         "term_plural": "",
         "reference": "Elm:ConfirmBannerBody",
         "comment": ""
+    },
+    {
+        "term": "Love Gingko Writer?",
+        "definition": "Ben je dol op Gingko-schrijver?",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:WordOfMouthCTA1",
+        "comment": ""
+    },
+    {
+        "term": "Leave a Testimonial",
+        "definition": "Laat een getuigenis achter",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:WordOfMouthCTA2",
+        "comment": ""
     }
 ]

@@ -1582,5 +1582,21 @@
         "term_plural": "",
         "reference": "Elm:ConfirmBannerBody",
         "comment": ""
+    },
+    {
+        "term": "Love Gingko Writer?",
+        "definition": "Szereted a Gingko Writert?",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:WordOfMouthCTA1",
+        "comment": ""
+    },
+    {
+        "term": "Leave a Testimonial",
+        "definition": "Hagyjon v\u00e9lem\u00e9nyt",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:WordOfMouthCTA2",
+        "comment": ""
     }
 ]

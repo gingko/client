@@ -1574,5 +1574,21 @@
         "term_plural": "",
         "reference": "Elm:ConfirmBannerBody",
         "comment": ""
+    },
+    {
+        "term": "Love Gingko Writer?",
+        "definition": "\u7231\u94f6\u674f\u4f5c\u5bb6\uff1f",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:WordOfMouthCTA1",
+        "comment": ""
+    },
+    {
+        "term": "Leave a Testimonial",
+        "definition": "\u7559\u4e0b\u63a8\u8350\u4fe1",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:WordOfMouthCTA2",
+        "comment": ""
     }
 ]

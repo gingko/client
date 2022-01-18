@@ -1338,9 +1338,9 @@
     {
         "term": "Total Cards in Tree : %1",
         "definition": {
-            "one": "Ukupno karata u stablu: %1",
-            "few": "",
-            "other": ""
+            "one": "Ukupan broj karata u stablu: %1",
+            "few": "Ukupan broj karata u stablu: %1",
+            "other": "Ukupan broj karata u stablu: %1"
         },
         "context": "",
         "term_plural": "Total Cards in Tree : %1",
@@ -1542,9 +1542,9 @@
     {
         "term": "%1 day left in trial",
         "definition": {
-            "one": "Ostao je %1 dan probnog razdoblja",
-            "few": "",
-            "other": ""
+            "one": "Preostao je %1 dan probnog razdoblja",
+            "few": "Preostala su %1 dana probnog razdoblja",
+            "other": "Preostalo je %1 dana probnog razdoblja"
         },
         "context": "",
         "term_plural": "%1 days left in trial",
@@ -1589,6 +1589,22 @@
         "context": "",
         "term_plural": "",
         "reference": "Elm:ConfirmBannerBody",
+        "comment": ""
+    },
+    {
+        "term": "Love Gingko Writer?",
+        "definition": "Volite Gingko Writer?",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:WordOfMouthCTA1",
+        "comment": ""
+    },
+    {
+        "term": "Leave a Testimonial",
+        "definition": "Ostavite izjavu",
+        "context": "",
+        "term_plural": "",
+        "reference": "Elm:WordOfMouthCTA2",
         "comment": ""
     }
 ]

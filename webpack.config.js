@@ -77,6 +77,7 @@ const otherReplacements = [
     {search: "{%SUPPORT_EMAIL%}", replace: config.SUPPORT_EMAIL, flags: 'g'}
   , {search: "{%SUPPORT_URGENT_EMAIL%}", replace: config.SUPPORT_URGENT_EMAIL, flags: 'g'}
   , {search: "{%HOMEPAGE_URL%}", replace: config.HOMEPAGE_URL, flags: 'g'}
+  , {search: "{%TESTIMONIAL_URL%}", replace: config.TESTIMONIAL_URL, flags: 'g'}
 ];
 
 const webConfig = {
@@ -113,6 +114,7 @@ const webConfig = {
     rules: [
       {
         test: /\.elm$/,
+        include: path.resolve(__dirname, 'src'),
         exclude: [/elm-stuff/, /node_modules/],
         use: [
           {

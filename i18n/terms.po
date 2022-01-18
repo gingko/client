@@ -792,7 +792,7 @@ msgid "Love Gingko Writer?"
 msgstr ""
 
 #: Elm:WordOfMouthCTA2
-msgid "Share your discovery..."
+msgid "Leave a Testimonial"
 msgstr ""
 
 #: Elm:ManageSubscription

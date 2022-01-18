@@ -4420,7 +4420,7 @@ tr lang trans =
                     }
 
                 WordOfMouthCTA2 ->
-                    { en = "Share your discovery..."
+                    { en = "Leave a Testimonial"
                     , zh_hans = "%zh_hans:WordOfMouthCTA2%"
                     , zh_hant = "%zh_hant:WordOfMouthCTA2%"
                     , es = "%es:WordOfMouthCTA2%"

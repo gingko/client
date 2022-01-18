@@ -693,6 +693,16 @@ input.has-error {
   height: 16px;
   margin-right: 8px;
 }
+.sidebar-menu-item:last-child {
+  margin-bottom: 10px;
+}
+.sidebar-menu-item:first-child {
+  margin-top: 10px;
+}
+a.sidebar-menu-item, a.sidebar-menu-item:visited {
+  color: inherit;
+  text-decoration: none;
+}
 .sidebar-menu > .no-action {
   cursor: default;
 }

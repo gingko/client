@@ -638,7 +638,7 @@ viewSidebarMenu lang custId_ msgs accountEmail dropdownState =
                 [ div [ onClickStop msgs.noOp, class "sidebar-menu-item", class "no-action" ]
                     [ gravatarImg, Html.text accountEmail ]
                 , hr [] []
-                , div [ class "sidebar-menu-item" ]
+                , a [ href "{%TESTIMONIAL_URL%}", onClickStop msgs.noOp, target "_blank", class "sidebar-menu-item" ]
                     [ div [ class "icon" ] [ AntIcons.giftOutlined [] ]
                     , text lang WordOfMouthCTA1
                     , br [] []
