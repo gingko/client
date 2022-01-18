@@ -668,11 +668,16 @@ viewSidebarMenu lang custId_ msgs accountEmail dropdownState =
                 ]
             , case langMenuEl_ of
                 Just langMenuEl ->
+                    let
+                        bottPx =
+                            langMenuEl.scene.height - langMenuEl.element.y - langMenuEl.element.height - 8
+                    in
                     div
                         [ id "language-menu"
                         , class "sidebar-menu"
                         , style "left" ((langMenuEl.element.x + langMenuEl.element.width |> String.fromFloat) ++ "px")
-                        , style "bottom" ((langMenuEl.scene.height - langMenuEl.element.y - langMenuEl.element.height |> String.fromFloat) ++ "px")
+                        , style "bottom" ((bottPx |> String.fromFloat) ++ "px")
+                        , style "max-height" ((langMenuEl.viewport.height - 41 - bottPx |> String.fromFloat) ++ "px")
                         ]
                         ((Translation.activeLanguages
                             |> List.map

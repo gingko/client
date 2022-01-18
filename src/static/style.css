@@ -774,7 +774,8 @@ a.sidebar-menu-item, a.sidebar-menu-item:visited {
   bottom: 15px;
   border-radius: 5px 5px 5px 0;
   box-shadow: var(--small-shadow);
-  z-index: 2;
+  overflow-y: auto;
+  z-index: 3;
 }
 #language-menu .selected {
   background: var(--active-bg);
