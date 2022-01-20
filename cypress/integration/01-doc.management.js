@@ -76,6 +76,31 @@ describe('Managing Documents', () => {
       cy.url().should('contain', this.treeIds[0] )
       cy.contains('abc')
 
+      describe('Sorts documents correctly', ()=>{
+        cy.get('#sidebar-document-list .sidebar-document-item a')
+          .then((docEls) => {
+            expect(docEls.toArray().map(x => x.innerText)).to.deep.equal(['tree-1','tree-u','tree-a','tree-x'])
+          })
+
+        cy.get('#sort-alphabetical').click()
+        cy.get('#sidebar-document-list .sidebar-document-item a')
+          .then((docEls) => {
+            expect(docEls.toArray().map(x => x.innerText)).to.deep.equal(['tree-1','tree-a','tree-u','tree-x'])
+          })
+
+        cy.get('#sort-created').click()
+        cy.get('#sidebar-document-list .sidebar-document-item a')
+          .then((docEls) => {
+            expect(docEls.toArray().map(x => x.innerText)).to.deep.equal(['tree-x','tree-a','tree-u','tree-1'])
+          })
+
+        cy.get('#sort-modified').click()
+        cy.get('#sidebar-document-list .sidebar-document-item a')
+          .then((docEls) => {
+            expect(docEls.toArray().map(x => x.innerText)).to.deep.equal(['tree-1','tree-u','tree-a','tree-x'])
+          })
+      })
+
       describe('Filters by name correctly in sidebar', () => {
         cy.get('#document-list-filter').type('-u')
 

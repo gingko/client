@@ -1011,7 +1011,7 @@ view ({ documentState } as model) =
                     ++ [ UI.viewSidebar session
                             sidebarMsgs
                             doc.docId
-                            ModifiedAt
+                            (Session.sortBy session)
                             model.fileSearchField
                             (Session.documents session)
                             (Session.name session |> Maybe.withDefault "" {- TODO -})
