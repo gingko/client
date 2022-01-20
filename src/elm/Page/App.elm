@@ -1160,6 +1160,12 @@ subscriptions model =
                     Nothing ->
                         ImportBulkCompleted
             )
+        , case model.documentState of
+            Doc doc ->
+                Page.Doc.subscriptions doc |> Sub.map GotDocMsg
+
+            _ ->
+                Sub.none
         , DocList.subscribe ReceivedDocuments
         , Session.userSettingsChange SettingsChanged
         , Session.loginChanges LoginStateChanged (Session.navKey (toSession model))
