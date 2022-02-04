@@ -35,14 +35,17 @@ jobs:
       - name: Copy client config.js file
         run: cp $HOME/client.config.js $GITHUB_WORKSPACE/client/config.js
 
+      - name: Check client config.js file
+        run: node $GITHUB_WORKSPACE/client/config-check.js
+
       - name: Copy server config.js file
         run: cp $HOME/server.config.js $GITHUB_WORKSPACE/server/config.js
 
-      - name: Install Test Server Dependencies
-        run: cd ../server; npm i
-
       - name: Check server config.js file
         run: node $GITHUB_WORKSPACE/server/config-check.js
+
+      - name: Install Test Server Dependencies
+        run: cd ../server; npm i
 
       - name: Stop Test Server
         run: "pm2 stop --silent GingkoTest  || :"
@@ -51,10 +54,6 @@ jobs:
         run: NODE_ENV=production PORT=8000 pm2 start ../server/index.js --name GingkoTest
 
       - run: npm i
-
-      - name: Check client config.js file
-        run: node $GITHUB_WORKSPACE/client/config-check.js
-
       - run: npm run build --if-present
 
       - name: Cypress e2e Tests
