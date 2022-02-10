@@ -209,9 +209,11 @@ type TranslationId
     | ExportSettingWord
     | ExportSettingPlainText
     | ExportSettingJSON
+    | ExportSettingOPML
     | DownloadWordFile
     | DownloadTextFile
     | DownloadJSONFile
+    | DownloadOPMLFile
     | PrintThis
       -- Upgrade & Subscription
     | Upgrade
@@ -4250,6 +4252,27 @@ tr lang trans =
                     , br = "%br:ExportSettingJSON%"
                     }
 
+                ExportSettingOPML ->
+                    { en = "OPML"
+                    , zh_hans = "%zh_hans:ExportSettingOPML%"
+                    , zh_hant = "%zh_hant:ExportSettingOPML%"
+                    , es = "%es:ExportSettingOPML%"
+                    , ar = "%ar:ExportSettingOPML%"
+                    , fr = "%fr:ExportSettingOPML%"
+                    , ru = "%ru:ExportSettingOPML%"
+                    , de = "%de:ExportSettingOPML%"
+                    , ja = "%ja:ExportSettingOPML%"
+                    , pes = "%pes:ExportSettingOPML%"
+                    , it = "%it:ExportSettingOPML%"
+                    , ro = "%ro:ExportSettingOPML%"
+                    , hr = "%hr:ExportSettingOPML%"
+                    , nl = "%nl:ExportSettingOPML%"
+                    , hu = "%hu:ExportSettingOPML%"
+                    , sv = "%sv:ExportSettingOPML%"
+                    , ca = "%ca:ExportSettingOPML%"
+                    , br = "%br:ExportSettingOPML%"
+                    }
+
                 DownloadWordFile ->
                     { en = "Download Word File"
                     , zh_hans = "%zh_hans:DownloadWordFile%"
@@ -4311,6 +4334,27 @@ tr lang trans =
                     , sv = "%sv:DownloadJSONFile%"
                     , ca = "%ca:DownloadJSONFile%"
                     , br = "%br:DownloadJSONFile%"
+                    }
+
+                DownloadOPMLFile ->
+                    { en = "Download OPML file"
+                    , zh_hans = "%zh_hans:DownloadOPMLFile%"
+                    , zh_hant = "%zh_hant:DownloadOPMLFile%"
+                    , es = "%es:DownloadOPMLFile%"
+                    , ar = "%ar:DownloadOPMLFile%"
+                    , fr = "%fr:DownloadOPMLFile%"
+                    , ru = "%ru:DownloadOPMLFile%"
+                    , de = "%de:DownloadOPMLFile%"
+                    , ja = "%ja:DownloadOPMLFile%"
+                    , pes = "%pes:DownloadOPMLFile%"
+                    , it = "%it:DownloadOPMLFile%"
+                    , ro = "%ro:DownloadOPMLFile%"
+                    , hr = "%hr:DownloadOPMLFile%"
+                    , nl = "%nl:DownloadOPMLFile%"
+                    , hu = "%hu:DownloadOPMLFile%"
+                    , sv = "%sv:DownloadOPMLFile%"
+                    , ca = "%ca:DownloadOPMLFile%"
+                    , br = "%br:DownloadOPMLFile%"
                     }
 
                 PrintThis ->

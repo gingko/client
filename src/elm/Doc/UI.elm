@@ -251,6 +251,7 @@ viewHeader msgs title_ model =
                 , div [ id "export-format", class "toggle-button" ]
                     [ div (exportFormatBtnAttributes DOCX "word") [ text language ExportSettingWord ]
                     , div (exportFormatBtnAttributes PlainText "text") [ text language ExportSettingPlainText ]
+                    , div (exportFormatBtnAttributes OPML "opml") [ text language ExportSettingOPML ]
                     , div (exportFormatBtnAttributes JSON "json") [ text language ExportSettingJSON ]
                     ]
                 ]

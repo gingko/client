@@ -757,6 +757,10 @@ msgstr ""
 msgid "JSON"
 msgstr ""
 
+#: Elm:ExportSettingOPML
+msgid "OPML"
+msgstr ""
+
 #: Elm:DownloadWordFile
 msgid "Download Word File"
 msgstr ""
@@ -767,6 +771,10 @@ msgstr ""
 
 #: Elm:DownloadJSONFile
 msgid "Download JSON file"
+msgstr ""
+
+#: Elm:DownloadOPMLFile
+msgid "Download OPML file"
 msgstr ""
 
 #: Elm:PrintThis

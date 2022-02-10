@@ -1,4 +1,4 @@
-module Coders exposing (collabStateDecoder, collabStateToValue, fontSettingsEncoder, lazyRecurse, maybeToValue, modeDecoder, modeToValue, sortByDecoder, sortByEncoder, treeDecoder, treeListDecoder, treeOrString, treeToJSON, treeToJSONrecurse, treeToMarkdown, treeToMarkdownRecurse, treeToMarkdownString, treeToValue, treesModelDecoder, tripleDecoder, tupleDecoder, tupleToValue)
+module Coders exposing (collabStateDecoder, collabStateToValue, fontSettingsEncoder, lazyRecurse, maybeToValue, modeDecoder, modeToValue, sortByDecoder, sortByEncoder, treeDecoder, treeListDecoder, treeOrString, treeToJSON, treeToJSONrecurse, treeToMarkdown, treeToMarkdownRecurse, treeToMarkdownString, treeToOPML, treeToValue, treesModelDecoder, tripleDecoder, tupleDecoder, tupleToValue)
 
 import Doc.Fonts as Fonts
 import Doc.TreeStructure as TreeStructure
@@ -131,6 +131,30 @@ treeToJSONrecurse tree =
                 [ ( "content", Enc.string tree.content )
                 , ( "children", Enc.list treeToJSONrecurse c )
                 ]
+
+
+attrEncode s =
+    s
+        |> String.replace "&" "&amp;"
+        |> String.replace "\"" "&quot;"
+        |> String.replace "'" "&apos;"
+        |> String.replace "<" "&lt;"
+
+
+treeToOPML : String -> Tree -> String
+treeToOPML docname tree =
+    "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<opml version=\"2.0\">\n<head><title>"
+        ++ (attrEncode docname |> String.replace ">" "&gt;")
+        ++ "</title></head>\n<body>"
+        ++ treeToOPMLBody tree
+        ++ "</body></opml>"
+
+
+treeToOPMLBody : Tree -> String
+treeToOPMLBody tree =
+    case tree.children of
+        Children c ->
+            "<outline text=\"" ++ attrEncode tree.content ++ "\">" ++ (List.map treeToOPMLBody c |> String.join "\n") ++ "</outline>\n"
 
 
 treeToMarkdown : Bool -> Tree -> Enc.Value

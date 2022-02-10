@@ -19,7 +19,7 @@ import Html.Attributes as Attributes exposing (attribute, class, classList, dir,
 import Html.Events exposing (custom, onClick, onDoubleClick, onInput)
 import Html.Extra exposing (viewIf)
 import Html.Keyed as Keyed
-import Html.Lazy exposing (lazy2, lazy3, lazy4, lazy7, lazy8)
+import Html.Lazy exposing (lazy2, lazy3, lazy4, lazy5, lazy7, lazy8)
 import Html5.DragDrop as DragDrop
 import Http
 import Json.Decode as Json
@@ -2220,12 +2220,13 @@ viewLoaded ({ docMsg } as appMsg) model =
                         appMsg.keyboard shortcut
 
                     exportViewOk =
-                        lazy4 exportView
+                        lazy5 exportView
                             { export = docMsg Export
                             , printRequested = docMsg PrintRequested
                             , tooltipRequested = appMsg.tooltipRequested
                             , tooltipClosed = appMsg.tooltipClosed
                             }
+                            (Session.getDocName model.session model.docId |> Maybe.withDefault "Untitled")
                             model.exportSettings
 
                     maybeExportView =
