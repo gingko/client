@@ -35,6 +35,9 @@ describe('User Signup Flow', () => {
     cy.get('#signup-password')
       .type('testing')
 
+    cy.get('#email-optin')
+      .click()
+
     cy.get('button.cta')
       .click()
 

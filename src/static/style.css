@@ -297,7 +297,7 @@ body {
   text-decoration: none;
   color: #84b1c7;
 }
-#form-page input, #contact-form input:not([type='radio']), #contact-form textarea {
+#form-page input:not([type='checkbox']), #contact-form input:not([type='radio']), #contact-form textarea {
   border: 1px solid gray;
   padding: .5em 1em;
   font-size: 1em;

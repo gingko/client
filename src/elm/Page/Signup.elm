@@ -3,8 +3,8 @@ module Page.Signup exposing (Model, Msg, init, subscriptions, toUser, update, vi
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom
 import Html exposing (..)
-import Html.Attributes exposing (autocomplete, autofocus, class, classList, for, href, id, src, type_, value)
-import Html.Events exposing (onClick, onInput, onSubmit)
+import Html.Attributes exposing (autocomplete, autofocus, checked, class, classList, for, href, id, src, style, type_, value)
+import Html.Events exposing (onCheck, onClick, onInput, onSubmit)
 import Html.Extra exposing (viewIf)
 import Http exposing (Error(..))
 import Import.Template as Template
@@ -25,6 +25,7 @@ type alias Model =
     , email : String
     , password : String
     , showPassword : Bool
+    , didOptIn : Bool
     , errors : List ( Field, FieldError )
     }
 
@@ -37,7 +38,7 @@ type Field
 
 init : Session -> ( Model, Cmd Msg )
 init user =
-    ( { user = user, email = "", password = "", showPassword = False, errors = [] }
+    ( { user = user, email = "", password = "", showPassword = False, didOptIn = False, errors = [] }
     , Task.attempt (\_ -> NoOp) <| Browser.Dom.focus "signup-email"
     )
 
@@ -57,6 +58,7 @@ type Msg
     | EnteredEmail String
     | EnteredPassword String
     | ToggleShowPassword
+    | ToggledOptIn Bool
     | CompletedSignup (Result Http.Error Session)
     | GotUser Session
 
@@ -85,6 +87,9 @@ update msg model =
 
         ToggleShowPassword ->
             ( { model | showPassword = not model.showPassword }, Task.attempt (\_ -> NoOp) (Browser.Dom.focus "signup-password") )
+
+        ToggledOptIn isOptedIn ->
+            ( { model | didOptIn = isOptedIn }, Cmd.none )
 
         CompletedSignup (Ok user) ->
             ( { model | user = user }, Session.storeSignup user )
@@ -147,10 +152,10 @@ modelValidator =
 sendSignupRequest : Valid Model -> Cmd Msg
 sendSignupRequest validModel =
     let
-        { email, password, user } =
+        { email, password, user, didOptIn } =
             Validate.fromValid validModel
     in
-    Session.requestSignup CompletedSignup email password user
+    Session.requestSignup CompletedSignup email password didOptIn user
 
 
 
@@ -212,6 +217,10 @@ view model =
                     ]
                     []
                 , viewErrors Password model.errors
+                , div [ style "display" "flex", style "gap" "6px" ]
+                    [ input [ type_ "checkbox", id "email-optin", checked model.didOptIn, onCheck ToggledOptIn ] []
+                    , label [ for "email-optin" ] [ text "Email me help & tips (~6 emails)", br [] [], text "and product news (every ~2 months)." ]
+                    ]
                 , viewErrors Form model.errors
                 , button [ id "signup-button", class "cta" ] [ text "Start Writing" ]
                 , div [ id "post-cta-divider" ] [ hr [] [], div [] [ text "or" ], hr [] [] ]
