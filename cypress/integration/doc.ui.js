@@ -95,7 +95,7 @@ describe('Document UI', () => {
     cy.get('#wordcount-menu-item')
       .click()
 
-    cy.get('.modal-header h2').contains('Word Counts')
+    cy.get('.modal-header h2').contains('Word & Character Counts')
 
     cy.contains('Total : 4 words')
 
