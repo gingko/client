@@ -188,6 +188,11 @@ type TranslationId
     | WordCountSubtree Int
     | WordCountGroup Int
     | WordCountColumn Int
+    | CharacterCountCard Int
+    | CharacterCountSubtree Int
+    | CharacterCountGroup Int
+    | CharacterCountColumn Int
+    | CharacterCountTotal Int
     | WordCountTotalCards Int
     | DocumentTheme
     | ThemeDefault
@@ -3829,6 +3834,111 @@ tr lang trans =
                     , sv = numberPlural n "%sv:WordCountColumn%:0" "%sv:WordCountColumn%:1"
                     , ca = numberPlural n "%ca:WordCountColumn%:0" "%ca:WordCountColumn%:1"
                     , br = numberPlural n "%br:WordCountColumn%:0" "%br:WordCountColumn%:1"
+                    }
+
+                CharacterCountCard n ->
+                    { en = numberPlural n "Card : %1 character" "Card : %1 characters"
+                    , zh_hans = numberPlural n "%zh_hans:CharacterCountCard%:0" "%zh_hans:CharacterCountCard%:1"
+                    , zh_hant = numberPlural n "%zh_hant:CharacterCountCard%:0" "%zh_hant:CharacterCountCard%:1"
+                    , es = numberPlural n "%es:CharacterCountCard%:0" "%es:CharacterCountCard%:1"
+                    , ar = numberPlural n "%ar:CharacterCountCard%:0" "%ar:CharacterCountCard%:1"
+                    , fr = numberPlural n "%fr:CharacterCountCard%:0" "%fr:CharacterCountCard%:1"
+                    , ru = numberPlural n "%ru:CharacterCountCard%:0" "%ru:CharacterCountCard%:1"
+                    , de = numberPlural n "%de:CharacterCountCard%:0" "%de:CharacterCountCard%:1"
+                    , ja = numberPlural n "%de:CharacterCountCard%:0" "%de:CharacterCountCard%:1"
+                    , pes = numberPlural n "%de:CharacterCountCard%:0" "%de:CharacterCountCard%:1"
+                    , it = numberPlural n "%de:CharacterCountCard%:0" "%de:CharacterCountCard%:1"
+                    , ro = numberPlural n "%de:CharacterCountCard%:0" "%de:CharacterCountCard%:1"
+                    , hr = numberPlural n "%de:CharacterCountCard%:0" "%de:CharacterCountCard%:1"
+                    , nl = numberPlural n "%nl:CharacterCountCard%:0" "%nl:CharacterCountCard%:1"
+                    , hu = numberPlural n "%hu:CharacterCountCard%:0" "%hu:CharacterCountCard%:1"
+                    , sv = numberPlural n "%sv:CharacterCountCard%:0" "%sv:CharacterCountCard%:1"
+                    , ca = numberPlural n "%ca:CharacterCountCard%:0" "%ca:CharacterCountCard%:1"
+                    , br = numberPlural n "%br:CharacterCountCard%:0" "%br:CharacterCountCard%:1"
+                    }
+
+                CharacterCountSubtree n ->
+                    { en = numberPlural n "Subtree : %1 character" "Subtree : %1 characters"
+                    , zh_hans = numberPlural n "%zh_hans:CharacterCountSubtree%:0" "%zh_hans:CharacterCountSubtree%:1"
+                    , zh_hant = numberPlural n "%zh_hant:CharacterCountSubtree%:0" "%zh_hant:CharacterCountSubtree%:1"
+                    , es = numberPlural n "%es:CharacterCountSubtree%:0" "%es:CharacterCountSubtree%:1"
+                    , ar = numberPlural n "%ar:CharacterCountSubtree%:0" "%ar:CharacterCountSubtree%:1"
+                    , fr = numberPlural n "%fr:CharacterCountSubtree%:0" "%fr:CharacterCountSubtree%:1"
+                    , ru = numberPlural n "%ru:CharacterCountSubtree%:0" "%ru:CharacterCountSubtree%:1"
+                    , de = numberPlural n "%de:CharacterCountSubtree%:0" "%de:CharacterCountSubtree%:1"
+                    , ja = numberPlural n "%de:CharacterCountSubtree%:0" "%de:CharacterCountSubtree%:1"
+                    , pes = numberPlural n "%de:CharacterCountSubtree%:0" "%de:CharacterCountSubtree%:1"
+                    , it = numberPlural n "%de:CharacterCountSubtree%:0" "%de:CharacterCountSubtree%:1"
+                    , ro = numberPlural n "%de:CharacterCountSubtree%:0" "%de:CharacterCountSubtree%:1"
+                    , hr = numberPlural n "%de:CharacterCountSubtree%:0" "%de:CharacterCountSubtree%:1"
+                    , nl = numberPlural n "%nl:CharacterCountSubtree%:0" "%nl:CharacterCountSubtree%:1"
+                    , hu = numberPlural n "%hu:CharacterCountSubtree%:0" "%hu:CharacterCountSubtree%:1"
+                    , sv = numberPlural n "%sv:CharacterCountSubtree%:0" "%sv:CharacterCountSubtree%:1"
+                    , ca = numberPlural n "%ca:CharacterCountSubtree%:0" "%ca:CharacterCountSubtree%:1"
+                    , br = numberPlural n "%br:CharacterCountSubtree%:0" "%br:CharacterCountSubtree%:1"
+                    }
+
+                CharacterCountGroup n ->
+                    { en = numberPlural n "Group : %1 character" "Group : %1 characters"
+                    , zh_hans = numberPlural n "%zh_hans:CharacterCountGroup%:0" "%zh_hans:CharacterCountGroup%:1"
+                    , zh_hant = numberPlural n "%zh_hant:CharacterCountGroup%:0" "%zh_hant:CharacterCountGroup%:1"
+                    , es = numberPlural n "%es:CharacterCountGroup%:0" "%es:CharacterCountGroup%:1"
+                    , ar = numberPlural n "%ar:CharacterCountGroup%:0" "%ar:CharacterCountGroup%:1"
+                    , fr = numberPlural n "%fr:CharacterCountGroup%:0" "%fr:CharacterCountGroup%:1"
+                    , ru = numberPlural n "%ru:CharacterCountGroup%:0" "%ru:CharacterCountGroup%:1"
+                    , de = numberPlural n "%de:CharacterCountGroup%:0" "%de:CharacterCountGroup%:1"
+                    , ja = numberPlural n "%de:CharacterCountGroup%:0" "%de:CharacterCountGroup%:1"
+                    , pes = numberPlural n "%de:CharacterCountGroup%:0" "%de:CharacterCountGroup%:1"
+                    , it = numberPlural n "%de:CharacterCountGroup%:0" "%de:CharacterCountGroup%:1"
+                    , ro = numberPlural n "%de:CharacterCountGroup%:0" "%de:CharacterCountGroup%:1"
+                    , hr = numberPlural n "%de:CharacterCountGroup%:0" "%de:CharacterCountGroup%:1"
+                    , nl = numberPlural n "%nl:CharacterCountGroup%:0" "%nl:CharacterCountGroup%:1"
+                    , hu = numberPlural n "%hu:CharacterCountGroup%:0" "%hu:CharacterCountGroup%:1"
+                    , sv = numberPlural n "%sv:CharacterCountGroup%:0" "%sv:CharacterCountGroup%:1"
+                    , ca = numberPlural n "%ca:CharacterCountGroup%:0" "%ca:CharacterCountGroup%:1"
+                    , br = numberPlural n "%br:CharacterCountGroup%:0" "%br:CharacterCountGroup%:1"
+                    }
+
+                CharacterCountColumn n ->
+                    { en = numberPlural n "Column : %1 character" "Column : %1 characters"
+                    , zh_hans = numberPlural n "%zh_hans:CharacterCountColumn%:0" "%zh_hans:CharacterCountColumn%:1"
+                    , zh_hant = numberPlural n "%zh_hant:CharacterCountColumn%:0" "%zh_hant:CharacterCountColumn%:1"
+                    , es = numberPlural n "%es:CharacterCountColumn%:0" "%es:CharacterCountColumn%:1"
+                    , ar = numberPlural n "%ar:CharacterCountColumn%:0" "%ar:CharacterCountColumn%:1"
+                    , fr = numberPlural n "%fr:CharacterCountColumn%:0" "%fr:CharacterCountColumn%:1"
+                    , ru = numberPlural n "%ru:CharacterCountColumn%:0" "%ru:CharacterCountColumn%:1"
+                    , de = numberPlural n "%de:CharacterCountColumn%:0" "%de:CharacterCountColumn%:1"
+                    , ja = numberPlural n "%de:CharacterCountColumn%:0" "%de:CharacterCountColumn%:1"
+                    , pes = numberPlural n "%de:CharacterCountColumn%:0" "%de:CharacterCountColumn%:1"
+                    , it = numberPlural n "%de:CharacterCountColumn%:0" "%de:CharacterCountColumn%:1"
+                    , ro = numberPlural n "%de:CharacterCountColumn%:0" "%de:CharacterCountColumn%:1"
+                    , hr = numberPlural n "%de:CharacterCountColumn%:0" "%de:CharacterCountColumn%:1"
+                    , nl = numberPlural n "%nl:CharacterCountColumn%:0" "%nl:CharacterCountColumn%:1"
+                    , hu = numberPlural n "%hu:CharacterCountColumn%:0" "%hu:CharacterCountColumn%:1"
+                    , sv = numberPlural n "%sv:CharacterCountColumn%:0" "%sv:CharacterCountColumn%:1"
+                    , ca = numberPlural n "%ca:CharacterCountColumn%:0" "%ca:CharacterCountColumn%:1"
+                    , br = numberPlural n "%br:CharacterCountColumn%:0" "%br:CharacterCountColumn%:1"
+                    }
+
+                CharacterCountTotal n ->
+                    { en = numberPlural n "Total : %1 character" "Total : %1 characters"
+                    , zh_hans = numberPlural n "%zh_hans:CharacterCountTotal%:0" "%zh_hans:CharacterCountTotal%:1"
+                    , zh_hant = numberPlural n "%zh_hant:CharacterCountTotal%:0" "%zh_hant:CharacterCountTotal%:1"
+                    , es = numberPlural n "%es:CharacterCountTotal%:0" "%es:CharacterCountTotal%:1"
+                    , ar = numberPlural n "%ar:CharacterCountTotal%:0" "%ar:CharacterCountTotal%:1"
+                    , fr = numberPlural n "%fr:CharacterCountTotal%:0" "%fr:CharacterCountTotal%:1"
+                    , ru = numberPlural n "%ru:CharacterCountTotal%:0" "%ru:CharacterCountTotal%:1"
+                    , de = numberPlural n "%de:CharacterCountTotal%:0" "%de:CharacterCountTotal%:1"
+                    , ja = numberPlural n "%de:CharacterCountTotal%:0" "%de:CharacterCountTotal%:1"
+                    , pes = numberPlural n "%de:CharacterCountTotal%:0" "%de:CharacterCountTotal%:1"
+                    , it = numberPlural n "%de:CharacterCountTotal%:0" "%de:CharacterCountTotal%:1"
+                    , ro = numberPlural n "%de:CharacterCountTotal%:0" "%de:CharacterCountTotal%:1"
+                    , hr = numberPlural n "%de:CharacterCountTotal%:0" "%de:CharacterCountTotal%:1"
+                    , nl = numberPlural n "%nl:CharacterCountTotal%:0" "%nl:CharacterCountTotal%:1"
+                    , hu = numberPlural n "%hu:CharacterCountTotal%:0" "%hu:CharacterCountTotal%:1"
+                    , sv = numberPlural n "%sv:CharacterCountTotal%:0" "%sv:CharacterCountTotal%:1"
+                    , ca = numberPlural n "%ca:CharacterCountTotal%:0" "%ca:CharacterCountTotal%:1"
+                    , br = numberPlural n "%br:CharacterCountTotal%:0" "%br:CharacterCountTotal%:1"
                     }
 
                 WordCountTotalCards n ->
