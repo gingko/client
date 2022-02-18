@@ -143,7 +143,7 @@ attrEncode s =
 
 treeToOPML : String -> Tree -> String
 treeToOPML docname tree =
-    "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<opml version=\"2.0\">\n<head><title>"
+    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<opml version=\"2.0\">\n<head><title>"
         ++ (attrEncode docname |> String.replace ">" "&gt;")
         ++ "</title></head>\n<body>"
         ++ treeToOPMLBody tree
