@@ -675,6 +675,36 @@ msgid_plural "Column : %1 words"
 msgstr[0] ""
 msgstr[1] ""
 
+#: Elm:CharacterCountCard
+msgid "Card : %1 character"
+msgid_plural "Card : %1 characters"
+msgstr[0] ""
+msgstr[1] ""
+
+#: Elm:CharacterCountSubtree
+msgid "Subtree : %1 character"
+msgid_plural "Subtree : %1 characters"
+msgstr[0] ""
+msgstr[1] ""
+
+#: Elm:CharacterCountGroup
+msgid "Group : %1 character"
+msgid_plural "Group : %1 characters"
+msgstr[0] ""
+msgstr[1] ""
+
+#: Elm:CharacterCountColumn
+msgid "Column : %1 character"
+msgid_plural "Column : %1 characters"
+msgstr[0] ""
+msgstr[1] ""
+
+#: Elm:CharacterCountTotal
+msgid "Total : %1 character"
+msgid_plural "Total : %1 characters"
+msgstr[0] ""
+msgstr[1] ""
+
 #: Elm:WordCountTotalCards
 msgid "Total Cards in Tree : %1"
 msgid_plural "Total Cards in Tree : %1"
