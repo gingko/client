@@ -239,6 +239,7 @@ type Language
     | Ru
     | De
     | Ja
+    | Mr
     | Pes
     | It
     | Ro
@@ -280,6 +281,9 @@ languageName lang =
         Ja ->
             "日本語"
 
+        Mr ->
+            "मराठी"
+
         Pes ->
             "فارسی"
 
@@ -310,7 +314,7 @@ languageName lang =
 
 activeLanguages : List ( Language, String )
 activeLanguages =
-    [ En, Zh_HANS, Zh_HANT, Es, Ar, Fr, Ru, Br, De, Ja, Pes, It, Ro, Hr, Nl, Hu, Sv, Ca ] |> List.map (\l -> ( l, languageName l ))
+    [ En, Zh_HANS, Zh_HANT, Es, Ar, Fr, Ru, Br, De, Ja, Mr, Pes, It, Ro, Hr, Nl, Hu, Sv, Ca ] |> List.map (\l -> ( l, languageName l ))
 
 
 tr : Language -> TranslationId -> String
@@ -344,6 +348,7 @@ tr lang trans =
                     , sv = str
                     , ca = str
                     , br = str
+                    , mr = str
                     }
 
                 Cancel ->
@@ -365,6 +370,7 @@ tr lang trans =
                     , sv = "%sv:Cancel%"
                     , ca = "%ca:Cancel%"
                     , br = "%br:Cancel%"
+                    , mr = "%mr:Cancel%"
                     }
 
                 -- Template and Import modal
@@ -387,6 +393,7 @@ tr lang trans =
                     , sv = "%sv:NewDocument%"
                     , ca = "%ca:NewDocument%"
                     , br = "%br:NewDocument%"
+                    , mr = "%mr:NewDocument%"
                     }
 
                 ShowDocumentList ->
@@ -408,6 +415,7 @@ tr lang trans =
                     , sv = "%sv:ShowDocumentList%"
                     , ca = "%ca:ShowDocumentList%"
                     , br = "%br:ShowDocumentList%"
+                    , mr = "%mr:ShowDocumentList%"
                     }
 
                 SortByName ->
@@ -429,6 +437,7 @@ tr lang trans =
                     , sv = "%sv:SortByName%"
                     , ca = "%ca:SortByName%"
                     , br = "%br:SortByName%"
+                    , mr = "%mr:SortByName%"
                     }
 
                 SortByLastModified ->
@@ -450,6 +459,7 @@ tr lang trans =
                     , sv = "%sv:SortByLastModified%"
                     , ca = "%ca:SortByLastModified%"
                     , br = "%br:SortByLastModified%"
+                    , mr = "%mr:SortByLastModified%"
                     }
 
                 SortByDateCreated ->
@@ -471,6 +481,7 @@ tr lang trans =
                     , sv = "%sv:SortByDateCreated%"
                     , ca = "%ca:SortByDateCreated%"
                     , br = "%br:SortByDateCreated%"
+                    , mr = "%mr:SortByDateCreated%"
                     }
 
                 TemplatesAndExamples ->
@@ -492,6 +503,7 @@ tr lang trans =
                     , sv = "%sv:TemplatesAndExamples%"
                     , ca = "%ca:TemplatesAndExamples%"
                     , br = "%br:TemplatesAndExamples%"
+                    , mr = "%mr:TemplatesAndExamples%"
                     }
 
                 New ->
@@ -513,6 +525,7 @@ tr lang trans =
                     , sv = "%sv:New%"
                     , ca = "%ca:New%"
                     , br = "%br:New%"
+                    , mr = "%mr:New%"
                     }
 
                 HomeBlank ->
@@ -534,6 +547,7 @@ tr lang trans =
                     , sv = "%sv:HomeBlank%"
                     , ca = "%ca:HomeBlank%"
                     , br = "%br:HomeBlank%"
+                    , mr = "%mr:HomeBlank%"
                     }
 
                 HomeImportJSON ->
@@ -555,6 +569,7 @@ tr lang trans =
                     , sv = "%sv:HomeImportJSON%"
                     , ca = "%ca:HomeImportJSON%"
                     , br = "%br:HomeImportJSON%"
+                    , mr = "%mr:HomeImportJSON%"
                     }
 
                 HomeJSONFrom ->
@@ -576,6 +591,7 @@ tr lang trans =
                     , sv = "%sv:HomeJSONFrom%"
                     , ca = "%ca:HomeJSONFrom%"
                     , br = "%br:HomeJSONFrom%"
+                    , mr = "%mr:HomeJSONFrom%"
                     }
 
                 ImportSectionTitle ->
@@ -597,6 +613,7 @@ tr lang trans =
                     , sv = "%sv:ImportSectionTitle%"
                     , ca = "%ca:ImportSectionTitle%"
                     , br = "%br:ImportSectionTitle%"
+                    , mr = "%mr:ImportSectionTitle%"
                     }
 
                 HomeImportLegacy ->
@@ -618,6 +635,7 @@ tr lang trans =
                     , sv = "%sv:HomeImportLegacy%"
                     , ca = "%ca:HomeImportLegacy%"
                     , br = "%br:HomeImportLegacy%"
+                    , mr = "%mr:HomeImportLegacy%"
                     }
 
                 HomeLegacyFrom ->
@@ -639,6 +657,7 @@ tr lang trans =
                     , sv = "%sv:HomeLegacyFrom%"
                     , ca = "%ca:HomeLegacyFrom%"
                     , br = "%br:HomeLegacyFrom%"
+                    , mr = "%mr:HomeLegacyFrom%"
                     }
 
                 ImportTextFiles ->
@@ -660,6 +679,7 @@ tr lang trans =
                     , sv = "%sv:ImportTextFiles%"
                     , ca = "%ca:ImportTextFiles%"
                     , br = "%br:ImportTextFiles%"
+                    , mr = "%mr:ImportTextFiles%"
                     }
 
                 ImportTextFilesDesc ->
@@ -681,6 +701,7 @@ tr lang trans =
                     , sv = "%sv:ImportTextFilesDesc%"
                     , ca = "%ca:ImportTextFilesDesc%"
                     , br = "%br:ImportTextFilesDesc%"
+                    , mr = "%mr:ImportTextFilesDesc%"
                     }
 
                 ImportOpmlFiles ->
@@ -702,6 +723,7 @@ tr lang trans =
                     , sv = "%sv:ImportOpmlFiles%"
                     , ca = "%ca:ImportOpmlFiles%"
                     , br = "%br:ImportOpmlFiles%"
+                    , mr = "%mr:ImportOpmlFiles%"
                     }
 
                 ImportOpmlFilesDesc ->
@@ -723,6 +745,7 @@ tr lang trans =
                     , sv = "%sv:ImportOpmlFilesDesc%"
                     , ca = "%ca:ImportOpmlFilesDesc%"
                     , br = "%br:ImportOpmlFilesDesc%"
+                    , mr = "%mr:ImportOpmlFilesDesc%"
                     }
 
                 TimelineTemplate ->
@@ -744,6 +767,7 @@ tr lang trans =
                     , sv = "%sv:TimelineTemplate%"
                     , ca = "%ca:TimelineTemplate%"
                     , br = "%br:TimelineTemplate%"
+                    , mr = "%mr:TimelineTemplate%"
                     }
 
                 TimelineTemplateDesc ->
@@ -765,6 +789,7 @@ tr lang trans =
                     , sv = "%sv:TimelineTemplateDesc%"
                     , ca = "%ca:TimelineTemplateDesc%"
                     , br = "%br:TimelineTemplateDesc%"
+                    , mr = "%mr:TimelineTemplateDesc%"
                     }
 
                 AcademicPaperTemplate ->
@@ -786,6 +811,7 @@ tr lang trans =
                     , sv = "%sv:AcademicPaperTemplate%"
                     , ca = "%ca:AcademicPaperTemplate%"
                     , br = "%br:AcademicPaperTemplate%"
+                    , mr = "%mr:AcademicPaperTemplate%"
                     }
 
                 AcademicPaperTemplateDesc ->
@@ -807,6 +833,7 @@ tr lang trans =
                     , sv = "%sv:AcademicPaperTemplateDesc%"
                     , ca = "%ca:AcademicPaperTemplateDesc%"
                     , br = "%br:AcademicPaperTemplateDesc%"
+                    , mr = "%mr:AcademicPaperTemplateDesc%"
                     }
 
                 ProjectBrainstormingTemplate ->
@@ -828,6 +855,7 @@ tr lang trans =
                     , sv = "%sv:ProjectBrainstormingTemplate%"
                     , ca = "%ca:ProjectBrainstormingTemplate%"
                     , br = "%br:ProjectBrainstormingTemplate%"
+                    , mr = "%mr:ProjectBrainstormingTemplate%"
                     }
 
                 ProjectBrainstormingTemplateDesc ->
@@ -849,6 +877,7 @@ tr lang trans =
                     , sv = "%sv:ProjectBrainstormingTemplateDesc%"
                     , ca = "%ca:ProjectBrainstormingTemplateDesc%"
                     , br = "%br:ProjectBrainstormingTemplateDesc%"
+                    , mr = "%mr:ProjectBrainstormingTemplateDesc%"
                     }
 
                 HerosJourneyTemplate ->
@@ -870,6 +899,7 @@ tr lang trans =
                     , sv = "%sv:HerosJourneyTemplate%"
                     , ca = "%ca:HerosJourneyTemplate%"
                     , br = "%br:HerosJourneyTemplate%"
+                    , mr = "%mr:HerosJourneyTemplate%"
                     }
 
                 HerosJourneyTemplateDesc ->
@@ -891,6 +921,7 @@ tr lang trans =
                     , sv = "%sv:HerosJourneyTemplateDesc%"
                     , ca = "%ca:HerosJourneyTemplateDesc%"
                     , br = "%br:HerosJourneyTemplateDesc%"
+                    , mr = "%mr:HerosJourneyTemplateDesc%"
                     }
 
                 --
@@ -913,6 +944,7 @@ tr lang trans =
                     , sv = "%sv:RecentDocuments%"
                     , ca = "%ca:RecentDocuments%"
                     , br = "%br:RecentDocuments%"
+                    , mr = "%mr:RecentDocuments%"
                     }
 
                 LastUpdated ->
@@ -934,6 +966,7 @@ tr lang trans =
                     , sv = "%sv:LastUpdated%"
                     , ca = "%ca:LastUpdated%"
                     , br = "%br:LastUpdated%"
+                    , mr = "%mr:LastUpdated%"
                     }
 
                 LastOpened ->
@@ -955,6 +988,7 @@ tr lang trans =
                     , sv = "%sv:LastOpened%"
                     , ca = "%ca:LastOpened%"
                     , br = "%br:LastOpened%"
+                    , mr = "%mr:LastOpened%"
                     }
 
                 OpenOtherDocuments ->
@@ -976,6 +1010,7 @@ tr lang trans =
                     , sv = "%sv:OpenOtherDocuments%"
                     , ca = "%ca:OpenOtherDocuments%"
                     , br = "%br:OpenOtherDocuments%"
+                    , mr = "%mr:OpenOtherDocuments%"
                     }
 
                 DuplicateDocument ->
@@ -997,6 +1032,7 @@ tr lang trans =
                     , sv = "%sv:DuplicateDocument%"
                     , ca = "%ca:DuplicateDocument%"
                     , br = "%br:DuplicateDocument%"
+                    , mr = "%mr:DuplicateDocument%"
                     }
 
                 DeleteDocument ->
@@ -1018,6 +1054,7 @@ tr lang trans =
                     , sv = "%sv:DeleteDocument%"
                     , ca = "%ca:DeleteDocument%"
                     , br = "%br:DeleteDocument%"
+                    , mr = "%mr:DeleteDocument%"
                     }
 
                 RemoveFromList ->
@@ -1039,6 +1076,7 @@ tr lang trans =
                     , sv = "%sv:RemoveFromList%"
                     , ca = "%ca:RemoveFromList%"
                     , br = "%br:RemoveFromList%"
+                    , mr = "%mr:RemoveFromList%"
                     }
 
                 NeverSaved ->
@@ -1060,6 +1098,7 @@ tr lang trans =
                     , sv = "%sv:NeverSaved%"
                     , ca = "%ca:NeverSaved%"
                     , br = "%br:NeverSaved%"
+                    , mr = "%mr:NeverSaved%"
                     }
 
                 UnsavedChanges ->
@@ -1081,6 +1120,7 @@ tr lang trans =
                     , sv = "%sv:UnsavedChanges%"
                     , ca = "%ca:UnsavedChanges%"
                     , br = "%br:UnsavedChanges%"
+                    , mr = "%mr:UnsavedChanges%"
                     }
 
                 SavedInternally ->
@@ -1102,6 +1142,7 @@ tr lang trans =
                     , sv = "%sv:SavedInternally%"
                     , ca = "%ca:SavedInternally%"
                     , br = "%br:SavedInternally%"
+                    , mr = "%mr:SavedInternally%"
                     }
 
                 ChangesSaved ->
@@ -1123,6 +1164,7 @@ tr lang trans =
                     , sv = "%sv:ChangesSaved%"
                     , ca = "%ca:ChangesSaved%"
                     , br = "%br:ChangesSaved%"
+                    , mr = "%mr:ChangesSaved%"
                     }
 
                 ChangesSynced ->
@@ -1144,6 +1186,7 @@ tr lang trans =
                     , sv = "%sv:ChangesSynced%"
                     , ca = "%ca:ChangesSynced%"
                     , br = "%br:ChangesSynced%"
+                    , mr = "%mr:ChangesSynced%"
                     }
 
                 DatabaseError ->
@@ -1165,6 +1208,7 @@ tr lang trans =
                     , sv = "%sv:DatabaseError%"
                     , ca = "%ca:DatabaseError%"
                     , br = "%br:DatabaseError%"
+                    , mr = "%mr:DatabaseError%"
                     }
 
                 LastSaved ->
@@ -1186,6 +1230,7 @@ tr lang trans =
                     , sv = "%sv:LastSaved%"
                     , ca = "%ca:LastSaved%"
                     , br = "%br:LastSaved%"
+                    , mr = "%mr:LastSaved%"
                     }
 
                 LastEdit ->
@@ -1207,6 +1252,7 @@ tr lang trans =
                     , sv = "%sv:LastEdit%"
                     , ca = "%ca:LastEdit%"
                     , br = "%br:LastEdit%"
+                    , mr = "%mr:LastEdit%"
                     }
 
                 ConfirmBannerStrong ->
@@ -1228,6 +1274,7 @@ tr lang trans =
                     , sv = "%sv:ConfirmBannerStrong%"
                     , ca = "%ca:ConfirmBannerStrong%"
                     , br = "%br:ConfirmBannerStrong%"
+                    , mr = "%mr:ConfirmBannerStrong%"
                     }
 
                 ConfirmBannerBody ->
@@ -1249,6 +1296,7 @@ tr lang trans =
                     , sv = "%sv:ConfirmBannerBody%"
                     , ca = "%ca:ConfirmBannerBody%"
                     , br = "%br:ConfirmBannerBody%"
+                    , mr = "%mr:ConfirmBannerBody%"
                     }
 
                 Help ->
@@ -1270,6 +1318,7 @@ tr lang trans =
                     , sv = "%sv:Help%"
                     , ca = "%ca:Help%"
                     , br = "%br:Help%"
+                    , mr = "%mr:Help%"
                     }
 
                 WhatsNew ->
@@ -1291,6 +1340,7 @@ tr lang trans =
                     , sv = "%sv:WhatsNew%"
                     , ca = "%ca:WhatsNew%"
                     , br = "%br:WhatsNew%"
+                    , mr = "%mr:WhatsNew%"
                     }
 
                 AccountTooltip ->
@@ -1312,6 +1362,7 @@ tr lang trans =
                     , sv = "%sv:AccountTooltip%"
                     , ca = "%ca:AccountTooltip%"
                     , br = "%br:AccountTooltip%"
+                    , mr = "%mr:AccountTooltip%"
                     }
 
                 -- Keyboard Shortcut Help
@@ -1334,6 +1385,7 @@ tr lang trans =
                     , sv = "%sv:KeyboardShortcuts%"
                     , ca = "%ca:KeyboardShortcuts%"
                     , br = "%br:KeyboardShortcuts%"
+                    , mr = "%mr:KeyboardShortcuts%"
                     }
 
                 ViewModeShortcuts ->
@@ -1355,6 +1407,7 @@ tr lang trans =
                     , sv = "%sv:ViewModeShortcuts%"
                     , ca = "%ca:ViewModeShortcuts%"
                     , br = "%br:ViewModeShortcuts%"
+                    , mr = "%mr:ViewModeShortcuts%"
                     }
 
                 CardEditCreateDelete ->
@@ -1376,6 +1429,7 @@ tr lang trans =
                     , sv = "%sv:CardEditCreateDelete%"
                     , ca = "%ca:CardEditCreateDelete%"
                     , br = "%br:CardEditCreateDelete%"
+                    , mr = "%mr:CardEditCreateDelete%"
                     }
 
                 NavigationMovingCards ->
@@ -1397,6 +1451,7 @@ tr lang trans =
                     , sv = "%sv:NavigationMovingCards%"
                     , ca = "%ca:NavigationMovingCards%"
                     , br = "%br:NavigationMovingCards%"
+                    , mr = "%mr:NavigationMovingCards%"
                     }
 
                 CopyPaste ->
@@ -1418,6 +1473,7 @@ tr lang trans =
                     , sv = "%sv:CopyPaste%"
                     , ca = "%ca:CopyPaste%"
                     , br = "%br:CopyPaste%"
+                    , mr = "%mr:CopyPaste%"
                     }
 
                 SearchingMerging ->
@@ -1439,6 +1495,7 @@ tr lang trans =
                     , sv = "%sv:SearchingMerging%"
                     , ca = "%ca:SearchingMerging%"
                     , br = "%br:SearchingMerging%"
+                    , mr = "%mr:SearchingMerging%"
                     }
 
                 HelpInfoDocs ->
@@ -1460,6 +1517,7 @@ tr lang trans =
                     , sv = "%sv:HelpInfoDocs%"
                     , ca = "%ca:HelpInfoDocs%"
                     , br = "%br:HelpInfoDocs%"
+                    , mr = "%mr:HelpInfoDocs%"
                     }
 
                 EditModeShortcuts ->
@@ -1481,6 +1539,7 @@ tr lang trans =
                     , sv = "%sv:EditModeShortcuts%"
                     , ca = "%ca:EditModeShortcuts%"
                     , br = "%br:EditModeShortcuts%"
+                    , mr = "%mr:EditModeShortcuts%"
                     }
 
                 CardSaveCreate ->
@@ -1502,6 +1561,7 @@ tr lang trans =
                     , sv = "%sv:CardSaveCreate%"
                     , ca = "%ca:CardSaveCreate%"
                     , br = "%br:CardSaveCreate%"
+                    , mr = "%mr:CardSaveCreate%"
                     }
 
                 EditCard ->
@@ -1523,6 +1583,7 @@ tr lang trans =
                     , sv = "%sv:EditCard%"
                     , ca = "%ca:EditCard%"
                     , br = "%br:EditCard%"
+                    , mr = "%mr:EditCard%"
                     }
 
                 AddCardBelow ->
@@ -1544,6 +1605,7 @@ tr lang trans =
                     , sv = "%sv:AddCardBelow%"
                     , ca = "%ca:AddCardBelow%"
                     , br = "%br:AddCardBelow%"
+                    , mr = "%mr:AddCardBelow%"
                     }
 
                 AddCardAbove ->
@@ -1565,6 +1627,7 @@ tr lang trans =
                     , sv = "%sv:AddCardAbove%"
                     , ca = "%ca:AddCardAbove%"
                     , br = "%br:AddCardAbove%"
+                    , mr = "%mr:AddCardAbove%"
                     }
 
                 AddCardToRight ->
@@ -1586,6 +1649,7 @@ tr lang trans =
                     , sv = "%sv:AddCardToRight%"
                     , ca = "%ca:AddCardToRight%"
                     , br = "%br:AddCardToRight%"
+                    , mr = "%mr:AddCardToRight%"
                     }
 
                 AddCardBelowSplit ->
@@ -1607,6 +1671,7 @@ tr lang trans =
                     , sv = "%sv:AddCardBelowSplit%"
                     , ca = "%ca:AddCardBelowSplit%"
                     , br = "%br:AddCardBelowSplit%"
+                    , mr = "%mr:AddCardBelowSplit%"
                     }
 
                 AddCardAboveSplit ->
@@ -1628,6 +1693,7 @@ tr lang trans =
                     , sv = "%sv:AddCardAboveSplit%"
                     , ca = "%ca:AddCardAboveSplit%"
                     , br = "%br:AddCardAboveSplit%"
+                    , mr = "%mr:AddCardAboveSplit%"
                     }
 
                 AddCardToRightSplit ->
@@ -1649,6 +1715,7 @@ tr lang trans =
                     , sv = "%sv:AddCardToRightSplit%"
                     , ca = "%ca:AddCardToRightSplit%"
                     , br = "%br:AddCardToRightSplit%"
+                    , mr = "%mr:AddCardToRightSplit%"
                     }
 
                 DeleteCard ->
@@ -1670,6 +1737,7 @@ tr lang trans =
                     , sv = "%sv:DeleteCard%"
                     , ca = "%ca:DeleteCard%"
                     , br = "%br:DeleteCard%"
+                    , mr = "%mr:DeleteCard%"
                     }
 
                 GoUpDownLeftRight ->
@@ -1691,6 +1759,7 @@ tr lang trans =
                     , sv = "%sv:GoUpDownLeftRight%"
                     , ca = "%ca:GoUpDownLeftRight%"
                     , br = "%br:GoUpDownLeftRight%"
+                    , mr = "%mr:GoUpDownLeftRight%"
                     }
 
                 GoToBeginningOfGroup ->
@@ -1712,6 +1781,7 @@ tr lang trans =
                     , sv = "%sv:GoToBeginningOfGroup%"
                     , ca = "%ca:GoToBeginningOfGroup%"
                     , br = "%br:GoToBeginningOfGroup%"
+                    , mr = "%mr:GoToBeginningOfGroup%"
                     }
 
                 GoToEndOfGroup ->
@@ -1733,6 +1803,7 @@ tr lang trans =
                     , sv = "%sv:GoToEndOfGroup%"
                     , ca = "%ca:GoToEndOfGroup%"
                     , br = "%br:GoToEndOfGroup%"
+                    , mr = "%mr:GoToEndOfGroup%"
                     }
 
                 GoToBeginningOfColumn ->
@@ -1754,6 +1825,7 @@ tr lang trans =
                     , sv = "%sv:GoToBeginningOfColumn%"
                     , ca = "%ca:GoToBeginningOfColumn%"
                     , br = "%br:GoToBeginningOfColumn%"
+                    , mr = "%mr:GoToBeginningOfColumn%"
                     }
 
                 GoToEndOfColumn ->
@@ -1775,6 +1847,7 @@ tr lang trans =
                     , sv = "%sv:GoToEndOfColumn%"
                     , ca = "%ca:GoToEndOfColumn%"
                     , br = "%br:GoToEndOfColumn%"
+                    , mr = "%mr:GoToEndOfColumn%"
                     }
 
                 MoveCurrentCard ->
@@ -1796,6 +1869,7 @@ tr lang trans =
                     , sv = "%sv:MoveCurrentCard%"
                     , ca = "%ca:MoveCurrentCard%"
                     , br = "%br:MoveCurrentCard%"
+                    , mr = "%mr:MoveCurrentCard%"
                     }
 
                 PageUp ->
@@ -1817,6 +1891,7 @@ tr lang trans =
                     , sv = "%sv:PageUp%"
                     , ca = "%ca:PageUp%"
                     , br = "%br:PageUp%"
+                    , mr = "%mr:PageUp%"
                     }
 
                 PageDown ->
@@ -1838,6 +1913,7 @@ tr lang trans =
                     , sv = "%sv:PageDown%"
                     , ca = "%ca:PageDown%"
                     , br = "%br:PageDown%"
+                    , mr = "%mr:PageDown%"
                     }
 
                 HomeKey ->
@@ -1859,6 +1935,7 @@ tr lang trans =
                     , sv = "%sv:HomeKey%"
                     , ca = "%ca:HomeKey%"
                     , br = "%br:HomeKey%"
+                    , mr = "%mr:HomeKey%"
                     }
 
                 EndKey ->
@@ -1880,6 +1957,7 @@ tr lang trans =
                     , sv = "%sv:EndKey%"
                     , ca = "%ca:EndKey%"
                     , br = "%br:EndKey%"
+                    , mr = "%mr:EndKey%"
                     }
 
                 AnyOfAbove ->
@@ -1901,6 +1979,7 @@ tr lang trans =
                     , sv = "%sv:AnyOfAbove%"
                     , ca = "%ca:AnyOfAbove%"
                     , br = "%br:AnyOfAbove%"
+                    , mr = "%mr:AnyOfAbove%"
                     }
 
                 DragCard ->
@@ -1922,6 +2001,7 @@ tr lang trans =
                     , sv = "%sv:DragCard%"
                     , ca = "%ca:DragCard%"
                     , br = "%br:DragCard%"
+                    , mr = "%mr:DragCard%"
                     }
 
                 Search ->
@@ -1943,6 +2023,7 @@ tr lang trans =
                     , sv = "%sv:Search%"
                     , ca = "%ca:Search%"
                     , br = "%br:Search%"
+                    , mr = "%mr:Search%"
                     }
 
                 ClearSearch ->
@@ -1964,6 +2045,7 @@ tr lang trans =
                     , sv = "%sv:ClearSearch%"
                     , ca = "%ca:ClearSearch%"
                     , br = "%br:ClearSearch%"
+                    , mr = "%mr:ClearSearch%"
                     }
 
                 MergeCardUp ->
@@ -1985,6 +2067,7 @@ tr lang trans =
                     , sv = "%sv:MergeCardUp%"
                     , ca = "%ca:MergeCardUp%"
                     , br = "%br:MergeCardUp%"
+                    , mr = "%mr:MergeCardUp%"
                     }
 
                 MergeCardDown ->
@@ -2006,6 +2089,7 @@ tr lang trans =
                     , sv = "%sv:MergeCardDown%"
                     , ca = "%ca:MergeCardDown%"
                     , br = "%br:MergeCardDown%"
+                    , mr = "%mr:MergeCardDown%"
                     }
 
                 CopyCurrent ->
@@ -2027,6 +2111,7 @@ tr lang trans =
                     , sv = "%sv:CopyCurrent%"
                     , ca = "%ca:CopyCurrent%"
                     , br = "%br:CopyCurrent%"
+                    , mr = "%mr:CopyCurrent%"
                     }
 
                 PasteBelow ->
@@ -2048,6 +2133,7 @@ tr lang trans =
                     , sv = "%sv:PasteBelow%"
                     , ca = "%ca:PasteBelow%"
                     , br = "%br:PasteBelow%"
+                    , mr = "%mr:PasteBelow%"
                     }
 
                 PasteAsChild ->
@@ -2069,6 +2155,7 @@ tr lang trans =
                     , sv = "%sv:PasteAsChild%"
                     , ca = "%ca:PasteAsChild%"
                     , br = "%br:PasteAsChild%"
+                    , mr = "%mr:PasteAsChild%"
                     }
 
                 InsertSelected ->
@@ -2090,6 +2177,7 @@ tr lang trans =
                     , sv = "%sv:InsertSelected%"
                     , ca = "%ca:InsertSelected%"
                     , br = "%br:InsertSelected%"
+                    , mr = "%mr:InsertSelected%"
                     }
 
                 DragSelected ->
@@ -2111,6 +2199,7 @@ tr lang trans =
                     , sv = "%sv:DragSelected%"
                     , ca = "%ca:DragSelected%"
                     , br = "%br:DragSelected%"
+                    , mr = "%mr:DragSelected%"
                     }
 
                 WordCounts ->
@@ -2132,6 +2221,7 @@ tr lang trans =
                     , sv = "%sv:WordCounts%"
                     , ca = "%ca:WordCounts%"
                     , br = "%br:WordCounts%"
+                    , mr = "%mr:WordCounts%"
                     }
 
                 SwitchDocuments ->
@@ -2153,6 +2243,7 @@ tr lang trans =
                     , sv = "%sv:SwitchDocuments%"
                     , ca = "%ca:SwitchDocuments%"
                     , br = "%br:SwitchDocuments%"
+                    , mr = "%mr:SwitchDocuments%"
                     }
 
                 ThisHelpScreen ->
@@ -2174,6 +2265,7 @@ tr lang trans =
                     , sv = "%sv:ThisHelpScreen%"
                     , ca = "%ca:ThisHelpScreen%"
                     , br = "%br:ThisHelpScreen%"
+                    , mr = "%mr:ThisHelpScreen%"
                     }
 
                 Or ->
@@ -2195,6 +2287,7 @@ tr lang trans =
                     , sv = "%sv:Or%"
                     , ca = "%ca:Or%"
                     , br = "%br:Or%"
+                    , mr = "%mr:Or%"
                     }
 
                 EditCardFullscreen ->
@@ -2216,6 +2309,7 @@ tr lang trans =
                     , sv = "%sv:EditCardFullscreen%"
                     , ca = "%ca:EditCardFullscreen%"
                     , br = "%br:EditCardFullscreen%"
+                    , mr = "%mr:EditCardFullscreen%"
                     }
 
                 EditCards ->
@@ -2237,6 +2331,7 @@ tr lang trans =
                     , sv = "%sv:EditCards%"
                     , ca = "%ca:EditCards%"
                     , br = "%br:EditCards%"
+                    , mr = "%mr:EditCards%"
                     }
 
                 KeyboardHelp ->
@@ -2258,6 +2353,7 @@ tr lang trans =
                     , sv = "%sv:KeyboardHelp%"
                     , ca = "%ca:KeyboardHelp%"
                     , br = "%br:KeyboardHelp%"
+                    , mr = "%mr:KeyboardHelp%"
                     }
 
                 RestoreThisVersion ->
@@ -2279,6 +2375,7 @@ tr lang trans =
                     , sv = "%sv:RestoreThisVersion%"
                     , ca = "%ca:RestoreThisVersion%"
                     , br = "%br:RestoreThisVersion%"
+                    , mr = "%mr:RestoreThisVersion%"
                     }
 
                 EnterKey ->
@@ -2300,6 +2397,7 @@ tr lang trans =
                     , sv = "%sv:EnterKey%"
                     , ca = "%ca:EnterKey%"
                     , br = "%br:EnterKey%"
+                    , mr = "%mr:EnterKey%"
                     }
 
                 ShiftKey ->
@@ -2321,6 +2419,7 @@ tr lang trans =
                     , sv = "%sv:ShiftKey%"
                     , ca = "%ca:ShiftKey%"
                     , br = "%br:ShiftKey%"
+                    , mr = "%mr:ShiftKey%"
                     }
 
                 EnterAction ->
@@ -2342,6 +2441,7 @@ tr lang trans =
                     , sv = "%sv:EnterAction%"
                     , ca = "%ca:EnterAction%"
                     , br = "%br:EnterAction%"
+                    , mr = "%mr:EnterAction%"
                     }
 
                 AltKey ->
@@ -2363,6 +2463,7 @@ tr lang trans =
                     , sv = "%sv:AltKey%"
                     , ca = "%ca:AltKey%"
                     , br = "%br:AltKey%"
+                    , mr = "%mr:AltKey%"
                     }
 
                 EditFullscreenAction ->
@@ -2384,6 +2485,7 @@ tr lang trans =
                     , sv = "%sv:EditFullscreenAction%"
                     , ca = "%ca:EditFullscreenAction%"
                     , br = "%br:EditFullscreenAction%"
+                    , mr = "%mr:EditFullscreenAction%"
                     }
 
                 Navigate ->
@@ -2405,6 +2507,7 @@ tr lang trans =
                     , sv = "%sv:Navigate%"
                     , ca = "%ca:Navigate%"
                     , br = "%br:Navigate%"
+                    , mr = "%mr:Navigate%"
                     }
 
                 EditCardTitle ->
@@ -2426,6 +2529,7 @@ tr lang trans =
                     , sv = "%sv:EditCardTitle%"
                     , ca = "%ca:EditCardTitle%"
                     , br = "%br:EditCardTitle%"
+                    , mr = "%mr:EditCardTitle%"
                     }
 
                 ArrowsAction ->
@@ -2447,6 +2551,7 @@ tr lang trans =
                     , sv = "%sv:ArrowsAction%"
                     , ca = "%ca:ArrowsAction%"
                     , br = "%br:ArrowsAction%"
+                    , mr = "%mr:ArrowsAction%"
                     }
 
                 AddNewCards ->
@@ -2468,6 +2573,7 @@ tr lang trans =
                     , sv = "%sv:AddNewCards%"
                     , ca = "%ca:AddNewCards%"
                     , br = "%br:AddNewCards%"
+                    , mr = "%mr:AddNewCards%"
                     }
 
                 AddChildAction ->
@@ -2489,6 +2595,7 @@ tr lang trans =
                     , sv = "%sv:AddChildAction%"
                     , ca = "%ca:AddChildAction%"
                     , br = "%br:AddChildAction%"
+                    , mr = "%mr:AddChildAction%"
                     }
 
                 InsertChildTitle ->
@@ -2510,6 +2617,7 @@ tr lang trans =
                     , sv = "%sv:InsertChildTitle%"
                     , ca = "%ca:InsertChildTitle%"
                     , br = "%br:InsertChildTitle%"
+                    , mr = "%mr:InsertChildTitle%"
                     }
 
                 AddBelowAction ->
@@ -2531,6 +2639,7 @@ tr lang trans =
                     , sv = "%sv:AddBelowAction%"
                     , ca = "%ca:AddBelowAction%"
                     , br = "%br:AddBelowAction%"
+                    , mr = "%mr:AddBelowAction%"
                     }
 
                 InsertBelowTitle ->
@@ -2552,6 +2661,7 @@ tr lang trans =
                     , sv = "%sv:InsertBelowTitle%"
                     , ca = "%ca:InsertBelowTitle%"
                     , br = "%br:InsertBelowTitle%"
+                    , mr = "%mr:InsertBelowTitle%"
                     }
 
                 AddAboveAction ->
@@ -2573,6 +2683,7 @@ tr lang trans =
                     , sv = "%sv:AddAboveAction%"
                     , ca = "%ca:AddAboveAction%"
                     , br = "%br:AddAboveAction%"
+                    , mr = "%mr:AddAboveAction%"
                     }
 
                 SplitAtCursor ->
@@ -2594,6 +2705,7 @@ tr lang trans =
                     , sv = "%sv:SplitAtCursor%"
                     , ca = "%ca:SplitAtCursor%"
                     , br = "%br:SplitAtCursor%"
+                    , mr = "%mr:SplitAtCursor%"
                     }
 
                 SplitChildAction ->
@@ -2615,6 +2727,7 @@ tr lang trans =
                     , sv = "%sv:SplitChildAction%"
                     , ca = "%ca:SplitChildAction%"
                     , br = "%br:SplitChildAction%"
+                    , mr = "%mr:SplitChildAction%"
                     }
 
                 SplitBelowAction ->
@@ -2636,6 +2749,7 @@ tr lang trans =
                     , sv = "%sv:SplitBelowAction%"
                     , ca = "%ca:SplitBelowAction%"
                     , br = "%br:SplitBelowAction%"
+                    , mr = "%mr:SplitBelowAction%"
                     }
 
                 SplitUpwardAction ->
@@ -2657,6 +2771,7 @@ tr lang trans =
                     , sv = "%sv:SplitUpwardAction%"
                     , ca = "%ca:SplitUpwardAction%"
                     , br = "%br:SplitUpwardAction%"
+                    , mr = "%mr:SplitUpwardAction%"
                     }
 
                 MergeCards ->
@@ -2678,6 +2793,7 @@ tr lang trans =
                     , sv = "%sv:MergeCards%"
                     , ca = "%ca:MergeCards%"
                     , br = "%br:MergeCards%"
+                    , mr = "%mr:MergeCards%"
                     }
 
                 MergeDownAction ->
@@ -2699,6 +2815,7 @@ tr lang trans =
                     , sv = "%sv:MergeDownAction%"
                     , ca = "%ca:MergeDownAction%"
                     , br = "%br:MergeDownAction%"
+                    , mr = "%mr:MergeDownAction%"
                     }
 
                 MergeUpAction ->
@@ -2720,6 +2837,7 @@ tr lang trans =
                     , sv = "%sv:MergeUpAction%"
                     , ca = "%ca:MergeUpAction%"
                     , br = "%br:MergeUpAction%"
+                    , mr = "%mr:MergeUpAction%"
                     }
 
                 InsertAboveTitle ->
@@ -2741,6 +2859,7 @@ tr lang trans =
                     , sv = "%sv:InsertAboveTitle%"
                     , ca = "%ca:InsertAboveTitle%"
                     , br = "%br:InsertAboveTitle%"
+                    , mr = "%mr:InsertAboveTitle%"
                     }
 
                 ArrowKeys ->
@@ -2762,6 +2881,7 @@ tr lang trans =
                     , sv = "%sv:ArrowKeys%"
                     , ca = "%ca:ArrowKeys%"
                     , br = "%br:ArrowKeys%"
+                    , mr = "%mr:ArrowKeys%"
                     }
 
                 MoveAndDelete ->
@@ -2783,6 +2903,7 @@ tr lang trans =
                     , sv = "%sv:MoveAndDelete%"
                     , ca = "%ca:MoveAndDelete%"
                     , br = "%br:MoveAndDelete%"
+                    , mr = "%mr:MoveAndDelete%"
                     }
 
                 MoveAction ->
@@ -2804,6 +2925,7 @@ tr lang trans =
                     , sv = "%sv:MoveAction%"
                     , ca = "%ca:MoveAction%"
                     , br = "%br:MoveAction%"
+                    , mr = "%mr:MoveAction%"
                     }
 
                 Backspace ->
@@ -2825,6 +2947,7 @@ tr lang trans =
                     , sv = "%sv:Backspace%"
                     , ca = "%ca:Backspace%"
                     , br = "%br:Backspace%"
+                    , mr = "%mr:Backspace%"
                     }
 
                 DeleteAction ->
@@ -2846,6 +2969,7 @@ tr lang trans =
                     , sv = "%sv:DeleteAction%"
                     , ca = "%ca:DeleteAction%"
                     , br = "%br:DeleteAction%"
+                    , mr = "%mr:DeleteAction%"
                     }
 
                 DeleteCardTitle ->
@@ -2867,6 +2991,7 @@ tr lang trans =
                     , sv = "%sv:DeleteCardTitle%"
                     , ca = "%ca:DeleteCardTitle%"
                     , br = "%br:DeleteCardTitle%"
+                    , mr = "%mr:DeleteCardTitle%"
                     }
 
                 FormattingGuide ->
@@ -2888,6 +3013,7 @@ tr lang trans =
                     , sv = "%sv:FormattingGuide%"
                     , ca = "%ca:FormattingGuide%"
                     , br = "%br:FormattingGuide%"
+                    , mr = "%mr:FormattingGuide%"
                     }
 
                 ForBold ->
@@ -2909,6 +3035,7 @@ tr lang trans =
                     , sv = "%sv:ForBold%"
                     , ca = "%ca:ForBold%"
                     , br = "%br:ForBold%"
+                    , mr = "%mr:ForBold%"
                     }
 
                 BoldSelection ->
@@ -2930,6 +3057,7 @@ tr lang trans =
                     , sv = "%sv:BoldSelection%"
                     , ca = "%ca:BoldSelection%"
                     , br = "%br:BoldSelection%"
+                    , mr = "%mr:BoldSelection%"
                     }
 
                 ForItalic ->
@@ -2951,6 +3079,7 @@ tr lang trans =
                     , sv = "%sv:ForItalic%"
                     , ca = "%ca:ForItalic%"
                     , br = "%br:ForItalic%"
+                    , mr = "%mr:ForItalic%"
                     }
 
                 ItalicizeSelection ->
@@ -2972,6 +3101,7 @@ tr lang trans =
                     , sv = "%sv:ItalicizeSelection%"
                     , ca = "%ca:ItalicizeSelection%"
                     , br = "%br:ItalicizeSelection%"
+                    , mr = "%mr:ItalicizeSelection%"
                     }
 
                 SaveChanges ->
@@ -2993,6 +3123,7 @@ tr lang trans =
                     , sv = "%sv:SaveChanges%"
                     , ca = "%ca:SaveChanges%"
                     , br = "%br:SaveChanges%"
+                    , mr = "%mr:SaveChanges%"
                     }
 
                 SaveChangesAndExit ->
@@ -3014,6 +3145,7 @@ tr lang trans =
                     , sv = "%sv:SaveChangesAndExit%"
                     , ca = "%ca:SaveChangesAndExit%"
                     , br = "%br:SaveChangesAndExit%"
+                    , mr = "%mr:SaveChangesAndExit%"
                     }
 
                 ExitEditMode ->
@@ -3035,6 +3167,7 @@ tr lang trans =
                     , sv = "%sv:ExitEditMode%"
                     , ca = "%ca:ExitEditMode%"
                     , br = "%br:ExitEditMode%"
+                    , mr = "%mr:ExitEditMode%"
                     }
 
                 ToSaveChanges ->
@@ -3056,6 +3189,7 @@ tr lang trans =
                     , sv = "%sv:ToSaveChanges%"
                     , ca = "%ca:ToSaveChanges%"
                     , br = "%br:ToSaveChanges%"
+                    , mr = "%mr:ToSaveChanges%"
                     }
 
                 SaveChangesTitle ->
@@ -3077,6 +3211,7 @@ tr lang trans =
                     , sv = "%sv:SaveChangesTitle%"
                     , ca = "%ca:SaveChangesTitle%"
                     , br = "%br:SaveChangesTitle%"
+                    , mr = "%mr:SaveChangesTitle%"
                     }
 
                 EscKey ->
@@ -3098,6 +3233,7 @@ tr lang trans =
                     , sv = "%sv:EscKey%"
                     , ca = "%ca:EscKey%"
                     , br = "%br:EscKey%"
+                    , mr = "%mr:EscKey%"
                     }
 
                 OtherShortcuts ->
@@ -3119,6 +3255,7 @@ tr lang trans =
                     , sv = "%sv:OtherShortcuts%"
                     , ca = "%ca:OtherShortcuts%"
                     , br = "%br:OtherShortcuts%"
+                    , mr = "%mr:OtherShortcuts%"
                     }
 
                 DisplayWordCounts ->
@@ -3140,6 +3277,7 @@ tr lang trans =
                     , sv = "%sv:DisplayWordCounts%"
                     , ca = "%ca:DisplayWordCounts%"
                     , br = "%br:DisplayWordCounts%"
+                    , mr = "%mr:DisplayWordCounts%"
                     }
 
                 EditMode ->
@@ -3161,6 +3299,7 @@ tr lang trans =
                     , sv = "%sv:EditMode%"
                     , ca = "%ca:EditMode%"
                     , br = "%br:EditMode%"
+                    , mr = "%mr:EditMode%"
                     }
 
                 SaveOrCancelChanges ->
@@ -3182,6 +3321,7 @@ tr lang trans =
                     , sv = "%sv:SaveOrCancelChanges%"
                     , ca = "%ca:SaveOrCancelChanges%"
                     , br = "%br:SaveOrCancelChanges%"
+                    , mr = "%mr:SaveOrCancelChanges%"
                     }
 
                 Formatting ->
@@ -3203,6 +3343,7 @@ tr lang trans =
                     , sv = "%sv:Formatting%"
                     , ca = "%ca:Formatting%"
                     , br = "%br:Formatting%"
+                    , mr = "%mr:Formatting%"
                     }
 
                 FormattingTitle ->
@@ -3224,6 +3365,7 @@ tr lang trans =
                     , sv = "%sv:FormattingTitle%"
                     , ca = "%ca:FormattingTitle%"
                     , br = "%br:FormattingTitle%"
+                    , mr = "%mr:FormattingTitle%"
                     }
 
                 SetTitleLevel ->
@@ -3245,6 +3387,7 @@ tr lang trans =
                     , sv = "%sv:SetTitleLevel%"
                     , ca = "%ca:SetTitleLevel%"
                     , br = "%br:SetTitleLevel%"
+                    , mr = "%mr:SetTitleLevel%"
                     }
 
                 FormattingList ->
@@ -3266,6 +3409,7 @@ tr lang trans =
                     , sv = "%sv:FormattingList%"
                     , ca = "%ca:FormattingList%"
                     , br = "%br:FormattingList%"
+                    , mr = "%mr:FormattingList%"
                     }
 
                 FormattingLink ->
@@ -3287,6 +3431,7 @@ tr lang trans =
                     , sv = "%sv:FormattingLink%"
                     , ca = "%ca:FormattingLink%"
                     , br = "%br:FormattingLink%"
+                    , mr = "%mr:FormattingLink%"
                     }
 
                 ParenNumber ->
@@ -3308,6 +3453,7 @@ tr lang trans =
                     , sv = "%sv:ParenNumber%"
                     , ca = "%ca:ParenNumber%"
                     , br = "%br:ParenNumber%"
+                    , mr = "%mr:ParenNumber%"
                     }
 
                 SetHeadingLevel ->
@@ -3329,6 +3475,7 @@ tr lang trans =
                     , sv = "%sv:SetHeadingLevel%"
                     , ca = "%ca:SetHeadingLevel%"
                     , br = "%br:SetHeadingLevel%"
+                    , mr = "%mr:SetHeadingLevel%"
                     }
 
                 HelpVideos ->
@@ -3350,6 +3497,7 @@ tr lang trans =
                     , sv = "%sv:HelpVideos%"
                     , ca = "%ca:HelpVideos%"
                     , br = "%br:HelpVideos%"
+                    , mr = "%mr:HelpVideos%"
                     }
 
                 FAQAndDocs ->
@@ -3371,6 +3519,7 @@ tr lang trans =
                     , sv = "%sv:FAQAndDocs%"
                     , ca = "%ca:FAQAndDocs%"
                     , br = "%br:FAQAndDocs%"
+                    , mr = "%mr:FAQAndDocs%"
                     }
 
                 --
@@ -3393,6 +3542,7 @@ tr lang trans =
                     , sv = "%sv:AreYouSureCancel%"
                     , ca = "%ca:AreYouSureCancel%"
                     , br = "%br:AreYouSureCancel%"
+                    , mr = "%mr:AreYouSureCancel%"
                     }
 
                 ToCancelChanges ->
@@ -3414,6 +3564,7 @@ tr lang trans =
                     , sv = "%sv:ToCancelChanges%"
                     , ca = "%ca:ToCancelChanges%"
                     , br = "%br:ToCancelChanges%"
+                    , mr = "%mr:ToCancelChanges%"
                     }
 
                 PressToSearch ->
@@ -3435,6 +3586,7 @@ tr lang trans =
                     , sv = "%sv:PressToSearch%"
                     , ca = "%ca:PressToSearch%"
                     , br = "%br:PressToSearch%"
+                    , mr = "%mr:PressToSearch%"
                     }
 
                 QuickDocumentSwitcher ->
@@ -3456,6 +3608,7 @@ tr lang trans =
                     , sv = "%sv:QuickDocumentSwitcher%"
                     , ca = "%ca:QuickDocumentSwitcher%"
                     , br = "%br:QuickDocumentSwitcher%"
+                    , mr = "%mr:QuickDocumentSwitcher%"
                     }
 
                 OpenQuickSwitcher ->
@@ -3477,6 +3630,7 @@ tr lang trans =
                     , sv = "%sv:OpenQuickSwitcher%"
                     , ca = "%ca:OpenQuickSwitcher%"
                     , br = "%br:OpenQuickSwitcher%"
+                    , mr = "%mr:OpenQuickSwitcher%"
                     }
 
                 ContactSupport ->
@@ -3498,6 +3652,7 @@ tr lang trans =
                     , sv = "%sv:EmailSupport%"
                     , ca = "%ca:EmailSupport%"
                     , br = "%br:EmailSupport%"
+                    , mr = "%mr:EmailSupport%"
                     }
 
                 Logout ->
@@ -3519,6 +3674,7 @@ tr lang trans =
                     , sv = "%sv:Logout%"
                     , ca = "%ca:Logout%"
                     , br = "%br:Logout%"
+                    , mr = "%mr:Logout%"
                     }
 
                 Language ->
@@ -3540,6 +3696,7 @@ tr lang trans =
                     , sv = "%sv:Language%"
                     , ca = "%ca:Language%"
                     , br = "%br:Language%"
+                    , mr = "%mr:Language%"
                     }
 
                 ContributeTranslations ->
@@ -3561,6 +3718,7 @@ tr lang trans =
                     , sv = "%sv:ContributeTranslations%"
                     , ca = "%ca:ContributeTranslations%"
                     , br = "%br:ContributeTranslations%"
+                    , mr = "%mr:ContributeTranslations%"
                     }
 
                 Here ->
@@ -3582,6 +3740,7 @@ tr lang trans =
                     , sv = "%sv:Here%"
                     , ca = "%ca:Here%"
                     , br = "%br:Here%"
+                    , mr = "%mr:Here%"
                     }
 
                 HeadingFont ->
@@ -3603,6 +3762,7 @@ tr lang trans =
                     , sv = "%sv:HeadingFont%"
                     , ca = "%ca:HeadingFont%"
                     , br = "%br:HeadingFont%"
+                    , mr = "%mr:HeadingFont%"
                     }
 
                 ContentFont ->
@@ -3624,6 +3784,7 @@ tr lang trans =
                     , sv = "%sv:ContentFont%"
                     , ca = "%ca:ContentFont%"
                     , br = "%br:ContentFont%"
+                    , mr = "%mr:ContentFont%"
                     }
 
                 EditingFont ->
@@ -3645,6 +3806,7 @@ tr lang trans =
                     , sv = "%sv:EditingFont%"
                     , ca = "%ca:EditingFont%"
                     , br = "%br:EditingFont%"
+                    , mr = "%mr:EditingFont%"
                     }
 
                 VersionHistory ->
@@ -3666,6 +3828,7 @@ tr lang trans =
                     , sv = "%sv:VersionHistory%"
                     , ca = "%ca:VersionHistory%"
                     , br = "%br:VersionHistory%"
+                    , mr = "%mr:VersionHistory%"
                     }
 
                 DocumentSettings ->
@@ -3687,6 +3850,7 @@ tr lang trans =
                     , sv = "%sv:DocumentSettings%"
                     , ca = "%ca:DocumentSettings%"
                     , br = "%br:DocumentSettings%"
+                    , mr = "%mr:DocumentSettings%"
                     }
 
                 WordCount ->
@@ -3708,6 +3872,7 @@ tr lang trans =
                     , sv = "%sv:WordCount%"
                     , ca = "%ca:WordCount%"
                     , br = "%br:WordCount%"
+                    , mr = "%mr:WordCount%"
                     }
 
                 WordCountSession n ->
@@ -3729,6 +3894,7 @@ tr lang trans =
                     , sv = numberPlural n "%sv:WordCountSession%:0" "%sv:WordCountSession%:1"
                     , ca = numberPlural n "%ca:WordCountSession%:0" "%ca:WordCountSession%:1"
                     , br = numberPlural n "%br:WordCountSession%:0" "%br:WordCountSession%:1"
+                    , mr = numberPlural n "%mr:WordCountSession%:0" "%mr:WordCountSession%:1"
                     }
 
                 WordCountTotal n ->
@@ -3750,6 +3916,7 @@ tr lang trans =
                     , sv = numberPlural n "%sv:WordCountTotal%:0" "%sv:WordCountTotal%:1"
                     , ca = numberPlural n "%ca:WordCountTotal%:0" "%ca:WordCountTotal%:1"
                     , br = numberPlural n "%br:WordCountTotal%:0" "%br:WordCountTotal%:1"
+                    , mr = numberPlural n "%mr:WordCountTotal%:0" "%mr:WordCountTotal%:1"
                     }
 
                 WordCountCard n ->
@@ -3771,6 +3938,7 @@ tr lang trans =
                     , sv = numberPlural n "%sv:WordCountCard%:0" "%sv:WordCountCard%:1"
                     , ca = numberPlural n "%ca:WordCountCard%:0" "%ca:WordCountCard%:1"
                     , br = numberPlural n "%br:WordCountCard%:0" "%br:WordCountCard%:1"
+                    , mr = numberPlural n "%mr:WordCountCard%:0" "%mr:WordCountCard%:1"
                     }
 
                 WordCountSubtree n ->
@@ -3792,6 +3960,7 @@ tr lang trans =
                     , sv = numberPlural n "%sv:WordCountSubtree%:0" "%sv:WordCountSubtree%:1"
                     , ca = numberPlural n "%ca:WordCountSubtree%:0" "%ca:WordCountSubtree%:1"
                     , br = numberPlural n "%br:WordCountSubtree%:0" "%br:WordCountSubtree%:1"
+                    , mr = numberPlural n "%mr:WordCountSubtree%:0" "%mr:WordCountSubtree%:1"
                     }
 
                 WordCountGroup n ->
@@ -3813,6 +3982,7 @@ tr lang trans =
                     , sv = numberPlural n "%sv:WordCountGroup%:0" "%sv:WordCountGroup%:1"
                     , ca = numberPlural n "%ca:WordCountGroup%:0" "%ca:WordCountGroup%:1"
                     , br = numberPlural n "%br:WordCountGroup%:0" "%br:WordCountGroup%:1"
+                    , mr = numberPlural n "%mr:WordCountGroup%:0" "%mr:WordCountGroup%:1"
                     }
 
                 WordCountColumn n ->
@@ -3834,6 +4004,7 @@ tr lang trans =
                     , sv = numberPlural n "%sv:WordCountColumn%:0" "%sv:WordCountColumn%:1"
                     , ca = numberPlural n "%ca:WordCountColumn%:0" "%ca:WordCountColumn%:1"
                     , br = numberPlural n "%br:WordCountColumn%:0" "%br:WordCountColumn%:1"
+                    , mr = numberPlural n "%mr:WordCountColumn%:0" "%mr:WordCountColumn%:1"
                     }
 
                 CharacterCountCard n ->
@@ -3855,6 +4026,7 @@ tr lang trans =
                     , sv = numberPlural n "%sv:CharacterCountCard%:0" "%sv:CharacterCountCard%:1"
                     , ca = numberPlural n "%ca:CharacterCountCard%:0" "%ca:CharacterCountCard%:1"
                     , br = numberPlural n "%br:CharacterCountCard%:0" "%br:CharacterCountCard%:1"
+                    , mr = numberPlural n "%mr:CharacterCountCard%:0" "%mr:CharacterCountCard%:1"
                     }
 
                 CharacterCountSubtree n ->
@@ -3876,6 +4048,7 @@ tr lang trans =
                     , sv = numberPlural n "%sv:CharacterCountSubtree%:0" "%sv:CharacterCountSubtree%:1"
                     , ca = numberPlural n "%ca:CharacterCountSubtree%:0" "%ca:CharacterCountSubtree%:1"
                     , br = numberPlural n "%br:CharacterCountSubtree%:0" "%br:CharacterCountSubtree%:1"
+                    , mr = numberPlural n "%mr:CharacterCountSubtree%:0" "%mr:CharacterCountSubtree%:1"
                     }
 
                 CharacterCountGroup n ->
@@ -3897,6 +4070,7 @@ tr lang trans =
                     , sv = numberPlural n "%sv:CharacterCountGroup%:0" "%sv:CharacterCountGroup%:1"
                     , ca = numberPlural n "%ca:CharacterCountGroup%:0" "%ca:CharacterCountGroup%:1"
                     , br = numberPlural n "%br:CharacterCountGroup%:0" "%br:CharacterCountGroup%:1"
+                    , mr = numberPlural n "%mr:CharacterCountGroup%:0" "%mr:CharacterCountGroup%:1"
                     }
 
                 CharacterCountColumn n ->
@@ -3918,6 +4092,7 @@ tr lang trans =
                     , sv = numberPlural n "%sv:CharacterCountColumn%:0" "%sv:CharacterCountColumn%:1"
                     , ca = numberPlural n "%ca:CharacterCountColumn%:0" "%ca:CharacterCountColumn%:1"
                     , br = numberPlural n "%br:CharacterCountColumn%:0" "%br:CharacterCountColumn%:1"
+                    , mr = numberPlural n "%mr:CharacterCountColumn%:0" "%mr:CharacterCountColumn%:1"
                     }
 
                 CharacterCountTotal n ->
@@ -3939,6 +4114,7 @@ tr lang trans =
                     , sv = numberPlural n "%sv:CharacterCountTotal%:0" "%sv:CharacterCountTotal%:1"
                     , ca = numberPlural n "%ca:CharacterCountTotal%:0" "%ca:CharacterCountTotal%:1"
                     , br = numberPlural n "%br:CharacterCountTotal%:0" "%br:CharacterCountTotal%:1"
+                    , mr = numberPlural n "%mr:CharacterCountTotal%:0" "%mr:CharacterCountTotal%:1"
                     }
 
                 WordCountTotalCards n ->
@@ -3960,6 +4136,7 @@ tr lang trans =
                     , sv = numberPlural n "%sv:WordCountTotalCards%:0" "%sv:WordCountTotalCards%:1"
                     , ca = numberPlural n "%ca:WordCountTotalCards%:0" "%ca:WordCountTotalCards%:1"
                     , br = numberPlural n "%br:WordCountTotalCards%:0" "%br:WordCountTotalCards%:1"
+                    , mr = numberPlural n "%mr:WordCountTotalCards%:0" "%mr:WordCountTotalCards%:1"
                     }
 
                 DocumentTheme ->
@@ -3981,6 +4158,7 @@ tr lang trans =
                     , sv = "%sv:DocumentTheme%"
                     , ca = "%ca:DocumentTheme%"
                     , br = "%br:DocumentTheme%"
+                    , mr = "%mr:DocumentTheme%"
                     }
 
                 ThemeDefault ->
@@ -4002,6 +4180,7 @@ tr lang trans =
                     , sv = "%sv:ThemeDefault%"
                     , ca = "%ca:ThemeDefault%"
                     , br = "%br:ThemeDefault%"
+                    , mr = "%mr:ThemeDefault%"
                     }
 
                 ThemeDarkMode ->
@@ -4023,6 +4202,7 @@ tr lang trans =
                     , sv = "%sv:ThemeDarkMode%"
                     , ca = "%ca:ThemeDarkMode%"
                     , br = "%br:ThemeDarkMode%"
+                    , mr = "%mr:ThemeDarkMode%"
                     }
 
                 ThemeClassic ->
@@ -4044,6 +4224,7 @@ tr lang trans =
                     , sv = "%sv:ThemeClassic%"
                     , ca = "%ca:ThemeClassic%"
                     , br = "%br:ThemeClassic%"
+                    , mr = "%mr:ThemeClassic%"
                     }
 
                 ThemeGray ->
@@ -4065,6 +4246,7 @@ tr lang trans =
                     , sv = "%sv:ThemeGray%"
                     , ca = "%ca:ThemeGray%"
                     , br = "%br:ThemeGray%"
+                    , mr = "%mr:ThemeGray%"
                     }
 
                 ThemeGreen ->
@@ -4086,6 +4268,7 @@ tr lang trans =
                     , sv = "%sv:ThemeGreen%"
                     , ca = "%ca:ThemeGreen%"
                     , br = "%br:ThemeGreen%"
+                    , mr = "%mr:ThemeGreen%"
                     }
 
                 ThemeTurquoise ->
@@ -4107,6 +4290,7 @@ tr lang trans =
                     , sv = "%sv:ThemeTurquoise%"
                     , ca = "%ca:ThemeTurquoise%"
                     , br = "%br:ThemeTurquoise%"
+                    , mr = "%mr:ThemeTurquoise%"
                     }
 
                 -- Exporting
@@ -4129,6 +4313,7 @@ tr lang trans =
                     , sv = "%sv:ExportOrPrint%"
                     , ca = "%ca:ExportOrPrint%"
                     , br = "%br:ExportOrPrint%"
+                    , mr = "%mr:ExportOrPrint%"
                     }
 
                 ExportSettingEverything ->
@@ -4150,6 +4335,7 @@ tr lang trans =
                     , sv = "%sv:ExportSettingEverything%"
                     , ca = "%ca:ExportSettingEverything%"
                     , br = "%br:ExportSettingEverything%"
+                    , mr = "%mr:ExportSettingEverything%"
                     }
 
                 ExportSettingEverythingDesc ->
@@ -4171,6 +4357,7 @@ tr lang trans =
                     , sv = "%sv:ExportSettingEverythingDesc%"
                     , ca = "%ca:ExportSettingEverythingDesc%"
                     , br = "%br:ExportSettingEverythingDesc%"
+                    , mr = "%mr:ExportSettingEverythingDesc%"
                     }
 
                 ExportSettingCurrentSubtree ->
@@ -4192,6 +4379,7 @@ tr lang trans =
                     , sv = "%sv:ExportSettingCurrentSubtree%"
                     , ca = "%ca:ExportSettingCurrentSubtree%"
                     , br = "%br:ExportSettingCurrentSubtree%"
+                    , mr = "%mr:ExportSettingCurrentSubtree%"
                     }
 
                 ExportSettingCurrentSubtreeDesc ->
@@ -4213,6 +4401,7 @@ tr lang trans =
                     , sv = "%sv:ExportSettingCurrentSubtreeDesc%"
                     , ca = "%ca:ExportSettingCurrentSubtreeDesc%"
                     , br = "%br:ExportSettingCurrentSubtreeDesc%"
+                    , mr = "%mr:ExportSettingCurrentSubtreeDesc%"
                     }
 
                 ExportSettingLeavesOnly ->
@@ -4234,6 +4423,7 @@ tr lang trans =
                     , sv = "%sv:ExportSettingLeavesOnly%"
                     , ca = "%ca:ExportSettingLeavesOnly%"
                     , br = "%br:ExportSettingLeavesOnly%"
+                    , mr = "%mr:ExportSettingLeavesOnly%"
                     }
 
                 ExportSettingLeavesOnlyDesc ->
@@ -4255,6 +4445,7 @@ tr lang trans =
                     , sv = "%sv:ExportSettingLeavesOnlyDesc%"
                     , ca = "%ca:ExportSettingLeavesOnlyDesc%"
                     , br = "%br:ExportSettingLeavesOnlyDesc%"
+                    , mr = "%mr:ExportSettingLeavesOnlyDesc%"
                     }
 
                 ExportSettingCurrentColumn ->
@@ -4276,6 +4467,7 @@ tr lang trans =
                     , sv = "%sv:ExportSettingCurrentColumn%"
                     , ca = "%ca:ExportSettingCurrentColumn%"
                     , br = "%br:ExportSettingCurrentColumn%"
+                    , mr = "%mr:ExportSettingCurrentColumn%"
                     }
 
                 ExportSettingCurrentColumnDesc ->
@@ -4297,6 +4489,7 @@ tr lang trans =
                     , sv = "%sv:ExportSettingCurrentColumnDesc%"
                     , ca = "%ca:ExportSettingCurrentColumnDesc%"
                     , br = "%br:ExportSettingCurrentColumnDesc%"
+                    , mr = "%mr:ExportSettingCurrentColumnDesc%"
                     }
 
                 ExportSettingWord ->
@@ -4318,6 +4511,7 @@ tr lang trans =
                     , sv = "%sv:ExportSettingWord%"
                     , ca = "%ca:ExportSettingWord%"
                     , br = "%br:ExportSettingWord%"
+                    , mr = "%mr:ExportSettingWord%"
                     }
 
                 ExportSettingPlainText ->
@@ -4339,6 +4533,7 @@ tr lang trans =
                     , sv = "%sv:ExportSettingPlainText%"
                     , ca = "%ca:ExportSettingPlainText%"
                     , br = "%br:ExportSettingPlainText%"
+                    , mr = "%mr:ExportSettingPlainText%"
                     }
 
                 ExportSettingJSON ->
@@ -4360,6 +4555,7 @@ tr lang trans =
                     , sv = "%sv:ExportSettingJSON%"
                     , ca = "%ca:ExportSettingJSON%"
                     , br = "%br:ExportSettingJSON%"
+                    , mr = "%mr:ExportSettingJSON%"
                     }
 
                 ExportSettingOPML ->
@@ -4381,6 +4577,7 @@ tr lang trans =
                     , sv = "%sv:ExportSettingOPML%"
                     , ca = "%ca:ExportSettingOPML%"
                     , br = "%br:ExportSettingOPML%"
+                    , mr = "%mr:ExportSettingOPML%"
                     }
 
                 DownloadWordFile ->
@@ -4402,6 +4599,7 @@ tr lang trans =
                     , sv = "%sv:DownloadWordFile%"
                     , ca = "%ca:DownloadWordFile%"
                     , br = "%br:DownloadWordFile%"
+                    , mr = "%mr:DownloadWordFile%"
                     }
 
                 DownloadTextFile ->
@@ -4423,6 +4621,7 @@ tr lang trans =
                     , sv = "%sv:DownloadTextFile%"
                     , ca = "%ca:DownloadTextFile%"
                     , br = "%br:DownloadTextFile%"
+                    , mr = "%mr:DownloadTextFile%"
                     }
 
                 DownloadJSONFile ->
@@ -4444,6 +4643,7 @@ tr lang trans =
                     , sv = "%sv:DownloadJSONFile%"
                     , ca = "%ca:DownloadJSONFile%"
                     , br = "%br:DownloadJSONFile%"
+                    , mr = "%mr:DownloadJSONFile%"
                     }
 
                 DownloadOPMLFile ->
@@ -4465,6 +4665,7 @@ tr lang trans =
                     , sv = "%sv:DownloadOPMLFile%"
                     , ca = "%ca:DownloadOPMLFile%"
                     , br = "%br:DownloadOPMLFile%"
+                    , mr = "%mr:DownloadOPMLFile%"
                     }
 
                 PrintThis ->
@@ -4486,6 +4687,7 @@ tr lang trans =
                     , sv = "%sv:PrintThis%"
                     , ca = "%ca:PrintThis%"
                     , br = "%br:PrintThis%"
+                    , mr = "%mr:PrintThis%"
                     }
 
                 -- Upgrade & Subscription
@@ -4508,6 +4710,7 @@ tr lang trans =
                     , sv = "%sv:Upgrade%"
                     , ca = "%ca:Upgrade%"
                     , br = "%br:Upgrade%"
+                    , mr = "%mr:Upgrade%"
                     }
 
                 DaysLeft n ->
@@ -4529,6 +4732,7 @@ tr lang trans =
                     , sv = numberPlural n "%sv:DaysLeft%:0" "%sv:DaysLeft%:1"
                     , ca = numberPlural n "%ca:DaysLeft%:0" "%ca:DaysLeft%:1"
                     , br = numberPlural n "%br:DaysLeft%:0" "%br:DaysLeft%:1"
+                    , mr = numberPlural n "%mr:DaysLeft%:0" "%mr:DaysLeft%:1"
                     }
 
                 TrialExpired ->
@@ -4550,6 +4754,7 @@ tr lang trans =
                     , sv = "%sv:TrialExpired%"
                     , ca = "%ca:TrialExpired%"
                     , br = "%br:TrialExpired%"
+                    , mr = "%mr:TrialExpired%"
                     }
 
                 WordOfMouthCTA1 ->
@@ -4571,6 +4776,7 @@ tr lang trans =
                     , sv = "%sv:WordOfMouthCTA1%"
                     , ca = "%ca:WordOfMouthCTA1%"
                     , br = "%br:WordOfMouthCTA1%"
+                    , mr = "%mr:WordOfMouthCTA1%"
                     }
 
                 WordOfMouthCTA2 ->
@@ -4592,6 +4798,7 @@ tr lang trans =
                     , sv = "%sv:WordOfMouthCTA2%"
                     , ca = "%ca:WordOfMouthCTA2%"
                     , br = "%br:WordOfMouthCTA2%"
+                    , mr = "%mr:WordOfMouthCTA2%"
                     }
 
                 ManageSubscription ->
@@ -4613,6 +4820,7 @@ tr lang trans =
                     , sv = "%sv:ManageSubscription%"
                     , ca = "%ca:ManageSubscription%"
                     , br = "%br:ManageSubscription%"
+                    , mr = "%mr:ManageSubscription%"
                     }
     in
     case lang of
@@ -4642,6 +4850,9 @@ tr lang trans =
 
         Ja ->
             .ja translationSet
+
+        Mr ->
+            .mr translationSet
 
         Pes ->
             .pes translationSet
@@ -4699,6 +4910,9 @@ timeDistInWords lang t1 t2 =
             TimeDistance.inWordsWithConfig { withAffix = True } I18n.en t1 t2
 
         Ja ->
+            TimeDistance.inWordsWithConfig { withAffix = True } I18n.en t1 t2
+
+        Mr ->
             TimeDistance.inWordsWithConfig { withAffix = True } I18n.en t1 t2
 
         Pes ->
@@ -4769,6 +4983,9 @@ posixToString formatString lang time =
         Ja ->
             format Time.Format.Config.Config_ja_jp.config formatString Time.utc time
 
+        Mr ->
+            format Time.Format.Config.Config_en_us.config formatString Time.utc time
+
         Pes ->
             format Time.Format.Config.Config_en_us.config formatString Time.utc time
 
@@ -4835,6 +5052,9 @@ langFromString str =
         "ja" ->
             Ja
 
+        "mr" ->
+            Mr
+
         "pes" ->
             Pes
 
@@ -4894,6 +5114,9 @@ langToString lang =
             "de"
 
         Ja ->
+            "ja"
+
+        Mr ->
             "ja"
 
         Pes ->
