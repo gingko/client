@@ -441,6 +441,16 @@ input.has-error {
 .dark-theme .modal iframe {
   filter: invert(1);
 }
+.dark-theme a {
+  color: hsl(207, 90%, 54%);
+}
+.dark-theme a:visited {
+  color: hsl(277, 58%, 60%);
+}
+.dark-theme .card .view blockquote {
+  background: hsl(228, 14%, 26%);
+  border-color: hsl(0, 0%, 36%);
+}
 .gray-theme {
   --bg-left: hsl(202, 0%, 30%);
   --bg-main: hsl(202, 0%, 41%);
@@ -3331,7 +3341,7 @@ pre {
 }
 .card.active.has-children.flash {
   margin-right: -9px; /* to extend glow to the right*/
-  padding-right: 9px; 
+  padding-right: 9px;
 }
 .card.active.has-children.flash .card-right-overlay {
   margin-right: 9px;
