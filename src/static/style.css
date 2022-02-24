@@ -297,7 +297,7 @@ body {
   text-decoration: none;
   color: #84b1c7;
 }
-#form-page input, #contact-form input:not([type='radio']), #contact-form textarea {
+#form-page input:not([type='checkbox']), #contact-form input:not([type='radio']), #contact-form textarea {
   border: 1px solid gray;
   padding: .5em 1em;
   font-size: 1em;
@@ -3498,6 +3498,14 @@ div#breadcrumbs::-webkit-scrollbar {
   padding: 2px 8px;
   border-radius: 6px;
   box-shadow: 0px 1px 1px #00000082;
+}
+#word-count-table {
+  display: flex;
+  justify-content: space-around;
+}
+#word-count-table .word-count-column {
+  display: flex;
+  flex-direction: column;
 }
 
 #shortcuts-tray {

@@ -3,7 +3,7 @@ module Page.Doc.Export exposing (ExportFormat(..), ExportSelection(..), command,
 import Ant.Icons.Svg as AntIcons
 import Api
 import Bytes exposing (Bytes)
-import Coders exposing (treeToJSON, treeToMarkdownString)
+import Coders exposing (treeToJSON, treeToMarkdownString, treeToOPML)
 import Doc.TreeUtils exposing (getColumnById, getLeaves)
 import File.Download as Download
 import Html exposing (Html, div, pre, text)
@@ -26,32 +26,43 @@ type ExportSelection
 type ExportFormat
     = PlainText
     | DOCX
+    | OPML
     | JSON
 
 
 command : (String -> Result Http.Error Bytes -> msg) -> String -> String -> ( ExportSelection, ExportFormat ) -> Tree -> Tree -> Cmd msg
 command exportedMsg docId docName (( _, exportFormat ) as exportSettings) activeTree fullTree =
+    let
+        exportedString =
+            toString docName exportSettings activeTree fullTree
+    in
     case exportFormat of
         JSON ->
-            Download.string (docName ++ ".json") "application/json" (toString exportSettings activeTree fullTree)
+            Download.string (docName ++ ".json") "application/json" exportedString
+
+        OPML ->
+            Download.string (docName ++ ".opml") "application/xml, text/xml, text/x-opml" exportedString
 
         PlainText ->
-            Download.string (docName ++ ".txt") "text/plain" (toString exportSettings activeTree fullTree)
+            Download.string (docName ++ ".txt") "text/plain" exportedString
 
         DOCX ->
             Api.exportDocx
                 (exportedMsg docName)
-                { docId = docId, markdown = toString exportSettings activeTree fullTree }
+                { docId = docId, markdown = exportedString }
 
 
-toString : ( ExportSelection, ExportFormat ) -> Tree -> Tree -> String
-toString ( exportSelection, exportFormat ) activeTree fullTree =
+toString : String -> ( ExportSelection, ExportFormat ) -> Tree -> Tree -> String
+toString docName ( exportSelection, exportFormat ) activeTree fullTree =
     let
         stringFn withRoot tree =
             case exportFormat of
                 JSON ->
                     treeToJSON withRoot tree
                         |> Enc.encode 2
+
+                OPML ->
+                    treeToOPML docName tree
 
                 _ ->
                     treeToMarkdownString withRoot tree
@@ -102,11 +113,12 @@ exportView :
     , tooltipRequested : String -> TooltipPosition -> TranslationId -> msg
     , tooltipClosed : msg
     }
+    -> String
     -> ( ExportSelection, ExportFormat )
     -> Tree
     -> Tree
     -> Html msg
-exportView msgs (( _, exportFormat ) as exportSettings) activeTree fullTree =
+exportView msgs docName (( _, exportFormat ) as exportSettings) activeTree fullTree =
     let
         options =
             { githubFlavored = Just { tables = True, breaks = True }
@@ -125,6 +137,9 @@ exportView msgs (( _, exportFormat ) as exportSettings) activeTree fullTree =
 
                 JSON ->
                     DownloadJSONFile
+
+                OPML ->
+                    DownloadOPMLFile
 
         actionButtons =
             div [ id "export-action-buttons" ]
@@ -147,13 +162,13 @@ exportView msgs (( _, exportFormat ) as exportSettings) activeTree fullTree =
     case exportFormat of
         DOCX ->
             div [ id "export-preview" ]
-                [ Markdown.toHtmlWith options [ attribute "data-private" "lipsum" ] (toString exportSettings activeTree fullTree)
+                [ Markdown.toHtmlWith options [ attribute "data-private" "lipsum" ] (toString docName exportSettings activeTree fullTree)
                 , actionButtons
                 ]
 
         _ ->
             div [ id "export-preview" ]
-                [ div [ class "plain", attribute "data-private" "lipsum" ] [ text (toString exportSettings activeTree fullTree) ]
+                [ div [ class "plain", attribute "data-private" "lipsum" ] [ text (toString docName exportSettings activeTree fullTree) ]
                 , actionButtons
                 ]
 

@@ -71,7 +71,6 @@ describe('Document UI', () => {
 
     // Toggles shortcut tray on clicking right-sidebar
     cy.get('#app-root').should('not.contain', 'Keyboard Shortcuts')
-    cy.get('#email-confirm-close-btn').click()
     cy.get('#shortcuts-tray').click()
     cy.contains('Keyboard Shortcuts')
 
@@ -96,7 +95,7 @@ describe('Document UI', () => {
     cy.get('#wordcount-menu-item')
       .click()
 
-    cy.get('.modal-header h2').contains('Word Counts')
+    cy.get('.modal-header h2').contains('Word & Character Counts')
 
     cy.contains('Total : 4 words')
 

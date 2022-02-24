@@ -31,7 +31,7 @@ describe('Keyboard Shortcuts', () => {
 
       cy.shortcut('w')
       cy.get('.modal-header h2')
-        .contains('Word Counts')
+        .contains('Word & Character Counts')
 
       cy.shortcut('w')
       cy.get('.modal-header h2')

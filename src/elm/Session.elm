@@ -515,13 +515,14 @@ encode session =
 -- AUTHENTICATION
 
 
-requestSignup : (Result Http.Error Session -> msg) -> String -> String -> Session -> Cmd msg
-requestSignup toMsg email password session =
+requestSignup : (Result Http.Error Session -> msg) -> String -> String -> Bool -> Session -> Cmd msg
+requestSignup toMsg email password didOptIn session =
     let
         requestBody =
             Enc.object
                 [ ( "email", Enc.string email )
                 , ( "password", Enc.string password )
+                , ( "subscribed", Enc.bool didOptIn )
                 ]
                 |> Http.jsonBody
     in

@@ -251,6 +251,7 @@ viewHeader msgs title_ model =
                 , div [ id "export-format", class "toggle-button" ]
                     [ div (exportFormatBtnAttributes DOCX "word") [ text language ExportSettingWord ]
                     , div (exportFormatBtnAttributes PlainText "text") [ text language ExportSettingPlainText ]
+                    , div (exportFormatBtnAttributes OPML "opml") [ text language ExportSettingOPML ]
                     , div (exportFormatBtnAttributes JSON "json") [ text language ExportSettingJSON ]
                     ]
                 ]
@@ -869,16 +870,26 @@ viewWordCount model msgs =
         session =
             current - model.startingWordcount
     in
-    [ span [] [ text language (WordCountSession session) ]
-    , span [] [ text language (WordCountTotal current) ]
-    , span [] [ text language (WordCountCard stats.cardWords) ]
-    , span [] [ text language (WordCountSubtree stats.subtreeWords) ]
-    , span [] [ text language (WordCountGroup stats.groupWords) ]
-    , span [] [ text language (WordCountColumn stats.columnWords) ]
-    , hr [] []
-    , span [] [ text language (WordCountTotalCards stats.cards) ]
+    [ div [ id "word-count-table" ]
+        [ div [ class "word-count-column" ]
+            [ span [] [ text language (WordCountCard stats.cardWords) ]
+            , span [] [ text language (WordCountSubtree stats.subtreeWords) ]
+            , span [] [ text language (WordCountGroup stats.groupWords) ]
+            , span [] [ text language (WordCountColumn stats.columnWords) ]
+            , span [] [ text language (WordCountSession session) ]
+            , span [] [ text language (WordCountTotal current) ]
+            ]
+        , div [ class "word-count-column" ]
+            [ span [] [ text language (CharacterCountCard stats.cardChars) ]
+            , span [] [ text language (CharacterCountSubtree stats.subtreeChars) ]
+            , span [] [ text language (CharacterCountGroup stats.groupChars) ]
+            , span [] [ text language (CharacterCountColumn stats.columnChars) ]
+            , span [] [ text language (CharacterCountTotal stats.documentChars) ]
+            ]
+        ]
+    , span [ style "text-align" "center" ] [ text language (WordCountTotalCards stats.cards) ]
     ]
-        |> modalWrapper msgs.modalClosed Nothing Nothing "Word Counts"
+        |> modalWrapper msgs.modalClosed Nothing Nothing "Word & Character Counts"
 
 
 
@@ -1180,10 +1191,15 @@ viewShortcuts msgs lang isOpen isMac children textCursorInfo vs =
 
 type alias Stats =
     { cardWords : Int
+    , cardChars : Int
     , subtreeWords : Int
+    , subtreeChars : Int
     , groupWords : Int
+    , groupChars : Int
     , columnWords : Int
+    , columnChars : Int
     , documentWords : Int
+    , documentChars : Int
     , cards : Int
     }
 
@@ -1273,36 +1289,42 @@ getStats model =
         currentGroup =
             getSiblings activeCardId tree
 
-        cardCount =
-            countWords currentTree.content
+        ( cardWords, cardChars ) =
+            count currentTree.content
 
-        subtreeCount =
-            cardCount + countWords (treeToMarkdownString False currentTree)
+        ( subtreeWords, subtreeChars ) =
+            count (treeToMarkdownString False currentTree)
+                |> Tuple.mapBoth (\w -> w + cardWords) (\c -> c + cardChars)
 
-        groupCount =
+        ( groupWords, groupChars ) =
             currentGroup
                 |> List.map .content
                 |> String.join "\n\n"
-                |> countWords
+                |> count
 
-        columnCount =
+        ( columnWords, columnChars ) =
             getColumn (getDepth 0 tree activeCardId) tree
                 -- Maybe (List (List Tree))
                 |> Maybe.withDefault [ [] ]
                 |> List.concat
                 |> List.map .content
                 |> String.join "\n\n"
-                |> countWords
+                |> count
 
-        treeCount =
-            countWords (treeToMarkdownString False tree)
+        ( treeWords, treeChars ) =
+            count (treeToMarkdownString False tree)
     in
     Stats
-        cardCount
-        subtreeCount
-        groupCount
-        columnCount
-        treeCount
+        cardWords
+        cardChars
+        subtreeWords
+        subtreeChars
+        groupWords
+        groupChars
+        columnWords
+        columnChars
+        treeWords
+        treeChars
         cardsTotal
 
 
@@ -1319,6 +1341,33 @@ countWords str =
         |> String.words
         |> List.filter ((/=) "")
         |> List.length
+
+
+count : String -> ( Int, Int )
+count str =
+    let
+        punctuation =
+            Regex.fromString "[!@#$%^&*():;\"',.]+"
+                |> Maybe.withDefault Regex.never
+
+        normalizedString =
+            str
+                |> String.toLower
+                |> replace punctuation (\_ -> "")
+
+        wordCounts =
+            normalizedString
+                |> String.words
+                |> List.filter ((/=) "")
+                |> List.length
+
+        charCounts =
+            normalizedString
+                |> replace (Regex.fromString "\\s" |> Maybe.withDefault Regex.never) (\_ -> "")
+                |> String.toList
+                |> List.length
+    in
+    ( wordCounts, charCounts )
 
 
 viewConflict : Language -> (String -> Selection -> String -> msg) -> (String -> msg) -> Conflict -> Html msg
