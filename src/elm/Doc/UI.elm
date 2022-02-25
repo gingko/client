@@ -1350,20 +1350,16 @@ count str =
             Regex.fromString "[!@#$%^&*():;\"',.]+"
                 |> Maybe.withDefault Regex.never
 
-        normalizedString =
+        wordCounts =
             str
                 |> String.toLower
                 |> replace punctuation (\_ -> "")
-
-        wordCounts =
-            normalizedString
                 |> String.words
                 |> List.filter ((/=) "")
                 |> List.length
 
         charCounts =
-            normalizedString
-                |> replace (Regex.fromString "\\s" |> Maybe.withDefault Regex.never) (\_ -> "")
+            str
                 |> String.toList
                 |> List.length
     in
