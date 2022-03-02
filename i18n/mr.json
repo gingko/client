@@ -97,7 +97,7 @@
     },
     {
         "term": "Enter",
-        "definition": "\u090f\u0928\u094d\u091f\u0930",
+        "definition": "Enter",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EnterKey",
@@ -113,7 +113,7 @@
     },
     {
         "term": "Edit Card (Enter)",
-        "definition": "\u092a\u0924\u094d\u0924\u093e \u0938\u0902\u092a\u093e\u0926\u093f\u0924 \u0915\u0930\u093e\u092f\u0932\u093e (\u090f\u0928\u094d\u091f\u0930)",
+        "definition": "\u092a\u0924\u094d\u0924\u093e \u0938\u0902\u092a\u093e\u0926\u093f\u0924 \u0915\u0930\u093e\u092f\u0932\u093e (Enter)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditCardTitle",
@@ -145,7 +145,7 @@
     },
     {
         "term": "Insert Child (Ctrl+L)",
-        "definition": "\u092e\u0942\u0932 \u0938\u092e\u093e\u0935\u093f\u0937\u094d\u091f \u0915\u0930\u093e (\u0915\u0902\u091f\u094d\u0930\u094b\u0932+L)",
+        "definition": "\u092e\u0942\u0932 \u091c\u094b\u0921\u093e (Ctrl+L)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:InsertChildTitle",
@@ -177,7 +177,7 @@
     },
     {
         "term": "Insert Below (Ctrl+J)",
-        "definition": "\u0916\u093e\u0932\u0940 \u0938\u092e\u093e\u0935\u093f\u0937\u094d\u091f \u0915\u0930\u093e (\u0915\u0902\u091f\u094d\u0930\u094b\u0932+J)",
+        "definition": "\u0916\u093e\u0932\u0940 \u091c\u094b\u0921\u093e (Ctrl+J)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:InsertBelowTitle",
@@ -209,7 +209,7 @@
     },
     {
         "term": "Insert Above (Ctrl+K)",
-        "definition": "\u0935\u0930 \u0938\u092e\u093e\u0935\u093f\u0937\u094d\u091f \u0915\u0930\u093e (\u0915\u0902\u091f\u094d\u0930\u094b\u0932+K)",
+        "definition": "\u0935\u0930 \u091c\u094b\u0921\u093e (Ctrl+K)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:InsertAboveTitle",
@@ -233,7 +233,7 @@
     },
     {
         "term": "Backspace",
-        "definition": "\u092c\u0945\u0915\u094d\u0938\u094d\u092a\u0947\u0938",
+        "definition": "Backspace",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Backspace",
@@ -249,7 +249,7 @@
     },
     {
         "term": "Delete Card (Ctrl+Backspace)",
-        "definition": "\u092a\u0924\u094d\u0924\u093e \u0915\u093e\u0922\u0942\u0928 \u091f\u093e\u0915\u093e (\u0915\u0902\u091f\u094d\u0930\u094b\u0932+\u092c\u0945\u0915\u094d\u0938\u094d\u092a\u0947\u0938)",
+        "definition": "\u092a\u0924\u094d\u0924\u093e \u0915\u093e\u0922\u0942\u0928 \u091f\u093e\u0915\u093e (Ctrl+Backspace)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:DeleteCardTitle",
@@ -281,7 +281,7 @@
     },
     {
         "term": "Save Changes (Ctrl+Enter)",
-        "definition": "\u092c\u0926\u0932 \u0938\u0941\u0930\u0915\u094d\u0937\u093f\u0924 \u0915\u0930\u093e (\u0915\u0902\u091f\u094d\u0930\u094b\u0932+\u090f\u0928\u094d\u091f\u0930)",
+        "definition": "\u092c\u0926\u0932 \u0938\u0941\u0930\u0915\u094d\u0937\u093f\u0924 \u0915\u0930\u093e (Ctrl+Enter)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SaveChangesTitle",
@@ -289,7 +289,7 @@
     },
     {
         "term": "Esc",
-        "definition": "\u090f\u0938\u094d\u0915\u0947\u092a",
+        "definition": "Esc",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EscKey",
@@ -338,8 +338,8 @@
     {
         "term": "Session : %1 word",
         "definition": {
-            "one": "\u0938\u0924\u094d\u0930: %1 \u0936\u092c\u094d\u0926",
-            "other": "\u0938\u0924\u094d\u0930: %1 \u0936\u092c\u094d\u0926"
+            "one": "\u0938\u0924\u094d\u0930\u093e\u091a\u094d\u092f\u093e \u0926\u0930\u092e\u094d\u092f\u093e\u0928: %1 \u0936\u092c\u094d\u0926",
+            "other": "\u0938\u0924\u094d\u0930\u093e\u091a\u094d\u092f\u093e \u0926\u0930\u092e\u094d\u092f\u093e\u0928: %1 \u0936\u092c\u094d\u0926"
         },
         "context": "",
         "term_plural": "Session : %1 words",
@@ -360,8 +360,8 @@
     {
         "term": "Card : %1 word",
         "definition": {
-            "one": "\u092a\u0924\u094d\u0924\u093e: %1 \u0936\u092c\u094d\u0926",
-            "other": "\u092a\u0924\u094d\u0924\u093e: %1 \u0936\u092c\u094d\u0926"
+            "one": "\u092a\u0924\u094d\u0924\u094d\u092f\u093e\u0924: %1 \u0936\u092c\u094d\u0926",
+            "other": "\u092a\u0924\u094d\u0924\u094d\u092f\u093e\u0924: %1 \u0936\u092c\u094d\u0926"
         },
         "context": "",
         "term_plural": "Card : %1 words",
@@ -371,8 +371,8 @@
     {
         "term": "Subtree : %1 word",
         "definition": {
-            "one": "\u0909\u092a\u0935\u0943\u0915\u094d\u0937: %1 \u0936\u092c\u094d\u0926",
-            "other": "\u0909\u092a\u0935\u0943\u0915\u094d\u0937: %1 \u0936\u092c\u094d\u0926"
+            "one": "\u0909\u092a\u0935\u0943\u0915\u094d\u0937\u093e\u0924: %1 \u0936\u092c\u094d\u0926",
+            "other": "\u0909\u092a\u0935\u0943\u0915\u094d\u0937\u093e\u0924: %1 \u0936\u092c\u094d\u0926"
         },
         "context": "",
         "term_plural": "Subtree : %1 words",
@@ -382,8 +382,8 @@
     {
         "term": "Group : %1 word",
         "definition": {
-            "one": "\u0917\u091f: %1 \u0936\u092c\u094d\u0926",
-            "other": "\u0917\u091f: %1 \u0936\u092c\u094d\u0926"
+            "one": "\u0917\u091f\u093e\u0924: %1 \u0936\u092c\u094d\u0926",
+            "other": "\u0917\u091f\u093e\u0924: %1 \u0936\u092c\u094d\u0926"
         },
         "context": "",
         "term_plural": "Group : %1 words",
@@ -393,8 +393,8 @@
     {
         "term": "Column : %1 word",
         "definition": {
-            "one": "\u0938\u094d\u0924\u0902\u092d: %1 \u0936\u092c\u094d\u0926",
-            "other": "\u0938\u094d\u0924\u0902\u092d: %1 \u0936\u092c\u094d\u0926"
+            "one": "\u0938\u094d\u0924\u0902\u092d\u093e\u0924: %1 \u0936\u092c\u094d\u0926",
+            "other": "\u0938\u094d\u0924\u0902\u092d\u093e\u0924: %1 \u0936\u092c\u094d\u0926"
         },
         "context": "",
         "term_plural": "Column : %1 words",
@@ -459,7 +459,7 @@
     },
     {
         "term": "Synced",
-        "definition": "\u0938\u0902\u0915\u093e\u0932\u0928 \u091d\u093e\u0932\u0947",
+        "definition": "\u0938\u093f\u0902\u0915\u094d\u0930\u094b\u0928\u093e\u0907\u091d \u091d\u093e\u0932\u0947",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ChangesSynced",
@@ -563,7 +563,7 @@
     },
     {
         "term": "Show Document List",
-        "definition": "\u0926\u0938\u094d\u0924\u093e\u0910\u0935\u091c \u092f\u093e\u0926\u0940 \u0926\u093e\u0916\u0935\u093e",
+        "definition": "\u0926\u0938\u094d\u0924\u093e\u0910\u0935\u091c\u093e\u0902\u091a\u0940 \u092f\u093e\u0926\u0940 \u0926\u093e\u0916\u0935\u093e",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ShowDocumentList",
@@ -571,7 +571,7 @@
     },
     {
         "term": "Sort by Name",
-        "definition": "\u0928\u093e\u0935\u093e\u0928\u0941\u0938\u093e\u0930 \u0915\u094d\u0930\u092e\u0935\u093e\u0930\u0940 \u0932\u093e\u0935\u093e",
+        "definition": "\u0928\u093e\u0935\u093e\u0928\u0941\u0938\u093e\u0930 \u0915\u094d\u0930\u092e\u0935\u093e\u0930\u0940",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SortByName",
@@ -579,7 +579,7 @@
     },
     {
         "term": "Sort by Last Modified",
-        "definition": "\u092f\u093e\u0906\u0927\u0940 \u092a\u0930\u093f\u0935\u0930\u094d\u0924\u093f\u0924 \u0915\u0947\u0932\u094d\u092f\u093e\u0928\u0941\u0938\u093e\u0930 \u0915\u094d\u0930\u092e\u0935\u093e\u0930\u0940 \u0932\u093e\u0935\u093e",
+        "definition": "\u092f\u093e\u0906\u0927\u0940 \u092a\u0930\u093f\u0935\u0930\u094d\u0924\u093f\u0924 \u0915\u0947\u0932\u094d\u092f\u093e\u0928\u0941\u0938\u093e\u0930 \u0915\u094d\u0930\u092e\u0935\u093e\u0930\u0940",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SortByLastModified",
@@ -587,7 +587,7 @@
     },
     {
         "term": "Sort by Date Created",
-        "definition": "\u092c\u0928\u0935\u0923\u094d\u092f\u093e\u091a\u094d\u092f\u093e \u0926\u093f\u0928\u093e\u0902\u0915\u093e\u0928\u0941\u0938\u093e\u0930 \u0915\u094d\u0930\u092e\u0935\u093e\u0930\u0940 \u0932\u093e\u0935\u093e",
+        "definition": "\u092c\u0928\u0935\u0923\u094d\u092f\u093e\u091a\u094d\u092f\u093e \u0926\u093f\u0928\u093e\u0902\u0915\u093e\u0928\u0941\u0938\u093e\u0930 \u0915\u094d\u0930\u092e\u0935\u093e\u0930\u0940",
         "context": "",
         "term_plural": "",
         "reference": "Elm:SortByDateCreated",
@@ -755,7 +755,7 @@
     },
     {
         "term": "Card Edit, Create, Delete",
-        "definition": "\u092a\u0924\u094d\u0924\u093e \u0938\u0902\u092a\u093e\u0926\u093f\u0924 \u0915\u0930\u0923\u0947, \u092c\u0928\u0935\u0923\u0947, \u0915\u093e\u0922\u0942\u0928 \u091f\u093e\u0915\u0923\u0947",
+        "definition": "\u092a\u0924\u094d\u0924\u093e \u0938\u0902\u092a\u093e\u0926\u093f\u0924 \u0915\u0930\u0923\u0947, \u092c\u0928\u0935\u0923\u0947 \u0935 \u0915\u093e\u0922\u0942\u0928 \u091f\u093e\u0915\u0923\u0947",
         "context": "",
         "term_plural": "",
         "reference": "Elm:CardEditCreateDelete",
@@ -763,7 +763,7 @@
     },
     {
         "term": "Navigation, Moving Cards",
-        "definition": "\u0928\u0945\u0935\u094d\u0939\u093f\u0917\u0947\u0936\u0928, \u092a\u0924\u094d\u0924\u0947 \u0939\u0932\u0935\u0923\u0947",
+        "definition": "\u0928\u0945\u0935\u094d\u0939\u093f\u0917\u0947\u091f \u0915\u0930\u0923\u0947 \u0935 \u092a\u0924\u094d\u0924\u0947 \u0939\u0932\u0935\u0923\u0947",
         "context": "",
         "term_plural": "",
         "reference": "Elm:NavigationMovingCards",
@@ -803,7 +803,7 @@
     },
     {
         "term": "Card Save, Create",
-        "definition": "\u092a\u0924\u094d\u0924\u093e \u0938\u0941\u0930\u0915\u094d\u0937\u093f\u0924 \u0915\u0930\u0923\u0947, \u092c\u0928\u0935\u0923\u0947",
+        "definition": "\u092a\u0924\u094d\u0924\u093e \u0938\u0941\u0930\u0915\u094d\u0937\u093f\u0924 \u0915\u0930\u0923\u0947 \u0935 \u092c\u0928\u0935\u0923\u0947",
         "context": "",
         "term_plural": "",
         "reference": "Elm:CardSaveCreate",
@@ -923,7 +923,7 @@
     },
     {
         "term": "PageUp",
-        "definition": "\u092a\u0947\u091c \u0905\u092a",
+        "definition": "PageUp",
         "context": "",
         "term_plural": "",
         "reference": "Elm:PageUp",
@@ -931,7 +931,7 @@
     },
     {
         "term": "PageDown",
-        "definition": "\u092a\u0947\u091c \u0921\u093e\u0909\u0928",
+        "definition": "PageDown",
         "context": "",
         "term_plural": "",
         "reference": "Elm:PageDown",
@@ -939,7 +939,7 @@
     },
     {
         "term": "Home",
-        "definition": "\u0939\u094b\u092e",
+        "definition": "Home",
         "context": "",
         "term_plural": "",
         "reference": "Elm:HomeKey",
@@ -947,7 +947,7 @@
     },
     {
         "term": "End",
-        "definition": "\u090f\u0928\u094d\u0921",
+        "definition": "End",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EndKey",
@@ -1027,7 +1027,7 @@
     },
     {
         "term": "Insert selected text as new card",
-        "definition": "\u0928\u093f\u0935\u0921\u0932\u0947\u0932\u0947 \u092e\u091c\u0915\u0942\u0930 \u0928\u0935\u0940\u0928 \u092a\u0924\u094d\u0924\u093e \u092e\u094d\u0939\u0923\u0942\u0928 \u0938\u092e\u093e\u0935\u093f\u0937\u094d\u091f \u0915\u0930\u093e",
+        "definition": "\u0928\u093f\u0935\u0921\u0932\u0947\u0932\u0947 \u092e\u091c\u0915\u0942\u0930 \u0928\u0935\u0940\u0928 \u092a\u0924\u094d\u0924\u093e \u092e\u094d\u0939\u0923\u0942\u0928 \u091c\u094b\u0921\u093e",
         "context": "",
         "term_plural": "",
         "reference": "Elm:InsertSelected",
@@ -1083,7 +1083,7 @@
     },
     {
         "term": "Edit Cards",
-        "definition": "\u092a\u0924\u094d\u0924\u0947 \u0938\u0902\u092a\u093e\u0926\u093f\u0924 \u0915\u0930\u093e",
+        "definition": "\u092a\u0924\u094d\u0924\u0947 \u0938\u0902\u092a\u093e\u0926\u093f\u0924 \u0915\u0930\u0923\u0947",
         "context": "",
         "term_plural": "",
         "reference": "Elm:EditCards",
@@ -1091,7 +1091,7 @@
     },
     {
         "term": "Shift",
-        "definition": "\u0936\u093f\u092b\u094d\u091f",
+        "definition": "Shift",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ShiftKey",
@@ -1099,7 +1099,7 @@
     },
     {
         "term": "AltKey",
-        "definition": "\u0911\u0932\u094d\u091f",
+        "definition": "Alt",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AltKey",
@@ -1107,7 +1107,7 @@
     },
     {
         "term": "Navigate",
-        "definition": "\u0928\u0945\u0935\u094d\u0939\u093f\u0917\u0947\u091f \u0915\u0930\u093e",
+        "definition": "\u0928\u0945\u0935\u094d\u0939\u093f\u0917\u0947\u091f \u0915\u0930\u0923\u0947",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Navigate",
@@ -1115,7 +1115,7 @@
     },
     {
         "term": "Add New Cards",
-        "definition": "\u0928\u0935\u0940\u0928 \u092a\u0924\u094d\u0924\u0947 \u091c\u094b\u0921\u093e",
+        "definition": "\u0928\u0935\u0940\u0928 \u092a\u0924\u094d\u0924\u0947 \u091c\u094b\u0921\u0923\u0947",
         "context": "",
         "term_plural": "",
         "reference": "Elm:AddNewCards",
@@ -1131,7 +1131,7 @@
     },
     {
         "term": "Merge Cards",
-        "definition": "\u092a\u0924\u094d\u0924\u0947 \u0935\u093f\u0932\u0940\u0928 \u0915\u0930\u093e",
+        "definition": "\u092a\u0924\u094d\u0924\u0947 \u0935\u093f\u0932\u0940\u0928 \u0915\u0930\u0923\u0947",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MergeCards",
@@ -1139,7 +1139,7 @@
     },
     {
         "term": "Move & Delete Cards",
-        "definition": "\u092a\u0924\u094d\u0924\u0947 \u0939\u0932\u0935\u093e \u0935 \u0915\u093e\u0922\u0942\u0928 \u091f\u093e\u0915\u093e",
+        "definition": "\u092a\u0924\u094d\u0924\u0947 \u0939\u0932\u0935\u0923\u0947 \u0935 \u0915\u093e\u0922\u0942\u0928 \u091f\u093e\u0915\u0923\u0947",
         "context": "",
         "term_plural": "",
         "reference": "Elm:MoveAndDelete",
@@ -1332,8 +1332,8 @@
     {
         "term": "Total Cards in Tree : %1",
         "definition": {
-            "one": "\u0935\u0943\u0915\u094d\u0937\u093e\u0924\u0940\u0932 \u090f\u0915\u0942\u0923 \u092a\u0924\u094d\u0924\u0947: %1",
-            "other": "\u0935\u0943\u0915\u094d\u0937\u093e\u0924\u0940\u0932 \u090f\u0915\u0942\u0923 \u092a\u0924\u094d\u0924\u0947: %1"
+            "one": "\u0935\u0943\u0915\u094d\u0937\u093e\u0924 \u090f\u0915\u0942\u0923 \u092a\u0924\u094d\u0924\u0947: %1",
+            "other": "\u0935\u0943\u0915\u094d\u0937\u093e\u0924 \u090f\u0915\u0942\u0923 \u092a\u0924\u094d\u0924\u0947: %1"
         },
         "context": "",
         "term_plural": "Total Cards in Tree : %1",
@@ -1350,7 +1350,7 @@
     },
     {
         "term": "Default",
-        "definition": "\u092e\u0942\u0933\u091a\u0947",
+        "definition": "\u092e\u0942\u0933\u091a\u0940",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ThemeDefault",
@@ -1358,7 +1358,7 @@
     },
     {
         "term": "Dark Mode",
-        "definition": "\u0905\u0902\u0927\u093e\u0930\u092e\u092f",
+        "definition": "\u0915\u093e\u0933\u094b\u0916\u0940",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ThemeDarkMode",
@@ -1382,7 +1382,7 @@
     },
     {
         "term": "Green",
-        "definition": "\u0939\u093f\u0930\u0935\u093e",
+        "definition": "\u0939\u093f\u0930\u0935\u0940",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ThemeGreen",
@@ -1390,7 +1390,7 @@
     },
     {
         "term": "Turquoise",
-        "definition": "\u092a\u093f\u0930\u094b\u091c\u093e",
+        "definition": "\u092a\u093f\u0930\u094b\u091c\u0940",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ThemeTurquoise",
@@ -1414,7 +1414,7 @@
     },
     {
         "term": "All cards in the tree (in depth-first order)",
-        "definition": "\u0935\u0943\u0915\u094d\u0937\u093e\u0924\u0940\u0932 \u0938\u0930\u094d\u0935 \u092a\u0924\u094d\u0924\u0947 (\u0916\u094b\u0932\u0940 \u0906\u0927\u0940 \u0905\u0936\u094d\u092f\u093e \u0915\u094d\u0930\u092e\u093e\u0924)",
+        "definition": "\u0935\u0943\u0915\u094d\u0937\u093e\u0924\u0940\u0932 \u0938\u0930\u094d\u0935 \u092a\u0924\u094d\u0924\u0947 (\u0916\u094b\u0932\u0940\u091a\u094d\u092f\u093e \u091a\u0922\u0924\u094d\u092f\u093e \u0915\u094d\u0930\u092e\u093e\u0924)",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingEverythingDesc",
@@ -1470,7 +1470,7 @@
     },
     {
         "term": "Word",
-        "definition": "\u0936\u092c\u094d\u0926",
+        "definition": "\u0935\u0930\u094d\u0921",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ExportSettingWord",
@@ -1526,7 +1526,7 @@
     },
     {
         "term": "Upgrade",
-        "definition": "\u0905\u092a\u0917\u094d\u0930\u0947\u0921",
+        "definition": "\u0905\u092a\u0917\u094d\u0930\u0947\u0921 \u0915\u0930\u093e",
         "context": "",
         "term_plural": "",
         "reference": "Elm:Upgrade",
@@ -1553,7 +1553,7 @@
     },
     {
         "term": "Manage Subscription",
-        "definition": "\u0935\u0930\u094d\u0917\u0923\u0940\u091a\u0940 \u0935\u094d\u092f\u0935\u0938\u094d\u0925\u093e \u0915\u0930\u093e",
+        "definition": "\u0938\u0926\u0938\u094d\u092f\u0924\u0947\u091a\u0940 \u0935\u094d\u092f\u0935\u0938\u094d\u0925\u093e \u0915\u0930\u093e",
         "context": "",
         "term_plural": "",
         "reference": "Elm:ManageSubscription",
