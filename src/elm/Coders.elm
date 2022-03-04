@@ -1,7 +1,6 @@
-module Coders exposing (collabStateDecoder, collabStateToValue, fontSettingsEncoder, lazyRecurse, maybeToValue, modeDecoder, modeToValue, sortByDecoder, sortByEncoder, treeDecoder, treeListDecoder, treeOrString, treeToJSON, treeToJSONrecurse, treeToMarkdown, treeToMarkdownRecurse, treeToMarkdownString, treeToOPML, treeToValue, treesModelDecoder, tripleDecoder, tupleDecoder, tupleToValue)
+module Coders exposing (collabStateDecoder, collabStateToValue, fontSettingsEncoder, lazyRecurse, maybeToValue, modeDecoder, modeToValue, sortByDecoder, sortByEncoder, treeDecoder, treeOrString, treeToJSON, treeToJSONrecurse, treeToMarkdownOutline, treeToMarkdownRecurse, treeToMarkdownString, treeToOPML, treeToValue, tupleDecoder, tupleToValue)
 
 import Doc.Fonts as Fonts
-import Doc.TreeStructure as TreeStructure
 import Json.Decode as Json exposing (..)
 import Json.Encode as Enc
 import Types exposing (..)
@@ -20,13 +19,6 @@ treeToValue tree =
                 , ( "content", Enc.string tree.content )
                 , ( "children", Enc.list treeToValue c )
                 ]
-
-
-treesModelDecoder : Decoder TreeStructure.Model
-treesModelDecoder =
-    Json.map2 TreeStructure.Model
-        treeDecoder
-        (succeed [])
 
 
 treeDecoder : Decoder Tree
@@ -51,11 +43,6 @@ treeOrString =
         [ treeDecoder
         , Json.map (\str -> Tree "0" str (Children [])) Json.string
         ]
-
-
-treeListDecoder : Decoder (List ( String, String ))
-treeListDecoder =
-    list (tupleDecoder string string)
 
 
 
@@ -157,11 +144,22 @@ treeToOPMLBody tree =
             "<outline text=\"" ++ attrEncode tree.content ++ "\">" ++ (List.map treeToOPMLBody c |> String.join "\n") ++ "</outline>\n"
 
 
-treeToMarkdown : Bool -> Tree -> Enc.Value
-treeToMarkdown withRoot tree =
-    tree
-        |> treeToMarkdownString withRoot
-        |> Enc.string
+treeToMarkdownOutline : Bool -> Tree -> String
+treeToMarkdownOutline withRoot tree =
+    if withRoot then
+        treeToMarkdownOutlineRecurse tree
+
+    else
+        case tree.children of
+            Children c ->
+                List.map treeToMarkdownOutlineRecurse c |> String.join "\n"
+
+
+treeToMarkdownOutlineRecurse : Tree -> String
+treeToMarkdownOutlineRecurse tree =
+    case tree.children of
+        Children c ->
+            "<section>\n\n" ++ tree.content ++ "\n\n" ++ (List.map treeToMarkdownOutlineRecurse c |> String.join "\n") ++ "\n</section>"
 
 
 treeToMarkdownString : Bool -> Tree -> String
@@ -277,18 +275,4 @@ tupleDecoder a b =
             (\aVal ->
                 index 1 b
                     |> andThen (\bVal -> succeed ( aVal, bVal ))
-            )
-
-
-tripleDecoder : Decoder a -> Decoder b -> Decoder c -> Decoder ( a, b, c )
-tripleDecoder a b c =
-    index 0 a
-        |> andThen
-            (\aVal ->
-                index 1 b
-                    |> andThen
-                        (\bVal ->
-                            index 2 c
-                                |> andThen (\cVal -> succeed ( aVal, bVal, cVal ))
-                        )
             )
