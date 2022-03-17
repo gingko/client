@@ -185,31 +185,24 @@ const baseElectronConfig = {
 };
 
 
-const mainConfig = merge(baseElectronConfig, {
+const electronMainConfig = merge(baseElectronConfig, {
   // Set the target environment where the code bundles will run.
   target: "electron-main",
 
   // Entry points into the code. The roots of the dependency tree.
   entry: {
-    electron: "./electron/main.js"
+    electron: "./electron/newmain.js"
   },
-
-  // TODO : Understand what this is doing.
-  externals: {
-    "pouchdb": "require('pouchdb')",
-    "pouchdb-load": "require('pouchdb-load')",
-    "7zip-bin": "require('7zip-bin')",
-  }
 });
 
 
-const rendererConfig = merge(baseElectronConfig, {
+const electronRendererConfig = merge(baseElectronConfig, {
   // Set the target environment where the code bundles will run.
   target: "electron-renderer",
 
   // Entry points into the code. The root of the dependency tree.
   entry: {
-    home: "./shared/home.js",
+    home: "./electron/newhome.js",
     doc: "./shared/doc.js"
   },
 
@@ -260,4 +253,4 @@ const rendererConfig = merge(baseElectronConfig, {
 });
 
 
-module.exports = [ webConfig ];
+module.exports = [ webConfig, electronMainConfig, electronRendererConfig];
