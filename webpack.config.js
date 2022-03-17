@@ -244,6 +244,12 @@ const electronRendererConfig = merge(baseElectronConfig, {
       chunks: ["home"]
     }),
 
+    // Plugin to copy electron preload script
+    new CopyWebpackPlugin({ patterns: [{
+        from: "./electron/preload.js",
+        to: "../app/preload.js"
+      }]}),
+
     // Plugin to copy static assets (css, images).
     new CopyWebpackPlugin({ patterns: [{
       from: "./static",
