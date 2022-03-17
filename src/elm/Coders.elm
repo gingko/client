@@ -1,8 +1,9 @@
-module Coders exposing (collabStateDecoder, collabStateToValue, fontSettingsEncoder, lazyRecurse, maybeToValue, modeDecoder, modeToValue, sortByDecoder, sortByEncoder, treeDecoder, treeOrString, treeToJSON, treeToJSONrecurse, treeToMarkdownOutline, treeToMarkdownRecurse, treeToMarkdownString, treeToOPML, treeToValue, tupleDecoder, tupleToValue)
+module Coders exposing (collabStateDecoder, collabStateToValue, fontSettingsEncoder, lazyRecurse, markdownOutlineParser, maybeToValue, modeDecoder, modeToValue, sortByDecoder, sortByEncoder, treeDecoder, treeOrString, treeToJSON, treeToJSONrecurse, treeToMarkdownOutline, treeToMarkdownRecurse, treeToMarkdownString, treeToOPML, treeToValue, tupleDecoder, tupleToValue)
 
 import Doc.Fonts as Fonts
 import Json.Decode as Json exposing (..)
 import Json.Encode as Enc
+import Parser exposing ((|.), (|=), Parser, Step(..), Trailing(..), chompUntil, getChompedString, keyword, loop, spaces, symbol)
 import Types exposing (..)
 
 
@@ -99,6 +100,10 @@ modeDecoder =
         |> andThen modeHelp
 
 
+
+-- JSON
+
+
 treeToJSON : Bool -> Tree -> Enc.Value
 treeToJSON withRoot tree =
     if withRoot then
@@ -128,6 +133,10 @@ attrEncode s =
         |> String.replace "<" "&lt;"
 
 
+
+-- OPML
+
+
 treeToOPML : String -> Tree -> String
 treeToOPML docname tree =
     "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<opml version=\"2.0\">\n<head><title>"
@@ -144,6 +153,10 @@ treeToOPMLBody tree =
             "<outline text=\"" ++ attrEncode tree.content ++ "\">" ++ (List.map treeToOPMLBody c |> String.join "\n") ++ "</outline>\n"
 
 
+
+-- Structured Markdown
+
+
 treeToMarkdownOutline : Bool -> Tree -> String
 treeToMarkdownOutline withRoot tree =
     if withRoot then
@@ -152,14 +165,61 @@ treeToMarkdownOutline withRoot tree =
     else
         case tree.children of
             Children c ->
-                List.map treeToMarkdownOutlineRecurse c |> String.join "\n"
+                List.map treeToMarkdownOutlineRecurse c |> String.join "\n\n"
 
 
 treeToMarkdownOutlineRecurse : Tree -> String
 treeToMarkdownOutlineRecurse tree =
     case tree.children of
         Children c ->
-            "<section>\n\n" ++ tree.content ++ "\n\n" ++ (List.map treeToMarkdownOutlineRecurse c |> String.join "\n") ++ "\n</section>"
+            "<section id=\""
+                ++ tree.id
+                ++ "\">\n\n"
+                ++ tree.content
+                ++ "\n\n"
+                ++ (List.map treeToMarkdownOutlineRecurse c ++ [ "" ] |> String.join "\n")
+                ++ "</section>"
+
+
+markdownOutlineParser : Parser Tree
+markdownOutlineParser =
+    Parser.succeed (\id ( cont, ch ) -> Tree id cont ch)
+        |. keyword "<section"
+        |. spaces
+        |. keyword "id"
+        |. symbol "="
+        |. symbol "\""
+        |= getChompedString (chompUntil "\"")
+        |. symbol "\""
+        |. spaces
+        |. symbol ">\n\n"
+        |= Parser.oneOf
+            [ Parser.succeed (\s c -> ( s, c ))
+                |= getChompedString (chompUntil "<section")
+                |= markdownOutlineChildren
+            , Parser.succeed (\s -> ( s, Children [] ))
+                |= getChompedString (chompUntil "\n\n</section>")
+            ]
+
+
+markdownOutlineChildren : Parser Children
+markdownOutlineChildren =
+    loop [] markdownOutlineTreesHelper
+        |> Parser.map Children
+
+
+markdownOutlineTreesHelper : List Tree -> Parser (Step (List Tree) (List Tree))
+markdownOutlineTreesHelper revTrees =
+    Parser.oneOf
+        [ Parser.lazy (\_ -> markdownOutlineParser)
+            |> Parser.map (\t -> Loop (t :: revTrees))
+        , Parser.succeed ()
+            |> Parser.map (\_ -> Done (List.reverse revTrees))
+        ]
+
+
+
+-- Markdown
 
 
 treeToMarkdownString : Bool -> Tree -> String
@@ -187,6 +247,10 @@ treeToMarkdownRecurse tree =
             [ tree.content ]
                 ++ List.map treeToMarkdownRecurse c
                 |> String.join "\n\n"
+
+
+
+-- SortBy
 
 
 sortByDecoder : Decoder SortBy
