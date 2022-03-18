@@ -1058,45 +1058,9 @@ Mousetrap.bind(["shift+tab"], function () {
 /* === DOM manipulation === */
 
 
-const positionTourStep = function (stepNum, refElementId) {
-  let refElement;
-  if (stepNum == 1 || stepNum == 5) {
-    refElement = document.getElementById(refElementId);
-  } else if (stepNum == 2) {
-    refElement = document.getElementById(refElementId).parentElement.parentElement.parentElement.getElementsByClassName('ins-right')[0];
-  }
-  let tourElement = document.getElementById("welcome-step-"+stepNum);
-  if (refElementId !== null && tourElement !== null) {
-    let refRect = refElement.getBoundingClientRect();
-    tourElement.style.top = refRect.top + "px";
-    tourElement.style.left = refRect.left + "px";
-  }
-}
-
-const addTourStepScrollHandler = (stepNum, refElementId, colNum) => {
-  let col = document.getElementsByClassName("column")[colNum-1];
-  if (col) {
-    let ticking =  false;
-    col.onscroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(()=> {
-          positionTourStep(stepNum, refElementId);
-          ticking = false;
-        })
-
-        ticking = true;
-      }
-    }
-  }
-}
-
 const observer = new MutationObserver(function (mutations) {
   const isTextarea = function (node) {
     return node.nodeName == "TEXTAREA" && node.className == "edit mousetrap";
-  };
-
-  const isTourStepOne = function (node) {
-    return document.getElementById('welcome-step-1');
   };
 
   let textareas = [];
@@ -1105,10 +1069,6 @@ const observer = new MutationObserver(function (mutations) {
     [].slice.call(m.addedNodes).map((n) => {
       if (isTextarea(n)) {
         textareas.push(n);
-      } else if (isTourStepOne(n)) {
-        // Add handlers with MutationObserver for first step
-        positionTourStep(tourStepPositionStepNum, tourStepPositionRefElementId);
-        addTourStepScrollHandler(tourStepPositionStepNum, tourStepPositionRefElementId, 2)
       } else {
         if (n.querySelectorAll) {
           let tareas = [].slice.call(n.querySelectorAll("textarea.edit"));

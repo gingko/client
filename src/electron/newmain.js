@@ -1,8 +1,6 @@
 const { app, BrowserWindow, ipcMain, protocol } = require('electron');
 const path = require('path')
 
-console.log("Hello from new MAIN!")
-
 const createWindow = () => {
   const win = new BrowserWindow({
     width: 800,
@@ -15,7 +13,6 @@ const createWindow = () => {
   ipcMain.on('clicked-new', (event, title) => {
     const webContents = event.sender
     const win = BrowserWindow.fromWebContents(webContents)
-    console.log("Clicked NEW (main)")
     win.loadFile(`${__dirname}/static/renderer.html`);
   })
 
@@ -23,10 +20,6 @@ const createWindow = () => {
 }
 
 app.whenReady().then(() => {
-  protocol.interceptFileProtocol('http', (request, callback) => {
-    callback("file://")
-  })
-
   createWindow()
 
   app.on('activate', () => {

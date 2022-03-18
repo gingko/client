@@ -1,10 +1,12 @@
-port module Electron exposing (..)
+module Electron exposing (..)
 
 import Browser
 import Html exposing (Html, button, div, h1, text)
 import Html.Attributes exposing (id)
 import Json.Decode as Dec exposing (Decoder, Value)
+import Outgoing exposing (Msg(..), send)
 import Page.Doc exposing (Msg(..))
+import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Doc.Theme exposing (applyTheme)
 import Session exposing (Session)
 
@@ -15,7 +17,7 @@ main =
         { init = init
         , update = update
         , view = \m -> Browser.Document "Title" (view m)
-        , subscriptions = always Sub.none
+        , subscriptions = subscriptions
         }
 
 
@@ -43,13 +45,29 @@ init json =
 type Msg
     = NoOp
     | GotDocMsg Page.Doc.Msg
+    | Incoming Incoming.Msg
+    | LogErr String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg doc =
     case msg of
         GotDocMsg docMsg ->
-            Page.Doc.update docMsg doc |> Tuple.mapSecond (Cmd.map GotDocMsg)
+            Page.Doc.update docMsg doc
+                |> Tuple.mapSecond (Cmd.map GotDocMsg)
+
+        Incoming incomingMsg ->
+            let
+                _ =
+                    Debug.log "incoming" incomingMsg
+            in
+            Page.Doc.incoming incomingMsg doc
+                |> Tuple.mapSecond (Cmd.map GotDocMsg)
+
+        LogErr err ->
+            ( doc
+            , send (ConsoleLogRequested err)
+            )
 
         NoOp ->
             ( doc, Cmd.none )
@@ -64,7 +82,7 @@ view doc =
     [ div [ id "app-root", applyTheme doc.theme ]
         (Page.Doc.view
             { docMsg = GotDocMsg
-            , keyboard = always NoOp
+            , keyboard = \s -> Incoming (Keyboard s)
             , tooltipRequested = always <| always <| always NoOp
             , tooltipClosed = NoOp
             , toggleWordcount = always NoOp
@@ -76,7 +94,11 @@ view doc =
 
 
 
--- PORTS
+-- SUBSCRIPTIONS
 
 
-port send : () -> Cmd msg
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.batch
+        [ Incoming.subscribe Incoming LogErr
+        ]
