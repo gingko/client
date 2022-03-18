@@ -1,5 +1,6 @@
 module Page.ForgotPassword exposing (Model, Msg, init, subscriptions, toUser, update, view)
 
+import Browser.Navigation as Nav
 import Html exposing (..)
 import Html.Attributes exposing (autofocus, class, href, id, placeholder, src, type_, value)
 import Html.Events exposing (onInput, onSubmit)
@@ -20,6 +21,7 @@ type alias Model =
     , email : String
     , errors : List ( Field, String )
     , sent : Bool
+    , navKey : Nav.Key
     }
 
 
@@ -28,12 +30,13 @@ type Field
     | Email
 
 
-init : Session -> Maybe String -> ( Model, Cmd msg )
-init user email_ =
+init : Nav.Key -> Session -> Maybe String -> ( Model, Cmd msg )
+init navKey user email_ =
     ( { user = user
       , email = email_ |> Maybe.withDefault ""
       , errors = []
       , sent = False
+      , navKey = navKey
       }
     , Cmd.none
     )
@@ -101,7 +104,7 @@ update msg model =
             ( { model | errors = [ errorMsg ] }, Cmd.none )
 
         GotUser user ->
-            ( { model | user = user }, Route.pushUrl (Session.navKey user) Route.Root )
+            ( { model | user = user }, Route.pushUrl model.navKey Route.Root )
 
 
 modelValidator : Validator ( Field, String ) Model
@@ -182,4 +185,4 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Session.loginChanges GotUser (Session.navKey model.user)
+    Session.loginChanges GotUser

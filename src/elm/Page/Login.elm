@@ -2,6 +2,7 @@ module Page.Login exposing (Model, Msg, init, subscriptions, toUser, update, vie
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom
+import Browser.Navigation as Nav
 import Html exposing (..)
 import Html.Attributes exposing (autocomplete, autofocus, class, for, href, id, placeholder, src, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
@@ -21,7 +22,13 @@ import Validate exposing (Valid, Validator, ifBlank, ifInvalidEmail, ifTrue, val
 
 
 type alias Model =
-    { user : Session, email : String, password : String, showPassword : Bool, errors : List ( Field, String ) }
+    { user : Session
+    , navKey : Nav.Key
+    , email : String
+    , password : String
+    , showPassword : Bool
+    , errors : List ( Field, String )
+    }
 
 
 type Field
@@ -30,9 +37,9 @@ type Field
     | Password
 
 
-init : Session -> ( Model, Cmd msg )
-init user =
-    ( { user = user, email = "", password = "", showPassword = False, errors = [] }
+init : Nav.Key -> Session -> ( Model, Cmd msg )
+init navKey user =
+    ( { user = user, navKey = navKey, email = "", password = "", showPassword = False, errors = [] }
     , Cmd.none
     )
 
@@ -111,7 +118,7 @@ update msg model =
             ( { model | errors = [ errorMsg ], password = "" }, Cmd.none )
 
         GotUser user ->
-            ( model, Route.pushUrl (Session.navKey user) Route.Root )
+            ( model, Route.pushUrl model.navKey Route.Root )
 
 
 modelValidator : Validator ( Field, String ) Model
@@ -237,4 +244,4 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Session.loginChanges GotUser (Session.navKey model.user)
+    Session.loginChanges GotUser

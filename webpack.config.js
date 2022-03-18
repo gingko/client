@@ -203,7 +203,8 @@ const electronRendererConfig = merge(baseElectronConfig, {
   // Entry points into the code. The root of the dependency tree.
   entry: {
     home: "./electron/newhome.js",
-    doc: "./shared/doc.js"
+    /*renderer: "./electron/renderer.js",*/
+    doc: "./shared/doc.js",
   },
 
   // What file types to attempt to resolve within require/import statements
@@ -242,6 +243,11 @@ const electronRendererConfig = merge(baseElectronConfig, {
       template: "./home.ejs",
       filename: "../app/static/home.html",
       chunks: ["home"]
+    }),
+    new HtmlWebpackPlugin({
+      template: "./renderer.ejs",
+      filename: "../app/static/renderer.html",
+      chunks: ["renderer"]
     }),
 
     // Plugin to copy electron preload script

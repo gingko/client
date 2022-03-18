@@ -2,6 +2,7 @@ port module Page.Copy exposing (..)
 
 -- MODEL
 
+import Browser.Navigation as Nav
 import Coders exposing (tupleDecoder)
 import Doc.Data as Data
 import Doc.Metadata as Metadata
@@ -19,12 +20,13 @@ import Types exposing (Tree)
 type alias Model =
     { session : Session
     , tree : Maybe Tree
+    , navKey : Nav.Key
     }
 
 
-init : Session -> String -> ( Model, Cmd Msg )
-init user dbName =
-    ( { session = user, tree = Nothing }, send <| CopyDocument dbName )
+init : Nav.Key -> Session -> String -> ( Model, Cmd Msg )
+init navKey user dbName =
+    ( { session = user, tree = Nothing, navKey = navKey }, send <| CopyDocument dbName )
 
 
 
@@ -60,7 +62,7 @@ update msg model =
                     )
 
                 Nothing ->
-                    ( model, Route.replaceUrl (Session.navKey model.session) Route.Root )
+                    ( model, Route.replaceUrl model.navKey Route.Root )
 
         IdGenerated tree fileName docId ->
             let
@@ -80,10 +82,10 @@ update msg model =
         CopySaved docId_ ->
             case docId_ of
                 Just docId ->
-                    ( model, Route.pushUrl (Session.navKey model.session) (Route.DocUntitled docId) )
+                    ( model, Route.pushUrl model.navKey (Route.DocUntitled docId) )
 
                 Nothing ->
-                    ( model, Route.replaceUrl (Session.navKey model.session) Route.Root )
+                    ( model, Route.replaceUrl model.navKey Route.Root )
 
 
 toUser : Model -> Session

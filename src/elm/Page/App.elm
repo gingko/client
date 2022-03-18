@@ -2,6 +2,7 @@ module Page.App exposing (Model, Msg, getTitle, init, isDirty, subscriptions, to
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
+import Browser.Navigation as Nav
 import Coders exposing (sortByEncoder)
 import Doc.ContactForm as ContactForm
 import Doc.Data as Data
@@ -53,6 +54,7 @@ type alias Model =
     , modalState : ModalState
     , fileSearchField : String -- TODO: not needed if switcher isn't open
     , tooltip : Maybe ( Element, TooltipPosition, TranslationId )
+    , navKey : Nav.Key
     }
 
 
@@ -79,8 +81,8 @@ type ModalState
     | UpgradeModal
 
 
-defaultModel : Session -> Maybe Page.Doc.Model -> Model
-defaultModel session docModel_ =
+defaultModel : Nav.Key -> Session -> Maybe Page.Doc.Model -> Model
+defaultModel navKey session docModel_ =
     { loading = True
     , documentState =
         case docModel_ of
@@ -99,15 +101,16 @@ defaultModel session docModel_ =
     , modalState = NoModal
     , fileSearchField = ""
     , tooltip = Nothing
+    , navKey = navKey
     }
 
 
-init : Session -> Maybe DbData -> ( Model, Cmd Msg )
-init session dbData_ =
+init : Nav.Key -> Session -> Maybe DbData -> ( Model, Cmd Msg )
+init navKey session dbData_ =
     case dbData_ of
         Just dbData ->
             if dbData.isNew then
-                ( defaultModel session (Just (Page.Doc.init True session dbData.dbName))
+                ( defaultModel navKey session (Just (Page.Doc.init True session dbData.dbName))
                 , Cmd.batch
                     [ send <| InitDocument dbData.dbName
                     , Task.attempt (always NoOp) (Browser.Dom.focus "card-edit-1")
@@ -115,17 +118,17 @@ init session dbData_ =
                 )
 
             else
-                ( defaultModel session (Just (Page.Doc.init False session dbData.dbName))
+                ( defaultModel navKey session (Just (Page.Doc.init False session dbData.dbName))
                 , send <| LoadDocument dbData.dbName
                 )
 
         Nothing ->
             case Session.lastDocId session of
                 Just docId ->
-                    ( defaultModel session Nothing, Route.replaceUrl (Session.navKey session) (Route.DocUntitled docId) )
+                    ( defaultModel navKey session Nothing, Route.replaceUrl navKey (Route.DocUntitled docId) )
 
                 Nothing ->
-                    ( defaultModel session Nothing, send <| GetDocumentList )
+                    ( defaultModel navKey session Nothing, send <| GetDocumentList )
 
 
 isDirty : Model -> Bool
@@ -278,7 +281,7 @@ update msg model =
                     ( model, Cmd.none )
 
         LoginStateChanged newSession ->
-            ( model |> updateSession newSession, Route.pushUrl (Session.navKey newSession) Route.Login )
+            ( model |> updateSession newSession, Route.pushUrl model.navKey Route.Login )
 
         TimeUpdate time ->
             ( model |> updateSession (Session.updateTime time session)
@@ -313,7 +316,7 @@ update msg model =
                                 "enter" ->
                                     case switcherModel.selectedDocument of
                                         Just docId ->
-                                            ( model, Route.pushUrl (Session.navKey session) (Route.DocUntitled docId) )
+                                            ( model, Route.pushUrl model.navKey (Route.DocUntitled docId) )
 
                                         Nothing ->
                                             ( model, Cmd.none )
@@ -461,7 +464,7 @@ update msg model =
             ( { model | modalState = SidebarContextMenu docId ( x, y ) }, Cmd.none )
 
         DuplicateDoc docId ->
-            ( { model | modalState = NoModal }, Route.replaceUrl (Session.navKey session) (Route.Copy docId) )
+            ( { model | modalState = NoModal }, Route.replaceUrl model.navKey (Route.Copy docId) )
 
         DeleteDoc docId ->
             ( { model | modalState = NoModal }, send <| RequestDelete docId )
@@ -482,7 +485,7 @@ update msg model =
                                             Cmd.none
 
                                         else
-                                            Route.replaceUrl (Session.navKey session) Route.Root
+                                            Route.replaceUrl model.navKey Route.Root
                                    )
                             , True
                             )
@@ -492,7 +495,7 @@ update msg model =
 
                         ( Empty _, Success docList ) ->
                             ( DocList.getLastUpdated (Success docList)
-                                |> Maybe.map (\s -> Route.replaceUrl (Session.navKey session) (Route.DocUntitled s))
+                                |> Maybe.map (\s -> Route.replaceUrl model.navKey (Route.DocUntitled s))
                                 |> Maybe.withDefault Cmd.none
                             , True
                             )
@@ -743,7 +746,7 @@ update msg model =
                     ( model, Cmd.none )
 
         ImportOpmlCompleted docId ->
-            ( model, Route.pushUrl (Session.navKey session) (Route.DocUntitled docId) )
+            ( model, Route.pushUrl model.navKey (Route.DocUntitled docId) )
 
         ImportJSONRequested ->
             ( model, Select.file [ "application/json", "text/plain" ] ImportJSONSelected )
@@ -784,7 +787,7 @@ update msg model =
                     ( model, Cmd.none )
 
         ImportJSONCompleted docId ->
-            ( model, Route.pushUrl (Session.navKey session) (Route.DocUntitled docId) )
+            ( model, Route.pushUrl model.navKey (Route.DocUntitled docId) )
 
         -- Misc UI
         CloseEmailConfirmBanner ->
@@ -1168,7 +1171,7 @@ subscriptions model =
                 Sub.none
         , DocList.subscribe ReceivedDocuments
         , Session.userSettingsChange SettingsChanged
-        , Session.loginChanges LoginStateChanged (Session.navKey (toSession model))
+        , Session.loginChanges LoginStateChanged
         , case model.modalState of
             ImportModal importModalModel ->
                 ImportModal.subscriptions importModalModel

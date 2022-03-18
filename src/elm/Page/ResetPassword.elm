@@ -18,6 +18,7 @@ import Validate exposing (Valid, Validator, ifBlank, ifFalse, ifInvalidEmail, if
 
 type alias Model =
     { user : Session
+    , navKey : Nav.Key
     , password : String
     , passwordConfirm : String
     , resetToken : String
@@ -31,9 +32,15 @@ type Field
     | PasswordConfirm
 
 
-init : Session -> String -> ( Model, Cmd Msg )
-init user resetToken =
-    ( { user = user, resetToken = resetToken, password = "", passwordConfirm = "", errors = [] }
+init : Nav.Key -> Session -> String -> ( Model, Cmd Msg )
+init navKey user resetToken =
+    ( { user = user
+      , navKey = navKey
+      , resetToken = resetToken
+      , password = ""
+      , passwordConfirm = ""
+      , errors = []
+      }
     , Task.attempt (\_ -> NoOp) <| Browser.Dom.focus "signup-password"
     )
 
@@ -129,7 +136,7 @@ update msg model =
             ( { model | errors = [ errorMsg ], password = "", passwordConfirm = "" }, Cmd.none )
 
         GotUser user ->
-            ( { model | user = user }, Nav.replaceUrl (Session.navKey user) "/" )
+            ( { model | user = user }, Nav.replaceUrl model.navKey "/" )
 
 
 passwordValidator : Validator ( Field, String ) Model
@@ -224,4 +231,4 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Session.loginChanges GotUser (Session.navKey model.user)
+    Session.loginChanges GotUser

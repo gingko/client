@@ -1,4 +1,4 @@
-port module Session exposing (PaymentStatus(..), Session, confirmEmail, currentTime, daysLeft, db, decode, documents, fileMenuOpen, fromLegacy, getDocName, getMetadata, isMac, isNotConfirmed, language, lastDocId, loggedIn, loginChanges, logout, name, navKey, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, updateDocuments, updateTime, updateUpgrade, upgradeModel, userSettingsChange)
+port module Session exposing (PaymentStatus(..), Session, confirmEmail, currentTime, daysLeft, db, decode, documents, fileMenuOpen, fromLegacy, getDocName, getMetadata, isMac, isNotConfirmed, language, lastDocId, loggedIn, loginChanges, logout, name, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, updateDocuments, updateTime, updateUpgrade, upgradeModel, userSettingsChange)
 
 import Browser.Navigation as Nav
 import Coders exposing (sortByDecoder)
@@ -29,8 +29,7 @@ type Session
 
 type alias SessionData =
     -- Not persisted
-    { navKey : Nav.Key
-    , seed : Random.Seed
+    { seed : Random.Seed
     , isMac : Bool
     , currentTime : Time.Posix
     , fileMenuOpen : Bool
@@ -74,11 +73,6 @@ getFromSession getter session =
 
         Guest sessionData _ ->
             getter sessionData
-
-
-navKey : Session -> Nav.Key
-navKey session =
-    getFromSession .navKey session
 
 
 name : Session -> Maybe String
@@ -366,9 +360,9 @@ updateUpgrade upgradeMsg session =
 -- ENCODER & DECODER
 
 
-decode : Nav.Key -> Dec.Value -> Session
-decode key json =
-    case Dec.decodeValue (decoder key) json of
+decode : Dec.Value -> Session
+decode json =
+    case Dec.decodeValue decoder json of
         Ok session ->
             session
 
@@ -384,8 +378,7 @@ decode key json =
                         |> Random.initialSeed
             in
             Guest
-                { navKey = key
-                , seed = errToSeed
+                { seed = errToSeed
                 , isMac = False
                 , currentTime = Time.millisToPosix 0
                 , fileMenuOpen = False
@@ -395,13 +388,13 @@ decode key json =
                 (GuestData En)
 
 
-decoder : Nav.Key -> Dec.Decoder Session
-decoder key =
-    Dec.oneOf [ decodeLoggedIn key, decodeGuest key ]
+decoder : Dec.Decoder Session
+decoder =
+    Dec.oneOf [ decodeLoggedIn, decodeGuest ]
 
 
-decodeLoggedIn : Nav.Key -> Dec.Decoder Session
-decodeLoggedIn key =
+decodeLoggedIn : Dec.Decoder Session
+decodeLoggedIn =
     Dec.succeed
         (\email s os t legacy lang side payStat confirmTime trayOpen sortCriteria lastDoc ->
             let
@@ -413,8 +406,7 @@ decodeLoggedIn key =
                         payStat
             in
             LoggedIn
-                { navKey = key
-                , seed = s
+                { seed = s
                 , isMac = os
                 , currentTime = t
                 , fileMenuOpen = side
@@ -453,13 +445,12 @@ decodePaymentStatus =
         ]
 
 
-decodeGuest : Nav.Key -> Dec.Decoder Session
-decodeGuest key =
+decodeGuest : Dec.Decoder Session
+decodeGuest =
     Dec.succeed
         (\s os t legacy l side ->
             Guest
-                { navKey = key
-                , seed = s
+                { seed = s
                 , isMac = os
                 , currentTime = t
                 , fileMenuOpen = side
@@ -616,9 +607,9 @@ store session_ =
             send <| StoreUser Enc.null
 
 
-loginChanges : (Session -> msg) -> Nav.Key -> Sub msg
-loginChanges toMsg key =
-    userLoginChange (decode key >> toMsg)
+loginChanges : (Session -> msg) -> Sub msg
+loginChanges toMsg =
+    userLoginChange (decode >> toMsg)
 
 
 port userLoginChange : (Dec.Value -> msg) -> Sub msg

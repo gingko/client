@@ -2,6 +2,7 @@ module Page.Signup exposing (Model, Msg, init, subscriptions, toUser, update, vi
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom
+import Browser.Navigation as Nav
 import Html exposing (..)
 import Html.Attributes exposing (autocomplete, autofocus, checked, class, classList, for, href, id, src, style, type_, value)
 import Html.Events exposing (onCheck, onClick, onInput, onSubmit)
@@ -27,6 +28,7 @@ type alias Model =
     , showPassword : Bool
     , didOptIn : Bool
     , errors : List ( Field, FieldError )
+    , navKey : Nav.Key
     }
 
 
@@ -36,9 +38,9 @@ type Field
     | Password
 
 
-init : Session -> ( Model, Cmd Msg )
-init user =
-    ( { user = user, email = "", password = "", showPassword = False, didOptIn = False, errors = [] }
+init : Nav.Key -> Session -> ( Model, Cmd Msg )
+init navKey user =
+    ( { user = user, email = "", password = "", showPassword = False, didOptIn = False, errors = [], navKey = navKey }
     , Task.attempt (\_ -> NoOp) <| Browser.Dom.focus "signup-email"
     )
 
@@ -120,9 +122,9 @@ update msg model =
             in
             ( { model | errors = [ errorMsg ], password = "" }, Cmd.none )
 
-        GotUser user ->
+        GotUser _ ->
             -- If I want to route to different welcome trees, based on e.g. isMac or language, here is where I can.
-            ( model, Route.replaceUrl (Session.navKey user) (Route.Import Template.WelcomeTree) )
+            ( model, Route.replaceUrl model.navKey (Route.Import Template.WelcomeTree) )
 
 
 emailValidator : Validator ( Field, FieldError ) Model
@@ -303,4 +305,4 @@ viewError field error =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Session.loginChanges GotUser (Session.navKey model.user)
+    Session.loginChanges GotUser

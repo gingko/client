@@ -25,7 +25,13 @@ import Url exposing (Url)
 -- MODEL
 
 
-type Model
+type alias Model =
+    { state : State
+    , navKey : Nav.Key
+    }
+
+
+type State
     = Redirect Session
     | NotFound Session
     | PaymentSuccess Session
@@ -35,7 +41,7 @@ type Model
     | ResetPassword Page.ResetPassword.Model
     | Copy Page.Copy.Model
     | Import Page.Import.Model
-    | DocNew Session
+    | DocNew Page.DocNew.Model
     | App Page.App.Model
 
 
@@ -43,27 +49,38 @@ init : Value -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init json url navKey =
     let
         user =
-            Session.decode navKey json
+            Session.decode json
+
+        changeRouteWithKey =
+            changeRouteTo navKey
+
+        addNavKey =
+            Tuple.mapFirst (\state -> Model state navKey)
     in
     case ( Session.loggedIn user, Route.fromUrl url ) of
         ( True, route_ ) ->
-            changeRouteTo route_ (Redirect user)
+            changeRouteWithKey route_ (Redirect user)
+                |> addNavKey
 
         ( False, Just Route.Login ) ->
-            changeRouteTo (Just Route.Login) (Redirect user)
+            changeRouteWithKey (Just Route.Login) (Redirect user)
+                |> addNavKey
 
         ( False, Just (Route.ForgotPassword token) ) ->
-            changeRouteTo (Just (Route.ForgotPassword token)) (Redirect user)
+            changeRouteWithKey (Just (Route.ForgotPassword token)) (Redirect user)
+                |> addNavKey
 
         ( False, Just (Route.ResetPassword token) ) ->
-            changeRouteTo (Just (Route.ResetPassword token)) (Redirect user)
+            changeRouteWithKey (Just (Route.ResetPassword token)) (Redirect user)
+                |> addNavKey
 
         ( False, _ ) ->
-            changeRouteTo (Just Route.Signup) (Redirect user)
+            changeRouteWithKey (Just Route.Signup) (Redirect user)
+                |> addNavKey
 
 
-changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )
-changeRouteTo maybeRoute model =
+changeRouteTo : Nav.Key -> Maybe Route -> State -> ( State, Cmd Msg )
+changeRouteTo navKey maybeRoute model =
     let
         user =
             toSession model
@@ -71,20 +88,20 @@ changeRouteTo maybeRoute model =
     if Session.loggedIn user then
         case maybeRoute of
             Just Route.Root ->
-                Page.App.init user Nothing |> updateWith App GotAppMsg
+                Page.App.init navKey user Nothing |> updateWith App GotAppMsg
 
             Just Route.Signup ->
-                Page.Signup.init user |> updateWith Signup GotSignupMsg
+                Page.Signup.init navKey user |> updateWith Signup GotSignupMsg
 
             Just Route.Login ->
-                Page.App.init user Nothing |> updateWith App GotAppMsg
+                Page.App.init navKey user Nothing |> updateWith App GotAppMsg
 
             Just (Route.ForgotPassword email_) ->
-                Page.ForgotPassword.init user email_
+                Page.ForgotPassword.init navKey user email_
                     |> updateWith ForgotPassword GotForgotPasswordMsg
 
             Just (Route.ResetPassword token) ->
-                Page.ResetPassword.init user token
+                Page.ResetPassword.init navKey user token
                     |> updateWith ResetPassword GotResetPasswordMsg
 
             Just Route.EmailConfirmed ->
@@ -92,10 +109,10 @@ changeRouteTo maybeRoute model =
                     newSession =
                         Session.confirmEmail user
                 in
-                ( Redirect newSession, Route.replaceUrl (Session.navKey newSession) Route.Root )
+                ( Redirect newSession, Route.replaceUrl navKey Route.Root )
 
             Just Route.DocNew ->
-                Page.DocNew.init user |> updateWith DocNew GotDocNewMsg
+                Page.DocNew.init navKey user |> updateWith DocNew GotDocNewMsg
 
             Just (Route.DocUntitled dbName) ->
                 let
@@ -107,16 +124,16 @@ changeRouteTo maybeRoute model =
                             _ ->
                                 False
                 in
-                Page.App.init user (Just { dbName = dbName, isNew = isNew }) |> updateWith App GotAppMsg
+                Page.App.init navKey user (Just { dbName = dbName, isNew = isNew }) |> updateWith App GotAppMsg
 
             Just (Route.Doc dbName _) ->
-                Page.App.init user (Just { dbName = dbName, isNew = False }) |> updateWith App GotAppMsg
+                Page.App.init navKey user (Just { dbName = dbName, isNew = False }) |> updateWith App GotAppMsg
 
             Just (Route.Copy dbName) ->
-                Page.Copy.init user dbName |> updateWith Copy GotCopyMsg
+                Page.Copy.init navKey user dbName |> updateWith Copy GotCopyMsg
 
             Just (Route.Import template) ->
-                Page.Import.init user template
+                Page.Import.init navKey user template
                     |> updateWith Import GotImportMsg
 
             Just (Route.Upgrade isOk) ->
@@ -132,33 +149,33 @@ changeRouteTo maybeRoute model =
     else
         let
             ( signupModel, signupCmds ) =
-                Page.Signup.init user
+                Page.Signup.init navKey user
                     |> updateWith Signup GotSignupMsg
 
             ( loginModel, loginCmds ) =
-                Page.Login.init user
+                Page.Login.init navKey user
                     |> updateWith Login GotLoginMsg
         in
         case maybeRoute of
             Just Route.Signup ->
-                ( signupModel, Cmd.batch [ signupCmds, Route.replaceUrl (Session.navKey user) Route.Signup ] )
+                ( signupModel, Cmd.batch [ signupCmds, Route.replaceUrl navKey Route.Signup ] )
 
             Just Route.Login ->
                 ( loginModel, loginCmds )
 
             Just (Route.ForgotPassword email_) ->
-                Page.ForgotPassword.init user email_
+                Page.ForgotPassword.init navKey user email_
                     |> updateWith ForgotPassword GotForgotPasswordMsg
 
             Just (Route.ResetPassword token) ->
-                Page.ResetPassword.init user token
+                Page.ResetPassword.init navKey user token
                     |> updateWith ResetPassword GotResetPasswordMsg
 
             _ ->
-                ( loginModel, Cmd.batch [ loginCmds, Route.replaceUrl (Session.navKey user) Route.Login ] )
+                ( loginModel, Cmd.batch [ loginCmds, Route.replaceUrl navKey Route.Login ] )
 
 
-toSession : Model -> Session
+toSession : State -> Session
 toSession page =
     case page of
         Redirect user ->
@@ -185,11 +202,11 @@ toSession page =
         Copy copy ->
             Page.Copy.toUser copy
 
-        Import user ->
-            user
+        Import importModel ->
+            importModel.session
 
-        DocNew user ->
-            user
+        DocNew docNew ->
+            docNew.session
 
         App appModel ->
             Page.App.toSession appModel
@@ -214,19 +231,19 @@ type Msg
     | GotAppMsg Page.App.Msg
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case ( msg, model ) of
+update : Nav.Key -> Msg -> State -> ( State, Cmd Msg )
+update navKey msg state =
+    case ( msg, state ) of
         ( ChangedUrl url, Signup _ ) ->
             case Route.fromUrl url of
                 Just Route.Signup ->
-                    ( model, Cmd.none )
+                    ( state, Cmd.none )
 
                 otherRoute ->
-                    changeRouteTo otherRoute model
+                    changeRouteTo navKey otherRoute state
 
         ( ChangedUrl url, _ ) ->
-            changeRouteTo (Route.fromUrl url) model
+            changeRouteTo navKey (Route.fromUrl url) state
 
         ( ClickedLink urlRequest, App appModel ) ->
             case urlRequest of
@@ -234,27 +251,27 @@ update msg model =
                     if Page.App.isDirty appModel then
                         let
                             saveShortcut =
-                                if Session.isMac (toSession model) then
+                                if Session.isMac (toSession state) then
                                     "⌘+enter"
 
                                 else
                                     "Ctrl+Enter"
                         in
-                        ( model, send <| Alert ("You have unsaved changes!\n" ++ saveShortcut ++ " to save.") )
+                        ( state, send <| Alert ("You have unsaved changes!\n" ++ saveShortcut ++ " to save.") )
 
                     else
-                        ( model, Nav.pushUrl (Session.navKey (toSession model)) (Url.toString url) )
+                        ( state, Nav.pushUrl navKey (Url.toString url) )
 
                 Browser.External href ->
-                    ( model, Nav.load href )
+                    ( state, Nav.load href )
 
         ( ClickedLink urlRequest, _ ) ->
             case urlRequest of
                 Browser.Internal url ->
-                    ( model, Nav.pushUrl (Session.navKey (toSession model)) (Url.toString url) )
+                    ( state, Nav.pushUrl navKey (Url.toString url) )
 
                 Browser.External href ->
-                    ( model, Nav.load href )
+                    ( state, Nav.load href )
 
         ( SettingsChanged json, PaymentSuccess session ) ->
             ( PaymentSuccess (Session.sync json session), Cmd.none )
@@ -292,17 +309,22 @@ update msg model =
                 |> updateWith App GotAppMsg
 
         _ ->
-            ( model, Cmd.none )
+            ( state, Cmd.none )
 
 
-updateWith : (subModel -> Model) -> (subMsg -> Msg) -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )
+updateWith : (subModel -> State) -> (subMsg -> Msg) -> ( subModel, Cmd subMsg ) -> ( State, Cmd Msg )
 updateWith toModel toMsg ( subModel, subCmd ) =
     ( toModel subModel
     , Cmd.map toMsg subCmd
     )
 
 
-withCmd : Cmd Msg -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+updateModel : Msg -> Model -> ( Model, Cmd Msg )
+updateModel msg model =
+    update model.navKey msg model.state |> Tuple.mapFirst (\s -> Model s model.navKey)
+
+
+withCmd : Cmd Msg -> ( State, Cmd Msg ) -> ( State, Cmd Msg )
 withCmd newCmd ( model, cmd ) =
     ( model, Cmd.batch [ newCmd, cmd ] )
 
@@ -311,7 +333,7 @@ withCmd newCmd ( model, cmd ) =
 -- VIEW
 
 
-view : Model -> Document Msg
+view : State -> Document Msg
 view model =
     case model of
         Redirect _ ->
@@ -339,7 +361,7 @@ view model =
             { title = "Duplicating...", body = [ UI.viewAppLoadingSpinner (Session.fileMenuOpen copyModel.session) ] }
 
         Import importModel ->
-            { title = "Importing...", body = [ UI.viewAppLoadingSpinner (Session.fileMenuOpen importModel) ] }
+            { title = "Importing...", body = [ UI.viewAppLoadingSpinner (Session.fileMenuOpen importModel.session) ] }
 
         DocNew _ ->
             { title = "Gingko Writer - New", body = [ Html.div [] [ Html.text "LOADING..." ] ] }
@@ -362,8 +384,8 @@ view model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
-    case model of
+subscriptions { state } =
+    case state of
         Redirect _ ->
             Sub.none
 
@@ -406,8 +428,8 @@ main : Program Value Model Msg
 main =
     Browser.application
         { init = init
-        , view = view
-        , update = update
+        , view = .state >> view
+        , update = updateModel
         , subscriptions = subscriptions
         , onUrlRequest = ClickedLink
         , onUrlChange = ChangedUrl

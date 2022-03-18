@@ -1,4 +1,4 @@
-port module Home exposing (..)
+port module Home exposing (main)
 
 import Browser
 import Html exposing (Html, button, h1, text)
