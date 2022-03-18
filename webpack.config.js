@@ -203,7 +203,7 @@ const electronRendererConfig = merge(baseElectronConfig, {
   // Entry points into the code. The root of the dependency tree.
   entry: {
     home: "./electron/newhome.js",
-    /*renderer: "./electron/renderer.js",*/
+    renderer: "./electron/renderer.js",
     doc: "./shared/doc.js",
   },
 

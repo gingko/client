@@ -1,10 +1,11 @@
 port module Electron exposing (..)
 
 import Browser
-import Browser.Navigation as Nav
-import Html exposing (Html, button, h1, text)
+import Html exposing (Html, button, div, h1, text)
+import Html.Attributes exposing (id)
 import Json.Decode as Dec exposing (Decoder, Value)
 import Page.Doc exposing (Msg(..))
+import Page.Doc.Theme exposing (applyTheme)
 import Session exposing (Session)
 
 
@@ -26,11 +27,11 @@ type alias Model =
     Page.Doc.Model
 
 
-init : Value -> Nav.Key -> ( Model, Cmd Msg )
-init json navKey =
+init : Value -> ( Model, Cmd Msg )
+init json =
     let
         session =
-            Session.decode navKey json
+            Session.decode json
     in
     ( Page.Doc.init True session "randDocId", Cmd.none )
 
@@ -45,10 +46,13 @@ type Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update msg doc =
     case msg of
-        _ ->
-            ( model, Cmd.none )
+        GotDocMsg docMsg ->
+            Page.Doc.update docMsg doc |> Tuple.mapSecond (Cmd.map GotDocMsg)
+
+        NoOp ->
+            ( doc, Cmd.none )
 
 
 
@@ -56,16 +60,19 @@ update msg model =
 
 
 view : Model -> List (Html Msg)
-view model =
-    Page.Doc.view
-        { docMsg = GotDocMsg
-        , keyboard = always NoOp
-        , tooltipRequested = always <| always <| always NoOp
-        , tooltipClosed = NoOp
-        , toggleWordcount = always NoOp
-        , toggleUpgradeModal = always NoOp
-        }
-        model
+view doc =
+    [ div [ id "app-root", applyTheme doc.theme ]
+        (Page.Doc.view
+            { docMsg = GotDocMsg
+            , keyboard = always NoOp
+            , tooltipRequested = always <| always <| always NoOp
+            , tooltipClosed = NoOp
+            , toggleWordcount = always NoOp
+            , toggleUpgradeModal = always NoOp
+            }
+            doc
+        )
+    ]
 
 
 
