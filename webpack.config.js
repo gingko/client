@@ -107,7 +107,7 @@ const webConfig = {
 
   // What file types to attempt to resolve within require/import statements
   resolve: {
-    alias: { Container: path.resolve(__dirname, "src/web/container.js") },
+    alias: { Container: path.resolve(__dirname, "src/web/container-web.js") },
     extensions: [".js", ".elm"]
   },
 
@@ -209,7 +209,7 @@ const electronRendererConfig = merge(baseElectronConfig, {
 
   // What file types to attempt to resolve within require/import statements
   resolve: {
-    alias: { Container: path.resolve(__dirname, "src/electron/container.js") },
+    alias: { Container: path.resolve(__dirname, "src/electron/container-electron.js") },
     extensions: [".js", ".elm"]
   },
 
@@ -225,10 +225,6 @@ const electronRendererConfig = merge(baseElectronConfig, {
         }
       }
     ]
-  },
-
-  externals: {
-    "pouchdb": "require('pouchdb')",
   },
 
   plugins: [
