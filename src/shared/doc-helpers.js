@@ -239,6 +239,14 @@ const setBottom = (delta, el) => {
   }
 }
 
+const updateFillets = () => {
+  let columns = Array.from(document.getElementsByClassName("column"));
+  let filletData = getFilletData(columns);
+  columns.map((c,i) => {
+    setColumnFillets(c,i, filletData);
+  })
+}
+
 /* ===== Shared variables ===== */
 
 const errorAlert = (title, msg, err) => {
@@ -341,16 +349,65 @@ if (window.navigator.platform.toUpperCase().indexOf('MAC') < 0 ) {
   needOverride.push("alt+left");
 }
 
+/* ===== Shared fromElm cases ===== */
+
+var casesShared = (elmData, params) => {
+  return {
+    SetDirty: () => {
+      params.DIRTY = elmData;
+    },
+
+    ScrollCards: () => {
+      scrollColumns(elmData);
+      scrollHorizontal(elmData.columnIdx, elmData.instant);
+      params.lastActivesScrolled = elmData;
+      params.lastColumnScrolled = elmData.columnIdx;
+      if (params.localStore.isReady()) {
+        params.localStore.set('last-actives', elmData.lastActives);
+      }
+      window.requestAnimationFrame(()=>{
+        updateFillets();
+        let columns = Array.from(document.getElementsByClassName("column"));
+        columns.map((c, i) => {
+          c.addEventListener('scroll', () => {
+            if(!params.ticking) {
+              window.requestAnimationFrame(() => {
+                updateFillets();
+                params.ticking = false;
+              })
+
+              params.ticking = true;
+            }
+          })
+        })
+      });
+    },
+
+
+    SetTextareaClone: () => {
+      let id = elmData[0];
+      let card = document.getElementById("card-" + id);
+      if (card === null) {
+        console.error("Card not found for autogrowing textarea");
+      } else {
+        card.dataset.clonedContent = elmData[1];
+      }
+    },
+
+    ConsoleLogRequested: () => console.error(elmData),
+  }
+}
+
 /* ===== CommonJS Module exports ===== */
 
 module.exports = {
   scrollHorizontal: scrollHorizontal,
   scrollColumns: scrollColumns,
   scrollFullscreen: scrollFullscreen,
-  getFilletData: getFilletData,
-  setColumnFillets: setColumnFillets,
+  updateFillets: updateFillets,
   errorAlert: errorAlert,
   shortcuts: shortcuts,
   needOverride: needOverride,
   toHex: toHex,
+  casesShared: casesShared
 };

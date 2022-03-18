@@ -228,7 +228,7 @@ const fromElm = (msg, elmData) => {
   window.elmMessages.push({tag: msg, data: elmData});
   window.elmMessages = window.elmMessages.slice(-10);
 
-  let cases = {
+  let casesWeb = {
     // === SPA ===
 
     StoreUser: async () => {
@@ -258,10 +258,6 @@ const fromElm = (msg, elmData) => {
 
     Alert: () => {
       alert(elmData);
-    },
-
-    SetDirty: () => {
-      DIRTY = elmData;
     },
 
     DragDone: () => {
@@ -489,32 +485,6 @@ const fromElm = (msg, elmData) => {
 
     // === DOM ===
 
-    ScrollCards: () => {
-      helpers.scrollColumns(elmData);
-      helpers.scrollHorizontal(elmData.columnIdx, elmData.instant);
-      lastActivesScrolled = elmData;
-      lastColumnScrolled = elmData.columnIdx;
-      if (localStore.isReady()) {
-        localStore.set('last-actives', elmData.lastActives);
-      }
-      window.requestAnimationFrame(()=>{
-        updateFillets();
-        let columns = Array.from(document.getElementsByClassName("column"));
-        columns.map((c, i) => {
-          c.addEventListener('scroll', () => {
-            if(!ticking) {
-              window.requestAnimationFrame(() => {
-                updateFillets();
-                ticking = false;
-              })
-
-              ticking = true;
-            }
-          })
-        })
-      });
-    },
-
     ScrollFullscreenCards: () => {
       helpers.scrollFullscreen(elmData);
     },
@@ -605,16 +575,6 @@ const fromElm = (msg, elmData) => {
             card.dataset.clonedContent = newValue;
           }
         }
-      }
-    },
-
-    SetTextareaClone: () => {
-      let id = elmData[0];
-      let card = document.getElementById("card-" + id);
-      if (card === null) {
-        console.error("Card not found for autogrowing textarea");
-      } else {
-        card.dataset.clonedContent = elmData[1];
       }
     },
 
@@ -762,9 +722,11 @@ const fromElm = (msg, elmData) => {
     },
 
     SocketSend: () => {},
-
-    ConsoleLogRequested: () => console.error(elmData),
   };
+
+  let params = { DIRTY, localStore, lastColumnScrolled, lastActivesScrolled, ticking };
+
+  let cases = Object.assign(helpers.casesShared(elmData, params), casesWeb);
 
   try {
     cases[msg]();
@@ -931,14 +893,6 @@ window.onresize = () => {
   })
 };
 
-const updateFillets = () => {
-  let columns = Array.from(document.getElementsByClassName("column"));
-  let filletData = helpers.getFilletData(columns);
-  columns.map((c,i) => {
-    helpers.setColumnFillets(c,i, filletData);
-  })
-}
-
 const debouncedScrollColumns = _.debounce(helpers.scrollColumns, 200);
 const debouncedScrollHorizontal = _.debounce(helpers.scrollHorizontal, 200);
 
@@ -1079,7 +1033,7 @@ const observer = new MutationObserver(function (mutations) {
 
     [].slice.call(m.removedNodes).map((n) => {
       if ("getElementsByClassName" in n && n.getElementsByClassName("edit mousetrap").length != 0) {
-        updateFillets();
+        helpers.updateFillets();
       }
     })
   });

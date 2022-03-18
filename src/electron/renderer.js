@@ -1,11 +1,16 @@
 import { Elm } from "../elm/Electron";
 const Mousetrap = require("mousetrap");
 const helpers = require("../shared/doc-helpers");
+const container = require("Container");
 
 // Init Vars
 
 window.elmMessages = [];
 let DIRTY = false;
+let lastActivesScrolled = null;
+let lastColumnScrolled = null;
+let ticking = false;
+const localStore = container.localStore;
 
 
 // Init Elm
@@ -22,7 +27,19 @@ const fromElm = (msg, elmData) => {
   window.elmMessages.push({ tag: msg, data: elmData });
   window.elmMessages = window.elmMessages.slice(-10);
 
-  let cases = {
+  let casesElectron = {
+    CommitData: () => {
+    },
+  };
+
+  let params = { DIRTY, localStore, lastColumnScrolled, lastActivesScrolled, ticking };
+
+  let cases = Object.assign(helpers.casesShared(elmData, params), casesElectron);
+
+  try {
+    cases[msg]();
+  } catch (err) {
+    console.error("Unexpected message from Elm : ", msg, elmData, err);
   }
 }
 
