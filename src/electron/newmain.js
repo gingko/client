@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, protocol } = require('electron');
 const path = require('path')
+import * as fs from 'fs/promises';
 
 const createWindow = () => {
   const win = new BrowserWindow({
@@ -10,10 +11,17 @@ const createWindow = () => {
     }
   })
 
-  ipcMain.on('clicked-new', (event, title) => {
+  let filehandle;
+
+  ipcMain.on('clicked-new', async (event, title) => {
     const webContents = event.sender
     const win = BrowserWindow.fromWebContents(webContents)
+    filehandle = await fs.open('/home/adriano/Documents/testelectron.md', 'w')
     win.loadFile(`${__dirname}/static/renderer.html`);
+  })
+
+  ipcMain.on('save-file', async (event, data) =>{
+    await filehandle.write(data, 0);
   })
 
   win.loadFile(`${__dirname}/static/home.html`);

@@ -29,6 +29,8 @@ const fromElm = (msg, elmData) => {
 
   let casesElectron = {
     CommitData: () => {
+      console.log(elmData.workingTree)
+      window.electronAPI.saveFile(elmData.workingTree)
     },
   };
 
