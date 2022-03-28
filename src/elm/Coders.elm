@@ -1,6 +1,8 @@
-module Coders exposing (collabStateDecoder, collabStateToValue, fontSettingsEncoder, lazyRecurse, markdownOutlineParser, maybeToValue, modeDecoder, modeToValue, sortByDecoder, sortByEncoder, treeDecoder, treeOrString, treeToJSON, treeToJSONrecurse, treeToMarkdownOutline, treeToMarkdownRecurse, treeToMarkdownString, treeToOPML, treeToValue, tupleDecoder, tupleToValue)
+module Coders exposing (collabStateDecoder, collabStateToValue, fontSettingsEncoder, lazyRecurse, markdownOutlineHtmlParser, maybeToValue, modeDecoder, modeToValue, sortByDecoder, sortByEncoder, treeDecoder, treeOrString, treeToJSON, treeToJSONrecurse, treeToMarkdownOutline, treeToMarkdownRecurse, treeToMarkdownString, treeToOPML, treeToValue, tupleDecoder, tupleToValue)
 
+import Dict
 import Doc.Fonts as Fonts
+import Html.Parser exposing (Node(..))
 import Json.Decode as Json exposing (..)
 import Json.Encode as Enc
 import Parser exposing ((|.), (|=), Parser, Step(..), Trailing(..), chompUntil, getChompedString, keyword, loop, spaces, symbol)
@@ -165,7 +167,7 @@ treeToMarkdownOutline withRoot tree =
     else
         case tree.children of
             Children c ->
-                List.map treeToMarkdownOutlineRecurse c |> String.join "\n\n"
+                List.map treeToMarkdownOutlineRecurse c |> String.join "\n"
 
 
 treeToMarkdownOutlineRecurse : Tree -> String
@@ -179,6 +181,42 @@ treeToMarkdownOutlineRecurse tree =
                 ++ "\n\n"
                 ++ (List.map treeToMarkdownOutlineRecurse c ++ [ "" ] |> String.join "\n")
                 ++ "</gingko-card>"
+
+
+markdownOutlineHtmlParser : String -> Result (List Parser.DeadEnd) (Maybe Tree)
+markdownOutlineHtmlParser str =
+    Html.Parser.run str
+        |> Result.map
+            (\l ->
+                let
+                    rootNode =
+                        Element "gingko-card" [ ( "id", "0" ) ] (Text "\n\n\n\n" :: l)
+                in
+                nodeToTree rootNode
+            )
+
+
+nodeToTree : Node -> Maybe Tree
+nodeToTree htmlNode =
+    case htmlNode of
+        Element tagName attr (firstChild :: rest) ->
+            case ( tagName, Dict.get "id" (Dict.fromList attr), firstChild ) of
+                ( "gingko-card", Just id, Text content ) ->
+                    Tree id (content |> String.dropLeft 2 |> String.dropRight 2) (nodeListToChildren rest)
+                        |> Just
+
+                _ ->
+                    Nothing
+
+        _ ->
+            Nothing
+
+
+nodeListToChildren : List Node -> Children
+nodeListToChildren nodes =
+    nodes
+        |> List.filterMap nodeToTree
+        |> Children
 
 
 markdownOutlineParser : Parser Tree
