@@ -1,6 +1,8 @@
 module Electron exposing (..)
 
 import Browser
+import Coders
+import Doc.TreeStructure as TreeStructure
 import Html exposing (Html, button, div, h1, text)
 import Html.Attributes exposing (id)
 import Json.Decode as Dec exposing (Decoder, Value)
@@ -8,10 +10,11 @@ import Outgoing exposing (Msg(..), send)
 import Page.Doc exposing (Msg(..))
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Doc.Theme exposing (applyTheme)
+import Parser
 import Session exposing (Session)
 
 
-main : Program Value Model Msg
+main : Program ( Maybe String, Value ) Model Msg
 main =
     Browser.document
         { init = init
@@ -29,13 +32,37 @@ type alias Model =
     Page.Doc.Model
 
 
-init : Value -> ( Model, Cmd Msg )
-init json =
+init : ( Maybe String, Value ) -> ( Model, Cmd Msg )
+init ( fileData_, json ) =
     let
+        _ =
+            Debug.log "fileData_" fileData_
+
         session =
             Session.decode json
     in
-    ( Page.Doc.init True session "randDocId", Cmd.none )
+    case fileData_ of
+        Nothing ->
+            ( Page.Doc.init True session "randDocId", Cmd.none )
+
+        Just fileData ->
+            let
+                withRoot =
+                    "<gingko-card id=\"0\">\n\n" ++ fileData ++ "\n\n</gingko-card>"
+            in
+            case Parser.run Coders.markdownOutlineParser withRoot of
+                Ok parsedTree ->
+                    ( Page.Doc.init True session "randDocId"
+                        |> (\m -> { m | workingTree = TreeStructure.setTree parsedTree m.workingTree })
+                    , Cmd.none
+                    )
+
+                Err err ->
+                    let
+                        _ =
+                            Debug.log "parse err" err
+                    in
+                    ( Page.Doc.init True session "randDocId", Cmd.none )
 
 
 

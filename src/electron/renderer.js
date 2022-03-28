@@ -18,7 +18,7 @@ let gingkoElectron;
 
 async function init() {
   let fileData = await window.electronAPI.getLoadedFile();
-  gingkoElectron = Elm.Electron.init();
+  gingkoElectron = Elm.Electron.init({flags: [fileData, {}]});
 
   gingkoElectron.ports.infoForOutside.subscribe(function (elmdata) {
     fromElm(elmdata.tag, elmdata.data);
