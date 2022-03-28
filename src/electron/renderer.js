@@ -14,14 +14,20 @@ const localStore = container.localStore;
 
 
 // Init Elm
-let gingkoElectron = Elm.Electron.init();
+let gingkoElectron;
+
+async function init() {
+  let fileData = await window.electronAPI.getLoadedFile();
+  gingkoElectron = Elm.Electron.init();
+
+  gingkoElectron.ports.infoForOutside.subscribe(function (elmdata) {
+    fromElm(elmdata.tag, elmdata.data);
+  });
+}
+init();
 
 
 /* === Elm / JS Interop === */
-
-gingkoElectron.ports.infoForOutside.subscribe(function (elmdata) {
-  fromElm(elmdata.tag, elmdata.data);
-});
 
 const fromElm = (msg, elmData) => {
   window.elmMessages.push({ tag: msg, data: elmData });

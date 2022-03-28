@@ -29,13 +29,17 @@ type alias Model =
 
 type Msg
     = ClickedNew
+    | ClickedOpen
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ClickedNew ->
-            ( model, send () )
+            ( model, send "ClickedNew" )
+
+        ClickedOpen ->
+            ( model, send "ClickedOpen" )
 
 
 
@@ -46,6 +50,7 @@ view : Model -> List (Html Msg)
 view model =
     [ h1 [] [ text "Here I AM!!!" ]
     , button [ onClick ClickedNew ] [ text "New Gingko Document" ]
+    , button [ onClick ClickedOpen ] [ text "Open Gingko Document" ]
     ]
 
 
@@ -53,4 +58,4 @@ view model =
 -- PORTS
 
 
-port send : () -> Cmd msg
+port send : String -> Cmd msg
