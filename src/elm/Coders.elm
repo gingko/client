@@ -172,19 +172,19 @@ treeToMarkdownOutlineRecurse : Tree -> String
 treeToMarkdownOutlineRecurse tree =
     case tree.children of
         Children c ->
-            "<section id=\""
+            "<gingko-card id=\""
                 ++ tree.id
                 ++ "\">\n\n"
                 ++ tree.content
                 ++ "\n\n"
                 ++ (List.map treeToMarkdownOutlineRecurse c ++ [ "" ] |> String.join "\n")
-                ++ "</section>"
+                ++ "</gingko-card>"
 
 
 markdownOutlineParser : Parser Tree
 markdownOutlineParser =
     Parser.succeed (\id ( cont, ch ) -> Tree id cont ch)
-        |. keyword "<section"
+        |. keyword "<gingko-card"
         |. spaces
         |. keyword "id"
         |. symbol "="
@@ -195,10 +195,10 @@ markdownOutlineParser =
         |. symbol ">\n\n"
         |= Parser.oneOf
             [ Parser.succeed (\s c -> ( s, c ))
-                |= getChompedString (chompUntil "<section")
+                |= getChompedString (chompUntil "<gingko-card")
                 |= markdownOutlineChildren
             , Parser.succeed (\s -> ( s, Children [] ))
-                |= getChompedString (chompUntil "\n\n</section>")
+                |= getChompedString (chompUntil "\n\n</gingko-card>")
             ]
 
 

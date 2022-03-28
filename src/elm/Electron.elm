@@ -57,10 +57,6 @@ update msg doc =
                 |> Tuple.mapSecond (Cmd.map GotDocMsg)
 
         Incoming incomingMsg ->
-            let
-                _ =
-                    Debug.log "incoming" incomingMsg
-            in
             Page.Doc.incoming incomingMsg doc
                 |> Tuple.mapSecond (Cmd.map GotDocMsg)
 

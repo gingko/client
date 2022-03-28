@@ -16,7 +16,8 @@ const createWindow = () => {
   ipcMain.on('clicked-new', async (event, title) => {
     const webContents = event.sender
     const win = BrowserWindow.fromWebContents(webContents)
-    filehandle = await fs.open('/home/adriano/Documents/testelectron.md', 'w')
+    let d = new Date();
+    filehandle = await fs.open(`/home/adriano/Dropbox/Notes/testelectron${d}.md`, 'w')
     win.loadFile(`${__dirname}/static/renderer.html`);
   })
 
