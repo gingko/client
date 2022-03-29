@@ -668,7 +668,8 @@ requestCommit workingTree author model metadata =
             case Dict.get "heads/master" data.refs of
                 Nothing ->
                     Enc.object
-                        [ ( "workingTree", Enc.string <| treeToMarkdownOutline False workingTree )
+                        [ ( "workingTree", treeToValue workingTree )
+                        , ( "markdownString", Enc.string <| treeToMarkdownOutline False workingTree )
                         , ( "author", Enc.string author )
                         , ( "parents", Enc.list Enc.string [] )
                         , ( "metadata", metadata )
@@ -677,7 +678,8 @@ requestCommit workingTree author model metadata =
 
                 Just localHead ->
                     Enc.object
-                        [ ( "workingTree", Enc.string <| treeToMarkdownOutline False workingTree )
+                        [ ( "workingTree", treeToValue workingTree )
+                        , ( "markdownString", Enc.string <| treeToMarkdownOutline False workingTree )
                         , ( "author", Enc.string author )
                         , ( "parents", Enc.list Enc.string [ localHead.value ] )
                         , ( "metadata", metadata )
@@ -688,7 +690,8 @@ requestCommit workingTree author model metadata =
             if List.isEmpty (List.filter (not << .resolved) conflicts) then
                 -- No unresolved conflicts.
                 Enc.object
-                    [ ( "workingTree", Enc.string <| treeToMarkdownOutline False workingTree )
+                    [ ( "workingTree", treeToValue workingTree )
+                    , ( "markdownString", Enc.string <| treeToMarkdownOutline False workingTree )
                     , ( "author", Enc.string author )
                     , ( "parents", Enc.list Enc.string [ localHead, remoteHead ] )
                     , ( "metadata", metadata )
