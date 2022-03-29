@@ -33,6 +33,8 @@ type Msg
     | PullData
     | SaveImportedData Enc.Value
     | SaveBulkImportedData Enc.Value
+      -- === Desktop ===
+    | SaveToFile String
       -- === DOM ===
     | ScrollCards (List String) (List ( Int, ScrollPosition )) Int Bool
     | ScrollFullscreenCards String
@@ -123,6 +125,10 @@ send info =
 
         NoDataToSave ->
             dataToSend "NoDataToSave" null
+
+        -- === Desktop ===
+        SaveToFile str ->
+            dataToSend "SaveToFile" (string str)
 
         -- === DOM ===
         ScrollCards lastActives listScrollPositions colIdx instant ->

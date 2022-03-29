@@ -40,18 +40,39 @@ init ( fileData_, json ) =
     in
     case fileData_ of
         Nothing ->
-            ( Page.Doc.init True session "randDocId", Cmd.none )
+            ( Page.Doc.init True session "randDocId"
+                |> setDesktop True
+            , Cmd.none
+            )
 
         Just fileData ->
             case Coders.markdownOutlineHtmlParser fileData of
                 Ok (Just parsedTree) ->
                     ( Page.Doc.init False session "randDocId"
                         |> initDoc parsedTree
+                        |> setDesktop True
                     , Cmd.none
                     )
 
-                _ ->
-                    ( Page.Doc.init True session "randDocId", Cmd.none )
+                Ok Nothing ->
+                    let
+                        _ =
+                            Debug.log "Nothing" "Nothing"
+                    in
+                    ( Page.Doc.init True session "randDocId"
+                        |> setDesktop True
+                    , Cmd.none
+                    )
+
+                Err err ->
+                    let
+                        _ =
+                            Debug.log "parse error" err
+                    in
+                    ( Page.Doc.init True session "randDocId"
+                        |> setDesktop True
+                    , Cmd.none
+                    )
 
 
 initDoc : Tree -> Page.Doc.Model -> Page.Doc.Model
@@ -60,6 +81,11 @@ initDoc tree docModel =
         | workingTree = TreeStructure.setTree tree docModel.workingTree
         , loading = False
     }
+
+
+setDesktop : Bool -> Page.Doc.Model -> Page.Doc.Model
+setDesktop isDesktop docModel =
+    { docModel | isDesktop = isDesktop }
 
 
 

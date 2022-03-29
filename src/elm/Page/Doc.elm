@@ -3,7 +3,7 @@ module Page.Doc exposing (Model, Msg(..), incoming, init, subscriptions, toUser,
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
 import Bytes exposing (Bytes)
-import Coders exposing (treeToMarkdownString, treeToValue)
+import Coders exposing (treeToMarkdownOutline, treeToMarkdownString, treeToValue)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
 import Doc.Data as Data
 import Doc.Data.Conflict exposing (Selection)
@@ -53,6 +53,7 @@ type alias Model =
     -- SPA Page State
     , session : Session
     , loading : Bool
+    , isDesktop : Bool
 
     -- Transient state
     , viewState : ViewState
@@ -61,6 +62,7 @@ type alias Model =
     , lastRemoteSave : Maybe Time.Posix
     , field : String
     , textCursorInfo : TextCursorInfo
+    , debouncerLocalSave : Debouncer () ()
     , debouncerStateCommit : Debouncer () ()
     , titleField : Maybe String
     , fileSearchField : String
@@ -84,6 +86,11 @@ init isNew session docId =
     , docId = docId
     , session = session
     , loading = not isNew
+    , isDesktop = False
+    , debouncerLocalSave =
+        Debouncer.throttle (fromSeconds 0.25)
+            |> Debouncer.settleWhenQuietFor (Just <| fromSeconds 0.25)
+            |> toDebouncer
     , debouncerStateCommit =
         Debouncer.throttle (fromSeconds 3)
             |> Debouncer.settleWhenQuietFor (Just <| fromSeconds 3)
@@ -154,6 +161,8 @@ type Msg
     | DragDropMsg (DragDrop.Msg String DropId)
     | DragExternal DragExternalMsg
       -- === History ===
+    | ThrottledLocalSave (Debouncer.Msg ())
+    | LocalSave Time.Posix
     | ThrottledCommit (Debouncer.Msg ())
     | Commit Time.Posix
     | CheckoutCommit String
@@ -426,6 +435,34 @@ update msg ({ workingTree } as model) =
                         ( model, Cmd.none )
 
         -- === History ===
+        ThrottledLocalSave subMsg ->
+            if model.isDesktop then
+                let
+                    ( subModel, subCmd, emitted_ ) =
+                        Debouncer.update subMsg model.debouncerLocalSave
+
+                    mappedCmd =
+                        Cmd.map ThrottledLocalSave subCmd
+
+                    updatedModel =
+                        { model | debouncerLocalSave = subModel }
+                in
+                case emitted_ of
+                    Just () ->
+                        ( updatedModel
+                        , Cmd.batch [ Task.perform LocalSave Time.now, mappedCmd ]
+                        )
+
+                    Nothing ->
+                        ( updatedModel, mappedCmd )
+
+            else
+                ( model, Cmd.none )
+
+        LocalSave time ->
+            ( { model | session = Session.updateTime time model.session }, Cmd.none )
+                |> localSaveDo
+
         ThrottledCommit subMsg ->
             let
                 ( subModel, subCmd, emitted_ ) =
@@ -465,6 +502,7 @@ update msg ({ workingTree } as model) =
             ( { model | headerMenu = NoHeaderMenu }
             , Cmd.none
             )
+                |> localSaveDo
                 |> addToHistoryDo
 
         CancelHistory ->
@@ -504,6 +542,7 @@ update msg ({ workingTree } as model) =
               }
             , Cmd.none
             )
+                |> localSave
                 |> addToHistory
 
         -- === UI ===
@@ -716,31 +755,6 @@ incoming incomingMsg model =
         MetadataSaveError ->
             ( { model | titleField = Nothing }, Cmd.none )
 
-        GetDataToSave ->
-            case vs.viewMode of
-                Normal ->
-                    ( model
-                    , Cmd.none
-                      --, send (SaveToDB ( Metadata.encode model.metadata, statusToValue model.status, Data.encode model.objects ))
-                    )
-
-                _ ->
-                    let
-                        newTree =
-                            TreeStructure.update (TreeStructure.Upd vs.active model.field) model.workingTree
-                    in
-                    if newTree.tree /= model.workingTree.tree then
-                        ( { model | workingTree = newTree }
-                        , Cmd.none
-                        )
-                            |> addToHistoryDo
-
-                    else
-                        ( model
-                        , Cmd.none
-                          --, send (SaveToDB ( Metadata.encode model.metadata, statusToValue model.status, Data.encode model.objects ))
-                        )
-
         SavedLocally time_ ->
             ( { model
                 | lastLocalSave = time_
@@ -797,6 +811,7 @@ incoming incomingMsg model =
                     in
                     baseModelCmdTuple
                         |> closeCard
+                        |> localSave
                         |> addToHistory
 
                 Nothing ->
@@ -870,6 +885,7 @@ incoming incomingMsg model =
                             TreeStructure.update (TreeStructure.Upd cardId newContent) model.workingTree
                     in
                     ( { model | workingTree = newTree, dirty = True }, Cmd.none )
+                        |> localSave
                         |> addToHistory
 
         -- === UI ===
@@ -1415,6 +1431,7 @@ saveCardIfEditing ( model, prevCmd ) =
                   }
                 , prevCmd
                 )
+                    |> localSave
                     |> addToHistory
 
             else
@@ -1567,6 +1584,7 @@ deleteCard id ( model, prevCmd ) =
         , Cmd.batch [ prevCmd, send <| SetDirty True ]
         )
             |> activate nextToActivate False
+            |> localSave
             |> addToHistory
 
 
@@ -1785,6 +1803,7 @@ mergeUp id ( model, prevCmd ) =
             , prevCmd
             )
                 |> activate prevTree.id False
+                |> localSave
                 |> addToHistory
 
         _ ->
@@ -1813,6 +1832,7 @@ mergeDown id ( model, prevCmd ) =
             , prevCmd
             )
                 |> activate nextTree.id False
+                |> localSave
                 |> addToHistory
 
         _ ->
@@ -1986,6 +2006,7 @@ paste subtree pid pos ( model, prevCmd ) =
     , prevCmd
     )
         |> activate subtree.id False
+        |> localSave
         |> addToHistory
 
 
@@ -2026,7 +2047,25 @@ pasteInto id copiedTree ( model, prevCmd ) =
 
 
 
--- === Welcome Checklist  ===
+-- === Local Saving ===
+
+
+localSaveDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+localSaveDo ( { workingTree, session } as model, prevCmd ) =
+    ( model, Cmd.batch [ send <| SaveToFile (treeToMarkdownOutline False workingTree.tree), prevCmd ] )
+
+
+localSave : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+localSave ( model, prevCmd ) =
+    if model.isDesktop then
+        update (ThrottledLocalSave (provideInput ())) model
+            |> Tuple.mapSecond (\cmd -> Cmd.batch [ prevCmd, cmd ])
+
+    else
+        ( model, prevCmd )
+
+
+
 -- === History ===
 
 

@@ -15,7 +15,6 @@ type
     | DataSaved Dec.Value
     | DataReceived Dec.Value
     | NotFound
-    | GetDataToSave
     | SavedLocally (Maybe Time.Posix)
     | SavedRemotely Time.Posix
       -- === Metadata ===
@@ -104,9 +103,6 @@ subscribe tagger onError =
 
                 "MetadataSaved" ->
                     tagger <| MetadataSaved outsideInfo.data
-
-                "GetDataToSave" ->
-                    tagger <| GetDataToSave
 
                 "SavedLocally" ->
                     case decodeValue (Dec.maybe Dec.int) outsideInfo.data of

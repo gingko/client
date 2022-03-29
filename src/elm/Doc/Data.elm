@@ -1,6 +1,6 @@
 module Doc.Data exposing (CommitObject, Data, Model, checkout, conflictList, conflictSelection, empty, emptyData, getCommit, getData, head, historyList, lastCommitTime, received, requestCommit, resolve, success, toValue)
 
-import Coders exposing (treeToMarkdownOutline, treeToValue, tupleDecoder)
+import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
 import Diff3 exposing (diff3Merge)
 import Doc.Data.Conflict exposing (Conflict, Op(..), Selection(..), conflictWithSha, opString)
@@ -669,7 +669,6 @@ requestCommit workingTree author model metadata =
                 Nothing ->
                     Enc.object
                         [ ( "workingTree", treeToValue workingTree )
-                        , ( "markdownString", Enc.string <| treeToMarkdownOutline False workingTree )
                         , ( "author", Enc.string author )
                         , ( "parents", Enc.list Enc.string [] )
                         , ( "metadata", metadata )
@@ -679,7 +678,6 @@ requestCommit workingTree author model metadata =
                 Just localHead ->
                     Enc.object
                         [ ( "workingTree", treeToValue workingTree )
-                        , ( "markdownString", Enc.string <| treeToMarkdownOutline False workingTree )
                         , ( "author", Enc.string author )
                         , ( "parents", Enc.list Enc.string [ localHead.value ] )
                         , ( "metadata", metadata )
@@ -691,7 +689,6 @@ requestCommit workingTree author model metadata =
                 -- No unresolved conflicts.
                 Enc.object
                     [ ( "workingTree", treeToValue workingTree )
-                    , ( "markdownString", Enc.string <| treeToMarkdownOutline False workingTree )
                     , ( "author", Enc.string author )
                     , ( "parents", Enc.list Enc.string [ localHead, remoteHead ] )
                     , ( "metadata", metadata )

@@ -420,6 +420,8 @@ const fromElm = (msg, elmData) => {
     },
 
     CommitDataResult: async () => {
+      // From dataWorker, NOT ELM!
+
       let [ savedData
         , savedImmutables
         , conflictsExist

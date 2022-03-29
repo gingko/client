@@ -35,8 +35,12 @@ const fromElm = (msg, elmData) => {
 
   let casesElectron = {
     CommitData: () => {
-      window.electronAPI.saveFile(elmData.markdownString)
+      // TODO
     },
+
+    SaveToFile: () => {
+      window.electronAPI.saveFile(elmData)
+    }
   };
 
   let params = { DIRTY, localStore, lastColumnScrolled, lastActivesScrolled, ticking };
