@@ -12,7 +12,7 @@ import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Doc.Theme exposing (applyTheme)
 import Parser
 import Session exposing (Session)
-import Types exposing (Tree)
+import Types exposing (Tree, ViewMode(..))
 
 
 main : Program ( Maybe String, Value ) Model Msg
@@ -50,12 +50,24 @@ init ( fileData_, json ) =
             case Coders.markdownOutlineHtmlParser fileData of
                 Ok (Just parsedTree) ->
                     ( Page.Doc.init True session "randDocId"
-                        |> (\m -> { m | workingTree = TreeStructure.setTree parsedTree m.workingTree })
+                        |> initDoc parsedTree
                     , Cmd.none
                     )
 
                 _ ->
                     ( Page.Doc.init True session "randDocId", Cmd.none )
+
+
+initDoc : Tree -> Page.Doc.Model -> Page.Doc.Model
+initDoc tree docModel =
+    let
+        vs =
+            docModel.viewState
+    in
+    { docModel
+        | workingTree = TreeStructure.setTree tree docModel.workingTree
+        , viewState = { vs | viewMode = Normal }
+    }
 
 
 
