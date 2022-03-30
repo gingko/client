@@ -2,7 +2,6 @@ module Page.Doc exposing (Model, Msg(..), incoming, init, subscriptions, toUser,
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
-import Bytes exposing (Bytes)
 import Coders exposing (treeToMarkdownOutline, treeToMarkdownString, treeToValue)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
 import Doc.Data as Data
@@ -13,23 +12,19 @@ import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Doc.UI as UI exposing (countWords, viewConflict, viewMobileButtons, viewSearchField)
-import File.Download as Download
 import Html exposing (Attribute, Html, div, span, text, textarea, ul)
 import Html.Attributes as Attributes exposing (attribute, class, classList, dir, id, style, title, value)
 import Html.Events exposing (custom, onClick, onDoubleClick, onInput)
 import Html.Extra exposing (viewIf)
 import Html.Keyed as Keyed
-import Html.Lazy exposing (lazy2, lazy3, lazy4, lazy5, lazy7, lazy8)
+import Html.Lazy exposing (lazy2, lazy3, lazy4, lazy7, lazy8)
 import Html5.DragDrop as DragDrop
-import Http
 import Json.Decode as Json
 import Json.Encode as Enc
 import List.Extra as ListExtra
 import Markdown
 import Outgoing exposing (Msg(..), send)
-import Page.Doc.Export as Export exposing (ExportFormat(..), ExportSelection(..), exportView, exportViewError)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
-import Page.Doc.Theme as Theme exposing (Theme(..))
 import Random
 import Regex
 import Session exposing (PaymentStatus(..), Session)
@@ -64,17 +59,13 @@ type alias Model =
     , textCursorInfo : TextCursorInfo
     , debouncerLocalSave : Debouncer () ()
     , debouncerStateCommit : Debouncer () ()
-    , titleField : Maybe String
     , fileSearchField : String
-    , headerMenu : HeaderMenuState
-    , exportSettings : ( ExportSelection, ExportFormat )
     , wordcountTrayOpen : Bool
     , fontSelectorOpen : Bool
 
     -- Settings
     , uid : String
     , fonts : Fonts.Model
-    , theme : Theme
     , startingWordcount : Int
     }
 
@@ -119,14 +110,10 @@ init isNew session docId =
     , lastRemoteSave = Nothing
     , field = ""
     , textCursorInfo = { selected = False, position = End, text = ( "", "" ) }
-    , titleField = Session.getDocName session docId
     , fileSearchField = ""
-    , headerMenu = NoHeaderMenu
-    , exportSettings = ( ExportEverything, DOCX )
     , wordcountTrayOpen = False
     , fontSelectorOpen = False
     , fonts = Fonts.default
-    , theme = Default
     , startingWordcount = 0
     }
 
@@ -165,31 +152,15 @@ type Msg
     | LocalSave Time.Posix
     | ThrottledCommit (Debouncer.Msg ())
     | Commit Time.Posix
-    | CheckoutCommit String
-    | Restore
-    | CancelHistory
     | SetSelection String Selection String
     | Resolve String
       -- === UI ===
-    | TitleFocused
-    | TitleFieldChanged String
-    | TitleEdited
-    | TitleEditCanceled
     | ShortcutTrayToggle
-    | HistoryToggled Bool
-    | DocSettingsToggled Bool
-    | ExportPreviewToggled Bool
-    | ExportSelectionChanged ExportSelection
-    | ExportFormatChanged ExportFormat
       -- Misc UI
-    | ThemeChanged Theme
     | FullscreenRequested
-    | PrintRequested
     | FontsMsg Fonts.Msg
       -- === Ports ===
     | Pull
-    | Export
-    | Exported String (Result Http.Error Bytes)
     | LogErr String
 
 
@@ -487,37 +458,6 @@ update msg ({ workingTree } as model) =
             ( { model | session = Session.updateTime time model.session }, Cmd.none )
                 |> addToHistoryDo
 
-        CheckoutCommit commitSha ->
-            case model.headerMenu of
-                HistoryView historyState ->
-                    ( { model | headerMenu = HistoryView { historyState | currentView = commitSha } }
-                    , Cmd.none
-                    )
-                        |> checkoutCommit commitSha
-
-                _ ->
-                    ( model, Cmd.none )
-
-        Restore ->
-            ( { model | headerMenu = NoHeaderMenu }
-            , Cmd.none
-            )
-                |> localSaveDo
-                |> addToHistoryDo
-
-        CancelHistory ->
-            case model.headerMenu of
-                HistoryView historyState ->
-                    ( { model | headerMenu = NoHeaderMenu }
-                    , Cmd.none
-                    )
-                        |> checkoutCommit historyState.start
-
-                _ ->
-                    ( model
-                    , Cmd.none
-                    )
-
         SetSelection cid selection id ->
             let
                 newData =
@@ -546,35 +486,6 @@ update msg ({ workingTree } as model) =
                 |> addToHistory
 
         -- === UI ===
-        TitleFocused ->
-            case model.titleField of
-                Nothing ->
-                    ( model, send <| SelectAll "title-rename" )
-
-                Just _ ->
-                    ( model, Cmd.none )
-
-        TitleFieldChanged newTitle ->
-            ( { model | titleField = Just newTitle }, Cmd.none )
-
-        TitleEdited ->
-            case model.titleField of
-                Just editedTitle ->
-                    if String.trim editedTitle == "" then
-                        ( model, Cmd.batch [ send <| Alert "Title cannot be blank", Task.attempt (always NoOp) (Browser.Dom.focus "title-rename") ] )
-
-                    else if Just editedTitle /= Session.getDocName model.session model.docId then
-                        ( model, Cmd.batch [ send <| RenameDocument editedTitle, Task.attempt (always NoOp) (Browser.Dom.blur "title-rename") ] )
-
-                    else
-                        ( model, Cmd.none )
-
-                Nothing ->
-                    ( model, Cmd.none )
-
-        TitleEditCanceled ->
-            ( { model | titleField = Session.getDocName model.session model.docId }, Task.attempt (always NoOp) (Browser.Dom.blur "title-rename") )
-
         ShortcutTrayToggle ->
             let
                 newIsOpen =
@@ -582,58 +493,20 @@ update msg ({ workingTree } as model) =
             in
             ( { model
                 | session = Session.setShortcutTrayOpen newIsOpen model.session
-                , headerMenu =
+
+                {--TODO: , headerMenu =
                     if model.headerMenu == ExportPreview && newIsOpen then
                         NoHeaderMenu
 
                     else
                         model.headerMenu
+                --}
               }
             , send <| SaveUserSetting ( "shortcutTrayOpen", Enc.bool newIsOpen )
             )
 
-        HistoryToggled isOpen ->
-            model |> toggleHistory isOpen
-
-        DocSettingsToggled isOpen ->
-            ( { model
-                | headerMenu =
-                    if isOpen then
-                        Settings
-
-                    else
-                        NoHeaderMenu
-              }
-            , Cmd.none
-            )
-
-        ExportPreviewToggled previewEnabled ->
-            ( { model
-                | headerMenu =
-                    if previewEnabled then
-                        ExportPreview
-
-                    else
-                        NoHeaderMenu
-              }
-            , Cmd.none
-            )
-                |> activate vs.active True
-
-        ExportSelectionChanged expSel ->
-            ( { model | exportSettings = Tuple.mapFirst (always expSel) model.exportSettings }, Cmd.none )
-
-        ExportFormatChanged expFormat ->
-            ( { model | exportSettings = Tuple.mapSecond (always expFormat) model.exportSettings }, Cmd.none )
-
-        ThemeChanged newTheme ->
-            ( { model | theme = newTheme }, send <| SaveThemeSetting newTheme )
-
         FullscreenRequested ->
             ( model, send <| RequestFullscreen )
-
-        PrintRequested ->
-            ( model, send <| Print )
 
         FontsMsg fontsMsg ->
             let
@@ -655,35 +528,6 @@ update msg ({ workingTree } as model) =
         -- === Ports ===
         Pull ->
             ( model, send <| PullData )
-
-        Export ->
-            let
-                activeTree =
-                    getTree vs.active model.workingTree.tree
-                        |> Maybe.withDefault model.workingTree.tree
-            in
-            ( model
-            , Export.command
-                Exported
-                model.docId
-                (Session.getDocName model.session model.docId |> Maybe.withDefault "Untitled")
-                model.exportSettings
-                activeTree
-                model.workingTree.tree
-            )
-
-        Exported docName (Ok bytes) ->
-            let
-                mime =
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-
-                filename =
-                    docName ++ ".docx"
-            in
-            ( model, Download.bytes filename mime bytes )
-
-        Exported _ (Err _) ->
-            ( model, Cmd.none )
 
         LogErr _ ->
             ( model, Cmd.none )
@@ -728,32 +572,14 @@ incoming incomingMsg model =
         NotFound ->
             ( model, Cmd.none )
 
-        MetadataSynced json ->
-            case Json.decodeValue Metadata.decoder json of
-                Ok metadata ->
-                    if Metadata.getDocId metadata == model.docId then
-                        ( { model | titleField = Metadata.getDocName metadata }, Cmd.none )
+        MetadataSynced _ ->
+            ( model, Cmd.none )
 
-                    else
-                        ( model, Cmd.none )
-
-                Err _ ->
-                    ( model, Cmd.none )
-
-        MetadataSaved json ->
-            case Json.decodeValue Metadata.decoder json of
-                Ok metadata ->
-                    if Metadata.getDocId metadata == model.docId then
-                        ( { model | titleField = Metadata.getDocName metadata }, Cmd.none )
-
-                    else
-                        ( model, Cmd.none )
-
-                Err _ ->
-                    ( model, Cmd.none )
+        MetadataSaved _ ->
+            ( model, Cmd.none )
 
         MetadataSaveError ->
-            ( { model | titleField = Nothing }, Cmd.none )
+            ( model, Cmd.none )
 
         SavedLocally time_ ->
             ( { model
@@ -1076,14 +902,14 @@ incoming incomingMsg model =
                 "mod+c" ->
                     normalMode model (copy vs.active)
 
-                "mod+z" ->
+                {--TODO: "mod+z" ->
                     normalMode model (\( m, _ ) -> toggleHistory True m)
                         |> Tuple.mapSecond (\c -> Cmd.batch [ c, send <| HistorySlider -1 ])
 
                 "mod+shift+z" ->
                     normalMode model (\( m, _ ) -> toggleHistory True m)
                         |> Tuple.mapSecond (\c -> Cmd.batch [ c, send <| HistorySlider 1 ])
-
+                        --}
                 "mod+b" ->
                     case vs.viewMode of
                         Normal ->
@@ -1153,7 +979,7 @@ incoming incomingMsg model =
                     )
 
         WillPrint ->
-            ( { model | headerMenu = ExportPreview }, Cmd.none )
+            ( model, Cmd.none )
 
         -- === Misc ===
         RecvCollabState collabState ->
@@ -1459,12 +1285,13 @@ openCard id str ( model, prevCmd ) =
                 |> (not << List.isEmpty)
 
         isHistoryView =
-            case model.headerMenu of
+            {--TODO: case model.headerMenu of
                 HistoryView _ ->
                     True
 
                 _ ->
-                    False
+                    --}
+            False
     in
     if isHistoryView then
         ( model
@@ -2090,28 +1917,8 @@ checkoutCommit commitSha ( model, prevCmd ) =
             )
 
 
-toggleHistory : Bool -> Model -> ( Model, Cmd msg )
-toggleHistory isOpen model =
-    case ( isOpen, Data.head "heads/master" model.data ) of
-        ( True, Just refObj ) ->
-            ( { model | headerMenu = HistoryView { start = refObj.value, currentView = refObj.value } }, Cmd.none )
-
-        _ ->
-            ( { model | headerMenu = NoHeaderMenu }, Cmd.none )
-
-
 
 -- History
-
-
-type Direction
-    = Forward
-    | Backward
-
-
-type HistoryState
-    = Closed
-    | From String
 
 
 addToHistoryDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -2171,10 +1978,6 @@ dataReceived dataIn model =
 
                         _ ->
                             ( vs, activate "1" True )
-
-                newTheme =
-                    Json.decodeValue (Json.at [ "localStore" ] Theme.decoder) dataIn
-                        |> Result.withDefault Default
             in
             ( { model
                 | data = newModel
@@ -2183,7 +1986,6 @@ dataReceived dataIn model =
                 , viewState = newViewState
                 , lastLocalSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
                 , lastRemoteSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
-                , theme = newTheme
                 , startingWordcount = startingWordcount
               }
             , Cmd.none
@@ -2210,8 +2012,6 @@ type alias AppMsgs msg =
     , keyboard : String -> msg
     , tooltipRequested : String -> TooltipPosition -> TranslationId -> msg
     , tooltipClosed : msg
-    , toggleWordcount : Model -> msg
-    , toggleUpgradeModal : Bool -> msg
     }
 
 
@@ -2258,30 +2058,6 @@ viewLoaded ({ docMsg } as appMsg) model =
                     mobileBtnMsg shortcut =
                         appMsg.keyboard shortcut
 
-                    exportViewOk =
-                        lazy5 exportView
-                            { export = docMsg Export
-                            , printRequested = docMsg PrintRequested
-                            , tooltipRequested = appMsg.tooltipRequested
-                            , tooltipClosed = appMsg.tooltipClosed
-                            }
-                            (Session.getDocName model.session model.docId |> Maybe.withDefault "Untitled")
-                            model.exportSettings
-
-                    maybeExportView =
-                        case ( model.headerMenu, activeTree_, model.exportSettings ) of
-                            ( ExportPreview, Just activeTree, _ ) ->
-                                exportViewOk activeTree model.workingTree.tree
-
-                            ( ExportPreview, Nothing, ( ExportEverything, _ ) ) ->
-                                exportViewOk defaultTree model.workingTree.tree
-
-                            ( ExportPreview, Nothing, _ ) ->
-                                exportViewError "No card selected, cannot preview document"
-
-                            _ ->
-                                text ""
-
                     cardTitleReplacer ( id, inputString ) =
                         case String.lines inputString of
                             firstLine :: _ ->
@@ -2314,36 +2090,11 @@ viewLoaded ({ docMsg } as appMsg) model =
                                 []
                 in
                 [ lazy4 treeView (Session.language model.session) (Session.isMac model.session) model.viewState model.workingTree |> Html.map docMsg
-                , UI.viewHeader
-                    { noOp = docMsg NoOp
-                    , titleFocused = docMsg TitleFocused
-                    , titleFieldChanged = docMsg << TitleFieldChanged
-                    , titleEdited = docMsg TitleEdited
-                    , titleEditCanceled = docMsg TitleEditCanceled
-                    , tooltipRequested = appMsg.tooltipRequested
-                    , tooltipClosed = appMsg.tooltipClosed
-                    , toggledHistory = docMsg << HistoryToggled
-                    , checkoutCommit = docMsg << CheckoutCommit
-                    , restore = docMsg Restore
-                    , cancelHistory = docMsg CancelHistory
-                    , toggledDocSettings = docMsg <| DocSettingsToggled (not <| model.headerMenu == Settings)
-                    , wordCountClicked = appMsg.toggleWordcount model
-                    , themeChanged = docMsg << ThemeChanged
-                    , toggledExport = docMsg <| ExportPreviewToggled (not <| model.headerMenu == ExportPreview)
-                    , exportSelectionChanged = docMsg << ExportSelectionChanged
-                    , exportFormatChanged = docMsg << ExportFormatChanged
-                    , export = docMsg Export
-                    , printRequested = docMsg PrintRequested
-                    , toggledUpgradeModal = appMsg.toggleUpgradeModal
-                    }
-                    (Session.getDocName model.session model.docId)
-                    model
                 , if (not << List.isEmpty) cardTitles then
                     UI.viewBreadcrumbs Activate cardTitles |> Html.map docMsg
 
                   else
                     text ""
-                , maybeExportView
                 ]
                     ++ UI.viewShortcuts
                         { toggledShortcutTray = docMsg ShortcutTrayToggle

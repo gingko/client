@@ -84,24 +84,27 @@ viewHeader :
     }
     -> Maybe String
     ->
-        { m
-            | titleField : Maybe String
-            , data : Data.Model
-            , headerMenu : HeaderMenuState
+        { appModel
+            | headerMenu : HeaderMenuState
             , exportSettings : ( ExportSelection, ExportFormat )
+        }
+    ->
+        { docModel
+            | data : Data.Model
             , dirty : Bool
             , lastLocalSave : Maybe Time.Posix
             , lastRemoteSave : Maybe Time.Posix
             , session : Session
         }
+    -> Maybe String
     -> Html msg
-viewHeader msgs title_ model =
+viewHeader msgs title_ appModel docModel titleField_ =
     let
         language =
-            Session.language model.session
+            Session.language docModel.session
 
         currentTime =
-            Session.currentTime model.session
+            Session.currentTime docModel.session
 
         handleKeys =
             on "keyup"
@@ -123,7 +126,7 @@ viewHeader msgs title_ model =
         titleArea =
             let
                 titleString =
-                    model.titleField |> Maybe.withDefault "Untitled"
+                    titleField_ |> Maybe.withDefault "Untitled"
             in
             span [ id "title" ]
                 [ div [ class "title-grow-wrap" ]
@@ -148,11 +151,11 @@ viewHeader msgs title_ model =
                         ]
                         []
                     ]
-                , viewSaveIndicator language model (Session.currentTime model.session)
+                , viewSaveIndicator language docModel (Session.currentTime docModel.session)
                 ]
 
         isHistoryView =
-            case model.headerMenu of
+            case appModel.headerMenu of
                 HistoryView _ ->
                     True
 
@@ -160,7 +163,7 @@ viewHeader msgs title_ model =
                     False
 
         isSelected expSel =
-            (model.exportSettings |> Tuple.first) == expSel
+            (appModel.exportSettings |> Tuple.first) == expSel
 
         exportSelectionBtnAttributes expSel expSelString tooltipText =
             [ id <| "export-select-" ++ expSelString
@@ -171,7 +174,7 @@ viewHeader msgs title_ model =
             ]
 
         isFormat expFormat =
-            (model.exportSettings |> Tuple.second) == expFormat
+            (appModel.exportSettings |> Tuple.second) == expFormat
 
         exportFormatBtnAttributes expFormat expFormatString =
             [ id <| "export-format-" ++ expFormatString
@@ -190,7 +193,7 @@ viewHeader msgs title_ model =
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.historyOutlined [] ]
-        , case model.headerMenu of
+        , case appModel.headerMenu of
             HistoryView historyState ->
                 viewHistory language
                     { noOp = msgs.noOp
@@ -201,7 +204,7 @@ viewHeader msgs title_ model =
                     , tooltipClosed = msgs.tooltipClosed
                     }
                     currentTime
-                    model.data
+                    docModel.data
                     historyState
 
             _ ->
@@ -209,13 +212,13 @@ viewHeader msgs title_ model =
         , div
             [ id "doc-settings-icon"
             , class "header-button"
-            , classList [ ( "open", model.headerMenu == Settings ) ]
+            , classList [ ( "open", appModel.headerMenu == Settings ) ]
             , onClick msgs.toggledDocSettings
-            , attributeIf (model.headerMenu /= Settings) <| onMouseEnter <| msgs.tooltipRequested "doc-settings-icon" BelowLeftTooltip DocumentSettings
+            , attributeIf (appModel.headerMenu /= Settings) <| onMouseEnter <| msgs.tooltipRequested "doc-settings-icon" BelowLeftTooltip DocumentSettings
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.controlOutlined [] ]
-        , viewIf (model.headerMenu == Settings) <|
+        , viewIf (appModel.headerMenu == Settings) <|
             div [ id "doc-settings-menu", class "header-menu" ]
                 [ div [ id "wordcount-menu-item", onClick msgs.wordCountClicked ] [ text language WordCount ]
                 , h4 [] [ text language DocumentTheme ]
@@ -226,21 +229,21 @@ viewHeader msgs title_ model =
                 , div [ onClick <| msgs.themeChanged Green ] [ text language ThemeGreen ]
                 , div [ onClick <| msgs.themeChanged Turquoise ] [ text language ThemeTurquoise ]
                 ]
-        , viewIf (model.headerMenu == Settings) <| div [ id "doc-settings-menu-exit-left", onMouseEnter msgs.toggledDocSettings ] []
-        , viewIf (model.headerMenu == Settings) <| div [ id "doc-settings-menu-exit-bottom", onMouseEnter msgs.toggledDocSettings ] []
+        , viewIf (appModel.headerMenu == Settings) <| div [ id "doc-settings-menu-exit-left", onMouseEnter msgs.toggledDocSettings ] []
+        , viewIf (appModel.headerMenu == Settings) <| div [ id "doc-settings-menu-exit-bottom", onMouseEnter msgs.toggledDocSettings ] []
         , div
             [ id "export-icon"
             , class "header-button"
-            , classList [ ( "open", model.headerMenu == ExportPreview ) ]
+            , classList [ ( "open", appModel.headerMenu == ExportPreview ) ]
             , onClick msgs.toggledExport
-            , attributeIf (model.headerMenu /= ExportPreview) <| onMouseEnter <| msgs.tooltipRequested "export-icon" BelowLeftTooltip ExportOrPrint
+            , attributeIf (appModel.headerMenu /= ExportPreview) <| onMouseEnter <| msgs.tooltipRequested "export-icon" BelowLeftTooltip ExportOrPrint
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.fileDoneOutlined [] ]
         , viewUpgradeButton
             msgs.toggledUpgradeModal
-            model.session
-        , viewIf (model.headerMenu == ExportPreview) <|
+            docModel.session
+        , viewIf (appModel.headerMenu == ExportPreview) <|
             div [ id "export-menu" ]
                 [ div [ id "export-selection", class "toggle-button" ]
                     [ div (exportSelectionBtnAttributes ExportEverything "all" ExportSettingEverythingDesc) [ text language ExportSettingEverything ]

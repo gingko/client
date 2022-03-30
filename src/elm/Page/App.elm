@@ -3,6 +3,7 @@ module Page.App exposing (Model, Msg, getTitle, init, isDirty, subscriptions, to
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
 import Browser.Navigation as Nav
+import Bytes exposing (Bytes)
 import Coders exposing (sortByEncoder)
 import Doc.ContactForm as ContactForm
 import Doc.Data as Data
@@ -10,14 +11,18 @@ import Doc.HelpScreen as HelpScreen
 import Doc.List as DocList exposing (Model(..))
 import Doc.Metadata as Metadata
 import Doc.Switcher
+import Doc.TreeStructure exposing (defaultTree)
+import Doc.TreeUtils exposing (getTree)
 import Doc.UI as UI
 import Doc.VideoViewer as VideoViewer
 import File exposing (File)
+import File.Download as Download
 import File.Select as Select
 import Html exposing (Html, div, strong)
 import Html.Attributes exposing (class, classList, height, id, style, width)
 import Html.Events exposing (onClick)
 import Html.Extra exposing (viewIf)
+import Html.Lazy exposing (lazy5)
 import Http
 import Import.Bulk.UI as ImportModal
 import Import.Incoming
@@ -28,8 +33,9 @@ import Json.Decode as Json
 import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
 import Page.Doc exposing (Msg(..))
+import Page.Doc.Export as Export exposing (ExportFormat(..), ExportSelection(..), exportView, exportViewError)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
-import Page.Doc.Theme exposing (applyTheme)
+import Page.Doc.Theme exposing (Theme(..), applyTheme)
 import Page.Empty
 import RandomId
 import Route
@@ -51,16 +57,36 @@ type alias Model =
     , documentState : DocumentState
     , sidebarState : SidebarState
     , sidebarMenuState : SidebarMenuState
+    , headerMenu : HeaderMenuState
+    , exportSettings : ( ExportSelection, ExportFormat )
     , modalState : ModalState
     , fileSearchField : String -- TODO: not needed if switcher isn't open
     , tooltip : Maybe ( Element, TooltipPosition, TranslationId )
+    , theme : Theme
     , navKey : Nav.Key
     }
 
 
 type DocumentState
     = Empty Session
-    | Doc Page.Doc.Model
+    | Doc DocState
+
+
+type alias DocState =
+    { docId : String
+    , docModel : Page.Doc.Model
+    , titleField : Maybe String
+    }
+
+
+toDocModel : Model -> Maybe Page.Doc.Model
+toDocModel { documentState } =
+    case documentState of
+        Doc { docModel } ->
+            Just docModel
+
+        _ ->
+            Nothing
 
 
 type alias DbData =
@@ -81,13 +107,13 @@ type ModalState
     | UpgradeModal
 
 
-defaultModel : Nav.Key -> Session -> Maybe Page.Doc.Model -> Model
+defaultModel : Nav.Key -> Session -> Maybe ( String, Page.Doc.Model ) -> Model
 defaultModel navKey session docModel_ =
     { loading = True
     , documentState =
         case docModel_ of
-            Just docModel ->
-                Doc docModel
+            Just ( docId, docModel ) ->
+                Doc { docId = docId, docModel = docModel, titleField = Session.getDocName session docId }
 
             Nothing ->
                 Empty session
@@ -98,9 +124,12 @@ defaultModel navKey session docModel_ =
         else
             SidebarClosed
     , sidebarMenuState = NoSidebarMenu
+    , headerMenu = NoHeaderMenu
+    , exportSettings = ( ExportEverything, DOCX )
     , modalState = NoModal
     , fileSearchField = ""
     , tooltip = Nothing
+    , theme = Default
     , navKey = navKey
     }
 
@@ -110,7 +139,7 @@ init navKey session dbData_ =
     case dbData_ of
         Just dbData ->
             if dbData.isNew then
-                ( defaultModel navKey session (Just (Page.Doc.init True session dbData.dbName))
+                ( defaultModel navKey session (Just ( dbData.dbName, Page.Doc.init True session dbData.dbName ))
                 , Cmd.batch
                     [ send <| InitDocument dbData.dbName
                     , Task.attempt (always NoOp) (Browser.Dom.focus "card-edit-1")
@@ -118,7 +147,7 @@ init navKey session dbData_ =
                 )
 
             else
-                ( defaultModel navKey session (Just (Page.Doc.init False session dbData.dbName))
+                ( defaultModel navKey session (Just ( dbData.dbName, Page.Doc.init False session dbData.dbName ))
                 , send <| LoadDocument dbData.dbName
                 )
 
@@ -134,7 +163,7 @@ init navKey session dbData_ =
 isDirty : Model -> Bool
 isDirty model =
     case model.documentState of
-        Doc docModel ->
+        Doc { docModel } ->
             docModel.dirty
 
         Empty _ ->
@@ -144,8 +173,8 @@ isDirty model =
 getTitle : Model -> Maybe String
 getTitle model =
     case model.documentState of
-        Doc docModel ->
-            Session.getDocName docModel.session docModel.docId
+        Doc { docId, docModel } ->
+            Session.getDocName docModel.session docId
 
         Empty _ ->
             Nothing
@@ -154,7 +183,7 @@ getTitle model =
 toSession : Model -> Session
 toSession { documentState } =
     case documentState of
-        Doc docModel ->
+        Doc { docModel } ->
             Page.Doc.toUser docModel
 
         Empty session ->
@@ -164,8 +193,8 @@ toSession { documentState } =
 updateSession : Session -> Model -> Model
 updateSession newSession ({ documentState } as model) =
     case documentState of
-        Doc docModel ->
-            { model | documentState = Doc { docModel | session = newSession } }
+        Doc ({ docModel } as docState) ->
+            { model | documentState = Doc { docState | docModel = { docModel | session = newSession } } }
 
         Empty _ ->
             { model | documentState = Empty newSession }
@@ -194,6 +223,26 @@ type Msg
     | ReceivedDocuments DocList.Model
     | SwitcherOpened
     | SwitcherClosed
+      -- HEADER: Title
+    | TitleFocused
+    | TitleFieldChanged String
+    | TitleEdited
+    | TitleEditCanceled
+      -- HEADER: Settings
+    | DocSettingsToggled Bool
+    | ThemeChanged Theme
+      -- HEADER: History
+    | HistoryToggled Bool
+    | CheckoutCommit String
+    | Restore
+    | CancelHistory
+      -- HEADER: Export & Print
+    | ExportPreviewToggled Bool
+    | ExportSelectionChanged ExportSelection
+    | ExportFormatChanged ExportFormat
+    | Export
+    | Exported String (Result Http.Error Bytes)
+    | PrintRequested
       -- HELP Modal
     | ToggledHelpMenu Bool
     | ClickedShowVideos
@@ -232,7 +281,7 @@ type Msg
     | CloseEmailConfirmBanner
     | ToggledUpgradeModal Bool
     | UpgradeModalMsg Upgrade.Msg
-    | WordcountModalOpened Page.Doc.Model
+    | WordcountModalOpened
     | FileSearchChanged String
     | TooltipRequested String TooltipPosition TranslationId
     | TooltipReceived Element TooltipPosition TranslationId
@@ -254,7 +303,7 @@ update msg model =
 
         GotDocMsg docMsg ->
             case model.documentState of
-                Doc docModel ->
+                Doc ({ docModel } as docState) ->
                     let
                         ( newDocModel, newCmd ) =
                             Page.Doc.update docMsg docModel
@@ -263,19 +312,10 @@ update msg model =
                     case docMsg of
                         -- TODO: Removing tooltips is the only reason Doc.Msgs is fully exposed
                         ShortcutTrayToggle ->
-                            ( { model | documentState = Doc newDocModel, tooltip = Nothing }, newCmd )
-
-                        DocSettingsToggled _ ->
-                            ( { model | documentState = Doc newDocModel, tooltip = Nothing }, Cmd.none )
-
-                        HistoryToggled _ ->
-                            ( { model | documentState = Doc newDocModel, tooltip = Nothing }, Cmd.none )
-
-                        ExportPreviewToggled _ ->
-                            ( { model | documentState = Doc newDocModel, tooltip = Nothing }, Cmd.none )
+                            ( { model | documentState = Doc { docState | docModel = newDocModel }, tooltip = Nothing }, newCmd )
 
                         _ ->
-                            ( { model | documentState = Doc newDocModel }, newCmd )
+                            ( { model | documentState = Doc { docState | docModel = newDocModel } }, newCmd )
 
                 Empty _ ->
                     ( model, Cmd.none )
@@ -299,17 +339,17 @@ update msg model =
                 doNothing =
                     ( model, Cmd.none )
 
-                passThroughTo docModel =
-                    Page.Doc.incoming incomingMsg docModel
+                passThroughTo docState =
+                    Page.Doc.incoming incomingMsg docState.docModel
                         |> (\( d, c ) ->
-                                ( { model | documentState = Doc d }, Cmd.map GotDocMsg c )
+                                ( { model | documentState = Doc { docState | docModel = d } }, Cmd.map GotDocMsg c )
                            )
             in
             case ( incomingMsg, model.documentState ) of
                 ( DataReceived _, Empty _ ) ->
                     ( model, Cmd.none )
 
-                ( Keyboard shortcut, Doc docModel ) ->
+                ( Keyboard shortcut, Doc ({ docModel } as docState) ) ->
                     case model.modalState of
                         FileSwitcher switcherModel ->
                             case shortcut of
@@ -344,7 +384,7 @@ update msg model =
                                 "mod+o" ->
                                     normalMode docModel
                                         (model |> openSwitcher docModel)
-                                        (passThroughTo docModel)
+                                        (passThroughTo docState)
 
                                 "esc" ->
                                     ( { model | modalState = NoModal }, Cmd.none )
@@ -360,7 +400,7 @@ update msg model =
                                 "mod+o" ->
                                     normalMode docModel
                                         (model |> openSwitcher docModel)
-                                        (passThroughTo docModel)
+                                        (passThroughTo docState)
 
                                 "esc" ->
                                     ( { model | modalState = NoModal }, Cmd.none )
@@ -373,20 +413,20 @@ update msg model =
                                 "w" ->
                                     normalMode docModel
                                         ( { model | modalState = Wordcount docModel }, Cmd.none )
-                                        (passThroughTo docModel)
+                                        (passThroughTo docState)
 
                                 "?" ->
                                     normalMode docModel
                                         ( { model | modalState = HelpScreen }, Cmd.none )
-                                        (passThroughTo docModel)
+                                        (passThroughTo docState)
 
                                 "mod+o" ->
                                     normalMode docModel
                                         (model |> openSwitcher docModel)
-                                        (passThroughTo docModel)
+                                        (passThroughTo docState)
 
                                 _ ->
-                                    passThroughTo docModel
+                                    passThroughTo docState
 
                         _ ->
                             case shortcut of
@@ -396,10 +436,10 @@ update msg model =
                                 "mod+o" ->
                                     normalMode docModel
                                         (model |> openSwitcher docModel)
-                                        (passThroughTo docModel)
+                                        (passThroughTo docState)
 
                                 _ ->
-                                    passThroughTo docModel
+                                    passThroughTo docState
 
                 ( TestTextImportLoaded files, _ ) ->
                     case model.modalState of
@@ -411,8 +451,11 @@ update msg model =
                         _ ->
                             doNothing
 
-                ( _, Doc docModel ) ->
-                    passThroughTo docModel
+                ( WillPrint, Doc _ ) ->
+                    ( { model | headerMenu = ExportPreview }, Cmd.none )
+
+                ( _, Doc docState ) ->
+                    passThroughTo docState
 
                 _ ->
                     doNothing
@@ -476,7 +519,7 @@ update msg model =
 
                 ( routeCmd, isLoading ) =
                     case ( model.documentState, Session.documents newSession ) of
-                        ( Doc docModel, Success docList ) ->
+                        ( Doc { docModel }, Success docList ) ->
                             ( docList
                                 |> List.map (\d -> Metadata.getDocId d == docModel.docId)
                                 |> List.any identity
@@ -507,7 +550,7 @@ update msg model =
 
         SwitcherOpened ->
             case model.documentState of
-                Doc docModel ->
+                Doc { docModel } ->
                     openSwitcher docModel model
 
                 Empty _ ->
@@ -515,6 +558,166 @@ update msg model =
 
         SwitcherClosed ->
             closeSwitcher model
+
+        -- Header
+        TitleFocused ->
+            case model.documentState of
+                Doc { titleField } ->
+                    case titleField of
+                        Nothing ->
+                            ( model, send <| SelectAll "title-rename" )
+
+                        Just _ ->
+                            ( model, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        TitleFieldChanged newTitle ->
+            case model.documentState of
+                Doc ({ titleField } as docState) ->
+                    ( { model | documentState = Doc { docState | titleField = Just newTitle } }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        TitleEdited ->
+            case model.documentState of
+                Doc { titleField, docModel, docId } ->
+                    case titleField of
+                        Just editedTitle ->
+                            if String.trim editedTitle == "" then
+                                ( model, Cmd.batch [ send <| Alert "Title cannot be blank", Task.attempt (always NoOp) (Browser.Dom.focus "title-rename") ] )
+
+                            else if Just editedTitle /= Session.getDocName docModel.session docId then
+                                ( model, Cmd.batch [ send <| RenameDocument editedTitle, Task.attempt (always NoOp) (Browser.Dom.blur "title-rename") ] )
+
+                            else
+                                ( model, Cmd.none )
+
+                        Nothing ->
+                            ( model, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        TitleEditCanceled ->
+            case model.documentState of
+                Doc ({ docModel, docId } as docState) ->
+                    ( { model | documentState = Doc { docState | titleField = Session.getDocName docModel.session docId } }
+                    , Task.attempt (always NoOp) (Browser.Dom.blur "title-rename")
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        HistoryToggled isOpen ->
+            model |> toggleHistory isOpen
+
+        CheckoutCommit commitSha ->
+            case model.headerMenu of
+                HistoryView historyState ->
+                    ( { model | headerMenu = HistoryView { historyState | currentView = commitSha } }
+                    , Cmd.none
+                    )
+
+                -- TODO: |> checkoutCommit commitSha
+                _ ->
+                    ( model, Cmd.none )
+
+        Restore ->
+            ( { model | headerMenu = NoHeaderMenu }
+            , Cmd.none
+            )
+
+        -- TODO: |> localSaveDo
+        -- TODO: |> addToHistoryDo
+        CancelHistory ->
+            case model.headerMenu of
+                HistoryView historyState ->
+                    ( { model | headerMenu = NoHeaderMenu }
+                    , Cmd.none
+                    )
+
+                -- TODO: |> checkoutCommit historyState.start
+                _ ->
+                    ( model
+                    , Cmd.none
+                    )
+
+        Export ->
+            case model.documentState of
+                Doc { docModel } ->
+                    let
+                        vs =
+                            docModel.viewState
+
+                        activeTree =
+                            getTree vs.active docModel.workingTree.tree
+                                |> Maybe.withDefault docModel.workingTree.tree
+                    in
+                    ( model
+                    , Export.command
+                        Exported
+                        docModel.docId
+                        (Session.getDocName docModel.session docModel.docId |> Maybe.withDefault "Untitled")
+                        model.exportSettings
+                        activeTree
+                        docModel.workingTree.tree
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        Exported docName (Ok bytes) ->
+            let
+                mime =
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
+                filename =
+                    docName ++ ".docx"
+            in
+            ( model, Download.bytes filename mime bytes )
+
+        Exported _ (Err _) ->
+            ( model, Cmd.none )
+
+        PrintRequested ->
+            ( model, send <| Print )
+
+        DocSettingsToggled isOpen ->
+            ( { model
+                | headerMenu =
+                    if isOpen then
+                        Settings
+
+                    else
+                        NoHeaderMenu
+              }
+            , Cmd.none
+            )
+
+        ThemeChanged newTheme ->
+            ( { model | theme = newTheme }, send <| SaveThemeSetting newTheme )
+
+        ExportPreviewToggled previewEnabled ->
+            ( { model
+                | headerMenu =
+                    if previewEnabled then
+                        ExportPreview
+
+                    else
+                        NoHeaderMenu
+              }
+            , Cmd.none
+            )
+
+        -- TODO: |> activate vs.active True
+        ExportSelectionChanged expSel ->
+            ( { model | exportSettings = Tuple.mapFirst (always expSel) model.exportSettings }, Cmd.none )
+
+        ExportFormatChanged expFormat ->
+            ( { model | exportSettings = Tuple.mapSecond (always expFormat) model.exportSettings }, Cmd.none )
 
         -- HELP Modal
         ToggledHelpMenu isOpen ->
@@ -838,13 +1041,18 @@ update msg model =
                     in
                     ( model |> updateSession newSession, maybeFlash )
 
-        WordcountModalOpened docModel ->
-            ( { model
-                | documentState = Doc { docModel | headerMenu = NoHeaderMenu }
-                , modalState = Wordcount docModel
-              }
-            , Cmd.none
-            )
+        WordcountModalOpened ->
+            case model.documentState of
+                Doc { docModel } ->
+                    ( { model
+                        | modalState = Wordcount docModel
+                        , headerMenu = NoHeaderMenu
+                      }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
         FileSearchChanged term ->
             let
@@ -934,6 +1142,16 @@ closeSwitcher model =
     ( { model | modalState = NoModal }, Cmd.none )
 
 
+toggleHistory : Bool -> Model -> ( Model, Cmd msg )
+toggleHistory isOpen model =
+    case ( isOpen, model |> toDocModel |> Maybe.andThen (\dm -> Data.head "heads/master" dm.data) ) of
+        ( True, Just refObj ) ->
+            ( { model | headerMenu = HistoryView { start = refObj.value, currentView = refObj.value } }, Cmd.none )
+
+        _ ->
+            ( { model | headerMenu = NoHeaderMenu }, Cmd.none )
+
+
 
 -- Translation Helper Function
 
@@ -1000,20 +1218,72 @@ view ({ documentState } as model) =
             }
     in
     case documentState of
-        Doc doc ->
-            div [ id "app-root", classList [ ( "loading", model.loading ) ], applyTheme doc.theme ]
+        Doc { docModel, titleField, docId } ->
+            let
+                activeTree_ =
+                    getTree docModel.viewState.active docModel.workingTree.tree
+
+                exportViewOk =
+                    lazy5 exportView
+                        { export = Export
+                        , printRequested = PrintRequested
+                        , tooltipRequested = TooltipRequested
+                        , tooltipClosed = TooltipClosed
+                        }
+                        (Session.getDocName docModel.session docId |> Maybe.withDefault "Untitled")
+                        model.exportSettings
+
+                maybeExportView =
+                    case ( model.headerMenu, activeTree_, model.exportSettings ) of
+                        ( ExportPreview, Just activeTree, _ ) ->
+                            exportViewOk activeTree docModel.workingTree.tree
+
+                        ( ExportPreview, Nothing, ( ExportEverything, _ ) ) ->
+                            exportViewOk defaultTree docModel.workingTree.tree
+
+                        ( ExportPreview, Nothing, _ ) ->
+                            exportViewError "No card selected, cannot preview document"
+
+                        _ ->
+                            textNoTr ""
+            in
+            div [ id "app-root", classList [ ( "loading", model.loading ) ], applyTheme model.theme ]
                 (Page.Doc.view
                     { docMsg = GotDocMsg
                     , keyboard = \s -> Incoming (Keyboard s)
                     , tooltipRequested = TooltipRequested
                     , tooltipClosed = TooltipClosed
-                    , toggleWordcount = WordcountModalOpened
-                    , toggleUpgradeModal = ToggledUpgradeModal
                     }
-                    doc
-                    ++ [ UI.viewSidebar session
+                    docModel
+                    ++ [ UI.viewHeader
+                            { noOp = NoOp
+                            , titleFocused = TitleFocused
+                            , titleFieldChanged = TitleFieldChanged
+                            , titleEdited = TitleEdited
+                            , titleEditCanceled = TitleEditCanceled
+                            , tooltipRequested = TooltipRequested
+                            , tooltipClosed = TooltipClosed
+                            , toggledHistory = HistoryToggled
+                            , checkoutCommit = CheckoutCommit
+                            , restore = Restore
+                            , cancelHistory = CancelHistory
+                            , toggledDocSettings = DocSettingsToggled (not <| model.headerMenu == Settings)
+                            , wordCountClicked = WordcountModalOpened
+                            , themeChanged = ThemeChanged
+                            , toggledExport = ExportPreviewToggled (not <| model.headerMenu == ExportPreview)
+                            , exportSelectionChanged = ExportSelectionChanged
+                            , exportFormatChanged = ExportFormatChanged
+                            , export = Export
+                            , printRequested = PrintRequested
+                            , toggledUpgradeModal = ToggledUpgradeModal
+                            }
+                            (Session.getDocName docModel.session docId)
+                            model
+                            docModel
+                            titleField
+                       , UI.viewSidebar session
                             sidebarMsgs
-                            doc.docId
+                            docId
                             (Session.sortBy session)
                             model.fileSearchField
                             (Session.documents session)
@@ -1164,8 +1434,8 @@ subscriptions model =
                         ImportBulkCompleted
             )
         , case model.documentState of
-            Doc doc ->
-                Page.Doc.subscriptions doc |> Sub.map GotDocMsg
+            Doc { docModel } ->
+                Page.Doc.subscriptions docModel |> Sub.map GotDocMsg
 
             _ ->
                 Sub.none
