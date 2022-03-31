@@ -1324,6 +1324,7 @@ view ({ documentState } as model) =
                             model
                             docModel
                             titleField
+                       , maybeExportView
                        , UI.viewSidebar session
                             sidebarMsgs
                             docId
