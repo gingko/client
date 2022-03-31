@@ -35,7 +35,9 @@ describe('Random seed initialization', () => {
     cy.url().should('contain', this.treeIds[1] )
     cy.get('#title').contains('Another doc, with title')
 
-    cy.get('#sidebar-document-list-wrap').wait(250).contains('Untitled').click()
+    cy.wait(250)
+
+    cy.get('#sidebar-document-list-wrap').contains('Untitled').click()
     cy.url().should('contain', this.treeIds[0] )
 
     cy.contains('mod')
