@@ -32,7 +32,7 @@ import Import.Text as ImportText
 import Json.Decode as Json
 import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
-import Page.Doc exposing (Msg(..))
+import Page.Doc exposing (Msg(..), checkoutCommit)
 import Page.Doc.Export as Export exposing (ExportFormat(..), ExportSelection(..), exportView, exportViewError)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Doc.Theme exposing (Theme(..), applyTheme)
@@ -425,6 +425,16 @@ update msg model =
                                         (model |> openSwitcher docModel)
                                         (passThroughTo docState)
 
+                                "mod+z" ->
+                                    normalMode docModel
+                                        (toggleHistory True -1 model)
+                                        (passThroughTo docState)
+
+                                "mod+shift+z" ->
+                                    normalMode docModel
+                                        (toggleHistory True 1 model)
+                                        (passThroughTo docState)
+
                                 _ ->
                                     passThroughTo docState
 
@@ -612,16 +622,22 @@ update msg model =
                     ( model, Cmd.none )
 
         HistoryToggled isOpen ->
-            model |> toggleHistory isOpen
+            model |> toggleHistory isOpen 0
 
         CheckoutCommit commitSha ->
-            case model.headerMenu of
-                HistoryView historyState ->
-                    ( { model | headerMenu = HistoryView { historyState | currentView = commitSha } }
-                    , Cmd.none
+            case ( model.headerMenu, model.documentState ) of
+                ( HistoryView historyState, Doc docState ) ->
+                    let
+                        ( newDocModel, docCmd ) =
+                            checkoutCommit commitSha docState.docModel
+                    in
+                    ( { model
+                        | documentState = Doc { docState | docModel = newDocModel }
+                        , headerMenu = HistoryView { historyState | currentView = commitSha }
+                      }
+                    , Cmd.map GotDocMsg docCmd
                     )
 
-                -- TODO: |> checkoutCommit commitSha
                 _ ->
                     ( model, Cmd.none )
 
@@ -1142,11 +1158,11 @@ closeSwitcher model =
     ( { model | modalState = NoModal }, Cmd.none )
 
 
-toggleHistory : Bool -> Model -> ( Model, Cmd msg )
-toggleHistory isOpen model =
+toggleHistory : Bool -> Int -> Model -> ( Model, Cmd msg )
+toggleHistory isOpen delta model =
     case ( isOpen, model |> toDocModel |> Maybe.andThen (\dm -> Data.head "heads/master" dm.data) ) of
         ( True, Just refObj ) ->
-            ( { model | headerMenu = HistoryView { start = refObj.value, currentView = refObj.value } }, Cmd.none )
+            ( { model | headerMenu = HistoryView { start = refObj.value, currentView = refObj.value } }, send <| HistorySlider delta )
 
         _ ->
             ( { model | headerMenu = NoHeaderMenu }, Cmd.none )

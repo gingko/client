@@ -1,4 +1,4 @@
-module Page.Doc exposing (Model, Msg(..), incoming, init, subscriptions, toUser, update, view)
+module Page.Doc exposing (Model, Msg(..), checkoutCommit, incoming, init, subscriptions, toUser, update, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -902,14 +902,6 @@ incoming incomingMsg model =
                 "mod+c" ->
                     normalMode model (copy vs.active)
 
-                {--TODO: "mod+z" ->
-                    normalMode model (\( m, _ ) -> toggleHistory True m)
-                        |> Tuple.mapSecond (\c -> Cmd.batch [ c, send <| HistorySlider -1 ])
-
-                "mod+shift+z" ->
-                    normalMode model (\( m, _ ) -> toggleHistory True m)
-                        |> Tuple.mapSecond (\c -> Cmd.batch [ c, send <| HistorySlider 1 ])
-                        --}
                 "mod+b" ->
                     case vs.viewMode of
                         Normal ->
@@ -1896,8 +1888,8 @@ localSave ( model, prevCmd ) =
 -- === History ===
 
 
-checkoutCommit : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-checkoutCommit commitSha ( model, prevCmd ) =
+checkoutCommit : String -> Model -> ( Model, Cmd Msg )
+checkoutCommit commitSha model =
     let
         newTree_ =
             Data.checkout commitSha model.data
@@ -1913,7 +1905,7 @@ checkoutCommit commitSha ( model, prevCmd ) =
 
         Nothing ->
             ( model
-            , prevCmd
+            , Cmd.none
             )
 
 
