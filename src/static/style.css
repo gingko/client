@@ -1984,7 +1984,7 @@ span.trial-dark {
   grid-template-columns: auto minmax(min(100vw,80ch), 80ch) auto;
   grid-template-areas: ". main .";
   background: var(--edit-bg, url('./handmadepaper.png'));
-  z-index: 1;
+  z-index: 4;
 }
 
 #fullscreen-main {
