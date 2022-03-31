@@ -113,7 +113,7 @@ defaultModel navKey session docModel_ =
     , documentState =
         case docModel_ of
             Just ( docId, docModel ) ->
-                Doc { docId = docId, docModel = docModel, titleField = Session.getDocName session docId }
+                Doc { docId = docId, docModel = docModel, titleField = Session.getDocName session docId |> Debug.log "titleField set at App.defaultModel" }
 
             Nothing ->
                 Empty session
@@ -147,7 +147,7 @@ init navKey session dbData_ =
                 )
 
             else
-                ( defaultModel navKey session (Just ( dbData.dbName, Page.Doc.init False session dbData.dbName ))
+                ( defaultModel navKey (session |> Debug.log "init session") (Just ( dbData.dbName, Page.Doc.init False session dbData.dbName ))
                 , send <| LoadDocument dbData.dbName
                 )
 
@@ -463,6 +463,33 @@ update msg model =
 
                 ( WillPrint, Doc _ ) ->
                     ( { model | headerMenu = ExportPreview }, Cmd.none )
+
+                ( MetadataSaved json, Doc docState ) ->
+                    case Json.decodeValue Metadata.decoder json of
+                        Ok metadata ->
+                            if Metadata.getDocId metadata == docState.docId then
+                                ( { model | documentState = Doc { docState | titleField = Metadata.getDocName metadata } }, Cmd.none )
+
+                            else
+                                ( model, Cmd.none )
+
+                        Err _ ->
+                            ( model, Cmd.none )
+
+                ( MetadataSynced json, Doc docState ) ->
+                    case Json.decodeValue Metadata.decoder json of
+                        Ok metadata ->
+                            if Metadata.getDocId metadata == docState.docId then
+                                ( { model | documentState = Doc { docState | titleField = Metadata.getDocName metadata } }, Cmd.none )
+
+                            else
+                                ( model, Cmd.none )
+
+                        Err _ ->
+                            ( model, Cmd.none )
+
+                ( MetadataSaveError, Doc docState ) ->
+                    ( { model | documentState = Doc { docState | titleField = Nothing } }, Cmd.none )
 
                 ( _, Doc docState ) ->
                     passThroughTo docState
@@ -1293,7 +1320,7 @@ view ({ documentState } as model) =
                             , printRequested = PrintRequested
                             , toggledUpgradeModal = ToggledUpgradeModal
                             }
-                            (Session.getDocName docModel.session docId)
+                            (Session.getDocName session docId)
                             model
                             docModel
                             titleField
