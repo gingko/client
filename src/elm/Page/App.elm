@@ -32,7 +32,7 @@ import Import.Text as ImportText
 import Json.Decode as Json
 import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
-import Page.Doc exposing (Msg(..), checkoutCommit)
+import Page.Doc exposing (Msg(..), ParentMsg(..), checkoutCommit)
 import Page.Doc.Export as Export exposing (ExportFormat(..), ExportSelection(..), exportView, exportViewError)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Doc.Theme exposing (Theme(..), applyTheme)
@@ -305,16 +305,19 @@ update msg model =
             case model.documentState of
                 Doc ({ docModel } as docState) ->
                     let
-                        ( newDocModel, newCmd ) =
+                        ( newDocModel, newCmd, parentMsg ) =
                             Page.Doc.update docMsg docModel
-                                |> Tuple.mapSecond (Cmd.map GotDocMsg)
+                                |> (\( m, c, p ) -> ( m, Cmd.map GotDocMsg c, p ))
                     in
-                    case docMsg of
-                        -- TODO: Removing tooltips is the only reason Doc.Msgs is fully exposed
-                        ShortcutTrayToggle ->
+                    case parentMsg of
+                        CloseTooltip ->
                             ( { model | documentState = Doc { docState | docModel = newDocModel }, tooltip = Nothing }, newCmd )
 
-                        _ ->
+                        CommitDo commitTime ->
+                            ( { model | documentState = Doc { docState | docModel = newDocModel } }, newCmd )
+                                |> addToHistoryDo
+
+                        NoParentMsg ->
                             ( { model | documentState = Doc { docState | docModel = newDocModel } }, newCmd )
 
                 Empty _ ->
@@ -1145,6 +1148,37 @@ update msg model =
 
                 _ ->
                     ( { model | modalState = NoModal }, Cmd.none )
+
+
+addToHistoryDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+addToHistoryDo ( model, prevCmd ) =
+    case model.documentState of
+        Doc { docModel, docId } ->
+            let
+                author =
+                    docModel.session |> Session.name |> Maybe.withDefault "unknown" |> (\a -> "<" ++ a ++ ">")
+
+                metadata =
+                    Session.getMetadata docModel.session docId
+                        |> Maybe.withDefault (Metadata.new docId)
+
+                commitReq_ =
+                    Data.requestCommit docModel.workingTree.tree author docModel.data (Metadata.encode metadata)
+            in
+            case commitReq_ of
+                Just commitReq ->
+                    ( model
+                    , Cmd.batch
+                        [ send <| CommitData commitReq
+                        , prevCmd
+                        ]
+                    )
+
+                Nothing ->
+                    ( model, prevCmd )
+
+        Empty _ ->
+            ( model, prevCmd )
 
 
 normalMode : Page.Doc.Model -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )

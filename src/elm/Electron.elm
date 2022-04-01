@@ -103,7 +103,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg doc =
     case msg of
         GotDocMsg docMsg ->
-            Page.Doc.update docMsg doc
+            Page.Doc.updateDoc docMsg doc
                 |> Tuple.mapSecond (Cmd.map GotDocMsg)
 
         Incoming incomingMsg ->

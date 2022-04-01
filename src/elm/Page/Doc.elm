@@ -1,4 +1,4 @@
-module Page.Doc exposing (Model, Msg(..), checkoutCommit, incoming, init, subscriptions, toUser, update, view)
+module Page.Doc exposing (Model, Msg, ParentMsg(..), checkoutCommit, incoming, init, subscriptions, toUser, update, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -8,7 +8,6 @@ import Doc.Data as Data
 import Doc.Data.Conflict exposing (Selection)
 import Doc.Fonts as Fonts
 import Doc.Fullscreen as Fullscreen
-import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Doc.UI as UI exposing (countWords, viewConflict, viewMobileButtons, viewSearchField)
@@ -164,13 +163,19 @@ type Msg
     | LogErr String
 
 
+type ParentMsg
+    = NoParentMsg
+    | CloseTooltip
+    | CommitDo Time.Posix
+
+
 type DragExternalMsg
     = DragEnter DropId
     | DragLeave DropId
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ({ workingTree } as model) =
+updateDoc : Msg -> Model -> ( Model, Cmd Msg )
+updateDoc msg ({ workingTree } as model) =
     let
         vs =
             model.viewState
@@ -456,7 +461,6 @@ update msg ({ workingTree } as model) =
 
         Commit time ->
             ( { model | session = Session.updateTime time model.session }, Cmd.none )
-                |> addToHistoryDo
 
         SetSelection cid selection id ->
             let
@@ -536,6 +540,24 @@ update msg ({ workingTree } as model) =
             ( model
             , Cmd.none
             )
+
+
+update : Msg -> Model -> ( Model, Cmd Msg, ParentMsg )
+update msg model =
+    case msg of
+        Commit commitTime ->
+            updateDoc msg model |> parentMsg (CommitDo commitTime)
+
+        ShortcutTrayToggle ->
+            updateDoc msg model |> parentMsg CloseTooltip
+
+        _ ->
+            updateDoc msg model |> parentMsg NoParentMsg
+
+
+parentMsg : ParentMsg -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg, ParentMsg )
+parentMsg pMsg ( model, cmd ) =
+    ( model, cmd, pMsg )
 
 
 incoming : Incoming.Msg -> Model -> ( Model, Cmd Msg )
@@ -1877,7 +1899,7 @@ localSaveDo ( { workingTree, session } as model, prevCmd ) =
 localSave : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 localSave ( model, prevCmd ) =
     if model.isDesktop then
-        update (ThrottledLocalSave (provideInput ())) model
+        updateDoc (ThrottledLocalSave (provideInput ())) model
             |> Tuple.mapSecond (\cmd -> Cmd.batch [ prevCmd, cmd ])
 
     else
@@ -1913,35 +1935,9 @@ checkoutCommit commitSha model =
 -- History
 
 
-addToHistoryDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-addToHistoryDo ( { workingTree, session } as model, prevCmd ) =
-    let
-        author =
-            session |> Session.name |> Maybe.withDefault "unknown" |> (\a -> "<" ++ a ++ ">")
-
-        metadata =
-            Session.getMetadata model.session model.docId
-                |> Maybe.withDefault (Metadata.new model.docId)
-
-        commitReq_ =
-            Data.requestCommit workingTree.tree author model.data (Metadata.encode metadata)
-    in
-    case commitReq_ of
-        Just commitReq ->
-            ( model
-            , Cmd.batch
-                [ send <| CommitData commitReq
-                , prevCmd
-                ]
-            )
-
-        Nothing ->
-            ( model, prevCmd )
-
-
 addToHistory : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 addToHistory ( model, prevCmd ) =
-    update (ThrottledCommit (provideInput ())) model
+    updateDoc (ThrottledCommit (provideInput ())) model
         |> Tuple.mapSecond (\cmd -> Cmd.batch [ prevCmd, cmd ])
 
 
