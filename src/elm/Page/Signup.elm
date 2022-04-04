@@ -1,4 +1,4 @@
-module Page.Signup exposing (Model, Msg, init, subscriptions, toUser, update, view)
+module Page.Signup exposing (Model, Msg, init, navKey, subscriptions, toUser, update, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom
@@ -39,8 +39,8 @@ type Field
 
 
 init : Nav.Key -> Session -> ( Model, Cmd Msg )
-init navKey user =
-    ( { user = user, email = "", password = "", showPassword = False, didOptIn = False, errors = [], navKey = navKey }
+init nKey user =
+    ( { user = user, email = "", password = "", showPassword = False, didOptIn = False, errors = [], navKey = nKey }
     , Task.attempt (\_ -> NoOp) <| Browser.Dom.focus "signup-email"
     )
 
@@ -48,6 +48,11 @@ init navKey user =
 toUser : Model -> Session
 toUser { user } =
     user
+
+
+navKey : Model -> Nav.Key
+navKey model =
+    model.navKey
 
 
 

@@ -1,4 +1,4 @@
-module Page.Login exposing (Model, Msg, init, subscriptions, toUser, update, view)
+module Page.Login exposing (Model, Msg, init, navKey, subscriptions, toUser, update, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom
@@ -38,8 +38,8 @@ type Field
 
 
 init : Nav.Key -> Session -> ( Model, Cmd msg )
-init navKey user =
-    ( { user = user, navKey = navKey, email = "", password = "", showPassword = False, errors = [] }
+init nKey user =
+    ( { user = user, navKey = nKey, email = "", password = "", showPassword = False, errors = [] }
     , Cmd.none
     )
 
@@ -47,6 +47,11 @@ init navKey user =
 toUser : Model -> Session
 toUser model =
     model.user
+
+
+navKey : Model -> Nav.Key
+navKey model =
+    model.navKey
 
 
 

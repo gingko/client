@@ -1,4 +1,4 @@
-module Page.App exposing (Model, Msg, getTitle, init, isDirty, subscriptions, toSession, update, view)
+module Page.App exposing (Model, Msg, getTitle, init, isDirty, navKey, subscriptions, toSession, update, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -18,6 +18,7 @@ import Doc.VideoViewer as VideoViewer
 import File exposing (File)
 import File.Download as Download
 import File.Select as Select
+import GlobalData exposing (GlobalData)
 import Html exposing (Html, div, strong)
 import Html.Attributes exposing (class, classList, height, id, style, width)
 import Html.Events exposing (onClick)
@@ -68,7 +69,7 @@ type alias Model =
 
 
 type DocumentState
-    = Empty Session
+    = Empty GlobalData Session
     | Doc DocState
 
 
@@ -108,7 +109,7 @@ type ModalState
 
 
 defaultModel : Nav.Key -> Session -> Maybe ( String, Page.Doc.Model ) -> Model
-defaultModel navKey session docModel_ =
+defaultModel nKey session docModel_ =
     { loading = True
     , documentState =
         case docModel_ of
@@ -116,7 +117,7 @@ defaultModel navKey session docModel_ =
                 Doc { docId = docId, docModel = docModel, titleField = Session.getDocName session docId |> Debug.log "titleField set at App.defaultModel" }
 
             Nothing ->
-                Empty session
+                Empty (GlobalData.fromSession session) session
     , sidebarState =
         if Session.fileMenuOpen session then
             File
@@ -130,16 +131,16 @@ defaultModel navKey session docModel_ =
     , fileSearchField = ""
     , tooltip = Nothing
     , theme = Default
-    , navKey = navKey
+    , navKey = nKey
     }
 
 
 init : Nav.Key -> Session -> Maybe DbData -> ( Model, Cmd Msg )
-init navKey session dbData_ =
+init nKey session dbData_ =
     case dbData_ of
         Just dbData ->
             if dbData.isNew then
-                ( defaultModel navKey session (Just ( dbData.dbName, Page.Doc.init True session dbData.dbName ))
+                ( defaultModel nKey session (Just ( dbData.dbName, Page.Doc.init True session dbData.dbName ))
                 , Cmd.batch
                     [ send <| InitDocument dbData.dbName
                     , Task.attempt (always NoOp) (Browser.Dom.focus "card-edit-1")
@@ -147,17 +148,17 @@ init navKey session dbData_ =
                 )
 
             else
-                ( defaultModel navKey (session |> Debug.log "init session") (Just ( dbData.dbName, Page.Doc.init False session dbData.dbName ))
+                ( defaultModel nKey (session |> Debug.log "init session") (Just ( dbData.dbName, Page.Doc.init False session dbData.dbName ))
                 , send <| LoadDocument dbData.dbName
                 )
 
         Nothing ->
             case Session.lastDocId session of
                 Just docId ->
-                    ( defaultModel navKey session Nothing, Route.replaceUrl navKey (Route.DocUntitled docId) )
+                    ( defaultModel nKey session Nothing, Route.replaceUrl nKey (Route.DocUntitled docId) )
 
                 Nothing ->
-                    ( defaultModel navKey session Nothing, send <| GetDocumentList )
+                    ( defaultModel nKey session Nothing, send <| GetDocumentList )
 
 
 isDirty : Model -> Bool
@@ -166,7 +167,7 @@ isDirty model =
         Doc { docModel } ->
             docModel.dirty
 
-        Empty _ ->
+        Empty _ _ ->
             False
 
 
@@ -176,7 +177,7 @@ getTitle model =
         Doc { docId, docModel } ->
             Session.getDocName docModel.session docId
 
-        Empty _ ->
+        Empty _ _ ->
             Nothing
 
 
@@ -186,8 +187,23 @@ toSession { documentState } =
         Doc { docModel } ->
             Page.Doc.toUser docModel
 
-        Empty session ->
+        Empty _ session ->
             session
+
+
+navKey : Model -> Nav.Key
+navKey model =
+    model.navKey
+
+
+toGlobalData : Model -> GlobalData
+toGlobalData { documentState } =
+    case documentState of
+        Doc { docModel } ->
+            docModel.globalData
+
+        Empty gData _ ->
+            gData
 
 
 updateSession : Session -> Model -> Model
@@ -196,8 +212,8 @@ updateSession newSession ({ documentState } as model) =
         Doc ({ docModel } as docState) ->
             { model | documentState = Doc { docState | docModel = { docModel | session = newSession } } }
 
-        Empty _ ->
-            { model | documentState = Empty newSession }
+        Empty globalData _ ->
+            { model | documentState = Empty globalData newSession }
 
 
 
@@ -296,6 +312,9 @@ update msg model =
     let
         session =
             toSession model
+
+        globalData =
+            toGlobalData model
     in
     case msg of
         NoOp ->
@@ -320,7 +339,7 @@ update msg model =
                         NoParentMsg ->
                             ( { model | documentState = Doc { docState | docModel = newDocModel } }, newCmd )
 
-                Empty _ ->
+                Empty _ _ ->
                     ( model, Cmd.none )
 
         LoginStateChanged newSession ->
@@ -349,7 +368,7 @@ update msg model =
                            )
             in
             case ( incomingMsg, model.documentState ) of
-                ( DataReceived _, Empty _ ) ->
+                ( DataReceived _, Empty _ _ ) ->
                     ( model, Cmd.none )
 
                 ( Keyboard shortcut, Doc ({ docModel } as docState) ) ->
@@ -573,10 +592,10 @@ update msg model =
                             , True
                             )
 
-                        ( Empty _, Success [] ) ->
+                        ( Empty _ _, Success [] ) ->
                             ( Cmd.none, False )
 
-                        ( Empty _, Success docList ) ->
+                        ( Empty _ _, Success docList ) ->
                             ( DocList.getLastUpdated (Success docList)
                                 |> Maybe.map (\s -> Route.replaceUrl model.navKey (Route.DocUntitled s))
                                 |> Maybe.withDefault Cmd.none
@@ -593,7 +612,7 @@ update msg model =
                 Doc { docModel } ->
                     openSwitcher docModel model
 
-                Empty _ ->
+                Empty _ _ ->
                     ( model, Cmd.none )
 
         SwitcherClosed ->
@@ -927,7 +946,7 @@ update msg model =
         ImportTextLoaded settings metadata markdownStrings ->
             let
                 ( importedTree, newSeed, newTitle_ ) =
-                    ImportText.toTree (Session.seed session) metadata markdownStrings settings
+                    ImportText.toTree (GlobalData.seed globalData) metadata markdownStrings settings
 
                 newSession =
                     Session.setSeed newSeed session
@@ -965,7 +984,7 @@ update msg model =
         ImportOpmlLoaded fileName opmlString ->
             let
                 ( importTreeResult, newSeed ) =
-                    Import.Opml.treeResult (Session.seed session) opmlString
+                    Import.Opml.treeResult (GlobalData.seed globalData) opmlString
 
                 newSession =
                     Session.setSeed newSeed session
@@ -1006,7 +1025,7 @@ update msg model =
         ImportJSONLoaded fileName jsonString ->
             let
                 ( importTreeDecoder, newSeed ) =
-                    Import.Single.decoder (Session.seed session)
+                    Import.Single.decoder (GlobalData.seed globalData)
 
                 newSession =
                     Session.setSeed newSeed session
@@ -1177,7 +1196,7 @@ addToHistoryDo ( model, prevCmd ) =
                 Nothing ->
                     ( model, prevCmd )
 
-        Empty _ ->
+        Empty _ _ ->
             ( model, prevCmd )
 
 
@@ -1375,7 +1394,7 @@ view ({ documentState } as model) =
                     ++ viewModal session model.modalState
                 )
 
-        Empty _ ->
+        Empty _ _ ->
             if model.loading then
                 UI.viewAppLoadingSpinner (Session.fileMenuOpen session)
 

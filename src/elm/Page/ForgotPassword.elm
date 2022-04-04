@@ -1,4 +1,4 @@
-module Page.ForgotPassword exposing (Model, Msg, init, subscriptions, toUser, update, view)
+module Page.ForgotPassword exposing (Model, Msg, init, navKey, subscriptions, toUser, update, view)
 
 import Browser.Navigation as Nav
 import Html exposing (..)
@@ -31,12 +31,12 @@ type Field
 
 
 init : Nav.Key -> Session -> Maybe String -> ( Model, Cmd msg )
-init navKey user email_ =
+init nKey user email_ =
     ( { user = user
       , email = email_ |> Maybe.withDefault ""
       , errors = []
       , sent = False
-      , navKey = navKey
+      , navKey = nKey
       }
     , Cmd.none
     )
@@ -45,6 +45,11 @@ init navKey user email_ =
 toUser : Model -> Session
 toUser model =
     model.user
+
+
+navKey : Model -> Nav.Key
+navKey model =
+    model.navKey
 
 
 

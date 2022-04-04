@@ -313,9 +313,6 @@ viewUpgradeButton :
     -> Html msg
 viewUpgradeButton toggledUpgradeModal session =
     let
-        currentTime =
-            Session.currentTime session
-
         lang =
             Session.language session
 

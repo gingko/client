@@ -11,6 +11,7 @@ import Doc.Fullscreen as Fullscreen
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Doc.UI as UI exposing (countWords, viewConflict, viewMobileButtons, viewSearchField)
+import GlobalData exposing (GlobalData)
 import Html exposing (Attribute, Html, div, span, text, textarea, ul)
 import Html.Attributes as Attributes exposing (attribute, class, classList, dir, id, style, title, value)
 import Html.Events exposing (custom, onClick, onDoubleClick, onInput)
@@ -46,6 +47,7 @@ type alias Model =
 
     -- SPA Page State
     , session : Session
+    , globalData : GlobalData
     , loading : Bool
     , isDesktop : Bool
 
@@ -75,6 +77,7 @@ init isNew session docId =
     , data = Data.empty
     , docId = docId
     , session = session
+    , globalData = GlobalData.fromSession session
     , loading = not isNew
     , isDesktop = False
     , debouncerLocalSave =
@@ -1563,7 +1566,7 @@ insert pid pos initText ( model, prevCmd ) =
                     False
 
         ( newId, newSeed ) =
-            Random.step randomPositiveInt (Session.seed model.session)
+            Random.step randomPositiveInt (GlobalData.seed model.globalData)
 
         newIdString =
             "node-" ++ (newId |> String.fromInt)
@@ -1855,7 +1858,7 @@ pasteBelow : String -> Tree -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 pasteBelow id copiedTree ( model, prevCmd ) =
     let
         ( newId, newSeed ) =
-            Random.step randomPositiveInt (Session.seed model.session)
+            Random.step randomPositiveInt (GlobalData.seed model.globalData)
 
         treeToPaste =
             TreeStructure.renameNodes (newId |> String.fromInt) copiedTree
@@ -1876,12 +1879,12 @@ pasteInto : String -> Tree -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 pasteInto id copiedTree ( model, prevCmd ) =
     let
         ( newId, newSeed ) =
-            Random.step randomPositiveInt (Session.seed model.session)
+            Random.step randomPositiveInt (GlobalData.seed model.globalData)
 
         treeToPaste =
             TreeStructure.renameNodes (newId |> String.fromInt) copiedTree
     in
-    ( { model | session = Session.setSeed newSeed model.session }
+    ( { model | globalData = GlobalData.setSeed newSeed model.globalData }
     , prevCmd
     )
         |> paste treeToPaste id 999999

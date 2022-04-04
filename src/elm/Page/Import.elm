@@ -5,6 +5,7 @@ module Page.Import exposing (..)
 import Browser.Navigation as Nav
 import Doc.Data as Data
 import Doc.Metadata as Metadata
+import GlobalData exposing (GlobalData)
 import Http
 import Import.Incoming
 import Import.Single
@@ -18,17 +19,21 @@ import Types exposing (Tree)
 
 type alias Model =
     { session : Session
+    , globalData : GlobalData
     , navKey : Nav.Key
     }
 
 
 init : Nav.Key -> Session -> Template -> ( Model, Cmd Msg )
-init navKey user template =
+init navKey session template =
     let
+        globalData =
+            GlobalData.fromSession session
+
         ( importTreeDecoder, newSeed ) =
-            Import.Single.decoder (Session.seed user)
+            Import.Single.decoder (GlobalData.seed globalData)
     in
-    ( { session = Session.setSeed newSeed user, navKey = navKey }
+    ( { session = Session.setSeed newSeed session, globalData = globalData, navKey = navKey }
     , Template.fetchJSON (TemplateJSONReceived (Template.toString template)) importTreeDecoder template
     )
 

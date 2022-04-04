@@ -1,4 +1,4 @@
-module Page.ResetPassword exposing (Model, Msg, init, subscriptions, toUser, update, view)
+module Page.ResetPassword exposing (Model, Msg, init, navKey, subscriptions, toUser, update, view)
 
 import Browser.Dom
 import Browser.Navigation as Nav
@@ -33,9 +33,9 @@ type Field
 
 
 init : Nav.Key -> Session -> String -> ( Model, Cmd Msg )
-init navKey user resetToken =
+init nKey user resetToken =
     ( { user = user
-      , navKey = navKey
+      , navKey = nKey
       , resetToken = resetToken
       , password = ""
       , passwordConfirm = ""
@@ -48,6 +48,11 @@ init navKey user resetToken =
 toUser : Model -> Session
 toUser { user } =
     user
+
+
+navKey : Model -> Nav.Key
+navKey model =
+    model.navKey
 
 
 
