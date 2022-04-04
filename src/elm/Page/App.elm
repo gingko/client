@@ -377,14 +377,14 @@ update msg model =
                 ( DataReceived _, Empty _ _ ) ->
                     ( model, Cmd.none )
 
-                ( Keyboard shortcut, Doc ({ docModel } as docState) ) ->
+                ( Keyboard shortcut, Doc ({ docId, docModel } as docState) ) ->
                     case model.modalState of
                         FileSwitcher switcherModel ->
                             case shortcut of
                                 "enter" ->
                                     case switcherModel.selectedDocument of
-                                        Just docId ->
-                                            ( model, Route.pushUrl model.navKey (Route.DocUntitled docId) )
+                                        Just selectedDocId ->
+                                            ( model, Route.pushUrl model.navKey (Route.DocUntitled selectedDocId) )
 
                                         Nothing ->
                                             ( model, Cmd.none )
@@ -411,7 +411,7 @@ update msg model =
 
                                 "mod+o" ->
                                     normalMode docModel
-                                        (model |> openSwitcher docModel)
+                                        (model |> openSwitcher docId docModel)
                                         (passThroughTo docState)
 
                                 "esc" ->
@@ -427,7 +427,7 @@ update msg model =
 
                                 "mod+o" ->
                                     normalMode docModel
-                                        (model |> openSwitcher docModel)
+                                        (model |> openSwitcher docId docModel)
                                         (passThroughTo docState)
 
                                 "esc" ->
@@ -450,7 +450,7 @@ update msg model =
 
                                 "mod+o" ->
                                     normalMode docModel
-                                        (model |> openSwitcher docModel)
+                                        (model |> openSwitcher docId docModel)
                                         (passThroughTo docState)
 
                                 "mod+z" ->
@@ -473,7 +473,7 @@ update msg model =
 
                                 "mod+o" ->
                                     normalMode docModel
-                                        (model |> openSwitcher docModel)
+                                        (model |> openSwitcher docId docModel)
                                         (passThroughTo docState)
 
                                 _ ->
@@ -584,9 +584,9 @@ update msg model =
 
                 ( routeCmd, isLoading ) =
                     case ( model.documentState, Session.documents newSession ) of
-                        ( Doc { docModel }, Success docList ) ->
+                        ( Doc { docId, docModel }, Success docList ) ->
                             ( docList
-                                |> List.map (\d -> Metadata.getDocId d == docModel.docId)
+                                |> List.map (\d -> Metadata.getDocId d == docId)
                                 |> List.any identity
                                 |> (\docStillExists ->
                                         if docStillExists then
@@ -615,8 +615,8 @@ update msg model =
 
         SwitcherOpened ->
             case model.documentState of
-                Doc { docModel } ->
-                    openSwitcher docModel model
+                Doc { docId, docModel } ->
+                    openSwitcher docId docModel model
 
                 Empty _ _ ->
                     ( model, Cmd.none )
@@ -718,7 +718,7 @@ update msg model =
 
         Export ->
             case model.documentState of
-                Doc { docModel } ->
+                Doc { docId, docModel } ->
                     let
                         vs =
                             docModel.viewState
@@ -730,8 +730,8 @@ update msg model =
                     ( model
                     , Export.command
                         Exported
-                        docModel.docId
-                        (Session.getDocName session docModel.docId |> Maybe.withDefault "Untitled")
+                        docId
+                        (Session.getDocName session docId |> Maybe.withDefault "Untitled")
                         model.exportSettings
                         activeTree
                         docModel.workingTree.tree
@@ -1215,11 +1215,11 @@ normalMode docModel modified noOp =
         noOp
 
 
-openSwitcher : Page.Doc.Model -> Model -> ( Model, Cmd Msg )
-openSwitcher docModel model =
+openSwitcher : String -> Page.Doc.Model -> Model -> ( Model, Cmd Msg )
+openSwitcher docId docModel model =
     let
         metadata_ =
-            Session.getMetadata (toSession model) docModel.docId
+            Session.getMetadata (toSession model) docId
     in
     case metadata_ of
         Just currentMetadata ->
@@ -1227,7 +1227,7 @@ openSwitcher docModel model =
                 | modalState =
                     FileSwitcher
                         { currentDocument = currentMetadata
-                        , selectedDocument = Just docModel.docId
+                        , selectedDocument = Just docId
                         , searchField = ""
                         , docList = Session.documents (toSession model)
                         }

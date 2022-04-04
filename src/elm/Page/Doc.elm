@@ -41,7 +41,6 @@ type alias Model =
     -- Document state
     { workingTree : TreeStructure.Model
     , data : Data.Model
-    , docId : String
 
     -- SPA Page State
     , globalData : GlobalData
@@ -72,7 +71,6 @@ init : Bool -> GlobalData -> String -> Model
 init isNew globalData docId =
     { workingTree = TreeStructure.defaultModel
     , data = Data.empty
-    , docId = docId
     , globalData = globalData
     , loading = not isNew
     , isExpired = False
@@ -2077,7 +2075,7 @@ viewLoaded ({ docMsg } as appMsg) model =
                             , navRight = mobileBtnMsg "right"
                             }
                             (model.viewState.viewMode /= Normal)
-                       , Keyed.node "div" [ style "display" "contents" ] [ ( model.docId, div [ id "loading-overlay" ] [] ) ]
+                       , Keyed.node "div" [ style "display" "contents" ] [ ( "randomstringforloadingoverlay", div [ id "loading-overlay" ] [] ) ]
                        , div [ id "preloader" ] []
                        ]
 
