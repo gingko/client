@@ -1,4 +1,4 @@
-module Page.Doc exposing (Model, Msg, ParentMsg(..), checkoutCommit, incoming, init, subscriptions, toUser, update, view)
+module Page.Doc exposing (Model, Msg, ParentMsg(..), checkoutCommit, incoming, init, subscriptions, update, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -20,14 +20,12 @@ import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy2, lazy3, lazy4, lazy7, lazy8)
 import Html5.DragDrop as DragDrop
 import Json.Decode as Json
-import Json.Encode as Enc
 import List.Extra as ListExtra
 import Markdown
 import Outgoing exposing (Msg(..), send)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Random
 import Regex
-import Session exposing (PaymentStatus(..), Session)
 import Task
 import Time
 import Translation exposing (Language, TranslationId(..), tr)
@@ -46,10 +44,9 @@ type alias Model =
     , docId : String
 
     -- SPA Page State
-    , session : Session
     , globalData : GlobalData
     , loading : Bool
-    , isDesktop : Bool
+    , isExpired : Bool
 
     -- Transient state
     , viewState : ViewState
@@ -71,15 +68,14 @@ type alias Model =
     }
 
 
-init : Bool -> Session -> String -> Model
-init isNew session docId =
+init : Bool -> GlobalData -> String -> Model
+init isNew globalData docId =
     { workingTree = TreeStructure.defaultModel
     , data = Data.empty
     , docId = docId
-    , session = session
-    , globalData = GlobalData.fromSession session
+    , globalData = globalData
     , loading = not isNew
-    , isDesktop = False
+    , isExpired = False
     , debouncerLocalSave =
         Debouncer.throttle (fromSeconds 0.25)
             |> Debouncer.settleWhenQuietFor (Just <| fromSeconds 0.25)
@@ -118,11 +114,6 @@ init isNew session docId =
     , fonts = Fonts.default
     , startingWordcount = 0
     }
-
-
-toUser : Model -> Session
-toUser model =
-    model.session
 
 
 
@@ -415,32 +406,28 @@ updateDoc msg ({ workingTree } as model) =
 
         -- === History ===
         ThrottledLocalSave subMsg ->
-            if model.isDesktop then
-                let
-                    ( subModel, subCmd, emitted_ ) =
-                        Debouncer.update subMsg model.debouncerLocalSave
+            let
+                ( subModel, subCmd, emitted_ ) =
+                    Debouncer.update subMsg model.debouncerLocalSave
 
-                    mappedCmd =
-                        Cmd.map ThrottledLocalSave subCmd
+                mappedCmd =
+                    Cmd.map ThrottledLocalSave subCmd
 
-                    updatedModel =
-                        { model | debouncerLocalSave = subModel }
-                in
-                case emitted_ of
-                    Just () ->
-                        ( updatedModel
-                        , Cmd.batch [ Task.perform LocalSave Time.now, mappedCmd ]
-                        )
+                updatedModel =
+                    { model | debouncerLocalSave = subModel }
+            in
+            case emitted_ of
+                Just () ->
+                    ( updatedModel
+                    , Cmd.batch [ Task.perform LocalSave Time.now, mappedCmd ]
+                    )
 
-                    Nothing ->
-                        ( updatedModel, mappedCmd )
-
-            else
-                ( model, Cmd.none )
+                Nothing ->
+                    ( updatedModel, mappedCmd )
 
         LocalSave time ->
-            ( { model | session = Session.updateTime time model.session }, Cmd.none )
-                |> localSaveDo
+            -- TODO: To parent |> localSaveDo
+            ( model, Cmd.none )
 
         ThrottledCommit subMsg ->
             let
@@ -463,7 +450,8 @@ updateDoc msg ({ workingTree } as model) =
                     ( updatedModel, mappedCmd )
 
         Commit time ->
-            ( { model | session = Session.updateTime time model.session }, Cmd.none )
+            -- TODO: To Parent
+            ( model, Cmd.none )
 
         SetSelection cid selection id ->
             let
@@ -494,23 +482,8 @@ updateDoc msg ({ workingTree } as model) =
 
         -- === UI ===
         ShortcutTrayToggle ->
-            let
-                newIsOpen =
-                    not <| Session.shortcutTrayOpen model.session
-            in
-            ( { model
-                | session = Session.setShortcutTrayOpen newIsOpen model.session
-
-                {--TODO: , headerMenu =
-                    if model.headerMenu == ExportPreview && newIsOpen then
-                        NoHeaderMenu
-
-                    else
-                        model.headerMenu
-                --}
-              }
-            , send <| SaveUserSetting ( "shortcutTrayOpen", Enc.bool newIsOpen )
-            )
+            -- TODO: To Parent
+            ( model, Cmd.none )
 
         FullscreenRequested ->
             ( model, send <| RequestFullscreen )
@@ -1546,7 +1519,7 @@ intentCancelCard model =
 
         _ ->
             ( model
-            , send (ConfirmCancelCard vs.active originalContent (tr (Session.language model.session) AreYouSureCancel))
+            , send (ConfirmCancelCard vs.active originalContent (tr (GlobalData.language model.globalData) AreYouSureCancel))
             )
 
 
@@ -1557,24 +1530,16 @@ intentCancelCard model =
 insert : String -> Int -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 insert pid pos initText ( model, prevCmd ) =
     let
-        isExpired =
-            case Session.daysLeft model.session of
-                Just days ->
-                    days <= 0
-
-                Nothing ->
-                    False
-
         ( newId, newSeed ) =
             Random.step randomPositiveInt (GlobalData.seed model.globalData)
 
         newIdString =
             "node-" ++ (newId |> String.fromInt)
     in
-    if not isExpired then
+    if not model.isExpired then
         ( { model
             | workingTree = TreeStructure.update (TreeStructure.Ins newIdString initText pid pos) model.workingTree
-            , session = Session.setSeed newSeed model.session
+            , globalData = GlobalData.setSeed newSeed model.globalData
           }
         , prevCmd
         )
@@ -1869,7 +1834,7 @@ pasteBelow id copiedTree ( model, prevCmd ) =
         pos =
             (getIndex id model.workingTree.tree |> Maybe.withDefault 0) + 1
     in
-    ( { model | session = Session.setSeed newSeed model.session }
+    ( { model | globalData = GlobalData.setSeed newSeed model.globalData }
     , prevCmd
     )
         |> paste treeToPaste pid pos
@@ -1895,18 +1860,14 @@ pasteInto id copiedTree ( model, prevCmd ) =
 
 
 localSaveDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-localSaveDo ( { workingTree, session } as model, prevCmd ) =
+localSaveDo ( { workingTree } as model, prevCmd ) =
     ( model, Cmd.batch [ send <| SaveToFile (treeToMarkdownOutline False workingTree.tree), prevCmd ] )
 
 
 localSave : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 localSave ( model, prevCmd ) =
-    if model.isDesktop then
-        updateDoc (ThrottledLocalSave (provideInput ())) model
-            |> Tuple.mapSecond (\cmd -> Cmd.batch [ prevCmd, cmd ])
-
-    else
-        ( model, prevCmd )
+    updateDoc (ThrottledLocalSave (provideInput ())) model
+        |> Tuple.mapSecond (\cmd -> Cmd.batch [ prevCmd, cmd ])
 
 
 
@@ -2019,10 +1980,10 @@ viewLoaded : AppMsgs msg -> Model -> List (Html msg)
 viewLoaded ({ docMsg } as appMsg) model =
     let
         language =
-            Session.language model.session
+            GlobalData.language model.globalData
 
         isMac =
-            Session.isMac model.session
+            GlobalData.isMac model.globalData
     in
     case Data.conflictList model.data of
         [] ->
@@ -2034,7 +1995,7 @@ viewLoaded ({ docMsg } as appMsg) model =
                     , model = model.workingTree
                     , lastLocalSave = model.lastLocalSave
                     , lastRemoteSave = model.lastRemoteSave
-                    , currentTime = Session.currentTime model.session
+                    , currentTime = GlobalData.currentTime model.globalData
                     }
                     model.field
                     model.viewState
@@ -2080,7 +2041,7 @@ viewLoaded ({ docMsg } as appMsg) model =
                             Nothing ->
                                 []
                 in
-                [ lazy4 treeView (Session.language model.session) (Session.isMac model.session) model.viewState model.workingTree |> Html.map docMsg
+                [ lazy4 treeView (GlobalData.language model.globalData) (GlobalData.isMac model.globalData) model.viewState model.workingTree |> Html.map docMsg
                 , if (not << List.isEmpty) cardTitles then
                     UI.viewBreadcrumbs Activate cardTitles |> Html.map docMsg
 
@@ -2093,8 +2054,12 @@ viewLoaded ({ docMsg } as appMsg) model =
                         , tooltipClosed = appMsg.tooltipClosed
                         }
                         language
-                        (Session.shortcutTrayOpen model.session)
-                        (Session.isMac model.session)
+                        (False
+                         {--TODO: Session.shortcutTrayOpen model.session--}
+                        )
+                        (False
+                         {--Session.isMac model.session--}
+                        )
                         model.workingTree.tree.children
                         model.textCursorInfo
                         model.viewState
@@ -2131,7 +2096,7 @@ repeating-linear-gradient(-45deg
             [ ul [ class "conflicts-list" ]
                 (List.map (viewConflict language SetSelection Resolve) conflicts)
                 |> Html.map docMsg
-            , lazy4 treeView (Session.language model.session) (Session.isMac model.session) model.viewState model.workingTree |> Html.map docMsg
+            , lazy4 treeView (GlobalData.language model.globalData) (GlobalData.isMac model.globalData) model.viewState model.workingTree |> Html.map docMsg
             ]
 
 

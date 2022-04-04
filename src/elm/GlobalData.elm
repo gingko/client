@@ -1,4 +1,4 @@
-module GlobalData exposing (GlobalData, currentTime, decode, fromSession, language, seed, setLanguage, setSeed, updateTime)
+module GlobalData exposing (GlobalData, currentTime, decode, fromSession, isMac, language, seed, setLanguage, setSeed, updateTime)
 
 import Json.Decode as Dec exposing (Decoder)
 import Json.Decode.Pipeline exposing (optional, required)
@@ -86,6 +86,11 @@ currentTime (GlobalData record) =
 language : GlobalData -> Language
 language (GlobalData record) =
     record.language
+
+
+isMac : GlobalData -> Bool
+isMac (GlobalData record) =
+    record.isMac
 
 
 

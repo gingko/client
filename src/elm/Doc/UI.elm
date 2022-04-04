@@ -9,6 +9,7 @@ import Doc.Data.Conflict as Conflict exposing (Conflict, Op(..), Selection(..), 
 import Doc.List as DocList exposing (Model(..))
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils as TreeUtils exposing (..)
+import GlobalData exposing (GlobalData)
 import Html exposing (Html, a, br, button, del, div, fieldset, h2, h3, h4, h5, hr, img, input, ins, label, li, pre, span, ul)
 import Html.Attributes as A exposing (..)
 import Html.Attributes.Extra exposing (attributeIf)
@@ -82,6 +83,7 @@ viewHeader :
     , printRequested : msg
     , toggledUpgradeModal : Bool -> msg
     }
+    -> Session
     -> Maybe String
     ->
         { appModel
@@ -94,17 +96,17 @@ viewHeader :
             , dirty : Bool
             , lastLocalSave : Maybe Time.Posix
             , lastRemoteSave : Maybe Time.Posix
-            , session : Session
+            , globalData : GlobalData
         }
     -> Maybe String
     -> Html msg
-viewHeader msgs title_ appModel docModel titleField_ =
+viewHeader msgs session title_ appModel docModel titleField_ =
     let
         language =
-            Session.language docModel.session
+            GlobalData.language docModel.globalData
 
         currentTime =
-            Session.currentTime docModel.session
+            GlobalData.currentTime docModel.globalData
 
         handleKeys =
             on "keyup"
@@ -151,7 +153,7 @@ viewHeader msgs title_ appModel docModel titleField_ =
                         ]
                         []
                     ]
-                , viewSaveIndicator language docModel (Session.currentTime docModel.session)
+                , viewSaveIndicator language docModel (GlobalData.currentTime docModel.globalData)
                 ]
 
         isHistoryView =
@@ -242,7 +244,7 @@ viewHeader msgs title_ appModel docModel titleField_ =
             [ AntIcons.fileDoneOutlined [] ]
         , viewUpgradeButton
             msgs.toggledUpgradeModal
-            docModel.session
+            session
         , viewIf (appModel.headerMenu == ExportPreview) <|
             div [ id "export-menu" ]
                 [ div [ id "export-selection", class "toggle-button" ]
@@ -852,14 +854,14 @@ viewWordCount :
         , workingTree : TreeStructure.Model
         , startingWordcount : Int
         , wordcountTrayOpen : Bool
-        , session : Session
+        , globalData : GlobalData
     }
     -> { modalClosed : msg }
     -> List (Html msg)
 viewWordCount model msgs =
     let
         language =
-            Session.language model.session
+            GlobalData.language model.globalData
 
         stats =
             getStats model
@@ -896,11 +898,11 @@ viewWordCount model msgs =
 -- DOCUMENT
 
 
-viewSearchField : (String -> msg) -> { m | viewState : ViewState, session : Session } -> Html msg
-viewSearchField searchFieldMsg { viewState, session } =
+viewSearchField : (String -> msg) -> { m | viewState : ViewState, globalData : GlobalData } -> Html msg
+viewSearchField searchFieldMsg { viewState, globalData } =
     let
         language =
-            Session.language session
+            GlobalData.language globalData
 
         maybeSearchIcon =
             if viewState.searchField == Nothing then

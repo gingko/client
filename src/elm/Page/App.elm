@@ -74,7 +74,8 @@ type DocumentState
 
 
 type alias DocState =
-    { docId : String
+    { session : Session
+    , docId : String
     , docModel : Page.Doc.Model
     , titleField : Maybe String
     }
@@ -114,7 +115,12 @@ defaultModel nKey session docModel_ =
     , documentState =
         case docModel_ of
             Just ( docId, docModel ) ->
-                Doc { docId = docId, docModel = docModel, titleField = Session.getDocName session docId |> Debug.log "titleField set at App.defaultModel" }
+                Doc
+                    { session = session
+                    , docId = docId
+                    , docModel = docModel
+                    , titleField = Session.getDocName session docId
+                    }
 
             Nothing ->
                 Empty (GlobalData.fromSession session) session
@@ -140,7 +146,7 @@ init nKey session dbData_ =
     case dbData_ of
         Just dbData ->
             if dbData.isNew then
-                ( defaultModel nKey session (Just ( dbData.dbName, Page.Doc.init True session dbData.dbName ))
+                ( defaultModel nKey session (Just ( dbData.dbName, Page.Doc.init True (GlobalData.fromSession session) dbData.dbName ))
                 , Cmd.batch
                     [ send <| InitDocument dbData.dbName
                     , Task.attempt (always NoOp) (Browser.Dom.focus "card-edit-1")
@@ -148,7 +154,7 @@ init nKey session dbData_ =
                 )
 
             else
-                ( defaultModel nKey (session |> Debug.log "init session") (Just ( dbData.dbName, Page.Doc.init False session dbData.dbName ))
+                ( defaultModel nKey (session |> Debug.log "init session") (Just ( dbData.dbName, Page.Doc.init False (GlobalData.fromSession session) dbData.dbName ))
                 , send <| LoadDocument dbData.dbName
                 )
 
@@ -174,8 +180,8 @@ isDirty model =
 getTitle : Model -> Maybe String
 getTitle model =
     case model.documentState of
-        Doc { docId, docModel } ->
-            Session.getDocName docModel.session docId
+        Doc { session, docId, docModel } ->
+            Session.getDocName session docId
 
         Empty _ _ ->
             Nothing
@@ -184,8 +190,8 @@ getTitle model =
 toSession : Model -> Session
 toSession { documentState } =
     case documentState of
-        Doc { docModel } ->
-            Page.Doc.toUser docModel
+        Doc { session, docModel } ->
+            session
 
         Empty _ session ->
             session
@@ -210,7 +216,7 @@ updateSession : Session -> Model -> Model
 updateSession newSession ({ documentState } as model) =
     case documentState of
         Doc ({ docModel } as docState) ->
-            { model | documentState = Doc { docState | docModel = { docModel | session = newSession } } }
+            { model | documentState = Doc { docState | session = newSession } }
 
         Empty globalData _ ->
             { model | documentState = Empty globalData newSession }
@@ -648,7 +654,7 @@ update msg model =
                             if String.trim editedTitle == "" then
                                 ( model, Cmd.batch [ send <| Alert "Title cannot be blank", Task.attempt (always NoOp) (Browser.Dom.focus "title-rename") ] )
 
-                            else if Just editedTitle /= Session.getDocName docModel.session docId then
+                            else if Just editedTitle /= Session.getDocName session docId then
                                 ( model, Cmd.batch [ send <| RenameDocument editedTitle, Task.attempt (always NoOp) (Browser.Dom.blur "title-rename") ] )
 
                             else
@@ -663,7 +669,7 @@ update msg model =
         TitleEditCanceled ->
             case model.documentState of
                 Doc ({ docModel, docId } as docState) ->
-                    ( { model | documentState = Doc { docState | titleField = Session.getDocName docModel.session docId } }
+                    ( { model | documentState = Doc { docState | titleField = Session.getDocName session docId } }
                     , Task.attempt (always NoOp) (Browser.Dom.blur "title-rename")
                     )
 
@@ -725,7 +731,7 @@ update msg model =
                     , Export.command
                         Exported
                         docModel.docId
-                        (Session.getDocName docModel.session docModel.docId |> Maybe.withDefault "Untitled")
+                        (Session.getDocName session docModel.docId |> Maybe.withDefault "Untitled")
                         model.exportSettings
                         activeTree
                         docModel.workingTree.tree
@@ -1172,13 +1178,13 @@ update msg model =
 addToHistoryDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 addToHistoryDo ( model, prevCmd ) =
     case model.documentState of
-        Doc { docModel, docId } ->
+        Doc { session, docModel, docId } ->
             let
                 author =
-                    docModel.session |> Session.name |> Maybe.withDefault "unknown" |> (\a -> "<" ++ a ++ ">")
+                    session |> Session.name |> Maybe.withDefault "unknown" |> (\a -> "<" ++ a ++ ">")
 
                 metadata =
-                    Session.getMetadata docModel.session docId
+                    Session.getMetadata session docId
                         |> Maybe.withDefault (Metadata.new docId)
 
                 commitReq_ =
@@ -1213,7 +1219,7 @@ openSwitcher : Page.Doc.Model -> Model -> ( Model, Cmd Msg )
 openSwitcher docModel model =
     let
         metadata_ =
-            Session.getMetadata docModel.session docModel.docId
+            Session.getMetadata (toSession model) docModel.docId
     in
     case metadata_ of
         Just currentMetadata ->
@@ -1326,7 +1332,7 @@ view ({ documentState } as model) =
                         , tooltipRequested = TooltipRequested
                         , tooltipClosed = TooltipClosed
                         }
-                        (Session.getDocName docModel.session docId |> Maybe.withDefault "Untitled")
+                        (Session.getDocName session docId |> Maybe.withDefault "Untitled")
                         model.exportSettings
 
                 maybeExportView =
@@ -1373,6 +1379,7 @@ view ({ documentState } as model) =
                             , printRequested = PrintRequested
                             , toggledUpgradeModal = ToggledUpgradeModal
                             }
+                            session
                             (Session.getDocName session docId)
                             model
                             docModel
