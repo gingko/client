@@ -3,6 +3,7 @@ module Main exposing (main)
 import Browser exposing (Document)
 import Browser.Navigation as Nav
 import Doc.UI as UI
+import GlobalData exposing (GlobalData)
 import Html
 import Json.Decode as Dec exposing (Decoder, Value)
 import Outgoing exposing (Msg(..), send)
@@ -26,7 +27,10 @@ import Url exposing (Url)
 
 
 type alias WebSessionData =
-    { session : Session, navKey : Nav.Key }
+    { globalData : GlobalData
+    , session : Session
+    , navKey : Nav.Key
+    }
 
 
 type Model
@@ -51,8 +55,11 @@ init json url navKey =
         session =
             Session.decode json
 
+        globalData =
+            GlobalData.decode json
+
         webSessionData =
-            { session = session, navKey = navKey }
+            { globalData = globalData, session = session, navKey = navKey }
     in
     case ( Session.loggedIn session, Route.fromUrl url ) of
         ( True, route_ ) ->
@@ -77,6 +84,9 @@ changeRouteTo maybeRoute model =
         navKey =
             getNavKey model
 
+        globalData =
+            getGlobalData model
+
         session =
             toSession model
     in
@@ -86,17 +96,17 @@ changeRouteTo maybeRoute model =
                 Page.App.init navKey session Nothing |> updateWith App GotAppMsg
 
             Just Route.Signup ->
-                Page.Signup.init navKey session |> updateWith Signup GotSignupMsg
+                Page.Signup.init navKey globalData session |> updateWith Signup GotSignupMsg
 
             Just Route.Login ->
                 Page.App.init navKey session Nothing |> updateWith App GotAppMsg
 
             Just (Route.ForgotPassword email_) ->
-                Page.ForgotPassword.init navKey session email_
+                Page.ForgotPassword.init navKey globalData session email_
                     |> updateWith ForgotPassword GotForgotPasswordMsg
 
             Just (Route.ResetPassword token) ->
-                Page.ResetPassword.init navKey session token
+                Page.ResetPassword.init navKey globalData session token
                     |> updateWith ResetPassword GotResetPasswordMsg
 
             Just Route.EmailConfirmed ->
@@ -104,10 +114,10 @@ changeRouteTo maybeRoute model =
                     newSession =
                         Session.confirmEmail session
                 in
-                ( Redirect (WebSessionData newSession navKey), Route.replaceUrl navKey Route.Root )
+                ( Redirect (WebSessionData globalData newSession navKey), Route.replaceUrl navKey Route.Root )
 
             Just Route.DocNew ->
-                Page.DocNew.init navKey session |> updateWith DocNew GotDocNewMsg
+                Page.DocNew.init navKey globalData session |> updateWith DocNew GotDocNewMsg
 
             Just (Route.DocUntitled dbName) ->
                 let
@@ -125,7 +135,7 @@ changeRouteTo maybeRoute model =
                 Page.App.init navKey session (Just { dbName = dbName, isNew = False }) |> updateWith App GotAppMsg
 
             Just (Route.Copy dbName) ->
-                Page.Copy.init navKey session dbName |> updateWith Copy GotCopyMsg
+                Page.Copy.init navKey globalData session dbName |> updateWith Copy GotCopyMsg
 
             Just (Route.Import template) ->
                 Page.Import.init navKey session template
@@ -133,22 +143,22 @@ changeRouteTo maybeRoute model =
 
             Just (Route.Upgrade isOk) ->
                 if isOk then
-                    ( PaymentSuccess (WebSessionData session navKey), Cmd.none )
+                    ( PaymentSuccess (WebSessionData globalData session navKey), Cmd.none )
 
                 else
-                    ( Redirect (WebSessionData session navKey), Cmd.none )
+                    ( Redirect (WebSessionData globalData session navKey), Cmd.none )
 
             Nothing ->
-                ( NotFound (WebSessionData session navKey), Cmd.none )
+                ( NotFound (WebSessionData globalData session navKey), Cmd.none )
 
     else
         let
             ( signupModel, signupCmds ) =
-                Page.Signup.init navKey session
+                Page.Signup.init navKey globalData session
                     |> updateWith Signup GotSignupMsg
 
             ( loginModel, loginCmds ) =
-                Page.Login.init navKey session
+                Page.Login.init navKey globalData session
                     |> updateWith Login GotLoginMsg
         in
         case maybeRoute of
@@ -159,11 +169,11 @@ changeRouteTo maybeRoute model =
                 ( loginModel, loginCmds )
 
             Just (Route.ForgotPassword email_) ->
-                Page.ForgotPassword.init navKey session email_
+                Page.ForgotPassword.init navKey globalData session email_
                     |> updateWith ForgotPassword GotForgotPasswordMsg
 
             Just (Route.ResetPassword token) ->
-                Page.ResetPassword.init navKey session token
+                Page.ResetPassword.init navKey globalData session token
                     |> updateWith ResetPassword GotResetPasswordMsg
 
             _ ->
@@ -205,6 +215,43 @@ toSession page =
 
         App appModel ->
             Page.App.toSession appModel
+
+
+getGlobalData : Model -> GlobalData
+getGlobalData model =
+    case model of
+        Redirect { globalData } ->
+            globalData
+
+        NotFound { globalData } ->
+            globalData
+
+        PaymentSuccess { globalData } ->
+            globalData
+
+        Signup signup ->
+            Page.Signup.globalData signup
+
+        Login login ->
+            Page.Login.globalData login
+
+        ForgotPassword forgot ->
+            Page.ForgotPassword.globalData forgot
+
+        ResetPassword reset ->
+            Page.ResetPassword.globalData reset
+
+        Copy copy ->
+            Page.Copy.globalData copy
+
+        Import importModel ->
+            importModel.globalData
+
+        DocNew docNew ->
+            docNew.globalData
+
+        App appModel ->
+            Page.App.toGlobalData appModel
 
 
 getNavKey : Model -> Nav.Key

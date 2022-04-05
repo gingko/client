@@ -7,6 +7,7 @@ import Coders exposing (tupleDecoder)
 import Doc.Data as Data
 import Doc.Metadata as Metadata
 import Doc.TreeStructure exposing (defaultTree)
+import GlobalData exposing (GlobalData)
 import Import.Incoming
 import Json.Decode as Dec
 import Outgoing exposing (Msg(..), send)
@@ -17,20 +18,32 @@ import Types exposing (Tree)
 
 
 type alias Model =
-    { session : Session
+    { globalData : GlobalData
+    , session : Session
     , tree : Maybe Tree
     , navKey : Nav.Key
     }
 
 
-init : Nav.Key -> Session -> String -> ( Model, Cmd Msg )
-init nKey user dbName =
-    ( { session = user, tree = Nothing, navKey = nKey }, send <| CopyDocument dbName )
+init : Nav.Key -> GlobalData -> Session -> String -> ( Model, Cmd Msg )
+init nKey gData session dbName =
+    ( { globalData = gData
+      , session = session
+      , tree = Nothing
+      , navKey = nKey
+      }
+    , send <| CopyDocument dbName
+    )
 
 
 navKey : Model -> Nav.Key
 navKey model =
     model.navKey
+
+
+globalData : Model -> GlobalData
+globalData model =
+    model.globalData
 
 
 

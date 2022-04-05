@@ -1,7 +1,8 @@
-module Page.ResetPassword exposing (Model, Msg, init, navKey, subscriptions, toUser, update, view)
+module Page.ResetPassword exposing (Model, Msg, globalData, init, navKey, subscriptions, toUser, update, view)
 
 import Browser.Dom
 import Browser.Navigation as Nav
+import GlobalData exposing (GlobalData)
 import Html exposing (..)
 import Html.Attributes exposing (autofocus, class, classList, href, id, placeholder, src, type_, value)
 import Html.Events exposing (onBlur, onInput, onSubmit)
@@ -17,7 +18,8 @@ import Validate exposing (Valid, Validator, ifBlank, ifFalse, ifInvalidEmail, if
 
 
 type alias Model =
-    { user : Session
+    { globalData : GlobalData
+    , session : Session
     , navKey : Nav.Key
     , password : String
     , passwordConfirm : String
@@ -32,9 +34,10 @@ type Field
     | PasswordConfirm
 
 
-init : Nav.Key -> Session -> String -> ( Model, Cmd Msg )
-init nKey user resetToken =
-    ( { user = user
+init : Nav.Key -> GlobalData -> Session -> String -> ( Model, Cmd Msg )
+init nKey gData session resetToken =
+    ( { globalData = gData
+      , session = session
       , navKey = nKey
       , resetToken = resetToken
       , password = ""
@@ -46,13 +49,18 @@ init nKey user resetToken =
 
 
 toUser : Model -> Session
-toUser { user } =
-    user
+toUser { session } =
+    session
 
 
 navKey : Model -> Nav.Key
 navKey model =
     model.navKey
+
+
+globalData : Model -> GlobalData
+globalData model =
+    model.globalData
 
 
 
@@ -141,7 +149,7 @@ update msg model =
             ( { model | errors = [ errorMsg ], password = "", passwordConfirm = "" }, Cmd.none )
 
         GotUser user ->
-            ( { model | user = user }, Nav.replaceUrl model.navKey "/" )
+            ( { model | session = user }, Nav.replaceUrl model.navKey "/" )
 
 
 passwordValidator : Validator ( Field, String ) Model
@@ -171,10 +179,10 @@ modelValidator =
 sendResetPasswordRequest : Valid Model -> Cmd Msg
 sendResetPasswordRequest validModel =
     let
-        { password, resetToken, user } =
+        { password, resetToken, session } =
             Validate.fromValid validModel
     in
-    Session.requestResetPassword CompletedResetPassword { newPassword = password, token = resetToken } user
+    Session.requestResetPassword CompletedResetPassword { newPassword = password, token = resetToken } session
 
 
 

@@ -1,4 +1,4 @@
-module Page.App exposing (Model, Msg, getTitle, init, isDirty, navKey, subscriptions, toSession, update, view)
+module Page.App exposing (Model, Msg, getTitle, init, isDirty, navKey, subscriptions, toGlobalData, toSession, update, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
