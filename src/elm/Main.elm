@@ -85,7 +85,7 @@ changeRouteTo maybeRoute model =
             getNavKey model
 
         globalData =
-            getGlobalData model
+            toGlobalData model
 
         session =
             toSession model
@@ -217,8 +217,8 @@ toSession page =
             Page.App.toSession appModel
 
 
-getGlobalData : Model -> GlobalData
-getGlobalData model =
+toGlobalData : Model -> GlobalData
+toGlobalData model =
     case model of
         Redirect { globalData } ->
             globalData
@@ -330,7 +330,7 @@ update msg model =
                     if Page.App.isDirty appModel then
                         let
                             saveShortcut =
-                                if Session.isMac (toSession model) then
+                                if GlobalData.isMac (toGlobalData model) then
                                     "⌘+enter"
 
                                 else

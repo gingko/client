@@ -1,4 +1,4 @@
-port module Session exposing (PaymentStatus(..), Session, confirmEmail, currentTime, daysLeft, decode, documents, fileMenuOpen, fromLegacy, getDocName, getMetadata, isMac, isNotConfirmed, lastDocId, loggedIn, loginChanges, logout, name, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, setFileOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, updateDocuments, updateTime, updateUpgrade, upgradeModel, userSettingsChange)
+port module Session exposing (PaymentStatus(..), Session, confirmEmail, currentTime, daysLeft, decode, documents, fileMenuOpen, fromLegacy, getDocName, getMetadata, isNotConfirmed, lastDocId, loggedIn, loginChanges, logout, name, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, setFileOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, updateDocuments, updateTime, updateUpgrade, upgradeModel, userSettingsChange)
 
 import Coders exposing (sortByDecoder)
 import Doc.List as DocList exposing (Model(..))
@@ -9,7 +9,6 @@ import Json.Decode.Pipeline exposing (optional, optionalAt, required)
 import Json.Encode as Enc
 import List.Extra as ListExtra
 import Outgoing exposing (Msg(..), send)
-import Random
 import Time exposing (Posix)
 import Types exposing (SortBy(..))
 import Upgrade
@@ -26,8 +25,7 @@ type Session
 
 type alias SessionData =
     -- Not persisted
-    { isMac : Bool
-    , currentTime : Time.Posix
+    { currentTime : Time.Posix
     , fileMenuOpen : Bool
     , lastDocId : Maybe String
     , fromLegacy : Bool
@@ -72,11 +70,6 @@ name session =
 
         Guest _ ->
             Nothing
-
-
-isMac : Session -> Bool
-isMac session =
-    getFromSession .isMac session
 
 
 currentTime : Session -> Time.Posix
@@ -315,8 +308,7 @@ decode json =
 
         Err err ->
             Guest
-                { isMac = False
-                , currentTime = Time.millisToPosix 0
+                { currentTime = Time.millisToPosix 0
                 , fileMenuOpen = False
                 , lastDocId = Nothing
                 , fromLegacy = False
@@ -331,7 +323,7 @@ decoder =
 decodeLoggedIn : Dec.Decoder Session
 decodeLoggedIn =
     Dec.succeed
-        (\email s os t legacy side payStat confirmTime trayOpen sortCriteria lastDoc ->
+        (\email t legacy side payStat confirmTime trayOpen sortCriteria lastDoc ->
             let
                 newPayStat =
                     if payStat == Trial (Time.millisToPosix 0) then
@@ -341,8 +333,7 @@ decodeLoggedIn =
                         payStat
             in
             LoggedIn
-                { isMac = os
-                , currentTime = t
+                { currentTime = t
                 , fileMenuOpen = side
                 , lastDocId = Nothing
                 , fromLegacy = legacy
@@ -350,8 +341,6 @@ decodeLoggedIn =
                 (UserData email Upgrade.init newPayStat confirmTime trayOpen sortCriteria DocList.init)
         )
         |> required "email" Dec.string
-        |> required "seed" (Dec.int |> Dec.map Random.initialSeed)
-        |> required "isMac" Dec.bool
         |> required "currentTime" (Dec.int |> Dec.map Time.millisToPosix)
         |> optional "fromLegacy" Dec.bool False
         |> optional "sidebarOpen" Dec.bool False
@@ -381,16 +370,14 @@ decodePaymentStatus =
 decodeGuest : Dec.Decoder Session
 decodeGuest =
     Dec.succeed
-        (\os t legacy side ->
+        (\t legacy side ->
             Guest
-                { isMac = os
-                , currentTime = t
+                { currentTime = t
                 , fileMenuOpen = side
                 , lastDocId = Nothing
                 , fromLegacy = legacy
                 }
         )
-        |> required "isMac" Dec.bool
         |> required "currentTime" (Dec.int |> Dec.map Time.millisToPosix)
         |> optional "fromLegacy" Dec.bool False
         |> optional "sidebarOpen" Dec.bool False

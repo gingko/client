@@ -1475,7 +1475,7 @@ viewModal globalData session modalState =
 
         HelpScreen ->
             HelpScreen.view language
-                (Session.isMac session)
+                (GlobalData.isMac globalData)
                 { closeModal = ModalClosed
                 , showVideoTutorials = VideoViewerOpened
                 , showWidget = ClickedShowWidget
