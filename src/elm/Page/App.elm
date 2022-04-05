@@ -362,12 +362,12 @@ update msg model =
             ( model |> updateSession newSession, Route.pushUrl model.navKey Route.Login )
 
         TimeUpdate time ->
-            ( model |> updateSession (Session.updateTime time session)
+            ( model |> updateGlobalData (GlobalData.updateTime time globalData)
             , Cmd.none
             )
 
         SettingsChanged json ->
-            ( model |> updateSession (Session.sync json session), Cmd.none )
+            ( model |> updateSession (Session.sync json (GlobalData.currentTime globalData) session), Cmd.none )
 
         LogoutRequested ->
             ( model, Session.logout )
@@ -1075,7 +1075,7 @@ update msg model =
 
         -- Misc UI
         CloseEmailConfirmBanner ->
-            ( model |> updateSession (Session.confirmEmail session), Cmd.none )
+            ( model |> updateSession (Session.confirmEmail (GlobalData.currentTime globalData) session), Cmd.none )
 
         ToggledUpgradeModal isOpen ->
             ( { model
@@ -1511,7 +1511,7 @@ viewModal globalData session modalState =
                 Just upgradeModel ->
                     let
                         daysLeft_ =
-                            Session.daysLeft session
+                            Session.daysLeft (GlobalData.currentTime globalData) session
                     in
                     Upgrade.view daysLeft_ upgradeModel
                         |> List.map (Html.map UpgradeModalMsg)

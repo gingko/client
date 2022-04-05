@@ -329,7 +329,7 @@ viewUpgradeButton toggledUpgradeModal globalData session =
                 (prepends ++ [ div [ id "upgrade-button" ] [ text lang Upgrade ] ])
 
         maybeUpgrade =
-            case Session.daysLeft session of
+            case Session.daysLeft (GlobalData.currentTime globalData) session of
                 Just daysLeft ->
                     let
                         trialClass =
@@ -462,7 +462,7 @@ viewSidebar globalData session msgs currentDocId sortCriteria fileFilter docList
             GlobalData.language globalData
 
         custId_ =
-            case Session.paymentStatus session of
+            case Session.paymentStatus (GlobalData.currentTime globalData) session of
                 Customer custId ->
                     Just custId
 

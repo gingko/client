@@ -112,7 +112,7 @@ changeRouteTo maybeRoute model =
             Just Route.EmailConfirmed ->
                 let
                     newSession =
-                        Session.confirmEmail session
+                        Session.confirmEmail (GlobalData.currentTime globalData) session
                 in
                 ( Redirect (WebSessionData globalData newSession navKey), Route.replaceUrl navKey Route.Root )
 
@@ -353,7 +353,7 @@ update msg model =
                     ( model, Nav.load href )
 
         ( SettingsChanged json, PaymentSuccess webSessionData ) ->
-            ( PaymentSuccess { webSessionData | session = Session.sync json webSessionData.session }, Cmd.none )
+            ( PaymentSuccess { webSessionData | session = Session.sync json (GlobalData.currentTime webSessionData.globalData) webSessionData.session }, Cmd.none )
 
         ( GotSignupMsg signupMsg, Signup signupModel ) ->
             Page.Signup.update signupMsg signupModel

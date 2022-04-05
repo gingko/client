@@ -1,4 +1,4 @@
-port module Session exposing (PaymentStatus(..), Session, confirmEmail, currentTime, daysLeft, decode, documents, fileMenuOpen, fromLegacy, getDocName, getMetadata, isNotConfirmed, lastDocId, loggedIn, loginChanges, logout, name, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, setFileOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, updateDocuments, updateTime, updateUpgrade, upgradeModel, userSettingsChange)
+port module Session exposing (PaymentStatus(..), Session, confirmEmail, daysLeft, decode, documents, fileMenuOpen, fromLegacy, getDocName, getMetadata, isNotConfirmed, lastDocId, loggedIn, loginChanges, logout, name, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, setFileOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, updateDocuments, updateUpgrade, upgradeModel, userSettingsChange)
 
 import Coders exposing (sortByDecoder)
 import Doc.List as DocList exposing (Model(..))
@@ -25,8 +25,7 @@ type Session
 
 type alias SessionData =
     -- Not persisted
-    { currentTime : Time.Posix
-    , fileMenuOpen : Bool
+    { fileMenuOpen : Bool
     , lastDocId : Maybe String
     , fromLegacy : Bool
     }
@@ -72,11 +71,6 @@ name session =
             Nothing
 
 
-currentTime : Session -> Time.Posix
-currentTime session =
-    getFromSession .currentTime session
-
-
 lastDocId : Session -> Maybe String
 lastDocId session =
     getFromSession .lastDocId session
@@ -102,14 +96,14 @@ upgradeModel session =
             Nothing
 
 
-paymentStatus : Session -> PaymentStatus
-paymentStatus session =
+paymentStatus : Time.Posix -> Session -> PaymentStatus
+paymentStatus cTime session =
     case session of
         LoggedIn _ data ->
             data.paymentStatus
 
         Guest _ ->
-            Trial (currentTime session |> add14days)
+            Trial (cTime |> add14days)
 
 
 add14days : Posix -> Posix
@@ -118,11 +112,11 @@ add14days time =
         |> (\ms -> 3600 * 24 * 1000 * 14 + ms |> Time.millisToPosix)
 
 
-daysLeft : Session -> Maybe Int
-daysLeft session =
-    case paymentStatus session of
+daysLeft : Time.Posix -> Session -> Maybe Int
+daysLeft cTime session =
+    case paymentStatus cTime session of
         Trial expiry ->
-            ((Time.posixToMillis expiry - Time.posixToMillis (currentTime session)) |> toFloat)
+            ((Time.posixToMillis expiry - Time.posixToMillis cTime) |> toFloat)
                 / (1000 * 3600 * 24)
                 |> round
                 |> Just
@@ -202,13 +196,13 @@ loggedIn session =
 -- UPDATE
 
 
-sync : Dec.Value -> Session -> Session
-sync json session =
+sync : Dec.Value -> Time.Posix -> Session -> Session
+sync json currentTime session =
     let
         settingsDecoder : Decoder { paymentStatus : PaymentStatus, confirmedAt : Maybe Time.Posix }
         settingsDecoder =
             Dec.succeed (\payStat confAt -> { paymentStatus = payStat, confirmedAt = confAt })
-                |> optional "paymentStatus" decodePaymentStatus (Trial (currentTime session |> add14days))
+                |> optional "paymentStatus" decodePaymentStatus (Trial (currentTime |> add14days))
                 |> optional "confirmedAt" decodeConfirmedStatus (Just (Time.millisToPosix 0))
     in
     case ( Dec.decodeValue settingsDecoder json, session ) of
@@ -236,21 +230,16 @@ updateSession updateFn session =
             Guest (updateFn sessionData)
 
 
-updateTime : Time.Posix -> Session -> Session
-updateTime newTime session =
-    updateSession (\s -> { s | currentTime = newTime }) session
-
-
 setFileOpen : Bool -> Session -> Session
 setFileOpen isOpen session =
     updateSession (\s -> { s | fileMenuOpen = isOpen }) session
 
 
-confirmEmail : Session -> Session
-confirmEmail session =
+confirmEmail : Time.Posix -> Session -> Session
+confirmEmail currentTime session =
     case session of
         LoggedIn key data ->
-            LoggedIn key { data | confirmedAt = Just (currentTime session) }
+            LoggedIn key { data | confirmedAt = Just currentTime }
 
         Guest _ ->
             session
@@ -308,8 +297,7 @@ decode json =
 
         Err err ->
             Guest
-                { currentTime = Time.millisToPosix 0
-                , fileMenuOpen = False
+                { fileMenuOpen = False
                 , lastDocId = Nothing
                 , fromLegacy = False
                 }
@@ -333,8 +321,7 @@ decodeLoggedIn =
                         payStat
             in
             LoggedIn
-                { currentTime = t
-                , fileMenuOpen = side
+                { fileMenuOpen = side
                 , lastDocId = Nothing
                 , fromLegacy = legacy
                 }
@@ -370,15 +357,13 @@ decodePaymentStatus =
 decodeGuest : Dec.Decoder Session
 decodeGuest =
     Dec.succeed
-        (\t legacy side ->
+        (\legacy side ->
             Guest
-                { currentTime = t
-                , fileMenuOpen = side
+                { fileMenuOpen = side
                 , lastDocId = Nothing
                 , fromLegacy = legacy
                 }
         )
-        |> required "currentTime" (Dec.int |> Dec.map Time.millisToPosix)
         |> optional "fromLegacy" Dec.bool False
         |> optional "sidebarOpen" Dec.bool False
 
