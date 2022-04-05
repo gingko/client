@@ -313,6 +313,7 @@ type Msg
     | CloseEmailConfirmBanner
     | ToggledUpgradeModal Bool
     | UpgradeModalMsg Upgrade.Msg
+    | ToggledShortcutTray
     | WordcountModalOpened
     | FileSearchChanged String
     | TooltipRequested String TooltipPosition TranslationId
@@ -1122,6 +1123,27 @@ update msg model =
                     in
                     ( model |> updateSession newSession, maybeFlash )
 
+        ToggledShortcutTray ->
+            let
+                newIsOpen =
+                    not <| Session.shortcutTrayOpen session
+
+                newSession =
+                    Session.setShortcutTrayOpen newIsOpen session
+            in
+            ( { model
+                | headerMenu =
+                    if model.headerMenu == ExportPreview && newIsOpen then
+                        NoHeaderMenu
+
+                    else
+                        model.headerMenu
+                , tooltip = Nothing
+              }
+                |> updateSession newSession
+            , send <| SaveUserSetting ( "shortcutTrayOpen", Enc.bool newIsOpen )
+            )
+
         WordcountModalOpened ->
             case model.documentState of
                 Doc { docModel } ->
@@ -1409,6 +1431,17 @@ view ({ documentState } as model) =
                        , viewIf (Session.isNotConfirmed session) (viewConfirmBanner lang CloseEmailConfirmBanner email)
                        , viewTooltip
                        ]
+                    ++ UI.viewShortcuts
+                        { toggledShortcutTray = ToggledShortcutTray
+                        , tooltipRequested = TooltipRequested
+                        , tooltipClosed = TooltipClosed
+                        }
+                        lang
+                        (Session.shortcutTrayOpen session)
+                        (GlobalData.isMac docModel.globalData)
+                        docModel.workingTree.tree.children
+                        docModel.textCursorInfo
+                        docModel.viewState
                     ++ viewModal docModel.globalData session model.modalState
                 )
 

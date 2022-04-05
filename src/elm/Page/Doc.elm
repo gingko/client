@@ -2046,21 +2046,6 @@ viewLoaded ({ docMsg } as appMsg) model =
                   else
                     text ""
                 ]
-                    ++ UI.viewShortcuts
-                        { toggledShortcutTray = docMsg ShortcutTrayToggle
-                        , tooltipRequested = appMsg.tooltipRequested
-                        , tooltipClosed = appMsg.tooltipClosed
-                        }
-                        language
-                        (False
-                         {--TODO: Session.shortcutTrayOpen model.session--}
-                        )
-                        (False
-                         {--Session.isMac model.session--}
-                        )
-                        model.workingTree.tree.children
-                        model.textCursorInfo
-                        model.viewState
                     ++ [ viewSearchField SearchFieldUpdated model |> Html.map docMsg
                        , viewMobileButtons
                             { edit = mobileBtnMsg "mod+enter"
