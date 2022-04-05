@@ -1,4 +1,4 @@
-port module Session exposing (PaymentStatus(..), Session, confirmEmail, currentTime, daysLeft, decode, documents, fileMenuOpen, fromLegacy, getDocName, getMetadata, isMac, isNotConfirmed, language, lastDocId, loggedIn, loginChanges, logout, name, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, setFileOpen, setLanguage, setShortcutTrayOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, updateDocuments, updateTime, updateUpgrade, upgradeModel, userSettingsChange)
+port module Session exposing (PaymentStatus(..), Session, confirmEmail, currentTime, daysLeft, decode, documents, fileMenuOpen, fromLegacy, getDocName, getMetadata, isMac, isNotConfirmed, lastDocId, loggedIn, loginChanges, logout, name, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, setFileOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, updateDocuments, updateTime, updateUpgrade, upgradeModel, userSettingsChange)
 
 import Coders exposing (sortByDecoder)
 import Doc.List as DocList exposing (Model(..))
@@ -11,7 +11,6 @@ import List.Extra as ListExtra
 import Outgoing exposing (Msg(..), send)
 import Random
 import Time exposing (Posix)
-import Translation exposing (Language(..), langFromString, langToString, languageDecoder)
 import Types exposing (SortBy(..))
 import Upgrade
 
@@ -22,7 +21,7 @@ import Upgrade
 
 type Session
     = LoggedIn SessionData UserData
-    | Guest SessionData GuestData
+    | Guest SessionData
 
 
 type alias SessionData =
@@ -37,7 +36,6 @@ type alias SessionData =
 
 type alias UserData =
     { email : String
-    , language : Translation.Language
     , upgradeModel : Upgrade.Model
     , paymentStatus : PaymentStatus
     , confirmedAt : Maybe Time.Posix
@@ -52,12 +50,6 @@ type PaymentStatus
     | Customer String
 
 
-type alias GuestData =
-    -- Persisted in localStorage
-    { language : Translation.Language
-    }
-
-
 
 -- GETTERS
 
@@ -68,7 +60,7 @@ getFromSession getter session =
         LoggedIn sessionData _ ->
             getter sessionData
 
-        Guest sessionData _ ->
+        Guest sessionData ->
             getter sessionData
 
 
@@ -78,7 +70,7 @@ name session =
         LoggedIn _ { email } ->
             Just email
 
-        Guest _ _ ->
+        Guest _ ->
             Nothing
 
 
@@ -107,23 +99,13 @@ fileMenuOpen session =
     getFromSession .fileMenuOpen session
 
 
-language : Session -> Language
-language session =
-    case session of
-        LoggedIn _ data ->
-            data.language
-
-        Guest _ data ->
-            data.language
-
-
 upgradeModel : Session -> Maybe Upgrade.Model
 upgradeModel session =
     case session of
         LoggedIn _ data ->
             Just data.upgradeModel
 
-        Guest _ _ ->
+        Guest _ ->
             Nothing
 
 
@@ -133,7 +115,7 @@ paymentStatus session =
         LoggedIn _ data ->
             data.paymentStatus
 
-        Guest _ _ ->
+        Guest _ ->
             Trial (currentTime session |> add14days)
 
 
@@ -162,7 +144,7 @@ isNotConfirmed session =
         LoggedIn _ data ->
             data.confirmedAt == Nothing
 
-        Guest _ _ ->
+        Guest _ ->
             True
 
 
@@ -172,7 +154,7 @@ shortcutTrayOpen session =
         LoggedIn _ data ->
             data.shortcutTrayOpen
 
-        Guest _ _ ->
+        Guest _ ->
             False
 
 
@@ -182,7 +164,7 @@ sortBy session =
         LoggedIn _ data ->
             data.sortBy
 
-        Guest _ _ ->
+        Guest _ ->
             ModifiedAt
 
 
@@ -192,7 +174,7 @@ documents session =
         LoggedIn _ data ->
             data.documents
 
-        Guest _ _ ->
+        Guest _ ->
             DocList.init
 
 
@@ -219,7 +201,7 @@ loggedIn session =
         LoggedIn _ _ ->
             True
 
-        Guest _ _ ->
+        Guest _ ->
             False
 
 
@@ -230,10 +212,9 @@ loggedIn session =
 sync : Dec.Value -> Session -> Session
 sync json session =
     let
-        settingsDecoder : Decoder { language : Language, paymentStatus : PaymentStatus, confirmedAt : Maybe Time.Posix }
+        settingsDecoder : Decoder { paymentStatus : PaymentStatus, confirmedAt : Maybe Time.Posix }
         settingsDecoder =
-            Dec.succeed (\lang payStat confAt -> { language = lang, paymentStatus = payStat, confirmedAt = confAt })
-                |> optional "language" languageDecoder En
+            Dec.succeed (\payStat confAt -> { paymentStatus = payStat, confirmedAt = confAt })
                 |> optional "paymentStatus" decodePaymentStatus (Trial (currentTime session |> add14days))
                 |> optional "confirmedAt" decodeConfirmedStatus (Just (Time.millisToPosix 0))
     in
@@ -241,13 +222,12 @@ sync json session =
         ( Ok newSettings, LoggedIn sessData userData ) ->
             LoggedIn sessData
                 { userData
-                    | language = newSettings.language
-                    , paymentStatus = newSettings.paymentStatus
+                    | paymentStatus = newSettings.paymentStatus
                     , confirmedAt = newSettings.confirmedAt
                 }
 
-        ( Ok newSettings, Guest sessData guestData ) ->
-            Guest sessData { guestData | language = newSettings.language }
+        ( Ok newSettings, Guest sessData ) ->
+            Guest sessData
 
         ( Err _, _ ) ->
             session
@@ -259,8 +239,8 @@ updateSession updateFn session =
         LoggedIn sessionData data ->
             LoggedIn (updateFn sessionData) data
 
-        Guest sessionData data ->
-            Guest (updateFn sessionData) data
+        Guest sessionData ->
+            Guest (updateFn sessionData)
 
 
 updateTime : Time.Posix -> Session -> Session
@@ -273,23 +253,13 @@ setFileOpen isOpen session =
     updateSession (\s -> { s | fileMenuOpen = isOpen }) session
 
 
-setLanguage : Language -> Session -> Session
-setLanguage lang session =
-    case session of
-        LoggedIn key data ->
-            LoggedIn key { data | language = lang }
-
-        Guest key data ->
-            Guest key { data | language = lang }
-
-
 confirmEmail : Session -> Session
 confirmEmail session =
     case session of
         LoggedIn key data ->
             LoggedIn key { data | confirmedAt = Just (currentTime session) }
 
-        Guest _ _ ->
+        Guest _ ->
             session
 
 
@@ -299,7 +269,7 @@ setShortcutTrayOpen isOpen session =
         LoggedIn key data ->
             LoggedIn key { data | shortcutTrayOpen = isOpen }
 
-        Guest _ _ ->
+        Guest _ ->
             session
 
 
@@ -309,7 +279,7 @@ setSortBy newSort session =
         LoggedIn key data ->
             LoggedIn key { data | sortBy = newSort }
 
-        Guest _ _ ->
+        Guest _ ->
             session
 
 
@@ -319,7 +289,7 @@ updateDocuments docList session =
         LoggedIn sessionData data ->
             LoggedIn sessionData { data | documents = DocList.update data.sortBy docList data.documents }
 
-        Guest _ _ ->
+        Guest _ ->
             session
 
 
@@ -329,7 +299,7 @@ updateUpgrade upgradeMsg session =
         LoggedIn sessionData data ->
             LoggedIn sessionData { data | upgradeModel = Upgrade.update upgradeMsg data.upgradeModel }
 
-        Guest _ _ ->
+        Guest _ ->
             session
 
 
@@ -351,7 +321,6 @@ decode json =
                 , lastDocId = Nothing
                 , fromLegacy = False
                 }
-                (GuestData En)
 
 
 decoder : Dec.Decoder Session
@@ -362,7 +331,7 @@ decoder =
 decodeLoggedIn : Dec.Decoder Session
 decodeLoggedIn =
     Dec.succeed
-        (\email s os t legacy lang side payStat confirmTime trayOpen sortCriteria lastDoc ->
+        (\email s os t legacy side payStat confirmTime trayOpen sortCriteria lastDoc ->
             let
                 newPayStat =
                     if payStat == Trial (Time.millisToPosix 0) then
@@ -378,14 +347,13 @@ decodeLoggedIn =
                 , lastDocId = Nothing
                 , fromLegacy = legacy
                 }
-                (UserData email lang Upgrade.init newPayStat confirmTime trayOpen sortCriteria DocList.init)
+                (UserData email Upgrade.init newPayStat confirmTime trayOpen sortCriteria DocList.init)
         )
         |> required "email" Dec.string
         |> required "seed" (Dec.int |> Dec.map Random.initialSeed)
         |> required "isMac" Dec.bool
         |> required "currentTime" (Dec.int |> Dec.map Time.millisToPosix)
         |> optional "fromLegacy" Dec.bool False
-        |> optional "language" (Dec.string |> Dec.map langFromString) En
         |> optional "sidebarOpen" Dec.bool False
         |> optional "paymentStatus" decodePaymentStatus (Trial (Time.millisToPosix 0))
         |> optional "confirmedAt" decodeConfirmedStatus (Just (Time.millisToPosix 0))
@@ -413,7 +381,7 @@ decodePaymentStatus =
 decodeGuest : Dec.Decoder Session
 decodeGuest =
     Dec.succeed
-        (\os t legacy l side ->
+        (\os t legacy side ->
             Guest
                 { isMac = os
                 , currentTime = t
@@ -421,29 +389,26 @@ decodeGuest =
                 , lastDocId = Nothing
                 , fromLegacy = legacy
                 }
-                (GuestData l)
         )
         |> required "isMac" Dec.bool
         |> required "currentTime" (Dec.int |> Dec.map Time.millisToPosix)
         |> optional "fromLegacy" Dec.bool False
-        |> optional "language" (Dec.string |> Dec.map langFromString) En
         |> optional "sidebarOpen" Dec.bool False
 
 
 responseDecoder : Session -> Dec.Decoder Session
 responseDecoder session =
     let
-        builder email lang payStat checklist trayOpen sortCriteria =
+        builder email payStat checklist trayOpen sortCriteria =
             case session of
-                Guest sessionData data ->
-                    LoggedIn sessionData (UserData email lang Upgrade.init payStat checklist trayOpen sortCriteria DocList.init)
+                Guest sessionData ->
+                    LoggedIn sessionData (UserData email Upgrade.init payStat checklist trayOpen sortCriteria DocList.init)
 
                 LoggedIn _ _ ->
                     session
     in
     Dec.succeed builder
         |> required "email" Dec.string
-        |> optionalAt [ "settings", "language" ] (Dec.map langFromString Dec.string) En
         |> optionalAt [ "settings", "paymentStatus" ] decodePaymentStatus (Trial (Time.millisToPosix 0))
         |> optionalAt [ "settings", "confirmedAt" ] decodeConfirmedStatus (Just (Time.millisToPosix 0))
         |> optionalAt [ "settings", "shortcutTrayOpen" ] Dec.bool False
@@ -456,13 +421,10 @@ encode session =
         LoggedIn _ data ->
             Enc.object
                 [ ( "email", Enc.string data.email )
-                , ( "language", data.language |> langToString |> Enc.string )
                 ]
 
-        Guest _ data ->
-            Enc.object
-                [ ( "language", data.language |> langToString |> Enc.string )
-                ]
+        Guest _ ->
+            Enc.null
 
 
 

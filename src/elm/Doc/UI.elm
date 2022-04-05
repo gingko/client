@@ -244,6 +244,7 @@ viewHeader msgs session title_ appModel docModel titleField_ =
             [ AntIcons.fileDoneOutlined [] ]
         , viewUpgradeButton
             msgs.toggledUpgradeModal
+            docModel.globalData
             session
         , viewIf (appModel.headerMenu == ExportPreview) <|
             div [ id "export-menu" ]
@@ -311,12 +312,13 @@ viewSaveIndicator language { dirty, lastLocalSave, lastRemoteSave } currentTime 
 
 viewUpgradeButton :
     (Bool -> msg)
+    -> GlobalData
     -> Session
     -> Html msg
-viewUpgradeButton toggledUpgradeModal session =
+viewUpgradeButton toggledUpgradeModal globalData session =
     let
         lang =
-            Session.language session
+            GlobalData.language globalData
 
         upgradeCTA isExpired prepends =
             div
@@ -442,7 +444,8 @@ type alias SidebarMsgs msg =
 
 
 viewSidebar :
-    Session
+    GlobalData
+    -> Session
     -> SidebarMsgs msg
     -> String
     -> SortBy
@@ -453,10 +456,10 @@ viewSidebar :
     -> SidebarMenuState
     -> SidebarState
     -> Html msg
-viewSidebar session msgs currentDocId sortCriteria fileFilter docList accountEmail contextTarget_ dropdownState sidebarState =
+viewSidebar globalData session msgs currentDocId sortCriteria fileFilter docList accountEmail contextTarget_ dropdownState sidebarState =
     let
         lang =
-            Session.language session
+            GlobalData.language globalData
 
         custId_ =
             case Session.paymentStatus session of

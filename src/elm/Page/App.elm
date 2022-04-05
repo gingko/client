@@ -888,11 +888,11 @@ update msg model =
             ( { model | sidebarMenuState = Account (Just el) }, Cmd.none )
 
         LanguageChanged newLang ->
-            if newLang /= Session.language session then
+            if newLang /= GlobalData.language globalData then
                 ( { model
                     | sidebarMenuState = NoSidebarMenu
                   }
-                    |> updateSession (Session.setLanguage newLang session)
+                    |> updateGlobalData (GlobalData.setLanguage newLang globalData)
                 , send <| SaveUserSetting ( "language", langToString newLang |> Enc.string )
                 )
 
@@ -1294,7 +1294,7 @@ view ({ documentState } as model) =
             toSession model
 
         lang =
-            Session.language session
+            GlobalData.language (toGlobalData model)
 
         email =
             Session.name session
@@ -1395,7 +1395,8 @@ view ({ documentState } as model) =
                             docModel
                             titleField
                        , maybeExportView
-                       , UI.viewSidebar session
+                       , UI.viewSidebar docModel.globalData
+                            session
                             sidebarMsgs
                             docId
                             (Session.sortBy session)
@@ -1408,17 +1409,18 @@ view ({ documentState } as model) =
                        , viewIf (Session.isNotConfirmed session) (viewConfirmBanner lang CloseEmailConfirmBanner email)
                        , viewTooltip
                        ]
-                    ++ viewModal session model.modalState
+                    ++ viewModal docModel.globalData session model.modalState
                 )
 
-        Empty _ _ ->
+        Empty globalData _ ->
             if model.loading then
                 UI.viewAppLoadingSpinner (Session.fileMenuOpen session)
 
             else
                 div [ id "app-root", classList [ ( "loading", model.loading ) ] ]
                     (Page.Empty.view { newClicked = TemplateSelectorOpened, emptyMessage = EmptyMessage }
-                        ++ [ UI.viewSidebar session
+                        ++ [ UI.viewSidebar globalData
+                                session
                                 sidebarMsgs
                                 ""
                                 ModifiedAt
@@ -1431,15 +1433,15 @@ view ({ documentState } as model) =
                            , viewIf (Session.isNotConfirmed session) (viewConfirmBanner lang CloseEmailConfirmBanner email)
                            , viewTooltip
                            ]
-                        ++ viewModal session model.modalState
+                        ++ viewModal globalData session model.modalState
                     )
 
 
-viewModal : Session -> ModalState -> List (Html Msg)
-viewModal session modalState =
+viewModal : GlobalData -> Session -> ModalState -> List (Html Msg)
+viewModal globalData session modalState =
     let
         language =
-            Session.language session
+            GlobalData.language globalData
     in
     case modalState of
         NoModal ->
