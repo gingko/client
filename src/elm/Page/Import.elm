@@ -24,12 +24,9 @@ type alias Model =
     }
 
 
-init : Nav.Key -> Session -> Template -> ( Model, Cmd Msg )
-init navKey session template =
+init : Nav.Key -> GlobalData -> Session -> Template -> ( Model, Cmd Msg )
+init navKey globalData session template =
     let
-        globalData =
-            GlobalData.fromSession session
-
         ( importTreeDecoder, newSeed ) =
             Import.Single.decoder (GlobalData.seed globalData)
     in

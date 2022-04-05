@@ -1,4 +1,4 @@
-module GlobalData exposing (GlobalData, currentTime, decode, fromSession, isMac, language, seed, setLanguage, setSeed, updateTime)
+module GlobalData exposing (GlobalData, currentTime, decode, isMac, language, seed, setLanguage, setSeed, updateTime)
 
 import Json.Decode as Dec exposing (Decoder)
 import Json.Decode.Pipeline exposing (optional, required)
@@ -57,16 +57,6 @@ decoder =
         |> required "currentTime" (Dec.int |> Dec.map Time.millisToPosix)
         |> optional "language" (Dec.string |> Dec.map langFromString) En
         |> required "isMac" Dec.bool
-
-
-fromSession : Session -> GlobalData
-fromSession session =
-    GlobalData
-        { seed = Session.seed session
-        , currentTime = Session.currentTime session
-        , language = Session.language session
-        , isMac = Session.isMac session
-        }
 
 
 

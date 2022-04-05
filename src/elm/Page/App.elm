@@ -109,8 +109,8 @@ type ModalState
     | UpgradeModal
 
 
-defaultModel : Nav.Key -> Session -> Maybe ( String, Page.Doc.Model ) -> Model
-defaultModel nKey session docModel_ =
+defaultModel : Nav.Key -> GlobalData -> Session -> Maybe ( String, Page.Doc.Model ) -> Model
+defaultModel nKey globalData session docModel_ =
     { loading = True
     , documentState =
         case docModel_ of
@@ -123,7 +123,7 @@ defaultModel nKey session docModel_ =
                     }
 
             Nothing ->
-                Empty (GlobalData.fromSession session) session
+                Empty globalData session
     , sidebarState =
         if Session.fileMenuOpen session then
             File
@@ -141,12 +141,12 @@ defaultModel nKey session docModel_ =
     }
 
 
-init : Nav.Key -> Session -> Maybe DbData -> ( Model, Cmd Msg )
-init nKey session dbData_ =
+init : Nav.Key -> GlobalData -> Session -> Maybe DbData -> ( Model, Cmd Msg )
+init nKey globalData session dbData_ =
     case dbData_ of
         Just dbData ->
             if dbData.isNew then
-                ( defaultModel nKey session (Just ( dbData.dbName, Page.Doc.init True (GlobalData.fromSession session) dbData.dbName ))
+                ( defaultModel nKey globalData session (Just ( dbData.dbName, Page.Doc.init True globalData dbData.dbName ))
                 , Cmd.batch
                     [ send <| InitDocument dbData.dbName
                     , Task.attempt (always NoOp) (Browser.Dom.focus "card-edit-1")
@@ -154,17 +154,17 @@ init nKey session dbData_ =
                 )
 
             else
-                ( defaultModel nKey (session |> Debug.log "init session") (Just ( dbData.dbName, Page.Doc.init False (GlobalData.fromSession session) dbData.dbName ))
+                ( defaultModel nKey globalData session (Just ( dbData.dbName, Page.Doc.init False globalData dbData.dbName ))
                 , send <| LoadDocument dbData.dbName
                 )
 
         Nothing ->
             case Session.lastDocId session of
                 Just docId ->
-                    ( defaultModel nKey session Nothing, Route.replaceUrl nKey (Route.DocUntitled docId) )
+                    ( defaultModel nKey globalData session Nothing, Route.replaceUrl nKey (Route.DocUntitled docId) )
 
                 Nothing ->
-                    ( defaultModel nKey session Nothing, send <| GetDocumentList )
+                    ( defaultModel nKey globalData session Nothing, send <| GetDocumentList )
 
 
 isDirty : Model -> Bool

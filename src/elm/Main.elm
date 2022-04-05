@@ -93,13 +93,13 @@ changeRouteTo maybeRoute model =
     if Session.loggedIn session then
         case maybeRoute of
             Just Route.Root ->
-                Page.App.init navKey session Nothing |> updateWith App GotAppMsg
+                Page.App.init navKey globalData session Nothing |> updateWith App GotAppMsg
 
             Just Route.Signup ->
                 Page.Signup.init navKey globalData session |> updateWith Signup GotSignupMsg
 
             Just Route.Login ->
-                Page.App.init navKey session Nothing |> updateWith App GotAppMsg
+                Page.App.init navKey globalData session Nothing |> updateWith App GotAppMsg
 
             Just (Route.ForgotPassword email_) ->
                 Page.ForgotPassword.init navKey globalData session email_
@@ -129,16 +129,16 @@ changeRouteTo maybeRoute model =
                             _ ->
                                 False
                 in
-                Page.App.init navKey session (Just { dbName = dbName, isNew = isNew }) |> updateWith App GotAppMsg
+                Page.App.init navKey globalData session (Just { dbName = dbName, isNew = isNew }) |> updateWith App GotAppMsg
 
             Just (Route.Doc dbName _) ->
-                Page.App.init navKey session (Just { dbName = dbName, isNew = False }) |> updateWith App GotAppMsg
+                Page.App.init navKey globalData session (Just { dbName = dbName, isNew = False }) |> updateWith App GotAppMsg
 
             Just (Route.Copy dbName) ->
                 Page.Copy.init navKey globalData session dbName |> updateWith Copy GotCopyMsg
 
             Just (Route.Import template) ->
-                Page.Import.init navKey session template
+                Page.Import.init navKey globalData session template
                     |> updateWith Import GotImportMsg
 
             Just (Route.Upgrade isOk) ->
