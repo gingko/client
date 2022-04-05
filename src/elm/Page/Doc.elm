@@ -67,8 +67,8 @@ type alias Model =
     }
 
 
-init : Bool -> GlobalData -> String -> Model
-init isNew globalData docId =
+init : Bool -> GlobalData -> Model
+init isNew globalData =
     { workingTree = TreeStructure.defaultModel
     , data = Data.empty
     , globalData = globalData
@@ -146,10 +146,8 @@ type Msg
     | SetSelection String Selection String
     | Resolve String
       -- === UI ===
-    | ShortcutTrayToggle
       -- Misc UI
     | FullscreenRequested
-    | FontsMsg Fonts.Msg
       -- === Ports ===
     | Pull
     | LogErr String
@@ -158,6 +156,7 @@ type Msg
 type ParentMsg
     = NoParentMsg
     | CloseTooltip
+    | LocalSaveDo Time.Posix
     | CommitDo Time.Posix
 
 
@@ -424,7 +423,6 @@ updateDoc msg ({ workingTree } as model) =
                     ( updatedModel, mappedCmd )
 
         LocalSave time ->
-            -- TODO: To parent |> localSaveDo
             ( model, Cmd.none )
 
         ThrottledCommit subMsg ->
@@ -448,7 +446,6 @@ updateDoc msg ({ workingTree } as model) =
                     ( updatedModel, mappedCmd )
 
         Commit time ->
-            -- TODO: To Parent
             ( model, Cmd.none )
 
         SetSelection cid selection id ->
@@ -479,29 +476,8 @@ updateDoc msg ({ workingTree } as model) =
                 |> addToHistory
 
         -- === UI ===
-        ShortcutTrayToggle ->
-            -- TODO: To Parent
-            ( model, Cmd.none )
-
         FullscreenRequested ->
             ( model, send <| RequestFullscreen )
-
-        FontsMsg fontsMsg ->
-            let
-                ( newModel, selectorOpen, newFontsTriple_ ) =
-                    Fonts.update fontsMsg model.fonts
-
-                cmd =
-                    case newFontsTriple_ of
-                        Just newFontsTriple ->
-                            send (SetFonts newFontsTriple)
-
-                        Nothing ->
-                            Cmd.none
-            in
-            ( { model | fonts = newModel, fontSelectorOpen = selectorOpen }
-            , cmd
-            )
 
         -- === Ports ===
         Pull ->
@@ -522,8 +498,8 @@ update msg model =
         Commit commitTime ->
             updateDoc msg model |> parentMsg (CommitDo commitTime)
 
-        ShortcutTrayToggle ->
-            updateDoc msg model |> parentMsg CloseTooltip
+        LocalSave saveTime ->
+            updateDoc msg model |> parentMsg (LocalSaveDo saveTime)
 
         _ ->
             updateDoc msg model |> parentMsg NoParentMsg
@@ -1855,11 +1831,6 @@ pasteInto id copiedTree ( model, prevCmd ) =
 
 
 -- === Local Saving ===
-
-
-localSaveDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-localSaveDo ( { workingTree } as model, prevCmd ) =
-    ( model, Cmd.batch [ send <| SaveToFile (treeToMarkdownOutline False workingTree.tree), prevCmd ] )
 
 
 localSave : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )

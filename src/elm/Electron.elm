@@ -1,17 +1,20 @@
 module Electron exposing (..)
 
 import Browser
-import Coders
+import Browser.Dom exposing (Element)
+import Coders exposing (treeToMarkdownOutline)
 import Doc.TreeStructure as TreeStructure
+import GlobalData
 import Html exposing (Html, button, div, h1, text)
 import Html.Attributes exposing (id)
 import Json.Decode as Dec exposing (Decoder, Value)
 import Outgoing exposing (Msg(..), send)
-import Page.Doc exposing (Msg(..))
+import Page.Doc exposing (Msg(..), ParentMsg(..))
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
-import Page.Doc.Theme exposing (applyTheme)
-import Session exposing (Session)
-import Types exposing (Tree)
+import Page.Doc.Theme exposing (Theme(..), applyTheme)
+import Task
+import Translation exposing (TranslationId)
+import Types exposing (TooltipPosition, Tree)
 
 
 main : Program ( Maybe String, Value ) Model Msg
@@ -29,50 +32,43 @@ main =
 
 
 type alias Model =
-    Page.Doc.Model
+    { docModel : Page.Doc.Model
+    , tooltip : Maybe ( Element, TooltipPosition, TranslationId )
+    , theme : Theme
+    }
 
 
 init : ( Maybe String, Value ) -> ( Model, Cmd Msg )
 init ( fileData_, json ) =
     let
-        session =
-            Session.decode json
+        globalData =
+            GlobalData.decode json
+
+        initDocModel =
+            case fileData_ of
+                Nothing ->
+                    Page.Doc.init True globalData
+
+                Just fileData ->
+                    case Coders.markdownOutlineHtmlParser fileData of
+                        Ok (Just parsedTree) ->
+                            Page.Doc.init False globalData |> initDoc parsedTree
+
+                        Ok Nothing ->
+                            let
+                                _ =
+                                    Debug.log "Nothing" "Nothing"
+                            in
+                            Page.Doc.init True globalData
+
+                        Err err ->
+                            let
+                                _ =
+                                    Debug.log "parse error" err
+                            in
+                            Page.Doc.init True globalData
     in
-    case fileData_ of
-        Nothing ->
-            ( Page.Doc.init True session "randDocId"
-                |> setDesktop True
-            , Cmd.none
-            )
-
-        Just fileData ->
-            case Coders.markdownOutlineHtmlParser fileData of
-                Ok (Just parsedTree) ->
-                    ( Page.Doc.init False session "randDocId"
-                        |> initDoc parsedTree
-                        |> setDesktop True
-                    , Cmd.none
-                    )
-
-                Ok Nothing ->
-                    let
-                        _ =
-                            Debug.log "Nothing" "Nothing"
-                    in
-                    ( Page.Doc.init True session "randDocId"
-                        |> setDesktop True
-                    , Cmd.none
-                    )
-
-                Err err ->
-                    let
-                        _ =
-                            Debug.log "parse error" err
-                    in
-                    ( Page.Doc.init True session "randDocId"
-                        |> setDesktop True
-                    , Cmd.none
-                    )
+    ( { docModel = initDocModel, tooltip = Nothing, theme = Default }, Cmd.none )
 
 
 initDoc : Tree -> Page.Doc.Model -> Page.Doc.Model
@@ -83,11 +79,6 @@ initDoc tree docModel =
     }
 
 
-setDesktop : Bool -> Page.Doc.Model -> Page.Doc.Model
-setDesktop isDesktop docModel =
-    { docModel | isDesktop = isDesktop }
-
-
 
 -- UPDATE
 
@@ -95,28 +86,72 @@ setDesktop isDesktop docModel =
 type Msg
     = NoOp
     | GotDocMsg Page.Doc.Msg
+    | TooltipRequested String TooltipPosition TranslationId
+    | TooltipReceived Element TooltipPosition TranslationId
+    | TooltipClosed
     | Incoming Incoming.Msg
     | LogErr String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg doc =
+update msg ({ docModel } as model) =
     case msg of
         GotDocMsg docMsg ->
-            Page.Doc.updateDoc docMsg doc
-                |> Tuple.mapSecond (Cmd.map GotDocMsg)
+            let
+                ( newDocModel, newCmd, parentMsg ) =
+                    Page.Doc.update docMsg docModel
+                        |> (\( m, c, p ) -> ( m, Cmd.map GotDocMsg c, p ))
+            in
+            case parentMsg of
+                CloseTooltip ->
+                    ( { model | docModel = newDocModel, tooltip = Nothing }, newCmd )
+
+                LocalSaveDo saveTime ->
+                    ( { model | docModel = newDocModel }, newCmd )
+                        |> localSaveDo
+
+                _ ->
+                    ( { model | docModel = newDocModel }, newCmd )
 
         Incoming incomingMsg ->
-            Page.Doc.incoming incomingMsg doc
-                |> Tuple.mapSecond (Cmd.map GotDocMsg)
+            Page.Doc.incoming incomingMsg docModel
+                |> Tuple.mapBoth (\m -> { model | docModel = m }) (Cmd.map GotDocMsg)
 
         LogErr err ->
-            ( doc
-            , send (ConsoleLogRequested err)
+            ( model, send (ConsoleLogRequested err) )
+
+        TooltipRequested elId tipPos content ->
+            ( model
+            , Browser.Dom.getElement elId
+                |> Task.attempt
+                    (\result ->
+                        case result of
+                            Ok el ->
+                                TooltipReceived el tipPos content
+
+                            Err _ ->
+                                NoOp
+                    )
             )
 
+        TooltipReceived el tipPos content ->
+            ( { model | tooltip = Just ( el, tipPos, content ) }, Cmd.none )
+
+        TooltipClosed ->
+            ( { model | tooltip = Nothing }, Cmd.none )
+
         NoOp ->
-            ( doc, Cmd.none )
+            ( model, Cmd.none )
+
+
+localSaveDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+localSaveDo ( model, prevCmd ) =
+    ( model
+    , Cmd.batch
+        [ send <| SaveToFile (treeToMarkdownOutline False model.docModel.workingTree.tree)
+        , prevCmd
+        ]
+    )
 
 
 
@@ -124,17 +159,15 @@ update msg doc =
 
 
 view : Model -> List (Html Msg)
-view doc =
-    [ div [ id "app-root", applyTheme doc.theme ]
+view model =
+    [ div [ id "app-root", applyTheme model.theme ]
         (Page.Doc.view
             { docMsg = GotDocMsg
             , keyboard = \s -> Incoming (Keyboard s)
-            , tooltipRequested = always <| always <| always NoOp
-            , tooltipClosed = NoOp
-            , toggleWordcount = always NoOp
-            , toggleUpgradeModal = always NoOp
+            , tooltipRequested = TooltipRequested
+            , tooltipClosed = TooltipClosed
             }
-            doc
+            model.docModel
         )
     ]
 

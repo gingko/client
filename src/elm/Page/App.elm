@@ -146,7 +146,7 @@ init nKey globalData session dbData_ =
     case dbData_ of
         Just dbData ->
             if dbData.isNew then
-                ( defaultModel nKey globalData session (Just ( dbData.dbName, Page.Doc.init True globalData dbData.dbName ))
+                ( defaultModel nKey globalData session (Just ( dbData.dbName, Page.Doc.init True globalData ))
                 , Cmd.batch
                     [ send <| InitDocument dbData.dbName
                     , Task.attempt (always NoOp) (Browser.Dom.focus "card-edit-1")
@@ -154,7 +154,7 @@ init nKey globalData session dbData_ =
                 )
 
             else
-                ( defaultModel nKey globalData session (Just ( dbData.dbName, Page.Doc.init False globalData dbData.dbName ))
+                ( defaultModel nKey globalData session (Just ( dbData.dbName, Page.Doc.init False globalData ))
                 , send <| LoadDocument dbData.dbName
                 )
 
@@ -352,6 +352,9 @@ update msg model =
                         CommitDo commitTime ->
                             ( { model | documentState = Doc { docState | docModel = newDocModel } }, newCmd )
                                 |> addToHistoryDo
+
+                        LocalSaveDo saveTime ->
+                            ( { model | documentState = Doc { docState | docModel = newDocModel } }, newCmd )
 
                         NoParentMsg ->
                             ( { model | documentState = Doc { docState | docModel = newDocModel } }, newCmd )
