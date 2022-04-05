@@ -222,6 +222,16 @@ updateSession newSession ({ documentState } as model) =
             { model | documentState = Empty globalData newSession }
 
 
+updateGlobalData : GlobalData -> Model -> Model
+updateGlobalData newGlobalData ({ documentState } as model) =
+    case documentState of
+        Doc ({ docModel } as docState) ->
+            { model | documentState = Doc { docState | docModel = { docModel | globalData = newGlobalData } } }
+
+        Empty _ session ->
+            { model | documentState = Empty newGlobalData session }
+
+
 
 -- UPDATE
 
@@ -954,10 +964,10 @@ update msg model =
                 ( importedTree, newSeed, newTitle_ ) =
                     ImportText.toTree (GlobalData.seed globalData) metadata markdownStrings settings
 
-                newSession =
-                    Session.setSeed newSeed session
+                newGlobalData =
+                    GlobalData.setSeed newSeed globalData
             in
-            ( { model | loading = True } |> updateSession newSession
+            ( { model | loading = True } |> updateGlobalData newGlobalData
             , RandomId.generate (ImportTextIdGenerated importedTree newTitle_)
             )
 
@@ -992,17 +1002,17 @@ update msg model =
                 ( importTreeResult, newSeed ) =
                     Import.Opml.treeResult (GlobalData.seed globalData) opmlString
 
-                newSession =
-                    Session.setSeed newSeed session
+                newGlobalData =
+                    GlobalData.setSeed newSeed globalData
             in
             case importTreeResult of
                 Ok tree ->
-                    ( { model | loading = True } |> updateSession newSession
+                    ( { model | loading = True } |> updateGlobalData newGlobalData
                     , RandomId.generate (ImportOpmlIdGenerated tree fileName)
                     )
 
                 Err err ->
-                    ( model |> updateSession newSession, Cmd.none )
+                    ( model |> updateGlobalData newGlobalData, Cmd.none )
 
         ImportOpmlIdGenerated tree fileName docId ->
             let
@@ -1033,17 +1043,17 @@ update msg model =
                 ( importTreeDecoder, newSeed ) =
                     Import.Single.decoder (GlobalData.seed globalData)
 
-                newSession =
-                    Session.setSeed newSeed session
+                newGlobalData =
+                    GlobalData.setSeed newSeed globalData
             in
             case Json.decodeString importTreeDecoder jsonString of
                 Ok tree ->
-                    ( { model | loading = True } |> updateSession newSession
+                    ( { model | loading = True } |> updateGlobalData newGlobalData
                     , RandomId.generate (ImportJSONIdGenerated tree fileName)
                     )
 
                 Err err ->
-                    ( model |> updateSession newSession, Cmd.none )
+                    ( model |> updateGlobalData newGlobalData, Cmd.none )
 
         ImportJSONIdGenerated tree fileName docId ->
             let

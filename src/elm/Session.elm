@@ -1,4 +1,4 @@
-port module Session exposing (PaymentStatus(..), Session, confirmEmail, currentTime, daysLeft, db, decode, documents, fileMenuOpen, fromLegacy, getDocName, getMetadata, isMac, isNotConfirmed, language, lastDocId, loggedIn, loginChanges, logout, name, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, seed, setFileOpen, setLanguage, setSeed, setShortcutTrayOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, updateDocuments, updateTime, updateUpgrade, upgradeModel, userSettingsChange)
+port module Session exposing (PaymentStatus(..), Session, confirmEmail, currentTime, daysLeft, decode, documents, fileMenuOpen, fromLegacy, getDocName, getMetadata, isMac, isNotConfirmed, language, lastDocId, loggedIn, loginChanges, logout, name, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, setFileOpen, setLanguage, setShortcutTrayOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, updateDocuments, updateTime, updateUpgrade, upgradeModel, userSettingsChange)
 
 import Coders exposing (sortByDecoder)
 import Doc.List as DocList exposing (Model(..))
@@ -14,7 +14,6 @@ import Time exposing (Posix)
 import Translation exposing (Language(..), langFromString, langToString, languageDecoder)
 import Types exposing (SortBy(..))
 import Upgrade
-import Utils exposing (hexEncode)
 
 
 
@@ -28,8 +27,7 @@ type Session
 
 type alias SessionData =
     -- Not persisted
-    { seed : Random.Seed
-    , isMac : Bool
+    { isMac : Bool
     , currentTime : Time.Posix
     , fileMenuOpen : Bool
     , lastDocId : Maybe String
@@ -84,11 +82,6 @@ name session =
             Nothing
 
 
-seed : Session -> Random.Seed
-seed session =
-    getFromSession .seed session
-
-
 isMac : Session -> Bool
 isMac session =
     getFromSession .isMac session
@@ -107,16 +100,6 @@ lastDocId session =
 fromLegacy : Session -> Bool
 fromLegacy session =
     getFromSession .fromLegacy session
-
-
-db : Session -> Maybe String
-db session =
-    case session of
-        LoggedIn _ { email } ->
-            Just ("userdb-" ++ hexEncode email)
-
-        Guest _ _ ->
-            Nothing
 
 
 fileMenuOpen : Session -> Bool
@@ -280,11 +263,6 @@ updateSession updateFn session =
             Guest (updateFn sessionData) data
 
 
-setSeed : Random.Seed -> Session -> Session
-setSeed newSeed session =
-    updateSession (\s -> { s | seed = newSeed }) session
-
-
 updateTime : Time.Posix -> Session -> Session
 updateTime newTime session =
     updateSession (\s -> { s | currentTime = newTime }) session
@@ -366,19 +344,8 @@ decode json =
             session
 
         Err err ->
-            let
-                errToSeed =
-                    err
-                        |> Dec.errorToString
-                        |> String.right 10
-                        |> String.toList
-                        |> List.map Char.toCode
-                        |> List.foldl (+) 12345
-                        |> Random.initialSeed
-            in
             Guest
-                { seed = errToSeed
-                , isMac = False
+                { isMac = False
                 , currentTime = Time.millisToPosix 0
                 , fileMenuOpen = False
                 , lastDocId = Nothing
@@ -405,8 +372,7 @@ decodeLoggedIn =
                         payStat
             in
             LoggedIn
-                { seed = s
-                , isMac = os
+                { isMac = os
                 , currentTime = t
                 , fileMenuOpen = side
                 , lastDocId = Nothing
@@ -447,10 +413,9 @@ decodePaymentStatus =
 decodeGuest : Dec.Decoder Session
 decodeGuest =
     Dec.succeed
-        (\s os t legacy l side ->
+        (\os t legacy l side ->
             Guest
-                { seed = s
-                , isMac = os
+                { isMac = os
                 , currentTime = t
                 , fileMenuOpen = side
                 , lastDocId = Nothing
@@ -458,7 +423,6 @@ decodeGuest =
                 }
                 (GuestData l)
         )
-        |> required "seed" (Dec.int |> Dec.map Random.initialSeed)
         |> required "isMac" Dec.bool
         |> required "currentTime" (Dec.int |> Dec.map Time.millisToPosix)
         |> optional "fromLegacy" Dec.bool False
