@@ -10,7 +10,7 @@ main =
     Browser.document
         { init = always ( 0, Cmd.none )
         , update = update
-        , view = always <| Browser.Document "Here" (view 0)
+        , view = always <| Browser.Document "Gingko Writer - Home" (view 0)
         , subscriptions = always Sub.none
         }
 

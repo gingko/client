@@ -19,6 +19,7 @@
   "scripts": {
     "start": "webpack --progress --watch",
     "test": "cypress run",
+    "test:electron": "playwright test",
     "test:firefox": "cypress run --browser firefox",
     "build": "webpack",
     "electron": "electron ./app",
