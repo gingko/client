@@ -1,59 +1,38 @@
 import { _electron as electron, test, expect, ElectronApplication, Page, BrowserContext } from "@playwright/test";
 
+let electronApp: ElectronApplication;
+let homeWindow: Page;
+let newDocWindow : Page;
+let context: BrowserContext;
 
-test("Launch electron app", async () => {
-  const electronApp = await electron.launch({ args: ["./app"] });
 
-  const windowState: {
-    isVisible: boolean;
-    isDevToolsOpened: boolean;
-    isCrashed: boolean;
-  } = await electronApp.evaluate(async ({ BrowserWindow }) => {
-    const mainWindow = BrowserWindow.getAllWindows()[0];
+test.beforeAll( async () => {
+  electronApp = await electron.launch({ args: ["./app"] });
+  context = electronApp.context();
+  await context.tracing.start({ screenshots: true, snapshots: true });
+  homeWindow = await electronApp.firstWindow();
 
-    const getState = () => ({
-      isVisible: mainWindow.isVisible(),
-      isDevToolsOpened: mainWindow.webContents.isDevToolsOpened(),
-      isCrashed: mainWindow.webContents.isCrashed(),
-    });
-
-    return new Promise((resolve) => {
-      if (mainWindow.isVisible()) {
-        resolve(getState());
-      } else {
-        mainWindow.once("ready-to-show", () =>
-          setTimeout(() => resolve(getState()), 0)
-        );
-      }
-    });
-  });
-
-  expect(windowState.isVisible).toBeTruthy();
-  expect(windowState.isDevToolsOpened).toBeFalsy();
-  expect(windowState.isCrashed).toBeFalsy();
-
-  await electronApp.close();
-});
+  await homeWindow.screenshot({ path: 'tests/screenshot/homeWindow.png' });
+  expect(await homeWindow.screenshot()).toMatchSnapshot('homeWindow.png');
+})
 
 
 test.describe('Check Home Page', async () => {
-  let electronApp: ElectronApplication;
-  let firstWindow: Page;
-  let context: BrowserContext;
-
-
-  test.beforeAll( async () => {
-    electronApp = await electron.launch({ args: ["./app"] });
-    context = electronApp.context();
-    await context.tracing.start({ screenshots: true, snapshots: true });
-    firstWindow = await electronApp.firstWindow();
-
-    await firstWindow.screenshot({ path: 'tests/screenshot/firstWindow.png' });
-    expect(await firstWindow.screenshot()).toMatchSnapshot('firstWindow.png');
-  })
-
   test('Check Title', async () => {
-    const title = await firstWindow.title();
+    const title = await homeWindow.title();
     expect(title).toBe("Gingko Writer - Home");
   })
+
+  test('Opens New Document', async () => {
+    await homeWindow.click("#new-doc-button");
+    newDocWindow = await electronApp.windows()[0]
+    expect(newDocWindow).toBeTruthy();
+    await expect(newDocWindow).toHaveTitle("Gingko Writer Desktop");
+  })
+})
+
+
+test.afterAll( async () => {
+  await context.tracing.stop({ path: 'tests/tracing/trace.zip' });
+  await electronApp.close();
 })

@@ -22,7 +22,7 @@ main =
     Browser.document
         { init = init
         , update = update
-        , view = \m -> Browser.Document "Title" (view m)
+        , view = \m -> Browser.Document "Gingko Writer Desktop" (view m)
         , subscriptions = subscriptions
         }
 

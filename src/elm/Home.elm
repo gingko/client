@@ -2,6 +2,7 @@ port module Home exposing (main)
 
 import Browser
 import Html exposing (Html, button, h1, text)
+import Html.Attributes exposing (id)
 import Html.Events exposing (onClick)
 
 
@@ -49,8 +50,8 @@ update msg model =
 view : Model -> List (Html Msg)
 view model =
     [ h1 [] [ text "Here I AM!!!" ]
-    , button [ onClick ClickedNew ] [ text "New Gingko Document" ]
-    , button [ onClick ClickedOpen ] [ text "Open Gingko Document" ]
+    , button [ id "new-doc-button", onClick ClickedNew ] [ text "New Gingko Document" ]
+    , button [ id "open-doc-button", onClick ClickedOpen ] [ text "Open Gingko Document" ]
     ]
 
 
