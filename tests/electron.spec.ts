@@ -14,9 +14,6 @@ test.beforeAll( async () => {
   context = electronApp.context();
   await context.tracing.start({ screenshots: true, snapshots: true });
   homeWindow = await electronApp.firstWindow();
-
-  await homeWindow.screenshot({ path: 'tests/screenshot/homeWindow.png' });
-  expect(await homeWindow.screenshot()).toMatchSnapshot('homeWindow.png');
 })
 
 
@@ -58,6 +55,16 @@ test.describe('Check Home Page', async () => {
         .map(x => x.file)[0];
     const fileContents = await fs.readFile(path.join(dir, latestFile), {encoding: "utf8"});
     expect(fileContents).toEqual('<gingko-card id="1">\n\nHi!\n\n</gingko-card>');
+  })
+
+  test('Saves edits on Control+J', async () => {
+    await newDocWindow.keyboard.press('Enter');
+    const rootCard = await newDocWindow.locator('.card.active');
+    const rootCardTextarea = await rootCard.locator('textarea.edit');
+    await expect(rootCardTextarea).toBeFocused();
+    await newDocWindow.keyboard.type('Something');
+    await newDocWindow.keyboard.press('Control+J');
+    await expect(rootCard).toHaveText('Something');
   })
 })
 
