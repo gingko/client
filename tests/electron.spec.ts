@@ -57,14 +57,29 @@ test.describe('Check Home Page', async () => {
     expect(fileContents).toEqual('<gingko-card id="1">\n\nHi!\n\n</gingko-card>');
   })
 
-  test('Saves edits on Control+J', async () => {
+  test('Splits card correctly on Control+J', async () => {
+    // Enter for edit mode
     await newDocWindow.keyboard.press('Enter');
-    const rootCard = await newDocWindow.locator('.card.active');
-    const rootCardTextarea = await rootCard.locator('textarea.edit');
+    const rootCardTextarea = await newDocWindow.locator('textarea.edit');
     await expect(rootCardTextarea).toBeFocused();
+
+    // Add '\nSomething'
+    await newDocWindow.keyboard.press('Enter');
     await newDocWindow.keyboard.type('Something');
+
+    // Split down
     await newDocWindow.keyboard.press('Control+J');
-    await expect(rootCard).toHaveText('Something');
+    const rootCard = await newDocWindow.locator('#card-1 .view');
+    await expect(rootCard).toHaveText('Hi!\nSomething',{useInnerText: true});
+
+    // Add text to newly split card
+    const newCard = await newDocWindow.locator('textarea.edit');
+    await expect(rootCardTextarea).toBeFocused();
+    await newDocWindow.keyboard.type('xyzuvw');
+    await newDocWindow.keyboard.press('ArrowLeft');
+    await newDocWindow.keyboard.press('ArrowLeft');
+    await newDocWindow.keyboard.press('ArrowLeft');
+    await newDocWindow.keyboard.press('Control+J');
   })
 })
 

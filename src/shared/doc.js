@@ -898,43 +898,6 @@ window.onresize = () => {
 const debouncedScrollColumns = _.debounce(helpers.scrollColumns, 200);
 const debouncedScrollHorizontal = _.debounce(helpers.scrollHorizontal, 200);
 
-const selectionHandler = function () {
-  if (document.activeElement.nodeName == "TEXTAREA") {
-    let {
-      selectionStart,
-      selectionEnd,
-      selectionDirection,
-    } = document.activeElement;
-    let length = document.activeElement.value.length;
-    let [before, after] = [
-      document.activeElement.value.substring(0, selectionStart),
-      document.activeElement.value.substring(selectionStart),
-    ];
-    let cursorPosition = "other";
-
-    if (length == 0) {
-      cursorPosition = "empty";
-    } else if (selectionStart == 0 && selectionEnd == 0) {
-      cursorPosition = "start";
-    } else if (selectionStart == length && selectionEnd == length) {
-      cursorPosition = "end";
-    } else if (selectionStart == 0 && selectionDirection == "backward") {
-      cursorPosition = "start";
-    } else if (selectionEnd == length && selectionDirection == "forward") {
-      cursorPosition = "end";
-    }
-
-    toElm(
-      {
-        selected: selectionStart !== selectionEnd,
-        position: cursorPosition,
-        text: [before, after],
-      },
-      "docMsgs",
-      "TextCursor"
-    );
-  }
-};
 
 Mousetrap.bind(helpers.shortcuts, function (e, s) {
   switch (s) {
@@ -1014,64 +977,7 @@ Mousetrap.bind(["shift+tab"], function () {
 /* === DOM manipulation === */
 
 
-const observer = new MutationObserver(function (mutations) {
-  const isTextarea = function (node) {
-    return node.nodeName == "TEXTAREA" && node.className == "edit mousetrap";
-  };
-
-  let textareas = [];
-
-  mutations.map((m) => {
-    [].slice.call(m.addedNodes).map((n) => {
-      if (isTextarea(n)) {
-        textareas.push(n);
-      } else {
-        if (n.querySelectorAll) {
-          let tareas = [].slice.call(n.querySelectorAll("textarea.edit"));
-          textareas = textareas.concat(tareas);
-        }
-      }
-    });
-
-    [].slice.call(m.removedNodes).map((n) => {
-      if ("getElementsByClassName" in n && n.getElementsByClassName("edit mousetrap").length != 0) {
-        helpers.updateFillets();
-      }
-    })
-  });
-
-  if (textareas.length !== 0) {
-    textareas.map((t) => {
-      t.onkeyup = selectionHandler;
-      t.onclick = selectionHandler;
-      t.onfocus = selectionHandler;
-    });
-    if (document.getElementById("app-fullscreen") === null) {
-      window.addEventListener('click', editBlurHandler)
-    }
-  } else {
-    window.removeEventListener('click', editBlurHandler);
-  }
-});
-
-const editBlurHandler = (ev) => {
-  let targetClasses = ev.target.classList;
-  if (ev.target.nodeName == "DIV" && targetClasses.contains("card-btn") && targetClasses.contains("save")) {
-    return;
-  } else if (ev.target.nodeName == "DIV" && targetClasses.contains("fullscreen-card-btn")) {
-    return;
-  } else if (isEditTextarea(ev.target)) {
-    return;
-  } else {
-    if(!(isEditTextarea(document.activeElement))) {
-      toElm(null, "docMsgs", "ClickedOutsideCard");
-    }
-  }
-};
-
-const isEditTextarea = (node) => {
-  return node.nodeName == "TEXTAREA" && node.classList.contains("edit") && node.classList.contains("mousetrap");
-}
+const observer = helpers.getObserver(toElm);
 
 const observerConfig = { childList: true, subtree: true };
 

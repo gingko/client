@@ -16,7 +16,7 @@ const localStore = container.localStore;
 // Init Elm
 let gingkoElectron;
 
-async function init() {
+(async function init() {
   let fileData = await window.electronAPI.getLoadedFile();
   let timestamp = Date.now();
   let globalData =
@@ -29,8 +29,7 @@ async function init() {
   gingkoElectron.ports.infoForOutside.subscribe(function (elmdata) {
     fromElm(elmdata.tag, elmdata.data);
   });
-}
-init();
+})();
 
 
 /* === Elm / JS Interop === */
@@ -146,3 +145,10 @@ Mousetrap.bind(helpers.shortcuts, function (e, s) {
     return false;
   }
 });
+
+
+/* === DOM manipulation === */
+
+const observer = helpers.getObserver(toElm);
+const observerConfig = { childList: true, subtree: true };
+observer.observe(document.body, observerConfig);
