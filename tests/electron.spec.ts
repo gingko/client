@@ -85,6 +85,7 @@ test.describe('Check Home Page', async () => {
     await expect(xyzCard).toHaveText('xyz');
     await expect(uvwTextarea).toHaveValue('uvw');
 
+    // Check that cursor positon is set correctly
     expect(await newDocWindow.evaluate(async () => {
       await new Promise(r => setTimeout(r, 100));
       // @ts-ignore
