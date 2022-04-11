@@ -589,11 +589,6 @@ const fromElm = (msg, elmData) => {
       })
     },
 
-    SetCursorPosition: () => {
-      let pos = elmData[0];
-      setTimeout(() => document.activeElement.setSelectionRange(pos, pos), 0);
-    },
-
     SetFullscreen: () => {
       if(screenfull.isEnabled) {
         if(elmData) {

@@ -477,6 +477,10 @@ var casesShared = (elmData, params) => {
       });
     },
 
+    SetCursorPosition: () => {
+      let pos = elmData[0];
+      setTimeout(() => document.activeElement.setSelectionRange(pos, pos), 0);
+    },
 
     SetTextareaClone: () => {
       let id = elmData[0];

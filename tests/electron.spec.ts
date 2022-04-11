@@ -69,17 +69,31 @@ test.describe('Check Home Page', async () => {
 
     // Split down
     await newDocWindow.keyboard.press('Control+J');
-    const rootCard = await newDocWindow.locator('#card-1 .view');
+    const rootCard = getCard(newDocWindow, 1,1,1);
     await expect(rootCard).toHaveText('Hi!\nSomething',{useInnerText: true});
 
     // Add text to newly split card
-    const newCard = await newDocWindow.locator('textarea.edit');
     await expect(rootCardTextarea).toBeFocused();
     await newDocWindow.keyboard.type('xyzuvw');
     await newDocWindow.keyboard.press('ArrowLeft');
     await newDocWindow.keyboard.press('ArrowLeft');
     await newDocWindow.keyboard.press('ArrowLeft');
     await newDocWindow.keyboard.press('Control+J');
+
+    const xyzCard = getCard(newDocWindow, 1, 1, 2);
+    const uvwTextarea = getCard(newDocWindow, 1, 1, 3).locator('textarea.edit');
+    await expect(xyzCard).toHaveText('xyz');
+    await expect(uvwTextarea).toHaveValue('uvw');
+
+    expect(await newDocWindow.evaluate(async () => {
+      await new Promise(r => setTimeout(r, 100));
+      // @ts-ignore
+      return window.elmMessages.map(m => m.tag).filter(t => t == "SetCursorPosition")
+    }))
+      .toHaveLength(1);
+
+    // @ts-ignore
+    expect(await uvwTextarea.evaluate(node => [node.selectionStart, node.selectionEnd])).toEqual([0,0]);
   })
 })
 
@@ -88,3 +102,20 @@ test.afterAll( async () => {
   await context.tracing.stop({ path: 'tests/tracing/trace.zip' });
   await electronApp.close();
 })
+
+
+/* ==== Helpers ==== */
+
+function getCard(rootEl : Page, colNum : number, groupNum : number, cardNum : number) {
+  return rootEl.locator(`#column-container > .column:nth-child(${colNum}) > .group:nth-child(${groupNum + 1}) > .card:nth-child(${cardNum})`);
+}
+/*
+Cypress.Commands.add('getColumn', (colNum) => {
+  cy.get(`#column-container > .column:nth-child(${colNum})`)
+})
+
+
+Cypress.Commands.add('getGroup', (colNum, groupNum) => {
+  cy.get(`#column-container > .column:nth-child(${colNum}) > .group:nth-child(${groupNum + 1})`)
+})
+ */
