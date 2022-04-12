@@ -12,17 +12,33 @@ const createWindow = () => {
   })
 
   let isNew;
-  let openFiles = {};
+  let openWindows = {};
 
   ipcMain.on('clicked-new', async (event, title) => {
     isNew = true;
     const webContents = event.sender
     const win = BrowserWindow.fromWebContents(webContents)
+
+    // Initialize New Document
     let d = new Date();
     let filePath = `/home/adriano/Dropbox/Notes/testelectron${d}.md`;
-    openFiles[filePath] = await fs.open(filePath, 'w');
+    let filehandle = await fs.open(filePath, 'w');
+    openWindows[win.id] = {filePath : filePath, filehandle : filehandle, dirty: true};
+
+    // Prevent title being set from HTML
+    win.on('page-title-updated', (evt) => {
+      evt.preventDefault();
+    });
+
+    // Initialize Renderer
     await win.loadFile(`${__dirname}/static/renderer.html`);
     await webContents.send('file-received', {filePath : filePath, fileData : null})
+    win.setTitle(getTitleText(openWindows[win.id]));
+
+    // Prevent title being set from HTML
+    win.on('page-title-updated', (evt) => {
+      evt.preventDefault();
+    });
   })
 
   ipcMain.on('clicked-open', async (event, title) => {
@@ -38,19 +54,43 @@ const createWindow = () => {
     if (dialogReturnValue.filePaths.length != 0) {
       let filePath = dialogReturnValue.filePaths[0];
       isNew = false;
-      openFiles[filePath] = await fs.open(filePath, 'r+');
-      let fileData = await openFiles[filePath].readFile({encoding: "utf8"});
+      let filehandle = await fs.open(filePath, 'r+');
+      openWindows[win.id] = {filePath: filePath, filehandle: filehandle, dirty : false};
+
+      // Load data
+      let fileData = await openWindows[win.id].filehandle.readFile({encoding: "utf8"});
+
+      // Initialize Renderer
       await win.loadFile(`${__dirname}/static/renderer.html`);
       await webContents.send('file-received', {filePath : filePath, fileData : fileData})
+      win.setTitle(getTitleText(openWindows[win.id]));
+
+      // Prevent title being set from HTML
+      win.on('page-title-updated', (evt) => {
+        evt.preventDefault();
+      });
     }
   })
 
   ipcMain.on('set-dirty', (event, filePath, isDirty) =>{
-    console.log(filePath, isDirty);
+    const webContents = event.sender
+    const win = BrowserWindow.fromWebContents(webContents)
+    if (openWindows[win.id].dirty !== isDirty) {
+      console.log(isDirty);
+      openWindows[win.id].dirty = isDirty;
+      win.setTitle(getTitleText(openWindows[win.id]));
+    }
   })
 
   ipcMain.on('save-file', async (event, data) =>{
-    await openFiles[data[0]].write(data[1], 0);
+    console.time('save-file')
+    const webContents = event.sender
+    const win = BrowserWindow.fromWebContents(webContents)
+
+    await openWindows[win.id].filehandle.write(data[1], 0);
+    console.timeEnd('save-file')
+    openWindows[win.id].dirty = false;
+    win.setTitle(getTitleText(openWindows[win.id]));
   })
 
   win.loadFile(`${__dirname}/static/home.html`);
@@ -74,6 +114,8 @@ app.on('window-all-closed', () => {
 
 /* ==== Helper Functions */
 
-function getTitleText (filepath, isDirty) {
+function getTitleText (windowInfo) {
+  let dirtyMarker = windowInfo.dirty ? "*" : "";
+  return `${path.basename(windowInfo.filePath)}${dirtyMarker} - Gingko Writer`;
 
 }
