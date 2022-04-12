@@ -191,7 +191,7 @@ const electronMainConfig = merge(baseElectronConfig, {
 
   // Entry points into the code. The roots of the dependency tree.
   entry: {
-    electron: "./electron/newmain.js"
+    electron: "./electron/main.js"
   },
 });
 
@@ -202,9 +202,8 @@ const electronRendererConfig = merge(baseElectronConfig, {
 
   // Entry points into the code. The root of the dependency tree.
   entry: {
-    home: "./electron/newhome.js",
-    renderer: "./electron/renderer.js",
-    doc: "./shared/doc.js",
+    home: "./electron/home.js",
+    renderer: "./electron/renderer.js"
   },
 
   // What file types to attempt to resolve within require/import statements
@@ -230,11 +229,6 @@ const electronRendererConfig = merge(baseElectronConfig, {
   plugins: [
 
     // Plugin to insert only needed chunks of JS into HTML output files.
-    new HtmlWebpackPlugin({
-      template: "./index.ejs",
-      filename: "../app/static/index.html",
-      chunks: ["doc"]
-    }),
     new HtmlWebpackPlugin({
       template: "./home.ejs",
       filename: "../app/static/home.html",
