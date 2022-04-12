@@ -1,6 +1,6 @@
 {
   "name": "gingko-client",
-  "productName": "Gingko",
+  "productName": "Gingko Writer",
   "version": "2.4.15",
   "description": "Gingko client rewritten in Elm, packaged with Electron.",
   "repository": {
