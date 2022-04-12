@@ -6,7 +6,7 @@ const container = require("Container");
 // Init Vars
 
 window.elmMessages = [];
-let filename;
+let filePath;
 let lastActivesScrolled = null;
 let lastColumnScrolled = null;
 let ticking = false;
@@ -16,14 +16,14 @@ const localStore = container.localStore;
 // Init Elm
 let gingkoElectron;
 
-const init = async function (filename, fileData) {
+const init = async function (filePath, fileData) {
   let timestamp = Date.now();
   let globalData =
     { seed : timestamp
     , currentTime : timestamp
     , isMac : false
     };
-  gingkoElectron = Elm.Electron.init({flags: [filename, fileData, globalData]});
+  gingkoElectron = Elm.Electron.init({flags: [filePath, fileData, globalData]});
 
   gingkoElectron.ports.infoForOutside.subscribe(function (elmdata) {
     fromElm(elmdata.tag, elmdata.data);
@@ -31,8 +31,8 @@ const init = async function (filename, fileData) {
 };
 
 window.electronAPI.fileReceived(async (event, value) => {
-  filename = value.filename;
-  await init(value.filename, value.fileData);
+  filePath = value.filePath;
+  await init(value.filePath, value.fileData);
 });
 
 /* === Elm / JS Interop === */
@@ -43,7 +43,7 @@ const fromElm = (msg, elmData) => {
 
   let casesElectron = {
     SetDirty: () => {
-      window.electronAPI.setDirty(filename, elmData)
+      window.electronAPI.setDirty(filePath, elmData)
     },
 
     CommitData: () => {

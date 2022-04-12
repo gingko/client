@@ -19,10 +19,10 @@ const createWindow = () => {
     const webContents = event.sender
     const win = BrowserWindow.fromWebContents(webContents)
     let d = new Date();
-    let filename = `/home/adriano/Dropbox/Notes/testelectron${d}.md`;
-    openFiles[filename] = await fs.open(filename, 'w');
+    let filePath = `/home/adriano/Dropbox/Notes/testelectron${d}.md`;
+    openFiles[filePath] = await fs.open(filePath, 'w');
     await win.loadFile(`${__dirname}/static/renderer.html`);
-    await webContents.send('file-received', {filename : filename, fileData : null})
+    await webContents.send('file-received', {filePath : filePath, fileData : null})
   })
 
   ipcMain.on('clicked-open', async (event, title) => {
@@ -36,17 +36,17 @@ const createWindow = () => {
         });
 
     if (dialogReturnValue.filePaths.length != 0) {
-      let filename = dialogReturnValue.filePaths[0];
+      let filePath = dialogReturnValue.filePaths[0];
       isNew = false;
-      openFiles[filename] = await fs.open(filename, 'r+');
-      let fileData = await openFiles[filename].readFile({encoding: "utf8"});
+      openFiles[filePath] = await fs.open(filePath, 'r+');
+      let fileData = await openFiles[filePath].readFile({encoding: "utf8"});
       await win.loadFile(`${__dirname}/static/renderer.html`);
-      await webContents.send('file-received', {filename : filename, fileData : fileData})
+      await webContents.send('file-received', {filePath : filePath, fileData : fileData})
     }
   })
 
-  ipcMain.on('set-dirty', (event, filename, isDirty) =>{
-    console.log(filename, isDirty);
+  ipcMain.on('set-dirty', (event, filePath, isDirty) =>{
+    console.log(filePath, isDirty);
   })
 
   ipcMain.on('save-file', async (event, data) =>{
@@ -70,3 +70,10 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
 })
+
+
+/* ==== Helper Functions */
+
+function getTitleText (filepath, isDirty) {
+
+}
