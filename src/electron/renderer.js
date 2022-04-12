@@ -35,6 +35,11 @@ window.electronAPI.fileReceived(async (event, value) => {
   await init(value.filePath, value.fileData);
 });
 
+window.electronAPI.fileSaved(async (event, data)=> {
+  filePath = data;
+  toElm(data, "docMsgs", "SavedToFile");
+})
+
 /* === Elm / JS Interop === */
 
 const fromElm = (msg, elmData) => {
@@ -48,6 +53,10 @@ const fromElm = (msg, elmData) => {
 
     CommitData: () => {
       // TODO
+    },
+
+    SaveUntitled: () => {
+      window.electronAPI.saveUntitled(elmData)
     },
 
     SaveToFile: () => {

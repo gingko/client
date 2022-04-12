@@ -15,8 +15,9 @@ type
     | DataSaved Dec.Value
     | DataReceived Dec.Value
     | NotFound
-    | SavedLocally (Maybe Time.Posix)
     | SavedRemotely Time.Posix
+      -- === Desktop ===
+    | SavedToFile String
       -- === Metadata ===
     | MetadataSynced Dec.Value
     | MetadataSaved Dec.Value
@@ -104,18 +105,19 @@ subscribe tagger onError =
                 "MetadataSaved" ->
                     tagger <| MetadataSaved outsideInfo.data
 
-                "SavedLocally" ->
-                    case decodeValue (Dec.maybe Dec.int) outsideInfo.data of
-                        Ok time_ ->
-                            tagger <| SavedLocally (Maybe.map Time.millisToPosix time_)
-
-                        Err e ->
-                            onError (errorToString e)
-
                 "SavedRemotely" ->
                     case decodeValue Dec.int outsideInfo.data of
                         Ok time ->
                             tagger <| SavedRemotely (Time.millisToPosix time)
+
+                        Err e ->
+                            onError (errorToString e)
+
+                -- === Desktop ===
+                "SavedToFile" ->
+                    case decodeValue Dec.string outsideInfo.data of
+                        Ok path ->
+                            tagger <| SavedToFile path
 
                         Err e ->
                             onError (errorToString e)

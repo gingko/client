@@ -553,19 +553,16 @@ incoming incomingMsg model =
         MetadataSaveError ->
             ( model, Cmd.none )
 
-        SavedLocally time_ ->
-            ( { model
-                | lastLocalSave = time_
-              }
-            , Cmd.none
-            )
-
         SavedRemotely time ->
             ( { model
                 | lastRemoteSave = Just time
               }
             , Cmd.none
             )
+
+        -- === Desktop ===
+        SavedToFile _ ->
+            ( model, Cmd.none )
 
         -- === DOM ===
         DragStarted dragId ->

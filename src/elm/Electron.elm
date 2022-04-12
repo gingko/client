@@ -136,8 +136,18 @@ update msg ({ docModel } as model) =
                     ( { model | docModel = newDocModel }, newCmd )
 
         Incoming incomingMsg ->
-            Page.Doc.incoming incomingMsg docModel
-                |> Tuple.mapBoth (\m -> { model | docModel = m }) (Cmd.map GotDocMsg)
+            case ( model.fileState, incomingMsg ) of
+                ( UntitledFileDoc path, Keyboard "mod+s" ) ->
+                    Page.Doc.incoming incomingMsg docModel
+                        |> Tuple.mapBoth (\m -> { model | docModel = m }) (Cmd.map GotDocMsg)
+                        |> saveUntitled
+
+                ( UntitledFileDoc path, SavedToFile newPath ) ->
+                    ( { model | fileState = FileDoc newPath }, Cmd.none )
+
+                _ ->
+                    Page.Doc.incoming incomingMsg docModel
+                        |> Tuple.mapBoth (\m -> { model | docModel = m }) (Cmd.map GotDocMsg)
 
         LogErr err ->
             ( model, send (ConsoleLogRequested err) )
@@ -171,6 +181,16 @@ localSaveDo ( { fileState } as model, prevCmd ) =
     ( model
     , Cmd.batch
         [ send <| SaveToFile (fileStateToPath fileState) (treeToMarkdownOutline False model.docModel.workingTree.tree)
+        , prevCmd
+        ]
+    )
+
+
+saveUntitled : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+saveUntitled ( { fileState } as model, prevCmd ) =
+    ( model
+    , Cmd.batch
+        [ send <| SaveUntitled (fileStateToPath fileState) (treeToMarkdownOutline False model.docModel.workingTree.tree)
         , prevCmd
         ]
     )

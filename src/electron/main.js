@@ -90,6 +90,20 @@ const createWindow = () => {
     }
   })
 
+  ipcMain.on('save-untitled', async (event, data) => {
+    const webContents = event.sender
+    const win = BrowserWindow.fromWebContents(webContents)
+
+    let {filePath, canceled} = await dialog.showSaveDialog(win, {defaultPath: app.getPath('documents')})
+    if (!canceled && filePath) {
+      openWindows[win.id].filePath = filePath;
+      openWindows[win.id].filehandle = await fs.open(filePath, 'w');
+      await openWindows[win.id].filehandle.write(data[1],0);
+      await webContents.send('file-saved', filePath);
+      win.setTitle(getTitleText(openWindows[win.id]));
+    }
+  })
+
   ipcMain.on('save-file', async (event, data) =>{
     console.time('save-file')
     const webContents = event.sender
