@@ -87,7 +87,7 @@ test.describe('Check Home Page', async () => {
 
     // Check that cursor positon is set correctly
     expect(await newDocWindow.evaluate(async () => {
-      await new Promise(r => setTimeout(r, 100));
+      await new Promise(r => setTimeout(r, 200));
       // @ts-ignore
       return window.elmMessages.map(m => m.tag).filter(t => t == "SetCursorPosition")
     }))

@@ -12,15 +12,17 @@ const createWindow = () => {
   })
 
   let isNew;
-  let filehandle;
+  let openFiles = {};
 
   ipcMain.on('clicked-new', async (event, title) => {
     isNew = true;
     const webContents = event.sender
     const win = BrowserWindow.fromWebContents(webContents)
     let d = new Date();
-    filehandle = await fs.open(`/home/adriano/Dropbox/Notes/testelectron${d}.md`, 'w')
-    win.loadFile(`${__dirname}/static/renderer.html`);
+    let filename = `/home/adriano/Dropbox/Notes/testelectron${d}.md`;
+    openFiles[filename] = await fs.open(filename, 'w');
+    await win.loadFile(`${__dirname}/static/renderer.html`);
+    await webContents.send('file-received', {filename : filename, fileData : null})
   })
 
   ipcMain.on('clicked-open', async (event, title) => {
@@ -34,24 +36,17 @@ const createWindow = () => {
         });
 
     if (dialogReturnValue.filePaths.length != 0) {
+      let filename = dialogReturnValue.filePaths[0];
       isNew = false;
-      filehandle = await fs.open(dialogReturnValue.filePaths[0], 'r+');
-      win.loadFile(`${__dirname}/static/renderer.html`);
-    }
-  })
-
-  ipcMain.handle('get-loaded-file', async (event) =>{
-    if (!isNew) {
-      let fileData = await filehandle.readFile({encoding: "utf8"});
-      return fileData;
-    } else {
-      console.log('no-loaded-file will be sent')
-      return null;
+      openFiles[filename] = await fs.open(filename, 'r+');
+      let fileData = await openFiles[filename].readFile({encoding: "utf8"});
+      await win.loadFile(`${__dirname}/static/renderer.html`);
+      await webContents.send('file-received', {filename : filename, fileData : fileData})
     }
   })
 
   ipcMain.on('save-file', async (event, data) =>{
-    await filehandle.write(data, 0);
+    await openFiles[data[0]].write(data[1], 0);
   })
 
   win.loadFile(`${__dirname}/static/home.html`);

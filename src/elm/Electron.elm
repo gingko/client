@@ -17,7 +17,7 @@ import Translation exposing (TranslationId)
 import Types exposing (TooltipPosition, Tree)
 
 
-main : Program ( Maybe String, Value ) Model Msg
+main : Program ( String, Maybe String, Value ) Model Msg
 main =
     Browser.document
         { init = init
@@ -33,42 +33,64 @@ main =
 
 type alias Model =
     { docModel : Page.Doc.Model
+    , fileState : FileState
     , tooltip : Maybe ( Element, TooltipPosition, TranslationId )
     , theme : Theme
     }
 
 
-init : ( Maybe String, Value ) -> ( Model, Cmd Msg )
-init ( fileData_, json ) =
+type FileState
+    = UntitledFileDoc String
+    | FileDoc String
+
+
+fileStateToPath : FileState -> String
+fileStateToPath fState =
+    case fState of
+        UntitledFileDoc str ->
+            str
+
+        FileDoc str ->
+            str
+
+
+init : ( String, Maybe String, Value ) -> ( Model, Cmd Msg )
+init ( filename, fileData_, json ) =
     let
         globalData =
             GlobalData.decode json
 
-        initDocModel =
+        ( initDocModel, initFileState ) =
             case fileData_ of
                 Nothing ->
-                    Page.Doc.init True globalData
+                    ( Page.Doc.init True globalData
+                    , UntitledFileDoc filename
+                    )
 
                 Just fileData ->
                     case Coders.markdownOutlineHtmlParser fileData of
                         Ok (Just parsedTree) ->
-                            Page.Doc.init False globalData |> initDoc parsedTree
+                            ( Page.Doc.init False globalData |> initDoc parsedTree
+                            , FileDoc filename
+                            )
 
                         Ok Nothing ->
-                            let
-                                _ =
-                                    Debug.log "Nothing" "Nothing"
-                            in
-                            Page.Doc.init True globalData
+                            ( Page.Doc.init True globalData
+                            , UntitledFileDoc "Nothing error"
+                            )
 
                         Err err ->
-                            let
-                                _ =
-                                    Debug.log "parse error" err
-                            in
-                            Page.Doc.init True globalData
+                            ( Page.Doc.init True globalData
+                            , UntitledFileDoc "parser error"
+                            )
     in
-    ( { docModel = initDocModel, tooltip = Nothing, theme = Default }, Cmd.none )
+    ( { docModel = initDocModel
+      , fileState = initFileState
+      , tooltip = Nothing
+      , theme = Default
+      }
+    , Cmd.none
+    )
 
 
 initDoc : Tree -> Page.Doc.Model -> Page.Doc.Model
@@ -145,10 +167,10 @@ update msg ({ docModel } as model) =
 
 
 localSaveDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-localSaveDo ( model, prevCmd ) =
+localSaveDo ( { fileState } as model, prevCmd ) =
     ( model
     , Cmd.batch
-        [ send <| SaveToFile (treeToMarkdownOutline False model.docModel.workingTree.tree)
+        [ send <| SaveToFile (fileStateToPath fileState) (treeToMarkdownOutline False model.docModel.workingTree.tree)
         , prevCmd
         ]
     )

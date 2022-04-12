@@ -16,21 +16,23 @@ const localStore = container.localStore;
 // Init Elm
 let gingkoElectron;
 
-(async function init() {
-  let fileData = await window.electronAPI.getLoadedFile();
+const init = async function (filename, fileData) {
   let timestamp = Date.now();
   let globalData =
     { seed : timestamp
     , currentTime : timestamp
     , isMac : false
     };
-  gingkoElectron = Elm.Electron.init({flags: [fileData, globalData]});
+  gingkoElectron = Elm.Electron.init({flags: [filename, fileData, globalData]});
 
   gingkoElectron.ports.infoForOutside.subscribe(function (elmdata) {
     fromElm(elmdata.tag, elmdata.data);
   });
-})();
+};
 
+window.electronAPI.fileReceived(async (event, value) => {
+  await init(value.filename, value.fileData);
+});
 
 /* === Elm / JS Interop === */
 
