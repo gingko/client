@@ -6,7 +6,7 @@ const container = require("Container");
 // Init Vars
 
 window.elmMessages = [];
-let DIRTY = false;
+let filename;
 let lastActivesScrolled = null;
 let lastColumnScrolled = null;
 let ticking = false;
@@ -31,6 +31,7 @@ const init = async function (filename, fileData) {
 };
 
 window.electronAPI.fileReceived(async (event, value) => {
+  filename = value.filename;
   await init(value.filename, value.fileData);
 });
 
@@ -41,6 +42,10 @@ const fromElm = (msg, elmData) => {
   window.elmMessages = window.elmMessages.slice(-10);
 
   let casesElectron = {
+    SetDirty: () => {
+      window.electronAPI.setDirty(filename, elmData)
+    },
+
     CommitData: () => {
       // TODO
     },
@@ -50,7 +55,7 @@ const fromElm = (msg, elmData) => {
     }
   };
 
-  let params = { DIRTY, localStore, lastColumnScrolled, lastActivesScrolled, ticking };
+  let params = { localStore, lastColumnScrolled, lastActivesScrolled, ticking };
 
   let cases = Object.assign(helpers.casesShared(elmData, params), casesElectron);
 

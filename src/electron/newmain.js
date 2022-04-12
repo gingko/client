@@ -45,6 +45,10 @@ const createWindow = () => {
     }
   })
 
+  ipcMain.on('set-dirty', (event, filename, isDirty) =>{
+    console.log(filename, isDirty);
+  })
+
   ipcMain.on('save-file', async (event, data) =>{
     await openFiles[data[0]].write(data[1], 0);
   })

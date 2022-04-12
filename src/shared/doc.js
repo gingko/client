@@ -260,6 +260,10 @@ const fromElm = (msg, elmData) => {
       alert(elmData);
     },
 
+    SetDirty: () => {
+      DIRTY = elmData;
+    },
+
     DragDone: () => {
       draggingInternal = false;
     },
@@ -721,7 +725,7 @@ const fromElm = (msg, elmData) => {
     SocketSend: () => {},
   };
 
-  let params = { DIRTY, localStore, lastColumnScrolled, lastActivesScrolled, ticking };
+  let params = { localStore, lastColumnScrolled, lastActivesScrolled, ticking };
 
   let cases = Object.assign(helpers.casesShared(elmData, params), casesWeb);
 

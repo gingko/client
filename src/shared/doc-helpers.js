@@ -447,10 +447,6 @@ if (window.navigator.platform.toUpperCase().indexOf('MAC') < 0 ) {
 
 var casesShared = (elmData, params) => {
   return {
-    SetDirty: () => {
-      params.DIRTY = elmData;
-    },
-
     ScrollCards: () => {
       scrollColumns(elmData);
       scrollHorizontal(elmData.columnIdx, elmData.instant);
