@@ -1,6 +1,9 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path')
+const crypto = require('crypto')
 import * as fs from 'fs/promises';
+
+let sha1Hash = crypto.createHash('sha1');
 
 const createWindow = () => {
   const win = new BrowserWindow({
@@ -21,7 +24,8 @@ const createWindow = () => {
 
     // Initialize New Document
     let d = new Date();
-    let filePath = `/home/adriano/Dropbox/Notes/testelectron${d}.md`;
+    let fileHash = sha1Hash.update(d.getTime()+"").digest('hex').slice(0,6);
+    let filePath = path.join(app.getPath('temp'), `Untitled-${d.toISOString().slice(0,10)}-${fileHash}.gkw`);
     let filehandle = await fs.open(filePath, 'w');
     openWindows[win.id] = {filePath : filePath, filehandle : filehandle, dirty: true};
 
@@ -48,7 +52,11 @@ const createWindow = () => {
     let dialogReturnValue = await dialog.showOpenDialog(win,
   { properties: ['openFile']
         , defaultPath: '/home/adriano/Dropbox/Notes/'
-        , filters: [{name:'Markdown Document', extensions: ['md']}]
+        , filters:
+            [ {name:'Gingko Writer Document', extensions: ['gkw']}
+            , {name:'Gingko Desktop Legacy', extensions: ['gko']}
+            , {name:'Markdown Document', extensions: ['md']}
+            ]
         });
 
     if (dialogReturnValue.filePaths.length != 0) {
@@ -117,5 +125,4 @@ app.on('window-all-closed', () => {
 function getTitleText (windowInfo) {
   let dirtyMarker = windowInfo.dirty ? "*" : "";
   return `${path.basename(windowInfo.filePath)}${dirtyMarker} - Gingko Writer`;
-
 }
