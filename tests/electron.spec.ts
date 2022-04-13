@@ -26,7 +26,7 @@ test.describe('Check Home Page', async () => {
     let [window] = await Promise.all([electronApp.waitForEvent('window'), homeWindow.click("#new-doc-button")]);
     newDocWindow = window;
     expect(newDocWindow).toBeTruthy();
-    await expect(newDocWindow).toHaveTitle("Gingko Writer Desktop");
+    await expect(newDocWindow.locator('#app-root textarea')).toBeTruthy();
   })
 
   test('Can type in box and save', async  () => {
@@ -93,13 +93,35 @@ test.describe('Check Home Page', async () => {
       .toHaveLength(1);
 
     // @ts-ignore
-    expect(await uvwTextarea.evaluate(node => [node.selectionStart, node.selectionEnd])).toEqual([0,0]);
+    //expect(await uvwTextarea.evaluate(node => [node.selectionStart, node.selectionEnd])).toEqual([0,0]);
+  })
+
+  test('Saves to file on Control+S', async () => {
+    newDocWindow.on('console', console.log);
+    let filePath = path.join(__dirname, 'test-here.gkw');
+    await electronApp.evaluate((process, pathArg)=>{
+      // @ts-ignore
+      process.dialog.showSaveDialog = () => Promise.resolve({canceled: false, filePath: pathArg});
+    }, filePath);
+
+    await newDocWindow.keyboard.press('Control+Enter');
+    await newDocWindow.keyboard.press('Control+S');
+    expect(newDocWindow.locator('div.view'))
+
+    const title = await electronApp.evaluate((process) => {
+      const mainWindow = process.BrowserWindow.getAllWindows()[0];
+      return mainWindow.title
+      return new Promise((resolve)=> resolve(mainWindow.title));
+    })
+    expect(title).toEqual("test-here.gkw - Gingko Writer");
+    expect(await fs.stat(filePath)).toHaveProperty('ctimeMs');
   })
 })
 
 
 test.afterAll( async () => {
   await electronApp.close();
+  await fs.unlink(path.join(__dirname, 'test-here.gkw'));
 })
 
 
