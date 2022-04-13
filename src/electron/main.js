@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path')
 const crypto = require('crypto')
 import * as fs from 'fs/promises';
+const {getMenuTemplate} = require('./newmenu.js');
 
 let sha1Hash = crypto.createHash('sha1');
 
@@ -28,7 +29,7 @@ ipcMain.on('clicked-new', async (event) => {
   const homeWindow = BrowserWindow.fromWebContents(webContents)
 
   homeWindow.hide();
-  await createNewDocWindow();
+  await createDocWindow(null);
   homeWindow.destroy();
 });
 
@@ -106,40 +107,7 @@ app.on('window-all-closed', () => {
 })
 
 
-/* ==== Home and Doc Windows ==== */
-
-async function createNewDocWindow() {
-  const docWin = new BrowserWindow({
-    width: 800,
-    height: 600,
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js')
-    }
-  })
-
-  // Initialize New Document
-  let d = new Date();
-  let fileHash = sha1Hash.update(d.getTime()+"").digest('hex').slice(0,6);
-  let filePath = path.join(app.getPath('temp'), `Untitled-${d.toISOString().slice(0,10)}-${fileHash}.gkw`);
-  let filehandle = await fs.open(filePath, 'w');
-  docWindows[docWin.id] = {filePath : filePath, filehandle : filehandle, dirty: true};
-
-  // Prevent title being set from HTML
-  docWin.on('page-title-updated', (evt) => {
-    evt.preventDefault();
-  });
-
-  // Initialize Renderer
-  await docWin.loadFile(`${__dirname}/static/renderer.html`);
-  await docWin.webContents.send('file-received', {filePath : filePath, fileData : null})
-  docWin.setTitle(getTitleText(docWindows[docWin.id]));
-
-  // Prevent title being set from HTML
-  docWin.on('page-title-updated', (evt) => {
-    evt.preventDefault();
-  });
-}
-
+/* ==== Doc Window ==== */
 
 async function createDocWindow(filePath) {
   const docWin = new BrowserWindow({
@@ -150,11 +118,20 @@ async function createDocWindow(filePath) {
     }
   })
 
-  let filehandle = await fs.open(filePath, 'r+');
+  let filehandle;
+  let fileData = null;
+  if(filePath == null) {
+    // Initialize New Document
+    let d = new Date();
+    let fileHash = sha1Hash.update(d.getTime()+"").digest('hex').slice(0,6);
+    filePath = path.join(app.getPath('temp'), `Untitled-${d.toISOString().slice(0,10)}-${fileHash}.gkw`);
+    filehandle = await fs.open(filePath, 'w');
+  } else {
+    // Load Document
+    filehandle = await fs.open(filePath, 'r+');
+    fileData = await docWindows[docWin.id].filehandle.readFile({encoding: "utf8"});
+  }
   docWindows[docWin.id] = {filePath: filePath, filehandle: filehandle, dirty : false};
-
-  // Load data
-  let fileData = await docWindows[docWin.id].filehandle.readFile({encoding: "utf8"});
 
   // Initialize Renderer
   await docWin.loadFile(`${__dirname}/static/renderer.html`);
