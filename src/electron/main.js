@@ -2,7 +2,6 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path')
 const crypto = require('crypto')
 import * as fs from 'fs/promises';
-const {getMenuTemplate} = require('./newmenu.js');
 
 let sha1Hash = crypto.createHash('sha1');
 
@@ -129,7 +128,7 @@ async function createDocWindow(filePath) {
   } else {
     // Load Document
     filehandle = await fs.open(filePath, 'r+');
-    fileData = await docWindows[docWin.id].filehandle.readFile({encoding: "utf8"});
+    fileData = await filehandle.readFile({encoding: "utf8"});
   }
   docWindows[docWin.id] = {filePath: filePath, filehandle: filehandle, dirty : false};
 
