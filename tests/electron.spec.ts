@@ -12,7 +12,6 @@ let context: BrowserContext;
 test.beforeAll( async () => {
   electronApp = await electron.launch({ args: ["./app"] });
   context = electronApp.context();
-  await context.tracing.start({ screenshots: true, snapshots: true });
   homeWindow = await electronApp.firstWindow();
 })
 
@@ -24,8 +23,8 @@ test.describe('Check Home Page', async () => {
   })
 
   test('Opens New Document', async () => {
-    await homeWindow.click("#new-doc-button");
-    newDocWindow = await electronApp.windows()[0]
+    let [window] = await Promise.all([electronApp.waitForEvent('window'), homeWindow.click("#new-doc-button")]);
+    newDocWindow = window;
     expect(newDocWindow).toBeTruthy();
     await expect(newDocWindow).toHaveTitle("Gingko Writer Desktop");
   })
@@ -42,7 +41,7 @@ test.describe('Check Home Page', async () => {
   })
 
   test('Saves to file properly', async () => {
-    const dir = '/home/adriano/Dropbox/Notes/';
+    const dir = '/tmp';
     const files = await fs.readdir(dir);
     const latestFile =
       files
@@ -100,7 +99,6 @@ test.describe('Check Home Page', async () => {
 
 
 test.afterAll( async () => {
-  await context.tracing.stop({ path: 'tests/tracing/trace.zip' });
   await electronApp.close();
 })
 
