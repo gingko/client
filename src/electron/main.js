@@ -23,6 +23,7 @@ const createHomeWindow = () => {
     }
   })
 
+  homeWin.setTitle('Gingko Writer - Home')
   homeWin.loadFile(path.join(__dirname, '/static/home.html'))
 }
 
@@ -118,7 +119,6 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
 })
-
 
 /* ==== Doc Window ==== */
 
