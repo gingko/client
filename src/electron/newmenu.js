@@ -1,4 +1,8 @@
-function getMenuTemplate(handlers) {
+function getHomeMenuTemplate (handlers) {
+  return getDocMenuTemplate(handlers)
+}
+
+function getDocMenuTemplate (handlers) {
   return [
     { label: 'File'
     , submenu:
@@ -19,7 +23,5 @@ function getMenuTemplate(handlers) {
   ];
 }
 
-
 module.exports =
-  { getMenuTemplate
-  };
+  { getDocMenuTemplate, getHomeMenuTemplate }

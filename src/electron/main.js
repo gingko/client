@@ -1,6 +1,6 @@
 import * as fs from 'fs/promises'
 import { app, BrowserWindow, ipcMain, dialog, Menu } from 'electron'
-import { getMenuTemplate } from './newmenu'
+import { getHomeMenuTemplate, getDocMenuTemplate } from './newmenu'
 const path = require('path')
 const crypto = require('crypto')
 
@@ -8,6 +8,10 @@ const sha1Hash = crypto.createHash('sha1')
 const docWindows = {}
 
 const createHomeWindow = () => {
+  const handlers = { clickedNew: () => true, clickedOpen: () => true }
+  const template = Menu.buildFromTemplate(getHomeMenuTemplate(handlers))
+  Menu.setApplicationMenu(template)
+
   const homeWin = new BrowserWindow({
     width: 800,
     height: 600,
@@ -16,9 +20,8 @@ const createHomeWindow = () => {
     }
   })
 
-  homeWin.loadFile(`${__dirname}/static/home.html`);
+  homeWin.loadFile(path.join(__dirname, '/static/home.html'))
 }
-
 
 /* ==== IPC handlers ==== */
 
@@ -109,7 +112,7 @@ app.on('window-all-closed', () => {
 
 async function createDocWindow (filePath) {
   const handlers = { clickedNew: () => true, clickedOpen: () => true }
-  const template = Menu.buildFromTemplate(getMenuTemplate(handlers))
+  const template = Menu.buildFromTemplate(getDocMenuTemplate(handlers))
   Menu.setApplicationMenu(template)
 
   const docWin = new BrowserWindow({
