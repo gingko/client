@@ -1,12 +1,11 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+import * as fs from 'fs/promises'
+import { app, BrowserWindow, ipcMain, dialog, Menu } from 'electron'
+import { getMenuTemplate } from './newmenu'
 const path = require('path')
 const crypto = require('crypto')
-import * as fs from 'fs/promises';
 
-let sha1Hash = crypto.createHash('sha1');
-
-let docWindows = {};
-
+const sha1Hash = crypto.createHash('sha1')
+const docWindows = {}
 
 const createHomeWindow = () => {
   const homeWin = new BrowserWindow({
@@ -108,7 +107,11 @@ app.on('window-all-closed', () => {
 
 /* ==== Doc Window ==== */
 
-async function createDocWindow(filePath) {
+async function createDocWindow (filePath) {
+  const handlers = { clickedNew: () => true, clickedOpen: () => true }
+  const template = Menu.buildFromTemplate(getMenuTemplate(handlers))
+  Menu.setApplicationMenu(template)
+
   const docWin = new BrowserWindow({
     width: 800,
     height: 600,
@@ -133,14 +136,14 @@ async function createDocWindow(filePath) {
   docWindows[docWin.id] = {filePath: filePath, filehandle: filehandle, dirty : false};
 
   // Initialize Renderer
-  await docWin.loadFile(`${__dirname}/static/renderer.html`);
-  await docWin.webContents.send('file-received', {filePath : filePath, fileData : fileData})
-  docWin.setTitle(getTitleText(docWindows[docWin.id]));
+  await docWin.loadFile(path.join(__dirname, '/static/renderer.html'))
+  await docWin.webContents.send('file-received', { filePath: filePath, fileData: fileData })
+  docWin.setTitle(getTitleText(docWindows[docWin.id]))
 
   // Prevent title being set from HTML
   docWin.on('page-title-updated', (evt) => {
-    evt.preventDefault();
-  });
+    evt.preventDefault()
+  })
 }
 
 
