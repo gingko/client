@@ -151,9 +151,9 @@ async function createDocWindow (filePath) {
   docWindows[docWin.id] = {filePath: filePath, filehandle: filehandle, dirty : false};
 
   // Initialize Renderer
+  docWin.setTitle(getTitleText(docWindows[docWin.id]))
   await docWin.loadFile(path.join(__dirname, '/static/renderer.html'))
   await docWin.webContents.send('file-received', { filePath: filePath, fileData: fileData })
-  docWin.setTitle(getTitleText(docWindows[docWin.id]))
 
   // Prevent title being set from HTML
   docWin.on('page-title-updated', (evt) => {
