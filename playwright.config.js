@@ -1,5 +1,3 @@
-const { devices } = require('@playwright/test');
-
 const config = {
   testDir: './tests',
   timeout: 30 * 1000,

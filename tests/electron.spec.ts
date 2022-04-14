@@ -6,12 +6,11 @@ import * as fsStd from 'fs';
 let electronApp: ElectronApplication;
 let homeWindow: Page;
 let newDocWindow : Page;
-let context: BrowserContext;
+let testFilePath = path.join(__dirname, 'test-here.gkw');
 
 
 test.beforeAll( async () => {
   electronApp = await electron.launch({ args: ["./app"] });
-  context = electronApp.context();
   homeWindow = await electronApp.firstWindow();
 })
 
@@ -96,11 +95,10 @@ test.describe('Check Home Page', async () => {
   })
 
   test('Saves to file on Control+S', async () => {
-    let filePath = path.join(__dirname, 'test-here.gkw');
     await electronApp.evaluate((process, pathArg)=>{
       // @ts-ignore
       process.dialog.showSaveDialog = () => Promise.resolve({canceled: false, filePath: pathArg});
-    }, filePath);
+    }, testFilePath);
 
     await newDocWindow.keyboard.press('Control+Enter');
     await newDocWindow.keyboard.press('Control+S');
@@ -112,14 +110,31 @@ test.describe('Check Home Page', async () => {
       return new Promise((resolve)=> resolve(mainWindow.title));
     })
     expect(title).toEqual("test-here.gkw - Gingko Writer");
-    expect(await fs.stat(filePath)).toHaveProperty('ctimeMs');
+    expect(await fs.stat(testFilePath)).toHaveProperty('ctimeMs');
+  })
+
+  test('Loads file correctly', async () => {
+    await electronApp.close();
+    electronApp = await electron.launch({ args: ["./app"] });
+    homeWindow = await electronApp.firstWindow();
+
+    await electronApp.evaluate((process, pathArg)=>{
+      // @ts-ignore
+      process.dialog.showOpenDialog = () => Promise.resolve({canceled: false, filePaths: [pathArg]});
+    }, testFilePath);
+
+    let [window] = await Promise.all([electronApp.waitForEvent('window'), homeWindow.click("#open-doc-button")]);
+    newDocWindow = window;
+    expect(newDocWindow).toBeTruthy();
+    await expect(await getCard(newDocWindow, 1,1,1).locator('div.view')).toHaveText('Hi!\nSomething',{useInnerText: true});
+    await expect(await getCard(newDocWindow, 1,1,2).locator('div.view')).toHaveText('xyz',{useInnerText: true});
+    await expect(await getCard(newDocWindow, 1,1,3).locator('div.view')).toHaveText('uvw',{useInnerText: true});
   })
 })
 
 
 test.afterAll( async () => {
   await electronApp.close();
-  let testFilePath = path.join(__dirname, 'test-here.gkw');
   try {
     await fs.access(testFilePath);
     await fs.unlink(testFilePath);
