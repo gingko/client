@@ -475,7 +475,7 @@ var casesShared = (elmData, params) => {
 
     SetCursorPosition: () => {
       let pos = elmData[0];
-      setTimeout(() => document.activeElement.setSelectionRange(pos, pos), 0);
+      requestAnimationFrame(() => document.activeElement.setSelectionRange(pos, pos));
     },
 
     SetTextareaClone: () => {

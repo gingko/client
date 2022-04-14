@@ -86,18 +86,16 @@ test.describe('Check Home Page', async () => {
 
     // Check that cursor positon is set correctly
     expect(await newDocWindow.evaluate(async () => {
-      await new Promise(r => setTimeout(r, 200));
       // @ts-ignore
       return window.elmMessages.map(m => m.tag).filter(t => t == "SetCursorPosition")
     }))
       .toHaveLength(1);
 
     // @ts-ignore
-    //expect(await uvwTextarea.evaluate(node => [node.selectionStart, node.selectionEnd])).toEqual([0,0]);
+    expect(await uvwTextarea.evaluate(node => [node.selectionStart, node.selectionEnd])).toEqual([0,0]);
   })
 
   test('Saves to file on Control+S', async () => {
-    newDocWindow.on('console', console.log);
     let filePath = path.join(__dirname, 'test-here.gkw');
     await electronApp.evaluate((process, pathArg)=>{
       // @ts-ignore
@@ -121,7 +119,11 @@ test.describe('Check Home Page', async () => {
 
 test.afterAll( async () => {
   await electronApp.close();
-  await fs.unlink(path.join(__dirname, 'test-here.gkw'));
+  let testFilePath = path.join(__dirname, 'test-here.gkw');
+  try {
+    await fs.access(testFilePath);
+    await fs.unlink(testFilePath);
+  } finally { }
 })
 
 
