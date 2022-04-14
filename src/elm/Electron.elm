@@ -142,8 +142,21 @@ update msg ({ docModel } as model) =
                         |> Tuple.mapBoth (\m -> { model | docModel = m }) (Cmd.map GotDocMsg)
                         |> saveUntitled
 
-                ( UntitledFileDoc path, SavedToFile newPath ) ->
-                    ( { model | fileState = FileDoc newPath }, Cmd.none )
+                ( UntitledFileDoc oldPath, SavedToFile newPath ) ->
+                    ( { model
+                        | fileState =
+                            if newPath /= oldPath then
+                                FileDoc newPath
+
+                            else
+                                UntitledFileDoc oldPath
+                        , docModel = { docModel | dirty = False }
+                      }
+                    , Cmd.none
+                    )
+
+                ( FileDoc oldPath, SavedToFile newPath ) ->
+                    ( { model | fileState = FileDoc newPath, docModel = { docModel | dirty = False } }, Cmd.none )
 
                 _ ->
                     Page.Doc.incoming incomingMsg docModel
@@ -177,7 +190,17 @@ update msg ({ docModel } as model) =
 
 
 localSaveDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-localSaveDo ( { fileState } as model, prevCmd ) =
+localSaveDo mcTuple =
+    sendSaveMsg SaveToFile mcTuple
+
+
+saveUntitled : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+saveUntitled mcTuple =
+    sendSaveMsg SaveUntitled mcTuple
+
+
+sendSaveMsg : (String -> String -> Outgoing.Msg) -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+sendSaveMsg msg ( { fileState } as model, prevCmd ) =
     let
         vstate =
             model.docModel.viewState
@@ -193,17 +216,7 @@ localSaveDo ( { fileState } as model, prevCmd ) =
     in
     ( model
     , Cmd.batch
-        [ send <| SaveToFile (fileStateToPath fileState) (treeToMarkdownOutline False treeToSave)
-        , prevCmd
-        ]
-    )
-
-
-saveUntitled : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-saveUntitled ( { fileState } as model, prevCmd ) =
-    ( model
-    , Cmd.batch
-        [ send <| SaveUntitled (fileStateToPath fileState) (treeToMarkdownOutline False model.docModel.workingTree.tree)
+        [ send <| msg (fileStateToPath fileState) (treeToMarkdownOutline False treeToSave)
         , prevCmd
         ]
     )
@@ -216,15 +229,28 @@ saveUntitled ( { fileState } as model, prevCmd ) =
 view : Model -> List (Html Msg)
 view model =
     [ div [ id "app-root", applyTheme model.theme ]
-        (Page.Doc.view
-            { docMsg = GotDocMsg
-            , keyboard = \s -> Incoming (Keyboard s)
-            , tooltipRequested = TooltipRequested
-            , tooltipClosed = TooltipClosed
-            }
-            model.docModel
+        ([ viewFileSaveIndicator model.docModel.dirty ]
+            ++ Page.Doc.view
+                { docMsg = GotDocMsg
+                , keyboard = \s -> Incoming (Keyboard s)
+                , tooltipRequested = TooltipRequested
+                , tooltipClosed = TooltipClosed
+                }
+                model.docModel
         )
     ]
+
+
+viewFileSaveIndicator : Bool -> Html msg
+viewFileSaveIndicator isDirty =
+    div [ id "file-save-indicator" ]
+        [ text <|
+            if isDirty then
+                "Saving..."
+
+            else
+                "Saved"
+        ]
 
 
 

@@ -15,8 +15,8 @@ test.beforeAll( async () => {
 })
 
 
-test.describe('Check Home Page', async () => {
-  test('Check Title', async () => {
+test.describe('File Saving & Loading', async () => {
+  test('Check Home Title', async () => {
     const title = await homeWindow.title();
     expect(title).toBe("Gingko Writer - Home");
   })
@@ -37,6 +37,7 @@ test.describe('Check Home Page', async () => {
 
     const savedCardView = await newDocWindow.locator('.card.active .view');
     await expect(savedCardView).toHaveText('Hi!');
+    await expect(newDocWindow.locator('#file-save-indicator')).toHaveText('Saved')
   })
 
   test('Saves to file properly', async () => {
@@ -44,7 +45,7 @@ test.describe('Check Home Page', async () => {
     const files = await fs.readdir(dir);
     const latestFile =
       files
-        .filter(async (file) => (await fs.stat(path.join(dir, file))).isFile())
+        .filter(async (file) => file.endsWith('.gkw') && (await fs.stat(path.join(dir, file))).isFile())
         .map((file) => {
           let stats = fsStd.statSync(path.join(dir, file));
           return {file: file, mtime: stats.mtime};
@@ -138,7 +139,7 @@ test.afterAll( async () => {
   try {
     await fs.access(testFilePath);
     await fs.unlink(testFilePath);
-  } finally { }
+  } catch { }
 })
 
 

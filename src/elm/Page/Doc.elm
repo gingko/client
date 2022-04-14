@@ -75,7 +75,7 @@ init isNew globalData =
     , loading = not isNew
     , isExpired = False
     , debouncerLocalSave =
-        Debouncer.throttle (fromSeconds 0.5)
+        Debouncer.debounce (fromSeconds 0.5)
             |> Debouncer.settleWhenQuietFor (Just <| fromSeconds 0.5)
             |> toDebouncer
     , debouncerStateCommit =

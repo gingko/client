@@ -1,5 +1,6 @@
+const { devices } = require('@playwright/test')
+
 const config = {
-  testDir: './tests',
   timeout: 30 * 1000,
   expect: {
     timeout: 5000
@@ -11,8 +12,20 @@ const config = {
   use: {
     /* Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
     actionTimeout: 0,
-    trace: 'on-first-retry',
+    trace: 'on-first-retry'
   },
-};
+  projects:
+    [
+      {
+        name: 'web/chromium',
+        use: { ...devices['Desktop Chrome'] },
+        testDir: './tests/web'
+      },
+      {
+        name: 'electron',
+        testDir: './tests/electron'
+      }
+    ]
+}
 
-module.exports = config;
+module.exports = config

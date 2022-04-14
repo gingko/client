@@ -6,12 +6,11 @@ const container = require("Container");
 // Init Vars
 
 window.elmMessages = [];
-let filePath;
 let lastActivesScrolled = null;
 let lastColumnScrolled = null;
 let ticking = false;
+let DIRTY = true
 const localStore = container.localStore;
-
 
 // Init Elm
 let gingkoElectron;
@@ -31,14 +30,21 @@ const init = async function (filePath, fileData) {
 };
 
 window.electronAPI.fileReceived(async (event, value) => {
-  filePath = value.filePath;
-  await init(value.filePath, value.fileData);
-});
-
-window.electronAPI.fileSaved(async (event, data)=> {
-  filePath = data;
-  toElm(data, "docMsgs", "SavedToFile");
+  if (value.fileData !== null) DIRTY = false
+  await init(value.filePath, value.fileData)
 })
+
+window.electronAPI.fileSaved(async (event, data) => {
+  DIRTY = false
+  toElm(data, 'docMsgs', 'SavedToFile')
+})
+
+window.onbeforeunload = (e) => {
+  if (DIRTY) {
+    setTimeout(window.electronAPI.closeWindow, 200)
+    e.returnValue = false
+  }
+}
 
 /* === Elm / JS Interop === */
 
@@ -48,7 +54,7 @@ const fromElm = (msg, elmData) => {
 
   const casesElectron = {
     SetDirty: () => {
-      // window.electronAPI.setDirty(filePath, elmData)
+      DIRTY = elmData
     },
 
     CommitData: () => {

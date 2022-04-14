@@ -72,22 +72,28 @@ ipcMain.on('save-untitled', async (event, data) => {
   const webContents = event.sender
   const win = BrowserWindow.fromWebContents(webContents)
 
-  let {filePath, canceled} = await dialog.showSaveDialog(win, {defaultPath: app.getPath('documents')})
+  const { filePath, canceled } = await dialog.showSaveDialog(win, { defaultPath: app.getPath('documents') })
   if (!canceled && filePath) {
-    docWindows[win.id].filePath = filePath;
-    docWindows[win.id].filehandle = await fs.open(filePath, 'w');
-    await docWindows[win.id].filehandle.write(data[1],0);
-    await webContents.send('file-saved', filePath);
-    win.setTitle(getTitleText(docWindows[win.id]));
+    docWindows[win.id].filePath = filePath
+    docWindows[win.id].filehandle = await fs.open(filePath, 'w')
+    await docWindows[win.id].filehandle.write(data[1], 0)
+    await webContents.send('file-saved', filePath)
+    win.setTitle(getTitleText(docWindows[win.id]))
   }
 })
 
-ipcMain.on('save-file', async (event, data) =>{
+ipcMain.on('save-file', async (event, data) => {
   const webContents = event.sender
   const win = BrowserWindow.fromWebContents(webContents)
 
-  await docWindows[win.id].filehandle.write(data[1], 0);
+  const filePath = docWindows[win.id].filePath
+  await docWindows[win.id].filehandle.write(data[1], 0)
+  await webContents.send('file-saved', filePath)
   win.setTitle(getTitleText(docWindows[win.id]))
+})
+
+ipcMain.on('close-window', (event) => {
+  BrowserWindow.fromWebContents(event.sender).close()
 })
 
 /* ==== Initialization ==== */
@@ -122,20 +128,20 @@ async function createDocWindow (filePath) {
     }
   })
 
-  let filehandle;
-  let fileData = null;
-  if(filePath == null) {
+  let filehandle
+  let fileData = null
+  if (filePath == null) {
     // Initialize New Document
-    let d = new Date();
-    let fileHash = sha1Hash.update(d.getTime()+"").digest('hex').slice(0,6);
-    filePath = path.join(app.getPath('temp'), `Untitled-${d.toISOString().slice(0,10)}-${fileHash}.gkw`);
-    filehandle = await fs.open(filePath, 'w');
+    const d = new Date()
+    const fileHash = sha1Hash.update(d.getTime() + '').digest('hex').slice(0, 6)
+    filePath = path.join(app.getPath('temp'), `Untitled-${d.toISOString().slice(0, 10)}-${fileHash}.gkw`)
+    filehandle = await fs.open(filePath, 'w')
   } else {
     // Load Document
-    filehandle = await fs.open(filePath, 'r+');
-    fileData = await filehandle.readFile({encoding: "utf8"});
+    filehandle = await fs.open(filePath, 'r+')
+    fileData = await filehandle.readFile({ encoding: 'utf8' })
   }
-  docWindows[docWin.id] = {filePath: filePath, filehandle: filehandle, dirty : false};
+  docWindows[docWin.id] = { filePath: filePath, filehandle: filehandle }
 
   // Initialize Renderer
   docWin.setTitle(getTitleText(docWindows[docWin.id]))

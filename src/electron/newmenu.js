@@ -18,6 +18,10 @@ function getDocMenuTemplate (handlers) {
         click: handlers.clickedOpen
       }
       ]
+    },
+    {
+      label: 'Toggle Dev Tools',
+      role: 'toggleDevTools'
     }
   ]
 }
