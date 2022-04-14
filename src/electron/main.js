@@ -8,7 +8,10 @@ const sha1Hash = crypto.createHash('sha1')
 const docWindows = {}
 
 const createHomeWindow = () => {
-  const handlers = { clickedNew: () => true, clickedOpen: () => true }
+  const handlers = {
+    clickedNew: (item, focusedWindow) => clickedNew(focusedWindow),
+    clickedOpen: (item, focusedWindow) => clickedOpen(focusedWindow)
+  }
   const template = Menu.buildFromTemplate(getHomeMenuTemplate(handlers))
   Menu.setApplicationMenu(template)
 
@@ -23,36 +26,45 @@ const createHomeWindow = () => {
   homeWin.loadFile(path.join(__dirname, '/static/home.html'))
 }
 
+/* ==== shared handlers ==== */
+
+async function clickedNew (win) {
+  win.hide()
+  await createDocWindow(null)
+  win.destroy()
+}
+
+async function clickedOpen (win) {
+  const dialogReturnValue = await dialog.showOpenDialog(win,
+    {
+      properties: ['openFile'],
+      defaultPath: app.getPath('documents'),
+      filters:
+        [{ name: 'Gingko Writer Document', extensions: ['gkw'] },
+          { name: 'Gingko Desktop Legacy', extensions: ['gko'] },
+          { name: 'Markdown Document', extensions: ['md'] }
+        ]
+    })
+
+  if (dialogReturnValue.filePaths.length !== 0) {
+    win.hide()
+    await createDocWindow(dialogReturnValue.filePaths[0])
+    win.destroy()
+  }
+}
+
 /* ==== IPC handlers ==== */
 
-ipcMain.on('clicked-new', async (event) => {
+ipcMain.on('clicked-new', (event) => {
   const webContents = event.sender
   const homeWindow = BrowserWindow.fromWebContents(webContents)
+  clickedNew(homeWindow)
+})
 
-  homeWindow.hide();
-  await createDocWindow(null);
-  homeWindow.destroy();
-});
-
-ipcMain.on('clicked-open', async (event, title) => {
+ipcMain.on('clicked-open', (event, title) => {
   const webContents = event.sender
   const homeWindow = BrowserWindow.fromWebContents(webContents)
-
-  let dialogReturnValue = await dialog.showOpenDialog(homeWindow,
-    { properties: ['openFile']
-      , defaultPath: app.getPath('documents')
-      , filters:
-        [ {name:'Gingko Writer Document', extensions: ['gkw']}
-          , {name:'Gingko Desktop Legacy', extensions: ['gko']}
-          , {name:'Markdown Document', extensions: ['md']}
-        ]
-    });
-
-  if (dialogReturnValue.filePaths.length != 0) {
-    homeWindow.hide();
-    await createDocWindow(dialogReturnValue.filePaths[0]);
-    homeWindow.destroy();
-  }
+  clickedOpen(homeWindow)
 })
 
 ipcMain.on('set-dirty', (event, filePath, isDirty) =>{
