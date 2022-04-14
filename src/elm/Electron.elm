@@ -3,7 +3,7 @@ module Electron exposing (..)
 import Browser
 import Browser.Dom exposing (Element)
 import Coders exposing (treeToMarkdownOutline)
-import Doc.TreeStructure as TreeStructure
+import Doc.TreeStructure as TreeStructure exposing (Msg(..))
 import GlobalData
 import Html exposing (Html, button, div, h1, text)
 import Html.Attributes exposing (id)
@@ -14,7 +14,7 @@ import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Doc.Theme exposing (Theme(..), applyTheme)
 import Task
 import Translation exposing (TranslationId)
-import Types exposing (TooltipPosition, Tree)
+import Types exposing (TooltipPosition, Tree, ViewMode(..))
 
 
 main : Program ( String, Maybe String, Value ) Model Msg
@@ -178,9 +178,22 @@ update msg ({ docModel } as model) =
 
 localSaveDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 localSaveDo ( { fileState } as model, prevCmd ) =
+    let
+        vstate =
+            model.docModel.viewState
+
+        treeToSave =
+            case vstate.viewMode of
+                Normal ->
+                    model.docModel.workingTree.tree
+
+                _ ->
+                    TreeStructure.update (Upd vstate.active model.docModel.field) model.docModel.workingTree
+                        |> .tree
+    in
     ( model
     , Cmd.batch
-        [ send <| SaveToFile (fileStateToPath fileState) (treeToMarkdownOutline False model.docModel.workingTree.tree)
+        [ send <| SaveToFile (fileStateToPath fileState) (treeToMarkdownOutline False treeToSave)
         , prevCmd
         ]
     )

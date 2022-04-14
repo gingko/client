@@ -68,16 +68,6 @@ ipcMain.on('clicked-open', (event, title) => {
   clickedOpen(homeWindow)
 })
 
-ipcMain.on('set-dirty', (event, filePath, isDirty) =>{
-  const webContents = event.sender
-  const win = BrowserWindow.fromWebContents(webContents)
-  if (docWindows[win.id].dirty !== isDirty) {
-    console.log(isDirty);
-    docWindows[win.id].dirty = isDirty;
-    win.setTitle(getTitleText(docWindows[win.id]));
-  }
-})
-
 ipcMain.on('save-untitled', async (event, data) => {
   const webContents = event.sender
   const win = BrowserWindow.fromWebContents(webContents)
@@ -93,14 +83,11 @@ ipcMain.on('save-untitled', async (event, data) => {
 })
 
 ipcMain.on('save-file', async (event, data) =>{
-  console.time('save-file')
   const webContents = event.sender
   const win = BrowserWindow.fromWebContents(webContents)
 
   await docWindows[win.id].filehandle.write(data[1], 0);
-  console.timeEnd('save-file')
-  docWindows[win.id].dirty = false;
-  win.setTitle(getTitleText(docWindows[win.id]));
+  win.setTitle(getTitleText(docWindows[win.id]))
 })
 
 /* ==== Initialization ==== */
@@ -161,10 +148,8 @@ async function createDocWindow (filePath) {
   })
 }
 
-
 /* ==== Helper Functions */
 
 function getTitleText (windowInfo) {
-  let dirtyMarker = windowInfo.dirty ? "*" : "";
-  return `${path.basename(windowInfo.filePath)}${dirtyMarker} - Gingko Writer`;
+  return `${path.basename(windowInfo.filePath)} - Gingko Writer`
 }

@@ -75,8 +75,8 @@ init isNew globalData =
     , loading = not isNew
     , isExpired = False
     , debouncerLocalSave =
-        Debouncer.throttle (fromSeconds 0.25)
-            |> Debouncer.settleWhenQuietFor (Just <| fromSeconds 0.25)
+        Debouncer.throttle (fromSeconds 0.5)
+            |> Debouncer.settleWhenQuietFor (Just <| fromSeconds 0.5)
             |> toDebouncer
     , debouncerStateCommit =
         Debouncer.throttle (fromSeconds 3)
@@ -260,6 +260,7 @@ updateDoc msg ({ workingTree } as model) =
                 , send <| SetTextareaClone id str
                 ]
             )
+                |> localSave
 
         AutoSave ->
             ( model, Cmd.none ) |> saveCardIfEditing
@@ -1633,6 +1634,7 @@ move subtree pid pos ( model, prevCmd ) =
     , prevCmd
     )
         |> activate subtree.id False
+        |> localSave
         |> addToHistory
 
 

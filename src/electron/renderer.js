@@ -43,12 +43,12 @@ window.electronAPI.fileSaved(async (event, data)=> {
 /* === Elm / JS Interop === */
 
 const fromElm = (msg, elmData) => {
-  window.elmMessages.push({ tag: msg, data: elmData });
-  window.elmMessages = window.elmMessages.slice(-10);
+  window.elmMessages.push({ tag: msg, data: elmData })
+  window.elmMessages = window.elmMessages.slice(-10)
 
-  let casesElectron = {
+  const casesElectron = {
     SetDirty: () => {
-      window.electronAPI.setDirty(filePath, elmData)
+      // window.electronAPI.setDirty(filePath, elmData)
     },
 
     CommitData: () => {
@@ -62,7 +62,7 @@ const fromElm = (msg, elmData) => {
     SaveToFile: () => {
       window.electronAPI.saveFile(elmData)
     }
-  };
+  }
 
   let params = { localStore, lastColumnScrolled, lastActivesScrolled, ticking };
 
