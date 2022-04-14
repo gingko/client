@@ -1077,7 +1077,6 @@ activate tryId instant ( model, prevCmd ) =
                                 (ScrollCards (id :: newPast) scrollPositions colIdx instant)
                             ]
                         )
-                            |> sendCollabState (CollabState model.uid (CollabActive id) "")
 
 
 goLeft : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1271,7 +1270,6 @@ openCard id str ( model, prevCmd ) =
           }
         , Cmd.batch [ prevCmd, focus id, maybeScroll ]
         )
-            |> sendCollabState (CollabState model.uid (CollabEditing id) str)
 
 
 openCardFullscreen : String -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1469,7 +1467,6 @@ cancelCard ( model, prevCmd ) =
       }
     , prevCmd
     )
-        |> sendCollabState (CollabState model.uid (CollabActive vs.active) "")
         |> activate vs.active True
 
 
@@ -1912,13 +1909,6 @@ dataReceived dataIn model =
 
         Nothing ->
             ( model, Cmd.none )
-
-
-sendCollabState : CollabState -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-sendCollabState collabState ( model, prevCmd ) =
-    ( model
-    , Cmd.batch [ prevCmd, send (SocketSend collabState) ]
-    )
 
 
 
