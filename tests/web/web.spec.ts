@@ -42,5 +42,25 @@ test.describe('User Signup Flow', async () => {
 
     await expect(page).toHaveURL(/\/[a-zA-Z0-9]{5}$/)
     expect(await page.locator('#document').count()).toEqual(1)
+    await expect(page.locator('#document div.view h1')).toContainText('Welcome to Gingko Writer')
+
+    // Has email verification banner
+    await expect(page.locator('#email-confirm-banner')).toContainText('Please confirm your email')
+
+    page.goto(config.TEST_SERVER + '/confirm')
+
+    // Redirected to welcome, Confirmation banner gone
+    await expect(page).toHaveURL(/\/[a-zA-Z0-9]{5}$/)
+    await expect(page.locator('#document div.view h1')).toContainText('Welcome to Gingko Writer')
+    expect(await page.locator('#email-confirm-banner').count()).toEqual(0)
+
+    // Send email confirmation webhook before logging out
+    await page.request.post(config.TEST_SERVER + '/mlhooks',
+      { data: { events: [{ data: { subscriber: { email: testEmail, confirmation_timestamp: (new Date()).toISOString() } } }] } })
+    await page.locator('#account-icon').click()
+    await page.locator('#logout-button').click()
+
+    await expect(page).toHaveURL(/\/login/)
+    await expect(page.locator('button.cta')).toContainText('Login')
   })
 })
