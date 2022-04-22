@@ -1,12 +1,12 @@
-import sharedTests from '../shared/doc.shared.tests'
+import sharedDocTest from '../shared/doc.shared.tests'
 const { test, expect, request } = require('@playwright/test')
-
 const config = require('../../config.js')
 
 const testEmail = 'cypress@testing.com'
+let page
 
 test.beforeAll(async ({ browser }) => {
-  const page = await browser.newPage()
+  page = await browser.newPage()
   const auth = Buffer.from(`${config.COUCHDB_ADMIN_USERNAME}:${config.COUCHDB_ADMIN_PASSWORD}`).toString('base64')
   const contextOptions = { extraHTTPHeaders: { authorization: 'Basic ' + auth } }
   const dbAdminRequest = await request.newContext(contextOptions)
@@ -31,7 +31,8 @@ test.beforeAll(async ({ browser }) => {
 
   await expect(page).toHaveURL(/\/[a-zA-Z0-9]{5}$/)
   expect(await page.locator('#document').count()).toEqual(1)
-  await page.goto(config.TEST_SERVER + '/new')
 })
 
-sharedTests()
+test.describe('main file describe block', () => {
+  sharedDocTest(page)
+})
