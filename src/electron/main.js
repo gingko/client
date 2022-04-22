@@ -1,5 +1,4 @@
 import * as fs from 'fs/promises'
-import { createWriteStream } from 'fs'
 import { app, BrowserWindow, ipcMain, dialog, Menu } from 'electron'
 import { getHomeMenuTemplate, getDocMenuTemplate } from './newmenu'
 const path = require('path')
@@ -69,13 +68,15 @@ ipcMain.on('clicked-open', (event, title) => {
   clickedOpen(homeWindow)
 })
 
-ipcMain.on('save-untitled', async (event, data) => {
+ipcMain.on('save-as', async (event, data) => {
   const webContents = event.sender
   const win = BrowserWindow.fromWebContents(webContents)
 
-  const { filePath, canceled } = await dialog.showSaveDialog(win, { defaultPath: app.getPath('documents') })
+  const defaultPath = (data[0].startsWith(app.getPath('temp'))) ? app.getPath('documents') : data[0]
+  const { filePath, canceled } = await dialog.showSaveDialog(win, { defaultPath })
   if (!canceled && filePath) {
     docWindows[win.id].filePath = filePath
+    docWindows[win.id].filehandle = await fs.open(filePath, 'w')
     const { bytesWritten } = await docWindows[win.id].filehandle.write(data[1], 0)
     await docWindows[win.id].filehandle.truncate(bytesWritten)
     await webContents.send('file-saved', filePath)
@@ -132,13 +133,17 @@ async function createDocWindow (filePath) {
 
   let fileData = null
   let filehandle
+  const d = new Date()
+  const fileHash = sha1Hash.update(d.getTime() + '').digest('hex').slice(0, 6)
+  const dateString = d.toISOString().slice(0, 10)
   if (filePath == null) {
     // Initialize New Document
-    const d = new Date()
-    const fileHash = sha1Hash.update(d.getTime() + '').digest('hex').slice(0, 6)
-    filePath = path.join(app.getPath('temp'), `Untitled-${d.toISOString().slice(0, 10)}-${fileHash}.gkw`)
+    filePath = path.join(app.getPath('temp'), `Untitled-${dateString}-${fileHash}.gkw`)
     filehandle = await fs.open(filePath, 'w')
   } else {
+    // Save backup copy
+    await fs.copyFile(filePath, path.join(app.getPath('temp'), `${path.basename(filePath, '.gkw')}-${dateString}-${fileHash}.gkw.bak`))
+
     // Load Document
     filehandle = await fs.open(filePath, 'r+')
     fileData = await filehandle.readFile({ encoding: 'utf8' })

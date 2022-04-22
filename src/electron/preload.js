@@ -5,7 +5,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   clickedOpen: () => ipcRenderer.send('clicked-open', 'somearg'),
   fileReceived: (callback) => ipcRenderer.on('file-received', callback),
   fileSaved: (callback) => ipcRenderer.on('file-saved', callback),
-  saveUntitled: (data) => ipcRenderer.send('save-untitled', data),
+  saveAs: (data) => ipcRenderer.send('save-as', data),
   saveFile: (data) => ipcRenderer.send('save-file', data),
   closeWindow: () => ipcRenderer.send('close-window')
 })

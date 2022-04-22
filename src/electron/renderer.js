@@ -70,7 +70,7 @@ const fromElm = (msg, elmData) => {
     },
 
     SaveUntitled: () => {
-      window.electronAPI.saveUntitled(elmData)
+      window.electronAPI.saveAs(elmData)
     },
 
     SaveToFile: () => {
