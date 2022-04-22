@@ -61,6 +61,14 @@ const fromElm = (msg, elmData) => {
       // TODO
     },
 
+    DragStart: () => {
+      const cardElement = elmData.target.parentElement
+      const cardId = cardElement.id.replace(/^card-/, '')
+      elmData.dataTransfer.setDragImage(cardElement, 0, 0)
+      elmData.dataTransfer.setData('text', '')
+      toElm(cardId, 'docMsgs', 'DragStarted')
+    },
+
     SaveUntitled: () => {
       window.electronAPI.saveUntitled(elmData)
     },
