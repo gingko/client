@@ -1,4 +1,5 @@
 import * as fs from 'fs/promises'
+import { createWriteStream } from 'fs'
 import { app, BrowserWindow, ipcMain, dialog, Menu } from 'electron'
 import { getHomeMenuTemplate, getDocMenuTemplate } from './newmenu'
 const path = require('path')
@@ -75,7 +76,8 @@ ipcMain.on('save-untitled', async (event, data) => {
   const { filePath, canceled } = await dialog.showSaveDialog(win, { defaultPath: app.getPath('documents') })
   if (!canceled && filePath) {
     docWindows[win.id].filePath = filePath
-    await fs.writeFile(filePath, data[1])
+    const { bytesWritten } = await docWindows[win.id].filehandle.write(data[1], 0)
+    await docWindows[win.id].filehandle.truncate(bytesWritten)
     await webContents.send('file-saved', filePath)
     win.setTitle(getTitleText(docWindows[win.id]))
   }
@@ -86,7 +88,8 @@ ipcMain.on('save-file', async (event, data) => {
   const win = BrowserWindow.fromWebContents(webContents)
 
   const filePath = docWindows[win.id].filePath
-  await fs.writeFile(filePath, data[1])
+  const { bytesWritten } = await docWindows[win.id].filehandle.write(data[1], 0)
+  await docWindows[win.id].filehandle.truncate(bytesWritten)
   await webContents.send('file-saved', filePath)
   win.setTitle(getTitleText(docWindows[win.id]))
 })
@@ -128,16 +131,19 @@ async function createDocWindow (filePath) {
   })
 
   let fileData = null
+  let filehandle
   if (filePath == null) {
     // Initialize New Document
     const d = new Date()
     const fileHash = sha1Hash.update(d.getTime() + '').digest('hex').slice(0, 6)
     filePath = path.join(app.getPath('temp'), `Untitled-${d.toISOString().slice(0, 10)}-${fileHash}.gkw`)
+    filehandle = await fs.open(filePath, 'w')
   } else {
     // Load Document
-    fileData = await fs.readFile(filePath, { encoding: 'utf8' })
+    filehandle = await fs.open(filePath, 'r+')
+    fileData = await filehandle.readFile({ encoding: 'utf8' })
   }
-  docWindows[docWin.id] = { filePath: filePath }
+  docWindows[docWin.id] = { filePath: filePath, filehandle: filehandle }
 
   // Initialize Renderer
   docWin.setTitle(getTitleText(docWindows[docWin.id]))
