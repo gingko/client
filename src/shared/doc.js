@@ -268,18 +268,6 @@ const fromElm = (msg, elmData) => {
       draggingInternal = false;
     },
 
-    ConfirmCancelCard: () => {
-      let tarea = document.getElementById("card-edit-" + elmData[0]);
-
-      if (tarea === null) {
-        console.log("tarea not found");
-      } else {
-        if (tarea.value === elmData[1] || confirm(elmData[2])) {
-          toElm(null, "docMsgs", "CancelCardConfirmed");
-        }
-      }
-    },
-
     // === Database ===
 
     InitDocument: async () => {
