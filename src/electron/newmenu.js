@@ -2,10 +2,11 @@ function getHomeMenuTemplate (handlers) {
   return getDocMenuTemplate(handlers)
 }
 
-function getDocMenuTemplate (handlers) {
+function getDocMenuTemplate (handlers, isUntitled) {
   return [
     {
       label: 'File',
+      role: 'fileMenu',
       submenu:
       [{
         label: 'New File',
@@ -16,6 +17,17 @@ function getDocMenuTemplate (handlers) {
         label: 'Open File',
         accelerator: 'CommandOrControl+O',
         click: handlers.clickedOpen
+      },
+      {
+        label: isUntitled ? 'Save' : 'Saved',
+        accelerator: 'CommandOrControl+S',
+        click: handlers.clickedSaveAs,
+        enabled: isUntitled
+      },
+      {
+        label: 'Save As...',
+        accelerator: 'CommandOrControl+Shift+S',
+        click: handlers.clickedSaveAs
       }
       ]
     },

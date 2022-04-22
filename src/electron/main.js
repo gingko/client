@@ -4,13 +4,13 @@ import { getHomeMenuTemplate, getDocMenuTemplate } from './newmenu'
 const path = require('path')
 const crypto = require('crypto')
 
-const sha1Hash = crypto.createHash('sha1')
 const docWindows = {}
 
 const createHomeWindow = () => {
   const handlers = {
     clickedNew: (item, focusedWindow) => clickedNew(focusedWindow),
-    clickedOpen: (item, focusedWindow) => clickedOpen(focusedWindow)
+    clickedOpen: (item, focusedWindow) => clickedOpen(focusedWindow, true),
+    clickedSaveAs: async (item, focusedWindow) => await saveThisAs(focusedWindow)
   }
   const template = Menu.buildFromTemplate(getHomeMenuTemplate(handlers))
   Menu.setApplicationMenu(template)
@@ -30,12 +30,12 @@ const createHomeWindow = () => {
 /* ==== shared handlers ==== */
 
 async function clickedNew (win) {
-  win.hide()
+  if (win) win.hide()
   await createDocWindow(null)
-  win.destroy()
+  if (win) win.destroy()
 }
 
-async function clickedOpen (win) {
+async function clickedOpen (win, close) {
   const dialogReturnValue = await dialog.showOpenDialog(win,
     {
       properties: ['openFile'],
@@ -48,9 +48,25 @@ async function clickedOpen (win) {
     })
 
   if (dialogReturnValue.filePaths.length !== 0) {
-    win.hide()
+    if (close) win.hide()
     await createDocWindow(dialogReturnValue.filePaths[0])
-    win.destroy()
+    if (close) win.destroy()
+  }
+}
+
+async function saveThisAs (win) {
+  const origPath = docWindows[win.id].filePath
+  const defaultPath = origPath.startsWith(app.getPath('temp')) ? app.getPath('documents') : origPath
+
+  const { filePath, canceled } = await dialog.showSaveDialog(win, { defaultPath })
+  if (!canceled && filePath) {
+    docWindows[win.id].filePath = filePath
+    await fs.copyFile(origPath, filePath)
+    docWindows[win.id].filehandle = await fs.open(filePath, 'r+')
+    await win.webContents.send('file-saved', filePath)
+    win.setTitle(getTitleText(docWindows[win.id]))
+    const template = Menu.buildFromTemplate(getDocMenuTemplate(handlers, false))
+    Menu.setApplicationMenu(template)
   }
 }
 
@@ -65,23 +81,7 @@ ipcMain.on('clicked-new', (event) => {
 ipcMain.on('clicked-open', (event, title) => {
   const webContents = event.sender
   const homeWindow = BrowserWindow.fromWebContents(webContents)
-  clickedOpen(homeWindow)
-})
-
-ipcMain.on('save-as', async (event, data) => {
-  const webContents = event.sender
-  const win = BrowserWindow.fromWebContents(webContents)
-
-  const defaultPath = (data[0].startsWith(app.getPath('temp'))) ? app.getPath('documents') : data[0]
-  const { filePath, canceled } = await dialog.showSaveDialog(win, { defaultPath })
-  if (!canceled && filePath) {
-    docWindows[win.id].filePath = filePath
-    docWindows[win.id].filehandle = await fs.open(filePath, 'w')
-    const { bytesWritten } = await docWindows[win.id].filehandle.write(data[1], 0)
-    await docWindows[win.id].filehandle.truncate(bytesWritten)
-    await webContents.send('file-saved', filePath)
-    win.setTitle(getTitleText(docWindows[win.id]))
-  }
+  clickedOpen(homeWindow, true)
 })
 
 ipcMain.on('save-file', async (event, data) => {
@@ -118,9 +118,14 @@ app.on('window-all-closed', () => {
 
 /* ==== Doc Window ==== */
 
+const handlers =
+  {
+    clickedNew: async () => await clickedNew(false),
+    clickedOpen: async (item, focusedWindow) => await clickedOpen(focusedWindow),
+    clickedSaveAs: async (item, focusedWindow) => await saveThisAs(focusedWindow)
+  }
 async function createDocWindow (filePath) {
-  const handlers = { clickedNew: () => true, clickedOpen: () => true }
-  const template = Menu.buildFromTemplate(getDocMenuTemplate(handlers))
+  const template = Menu.buildFromTemplate(getDocMenuTemplate(handlers, filePath === null))
   Menu.setApplicationMenu(template)
 
   const docWin = new BrowserWindow({
@@ -134,6 +139,7 @@ async function createDocWindow (filePath) {
   let fileData = null
   let filehandle
   const d = new Date()
+  const sha1Hash = crypto.createHash('sha1')
   const fileHash = sha1Hash.update(d.getTime() + '').digest('hex').slice(0, 6)
   const dateString = d.toISOString().slice(0, 10)
   if (filePath == null) {

@@ -69,10 +69,6 @@ const fromElm = (msg, elmData) => {
       toElm(cardId, 'docMsgs', 'DragStarted')
     },
 
-    SaveUntitled: () => {
-      window.electronAPI.saveAs(elmData)
-    },
-
     SaveToFile: () => {
       window.electronAPI.saveFile(elmData)
     }
@@ -110,7 +106,7 @@ function toElm(data, portName, tagName) {
 
 /* === Keyboard === */
 
-Mousetrap.bind(helpers.shortcuts, function (e, s) {
+Mousetrap.bind(helpers.shortcuts.filter((x) => x !== 'mod+s'), function (e, s) {
   switch (s) {
     case "enter":
       if (document.activeElement.nodeName == "TEXTAREA") {

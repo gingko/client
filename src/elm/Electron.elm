@@ -137,11 +137,6 @@ update msg ({ docModel } as model) =
 
         Incoming incomingMsg ->
             case ( model.fileState, incomingMsg ) of
-                ( UntitledFileDoc path, Keyboard "mod+s" ) ->
-                    Page.Doc.incoming incomingMsg docModel
-                        |> Tuple.mapBoth (\m -> { model | docModel = m }) (Cmd.map GotDocMsg)
-                        |> saveUntitled
-
                 ( UntitledFileDoc oldPath, SavedToFile newPath ) ->
                     ( { model
                         | fileState =
@@ -192,11 +187,6 @@ update msg ({ docModel } as model) =
 localSaveDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 localSaveDo mcTuple =
     sendSaveMsg SaveToFile mcTuple
-
-
-saveUntitled : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-saveUntitled mcTuple =
-    sendSaveMsg SaveUntitled mcTuple
 
 
 sendSaveMsg : (String -> String -> Outgoing.Msg) -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
