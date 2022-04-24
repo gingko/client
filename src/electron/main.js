@@ -108,7 +108,7 @@ ipcMain.on('commit-data', async (event, commitData) => {
     .map((o) => {
       const objId = o._id
       delete o._id
-      return { type: 'put', key: objId, value: o }
+      return { type: 'put', key: objId, value: JSON.stringify(o) }
     })
   console.log(ops)
   try {
@@ -164,6 +164,7 @@ async function createDocWindow (filePath) {
   let fileData = null
   let filehandle
   let undoDb
+  let undoData = {}
   const d = new Date()
   const sha1Hash = crypto.createHash('sha1')
   const fileHash = sha1Hash.update(d.getTime() + '').digest('hex').slice(0, 6)
@@ -182,6 +183,9 @@ async function createDocWindow (filePath) {
     const undoPath = path.join(app.getPath('userData'), 'versionhistory', filePath.split(path.sep).join('%'))
     await fs.mkdir(undoPath, { recursive: true })
     undoDb = levelup(leveldown(undoPath))
+    undoDb.createReadStream().on('data', (data) => {
+      console.log(data.key.toString(), data.value.toString())
+    })
   }
   docWindows[docWin.id] = { filePath, filehandle, undoDb, savedImmutables: new Set() }
 
