@@ -3,11 +3,13 @@ module Electron exposing (..)
 import Browser
 import Browser.Dom exposing (Element)
 import Coders exposing (treeToMarkdownOutline)
+import Doc.Data as Data
 import Doc.TreeStructure as TreeStructure exposing (Msg(..))
 import GlobalData
 import Html exposing (Html, button, div, h1, text)
 import Html.Attributes exposing (id)
-import Json.Decode as Dec exposing (Decoder, Value)
+import Json.Decode exposing (Decoder, Value)
+import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
 import Page.Doc exposing (Msg(..), ParentMsg(..))
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
@@ -132,6 +134,10 @@ update msg ({ docModel } as model) =
                     ( { model | docModel = newDocModel }, newCmd )
                         |> localSaveDo
 
+                CommitDo commitTime ->
+                    ( { model | docModel = newDocModel }, newCmd )
+                        |> addToHistoryDo
+
                 _ ->
                     ( { model | docModel = newDocModel }, newCmd )
 
@@ -210,6 +216,32 @@ sendSaveMsg msg ( { fileState } as model, prevCmd ) =
         , prevCmd
         ]
     )
+
+
+addToHistoryDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+addToHistoryDo ( { docModel, fileState } as model, prevCmd ) =
+    let
+        author =
+            "<local-file>"
+
+        metadata =
+            fileStateToPath fileState
+                |> Enc.string
+
+        commitReq_ =
+            Data.requestCommit docModel.workingTree.tree author docModel.data metadata
+    in
+    case commitReq_ of
+        Just commitReq ->
+            ( model
+            , Cmd.batch
+                [ send <| CommitData commitReq
+                , prevCmd
+                ]
+            )
+
+        Nothing ->
+            ( model, prevCmd )
 
 
 

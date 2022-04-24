@@ -58,7 +58,7 @@ const fromElm = (msg, elmData) => {
     },
 
     CommitData: () => {
-      // TODO
+      window.electronAPI.commitData(elmData)
     },
 
     DragStart: () => {

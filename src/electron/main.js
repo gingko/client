@@ -1,8 +1,11 @@
 import * as fs from 'fs/promises'
 import { app, BrowserWindow, ipcMain, dialog, Menu } from 'electron'
 import { getHomeMenuTemplate, getDocMenuTemplate } from './newmenu'
+import commitTree from './commit'
 const path = require('path')
 const crypto = require('crypto')
+const levelup = require('levelup')
+const leveldown = require('leveldown')
 
 const docWindows = {}
 
@@ -95,6 +98,28 @@ ipcMain.on('save-file', async (event, data) => {
   win.setTitle(getTitleText(docWindows[win.id]))
 })
 
+ipcMain.on('commit-data', async (event, commitData) => {
+  const webContents = event.sender
+  const win = BrowserWindow.fromWebContents(webContents)
+
+  const [commitSha, objects, filePath] = await commitTree(commitData.author, commitData.parents, commitData.workingTree, Date.now(), commitData.metadata)
+  const ops = objects
+    .filter((o) => !docWindows[win.id].savedImmutables.has(o._id))
+    .map((o) => {
+      const objId = o._id
+      delete o._id
+      return { type: 'put', key: objId, value: o }
+    })
+  console.log(ops)
+  try {
+    await docWindows[win.id].undoDb.batch(ops)
+    ops.forEach((o) => docWindows[win.id].savedImmutables.add(o.key))
+    console.log(docWindows[win.id].savedImmutables)
+  } catch (e) {
+    console.error(e)
+  }
+})
+
 ipcMain.on('close-window', (event) => {
   BrowserWindow.fromWebContents(event.sender).close()
 })
@@ -138,6 +163,7 @@ async function createDocWindow (filePath) {
 
   let fileData = null
   let filehandle
+  let undoDb
   const d = new Date()
   const sha1Hash = crypto.createHash('sha1')
   const fileHash = sha1Hash.update(d.getTime() + '').digest('hex').slice(0, 6)
@@ -153,8 +179,11 @@ async function createDocWindow (filePath) {
     // Load Document
     filehandle = await fs.open(filePath, 'r+')
     fileData = await filehandle.readFile({ encoding: 'utf8' })
+    const undoPath = path.join(app.getPath('userData'), 'versionhistory', filePath.split(path.sep).join('%'))
+    await fs.mkdir(undoPath, { recursive: true })
+    undoDb = levelup(leveldown(undoPath))
   }
-  docWindows[docWin.id] = { filePath: filePath, filehandle: filehandle }
+  docWindows[docWin.id] = { filePath, filehandle, undoDb, savedImmutables: new Set() }
 
   // Initialize Renderer
   docWin.setTitle(getTitleText(docWindows[docWin.id]))

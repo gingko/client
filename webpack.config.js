@@ -189,6 +189,10 @@ const electronMainConfig = merge(baseElectronConfig, {
   // Set the target environment where the code bundles will run.
   target: "electron-main",
 
+  externals: {
+    leveldown: "require('leveldown')"
+  },
+
   // Entry points into the code. The roots of the dependency tree.
   entry: {
     electron: "./electron/main.js"

@@ -6,5 +6,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   fileReceived: (callback) => ipcRenderer.on('file-received', callback),
   fileSaved: (callback) => ipcRenderer.on('file-saved', callback),
   saveFile: (data) => ipcRenderer.send('save-file', data),
+  commitData: (commitData) => ipcRenderer.send('commit-data', commitData),
   closeWindow: () => ipcRenderer.send('close-window')
 })
