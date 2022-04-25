@@ -15,14 +15,15 @@ const localStore = container.localStore;
 // Init Elm
 let gingkoElectron;
 
-const init = async function (filePath, fileData) {
+const init = async function (filePath, fileData, undoData) {
   let timestamp = Date.now();
   let globalData =
     { seed : timestamp
     , currentTime : timestamp
     , isMac : false
     };
-  gingkoElectron = Elm.Electron.init({flags: [filePath, fileData, globalData]});
+  console.log(undoData)
+  gingkoElectron = Elm.Electron.init({ flags: { filePath, fileData, undoData, globalData } })
 
   gingkoElectron.ports.infoForOutside.subscribe(function (elmdata) {
     fromElm(elmdata.tag, elmdata.data);
@@ -31,7 +32,7 @@ const init = async function (filePath, fileData) {
 
 window.electronAPI.fileReceived(async (event, value) => {
   if (value.fileData !== null) DIRTY = false
-  await init(value.filePath, value.fileData)
+  await init(value.filePath, value.fileData, value.undoData)
 })
 
 window.electronAPI.fileSaved(async (event, data) => {

@@ -19,7 +19,7 @@ import Translation exposing (TranslationId)
 import Types exposing (TooltipPosition, Tree, ViewMode(..))
 
 
-main : Program ( String, Maybe String, Value ) Model Msg
+main : Program DataIn Model Msg
 main =
     Browser.document
         { init = init
@@ -56,24 +56,35 @@ fileStateToPath fState =
             str
 
 
-init : ( String, Maybe String, Value ) -> ( Model, Cmd Msg )
-init ( filename, fileData_, json ) =
+type alias DataIn =
+    { filePath : String
+    , fileData : Maybe String
+    , undoData : Value
+    , globalData : Value
+    }
+
+
+init : DataIn -> ( Model, Cmd Msg )
+init dataIn =
     let
         globalData =
-            GlobalData.decode json
+            GlobalData.decode dataIn.globalData
+
+        undoData =
+            Data.success dataIn.undoData Data.empty
 
         ( initDocModel, initFileState ) =
-            case fileData_ of
+            case dataIn.fileData of
                 Nothing ->
                     ( Page.Doc.init True globalData
-                    , UntitledFileDoc filename
+                    , UntitledFileDoc dataIn.filePath
                     )
 
                 Just fileData ->
                     case Coders.markdownOutlineHtmlParser fileData of
                         Ok (Just parsedTree) ->
                             ( Page.Doc.init False globalData |> initDoc parsedTree
-                            , FileDoc filename
+                            , FileDoc dataIn.filePath
                             )
 
                         Ok Nothing ->
@@ -86,7 +97,7 @@ init ( filename, fileData_, json ) =
                             , UntitledFileDoc "parser error"
                             )
     in
-    ( { docModel = initDocModel
+    ( { docModel = initDocModel |> (\docModel -> { docModel | data = undoData })
       , fileState = initFileState
       , tooltip = Nothing
       , theme = Default

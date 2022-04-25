@@ -2,6 +2,7 @@ import * as fs from 'fs/promises'
 import { app, BrowserWindow, ipcMain, dialog, Menu } from 'electron'
 import { getHomeMenuTemplate, getDocMenuTemplate } from './newmenu'
 import commitTree from './commit'
+import _ from 'lodash'
 const path = require('path')
 const crypto = require('crypto')
 const levelup = require('levelup')
@@ -110,10 +111,14 @@ ipcMain.on('commit-data', async (event, commitData) => {
       delete o._id
       return { type: 'put', key: objId, value: JSON.stringify(o) }
     })
+  const newHeadOp = { type: 'put', key: '/heads/master', value: JSON.stringify({ type: 'ref', value: commitSha, ancestors: [], _rev: '' }) }
+  ops.push(newHeadOp)
   console.log(ops)
   try {
     await docWindows[win.id].undoDb.batch(ops)
-    ops.forEach((o) => docWindows[win.id].savedImmutables.add(o.key))
+    ops.forEach((o) => {
+      if (o.key !== '/heads/master') docWindows[win.id].savedImmutables.add(o.key)
+    })
     console.log(docWindows[win.id].savedImmutables)
   } catch (e) {
     console.error(e)
@@ -164,7 +169,6 @@ async function createDocWindow (filePath) {
   let fileData = null
   let filehandle
   let undoDb
-  let undoData = {}
   const d = new Date()
   const sha1Hash = crypto.createHash('sha1')
   const fileHash = sha1Hash.update(d.getTime() + '').digest('hex').slice(0, 6)
@@ -183,16 +187,30 @@ async function createDocWindow (filePath) {
     const undoPath = path.join(app.getPath('userData'), 'versionhistory', filePath.split(path.sep).join('%'))
     await fs.mkdir(undoPath, { recursive: true })
     undoDb = levelup(leveldown(undoPath))
-    undoDb.createReadStream().on('data', (data) => {
-      console.log(data.key.toString(), data.value.toString())
-    })
   }
+
   docWindows[docWin.id] = { filePath, filehandle, undoDb, savedImmutables: new Set() }
+
+  // Initialize undo data
+  const undoData = []
+  for await (const [key, value] of undoDb.iterator()) {
+    try {
+      const val = JSON.parse(value.toString())
+      const newData = Object.assign({ _id: key.toString() }, val)
+      undoData.push(newData)
+    } catch (e) {
+      console.log(e)
+    }
+  }
+  console.log(undoData)
+  const groupFn = (r) => (Object.prototype.hasOwnProperty.call(r, 'type') ? r.type : r._id)
+  const newUndoData = _.groupBy(undoData, groupFn)
+  console.log(newUndoData)
 
   // Initialize Renderer
   docWin.setTitle(getTitleText(docWindows[docWin.id]))
   await docWin.loadFile(path.join(__dirname, '/static/renderer.html'))
-  await docWin.webContents.send('file-received', { filePath: filePath, fileData: fileData })
+  await docWin.webContents.send('file-received', { filePath: filePath, fileData: fileData, undoData: newUndoData })
 
   // Prevent title being set from HTML
   docWin.on('page-title-updated', (evt) => {
