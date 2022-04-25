@@ -103,23 +103,21 @@ ipcMain.on('commit-data', async (event, commitData) => {
   const webContents = event.sender
   const win = BrowserWindow.fromWebContents(webContents)
 
-  const [commitSha, objects, filePath] = await commitTree(commitData.author, commitData.parents, commitData.workingTree, Date.now(), commitData.metadata)
+  const [commitSha, objects] = await commitTree(commitData.author, commitData.parents, commitData.workingTree, Date.now(), commitData.metadata)
+  objects.push({ _id: 'heads/master', type: 'ref', value: commitSha, ancestors: [], _rev: '' })
+
   const ops = objects
     .filter((o) => !docWindows[win.id].savedImmutables.has(o._id))
     .map((o) => {
       const objId = o._id
-      delete o._id
-      return { type: 'put', key: objId, value: JSON.stringify(o) }
+      return { type: 'put', key: objId, value: JSON.stringify(_.omit(o, ['_id'])) }
     })
-  const newHeadOp = { type: 'put', key: '/heads/master', value: JSON.stringify({ type: 'ref', value: commitSha, ancestors: [], _rev: '' }) }
-  ops.push(newHeadOp)
-  console.log(ops)
   try {
     await docWindows[win.id].undoDb.batch(ops)
     ops.forEach((o) => {
-      if (o.key !== '/heads/master') docWindows[win.id].savedImmutables.add(o.key)
+      if (o.key !== 'heads/master') docWindows[win.id].savedImmutables.add(o.key)
     })
-    console.log(docWindows[win.id].savedImmutables)
+    await webContents.send('commit-data-result', objectsToElmData(objects))
   } catch (e) {
     console.error(e)
   }
@@ -202,10 +200,7 @@ async function createDocWindow (filePath) {
       console.log(e)
     }
   }
-  console.log(undoData)
-  const groupFn = (r) => (Object.prototype.hasOwnProperty.call(r, 'type') ? r.type : r._id)
-  const newUndoData = _.groupBy(undoData, groupFn)
-  console.log(newUndoData)
+  const newUndoData = objectsToElmData(undoData)
 
   // Initialize Renderer
   docWin.setTitle(getTitleText(docWindows[docWin.id]))
@@ -222,4 +217,9 @@ async function createDocWindow (filePath) {
 
 function getTitleText (windowInfo) {
   return `${path.basename(windowInfo.filePath)} - Gingko Writer`
+}
+
+function objectsToElmData (objs) {
+  const groupFn = (r) => (Object.prototype.hasOwnProperty.call(r, 'type') ? r.type : r._id)
+  return _.groupBy(objs, groupFn)
 }

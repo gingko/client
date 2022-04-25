@@ -40,6 +40,10 @@ window.electronAPI.fileSaved(async (event, data) => {
   toElm(data, 'docMsgs', 'SavedToFile')
 })
 
+window.electronAPI.commitDataResult((event, data) => {
+  toElm(data, 'docMsgs', 'DataSaved')
+})
+
 window.onbeforeunload = (e) => {
   if (DIRTY) {
     setTimeout(window.electronAPI.closeWindow, 200)

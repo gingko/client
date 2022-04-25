@@ -204,10 +204,6 @@ success json model =
                     MergeConflict (updateData d) cd
 
         Err err ->
-            let
-                _ =
-                    Debug.log "err" err
-            in
             model
 
 
