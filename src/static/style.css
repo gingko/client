@@ -1012,7 +1012,7 @@ a.sidebar-menu-item, a.sidebar-menu-item:visited {
   grid-area: header-menu;
   height: 40px;
   display: grid;
-  grid-template-columns: 1fr 182px auto 40px;
+  grid-template-columns: 1fr 184px auto 40px;
   grid-template-areas: "slider info restore close";
   grid-column-gap: 15px;
   padding-left: 15px;

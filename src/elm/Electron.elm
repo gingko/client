@@ -5,13 +5,14 @@ import Browser.Dom exposing (Element)
 import Coders exposing (treeToMarkdownOutline)
 import Doc.Data as Data
 import Doc.TreeStructure as TreeStructure exposing (Msg(..))
+import Doc.UI as UI
 import GlobalData
 import Html exposing (Html, button, div, h1, text)
 import Html.Attributes exposing (id)
 import Json.Decode exposing (Decoder, Value)
 import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
-import Page.Doc exposing (Msg(..), ParentMsg(..))
+import Page.Doc exposing (Msg(..), ParentMsg(..), checkoutCommit)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Doc.Theme exposing (Theme(..), applyTheme)
 import Task
@@ -36,6 +37,7 @@ main =
 type alias Model =
     { docModel : Page.Doc.Model
     , fileState : FileState
+    , uiState : UIState
     , tooltip : Maybe ( Element, TooltipPosition, TranslationId )
     , theme : Theme
     }
@@ -44,6 +46,12 @@ type alias Model =
 type FileState
     = UntitledFileDoc String
     | FileDoc String
+
+
+type UIState
+    = DocUI
+    | VersionHistoryView { start : String, currentView : String }
+    | ExportPreview
 
 
 fileStateToPath : FileState -> String
@@ -99,6 +107,7 @@ init dataIn =
     in
     ( { docModel = initDocModel |> (\docModel -> { docModel | data = undoData })
       , fileState = initFileState
+      , uiState = DocUI
       , tooltip = Nothing
       , theme = Default
       }
@@ -121,6 +130,9 @@ initDoc tree docModel =
 type Msg
     = NoOp
     | GotDocMsg Page.Doc.Msg
+    | HistoryToggled Bool
+    | CheckoutCommit String
+    | Restore
     | TooltipRequested String TooltipPosition TranslationId
     | TooltipReceived Element TooltipPosition TranslationId
     | TooltipClosed
@@ -152,27 +164,63 @@ update msg ({ docModel } as model) =
                 _ ->
                     ( { model | docModel = newDocModel }, newCmd )
 
-        Incoming incomingMsg ->
-            case ( model.fileState, incomingMsg ) of
-                ( UntitledFileDoc oldPath, SavedToFile newPath ) ->
-                    ( { model
-                        | fileState =
-                            if newPath /= oldPath then
-                                FileDoc newPath
+        HistoryToggled isOpen ->
+            if isOpen then
+                ( { model | uiState = VersionHistoryView { start = "ffadsf", currentView = "salkfjsda" } }, Cmd.none )
 
-                            else
-                                UntitledFileDoc oldPath
-                        , docModel = { docModel | dirty = False }
+            else
+                ( { model | uiState = DocUI }, Cmd.none )
+
+        CheckoutCommit commitSha ->
+            case model.uiState of
+                VersionHistoryView historyState ->
+                    let
+                        ( newDocModel, docCmd ) =
+                            checkoutCommit commitSha docModel
+                    in
+                    ( { model
+                        | docModel = newDocModel
+                        , uiState = VersionHistoryView { historyState | currentView = commitSha }
                       }
-                    , Cmd.none
+                    , Cmd.map GotDocMsg docCmd
                     )
 
-                ( FileDoc oldPath, SavedToFile newPath ) ->
-                    ( { model | fileState = FileDoc newPath, docModel = { docModel | dirty = False } }, Cmd.none )
-
                 _ ->
+                    ( model, Cmd.none )
+
+        Restore ->
+            ( { model | uiState = DocUI }
+            , Cmd.none
+            )
+                |> localSaveDo
+
+        Incoming incomingMsg ->
+            let
+                passthrough =
                     Page.Doc.incoming incomingMsg docModel
                         |> Tuple.mapBoth (\m -> { model | docModel = m }) (Cmd.map GotDocMsg)
+            in
+            case incomingMsg of
+                SavedToFile newPath ->
+                    let
+                        oldPath =
+                            fileStateToPath model.fileState
+                    in
+                    if newPath /= oldPath then
+                        ( { model | fileState = FileDoc newPath, docModel = { docModel | dirty = False } }, Cmd.none )
+
+                    else
+                        ( { model | docModel = { docModel | dirty = False } }, Cmd.none )
+
+                Keyboard "mod+z" ->
+                    if model.docModel.viewState.viewMode == Normal then
+                        openHistorySlider model
+
+                    else
+                        passthrough
+
+                _ ->
+                    passthrough
 
         LogErr err ->
             ( model, send (ConsoleLogRequested err) )
@@ -255,13 +303,30 @@ addToHistoryDo ( { docModel, fileState } as model, prevCmd ) =
             ( model, prevCmd )
 
 
+openHistorySlider : Model -> ( Model, Cmd Msg )
+openHistorySlider model =
+    case Data.head "heads/master" model.docModel.data of
+        Just refObj ->
+            ( { model | uiState = VersionHistoryView { start = refObj.value, currentView = refObj.value } }, Cmd.none )
+
+        Nothing ->
+            ( model, Cmd.none )
+
+
 
 -- VIEW
 
 
 view : Model -> List (Html Msg)
 view model =
-    [ div [ id "app-root", applyTheme model.theme ]
+    let
+        globalData =
+            model.docModel.globalData
+
+        lang =
+            GlobalData.language globalData
+    in
+    [ div [ id "desktop-root", applyTheme model.theme ]
         ([ viewFileSaveIndicator model.docModel.dirty ]
             ++ Page.Doc.view
                 { docMsg = GotDocMsg
@@ -270,6 +335,27 @@ view model =
                 , tooltipClosed = TooltipClosed
                 }
                 model.docModel
+            ++ (case model.uiState of
+                    DocUI ->
+                        []
+
+                    VersionHistoryView histViewData ->
+                        [ UI.viewHistory lang
+                            { cancel = HistoryToggled False
+                            , checkout = CheckoutCommit
+                            , restore = Restore
+                            , noOp = NoOp
+                            , tooltipClosed = TooltipClosed
+                            , tooltipRequested = TooltipRequested
+                            }
+                            (GlobalData.currentTime globalData)
+                            model.docModel.data
+                            histViewData
+                        ]
+
+                    ExportPreview ->
+                        []
+               )
         )
     ]
 

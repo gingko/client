@@ -1,0 +1,15 @@
+#desktop-root {
+  position: fixed;
+  height: 100%;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: min-content 1fr min-content;
+  grid-template-areas:
+    "header-menu header-menu"
+    "document right-sidebar"
+    "footer footer"
+}
+#history-menu {
+  z-index: 1;
+}
