@@ -64,9 +64,21 @@ async function saveThisAs (win) {
 
   const { filePath, canceled } = await dialog.showSaveDialog(win, { defaultPath })
   if (!canceled && filePath) {
+    // Set new filePath
     docWindows[win.id].filePath = filePath
+
+    // Copy Untitled to new location
     await fs.copyFile(origPath, filePath)
+
+    // Open filehandle for new file
     docWindows[win.id].filehandle = await fs.open(filePath, 'r+')
+
+    // Close and copy undoDb, delete original
+    await docWindows[win.id].undoDb.close()
+    await fs.cp(getUndoPath(origPath), getUndoPath(filePath), { recursive: true })
+    await fs.rm(getUndoPath(origPath), { recursive: true, force: true })
+    docWindows[win.id].undoDb = levelup(leveldown(getUndoPath(filePath)))
+
     await win.webContents.send('file-saved', filePath)
     win.setTitle(getTitleText(docWindows[win.id]))
     const template = Menu.buildFromTemplate(getDocMenuTemplate(handlers, false))
@@ -166,7 +178,6 @@ async function createDocWindow (filePath) {
 
   let fileData = null
   let filehandle
-  let undoDb
   const d = new Date()
   const sha1Hash = crypto.createHash('sha1')
   const fileHash = sha1Hash.update(d.getTime() + '').digest('hex').slice(0, 6)
@@ -182,14 +193,13 @@ async function createDocWindow (filePath) {
     // Load Document
     filehandle = await fs.open(filePath, 'r+')
     fileData = await filehandle.readFile({ encoding: 'utf8' })
-    const undoPath = path.join(app.getPath('userData'), 'versionhistory', filePath.split(path.sep).join('%'))
-    await fs.mkdir(undoPath, { recursive: true })
-    undoDb = levelup(leveldown(undoPath))
   }
 
-  docWindows[docWin.id] = { filePath, filehandle, undoDb, savedImmutables: new Set() }
-
   // Initialize undo data
+  const undoPath = getUndoPath(filePath)
+  await fs.mkdir(undoPath, { recursive: true })
+  const undoDb = levelup(leveldown(undoPath))
+
   const undoData = []
   for await (const [key, value] of undoDb.iterator()) {
     try {
@@ -201,6 +211,9 @@ async function createDocWindow (filePath) {
     }
   }
   const newUndoData = objectsToElmData(undoData)
+
+  // Save window-specific data
+  docWindows[docWin.id] = { filePath, filehandle, undoDb, savedImmutables: new Set() }
 
   // Initialize Renderer
   docWin.setTitle(getTitleText(docWindows[docWin.id]))
@@ -222,4 +235,8 @@ function getTitleText (windowInfo) {
 function objectsToElmData (objs) {
   const groupFn = (r) => (Object.prototype.hasOwnProperty.call(r, 'type') ? r.type : r._id)
   return _.groupBy(objs, groupFn)
+}
+
+function getUndoPath (filePath) {
+  return path.join(app.getPath('userData'), 'versionhistory', filePath.split(path.sep).join('%'))
 }

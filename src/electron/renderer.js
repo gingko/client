@@ -22,7 +22,6 @@ const init = async function (filePath, fileData, undoData) {
     , currentTime : timestamp
     , isMac : false
     };
-  console.log(undoData)
   gingkoElectron = Elm.Electron.init({ flags: { filePath, fileData, undoData, globalData } })
 
   gingkoElectron.ports.infoForOutside.subscribe(function (elmdata) {
