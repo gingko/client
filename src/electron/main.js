@@ -157,6 +157,27 @@ ipcMain.on('commit-data', async (event, commitData) => {
   }
 })
 
+ipcMain.on('maybe-close-window', async (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender)
+  const { response } = await dialog.showMessageBox(win, {
+    type: 'question',
+    message: 'Do you want to save your changes?',
+    title: 'Save changes?',
+    buttons: ["Don't Save", 'Cancel', 'Save']
+  })
+
+  switch (response) {
+    case 0:
+      win.destroy()
+      break
+
+    case 2:
+      await saveThisAs(win)
+      win.destroy()
+      break
+  }
+})
+
 ipcMain.on('close-window', (event) => {
   BrowserWindow.fromWebContents(event.sender).close()
 })

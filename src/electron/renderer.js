@@ -9,7 +9,8 @@ window.elmMessages = [];
 let lastActivesScrolled = null;
 let lastColumnScrolled = null;
 let ticking = false;
-let DIRTY = true
+let DIRTY
+let isUntitled
 const localStore = container.localStore;
 
 // Init Elm
@@ -30,7 +31,13 @@ const init = async function (filePath, fileData, undoData) {
 };
 
 window.electronAPI.fileReceived(async (event, value) => {
-  if (value.fileData !== null) DIRTY = false
+  if (value.fileData !== null) {
+    DIRTY = false
+    isUntitled = false
+  } else {
+    DIRTY = true
+    isUntitled = true
+  }
   await init(value.filePath, value.fileData, value.undoData)
 })
 
@@ -48,7 +55,10 @@ window.electronAPI.clickedExport((event) => {
 })
 
 window.onbeforeunload = (e) => {
-  if (DIRTY) {
+  if (isUntitled) {
+    window.electronAPI.maybeCloseWindow()
+    e.returnValue = false
+  } else if (DIRTY) {
     setTimeout(window.electronAPI.closeWindow, 200)
     e.returnValue = false
   }
