@@ -989,19 +989,6 @@ a.sidebar-menu-item, a.sidebar-menu-item:visited {
   font-weight: bold;
 }
 
-#file-save-indicator {
-  position: fixed;
-  cursor: default;
-  user-select: none;
-  font-size: 12px;
-  font-family: sans-serif;
-  font-style: italic;
-  color: var(--ui-4-fg);
-  mix-blend-mode: hard-light;
-  top: 8px;
-  right: 10px;
-}
-
 #history-icon {
   grid-area: button1;
 }

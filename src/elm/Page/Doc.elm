@@ -562,7 +562,7 @@ incoming incomingMsg model =
             )
 
         -- === Desktop ===
-        SavedToFile _ ->
+        SavedToFile _ _ ->
             ( model, Cmd.none )
 
         ClickedExport ->

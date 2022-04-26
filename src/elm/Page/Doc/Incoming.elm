@@ -17,7 +17,7 @@ type
     | NotFound
     | SavedRemotely Time.Posix
       -- === Desktop ===
-    | SavedToFile String
+    | SavedToFile String Time.Posix
     | ClickedExport
       -- === Metadata ===
     | MetadataSynced Dec.Value
@@ -116,9 +116,9 @@ subscribe tagger onError =
 
                 -- === Desktop ===
                 "SavedToFile" ->
-                    case decodeValue Dec.string outsideInfo.data of
-                        Ok path ->
-                            tagger <| SavedToFile path
+                    case decodeValue (tupleDecoder Dec.string (Dec.map Time.millisToPosix <| Dec.int)) outsideInfo.data of
+                        Ok ( path, timestamp ) ->
+                            tagger <| SavedToFile path timestamp
 
                         Err e ->
                             onError (errorToString e)

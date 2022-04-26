@@ -9,7 +9,7 @@ import Doc.TreeUtils exposing (getTree)
 import Doc.UI as UI
 import GlobalData
 import Html exposing (Html, button, div, h1, text)
-import Html.Attributes exposing (id)
+import Html.Attributes exposing (classList, id, title)
 import Html.Lazy exposing (lazy5)
 import Json.Decode exposing (Decoder, Value)
 import Json.Encode as Enc
@@ -19,7 +19,8 @@ import Page.Doc.Export as Export exposing (ExportFormat(..), ExportSelection(..)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Doc.Theme exposing (Theme(..), applyTheme)
 import Task
-import Translation exposing (TranslationId)
+import Time
+import Translation exposing (Language, TranslationId, timeDistInWords)
 import Types exposing (TooltipPosition, Tree, ViewMode(..))
 
 
@@ -40,6 +41,7 @@ main =
 type alias Model =
     { docModel : Page.Doc.Model
     , fileState : FileState
+    , lastSave : Time.Posix
     , uiState : UIState
     , tooltip : Maybe ( Element, TooltipPosition, TranslationId )
     , theme : Theme
@@ -110,6 +112,7 @@ init dataIn =
     in
     ( { docModel = initDocModel |> (\docModel -> { docModel | data = undoData })
       , fileState = initFileState
+      , lastSave = GlobalData.currentTime globalData
       , uiState = DocUI
       , tooltip = Nothing
       , theme = Default
@@ -146,6 +149,7 @@ type Msg
     | TooltipReceived Element TooltipPosition TranslationId
     | TooltipClosed
       --
+    | TimeUpdate Time.Posix
     | Incoming Incoming.Msg
     | LogErr String
 
@@ -236,6 +240,14 @@ update msg ({ docModel } as model) =
                 _ ->
                     ( model, Cmd.none )
 
+        TimeUpdate newTime ->
+            let
+                newGlobalData =
+                    model.docModel.globalData
+                        |> GlobalData.updateTime newTime
+            in
+            ( { model | docModel = { docModel | globalData = newGlobalData } }, Cmd.none )
+
         Incoming incomingMsg ->
             let
                 passthrough =
@@ -243,16 +255,16 @@ update msg ({ docModel } as model) =
                         |> Tuple.mapBoth (\m -> { model | docModel = m }) (Cmd.map GotDocMsg)
             in
             case incomingMsg of
-                SavedToFile newPath ->
+                SavedToFile newPath savedTime ->
                     let
                         oldPath =
                             fileStateToPath model.fileState
                     in
                     if newPath /= oldPath then
-                        ( { model | fileState = FileDoc newPath, docModel = { docModel | dirty = False } }, Cmd.none )
+                        ( { model | fileState = FileDoc newPath, docModel = { docModel | dirty = False }, lastSave = savedTime }, Cmd.none )
 
                     else
-                        ( { model | docModel = { docModel | dirty = False } }, Cmd.none )
+                        ( { model | docModel = { docModel | dirty = False }, lastSave = savedTime }, Cmd.none )
 
                 ClickedExport ->
                     ( { model | uiState = ExportPreview ( ExportEverything, DOCX ) }, Cmd.none )
@@ -401,7 +413,7 @@ view model =
                     text ""
     in
     [ div [ id "desktop-root", applyTheme model.theme ]
-        ([ viewFileSaveIndicator model.docModel.dirty ]
+        ([ viewFileSaveIndicator lang model.docModel.dirty { lastSave = model.lastSave, currentTime = GlobalData.currentTime globalData } ]
             ++ Page.Doc.view
                 { docMsg = GotDocMsg
                 , keyboard = \s -> Incoming (Keyboard s)
@@ -443,15 +455,27 @@ view model =
     ]
 
 
-viewFileSaveIndicator : Bool -> Html msg
-viewFileSaveIndicator isDirty =
-    div [ id "file-save-indicator" ]
-        [ text <|
-            if isDirty then
-                "Saving..."
+viewFileSaveIndicator : Language -> Bool -> { lastSave : Time.Posix, currentTime : Time.Posix } -> Html msg
+viewFileSaveIndicator lang isDirty { lastSave, currentTime } =
+    let
+        lastSaveInWords =
+            if abs (Time.posixToMillis lastSave - Time.posixToMillis currentTime) < 3000 then
+                "Just now"
 
             else
-                "Saved"
+                timeDistInWords lang lastSave currentTime
+    in
+    div
+        [ id "file-save-indicator"
+        , classList [ ( "dirty", isDirty ) ]
+        , title lastSaveInWords
+        ]
+        [ text <|
+            if isDirty then
+                "Unsaved changes..."
+
+            else
+                "All Changes Saved"
         ]
 
 
@@ -463,4 +487,5 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Incoming.subscribe Incoming LogErr
+        , Time.every (9 * 1000) TimeUpdate
         ]

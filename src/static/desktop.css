@@ -16,3 +16,20 @@
 #export-menu {
   z-index: 1;
 }
+#file-save-indicator {
+  position: fixed;
+  cursor: default;
+  user-select: none;
+  font-size: 12px;
+  font-family: sans-serif;
+  font-weight: normal;
+  font-style: italic;
+  color: var(--ui-4-fg);
+  mix-blend-mode: hard-light;
+  top: 8px;
+  right: 10px;
+}
+#file-save-indicator.dirty {
+  font-weight: bold;
+  font-style: normal;
+}
