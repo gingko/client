@@ -118,7 +118,10 @@ function toElm(data, portName, tagName) {
 
 /* === Keyboard === */
 
-Mousetrap.bind(helpers.shortcuts.filter((x) => x !== 'mod+s'), function (e, s) {
+const desktopShortcuts = helpers.shortcuts
+  .filter((x) => x !== 'mod+s' && x !== 'mod+o')
+
+Mousetrap.bind(desktopShortcuts, function (e, s) {
   switch (s) {
     case "enter":
       if (document.activeElement.nodeName == "TEXTAREA") {
