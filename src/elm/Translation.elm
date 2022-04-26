@@ -4471,7 +4471,7 @@ tr lang trans =
                     }
 
                 ExportSettingCurrentColumnDesc ->
-                    { en = "Only carsd in the current (vertical) column"
+                    { en = "Only cards in the current (vertical) column"
                     , zh_hans = "%zh_hans:ExportSettingCurrentColumnDesc%"
                     , zh_hant = "%zh_hant:ExportSettingCurrentColumnDesc%"
                     , es = "%es:ExportSettingCurrentColumnDesc%"

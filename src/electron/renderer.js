@@ -34,13 +34,17 @@ window.electronAPI.fileReceived(async (event, value) => {
   await init(value.filePath, value.fileData, value.undoData)
 })
 
-window.electronAPI.fileSaved(async (event, data) => {
+window.electronAPI.fileSaved((event, data) => {
   DIRTY = false
   toElm(data, 'docMsgs', 'SavedToFile')
 })
 
 window.electronAPI.commitDataResult((event, data) => {
   toElm(data, 'docMsgs', 'DataSaved')
+})
+
+window.electronAPI.clickedExport((event) => {
+  toElm(null, 'docMsgs', 'ClickedExport')
 })
 
 window.onbeforeunload = (e) => {
@@ -71,6 +75,10 @@ const fromElm = (msg, elmData) => {
       elmData.dataTransfer.setDragImage(cardElement, 0, 0)
       elmData.dataTransfer.setData('text', '')
       toElm(cardId, 'docMsgs', 'DragStarted')
+    },
+
+    ExportToFile: () => {
+      window.electronAPI.exportFile(elmData)
     },
 
     SaveToFile: () => {

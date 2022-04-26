@@ -565,6 +565,9 @@ incoming incomingMsg model =
         SavedToFile _ ->
             ( model, Cmd.none )
 
+        ClickedExport ->
+            ( model, Cmd.none )
+
         -- === DOM ===
         DragStarted dragId ->
             let

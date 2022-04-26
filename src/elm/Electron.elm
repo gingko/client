@@ -5,14 +5,17 @@ import Browser.Dom exposing (Element)
 import Coders exposing (treeToMarkdownOutline)
 import Doc.Data as Data
 import Doc.TreeStructure as TreeStructure exposing (Msg(..))
+import Doc.TreeUtils exposing (getTree)
 import Doc.UI as UI
 import GlobalData
 import Html exposing (Html, button, div, h1, text)
 import Html.Attributes exposing (id)
+import Html.Lazy exposing (lazy5)
 import Json.Decode exposing (Decoder, Value)
 import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
 import Page.Doc exposing (Msg(..), ParentMsg(..), checkoutCommit)
+import Page.Doc.Export as Export exposing (ExportFormat(..), ExportSelection(..), exportView, toExtension)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Doc.Theme exposing (Theme(..), applyTheme)
 import Task
@@ -51,7 +54,7 @@ type FileState
 type UIState
     = DocUI
     | VersionHistoryView { start : String, currentView : String }
-    | ExportPreview
+    | ExportPreview ( ExportSelection, ExportFormat )
 
 
 fileStateToPath : FileState -> String
@@ -130,12 +133,19 @@ initDoc tree docModel =
 type Msg
     = NoOp
     | GotDocMsg Page.Doc.Msg
+      --
     | HistoryToggled Bool
     | CheckoutCommit String
     | Restore
+      --
+    | ExportFormatChanged ExportFormat
+    | ExportSelectionChanged ExportSelection
+    | Export
+      --
     | TooltipRequested String TooltipPosition TranslationId
     | TooltipReceived Element TooltipPosition TranslationId
     | TooltipClosed
+      --
     | Incoming Incoming.Msg
     | LogErr String
 
@@ -194,6 +204,38 @@ update msg ({ docModel } as model) =
             )
                 |> localSaveDo
 
+        ExportFormatChanged newExpFormat ->
+            case model.uiState of
+                ExportPreview ( oldExpSelection, oldExpFormat ) ->
+                    ( { model | uiState = ExportPreview ( oldExpSelection, newExpFormat ) }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        ExportSelectionChanged newExpSelection ->
+            case model.uiState of
+                ExportPreview ( oldExpSelection, oldExpFormat ) ->
+                    ( { model | uiState = ExportPreview ( newExpSelection, oldExpFormat ) }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        Export ->
+            case ( model.uiState, getTree model.docModel.viewState.active model.docModel.workingTree.tree ) of
+                ( ExportPreview ( expSel, expFormat ), Just activeTree ) ->
+                    ( model
+                    , send <|
+                        ExportToFile (toExtension expFormat)
+                            (Export.toString (fileStateToPath model.fileState)
+                                ( expSel, expFormat )
+                                activeTree
+                                model.docModel.workingTree.tree
+                            )
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
         Incoming incomingMsg ->
             let
                 passthrough =
@@ -211,6 +253,9 @@ update msg ({ docModel } as model) =
 
                     else
                         ( { model | docModel = { docModel | dirty = False } }, Cmd.none )
+
+                ClickedExport ->
+                    ( { model | uiState = ExportPreview ( ExportEverything, DOCX ) }, Cmd.none )
 
                 Keyboard "mod+z" ->
                     if model.docModel.viewState.viewMode == Normal then
@@ -325,6 +370,35 @@ view model =
 
         lang =
             GlobalData.language globalData
+
+        activeTree_ =
+            getTree model.docModel.viewState.active model.docModel.workingTree.tree
+
+        exportViewOk expSettings =
+            lazy5 exportView
+                { export = Export
+                , printRequested = NoOp
+                , tooltipRequested = TooltipRequested
+                , tooltipClosed = TooltipClosed
+                }
+                (fileStateToPath model.fileState)
+                expSettings
+
+        maybeExportView expSettings =
+            case activeTree_ of
+                Just activeTree ->
+                    exportViewOk expSettings activeTree model.docModel.workingTree.tree
+
+                Nothing ->
+                    text ""
+
+        viewTooltip =
+            case model.tooltip of
+                Just tooltip ->
+                    UI.viewTooltip lang tooltip
+
+                Nothing ->
+                    text ""
     in
     [ div [ id "desktop-root", applyTheme model.theme ]
         ([ viewFileSaveIndicator model.docModel.dirty ]
@@ -353,9 +427,18 @@ view model =
                             histViewData
                         ]
 
-                    ExportPreview ->
-                        []
+                    ExportPreview exportSettings ->
+                        [ UI.viewExportMenu lang
+                            { exportFormatChanged = ExportFormatChanged
+                            , exportSelectionChanged = ExportSelectionChanged
+                            , tooltipRequested = TooltipRequested
+                            , tooltipClosed = TooltipClosed
+                            }
+                            exportSettings
+                        , maybeExportView exportSettings
+                        ]
                )
+            ++ [ viewTooltip ]
         )
     ]
 

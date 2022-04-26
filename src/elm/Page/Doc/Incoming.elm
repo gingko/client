@@ -18,6 +18,7 @@ type
     | SavedRemotely Time.Posix
       -- === Desktop ===
     | SavedToFile String
+    | ClickedExport
       -- === Metadata ===
     | MetadataSynced Dec.Value
     | MetadataSaved Dec.Value
@@ -121,6 +122,9 @@ subscribe tagger onError =
 
                         Err e ->
                             onError (errorToString e)
+
+                "ClickedExport" ->
+                    tagger <| ClickedExport
 
                 -- === DOM ===
                 "DragStarted" ->

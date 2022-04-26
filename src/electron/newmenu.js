@@ -18,6 +18,7 @@ function getDocMenuTemplate (handlers, isUntitled) {
         accelerator: 'CommandOrControl+O',
         click: handlers.clickedOpen
       },
+      { type: 'separator' },
       {
         label: isUntitled ? 'Save' : 'Saved',
         accelerator: 'CommandOrControl+S',
@@ -28,6 +29,11 @@ function getDocMenuTemplate (handlers, isUntitled) {
         label: 'Save As...',
         accelerator: 'CommandOrControl+Shift+S',
         click: handlers.clickedSaveAs
+      },
+      { type: 'separator' },
+      {
+        label: 'Export...',
+        click: handlers.clickedExport
       }
       ]
     },

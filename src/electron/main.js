@@ -2,6 +2,7 @@ import * as fs from 'fs/promises'
 import { app, BrowserWindow, ipcMain, dialog, Menu } from 'electron'
 import { getHomeMenuTemplate, getDocMenuTemplate } from './newmenu'
 import commitTree from './commit'
+import pandoc from './pandoc'
 import _ from 'lodash'
 const path = require('path')
 const crypto = require('crypto')
@@ -100,6 +101,27 @@ ipcMain.on('clicked-open', (event, title) => {
   clickedOpen(homeWindow, true)
 })
 
+ipcMain.on('export-file', async (event, data) => {
+  const webContents = event.sender
+  const win = BrowserWindow.fromWebContents(webContents)
+
+  const origPath = docWindows[win.id].filePath.replace('.gkw', '.' + data[0])
+  const defaultPath = origPath.startsWith(app.getPath('temp')) ? app.getPath('documents') : origPath
+
+  const { filePath, canceled } = await dialog.showSaveDialog(win, { defaultPath, filters: [{ name: data[0], extensions: [data[0]] }] })
+  if (!canceled && filePath) {
+    if (data[0] === 'docx') {
+      try {
+        await pandoc(filePath, data[1])
+      } catch (e) {
+        console.error(e)
+      }
+    } else {
+      await fs.writeFile(filePath, data[1])
+    }
+  }
+})
+
 ipcMain.on('save-file', async (event, data) => {
   const webContents = event.sender
   const win = BrowserWindow.fromWebContents(webContents)
@@ -162,7 +184,8 @@ const handlers =
   {
     clickedNew: async () => await clickedNew(false),
     clickedOpen: async (item, focusedWindow) => await clickedOpen(focusedWindow),
-    clickedSaveAs: async (item, focusedWindow) => await saveThisAs(focusedWindow)
+    clickedSaveAs: async (item, focusedWindow) => await saveThisAs(focusedWindow),
+    clickedExport: async (item, focusedWindow) => await focusedWindow.webContents.send('clicked-export')
   }
 async function createDocWindow (filePath) {
   const template = Menu.buildFromTemplate(getDocMenuTemplate(handlers, filePath === null))

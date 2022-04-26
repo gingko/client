@@ -34,6 +34,7 @@ type Msg
     | SaveBulkImportedData Enc.Value
       -- === Desktop ===
     | SaveToFile String String
+    | ExportToFile String String
       -- === DOM ===
     | ScrollCards (List String) (List ( Int, ScrollPosition )) Int Bool
     | ScrollFullscreenCards String
@@ -127,6 +128,9 @@ send info =
         -- === Desktop ===
         SaveToFile filename str ->
             dataToSend "SaveToFile" (tupleToValue string ( filename, str ))
+
+        ExportToFile format str ->
+            dataToSend "ExportToFile" (tupleToValue string ( format, str ))
 
         -- === DOM ===
         ScrollCards lastActives listScrollPositions colIdx instant ->

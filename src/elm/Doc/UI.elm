@@ -1,4 +1,4 @@
-module Doc.UI exposing (countWords, fillet, viewAppLoadingSpinner, viewBreadcrumbs, viewConflict, viewDocumentLoadingSpinner, viewHeader, viewHistory, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewTooltip, viewWordCount)
+module Doc.UI exposing (countWords, fillet, viewAppLoadingSpinner, viewBreadcrumbs, viewConflict, viewDocumentLoadingSpinner, viewExportMenu, viewHeader, viewHistory, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewTooltip, viewWordCount)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -163,26 +163,6 @@ viewHeader msgs session title_ appModel docModel titleField_ =
 
                 _ ->
                     False
-
-        isSelected expSel =
-            (appModel.exportSettings |> Tuple.first) == expSel
-
-        exportSelectionBtnAttributes expSel expSelString tooltipText =
-            [ id <| "export-select-" ++ expSelString
-            , onClick <| msgs.exportSelectionChanged expSel
-            , classList [ ( "selected", isSelected expSel ) ]
-            , onMouseEnter <| msgs.tooltipRequested ("export-select-" ++ expSelString) BelowTooltip tooltipText
-            , onMouseLeave msgs.tooltipClosed
-            ]
-
-        isFormat expFormat =
-            (appModel.exportSettings |> Tuple.second) == expFormat
-
-        exportFormatBtnAttributes expFormat expFormatString =
-            [ id <| "export-format-" ++ expFormatString
-            , onClick <| msgs.exportFormatChanged expFormat
-            , classList [ ( "selected", isFormat expFormat ) ]
-            ]
     in
     div [ id "document-header" ]
         [ titleArea
@@ -246,21 +226,50 @@ viewHeader msgs session title_ appModel docModel titleField_ =
             msgs.toggledUpgradeModal
             docModel.globalData
             session
-        , viewIf (appModel.headerMenu == ExportPreview) <|
-            div [ id "export-menu" ]
-                [ div [ id "export-selection", class "toggle-button" ]
-                    [ div (exportSelectionBtnAttributes ExportEverything "all" ExportSettingEverythingDesc) [ text language ExportSettingEverything ]
-                    , div (exportSelectionBtnAttributes ExportSubtree "subtree" ExportSettingCurrentSubtreeDesc) [ text language ExportSettingCurrentSubtree ]
-                    , div (exportSelectionBtnAttributes ExportLeaves "leaves" ExportSettingLeavesOnlyDesc) [ text language ExportSettingLeavesOnly ]
-                    , div (exportSelectionBtnAttributes ExportCurrentColumn "column" ExportSettingCurrentColumnDesc) [ text language ExportSettingCurrentColumn ]
-                    ]
-                , div [ id "export-format", class "toggle-button" ]
-                    [ div (exportFormatBtnAttributes DOCX "word") [ text language ExportSettingWord ]
-                    , div (exportFormatBtnAttributes PlainText "text") [ text language ExportSettingPlainText ]
-                    , div (exportFormatBtnAttributes OPML "opml") [ text language ExportSettingOPML ]
-                    , div (exportFormatBtnAttributes JSON "json") [ text language ExportSettingJSON ]
-                    ]
-                ]
+        , viewIf (appModel.headerMenu == ExportPreview) <| viewExportMenu language msgs appModel.exportSettings
+        ]
+
+
+viewExportMenu :
+    Language
+    ->
+        { m
+            | exportSelectionChanged : ExportSelection -> msg
+            , exportFormatChanged : ExportFormat -> msg
+            , tooltipRequested : String -> TooltipPosition -> TranslationId -> msg
+            , tooltipClosed : msg
+        }
+    -> ( ExportSelection, ExportFormat )
+    -> Html msg
+viewExportMenu language msgs ( exportSelection, exportFormat ) =
+    let
+        exportSelectionBtnAttributes expSel expSelString tooltipText =
+            [ id <| "export-select-" ++ expSelString
+            , onClick <| msgs.exportSelectionChanged expSel
+            , classList [ ( "selected", expSel == exportSelection ) ]
+            , onMouseEnter <| msgs.tooltipRequested ("export-select-" ++ expSelString) BelowTooltip tooltipText
+            , onMouseLeave msgs.tooltipClosed
+            ]
+
+        exportFormatBtnAttributes expFormat expFormatString =
+            [ id <| "export-format-" ++ expFormatString
+            , onClick <| msgs.exportFormatChanged expFormat
+            , classList [ ( "selected", expFormat == exportFormat ) ]
+            ]
+    in
+    div [ id "export-menu" ]
+        [ div [ id "export-selection", class "toggle-button" ]
+            [ div (exportSelectionBtnAttributes ExportEverything "all" ExportSettingEverythingDesc) [ text language ExportSettingEverything ]
+            , div (exportSelectionBtnAttributes ExportSubtree "subtree" ExportSettingCurrentSubtreeDesc) [ text language ExportSettingCurrentSubtree ]
+            , div (exportSelectionBtnAttributes ExportLeaves "leaves" ExportSettingLeavesOnlyDesc) [ text language ExportSettingLeavesOnly ]
+            , div (exportSelectionBtnAttributes ExportCurrentColumn "column" ExportSettingCurrentColumnDesc) [ text language ExportSettingCurrentColumn ]
+            ]
+        , div [ id "export-format", class "toggle-button" ]
+            [ div (exportFormatBtnAttributes DOCX "word") [ text language ExportSettingWord ]
+            , div (exportFormatBtnAttributes PlainText "text") [ text language ExportSettingPlainText ]
+            , div (exportFormatBtnAttributes OPML "opml") [ text language ExportSettingOPML ]
+            , div (exportFormatBtnAttributes JSON "json") [ text language ExportSettingJSON ]
+            ]
         ]
 
 
