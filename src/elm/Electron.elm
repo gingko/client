@@ -259,12 +259,15 @@ update msg ({ docModel } as model) =
                     let
                         oldPath =
                             fileStateToPath model.fileState
+
+                        newGlobalData =
+                            model.docModel.globalData |> GlobalData.updateTime savedTime
                     in
                     if newPath /= oldPath then
-                        ( { model | fileState = FileDoc newPath, docModel = { docModel | dirty = False }, lastSave = savedTime }, Cmd.none )
+                        ( { model | fileState = FileDoc newPath, docModel = { docModel | dirty = False, globalData = newGlobalData }, lastSave = savedTime }, Cmd.none )
 
                     else
-                        ( { model | docModel = { docModel | dirty = False }, lastSave = savedTime }, Cmd.none )
+                        ( { model | docModel = { docModel | dirty = False, globalData = newGlobalData }, lastSave = savedTime }, Cmd.none )
 
                 ClickedExport ->
                     ( { model | uiState = ExportPreview ( ExportEverything, DOCX ) }, Cmd.none )
