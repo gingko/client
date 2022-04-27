@@ -86,11 +86,12 @@ init dataIn =
         undoData =
             Data.success dataIn.undoData Data.empty
 
-        ( initDocModel, initFileState ) =
+        ( initDocModel, initFileState, maybeFocus ) =
             case dataIn.fileData of
                 Nothing ->
                     ( Page.Doc.init True globalData
                     , UntitledFileDoc dataIn.filePath
+                    , Task.attempt (always NoOp) (Browser.Dom.focus "card-edit-1")
                     )
 
                 Just fileData ->
@@ -98,16 +99,19 @@ init dataIn =
                         Ok (Just parsedTree) ->
                             ( Page.Doc.init False globalData |> initDoc parsedTree
                             , FileDoc dataIn.filePath
+                            , Cmd.none
                             )
 
                         Ok Nothing ->
                             ( Page.Doc.init True globalData
                             , UntitledFileDoc "Nothing error"
+                            , Task.attempt (always NoOp) (Browser.Dom.focus "card-edit-1")
                             )
 
                         Err err ->
                             ( Page.Doc.init True globalData
                             , UntitledFileDoc "parser error"
+                            , Task.attempt (always NoOp) (Browser.Dom.focus "card-edit-1")
                             )
     in
     ( { docModel = initDocModel |> (\docModel -> { docModel | data = undoData })
@@ -117,7 +121,7 @@ init dataIn =
       , tooltip = Nothing
       , theme = Default
       }
-    , Cmd.none
+    , maybeFocus
     )
 
 
