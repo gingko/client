@@ -209,6 +209,13 @@ const handlers =
     clickedExport: async (item, focusedWindow) => await focusedWindow.webContents.send('clicked-export')
   }
 async function createDocWindow (filePath) {
+  for (const winId in docWindows) {
+    if (docWindows[winId].filePath === filePath) {
+      await dialog.showMessageBox({ title: 'File already open', message: 'File already open', detail: 'Cannot open file twice' })
+      return
+    }
+  }
+
   const template = Menu.buildFromTemplate(getDocMenuTemplate(handlers, filePath === null))
   Menu.setApplicationMenu(template)
 
