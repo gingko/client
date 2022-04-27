@@ -95,7 +95,7 @@ ipcMain.on('clicked-new', (event) => {
   clickedNew(homeWindow)
 })
 
-ipcMain.on('clicked-open', (event, title) => {
+ipcMain.on('clicked-open', (event) => {
   const webContents = event.sender
   const homeWindow = BrowserWindow.fromWebContents(webContents)
   clickedOpen(homeWindow, true)
@@ -168,7 +168,7 @@ ipcMain.on('maybe-close-window', async (event) => {
 
   switch (response) {
     case 0:
-      win.destroy()
+      setTimeout(() => { win.destroy() }, 0)
       break
 
     case 2:
