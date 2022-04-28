@@ -278,7 +278,9 @@ async function createDocWindow (filePath) {
     // Add to Recent documents
     app.addRecentDocument(filePath)
     const recentDocs = globalStore.get('recentDocuments', [])
-    globalStore.set('recentDocuments', recentDocs.concat(filePath))
+    const { birthtimeMs, atimeMs, mtimeMs } = await filehandle.stat()
+    const docEntry = { name: path.basename(filePath, '.gkw'), path: filePath, birthtimeMs, atimeMs, mtimeMs }
+    globalStore.set('recentDocuments', recentDocs.filter(rd => rd.path !== filePath).concat(docEntry))
   }
 
   // Initialize undo data
