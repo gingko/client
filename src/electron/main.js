@@ -83,6 +83,7 @@ async function saveThisAs (win) {
 
     // Open filehandle for new file
     docWindows[win.id].filehandle = await fs.open(filePath, 'r+')
+    await addToRecentDocuments(docWindows[win.id].filehandle, filePath)
 
     // Close and copy undoDb, delete original
     await docWindows[win.id].undoDb.close()
@@ -276,11 +277,7 @@ async function createDocWindow (filePath) {
     fileData = await filehandle.readFile({ encoding: 'utf8' })
 
     // Add to Recent documents
-    app.addRecentDocument(filePath)
-    const recentDocs = globalStore.get('recentDocuments', [])
-    const { birthtimeMs, atimeMs, mtimeMs } = await filehandle.stat()
-    const docEntry = { name: path.basename(filePath, '.gkw'), path: filePath, birthtimeMs, atimeMs, mtimeMs }
-    globalStore.set('recentDocuments', recentDocs.filter(rd => rd.path !== filePath).concat(docEntry))
+    await addToRecentDocuments(filehandle, filePath)
   }
 
   // Initialize undo data
@@ -327,4 +324,12 @@ function objectsToElmData (objs) {
 
 function getUndoPath (filePath) {
   return path.join(app.getPath('userData'), 'versionhistory', filePath.split(path.sep).join('%'))
+}
+
+async function addToRecentDocuments (filehandle, filePath) {
+  app.addRecentDocument(filePath)
+  const recentDocs = globalStore.get('recentDocuments', [])
+  const { birthtimeMs, atimeMs, mtimeMs } = await filehandle.stat()
+  const docEntry = { name: path.basename(filePath, '.gkw'), path: filePath, birthtimeMs, atimeMs, mtimeMs }
+  globalStore.set('recentDocuments', recentDocs.filter(rd => rd.path !== filePath).concat(docEntry))
 }
