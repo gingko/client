@@ -30,12 +30,20 @@
     "release": "electron-builder"
   },
   "build": {
-    "appId": "com.gingkoapp.desktop",
-    "fileAssociations": {
-      "ext": "gko",
-      "name": "Gingko Document",
-      "mimeType": "application/vnd.gingko.tree-document"
-    },
+    "appId": "com.gingkowriter.desktop",
+    "fileAssociations":
+      [
+        {
+          "ext": "gko",
+          "name": "Gingko Document",
+          "mimeType": "application/vnd.gingko.tree-document"
+        },
+        {
+          "ext": "gkw",
+          "name": "Gingko Writer Document",
+          "mimeType": "application/vnd.gingko-writer.tree-document"
+        }
+      ],
     "extraResources": [
       {
         "from": "./src/bin/${os}/",

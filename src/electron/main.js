@@ -184,8 +184,28 @@ ipcMain.on('close-window', (event) => {
 
 /* ==== Initialization ==== */
 
-app.whenReady().then(() => {
-  createHomeWindow()
+app.whenReady().then(async () => {
+  let pathArgument
+  if (process.defaultApp && typeof process.argv[2] === 'string') {
+    try {
+      await fs.access(process.argv[2])
+      pathArgument = process.argv[2]
+    } catch (e) {
+      pathArgument = false
+    }
+  } else if (!process.defaultApp && typeof process.argv[1] === 'string') {
+    try {
+      await fs.access(process.argv[1])
+      pathArgument = process.argv[1]
+    } catch (e) {
+      pathArgument = false
+    }
+  }
+  if (pathArgument) {
+    await createDocWindow(pathArgument)
+  } else {
+    createHomeWindow()
+  }
 
   app.on('activate', () => {
     // On macOS re-create a window when the dock icon is clicked
