@@ -2,7 +2,7 @@ port module Home exposing (main)
 
 import Browser
 import Codec exposing (Codec, Value)
-import Html exposing (Html, button, h1, text)
+import Html exposing (Html, button, h1, li, text, ul)
 import Html.Attributes exposing (id)
 import Html.Events exposing (onClick)
 import Time
@@ -13,7 +13,7 @@ main =
     Browser.document
         { init = init
         , update = update
-        , view = always <| Browser.Document "Gingko Writer - Home" (view { recentDocuments = [] })
+        , view = \m -> Browser.Document "Gingko Writer - Home" (view m)
         , subscriptions = always Sub.none
         }
 
@@ -92,10 +92,22 @@ update msg model =
 
 view : Model -> List (Html Msg)
 view model =
+    let
+        docItems =
+            model.recentDocuments
+                |> Debug.log "docItems"
+                |> List.map viewDocItem
+    in
     [ h1 [] [ text "Here I AM!!!" ]
     , button [ id "new-doc-button", onClick ClickedNew ] [ text "New Gingko Document" ]
     , button [ id "open-doc-button", onClick ClickedOpen ] [ text "Open Gingko Document" ]
+    , ul [] docItems
     ]
+
+
+viewDocItem : RecentDocument -> Html Msg
+viewDocItem docItem =
+    li [] [ text docItem.name ]
 
 
 
