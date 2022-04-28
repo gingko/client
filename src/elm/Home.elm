@@ -1,17 +1,19 @@
 port module Home exposing (main)
 
 import Browser
+import Codec exposing (Codec, Value)
 import Html exposing (Html, button, h1, text)
 import Html.Attributes exposing (id)
 import Html.Events exposing (onClick)
+import Time
 
 
-main : Program () Model Msg
+main : Program Value Model Msg
 main =
     Browser.document
-        { init = always ( 0, Cmd.none )
+        { init = init
         , update = update
-        , view = always <| Browser.Document "Gingko Writer - Home" (view 0)
+        , view = always <| Browser.Document "Gingko Writer - Home" (view { recentDocuments = [] })
         , subscriptions = always Sub.none
         }
 
@@ -21,7 +23,48 @@ main =
 
 
 type alias Model =
-    Int
+    { recentDocuments : List RecentDocument }
+
+
+type alias RecentDocument =
+    { name : String
+    , path : String
+    , birthtimeMs : Time.Posix
+    , atimeMs : Time.Posix
+    , mtimeMs : Time.Posix
+    }
+
+
+modelCodec : Codec Model
+modelCodec =
+    Codec.object Model
+        |> Codec.field "recentDocuments" .recentDocuments (Codec.list recentDocumentCodec)
+        |> Codec.buildObject
+
+
+recentDocumentCodec : Codec RecentDocument
+recentDocumentCodec =
+    Codec.object RecentDocument
+        |> Codec.field "name" .name Codec.string
+        |> Codec.field "path" .path Codec.string
+        |> Codec.field "birthtimeMs" .birthtimeMs (Codec.float |> Codec.map (round >> Time.millisToPosix) (toFloat << Time.posixToMillis))
+        |> Codec.field "atimeMs" .atimeMs (Codec.float |> Codec.map (round >> Time.millisToPosix) (toFloat << Time.posixToMillis))
+        |> Codec.field "mtimeMs" .mtimeMs (Codec.float |> Codec.map (round >> Time.millisToPosix) (toFloat << Time.posixToMillis))
+        |> Codec.buildObject
+
+
+init : Value -> ( Model, Cmd Msg )
+init json =
+    case Codec.decodeValue modelCodec json of
+        Ok model ->
+            ( model, Cmd.none )
+
+        Err err ->
+            let
+                _ =
+                    Debug.log "home init err" err
+            in
+            ( Model [], Cmd.none )
 
 
 

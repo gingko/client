@@ -35,7 +35,8 @@ const createHomeWindow = async () => {
   await homeWin.loadFile(path.join(__dirname, '/static/home.html'))
 
   // Set recent docs
-  await homeWin.webContents.send('file-received', { recentDocuments: [{ name: 'File Name', path: '/home/adri/test/safdf.gkw', birthtimeMs: 12345, atimeMs: 12345, mtimeMs: 12345 }] })
+  const recentDocuments = globalStore.get('recentDocuments', [])
+  await homeWin.webContents.send('file-received', { recentDocuments })
 
   homeWin.once('ready-to-show', () => {
     homeWin.show()
@@ -253,6 +254,7 @@ async function createDocWindow (filePath) {
   const docWin = new BrowserWindow({
     width: 800,
     height: 600,
+    backgroundColor: 'hsl(202, 72%, 41%)',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js')
     }
