@@ -54,6 +54,10 @@ window.electronAPI.clickedExport((event) => {
   toElm(null, 'docMsgs', 'ClickedExport')
 })
 
+window.checkboxClicked = (cardId, number) => {
+  toElm([cardId, number], 'docMsgs', 'CheckboxClicked')
+}
+
 window.onbeforeunload = (e) => {
   if (isUntitled) {
     window.electronAPI.maybeCloseWindow()
