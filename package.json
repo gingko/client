@@ -27,23 +27,23 @@
     "dist": "set DEBUG=electron-builder&& electron-builder",
     "dist:win": "DEBUG=electron-builder && electron-builder -w",
     "dist:mac": "DEBUG=electron-builder && electron-builder -m",
-    "release": "electron-builder"
+    "release": "electron-builder",
+    "postinstall": "electron-rebuild"
   },
   "build": {
     "appId": "com.gingkowriter.desktop",
-    "fileAssociations":
-      [
-        {
-          "ext": "gko",
-          "name": "Gingko Document",
-          "mimeType": "application/vnd.gingko.tree-document"
-        },
-        {
-          "ext": "gkw",
-          "name": "Gingko Writer Document",
-          "mimeType": "application/vnd.gingko-writer.tree-document"
-        }
-      ],
+    "fileAssociations": [
+      {
+        "ext": "gko",
+        "name": "Gingko Document",
+        "mimeType": "application/vnd.gingko.tree-document"
+      },
+      {
+        "ext": "gkw",
+        "name": "Gingko Writer Document",
+        "mimeType": "application/vnd.gingko-writer.tree-document"
+      }
+    ],
     "extraResources": [
       {
         "from": "./src/bin/${os}/",
@@ -77,7 +77,7 @@
     "@types/node": "^17.0.23",
     "axios": "^0.19.2",
     "electron-is-dev": "^0.3.0",
-    "electron-store": "^1.3.0",
+    "electron-store": "^8.0.1",
     "electron-unhandled": "^1.1.0",
     "electron-updater": "^4.1.2",
     "electron-window-state": "^4.1.1",

@@ -6,12 +6,14 @@ import pandoc from './pandoc'
 import _ from 'lodash'
 const path = require('path')
 const crypto = require('crypto')
+const Store = require('electron-store')
 const levelup = require('levelup')
 const leveldown = require('leveldown')
 
 const docWindows = {}
+const globalStore = new Store()
 
-const createHomeWindow = () => {
+const createHomeWindow = async () => {
   const handlers = {
     clickedNew: (item, focusedWindow) => clickedNew(focusedWindow),
     clickedOpen: (item, focusedWindow) => clickedOpen(focusedWindow, true),
@@ -23,13 +25,21 @@ const createHomeWindow = () => {
   const homeWin = new BrowserWindow({
     width: 800,
     height: 600,
+    show: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js')
     }
   })
 
   homeWin.setTitle('Gingko Writer - Home')
-  homeWin.loadFile(path.join(__dirname, '/static/home.html'))
+  await homeWin.loadFile(path.join(__dirname, '/static/home.html'))
+
+  // Set recent docs
+  await homeWin.webContents.send('file-received', { recentDocuments: [{ name: 'File Name', path: '/home/adri/test/safdf.gkw', birthtimeMs: 12345, atimeMs: 12345, mtimeMs: 12345 }] })
+
+  homeWin.once('ready-to-show', () => {
+    homeWin.show()
+  })
 }
 
 /* ==== shared handlers ==== */
@@ -264,6 +274,11 @@ async function createDocWindow (filePath) {
     // Load Document
     filehandle = await fs.open(filePath, 'r+')
     fileData = await filehandle.readFile({ encoding: 'utf8' })
+
+    // Add to Recent documents
+    app.addRecentDocument(filePath)
+    const recentDocs = globalStore.get('recentDocuments', [])
+    globalStore.set('recentDocuments', recentDocs.concat(filePath))
   }
 
   // Initialize undo data
