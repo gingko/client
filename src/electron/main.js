@@ -46,9 +46,8 @@ const createHomeWindow = async () => {
 /* ==== shared handlers ==== */
 
 async function clickedNew (win) {
-  if (win) win.hide()
-  await createDocWindow(null)
-  if (win) win.destroy()
+  const close = !!win
+  await openDocument(win, null, close)
 }
 
 async function clickedOpen (win, close) {
@@ -64,10 +63,14 @@ async function clickedOpen (win, close) {
     })
 
   if (dialogReturnValue.filePaths.length !== 0) {
-    if (close) win.hide()
-    await createDocWindow(dialogReturnValue.filePaths[0])
-    if (close) win.destroy()
+    await openDocument(win, dialogReturnValue.filePaths[0], close)
   }
+}
+
+async function openDocument (win, docPath, close) {
+  if (close) win.hide()
+  await createDocWindow(docPath)
+  if (close) win.destroy()
 }
 
 async function saveThisAs (win) {
@@ -111,6 +114,12 @@ ipcMain.on('clicked-open', (event) => {
   const webContents = event.sender
   const homeWindow = BrowserWindow.fromWebContents(webContents)
   clickedOpen(homeWindow, true)
+})
+
+ipcMain.on('clicked-document', (event, docPath) => {
+  const webContents = event.sender
+  const win = BrowserWindow.fromWebContents(webContents)
+  openDocument(win, docPath, true)
 })
 
 ipcMain.on('export-file', async (event, data) => {

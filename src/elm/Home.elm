@@ -5,6 +5,7 @@ import Codec exposing (Codec, Value)
 import Html exposing (Html, button, h1, li, text, ul)
 import Html.Attributes exposing (id)
 import Html.Events exposing (onClick)
+import Json.Encode as Enc
 import Time
 
 
@@ -74,16 +75,20 @@ init json =
 type Msg
     = ClickedNew
     | ClickedOpen
+    | ClickedDocument String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ClickedNew ->
-            ( model, send "ClickedNew" )
+            ( model, send ( "ClickedNew", Enc.null ) )
 
         ClickedOpen ->
-            ( model, send "ClickedOpen" )
+            ( model, send ( "ClickedOpen", Enc.null ) )
+
+        ClickedDocument docPath ->
+            ( model, send ( "ClickedDocument", Enc.string docPath ) )
 
 
 
@@ -95,11 +100,11 @@ view model =
     let
         docItems =
             model.recentDocuments
-                |> Debug.log "docItems"
+                |> List.sortBy (Time.posixToMillis << .atimeMs)
+                |> List.reverse
                 |> List.map viewDocItem
     in
-    [ h1 [] [ text "Here I AM!!!" ]
-    , button [ id "new-doc-button", onClick ClickedNew ] [ text "New Gingko Document" ]
+    [ button [ id "new-doc-button", onClick ClickedNew ] [ text "New Gingko Document" ]
     , button [ id "open-doc-button", onClick ClickedOpen ] [ text "Open Gingko Document" ]
     , ul [] docItems
     ]
@@ -107,11 +112,11 @@ view model =
 
 viewDocItem : RecentDocument -> Html Msg
 viewDocItem docItem =
-    li [] [ text docItem.name ]
+    li [ onClick <| ClickedDocument docItem.path ] [ text docItem.name ]
 
 
 
 -- PORTS
 
 
-port send : String -> Cmd msg
+port send : ( String, Value ) -> Cmd msg
