@@ -197,8 +197,31 @@ const electronMainConfig = merge(baseElectronConfig, {
   entry: {
     electron: "./electron/main.js"
   },
-});
 
+  // What file types to attempt to resolve within require/import statements
+  resolve: {
+    alias: { Container: path.resolve(__dirname, 'src/electron/container-electron.js') },
+    extensions: ['.js', '.elm']
+  },
+
+  // Rules on how to handle specific files.
+  module: {
+    rules: [
+      {
+        test: /\.elm$/,
+        exclude: [/elm-stuff/, /node_modules/],
+        use: {
+          loader: 'elm-webpack-loader',
+          options: { verbose: true, pathToElm: './elm-log-colors.sh' }
+        }
+      },
+      {
+        test: /\.worker\.js$/,
+        use: { loader: 'worker-loader' }
+      }
+    ]
+  }
+})
 
 const electronRendererConfig = merge(baseElectronConfig, {
   // Set the target environment where the code bundles will run.

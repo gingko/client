@@ -4,6 +4,7 @@ import { getHomeMenuTemplate, getDocMenuTemplate } from './newmenu'
 import commitTree from './commit'
 import pandoc from './pandoc'
 import _ from 'lodash'
+import { Elm } from '../elm/Worker'
 const path = require('path')
 const crypto = require('crypto')
 const Store = require('electron-store')
@@ -12,6 +13,7 @@ const leveldown = require('leveldown')
 
 const docWindows = {}
 const globalStore = new Store()
+let elmWorker
 
 const createHomeWindow = async () => {
   const handlers = {
@@ -46,11 +48,11 @@ const createHomeWindow = async () => {
 /* ==== shared handlers ==== */
 
 async function clickedNew (win) {
-  const close = !!win
-  await openDocument(win, null, close)
+  const fromHomePage = !!win
+  await openDocument(win, null, fromHomePage)
 }
 
-async function clickedOpen (win, close) {
+async function clickedOpen (win, fromHomePage) {
   const dialogReturnValue = await dialog.showOpenDialog(win,
     {
       properties: ['openFile'],
@@ -63,14 +65,31 @@ async function clickedOpen (win, close) {
     })
 
   if (dialogReturnValue.filePaths.length !== 0) {
-    await openDocument(win, dialogReturnValue.filePaths[0], close)
+    await openDocument(win, dialogReturnValue.filePaths[0], fromHomePage)
   }
 }
 
-async function openDocument (win, docPath, close) {
-  if (close) win.hide()
+async function clickedImport (win, fromHomePage) {
+  const dialogReturnValue = await dialog.showOpenDialog(win,
+    {
+      properties: ['openFile'],
+      defaultPath: app.getPath('documents'),
+      filters:
+        [{ name: 'JSON', extensions: ['json'] }
+        ]
+    })
+
+  if (dialogReturnValue.filePaths.length !== 0) {
+    const filePath = dialogReturnValue.filePaths[0]
+    const fileData = await fs.readFile(filePath, { encoding: 'utf8' })
+    elmWorker.ports.toElm.send([fileData, fromHomePage])
+  }
+}
+
+async function openDocument (win, docPath, fromHomePage) {
+  if (fromHomePage) win.hide()
   await createDocWindow(docPath)
-  if (close) win.destroy()
+  if (fromHomePage) win.destroy()
 }
 
 async function saveThisAs (win) {
@@ -114,6 +133,12 @@ ipcMain.on('clicked-open', (event) => {
   const webContents = event.sender
   const homeWindow = BrowserWindow.fromWebContents(webContents)
   clickedOpen(homeWindow, true)
+})
+
+ipcMain.on('clicked-import', (event) => {
+  const webContents = event.sender
+  const win = BrowserWindow.fromWebContents(webContents)
+  clickedImport(win, true)
 })
 
 ipcMain.on('clicked-document', (event, docPath) => {
@@ -203,7 +228,7 @@ ipcMain.on('close-window', (event) => {
   BrowserWindow.fromWebContents(event.sender).close()
 })
 
-/* ==== Initialization ==== */
+/* ==== App Initialization ==== */
 
 app.whenReady().then(async () => {
   let pathArgument
@@ -228,6 +253,17 @@ app.whenReady().then(async () => {
     createHomeWindow()
   }
 
+  // Initialize Elm Worker to reuse Elm code "server-side"
+  elmWorker = Elm.Worker.init({ flags: Date.now() })
+  elmWorker.ports.fromElm.subscribe((elmData) => {
+    switch (elmData[0]) {
+      case 'ImportDone':
+        console.log('elmData', elmData)
+        createDocWindow(null, elmData[1].data)
+        break
+    }
+  })
+
   app.on('activate', () => {
     // On macOS re-create a window when the dock icon is clicked
     // and there are no other windows open.
@@ -249,7 +285,7 @@ const handlers =
     clickedSaveAs: async (item, focusedWindow) => await saveThisAs(focusedWindow),
     clickedExport: async (item, focusedWindow) => await focusedWindow.webContents.send('clicked-export')
   }
-async function createDocWindow (filePath) {
+async function createDocWindow (filePath, initFileData) {
   for (const winId in docWindows) {
     if (docWindows[winId].filePath === filePath) {
       await dialog.showMessageBox({ title: 'File already open', message: 'File already open', detail: 'Cannot open file twice' })
@@ -257,7 +293,9 @@ async function createDocWindow (filePath) {
     }
   }
 
-  const template = Menu.buildFromTemplate(getDocMenuTemplate(handlers, filePath === null))
+  const isUntitled = filePath === null
+
+  const template = Menu.buildFromTemplate(getDocMenuTemplate(handlers, isUntitled))
   Menu.setApplicationMenu(template)
 
   const docWin = new BrowserWindow({
@@ -275,10 +313,11 @@ async function createDocWindow (filePath) {
   const sha1Hash = crypto.createHash('sha1')
   const fileHash = sha1Hash.update(d.getTime() + '').digest('hex').slice(0, 6)
   const dateString = d.toISOString().slice(0, 10)
-  if (filePath == null) {
+  if (isUntitled) {
     // Initialize New Document
     filePath = path.join(app.getPath('temp'), `Untitled-${dateString}-${fileHash}.gkw`)
     filehandle = await fs.open(filePath, 'w')
+    if (initFileData) fileData = initFileData
   } else {
     // Save backup copy
     await fs.copyFile(filePath, path.join(app.getPath('temp'), `${path.basename(filePath, '.gkw')}-${dateString}-${fileHash}.gkw.bak`))
@@ -314,7 +353,14 @@ async function createDocWindow (filePath) {
   // Initialize Renderer
   docWin.setTitle(getTitleText(docWindows[docWin.id]))
   await docWin.loadFile(path.join(__dirname, '/static/renderer.html'))
-  await docWin.webContents.send('file-received', { filePath: filePath, fileData: fileData, undoData: newUndoData })
+  await docWin.webContents.send('file-received',
+    {
+      filePath,
+      fileData,
+      undoData: newUndoData,
+      isUntitled
+    }
+  )
 
   // Prevent title being set from HTML
   docWin.on('page-title-updated', (evt) => {

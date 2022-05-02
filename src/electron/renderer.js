@@ -16,14 +16,14 @@ const localStore = container.localStore;
 // Init Elm
 let gingkoElectron;
 
-const init = async function (filePath, fileData, undoData) {
+const init = async function (filePath, fileData, undoData, isUntitled) {
   let timestamp = Date.now();
   let globalData =
     { seed : timestamp
     , currentTime : timestamp
     , isMac : false
     };
-  gingkoElectron = Elm.Electron.init({ flags: { filePath, fileData, undoData, globalData } })
+  gingkoElectron = Elm.Electron.init({ flags: { filePath, fileData, undoData, globalData, isUntitled } })
 
   gingkoElectron.ports.infoForOutside.subscribe(function (elmdata) {
     fromElm(elmdata.tag, elmdata.data);
@@ -33,12 +33,11 @@ const init = async function (filePath, fileData, undoData) {
 window.electronAPI.fileReceived(async (event, value) => {
   if (value.fileData !== null) {
     DIRTY = false
-    isUntitled = false
   } else {
     DIRTY = true
-    isUntitled = true
   }
-  await init(value.filePath, value.fileData, value.undoData)
+  isUntitled = value.isUntitled
+  await init(value.filePath, value.fileData, value.undoData, value.isUntitled)
 })
 
 window.electronAPI.fileSaved((event, data) => {

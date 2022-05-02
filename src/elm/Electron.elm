@@ -74,6 +74,7 @@ type alias DataIn =
     , fileData : Maybe String
     , undoData : Value
     , globalData : Value
+    , isUntitled : Bool
     }
 
 
@@ -98,7 +99,11 @@ init dataIn =
                     case Coders.markdownOutlineHtmlParser fileData of
                         Ok (Just parsedTree) ->
                             ( Page.Doc.init False globalData |> initDoc parsedTree
-                            , FileDoc dataIn.filePath
+                            , if dataIn.isUntitled then
+                                UntitledFileDoc dataIn.filePath
+
+                              else
+                                FileDoc dataIn.filePath
                             , Cmd.none
                             )
 
@@ -123,6 +128,13 @@ init dataIn =
       }
     , maybeFocus
     )
+        |> (\mcTuple ->
+                if dataIn.isUntitled && dataIn.fileData /= Nothing then
+                    localSaveDo mcTuple
+
+                else
+                    mcTuple
+           )
 
 
 initDoc : Tree -> Page.Doc.Model -> Page.Doc.Model

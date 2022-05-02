@@ -75,6 +75,7 @@ init json =
 type Msg
     = ClickedNew
     | ClickedOpen
+    | ClickedImport
     | ClickedDocument String
 
 
@@ -86,6 +87,9 @@ update msg model =
 
         ClickedOpen ->
             ( model, send ( "ClickedOpen", Enc.null ) )
+
+        ClickedImport ->
+            ( model, send ( "ClickedImport", Enc.null ) )
 
         ClickedDocument docPath ->
             ( model, send ( "ClickedDocument", Enc.string docPath ) )
@@ -106,6 +110,7 @@ view model =
     in
     [ button [ id "new-doc-button", onClick ClickedNew ] [ text "New Gingko Document" ]
     , button [ id "open-doc-button", onClick ClickedOpen ] [ text "Open Gingko Document" ]
+    , button [ id "open-doc-button", onClick ClickedImport ] [ text "Import Document (JSON, etc)" ]
     , ul [] docItems
     ]
 

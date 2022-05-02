@@ -3,6 +3,7 @@ const { contextBridge, ipcRenderer } = require('electron')
 contextBridge.exposeInMainWorld('electronAPI', {
   clickedNew: () => ipcRenderer.send('clicked-new', null),
   clickedOpen: () => ipcRenderer.send('clicked-open', null),
+  clickedImport: () => ipcRenderer.send('clicked-import', null),
   clickedDocument: (docPath) => ipcRenderer.send('clicked-document', docPath),
   clickedExport: (callback) => ipcRenderer.on('clicked-export', callback),
   fileReceived: (callback) => ipcRenderer.on('file-received', callback),

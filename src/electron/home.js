@@ -16,6 +16,10 @@ async function init (flags) {
         window.electronAPI.clickedOpen()
         break
 
+      case 'ClickedImport':
+        window.electronAPI.clickedImport()
+        break
+
       case 'ClickedDocument':
         window.electronAPI.clickedDocument(data)
         break
