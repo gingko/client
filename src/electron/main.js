@@ -104,9 +104,12 @@ async function saveThisAs (win) {
     // Copy Untitled to new location
     await fs.copyFile(origPath, filePath)
 
-    // Open filehandle for new file
-    docWindows[win.id].filehandle = await fs.open(filePath, 'r+')
-    await addToRecentDocuments(docWindows[win.id].filehandle, filePath)
+    // Create Swap file copy
+    await fs.copyFile(origPath, filePath + '.swp')
+
+    // Open swapFileHandle for new file
+    docWindows[win.id].swapFileHandle = await fs.open(filePath, 'r+')
+    await addToRecentDocuments(filePath)
 
     // Close and copy undoDb, delete original
     await docWindows[win.id].undoDb.close()
@@ -173,10 +176,17 @@ ipcMain.on('save-file', async (event, data) => {
   const win = BrowserWindow.fromWebContents(webContents)
 
   const filePath = docWindows[win.id].filePath
-  const { bytesWritten } = await docWindows[win.id].filehandle.write(data[1], 0)
-  await docWindows[win.id].filehandle.truncate(bytesWritten)
-  await webContents.send('file-saved', [filePath, Date.now()])
-  win.setTitle(getTitleText(docWindows[win.id]))
+  try {
+    console.time('write-file')
+    const { bytesWritten } = await docWindows[win.id].swapFileHandle.write(data[1], 0)
+    await docWindows[win.id].swapFileHandle.truncate(bytesWritten)
+    await fs.copyFile(filePath + '.swp', filePath)
+    console.timeEnd('write-file')
+    await webContents.send('file-saved', [filePath, Date.now()])
+    win.setTitle(getTitleText(docWindows[win.id]))
+  } catch (e) {
+    console.error(e)
+  }
 })
 
 ipcMain.on('commit-data', async (event, commitData) => {
@@ -308,7 +318,7 @@ async function createDocWindow (filePath, initFileData) {
   })
 
   let fileData = null
-  let filehandle
+  let swapFileHandle
   const d = new Date()
   const sha1Hash = crypto.createHash('sha1')
   const fileHash = sha1Hash.update(d.getTime() + '').digest('hex').slice(0, 6)
@@ -316,18 +326,21 @@ async function createDocWindow (filePath, initFileData) {
   if (isUntitled) {
     // Initialize New Document
     filePath = path.join(app.getPath('temp'), `Untitled-${dateString}-${fileHash}.gkw`)
-    filehandle = await fs.open(filePath, 'w')
+    swapFileHandle = await fs.open(filePath + '.swp', 'w')
     if (initFileData) fileData = initFileData
   } else {
     // Save backup copy
     await fs.copyFile(filePath, path.join(app.getPath('temp'), `${path.basename(filePath, '.gkw')}-${dateString}-${fileHash}.gkw.bak`))
 
+    // Open swap copy
+    await fs.copyFile(filePath, filePath + '.swp')
+
     // Load Document
-    filehandle = await fs.open(filePath, 'r+')
-    fileData = await filehandle.readFile({ encoding: 'utf8' })
+    swapFileHandle = await fs.open(filePath + '.swp', 'r+')
+    fileData = await swapFileHandle.readFile({ encoding: 'utf8' })
 
     // Add to Recent documents
-    await addToRecentDocuments(filehandle, filePath)
+    await addToRecentDocuments(filePath)
   }
 
   // Initialize undo data
@@ -348,7 +361,7 @@ async function createDocWindow (filePath, initFileData) {
   const newUndoData = objectsToElmData(undoData)
 
   // Save window-specific data
-  docWindows[docWin.id] = { filePath, filehandle, undoDb, savedImmutables: new Set() }
+  docWindows[docWin.id] = { filePath, swapFileHandle, undoDb, savedImmutables: new Set() }
 
   // Initialize Renderer
   docWin.setTitle(getTitleText(docWindows[docWin.id]))
@@ -365,6 +378,13 @@ async function createDocWindow (filePath, initFileData) {
   // Prevent title being set from HTML
   docWin.on('page-title-updated', (evt) => {
     evt.preventDefault()
+  })
+
+  // Handle closing
+  docWin.on('close', async (evt) => {
+    await docWindows[docWin.id].swapFileHandle.close()
+    await fs.unlink(docWindows[docWin.id].filePath + '.swp')
+    delete docWindows[docWin.id]
   })
 }
 
@@ -383,10 +403,10 @@ function getUndoPath (filePath) {
   return path.join(app.getPath('userData'), 'versionhistory', filePath.split(path.sep).join('%'))
 }
 
-async function addToRecentDocuments (filehandle, filePath) {
+async function addToRecentDocuments (filePath) {
   app.addRecentDocument(filePath)
   const recentDocs = globalStore.get('recentDocuments', [])
-  const { birthtimeMs, atimeMs, mtimeMs } = await filehandle.stat()
+  const { birthtimeMs, atimeMs, mtimeMs } = await fs.stat(filePath)
   const docEntry = { name: path.basename(filePath, '.gkw'), path: filePath, birthtimeMs, atimeMs, mtimeMs }
   globalStore.set('recentDocuments', recentDocs.filter(rd => rd.path !== filePath).concat(docEntry))
 }
