@@ -36,9 +36,10 @@ const createHomeWindow = async () => {
   homeWin.setTitle('Gingko Writer - Home')
   await homeWin.loadFile(path.join(__dirname, '/static/home.html'))
 
-  // Set recent docs
+  // Set recent docs & language
   const recentDocuments = globalStore.get('recentDocuments', [])
-  await homeWin.webContents.send('file-received', { recentDocuments })
+  const language = globalStore.get('language', 'en')
+  await homeWin.webContents.send('file-received', { recentDocuments, language })
 
   homeWin.once('ready-to-show', () => {
     homeWin.show()
@@ -424,7 +425,8 @@ function getUndoPath (filePath) {
 async function addToRecentDocuments (filePath) {
   app.addRecentDocument(filePath)
   const recentDocs = globalStore.get('recentDocuments', [])
-  const { birthtimeMs, atimeMs, mtimeMs } = await fs.stat(filePath)
+  const { birthtimeMs, mtimeMs } = await fs.stat(filePath)
+  const atimeMs = Date.now()
   const docEntry = { name: path.basename(filePath, '.gkw'), path: filePath, birthtimeMs, atimeMs, mtimeMs }
   globalStore.set('recentDocuments', recentDocs.filter(rd => rd.path !== filePath).concat(docEntry))
 }

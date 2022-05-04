@@ -2,11 +2,12 @@ port module Home exposing (main)
 
 import Browser
 import Codec exposing (Codec, Value)
-import Html exposing (Html, button, h1, li, text, ul)
-import Html.Attributes exposing (id)
+import Html exposing (Html, a, button, div, h1, h2, li, ul)
+import Html.Attributes exposing (class, classList, id, title)
 import Html.Events exposing (onClick)
 import Json.Encode as Enc
 import Time
+import Translation exposing (Language(..), TranslationId(..), langToString, languageDecoder, tr)
 
 
 main : Program Value Model Msg
@@ -24,7 +25,9 @@ main =
 
 
 type alias Model =
-    { recentDocuments : List RecentDocument }
+    { recentDocuments : List RecentDocument
+    , language : Language
+    }
 
 
 type alias RecentDocument =
@@ -40,6 +43,7 @@ modelCodec : Codec Model
 modelCodec =
     Codec.object Model
         |> Codec.field "recentDocuments" .recentDocuments (Codec.list recentDocumentCodec)
+        |> Codec.field "language" .language (Codec.build (langToString >> Enc.string) languageDecoder)
         |> Codec.buildObject
 
 
@@ -61,7 +65,7 @@ init json =
             ( model, Cmd.none )
 
         Err err ->
-            ( Model [], Cmd.none )
+            ( Model [] En, Cmd.none )
 
 
 
@@ -104,16 +108,49 @@ view model =
                 |> List.reverse
                 |> List.map viewDocItem
     in
-    [ button [ id "new-doc-button", onClick ClickedNew ] [ text "New Gingko Document" ]
-    , button [ id "open-doc-button", onClick ClickedOpen ] [ text "Open Gingko Document" ]
-    , button [ id "open-doc-button", onClick ClickedImport ] [ text "Import Document (JSON, etc)" ]
-    , ul [] docItems
+    [ div [ id "container" ]
+        [ div [ id "new-row" ]
+            [ div
+                [ onClick ClickedNew ]
+                [ h2 [] [ text model.language New ]
+                , div [ class "template-row" ]
+                    [ a [ id "template-new", class "template-item" ]
+                        [ div [ classList [ ( "template-thumbnail", True ), ( "new", True ) ] ] []
+                        , div [ class "template-title" ] [ text model.language HomeBlank ]
+                        ]
+                    ]
+                ]
+            ]
+        , div [ id "open-import-row" ] []
+        , div [ id "recent-documents-block" ] (div [ class "list-header" ] [ text model.language RecentDocuments ] :: docItems)
+        ]
     ]
 
 
 viewDocItem : RecentDocument -> Html Msg
 viewDocItem docItem =
-    li [ onClick <| ClickedDocument docItem.path ] [ text docItem.name ]
+    div [ onClick <| ClickedDocument docItem.path, class "document-item" ]
+        [ div [ class "doc-title", title docItem.path ] [ textNoTr docItem.name ]
+        ]
+
+
+
+-- Translation Helper Function
+
+
+text : Language -> TranslationId -> Html msg
+text lang tid =
+    Html.text <| tr lang tid
+
+
+textNoTr : String -> Html msg
+textNoTr str =
+    Html.text str
+
+
+emptyText : Html msg
+emptyText =
+    Html.text ""
 
 
 

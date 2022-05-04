@@ -6,7 +6,6 @@ async function init (flags) {
   homeApp = Elm.Home.init({ flags })
 
   homeApp.ports.send.subscribe(([tag, data]) => {
-    console.log(tag, data)
     switch (tag) {
       case 'ClickedNew':
         window.electronAPI.clickedNew()
@@ -28,6 +27,5 @@ async function init (flags) {
 }
 
 window.electronAPI.fileReceived(async (event, value) => {
-  console.log('fileReceived in home.js', value)
   await init(value)
 })
