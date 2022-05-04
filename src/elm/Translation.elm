@@ -4945,7 +4945,7 @@ timeDistInWords lang t1 t2 =
 
 dateFormat : Language -> Time.Posix -> String
 dateFormat lang time =
-    posixToString "%B %-d, %Y%" lang time
+    posixToString "%B %-d, %Y" lang time
 
 
 datetimeFormat : Language -> Time.Posix -> String

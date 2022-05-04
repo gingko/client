@@ -52,9 +52,18 @@ label {
 }
 #new-row {
   grid-area: top;
+  padding: 20px 15px;
+  background-color: var(--bg-left);
 }
 #open-import-row {
   grid-area: middle;
+  padding: 20px 15px;
+  background-color: var(--bg-main);
+}
+.template-row {
+  display: flex;
+  gap: 30px;
+  color: white;
 }
 #recent-documents-block {
   grid-area: bottom;
@@ -88,6 +97,18 @@ label {
   flex: auto;
   color: black;
   text-decoration: none;
+}
+
+.document-item:hover .remove-button {
+  opacity: 0.3;
+}
+.remove-button {
+  font-size: 150%;
+  opacity: 0;
+  transition: opacity 1s;
+}
+.document-item:hover .remove-button:hover {
+  opacity: 1;
 }
 
 #import-selecting {
@@ -183,15 +204,15 @@ a.template-item {
   color: hsl(221, 44%, 88%);
   display: flex;
   margin-bottom: 8px;
-  padding-right: 63px;
+  padding-right: 20px;
   justify-content: space-between;
   align-items: baseline;
 }
 
 .list-header {
   color: hsl(202, 69%, 26%);
-  font-weight: bold;
-  margin-bottom: 10px;
+  font-size: 80%;
+  font-weight: normal;
 }
 
 .document-list.archived {
@@ -199,6 +220,10 @@ a.template-item {
 }
 
 
+.doc-opened {
+  opacity: 0.8;
+  font-size: 80%;
+}
 .doc-title, .doc-opened {
   margin-right: 10px;
   padding: 10px 0;

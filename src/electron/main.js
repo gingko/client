@@ -167,6 +167,10 @@ ipcMain.on('clicked-document', (event, docPath) => {
   openDocument(win, docPath, true)
 })
 
+ipcMain.on('clicked-remove-document', (event, docPath) => {
+  removeFromRecentDocuments(docPath)
+})
+
 ipcMain.on('export-file', async (event, data) => {
   const webContents = event.sender
   const win = BrowserWindow.fromWebContents(webContents)
@@ -429,4 +433,11 @@ async function addToRecentDocuments (filePath) {
   const atimeMs = Date.now()
   const docEntry = { name: path.basename(filePath, '.gkw'), path: filePath, birthtimeMs, atimeMs, mtimeMs }
   globalStore.set('recentDocuments', recentDocs.filter(rd => rd.path !== filePath).concat(docEntry))
+}
+
+async function removeFromRecentDocuments (filePath) {
+  const newRecentDocs = globalStore.get('recentDocuments', []).filter(rd => rd.path !== filePath)
+  app.clearRecentDocuments()
+  newRecentDocs.map(rd => app.addRecentDocument(rd.path))
+  globalStore.set('recentDocuments', newRecentDocs)
 }

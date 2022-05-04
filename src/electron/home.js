@@ -22,10 +22,15 @@ async function init (flags) {
       case 'ClickedDocument':
         window.electronAPI.clickedDocument(data)
         break
+
+      case 'ClickedRemoveDocument':
+        window.electronAPI.clickedRemoveDocument(data)
+        break
     }
   })
 }
 
 window.electronAPI.fileReceived(async (event, value) => {
+  value.currentTime = Date.now()
   await init(value)
 })

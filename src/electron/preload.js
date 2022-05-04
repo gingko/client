@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   clickedOpen: () => ipcRenderer.send('clicked-open', null),
   clickedImport: () => ipcRenderer.send('clicked-import', null),
   clickedDocument: (docPath) => ipcRenderer.send('clicked-document', docPath),
+  clickedRemoveDocument: (docPath) => ipcRenderer.send('clicked-remove-document', docPath),
   clickedExport: (callback) => ipcRenderer.on('clicked-export', callback),
   fileReceived: (callback) => ipcRenderer.on('file-received', callback),
   fileSaved: (callback) => ipcRenderer.on('file-saved', callback),
