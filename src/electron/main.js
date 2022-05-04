@@ -126,13 +126,20 @@ async function saveThisAs (win) {
 
 /* ==== IPC handlers ==== */
 
+function localStoreSet (filePath, key, val) {
+  const objToSet = {}
+  objToSet[key] = val
+  globalStore.set(filePath, objToSet)
+}
+const debouncedLocalStoreSet = _.debounce(localStoreSet, 827, { leading: true, trailing: true })
+
 ipcMain.on('local-store-set', (event, key, val) => {
   const webContents = event.sender
   const win = BrowserWindow.fromWebContents(webContents)
 
-  const objToSet = {}
-  objToSet[key] = val
-  globalStore.set(docWindows[win.id].filePath, objToSet)
+  // This may miss some config events, but it prevents slowing down the app
+  // every time the active card is changed.
+  debouncedLocalStoreSet(docWindows[win.id].filePath, key, val)
 })
 
 ipcMain.on('clicked-new', (event) => {
