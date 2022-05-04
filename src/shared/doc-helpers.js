@@ -473,6 +473,34 @@ var casesShared = (elmData, params) => {
       });
     },
 
+    TextSurround: () => {
+      const id = elmData[0]
+      const surroundString = elmData[1]
+      const tarea = document.getElementById('card-edit-' + id)
+      const card = document.getElementById('card-' + id)
+
+      if (tarea === null) {
+        console.log('Textarea not found for TextSurround command.')
+      } else {
+        const start = tarea.selectionStart
+        const end = tarea.selectionEnd
+        if (start !== end) {
+          const text = tarea.value.slice(start, end)
+          const modifiedText = surroundString + text + surroundString
+          const newValue = tarea.value.substring(0, start) + modifiedText + tarea.value.substring(end)
+          tarea.value = newValue
+          const cursorPos = start + modifiedText.length
+          tarea.setSelectionRange(cursorPos, cursorPos)
+          params.DIRTY = true
+          toElm(newValue, 'docMsgs', 'FieldChanged')
+
+          if (card !== null) {
+            card.dataset.clonedContent = newValue
+          }
+        }
+      }
+    },
+
     SetCursorPosition: () => {
       let pos = elmData[0];
       requestAnimationFrame(() => document.activeElement.setSelectionRange(pos, pos));

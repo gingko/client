@@ -544,34 +544,6 @@ const fromElm = (msg, elmData) => {
       setTimeout(removeFlashClass, 400);
     },
 
-    TextSurround: () => {
-      let id = elmData[0];
-      let surroundString = elmData[1];
-      let tarea = document.getElementById("card-edit-" + id);
-      let card = document.getElementById("card-" + id);
-
-      if (tarea === null) {
-        console.log("Textarea not found for TextSurround command.");
-      } else {
-        let start = tarea.selectionStart;
-        let end = tarea.selectionEnd;
-        if (start !== end) {
-          let text = tarea.value.slice(start, end);
-          let modifiedText = surroundString + text + surroundString;
-          let newValue = tarea.value.substring(0, start) + modifiedText + tarea.value.substring(end);
-          tarea.value = newValue;
-          let cursorPos = start + modifiedText.length;
-          tarea.setSelectionRange(cursorPos, cursorPos);
-          DIRTY = true;
-          toElm(newValue, "docMsgs", "FieldChanged");
-
-          if (card !== null) {
-            card.dataset.clonedContent = newValue;
-          }
-        }
-      }
-    },
-
     SetField: () => {
       let id = elmData[0];
       let field = elmData[1];
@@ -713,9 +685,9 @@ const fromElm = (msg, elmData) => {
     SocketSend: () => {},
   };
 
-  let params = { localStore, lastColumnScrolled, lastActivesScrolled, ticking };
+  const params = { localStore, lastColumnScrolled, lastActivesScrolled, ticking, DIRTY }
 
-  let cases = Object.assign(helpers.casesShared(elmData, params), casesWeb);
+  const cases = Object.assign(helpers.casesShared(elmData, params), casesWeb)
 
   try {
     cases[msg]();

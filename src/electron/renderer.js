@@ -99,9 +99,9 @@ const fromElm = (msg, elmData) => {
     }
   }
 
-  let params = { localStore, lastColumnScrolled, lastActivesScrolled, ticking };
+  const params = { localStore, lastColumnScrolled, lastActivesScrolled, ticking, DIRTY }
 
-  let cases = Object.assign(helpers.casesShared(elmData, params), casesElectron);
+  const cases = Object.assign(helpers.casesShared(elmData, params), casesElectron)
 
   try {
     cases[msg]();

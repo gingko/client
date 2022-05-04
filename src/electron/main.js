@@ -177,11 +177,9 @@ ipcMain.on('save-file', async (event, data) => {
 
   const filePath = docWindows[win.id].filePath
   try {
-    console.time('write-file')
     const { bytesWritten } = await docWindows[win.id].swapFileHandle.write(data[1], 0)
     await docWindows[win.id].swapFileHandle.truncate(bytesWritten)
     await fs.copyFile(filePath + '.swp', filePath)
-    console.timeEnd('write-file')
     await webContents.send('file-saved', [filePath, Date.now()])
     win.setTitle(getTitleText(docWindows[win.id]))
   } catch (e) {

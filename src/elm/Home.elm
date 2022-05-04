@@ -61,10 +61,6 @@ init json =
             ( model, Cmd.none )
 
         Err err ->
-            let
-                _ =
-                    Debug.log "home init err" err
-            in
             ( Model [], Cmd.none )
 
 
