@@ -1,6 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('electronAPI', {
+  localStoreSet: (key, value) => ipcRenderer.send('local-store-set', key, value),
   clickedNew: () => ipcRenderer.send('clicked-new', null),
   clickedOpen: () => ipcRenderer.send('clicked-open', null),
   clickedImport: () => ipcRenderer.send('clicked-import', null),

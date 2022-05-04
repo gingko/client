@@ -1,4 +1,4 @@
-module Page.Doc exposing (Model, Msg, ParentMsg(..), checkoutCommit, incoming, init, subscriptions, update, view)
+module Page.Doc exposing (Model, Msg, ParentMsg(..), activate, checkoutCommit, incoming, init, subscriptions, update, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)

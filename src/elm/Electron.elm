@@ -11,10 +11,10 @@ import GlobalData
 import Html exposing (Html, button, div, h1, text)
 import Html.Attributes exposing (classList, id, title)
 import Html.Lazy exposing (lazy5)
-import Json.Decode exposing (Decoder, Value)
+import Json.Decode as Dec exposing (Decoder, Value)
 import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
-import Page.Doc exposing (Msg(..), ParentMsg(..), checkoutCommit)
+import Page.Doc exposing (Msg(..), ParentMsg(..), activate, checkoutCommit)
 import Page.Doc.Export as Export exposing (ExportFormat(..), ExportSelection(..), exportView, toExtension)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Doc.Theme exposing (Theme(..), applyTheme)
@@ -72,6 +72,7 @@ fileStateToPath fState =
 type alias DataIn =
     { filePath : String
     , fileData : Maybe String
+    , fileSettings : Value
     , undoData : Value
     , globalData : Value
     , isUntitled : Bool
@@ -83,6 +84,14 @@ init dataIn =
     let
         globalData =
             GlobalData.decode dataIn.globalData
+
+        lastActives =
+            case Dec.decodeValue (Dec.field "last-actives" (Dec.list Dec.string)) dataIn.fileSettings of
+                Ok xs ->
+                    xs
+
+                Err _ ->
+                    []
 
         undoData =
             Data.success dataIn.undoData Data.empty
@@ -118,23 +127,47 @@ init dataIn =
                             , UntitledFileDoc "parser error"
                             , Task.attempt (always NoOp) (Browser.Dom.focus "card-edit-1")
                             )
+
+        maybeLocalSave ( m, c ) =
+            if dataIn.isUntitled && dataIn.fileData /= Nothing then
+                localSaveDo ( m, c )
+
+            else
+                ( m, c )
+
+        ( updateDocModel, docCmd ) =
+            let
+                vs =
+                    initDocModel.viewState
+
+                ( newViewState, maybeActivate ) =
+                    case lastActives of
+                        fst :: rest ->
+                            ( { vs | active = fst, activePast = rest }
+                            , activate fst True
+                            )
+
+                        _ ->
+                            ( vs, activate "1" True )
+            in
+            ( { initDocModel
+                | data = undoData
+                , viewState = newViewState
+              }
+            , Cmd.none
+            )
+                |> maybeActivate
     in
-    ( { docModel = initDocModel |> (\docModel -> { docModel | data = undoData })
+    ( { docModel = updateDocModel
       , fileState = initFileState
       , lastSave = GlobalData.currentTime globalData
       , uiState = DocUI
       , tooltip = Nothing
       , theme = Default
       }
-    , maybeFocus
+    , Cmd.batch [ maybeFocus, Cmd.map GotDocMsg docCmd ]
     )
-        |> (\mcTuple ->
-                if dataIn.isUntitled && dataIn.fileData /= Nothing then
-                    localSaveDo mcTuple
-
-                else
-                    mcTuple
-           )
+        |> maybeLocalSave
 
 
 initDoc : Tree -> Page.Doc.Model -> Page.Doc.Model

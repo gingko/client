@@ -11,33 +11,39 @@ let lastColumnScrolled = null;
 let ticking = false;
 let DIRTY
 let isUntitled
-const localStore = container.localStore;
+const localStore =
+  {
+    isReady: () => { return true },
+    set: (key, value) => {
+      window.electronAPI.localStoreSet(key, value)
+    }
+  }
 
 // Init Elm
 let gingkoElectron;
 
-const init = async function (filePath, fileData, undoData, isUntitled) {
+const init = async function (filePath, fileData, fileSettings, undoData, isUntitled) {
   let timestamp = Date.now();
   let globalData =
     { seed : timestamp
     , currentTime : timestamp
     , isMac : false
     };
-  gingkoElectron = Elm.Electron.init({ flags: { filePath, fileData, undoData, globalData, isUntitled } })
+  gingkoElectron = Elm.Electron.init({ flags: { filePath, fileData, fileSettings, undoData, globalData, isUntitled } })
 
   gingkoElectron.ports.infoForOutside.subscribe(function (elmdata) {
     fromElm(elmdata.tag, elmdata.data);
   });
 };
 
-window.electronAPI.fileReceived(async (event, value) => {
-  if (value.fileData !== null) {
+window.electronAPI.fileReceived(async (event, d) => {
+  if (d.fileData !== null) {
     DIRTY = false
   } else {
     DIRTY = true
   }
-  isUntitled = value.isUntitled
-  await init(value.filePath, value.fileData, value.undoData, value.isUntitled)
+  isUntitled = d.isUntitled
+  await init(d.filePath, d.fileData, d.fileSettings, d.undoData, d.isUntitled)
 })
 
 window.electronAPI.fileSaved((event, data) => {

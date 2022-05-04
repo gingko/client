@@ -12,7 +12,7 @@ const levelup = require('levelup')
 const leveldown = require('leveldown')
 
 const docWindows = {}
-const globalStore = new Store()
+const globalStore = new Store({ accessPropertiesByDotNotation: false })
 let elmWorker
 
 const createHomeWindow = async () => {
@@ -125,6 +125,15 @@ async function saveThisAs (win) {
 }
 
 /* ==== IPC handlers ==== */
+
+ipcMain.on('local-store-set', (event, key, val) => {
+  const webContents = event.sender
+  const win = BrowserWindow.fromWebContents(webContents)
+
+  const objToSet = {}
+  objToSet[key] = val
+  globalStore.set(docWindows[win.id].filePath, objToSet)
+})
 
 ipcMain.on('clicked-new', (event) => {
   const webContents = event.sender
@@ -361,6 +370,9 @@ async function createDocWindow (filePath, initFileData) {
   // Save window-specific data
   docWindows[docWin.id] = { filePath, swapFileHandle, undoDb, savedImmutables: new Set() }
 
+  // Get localStore data if exists
+  const fileSettings = globalStore.get(filePath, null)
+
   // Initialize Renderer
   docWin.setTitle(getTitleText(docWindows[docWin.id]))
   await docWin.loadFile(path.join(__dirname, '/static/renderer.html'))
@@ -368,6 +380,7 @@ async function createDocWindow (filePath, initFileData) {
     {
       filePath,
       fileData,
+      fileSettings,
       undoData: newUndoData,
       isUntitled
     }
