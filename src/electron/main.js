@@ -24,10 +24,11 @@ const createHomeWindow = async () => {
   const handlers = {
     clickedNew: (item, focusedWindow) => clickedNew(focusedWindow),
     clickedOpen: (item, focusedWindow) => clickedOpen(focusedWindow, true),
-    clickedRecentDoc: (item, focusedWindow, openPath) => openDocument(focusedWindow, openPath, true)
+    clickedRecentDoc: (item, focusedWindow, openPath) => openDocument(focusedWindow, openPath, true),
+    clickedExit: (item, focusedWindow) => app.quit()
   }
   const recentDocs = globalStore.get('recentDocuments', [])
-  const template = getHomeMenuTemplate(handlers, isMac(), recentDocs)
+  const template = getHomeMenuTemplate(handlers, isMac(), recentDocs, app.getName())
   const menu = Menu.buildFromTemplate(template)
   Menu.setApplicationMenu(menu)
 
@@ -141,8 +142,8 @@ async function saveThisAs (win) {
 
     await win.webContents.send('file-saved', filePath)
     win.setTitle(getTitleText(winData))
-    const template = Menu.buildFromTemplate(getDocMenuTemplate(handlers, false))
-    Menu.setApplicationMenu(template)
+    const menu = Menu.buildFromTemplate(getDocMenuTemplate(handlers, false, isMac(), app.getName()))
+    Menu.setApplicationMenu(menu)
   }
 }
 
@@ -337,7 +338,9 @@ const handlers =
     clickedOpen: async (item, focusedWindow) => await clickedOpen(focusedWindow),
     clickedRecentDoc: (item, focusedWindow, openPath) => openDocument(focusedWindow, openPath, false),
     clickedSaveAs: async (item, focusedWindow) => await saveThisAs(focusedWindow),
-    clickedExport: async (item, focusedWindow) => await focusedWindow.webContents.send('clicked-export')
+    clickedExport: async (item, focusedWindow) => await focusedWindow.webContents.send('clicked-export'),
+    clickedClose: (item, focusedWindow) => focusedWindow.close(),
+    clickedExit: (item, focusedWindow) => app.quit()
   }
 async function createDocWindow (filePath, initFileData) {
   for (const winData of docWindows.values()) {
@@ -350,7 +353,7 @@ async function createDocWindow (filePath, initFileData) {
   const isUntitled = filePath === null
   const recentDocs = globalStore.get('recentDocuments', [])
 
-  const template = Menu.buildFromTemplate(getDocMenuTemplate(handlers, isUntitled, isMac(), recentDocs))
+  const template = Menu.buildFromTemplate(getDocMenuTemplate(handlers, isUntitled, isMac(), recentDocs, app.getName()))
   Menu.setApplicationMenu(template)
 
   const docWin = new BrowserWindow({
