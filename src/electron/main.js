@@ -24,10 +24,12 @@ const createHomeWindow = async () => {
   const handlers = {
     clickedNew: (item, focusedWindow) => clickedNew(focusedWindow),
     clickedOpen: (item, focusedWindow) => clickedOpen(focusedWindow, true),
-    clickedSaveAs: async (item, focusedWindow) => await saveThisAs(focusedWindow)
+    clickedRecentDoc: (item, focusedWindow, openPath) => openDocument(focusedWindow, openPath, true)
   }
-  const template = Menu.buildFromTemplate(getHomeMenuTemplate(handlers))
-  Menu.setApplicationMenu(template)
+  const recentDocs = globalStore.get('recentDocuments', [])
+  const template = getHomeMenuTemplate(handlers, isMac(), recentDocs)
+  const menu = Menu.buildFromTemplate(template)
+  Menu.setApplicationMenu(menu)
 
   const homeWin = new BrowserWindow({
     width: 800,
@@ -66,7 +68,8 @@ async function clickedOpen (win, fromHomePage) {
       filters:
         [{ name: 'Gingko Writer Document', extensions: ['gkw'] },
           { name: 'Gingko Desktop Legacy', extensions: ['gko'] },
-          { name: 'Markdown Document', extensions: ['md'] }
+          { name: 'Markdown Document', extensions: ['md'] },
+          { name: 'All Files', extensions: ['*'] }
         ]
     })
 
@@ -103,7 +106,16 @@ async function saveThisAs (win) {
   const origPath = winData.filePath
   const defaultPath = origPath.startsWith(app.getPath('temp')) ? app.getPath('documents') : origPath
 
-  const { filePath, canceled } = await dialog.showSaveDialog(win, { defaultPath })
+  const { filePath, canceled } = await dialog.showSaveDialog(win, {
+    defaultPath,
+    filters:
+        [
+          { name: 'Gingko Writer Document', extensions: ['gkw'] },
+          { name: 'Markdown Document', extensions: ['md'] },
+          { name: 'All Files', extensions: ['*'] }
+        ]
+  }
+  )
   if (!canceled && filePath) {
     // Set new filePath
     winData.filePath = filePath
@@ -300,7 +312,6 @@ app.whenReady().then(async () => {
   elmWorker.ports.fromElm.subscribe((elmData) => {
     switch (elmData[0]) {
       case 'ImportDone':
-        console.log('elmData', elmData)
         createDocWindow(null, elmData[1].data)
         break
     }
@@ -315,7 +326,7 @@ app.whenReady().then(async () => {
 
 // Quit when all windows are closed, except on macOS.
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit()
+  if (!isMac()) app.quit()
 })
 
 /* ==== Doc Window ==== */
@@ -324,6 +335,7 @@ const handlers =
   {
     clickedNew: async () => await clickedNew(false),
     clickedOpen: async (item, focusedWindow) => await clickedOpen(focusedWindow),
+    clickedRecentDoc: (item, focusedWindow, openPath) => openDocument(focusedWindow, openPath, false),
     clickedSaveAs: async (item, focusedWindow) => await saveThisAs(focusedWindow),
     clickedExport: async (item, focusedWindow) => await focusedWindow.webContents.send('clicked-export')
   }
@@ -336,8 +348,9 @@ async function createDocWindow (filePath, initFileData) {
   }
 
   const isUntitled = filePath === null
+  const recentDocs = globalStore.get('recentDocuments', [])
 
-  const template = Menu.buildFromTemplate(getDocMenuTemplate(handlers, isUntitled))
+  const template = Menu.buildFromTemplate(getDocMenuTemplate(handlers, isUntitled, isMac(), recentDocs))
   Menu.setApplicationMenu(template)
 
   const docWin = new BrowserWindow({
@@ -456,4 +469,8 @@ async function removeFromRecentDocuments (filePath) {
   app.clearRecentDocuments()
   newRecentDocs.map(rd => app.addRecentDocument(rd.path))
   globalStore.set('recentDocuments', newRecentDocs)
+}
+
+function isMac () {
+  return process.platform === 'darwin'
 }
