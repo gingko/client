@@ -3,6 +3,7 @@ import { app, BrowserWindow, ipcMain, dialog, Menu } from 'electron'
 import { getHomeMenuTemplate, getDocMenuTemplate } from './newmenu'
 import commitTree from './commit'
 import pandoc from './pandoc'
+import filenamifyPath from 'filenamify'
 import _ from 'lodash'
 import { Elm } from '../elm/Worker'
 const path = require('path')
@@ -11,7 +12,11 @@ const Store = require('electron-store')
 const levelup = require('levelup')
 const leveldown = require('leveldown')
 
-const docWindows = {}
+// Handle error messages and show dialog to user
+const unhandled = require('electron-unhandled')
+unhandled({ showDialog: true })
+
+const docWindows = new Map()
 const globalStore = new Store({ accessPropertiesByDotNotation: false })
 let elmWorker
 
@@ -94,13 +99,14 @@ async function openDocument (win, docPath, fromHomePage) {
 }
 
 async function saveThisAs (win) {
-  const origPath = docWindows[win.id].filePath
+  const winData = docWindows.get(win)
+  const origPath = winData.filePath
   const defaultPath = origPath.startsWith(app.getPath('temp')) ? app.getPath('documents') : origPath
 
   const { filePath, canceled } = await dialog.showSaveDialog(win, { defaultPath })
   if (!canceled && filePath) {
     // Set new filePath
-    docWindows[win.id].filePath = filePath
+    winData.filePath = filePath
 
     // Copy Untitled to new location
     await fs.copyFile(origPath, filePath)
@@ -109,17 +115,20 @@ async function saveThisAs (win) {
     await fs.copyFile(origPath, filePath + '.swp')
 
     // Open swapFileHandle for new file
-    docWindows[win.id].swapFileHandle = await fs.open(filePath, 'r+')
+    winData.swapFileHandle = await fs.open(filePath, 'r+')
     await addToRecentDocuments(filePath)
 
     // Close and copy undoDb, delete original
-    await docWindows[win.id].undoDb.close()
+    await winData.undoDb.close()
     await fs.cp(getUndoPath(origPath), getUndoPath(filePath), { recursive: true })
     await fs.rm(getUndoPath(origPath), { recursive: true, force: true })
-    docWindows[win.id].undoDb = levelup(leveldown(getUndoPath(filePath)))
+    winData.undoDb = levelup(leveldown(getUndoPath(filePath)))
+
+    // Save new winData
+    docWindows.set(win, winData)
 
     await win.webContents.send('file-saved', filePath)
-    win.setTitle(getTitleText(docWindows[win.id]))
+    win.setTitle(getTitleText(winData))
     const template = Menu.buildFromTemplate(getDocMenuTemplate(handlers, false))
     Menu.setApplicationMenu(template)
   }
@@ -137,10 +146,11 @@ const debouncedLocalStoreSet = _.debounce(localStoreSet, 827, { leading: true, t
 ipcMain.on('local-store-set', (event, key, val) => {
   const webContents = event.sender
   const win = BrowserWindow.fromWebContents(webContents)
+  const winData = docWindows.get(win)
 
   // This may miss some config events, but it prevents slowing down the app
   // every time the active card is changed.
-  debouncedLocalStoreSet(docWindows[win.id].filePath, key, val)
+  debouncedLocalStoreSet(winData.filePath, key, val)
 })
 
 ipcMain.on('clicked-new', (event) => {
@@ -174,8 +184,9 @@ ipcMain.on('clicked-remove-document', (event, docPath) => {
 ipcMain.on('export-file', async (event, data) => {
   const webContents = event.sender
   const win = BrowserWindow.fromWebContents(webContents)
+  const winData = docWindows.get(win)
 
-  const origPath = docWindows[win.id].filePath.replace('.gkw', '.' + data[0])
+  const origPath = winData.filePath.replace('.gkw', '.' + data[0])
   const defaultPath = origPath.startsWith(app.getPath('temp')) ? app.getPath('documents') : origPath
 
   const { filePath, canceled } = await dialog.showSaveDialog(win, { defaultPath, filters: [{ name: data[0], extensions: [data[0]] }] })
@@ -195,14 +206,15 @@ ipcMain.on('export-file', async (event, data) => {
 ipcMain.on('save-file', async (event, data) => {
   const webContents = event.sender
   const win = BrowserWindow.fromWebContents(webContents)
+  const winData = docWindows.get(win)
 
-  const filePath = docWindows[win.id].filePath
+  const filePath = winData.filePath
   try {
-    const { bytesWritten } = await docWindows[win.id].swapFileHandle.write(data[1], 0)
-    await docWindows[win.id].swapFileHandle.truncate(bytesWritten)
+    const { bytesWritten } = await winData.swapFileHandle.write(data[1], 0)
+    await winData.swapFileHandle.truncate(bytesWritten)
     await fs.copyFile(filePath + '.swp', filePath)
     await webContents.send('file-saved', [filePath, Date.now()])
-    win.setTitle(getTitleText(docWindows[win.id]))
+    win.setTitle(getTitleText(winData))
   } catch (e) {
     console.error(e)
   }
@@ -211,20 +223,21 @@ ipcMain.on('save-file', async (event, data) => {
 ipcMain.on('commit-data', async (event, commitData) => {
   const webContents = event.sender
   const win = BrowserWindow.fromWebContents(webContents)
+  const winData = docWindows.get(win)
 
   const [commitSha, objects] = await commitTree(commitData.author, commitData.parents, commitData.workingTree, Date.now(), commitData.metadata)
   objects.push({ _id: 'heads/master', type: 'ref', value: commitSha, ancestors: [], _rev: '' })
 
   const ops = objects
-    .filter((o) => !docWindows[win.id].savedImmutables.has(o._id))
+    .filter((o) => !winData.savedImmutables.has(o._id))
     .map((o) => {
       const objId = o._id
       return { type: 'put', key: objId, value: JSON.stringify(_.omit(o, ['_id'])) }
     })
   try {
-    await docWindows[win.id].undoDb.batch(ops)
+    await winData.undoDb.batch(ops)
     ops.forEach((o) => {
-      if (o.key !== 'heads/master') docWindows[win.id].savedImmutables.add(o.key)
+      if (o.key !== 'heads/master') winData.savedImmutables.add(o.key)
     })
     await webContents.send('commit-data-result', objectsToElmData(objects))
   } catch (e) {
@@ -315,8 +328,8 @@ const handlers =
     clickedExport: async (item, focusedWindow) => await focusedWindow.webContents.send('clicked-export')
   }
 async function createDocWindow (filePath, initFileData) {
-  for (const winId in docWindows) {
-    if (docWindows[winId].filePath === filePath) {
+  for (const winData of docWindows.values()) {
+    if (winData.filePath === filePath) {
       await dialog.showMessageBox({ title: 'File already open', message: 'File already open', detail: 'Cannot open file twice' })
       return
     }
@@ -380,13 +393,14 @@ async function createDocWindow (filePath, initFileData) {
   const newUndoData = objectsToElmData(undoData)
 
   // Save window-specific data
-  docWindows[docWin.id] = { filePath, swapFileHandle, undoDb, savedImmutables: new Set() }
+  const winData = { filePath, swapFileHandle, undoDb, savedImmutables: new Set() }
+  docWindows.set(docWin, winData)
 
   // Get localStore data if exists
   const fileSettings = globalStore.get(filePath, null)
 
   // Initialize Renderer
-  docWin.setTitle(getTitleText(docWindows[docWin.id]))
+  docWin.setTitle(getTitleText(winData))
   await docWin.loadFile(path.join(__dirname, '/static/renderer.html'))
   await docWin.webContents.send('file-received',
     {
@@ -404,10 +418,11 @@ async function createDocWindow (filePath, initFileData) {
   })
 
   // Handle closing
-  docWin.on('close', async (evt) => {
-    await docWindows[docWin.id].swapFileHandle.close()
-    await fs.unlink(docWindows[docWin.id].filePath + '.swp')
-    delete docWindows[docWin.id]
+  docWin.on('closed', async (evt) => {
+    const winData = docWindows.get(docWin)
+    await winData.swapFileHandle.close()
+    await fs.unlink(winData.filePath + '.swp')
+    docWindows.delete(docWin)
   })
 }
 
@@ -423,7 +438,8 @@ function objectsToElmData (objs) {
 }
 
 function getUndoPath (filePath) {
-  return path.join(app.getPath('userData'), 'versionhistory', filePath.split(path.sep).join('%'))
+  const namifiedPath = filenamifyPath(filePath, { replacement: '%' })
+  return path.join(app.getPath('userData'), 'versionhistory', namifiedPath)
 }
 
 async function addToRecentDocuments (filePath) {
