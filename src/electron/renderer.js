@@ -59,6 +59,26 @@ window.electronAPI.clickedExport((event) => {
   toElm(null, 'docMsgs', 'ClickedExport')
 })
 
+window.electronAPI.clickedUndo((event) => {
+  toElm('mod+z', 'docMsgs', 'Keyboard')
+})
+
+window.electronAPI.clickedCut((event) => {
+  toElm('mod+x', 'docMsgs', 'Keyboard')
+})
+
+window.electronAPI.clickedCopy((event) => {
+  toElm('mod+c', 'docMsgs', 'Keyboard')
+})
+
+window.electronAPI.clickedPaste((event) => {
+  toElm('mod+v', 'docMsgs', 'Keyboard')
+})
+
+window.electronAPI.clickedPasteInto((event) => {
+  toElm('mod+shift+v', 'docMsgs', 'Keyboard')
+})
+
 window.checkboxClicked = (cardId, number) => {
   toElm([cardId, number], 'docMsgs', 'CheckboxClicked')
 }

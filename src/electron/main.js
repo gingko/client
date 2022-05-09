@@ -348,7 +348,12 @@ const handlers =
     clickedSaveAs: async (item, focusedWindow) => await saveThisAs(focusedWindow),
     clickedExport: async (item, focusedWindow) => await focusedWindow.webContents.send('clicked-export'),
     clickedClose: (item, focusedWindow) => focusedWindow.close(),
-    clickedExit: (item, focusedWindow) => app.quit()
+    clickedExit: (item, focusedWindow) => app.quit(),
+    clickedUndo: async (item, focusedWindow) => await focusedWindow.webContents.send('clicked-undo'),
+    clickedCut: async (item, focusedWindow) => await focusedWindow.webContents.send('clicked-cut'),
+    clickedCopy: async (item, focusedWindow) => await focusedWindow.webContents.send('clicked-copy'),
+    clickedPaste: async (item, focusedWindow) => await focusedWindow.webContents.send('clicked-paste'),
+    clickedPasteInto: async (item, focusedWindow) => await focusedWindow.webContents.send('clicked-paste-into')
   }
 async function createDocWindow (filePath, initFileData) {
   for (const winData of docWindows.values()) {

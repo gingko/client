@@ -148,7 +148,7 @@ function editMenu (handlers, isEditMode) {
       submenu:
         [{
           label: '&Undo/Redo (Version History)',
-          accelerator: 'CommandOrCtrl+Z',
+          accelerator: 'CommandOrControl+Z',
           click: handlers.clickedUndo
         },
         { type: 'separator' },
@@ -169,7 +169,7 @@ function editMenu (handlers, isEditMode) {
         },
         {
           label: '&Paste subtree as child of currrent card',
-          accelerator: 'CommandOrControl+V',
+          accelerator: 'CommandOrControl+Shift+V',
           click: handlers.clickedPasteInto
         }
         ]
