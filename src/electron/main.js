@@ -140,9 +140,13 @@ async function saveThisAs (win) {
     // Save new winData
     docWindows.set(win, winData)
 
+    // Send filePath to renderer and Elm
     await win.webContents.send('file-saved', filePath)
+
+    // Set doc window menu & titlebar
     win.setTitle(getTitleText(winData))
-    const menu = Menu.buildFromTemplate(getDocMenuTemplate(handlers, false, isMac(), app.getName()))
+    const recentDocs = globalStore.get('recentDocuments', [])
+    const menu = Menu.buildFromTemplate(getDocMenuTemplate(handlers, false, isMac(), recentDocs, app.getName()))
     Menu.setApplicationMenu(menu)
   }
 }
