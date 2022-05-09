@@ -5,10 +5,11 @@ function getHomeMenuTemplate (handlers, isMac, recentDocs, appName) {
     ? docMenuTemplate[fileMenuIdx].submenu.slice(0, 3)
     : docMenuTemplate[fileMenuIdx].submenu.slice(0, 3).concat(docMenuTemplate[fileMenuIdx].submenu.slice(-2))
   docMenuTemplate[fileMenuIdx].submenu = newFileSubmenu
+  delete docMenuTemplate[fileMenuIdx + 1] // Remove Edit menu from Home menu
   return docMenuTemplate
 }
 
-function getDocMenuTemplate (handlers, isUntitled, isMac, recentDocs, appName) {
+function getDocMenuTemplate (handlers, isUntitled, isMac, recentDocs, appName, isEditMode) {
   const recentDocView = function (rd, idx) {
     const clickFn = (item, focusedWindow) => { handlers.clickedRecentDoc(item, focusedWindow, rd.path) }
     return { label: '&' + (idx + 1) + '.  ' + rd.name, click: clickFn }
@@ -64,7 +65,9 @@ function getDocMenuTemplate (handlers, isUntitled, isMac, recentDocs, appName) {
         click: handlers.clickedExit
       }
       ]
-    }
+    },
+    editMenu(handlers, isEditMode),
+    { role: 'toggleDevTools' }
   ]
 
   if (isMac) {
@@ -108,6 +111,70 @@ function getDocMenuTemplate (handlers, isUntitled, isMac, recentDocs, appName) {
   }
 
   return template
+}
+
+function editMenu (handlers, isEditMode) {
+  if (isEditMode) {
+    return {
+      label: '&Edit',
+      submenu:
+        [{
+          label: '&Undo',
+          role: 'undo'
+        },
+        {
+          label: '&Redo',
+          role: 'redo'
+        },
+        { type: 'separator' },
+        {
+          label: 'Cu&t',
+          accelerator: 'CommandOrControl+X',
+          role: 'cut'
+        },
+        {
+          label: '&Copy',
+          role: 'copy'
+        },
+        {
+          label: '&Paste',
+          role: 'paste'
+        }
+        ]
+    }
+  } else {
+    return {
+      label: '&Edit',
+      submenu:
+        [{
+          label: '&Undo/Redo (Version History)',
+          accelerator: 'CommandOrCtrl+Z',
+          click: handlers.clickedUndo
+        },
+        { type: 'separator' },
+        {
+          label: 'Cu&t current subtree',
+          accelerator: 'CommandOrControl+X',
+          click: handlers.clickedCut
+        },
+        {
+          label: '&Copy current subtree',
+          accelerator: 'CommandOrControl+C',
+          click: handlers.clickedCopy
+        },
+        {
+          label: '&Paste subtree below currrent card',
+          accelerator: 'CommandOrControl+V',
+          click: handlers.clickedPaste
+        },
+        {
+          label: '&Paste subtree as child of currrent card',
+          accelerator: 'CommandOrControl+V',
+          click: handlers.clickedPasteInto
+        }
+        ]
+    }
+  }
 }
 
 module.exports =

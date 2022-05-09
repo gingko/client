@@ -18,6 +18,7 @@ unhandled({ showDialog: true })
 
 const docWindows = new Map()
 const globalStore = new Store({ accessPropertiesByDotNotation: false })
+let recentDocuments
 let elmWorker
 
 const createHomeWindow = async () => {
@@ -27,8 +28,8 @@ const createHomeWindow = async () => {
     clickedRecentDoc: (item, focusedWindow, openPath) => openDocument(focusedWindow, openPath, true),
     clickedExit: (item, focusedWindow) => app.quit()
   }
-  const recentDocs = globalStore.get('recentDocuments', [])
-  const template = getHomeMenuTemplate(handlers, isMac(), recentDocs, app.getName())
+  recentDocuments = globalStore.get('recentDocuments', [])
+  const template = getHomeMenuTemplate(handlers, isMac(), recentDocuments, app.getName())
   const menu = Menu.buildFromTemplate(template)
   Menu.setApplicationMenu(menu)
 
@@ -45,7 +46,6 @@ const createHomeWindow = async () => {
   await homeWin.loadFile(path.join(__dirname, '/static/home.html'))
 
   // Set recent docs & language
-  const recentDocuments = globalStore.get('recentDocuments', [])
   const language = globalStore.get('language', 'en')
   await homeWin.webContents.send('file-received', { recentDocuments, language })
 
@@ -145,8 +145,7 @@ async function saveThisAs (win) {
 
     // Set doc window menu & titlebar
     win.setTitle(getTitleText(winData))
-    const recentDocs = globalStore.get('recentDocuments', [])
-    const menu = Menu.buildFromTemplate(getDocMenuTemplate(handlers, false, isMac(), recentDocs, app.getName()))
+    const menu = Menu.buildFromTemplate(getDocMenuTemplate(handlers, false, isMac(), recentDocuments, app.getName(), false))
     Menu.setApplicationMenu(menu)
   }
 }
@@ -235,6 +234,11 @@ ipcMain.on('save-file', async (event, data) => {
   } catch (e) {
     console.error(e)
   }
+})
+
+ipcMain.on('edit-mode-changed', (event, isEditMode) => {
+  const menu = Menu.buildFromTemplate(getDocMenuTemplate(handlers, false, isMac(), recentDocuments, app.getName(), isEditMode))
+  Menu.setApplicationMenu(menu)
 })
 
 ipcMain.on('commit-data', async (event, commitData) => {
@@ -355,9 +359,9 @@ async function createDocWindow (filePath, initFileData) {
   }
 
   const isUntitled = filePath === null
-  const recentDocs = globalStore.get('recentDocuments', [])
+  recentDocuments = globalStore.get('recentDocuments', [])
 
-  const template = Menu.buildFromTemplate(getDocMenuTemplate(handlers, isUntitled, isMac(), recentDocs, app.getName()))
+  const template = Menu.buildFromTemplate(getDocMenuTemplate(handlers, isUntitled, isMac(), recentDocuments, app.getName(), isUntitled))
   Menu.setApplicationMenu(template)
 
   const docWin = new BrowserWindow({
@@ -464,17 +468,18 @@ function getUndoPath (filePath) {
 
 async function addToRecentDocuments (filePath) {
   app.addRecentDocument(filePath)
-  const recentDocs = globalStore.get('recentDocuments', [])
   const { birthtimeMs, mtimeMs } = await fs.stat(filePath)
   const atimeMs = Date.now()
   const docEntry = { name: path.basename(filePath, '.gkw'), path: filePath, birthtimeMs, atimeMs, mtimeMs }
-  globalStore.set('recentDocuments', recentDocs.filter(rd => rd.path !== filePath).concat(docEntry))
+  recentDocuments = recentDocuments.filter(rd => rd.path !== filePath).concat(docEntry)
+  globalStore.set('recentDocuments', recentDocuments)
 }
 
 async function removeFromRecentDocuments (filePath) {
-  const newRecentDocs = globalStore.get('recentDocuments', []).filter(rd => rd.path !== filePath)
+  const newRecentDocs = recentDocuments.filter(rd => rd.path !== filePath)
   app.clearRecentDocuments()
   newRecentDocs.map(rd => app.addRecentDocument(rd.path))
+  recentDocuments = newRecentDocs
   globalStore.set('recentDocuments', newRecentDocs)
 }
 

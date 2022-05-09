@@ -116,24 +116,24 @@ const fromElm = (msg, elmData) => {
   }
 }
 
-function toElm(data, portName, tagName) {
-  let portExists = gingkoElectron.ports.hasOwnProperty(portName);
-  let tagGiven = typeof tagName == "string";
+function toElm (data, portName, tagName) {
+  toElm.toMain = window.electronAPI.toMain
+  const portExists = Object.prototype.hasOwnProperty.call(gingkoElectron.ports, portName)
+  const tagGiven = typeof tagName === 'string'
 
   if (portExists) {
-    var dataToSend;
+    var dataToSend
 
     if (tagGiven) {
-      dataToSend = { tag: tagName, data: data };
+      dataToSend = { tag: tagName, data: data }
     } else {
-      dataToSend = data;
+      dataToSend = data
     }
-    gingkoElectron.ports[portName].send(dataToSend);
+    gingkoElectron.ports[portName].send(dataToSend)
   } else {
-    console.error("Unknown port", portName, data);
+    console.error('Unknown port', portName, data)
   }
 }
-
 
 /* === Keyboard === */
 
@@ -206,9 +206,8 @@ Mousetrap.bind(desktopShortcuts, function (e, s) {
   }
 });
 
-
 /* === DOM manipulation === */
 
-const observer = helpers.getObserver(toElm);
-const observerConfig = { childList: true, subtree: true };
-observer.observe(document.body, observerConfig);
+const observer = helpers.getObserver(toElm)
+const observerConfig = { childList: true, subtree: true }
+observer.observe(document.body, observerConfig)

@@ -46,14 +46,20 @@ const getObserver = (toElmFn) => {
 
     if (textareas.length !== 0) {
       textareas.map((t) => {
-        t.onkeyup = selectionHandler;
-        t.onclick = selectionHandler;
-        t.onfocus = selectionHandler;
-      });
+        t.onkeyup = selectionHandler
+        t.onclick = selectionHandler
+        t.onfocus = selectionHandler
+      })
+      if (Object.prototype.hasOwnProperty.call(toElm, 'toMain')) {
+        toElm.toMain('edit-mode-changed', true)
+      }
       if (document.getElementById("app-fullscreen") === null) {
         window.addEventListener('click', editBlurHandler)
       }
     } else {
+      if (Object.prototype.hasOwnProperty.call(toElm, 'toMain')) {
+        toElm.toMain('edit-mode-changed', false)
+      }
       window.removeEventListener('click', editBlurHandler);
     }
   });
