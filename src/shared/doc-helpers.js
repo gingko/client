@@ -476,7 +476,27 @@ var casesShared = (elmData, params) => {
             }
           })
         })
-      });
+      })
+    },
+
+    CopyCurrentSubtree: () => {
+      navigator.clipboard.writeText(JSON.stringify(elmData))
+      const addFlashClass = function () {
+        const activeCard = document.querySelectorAll('.card.active')
+        const activeDescendants = document.querySelectorAll('.group.active-descendant')
+        activeCard.forEach((c) => c.classList.add('flash'))
+        activeDescendants.forEach((c) => c.classList.add('flash'))
+      }
+
+      const removeFlashClass = function () {
+        const activeCard = document.querySelectorAll('.card.active')
+        const activeDescendants = document.querySelectorAll('.group.active-descendant')
+        activeCard.forEach((c) => c.classList.remove('flash'))
+        activeDescendants.forEach((c) => c.classList.remove('flash'))
+      }
+
+      addFlashClass()
+      setTimeout(removeFlashClass, 200)
     },
 
     TextSurround: () => {

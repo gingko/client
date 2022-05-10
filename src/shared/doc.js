@@ -492,26 +492,6 @@ const fromElm = (msg, elmData) => {
       toElm(cardId, "docMsgs", "DragStarted");
     },
 
-    CopyCurrentSubtree: () => {
-      navigator.clipboard.writeText(JSON.stringify(elmData));
-      let addFlashClass = function () {
-        let activeCard = document.querySelectorAll(".card.active");
-        let activeDescendants = document.querySelectorAll(".group.active-descendant");
-        activeCard.forEach((c) => c.classList.add("flash"));
-        activeDescendants.forEach((c) => c.classList.add("flash"));
-      };
-
-      let removeFlashClass = function () {
-        let activeCard = document.querySelectorAll(".card.active");
-        let activeDescendants = document.querySelectorAll(".group.active-descendant");
-        activeCard.forEach((c) => c.classList.remove("flash"));
-        activeDescendants.forEach((c) => c.classList.remove("flash"));
-      };
-
-      addFlashClass();
-      setTimeout(removeFlashClass, 200);
-    },
-
     CopyToClipboard: () => {
       navigator.clipboard.writeText(elmData.content);
 
