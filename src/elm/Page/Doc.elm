@@ -1,4 +1,4 @@
-module Page.Doc exposing (Model, Msg, ParentMsg(..), activate, checkoutCommit, incoming, init, subscriptions, update, view)
+module Page.Doc exposing (Model, Msg, ParentMsg(..), activate, checkoutCommit, incoming, init, saveAndStopEditing, saveCardIfEditing, subscriptions, update, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -284,22 +284,13 @@ updateDoc msg ({ workingTree } as model) =
                     ( { model | dirty = True, field = str }
                     , send <| SetDirty True
                     )
+                        |> localSave
                         |> (if vs.active /= id then
                                 activate id False
 
                             else
                                 identity
                            )
-
-                Fullscreen.SaveChanges ->
-                    ( model, Cmd.none )
-                        |> saveCardIfEditing
-
-                Fullscreen.SaveAndClose ->
-                    model |> saveAndStopEditing
-
-                Fullscreen.ExitFullscreenRequested ->
-                    exitFullscreen model
 
         DeleteCard id ->
             ( model

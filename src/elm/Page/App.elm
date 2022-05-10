@@ -7,6 +7,7 @@ import Bytes exposing (Bytes)
 import Coders exposing (sortByEncoder)
 import Doc.ContactForm as ContactForm
 import Doc.Data as Data
+import Doc.Fullscreen exposing (viewFullscreenButtons)
 import Doc.HelpScreen as HelpScreen
 import Doc.List as DocList exposing (Model(..))
 import Doc.Metadata as Metadata
@@ -33,7 +34,7 @@ import Import.Text as ImportText
 import Json.Decode as Json
 import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
-import Page.Doc exposing (Msg(..), ParentMsg(..), checkoutCommit)
+import Page.Doc exposing (Msg(..), ParentMsg(..), checkoutCommit, saveAndStopEditing, saveCardIfEditing)
 import Page.Doc.Export as Export exposing (ExportFormat(..), ExportSelection(..), exportView, exportViewError)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Doc.Theme exposing (Theme(..), applyTheme)
@@ -309,6 +310,11 @@ type Msg
     | ImportJSONLoaded String String
     | ImportJSONIdGenerated Tree String String
     | ImportJSONCompleted String
+      -- FULLSCREEN mode
+    | SaveChanges
+    | SaveAndExitFullscreen
+    | ExitFullscreenRequested
+    | FullscreenRequested
       -- Misc UI
     | CloseEmailConfirmBanner
     | ToggledUpgradeModal Bool
@@ -319,7 +325,6 @@ type Msg
     | TooltipRequested String TooltipPosition TranslationId
     | TooltipReceived Element TooltipPosition TranslationId
     | TooltipClosed
-    | FullscreenRequested
     | EmptyMessage
     | ModalClosed
 
@@ -1077,6 +1082,41 @@ update msg model =
         ImportJSONCompleted docId ->
             ( model, Route.pushUrl model.navKey (Route.DocUntitled docId) )
 
+        -- FULLSCREEN mode
+        ExitFullscreenRequested ->
+            -- TODO:
+            ( model, Cmd.none )
+
+        SaveChanges ->
+            case model.documentState of
+                Doc docState ->
+                    let
+                        ( newDocModel, newDocCmd ) =
+                            ( docState.docModel, Cmd.none )
+                                |> saveCardIfEditing
+                    in
+                    ( { model | documentState = Doc { docState | docModel = newDocModel } }, Cmd.map GotDocMsg newDocCmd )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        SaveAndExitFullscreen ->
+            case model.documentState of
+                Doc docState ->
+                    let
+                        ( newDocModel, newDocCmd ) =
+                            docState.docModel
+                                |> saveAndStopEditing
+                    in
+                    ( { model | documentState = Doc { docState | docModel = newDocModel } }, Cmd.map GotDocMsg newDocCmd )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        FullscreenRequested ->
+            -- TODO:
+            ( model, Cmd.none )
+
         -- Misc UI
         CloseEmailConfirmBanner ->
             ( model |> updateSession (Session.confirmEmail (GlobalData.currentTime globalData) session), Cmd.none )
@@ -1191,9 +1231,6 @@ update msg model =
 
         TooltipClosed ->
             ( { model | tooltip = Nothing }, Cmd.none )
-
-        FullscreenRequested ->
-            ( model, Cmd.none )
 
         EmptyMessage ->
             ( model, send <| EmptyMessageShown )
@@ -1383,6 +1420,26 @@ view ({ documentState } as model) =
 
                         _ ->
                             textNoTr ""
+
+                maybeFullscreenButtons =
+                    case docModel.viewState.viewMode of
+                        FullscreenEditing ->
+                            viewFullscreenButtons
+                                { exitFullscreenRequested = ExitFullscreenRequested
+                                , saveChanges = SaveChanges
+                                , saveAndExitFullscreen = SaveAndExitFullscreen
+                                }
+                                { language = lang
+                                , isMac = GlobalData.isMac (toGlobalData model)
+                                , dirty = docModel.dirty
+                                , model = docModel.workingTree
+                                , lastLocalSave = docModel.lastLocalSave
+                                , lastRemoteSave = docModel.lastRemoteSave
+                                , currentTime = GlobalData.currentTime docModel.globalData
+                                }
+
+                        _ ->
+                            textNoTr ""
             in
             div [ id "app-root", classList [ ( "loading", model.loading ) ], applyTheme model.theme ]
                 (Page.Doc.view
@@ -1420,6 +1477,7 @@ view ({ documentState } as model) =
                             docModel
                             titleField
                        , maybeExportView
+                       , maybeFullscreenButtons
                        , UI.viewSidebar docModel.globalData
                             session
                             sidebarMsgs

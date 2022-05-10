@@ -4,6 +4,7 @@ import Browser
 import Browser.Dom exposing (Element)
 import Coders exposing (treeToMarkdownOutline)
 import Doc.Data as Data
+import Doc.Fullscreen exposing (viewFullscreenButtonsDesktop)
 import Doc.TreeStructure as TreeStructure exposing (Msg(..))
 import Doc.TreeUtils exposing (getTree)
 import Doc.UI as UI
@@ -14,7 +15,7 @@ import Html.Lazy exposing (lazy5)
 import Json.Decode as Dec exposing (Decoder, Value)
 import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
-import Page.Doc exposing (Msg(..), ParentMsg(..), activate, checkoutCommit)
+import Page.Doc exposing (Msg(..), ParentMsg(..), activate, checkoutCommit, saveAndStopEditing)
 import Page.Doc.Export as Export exposing (ExportFormat(..), ExportSelection(..), exportView, toExtension)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Doc.Theme exposing (Theme(..), applyTheme)
@@ -198,6 +199,9 @@ type Msg
     | TooltipReceived Element TooltipPosition TranslationId
     | TooltipClosed
       --
+    | ExitFullscreenRequested
+    | SaveAndExitFullscreen
+      --
     | TimeUpdate Time.Posix
     | Incoming Incoming.Msg
     | LogErr String
@@ -354,6 +358,19 @@ update msg ({ docModel } as model) =
         TooltipClosed ->
             ( { model | tooltip = Nothing }, Cmd.none )
 
+        --
+        ExitFullscreenRequested ->
+            -- TODO:
+            ( model, Cmd.none )
+
+        SaveAndExitFullscreen ->
+            let
+                ( newDocModel, newDocCmd ) =
+                    docModel
+                        |> saveAndStopEditing
+            in
+            ( { model | docModel = newDocModel }, Cmd.map GotDocMsg newDocCmd )
+
         NoOp ->
             ( model, Cmd.none )
 
@@ -427,7 +444,7 @@ openHistorySlider model =
 
 
 view : Model -> List (Html Msg)
-view model =
+view ({ docModel } as model) =
     let
         globalData =
             model.docModel.globalData
@@ -437,6 +454,14 @@ view model =
 
         activeTree_ =
             getTree model.docModel.viewState.active model.docModel.workingTree.tree
+
+        isFullscreen =
+            case docModel.viewState.viewMode of
+                FullscreenEditing ->
+                    True
+
+                _ ->
+                    False
 
         exportViewOk expSettings =
             lazy5 exportView
@@ -465,7 +490,14 @@ view model =
                     text ""
     in
     [ div [ id "desktop-root", applyTheme model.theme ]
-        ([ viewFileSaveIndicator lang model.docModel.dirty { lastSave = model.lastSave, currentTime = GlobalData.currentTime globalData } ]
+        ([ viewFileSaveIndicator
+            { language = lang
+            , dirty = model.docModel.dirty
+            , isFullscreen = isFullscreen
+            , lastSave = model.lastSave
+            , currentTime = GlobalData.currentTime globalData
+            }
+         ]
             ++ Page.Doc.view
                 { docMsg = GotDocMsg
                 , keyboard = \s -> Incoming (Keyboard s)
@@ -502,28 +534,41 @@ view model =
                         , maybeExportView exportSettings
                         ]
                )
+            ++ (if isFullscreen then
+                    viewFullscreenButtonsDesktop
+                        { exitFullscreenRequested = ExitFullscreenRequested
+                        , saveAndExitFullscreen = SaveAndExitFullscreen
+                        }
+                        { isMac = GlobalData.isMac docModel.globalData
+                        , dirty = docModel.dirty
+                        }
+                        |> List.singleton
+
+                else
+                    []
+               )
             ++ [ viewTooltip ]
         )
     ]
 
 
-viewFileSaveIndicator : Language -> Bool -> { lastSave : Time.Posix, currentTime : Time.Posix } -> Html msg
-viewFileSaveIndicator lang isDirty { lastSave, currentTime } =
+viewFileSaveIndicator : { language : Language, dirty : Bool, isFullscreen : Bool, lastSave : Time.Posix, currentTime : Time.Posix } -> Html msg
+viewFileSaveIndicator { language, dirty, isFullscreen, lastSave, currentTime } =
     let
         lastSaveInWords =
             if abs (Time.posixToMillis lastSave - Time.posixToMillis currentTime) < 3000 then
                 "Just now"
 
             else
-                timeDistInWords lang lastSave currentTime
+                timeDistInWords language lastSave currentTime
     in
     div
         [ id "file-save-indicator"
-        , classList [ ( "dirty", isDirty ) ]
+        , classList [ ( "dirty", dirty ), ( "fullscreen", isFullscreen ) ]
         , title lastSaveInWords
         ]
         [ text <|
-            if isDirty then
+            if dirty then
                 "Unsaved changes..."
 
             else
