@@ -28,6 +28,11 @@ jobs:
       - name: Install Node packages
         run: npm ci
 
+      - name: Decrypt client config.js file
+        run: $HOME/client/config_decrypt.sh
+        env:
+          CLIENT_CONFIG_PASSPHRASE: ${{ secrets.CLIENT_CONFIG_PASSPHRASE }}
+
       - name: Copy client config.js file
         run: cp $HOME/secrets/client.config.js $GITHUB_WORKSPACE/client/config.js
 
