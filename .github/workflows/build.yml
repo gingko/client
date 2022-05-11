@@ -29,7 +29,7 @@ jobs:
         run: npm ci
 
       - name: Copy client config.js file
-        run: cp $HOME/client.config.js $GITHUB_WORKSPACE/client/config.js
+        run: cp $HOME/secrets/client.config.js $GITHUB_WORKSPACE/client/config.js
 
       - name: Check client config.js file
         run: node $GITHUB_WORKSPACE/client/config-check.js
