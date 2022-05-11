@@ -19,13 +19,23 @@ jobs:
 
     steps:
       - uses: actions/checkout@master
+
       - name: Install Node.js, NPM and Yarn
         uses: actions/setup-node@master
         with:
           node-version: 14
+
       - name: Install Node packages
         run: npm ci
+
+      - name: Copy client config.js file
+        run: cp $HOME/client.config.js $GITHUB_WORKSPACE/client/config.js
+
+      - name: Check client config.js file
+        run: node $GITHUB_WORKSPACE/client/config-check.js
+
       - name: Build Electron App
         run: npm run build
+
       - name: Release Script
         run: npm run release
