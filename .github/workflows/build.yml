@@ -35,14 +35,17 @@ jobs:
 
       - name: Decrypt client config.js file
         run: $GITHUB_WORKSPACE/config_decrypt.sh
+        shell: bash
         env:
           CLIENT_CONFIG_PASSPHRASE: ${{ secrets.CLIENT_CONFIG_PASSPHRASE }}
 
       - name: Copy client config.js file
         run: cp $HOME/secrets/client.config.js $GITHUB_WORKSPACE/config.js
+        shell: bash
 
       - name: Check client config.js file
         run: node $GITHUB_WORKSPACE/config-check.js
+        shell: bash
 
       - name: Build Electron App
         run: npm run build
