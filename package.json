@@ -114,7 +114,6 @@
     "underscore": "^1.9.1"
   },
   "devDependencies": {
-    "@nut-tree/nut-js": "^1.4.1",
     "@playwright/test": "^1.20.2",
     "chai": "^4.1.2",
     "chokidar-cli": "^2.1.0",
