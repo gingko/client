@@ -29,7 +29,7 @@ jobs:
         run: npm ci
 
       - name: Decrypt client config.js file
-        run: $HOME/client/config_decrypt.sh
+        run: $GITHUB_WORKSPACE/client/config_decrypt.sh
         env:
           CLIENT_CONFIG_PASSPHRASE: ${{ secrets.CLIENT_CONFIG_PASSPHRASE }}
 
