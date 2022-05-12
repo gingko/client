@@ -25,6 +25,10 @@ jobs:
         with:
           node-version: 16
 
+      - name: Install Snapcraft
+        run: sudo snap install snapcraft --classic
+        if: runner.os == 'Linux'
+
       - name: Install Node packages
         run: npm ci
 
