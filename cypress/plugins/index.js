@@ -21,8 +21,7 @@ const cfg = require("../../config.js");
 module.exports = (on, config) => {
   // `on` is used to hook into various events Cypress emits
   // `config` is the resolved Cypress config
-  require('cypress-watch-and-reload/plugins');
-  require("cypress-fail-fast/plugin")(on, config);
+  require('cypress-watch-and-reload/plugins')
 
   on('task', {
     'db:seed': ({dbName, seedName}) => {

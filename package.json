@@ -68,13 +68,13 @@
       ]
     },
     "linux": {
-      "target": "AppImage",
+      "target": "snap",
       "category": "Office"
     }
   },
   "dependencies": {
-    "7zip-bin": "^5.0.3",
     "@types/node": "^17.0.23",
+    "7zip-bin": "^5.0.3",
     "axios": "^0.19.2",
     "electron-is-dev": "^0.3.0",
     "electron-store": "^8.0.1",
@@ -121,7 +121,6 @@
     "copy-webpack-plugin": "^6.0.1",
     "couchdb-backup": "^1.0.2",
     "cypress": "^7.7.0",
-    "cypress-fail-fast": "^2.2.0",
     "cypress-file-upload": "^4.1.1",
     "cypress-watch-and-reload": "^1.2.18",
     "electron": "^18.1.0",
@@ -144,6 +143,5 @@
     "webpack-cli": "^3.3.9",
     "webpack-merge": "^4.2.2",
     "worker-loader": "^3.0.7"
-  },
-  "optionalDependencies": {}
+  }
 }
