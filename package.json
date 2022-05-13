@@ -51,6 +51,7 @@
       }
     ],
     "mac": {
+      "identity": null,
       "category": "public.app-category.productivity"
     },
     "dmg": {
@@ -74,7 +75,6 @@
   },
   "dependencies": {
     "@types/node": "^17.0.23",
-    "7zip-bin": "^5.0.3",
     "axios": "^0.19.2",
     "electron-is-dev": "^0.3.0",
     "electron-store": "^8.0.1",
