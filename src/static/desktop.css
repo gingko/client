@@ -14,7 +14,16 @@
   z-index: 1;
 }
 #export-menu {
-  z-index: 1;
+  z-index: 5;
+  grid-template-columns: 1fr 1fr min-content;
+}
+#export-button-close {
+  opacity: 0.8;
+  margin-right: 16px;
+  cursor: pointer;
+}
+#export-button-close:hover {
+  opacity: 1;
 }
 #file-save-indicator {
   position: fixed;

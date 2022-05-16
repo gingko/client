@@ -2273,7 +2273,7 @@ span.collaborators {
   line-height: 20px;
   white-space: nowrap;
   pointer-events: none;
-  z-index: 3;
+  z-index: 99;
   opacity: 0;
 }
 .tooltip-arrow {

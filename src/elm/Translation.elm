@@ -215,6 +215,7 @@ type TranslationId
     | ExportSettingPlainText
     | ExportSettingJSON
     | ExportSettingOPML
+    | CloseExportView
     | DownloadWordFile
     | DownloadTextFile
     | DownloadJSONFile
@@ -4578,6 +4579,28 @@ tr lang trans =
                     , ca = "%ca:ExportSettingOPML%"
                     , br = "%br:ExportSettingOPML%"
                     , mr = "%mr:ExportSettingOPML%"
+                    }
+
+                CloseExportView ->
+                    { en = "Close Export View"
+                    , zh_hans = "%zh_hans:CloseExportView%"
+                    , zh_hant = "%zh_hant:CloseExportView%"
+                    , es = "%es:CloseExportView%"
+                    , ar = "%ar:CloseExportView%"
+                    , fr = "%fr:CloseExportView%"
+                    , ru = "%ru:CloseExportView%"
+                    , de = "%de:CloseExportView%"
+                    , ja = "%ja:CloseExportView%"
+                    , pes = "%pes:CloseExportView%"
+                    , it = "%it:CloseExportView%"
+                    , ro = "%ro:CloseExportView%"
+                    , hr = "%hr:CloseExportView%"
+                    , nl = "%nl:CloseExportView%"
+                    , hu = "%hu:CloseExportView%"
+                    , sv = "%sv:CloseExportView%"
+                    , ca = "%ca:CloseExportView%"
+                    , br = "%br:CloseExportView%"
+                    , mr = "%mr:CloseExportView%"
                     }
 
                 DownloadWordFile ->

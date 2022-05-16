@@ -226,7 +226,7 @@ viewHeader msgs session title_ appModel docModel titleField_ =
             msgs.toggledUpgradeModal
             docModel.globalData
             session
-        , viewIf (appModel.headerMenu == ExportPreview) <| viewExportMenu language msgs appModel.exportSettings
+        , viewIf (appModel.headerMenu == ExportPreview) <| viewExportMenu language msgs False appModel.exportSettings
         ]
 
 
@@ -236,12 +236,14 @@ viewExportMenu :
         { m
             | exportSelectionChanged : ExportSelection -> msg
             , exportFormatChanged : ExportFormat -> msg
+            , toggledExport : msg
             , tooltipRequested : String -> TooltipPosition -> TranslationId -> msg
             , tooltipClosed : msg
         }
+    -> Bool
     -> ( ExportSelection, ExportFormat )
     -> Html msg
-viewExportMenu language msgs ( exportSelection, exportFormat ) =
+viewExportMenu language msgs showCloseButton ( exportSelection, exportFormat ) =
     let
         exportSelectionBtnAttributes expSel expSelString tooltipText =
             [ id <| "export-select-" ++ expSelString
@@ -258,19 +260,33 @@ viewExportMenu language msgs ( exportSelection, exportFormat ) =
             ]
     in
     div [ id "export-menu" ]
-        [ div [ id "export-selection", class "toggle-button" ]
+        ([ div [ id "export-selection", class "toggle-button" ]
             [ div (exportSelectionBtnAttributes ExportEverything "all" ExportSettingEverythingDesc) [ text language ExportSettingEverything ]
             , div (exportSelectionBtnAttributes ExportSubtree "subtree" ExportSettingCurrentSubtreeDesc) [ text language ExportSettingCurrentSubtree ]
             , div (exportSelectionBtnAttributes ExportLeaves "leaves" ExportSettingLeavesOnlyDesc) [ text language ExportSettingLeavesOnly ]
             , div (exportSelectionBtnAttributes ExportCurrentColumn "column" ExportSettingCurrentColumnDesc) [ text language ExportSettingCurrentColumn ]
             ]
-        , div [ id "export-format", class "toggle-button" ]
+         , div [ id "export-format", class "toggle-button" ]
             [ div (exportFormatBtnAttributes DOCX "word") [ text language ExportSettingWord ]
             , div (exportFormatBtnAttributes PlainText "text") [ text language ExportSettingPlainText ]
             , div (exportFormatBtnAttributes OPML "opml") [ text language ExportSettingOPML ]
             , div (exportFormatBtnAttributes JSON "json") [ text language ExportSettingJSON ]
             ]
-        ]
+         ]
+            ++ (if showCloseButton then
+                    [ span
+                        [ id "export-button-close"
+                        , onClick msgs.toggledExport
+                        , onMouseEnter <| msgs.tooltipRequested "export-button-close" BelowLeftTooltip CloseExportView
+                        , onMouseLeave msgs.tooltipClosed
+                        ]
+                        [ AntIcons.closeCircleOutlined [ width 16 ] ]
+                    ]
+
+                else
+                    []
+               )
+        )
 
 
 viewSaveIndicator :

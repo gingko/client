@@ -191,6 +191,7 @@ type Msg
     | CheckoutCommit String
     | Restore
       --
+    | CloseExport
     | ExportFormatChanged ExportFormat
     | ExportSelectionChanged ExportSelection
     | Export
@@ -260,6 +261,15 @@ update msg ({ docModel } as model) =
             , Cmd.none
             )
                 |> localSaveDo
+
+        --
+        CloseExport ->
+            case model.uiState of
+                ExportPreview _ ->
+                    ( { model | uiState = DocUI }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
         ExportFormatChanged newExpFormat ->
             case model.uiState of
@@ -529,7 +539,9 @@ view ({ docModel } as model) =
                             , exportSelectionChanged = ExportSelectionChanged
                             , tooltipRequested = TooltipRequested
                             , tooltipClosed = TooltipClosed
+                            , toggledExport = CloseExport
                             }
+                            True
                             exportSettings
                         , maybeExportView exportSettings
                         ]
