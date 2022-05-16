@@ -211,7 +211,7 @@ ipcMain.on('export-file', async (event, data) => {
       try {
         await pandoc(filePath, data[1])
       } catch (e) {
-        console.error(e)
+        await dialog.showMessageBox(win, { title: 'Failed to Export', message: e.toString() })
       }
     } else {
       await fs.writeFile(filePath, data[1])

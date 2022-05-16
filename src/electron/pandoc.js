@@ -8,7 +8,7 @@ export default async function pandoc (targetPath, content) {
   const tmpMarkdown = path.join(app.getPath('temp'), path.basename(targetPath) + '.md')
   await fs.writeFile(tmpMarkdown, content)
 
-  let pandocPath = path.join(__dirname, '/../../pandoc')
+  let pandocPath = path.join(__dirname, '/../pandoc')
 
   if (!app.isPackaged) {
     switch (process.platform) {
@@ -24,14 +24,15 @@ export default async function pandoc (targetPath, content) {
         pandocPath = path.join(__dirname, '/../src/bin/mac/pandoc')
         break
     }
-    await execFile(pandocPath,
-      [tmpMarkdown,
-        '--from=gfm+hard_line_breaks',
-        '--to=docx',
-         `--output=${targetPath}`,
-         '--verbose'
-      ])
-
-    await fs.unlink(tmpMarkdown)
   }
+
+  await execFile(pandocPath,
+    [tmpMarkdown,
+      '--from=gfm+hard_line_breaks',
+      '--to=docx',
+      `--output=${targetPath}`,
+      '--verbose'
+    ])
+
+  await fs.unlink(tmpMarkdown)
 }
