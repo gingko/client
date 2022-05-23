@@ -1,5 +1,5 @@
 import * as fs from 'fs/promises'
-import { app, BrowserWindow, ipcMain, dialog, Menu } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog, Menu, shell } from 'electron'
 import { getHomeMenuTemplate, getDocMenuTemplate } from './newmenu'
 import commitTree from './commit'
 import pandoc from './pandoc'
@@ -334,6 +334,13 @@ app.whenReady().then(async () => {
     // On macOS re-create a window when the dock icon is clicked
     // and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createHomeWindow()
+  })
+})
+
+app.on('web-contents-created', (event, webContents) => {
+  webContents.on('will-navigate', async (event, url) => {
+    event.preventDefault()
+    await shell.openExternal(url)
   })
 })
 
