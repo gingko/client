@@ -323,6 +323,10 @@ app.whenReady().then(async () => {
       case 'ImportDone':
         createDocWindow(null, elmData[1].data)
         break
+
+      case 'ImportError':
+        dialog.showErrorBox('Import Error', elmData[1])
+        break
     }
   })
 
