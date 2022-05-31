@@ -22,7 +22,7 @@ import Page.Doc.Theme exposing (Theme(..), applyTheme)
 import Task
 import Time
 import Translation exposing (Language, TranslationId, timeDistInWords)
-import Types exposing (TooltipPosition, Tree, ViewMode(..))
+import Types exposing (Children(..), TooltipPosition, Tree, ViewMode(..))
 
 
 main : Program DataIn Model Msg
@@ -106,21 +106,15 @@ init dataIn =
                     )
 
                 Just fileData ->
-                    case Coders.markdownOutlineHtmlParser fileData of
-                        Ok (Just parsedTree) ->
-                            ( Page.Doc.init False globalData |> initDoc parsedTree
+                    case Coders.normalizeAndParse fileData of
+                        Ok parsedTrees ->
+                            ( Page.Doc.init False globalData |> initDoc (Tree "0" "" (Children parsedTrees))
                             , if dataIn.isUntitled then
                                 UntitledFileDoc dataIn.filePath
 
                               else
                                 FileDoc dataIn.filePath
                             , Cmd.none
-                            )
-
-                        Ok Nothing ->
-                            ( Page.Doc.init True globalData
-                            , UntitledFileDoc "Nothing error"
-                            , Task.attempt (always NoOp) (Browser.Dom.focus "card-edit-1")
                             )
 
                         Err err ->

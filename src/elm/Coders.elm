@@ -1,11 +1,10 @@
-module Coders exposing (collabStateDecoder, collabStateToValue, fontSettingsEncoder, lazyRecurse, markdownOutlineHtmlParser, maybeToValue, modeDecoder, modeToValue, sortByDecoder, sortByEncoder, treeDecoder, treeOrString, treeToJSON, treeToJSONrecurse, treeToMarkdownOutline, treeToMarkdownRecurse, treeToMarkdownString, treeToOPML, treeToValue, tupleDecoder, tupleToValue)
+module Coders exposing (collabStateDecoder, collabStateToValue, fontSettingsEncoder, lazyRecurse, maybeToValue, modeDecoder, modeToValue, normalizeAndParse, normalizeInput, sortByDecoder, sortByEncoder, treeDecoder, treeOrString, treeToJSON, treeToJSONrecurse, treeToMarkdownOutline, treeToMarkdownRecurse, treeToMarkdownString, treeToOPML, treeToValue, treesParser, tupleDecoder, tupleToValue)
 
-import Dict
 import Doc.Fonts as Fonts
-import Html.Parser exposing (Node(..))
 import Json.Decode as Json exposing (..)
 import Json.Encode as Enc
-import Parser exposing ((|.), (|=), Parser, Step(..), Trailing(..), chompUntil, getChompedString, keyword, loop, spaces, symbol)
+import Parser exposing ((|.), (|=), DeadEnd, Parser, Step(..), Trailing(..), chompUntil, getChompedString, keyword, loop, spaces, symbol)
+import Regex
 import Types exposing (..)
 
 
@@ -183,76 +182,110 @@ treeToMarkdownOutlineRecurse tree =
                 ++ "</gingko-card>"
 
 
-markdownOutlineHtmlParser : String -> Result (List Parser.DeadEnd) (Maybe Tree)
-markdownOutlineHtmlParser str =
-    Html.Parser.run str
-        |> Result.map
-            (\l ->
-                let
-                    rootNode =
-                        Element "gingko-card" [ ( "id", "0" ) ] (Text "\n\n\n\n" :: l)
-                in
-                nodeToTree rootNode
+
+-- NORMALIZER
+
+
+normalizeInput : String -> String
+normalizeInput str =
+    str
+        |> normalizeOpenTags
+        |> normalizeCloseTags
+
+
+normalizeOpenTags : String -> String
+normalizeOpenTags str =
+    let
+        regex =
+            Regex.fromString "<\\s*gingko-card\\s{1,}id=\"([^\"]*)\"\\s*>"
+                |> Maybe.withDefault Regex.never
+    in
+    Regex.replace regex
+        (\m ->
+            case m.submatches of
+                (Just idMatch) :: _ ->
+                    "%!#<gingko-card|" ++ idMatch ++ ">"
+
+                _ ->
+                    m.match
+        )
+        str
+
+
+normalizeCloseTags : String -> String
+normalizeCloseTags str =
+    let
+        regex =
+            Regex.fromString "<\\/\\s*gingko-card\\s*>\\s*"
+                |> Maybe.withDefault Regex.never
+    in
+    Regex.replace regex
+        (\_ -> "%!#<gingko-card/>")
+        str
+
+
+
+-- PARSER
+
+
+normalizeAndParse : String -> Result (List DeadEnd) (List Tree)
+normalizeAndParse input =
+    input
+        |> normalizeInput
+        |> Parser.run treesParser
+
+
+treesParser : Parser (List Tree)
+treesParser =
+    loop [] treeListHelper
+
+
+treeListHelper : List Tree -> Parser (Step (List Tree) (List Tree))
+treeListHelper revTrees =
+    Parser.oneOf
+        [ Parser.succeed (\tree -> Loop (tree :: revTrees))
+            |= parseTree
+        , Parser.succeed (Done (List.reverse revTrees))
+        ]
+
+
+parseTree : Parser Tree
+parseTree =
+    Parser.succeed (\id str ch -> Tree id str (Children ch))
+        |= openTagParser
+        |= contentParser
+        |= treesParser
+        |. closeTagParser
+
+
+openTagParser : Parser String
+openTagParser =
+    Parser.succeed identity
+        |. symbol "%!#<gingko-card|"
+        |= getChompedString (chompUntil ">")
+        |. symbol ">"
+
+
+contentParser : Parser String
+contentParser =
+    getChompedString
+        (chompUntil "%!#<gingko-card")
+        |> Parser.map
+            (\s ->
+                case ( String.startsWith "\n\n" s, String.endsWith "\n\n" s, String.length s >= 4 ) of
+                    ( True, True, True ) ->
+                        s |> String.dropLeft 2 |> String.dropRight 2
+
+                    _ ->
+                        s
             )
 
 
-nodeToTree : Node -> Maybe Tree
-nodeToTree htmlNode =
-    case htmlNode of
-        Element tagName attr (firstChild :: rest) ->
-            case ( tagName, Dict.get "id" (Dict.fromList attr), firstChild ) of
-                ( "gingko-card", Just id, Text content ) ->
-                    Tree id (content |> String.dropLeft 2 |> String.dropRight 2) (nodeListToChildren rest)
-                        |> Just
-
-                _ ->
-                    Nothing
-
-        _ ->
-            Nothing
-
-
-nodeListToChildren : List Node -> Children
-nodeListToChildren nodes =
-    nodes
-        |> List.filterMap nodeToTree
-        |> Children
-
-
-markdownOutlineParser : Parser Tree
-markdownOutlineParser =
-    Parser.succeed (\id ( cont, ch ) -> Tree id cont ch)
-        |. keyword "<gingko-card"
-        |. spaces
-        |. keyword "id"
-        |. symbol "="
-        |. symbol "\""
-        |= getChompedString (chompUntil "\"")
-        |. symbol "\""
-        |. spaces
-        |. symbol ">\n\n"
-        |= Parser.oneOf
-            [ Parser.succeed (\s c -> ( s, c ))
-                |= getChompedString (chompUntil "<gingko-card")
-                |= markdownOutlineChildren
-            , Parser.succeed (\s -> ( s, Children [] ))
-                |= getChompedString (chompUntil "\n\n</gingko-card>")
-            ]
-
-
-markdownOutlineChildren : Parser Children
-markdownOutlineChildren =
-    loop [] markdownOutlineTreesHelper
-        |> Parser.map Children
-
-
-markdownOutlineTreesHelper : List Tree -> Parser (Step (List Tree) (List Tree))
-markdownOutlineTreesHelper revTrees =
+closeTagParser : Parser ()
+closeTagParser =
     Parser.oneOf
-        [ Parser.lazy (\_ -> markdownOutlineParser)
-            |> Parser.map (\t -> Loop (t :: revTrees))
-        , Parser.succeed ()
-            |> Parser.map (\_ -> Done (List.reverse revTrees))
+        [ symbol "%!#<gingko-card/>"
+        , Parser.end
         ]
 
 
