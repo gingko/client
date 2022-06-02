@@ -71,6 +71,9 @@
     "linux": {
       "target": "AppImage",
       "category": "Office"
+    },
+    "win": {
+      "certificateSubjectName": "Gingko Inc."
     }
   },
   "dependencies": {
