@@ -27,7 +27,7 @@
     "dist": "set DEBUG=electron-builder&& electron-builder",
     "dist:win": "DEBUG=electron-builder && electron-builder -w",
     "dist:mac": "DEBUG=electron-builder && electron-builder -m",
-    "release": "electron-builder",
+    "release": "DEBUG=electron-builder && electron-builder",
     "postinstall": "electron-rebuild"
   },
   "build": {
