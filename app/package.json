@@ -1,5 +1,5 @@
 {
-  "name": "gingko-client",
+  "name": "gingko-writer",
   "productName": "Gingko Writer",
   "version": "2.5.0",
   "description": "Gingko client rewritten in Elm, packaged with Electron.",
@@ -9,7 +9,7 @@
   },
   "author": {
     "name": "Gingko Inc",
-    "email": "adriano@gingkoapp.com"
+    "email": "adriano@gingkowriter.com"
   },
   "license": "MIT",
   "bugs": {
