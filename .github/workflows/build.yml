@@ -32,6 +32,9 @@ jobs:
         run: sudo snap install snapcraft --classic
         if: runner.os == 'Linux'
 
+      - name: Setup NPM cache
+        uses: c-hive/gha-npm-cache@v1
+
       - name: Install Node packages
         run: npm ci
 
