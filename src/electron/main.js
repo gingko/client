@@ -153,10 +153,14 @@ async function saveThisAs (win) {
 
 async function clickedHelp (win) {
   const helpWin = new BrowserWindow({
-    width: 800,
-    height: 600,
-    backgroundColor: 'hsl(202, 72%, 41%)'
+    parent: win,
+    modal: true,
+    width: 1000,
+    height: 800,
+    backgroundColor: 'hsl(202deg 62% 92%)'
   })
+
+  helpWin.menuBarVisible = false
 
   await helpWin.loadFile(path.join(__dirname, '/static/help.html'))
 }

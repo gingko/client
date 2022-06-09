@@ -11,7 +11,7 @@ main =
     Browser.document
         { init = init
         , update = \msg mod -> ( mod, Cmd.none )
-        , view = \m -> Browser.Document "Help" (HelpScreen.view m.language m.isMac { closeModal = NoOp, contactSupport = NoOp, showWidget = NoOp, showVideoTutorials = NoOp })
+        , view = \m -> Browser.Document "Help" (HelpScreen.viewShortcuts m.language m.isMac)
         , subscriptions = \_ -> Sub.none
         }
 
