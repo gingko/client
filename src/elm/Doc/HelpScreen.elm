@@ -1,4 +1,4 @@
-module HelpScreen exposing (view)
+module Doc.HelpScreen exposing (view)
 
 import Ant.Icons.Svg as Icons
 import Html exposing (Html, a, button, div, h2, h3, h4, kbd, li, span, table, td, th, thead, ul)

@@ -152,7 +152,13 @@ async function saveThisAs (win) {
 }
 
 async function clickedHelp (win) {
-  dialog.showMessageBox(win, { title: 'Help Screen' })
+  const helpWin = new BrowserWindow({
+    width: 800,
+    height: 600,
+    backgroundColor: 'hsl(202, 72%, 41%)'
+  })
+
+  await helpWin.loadFile(path.join(__dirname, '/static/help.html'))
 }
 
 /* ==== IPC handlers ==== */

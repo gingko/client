@@ -225,12 +225,13 @@ const electronMainConfig = merge(baseElectronConfig, {
 
 const electronRendererConfig = merge(baseElectronConfig, {
   // Set the target environment where the code bundles will run.
-  target: "electron-renderer",
+  target: 'electron-renderer',
 
   // Entry points into the code. The root of the dependency tree.
   entry: {
-    home: "./electron/home.js",
-    renderer: "./electron/renderer.js"
+    home: './electron/home.js',
+    help: './electron/help.js',
+    renderer: './electron/renderer.js'
   },
 
   // What file types to attempt to resolve within require/import statements
@@ -257,14 +258,19 @@ const electronRendererConfig = merge(baseElectronConfig, {
 
     // Plugin to insert only needed chunks of JS into HTML output files.
     new HtmlWebpackPlugin({
-      template: "./home.ejs",
-      filename: "../app/static/home.html",
-      chunks: ["home"]
+      template: './home.ejs',
+      filename: '../app/static/home.html',
+      chunks: ['home']
     }),
     new HtmlWebpackPlugin({
-      template: "./renderer.ejs",
-      filename: "../app/static/renderer.html",
-      chunks: ["renderer"]
+      template: './help.ejs',
+      filename: '../app/static/help.html',
+      chunks: ['help']
+    }),
+    new HtmlWebpackPlugin({
+      template: './renderer.ejs',
+      filename: '../app/static/renderer.html',
+      chunks: ['renderer']
     }),
 
     // Plugin to copy electron preload script
