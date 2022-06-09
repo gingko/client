@@ -1,6 +1,6 @@
 import * as fs from 'fs/promises'
 import { app, BrowserWindow, ipcMain, dialog, Menu, shell } from 'electron'
-import { getHomeMenuTemplate, getDocMenuTemplate } from './newmenu'
+import { getHomeMenuTemplate, getDocMenuTemplate } from './menu'
 import commitTree from './commit'
 import pandoc from './pandoc'
 import filenamifyPath from 'filenamify'
