@@ -2,8 +2,9 @@ module ShortcutsModal exposing (..)
 
 import Browser
 import Doc.HelpScreen as HelpScreen
-import Json.Decode exposing (Value)
-import Translation exposing (Language(..))
+import Json.Decode as Dec exposing (Decoder, Value, bool, decodeValue)
+import Json.Decode.Pipeline exposing (optional, required)
+import Translation exposing (Language(..), languageDecoder)
 
 
 main : Program Value Model Msg
@@ -24,12 +25,24 @@ type alias Model =
     { language : Language, isMac : Bool }
 
 
+defaultModel =
+    { language = En, isMac = False }
+
+
 init json =
-    ( { language = En
-      , isMac = False
-      }
-    , Cmd.none
-    )
+    case decodeValue decoder json of
+        Ok model ->
+            ( model, Cmd.none )
+
+        Err _ ->
+            ( defaultModel, Cmd.none )
+
+
+decoder : Decoder Model
+decoder =
+    Dec.succeed Model
+        |> optional "language" languageDecoder En
+        |> optional "isMac" bool False
 
 
 
