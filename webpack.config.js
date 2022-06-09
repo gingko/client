@@ -230,7 +230,7 @@ const electronRendererConfig = merge(baseElectronConfig, {
   // Entry points into the code. The root of the dependency tree.
   entry: {
     home: './electron/home.js',
-    help: './electron/help.js',
+    shortcuts: './electron/shortcuts-modal.js',
     renderer: './electron/renderer.js'
   },
 
@@ -263,9 +263,9 @@ const electronRendererConfig = merge(baseElectronConfig, {
       chunks: ['home']
     }),
     new HtmlWebpackPlugin({
-      template: './help.ejs',
-      filename: '../app/static/help.html',
-      chunks: ['help']
+      template: './shortcuts-modal.ejs',
+      filename: '../app/static/shortcuts-modal.html',
+      chunks: ['shortcuts']
     }),
     new HtmlWebpackPlugin({
       template: './renderer.ejs',

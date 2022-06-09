@@ -70,7 +70,12 @@ function getDocMenuTemplate (handlers, isUntitled, isMac, recentDocs, appName, i
     { role: 'toggleDevTools' },
     {
       label: '&Help',
-      click: handlers.clickedHelp
+      submenu: [
+        {
+          label: '&Keyboard Shortcuts',
+          click: handlers.clickedShowShortcuts
+        }
+      ]
     }
   ]
 

@@ -27,7 +27,7 @@ const createHomeWindow = async () => {
     clickedOpen: (item, focusedWindow) => clickedOpen(focusedWindow, true),
     clickedRecentDoc: (item, focusedWindow, openPath) => openDocument(focusedWindow, openPath, true),
     clickedExit: (item, focusedWindow) => app.quit(),
-    clickedHelp: (item, focusedWindow) => clickedHelp(focusedWindow)
+    clickedShowShortcuts: (item, focusedWindow) => clickedShowShortcuts(focusedWindow)
   }
   recentDocuments = globalStore.get('recentDocuments', [])
   const template = getHomeMenuTemplate(handlers, isMac(), recentDocuments, app.getName())
@@ -151,8 +151,8 @@ async function saveThisAs (win) {
   }
 }
 
-async function clickedHelp (win) {
-  const helpWin = new BrowserWindow({
+async function clickedShowShortcuts (win) {
+  const shortcutsWin = new BrowserWindow({
     parent: win,
     modal: true,
     width: 1000,
@@ -160,9 +160,9 @@ async function clickedHelp (win) {
     backgroundColor: 'hsl(202deg 62% 92%)'
   })
 
-  helpWin.menuBarVisible = false
+  shortcutsWin.menuBarVisible = false
 
-  await helpWin.loadFile(path.join(__dirname, '/static/help.html'))
+  await shortcutsWin.loadFile(path.join(__dirname, '/static/shortcuts-modal.html'))
 }
 
 /* ==== IPC handlers ==== */
@@ -380,7 +380,7 @@ const handlers =
     clickedCopy: async (item, focusedWindow) => await focusedWindow.webContents.send('clicked-copy'),
     clickedPaste: async (item, focusedWindow) => await focusedWindow.webContents.send('clicked-paste'),
     clickedPasteInto: async (item, focusedWindow) => await focusedWindow.webContents.send('clicked-paste-into'),
-    clickedHelp: (item, focusedWindow) => clickedHelp(focusedWindow)
+    clickedShowShortcuts: (item, focusedWindow) => clickedShowShortcuts(focusedWindow)
   }
 async function createDocWindow (filePath, initFileData) {
   for (const winData of docWindows.values()) {

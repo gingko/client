@@ -1,4 +1,4 @@
-module HelpModal exposing (..)
+module ShortcutsModal exposing (..)
 
 import Browser
 import Doc.HelpScreen as HelpScreen
@@ -11,7 +11,7 @@ main =
     Browser.document
         { init = init
         , update = \msg mod -> ( mod, Cmd.none )
-        , view = \m -> Browser.Document "Help" (HelpScreen.viewShortcuts m.language m.isMac)
+        , view = \m -> Browser.Document "Keyboard Shortcuts" (HelpScreen.viewShortcuts m.language m.isMac)
         , subscriptions = \_ -> Sub.none
         }
 
