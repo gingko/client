@@ -26,7 +26,8 @@ const createHomeWindow = async () => {
     clickedNew: (item, focusedWindow) => clickedNew(focusedWindow),
     clickedOpen: (item, focusedWindow) => clickedOpen(focusedWindow, true),
     clickedRecentDoc: (item, focusedWindow, openPath) => openDocument(focusedWindow, openPath, true),
-    clickedExit: (item, focusedWindow) => app.quit()
+    clickedExit: (item, focusedWindow) => app.quit(),
+    clickedHelp: (item, focusedWindow) => clickedHelp(focusedWindow)
   }
   recentDocuments = globalStore.get('recentDocuments', [])
   const template = getHomeMenuTemplate(handlers, isMac(), recentDocuments, app.getName())
@@ -148,6 +149,10 @@ async function saveThisAs (win) {
     const menu = Menu.buildFromTemplate(getDocMenuTemplate(handlers, false, isMac(), recentDocuments, app.getName(), false))
     Menu.setApplicationMenu(menu)
   }
+}
+
+async function clickedHelp (win) {
+  dialog.showMessageBox(win, { title: 'Help Screen' })
 }
 
 /* ==== IPC handlers ==== */
@@ -364,7 +369,8 @@ const handlers =
     clickedCut: async (item, focusedWindow) => await focusedWindow.webContents.send('clicked-cut'),
     clickedCopy: async (item, focusedWindow) => await focusedWindow.webContents.send('clicked-copy'),
     clickedPaste: async (item, focusedWindow) => await focusedWindow.webContents.send('clicked-paste'),
-    clickedPasteInto: async (item, focusedWindow) => await focusedWindow.webContents.send('clicked-paste-into')
+    clickedPasteInto: async (item, focusedWindow) => await focusedWindow.webContents.send('clicked-paste-into'),
+    clickedHelp: (item, focusedWindow) => clickedHelp(focusedWindow)
   }
 async function createDocWindow (filePath, initFileData) {
   for (const winData of docWindows.values()) {

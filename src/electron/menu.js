@@ -67,7 +67,10 @@ function getDocMenuTemplate (handlers, isUntitled, isMac, recentDocs, appName, i
       ]
     },
     editMenu(handlers, isEditMode),
-    { role: 'toggleDevTools' }
+    {
+      label: '&Help',
+      click: handlers.clickedHelp
+    }
   ]
 
   if (isMac) {
