@@ -1,3 +1,3 @@
-import { Elm } from '../elm/VideosModal'
+import { Elm } from '../elm/Electron/VideosModal'
 
-Elm.VideosModal.init()
+Elm.Electron.VideosModal.init()

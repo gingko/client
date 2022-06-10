@@ -5,7 +5,7 @@ import commitTree from './commit'
 import pandoc from './pandoc'
 import filenamifyPath from 'filenamify'
 import _ from 'lodash'
-import { Elm } from '../elm/Worker'
+import { Elm } from '../elm/Electron/Worker'
 const path = require('path')
 const crypto = require('crypto')
 const Store = require('electron-store')
@@ -384,7 +384,7 @@ app.whenReady().then(async () => {
   }
 
   // Initialize Elm Worker to reuse Elm code "server-side"
-  elmWorker = Elm.Worker.init({ flags: Date.now() })
+  elmWorker = Elm.Electron.Worker.init({ flags: Date.now() })
   elmWorker.ports.fromElm.subscribe((elmData) => {
     switch (elmData[0]) {
       case 'ImportDone':

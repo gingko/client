@@ -267,32 +267,32 @@ const electronRendererConfig = merge(baseElectronConfig, {
 
     // Plugin to insert only needed chunks of JS into HTML output files.
     new HtmlWebpackPlugin({
-      template: './home.ejs',
+      template: './electron/home.ejs',
       filename: '../app/static/home.html',
       chunks: ['home']
     }),
     new HtmlWebpackPlugin({
-      template: './shortcuts-modal.ejs',
+      template: './electron/shortcuts-modal.ejs',
       filename: '../app/static/shortcuts-modal.html',
       chunks: ['shortcuts']
     }),
     new HtmlWebpackPlugin({
-      template: './videos-modal.ejs',
+      template: './electron/videos-modal.ejs',
       filename: '../app/static/videos-modal.html',
       chunks: ['videos']
     }),
     new HtmlWebpackPlugin({
-      template: './faq-modal.ejs',
+      template: './electron/faq-modal.ejs',
       filename: '../app/static/faq-modal.html',
       chunks: []
     }),
     new HtmlWebpackPlugin({
-      template: './support-modal.ejs',
+      template: './electron/support-modal.ejs',
       filename: '../app/static/support-modal.html',
       chunks: ['support']
     }),
     new HtmlWebpackPlugin({
-      template: './renderer.ejs',
+      template: './electron/renderer.ejs',
       filename: '../app/static/renderer.html',
       chunks: ['renderer']
     }),

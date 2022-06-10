@@ -1,4 +1,4 @@
-port module Worker exposing (..)
+port module Electron.Worker exposing (..)
 
 import Coders exposing (treeToMarkdownOutline)
 import Import.Single

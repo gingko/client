@@ -1,4 +1,4 @@
-import { Elm } from "../elm/Electron";
+import { Elm } from "../elm/Electron/Electron";
 const Mousetrap = require("mousetrap");
 const helpers = require("../shared/doc-helpers");
 const container = require("Container");
@@ -29,7 +29,7 @@ const init = async function (filePath, fileData, fileSettings, undoData, isUntit
     , currentTime : timestamp
     , isMac : false
     };
-  gingkoElectron = Elm.Electron.init({ flags: { filePath, fileData, fileSettings, undoData, globalData, isUntitled } })
+  gingkoElectron = Elm.Electron.Electron.init({ flags: { filePath, fileData, fileSettings, undoData, globalData, isUntitled } })
 
   gingkoElectron.ports.infoForOutside.subscribe(function (elmdata) {
     fromElm(elmdata.tag, elmdata.data);

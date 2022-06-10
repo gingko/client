@@ -1,4 +1,4 @@
-module Electron exposing (..)
+module Electron.Electron exposing (..)
 
 import Browser
 import Browser.Dom exposing (Element)

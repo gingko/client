@@ -1,4 +1,4 @@
-port module SupportModal exposing (..)
+port module Electron.SupportModal exposing (..)
 
 import Browser
 import Doc.ContactForm as ContactForm

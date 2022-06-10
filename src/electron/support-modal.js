@@ -1,8 +1,8 @@
-import { Elm } from '../elm/SupportModal'
+import { Elm } from '../elm/Electron/SupportModal'
 const { clipboard, ipcRenderer } = require('electron')
 const config = require('../../config.js')
 
-const supportModal = Elm.SupportModal.init()
+const supportModal = Elm.Electron.SupportModal.init()
 
 supportModal.ports.copyEmail.subscribe((isUrgent) => {
   clipboard.writeText(isUrgent ? config.SUPPORT_URGENT_EMAIL : config.SUPPORT_EMAIL)

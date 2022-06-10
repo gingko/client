@@ -1,4 +1,4 @@
-port module Home exposing (main)
+port module Electron.Home exposing (main)
 
 import Browser
 import Codec exposing (Codec, Value)

@@ -1,9 +1,9 @@
-import { Elm } from '../elm/Home'
+import { Elm } from '../elm/Electron/Home'
 
 let homeApp
 
 async function init (flags) {
-  homeApp = Elm.Home.init({ flags })
+  homeApp = Elm.Electron.Home.init({ flags })
 
   homeApp.ports.send.subscribe(([tag, data]) => {
     switch (tag) {

@@ -1,3 +1,3 @@
-import { Elm } from '../elm/ShortcutsModal'
+import { Elm } from '../elm/Electron/ShortcutsModal'
 
-Elm.ShortcutsModal.init()
+Elm.Electron.ShortcutsModal.init()

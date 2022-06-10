@@ -1,4 +1,4 @@
-module VideosModal exposing (..)
+module Electron.VideosModal exposing (..)
 
 import Browser
 import Doc.VideoViewer as VideoViewer

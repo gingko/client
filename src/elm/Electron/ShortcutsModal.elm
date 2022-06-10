@@ -1,4 +1,4 @@
-module ShortcutsModal exposing (..)
+module Electron.ShortcutsModal exposing (..)
 
 import Browser
 import Doc.HelpScreen as HelpScreen
