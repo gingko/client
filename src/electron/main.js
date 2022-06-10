@@ -205,7 +205,11 @@ async function clickedContactSupport (win) {
     modal: true,
     width: 800,
     height: 445,
-    backgroundColor: 'white'
+    backgroundColor: 'white',
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
   })
 
   supportModal.menuBarVisible = false

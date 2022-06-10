@@ -76,11 +76,11 @@ const brT = prepTranslation("br", br);
 
 const allLanguageStrings = [].concat(zhHansT, zhHantT, esT, arT, frT, ruT, deT, jaT,mrT, pesT, itT, roT, hrT, nlT, huT, svT, caT, brT)
 const otherReplacements = [
-    {search: "{%SUPPORT_EMAIL%}", replace: config.SUPPORT_EMAIL, flags: 'g'}
-  , {search: "{%SUPPORT_URGENT_EMAIL%}", replace: config.SUPPORT_URGENT_EMAIL, flags: 'g'}
-  , {search: "{%HOMEPAGE_URL%}", replace: config.HOMEPAGE_URL, flags: 'g'}
-  , {search: "{%TESTIMONIAL_URL%}", replace: config.TESTIMONIAL_URL, flags: 'g'}
-];
+  { search: '{%SUPPORT_EMAIL%}', replace: config.SUPPORT_EMAIL, flags: 'g' },
+  { search: '{%SUPPORT_URGENT_EMAIL%}', replace: config.SUPPORT_URGENT_EMAIL, flags: 'g' },
+  { search: '{%HOMEPAGE_URL%}', replace: config.HOMEPAGE_URL, flags: 'g' },
+  { search: '{%TESTIMONIAL_URL%}', replace: config.TESTIMONIAL_URL, flags: 'g' }
+]
 
 const webConfig = {
   // "production" or "development" flag.
@@ -248,10 +248,17 @@ const electronRendererConfig = merge(baseElectronConfig, {
       {
         test: /\.elm$/,
         exclude: [/elm-stuff/, /node_modules/],
-        use: {
-          loader: "elm-webpack-loader",
-          options: {verbose: true, pathToElm: "./elm-log-colors.sh"}
-        }
+        use:
+          [
+            {
+              loader: 'string-replace-loader',
+              options: { multiple: otherReplacements }
+            },
+            {
+              loader: 'elm-webpack-loader',
+              options: { verbose: true, pathToElm: './elm-log-colors.sh' }
+            }
+          ]
       }
     ]
   },

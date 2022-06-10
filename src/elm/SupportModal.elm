@@ -1,9 +1,10 @@
-module SupportModal exposing (..)
+port module SupportModal exposing (..)
 
 import Browser
 import Doc.ContactForm as ContactForm
-import Json.Decode as Dec exposing (Decoder, Value, bool, decodeValue)
-import Json.Decode.Pipeline exposing (optional, required)
+import Http exposing (Error(..))
+import Json.Decode as Dec exposing (Decoder, Value, decodeValue)
+import Json.Decode.Pipeline exposing (optional)
 import Translation exposing (Language(..), languageDecoder)
 
 
@@ -18,7 +19,7 @@ main =
                     (ContactForm.view m.language
                         { closeMsg = NoOp
                         , copyEmail = CopyEmail
-                        , submitMsg = SubmitMsg
+                        , submitMsg = RequestSendContactForm
                         , tagger = ContactFormMsg
                         }
                         m.contactForm
@@ -65,7 +66,7 @@ decoder =
 type Msg
     = NoOp
     | CopyEmail Bool
-    | SubmitMsg ContactForm.Model
+    | RequestSendContactForm ContactForm.Model
     | ContactFormMsg ContactForm.Msg
 
 
@@ -75,11 +76,17 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
-        CopyEmail _ ->
-            ( model, Cmd.none )
+        CopyEmail isUrgent ->
+            ( model, copyEmail isUrgent )
 
-        SubmitMsg _ ->
-            ( model, Cmd.none )
+        RequestSendContactForm formModel ->
+            ( model, submitForm (ContactForm.toValue formModel) )
 
         ContactFormMsg contactFormMsg ->
             ( { model | contactForm = ContactForm.update contactFormMsg model.contactForm }, Cmd.none )
+
+
+port copyEmail : Bool -> Cmd msg
+
+
+port submitForm : Dec.Value -> Cmd msg
