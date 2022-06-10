@@ -274,6 +274,11 @@ const electronRendererConfig = merge(baseElectronConfig, {
       chunks: ['videos']
     }),
     new HtmlWebpackPlugin({
+      template: './faq-modal.ejs',
+      filename: '../app/static/faq-modal.html',
+      chunks: []
+    }),
+    new HtmlWebpackPlugin({
       template: './renderer.ejs',
       filename: '../app/static/renderer.html',
       chunks: ['renderer']
