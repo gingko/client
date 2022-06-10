@@ -82,6 +82,10 @@ function getDocMenuTemplate (handlers, isUntitled, isMac, recentDocs, appName, i
         {
           label: '&FAQ && Documentation',
           click: handlers.clickedFAQ
+        },
+        {
+          label: 'Contact &Support',
+          click: handlers.clickedContactSupport
         }
       ]
     }

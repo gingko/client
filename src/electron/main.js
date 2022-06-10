@@ -29,7 +29,8 @@ const createHomeWindow = async () => {
     clickedExit: (item, focusedWindow) => app.quit(),
     clickedShowShortcuts: (item, focusedWindow) => clickedShowShortcuts(focusedWindow),
     clickedHelpVideos: (item, focusedWindow) => clickedHelpVideos(focusedWindow),
-    clickedFAQ: (item, focusedWindow) => clickedFAQ(focusedWindow)
+    clickedFAQ: (item, focusedWindow) => clickedFAQ(focusedWindow),
+    clickedContactSupport: (item, focusedWindow) => clickedContactSupport(focusedWindow)
   }
   recentDocuments = globalStore.get('recentDocuments', [])
   const template = getHomeMenuTemplate(handlers, isMac(), recentDocuments, app.getName())
@@ -156,7 +157,6 @@ async function saveThisAs (win) {
 async function clickedShowShortcuts (win) {
   const shortcutsWin = new BrowserWindow({
     parent: win,
-    modal: true,
     width: 1000,
     height: 800,
     backgroundColor: 'hsl(202deg 62% 92%)'
@@ -197,6 +197,20 @@ async function clickedFAQ (win) {
 
   await faqModal.loadFile(path.join(__dirname, '/static/faq-modal.html'))
   setTimeout(() => { faqModal.show() }, 400)
+}
+
+async function clickedContactSupport (win) {
+  const supportModal = new BrowserWindow({
+    parent: win,
+    modal: true,
+    width: 800,
+    height: 445,
+    backgroundColor: 'white'
+  })
+
+  supportModal.menuBarVisible = false
+
+  await supportModal.loadFile(path.join(__dirname, '/static/support-modal.html'))
 }
 
 /* ==== IPC handlers ==== */
