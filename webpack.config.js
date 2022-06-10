@@ -231,6 +231,7 @@ const electronRendererConfig = merge(baseElectronConfig, {
   entry: {
     home: './electron/home.js',
     shortcuts: './electron/shortcuts-modal.js',
+    videos: './electron/videos-modal.js',
     renderer: './electron/renderer.js'
   },
 
@@ -266,6 +267,11 @@ const electronRendererConfig = merge(baseElectronConfig, {
       template: './shortcuts-modal.ejs',
       filename: '../app/static/shortcuts-modal.html',
       chunks: ['shortcuts']
+    }),
+    new HtmlWebpackPlugin({
+      template: './videos-modal.ejs',
+      filename: '../app/static/videos-modal.html',
+      chunks: ['videos']
     }),
     new HtmlWebpackPlugin({
       template: './renderer.ejs',

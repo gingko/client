@@ -74,6 +74,10 @@ function getDocMenuTemplate (handlers, isUntitled, isMac, recentDocs, appName, i
         {
           label: '&Keyboard Shortcuts',
           click: handlers.clickedShowShortcuts
+        },
+        {
+          label: 'Help &Videos',
+          click: handlers.clickedHelpVideos
         }
       ]
     }

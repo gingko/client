@@ -27,7 +27,8 @@ const createHomeWindow = async () => {
     clickedOpen: (item, focusedWindow) => clickedOpen(focusedWindow, true),
     clickedRecentDoc: (item, focusedWindow, openPath) => openDocument(focusedWindow, openPath, true),
     clickedExit: (item, focusedWindow) => app.quit(),
-    clickedShowShortcuts: (item, focusedWindow) => clickedShowShortcuts(focusedWindow)
+    clickedShowShortcuts: (item, focusedWindow) => clickedShowShortcuts(focusedWindow),
+    clickedHelpVideos: (item, focusedWindow) => clickedHelpVideos(focusedWindow)
   }
   recentDocuments = globalStore.get('recentDocuments', [])
   const template = getHomeMenuTemplate(handlers, isMac(), recentDocuments, app.getName())
@@ -163,6 +164,21 @@ async function clickedShowShortcuts (win) {
   shortcutsWin.menuBarVisible = false
 
   await shortcutsWin.loadFile(path.join(__dirname, '/static/shortcuts-modal.html'))
+}
+
+async function clickedHelpVideos (win) {
+  const helpVideoModal = new BrowserWindow({
+    parent: win,
+    modal: true,
+    width: 800,
+    height: 400,
+    resizable: false,
+    backgroundColor: 'hsl(202, 34%, 96%)'
+  })
+
+  helpVideoModal.menuBarVisible = false
+
+  await helpVideoModal.loadFile(path.join(__dirname, '/static/videos-modal.html'))
 }
 
 /* ==== IPC handlers ==== */
@@ -380,7 +396,8 @@ const handlers =
     clickedCopy: async (item, focusedWindow) => await focusedWindow.webContents.send('clicked-copy'),
     clickedPaste: async (item, focusedWindow) => await focusedWindow.webContents.send('clicked-paste'),
     clickedPasteInto: async (item, focusedWindow) => await focusedWindow.webContents.send('clicked-paste-into'),
-    clickedShowShortcuts: (item, focusedWindow) => clickedShowShortcuts(focusedWindow)
+    clickedShowShortcuts: (item, focusedWindow) => clickedShowShortcuts(focusedWindow),
+    clickedHelpVideos: (item, focusedWindow) => clickedHelpVideos(focusedWindow)
   }
 async function createDocWindow (filePath, initFileData) {
   for (const winData of docWindows.values()) {
