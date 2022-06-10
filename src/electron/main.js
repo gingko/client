@@ -434,7 +434,8 @@ const handlers =
     clickedPasteInto: async (item, focusedWindow) => await focusedWindow.webContents.send('clicked-paste-into'),
     clickedShowShortcuts: (item, focusedWindow) => clickedShowShortcuts(focusedWindow),
     clickedHelpVideos: (item, focusedWindow) => clickedHelpVideos(focusedWindow),
-    clickedFAQ: (item, focusedWindow) => clickedFAQ(focusedWindow)
+    clickedFAQ: (item, focusedWindow) => clickedFAQ(focusedWindow),
+    clickedContactSupport: (item, focusedWindow) => clickedContactSupport(focusedWindow)
   }
 async function createDocWindow (filePath, initFileData) {
   for (const winData of docWindows.values()) {

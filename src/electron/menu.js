@@ -67,7 +67,6 @@ function getDocMenuTemplate (handlers, isUntitled, isMac, recentDocs, appName, i
       ]
     },
     editMenu(handlers, isEditMode),
-    { role: 'toggleDevTools' },
     {
       label: '&Help',
       submenu: [
@@ -86,7 +85,9 @@ function getDocMenuTemplate (handlers, isUntitled, isMac, recentDocs, appName, i
         {
           label: 'Contact &Support',
           click: handlers.clickedContactSupport
-        }
+        },
+        { type: 'separator' },
+        { role: 'toggleDevTools' }
       ]
     }
   ]
