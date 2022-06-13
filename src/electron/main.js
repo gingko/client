@@ -1,21 +1,27 @@
 import * as fs from 'fs/promises'
 import { app, BrowserWindow, ipcMain, dialog, Menu, shell } from 'electron'
-import { autoUpdater } from "electron-updater"
+import { autoUpdater } from 'electron-updater'
 import { getHomeMenuTemplate, getDocMenuTemplate } from './menu'
 import commitTree from './commit'
 import pandoc from './pandoc'
 import filenamifyPath from 'filenamify'
 import _ from 'lodash'
 import { Elm } from '../elm/Electron/Worker'
+const log = require('electron-log')
 const path = require('path')
 const crypto = require('crypto')
 const Store = require('electron-store')
 const levelup = require('levelup')
 const leveldown = require('leveldown')
 
+// Setup file-based logging
+autoUpdater.logger = log
+autoUpdater.logger.transports.file.level = 'info'
+log.info('App starting...')
+
 // Handle error messages and show dialog to user
 const unhandled = require('electron-unhandled')
-unhandled({ showDialog: true })
+unhandled({ showDialog: true, logger: log.functions.error })
 
 const docWindows = new Map()
 const globalStore = new Store({ accessPropertiesByDotNotation: false })
@@ -397,6 +403,9 @@ app.whenReady().then(async () => {
         break
     }
   })
+
+  // Initialize auto-update
+  autoUpdater.checkForUpdatesAndNotify()
 
   app.on('activate', () => {
     // On macOS re-create a window when the dock icon is clicked

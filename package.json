@@ -83,6 +83,7 @@
     "@types/node": "^17.0.23",
     "axios": "^0.19.2",
     "electron-is-dev": "^0.3.0",
+    "electron-log": "^4.4.7",
     "electron-store": "^8.0.1",
     "electron-unhandled": "^4.0.1",
     "electron-updater": "^5.0.1",
