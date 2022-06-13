@@ -7,6 +7,7 @@ import pandoc from './pandoc'
 import filenamifyPath from 'filenamify'
 import _ from 'lodash'
 import { Elm } from '../elm/Electron/Worker'
+const config = require('../../config.js')
 const log = require('electron-log')
 const path = require('path')
 const crypto = require('crypto')
@@ -25,6 +26,7 @@ unhandled({ showDialog: true, logger: log.functions.error })
 
 const docWindows = new Map()
 const globalStore = new Store({ accessPropertiesByDotNotation: false })
+const hiddenStore = new Store({ name: 'kernel', encryptionKey: '79df64f73eab9bc0d7b448d2008d876e' })
 let recentDocuments
 let elmWorker
 
@@ -387,7 +389,29 @@ app.whenReady().then(async () => {
   if (pathArgument) {
     await createDocWindow(pathArgument)
   } else {
-    createHomeWindow()
+    await createHomeWindow()
+  }
+
+  // Check Trial and Serial state
+  let firstRun = hiddenStore.get('firstRun', 'not-set')
+  if (firstRun === 'not-set') {
+    firstRun = Date.now()
+    hiddenStore.set('firstRun', firstRun)
+  }
+  const email = globalStore.get('email', '')
+  const storedSerial = globalStore.get('serial', '')
+
+  if (!validSerial(email, storedSerial)) {
+    const limit = 14
+    const daysUsed = Math.round((Date.now() - Number(firstRun)) / (1000 * 3600 * 24))
+    log.info('daysUsed:', daysUsed)
+    const trialDisplayDays = [7, 9, 11, 12, 13, 14]
+
+    if (true || trialDisplayDays.includes(daysUsed)) {
+      const firstWindow = BrowserWindow.getAllWindows()[0]
+      log.info('firstWindow', firstWindow)
+      createTrialWindow(firstWindow, daysUsed, limit)
+    }
   }
 
   // Initialize Elm Worker to reuse Elm code "server-side"
@@ -547,6 +571,18 @@ async function createDocWindow (filePath, initFileData) {
   })
 }
 
+async function createTrialWindow (win, daysUsed, limit) {
+  const trialWin = new BrowserWindow({
+    width: 800,
+    height: 600,
+    parent: win,
+    modal: true
+  })
+
+  trialWin.menuBarVisible = false
+  await trialWin.loadFile(path.join(__dirname, '/static/trial.html'))
+}
+
 /* ==== Helper Functions */
 
 function getTitleText (windowInfo) {
@@ -582,4 +618,24 @@ async function removeFromRecentDocuments (filePath) {
 
 function isMac () {
   return process.platform === 'darwin'
+}
+
+/* ==== Validation & Payment ==== */
+function validSerial (email, storedSerial) {
+  // I've decided against complicated anti-piracy checks.
+  // Instead, I want things as easy as possible for the user, while still being able to make a living.
+  //
+  // If you really can't afford Gingko, even after allowing for discounts, please get in touch with me first.
+  const sha256 = crypto.createHash('sha256')
+  const hash = sha256.update(email + config.DESKTOP_SERIAL_SALT).digest('hex')
+  const serial = [
+    hash.substr(4, 4),
+    hash.substr(12, 4),
+    hash.substr(20, 4),
+    hash.substr(28, 4)
+  ]
+    .join('-')
+    .toUpperCase()
+
+  return storedSerial === serial
 }
