@@ -409,7 +409,6 @@ app.whenReady().then(async () => {
 
     if (true || trialDisplayDays.includes(daysUsed)) {
       const firstWindow = BrowserWindow.getAllWindows()[0]
-      log.info('firstWindow', firstWindow)
       createTrialWindow(firstWindow, daysUsed, limit)
     }
   }
@@ -573,14 +572,14 @@ async function createDocWindow (filePath, initFileData) {
 
 async function createTrialWindow (win, daysUsed, limit) {
   const trialWin = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 600,
+    height: 450,
     parent: win,
     modal: true
   })
 
   trialWin.menuBarVisible = false
-  await trialWin.loadFile(path.join(__dirname, '/static/trial.html'))
+  await trialWin.loadFile(path.join(__dirname, '/static/trial-modal.html'))
 }
 
 /* ==== Helper Functions */
