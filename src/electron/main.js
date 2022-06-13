@@ -1,5 +1,6 @@
 import * as fs from 'fs/promises'
 import { app, BrowserWindow, ipcMain, dialog, Menu, shell } from 'electron'
+import { autoUpdater } from "electron-updater"
 import { getHomeMenuTemplate, getDocMenuTemplate } from './menu'
 import commitTree from './commit'
 import pandoc from './pandoc'

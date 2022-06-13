@@ -74,17 +74,18 @@
       ]
     },
     "linux": {
-      "target": "AppImage",
+      "target": ["snap", "AppImage"],
       "category": "Office"
     }
   },
+  "publish": ["github"],
   "dependencies": {
     "@types/node": "^17.0.23",
     "axios": "^0.19.2",
     "electron-is-dev": "^0.3.0",
     "electron-store": "^8.0.1",
     "electron-unhandled": "^4.0.1",
-    "electron-updater": "^4.1.2",
+    "electron-updater": "^5.0.1",
     "electron-window-state": "^4.1.1",
     "file-type": "^8.1.0",
     "filenamify": "^2.1.0",
