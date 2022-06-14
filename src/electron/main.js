@@ -402,12 +402,11 @@ app.whenReady().then(async () => {
   const storedSerial = globalStore.get('serial', '')
 
   if (!validSerial(email, storedSerial)) {
-    const limit = 14
+    const limit = 30 // 30 days for now
     const daysUsed = Math.round((Date.now() - Number(firstRun)) / (1000 * 3600 * 24))
-    log.info('daysUsed:', daysUsed)
     const trialDisplayDays = [7, 9, 11, 12, 13, 14]
 
-    if (true || trialDisplayDays.includes(daysUsed)) {
+    if (trialDisplayDays.includes(daysUsed)) {
       const firstWindow = BrowserWindow.getAllWindows()[0]
       createTrialWindow(firstWindow, daysUsed, limit)
     }
@@ -598,6 +597,7 @@ async function createTrialWindow (win, daysUsed, limit) {
 
   trialWin.menuBarVisible = false
   await trialWin.loadFile(path.join(__dirname, '/static/trial-modal.html'))
+  trialWin.focus()
 }
 
 /* ==== Helper Functions */

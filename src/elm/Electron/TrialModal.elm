@@ -27,6 +27,7 @@ main =
 type alias Model =
     { language : Language
     , daysLeft : Int
+    , limit : Int
     , purchaseURL : String
     }
 
@@ -34,6 +35,7 @@ type alias Model =
 init ( daysLeft, limit, purchaseURL ) =
     ( { language = En
       , daysLeft = daysLeft
+      , limit = limit
       , purchaseURL = purchaseURL
       }
     , Cmd.none
@@ -68,10 +70,10 @@ update msg model =
 
 
 view : Model -> List (Html Msg)
-view { daysLeft, purchaseURL } =
+view { daysLeft, limit, purchaseURL } =
     [ div [ id "trial-body" ]
         [ h1 [] [ text "Gingko Writer - Free Trial" ]
-        , div [] [ h3 [] [ text "You have ", span [] [ text <| String.fromInt daysLeft ], text " days left in your free trial." ] ]
+        , div [] [ h3 [] [ text "You have ", span [] [ text <| String.fromInt (limit - daysLeft) ], text " days left in your free trial." ] ]
         , p [] [ text "I hope you're finding Gingko Writer useful." ]
         ]
     , div [ id "trial-buttons" ]
