@@ -2,12 +2,12 @@ port module Electron.TrialModal exposing (..)
 
 import Browser
 import Html exposing (..)
-import Html.Attributes exposing (id)
+import Html.Attributes exposing (href, id)
 import Html.Events exposing (onClick)
 import Translation exposing (Language(..))
 
 
-main : Program ( Int, Int ) Model Msg
+main : Program ( Int, Int, String ) Model Msg
 main =
     Browser.document
         { init = init
@@ -27,12 +27,14 @@ main =
 type alias Model =
     { language : Language
     , daysLeft : Int
+    , purchaseURL : String
     }
 
 
-init ( daysLeft, limit ) =
+init ( daysLeft, limit, purchaseURL ) =
     ( { language = En
       , daysLeft = daysLeft
+      , purchaseURL = purchaseURL
       }
     , Cmd.none
     )
@@ -44,7 +46,6 @@ init ( daysLeft, limit ) =
 
 type Msg
     = NoOp
-    | ClickedBuy
     | ClickedEnter
     | ClickedContinue
 
@@ -54,9 +55,6 @@ update msg model =
     case msg of
         NoOp ->
             ( model, Cmd.none )
-
-        ClickedBuy ->
-            ( model, clicked "buy" )
 
         ClickedEnter ->
             ( model, clicked "enter" )
@@ -70,14 +68,14 @@ update msg model =
 
 
 view : Model -> List (Html Msg)
-view { daysLeft } =
+view { daysLeft, purchaseURL } =
     [ div [ id "trial-body" ]
         [ h1 [] [ text "Gingko Writer - Free Trial" ]
         , div [] [ h3 [] [ text "You have ", span [] [ text <| String.fromInt daysLeft ], text " days left in your free trial." ] ]
         , p [] [ text "I hope you're finding Gingko Writer useful." ]
         ]
     , div [ id "trial-buttons" ]
-        [ button [ onClick ClickedBuy ] [ text "Buy License Key..." ]
+        [ a [ href purchaseURL ] [ text "Buy License Key..." ]
         , button [ onClick ClickedEnter ] [ text "Enter License Key" ]
         , button [ onClick ClickedContinue ] [ text "Continue Trial" ]
         ]

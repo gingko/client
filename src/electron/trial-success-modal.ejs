@@ -1,0 +1,23 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="desktop.css">
+  <link rel="stylesheet" href="trial-modal.css">
+</head>
+
+<body>
+<h1>
+  Thank you for your payment!
+</h1>
+<div>
+  <p>You should receive your <strong>license key by email</strong> in a few minutes...</p>
+</div>
+<div>
+  <button onclick="window.location = 'electron://enter-license-modal'">Enter license</button>
+  <button onclick="window.electronAPI.closeWindow()">Close</button>
+</div>
+</body>
+</html>

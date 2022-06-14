@@ -298,6 +298,16 @@ const electronRendererConfig = merge(baseElectronConfig, {
       chunks: ['trial']
     }),
     new HtmlWebpackPlugin({
+      template: './electron/trial-success-modal.ejs',
+      filename: '../app/static/trial-success-modal.html',
+      chunks: []
+    }),
+    new HtmlWebpackPlugin({
+      template: './electron/enter-license-modal.ejs',
+      filename: '../app/static/enter-license-modal.html',
+      chunks: []
+    }),
+    new HtmlWebpackPlugin({
       template: './electron/renderer.ejs',
       filename: '../app/static/renderer.html',
       chunks: ['renderer']

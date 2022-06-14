@@ -439,8 +439,22 @@ app.whenReady().then(async () => {
 
 app.on('web-contents-created', (event, webContents) => {
   webContents.on('will-navigate', async (event, url) => {
-    event.preventDefault()
-    await shell.openExternal(url)
+    switch (url) {
+      case config.DESKTOP_PURCHASE_URL:
+        break
+
+      case config.DESKTOP_PURCHASE_SUCCESS_URL:
+        await BrowserWindow.fromWebContents(webContents).loadFile(path.join(__dirname, '/static/trial-success-modal.html'))
+        break
+
+      case 'electron://enter-license-modal':
+        await BrowserWindow.fromWebContents(webContents).loadFile(path.join(__dirname, '/static/enter-license-modal.html'))
+        break
+
+      default:
+        event.preventDefault()
+        await shell.openExternal(url)
+    }
   })
 })
 
@@ -578,7 +592,7 @@ async function createTrialWindow (win, daysUsed, limit) {
     modal: true,
     webPreferences: {
       preload: path.join(__dirname, 'trial-preload.js'),
-      additionalArguments: ['trialarg=' + String(daysUsed), 'trialarg=' + String(limit)]
+      additionalArguments: ['trialarg=' + String(daysUsed), 'trialarg=' + String(limit), 'trialarg=' + config.DESKTOP_PURCHASE_URL]
     }
   })
 

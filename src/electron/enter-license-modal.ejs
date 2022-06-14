@@ -1,0 +1,24 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="desktop.css">
+  <link rel="stylesheet" href="trial-modal.css">
+</head>
+
+<body>
+<h1>
+  Enter your License key & Email:
+</h1>
+<div>
+  <input type="email" placeholder="Email" />
+  <input type="text" placeholder="ABCD-1234-ABCD-1234" />
+</div>
+<div>
+  <button onclick="window.location = 'electron://enter-license-modal'">Enter license</button>
+  <button onclick="window.electronAPI.closeWindow()">Close</button>
+</div>
+</body>
+</html>
