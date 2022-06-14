@@ -233,6 +233,7 @@ const electronRendererConfig = merge(baseElectronConfig, {
     shortcuts: './electron/shortcuts-modal.js',
     videos: './electron/videos-modal.js',
     support: './electron/support-modal.js',
+    trial: './electron/trial-modal.js',
     renderer: './electron/renderer.js'
   },
 
@@ -292,24 +293,39 @@ const electronRendererConfig = merge(baseElectronConfig, {
       chunks: ['support']
     }),
     new HtmlWebpackPlugin({
+      template: './electron/trial-modal.ejs',
+      filename: '../app/static/trial-modal.html',
+      chunks: ['trial']
+    }),
+    new HtmlWebpackPlugin({
       template: './electron/renderer.ejs',
       filename: '../app/static/renderer.html',
       chunks: ['renderer']
     }),
 
-    // Plugin to copy electron preload script
-    new CopyWebpackPlugin({ patterns: [{
-        from: "./electron/preload.js",
-        to: "../app/preload.js"
-      }]}),
+    // Plugin to copy electron preload scripts
+    new CopyWebpackPlugin({
+      patterns: [{
+        from: './electron/preload.js',
+        to: '../app/preload.js'
+      }]
+    }),
+    new CopyWebpackPlugin({
+      patterns: [{
+        from: './electron/trial-preload.js',
+        to: '../app/trial-preload.js'
+      }]
+    }),
 
     // Plugin to copy static assets (css, images).
-    new CopyWebpackPlugin({ patterns: [{
-      from: "./static",
-      to: "../app/static"
-    }]})
+    new CopyWebpackPlugin({
+      patterns: [{
+        from: './static',
+        to: '../app/static'
+      }]
+    })
   ]
-});
+})
 
 
 module.exports = [ webConfig, electronMainConfig, electronRendererConfig];

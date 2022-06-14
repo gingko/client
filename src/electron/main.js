@@ -575,7 +575,11 @@ async function createTrialWindow (win, daysUsed, limit) {
     width: 600,
     height: 450,
     parent: win,
-    modal: true
+    modal: true,
+    webPreferences: {
+      preload: path.join(__dirname, 'trial-preload.js'),
+      additionalArguments: ['trialarg=' + String(daysUsed), 'trialarg=' + String(limit)]
+    }
   })
 
   trialWin.menuBarVisible = false
