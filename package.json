@@ -78,7 +78,6 @@
       "category": "Office"
     }
   },
-  "publish": ["github"],
   "dependencies": {
     "@types/node": "^17.0.23",
     "axios": "^0.19.2",
