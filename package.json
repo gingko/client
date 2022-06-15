@@ -74,7 +74,7 @@
       ]
     },
     "linux": {
-      "target": ["snap", "AppImage"],
+      "target": ["AppImage"],
       "category": "Office"
     }
   },
