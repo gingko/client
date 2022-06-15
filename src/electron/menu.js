@@ -93,6 +93,11 @@ function getDocMenuTemplate (handlers, isUntitled, isMac, recentDocs, appName, i
   ]
 
   if (isMac) {
+    // Remove "Exit" (and separator) from File menu
+    delete template[0].submenu[9]
+    delete template[0].submenu[8]
+
+    // Add App menu
     template.unshift(
       {
         label: appName,
@@ -126,7 +131,7 @@ function getDocMenuTemplate (handlers, isUntitled, isMac, recentDocs, appName, i
           {
             label: `Quit ${appName}`,
             accelerator: 'Command+Q',
-            click: handlers.clickedQuit
+            click: handlers.clickedExit
           }]
       }
     )
