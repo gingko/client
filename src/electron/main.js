@@ -313,7 +313,12 @@ ipcMain.on('save-file', async (event, data) => {
 })
 
 ipcMain.on('edit-mode-changed', (event, isEditMode) => {
-  const menu = Menu.buildFromTemplate(getDocMenuTemplate(handlers, false, isMac(), recentDocuments, app.getName(), isEditMode))
+  const webContents = event.sender
+  const win = BrowserWindow.fromWebContents(webContents)
+  const winData = docWindows.get(win)
+
+  const isUntitled = winData.filePath === null
+  const menu = Menu.buildFromTemplate(getDocMenuTemplate(handlers, isUntitled, isMac(), recentDocuments, app.getName(), isEditMode))
   Menu.setApplicationMenu(menu)
 })
 
