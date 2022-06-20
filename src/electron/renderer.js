@@ -48,7 +48,8 @@ window.electronAPI.fileReceived(async (event, d) => {
 
 window.electronAPI.fileSaved((event, data) => {
   DIRTY = false
-  toElm(data, 'docMsgs', 'SavedToFile')
+  isUntitled = data[2]
+  toElm(data.slice(0, 2), 'docMsgs', 'SavedToFile')
 })
 
 window.electronAPI.commitDataResult((event, data) => {

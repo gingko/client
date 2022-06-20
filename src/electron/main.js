@@ -133,6 +133,7 @@ async function saveThisAs (win) {
   if (!canceled && filePath) {
     // Set new filePath
     winData.filePath = filePath
+    winData.isUntitled = false
 
     // Copy Untitled to new location
     await fs.copyFile(origPath, filePath)
@@ -154,7 +155,7 @@ async function saveThisAs (win) {
     docWindows.set(win, winData)
 
     // Send filePath to renderer and Elm
-    await win.webContents.send('file-saved', filePath)
+    await win.webContents.send('file-saved', [filePath, Date.now(), winData.isUntitled])
 
     // Set doc window menu & titlebar
     win.setTitle(getTitleText(winData))
@@ -305,7 +306,7 @@ ipcMain.on('save-file', async (event, data) => {
     const { bytesWritten } = await winData.swapFileHandle.write(data[1], 0)
     await winData.swapFileHandle.truncate(bytesWritten)
     await fs.copyFile(filePath + '.swp', filePath)
-    await webContents.send('file-saved', [filePath, Date.now()])
+    await webContents.send('file-saved', [filePath, Date.now(), winData.isUntitled])
     win.setTitle(getTitleText(winData))
   } catch (e) {
     console.error(e)
@@ -317,8 +318,7 @@ ipcMain.on('edit-mode-changed', (event, isEditMode) => {
   const win = BrowserWindow.fromWebContents(webContents)
   const winData = docWindows.get(win)
 
-  const isUntitled = winData.filePath === null
-  const menu = Menu.buildFromTemplate(getDocMenuTemplate(handlers, isUntitled, isMac(), recentDocuments, app.getName(), isEditMode))
+  const menu = Menu.buildFromTemplate(getDocMenuTemplate(handlers, winData.isUntitled, isMac(), recentDocuments, app.getName(), isEditMode))
   Menu.setApplicationMenu(menu)
 })
 
@@ -555,7 +555,7 @@ async function createDocWindow (filePath, initFileData) {
   const newUndoData = objectsToElmData(undoData)
 
   // Save window-specific data
-  const winData = { filePath, swapFileHandle, undoDb, savedImmutables: new Set() }
+  const winData = { filePath, swapFileHandle, isUntitled, undoDb, savedImmutables: new Set() }
   docWindows.set(docWin, winData)
 
   // Get localStore data if exists
