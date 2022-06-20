@@ -578,6 +578,7 @@ async function createDocWindow (filePath, initFileData) {
   docWin.on('closed', async (evt) => {
     const winData = docWindows.get(docWin)
     await winData.swapFileHandle.close()
+    await winData.undoDb.close()
     await fs.unlink(winData.filePath + '.swp')
     docWindows.delete(docWin)
   })
