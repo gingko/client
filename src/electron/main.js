@@ -180,7 +180,7 @@ async function clickedShowShortcuts (win) {
 async function clickedHelpVideos (win) {
   const helpVideoModal = new BrowserWindow({
     parent: win,
-    modal: true,
+    modal: !isMac(),
     width: 800,
     height: 400,
     resizable: false,
@@ -195,7 +195,7 @@ async function clickedHelpVideos (win) {
 async function clickedFAQ (win) {
   const faqModal = new BrowserWindow({
     parent: win,
-    modal: true,
+    modal: !isMac(),
     width: 445,
     height: 600,
     show: false,
@@ -212,7 +212,7 @@ async function clickedFAQ (win) {
 async function clickedContactSupport (win) {
   const supportModal = new BrowserWindow({
     parent: win,
-    modal: true,
+    modal: !isMac(),
     width: 800,
     height: 445,
     backgroundColor: 'white',
