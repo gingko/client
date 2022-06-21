@@ -17,7 +17,16 @@ function getDocMenuTemplate (handlers, isUntitled, isMac, recentDocs, appName, i
 
   let recentDocsMenu
   if (isMac) {
-    recentDocsMenu = { label: 'Open &Recent', role: 'recentDocuments' }
+    recentDocsMenu = {
+      label: 'Open Recent',
+      role: 'recentdocuments',
+      submenu: [
+        {
+          label: 'Clear Recent',
+          role: 'clearrecentdocuments'
+        }
+      ]
+    }
   } else {
     recentDocsMenu = { label: 'Open &Recent', submenu: recentDocs.map(recentDocView) }
   }
@@ -94,8 +103,7 @@ function getDocMenuTemplate (handlers, isUntitled, isMac, recentDocs, appName, i
 
   if (isMac) {
     // Remove "Exit" (and separator) from File menu
-    delete template[0].submenu[9]
-    delete template[0].submenu[8]
+    template[0].submenu = template[0].submenu.slice(0, 9)
 
     // Add App menu
     template.unshift(
