@@ -374,9 +374,12 @@ ipcMain.on('close-window', (event) => {
 
 /* ==== App Initialization ==== */
 
+app.on('open-file', (event, filePath) => {
+  createDocWindow(filePath)
+})
+
 app.whenReady().then(async () => {
   let pathArgument
-  log.info(`Path arguments:\n${process.argv}`)
   if (process.defaultApp && typeof process.argv[2] === 'string') {
     try {
       await fs.access(process.argv[2])
