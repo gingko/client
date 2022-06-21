@@ -476,6 +476,10 @@ app.on('web-contents-created', (event, webContents) => {
   })
 })
 
+app.on('will-quit', () => {
+  log.info('will-quit')
+})
+
 // Quit when all windows are closed, except on macOS.
 app.on('window-all-closed', () => {
   if (!isMac()) app.quit()
@@ -595,12 +599,21 @@ async function createDocWindow (filePath, initFileData) {
 
   // Handle closing
   docWin.on('closed', async (evt) => {
-    const winData = docWindows.get(docWin)
-    await winData.swapFileHandle.close()
-    await winData.undoDb.close()
-    await fs.unlink(winData.filePath + '.swp')
-    docWindows.delete(docWin)
+    await closeDocWindow(docWin)
   })
+}
+
+async function closeDocWindow (docWin) {
+  const winData = docWindows.get(docWin)
+  log.info('Closing window ', winData.filePath)
+  await winData.swapFileHandle.close()
+  log.info('  |  close swapFileHandle')
+  await winData.undoDb.close()
+  log.info('  |  close undoDb')
+  await fs.unlink(winData.filePath + '.swp')
+  log.info('  |  unlink .swp file')
+  docWindows.delete(docWin)
+  log.info('  |  delete from Map')
 }
 
 async function createTrialWindow (win, daysUsed, limit) {
