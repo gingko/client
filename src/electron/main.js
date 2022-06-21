@@ -29,6 +29,7 @@ const globalStore = new Store({ accessPropertiesByDotNotation: false })
 const hiddenStore = new Store({ name: 'kernel', encryptionKey: '79df64f73eab9bc0d7b448d2008d876e' })
 let recentDocuments
 let elmWorker
+let macOSfilePath
 
 const createHomeWindow = async () => {
   const handlers = {
@@ -375,7 +376,14 @@ ipcMain.on('close-window', (event) => {
 /* ==== App Initialization ==== */
 
 app.on('open-file', (event, filePath) => {
-  createDocWindow(filePath)
+  // macOS file handling
+  event.preventDefault()
+
+  if (app.isReady()) {
+    createDocWindow(filePath)
+  } else {
+    macOSfilePath = filePath
+  }
 })
 
 app.whenReady().then(async () => {
@@ -394,6 +402,8 @@ app.whenReady().then(async () => {
     } catch (e) {
       pathArgument = false
     }
+  } else if (isMac() && typeof macOSfilePath === 'string') {
+    pathArgument = macOSfilePath
   }
   if (pathArgument) {
     await createDocWindow(pathArgument)
