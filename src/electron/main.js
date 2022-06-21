@@ -376,6 +376,7 @@ ipcMain.on('close-window', (event) => {
 
 app.whenReady().then(async () => {
   let pathArgument
+  log.info(`Path arguments:\n${process.argv}`)
   if (process.defaultApp && typeof process.argv[2] === 'string') {
     try {
       await fs.access(process.argv[2])
