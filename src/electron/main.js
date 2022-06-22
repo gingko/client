@@ -598,7 +598,7 @@ async function createDocWindow (filePath, initFileData) {
   })
 
   // Handle closing
-  docWin.on('closed', async (evt) => {
+  docWin.on('close', async (evt) => {
     await closeDocWindow(docWin)
   })
 }
