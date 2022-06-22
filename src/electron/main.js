@@ -476,8 +476,12 @@ app.on('web-contents-created', (event, webContents) => {
   })
 })
 
-app.on('will-quit', () => {
-  log.info('will-quit')
+app.on('will-quit', (event) => {
+  if (docWindows.size > 0) {
+    log.info('will-quit prevented: ', docWindows.size, ' windows still closing...')
+    event.preventDefault()
+    setTimeout(() => { app.quit() }, 50)
+  }
 })
 
 // Quit when all windows are closed, except on macOS.
