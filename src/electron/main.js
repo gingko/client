@@ -417,11 +417,13 @@ app.whenReady().then(async () => {
     firstRun = Date.now()
     hiddenStore.set('firstRun', firstRun)
   }
+  // Disable Trial Limit for Now
+  /*
   const email = globalStore.get('email', '')
   const storedSerial = globalStore.get('serial', '')
 
   if (!validSerial(email, storedSerial)) {
-    const limit = 30 // 30 days for now
+    const limit = 30
     const daysUsed = Math.round((Date.now() - Number(firstRun)) / (1000 * 3600 * 24))
     const trialDisplayDays = [7, 9, 11, 12, 13, 14]
 
@@ -430,6 +432,7 @@ app.whenReady().then(async () => {
       createTrialWindow(firstWindow, daysUsed, limit)
     }
   }
+  */
 
   // Initialize Elm Worker to reuse Elm code "server-side"
   elmWorker = Elm.Electron.Worker.init({ flags: Date.now() })
@@ -478,7 +481,7 @@ app.on('web-contents-created', (event, webContents) => {
 
 app.on('will-quit', (event) => {
   if (docWindows.size > 0) {
-    log.info('will-quit prevented: ', docWindows.size, ' windows still closing...')
+    log.warn('will-quit prevented: ', docWindows.size, ' windows still closing...')
     event.preventDefault()
     setTimeout(() => { app.quit() }, 50)
   }
@@ -620,6 +623,7 @@ async function closeDocWindow (docWin) {
   log.info('  |  delete from Map')
 }
 
+// eslint-disable-next-line no-unused-vars
 async function createTrialWindow (win, daysUsed, limit) {
   const trialWin = new BrowserWindow({
     width: 600,
