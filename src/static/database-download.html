@@ -8,21 +8,24 @@
 </head>
 <body>
 <h1>Your download should begin automatically...</h1>
+<ol id="info"></ol>
 <script>
+  function addInfo (infoText) {
+    let li = document.createElement('li');
+    li.innerText = infoText;
+    document.getElementById('info').appendChild(li)
+  }
+
   async function downloadDb () {
     const dbs = await indexedDB.databases();
+    addInfo('Databases list: ' + dbs.map(x => { if (x.hasOwnProperty('name')) return x.name; }));
     const dbName = dbs[0].name;
-
-    const loadScript = src =>
-      new Promise(resolve => {
-        let script = document.createElement('script')
-        script.src = src;
-        script.onload = resolve;
-        document.body.appendChild(script);
-      })
+    addInfo('Downloading from ' + dbName);
 
     let db = new Dexie(dbName);
+    addInfo('Dexie loaded.');
     const { verno, tables } = await db.open();
+    addInfo('Database opened...');
     db.close();
 
     db = new Dexie(dbName);
@@ -31,9 +34,11 @@
       return p;
     }, {}));
 
+    addInfo('Starting database export. THIS MAY TAKE A WHILE! ...');
     const blob = await db.export({
       numRowsPerChunk: 2
     });
+    addInfo('Database export complete... starting download...');
 
     var a = document.createElement("a");
     document.body.appendChild(a);
@@ -42,6 +47,8 @@
     a.download = "gingko-writer-db-export.json";
     a.click();
     window.URL.revokeObjectURL(url);
+
+    addInfo('Download should be complete. Look for "gingko-writer-db-export.json" in you file system');
   };
 
   downloadDb();
