@@ -9,37 +9,42 @@
 <body>
 <h1>Your download should begin automatically...</h1>
 <script>
-  const dbs = await indexedDB.databases();
-  const dbName = dbs[0].name;
+  async function downloadDb () {
+    const dbs = await indexedDB.databases();
+    const dbName = dbs[0].name;
 
-  const loadScript = src =>
-    new Promise(resolve => {
-      let script = document.createElement('script')
-      script.src = src;
-      script.onload = resolve;
-      document.body.appendChild(script);
-    })
+    const loadScript = src =>
+      new Promise(resolve => {
+        let script = document.createElement('script')
+        script.src = src;
+        script.onload = resolve;
+        document.body.appendChild(script);
+      })
 
-  let db = new Dexie(dbName);
-  const { verno, tables } = await db.open();
-  db.close();
+    let db = new Dexie(dbName);
+    const { verno, tables } = await db.open();
+    db.close();
 
-  db = new Dexie(dbName);
-  db.version(verno).stores(tables.reduce((p,c) => {
-    p[c.name] = c.schema.primKey.keyPath || "";
-    return p;
-  }, {}));
+    db = new Dexie(dbName);
+    db.version(verno).stores(tables.reduce((p,c) => {
+      p[c.name] = c.schema.primKey.keyPath || "";
+      return p;
+    }, {}));
 
-  const blob = await db.export({
-    numRowsPerChunk: 2
-  });
+    const blob = await db.export({
+      numRowsPerChunk: 2
+    });
 
-  var a = document.createElement("a");
-  document.body.appendChild(a);
-  a.href = window.URL.createObjectURL(blob);
-  a.download = "gingko-writer-db-export.json";
-  a.click();
-  window.URL.revokeObjectURL(url);
+    var a = document.createElement("a");
+    document.body.appendChild(a);
+    url = window.URL.createObjectURL(blob);
+    a.href = url;
+    a.download = "gingko-writer-db-export.json";
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  downloadDb();
 </script>
 
 </body>
