@@ -9,12 +9,30 @@
 <body>
 <h1>Your download should begin automatically...</h1>
 <ol id="info"></ol>
+<div id="downloadProgress" style="display: none">Progress <span id="currentRows"></span>/<span id="totalRows"></span>:
+<progress id="progress-bar"></progress></div>
 <script>
   function addInfo (infoText) {
     let li = document.createElement('li');
     li.innerText = infoText;
     document.getElementById('info').appendChild(li)
   }
+
+  function progressCallback ({totalRows, completedRows}) {
+    let progressContainer = document.getElementById('downloadProgress');
+    progressContainer.style.display = "block";
+    let currRowsSpan = document.getElementById('currentRows');
+    let totalRowsSpan = document.getElementById('totalRows');
+    let progressBar = document.getElementById('progress-bar');
+    currRowsSpan.innerText = completedRows;
+    totalRowsSpan.innerText = totalRows;
+    progressBar.setAttribute('max', totalRows);
+    progressBar.setAttribute('value', completedRows);
+  }
+
+  const queryString = window.location.search;
+  const searchParams = new URLSearchParams(queryString);
+  const keyPrefix = searchParams.get('keyPrefix');
 
   async function downloadDb () {
     const dbs = await indexedDB.databases();
@@ -35,9 +53,23 @@
     }, {}));
 
     addInfo('Starting database export. THIS MAY TAKE A WHILE! ...');
-    const blob = await db.export({
-      numRowsPerChunk: 2
-    });
+    const filterFn = (table, value) => {
+      return value.hasOwnProperty('_doc_id_rev') && value['_doc_id_rev'].startsWith(keyPrefix);
+    }
+    const options = keyPrefix ?
+      {
+        numRowsPerChunk: 2,
+        prettyJson: true,
+        filter: filterFn,
+        progressCallback
+      } :
+      {
+        numRowsPerChunk: 2,
+        prettyJson: true,
+        progressCallback
+      };
+
+    const blob = await db.export(options);
     addInfo('Database export complete... starting download...');
 
     var a = document.createElement("a");
