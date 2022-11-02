@@ -125,7 +125,7 @@ const webConfig = {
           },
           {
             loader: "elm-webpack-loader",
-            options: {optimize: true, verbose: true, pathToElm: "./elm-log-colors.sh"}
+            options: {optimize: true, debug: false, verbose: true, pathToElm: "./elm-log-colors.sh"}
           }
         ]
       }
