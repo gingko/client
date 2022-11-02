@@ -4,7 +4,6 @@ import Worker from "worker-loader!./data.worker.js";
 const dataWorker = new Worker();
 
 const _ = require("lodash");
-const axios = require('axios');
 const Mousetrap = require("mousetrap");
 const screenfull = require("screenfull");
 const container = require("Container");
@@ -236,7 +235,7 @@ const fromElm = (msg, elmData) => {
         console.log("AT StoreUser")
         try {
           await db.replicate.to(remoteDB);
-          await axios.post(document.location.origin + "/logout");
+          await fetch(document.location.origin + "/logout", {method: 'POST'});
           localStorage.removeItem(sessionStorageKey);
           await db.destroy();
           setTimeout(() => gingko.ports.userLoginChange.send(null), 0);

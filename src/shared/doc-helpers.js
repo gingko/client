@@ -67,7 +67,7 @@ var scrollFullscreenTo = function (cid) {
   TweenMax.to(col,  0.25, {
     scrollTop:
       col.scrollTop + (rect.top + rect.height * 0.5 - col.offsetHeight * 0.5),
-    ease: Power2.easeInOut,
+    ease: "power2.easeInOut",
   });
 }
 
@@ -99,7 +99,7 @@ var scrollTo = function (cid, colIdx, instant, position, errorCount) {
   } else {
     TweenMax.to(col, 0.25, {
       scrollTop: newScrollTop,
-      ease: Power2.easeInOut,
+      ease: "power2.easeInOut",
     });
   }
 };
@@ -130,7 +130,7 @@ var scrollHorizTo = function (colIdx, instant, errorCount) {
   } else {
     TweenMax.to(appEl, 0.3, {
       scrollLeft: col.offsetLeft + 0.5  * (col.offsetWidth - appEl.offsetWidth),
-      ease: Power2.easeInOut,
+      ease: "power2.easeInOut",
       onComplete: scrollDoneCallback
     });
   }
