@@ -228,7 +228,7 @@ viewPaymentForm model =
                     ]
                 , hr [] []
                 , button [ class "payment-button", onClick <| CheckoutClicked model ] [ text "Checkout" ]
-                , small [ id "stripe-climate" ] [ img [ src "stripe-climate-badge.svg", width 14, style "margin-bottom" "-3px", style "margin-right" "5px" ] [], a [ href "https://climate.stripe.com/yqdXvm", target "_blank", class "climate-link" ] [ text "3% of your purchase" ], text " goes to removing CO₂ from the atmosphere." ]
+                , small [ id "stripe-climate" ] [ img [ src "stripe-climate-badge.svg", width 14, style "margin-bottom" "-3px", style "margin-right" "5px" ] [], a [ href "https://climate.stripe.com/yqdXvm", target "_blank", class "climate-link" ] [ text "5% of your purchase" ], text " goes to removing CO₂ from the atmosphere." ]
                 ]
 
 
