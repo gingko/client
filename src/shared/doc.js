@@ -227,7 +227,7 @@ const fromElm = (msg, elmData) => {
   window.elmMessages.push({tag: msg, data: elmData});
   window.elmMessages = window.elmMessages.slice(-10);
 
-  let cases = {
+  let casesWeb = {
     // === SPA ===
 
     StoreUser: async () => {
@@ -265,18 +265,6 @@ const fromElm = (msg, elmData) => {
 
     DragDone: () => {
       draggingInternal = false;
-    },
-
-    ConfirmCancelCard: () => {
-      let tarea = document.getElementById("card-edit-" + elmData[0]);
-
-      if (tarea === null) {
-        console.log("tarea not found");
-      } else {
-        if (tarea.value === elmData[1] || confirm(elmData[2])) {
-          toElm(null, "docMsgs", "CancelCardConfirmed");
-        }
-      }
     },
 
     // === Database ===
@@ -423,6 +411,8 @@ const fromElm = (msg, elmData) => {
     },
 
     CommitDataResult: async () => {
+      // From dataWorker, NOT ELM!
+
       let [ savedData
         , savedImmutables
         , conflictsExist
@@ -488,32 +478,6 @@ const fromElm = (msg, elmData) => {
 
     // === DOM ===
 
-    ScrollCards: () => {
-      helpers.scrollColumns(elmData);
-      helpers.scrollHorizontal(elmData.columnIdx, elmData.instant);
-      lastActivesScrolled = elmData;
-      lastColumnScrolled = elmData.columnIdx;
-      if (localStore.isReady()) {
-        localStore.set('last-actives', elmData.lastActives);
-      }
-      window.requestAnimationFrame(()=>{
-        updateFillets();
-        let columns = Array.from(document.getElementsByClassName("column"));
-        columns.map((c, i) => {
-          c.addEventListener('scroll', () => {
-            if(!ticking) {
-              window.requestAnimationFrame(() => {
-                updateFillets();
-                ticking = false;
-              })
-
-              ticking = true;
-            }
-          })
-        })
-      });
-    },
-
     ScrollFullscreenCards: () => {
       helpers.scrollFullscreen(elmData);
     },
@@ -525,26 +489,6 @@ const fromElm = (msg, elmData) => {
       elmData.dataTransfer.setDragImage(cardElement, 0 , 0);
       elmData.dataTransfer.setData("text", "");
       toElm(cardId, "docMsgs", "DragStarted");
-    },
-
-    CopyCurrentSubtree: () => {
-      navigator.clipboard.writeText(JSON.stringify(elmData));
-      let addFlashClass = function () {
-        let activeCard = document.querySelectorAll(".card.active");
-        let activeDescendants = document.querySelectorAll(".group.active-descendant");
-        activeCard.forEach((c) => c.classList.add("flash"));
-        activeDescendants.forEach((c) => c.classList.add("flash"));
-      };
-
-      let removeFlashClass = function () {
-        let activeCard = document.querySelectorAll(".card.active");
-        let activeDescendants = document.querySelectorAll(".group.active-descendant");
-        activeCard.forEach((c) => c.classList.remove("flash"));
-        activeDescendants.forEach((c) => c.classList.remove("flash"));
-      };
-
-      addFlashClass();
-      setTimeout(removeFlashClass, 200);
     },
 
     CopyToClipboard: () => {
@@ -579,44 +523,6 @@ const fromElm = (msg, elmData) => {
       setTimeout(removeFlashClass, 400);
     },
 
-    TextSurround: () => {
-      let id = elmData[0];
-      let surroundString = elmData[1];
-      let tarea = document.getElementById("card-edit-" + id);
-      let card = document.getElementById("card-" + id);
-
-      if (tarea === null) {
-        console.log("Textarea not found for TextSurround command.");
-      } else {
-        let start = tarea.selectionStart;
-        let end = tarea.selectionEnd;
-        if (start !== end) {
-          let text = tarea.value.slice(start, end);
-          let modifiedText = surroundString + text + surroundString;
-          let newValue = tarea.value.substring(0, start) + modifiedText + tarea.value.substring(end);
-          tarea.value = newValue;
-          let cursorPos = start + modifiedText.length;
-          tarea.setSelectionRange(cursorPos, cursorPos);
-          DIRTY = true;
-          toElm(newValue, "docMsgs", "FieldChanged");
-
-          if (card !== null) {
-            card.dataset.clonedContent = newValue;
-          }
-        }
-      }
-    },
-
-    SetTextareaClone: () => {
-      let id = elmData[0];
-      let card = document.getElementById("card-" + id);
-      if (card === null) {
-        console.error("Card not found for autogrowing textarea");
-      } else {
-        card.dataset.clonedContent = elmData[1];
-      }
-    },
-
     SetField: () => {
       let id = elmData[0];
       let field = elmData[1];
@@ -624,11 +530,6 @@ const fromElm = (msg, elmData) => {
         let tarea = document.getElementById("card-edit-" + id);
         tarea.value = field;
       })
-    },
-
-    SetCursorPosition: () => {
-      let pos = elmData[0];
-      setTimeout(() => document.activeElement.setSelectionRange(pos, pos), 0);
     },
 
     SetFullscreen: () => {
@@ -761,9 +662,11 @@ const fromElm = (msg, elmData) => {
     },
 
     SocketSend: () => {},
-
-    ConsoleLogRequested: () => console.error(elmData),
   };
+
+  const params = { localStore, lastColumnScrolled, lastActivesScrolled, ticking, DIRTY }
+
+  const cases = Object.assign(helpers.casesShared(elmData, params), casesWeb)
 
   try {
     cases[msg]();
@@ -930,54 +833,9 @@ window.onresize = () => {
   })
 };
 
-const updateFillets = () => {
-  let columns = Array.from(document.getElementsByClassName("column"));
-  let filletData = helpers.getFilletData(columns);
-  columns.map((c,i) => {
-    helpers.setColumnFillets(c,i, filletData);
-  })
-}
-
 const debouncedScrollColumns = _.debounce(helpers.scrollColumns, 200);
 const debouncedScrollHorizontal = _.debounce(helpers.scrollHorizontal, 200);
 
-const selectionHandler = function () {
-  if (document.activeElement.nodeName == "TEXTAREA") {
-    let {
-      selectionStart,
-      selectionEnd,
-      selectionDirection,
-    } = document.activeElement;
-    let length = document.activeElement.value.length;
-    let [before, after] = [
-      document.activeElement.value.substring(0, selectionStart),
-      document.activeElement.value.substring(selectionStart),
-    ];
-    let cursorPosition = "other";
-
-    if (length == 0) {
-      cursorPosition = "empty";
-    } else if (selectionStart == 0 && selectionEnd == 0) {
-      cursorPosition = "start";
-    } else if (selectionStart == length && selectionEnd == length) {
-      cursorPosition = "end";
-    } else if (selectionStart == 0 && selectionDirection == "backward") {
-      cursorPosition = "start";
-    } else if (selectionEnd == length && selectionDirection == "forward") {
-      cursorPosition = "end";
-    }
-
-    toElm(
-      {
-        selected: selectionStart !== selectionEnd,
-        position: cursorPosition,
-        text: [before, after],
-      },
-      "docMsgs",
-      "TextCursor"
-    );
-  }
-};
 
 Mousetrap.bind(helpers.shortcuts, function (e, s) {
   switch (s) {
@@ -1057,104 +915,7 @@ Mousetrap.bind(["shift+tab"], function () {
 /* === DOM manipulation === */
 
 
-const positionTourStep = function (stepNum, refElementId) {
-  let refElement;
-  if (stepNum == 1 || stepNum == 5) {
-    refElement = document.getElementById(refElementId);
-  } else if (stepNum == 2) {
-    refElement = document.getElementById(refElementId).parentElement.parentElement.parentElement.getElementsByClassName('ins-right')[0];
-  }
-  let tourElement = document.getElementById("welcome-step-"+stepNum);
-  if (refElementId !== null && tourElement !== null) {
-    let refRect = refElement.getBoundingClientRect();
-    tourElement.style.top = refRect.top + "px";
-    tourElement.style.left = refRect.left + "px";
-  }
-}
-
-const addTourStepScrollHandler = (stepNum, refElementId, colNum) => {
-  let col = document.getElementsByClassName("column")[colNum-1];
-  if (col) {
-    let ticking =  false;
-    col.onscroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(()=> {
-          positionTourStep(stepNum, refElementId);
-          ticking = false;
-        })
-
-        ticking = true;
-      }
-    }
-  }
-}
-
-const observer = new MutationObserver(function (mutations) {
-  const isTextarea = function (node) {
-    return node.nodeName == "TEXTAREA" && node.className == "edit mousetrap";
-  };
-
-  const isTourStepOne = function (node) {
-    return document.getElementById('welcome-step-1');
-  };
-
-  let textareas = [];
-
-  mutations.map((m) => {
-    [].slice.call(m.addedNodes).map((n) => {
-      if (isTextarea(n)) {
-        textareas.push(n);
-      } else if (isTourStepOne(n)) {
-        // Add handlers with MutationObserver for first step
-        positionTourStep(tourStepPositionStepNum, tourStepPositionRefElementId);
-        addTourStepScrollHandler(tourStepPositionStepNum, tourStepPositionRefElementId, 2)
-      } else {
-        if (n.querySelectorAll) {
-          let tareas = [].slice.call(n.querySelectorAll("textarea.edit"));
-          textareas = textareas.concat(tareas);
-        }
-      }
-    });
-
-    [].slice.call(m.removedNodes).map((n) => {
-      if ("getElementsByClassName" in n && n.getElementsByClassName("edit mousetrap").length != 0) {
-        updateFillets();
-      }
-    })
-  });
-
-  if (textareas.length !== 0) {
-    textareas.map((t) => {
-      t.onkeyup = selectionHandler;
-      t.onclick = selectionHandler;
-      t.onfocus = selectionHandler;
-    });
-    if (document.getElementById("app-fullscreen") === null) {
-      window.addEventListener('click', editBlurHandler)
-    }
-  } else {
-    window.removeEventListener('click', editBlurHandler);
-  }
-});
-
-const editBlurHandler = (ev) => {
-  let targetClasses = ev.target.classList;
-  if (ev.target.nodeName == "DIV" && targetClasses.contains("card-btn") && targetClasses.contains("save")) {
-    return;
-  } else if (ev.target.nodeName == "DIV" && targetClasses.contains("fullscreen-card-btn")) {
-    return;
-  } else if (isEditTextarea(ev.target)) {
-    return;
-  } else {
-    if(!(isEditTextarea(document.activeElement))) {
-      toElm(null, "docMsgs", "ClickedOutsideCard");
-    }
-  }
-};
-
-const isEditTextarea = (node) => {
-  return node.nodeName == "TEXTAREA" && node.classList.contains("edit") && node.classList.contains("mousetrap");
-}
+const observer = helpers.getObserver(toElm);
 
 const observerConfig = { childList: true, subtree: true };
 

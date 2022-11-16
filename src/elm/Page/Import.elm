@@ -2,8 +2,10 @@ module Page.Import exposing (..)
 
 -- MODEL
 
+import Browser.Navigation as Nav
 import Doc.Data as Data
 import Doc.Metadata as Metadata
+import GlobalData exposing (GlobalData)
 import Http
 import Import.Incoming
 import Import.Single
@@ -16,16 +18,21 @@ import Types exposing (Tree)
 
 
 type alias Model =
-    Session
+    { session : Session
+    , globalData : GlobalData
+    , navKey : Nav.Key
+    }
 
 
-init : Session -> Template -> ( Model, Cmd Msg )
-init user template =
+init : Nav.Key -> GlobalData -> Session -> Template -> ( Model, Cmd Msg )
+init navKey globalData session template =
     let
         ( importTreeDecoder, newSeed ) =
-            Import.Single.decoder (Session.seed user)
+            Import.Single.decoder (GlobalData.seed globalData)
     in
-    ( Session.setSeed newSeed user, Template.fetchJSON (TemplateJSONReceived (Template.toString template)) importTreeDecoder template )
+    ( { session = session, globalData = GlobalData.setSeed newSeed globalData, navKey = navKey }
+    , Template.fetchJSON (TemplateJSONReceived (Template.toString template)) importTreeDecoder template
+    )
 
 
 
@@ -39,40 +46,40 @@ type Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg user =
+update msg model =
     case msg of
         TemplateJSONReceived fileName result ->
             case result of
                 Ok tree ->
-                    ( user
+                    ( model
                     , RandomId.generate (TemplateImported tree fileName)
                     )
 
                 Err _ ->
-                    ( user, Route.replaceUrl (Session.navKey user) Route.Root )
+                    ( model, Route.replaceUrl model.navKey Route.Root )
 
         TemplateImported tree fileName docId ->
             let
                 author =
-                    user |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
+                    model.session |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
 
                 commitReq_ =
                     Data.requestCommit tree author Data.empty (Metadata.new docId |> Metadata.renameAndEncode fileName)
             in
             case commitReq_ of
                 Just commitReq ->
-                    ( user, send <| SaveImportedData commitReq )
+                    ( model, send <| SaveImportedData commitReq )
 
                 Nothing ->
-                    ( user, Cmd.none )
+                    ( model, Cmd.none )
 
         TemplateImportSaved docId_ ->
             case docId_ of
                 Just docId ->
-                    ( user, Route.pushUrl (Session.navKey user) (Route.DocUntitled docId) )
+                    ( model, Route.pushUrl model.navKey (Route.DocUntitled docId) )
 
                 Nothing ->
-                    ( user, Route.replaceUrl (Session.navKey user) Route.Root )
+                    ( model, Route.replaceUrl model.navKey Route.Root )
 
 
 

@@ -1,38 +1,31 @@
-module Page.Doc exposing (Model, Msg(..), incoming, init, subscriptions, toUser, update, view)
+module Page.Doc exposing (Model, Msg, ParentMsg(..), activate, checkoutCommit, incoming, init, saveAndStopEditing, saveCardIfEditing, subscriptions, update, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
-import Bytes exposing (Bytes)
-import Coders exposing (treeToMarkdownString, treeToValue)
+import Coders exposing (treeToMarkdownOutline, treeToMarkdownString, treeToValue)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
 import Doc.Data as Data
 import Doc.Data.Conflict exposing (Selection)
 import Doc.Fonts as Fonts
 import Doc.Fullscreen as Fullscreen
-import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Doc.UI as UI exposing (countWords, viewConflict, viewMobileButtons, viewSearchField)
-import File.Download as Download
+import GlobalData exposing (GlobalData)
 import Html exposing (Attribute, Html, div, span, text, textarea, ul)
 import Html.Attributes as Attributes exposing (attribute, class, classList, dir, id, style, title, value)
 import Html.Events exposing (custom, onClick, onDoubleClick, onInput)
 import Html.Extra exposing (viewIf)
 import Html.Keyed as Keyed
-import Html.Lazy exposing (lazy2, lazy3, lazy4, lazy5, lazy7, lazy8)
+import Html.Lazy exposing (lazy2, lazy3, lazy4, lazy7, lazy8)
 import Html5.DragDrop as DragDrop
-import Http
 import Json.Decode as Json
-import Json.Encode as Enc
 import List.Extra as ListExtra
 import Markdown
 import Outgoing exposing (Msg(..), send)
-import Page.Doc.Export as Export exposing (ExportFormat(..), ExportSelection(..), exportView, exportViewError)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
-import Page.Doc.Theme as Theme exposing (Theme(..))
 import Random
 import Regex
-import Session exposing (PaymentStatus(..), Session)
 import Task
 import Time
 import Translation exposing (Language, TranslationId(..), tr)
@@ -48,11 +41,11 @@ type alias Model =
     -- Document state
     { workingTree : TreeStructure.Model
     , data : Data.Model
-    , docId : String
 
     -- SPA Page State
-    , session : Session
+    , globalData : GlobalData
     , loading : Bool
+    , isExpired : Bool
 
     -- Transient state
     , viewState : ViewState
@@ -61,29 +54,30 @@ type alias Model =
     , lastRemoteSave : Maybe Time.Posix
     , field : String
     , textCursorInfo : TextCursorInfo
+    , debouncerLocalSave : Debouncer () ()
     , debouncerStateCommit : Debouncer () ()
-    , titleField : Maybe String
     , fileSearchField : String
-    , headerMenu : HeaderMenuState
-    , exportSettings : ( ExportSelection, ExportFormat )
     , wordcountTrayOpen : Bool
     , fontSelectorOpen : Bool
 
     -- Settings
     , uid : String
     , fonts : Fonts.Model
-    , theme : Theme
     , startingWordcount : Int
     }
 
 
-init : Bool -> Session -> String -> Model
-init isNew session docId =
+init : Bool -> GlobalData -> Model
+init isNew globalData =
     { workingTree = TreeStructure.defaultModel
     , data = Data.empty
-    , docId = docId
-    , session = session
+    , globalData = globalData
     , loading = not isNew
+    , isExpired = False
+    , debouncerLocalSave =
+        Debouncer.debounce (fromSeconds 0.5)
+            |> Debouncer.settleWhenQuietFor (Just <| fromSeconds 0.5)
+            |> toDebouncer
     , debouncerStateCommit =
         Debouncer.throttle (fromSeconds 3)
             |> Debouncer.settleWhenQuietFor (Just <| fromSeconds 3)
@@ -112,21 +106,12 @@ init isNew session docId =
     , lastRemoteSave = Nothing
     , field = ""
     , textCursorInfo = { selected = False, position = End, text = ( "", "" ) }
-    , titleField = Session.getDocName session docId
     , fileSearchField = ""
-    , headerMenu = NoHeaderMenu
-    , exportSettings = ( ExportEverything, DOCX )
     , wordcountTrayOpen = False
     , fontSelectorOpen = False
     , fonts = Fonts.default
-    , theme = Default
     , startingWordcount = 0
     }
-
-
-toUser : Model -> Session
-toUser model =
-    model.session
 
 
 
@@ -154,34 +139,25 @@ type Msg
     | DragDropMsg (DragDrop.Msg String DropId)
     | DragExternal DragExternalMsg
       -- === History ===
+    | ThrottledLocalSave (Debouncer.Msg ())
+    | LocalSave Time.Posix
     | ThrottledCommit (Debouncer.Msg ())
     | Commit Time.Posix
-    | CheckoutCommit String
-    | Restore
-    | CancelHistory
     | SetSelection String Selection String
     | Resolve String
       -- === UI ===
-    | TitleFocused
-    | TitleFieldChanged String
-    | TitleEdited
-    | TitleEditCanceled
-    | ShortcutTrayToggle
-    | HistoryToggled Bool
-    | DocSettingsToggled Bool
-    | ExportPreviewToggled Bool
-    | ExportSelectionChanged ExportSelection
-    | ExportFormatChanged ExportFormat
       -- Misc UI
-    | ThemeChanged Theme
     | FullscreenRequested
-    | PrintRequested
-    | FontsMsg Fonts.Msg
       -- === Ports ===
     | Pull
-    | Export
-    | Exported String (Result Http.Error Bytes)
     | LogErr String
+
+
+type ParentMsg
+    = NoParentMsg
+    | CloseTooltip
+    | LocalSaveDo Time.Posix
+    | CommitDo Time.Posix
 
 
 type DragExternalMsg
@@ -189,8 +165,8 @@ type DragExternalMsg
     | DragLeave DropId
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ({ workingTree } as model) =
+updateDoc : Msg -> Model -> ( Model, Cmd Msg )
+updateDoc msg ({ workingTree } as model) =
     let
         vs =
             model.viewState
@@ -284,6 +260,7 @@ update msg ({ workingTree } as model) =
                 , send <| SetTextareaClone id str
                 ]
             )
+                |> localSave
 
         AutoSave ->
             ( model, Cmd.none ) |> saveCardIfEditing
@@ -307,22 +284,13 @@ update msg ({ workingTree } as model) =
                     ( { model | dirty = True, field = str }
                     , send <| SetDirty True
                     )
+                        |> localSave
                         |> (if vs.active /= id then
                                 activate id False
 
                             else
                                 identity
                            )
-
-                Fullscreen.SaveChanges ->
-                    ( model, Cmd.none )
-                        |> saveCardIfEditing
-
-                Fullscreen.SaveAndClose ->
-                    model |> saveAndStopEditing
-
-                Fullscreen.ExitFullscreenRequested ->
-                    exitFullscreen model
 
         DeleteCard id ->
             ( model
@@ -426,6 +394,29 @@ update msg ({ workingTree } as model) =
                         ( model, Cmd.none )
 
         -- === History ===
+        ThrottledLocalSave subMsg ->
+            let
+                ( subModel, subCmd, emitted_ ) =
+                    Debouncer.update subMsg model.debouncerLocalSave
+
+                mappedCmd =
+                    Cmd.map ThrottledLocalSave subCmd
+
+                updatedModel =
+                    { model | debouncerLocalSave = subModel }
+            in
+            case emitted_ of
+                Just () ->
+                    ( updatedModel
+                    , Cmd.batch [ Task.perform LocalSave Time.now, mappedCmd ]
+                    )
+
+                Nothing ->
+                    ( updatedModel, mappedCmd )
+
+        LocalSave time ->
+            ( model, Cmd.none )
+
         ThrottledCommit subMsg ->
             let
                 ( subModel, subCmd, emitted_ ) =
@@ -447,38 +438,7 @@ update msg ({ workingTree } as model) =
                     ( updatedModel, mappedCmd )
 
         Commit time ->
-            ( { model | session = Session.updateTime time model.session }, Cmd.none )
-                |> addToHistoryDo
-
-        CheckoutCommit commitSha ->
-            case model.headerMenu of
-                HistoryView historyState ->
-                    ( { model | headerMenu = HistoryView { historyState | currentView = commitSha } }
-                    , Cmd.none
-                    )
-                        |> checkoutCommit commitSha
-
-                _ ->
-                    ( model, Cmd.none )
-
-        Restore ->
-            ( { model | headerMenu = NoHeaderMenu }
-            , Cmd.none
-            )
-                |> addToHistoryDo
-
-        CancelHistory ->
-            case model.headerMenu of
-                HistoryView historyState ->
-                    ( { model | headerMenu = NoHeaderMenu }
-                    , Cmd.none
-                    )
-                        |> checkoutCommit historyState.start
-
-                _ ->
-                    ( model
-                    , Cmd.none
-                    )
+            ( model, Cmd.none )
 
         SetSelection cid selection id ->
             let
@@ -504,147 +464,16 @@ update msg ({ workingTree } as model) =
               }
             , Cmd.none
             )
+                |> localSave
                 |> addToHistory
 
         -- === UI ===
-        TitleFocused ->
-            case model.titleField of
-                Nothing ->
-                    ( model, send <| SelectAll "title-rename" )
-
-                Just _ ->
-                    ( model, Cmd.none )
-
-        TitleFieldChanged newTitle ->
-            ( { model | titleField = Just newTitle }, Cmd.none )
-
-        TitleEdited ->
-            case model.titleField of
-                Just editedTitle ->
-                    if String.trim editedTitle == "" then
-                        ( model, Cmd.batch [ send <| Alert "Title cannot be blank", Task.attempt (always NoOp) (Browser.Dom.focus "title-rename") ] )
-
-                    else if Just editedTitle /= Session.getDocName model.session model.docId then
-                        ( model, Cmd.batch [ send <| RenameDocument editedTitle, Task.attempt (always NoOp) (Browser.Dom.blur "title-rename") ] )
-
-                    else
-                        ( model, Cmd.none )
-
-                Nothing ->
-                    ( model, Cmd.none )
-
-        TitleEditCanceled ->
-            ( { model | titleField = Session.getDocName model.session model.docId }, Task.attempt (always NoOp) (Browser.Dom.blur "title-rename") )
-
-        ShortcutTrayToggle ->
-            let
-                newIsOpen =
-                    not <| Session.shortcutTrayOpen model.session
-            in
-            ( { model
-                | session = Session.setShortcutTrayOpen newIsOpen model.session
-                , headerMenu =
-                    if model.headerMenu == ExportPreview && newIsOpen then
-                        NoHeaderMenu
-
-                    else
-                        model.headerMenu
-              }
-            , send <| SaveUserSetting ( "shortcutTrayOpen", Enc.bool newIsOpen )
-            )
-
-        HistoryToggled isOpen ->
-            model |> toggleHistory isOpen
-
-        DocSettingsToggled isOpen ->
-            ( { model
-                | headerMenu =
-                    if isOpen then
-                        Settings
-
-                    else
-                        NoHeaderMenu
-              }
-            , Cmd.none
-            )
-
-        ExportPreviewToggled previewEnabled ->
-            ( { model
-                | headerMenu =
-                    if previewEnabled then
-                        ExportPreview
-
-                    else
-                        NoHeaderMenu
-              }
-            , Cmd.none
-            )
-                |> activate vs.active True
-
-        ExportSelectionChanged expSel ->
-            ( { model | exportSettings = Tuple.mapFirst (always expSel) model.exportSettings }, Cmd.none )
-
-        ExportFormatChanged expFormat ->
-            ( { model | exportSettings = Tuple.mapSecond (always expFormat) model.exportSettings }, Cmd.none )
-
-        ThemeChanged newTheme ->
-            ( { model | theme = newTheme }, send <| SaveThemeSetting newTheme )
-
         FullscreenRequested ->
             ( model, send <| RequestFullscreen )
-
-        PrintRequested ->
-            ( model, send <| Print )
-
-        FontsMsg fontsMsg ->
-            let
-                ( newModel, selectorOpen, newFontsTriple_ ) =
-                    Fonts.update fontsMsg model.fonts
-
-                cmd =
-                    case newFontsTriple_ of
-                        Just newFontsTriple ->
-                            send (SetFonts newFontsTriple)
-
-                        Nothing ->
-                            Cmd.none
-            in
-            ( { model | fonts = newModel, fontSelectorOpen = selectorOpen }
-            , cmd
-            )
 
         -- === Ports ===
         Pull ->
             ( model, send <| PullData )
-
-        Export ->
-            let
-                activeTree =
-                    getTree vs.active model.workingTree.tree
-                        |> Maybe.withDefault model.workingTree.tree
-            in
-            ( model
-            , Export.command
-                Exported
-                model.docId
-                (Session.getDocName model.session model.docId |> Maybe.withDefault "Untitled")
-                model.exportSettings
-                activeTree
-                model.workingTree.tree
-            )
-
-        Exported docName (Ok bytes) ->
-            let
-                mime =
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-
-                filename =
-                    docName ++ ".docx"
-            in
-            ( model, Download.bytes filename mime bytes )
-
-        Exported _ (Err _) ->
-            ( model, Cmd.none )
 
         LogErr _ ->
             ( model, Cmd.none )
@@ -653,6 +482,24 @@ update msg ({ workingTree } as model) =
             ( model
             , Cmd.none
             )
+
+
+update : Msg -> Model -> ( Model, Cmd Msg, ParentMsg )
+update msg model =
+    case msg of
+        Commit commitTime ->
+            updateDoc msg model |> parentMsg (CommitDo commitTime)
+
+        LocalSave saveTime ->
+            updateDoc msg model |> parentMsg (LocalSaveDo saveTime)
+
+        _ ->
+            updateDoc msg model |> parentMsg NoParentMsg
+
+
+parentMsg : ParentMsg -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg, ParentMsg )
+parentMsg pMsg ( model, cmd ) =
+    ( model, cmd, pMsg )
 
 
 incoming : Incoming.Msg -> Model -> ( Model, Cmd Msg )
@@ -689,64 +536,14 @@ incoming incomingMsg model =
         NotFound ->
             ( model, Cmd.none )
 
-        MetadataSynced json ->
-            case Json.decodeValue Metadata.decoder json of
-                Ok metadata ->
-                    if Metadata.getDocId metadata == model.docId then
-                        ( { model | titleField = Metadata.getDocName metadata }, Cmd.none )
+        MetadataSynced _ ->
+            ( model, Cmd.none )
 
-                    else
-                        ( model, Cmd.none )
-
-                Err _ ->
-                    ( model, Cmd.none )
-
-        MetadataSaved json ->
-            case Json.decodeValue Metadata.decoder json of
-                Ok metadata ->
-                    if Metadata.getDocId metadata == model.docId then
-                        ( { model | titleField = Metadata.getDocName metadata }, Cmd.none )
-
-                    else
-                        ( model, Cmd.none )
-
-                Err _ ->
-                    ( model, Cmd.none )
+        MetadataSaved _ ->
+            ( model, Cmd.none )
 
         MetadataSaveError ->
-            ( { model | titleField = Nothing }, Cmd.none )
-
-        GetDataToSave ->
-            case vs.viewMode of
-                Normal ->
-                    ( model
-                    , Cmd.none
-                      --, send (SaveToDB ( Metadata.encode model.metadata, statusToValue model.status, Data.encode model.objects ))
-                    )
-
-                _ ->
-                    let
-                        newTree =
-                            TreeStructure.update (TreeStructure.Upd vs.active model.field) model.workingTree
-                    in
-                    if newTree.tree /= model.workingTree.tree then
-                        ( { model | workingTree = newTree }
-                        , Cmd.none
-                        )
-                            |> addToHistoryDo
-
-                    else
-                        ( model
-                        , Cmd.none
-                          --, send (SaveToDB ( Metadata.encode model.metadata, statusToValue model.status, Data.encode model.objects ))
-                        )
-
-        SavedLocally time_ ->
-            ( { model
-                | lastLocalSave = time_
-              }
-            , Cmd.none
-            )
+            ( model, Cmd.none )
 
         SavedRemotely time ->
             ( { model
@@ -754,6 +551,13 @@ incoming incomingMsg model =
               }
             , Cmd.none
             )
+
+        -- === Desktop ===
+        SavedToFile _ _ ->
+            ( model, Cmd.none )
+
+        ClickedExport ->
+            ( model, Cmd.none )
 
         -- === DOM ===
         DragStarted dragId ->
@@ -797,6 +601,7 @@ incoming incomingMsg model =
                     in
                     baseModelCmdTuple
                         |> closeCard
+                        |> localSave
                         |> addToHistory
 
                 Nothing ->
@@ -870,6 +675,7 @@ incoming incomingMsg model =
                             TreeStructure.update (TreeStructure.Upd cardId newContent) model.workingTree
                     in
                     ( { model | workingTree = newTree, dirty = True }, Cmd.none )
+                        |> localSave
                         |> addToHistory
 
         -- === UI ===
@@ -1060,14 +866,6 @@ incoming incomingMsg model =
                 "mod+c" ->
                     normalMode model (copy vs.active)
 
-                "mod+z" ->
-                    normalMode model (\( m, _ ) -> toggleHistory True m)
-                        |> Tuple.mapSecond (\c -> Cmd.batch [ c, send <| HistorySlider -1 ])
-
-                "mod+shift+z" ->
-                    normalMode model (\( m, _ ) -> toggleHistory True m)
-                        |> Tuple.mapSecond (\c -> Cmd.batch [ c, send <| HistorySlider 1 ])
-
                 "mod+b" ->
                     case vs.viewMode of
                         Normal ->
@@ -1137,7 +935,7 @@ incoming incomingMsg model =
                     )
 
         WillPrint ->
-            ( { model | headerMenu = ExportPreview }, Cmd.none )
+            ( model, Cmd.none )
 
         -- === Misc ===
         RecvCollabState collabState ->
@@ -1274,7 +1072,6 @@ activate tryId instant ( model, prevCmd ) =
                                 (ScrollCards (id :: newPast) scrollPositions colIdx instant)
                             ]
                         )
-                            |> sendCollabState (CollabState model.uid (CollabActive id) "")
 
 
 goLeft : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1415,6 +1212,7 @@ saveCardIfEditing ( model, prevCmd ) =
                   }
                 , prevCmd
                 )
+                    |> localSave
                     |> addToHistory
 
             else
@@ -1442,12 +1240,13 @@ openCard id str ( model, prevCmd ) =
                 |> (not << List.isEmpty)
 
         isHistoryView =
-            case model.headerMenu of
+            {--TODO: case model.headerMenu of
                 HistoryView _ ->
                     True
 
                 _ ->
-                    False
+                    --}
+            False
     in
     if isHistoryView then
         ( model
@@ -1466,7 +1265,6 @@ openCard id str ( model, prevCmd ) =
           }
         , Cmd.batch [ prevCmd, focus id, maybeScroll ]
         )
-            |> sendCollabState (CollabState model.uid (CollabEditing id) str)
 
 
 openCardFullscreen : String -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -1567,6 +1365,7 @@ deleteCard id ( model, prevCmd ) =
         , Cmd.batch [ prevCmd, send <| SetDirty True ]
         )
             |> activate nextToActivate False
+            |> localSave
             |> addToHistory
 
 
@@ -1663,7 +1462,6 @@ cancelCard ( model, prevCmd ) =
       }
     , prevCmd
     )
-        |> sendCollabState (CollabState model.uid (CollabActive vs.active) "")
         |> activate vs.active True
 
 
@@ -1684,7 +1482,7 @@ intentCancelCard model =
 
         _ ->
             ( model
-            , send (ConfirmCancelCard vs.active originalContent (tr (Session.language model.session) AreYouSureCancel))
+            , send (ConfirmCancelCard vs.active originalContent (tr (GlobalData.language model.globalData) AreYouSureCancel))
             )
 
 
@@ -1695,24 +1493,16 @@ intentCancelCard model =
 insert : String -> Int -> String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 insert pid pos initText ( model, prevCmd ) =
     let
-        isExpired =
-            case Session.daysLeft model.session of
-                Just days ->
-                    days <= 0
-
-                Nothing ->
-                    False
-
         ( newId, newSeed ) =
-            Random.step randomPositiveInt (Session.seed model.session)
+            Random.step randomPositiveInt (GlobalData.seed model.globalData)
 
         newIdString =
             "node-" ++ (newId |> String.fromInt)
     in
-    if not isExpired then
+    if not model.isExpired then
         ( { model
             | workingTree = TreeStructure.update (TreeStructure.Ins newIdString initText pid pos) model.workingTree
-            , session = Session.setSeed newSeed model.session
+            , globalData = GlobalData.setSeed newSeed model.globalData
           }
         , prevCmd
         )
@@ -1785,6 +1575,7 @@ mergeUp id ( model, prevCmd ) =
             , prevCmd
             )
                 |> activate prevTree.id False
+                |> localSave
                 |> addToHistory
 
         _ ->
@@ -1813,6 +1604,7 @@ mergeDown id ( model, prevCmd ) =
             , prevCmd
             )
                 |> activate nextTree.id False
+                |> localSave
                 |> addToHistory
 
         _ ->
@@ -1836,6 +1628,7 @@ move subtree pid pos ( model, prevCmd ) =
     , prevCmd
     )
         |> activate subtree.id False
+        |> localSave
         |> addToHistory
 
 
@@ -1986,6 +1779,7 @@ paste subtree pid pos ( model, prevCmd ) =
     , prevCmd
     )
         |> activate subtree.id False
+        |> localSave
         |> addToHistory
 
 
@@ -1993,7 +1787,7 @@ pasteBelow : String -> Tree -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 pasteBelow id copiedTree ( model, prevCmd ) =
     let
         ( newId, newSeed ) =
-            Random.step randomPositiveInt (Session.seed model.session)
+            Random.step randomPositiveInt (GlobalData.seed model.globalData)
 
         treeToPaste =
             TreeStructure.renameNodes (newId |> String.fromInt) copiedTree
@@ -2004,7 +1798,7 @@ pasteBelow id copiedTree ( model, prevCmd ) =
         pos =
             (getIndex id model.workingTree.tree |> Maybe.withDefault 0) + 1
     in
-    ( { model | session = Session.setSeed newSeed model.session }
+    ( { model | globalData = GlobalData.setSeed newSeed model.globalData }
     , prevCmd
     )
         |> paste treeToPaste pid pos
@@ -2014,24 +1808,33 @@ pasteInto : String -> Tree -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 pasteInto id copiedTree ( model, prevCmd ) =
     let
         ( newId, newSeed ) =
-            Random.step randomPositiveInt (Session.seed model.session)
+            Random.step randomPositiveInt (GlobalData.seed model.globalData)
 
         treeToPaste =
             TreeStructure.renameNodes (newId |> String.fromInt) copiedTree
     in
-    ( { model | session = Session.setSeed newSeed model.session }
+    ( { model | globalData = GlobalData.setSeed newSeed model.globalData }
     , prevCmd
     )
         |> paste treeToPaste id 999999
 
 
 
--- === Welcome Checklist  ===
+-- === Local Saving ===
+
+
+localSave : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+localSave ( model, prevCmd ) =
+    updateDoc (ThrottledLocalSave (provideInput ())) model
+        |> Tuple.mapSecond (\cmd -> Cmd.batch [ prevCmd, cmd ])
+
+
+
 -- === History ===
 
 
-checkoutCommit : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-checkoutCommit commitSha ( model, prevCmd ) =
+checkoutCommit : String -> Model -> ( Model, Cmd Msg )
+checkoutCommit commitSha model =
     let
         newTree_ =
             Data.checkout commitSha model.data
@@ -2047,63 +1850,17 @@ checkoutCommit commitSha ( model, prevCmd ) =
 
         Nothing ->
             ( model
-            , prevCmd
+            , Cmd.none
             )
-
-
-toggleHistory : Bool -> Model -> ( Model, Cmd msg )
-toggleHistory isOpen model =
-    case ( isOpen, Data.head "heads/master" model.data ) of
-        ( True, Just refObj ) ->
-            ( { model | headerMenu = HistoryView { start = refObj.value, currentView = refObj.value } }, Cmd.none )
-
-        _ ->
-            ( { model | headerMenu = NoHeaderMenu }, Cmd.none )
 
 
 
 -- History
 
 
-type Direction
-    = Forward
-    | Backward
-
-
-type HistoryState
-    = Closed
-    | From String
-
-
-addToHistoryDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-addToHistoryDo ( { workingTree, session } as model, prevCmd ) =
-    let
-        author =
-            session |> Session.name |> Maybe.withDefault "unknown" |> (\a -> "<" ++ a ++ ">")
-
-        metadata =
-            Session.getMetadata model.session model.docId
-                |> Maybe.withDefault (Metadata.new model.docId)
-
-        commitReq_ =
-            Data.requestCommit workingTree.tree author model.data (Metadata.encode metadata)
-    in
-    case commitReq_ of
-        Just commitReq ->
-            ( model
-            , Cmd.batch
-                [ send <| CommitData commitReq
-                , prevCmd
-                ]
-            )
-
-        Nothing ->
-            ( model, prevCmd )
-
-
 addToHistory : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 addToHistory ( model, prevCmd ) =
-    update (ThrottledCommit (provideInput ())) model
+    updateDoc (ThrottledCommit (provideInput ())) model
         |> Tuple.mapSecond (\cmd -> Cmd.batch [ prevCmd, cmd ])
 
 
@@ -2132,10 +1889,6 @@ dataReceived dataIn model =
 
                         _ ->
                             ( vs, activate "1" True )
-
-                newTheme =
-                    Json.decodeValue (Json.at [ "localStore" ] Theme.decoder) dataIn
-                        |> Result.withDefault Default
             in
             ( { model
                 | data = newModel
@@ -2144,7 +1897,6 @@ dataReceived dataIn model =
                 , viewState = newViewState
                 , lastLocalSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
                 , lastRemoteSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
-                , theme = newTheme
                 , startingWordcount = startingWordcount
               }
             , Cmd.none
@@ -2153,13 +1905,6 @@ dataReceived dataIn model =
 
         Nothing ->
             ( model, Cmd.none )
-
-
-sendCollabState : CollabState -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-sendCollabState collabState ( model, prevCmd ) =
-    ( model
-    , Cmd.batch [ prevCmd, send (SocketSend collabState) ]
-    )
 
 
 
@@ -2171,8 +1916,6 @@ type alias AppMsgs msg =
     , keyboard : String -> msg
     , tooltipRequested : String -> TooltipPosition -> TranslationId -> msg
     , tooltipClosed : msg
-    , toggleWordcount : Model -> msg
-    , toggleUpgradeModal : Bool -> msg
     }
 
 
@@ -2189,10 +1932,10 @@ viewLoaded : AppMsgs msg -> Model -> List (Html msg)
 viewLoaded ({ docMsg } as appMsg) model =
     let
         language =
-            Session.language model.session
+            GlobalData.language model.globalData
 
         isMac =
-            Session.isMac model.session
+            GlobalData.isMac model.globalData
     in
     case Data.conflictList model.data of
         [] ->
@@ -2204,7 +1947,7 @@ viewLoaded ({ docMsg } as appMsg) model =
                     , model = model.workingTree
                     , lastLocalSave = model.lastLocalSave
                     , lastRemoteSave = model.lastRemoteSave
-                    , currentTime = Session.currentTime model.session
+                    , currentTime = GlobalData.currentTime model.globalData
                     }
                     model.field
                     model.viewState
@@ -2218,30 +1961,6 @@ viewLoaded ({ docMsg } as appMsg) model =
 
                     mobileBtnMsg shortcut =
                         appMsg.keyboard shortcut
-
-                    exportViewOk =
-                        lazy5 exportView
-                            { export = docMsg Export
-                            , printRequested = docMsg PrintRequested
-                            , tooltipRequested = appMsg.tooltipRequested
-                            , tooltipClosed = appMsg.tooltipClosed
-                            }
-                            (Session.getDocName model.session model.docId |> Maybe.withDefault "Untitled")
-                            model.exportSettings
-
-                    maybeExportView =
-                        case ( model.headerMenu, activeTree_, model.exportSettings ) of
-                            ( ExportPreview, Just activeTree, _ ) ->
-                                exportViewOk activeTree model.workingTree.tree
-
-                            ( ExportPreview, Nothing, ( ExportEverything, _ ) ) ->
-                                exportViewOk defaultTree model.workingTree.tree
-
-                            ( ExportPreview, Nothing, _ ) ->
-                                exportViewError "No card selected, cannot preview document"
-
-                            _ ->
-                                text ""
 
                     cardTitleReplacer ( id, inputString ) =
                         case String.lines inputString of
@@ -2274,49 +1993,13 @@ viewLoaded ({ docMsg } as appMsg) model =
                             Nothing ->
                                 []
                 in
-                [ lazy4 treeView (Session.language model.session) (Session.isMac model.session) model.viewState model.workingTree |> Html.map docMsg
-                , UI.viewHeader
-                    { noOp = docMsg NoOp
-                    , titleFocused = docMsg TitleFocused
-                    , titleFieldChanged = docMsg << TitleFieldChanged
-                    , titleEdited = docMsg TitleEdited
-                    , titleEditCanceled = docMsg TitleEditCanceled
-                    , tooltipRequested = appMsg.tooltipRequested
-                    , tooltipClosed = appMsg.tooltipClosed
-                    , toggledHistory = docMsg << HistoryToggled
-                    , checkoutCommit = docMsg << CheckoutCommit
-                    , restore = docMsg Restore
-                    , cancelHistory = docMsg CancelHistory
-                    , toggledDocSettings = docMsg <| DocSettingsToggled (not <| model.headerMenu == Settings)
-                    , wordCountClicked = appMsg.toggleWordcount model
-                    , themeChanged = docMsg << ThemeChanged
-                    , toggledExport = docMsg <| ExportPreviewToggled (not <| model.headerMenu == ExportPreview)
-                    , exportSelectionChanged = docMsg << ExportSelectionChanged
-                    , exportFormatChanged = docMsg << ExportFormatChanged
-                    , export = docMsg Export
-                    , printRequested = docMsg PrintRequested
-                    , toggledUpgradeModal = appMsg.toggleUpgradeModal
-                    }
-                    (Session.getDocName model.session model.docId)
-                    model
+                [ lazy4 treeView (GlobalData.language model.globalData) (GlobalData.isMac model.globalData) model.viewState model.workingTree |> Html.map docMsg
                 , if (not << List.isEmpty) cardTitles then
                     UI.viewBreadcrumbs Activate cardTitles |> Html.map docMsg
 
                   else
                     text ""
-                , maybeExportView
                 ]
-                    ++ UI.viewShortcuts
-                        { toggledShortcutTray = docMsg ShortcutTrayToggle
-                        , tooltipRequested = appMsg.tooltipRequested
-                        , tooltipClosed = appMsg.tooltipClosed
-                        }
-                        language
-                        (Session.shortcutTrayOpen model.session)
-                        (Session.isMac model.session)
-                        model.workingTree.tree.children
-                        model.textCursorInfo
-                        model.viewState
                     ++ [ viewSearchField SearchFieldUpdated model |> Html.map docMsg
                        , viewMobileButtons
                             { edit = mobileBtnMsg "mod+enter"
@@ -2331,7 +2014,7 @@ viewLoaded ({ docMsg } as appMsg) model =
                             , navRight = mobileBtnMsg "right"
                             }
                             (model.viewState.viewMode /= Normal)
-                       , Keyed.node "div" [ style "display" "contents" ] [ ( model.docId, div [ id "loading-overlay" ] [] ) ]
+                       , Keyed.node "div" [ style "display" "contents" ] [ ( "randomstringforloadingoverlay", div [ id "loading-overlay" ] [] ) ]
                        , div [ id "preloader" ] []
                        ]
 
@@ -2350,7 +2033,7 @@ repeating-linear-gradient(-45deg
             [ ul [ class "conflicts-list" ]
                 (List.map (viewConflict language SetSelection Resolve) conflicts)
                 |> Html.map docMsg
-            , lazy4 treeView (Session.language model.session) (Session.isMac model.session) model.viewState model.workingTree |> Html.map docMsg
+            , lazy4 treeView (GlobalData.language model.globalData) (GlobalData.isMac model.globalData) model.viewState model.workingTree |> Html.map docMsg
             ]
 
 

@@ -1,4 +1,4 @@
-module Doc.UI exposing (countWords, fillet, viewAppLoadingSpinner, viewBreadcrumbs, viewConflict, viewDocumentLoadingSpinner, viewHeader, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewTooltip, viewWordCount)
+module Doc.UI exposing (countWords, fillet, viewAppLoadingSpinner, viewBreadcrumbs, viewConflict, viewDocumentLoadingSpinner, viewExportMenu, viewHeader, viewHistory, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewTooltip, viewWordCount)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -9,6 +9,7 @@ import Doc.Data.Conflict as Conflict exposing (Conflict, Op(..), Selection(..), 
 import Doc.List as DocList exposing (Model(..))
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils as TreeUtils exposing (..)
+import GlobalData exposing (GlobalData)
 import Html exposing (Html, a, br, button, del, div, fieldset, h2, h3, h4, h5, hr, img, input, ins, label, li, pre, span, ul)
 import Html.Attributes as A exposing (..)
 import Html.Attributes.Extra exposing (attributeIf)
@@ -82,26 +83,30 @@ viewHeader :
     , printRequested : msg
     , toggledUpgradeModal : Bool -> msg
     }
+    -> Session
     -> Maybe String
     ->
-        { m
-            | titleField : Maybe String
-            , data : Data.Model
-            , headerMenu : HeaderMenuState
+        { appModel
+            | headerMenu : HeaderMenuState
             , exportSettings : ( ExportSelection, ExportFormat )
+        }
+    ->
+        { docModel
+            | data : Data.Model
             , dirty : Bool
             , lastLocalSave : Maybe Time.Posix
             , lastRemoteSave : Maybe Time.Posix
-            , session : Session
+            , globalData : GlobalData
         }
+    -> Maybe String
     -> Html msg
-viewHeader msgs title_ model =
+viewHeader msgs session title_ appModel docModel titleField_ =
     let
         language =
-            Session.language model.session
+            GlobalData.language docModel.globalData
 
         currentTime =
-            Session.currentTime model.session
+            GlobalData.currentTime docModel.globalData
 
         handleKeys =
             on "keyup"
@@ -123,7 +128,7 @@ viewHeader msgs title_ model =
         titleArea =
             let
                 titleString =
-                    model.titleField |> Maybe.withDefault "Untitled"
+                    titleField_ |> Maybe.withDefault "Untitled"
             in
             span [ id "title" ]
                 [ div [ class "title-grow-wrap" ]
@@ -148,36 +153,16 @@ viewHeader msgs title_ model =
                         ]
                         []
                     ]
-                , viewSaveIndicator language model (Session.currentTime model.session)
+                , viewSaveIndicator language docModel (GlobalData.currentTime docModel.globalData)
                 ]
 
         isHistoryView =
-            case model.headerMenu of
+            case appModel.headerMenu of
                 HistoryView _ ->
                     True
 
                 _ ->
                     False
-
-        isSelected expSel =
-            (model.exportSettings |> Tuple.first) == expSel
-
-        exportSelectionBtnAttributes expSel expSelString tooltipText =
-            [ id <| "export-select-" ++ expSelString
-            , onClick <| msgs.exportSelectionChanged expSel
-            , classList [ ( "selected", isSelected expSel ) ]
-            , onMouseEnter <| msgs.tooltipRequested ("export-select-" ++ expSelString) BelowTooltip tooltipText
-            , onMouseLeave msgs.tooltipClosed
-            ]
-
-        isFormat expFormat =
-            (model.exportSettings |> Tuple.second) == expFormat
-
-        exportFormatBtnAttributes expFormat expFormatString =
-            [ id <| "export-format-" ++ expFormatString
-            , onClick <| msgs.exportFormatChanged expFormat
-            , classList [ ( "selected", isFormat expFormat ) ]
-            ]
     in
     div [ id "document-header" ]
         [ titleArea
@@ -190,7 +175,7 @@ viewHeader msgs title_ model =
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.historyOutlined [] ]
-        , case model.headerMenu of
+        , case appModel.headerMenu of
             HistoryView historyState ->
                 viewHistory language
                     { noOp = msgs.noOp
@@ -201,7 +186,7 @@ viewHeader msgs title_ model =
                     , tooltipClosed = msgs.tooltipClosed
                     }
                     currentTime
-                    model.data
+                    docModel.data
                     historyState
 
             _ ->
@@ -209,13 +194,13 @@ viewHeader msgs title_ model =
         , div
             [ id "doc-settings-icon"
             , class "header-button"
-            , classList [ ( "open", model.headerMenu == Settings ) ]
+            , classList [ ( "open", appModel.headerMenu == Settings ) ]
             , onClick msgs.toggledDocSettings
-            , attributeIf (model.headerMenu /= Settings) <| onMouseEnter <| msgs.tooltipRequested "doc-settings-icon" BelowLeftTooltip DocumentSettings
+            , attributeIf (appModel.headerMenu /= Settings) <| onMouseEnter <| msgs.tooltipRequested "doc-settings-icon" BelowLeftTooltip DocumentSettings
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.controlOutlined [] ]
-        , viewIf (model.headerMenu == Settings) <|
+        , viewIf (appModel.headerMenu == Settings) <|
             div [ id "doc-settings-menu", class "header-menu" ]
                 [ div [ id "wordcount-menu-item", onClick msgs.wordCountClicked ] [ text language WordCount ]
                 , h4 [] [ text language DocumentTheme ]
@@ -226,36 +211,82 @@ viewHeader msgs title_ model =
                 , div [ onClick <| msgs.themeChanged Green ] [ text language ThemeGreen ]
                 , div [ onClick <| msgs.themeChanged Turquoise ] [ text language ThemeTurquoise ]
                 ]
-        , viewIf (model.headerMenu == Settings) <| div [ id "doc-settings-menu-exit-left", onMouseEnter msgs.toggledDocSettings ] []
-        , viewIf (model.headerMenu == Settings) <| div [ id "doc-settings-menu-exit-bottom", onMouseEnter msgs.toggledDocSettings ] []
+        , viewIf (appModel.headerMenu == Settings) <| div [ id "doc-settings-menu-exit-left", onMouseEnter msgs.toggledDocSettings ] []
+        , viewIf (appModel.headerMenu == Settings) <| div [ id "doc-settings-menu-exit-bottom", onMouseEnter msgs.toggledDocSettings ] []
         , div
             [ id "export-icon"
             , class "header-button"
-            , classList [ ( "open", model.headerMenu == ExportPreview ) ]
+            , classList [ ( "open", appModel.headerMenu == ExportPreview ) ]
             , onClick msgs.toggledExport
-            , attributeIf (model.headerMenu /= ExportPreview) <| onMouseEnter <| msgs.tooltipRequested "export-icon" BelowLeftTooltip ExportOrPrint
+            , attributeIf (appModel.headerMenu /= ExportPreview) <| onMouseEnter <| msgs.tooltipRequested "export-icon" BelowLeftTooltip ExportOrPrint
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.fileDoneOutlined [] ]
         , viewUpgradeButton
             msgs.toggledUpgradeModal
-            model.session
-        , viewIf (model.headerMenu == ExportPreview) <|
-            div [ id "export-menu" ]
-                [ div [ id "export-selection", class "toggle-button" ]
-                    [ div (exportSelectionBtnAttributes ExportEverything "all" ExportSettingEverythingDesc) [ text language ExportSettingEverything ]
-                    , div (exportSelectionBtnAttributes ExportSubtree "subtree" ExportSettingCurrentSubtreeDesc) [ text language ExportSettingCurrentSubtree ]
-                    , div (exportSelectionBtnAttributes ExportLeaves "leaves" ExportSettingLeavesOnlyDesc) [ text language ExportSettingLeavesOnly ]
-                    , div (exportSelectionBtnAttributes ExportCurrentColumn "column" ExportSettingCurrentColumnDesc) [ text language ExportSettingCurrentColumn ]
-                    ]
-                , div [ id "export-format", class "toggle-button" ]
-                    [ div (exportFormatBtnAttributes DOCX "word") [ text language ExportSettingWord ]
-                    , div (exportFormatBtnAttributes PlainText "text") [ text language ExportSettingPlainText ]
-                    , div (exportFormatBtnAttributes OPML "opml") [ text language ExportSettingOPML ]
-                    , div (exportFormatBtnAttributes JSON "json") [ text language ExportSettingJSON ]
-                    ]
-                ]
+            docModel.globalData
+            session
+        , viewIf (appModel.headerMenu == ExportPreview) <| viewExportMenu language msgs False appModel.exportSettings
         ]
+
+
+viewExportMenu :
+    Language
+    ->
+        { m
+            | exportSelectionChanged : ExportSelection -> msg
+            , exportFormatChanged : ExportFormat -> msg
+            , toggledExport : msg
+            , tooltipRequested : String -> TooltipPosition -> TranslationId -> msg
+            , tooltipClosed : msg
+        }
+    -> Bool
+    -> ( ExportSelection, ExportFormat )
+    -> Html msg
+viewExportMenu language msgs showCloseButton ( exportSelection, exportFormat ) =
+    let
+        exportSelectionBtnAttributes expSel expSelString tooltipText =
+            [ id <| "export-select-" ++ expSelString
+            , onClick <| msgs.exportSelectionChanged expSel
+            , classList [ ( "selected", expSel == exportSelection ) ]
+            , onMouseEnter <| msgs.tooltipRequested ("export-select-" ++ expSelString) BelowTooltip tooltipText
+            , onMouseLeave msgs.tooltipClosed
+            ]
+
+        exportFormatBtnAttributes expFormat expFormatString =
+            [ id <| "export-format-" ++ expFormatString
+            , onClick <| msgs.exportFormatChanged expFormat
+            , classList [ ( "selected", expFormat == exportFormat ) ]
+            ]
+    in
+    div [ id "export-menu" ]
+        ([ div [ id "export-selection", class "toggle-button" ]
+            [ div (exportSelectionBtnAttributes ExportEverything "all" ExportSettingEverythingDesc) [ text language ExportSettingEverything ]
+            , div (exportSelectionBtnAttributes ExportSubtree "subtree" ExportSettingCurrentSubtreeDesc) [ text language ExportSettingCurrentSubtree ]
+            , div (exportSelectionBtnAttributes ExportLeaves "leaves" ExportSettingLeavesOnlyDesc) [ text language ExportSettingLeavesOnly ]
+            , div (exportSelectionBtnAttributes ExportCurrentColumn "column" ExportSettingCurrentColumnDesc) [ text language ExportSettingCurrentColumn ]
+            ]
+         , div [ id "export-format", class "toggle-button" ]
+            [ div (exportFormatBtnAttributes DOCX "word") [ text language ExportSettingWord ]
+            , div (exportFormatBtnAttributes PlainText "text") [ text language ExportSettingPlainText ]
+            , div (exportFormatBtnAttributes OPML "opml") [ text language ExportSettingOPML ]
+            , div (exportFormatBtnAttributes JSON "json") [ text language ExportSettingJSON ]
+            ]
+         ]
+            ++ (if showCloseButton then
+                    [ span
+                        [ id "export-button-close"
+                        , onClick msgs.toggledExport
+                        , onMouseEnter <| msgs.tooltipRequested "export-button-close" BelowLeftTooltip CloseExportView
+                        , onMouseLeave msgs.tooltipClosed
+                        ]
+                        [ AntIcons.closeCircleOutlined [ width 16 ] ]
+                    ]
+
+                else
+                    []
+               )
+        )
 
 
 viewSaveIndicator :
@@ -306,15 +337,13 @@ viewSaveIndicator language { dirty, lastLocalSave, lastRemoteSave } currentTime 
 
 viewUpgradeButton :
     (Bool -> msg)
+    -> GlobalData
     -> Session
     -> Html msg
-viewUpgradeButton toggledUpgradeModal session =
+viewUpgradeButton toggledUpgradeModal globalData session =
     let
-        currentTime =
-            Session.currentTime session
-
         lang =
-            Session.language session
+            GlobalData.language globalData
 
         upgradeCTA isExpired prepends =
             div
@@ -325,7 +354,7 @@ viewUpgradeButton toggledUpgradeModal session =
                 (prepends ++ [ div [ id "upgrade-button" ] [ text lang Upgrade ] ])
 
         maybeUpgrade =
-            case Session.daysLeft session of
+            case Session.daysLeft (GlobalData.currentTime globalData) session of
                 Just daysLeft ->
                     let
                         trialClass =
@@ -440,7 +469,8 @@ type alias SidebarMsgs msg =
 
 
 viewSidebar :
-    Session
+    GlobalData
+    -> Session
     -> SidebarMsgs msg
     -> String
     -> SortBy
@@ -451,13 +481,13 @@ viewSidebar :
     -> SidebarMenuState
     -> SidebarState
     -> Html msg
-viewSidebar session msgs currentDocId sortCriteria fileFilter docList accountEmail contextTarget_ dropdownState sidebarState =
+viewSidebar globalData session msgs currentDocId sortCriteria fileFilter docList accountEmail contextTarget_ dropdownState sidebarState =
     let
         lang =
-            Session.language session
+            GlobalData.language globalData
 
         custId_ =
-            case Session.paymentStatus session of
+            case Session.paymentStatus (GlobalData.currentTime globalData) session of
                 Customer custId ->
                     Just custId
 
@@ -852,14 +882,14 @@ viewWordCount :
         , workingTree : TreeStructure.Model
         , startingWordcount : Int
         , wordcountTrayOpen : Bool
-        , session : Session
+        , globalData : GlobalData
     }
     -> { modalClosed : msg }
     -> List (Html msg)
 viewWordCount model msgs =
     let
         language =
-            Session.language model.session
+            GlobalData.language model.globalData
 
         stats =
             getStats model
@@ -896,11 +926,11 @@ viewWordCount model msgs =
 -- DOCUMENT
 
 
-viewSearchField : (String -> msg) -> { m | viewState : ViewState, session : Session } -> Html msg
-viewSearchField searchFieldMsg { viewState, session } =
+viewSearchField : (String -> msg) -> { m | viewState : ViewState, globalData : GlobalData } -> Html msg
+viewSearchField searchFieldMsg { viewState, globalData } =
     let
         language =
-            Session.language session
+            GlobalData.language globalData
 
         maybeSearchIcon =
             if viewState.searchField == Nothing then

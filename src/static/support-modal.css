@@ -1,0 +1,19 @@
+html, body {
+  background: white;
+}
+
+.modal-header, .modal-overlay {
+  display: none;
+}
+
+.modal {
+  position: unset;
+  left: unset;
+  top: unset;
+  transform: unset;
+  box-shadow: unset;
+  border-radius: unset;
+}
+.modal-guts {
+  max-height: unset;
+}

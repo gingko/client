@@ -3,6 +3,7 @@ module Main exposing (main)
 import Browser exposing (Document)
 import Browser.Navigation as Nav
 import Doc.UI as UI
+import GlobalData exposing (GlobalData)
 import Html
 import Json.Decode as Dec exposing (Decoder, Value)
 import Outgoing exposing (Msg(..), send)
@@ -25,77 +26,98 @@ import Url exposing (Url)
 -- MODEL
 
 
+type alias WebSessionData =
+    { globalData : GlobalData
+    , session : Session
+    , navKey : Nav.Key
+    }
+
+
 type Model
-    = Redirect Session
-    | NotFound Session
-    | PaymentSuccess Session
+    = Redirect WebSessionData
+      -- Logged Out Pages:
     | Signup Page.Signup.Model
     | Login Page.Login.Model
     | ForgotPassword Page.ForgotPassword.Model
     | ResetPassword Page.ResetPassword.Model
+      -- Logged In Pages:
+    | NotFound WebSessionData
+    | PaymentSuccess WebSessionData
     | Copy Page.Copy.Model
     | Import Page.Import.Model
-    | DocNew Session
+    | DocNew Page.DocNew.Model
     | App Page.App.Model
 
 
 init : Value -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init json url navKey =
     let
-        user =
-            Session.decode navKey json
+        session =
+            Session.decode json
+
+        globalData =
+            GlobalData.decode json
+
+        webSessionData =
+            { globalData = globalData, session = session, navKey = navKey }
     in
-    case ( Session.loggedIn user, Route.fromUrl url ) of
+    case ( Session.loggedIn session, Route.fromUrl url ) of
         ( True, route_ ) ->
-            changeRouteTo route_ (Redirect user)
+            changeRouteTo route_ (Redirect webSessionData)
 
         ( False, Just Route.Login ) ->
-            changeRouteTo (Just Route.Login) (Redirect user)
+            changeRouteTo (Just Route.Login) (Redirect webSessionData)
 
         ( False, Just (Route.ForgotPassword token) ) ->
-            changeRouteTo (Just (Route.ForgotPassword token)) (Redirect user)
+            changeRouteTo (Just (Route.ForgotPassword token)) (Redirect webSessionData)
 
         ( False, Just (Route.ResetPassword token) ) ->
-            changeRouteTo (Just (Route.ResetPassword token)) (Redirect user)
+            changeRouteTo (Just (Route.ResetPassword token)) (Redirect webSessionData)
 
         ( False, _ ) ->
-            changeRouteTo (Just Route.Signup) (Redirect user)
+            changeRouteTo (Just Route.Signup) (Redirect webSessionData)
 
 
 changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )
 changeRouteTo maybeRoute model =
     let
-        user =
+        navKey =
+            getNavKey model
+
+        globalData =
+            toGlobalData model
+
+        session =
             toSession model
     in
-    if Session.loggedIn user then
+    if Session.loggedIn session then
         case maybeRoute of
             Just Route.Root ->
-                Page.App.init user Nothing |> updateWith App GotAppMsg
+                Page.App.init navKey globalData session Nothing |> updateWith App GotAppMsg
 
             Just Route.Signup ->
-                Page.Signup.init user |> updateWith Signup GotSignupMsg
+                Page.Signup.init navKey globalData session |> updateWith Signup GotSignupMsg
 
             Just Route.Login ->
-                Page.App.init user Nothing |> updateWith App GotAppMsg
+                Page.App.init navKey globalData session Nothing |> updateWith App GotAppMsg
 
             Just (Route.ForgotPassword email_) ->
-                Page.ForgotPassword.init user email_
+                Page.ForgotPassword.init navKey globalData session email_
                     |> updateWith ForgotPassword GotForgotPasswordMsg
 
             Just (Route.ResetPassword token) ->
-                Page.ResetPassword.init user token
+                Page.ResetPassword.init navKey globalData session token
                     |> updateWith ResetPassword GotResetPasswordMsg
 
             Just Route.EmailConfirmed ->
                 let
                     newSession =
-                        Session.confirmEmail user
+                        Session.confirmEmail (GlobalData.currentTime globalData) session
                 in
-                ( Redirect newSession, Route.replaceUrl (Session.navKey newSession) Route.Root )
+                ( Redirect (WebSessionData globalData newSession navKey), Route.replaceUrl navKey Route.Root )
 
             Just Route.DocNew ->
-                Page.DocNew.init user |> updateWith DocNew GotDocNewMsg
+                Page.DocNew.init navKey globalData session |> updateWith DocNew GotDocNewMsg
 
             Just (Route.DocUntitled dbName) ->
                 let
@@ -107,68 +129,68 @@ changeRouteTo maybeRoute model =
                             _ ->
                                 False
                 in
-                Page.App.init user (Just { dbName = dbName, isNew = isNew }) |> updateWith App GotAppMsg
+                Page.App.init navKey globalData session (Just { dbName = dbName, isNew = isNew }) |> updateWith App GotAppMsg
 
             Just (Route.Doc dbName _) ->
-                Page.App.init user (Just { dbName = dbName, isNew = False }) |> updateWith App GotAppMsg
+                Page.App.init navKey globalData session (Just { dbName = dbName, isNew = False }) |> updateWith App GotAppMsg
 
             Just (Route.Copy dbName) ->
-                Page.Copy.init user dbName |> updateWith Copy GotCopyMsg
+                Page.Copy.init navKey globalData session dbName |> updateWith Copy GotCopyMsg
 
             Just (Route.Import template) ->
-                Page.Import.init user template
+                Page.Import.init navKey globalData session template
                     |> updateWith Import GotImportMsg
 
             Just (Route.Upgrade isOk) ->
                 if isOk then
-                    ( PaymentSuccess user, Cmd.none )
+                    ( PaymentSuccess (WebSessionData globalData session navKey), Cmd.none )
 
                 else
-                    ( Redirect user, Cmd.none )
+                    ( Redirect (WebSessionData globalData session navKey), Cmd.none )
 
             Nothing ->
-                ( NotFound user, Cmd.none )
+                ( NotFound (WebSessionData globalData session navKey), Cmd.none )
 
     else
         let
             ( signupModel, signupCmds ) =
-                Page.Signup.init user
+                Page.Signup.init navKey globalData session
                     |> updateWith Signup GotSignupMsg
 
             ( loginModel, loginCmds ) =
-                Page.Login.init user
+                Page.Login.init navKey globalData session
                     |> updateWith Login GotLoginMsg
         in
         case maybeRoute of
             Just Route.Signup ->
-                ( signupModel, Cmd.batch [ signupCmds, Route.replaceUrl (Session.navKey user) Route.Signup ] )
+                ( signupModel, Cmd.batch [ signupCmds, Route.replaceUrl navKey Route.Signup ] )
 
             Just Route.Login ->
                 ( loginModel, loginCmds )
 
             Just (Route.ForgotPassword email_) ->
-                Page.ForgotPassword.init user email_
+                Page.ForgotPassword.init navKey globalData session email_
                     |> updateWith ForgotPassword GotForgotPasswordMsg
 
             Just (Route.ResetPassword token) ->
-                Page.ResetPassword.init user token
+                Page.ResetPassword.init navKey globalData session token
                     |> updateWith ResetPassword GotResetPasswordMsg
 
             _ ->
-                ( loginModel, Cmd.batch [ loginCmds, Route.replaceUrl (Session.navKey user) Route.Login ] )
+                ( loginModel, Cmd.batch [ loginCmds, Route.replaceUrl navKey Route.Login ] )
 
 
 toSession : Model -> Session
 toSession page =
     case page of
-        Redirect user ->
-            user
+        Redirect { session } ->
+            session
 
-        NotFound user ->
-            user
+        NotFound { session } ->
+            session
 
-        PaymentSuccess user ->
-            user
+        PaymentSuccess { session } ->
+            session
 
         Signup signup ->
             Page.Signup.toUser signup
@@ -185,14 +207,88 @@ toSession page =
         Copy copy ->
             Page.Copy.toUser copy
 
-        Import user ->
-            user
+        Import importModel ->
+            importModel.session
 
-        DocNew user ->
-            user
+        DocNew docNew ->
+            docNew.session
 
         App appModel ->
             Page.App.toSession appModel
+
+
+toGlobalData : Model -> GlobalData
+toGlobalData model =
+    case model of
+        Redirect { globalData } ->
+            globalData
+
+        NotFound { globalData } ->
+            globalData
+
+        PaymentSuccess { globalData } ->
+            globalData
+
+        Signup signup ->
+            Page.Signup.globalData signup
+
+        Login login ->
+            Page.Login.globalData login
+
+        ForgotPassword forgot ->
+            Page.ForgotPassword.globalData forgot
+
+        ResetPassword reset ->
+            Page.ResetPassword.globalData reset
+
+        Copy copy ->
+            Page.Copy.globalData copy
+
+        Import importModel ->
+            importModel.globalData
+
+        DocNew docNew ->
+            docNew.globalData
+
+        App appModel ->
+            Page.App.toGlobalData appModel
+
+
+getNavKey : Model -> Nav.Key
+getNavKey model =
+    case model of
+        Redirect { navKey } ->
+            navKey
+
+        NotFound { navKey } ->
+            navKey
+
+        PaymentSuccess { navKey } ->
+            navKey
+
+        Signup signup ->
+            Page.Signup.navKey signup
+
+        Login login ->
+            Page.Login.navKey login
+
+        ForgotPassword forgot ->
+            Page.ForgotPassword.navKey forgot
+
+        ResetPassword reset ->
+            Page.ResetPassword.navKey reset
+
+        Copy copy ->
+            Page.Copy.navKey copy
+
+        Import importModel ->
+            importModel.navKey
+
+        DocNew docNew ->
+            docNew.navKey
+
+        App appModel ->
+            Page.App.navKey appModel
 
 
 
@@ -234,7 +330,7 @@ update msg model =
                     if Page.App.isDirty appModel then
                         let
                             saveShortcut =
-                                if Session.isMac (toSession model) then
+                                if GlobalData.isMac (toGlobalData model) then
                                     "⌘+enter"
 
                                 else
@@ -243,7 +339,7 @@ update msg model =
                         ( model, send <| Alert ("You have unsaved changes!\n" ++ saveShortcut ++ " to save.") )
 
                     else
-                        ( model, Nav.pushUrl (Session.navKey (toSession model)) (Url.toString url) )
+                        ( model, Nav.pushUrl (getNavKey model) (Url.toString url) )
 
                 Browser.External href ->
                     ( model, Nav.load href )
@@ -251,13 +347,13 @@ update msg model =
         ( ClickedLink urlRequest, _ ) ->
             case urlRequest of
                 Browser.Internal url ->
-                    ( model, Nav.pushUrl (Session.navKey (toSession model)) (Url.toString url) )
+                    ( model, Nav.pushUrl (getNavKey model) (Url.toString url) )
 
                 Browser.External href ->
                     ( model, Nav.load href )
 
-        ( SettingsChanged json, PaymentSuccess session ) ->
-            ( PaymentSuccess (Session.sync json session), Cmd.none )
+        ( SettingsChanged json, PaymentSuccess webSessionData ) ->
+            ( PaymentSuccess { webSessionData | session = Session.sync json (GlobalData.currentTime webSessionData.globalData) webSessionData.session }, Cmd.none )
 
         ( GotSignupMsg signupMsg, Signup signupModel ) ->
             Page.Signup.update signupMsg signupModel
@@ -302,11 +398,6 @@ updateWith toModel toMsg ( subModel, subCmd ) =
     )
 
 
-withCmd : Cmd Msg -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-withCmd newCmd ( model, cmd ) =
-    ( model, Cmd.batch [ newCmd, cmd ] )
-
-
 
 -- VIEW
 
@@ -339,7 +430,7 @@ view model =
             { title = "Duplicating...", body = [ UI.viewAppLoadingSpinner (Session.fileMenuOpen copyModel.session) ] }
 
         Import importModel ->
-            { title = "Importing...", body = [ UI.viewAppLoadingSpinner (Session.fileMenuOpen importModel) ] }
+            { title = "Importing...", body = [ UI.viewAppLoadingSpinner (Session.fileMenuOpen importModel.session) ] }
 
         DocNew _ ->
             { title = "Gingko Writer - New", body = [ Html.div [] [ Html.text "LOADING..." ] ] }

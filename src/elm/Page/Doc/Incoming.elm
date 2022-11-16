@@ -15,9 +15,10 @@ type
     | DataSaved Dec.Value
     | DataReceived Dec.Value
     | NotFound
-    | GetDataToSave
-    | SavedLocally (Maybe Time.Posix)
     | SavedRemotely Time.Posix
+      -- === Desktop ===
+    | SavedToFile String Time.Posix
+    | ClickedExport
       -- === Metadata ===
     | MetadataSynced Dec.Value
     | MetadataSaved Dec.Value
@@ -105,17 +106,6 @@ subscribe tagger onError =
                 "MetadataSaved" ->
                     tagger <| MetadataSaved outsideInfo.data
 
-                "GetDataToSave" ->
-                    tagger <| GetDataToSave
-
-                "SavedLocally" ->
-                    case decodeValue (Dec.maybe Dec.int) outsideInfo.data of
-                        Ok time_ ->
-                            tagger <| SavedLocally (Maybe.map Time.millisToPosix time_)
-
-                        Err e ->
-                            onError (errorToString e)
-
                 "SavedRemotely" ->
                     case decodeValue Dec.int outsideInfo.data of
                         Ok time ->
@@ -123,6 +113,18 @@ subscribe tagger onError =
 
                         Err e ->
                             onError (errorToString e)
+
+                -- === Desktop ===
+                "SavedToFile" ->
+                    case decodeValue (tupleDecoder Dec.string (Dec.map Time.millisToPosix <| Dec.int)) outsideInfo.data of
+                        Ok ( path, timestamp ) ->
+                            tagger <| SavedToFile path timestamp
+
+                        Err e ->
+                            onError (errorToString e)
+
+                "ClickedExport" ->
+                    tagger <| ClickedExport
 
                 -- === DOM ===
                 "DragStarted" ->

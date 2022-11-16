@@ -1,0 +1,65 @@
+@import "desktop-fonts.css";
+
+#desktop-root {
+  position: fixed;
+  height: 100%;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: min-content 1fr min-content;
+  grid-template-areas:
+    "header-menu header-menu"
+    "document right-sidebar"
+    "footer footer"
+}
+#history-menu {
+  z-index: 1;
+}
+#export-menu {
+  z-index: 5;
+  grid-template-columns: 1fr 1fr min-content;
+}
+#export-button-close {
+  opacity: 0.8;
+  margin-right: 16px;
+  cursor: pointer;
+}
+#export-button-close:hover {
+  opacity: 1;
+}
+#file-save-indicator {
+  position: fixed;
+  cursor: default;
+  user-select: none;
+  font-size: 12px;
+  font-family: sans-serif;
+  font-weight: normal;
+  font-style: italic;
+  color: var(--ui-4-fg);
+  mix-blend-mode: hard-light;
+  top: 8px;
+  right: 10px;
+  z-index: 5;
+}
+#file-save-indicator.dirty {
+  font-weight: bold;
+  font-style: normal;
+}
+#file-save-indicator.fullscreen {
+  transition: opacity 2s 1s ease-in;
+}
+#fullscreen-buttons {
+  z-index: 5;
+}
+#file-save-indicator.fullscreen {
+  fill: var(--normal-text-color);
+  opacity: 0.2;
+}
+#file-save-indicator.fullscreen:hover {
+  fill: var(--normal-text-color);
+  opacity: 1;
+  transition: none;
+}
+#file-save-indicator.fullscreen.dirty {
+  opacity: 1;
+}

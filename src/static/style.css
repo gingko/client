@@ -1,86 +1,8 @@
 @import url('./shared.css');
 
-@import url('https://fonts.googleapis.com/css2?family=Catamaran:wght@200&display=swap');
-
-@font-face {
-  font-family: 'Eczar';
-  src: url('./fonts/eczar/Eczar-Regular.ttf');
-}
-@font-face {
-  font-family: 'Eczar';
-  src: url('./fonts/eczar/Eczar-Bold.ttf');
-  font-weight: bold;
-}
-
-
-@font-face {
-  font-family: 'Droid Sans Mono';
-  src: url('./fonts/Droid_Sans_Mono/DroidSansMono.ttf');
-}
-
 @font-face {
   font-family: 'Glyphicons Halflings';
   src: url('./fonts/glyphicons-halflings-regular.woff2');
-}
-
-
-@font-face {
-  font-family: 'Libre Baskerville';
-  src: url('./fonts/librebaskerville/LibreBaskerville-Regular.ttf');
-}
-@font-face {
-  font-family: 'Libre Baskerville';
-  src: url('./fonts/librebaskerville/LibreBaskerville-Bold.ttf');
-  font-weight: bold;
-}
-@font-face {
-  font-family: 'Libre Baskerville';
-  src: url('./fonts/librebaskerville/LibreBaskerville-Italic.ttf');
-  font-style: italic;
-}
-
-
-@font-face {
-  font-family: 'Merriweather';
-  src: url('./fonts/Merriweather/Merriweather-Regular.ttf');
-}
-@font-face {
-  font-family: 'Merriweather';
-  src: url('./fonts/Merriweather/Merriweather-Bold.ttf');
-  font-weight: bold;
-}
-@font-face {
-  font-family: 'Merriweather';
-  src: url('./fonts/Merriweather/Merriweather-Italic.ttf');
-  font-style: italic;
-}
-@font-face {
-  font-family: 'Merriweather';
-  src: url('./fonts/Merriweather/Merriweather-BoldItalic.ttf');
-  font-weight: bold;
-  font-style: italic;
-}
-
-
-@font-face {
-  font-family: 'Open Dyslexic';
-  src: url('./fonts/OpenDyslexic/OpenDyslexic-Regular.otf');
-}
-@font-face {
-  font-family: 'Open Dyslexic';
-  src: url('./fonts/OpenDyslexic/OpenDyslexic-Bold.otf');
-  font-weight: bold;
-}
-@font-face {
-  font-family: 'Open Dyslexic';
-  src: url('./fonts/OpenDyslexic/OpenDyslexic-Italic.otf');
-  font-style: italic;
-}
-@font-face {
-  font-family: 'Open Dyslexic';
-  src: url('./fonts/OpenDyslexic/OpenDyslexic-BoldItalic.otf');
-  font-weight: bold;
-  font-style: italic;
 }
 
 html {
@@ -999,7 +921,7 @@ a.sidebar-menu-item, a.sidebar-menu-item:visited {
   grid-area: header-menu;
   height: 40px;
   display: grid;
-  grid-template-columns: 1fr 182px auto 40px;
+  grid-template-columns: 1fr 184px auto 40px;
   grid-template-areas: "slider info restore close";
   grid-column-gap: 15px;
   padding-left: 15px;
@@ -1984,7 +1906,7 @@ span.trial-dark {
   grid-template-columns: auto minmax(min(100vw,80ch), 80ch) auto;
   grid-template-areas: ". main .";
   background: var(--edit-bg, url('./handmadepaper.png'));
-  z-index: 1;
+  z-index: 4;
 }
 
 #fullscreen-main {
@@ -2273,7 +2195,7 @@ span.collaborators {
   line-height: 20px;
   white-space: nowrap;
   pointer-events: none;
-  z-index: 3;
+  z-index: 99;
   opacity: 0;
 }
 .tooltip-arrow {

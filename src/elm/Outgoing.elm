@@ -5,7 +5,6 @@ import Doc.Fonts as Fonts
 import Doc.TreeUtils exposing (ScrollPosition, scrollPositionToValue)
 import Json.Encode as Enc exposing (..)
 import Page.Doc.Theme as Theme exposing (Theme)
-import Translation exposing (Language, langToString)
 import Types exposing (CollabState, CursorPosition(..), DropId, OutsideData, TextCursorInfo, Tree, dropIdToValue)
 
 
@@ -33,6 +32,9 @@ type Msg
     | PullData
     | SaveImportedData Enc.Value
     | SaveBulkImportedData Enc.Value
+      -- === Desktop ===
+    | SaveToFile String String
+    | ExportToFile String String
       -- === DOM ===
     | ScrollCards (List String) (List ( Int, ScrollPosition )) Int Bool
     | ScrollFullscreenCards String
@@ -60,7 +62,6 @@ type Msg
     | EmptyMessageShown
     | ShowWidget
     | CheckoutButtonClicked Enc.Value
-    | SocketSend CollabState
     | ConsoleLogRequested String
 
 
@@ -123,6 +124,13 @@ send info =
 
         NoDataToSave ->
             dataToSend "NoDataToSave" null
+
+        -- === Desktop ===
+        SaveToFile filename str ->
+            dataToSend "SaveToFile" (tupleToValue string ( filename, str ))
+
+        ExportToFile format str ->
+            dataToSend "ExportToFile" (tupleToValue string ( format, str ))
 
         -- === DOM ===
         ScrollCards lastActives listScrollPositions colIdx instant ->
@@ -224,9 +232,6 @@ send info =
 
         CheckoutButtonClicked checkoutData ->
             dataToSend "CheckoutButtonClicked" checkoutData
-
-        SocketSend collabState ->
-            dataToSend "SocketSend" (collabStateToValue collabState)
 
         ConsoleLogRequested err ->
             dataToSend "ConsoleLogRequested" (string err)

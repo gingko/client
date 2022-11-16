@@ -1,0 +1,20 @@
+html, body {
+  background: hsl(202, 34%, 96%);
+}
+body {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+#freshworks-container {
+  z-index: 999 !important;
+}
+#custom-close-button {
+  width: 40px;
+  height: 40px;
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 9999;
+  background: linear-gradient(45deg, #009e8a, #00a687);
+}

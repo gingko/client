@@ -1,0 +1,16 @@
+html, body {
+  background: hsl(202deg 62% 92%);
+}
+body {
+  max-width: 1200px;
+  width: 100%;
+  margin: 40px 0;
+  display: flex;
+  justify-content: center;
+  overflow-y: auto;
+}
+
+#shortcut-main-title {
+  display: none;
+}
+

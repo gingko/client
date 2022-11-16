@@ -1,0 +1,24 @@
+html, body {
+  background: hsl(202, 34%, 96%);
+}
+body {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.modal-overlay, .modal-header {
+  display: none;
+}
+
+.modal.video-viewer {
+  position: unset;
+  top: unset;
+  left: unset;
+  transform: unset;
+  box-shadow: unset;
+}
+
+.modal-guts {
+  max-height: unset;
+}

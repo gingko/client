@@ -1,4 +1,4 @@
-module Doc.HelpScreen exposing (view)
+module Doc.HelpScreen exposing (view, viewShortcuts)
 
 import Ant.Icons.Svg as Icons
 import Html exposing (Html, a, button, div, h2, h3, h4, kbd, li, span, table, td, th, thead, ul)
@@ -33,10 +33,6 @@ emptyText =
 
 view : Language -> Bool -> { closeModal : msg, showVideoTutorials : msg, showWidget : msg, contactSupport : msg } -> List (Html msg)
 view lang isMac msg =
-    let
-        ctrlOrCmd =
-            ctrlOrCmdText isMac
-    in
     [ div [ class "modal-overlay", onClick msg.closeModal ] []
     , div [ class "max-width-grid" ]
         [ div [ class "modal", class "help-modal" ]
@@ -45,29 +41,38 @@ view lang isMac msg =
                 , div [ class "close-button", onClick msg.closeModal ] [ Icons.closeCircleOutlined [ width 20, height 20 ] ]
                 ]
             , div [ class "modal-guts" ]
-                [ h2 [ id "shortcut-main-title" ] [ text lang KeyboardShortcuts ]
-                , div [ id "shortcut-modes-wrapper" ]
-                    [ div []
-                        [ h3 [ id "view-mode-shortcuts-title" ] [ text lang ViewModeShortcuts ]
-                        , shortcutTable lang CardEditCreateDelete (normalEditShortcuts lang ctrlOrCmd)
-                        , shortcutTable lang NavigationMovingCards (normalNavigationShortcuts lang ctrlOrCmd)
-                        , shortcutTable lang CopyPaste (normalCopyShortcuts lang ctrlOrCmd)
-                        , shortcutTable lang SearchingMerging (normalAdvancedShortcuts lang ctrlOrCmd)
-                        , shortcutTable lang HelpInfoDocs (normalOtherShortcuts lang ctrlOrCmd)
-                        ]
-                    , div [ id "mode-divider" ] []
-                    , div []
-                        [ h3 [ id "edit-mode-shortcuts-title" ] [ text lang EditModeShortcuts ]
-                        , shortcutTable lang CardSaveCreate (editSaveShortcuts lang ctrlOrCmd)
-                        , shortcutTable lang Formatting (editFormatShortcuts lang ctrlOrCmd)
-                        ]
-                    ]
-                ]
+                (viewShortcuts lang isMac)
             , div [ class "modal-buttons" ]
                 [ div [ onClick msg.showVideoTutorials ] [ text lang HelpVideos ]
                 , div [ onClick msg.showWidget ] [ text lang FAQAndDocs ]
                 , div [ id "email-support", onClick msg.contactSupport ] [ text lang ContactSupport ]
                 ]
+            ]
+        ]
+    ]
+
+
+viewShortcuts : Language -> Bool -> List (Html msg)
+viewShortcuts lang isMac =
+    let
+        ctrlOrCmd =
+            ctrlOrCmdText isMac
+    in
+    [ h2 [ id "shortcut-main-title" ] [ text lang KeyboardShortcuts ]
+    , div [ id "shortcut-modes-wrapper" ]
+        [ div []
+            [ h3 [ id "view-mode-shortcuts-title" ] [ text lang ViewModeShortcuts ]
+            , shortcutTable lang CardEditCreateDelete (normalEditShortcuts lang ctrlOrCmd)
+            , shortcutTable lang NavigationMovingCards (normalNavigationShortcuts lang ctrlOrCmd)
+            , shortcutTable lang CopyPaste (normalCopyShortcuts lang ctrlOrCmd)
+            , shortcutTable lang SearchingMerging (normalAdvancedShortcuts lang ctrlOrCmd)
+            , shortcutTable lang HelpInfoDocs (normalOtherShortcuts lang ctrlOrCmd)
+            ]
+        , div [ id "mode-divider" ] []
+        , div []
+            [ h3 [ id "edit-mode-shortcuts-title" ] [ text lang EditModeShortcuts ]
+            , shortcutTable lang CardSaveCreate (editSaveShortcuts lang ctrlOrCmd)
+            , shortcutTable lang Formatting (editFormatShortcuts lang ctrlOrCmd)
             ]
         ]
     ]

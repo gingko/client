@@ -1,0 +1,11 @@
+html, body {
+  background: white;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  position: absolute;
+}

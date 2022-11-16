@@ -215,6 +215,7 @@ type TranslationId
     | ExportSettingPlainText
     | ExportSettingJSON
     | ExportSettingOPML
+    | CloseExportView
     | DownloadWordFile
     | DownloadTextFile
     | DownloadJSONFile
@@ -4471,7 +4472,7 @@ tr lang trans =
                     }
 
                 ExportSettingCurrentColumnDesc ->
-                    { en = "Only carsd in the current (vertical) column"
+                    { en = "Only cards in the current (vertical) column"
                     , zh_hans = "%zh_hans:ExportSettingCurrentColumnDesc%"
                     , zh_hant = "%zh_hant:ExportSettingCurrentColumnDesc%"
                     , es = "%es:ExportSettingCurrentColumnDesc%"
@@ -4578,6 +4579,28 @@ tr lang trans =
                     , ca = "%ca:ExportSettingOPML%"
                     , br = "%br:ExportSettingOPML%"
                     , mr = "%mr:ExportSettingOPML%"
+                    }
+
+                CloseExportView ->
+                    { en = "Close Export View"
+                    , zh_hans = "%zh_hans:CloseExportView%"
+                    , zh_hant = "%zh_hant:CloseExportView%"
+                    , es = "%es:CloseExportView%"
+                    , ar = "%ar:CloseExportView%"
+                    , fr = "%fr:CloseExportView%"
+                    , ru = "%ru:CloseExportView%"
+                    , de = "%de:CloseExportView%"
+                    , ja = "%ja:CloseExportView%"
+                    , pes = "%pes:CloseExportView%"
+                    , it = "%it:CloseExportView%"
+                    , ro = "%ro:CloseExportView%"
+                    , hr = "%hr:CloseExportView%"
+                    , nl = "%nl:CloseExportView%"
+                    , hu = "%hu:CloseExportView%"
+                    , sv = "%sv:CloseExportView%"
+                    , ca = "%ca:CloseExportView%"
+                    , br = "%br:CloseExportView%"
+                    , mr = "%mr:CloseExportView%"
                     }
 
                 DownloadWordFile ->
@@ -4945,12 +4968,12 @@ timeDistInWords lang t1 t2 =
 
 dateFormat : Language -> Time.Posix -> String
 dateFormat lang time =
-    posixToString "%B %-d, %Y%" lang time
+    posixToString "%B %-d, %Y" lang time
 
 
 datetimeFormat : Language -> Time.Posix -> String
 datetimeFormat lang time =
-    posixToString "%b %-d, %Y, %-I:%M:%S %p%" lang time
+    posixToString "%b %-d, %Y, %-I:%M:%S %p" lang time
 
 
 posixToString : String -> Language -> Time.Posix -> String

@@ -1,4 +1,4 @@
-module Page.Doc.Export exposing (ExportFormat(..), ExportSelection(..), command, exportView, exportViewError)
+module Page.Doc.Export exposing (ExportFormat(..), ExportSelection(..), command, exportView, exportViewError, toExtension, toString)
 
 import Ant.Icons.Svg as AntIcons
 import Api
@@ -101,6 +101,22 @@ toString docName ( exportSelection, exportFormat ) activeTree fullTree =
                     currentColumnCards
                         |> List.map .content
                         |> String.join "\n\n"
+
+
+toExtension : ExportFormat -> String
+toExtension expFormat =
+    case expFormat of
+        DOCX ->
+            "docx"
+
+        JSON ->
+            "json"
+
+        OPML ->
+            "opml"
+
+        PlainText ->
+            "md"
 
 
 

@@ -1,0 +1,30 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="desktop.css">
+  <link rel="stylesheet" href="trial-modal.css">
+  <script>
+    function submitLicense () {
+      const eml = document.getElementById('email').value
+      const license = document.getElementById('license').value
+      console.log(eml, license)
+    }
+  </script>
+</head>
+
+<body>
+<h1>
+  Enter your License key & Email:
+</h1>
+<div>
+    <form onsubmit="submitLicense()">
+      <input id="email" type="email" placeholder="Email" />
+      <input id="license" type="text" pattern="[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}" placeholder="ABCD-1234-ABCD-1234" />
+      <button type="submit">Save</button>
+    </form>
+</div>
+</body>
+</html>

@@ -1,4 +1,4 @@
-module Doc.ContactForm exposing (Model, Msg, init, send, update, view)
+module Doc.ContactForm exposing (Model, Msg, init, send, toValue, update, view)
 
 import Html exposing (Html, a, br, button, div, form, input, label, p, small, span, text, textarea)
 import Html.Attributes exposing (checked, class, for, href, id, name, placeholder, readonly, rows, type_, value)
