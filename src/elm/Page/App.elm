@@ -34,7 +34,7 @@ import Import.Text as ImportText
 import Json.Decode as Json
 import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
-import Page.Doc exposing (Msg(..), ParentMsg(..), checkoutCommit, saveAndStopEditing, saveCardIfEditing)
+import Page.Doc exposing (Msg(..), ParentMsg(..), checkoutCommit, exitFullscreen, saveAndStopEditing, saveCardIfEditing)
 import Page.Doc.Export as Export exposing (ExportFormat(..), ExportSelection(..), exportView, exportViewError)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Doc.Theme exposing (Theme(..), applyTheme)
@@ -1084,8 +1084,17 @@ update msg model =
 
         -- FULLSCREEN mode
         ExitFullscreenRequested ->
-            -- TODO:
-            ( model, Cmd.none )
+            case model.documentState of
+                Doc docState ->
+                    let
+                        ( newDocModel, newDocCmd ) =
+                            docState.docModel
+                                |> exitFullscreen
+                    in
+                    ( { model | documentState = Doc { docState | docModel = newDocModel } }, Cmd.map GotDocMsg newDocCmd )
+
+                _ ->
+                    ( model, Cmd.none )
 
         SaveChanges ->
             case model.documentState of

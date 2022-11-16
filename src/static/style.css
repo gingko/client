@@ -1924,6 +1924,7 @@ span.trial-dark {
   height: 100%;
   justify-content: space-between;
   flex-direction: column;
+  z-index: 5;
 }
 #fullscreen-buttons > * {
   margin: 24px 0;

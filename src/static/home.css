@@ -60,11 +60,6 @@ label {
   padding: 20px 15px;
   background-color: var(--bg-main);
 }
-.template-row {
-  display: flex;
-  gap: 30px;
-  color: white;
-}
 #recent-documents-block {
   grid-area: bottom;
   padding: 10px 15px 0px;
