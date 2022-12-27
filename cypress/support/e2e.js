@@ -16,6 +16,3 @@
 // Import commands.js using ES2015 syntax:
 import './commands'
 import 'cypress-file-upload';
-//import 'cypress-fail-fast';
-
-require('cypress-watch-and-reload/support')
