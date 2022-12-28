@@ -30,12 +30,12 @@ describe('Random seed initialization', () => {
     cy.contains('#save-indicator', 'Synced')
 
     // Switch to other tree and back
-    cy.get('#documents-icon').click().wait(250)
+    cy.get('#documents-icon').click().wait(500)
     cy.get('#sidebar-document-list-wrap').contains('Another doc').click()
     cy.url().should('contain', this.treeIds[1] )
     cy.get('#title').contains('Another doc, with title')
 
-    cy.wait(250)
+    cy.wait(500)
 
     cy.get('#sidebar-document-list-wrap').contains('Untitled').click()
     cy.url().should('contain', this.treeIds[0] )
