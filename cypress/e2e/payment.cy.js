@@ -59,6 +59,8 @@ describe('Upgrade process', () => {
     cy.contains("$117")
     cy.contains("per year")
 
+    cy.wait(500)
+
     // Change in currency should reflect in displayed price
     cy.get('#currency-selector')
       .select('INR')
