@@ -183,7 +183,7 @@ async function setUserDbs(eml) {
 
   // Sync document list with server
   Dexie.liveQuery(() => dexie.trees.toArray()).subscribe((trees) => {
-    const rows = trees.map((tree) => ({value : treeDocToMetadata(tree)}));
+    const rows = trees.filter(t => t.deletedAt == null).map((tree) => ({value : treeDocToMetadata(tree)}));
     toElm({rows}, "documentListChanged");
 
     const unsyncedTrees = trees.filter(t => !t.synced);
@@ -398,19 +398,8 @@ const fromElm = (msg, elmData) => {
     },
 
     RequestDelete: async () => {
-      if (confirm("Are you sure you want to delete this document?")) {
-        let docsFetch = await remoteDB.allDocs({
-          startkey: elmData + "/",
-          endkey: elmData + "/\ufff0",
-        });
-
-        let docsToDelete = docsFetch.rows.map((r) => {
-          return { _id: r.id, _rev: r.value.rev, _deleted: true };
-        });
-
-        // Delete from local and remote DBs
-        remoteDB.bulkDocs(docsToDelete);
-        await db.bulkDocs(docsToDelete);
+      if (confirm(`Are you sure you want to delete the document '${elmData[1]}'?`)) {
+        await dexie.trees.update(elmData[0], {deletedAt: Date.now(), synced: false});
       }
     },
 

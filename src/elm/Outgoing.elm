@@ -25,7 +25,7 @@ type Msg
     | LoadDocument String
     | CopyDocument String
     | GetDocumentList
-    | RequestDelete String
+    | RequestDelete String (Maybe String)
     | NoDataToSave
     | RenameDocument String
     | CommitData Enc.Value
@@ -119,8 +119,8 @@ send info =
         GetDocumentList ->
             dataToSend "GetDocumentList" null
 
-        RequestDelete dbName ->
-            dataToSend "RequestDelete" (string dbName)
+        RequestDelete dbName docName_ ->
+            dataToSend "RequestDelete" (tupleToValue string ( dbName, docName_ |> Maybe.withDefault "Untitled" ))
 
         NoDataToSave ->
             dataToSend "NoDataToSave" null

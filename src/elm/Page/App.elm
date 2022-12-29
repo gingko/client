@@ -594,7 +594,11 @@ update msg model =
             ( { model | modalState = NoModal }, Route.replaceUrl model.navKey (Route.Copy docId) )
 
         DeleteDoc docId ->
-            ( { model | modalState = NoModal }, send <| RequestDelete docId )
+            let
+                docName_ =
+                    Session.getDocName session docId
+            in
+            ( { model | modalState = NoModal }, send <| RequestDelete docId docName_ )
 
         ReceivedDocuments newListState ->
             let
