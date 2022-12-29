@@ -178,10 +178,11 @@ async function setUserDbs(email) {
   }
 
   // Sync document list with server
-  PouchDB.sync(db, remoteDB, { filter: "_view", view: "testDocList/docList", include_docs: true, live: true, retry: true })
-    .on('change',(change) =>{
-      loadDocListAndSend(db, "sync.changes");
-    })
+  Dexie.liveQuery(() => dexie.trees.toArray()).subscribe((trees) => {
+    const rows = trees.map((tree) => ({value : {docId: tree.id, name: tree.name, createdAt: tree.createdAt, updatedAt: tree.updatedAt, _rev: null}}));
+    console.log('sending', rows);
+    toElm({rows}, "documentListChanged");
+  });
 
   LogRocket.identify(email);
 
@@ -695,8 +696,10 @@ const fromElm = (msg, elmData) => {
 /* === Database === */
 
 async function loadDocListAndSend(dbToLoadFrom, source) {
+  /*
   let docList = await data.getDocumentList(dbToLoadFrom);
   toElm(docList, "documentListChanged");
+   */
 }
 
 
