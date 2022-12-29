@@ -20,7 +20,7 @@ const Dexie = require("dexie").default;
 
 const dexie = new Dexie("db");
 dexie.version(1).stores({
-  trees: "id",
+  trees: "id,updatedAt",
 });
 
 const helpers = require("./doc-helpers");
@@ -165,14 +165,18 @@ async function setUserDbs(email) {
 
   ws.onmessage = async (e) => {
     const data = JSON.parse(e.data);
-    switch (data.t) {
-      case 'trees':
-        try {
+    try {
+      switch (data.t) {
+        case 'trees':
           await dexie.trees.bulkPut(data.d.map(t => ({...t, synced : true})));
-        } catch (e) {
-          console.log(e);
-        }
-        break;
+          break;
+
+        case 'treesOk':
+          await dexie.trees.where('updatedAt').belowOrEqual(data.d).modify({synced: true});
+          break;
+      }
+    } catch (e) {
+      console.log(e);
     }
   }
 
@@ -412,7 +416,7 @@ const fromElm = (msg, elmData) => {
     RenameDocument: async () => {
       if (!renaming) { // Hack to prevent double rename attempt due to Browser.Dom.blur
         renaming = true;
-        await dexie.trees.update(TREE_ID, {name: elmData});
+        await dexie.trees.update(TREE_ID, {name: elmData, updatedAt: Date.now(), synced: false});
         renaming = false;
       }
     },
