@@ -243,6 +243,7 @@ function toElm(data, portName, tagName) {
 }
 
 const fromElm = (msg, elmData) => {
+  console.log("fromElm", msg, elmData);
   window.elmMessages.push({tag: msg, data: elmData});
   window.elmMessages = window.elmMessages.slice(-10);
 
@@ -411,10 +412,7 @@ const fromElm = (msg, elmData) => {
     RenameDocument: async () => {
       if (!renaming) { // Hack to prevent double rename attempt due to Browser.Dom.blur
         renaming = true;
-        let saveRes = await data.renameDocument(db, TREE_ID, elmData);
-        if (saveRes) {
-          toElm(saveRes, "docMsgs", "MetadataSaved");
-        }
+        await dexie.trees.update(TREE_ID, {name: elmData});
         renaming = false;
       }
     },
