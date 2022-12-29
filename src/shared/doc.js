@@ -42,6 +42,7 @@ let db;
 let gingko;
 let TREE_ID;
 let userDbName;
+let email = null;
 let ws;
 let PULL_LOCK = false;
 let DIRTY = false;
@@ -64,7 +65,6 @@ const sessionStorageKey = "gingko-session-storage";
 initElmAndPorts();
 
 async function initElmAndPorts() {
-  let email = null;
   let sessionData = localStorage.getItem(sessionStorageKey) || null;
   let settings = {language: "en"};
   if (sessionData) {
@@ -131,7 +131,8 @@ async function initElmAndPorts() {
   })
 }
 
-async function setUserDbs(email) {
+async function setUserDbs(eml) {
+  email = eml;
   console.log("Inside setUserDbs", email, helpers.toHex(email));
   userDbName = `userdb-${helpers.toHex(email)}`;
   let userDbUrl = window.location.origin + "/db/" + userDbName;
@@ -297,7 +298,7 @@ const fromElm = (msg, elmData) => {
       TREE_ID = elmData;
 
       const now = Date.now();
-      const treeDoc = {...treeDocDefaults, id: TREE_ID, owner: localStore.get("email"), createdAt: now, updatedAt: now};
+      const treeDoc = {...treeDocDefaults, id: TREE_ID, owner: email, createdAt: now, updatedAt: now};
 
       await dexie.trees.add(treeDoc);
 
@@ -696,7 +697,7 @@ const fromElm = (msg, elmData) => {
 
 /* === Database === */
 
-const treeDocDefaults = {name: null, location: "couchdb", inviteUrl: null, collaborators: [], deletedAt: null};
+const treeDocDefaults = {name: null, location: "couchdb", inviteUrl: null, collaborators: "[]", deletedAt: null};
 
 function treeDocToMetadata(tree) {
   return {docId: tree.id, name: tree.name, createdAt: tree.createdAt, updatedAt: tree.updatedAt, _rev: null}
