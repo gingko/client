@@ -22,7 +22,6 @@ const dexie = new Dexie("db");
 dexie.version(1).stores({
   trees: "id",
 });
-console.log("Dexie", dexie);
 
 const helpers = require("./doc-helpers");
 import { Elm } from "../elm/Main";
@@ -169,7 +168,7 @@ async function setUserDbs(email) {
     switch (data.t) {
       case 'trees':
         try {
-          await dexie.trees.bulkPut(data.d);
+          await dexie.trees.bulkPut(data.d.map(t => ({...t, synced : true})));
         } catch (e) {
           console.log(e);
         }
@@ -179,9 +178,13 @@ async function setUserDbs(email) {
 
   // Sync document list with server
   Dexie.liveQuery(() => dexie.trees.toArray()).subscribe((trees) => {
-    const rows = trees.map((tree) => ({value : {docId: tree.id, name: tree.name, createdAt: tree.createdAt, updatedAt: tree.updatedAt, _rev: null}}));
-    console.log('sending', rows);
+    const rows = trees.map((tree) => ({value : treeDocToMetadata(tree)}));
     toElm({rows}, "documentListChanged");
+
+    const unsyncedTrees = trees.filter(t => !t.synced);
+    if (unsyncedTrees.length > 0) {
+      ws.send(JSON.stringify({t: 'trees', d: unsyncedTrees}));
+    }
   });
 
   LogRocket.identify(email);
@@ -221,6 +224,7 @@ const stripe = Stripe(config.STRIPE_PUBLIC_KEY);
 /* === Elm / JS Interop === */
 
 function toElm(data, portName, tagName) {
+  if (!gingko) { return; }
   let portExists = gingko.ports.hasOwnProperty(portName);
   let tagGiven = typeof tagName == "string";
 
@@ -288,14 +292,9 @@ const fromElm = (msg, elmData) => {
       TREE_ID = elmData;
 
       const now = Date.now();
-      let metadata = {
-        _id: elmData + "/metadata",
-        docId: elmData,
-        name: null,
-        createdAt: now,
-        updatedAt: now,
-      };
-      await db.put(metadata).catch(async (e) => e);
+      const treeDoc = {...treeDocDefaults, id: TREE_ID, owner: localStore.get("email"), createdAt: now, updatedAt: now};
+
+      await dexie.trees.add(treeDoc);
 
       // Set localStore db
       localStore.db(elmData);
@@ -305,8 +304,8 @@ const fromElm = (msg, elmData) => {
       TREE_ID = elmData;
 
       // Load title
-      let metadata = await data.loadMetadata(db, elmData);
-      toElm(metadata, "docMsgs", "MetadataSaved")
+      const treeDoc = await dexie.trees.get(elmData);
+      toElm(treeDocToMetadata(treeDoc), "docMsgs", "MetadataSaved")
 
       // Load document-specific settings.
       localStore.db(elmData);
@@ -694,6 +693,12 @@ const fromElm = (msg, elmData) => {
 
 
 /* === Database === */
+
+const treeDocDefaults = {name: null, location: "couchdb", inviteUrl: null, collaborators: [], deletedAt: null};
+
+function treeDocToMetadata(tree) {
+  return {docId: tree.id, name: tree.name, createdAt: tree.createdAt, updatedAt: tree.updatedAt, _rev: null}
+}
 
 async function loadDocListAndSend(dbToLoadFrom, source) {
   /*
