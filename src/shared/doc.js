@@ -466,11 +466,15 @@ const fromElm = (msg, elmData) => {
     },
 
     SaveImportedData: async () => {
+      const now = Date.now();
       let [ savedData
         , savedImmutables
         , conflictsExist
         , savedMetadata
-      ] = await data.newSave(userDbName, elmData.metadata.docId, elmData, Date.now(), savedObjectIds);
+      ] = await data.newSave(userDbName, elmData.metadata.docId, elmData, now, savedObjectIds);
+
+      const treeDoc = {...treeDocDefaults, id: elmData.metadata.docId, owner: email, createdAt: now, updatedAt: now};
+      await dexie.trees.add(treeDoc);
 
       // Add saved immutables to cache.
       savedImmutables.forEach(item => savedObjectIds.add(item));
