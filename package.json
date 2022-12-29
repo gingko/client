@@ -57,7 +57,9 @@
       "gatekeeperAssess": false,
       "entitlements": "./build/entitlements.mac.plist",
       "entitlementsInherit": "./build/entitlements.mac.plist",
-      "asarUnpack": ["node_modules/leveldown/**/*"]
+      "asarUnpack": [
+        "node_modules/leveldown/**/*"
+      ]
     },
     "dmg": {
       "sign": false,
@@ -75,11 +77,14 @@
       ]
     },
     "linux": {
-      "target": ["AppImage"],
+      "target": [
+        "AppImage"
+      ],
       "category": "Office"
     }
   },
   "dependencies": {
+    "dexie": "^3.2.2",
     "electron-is-dev": "^0.3.0",
     "electron-log": "^4.4.7",
     "electron-store": "^8.0.1",
@@ -108,9 +113,9 @@
     "turndown": "^7.1.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.20.2",
     "copy-webpack-plugin": "^11.0.0",
     "couchdb-backup": "^1.0.2",
-    "@playwright/test": "^1.20.2",
     "cypress": "^10.11.0",
     "cypress-file-upload": "^4.1.1",
     "cypress-watch-and-reload": "^1.2.18",

@@ -16,6 +16,13 @@ if(window.location.origin === config.PRODUCTION_SERVER) {
 }
 
 import PouchDB from "pouchdb";
+const Dexie = require("dexie").default;
+
+const dexie = new Dexie("db");
+dexie.version(1).stores({
+  trees: "id",
+});
+console.log("Dexie", dexie);
 
 const helpers = require("./doc-helpers");
 import { Elm } from "../elm/Main";
@@ -36,6 +43,7 @@ let db;
 let gingko;
 let TREE_ID;
 let userDbName;
+let ws;
 let PULL_LOCK = false;
 let DIRTY = false;
 let draggingInternal = false;
@@ -150,18 +158,24 @@ async function setUserDbs(email) {
       }
     });
 
-  // add docList design document
-  let ddoc = {
-    _id: "_design/testDocList",
-    views: {
-      docList: {
-        map:
-          "function (doc) {\n  if (/metadata/.test(doc._id)) {\n    emit(doc._id, doc);\n  }\n}",
-      },
-    },
-    language: "javascript",
-  };
-  db.put(ddoc).catch(async (e) => e); // ignore conflict error
+  ws = new WebSocket('ws://localhost:3000');
+
+  ws.onopen = () => {
+    console.log('connected');
+  }
+
+  ws.onmessage = async (e) => {
+    const data = JSON.parse(e.data);
+    switch (data.t) {
+      case 'trees':
+        try {
+          await dexie.trees.bulkPut(data.d);
+        } catch (e) {
+          console.log(e);
+        }
+        break;
+    }
+  }
 
   // Sync document list with server
   PouchDB.sync(db, remoteDB, { filter: "_view", view: "testDocList/docList", include_docs: true, live: true, retry: true })
