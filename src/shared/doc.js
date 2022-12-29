@@ -446,6 +446,7 @@ const fromElm = (msg, elmData) => {
       DIRTY = false;
 
       // Maybe send metadata to Elm
+      await dexie.trees.update(TREE_ID, {updatedAt: savedMetadata.updatedAt, synced: false});
       if (typeof savedMetadata !== "undefined") { toElm(savedMetadata, "docMsgs", "MetadataSaved")}
 
       // Pull & Maybe push
