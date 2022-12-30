@@ -78,7 +78,7 @@ type DocumentState
 type alias DocState =
     { session : Session
     , docId : String
-    , docModel : Page.Doc.OpaqueModel
+    , docModel : Page.Doc.Model
     , data : Data.Model
     , lastRemoteSave : Maybe Time.Posix
     , lastLocalSave : Maybe Time.Posix
@@ -107,14 +107,14 @@ type ModalState
     | TemplateSelector
     | HelpScreen
     | VideoViewer VideoViewer.Model
-    | Wordcount Page.Doc.OpaqueModel
+    | Wordcount Page.Doc.Model
     | ImportModal ImportModal.Model
     | ImportTextModal ImportText.Model
     | ContactForm ContactForm.Model
     | UpgradeModal
 
 
-defaultModel : Nav.Key -> GlobalData -> Session -> Maybe ( String, Page.Doc.OpaqueModel ) -> Model
+defaultModel : Nav.Key -> GlobalData -> Session -> Maybe ( String, Page.Doc.Model ) -> Model
 defaultModel nKey globalData session docModel_ =
     { loading = True
     , documentState =
@@ -1274,12 +1274,21 @@ dataReceived dataIn model =
 
                 tree =
                     workingTree.tree
+
+                lastActives =
+                    Json.decodeValue (Json.at [ "localStore", "last-actives" ] (Json.list Json.string)) dataIn
             in
             case Data.received dataIn ( docState.data, tree ) of
                 Just { newModel, newTree } ->
                     let
                         newWorkingTree =
                             TreeStructure.setTreeWithConflicts (Data.conflictList newModel) newTree workingTree
+
+                        ( newDocModel, newCmds ) =
+                            docModel
+                                |> Page.Doc.setWorkingTree newWorkingTree
+                                |> Page.Doc.setLoading False
+                                |> Page.Doc.lastActives lastActives
                     in
                     ( { model
                         | documentState =
@@ -1288,13 +1297,10 @@ dataReceived dataIn model =
                                     | data = newModel
                                     , lastRemoteSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
                                     , lastLocalSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
-                                    , docModel =
-                                        docModel
-                                            |> Page.Doc.setWorkingTree newWorkingTree
-                                            |> Page.Doc.setLoading False
+                                    , docModel = newDocModel
                                 }
                       }
-                    , Cmd.none
+                    , Cmd.map GotDocMsg newCmds
                     )
 
                 Nothing ->
@@ -1338,7 +1344,7 @@ addToHistoryDo ( model, prevCmd ) =
             ( model, prevCmd )
 
 
-normalMode : Page.Doc.OpaqueModel -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+normalMode : Page.Doc.Model -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 normalMode docModel modified noOp =
     if Page.Doc.isNormalMode docModel then
         modified

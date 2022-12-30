@@ -1,4 +1,4 @@
-module Page.Doc exposing (Msg, MsgToParent(..), OpaqueModel, activate, exitFullscreen, getActiveId, getActiveTree, getField, getGlobalData, getTextCursorInfo, getViewMode, getWorkingTree, init, isDirty, isNormalMode, opaqueIncoming, opaqueUpdate, saveAndStopEditing, saveCardIfEditing, setDirty, setGlobalData, setLoading, setWorkingTree, subscriptions, view)
+module Page.Doc exposing (Model, Msg, MsgToParent(..), exitFullscreen, getActiveId, getActiveTree, getField, getGlobalData, getTextCursorInfo, getViewMode, getWorkingTree, init, isDirty, isNormalMode, lastActives, opaqueIncoming, opaqueUpdate, saveAndStopEditing, saveCardIfEditing, setDirty, setGlobalData, setLoading, setWorkingTree, subscriptions, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -33,7 +33,7 @@ import Utils exposing (randomPositiveInt)
 -- MODEL
 
 
-type alias Model =
+type alias ModelData =
     -- Document state
     { workingTree : TreeStructure.Model
 
@@ -55,13 +55,13 @@ type alias Model =
     }
 
 
-type OpaqueModel
-    = Opaque Model
+type Model
+    = Model ModelData
 
 
-init : Bool -> GlobalData -> OpaqueModel
+init : Bool -> GlobalData -> Model
 init isNew globalData =
-    Opaque
+    Model
         { workingTree = TreeStructure.defaultModel
         , globalData = globalData
         , loading = not isNew
@@ -135,16 +135,16 @@ type DragExternalMsg
     | DragLeave DropId
 
 
-opaqueUpdate : Msg -> OpaqueModel -> ( OpaqueModel, Cmd Msg, List MsgToParent )
-opaqueUpdate msg (Opaque model) =
+opaqueUpdate : Msg -> Model -> ( Model, Cmd Msg, List MsgToParent )
+opaqueUpdate msg (Model model) =
     let
         ( newModel, cmd, pMsgs ) =
             update msg model
     in
-    ( Opaque newModel, cmd, pMsgs )
+    ( Model newModel, cmd, pMsgs )
 
 
-update : Msg -> Model -> ( Model, Cmd Msg, List MsgToParent )
+update : Msg -> ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
 update msg ({ workingTree } as model) =
     let
         vs =
@@ -379,7 +379,7 @@ update msg ({ workingTree } as model) =
             )
 
 
-localSave : ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+localSave : ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 localSave ( model, cmd, prevMsgsToParent ) =
     ( model
     , cmd
@@ -387,7 +387,7 @@ localSave ( model, cmd, prevMsgsToParent ) =
     )
 
 
-addToHistory : ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+addToHistory : ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 addToHistory ( model, cmd, prevMsgsToParent ) =
     ( model
     , cmd
@@ -395,16 +395,16 @@ addToHistory ( model, cmd, prevMsgsToParent ) =
     )
 
 
-opaqueIncoming : Incoming.Msg -> OpaqueModel -> ( OpaqueModel, Cmd Msg, List MsgToParent )
-opaqueIncoming msg (Opaque model) =
+opaqueIncoming : Incoming.Msg -> Model -> ( Model, Cmd Msg, List MsgToParent )
+opaqueIncoming msg (Model model) =
     let
         ( newModel, cmd, msgsToParent ) =
             incoming msg model
     in
-    ( Opaque newModel, cmd, msgsToParent )
+    ( Model newModel, cmd, msgsToParent )
 
 
-incoming : Incoming.Msg -> Model -> ( Model, Cmd Msg, List MsgToParent )
+incoming : Incoming.Msg -> ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
 incoming incomingMsg model =
     let
         vs =
@@ -856,7 +856,7 @@ incoming incomingMsg model =
 -- === Card Activation ===
 
 
-activate : String -> Bool -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+activate : String -> Bool -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 activate tryId instant ( model, prevCmd, prevMsgsToParent ) =
     let
         vs =
@@ -946,7 +946,7 @@ activate tryId instant ( model, prevCmd, prevMsgsToParent ) =
                         )
 
 
-goLeft : String -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+goLeft : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 goLeft id ( model, prevCmd, prevMsgsToParent ) =
     let
         targetId =
@@ -959,7 +959,7 @@ goLeft id ( model, prevCmd, prevMsgsToParent ) =
         |> activate targetId False
 
 
-goDown : String -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+goDown : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 goDown id ( model, prevCmd, prevMsgsToParent ) =
     let
         targetId =
@@ -977,7 +977,7 @@ goDown id ( model, prevCmd, prevMsgsToParent ) =
         |> activate targetId False
 
 
-goUp : String -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+goUp : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 goUp id ( model, prevCmd, prevMsgsToParent ) =
     let
         targetId =
@@ -995,7 +995,7 @@ goUp id ( model, prevCmd, prevMsgsToParent ) =
         |> activate targetId False
 
 
-goRight : String -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+goRight : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 goRight id ( model, prevCmd, prevMsgsToParent ) =
     let
         vs =
@@ -1045,7 +1045,7 @@ goRight id ( model, prevCmd, prevMsgsToParent ) =
 -- === Card Editing  ===
 
 
-saveAndStopEditing : Model -> ( Model, Cmd Msg, List MsgToParent )
+saveAndStopEditing : ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
 saveAndStopEditing model =
     let
         vs =
@@ -1067,7 +1067,7 @@ saveAndStopEditing model =
                 |> activate model.viewState.active True
 
 
-saveCardIfEditing : ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+saveCardIfEditing : ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 saveCardIfEditing ( model, prevCmd, prevParentMsgs ) =
     let
         vs =
@@ -1102,7 +1102,7 @@ saveCardIfEditing ( model, prevCmd, prevParentMsgs ) =
                 )
 
 
-openCard : String -> String -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+openCard : String -> String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 openCard id str ( model, prevCmd, prevMsgsToParent ) =
     let
         vs =
@@ -1151,7 +1151,7 @@ openCard id str ( model, prevCmd, prevMsgsToParent ) =
         )
 
 
-openCardFullscreen : String -> String -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+openCardFullscreen : String -> String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 openCardFullscreen id str ( model, prevCmd, prevMsgsToParent ) =
     ( model, prevCmd, prevMsgsToParent )
         |> openCard id str
@@ -1167,7 +1167,7 @@ openCardFullscreen id str ( model, prevCmd, prevMsgsToParent ) =
            )
 
 
-enterFullscreen : Model -> ( Model, Cmd Msg, List MsgToParent )
+enterFullscreen : ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
 enterFullscreen model =
     let
         vs =
@@ -1179,7 +1179,7 @@ enterFullscreen model =
     )
 
 
-exitFullscreen : Model -> ( Model, Cmd Msg, List MsgToParent )
+exitFullscreen : ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
 exitFullscreen model =
     let
         vs =
@@ -1191,7 +1191,7 @@ exitFullscreen model =
     )
 
 
-closeCard : ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+closeCard : ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 closeCard ( model, prevCmd, prevMsgsToParent ) =
     let
         vs =
@@ -1200,7 +1200,7 @@ closeCard ( model, prevCmd, prevMsgsToParent ) =
     ( { model | viewState = { vs | viewMode = Normal }, field = "" }, prevCmd, prevMsgsToParent )
 
 
-deleteCard : String -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+deleteCard : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 deleteCard id ( model, prevCmd, prevMsgsToParent ) =
     let
         vs =
@@ -1259,7 +1259,7 @@ deleteCard id ( model, prevCmd, prevMsgsToParent ) =
             |> addToHistory
 
 
-goToTopOfColumn : String -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+goToTopOfColumn : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 goToTopOfColumn id ( model, prevCmd, prevMsgsToParent ) =
     ( model
     , prevCmd
@@ -1268,7 +1268,7 @@ goToTopOfColumn id ( model, prevCmd, prevMsgsToParent ) =
         |> activate (getFirstInColumn id model.workingTree.tree) False
 
 
-goToBottomOfColumn : String -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+goToBottomOfColumn : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 goToBottomOfColumn id ( model, prevCmd, prevMsgsToParent ) =
     ( model
     , prevCmd
@@ -1277,7 +1277,7 @@ goToBottomOfColumn id ( model, prevCmd, prevMsgsToParent ) =
         |> activate (getLastInColumn id model.workingTree.tree) False
 
 
-goToTopOfGroup : String -> Bool -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+goToTopOfGroup : String -> Bool -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 goToTopOfGroup id fallToNextGroup ( model, prevCmd, prevMsgsToParent ) =
     let
         topSibling =
@@ -1310,7 +1310,7 @@ goToTopOfGroup id fallToNextGroup ( model, prevCmd, prevMsgsToParent ) =
         |> activate targetId False
 
 
-goToBottomOfGroup : String -> Bool -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+goToBottomOfGroup : String -> Bool -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 goToBottomOfGroup id fallToNextGroup ( model, prevCmd, prevMsgsToParent ) =
     let
         bottomSibling =
@@ -1344,7 +1344,7 @@ goToBottomOfGroup id fallToNextGroup ( model, prevCmd, prevMsgsToParent ) =
         |> activate targetId False
 
 
-cancelCard : ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+cancelCard : ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 cancelCard ( model, prevCmd, prevMsgsToParent ) =
     let
         vs =
@@ -1360,7 +1360,7 @@ cancelCard ( model, prevCmd, prevMsgsToParent ) =
         |> activate vs.active True
 
 
-intentCancelCard : Model -> ( Model, Cmd Msg, List MsgToParent )
+intentCancelCard : ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
 intentCancelCard model =
     let
         vs =
@@ -1387,7 +1387,7 @@ intentCancelCard model =
 -- === Card Insertion  ===
 
 
-insert : String -> Int -> String -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+insert : String -> Int -> String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 insert pid pos initText ( model, prevCmd, prevMsgsToParent ) =
     let
         ( newId, newSeed ) =
@@ -1411,7 +1411,7 @@ insert pid pos initText ( model, prevCmd, prevMsgsToParent ) =
         ( model, send <| Alert "Your Free Trial is Over.\n\nYou can view and edit your existing cards, but cannot create new ones.", prevMsgsToParent )
 
 
-insertRelative : String -> Int -> String -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+insertRelative : String -> Int -> String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 insertRelative id delta initText ( model, prevCmd, prevMsgsToParent ) =
     let
         idx =
@@ -1435,17 +1435,17 @@ insertRelative id delta initText ( model, prevCmd, prevMsgsToParent ) =
             )
 
 
-insertAbove : String -> String -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+insertAbove : String -> String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 insertAbove id initText tup =
     insertRelative id 0 initText tup
 
 
-insertBelow : String -> String -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+insertBelow : String -> String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 insertBelow id initText ( model, prevCmd, prevMsgsToParent ) =
     insertRelative id 1 initText ( model, prevCmd, prevMsgsToParent )
 
 
-insertChild : String -> String -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+insertChild : String -> String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 insertChild id initText ( model, prevCmd, prevMsgsToParent ) =
     ( model
     , prevCmd
@@ -1454,7 +1454,7 @@ insertChild id initText ( model, prevCmd, prevMsgsToParent ) =
         |> insert id 999999 initText
 
 
-mergeUp : String -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+mergeUp : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 mergeUp id ( model, prevCmd, prevMsgsToParent ) =
     let
         currentTree_ =
@@ -1484,7 +1484,7 @@ mergeUp id ( model, prevCmd, prevMsgsToParent ) =
             ( model, prevCmd, prevMsgsToParent )
 
 
-mergeDown : String -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+mergeDown : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 mergeDown id ( model, prevCmd, prevMsgsToParent ) =
     let
         currentTree_ =
@@ -1514,7 +1514,7 @@ mergeDown id ( model, prevCmd, prevMsgsToParent ) =
             ( model, prevCmd, prevMsgsToParent )
 
 
-setCursorPosition : Int -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+setCursorPosition : Int -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 setCursorPosition pos ( model, prevCmd, prevMsgsToParent ) =
     ( model, Cmd.batch [ prevCmd, send (SetCursorPosition pos) ], prevMsgsToParent )
 
@@ -1523,7 +1523,7 @@ setCursorPosition pos ( model, prevCmd, prevMsgsToParent ) =
 -- === Card Moving  ===
 
 
-move : Tree -> String -> Int -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+move : Tree -> String -> Int -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 move subtree pid pos ( model, prevCmd, prevMsgsToParent ) =
     ( { model
         | workingTree = TreeStructure.update (TreeStructure.Mov subtree pid pos) model.workingTree
@@ -1536,7 +1536,7 @@ move subtree pid pos ( model, prevCmd, prevMsgsToParent ) =
         |> addToHistory
 
 
-moveWithin : String -> Int -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+moveWithin : String -> Int -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 moveWithin id delta ( model, prevCmd, prevMsgsToParent ) =
     let
         tree_ =
@@ -1564,7 +1564,7 @@ moveWithin id delta ( model, prevCmd, prevMsgsToParent ) =
             )
 
 
-moveLeft : String -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+moveLeft : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 moveLeft id ( model, prevCmd, prevMsgsToParent ) =
     let
         tree_ =
@@ -1597,7 +1597,7 @@ moveLeft id ( model, prevCmd, prevMsgsToParent ) =
             )
 
 
-moveRight : String -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+moveRight : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 moveRight id ( model, prevCmd, prevMsgsToParent ) =
     let
         tree_ =
@@ -1626,7 +1626,7 @@ moveRight id ( model, prevCmd, prevMsgsToParent ) =
 -- === Card Cut/Copy/Paste ===
 
 
-cut : String -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+cut : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 cut id ( model, prevCmd, prevMsgsToParent ) =
     let
         parent_ =
@@ -1658,7 +1658,7 @@ cut id ( model, prevCmd, prevMsgsToParent ) =
             |> deleteCard id
 
 
-copy : String -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+copy : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 copy id ( model, prevCmd, prevMsgsToParent ) =
     let
         vs =
@@ -1683,7 +1683,7 @@ copy id ( model, prevCmd, prevMsgsToParent ) =
     )
 
 
-paste : Tree -> String -> Int -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+paste : Tree -> String -> Int -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 paste subtree pid pos ( model, prevCmd, prevMsgsToParent ) =
     ( { model
         | workingTree = TreeStructure.update (TreeStructure.Paste subtree pid pos) model.workingTree
@@ -1696,7 +1696,7 @@ paste subtree pid pos ( model, prevCmd, prevMsgsToParent ) =
         |> addToHistory
 
 
-pasteBelow : String -> Tree -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+pasteBelow : String -> Tree -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 pasteBelow id copiedTree ( model, prevCmd, prevMsgsToParent ) =
     let
         ( newId, newSeed ) =
@@ -1718,7 +1718,7 @@ pasteBelow id copiedTree ( model, prevCmd, prevMsgsToParent ) =
         |> paste treeToPaste pid pos
 
 
-pasteInto : String -> Tree -> ( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )
+pasteInto : String -> Tree -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 pasteInto id copiedTree ( model, prevCmd, prevMsgsToParent ) =
     let
         ( newId, newSeed ) =
@@ -1746,8 +1746,8 @@ type alias AppMsgs msg =
     }
 
 
-view : AppMsgs msg -> OpaqueModel -> List (Html msg)
-view appMsg (Opaque model) =
+view : AppMsgs msg -> Model -> List (Html msg)
+view appMsg (Model model) =
     if model.loading then
         UI.viewDocumentLoadingSpinner
 
@@ -1755,7 +1755,7 @@ view appMsg (Opaque model) =
         viewLoaded appMsg model
 
 
-viewLoaded : AppMsgs msg -> Model -> List (Html msg)
+viewLoaded : AppMsgs msg -> ModelData -> List (Html msg)
 viewLoaded ({ docMsg } as appMsg) model =
     let
         activeTree_ =
@@ -2280,8 +2280,8 @@ collabsSpan collabsOnCard collabsEditingCard =
 -- SUBSCRIPTIONS
 
 
-subscriptions : OpaqueModel -> Sub Msg
-subscriptions (Opaque model) =
+subscriptions : Model -> Sub Msg
+subscriptions (Model model) =
     Sub.batch
         [ if model.dirty then
             Time.every (241 * 1000) (always AutoSave)
@@ -2292,9 +2292,9 @@ subscriptions (Opaque model) =
         ]
 
 
-setWorkingTree : TreeStructure.Model -> OpaqueModel -> OpaqueModel
-setWorkingTree workingTree (Opaque model) =
-    Opaque
+setWorkingTree : TreeStructure.Model -> Model -> Model
+setWorkingTree workingTree (Model model) =
+    Model
         { model | workingTree = workingTree }
 
 
@@ -2302,81 +2302,100 @@ setWorkingTree workingTree (Opaque model) =
 -- Temporary getters & setters until I move these fields to parent
 
 
-isDirty : OpaqueModel -> Bool
-isDirty (Opaque model) =
+isDirty : Model -> Bool
+isDirty (Model model) =
     model
         |> .dirty
 
 
-isNormalMode : OpaqueModel -> Bool
-isNormalMode (Opaque model) =
+isNormalMode : Model -> Bool
+isNormalMode (Model model) =
     model
         |> .viewState
         |> .viewMode
         |> (==) Normal
 
 
-getViewMode : OpaqueModel -> ViewMode
-getViewMode (Opaque model) =
+getViewMode : Model -> ViewMode
+getViewMode (Model model) =
     model
         |> .viewState
         |> .viewMode
 
 
-getActiveId : OpaqueModel -> String
-getActiveId (Opaque model) =
+getActiveId : Model -> String
+getActiveId (Model model) =
     model
         |> .viewState
         |> .active
 
 
-getField : OpaqueModel -> String
-getField (Opaque model) =
+lastActives : Result Json.Error (List String) -> Model -> ( Model, Cmd Msg )
+lastActives activesResult (Model prevModel) =
+    let
+        vs =
+            prevModel.viewState
+
+        ( newViewState, maybeScroll ) =
+            case activesResult of
+                Ok (lastActive :: activePast) ->
+                    ( { vs | active = lastActive, activePast = activePast }, activate lastActive True )
+
+                _ ->
+                    ( vs, activate "1" True )
+    in
+    ( { prevModel | viewState = newViewState }, Cmd.none, [] )
+        |> maybeScroll
+        |> (\( m, c, _ ) -> ( Model m, c ))
+
+
+getField : Model -> String
+getField (Model model) =
     model
         |> .field
 
 
-getTextCursorInfo : OpaqueModel -> TextCursorInfo
-getTextCursorInfo (Opaque model) =
+getTextCursorInfo : Model -> TextCursorInfo
+getTextCursorInfo (Model model) =
     model
         |> .textCursorInfo
 
 
-setDirty : OpaqueModel -> Bool -> OpaqueModel
-setDirty (Opaque model) dirty =
-    Opaque { model | dirty = dirty }
+setDirty : Model -> Bool -> Model
+setDirty (Model model) dirty =
+    Model { model | dirty = dirty }
 
 
-getGlobalData : OpaqueModel -> GlobalData
-getGlobalData (Opaque model) =
+getGlobalData : Model -> GlobalData
+getGlobalData (Model model) =
     model
         |> .globalData
 
 
-setGlobalData : GlobalData -> OpaqueModel -> OpaqueModel
-setGlobalData globalData (Opaque model) =
-    Opaque
+setGlobalData : GlobalData -> Model -> Model
+setGlobalData globalData (Model model) =
+    Model
         { model
             | globalData = globalData
         }
 
 
-setLoading : Bool -> OpaqueModel -> OpaqueModel
-setLoading loading (Opaque model) =
-    Opaque
+setLoading : Bool -> Model -> Model
+setLoading loading (Model model) =
+    Model
         { model
             | loading = loading
         }
 
 
-getWorkingTree : OpaqueModel -> TreeStructure.Model
-getWorkingTree (Opaque model) =
+getWorkingTree : Model -> TreeStructure.Model
+getWorkingTree (Model model) =
     model
         |> .workingTree
 
 
-getActiveTree : OpaqueModel -> Maybe Tree
-getActiveTree (Opaque model) =
+getActiveTree : Model -> Maybe Tree
+getActiveTree (Model model) =
     getTree model.viewState.active model.workingTree.tree
 
 
@@ -2389,7 +2408,7 @@ focus id =
     Task.attempt (\_ -> NoOp) (Browser.Dom.focus ("card-edit-" ++ id))
 
 
-normalMode : Model -> (( Model, Cmd Msg, List MsgToParent ) -> ( Model, Cmd Msg, List MsgToParent )) -> ( Model, Cmd Msg, List MsgToParent )
+normalMode : ModelData -> (( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )) -> ( ModelData, Cmd Msg, List MsgToParent )
 normalMode model operation =
     ( model
     , Cmd.none
