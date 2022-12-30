@@ -4,7 +4,7 @@ import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
 import Browser.Navigation as Nav
 import Bytes exposing (Bytes)
-import Coders exposing (sortByEncoder)
+import Coders exposing (sortByEncoder, treeToMarkdownString)
 import Doc.ContactForm as ContactForm
 import Doc.Data as Data
 import Doc.Fullscreen as Fullscreen exposing (viewFullscreenButtons)
@@ -12,9 +12,9 @@ import Doc.HelpScreen as HelpScreen
 import Doc.List as DocList exposing (Model(..))
 import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.Switcher
-import Doc.TreeStructure exposing (defaultTree)
+import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (getTree)
-import Doc.UI as UI
+import Doc.UI as UI exposing (countWords)
 import Doc.VideoViewer as VideoViewer
 import File exposing (File)
 import File.Download as Download
@@ -398,6 +398,9 @@ update msg model =
 
                     else
                         ( model, Cmd.none )
+
+                ( _, DataReceived json ) ->
+                    dataReceived json model
 
                 _ ->
                     ( model, Cmd.none )
@@ -1246,6 +1249,56 @@ update msg model =
                     ( { model | modalState = NoModal }, Cmd.none )
 
 
+dataReceived : Json.Value -> Model -> ( Model, Cmd Msg )
+dataReceived dataIn model =
+    case model.documentState of
+        Doc ({ docModel } as docState) ->
+            case Data.received dataIn ( docState.data, docModel.workingTree.tree ) of
+                Just { newModel, newTree } ->
+                    let
+                        vs =
+                            docModel.viewState
+
+                        newWorkingTree =
+                            TreeStructure.setTreeWithConflicts (Data.conflictList newModel) newTree docModel.workingTree
+
+                        startingWordcount =
+                            countWords (treeToMarkdownString False newTree)
+
+                        newViewState =
+                            case Json.decodeValue (Json.at [ "localStore", "last-actives" ] (Json.list Json.string)) dataIn of
+                                Ok (lastActive :: activePast) ->
+                                    { vs | active = lastActive, activePast = activePast }
+
+                                _ ->
+                                    vs
+                    in
+                    ( { model
+                        | documentState =
+                            Doc
+                                { docState
+                                    | data = newModel
+                                    , docModel =
+                                        { docModel
+                                            | loading = False
+                                            , workingTree = newWorkingTree
+                                            , viewState = newViewState
+                                            , lastLocalSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
+                                            , lastRemoteSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
+                                            , startingWordcount = startingWordcount
+                                        }
+                                }
+                      }
+                    , Cmd.none
+                    )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        Empty _ _ ->
+            ( model, Cmd.none )
+
+
 addToHistoryDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 addToHistoryDo ( model, prevCmd ) =
     case model.documentState of
@@ -1645,7 +1698,7 @@ viewConfirmBanner lang closeMsg email =
 
 type IncomingAppMsg
     = DataSaved
-    | DataReceived
+    | DataReceived Enc.Value
     | MetadataUpdate Metadata
 
 
@@ -1658,7 +1711,7 @@ subscribe tagger onError =
                     tagger DataSaved
 
                 "DataReceived" ->
-                    tagger DataReceived
+                    tagger <| DataReceived outsideInfo.data
 
                 "MetadataUpdate" ->
                     case decodeValue Metadata.decoder outsideInfo.data of
