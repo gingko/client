@@ -34,7 +34,7 @@ import Import.Text as ImportText
 import Json.Decode as Json exposing (decodeValue, errorToString)
 import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
-import Page.Doc exposing (Msg(..), ParentMsg(..), exitFullscreen, saveAndStopEditing, saveCardIfEditing)
+import Page.Doc exposing (Msg(..), MsgToParent(..), exitFullscreen, saveAndStopEditing, saveCardIfEditing)
 import Page.Doc.Export as Export exposing (ExportFormat(..), ExportSelection(..), exportView, exportViewError)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Doc.Theme exposing (Theme(..), applyTheme)
@@ -356,23 +356,12 @@ update msg model =
             case model.documentState of
                 Doc ({ docModel } as docState) ->
                     let
-                        ( newDocModel, newCmd, parentMsg ) =
+                        ( newDocModel, newCmd, parentMsgs ) =
                             Page.Doc.update docMsg docModel
                                 |> (\( m, c, p ) -> ( m, Cmd.map GotDocMsg c, p ))
                     in
-                    case parentMsg of
-                        CloseTooltip ->
-                            ( { model | documentState = Doc { docState | docModel = newDocModel }, tooltip = Nothing }, newCmd )
-
-                        CommitDo commitTime ->
-                            ( { model | documentState = Doc { docState | docModel = newDocModel } }, newCmd )
-                                |> addToHistoryDo
-
-                        LocalSaveDo saveTime ->
-                            ( { model | documentState = Doc { docState | docModel = newDocModel } }, newCmd )
-
-                        NoParentMsg ->
-                            ( { model | documentState = Doc { docState | docModel = newDocModel } }, newCmd )
+                    ( { model | documentState = Doc { docState | docModel = newDocModel } }, newCmd )
+                        |> applyParentMsgs parentMsgs
 
                 Empty _ _ ->
                     ( model, Cmd.none )
@@ -448,8 +437,9 @@ update msg model =
 
                 passThroughTo docState =
                     Page.Doc.incoming incomingMsg docState.docModel
-                        |> (\( d, c ) ->
+                        |> (\( d, c, p ) ->
                                 ( { model | documentState = Doc { docState | docModel = d } }, Cmd.map GotDocMsg c )
+                                    |> applyParentMsgs p
                            )
             in
             case ( incomingMsg, model.documentState ) of
@@ -1116,11 +1106,12 @@ update msg model =
             case model.documentState of
                 Doc docState ->
                     let
-                        ( newDocModel, newDocCmd ) =
+                        ( newDocModel, newDocCmd, parentMsgs ) =
                             docState.docModel
                                 |> exitFullscreen
                     in
                     ( { model | documentState = Doc { docState | docModel = newDocModel } }, Cmd.map GotDocMsg newDocCmd )
+                        |> applyParentMsgs parentMsgs
 
                 _ ->
                     ( model, Cmd.none )
@@ -1129,11 +1120,12 @@ update msg model =
             case model.documentState of
                 Doc docState ->
                     let
-                        ( newDocModel, newDocCmd ) =
-                            ( docState.docModel, Cmd.none )
+                        ( newDocModel, newDocCmd, parentMsgs ) =
+                            ( docState.docModel, Cmd.none, [] )
                                 |> saveCardIfEditing
                     in
                     ( { model | documentState = Doc { docState | docModel = newDocModel } }, Cmd.map GotDocMsg newDocCmd )
+                        |> applyParentMsgs parentMsgs
 
                 _ ->
                     ( model, Cmd.none )
@@ -1142,11 +1134,12 @@ update msg model =
             case model.documentState of
                 Doc docState ->
                     let
-                        ( newDocModel, newDocCmd ) =
+                        ( newDocModel, newDocCmd, parentMsgs ) =
                             docState.docModel
                                 |> saveAndStopEditing
                     in
                     ( { model | documentState = Doc { docState | docModel = newDocModel } }, Cmd.map GotDocMsg newDocCmd )
+                        |> applyParentMsgs parentMsgs
 
                 _ ->
                     ( model, Cmd.none )
@@ -1285,6 +1278,25 @@ update msg model =
                     ( { model | modalState = NoModal }, Cmd.none )
 
 
+applyParentMsgs : List MsgToParent -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+applyParentMsgs parentMsgs ( prevModel, prevCmd ) =
+    List.foldl applyParentMsg ( prevModel, prevCmd ) parentMsgs
+
+
+applyParentMsg : MsgToParent -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+applyParentMsg parentMsg ( prevModel, prevCmd ) =
+    case parentMsg of
+        CloseTooltip ->
+            ( { prevModel | tooltip = Nothing }, prevCmd )
+
+        LocalSave ->
+            ( prevModel, prevCmd )
+
+        Commit ->
+            ( prevModel, prevCmd )
+                |> addToHistoryDo
+
+
 dataReceived : Json.Value -> Model -> ( Model, Cmd Msg )
 dataReceived dataIn model =
     case model.documentState of
@@ -1341,7 +1353,10 @@ addToHistoryDo ( model, prevCmd ) =
         Doc { session, docModel, docId, data } ->
             let
                 author =
-                    session |> Session.name |> Maybe.withDefault "unknown" |> (\a -> "<" ++ a ++ ">")
+                    session
+                        |> Session.name
+                        |> Maybe.withDefault "unknown"
+                        |> (\a -> "<" ++ a ++ ">")
 
                 metadata =
                     Session.getMetadata session docId

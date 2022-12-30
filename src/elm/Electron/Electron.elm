@@ -15,7 +15,7 @@ import Html.Lazy exposing (lazy5)
 import Json.Decode as Dec exposing (Decoder, Value)
 import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
-import Page.Doc exposing (Msg(..), ParentMsg(..), activate, checkoutCommit, saveAndStopEditing)
+import Page.Doc exposing (Msg(..), MsgToParent(..), activate, checkoutCommit, saveAndStopEditing)
 import Page.Doc.Export as Export exposing (ExportFormat(..), ExportSelection(..), exportView, toExtension)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Doc.Theme exposing (Theme(..), applyTheme)
@@ -215,11 +215,11 @@ update msg ({ docModel } as model) =
                 CloseTooltip ->
                     ( { model | docModel = newDocModel, tooltip = Nothing }, newCmd )
 
-                LocalSaveDo saveTime ->
+                LocalSave saveTime ->
                     ( { model | docModel = newDocModel }, newCmd )
                         |> localSaveDo
 
-                CommitDo commitTime ->
+                Commit commitTime ->
                     ( { model | docModel = newDocModel }, newCmd )
                         |> addToHistoryDo
 
