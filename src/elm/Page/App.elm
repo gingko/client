@@ -83,16 +83,6 @@ type alias DocState =
     }
 
 
-toDocModel : Model -> Maybe Page.Doc.Model
-toDocModel { documentState } =
-    case documentState of
-        Doc { docModel } ->
-            Just docModel
-
-        _ ->
-            Nothing
-
-
 toData : Model -> Maybe Data.Model
 toData { documentState } =
     case documentState of
@@ -1626,15 +1616,19 @@ viewConfirmBanner lang closeMsg email =
 
 
 type AppMsg
-    = DataReceived
+    = DataSaved
+    | DataReceived
 
 
 subscribe : (AppMsg -> msg) -> (String -> msg) -> Sub msg
 subscribe tagger onError =
-    appMessages
+    appMsgs
         (\outsideInfo ->
             case outsideInfo.tag of
-                "data" ->
+                "DataSaved" ->
+                    tagger DataSaved
+
+                "DataReceived" ->
                     tagger DataReceived
 
                 _ ->
@@ -1642,7 +1636,7 @@ subscribe tagger onError =
         )
 
 
-port appMessages : (OutsideData -> msg) -> Sub msg
+port appMsgs : (OutsideData -> msg) -> Sub msg
 
 
 subscriptions : Model -> Sub Msg

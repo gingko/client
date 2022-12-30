@@ -248,7 +248,6 @@ function toElm(data, portName, tagName) {
 }
 
 const fromElm = (msg, elmData) => {
-  console.log("fromElm", msg, elmData);
   window.elmMessages.push({tag: msg, data: elmData});
   window.elmMessages = window.elmMessages.slice(-10);
 
@@ -311,7 +310,7 @@ const fromElm = (msg, elmData) => {
 
       // Load title
       const treeDoc = await dexie.trees.get(elmData);
-      toElm(treeDocToMetadata(treeDoc), "docMsgs", "MetadataSaved")
+      toElm(treeDocToMetadata(treeDoc), "appMsgs", "MetadataSaved")
 
       // Load document-specific settings.
       localStore.db(elmData);
@@ -324,7 +323,7 @@ const fromElm = (msg, elmData) => {
       if (savedIds.length !== 0) {
         localExists = true;
         loadedData.localStore = store;
-        toElm(loadedData, "docMsgs", "DataReceived");
+        toElm(loadedData, "appMsgs", "DataReceived");
       } else {
         localExists = false;
       }
@@ -338,11 +337,11 @@ const fromElm = (msg, elmData) => {
         if (pullResult !== null) {
           remoteExists = true;
           pullResult[1].forEach(item => savedObjectIds.add(item));
-          toElm(pullResult[0], "docMsgs", "DataReceived");
+          toElm(pullResult[0], "appMsgs", "DataReceived");
         } else {
           remoteExists = false;
           if (!localExists && !remoteExists) {
-            toElm(null, "docMsgs", "NotFound")
+            toElm(null, "appMsgs", "NotFound")
           }
         }
       } catch (e){
@@ -381,7 +380,7 @@ const fromElm = (msg, elmData) => {
           } else {
             remoteExists = false;
             if (!localExists && !remoteExists) {
-              toElm(null, "docMsgs", "NotFound")
+              toElm(null, "appMsgs", "NotFound")
             }
           }
         } catch (e){
@@ -429,14 +428,14 @@ const fromElm = (msg, elmData) => {
       savedImmutables.forEach(item => savedObjectIds.add(item));
 
       // Send new data to Elm
-      toElm(savedData, "docMsgs", "DataSaved");
+      toElm(savedData, "appMsgs", "DataSaved");
 
       // Mark document as clean
       DIRTY = false;
 
       // Maybe send metadata to Elm
       await dexie.trees.update(TREE_ID, {updatedAt: savedMetadata.updatedAt, synced: false});
-      if (typeof savedMetadata !== "undefined") { toElm(savedMetadata, "docMsgs", "MetadataSaved")}
+      if (typeof savedMetadata !== "undefined") { toElm(savedMetadata, "appMsgs", "MetadataSaved")}
 
       // Pull & Maybe push
       if (!PULL_LOCK) {
@@ -735,12 +734,12 @@ function unprefix(id) {
 
 
 function pullSuccessHandler (pulledData) {
-  toElm(pulledData, "docMsgs", "DataReceived")
+  toElm(pulledData, "appMsgs", "DataReceived")
 }
 
 
 function pushSuccessHandler (info) {
-  toElm(Date.parse(info.end_time), "docMsgs", "SavedRemotely")
+  toElm(Date.parse(info.end_time), "appMsgs", "SavedRemotely")
 }
 
 /* === DOM Events and Handlers === */
