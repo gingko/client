@@ -1,4 +1,4 @@
-module Page.Doc exposing (Model, Msg, MsgToParent(..), activate, exitFullscreen, incoming, init, saveAndStopEditing, saveCardIfEditing, subscriptions, update, view)
+module Page.Doc exposing (Msg, MsgToParent(..), OpaqueModel, activate, exitFullscreen, getActiveId, getActiveTree, getField, getGlobalData, getTextCursorInfo, getViewMode, getWorkingTree, init, isDirty, isNormalMode, opaqueIncoming, opaqueUpdate, saveAndStopEditing, saveCardIfEditing, setDirty, setGlobalData, setLoading, setWorkingTree, subscriptions, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -48,50 +48,49 @@ type alias Model =
     , field : String
     , textCursorInfo : TextCursorInfo
     , fileSearchField : String
-    , wordcountTrayOpen : Bool
-    , fontSelectorOpen : Bool
 
     -- Settings
     , uid : String
     , fonts : Fonts.Model
-    , startingWordcount : Int
     }
 
 
-init : Bool -> GlobalData -> Model
+type OpaqueModel
+    = Opaque Model
+
+
+init : Bool -> GlobalData -> OpaqueModel
 init isNew globalData =
-    { workingTree = TreeStructure.defaultModel
-    , globalData = globalData
-    , loading = not isNew
-    , isExpired = False
-    , uid = "0"
-    , viewState =
-        { active = "1"
-        , viewMode =
-            if isNew then
-                Editing
+    Opaque
+        { workingTree = TreeStructure.defaultModel
+        , globalData = globalData
+        , loading = not isNew
+        , isExpired = False
+        , uid = "0"
+        , viewState =
+            { active = "1"
+            , viewMode =
+                if isNew then
+                    Editing
 
-            else
-                Normal
-        , activePast = []
-        , descendants = []
-        , ancestors = [ "0" ]
-        , searchField = Nothing
-        , dragModel = ( DragDrop.init, DragExternalModel Nothing False )
-        , draggedTree = Nothing
-        , copiedTree = Nothing
-        , clipboardTree = Nothing
-        , collaborators = []
+                else
+                    Normal
+            , activePast = []
+            , descendants = []
+            , ancestors = [ "0" ]
+            , searchField = Nothing
+            , dragModel = ( DragDrop.init, DragExternalModel Nothing False )
+            , draggedTree = Nothing
+            , copiedTree = Nothing
+            , clipboardTree = Nothing
+            , collaborators = []
+            }
+        , dirty = False
+        , field = ""
+        , textCursorInfo = { selected = False, position = End, text = ( "", "" ) }
+        , fileSearchField = ""
+        , fonts = Fonts.default
         }
-    , dirty = False
-    , field = ""
-    , textCursorInfo = { selected = False, position = End, text = ( "", "" ) }
-    , fileSearchField = ""
-    , wordcountTrayOpen = False
-    , fontSelectorOpen = False
-    , fonts = Fonts.default
-    , startingWordcount = 0
-    }
 
 
 
@@ -134,6 +133,15 @@ type MsgToParent
 type DragExternalMsg
     = DragEnter DropId
     | DragLeave DropId
+
+
+opaqueUpdate : Msg -> OpaqueModel -> ( OpaqueModel, Cmd Msg, List MsgToParent )
+opaqueUpdate msg (Opaque model) =
+    let
+        ( newModel, cmd, pMsgs ) =
+            update msg model
+    in
+    ( Opaque newModel, cmd, pMsgs )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg, List MsgToParent )
@@ -387,6 +395,15 @@ addToHistory ( model, cmd, prevMsgsToParent ) =
     )
 
 
+opaqueIncoming : Incoming.Msg -> OpaqueModel -> ( OpaqueModel, Cmd Msg, List MsgToParent )
+opaqueIncoming msg (Opaque model) =
+    let
+        ( newModel, cmd, msgsToParent ) =
+            incoming msg model
+    in
+    ( Opaque newModel, cmd, msgsToParent )
+
+
 incoming : Incoming.Msg -> Model -> ( Model, Cmd Msg, List MsgToParent )
 incoming incomingMsg model =
     let
@@ -523,12 +540,6 @@ incoming incomingMsg model =
                         |> addToHistory
 
         -- === UI ===
-        FontSelectorOpen fonts ->
-            ( { model | fonts = Fonts.setSystem fonts model.fonts, fontSelectorOpen = True }
-            , Cmd.none
-            , []
-            )
-
         Keyboard shortcut ->
             case shortcut of
                 "shift+enter" ->
@@ -1735,8 +1746,8 @@ type alias AppMsgs msg =
     }
 
 
-view : AppMsgs msg -> Model -> List (Html msg)
-view appMsg model =
+view : AppMsgs msg -> OpaqueModel -> List (Html msg)
+view appMsg (Opaque model) =
     if model.loading then
         UI.viewDocumentLoadingSpinner
 
@@ -2269,8 +2280,8 @@ collabsSpan collabsOnCard collabsEditingCard =
 -- SUBSCRIPTIONS
 
 
-subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions : OpaqueModel -> Sub Msg
+subscriptions (Opaque model) =
     Sub.batch
         [ if model.dirty then
             Time.every (241 * 1000) (always AutoSave)
@@ -2279,6 +2290,94 @@ subscriptions model =
             Sub.none
         , Time.every (23 * 1000) (always Pull)
         ]
+
+
+setWorkingTree : TreeStructure.Model -> OpaqueModel -> OpaqueModel
+setWorkingTree workingTree (Opaque model) =
+    Opaque
+        { model | workingTree = workingTree }
+
+
+
+-- Temporary getters & setters until I move these fields to parent
+
+
+isDirty : OpaqueModel -> Bool
+isDirty (Opaque model) =
+    model
+        |> .dirty
+
+
+isNormalMode : OpaqueModel -> Bool
+isNormalMode (Opaque model) =
+    model
+        |> .viewState
+        |> .viewMode
+        |> (==) Normal
+
+
+getViewMode : OpaqueModel -> ViewMode
+getViewMode (Opaque model) =
+    model
+        |> .viewState
+        |> .viewMode
+
+
+getActiveId : OpaqueModel -> String
+getActiveId (Opaque model) =
+    model
+        |> .viewState
+        |> .active
+
+
+getField : OpaqueModel -> String
+getField (Opaque model) =
+    model
+        |> .field
+
+
+getTextCursorInfo : OpaqueModel -> TextCursorInfo
+getTextCursorInfo (Opaque model) =
+    model
+        |> .textCursorInfo
+
+
+setDirty : OpaqueModel -> Bool -> OpaqueModel
+setDirty (Opaque model) dirty =
+    Opaque { model | dirty = dirty }
+
+
+getGlobalData : OpaqueModel -> GlobalData
+getGlobalData (Opaque model) =
+    model
+        |> .globalData
+
+
+setGlobalData : GlobalData -> OpaqueModel -> OpaqueModel
+setGlobalData globalData (Opaque model) =
+    Opaque
+        { model
+            | globalData = globalData
+        }
+
+
+setLoading : Bool -> OpaqueModel -> OpaqueModel
+setLoading loading (Opaque model) =
+    Opaque
+        { model
+            | loading = loading
+        }
+
+
+getWorkingTree : OpaqueModel -> TreeStructure.Model
+getWorkingTree (Opaque model) =
+    model
+        |> .workingTree
+
+
+getActiveTree : OpaqueModel -> Maybe Tree
+getActiveTree (Opaque model) =
+    getTree model.viewState.active model.workingTree.tree
 
 
 

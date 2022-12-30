@@ -3,7 +3,6 @@ port module Page.Doc.Incoming exposing (Msg(..), subscribe)
 import Coders exposing (..)
 import File exposing (File)
 import Json.Decode as Dec exposing (Decoder, decodeValue, errorToString, field)
-import Time
 import Types exposing (Children(..), CollabState, CursorPosition(..), OutsideData, TextCursorInfo, Tree)
 
 
@@ -23,7 +22,6 @@ type
     | ClickedOutsideCard
     | CheckboxClicked String Int
       -- === UI ===
-    | FontSelectorOpen (List String)
     | Keyboard String
       -- === Misc ===
     | WillPrint
@@ -150,14 +148,6 @@ subscribe tagger onError =
                             onError (errorToString e)
 
                 -- === UI ===
-                "FontSelectorOpen" ->
-                    case decodeValue (Dec.list Dec.string) outsideInfo.data of
-                        Ok fonts ->
-                            tagger <| FontSelectorOpen fonts
-
-                        Err e ->
-                            onError (errorToString e)
-
                 "Keyboard" ->
                     case decodeValue Dec.string outsideInfo.data of
                         Ok shortcut ->

@@ -46,25 +46,25 @@ view :
     , model : Model
     }
     -> String
-    -> ViewState
+    -> String
     -> Html Msg
-view { language, isMac, dirty, model, lastLocalSave, lastRemoteSave, currentTime } field vstate =
+view { language, isMac, dirty, model, lastLocalSave, lastRemoteSave, currentTime } field activeId =
     let
         updateField c =
-            if c.id == vstate.active then
+            if c.id == activeId then
                 { c | content = field }
 
             else
                 c
 
         currentColumn =
-            getColumnById vstate.active model.tree
+            getColumnById activeId model.tree
                 |> Maybe.map (List.map (List.map updateField))
                 |> Maybe.withDefault []
     in
     div
         [ id "app-fullscreen" ]
-        [ viewColumn vstate.active currentColumn
+        [ viewColumn activeId currentColumn
         ]
 
 

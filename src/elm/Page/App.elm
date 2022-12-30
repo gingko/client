@@ -78,7 +78,7 @@ type DocumentState
 type alias DocState =
     { session : Session
     , docId : String
-    , docModel : Page.Doc.Model
+    , docModel : Page.Doc.OpaqueModel
     , data : Data.Model
     , lastRemoteSave : Maybe Time.Posix
     , lastLocalSave : Maybe Time.Posix
@@ -107,14 +107,14 @@ type ModalState
     | TemplateSelector
     | HelpScreen
     | VideoViewer VideoViewer.Model
-    | Wordcount Page.Doc.Model
+    | Wordcount Page.Doc.OpaqueModel
     | ImportModal ImportModal.Model
     | ImportTextModal ImportText.Model
     | ContactForm ContactForm.Model
     | UpgradeModal
 
 
-defaultModel : Nav.Key -> GlobalData -> Session -> Maybe ( String, Page.Doc.Model ) -> Model
+defaultModel : Nav.Key -> GlobalData -> Session -> Maybe ( String, Page.Doc.OpaqueModel ) -> Model
 defaultModel nKey globalData session docModel_ =
     { loading = True
     , documentState =
@@ -180,7 +180,7 @@ isDirty : Model -> Bool
 isDirty model =
     case model.documentState of
         Doc { docModel } ->
-            docModel.dirty
+            Page.Doc.isDirty docModel
 
         Empty _ _ ->
             False
@@ -215,7 +215,7 @@ toGlobalData : Model -> GlobalData
 toGlobalData { documentState } =
     case documentState of
         Doc { docModel } ->
-            docModel.globalData
+            Page.Doc.getGlobalData docModel
 
         Empty gData _ ->
             gData
@@ -235,7 +235,7 @@ updateGlobalData : GlobalData -> Model -> Model
 updateGlobalData newGlobalData ({ documentState } as model) =
     case documentState of
         Doc ({ docModel } as docState) ->
-            { model | documentState = Doc { docState | docModel = { docModel | globalData = newGlobalData } } }
+            { model | documentState = Doc { docState | docModel = Page.Doc.setGlobalData newGlobalData docModel } }
 
         Empty _ session ->
             { model | documentState = Empty newGlobalData session }
@@ -357,7 +357,7 @@ update msg model =
                 Doc ({ docModel } as docState) ->
                     let
                         ( newDocModel, newCmd, parentMsgs ) =
-                            Page.Doc.update docMsg docModel
+                            Page.Doc.opaqueUpdate docMsg docModel
                                 |> (\( m, c, p ) -> ( m, Cmd.map GotDocMsg c, p ))
                     in
                     ( { model | documentState = Doc { docState | docModel = newDocModel } }, newCmd )
@@ -413,7 +413,7 @@ update msg model =
                                         { docState
                                             | data = newData
                                             , lastLocalSave = Data.lastCommitTime newData |> Maybe.map Time.millisToPosix
-                                            , docModel = { docModel | dirty = False }
+                                            , docModel = Page.Doc.setDirty docModel False
                                         }
                               }
                             , send <| SetDirty False
@@ -436,7 +436,7 @@ update msg model =
                     ( model, Cmd.none )
 
                 passThroughTo docState =
-                    Page.Doc.incoming incomingMsg docState.docModel
+                    Page.Doc.opaqueIncoming incomingMsg docState.docModel
                         |> (\( d, c, p ) ->
                                 ( { model | documentState = Doc { docState | docModel = d } }, Cmd.map GotDocMsg c )
                                     |> applyParentMsgs p
@@ -477,7 +477,7 @@ update msg model =
 
                                 "mod+o" ->
                                     normalMode docModel
-                                        (model |> openSwitcher docId docModel)
+                                        (model |> openSwitcher docId)
                                         (passThroughTo docState)
 
                                 "esc" ->
@@ -493,7 +493,7 @@ update msg model =
 
                                 "mod+o" ->
                                     normalMode docModel
-                                        (model |> openSwitcher docId docModel)
+                                        (model |> openSwitcher docId)
                                         (passThroughTo docState)
 
                                 "esc" ->
@@ -516,7 +516,7 @@ update msg model =
 
                                 "mod+o" ->
                                     normalMode docModel
-                                        (model |> openSwitcher docId docModel)
+                                        (model |> openSwitcher docId)
                                         (passThroughTo docState)
 
                                 "mod+z" ->
@@ -539,7 +539,7 @@ update msg model =
 
                                 "mod+o" ->
                                     normalMode docModel
-                                        (model |> openSwitcher docId docModel)
+                                        (model |> openSwitcher docId)
                                         (passThroughTo docState)
 
                                 _ ->
@@ -659,7 +659,7 @@ update msg model =
         SwitcherOpened ->
             case model.documentState of
                 Doc { docId, docModel } ->
-                    openSwitcher docId docModel model
+                    openSwitcher docId model
 
                 Empty _ _ ->
                     ( model, Cmd.none )
@@ -758,12 +758,12 @@ update msg model =
             case model.documentState of
                 Doc { docId, docModel } ->
                     let
-                        vs =
-                            docModel.viewState
+                        workingTree =
+                            Page.Doc.getWorkingTree docModel
 
                         activeTree =
-                            getTree vs.active docModel.workingTree.tree
-                                |> Maybe.withDefault docModel.workingTree.tree
+                            Page.Doc.getActiveTree docModel
+                                |> Maybe.withDefault workingTree.tree
                     in
                     ( model
                     , Export.command
@@ -772,7 +772,7 @@ update msg model =
                         (Session.getDocName session docId |> Maybe.withDefault "Untitled")
                         model.exportSettings
                         activeTree
-                        docModel.workingTree.tree
+                        workingTree.tree
                     )
 
                 _ ->
@@ -1103,46 +1103,13 @@ update msg model =
 
         -- FULLSCREEN mode
         ExitFullscreenRequested ->
-            case model.documentState of
-                Doc docState ->
-                    let
-                        ( newDocModel, newDocCmd, parentMsgs ) =
-                            docState.docModel
-                                |> exitFullscreen
-                    in
-                    ( { model | documentState = Doc { docState | docModel = newDocModel } }, Cmd.map GotDocMsg newDocCmd )
-                        |> applyParentMsgs parentMsgs
-
-                _ ->
-                    ( model, Cmd.none )
+            ( model, Cmd.none )
 
         SaveChanges ->
-            case model.documentState of
-                Doc docState ->
-                    let
-                        ( newDocModel, newDocCmd, parentMsgs ) =
-                            ( docState.docModel, Cmd.none, [] )
-                                |> saveCardIfEditing
-                    in
-                    ( { model | documentState = Doc { docState | docModel = newDocModel } }, Cmd.map GotDocMsg newDocCmd )
-                        |> applyParentMsgs parentMsgs
-
-                _ ->
-                    ( model, Cmd.none )
+            ( model, Cmd.none )
 
         SaveAndExitFullscreen ->
-            case model.documentState of
-                Doc docState ->
-                    let
-                        ( newDocModel, newDocCmd, parentMsgs ) =
-                            docState.docModel
-                                |> saveAndStopEditing
-                    in
-                    ( { model | documentState = Doc { docState | docModel = newDocModel } }, Cmd.map GotDocMsg newDocCmd )
-                        |> applyParentMsgs parentMsgs
-
-                _ ->
-                    ( model, Cmd.none )
+            ( model, Cmd.none )
 
         FullscreenRequested ->
             -- TODO:
@@ -1301,25 +1268,18 @@ dataReceived : Json.Value -> Model -> ( Model, Cmd Msg )
 dataReceived dataIn model =
     case model.documentState of
         Doc ({ docModel } as docState) ->
-            case Data.received dataIn ( docState.data, docModel.workingTree.tree ) of
+            let
+                workingTree =
+                    Page.Doc.getWorkingTree docModel
+
+                tree =
+                    workingTree.tree
+            in
+            case Data.received dataIn ( docState.data, tree ) of
                 Just { newModel, newTree } ->
                     let
-                        vs =
-                            docModel.viewState
-
                         newWorkingTree =
-                            TreeStructure.setTreeWithConflicts (Data.conflictList newModel) newTree docModel.workingTree
-
-                        startingWordcount =
-                            countWords (treeToMarkdownString False newTree)
-
-                        newViewState =
-                            case Json.decodeValue (Json.at [ "localStore", "last-actives" ] (Json.list Json.string)) dataIn of
-                                Ok (lastActive :: activePast) ->
-                                    { vs | active = lastActive, activePast = activePast }
-
-                                _ ->
-                                    vs
+                            TreeStructure.setTreeWithConflicts (Data.conflictList newModel) newTree workingTree
                     in
                     ( { model
                         | documentState =
@@ -1329,12 +1289,9 @@ dataReceived dataIn model =
                                     , lastRemoteSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
                                     , lastLocalSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
                                     , docModel =
-                                        { docModel
-                                            | loading = False
-                                            , workingTree = newWorkingTree
-                                            , viewState = newViewState
-                                            , startingWordcount = startingWordcount
-                                        }
+                                        docModel
+                                            |> Page.Doc.setWorkingTree newWorkingTree
+                                            |> Page.Doc.setLoading False
                                 }
                       }
                     , Cmd.none
@@ -1363,7 +1320,7 @@ addToHistoryDo ( model, prevCmd ) =
                         |> Maybe.withDefault (Metadata.new docId)
 
                 commitReq_ =
-                    Data.requestCommit docModel.workingTree.tree author data (Metadata.encode metadata)
+                    Data.requestCommit (Page.Doc.getWorkingTree docModel).tree author data (Metadata.encode metadata)
             in
             case commitReq_ of
                 Just commitReq ->
@@ -1381,17 +1338,17 @@ addToHistoryDo ( model, prevCmd ) =
             ( model, prevCmd )
 
 
-normalMode : Page.Doc.Model -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+normalMode : Page.Doc.OpaqueModel -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 normalMode docModel modified noOp =
-    if docModel.viewState.viewMode == Normal then
+    if Page.Doc.isNormalMode docModel then
         modified
 
     else
         noOp
 
 
-openSwitcher : String -> Page.Doc.Model -> Model -> ( Model, Cmd Msg )
-openSwitcher docId docModel model =
+openSwitcher : String -> Model -> ( Model, Cmd Msg )
+openSwitcher docId model =
     let
         metadata_ =
             Session.getMetadata (toSession model) docId
@@ -1496,6 +1453,16 @@ view ({ documentState } as model) =
     in
     case documentState of
         Doc { docModel, data, lastRemoteSave, lastLocalSave, titleField, docId } ->
+            let
+                workingTree =
+                    Page.Doc.getWorkingTree docModel
+
+                dirty =
+                    Page.Doc.isDirty docModel
+
+                globalData =
+                    Page.Doc.getGlobalData docModel
+            in
             if model.fullscreen then
                 let
                     isMac =
@@ -1509,30 +1476,30 @@ view ({ documentState } as model) =
                             }
                             { language = lang
                             , isMac = isMac
-                            , dirty = docModel.dirty
-                            , model = docModel.workingTree
+                            , dirty = dirty
+                            , model = workingTree
                             , lastLocalSave = lastLocalSave
                             , lastRemoteSave = lastRemoteSave
-                            , currentTime = GlobalData.currentTime docModel.globalData
+                            , currentTime = GlobalData.currentTime globalData
                             }
                 in
                 lazy3 Fullscreen.view
                     { language = lang
                     , isMac = isMac
-                    , dirty = docModel.dirty
-                    , model = docModel.workingTree
+                    , dirty = dirty
+                    , model = workingTree
                     , lastLocalSave = lastLocalSave
                     , lastRemoteSave = lastRemoteSave
-                    , currentTime = GlobalData.currentTime docModel.globalData
+                    , currentTime = GlobalData.currentTime (Page.Doc.getGlobalData docModel)
                     }
-                    docModel.field
-                    docModel.viewState
+                    (Page.Doc.getField docModel)
+                    (Page.Doc.getActiveId docModel)
                     |> Html.map GotFullscreenMsg
 
             else
                 let
                     activeTree_ =
-                        getTree docModel.viewState.active docModel.workingTree.tree
+                        Page.Doc.getActiveTree docModel
 
                     exportViewOk =
                         lazy5 exportView
@@ -1547,10 +1514,10 @@ view ({ documentState } as model) =
                     maybeExportView =
                         case ( model.headerMenu, activeTree_, model.exportSettings ) of
                             ( ExportPreview, Just activeTree, _ ) ->
-                                exportViewOk activeTree docModel.workingTree.tree
+                                exportViewOk activeTree workingTree.tree
 
                             ( ExportPreview, Nothing, ( ExportEverything, _ ) ) ->
-                                exportViewOk defaultTree docModel.workingTree.tree
+                                exportViewOk defaultTree workingTree.tree
 
                             ( ExportPreview, Nothing, _ ) ->
                                 exportViewError "No card selected, cannot preview document"
@@ -1594,13 +1561,13 @@ view ({ documentState } as model) =
                                 , headerMenu = model.headerMenu
                                 , exportSettings = model.exportSettings
                                 , data = data
-                                , dirty = docModel.dirty
+                                , dirty = dirty
                                 , lastLocalSave = lastLocalSave
                                 , lastRemoteSave = lastRemoteSave
-                                , globalData = docModel.globalData
+                                , globalData = globalData
                                 }
                            , maybeExportView
-                           , UI.viewSidebar docModel.globalData
+                           , UI.viewSidebar globalData
                                 session
                                 sidebarMsgs
                                 docId
@@ -1621,11 +1588,11 @@ view ({ documentState } as model) =
                             }
                             lang
                             (Session.shortcutTrayOpen session)
-                            (GlobalData.isMac docModel.globalData)
-                            docModel.workingTree.tree.children
-                            docModel.textCursorInfo
-                            docModel.viewState
-                        ++ viewModal docModel.globalData session model.modalState
+                            (GlobalData.isMac globalData)
+                            workingTree.tree.children
+                            (Page.Doc.getTextCursorInfo docModel)
+                            (Page.Doc.getViewMode docModel)
+                        ++ viewModal globalData session model.modalState
                     )
 
         Empty globalData _ ->
@@ -1702,7 +1669,13 @@ viewModal globalData session modalState =
             VideoViewer.view language ModalClosed VideoViewerMsg videoViewerState
 
         Wordcount docModel ->
-            UI.viewWordCount docModel { modalClosed = ModalClosed }
+            UI.viewWordCount
+                { activeCardId = Page.Doc.getActiveId docModel
+                , workingTree = Page.Doc.getWorkingTree docModel
+                , startingWordcount = 0
+                , globalData = globalData
+                }
+                { modalClosed = ModalClosed }
 
         ImportModal modalModel ->
             ImportModal.view language modalModel

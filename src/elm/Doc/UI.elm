@@ -875,12 +875,10 @@ viewTemplateSelector language msgs =
 
 
 viewWordCount :
-    { m
-        | viewState : ViewState
-        , workingTree : TreeStructure.Model
-        , startingWordcount : Int
-        , wordcountTrayOpen : Bool
-        , globalData : GlobalData
+    { activeCardId : String
+    , workingTree : TreeStructure.Model
+    , startingWordcount : Int
+    , globalData : GlobalData
     }
     -> { modalClosed : msg }
     -> List (Html msg)
@@ -1068,9 +1066,9 @@ viewShortcuts :
     -> Bool
     -> Children
     -> TextCursorInfo
-    -> ViewState
+    -> ViewMode
     -> List (Html msg)
-viewShortcuts msgs lang isOpen isMac children textCursorInfo vs =
+viewShortcuts msgs lang isOpen isMac children textCursorInfo viewMode =
     let
         isTextSelected =
             textCursorInfo.selected
@@ -1139,7 +1137,7 @@ viewShortcuts msgs lang isOpen isMac children textCursorInfo vs =
             iconColor =
                 Icon.color "#445"
         in
-        case vs.viewMode of
+        case viewMode of
             Normal ->
                 [ div
                     [ id "shortcuts-tray", classList [ ( "open", isOpen ) ], onClick msgs.toggledShortcutTray ]
@@ -1293,17 +1291,14 @@ viewTooltip lang ( el, tipPos, content ) =
         [ text lang content, div [ class "tooltip-arrow" ] [] ]
 
 
-getStats : { m | viewState : ViewState, workingTree : TreeStructure.Model } -> Stats
-getStats model =
+getStats : { m | activeCardId : String, workingTree : TreeStructure.Model } -> Stats
+getStats { activeCardId, workingTree } =
     let
-        activeCardId =
-            model.viewState.active
-
         tree =
-            model.workingTree.tree
+            workingTree.tree
 
         cardsTotal =
-            (model.workingTree.tree
+            (workingTree.tree
                 |> TreeUtils.preorderTraversal
                 |> List.length
             )
