@@ -391,18 +391,26 @@ update msg model =
             ( model, Session.logout )
 
         IncomingAppMsg appMsg ->
-            case ( model.documentState, appMsg ) of
-                ( Doc docState, MetadataUpdate metadata ) ->
-                    if Metadata.getDocId metadata == docState.docId then
-                        ( { model | documentState = Doc { docState | titleField = Metadata.getDocName metadata } }, Cmd.none )
+            case appMsg of
+                MetadataUpdate metadata ->
+                    case model.documentState of
+                        Doc ({ docModel } as docState) ->
+                            if Metadata.getDocId metadata == docState.docId then
+                                ( { model | documentState = Doc { docState | titleField = Metadata.getDocName metadata } }, Cmd.none )
 
-                    else
-                        ( model, Cmd.none )
+                            else
+                                ( model, Cmd.none )
 
-                ( _, DataReceived json ) ->
+                        Empty _ _ ->
+                            ( model, Cmd.none )
+
+                DataReceived json ->
                     dataReceived json model
 
-                _ ->
+                DataSaved ->
+                    ( model, Cmd.none )
+
+                SavedRemotely saveTime ->
                     ( model, Cmd.none )
 
         IncomingDocMsg incomingMsg ->
@@ -1700,6 +1708,7 @@ type IncomingAppMsg
     = DataSaved
     | DataReceived Enc.Value
     | MetadataUpdate Metadata
+    | SavedRemotely Time.Posix
 
 
 subscribe : (IncomingAppMsg -> msg) -> (String -> msg) -> Sub msg
@@ -1717,6 +1726,14 @@ subscribe tagger onError =
                     case decodeValue Metadata.decoder outsideInfo.data of
                         Ok metadata ->
                             tagger (MetadataUpdate metadata)
+
+                        Err err ->
+                            onError (errorToString err)
+
+                "SavedRemotely" ->
+                    case decodeValue (Json.map Time.millisToPosix Json.int) outsideInfo.data of
+                        Ok posix ->
+                            tagger (SavedRemotely posix)
 
                         Err err ->
                             onError (errorToString err)
