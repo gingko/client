@@ -7,10 +7,10 @@ import Bytes exposing (Bytes)
 import Coders exposing (sortByEncoder)
 import Doc.ContactForm as ContactForm
 import Doc.Data as Data
-import Doc.Fullscreen exposing (viewFullscreenButtons)
+import Doc.Fullscreen as Fullscreen exposing (viewFullscreenButtons)
 import Doc.HelpScreen as HelpScreen
 import Doc.List as DocList exposing (Model(..))
-import Doc.Metadata as Metadata
+import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.Switcher
 import Doc.TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (getTree)
@@ -24,14 +24,14 @@ import Html exposing (Html, div, strong)
 import Html.Attributes exposing (class, classList, height, id, style, width)
 import Html.Events exposing (onClick)
 import Html.Extra exposing (viewIf)
-import Html.Lazy exposing (lazy5)
+import Html.Lazy exposing (lazy3, lazy5)
 import Http
 import Import.Bulk.UI as ImportModal
 import Import.Incoming
 import Import.Opml
 import Import.Single
 import Import.Text as ImportText
-import Json.Decode as Json
+import Json.Decode as Json exposing (decodeValue, errorToString)
 import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
 import Page.Doc exposing (Msg(..), ParentMsg(..), exitFullscreen, saveAndStopEditing, saveCardIfEditing)
@@ -62,6 +62,7 @@ type alias Model =
     , headerMenu : HeaderMenuState
     , exportSettings : ( ExportSelection, ExportFormat )
     , modalState : ModalState
+    , fullscreen : Bool
     , fileSearchField : String -- TODO: not needed if switcher isn't open
     , tooltip : Maybe ( Element, TooltipPosition, TranslationId )
     , theme : Theme
@@ -137,6 +138,7 @@ defaultModel nKey globalData session docModel_ =
     , headerMenu = NoHeaderMenu
     , exportSettings = ( ExportEverything, DOCX )
     , modalState = NoModal
+    , fullscreen = False
     , fileSearchField = ""
     , tooltip = Nothing
     , theme = Default
@@ -242,11 +244,12 @@ updateGlobalData newGlobalData ({ documentState } as model) =
 type Msg
     = NoOp
     | GotDocMsg Page.Doc.Msg
+    | GotFullscreenMsg Fullscreen.Msg
     | LoginStateChanged Session
     | TimeUpdate Time.Posix
     | SettingsChanged Json.Value
     | LogoutRequested
-    | IncomingAppMsg AppMsg
+    | IncomingAppMsg IncomingAppMsg
     | IncomingDocMsg Incoming.Msg
     | LogErr String
       -- Sidebar
@@ -370,6 +373,9 @@ update msg model =
                 Empty _ _ ->
                     ( model, Cmd.none )
 
+        GotFullscreenMsg fullscreenMsg ->
+            ( model, Cmd.none )
+
         LoginStateChanged newSession ->
             ( model |> updateSession newSession, Route.pushUrl model.navKey Route.Login )
 
@@ -385,7 +391,16 @@ update msg model =
             ( model, Session.logout )
 
         IncomingAppMsg appMsg ->
-            ( model, Cmd.none )
+            case ( model.documentState, appMsg ) of
+                ( Doc docState, MetadataUpdate metadata ) ->
+                    if Metadata.getDocId metadata == docState.docId then
+                        ( { model | documentState = Doc { docState | titleField = Metadata.getDocName metadata } }, Cmd.none )
+
+                    else
+                        ( model, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
         IncomingDocMsg incomingMsg ->
             let
@@ -1377,119 +1392,132 @@ view ({ documentState } as model) =
     in
     case documentState of
         Doc { docModel, data, titleField, docId } ->
-            let
-                activeTree_ =
-                    getTree docModel.viewState.active docModel.workingTree.tree
+            if model.fullscreen then
+                let
+                    isMac =
+                        GlobalData.isMac (toGlobalData model)
 
-                exportViewOk =
-                    lazy5 exportView
-                        { export = Export
-                        , printRequested = PrintRequested
-                        , tooltipRequested = TooltipRequested
-                        , tooltipClosed = TooltipClosed
-                        }
-                        (Session.getDocName session docId |> Maybe.withDefault "Untitled")
-                        model.exportSettings
-
-                maybeExportView =
-                    case ( model.headerMenu, activeTree_, model.exportSettings ) of
-                        ( ExportPreview, Just activeTree, _ ) ->
-                            exportViewOk activeTree docModel.workingTree.tree
-
-                        ( ExportPreview, Nothing, ( ExportEverything, _ ) ) ->
-                            exportViewOk defaultTree docModel.workingTree.tree
-
-                        ( ExportPreview, Nothing, _ ) ->
-                            exportViewError "No card selected, cannot preview document"
-
-                        _ ->
-                            textNoTr ""
-
-                maybeFullscreenButtons =
-                    case docModel.viewState.viewMode of
-                        FullscreenEditing ->
-                            viewFullscreenButtons
-                                { exitFullscreenRequested = ExitFullscreenRequested
-                                , saveChanges = SaveChanges
-                                , saveAndExitFullscreen = SaveAndExitFullscreen
-                                }
-                                { language = lang
-                                , isMac = GlobalData.isMac (toGlobalData model)
-                                , dirty = docModel.dirty
-                                , model = docModel.workingTree
-                                , lastLocalSave = docModel.lastLocalSave
-                                , lastRemoteSave = docModel.lastRemoteSave
-                                , currentTime = GlobalData.currentTime docModel.globalData
-                                }
-
-                        _ ->
-                            textNoTr ""
-            in
-            div [ id "app-root", classList [ ( "loading", model.loading ) ], applyTheme model.theme ]
-                (Page.Doc.view
-                    { docMsg = GotDocMsg
-                    , keyboard = \s -> IncomingDocMsg (Keyboard s)
-                    , tooltipRequested = TooltipRequested
-                    , tooltipClosed = TooltipClosed
+                    fullscreenButtons =
+                        viewFullscreenButtons
+                            { exitFullscreenRequested = ExitFullscreenRequested
+                            , saveChanges = SaveChanges
+                            , saveAndExitFullscreen = SaveAndExitFullscreen
+                            }
+                            { language = lang
+                            , isMac = isMac
+                            , dirty = docModel.dirty
+                            , model = docModel.workingTree
+                            , lastLocalSave = docModel.lastLocalSave
+                            , lastRemoteSave = docModel.lastRemoteSave
+                            , currentTime = GlobalData.currentTime docModel.globalData
+                            }
+                in
+                lazy3 Fullscreen.view
+                    { language = lang
+                    , isMac = isMac
+                    , dirty = docModel.dirty
+                    , model = docModel.workingTree
+                    , lastLocalSave = docModel.lastLocalSave
+                    , lastRemoteSave = docModel.lastRemoteSave
+                    , currentTime = GlobalData.currentTime docModel.globalData
                     }
-                    docModel
-                    ++ [ UI.viewHeader
-                            { noOp = NoOp
-                            , titleFocused = TitleFocused
-                            , titleFieldChanged = TitleFieldChanged
-                            , titleEdited = TitleEdited
-                            , titleEditCanceled = TitleEditCanceled
+                    docModel.field
+                    docModel.viewState
+                    |> Html.map GotFullscreenMsg
+
+            else
+                let
+                    activeTree_ =
+                        getTree docModel.viewState.active docModel.workingTree.tree
+
+                    exportViewOk =
+                        lazy5 exportView
+                            { export = Export
+                            , printRequested = PrintRequested
                             , tooltipRequested = TooltipRequested
                             , tooltipClosed = TooltipClosed
-                            , toggledHistory = HistoryToggled
-                            , checkoutCommit = CheckoutCommit
-                            , restore = Restore
-                            , cancelHistory = CancelHistory
-                            , toggledDocSettings = DocSettingsToggled (not <| model.headerMenu == Settings)
-                            , wordCountClicked = WordcountModalOpened
-                            , themeChanged = ThemeChanged
-                            , toggledExport = ExportPreviewToggled (not <| model.headerMenu == ExportPreview)
-                            , exportSelectionChanged = ExportSelectionChanged
-                            , exportFormatChanged = ExportFormatChanged
-                            , export = Export
-                            , printRequested = PrintRequested
-                            , toggledUpgradeModal = ToggledUpgradeModal
                             }
-                            session
-                            (Session.getDocName session docId)
-                            model
-                            data
-                            docModel
-                            titleField
-                       , maybeExportView
-                       , maybeFullscreenButtons
-                       , UI.viewSidebar docModel.globalData
-                            session
-                            sidebarMsgs
-                            docId
-                            (Session.sortBy session)
-                            model.fileSearchField
-                            (Session.documents session)
-                            (Session.name session |> Maybe.withDefault "" {- TODO -})
-                            Nothing
-                            model.sidebarMenuState
-                            model.sidebarState
-                       , viewIf (Session.isNotConfirmed session) (viewConfirmBanner lang CloseEmailConfirmBanner email)
-                       , viewTooltip
-                       ]
-                    ++ UI.viewShortcuts
-                        { toggledShortcutTray = ToggledShortcutTray
+                            (Session.getDocName session docId |> Maybe.withDefault "Untitled")
+                            model.exportSettings
+
+                    maybeExportView =
+                        case ( model.headerMenu, activeTree_, model.exportSettings ) of
+                            ( ExportPreview, Just activeTree, _ ) ->
+                                exportViewOk activeTree docModel.workingTree.tree
+
+                            ( ExportPreview, Nothing, ( ExportEverything, _ ) ) ->
+                                exportViewOk defaultTree docModel.workingTree.tree
+
+                            ( ExportPreview, Nothing, _ ) ->
+                                exportViewError "No card selected, cannot preview document"
+
+                            _ ->
+                                textNoTr ""
+                in
+                div [ id "app-root", classList [ ( "loading", model.loading ) ], applyTheme model.theme ]
+                    (Page.Doc.view
+                        { docMsg = GotDocMsg
+                        , keyboard = \s -> IncomingDocMsg (Keyboard s)
                         , tooltipRequested = TooltipRequested
                         , tooltipClosed = TooltipClosed
                         }
-                        lang
-                        (Session.shortcutTrayOpen session)
-                        (GlobalData.isMac docModel.globalData)
-                        docModel.workingTree.tree.children
-                        docModel.textCursorInfo
-                        docModel.viewState
-                    ++ viewModal docModel.globalData session model.modalState
-                )
+                        docModel
+                        ++ [ UI.viewHeader
+                                { noOp = NoOp
+                                , titleFocused = TitleFocused
+                                , titleFieldChanged = TitleFieldChanged
+                                , titleEdited = TitleEdited
+                                , titleEditCanceled = TitleEditCanceled
+                                , tooltipRequested = TooltipRequested
+                                , tooltipClosed = TooltipClosed
+                                , toggledHistory = HistoryToggled
+                                , checkoutCommit = CheckoutCommit
+                                , restore = Restore
+                                , cancelHistory = CancelHistory
+                                , toggledDocSettings = DocSettingsToggled (not <| model.headerMenu == Settings)
+                                , wordCountClicked = WordcountModalOpened
+                                , themeChanged = ThemeChanged
+                                , toggledExport = ExportPreviewToggled (not <| model.headerMenu == ExportPreview)
+                                , exportSelectionChanged = ExportSelectionChanged
+                                , exportFormatChanged = ExportFormatChanged
+                                , export = Export
+                                , printRequested = PrintRequested
+                                , toggledUpgradeModal = ToggledUpgradeModal
+                                }
+                                session
+                                (Session.getDocName session docId)
+                                model
+                                data
+                                docModel
+                                titleField
+                           , maybeExportView
+                           , UI.viewSidebar docModel.globalData
+                                session
+                                sidebarMsgs
+                                docId
+                                (Session.sortBy session)
+                                model.fileSearchField
+                                (Session.documents session)
+                                (Session.name session |> Maybe.withDefault "" {- TODO -})
+                                Nothing
+                                model.sidebarMenuState
+                                model.sidebarState
+                           , viewIf (Session.isNotConfirmed session) (viewConfirmBanner lang CloseEmailConfirmBanner email)
+                           , viewTooltip
+                           ]
+                        ++ UI.viewShortcuts
+                            { toggledShortcutTray = ToggledShortcutTray
+                            , tooltipRequested = TooltipRequested
+                            , tooltipClosed = TooltipClosed
+                            }
+                            lang
+                            (Session.shortcutTrayOpen session)
+                            (GlobalData.isMac docModel.globalData)
+                            docModel.workingTree.tree.children
+                            docModel.textCursorInfo
+                            docModel.viewState
+                        ++ viewModal docModel.globalData session model.modalState
+                    )
 
         Empty globalData _ ->
             if model.loading then
@@ -1615,12 +1643,13 @@ viewConfirmBanner lang closeMsg email =
 -- SUBSCRIPTIONS
 
 
-type AppMsg
+type IncomingAppMsg
     = DataSaved
     | DataReceived
+    | MetadataUpdate Metadata
 
 
-subscribe : (AppMsg -> msg) -> (String -> msg) -> Sub msg
+subscribe : (IncomingAppMsg -> msg) -> (String -> msg) -> Sub msg
 subscribe tagger onError =
     appMsgs
         (\outsideInfo ->
@@ -1630,6 +1659,14 @@ subscribe tagger onError =
 
                 "DataReceived" ->
                     tagger DataReceived
+
+                "MetadataUpdate" ->
+                    case decodeValue Metadata.decoder outsideInfo.data of
+                        Ok metadata ->
+                            tagger (MetadataUpdate metadata)
+
+                        Err err ->
+                            onError (errorToString err)
 
                 _ ->
                     onError <| "Unexpected info from outside: " ++ outsideInfo.tag

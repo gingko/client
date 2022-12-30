@@ -2,22 +2,19 @@ module Page.Doc exposing (Model, Msg, ParentMsg(..), activate, exitFullscreen, i
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
-import Coders exposing (treeToMarkdownOutline, treeToMarkdownString, treeToValue)
+import Coders exposing (treeToValue)
 import Debouncer.Basic as Debouncer exposing (Debouncer, fromSeconds, provideInput, toDebouncer)
-import Doc.Data as Data
-import Doc.Data.Conflict exposing (Selection)
 import Doc.Fonts as Fonts
-import Doc.Fullscreen as Fullscreen
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
-import Doc.UI as UI exposing (countWords, viewConflict, viewMobileButtons, viewSearchField)
+import Doc.UI as UI exposing (viewMobileButtons, viewSearchField)
 import GlobalData exposing (GlobalData)
 import Html exposing (Attribute, Html, div, span, text, textarea, ul)
 import Html.Attributes as Attributes exposing (attribute, class, classList, dir, id, style, title, value)
 import Html.Events exposing (custom, onClick, onDoubleClick, onInput)
 import Html.Extra exposing (viewIf)
 import Html.Keyed as Keyed
-import Html.Lazy exposing (lazy2, lazy3, lazy4, lazy7, lazy8)
+import Html.Lazy exposing (lazy2, lazy4, lazy7, lazy8)
 import Html5.DragDrop as DragDrop
 import Json.Decode as Json
 import List.Extra as ListExtra
@@ -127,7 +124,6 @@ type Msg
     | AutoSave
     | SaveAndCloseCard
     | EditToFullscreenMode
-    | FullscreenMsg Fullscreen.Msg
     | DeleteCard String
       -- === Card Insertion  ===
     | InsertAbove String
@@ -266,27 +262,6 @@ updateDoc msg ({ workingTree } as model) =
 
         EditToFullscreenMode ->
             model |> enterFullscreen
-
-        FullscreenMsg fullscreenMsg ->
-            case fullscreenMsg of
-                Fullscreen.OpenCard id str ->
-                    ( model
-                    , Cmd.none
-                    )
-                        |> saveCardIfEditing
-                        |> openCardFullscreen id str
-
-                Fullscreen.UpdateField id str ->
-                    ( { model | dirty = True, field = str }
-                    , send <| SetDirty True
-                    )
-                        |> localSave
-                        |> (if vs.active /= id then
-                                activate id False
-
-                            else
-                                identity
-                           )
 
         DeleteCard id ->
             ( model
@@ -1789,90 +1764,67 @@ view appMsg model =
 viewLoaded : AppMsgs msg -> Model -> List (Html msg)
 viewLoaded ({ docMsg } as appMsg) model =
     let
-        language =
-            GlobalData.language model.globalData
+        activeTree_ =
+            getTree model.viewState.active model.workingTree.tree
 
-        isMac =
-            GlobalData.isMac model.globalData
+        mobileBtnMsg shortcut =
+            appMsg.keyboard shortcut
+
+        cardTitleReplacer ( id, inputString ) =
+            case String.lines inputString of
+                firstLine :: _ ->
+                    ( id
+                    , firstLine
+                        |> String.trim
+                        |> (\str ->
+                                if String.isEmpty str then
+                                    "(empty)"
+
+                                else
+                                    str
+                           )
+                    )
+
+                [] ->
+                    ( id, "(empty)" )
+
+        cardTitles =
+            case activeTree_ of
+                Just activeTree ->
+                    (getAncestors model.workingTree.tree activeTree []
+                        |> List.map (\t -> ( t.id, t.content ))
+                        |> List.drop 1
+                    )
+                        ++ [ ( activeTree.id, activeTree.content ) ]
+                        |> List.map cardTitleReplacer
+
+                Nothing ->
+                    []
     in
-    if model.viewState.viewMode == FullscreenEditing then
-        lazy3 Fullscreen.view
-            { language = language
-            , isMac = isMac
-            , dirty = model.dirty
-            , model = model.workingTree
-            , lastLocalSave = model.lastLocalSave
-            , lastRemoteSave = model.lastRemoteSave
-            , currentTime = GlobalData.currentTime model.globalData
-            }
-            model.field
-            model.viewState
-            |> Html.map (docMsg << FullscreenMsg)
-            |> List.singleton
+    [ lazy4 treeView (GlobalData.language model.globalData) (GlobalData.isMac model.globalData) model.viewState model.workingTree |> Html.map docMsg
+    , if (not << List.isEmpty) cardTitles then
+        UI.viewBreadcrumbs Activate cardTitles |> Html.map docMsg
 
-    else
-        let
-            activeTree_ =
-                getTree model.viewState.active model.workingTree.tree
-
-            mobileBtnMsg shortcut =
-                appMsg.keyboard shortcut
-
-            cardTitleReplacer ( id, inputString ) =
-                case String.lines inputString of
-                    firstLine :: _ ->
-                        ( id
-                        , firstLine
-                            |> String.trim
-                            |> (\str ->
-                                    if String.isEmpty str then
-                                        "(empty)"
-
-                                    else
-                                        str
-                               )
-                        )
-
-                    [] ->
-                        ( id, "(empty)" )
-
-            cardTitles =
-                case activeTree_ of
-                    Just activeTree ->
-                        (getAncestors model.workingTree.tree activeTree []
-                            |> List.map (\t -> ( t.id, t.content ))
-                            |> List.drop 1
-                        )
-                            ++ [ ( activeTree.id, activeTree.content ) ]
-                            |> List.map cardTitleReplacer
-
-                    Nothing ->
-                        []
-        in
-        [ lazy4 treeView (GlobalData.language model.globalData) (GlobalData.isMac model.globalData) model.viewState model.workingTree |> Html.map docMsg
-        , if (not << List.isEmpty) cardTitles then
-            UI.viewBreadcrumbs Activate cardTitles |> Html.map docMsg
-
-          else
-            text ""
-        ]
-            ++ [ viewSearchField SearchFieldUpdated model |> Html.map docMsg
-               , viewMobileButtons
-                    { edit = mobileBtnMsg "mod+enter"
-                    , save = mobileBtnMsg "mod+enter"
-                    , cancel = mobileBtnMsg "esc"
-                    , plusDown = mobileBtnMsg "mod+down"
-                    , plusUp = mobileBtnMsg "mod+up"
-                    , plusRight = mobileBtnMsg "mod+right"
-                    , navLeft = mobileBtnMsg "left"
-                    , navUp = mobileBtnMsg "up"
-                    , navDown = mobileBtnMsg "down"
-                    , navRight = mobileBtnMsg "right"
-                    }
-                    (model.viewState.viewMode /= Normal)
-               , Keyed.node "div" [ style "display" "contents" ] [ ( "randomstringforloadingoverlay", div [ id "loading-overlay" ] [] ) ]
-               , div [ id "preloader" ] []
-               ]
+      else
+        text ""
+    ]
+        ++ [ viewSearchField SearchFieldUpdated model |> Html.map docMsg
+           , viewMobileButtons
+                { edit = mobileBtnMsg "mod+enter"
+                , save = mobileBtnMsg "mod+enter"
+                , cancel = mobileBtnMsg "esc"
+                , plusDown = mobileBtnMsg "mod+down"
+                , plusUp = mobileBtnMsg "mod+up"
+                , plusRight = mobileBtnMsg "mod+right"
+                , navLeft = mobileBtnMsg "left"
+                , navUp = mobileBtnMsg "up"
+                , navDown = mobileBtnMsg "down"
+                , navRight = mobileBtnMsg "right"
+                }
+                (model.viewState.viewMode /= Normal)
+           , Keyed.node "div" [ style "display" "contents" ] [ ( "randomstringforloadingoverlay", div [ id "loading-overlay" ] [] ) ]
+           , div [ id "preloader" ] []
+           ]
 
 
 treeView : Language -> Bool -> ViewState -> TreeStructure.Model -> Html Msg

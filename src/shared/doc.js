@@ -310,7 +310,7 @@ const fromElm = (msg, elmData) => {
 
       // Load title
       const treeDoc = await dexie.trees.get(elmData);
-      toElm(treeDocToMetadata(treeDoc), "appMsgs", "MetadataSaved")
+      toElm(treeDocToMetadata(treeDoc), "appMsgs", "MetadataUpdate")
 
       // Load document-specific settings.
       localStore.db(elmData);
@@ -435,7 +435,7 @@ const fromElm = (msg, elmData) => {
 
       // Maybe send metadata to Elm
       await dexie.trees.update(TREE_ID, {updatedAt: savedMetadata.updatedAt, synced: false});
-      if (typeof savedMetadata !== "undefined") { toElm(savedMetadata, "appMsgs", "MetadataSaved")}
+      if (typeof savedMetadata !== "undefined") { toElm(savedMetadata, "appMsgs", "MetadataUpdate")}
 
       // Pull & Maybe push
       if (!PULL_LOCK) {
