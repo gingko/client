@@ -1,4 +1,4 @@
-module Page.App exposing (Model, Msg, getTitle, init, isDirty, navKey, subscriptions, toGlobalData, toSession, update, view)
+port module Page.App exposing (Model, Msg, getTitle, init, isDirty, navKey, subscriptions, toGlobalData, toSession, update, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -34,7 +34,7 @@ import Import.Text as ImportText
 import Json.Decode as Json
 import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
-import Page.Doc exposing (Msg(..), ParentMsg(..), checkoutCommit, exitFullscreen, saveAndStopEditing, saveCardIfEditing)
+import Page.Doc exposing (Msg(..), ParentMsg(..), exitFullscreen, saveAndStopEditing, saveCardIfEditing)
 import Page.Doc.Export as Export exposing (ExportFormat(..), ExportSelection(..), exportView, exportViewError)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Doc.Theme exposing (Theme(..), applyTheme)
@@ -46,7 +46,7 @@ import Svg.Attributes
 import Task
 import Time
 import Translation exposing (Language, TranslationId(..), langToString, tr)
-import Types exposing (HeaderMenuState(..), SidebarMenuState(..), SidebarState(..), SortBy(..), TooltipPosition, Tree, ViewMode(..))
+import Types exposing (HeaderMenuState(..), OutsideData, SidebarMenuState(..), SidebarState(..), SortBy(..), TooltipPosition, Tree, ViewMode(..))
 import Upgrade exposing (Msg(..))
 
 
@@ -78,6 +78,7 @@ type alias DocState =
     { session : Session
     , docId : String
     , docModel : Page.Doc.Model
+    , data : Data.Model
     , titleField : Maybe String
     }
 
@@ -87,6 +88,16 @@ toDocModel { documentState } =
     case documentState of
         Doc { docModel } ->
             Just docModel
+
+        _ ->
+            Nothing
+
+
+toData : Model -> Maybe Data.Model
+toData { documentState } =
+    case documentState of
+        Doc { data } ->
+            Just data
 
         _ ->
             Nothing
@@ -120,6 +131,7 @@ defaultModel nKey globalData session docModel_ =
                     { session = session
                     , docId = docId
                     , docModel = docModel
+                    , data = Data.empty
                     , titleField = Session.getDocName session docId
                     }
 
@@ -244,7 +256,8 @@ type Msg
     | TimeUpdate Time.Posix
     | SettingsChanged Json.Value
     | LogoutRequested
-    | Incoming Incoming.Msg
+    | IncomingAppMsg AppMsg
+    | IncomingDocMsg Incoming.Msg
     | LogErr String
       -- Sidebar
     | TemplateSelectorOpened
@@ -381,7 +394,10 @@ update msg model =
         LogoutRequested ->
             ( model, Session.logout )
 
-        Incoming incomingMsg ->
+        IncomingAppMsg appMsg ->
+            ( model, Cmd.none )
+
+        IncomingDocMsg incomingMsg ->
             let
                 doNothing =
                     ( model, Cmd.none )
@@ -393,9 +409,6 @@ update msg model =
                            )
             in
             case ( incomingMsg, model.documentState ) of
-                ( DataReceived _, Empty _ _ ) ->
-                    ( model, Cmd.none )
-
                 ( Keyboard shortcut, Doc ({ docId, docModel } as docState) ) ->
                     case model.modalState of
                         FileSwitcher switcherModel ->
@@ -510,33 +523,6 @@ update msg model =
 
                 ( WillPrint, Doc _ ) ->
                     ( { model | headerMenu = ExportPreview }, Cmd.none )
-
-                ( MetadataSaved json, Doc docState ) ->
-                    case Json.decodeValue Metadata.decoder json of
-                        Ok metadata ->
-                            if Metadata.getDocId metadata == docState.docId then
-                                ( { model | documentState = Doc { docState | titleField = Metadata.getDocName metadata } }, Cmd.none )
-
-                            else
-                                ( model, Cmd.none )
-
-                        Err _ ->
-                            ( model, Cmd.none )
-
-                ( MetadataSynced json, Doc docState ) ->
-                    case Json.decodeValue Metadata.decoder json of
-                        Ok metadata ->
-                            if Metadata.getDocId metadata == docState.docId then
-                                ( { model | documentState = Doc { docState | titleField = Metadata.getDocName metadata } }, Cmd.none )
-
-                            else
-                                ( model, Cmd.none )
-
-                        Err _ ->
-                            ( model, Cmd.none )
-
-                ( MetadataSaveError, Doc docState ) ->
-                    ( { model | documentState = Doc { docState | titleField = Nothing } }, Cmd.none )
 
                 ( _, Doc docState ) ->
                     passThroughTo docState
@@ -706,15 +692,10 @@ update msg model =
             case ( model.headerMenu, model.documentState ) of
                 ( HistoryView historyState, Doc docState ) ->
                     let
-                        ( newDocModel, docCmd ) =
-                            checkoutCommit commitSha docState.docModel
+                        newTree =
+                            Data.checkout commitSha docState.data
                     in
-                    ( { model
-                        | documentState = Doc { docState | docModel = newDocModel }
-                        , headerMenu = HistoryView { historyState | currentView = commitSha }
-                      }
-                    , Cmd.map GotDocMsg docCmd
-                    )
+                    ( model, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -1263,7 +1244,7 @@ update msg model =
 addToHistoryDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 addToHistoryDo ( model, prevCmd ) =
     case model.documentState of
-        Doc { session, docModel, docId } ->
+        Doc { session, docModel, docId, data } ->
             let
                 author =
                     session |> Session.name |> Maybe.withDefault "unknown" |> (\a -> "<" ++ a ++ ">")
@@ -1273,7 +1254,7 @@ addToHistoryDo ( model, prevCmd ) =
                         |> Maybe.withDefault (Metadata.new docId)
 
                 commitReq_ =
-                    Data.requestCommit docModel.workingTree.tree author docModel.data (Metadata.encode metadata)
+                    Data.requestCommit docModel.workingTree.tree author data (Metadata.encode metadata)
             in
             case commitReq_ of
                 Just commitReq ->
@@ -1331,7 +1312,7 @@ closeSwitcher model =
 
 toggleHistory : Bool -> Int -> Model -> ( Model, Cmd msg )
 toggleHistory isOpen delta model =
-    case ( isOpen, model |> toDocModel |> Maybe.andThen (\dm -> Data.head "heads/master" dm.data) ) of
+    case ( isOpen, model |> toData |> Maybe.andThen (\d -> Data.head "heads/master" d) ) of
         ( True, Just refObj ) ->
             ( { model | headerMenu = HistoryView { start = refObj.value, currentView = refObj.value } }, send <| HistorySlider delta )
 
@@ -1405,7 +1386,7 @@ view ({ documentState } as model) =
             }
     in
     case documentState of
-        Doc { docModel, titleField, docId } ->
+        Doc { docModel, data, titleField, docId } ->
             let
                 activeTree_ =
                     getTree docModel.viewState.active docModel.workingTree.tree
@@ -1457,7 +1438,7 @@ view ({ documentState } as model) =
             div [ id "app-root", classList [ ( "loading", model.loading ) ], applyTheme model.theme ]
                 (Page.Doc.view
                     { docMsg = GotDocMsg
-                    , keyboard = \s -> Incoming (Keyboard s)
+                    , keyboard = \s -> IncomingDocMsg (Keyboard s)
                     , tooltipRequested = TooltipRequested
                     , tooltipClosed = TooltipClosed
                     }
@@ -1487,6 +1468,7 @@ view ({ documentState } as model) =
                             session
                             (Session.getDocName session docId)
                             model
+                            data
                             docModel
                             titleField
                        , maybeExportView
@@ -1643,10 +1625,31 @@ viewConfirmBanner lang closeMsg email =
 -- SUBSCRIPTIONS
 
 
+type AppMsg
+    = DataReceived
+
+
+subscribe : (AppMsg -> msg) -> (String -> msg) -> Sub msg
+subscribe tagger onError =
+    appMessages
+        (\outsideInfo ->
+            case outsideInfo.tag of
+                "data" ->
+                    tagger DataReceived
+
+                _ ->
+                    onError <| "Unexpected info from outside: " ++ outsideInfo.tag
+        )
+
+
+port appMessages : (OutsideData -> msg) -> Sub msg
+
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Incoming.subscribe Incoming LogErr
+        [ subscribe IncomingAppMsg LogErr
+        , Incoming.subscribe IncomingDocMsg LogErr
         , Import.Incoming.importComplete
             (\docId_ ->
                 case docId_ of

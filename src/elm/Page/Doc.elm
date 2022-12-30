@@ -1,4 +1,4 @@
-module Page.Doc exposing (Model, Msg, ParentMsg(..), activate, checkoutCommit, exitFullscreen, incoming, init, saveAndStopEditing, saveCardIfEditing, subscriptions, update, view)
+module Page.Doc exposing (Model, Msg, ParentMsg(..), activate, exitFullscreen, incoming, init, saveAndStopEditing, saveCardIfEditing, subscriptions, update, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -40,7 +40,6 @@ import Utils exposing (randomPositiveInt)
 type alias Model =
     -- Document state
     { workingTree : TreeStructure.Model
-    , data : Data.Model
 
     -- SPA Page State
     , globalData : GlobalData
@@ -70,7 +69,6 @@ type alias Model =
 init : Bool -> GlobalData -> Model
 init isNew globalData =
     { workingTree = TreeStructure.defaultModel
-    , data = Data.empty
     , globalData = globalData
     , loading = not isNew
     , isExpired = False
@@ -143,8 +141,6 @@ type Msg
     | LocalSave Time.Posix
     | ThrottledCommit (Debouncer.Msg ())
     | Commit Time.Posix
-    | SetSelection String Selection String
-    | Resolve String
       -- === UI ===
       -- Misc UI
     | FullscreenRequested
@@ -440,33 +436,6 @@ updateDoc msg ({ workingTree } as model) =
         Commit time ->
             ( model, Cmd.none )
 
-        SetSelection cid selection id ->
-            let
-                newData =
-                    Data.conflictSelection cid selection model.data
-            in
-            ( { model
-                | data = newData
-                , workingTree = TreeStructure.setTreeWithConflicts (Data.conflictList newData) model.workingTree.tree model.workingTree
-              }
-            , Cmd.none
-            )
-                |> activate id True
-
-        Resolve cid ->
-            let
-                newData =
-                    Data.resolve cid model.data
-            in
-            ( { model
-                | data = newData
-                , workingTree = TreeStructure.setTreeWithConflicts (Data.conflictList newData) model.workingTree.tree model.workingTree
-              }
-            , Cmd.none
-            )
-                |> localSave
-                |> addToHistory
-
         -- === UI ===
         FullscreenRequested ->
             ( model, send <| RequestFullscreen )
@@ -515,49 +484,6 @@ incoming incomingMsg model =
             , send <| SetDirty False
             )
                 |> cancelCard
-
-        -- === Database ===
-        DataSaved dataIn ->
-            let
-                newData =
-                    Data.success dataIn model.data
-            in
-            ( { model
-                | data = newData
-                , lastLocalSave = Data.lastCommitTime newData |> Maybe.map Time.millisToPosix
-                , dirty = False
-              }
-            , send <| SetDirty False
-            )
-
-        DataReceived dataIn ->
-            dataReceived dataIn model
-
-        NotFound ->
-            ( model, Cmd.none )
-
-        MetadataSynced _ ->
-            ( model, Cmd.none )
-
-        MetadataSaved _ ->
-            ( model, Cmd.none )
-
-        MetadataSaveError ->
-            ( model, Cmd.none )
-
-        SavedRemotely time ->
-            ( { model
-                | lastRemoteSave = Just time
-              }
-            , Cmd.none
-            )
-
-        -- === Desktop ===
-        SavedToFile _ _ ->
-            ( model, Cmd.none )
-
-        ClickedExport ->
-            ( model, Cmd.none )
 
         -- === DOM ===
         DragStarted dragId ->
@@ -1830,31 +1756,6 @@ localSave ( model, prevCmd ) =
 
 
 
--- === History ===
-
-
-checkoutCommit : String -> Model -> ( Model, Cmd Msg )
-checkoutCommit commitSha model =
-    let
-        newTree_ =
-            Data.checkout commitSha model.data
-    in
-    case newTree_ of
-        Just newTree ->
-            ( { model
-                | workingTree = TreeStructure.setTree newTree model.workingTree
-              }
-            , Cmd.none
-            )
-                |> activate model.viewState.active False
-
-        Nothing ->
-            ( model
-            , Cmd.none
-            )
-
-
-
 -- History
 
 
@@ -1862,49 +1763,6 @@ addToHistory : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 addToHistory ( model, prevCmd ) =
     updateDoc (ThrottledCommit (provideInput ())) model
         |> Tuple.mapSecond (\cmd -> Cmd.batch [ prevCmd, cmd ])
-
-
-
--- === Files ===
-
-
-dataReceived : Json.Value -> Model -> ( Model, Cmd Msg )
-dataReceived dataIn model =
-    case Data.received dataIn ( model.data, model.workingTree.tree ) of
-        Just { newModel, newTree } ->
-            let
-                vs =
-                    model.viewState
-
-                newWorkingTree =
-                    TreeStructure.setTreeWithConflicts (Data.conflictList newModel) newTree model.workingTree
-
-                startingWordcount =
-                    countWords (treeToMarkdownString False newTree)
-
-                ( newViewState, maybeScroll ) =
-                    case Json.decodeValue (Json.at [ "localStore", "last-actives" ] (Json.list Json.string)) dataIn of
-                        Ok (lastActive :: activePast) ->
-                            ( { vs | active = lastActive, activePast = activePast }, activate lastActive True )
-
-                        _ ->
-                            ( vs, activate "1" True )
-            in
-            ( { model
-                | data = newModel
-                , loading = False
-                , workingTree = newWorkingTree
-                , viewState = newViewState
-                , lastLocalSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
-                , lastRemoteSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
-                , startingWordcount = startingWordcount
-              }
-            , Cmd.none
-            )
-                |> maybeScroll
-
-        Nothing ->
-            ( model, Cmd.none )
 
 
 
@@ -1937,104 +1795,84 @@ viewLoaded ({ docMsg } as appMsg) model =
         isMac =
             GlobalData.isMac model.globalData
     in
-    case Data.conflictList model.data of
-        [] ->
-            if model.viewState.viewMode == FullscreenEditing then
-                lazy3 Fullscreen.view
-                    { language = language
-                    , isMac = isMac
-                    , dirty = model.dirty
-                    , model = model.workingTree
-                    , lastLocalSave = model.lastLocalSave
-                    , lastRemoteSave = model.lastRemoteSave
-                    , currentTime = GlobalData.currentTime model.globalData
+    if model.viewState.viewMode == FullscreenEditing then
+        lazy3 Fullscreen.view
+            { language = language
+            , isMac = isMac
+            , dirty = model.dirty
+            , model = model.workingTree
+            , lastLocalSave = model.lastLocalSave
+            , lastRemoteSave = model.lastRemoteSave
+            , currentTime = GlobalData.currentTime model.globalData
+            }
+            model.field
+            model.viewState
+            |> Html.map (docMsg << FullscreenMsg)
+            |> List.singleton
+
+    else
+        let
+            activeTree_ =
+                getTree model.viewState.active model.workingTree.tree
+
+            mobileBtnMsg shortcut =
+                appMsg.keyboard shortcut
+
+            cardTitleReplacer ( id, inputString ) =
+                case String.lines inputString of
+                    firstLine :: _ ->
+                        ( id
+                        , firstLine
+                            |> String.trim
+                            |> (\str ->
+                                    if String.isEmpty str then
+                                        "(empty)"
+
+                                    else
+                                        str
+                               )
+                        )
+
+                    [] ->
+                        ( id, "(empty)" )
+
+            cardTitles =
+                case activeTree_ of
+                    Just activeTree ->
+                        (getAncestors model.workingTree.tree activeTree []
+                            |> List.map (\t -> ( t.id, t.content ))
+                            |> List.drop 1
+                        )
+                            ++ [ ( activeTree.id, activeTree.content ) ]
+                            |> List.map cardTitleReplacer
+
+                    Nothing ->
+                        []
+        in
+        [ lazy4 treeView (GlobalData.language model.globalData) (GlobalData.isMac model.globalData) model.viewState model.workingTree |> Html.map docMsg
+        , if (not << List.isEmpty) cardTitles then
+            UI.viewBreadcrumbs Activate cardTitles |> Html.map docMsg
+
+          else
+            text ""
+        ]
+            ++ [ viewSearchField SearchFieldUpdated model |> Html.map docMsg
+               , viewMobileButtons
+                    { edit = mobileBtnMsg "mod+enter"
+                    , save = mobileBtnMsg "mod+enter"
+                    , cancel = mobileBtnMsg "esc"
+                    , plusDown = mobileBtnMsg "mod+down"
+                    , plusUp = mobileBtnMsg "mod+up"
+                    , plusRight = mobileBtnMsg "mod+right"
+                    , navLeft = mobileBtnMsg "left"
+                    , navUp = mobileBtnMsg "up"
+                    , navDown = mobileBtnMsg "down"
+                    , navRight = mobileBtnMsg "right"
                     }
-                    model.field
-                    model.viewState
-                    |> Html.map (docMsg << FullscreenMsg)
-                    |> List.singleton
-
-            else
-                let
-                    activeTree_ =
-                        getTree model.viewState.active model.workingTree.tree
-
-                    mobileBtnMsg shortcut =
-                        appMsg.keyboard shortcut
-
-                    cardTitleReplacer ( id, inputString ) =
-                        case String.lines inputString of
-                            firstLine :: _ ->
-                                ( id
-                                , firstLine
-                                    |> String.trim
-                                    |> (\str ->
-                                            if String.isEmpty str then
-                                                "(empty)"
-
-                                            else
-                                                str
-                                       )
-                                )
-
-                            [] ->
-                                ( id, "(empty)" )
-
-                    cardTitles =
-                        case activeTree_ of
-                            Just activeTree ->
-                                (getAncestors model.workingTree.tree activeTree []
-                                    |> List.map (\t -> ( t.id, t.content ))
-                                    |> List.drop 1
-                                )
-                                    ++ [ ( activeTree.id, activeTree.content ) ]
-                                    |> List.map cardTitleReplacer
-
-                            Nothing ->
-                                []
-                in
-                [ lazy4 treeView (GlobalData.language model.globalData) (GlobalData.isMac model.globalData) model.viewState model.workingTree |> Html.map docMsg
-                , if (not << List.isEmpty) cardTitles then
-                    UI.viewBreadcrumbs Activate cardTitles |> Html.map docMsg
-
-                  else
-                    text ""
-                ]
-                    ++ [ viewSearchField SearchFieldUpdated model |> Html.map docMsg
-                       , viewMobileButtons
-                            { edit = mobileBtnMsg "mod+enter"
-                            , save = mobileBtnMsg "mod+enter"
-                            , cancel = mobileBtnMsg "esc"
-                            , plusDown = mobileBtnMsg "mod+down"
-                            , plusUp = mobileBtnMsg "mod+up"
-                            , plusRight = mobileBtnMsg "mod+right"
-                            , navLeft = mobileBtnMsg "left"
-                            , navUp = mobileBtnMsg "up"
-                            , navDown = mobileBtnMsg "down"
-                            , navRight = mobileBtnMsg "right"
-                            }
-                            (model.viewState.viewMode /= Normal)
-                       , Keyed.node "div" [ style "display" "contents" ] [ ( "randomstringforloadingoverlay", div [ id "loading-overlay" ] [] ) ]
-                       , div [ id "preloader" ] []
-                       ]
-
-        conflicts ->
-            let
-                bgString =
-                    """
-repeating-linear-gradient(-45deg
-, rgba(255,255,255,0.02)
-, rgba(255,255,255,0.02) 15px
-, rgba(0,0,0,0.025) 15px
-, rgba(0,0,0,0.06) 30px
-)
-          """
-            in
-            [ ul [ class "conflicts-list" ]
-                (List.map (viewConflict language SetSelection Resolve) conflicts)
-                |> Html.map docMsg
-            , lazy4 treeView (GlobalData.language model.globalData) (GlobalData.isMac model.globalData) model.viewState model.workingTree |> Html.map docMsg
-            ]
+                    (model.viewState.viewMode /= Normal)
+               , Keyed.node "div" [ style "display" "contents" ] [ ( "randomstringforloadingoverlay", div [ id "loading-overlay" ] [] ) ]
+               , div [ id "preloader" ] []
+               ]
 
 
 treeView : Language -> Bool -> ViewState -> TreeStructure.Model -> Html Msg

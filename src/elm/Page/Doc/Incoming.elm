@@ -11,18 +11,6 @@ type
     Msg
     -- === Dialogs, Menus, Window State ===
     = CancelCardConfirmed
-      -- === Database ===
-    | DataSaved Dec.Value
-    | DataReceived Dec.Value
-    | NotFound
-    | SavedRemotely Time.Posix
-      -- === Desktop ===
-    | SavedToFile String Time.Posix
-    | ClickedExport
-      -- === Metadata ===
-    | MetadataSynced Dec.Value
-    | MetadataSaved Dec.Value
-    | MetadataSaveError
       -- === DOM ===
     | DragStarted String
     | DragExternalStarted
@@ -89,42 +77,6 @@ subscribe tagger onError =
                 -- === Dialogs, Menus, Window State ===
                 "CancelCardConfirmed" ->
                     tagger <| CancelCardConfirmed
-
-                -- === Database ===
-                "DataSaved" ->
-                    tagger <| DataSaved outsideInfo.data
-
-                "DataReceived" ->
-                    tagger <| DataReceived outsideInfo.data
-
-                "NotFound" ->
-                    tagger <| NotFound
-
-                "MetadataSynced" ->
-                    tagger <| MetadataSynced outsideInfo.data
-
-                "MetadataSaved" ->
-                    tagger <| MetadataSaved outsideInfo.data
-
-                "SavedRemotely" ->
-                    case decodeValue Dec.int outsideInfo.data of
-                        Ok time ->
-                            tagger <| SavedRemotely (Time.millisToPosix time)
-
-                        Err e ->
-                            onError (errorToString e)
-
-                -- === Desktop ===
-                "SavedToFile" ->
-                    case decodeValue (tupleDecoder Dec.string (Dec.map Time.millisToPosix <| Dec.int)) outsideInfo.data of
-                        Ok ( path, timestamp ) ->
-                            tagger <| SavedToFile path timestamp
-
-                        Err e ->
-                            onError (errorToString e)
-
-                "ClickedExport" ->
-                    tagger <| ClickedExport
 
                 -- === DOM ===
                 "DragStarted" ->

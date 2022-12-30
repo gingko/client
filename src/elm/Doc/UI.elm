@@ -90,17 +90,17 @@ viewHeader :
             | headerMenu : HeaderMenuState
             , exportSettings : ( ExportSelection, ExportFormat )
         }
+    -> Data.Model
     ->
         { docModel
-            | data : Data.Model
-            , dirty : Bool
+            | dirty : Bool
             , lastLocalSave : Maybe Time.Posix
             , lastRemoteSave : Maybe Time.Posix
             , globalData : GlobalData
         }
     -> Maybe String
     -> Html msg
-viewHeader msgs session title_ appModel docModel titleField_ =
+viewHeader msgs session title_ appModel data docModel titleField_ =
     let
         language =
             GlobalData.language docModel.globalData
@@ -186,7 +186,7 @@ viewHeader msgs session title_ appModel docModel titleField_ =
                     , tooltipClosed = msgs.tooltipClosed
                     }
                     currentTime
-                    docModel.data
+                    data
                     historyState
 
             _ ->
