@@ -83,30 +83,26 @@ viewHeader :
     , printRequested : msg
     , toggledUpgradeModal : Bool -> msg
     }
-    -> Session
-    -> Maybe String
     ->
-        { appModel
-            | headerMenu : HeaderMenuState
-            , exportSettings : ( ExportSelection, ExportFormat )
+        { session : Session
+        , title_ : Maybe String
+        , titleField_ : Maybe String
+        , headerMenu : HeaderMenuState
+        , exportSettings : ( ExportSelection, ExportFormat )
+        , data : Data.Model
+        , dirty : Bool
+        , lastLocalSave : Maybe Time.Posix
+        , lastRemoteSave : Maybe Time.Posix
+        , globalData : GlobalData
         }
-    -> Data.Model
-    ->
-        { docModel
-            | dirty : Bool
-            , lastLocalSave : Maybe Time.Posix
-            , lastRemoteSave : Maybe Time.Posix
-            , globalData : GlobalData
-        }
-    -> Maybe String
     -> Html msg
-viewHeader msgs session title_ appModel data docModel titleField_ =
+viewHeader msgs { session, title_, titleField_, headerMenu, exportSettings, data, dirty, lastLocalSave, lastRemoteSave, globalData } =
     let
         language =
-            GlobalData.language docModel.globalData
+            GlobalData.language globalData
 
         currentTime =
-            GlobalData.currentTime docModel.globalData
+            GlobalData.currentTime globalData
 
         handleKeys =
             on "keyup"
@@ -153,11 +149,13 @@ viewHeader msgs session title_ appModel data docModel titleField_ =
                         ]
                         []
                     ]
-                , viewSaveIndicator language docModel (GlobalData.currentTime docModel.globalData)
+                , viewSaveIndicator language
+                    { dirty = dirty, lastLocalSave = lastLocalSave, lastRemoteSave = lastRemoteSave }
+                    (GlobalData.currentTime globalData)
                 ]
 
         isHistoryView =
-            case appModel.headerMenu of
+            case headerMenu of
                 HistoryView _ ->
                     True
 
@@ -175,7 +173,7 @@ viewHeader msgs session title_ appModel data docModel titleField_ =
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.historyOutlined [] ]
-        , case appModel.headerMenu of
+        , case headerMenu of
             HistoryView historyState ->
                 viewHistory language
                     { noOp = msgs.noOp
@@ -194,13 +192,13 @@ viewHeader msgs session title_ appModel data docModel titleField_ =
         , div
             [ id "doc-settings-icon"
             , class "header-button"
-            , classList [ ( "open", appModel.headerMenu == Settings ) ]
+            , classList [ ( "open", headerMenu == Settings ) ]
             , onClick msgs.toggledDocSettings
-            , attributeIf (appModel.headerMenu /= Settings) <| onMouseEnter <| msgs.tooltipRequested "doc-settings-icon" BelowLeftTooltip DocumentSettings
+            , attributeIf (headerMenu /= Settings) <| onMouseEnter <| msgs.tooltipRequested "doc-settings-icon" BelowLeftTooltip DocumentSettings
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.controlOutlined [] ]
-        , viewIf (appModel.headerMenu == Settings) <|
+        , viewIf (headerMenu == Settings) <|
             div [ id "doc-settings-menu", class "header-menu" ]
                 [ div [ id "wordcount-menu-item", onClick msgs.wordCountClicked ] [ text language WordCount ]
                 , h4 [] [ text language DocumentTheme ]
@@ -211,22 +209,22 @@ viewHeader msgs session title_ appModel data docModel titleField_ =
                 , div [ onClick <| msgs.themeChanged Green ] [ text language ThemeGreen ]
                 , div [ onClick <| msgs.themeChanged Turquoise ] [ text language ThemeTurquoise ]
                 ]
-        , viewIf (appModel.headerMenu == Settings) <| div [ id "doc-settings-menu-exit-left", onMouseEnter msgs.toggledDocSettings ] []
-        , viewIf (appModel.headerMenu == Settings) <| div [ id "doc-settings-menu-exit-bottom", onMouseEnter msgs.toggledDocSettings ] []
+        , viewIf (headerMenu == Settings) <| div [ id "doc-settings-menu-exit-left", onMouseEnter msgs.toggledDocSettings ] []
+        , viewIf (headerMenu == Settings) <| div [ id "doc-settings-menu-exit-bottom", onMouseEnter msgs.toggledDocSettings ] []
         , div
             [ id "export-icon"
             , class "header-button"
-            , classList [ ( "open", appModel.headerMenu == ExportPreview ) ]
+            , classList [ ( "open", headerMenu == ExportPreview ) ]
             , onClick msgs.toggledExport
-            , attributeIf (appModel.headerMenu /= ExportPreview) <| onMouseEnter <| msgs.tooltipRequested "export-icon" BelowLeftTooltip ExportOrPrint
+            , attributeIf (headerMenu /= ExportPreview) <| onMouseEnter <| msgs.tooltipRequested "export-icon" BelowLeftTooltip ExportOrPrint
             , onMouseLeave msgs.tooltipClosed
             ]
             [ AntIcons.fileDoneOutlined [] ]
         , viewUpgradeButton
             msgs.toggledUpgradeModal
-            docModel.globalData
+            globalData
             session
-        , viewIf (appModel.headerMenu == ExportPreview) <| viewExportMenu language msgs False appModel.exportSettings
+        , viewIf (headerMenu == ExportPreview) <| viewExportMenu language msgs False exportSettings
         ]
 
 

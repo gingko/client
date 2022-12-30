@@ -46,8 +46,6 @@ type alias Model =
     -- Transient state
     , viewState : ViewState
     , dirty : Bool
-    , lastLocalSave : Maybe Time.Posix
-    , lastRemoteSave : Maybe Time.Posix
     , field : String
     , textCursorInfo : TextCursorInfo
     , debouncerLocalSave : Debouncer () ()
@@ -97,8 +95,6 @@ init isNew globalData =
         , collaborators = []
         }
     , dirty = False
-    , lastLocalSave = Nothing
-    , lastRemoteSave = Nothing
     , field = ""
     , textCursorInfo = { selected = False, position = End, text = ( "", "" ) }
     , fileSearchField = ""

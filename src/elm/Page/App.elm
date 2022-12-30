@@ -80,6 +80,8 @@ type alias DocState =
     , docId : String
     , docModel : Page.Doc.Model
     , data : Data.Model
+    , lastRemoteSave : Maybe Time.Posix
+    , lastLocalSave : Maybe Time.Posix
     , titleField : Maybe String
     }
 
@@ -123,6 +125,8 @@ defaultModel nKey globalData session docModel_ =
                     , docId = docId
                     , docModel = docModel
                     , data = Data.empty
+                    , lastRemoteSave = Nothing
+                    , lastLocalSave = Nothing
                     , titleField = Session.getDocName session docId
                     }
 
@@ -407,11 +411,35 @@ update msg model =
                 DataReceived json ->
                     dataReceived json model
 
-                DataSaved ->
-                    ( model, Cmd.none )
+                DataSaved dataIn ->
+                    case model.documentState of
+                        Doc ({ docModel, data } as docState) ->
+                            let
+                                newData =
+                                    Data.success dataIn data
+                            in
+                            ( { model
+                                | documentState =
+                                    Doc
+                                        { docState
+                                            | data = newData
+                                            , lastLocalSave = Data.lastCommitTime newData |> Maybe.map Time.millisToPosix
+                                            , docModel = { docModel | dirty = False }
+                                        }
+                              }
+                            , send <| SetDirty False
+                            )
+
+                        Empty _ _ ->
+                            ( model, Cmd.none )
 
                 SavedRemotely saveTime ->
-                    ( model, Cmd.none )
+                    case model.documentState of
+                        Doc ({ docModel } as docState) ->
+                            ( { model | documentState = Doc { docState | lastRemoteSave = Just saveTime } }, Cmd.none )
+
+                        Empty _ _ ->
+                            ( model, Cmd.none )
 
         IncomingDocMsg incomingMsg ->
             let
@@ -1286,13 +1314,13 @@ dataReceived dataIn model =
                             Doc
                                 { docState
                                     | data = newModel
+                                    , lastRemoteSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
+                                    , lastLocalSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
                                     , docModel =
                                         { docModel
                                             | loading = False
                                             , workingTree = newWorkingTree
                                             , viewState = newViewState
-                                            , lastLocalSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
-                                            , lastRemoteSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
                                             , startingWordcount = startingWordcount
                                         }
                                 }
@@ -1452,7 +1480,7 @@ view ({ documentState } as model) =
             }
     in
     case documentState of
-        Doc { docModel, data, titleField, docId } ->
+        Doc { docModel, data, lastRemoteSave, lastLocalSave, titleField, docId } ->
             if model.fullscreen then
                 let
                     isMac =
@@ -1468,8 +1496,8 @@ view ({ documentState } as model) =
                             , isMac = isMac
                             , dirty = docModel.dirty
                             , model = docModel.workingTree
-                            , lastLocalSave = docModel.lastLocalSave
-                            , lastRemoteSave = docModel.lastRemoteSave
+                            , lastLocalSave = lastLocalSave
+                            , lastRemoteSave = lastRemoteSave
                             , currentTime = GlobalData.currentTime docModel.globalData
                             }
                 in
@@ -1478,8 +1506,8 @@ view ({ documentState } as model) =
                     , isMac = isMac
                     , dirty = docModel.dirty
                     , model = docModel.workingTree
-                    , lastLocalSave = docModel.lastLocalSave
-                    , lastRemoteSave = docModel.lastRemoteSave
+                    , lastLocalSave = lastLocalSave
+                    , lastRemoteSave = lastRemoteSave
                     , currentTime = GlobalData.currentTime docModel.globalData
                     }
                     docModel.field
@@ -1545,12 +1573,17 @@ view ({ documentState } as model) =
                                 , printRequested = PrintRequested
                                 , toggledUpgradeModal = ToggledUpgradeModal
                                 }
-                                session
-                                (Session.getDocName session docId)
-                                model
-                                data
-                                docModel
-                                titleField
+                                { session = session
+                                , title_ = Session.getDocName session docId
+                                , titleField_ = titleField
+                                , headerMenu = model.headerMenu
+                                , exportSettings = model.exportSettings
+                                , data = data
+                                , dirty = docModel.dirty
+                                , lastLocalSave = lastLocalSave
+                                , lastRemoteSave = lastRemoteSave
+                                , globalData = docModel.globalData
+                                }
                            , maybeExportView
                            , UI.viewSidebar docModel.globalData
                                 session
@@ -1705,7 +1738,7 @@ viewConfirmBanner lang closeMsg email =
 
 
 type IncomingAppMsg
-    = DataSaved
+    = DataSaved Enc.Value
     | DataReceived Enc.Value
     | MetadataUpdate Metadata
     | SavedRemotely Time.Posix
@@ -1717,7 +1750,7 @@ subscribe tagger onError =
         (\outsideInfo ->
             case outsideInfo.tag of
                 "DataSaved" ->
-                    tagger DataSaved
+                    tagger <| DataSaved outsideInfo.data
 
                 "DataReceived" ->
                     tagger <| DataReceived outsideInfo.data
