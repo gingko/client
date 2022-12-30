@@ -26,19 +26,9 @@ Cypress.Commands.add('deleteUser', (userEmail)=> {
   cy.clearCookie('AuthSession')
   cy.request('POST', config.TEST_SERVER + '/logout')
   return cy.request(
-    { url: config.TEST_SERVER + '/db/_users/org.couchdb.user:'+userEmail
-      , method: 'GET'
-      , auth: {user: config.COUCHDB_ADMIN_USERNAME, password: config.COUCHDB_ADMIN_PASSWORD}
-      , failOnStatusCode: false
-    })
-    .then((response) => {
-      if(response.status === 200) {
-        cy.request(
-          { url: `${config.TEST_SERVER}/db/_users/org.couchdb.user:${userEmail}?rev=${response.body._rev}`
-            , method: 'DELETE'
-            , auth: {user: config.COUCHDB_ADMIN_USERNAME, password: config.COUCHDB_ADMIN_PASSWORD}
-          })
-      }
+    { url: config.TEST_SERVER + '/test/user'
+    , method: 'DELETE'
+    , failOnStatusCode: false
     })
 })
 
@@ -64,6 +54,11 @@ Cypress.Commands.add('signup_with', (userEmail, seedName) =>{
     })
     .then((response) => {
       localStorage.setItem('gingko-session-storage', JSON.stringify({ email: userEmail, language: 'en' }))
+      const treeData = require(__dirname + '/../fixtures/' + seedName + '.json');
+      const trees = treeData.docs
+        .filter((doc) => doc._id.endsWith('metadata'))
+        .map(m => ({id: m.docId, name: m.name, owner: userEmail, createdAt: m.createdAt, updatedAt: m.updatedAt, location: "couchdb", collaborators: "[]"}))
+      cy.request({url: config.TEST_SERVER + '/test/trees', method: 'POST', body: trees})
       cy.task('db:seed',{dbName: testUserDb, seedName: seedName})
     })
 })
