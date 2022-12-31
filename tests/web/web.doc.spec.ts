@@ -6,17 +6,14 @@ const testEmail = 'cypress@testing.com'
 let page
 
 test.beforeAll(async ({ browser }) => {
-  page = await browser.newPage()
-  const auth = Buffer.from(`${config.COUCHDB_ADMIN_USERNAME}:${config.COUCHDB_ADMIN_PASSWORD}`).toString('base64')
-  const contextOptions = { extraHTTPHeaders: { authorization: 'Basic ' + auth } }
-  const dbAdminRequest = await request.newContext(contextOptions)
+  const deleteTestUserReq = await request.newContext()
   try {
-    const userGet = await dbAdminRequest.get(config.TEST_SERVER + '/db/_users/org.couchdb.user:' + testEmail)
-    const userResJson = await userGet.json()
-    await dbAdminRequest.delete(`${config.TEST_SERVER}/db/_users/org.couchdb.user:${testEmail}?rev=${userResJson._rev}`)
+    await deleteTestUserReq.delete(`${config.TEST_SERVER}/test/user`)
   } catch (e) {
     console.error(e)
   }
+  page = await browser.newPage()
+
   await page.goto(config.TEST_SERVER)
   expect(await page.evaluate('window.location.pathname')).toEqual('/signup')
 

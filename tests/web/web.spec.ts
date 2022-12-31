@@ -4,13 +4,9 @@ const config = require('../../config.js')
 const testEmail = 'cypress@testing.com'
 
 test.beforeAll(async () => {
-  const auth = Buffer.from(`${config.COUCHDB_ADMIN_USERNAME}:${config.COUCHDB_ADMIN_PASSWORD}`).toString('base64')
-  const contextOptions = { extraHTTPHeaders: { authorization: 'Basic ' + auth } }
-  const dbAdminRequest = await request.newContext(contextOptions)
+  const deleteTestUserReq = await request.newContext()
   try {
-    const userGet = await dbAdminRequest.get(config.TEST_SERVER + '/db/_users/org.couchdb.user:' + testEmail)
-    const userResJson = await userGet.json()
-    await dbAdminRequest.delete(`${config.TEST_SERVER}/db/_users/org.couchdb.user:${testEmail}?rev=${userResJson._rev}`)
+    await deleteTestUserReq.delete(`${config.TEST_SERVER}/test/user`)
   } catch (e) {
     console.error(e)
   }
@@ -29,7 +25,7 @@ test.describe('User Signup Flow', async () => {
     // Displays errors on submitting empty form
     await page.locator('button.cta').click()
 
-    await expect(page.locator('body'))
+    await expect(page.locator('.input-errors'))
       .toContainText(['Please enter an email address', 'Please enter a password'])
 
     // Creates a new account
