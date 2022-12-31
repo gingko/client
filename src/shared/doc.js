@@ -262,6 +262,7 @@ const fromElm = (msg, elmData) => {
           await fetch(document.location.origin + "/logout", {method: 'POST'});
           localStorage.removeItem(sessionStorageKey);
           await db.destroy();
+          await dexie.trees.clear();
           setTimeout(() => gingko.ports.userLoginChange.send(null), 0);
         } catch (err) {
           console.error(err)
