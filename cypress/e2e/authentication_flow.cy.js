@@ -37,9 +37,9 @@ describe('User Signup Flow', () => {
     cy.get('button.cta')
       .click()
 
-    // Has an AuthSession cookie
+    // Has an express-session cookie
     cy.get('button.cta').should('not.exist')
-    cy.getCookie('AuthSession').should('exist')
+    cy.getCookie('connect.sid').should('exist')
 
     // Has a user database
     cy.request({url: config.TEST_SERVER + '/db/' + testUserDb, retryOnStatusCodeFailure: true})
@@ -74,13 +74,12 @@ describe('User Signup Flow', () => {
     cy.get('#account-menu')
     cy.get('#logout-button').click()
     cy.wait('@logoutRequest')
-    cy.getCookie('AuthSession').should('have.property', 'value', '')
+    cy.getCookie('connect.sid').should('not.exist')
     expect(localStorage.getItem("gingko-session-storage")).to.be.null;
     cy.location('pathname').should('eq', '/login')
     cy.get('button.cta').contains('Login')
-  })
 
-  it('Logs in with form', () =>{
+    // Logs In Correctly
     cy.visit(config.TEST_SERVER)
 
     cy.get('a').contains('Login')
@@ -105,26 +104,24 @@ describe('User Signup Flow', () => {
     cy.get('#email-confirm-banner')
       .should('not.exist')
 
-    // Has an AuthSession cookie
+    // Has an connect.sid cookie
     cy.get('button.cta').should('not.exist')
-    cy.getCookie('AuthSession').should('exist')
+    cy.getCookie('connect.sid').should('exist')
 
     // Has a user database
     cy.wait(2000)
     cy.request({url: config.TEST_SERVER + '/db/' + testUserDb, retryOnStatusCodeFailure: true})
 
-  })
 
-  it('Redirects to login on expired cookie', ()=>{
+    // Redirects to login on expired cookie'
     cy.login(testEmail)
       .then(()=>{
-        cy.clearCookie('AuthSession')
+        cy.clearCookies()
         cy.visit(config.TEST_SERVER)
         cy.location('pathname').should('eq', '/login')
       })
-  })
 
-  it('Forgot Password works', () => {
+    // Forgot Password works
     cy.visit(config.TEST_SERVER+'/login')
 
     cy.get('a.forgot-password').then(($el) => {

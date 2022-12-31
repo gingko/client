@@ -23,7 +23,7 @@ Cypress.Commands.add('deleteUser', (userEmail)=> {
     let db = new PouchDB(testUserDb, {skip_setup: true});
     db.destroy();
   }
-  cy.clearCookie('AuthSession')
+  cy.clearAllCookies();
   cy.request('POST', config.TEST_SERVER + '/logout')
   return cy.request(
     { url: config.TEST_SERVER + '/test/user'
