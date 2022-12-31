@@ -1,14 +1,10 @@
 const config = require("../../config.js");
 const { tr } = require("../../src/shared/translation.js");
 
-Cypress.LocalStorage.clear = function (keys, ls, rs) {
-  return;
-}
-
 describe('Document Editing', () => {
   const testEmail = 'cypress@testing.com'
 
-  before(() => {
+  beforeEach(() => {
     cy.deleteUser(testEmail).then(()=>{
       cy.signup(testEmail).then(()=>{
         cy.visit(config.TEST_SERVER)
@@ -16,11 +12,7 @@ describe('Document Editing', () => {
     })
   })
 
-  beforeEach(() => {
-    Cypress.Cookies.preserveOnce('AuthSession')
-  })
-
-  it('Can perform basic actions on New tree', () => {
+  it('Can edit a document', () => {
     cy.get('#new-button')
       .click()
 
@@ -111,11 +103,11 @@ describe('Document Editing', () => {
 
     cy.title().should('eq', 'A new doc title here - Gingko Writer')
     cy.get('#title-rename').should('have.value', 'A new doc title here')
-  })
 
-  it('Continues editing after load', function () {
     cy.wait(400)
-    cy.visit(this.testTreeUrl)
+    cy.get('@testTreeUrl').then((url) => {
+      cy.visit(url)
+    })
     cy.getCard(2,1,2)
       .contains('Another one below')
 

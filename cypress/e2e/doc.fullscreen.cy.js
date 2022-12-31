@@ -16,7 +16,6 @@ describe('Fullscreen Editing', () => {
 
   beforeEach(() => {
     cy.fixture('twoTrees.ids.json').as('treeIds')
-    Cypress.Cookies.preserveOnce('AuthSession')
   })
 
   it('Can perform basic actions on New tree', function () {

@@ -12,10 +12,6 @@ describe('Empty State', () => {
     })
   })
 
-  beforeEach(() => {
-    Cypress.Cookies.preserveOnce('AuthSession')
-  })
-
   it('Shows Empty page when appropriate', ()=> {
     cy.url().should('eq', config.TEST_SERVER + '/')
     cy.contains("You don't have any documents")

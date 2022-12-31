@@ -12,10 +12,10 @@ Cypress.on('log:changed', options => {
 
 Cypress.Commands.add('deleteUser', (userEmail)=> {
   const testUserDb = 'userdb-' + helpers.toHex(userEmail);
-  if (indexedDB.hasOwnProperty('databases')) {
+  if (typeof indexedDB.databases == 'function') {
     console.log('CHROME')
     indexedDB.databases().then((dbs) => {
-      dbs.filter((db) => db.name.includes(testUserDb))
+      dbs.filter((db) => db.name.includes(testUserDb) || db.name == 'db')
         .map((db) => {window.indexedDB.deleteDatabase(db.name)})
     })
   } else {
@@ -58,8 +58,9 @@ Cypress.Commands.add('signup_with', (userEmail, seedName) =>{
       const trees = treeData.docs
         .filter((doc) => doc._id.endsWith('metadata'))
         .map(m => ({id: m.docId, name: m.name, owner: userEmail, createdAt: m.createdAt, updatedAt: m.updatedAt, location: "couchdb", collaborators: "[]"}))
-      cy.request({url: config.TEST_SERVER + '/test/trees', method: 'POST', body: trees})
-      cy.task('db:seed',{dbName: testUserDb, seedName: seedName})
+      cy.task('db:seed',{dbName: testUserDb, seedName: seedName}).then(() => {
+        cy.request({url: config.TEST_SERVER + '/test/trees', method: 'POST', body: trees})
+      })
     })
 })
 

@@ -9,10 +9,6 @@ describe('User Signup Flow', () => {
     cy.deleteUser(testEmail)
   })
 
-  beforeEach(() => {
-    Cypress.Cookies.preserveOnce('AuthSession')
-  })
-
   it('Can signup using form', () => {
     // Redirects to /signup
     cy.visit(config.TEST_SERVER)

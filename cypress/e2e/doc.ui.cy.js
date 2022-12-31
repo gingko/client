@@ -16,10 +16,6 @@ describe('Document UI', () => {
     })
   })
 
-  beforeEach(() => {
-    Cypress.Cookies.preserveOnce('AuthSession')
-  })
-
   it('Has working header menus and shortcut help', () => {
     let emailText = "Contact Support";
 

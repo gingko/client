@@ -17,7 +17,6 @@ describe('Upgrade process', () => {
 
   beforeEach(() => {
     cy.fixture('twoTrees.ids.json').as('treeIds')
-    Cypress.Cookies.preserveOnce('AuthSession')
   })
 
   it('Should have working Upgrade modal', function () {

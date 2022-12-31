@@ -1,10 +1,4 @@
 const config = require("../../config.js");
-const helpers = require("../../src/shared/doc-helpers.js");
-
-
-Cypress.LocalStorage.clear = function (keys, ls, rs) {
-  return;
-}
 
 
 describe('Managing Documents', () => {
@@ -18,12 +12,13 @@ describe('Managing Documents', () => {
 
   beforeEach(() => {
     cy.fixture('fourSmallTrees.ids.json').as('treeIds')
-    Cypress.Cookies.preserveOnce('AuthSession')
   })
 
-  describe('Navigation', function () {
-    it('Should navigate to last edited tree', function () {
+  it('Navigates correctly', function () {
+    describe('Should navigate to last edited tree', function () {
       cy.visit(config.TEST_SERVER)
+
+      cy.log('treeIds', this.treeIds)
 
       cy.url().should('contain', this.treeIds[1] )
       cy.get('.spinner', {timeout: 20000}).should('not.exist')
@@ -55,7 +50,7 @@ describe('Managing Documents', () => {
       cy.url().should('contain', this.treeIds[1] )
     })
 
-    it('Should have working sidebar and Quick Switcher', function () {
+    describe('Should have working sidebar and Quick Switcher', function () {
       cy.visit(config.TEST_SERVER + '/' + this.treeIds[1]);
       cy.url().should('contain', this.treeIds[1] )
 

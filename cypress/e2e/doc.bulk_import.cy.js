@@ -18,7 +18,6 @@ describe('Legacy Imports from Startup State', () => {
 
   beforeEach(() => {
     cy.fixture('twoTrees.ids.json').as('treeIds')
-    Cypress.Cookies.preserveOnce('AuthSession')
   })
 
   it('Guides user to import legacy docs', function () {

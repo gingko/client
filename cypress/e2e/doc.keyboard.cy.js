@@ -11,7 +11,6 @@ describe('Keyboard Shortcuts', () => {
 
   beforeEach(() => {
     cy.fixture('twoTrees.ids.json').as('treeIds')
-    Cypress.Cookies.preserveOnce('AuthSession')
   })
 
   it('Has working shortcuts', function () {

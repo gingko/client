@@ -21,10 +21,6 @@ describe.skip('Offline Tests', () => {
     })
   })
 
-  beforeEach(() => {
-    Cypress.Cookies.preserveOnce('AuthSession')
-  })
-
   it('Can save offline changes', () => {
     cy.route2('*', (req) => {req.destroy()})
     cy.shortcut('{enter}')

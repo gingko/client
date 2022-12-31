@@ -11,7 +11,6 @@ describe('JSON Imports from Startup State', () => {
 
   beforeEach(() => {
     cy.fixture('twoTrees.ids.json').as('treeIds')
-    Cypress.Cookies.preserveOnce('AuthSession')
   })
 
   it('Should bring up the Import Modal on clicking', function () {

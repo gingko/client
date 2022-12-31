@@ -2,11 +2,6 @@ const config = require("../../config.js");
 const helpers = require("../../src/shared/doc-helpers.js");
 
 
-Cypress.LocalStorage.clear = function (keys, ls, rs) {
-  return;
-}
-
-
 describe('Loading indicators', () => {
   const testEmail = 'cypress@testing.com'
 
@@ -18,7 +13,6 @@ describe('Loading indicators', () => {
 
   beforeEach(() => {
     cy.fixture('twoTrees.ids.json').as('treeIds')
-    Cypress.Cookies.preserveOnce('AuthSession')
   })
 
   it('Can change the document language', () => {
