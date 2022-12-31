@@ -151,6 +151,7 @@ async function setUserDbs(eml) {
   userStore.db(db, remoteDB);
 
   // Sync user settings
+  await PouchDB.replicate(remoteDB, db, {retry: true, doc_ids: ["settings"]});
   PouchDB.sync(db, remoteDB, {live: true, retry: true, doc_ids: ["settings"]})
     .on('change', (ev) => {
       if (ev.direction === "pull") {
@@ -435,8 +436,10 @@ const fromElm = (msg, elmData) => {
       DIRTY = false;
 
       // Maybe send metadata to Elm
-      await dexie.trees.update(TREE_ID, {updatedAt: savedMetadata.updatedAt, synced: false});
-      if (typeof savedMetadata !== "undefined") { toElm(savedMetadata, "appMsgs", "MetadataUpdate")}
+      if (typeof savedMetadata !== "undefined") {
+        await dexie.trees.update(TREE_ID, {updatedAt: savedMetadata.updatedAt, synced: false});
+        toElm(savedMetadata, "appMsgs", "MetadataUpdate");
+      }
 
       // Pull & Maybe push
       if (!PULL_LOCK) {
