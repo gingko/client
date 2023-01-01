@@ -72,7 +72,7 @@ decoder =
 
 listDecoder : Decoder (List Metadata)
 listDecoder =
-    Dec.field "rows" (Dec.list (Dec.field "value" decoder))
+    Dec.list decoder
 
 
 decoderImport : Decoder (Maybe Metadata)

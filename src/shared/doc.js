@@ -184,8 +184,8 @@ async function setUserDbs(eml) {
 
   // Sync document list with server
   Dexie.liveQuery(() => dexie.trees.toArray()).subscribe((trees) => {
-    const rows = trees.filter(t => t.deletedAt == null).map((tree) => ({value : treeDocToMetadata(tree)}));
-    toElm({rows}, "documentListChanged");
+    const docMetadatas = trees.filter(t => t.deletedAt == null).map(treeDocToMetadata);
+    toElm(docMetadatas, "documentListChanged");
 
     const unsyncedTrees = trees.filter(t => !t.synced);
     if (unsyncedTrees.length > 0) {
@@ -706,10 +706,9 @@ function treeDocToMetadata(tree) {
 }
 
 async function loadDocListAndSend(dbToLoadFrom, source) {
-  /*
-  let docList = await data.getDocumentList(dbToLoadFrom);
-  toElm(docList, "documentListChanged");
-   */
+  let docList = await dexie.trees.toArray();
+  console.log("Loaded doc list from Dexie", docList);
+  toElm(docList.map(treeDocToMetadata),  "documentListChanged");
 }
 
 
