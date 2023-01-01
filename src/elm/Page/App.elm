@@ -751,17 +751,33 @@ update msg model =
             ( { model | headerMenu = NoHeaderMenu }
             , Cmd.none
             )
+                |> addToHistoryDo
 
-        -- TODO: |> localSaveDo
-        -- TODO: |> addToHistoryDo
         CancelHistory ->
-            case model.headerMenu of
-                HistoryView historyState ->
-                    ( { model | headerMenu = NoHeaderMenu }
-                    , Cmd.none
-                    )
+            case ( model.headerMenu, model.documentState ) of
+                ( HistoryView historyState, Doc docState ) ->
+                    let
+                        revertTree_ =
+                            Data.checkout historyState.start docState.data
+                    in
+                    case revertTree_ of
+                        Just revertTree ->
+                            let
+                                ( newDocModel, docCmds, docParentMsgs ) =
+                                    Page.Doc.setTree revertTree docState.docModel
+                            in
+                            ( { model
+                                | documentState = Doc { docState | docModel = newDocModel }
+                                , headerMenu = NoHeaderMenu
+                              }
+                            , Cmd.map GotDocMsg docCmds
+                            )
 
-                -- TODO: |> checkoutCommit historyState.start
+                        Nothing ->
+                            ( { model | headerMenu = NoHeaderMenu }
+                            , Cmd.none
+                            )
+
                 _ ->
                     ( model
                     , Cmd.none
