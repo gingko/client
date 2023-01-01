@@ -10,6 +10,14 @@ Cypress.on('log:changed', options => {
   }
 })
 
+const origLog = Cypress.log;
+Cypress.log = function (opts, ...other) {
+  if (opts.displayName === 'script' || opts.name === 'request') {
+    return;
+  }
+  return origLog(opts, ...other);
+};
+
 Cypress.Commands.add('deleteUser', (userEmail)=> {
   const testUserDb = 'userdb-' + helpers.toHex(userEmail);
   if (typeof indexedDB.databases == 'function') {
