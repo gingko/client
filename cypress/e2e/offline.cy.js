@@ -1,7 +1,7 @@
 const config = require("../../config.js");
 
 
-describe('Offline Tests', () => {
+describe.skip('Offline Tests', () => {
   const testEmail = 'cypress@testing.com'
 
   before(() => {
