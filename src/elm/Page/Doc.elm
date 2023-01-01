@@ -1,4 +1,4 @@
-module Page.Doc exposing (Model, Msg, MsgToParent(..), exitFullscreen, getActiveId, getActiveTree, getField, getGlobalData, getTextCursorInfo, getViewMode, getWorkingTree, init, isDirty, isNormalMode, lastActives, opaqueIncoming, opaqueUpdate, saveAndStopEditing, saveCardIfEditing, setDirty, setGlobalData, setLoading, setWorkingTree, subscriptions, view)
+module Page.Doc exposing (Model, Msg, MsgToParent(..), exitFullscreen, getActiveId, getActiveTree, getField, getGlobalData, getTextCursorInfo, getViewMode, getWorkingTree, init, isDirty, isNormalMode, lastActives, opaqueIncoming, opaqueUpdate, saveAndStopEditing, saveCardIfEditing, setDirty, setGlobalData, setLoading, setTree, setWorkingTree, subscriptions, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -767,33 +767,6 @@ incoming incomingMsg model =
                             , Cmd.none
                             , []
                             )
-
-                "w" ->
-                    {--
-                            case ( vs.viewMode, model.modalState ) of
-                                ( Normal, NoModal ) ->
-                                    ( { model | modalState = Wordcount }, Cmd.none )
-
-                                ( Normal, Wordcount ) ->
-                                    ( { model | modalState = NoModal }, Cmd.none )
-
-                                _ ->
-                                    --}
-                    ( model, Cmd.none, [] )
-
-                "?" ->
-                    {--
-                            case ( vs.viewMode, model.modalState ) of
-                                ( Normal, HelpScreen ) ->
-                                    ( { model | modalState = NoModal }, Cmd.none )
-
-                                ( Normal, _ ) ->
-                                    ( { model | modalState = HelpScreen }, Cmd.none )
-
-                                _ ->
-                                    ( model, Cmd.none )
-                            --}
-                    ( model, Cmd.none, [] )
 
                 _ ->
                     ( model
@@ -2290,6 +2263,16 @@ subscriptions (Model model) =
             Sub.none
         , Time.every (23 * 1000) (always Pull)
         ]
+
+
+setTree : Tree -> Model -> ( Model, Cmd Msg, List MsgToParent )
+setTree tree (Model model) =
+    { model
+        | workingTree = TreeStructure.setTree tree model.workingTree
+    }
+        |> (\m -> ( m, Cmd.none, [] ))
+        |> activate model.viewState.active False
+        |> (\( m, c, msgs ) -> ( Model m, c, msgs ))
 
 
 setWorkingTree : TreeStructure.Model -> Model -> Model

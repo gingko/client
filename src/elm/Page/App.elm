@@ -726,10 +726,23 @@ update msg model =
             case ( model.headerMenu, model.documentState ) of
                 ( HistoryView historyState, Doc docState ) ->
                     let
-                        newTree =
+                        newTree_ =
                             Data.checkout commitSha docState.data
                     in
-                    ( model, Cmd.none )
+                    case newTree_ of
+                        Just newTree ->
+                            let
+                                ( newDocModel, docCmds, docParentMsgs ) =
+                                    Page.Doc.setTree newTree docState.docModel
+                            in
+                            ( { model
+                                | documentState = Doc { docState | docModel = newDocModel }
+                              }
+                            , Cmd.map GotDocMsg docCmds
+                            )
+
+                        Nothing ->
+                            ( model, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
