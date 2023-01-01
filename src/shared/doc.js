@@ -252,6 +252,8 @@ const fromElm = (msg, elmData) => {
   window.elmMessages.push({tag: msg, data: elmData});
   window.elmMessages = window.elmMessages.slice(-10);
 
+  console.log("fromElm", msg, elmData);
+
   let casesWeb = {
     // === SPA ===
 
@@ -301,6 +303,7 @@ const fromElm = (msg, elmData) => {
       const now = Date.now();
       const treeDoc = {...treeDocDefaults, id: TREE_ID, owner: email, createdAt: now, updatedAt: now};
 
+      console.log("AT InitDocument", treeDoc)
       await dexie.trees.add(treeDoc);
 
       // Set localStore db
@@ -312,7 +315,9 @@ const fromElm = (msg, elmData) => {
 
       // Load title
       const treeDoc = await dexie.trees.get(elmData);
-      toElm(treeDocToMetadata(treeDoc), "appMsgs", "MetadataUpdate")
+      if (treeDoc) {
+        toElm(treeDocToMetadata(treeDoc), "appMsgs", "MetadataUpdate")
+      }
 
       // Load document-specific settings.
       localStore.db(elmData);
