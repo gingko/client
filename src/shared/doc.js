@@ -46,6 +46,7 @@ let email = null;
 let ws;
 let PULL_LOCK = false;
 let DIRTY = false;
+let loadingDocs = false;
 let draggingInternal = false;
 let viewportWidth = document.documentElement.clientWidth;
 let viewportHeight = document.documentElement.clientHeight;
@@ -185,7 +186,10 @@ async function setUserDbs(eml) {
   // Sync document list with server
   Dexie.liveQuery(() => dexie.trees.toArray()).subscribe((trees) => {
     const docMetadatas = trees.filter(t => t.deletedAt == null).map(treeDocToMetadata);
-    toElm(docMetadatas, "documentListChanged");
+    console.log("Loading doc list from liveQuery", docMetadatas);
+    if (!loadingDocs) {
+      toElm(docMetadatas, "documentListChanged");
+    }
 
     const unsyncedTrees = trees.filter(t => !t.synced);
     if (unsyncedTrees.length > 0) {
@@ -706,9 +710,11 @@ function treeDocToMetadata(tree) {
 }
 
 async function loadDocListAndSend(dbToLoadFrom, source) {
+  loadingDocs = true;
+  console.log("Loading doc list from " + source);
   let docList = await dexie.trees.toArray();
-  console.log("Loaded doc list from Dexie", docList);
-  toElm(docList.map(treeDocToMetadata),  "documentListChanged");
+  toElm(docList.filter(d => d.deletedAt == null).map(treeDocToMetadata),  "documentListChanged");
+  loadingDocs = false;
 }
 
 
