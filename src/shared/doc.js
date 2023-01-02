@@ -486,11 +486,20 @@ const fromElm = (msg, elmData) => {
     },
 
     SaveBulkImportedData: async () => {
+      const now = Date.now();
+
       let localSavePromises =
         elmData.map(async commitReq => {
           await data.newSave(userDbName, commitReq.metadata.docId, commitReq, commitReq.metadata.updatedAt, savedObjectIds);
         });
-      await Promise.all(localSavePromises);
+
+      let treeDocPromises =
+        elmData.map(async commitReq => {
+          const treeDoc = {...treeDocDefaults, id: commitReq.metadata.docId, name: commitReq.metadata.name, owner: email, createdAt: now, updatedAt: now};
+          await dexie.trees.add(treeDoc);
+        });
+
+      await Promise.all(localSavePromises.concat(treeDocPromises));
 
       // Push newly imported trees to remote
       elmData.map(async commitReq => {
