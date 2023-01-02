@@ -151,7 +151,9 @@ async function setUserDbs(eml) {
   db = new PouchDB(userDbName);
   userStore.db(db, remoteDB);
 
+
   // Sync user settings
+
   await PouchDB.replicate(remoteDB, db, {retry: true, doc_ids: ["settings"]});
   PouchDB.sync(db, remoteDB, {live: true, retry: true, doc_ids: ["settings"]})
     .on('change', (ev) => {
@@ -184,10 +186,13 @@ async function setUserDbs(eml) {
   }
 
   // Sync document list with server
+
+  let firstLoad = true;
+
   Dexie.liveQuery(() => dexie.trees.toArray()).subscribe((trees) => {
     const docMetadatas = trees.filter(t => t.deletedAt == null).map(treeDocToMetadata);
     console.log("Loading doc list from liveQuery", docMetadatas);
-    if (!loadingDocs) {
+    if (!loadingDocs && !firstLoad) {
       toElm(docMetadatas, "documentListChanged");
     }
 
@@ -195,6 +200,7 @@ async function setUserDbs(eml) {
     if (unsyncedTrees.length > 0) {
       ws.send(JSON.stringify({t: 'trees', d: unsyncedTrees}));
     }
+    firstLoad = false;
   });
 
   LogRocket.identify(email);
@@ -238,6 +244,8 @@ function toElm(data, portName, tagName) {
   let portExists = gingko.ports.hasOwnProperty(portName);
   let tagGiven = typeof tagName == "string";
 
+  console.log("toElm", portName, tagName, data);
+
   if (portExists) {
     var dataToSend;
 
@@ -275,6 +283,7 @@ const fromElm = (msg, elmData) => {
           console.error(err)
         }
       } else {
+        console.log("AT StoreUser", elmData)
         localStorage.setItem(
           sessionStorageKey,
           JSON.stringify(_.pick(elmData, ["email","language"]))
@@ -334,8 +343,10 @@ const fromElm = (msg, elmData) => {
       if (savedIds.length !== 0) {
         localExists = true;
         loadedData.localStore = store;
+        console.log("Loaded local data", loadedData);
         toElm(loadedData, "appMsgs", "DataReceived");
       } else {
+        console.log("No local data found");
         localExists = false;
       }
 
@@ -344,6 +355,7 @@ const fromElm = (msg, elmData) => {
       PULL_LOCK = true;
       try {
         let pullResult = await data.pull(db, remoteDB, elmData, "LoadDocument");
+        console.log("Loaded remote data", pullResult);
 
         if (pullResult !== null) {
           remoteExists = true;
@@ -352,6 +364,7 @@ const fromElm = (msg, elmData) => {
         } else {
           remoteExists = false;
           if (!localExists && !remoteExists) {
+            console.log("No data found, either local or remote");
             toElm(null, "appMsgs", "NotFound")
           }
         }
@@ -711,8 +724,8 @@ function treeDocToMetadata(tree) {
 
 async function loadDocListAndSend(dbToLoadFrom, source) {
   loadingDocs = true;
-  console.log("Loading doc list from " + source);
   let docList = await dexie.trees.toArray();
+  console.log("Loading doc list from " + source, docList);
   toElm(docList.filter(d => d.deletedAt == null).map(treeDocToMetadata),  "documentListChanged");
   loadingDocs = false;
 }
