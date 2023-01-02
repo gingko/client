@@ -476,7 +476,7 @@ const fromElm = (msg, elmData) => {
         , savedMetadata
       ] = await data.newSave(userDbName, elmData.metadata.docId, elmData, now, savedObjectIds);
 
-      const treeDoc = {...treeDocDefaults, id: elmData.metadata.docId, owner: email, createdAt: now, updatedAt: now};
+      const treeDoc = {...treeDocDefaults, id: elmData.metadata.docId, name: elmData.metadata.name, owner: email, createdAt: now, updatedAt: now};
       await dexie.trees.add(treeDoc);
 
       // Add saved immutables to cache.
