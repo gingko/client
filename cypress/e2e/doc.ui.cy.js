@@ -97,9 +97,6 @@ describe('Document UI', () => {
 
     cy.shortcut('{esc}')
 
-  })
-
-  it('Has working mobile buttons', () => {
     // Displays Mobile buttons on smaller screens
     cy.get('#mobile-buttons')
       .should('not.be.visible')

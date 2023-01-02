@@ -18,6 +18,11 @@ describe('Random seed initialization', () => {
   it('Should not duplicate ids', function () {
     cy.visit(config.TEST_SERVER + '/' + this.treeIds[0])
 
+    cy.get('#app-root').should('be.visible')
+    cy.get('.spinner').should('not.exist')
+
+    cy.url().should('contain', this.treeIds[0] )
+
     cy.contains('Another Child card')
       .should('be.visible')
       .click()

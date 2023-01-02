@@ -15,9 +15,11 @@ describe('Keyboard Shortcuts', () => {
 
   it('Has working shortcuts', function () {
     cy.visit(config.TEST_SERVER + '/' + this.treeIds[0])
-    cy.url().should('contain', this.treeIds[0] )
 
-    cy.get('#app-root')
+    cy.get('#app-root').should('be.visible')
+    cy.get('.spinner').should('not.exist')
+
+    cy.url().should('contain', this.treeIds[0] )
 
     describe('In document mode', () => {
       cy.shortcut('{?}')
