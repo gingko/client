@@ -1,4 +1,4 @@
-module Doc.Data exposing (CommitObject, Model, checkout, conflictList, conflictSelection, empty, emptyData, getCommit, getData, head, historyList, lastCommitTime, received, requestCommit, resolve, success)
+module Doc.Data exposing (CommitObject, Model, checkout, conflictList, conflictSelection, empty, emptyData, getCommit, head, historyList, lastCommitTime, received, requestCommit, resolve, success)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
@@ -19,7 +19,19 @@ import Types exposing (Children(..), Tree)
 
 
 type Model
-    = GitLike GitData (Maybe ConflictInfo)
+    = CardBased (List (Card String))
+    | GitLike GitData (Maybe ConflictInfo)
+
+
+type alias Card t =
+    { id : String
+    , content : String
+    , parentId : Maybe String
+    , position : Float
+    , deleted : Bool
+    , synced : Bool
+    , updatedAt : t
+    }
 
 
 type alias GitData =
@@ -75,39 +87,45 @@ emptyData =
 -- EXPOSED : Getters
 
 
-getData : Model -> GitData
-getData model =
-    case model of
-        GitLike d _ ->
-            d
-
-
 head : String -> Model -> Maybe String
 head id model =
-    Dict.get id (getData model).refs |> Maybe.map .value
+    case model of
+        CardBased _ ->
+            Nothing
+
+        GitLike data _ ->
+            Dict.get id data.refs |> Maybe.map .value
 
 
 historyList : String -> Model -> List String
 historyList startingSha model =
-    (model
-        |> getData
-        |> .commits
-        |> Dict.toList
-        |> List.sortBy (\( cid, c ) -> c.timestamp)
-        |> ListExtra.splitWhen (\( cid, c ) -> cid == startingSha)
-        |> Maybe.map Tuple.first
-        |> Maybe.withDefault []
-        |> List.map Tuple.first
-    )
-        ++ [ startingSha ]
+    case model of
+        CardBased _ ->
+            []
+
+        GitLike data _ ->
+            (data
+                |> .commits
+                |> Dict.toList
+                |> List.sortBy (\( cid, c ) -> c.timestamp)
+                |> ListExtra.splitWhen (\( cid, c ) -> cid == startingSha)
+                |> Maybe.map Tuple.first
+                |> Maybe.withDefault []
+                |> List.map Tuple.first
+            )
+                ++ [ startingSha ]
 
 
 getCommit : String -> Model -> Maybe CommitObject
 getCommit sha model =
-    model
-        |> getData
-        |> .commits
-        |> Dict.get sha
+    case model of
+        CardBased _ ->
+            Nothing
+
+        GitLike data _ ->
+            data
+                |> .commits
+                |> Dict.get sha
 
 
 conflictList : Model -> List Conflict
@@ -119,20 +137,33 @@ conflictList model =
         GitLike _ (Just { conflicts }) ->
             conflicts
 
+        CardBased _ ->
+            []
+
 
 checkout : String -> Model -> Maybe Tree
 checkout commitSha model =
-    checkoutCommit commitSha (getData model)
+    case model of
+        CardBased _ ->
+            Nothing
+
+        GitLike data _ ->
+            checkoutCommit commitSha data
 
 
 lastCommitTime : Model -> Maybe Int
 lastCommitTime model =
-    (getData model).commits
-        |> Dict.values
-        |> List.map .timestamp
-        |> List.sort
-        |> List.reverse
-        |> List.head
+    case model of
+        CardBased _ ->
+            Nothing
+
+        GitLike data _ ->
+            data.commits
+                |> Dict.values
+                |> List.map .timestamp
+                |> List.sort
+                |> List.reverse
+                |> List.head
 
 
 
@@ -141,7 +172,7 @@ lastCommitTime model =
 
 received : Dec.Value -> ( Model, Tree ) -> Maybe { newModel : Model, newTree : Tree }
 received json ( oldModel, oldTree ) =
-    case Dec.decodeValue decode json of
+    case Dec.decodeValue decodeGitLike json of
         Ok ( newData, Nothing ) ->
             { newModel = GitLike newData Nothing
             , newTree = checkoutRef "heads/master" newData |> Maybe.withDefault oldTree
@@ -157,13 +188,13 @@ received json ( oldModel, oldTree ) =
                     merge localHead.value confHead.value oldTree newData
             in
             case mergedModel of
-                GitLike data Nothing ->
+                ( data, Nothing ) ->
                     { newModel = GitLike data Nothing
                     , newTree = checkoutRef "heads/master" data |> Maybe.withDefault oldTree
                     }
                         |> Just
 
-                GitLike data (Just cdata) ->
+                ( data, Just cdata ) ->
                     { newModel = GitLike data (Just cdata)
                     , newTree = cdata.mergedTree
                     }
@@ -175,7 +206,7 @@ received json ( oldModel, oldTree ) =
 
 success : Dec.Value -> Model -> Model
 success json model =
-    case Dec.decodeValue decode json of
+    case Dec.decodeValue decodeGitLike json of
         Ok ( newData, conflict_ ) ->
             let
                 updateData d =
@@ -186,6 +217,9 @@ success json model =
                     }
             in
             case model of
+                CardBased _ ->
+                    model
+
                 GitLike d cd_ ->
                     GitLike (updateData d) cd_
 
@@ -196,6 +230,9 @@ success json model =
 conflictSelection : String -> Selection -> Model -> Model
 conflictSelection cid selection model =
     case model of
+        CardBased _ ->
+            model
+
         GitLike data (Just confInfo) ->
             let
                 newConflicts =
@@ -218,6 +255,9 @@ conflictSelection cid selection model =
 resolve : String -> Model -> Model
 resolve cid model =
     case model of
+        CardBased _ ->
+            model
+
         GitLike _ Nothing ->
             model
 
@@ -323,28 +363,20 @@ treeObjectsToTree treeObjects treeSha id =
             Nothing
 
 
-generateCommitSha : CommitObject -> String
-generateCommitSha commitObj =
-    (commitObj.tree ++ "\n")
-        ++ (commitObj.parents |> String.join "\n")
-        ++ (commitObj.author ++ " " ++ (commitObj.timestamp |> String.fromInt))
-        |> sha1
-
-
 
 -- ==== Merging
 
 
-merge : String -> String -> Tree -> GitData -> Model
+merge : String -> String -> Tree -> GitData -> ( GitData, Maybe ConflictInfo )
 merge aSha bSha _ data =
     if aSha == bSha then
-        GitLike data Nothing
+        ( data, Nothing )
 
     else if List.member bSha (getAncestors data.commits aSha) then
-        GitLike data Nothing
+        ( data, Nothing )
 
     else if List.member aSha (getAncestors data.commits bSha) then
-        GitLike data Nothing
+        ( data, Nothing )
 
     else
         let
@@ -371,16 +403,16 @@ merge aSha bSha _ data =
                         mergeTreeStructure oTree aTree bTree
                 in
                 if List.isEmpty conflicts then
-                    GitLike data Nothing
+                    ( data, Nothing )
 
                 else
-                    GitLike data (Just { localHead = aSha, remoteHead = bSha, conflicts = conflicts, mergedTree = mTree })
+                    ( data, Just { localHead = aSha, remoteHead = bSha, conflicts = conflicts, mergedTree = mTree } )
 
             ( Nothing, Just _, Just _ ) ->
-                GitLike data Nothing
+                ( data, Nothing )
 
             _ ->
-                GitLike data Nothing
+                ( data, Nothing )
 
 
 mergeTreeStructure : Tree -> Tree -> Tree -> ( Tree, List Conflict )
@@ -607,8 +639,8 @@ getAncestors cm sh =
 -- PORTS & INTEROP
 
 
-decode : Dec.Decoder ( GitData, Maybe ( String, RefObject ) )
-decode =
+decodeGitLike : Dec.Decoder ( GitData, Maybe ( String, RefObject ) )
+decodeGitLike =
     let
         modelBuilder r c t cflct =
             ( GitData (Dict.fromList r) (Dict.fromList c) (Dict.fromList t), cflct )
@@ -650,6 +682,9 @@ treeObjectDecoder =
 requestCommit : Tree -> String -> Model -> Enc.Value -> Maybe Enc.Value
 requestCommit workingTree author model metadata =
     case model of
+        CardBased _ ->
+            Nothing
+
         GitLike data Nothing ->
             case Dict.get "heads/master" data.refs of
                 Nothing ->
