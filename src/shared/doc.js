@@ -19,8 +19,9 @@ import PouchDB from "pouchdb";
 const Dexie = require("dexie").default;
 
 const dexie = new Dexie("db");
-dexie.version(1).stores({
+dexie.version(2).stores({
   trees: "id,updatedAt",
+  cards: "updatedAt,treeId",
 });
 
 const helpers = require("./doc-helpers");
@@ -172,6 +173,10 @@ async function setUserDbs(eml) {
     const data = JSON.parse(e.data);
     try {
       switch (data.t) {
+        case 'cards':
+          await dexie.cards.bulkPut(data.d.map(c => ({...c, synced: true})));
+          break;
+
         case 'trees':
           await dexie.trees.bulkPut(data.d.map(t => ({...t, synced : true})));
           break;
@@ -327,6 +332,8 @@ const fromElm = (msg, elmData) => {
 
       if (treeDoc.location == "couchdb") {
         loadGitLikeDocument(elmData);
+      } else if (treeDoc.location == "cardbased") {
+        loadCardBasedDocument(elmData);
       }
     },
 
@@ -683,11 +690,26 @@ function treeDocToMetadata(tree) {
   return {docId: tree.id, name: tree.name, createdAt: tree.createdAt, updatedAt: tree.updatedAt, _rev: null}
 }
 
-async function loadDocListAndSend(dbToLoadFrom, source) {
-  loadingDocs = true;
-  let docList = await dexie.trees.toArray();
-  toElm(docList.filter(d => d.deletedAt == null).map(treeDocToMetadata),  "documentListChanged");
-  loadingDocs = false;
+async function loadCardBasedDocument (treeId) {
+  // Load document-specific settings.
+  localStore.db(treeId);
+  let store = localStore.load();
+
+  // Load local document data.
+  let localExists;
+  let loadedCards = await dexie.cards.where("treeId").equals(treeId).toArray();
+  if (loadedCards.length > 0) {
+    localExists = true;
+    toElm(loadedCards, "docMsgs", "DataReceived");
+  } else {
+    localExists = false;
+  }
+
+  // Pull data from remote
+  let remoteExists;
+  if (ws.readyState == ws.OPEN && ws.bufferedAmount == 0) {
+    ws.send(JSON.stringify({t: "pull", d: [treeId, '0']}));
+  }
 }
 
 async function loadGitLikeDocument (treeId) {
@@ -733,6 +755,12 @@ async function loadGitLikeDocument (treeId) {
   loadDocListAndSend(remoteDB, "LoadDocument");
 }
 
+async function loadDocListAndSend(dbToLoadFrom, source) {
+  loadingDocs = true;
+  let docList = await dexie.trees.toArray();
+  toElm(docList.filter(d => d.deletedAt == null).map(treeDocToMetadata),  "documentListChanged");
+  loadingDocs = false;
+}
 
 /* === Stripe === */
 
