@@ -30,7 +30,7 @@ type alias Column =
 
 
 type CardTreeOp
-    = CTIns String String String Int
+    = CTIns String String (Maybe String) Int
     | CTUpd String String
     | CTRmv String
     | CTMov String (Maybe String) Int

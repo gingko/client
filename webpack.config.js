@@ -108,7 +108,8 @@ const webConfig = {
   // What file types to attempt to resolve within require/import statements
   resolve: {
     alias: { Container: path.resolve(__dirname, "src/web/container-web.js") },
-    extensions: [".js", ".elm"]
+    extensions: [".js", ".elm"],
+    fallback: { "crypto": false }
   },
 
   // Rules on how to handle specific files.

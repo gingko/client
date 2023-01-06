@@ -1385,7 +1385,19 @@ insert pid pos initText ( model, prevCmd, prevMsgsToParent ) =
             , globalData = GlobalData.setSeed newSeed model.globalData
           }
         , prevCmd
-        , prevMsgsToParent ++ [ LocalSave (CTIns newIdString initText pid pos) ]
+        , prevMsgsToParent
+            ++ [ LocalSave
+                    (CTIns newIdString
+                        initText
+                        (if pid == "0" then
+                            Nothing
+
+                         else
+                            Just pid
+                        )
+                        pos
+                    )
+               ]
         )
             |> andThen (openCard newIdString initText)
             |> activate newIdString False

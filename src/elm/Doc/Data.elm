@@ -1,17 +1,17 @@
-module Doc.Data exposing (CommitObject, Model, checkout, conflictList, conflictSelection, empty, emptyData, getCommit, head, historyList, lastCommitTime, received, requestCommit, resolve, success)
+module Doc.Data exposing (CommitObject, Model, checkout, conflictList, conflictSelection, empty, emptyData, getCommit, head, historyList, lastCommitTime, localSave, received, requestCommit, resolve, success)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
 import Diff3 exposing (diff3Merge)
 import Doc.Data.Conflict exposing (Conflict, Op(..), Selection(..), conflictWithSha, opString)
 import Doc.TreeStructure exposing (apply, opToMsg)
-import Doc.TreeUtils exposing (sha1)
 import Json.Decode as Dec
 import Json.Encode as Enc
 import List.Extra as ListExtra
 import Maybe exposing (andThen)
+import Set exposing (Set)
 import Tuple exposing (second)
-import Types exposing (Children(..), Tree)
+import Types exposing (CardTreeOp(..), Children(..), Tree)
 
 
 
@@ -25,6 +25,7 @@ type Model
 
 type alias Card t =
     { id : String
+    , treeId : String
     , content : String
     , parentId : Maybe String
     , position : Float
@@ -180,7 +181,14 @@ received json ( oldModel, oldTree ) =
 
                 newTree =
                     cards
-                        |> toTree
+                        |> (\c ->
+                                let
+                                    _ =
+                                        Debug.log "cards length" (List.length c)
+                                in
+                                c
+                                    |> toTree
+                           )
             in
             Just { newModel = newModel, newTree = newTree }
 
@@ -212,6 +220,10 @@ received json ( oldModel, oldTree ) =
                         |> Just
 
         Err err ->
+            let
+                _ =
+                    Debug.log "Error decoding received data" err
+            in
             Nothing
 
 
@@ -617,14 +629,66 @@ decodeCards =
 
 decodeCard : Dec.Decoder (Card String)
 decodeCard =
-    Dec.map7 Card
+    Dec.map8 Card
         (Dec.field "id" Dec.string)
+        (Dec.field "treeId" Dec.string)
         (Dec.field "content" Dec.string)
         (Dec.field "parentId" (Dec.maybe Dec.string))
         (Dec.field "position" Dec.float)
         (Dec.field "deleted" intToBool)
         (Dec.field "synced" Dec.bool)
         (Dec.field "updatedAt" Dec.string)
+
+
+toSave : DBChangeLists -> Enc.Value
+toSave { toAdd, toMarkSynced, toMarkDeleted, toRemove } =
+    Enc.object
+        [ ( "toAdd", Enc.list encodeNewCard toAdd )
+        , ( "toMarkSynced", Enc.list encodeExistingCard toMarkSynced )
+        , ( "toMarkDeleted", Enc.list encodeNewCard toMarkDeleted )
+        , ( "toRemove", Enc.list Enc.string (Set.toList toRemove) )
+        ]
+
+
+stripUpdatedAt : Card String -> Card ()
+stripUpdatedAt card =
+    { id = card.id
+    , treeId = card.treeId
+    , content = card.content
+    , parentId = card.parentId
+    , position = card.position
+    , deleted = card.deleted
+    , synced = card.synced
+    , updatedAt = ()
+    }
+
+
+encodeNewCard : Card () -> Enc.Value
+encodeNewCard card =
+    Enc.object
+        [ ( "id", Enc.string card.id )
+        , ( "treeId", Enc.string card.treeId )
+        , ( "content", Enc.string card.content )
+        , ( "parentId", encodeMaybe card.parentId )
+        , ( "position", Enc.float card.position )
+        , ( "deleted", Enc.int (boolToInt card.deleted) )
+        , ( "synced", Enc.bool card.synced )
+        , ( "updatedAt", Enc.string "" )
+        ]
+
+
+encodeExistingCard : Card String -> Enc.Value
+encodeExistingCard card =
+    Enc.object
+        [ ( "id", Enc.string card.id )
+        , ( "treeId", Enc.string card.treeId )
+        , ( "content", Enc.string card.content )
+        , ( "parentId", encodeMaybe card.parentId )
+        , ( "position", Enc.float card.position )
+        , ( "deleted", Enc.int (boolToInt card.deleted) )
+        , ( "synced", Enc.bool card.synced )
+        , ( "updatedAt", Enc.string card.updatedAt )
+        ]
 
 
 decodeGitLike : Dec.Decoder ( GitData, Maybe ( String, RefObject ) )
@@ -713,6 +777,49 @@ requestCommit workingTree author model metadata =
 ---
 
 
+type alias DBChangeLists =
+    { toAdd : List (Card ())
+    , toMarkSynced : List (Card String)
+    , toMarkDeleted : List (Card ())
+    , toRemove : Set String
+    }
+
+
+localSave : String -> CardTreeOp -> Model -> Enc.Value
+localSave treeId op model =
+    case model of
+        CardBased data ->
+            case op of
+                CTUpd id newContent ->
+                    let
+                        toAdd =
+                            data
+                                |> List.filter (\card -> card.id == id)
+                                |> List.head
+                                |> Maybe.map (\card -> [ { card | content = newContent, synced = False } |> stripUpdatedAt ])
+                                |> Maybe.withDefault []
+                    in
+                    toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = Set.empty }
+
+                CTIns id content parId idx ->
+                    Enc.null
+
+                CTRmv string ->
+                    Enc.null
+
+                CTMov string maybeString int ->
+                    Enc.null
+
+                CTMrg aId bId bool ->
+                    Enc.null
+
+                CTBlk tree string int ->
+                    Enc.null
+
+        GitLike gitData maybeConflictInfo ->
+            Enc.null
+
+
 toTree : List (Card String) -> Tree
 toTree allCards =
     Tree "0" "" (Children (toTrees allCards))
@@ -743,3 +850,22 @@ treeHelper allCards parentId =
 intToBool : Dec.Decoder Bool
 intToBool =
     Dec.map (\i -> i == 1) Dec.int
+
+
+encodeMaybe : Maybe String -> Enc.Value
+encodeMaybe maybe =
+    case maybe of
+        Just str ->
+            Enc.string str
+
+        Nothing ->
+            Enc.null
+
+
+boolToInt : Bool -> Int
+boolToInt b =
+    if b then
+        1
+
+    else
+        0

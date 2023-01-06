@@ -45,7 +45,7 @@ import Svg.Attributes
 import Task
 import Time
 import Translation exposing (Language, TranslationId(..), langToString, tr)
-import Types exposing (HeaderMenuState(..), OutsideData, SidebarMenuState(..), SidebarState(..), SortBy(..), TooltipPosition, Tree, ViewMode(..))
+import Types exposing (CardTreeOp, HeaderMenuState(..), OutsideData, SidebarMenuState(..), SidebarState(..), SortBy(..), TooltipPosition, Tree, ViewMode(..))
 import Upgrade exposing (Msg(..))
 
 
@@ -1302,32 +1302,6 @@ update msg model =
                     ( { model | modalState = NoModal }, Cmd.none )
 
 
-applyParentMsgs : List MsgToParent -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-applyParentMsgs parentMsgs ( prevModel, prevCmd ) =
-    List.foldl applyParentMsg ( prevModel, prevCmd ) parentMsgs
-
-
-applyParentMsg : MsgToParent -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-applyParentMsg parentMsg ( prevModel, prevCmd ) =
-    case parentMsg of
-        CloseTooltip ->
-            ( { prevModel | tooltip = Nothing }, prevCmd )
-
-        LocalSave op ->
-            let
-                _ =
-                    Debug.log "op" op
-            in
-            ( prevModel, prevCmd )
-
-        Commit ->
-            ( prevModel, prevCmd )
-                |> addToHistoryDo
-
-        ExitFullscreen ->
-            ( prevModel, prevCmd )
-
-
 dataReceived : Json.Value -> Model -> ( Model, Cmd Msg )
 dataReceived dataIn model =
     case model.documentState of
@@ -1372,6 +1346,43 @@ dataReceived dataIn model =
 
         Empty _ _ ->
             ( model, Cmd.none )
+
+
+applyParentMsgs : List MsgToParent -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+applyParentMsgs parentMsgs ( prevModel, prevCmd ) =
+    List.foldl applyParentMsg ( prevModel, prevCmd ) parentMsgs
+
+
+applyParentMsg : MsgToParent -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+applyParentMsg parentMsg ( prevModel, prevCmd ) =
+    case parentMsg of
+        CloseTooltip ->
+            ( { prevModel | tooltip = Nothing }, prevCmd )
+
+        LocalSave op ->
+            ( prevModel, prevCmd )
+                |> localSave op
+
+        Commit ->
+            ( prevModel, prevCmd )
+                |> addToHistoryDo
+
+        ExitFullscreen ->
+            ( prevModel, prevCmd )
+
+
+localSave : CardTreeOp -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+localSave op ( model, prevCmd ) =
+    case model.documentState of
+        Doc { session, docModel, data, docId } ->
+            let
+                dbChangeList =
+                    Data.localSave docId op data
+            in
+            ( model, send <| SaveCardBased dbChangeList )
+
+        Empty _ _ ->
+            ( model, prevCmd )
 
 
 addToHistoryDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )

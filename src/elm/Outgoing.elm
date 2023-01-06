@@ -28,6 +28,7 @@ type Msg
     | RequestDelete String (Maybe String)
     | NoDataToSave
     | RenameDocument String
+    | SaveCardBased Enc.Value
     | CommitData Enc.Value
     | PullData
     | SaveImportedData Enc.Value
@@ -94,6 +95,9 @@ send info =
         -- === Database ===
         RenameDocument newDocName ->
             dataToSend "RenameDocument" (string newDocName)
+
+        SaveCardBased data ->
+            dataToSend "SaveCardBased" data
 
         CommitData data ->
             dataToSend "CommitData" data

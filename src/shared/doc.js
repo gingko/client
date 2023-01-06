@@ -1,6 +1,7 @@
 // @format
 import * as data from "./data.js";
 import Worker from "worker-loader!./data.worker.js";
+import hlc from '@tpp/hybrid-logical-clock';
 const dataWorker = new Worker();
 
 const _ = require("lodash");
@@ -391,6 +392,25 @@ const fromElm = (msg, elmData) => {
         await dexie.trees.update(TREE_ID, {name: elmData, updatedAt: Date.now(), synced: false});
         renaming = false;
       }
+    },
+
+    SaveCardBased : async () => {
+      const newData = elmData.toAdd.map((c) => { return {...c, updatedAt : hlc.nxt()}})
+      const toMarkSynced = elmData.toMarkSynced.map((c) => { return {...c, synced: 1}})
+
+      let toMarkDeleted = [];
+      if(elmData.toMarkDeleted.length > 0) {
+        const timestamp = Date.now();
+        const deleteHash = uuid();
+        toMarkDeleted = elmData.toMarkDeleted.map((c , i) => ({...c, updatedAt : `${timestamp}:${i}:${deleteHash}`}));
+      }
+
+      dexie.transaction('rw', dexie.cards, async () => {
+        dexie.cards.bulkPut(newData.concat(toMarkSynced).concat(toMarkDeleted));
+        dexie.cards.bulkDelete(elmData.toRemove);
+      }).catch((e) => {
+        alert("Error saving data!" + e);
+      });
     },
 
     CommitData: async () => {
