@@ -1445,8 +1445,8 @@ closeSwitcher model =
 toggleHistory : Bool -> Int -> Model -> ( Model, Cmd msg )
 toggleHistory isOpen delta model =
     case ( isOpen, model |> toData |> Maybe.andThen (\d -> Data.head "heads/master" d) ) of
-        ( True, Just refObj ) ->
-            ( { model | headerMenu = HistoryView { start = refObj.value, currentView = refObj.value } }, send <| HistorySlider delta )
+        ( True, Just refValue ) ->
+            ( { model | headerMenu = HistoryView { start = refValue, currentView = refValue } }, send <| HistorySlider delta )
 
         _ ->
             ( { model | headerMenu = NoHeaderMenu }, Cmd.none )

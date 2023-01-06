@@ -1037,7 +1037,7 @@ viewHistory lang msgs currentTime dataModel historyState =
                 Just idx ->
                     case getAt idx historyList of
                         Just commit ->
-                            msgs.checkout (Tuple.first commit)
+                            msgs.checkout commit
 
                         Nothing ->
                             msgs.noOp

@@ -82,21 +82,13 @@ getData model =
             d
 
 
-head : String -> Model -> Maybe RefObject
+head : String -> Model -> Maybe String
 head id model =
-    Dict.get id (getData model).refs
+    Dict.get id (getData model).refs |> Maybe.map .value
 
 
-historyList : String -> Model -> List ( String, CommitObject )
+historyList : String -> Model -> List String
 historyList startingSha model =
-    let
-        startingCommit =
-            model
-                |> getData
-                |> .commits
-                |> Dict.get startingSha
-                |> Maybe.withDefault (CommitObject "" [] "" 0)
-    in
     (model
         |> getData
         |> .commits
@@ -105,8 +97,9 @@ historyList startingSha model =
         |> ListExtra.splitWhen (\( cid, c ) -> cid == startingSha)
         |> Maybe.map Tuple.first
         |> Maybe.withDefault []
+        |> List.map Tuple.first
     )
-        ++ [ ( startingSha, startingCommit ) ]
+        ++ [ startingSha ]
 
 
 getCommit : String -> Model -> Maybe CommitObject
