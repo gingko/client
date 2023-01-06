@@ -1,4 +1,4 @@
-module Doc.Data exposing (CommitObject, Model, checkout, conflictList, conflictSelection, empty, emptyData, getCommit, getData, head, historyList, lastCommitTime, received, requestCommit, resolve, success, toValue)
+module Doc.Data exposing (CommitObject, Model, checkout, conflictList, conflictSelection, empty, emptyData, getCommit, getData, head, historyList, lastCommitTime, received, requestCommit, resolve, success)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
@@ -19,8 +19,7 @@ import Types exposing (Children(..), Tree)
 
 
 type Model
-    = Clean GitData
-    | MergeConflict GitData ConflictInfo
+    = GitLike GitData (Maybe ConflictInfo)
 
 
 type alias GitData =
@@ -61,7 +60,7 @@ type alias RefObject =
 
 empty : Model
 empty =
-    Clean emptyData
+    GitLike emptyData Nothing
 
 
 emptyData : GitData
@@ -79,10 +78,7 @@ emptyData =
 getData : Model -> GitData
 getData model =
     case model of
-        Clean d ->
-            d
-
-        MergeConflict d _ ->
+        GitLike d _ ->
             d
 
 
@@ -124,10 +120,10 @@ getCommit sha model =
 conflictList : Model -> List Conflict
 conflictList model =
     case model of
-        Clean _ ->
+        GitLike _ Nothing ->
             []
 
-        MergeConflict _ { conflicts } ->
+        GitLike _ (Just { conflicts }) ->
             conflicts
 
 
@@ -154,7 +150,7 @@ received : Dec.Value -> ( Model, Tree ) -> Maybe { newModel : Model, newTree : T
 received json ( oldModel, oldTree ) =
     case Dec.decodeValue decode json of
         Ok ( newData, Nothing ) ->
-            { newModel = Clean newData
+            { newModel = GitLike newData Nothing
             , newTree = checkoutRef "heads/master" newData |> Maybe.withDefault oldTree
             }
                 |> Just
@@ -168,14 +164,14 @@ received json ( oldModel, oldTree ) =
                     merge localHead.value confHead.value oldTree newData
             in
             case mergedModel of
-                Clean data ->
-                    { newModel = Clean data
+                GitLike data Nothing ->
+                    { newModel = GitLike data Nothing
                     , newTree = checkoutRef "heads/master" data |> Maybe.withDefault oldTree
                     }
                         |> Just
 
-                MergeConflict data cdata ->
-                    { newModel = MergeConflict data cdata
+                GitLike data (Just cdata) ->
+                    { newModel = GitLike data (Just cdata)
                     , newTree = cdata.mergedTree
                     }
                         |> Just
@@ -197,11 +193,8 @@ success json model =
                     }
             in
             case model of
-                Clean d ->
-                    Clean (updateData d)
-
-                MergeConflict d cd ->
-                    MergeConflict (updateData d) cd
+                GitLike d cd_ ->
+                    GitLike (updateData d) cd_
 
         Err err ->
             model
@@ -210,7 +203,7 @@ success json model =
 conflictSelection : String -> Selection -> Model -> Model
 conflictSelection cid selection model =
     case model of
-        MergeConflict data confInfo ->
+        GitLike data (Just confInfo) ->
             let
                 newConflicts =
                     confInfo.conflicts
@@ -223,24 +216,24 @@ conflictSelection cid selection model =
                                     c
                             )
             in
-            MergeConflict data { confInfo | conflicts = newConflicts }
+            GitLike data (Just { confInfo | conflicts = newConflicts })
 
-        Clean _ ->
+        GitLike _ _ ->
             model
 
 
 resolve : String -> Model -> Model
 resolve cid model =
     case model of
-        Clean _ ->
+        GitLike _ Nothing ->
             model
 
-        MergeConflict d confInfo ->
+        GitLike d (Just confInfo) ->
             let
                 newConflicts =
                     List.filter (\c -> c.id /= cid) confInfo.conflicts
             in
-            MergeConflict d { confInfo | conflicts = newConflicts }
+            GitLike d (Just { confInfo | conflicts = newConflicts })
 
 
 
@@ -352,13 +345,13 @@ generateCommitSha commitObj =
 merge : String -> String -> Tree -> GitData -> Model
 merge aSha bSha _ data =
     if aSha == bSha then
-        Clean data
+        GitLike data Nothing
 
     else if List.member bSha (getAncestors data.commits aSha) then
-        Clean data
+        GitLike data Nothing
 
     else if List.member aSha (getAncestors data.commits bSha) then
-        Clean data
+        GitLike data Nothing
 
     else
         let
@@ -385,16 +378,16 @@ merge aSha bSha _ data =
                         mergeTreeStructure oTree aTree bTree
                 in
                 if List.isEmpty conflicts then
-                    Clean data
+                    GitLike data Nothing
 
                 else
-                    MergeConflict data { localHead = aSha, remoteHead = bSha, conflicts = conflicts, mergedTree = mTree }
+                    GitLike data (Just { localHead = aSha, remoteHead = bSha, conflicts = conflicts, mergedTree = mTree })
 
             ( Nothing, Just _, Just _ ) ->
-                Clean data
+                GitLike data Nothing
 
             _ ->
-                Clean data
+                GitLike data Nothing
 
 
 mergeTreeStructure : Tree -> Tree -> Tree -> ( Tree, List Conflict )
@@ -664,7 +657,7 @@ treeObjectDecoder =
 requestCommit : Tree -> String -> Model -> Enc.Value -> Maybe Enc.Value
 requestCommit workingTree author model metadata =
     case model of
-        Clean data ->
+        GitLike data Nothing ->
             case Dict.get "heads/master" data.refs of
                 Nothing ->
                     Enc.object
@@ -684,7 +677,7 @@ requestCommit workingTree author model metadata =
                         ]
                         |> Just
 
-        MergeConflict data { localHead, remoteHead, conflicts } ->
+        GitLike data (Just { localHead, remoteHead, conflicts }) ->
             if List.isEmpty (List.filter (not << .resolved) conflicts) then
                 -- No unresolved conflicts.
                 Enc.object
@@ -698,47 +691,3 @@ requestCommit workingTree author model metadata =
             else
                 -- Unresolved conflicts exist, dont' commit.
                 Nothing
-
-
-toValue : GitData -> Enc.Value
-toValue data =
-    Enc.object
-        [ ( "refs", Enc.list refToValue (Dict.toList data.refs) )
-        , ( "commits", Enc.list commitToValue (Dict.toList data.commits) )
-        , ( "treeObjects", Enc.list treeObjectToValue (Dict.toList data.treeObjects) )
-        ]
-
-
-treeObjectToValue : ( String, TreeObject ) -> Enc.Value
-treeObjectToValue ( sha, treeObject ) =
-    Enc.object
-        [ ( "_id", Enc.string sha )
-        , ( "type", Enc.string "tree" )
-        , ( "content", Enc.string treeObject.content )
-        , ( "children"
-          , Enc.list (Enc.list Enc.string) (List.map (\( childSha, childId ) -> [ childSha, childId ]) treeObject.children)
-          )
-        ]
-
-
-refToValue : ( String, RefObject ) -> Enc.Value
-refToValue ( sha, ref ) =
-    Enc.object
-        [ ( "_id", Enc.string sha )
-        , ( "_rev", Enc.string ref.rev )
-        , ( "type", Enc.string "ref" )
-        , ( "value", Enc.string ref.value )
-        , ( "ancestors", Enc.list Enc.string ref.ancestors )
-        ]
-
-
-commitToValue : ( String, CommitObject ) -> Enc.Value
-commitToValue ( sha, commitObj ) =
-    Enc.object
-        [ ( "_id", Enc.string sha )
-        , ( "type", Enc.string "commit" )
-        , ( "tree", Enc.string commitObj.tree )
-        , ( "parents", Enc.list Enc.string commitObj.parents )
-        , ( "author", Enc.string commitObj.author )
-        , ( "timestamp", Enc.int commitObj.timestamp )
-        ]
