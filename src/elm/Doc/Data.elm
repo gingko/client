@@ -1,4 +1,4 @@
-module Doc.Data exposing (CommitObject, Model, cardDataReceived, checkout, conflictList, conflictSelection, empty, emptyData, getCommit, gitDataReceived, head, historyList, lastCommitTime, localSave, requestCommit, resolve, success)
+module Doc.Data exposing (CommitObject, Model, cardDataReceived, checkout, conflictList, conflictSelection, empty, emptyData, getCommit, gitDataReceived, head, historyList, lastCommitTime, localSave, pushOkHandler, requestCommit, resolve, success)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
@@ -1159,6 +1159,42 @@ resolveDeleteConflicts allCards versions =
                 |> List.map (\c -> { c | synced = False, deleted = False } |> stripUpdatedAt)
     in
     { toAdd = theirDeletionsLocalVersions, toMarkSynced = [], toMarkDeleted = [], toRemove = Set.union ourDeletionTimestamps theirDeletionsToRemove }
+
+
+pushOkHandler : String -> Model -> Maybe Outgoing.Msg
+pushOkHandler chk model =
+    case model of
+        CardBased data ->
+            let
+                cardsToSync =
+                    data
+                        |> List.filter (\card -> card.synced == False && card.updatedAt <= chk)
+                        |> List.map (\card -> { card | synced = True })
+
+                dbAfterSync =
+                    cardsToSync
+                        ++ data
+                        |> ListExtra.uniqueBy .updatedAt
+
+                syncedCardsOverLimit c =
+                    c
+                        |> List.map .updatedAt
+                        |> List.sort
+                        |> List.reverse
+                        |> List.drop historyLimit
+
+                versionsToDelete =
+                    dbAfterSync
+                        |> List.filter (\card -> card.synced == True)
+                        |> ListExtra.gatherWith (\a b -> a.id == b.id)
+                        |> List.map (\( a, rest ) -> a :: rest)
+                        |> List.concatMap syncedCardsOverLimit
+                        |> Set.fromList
+            in
+            Just <| SaveCardBased <| toSave { toAdd = [], toMarkSynced = cardsToSync, toMarkDeleted = [], toRemove = versionsToDelete }
+
+        _ ->
+            Nothing
 
 
 

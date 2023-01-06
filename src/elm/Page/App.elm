@@ -419,6 +419,18 @@ update msg model =
                 CardDataReceived json ->
                     cardDataReceived json model
 
+                PushOk json ->
+                    case model.documentState of
+                        Doc { data } ->
+                            let
+                                pushOkMsg =
+                                    Data.pushOkHandler json data
+                            in
+                            ( model, pushOkMsg |> Maybe.map send |> Maybe.withDefault Cmd.none )
+
+                        Empty _ _ ->
+                            ( model, Cmd.none )
+
                 GitDataReceived json ->
                     gitDataReceived json model
 
@@ -1848,6 +1860,7 @@ viewConfirmBanner lang closeMsg email =
 type IncomingAppMsg
     = DataSaved Enc.Value
     | CardDataReceived Enc.Value
+    | PushOk String
     | GitDataReceived Enc.Value
     | MetadataUpdate Metadata
     | SavedRemotely Time.Posix
@@ -1863,6 +1876,14 @@ subscribe tagger onError =
 
                 "CardDataReceived" ->
                     tagger <| CardDataReceived outsideInfo.data
+
+                "PushOk" ->
+                    case decodeValue (Json.at [ "d" ] Json.string) outsideInfo.data of
+                        Ok chk ->
+                            tagger <| PushOk chk
+
+                        Err err ->
+                            onError (errorToString err)
 
                 "GitDataReceived" ->
                     tagger <| GitDataReceived outsideInfo.data

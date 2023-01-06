@@ -178,6 +178,11 @@ async function setUserDbs(eml) {
           await dexie.cards.bulkPut(data.d.map(c => ({...c, synced: true})));
           break;
 
+        case 'pushOk':
+          hlc.recv(data.d);
+          toElm(data, "appMsgs", "PushOk");
+          break;
+
         case 'trees':
           await dexie.trees.bulkPut(data.d.map(t => ({...t, synced : true})));
           break;
@@ -403,7 +408,7 @@ const fromElm = (msg, elmData) => {
 
     SaveCardBased : async () => {
       const newData = elmData.toAdd.map((c) => { return {...c, updatedAt : hlc.nxt()}})
-      const toMarkSynced = elmData.toMarkSynced.map((c) => { return {...c, synced: 1}})
+      const toMarkSynced = elmData.toMarkSynced.map((c) => { return {...c, synced: true}})
 
       let toMarkDeleted = [];
       if(elmData.toMarkDeleted.length > 0) {
