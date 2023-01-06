@@ -172,14 +172,25 @@ lastCommitTime model =
 
 received : Dec.Value -> ( Model, Tree ) -> Maybe { newModel : Model, newTree : Tree }
 received json ( oldModel, oldTree ) =
-    case Dec.decodeValue decodeGitLike json of
-        Ok ( newData, Nothing ) ->
+    case Dec.decodeValue decode json of
+        Ok (CardBasedIn cards) ->
+            let
+                newModel =
+                    CardBased cards
+
+                newTree =
+                    cards
+                        |> toTree
+            in
+            Just { newModel = newModel, newTree = newTree }
+
+        Ok (GitLikeIn ( newData, Nothing )) ->
             { newModel = GitLike newData Nothing
             , newTree = checkoutRef "heads/master" newData |> Maybe.withDefault oldTree
             }
                 |> Just
 
-        Ok ( newData, Just ( _, confHead ) ) ->
+        Ok (GitLikeIn ( newData, Just ( _, confHead ) )) ->
             let
                 localHead =
                     Dict.get "heads/master" newData.refs |> Maybe.withDefault confHead
@@ -639,6 +650,36 @@ getAncestors cm sh =
 -- PORTS & INTEROP
 
 
+type DataIn
+    = GitLikeIn ( GitData, Maybe ( String, RefObject ) )
+    | CardBasedIn (List (Card String))
+
+
+decode : Dec.Decoder DataIn
+decode =
+    Dec.oneOf
+        [ decodeCards |> Dec.map CardBasedIn
+        , decodeGitLike |> Dec.map GitLikeIn
+        ]
+
+
+decodeCards : Dec.Decoder (List (Card String))
+decodeCards =
+    Dec.list decodeCard
+
+
+decodeCard : Dec.Decoder (Card String)
+decodeCard =
+    Dec.map7 Card
+        (Dec.field "id" Dec.string)
+        (Dec.field "content" Dec.string)
+        (Dec.field "parentId" (Dec.maybe Dec.string))
+        (Dec.field "position" Dec.float)
+        (Dec.field "deleted" Dec.bool)
+        (Dec.field "synced" Dec.bool)
+        (Dec.field "updatedAt" Dec.string)
+
+
 decodeGitLike : Dec.Decoder ( GitData, Maybe ( String, RefObject ) )
 decodeGitLike =
     let
@@ -719,3 +760,34 @@ requestCommit workingTree author model metadata =
             else
                 -- Unresolved conflicts exist, dont' commit.
                 Nothing
+
+
+
+---
+
+
+toTree : List (Card String) -> Tree
+toTree allCards =
+    Tree "0" "" (Children (toTrees allCards))
+
+
+toTrees : List (Card String) -> List Tree
+toTrees allCards =
+    let
+        cards =
+            allCards
+                |> List.sortBy .updatedAt
+                |> List.reverse
+                |> ListExtra.uniqueBy .id
+                |> List.filter (not << .deleted)
+    in
+    treeHelper cards Nothing
+
+
+treeHelper : List (Card String) -> Maybe String -> List Tree
+treeHelper allCards parentId =
+    let
+        cards =
+            allCards |> List.filter (\card -> card.parentId == parentId) |> List.sortBy .position
+    in
+    List.map (\card -> { id = card.id, content = card.content, children = Children (treeHelper allCards (Just card.id)) }) cards
