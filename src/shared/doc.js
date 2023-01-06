@@ -264,6 +264,7 @@ function toElm(data, portName, tagName) {
 }
 
 const fromElm = (msg, elmData) => {
+  console.log("fromElm", msg, elmData);
   window.elmMessages.push({tag: msg, data: elmData});
   window.elmMessages = window.elmMessages.slice(-10);
 
@@ -711,16 +712,12 @@ function treeDocToMetadata(tree) {
 }
 
 async function loadCardBasedDocument (treeId) {
-  // Load document-specific settings.
-  localStore.db(treeId);
-  let store = localStore.load();
-
   // Load local document data.
   let chk;
   let loadedCards = await dexie.cards.where("treeId").equals(treeId).toArray();
   if (loadedCards.length > 0) {
     chk = loadedCards.filter(c => c.synced).map(c => c.updatedAt).sort().reverse()[0];
-    toElm(loadedCards, "appMsgs", "DataReceived");
+    toElm(loadedCards, "appMsgs", "CardDataReceived");
   } else {
     chk = '0';
   }
@@ -728,7 +725,7 @@ async function loadCardBasedDocument (treeId) {
   // Setup Dexie liveQuery
   Dexie.liveQuery(() => dexie.cards.where("treeId").equals(treeId).toArray()).subscribe((cards) => {
     console.log("LiveQuery update", cards);
-    toElm(cards, "appMsgs", "DataReceived");
+    toElm(cards, "appMsgs", "CardDataReceived");
   });
 
   // Pull data from remote
@@ -749,7 +746,7 @@ async function loadGitLikeDocument (treeId) {
   if (savedIds.length !== 0) {
     localExists = true;
     loadedData.localStore = store;
-    toElm(loadedData, "appMsgs", "DataReceived");
+    toElm(loadedData, "appMsgs", "GitDataReceived");
   } else {
     localExists = false;
   }
@@ -763,7 +760,7 @@ async function loadGitLikeDocument (treeId) {
     if (pullResult !== null) {
       remoteExists = true;
       pullResult[1].forEach(item => savedObjectIds.add(item));
-      toElm(pullResult[0], "appMsgs", "DataReceived");
+      toElm(pullResult[0], "appMsgs", "GitDataReceived");
     } else {
       remoteExists = false;
       if (!localExists && !remoteExists) {

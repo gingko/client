@@ -1,4 +1,4 @@
-module Doc.Data exposing (CommitObject, Model, checkout, conflictList, conflictSelection, empty, emptyData, getCommit, head, historyList, lastCommitTime, localSave, received, requestCommit, resolve, success)
+module Doc.Data exposing (CommitObject, Model, cardDataReceived, checkout, conflictList, conflictSelection, empty, emptyData, getCommit, gitDataReceived, head, historyList, lastCommitTime, localSave, requestCommit, resolve, success)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
@@ -9,6 +9,7 @@ import Json.Decode as Dec
 import Json.Encode as Enc
 import List.Extra as ListExtra
 import Maybe exposing (andThen)
+import Outgoing exposing (Msg(..), send)
 import Set exposing (Set)
 import Tuple exposing (second)
 import Types exposing (CardTreeOp(..), Children(..), Tree)
@@ -16,6 +17,10 @@ import Types exposing (CardTreeOp(..), Children(..), Tree)
 
 
 -- MODEL
+
+
+historyLimit =
+    1
 
 
 type Model
@@ -171,10 +176,10 @@ lastCommitTime model =
 -- EXPOSED : Functions
 
 
-received : Dec.Value -> ( Model, Tree ) -> Maybe { newModel : Model, newTree : Tree }
-received json ( oldModel, oldTree ) =
-    case Dec.decodeValue decode json of
-        Ok (CardBasedIn cards) ->
+cardDataReceived : Dec.Value -> ( Model, Tree ) -> Maybe { newData : Model, newTree : Tree, outMsg : List Outgoing.Msg }
+cardDataReceived json ( oldModel, oldTree ) =
+    case Dec.decodeValue decodeCards json of
+        Ok cards ->
             let
                 newModel =
                     CardBased cards
@@ -182,16 +187,57 @@ received json ( oldModel, oldTree ) =
                 newTree =
                     cards
                         |> toTree
-            in
-            Just { newModel = newModel, newTree = newTree }
 
-        Ok (GitLikeIn ( newData, Nothing )) ->
-            { newModel = GitLike newData Nothing
+                syncState =
+                    getSyncState cards
+                        |> Debug.log "syncState"
+
+                outMsg =
+                    case syncState of
+                        Unsynced ->
+                            [ PushDeltas (pushDelta cards) ]
+
+                        CanFastForward ffids ->
+                            [ SaveCardBased (toSave { toAdd = [], toMarkSynced = [], toMarkDeleted = [], toRemove = ffids |> Set.fromList }) ]
+
+                        Conflicted conflictData ->
+                            let
+                                mergedChanges =
+                                    resolveDeleteConflicts cards conflictData
+                            in
+                            if List.length mergedChanges.toAdd > 0 || List.length mergedChanges.toMarkSynced > 0 || Set.size mergedChanges.toRemove > 0 then
+                                [ SaveCardBased (toSave mergedChanges) ]
+
+                            else
+                                []
+
+                        _ ->
+                            []
+            in
+            if (newModel /= oldModel) || (newTree /= oldTree) then
+                Just { newData = newModel, newTree = newTree, outMsg = outMsg }
+
+            else
+                Nothing
+
+        Err err ->
+            let
+                _ =
+                    Debug.log "Error decoding received data" err
+            in
+            Nothing
+
+
+gitDataReceived : Dec.Value -> ( Model, Tree ) -> Maybe { newData : Model, newTree : Tree }
+gitDataReceived json ( oldModel, oldTree ) =
+    case Dec.decodeValue decodeGitLike json of
+        Ok ( newData, Nothing ) ->
+            { newData = GitLike newData Nothing
             , newTree = checkoutRef "heads/master" newData |> Maybe.withDefault oldTree
             }
                 |> Just
 
-        Ok (GitLikeIn ( newData, Just ( _, confHead ) )) ->
+        Ok ( newData, Just ( _, confHead ) ) ->
             let
                 localHead =
                     Dict.get "heads/master" newData.refs |> Maybe.withDefault confHead
@@ -201,13 +247,13 @@ received json ( oldModel, oldTree ) =
             in
             case mergedModel of
                 ( data, Nothing ) ->
-                    { newModel = GitLike data Nothing
+                    { newData = GitLike data Nothing
                     , newTree = checkoutRef "heads/master" data |> Maybe.withDefault oldTree
                     }
                         |> Just
 
                 ( data, Just cdata ) ->
-                    { newModel = GitLike data (Just cdata)
+                    { newData = GitLike data (Just cdata)
                     , newTree = cdata.mergedTree
                     }
                         |> Just
@@ -607,14 +653,6 @@ type DataIn
     | CardBasedIn (List (Card String))
 
 
-decode : Dec.Decoder DataIn
-decode =
-    Dec.oneOf
-        [ decodeCards |> Dec.map CardBasedIn
-        , decodeGitLike |> Dec.map GitLikeIn
-        ]
-
-
 decodeCards : Dec.Decoder (List (Card String))
 decodeCards =
     Dec.list decodeCard
@@ -838,6 +876,441 @@ treeHelper allCards parentId =
             allCards |> List.filter (\card -> card.parentId == parentId) |> List.sortBy .position
     in
     List.map (\card -> { id = card.id, content = card.content, children = Children (treeHelper allCards (Just card.id)) }) cards
+
+
+type alias Versions =
+    { original : List (Card String)
+    , ours : List (Card String)
+    , theirs : List (Card String)
+    }
+
+
+type SyncState
+    = Synced
+    | Unsynced
+    | CanFastForward (List String)
+    | Conflicted Versions
+    | Errored
+
+
+getCardById : List (Card String) -> String -> Maybe (Card String)
+getCardById db id =
+    db
+        |> List.filter (\card -> card.id == id)
+        |> List.sortBy .updatedAt
+        |> List.reverse
+        |> List.head
+
+
+getSyncState : List (Card String) -> SyncState
+getSyncState db =
+    let
+        cardSyncStates =
+            db
+                |> ListExtra.gatherWith (\a b -> a.id == b.id)
+                |> List.map (\( a, rest ) -> a :: rest)
+                |> List.map
+                    (\c ->
+                        let
+                            cardSyncState =
+                                getCardSyncState c
+
+                            cardId =
+                                c
+                                    |> List.head
+                                    |> Maybe.map .id
+                                    |> Maybe.withDefault ""
+                        in
+                        ( cardId, cardSyncState )
+                    )
+    in
+    if
+        List.any
+            (\( _, s ) ->
+                case s of
+                    Conflicted _ ->
+                        True
+
+                    _ ->
+                        False
+            )
+            cardSyncStates
+    then
+        let
+            versions =
+                cardSyncStates
+                    |> List.filterMap
+                        (\( _, s ) ->
+                            case s of
+                                Conflicted v ->
+                                    Just v
+
+                                _ ->
+                                    Nothing
+                        )
+
+            allOrig =
+                versions |> List.concatMap .original
+
+            allOurs =
+                versions |> List.concatMap .ours
+
+            allTheirs =
+                versions |> List.concatMap .theirs
+        in
+        Conflicted { original = allOrig, ours = allOurs, theirs = allTheirs }
+
+    else if List.any (\( _, s ) -> s == Unsynced) cardSyncStates then
+        Unsynced
+
+    else if List.all (\( _, s ) -> s == Synced) cardSyncStates then
+        Synced
+
+    else if
+        List.any
+            (\( _, s ) ->
+                case s of
+                    CanFastForward _ ->
+                        True
+
+                    _ ->
+                        False
+            )
+            cardSyncStates
+    then
+        let
+            allFFids =
+                cardSyncStates
+                    |> List.filterMap
+                        (\( _, s ) ->
+                            case s of
+                                CanFastForward ids ->
+                                    Just ids
+
+                                _ ->
+                                    Nothing
+                        )
+                    |> List.concat
+        in
+        CanFastForward allFFids
+
+    else
+        Errored
+
+
+getCardSyncState : List (Card String) -> SyncState
+getCardSyncState cardVersions =
+    let
+        ( syncedVersions, unsyncedVersions ) =
+            cardVersions
+                |> List.partition .synced
+                |> Tuple.mapBoth List.length List.length
+
+        versions =
+            { original = getOriginals cardVersions
+            , ours = getOurs cardVersions
+            , theirs = getTheirs cardVersions
+            }
+    in
+    if unsyncedVersions > 0 && syncedVersions <= historyLimit then
+        Unsynced
+
+    else if unsyncedVersions > 0 && syncedVersions > historyLimit then
+        Conflicted versions
+
+    else if unsyncedVersions == 0 && syncedVersions > 0 && syncedVersions <= historyLimit then
+        Synced
+
+    else if unsyncedVersions == 0 && syncedVersions > historyLimit then
+        let
+            ids =
+                cardVersions
+                    |> List.map .updatedAt
+                    |> List.sort
+                    |> List.reverse
+                    |> List.drop historyLimit
+        in
+        CanFastForward ids
+
+    else
+        Errored
+
+
+getOriginals : List (Card String) -> List (Card String)
+getOriginals db =
+    db
+        |> List.filter .synced
+        |> List.sortBy .updatedAt
+        |> List.head
+        |> Maybe.map List.singleton
+        |> Maybe.withDefault []
+
+
+getOurs : List (Card String) -> List (Card String)
+getOurs db =
+    db
+        |> List.filter (not << .synced)
+        |> List.sortBy .updatedAt
+        |> List.reverse
+        |> List.head
+        |> Maybe.map List.singleton
+        |> Maybe.withDefault []
+
+
+getTheirs : List (Card String) -> List (Card String)
+getTheirs db =
+    db
+        |> List.filter .synced
+        |> List.sortBy .updatedAt
+        |> List.reverse
+        |> (\l ->
+                if List.length l > historyLimit then
+                    [ List.head l ]
+
+                else
+                    [ Nothing ]
+           )
+        |> List.filterMap identity
+
+
+resolveDeleteConflicts : List (Card String) -> Versions -> DBChangeLists
+resolveDeleteConflicts allCards versions =
+    let
+        idsOfConflicts =
+            (versions.original ++ versions.ours ++ versions.theirs)
+                |> List.map .id
+                |> ListExtra.unique
+
+        conflictPerCard : String -> { original : Maybe (Card String), ours : Maybe (Card String), theirs : Maybe (Card String) }
+        conflictPerCard cardId =
+            { original = ListExtra.find (\c -> c.id == cardId) versions.original
+            , ours = ListExtra.find (\c -> c.id == cardId) versions.ours
+            , theirs = ListExtra.find (\c -> c.id == cardId) versions.theirs
+            }
+
+        ( ourDeletionHashes, theirDeletionHashes ) =
+            idsOfConflicts
+                |> List.map conflictPerCard
+                |> List.concatMap
+                    (\v ->
+                        case ( v.original, v.ours, v.theirs ) of
+                            ( Just _, Just ours, Just thr ) ->
+                                if ours.deleted && not thr.deleted then
+                                    [ ( True, ours.updatedAt ) ]
+
+                                else if not ours.deleted && thr.deleted then
+                                    [ ( False, thr.updatedAt ) ]
+
+                                else
+                                    []
+
+                            _ ->
+                                []
+                    )
+                |> List.filterMap
+                    (\( ot, ts ) ->
+                        ts
+                            |> String.split ":"
+                            |> List.reverse
+                            |> List.head
+                            |> Maybe.map (\h -> ( ot, h ))
+                    )
+                |> List.partition Tuple.first
+                |> Tuple.mapBoth (List.map Tuple.second) (List.map Tuple.second)
+                |> Debug.log "deleteConflictHashes"
+
+        ourDeletionTimestamps =
+            -- If the delete conflict is because we deleted it on 'Our' side, then we need to undo those deletions
+            -- by removing our unsynced deletions from the DB
+            allCards
+                |> List.filter (\c -> c.updatedAt |> String.split ":" |> List.reverse |> List.head |> Maybe.map (\h -> List.member h ourDeletionHashes) |> Maybe.withDefault False)
+                |> List.map .updatedAt
+                |> Set.fromList
+
+        theirDeletionIds =
+            allCards
+                |> Debug.log "allCards"
+                |> List.filter (\c -> c.updatedAt |> String.split ":" |> List.reverse |> List.head |> Maybe.map (\h -> List.member h theirDeletionHashes) |> Maybe.withDefault False)
+                |> Debug.log "allCards after filter"
+                |> List.map .id
+                |> ListExtra.unique
+                |> Debug.log "theirDeletionIds"
+
+        theirDeletionCards =
+            allCards
+                |> List.filter
+                    (\c ->
+                        List.member c.id theirDeletionIds
+                            && c.synced
+                            && not (theirDeletionHashes |> List.member (c.updatedAt |> String.split ":" |> List.reverse |> List.head |> Maybe.withDefault ""))
+                    )
+
+        theirDeletionsToRemove =
+            -- If the delete conflict is because they deleted it on 'Their' side, then we need to undo those deletions
+            -- by removing the older synced version from the DB...
+            theirDeletionCards
+                |> List.map .updatedAt
+                |> Set.fromList
+
+        theirDeletionsLocalVersions =
+            -- ... and add new unsynced undeleted versions so we can create deltas based off them
+            theirDeletionCards
+                |> List.filter (\c -> not (List.member c.id idsOfConflicts))
+                |> List.map (\c -> { c | synced = False, deleted = False } |> stripUpdatedAt)
+    in
+    { toAdd = theirDeletionsLocalVersions, toMarkSynced = [], toMarkDeleted = [], toRemove = Set.union ourDeletionTimestamps theirDeletionsToRemove }
+
+
+
+-- Deltas
+
+
+type alias Delta =
+    { id : String, ts : String, ops : List CardOp }
+
+
+type CardOp
+    = InsOp { id : String, content : String, parentId : Maybe String, position : Float }
+    | UpdOp { content : String, expectedVersion : String }
+    | MovOp { parentId : Maybe String, position : Float }
+    | DelOp { expectedVersion : String }
+    | UndelOp
+
+
+pushDelta : List (Card String) -> Enc.Value
+pushDelta db =
+    let
+        deltas =
+            toDelta db
+
+        checkpoint =
+            db
+                |> List.filter .synced
+                |> List.map .updatedAt
+                |> List.maximum
+                |> Maybe.withDefault "0"
+    in
+    Enc.object
+        [ ( "dlts", Enc.list encodeDelta deltas )
+        , ( "chk", Enc.string checkpoint )
+        ]
+
+
+toDelta : List (Card String) -> List Delta
+toDelta cards =
+    cards
+        |> List.map .id
+        |> ListExtra.unique
+        |> List.concatMap (cardDelta cards)
+
+
+cardDelta : List (Card String) -> String -> List Delta
+cardDelta allCards cardId =
+    let
+        cardVersions =
+            allCards
+                |> List.filter (\c -> c.id == cardId)
+                |> List.sortBy .updatedAt
+
+        unsyncedCard_ =
+            cardVersions
+                |> List.filter (not << .synced)
+                |> List.head
+
+        syncedCard_ =
+            cardVersions
+                |> List.filter .synced
+                |> List.head
+    in
+    case ( unsyncedCard_, syncedCard_ ) of
+        ( Just unsyncedCard, Just syncedCard ) ->
+            let
+                updateOps =
+                    if unsyncedCard.content /= syncedCard.content then
+                        [ UpdOp { content = unsyncedCard.content, expectedVersion = syncedCard.updatedAt } ]
+
+                    else
+                        []
+
+                moveOps =
+                    if (unsyncedCard.parentId /= syncedCard.parentId) || (unsyncedCard.position /= syncedCard.position) then
+                        [ MovOp { parentId = unsyncedCard.parentId, position = unsyncedCard.position } ]
+
+                    else
+                        []
+
+                ( deleteOps, undeleteOps ) =
+                    if unsyncedCard.deleted && not syncedCard.deleted then
+                        ( [ DelOp { expectedVersion = syncedCard.updatedAt } ], [] )
+
+                    else if not unsyncedCard.deleted && syncedCard.deleted then
+                        ( [], [ UndelOp ] )
+
+                    else
+                        ( [], [] )
+            in
+            [ Delta cardId unsyncedCard.updatedAt (undeleteOps ++ deleteOps ++ moveOps ++ updateOps) ]
+
+        ( Just unsyncedCard, Nothing ) ->
+            [ Delta cardId unsyncedCard.updatedAt [ InsOp { id = unsyncedCard.id, content = unsyncedCard.content, parentId = unsyncedCard.parentId, position = unsyncedCard.position } ] ]
+
+        ( Nothing, Just _ ) ->
+            -- Unchanged
+            []
+
+        ( Nothing, Nothing ) ->
+            -- Error
+            []
+
+
+encodeDelta : Delta -> Enc.Value
+encodeDelta delta =
+    Enc.object
+        [ ( "id", Enc.string delta.id )
+        , ( "ts", Enc.string delta.ts )
+        , ( "ops", Enc.list opEncoder delta.ops )
+        ]
+
+
+opEncoder : CardOp -> Enc.Value
+opEncoder op =
+    case op of
+        InsOp insOp ->
+            Enc.object
+                [ ( "t", Enc.string "i" )
+                , ( "c", Enc.string insOp.content )
+                , ( "p", encodeMaybe insOp.parentId )
+                , ( "pos", Enc.float insOp.position )
+                ]
+
+        UpdOp updOp ->
+            Enc.object
+                [ ( "t", Enc.string "u" )
+                , ( "c", Enc.string updOp.content )
+                , ( "e", Enc.string updOp.expectedVersion )
+                ]
+
+        MovOp movOp ->
+            Enc.object
+                [ ( "t", Enc.string "m" )
+                , ( "p", encodeMaybe movOp.parentId )
+                , ( "pos", Enc.float movOp.position )
+                ]
+
+        DelOp delOp ->
+            Enc.object
+                [ ( "t", Enc.string "d" )
+                , ( "e", Enc.string delOp.expectedVersion )
+                ]
+
+        UndelOp ->
+            Enc.object
+                [ ( "t", Enc.string "ud" )
+                ]
+
+
+
+---
 
 
 intToBool : Dec.Decoder Bool

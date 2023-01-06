@@ -70,7 +70,7 @@ update msg model =
                             ( "", dataTuple )
 
                 newTree_ =
-                    Data.received dataIn ( Data.empty, defaultTree ) |> Maybe.map .newTree
+                    Data.gitDataReceived dataIn ( Data.empty, defaultTree ) |> Maybe.map .newTree
             in
             case newTree_ of
                 Just newTree ->

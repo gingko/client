@@ -416,8 +416,11 @@ update msg model =
                         Empty _ _ ->
                             ( model, Cmd.none )
 
-                DataReceived json ->
-                    dataReceived json model
+                CardDataReceived json ->
+                    cardDataReceived json model
+
+                GitDataReceived json ->
+                    gitDataReceived json model
 
                 DataSaved dataIn ->
                     case model.documentState of
@@ -1302,8 +1305,48 @@ update msg model =
                     ( { model | modalState = NoModal }, Cmd.none )
 
 
-dataReceived : Json.Value -> Model -> ( Model, Cmd Msg )
-dataReceived dataIn model =
+cardDataReceived : Json.Value -> Model -> ( Model, Cmd Msg )
+cardDataReceived dataIn model =
+    case model.documentState of
+        Doc ({ docModel } as docState) ->
+            let
+                workingTree =
+                    Page.Doc.getWorkingTree docModel
+
+                tree =
+                    workingTree.tree
+            in
+            case Data.cardDataReceived dataIn ( docState.data, tree ) of
+                Just { newData, newTree, outMsg } ->
+                    let
+                        newWorkingTree =
+                            TreeStructure.setTree newTree workingTree
+
+                        newDocModel =
+                            docModel
+                                |> Page.Doc.setWorkingTree newWorkingTree
+                                |> Page.Doc.setLoading False
+                    in
+                    ( { model
+                        | documentState =
+                            Doc
+                                { docState
+                                    | data = newData
+                                    , docModel = newDocModel
+                                }
+                      }
+                    , List.map send outMsg |> Cmd.batch
+                    )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        Empty _ _ ->
+            ( model, Cmd.none )
+
+
+gitDataReceived : Json.Value -> Model -> ( Model, Cmd Msg )
+gitDataReceived dataIn model =
     case model.documentState of
         Doc ({ docModel } as docState) ->
             let
@@ -1316,11 +1359,11 @@ dataReceived dataIn model =
                 lastActives =
                     Json.decodeValue (Json.at [ "localStore", "last-actives" ] (Json.list Json.string)) dataIn
             in
-            case Data.received dataIn ( docState.data, tree ) of
-                Just { newModel, newTree } ->
+            case Data.gitDataReceived dataIn ( docState.data, tree ) of
+                Just { newData, newTree } ->
                     let
                         newWorkingTree =
-                            TreeStructure.setTreeWithConflicts (Data.conflictList newModel) newTree workingTree
+                            TreeStructure.setTreeWithConflicts (Data.conflictList newData) newTree workingTree
 
                         ( newDocModel, newCmds ) =
                             docModel
@@ -1332,9 +1375,9 @@ dataReceived dataIn model =
                         | documentState =
                             Doc
                                 { docState
-                                    | data = newModel
-                                    , lastRemoteSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
-                                    , lastLocalSave = Data.lastCommitTime newModel |> Maybe.map Time.millisToPosix
+                                    | data = newData
+                                    , lastRemoteSave = Data.lastCommitTime newData |> Maybe.map Time.millisToPosix
+                                    , lastLocalSave = Data.lastCommitTime newData |> Maybe.map Time.millisToPosix
                                     , docModel = newDocModel
                                 }
                       }
@@ -1804,7 +1847,8 @@ viewConfirmBanner lang closeMsg email =
 
 type IncomingAppMsg
     = DataSaved Enc.Value
-    | DataReceived Enc.Value
+    | CardDataReceived Enc.Value
+    | GitDataReceived Enc.Value
     | MetadataUpdate Metadata
     | SavedRemotely Time.Posix
 
@@ -1817,8 +1861,11 @@ subscribe tagger onError =
                 "DataSaved" ->
                     tagger <| DataSaved outsideInfo.data
 
-                "DataReceived" ->
-                    tagger <| DataReceived outsideInfo.data
+                "CardDataReceived" ->
+                    tagger <| CardDataReceived outsideInfo.data
+
+                "GitDataReceived" ->
+                    tagger <| GitDataReceived outsideInfo.data
 
                 "MetadataUpdate" ->
                     case decodeValue Metadata.decoder outsideInfo.data of
