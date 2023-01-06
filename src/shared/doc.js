@@ -395,6 +395,12 @@ const fromElm = (msg, elmData) => {
       }
     },
 
+    PushDeltas : () => {
+      if (ws.readyState == ws.OPEN && ws.bufferedAmount == 0) {
+        ws.send(JSON.stringify({t: 'push', d: elmData}));
+      }
+    },
+
     SaveCardBased : async () => {
       const newData = elmData.toAdd.map((c) => { return {...c, updatedAt : hlc.nxt()}})
       const toMarkSynced = elmData.toMarkSynced.map((c) => { return {...c, synced: 1}})
