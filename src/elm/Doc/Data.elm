@@ -1,4 +1,4 @@
-module Doc.Data exposing (CommitObject, Data, Model, checkout, conflictList, conflictSelection, empty, emptyData, getCommit, getData, head, historyList, lastCommitTime, received, requestCommit, resolve, success, toValue)
+module Doc.Data exposing (CommitObject, Model, checkout, conflictList, conflictSelection, empty, emptyData, getCommit, getData, head, historyList, lastCommitTime, received, requestCommit, resolve, success, toValue)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)

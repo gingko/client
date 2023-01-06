@@ -2,7 +2,6 @@ module Import.Bulk exposing (decoder, encode)
 
 import Coders exposing (treeToValue)
 import Dict exposing (Dict)
-import Doc.Data as Data exposing (Data)
 import Doc.Metadata as Metadata exposing (Metadata)
 import Json.Decode as Dec exposing (Decoder)
 import Json.Decode.Pipeline exposing (optional, required)
@@ -125,9 +124,3 @@ getChildren parentId_ cards =
         |> List.sortBy (\( _, c ) -> c.position)
         |> List.map mapFn
         |> Children
-
-
-toData : String -> ( String, Metadata, Tree ) -> ( String, Metadata, Data )
-toData author ( tid, tmdata, tree ) =
-    -- TODO
-    ( tid, tmdata, Data.emptyData )
