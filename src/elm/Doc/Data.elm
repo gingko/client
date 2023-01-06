@@ -675,7 +675,7 @@ decodeCard =
         (Dec.field "content" Dec.string)
         (Dec.field "parentId" (Dec.maybe Dec.string))
         (Dec.field "position" Dec.float)
-        (Dec.field "deleted" Dec.bool)
+        (Dec.field "deleted" intToBool)
         (Dec.field "synced" Dec.bool)
         (Dec.field "updatedAt" Dec.string)
 
@@ -791,3 +791,8 @@ treeHelper allCards parentId =
             allCards |> List.filter (\card -> card.parentId == parentId) |> List.sortBy .position
     in
     List.map (\card -> { id = card.id, content = card.content, children = Children (treeHelper allCards (Just card.id)) }) cards
+
+
+intToBool : Dec.Decoder Bool
+intToBool =
+    Dec.map (\i -> i == 1) Dec.int

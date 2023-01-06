@@ -696,19 +696,24 @@ async function loadCardBasedDocument (treeId) {
   let store = localStore.load();
 
   // Load local document data.
-  let localExists;
+  let chk;
   let loadedCards = await dexie.cards.where("treeId").equals(treeId).toArray();
   if (loadedCards.length > 0) {
-    localExists = true;
-    toElm(loadedCards, "docMsgs", "DataReceived");
+    chk = Math.max(...(loadedCards.filter(c => c.synced).map(c => c.updateAt)));
+    toElm(loadedCards, "appMsgs", "DataReceived");
   } else {
-    localExists = false;
+    chk = '0';
   }
 
+  // Setup Dexie liveQuery
+  Dexie.liveQuery(() => dexie.cards.where("treeId").equals(treeId).toArray()).subscribe((cards) => {
+    console.log("LiveQuery update", cards);
+    toElm(loadedCards, "appMsgs", "DataReceived");
+  });
+
   // Pull data from remote
-  let remoteExists;
   if (ws.readyState == ws.OPEN && ws.bufferedAmount == 0) {
-    ws.send(JSON.stringify({t: "pull", d: [treeId, '0']}));
+    ws.send(JSON.stringify({t: "pull", d: [treeId, chk]}));
   }
 }
 
