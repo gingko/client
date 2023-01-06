@@ -728,7 +728,7 @@ async function loadCardBasedDocument (treeId) {
   // Setup Dexie liveQuery
   Dexie.liveQuery(() => dexie.cards.where("treeId").equals(treeId).toArray()).subscribe((cards) => {
     console.log("LiveQuery update", cards);
-    toElm(loadedCards, "appMsgs", "DataReceived");
+    toElm(cards, "appMsgs", "DataReceived");
   });
 
   // Pull data from remote

@@ -181,14 +181,7 @@ received json ( oldModel, oldTree ) =
 
                 newTree =
                     cards
-                        |> (\c ->
-                                let
-                                    _ =
-                                        Debug.log "cards length" (List.length c)
-                                in
-                                c
-                                    |> toTree
-                           )
+                        |> toTree
             in
             Just { newModel = newModel, newTree = newTree }
 
