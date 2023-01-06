@@ -1,4 +1,4 @@
-module Page.Doc exposing (Model, Msg, MsgToParent(..), exitFullscreen, getActiveId, getActiveTree, getField, getGlobalData, getTextCursorInfo, getViewMode, getWorkingTree, init, isDirty, isNormalMode, lastActives, opaqueIncoming, opaqueUpdate, saveAndStopEditing, saveCardIfEditing, setDirty, setGlobalData, setLoading, setTree, setWorkingTree, subscriptions, view)
+module Page.Doc exposing (Model, Msg, MsgToParent(..), exitFullscreenExposed, getActiveId, getActiveTree, getField, getGlobalData, getTextCursorInfo, getViewMode, getWorkingTree, init, isDirty, isFullscreen, isNormalMode, lastActives, opaqueIncoming, opaqueUpdate, openCardFullscreenMsg, saveAndStopEditing, saveCardIfEditing, setDirty, setGlobalData, setLoading, setTree, setWorkingTree, subscriptions, updateField, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -128,6 +128,7 @@ type MsgToParent
     = CloseTooltip
     | LocalSave
     | Commit
+    | ExitFullscreen
 
 
 type DragExternalMsg
@@ -227,10 +228,7 @@ update msg ({ workingTree } as model) =
 
         -- === Card Editing  ===
         OpenCard id str ->
-            ( model
-            , Cmd.none
-            , []
-            )
+            model
                 |> openCard id str
 
         UpdateActiveField id str ->
@@ -467,8 +465,8 @@ incoming incomingMsg model =
                 Nothing ->
                     ( model, Cmd.none, [] )
 
-        FullscreenChanged isFullscreen ->
-            if vs.viewMode == FullscreenEditing && not isFullscreen then
+        FullscreenChanged fullscreen ->
+            if vs.viewMode == FullscreenEditing && not fullscreen then
                 exitFullscreen model
 
             else
@@ -561,7 +559,7 @@ incoming incomingMsg model =
                     saveCardIfEditing ( model, Cmd.none, [] )
 
                 "enter" ->
-                    normalMode model (openCard vs.active (getContent vs.active model.workingTree.tree))
+                    normalMode model (andThen <| openCard vs.active (getContent vs.active model.workingTree.tree))
 
                 "mod+backspace" ->
                     normalMode model (deleteCard vs.active)
@@ -825,6 +823,15 @@ incoming incomingMsg model =
             ( model, Cmd.none, [] )
 
 
+andThen : (ModelData -> ( ModelData, Cmd Msg, List MsgToParent )) -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
+andThen f ( model, cmd, msgs ) =
+    let
+        ( newModel, nextCmd, newMsgs ) =
+            f model
+    in
+    ( newModel, Cmd.batch [ cmd, nextCmd ], msgs ++ newMsgs )
+
+
 
 -- === Card Activation ===
 
@@ -879,9 +886,6 @@ activate tryId instant ( model, prevCmd, prevMsgsToParent ) =
                         getAncestors model.workingTree.tree activeTree []
                             |> List.map .id
 
-                    newField =
-                        activeTree.content
-
                     newModel =
                         { model
                             | viewState =
@@ -891,7 +895,6 @@ activate tryId instant ( model, prevCmd, prevMsgsToParent ) =
                                     , descendants = desc
                                     , ancestors = anc
                                 }
-                            , field = newField
                         }
                 in
                 case vs.viewMode of
@@ -1026,7 +1029,7 @@ saveAndStopEditing model =
     in
     case vs.viewMode of
         Normal ->
-            ( model, Cmd.none, [] ) |> openCard vs.active (getContent vs.active model.workingTree.tree)
+            model |> openCard vs.active (getContent vs.active model.workingTree.tree)
 
         Editing ->
             ( model, Cmd.none, [] )
@@ -1075,8 +1078,8 @@ saveCardIfEditing ( model, prevCmd, prevParentMsgs ) =
                 )
 
 
-openCard : String -> String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
-openCard id str ( model, prevCmd, prevMsgsToParent ) =
+openCard : String -> String -> ModelData -> ( ModelData, Cmd Msg, List MsgToParent )
+openCard id str model =
     let
         vs =
             model.viewState
@@ -1104,14 +1107,14 @@ openCard id str ( model, prevCmd, prevMsgsToParent ) =
     in
     if isHistoryView then
         ( model
-        , Cmd.batch [ prevCmd, send (Alert "Cannot edit while browsing version history.") ]
-        , prevMsgsToParent
+        , send (Alert "Cannot edit while browsing version history.")
+        , []
         )
 
     else if isLocked then
         ( model
-        , Cmd.batch [ prevCmd, send (Alert "Card is being edited by someone else.") ]
-        , prevMsgsToParent
+        , send (Alert "Card is being edited by someone else.")
+        , []
         )
 
     else
@@ -1119,15 +1122,15 @@ openCard id str ( model, prevCmd, prevMsgsToParent ) =
             | viewState = { vs | active = id, viewMode = newViewMode }
             , field = str
           }
-        , Cmd.batch [ prevCmd, focus id, maybeScroll ]
-        , prevMsgsToParent
+        , Cmd.batch [ focus id, maybeScroll ]
+        , []
         )
 
 
 openCardFullscreen : String -> String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
 openCardFullscreen id str ( model, prevCmd, prevMsgsToParent ) =
     ( model, prevCmd, prevMsgsToParent )
-        |> openCard id str
+        |> andThen (openCard id str)
         |> (\( m, c, p ) ->
                 let
                     vs =
@@ -1162,6 +1165,15 @@ exitFullscreen model =
     , Cmd.batch [ send <| SetField vs.active model.field, focus vs.active ]
     , []
     )
+
+
+exitFullscreenExposed : Model -> ( Model, Cmd Msg )
+exitFullscreenExposed (Model model) =
+    let
+        ( newModel, cmd, _ ) =
+            model |> exitFullscreen
+    in
+    ( Model newModel, cmd )
 
 
 closeCard : ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
@@ -1377,7 +1389,7 @@ insert pid pos initText ( model, prevCmd, prevMsgsToParent ) =
         , prevCmd
         , prevMsgsToParent
         )
-            |> openCard newIdString initText
+            |> andThen (openCard newIdString initText)
             |> activate newIdString False
 
     else
@@ -2291,6 +2303,14 @@ isDirty (Model model) =
         |> .dirty
 
 
+isFullscreen : Model -> Bool
+isFullscreen (Model model) =
+    model
+        |> .viewState
+        |> .viewMode
+        |> (==) FullscreenEditing
+
+
 isNormalMode : Model -> Bool
 isNormalMode (Model model) =
     model
@@ -2336,6 +2356,24 @@ getField : Model -> String
 getField (Model model) =
     model
         |> .field
+
+
+openCardFullscreenMsg : String -> String -> Model -> ( Model, Cmd Msg )
+openCardFullscreenMsg cardId str (Model model) =
+    ( model, Cmd.none, [] )
+        |> saveCardIfEditing
+        |> openCardFullscreen cardId str
+        |> (\( m, c, _ ) -> ( Model m, c ))
+
+
+updateField : String -> String -> Model -> ( Model, Cmd Msg )
+updateField id field (Model model) =
+    ( { model | dirty = True, field = field }
+    , send <| SetDirty True
+    , []
+    )
+        |> activate id False
+        |> (\( m, c, _ ) -> ( Model m, c ))
 
 
 getTextCursorInfo : Model -> TextCursorInfo

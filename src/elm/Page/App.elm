@@ -7,7 +7,7 @@ import Bytes exposing (Bytes)
 import Coders exposing (sortByEncoder, treeToMarkdownString)
 import Doc.ContactForm as ContactForm
 import Doc.Data as Data
-import Doc.Fullscreen as Fullscreen exposing (viewFullscreenButtons)
+import Doc.Fullscreen as Fullscreen
 import Doc.HelpScreen as HelpScreen
 import Doc.List as DocList exposing (Model(..))
 import Doc.Metadata as Metadata exposing (Metadata)
@@ -34,7 +34,7 @@ import Import.Text as ImportText
 import Json.Decode as Json exposing (decodeValue, errorToString)
 import Json.Encode as Enc
 import Outgoing exposing (Msg(..), send)
-import Page.Doc exposing (Msg(..), MsgToParent(..), exitFullscreen, saveAndStopEditing, saveCardIfEditing)
+import Page.Doc exposing (Msg(..), MsgToParent(..))
 import Page.Doc.Export as Export exposing (ExportFormat(..), ExportSelection(..), exportView, exportViewError)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Doc.Theme exposing (Theme(..), applyTheme)
@@ -62,7 +62,6 @@ type alias Model =
     , headerMenu : HeaderMenuState
     , exportSettings : ( ExportSelection, ExportFormat )
     , modalState : ModalState
-    , fullscreen : Bool
     , fileSearchField : String -- TODO: not needed if switcher isn't open
     , tooltip : Maybe ( Element, TooltipPosition, TranslationId )
     , theme : Theme
@@ -142,7 +141,6 @@ defaultModel nKey globalData session docModel_ =
     , headerMenu = NoHeaderMenu
     , exportSettings = ( ExportEverything, DOCX )
     , modalState = NoModal
-    , fullscreen = False
     , fileSearchField = ""
     , tooltip = Nothing
     , theme = Default
@@ -367,7 +365,29 @@ update msg model =
                     ( model, Cmd.none )
 
         GotFullscreenMsg fullscreenMsg ->
-            ( model, Cmd.none )
+            case model.documentState of
+                Doc ({ docModel } as docState) ->
+                    case fullscreenMsg of
+                        Fullscreen.OpenCard id field ->
+                            let
+                                ( newDocModel, newCmd ) =
+                                    docModel
+                                        |> Page.Doc.openCardFullscreenMsg id field
+                                        |> (\( m, c ) -> ( m, Cmd.map GotDocMsg c ))
+                            in
+                            ( { model | documentState = Doc { docState | docModel = newDocModel } }, newCmd )
+
+                        Fullscreen.UpdateField id field ->
+                            let
+                                ( newDocModel, newCmd ) =
+                                    docModel
+                                        |> Page.Doc.updateField id field
+                                        |> (\( m, c ) -> ( m, Cmd.map GotDocMsg c ))
+                            in
+                            ( { model | documentState = Doc { docState | docModel = newDocModel } }, newCmd )
+
+                Empty _ _ ->
+                    ( model, Cmd.none )
 
         LoginStateChanged newSession ->
             ( model |> updateSession newSession, Route.pushUrl model.navKey Route.Login )
@@ -1132,7 +1152,16 @@ update msg model =
 
         -- FULLSCREEN mode
         ExitFullscreenRequested ->
-            ( model, Cmd.none )
+            case model.documentState of
+                Doc ({ docModel } as docState) ->
+                    let
+                        ( newDocModel, newCmd ) =
+                            Page.Doc.exitFullscreenExposed docModel
+                    in
+                    ( { model | documentState = Doc { docState | docModel = newDocModel } }, Cmd.map GotDocMsg newCmd )
+
+                Empty _ _ ->
+                    ( model, Cmd.none )
 
         SaveChanges ->
             ( model, Cmd.none )
@@ -1291,6 +1320,9 @@ applyParentMsg parentMsg ( prevModel, prevCmd ) =
         Commit ->
             ( prevModel, prevCmd )
                 |> addToHistoryDo
+
+        ExitFullscreen ->
+            ( prevModel, prevCmd )
 
 
 dataReceived : Json.Value -> Model -> ( Model, Cmd Msg )
@@ -1495,41 +1527,37 @@ view ({ documentState } as model) =
                 dirty =
                     Page.Doc.isDirty docModel
 
+                isFullscreen =
+                    Page.Doc.isFullscreen docModel
+
                 globalData =
                     Page.Doc.getGlobalData docModel
             in
-            if model.fullscreen then
+            if isFullscreen then
                 let
                     isMac =
                         GlobalData.isMac (toGlobalData model)
-
-                    fullscreenButtons =
-                        viewFullscreenButtons
-                            { exitFullscreenRequested = ExitFullscreenRequested
-                            , saveChanges = SaveChanges
-                            , saveAndExitFullscreen = SaveAndExitFullscreen
-                            }
-                            { language = lang
-                            , isMac = isMac
-                            , dirty = dirty
-                            , model = workingTree
-                            , lastLocalSave = lastLocalSave
-                            , lastRemoteSave = lastRemoteSave
-                            , currentTime = GlobalData.currentTime globalData
-                            }
                 in
-                lazy3 Fullscreen.view
+                lazy3
+                    (Fullscreen.view
+                        { toSelf = GotFullscreenMsg
+                        , exitFullscreenRequested = ExitFullscreenRequested
+                        , saveChanges = SaveChanges
+                        , saveAndExitFullscreen = SaveAndExitFullscreen
+                        }
+                    )
                     { language = lang
                     , isMac = isMac
                     , dirty = dirty
                     , model = workingTree
+
+                    -- TODO : This could be made lazier by only passing in the sync state, and not these timestamps.
                     , lastLocalSave = lastLocalSave
                     , lastRemoteSave = lastRemoteSave
                     , currentTime = GlobalData.currentTime (Page.Doc.getGlobalData docModel)
                     }
                     (Page.Doc.getField docModel)
                     (Page.Doc.getActiveId docModel)
-                    |> Html.map GotFullscreenMsg
 
             else
                 let

@@ -1,4 +1,4 @@
-module Doc.Fullscreen exposing (Msg(..), view, viewFullscreenButtons, viewFullscreenButtonsDesktop)
+module Doc.Fullscreen exposing (Msg(..), view, viewFullscreenButtonsDesktop)
 
 import Ant.Icons.Svg as Icons
 import Doc.TreeUtils exposing (getColumnById)
@@ -37,18 +37,24 @@ type Msg
 
 
 view :
-    { language : Language
-    , isMac : Bool
-    , dirty : Bool
-    , lastLocalSave : Maybe Time.Posix
-    , lastRemoteSave : Maybe Time.Posix
-    , currentTime : Time.Posix
-    , model : Model
+    { toSelf : Msg -> msg
+    , exitFullscreenRequested : msg
+    , saveChanges : msg
+    , saveAndExitFullscreen : msg
     }
+    ->
+        { language : Language
+        , isMac : Bool
+        , dirty : Bool
+        , lastLocalSave : Maybe Time.Posix
+        , lastRemoteSave : Maybe Time.Posix
+        , currentTime : Time.Posix
+        , model : Model
+        }
     -> String
     -> String
-    -> Html Msg
-view { language, isMac, dirty, model, lastLocalSave, lastRemoteSave, currentTime } field activeId =
+    -> Html msg
+view msgs ({ model } as info) field activeId =
     let
         updateField c =
             if c.id == activeId then
@@ -64,14 +70,16 @@ view { language, isMac, dirty, model, lastLocalSave, lastRemoteSave, currentTime
     in
     div
         [ id "app-fullscreen" ]
-        [ viewColumn activeId currentColumn
+        [ viewColumn activeId currentColumn |> Html.map msgs.toSelf
+        , viewFullscreenButtons msgs info
         ]
 
 
 viewFullscreenButtons :
-    { exitFullscreenRequested : msg
-    , saveChanges : msg
-    , saveAndExitFullscreen : msg
+    { m
+        | exitFullscreenRequested : msg
+        , saveChanges : msg
+        , saveAndExitFullscreen : msg
     }
     ->
         { language : Language

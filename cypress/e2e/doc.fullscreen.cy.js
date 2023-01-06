@@ -88,9 +88,7 @@ describe('Fullscreen Editing', () => {
 
     cy.shortcut('{esc}')
 
-  })
-
-  it('Saved fullscreen changes correctly', function () {
+    // Saved fullscreen changes correctly
     cy.visit(config.TEST_SERVER + '/' + this.treeIds[1])
 
     cy.getCard(1,1,1).should('contain.html', '<p>Another Test doc</p>')
