@@ -19,11 +19,11 @@ import Types exposing (Children(..), Tree)
 
 
 type Model
-    = Clean Data
-    | MergeConflict Data ConflictInfo
+    = Clean GitData
+    | MergeConflict GitData ConflictInfo
 
 
-type alias Data =
+type alias GitData =
     { refs : Dict String RefObject
     , commits : Dict String CommitObject
     , treeObjects : Dict String TreeObject
@@ -64,7 +64,7 @@ empty =
     Clean emptyData
 
 
-emptyData : Data
+emptyData : GitData
 emptyData =
     { refs = Dict.empty
     , commits = Dict.empty
@@ -76,7 +76,7 @@ emptyData =
 -- EXPOSED : Getters
 
 
-getData : Model -> Data
+getData : Model -> GitData
 getData model =
     case model of
         Clean d ->
@@ -247,14 +247,14 @@ resolve cid model =
 -- INTERNALS
 
 
-checkoutRef : String -> Data -> Maybe Tree
+checkoutRef : String -> GitData -> Maybe Tree
 checkoutRef refId data =
     Dict.get refId data.refs
         |> andThen (\ro -> Dict.get ro.value data.commits)
         |> andThen (\co -> treeObjectsToTree data.treeObjects co.tree "0")
 
 
-checkoutCommit : String -> Data -> Maybe Tree
+checkoutCommit : String -> GitData -> Maybe Tree
 checkoutCommit commitSha data =
     Dict.get commitSha data.commits
         |> andThen (\co -> treeObjectsToTree data.treeObjects co.tree "0")
@@ -349,7 +349,7 @@ generateCommitSha commitObj =
 -- ==== Merging
 
 
-merge : String -> String -> Tree -> Data -> Model
+merge : String -> String -> Tree -> GitData -> Model
 merge aSha bSha _ data =
     if aSha == bSha then
         Clean data
@@ -621,11 +621,11 @@ getAncestors cm sh =
 -- PORTS & INTEROP
 
 
-decode : Dec.Decoder ( Data, Maybe ( String, RefObject ) )
+decode : Dec.Decoder ( GitData, Maybe ( String, RefObject ) )
 decode =
     let
         modelBuilder r c t cflct =
-            ( Data (Dict.fromList r) (Dict.fromList c) (Dict.fromList t), cflct )
+            ( GitData (Dict.fromList r) (Dict.fromList c) (Dict.fromList t), cflct )
     in
     Dec.map4 modelBuilder
         (Dec.field "ref" (Dec.list refObjectDecoder))
@@ -700,7 +700,7 @@ requestCommit workingTree author model metadata =
                 Nothing
 
 
-toValue : Data -> Enc.Value
+toValue : GitData -> Enc.Value
 toValue data =
     Enc.object
         [ ( "refs", Enc.list refToValue (Dict.toList data.refs) )
