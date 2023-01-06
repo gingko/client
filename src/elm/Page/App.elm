@@ -4,7 +4,7 @@ import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
 import Browser.Navigation as Nav
 import Bytes exposing (Bytes)
-import Coders exposing (sortByEncoder, treeToMarkdownString)
+import Coders exposing (sortByEncoder)
 import Doc.ContactForm as ContactForm
 import Doc.Data as Data
 import Doc.Fullscreen as Fullscreen
@@ -13,8 +13,7 @@ import Doc.List as DocList exposing (Model(..))
 import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.Switcher
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
-import Doc.TreeUtils exposing (getTree)
-import Doc.UI as UI exposing (countWords)
+import Doc.UI as UI
 import Doc.VideoViewer as VideoViewer
 import File exposing (File)
 import File.Download as Download
@@ -744,7 +743,7 @@ update msg model =
 
         CheckoutCommit commitSha ->
             case ( model.headerMenu, model.documentState ) of
-                ( HistoryView historyState, Doc docState ) ->
+                ( HistoryView _, Doc docState ) ->
                     let
                         newTree_ =
                             Data.checkout commitSha docState.data
@@ -752,7 +751,7 @@ update msg model =
                     case newTree_ of
                         Just newTree ->
                             let
-                                ( newDocModel, docCmds, docParentMsgs ) =
+                                ( newDocModel, docCmds, _ ) =
                                     Page.Doc.setTree newTree docState.docModel
                             in
                             ( { model
@@ -783,7 +782,7 @@ update msg model =
                     case revertTree_ of
                         Just revertTree ->
                             let
-                                ( newDocModel, docCmds, docParentMsgs ) =
+                                ( newDocModel, docCmds, _ ) =
                                     Page.Doc.setTree revertTree docState.docModel
                             in
                             ( { model
@@ -878,7 +877,7 @@ update msg model =
             ( { model | exportSettings = Tuple.mapSecond (always expFormat) model.exportSettings }, Cmd.none )
 
         -- HELP Modal
-        ToggledHelpMenu isOpen ->
+        ToggledHelpMenu _ ->
             ( { model | modalState = HelpScreen }, Cmd.none )
 
         ClickedShowVideos ->
@@ -1088,7 +1087,7 @@ update msg model =
                     , RandomId.generate (ImportOpmlIdGenerated tree fileName)
                     )
 
-                Err err ->
+                Err _ ->
                     ( model |> updateGlobalData newGlobalData, Cmd.none )
 
         ImportOpmlIdGenerated tree fileName docId ->
@@ -1129,7 +1128,7 @@ update msg model =
                     , RandomId.generate (ImportJSONIdGenerated tree fileName)
                     )
 
-                Err err ->
+                Err _ ->
                     ( model |> updateGlobalData newGlobalData, Cmd.none )
 
         ImportJSONIdGenerated tree fileName docId ->
