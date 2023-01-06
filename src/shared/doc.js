@@ -325,46 +325,9 @@ const fromElm = (msg, elmData) => {
         toElm(treeDocToMetadata(treeDoc), "appMsgs", "MetadataUpdate")
       }
 
-      // Load document-specific settings.
-      localStore.db(elmData);
-      let store = localStore.load();
-
-      // Load local document data.
-      let localExists;
-      let [loadedData, savedIds] = await data.load(db, elmData);
-      savedIds.forEach(item => savedObjectIds.add(item));
-      if (savedIds.length !== 0) {
-        localExists = true;
-        loadedData.localStore = store;
-        toElm(loadedData, "appMsgs", "DataReceived");
-      } else {
-        localExists = false;
+      if (treeDoc.location == "couchdb") {
+        loadGitLikeDocument(elmData);
       }
-
-      // Pull data from remote
-      let remoteExists;
-      PULL_LOCK = true;
-      try {
-        let pullResult = await data.pull(db, remoteDB, elmData, "LoadDocument");
-
-        if (pullResult !== null) {
-          remoteExists = true;
-          pullResult[1].forEach(item => savedObjectIds.add(item));
-          toElm(pullResult[0], "appMsgs", "DataReceived");
-        } else {
-          remoteExists = false;
-          if (!localExists && !remoteExists) {
-            toElm(null, "appMsgs", "NotFound")
-          }
-        }
-      } catch (e){
-        console.error(e)
-      } finally {
-        PULL_LOCK = false;
-      }
-
-      // Load doc list
-      loadDocListAndSend(remoteDB, "LoadDocument");
     },
 
     CopyDocument: async () => {
@@ -725,6 +688,49 @@ async function loadDocListAndSend(dbToLoadFrom, source) {
   let docList = await dexie.trees.toArray();
   toElm(docList.filter(d => d.deletedAt == null).map(treeDocToMetadata),  "documentListChanged");
   loadingDocs = false;
+}
+
+async function loadGitLikeDocument (treeId) {
+  // Load document-specific settings.
+  localStore.db(treeId);
+  let store = localStore.load();
+
+  // Load local document data.
+  let localExists;
+  let [loadedData, savedIds] = await data.load(db, treeId);
+  savedIds.forEach(item => savedObjectIds.add(item));
+  if (savedIds.length !== 0) {
+    localExists = true;
+    loadedData.localStore = store;
+    toElm(loadedData, "appMsgs", "DataReceived");
+  } else {
+    localExists = false;
+  }
+
+  // Pull data from remote
+  let remoteExists;
+  PULL_LOCK = true;
+  try {
+    let pullResult = await data.pull(db, remoteDB, treeId, "LoadDocument");
+
+    if (pullResult !== null) {
+      remoteExists = true;
+      pullResult[1].forEach(item => savedObjectIds.add(item));
+      toElm(pullResult[0], "appMsgs", "DataReceived");
+    } else {
+      remoteExists = false;
+      if (!localExists && !remoteExists) {
+        toElm(null, "appMsgs", "NotFound")
+      }
+    }
+  } catch (e){
+    console.error(e)
+  } finally {
+    PULL_LOCK = false;
+  }
+
+  // Load doc list
+  loadDocListAndSend(remoteDB, "LoadDocument");
 }
 
 
