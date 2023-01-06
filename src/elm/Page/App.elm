@@ -1313,7 +1313,11 @@ applyParentMsg parentMsg ( prevModel, prevCmd ) =
         CloseTooltip ->
             ( { prevModel | tooltip = Nothing }, prevCmd )
 
-        LocalSave ->
+        LocalSave op ->
+            let
+                _ =
+                    Debug.log "op" op
+            in
             ( prevModel, prevCmd )
 
         Commit ->

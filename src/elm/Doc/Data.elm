@@ -297,59 +297,6 @@ checkoutCommit commitSha data =
         |> andThen (\co -> treeObjectsToTree data.treeObjects co.tree "0")
 
 
-writeTree : Tree -> ( String, Dict String TreeObject )
-writeTree tree =
-    case tree.children of
-        Children treeList ->
-            let
-                ( rootSha, rootTree ) =
-                    treeToObject tree
-
-                rootDict =
-                    ( rootSha, rootTree )
-                        |> List.singleton
-                        |> Dict.fromList
-            in
-            ( rootSha
-            , treeList
-                |> List.map writeTree
-                |> List.map second
-                |> List.foldr Dict.union rootDict
-            )
-
-
-treeToObject : Tree -> ( String, TreeObject )
-treeToObject tree =
-    case treeToObjectId tree of
-        ( sha, _, treeObj ) ->
-            ( sha, treeObj )
-
-
-treeToObjectId : Tree -> ( String, String, TreeObject )
-treeToObjectId { id, content, children } =
-    case children of
-        Children [] ->
-            ( content ++ "\n" |> sha1, id, TreeObject content [] )
-
-        Children treeList ->
-            let
-                childrenIds =
-                    treeList
-                        |> List.map treeToObjectId
-                        |> List.map (\( tid, u, _ ) -> ( tid, u ))
-            in
-            ( content
-                ++ "\n"
-                ++ (childrenIds
-                        |> List.map (\( i, u ) -> i ++ " " ++ u)
-                        |> String.join "\n"
-                   )
-                |> sha1
-            , id
-            , TreeObject content childrenIds
-            )
-
-
 treeObjectsToTree : Dict String TreeObject -> String -> String -> Maybe Tree
 treeObjectsToTree treeObjects treeSha id =
     let

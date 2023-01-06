@@ -126,7 +126,7 @@ type Msg
 
 type MsgToParent
     = CloseTooltip
-    | LocalSave
+    | LocalSave CardTreeOp
     | Commit
     | ExitFullscreen
 
@@ -242,7 +242,6 @@ update msg ({ workingTree } as model) =
                 ]
             , []
             )
-                |> localSave
 
         AutoSave ->
             ( model, Cmd.none, [] ) |> saveCardIfEditing
@@ -377,11 +376,11 @@ update msg ({ workingTree } as model) =
             )
 
 
-localSave : ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
-localSave ( model, cmd, prevMsgsToParent ) =
+localSave : CardTreeOp -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
+localSave op ( model, cmd, prevMsgsToParent ) =
     ( model
     , cmd
-    , prevMsgsToParent ++ [ LocalSave ]
+    , prevMsgsToParent ++ [ LocalSave op ]
     )
 
 
@@ -459,7 +458,6 @@ incoming incomingMsg model =
                     in
                     baseModelCmdTuple
                         |> closeCard
-                        |> localSave
                         |> addToHistory
 
                 Nothing ->
@@ -534,7 +532,7 @@ incoming incomingMsg model =
                             TreeStructure.update (TreeStructure.Upd cardId newContent) model.workingTree
                     in
                     ( { model | workingTree = newTree, dirty = True }, Cmd.none, [] )
-                        |> localSave
+                        |> localSave (CTUpd cardId newContent)
                         |> addToHistory
 
         -- === UI ===
@@ -1068,7 +1066,7 @@ saveCardIfEditing ( model, prevCmd, prevParentMsgs ) =
                 , prevCmd
                 , prevParentMsgs
                 )
-                    |> localSave
+                    |> localSave (CTUpd vs.active model.field)
                     |> addToHistory
 
             else
@@ -1240,7 +1238,7 @@ deleteCard id ( model, prevCmd, prevMsgsToParent ) =
         , prevMsgsToParent
         )
             |> activate nextToActivate False
-            |> localSave
+            |> localSave (CTRmv id)
             |> addToHistory
 
 
@@ -1387,7 +1385,7 @@ insert pid pos initText ( model, prevCmd, prevMsgsToParent ) =
             , globalData = GlobalData.setSeed newSeed model.globalData
           }
         , prevCmd
-        , prevMsgsToParent
+        , prevMsgsToParent ++ [ LocalSave (CTIns newIdString initText pid pos) ]
         )
             |> andThen (openCard newIdString initText)
             |> activate newIdString False
@@ -1462,7 +1460,7 @@ mergeUp id ( model, prevCmd, prevMsgsToParent ) =
             , prevMsgsToParent
             )
                 |> activate prevTree.id False
-                |> localSave
+                |> localSave (CTMrg currentTree.id prevTree.id True)
                 |> addToHistory
 
         _ ->
@@ -1492,7 +1490,7 @@ mergeDown id ( model, prevCmd, prevMsgsToParent ) =
             , prevMsgsToParent
             )
                 |> activate nextTree.id False
-                |> localSave
+                |> localSave (CTMrg currentTree.id nextTree.id False)
                 |> addToHistory
 
         _ ->
@@ -1518,6 +1516,15 @@ move subtree pid pos ( model, prevCmd, prevMsgsToParent ) =
     )
         |> activate subtree.id False
         |> localSave
+            (CTMov subtree.id
+                (if pid == "0" then
+                    Nothing
+
+                 else
+                    Just pid
+                )
+                pos
+            )
         |> addToHistory
 
 
@@ -1677,7 +1684,7 @@ paste subtree pid pos ( model, prevCmd, prevMsgsToParent ) =
     , prevMsgsToParent
     )
         |> activate subtree.id False
-        |> localSave
+        |> localSave (CTBlk subtree pid pos)
         |> addToHistory
 
 

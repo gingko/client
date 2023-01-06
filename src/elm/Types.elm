@@ -1,4 +1,4 @@
-module Types exposing (Children(..), CollabState, Column, CursorPosition(..), DragExternalModel, DropId(..), Group, HeaderMenuState(..), Mode(..), OutsideData, SidebarMenuState(..), SidebarState(..), SortBy(..), TextCursorInfo, TooltipPosition(..), Tree, ViewMode(..), ViewState, VisibleViewState, dropIdToValue)
+module Types exposing (CardTreeOp(..), Children(..), CollabState, Column, CursorPosition(..), DragExternalModel, DropId(..), Group, HeaderMenuState(..), Mode(..), OutsideData, SidebarMenuState(..), SidebarState(..), SortBy(..), TextCursorInfo, TooltipPosition(..), Tree, ViewMode(..), ViewState, VisibleViewState, dropIdToValue)
 
 import Browser.Dom exposing (Element)
 import Html5.DragDrop as DragDrop
@@ -23,6 +23,19 @@ type alias Group =
 
 type alias Column =
     List (List Tree)
+
+
+
+-- Tree Ops for Card Based
+
+
+type CardTreeOp
+    = CTIns String String String Int
+    | CTUpd String String
+    | CTRmv String
+    | CTMov String (Maybe String) Int
+    | CTMrg String String Bool
+    | CTBlk Tree String Int
 
 
 
