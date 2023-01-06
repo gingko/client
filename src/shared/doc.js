@@ -719,7 +719,7 @@ async function loadCardBasedDocument (treeId) {
   let chk;
   let loadedCards = await dexie.cards.where("treeId").equals(treeId).toArray();
   if (loadedCards.length > 0) {
-    chk = Math.max(...(loadedCards.filter(c => c.synced).map(c => c.updateAt)));
+    chk = loadedCards.filter(c => c.synced).map(c => c.updatedAt).sort().reverse()[0];
     toElm(loadedCards, "appMsgs", "DataReceived");
   } else {
     chk = '0';
