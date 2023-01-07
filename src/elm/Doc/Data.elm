@@ -861,7 +861,18 @@ localSave treeId op model =
                     toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = Set.empty }
 
                 CTIns id content parId idx ->
-                    Enc.null
+                    let
+                        siblings =
+                            data |> List.filter (\card -> card.parentId == parId)
+
+                        pos =
+                            -- TODO : For now adding only to end.
+                            List.maximum (List.map .position siblings) |> Maybe.map (\p -> p + 1) |> Maybe.withDefault 0.0
+
+                        toAdd =
+                            [ { id = "new:" ++ id, treeId = treeId, content = content, parentId = parId, position = pos, deleted = False, synced = False, updatedAt = () } ]
+                    in
+                    toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = Set.empty }
 
                 CTRmv string ->
                     Enc.null
@@ -1265,6 +1276,7 @@ toDelta cards =
     cards
         |> List.map .id
         |> ListExtra.unique
+        |> List.filter (\id -> not <| String.startsWith "new:" id)
         |> List.concatMap (cardDelta cards)
 
 

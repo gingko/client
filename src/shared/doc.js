@@ -400,14 +400,19 @@ const fromElm = (msg, elmData) => {
     },
 
     PushDeltas : () => {
-      if (ws.readyState == ws.OPEN && ws.bufferedAmount == 0) {
+      if (ws.readyState == ws.OPEN && ws.bufferedAmount == 0 && elmData.dlts.length > 0) {
         ws.send(JSON.stringify({t: 'push', d: elmData}));
       }
     },
 
     SaveCardBased : async () => {
       if (elmData !== null) {
-        const newData = elmData.toAdd.map((c) => { return { ...c, updatedAt: hlc.nxt() }})
+        let newData = elmData.toAdd.map((c) => { return { ...c, updatedAt: hlc.nxt() }})
+        const newCardIds = newData.filter(c => c.id.startsWith("new:")).map(c => c.id);
+        if (newCardIds.length > 0) {
+          await dexie.cards.bulkDelete(newCardIds);
+          newData = newData.map(c => {if (c.id.startsWith("new:")) { return { ...c, id: c.id.substring(4) } } else { return c }});
+        }
         const toMarkSynced = elmData.toMarkSynced.map((c) => { return { ...c, synced: true }})
 
         let toMarkDeleted = [];
