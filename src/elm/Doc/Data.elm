@@ -1249,7 +1249,7 @@ type alias Delta =
 
 
 type CardOp
-    = InsOp { id : String, content : String, parentId : Maybe String, position : Float }
+    = InsOp { id : String, treeId : String, content : String, parentId : Maybe String, position : Float }
     | UpdOp { content : String, expectedVersion : String }
     | MovOp { parentId : Maybe String, position : Float }
     | DelOp { expectedVersion : String }
@@ -1331,7 +1331,7 @@ cardDelta allCards cardId =
             [ Delta cardId unsyncedCard.updatedAt (undeleteOps ++ deleteOps ++ moveOps ++ updateOps) ]
 
         ( Just unsyncedCard, Nothing ) ->
-            [ Delta cardId unsyncedCard.updatedAt [ InsOp { id = unsyncedCard.id, content = unsyncedCard.content, parentId = unsyncedCard.parentId, position = unsyncedCard.position } ] ]
+            [ Delta cardId unsyncedCard.updatedAt [ InsOp { id = unsyncedCard.id, treeId = unsyncedCard.treeId, content = unsyncedCard.content, parentId = unsyncedCard.parentId, position = unsyncedCard.position } ] ]
 
         ( Nothing, Just _ ) ->
             -- Unchanged
@@ -1357,6 +1357,7 @@ opEncoder op =
         InsOp insOp ->
             Enc.object
                 [ ( "t", Enc.string "i" )
+                , ( "tr", Enc.string insOp.treeId )
                 , ( "c", Enc.string insOp.content )
                 , ( "p", encodeMaybe insOp.parentId )
                 , ( "pos", Enc.float insOp.position )
