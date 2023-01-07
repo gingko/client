@@ -269,7 +269,6 @@ function toElm(data, portName, tagName) {
 }
 
 const fromElm = (msg, elmData) => {
-  console.log("fromElm", msg, elmData);
   window.elmMessages.push({tag: msg, data: elmData});
   window.elmMessages = window.elmMessages.slice(-10);
 
@@ -407,22 +406,24 @@ const fromElm = (msg, elmData) => {
     },
 
     SaveCardBased : async () => {
-      const newData = elmData.toAdd.map((c) => { return {...c, updatedAt : hlc.nxt()}})
-      const toMarkSynced = elmData.toMarkSynced.map((c) => { return {...c, synced: true}})
+      if (elmData !== null) {
+        const newData = elmData.toAdd.map((c) => { return { ...c, updatedAt: hlc.nxt() }})
+        const toMarkSynced = elmData.toMarkSynced.map((c) => { return { ...c, synced: true }})
 
-      let toMarkDeleted = [];
-      if(elmData.toMarkDeleted.length > 0) {
-        const timestamp = Date.now();
-        const deleteHash = uuid();
-        toMarkDeleted = elmData.toMarkDeleted.map((c , i) => ({...c, updatedAt : `${timestamp}:${i}:${deleteHash}`}));
+        let toMarkDeleted = [];
+        if (elmData.toMarkDeleted.length > 0) {
+          const timestamp = Date.now();
+          const deleteHash = uuid();
+          toMarkDeleted = elmData.toMarkDeleted.map((c, i) => ({ ...c, updatedAt: `${timestamp}:${i}:${deleteHash}` }));
+        }
+
+        dexie.transaction('rw', dexie.cards, async () => {
+          dexie.cards.bulkPut(newData.concat(toMarkSynced).concat(toMarkDeleted));
+          dexie.cards.bulkDelete(elmData.toRemove);
+        }).catch((e) => {
+          alert("Error saving data!" + e);
+        });
       }
-
-      dexie.transaction('rw', dexie.cards, async () => {
-        dexie.cards.bulkPut(newData.concat(toMarkSynced).concat(toMarkDeleted));
-        dexie.cards.bulkDelete(elmData.toRemove);
-      }).catch((e) => {
-        alert("Error saving data!" + e);
-      });
     },
 
     CommitData: async () => {
@@ -825,7 +826,9 @@ function unprefix(id) {
 
 
 function pullSuccessHandler (pulledData) {
-  toElm(pulledData, "appMsgs", "DataReceived")
+  if (pulledData === null) { return }
+
+  toElm(pulledData, "appMsgs", "GitDataReceived")
 }
 
 

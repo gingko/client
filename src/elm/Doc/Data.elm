@@ -1,4 +1,4 @@
-module Doc.Data exposing (CommitObject, Model, cardDataReceived, checkout, conflictList, conflictSelection, empty, emptyData, getCommit, gitDataReceived, head, historyList, lastCommitTime, localSave, pushOkHandler, requestCommit, resolve, success)
+module Doc.Data exposing (CommitObject, Model, cardDataReceived, checkout, conflictList, conflictSelection, empty, emptyData, getCommit, gitDataReceived, head, historyList, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, success)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
@@ -157,11 +157,32 @@ checkout commitSha model =
             checkoutCommit commitSha data
 
 
-lastCommitTime : Model -> Maybe Int
-lastCommitTime model =
+lastSavedTime : Model -> Maybe Int
+lastSavedTime model =
     case model of
-        CardBased _ ->
+        CardBased data ->
+            data
+                |> List.map .updatedAt
+                |> List.sort
+                |> List.reverse
+                |> List.head
+                |> Maybe.andThen parseUpdatedAt
+
+        GitLike data _ ->
             Nothing
+
+
+lastSyncedTime : Model -> Maybe Int
+lastSyncedTime model =
+    case model of
+        CardBased data ->
+            data
+                |> List.filter .synced
+                |> List.map .updatedAt
+                |> List.sort
+                |> List.reverse
+                |> List.head
+                |> Maybe.andThen parseUpdatedAt
 
         GitLike data _ ->
             data.commits
@@ -170,6 +191,13 @@ lastCommitTime model =
                 |> List.sort
                 |> List.reverse
                 |> List.head
+
+
+parseUpdatedAt : String -> Maybe Int
+parseUpdatedAt str =
+    String.split ":" str
+        |> List.head
+        |> Maybe.andThen String.toInt
 
 
 
@@ -223,7 +251,7 @@ cardDataReceived json ( oldModel, oldTree ) =
         Err err ->
             let
                 _ =
-                    Debug.log "Error decoding received data" err
+                    Debug.log "Error decoding received card data" err
             in
             Nothing
 
@@ -261,7 +289,7 @@ gitDataReceived json ( oldModel, oldTree ) =
         Err err ->
             let
                 _ =
-                    Debug.log "Error decoding received data" err
+                    Debug.log "Error decoding received gitlike data" err
             in
             Nothing
 

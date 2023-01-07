@@ -2401,8 +2401,8 @@ getTextCursorInfo (Model model) =
         |> .textCursorInfo
 
 
-setDirty : Model -> Bool -> Model
-setDirty (Model model) dirty =
+setDirty : Bool -> Model -> Model
+setDirty dirty (Model model) =
     Model { model | dirty = dirty }
 
 

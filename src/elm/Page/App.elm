@@ -446,8 +446,8 @@ update msg model =
                                     Doc
                                         { docState
                                             | data = newData
-                                            , lastLocalSave = Data.lastCommitTime newData |> Maybe.map Time.millisToPosix
-                                            , docModel = Page.Doc.setDirty docModel False
+                                            , lastLocalSave = Data.lastSyncedTime newData |> Maybe.map Time.millisToPosix
+                                            , docModel = Page.Doc.setDirty False docModel
                                         }
                               }
                             , send <| SetDirty False
@@ -1338,6 +1338,7 @@ cardDataReceived dataIn model =
                             docModel
                                 |> Page.Doc.setWorkingTree newWorkingTree
                                 |> Page.Doc.setLoading False
+                                |> Page.Doc.setDirty False
                     in
                     ( { model
                         | documentState =
@@ -1345,6 +1346,8 @@ cardDataReceived dataIn model =
                                 { docState
                                     | data = newData
                                     , docModel = newDocModel
+                                    , lastLocalSave = Data.lastSavedTime newData |> Maybe.map Time.millisToPosix |> Debug.log "lastLocalSave"
+                                    , lastRemoteSave = Data.lastSyncedTime newData |> Maybe.map Time.millisToPosix |> Debug.log "lastRemoteSave"
                                 }
                       }
                     , List.map send outMsg |> Cmd.batch
@@ -1388,8 +1391,8 @@ gitDataReceived dataIn model =
                             Doc
                                 { docState
                                     | data = newData
-                                    , lastRemoteSave = Data.lastCommitTime newData |> Maybe.map Time.millisToPosix
-                                    , lastLocalSave = Data.lastCommitTime newData |> Maybe.map Time.millisToPosix
+                                    , lastRemoteSave = Data.lastSyncedTime newData |> Maybe.map Time.millisToPosix
+                                    , lastLocalSave = Data.lastSyncedTime newData |> Maybe.map Time.millisToPosix
                                     , docModel = newDocModel
                                 }
                       }
