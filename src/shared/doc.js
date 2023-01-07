@@ -250,6 +250,7 @@ const stripe = Stripe(config.STRIPE_PUBLIC_KEY);
 /* === Elm / JS Interop === */
 
 function toElm(data, portName, tagName) {
+  console.log("toElm", portName, tagName, data);
   if (!gingko) { return; }
   let portExists = gingko.ports.hasOwnProperty(portName);
   let tagGiven = typeof tagName == "string";
@@ -269,6 +270,7 @@ function toElm(data, portName, tagName) {
 }
 
 const fromElm = (msg, elmData) => {
+  console.log("fromElm", msg, elmData);
   window.elmMessages.push({tag: msg, data: elmData});
   window.elmMessages = window.elmMessages.slice(-10);
 
@@ -408,11 +410,6 @@ const fromElm = (msg, elmData) => {
     SaveCardBased : async () => {
       if (elmData !== null) {
         let newData = elmData.toAdd.map((c) => { return { ...c, updatedAt: hlc.nxt() }})
-        const newCardIds = newData.filter(c => c.id.startsWith("new:")).map(c => c.id);
-        if (newCardIds.length > 0) {
-          await dexie.cards.bulkDelete(newCardIds);
-          newData = newData.map(c => {if (c.id.startsWith("new:")) { return { ...c, id: c.id.substring(4) } } else { return c }});
-        }
         const toMarkSynced = elmData.toMarkSynced.map((c) => { return { ...c, synced: true }})
 
         let toMarkDeleted = [];

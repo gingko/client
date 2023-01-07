@@ -870,7 +870,7 @@ localSave treeId op model =
                             List.maximum (List.map .position siblings) |> Maybe.map (\p -> p + 1) |> Maybe.withDefault 0.0
 
                         toAdd =
-                            [ { id = "new:" ++ id, treeId = treeId, content = content, parentId = parId, position = pos, deleted = False, synced = False, updatedAt = () } ]
+                            [ { id = id, treeId = treeId, content = content, parentId = parId, position = pos, deleted = False, synced = False, updatedAt = () } ]
                     in
                     toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = Set.empty }
 
@@ -1051,7 +1051,11 @@ getCardSyncState cardVersions =
             , theirs = getTheirs cardVersions
             }
     in
-    if unsyncedVersions > 0 && syncedVersions <= historyLimit then
+    if unsyncedVersions == 1 && syncedVersions == 0 && (List.map .content versions.ours == [ "" ]) then
+        -- Brand new card with empty content shouldn't be pushed, so we mark it as "Synced" to prevent that.
+        Synced
+
+    else if unsyncedVersions > 0 && syncedVersions <= historyLimit then
         Unsynced
 
     else if unsyncedVersions > 0 && syncedVersions > historyLimit then
@@ -1276,7 +1280,6 @@ toDelta cards =
     cards
         |> List.map .id
         |> ListExtra.unique
-        |> List.filter (\id -> not <| String.startsWith "new:" id)
         |> List.concatMap (cardDelta cards)
 
 
