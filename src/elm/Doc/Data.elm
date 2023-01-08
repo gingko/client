@@ -874,8 +874,19 @@ localSave treeId op model =
                     in
                     toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = Set.empty }
 
-                CTRmv string ->
-                    Enc.null
+                CTRmv id ->
+                    let
+                        idsToMarkAsDeleted =
+                            getDescendants id data
+
+                        cardsToMarkAsDeleted =
+                            data
+                                |> List.filter (\card -> List.member card.id idsToMarkAsDeleted)
+                                |> List.sortBy .updatedAt
+                                |> ListExtra.uniqueBy .id
+                                |> List.map (\card -> { card | deleted = True, synced = False } |> stripUpdatedAt)
+                    in
+                    toSave { toAdd = [], toMarkSynced = [], toMarkDeleted = cardsToMarkAsDeleted, toRemove = Set.empty }
 
                 CTMov string maybeString int ->
                     Enc.null
@@ -915,6 +926,25 @@ treeHelper allCards parentId =
             allCards |> List.filter (\card -> card.parentId == parentId) |> List.sortBy .position
     in
     List.map (\card -> { id = card.id, content = card.content, children = Children (treeHelper allCards (Just card.id)) }) cards
+
+
+getDescendants : String -> List (Card String) -> List String
+getDescendants id allCards =
+    let
+        card_ =
+            allCards |> List.filter (\card -> card.id == id) |> List.head
+    in
+    case card_ of
+        Nothing ->
+            []
+
+        Just card ->
+            card.id
+                :: (allCards
+                        |> List.filter (\c -> c.parentId == Just id)
+                        |> List.map .id
+                        |> List.concatMap (\i -> getDescendants i allCards)
+                   )
 
 
 type alias Versions =

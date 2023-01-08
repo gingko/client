@@ -2,6 +2,7 @@
 import * as data from "./data.js";
 import Worker from "worker-loader!./data.worker.js";
 import hlc from '@tpp/hybrid-logical-clock';
+import uuid from '@tpp/simple-uuid';
 const dataWorker = new Worker();
 
 const _ = require("lodash");
