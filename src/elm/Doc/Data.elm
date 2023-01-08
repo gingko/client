@@ -863,11 +863,28 @@ localSave treeId op model =
                 CTIns id content parId idx ->
                     let
                         siblings =
-                            data |> List.filter (\card -> card.parentId == parId)
+                            data
+                                |> List.filter (\card -> card.parentId == parId && card.deleted == False)
+                                |> List.sortBy .position
+
+                        ( sibLeft_, sibRight_ ) =
+                            ( ListExtra.getAt (idx - 1) siblings |> Maybe.map .position
+                            , ListExtra.getAt idx siblings |> Maybe.map .position
+                            )
 
                         pos =
-                            -- TODO : For now adding only to end.
-                            List.maximum (List.map .position siblings) |> Maybe.map (\p -> p + 1) |> Maybe.withDefault 0.0
+                            case ( sibLeft_, sibRight_ ) of
+                                ( Just sibLeft, Just sibRight ) ->
+                                    (sibLeft + sibRight) / 2
+
+                                ( Just sibLeft, Nothing ) ->
+                                    sibLeft + 1
+
+                                ( Nothing, Just sibRight ) ->
+                                    sibRight - 1
+
+                                ( Nothing, Nothing ) ->
+                                    0
 
                         toAdd =
                             [ { id = id, treeId = treeId, content = content, parentId = parId, position = pos, deleted = False, synced = False, updatedAt = () } ]
