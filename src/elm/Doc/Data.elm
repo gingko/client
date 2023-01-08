@@ -911,7 +911,6 @@ getPosition parId idx data =
                 |> List.sortBy .updatedAt
                 |> ListExtra.uniqueBy .id
                 |> List.sortBy .position
-                |> Debug.log "pos:siblings"
 
         ( sibLeft_, sibRight_ ) =
             case idx of
@@ -922,27 +921,22 @@ getPosition parId idx data =
                     ( ListExtra.getAt (idx - 1) siblings |> Maybe.map .position
                     , ListExtra.getAt idx siblings |> Maybe.map .position
                     )
-                        |> Debug.log "pos:sibLeft,sibRight"
     in
     case ( sibLeft_, sibRight_ ) of
         ( Just sibLeft, Just sibRight ) ->
             (sibLeft + sibRight)
                 / 2
-                |> Debug.log "pos:both"
 
         ( Just sibLeft, Nothing ) ->
             sibLeft
                 + 1
-                |> Debug.log "pos:leftOnly"
 
         ( Nothing, Just sibRight ) ->
             sibRight
                 - 1
-                |> Debug.log "pos:rightOnly"
 
         ( Nothing, Nothing ) ->
             0
-                |> Debug.log "pos:none"
 
 
 toTree : List (Card String) -> Tree
@@ -1234,7 +1228,6 @@ resolveDeleteConflicts allCards versions =
                     )
                 |> List.partition Tuple.first
                 |> Tuple.mapBoth (List.map Tuple.second) (List.map Tuple.second)
-                |> Debug.log "deleteConflictHashes"
 
         ourDeletionTimestamps =
             -- If the delete conflict is because we deleted it on 'Our' side, then we need to undo those deletions
@@ -1246,12 +1239,9 @@ resolveDeleteConflicts allCards versions =
 
         theirDeletionIds =
             allCards
-                |> Debug.log "allCards"
                 |> List.filter (\c -> c.updatedAt |> String.split ":" |> List.reverse |> List.head |> Maybe.map (\h -> List.member h theirDeletionHashes) |> Maybe.withDefault False)
-                |> Debug.log "allCards after filter"
                 |> List.map .id
                 |> ListExtra.unique
-                |> Debug.log "theirDeletionIds"
 
         theirDeletionCards =
             allCards
