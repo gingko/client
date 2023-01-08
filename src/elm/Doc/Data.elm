@@ -860,34 +860,10 @@ localSave treeId op model =
                     in
                     toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = Set.empty }
 
-                CTIns id content parId idx ->
+                CTIns id content parId_ idx ->
                     let
-                        siblings =
-                            data
-                                |> List.filter (\card -> card.parentId == parId && card.deleted == False)
-                                |> List.sortBy .position
-
-                        ( sibLeft_, sibRight_ ) =
-                            ( ListExtra.getAt (idx - 1) siblings |> Maybe.map .position
-                            , ListExtra.getAt idx siblings |> Maybe.map .position
-                            )
-
-                        pos =
-                            case ( sibLeft_, sibRight_ ) of
-                                ( Just sibLeft, Just sibRight ) ->
-                                    (sibLeft + sibRight) / 2
-
-                                ( Just sibLeft, Nothing ) ->
-                                    sibLeft + 1
-
-                                ( Nothing, Just sibRight ) ->
-                                    sibRight - 1
-
-                                ( Nothing, Nothing ) ->
-                                    0
-
                         toAdd =
-                            [ { id = id, treeId = treeId, content = content, parentId = parId, position = pos, deleted = False, synced = False, updatedAt = () } ]
+                            [ { id = id, treeId = treeId, content = content, parentId = parId_, position = getPosition parId_ idx data, deleted = False, synced = False, updatedAt = () } ]
                     in
                     toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = Set.empty }
 
@@ -905,8 +881,16 @@ localSave treeId op model =
                     in
                     toSave { toAdd = [], toMarkSynced = [], toMarkDeleted = cardsToMarkAsDeleted, toRemove = Set.empty }
 
-                CTMov string maybeString int ->
-                    Enc.null
+                CTMov id parId_ idx ->
+                    let
+                        toAdd =
+                            data
+                                |> List.filter (\card -> card.id == id)
+                                |> List.head
+                                |> Maybe.map (\card -> [ { card | position = getPosition parId_ idx data, parentId = parId_, synced = False } |> stripUpdatedAt ])
+                                |> Maybe.withDefault []
+                    in
+                    toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = Set.empty }
 
                 CTMrg aId bId bool ->
                     Enc.null
@@ -916,6 +900,49 @@ localSave treeId op model =
 
         GitLike gitData maybeConflictInfo ->
             Enc.null
+
+
+getPosition : Maybe String -> Int -> List (Card String) -> Float
+getPosition parId idx data =
+    let
+        siblings =
+            data
+                |> List.filter (\card -> card.parentId == parId && card.deleted == False)
+                |> List.sortBy .updatedAt
+                |> ListExtra.uniqueBy .id
+                |> List.sortBy .position
+                |> Debug.log "pos:siblings"
+
+        ( sibLeft_, sibRight_ ) =
+            case idx of
+                999999 ->
+                    ( ListExtra.last siblings |> Maybe.map .position, Nothing )
+
+                _ ->
+                    ( ListExtra.getAt (idx - 1) siblings |> Maybe.map .position
+                    , ListExtra.getAt idx siblings |> Maybe.map .position
+                    )
+                        |> Debug.log "pos:sibLeft,sibRight"
+    in
+    case ( sibLeft_, sibRight_ ) of
+        ( Just sibLeft, Just sibRight ) ->
+            (sibLeft + sibRight)
+                / 2
+                |> Debug.log "pos:both"
+
+        ( Just sibLeft, Nothing ) ->
+            sibLeft
+                + 1
+                |> Debug.log "pos:leftOnly"
+
+        ( Nothing, Just sibRight ) ->
+            sibRight
+                - 1
+                |> Debug.log "pos:rightOnly"
+
+        ( Nothing, Nothing ) ->
+            0
+                |> Debug.log "pos:none"
 
 
 toTree : List (Card String) -> Tree
