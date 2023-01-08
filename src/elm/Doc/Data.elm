@@ -863,7 +863,7 @@ localSave treeId op model =
                 CTIns id content parId_ idx ->
                     let
                         toAdd =
-                            [ { id = id, treeId = treeId, content = content, parentId = parId_, position = getPosition parId_ idx data, deleted = False, synced = False, updatedAt = () } ]
+                            [ { id = id, treeId = treeId, content = content, parentId = parId_, position = getPosition id parId_ idx data, deleted = False, synced = False, updatedAt = () } ]
                     in
                     toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = Set.empty }
 
@@ -887,7 +887,7 @@ localSave treeId op model =
                             data
                                 |> List.filter (\card -> card.id == id)
                                 |> List.head
-                                |> Maybe.map (\card -> [ { card | position = getPosition parId_ idx data, parentId = parId_, synced = False } |> stripUpdatedAt ])
+                                |> Maybe.map (\card -> [ { card | position = getPosition id parId_ idx data, parentId = parId_, synced = False } |> stripUpdatedAt ])
                                 |> Maybe.withDefault []
                     in
                     toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = Set.empty }
@@ -902,12 +902,12 @@ localSave treeId op model =
             Enc.null
 
 
-getPosition : Maybe String -> Int -> List (Card String) -> Float
-getPosition parId idx data =
+getPosition : String -> Maybe String -> Int -> List (Card String) -> Float
+getPosition cardId parId idx data =
     let
         siblings =
             data
-                |> List.filter (\card -> card.parentId == parId && card.deleted == False)
+                |> List.filter (\card -> card.parentId == parId && card.deleted == False && card.id /= cardId)
                 |> List.sortBy .updatedAt
                 |> ListExtra.uniqueBy .id
                 |> List.sortBy .position
