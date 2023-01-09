@@ -1354,6 +1354,7 @@ cardDelta allCards cardId =
             allCards
                 |> List.filter (\c -> c.id == cardId)
                 |> List.sortBy .updatedAt
+                |> List.reverse
 
         unsyncedCard_ =
             cardVersions
