@@ -9,9 +9,8 @@ import Json.Decode as Dec
 import Json.Encode as Enc
 import List.Extra as ListExtra
 import Maybe exposing (andThen)
-import Outgoing exposing (Msg(..), send)
+import Outgoing exposing (Msg(..))
 import Set exposing (Set)
-import Tuple exposing (second)
 import Types exposing (CardTreeOp(..), Children(..), Tree)
 
 
@@ -204,8 +203,8 @@ parseUpdatedAt str =
 -- EXPOSED : Functions
 
 
-cardDataReceived : Dec.Value -> ( Model, Tree ) -> Maybe { newData : Model, newTree : Tree, outMsg : List Outgoing.Msg }
-cardDataReceived json ( oldModel, oldTree ) =
+cardDataReceived : Dec.Value -> ( Model, Tree, String ) -> Maybe { newData : Model, newTree : Tree, outMsg : List Outgoing.Msg }
+cardDataReceived json ( oldModel, oldTree, treeId ) =
     case Dec.decodeValue decodeCards json of
         Ok cards ->
             let
@@ -223,7 +222,7 @@ cardDataReceived json ( oldModel, oldTree ) =
                 outMsg =
                     case syncState of
                         Unsynced ->
-                            [ PushDeltas (pushDelta cards) ]
+                            [ PushDeltas (pushDelta treeId cards) ]
 
                         CanFastForward ffids ->
                             [ SaveCardBased (toSave { toAdd = [], toMarkSynced = [], toMarkDeleted = [], toRemove = ffids |> Set.fromList }) ]
@@ -1309,22 +1308,22 @@ pushOkHandler chk model =
 
 
 type alias Delta =
-    { id : String, ts : String, ops : List CardOp }
+    { id : String, treeId : String, ts : String, ops : List CardOp }
 
 
 type CardOp
-    = InsOp { id : String, treeId : String, content : String, parentId : Maybe String, position : Float }
+    = InsOp { id : String, content : String, parentId : Maybe String, position : Float }
     | UpdOp { content : String, expectedVersion : String }
     | MovOp { parentId : Maybe String, position : Float }
     | DelOp { expectedVersion : String }
     | UndelOp
 
 
-pushDelta : List (Card String) -> Enc.Value
-pushDelta db =
+pushDelta : String -> List (Card String) -> Enc.Value
+pushDelta treeId db =
     let
         deltas =
-            toDelta db
+            toDelta treeId db
 
         checkpoint =
             db
@@ -1335,20 +1334,21 @@ pushDelta db =
     in
     Enc.object
         [ ( "dlts", Enc.list encodeDelta deltas )
+        , ( "tr", Enc.string treeId )
         , ( "chk", Enc.string checkpoint )
         ]
 
 
-toDelta : List (Card String) -> List Delta
-toDelta cards =
+toDelta : String -> List (Card String) -> List Delta
+toDelta treeId cards =
     cards
         |> List.map .id
         |> ListExtra.unique
-        |> List.concatMap (cardDelta cards)
+        |> List.concatMap (cardDelta treeId cards)
 
 
-cardDelta : List (Card String) -> String -> List Delta
-cardDelta allCards cardId =
+cardDelta : String -> List (Card String) -> String -> List Delta
+cardDelta treeId allCards cardId =
     let
         cardVersions =
             allCards
@@ -1393,10 +1393,10 @@ cardDelta allCards cardId =
                     else
                         ( [], [] )
             in
-            [ Delta cardId unsyncedCard.updatedAt (undeleteOps ++ deleteOps ++ moveOps ++ updateOps) ]
+            [ Delta cardId treeId unsyncedCard.updatedAt (undeleteOps ++ deleteOps ++ moveOps ++ updateOps) ]
 
         ( Just unsyncedCard, Nothing ) ->
-            [ Delta cardId unsyncedCard.updatedAt [ InsOp { id = unsyncedCard.id, treeId = unsyncedCard.treeId, content = unsyncedCard.content, parentId = unsyncedCard.parentId, position = unsyncedCard.position } ] ]
+            [ Delta cardId treeId unsyncedCard.updatedAt [ InsOp { id = unsyncedCard.id, content = unsyncedCard.content, parentId = unsyncedCard.parentId, position = unsyncedCard.position } ] ]
 
         ( Nothing, Just _ ) ->
             -- Unchanged
@@ -1422,7 +1422,6 @@ opEncoder op =
         InsOp insOp ->
             Enc.object
                 [ ( "t", Enc.string "i" )
-                , ( "tr", Enc.string insOp.treeId )
                 , ( "c", Enc.string insOp.content )
                 , ( "p", encodeMaybe insOp.parentId )
                 , ( "pos", Enc.float insOp.position )

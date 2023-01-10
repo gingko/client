@@ -1320,7 +1320,7 @@ update msg model =
 cardDataReceived : Json.Value -> Model -> ( Model, Cmd Msg )
 cardDataReceived dataIn model =
     case model.documentState of
-        Doc ({ docModel } as docState) ->
+        Doc ({ docModel, docId } as docState) ->
             let
                 workingTree =
                     Page.Doc.getWorkingTree docModel
@@ -1328,7 +1328,7 @@ cardDataReceived dataIn model =
                 tree =
                     workingTree.tree
             in
-            case Data.cardDataReceived dataIn ( docState.data, tree ) of
+            case Data.cardDataReceived dataIn ( docState.data, tree, docId ) of
                 Just { newData, newTree, outMsg } ->
                     let
                         newWorkingTree =
