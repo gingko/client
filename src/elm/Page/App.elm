@@ -45,7 +45,8 @@ import Svg.Attributes
 import Task
 import Time
 import Translation exposing (Language, TranslationId(..), langToString, tr)
-import Types exposing (CardTreeOp, HeaderMenuState(..), OutsideData, SidebarMenuState(..), SidebarState(..), SortBy(..), TooltipPosition, Tree, ViewMode(..))
+import Types exposing (CardTreeOp, HeaderMenuState(..), OutsideData, SortBy(..), TooltipPosition, Tree, ViewMode(..))
+import UI.Sidebar exposing (SidebarMenuState(..), SidebarState(..), viewSidebar)
 import Upgrade exposing (Msg(..))
 
 
@@ -1702,7 +1703,7 @@ view ({ documentState } as model) =
                                 , globalData = globalData
                                 }
                            , maybeExportView
-                           , UI.viewSidebar globalData
+                           , viewSidebar globalData
                                 session
                                 sidebarMsgs
                                 docId
@@ -1737,7 +1738,7 @@ view ({ documentState } as model) =
             else
                 div [ id "app-root", classList [ ( "loading", model.loading ) ] ]
                     (Page.Empty.view { newClicked = TemplateSelectorOpened, emptyMessage = EmptyMessage }
-                        ++ [ UI.viewSidebar globalData
+                        ++ [ viewSidebar globalData
                                 session
                                 sidebarMsgs
                                 ""

@@ -1,6 +1,5 @@
-module Types exposing (CardTreeOp(..), Children(..), CollabState, Column, CursorPosition(..), DragExternalModel, DropId(..), Group, HeaderMenuState(..), Mode(..), OutsideData, SidebarMenuState(..), SidebarState(..), SortBy(..), TextCursorInfo, TooltipPosition(..), Tree, ViewMode(..), ViewState, VisibleViewState, dropIdToValue)
+module Types exposing (CardTreeOp(..), Children(..), CollabState, Column, CursorPosition(..), DragExternalModel, DropId(..), Group, HeaderMenuState(..), Mode(..), OutsideData, SortBy(..), TextCursorInfo, TooltipPosition(..), Tree, ViewMode(..), ViewState, VisibleViewState, dropIdToValue)
 
-import Browser.Dom exposing (Element)
 import Html5.DragDrop as DragDrop
 import Json.Encode as Enc
 import Translation
@@ -81,16 +80,6 @@ type ViewMode
     = Normal
     | Editing
     | FullscreenEditing
-
-
-type SidebarState
-    = SidebarClosed
-    | File
-
-
-type SidebarMenuState
-    = NoSidebarMenu
-    | Account (Maybe Element)
 
 
 type SortBy
