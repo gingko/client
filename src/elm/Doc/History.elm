@@ -17,7 +17,7 @@ import Utils exposing (text, textNoTr)
 
 
 type Model
-    = History (Zipper Version)
+    = History Tree (Zipper Version)
     | Empty
 
 
@@ -28,13 +28,13 @@ type alias Version =
     }
 
 
-fromList : String -> List ( String, Time.Posix, WebData Tree ) -> Model
-fromList selectedVersion versionTuples =
+fromList : ( String, Tree ) -> List ( String, Time.Posix, WebData Tree ) -> Model
+fromList ( selectedVersion, originalTree ) versionTuples =
     versionTuples
         |> List.map (\( id, timestamp, tree ) -> { id = id, timestamp = timestamp, tree = tree })
         |> Zipper.fromList
         |> Maybe.andThen (Zipper.find (\version -> version.id == selectedVersion))
-        |> Maybe.map History
+        |> Maybe.map (History originalTree)
         |> Maybe.withDefault Empty
 
 
@@ -63,7 +63,7 @@ type alias ViewConfig msg =
 view : ViewConfig msg -> Model -> Html msg
 view config model =
     case model of
-        History zipper ->
+        History _ zipper ->
             viewHistory config zipper
 
         Empty ->

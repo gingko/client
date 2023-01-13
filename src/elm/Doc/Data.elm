@@ -1442,8 +1442,8 @@ opEncoder op =
 -- HISTORY
 
 
-history : String -> Model -> History.Model
-history startingSha model =
+history : ( String, Tree ) -> Model -> History.Model
+history startingTuple model =
     case model of
         GitLike data _ ->
             let
@@ -1459,10 +1459,10 @@ history startingSha model =
                 |> List.sortBy (\( cid, c ) -> c.timestamp)
                 |> List.map tripleFromCommit
             )
-                |> History.fromList startingSha
+                |> History.fromList startingTuple
 
         CardBased _ ->
-            [] |> History.fromList startingSha
+            [] |> History.fromList startingTuple
 
 
 
