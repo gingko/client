@@ -1,4 +1,4 @@
-module Doc.History exposing (Model, init, revert, view)
+module Doc.History exposing (History, init, revert, view)
 
 import Ant.Icons.Svg as AntIcons
 import Doc.Data as Data
@@ -18,7 +18,7 @@ import Utils exposing (text, textNoTr)
 -- MODEL
 
 
-type Model
+type History
     = History Tree (Zipper Version)
     | Empty
 
@@ -30,22 +30,17 @@ type alias Version =
     }
 
 
-init : Tree -> Data.Model -> Model
+init : Tree -> Data.Model -> History
 init tree data =
-    Empty
-
-
-fromList : ( String, Tree ) -> List ( String, Time.Posix, Maybe Tree ) -> Model
-fromList ( selectedVersion, originalTree ) versionTuples =
-    versionTuples
-        |> List.map (\( id, timestamp, tree_ ) -> { id = id, timestamp = timestamp, tree = tree_ |> RemoteData.fromMaybe (Http.BadBody <| "Commit" ++ selectedVersion ++ " not found") })
+    data
+        |> Data.getHistoryList
+        |> List.map (\( id, timestamp, tree_ ) -> { id = id, timestamp = timestamp, tree = tree_ |> RemoteData.fromMaybe (Http.BadBody "") })
         |> Zipper.fromList
-        |> Maybe.andThen (Zipper.find (\version -> version.id == selectedVersion))
-        |> Maybe.map (History originalTree)
+        |> Maybe.map (History tree)
         |> Maybe.withDefault Empty
 
 
-revert : Model -> Maybe Tree
+revert : History -> Maybe Tree
 revert model =
     case model of
         History tree _ ->
@@ -56,20 +51,13 @@ revert model =
 
 
 
--- UPDATE
-
-
-type Msg
-    = SelectVersion String
-
-
-
 -- VIEW
 
 
 type alias ViewConfig msg =
     { lang : Translation.Language
-    , toSelf : Msg -> msg
+    , noOp : msg
+    , checkoutTree : Tree -> msg
     , restore : msg
     , cancel : msg
     , tooltipRequested : String -> TooltipPosition -> TranslationId -> msg
@@ -77,7 +65,7 @@ type alias ViewConfig msg =
     }
 
 
-view : ViewConfig msg -> Model -> Html msg
+view : ViewConfig msg -> History -> Html msg
 view config model =
     case model of
         History _ zipper ->
@@ -88,7 +76,7 @@ view config model =
 
 
 viewHistory : ViewConfig msg -> Zipper Version -> Html msg
-viewHistory { lang, toSelf, restore, cancel, tooltipRequested, tooltipClosed } zipper =
+viewHistory { lang, noOp, checkoutTree, restore, cancel, tooltipRequested, tooltipClosed } zipper =
     let
         maybeTimeDisplay =
             textNoTr ""
@@ -98,9 +86,29 @@ viewHistory { lang, toSelf, restore, cancel, tooltipRequested, tooltipClosed } z
                 |> List.length
                 |> (\len -> len - 1)
                 |> String.fromInt
+
+        maybeCheckoutTree : String -> msg
+        maybeCheckoutTree idxStr =
+            let
+                ver_ : Maybe Version
+                ver_ =
+                    idxStr
+                        |> String.toInt
+                        |> Maybe.andThen (\idx -> Zipper.toList zipper |> List.drop idx |> List.head)
+            in
+            case ver_ of
+                Just version ->
+                    Zipper.findFirst (\ver -> ver.id == version.id) zipper
+                        |> Maybe.map Zipper.current
+                        |> Maybe.map .tree
+                        |> Maybe.map (RemoteData.unwrap noOp checkoutTree)
+                        |> Maybe.withDefault noOp
+
+                Nothing ->
+                    noOp
     in
     div [ id "history-menu" ]
-        [ input [ id "history-slider", type_ "range", A.min "0", A.max maxIdx, step "1", onInput <| (toSelf << SelectVersion) ] []
+        [ input [ id "history-slider", type_ "range", A.min "0", A.max maxIdx, step "1", onInput maybeCheckoutTree ] []
         , maybeTimeDisplay
         , button [ id "history-restore", onClick restore ] [ text lang RestoreThisVersion ]
         , div

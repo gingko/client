@@ -16,7 +16,7 @@ import Page.Doc.Theme exposing (Theme(..))
 import Session exposing (Session)
 import Time
 import Translation exposing (Language, TranslationId(..))
-import Types exposing (TooltipPosition(..))
+import Types exposing (TooltipPosition(..), Tree)
 import Utils exposing (emptyText, text)
 
 
@@ -27,7 +27,7 @@ import Utils exposing (emptyText, text)
 type HeaderMenuState
     = NoHeaderMenu
     | ExportPreview
-    | HistoryView History.Model
+    | HistoryView History.History
     | Settings
 
 
@@ -44,7 +44,7 @@ viewHeader :
     , tooltipRequested : String -> TooltipPosition -> TranslationId -> msg
     , tooltipClosed : msg
     , toggledHistory : Bool -> msg
-    , checkoutCommit : String -> msg
+    , checkoutTree : Tree -> msg
     , restore : msg
     , cancelHistory : msg
     , toggledDocSettings : msg
@@ -151,7 +151,8 @@ viewHeader msgs { session, title_, titleField_, headerMenu, exportSettings, data
             HistoryView historyModel ->
                 History.view
                     { lang = language
-                    , toSelf = always msgs.noOp
+                    , noOp = msgs.noOp
+                    , checkoutTree = msgs.checkoutTree
                     , restore = msgs.restore
                     , cancel = msgs.cancelHistory
                     , tooltipRequested = msgs.tooltipRequested

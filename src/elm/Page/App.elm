@@ -276,7 +276,7 @@ type Msg
     | ThemeChanged Theme
       -- HEADER: History
     | HistoryToggled Bool
-    | CheckoutCommit String
+    | CheckoutTree Tree
     | Restore
     | CancelHistory
       -- HEADER: Export & Print
@@ -759,27 +759,18 @@ update msg model =
         HistoryToggled isOpen ->
             model |> toggleHistory isOpen 0
 
-        CheckoutCommit commitSha ->
+        CheckoutTree newTree ->
             case ( model.headerMenu, model.documentState ) of
                 ( HistoryView _, Doc docState ) ->
                     let
-                        newTree_ =
-                            Data.checkout commitSha docState.data
+                        ( newDocModel, docCmds, _ ) =
+                            Page.Doc.setTree newTree docState.docModel
                     in
-                    case newTree_ of
-                        Just newTree ->
-                            let
-                                ( newDocModel, docCmds, _ ) =
-                                    Page.Doc.setTree newTree docState.docModel
-                            in
-                            ( { model
-                                | documentState = Doc { docState | docModel = newDocModel }
-                              }
-                            , Cmd.map GotDocMsg docCmds
-                            )
-
-                        Nothing ->
-                            ( model, Cmd.none )
+                    ( { model
+                        | documentState = Doc { docState | docModel = newDocModel }
+                      }
+                    , Cmd.map GotDocMsg docCmds
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -1680,7 +1671,7 @@ view ({ documentState } as model) =
                                 , tooltipRequested = TooltipRequested
                                 , tooltipClosed = TooltipClosed
                                 , toggledHistory = HistoryToggled
-                                , checkoutCommit = CheckoutCommit
+                                , checkoutTree = CheckoutTree
                                 , restore = Restore
                                 , cancelHistory = CancelHistory
                                 , toggledDocSettings = DocSettingsToggled (not <| model.headerMenu == Settings)
