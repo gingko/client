@@ -4,29 +4,21 @@ import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
 import Coders exposing (treeToMarkdownString)
 import Diff exposing (..)
-import Doc.Data as Data exposing (CommitObject)
 import Doc.Data.Conflict as Conflict exposing (Conflict, Op(..), Selection(..), opString)
-import Doc.History as History
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils as TreeUtils exposing (..)
 import GlobalData exposing (GlobalData)
-import Html exposing (Html, a, br, button, del, div, fieldset, h2, h3, h4, h5, hr, img, input, ins, label, li, pre, span, ul)
+import Html exposing (Html, a, button, del, div, fieldset, h2, h3, h5, hr, input, ins, label, li, pre, span, ul)
 import Html.Attributes exposing (..)
-import Html.Attributes.Extra exposing (attributeIf)
-import Html.Events exposing (keyCode, on, onBlur, onClick, onFocus, onInput, onMouseEnter, onMouseLeave)
-import Html.Extra exposing (viewIf)
+import Html.Events exposing (onClick, onInput, onMouseEnter, onMouseLeave)
 import Import.Template exposing (Template(..))
-import Json.Decode as Dec
 import Markdown.Block
 import Markdown.Html
 import Markdown.Parser
 import Markdown.Renderer exposing (Renderer)
 import Octicons as Icon exposing (defaultOptions)
-import Page.Doc.Export exposing (ExportFormat(..), ExportSelection(..))
-import Page.Doc.Theme exposing (Theme(..))
 import Regex exposing (Regex, replace)
 import Route
-import Session exposing (PaymentStatus(..), Session)
 import SharedUI exposing (ctrlOrCmdText, modalWrapper)
 import Svg exposing (g, svg)
 import Svg.Attributes exposing (d, fill, fontFamily, fontSize, fontWeight, preserveAspectRatio, stroke, strokeDasharray, strokeDashoffset, strokeLinecap, strokeLinejoin, strokeMiterlimit, strokeWidth, textAnchor, version, viewBox)
