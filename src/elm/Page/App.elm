@@ -45,8 +45,8 @@ import Svg.Attributes
 import Task
 import Time
 import Translation exposing (Language, TranslationId(..), langToString, tr)
-import Types exposing (CardTreeOp, HeaderMenuState(..), OutsideData, SortBy(..), TooltipPosition, Tree, ViewMode(..))
-import UI.Header exposing (viewHeader)
+import Types exposing (CardTreeOp, OutsideData, SortBy(..), TooltipPosition, Tree, ViewMode(..))
+import UI.Header exposing (HeaderMenuState(..), viewHeader)
 import UI.Sidebar exposing (SidebarMenuState(..), SidebarState(..), viewSidebar)
 import Upgrade exposing (Msg(..))
 

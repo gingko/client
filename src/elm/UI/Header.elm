@@ -1,6 +1,4 @@
-module UI.Header exposing (viewHeader)
-
--- HEADER
+module UI.Header exposing (HeaderMenuState(..), viewHeader)
 
 import Ant.Icons.Svg as AntIcons
 import Doc.Data as Data
@@ -19,8 +17,23 @@ import Page.Doc.Theme exposing (Theme(..))
 import Session exposing (Session)
 import Time
 import Translation exposing (Language, TranslationId(..))
-import Types exposing (HeaderMenuState(..), TooltipPosition(..))
+import Types exposing (TooltipPosition(..))
 import Utils exposing (emptyText, text)
+
+
+
+-- MODEL
+
+
+type HeaderMenuState
+    = NoHeaderMenu
+    | ExportPreview
+    | HistoryView { start : String, currentView : String }
+    | Settings
+
+
+
+-- VIEW
 
 
 viewHeader :

@@ -24,7 +24,7 @@ import Svg exposing (g, svg)
 import Svg.Attributes exposing (d, fill, fontFamily, fontSize, fontWeight, preserveAspectRatio, stroke, strokeDasharray, strokeDashoffset, strokeLinecap, strokeLinejoin, strokeMiterlimit, strokeWidth, textAnchor, version, viewBox)
 import Time exposing (posixToMillis)
 import Translation exposing (Language(..), TranslationId(..), timeDistInWords, tr)
-import Types exposing (Children(..), CursorPosition(..), HeaderMenuState(..), SortBy(..), TextCursorInfo, TooltipPosition(..), ViewMode(..), ViewState)
+import Types exposing (Children(..), CursorPosition(..), SortBy(..), TextCursorInfo, TooltipPosition(..), ViewMode(..), ViewState)
 import UI.Sidebar exposing (viewSidebarStatic)
 import Utils exposing (emptyText, text, textNoTr)
 

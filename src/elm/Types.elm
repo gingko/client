@@ -1,4 +1,4 @@
-module Types exposing (CardTreeOp(..), Children(..), CollabState, Column, CursorPosition(..), DragExternalModel, DropId(..), Group, HeaderMenuState(..), Mode(..), OutsideData, SortBy(..), TextCursorInfo, TooltipPosition(..), Tree, ViewMode(..), ViewState, VisibleViewState, dropIdToValue)
+module Types exposing (CardTreeOp(..), Children(..), CollabState, Column, CursorPosition(..), DragExternalModel, DropId(..), Group, Mode(..), OutsideData, SortBy(..), TextCursorInfo, TooltipPosition(..), Tree, ViewMode(..), ViewState, VisibleViewState, dropIdToValue)
 
 import Html5.DragDrop as DragDrop
 import Json.Encode as Enc
@@ -86,13 +86,6 @@ type SortBy
     = Alphabetical
     | ModifiedAt
     | CreatedAt
-
-
-type HeaderMenuState
-    = NoHeaderMenu
-    | ExportPreview
-    | HistoryView { start : String, currentView : String }
-    | Settings
 
 
 type TooltipPosition
