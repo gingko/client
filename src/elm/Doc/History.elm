@@ -1,9 +1,11 @@
-module Doc.History exposing (Model, fromList, view)
+module Doc.History exposing (Model, init, revert, view)
 
 import Ant.Icons.Svg as AntIcons
+import Doc.Data as Data
 import Html exposing (Html, button, div, input)
 import Html.Attributes as A exposing (id, step, type_)
 import Html.Events exposing (onClick, onInput, onMouseEnter, onMouseLeave)
+import Http
 import List.Zipper as Zipper exposing (Zipper)
 import RemoteData exposing (WebData)
 import Time
@@ -28,14 +30,29 @@ type alias Version =
     }
 
 
-fromList : ( String, Tree ) -> List ( String, Time.Posix, WebData Tree ) -> Model
+init : Tree -> Data.Model -> Model
+init tree data =
+    Empty
+
+
+fromList : ( String, Tree ) -> List ( String, Time.Posix, Maybe Tree ) -> Model
 fromList ( selectedVersion, originalTree ) versionTuples =
     versionTuples
-        |> List.map (\( id, timestamp, tree ) -> { id = id, timestamp = timestamp, tree = tree })
+        |> List.map (\( id, timestamp, tree_ ) -> { id = id, timestamp = timestamp, tree = tree_ |> RemoteData.fromMaybe (Http.BadBody <| "Commit" ++ selectedVersion ++ " not found") })
         |> Zipper.fromList
         |> Maybe.andThen (Zipper.find (\version -> version.id == selectedVersion))
         |> Maybe.map (History originalTree)
         |> Maybe.withDefault Empty
+
+
+revert : Model -> Maybe Tree
+revert model =
+    case model of
+        History tree _ ->
+            Just tree
+
+        Empty ->
+            Nothing
 
 
 

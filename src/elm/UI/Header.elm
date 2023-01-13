@@ -3,7 +3,6 @@ module UI.Header exposing (HeaderMenuState(..), viewHeader)
 import Ant.Icons.Svg as AntIcons
 import Doc.Data as Data
 import Doc.History as History
-import Doc.TreeStructure exposing (defaultTree)
 import Doc.UI exposing (viewSaveIndicator)
 import GlobalData exposing (GlobalData)
 import Html exposing (Html, div, h4, input, span)
@@ -28,7 +27,7 @@ import Utils exposing (emptyText, text)
 type HeaderMenuState
     = NoHeaderMenu
     | ExportPreview
-    | HistoryView { start : String, currentView : String }
+    | HistoryView History.Model
     | Settings
 
 
@@ -149,7 +148,7 @@ viewHeader msgs { session, title_, titleField_, headerMenu, exportSettings, data
             ]
             [ AntIcons.historyOutlined [] ]
         , case headerMenu of
-            HistoryView historyState ->
+            HistoryView historyModel ->
                 History.view
                     { lang = language
                     , toSelf = always msgs.noOp
@@ -158,7 +157,7 @@ viewHeader msgs { session, title_, titleField_, headerMenu, exportSettings, data
                     , tooltipRequested = msgs.tooltipRequested
                     , tooltipClosed = msgs.tooltipClosed
                     }
-                    (Data.history ( historyState.currentView, defaultTree ) data)
+                    historyModel
 
             _ ->
                 emptyText

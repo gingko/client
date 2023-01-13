@@ -9,6 +9,7 @@ import Doc.ContactForm as ContactForm
 import Doc.Data as Data
 import Doc.Fullscreen as Fullscreen
 import Doc.HelpScreen as HelpScreen
+import Doc.History as History
 import Doc.List as DocList exposing (Model(..))
 import Doc.Metadata as Metadata exposing (Metadata)
 import Doc.Switcher
@@ -794,7 +795,7 @@ update msg model =
                 ( HistoryView historyState, Doc docState ) ->
                     let
                         revertTree_ =
-                            Data.checkout historyState.start docState.data
+                            History.revert historyState
                     in
                     case revertTree_ of
                         Just revertTree ->
@@ -1519,9 +1520,9 @@ closeSwitcher model =
 
 toggleHistory : Bool -> Int -> Model -> ( Model, Cmd msg )
 toggleHistory isOpen delta model =
-    case ( isOpen, model |> toData |> Maybe.andThen (\d -> Data.head "heads/master" d) ) of
-        ( True, Just refValue ) ->
-            ( { model | headerMenu = HistoryView { start = refValue, currentView = refValue } }, send <| HistorySlider delta )
+    case ( isOpen, model.documentState ) of
+        ( True, Doc { data, docModel } ) ->
+            ( { model | headerMenu = HistoryView (History.init (Page.Doc.getWorkingTree docModel).tree data) }, send <| HistorySlider delta )
 
         _ ->
             ( { model | headerMenu = NoHeaderMenu }, Cmd.none )

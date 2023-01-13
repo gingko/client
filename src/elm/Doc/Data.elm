@@ -1,10 +1,9 @@
-module Doc.Data exposing (CommitObject, Model, cardDataReceived, checkout, conflictList, conflictSelection, empty, getCommit, gitDataReceived, head, history, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, success)
+module Doc.Data exposing (CommitObject, Model, cardDataReceived, checkout, conflictList, conflictSelection, empty, getCommit, getHistoryList, gitDataReceived, head, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, success)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
 import Diff3 exposing (diff3Merge)
 import Doc.Data.Conflict exposing (Conflict, Op(..), Selection(..), conflictWithSha, opString)
-import Doc.History as History exposing (Model)
 import Doc.TreeStructure exposing (apply, opToMsg)
 import Http
 import Json.Decode as Dec
@@ -1442,27 +1441,25 @@ opEncoder op =
 -- HISTORY
 
 
-history : ( String, Tree ) -> Model -> History.Model
-history startingTuple model =
+getHistoryList : Model -> List ( String, Time.Posix, Maybe Tree )
+getHistoryList model =
     case model of
         GitLike data _ ->
             let
                 tripleFromCommit ( cid, c ) =
                     ( cid
                     , c.timestamp |> Time.millisToPosix
-                    , checkoutCommit cid data |> RemoteData.fromMaybe (Http.BadBody <| "Commit " ++ cid ++ " not found")
+                    , checkoutCommit cid data
                     )
             in
-            (data
+            data
                 |> .commits
                 |> Dict.toList
                 |> List.sortBy (\( cid, c ) -> c.timestamp)
                 |> List.map tripleFromCommit
-            )
-                |> History.fromList startingTuple
 
         CardBased _ ->
-            [] |> History.fromList startingTuple
+            []
 
 
 
