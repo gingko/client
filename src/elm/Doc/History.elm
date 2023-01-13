@@ -67,7 +67,7 @@ view config model =
             viewHistory config zipper
 
         Empty ->
-            div [] [ textNoTr "No history" ]
+            div [ id "history-menu" ] [ textNoTr "No history" ]
 
 
 viewHistory : ViewConfig msg -> Zipper Version -> Html msg

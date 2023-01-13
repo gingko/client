@@ -1,4 +1,4 @@
-module Doc.Data exposing (CommitObject, Model, cardDataReceived, checkout, conflictList, conflictSelection, empty, getCommit, gitDataReceived, head, history, historyList, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, success)
+module Doc.Data exposing (CommitObject, Model, cardDataReceived, checkout, conflictList, conflictSelection, empty, getCommit, gitDataReceived, head, history, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, success)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
@@ -1440,25 +1440,6 @@ opEncoder op =
 
 
 -- HISTORY
-
-
-historyList : String -> Model -> List String
-historyList startingSha model =
-    case model of
-        CardBased _ ->
-            []
-
-        GitLike data _ ->
-            (data
-                |> .commits
-                |> Dict.toList
-                |> List.sortBy (\( cid, c ) -> c.timestamp)
-                |> ListExtra.splitWhen (\( cid, c ) -> cid == startingSha)
-                |> Maybe.map Tuple.first
-                |> Maybe.withDefault []
-                |> List.map Tuple.first
-            )
-                ++ [ startingSha ]
 
 
 history : String -> Model -> History.Model

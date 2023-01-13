@@ -1,4 +1,4 @@
-module Doc.UI exposing (countWords, fillet, viewAppLoadingSpinner, viewBreadcrumbs, viewConflict, viewDocumentLoadingSpinner, viewExportMenu, viewHeader, viewHistory, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewTooltip, viewWordCount)
+module Doc.UI exposing (countWords, fillet, viewAppLoadingSpinner, viewBreadcrumbs, viewConflict, viewDocumentLoadingSpinner, viewExportMenu, viewHeader, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewTooltip, viewWordCount)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -12,13 +12,12 @@ import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils as TreeUtils exposing (..)
 import GlobalData exposing (GlobalData)
 import Html exposing (Html, a, br, button, del, div, fieldset, h2, h3, h4, h5, hr, img, input, ins, label, li, pre, span, ul)
-import Html.Attributes as A exposing (..)
+import Html.Attributes exposing (..)
 import Html.Attributes.Extra exposing (attributeIf)
 import Html.Events exposing (keyCode, on, onBlur, onClick, onFocus, onInput, onMouseEnter, onMouseLeave)
 import Html.Extra exposing (viewIf)
 import Import.Template exposing (Template(..))
 import Json.Decode as Dec
-import List.Extra exposing (getAt)
 import MD5
 import Markdown.Block
 import Markdown.Html
@@ -34,7 +33,7 @@ import SharedUI exposing (ctrlOrCmdText, modalWrapper)
 import Svg exposing (g, svg)
 import Svg.Attributes exposing (d, fill, fontFamily, fontSize, fontWeight, preserveAspectRatio, stroke, strokeDasharray, strokeDashoffset, strokeLinecap, strokeLinejoin, strokeMiterlimit, strokeWidth, textAnchor, version, viewBox)
 import Time exposing (posixToMillis)
-import Translation exposing (Language(..), TranslationId(..), datetimeFormat, langToString, languageName, timeDistInWords, tr)
+import Translation exposing (Language(..), TranslationId(..), langToString, languageName, timeDistInWords, tr)
 import Types exposing (Children(..), CursorPosition(..), HeaderMenuState(..), SidebarMenuState(..), SidebarState(..), SortBy(..), TextCursorInfo, TooltipPosition(..), ViewMode(..), ViewState)
 import Utils exposing (emptyText, onClickStop, text, textNoTr)
 
@@ -968,75 +967,6 @@ viewMobileButtons msgs isEditing =
             , span [ id "mbtn-nav-down", class "mobile-button", onClick msgs.navDown ] [ AntIcons.caretDownOutlined [ width 18 ] ]
             , span [ id "mbtn-nav-right", class "mobile-button", onClick msgs.navRight ] [ AntIcons.caretRightOutlined [ width 18 ] ]
             ]
-
-
-viewHistory :
-    Translation.Language
-    ->
-        { noOp : msg
-        , checkout : String -> msg
-        , restore : msg
-        , cancel : msg
-        , tooltipRequested : String -> TooltipPosition -> TranslationId -> msg
-        , tooltipClosed : msg
-        }
-    -> Time.Posix
-    -> Data.Model
-    -> { start : String, currentView : String }
-    -> Html msg
-viewHistory lang msgs currentTime dataModel historyState =
-    let
-        historyList =
-            Data.historyList historyState.start dataModel
-
-        maybeTimeDisplay =
-            case Data.getCommit historyState.currentView dataModel of
-                Just commit ->
-                    let
-                        commitPosix =
-                            commit.timestamp |> Time.millisToPosix
-                    in
-                    div
-                        [ id "history-time-info"
-                        , onMouseEnter <| msgs.tooltipRequested "history-time-info" BelowTooltip (NoTr <| timeDistInWords lang commitPosix currentTime)
-                        , onMouseLeave msgs.tooltipClosed
-                        ]
-                        [ text lang (NoTr (datetimeFormat lang commitPosix)) ]
-
-                Nothing ->
-                    emptyText
-
-        maxIdx =
-            historyList
-                |> List.length
-                |> (\x -> x - 1)
-                |> String.fromInt
-
-        checkoutCommit idxStr =
-            case String.toInt idxStr of
-                Just idx ->
-                    case getAt idx historyList of
-                        Just commit ->
-                            msgs.checkout commit
-
-                        Nothing ->
-                            msgs.noOp
-
-                Nothing ->
-                    msgs.noOp
-    in
-    div [ id "history-menu" ]
-        [ input [ id "history-slider", type_ "range", A.min "0", A.max maxIdx, step "1", onInput checkoutCommit ] []
-        , maybeTimeDisplay
-        , button [ id "history-restore", onClick msgs.restore ] [ text lang RestoreThisVersion ]
-        , div
-            [ id "history-close-button"
-            , onClick msgs.cancel
-            , onMouseEnter <| msgs.tooltipRequested "history-close-button" BelowLeftTooltip Cancel
-            , onMouseLeave <| msgs.tooltipClosed
-            ]
-            [ AntIcons.closeOutlined [] ]
-        ]
 
 
 viewShortcuts :
