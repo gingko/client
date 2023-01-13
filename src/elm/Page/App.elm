@@ -46,6 +46,7 @@ import Task
 import Time
 import Translation exposing (Language, TranslationId(..), langToString, tr)
 import Types exposing (CardTreeOp, HeaderMenuState(..), OutsideData, SortBy(..), TooltipPosition, Tree, ViewMode(..))
+import UI.Header exposing (viewHeader)
 import UI.Sidebar exposing (SidebarMenuState(..), SidebarState(..), viewSidebar)
 import Upgrade exposing (Msg(..))
 
@@ -1669,7 +1670,7 @@ view ({ documentState } as model) =
                         , tooltipClosed = TooltipClosed
                         }
                         docModel
-                        ++ [ UI.viewHeader
+                        ++ [ viewHeader
                                 { noOp = NoOp
                                 , titleFocused = TitleFocused
                                 , titleFieldChanged = TitleFieldChanged
