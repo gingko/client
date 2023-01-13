@@ -1,10 +1,11 @@
-module Utils exposing (decodeDebug, getFieldErrors, hexEncode, onClickStop, randomPositiveInt)
+module Utils exposing (decodeDebug, emptyText, getFieldErrors, hexEncode, onClickStop, randomPositiveInt, text, textNoTr)
 
 import Hex
-import Html
+import Html exposing (Html)
 import Html.Events exposing (stopPropagationOn)
 import Json.Decode as Dec exposing (Decoder)
 import Random
+import Translation exposing (Language, TranslationId, tr)
 
 
 onClickStop : msg -> Html.Attribute msg
@@ -24,6 +25,25 @@ hexEncode input =
 randomPositiveInt : Random.Generator Int
 randomPositiveInt =
     Random.int 0 Random.maxInt
+
+
+
+-- Translation Helper Function
+
+
+text : Language -> TranslationId -> Html msg
+text lang tid =
+    Html.text <| tr lang tid
+
+
+textNoTr : String -> Html msg
+textNoTr str =
+    Html.text str
+
+
+emptyText : Html msg
+emptyText =
+    Html.text ""
 
 
 getFieldErrors : field -> List ( field, a ) -> List a

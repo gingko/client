@@ -1,16 +1,20 @@
-module Doc.Data exposing (CommitObject, Model, cardDataReceived, checkout, conflictList, conflictSelection, empty, emptyData, getCommit, gitDataReceived, head, historyList, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, success)
+module Doc.Data exposing (CommitObject, Model, cardDataReceived, checkout, conflictList, conflictSelection, empty, getCommit, gitDataReceived, head, history, historyList, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, success)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
 import Diff3 exposing (diff3Merge)
 import Doc.Data.Conflict exposing (Conflict, Op(..), Selection(..), conflictWithSha, opString)
+import Doc.History as History exposing (Model)
 import Doc.TreeStructure exposing (apply, opToMsg)
+import Http
 import Json.Decode as Dec
 import Json.Encode as Enc
 import List.Extra as ListExtra
 import Maybe exposing (andThen)
 import Outgoing exposing (Msg(..))
+import RemoteData
 import Set exposing (Set)
+import Time
 import Types exposing (CardTreeOp(..), Children(..), Tree)
 
 
@@ -100,25 +104,6 @@ head id model =
 
         GitLike data _ ->
             Dict.get id data.refs |> Maybe.map .value
-
-
-historyList : String -> Model -> List String
-historyList startingSha model =
-    case model of
-        CardBased _ ->
-            []
-
-        GitLike data _ ->
-            (data
-                |> .commits
-                |> Dict.toList
-                |> List.sortBy (\( cid, c ) -> c.timestamp)
-                |> ListExtra.splitWhen (\( cid, c ) -> cid == startingSha)
-                |> Maybe.map Tuple.first
-                |> Maybe.withDefault []
-                |> List.map Tuple.first
-            )
-                ++ [ startingSha ]
 
 
 getCommit : String -> Model -> Maybe CommitObject
@@ -1451,6 +1436,52 @@ opEncoder op =
             Enc.object
                 [ ( "t", Enc.string "ud" )
                 ]
+
+
+
+-- HISTORY
+
+
+historyList : String -> Model -> List String
+historyList startingSha model =
+    case model of
+        CardBased _ ->
+            []
+
+        GitLike data _ ->
+            (data
+                |> .commits
+                |> Dict.toList
+                |> List.sortBy (\( cid, c ) -> c.timestamp)
+                |> ListExtra.splitWhen (\( cid, c ) -> cid == startingSha)
+                |> Maybe.map Tuple.first
+                |> Maybe.withDefault []
+                |> List.map Tuple.first
+            )
+                ++ [ startingSha ]
+
+
+history : String -> Model -> History.Model
+history startingSha model =
+    case model of
+        GitLike data _ ->
+            let
+                tripleFromCommit ( cid, c ) =
+                    ( cid
+                    , c.timestamp |> Time.millisToPosix
+                    , checkoutCommit cid data |> RemoteData.fromMaybe (Http.BadBody <| "Commit " ++ cid ++ " not found")
+                    )
+            in
+            (data
+                |> .commits
+                |> Dict.toList
+                |> List.sortBy (\( cid, c ) -> c.timestamp)
+                |> List.map tripleFromCommit
+            )
+                |> History.fromList startingSha
+
+        CardBased _ ->
+            [] |> History.fromList startingSha
 
 
 

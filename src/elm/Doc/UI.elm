@@ -6,6 +6,7 @@ import Coders exposing (treeToMarkdownString)
 import Diff exposing (..)
 import Doc.Data as Data exposing (CommitObject)
 import Doc.Data.Conflict as Conflict exposing (Conflict, Op(..), Selection(..), opString)
+import Doc.History as History
 import Doc.List as DocList exposing (Model(..))
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils as TreeUtils exposing (..)
@@ -35,26 +36,7 @@ import Svg.Attributes exposing (d, fill, fontFamily, fontSize, fontWeight, prese
 import Time exposing (posixToMillis)
 import Translation exposing (Language(..), TranslationId(..), datetimeFormat, langToString, languageName, timeDistInWords, tr)
 import Types exposing (Children(..), CursorPosition(..), HeaderMenuState(..), SidebarMenuState(..), SidebarState(..), SortBy(..), TextCursorInfo, TooltipPosition(..), ViewMode(..), ViewState)
-import Utils exposing (onClickStop)
-
-
-
--- Translation Helper Function
-
-
-text : Language -> TranslationId -> Html msg
-text lang tid =
-    Html.text <| tr lang tid
-
-
-textNoTr : String -> Html msg
-textNoTr str =
-    Html.text str
-
-
-emptyText : Html msg
-emptyText =
-    Html.text ""
+import Utils exposing (emptyText, onClickStop, text, textNoTr)
 
 
 
@@ -175,17 +157,15 @@ viewHeader msgs { session, title_, titleField_, headerMenu, exportSettings, data
             [ AntIcons.historyOutlined [] ]
         , case headerMenu of
             HistoryView historyState ->
-                viewHistory language
-                    { noOp = msgs.noOp
-                    , checkout = msgs.checkoutCommit
+                History.view
+                    { lang = language
+                    , toSelf = always msgs.noOp
                     , restore = msgs.restore
                     , cancel = msgs.cancelHistory
                     , tooltipRequested = msgs.tooltipRequested
                     , tooltipClosed = msgs.tooltipClosed
                     }
-                    currentTime
-                    data
-                    historyState
+                    (Data.history historyState.currentView data)
 
             _ ->
                 emptyText

@@ -36,6 +36,7 @@
             "jinjor/elm-diff": "1.0.6",
             "justinmimbs/date": "3.2.0",
             "justinmimbs/time-extra": "1.1.0",
+            "krisajenkins/remotedata": "6.0.1",
             "lemol/ant-design-icons-elm": "2.0.0",
             "miniBill/elm-codec": "2.0.0",
             "norpan/elm-html5-drag-drop": "3.1.4",
@@ -44,6 +45,7 @@
             "rtfeldman/elm-validate": "4.0.1",
             "thaterikperson/elm-strftime": "2.0.2",
             "truqu/elm-md5": "1.1.0",
+            "wernerdegroot/listzipper": "4.0.0",
             "ymtszw/elm-xml-decode": "3.2.1"
         },
         "indirect": {
