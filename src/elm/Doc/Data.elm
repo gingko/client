@@ -5,13 +5,11 @@ import Dict exposing (Dict)
 import Diff3 exposing (diff3Merge)
 import Doc.Data.Conflict exposing (Conflict, Op(..), Selection(..), conflictWithSha, opString)
 import Doc.TreeStructure exposing (apply, opToMsg)
-import Http
 import Json.Decode as Dec
 import Json.Encode as Enc
 import List.Extra as ListExtra
 import Maybe exposing (andThen)
 import Outgoing exposing (Msg(..))
-import RemoteData
 import Set exposing (Set)
 import Time
 import Types exposing (CardTreeOp(..), Children(..), Tree)
@@ -26,7 +24,7 @@ historyLimit =
 
 
 type Model
-    = CardBased (List (Card String))
+    = CardBased CardData
     | GitLike GitData (Maybe ConflictInfo)
 
 
@@ -40,6 +38,10 @@ type alias Card t =
     , synced : Bool
     , updatedAt : t
     }
+
+
+type alias CardData =
+    List (Card String)
 
 
 type alias GitData =
