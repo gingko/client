@@ -200,19 +200,23 @@ cardDataReceived json ( oldModel, oldTree, treeId ) =
                         CardBased oldData oldHistory ->
                             if cards /= oldData then
                                 let
-                                    latestTs =
+                                    latestUpdatedAt =
                                         cards
                                             |> List.map .updatedAt
                                             |> List.sort
                                             |> List.reverse
                                             |> List.head
-                                            |> Maybe.map (String.split ":")
-                                            |> Maybe.andThen List.head
+                                            |> Maybe.withDefault ""
+
+                                    latestTs =
+                                        latestUpdatedAt
+                                            |> String.split ":"
+                                            |> List.head
                                             |> Maybe.andThen String.toInt
                                             |> Maybe.withDefault 0
                                             |> Time.millisToPosix
                                 in
-                                CardBased cards (( treeId, latestTs, RemoteData.Success cards ) :: oldHistory |> ListExtra.uniqueBy (\( _, ts, _ ) -> Time.posixToMillis ts))
+                                CardBased cards (( latestUpdatedAt, latestTs, RemoteData.Success cards ) :: oldHistory |> ListExtra.uniqueBy (\( _, ts, _ ) -> Time.posixToMillis ts))
 
                             else
                                 oldModel
@@ -1483,8 +1487,10 @@ getHistoryList model =
                 |> List.sortBy (\( cid, c ) -> c.timestamp)
                 |> List.map tripleFromCommit
 
-        CardBased _ _ ->
-            []
+        CardBased _ history ->
+            history
+                |> List.map (\( id, ts, cardData_ ) -> ( id, ts, cardData_ |> RemoteData.toMaybe |> Maybe.map toTree ))
+                |> List.reverse
 
 
 
