@@ -10,6 +10,7 @@ import Json.Encode as Enc
 import List.Extra as ListExtra
 import Maybe exposing (andThen)
 import Outgoing exposing (Msg(..))
+import RemoteData exposing (WebData)
 import Set exposing (Set)
 import Time
 import Types exposing (CardTreeOp(..), Children(..), Tree)
@@ -24,7 +25,7 @@ historyLimit =
 
 
 type Model
-    = CardBased CardData
+    = CardBased CardData (List ( String, Time.Posix, WebData CardData ))
     | GitLike GitData (Maybe ConflictInfo)
 
 
@@ -100,7 +101,7 @@ emptyData =
 head : String -> Model -> Maybe String
 head id model =
     case model of
-        CardBased _ ->
+        CardBased _ _ ->
             Nothing
 
         GitLike data _ ->
@@ -110,7 +111,7 @@ head id model =
 getCommit : String -> Model -> Maybe CommitObject
 getCommit sha model =
     case model of
-        CardBased _ ->
+        CardBased _ _ ->
             Nothing
 
         GitLike data _ ->
@@ -128,14 +129,14 @@ conflictList model =
         GitLike _ (Just { conflicts }) ->
             conflicts
 
-        CardBased _ ->
+        CardBased _ _ ->
             []
 
 
 checkout : String -> Model -> Maybe Tree
 checkout commitSha model =
     case model of
-        CardBased _ ->
+        CardBased _ _ ->
             Nothing
 
         GitLike data _ ->
@@ -145,7 +146,7 @@ checkout commitSha model =
 lastSavedTime : Model -> Maybe Int
 lastSavedTime model =
     case model of
-        CardBased data ->
+        CardBased data _ ->
             data
                 |> List.map .updatedAt
                 |> List.sort
@@ -160,7 +161,7 @@ lastSavedTime model =
 lastSyncedTime : Model -> Maybe Int
 lastSyncedTime model =
     case model of
-        CardBased data ->
+        CardBased data _ ->
             data
                 |> List.filter .synced
                 |> List.map .updatedAt
@@ -195,7 +196,7 @@ cardDataReceived json ( oldModel, oldTree, treeId ) =
         Ok cards ->
             let
                 newModel =
-                    CardBased cards
+                    CardBased cards []
 
                 newTree =
                     cards
@@ -292,7 +293,7 @@ success json model =
                     }
             in
             case model of
-                CardBased _ ->
+                CardBased _ _ ->
                     model
 
                 GitLike d cd_ ->
@@ -305,7 +306,7 @@ success json model =
 conflictSelection : String -> Selection -> Model -> Model
 conflictSelection cid selection model =
     case model of
-        CardBased _ ->
+        CardBased _ _ ->
             model
 
         GitLike data (Just confInfo) ->
@@ -330,7 +331,7 @@ conflictSelection cid selection model =
 resolve : String -> Model -> Model
 resolve cid model =
     case model of
-        CardBased _ ->
+        CardBased _ _ ->
             model
 
         GitLike _ Nothing ->
@@ -778,7 +779,7 @@ treeObjectDecoder =
 requestCommit : Tree -> String -> Model -> Enc.Value -> Maybe Enc.Value
 requestCommit workingTree author model metadata =
     case model of
-        CardBased _ ->
+        CardBased _ _ ->
             Nothing
 
         GitLike data Nothing ->
@@ -832,7 +833,7 @@ type alias DBChangeLists =
 localSave : String -> CardTreeOp -> Model -> Enc.Value
 localSave treeId op model =
     case model of
-        CardBased data ->
+        CardBased data _ ->
             case op of
                 CTUpd id newContent ->
                     let
@@ -1256,7 +1257,7 @@ resolveDeleteConflicts allCards versions =
 pushOkHandler : String -> Model -> Maybe Outgoing.Msg
 pushOkHandler chk model =
     case model of
-        CardBased data ->
+        CardBased data _ ->
             let
                 cardsToSync =
                     data
@@ -1460,7 +1461,7 @@ getHistoryList model =
                 |> List.sortBy (\( cid, c ) -> c.timestamp)
                 |> List.map tripleFromCommit
 
-        CardBased _ ->
+        CardBased _ _ ->
             []
 
 
