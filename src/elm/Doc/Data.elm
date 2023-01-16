@@ -5,6 +5,7 @@ import Dict exposing (Dict)
 import Diff3 exposing (diff3Merge)
 import Doc.Data.Conflict exposing (Conflict, Op(..), Selection(..), conflictWithSha, opString)
 import Doc.TreeStructure exposing (apply, opToMsg)
+import Http exposing (Error(..))
 import Json.Decode as Dec
 import Json.Encode as Enc
 import List.Extra as ListExtra
@@ -1468,6 +1469,39 @@ opEncoder op =
 
 
 -- HISTORY
+
+
+historyReceived : Dec.Value -> Model -> Model
+historyReceived json model =
+    case model of
+        CardBased data oldHistory ->
+            let
+                history =
+                    json
+                        |> Dec.decodeValue decodeHistory
+                        |> Result.withDefault []
+
+                newHistory : List ( String, Time.Posix, WebData CardData )
+                newHistory =
+                    history
+                        |> List.map (\( id, ts, cards_ ) -> ( id, ts, RemoteData.fromMaybe (BadBody "Couldn't load history data") cards_ ))
+                        |> List.append oldHistory
+                        |> ListExtra.uniqueBy (\( id, _, _ ) -> id)
+                        |> List.sortBy (\( _, ts, _ ) -> Time.posixToMillis ts)
+            in
+            CardBased data newHistory
+
+        GitLike _ _ ->
+            model
+
+
+decodeHistory : Dec.Decoder (List ( String, Time.Posix, Maybe (List (Card String)) ))
+decodeHistory =
+    Dec.list <|
+        Dec.map3 (\id ts cards -> ( id, ts, cards ))
+            (Dec.field "id" Dec.string)
+            (Dec.field "ts" (Dec.map Time.millisToPosix Dec.int))
+            (Dec.field "cards" (Dec.maybe (Dec.list decodeCard)))
 
 
 getHistoryList : Model -> List ( String, Time.Posix, Maybe Tree )
