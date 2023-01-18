@@ -20,7 +20,7 @@ import File exposing (File)
 import File.Download as Download
 import File.Select as Select
 import GlobalData exposing (GlobalData)
-import Html exposing (Html, div, strong)
+import Html exposing (Html, button, div, strong)
 import Html.Attributes exposing (class, classList, height, id, style, width)
 import Html.Events exposing (onClick)
 import Html.Extra exposing (viewIf)
@@ -1674,6 +1674,15 @@ view ({ documentState } as model) =
 
                             _ ->
                                 textNoTr ""
+
+                    maybeMigrateButton =
+                        if Data.isGitLike data then
+                            [ button [ id "migrate-to-card-based", style "position" "absolute", style "top" "40px", style "left" "50%" ]
+                                [ textNoTr "Migrate to New Card-Based Format" ]
+                            ]
+
+                        else
+                            [ emptyText ]
                 in
                 div [ id "app-root", classList [ ( "loading", model.loading ) ], applyTheme model.theme ]
                     (Page.Doc.view
@@ -1743,6 +1752,7 @@ view ({ documentState } as model) =
                             (Page.Doc.getTextCursorInfo docModel)
                             (Page.Doc.getViewMode docModel)
                         ++ viewModal globalData session model.modalState
+                        ++ maybeMigrateButton
                     )
 
         Empty globalData _ ->

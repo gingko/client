@@ -1,4 +1,4 @@
-module Doc.Data exposing (CommitObject, Model, cardDataReceived, checkout, conflictList, conflictSelection, empty, getCommit, getHistoryList, gitDataReceived, head, historyReceived, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, success)
+module Doc.Data exposing (CommitObject, Model, cardDataReceived, checkout, conflictList, conflictSelection, empty, getCommit, getHistoryList, gitDataReceived, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, success)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
@@ -187,6 +187,16 @@ parseUpdatedAt str =
         |> Maybe.andThen String.toInt
 
 
+isGitLike : Model -> Bool
+isGitLike model =
+    case model of
+        GitLike _ _ ->
+            True
+
+        CardBased _ _ ->
+            False
+
+
 
 -- EXPOSED : Functions
 
@@ -370,6 +380,21 @@ resolve cid model =
                     List.filter (\c -> c.id /= cid) confInfo.conflicts
             in
             GitLike d (Just { confInfo | conflicts = newConflicts })
+
+
+convert : Model -> Model
+convert model =
+    case model of
+        GitLike _ _ ->
+            let
+                gitLikeHistory =
+                    getHistoryList model
+                        |> Debug.log "gitLikeHistory"
+            in
+            model
+
+        CardBased data _ ->
+            model
 
 
 
