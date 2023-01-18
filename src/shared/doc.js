@@ -454,6 +454,11 @@ const fromElm = (msg, elmData) => {
       }
     },
 
+    SaveCardBasedMigration : async () => {
+      await dexie.trees.update(TREE_ID, {location: "cardbased", synced: false});
+      await dexie.cards.bulkPut(elmData);
+    },
+
     CommitData: async () => {
       let timestamp = Date.now()
       dataWorker.postMessage({tag: "newSave", data: {db: userDbName, treeId: TREE_ID, elmData: elmData, timestamp: timestamp, savedImmutables: savedObjectIds}});

@@ -1,4 +1,4 @@
-module Doc.Data exposing (CommitObject, Model, cardDataReceived, checkout, conflictList, conflictSelection, empty, getCommit, getHistoryList, gitDataReceived, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, success)
+module Doc.Data exposing (CommitObject, Model, cardDataReceived, checkout, conflictList, conflictSelection, convert, empty, getCommit, getHistoryList, gitDataReceived, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, success)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
@@ -15,6 +15,7 @@ import RemoteData exposing (WebData)
 import Set exposing (Set)
 import Time
 import Types exposing (CardTreeOp(..), Children(..), Tree)
+import Utils exposing (hash)
 
 
 
@@ -382,19 +383,44 @@ resolve cid model =
             GitLike d (Just { confInfo | conflicts = newConflicts })
 
 
-convert : Model -> Model
-convert model =
+convert : String -> Model -> Maybe ( Model, Enc.Value )
+convert docId model =
     case model of
         GitLike _ _ ->
             let
                 gitLikeHistory =
                     getHistoryList model
-                        |> Debug.log "gitLikeHistory"
+
+                latestVersion =
+                    gitLikeHistory |> List.reverse |> List.head
+
+                cardHistory =
+                    gitLikeHistory
+                        |> List.map
+                            (\( i, t, tr_ ) ->
+                                ( i
+                                , t
+                                , RemoteData.fromMaybe (BadBody "Couldn't import git-like history") tr_
+                                    |> RemoteData.map (fromTree docId Nothing t 0)
+                                )
+                            )
             in
-            model
+            case latestVersion of
+                Just ( _, ts, Just tree ) ->
+                    let
+                        currCards =
+                            fromTree docId Nothing ts 0 tree
+                    in
+                    Just
+                        ( CardBased currCards cardHistory
+                        , Enc.list encodeExistingCard currCards
+                        )
+
+                _ ->
+                    Nothing
 
         CardBased data _ ->
-            model
+            Nothing
 
 
 
@@ -975,6 +1001,29 @@ getPosition cardId parId idx data =
 
         ( Nothing, Nothing ) ->
             0
+
+
+fromTree : String -> Maybe String -> Time.Posix -> Int -> Tree -> List (Card String)
+fromTree treeId parId ts idx tree =
+    if tree.id == "0" then
+        case tree.children of
+            Children children ->
+                children
+                    |> List.indexedMap (fromTree treeId Nothing ts)
+                    |> List.concat
+
+    else
+        let
+            tsInt =
+                Time.posixToMillis ts
+        in
+        { id = tree.id, treeId = treeId, content = tree.content, parentId = parId, position = toFloat idx, deleted = False, synced = False, updatedAt = (tsInt |> String.fromInt) ++ ":0:" ++ hash tsInt tree.id }
+            :: (case tree.children of
+                    Children children ->
+                        children
+                            |> List.indexedMap (fromTree treeId (Just tree.id) ts)
+                            |> List.concat
+               )
 
 
 toTree : List (Card String) -> Tree

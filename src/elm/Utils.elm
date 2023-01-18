@@ -1,9 +1,10 @@
-module Utils exposing (decodeDebug, emptyText, getFieldErrors, hexEncode, onClickStop, randomPositiveInt, text, textNoTr)
+module Utils exposing (decodeDebug, emptyText, getFieldErrors, hash, hexEncode, onClickStop, randomPositiveInt, text, textNoTr)
 
 import Hex
 import Html exposing (Html)
 import Html.Events exposing (stopPropagationOn)
 import Json.Decode as Dec exposing (Decoder)
+import Murmur3 exposing (hashString)
 import Random
 import Translation exposing (Language, TranslationId, tr)
 
@@ -20,6 +21,12 @@ hexEncode input =
         |> List.map Char.toCode
         |> List.map Hex.toString
         |> String.join ""
+
+
+hash : Int -> String -> String
+hash seed str =
+    hashString seed str
+        |> Hex.toString
 
 
 randomPositiveInt : Random.Generator Int

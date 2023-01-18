@@ -29,6 +29,7 @@ type Msg
     | NoDataToSave
     | RenameDocument String
     | SaveCardBased Enc.Value
+    | SaveCardBasedMigration Enc.Value
     | PushDeltas Enc.Value
     | CommitData Enc.Value
     | PullData
@@ -99,6 +100,9 @@ send info =
 
         SaveCardBased data ->
             dataToSend "SaveCardBased" data
+
+        SaveCardBasedMigration data ->
+            dataToSend "SaveCardBasedMigration" data
 
         PushDeltas data ->
             dataToSend "PushDeltas" data

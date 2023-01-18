@@ -255,6 +255,7 @@ type Msg
     | LogoutRequested
     | IncomingAppMsg IncomingAppMsg
     | IncomingDocMsg Incoming.Msg
+    | MigrateToCardBased
     | LogErr String
       -- Sidebar
     | TemplateSelectorOpened
@@ -603,6 +604,33 @@ update msg model =
 
                 _ ->
                     doNothing
+
+        MigrateToCardBased ->
+            case model.documentState of
+                Doc docState ->
+                    let
+                        converted_ =
+                            Data.convert docState.docId docState.data
+                    in
+                    case converted_ of
+                        Just ( newData, outData ) ->
+                            ( { model
+                                | documentState =
+                                    Doc
+                                        { docState
+                                            | data = newData
+                                        }
+                              }
+                            , Cmd.batch
+                                [ send <| SaveCardBasedMigration outData
+                                ]
+                            )
+
+                        Nothing ->
+                            ( model, Cmd.none )
+
+                Empty _ _ ->
+                    ( model, Cmd.none )
 
         LogErr err ->
             ( model
@@ -1677,7 +1705,13 @@ view ({ documentState } as model) =
 
                     maybeMigrateButton =
                         if Data.isGitLike data then
-                            [ button [ id "migrate-to-card-based", style "position" "absolute", style "top" "40px", style "left" "50%" ]
+                            [ button
+                                [ id "migrate-to-card-based"
+                                , style "position" "absolute"
+                                , style "top" "40px"
+                                , style "left" "50%"
+                                , onClick MigrateToCardBased
+                                ]
                                 [ textNoTr "Migrate to New Card-Based Format" ]
                             ]
 
