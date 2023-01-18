@@ -611,6 +611,10 @@ update msg model =
                     let
                         converted_ =
                             Data.convert docState.docId docState.data
+
+                        tree =
+                            Page.Doc.getWorkingTree docState.docModel
+                                |> .tree
                     in
                     case converted_ of
                         Just ( newData, outData ) ->
@@ -623,7 +627,14 @@ update msg model =
                                 , tooltip = Nothing
                               }
                             , Cmd.batch
-                                [ send <| SaveCardBasedMigration outData
+                                [ Export.command
+                                    ((always << always) NoOp)
+                                    docState.docId
+                                    ((Session.getDocName session docState.docId |> Maybe.withDefault "Untitled") ++ "-migration-backup")
+                                    ( ExportEverything, JSON )
+                                    tree
+                                    tree
+                                , send <| SaveCardBasedMigration outData
                                 ]
                             )
 
