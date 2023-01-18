@@ -401,7 +401,7 @@ convert docId model =
                                 ( i
                                 , t
                                 , RemoteData.fromMaybe (BadBody "Couldn't import git-like history") tr_
-                                    |> RemoteData.map (fromTree docId Nothing t 0)
+                                    |> RemoteData.map (fromTree docId 0 Nothing t 0)
                                 )
                             )
             in
@@ -409,7 +409,7 @@ convert docId model =
                 Just ( _, ts, Just tree ) ->
                     let
                         currCards =
-                            fromTree docId Nothing ts 0 tree
+                            fromTree docId 0 Nothing ts 0 tree
                     in
                     Just
                         ( CardBased currCards cardHistory
@@ -1003,13 +1003,13 @@ getPosition cardId parId idx data =
             0
 
 
-fromTree : String -> Maybe String -> Time.Posix -> Int -> Tree -> List (Card String)
-fromTree treeId parId ts idx tree =
+fromTree : String -> Int -> Maybe String -> Time.Posix -> Int -> Tree -> List (Card String)
+fromTree treeId depth parId ts idx tree =
     if tree.id == "0" then
         case tree.children of
             Children children ->
                 children
-                    |> List.indexedMap (fromTree treeId Nothing ts)
+                    |> List.indexedMap (fromTree treeId depth Nothing ts)
                     |> List.concat
 
     else
@@ -1017,11 +1017,11 @@ fromTree treeId parId ts idx tree =
             tsInt =
                 Time.posixToMillis ts
         in
-        { id = tree.id, treeId = treeId, content = tree.content, parentId = parId, position = toFloat idx, deleted = False, synced = False, updatedAt = (tsInt |> String.fromInt) ++ ":0:" ++ hash tsInt tree.id }
+        { id = tree.id, treeId = treeId, content = tree.content, parentId = parId, position = toFloat idx, deleted = False, synced = False, updatedAt = (tsInt |> String.fromInt) ++ ":" ++ String.fromInt depth ++ ":" ++ hash tsInt tree.id }
             :: (case tree.children of
                     Children children ->
                         children
-                            |> List.indexedMap (fromTree treeId (Just tree.id) ts)
+                            |> List.indexedMap (fromTree treeId (depth + 1) (Just tree.id) ts)
                             |> List.concat
                )
 
