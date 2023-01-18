@@ -208,6 +208,13 @@ async function setUserDbs(eml) {
           }
           break;
         }
+
+        case 'history': {
+          const {tr, d} = data;
+          const snapshotData = d.map(hd => ({snapshot: hd.id , treeId: tr, data: hd.d.map(d => ({...d, synced: true}))}));
+          await dexie.tree_snapshots.bulkPut(snapshotData);
+          break;
+        }
       }
     } catch (e) {
       console.log(e);
@@ -615,6 +622,12 @@ const fromElm = (msg, elmData) => {
     UpdateCommits: () => {},
 
     HistorySlider: () => {
+      // History opened
+      // TODO: Check if we're actually in a card-based document
+      if (ws.readyState == ws.OPEN && ws.bufferedAmount == 0) {
+        ws.send(JSON.stringify({t: "pullHistory", d: TREE_ID}));
+      }
+
       window.requestAnimationFrame(() => {
         let slider = document.getElementById('history-slider')
         if (slider != null) {
