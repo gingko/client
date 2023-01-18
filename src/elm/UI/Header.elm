@@ -17,7 +17,7 @@ import Session exposing (Session)
 import Time
 import Translation exposing (Language, TranslationId(..))
 import Types exposing (TooltipPosition(..), Tree)
-import Utils exposing (emptyText, text)
+import Utils exposing (emptyText, text, textNoTr)
 
 
 
@@ -43,6 +43,7 @@ viewHeader :
     , titleEditCanceled : msg
     , tooltipRequested : String -> TooltipPosition -> TranslationId -> msg
     , tooltipClosed : msg
+    , migrateClicked : msg
     , toggledHistory : Bool -> msg
     , checkoutTree : Tree -> msg
     , restore : msg
@@ -62,6 +63,7 @@ viewHeader :
         , title_ : Maybe String
         , titleField_ : Maybe String
         , headerMenu : HeaderMenuState
+        , isGitLike : Bool
         , exportSettings : ( ExportSelection, ExportFormat )
         , data : Data.Model
         , dirty : Bool
@@ -70,7 +72,7 @@ viewHeader :
         , globalData : GlobalData
         }
     -> Html msg
-viewHeader msgs { session, title_, titleField_, headerMenu, exportSettings, data, dirty, lastLocalSave, lastRemoteSave, globalData } =
+viewHeader msgs { session, title_, titleField_, headerMenu, isGitLike, exportSettings, data, dirty, lastLocalSave, lastRemoteSave, globalData } =
     let
         language =
             GlobalData.language globalData
@@ -138,6 +140,15 @@ viewHeader msgs { session, title_, titleField_, headerMenu, exportSettings, data
     in
     div [ id "document-header" ]
         [ titleArea
+        , viewIf isGitLike <|
+            div
+                [ id "migrate-button"
+                , class "header-button"
+                , onClick msgs.migrateClicked
+                , onMouseEnter <| msgs.tooltipRequested "migrate-button" BelowTooltip MigrateTooltip
+                , onMouseLeave msgs.tooltipClosed
+                ]
+                [ AntIcons.thunderboltFilled [] ]
         , div
             [ id "history-icon"
             , class "header-button"

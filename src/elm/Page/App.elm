@@ -620,6 +620,7 @@ update msg model =
                                         { docState
                                             | data = newData
                                         }
+                                , tooltip = Nothing
                               }
                             , Cmd.batch
                                 [ send <| SaveCardBasedMigration outData
@@ -1702,21 +1703,6 @@ view ({ documentState } as model) =
 
                             _ ->
                                 textNoTr ""
-
-                    maybeMigrateButton =
-                        if Data.isGitLike data then
-                            [ button
-                                [ id "migrate-to-card-based"
-                                , style "position" "absolute"
-                                , style "top" "40px"
-                                , style "left" "50%"
-                                , onClick MigrateToCardBased
-                                ]
-                                [ textNoTr "Migrate to New Card-Based Format" ]
-                            ]
-
-                        else
-                            [ emptyText ]
                 in
                 div [ id "app-root", classList [ ( "loading", model.loading ) ], applyTheme model.theme ]
                     (Page.Doc.view
@@ -1734,6 +1720,7 @@ view ({ documentState } as model) =
                                 , titleEditCanceled = TitleEditCanceled
                                 , tooltipRequested = TooltipRequested
                                 , tooltipClosed = TooltipClosed
+                                , migrateClicked = MigrateToCardBased
                                 , toggledHistory = HistoryToggled
                                 , checkoutTree = CheckoutTree
                                 , restore = Restore
@@ -1752,6 +1739,7 @@ view ({ documentState } as model) =
                                 , title_ = Session.getDocName session docId
                                 , titleField_ = titleField
                                 , headerMenu = model.headerMenu
+                                , isGitLike = Data.isGitLike data
                                 , exportSettings = model.exportSettings
                                 , data = data
                                 , dirty = dirty
@@ -1786,7 +1774,6 @@ view ({ documentState } as model) =
                             (Page.Doc.getTextCursorInfo docModel)
                             (Page.Doc.getViewMode docModel)
                         ++ viewModal globalData session model.modalState
-                        ++ maybeMigrateButton
                     )
 
         Empty globalData _ ->

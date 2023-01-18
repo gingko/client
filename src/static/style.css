@@ -820,11 +820,11 @@ a.sidebar-menu-item, a.sidebar-menu-item:visited {
 #document-header {
   grid-area: document-header;
   display: grid;
-  grid-template-columns: 15px max-content 1fr 40px 40px 40px;
+  grid-template-columns: 15px max-content 1fr min-content 40px 40px 40px;
   grid-template-rows: 40px min-content;
   grid-template-areas:
-    ". title doc-header-center button1 button2 button3"
-    "header-menu header-menu header-menu header-menu header-menu header-menu";
+    ". title doc-header-center migrate-button button1 button2 button3"
+    "header-menu header-menu header-menu header-menu header-menu header-menu header-menu";
   color: var(--ui-1-fg);
   background-color: var(--ui-1-bg);
   border-bottom: 1px solid hsl(212deg 5% 58%);
@@ -909,6 +909,10 @@ a.sidebar-menu-item, a.sidebar-menu-item:visited {
 #save-indicator.saving {
   transition: none;
   font-weight: bold;
+}
+
+#migrate-button {
+  grid-area: migrate-button;
 }
 
 #history-icon {

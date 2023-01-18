@@ -179,6 +179,7 @@ type TranslationId
     | HeadingFont
     | ContentFont
     | EditingFont
+    | MigrateTooltip
     | VersionHistory
     | DocumentSettings
     | WordCount
@@ -3808,6 +3809,28 @@ tr lang trans =
                     , ca = "%ca:EditingFont%"
                     , br = "%br:EditingFont%"
                     , mr = "%mr:EditingFont%"
+                    }
+
+                MigrateTooltip ->
+                    { en = "Migrate to Improved Document Format"
+                    , zh_hans = "%zh_hans:MigrateToCardBased%"
+                    , zh_hant = "%zh_hant:MigrateToCardBased%"
+                    , es = "%es:MigrateToCardBased%"
+                    , ar = "%ar:MigrateToCardBased%"
+                    , fr = "%fr:MigrateToCardBased%"
+                    , ru = "%ru:MigrateToCardBased%"
+                    , de = "%de:MigrateToCardBased%"
+                    , ja = "%ja:MigrateToCardBased%"
+                    , pes = "%pes:MigrateToCardBased%"
+                    , it = "%it:MigrateToCardBased%"
+                    , ro = "%ro:MigrateToCardBased%"
+                    , hr = "%hr:MigrateToCardBased%"
+                    , nl = "%nl:MigrateToCardBased%"
+                    , hu = "%hu:MigrateToCardBased%"
+                    , sv = "%sv:MigrateToCardBased%"
+                    , ca = "%ca:MigrateToCardBased%"
+                    , br = "%br:MigrateToCardBased%"
+                    , mr = "%mr:MigrateToCardBased%"
                     }
 
                 VersionHistory ->
