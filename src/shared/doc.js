@@ -457,6 +457,7 @@ const fromElm = (msg, elmData) => {
     SaveCardBasedMigration : async () => {
       await dexie.trees.update(TREE_ID, {location: "cardbased", synced: false});
       await dexie.cards.bulkPut(elmData);
+      loadCardBasedDocument(TREE_ID);
     },
 
     CommitData: async () => {
