@@ -21,9 +21,10 @@ import PouchDB from "pouchdb";
 const Dexie = require("dexie").default;
 
 const dexie = new Dexie("db");
-dexie.version(2).stores({
+dexie.version(3).stores({
   trees: "id,updatedAt",
   cards: "updatedAt,treeId",
+  tree_snapshots: "snapshot, treeId"
 });
 
 const helpers = require("./doc-helpers");
@@ -191,6 +192,22 @@ async function setUserDbs(eml) {
         case 'treesOk':
           await dexie.trees.where('updatedAt').belowOrEqual(data.d).modify({synced: true});
           break;
+
+        case 'historyMeta': {
+          const {tr, d} = data;
+          const snapshotData = d.map(hmd => ({snapshot: hmd.id , treeId: tr, data: null}));
+          try {
+            await dexie.tree_snapshots.bulkAdd(snapshotData);
+          } catch (e) {
+            const errorNames = e.failures.map(f => f.name);
+            if (errorNames.every(n => n === 'ConstraintError')) {
+              // Ignore
+            } else {
+              throw e;
+            }
+          }
+          break;
+        }
       }
     } catch (e) {
       console.log(e);
@@ -746,6 +763,9 @@ async function loadCardBasedDocument (treeId) {
   // Pull data from remote
   if (ws.readyState == ws.OPEN && ws.bufferedAmount == 0) {
     ws.send(JSON.stringify({t: "pull", d: [treeId, chk]}));
+    setTimeout(() => {
+      ws.send(JSON.stringify({t: "pullHistoryMeta", d: treeId}));
+    }, 1000);
   }
 }
 
