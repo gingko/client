@@ -1,4 +1,4 @@
-module Doc.Data exposing (CommitObject, Model, cardDataReceived, checkout, conflictList, conflictSelection, empty, getCommit, getHistoryList, gitDataReceived, head, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, success)
+module Doc.Data exposing (CommitObject, Model, cardDataReceived, checkout, conflictList, conflictSelection, empty, getCommit, getHistoryList, gitDataReceived, head, historyReceived, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, success)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
@@ -1475,21 +1475,26 @@ historyReceived : Dec.Value -> Model -> Model
 historyReceived json model =
     case model of
         CardBased data oldHistory ->
-            let
-                history =
-                    json
-                        |> Dec.decodeValue decodeHistory
-                        |> Result.withDefault []
+            case Dec.decodeValue decodeHistory json of
+                Ok history ->
+                    let
+                        newHistory : List ( String, Time.Posix, WebData CardData )
+                        newHistory =
+                            history
+                                |> List.map (\( id, ts, cards_ ) -> ( id, ts, RemoteData.fromMaybe (BadBody "Couldn't load history data") cards_ ))
+                                |> List.append oldHistory
+                                |> ListExtra.uniqueBy (\( id, _, _ ) -> id)
+                                |> List.sortBy (\( _, ts, _ ) -> Time.posixToMillis ts)
+                                |> List.reverse
+                    in
+                    CardBased data newHistory
 
-                newHistory : List ( String, Time.Posix, WebData CardData )
-                newHistory =
-                    history
-                        |> List.map (\( id, ts, cards_ ) -> ( id, ts, RemoteData.fromMaybe (BadBody "Couldn't load history data") cards_ ))
-                        |> List.append oldHistory
-                        |> ListExtra.uniqueBy (\( id, _, _ ) -> id)
-                        |> List.sortBy (\( _, ts, _ ) -> Time.posixToMillis ts)
-            in
-            CardBased data newHistory
+                Err err ->
+                    let
+                        _ =
+                            Debug.log "Couldn't decode history" err
+                    in
+                    model
 
         GitLike _ _ ->
             model
@@ -1499,9 +1504,9 @@ decodeHistory : Dec.Decoder (List ( String, Time.Posix, Maybe (List (Card String
 decodeHistory =
     Dec.list <|
         Dec.map3 (\id ts cards -> ( id, ts, cards ))
-            (Dec.field "id" Dec.string)
+            (Dec.field "snapshot" Dec.string)
             (Dec.field "ts" (Dec.map Time.millisToPosix Dec.int))
-            (Dec.field "cards" (Dec.maybe (Dec.list decodeCard)))
+            (Dec.field "data" (Dec.maybe decodeCards))
 
 
 getHistoryList : Model -> List ( String, Time.Posix, Maybe Tree )

@@ -422,6 +422,9 @@ update msg model =
                 CardDataReceived json ->
                     cardDataReceived json model
 
+                HistoryDataReceived json ->
+                    historyReceived json model
+
                 PushOk json ->
                     case model.documentState of
                         Doc { data } ->
@@ -1354,6 +1357,24 @@ cardDataReceived dataIn model =
             ( model, Cmd.none )
 
 
+historyReceived : Json.Value -> Model -> ( Model, Cmd Msg )
+historyReceived dataIn model =
+    case model.documentState of
+        Doc ({ docModel, docId } as docState) ->
+            ( { model
+                | documentState =
+                    Doc
+                        { docState
+                            | data = Data.historyReceived dataIn docState.data
+                        }
+              }
+            , Cmd.none
+            )
+
+        Empty _ _ ->
+            ( model, Cmd.none )
+
+
 gitDataReceived : Json.Value -> Model -> ( Model, Cmd Msg )
 gitDataReceived dataIn model =
     case model.documentState of
@@ -1857,6 +1878,7 @@ viewConfirmBanner lang closeMsg email =
 type IncomingAppMsg
     = DataSaved Enc.Value
     | CardDataReceived Enc.Value
+    | HistoryDataReceived Enc.Value
     | PushOk String
     | GitDataReceived Enc.Value
     | MetadataUpdate Metadata
@@ -1873,6 +1895,9 @@ subscribe tagger onError =
 
                 "CardDataReceived" ->
                     tagger <| CardDataReceived outsideInfo.data
+
+                "HistoryDataReceived" ->
+                    tagger <| HistoryDataReceived outsideInfo.data
 
                 "PushOk" ->
                     case decodeValue (Json.at [ "d" ] Json.string) outsideInfo.data of

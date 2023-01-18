@@ -767,10 +767,17 @@ async function loadCardBasedDocument (treeId) {
     chk = '0';
   }
 
-  // Setup Dexie liveQuery
+  // Setup Dexie liveQuery for local document data.
   Dexie.liveQuery(() => dexie.cards.where("treeId").equals(treeId).toArray()).subscribe((cards) => {
     console.log("LiveQuery update", cards);
     toElm(cards, "appMsgs", "CardDataReceived");
+  });
+
+  // Setup Dexie liveQuery for local history data, after initial pull.
+  Dexie.liveQuery(() => dexie.tree_snapshots.where("treeId").equals(treeId).toArray()).subscribe((history) => {
+    const historyWithTs = history.map(h => ({...h, ts: Number(h.snapshot.split(':')[0]), data: h.data.map(d => ({...d, deleted: 0}))}));
+    console.log("LiveQuery history update", historyWithTs);
+    toElm(historyWithTs, "appMsgs", "HistoryDataReceived");
   });
 
   // Pull data from remote
@@ -778,7 +785,7 @@ async function loadCardBasedDocument (treeId) {
     ws.send(JSON.stringify({t: "pull", d: [treeId, chk]}));
     setTimeout(() => {
       ws.send(JSON.stringify({t: "pullHistoryMeta", d: treeId}));
-    }, 1000);
+    }, 2000);
   }
 }
 
