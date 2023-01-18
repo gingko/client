@@ -99,6 +99,7 @@
     "fs-extra": "^7.0.1",
     "gsap": "^3.11.3",
     "hash-wasm": "^4.4.1",
+    "immortal-db": "^1.1.0",
     "leveldown": "^6.1.1",
     "levelup": "^5.1.1",
     "lodash": "^4.17.15",

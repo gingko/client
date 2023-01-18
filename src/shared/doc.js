@@ -19,6 +19,7 @@ if(window.location.origin === config.PRODUCTION_SERVER) {
 
 import PouchDB from "pouchdb";
 const Dexie = require("dexie").default;
+import { ImmortalDB } from 'immortal-db';
 
 const dexie = new Dexie("db");
 dexie.version(3).stores({
@@ -771,12 +772,12 @@ async function loadCardBasedDocument (treeId) {
   Dexie.liveQuery(() => dexie.cards.where("treeId").equals(treeId).toArray()).subscribe((cards) => {
     console.log("LiveQuery update", cards);
     toElm(cards, "appMsgs", "CardDataReceived");
+    saveBackupToImmortalDB(treeId, cards);
   });
 
   // Setup Dexie liveQuery for local history data, after initial pull.
   Dexie.liveQuery(() => dexie.tree_snapshots.where("treeId").equals(treeId).toArray()).subscribe((history) => {
     const historyWithTs = history.map(h => ({...h, ts: Number(h.snapshot.split(':')[0]), data: h.data.map(d => ({...d, deleted: 0}))}));
-    console.log("LiveQuery history update", historyWithTs);
     toElm(historyWithTs, "appMsgs", "HistoryDataReceived");
   });
 
@@ -785,8 +786,33 @@ async function loadCardBasedDocument (treeId) {
     ws.send(JSON.stringify({t: "pull", d: [treeId, chk]}));
     setTimeout(() => {
       ws.send(JSON.stringify({t: "pullHistoryMeta", d: treeId}));
-    }, 2000);
+    }, 500);
   }
+}
+
+function saveBackupToImmortalDB (treeId, cards) {
+  const snapshot = _.chain(cards).sortBy('updatedAt').reverse().uniqBy('id').value();
+  const trees = treeHelper(snapshot, null);
+  const treeString = trees.map(treeToGkw).join('\n');
+  ImmortalDB.set('backup-snapshot:' + treeId, treeString);
+}
+
+function treeToGkw (tree) {
+  return "<gingko-card id=\""
+    + tree.id
+    + "\">\n\n"
+    + tree.content
+    + "\n\n"
+    + tree.children.map(treeToGkw).join("\n\n")
+    + "</gingko-card>";
+}
+
+function treeHelper (cards, parentId) {
+  let children = _.chain(cards).filter(c => c.parentId == parentId).sortBy('position').value();
+  return children.map(c => {
+    let children = treeHelper(cards, c.id);
+    return {id: c.id, content: c.content, children}
+  });
 }
 
 async function loadGitLikeDocument (treeId) {
