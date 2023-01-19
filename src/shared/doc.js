@@ -362,6 +362,9 @@ const fromElm = (msg, elmData) => {
       const treeDoc = await dexie.trees.get(elmData);
       if (treeDoc) {
         toElm(treeDocToMetadata(treeDoc), "appMsgs", "MetadataUpdate")
+      } else {
+        toElm(null, "appMsgs", "NotFound")
+        return;
       }
 
       if (treeDoc.location == "couchdb") {
