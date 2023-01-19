@@ -822,7 +822,7 @@ update msg model =
             ( { model | headerMenu = NoHeaderMenu }
             , Cmd.none
             )
-                |> addToHistoryDo
+                |> andThen addToHistoryDo
 
         CancelHistory ->
             case ( model.headerMenu, model.documentState ) of
@@ -1354,6 +1354,15 @@ update msg model =
                     ( { model | modalState = NoModal }, Cmd.none )
 
 
+andThen : (Model -> ( Model, Cmd Msg )) -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+andThen f ( model, prevCmd ) =
+    let
+        ( newModel, newCmd ) =
+            f model
+    in
+    ( newModel, Cmd.batch [ prevCmd, newCmd ] )
+
+
 cardDataReceived : Json.Value -> Model -> ( Model, Cmd Msg )
 cardDataReceived dataIn model =
     case model.documentState of
@@ -1474,32 +1483,32 @@ applyParentMsg parentMsg ( prevModel, prevCmd ) =
 
         LocalSave op ->
             ( prevModel, prevCmd )
-                |> localSave op
+                |> andThen (localSave op)
 
         Commit ->
             ( prevModel, prevCmd )
-                |> addToHistoryDo
+                |> andThen addToHistoryDo
 
         ExitFullscreen ->
             ( prevModel, prevCmd )
 
 
-localSave : CardTreeOp -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-localSave op ( model, prevCmd ) =
+localSave : CardTreeOp -> Model -> ( Model, Cmd Msg )
+localSave op model =
     case model.documentState of
         Doc { session, docModel, data, docId } ->
             let
                 dbChangeList =
                     Data.localSave docId op data
             in
-            ( model, Cmd.batch [ prevCmd, send <| SaveCardBased dbChangeList ] )
+            ( model, send <| SaveCardBased dbChangeList )
 
         Empty _ _ ->
-            ( model, prevCmd )
+            ( model, Cmd.none )
 
 
-addToHistoryDo : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-addToHistoryDo ( model, prevCmd ) =
+addToHistoryDo : Model -> ( Model, Cmd Msg )
+addToHistoryDo model =
     case model.documentState of
         Doc { session, docModel, docId, data } ->
             let
@@ -1519,17 +1528,14 @@ addToHistoryDo ( model, prevCmd ) =
             case commitReq_ of
                 Just commitReq ->
                     ( model
-                    , Cmd.batch
-                        [ send <| CommitData commitReq
-                        , prevCmd
-                        ]
+                    , send <| CommitData commitReq
                     )
 
                 Nothing ->
-                    ( model, prevCmd )
+                    ( model, Cmd.none )
 
         Empty _ _ ->
-            ( model, prevCmd )
+            ( model, Cmd.none )
 
 
 normalMode : Page.Doc.Model -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
