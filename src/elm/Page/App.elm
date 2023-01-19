@@ -1492,7 +1492,7 @@ localSave op ( model, prevCmd ) =
                 dbChangeList =
                     Data.localSave docId op data
             in
-            ( model, send <| SaveCardBased dbChangeList )
+            ( model, Cmd.batch [ prevCmd, send <| SaveCardBased dbChangeList ] )
 
         Empty _ _ ->
             ( model, prevCmd )
