@@ -19,7 +19,13 @@ if(window.location.origin === config.PRODUCTION_SERVER) {
 
 import PouchDB from "pouchdb";
 const Dexie = require("dexie").default;
-import { ImmortalDB } from 'immortal-db';
+import { ImmortalStorage, IndexedDbStore, LocalStorageStore, SessionStorageStore } from 'immortal-db';
+let ImmortalDB;
+async function initImmortalDB() {
+  const immortalStores = [await new IndexedDbStore(), await new LocalStorageStore(), await new SessionStorageStore()];
+  ImmortalDB = new ImmortalStorage(immortalStores);
+}
+initImmortalDB();
 
 const dexie = new Dexie("db");
 dexie.version(3).stores({
@@ -803,7 +809,9 @@ function saveBackupToImmortalDB (treeId, cards) {
   const snapshot = _.chain(cards).sortBy('updatedAt').reverse().uniqBy('id').value();
   const trees = treeHelper(snapshot, null);
   const treeString = trees.map(treeToGkw).join('\n');
-  ImmortalDB.set('backup-snapshot:' + treeId, treeString);
+  if (ImmortalDB) {
+    ImmortalDB.set('backup-snapshot:' + treeId, treeString);
+  }
 }
 
 function treeToGkw (tree) {
