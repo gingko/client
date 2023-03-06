@@ -339,4 +339,4 @@ const electronRendererConfig = merge(baseElectronConfig, {
 })
 
 
-module.exports = [ webConfig, electronMainConfig, electronRendererConfig];
+module.exports = [ webConfig];
