@@ -242,7 +242,6 @@ cardDataReceived json ( oldModel, oldTree, treeId ) =
 
                 syncState =
                     getSyncState cards
-                        |> Debug.log "syncState"
 
                 outMsg =
                     case syncState of
@@ -273,10 +272,6 @@ cardDataReceived json ( oldModel, oldTree, treeId ) =
                 Nothing
 
         Err err ->
-            let
-                _ =
-                    Debug.log "Error decoding received card data" err
-            in
             Nothing
 
 
@@ -311,10 +306,6 @@ gitDataReceived json ( oldModel, oldTree ) =
                         |> Just
 
         Err err ->
-            let
-                _ =
-                    Debug.log "Error decoding received gitlike data" err
-            in
             Nothing
 
 
@@ -1564,10 +1555,6 @@ historyReceived json model =
                     CardBased data newHistory
 
                 Err err ->
-                    let
-                        _ =
-                            Debug.log "Couldn't decode history" err
-                    in
                     model
 
         GitLike _ _ ->

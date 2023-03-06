@@ -1392,8 +1392,8 @@ cardDataReceived dataIn model =
                                 { docState
                                     | data = newData
                                     , docModel = newDocModel
-                                    , lastLocalSave = Data.lastSavedTime newData |> Maybe.map Time.millisToPosix |> Debug.log "lastLocalSave"
-                                    , lastRemoteSave = Data.lastSyncedTime newData |> Maybe.map Time.millisToPosix |> Debug.log "lastRemoteSave"
+                                    , lastLocalSave = Data.lastSavedTime newData |> Maybe.map Time.millisToPosix
+                                    , lastRemoteSave = Data.lastSyncedTime newData |> Maybe.map Time.millisToPosix
                                 }
                       }
                     , List.map send outMsg |> Cmd.batch
