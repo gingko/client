@@ -173,7 +173,7 @@ async function setUserDbs(eml) {
       }
     });
 
-  ws = new WebSocket('ws://localhost:3000');
+  ws = new WebSocket(window.location.origin.replace('http','ws'));
 
   ws.onopen = () => {
     console.log('connected');
