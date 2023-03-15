@@ -2363,8 +2363,11 @@ lastActives activesResult (Model prevModel) =
                 Ok (lastActive :: activePast) ->
                     ( { vs | active = lastActive, activePast = activePast }, activate lastActive True )
 
-                _ ->
+                Ok _ ->
                     ( vs, activate "1" True )
+
+                Err _ ->
+                    ( vs, identity )
     in
     ( { prevModel | viewState = newViewState }, Cmd.none, [] )
         |> maybeScroll

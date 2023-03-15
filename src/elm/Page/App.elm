@@ -1373,6 +1373,9 @@ cardDataReceived dataIn model =
 
                 tree =
                     workingTree.tree
+
+                lastActives =
+                    Json.decodeValue (Json.at [ "localStore", "last-actives" ] (Json.list Json.string)) dataIn
             in
             case Data.cardDataReceived dataIn ( docState.data, tree, docId ) of
                 Just { newData, newTree, outMsg } ->
@@ -1380,11 +1383,12 @@ cardDataReceived dataIn model =
                         newWorkingTree =
                             TreeStructure.setTree newTree workingTree
 
-                        newDocModel =
+                        ( newDocModel, newCmds ) =
                             docModel
                                 |> Page.Doc.setWorkingTree newWorkingTree
                                 |> Page.Doc.setLoading False
                                 |> Page.Doc.setDirty False
+                                |> Page.Doc.lastActives lastActives
                     in
                     ( { model
                         | documentState =
@@ -1396,7 +1400,9 @@ cardDataReceived dataIn model =
                                     , lastRemoteSave = Data.lastSyncedTime newData |> Maybe.map Time.millisToPosix
                                 }
                       }
-                    , List.map send outMsg |> Cmd.batch
+                    , List.map send outMsg
+                        ++ [ Cmd.map GotDocMsg newCmds ]
+                        |> Cmd.batch
                     )
 
                 Nothing ->

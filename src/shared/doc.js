@@ -773,11 +773,16 @@ function treeDocToMetadata(tree) {
 }
 
 async function loadCardBasedDocument (treeId) {
+  // Load document-specific settings.
+  localStore.db(treeId);
+  let store = localStore.load();
+
   // Load local document data.
   let chk;
   let loadedCards = await dexie.cards.where("treeId").equals(treeId).toArray();
   if (loadedCards.length > 0) {
     chk = loadedCards.filter(c => c.synced).map(c => c.updatedAt).sort().reverse()[0];
+    loadedCards.localStore = store;
     toElm(loadedCards, "appMsgs", "CardDataReceived");
   } else {
     chk = '0';
