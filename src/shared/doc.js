@@ -446,10 +446,10 @@ const fromElm = (msg, elmData) => {
       if (elmData !== null) {
         let newData = elmData.toAdd.map((c) => { return { ...c, updatedAt: hlc.nxt() }})
         const toMarkSynced = elmData.toMarkSynced.map((c) => { return { ...c, synced: true }})
+        const timestamp = Date.now();
 
         let toMarkDeleted = [];
         if (elmData.toMarkDeleted.length > 0) {
-          const timestamp = Date.now();
           const deleteHash = uuid();
           toMarkDeleted = elmData.toMarkDeleted.map((c, i) => ({ ...c, updatedAt: `${timestamp}:${i}:${deleteHash}` }));
         }
@@ -457,7 +457,11 @@ const fromElm = (msg, elmData) => {
         dexie.transaction('rw', dexie.cards, async () => {
           dexie.cards.bulkPut(newData.concat(toMarkSynced).concat(toMarkDeleted));
           dexie.cards.bulkDelete(elmData.toRemove);
-        }).catch((e) => {
+          DIRTY = false;
+        }).then(async result => {
+          await dexie.trees.update(TREE_ID, {updatedAt: timestamp, synced: false});
+        })
+          .catch((e) => {
           alert("Error saving data!" + e);
         });
       }
@@ -797,7 +801,7 @@ async function loadCardBasedDocument (treeId) {
 
   // Setup Dexie liveQuery for local history data, after initial pull.
   Dexie.liveQuery(() => dexie.tree_snapshots.where("treeId").equals(treeId).toArray()).subscribe((history) => {
-    const historyWithTs = history.map(h => ({...h, ts: Number(h.snapshot.split(':')[0]), data: h.data.map(d => ({...d, deleted: 0}))}));
+    const historyWithTs = history.map(h => ({...h, ts: Number(h.snapshot.split(':')[0]), data: h.data !== null ? h.data.map(d => ({...d, deleted: 0})) : h.data}));
     toElm(historyWithTs, "appMsgs", "HistoryDataReceived");
   });
 
