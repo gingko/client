@@ -202,7 +202,7 @@ isGitLike model =
 -- EXPOSED : Functions
 
 
-cardDataReceived : Dec.Value -> ( Model, Tree, String ) -> Maybe { newData : Model, newTree : Tree, outMsg : List Outgoing.Msg }
+cardDataReceived : Dec.Value -> ( Model, Tree, String ) -> Maybe { newData : Model, newTree : Tree, outMsg : List Outgoing.Msg, conflicts : Maybe { ours : Tree, theirs : Tree, original : Tree } }
 cardDataReceived json ( oldModel, oldTree, treeId ) =
     case Dec.decodeValue decodeCards json of
         Ok cards ->
@@ -241,15 +241,19 @@ cardDataReceived json ( oldModel, oldTree, treeId ) =
                         |> toTree
 
                 syncState =
-                    getSyncState cards
+                    getSyncState cards |> Debug.log "syncState"
 
-                outMsg =
+                ( outMsg, conflictTrees_ ) =
                     case syncState of
                         Unsynced ->
-                            [ PushDeltas (pushDelta treeId cards) ]
+                            ( [ PushDeltas (pushDelta treeId cards) ]
+                            , Nothing
+                            )
 
                         CanFastForward ffids ->
-                            [ SaveCardBased (toSave { toAdd = [], toMarkSynced = [], toMarkDeleted = [], toRemove = ffids |> Set.fromList }) ]
+                            ( [ SaveCardBased (toSave { toAdd = [], toMarkSynced = [], toMarkDeleted = [], toRemove = ffids |> Set.fromList }) ]
+                            , Nothing
+                            )
 
                         Conflicted conflictData ->
                             let
@@ -257,16 +261,18 @@ cardDataReceived json ( oldModel, oldTree, treeId ) =
                                     resolveDeleteConflicts cards conflictData
                             in
                             if List.length mergedChanges.toAdd > 0 || List.length mergedChanges.toMarkSynced > 0 || Set.size mergedChanges.toRemove > 0 then
-                                [ SaveCardBased (toSave mergedChanges) ]
+                                ( [ SaveCardBased (toSave mergedChanges) ]
+                                , Nothing
+                                )
 
                             else
-                                []
+                                ( [], Just { ours = oldTree, theirs = newTree, original = newTree } )
 
                         _ ->
-                            []
+                            ( [], Nothing )
             in
             if (newModel /= oldModel) || (newTree /= oldTree) then
-                Just { newData = newModel, newTree = newTree, outMsg = outMsg }
+                Just { newData = newModel, newTree = newTree, outMsg = outMsg, conflicts = conflictTrees_ }
 
             else
                 Nothing

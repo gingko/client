@@ -1,4 +1,4 @@
-module Page.Doc exposing (Model, Msg, MsgToParent(..), exitFullscreenExposed, getActiveId, getActiveTree, getField, getGlobalData, getTextCursorInfo, getViewMode, getWorkingTree, init, isDirty, isFullscreen, isNormalMode, lastActives, opaqueIncoming, opaqueUpdate, openCardFullscreenMsg, saveAndStopEditing, saveCardIfEditing, setDirty, setGlobalData, setLoading, setTree, setWorkingTree, subscriptions, updateField, view)
+module Page.Doc exposing (Model, Msg, MsgToParent(..), exitFullscreenExposed, getActiveId, getActiveTree, getField, getGlobalData, getTextCursorInfo, getViewMode, getWorkingTree, init, isDirty, isFullscreen, isNormalMode, lastActives, opaqueIncoming, opaqueUpdate, openCardFullscreenMsg, saveAndStopEditing, saveCardIfEditing, setConflicts, setDirty, setGlobalData, setLoading, setTree, setWorkingTree, subscriptions, updateField, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -8,7 +8,7 @@ import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Doc.UI as UI exposing (viewMobileButtons, viewSearchField)
 import GlobalData exposing (GlobalData)
-import Html exposing (Attribute, Html, div, span, text, textarea)
+import Html exposing (Attribute, Html, div, h1, span, text, textarea)
 import Html.Attributes as Attributes exposing (attribute, class, classList, dir, id, style, title, value)
 import Html.Events exposing (custom, onClick, onDoubleClick, onInput)
 import Html.Extra exposing (viewIf)
@@ -36,6 +36,7 @@ import Utils exposing (randomPositiveInt)
 type alias ModelData =
     -- Document state
     { workingTree : TreeStructure.Model
+    , conflicts : ConflictState
 
     -- SPA Page State
     , globalData : GlobalData
@@ -55,6 +56,17 @@ type alias ModelData =
     }
 
 
+type ConflictState
+    = NoConflicts
+    | Conflicts { ours : TreeStructure.Model, theirs : TreeStructure.Model, original : TreeStructure.Model } ConflictSelection
+
+
+type ConflictSelection
+    = Ours
+    | Theirs
+    | Original
+
+
 type Model
     = Model ModelData
 
@@ -63,6 +75,7 @@ init : Bool -> GlobalData -> Model
 init isNew globalData =
     Model
         { workingTree = TreeStructure.defaultModel
+        , conflicts = NoConflicts
         , globalData = globalData
         , loading = not isNew
         , isExpired = False
@@ -1800,6 +1813,20 @@ viewLoaded ({ docMsg } as appMsg) model =
                     []
     in
     [ lazy4 treeView (GlobalData.language model.globalData) (GlobalData.isMac model.globalData) model.viewState model.workingTree |> Html.map docMsg
+    , if model.conflicts /= NoConflicts then
+        h1
+            [ style "background" "red"
+            , style "position" "absolute"
+            , style "left" "50%"
+            , style "z-index" "1000"
+            , style "color" "white"
+            , style "padding" "10px"
+            , style "border-radius" "5px"
+            ]
+            [ text "Conflicts!" ]
+
+      else
+        text ""
     , if (not << List.isEmpty) cardTitles then
         UI.viewBreadcrumbs Activate cardTitles |> Html.map docMsg
 
@@ -2304,6 +2331,28 @@ setTree tree (Model model) =
         |> (\m -> ( m, Cmd.none, [] ))
         |> activate model.viewState.active False
         |> (\( m, c, msgs ) -> ( Model m, c, msgs ))
+
+
+setConflicts : Maybe { ours : Tree, theirs : Tree, original : Tree } -> Model -> Model
+setConflicts conflicts_ (Model model) =
+    case conflicts_ of
+        Just { ours, theirs, original } ->
+            { model
+                | conflicts =
+                    Conflicts
+                        { ours = TreeStructure.setTree ours model.workingTree
+                        , theirs = TreeStructure.setTree theirs model.workingTree
+                        , original = TreeStructure.setTree original model.workingTree
+                        }
+                        Ours
+            }
+                |> Model
+
+        Nothing ->
+            { model
+                | conflicts = NoConflicts
+            }
+                |> Model
 
 
 setWorkingTree : TreeStructure.Model -> Model -> Model

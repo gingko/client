@@ -1378,7 +1378,7 @@ cardDataReceived dataIn model =
                     Json.decodeValue (Json.at [ "localStore", "last-actives" ] (Json.list Json.string)) dataIn
             in
             case Data.cardDataReceived dataIn ( docState.data, tree, docId ) of
-                Just { newData, newTree, outMsg } ->
+                Just { newData, newTree, outMsg, conflicts } ->
                     let
                         newWorkingTree =
                             TreeStructure.setTree newTree workingTree
@@ -1386,6 +1386,7 @@ cardDataReceived dataIn model =
                         ( newDocModel, newCmds ) =
                             docModel
                                 |> Page.Doc.setWorkingTree newWorkingTree
+                                |> Page.Doc.setConflicts conflicts
                                 |> Page.Doc.setLoading False
                                 |> Page.Doc.setDirty False
                                 |> Page.Doc.lastActives lastActives
