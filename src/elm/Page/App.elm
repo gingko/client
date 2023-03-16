@@ -675,7 +675,7 @@ update msg model =
                                 newDocModel =
                                     Page.Doc.setWorkingTree newWorkingTree docModel
                             in
-                            ( { model | documentState = Doc { docState | docModel = newDocModel } }, Cmd.none )
+                            ( { model | documentState = Doc { docState | docModel = newDocModel }, conflictViewerState = Conflict newSel }, Cmd.none )
 
                         Nothing ->
                             ( model, Cmd.none )
@@ -684,7 +684,19 @@ update msg model =
                     ( model, Cmd.none )
 
         ConflictResolved ->
-            ( model, Cmd.none )
+            case ( model.documentState, model.conflictViewerState ) of
+                ( Doc ({ docModel, data } as docState), Conflict selectedVersion ) ->
+                    let
+                        ( newData, outMsg ) =
+                            Data.resolveConflicts selectedVersion data
+                    in
+                    ( model
+                      {--TODO: update model data --}
+                    , send outMsg
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
         -- Sidebar
         TemplateSelectorOpened ->
@@ -1979,7 +1991,7 @@ viewConflictSelector cstate =
                 , button [ onClick (ConflictVersionSelected Theirs) ] [ textNoTr "Theirs" ]
                 , button [ onClick (ConflictVersionSelected Original) ] [ textNoTr "Original" ]
                 , br [] []
-                , button [ onClick NoOp ] [ textNoTr "Choose this Version" ]
+                , button [ onClick ConflictResolved ] [ textNoTr "Choose this Version" ]
                 ]
 
 

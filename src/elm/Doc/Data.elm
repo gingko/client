@@ -1,4 +1,4 @@
-module Doc.Data exposing (CommitObject, Model, cardDataReceived, checkout, conflictList, conflictToTree, convert, empty, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, success)
+module Doc.Data exposing (CommitObject, Model, cardDataReceived, checkout, conflictList, conflictToTree, convert, empty, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, resolveConflicts, success)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
@@ -307,6 +307,11 @@ cardDataReceived json ( oldModel, oldTree, treeId ) =
 
         Err err ->
             Nothing
+
+
+resolveConflicts : ConflictSelection -> Model -> ( Model, Outgoing.Msg )
+resolveConflicts selectedVersion model =
+    ( model, Alert "Not implemented yet" )
 
 
 gitDataReceived : Dec.Value -> ( Model, Tree ) -> Maybe { newData : Model, newTree : Tree }
