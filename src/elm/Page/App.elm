@@ -20,7 +20,7 @@ import File exposing (File)
 import File.Download as Download
 import File.Select as Select
 import GlobalData exposing (GlobalData)
-import Html exposing (Html, div, strong)
+import Html exposing (Html, br, button, div, h1, strong)
 import Html.Attributes exposing (class, classList, height, id, style, width)
 import Html.Events exposing (onClick)
 import Html.Extra exposing (viewIf)
@@ -59,6 +59,7 @@ import Upgrade exposing (Msg(..))
 type alias Model =
     { loading : Bool
     , documentState : DocumentState
+    , conflictViewerState : ConflictViewerState
     , sidebarState : SidebarState
     , sidebarMenuState : SidebarMenuState
     , headerMenu : HeaderMenuState
@@ -85,6 +86,17 @@ type alias DocState =
     , lastLocalSave : Maybe Time.Posix
     , titleField : Maybe String
     }
+
+
+type ConflictViewerState
+    = NoConflict
+    | Conflict ConflictSelection
+
+
+type ConflictSelection
+    = Ours
+    | Theirs
+    | Original
 
 
 toData : Model -> Maybe Data.Model
@@ -139,6 +151,7 @@ defaultModel nKey globalData session docModel_ =
 
         else
             SidebarClosed
+    , conflictViewerState = NoConflict
     , sidebarMenuState = NoSidebarMenu
     , headerMenu = NoHeaderMenu
     , exportSettings = ( ExportEverything, DOCX )
@@ -1399,6 +1412,12 @@ cardDataReceived dataIn model =
                                     , lastLocalSave = Data.lastSavedTime newData |> Maybe.map Time.millisToPosix
                                     , lastRemoteSave = Data.lastSyncedTime newData |> Maybe.map Time.millisToPosix
                                 }
+                        , conflictViewerState =
+                            if Data.hasConflicts newData then
+                                Conflict Ours
+
+                            else
+                                NoConflict
                       }
                     , List.map send outMsg
                         ++ [ Cmd.map GotDocMsg newCmds ]
@@ -1770,6 +1789,7 @@ view ({ documentState } as model) =
                                 , lastRemoteSave = lastRemoteSave
                                 , globalData = globalData
                                 }
+                           , viewConflictSelector model.conflictViewerState
                            , maybeExportView
                            , viewSidebar globalData
                                 session
@@ -1911,6 +1931,32 @@ viewModal globalData session modalState =
 
                 Nothing ->
                     []
+
+
+viewConflictSelector : ConflictViewerState -> Html Msg
+viewConflictSelector cstate =
+    case cstate of
+        NoConflict ->
+            emptyText
+
+        _ ->
+            h1
+                [ style "background" "red"
+                , style "position" "absolute"
+                , style "left" "50%"
+                , style "z-index" "1000"
+                , style "color" "white"
+                , style "padding" "10px"
+                , style "border-radius" "5px"
+                ]
+                [ textNoTr "Conflicts!"
+                , br [] []
+                , button [ onClick NoOp ] [ textNoTr "Ours" ]
+                , button [ onClick NoOp ] [ textNoTr "Theirs" ]
+                , button [ onClick NoOp ] [ textNoTr "Original" ]
+                , br [] []
+                , button [ onClick NoOp ] [ textNoTr "Choose this Version" ]
+                ]
 
 
 viewConfirmBanner : Language -> msg -> String -> Html msg

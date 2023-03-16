@@ -8,7 +8,7 @@ import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Doc.UI as UI exposing (viewMobileButtons, viewSearchField)
 import GlobalData exposing (GlobalData)
-import Html exposing (Attribute, Html, br, button, div, h1, span, text, textarea)
+import Html exposing (Attribute, Html, div, span, text, textarea)
 import Html.Attributes as Attributes exposing (attribute, class, classList, dir, id, style, title, value)
 import Html.Events exposing (custom, onClick, onDoubleClick, onInput)
 import Html.Extra exposing (viewIf)
@@ -53,12 +53,6 @@ type alias ModelData =
     , uid : String
     , fonts : Fonts.Model
     }
-
-
-type ConflictSelection
-    = Ours
-    | Theirs
-    | Original
 
 
 type Model
@@ -122,9 +116,6 @@ type Msg
       -- === Dragging ===
     | DragDropMsg (DragDrop.Msg String DropId)
     | DragExternal DragExternalMsg
-      -- === Conflict UI ===
-    | ConflictVersionSelected ConflictSelection
-    | ConflictResolved
       -- === UI ===
       -- Misc UI
     | FullscreenRequested
@@ -366,13 +357,6 @@ update msg ({ workingTree } as model) =
 
                     else
                         ( model, Cmd.none, [] )
-
-        -- === Conflict Selection ===
-        ConflictVersionSelected newSel ->
-            ( model, Cmd.none, [] )
-
-        ConflictResolved ->
-            ( model, Cmd.none, [] )
 
         -- === UI ===
         FullscreenRequested ->
@@ -1839,27 +1823,6 @@ viewLoaded ({ docMsg } as appMsg) model =
            , Keyed.node "div" [ style "display" "contents" ] [ ( "randomstringforloadingoverlay", div [ id "loading-overlay" ] [] ) ]
            , div [ id "preloader" ] []
            ]
-
-
-viewConflictSelector : Html Msg
-viewConflictSelector =
-    h1
-        [ style "background" "red"
-        , style "position" "absolute"
-        , style "left" "50%"
-        , style "z-index" "1000"
-        , style "color" "white"
-        , style "padding" "10px"
-        , style "border-radius" "5px"
-        ]
-        [ text "Conflicts!"
-        , br [] []
-        , button [ onClick (ConflictVersionSelected Ours) ] [ text "Ours" ]
-        , button [ onClick (ConflictVersionSelected Theirs) ] [ text "Theirs" ]
-        , button [ onClick (ConflictVersionSelected Original) ] [ text "Original" ]
-        , br [] []
-        , button [ onClick ConflictResolved ] [ text "Choose this Version" ]
-        ]
 
 
 treeView : Language -> Bool -> ViewState -> TreeStructure.Model -> Html Msg

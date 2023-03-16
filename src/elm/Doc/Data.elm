@@ -1,4 +1,4 @@
-module Doc.Data exposing (CommitObject, Model, cardDataReceived, checkout, conflictList, conflictSelection, convert, empty, getCommit, getHistoryList, gitDataReceived, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, success)
+module Doc.Data exposing (CommitObject, Model, cardDataReceived, checkout, conflictList, conflictSelection, convert, empty, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, success)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
@@ -127,6 +127,19 @@ getCommit sha model =
             data
                 |> .commits
                 |> Dict.get sha
+
+
+hasConflicts : Model -> Bool
+hasConflicts model =
+    case model of
+        CardBased _ _ (Just _) ->
+            True
+
+        GitLike _ (Just _) ->
+            True
+
+        _ ->
+            False
 
 
 conflictList : Model -> List Conflict
