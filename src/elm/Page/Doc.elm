@@ -8,7 +8,7 @@ import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils exposing (..)
 import Doc.UI as UI exposing (viewMobileButtons, viewSearchField)
 import GlobalData exposing (GlobalData)
-import Html exposing (Attribute, Html, div, h1, span, text, textarea)
+import Html exposing (Attribute, Html, br, button, div, h1, span, text, textarea)
 import Html.Attributes as Attributes exposing (attribute, class, classList, dir, id, style, title, value)
 import Html.Events exposing (custom, onClick, onDoubleClick, onInput)
 import Html.Extra exposing (viewIf)
@@ -129,6 +129,9 @@ type Msg
       -- === Dragging ===
     | DragDropMsg (DragDrop.Msg String DropId)
     | DragExternal DragExternalMsg
+      -- === Conflict UI ===
+    | ConflictVersionSelected ConflictSelection
+    | ConflictResolved
       -- === UI ===
       -- Misc UI
     | FullscreenRequested
@@ -370,6 +373,40 @@ update msg ({ workingTree } as model) =
 
                     else
                         ( model, Cmd.none, [] )
+
+        -- === Conflict Selection ===
+        ConflictVersionSelected newSel ->
+            case model.conflicts of
+                Conflicts versions oldSel ->
+                    if oldSel /= newSel then
+                        let
+                            newTree =
+                                case newSel of
+                                    Ours ->
+                                        versions.ours
+
+                                    Theirs ->
+                                        versions.theirs
+
+                                    Original ->
+                                        versions.original
+                        in
+                        ( { model
+                            | workingTree = newTree
+                            , conflicts = Conflicts versions newSel
+                          }
+                        , Cmd.none
+                        , []
+                        )
+
+                    else
+                        ( model, Cmd.none, [] )
+
+                NoConflicts ->
+                    ( model, Cmd.none, [] )
+
+        ConflictResolved ->
+            ( model, Cmd.none, [] )
 
         -- === UI ===
         FullscreenRequested ->
@@ -1813,20 +1850,7 @@ viewLoaded ({ docMsg } as appMsg) model =
                     []
     in
     [ lazy4 treeView (GlobalData.language model.globalData) (GlobalData.isMac model.globalData) model.viewState model.workingTree |> Html.map docMsg
-    , if model.conflicts /= NoConflicts then
-        h1
-            [ style "background" "red"
-            , style "position" "absolute"
-            , style "left" "50%"
-            , style "z-index" "1000"
-            , style "color" "white"
-            , style "padding" "10px"
-            , style "border-radius" "5px"
-            ]
-            [ text "Conflicts!" ]
-
-      else
-        text ""
+    , viewConflicts model.conflicts |> Html.map docMsg
     , if (not << List.isEmpty) cardTitles then
         UI.viewBreadcrumbs Activate cardTitles |> Html.map docMsg
 
@@ -1850,6 +1874,32 @@ viewLoaded ({ docMsg } as appMsg) model =
            , Keyed.node "div" [ style "display" "contents" ] [ ( "randomstringforloadingoverlay", div [ id "loading-overlay" ] [] ) ]
            , div [ id "preloader" ] []
            ]
+
+
+viewConflicts : ConflictState -> Html Msg
+viewConflicts conflicts =
+    case conflicts of
+        NoConflicts ->
+            text ""
+
+        Conflicts _ confSel ->
+            h1
+                [ style "background" "red"
+                , style "position" "absolute"
+                , style "left" "50%"
+                , style "z-index" "1000"
+                , style "color" "white"
+                , style "padding" "10px"
+                , style "border-radius" "5px"
+                ]
+                [ text "Conflicts!"
+                , br [] []
+                , button [ onClick (ConflictVersionSelected Ours) ] [ text "Ours" ]
+                , button [ onClick (ConflictVersionSelected Theirs) ] [ text "Theirs" ]
+                , button [ onClick (ConflictVersionSelected Original) ] [ text "Original" ]
+                , br [] []
+                , button [ onClick ConflictResolved ] [ text "Choose this Version" ]
+                ]
 
 
 treeView : Language -> Bool -> ViewState -> TreeStructure.Model -> Html Msg

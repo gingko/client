@@ -266,7 +266,7 @@ cardDataReceived json ( oldModel, oldTree, treeId ) =
                                 )
 
                             else
-                                ( [], Just { ours = oldTree, theirs = newTree, original = newTree } )
+                                ( [], Just { ours = conflictData.ours |> toTree, theirs = conflictData.theirs |> toTree, original = conflictData.original |> toTree } )
 
                         _ ->
                             ( [], Nothing )
