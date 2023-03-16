@@ -885,7 +885,11 @@ update msg model =
                                 |> Maybe.map (Data.restore docState.data)
                                 |> Maybe.withDefault []
                     in
-                    ( model, List.map send outMsgs |> Cmd.batch )
+                    if List.length outMsgs > 0 then
+                        ( { model | headerMenu = NoHeaderMenu }, List.map send outMsgs |> Cmd.batch )
+
+                    else
+                        ( model, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )

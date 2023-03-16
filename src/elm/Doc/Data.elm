@@ -185,6 +185,7 @@ restore model historyId =
                                 |> Dict.toList
                                 |> List.map Tuple.second
                                 |> List.map stripUpdatedAt
+                                |> List.map (\c -> { c | synced = False })
                     in
                     [ SaveCardBased (toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = Set.empty }) ]
 
