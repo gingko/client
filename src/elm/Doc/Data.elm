@@ -155,14 +155,44 @@ conflictList model =
             []
 
 
-restore : String -> Model -> Maybe Model
-restore historyId model =
+restore : Model -> String -> List Outgoing.Msg
+restore model historyId =
     case model of
-        CardBased data history conflicts_ ->
-            Nothing
+        CardBased oldData history _ ->
+            let
+                newData_ =
+                    history
+                        |> List.filter (\( id, _, _ ) -> id == historyId)
+                        |> List.head
+                        |> Maybe.map (\( _, _, wd ) -> wd)
+                        |> Maybe.andThen RemoteData.toMaybe
+            in
+            case newData_ of
+                Just newData ->
+                    let
+                        oldDataDict =
+                            oldData
+                                |> List.map (\c -> ( c.updatedAt, c ))
+                                |> Dict.fromList
+
+                        newDataDict =
+                            newData
+                                |> List.map (\c -> ( c.updatedAt, c ))
+                                |> Dict.fromList
+
+                        toAdd =
+                            Dict.diff newDataDict oldDataDict
+                                |> Dict.toList
+                                |> List.map Tuple.second
+                                |> List.map stripUpdatedAt
+                    in
+                    [ SaveCardBased (toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = Set.empty }) ]
+
+                _ ->
+                    []
 
         GitLike data _ ->
-            Just model
+            []
 
 
 lastSavedTime : Model -> Maybe Int

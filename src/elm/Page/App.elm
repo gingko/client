@@ -879,10 +879,13 @@ update msg model =
         Restore ->
             case ( model.headerMenu, model.documentState ) of
                 ( HistoryView history, Doc docState ) ->
-                    ( { model | headerMenu = NoHeaderMenu }
-                    , Cmd.none
-                    )
-                        |> andThen addToHistoryDo
+                    let
+                        outMsgs =
+                            History.getCurrentVersionId history
+                                |> Maybe.map (Data.restore docState.data)
+                                |> Maybe.withDefault []
+                    in
+                    ( model, List.map send outMsgs |> Cmd.batch )
 
                 _ ->
                     ( model, Cmd.none )

@@ -1,4 +1,4 @@
-module Doc.History exposing (History, checkoutVersion, getCurrentVersion, init, revert, view)
+module Doc.History exposing (History, checkoutVersion, getCurrentVersionId, init, revert, view)
 
 import Ant.Icons.Svg as AntIcons
 import Doc.Data as Data
@@ -53,8 +53,8 @@ checkoutVersion id history =
             Nothing
 
 
-getCurrentVersion : History -> Maybe String
-getCurrentVersion history =
+getCurrentVersionId : History -> Maybe String
+getCurrentVersionId history =
     case history of
         History _ zipper ->
             zipper
