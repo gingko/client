@@ -1,4 +1,4 @@
-module Page.Doc exposing (Model, Msg, MsgToParent(..), exitFullscreenExposed, getActiveId, getActiveTree, getField, getGlobalData, getTextCursorInfo, getViewMode, getWorkingTree, init, isDirty, isFullscreen, isNormalMode, lastActives, opaqueIncoming, opaqueUpdate, openCardFullscreenMsg, saveAndStopEditing, saveCardIfEditing, setConflicts, setDirty, setGlobalData, setLoading, setTree, setWorkingTree, subscriptions, updateField, view)
+module Page.Doc exposing (Model, Msg, MsgToParent(..), exitFullscreenExposed, getActiveId, getActiveTree, getField, getGlobalData, getTextCursorInfo, getViewMode, getWorkingTree, init, isDirty, isFullscreen, isNormalMode, lastActives, opaqueIncoming, opaqueUpdate, openCardFullscreenMsg, saveAndStopEditing, saveCardIfEditing, setDirty, setGlobalData, setLoading, setTree, setWorkingTree, subscriptions, updateField, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -36,7 +36,6 @@ import Utils exposing (randomPositiveInt)
 type alias ModelData =
     -- Document state
     { workingTree : TreeStructure.Model
-    , conflicts : ConflictState
 
     -- SPA Page State
     , globalData : GlobalData
@@ -56,11 +55,6 @@ type alias ModelData =
     }
 
 
-type ConflictState
-    = NoConflicts
-    | Conflicts { ours : TreeStructure.Model, theirs : TreeStructure.Model, original : TreeStructure.Model } ConflictSelection
-
-
 type ConflictSelection
     = Ours
     | Theirs
@@ -75,7 +69,6 @@ init : Bool -> GlobalData -> Model
 init isNew globalData =
     Model
         { workingTree = TreeStructure.defaultModel
-        , conflicts = NoConflicts
         , globalData = globalData
         , loading = not isNew
         , isExpired = False
@@ -376,34 +369,7 @@ update msg ({ workingTree } as model) =
 
         -- === Conflict Selection ===
         ConflictVersionSelected newSel ->
-            case model.conflicts of
-                Conflicts versions oldSel ->
-                    if oldSel /= newSel then
-                        let
-                            newTree =
-                                case newSel of
-                                    Ours ->
-                                        versions.ours
-
-                                    Theirs ->
-                                        versions.theirs
-
-                                    Original ->
-                                        versions.original
-                        in
-                        ( { model
-                            | workingTree = newTree
-                            , conflicts = Conflicts versions newSel
-                          }
-                        , Cmd.none
-                        , []
-                        )
-
-                    else
-                        ( model, Cmd.none, [] )
-
-                NoConflicts ->
-                    ( model, Cmd.none, [] )
+            ( model, Cmd.none, [] )
 
         ConflictResolved ->
             ( model, Cmd.none, [] )
@@ -1850,7 +1816,6 @@ viewLoaded ({ docMsg } as appMsg) model =
                     []
     in
     [ lazy4 treeView (GlobalData.language model.globalData) (GlobalData.isMac model.globalData) model.viewState model.workingTree |> Html.map docMsg
-    , viewConflicts model.conflicts |> Html.map docMsg
     , if (not << List.isEmpty) cardTitles then
         UI.viewBreadcrumbs Activate cardTitles |> Html.map docMsg
 
@@ -1876,30 +1841,25 @@ viewLoaded ({ docMsg } as appMsg) model =
            ]
 
 
-viewConflicts : ConflictState -> Html Msg
-viewConflicts conflicts =
-    case conflicts of
-        NoConflicts ->
-            text ""
-
-        Conflicts _ confSel ->
-            h1
-                [ style "background" "red"
-                , style "position" "absolute"
-                , style "left" "50%"
-                , style "z-index" "1000"
-                , style "color" "white"
-                , style "padding" "10px"
-                , style "border-radius" "5px"
-                ]
-                [ text "Conflicts!"
-                , br [] []
-                , button [ onClick (ConflictVersionSelected Ours) ] [ text "Ours" ]
-                , button [ onClick (ConflictVersionSelected Theirs) ] [ text "Theirs" ]
-                , button [ onClick (ConflictVersionSelected Original) ] [ text "Original" ]
-                , br [] []
-                , button [ onClick ConflictResolved ] [ text "Choose this Version" ]
-                ]
+viewConflictSelector : Html Msg
+viewConflictSelector =
+    h1
+        [ style "background" "red"
+        , style "position" "absolute"
+        , style "left" "50%"
+        , style "z-index" "1000"
+        , style "color" "white"
+        , style "padding" "10px"
+        , style "border-radius" "5px"
+        ]
+        [ text "Conflicts!"
+        , br [] []
+        , button [ onClick (ConflictVersionSelected Ours) ] [ text "Ours" ]
+        , button [ onClick (ConflictVersionSelected Theirs) ] [ text "Theirs" ]
+        , button [ onClick (ConflictVersionSelected Original) ] [ text "Original" ]
+        , br [] []
+        , button [ onClick ConflictResolved ] [ text "Choose this Version" ]
+        ]
 
 
 treeView : Language -> Bool -> ViewState -> TreeStructure.Model -> Html Msg
@@ -2381,28 +2341,6 @@ setTree tree (Model model) =
         |> (\m -> ( m, Cmd.none, [] ))
         |> activate model.viewState.active False
         |> (\( m, c, msgs ) -> ( Model m, c, msgs ))
-
-
-setConflicts : Maybe { ours : Tree, theirs : Tree, original : Tree } -> Model -> Model
-setConflicts conflicts_ (Model model) =
-    case conflicts_ of
-        Just { ours, theirs, original } ->
-            { model
-                | conflicts =
-                    Conflicts
-                        { ours = TreeStructure.setTree ours model.workingTree
-                        , theirs = TreeStructure.setTree theirs model.workingTree
-                        , original = TreeStructure.setTree original model.workingTree
-                        }
-                        Ours
-            }
-                |> Model
-
-        Nothing ->
-            { model
-                | conflicts = NoConflicts
-            }
-                |> Model
 
 
 setWorkingTree : TreeStructure.Model -> Model -> Model

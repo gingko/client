@@ -20,7 +20,7 @@ import File exposing (File)
 import File.Download as Download
 import File.Select as Select
 import GlobalData exposing (GlobalData)
-import Html exposing (Html, button, div, strong)
+import Html exposing (Html, div, strong)
 import Html.Attributes exposing (class, classList, height, id, style, width)
 import Html.Events exposing (onClick)
 import Html.Extra exposing (viewIf)
@@ -1378,7 +1378,7 @@ cardDataReceived dataIn model =
                     Json.decodeValue (Json.at [ "localStore", "last-actives" ] (Json.list Json.string)) dataIn
             in
             case Data.cardDataReceived dataIn ( docState.data, tree, docId ) of
-                Just { newData, newTree, outMsg, conflicts } ->
+                Just { newData, newTree, outMsg } ->
                     let
                         newWorkingTree =
                             TreeStructure.setTree newTree workingTree
@@ -1386,7 +1386,6 @@ cardDataReceived dataIn model =
                         ( newDocModel, newCmds ) =
                             docModel
                                 |> Page.Doc.setWorkingTree newWorkingTree
-                                |> Page.Doc.setConflicts conflicts
                                 |> Page.Doc.setLoading False
                                 |> Page.Doc.setDirty False
                                 |> Page.Doc.lastActives lastActives

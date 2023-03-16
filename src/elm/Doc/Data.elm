@@ -202,7 +202,7 @@ isGitLike model =
 -- EXPOSED : Functions
 
 
-cardDataReceived : Dec.Value -> ( Model, Tree, String ) -> Maybe { newData : Model, newTree : Tree, outMsg : List Outgoing.Msg, conflicts : Maybe { ours : Tree, theirs : Tree, original : Tree } }
+cardDataReceived : Dec.Value -> ( Model, Tree, String ) -> Maybe { newData : Model, newTree : Tree, outMsg : List Outgoing.Msg }
 cardDataReceived json ( oldModel, oldTree, treeId ) =
     case Dec.decodeValue decodeCards json of
         Ok cards ->
@@ -272,7 +272,7 @@ cardDataReceived json ( oldModel, oldTree, treeId ) =
                             ( [], Nothing )
             in
             if (newModel /= oldModel) || (newTree /= oldTree) then
-                Just { newData = newModel, newTree = newTree, outMsg = outMsg, conflicts = conflictTrees_ }
+                Just { newData = newModel, newTree = newTree, outMsg = outMsg }
 
             else
                 Nothing
