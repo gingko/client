@@ -192,6 +192,14 @@ async function setUserDbs(eml) {
           toElm(data, "appMsgs", "PushOk");
           break;
 
+        case 'doPull':
+          // Server says this tree has changes
+          if (data.d === TREE_ID) {
+            let cards = await dexie.cards.where('treeId').equals(TREE_ID).toArray();
+            pull(TREE_ID, getChk(TREE_ID, cards));
+          }
+          break;
+
         case 'trees':
           await dexie.trees.bulkPut(data.d.map(t => ({...t, synced : true})));
           break;
@@ -782,14 +790,11 @@ async function loadCardBasedDocument (treeId) {
   let store = localStore.load();
 
   // Load local document data.
-  let chk;
   let loadedCards = await dexie.cards.where("treeId").equals(treeId).toArray();
+  const chk = getChk(treeId, loadedCards);
   if (loadedCards.length > 0) {
-    chk = loadedCards.filter(c => c.synced).map(c => c.updatedAt).sort().reverse()[0];
     loadedCards.localStore = store;
     toElm(loadedCards, "appMsgs", "CardDataReceived");
-  } else {
-    chk = '0';
   }
 
   // Setup Dexie liveQuery for local document data.
@@ -806,6 +811,18 @@ async function loadCardBasedDocument (treeId) {
   });
 
   // Pull data from remote
+  pull(treeId, chk);
+}
+
+function getChk(treeId, cards) {
+  if (cards.length > 0) {
+    return cards.filter(c => c.synced).map(c => c.updatedAt).sort().reverse()[0];
+  } else {
+    return '0';
+  }
+}
+
+function pull(treeId, chk) {
   if (ws.readyState == ws.OPEN && ws.bufferedAmount == 0) {
     ws.send(JSON.stringify({t: "pull", d: [treeId, chk]}));
     setTimeout(() => {
