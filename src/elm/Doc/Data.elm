@@ -309,9 +309,36 @@ cardDataReceived json ( oldModel, oldTree, treeId ) =
             Nothing
 
 
-resolveConflicts : ConflictSelection -> Model -> ( Model, Outgoing.Msg )
+resolveConflicts : ConflictSelection -> Model -> ( Model, Maybe Outgoing.Msg )
 resolveConflicts selectedVersion model =
-    ( model, Alert "Not implemented yet" )
+    case model of
+        CardBased _ _ (Just versions) ->
+            let
+                ( toAdd, toRemove ) =
+                    case selectedVersion of
+                        Types.Original ->
+                            ( versions.original |> List.map (\c -> { c | synced = False } |> stripUpdatedAt)
+                            , versions.original |> List.map .updatedAt |> Set.fromList
+                            )
+
+                        Types.Theirs ->
+                            ( []
+                            , (versions.original ++ versions.ours)
+                                |> List.map .updatedAt
+                                |> Set.fromList
+                            )
+
+                        Types.Ours ->
+                            ( []
+                            , versions.original
+                                |> List.map .updatedAt
+                                |> Set.fromList
+                            )
+            in
+            ( model, SaveCardBased (toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = toRemove }) |> Just )
+
+        _ ->
+            ( model, Nothing )
 
 
 gitDataReceived : Dec.Value -> ( Model, Tree ) -> Maybe { newData : Model, newTree : Tree }

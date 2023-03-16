@@ -687,12 +687,13 @@ update msg model =
             case ( model.documentState, model.conflictViewerState ) of
                 ( Doc ({ docModel, data } as docState), Conflict selectedVersion ) ->
                     let
-                        ( newData, outMsg ) =
+                        ( newData, outMsg_ ) =
                             Data.resolveConflicts selectedVersion data
                     in
                     ( model
                       {--TODO: update model data --}
-                    , send outMsg
+                    , Maybe.map send outMsg_
+                        |> Maybe.withDefault Cmd.none
                     )
 
                 _ ->
