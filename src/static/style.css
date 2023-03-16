@@ -392,6 +392,7 @@ input.has-error {
      "handmadepaper.png" background
      image.
    */
+  --edit-boxshadow: inset 2px 2px 7px 0px rgb(0 0 0 / 22%), inset 0px 0px 2px 0.5px rgb(0 0 0 / 63%);
   --edit-text-color: hsl(27,28%,22%);
   --normal-text-color: hsl(0, 20%, 17%);
 }
@@ -410,6 +411,7 @@ input.has-error {
   --selection-color: hsl(44, 80%, 57%);
 
   /* --edit-bg is not defined here */
+  --edit-boxshadow: inset 2px 2px 7px 0px rgb(0 0 0 / 22%), inset 0px 0px 2px 0.5px rgb(0 0 0 / 63%);
   --edit-text-color: hsl(27,28%,22%);
   --normal-text-color: hsl(0, 20%, 17%);
 }
@@ -428,6 +430,7 @@ input.has-error {
   --selection-color: hsl(314, 80%, 57%);
 
   /* --edit-bg is not defined here */
+  --edit-boxshadow: inset 2px 2px 7px 0px rgb(0 0 0 / 22%), inset 0px 0px 2px 0.5px rgb(0 0 0 / 63%);
   --edit-text-color: hsl(27,28%,22%);
   --normal-text-color: hsl(0, 20%, 17%);
 }
@@ -2835,7 +2838,7 @@ pre {
 
 .group.has-active .card.editing {
   display: grid;
-  padding: 15px 0px 5px 0px;
+  padding: 15px 0px 5px 4px;
   border: var(--edit-border);
   border-radius: inherit;
   background: var(--edit-bg, url('./handmadepaper.png'));
