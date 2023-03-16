@@ -1,9 +1,9 @@
-module Doc.Data exposing (CommitObject, Model, cardDataReceived, checkout, conflictList, conflictSelection, convert, empty, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, success)
+module Doc.Data exposing (CommitObject, Model, cardDataReceived, checkout, conflictList, conflictToTree, convert, empty, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, success)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
 import Diff3 exposing (diff3Merge)
-import Doc.Data.Conflict exposing (Conflict, Op(..), Selection(..), conflictWithSha, opString)
+import Doc.Data.Conflict as Conf exposing (Conflict, Op(..), Selection(..), conflictWithSha, opString)
 import Doc.TreeStructure exposing (apply, opToMsg)
 import Http exposing (Error(..))
 import Json.Decode as Dec
@@ -14,7 +14,7 @@ import Outgoing exposing (Msg(..))
 import RemoteData exposing (WebData)
 import Set exposing (Set)
 import Time
-import Types exposing (CardTreeOp(..), Children(..), Tree)
+import Types exposing (CardTreeOp(..), Children(..), ConflictSelection(..), Tree)
 import Utils exposing (hash)
 
 
@@ -366,29 +366,22 @@ success json model =
             model
 
 
-conflictSelection : String -> Selection -> Model -> Model
-conflictSelection cid selection model =
-    case model of
-        CardBased _ _ _ ->
-            model
+conflictToTree : Model -> ConflictSelection -> Maybe Tree
+conflictToTree data selection =
+    case data of
+        CardBased _ _ (Just cd) ->
+            case selection of
+                Types.Ours ->
+                    cd.ours |> toTree |> Just
 
-        GitLike data (Just confInfo) ->
-            let
-                newConflicts =
-                    confInfo.conflicts
-                        |> List.map
-                            (\c ->
-                                if c.id == cid then
-                                    { c | selection = selection }
+                Types.Theirs ->
+                    cd.theirs |> toTree |> Just
 
-                                else
-                                    c
-                            )
-            in
-            GitLike data (Just { confInfo | conflicts = newConflicts })
+                Types.Original ->
+                    cd.original |> toTree |> Just
 
-        GitLike _ _ ->
-            model
+        _ ->
+            Nothing
 
 
 resolve : String -> Model -> Model
@@ -679,14 +672,14 @@ getConflicts opsA opsB =
                 -- Modify/Delete conflicts
                 ( Mod idA pidsA _ _, Del idB _ ) ->
                     if idA == idB || List.member idB pidsA then
-                        ( [], [ conflict opA opB Ours ] )
+                        ( [], [ conflict opA opB Conf.Ours ] )
 
                     else
                         ( [ opA, opB ], [] )
 
                 ( Del idA _, Mod idB pidsB _ _ ) ->
                     if idA == idB || List.member idA pidsB then
-                        ( [], [ conflict opA opB Theirs ] )
+                        ( [], [ conflict opA opB Conf.Theirs ] )
 
                     else
                         ( [ opA, opB ], [] )
@@ -694,21 +687,21 @@ getConflicts opsA opsB =
                 -- Insert/Delete conflicts
                 ( Ins idA _ pidsA _, Del idB _ ) ->
                     if idA == idB || List.member idB pidsA then
-                        ( [], [ conflict opA opB Ours ] )
+                        ( [], [ conflict opA opB Conf.Ours ] )
 
                     else
                         ( [ opA, opB ], [] )
 
                 ( Del idA _, Ins idB _ pidsB _ ) ->
                     if idA == idB || List.member idA pidsB then
-                        ( [], [ conflict opA opB Theirs ] )
+                        ( [], [ conflict opA opB Conf.Theirs ] )
 
                     else
                         ( [ opA, opB ], [] )
 
                 ( Mov idA _ _ newParentsA _, Mov idB _ _ newParentsB _ ) ->
                     if areAcyclicMoves ( idA, newParentsA ) ( idB, newParentsB ) then
-                        ( [], [ conflict opA opB Ours ] )
+                        ( [], [ conflict opA opB Conf.Ours ] )
 
                     else
                         ( [ opA, opB ], [] )

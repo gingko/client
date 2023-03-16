@@ -46,7 +46,7 @@ import Svg.Attributes
 import Task
 import Time
 import Translation exposing (Language, TranslationId(..), langToString, tr)
-import Types exposing (CardTreeOp, OutsideData, SortBy(..), TooltipPosition, Tree, ViewMode(..))
+import Types exposing (CardTreeOp, ConflictSelection(..), OutsideData, SortBy(..), TooltipPosition, Tree, ViewMode(..))
 import UI.Header exposing (HeaderMenuState(..), viewHeader)
 import UI.Sidebar exposing (SidebarMenuState(..), SidebarState(..), viewSidebar)
 import Upgrade exposing (Msg(..))
@@ -91,12 +91,6 @@ type alias DocState =
 type ConflictViewerState
     = NoConflict
     | Conflict ConflictSelection
-
-
-type ConflictSelection
-    = Ours
-    | Theirs
-    | Original
 
 
 toData : Model -> Maybe Data.Model
@@ -270,6 +264,9 @@ type Msg
     | IncomingDocMsg Incoming.Msg
     | MigrateToCardBased
     | LogErr String
+      -- Conflicts
+    | ConflictVersionSelected ConflictSelection
+    | ConflictResolved
       -- Sidebar
     | TemplateSelectorOpened
     | SortByChanged SortBy
@@ -661,6 +658,33 @@ update msg model =
             ( model
             , send (ConsoleLogRequested err)
             )
+
+        -- Conflicts
+        ConflictVersionSelected newSel ->
+            case model.documentState of
+                Doc ({ docModel, data } as docState) ->
+                    case Data.conflictToTree data newSel of
+                        Just newTree ->
+                            let
+                                oldWorkingTree =
+                                    Page.Doc.getWorkingTree docModel
+
+                                newWorkingTree =
+                                    TreeStructure.setTree newTree oldWorkingTree
+
+                                newDocModel =
+                                    Page.Doc.setWorkingTree newWorkingTree docModel
+                            in
+                            ( { model | documentState = Doc { docState | docModel = newDocModel } }, Cmd.none )
+
+                        Nothing ->
+                            ( model, Cmd.none )
+
+                Empty _ _ ->
+                    ( model, Cmd.none )
+
+        ConflictResolved ->
+            ( model, Cmd.none )
 
         -- Sidebar
         TemplateSelectorOpened ->
@@ -1951,9 +1975,9 @@ viewConflictSelector cstate =
                 ]
                 [ textNoTr "Conflicts!"
                 , br [] []
-                , button [ onClick NoOp ] [ textNoTr "Ours" ]
-                , button [ onClick NoOp ] [ textNoTr "Theirs" ]
-                , button [ onClick NoOp ] [ textNoTr "Original" ]
+                , button [ onClick (ConflictVersionSelected Ours) ] [ textNoTr "Ours" ]
+                , button [ onClick (ConflictVersionSelected Theirs) ] [ textNoTr "Theirs" ]
+                , button [ onClick (ConflictVersionSelected Original) ] [ textNoTr "Original" ]
                 , br [] []
                 , button [ onClick NoOp ] [ textNoTr "Choose this Version" ]
                 ]

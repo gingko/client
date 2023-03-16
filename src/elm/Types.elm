@@ -1,4 +1,4 @@
-module Types exposing (CardTreeOp(..), Children(..), CollabState, Column, CursorPosition(..), DragExternalModel, DropId(..), Group, Mode(..), OutsideData, SortBy(..), TextCursorInfo, TooltipPosition(..), Tree, ViewMode(..), ViewState, VisibleViewState, dropIdToValue)
+module Types exposing (CardTreeOp(..), Children(..), CollabState, Column, ConflictSelection(..), CursorPosition(..), DragExternalModel, DropId(..), Group, Mode(..), OutsideData, SortBy(..), TextCursorInfo, TooltipPosition(..), Tree, ViewMode(..), ViewState, VisibleViewState, dropIdToValue)
 
 import Html5.DragDrop as DragDrop
 import Json.Encode as Enc
@@ -35,6 +35,16 @@ type CardTreeOp
     | CTMov String (Maybe String) Int
     | CTMrg String String Bool
     | CTBlk Tree String Int
+
+
+
+-- Conflict Version Selection
+
+
+type ConflictSelection
+    = Ours
+    | Theirs
+    | Original
 
 
 
