@@ -309,7 +309,7 @@ cardDataReceived json ( oldModel, oldTree, treeId ) =
             Nothing
 
 
-resolveConflicts : ConflictSelection -> Model -> ( Model, Maybe Outgoing.Msg )
+resolveConflicts : ConflictSelection -> Model -> Maybe Outgoing.Msg
 resolveConflicts selectedVersion model =
     case model of
         CardBased _ _ (Just versions) ->
@@ -335,10 +335,10 @@ resolveConflicts selectedVersion model =
                                 |> Set.fromList
                             )
             in
-            ( model, SaveCardBased (toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = toRemove }) |> Just )
+            SaveCardBased (toSave { toAdd = toAdd, toMarkSynced = [], toMarkDeleted = [], toRemove = toRemove }) |> Just
 
         _ ->
-            ( model, Nothing )
+            Nothing
 
 
 gitDataReceived : Dec.Value -> ( Model, Tree ) -> Maybe { newData : Model, newTree : Tree }
