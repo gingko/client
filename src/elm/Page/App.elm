@@ -287,7 +287,7 @@ type Msg
     | ThemeChanged Theme
       -- HEADER: History
     | HistoryToggled Bool
-    | CheckoutTree Tree
+    | CheckoutVersion String
     | Restore
     | CancelHistory
       -- HEADER: Export & Print
@@ -850,27 +850,42 @@ update msg model =
         HistoryToggled isOpen ->
             model |> toggleHistory isOpen 0
 
-        CheckoutTree newTree ->
+        CheckoutVersion versionId ->
             case ( model.headerMenu, model.documentState ) of
-                ( HistoryView _, Doc docState ) ->
+                ( HistoryView history, Doc docState ) ->
                     let
-                        ( newDocModel, docCmds, _ ) =
-                            Page.Doc.setTree newTree docState.docModel
+                        version_ =
+                            History.checkoutVersion versionId history
                     in
-                    ( { model
-                        | documentState = Doc { docState | docModel = newDocModel }
-                      }
-                    , Cmd.map GotDocMsg docCmds
-                    )
+                    case version_ of
+                        Just ( newHistory, newTree ) ->
+                            ( { model
+                                | headerMenu = HistoryView newHistory
+                                , documentState =
+                                    Doc
+                                        { docState
+                                            | docModel = Page.Doc.setTree newTree docState.docModel |> (\( m, _, _ ) -> m)
+                                        }
+                              }
+                            , Cmd.none
+                            )
+
+                        Nothing ->
+                            ( model, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
 
         Restore ->
-            ( { model | headerMenu = NoHeaderMenu }
-            , Cmd.none
-            )
-                |> andThen addToHistoryDo
+            case ( model.headerMenu, model.documentState ) of
+                ( HistoryView history, Doc docState ) ->
+                    ( { model | headerMenu = NoHeaderMenu }
+                    , Cmd.none
+                    )
+                        |> andThen addToHistoryDo
+
+                _ ->
+                    ( model, Cmd.none )
 
         CancelHistory ->
             case ( model.headerMenu, model.documentState ) of
@@ -1799,7 +1814,7 @@ view ({ documentState } as model) =
                                 , tooltipClosed = TooltipClosed
                                 , migrateClicked = MigrateToCardBased
                                 , toggledHistory = HistoryToggled
-                                , checkoutTree = CheckoutTree
+                                , checkoutTree = CheckoutVersion
                                 , restore = Restore
                                 , cancelHistory = CancelHistory
                                 , toggledDocSettings = DocSettingsToggled (not <| model.headerMenu == Settings)

@@ -45,7 +45,7 @@ viewHeader :
     , tooltipClosed : msg
     , migrateClicked : msg
     , toggledHistory : Bool -> msg
-    , checkoutTree : Tree -> msg
+    , checkoutTree : String -> msg
     , restore : msg
     , cancelHistory : msg
     , toggledDocSettings : msg

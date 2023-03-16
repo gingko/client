@@ -1,4 +1,4 @@
-module Doc.History exposing (History, init, revert, view)
+module Doc.History exposing (History, checkoutVersion, getCurrentVersion, init, revert, view)
 
 import Ant.Icons.Svg as AntIcons
 import Doc.Data as Data
@@ -40,6 +40,32 @@ init tree data =
         |> Maybe.withDefault Empty
 
 
+checkoutVersion : String -> History -> Maybe ( History, Tree )
+checkoutVersion id history =
+    case history of
+        History origTree zipper ->
+            zipper
+                |> Zipper.findFirst (\v -> v.id == id)
+                |> Maybe.map (\z -> ( History origTree z, Zipper.current z |> .tree ))
+                |> Maybe.andThen (\( h, tree ) -> tree |> RemoteData.toMaybe |> Maybe.map (\t -> ( h, t )))
+
+        Empty ->
+            Nothing
+
+
+getCurrentVersion : History -> Maybe String
+getCurrentVersion history =
+    case history of
+        History _ zipper ->
+            zipper
+                |> Zipper.current
+                |> .id
+                |> Just
+
+        Empty ->
+            Nothing
+
+
 revert : History -> Maybe Tree
 revert model =
     case model of
@@ -57,7 +83,7 @@ revert model =
 type alias ViewConfig msg =
     { lang : Translation.Language
     , noOp : msg
-    , checkoutTree : Tree -> msg
+    , checkoutTree : String -> msg
     , restore : msg
     , cancel : msg
     , tooltipRequested : String -> TooltipPosition -> TranslationId -> msg
@@ -89,23 +115,12 @@ viewHistory { lang, noOp, checkoutTree, restore, cancel, tooltipRequested, toolt
 
         maybeCheckoutTree : String -> msg
         maybeCheckoutTree idxStr =
-            let
-                ver_ : Maybe Version
-                ver_ =
-                    idxStr
-                        |> String.toInt
-                        |> Maybe.andThen (\idx -> Zipper.toList zipper |> List.drop idx |> List.head)
-            in
-            case ver_ of
-                Just version ->
-                    Zipper.findFirst (\ver -> ver.id == version.id) zipper
-                        |> Maybe.map Zipper.current
-                        |> Maybe.map .tree
-                        |> Maybe.map (RemoteData.unwrap noOp checkoutTree)
-                        |> Maybe.withDefault noOp
-
-                Nothing ->
-                    noOp
+            idxStr
+                |> String.toInt
+                |> Maybe.andThen (\idx -> Zipper.toList zipper |> List.drop idx |> List.head)
+                |> Maybe.map .id
+                |> Maybe.map checkoutTree
+                |> Maybe.withDefault noOp
     in
     div [ id "history-menu" ]
         [ input [ id "history-slider", type_ "range", A.min "0", A.max maxIdx, step "1", onInput maybeCheckoutTree ] []
