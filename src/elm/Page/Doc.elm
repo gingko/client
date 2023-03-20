@@ -305,6 +305,7 @@ update msg ({ workingTree } as model) =
                         |> Maybe.withDefault Cmd.none
                     , []
                     )
+                        |> preventIfBlocked model
 
                 ( Nothing, Just ( _, dropId, _ ) ) ->
                     -- Drop success
@@ -546,6 +547,7 @@ incoming incomingMsg model =
                             , []
                             )
                                 |> openCardFullscreen vs.active (getContent vs.active model.workingTree.tree)
+                                |> preventIfBlocked model
 
                         _ ->
                             ( model, Cmd.none, [] )
@@ -1088,41 +1090,15 @@ openCard id str model =
 
             else
                 ( Editing, Cmd.none )
-
-        isLocked =
-            vs.collaborators
-                |> List.filter (\c -> c.mode == CollabEditing id)
-                |> (not << List.isEmpty)
-
-        isHistoryView =
-            {--TODO: case model.headerMenu of
-                HistoryView _ ->
-                    True
-
-                _ ->
-                    --}
-            False
     in
-    if isHistoryView then
-        ( model
-        , send (Alert "Cannot edit while browsing version history.")
-        , []
-        )
-
-    else if isLocked then
-        ( model
-        , send (Alert "Card is being edited by someone else.")
-        , []
-        )
-
-    else
-        ( { model
-            | viewState = { vs | active = id, viewMode = newViewMode }
-            , field = str
-          }
-        , Cmd.batch [ focus id, maybeScroll ]
-        , []
-        )
+    ( { model
+        | viewState = { vs | active = id, viewMode = newViewMode }
+        , field = str
+      }
+    , Cmd.batch [ focus id, maybeScroll ]
+    , []
+    )
+        |> preventIfBlocked model
 
 
 openCardFullscreen : String -> String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
@@ -1379,32 +1355,28 @@ insert pid pos initText ( model, prevCmd, prevMsgsToParent ) =
         newIdString =
             "node-" ++ (newId |> String.fromInt)
     in
-    case model.block of
-        Nothing ->
-            ( { model
-                | workingTree = TreeStructure.update (TreeStructure.Ins newIdString initText pid pos) model.workingTree
-                , globalData = GlobalData.setSeed newSeed model.globalData
-              }
-            , prevCmd
-            , prevMsgsToParent
-                ++ [ LocalSave
-                        (CTIns newIdString
-                            initText
-                            (if pid == "0" then
-                                Nothing
+    ( { model
+        | workingTree = TreeStructure.update (TreeStructure.Ins newIdString initText pid pos) model.workingTree
+        , globalData = GlobalData.setSeed newSeed model.globalData
+      }
+    , prevCmd
+    , prevMsgsToParent
+        ++ [ LocalSave
+                (CTIns newIdString
+                    initText
+                    (if pid == "0" then
+                        Nothing
 
-                             else
-                                Just pid
-                            )
-                            pos
-                        )
-                   ]
-            )
-                |> andThen (openCard newIdString initText)
-                |> activate newIdString False
-
-        Just blockReason ->
-            ( model, send <| Alert blockReason, prevMsgsToParent )
+                     else
+                        Just pid
+                    )
+                    pos
+                )
+           ]
+    )
+        |> andThen (openCard newIdString initText)
+        |> activate newIdString False
+        |> preventIfBlocked model
 
 
 insertRelative : String -> Int -> String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
@@ -2203,6 +2175,16 @@ dropRegions cardId isEditing isLast ( dragModel, dragExternalModel ) =
 
         _ ->
             []
+
+
+preventIfBlocked : ModelData -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
+preventIfBlocked originalModel ( newModel, cmd, parentMsgs ) =
+    case originalModel.block of
+        Nothing ->
+            ( newModel, cmd, parentMsgs )
+
+        Just blockReason ->
+            ( originalModel, send <| Alert blockReason, [] )
 
 
 viewContent : String -> String -> Html Msg
