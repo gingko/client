@@ -1,4 +1,4 @@
-module Page.Doc exposing (Model, Msg, MsgToParent(..), exitFullscreenExposed, getActiveId, getActiveTree, getField, getGlobalData, getTextCursorInfo, getViewMode, getWorkingTree, init, isDirty, isFullscreen, isNormalMode, lastActives, opaqueIncoming, opaqueUpdate, openCardFullscreenMsg, saveAndStopEditing, saveCardIfEditing, setDirty, setGlobalData, setLoading, setTree, setWorkingTree, subscriptions, updateField, view)
+module Page.Doc exposing (Model, Msg, MsgToParent(..), exitFullscreenExposed, getActiveId, getActiveTree, getField, getGlobalData, getTextCursorInfo, getViewMode, getWorkingTree, init, isDirty, isFullscreen, isNormalMode, lastActives, opaqueIncoming, opaqueUpdate, openCardFullscreenMsg, saveAndStopEditing, saveCardIfEditing, setBlock, setDirty, setGlobalData, setLoading, setTree, setWorkingTree, subscriptions, updateField, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -40,7 +40,7 @@ type alias ModelData =
     -- SPA Page State
     , globalData : GlobalData
     , loading : Bool
-    , isExpired : Bool
+    , block : Maybe String
 
     -- Transient state
     , viewState : ViewState
@@ -65,7 +65,7 @@ init isNew globalData =
         { workingTree = TreeStructure.defaultModel
         , globalData = globalData
         , loading = not isNew
-        , isExpired = False
+        , block = Nothing
         , uid = "0"
         , viewState =
             { active = "1"
@@ -1379,31 +1379,32 @@ insert pid pos initText ( model, prevCmd, prevMsgsToParent ) =
         newIdString =
             "node-" ++ (newId |> String.fromInt)
     in
-    if not model.isExpired then
-        ( { model
-            | workingTree = TreeStructure.update (TreeStructure.Ins newIdString initText pid pos) model.workingTree
-            , globalData = GlobalData.setSeed newSeed model.globalData
-          }
-        , prevCmd
-        , prevMsgsToParent
-            ++ [ LocalSave
-                    (CTIns newIdString
-                        initText
-                        (if pid == "0" then
-                            Nothing
+    case model.block of
+        Nothing ->
+            ( { model
+                | workingTree = TreeStructure.update (TreeStructure.Ins newIdString initText pid pos) model.workingTree
+                , globalData = GlobalData.setSeed newSeed model.globalData
+              }
+            , prevCmd
+            , prevMsgsToParent
+                ++ [ LocalSave
+                        (CTIns newIdString
+                            initText
+                            (if pid == "0" then
+                                Nothing
 
-                         else
-                            Just pid
+                             else
+                                Just pid
+                            )
+                            pos
                         )
-                        pos
-                    )
-               ]
-        )
-            |> andThen (openCard newIdString initText)
-            |> activate newIdString False
+                   ]
+            )
+                |> andThen (openCard newIdString initText)
+                |> activate newIdString False
 
-    else
-        ( model, send <| Alert "Your Free Trial is Over.\n\nYou can view and edit your existing cards, but cannot create new ones.", prevMsgsToParent )
+        Just blockReason ->
+            ( model, send <| Alert blockReason, prevMsgsToParent )
 
 
 insertRelative : String -> Int -> String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
@@ -2421,6 +2422,11 @@ setGlobalData globalData (Model model) =
         { model
             | globalData = globalData
         }
+
+
+setBlock : Maybe String -> Model -> Model
+setBlock block_ (Model model) =
+    Model { model | block = block_ }
 
 
 setLoading : Bool -> Model -> Model

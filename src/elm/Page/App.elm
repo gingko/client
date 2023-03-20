@@ -1672,8 +1672,21 @@ closeSwitcher model =
 toggleHistory : Bool -> Int -> Model -> ( Model, Cmd msg )
 toggleHistory isOpen delta model =
     case ( isOpen, model.documentState ) of
-        ( True, Doc { data, docModel } ) ->
-            ( { model | headerMenu = HistoryView (History.init (Page.Doc.getWorkingTree docModel).tree data) }, send <| HistorySlider delta )
+        ( True, Doc ({ data, docModel } as docState) ) ->
+            ( { model
+                | documentState = Doc { docState | docModel = Page.Doc.setBlock (Just "Cannot edit while viewing history") docModel }
+                , headerMenu = HistoryView (History.init (Page.Doc.getWorkingTree docModel).tree data)
+              }
+            , send <| HistorySlider delta
+            )
+
+        ( False, Doc ({ data, docModel } as docState) ) ->
+            ( { model
+                | documentState = Doc { docState | docModel = Page.Doc.setBlock (Just "Cannot edit while viewing history") docModel }
+                , headerMenu = NoHeaderMenu
+              }
+            , Cmd.none
+            )
 
         _ ->
             ( { model | headerMenu = NoHeaderMenu }, Cmd.none )
