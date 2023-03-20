@@ -1492,12 +1492,23 @@ historyReceived : Json.Value -> Model -> ( Model, Cmd Msg )
 historyReceived dataIn model =
     case model.documentState of
         Doc ({ docModel, docId } as docState) ->
+            let
+                newData =
+                    Data.historyReceived dataIn docState.data
+            in
             ( { model
                 | documentState =
                     Doc
                         { docState
-                            | data = Data.historyReceived dataIn docState.data
+                            | data = newData
                         }
+                , headerMenu =
+                    case model.headerMenu of
+                        HistoryView _ ->
+                            HistoryView (History.init (Page.Doc.getWorkingTree docModel).tree newData)
+
+                        _ ->
+                            model.headerMenu
               }
             , Cmd.none
             )

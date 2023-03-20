@@ -292,7 +292,7 @@ cardDataReceived json ( oldModel, oldTree, treeId ) =
                         |> toTree
 
                 syncState =
-                    getSyncState cards |> Debug.log "syncState"
+                    getSyncState cards
 
                 ( outMsg, conflicts_ ) =
                     case syncState of
@@ -1633,14 +1633,39 @@ historyReceived json model =
             case Dec.decodeValue decodeHistory json of
                 Ok history ->
                     let
+                        oldHistoryDict : Dict String ( Time.Posix, WebData CardData )
+                        oldHistoryDict =
+                            oldHistory
+                                |> List.map (\( id, ts, cardData ) -> ( id, ( ts, cardData ) ))
+                                |> Dict.fromList
+
+                        newHistoryDict : Dict String ( Time.Posix, WebData CardData )
+                        newHistoryDict =
+                            history
+                                |> List.map (\( id, ts, cardData_ ) -> ( id, ( ts, RemoteData.fromMaybe (BadBody "Couldn't load history data") cardData_ ) ))
+                                |> Dict.fromList
+
+                        inBoth : String -> ( Time.Posix, WebData CardData ) -> ( Time.Posix, WebData CardData ) -> List ( String, Time.Posix, WebData CardData ) -> List ( String, Time.Posix, WebData CardData )
+                        inBoth id ( tsL, cardDataL ) ( tsR, cardDataR ) acc =
+                            case ( cardDataL, cardDataR ) of
+                                ( RemoteData.Success _, _ ) ->
+                                    ( id, tsL, cardDataL ) :: acc
+
+                                ( _, RemoteData.Success _ ) ->
+                                    ( id, tsR, cardDataR ) :: acc
+
+                                _ ->
+                                    ( id, tsL, cardDataL ) :: acc
+
                         newHistory : List ( String, Time.Posix, WebData CardData )
                         newHistory =
-                            history
-                                |> List.map (\( id, ts, cards_ ) -> ( id, ts, RemoteData.fromMaybe (BadBody "Couldn't load history data") cards_ ))
-                                |> List.append oldHistory
-                                |> ListExtra.uniqueBy (\( id, _, _ ) -> id)
-                                |> List.sortBy (\( _, ts, _ ) -> Time.posixToMillis ts)
-                                |> List.reverse
+                            Dict.merge
+                                (\id ( ts, cd ) -> List.append [ ( id, ts, cd ) ])
+                                inBoth
+                                (\id ( ts, cd ) -> List.append [ ( id, ts, cd ) ])
+                                oldHistoryDict
+                                newHistoryDict
+                                []
                     in
                     CardBased data newHistory conflicts_
 
