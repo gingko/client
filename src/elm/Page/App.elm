@@ -913,11 +913,13 @@ update msg model =
                               }
                             , Cmd.map GotDocMsg docCmds
                             )
+                                |> setBlock Nothing
 
                         Nothing ->
                             ( { model | headerMenu = NoHeaderMenu }
                             , Cmd.none
                             )
+                                |> setBlock Nothing
 
                 _ ->
                     ( model
@@ -1672,24 +1674,31 @@ closeSwitcher model =
 toggleHistory : Bool -> Int -> Model -> ( Model, Cmd msg )
 toggleHistory isOpen delta model =
     case ( isOpen, model.documentState ) of
-        ( True, Doc ({ data, docModel } as docState) ) ->
-            ( { model
-                | documentState = Doc { docState | docModel = Page.Doc.setBlock (Just "Cannot edit while viewing history") docModel }
-                , headerMenu = HistoryView (History.init (Page.Doc.getWorkingTree docModel).tree data)
-              }
+        ( True, Doc { data, docModel } ) ->
+            ( { model | headerMenu = HistoryView (History.init (Page.Doc.getWorkingTree docModel).tree data) }
             , send <| HistorySlider delta
             )
+                |> setBlock (Just "Cannot edit while viewing history.")
 
-        ( False, Doc ({ data, docModel } as docState) ) ->
-            ( { model
-                | documentState = Doc { docState | docModel = Page.Doc.setBlock (Just "Cannot edit while viewing history") docModel }
-                , headerMenu = NoHeaderMenu
-              }
-            , Cmd.none
-            )
+        ( False, _ ) ->
+            ( { model | headerMenu = NoHeaderMenu }, Cmd.none ) |> setBlock Nothing
 
         _ ->
             ( { model | headerMenu = NoHeaderMenu }, Cmd.none )
+
+
+setBlock : Maybe String -> ( Model, Cmd msg ) -> ( Model, Cmd msg )
+setBlock block ( model, cmd ) =
+    case model.documentState of
+        Doc ({ docModel } as docState) ->
+            ( { model
+                | documentState = Doc { docState | docModel = Page.Doc.setBlock block docModel }
+              }
+            , cmd
+            )
+
+        Empty _ _ ->
+            ( model, cmd )
 
 
 

@@ -1198,12 +1198,14 @@ deleteCard id ( model, prevCmd, prevMsgsToParent ) =
         , send (Alert "Card is being edited by someone else.")
         , prevMsgsToParent
         )
+            |> preventIfBlocked model
 
     else if isLastChild then
         ( model
         , send (Alert "Cannot delete last card.")
         , prevMsgsToParent
         )
+            |> preventIfBlocked model
 
     else
         ( { model
@@ -1216,6 +1218,7 @@ deleteCard id ( model, prevCmd, prevMsgsToParent ) =
             |> activate nextToActivate False
             |> localSave (CTRmv id)
             |> addToHistory
+            |> preventIfBlocked model
 
 
 goToTopOfColumn : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
