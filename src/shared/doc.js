@@ -230,6 +230,13 @@ async function setUserDbs(eml) {
           await dexie.tree_snapshots.bulkPut(snapshotData);
           break;
         }
+
+        case 'saveUserSettingOk':
+          const {d} = data;
+          let currSessionData = JSON.parse(localStorage.getItem(sessionStorageKey));
+          currSessionData[d[0]] = d[1];
+          localStorage.setItem(sessionStorageKey, JSON.stringify(currSessionData));
+          break;
       }
     } catch (e) {
       console.log(e);
@@ -668,6 +675,7 @@ const fromElm = (msg, elmData) => {
     SaveUserSetting: () => {
       let key = elmData[0];
       let value = elmData[1];
+      // Save to PouchDB, which syncs to CouchDB
       switch(key) {
         case "language":
           lang = value;
@@ -678,6 +686,9 @@ const fromElm = (msg, elmData) => {
           userStore.set(key, value);
           break;
       }
+
+      // Save to remote SQLite
+      ws.send(JSON.stringify({t: "saveUserSetting", d: [key, value]}));
     },
 
     SetSidebarState: () => {
