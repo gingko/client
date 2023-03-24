@@ -5,11 +5,12 @@ import Doc.List as DocList exposing (Model(..))
 import Doc.Metadata as Metadata exposing (Metadata)
 import Http
 import Json.Decode as Dec exposing (Decoder)
-import Json.Decode.Pipeline exposing (optional, optionalAt, required)
+import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as Enc
 import List.Extra as ListExtra
 import Outgoing exposing (Msg(..), send)
 import Time exposing (Posix)
+import Translation exposing (Language)
 import Types exposing (SortBy(..))
 import Upgrade
 
@@ -311,14 +312,10 @@ decoder =
 decodeLoggedIn : Dec.Decoder Session
 decodeLoggedIn =
     Dec.succeed
-        (\email t legacy side payStat confirmTime trayOpen sortCriteria lastDoc ->
+        (\email t legacy side confirmTime trialExp_ custId_ trayOpen sortCriteria lastDoc ->
             let
                 newPayStat =
-                    if payStat == Trial (Time.millisToPosix 0) then
-                        Trial (t |> add14days)
-
-                    else
-                        payStat
+                    toPayStat t trialExp_ custId_
             in
             LoggedIn
                 { fileMenuOpen = side
@@ -331,8 +328,9 @@ decodeLoggedIn =
         |> required "currentTime" (Dec.int |> Dec.map Time.millisToPosix)
         |> optional "fromLegacy" Dec.bool False
         |> optional "sidebarOpen" Dec.bool False
-        |> optional "paymentStatus" decodePaymentStatus (Trial (Time.millisToPosix 0))
         |> optional "confirmedAt" decodeConfirmedStatus (Just (Time.millisToPosix 0))
+        |> optional "trialExpiry" decodeTrialExpiry Nothing
+        |> optional "customerId" decodeCustomerId Nothing
         |> optional "shortcutTrayOpen" Dec.bool False
         |> optional "sortBy" sortByDecoder ModifiedAt
         |> optional "lastDocId" (Dec.maybe Dec.string) Nothing
@@ -344,6 +342,39 @@ decodeConfirmedStatus =
         [ Dec.null Nothing
         , Dec.int |> Dec.map Time.millisToPosix |> Dec.maybe
         ]
+
+
+decodeTrialExpiry : Decoder (Maybe Time.Posix)
+decodeTrialExpiry =
+    Dec.oneOf
+        [ Dec.null Nothing
+        , Dec.int |> Dec.map Time.millisToPosix |> Dec.maybe
+        ]
+
+
+decodeCustomerId : Decoder (Maybe String)
+decodeCustomerId =
+    Dec.oneOf
+        [ Dec.null Nothing
+        , Dec.string |> Dec.maybe
+        ]
+
+
+toPayStat : Time.Posix -> Maybe Time.Posix -> Maybe String -> PaymentStatus
+toPayStat t trialExp_ custId_ =
+    case ( trialExp_, custId_ ) of
+        ( Just trialExp, Nothing ) ->
+            if trialExp == Time.millisToPosix 0 then
+                Trial (t |> add14days)
+
+            else
+                Trial trialExp
+
+        ( Nothing, Just custId ) ->
+            Customer custId
+
+        _ ->
+            Trial (t |> add14days)
 
 
 decodePaymentStatus : Dec.Decoder PaymentStatus
@@ -368,31 +399,35 @@ decodeGuest =
         |> optional "sidebarOpen" Dec.bool False
 
 
-responseDecoder : Session -> Dec.Decoder Session
+responseDecoder : Session -> Dec.Decoder ( Session, Language )
 responseDecoder session =
     let
-        builder email payStat checklist trayOpen sortCriteria =
+        builder : String -> Maybe Time.Posix -> Maybe String -> Maybe Time.Posix -> Language -> ( Session, Language )
+        builder email trialExp_ custId_ confAt lang =
             case session of
                 Guest sessionData ->
-                    LoggedIn sessionData (UserData email Upgrade.init payStat checklist trayOpen sortCriteria DocList.init)
+                    ( LoggedIn sessionData (UserData email Upgrade.init (toPayStat (Time.millisToPosix 0) trialExp_ custId_) confAt True ModifiedAt DocList.init)
+                    , lang
+                    )
 
                 LoggedIn _ _ ->
-                    session
+                    ( session, lang )
     in
     Dec.succeed builder
         |> required "email" Dec.string
-        |> optionalAt [ "settings", "paymentStatus" ] decodePaymentStatus (Trial (Time.millisToPosix 0))
-        |> optionalAt [ "settings", "confirmedAt" ] decodeConfirmedStatus (Just (Time.millisToPosix 0))
-        |> optionalAt [ "settings", "shortcutTrayOpen" ] Dec.bool False
-        |> optionalAt [ "settings", "sortBy" ] sortByDecoder ModifiedAt
+        |> optional "trialExpiry" decodeTrialExpiry Nothing
+        |> optional "customerId" decodeCustomerId Nothing
+        |> optional "confirmedAt" decodeConfirmedStatus (Just (Time.millisToPosix 0))
+        |> optional "language" (Dec.string |> Dec.map Translation.langFromString) Translation.En
 
 
-encode : Session -> Enc.Value
-encode session =
+encode : Translation.Language -> Session -> Enc.Value
+encode lang session =
     case session of
         LoggedIn _ data ->
             Enc.object
                 [ ( "email", Enc.string data.email )
+                , ( "language", Enc.string (Translation.langToString lang) )
                 ]
 
         Guest _ ->
@@ -403,7 +438,7 @@ encode session =
 -- AUTHENTICATION
 
 
-requestSignup : (Result Http.Error Session -> msg) -> String -> String -> Bool -> Session -> Cmd msg
+requestSignup : (Result Http.Error ( Session, Language ) -> msg) -> String -> String -> Bool -> Session -> Cmd msg
 requestSignup toMsg email password didOptIn session =
     let
         requestBody =
@@ -421,12 +456,12 @@ requestSignup toMsg email password didOptIn session =
         }
 
 
-storeSignup : Session -> Cmd msg
-storeSignup session =
-    store (Just session)
+storeSignup : Translation.Language -> Session -> Cmd msg
+storeSignup lang session =
+    store lang session
 
 
-requestLogin : (Result Http.Error Session -> msg) -> String -> String -> Session -> Cmd msg
+requestLogin : (Result Http.Error ( Session, Language ) -> msg) -> String -> String -> Session -> Cmd msg
 requestLogin toMsg email password session =
     let
         requestBody =
@@ -447,12 +482,12 @@ requestLogin toMsg email password session =
         }
 
 
-storeLogin : Session -> Cmd msg
-storeLogin session =
-    store (Just session)
+storeLogin : Translation.Language -> Session -> Cmd msg
+storeLogin lang session =
+    store lang session
 
 
-requestForgotPassword : (Result Http.Error Session -> msg) -> String -> Session -> Cmd msg
+requestForgotPassword : (Result Http.Error ( Session, Language ) -> msg) -> String -> Session -> Cmd msg
 requestForgotPassword toMsg email session =
     let
         requestBody =
@@ -468,7 +503,7 @@ requestForgotPassword toMsg email session =
         }
 
 
-requestResetPassword : (Result Http.Error Session -> msg) -> { newPassword : String, token : String } -> Session -> Cmd msg
+requestResetPassword : (Result Http.Error ( Session, Language ) -> msg) -> { newPassword : String, token : String } -> Session -> Cmd msg
 requestResetPassword toMsg { newPassword, token } session =
     let
         requestBody =
@@ -487,21 +522,16 @@ requestResetPassword toMsg { newPassword, token } session =
 
 logout : Cmd msg
 logout =
-    store Nothing
+    send <| LogoutUser
 
 
 
 -- PORTS
 
 
-store : Maybe Session -> Cmd msg
-store session_ =
-    case session_ of
-        Just session ->
-            send <| StoreUser (encode session)
-
-        Nothing ->
-            send <| StoreUser Enc.null
+store : Translation.Language -> Session -> Cmd msg
+store lang session =
+    send <| StoreUser (encode lang session)
 
 
 loginChanges : (Session -> msg) -> Sub msg

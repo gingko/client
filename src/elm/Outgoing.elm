@@ -14,6 +14,7 @@ import Types exposing (CollabState, CursorPosition(..), DropId, OutsideData, Tex
 
 type Msg
     = StoreUser Enc.Value
+    | LogoutUser
     | SaveUserSetting ( String, Enc.Value )
       -- === Dialogs, Menus, Window State ===
     | Alert String
@@ -77,6 +78,9 @@ send info =
     case info of
         StoreUser user ->
             dataToSend "StoreUser" user
+
+        LogoutUser ->
+            dataToSend "LogoutUser" null
 
         SaveUserSetting ( key, val ) ->
             dataToSend "SaveUserSetting" (list identity [ string key, val ])

@@ -14,6 +14,7 @@ import Route
 import Session exposing (Session)
 import Svg.Attributes
 import Task
+import Translation exposing (Language)
 import Utils exposing (getFieldErrors)
 import Validate exposing (Valid, Validator, ifBlank, ifInvalidEmail, ifTrue, validate)
 
@@ -81,7 +82,7 @@ type Msg
     | EnteredPassword String
     | ToggleShowPassword
     | ToggledOptIn Bool
-    | CompletedSignup (Result Http.Error Session)
+    | CompletedSignup (Result Http.Error ( Session, Language ))
     | GotUser Session
 
 
@@ -113,8 +114,8 @@ update msg model =
         ToggledOptIn isOptedIn ->
             ( { model | didOptIn = isOptedIn }, Cmd.none )
 
-        CompletedSignup (Ok user) ->
-            ( { model | session = user }, Session.storeSignup user )
+        CompletedSignup (Ok ( user, lang )) ->
+            ( { model | session = user }, Session.storeSignup lang user )
 
         CompletedSignup (Err error) ->
             let

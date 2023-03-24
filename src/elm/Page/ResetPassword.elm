@@ -9,6 +9,7 @@ import Html.Events exposing (onBlur, onInput, onSubmit)
 import Http exposing (Error(..))
 import Session exposing (Session)
 import Task
+import Translation exposing (Language)
 import Utils exposing (getFieldErrors)
 import Validate exposing (Valid, Validator, ifBlank, ifFalse, ifInvalidEmail, ifTrue, validate)
 
@@ -73,7 +74,7 @@ type Msg
     | EnteredPassword String
     | EnteredPassConfirm String
     | Blurred Field
-    | CompletedResetPassword (Result Http.Error Session)
+    | CompletedResetPassword (Result Http.Error ( Session, Language ))
     | GotUser Session
 
 
@@ -119,8 +120,8 @@ update msg model =
         EnteredPassConfirm passwordConfirm ->
             ( { model | passwordConfirm = passwordConfirm }, Cmd.none )
 
-        CompletedResetPassword (Ok user) ->
-            ( model, Session.storeLogin user )
+        CompletedResetPassword (Ok ( user, lang )) ->
+            ( model, Session.storeLogin lang user )
 
         CompletedResetPassword (Err error) ->
             let

@@ -67,7 +67,6 @@ let docElement;
 let sidebarWidth;
 let externalDrag = false;
 let savedObjectIds = new Set();
-const userStore = container.userStore;
 const localStore = container.localStore;
 
 const sessionStorageKey = "gingko-session-storage";
@@ -77,35 +76,27 @@ const sessionStorageKey = "gingko-session-storage";
 initElmAndPorts();
 
 async function initElmAndPorts() {
-  let sessionData = localStorage.getItem(sessionStorageKey) || null;
-  let settings = {language: "en"};
-  if (sessionData) {
-    console.log("sessionData found", sessionData);
-    sessionData = JSON.parse(sessionData);
+  let sessionString = localStorage.getItem(sessionStorageKey);
+  let sessionData = sessionString == null ? {} : JSON.parse(sessionString);
+  console.log("sessionData found", sessionData);
+  if (sessionData.email) {
     email = sessionData.email;
     await setUserDbs(sessionData.email);
-    // Load user settings
-    try {
-      settings = await userStore.load();
-    } catch (e) {
-      console.log("failed", e)
-    }
-    settings.sidebarOpen = (sessionData.hasOwnProperty('sidebarOpen')) ?  sessionData.sidebarOpen : false;
-    sidebarWidth = settings.sidebarOpen ? 215 : 40;
+    sessionData.sidebarOpen = (sessionData.hasOwnProperty('sidebarOpen')) ?  sessionData.sidebarOpen : false;
+    sidebarWidth = sessionData.sidebarOpen ? 215 : 40;
+    lang = sessionData.language || "en";
   }
 
-
+  // Dynamic and global session info
   let timestamp = Date.now();
-  settings.email = email;
-  settings.seed = timestamp;
-  settings.isMac = platform.os.family === 'OS X';
-  settings.currentTime = timestamp;
-  settings.fromLegacy = document.referrer.startsWith(config.LEGACY_URL);
-  lang = settings.language || "en";
+  sessionData.seed = timestamp;
+  sessionData.isMac = platform.os.family === 'OS X';
+  sessionData.currentTime = timestamp;
+  sessionData.fromLegacy = document.referrer.startsWith(config.LEGACY_URL);
 
   gingko = Elm.Main.init({
     node: document.getElementById("elm"),
-    flags: settings,
+    flags: sessionData,
   });
 
   // All messages from Elm
@@ -160,18 +151,6 @@ async function setUserDbs(eml) {
   }
 
   db = new PouchDB(userDbName);
-  userStore.db(db, remoteDB);
-
-
-  // Sync user settings
-
-  await PouchDB.replicate(remoteDB, db, {retry: true, doc_ids: ["settings"]});
-  PouchDB.sync(db, remoteDB, {live: true, retry: true, doc_ids: ["settings"]})
-    .on('change', (ev) => {
-      if (ev.direction === "pull") {
-        gingko.ports.userSettingsChange.send(ev.change.docs[0]);
-      }
-    });
 
   ws = new WebSocket(window.location.origin.replace('http','ws'));
 
@@ -231,10 +210,10 @@ async function setUserDbs(eml) {
           break;
         }
 
-        case 'saveUserSettingOk':
-          const {d} = data;
+        case 'setLanguageOk':
+          const { d } = data
           let currSessionData = JSON.parse(localStorage.getItem(sessionStorageKey));
-          currSessionData[d[0]] = d[1];
+          currSessionData.language = d;
           localStorage.setItem(sessionStorageKey, JSON.stringify(currSessionData));
           break;
       }
@@ -255,7 +234,7 @@ async function setUserDbs(eml) {
 
     const unsyncedTrees = trees.filter(t => !t.synced);
     if (unsyncedTrees.length > 0) {
-      ws.send(JSON.stringify({t: 'trees', d: unsyncedTrees}));
+      wsSend('trees', unsyncedTrees);
     }
     firstLoad = false;
   });
@@ -325,26 +304,26 @@ const fromElm = (msg, elmData) => {
     // === SPA ===
 
     StoreUser: async () => {
-      if (elmData == null) {
-        console.log("AT StoreUser")
-        try {
-          await db.replicate.to(remoteDB);
-          await fetch(document.location.origin + "/logout", {method: 'POST'});
-          localStorage.removeItem(sessionStorageKey);
-          await db.destroy();
-          await dexie.trees.clear();
-          setTimeout(() => gingko.ports.userLoginChange.send(null), 0);
-        } catch (err) {
-          console.error(err)
-        }
-      } else {
-        localStorage.setItem(
-          sessionStorageKey,
-          JSON.stringify(_.pick(elmData, ["email","language"]))
-        );
-        await setUserDbs(elmData.email);
-        elmData.seed = Date.now();
-        setTimeout(() => gingko.ports.userLoginChange.send(elmData), 0);
+      localStorage.setItem(
+        sessionStorageKey,
+        JSON.stringify(elmData)
+      );
+      await setUserDbs(elmData.email);
+      elmData.seed = Date.now();
+      setTimeout(() => gingko.ports.userLoginChange.send(elmData), 0);
+    },
+
+    LogoutUser : async () => {
+      console.log("AT Logout user")
+      try {
+        await db.replicate.to(remoteDB);
+        await fetch(document.location.origin + "/logout", {method: 'POST'});
+        localStorage.removeItem(sessionStorageKey);
+        await db.destroy();
+        await dexie.trees.clear();
+        setTimeout(() => gingko.ports.userLoginChange.send(null), 0);
+      } catch (err) {
+        console.error(err)
       }
     },
 
@@ -452,8 +431,8 @@ const fromElm = (msg, elmData) => {
     },
 
     PushDeltas : () => {
-      if (ws.readyState == ws.OPEN && ws.bufferedAmount == 0 && elmData.dlts.length > 0) {
-        ws.send(JSON.stringify({t: 'push', d: elmData}));
+      if (elmData.dlts.length > 0) {
+        wsSend('push', elmData, true);
       }
     },
 
@@ -659,9 +638,7 @@ const fromElm = (msg, elmData) => {
     HistorySlider: () => {
       // History opened
       // TODO: Check if we're actually in a card-based document
-      if (ws.readyState == ws.OPEN && ws.bufferedAmount == 0) {
-        ws.send(JSON.stringify({t: "pullHistory", d: TREE_ID}));
-      }
+      wsSend('pullHistory', TREE_ID, false);
 
       window.requestAnimationFrame(() => {
         let slider = document.getElementById('history-slider')
@@ -675,20 +652,10 @@ const fromElm = (msg, elmData) => {
     SaveUserSetting: () => {
       let key = elmData[0];
       let value = elmData[1];
-      // Save to PouchDB, which syncs to CouchDB
-      switch(key) {
-        case "language":
-          lang = value;
-          userStore.set("language", value);
-          break;
-
-        default:
-          userStore.set(key, value);
-          break;
-      }
-
       // Save to remote SQLite
-      ws.send(JSON.stringify({t: "saveUserSetting", d: [key, value]}));
+      if (key == "language") {
+        wsSend('setLanguage', value);
+      }
     },
 
     SetSidebarState: () => {
@@ -785,6 +752,18 @@ const fromElm = (msg, elmData) => {
 };
 
 
+function wsSend(msgTag, msgData, unbufferedOnly) {
+  if (unbufferedOnly == undefined) {
+    unbufferedOnly = false;
+  }
+  const bufferCheck = unbufferedOnly ? ws.bufferedAmount == 0 : true;
+
+  if (ws.readyState == ws.OPEN && bufferCheck) {
+    ws.send(JSON.stringify({t: msgTag, d: msgData}));
+  } else {
+    console.log("WS not ready to send: ", msgTag, msgData);
+  }
+}
 
 
 /* === Database === */
@@ -834,12 +813,10 @@ function getChk(treeId, cards) {
 }
 
 function pull(treeId, chk) {
-  if (ws.readyState == ws.OPEN && ws.bufferedAmount == 0) {
-    ws.send(JSON.stringify({t: "pull", d: [treeId, chk]}));
-    setTimeout(() => {
-      ws.send(JSON.stringify({t: "pullHistoryMeta", d: treeId}));
-    }, 500);
-  }
+  wsSend("pull", [treeId, chk], true);
+  setTimeout(() => {
+    wsSend('pullHistoryMeta', treeId, false);
+  }, 500)
 }
 
 function saveBackupToImmortalDB (treeId, cards) {

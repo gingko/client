@@ -9,6 +9,7 @@ import Http exposing (Error(..))
 import Result exposing (Result)
 import Route
 import Session exposing (Session)
+import Translation exposing (Language)
 import Utils exposing (getFieldErrors)
 import Validate exposing (Valid, Validator, ifBlank, ifInvalidEmail, validate)
 
@@ -67,7 +68,7 @@ globalData model =
 type Msg
     = SubmittedForm
     | EnteredEmail String
-    | CompletedForgotPassword (Result Http.Error Session)
+    | CompletedForgotPassword (Result Http.Error ( Session, Language ))
     | GotUser Session
 
 
