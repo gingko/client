@@ -210,10 +210,10 @@ async function setUserDbs(eml) {
           break;
         }
 
-        case 'setLanguageOk':
+        case 'userSettingOk':
           const { d } = data
           let currSessionData = JSON.parse(localStorage.getItem(sessionStorageKey));
-          currSessionData.language = d;
+          currSessionData[d[0]] = d[1];
           localStorage.setItem(sessionStorageKey, JSON.stringify(currSessionData));
           break;
       }

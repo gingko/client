@@ -421,14 +421,32 @@ responseDecoder session =
         |> optional "language" (Dec.string |> Dec.map Translation.langFromString) Translation.En
 
 
+encodeUserData : Language -> UserData -> Enc.Value
+encodeUserData lang userData =
+    let
+        getTrialExpiry =
+            case userData.paymentStatus of
+                Trial trialExp ->
+                    trialExp |> Time.posixToMillis |> Enc.int
+
+                _ ->
+                    Enc.null
+    in
+    Enc.object
+        [ ( "email", Enc.string userData.email )
+        , ( "trialExpiry", getTrialExpiry )
+        , ( "confirmedAt", userData.confirmedAt |> Maybe.map Time.posixToMillis |> Coders.maybeToValue Enc.int )
+        , ( "shortcutTrayOpen", Enc.bool userData.shortcutTrayOpen )
+        , ( "sortBy", Coders.sortByEncoder userData.sortBy )
+        , ( "language", Enc.string (Translation.langToString lang) )
+        ]
+
+
 encode : Translation.Language -> Session -> Enc.Value
 encode lang session =
     case session of
-        LoggedIn _ data ->
-            Enc.object
-                [ ( "email", Enc.string data.email )
-                , ( "language", Enc.string (Translation.langToString lang) )
-                ]
+        LoggedIn _ userData ->
+            encodeUserData lang userData
 
         Guest _ ->
             Enc.null
