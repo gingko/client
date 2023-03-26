@@ -653,8 +653,16 @@ const fromElm = (msg, elmData) => {
       let key = elmData[0];
       let value = elmData[1];
       // Save to remote SQLite
-      if (key == "language") {
-        wsSend('setLanguage', value);
+      switch (key) {
+        case 'language':
+          wsSend('setLanguage', value);
+          break;
+
+        default:
+          let currSessionData = JSON.parse(localStorage.getItem(sessionStorageKey));
+          currSessionData[key] = value;
+          localStorage.setItem(sessionStorageKey, JSON.stringify(currSessionData));
+          break;
       }
     },
 
@@ -683,10 +691,6 @@ const fromElm = (msg, elmData) => {
 
     Print: () => {
       window.print();
-    },
-
-    SetShortcutTray: () => {
-      userStore.set("shortcutTrayOpen", elmData);
     },
 
     // === Misc ===
