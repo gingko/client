@@ -312,10 +312,19 @@ decoder =
 decodeLoggedIn : Dec.Decoder Session
 decodeLoggedIn =
     Dec.succeed
-        (\email t legacy side confirmTime trialExp_ custId_ trayOpen sortCriteria lastDoc ->
+        (\email t legacy side confirmTime payStat trayOpen sortCriteria lastDoc ->
             let
                 newPayStat =
-                    toPayStat t trialExp_ custId_
+                    case payStat of
+                        Trial trialTime ->
+                            if Time.posixToMillis trialTime == 0 then
+                                Trial (t |> add14days)
+
+                            else
+                                payStat
+
+                        _ ->
+                            payStat
             in
             LoggedIn
                 { fileMenuOpen = side
@@ -329,8 +338,7 @@ decodeLoggedIn =
         |> optional "fromLegacy" Dec.bool False
         |> optional "sidebarOpen" Dec.bool False
         |> optional "confirmedAt" decodeConfirmedStatus (Just (Time.millisToPosix 0))
-        |> optional "trialExpiry" decodeTrialExpiry Nothing
-        |> optional "customerId" decodeCustomerId Nothing
+        |> optional "paymentStatus" decodePaymentStatus (Trial (Time.millisToPosix 0))
         |> optional "shortcutTrayOpen" Dec.bool False
         |> optional "sortBy" sortByDecoder ModifiedAt
         |> optional "lastDocId" (Dec.maybe Dec.string) Nothing
@@ -344,45 +352,21 @@ decodeConfirmedStatus =
         ]
 
 
-decodeTrialExpiry : Decoder (Maybe Time.Posix)
-decodeTrialExpiry =
-    Dec.oneOf
-        [ Dec.null Nothing
-        , Dec.int |> Dec.map Time.millisToPosix |> Dec.maybe
-        ]
-
-
-decodeCustomerId : Decoder (Maybe String)
-decodeCustomerId =
-    Dec.oneOf
-        [ Dec.null Nothing
-        , Dec.string |> Dec.maybe
-        ]
-
-
-toPayStat : Time.Posix -> Maybe Time.Posix -> Maybe String -> PaymentStatus
-toPayStat t trialExp_ custId_ =
-    case ( trialExp_, custId_ ) of
-        ( Just trialExp, Nothing ) ->
-            if trialExp == Time.millisToPosix 0 then
-                Trial (t |> add14days)
-
-            else
-                Trial trialExp
-
-        ( Nothing, Just custId ) ->
-            Customer custId
-
-        _ ->
-            Trial (t |> add14days)
-
-
 decodePaymentStatus : Dec.Decoder PaymentStatus
 decodePaymentStatus =
-    Dec.oneOf
-        [ Dec.succeed Customer |> required "customer" Dec.string
-        , Dec.succeed Trial |> required "trialExpires" (Dec.int |> Dec.map Time.millisToPosix)
-        ]
+    Dec.string
+        |> Dec.andThen
+            (\str ->
+                case str |> String.split ":" of
+                    "trial" :: valString :: [] ->
+                        Trial (String.toInt valString |> Maybe.withDefault 0 |> Time.millisToPosix) |> Dec.succeed
+
+                    "customer" :: custId :: [] ->
+                        Customer custId |> Dec.succeed
+
+                    _ ->
+                        Dec.fail "Invalid payment status"
+            )
 
 
 decodeGuest : Dec.Decoder Session
@@ -402,11 +386,11 @@ decodeGuest =
 responseDecoder : Session -> Dec.Decoder ( Session, Language )
 responseDecoder session =
     let
-        builder : String -> Maybe Time.Posix -> Maybe String -> Maybe Time.Posix -> Language -> ( Session, Language )
-        builder email trialExp_ custId_ confAt lang =
+        builder : String -> PaymentStatus -> Maybe Time.Posix -> Language -> ( Session, Language )
+        builder email payStat confAt lang =
             case session of
                 Guest sessionData ->
-                    ( LoggedIn sessionData (UserData email Upgrade.init (toPayStat (Time.millisToPosix 0) trialExp_ custId_) confAt True ModifiedAt DocList.init)
+                    ( LoggedIn sessionData (UserData email Upgrade.init payStat confAt True ModifiedAt DocList.init)
                     , lang
                     )
 
@@ -415,31 +399,31 @@ responseDecoder session =
     in
     Dec.succeed builder
         |> required "email" Dec.string
-        |> optional "trialExpiry" decodeTrialExpiry Nothing
-        |> optional "customerId" decodeCustomerId Nothing
+        |> optional "paymentStatus" decodePaymentStatus (Trial (Time.millisToPosix 0))
         |> optional "confirmedAt" decodeConfirmedStatus (Just (Time.millisToPosix 0))
         |> optional "language" (Dec.string |> Dec.map Translation.langFromString) Translation.En
 
 
 encodeUserData : Language -> UserData -> Enc.Value
 encodeUserData lang userData =
-    let
-        getTrialExpiry =
-            case userData.paymentStatus of
-                Trial trialExp ->
-                    trialExp |> Time.posixToMillis |> Enc.int
-
-                _ ->
-                    Enc.null
-    in
     Enc.object
         [ ( "email", Enc.string userData.email )
-        , ( "trialExpiry", getTrialExpiry )
+        , ( "paymentStatus", encodePaymentStatus userData.paymentStatus )
         , ( "confirmedAt", userData.confirmedAt |> Maybe.map Time.posixToMillis |> Coders.maybeToValue Enc.int )
         , ( "shortcutTrayOpen", Enc.bool userData.shortcutTrayOpen )
         , ( "sortBy", Coders.sortByEncoder userData.sortBy )
         , ( "language", Enc.string (Translation.langToString lang) )
         ]
+
+
+encodePaymentStatus : PaymentStatus -> Enc.Value
+encodePaymentStatus payStat =
+    case payStat of
+        Trial trialTime ->
+            Enc.string ("trial:" ++ (trialTime |> Time.posixToMillis |> String.fromInt))
+
+        Customer custId ->
+            Enc.string ("customer:" ++ custId)
 
 
 encode : Translation.Language -> Session -> Enc.Value
