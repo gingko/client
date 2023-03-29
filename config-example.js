@@ -9,6 +9,7 @@ module.exports = {
   COUCHDB_SERVER: "https://app.somedomain.com/db",
   COUCHDB_ADMIN_USERNAME: "username",
   COUCHDB_ADMIN_PASSWORD: "password",
+  SESSION_KEY: "somerandomkey",
   SUPPORT_EMAIL: "some@email.com",
   SUPPORT_URGENT_EMAIL: "urgent@email.com",
   FRESHDESK_APPID: 12341234,

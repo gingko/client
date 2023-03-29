@@ -76,8 +76,10 @@ const sessionStorageKey = "gingko-session-storage";
 initElmAndPorts();
 
 async function initElmAndPorts() {
-  let sessionString = localStorage.getItem(sessionStorageKey);
-  let sessionData = sessionString == null ? {} : JSON.parse(sessionString);
+  console.time('decoding')
+  let sessionMaybe = getSessionData();
+  let sessionData = sessionMaybe == null ? {} : sessionMaybe;
+  console.timeEnd('decoding')
   console.log("sessionData found", sessionData);
   if (sessionData.email) {
     email = sessionData.email;
@@ -144,10 +146,7 @@ async function setUserDbs(eml) {
   // Check remoteDB exists and accessible before continuing
   let remoteDBinfo = await remoteDB.info().catch((e) => e);
   if (remoteDBinfo.error === "unauthorized") {
-    //remove localStorage session redirect to login
-    localStorage.removeItem(sessionStorageKey);
-    alert("Your session expired.\nClick OK to login again");
-    document.location = document.location.origin + '/login';
+    // TODO: Perform logout
   }
 
   db = new PouchDB(userDbName);
@@ -162,6 +161,10 @@ async function setUserDbs(eml) {
     const data = JSON.parse(e.data);
     try {
       switch (data.t) {
+        case 'user':
+          console.log('user', data.d);
+          break;
+
         case 'cards':
           await dexie.cards.bulkPut(data.d.map(c => ({...c, synced: true})));
           break;
@@ -212,9 +215,9 @@ async function setUserDbs(eml) {
 
         case 'userSettingOk':
           const { d } = data
-          let currSessionData = JSON.parse(localStorage.getItem(sessionStorageKey));
+          let currSessionData = getSessionData();
           currSessionData[d[0]] = d[1];
-          localStorage.setItem(sessionStorageKey, JSON.stringify(currSessionData));
+          setSessionData(currSessionData);
           break;
       }
     } catch (e) {
@@ -304,10 +307,7 @@ const fromElm = (msg, elmData) => {
     // === SPA ===
 
     StoreUser: async () => {
-      localStorage.setItem(
-        sessionStorageKey,
-        JSON.stringify(elmData)
-      );
+      setSessionData(elmData);
       await setUserDbs(elmData.email);
       elmData.seed = Date.now();
       setTimeout(() => gingko.ports.userLoginChange.send(elmData), 0);
@@ -659,9 +659,9 @@ const fromElm = (msg, elmData) => {
           break;
 
         default:
-          let currSessionData = JSON.parse(localStorage.getItem(sessionStorageKey));
+          let currSessionData = getSessionData();
           currSessionData[key] = value;
-          localStorage.setItem(sessionStorageKey, JSON.stringify(currSessionData));
+          setSessionData(currSessionData);
           break;
       }
     },
@@ -919,6 +919,35 @@ var createCheckoutSession = function(userEmail, priceId) {
 
 
 /* === Helper Functions === */
+
+function getSessionData() {
+  let sessionStringRaw = localStorage.getItem(sessionStorageKey);
+  if (sessionStringRaw) {
+    return JSON.parse(decodeXor(sessionStringRaw, config.SESSION_KEY));
+  } else {
+    return null;
+  }
+}
+
+function setSessionData(data) {
+  localStorage.setItem(sessionStorageKey, encodeXor(JSON.stringify(data), config.SESSION_KEY));
+}
+
+function encodeXor(string, key) {
+  let encodedValue = '';
+  for (let i = 0; i < string.length; i++) {
+    encodedValue += String.fromCharCode(string.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+  }
+  return encodedValue;
+}
+
+function decodeXor(encodedString, key) {
+  let decodedValue = '';
+  for (let i = 0; i < encodedString.length; i++) {
+    decodedValue += String.fromCharCode(encodedString.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+  }
+  return decodedValue;
+}
 
 function prefix(id) {
   return TREE_ID + "/" + id;
