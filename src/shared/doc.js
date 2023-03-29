@@ -667,9 +667,9 @@ const fromElm = (msg, elmData) => {
     },
 
     SetSidebarState: () => {
-      let currSessionData = JSON.parse(localStorage.getItem(sessionStorageKey));
+      let currSessionData = getSessionData();
       currSessionData.sidebarOpen = elmData;
-      localStorage.setItem(sessionStorageKey, JSON.stringify(currSessionData));
+      setSessionData(currSessionData);
       window.requestAnimationFrame(()=>{
         sidebarWidth = document.getElementById('sidebar').clientWidth;
       });
