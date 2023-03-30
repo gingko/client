@@ -798,17 +798,31 @@ async function loadCardBasedDocument (treeId) {
     toElm(loadedCards, "appMsgs", "CardDataReceived");
   }
 
+  let firstLoad = true;
+
   // Setup Dexie liveQuery for local document data.
   Dexie.liveQuery(() => dexie.cards.where("treeId").equals(treeId).toArray()).subscribe((cards) => {
     console.log("LiveQuery update", cards);
-    toElm(cards, "appMsgs", "CardDataReceived");
-    saveBackupToImmortalDB(treeId, cards);
+    if (cards.length > 0) {
+      toElm(cards, "appMsgs", "CardDataReceived");
+      saveBackupToImmortalDB(treeId, cards);
+      if (firstLoad) {
+        firstLoad = false;
+        setTimeout(() => {toElm(chk, "docMsgs", "InitialActivation")} , 20);
+      }
+    }
   });
 
   // Setup Dexie liveQuery for local history data, after initial pull.
   Dexie.liveQuery(() => dexie.tree_snapshots.where("treeId").equals(treeId).toArray()).subscribe((history) => {
-    const historyWithTs = history.map(h => ({...h, ts: Number(h.snapshot.split(':')[0]), data: h.data !== null ? h.data.map(d => ({...d, deleted: 0})) : h.data}));
-    toElm(historyWithTs, "appMsgs", "HistoryDataReceived");
+    if (history.length > 0) {
+      const historyWithTs = history.map(h => ({
+        ...h,
+        ts: Number(h.snapshot.split(':')[0]),
+        data: h.data !== null ? h.data.map(d => ({ ...d, deleted: 0 })) : h.data
+      }));
+      toElm(historyWithTs, "appMsgs", "HistoryDataReceived");
+    }
   });
 
   // Pull data from remote
@@ -897,7 +911,7 @@ async function loadGitLikeDocument (treeId) {
   }
 
   // Activate first card
-  toElm(null, "docMsgs", "InitialActivation");
+  setTimeout(() => {toElm(null, "docMsgs", "InitialActivation")}, 20);
 
   // Load doc list
   loadDocListAndSend(remoteDB, "LoadDocument");
