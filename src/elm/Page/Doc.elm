@@ -862,7 +862,7 @@ activate tryId instant ( model, prevCmd, prevMsgsToParent ) =
                 Nothing ->
                     getFirstCard model.workingTree.tree
     in
-    case activeTree_ |> Debug.log "activeTree_" of
+    case activeTree_ of
         Nothing ->
             ( model, prevCmd, prevMsgsToParent )
 
