@@ -20,7 +20,7 @@ import File exposing (File)
 import File.Download as Download
 import File.Select as Select
 import GlobalData exposing (GlobalData)
-import Html exposing (Html, br, button, div, h1, strong)
+import Html exposing (Html, br, button, div, em, h1, li, p, small, strong, ul)
 import Html.Attributes exposing (class, classList, height, id, style, width)
 import Html.Events exposing (onClick)
 import Html.Extra exposing (viewIf)
@@ -42,6 +42,7 @@ import Page.Empty
 import RandomId
 import Route
 import Session exposing (Session)
+import SharedUI
 import Svg.Attributes
 import Task
 import Time
@@ -110,6 +111,7 @@ type alias DbData =
 type ModalState
     = NoModal
     | FileSwitcher Doc.Switcher.Model
+    | MigrateModal
     | SidebarContextMenu String ( Float, Float )
     | TemplateSelector
     | HelpScreen
@@ -262,6 +264,7 @@ type Msg
     | LogoutRequested
     | IncomingAppMsg IncomingAppMsg
     | IncomingDocMsg Incoming.Msg
+    | MigrateModalCalled
     | MigrateToCardBased
     | LogErr String
       -- Conflicts
@@ -615,6 +618,19 @@ update msg model =
                 _ ->
                     doNothing
 
+        MigrateModalCalled ->
+            case model.documentState of
+                Doc _ ->
+                    ( { model
+                        | modalState =
+                            MigrateModal
+                      }
+                    , Cmd.none
+                    )
+
+                Empty _ _ ->
+                    ( model, Cmd.none )
+
         MigrateToCardBased ->
             case model.documentState of
                 Doc docState ->
@@ -634,6 +650,7 @@ update msg model =
                                         { docState
                                             | data = newData
                                         }
+                                , modalState = NoModal
                                 , tooltip = Nothing
                               }
                             , Cmd.batch
@@ -1852,7 +1869,7 @@ view ({ documentState } as model) =
                                 , titleEditCanceled = TitleEditCanceled
                                 , tooltipRequested = TooltipRequested
                                 , tooltipClosed = TooltipClosed
-                                , migrateClicked = MigrateToCardBased
+                                , migrateClicked = MigrateModalCalled
                                 , toggledHistory = HistoryToggled
                                 , checkoutTree = CheckoutVersion
                                 , restore = Restore
@@ -1946,6 +1963,27 @@ viewModal globalData session modalState =
 
         FileSwitcher switcherModel ->
             Doc.Switcher.view SwitcherClosed FileSearchChanged switcherModel
+
+        MigrateModal ->
+            [ p []
+                [ textNoTr "More Reliable:"
+                , ul []
+                    [ li [] [ textNoTr "Multiple document backups in your browser" ]
+                    , li [] [ textNoTr "Server backups increased from every day to ", em [] [ textNoTr "every second" ] ]
+                    ]
+                ]
+            , p []
+                [ textNoTr "Faster:"
+                , ul []
+                    [ li [] [ textNoTr "35x faster syncing" ]
+                    , li [] [ textNoTr "25x less network data sent/received" ]
+                    , li [] [ textNoTr "10-100x fewer network requests" ]
+                    ]
+                ]
+            , button [ onClick MigrateToCardBased ] [ textNoTr "Upgrade Document" ]
+            , p [] [ small [] [ textNoTr "(You will automatically receive a file backup of your document before the upgrade)" ] ]
+            ]
+                |> SharedUI.modalWrapper ModalClosed Nothing Nothing "Upgrade this Document"
 
         SidebarContextMenu docId ( x, y ) ->
             [ div [ onClick ModalClosed, id "sidebar-context-overlay" ] []
