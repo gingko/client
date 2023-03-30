@@ -68,7 +68,7 @@ init isNew globalData =
         , block = Nothing
         , uid = "0"
         , viewState =
-            { active = "1"
+            { active = ""
             , viewMode =
                 if isNew then
                     Editing
@@ -419,8 +419,12 @@ incoming incomingMsg model =
 
         -- === DOM ===
         InitialActivation ->
-            ( model, Cmd.none, [] )
-                |> activate "" False
+            if vs.active == "" then
+                ( model, Cmd.none, [] )
+                    |> activate "" False
+
+            else
+                ( model, Cmd.none, [] )
 
         DragStarted dragId ->
             let
