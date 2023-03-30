@@ -120,7 +120,6 @@ type Msg
       -- Misc UI
     | FullscreenRequested
       -- === Ports ===
-    | Pull
     | LogErr String
 
 
@@ -364,9 +363,6 @@ update msg ({ workingTree } as model) =
             ( model, send <| RequestFullscreen, [] )
 
         -- === Ports ===
-        Pull ->
-            ( model, send <| PullData, [] )
-
         LogErr _ ->
             ( model, Cmd.none, [] )
 
@@ -2279,7 +2275,6 @@ subscriptions (Model model) =
 
           else
             Sub.none
-        , Time.every (23 * 1000) (always Pull)
         ]
 
 

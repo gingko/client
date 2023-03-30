@@ -260,6 +260,7 @@ type Msg
     | GotFullscreenMsg Fullscreen.Msg
     | LoginStateChanged Session
     | TimeUpdate Time.Posix
+    | Pull
     | SettingsChanged Json.Value
     | LogoutRequested
     | IncomingAppMsg IncomingAppMsg
@@ -412,6 +413,18 @@ update msg model =
             ( model |> updateGlobalData (GlobalData.updateTime time globalData)
             , Cmd.none
             )
+
+        Pull ->
+            case model.documentState of
+                Doc { data } ->
+                    if Data.isGitLike data then
+                        ( model, send <| PullData )
+
+                    else
+                        ( model, Cmd.none )
+
+                Empty _ _ ->
+                    ( model, Cmd.none )
 
         SettingsChanged json ->
             ( model |> updateSession (Session.sync json (GlobalData.currentTime globalData) session), Cmd.none )
@@ -2197,4 +2210,5 @@ subscriptions model =
             _ ->
                 Sub.none
         , Time.every (9 * 1000) TimeUpdate
+        , Time.every (23 * 1000) (always Pull)
         ]
