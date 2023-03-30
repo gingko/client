@@ -11,6 +11,7 @@ const screenfull = require("screenfull");
 const container = require("Container");
 const platform = require("platform");
 const config = require("../../config.js");
+const PersistentWebSocket = require("pws");
 
 import LogRocket from 'logrocket';
 if(window.location.origin === config.PRODUCTION_SERVER) {
@@ -149,7 +150,7 @@ async function setUserDbs(eml) {
 
   db = new PouchDB(userDbName);
 
-  ws = new WebSocket(window.location.origin.replace('http','ws'));
+  ws = new PersistentWebSocket(window.location.origin.replace('http','ws'));
 
   ws.onopen = () => {
     console.log('connected');
