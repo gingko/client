@@ -163,6 +163,15 @@ async function setUserDbs(eml) {
       switch (data.t) {
         case 'user':
           console.log('user', data.d);
+          let currentSessionData = getSessionData();
+          if (currentSessionData && currentSessionData.email === data.d.id) {
+            // Merge properties
+            let newSessionData = Object.assign({}, currentSessionData, _.omit(data.d, ['id', 'createdAt']));
+            if (!_.isEqual(currentSessionData, newSessionData)) {
+              setSessionData(newSessionData);
+              setTimeout(() => gingko.ports.userSettingsChange.send(newSessionData), 0);
+            }
+          }
           break;
 
         case 'cards':
@@ -923,30 +932,14 @@ var createCheckoutSession = function(userEmail, priceId) {
 function getSessionData() {
   let sessionStringRaw = localStorage.getItem(sessionStorageKey);
   if (sessionStringRaw) {
-    return JSON.parse(decodeXor(sessionStringRaw, config.SESSION_KEY));
+    return JSON.parse(sessionStringRaw);
   } else {
     return null;
   }
 }
 
 function setSessionData(data) {
-  localStorage.setItem(sessionStorageKey, encodeXor(JSON.stringify(data), config.SESSION_KEY));
-}
-
-function encodeXor(string, key) {
-  let encodedValue = '';
-  for (let i = 0; i < string.length; i++) {
-    encodedValue += String.fromCharCode(string.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-  }
-  return encodedValue;
-}
-
-function decodeXor(encodedString, key) {
-  let decodedValue = '';
-  for (let i = 0; i < encodedString.length; i++) {
-    decodedValue += String.fromCharCode(encodedString.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-  }
-  return decodedValue;
+  localStorage.setItem(sessionStorageKey, JSON.stringify(data));
 }
 
 function prefix(id) {
