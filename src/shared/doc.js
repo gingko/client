@@ -76,10 +76,8 @@ const sessionStorageKey = "gingko-session-storage";
 initElmAndPorts();
 
 async function initElmAndPorts() {
-  console.time('decoding')
   let sessionMaybe = getSessionData();
   let sessionData = sessionMaybe == null ? {} : sessionMaybe;
-  console.timeEnd('decoding')
   console.log("sessionData found", sessionData);
   if (sessionData.email) {
     email = sessionData.email;
@@ -897,6 +895,9 @@ async function loadGitLikeDocument (treeId) {
   } finally {
     PULL_LOCK = false;
   }
+
+  // Activate first card
+  toElm(null, "docMsgs", "InitialActivation");
 
   // Load doc list
   loadDocListAndSend(remoteDB, "LoadDocument");

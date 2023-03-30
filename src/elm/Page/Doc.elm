@@ -418,6 +418,10 @@ incoming incomingMsg model =
                 |> cancelCard
 
         -- === DOM ===
+        InitialActivation ->
+            ( model, Cmd.none, [] )
+                |> activate "" False
+
         DragStarted dragId ->
             let
                 newTree =
@@ -842,84 +846,77 @@ activate tryId instant ( model, prevCmd, prevMsgsToParent ) =
         vs =
             model.viewState
     in
-    if tryId == "0" then
-        ( model
-        , prevCmd
-        , prevMsgsToParent
-        )
+    let
+        activeTree__ =
+            getTree tryId model.workingTree.tree
 
-    else
-        let
-            activeTree__ =
-                getTree tryId model.workingTree.tree
+        activeTree_ =
+            case activeTree__ of
+                Just aTree ->
+                    Just aTree
 
-            activeTree_ =
-                case activeTree__ of
-                    Just aTree ->
-                        Just aTree
+                Nothing ->
+                    getFirstCard model.workingTree.tree
+    in
+    case activeTree_ |> Debug.log "activeTree_" of
+        Nothing ->
+            ( model, prevCmd, prevMsgsToParent )
 
-                    Nothing ->
-                        getFirstCard model.workingTree.tree
-        in
-        case activeTree_ of
-            Nothing ->
-                ( model, prevCmd, prevMsgsToParent )
+        Just activeTree ->
+            let
+                newPast =
+                    if tryId == vs.active then
+                        vs.activePast
 
-            Just activeTree ->
-                let
-                    newPast =
-                        if tryId == vs.active then
-                            vs.activePast
+                    else
+                        vs.active :: vs.activePast |> List.take 40
 
-                        else
-                            vs.active :: vs.activePast |> List.take 40
+                id =
+                    activeTree.id
 
-                    id =
-                        activeTree.id
+                desc =
+                    activeTree
+                        |> getDescendants
+                        |> List.map .id
 
-                    desc =
-                        activeTree
-                            |> getDescendants
-                            |> List.map .id
+                anc =
+                    getAncestors model.workingTree.tree activeTree []
+                        |> List.map .id
 
-                    anc =
-                        getAncestors model.workingTree.tree activeTree []
-                            |> List.map .id
+                newModel =
+                    { model
+                        | viewState =
+                            { vs
+                                | active = id
+                                , activePast = newPast
+                                , descendants = desc
+                                , ancestors = anc
+                            }
+                    }
+            in
+            case vs.viewMode of
+                FullscreenEditing ->
+                    ( newModel
+                    , Cmd.batch [ prevCmd, send <| ScrollFullscreenCards id ]
+                    , prevMsgsToParent
+                    )
 
-                    newModel =
-                        { model
-                            | viewState =
-                                { vs
-                                    | active = id
-                                    , activePast = newPast
-                                    , descendants = desc
-                                    , ancestors = anc
-                                }
-                        }
-                in
-                case vs.viewMode of
-                    FullscreenEditing ->
-                        ( newModel
-                        , Cmd.batch [ prevCmd, send <| ScrollFullscreenCards id ]
-                        , prevMsgsToParent
-                        )
+                _ ->
+                    let
+                        scrollPositions =
+                            getScrollPositions activeTree newPast model.workingTree.tree
 
-                    _ ->
-                        let
-                            scrollPositions =
-                                getScrollPositions activeTree newPast model.workingTree.tree
-
-                            colIdx =
-                                getDepth 0 model.workingTree.tree activeTree.id
-                        in
-                        ( newModel
-                        , Cmd.batch
-                            [ prevCmd
-                            , send
-                                (ScrollCards (id :: newPast) scrollPositions colIdx instant)
-                            ]
-                        , prevMsgsToParent
-                        )
+                        colIdx =
+                            getDepth 0 model.workingTree.tree activeTree.id
+                    in
+                    ( newModel
+                    , Cmd.batch
+                        [ prevCmd
+                        , send
+                            (ScrollCards (id :: newPast) scrollPositions colIdx instant)
+                        ]
+                    , prevMsgsToParent
+                    )
 
 
 goLeft : String -> ( ModelData, Cmd Msg, List MsgToParent ) -> ( ModelData, Cmd Msg, List MsgToParent )
