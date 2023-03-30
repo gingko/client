@@ -1550,7 +1550,33 @@ span.trial-dark {
 #upgrade-copy {
   padding: 16px;
 }
-
+#migrate-modal {
+  display: grid;
+  padding-bottom: 32px;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: min-content min-content min-content;
+  grid-template-areas:
+  "top top"
+  "left right"
+  "bottom bottom";
+}
+#migrate-modal > * {
+  padding: 16px;
+}
+#migrate-modal .top {
+  grid-area: top;
+  text-align: center;
+}
+#migrate-modal .left {
+  grid-area: left;
+}
+#migrate-modal .right {
+  grid-area: right;
+}
+#migrate-modal .bottom {
+  grid-area: bottom;
+  text-align: center;
+}
 #pwyw {
   grid-area: pwyw;
   background: #eaeaea;

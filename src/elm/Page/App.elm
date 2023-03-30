@@ -20,7 +20,7 @@ import File exposing (File)
 import File.Download as Download
 import File.Select as Select
 import GlobalData exposing (GlobalData)
-import Html exposing (Html, br, button, div, em, h1, li, p, small, strong, ul)
+import Html exposing (Html, br, button, div, em, h1, h2, h3, li, p, small, strong, ul)
 import Html.Attributes exposing (class, classList, height, id, style, width)
 import Html.Events exposing (onClick)
 import Html.Extra exposing (viewIf)
@@ -1965,25 +1965,29 @@ viewModal globalData session modalState =
             Doc.Switcher.view SwitcherClosed FileSearchChanged switcherModel
 
         MigrateModal ->
-            [ p []
-                [ textNoTr "More Reliable:"
+            [ div [ class "top" ] [ h2 [] [ textNoTr "We've made major improvements to how documents are stored.", br [] [], textNoTr "Upgrade this document to make it :" ] ]
+            , div [ class "left" ]
+                [ h3 [ style "text-align" "center" ] [ textNoTr "More Reliable" ]
                 , ul []
-                    [ li [] [ textNoTr "Multiple document backups in your browser" ]
-                    , li [] [ textNoTr "Server backups increased from every day to ", em [] [ textNoTr "every second" ] ]
+                    [ li [] [ textNoTr "3 on-device backups, updated as you type" ]
+                    , li [] [ textNoTr "2 server backups up to once per second" ]
+                    , li [] [ textNoTr "Simpler data, in a more resilient database" ]
                     ]
                 ]
-            , p []
-                [ textNoTr "Faster:"
+            , div [ class "right" ]
+                [ h3 [ style "text-align" "center" ] [ textNoTr "Faster" ]
                 , ul []
                     [ li [] [ textNoTr "35x faster syncing" ]
                     , li [] [ textNoTr "25x less network data sent/received" ]
-                    , li [] [ textNoTr "10-100x fewer network requests" ]
+                    , li [] [ textNoTr "100x faster loading of large documents" ]
                     ]
                 ]
-            , button [ onClick MigrateToCardBased ] [ textNoTr "Upgrade Document" ]
-            , p [] [ small [] [ textNoTr "(You will automatically receive a file backup of your document before the upgrade)" ] ]
+            , div [ classList [ ( "bottom", True ), ( "modal-buttons", True ) ] ]
+                [ div [ onClick MigrateToCardBased ] [ textNoTr "Upgrade Document" ]
+                , p [ style "position" "absolute", style "bottom" "16px", style "color" "grey" ] [ small [] [ textNoTr "(Note: this downloads a backup of the current document before upgrading it)" ] ]
+                ]
             ]
-                |> SharedUI.modalWrapper ModalClosed Nothing Nothing "Upgrade this Document"
+                |> SharedUI.modalWrapper ModalClosed (Just "migrate-modal") Nothing "\u{200E}"
 
         SidebarContextMenu docId ( x, y ) ->
             [ div [ onClick ModalClosed, id "sidebar-context-overlay" ] []
