@@ -52,7 +52,7 @@ describe('User Signup Flow', () => {
     cy.get('#email-confirm-banner')
       .contains('Please confirm your email')
 
-    cy.visit(config.TEST_SERVER + '/confirm')
+    cy.request('POST', config.TEST_SERVER + '/test/confirm')
 
     // Redirected to welcome, Confirmation banner gone
     cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
