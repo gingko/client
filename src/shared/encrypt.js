@@ -26,15 +26,17 @@ function arrayBufferToBase64String(buffer) {
   return window.btoa(binary);
 }
 
-(async () => {
-  console.time('importPublicKey');
+setTimeout(async () => {
   publicKey = await importPublicKey(config.PUBLIC_KEY);
   console.log("public key imported", publicKey);
-  console.timeEnd('importPublicKey');
-})();
+}, 8000);
 
 module.exports = {
   encrypt: async function (plaintext) {
+    if (!publicKey) {
+      publicKey = await importPublicKey(config.PUBLIC_KEY);
+    }
+
     // Generate AES key
     const aesKey = await window.crypto.subtle.generateKey(
       {
