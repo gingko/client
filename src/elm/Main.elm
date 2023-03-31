@@ -54,7 +54,6 @@ init json url navKey =
     let
         session =
             Session.decode json
-                |> Debug.log "session"
 
         globalData =
             GlobalData.decode json
