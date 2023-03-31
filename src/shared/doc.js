@@ -148,7 +148,8 @@ async function setUserDbs(eml) {
   // Check remoteDB exists and accessible before continuing
   let remoteDBinfo = await remoteDB.info().catch((e) => e);
   if (remoteDBinfo.error === "unauthorized") {
-    // TODO: Perform logout
+    await logout();
+    return;
   }
 
   db = new PouchDB(userDbName);
@@ -328,26 +329,7 @@ const fromElm = (msg, elmData) => {
     },
 
     LogoutUser : async () => {
-      console.log("AT Logout user")
-      try {
-        await db.replicate.to(remoteDB);
-        await fetch(document.location.origin + "/logout", {method: 'POST'});
-        localStorage.removeItem(sessionStorageKey);
-
-        // Encrypt local backups
-        const backupKeys = Object.keys({ ...localStorage }).filter(k => k.startsWith("_immortal|backup-snapshot:")).map(k => k.slice(10));
-        console.log("backupKeys", backupKeys);
-        backupKeys.map(async (k) => {
-          const val = await ImmortalDB.get(k);
-          await ImmortalDB.set(k, await mycrypt.encrypt(val));
-        });
-
-        await db.destroy();
-        await dexie.delete();
-        setTimeout(() => gingko.ports.userLoginChange.send(null), 0);
-      } catch (err) {
-        console.error(err)
-      }
+      await logout();
     },
 
     // === Dialogs, Menus, Window State ===
@@ -390,10 +372,14 @@ const fromElm = (msg, elmData) => {
         return;
       }
 
-      if (treeDoc.location == "couchdb") {
-        loadGitLikeDocument(elmData);
-      } else if (treeDoc.location == "cardbased") {
-        loadCardBasedDocument(elmData);
+      try {
+        if (treeDoc.location == "couchdb") {
+          loadGitLikeDocument(elmData);
+        } else if (treeDoc.location == "cardbased") {
+          loadCardBasedDocument(elmData);
+        }
+      } catch (e) {
+        console.log(e);
       }
     },
 
@@ -974,6 +960,29 @@ function getSessionData() {
 
 function setSessionData(data) {
   localStorage.setItem(sessionStorageKey, JSON.stringify(data));
+}
+
+async function logout() {
+  try {
+    if (db) {
+      await db.replicate.to(remoteDB);
+      await db.destroy();
+    }
+    await fetch(document.location.origin + "/logout", {method: 'POST'});
+    localStorage.removeItem(sessionStorageKey);
+
+    // Encrypt local backups
+    const backupKeys = Object.keys({ ...localStorage }).filter(k => k.startsWith("_immortal|backup-snapshot:")).map(k => k.slice(10));
+    backupKeys.map(async (k) => {
+      const val = await ImmortalDB.get(k);
+      await ImmortalDB.set(k, await mycrypt.encrypt(val));
+    });
+
+    await dexie.delete();
+    setTimeout(() => gingko.ports.userLoginChange.send(null), 0);
+  } catch (err) {
+    console.error(err)
+  }
 }
 
 function prefix(id) {
