@@ -68,7 +68,12 @@ init isNew globalData =
         , block = Nothing
         , uid = "0"
         , viewState =
-            { active = ""
+            { active =
+                if isNew then
+                    "1"
+
+                else
+                    ""
             , viewMode =
                 if isNew then
                     Editing
