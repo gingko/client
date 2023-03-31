@@ -68,6 +68,8 @@ let docElement;
 let sidebarWidth;
 let externalDrag = false;
 let savedObjectIds = new Set();
+let cardDataSubscription = null;
+let historyDataSubscription = null;
 const localStore = container.localStore;
 
 const sessionStorageKey = "gingko-session-storage";
@@ -788,6 +790,9 @@ function treeDocToMetadata(tree) {
 }
 
 async function loadCardBasedDocument (treeId) {
+  if (cardDataSubscription != null) { cardDataSubscription.unsubscribe(); }
+  if (historyDataSubscription != null) { historyDataSubscription.unsubscribe(); }
+
   // Load document-specific settings.
   localStore.db(treeId);
   let store = localStore.load();
@@ -803,7 +808,7 @@ async function loadCardBasedDocument (treeId) {
   let firstLoad = true;
 
   // Setup Dexie liveQuery for local document data.
-  Dexie.liveQuery(() => dexie.cards.where("treeId").equals(treeId).toArray()).subscribe((cards) => {
+  cardDataSubscription = Dexie.liveQuery(() => dexie.cards.where("treeId").equals(treeId).toArray()).subscribe((cards) => {
     console.log("LiveQuery update", cards);
     if (cards.length > 0) {
       toElm(cards, "appMsgs", "CardDataReceived");
@@ -816,7 +821,7 @@ async function loadCardBasedDocument (treeId) {
   });
 
   // Setup Dexie liveQuery for local history data, after initial pull.
-  Dexie.liveQuery(() => dexie.tree_snapshots.where("treeId").equals(treeId).toArray()).subscribe((history) => {
+  historyDataSubscription = Dexie.liveQuery(() => dexie.tree_snapshots.where("treeId").equals(treeId).toArray()).subscribe((history) => {
     if (history.length > 0) {
       const historyWithTs = history.map(h => ({
         ...h,
