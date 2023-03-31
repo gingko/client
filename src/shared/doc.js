@@ -11,6 +11,7 @@ const screenfull = require("screenfull");
 const container = require("Container");
 const platform = require("platform");
 const config = require("../../config.js");
+const mycrypt = require("./encrypt.js");
 const PersistentWebSocket = require("pws");
 
 import LogRocket from 'logrocket';
@@ -332,8 +333,17 @@ const fromElm = (msg, elmData) => {
         await db.replicate.to(remoteDB);
         await fetch(document.location.origin + "/logout", {method: 'POST'});
         localStorage.removeItem(sessionStorageKey);
+
+        // Encrypt local backups
+        const backupKeys = Object.keys({ ...localStorage }).filter(k => k.startsWith("_immortal|backup-snapshot:")).map(k => k.slice(10));
+        console.log("backupKeys", backupKeys);
+        backupKeys.map(async (k) => {
+          const val = await ImmortalDB.get(k);
+          await ImmortalDB.set(k, await mycrypt.encrypt(val));
+        });
+
         await db.destroy();
-        await dexie.trees.clear();
+        await dexie.delete();
         setTimeout(() => gingko.ports.userLoginChange.send(null), 0);
       } catch (err) {
         console.error(err)
