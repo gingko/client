@@ -928,12 +928,23 @@ update msg model =
                             History.getCurrentVersionId history
                                 |> Maybe.map (Data.restore docState.data)
                                 |> Maybe.withDefault []
+
+                        maybeAddToHistory =
+                            if Data.isGitLike docState.data then
+                                andThen addToHistoryDo
+
+                            else
+                                identity
                     in
                     if List.length outMsgs > 0 then
-                        ( { model | headerMenu = NoHeaderMenu }, List.map send outMsgs |> Cmd.batch )
+                        model
+                            |> toggleHistory False 0
+                            |> (\( m, c ) -> ( m, Cmd.batch <| c :: List.map send outMsgs ))
 
                     else
-                        ( model, Cmd.none )
+                        model
+                            |> toggleHistory False 0
+                            |> maybeAddToHistory
 
                 _ ->
                     ( model, Cmd.none )

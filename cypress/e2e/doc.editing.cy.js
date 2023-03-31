@@ -151,7 +151,7 @@ describe('Document Editing', () => {
     cy.get('#app-root')
       .should('not.contain', 'Another one below')
 
-    cy.get('#history').should('not.exist')
+    cy.get('#history-menu').should('not.exist')
 
     // Can split card down
     cy.shortcut('{enter}')
