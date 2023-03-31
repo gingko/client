@@ -489,6 +489,20 @@ update msg model =
                         Empty _ _ ->
                             ( model, Cmd.none )
 
+                SocketConnected ->
+                    case model.documentState of
+                        Doc { data, docId } ->
+                            let
+                                maybePush =
+                                    Data.triggeredPush data docId
+                            in
+                            ( model
+                            , List.map send maybePush |> Cmd.batch
+                            )
+
+                        Empty _ _ ->
+                            ( model, Cmd.none )
+
                 SavedRemotely saveTime ->
                     case model.documentState of
                         Doc ({ docModel } as docState) ->
@@ -2122,6 +2136,7 @@ viewConfirmBanner lang closeMsg email =
 
 type IncomingAppMsg
     = DataSaved Enc.Value
+    | SocketConnected
     | CardDataReceived Enc.Value
     | HistoryDataReceived Enc.Value
     | PushOk String
@@ -2137,6 +2152,9 @@ subscribe tagger onError =
             case outsideInfo.tag of
                 "DataSaved" ->
                     tagger <| DataSaved outsideInfo.data
+
+                "SocketConnected" ->
+                    tagger <| SocketConnected
 
                 "CardDataReceived" ->
                     tagger <| CardDataReceived outsideInfo.data

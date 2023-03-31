@@ -154,6 +154,7 @@ async function setUserDbs(eml) {
 
   ws.onopen = () => {
     console.log('connected');
+    toElm(null, "appMsgs", "SocketConnected");
   }
 
   ws.onmessage = async (e) => {

@@ -1,4 +1,4 @@
-module Doc.Data exposing (CommitObject, Model, cardDataReceived, conflictList, conflictToTree, convert, empty, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, resolveConflicts, restore, success)
+module Doc.Data exposing (CommitObject, Model, cardDataReceived, conflictList, conflictToTree, convert, empty, getCommit, getHistoryList, gitDataReceived, hasConflicts, head, historyReceived, isGitLike, lastSavedTime, lastSyncedTime, localSave, pushOkHandler, requestCommit, resolve, resolveConflicts, restore, success, triggeredPush)
 
 import Coders exposing (treeToValue, tupleDecoder)
 import Dict exposing (Dict)
@@ -338,6 +338,25 @@ cardDataReceived json ( oldModel, oldTree, treeId ) =
 
         Err err ->
             Nothing
+
+
+triggeredPush : Model -> String -> List Outgoing.Msg
+triggeredPush model treeId =
+    case model of
+        CardBased cards _ _ ->
+            let
+                syncState =
+                    getSyncState cards
+            in
+            case syncState of
+                Unsynced ->
+                    [ PushDeltas (pushDelta treeId cards) ]
+
+                _ ->
+                    []
+
+        GitLike _ _ ->
+            []
 
 
 resolveConflicts : ConflictSelection -> Model -> Maybe Outgoing.Msg
