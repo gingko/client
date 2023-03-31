@@ -320,7 +320,9 @@ const fromElm = (msg, elmData) => {
     StoreUser: async () => {
       setSessionData(elmData);
       await setUserDbs(elmData.email);
-      elmData.seed = Date.now();
+      const timestamp = Date.now();
+      elmData.seed = timestamp;
+      elmData.currentTime = timestamp;
       setTimeout(() => gingko.ports.userLoginChange.send(elmData), 0);
     },
 
