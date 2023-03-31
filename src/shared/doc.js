@@ -924,7 +924,7 @@ async function loadGitLikeDocument (treeId) {
 
 async function loadDocListAndSend(dbToLoadFrom, source) {
   loadingDocs = true;
-  let docList = await dexie.trees.toArray();
+  let docList = await dexie.trees.toArray().catch(e => {console.error(e); return []});
   toElm(docList.filter(d => d.deletedAt == null).map(treeDocToMetadata),  "documentListChanged");
   loadingDocs = false;
 }
