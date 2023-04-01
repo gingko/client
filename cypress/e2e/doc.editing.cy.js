@@ -161,6 +161,8 @@ describe('Document Editing', () => {
 
     cy.get('#history').should('not.exist')
 
+    cy.wait(500)
+
     // Can split card down
     cy.shortcut('{enter}')
     cy.shortcut('{leftarrow}{leftarrow}{leftarrow}{leftarrow}{leftarrow}{leftarrow}{leftarrow}')

@@ -90,7 +90,7 @@ Cypress.Commands.add('writeInCard', (textToType) => {
 
 
 Cypress.Commands.add('shortcut', (keys) => {
-  cy.get('body').type(keys)
+  cy.get('body').type(keys, { delay: 30 })
 })
 
 
