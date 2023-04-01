@@ -1,4 +1,5 @@
 const config = require("../../config.js");
+const hiddenConfig = require("../../hidden-config.js");
 const helpers = require("../../src/shared/doc-helpers.js");
 import PouchDB from "pouchdb";
 
@@ -28,7 +29,7 @@ Cypress.Commands.add('deleteUser', (userEmail)=> {
   return cy.request(
     { url: config.TEST_SERVER + '/db/_users/org.couchdb.user:'+userEmail
       , method: 'GET'
-      , auth: {user: config.COUCHDB_ADMIN_USERNAME, password: config.COUCHDB_ADMIN_PASSWORD}
+      , auth: {user: hiddenConfig.COUCHDB_ADMIN_USERNAME, password: hiddenConfig.COUCHDB_ADMIN_PASSWORD}
       , failOnStatusCode: false
     })
     .then((response) => {
@@ -36,7 +37,7 @@ Cypress.Commands.add('deleteUser', (userEmail)=> {
         cy.request(
           { url: `${config.TEST_SERVER}/db/_users/org.couchdb.user:${userEmail}?rev=${response.body._rev}`
             , method: 'DELETE'
-            , auth: {user: config.COUCHDB_ADMIN_USERNAME, password: config.COUCHDB_ADMIN_PASSWORD}
+            , auth: {user: hiddenConfig.COUCHDB_ADMIN_USERNAME, password: hiddenConfig.COUCHDB_ADMIN_PASSWORD}
           })
       }
     })

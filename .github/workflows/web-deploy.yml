@@ -38,6 +38,9 @@ jobs:
       - name: Check client config.js file
         run: node $GITHUB_WORKSPACE/client/config-check.js
 
+      - name: Copy client hidden-config.js file
+        run: cp $HOME/client.hidden-config.js $GITHUB_WORKSPACE/client/hidden-config.js
+
       - name: Copy server config.js file
         run: cp $HOME/server.config.js $GITHUB_WORKSPACE/server/config.js
 
