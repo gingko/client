@@ -1,5 +1,6 @@
 const { execSync } = require('child_process');
 const cfg = require("../../config.js");
+const hiddenCfg = require("../../hidden-config.js");
 
 /// <reference types="cypress" />
 // ***********************************************************
@@ -24,7 +25,7 @@ module.exports = (on, config) => {
   on('task', {
     'db:seed': ({dbName, seedName}) => {
       try {
-        return execSync(`couchdb-backup -r -H "${cfg.COUCHDB_HOST}" -P "${cfg.COUCHDB_PORT}" -u "${cfg.COUCHDB_ADMIN_USERNAME}" -p "${cfg.COUCHDB_ADMIN_PASSWORD}" -d "${dbName}" -f "${__dirname}/../fixtures/${seedName}.json"`)
+        return execSync(`couchdb-backup -r -H "${cfg.COUCHDB_HOST}" -P "${cfg.COUCHDB_PORT}" -u "${hiddenCfg.COUCHDB_ADMIN_USERNAME}" -p "${hiddenCfg.COUCHDB_ADMIN_PASSWORD}" -d "${dbName}" -f "${__dirname}/../fixtures/${seedName}.json"`)
       } catch(e) {
         return e.toString()
       }

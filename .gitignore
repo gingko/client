@@ -14,6 +14,7 @@ Gingko-*
 npm-debug.log
 *.env
 config.js
+hidden-config.js
 .idea
 cypress/screenshots
 cypress/videos

@@ -7,8 +7,6 @@ module.exports = {
   COUCHDB_HOST: "localhost",
   COUCHDB_PORT: "5984",
   COUCHDB_SERVER: "https://app.somedomain.com/db",
-  COUCHDB_ADMIN_USERNAME: "username",
-  COUCHDB_ADMIN_PASSWORD: "password",
   PUBLIC_KEY: { "keydata": "somedata" },
   SUPPORT_EMAIL: "some@email.com",
   SUPPORT_URGENT_EMAIL: "urgent@email.com",
