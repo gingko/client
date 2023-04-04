@@ -29,6 +29,22 @@ module.exports = (on, config) => {
       } catch(e) {
         return e.toString()
       }
+    },
+    'db:user:delete': () => {
+      try {
+        const delCmd = execSync(`sqlite3 ${__dirname}/../../../data/data.sqlite < ${__dirname}/../fixtures/deleteTestData.sql`)
+        return delCmd.toString()
+      } catch(e) {
+        return e.toString()
+      }
+    },
+    'db:sqlite:seed': ({seedName}) => {
+      try {
+        const seedCmd = execSync(`sqlite3 ${__dirname}/../../../data/data.sqlite < ${__dirname}/../fixtures/${seedName}.sql`)
+        return seedCmd.toString()
+      } catch(e) {
+        return e.toString()
+      }
     }
   })
 }

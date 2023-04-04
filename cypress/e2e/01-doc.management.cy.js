@@ -4,7 +4,7 @@ const config = require("../../config.js");
 describe('Managing Documents', function () {
   const testEmail = 'cypress@testing.com'
 
-  beforeEach(() => {
+  before(() => {
     cy.deleteUser(testEmail).then(() => {
       cy.signup_with(testEmail, 'fourSmallTrees')
       cy.fixture('fourSmallTrees.ids.json').as('treeIds')

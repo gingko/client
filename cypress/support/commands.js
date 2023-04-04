@@ -38,6 +38,9 @@ Cypress.Commands.add('deleteUser', (userEmail)=> {
     , method: 'DELETE'
     , failOnStatusCode: false
     })
+    .then((resp) => {
+      cy.task('db:user:delete')
+    })
 })
 
 
@@ -53,7 +56,7 @@ Cypress.Commands.add('signup', (userEmail) => {
 })
 
 
-Cypress.Commands.add('signup_with', (userEmail, seedName) =>{
+Cypress.Commands.add('signup_with_old', (userEmail, seedName) =>{
   const testUserDb = 'userdb-' + helpers.toHex(userEmail);
   cy.request(
     { url: config.TEST_SERVER + '/signup'
@@ -72,6 +75,17 @@ Cypress.Commands.add('signup_with', (userEmail, seedName) =>{
     })
 })
 
+Cypress.Commands.add('signup_with', (userEmail, seedName) =>{
+  cy.request(
+    { url: config.TEST_SERVER + '/signup'
+      , method: 'POST'
+      , body: {email: userEmail, password: 'testing'}
+    })
+    .then((response) => {
+      localStorage.setItem('gingko-session-storage', JSON.stringify({ email: userEmail, language: 'en' }))
+      cy.task('db:sqlite:seed',{seedName: seedName})
+    })
+})
 
 Cypress.Commands.add('login', (userEmail) => {
   cy.request(

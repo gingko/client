@@ -6,20 +6,21 @@ describe('Keyboard Shortcuts', () => {
   before(() => {
     cy.deleteUser(testEmail).then(() => {
       cy.signup_with(testEmail, 'twoTrees')
+      cy.fixture('twoTrees.ids.json').as('treeIds')
     })
   })
 
-  beforeEach(() => {
-    cy.fixture('twoTrees.ids.json').as('treeIds')
-  })
 
   it('Has working shortcuts', function () {
-    cy.visit(config.TEST_SERVER + '/' + this.treeIds[0])
+    cy.get('@treeIds').then((treeIds) => {
+      cy.visit(config.TEST_SERVER + '/' + treeIds[0])
 
-    cy.get('#app-root').should('be.visible')
-    cy.get('.spinner').should('not.exist')
+      cy.get('#app-root').should('be.visible')
+      cy.get('.spinner').should('not.exist')
 
-    cy.url().should('contain', this.treeIds[0] )
+      cy.url().should('contain', treeIds[0] )
+    })
+
 
     describe('In document mode', () => {
       cy.shortcut('{?}')

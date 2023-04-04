@@ -13,11 +13,8 @@ describe('Legacy Imports from Startup State', () => {
     cy.request(config.LEGACY_URL + '/logout')
     cy.deleteUser(testEmail).then(() => {
       cy.signup_with(testEmail, 'twoTrees')
+      cy.fixture('twoTrees.ids.json').as('treeIds')
     })
-  })
-
-  beforeEach(() => {
-    cy.fixture('twoTrees.ids.json').as('treeIds')
   })
 
   it('Guides user to import legacy docs', function () {
