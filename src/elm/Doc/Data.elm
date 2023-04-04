@@ -1117,7 +1117,7 @@ fromTree treeId depth parId ts idx tree =
             tsInt =
                 Time.posixToMillis ts
         in
-        { id = tree.id, treeId = treeId, content = tree.content, parentId = parId, position = toFloat idx, deleted = False, synced = False, updatedAt = (tsInt |> String.fromInt) ++ ":" ++ String.fromInt depth ++ ":" ++ hash tsInt tree.id }
+        { id = treeId ++ ":" ++ tree.id, treeId = treeId, content = tree.content, parentId = parId |> Maybe.map (\pid -> treeId ++ ":" ++ pid), position = toFloat idx, deleted = False, synced = False, updatedAt = (tsInt |> String.fromInt) ++ ":" ++ String.fromInt depth ++ ":" ++ hash tsInt tree.id }
             :: (case tree.children of
                     Children children ->
                         children
