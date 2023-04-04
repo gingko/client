@@ -11,11 +11,8 @@ describe('Fullscreen Editing', () => {
   before(() => {
     cy.deleteUser(testEmail).then(() => {
       cy.signup_with(testEmail, 'twoTrees')
+      cy.fixture('twoTrees.ids.json').as('treeIds')
     })
-  })
-
-  beforeEach(() => {
-    cy.fixture('twoTrees.ids.json').as('treeIds')
   })
 
   it('Can perform basic actions on New tree', function () {
