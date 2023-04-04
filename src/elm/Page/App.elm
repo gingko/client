@@ -511,6 +511,9 @@ update msg model =
                         Empty _ _ ->
                             ( model, Cmd.none )
 
+                NotFound ->
+                    ( model, Route.pushUrl model.navKey Route.Root )
+
         IncomingDocMsg incomingMsg ->
             let
                 doNothing =
@@ -2154,6 +2157,7 @@ type IncomingAppMsg
     | GitDataReceived Enc.Value
     | MetadataUpdate Metadata
     | SavedRemotely Time.Posix
+    | NotFound
 
 
 subscribe : (IncomingAppMsg -> msg) -> (String -> msg) -> Sub msg
@@ -2199,6 +2203,9 @@ subscribe tagger onError =
 
                         Err err ->
                             onError (errorToString err)
+
+                "NotFound" ->
+                    tagger NotFound
 
                 _ ->
                     onError <| "Unexpected info from outside: " ++ outsideInfo.tag
