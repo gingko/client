@@ -45,15 +45,23 @@ describe('Fullscreen Editing', () => {
 
     // Test typing
     cy.focused().type(' test')
-    cy.get('#fullscreen-buttons #save-indicator').contains('Unsaved Changes...')
+    cy.get('#fullscreen-buttons #save-indicator').contains('Synced')
     cy.focused().should('have.value', '# 3\nAnother Child card test')
 
     // Test change card focus
     cy.get('textarea').first().focus()
       .type('{enter}abc')
-    cy.shortcut('{ctrl}{enter}')
+    cy.wait(100)
+    cy.get('#fullscreen-buttons #save-indicator').contains('Synced')
+    cy.shortcut('{esc}')
     cy.getCard(2,1,1).should('contain', 'cardabc')
     cy.getCard(2,1,2).should('contain', 'card test')
+
+    // Make sure cardabc doesn't have newline at end
+    cy.getCard(2,1,1).click()
+    cy.get('.edit').click()
+    cy.get('textarea').should('have.value', '# 2\nChild card\nabc')
+    cy.shortcut('{esc}')
 
     // Field preserved when exiting fullscreen
     cy.shortcut('{shift}{enter}')

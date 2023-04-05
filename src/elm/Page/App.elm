@@ -47,7 +47,7 @@ import Svg.Attributes
 import Task
 import Time
 import Translation exposing (Language, TranslationId(..), langToString, tr)
-import Types exposing (CardTreeOp, ConflictSelection(..), OutsideData, SortBy(..), TooltipPosition, Tree, ViewMode(..))
+import Types exposing (CardTreeOp(..), ConflictSelection(..), OutsideData, SortBy(..), TooltipPosition, Tree, ViewMode(..))
 import UI.Header exposing (HeaderMenuState(..), viewHeader)
 import UI.Sidebar exposing (SidebarMenuState(..), SidebarState(..), viewSidebar)
 import Upgrade exposing (Msg(..))
@@ -402,6 +402,7 @@ update msg model =
                                         |> (\( m, c ) -> ( m, Cmd.map GotDocMsg c ))
                             in
                             ( { model | documentState = Doc { docState | docModel = newDocModel } }, newCmd )
+                                |> andThen (localSave (CTUpd id field))
 
                 Empty _ _ ->
                     ( model, Cmd.none )
