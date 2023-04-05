@@ -13,6 +13,12 @@ describe('Keyboard Shortcuts', () => {
 
   it('Has working shortcuts', function () {
     cy.get('@treeIds').then((treeIds) => {
+      // TODO : This is a hack, due to issue with going directly
+      // to a card-based document before the tree list is loaded.
+      cy.visit(config.TEST_SERVER)
+      cy.wait(1000)
+
+
       cy.visit(config.TEST_SERVER + '/' + treeIds[0])
 
       cy.get('#app-root').should('be.visible')
