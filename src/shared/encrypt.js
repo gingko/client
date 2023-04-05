@@ -28,7 +28,7 @@ function arrayBufferToBase64String(buffer) {
 
 setTimeout(async () => {
   publicKey = await importPublicKey(config.PUBLIC_KEY);
-  console.log("public key imported", publicKey);
+  //console.log("public key imported", publicKey);
 }, 8000);
 
 module.exports = {

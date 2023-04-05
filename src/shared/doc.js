@@ -82,7 +82,7 @@ initElmAndPorts();
 async function initElmAndPorts() {
   let sessionMaybe = getSessionData();
   let sessionData = sessionMaybe == null ? {} : sessionMaybe;
-  console.log("sessionData found", sessionData);
+  //console.log("sessionData found", sessionData);
   if (sessionData.email) {
     email = sessionData.email;
     await setUserDbs(sessionData.email);
@@ -140,7 +140,7 @@ async function initElmAndPorts() {
 
 async function setUserDbs(eml) {
   email = eml;
-  console.log("Inside setUserDbs", email, helpers.toHex(email));
+  //console.log("Inside setUserDbs", email, helpers.toHex(email));
   userDbName = `userdb-${helpers.toHex(email)}`;
   let userDbUrl = window.location.origin + "/db/" + userDbName;
   var remoteOpts = { skip_setup: true };
@@ -166,7 +166,7 @@ async function setUserDbs(eml) {
     try {
       switch (data.t) {
         case 'user':
-          console.log('user', data.d);
+          //console.log('user', data.d);
           let currentSessionData = getSessionData();
           if (currentSessionData && currentSessionData.email === data.d.id) {
             // Merge properties
@@ -292,7 +292,7 @@ const stripe = Stripe(config.STRIPE_PUBLIC_KEY);
 /* === Elm / JS Interop === */
 
 function toElm(data, portName, tagName) {
-  console.log("toElm", portName, tagName, data);
+  //console.log("toElm", portName, tagName, data);
   if (!gingko) { return; }
   let portExists = gingko.ports.hasOwnProperty(portName);
   let tagGiven = typeof tagName == "string";
@@ -312,7 +312,7 @@ function toElm(data, portName, tagName) {
 }
 
 const fromElm = (msg, elmData) => {
-  console.log("fromElm", msg, elmData);
+  //console.log("fromElm", msg, elmData);
   window.elmMessages.push({tag: msg, data: elmData});
   window.elmMessages = window.elmMessages.slice(-10);
 
@@ -807,7 +807,7 @@ async function loadCardBasedDocument (treeId) {
 
   // Setup Dexie liveQuery for local document data.
   cardDataSubscription = Dexie.liveQuery(() => dexie.cards.where("treeId").equals(treeId).toArray()).subscribe((cards) => {
-    console.log("LiveQuery update", cards);
+    //console.log("LiveQuery update", cards);
     if (cards.length > 0) {
       toElm(cards, "appMsgs", "CardDataReceived");
       saveBackupToImmortalDB(treeId, cards);
