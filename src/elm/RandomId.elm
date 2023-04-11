@@ -23,7 +23,7 @@ stringGenerator : Random.Generator String
 stringGenerator =
     Random.int 0 61
         |> Random.map intToValidChar
-        |> Random.list 5
+        |> Random.list 7
         |> Random.map String.fromList
 
 

@@ -23,7 +23,7 @@ describe('Empty State', () => {
         .get('#template-new')
         .click()
 
-      cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
+      cy.url().should('match', /\/[a-zA-Z0-9]{7}$/)
     })
 
     describe('Goes back to Empty page on deletion', () => {
