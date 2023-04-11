@@ -1160,7 +1160,7 @@ update msg model =
 
         -- Import
         ImportBulkClicked ->
-            ( { model | modalState = ImportModal (ImportModal.init session) }, Cmd.none )
+            ( { model | modalState = ImportModal (ImportModal.init globalData session) }, Cmd.none )
 
         ImportBulkCompleted ->
             ( { model | modalState = NoModal }, Cmd.none )

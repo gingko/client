@@ -30,11 +30,11 @@ type alias CardData =
     }
 
 
-decoder : Decoder (List ( String, Metadata, Tree ))
-decoder =
+decoder : Int -> Decoder (List ( String, Metadata, Tree ))
+decoder seed =
     Dec.map2 importTrees
-        decodeTreeEntries
-        decodeCardEntries
+        (decodeTreeEntries seed)
+        (decodeCardEntries seed)
 
 
 encode : String -> List ( String, Metadata, Tree ) -> Enc.Value
@@ -54,28 +54,28 @@ encode author dataList =
 -- ===== INTERNAL =====
 
 
-decodeTreeEntries : Decoder (Dict String Metadata)
-decodeTreeEntries =
+decodeTreeEntries : Int -> Decoder (Dict String Metadata)
+decodeTreeEntries seed =
     let
         builder md =
             Just ( Metadata.getDocId md, md )
     in
-    Metadata.decoderImport
+    Metadata.decoderImport seed
         |> Dec.list
         |> Dec.map (List.filterMap (Maybe.andThen builder))
         |> Dec.map Dict.fromList
         |> Dec.field "trees"
 
 
-decodeCardEntries : Decoder (Dict String CardData)
-decodeCardEntries =
+decodeCardEntries : Int -> Decoder (Dict String CardData)
+decodeCardEntries seed =
     let
         builder id tid pid pos ct del des =
             if del || des then
                 Nothing
 
             else
-                Just ( id, CardData (fromObjectId tid) pid pos ct )
+                Just ( id, CardData (fromObjectId seed tid) pid pos ct )
     in
     (Dec.succeed builder
         |> required "_id" Dec.string

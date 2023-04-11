@@ -4,6 +4,7 @@ import Doc.Data as Data
 import Doc.Metadata as Metadata exposing (Metadata)
 import File exposing (File)
 import File.Select as Select
+import GlobalData exposing (GlobalData)
 import Html exposing (..)
 import Html.Attributes exposing (checked, classList, disabled, for, height, href, id, src, style, target, type_, width)
 import Html.Events exposing (on, onCheck, onClick)
@@ -25,7 +26,10 @@ import Types exposing (Tree)
 
 
 type alias Model =
-    { state : ImportModalState, user : Session }
+    { state : ImportModalState
+    , user : Session
+    , globalData : GlobalData.GlobalData
+    }
 
 
 type ImportModalState
@@ -49,9 +53,9 @@ type alias ImportSelection =
         }
 
 
-init : Session -> Model
-init user =
-    { state = ModalOpen { loginState = Checking, isFileDragging = False }, user = user }
+init : GlobalData -> Session -> Model
+init globalData user =
+    { state = ModalOpen { loginState = Checking, isFileDragging = False }, user = user, globalData = globalData }
 
 
 
@@ -67,7 +71,7 @@ type Msg
     | FileRequested
     | FileDraggedOver Bool
     | FileSelected File
-    | FileLoaded String String
+    | FileLoaded Int String
     | SelectAllToggled Bool
     | TreeSelected String Bool
     | SelectionDone
@@ -104,15 +108,10 @@ update msg ({ state, user } as model) =
             ( { model | state = ModalOpen { modalState | isFileDragging = isDraggedOver } }, Cmd.none )
 
         ( FileSelected file, _ ) ->
-            case Session.name model.user of
-                Just username ->
-                    ( model, Task.perform (FileLoaded username) (File.toString file) )
+            ( model, Task.perform (FileLoaded (GlobalData.currentTime model.globalData |> Time.posixToMillis)) (File.toString file) )
 
-                Nothing ->
-                    ( model, Cmd.none )
-
-        ( FileLoaded _ contents, ModalOpen _ ) ->
-            case Dec.decodeString Import.Bulk.decoder contents of
+        ( FileLoaded currTime contents, ModalOpen _ ) ->
+            case Dec.decodeString (Import.Bulk.decoder currTime) contents of
                 Ok dataList ->
                     let
                         listWithSelectState =

@@ -86,7 +86,7 @@ describe('Legacy Imports from Startup State', () => {
       .contains('Screenplay')
       .click()
 
-    cy.url().as('importedScreenplayUrl').should('match', /\/[a-zA-Z0-9]{5}$/)
+    cy.url().as('importedScreenplayUrl').should('match', /\/[a-zA-Z0-9]{7}$/)
 
     cy.contains('tips to improve your logline')
 
