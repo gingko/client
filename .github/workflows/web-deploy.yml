@@ -27,6 +27,9 @@ jobs:
           repository: gingko/server
           path: server
 
+      - name: Create data directory
+        run: mkdir -p data
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
