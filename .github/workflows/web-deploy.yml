@@ -17,18 +17,18 @@ jobs:
 
     steps:
       - name: Checkout client
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: client
 
       - name: Checkout server
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: gingko/server
           path: server
 
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
 
@@ -48,13 +48,13 @@ jobs:
         run: node $GITHUB_WORKSPACE/server/config-check.js
 
       - name: Install Test Server Dependencies
-        run: cd ../server; npm i
+        run: cd ../server; npm i; npx tsc
 
       - name: Stop Test Server
         run: "pm2 stop --silent GingkoTest  || :"
 
       - name: Start Test Server
-        run: NODE_ENV=production PORT=8000 pm2 start ../server/index.js --name GingkoTest
+        run: NODE_ENV=production PORT=8000 pm2 start ../server/dist/index.js --name GingkoTest
 
       - run: npm i
       - run: npm run build --if-present
@@ -73,4 +73,4 @@ jobs:
 
       - name: Restart Production Server
         if: "!contains(github.event.head_commit.message, 'ci skip deploy')"
-        run: pm2 restart GingkoProduction
+        run: pm2 restart GingkoProductionNew
