@@ -14,13 +14,113 @@ function toHex(s) {
 }
 
 /* ===== DOM Manipulation ===== */
+let toElm;
 
-var setTextarea = (m, f) => {
-  if (m.viewState.editing !== null && f !== null) {
-    var textarea = document.getElementById("card-edit-" + m.viewState.editing);
-    textarea.value = f;
+const getObserver = (toElmFn) => {
+  toElm = toElmFn;
+  return new MutationObserver(function (mutations) {
+    const isTextarea = function (node) {
+      return node.nodeName == "TEXTAREA" && node.className == "edit mousetrap";
+    };
+
+    let textareas = [];
+
+    mutations.map((m) => {
+      [].slice.call(m.addedNodes).map((n) => {
+        if (isTextarea(n)) {
+          textareas.push(n);
+        } else {
+          if (n.querySelectorAll) {
+            let tareas = [].slice.call(n.querySelectorAll("textarea.edit"));
+            textareas = textareas.concat(tareas);
+          }
+        }
+      });
+
+      [].slice.call(m.removedNodes).map((n) => {
+        if ("getElementsByClassName" in n && n.getElementsByClassName("edit mousetrap").length != 0) {
+          updateFillets();
+        }
+      })
+    });
+
+    if (textareas.length !== 0) {
+      textareas.map((t) => {
+        t.onkeyup = selectionHandler
+        t.onclick = selectionHandler
+        t.onfocus = selectionHandler
+      })
+      if (Object.prototype.hasOwnProperty.call(toElm, 'toMain')) {
+        toElm.toMain('edit-mode-changed', true)
+      }
+      if (document.getElementById("app-fullscreen") === null) {
+        window.addEventListener('click', editBlurHandler)
+      }
+    } else {
+      if (Object.prototype.hasOwnProperty.call(toElm, 'toMain')) {
+        toElm.toMain('edit-mode-changed', false)
+      }
+      window.removeEventListener('click', editBlurHandler);
+    }
+  });
+}
+
+const selectionHandler = function () {
+  if (document.activeElement.nodeName == "TEXTAREA") {
+    let {
+      selectionStart,
+      selectionEnd,
+      selectionDirection,
+    } = document.activeElement;
+    let length = document.activeElement.value.length;
+    let [before, after] = [
+      document.activeElement.value.substring(0, selectionStart),
+      document.activeElement.value.substring(selectionStart),
+    ];
+    let cursorPosition = "other";
+
+    if (length == 0) {
+      cursorPosition = "empty";
+    } else if (selectionStart == 0 && selectionEnd == 0) {
+      cursorPosition = "start";
+    } else if (selectionStart == length && selectionEnd == length) {
+      cursorPosition = "end";
+    } else if (selectionStart == 0 && selectionDirection == "backward") {
+      cursorPosition = "start";
+    } else if (selectionEnd == length && selectionDirection == "forward") {
+      cursorPosition = "end";
+    }
+
+    toElm(
+      {
+        selected: selectionStart !== selectionEnd,
+        position: cursorPosition,
+        text: [before, after],
+      },
+      "docMsgs",
+      "TextCursor"
+    );
   }
 };
+
+const editBlurHandler = (ev) => {
+  let targetClasses = ev.target.classList;
+  if (ev.target.nodeName == "DIV" && targetClasses.contains("card-btn") && targetClasses.contains("save")) {
+    return;
+  } else if (ev.target.nodeName == "DIV" && targetClasses.contains("fullscreen-card-btn")) {
+    return;
+  } else if (isEditTextarea(ev.target)) {
+    return;
+  } else {
+    if(!(isEditTextarea(document.activeElement))) {
+      toElm(null, "docMsgs", "ClickedOutsideCard");
+    }
+  }
+};
+
+const isEditTextarea = (node) => {
+  return node.nodeName == "TEXTAREA" && node.classList.contains("edit") && node.classList.contains("mousetrap");
+}
 
 var scrollHorizontal = (colIdx, instant) => {
   lastColumnIdx = colIdx;
@@ -239,6 +339,14 @@ const setBottom = (delta, el) => {
   }
 }
 
+const updateFillets = () => {
+  let columns = Array.from(document.getElementsByClassName("column"));
+  let filletData = getFilletData(columns);
+  columns.map((c,i) => {
+    setColumnFillets(c,i, filletData);
+  })
+}
+
 /* ===== Shared variables ===== */
 
 const errorAlert = (title, msg, err) => {
@@ -341,16 +449,126 @@ if (window.navigator.platform.toUpperCase().indexOf('MAC') < 0 ) {
   needOverride.push("alt+left");
 }
 
+/* ===== Shared fromElm cases ===== */
+
+var casesShared = (elmData, params) => {
+  return {
+    ScrollCards: () => {
+      scrollColumns(elmData);
+      scrollHorizontal(elmData.columnIdx, elmData.instant);
+      params.lastActivesScrolled = elmData;
+      params.lastColumnScrolled = elmData.columnIdx;
+      if (params.localStore.isReady()) {
+        params.localStore.set('last-actives', elmData.lastActives);
+      }
+      window.requestAnimationFrame(()=>{
+        updateFillets();
+        let columns = Array.from(document.getElementsByClassName("column"));
+        columns.map((c, i) => {
+          c.addEventListener('scroll', () => {
+            if(!params.ticking) {
+              window.requestAnimationFrame(() => {
+                updateFillets();
+                params.ticking = false;
+              })
+
+              params.ticking = true;
+            }
+          })
+        })
+      })
+    },
+
+    CopyCurrentSubtree: () => {
+      navigator.clipboard.writeText(JSON.stringify(elmData))
+      const addFlashClass = function () {
+        const activeCard = document.querySelectorAll('.card.active')
+        const activeDescendants = document.querySelectorAll('.group.active-descendant')
+        activeCard.forEach((c) => c.classList.add('flash'))
+        activeDescendants.forEach((c) => c.classList.add('flash'))
+      }
+
+      const removeFlashClass = function () {
+        const activeCard = document.querySelectorAll('.card.active')
+        const activeDescendants = document.querySelectorAll('.group.active-descendant')
+        activeCard.forEach((c) => c.classList.remove('flash'))
+        activeDescendants.forEach((c) => c.classList.remove('flash'))
+      }
+
+      addFlashClass()
+      setTimeout(removeFlashClass, 200)
+    },
+
+    TextSurround: () => {
+      const id = elmData[0]
+      const surroundString = elmData[1]
+      const tarea = document.getElementById('card-edit-' + id)
+      const card = document.getElementById('card-' + id)
+
+      if (tarea === null) {
+        console.log('Textarea not found for TextSurround command.')
+      } else {
+        const start = tarea.selectionStart
+        const end = tarea.selectionEnd
+        if (start !== end) {
+          const text = tarea.value.slice(start, end)
+          const modifiedText = surroundString + text + surroundString
+          const newValue = tarea.value.substring(0, start) + modifiedText + tarea.value.substring(end)
+          tarea.value = newValue
+          const cursorPos = start + modifiedText.length
+          tarea.setSelectionRange(cursorPos, cursorPos)
+          params.DIRTY = true
+          toElm(newValue, 'docMsgs', 'FieldChanged')
+
+          if (card !== null) {
+            card.dataset.clonedContent = newValue
+          }
+        }
+      }
+    },
+
+    SetCursorPosition: () => {
+      let pos = elmData[0];
+      requestAnimationFrame(() => document.activeElement.setSelectionRange(pos, pos));
+    },
+
+    SetTextareaClone: () => {
+      let id = elmData[0];
+      let card = document.getElementById("card-" + id);
+      if (card === null) {
+        console.error("Card not found for autogrowing textarea");
+      } else {
+        card.dataset.clonedContent = elmData[1];
+      }
+    },
+
+    ConfirmCancelCard: () => {
+      const tarea = document.getElementById('card-edit-' + elmData[0])
+
+      if (tarea === null) {
+        console.log('tarea not found')
+      } else {
+        if (tarea.value === elmData[1] || window.confirm(elmData[2])) {
+          toElm(null, 'docMsgs', 'CancelCardConfirmed')
+        }
+      }
+    },
+
+    ConsoleLogRequested: () => console.error(elmData),
+  }
+}
+
 /* ===== CommonJS Module exports ===== */
 
 module.exports = {
+  getObserver: getObserver,
   scrollHorizontal: scrollHorizontal,
   scrollColumns: scrollColumns,
   scrollFullscreen: scrollFullscreen,
-  getFilletData: getFilletData,
-  setColumnFillets: setColumnFillets,
+  updateFillets: updateFillets,
   errorAlert: errorAlert,
   shortcuts: shortcuts,
   needOverride: needOverride,
   toHex: toHex,
+  casesShared: casesShared
 };

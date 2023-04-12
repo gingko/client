@@ -1,31 +1,24 @@
 const config = require("../../config.js");
-const helpers = require("../../src/shared/doc-helpers.js");
 
 
-Cypress.LocalStorage.clear = function (keys, ls, rs) {
-  return;
-}
-
-
-describe('Managing Documents', () => {
+describe('Managing Documents', function () {
   const testEmail = 'cypress@testing.com'
 
   before(() => {
     cy.deleteUser(testEmail).then(() => {
       cy.signup_with(testEmail, 'fourSmallTrees')
+      cy.fixture('fourSmallTrees.ids.json').as('treeIds')
     })
   })
 
-  beforeEach(() => {
-    cy.fixture('fourSmallTrees.ids.json').as('treeIds')
-    Cypress.Cookies.preserveOnce('AuthSession')
-  })
-
-  describe('Navigation', function () {
-    it('Should navigate to last edited tree', function () {
+  it('Navigates correctly', function () {
+    describe('Should navigate to last edited tree', function () {
       cy.visit(config.TEST_SERVER)
 
-      cy.url().should('contain', this.treeIds[1] )
+      cy.get('@treeIds').then((treeIds) => {
+        cy.url().should('contain', treeIds[1] )
+      });
+
       cy.get('.spinner', {timeout: 20000}).should('not.exist')
 
       cy.contains('123')
@@ -52,12 +45,16 @@ describe('Managing Documents', () => {
         .then(()=> {
           expect(stub.getCall(0)).to.be.calledWith('You have unsaved changes!\nCtrl+Enter to save.')
         })
-      cy.url().should('contain', this.treeIds[1] )
+      cy.get('@treeIds').then((treeIds) => {
+        cy.url().should('contain', treeIds[1] )
+      });
     })
 
-    it('Should have working sidebar and Quick Switcher', function () {
-      cy.visit(config.TEST_SERVER + '/' + this.treeIds[1]);
-      cy.url().should('contain', this.treeIds[1] )
+    describe('Should have working sidebar and Quick Switcher', function () {
+      cy.get('@treeIds').then((treeIds) => {
+        cy.visit(config.TEST_SERVER + '/' + treeIds[1]);
+        cy.url().should('contain', treeIds[1])
+      })
 
       // Open sidebar
       cy.get('.spinner', {timeout: 20000}).should('not.exist')
@@ -73,7 +70,9 @@ describe('Managing Documents', () => {
       // Got to another doc
       cy.get('#sidebar-document-list-wrap').contains('tree-a')
         .click()
-      cy.url().should('contain', this.treeIds[0] )
+      cy.get('@treeIds').then((treeIds) => {
+        cy.url().should('contain', treeIds[0] )
+      })
       cy.contains('abc')
 
       describe('Sorts documents correctly', ()=>{
@@ -202,7 +201,9 @@ describe('Managing Documents', () => {
         cy.shortcut('{ctrl}o')
         cy.shortcut('{downarrow}')
         cy.shortcut('{enter}')
-        cy.url().should('contain', this.treeIds[1] )
+        cy.get('@treeIds').then((treeIds) => {
+          cy.url().should('contain', treeIds[1] )
+        })
 
 
         // Should select first tree when filtering
@@ -215,7 +216,9 @@ describe('Managing Documents', () => {
           expect($list).to.have.length(1)
         })
         cy.shortcut('{enter}')
-        cy.url().should('contain', this.treeIds[2] )
+        cy.get('@treeIds').then((treeIds) => {
+          cy.url().should('contain', treeIds[2] )
+        })
 
         cy.contains('xyz')
       })

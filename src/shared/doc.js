@@ -1,6 +1,8 @@
 // @format
 import * as data from "./data.js";
 import Worker from "worker-loader!./data.worker.js";
+import hlc from '@tpp/hybrid-logical-clock';
+import uuid from '@tpp/simple-uuid';
 const dataWorker = new Worker();
 
 const _ = require("lodash");
@@ -9,6 +11,8 @@ const screenfull = require("screenfull");
 const container = require("Container");
 const platform = require("platform");
 const config = require("../../config.js");
+const mycrypt = require("./encrypt.js");
+const PersistentWebSocket = require("pws");
 
 import LogRocket from 'logrocket';
 if(window.location.origin === config.PRODUCTION_SERVER) {
@@ -16,6 +20,21 @@ if(window.location.origin === config.PRODUCTION_SERVER) {
 }
 
 import PouchDB from "pouchdb";
+const Dexie = require("dexie").default;
+import { ImmortalStorage, IndexedDbStore, LocalStorageStore, SessionStorageStore } from 'immortal-db';
+let ImmortalDB;
+async function initImmortalDB() {
+  const immortalStores = [await new IndexedDbStore(), await new LocalStorageStore(), await new SessionStorageStore()];
+  ImmortalDB = new ImmortalStorage(immortalStores);
+}
+initImmortalDB();
+
+const dexie = new Dexie("db");
+dexie.version(3).stores({
+  trees: "id,updatedAt",
+  cards: "updatedAt,treeId",
+  tree_snapshots: "snapshot, treeId"
+});
 
 const helpers = require("./doc-helpers");
 import { Elm } from "../elm/Main";
@@ -36,8 +55,11 @@ let db;
 let gingko;
 let TREE_ID;
 let userDbName;
+let email = null;
+let ws;
 let PULL_LOCK = false;
 let DIRTY = false;
+let loadingDocs = false;
 let draggingInternal = false;
 let viewportWidth = document.documentElement.clientWidth;
 let viewportHeight = document.documentElement.clientHeight;
@@ -47,7 +69,8 @@ let docElement;
 let sidebarWidth;
 let externalDrag = false;
 let savedObjectIds = new Set();
-const userStore = container.userStore;
+let cardDataSubscription = null;
+let historyDataSubscription = null;
 const localStore = container.localStore;
 
 const sessionStorageKey = "gingko-session-storage";
@@ -57,36 +80,27 @@ const sessionStorageKey = "gingko-session-storage";
 initElmAndPorts();
 
 async function initElmAndPorts() {
-  let email = null;
-  let sessionData = localStorage.getItem(sessionStorageKey) || null;
-  let settings = {language: "en"};
-  if (sessionData) {
-    console.log("sessionData found", sessionData);
-    sessionData = JSON.parse(sessionData);
+  let sessionMaybe = getSessionData();
+  let sessionData = sessionMaybe == null ? {} : sessionMaybe;
+  //console.log("sessionData found", sessionData);
+  if (sessionData.email) {
     email = sessionData.email;
     await setUserDbs(sessionData.email);
-    // Load user settings
-    try {
-      settings = await userStore.load();
-    } catch (e) {
-      console.log("failed", e)
-    }
-    settings.sidebarOpen = (sessionData.hasOwnProperty('sidebarOpen')) ?  sessionData.sidebarOpen : false;
-    sidebarWidth = settings.sidebarOpen ? 215 : 40;
+    sessionData.sidebarOpen = (sessionData.hasOwnProperty('sidebarOpen')) ?  sessionData.sidebarOpen : false;
+    sidebarWidth = sessionData.sidebarOpen ? 215 : 40;
+    lang = sessionData.language || "en";
   }
 
-
+  // Dynamic and global session info
   let timestamp = Date.now();
-  settings.email = email;
-  settings.seed = timestamp;
-  settings.isMac = platform.os.family === 'OS X';
-  settings.currentTime = timestamp;
-  settings.fromLegacy = document.referrer.startsWith(config.LEGACY_URL);
-  lang = settings.language || "en";
+  sessionData.seed = timestamp;
+  sessionData.isMac = platform.os.family === 'OS X';
+  sessionData.currentTime = timestamp;
+  sessionData.fromLegacy = document.referrer.startsWith(config.LEGACY_URL);
 
   gingko = Elm.Main.init({
     node: document.getElementById("elm"),
-    flags: settings,
+    flags: sessionData,
   });
 
   // All messages from Elm
@@ -124,8 +138,9 @@ async function initElmAndPorts() {
   })
 }
 
-async function setUserDbs(email) {
-  console.log("Inside setUserDbs", email, helpers.toHex(email));
+async function setUserDbs(eml) {
+  email = eml;
+  //console.log("Inside setUserDbs", email, helpers.toHex(email));
   userDbName = `userdb-${helpers.toHex(email)}`;
   let userDbUrl = window.location.origin + "/db/" + userDbName;
   var remoteOpts = { skip_setup: true };
@@ -133,41 +148,112 @@ async function setUserDbs(email) {
   // Check remoteDB exists and accessible before continuing
   let remoteDBinfo = await remoteDB.info().catch((e) => e);
   if (remoteDBinfo.error === "unauthorized") {
-    //remove localStorage session redirect to login
-    localStorage.removeItem(sessionStorageKey);
-    alert("Your session expired.\nClick OK to login again");
-    document.location = document.location.origin + '/login';
+    await logout();
+    return;
   }
 
   db = new PouchDB(userDbName);
-  userStore.db(db, remoteDB);
 
-  // Sync user settings
-  PouchDB.sync(db, remoteDB, {live: true, retry: true, doc_ids: ["settings"]})
-    .on('change', (ev) => {
-      if (ev.direction === "pull") {
-        gingko.ports.userSettingsChange.send(ev.change.docs[0]);
+  ws = new PersistentWebSocket(window.location.origin.replace('http','ws'));
+
+  ws.onopen = () => {
+    console.log('connected');
+    toElm(null, "appMsgs", "SocketConnected");
+  }
+
+  ws.onmessage = async (e) => {
+    const data = JSON.parse(e.data);
+    try {
+      switch (data.t) {
+        case 'user':
+          //console.log('user', data.d);
+          let currentSessionData = getSessionData();
+          if (currentSessionData && currentSessionData.email === data.d.id) {
+            // Merge properties
+            let newSessionData = Object.assign({}, currentSessionData, _.omit(data.d, ['id', 'createdAt']));
+            if (!_.isEqual(currentSessionData, newSessionData)) {
+              setSessionData(newSessionData);
+              setTimeout(() => gingko.ports.userSettingsChange.send(newSessionData), 0);
+            }
+          }
+          break;
+
+        case 'cards':
+          await dexie.cards.bulkPut(data.d.map(c => ({...c, synced: true})));
+          break;
+
+        case 'pushOk':
+          hlc.recv(data.d);
+          toElm(data, "appMsgs", "PushOk");
+          break;
+
+        case 'doPull':
+          // Server says this tree has changes
+          if (data.d === TREE_ID) {
+            let cards = await dexie.cards.where('treeId').equals(TREE_ID).toArray();
+            pull(TREE_ID, getChk(TREE_ID, cards));
+          }
+          break;
+
+        case 'trees':
+          await dexie.trees.bulkPut(data.d.map(t => ({...t, synced : true})));
+          break;
+
+        case 'treesOk':
+          await dexie.trees.where('updatedAt').belowOrEqual(data.d).modify({synced: true});
+          break;
+
+        case 'historyMeta': {
+          const {tr, d} = data;
+          const snapshotData = d.map(hmd => ({snapshot: hmd.id , treeId: tr, data: null}));
+          try {
+            await dexie.tree_snapshots.bulkAdd(snapshotData);
+          } catch (e) {
+            const errorNames = e.failures.map(f => f.name);
+            if (errorNames.every(n => n === 'ConstraintError')) {
+              // Ignore
+            } else {
+              throw e;
+            }
+          }
+          break;
+        }
+
+        case 'history': {
+          const {tr, d} = data;
+          const snapshotData = d.map(hd => ({snapshot: hd.id , treeId: tr, data: hd.d.map(d => ({...d, synced: true}))}));
+          await dexie.tree_snapshots.bulkPut(snapshotData);
+          break;
+        }
+
+        case 'userSettingOk':
+          const { d } = data
+          let currSessionData = getSessionData();
+          currSessionData[d[0]] = d[1];
+          setSessionData(currSessionData);
+          break;
       }
-    });
-
-  // add docList design document
-  let ddoc = {
-    _id: "_design/testDocList",
-    views: {
-      docList: {
-        map:
-          "function (doc) {\n  if (/metadata/.test(doc._id)) {\n    emit(doc._id, doc);\n  }\n}",
-      },
-    },
-    language: "javascript",
-  };
-  db.put(ddoc).catch(async (e) => e); // ignore conflict error
+    } catch (e) {
+      console.log(e);
+    }
+  }
 
   // Sync document list with server
-  PouchDB.sync(db, remoteDB, { filter: "_view", view: "testDocList/docList", include_docs: true, live: true, retry: true })
-    .on('change',(change) =>{
-      loadDocListAndSend(db, "sync.changes");
-    })
+
+  let firstLoad = true;
+
+  Dexie.liveQuery(() => dexie.trees.toArray()).subscribe((trees) => {
+    const docMetadatas = trees.filter(t => t.deletedAt == null).map(treeDocToMetadata);
+    if (!loadingDocs && !firstLoad) {
+      toElm(docMetadatas, "documentListChanged");
+    }
+
+    const unsyncedTrees = trees.filter(t => !t.synced);
+    if (unsyncedTrees.length > 0) {
+      wsSend('trees', unsyncedTrees);
+    }
+    firstLoad = false;
+  });
 
   LogRocket.identify(email);
 
@@ -206,6 +292,8 @@ const stripe = Stripe(config.STRIPE_PUBLIC_KEY);
 /* === Elm / JS Interop === */
 
 function toElm(data, portName, tagName) {
+  //console.log("toElm", portName, tagName, data);
+  if (!gingko) { return; }
   let portExists = gingko.ports.hasOwnProperty(portName);
   let tagGiven = typeof tagName == "string";
 
@@ -224,33 +312,24 @@ function toElm(data, portName, tagName) {
 }
 
 const fromElm = (msg, elmData) => {
+  //console.log("fromElm", msg, elmData);
   window.elmMessages.push({tag: msg, data: elmData});
   window.elmMessages = window.elmMessages.slice(-10);
 
-  let cases = {
+  let casesWeb = {
     // === SPA ===
 
     StoreUser: async () => {
-      if (elmData == null) {
-        console.log("AT StoreUser")
-        try {
-          await db.replicate.to(remoteDB);
-          await fetch(document.location.origin + "/logout", {method: 'POST'});
-          localStorage.removeItem(sessionStorageKey);
-          await db.destroy();
-          setTimeout(() => gingko.ports.userLoginChange.send(null), 0);
-        } catch (err) {
-          console.error(err)
-        }
-      } else {
-        localStorage.setItem(
-          sessionStorageKey,
-          JSON.stringify(_.pick(elmData, ["email","language"]))
-        );
-        await setUserDbs(elmData.email);
-        elmData.seed = Date.now();
-        setTimeout(() => gingko.ports.userLoginChange.send(elmData), 0);
-      }
+      setSessionData(elmData);
+      await setUserDbs(elmData.email);
+      const timestamp = Date.now();
+      elmData.seed = timestamp;
+      elmData.currentTime = timestamp;
+      setTimeout(() => gingko.ports.userLoginChange.send(elmData), 0);
+    },
+
+    LogoutUser : async () => {
+      await logout();
     },
 
     // === Dialogs, Menus, Window State ===
@@ -267,32 +346,15 @@ const fromElm = (msg, elmData) => {
       draggingInternal = false;
     },
 
-    ConfirmCancelCard: () => {
-      let tarea = document.getElementById("card-edit-" + elmData[0]);
-
-      if (tarea === null) {
-        console.log("tarea not found");
-      } else {
-        if (tarea.value === elmData[1] || confirm(elmData[2])) {
-          toElm(null, "docMsgs", "CancelCardConfirmed");
-        }
-      }
-    },
-
     // === Database ===
 
     InitDocument: async () => {
       TREE_ID = elmData;
 
       const now = Date.now();
-      let metadata = {
-        _id: elmData + "/metadata",
-        docId: elmData,
-        name: null,
-        createdAt: now,
-        updatedAt: now,
-      };
-      await db.put(metadata).catch(async (e) => e);
+      const treeDoc = {...treeDocDefaults, id: TREE_ID, owner: email, createdAt: now, updatedAt: now};
+
+      await dexie.trees.add(treeDoc);
 
       // Set localStore db
       localStore.db(elmData);
@@ -302,49 +364,23 @@ const fromElm = (msg, elmData) => {
       TREE_ID = elmData;
 
       // Load title
-      let metadata = await data.loadMetadata(db, elmData);
-      toElm(metadata, "docMsgs", "MetadataSaved")
-
-      // Load document-specific settings.
-      localStore.db(elmData);
-      let store = localStore.load();
-
-      // Load local document data.
-      let localExists;
-      let [loadedData, savedIds] = await data.load(db, elmData);
-      savedIds.forEach(item => savedObjectIds.add(item));
-      if (savedIds.length !== 0) {
-        localExists = true;
-        loadedData.localStore = store;
-        toElm(loadedData, "docMsgs", "DataReceived");
+      const treeDoc = await dexie.trees.get(elmData);
+      if (treeDoc) {
+        toElm(treeDocToMetadata(treeDoc), "appMsgs", "MetadataUpdate")
       } else {
-        localExists = false;
+        toElm(null, "appMsgs", "NotFound")
+        return;
       }
 
-      // Pull data from remote
-      let remoteExists;
-      PULL_LOCK = true;
       try {
-        let pullResult = await data.pull(db, remoteDB, elmData, "LoadDocument");
-
-        if (pullResult !== null) {
-          remoteExists = true;
-          pullResult[1].forEach(item => savedObjectIds.add(item));
-          toElm(pullResult[0], "docMsgs", "DataReceived");
-        } else {
-          remoteExists = false;
-          if (!localExists && !remoteExists) {
-            toElm(null, "docMsgs", "NotFound")
-          }
+        if (treeDoc.location == "couchdb") {
+          loadGitLikeDocument(elmData);
+        } else if (treeDoc.location == "cardbased") {
+          loadCardBasedDocument(elmData);
         }
-      } catch (e){
-        console.error(e)
-      } finally {
-        PULL_LOCK = false;
+      } catch (e) {
+        console.log(e);
       }
-
-      // Load doc list
-      loadDocListAndSend(remoteDB, "LoadDocument");
     },
 
     CopyDocument: async () => {
@@ -373,7 +409,7 @@ const fromElm = (msg, elmData) => {
           } else {
             remoteExists = false;
             if (!localExists && !remoteExists) {
-              toElm(null, "docMsgs", "NotFound")
+              toElm(null, "appMsgs", "NotFound")
             }
           }
         } catch (e){
@@ -390,31 +426,54 @@ const fromElm = (msg, elmData) => {
     },
 
     RequestDelete: async () => {
-      if (confirm("Are you sure you want to delete this document?")) {
-        let docsFetch = await remoteDB.allDocs({
-          startkey: elmData + "/",
-          endkey: elmData + "/\ufff0",
-        });
-
-        let docsToDelete = docsFetch.rows.map((r) => {
-          return { _id: r.id, _rev: r.value.rev, _deleted: true };
-        });
-
-        // Delete from local and remote DBs
-        remoteDB.bulkDocs(docsToDelete);
-        await db.bulkDocs(docsToDelete);
+      if (confirm(`Are you sure you want to delete the document '${elmData[1]}'?`)) {
+        await dexie.trees.update(elmData[0], {deletedAt: Date.now(), synced: false});
       }
     },
 
     RenameDocument: async () => {
       if (!renaming) { // Hack to prevent double rename attempt due to Browser.Dom.blur
         renaming = true;
-        let saveRes = await data.renameDocument(db, TREE_ID, elmData);
-        if (saveRes) {
-          toElm(saveRes, "docMsgs", "MetadataSaved");
-        }
+        await dexie.trees.update(TREE_ID, {name: elmData, updatedAt: Date.now(), synced: false});
         renaming = false;
       }
+    },
+
+    PushDeltas : () => {
+      if (elmData.dlts.length > 0) {
+        wsSend('push', elmData, true);
+      }
+    },
+
+    SaveCardBased : async () => {
+      if (elmData !== null) {
+        let newData = elmData.toAdd.map((c) => { return { ...c, updatedAt: hlc.nxt() }})
+        const toMarkSynced = elmData.toMarkSynced.map((c) => { return { ...c, synced: true }})
+        const timestamp = Date.now();
+
+        let toMarkDeleted = [];
+        if (elmData.toMarkDeleted.length > 0) {
+          const deleteHash = uuid();
+          toMarkDeleted = elmData.toMarkDeleted.map((c, i) => ({ ...c, updatedAt: `${timestamp}:${i}:${deleteHash}` }));
+        }
+
+        dexie.transaction('rw', dexie.cards, async () => {
+          dexie.cards.bulkPut(newData.concat(toMarkSynced).concat(toMarkDeleted));
+          dexie.cards.bulkDelete(elmData.toRemove);
+          DIRTY = false;
+        }).then(async result => {
+          await dexie.trees.update(TREE_ID, {updatedAt: timestamp, synced: false});
+        })
+          .catch((e) => {
+          alert("Error saving data!" + e);
+        });
+      }
+    },
+
+    SaveCardBasedMigration : async () => {
+      await dexie.trees.update(TREE_ID, {location: "cardbased", synced: false});
+      await dexie.cards.bulkPut(elmData);
+      loadCardBasedDocument(TREE_ID);
     },
 
     CommitData: async () => {
@@ -423,6 +482,8 @@ const fromElm = (msg, elmData) => {
     },
 
     CommitDataResult: async () => {
+      // From dataWorker, NOT ELM!
+
       let [ savedData
         , savedImmutables
         , conflictsExist
@@ -433,13 +494,16 @@ const fromElm = (msg, elmData) => {
       savedImmutables.forEach(item => savedObjectIds.add(item));
 
       // Send new data to Elm
-      toElm(savedData, "docMsgs", "DataSaved");
+      toElm(savedData, "appMsgs", "DataSaved");
 
       // Mark document as clean
       DIRTY = false;
 
       // Maybe send metadata to Elm
-      if (typeof savedMetadata !== "undefined") { toElm(savedMetadata, "docMsgs", "MetadataSaved")}
+      if (typeof savedMetadata !== "undefined") {
+        await dexie.trees.update(TREE_ID, {updatedAt: savedMetadata.updatedAt, synced: false});
+        toElm(savedMetadata, "appMsgs", "MetadataUpdate");
+      }
 
       // Pull & Maybe push
       if (!PULL_LOCK) {
@@ -458,11 +522,15 @@ const fromElm = (msg, elmData) => {
     },
 
     SaveImportedData: async () => {
+      const now = Date.now();
       let [ savedData
         , savedImmutables
         , conflictsExist
         , savedMetadata
-      ] = await data.newSave(userDbName, elmData.metadata.docId, elmData, Date.now(), savedObjectIds);
+      ] = await data.newSave(userDbName, elmData.metadata.docId, elmData, now, savedObjectIds);
+
+      const treeDoc = {...treeDocDefaults, id: elmData.metadata.docId, name: elmData.metadata.name, owner: email, createdAt: now, updatedAt: now};
+      await dexie.trees.add(treeDoc);
 
       // Add saved immutables to cache.
       savedImmutables.forEach(item => savedObjectIds.add(item));
@@ -471,11 +539,20 @@ const fromElm = (msg, elmData) => {
     },
 
     SaveBulkImportedData: async () => {
+      const now = Date.now();
+
       let localSavePromises =
         elmData.map(async commitReq => {
           await data.newSave(userDbName, commitReq.metadata.docId, commitReq, commitReq.metadata.updatedAt, savedObjectIds);
         });
-      await Promise.all(localSavePromises);
+
+      let treeDocPromises =
+        elmData.map(async commitReq => {
+          const treeDoc = {...treeDocDefaults, id: commitReq.metadata.docId, name: commitReq.metadata.name, owner: email, createdAt: now, updatedAt: now};
+          await dexie.trees.add(treeDoc);
+        });
+
+      await Promise.all(localSavePromises.concat(treeDocPromises));
 
       // Push newly imported trees to remote
       elmData.map(async commitReq => {
@@ -488,32 +565,6 @@ const fromElm = (msg, elmData) => {
 
     // === DOM ===
 
-    ScrollCards: () => {
-      helpers.scrollColumns(elmData);
-      helpers.scrollHorizontal(elmData.columnIdx, elmData.instant);
-      lastActivesScrolled = elmData;
-      lastColumnScrolled = elmData.columnIdx;
-      if (localStore.isReady()) {
-        localStore.set('last-actives', elmData.lastActives);
-      }
-      window.requestAnimationFrame(()=>{
-        updateFillets();
-        let columns = Array.from(document.getElementsByClassName("column"));
-        columns.map((c, i) => {
-          c.addEventListener('scroll', () => {
-            if(!ticking) {
-              window.requestAnimationFrame(() => {
-                updateFillets();
-                ticking = false;
-              })
-
-              ticking = true;
-            }
-          })
-        })
-      });
-    },
-
     ScrollFullscreenCards: () => {
       helpers.scrollFullscreen(elmData);
     },
@@ -525,26 +576,6 @@ const fromElm = (msg, elmData) => {
       elmData.dataTransfer.setDragImage(cardElement, 0 , 0);
       elmData.dataTransfer.setData("text", "");
       toElm(cardId, "docMsgs", "DragStarted");
-    },
-
-    CopyCurrentSubtree: () => {
-      navigator.clipboard.writeText(JSON.stringify(elmData));
-      let addFlashClass = function () {
-        let activeCard = document.querySelectorAll(".card.active");
-        let activeDescendants = document.querySelectorAll(".group.active-descendant");
-        activeCard.forEach((c) => c.classList.add("flash"));
-        activeDescendants.forEach((c) => c.classList.add("flash"));
-      };
-
-      let removeFlashClass = function () {
-        let activeCard = document.querySelectorAll(".card.active");
-        let activeDescendants = document.querySelectorAll(".group.active-descendant");
-        activeCard.forEach((c) => c.classList.remove("flash"));
-        activeDescendants.forEach((c) => c.classList.remove("flash"));
-      };
-
-      addFlashClass();
-      setTimeout(removeFlashClass, 200);
     },
 
     CopyToClipboard: () => {
@@ -579,44 +610,6 @@ const fromElm = (msg, elmData) => {
       setTimeout(removeFlashClass, 400);
     },
 
-    TextSurround: () => {
-      let id = elmData[0];
-      let surroundString = elmData[1];
-      let tarea = document.getElementById("card-edit-" + id);
-      let card = document.getElementById("card-" + id);
-
-      if (tarea === null) {
-        console.log("Textarea not found for TextSurround command.");
-      } else {
-        let start = tarea.selectionStart;
-        let end = tarea.selectionEnd;
-        if (start !== end) {
-          let text = tarea.value.slice(start, end);
-          let modifiedText = surroundString + text + surroundString;
-          let newValue = tarea.value.substring(0, start) + modifiedText + tarea.value.substring(end);
-          tarea.value = newValue;
-          let cursorPos = start + modifiedText.length;
-          tarea.setSelectionRange(cursorPos, cursorPos);
-          DIRTY = true;
-          toElm(newValue, "docMsgs", "FieldChanged");
-
-          if (card !== null) {
-            card.dataset.clonedContent = newValue;
-          }
-        }
-      }
-    },
-
-    SetTextareaClone: () => {
-      let id = elmData[0];
-      let card = document.getElementById("card-" + id);
-      if (card === null) {
-        console.error("Card not found for autogrowing textarea");
-      } else {
-        card.dataset.clonedContent = elmData[1];
-      }
-    },
-
     SetField: () => {
       let id = elmData[0];
       let field = elmData[1];
@@ -624,11 +617,6 @@ const fromElm = (msg, elmData) => {
         let tarea = document.getElementById("card-edit-" + id);
         tarea.value = field;
       })
-    },
-
-    SetCursorPosition: () => {
-      let pos = elmData[0];
-      setTimeout(() => document.activeElement.setSelectionRange(pos, pos), 0);
     },
 
     SetFullscreen: () => {
@@ -657,6 +645,10 @@ const fromElm = (msg, elmData) => {
     UpdateCommits: () => {},
 
     HistorySlider: () => {
+      // History opened
+      // TODO: Check if we're actually in a card-based document
+      wsSend('pullHistory', TREE_ID, false);
+
       window.requestAnimationFrame(() => {
         let slider = document.getElementById('history-slider')
         if (slider != null) {
@@ -669,22 +661,24 @@ const fromElm = (msg, elmData) => {
     SaveUserSetting: () => {
       let key = elmData[0];
       let value = elmData[1];
-      switch(key) {
-        case "language":
-          lang = value;
-          userStore.set("language", value);
+      // Save to remote SQLite
+      switch (key) {
+        case 'language':
+          wsSend('setLanguage', value);
           break;
 
         default:
-          userStore.set(key, value);
+          let currSessionData = getSessionData();
+          currSessionData[key] = value;
+          setSessionData(currSessionData);
           break;
       }
     },
 
     SetSidebarState: () => {
-      let currSessionData = JSON.parse(localStorage.getItem(sessionStorageKey));
+      let currSessionData = getSessionData();
       currSessionData.sidebarOpen = elmData;
-      localStorage.setItem(sessionStorageKey, JSON.stringify(currSessionData));
+      setSessionData(currSessionData);
       window.requestAnimationFrame(()=>{
         sidebarWidth = document.getElementById('sidebar').clientWidth;
       });
@@ -706,10 +700,6 @@ const fromElm = (msg, elmData) => {
 
     Print: () => {
       window.print();
-    },
-
-    SetShortcutTray: () => {
-      userStore.set("shortcutTrayOpen", elmData);
     },
 
     // === Misc ===
@@ -761,9 +751,11 @@ const fromElm = (msg, elmData) => {
     },
 
     SocketSend: () => {},
-
-    ConsoleLogRequested: () => console.error(elmData),
   };
+
+  const params = { localStore, lastColumnScrolled, lastActivesScrolled, ticking, DIRTY }
+
+  const cases = Object.assign(helpers.casesShared(elmData, params), casesWeb)
 
   try {
     cases[msg]();
@@ -773,15 +765,169 @@ const fromElm = (msg, elmData) => {
 };
 
 
+function wsSend(msgTag, msgData, unbufferedOnly) {
+  if (unbufferedOnly == undefined) {
+    unbufferedOnly = false;
+  }
+  const bufferCheck = unbufferedOnly ? ws.bufferedAmount == 0 : true;
+
+  if (ws.readyState == ws.OPEN && bufferCheck) {
+    ws.send(JSON.stringify({t: msgTag, d: msgData}));
+  } else {
+    console.log("WS not ready to send: ", msgTag, msgData);
+  }
+}
 
 
 /* === Database === */
 
-async function loadDocListAndSend(dbToLoadFrom, source) {
-  let docList = await data.getDocumentList(dbToLoadFrom);
-  toElm(docList, "documentListChanged");
+const treeDocDefaults = {name: null, location: "couchdb", inviteUrl: null, collaborators: "[]", deletedAt: null};
+
+function treeDocToMetadata(tree) {
+  return {docId: tree.id, name: tree.name, createdAt: tree.createdAt, updatedAt: tree.updatedAt, _rev: null}
 }
 
+async function loadCardBasedDocument (treeId) {
+  if (cardDataSubscription != null) { cardDataSubscription.unsubscribe(); }
+  if (historyDataSubscription != null) { historyDataSubscription.unsubscribe(); }
+
+  // Load document-specific settings.
+  localStore.db(treeId);
+  let store = localStore.load();
+
+  // Load local document data.
+  let loadedCards = await dexie.cards.where("treeId").equals(treeId).toArray();
+  const chk = getChk(treeId, loadedCards);
+  if (loadedCards.length > 0) {
+    loadedCards.localStore = store;
+    toElm(loadedCards, "appMsgs", "CardDataReceived");
+  }
+
+  let firstLoad = true;
+
+  // Setup Dexie liveQuery for local document data.
+  cardDataSubscription = Dexie.liveQuery(() => dexie.cards.where("treeId").equals(treeId).toArray()).subscribe((cards) => {
+    //console.log("LiveQuery update", cards);
+    if (cards.length > 0) {
+      toElm(cards, "appMsgs", "CardDataReceived");
+      saveBackupToImmortalDB(treeId, cards);
+      if (firstLoad) {
+        firstLoad = false;
+        setTimeout(() => {toElm(chk, "docMsgs", "InitialActivation")} , 20);
+      }
+    }
+  });
+
+  // Setup Dexie liveQuery for local history data, after initial pull.
+  historyDataSubscription = Dexie.liveQuery(() => dexie.tree_snapshots.where("treeId").equals(treeId).toArray()).subscribe((history) => {
+    if (history.length > 0) {
+      const historyWithTs = history.map(h => ({
+        ...h,
+        ts: Number(h.snapshot.split(':')[0]),
+        data: h.data !== null ? h.data.map(d => ({ ...d, deleted: 0 })) : h.data
+      }));
+      toElm(historyWithTs, "appMsgs", "HistoryDataReceived");
+    }
+  });
+
+  // Pull data from remote
+  pull(treeId, chk);
+}
+
+function getChk(treeId, cards) {
+  if (cards.length > 0) {
+    return cards.filter(c => c.synced).map(c => c.updatedAt).sort().reverse()[0];
+  } else {
+    return '0';
+  }
+}
+
+function pull(treeId, chk) {
+  wsSend("pull", [treeId, chk], true);
+  setTimeout(() => {
+    wsSend('pullHistoryMeta', treeId, false);
+  }, 500)
+}
+
+function saveBackupToImmortalDB (treeId, cards) {
+  const snapshot = _.chain(cards).sortBy('updatedAt').reverse().uniqBy('id').value();
+  const trees = treeHelper(snapshot, null);
+  const treeString = trees.map(treeToGkw).join('\n');
+  if (ImmortalDB) {
+    ImmortalDB.set('backup-snapshot:' + treeId, treeString);
+  }
+}
+
+function treeToGkw (tree) {
+  return "<gingko-card id=\""
+    + tree.id
+    + "\">\n\n"
+    + tree.content
+    + "\n\n"
+    + tree.children.map(treeToGkw).join("\n\n")
+    + "</gingko-card>";
+}
+
+function treeHelper (cards, parentId) {
+  let children = _.chain(cards).filter(c => c.parentId == parentId).sortBy('position').value();
+  return children.map(c => {
+    let children = treeHelper(cards, c.id);
+    return {id: c.id, content: c.content, children}
+  });
+}
+
+async function loadGitLikeDocument (treeId) {
+  // Load document-specific settings.
+  localStore.db(treeId);
+  let store = localStore.load();
+
+  // Load local document data.
+  let localExists;
+  let [loadedData, savedIds] = await data.load(db, treeId);
+  savedIds.forEach(item => savedObjectIds.add(item));
+  if (savedIds.length !== 0) {
+    localExists = true;
+    loadedData.localStore = store;
+    toElm(loadedData, "appMsgs", "GitDataReceived");
+  } else {
+    localExists = false;
+  }
+
+  // Pull data from remote
+  let remoteExists;
+  PULL_LOCK = true;
+  try {
+    let pullResult = await data.pull(db, remoteDB, treeId, "LoadDocument");
+
+    if (pullResult !== null) {
+      remoteExists = true;
+      pullResult[1].forEach(item => savedObjectIds.add(item));
+      toElm(pullResult[0], "appMsgs", "GitDataReceived");
+    } else {
+      remoteExists = false;
+      if (!localExists && !remoteExists) {
+        toElm(null, "appMsgs", "NotFound")
+      }
+    }
+  } catch (e){
+    console.error(e)
+  } finally {
+    PULL_LOCK = false;
+  }
+
+  // Activate first card
+  setTimeout(() => {toElm(null, "docMsgs", "InitialActivation")}, 20);
+
+  // Load doc list
+  loadDocListAndSend(remoteDB, "LoadDocument");
+}
+
+async function loadDocListAndSend(dbToLoadFrom, source) {
+  loadingDocs = true;
+  let docList = await dexie.trees.toArray().catch(e => {console.error(e); return []});
+  toElm(docList.filter(d => d.deletedAt == null).map(treeDocToMetadata),  "documentListChanged");
+  loadingDocs = false;
+}
 
 /* === Stripe === */
 
@@ -803,6 +949,42 @@ var createCheckoutSession = function(userEmail, priceId) {
 
 /* === Helper Functions === */
 
+function getSessionData() {
+  let sessionStringRaw = localStorage.getItem(sessionStorageKey);
+  if (sessionStringRaw) {
+    return JSON.parse(sessionStringRaw);
+  } else {
+    return null;
+  }
+}
+
+function setSessionData(data) {
+  localStorage.setItem(sessionStorageKey, JSON.stringify(data));
+}
+
+async function logout() {
+  try {
+    if (db) {
+      await db.replicate.to(remoteDB);
+      await db.destroy();
+    }
+    await fetch(document.location.origin + "/logout", {method: 'POST'});
+    localStorage.removeItem(sessionStorageKey);
+
+    // Encrypt local backups
+    const backupKeys = Object.keys({ ...localStorage }).filter(k => k.startsWith("_immortal|backup-snapshot:")).map(k => k.slice(10));
+    backupKeys.map(async (k) => {
+      const val = await ImmortalDB.get(k);
+      await ImmortalDB.set(k, await mycrypt.encrypt(val));
+    });
+
+    await dexie.delete();
+    setTimeout(() => gingko.ports.userLoginChange.send(null), 0);
+  } catch (err) {
+    console.error(err)
+  }
+}
+
 function prefix(id) {
   return TREE_ID + "/" + id;
 }
@@ -813,12 +995,14 @@ function unprefix(id) {
 
 
 function pullSuccessHandler (pulledData) {
-  toElm(pulledData, "docMsgs", "DataReceived")
+  if (pulledData === null) { return }
+
+  toElm(pulledData, "appMsgs", "GitDataReceived")
 }
 
 
 function pushSuccessHandler (info) {
-  toElm(Date.parse(info.end_time), "docMsgs", "SavedRemotely")
+  toElm(Date.parse(info.end_time), "appMsgs", "SavedRemotely")
 }
 
 /* === DOM Events and Handlers === */
@@ -930,54 +1114,9 @@ window.onresize = () => {
   })
 };
 
-const updateFillets = () => {
-  let columns = Array.from(document.getElementsByClassName("column"));
-  let filletData = helpers.getFilletData(columns);
-  columns.map((c,i) => {
-    helpers.setColumnFillets(c,i, filletData);
-  })
-}
-
 const debouncedScrollColumns = _.debounce(helpers.scrollColumns, 200);
 const debouncedScrollHorizontal = _.debounce(helpers.scrollHorizontal, 200);
 
-const selectionHandler = function () {
-  if (document.activeElement.nodeName == "TEXTAREA") {
-    let {
-      selectionStart,
-      selectionEnd,
-      selectionDirection,
-    } = document.activeElement;
-    let length = document.activeElement.value.length;
-    let [before, after] = [
-      document.activeElement.value.substring(0, selectionStart),
-      document.activeElement.value.substring(selectionStart),
-    ];
-    let cursorPosition = "other";
-
-    if (length == 0) {
-      cursorPosition = "empty";
-    } else if (selectionStart == 0 && selectionEnd == 0) {
-      cursorPosition = "start";
-    } else if (selectionStart == length && selectionEnd == length) {
-      cursorPosition = "end";
-    } else if (selectionStart == 0 && selectionDirection == "backward") {
-      cursorPosition = "start";
-    } else if (selectionEnd == length && selectionDirection == "forward") {
-      cursorPosition = "end";
-    }
-
-    toElm(
-      {
-        selected: selectionStart !== selectionEnd,
-        position: cursorPosition,
-        text: [before, after],
-      },
-      "docMsgs",
-      "TextCursor"
-    );
-  }
-};
 
 Mousetrap.bind(helpers.shortcuts, function (e, s) {
   switch (s) {
@@ -1057,104 +1196,7 @@ Mousetrap.bind(["shift+tab"], function () {
 /* === DOM manipulation === */
 
 
-const positionTourStep = function (stepNum, refElementId) {
-  let refElement;
-  if (stepNum == 1 || stepNum == 5) {
-    refElement = document.getElementById(refElementId);
-  } else if (stepNum == 2) {
-    refElement = document.getElementById(refElementId).parentElement.parentElement.parentElement.getElementsByClassName('ins-right')[0];
-  }
-  let tourElement = document.getElementById("welcome-step-"+stepNum);
-  if (refElementId !== null && tourElement !== null) {
-    let refRect = refElement.getBoundingClientRect();
-    tourElement.style.top = refRect.top + "px";
-    tourElement.style.left = refRect.left + "px";
-  }
-}
-
-const addTourStepScrollHandler = (stepNum, refElementId, colNum) => {
-  let col = document.getElementsByClassName("column")[colNum-1];
-  if (col) {
-    let ticking =  false;
-    col.onscroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(()=> {
-          positionTourStep(stepNum, refElementId);
-          ticking = false;
-        })
-
-        ticking = true;
-      }
-    }
-  }
-}
-
-const observer = new MutationObserver(function (mutations) {
-  const isTextarea = function (node) {
-    return node.nodeName == "TEXTAREA" && node.className == "edit mousetrap";
-  };
-
-  const isTourStepOne = function (node) {
-    return document.getElementById('welcome-step-1');
-  };
-
-  let textareas = [];
-
-  mutations.map((m) => {
-    [].slice.call(m.addedNodes).map((n) => {
-      if (isTextarea(n)) {
-        textareas.push(n);
-      } else if (isTourStepOne(n)) {
-        // Add handlers with MutationObserver for first step
-        positionTourStep(tourStepPositionStepNum, tourStepPositionRefElementId);
-        addTourStepScrollHandler(tourStepPositionStepNum, tourStepPositionRefElementId, 2)
-      } else {
-        if (n.querySelectorAll) {
-          let tareas = [].slice.call(n.querySelectorAll("textarea.edit"));
-          textareas = textareas.concat(tareas);
-        }
-      }
-    });
-
-    [].slice.call(m.removedNodes).map((n) => {
-      if ("getElementsByClassName" in n && n.getElementsByClassName("edit mousetrap").length != 0) {
-        updateFillets();
-      }
-    })
-  });
-
-  if (textareas.length !== 0) {
-    textareas.map((t) => {
-      t.onkeyup = selectionHandler;
-      t.onclick = selectionHandler;
-      t.onfocus = selectionHandler;
-    });
-    if (document.getElementById("app-fullscreen") === null) {
-      window.addEventListener('click', editBlurHandler)
-    }
-  } else {
-    window.removeEventListener('click', editBlurHandler);
-  }
-});
-
-const editBlurHandler = (ev) => {
-  let targetClasses = ev.target.classList;
-  if (ev.target.nodeName == "DIV" && targetClasses.contains("card-btn") && targetClasses.contains("save")) {
-    return;
-  } else if (ev.target.nodeName == "DIV" && targetClasses.contains("fullscreen-card-btn")) {
-    return;
-  } else if (isEditTextarea(ev.target)) {
-    return;
-  } else {
-    if(!(isEditTextarea(document.activeElement))) {
-      toElm(null, "docMsgs", "ClickedOutsideCard");
-    }
-  }
-};
-
-const isEditTextarea = (node) => {
-  return node.nodeName == "TEXTAREA" && node.classList.contains("edit") && node.classList.contains("mousetrap");
-}
+const observer = helpers.getObserver(toElm);
 
 const observerConfig = { childList: true, subtree: true };
 

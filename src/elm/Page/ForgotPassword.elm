@@ -1,5 +1,7 @@
-module Page.ForgotPassword exposing (Model, Msg, init, subscriptions, toUser, update, view)
+module Page.ForgotPassword exposing (Model, Msg, globalData, init, navKey, subscriptions, toUser, update, view)
 
+import Browser.Navigation as Nav
+import GlobalData exposing (GlobalData)
 import Html exposing (..)
 import Html.Attributes exposing (autofocus, class, href, id, placeholder, src, type_, value)
 import Html.Events exposing (onInput, onSubmit)
@@ -7,6 +9,7 @@ import Http exposing (Error(..))
 import Result exposing (Result)
 import Route
 import Session exposing (Session)
+import Translation exposing (Language)
 import Utils exposing (getFieldErrors)
 import Validate exposing (Valid, Validator, ifBlank, ifInvalidEmail, validate)
 
@@ -16,10 +19,12 @@ import Validate exposing (Valid, Validator, ifBlank, ifInvalidEmail, validate)
 
 
 type alias Model =
-    { user : Session
+    { globalData : GlobalData
+    , session : Session
     , email : String
     , errors : List ( Field, String )
     , sent : Bool
+    , navKey : Nav.Key
     }
 
 
@@ -28,12 +33,14 @@ type Field
     | Email
 
 
-init : Session -> Maybe String -> ( Model, Cmd msg )
-init user email_ =
-    ( { user = user
+init : Nav.Key -> GlobalData -> Session -> Maybe String -> ( Model, Cmd msg )
+init nKey gData session email_ =
+    ( { globalData = gData
+      , session = session
       , email = email_ |> Maybe.withDefault ""
       , errors = []
       , sent = False
+      , navKey = nKey
       }
     , Cmd.none
     )
@@ -41,7 +48,17 @@ init user email_ =
 
 toUser : Model -> Session
 toUser model =
-    model.user
+    model.session
+
+
+navKey : Model -> Nav.Key
+navKey model =
+    model.navKey
+
+
+globalData : Model -> GlobalData
+globalData model =
+    model.globalData
 
 
 
@@ -51,7 +68,7 @@ toUser model =
 type Msg
     = SubmittedForm
     | EnteredEmail String
-    | CompletedForgotPassword (Result Http.Error Session)
+    | CompletedForgotPassword (Result Http.Error ( Session, Language ))
     | GotUser Session
 
 
@@ -101,7 +118,7 @@ update msg model =
             ( { model | errors = [ errorMsg ] }, Cmd.none )
 
         GotUser user ->
-            ( { model | user = user }, Route.pushUrl (Session.navKey user) Route.Root )
+            ( { model | session = user }, Route.pushUrl model.navKey Route.Root )
 
 
 modelValidator : Validator ( Field, String ) Model
@@ -117,10 +134,10 @@ modelValidator =
 sendForgotPasswordRequest : Valid Model -> Cmd Msg
 sendForgotPasswordRequest validModel =
     let
-        { email, user } =
+        { email, session } =
             Validate.fromValid validModel
     in
-    Session.requestForgotPassword CompletedForgotPassword email user
+    Session.requestForgotPassword CompletedForgotPassword email session
 
 
 
@@ -182,4 +199,4 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Session.loginChanges GotUser (Session.navKey model.user)
+    Session.loginChanges GotUser

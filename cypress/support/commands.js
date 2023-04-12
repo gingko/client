@@ -11,12 +11,20 @@ Cypress.on('log:changed', options => {
   }
 })
 
+const origLog = Cypress.log;
+Cypress.log = function (opts, ...other) {
+  if (opts.displayName === 'script' || opts.name === 'request') {
+    return;
+  }
+  return origLog(opts, ...other);
+};
+
 Cypress.Commands.add('deleteUser', (userEmail)=> {
   const testUserDb = 'userdb-' + helpers.toHex(userEmail);
-  if (indexedDB.hasOwnProperty('databases')) {
+  if (typeof indexedDB.databases == 'function') {
     console.log('CHROME')
     indexedDB.databases().then((dbs) => {
-      dbs.filter((db) => db.name.includes(testUserDb))
+      dbs.filter((db) => db.name.includes(testUserDb) || db.name == 'db')
         .map((db) => {window.indexedDB.deleteDatabase(db.name)})
     })
   } else {
@@ -24,22 +32,15 @@ Cypress.Commands.add('deleteUser', (userEmail)=> {
     let db = new PouchDB(testUserDb, {skip_setup: true});
     db.destroy();
   }
-  cy.clearCookie('AuthSession')
+  cy.clearAllCookies();
   cy.request('POST', config.TEST_SERVER + '/logout')
   return cy.request(
-    { url: config.TEST_SERVER + '/db/_users/org.couchdb.user:'+userEmail
-      , method: 'GET'
-      , auth: {user: hiddenConfig.COUCHDB_ADMIN_USERNAME, password: hiddenConfig.COUCHDB_ADMIN_PASSWORD}
-      , failOnStatusCode: false
+    { url: config.TEST_SERVER + '/test/user'
+    , method: 'DELETE'
+    , failOnStatusCode: false
     })
-    .then((response) => {
-      if(response.status === 200) {
-        cy.request(
-          { url: `${config.TEST_SERVER}/db/_users/org.couchdb.user:${userEmail}?rev=${response.body._rev}`
-            , method: 'DELETE'
-            , auth: {user: hiddenConfig.COUCHDB_ADMIN_USERNAME, password: hiddenConfig.COUCHDB_ADMIN_PASSWORD}
-          })
-      }
+    .then((resp) => {
+      cy.task('db:user:delete')
     })
 })
 
@@ -56,7 +57,7 @@ Cypress.Commands.add('signup', (userEmail) => {
 })
 
 
-Cypress.Commands.add('signup_with', (userEmail, seedName) =>{
+Cypress.Commands.add('signup_with_old', (userEmail, seedName) =>{
   const testUserDb = 'userdb-' + helpers.toHex(userEmail);
   cy.request(
     { url: config.TEST_SERVER + '/signup'
@@ -65,10 +66,27 @@ Cypress.Commands.add('signup_with', (userEmail, seedName) =>{
     })
     .then((response) => {
       localStorage.setItem('gingko-session-storage', JSON.stringify({ email: userEmail, language: 'en' }))
-      cy.task('db:seed',{dbName: testUserDb, seedName: seedName})
+      const treeData = require(__dirname + '/../fixtures/' + seedName + '.json');
+      const trees = treeData.docs
+        .filter((doc) => doc._id.endsWith('metadata'))
+        .map(m => ({id: m.docId, name: m.name, owner: userEmail, createdAt: m.createdAt, updatedAt: m.updatedAt, location: "couchdb", collaborators: "[]"}))
+      cy.task('db:seed',{dbName: testUserDb, seedName: seedName}).then(() => {
+        cy.request({url: config.TEST_SERVER + '/test/trees', method: 'POST', body: trees})
+      })
     })
 })
 
+Cypress.Commands.add('signup_with', (userEmail, seedName) =>{
+  cy.request(
+    { url: config.TEST_SERVER + '/signup'
+      , method: 'POST'
+      , body: {email: userEmail, password: 'testing'}
+    })
+    .then((response) => {
+      localStorage.setItem('gingko-session-storage', JSON.stringify({ email: userEmail, language: 'en' }))
+      cy.task('db:sqlite:seed',{seedName: seedName})
+    })
+})
 
 Cypress.Commands.add('login', (userEmail) => {
   cy.request(

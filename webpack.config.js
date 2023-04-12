@@ -76,11 +76,11 @@ const brT = prepTranslation("br", br);
 
 const allLanguageStrings = [].concat(zhHansT, zhHantT, esT, arT, frT, ruT, deT, jaT,mrT, pesT, itT, roT, hrT, nlT, huT, svT, caT, brT)
 const otherReplacements = [
-    {search: "{%SUPPORT_EMAIL%}", replace: config.SUPPORT_EMAIL, flags: 'g'}
-  , {search: "{%SUPPORT_URGENT_EMAIL%}", replace: config.SUPPORT_URGENT_EMAIL, flags: 'g'}
-  , {search: "{%HOMEPAGE_URL%}", replace: config.HOMEPAGE_URL, flags: 'g'}
-  , {search: "{%TESTIMONIAL_URL%}", replace: config.TESTIMONIAL_URL, flags: 'g'}
-];
+  { search: '{%SUPPORT_EMAIL%}', replace: config.SUPPORT_EMAIL, flags: 'g' },
+  { search: '{%SUPPORT_URGENT_EMAIL%}', replace: config.SUPPORT_URGENT_EMAIL, flags: 'g' },
+  { search: '{%HOMEPAGE_URL%}', replace: config.HOMEPAGE_URL, flags: 'g' },
+  { search: '{%TESTIMONIAL_URL%}', replace: config.TESTIMONIAL_URL, flags: 'g' }
+]
 
 const webConfig = {
   // "production" or "development" flag.
@@ -107,8 +107,9 @@ const webConfig = {
 
   // What file types to attempt to resolve within require/import statements
   resolve: {
-    alias: { Container: path.resolve(__dirname, "src/web/container.js") },
-    extensions: [".js", ".elm"]
+    alias: { Container: path.resolve(__dirname, "src/web/container-web.js") },
+    extensions: [".js", ".elm"],
+    fallback: { "crypto": false }
   },
 
   // Rules on how to handle specific files.
@@ -185,38 +186,23 @@ const baseElectronConfig = {
 };
 
 
-const mainConfig = merge(baseElectronConfig, {
+const electronMainConfig = merge(baseElectronConfig, {
   // Set the target environment where the code bundles will run.
   target: "electron-main",
+
+  externals: {
+    leveldown: "require('leveldown')"
+  },
 
   // Entry points into the code. The roots of the dependency tree.
   entry: {
     electron: "./electron/main.js"
   },
 
-  // TODO : Understand what this is doing.
-  externals: {
-    "pouchdb": "require('pouchdb')",
-    "pouchdb-load": "require('pouchdb-load')",
-    "7zip-bin": "require('7zip-bin')",
-  }
-});
-
-
-const rendererConfig = merge(baseElectronConfig, {
-  // Set the target environment where the code bundles will run.
-  target: "electron-renderer",
-
-  // Entry points into the code. The root of the dependency tree.
-  entry: {
-    home: "./shared/home.js",
-    doc: "./shared/doc.js"
-  },
-
   // What file types to attempt to resolve within require/import statements
   resolve: {
-    alias: { Container: path.resolve(__dirname, "src/electron/container.js") },
-    extensions: [".js", ".elm"]
+    alias: { Container: path.resolve(__dirname, 'src/electron/container-electron.js') },
+    extensions: ['.js', '.elm']
   },
 
   // Rules on how to handle specific files.
@@ -226,38 +212,131 @@ const rendererConfig = merge(baseElectronConfig, {
         test: /\.elm$/,
         exclude: [/elm-stuff/, /node_modules/],
         use: {
-          loader: "elm-webpack-loader",
-          options: {verbose: true, pathToElm: "./elm-log-colors.sh"}
+          loader: 'elm-webpack-loader',
+          options: { verbose: true, pathToElm: './elm-log-colors.sh' }
         }
+      },
+      {
+        test: /\.worker\.js$/,
+        use: { loader: 'worker-loader' }
       }
     ]
+  }
+})
+
+const electronRendererConfig = merge(baseElectronConfig, {
+  // Set the target environment where the code bundles will run.
+  target: 'electron-renderer',
+
+  // Entry points into the code. The root of the dependency tree.
+  entry: {
+    home: './electron/home.js',
+    shortcuts: './electron/shortcuts-modal.js',
+    videos: './electron/videos-modal.js',
+    support: './electron/support-modal.js',
+    trial: './electron/trial-modal.js',
+    renderer: './electron/renderer.js'
   },
 
-  externals: {
-    "pouchdb": "require('pouchdb')",
+  // What file types to attempt to resolve within require/import statements
+  resolve: {
+    alias: { Container: path.resolve(__dirname, "src/electron/container-electron.js") },
+    extensions: [".js", ".elm"]
+  },
+
+  // Rules on how to handle specific files.
+  module: {
+    rules: [
+      {
+        test: /\.elm$/,
+        exclude: [/elm-stuff/, /node_modules/],
+        use:
+          [
+            {
+              loader: 'string-replace-loader',
+              options: { multiple: otherReplacements }
+            },
+            {
+              loader: 'elm-webpack-loader',
+              options: { verbose: true, pathToElm: './elm-log-colors.sh' }
+            }
+          ]
+      }
+    ]
   },
 
   plugins: [
 
     // Plugin to insert only needed chunks of JS into HTML output files.
     new HtmlWebpackPlugin({
-      template: "./index.ejs",
-      filename: "../app/static/index.html",
-      chunks: ["doc"]
+      template: './electron/home.ejs',
+      filename: '../app/static/home.html',
+      chunks: ['home']
     }),
     new HtmlWebpackPlugin({
-      template: "./home.ejs",
-      filename: "../app/static/home.html",
-      chunks: ["home"]
+      template: './electron/shortcuts-modal.ejs',
+      filename: '../app/static/shortcuts-modal.html',
+      chunks: ['shortcuts']
+    }),
+    new HtmlWebpackPlugin({
+      template: './electron/videos-modal.ejs',
+      filename: '../app/static/videos-modal.html',
+      chunks: ['videos']
+    }),
+    new HtmlWebpackPlugin({
+      template: './electron/faq-modal.ejs',
+      filename: '../app/static/faq-modal.html',
+      chunks: []
+    }),
+    new HtmlWebpackPlugin({
+      template: './electron/support-modal.ejs',
+      filename: '../app/static/support-modal.html',
+      chunks: ['support']
+    }),
+    new HtmlWebpackPlugin({
+      template: './electron/trial-modal.ejs',
+      filename: '../app/static/trial-modal.html',
+      chunks: ['trial']
+    }),
+    new HtmlWebpackPlugin({
+      template: './electron/trial-success-modal.ejs',
+      filename: '../app/static/trial-success-modal.html',
+      chunks: []
+    }),
+    new HtmlWebpackPlugin({
+      template: './electron/enter-license-modal.ejs',
+      filename: '../app/static/enter-license-modal.html',
+      chunks: []
+    }),
+    new HtmlWebpackPlugin({
+      template: './electron/renderer.ejs',
+      filename: '../app/static/renderer.html',
+      chunks: ['renderer']
+    }),
+
+    // Plugin to copy electron preload scripts
+    new CopyWebpackPlugin({
+      patterns: [{
+        from: './electron/preload.js',
+        to: '../app/preload.js'
+      }]
+    }),
+    new CopyWebpackPlugin({
+      patterns: [{
+        from: './electron/trial-preload.js',
+        to: '../app/trial-preload.js'
+      }]
     }),
 
     // Plugin to copy static assets (css, images).
-    new CopyWebpackPlugin({ patterns: [{
-      from: "./static",
-      to: "../app/static"
-    }]})
+    new CopyWebpackPlugin({
+      patterns: [{
+        from: './static',
+        to: '../app/static'
+      }]
+    })
   ]
-});
+})
 
 
-module.exports = [ webConfig ];
+module.exports = [ webConfig];

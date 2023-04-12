@@ -1,5 +1,7 @@
 module Page.DocNew exposing (Model, Msg, init, update)
 
+import Browser.Navigation as Nav
+import GlobalData exposing (GlobalData)
 import RandomId
 import Route
 import Session exposing (Session)
@@ -10,12 +12,15 @@ import Session exposing (Session)
 
 
 type alias Model =
-    Session
+    { globalData : GlobalData
+    , session : Session
+    , navKey : Nav.Key
+    }
 
 
-init : Session -> ( Model, Cmd Msg )
-init session =
-    ( session, RandomId.generate NewDocIdReceived )
+init : Nav.Key -> GlobalData -> Session -> ( Model, Cmd Msg )
+init navKey gData session =
+    ( Model gData session navKey, RandomId.generate NewDocIdReceived )
 
 
 
@@ -30,4 +35,4 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         NewDocIdReceived docId ->
-            ( model, Route.replaceUrl (Session.navKey model) (Route.DocUntitled docId) )
+            ( model, Route.replaceUrl model.navKey (Route.DocUntitled docId) )

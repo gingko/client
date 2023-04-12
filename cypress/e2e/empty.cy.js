@@ -12,10 +12,6 @@ describe('Empty State', () => {
     })
   })
 
-  beforeEach(() => {
-    Cypress.Cookies.preserveOnce('AuthSession')
-  })
-
   it('Shows Empty page when appropriate', ()=> {
     cy.url().should('eq', config.TEST_SERVER + '/')
     cy.contains("You don't have any documents")
@@ -27,7 +23,7 @@ describe('Empty State', () => {
         .get('#template-new')
         .click()
 
-      cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
+      cy.url().should('match', /\/[a-zA-Z0-9]{7}$/)
     })
 
     describe('Goes back to Empty page on deletion', () => {

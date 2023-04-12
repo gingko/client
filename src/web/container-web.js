@@ -1,5 +1,4 @@
 const _ = require("lodash");
-import PouchDB from "pouchdb";
 
 var userStoreLocal;
 var userStoreRemote;

@@ -5,7 +5,7 @@ Cypress.LocalStorage.clear = function (keys, ls, rs) {
   return;
 }
 
-describe('Upgrade process', () => {
+describe('Payment Tests', () => {
   const testEmail = 'cypress@testing.com'
   const testUserDb = 'userdb-' + helpers.toHex(testEmail);
 
@@ -17,12 +17,12 @@ describe('Upgrade process', () => {
 
   beforeEach(() => {
     cy.fixture('twoTrees.ids.json').as('treeIds')
-    Cypress.Cookies.preserveOnce('AuthSession')
   })
 
   it('Should have working Upgrade modal', function () {
     cy.visit(config.TEST_SERVER + '/' + this.treeIds[0])
     cy.url().should('contain', this.treeIds[0] )
+    cy.get('#app-root').should('be.visible')
     cy.get('.spinner').should('not.exist')
 
     cy.get("#upgrade-cta")
@@ -59,13 +59,13 @@ describe('Upgrade process', () => {
     cy.contains("$117")
     cy.contains("per year")
 
+    cy.wait(500)
+
     // Change in currency should reflect in displayed price
     cy.get('#currency-selector')
       .select('INR')
     cy.contains('₹2400')
-  })
 
-  it('Correctly handles payment status', function () {
     cy.visit(config.TEST_SERVER + '/upgrade/success' )
 
     cy.fixture('stripeSuccess').then((json) => {

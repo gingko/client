@@ -2,12 +2,7 @@ const config = require("../../config.js");
 const helpers = require("../../src/shared/doc-helpers.js");
 
 
-Cypress.LocalStorage.clear = function (keys, ls, rs) {
-  return;
-}
-
-
-describe('Loading indicators', () => {
+describe('doc.settings.cy.js', () => {
   const testEmail = 'cypress@testing.com'
 
   before(() => {
@@ -18,29 +13,27 @@ describe('Loading indicators', () => {
 
   beforeEach(() => {
     cy.fixture('twoTrees.ids.json').as('treeIds')
-    Cypress.Cookies.preserveOnce('AuthSession')
   })
 
-  it('Can change the document language', () => {
+  it('should load and save settings', function () {
     cy.visit(config.TEST_SERVER)
     cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
     cy.get('.spinner').should('not.exist')
     cy.contains('Synced')
 
+    // Can change the document language
     cy.get('#account-icon').click()
     cy.get('#language-option').click()
     cy.get('#lang-es').click()
 
     cy.contains('Sincronizado')
-  })
 
-  it('Persists the language setting on reload', () => {
+    // Persists language on reload
     cy.visit(config.TEST_SERVER)
     cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
     cy.contains('Sincronizado')
-  })
 
-  it('Saves last active position', () => {
+    // Saves last active position
     cy.get('#app-root')
       .contains('Another Test doc')
 

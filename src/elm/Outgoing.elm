@@ -5,7 +5,6 @@ import Doc.Fonts as Fonts
 import Doc.TreeUtils exposing (ScrollPosition, scrollPositionToValue)
 import Json.Encode as Enc exposing (..)
 import Page.Doc.Theme as Theme exposing (Theme)
-import Translation exposing (Language, langToString)
 import Types exposing (CollabState, CursorPosition(..), DropId, OutsideData, TextCursorInfo, Tree, dropIdToValue)
 
 
@@ -15,6 +14,7 @@ import Types exposing (CollabState, CursorPosition(..), DropId, OutsideData, Tex
 
 type Msg
     = StoreUser Enc.Value
+    | LogoutUser
     | SaveUserSetting ( String, Enc.Value )
       -- === Dialogs, Menus, Window State ===
     | Alert String
@@ -26,13 +26,19 @@ type Msg
     | LoadDocument String
     | CopyDocument String
     | GetDocumentList
-    | RequestDelete String
+    | RequestDelete String (Maybe String)
     | NoDataToSave
     | RenameDocument String
+    | SaveCardBased Enc.Value
+    | SaveCardBasedMigration Enc.Value
+    | PushDeltas Enc.Value
     | CommitData Enc.Value
     | PullData
     | SaveImportedData Enc.Value
     | SaveBulkImportedData Enc.Value
+      -- === Desktop ===
+    | SaveToFile String String
+    | ExportToFile String String
       -- === DOM ===
     | ScrollCards (List String) (List ( Int, ScrollPosition )) Int Bool
     | ScrollFullscreenCards String
@@ -60,7 +66,6 @@ type Msg
     | EmptyMessageShown
     | ShowWidget
     | CheckoutButtonClicked Enc.Value
-    | SocketSend CollabState
     | ConsoleLogRequested String
 
 
@@ -73,6 +78,9 @@ send info =
     case info of
         StoreUser user ->
             dataToSend "StoreUser" user
+
+        LogoutUser ->
+            dataToSend "LogoutUser" null
 
         SaveUserSetting ( key, val ) ->
             dataToSend "SaveUserSetting" (list identity [ string key, val ])
@@ -93,6 +101,15 @@ send info =
         -- === Database ===
         RenameDocument newDocName ->
             dataToSend "RenameDocument" (string newDocName)
+
+        SaveCardBased data ->
+            dataToSend "SaveCardBased" data
+
+        SaveCardBasedMigration data ->
+            dataToSend "SaveCardBasedMigration" data
+
+        PushDeltas data ->
+            dataToSend "PushDeltas" data
 
         CommitData data ->
             dataToSend "CommitData" data
@@ -118,11 +135,18 @@ send info =
         GetDocumentList ->
             dataToSend "GetDocumentList" null
 
-        RequestDelete dbName ->
-            dataToSend "RequestDelete" (string dbName)
+        RequestDelete dbName docName_ ->
+            dataToSend "RequestDelete" (tupleToValue string ( dbName, docName_ |> Maybe.withDefault "Untitled" ))
 
         NoDataToSave ->
             dataToSend "NoDataToSave" null
+
+        -- === Desktop ===
+        SaveToFile filename str ->
+            dataToSend "SaveToFile" (tupleToValue string ( filename, str ))
+
+        ExportToFile format str ->
+            dataToSend "ExportToFile" (tupleToValue string ( format, str ))
 
         -- === DOM ===
         ScrollCards lastActives listScrollPositions colIdx instant ->
@@ -224,9 +248,6 @@ send info =
 
         CheckoutButtonClicked checkoutData ->
             dataToSend "CheckoutButtonClicked" checkoutData
-
-        SocketSend collabState ->
-            dataToSend "SocketSend" (collabStateToValue collabState)
 
         ConsoleLogRequested err ->
             dataToSend "ConsoleLogRequested" (string err)

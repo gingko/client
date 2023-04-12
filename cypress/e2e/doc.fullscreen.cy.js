@@ -11,12 +11,8 @@ describe('Fullscreen Editing', () => {
   before(() => {
     cy.deleteUser(testEmail).then(() => {
       cy.signup_with(testEmail, 'twoTrees')
+      cy.fixture('twoTrees.ids.json').as('treeIds')
     })
-  })
-
-  beforeEach(() => {
-    cy.fixture('twoTrees.ids.json').as('treeIds')
-    Cypress.Cookies.preserveOnce('AuthSession')
   })
 
   it('Can perform basic actions on New tree', function () {
@@ -49,15 +45,23 @@ describe('Fullscreen Editing', () => {
 
     // Test typing
     cy.focused().type(' test')
-    cy.get('#fullscreen-buttons #save-indicator').contains('Unsaved Changes...')
+    cy.get('#fullscreen-buttons #save-indicator').contains('Synced')
     cy.focused().should('have.value', '# 3\nAnother Child card test')
 
     // Test change card focus
     cy.get('textarea').first().focus()
       .type('{enter}abc')
-    cy.shortcut('{ctrl}{enter}')
+    cy.wait(100)
+    cy.get('#fullscreen-buttons #save-indicator').contains('Synced')
+    cy.shortcut('{esc}')
     cy.getCard(2,1,1).should('contain', 'cardabc')
     cy.getCard(2,1,2).should('contain', 'card test')
+
+    // Make sure cardabc doesn't have newline at end
+    cy.getCard(2,1,1).click()
+    cy.get('.edit').click()
+    cy.get('textarea').should('have.value', '# 2\nChild card\nabc')
+    cy.shortcut('{esc}')
 
     // Field preserved when exiting fullscreen
     cy.shortcut('{shift}{enter}')
@@ -89,9 +93,7 @@ describe('Fullscreen Editing', () => {
 
     cy.shortcut('{esc}')
 
-  })
-
-  it('Saved fullscreen changes correctly', function () {
+    // Saved fullscreen changes correctly
     cy.visit(config.TEST_SERVER + '/' + this.treeIds[1])
 
     cy.getCard(1,1,1).should('contain.html', '<p>Another Test doc</p>')

@@ -20,6 +20,7 @@
      "handmadepaper.png" background
      image.
    */
+  --edit-boxshadow: inset 2px 2px 7px 0px rgb(0 0 0 / 22%), inset 0px 0px 2px 0.5px rgb(0 0 0 / 63%);
   --edit-text-color: hsl(27,28%,22%);
   --edit-text-shadow: -1px -1px 0px rgba(0,0,0,0.1), 1px 1px 0px rgba(255,255,255,0.8);
   --normal-text-color: hsl(0, 20%, 17%);

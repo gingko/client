@@ -2,11 +2,12 @@ port module Page.Copy exposing (..)
 
 -- MODEL
 
+import Browser.Navigation as Nav
 import Coders exposing (tupleDecoder)
 import Doc.Data as Data
 import Doc.Metadata as Metadata
 import Doc.TreeStructure exposing (defaultTree)
-import Http
+import GlobalData exposing (GlobalData)
 import Import.Incoming
 import Json.Decode as Dec
 import Outgoing exposing (Msg(..), send)
@@ -17,14 +18,32 @@ import Types exposing (Tree)
 
 
 type alias Model =
-    { session : Session
+    { globalData : GlobalData
+    , session : Session
     , tree : Maybe Tree
+    , navKey : Nav.Key
     }
 
 
-init : Session -> String -> ( Model, Cmd Msg )
-init user dbName =
-    ( { session = user, tree = Nothing }, send <| CopyDocument dbName )
+init : Nav.Key -> GlobalData -> Session -> String -> ( Model, Cmd Msg )
+init nKey gData session dbName =
+    ( { globalData = gData
+      , session = session
+      , tree = Nothing
+      , navKey = nKey
+      }
+    , send <| CopyDocument dbName
+    )
+
+
+navKey : Model -> Nav.Key
+navKey model =
+    model.navKey
+
+
+globalData : Model -> GlobalData
+globalData model =
+    model.globalData
 
 
 
@@ -51,7 +70,7 @@ update msg model =
                             ( "", dataTuple )
 
                 newTree_ =
-                    Data.received dataIn ( Data.empty, defaultTree ) |> Maybe.map .newTree
+                    Data.gitDataReceived dataIn ( Data.empty, defaultTree ) |> Maybe.map .newTree
             in
             case newTree_ of
                 Just newTree ->
@@ -60,7 +79,7 @@ update msg model =
                     )
 
                 Nothing ->
-                    ( model, Route.replaceUrl (Session.navKey model.session) Route.Root )
+                    ( model, Route.replaceUrl model.navKey Route.Root )
 
         IdGenerated tree fileName docId ->
             let
@@ -80,10 +99,10 @@ update msg model =
         CopySaved docId_ ->
             case docId_ of
                 Just docId ->
-                    ( model, Route.pushUrl (Session.navKey model.session) (Route.DocUntitled docId) )
+                    ( model, Route.pushUrl model.navKey (Route.DocUntitled docId) )
 
                 Nothing ->
-                    ( model, Route.replaceUrl (Session.navKey model.session) Route.Root )
+                    ( model, Route.replaceUrl model.navKey Route.Root )
 
 
 toUser : Model -> Session

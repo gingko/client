@@ -2,7 +2,6 @@ module Import.Bulk exposing (decoder, encode)
 
 import Coders exposing (treeToValue)
 import Dict exposing (Dict)
-import Doc.Data as Data exposing (Data)
 import Doc.Metadata as Metadata exposing (Metadata)
 import Json.Decode as Dec exposing (Decoder)
 import Json.Decode.Pipeline exposing (optional, required)
@@ -31,11 +30,11 @@ type alias CardData =
     }
 
 
-decoder : Decoder (List ( String, Metadata, Tree ))
-decoder =
+decoder : Int -> Decoder (List ( String, Metadata, Tree ))
+decoder seed =
     Dec.map2 importTrees
-        decodeTreeEntries
-        decodeCardEntries
+        (decodeTreeEntries seed)
+        (decodeCardEntries seed)
 
 
 encode : String -> List ( String, Metadata, Tree ) -> Enc.Value
@@ -55,28 +54,28 @@ encode author dataList =
 -- ===== INTERNAL =====
 
 
-decodeTreeEntries : Decoder (Dict String Metadata)
-decodeTreeEntries =
+decodeTreeEntries : Int -> Decoder (Dict String Metadata)
+decodeTreeEntries seed =
     let
         builder md =
             Just ( Metadata.getDocId md, md )
     in
-    Metadata.decoderImport
+    Metadata.decoderImport seed
         |> Dec.list
         |> Dec.map (List.filterMap (Maybe.andThen builder))
         |> Dec.map Dict.fromList
         |> Dec.field "trees"
 
 
-decodeCardEntries : Decoder (Dict String CardData)
-decodeCardEntries =
+decodeCardEntries : Int -> Decoder (Dict String CardData)
+decodeCardEntries seed =
     let
         builder id tid pid pos ct del des =
             if del || des then
                 Nothing
 
             else
-                Just ( id, CardData (fromObjectId tid) pid pos ct )
+                Just ( id, CardData (fromObjectId seed tid) pid pos ct )
     in
     (Dec.succeed builder
         |> required "_id" Dec.string
@@ -125,9 +124,3 @@ getChildren parentId_ cards =
         |> List.sortBy (\( _, c ) -> c.position)
         |> List.map mapFn
         |> Children
-
-
-toData : String -> ( String, Metadata, Tree ) -> ( String, Metadata, Data )
-toData author ( tid, tmdata, tree ) =
-    -- TODO
-    ( tid, tmdata, Data.emptyData )

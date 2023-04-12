@@ -1,7 +1,9 @@
-module Page.Signup exposing (Model, Msg, init, subscriptions, toUser, update, view)
+module Page.Signup exposing (Model, Msg, globalData, init, navKey, subscriptions, toUser, update, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom
+import Browser.Navigation as Nav
+import GlobalData exposing (GlobalData)
 import Html exposing (..)
 import Html.Attributes exposing (autocomplete, autofocus, checked, class, classList, for, href, id, src, style, type_, value)
 import Html.Events exposing (onCheck, onClick, onInput, onSubmit)
@@ -12,6 +14,7 @@ import Route
 import Session exposing (Session)
 import Svg.Attributes
 import Task
+import Translation exposing (Language)
 import Utils exposing (getFieldErrors)
 import Validate exposing (Valid, Validator, ifBlank, ifInvalidEmail, ifTrue, validate)
 
@@ -21,12 +24,14 @@ import Validate exposing (Valid, Validator, ifBlank, ifInvalidEmail, ifTrue, val
 
 
 type alias Model =
-    { user : Session
+    { globalData : GlobalData
+    , session : Session
     , email : String
     , password : String
     , showPassword : Bool
     , didOptIn : Bool
     , errors : List ( Field, FieldError )
+    , navKey : Nav.Key
     }
 
 
@@ -36,16 +41,34 @@ type Field
     | Password
 
 
-init : Session -> ( Model, Cmd Msg )
-init user =
-    ( { user = user, email = "", password = "", showPassword = False, didOptIn = False, errors = [] }
+init : Nav.Key -> GlobalData -> Session -> ( Model, Cmd Msg )
+init nKey gData session =
+    ( { globalData = gData
+      , session = session
+      , email = ""
+      , password = ""
+      , showPassword = False
+      , didOptIn = False
+      , errors = []
+      , navKey = nKey
+      }
     , Task.attempt (\_ -> NoOp) <| Browser.Dom.focus "signup-email"
     )
 
 
 toUser : Model -> Session
-toUser { user } =
-    user
+toUser { session } =
+    session
+
+
+navKey : Model -> Nav.Key
+navKey model =
+    model.navKey
+
+
+globalData : Model -> GlobalData
+globalData model =
+    model.globalData
 
 
 
@@ -59,7 +82,7 @@ type Msg
     | EnteredPassword String
     | ToggleShowPassword
     | ToggledOptIn Bool
-    | CompletedSignup (Result Http.Error Session)
+    | CompletedSignup (Result Http.Error ( Session, Language ))
     | GotUser Session
 
 
@@ -91,8 +114,8 @@ update msg model =
         ToggledOptIn isOptedIn ->
             ( { model | didOptIn = isOptedIn }, Cmd.none )
 
-        CompletedSignup (Ok user) ->
-            ( { model | user = user }, Session.storeSignup user )
+        CompletedSignup (Ok ( user, lang )) ->
+            ( { model | session = user }, Session.storeSignup lang user )
 
         CompletedSignup (Err error) ->
             let
@@ -120,9 +143,9 @@ update msg model =
             in
             ( { model | errors = [ errorMsg ], password = "" }, Cmd.none )
 
-        GotUser user ->
+        GotUser _ ->
             -- If I want to route to different welcome trees, based on e.g. isMac or language, here is where I can.
-            ( model, Route.replaceUrl (Session.navKey user) (Route.Import Template.WelcomeTree) )
+            ( model, Route.replaceUrl model.navKey (Route.Import Template.WelcomeTree) )
 
 
 emailValidator : Validator ( Field, FieldError ) Model
@@ -152,10 +175,10 @@ modelValidator =
 sendSignupRequest : Valid Model -> Cmd Msg
 sendSignupRequest validModel =
     let
-        { email, password, user, didOptIn } =
+        { email, password, session, didOptIn } =
             Validate.fromValid validModel
     in
-    Session.requestSignup CompletedSignup email password didOptIn user
+    Session.requestSignup CompletedSignup email password didOptIn session
 
 
 
@@ -303,4 +326,4 @@ viewError field error =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Session.loginChanges GotUser (Session.navKey model.user)
+    Session.loginChanges GotUser

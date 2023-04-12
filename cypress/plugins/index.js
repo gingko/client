@@ -22,12 +22,26 @@ const hiddenCfg = require("../../hidden-config.js");
 module.exports = (on, config) => {
   // `on` is used to hook into various events Cypress emits
   // `config` is the resolved Cypress config
-  require('cypress-watch-and-reload/plugins');
-
   on('task', {
     'db:seed': ({dbName, seedName}) => {
       try {
         return execSync(`couchdb-backup -r -H "${cfg.COUCHDB_HOST}" -P "${cfg.COUCHDB_PORT}" -u "${hiddenCfg.COUCHDB_ADMIN_USERNAME}" -p "${hiddenCfg.COUCHDB_ADMIN_PASSWORD}" -d "${dbName}" -f "${__dirname}/../fixtures/${seedName}.json"`)
+      } catch(e) {
+        return e.toString()
+      }
+    },
+    'db:user:delete': () => {
+      try {
+        const delCmd = execSync(`sqlite3 ${__dirname}/../../../data/data.sqlite < ${__dirname}/../fixtures/deleteTestData.sql`)
+        return delCmd.toString()
+      } catch(e) {
+        return e.toString()
+      }
+    },
+    'db:sqlite:seed': ({seedName}) => {
+      try {
+        const seedCmd = execSync(`sqlite3 ${__dirname}/../../../data/data.sqlite < ${__dirname}/../fixtures/${seedName}.sql`)
+        return seedCmd.toString()
       } catch(e) {
         return e.toString()
       }

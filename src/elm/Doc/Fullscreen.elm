@@ -1,4 +1,4 @@
-module Doc.Fullscreen exposing (Msg(..), view)
+module Doc.Fullscreen exposing (Msg(..), view, viewFullscreenButtonsDesktop)
 
 import Ant.Icons.Svg as Icons
 import Doc.TreeUtils exposing (getColumnById)
@@ -30,9 +30,6 @@ type alias Model =
 type Msg
     = OpenCard String String
     | UpdateField String String
-    | SaveChanges
-    | SaveAndClose
-    | ExitFullscreenRequested
 
 
 
@@ -40,31 +37,62 @@ type Msg
 
 
 view :
-    { language : Language
-    , isMac : Bool
-    , dirty : Bool
-    , lastLocalSave : Maybe Time.Posix
-    , lastRemoteSave : Maybe Time.Posix
-    , currentTime : Time.Posix
-    , model : Model
+    { toSelf : Msg -> msg
+    , exitFullscreenRequested : msg
+    , saveChanges : msg
+    , saveAndExitFullscreen : msg
     }
+    ->
+        { language : Language
+        , isMac : Bool
+        , dirty : Bool
+        , lastLocalSave : Maybe Time.Posix
+        , lastRemoteSave : Maybe Time.Posix
+        , currentTime : Time.Posix
+        , model : Model
+        }
     -> String
-    -> ViewState
-    -> Html Msg
-view { language, isMac, dirty, model, lastLocalSave, lastRemoteSave, currentTime } field vstate =
+    -> String
+    -> Html msg
+view msgs ({ model } as info) field activeId =
     let
         updateField c =
-            if c.id == vstate.active then
+            if c.id == activeId then
                 { c | content = field }
 
             else
                 c
 
         currentColumn =
-            getColumnById vstate.active model.tree
+            getColumnById activeId model.tree
                 |> Maybe.map (List.map (List.map updateField))
                 |> Maybe.withDefault []
+    in
+    div
+        [ id "app-fullscreen" ]
+        [ viewColumn activeId currentColumn |> Html.map msgs.toSelf
+        , viewFullscreenButtons msgs info
+        ]
 
+
+viewFullscreenButtons :
+    { m
+        | exitFullscreenRequested : msg
+        , saveChanges : msg
+        , saveAndExitFullscreen : msg
+    }
+    ->
+        { language : Language
+        , isMac : Bool
+        , dirty : Bool
+        , lastLocalSave : Maybe Time.Posix
+        , lastRemoteSave : Maybe Time.Posix
+        , currentTime : Time.Posix
+        , model : Model
+        }
+    -> Html msg
+viewFullscreenButtons msgs { language, isMac, dirty, lastLocalSave, lastRemoteSave, currentTime } =
+    let
         saveShortcutTip =
             if isMac then
                 "⌘+S to Save"
@@ -79,20 +107,38 @@ view { language, isMac, dirty, model, lastLocalSave, lastRemoteSave, currentTime
             else
                 "Ctrl+Enter to Save and Exit Fullscreen"
     in
-    div
-        [ id "app-fullscreen" ]
-        [ viewColumn vstate.active currentColumn
-        , div [ id "fullscreen-buttons", classList [ ( "dirty", dirty ) ] ]
-            [ div
-                [ id "fullscreen-exit", onClick ExitFullscreenRequested, title "Exit Fullscreen Mode" ]
-                [ Icons.fullscreenExitOutlined [ width 24 ] ]
-            , div []
-                [ div [ id "fullscreen-save-button", onClick SaveChanges, title saveShortcutTip ] [ Icons.saveOutlined [ width 24 ] ]
-                , viewSaveIndicator language { dirty = dirty, lastLocalSave = lastLocalSave, lastRemoteSave = lastRemoteSave } currentTime
-                ]
-            , div [ id "fullscreen-save-and-exit-button", onClick SaveAndClose, title saveAndCloseTip ]
-                []
+    div [ id "fullscreen-buttons", classList [ ( "dirty", dirty ) ] ]
+        [ div
+            [ id "fullscreen-exit", onClick msgs.exitFullscreenRequested, title "Exit Fullscreen Mode" ]
+            [ Icons.fullscreenExitOutlined [ width 24 ] ]
+        , div []
+            [ div [ id "fullscreen-save-button", onClick msgs.saveChanges, title saveShortcutTip ] [ Icons.saveOutlined [ width 24 ] ]
+            , viewSaveIndicator language { dirty = dirty, lastLocalSave = lastLocalSave, lastRemoteSave = lastRemoteSave } currentTime
             ]
+        , div [ id "fullscreen-save-and-exit-button", onClick msgs.saveAndExitFullscreen, title saveAndCloseTip ]
+            []
+        ]
+
+
+viewFullscreenButtonsDesktop :
+    { exitFullscreenRequested : msg, saveAndExitFullscreen : msg }
+    -> { isMac : Bool, dirty : Bool }
+    -> Html msg
+viewFullscreenButtonsDesktop msgs { isMac, dirty } =
+    let
+        saveAndCloseTip =
+            if isMac then
+                "⌘+Enter to Save and Exit Fullscreen"
+
+            else
+                "Ctrl+Enter to Save and Exit Fullscreen"
+    in
+    div [ id "fullscreen-buttons", classList [ ( "dirty", dirty ) ] ]
+        [ div
+            [ id "fullscreen-exit", onClick msgs.exitFullscreenRequested, title "Exit Fullscreen Mode" ]
+            [ Icons.fullscreenExitOutlined [ width 24 ] ]
+        , div [ id "fullscreen-save-and-exit-button", onClick msgs.saveAndExitFullscreen, title saveAndCloseTip ]
+            []
         ]
 
 

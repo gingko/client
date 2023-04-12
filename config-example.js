@@ -7,12 +7,16 @@ module.exports = {
   COUCHDB_HOST: "localhost",
   COUCHDB_PORT: "5984",
   COUCHDB_SERVER: "https://app.somedomain.com/db",
+  PUBLIC_KEY: { "keydata": "somedata" },
   SUPPORT_EMAIL: "some@email.com",
   SUPPORT_URGENT_EMAIL: "urgent@email.com",
   FRESHDESK_APPID: 12341234,
   BEAMER_APPID: "myappidforbeamer",
   LOGROCKET_APPID: "asdf/app-name",
   TESTIMONIAL_URL: "https://example.testimonialdomain.com",
+  DESKTOP_SERIAL_SALT: 'some salt string',
+  DESKTOP_PURCHASE_URL: 'https://somedomain.com/buy',
+  DESKTOP_PURCHASE_SUCCESS_URL: 'https://somedomain.com/success',
   STRIPE_PUBLIC_KEY: "pk_test_123412341234",
   PRICE_DATA :
     { USD :

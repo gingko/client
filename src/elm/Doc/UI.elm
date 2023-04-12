@@ -1,261 +1,32 @@
-module Doc.UI exposing (countWords, fillet, viewAppLoadingSpinner, viewBreadcrumbs, viewConflict, viewDocumentLoadingSpinner, viewHeader, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewSidebar, viewSidebarStatic, viewTemplateSelector, viewTooltip, viewWordCount)
+module Doc.UI exposing (countWords, fillet, viewAppLoadingSpinner, viewBreadcrumbs, viewConflict, viewDocumentLoadingSpinner, viewMobileButtons, viewSaveIndicator, viewSearchField, viewShortcuts, viewTemplateSelector, viewTooltip, viewWordCount)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
 import Coders exposing (treeToMarkdownString)
 import Diff exposing (..)
-import Doc.Data as Data exposing (CommitObject)
 import Doc.Data.Conflict as Conflict exposing (Conflict, Op(..), Selection(..), opString)
-import Doc.List as DocList exposing (Model(..))
 import Doc.TreeStructure as TreeStructure exposing (defaultTree)
 import Doc.TreeUtils as TreeUtils exposing (..)
-import Html exposing (Html, a, br, button, del, div, fieldset, h2, h3, h4, h5, hr, img, input, ins, label, li, pre, span, ul)
-import Html.Attributes as A exposing (..)
-import Html.Attributes.Extra exposing (attributeIf)
-import Html.Events exposing (keyCode, on, onBlur, onClick, onFocus, onInput, onMouseEnter, onMouseLeave)
-import Html.Extra exposing (viewIf)
+import GlobalData exposing (GlobalData)
+import Html exposing (Html, a, button, del, div, fieldset, h2, h3, h5, hr, input, ins, label, li, pre, span, ul)
+import Html.Attributes exposing (..)
+import Html.Events exposing (onClick, onInput, onMouseEnter, onMouseLeave)
 import Import.Template exposing (Template(..))
-import Json.Decode as Dec
-import List.Extra exposing (getAt)
-import MD5
 import Markdown.Block
 import Markdown.Html
 import Markdown.Parser
 import Markdown.Renderer exposing (Renderer)
 import Octicons as Icon exposing (defaultOptions)
-import Page.Doc.Export exposing (ExportFormat(..), ExportSelection(..))
-import Page.Doc.Theme exposing (Theme(..))
 import Regex exposing (Regex, replace)
 import Route
-import Session exposing (PaymentStatus(..), Session)
 import SharedUI exposing (ctrlOrCmdText, modalWrapper)
 import Svg exposing (g, svg)
 import Svg.Attributes exposing (d, fill, fontFamily, fontSize, fontWeight, preserveAspectRatio, stroke, strokeDasharray, strokeDashoffset, strokeLinecap, strokeLinejoin, strokeMiterlimit, strokeWidth, textAnchor, version, viewBox)
 import Time exposing (posixToMillis)
-import Translation exposing (Language(..), TranslationId(..), datetimeFormat, langToString, languageName, timeDistInWords, tr)
-import Types exposing (Children(..), CursorPosition(..), HeaderMenuState(..), SidebarMenuState(..), SidebarState(..), SortBy(..), TextCursorInfo, TooltipPosition(..), ViewMode(..), ViewState)
-import Utils exposing (onClickStop)
-
-
-
--- Translation Helper Function
-
-
-text : Language -> TranslationId -> Html msg
-text lang tid =
-    Html.text <| tr lang tid
-
-
-textNoTr : String -> Html msg
-textNoTr str =
-    Html.text str
-
-
-emptyText : Html msg
-emptyText =
-    Html.text ""
-
-
-
--- HEADER
-
-
-viewHeader :
-    { noOp : msg
-    , titleFocused : msg
-    , titleFieldChanged : String -> msg
-    , titleEdited : msg
-    , titleEditCanceled : msg
-    , tooltipRequested : String -> TooltipPosition -> TranslationId -> msg
-    , tooltipClosed : msg
-    , toggledHistory : Bool -> msg
-    , checkoutCommit : String -> msg
-    , restore : msg
-    , cancelHistory : msg
-    , toggledDocSettings : msg
-    , wordCountClicked : msg
-    , themeChanged : Theme -> msg
-    , toggledExport : msg
-    , exportSelectionChanged : ExportSelection -> msg
-    , exportFormatChanged : ExportFormat -> msg
-    , export : msg
-    , printRequested : msg
-    , toggledUpgradeModal : Bool -> msg
-    }
-    -> Maybe String
-    ->
-        { m
-            | titleField : Maybe String
-            , data : Data.Model
-            , headerMenu : HeaderMenuState
-            , exportSettings : ( ExportSelection, ExportFormat )
-            , dirty : Bool
-            , lastLocalSave : Maybe Time.Posix
-            , lastRemoteSave : Maybe Time.Posix
-            , session : Session
-        }
-    -> Html msg
-viewHeader msgs title_ model =
-    let
-        language =
-            Session.language model.session
-
-        currentTime =
-            Session.currentTime model.session
-
-        handleKeys =
-            on "keyup"
-                (Dec.andThen
-                    (\int ->
-                        case int of
-                            27 ->
-                                Dec.succeed msgs.titleEditCanceled
-
-                            13 ->
-                                Dec.succeed msgs.titleEdited
-
-                            _ ->
-                                Dec.fail "Ignore keyboard event"
-                    )
-                    keyCode
-                )
-
-        titleArea =
-            let
-                titleString =
-                    model.titleField |> Maybe.withDefault "Untitled"
-            in
-            span [ id "title" ]
-                [ div [ class "title-grow-wrap" ]
-                    [ div [ class "shadow" ]
-                        [ Html.text <|
-                            if titleString /= "" then
-                                titleString
-
-                            else
-                                " "
-                        ]
-                    , input
-                        [ id "title-rename"
-                        , type_ "text"
-                        , onInput msgs.titleFieldChanged
-                        , onBlur msgs.titleEdited
-                        , onFocus msgs.titleFocused
-                        , handleKeys
-                        , size 1
-                        , value titleString
-                        , attribute "data-private" "lipsum"
-                        ]
-                        []
-                    ]
-                , viewSaveIndicator language model (Session.currentTime model.session)
-                ]
-
-        isHistoryView =
-            case model.headerMenu of
-                HistoryView _ ->
-                    True
-
-                _ ->
-                    False
-
-        isSelected expSel =
-            (model.exportSettings |> Tuple.first) == expSel
-
-        exportSelectionBtnAttributes expSel expSelString tooltipText =
-            [ id <| "export-select-" ++ expSelString
-            , onClick <| msgs.exportSelectionChanged expSel
-            , classList [ ( "selected", isSelected expSel ) ]
-            , onMouseEnter <| msgs.tooltipRequested ("export-select-" ++ expSelString) BelowTooltip tooltipText
-            , onMouseLeave msgs.tooltipClosed
-            ]
-
-        isFormat expFormat =
-            (model.exportSettings |> Tuple.second) == expFormat
-
-        exportFormatBtnAttributes expFormat expFormatString =
-            [ id <| "export-format-" ++ expFormatString
-            , onClick <| msgs.exportFormatChanged expFormat
-            , classList [ ( "selected", isFormat expFormat ) ]
-            ]
-    in
-    div [ id "document-header" ]
-        [ titleArea
-        , div
-            [ id "history-icon"
-            , class "header-button"
-            , classList [ ( "open", isHistoryView ) ]
-            , onClick <| msgs.toggledHistory (not isHistoryView)
-            , attributeIf (not isHistoryView) <| onMouseEnter <| msgs.tooltipRequested "history-icon" BelowTooltip VersionHistory
-            , onMouseLeave msgs.tooltipClosed
-            ]
-            [ AntIcons.historyOutlined [] ]
-        , case model.headerMenu of
-            HistoryView historyState ->
-                viewHistory language
-                    { noOp = msgs.noOp
-                    , checkout = msgs.checkoutCommit
-                    , restore = msgs.restore
-                    , cancel = msgs.cancelHistory
-                    , tooltipRequested = msgs.tooltipRequested
-                    , tooltipClosed = msgs.tooltipClosed
-                    }
-                    currentTime
-                    model.data
-                    historyState
-
-            _ ->
-                emptyText
-        , div
-            [ id "doc-settings-icon"
-            , class "header-button"
-            , classList [ ( "open", model.headerMenu == Settings ) ]
-            , onClick msgs.toggledDocSettings
-            , attributeIf (model.headerMenu /= Settings) <| onMouseEnter <| msgs.tooltipRequested "doc-settings-icon" BelowLeftTooltip DocumentSettings
-            , onMouseLeave msgs.tooltipClosed
-            ]
-            [ AntIcons.controlOutlined [] ]
-        , viewIf (model.headerMenu == Settings) <|
-            div [ id "doc-settings-menu", class "header-menu" ]
-                [ div [ id "wordcount-menu-item", onClick msgs.wordCountClicked ] [ text language WordCount ]
-                , h4 [] [ text language DocumentTheme ]
-                , div [ onClick <| msgs.themeChanged Default ] [ text language ThemeDefault ]
-                , div [ onClick <| msgs.themeChanged Dark ] [ text language ThemeDarkMode ]
-                , div [ onClick <| msgs.themeChanged Classic ] [ text language ThemeClassic ]
-                , div [ onClick <| msgs.themeChanged Gray ] [ text language ThemeGray ]
-                , div [ onClick <| msgs.themeChanged Green ] [ text language ThemeGreen ]
-                , div [ onClick <| msgs.themeChanged Turquoise ] [ text language ThemeTurquoise ]
-                ]
-        , viewIf (model.headerMenu == Settings) <| div [ id "doc-settings-menu-exit-left", onMouseEnter msgs.toggledDocSettings ] []
-        , viewIf (model.headerMenu == Settings) <| div [ id "doc-settings-menu-exit-bottom", onMouseEnter msgs.toggledDocSettings ] []
-        , div
-            [ id "export-icon"
-            , class "header-button"
-            , classList [ ( "open", model.headerMenu == ExportPreview ) ]
-            , onClick msgs.toggledExport
-            , attributeIf (model.headerMenu /= ExportPreview) <| onMouseEnter <| msgs.tooltipRequested "export-icon" BelowLeftTooltip ExportOrPrint
-            , onMouseLeave msgs.tooltipClosed
-            ]
-            [ AntIcons.fileDoneOutlined [] ]
-        , viewUpgradeButton
-            msgs.toggledUpgradeModal
-            model.session
-        , viewIf (model.headerMenu == ExportPreview) <|
-            div [ id "export-menu" ]
-                [ div [ id "export-selection", class "toggle-button" ]
-                    [ div (exportSelectionBtnAttributes ExportEverything "all" ExportSettingEverythingDesc) [ text language ExportSettingEverything ]
-                    , div (exportSelectionBtnAttributes ExportSubtree "subtree" ExportSettingCurrentSubtreeDesc) [ text language ExportSettingCurrentSubtree ]
-                    , div (exportSelectionBtnAttributes ExportLeaves "leaves" ExportSettingLeavesOnlyDesc) [ text language ExportSettingLeavesOnly ]
-                    , div (exportSelectionBtnAttributes ExportCurrentColumn "column" ExportSettingCurrentColumnDesc) [ text language ExportSettingCurrentColumn ]
-                    ]
-                , div [ id "export-format", class "toggle-button" ]
-                    [ div (exportFormatBtnAttributes DOCX "word") [ text language ExportSettingWord ]
-                    , div (exportFormatBtnAttributes PlainText "text") [ text language ExportSettingPlainText ]
-                    , div (exportFormatBtnAttributes OPML "opml") [ text language ExportSettingOPML ]
-                    , div (exportFormatBtnAttributes JSON "json") [ text language ExportSettingJSON ]
-                    ]
-                ]
-        ]
+import Translation exposing (Language(..), TranslationId(..), timeDistInWords, tr)
+import Types exposing (Children(..), CursorPosition(..), SortBy(..), TextCursorInfo, TooltipPosition(..), ViewMode(..), ViewState)
+import UI.Sidebar exposing (viewSidebarStatic)
+import Utils exposing (emptyText, text, textNoTr)
 
 
 viewSaveIndicator :
@@ -302,60 +73,6 @@ viewSaveIndicator language { dirty, lastLocalSave, lastRemoteSave } currentTime 
         [ id "save-indicator", classList [ ( "inset", True ), ( "saving", dirty ) ] ]
         [ saveStateSpan
         ]
-
-
-viewUpgradeButton :
-    (Bool -> msg)
-    -> Session
-    -> Html msg
-viewUpgradeButton toggledUpgradeModal session =
-    let
-        currentTime =
-            Session.currentTime session
-
-        lang =
-            Session.language session
-
-        upgradeCTA isExpired prepends =
-            div
-                [ id "upgrade-cta"
-                , onClick <| toggledUpgradeModal True
-                , classList [ ( "trial-expired", isExpired ) ]
-                ]
-                (prepends ++ [ div [ id "upgrade-button" ] [ text lang Upgrade ] ])
-
-        maybeUpgrade =
-            case Session.daysLeft session of
-                Just daysLeft ->
-                    let
-                        trialClass =
-                            if daysLeft <= 7 && daysLeft > 5 then
-                                "trial-light"
-
-                            else if daysLeft <= 5 && daysLeft > 3 then
-                                "trial-medium"
-
-                            else
-                                "trial-dark"
-                    in
-                    if daysLeft <= 0 then
-                        upgradeCTA True
-                            [ span []
-                                [ AntIcons.exclamationCircleOutlined [ width 16, style "margin-bottom" "-3px", style "margin-right" "6px" ]
-                                , text lang TrialExpired
-                                ]
-                            ]
-
-                    else if daysLeft <= 7 then
-                        upgradeCTA False [ span [ class trialClass ] [ text lang (DaysLeft daysLeft) ] ]
-
-                    else
-                        upgradeCTA False []
-
-                Nothing ->
-                    emptyText
-    in
-    maybeUpgrade
 
 
 viewBreadcrumbs : (String -> msg) -> List ( String, String ) -> Html msg
@@ -415,334 +132,6 @@ viewBreadcrumbs clickedCrumbMsg cardIdsAndTitles =
 
 
 -- SIDEBAR
-
-
-type alias SidebarMsgs msg =
-    { sidebarStateChanged : SidebarState -> msg
-    , noOp : msg
-    , clickedNew : msg
-    , tooltipRequested : String -> TooltipPosition -> TranslationId -> msg
-    , tooltipClosed : msg
-    , clickedSwitcher : msg
-    , clickedHelp : msg
-    , clickedEmailSupport : msg
-    , clickedShowVideos : msg
-    , languageMenuRequested : Maybe String -> msg
-    , toggledAccount : Bool -> msg
-    , upgrade : msg
-    , logout : msg
-    , fileSearchChanged : String -> msg
-    , changeSortBy : SortBy -> msg
-    , contextMenuOpened : String -> ( Float, Float ) -> msg
-    , languageChanged : Language -> msg
-    , fullscreenRequested : msg
-    }
-
-
-viewSidebar :
-    Session
-    -> SidebarMsgs msg
-    -> String
-    -> SortBy
-    -> String
-    -> DocList.Model
-    -> String
-    -> Maybe String
-    -> SidebarMenuState
-    -> SidebarState
-    -> Html msg
-viewSidebar session msgs currentDocId sortCriteria fileFilter docList accountEmail contextTarget_ dropdownState sidebarState =
-    let
-        lang =
-            Session.language session
-
-        custId_ =
-            case Session.paymentStatus session of
-                Customer custId ->
-                    Just custId
-
-                _ ->
-                    Nothing
-
-        isOpen =
-            not (sidebarState == SidebarClosed)
-
-        accountOpen =
-            case dropdownState of
-                Account _ ->
-                    True
-
-                _ ->
-                    False
-
-        toggle menu =
-            if sidebarState == menu then
-                msgs.sidebarStateChanged <| SidebarClosed
-
-            else
-                msgs.sidebarStateChanged <| menu
-
-        viewIf cond v =
-            if cond then
-                v
-
-            else
-                emptyText
-    in
-    div [ id "sidebar", onClick <| toggle File, classList [ ( "open", isOpen ) ] ]
-        ([ div [ id "brand" ]
-            ([ img [ src "../gingko-leaf-logo.svg", width 28 ] [] ]
-                ++ (if isOpen then
-                        [ h2 [ id "brand-name" ] [ Html.text "Gingko Writer" ]
-                        , div [ id "sidebar-collapse-icon" ] [ AntIcons.leftOutlined [] ]
-                        ]
-
-                    else
-                        [ emptyText ]
-                   )
-                ++ [ div [ id "hamburger-icon" ] [ AntIcons.menuOutlined [] ] ]
-            )
-         , div
-            [ id "new-icon"
-            , class "sidebar-button"
-            , onClickStop msgs.clickedNew
-            , onMouseEnter <| msgs.tooltipRequested "new-icon" RightTooltip NewDocument
-            , onMouseLeave msgs.tooltipClosed
-            ]
-            [ AntIcons.fileAddOutlined [] ]
-         , div
-            [ id "documents-icon"
-            , class "sidebar-button"
-            , classList [ ( "open", isOpen ) ]
-            , attributeIf (not isOpen) <| onMouseEnter <| msgs.tooltipRequested "documents-icon" RightTooltip ShowDocumentList
-            , attributeIf (not isOpen) <| onMouseLeave msgs.tooltipClosed
-            ]
-            [ if isOpen then
-                AntIcons.folderOpenOutlined []
-
-              else
-                AntIcons.folderOutlined []
-            ]
-         , viewIf isOpen <|
-            DocList.viewSidebarList
-                { noOp = msgs.noOp
-                , filter = msgs.fileSearchChanged
-                , changeSortBy = msgs.changeSortBy
-                , contextMenu = msgs.contextMenuOpened
-                , tooltipRequested = msgs.tooltipRequested
-                , tooltipClosed = msgs.tooltipClosed
-                }
-                currentDocId
-                sortCriteria
-                contextTarget_
-                fileFilter
-                docList
-         , div
-            [ id "document-switcher-icon"
-            , onClickStop msgs.clickedSwitcher
-            , onMouseEnter <| msgs.tooltipRequested "document-switcher-icon" RightTooltip OpenQuickSwitcher
-            , onMouseLeave msgs.tooltipClosed
-            , class "sidebar-button"
-            , attributeIf (docList == Success []) (class "disabled")
-            ]
-            [ AntIcons.fileSearchOutlined [] ]
-         , div
-            [ id "help-icon"
-            , class "sidebar-button"
-            , onClickStop msgs.clickedHelp
-            , onMouseEnter <| msgs.tooltipRequested "help-icon" RightTooltip Help
-            , onMouseLeave msgs.tooltipClosed
-            ]
-            [ AntIcons.questionCircleFilled [] ]
-         , div
-            [ id "notifications-icon"
-            , class "sidebar-button"
-            , onClickStop <| msgs.noOp
-            , onMouseEnter <| msgs.tooltipRequested "notifications-icon" RightTooltip WhatsNew
-            , onMouseLeave msgs.tooltipClosed
-            ]
-            [ AntIcons.bellOutlined [] ]
-         , div
-            [ id "account-icon"
-            , class "sidebar-button"
-            , classList [ ( "open", accountOpen ) ]
-            , onClickStop <| msgs.toggledAccount (not accountOpen)
-            , attributeIf (not accountOpen) <| onMouseEnter <| msgs.tooltipRequested "account-icon" RightTooltip AccountTooltip
-            , onMouseLeave msgs.tooltipClosed
-            ]
-            [ AntIcons.userOutlined [] ]
-         ]
-            ++ viewSidebarMenu lang
-                custId_
-                { clickedEmailSupport = msgs.clickedEmailSupport
-                , clickedShowVideos = msgs.clickedShowVideos
-                , helpClosed = msgs.clickedHelp
-                , languageMenuRequested = msgs.languageMenuRequested
-                , languageChanged = msgs.languageChanged
-                , logout = msgs.logout
-                , toggledAccount = msgs.toggledAccount
-                , upgrade = msgs.upgrade
-                , noOp = msgs.noOp
-                }
-                accountEmail
-                dropdownState
-        )
-
-
-viewSidebarMenu :
-    Language
-    -> Maybe String
-    ->
-        { clickedEmailSupport : msg
-        , clickedShowVideos : msg
-        , helpClosed : msg
-        , languageMenuRequested : Maybe String -> msg
-        , languageChanged : Language -> msg
-        , logout : msg
-        , toggledAccount : Bool -> msg
-        , upgrade : msg
-        , noOp : msg
-        }
-    -> String
-    -> SidebarMenuState
-    -> List (Html msg)
-viewSidebarMenu lang custId_ msgs accountEmail dropdownState =
-    case dropdownState of
-        Account langMenuEl_ ->
-            let
-                gravatarImg =
-                    img
-                        [ src ("https://www.gravatar.com/avatar/" ++ (accountEmail |> String.trim |> String.toLower |> MD5.hex) ++ "?d=mp")
-                        , class "icon"
-                        ]
-                        []
-
-                manageSubBtn =
-                    case custId_ of
-                        Just custId ->
-                            Html.form [ method "POST", action "/create-portal-session" ]
-                                [ input [ type_ "hidden", name "customer_id", value custId ] []
-                                , button [ id "manage-subscription-button", type_ "submit" ]
-                                    [ div [ class "icon" ] [ AntIcons.creditCardOutlined [] ]
-                                    , text lang ManageSubscription
-                                    ]
-                                ]
-
-                        Nothing ->
-                            div
-                                [ onClickStop msgs.upgrade
-                                , class "sidebar-menu-item"
-                                ]
-                                [ div [ class "icon" ] [ AntIcons.creditCardOutlined [] ], text lang Upgrade ]
-            in
-            [ div [ id "account-menu", class "sidebar-menu" ]
-                [ div [ onClickStop msgs.noOp, class "sidebar-menu-item", class "no-action" ]
-                    [ gravatarImg, Html.text accountEmail ]
-                , hr [] []
-                , a [ href "{%TESTIMONIAL_URL%}", onClickStop msgs.noOp, target "_blank", class "sidebar-menu-item" ]
-                    [ div [ class "icon" ] [ AntIcons.giftOutlined [] ]
-                    , text lang WordOfMouthCTA1
-                    , br [] []
-                    , text lang WordOfMouthCTA2
-                    ]
-                , hr [] []
-                , manageSubBtn
-                , div
-                    [ id "language-option"
-                    , class "sidebar-menu-item"
-                    , if langMenuEl_ == Nothing then
-                        onClickStop <| msgs.languageMenuRequested (Just "language-option")
-
-                      else
-                        onClickStop <| msgs.languageMenuRequested Nothing
-                    ]
-                    [ div [ class "icon" ] [ AntIcons.globalOutlined [] ]
-                    , textNoTr (languageName lang)
-                    , div [ class "right-icon" ] [ AntIcons.rightOutlined [] ]
-                    ]
-                , hr [] []
-                , div
-                    [ id "logout-button", class "sidebar-menu-item", onClickStop msgs.logout ]
-                    [ div [ class "icon" ] [ AntIcons.logoutOutlined [] ]
-                    , text lang Logout
-                    ]
-                ]
-            , case langMenuEl_ of
-                Just langMenuEl ->
-                    let
-                        bottPx =
-                            langMenuEl.scene.height - langMenuEl.element.y - langMenuEl.element.height - 8
-                    in
-                    div
-                        [ id "language-menu"
-                        , class "sidebar-menu"
-                        , style "left" ((langMenuEl.element.x + langMenuEl.element.width |> String.fromFloat) ++ "px")
-                        , style "bottom" ((bottPx |> String.fromFloat) ++ "px")
-                        , style "max-height" ((langMenuEl.viewport.height - 41 - bottPx |> String.fromFloat) ++ "px")
-                        ]
-                        ((Translation.activeLanguages
-                            |> List.map
-                                (\( langOpt, langName ) ->
-                                    div
-                                        [ id <| "lang-" ++ langToString langOpt
-                                        , onClickStop <| msgs.languageChanged langOpt
-                                        , class "sidebar-menu-item"
-                                        , classList [ ( "selected", langOpt == lang ) ]
-                                        ]
-                                        [ textNoTr langName ]
-                                )
-                         )
-                            ++ [ a
-                                    [ href "https://poeditor.com/join/project?hash=k8Br3k0JVz"
-                                    , target "_blank"
-                                    , class "sidebar-menu-item"
-                                    , onClickStop <| msgs.toggledAccount False
-                                    ]
-                                    [ text lang ContributeTranslations ]
-                               ]
-                        )
-
-                Nothing ->
-                    emptyText
-            , viewIf (langMenuEl_ == Nothing) <| div [ id "help-menu-exit-top", onMouseEnter <| msgs.toggledAccount False ] []
-            , viewIf (langMenuEl_ == Nothing) <| div [ id "help-menu-exit-right", onMouseEnter <| msgs.toggledAccount False ] []
-            ]
-
-        NoSidebarMenu ->
-            [ emptyText ]
-
-
-viewSidebarStatic : Bool -> List (Html msg)
-viewSidebarStatic sidebarOpen =
-    [ div [ id "sidebar", classList [ ( "open", sidebarOpen ) ], class "static" ]
-        [ div [ id "brand" ]
-            ([ img [ src "../gingko-leaf-logo.svg", width 28 ] [] ]
-                ++ (if sidebarOpen then
-                        [ h2 [ id "brand-name" ] [ text En (NoTr "Gingko Writer") ]
-                        , div [ id "sidebar-collapse-icon" ] [ AntIcons.leftOutlined [] ]
-                        ]
-
-                    else
-                        [ emptyText ]
-                   )
-            )
-        , viewIf sidebarOpen <| div [ id "sidebar-document-list-wrap" ] []
-        , div [ id "new-icon", class "sidebar-button" ] [ AntIcons.fileAddOutlined [] ]
-        , div [ id "documents-icon", class "sidebar-button", classList [ ( "open", sidebarOpen ) ] ]
-            [ if sidebarOpen then
-                AntIcons.folderOpenOutlined []
-
-              else
-                AntIcons.folderOutlined []
-            ]
-        , div [ id "document-switcher-icon", class "sidebar-button", class "disabled" ] [ AntIcons.fileSearchOutlined [] ]
-        , div
-            [ id "help-icon", class "sidebar-button" ]
-            [ AntIcons.questionCircleFilled [] ]
-        , div [ id "notifications-icon", class "sidebar-button" ] [ AntIcons.bellOutlined [] ]
-        , div [ id "account-icon", class "sidebar-button" ] [ AntIcons.userOutlined [] ]
-        ]
-    ]
 
 
 viewAppLoadingSpinner : Bool -> Html msg
@@ -847,19 +236,17 @@ viewTemplateSelector language msgs =
 
 
 viewWordCount :
-    { m
-        | viewState : ViewState
-        , workingTree : TreeStructure.Model
-        , startingWordcount : Int
-        , wordcountTrayOpen : Bool
-        , session : Session
+    { activeCardId : String
+    , workingTree : TreeStructure.Model
+    , startingWordcount : Int
+    , globalData : GlobalData
     }
     -> { modalClosed : msg }
     -> List (Html msg)
 viewWordCount model msgs =
     let
         language =
-            Session.language model.session
+            GlobalData.language model.globalData
 
         stats =
             getStats model
@@ -896,11 +283,11 @@ viewWordCount model msgs =
 -- DOCUMENT
 
 
-viewSearchField : (String -> msg) -> { m | viewState : ViewState, session : Session } -> Html msg
-viewSearchField searchFieldMsg { viewState, session } =
+viewSearchField : (String -> msg) -> { m | viewState : ViewState, globalData : GlobalData } -> Html msg
+viewSearchField searchFieldMsg { viewState, globalData } =
     let
         language =
-            Session.language session
+            GlobalData.language globalData
 
         maybeSearchIcon =
             if viewState.searchField == Nothing then
@@ -964,75 +351,6 @@ viewMobileButtons msgs isEditing =
             ]
 
 
-viewHistory :
-    Translation.Language
-    ->
-        { noOp : msg
-        , checkout : String -> msg
-        , restore : msg
-        , cancel : msg
-        , tooltipRequested : String -> TooltipPosition -> TranslationId -> msg
-        , tooltipClosed : msg
-        }
-    -> Time.Posix
-    -> Data.Model
-    -> { start : String, currentView : String }
-    -> Html msg
-viewHistory lang msgs currentTime dataModel historyState =
-    let
-        historyList =
-            Data.historyList historyState.start dataModel
-
-        maybeTimeDisplay =
-            case Data.getCommit historyState.currentView dataModel of
-                Just commit ->
-                    let
-                        commitPosix =
-                            commit.timestamp |> Time.millisToPosix
-                    in
-                    div
-                        [ id "history-time-info"
-                        , onMouseEnter <| msgs.tooltipRequested "history-time-info" BelowTooltip (NoTr <| timeDistInWords lang commitPosix currentTime)
-                        , onMouseLeave msgs.tooltipClosed
-                        ]
-                        [ text lang (NoTr (datetimeFormat lang commitPosix)) ]
-
-                Nothing ->
-                    emptyText
-
-        maxIdx =
-            historyList
-                |> List.length
-                |> (\x -> x - 1)
-                |> String.fromInt
-
-        checkoutCommit idxStr =
-            case String.toInt idxStr of
-                Just idx ->
-                    case getAt idx historyList of
-                        Just commit ->
-                            msgs.checkout (Tuple.first commit)
-
-                        Nothing ->
-                            msgs.noOp
-
-                Nothing ->
-                    msgs.noOp
-    in
-    div [ id "history-menu" ]
-        [ input [ id "history-slider", type_ "range", A.min "0", A.max maxIdx, step "1", onInput checkoutCommit ] []
-        , maybeTimeDisplay
-        , button [ id "history-restore", onClick msgs.restore ] [ text lang RestoreThisVersion ]
-        , div
-            [ id "history-close-button"
-            , onClick msgs.cancel
-            , onMouseEnter <| msgs.tooltipRequested "history-close-button" BelowLeftTooltip Cancel
-            , onMouseLeave <| msgs.tooltipClosed
-            ]
-            [ AntIcons.closeOutlined [] ]
-        ]
-
-
 viewShortcuts :
     { toggledShortcutTray : msg, tooltipRequested : String -> TooltipPosition -> TranslationId -> msg, tooltipClosed : msg }
     -> Language
@@ -1040,9 +358,9 @@ viewShortcuts :
     -> Bool
     -> Children
     -> TextCursorInfo
-    -> ViewState
+    -> ViewMode
     -> List (Html msg)
-viewShortcuts msgs lang isOpen isMac children textCursorInfo vs =
+viewShortcuts msgs lang isOpen isMac children textCursorInfo viewMode =
     let
         isTextSelected =
             textCursorInfo.selected
@@ -1111,7 +429,7 @@ viewShortcuts msgs lang isOpen isMac children textCursorInfo vs =
             iconColor =
                 Icon.color "#445"
         in
-        case vs.viewMode of
+        case viewMode of
             Normal ->
                 [ div
                     [ id "shortcuts-tray", classList [ ( "open", isOpen ) ], onClick msgs.toggledShortcutTray ]
@@ -1265,17 +583,14 @@ viewTooltip lang ( el, tipPos, content ) =
         [ text lang content, div [ class "tooltip-arrow" ] [] ]
 
 
-getStats : { m | viewState : ViewState, workingTree : TreeStructure.Model } -> Stats
-getStats model =
+getStats : { m | activeCardId : String, workingTree : TreeStructure.Model } -> Stats
+getStats { activeCardId, workingTree } =
     let
-        activeCardId =
-            model.viewState.active
-
         tree =
-            model.workingTree.tree
+            workingTree.tree
 
         cardsTotal =
-            (model.workingTree.tree
+            (workingTree.tree
                 |> TreeUtils.preorderTraversal
                 |> List.length
             )

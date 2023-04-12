@@ -18,12 +18,8 @@ describe('Welcome Tree & Templates', () => {
     })
   })
 
-  beforeEach(() => {
-    Cypress.Cookies.preserveOnce('AuthSession')
-  })
-
   it('Has working Welcome tree and templates', () => {
-    cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
+    cy.url().should('match', /\/[a-zA-Z0-9]{7}$/)
 
     cy.contains('#title', 'welcome')
 

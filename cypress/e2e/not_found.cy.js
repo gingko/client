@@ -1,5 +1,4 @@
 const config = require("../../config.js");
-const helpers = require("../../src/shared/doc-helpers.js");
 
 
 describe('Not Found (Logged In User)', () => {
@@ -13,7 +12,6 @@ describe('Not Found (Logged In User)', () => {
 
   beforeEach(() => {
     cy.fixture('twoTrees.ids.json').as('treeIds')
-    Cypress.Cookies.preserveOnce('AuthSession')
   })
 
   it('Should redirect to last updated tree', function () {

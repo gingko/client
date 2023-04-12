@@ -8,16 +8,23 @@ describe('Random seed initialization', () => {
   before(() => {
     cy.deleteUser(testEmail).then(() => {
       cy.signup_with(testEmail, 'twoTrees')
+      cy.fixture('twoTrees.ids.json').as('treeIds')
     })
   })
 
-  beforeEach(() => {
-    cy.fixture('twoTrees.ids.json').as('treeIds')
-    Cypress.Cookies.preserveOnce('AuthSession')
-  })
-
   it('Should not duplicate ids', function () {
+    // TODO : This is a hack, due to issue with going directly
+    // to a card-based document before the tree list is loaded.
+    cy.visit(config.TEST_SERVER)
+    cy.wait(1000)
+
+
     cy.visit(config.TEST_SERVER + '/' + this.treeIds[0])
+
+    cy.get('#app-root').should('be.visible')
+    cy.get('.spinner').should('not.exist')
+
+    cy.url().should('contain', this.treeIds[0] )
 
     cy.contains('Another Child card')
       .should('be.visible')
@@ -30,12 +37,14 @@ describe('Random seed initialization', () => {
     cy.contains('#save-indicator', 'Synced')
 
     // Switch to other tree and back
-    cy.get('#documents-icon').click().wait(250)
+    cy.get('#documents-icon').click().wait(500)
     cy.get('#sidebar-document-list-wrap').contains('Another doc').click()
     cy.url().should('contain', this.treeIds[1] )
     cy.get('#title').contains('Another doc, with title')
 
-    cy.get('#sidebar-document-list-wrap').wait(250).contains('Untitled').click()
+    cy.wait(500)
+
+    cy.get('#sidebar-document-list-wrap').contains('Untitled').click()
     cy.url().should('contain', this.treeIds[0] )
 
     cy.contains('mod')

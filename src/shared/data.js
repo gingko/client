@@ -117,7 +117,7 @@ async function newSave(dbName, treeId, elmData, timestamp, savedImmutablesIds) {
     // If winning rev is greater than conflicting ones
     // then the conflict was resolved. Delete conflicting revs.
     if (revToInt(head._rev) > revToInt(headConflicts[0]._rev)) {
-      let confDelPromises = headConflicts.map(confDoc => localDb.remove(confDoc._id, confDoc._rev));
+      let confDelPromises = headConflicts.map(confDoc => localDb.put({...confDoc, _deleted: true}));
       await Promise.allSettled(confDelPromises);
       conflictsExist = false;
     } else {
@@ -150,7 +150,7 @@ async function renameDocument(localDb, treeId, newDocName) {
 
 async function pull(localDb, remoteDb, treeId, source) {
   let selector = { _id: { $regex: `${treeId}/` } };
-  let results = await localDb.replicate.from(remoteDb, { selector })
+  let results = await localDb.replicate.from(remoteDb, { selector , batch_size: 1000})
     .on('change', async (change) => {
       let metadataDocs = getMetadataDocs(change);
       if (metadataDocs.length > 0) {
@@ -351,7 +351,7 @@ async function resolveMetadataConflicts (localDb, metadataDocs) {
   let all = docsAndConflicts.map(d => {return {id: d._id, rev: d._rev}});
   let losers = _.differenceBy(all, chosen, 'rev')
 
-  let loserDelPromises = losers.map(d => localDb.remove(d.id, d.rev));
+  let loserDelPromises = losers.map(d => localDb.put({...d, _deleted: true}));
   await Promise.allSettled(loserDelPromises);
 }
 

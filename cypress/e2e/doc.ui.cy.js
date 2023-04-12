@@ -16,14 +16,10 @@ describe('Document UI', () => {
     })
   })
 
-  beforeEach(() => {
-    Cypress.Cookies.preserveOnce('AuthSession')
-  })
-
   it('Has working header menus and shortcut help', () => {
     let emailText = "Contact Support";
 
-    cy.url().should('match', /\/[a-zA-Z0-9]{5}$/)
+    cy.url().should('match', /\/[a-zA-Z0-9]{7}$/)
 
     cy.get('#app-root')
       .should('not.contain', emailText)
@@ -101,9 +97,6 @@ describe('Document UI', () => {
 
     cy.shortcut('{esc}')
 
-  })
-
-  it('Has working mobile buttons', () => {
     // Displays Mobile buttons on smaller screens
     cy.get('#mobile-buttons')
       .should('not.be.visible')

@@ -18,3 +18,5 @@ hidden-config.js
 .idea
 cypress/screenshots
 cypress/videos
+test-results/
+playwright-report/

@@ -11,7 +11,6 @@ describe('Document Exporting', () => {
 
   beforeEach(() => {
     cy.fixture('oneTree.ids.json').as('treeIds')
-    Cypress.Cookies.preserveOnce('AuthSession')
   })
 
   it('Exports correctly', function () {

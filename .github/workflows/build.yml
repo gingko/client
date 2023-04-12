@@ -8,24 +8,52 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-18.04, windows-2019, macos-10.14]
+        os: [ubuntu-20.04, windows-2022, macos-11]
 
     env:
       GH_TOKEN: ${{ secrets.github_token }}
-      CSC_LINK: ${{ secrets.CSC_KEY_PASSWORD }}
+      CSC_LINK: ${{ secrets.CSC_LINK }}
       CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
       WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
       WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_ID_PASS: ${{ secrets.APPLE_ID_PASS }}
+      DEBUG: electron-builder
 
     steps:
       - uses: actions/checkout@master
+
       - name: Install Node.js, NPM and Yarn
         uses: actions/setup-node@master
         with:
-          node-version: 12
+          node-version: 16
+
+      - name: Install Snapcraft
+        run: sudo snap install snapcraft --classic
+        if: runner.os == 'Linux'
+
+      - name: Setup NPM cache
+        uses: c-hive/gha-npm-cache@v1
+
       - name: Install Node packages
         run: npm ci
+
+      - name: Decrypt client config.js file
+        run: $GITHUB_WORKSPACE/config_decrypt.sh
+        shell: bash
+        env:
+          CLIENT_CONFIG_PASSPHRASE: ${{ secrets.CLIENT_CONFIG_PASSPHRASE }}
+
+      - name: Copy client config.js file
+        run: cp $HOME/secrets/client.config.js $GITHUB_WORKSPACE/config.js
+        shell: bash
+
+      - name: Check client config.js file
+        run: node $GITHUB_WORKSPACE/config-check.js
+        shell: bash
+
       - name: Build Electron App
         run: npm run build
+
       - name: Release Script
         run: npm run release

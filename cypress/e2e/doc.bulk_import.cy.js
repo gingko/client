@@ -13,12 +13,8 @@ describe('Legacy Imports from Startup State', () => {
     cy.request(config.LEGACY_URL + '/logout')
     cy.deleteUser(testEmail).then(() => {
       cy.signup_with(testEmail, 'twoTrees')
+      cy.fixture('twoTrees.ids.json').as('treeIds')
     })
-  })
-
-  beforeEach(() => {
-    cy.fixture('twoTrees.ids.json').as('treeIds')
-    Cypress.Cookies.preserveOnce('AuthSession')
   })
 
   it('Guides user to import legacy docs', function () {
@@ -90,7 +86,7 @@ describe('Legacy Imports from Startup State', () => {
       .contains('Screenplay')
       .click()
 
-    cy.url().as('importedScreenplayUrl').should('match', /\/[a-zA-Z0-9]{5}$/)
+    cy.url().as('importedScreenplayUrl').should('match', /\/[a-zA-Z0-9]{7}$/)
 
     cy.contains('tips to improve your logline')
 

@@ -72,11 +72,11 @@ decoder =
 
 listDecoder : Decoder (List Metadata)
 listDecoder =
-    Dec.field "rows" (Dec.list (Dec.field "value" decoder))
+    Dec.list decoder
 
 
-decoderImport : Decoder (Maybe Metadata)
-decoderImport =
+decoderImport : Int -> Decoder (Maybe Metadata)
+decoderImport seed =
     let
         builder id n c u d =
             if d then
@@ -84,7 +84,7 @@ decoderImport =
 
             else
                 Just <|
-                    Metadata (fromObjectId id) (MetadataRecord n c u Nothing)
+                    Metadata (fromObjectId seed id) (MetadataRecord n c u Nothing)
     in
     Dec.succeed builder
         |> required "_id" Dec.string

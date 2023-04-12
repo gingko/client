@@ -1,0 +1,12 @@
+PRAGMA foreign_keys=OFF;
+BEGIN TRANSACTION;
+INSERT OR REPLACE INTO trees VALUES('lYTJe','Another doc, with title','cardbased','cypress@testing.com','[]',NULL,0,1680552170346,NULL);
+INSERT OR REPLACE INTO trees VALUES('CJoWu',NULL,'cardbased','cypress@testing.com','[]',NULL,0,1680552130586,NULL);
+INSERT OR REPLACE INTO cards VALUES('lYTJe:1','lYTJe','Another Test doc',NULL,0.0,'1607259392554:0:a52ea24a',0);
+INSERT OR REPLACE INTO cards VALUES('lYTJe:node-1628744388','lYTJe',replace('# 2\nChild card','\n',char(10)),'lYTJe:1',0.0,'1607259392554:1:67a32294',0);
+INSERT OR REPLACE INTO cards VALUES('lYTJe:node-230512886','lYTJe',replace('# 3\nAnother Child card','\n',char(10)),'lYTJe:1',1.0,'1607259392554:1:d3717110',0);
+INSERT OR REPLACE INTO cards VALUES('CJoWu:1','CJoWu','Hello Test doc',NULL,0.0,'1607259388270:0:a8eb430c',0);
+INSERT OR REPLACE INTO cards VALUES('CJoWu:node-1615554785','CJoWu','Child card','CJoWu:1',0.0,'1607259388270:1:b0eccef2',0);
+INSERT OR REPLACE INTO cards VALUES('CJoWu:node-132318239','CJoWu','Another Child card','CJoWu:1',1.0,'1607259388270:1:ca65368d',0);
+INSERT OR REPLACE INTO users VALUES('cypress@testing.com','2d9a0faceba97d9a24c085543a3dd151','6f8ed5380afb3e3a418d0c747d10700bf1971d52',1680552092110,1680552092111,'trial:1681761692110','en');
+COMMIT;
