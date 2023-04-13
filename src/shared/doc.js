@@ -978,7 +978,9 @@ async function logout() {
       await ImmortalDB.set(k, await mycrypt.encrypt(val));
     });
 
-    await dexie.delete();
+    await dexie.trees.clear();
+    await dexie.cards.clear();
+    await dexie.tree_snapshots.clear();
     setTimeout(() => gingko.ports.userLoginChange.send(null), 0);
   } catch (err) {
     console.error(err)
