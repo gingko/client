@@ -1,4 +1,4 @@
-module Doc.Metadata exposing (Metadata, decoder, decoderImport, encode, getCreatedAt, getDocId, getDocName, getUpdatedAt, isSameDocId, listDecoder, new, renameAndEncode)
+module Doc.Metadata exposing (Metadata, decoder, decoderImport, encode, getCreatedAt, getDocId, getDocName, getUpdatedAt, isSameDocId, listDecoder, new, renameAndEncode, responseDecoder)
 
 import Coders exposing (maybeToValue)
 import Json.Decode as Dec exposing (Decoder)
@@ -73,6 +73,16 @@ decoder =
 listDecoder : Decoder (List Metadata)
 listDecoder =
     Dec.list decoder
+
+
+responseDecoder : Decoder (List Metadata)
+responseDecoder =
+    Dec.map4 (\id n c u -> Metadata id (MetadataRecord n c u Nothing))
+        (Dec.field "id" Dec.string)
+        (Dec.field "name" (Dec.maybe Dec.string))
+        (Dec.field "createdAt" Dec.int |> Dec.map Time.millisToPosix)
+        (Dec.field "updatedAt" Dec.int |> Dec.map Time.millisToPosix)
+        |> Dec.list
 
 
 decoderImport : Int -> Decoder (Maybe Metadata)

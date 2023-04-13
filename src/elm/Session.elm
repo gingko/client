@@ -386,11 +386,11 @@ decodeGuest =
 responseDecoder : Session -> Dec.Decoder ( Session, Language )
 responseDecoder session =
     let
-        builder : String -> PaymentStatus -> Maybe Time.Posix -> Language -> ( Session, Language )
-        builder email payStat confAt lang =
+        builder : String -> PaymentStatus -> Maybe Time.Posix -> Language -> List Metadata -> ( Session, Language )
+        builder email payStat confAt lang docs =
             case session of
                 Guest sessionData ->
-                    ( LoggedIn sessionData (UserData email Upgrade.init payStat confAt True ModifiedAt DocList.init)
+                    ( LoggedIn sessionData (UserData email Upgrade.init payStat confAt True ModifiedAt (DocList.fromList docs))
                     , lang
                     )
 
@@ -402,6 +402,7 @@ responseDecoder session =
         |> optional "paymentStatus" decodePaymentStatus (Trial (Time.millisToPosix 0))
         |> optional "confirmedAt" decodeConfirmedStatus (Just (Time.millisToPosix 0))
         |> optional "language" (Dec.string |> Dec.map Translation.langFromString) Translation.En
+        |> optional "documents" Metadata.responseDecoder []
 
 
 encodeUserData : Language -> UserData -> Enc.Value

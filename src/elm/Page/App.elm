@@ -182,7 +182,23 @@ init nKey globalData session dbData_ =
                     ( defaultModel nKey globalData session Nothing, Route.replaceUrl nKey (Route.DocUntitled docId) )
 
                 Nothing ->
-                    ( defaultModel nKey globalData session Nothing, send <| GetDocumentList )
+                    let
+                        ( isLoading, maybeGetDocs ) =
+                            case Session.documents session of
+                                Success [] ->
+                                    ( False, Cmd.none )
+
+                                Success _ ->
+                                    ( True, Cmd.none )
+
+                                _ ->
+                                    ( True, send <| GetDocumentList )
+
+                        newModel =
+                            defaultModel nKey globalData session Nothing
+                                |> (\m -> { m | loading = isLoading })
+                    in
+                    ( newModel, maybeGetDocs )
 
 
 isDirty : Model -> Bool

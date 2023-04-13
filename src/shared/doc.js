@@ -422,7 +422,7 @@ const fromElm = (msg, elmData) => {
     },
 
     GetDocumentList: () => {
-      loadDocListAndSend(remoteDB, "GetDocumentList");
+      loadDocListAndSend("GetDocumentList");
     },
 
     RequestDelete: async () => {
@@ -919,10 +919,10 @@ async function loadGitLikeDocument (treeId) {
   setTimeout(() => {toElm(null, "docMsgs", "InitialActivation")}, 20);
 
   // Load doc list
-  loadDocListAndSend(remoteDB, "LoadDocument");
+  loadDocListAndSend("LoadDocument");
 }
 
-async function loadDocListAndSend(dbToLoadFrom, source) {
+async function loadDocListAndSend(source) {
   loadingDocs = true;
   let docList = await dexie.trees.toArray().catch(e => {console.error(e); return []});
   toElm(docList.filter(d => d.deletedAt == null).map(treeDocToMetadata),  "documentListChanged");

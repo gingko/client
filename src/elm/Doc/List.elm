@@ -1,4 +1,4 @@
-port module Doc.List exposing (Model(..), current, filter, getLastUpdated, init, isLoading, subscribe, switchListSort, toList, update, viewSidebarList, viewSwitcher)
+port module Doc.List exposing (Model(..), current, filter, fromList, getLastUpdated, init, isLoading, subscribe, switchListSort, toList, update, viewSidebarList, viewSwitcher)
 
 import Ant.Icons.Svg as AntIcons
 import Doc.Metadata as Metadata exposing (Metadata)
@@ -125,6 +125,11 @@ toList model =
 
         _ ->
             Nothing
+
+
+fromList : List Metadata -> Model
+fromList docs =
+    Success docs
 
 
 
