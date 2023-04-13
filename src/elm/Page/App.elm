@@ -2023,6 +2023,21 @@ viewModal globalData session modalState =
             Doc.Switcher.view SwitcherClosed FileSearchChanged switcherModel
 
         MigrateModal ->
+            [ div []
+                [ h2 [] [ textNoTr "Issues Reported With New Format" ]
+                , p [] [ textNoTr "Despite meticulous care and a solid month of testing the new format, it seems that some bugs have managed to survive 😕." ]
+                , p [] [ textNoTr "I've disabled the option to migrate documents to the new format until I can track down and fix these issues." ]
+                , p [] [ textNoTr "In the meantime, you can:" ]
+                , ul []
+                    [ li [] [ textNoTr "Keep using this document in the new format, while saving to JSON often as a backup...", br [] [], textNoTr "OR" ]
+                    , li [] [ textNoTr "You can export a JSON version of this document and re-import it, to get it back into the old format." ]
+                    ]
+                , p [] [ textNoTr "Sorry for the inconvenience!" ]
+                ]
+            ]
+                |> SharedUI.modalWrapper ModalClosed (Just "migrate-bugs-modal") Nothing "\u{200E}"
+
+        {--
             [ div [ class "top" ] [ h2 [] [ textNoTr "We've made major improvements to how documents are stored.", br [] [], textNoTr "Upgrade this document to make it :" ] ]
             , div [ class "left" ]
                 [ h3 [ style "text-align" "center" ] [ textNoTr "More Reliable" ]
@@ -2045,8 +2060,7 @@ viewModal globalData session modalState =
                 , p [ style "position" "absolute", style "bottom" "16px", style "color" "grey" ] [ small [] [ textNoTr "(Note: this downloads a backup of the current document before upgrading it)" ] ]
                 ]
             ]
-                |> SharedUI.modalWrapper ModalClosed (Just "migrate-modal") Nothing "\u{200E}"
-
+            --}
         SidebarContextMenu docId ( x, y ) ->
             [ div [ onClick ModalClosed, id "sidebar-context-overlay" ] []
             , div

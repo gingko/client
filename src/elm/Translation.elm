@@ -3812,7 +3812,7 @@ tr lang trans =
                     }
 
                 MigrateTooltip ->
-                    { en = "Migrate to Improved Document Format"
+                    { en = "Issues reported with new document format"
                     , zh_hans = "%zh_hans:MigrateToCardBased%"
                     , zh_hant = "%zh_hant:MigrateToCardBased%"
                     , es = "%es:MigrateToCardBased%"

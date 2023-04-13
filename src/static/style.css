@@ -1573,6 +1573,11 @@ span.trial-dark {
 #migrate-modal .right {
   grid-area: right;
 }
+#migrate-bugs-modal {
+  display: grid;
+  padding: 16px 110px;
+  grid-template-columns: 1fr;
+}
 #migrate-modal .bottom {
   grid-area: bottom;
   text-align: center;
