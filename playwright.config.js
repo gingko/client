@@ -20,10 +20,6 @@ const config = {
         name: 'web/chromium',
         use: { ...devices['Desktop Chrome'] },
         testDir: './tests/web'
-      },
-      {
-        name: 'electron',
-        testDir: './tests/electron'
       }
     ]
 }

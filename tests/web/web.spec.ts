@@ -36,8 +36,8 @@ test.describe('User Signup Flow', async () => {
     await page.locator('#email-optin').click()
     await page.locator('button.cta').click()
 
-    await expect(page).toHaveURL(/\/[a-zA-Z0-9]{5}$/)
-    expect(await page.locator('#document').count()).toEqual(1)
+    await expect(page).toHaveURL(/\/[a-zA-Z0-9]{7}$/)
+    await expect(page.locator('#document')).toHaveCount(1)
     await expect(page.locator('#document div.view h1')).toContainText('Welcome to Gingko Writer')
 
     // Has email verification banner
@@ -46,7 +46,7 @@ test.describe('User Signup Flow', async () => {
     page.goto(config.TEST_SERVER + '/confirm')
 
     // Redirected to welcome, Confirmation banner gone
-    await expect(page).toHaveURL(/\/[a-zA-Z0-9]{5}$/)
+    await expect(page).toHaveURL(/\/[a-zA-Z0-9]{7}$/)
     await expect(page.locator('#document div.view h1')).toContainText('Welcome to Gingko Writer')
     expect(await page.locator('#email-confirm-banner').count()).toEqual(0)
 
