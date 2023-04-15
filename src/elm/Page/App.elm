@@ -2037,30 +2037,6 @@ viewModal globalData session modalState =
             ]
                 |> SharedUI.modalWrapper ModalClosed (Just "migrate-bugs-modal") Nothing "\u{200E}"
 
-        {--
-            [ div [ class "top" ] [ h2 [] [ textNoTr "We've made major improvements to how documents are stored.", br [] [], textNoTr "Upgrade this document to make it :" ] ]
-            , div [ class "left" ]
-                [ h3 [ style "text-align" "center" ] [ textNoTr "More Reliable" ]
-                , ul []
-                    [ li [] [ textNoTr "3 on-device backups, updated as you type" ]
-                    , li [] [ textNoTr "2 server backups up to once per second" ]
-                    , li [] [ textNoTr "Simpler data, in a more resilient database" ]
-                    ]
-                ]
-            , div [ class "right" ]
-                [ h3 [ style "text-align" "center" ] [ textNoTr "Faster" ]
-                , ul []
-                    [ li [] [ textNoTr "35x faster syncing" ]
-                    , li [] [ textNoTr "25x less network data sent/received" ]
-                    , li [] [ textNoTr "100x faster loading of large documents" ]
-                    ]
-                ]
-            , div [ classList [ ( "bottom", True ), ( "modal-buttons", True ) ] ]
-                [ div [ onClick MigrateToCardBased ] [ textNoTr "Upgrade Document" ]
-                , p [ style "position" "absolute", style "bottom" "16px", style "color" "grey" ] [ small [] [ textNoTr "(Note: this downloads a backup of the current document before upgrading it)" ] ]
-                ]
-            ]
-            --}
         SidebarContextMenu docId ( x, y ) ->
             [ div [ onClick ModalClosed, id "sidebar-context-overlay" ] []
             , div
