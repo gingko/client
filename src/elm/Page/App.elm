@@ -20,7 +20,7 @@ import File exposing (File)
 import File.Download as Download
 import File.Select as Select
 import GlobalData exposing (GlobalData)
-import Html exposing (Html, br, button, div, em, h1, h2, h3, li, p, small, strong, ul)
+import Html exposing (Html, br, button, div, h1, h2, li, p, strong, ul)
 import Html.Attributes exposing (class, classList, height, id, style, width)
 import Html.Events exposing (onClick)
 import Html.Extra exposing (viewIf)
@@ -92,16 +92,6 @@ type alias DocState =
 type ConflictViewerState
     = NoConflict
     | Conflict ConflictSelection
-
-
-toData : Model -> Maybe Data.Model
-toData { documentState } =
-    case documentState of
-        Doc { data } ->
-            Just data
-
-        _ ->
-            Nothing
 
 
 type alias DbData =
@@ -214,7 +204,7 @@ isDirty model =
 getTitle : Model -> Maybe String
 getTitle model =
     case model.documentState of
-        Doc { session, docId, docModel } ->
+        Doc { session, docId } ->
             Session.getDocName session docId
 
         Empty _ _ ->
@@ -224,7 +214,7 @@ getTitle model =
 toSession : Model -> Session
 toSession { documentState } =
     case documentState of
-        Doc { session, docModel } ->
+        Doc { session } ->
             session
 
         Empty _ session ->
@@ -249,7 +239,7 @@ toGlobalData { documentState } =
 updateSession : Session -> Model -> Model
 updateSession newSession ({ documentState } as model) =
     case documentState of
-        Doc ({ docModel } as docState) ->
+        Doc docState ->
             { model | documentState = Doc { docState | session = newSession } }
 
         Empty globalData _ ->
@@ -345,12 +335,11 @@ type Msg
     | ImportOpmlSelected File
     | ImportOpmlLoaded String String
     | ImportOpmlIdGenerated Tree String String
-    | ImportOpmlCompleted String
     | ImportJSONRequested
     | ImportJSONSelected File
     | ImportJSONLoaded String String
     | ImportJSONIdGenerated Tree String String
-    | ImportJSONCompleted String
+    | ImportSingleCompleted String
       -- FULLSCREEN mode
     | SaveChanges
     | SaveAndExitFullscreen
@@ -453,7 +442,7 @@ update msg model =
             case appMsg of
                 MetadataUpdate metadata ->
                     case model.documentState of
-                        Doc ({ docModel } as docState) ->
+                        Doc docState ->
                             if Metadata.getDocId metadata == docState.docId then
                                 ( { model | documentState = Doc { docState | titleField = Metadata.getDocName metadata } }, Cmd.none )
 
@@ -522,7 +511,7 @@ update msg model =
 
                 SavedRemotely saveTime ->
                     case model.documentState of
-                        Doc ({ docModel } as docState) ->
+                        Doc docState ->
                             ( { model | documentState = Doc { docState | lastRemoteSave = Just saveTime } }, Cmd.none )
 
                         Empty _ _ ->
@@ -749,7 +738,7 @@ update msg model =
 
         ConflictResolved ->
             case ( model.documentState, model.conflictViewerState ) of
-                ( Doc { docModel, data }, Conflict selectedVersion ) ->
+                ( Doc { data }, Conflict selectedVersion ) ->
                     let
                         outMsg_ =
                             Data.resolveConflicts selectedVersion data
@@ -787,7 +776,7 @@ update msg model =
                         ( File, Account _ ) ->
                             NoSidebarMenu
 
-                        ( _, _ ) ->
+                        _ ->
                             model.sidebarMenuState
             in
             ( { model
@@ -819,7 +808,7 @@ update msg model =
 
                 ( routeCmd, isLoading ) =
                     case ( model.documentState, Session.documents newSession ) of
-                        ( Doc { docId, docModel }, Success docList ) ->
+                        ( Doc { docId }, Success docList ) ->
                             ( docList
                                 |> List.map (\d -> Metadata.getDocId d == docId)
                                 |> List.any identity
@@ -850,7 +839,7 @@ update msg model =
 
         SwitcherOpened ->
             case model.documentState of
-                Doc { docId, docModel } ->
+                Doc { docId } ->
                     openSwitcher docId model
 
                 Empty _ _ ->
@@ -875,7 +864,7 @@ update msg model =
 
         TitleFieldChanged newTitle ->
             case model.documentState of
-                Doc ({ titleField } as docState) ->
+                Doc docState ->
                     ( { model | documentState = Doc { docState | titleField = Just newTitle } }, Cmd.none )
 
                 _ ->
@@ -883,7 +872,7 @@ update msg model =
 
         TitleEdited ->
             case model.documentState of
-                Doc { titleField, docModel, docId } ->
+                Doc { titleField, docId } ->
                     case titleField of
                         Just editedTitle ->
                             if String.trim editedTitle == "" then
@@ -903,7 +892,7 @@ update msg model =
 
         TitleEditCanceled ->
             case model.documentState of
-                Doc ({ docModel, docId } as docState) ->
+                Doc ({ docId } as docState) ->
                     ( { model | documentState = Doc { docState | titleField = Session.getDocName session docId } }
                     , Task.attempt (always NoOp) (Browser.Dom.blur "title-rename")
                     )
@@ -1304,9 +1293,6 @@ update msg model =
                 Nothing ->
                     ( model, Cmd.none )
 
-        ImportOpmlCompleted docId ->
-            ( model, Route.pushUrl model.navKey (Route.DocUntitled docId) )
-
         ImportJSONRequested ->
             ( model, Select.file [ "application/json", "text/plain" ] ImportJSONSelected )
 
@@ -1345,7 +1331,7 @@ update msg model =
                 Nothing ->
                     ( model, Cmd.none )
 
-        ImportJSONCompleted docId ->
+        ImportSingleCompleted docId ->
             ( model, Route.pushUrl model.navKey (Route.DocUntitled docId) )
 
         -- FULLSCREEN mode
@@ -1568,7 +1554,7 @@ cardDataReceived dataIn model =
 historyReceived : Json.Value -> Model -> ( Model, Cmd Msg )
 historyReceived dataIn model =
     case model.documentState of
-        Doc ({ docModel, docId } as docState) ->
+        Doc ({ docModel } as docState) ->
             let
                 newData =
                     Data.historyReceived dataIn docState.data
@@ -1666,7 +1652,7 @@ applyParentMsg parentMsg ( prevModel, prevCmd ) =
 localSave : CardTreeOp -> Model -> ( Model, Cmd Msg )
 localSave op model =
     case model.documentState of
-        Doc { session, docModel, data, docId } ->
+        Doc { data, docId } ->
             let
                 dbChangeList =
                     Data.localSave docId op data
@@ -2033,6 +2019,7 @@ viewModal globalData session modalState =
                     , li [] [ textNoTr "You can export a JSON version of this document and re-import it, to get it back into the old format." ]
                     ]
                 , p [] [ textNoTr "Sorry for the inconvenience!" ]
+                , div [ style "display" "none" ] [ button [ onClick MigrateToCardBased ] [ textNoTr "Migrate" ] ]
                 ]
             ]
                 |> SharedUI.modalWrapper ModalClosed (Just "migrate-bugs-modal") Nothing "\u{200E}"
@@ -2231,7 +2218,7 @@ subscriptions model =
             (\docId_ ->
                 case docId_ of
                     Just docId ->
-                        ImportJSONCompleted docId
+                        ImportSingleCompleted docId
 
                     Nothing ->
                         ImportBulkCompleted
