@@ -5,7 +5,7 @@ import Browser.Navigation as Nav
 import Doc.UI as UI
 import GlobalData exposing (GlobalData)
 import Html
-import Json.Decode as Dec exposing (Decoder, Value)
+import Json.Decode as Dec exposing (Value)
 import Outgoing exposing (Msg(..), send)
 import Page.App
 import Page.Copy
@@ -296,8 +296,7 @@ getNavKey model =
 
 
 type Msg
-    = NoOp
-    | ChangedUrl Url
+    = ChangedUrl Url
     | ClickedLink Browser.UrlRequest
     | SettingsChanged Dec.Value
     | GotSignupMsg Page.Signup.Msg
