@@ -1,10 +1,13 @@
 module Main exposing (main)
 
+import AppUrl
 import Browser exposing (Document)
 import Browser.Navigation as Nav
+import Dict
 import Doc.UI as UI
 import GlobalData exposing (GlobalData)
 import Html
+import Import.Template as Template
 import Json.Decode as Dec exposing (Value)
 import Outgoing exposing (Msg(..), send)
 import Page.App
@@ -60,22 +63,72 @@ init json url navKey =
 
         webSessionData =
             { globalData = globalData, session = session, navKey = navKey }
+
+        appUrl =
+            AppUrl.fromUrl url
     in
-    case ( Session.loggedIn session, Route.fromUrl url ) of
-        ( True, route_ ) ->
-            changeRouteTo route_ (Redirect webSessionData)
+    if Session.loggedIn session then
+        case appUrl.path of
+            [ "new" ] ->
+                Page.DocNew.init navKey globalData session |> updateWith DocNew GotDocNewMsg
 
-        ( False, Just Route.Login ) ->
-            changeRouteTo (Just Route.Login) (Redirect webSessionData)
+            [ "confirm" ] ->
+                let
+                    newSession =
+                        Session.confirmEmail (GlobalData.currentTime globalData) session
+                in
+                Page.App.init navKey globalData newSession Nothing |> updateWith App GotAppMsg
 
-        ( False, Just (Route.ForgotPassword token) ) ->
-            changeRouteTo (Just (Route.ForgotPassword token)) (Redirect webSessionData)
+            [ "copy", dbName ] ->
+                Page.Copy.init navKey globalData session dbName |> updateWith Copy GotCopyMsg
 
-        ( False, Just (Route.ResetPassword token) ) ->
-            changeRouteTo (Just (Route.ResetPassword token)) (Redirect webSessionData)
+            [ "import", templateName ] ->
+                case Template.fromString templateName of
+                    Just template ->
+                        Page.Import.init navKey globalData session template |> updateWith Import GotImportMsg
 
-        ( False, _ ) ->
-            changeRouteTo (Just Route.Signup) (Redirect webSessionData)
+                    Nothing ->
+                        Page.App.init navKey globalData session Nothing |> updateWith App GotAppMsg
+
+            [ dbName ] ->
+                Page.App.init navKey globalData session (Just { dbName = dbName, isNew = False }) |> updateWith App GotAppMsg
+
+            [ dbName, _ ] ->
+                Page.App.init navKey globalData session (Just { dbName = dbName, isNew = False }) |> updateWith App GotAppMsg
+
+            _ ->
+                Page.App.init navKey globalData session Nothing |> updateWith App GotAppMsg
+
+    else
+        case appUrl.path of
+            [] ->
+                Page.Signup.init navKey globalData session
+                    |> updateWith Signup GotSignupMsg
+                    |> replaceUrl "signup"
+
+            [ "login" ] ->
+                Page.Login.init navKey globalData session |> updateWith Login GotLoginMsg
+
+            [ "signup" ] ->
+                Page.Signup.init navKey globalData session |> updateWith Signup GotSignupMsg
+
+            [ "forgot-password" ] ->
+                Page.ForgotPassword.init navKey globalData session (Dict.get "email" appUrl.queryParameters |> Maybe.andThen List.head)
+                    |> updateWith ForgotPassword GotForgotPasswordMsg
+
+            [ "reset-password", token ] ->
+                Page.ResetPassword.init navKey globalData session token
+                    |> updateWith ResetPassword GotResetPasswordMsg
+
+            _ ->
+                Page.Login.init navKey globalData session
+                    |> updateWith Login GotLoginMsg
+                    |> replaceUrl "login"
+
+
+replaceUrl : String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+replaceUrl path ( model, cmd ) =
+    ( model, Cmd.batch [ cmd, Nav.replaceUrl (getNavKey model) path ] )
 
 
 changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )
