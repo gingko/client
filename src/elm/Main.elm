@@ -129,7 +129,15 @@ handleUrlChange url model =
                     Page.Signup.init navKey globalData guestSession |> updateWith Signup GotSignupMsg
 
         [ "forgot-password" ] ->
-            ( model, Cmd.none )
+            case toSession model of
+                LoggedInSession session ->
+                    Page.App.init navKey globalData session Nothing
+                        |> updateWith App GotAppMsg
+                        |> replaceUrl ""
+
+                GuestSession guestSession ->
+                    Page.ForgotPassword.init navKey globalData guestSession (Dict.get "email" appUrl.queryParameters |> Maybe.andThen List.head)
+                        |> updateWith ForgotPassword GotForgotPasswordMsg
 
         [ "reset-password", token ] ->
             ( model, Cmd.none )
