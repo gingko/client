@@ -256,9 +256,27 @@ function initWebSocket () {
 }
 
 
-// External Scripts
+/* === Third-Party Scripts === */
+
+// Stripe
 const stripe = Stripe(config.STRIPE_PUBLIC_KEY);
 
+const createCheckoutSession = function(userEmail, priceId) {
+  return fetch("/create-checkout-session", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      priceId: priceId,
+      customer_email: userEmail
+    })
+  }).then(function(result) {
+    return result.json();
+  });
+}
+
+// LogRocket and Beamer
 function thirdPartyScriptsInit (email) {
   LogRocket.identify(email)
 
@@ -954,23 +972,6 @@ async function loadDocListAndSend() {
   toElm(docList.filter(d => d.deletedAt == null).map(treeDocToMetadata),  "documentListChanged");
   loadingDocs = false;
 }
-
-/* === Stripe === */
-
-var createCheckoutSession = function(userEmail, priceId) {
-  return fetch("/create-checkout-session", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      priceId: priceId,
-      customer_email: userEmail
-    })
-  }).then(function(result) {
-    return result.json();
-  });
-};
 
 
 /* === Helper Functions === */
