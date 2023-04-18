@@ -41,7 +41,7 @@ import Page.Doc.Theme exposing (Theme(..), applyTheme)
 import Page.Empty
 import RandomId
 import Route
-import Session exposing (Session)
+import Session exposing (LoggedIn, Session(..))
 import SharedUI
 import Svg.Attributes
 import Task
@@ -74,12 +74,12 @@ type alias Model =
 
 
 type DocumentState
-    = Empty GlobalData Session
+    = Empty GlobalData LoggedIn
     | Doc DocState
 
 
 type alias DocState =
-    { session : Session
+    { session : LoggedIn
     , docId : String
     , docModel : Page.Doc.Model
     , data : Data.Model
@@ -113,7 +113,7 @@ type ModalState
     | UpgradeModal
 
 
-defaultModel : Nav.Key -> GlobalData -> Session -> Maybe ( String, Page.Doc.Model ) -> Model
+defaultModel : Nav.Key -> GlobalData -> LoggedIn -> Maybe ( String, Page.Doc.Model ) -> Model
 defaultModel nKey globalData session docModel_ =
     { loading = True
     , documentState =
@@ -149,7 +149,7 @@ defaultModel nKey globalData session docModel_ =
     }
 
 
-init : Nav.Key -> GlobalData -> Session -> Maybe DbData -> ( Model, Cmd Msg )
+init : Nav.Key -> GlobalData -> LoggedIn -> Maybe DbData -> ( Model, Cmd Msg )
 init nKey globalData session dbData_ =
     case dbData_ of
         Just dbData ->
@@ -211,14 +211,24 @@ getTitle model =
             Nothing
 
 
-toSession : Model -> Session
-toSession { documentState } =
+toLoggedInSession : Model -> LoggedIn
+toLoggedInSession { documentState } =
     case documentState of
         Doc { session } ->
             session
 
         Empty _ session ->
             session
+
+
+toSession : Model -> Session
+toSession { documentState } =
+    case documentState of
+        Doc { session } ->
+            session |> LoggedInSession
+
+        Empty _ session ->
+            session |> LoggedInSession
 
 
 navKey : Model -> Nav.Key
@@ -236,7 +246,7 @@ toGlobalData { documentState } =
             gData
 
 
-updateSession : Session -> Model -> Model
+updateSession : LoggedIn -> Model -> Model
 updateSession newSession ({ documentState } as model) =
     case documentState of
         Doc docState ->
@@ -264,7 +274,7 @@ type Msg
     = NoOp
     | GotDocMsg Page.Doc.Msg
     | GotFullscreenMsg Fullscreen.Msg
-    | LoginStateChanged Session
+    | UserLoggedIn LoggedIn
     | TimeUpdate Time.Posix
     | Pull
     | SettingsChanged Json.Value
@@ -363,7 +373,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
         session =
-            toSession model
+            toLoggedInSession model
 
         globalData =
             toGlobalData model
@@ -412,7 +422,7 @@ update msg model =
                 Empty _ _ ->
                     ( model, Cmd.none )
 
-        LoginStateChanged newSession ->
+        UserLoggedIn newSession ->
             ( model |> updateSession newSession, Route.pushUrl model.navKey Route.Login )
 
         TimeUpdate time ->
@@ -1084,7 +1094,6 @@ update msg model =
             let
                 fromEmail =
                     Session.name session
-                        |> Maybe.withDefault ""
             in
             ( { model | modalState = ContactForm (ContactForm.init fromEmail), sidebarMenuState = NoSidebarMenu }
             , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "contact-body")
@@ -1238,7 +1247,7 @@ update msg model =
         ImportTextIdGenerated tree newTitle_ docId ->
             let
                 author =
-                    session |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
+                    session |> Session.name
 
                 encodeMaybeRename =
                     newTitle_
@@ -1281,7 +1290,7 @@ update msg model =
         ImportOpmlIdGenerated tree fileName docId ->
             let
                 author =
-                    session |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
+                    session |> Session.name
 
                 commitReq_ =
                     Data.requestCommit tree author Data.empty (Metadata.new docId |> Metadata.renameAndEncode fileName)
@@ -1319,7 +1328,7 @@ update msg model =
         ImportJSONIdGenerated tree fileName docId ->
             let
                 author =
-                    session |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
+                    session |> Session.name
 
                 commitReq_ =
                     Data.requestCommit tree author Data.empty (Metadata.new docId |> Metadata.renameAndEncode fileName)
@@ -1380,16 +1389,11 @@ update msg model =
                     ( { model | modalState = NoModal }, Cmd.none )
 
                 CheckoutClicked checkoutData ->
-                    case Session.name session of
-                        Just email ->
-                            let
-                                data =
-                                    Upgrade.toValue email checkoutData
-                            in
-                            ( model, send <| CheckoutButtonClicked data )
-
-                        Nothing ->
-                            ( model, Cmd.none )
+                    let
+                        data =
+                            Upgrade.toValue (Session.name session) checkoutData
+                    in
+                    ( model, send <| CheckoutButtonClicked data )
 
                 _ ->
                     let
@@ -1671,7 +1675,6 @@ addToHistoryDo model =
                 author =
                     session
                         |> Session.name
-                        |> Maybe.withDefault "unknown"
                         |> (\a -> "<" ++ a ++ ">")
 
                 metadata =
@@ -1707,7 +1710,7 @@ openSwitcher : String -> Model -> ( Model, Cmd Msg )
 openSwitcher docId model =
     let
         metadata_ =
-            Session.getMetadata (toSession model) docId
+            Session.getMetadata (toLoggedInSession model) docId
     in
     case metadata_ of
         Just currentMetadata ->
@@ -1717,7 +1720,7 @@ openSwitcher docId model =
                         { currentDocument = currentMetadata
                         , selectedDocument = Just docId
                         , searchField = ""
-                        , docList = Session.documents (toSession model)
+                        , docList = Session.documents (toLoggedInSession model)
                         }
               }
             , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "switcher-input")
@@ -1789,14 +1792,13 @@ view : Model -> Html Msg
 view ({ documentState } as model) =
     let
         session =
-            toSession model
+            toLoggedInSession model
 
         lang =
             GlobalData.language (toGlobalData model)
 
         email =
             Session.name session
-                |> Maybe.withDefault "<email error>"
 
         viewTooltip =
             case model.tooltip of
@@ -1949,7 +1951,7 @@ view ({ documentState } as model) =
                                 (Session.sortBy session)
                                 model.fileSearchField
                                 (Session.documents session)
-                                (Session.name session |> Maybe.withDefault "" {- TODO -})
+                                (Session.name session)
                                 Nothing
                                 model.sidebarMenuState
                                 model.sidebarState
@@ -1984,7 +1986,7 @@ view ({ documentState } as model) =
                                 ModifiedAt
                                 ""
                                 (Session.documents session)
-                                (Session.name session |> Maybe.withDefault "" {- TODO -})
+                                (Session.name session)
                                 Nothing
                                 model.sidebarMenuState
                                 model.sidebarState
@@ -1995,7 +1997,7 @@ view ({ documentState } as model) =
                     )
 
 
-viewModal : GlobalData -> Session -> ModalState -> List (Html Msg)
+viewModal : GlobalData -> LoggedIn -> ModalState -> List (Html Msg)
 viewModal globalData session modalState =
     let
         language =
@@ -2087,17 +2089,12 @@ viewModal globalData session modalState =
                 contactFormModel
 
         UpgradeModal ->
-            case Session.upgradeModel session of
-                Just upgradeModel ->
-                    let
-                        daysLeft_ =
-                            Session.daysLeft (GlobalData.currentTime globalData) session
-                    in
-                    Upgrade.view daysLeft_ upgradeModel
-                        |> List.map (Html.map UpgradeModalMsg)
-
-                Nothing ->
-                    []
+            let
+                daysLeft_ =
+                    Session.daysLeft (GlobalData.currentTime globalData) session
+            in
+            Upgrade.view daysLeft_ (Session.upgradeModel session)
+                |> List.map (Html.map UpgradeModalMsg)
 
 
 viewConflictSelector : ConflictViewerState -> Html Msg
@@ -2231,7 +2228,7 @@ subscriptions model =
                 Sub.none
         , DocList.subscribe ReceivedDocuments
         , Session.userSettingsChange SettingsChanged
-        , Session.loginChanges LoginStateChanged
+        , Session.userLoggedIn UserLoggedIn
         , case model.modalState of
             ImportModal importModalModel ->
                 ImportModal.subscriptions importModalModel

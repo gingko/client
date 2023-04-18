@@ -1,4 +1,4 @@
-module Page.Login exposing (Model, Msg, globalData, init, navKey, subscriptions, toUser, update, view)
+module Page.Login exposing (Model, Msg, globalData, init, navKey, subscriptions, toSession, update, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom
@@ -11,7 +11,7 @@ import Html.Extra exposing (viewIf)
 import Http exposing (Error(..))
 import Result exposing (Result)
 import Route
-import Session exposing (Session)
+import Session exposing (Guest, LoggedIn, Session(..))
 import Svg.Attributes
 import Task
 import Translation
@@ -25,7 +25,8 @@ import Validate exposing (Valid, Validator, ifBlank, ifInvalidEmail, ifTrue, val
 
 type alias Model =
     { globalData : GlobalData
-    , session : Session
+    , session : Guest
+    , transition : Maybe LoggedIn
     , navKey : Nav.Key
     , email : String
     , password : String
@@ -40,10 +41,11 @@ type Field
     | Password
 
 
-init : Nav.Key -> GlobalData -> Session -> ( Model, Cmd msg )
+init : Nav.Key -> GlobalData -> Guest -> ( Model, Cmd msg )
 init nKey gData session =
     ( { globalData = gData
       , session = session
+      , transition = Nothing
       , navKey = nKey
       , email = ""
       , password = ""
@@ -54,9 +56,9 @@ init nKey gData session =
     )
 
 
-toUser : Model -> Session
-toUser model =
-    model.session
+toSession : Model -> Session
+toSession model =
+    model.session |> GuestSession
 
 
 navKey : Model -> Nav.Key
@@ -79,8 +81,8 @@ type Msg
     | EnteredEmail String
     | EnteredPassword String
     | ToggleShowPassword
-    | CompletedLogin (Result Http.Error ( Session, Translation.Language ))
-    | GotUser Session
+    | CompletedLogin (Result Http.Error ( LoggedIn, Translation.Language ))
+    | GotUser LoggedIn
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -109,7 +111,7 @@ update msg model =
             ( { model | showPassword = not model.showPassword }, Task.attempt (\_ -> NoOp) (Browser.Dom.focus "password-input") )
 
         CompletedLogin (Ok ( user, lang )) ->
-            ( { model | session = user, globalData = GlobalData.setLanguage lang model.globalData }, Session.storeLogin lang user )
+            ( { model | transition = Just user, globalData = GlobalData.setLanguage lang model.globalData }, Session.storeLogin lang user )
 
         CompletedLogin (Err error) ->
             let
@@ -263,5 +265,5 @@ view model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
-    Session.loginChanges GotUser
+subscriptions _ =
+    Session.userLoggedIn GotUser

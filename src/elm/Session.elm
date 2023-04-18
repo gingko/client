@@ -1,4 +1,4 @@
-port module Session exposing (PaymentStatus(..), Session, confirmEmail, daysLeft, decode, documents, fileMenuOpen, fromLegacy, getDocName, getMetadata, isNotConfirmed, lastDocId, loggedIn, loginChanges, logout, name, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, setFileOpen, setShortcutTrayOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, updateDocuments, updateUpgrade, upgradeModel, userSettingsChange)
+port module Session exposing (Guest, LoggedIn, PaymentStatus(..), Session(..), confirmEmail, daysLeft, decode, documents, fileMenuOpen, fromLegacy, getDocName, getMetadata, isNotConfirmed, lastDocId, logout, name, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, setFileOpen, setShortcutTrayOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, updateDocuments, updateUpgrade, upgradeModel, userLoggedIn, userSettingsChange)
 
 import Coders exposing (sortByDecoder)
 import Doc.List as DocList exposing (Model(..))
@@ -20,8 +20,16 @@ import Upgrade
 
 
 type Session
+    = GuestSession Guest
+    | LoggedInSession LoggedIn
+
+
+type Guest
+    = Guest SessionData
+
+
+type LoggedIn
     = LoggedIn SessionData UserData
-    | Guest SessionData
 
 
 type alias SessionData =
@@ -52,59 +60,44 @@ type PaymentStatus
 -- GETTERS
 
 
-getFromSession : (SessionData -> a) -> Session -> a
-getFromSession getter session =
-    case session of
-        LoggedIn sessionData _ ->
-            getter sessionData
-
-        Guest sessionData ->
-            getter sessionData
+guestSessionData : Guest -> SessionData
+guestSessionData (Guest sessionData) =
+    sessionData
 
 
-name : Session -> Maybe String
-name session =
-    case session of
-        LoggedIn _ { email } ->
-            Just email
-
-        Guest _ ->
-            Nothing
+getFromLoggedInSession : (SessionData -> a) -> LoggedIn -> a
+getFromLoggedInSession getter (LoggedIn sessionData _) =
+    getter sessionData
 
 
-lastDocId : Session -> Maybe String
+name : LoggedIn -> String
+name (LoggedIn _ { email }) =
+    email
+
+
+lastDocId : LoggedIn -> Maybe String
 lastDocId session =
-    getFromSession .lastDocId session
+    getFromLoggedInSession .lastDocId session
 
 
-fromLegacy : Session -> Bool
-fromLegacy session =
-    getFromSession .fromLegacy session
+fromLegacy : Guest -> Bool
+fromLegacy (Guest sessionData) =
+    sessionData.fromLegacy
 
 
-fileMenuOpen : Session -> Bool
+fileMenuOpen : LoggedIn -> Bool
 fileMenuOpen session =
-    getFromSession .fileMenuOpen session
+    getFromLoggedInSession .fileMenuOpen session
 
 
-upgradeModel : Session -> Maybe Upgrade.Model
-upgradeModel session =
-    case session of
-        LoggedIn _ data ->
-            Just data.upgradeModel
-
-        Guest _ ->
-            Nothing
+upgradeModel : LoggedIn -> Upgrade.Model
+upgradeModel (LoggedIn _ data) =
+    data.upgradeModel
 
 
-paymentStatus : Time.Posix -> Session -> PaymentStatus
-paymentStatus cTime session =
-    case session of
-        LoggedIn _ data ->
-            data.paymentStatus
-
-        Guest _ ->
-            Trial (cTime |> add14days)
+paymentStatus : LoggedIn -> PaymentStatus
+paymentStatus (LoggedIn _ userData) =
+    userData.paymentStatus
 
 
 add14days : Posix -> Posix
@@ -113,9 +106,9 @@ add14days time =
         |> (\ms -> 3600 * 24 * 1000 * 14 + ms |> Time.millisToPosix)
 
 
-daysLeft : Time.Posix -> Session -> Maybe Int
+daysLeft : Time.Posix -> LoggedIn -> Maybe Int
 daysLeft cTime session =
-    case paymentStatus cTime session of
+    case paymentStatus session of
         Trial expiry ->
             ((Time.posixToMillis expiry - Time.posixToMillis cTime) |> toFloat)
                 / (1000 * 3600 * 24)
@@ -126,47 +119,27 @@ daysLeft cTime session =
             Nothing
 
 
-isNotConfirmed : Session -> Bool
-isNotConfirmed session =
-    case session of
-        LoggedIn _ data ->
-            data.confirmedAt == Nothing
-
-        Guest _ ->
-            True
+isNotConfirmed : LoggedIn -> Bool
+isNotConfirmed (LoggedIn _ data) =
+    data.confirmedAt == Nothing
 
 
-shortcutTrayOpen : Session -> Bool
-shortcutTrayOpen session =
-    case session of
-        LoggedIn _ data ->
-            data.shortcutTrayOpen
-
-        Guest _ ->
-            False
+shortcutTrayOpen : LoggedIn -> Bool
+shortcutTrayOpen (LoggedIn _ data) =
+    data.shortcutTrayOpen
 
 
-sortBy : Session -> SortBy
-sortBy session =
-    case session of
-        LoggedIn _ data ->
-            data.sortBy
-
-        Guest _ ->
-            ModifiedAt
+sortBy : LoggedIn -> SortBy
+sortBy (LoggedIn _ data) =
+    data.sortBy
 
 
-documents : Session -> DocList.Model
-documents session =
-    case session of
-        LoggedIn _ data ->
-            data.documents
-
-        Guest _ ->
-            DocList.init
+documents : LoggedIn -> DocList.Model
+documents (LoggedIn _ data) =
+    data.documents
 
 
-getMetadata : Session -> String -> Maybe Metadata
+getMetadata : LoggedIn -> String -> Maybe Metadata
 getMetadata session docId =
     case documents session of
         Success docList ->
@@ -177,27 +150,17 @@ getMetadata session docId =
             Nothing
 
 
-getDocName : Session -> String -> Maybe String
+getDocName : LoggedIn -> String -> Maybe String
 getDocName session docId =
     getMetadata session docId
         |> Maybe.andThen Metadata.getDocName
-
-
-loggedIn : Session -> Bool
-loggedIn session =
-    case session of
-        LoggedIn _ _ ->
-            True
-
-        Guest _ ->
-            False
 
 
 
 -- UPDATE
 
 
-sync : Dec.Value -> Time.Posix -> Session -> Session
+sync : Dec.Value -> Time.Posix -> LoggedIn -> LoggedIn
 sync json currentTime session =
     let
         settingsDecoder : Decoder { paymentStatus : PaymentStatus, confirmedAt : Maybe Time.Posix }
@@ -214,76 +177,38 @@ sync json currentTime session =
                     , confirmedAt = newSettings.confirmedAt
                 }
 
-        ( Ok newSettings, Guest sessData ) ->
-            Guest sessData
-
         ( Err _, _ ) ->
             session
 
 
-updateSession : (SessionData -> SessionData) -> Session -> Session
-updateSession updateFn session =
-    case session of
-        LoggedIn sessionData data ->
-            LoggedIn (updateFn sessionData) data
-
-        Guest sessionData ->
-            Guest (updateFn sessionData)
+setFileOpen : Bool -> LoggedIn -> LoggedIn
+setFileOpen isOpen (LoggedIn sessData userData) =
+    LoggedIn { sessData | fileMenuOpen = isOpen } userData
 
 
-setFileOpen : Bool -> Session -> Session
-setFileOpen isOpen session =
-    updateSession (\s -> { s | fileMenuOpen = isOpen }) session
+confirmEmail : Time.Posix -> LoggedIn -> LoggedIn
+confirmEmail currentTime (LoggedIn key data) =
+    LoggedIn key { data | confirmedAt = Just currentTime }
 
 
-confirmEmail : Time.Posix -> Session -> Session
-confirmEmail currentTime session =
-    case session of
-        LoggedIn key data ->
-            LoggedIn key { data | confirmedAt = Just currentTime }
-
-        Guest _ ->
-            session
+setShortcutTrayOpen : Bool -> LoggedIn -> LoggedIn
+setShortcutTrayOpen isOpen (LoggedIn key data) =
+    LoggedIn key { data | shortcutTrayOpen = isOpen }
 
 
-setShortcutTrayOpen : Bool -> Session -> Session
-setShortcutTrayOpen isOpen session =
-    case session of
-        LoggedIn key data ->
-            LoggedIn key { data | shortcutTrayOpen = isOpen }
-
-        Guest _ ->
-            session
+setSortBy : SortBy -> LoggedIn -> LoggedIn
+setSortBy newSort (LoggedIn sessData userData) =
+    LoggedIn sessData { userData | sortBy = newSort }
 
 
-setSortBy : SortBy -> Session -> Session
-setSortBy newSort session =
-    case session of
-        LoggedIn key data ->
-            LoggedIn key { data | sortBy = newSort }
-
-        Guest _ ->
-            session
+updateDocuments : DocList.Model -> LoggedIn -> LoggedIn
+updateDocuments docList (LoggedIn sessData userData) =
+    LoggedIn sessData { userData | documents = DocList.update userData.sortBy docList userData.documents }
 
 
-updateDocuments : DocList.Model -> Session -> Session
-updateDocuments docList session =
-    case session of
-        LoggedIn sessionData data ->
-            LoggedIn sessionData { data | documents = DocList.update data.sortBy docList data.documents }
-
-        Guest _ ->
-            session
-
-
-updateUpgrade : Upgrade.Msg -> Session -> Session
-updateUpgrade upgradeMsg session =
-    case session of
-        LoggedIn sessionData data ->
-            LoggedIn sessionData { data | upgradeModel = Upgrade.update upgradeMsg data.upgradeModel }
-
-        Guest _ ->
-            session
+updateUpgrade : Upgrade.Msg -> LoggedIn -> LoggedIn
+updateUpgrade upgradeMsg (LoggedIn sessionData data) =
+    LoggedIn sessionData { data | upgradeModel = Upgrade.update upgradeMsg data.upgradeModel }
 
 
 
@@ -292,25 +217,56 @@ updateUpgrade upgradeMsg session =
 
 decode : Dec.Value -> Session
 decode json =
-    case Dec.decodeValue decoder json of
+    case Dec.decodeValue decoderLoggedIn json of
+        Ok session ->
+            LoggedInSession session
+
+        Err err ->
+            case Dec.decodeValue decoderGuestSession json of
+                Ok session ->
+                    GuestSession session
+
+                Err err2 ->
+                    GuestSession
+                        (Guest
+                            { fileMenuOpen = False
+                            , lastDocId = Nothing
+                            , fromLegacy = False
+                            }
+                        )
+
+
+decodeLoggedIn : Dec.Value -> LoggedIn
+decodeLoggedIn json =
+    case Dec.decodeValue decoderLoggedIn json of
         Ok session ->
             session
 
         Err err ->
-            Guest
+            LoggedIn
                 { fileMenuOpen = False
                 , lastDocId = Nothing
                 , fromLegacy = False
                 }
+                (UserData "" Upgrade.init (Trial (Time.millisToPosix 0)) Nothing False ModifiedAt DocList.init)
 
 
-decoder : Dec.Decoder Session
-decoder =
-    Dec.oneOf [ decodeLoggedIn, decodeGuest ]
+decoderGuestSession : Dec.Decoder Guest
+decoderGuestSession =
+    Dec.succeed
+        (\legacy side ->
+            Guest
+                { fileMenuOpen = side
+                , lastDocId = Nothing
+                , fromLegacy = legacy
+                }
+        )
+        |> optional "fromLegacy" Dec.bool False
+        |> optional "sidebarOpen" Dec.bool False
 
 
-decodeLoggedIn : Dec.Decoder Session
-decodeLoggedIn =
+decoderLoggedIn : Dec.Decoder LoggedIn
+decoderLoggedIn =
     Dec.succeed
         (\email t legacy side confirmTime payStat trayOpen sortCriteria lastDoc ->
             let
@@ -369,33 +325,17 @@ decodePaymentStatus =
             )
 
 
-decodeGuest : Dec.Decoder Session
-decodeGuest =
-    Dec.succeed
-        (\legacy side ->
-            Guest
-                { fileMenuOpen = side
-                , lastDocId = Nothing
-                , fromLegacy = legacy
-                }
-        )
-        |> optional "fromLegacy" Dec.bool False
-        |> optional "sidebarOpen" Dec.bool False
-
-
-responseDecoder : Session -> Dec.Decoder ( Session, Language )
+responseDecoder : Guest -> Dec.Decoder ( LoggedIn, Language )
 responseDecoder session =
     let
-        builder : String -> PaymentStatus -> Maybe Time.Posix -> Language -> List Metadata -> ( Session, Language )
-        builder email payStat confAt lang docs =
-            case session of
-                Guest sessionData ->
-                    ( LoggedIn sessionData (UserData email Upgrade.init payStat confAt True ModifiedAt (DocList.fromList docs))
-                    , lang
-                    )
+        sessionData =
+            guestSessionData session
 
-                LoggedIn _ _ ->
-                    ( session, lang )
+        builder : String -> PaymentStatus -> Maybe Time.Posix -> Language -> List Metadata -> ( LoggedIn, Language )
+        builder email payStat confAt lang docs =
+            ( LoggedIn sessionData (UserData email Upgrade.init payStat confAt True ModifiedAt (DocList.fromList docs))
+            , lang
+            )
     in
     Dec.succeed builder
         |> required "email" Dec.string
@@ -427,21 +367,16 @@ encodePaymentStatus payStat =
             Enc.string ("customer:" ++ custId)
 
 
-encode : Translation.Language -> Session -> Enc.Value
-encode lang session =
-    case session of
-        LoggedIn _ userData ->
-            encodeUserData lang userData
-
-        Guest _ ->
-            Enc.null
+encode : Translation.Language -> LoggedIn -> Enc.Value
+encode lang (LoggedIn _ userData) =
+    encodeUserData lang userData
 
 
 
 -- AUTHENTICATION
 
 
-requestSignup : (Result Http.Error ( Session, Language ) -> msg) -> String -> String -> Bool -> Session -> Cmd msg
+requestSignup : (Result Http.Error ( LoggedIn, Language ) -> msg) -> String -> String -> Bool -> Guest -> Cmd msg
 requestSignup toMsg email password didOptIn session =
     let
         requestBody =
@@ -459,12 +394,12 @@ requestSignup toMsg email password didOptIn session =
         }
 
 
-storeSignup : Translation.Language -> Session -> Cmd msg
+storeSignup : Translation.Language -> LoggedIn -> Cmd msg
 storeSignup lang session =
     store lang session
 
 
-requestLogin : (Result Http.Error ( Session, Language ) -> msg) -> String -> String -> Session -> Cmd msg
+requestLogin : (Result Http.Error ( LoggedIn, Language ) -> msg) -> String -> String -> Guest -> Cmd msg
 requestLogin toMsg email password session =
     let
         requestBody =
@@ -485,12 +420,12 @@ requestLogin toMsg email password session =
         }
 
 
-storeLogin : Translation.Language -> Session -> Cmd msg
+storeLogin : Translation.Language -> LoggedIn -> Cmd msg
 storeLogin lang session =
     store lang session
 
 
-requestForgotPassword : (Result Http.Error ( Session, Language ) -> msg) -> String -> Session -> Cmd msg
+requestForgotPassword : (Result Http.Error ( LoggedIn, Language ) -> msg) -> String -> Guest -> Cmd msg
 requestForgotPassword toMsg email session =
     let
         requestBody =
@@ -506,7 +441,7 @@ requestForgotPassword toMsg email session =
         }
 
 
-requestResetPassword : (Result Http.Error ( Session, Language ) -> msg) -> { newPassword : String, token : String } -> Session -> Cmd msg
+requestResetPassword : (Result Http.Error ( LoggedIn, Language ) -> msg) -> { newPassword : String, token : String } -> Guest -> Cmd msg
 requestResetPassword toMsg { newPassword, token } session =
     let
         requestBody =
@@ -532,17 +467,17 @@ logout =
 -- PORTS
 
 
-store : Translation.Language -> Session -> Cmd msg
+store : Translation.Language -> LoggedIn -> Cmd msg
 store lang session =
     send <| StoreUser (encode lang session)
 
 
-loginChanges : (Session -> msg) -> Sub msg
-loginChanges toMsg =
-    userLoginChange (decode >> toMsg)
+userLoggedIn : (LoggedIn -> msg) -> Sub msg
+userLoggedIn toMsg =
+    userLoggedInMsg (decodeLoggedIn >> toMsg)
 
 
-port userLoginChange : (Dec.Value -> msg) -> Sub msg
+port userLoggedInMsg : (Dec.Value -> msg) -> Sub msg
 
 
 port userSettingsChange : (Dec.Value -> msg) -> Sub msg

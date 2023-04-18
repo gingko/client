@@ -1,4 +1,4 @@
-module Page.Signup exposing (Model, Msg, globalData, init, navKey, subscriptions, toUser, update, view)
+module Page.Signup exposing (Model, Msg, globalData, init, navKey, subscriptions, toSession, update, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom
@@ -11,7 +11,7 @@ import Html.Extra exposing (viewIf)
 import Http exposing (Error(..))
 import Import.Template as Template
 import Route
-import Session exposing (Session)
+import Session exposing (Guest, LoggedIn, Session(..))
 import Svg.Attributes
 import Task
 import Translation exposing (Language)
@@ -25,7 +25,8 @@ import Validate exposing (Valid, Validator, ifBlank, ifInvalidEmail, ifTrue, val
 
 type alias Model =
     { globalData : GlobalData
-    , session : Session
+    , session : Guest
+    , transition : Maybe LoggedIn
     , email : String
     , password : String
     , showPassword : Bool
@@ -41,10 +42,11 @@ type Field
     | Password
 
 
-init : Nav.Key -> GlobalData -> Session -> ( Model, Cmd Msg )
+init : Nav.Key -> GlobalData -> Guest -> ( Model, Cmd Msg )
 init nKey gData session =
     ( { globalData = gData
       , session = session
+      , transition = Nothing
       , email = ""
       , password = ""
       , showPassword = False
@@ -56,9 +58,9 @@ init nKey gData session =
     )
 
 
-toUser : Model -> Session
-toUser { session } =
-    session
+toSession : Model -> Session
+toSession { session } =
+    session |> GuestSession
 
 
 navKey : Model -> Nav.Key
@@ -82,8 +84,8 @@ type Msg
     | EnteredPassword String
     | ToggleShowPassword
     | ToggledOptIn Bool
-    | CompletedSignup (Result Http.Error ( Session, Language ))
-    | GotUser Session
+    | CompletedSignup (Result Http.Error ( LoggedIn, Language ))
+    | GotUser LoggedIn
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -115,7 +117,7 @@ update msg model =
             ( { model | didOptIn = isOptedIn }, Cmd.none )
 
         CompletedSignup (Ok ( user, lang )) ->
-            ( { model | session = user }, Session.storeSignup lang user )
+            ( { model | transition = Just user }, Session.storeSignup lang user )
 
         CompletedSignup (Err error) ->
             let
@@ -326,4 +328,4 @@ viewError field error =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Session.loginChanges GotUser
+    Session.userLoggedIn GotUser

@@ -13,18 +13,18 @@ import Import.Template as Template exposing (Template)
 import Outgoing exposing (Msg(..), send)
 import RandomId
 import Route
-import Session exposing (Session)
+import Session exposing (LoggedIn, Session(..))
 import Types exposing (Tree)
 
 
 type alias Model =
-    { session : Session
+    { session : LoggedIn
     , globalData : GlobalData
     , navKey : Nav.Key
     }
 
 
-init : Nav.Key -> GlobalData -> Session -> Template -> ( Model, Cmd Msg )
+init : Nav.Key -> GlobalData -> LoggedIn -> Template -> ( Model, Cmd Msg )
 init navKey globalData session template =
     let
         ( importTreeDecoder, newSeed ) =
@@ -33,6 +33,11 @@ init navKey globalData session template =
     ( { session = session, globalData = GlobalData.setSeed newSeed globalData, navKey = navKey }
     , Template.fetchJSON (TemplateJSONReceived (Template.toString template)) importTreeDecoder template
     )
+
+
+toSession : Model -> Session
+toSession model =
+    model.session |> LoggedInSession
 
 
 
@@ -61,7 +66,7 @@ update msg model =
         TemplateImported tree fileName docId ->
             let
                 author =
-                    model.session |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
+                    model.session |> Session.name
 
                 commitReq_ =
                     Data.requestCommit tree author Data.empty (Metadata.new docId |> Metadata.renameAndEncode fileName)
@@ -87,5 +92,5 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Import.Incoming.importComplete TemplateImportSaved

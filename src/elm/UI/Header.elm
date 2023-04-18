@@ -13,7 +13,7 @@ import Html.Extra exposing (viewIf)
 import Json.Decode as Dec
 import Page.Doc.Export exposing (ExportFormat(..), ExportSelection(..))
 import Page.Doc.Theme exposing (Theme(..))
-import Session exposing (Session)
+import Session exposing (LoggedIn)
 import Time
 import Translation exposing (Language, TranslationId(..))
 import Types exposing (TooltipPosition(..), Tree)
@@ -59,7 +59,7 @@ viewHeader :
     , toggledUpgradeModal : Bool -> msg
     }
     ->
-        { session : Session
+        { session : LoggedIn
         , title_ : Maybe String
         , titleField_ : Maybe String
         , headerMenu : HeaderMenuState
@@ -274,7 +274,7 @@ viewExportMenu language msgs showCloseButton ( exportSelection, exportFormat ) =
 viewUpgradeButton :
     (Bool -> msg)
     -> GlobalData
-    -> Session
+    -> LoggedIn
     -> Html msg
 viewUpgradeButton toggledUpgradeModal globalData session =
     let

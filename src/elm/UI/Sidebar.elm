@@ -10,7 +10,7 @@ import Html.Attributes.Extra exposing (attributeIf)
 import Html.Events exposing (onClick, onMouseEnter, onMouseLeave)
 import Html.Extra exposing (viewIf)
 import MD5
-import Session exposing (PaymentStatus(..), Session)
+import Session exposing (LoggedIn, PaymentStatus(..))
 import Translation exposing (Language(..), TranslationId(..), langToString, languageName)
 import Types exposing (SortBy, TooltipPosition(..))
 import Utils exposing (emptyText, onClickStop, text, textNoTr)
@@ -50,7 +50,7 @@ type alias SidebarMsgs msg =
 
 viewSidebar :
     GlobalData
-    -> Session
+    -> LoggedIn
     -> SidebarMsgs msg
     -> String
     -> SortBy
@@ -67,7 +67,7 @@ viewSidebar globalData session msgs currentDocId sortCriteria fileFilter docList
             GlobalData.language globalData
 
         custId_ =
-            case Session.paymentStatus (GlobalData.currentTime globalData) session of
+            case Session.paymentStatus session of
                 Customer custId ->
                     Just custId
 

@@ -1,10 +1,10 @@
-module Page.DocNew exposing (Model, Msg, init, update)
+module Page.DocNew exposing (Model, Msg, init, toSession, update)
 
 import Browser.Navigation as Nav
 import GlobalData exposing (GlobalData)
 import RandomId
 import Route
-import Session exposing (Session)
+import Session exposing (LoggedIn, Session(..))
 
 
 
@@ -13,14 +13,19 @@ import Session exposing (Session)
 
 type alias Model =
     { globalData : GlobalData
-    , session : Session
+    , session : LoggedIn
     , navKey : Nav.Key
     }
 
 
-init : Nav.Key -> GlobalData -> Session -> ( Model, Cmd Msg )
+init : Nav.Key -> GlobalData -> LoggedIn -> ( Model, Cmd Msg )
 init navKey gData session =
     ( Model gData session navKey, RandomId.generate NewDocIdReceived )
+
+
+toSession : Model -> Session
+toSession model =
+    model.session |> LoggedInSession
 
 
 

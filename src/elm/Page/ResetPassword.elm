@@ -1,4 +1,4 @@
-module Page.ResetPassword exposing (Model, Msg, globalData, init, navKey, subscriptions, toUser, update, view)
+module Page.ResetPassword exposing (Model, Msg, globalData, init, navKey, subscriptions, toSession, update, view)
 
 import Browser.Dom
 import Browser.Navigation as Nav
@@ -7,7 +7,7 @@ import Html exposing (..)
 import Html.Attributes exposing (autofocus, class, classList, href, id, placeholder, src, type_, value)
 import Html.Events exposing (onBlur, onInput, onSubmit)
 import Http exposing (Error(..))
-import Session exposing (Session)
+import Session exposing (Guest, LoggedIn, Session(..))
 import Task
 import Translation exposing (Language)
 import Utils exposing (getFieldErrors)
@@ -20,7 +20,8 @@ import Validate exposing (Valid, Validator, ifBlank, ifFalse, ifInvalidEmail, if
 
 type alias Model =
     { globalData : GlobalData
-    , session : Session
+    , session : Guest
+    , transition : Maybe LoggedIn
     , navKey : Nav.Key
     , password : String
     , passwordConfirm : String
@@ -35,10 +36,11 @@ type Field
     | PasswordConfirm
 
 
-init : Nav.Key -> GlobalData -> Session -> String -> ( Model, Cmd Msg )
+init : Nav.Key -> GlobalData -> Guest -> String -> ( Model, Cmd Msg )
 init nKey gData session resetToken =
     ( { globalData = gData
       , session = session
+      , transition = Nothing
       , navKey = nKey
       , resetToken = resetToken
       , password = ""
@@ -49,9 +51,9 @@ init nKey gData session resetToken =
     )
 
 
-toUser : Model -> Session
-toUser { session } =
-    session
+toSession : Model -> Session
+toSession { session } =
+    session |> GuestSession
 
 
 navKey : Model -> Nav.Key
@@ -74,8 +76,8 @@ type Msg
     | EnteredPassword String
     | EnteredPassConfirm String
     | Blurred Field
-    | CompletedResetPassword (Result Http.Error ( Session, Language ))
-    | GotUser Session
+    | CompletedResetPassword (Result Http.Error ( LoggedIn, Language ))
+    | GotUser LoggedIn
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -150,7 +152,7 @@ update msg model =
             ( { model | errors = [ errorMsg ], password = "", passwordConfirm = "" }, Cmd.none )
 
         GotUser user ->
-            ( { model | session = user }, Nav.replaceUrl model.navKey "/" )
+            ( { model | transition = Just user }, Nav.replaceUrl model.navKey "/" )
 
 
 passwordValidator : Validator ( Field, String ) Model
@@ -244,5 +246,5 @@ view model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
-    Session.loginChanges GotUser
+subscriptions _ =
+    Session.userLoggedIn GotUser

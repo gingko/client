@@ -13,19 +13,19 @@ import Json.Decode as Dec
 import Outgoing exposing (Msg(..), send)
 import RandomId
 import Route
-import Session exposing (Session)
+import Session exposing (LoggedIn, Session(..))
 import Types exposing (Tree)
 
 
 type alias Model =
     { globalData : GlobalData
-    , session : Session
+    , session : LoggedIn
     , tree : Maybe Tree
     , navKey : Nav.Key
     }
 
 
-init : Nav.Key -> GlobalData -> Session -> String -> ( Model, Cmd Msg )
+init : Nav.Key -> GlobalData -> LoggedIn -> String -> ( Model, Cmd Msg )
 init nKey gData session dbName =
     ( { globalData = gData
       , session = session
@@ -84,7 +84,7 @@ update msg model =
         IdGenerated tree fileName docId ->
             let
                 author =
-                    model.session |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
+                    model.session |> Session.name
 
                 commitReq_ =
                     Data.requestCommit tree author Data.empty (Metadata.new docId |> Metadata.renameAndEncode fileName)
@@ -105,9 +105,9 @@ update msg model =
                     ( model, Route.replaceUrl model.navKey Route.Root )
 
 
-toUser : Model -> Session
-toUser model =
-    model.session
+toSession : Model -> Session
+toSession model =
+    model.session |> LoggedInSession
 
 
 

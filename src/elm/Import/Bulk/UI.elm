@@ -13,7 +13,7 @@ import Json.Decode as Dec
 import Json.Encode as Enc
 import Octicons as Icon exposing (defaultOptions)
 import Outgoing exposing (Msg(..), send)
-import Session exposing (Session)
+import Session exposing (LoggedIn)
 import SharedUI exposing (modalWrapper)
 import Task
 import Time
@@ -27,7 +27,7 @@ import Types exposing (Tree)
 
 type alias Model =
     { state : ImportModalState
-    , user : Session
+    , user : LoggedIn
     , globalData : GlobalData.GlobalData
     }
 
@@ -53,7 +53,7 @@ type alias ImportSelection =
         }
 
 
-init : GlobalData -> Session -> Model
+init : GlobalData -> LoggedIn -> Model
 init globalData user =
     { state = ModalOpen { loginState = Checking, isFileDragging = False }, user = user, globalData = globalData }
 
@@ -153,7 +153,7 @@ update msg ({ state, user } as model) =
         ( SelectionDone, ImportSelecting selectList ) ->
             let
                 author =
-                    user |> Session.name |> Maybe.withDefault "jane.doe@gmail.com"
+                    user |> Session.name
 
                 treeInfoToCommitReq ( id, mdata, tree ) =
                     Data.requestCommit tree author Data.empty (Metadata.encode mdata)

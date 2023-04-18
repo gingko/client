@@ -3,7 +3,6 @@ module GlobalData exposing (GlobalData, currentTime, decode, isMac, language, se
 import Json.Decode as Dec exposing (Decoder)
 import Json.Decode.Pipeline exposing (optional, required)
 import Random
-import Session exposing (Session)
 import Time
 import Translation exposing (Language(..), langFromString)
 
