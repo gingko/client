@@ -38,7 +38,7 @@ decoder seed =
 
 
 encode : String -> List ( String, Metadata, Tree ) -> Enc.Value
-encode author dataList =
+encode _ dataList =
     dataList
         |> Enc.list
             (\( tid, mdata, tree ) ->
