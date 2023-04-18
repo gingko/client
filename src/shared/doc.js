@@ -316,7 +316,7 @@ function initEventListeners () {
     })
   }
 
-  window.addEventListener('beforeprint', (event) => {
+  window.addEventListener('beforeprint', () => {
     toElm(null, 'docMsgs', 'WillPrint')
   })
 }
@@ -406,9 +406,9 @@ const fromElm = (msg, elmData) => {
       }
 
       try {
-        if (treeDoc.location == "couchdb") {
+        if (treeDoc.location === "couchdb") {
           loadGitLikeDocument(elmData);
-        } else if (treeDoc.location == "cardbased") {
+        } else if (treeDoc.location === "cardbased") {
           loadCardBasedDocument(elmData);
         }
       } catch (e) {
@@ -426,7 +426,6 @@ const fromElm = (msg, elmData) => {
       savedIds.forEach(item => savedObjectIds.add(item));
 
       if (loadedData.hasOwnProperty("commit") && loadedData.commit.length > 0) {
-        localExists = true;
         toElm([metadata.name, loadedData], "copyLoaded");
       } else {
         localExists = false;
@@ -436,7 +435,6 @@ const fromElm = (msg, elmData) => {
           let pullResult = await data.pull(db, remoteDB, elmData, "LoadDocument");
 
           if (pullResult !== null) {
-            remoteExists = true;
             pullResult[1].forEach(item => savedObjectIds.add(item));
             toElm([metadata.name, pullResult[0]], "copyLoaded");
           } else {
@@ -494,7 +492,7 @@ const fromElm = (msg, elmData) => {
           dexie.cards.bulkPut(newData.concat(toMarkSynced).concat(toMarkDeleted));
           dexie.cards.bulkDelete(elmData.toRemove);
           DIRTY = false;
-        }).then(async result => {
+        }).then(async () => {
           await dexie.trees.update(TREE_ID, {updatedAt: timestamp, synced: false});
         })
           .catch((e) => {
@@ -556,11 +554,7 @@ const fromElm = (msg, elmData) => {
 
     SaveImportedData: async () => {
       const now = Date.now();
-      let [ savedData
-        , savedImmutables
-        , conflictsExist
-        , savedMetadata
-      ] = await data.newSave(userDbName, elmData.metadata.docId, elmData, now, savedObjectIds);
+      let savedImmutables = (await data.newSave(userDbName, elmData.metadata.docId, elmData, now, savedObjectIds))[1];
 
       const treeDoc = {...treeDocDefaults, id: elmData.metadata.docId, name: elmData.metadata.name, owner: email, createdAt: now, updatedAt: now};
       await dexie.trees.add(treeDoc);
@@ -665,7 +659,7 @@ const fromElm = (msg, elmData) => {
     PositionTourStep: () => {
       let stepNum = elmData[0];
       let refElementId = elmData[1];
-      if (stepNum == 1) {
+      if (stepNum === 1) {
         tourStepPositionStepNum = elmData[0];
         tourStepPositionRefElementId = elmData[1];
       } else {
@@ -745,16 +739,16 @@ const fromElm = (msg, elmData) => {
             if (typeof window.importTestIdx == "undefined") {
               files = [new File(["This is a test file.\n\nWith a paragraph break.\n\n---\n\nAnd a split break."], "foo.txt", { type: "text/plain", })];
               window.importTestIdx = 1;
-            } else if (window.importTestIdx == 1) {
+            } else if (window.importTestIdx === 1) {
               files = [new File(["Test file two.\n\nWith a paragraph break.\n\n---\n\nAnd a split break."], "foo2.md", { type: "text/plain", })];
               window.importTestIdx++;
-            } else if (window.importTestIdx == 2 || window.importTestIdx == 3 || window.importTestIdx == 4) {
+            } else if (window.importTestIdx === 2 || window.importTestIdx === 3 || window.importTestIdx === 4) {
               files =
                 [ new File(["Test file three.\n\nWith a paragraph break.\n\n---\n\nAnd a split break."], "bar1.txt", { type: "text/plain", })
                 , new File(["Test file four.\n\nWith a paragraph break.\n\n---\n\nAnd a split break."], "bar2", { type: "text/plain", })
                 ];
               window.importTestIdx++;
-            } else if (window.importTestIdx == 5) {
+            } else if (window.importTestIdx === 5) {
               files =
                 [ new File(["Test file five.\n\nWith a paragraph break.\n!g\n\nAnd a split break."], "baz1.txt", { type: "text/plain", })
                 , new File(["Test file six.\n\nWith a paragraph break.!gAnd a split break."], "baz2", { type: "text/plain", })
@@ -780,7 +774,7 @@ const fromElm = (msg, elmData) => {
       let priceId = config.PRICE_DATA[elmData.currency][elmData.billing][elmData.plan];
       let userEmail = elmData.email;
       let data = await createCheckoutSession(userEmail, priceId);
-      let checkoutResult = stripe.redirectToCheckout({sessionId: data.sessionId});
+      stripe.redirectToCheckout({ sessionId: data.sessionId })
     },
 
     SocketSend: () => {},
@@ -799,12 +793,12 @@ const fromElm = (msg, elmData) => {
 
 
 function wsSend(msgTag, msgData, unbufferedOnly) {
-  if (unbufferedOnly == undefined) {
+  if (unbufferedOnly === undefined) {
     unbufferedOnly = false;
   }
-  const bufferCheck = unbufferedOnly ? ws.bufferedAmount == 0 : true;
+  const bufferCheck = unbufferedOnly ? ws.bufferedAmount === 0 : true;
 
-  if (ws.readyState == ws.OPEN && bufferCheck) {
+  if (ws.readyState === ws.OPEN && bufferCheck) {
     ws.send(JSON.stringify({t: msgTag, d: msgData}));
   } else {
     console.log("WS not ready to send: ", msgTag, msgData);
@@ -902,7 +896,7 @@ function treeToGkw (tree) {
 }
 
 function treeHelper (cards, parentId) {
-  let children = _.chain(cards).filter(c => c.parentId == parentId).sortBy('position').value();
+  let children = _.chain(cards).filter(c => c.parentId === parentId).sortBy('position').value();
   return children.map(c => {
     let children = treeHelper(cards, c.id);
     return {id: c.id, content: c.content, children}
@@ -933,7 +927,6 @@ async function loadGitLikeDocument (treeId) {
     let pullResult = await data.pull(db, remoteDB, treeId, "LoadDocument");
 
     if (pullResult !== null) {
-      remoteExists = true;
       pullResult[1].forEach(item => savedObjectIds.add(item));
       toElm(pullResult[0], "appMsgs", "GitDataReceived");
     } else {
@@ -955,7 +948,7 @@ async function loadGitLikeDocument (treeId) {
   loadDocListAndSend("LoadDocument");
 }
 
-async function loadDocListAndSend(source) {
+async function loadDocListAndSend() {
   loadingDocs = true;
   let docList = await dexie.trees.toArray().catch(e => {console.error(e); return []});
   toElm(docList.filter(d => d.deletedAt == null).map(treeDocToMetadata),  "documentListChanged");
@@ -1021,15 +1014,6 @@ async function logout() {
   }
 }
 
-function prefix(id) {
-  return TREE_ID + "/" + id;
-}
-
-function unprefix(id) {
-  return id.slice(TREE_ID.length + 1);
-}
-
-
 function pullSuccessHandler (pulledData) {
   if (pulledData === null) { return }
 
@@ -1043,7 +1027,7 @@ function pushSuccessHandler (info) {
 
 /* === DOM Events and Handlers === */
 
-document.ondragenter = (ev) => {
+document.ondragenter = () => {
   if (!draggingInternal && !externalDrag) {
     externalDrag = true;
     toElm(null, "docMsgs", "DragExternalStarted");
@@ -1056,7 +1040,7 @@ let scrollVerticalInterval = 15;
 // Prevent default events, for file dragging.
 document.ondragover = document.ondrop = (ev) => {
   // Clear autoscroll
-  if (ev.type == "dragend" || ev.type == "drop") {
+  if (ev.type === "dragend" || ev.type === "drop") {
     clearInterval(horizontalScrollInterval);
     clearInterval(verticalScrollInterval);
     horizontalScrollInterval = null;
@@ -1064,12 +1048,12 @@ document.ondragover = document.ondrop = (ev) => {
   }
 
   // Don't modify anything if dragging/dropping in textareas
-  if (ev.target.className == "edit mousetrap") {
+  if (ev.target.className === "edit mousetrap") {
     return;
   }
 
   // Autoscroll
-  if (ev.type == "dragover") {
+  if (ev.type === "dragover") {
     let relX = (ev.clientX - sidebarWidth )/ (viewportWidth - sidebarWidth);
     let relY = (ev.clientY - 40) / (viewportHeight - 40); // 40 for header height
 
@@ -1085,7 +1069,7 @@ document.ondragover = document.ondrop = (ev) => {
       let colToScroll = ev.path.filter(x => x.classList && x.classList.contains('column'))[0];
       if(!verticalScrollInterval) {
         verticalScrollInterval = setInterval(()=>{
-          colToScroll.scrollBy(0, 1*scrollVerticalAmount);
+          colToScroll.scrollBy(0, scrollVerticalAmount);
         }, scrollVerticalInterval);
       }
     } else {
@@ -1113,7 +1097,7 @@ document.ondragover = document.ondrop = (ev) => {
       horizontalScrollInterval = null;
     }
   }
-  if (externalDrag && ev.type == "drop") {
+  if (externalDrag && ev.type === "drop") {
     externalDrag = false;
     let dropText = ev.dataTransfer.getData("text");
     if (dropText.startsWith("obsidian://open?")) {
@@ -1123,7 +1107,7 @@ document.ondragover = document.ondrop = (ev) => {
     } else {
       toElm(dropText, "docMsgs", "DropExternal");
     }
-  } else if (draggingInternal && ev.type == "drop") {
+  } else if (draggingInternal && ev.type === "drop") {
     draggingInternal = false;
   }
   ev.preventDefault();
@@ -1157,7 +1141,7 @@ const debouncedScrollHorizontal = _.debounce(helpers.scrollHorizontal, 200);
 Mousetrap.bind(helpers.shortcuts, function (e, s) {
   switch (s) {
     case "enter":
-      if (document.activeElement.nodeName == "TEXTAREA") {
+      if (document.activeElement.nodeName === "TEXTAREA") {
         return;
       } else {
         toElm("enter","docMsgs", "Keyboard");
@@ -1195,7 +1179,7 @@ Mousetrap.bind(helpers.shortcuts, function (e, s) {
     case "alt+4":
     case "alt+5":
     case "alt+6":
-      if (document.activeElement.nodeName == "TEXTAREA") {
+      if (document.activeElement.nodeName === "TEXTAREA") {
         let num = Number(s[s.length - 1]);
         let currentText = document.activeElement.value;
         let newText = currentText.replace(/^(#{0,6}) ?(.*)/, num === 0 ? '$2' : '#'.repeat(num) + ' $2');
