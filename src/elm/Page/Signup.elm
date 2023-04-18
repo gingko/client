@@ -85,7 +85,7 @@ type Msg
     | ToggleShowPassword
     | ToggledOptIn Bool
     | CompletedSignup (Result Http.Error ( LoggedIn, Language ))
-    | GotUser LoggedIn
+    | UserSaved
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -145,7 +145,7 @@ update msg model =
             in
             ( { model | errors = [ errorMsg ], password = "" }, Cmd.none )
 
-        GotUser _ ->
+        UserSaved ->
             -- If I want to route to different welcome trees, based on e.g. isMac or language, here is where I can.
             ( model, Route.replaceUrl model.navKey (Route.Import Template.WelcomeTree) )
 
@@ -327,5 +327,5 @@ viewError field error =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
-    Session.userLoggedIn GotUser
+subscriptions _ =
+    Session.userLoggedIn UserSaved

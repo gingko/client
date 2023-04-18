@@ -274,7 +274,6 @@ type Msg
     = NoOp
     | GotDocMsg Page.Doc.Msg
     | GotFullscreenMsg Fullscreen.Msg
-    | UserLoggedIn LoggedIn
     | TimeUpdate Time.Posix
     | Pull
     | SettingsChanged Json.Value
@@ -318,7 +317,7 @@ type Msg
     | Exported String (Result Http.Error Bytes)
     | PrintRequested
       -- HELP Modal
-    | ToggledHelpMenu Bool
+    | ToggledHelpMenu
     | ClickedShowVideos
     | VideoViewerOpened
     | VideoViewerMsg VideoViewer.Msg
@@ -421,9 +420,6 @@ update msg model =
 
                 Empty _ _ ->
                     ( model, Cmd.none )
-
-        UserLoggedIn newSession ->
-            ( model |> updateSession newSession, Route.pushUrl model.navKey Route.Login )
 
         TimeUpdate time ->
             ( model |> updateGlobalData (GlobalData.updateTime time globalData)
@@ -1075,7 +1071,7 @@ update msg model =
             ( { model | exportSettings = Tuple.mapSecond (always expFormat) model.exportSettings }, Cmd.none )
 
         -- HELP Modal
-        ToggledHelpMenu _ ->
+        ToggledHelpMenu ->
             ( { model | modalState = HelpScreen }, Cmd.none )
 
         ClickedShowVideos ->
@@ -1815,7 +1811,7 @@ view ({ documentState } as model) =
             , tooltipRequested = TooltipRequested
             , tooltipClosed = TooltipClosed
             , clickedSwitcher = SwitcherOpened
-            , clickedHelp = ToggledHelpMenu True
+            , clickedHelp = ToggledHelpMenu
             , clickedEmailSupport = ClickedEmailSupport
             , clickedShowVideos = ClickedShowVideos
             , languageMenuRequested = LanguageMenuRequested
@@ -2228,7 +2224,6 @@ subscriptions model =
                 Sub.none
         , DocList.subscribe ReceivedDocuments
         , Session.userSettingsChange SettingsChanged
-        , Session.userLoggedIn UserLoggedIn
         , case model.modalState of
             ImportModal importModalModel ->
                 ImportModal.subscriptions importModalModel

@@ -77,7 +77,7 @@ type Msg
     | EnteredPassConfirm String
     | Blurred Field
     | CompletedResetPassword (Result Http.Error ( LoggedIn, Language ))
-    | GotUser LoggedIn
+    | UserSaved
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -123,7 +123,7 @@ update msg model =
             ( { model | passwordConfirm = passwordConfirm }, Cmd.none )
 
         CompletedResetPassword (Ok ( user, lang )) ->
-            ( model, Session.storeLogin lang user )
+            ( { model | transition = Just user }, Session.storeLogin lang user )
 
         CompletedResetPassword (Err error) ->
             let
@@ -151,8 +151,8 @@ update msg model =
             in
             ( { model | errors = [ errorMsg ], password = "", passwordConfirm = "" }, Cmd.none )
 
-        GotUser user ->
-            ( { model | transition = Just user }, Nav.replaceUrl model.navKey "/" )
+        UserSaved ->
+            ( model, Nav.replaceUrl model.navKey "/" )
 
 
 passwordValidator : Validator ( Field, String ) Model
@@ -247,4 +247,4 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Session.userLoggedIn GotUser
+    Session.userLoggedIn UserSaved

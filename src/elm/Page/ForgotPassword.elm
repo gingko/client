@@ -71,7 +71,7 @@ type Msg
     = SubmittedForm
     | EnteredEmail String
     | CompletedForgotPassword (Result Http.Error ( LoggedIn, Language ))
-    | GotUser LoggedIn
+    | UserSaved
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -90,8 +90,8 @@ update msg model =
         EnteredEmail email ->
             ( { model | email = email }, Cmd.none )
 
-        CompletedForgotPassword (Ok _) ->
-            ( { model | sent = True }, Cmd.none )
+        CompletedForgotPassword (Ok ( user, lang )) ->
+            ( { model | transition = Just user, sent = True }, Cmd.none )
 
         CompletedForgotPassword (Err error) ->
             let
@@ -119,8 +119,8 @@ update msg model =
             in
             ( { model | errors = [ errorMsg ] }, Cmd.none )
 
-        GotUser user ->
-            ( { model | transition = Just user }, Route.pushUrl model.navKey Route.Root )
+        UserSaved ->
+            ( model, Route.pushUrl model.navKey Route.Root )
 
 
 modelValidator : Validator ( Field, String ) Model
@@ -200,5 +200,5 @@ view model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
-    Session.userLoggedIn GotUser
+subscriptions _ =
+    Session.userLoggedIn UserSaved

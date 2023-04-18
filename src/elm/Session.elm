@@ -472,12 +472,12 @@ store lang session =
     send <| StoreUser (encode lang session)
 
 
-userLoggedIn : (LoggedIn -> msg) -> Sub msg
+userLoggedIn : msg -> Sub msg
 userLoggedIn toMsg =
-    userLoggedInMsg (decodeLoggedIn >> toMsg)
+    userLoggedInMsg (always toMsg)
 
 
-port userLoggedInMsg : (Dec.Value -> msg) -> Sub msg
+port userLoggedInMsg : (() -> msg) -> Sub msg
 
 
 port userSettingsChange : (Dec.Value -> msg) -> Sub msg

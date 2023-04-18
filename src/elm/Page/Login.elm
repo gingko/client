@@ -5,7 +5,7 @@ import Browser.Dom
 import Browser.Navigation as Nav
 import GlobalData exposing (GlobalData)
 import Html exposing (..)
-import Html.Attributes exposing (autocomplete, autofocus, class, for, href, id, placeholder, src, type_, value)
+import Html.Attributes exposing (autocomplete, autofocus, class, for, href, id, src, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Html.Extra exposing (viewIf)
 import Http exposing (Error(..))
@@ -82,7 +82,7 @@ type Msg
     | EnteredPassword String
     | ToggleShowPassword
     | CompletedLogin (Result Http.Error ( LoggedIn, Translation.Language ))
-    | GotUser LoggedIn
+    | UserSaved
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -139,7 +139,7 @@ update msg model =
             in
             ( { model | errors = [ errorMsg ], password = "" }, Cmd.none )
 
-        GotUser _ ->
+        UserSaved ->
             ( model, Route.pushUrl model.navKey Route.Root )
 
 
@@ -266,4 +266,4 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Session.userLoggedIn GotUser
+    Session.userLoggedIn UserSaved
