@@ -145,6 +145,9 @@ handleUrlChange url model =
                 [ "new" ] ->
                     Page.DocNew.init navKey globalData loggedInSession |> updateWith DocNew GotDocNewMsg
 
+                [ "copy", dbName ] ->
+                    Page.Copy.init navKey globalData loggedInSession dbName |> updateWith Copy GotCopyMsg
+
                 [ dbName ] ->
                     let
                         isNew =
