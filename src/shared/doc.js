@@ -82,7 +82,7 @@ initElmAndPorts();
 async function initElmAndPorts() {
   let sessionMaybe = getSessionData();
   let sessionData = sessionMaybe == null ? {} : sessionMaybe;
-  //console.log("sessionData found", sessionData);
+  console.log("sessionData found", JSON.stringify(sessionData));
   if (sessionData.email) {
     email = sessionData.email;
     await setUserDbs(sessionData.email);
@@ -166,13 +166,13 @@ async function setUserDbs(eml) {
     try {
       switch (data.t) {
         case 'user':
-          //console.log('user', data.d);
+          console.log('user', JSON.stringify(data.d));
           let currentSessionData = getSessionData();
           if (currentSessionData && currentSessionData.email === data.d.id) {
             // Merge properties
             let newSessionData = Object.assign({}, currentSessionData, _.omit(data.d, ['id', 'createdAt']));
             if (!_.isEqual(currentSessionData, newSessionData)) {
-              setSessionData(newSessionData);
+              setSessionData(newSessionData, "user ws msg");
               setTimeout(() => gingko.ports.userSettingsChange.send(newSessionData), 0);
             }
           }
@@ -227,10 +227,11 @@ async function setUserDbs(eml) {
         }
 
         case 'userSettingOk':
+          console.log('userSettingOk', data.d)
           const { d } = data
           let currSessionData = getSessionData();
           currSessionData[d[0]] = d[1];
-          setSessionData(currSessionData);
+          setSessionData(currSessionData, "userSettingOk ws msg");
           break;
       }
     } catch (e) {
@@ -292,7 +293,7 @@ const stripe = Stripe(config.STRIPE_PUBLIC_KEY);
 /* === Elm / JS Interop === */
 
 function toElm(data, portName, tagName) {
-  //console.log("toElm", portName, tagName, data);
+  console.log("toElm", portName, tagName, data);
   if (!gingko) { return; }
   let portExists = gingko.ports.hasOwnProperty(portName);
   let tagGiven = typeof tagName == "string";
@@ -312,7 +313,7 @@ function toElm(data, portName, tagName) {
 }
 
 const fromElm = (msg, elmData) => {
-  //console.log("fromElm", msg, elmData);
+  console.log("fromElm", msg, elmData);
   window.elmMessages.push({tag: msg, data: elmData});
   window.elmMessages = window.elmMessages.slice(-10);
 
@@ -320,7 +321,7 @@ const fromElm = (msg, elmData) => {
     // === SPA ===
 
     StoreUser: async () => {
-      setSessionData(elmData);
+      setSessionData(elmData, "StoreUser");
       await setUserDbs(elmData.email);
       const timestamp = Date.now();
       elmData.seed = timestamp;
@@ -670,7 +671,7 @@ const fromElm = (msg, elmData) => {
         default:
           let currSessionData = getSessionData();
           currSessionData[key] = value;
-          setSessionData(currSessionData);
+          setSessionData(currSessionData, "SaveUserSetting");
           break;
       }
     },
@@ -678,7 +679,7 @@ const fromElm = (msg, elmData) => {
     SetSidebarState: () => {
       let currSessionData = getSessionData();
       currSessionData.sidebarOpen = elmData;
-      setSessionData(currSessionData);
+      setSessionData(currSessionData, "SetSidebarState");
       window.requestAnimationFrame(()=>{
         sidebarWidth = document.getElementById('sidebar').clientWidth;
       });
@@ -958,7 +959,8 @@ function getSessionData() {
   }
 }
 
-function setSessionData(data) {
+function setSessionData(data, source) {
+  console.log("Setting session data:",source, JSON.stringify(data))
   localStorage.setItem(sessionStorageKey, JSON.stringify(data));
 }
 

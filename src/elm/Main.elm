@@ -143,7 +143,26 @@ handleUrlChange url model =
             ( model, Cmd.none )
 
         [ "new" ] ->
-            ( model, Cmd.none )
+            case toSession model of
+                LoggedInSession session ->
+                    Page.DocNew.init navKey globalData session |> updateWith DocNew GotDocNewMsg
+
+                GuestSession guestSession ->
+                    Page.Login.init navKey globalData guestSession
+                        |> updateWith Login GotLoginMsg
+                        |> replaceUrl "login"
+
+        [ "upgrade", "success" ] ->
+            case toSession model of
+                LoggedInSession session ->
+                    ( PaymentSuccess { globalData = globalData, session = session, navKey = navKey }
+                    , Cmd.none
+                    )
+
+                GuestSession guestSession ->
+                    Page.Login.init navKey globalData guestSession
+                        |> updateWith Login GotLoginMsg
+                        |> replaceUrl "login"
 
         [ "copy", dbName ] ->
             ( model, Cmd.none )
@@ -392,7 +411,16 @@ update msg model =
                     ( model, Nav.load href )
 
         ( SettingsChanged json, PaymentSuccess webSessionData ) ->
-            ( PaymentSuccess { webSessionData | session = Session.sync json (GlobalData.currentTime webSessionData.globalData) webSessionData.session }, Cmd.none )
+            ( PaymentSuccess
+                { webSessionData
+                    | session =
+                        Session.sync
+                            json
+                            (GlobalData.currentTime webSessionData.globalData)
+                            webSessionData.session
+                }
+            , Cmd.none
+            )
 
         ( GotSignupMsg signupMsg, Signup signupModel ) ->
             Page.Signup.update signupMsg signupModel

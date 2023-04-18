@@ -8,5 +8,5 @@ INSERT OR REPLACE INTO cards VALUES('lYTJe:node-230512886','lYTJe',replace('# 3\
 INSERT OR REPLACE INTO cards VALUES('CJoWu:1','CJoWu','Hello Test doc',NULL,0.0,'1607259388270:0:a8eb430c',0);
 INSERT OR REPLACE INTO cards VALUES('CJoWu:node-1615554785','CJoWu','Child card','CJoWu:1',0.0,'1607259388270:1:b0eccef2',0);
 INSERT OR REPLACE INTO cards VALUES('CJoWu:node-132318239','CJoWu','Another Child card','CJoWu:1',1.0,'1607259388270:1:ca65368d',0);
-INSERT OR REPLACE INTO users VALUES('cypress@testing.com','2d9a0faceba97d9a24c085543a3dd151','6f8ed5380afb3e3a418d0c747d10700bf1971d52',1680552092110,1680552092111,'trial:1681761692110','en');
+INSERT OR REPLACE INTO users VALUES('cypress@testing.com','d7cc8db0933d61b20591d84282fb4b2a','012e1e75f464154411db4f1a3e6fded149e0c30e',unixepoch()*1000,unixepoch()*1000,'trial:' || CAST(unixepoch()+ 14*24*60*60)*1000 AS TEXT),'en');
 COMMIT;

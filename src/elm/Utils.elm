@@ -1,9 +1,9 @@
-module Utils exposing (decodeDebug, emptyText, getFieldErrors, hash, hexEncode, onClickStop, randomPositiveInt, text, textNoTr)
+module Utils exposing (emptyText, getFieldErrors, hash, hexEncode, onClickStop, randomPositiveInt, text, textNoTr)
 
 import Hex
 import Html exposing (Html)
 import Html.Events exposing (stopPropagationOn)
-import Json.Decode as Dec exposing (Decoder)
+import Json.Decode as Dec
 import Murmur3 exposing (hashString)
 import Random
 import Translation exposing (Language, TranslationId, tr)
@@ -58,20 +58,3 @@ getFieldErrors field errs =
     errs
         |> List.filter ((==) field << Tuple.first)
         |> List.map Tuple.second
-
-
-decodeDebug : String -> Decoder a -> Decoder a
-decodeDebug message decoder =
-    Dec.value
-        |> Dec.andThen (debugHelper message decoder)
-
-
-debugHelper : String -> Decoder a -> Dec.Value -> Decoder a
-debugHelper message decoder value =
-    {-
-       let
-           _ =
-               Debug.log message (Dec.decodeValue decoder value)
-       in
-    -}
-    decoder

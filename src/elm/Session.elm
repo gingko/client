@@ -221,12 +221,12 @@ decode json =
         Ok session ->
             LoggedInSession session
 
-        Err err ->
+        Err _ ->
             case Dec.decodeValue decoderGuestSession json of
                 Ok session ->
                     GuestSession session
 
-                Err err2 ->
+                Err _ ->
                     GuestSession
                         (Guest
                             { fileMenuOpen = False
@@ -234,21 +234,6 @@ decode json =
                             , fromLegacy = False
                             }
                         )
-
-
-decodeLoggedIn : Dec.Value -> LoggedIn
-decodeLoggedIn json =
-    case Dec.decodeValue decoderLoggedIn json of
-        Ok session ->
-            session
-
-        Err err ->
-            LoggedIn
-                { fileMenuOpen = False
-                , lastDocId = Nothing
-                , fromLegacy = False
-                }
-                (UserData "" Upgrade.init (Trial (Time.millisToPosix 0)) Nothing False ModifiedAt DocList.init)
 
 
 decoderGuestSession : Dec.Decoder Guest
@@ -268,7 +253,7 @@ decoderGuestSession =
 decoderLoggedIn : Dec.Decoder LoggedIn
 decoderLoggedIn =
     Dec.succeed
-        (\email t legacy side confirmTime payStat trayOpen sortCriteria lastDoc ->
+        (\email t legacy side confirmTime payStat trayOpen sortCriteria _ ->
             let
                 newPayStat =
                     case payStat of
@@ -320,8 +305,8 @@ decodePaymentStatus =
                     "customer" :: custId :: [] ->
                         Customer custId |> Dec.succeed
 
-                    _ ->
-                        Dec.fail "Invalid payment status"
+                    other ->
+                        Dec.fail ("Invalid payment status:[" ++ String.join "," other ++ "]")
             )
 
 
@@ -333,7 +318,9 @@ responseDecoder session =
 
         builder : String -> PaymentStatus -> Maybe Time.Posix -> Language -> List Metadata -> ( LoggedIn, Language )
         builder email payStat confAt lang docs =
-            ( LoggedIn sessionData (UserData email Upgrade.init payStat confAt True ModifiedAt (DocList.fromList docs))
+            ( LoggedIn
+                sessionData
+                (UserData email Upgrade.init payStat confAt True ModifiedAt (DocList.fromList docs))
             , lang
             )
     in
