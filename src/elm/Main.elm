@@ -339,10 +339,18 @@ type Msg
     | GotImportMsg Page.Import.Msg
     | GotDocNewMsg Page.DocNew.Msg
     | GotAppMsg Page.App.Msg
+    | UserLoggedOut
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    let
+        navKey =
+            getNavKey model
+
+        globalData =
+            toGlobalData model
+    in
     case ( msg, model ) of
         ( ChangedUrl url, _ ) ->
             handleUrlChange url model
@@ -353,7 +361,7 @@ update msg model =
                     if Page.App.isDirty appModel then
                         let
                             saveShortcut =
-                                if GlobalData.isMac (toGlobalData model) then
+                                if GlobalData.isMac globalData then
                                     "⌘+enter"
 
                                 else
@@ -362,7 +370,7 @@ update msg model =
                         ( model, send <| Alert ("You have unsaved changes!\n" ++ saveShortcut ++ " to save.") )
 
                     else
-                        ( model, Nav.pushUrl (getNavKey model) (Url.toString url) )
+                        ( model, Nav.pushUrl navKey (Url.toString url) )
 
                 Browser.External href ->
                     ( model, Nav.load href )
@@ -370,7 +378,7 @@ update msg model =
         ( ClickedLink urlRequest, _ ) ->
             case urlRequest of
                 Browser.Internal url ->
-                    ( model, Nav.pushUrl (getNavKey model) (Url.toString url) )
+                    ( model, Nav.pushUrl navKey (Url.toString url) )
 
                 Browser.External href ->
                     ( model, Nav.load href )
@@ -409,6 +417,16 @@ update msg model =
         ( GotAppMsg appMsg, App appModel ) ->
             Page.App.update appMsg appModel
                 |> updateWith App GotAppMsg
+
+        ( UserLoggedOut, _ ) ->
+            case toSession model of
+                LoggedInSession session ->
+                    Page.Login.init navKey globalData (Session.toGuest session)
+                        |> updateWith Login GotLoginMsg
+                        |> replaceUrl "/login"
+
+                _ ->
+                    ( model, Cmd.none )
 
         _ ->
             ( model, Cmd.none )
@@ -506,6 +524,14 @@ subscriptions model =
             Sub.map GotAppMsg (Page.App.subscriptions appModel)
 
 
+globalSubscriptions : Model -> Sub Msg
+globalSubscriptions model =
+    Sub.batch
+        [ subscriptions model
+        , Session.userLoggedOut UserLoggedOut
+        ]
+
+
 
 -- MAIN
 
@@ -516,7 +542,7 @@ main =
         { init = init
         , view = view
         , update = update
-        , subscriptions = subscriptions
+        , subscriptions = globalSubscriptions
         , onUrlRequest = ClickedLink
         , onUrlChange = ChangedUrl
         }

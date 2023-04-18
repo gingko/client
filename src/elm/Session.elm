@@ -1,4 +1,4 @@
-port module Session exposing (Guest, LoggedIn, PaymentStatus(..), Session(..), confirmEmail, daysLeft, decode, documents, fileMenuOpen, fromLegacy, getDocName, getMetadata, isNotConfirmed, lastDocId, logout, name, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, setFileOpen, setShortcutTrayOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, updateDocuments, updateUpgrade, upgradeModel, userLoggedIn, userSettingsChange)
+port module Session exposing (Guest, LoggedIn, PaymentStatus(..), Session(..), confirmEmail, daysLeft, decode, documents, fileMenuOpen, fromLegacy, getDocName, getMetadata, isNotConfirmed, lastDocId, logout, name, paymentStatus, requestForgotPassword, requestLogin, requestResetPassword, requestSignup, setFileOpen, setShortcutTrayOpen, setSortBy, shortcutTrayOpen, sortBy, storeLogin, storeSignup, sync, toGuest, updateDocuments, updateUpgrade, upgradeModel, userLoggedIn, userLoggedOut, userSettingsChange)
 
 import Coders exposing (sortByDecoder)
 import Doc.List as DocList exposing (Model(..))
@@ -463,6 +463,11 @@ logout =
     send <| LogoutUser
 
 
+toGuest : LoggedIn -> Guest
+toGuest (LoggedIn sessionData _) =
+    Guest sessionData
+
+
 
 -- PORTS
 
@@ -477,7 +482,15 @@ userLoggedIn toMsg =
     userLoggedInMsg (always toMsg)
 
 
+userLoggedOut : msg -> Sub msg
+userLoggedOut toMsg =
+    userLoggedOutMsg (always toMsg)
+
+
 port userLoggedInMsg : (() -> msg) -> Sub msg
+
+
+port userLoggedOutMsg : (() -> msg) -> Sub msg
 
 
 port userSettingsChange : (Dec.Value -> msg) -> Sub msg
