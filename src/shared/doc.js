@@ -325,7 +325,7 @@ const fromElm = (msg, elmData) => {
       const timestamp = Date.now();
       elmData.seed = timestamp;
       elmData.currentTime = timestamp;
-      setTimeout(() => gingko.ports.userLoggedInMsg.send(), 0);
+      setTimeout(() => gingko.ports.userLoggedInMsg.send(null), 0);
     },
 
     LogoutUser : async () => {

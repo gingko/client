@@ -1,4 +1,4 @@
-module Page.ResetPassword exposing (Model, Msg, globalData, init, navKey, subscriptions, toSession, update, view)
+module Page.ResetPassword exposing (Model, Msg, globalData, init, navKey, subscriptions, toSession, transition, update, view)
 
 import Browser.Dom
 import Browser.Navigation as Nav
@@ -54,6 +54,11 @@ init nKey gData session resetToken =
 toSession : Model -> Session
 toSession { session } =
     session |> GuestSession
+
+
+transition : Model -> Maybe LoggedIn
+transition model =
+    model.transition
 
 
 navKey : Model -> Nav.Key

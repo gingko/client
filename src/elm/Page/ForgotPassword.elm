@@ -1,4 +1,4 @@
-module Page.ForgotPassword exposing (Model, Msg, globalData, init, navKey, subscriptions, toSession, update, view)
+module Page.ForgotPassword exposing (Model, Msg, globalData, init, navKey, subscriptions, toSession, transition, update, view)
 
 import Browser.Navigation as Nav
 import GlobalData exposing (GlobalData)
@@ -51,6 +51,11 @@ init nKey gData session email_ =
 toSession : Model -> Session
 toSession model =
     model.session |> GuestSession
+
+
+transition : Model -> Maybe LoggedIn
+transition model =
+    model.transition
 
 
 navKey : Model -> Nav.Key

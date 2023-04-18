@@ -1,4 +1,4 @@
-module Page.Signup exposing (Model, Msg, globalData, init, navKey, subscriptions, toSession, update, view)
+module Page.Signup exposing (Model, Msg, globalData, init, navKey, subscriptions, toSession, transition, update, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom
@@ -61,6 +61,11 @@ init nKey gData session =
 toSession : Model -> Session
 toSession { session } =
     session |> GuestSession
+
+
+transition : Model -> Maybe LoggedIn
+transition model =
+    model.transition
 
 
 navKey : Model -> Nav.Key
