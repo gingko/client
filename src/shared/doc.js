@@ -80,27 +80,15 @@ const sessionStorageKey = "gingko-session-storage";
 initElmAndPorts();
 
 async function initElmAndPorts() {
-  let sessionMaybe = getSessionData();
-  let sessionData = sessionMaybe == null ? {} : sessionMaybe;
-  console.log("sessionData found", JSON.stringify(sessionData));
-  if (sessionData.email) {
-    email = sessionData.email;
-    await setUserDbs(sessionData.email);
-    sessionData.sidebarOpen = (sessionData.hasOwnProperty('sidebarOpen')) ?  sessionData.sidebarOpen : false;
-    sidebarWidth = sessionData.sidebarOpen ? 215 : 40;
-    lang = sessionData.language || "en";
-  }
+  let flags = getFlags();
 
-  // Dynamic and global session info
-  let timestamp = Date.now();
-  sessionData.seed = timestamp;
-  sessionData.isMac = platform.os.family === 'OS X';
-  sessionData.currentTime = timestamp;
-  sessionData.fromLegacy = document.referrer.startsWith(config.LEGACY_URL);
+  if (flags.email) {
+    await setUserDbs(flags.email);
+  }
 
   gingko = Elm.Main.init({
     node: document.getElementById("elm"),
-    flags: sessionData,
+    flags: flags,
   });
 
   // All messages from Elm
@@ -113,30 +101,30 @@ async function initElmAndPorts() {
     fromElm(e.data.tag, e.data.data);
   };
 
-  window.checkboxClicked = (cardId, number) => {
-    toElm([cardId, number], "docMsgs", "CheckboxClicked");
-  };
+  initEventListeners();
+}
 
-  // Prevent closing if unsaved changes exist.
-  window.addEventListener('beforeunload', (event) => {
-    if (DIRTY) {
-      event.preventDefault();
-      event.returnValue = '';
-    }
-  });
 
-  // Fullscreen change event
-  // This is so that we can use "Esc" once to leave fullscreen mode.
-  if (screenfull.isEnabled) {
-    screenfull.on('change', () => {
-      toElm(screenfull.isFullscreen, "docMsgs", "FullscreenChanged")
-    });
+function getFlags() {
+  let sessionMaybe = getSessionData();
+  let sessionData = sessionMaybe == null ? {} : sessionMaybe;
+  console.log("sessionData found", JSON.stringify(sessionData));
+  if (sessionData.email) {
+    email = sessionData.email;
+    sessionData.sidebarOpen = (sessionData.hasOwnProperty('sidebarOpen')) ?  sessionData.sidebarOpen : false;
+    sidebarWidth = sessionData.sidebarOpen ? 215 : 40;
+    lang = sessionData.language || "en";
   }
 
-  window.addEventListener('beforeprint', (event) => {
-    toElm(null, "docMsgs", "WillPrint");
-  })
+  // Dynamic and global session info
+  let timestamp = Date.now();
+  sessionData.seed = timestamp;
+  sessionData.isMac = platform.os.family === 'OS X';
+  sessionData.currentTime = timestamp;
+  sessionData.fromLegacy = document.referrer.startsWith(config.LEGACY_URL);
+  return sessionData;
 }
+
 
 async function setUserDbs(eml) {
   email = eml;
@@ -153,91 +141,7 @@ async function setUserDbs(eml) {
   }
 
   db = new PouchDB(userDbName);
-
-  ws = new PersistentWebSocket(window.location.origin.replace('http','ws'));
-
-  ws.onopen = () => {
-    console.log('connected');
-    toElm(null, "appMsgs", "SocketConnected");
-  }
-
-  ws.onmessage = async (e) => {
-    const data = JSON.parse(e.data);
-    try {
-      switch (data.t) {
-        case 'user':
-          console.log('user', JSON.stringify(data.d));
-          let currentSessionData = getSessionData();
-          if (currentSessionData && currentSessionData.email === data.d.id) {
-            // Merge properties
-            let newSessionData = Object.assign({}, currentSessionData, _.omit(data.d, ['id', 'createdAt']));
-            if (!_.isEqual(currentSessionData, newSessionData)) {
-              setSessionData(newSessionData, "user ws msg");
-              setTimeout(() => gingko.ports.userSettingsChange.send(newSessionData), 0);
-            }
-          }
-          break;
-
-        case 'cards':
-          await dexie.cards.bulkPut(data.d.map(c => ({...c, synced: true})));
-          break;
-
-        case 'pushOk':
-          hlc.recv(data.d);
-          toElm(data, "appMsgs", "PushOk");
-          break;
-
-        case 'doPull':
-          // Server says this tree has changes
-          if (data.d === TREE_ID) {
-            let cards = await dexie.cards.where('treeId').equals(TREE_ID).toArray();
-            pull(TREE_ID, getChk(TREE_ID, cards));
-          }
-          break;
-
-        case 'trees':
-          await dexie.trees.bulkPut(data.d.map(t => ({...t, synced : true})));
-          break;
-
-        case 'treesOk':
-          await dexie.trees.where('updatedAt').belowOrEqual(data.d).modify({synced: true});
-          break;
-
-        case 'historyMeta': {
-          const {tr, d} = data;
-          const snapshotData = d.map(hmd => ({snapshot: hmd.id , treeId: tr, data: null}));
-          try {
-            await dexie.tree_snapshots.bulkAdd(snapshotData);
-          } catch (e) {
-            const errorNames = e.failures.map(f => f.name);
-            if (errorNames.every(n => n === 'ConstraintError')) {
-              // Ignore
-            } else {
-              throw e;
-            }
-          }
-          break;
-        }
-
-        case 'history': {
-          const {tr, d} = data;
-          const snapshotData = d.map(hd => ({snapshot: hd.id , treeId: tr, data: hd.d.map(d => ({...d, synced: true}))}));
-          await dexie.tree_snapshots.bulkPut(snapshotData);
-          break;
-        }
-
-        case 'userSettingOk':
-          console.log('userSettingOk', data.d)
-          const { d } = data
-          let currSessionData = getSessionData();
-          currSessionData[d[0]] = d[1];
-          setSessionData(currSessionData, "userSettingOk ws msg");
-          break;
-      }
-    } catch (e) {
-      console.log(e);
-    }
-  }
+  initWebSocket();
 
   // Sync document list with server
 
@@ -256,38 +160,166 @@ async function setUserDbs(eml) {
     firstLoad = false;
   });
 
-  LogRocket.identify(email);
+  thirdPartyScriptsInit(arguments)
+}
 
-  if (email !== "cypress@testing.com") {
-    self.fwSettings={
-      'widget_id': config.FRESHDESK_APPID
-    };
-    !function(){if("function"!=typeof window.FreshworksWidget){var n=function(){n.q.push(arguments)};n.q=[],window.FreshworksWidget=n}}()
-    let freshdeskScript = document.createElement('script');
-    freshdeskScript.setAttribute('src', `https://euc-widget.freshworks.com/widgets/${config.FRESHDESK_APPID}.js`)
-    freshdeskScript.setAttribute('async','');
-    freshdeskScript.setAttribute('defer','');
-    document.head.appendChild(freshdeskScript);
-    FreshworksWidget('hide', 'launcher');
+
+function initWebSocket () {
+  ws = new PersistentWebSocket(window.location.origin.replace('http', 'ws'))
+
+  ws.onopen = () => {
+    console.log('connected')
+    toElm(null, 'appMsgs', 'SocketConnected')
   }
 
-  if(window.location.origin === config.PRODUCTION_SERVER) {
-    self.beamer_config = {
-      product_id: config.BEAMER_APPID,
-      selector: "#notifications-icon",
-      user_id: email,
-      user_email: email
-    };
-    let beamerScript = document.createElement('script');
-    beamerScript.setAttribute('src', 'https://app.getbeamer.com/js/beamer-embed.js');
-    beamerScript.setAttribute('defer', 'defer');
-    document.head.appendChild(beamerScript);
+  ws.onmessage = async (e) => {
+    const data = JSON.parse(e.data)
+    try {
+      switch (data.t) {
+        case 'user':
+          console.log('user', JSON.stringify(data.d))
+          let currentSessionData = getSessionData()
+          if (currentSessionData && currentSessionData.email === data.d.id) {
+            // Merge properties
+            let newSessionData = Object.assign({}, currentSessionData, _.omit(data.d, ['id', 'createdAt']))
+            if (!_.isEqual(currentSessionData, newSessionData)) {
+              setSessionData(newSessionData, 'user ws msg')
+              setTimeout(() => gingko.ports.userSettingsChange.send(newSessionData), 0)
+            }
+          }
+          break
+
+        case 'cards':
+          await dexie.cards.bulkPut(data.d.map(c => ({ ...c, synced: true })))
+          break
+
+        case 'pushOk':
+          hlc.recv(data.d)
+          toElm(data, 'appMsgs', 'PushOk')
+          break
+
+        case 'doPull':
+          // Server says this tree has changes
+          if (data.d === TREE_ID) {
+            let cards = await dexie.cards.where('treeId').equals(TREE_ID).toArray()
+            pull(TREE_ID, getChk(TREE_ID, cards))
+          }
+          break
+
+        case 'trees':
+          await dexie.trees.bulkPut(data.d.map(t => ({ ...t, synced: true })))
+          break
+
+        case 'treesOk':
+          await dexie.trees.where('updatedAt').belowOrEqual(data.d).modify({ synced: true })
+          break
+
+        case 'historyMeta': {
+          const { tr, d } = data
+          const snapshotData = d.map(hmd => ({ snapshot: hmd.id, treeId: tr, data: null }))
+          try {
+            await dexie.tree_snapshots.bulkAdd(snapshotData)
+          } catch (e) {
+            const errorNames = e.failures.map(f => f.name)
+            if (errorNames.every(n => n === 'ConstraintError')) {
+              // Ignore
+            } else {
+              throw e
+            }
+          }
+          break
+        }
+
+        case 'history': {
+          const { tr, d } = data
+          const snapshotData = d.map(hd => ({
+            snapshot: hd.id,
+            treeId: tr,
+            data: hd.d.map(d => ({ ...d, synced: true }))
+          }))
+          await dexie.tree_snapshots.bulkPut(snapshotData)
+          break
+        }
+
+        case 'userSettingOk':
+          console.log('userSettingOk', data.d)
+          const { d } = data
+          let currSessionData = getSessionData()
+          currSessionData[d[0]] = d[1]
+          setSessionData(currSessionData, 'userSettingOk ws msg')
+          break
+      }
+    } catch (e) {
+      console.log(e)
+    }
   }
 }
 
 
 // External Scripts
 const stripe = Stripe(config.STRIPE_PUBLIC_KEY);
+
+function thirdPartyScriptsInit (email) {
+  LogRocket.identify(email)
+
+  if (email !== 'cypress@testing.com') {
+    self.fwSettings = {
+      'widget_id': config.FRESHDESK_APPID
+    }
+    !function () {
+      if ('function' != typeof window.FreshworksWidget) {
+        var n = function () {n.q.push(arguments)}
+        n.q = [], window.FreshworksWidget = n
+      }
+    }()
+    let freshdeskScript = document.createElement('script')
+    freshdeskScript.setAttribute('src', `https://euc-widget.freshworks.com/widgets/${config.FRESHDESK_APPID}.js`)
+    freshdeskScript.setAttribute('async', '')
+    freshdeskScript.setAttribute('defer', '')
+    document.head.appendChild(freshdeskScript)
+    FreshworksWidget('hide', 'launcher')
+  }
+
+  if (window.location.origin === config.PRODUCTION_SERVER) {
+    self.beamer_config = {
+      product_id: config.BEAMER_APPID,
+      selector: '#notifications-icon',
+      user_id: email,
+      user_email: email
+    }
+    let beamerScript = document.createElement('script')
+    beamerScript.setAttribute('src', 'https://app.getbeamer.com/js/beamer-embed.js')
+    beamerScript.setAttribute('defer', 'defer')
+    document.head.appendChild(beamerScript)
+  }
+}
+
+
+function initEventListeners () {
+  window.checkboxClicked = (cardId, number) => {
+    toElm([cardId, number], 'docMsgs', 'CheckboxClicked')
+  }
+
+  // Prevent closing if unsaved changes exist.
+  window.addEventListener('beforeunload', (event) => {
+    if (DIRTY) {
+      event.preventDefault()
+      event.returnValue = ''
+    }
+  })
+
+  // Fullscreen change event
+  // This is so that we can use "Esc" once to leave fullscreen mode.
+  if (screenfull.isEnabled) {
+    screenfull.on('change', () => {
+      toElm(screenfull.isFullscreen, 'docMsgs', 'FullscreenChanged')
+    })
+  }
+
+  window.addEventListener('beforeprint', (event) => {
+    toElm(null, 'docMsgs', 'WillPrint')
+  })
+}
 
 
 /* === Elm / JS Interop === */
