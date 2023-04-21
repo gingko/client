@@ -16,3 +16,16 @@
 // Import commands.js using ES2015 syntax:
 import './commands'
 import 'cypress-file-upload';
+
+beforeEach(() => {
+  const throttle = Cypress.env('throttle')
+  if (throttle) {
+    cy.intercept('*', (req) => {
+        req.continue((res) => {
+          // apply a delay of 1 second and a throttle of N kbps
+          res.setDelay(1000).setThrottle(parseInt(throttle, 10));
+        })
+      }
+    )
+  }
+})

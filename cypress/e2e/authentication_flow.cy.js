@@ -73,7 +73,7 @@ describe('User Signup Flow', () => {
     cy.get('#account-icon').click()
     cy.get('#account-menu')
     cy.get('#logout-button').click()
-    cy.wait('@logoutRequest')
+    cy.wait('@logoutRequest', {timeout: 10000})
     cy.getCookie('connect.sid').should('not.exist')
     expect(localStorage.getItem("gingko-session-storage")).to.be.null;
     cy.location('pathname').should('eq', '/login')
