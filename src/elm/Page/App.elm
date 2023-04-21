@@ -584,8 +584,8 @@ update msg model =
                         DocNotFound _ _ ->
                             ( model, Cmd.none )
 
-                NotFound ->
-                    ( model, Route.pushUrl model.navKey (Route.NotFound "testdb") )
+                NotFound dbName ->
+                    ( model, Route.pushUrl model.navKey (Route.NotFound dbName) )
 
         IncomingDocMsg incomingMsg ->
             let
@@ -2258,7 +2258,7 @@ type IncomingAppMsg
     | GitDataReceived Enc.Value
     | MetadataUpdate Metadata
     | SavedRemotely Time.Posix
-    | NotFound
+    | NotFound String
 
 
 subscribe : (IncomingAppMsg -> msg) -> (String -> msg) -> Sub msg
@@ -2306,7 +2306,12 @@ subscribe tagger onError =
                             onError (errorToString err)
 
                 "NotFound" ->
-                    tagger NotFound
+                    case decodeValue Json.string outsideInfo.data of
+                        Ok docId ->
+                            tagger (NotFound docId)
+
+                        Err err ->
+                            onError (errorToString err)
 
                 _ ->
                     onError <| "Unexpected info from outside: " ++ outsideInfo.tag

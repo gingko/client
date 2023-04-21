@@ -419,7 +419,7 @@ const fromElm = (msg, elmData) => {
       if (treeDoc) {
         toElm(treeDocToMetadata(treeDoc), "appMsgs", "MetadataUpdate")
       } else {
-        toElm(null, "appMsgs", "NotFound")
+        toElm(TREE_ID, "appMsgs", "NotFound")
         return;
       }
 
@@ -458,7 +458,7 @@ const fromElm = (msg, elmData) => {
           } else {
             remoteExists = false;
             if (!localExists && !remoteExists) {
-              toElm(null, "appMsgs", "NotFound")
+              toElm(elmData, "appMsgs", "NotFound")
             }
           }
         } catch (e){
@@ -950,7 +950,7 @@ async function loadGitLikeDocument (treeId) {
     } else {
       remoteExists = false;
       if (!localExists && !remoteExists) {
-        toElm(null, "appMsgs", "NotFound")
+        toElm(treeId, "appMsgs", "NotFound")
       }
     }
   } catch (e){
