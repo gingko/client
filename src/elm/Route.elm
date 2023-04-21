@@ -18,6 +18,7 @@ type Route
     | Copy String
     | Import Template
     | Upgrade Bool
+    | NotFound String
 
 
 toString : Route -> String
@@ -69,6 +70,9 @@ toString route =
                     else
                         "cancelled"
                    )
+
+        NotFound dbName ->
+            "/" ++ dbName ++ "/404-not-found"
 
 
 replaceUrl : Nav.Key -> Route -> Cmd msg

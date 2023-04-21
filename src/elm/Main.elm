@@ -42,7 +42,6 @@ type Model
     | ForgotPassword Page.ForgotPassword.Model
     | ResetPassword Page.ResetPassword.Model
       -- Logged In Pages:
-    | NotFound WebSessionData
     | PaymentSuccess WebSessionData
     | Copy Page.Copy.Model
     | Import Page.Import.Model
@@ -223,7 +222,18 @@ handleUrlChange url model =
                                 _ ->
                                     False
                     in
-                    Page.App.init navKey globalData session (Just { dbName = dbName, isNew = isNew }) |> updateWith App GotAppMsg
+                    Page.App.init navKey globalData session (Just { dbName = dbName, isNew = isNew })
+                        |> updateWith App GotAppMsg
+
+                GuestSession guestSession ->
+                    Page.Login.init navKey globalData guestSession
+                        |> updateWith Login GotLoginMsg
+                        |> replaceUrl "login"
+
+        [ dbName, "404-not-found" ] ->
+            case toSession model of
+                LoggedInSession session ->
+                    Page.App.notFound navKey globalData session |> updateWith App GotAppMsg
 
                 GuestSession guestSession ->
                     Page.Login.init navKey globalData guestSession
@@ -259,9 +269,6 @@ loginInProgress model =
 toSession : Model -> Session
 toSession model =
     case model of
-        NotFound { session } ->
-            session |> LoggedInSession
-
         PaymentSuccess { session } ->
             session |> LoggedInSession
 
@@ -293,9 +300,6 @@ toSession model =
 toGlobalData : Model -> GlobalData
 toGlobalData model =
     case model of
-        NotFound { globalData } ->
-            globalData
-
         PaymentSuccess { globalData } ->
             globalData
 
@@ -327,9 +331,6 @@ toGlobalData model =
 getNavKey : Model -> Nav.Key
 getNavKey model =
     case model of
-        NotFound { navKey } ->
-            navKey
-
         PaymentSuccess { navKey } ->
             navKey
 
@@ -490,9 +491,6 @@ updateWith toModel toMsg ( subModel, subCmd ) =
 view : Model -> Document Msg
 view model =
     case model of
-        NotFound _ ->
-            Page.NotFound.view
-
         PaymentSuccess _ ->
             Page.Message.viewSuccess
 
@@ -537,9 +535,6 @@ view model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     case model of
-        NotFound _ ->
-            Sub.none
-
         PaymentSuccess _ ->
             Session.userSettingsChange SettingsChanged
 

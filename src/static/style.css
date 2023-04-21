@@ -819,6 +819,19 @@ a.sidebar-menu-item, a.sidebar-menu-item:visited {
 #empty-message #new-button:hover {
   background: var(--background-sidebar-menu);
 }
+#doc-error-message {
+  grid-area: document;
+  align-self: center;
+  justify-self: center;
+  padding: 60px;
+  border: 2px solid rgba(128,0,0,0.4);
+  border-radius: 4px;
+  background: rgba(255,241,241,1);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
 #document-header {
   grid-area: document-header;

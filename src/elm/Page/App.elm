@@ -1,4 +1,4 @@
-port module Page.App exposing (Model, Msg, getTitle, init, isDirty, navKey, subscriptions, toGlobalData, toSession, update, view)
+port module Page.App exposing (Model, Msg, getTitle, init, isDirty, navKey, notFound, subscriptions, toGlobalData, toSession, update, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -76,6 +76,7 @@ type alias Model =
 type DocumentState
     = Empty GlobalData LoggedIn
     | Doc DocState
+    | DocNotFound GlobalData LoggedIn
 
 
 type alias DocState =
@@ -113,24 +114,10 @@ type ModalState
     | UpgradeModal
 
 
-defaultModel : Nav.Key -> GlobalData -> LoggedIn -> Maybe ( String, Page.Doc.Model ) -> Model
-defaultModel nKey globalData session docModel_ =
+defaultModel : Nav.Key -> GlobalData -> LoggedIn -> DocumentState -> Model
+defaultModel nKey globalData session newDocState =
     { loading = True
-    , documentState =
-        case docModel_ of
-            Just ( docId, docModel ) ->
-                Doc
-                    { session = session
-                    , docId = docId
-                    , docModel = docModel
-                    , data = Data.empty
-                    , lastRemoteSave = Nothing
-                    , lastLocalSave = Nothing
-                    , titleField = Session.getDocName session docId
-                    }
-
-            Nothing ->
-                Empty globalData session
+    , documentState = newDocState
     , sidebarState =
         if Session.fileMenuOpen session then
             File
@@ -154,7 +141,19 @@ init nKey globalData session dbData_ =
     case dbData_ of
         Just dbData ->
             if dbData.isNew then
-                ( defaultModel nKey globalData session (Just ( dbData.dbName, Page.Doc.init True globalData ))
+                ( defaultModel nKey
+                    globalData
+                    session
+                    (Doc
+                        { session = session
+                        , docId = dbData.dbName
+                        , docModel = Page.Doc.init True globalData
+                        , data = Data.empty
+                        , lastRemoteSave = Nothing
+                        , lastLocalSave = Nothing
+                        , titleField = Session.getDocName session dbData.dbName
+                        }
+                    )
                 , Cmd.batch
                     [ send <| InitDocument dbData.dbName
                     , Task.attempt (always NoOp) (Browser.Dom.focus "card-edit-1")
@@ -162,14 +161,26 @@ init nKey globalData session dbData_ =
                 )
 
             else
-                ( defaultModel nKey globalData session (Just ( dbData.dbName, Page.Doc.init False globalData ))
+                ( defaultModel nKey
+                    globalData
+                    session
+                    (Doc
+                        { session = session
+                        , docId = dbData.dbName
+                        , docModel = Page.Doc.init False globalData
+                        , data = Data.empty
+                        , lastRemoteSave = Nothing
+                        , lastLocalSave = Nothing
+                        , titleField = Session.getDocName session dbData.dbName
+                        }
+                    )
                 , send <| LoadDocument dbData.dbName
                 )
 
         Nothing ->
             case Session.lastDocId session of
                 Just docId ->
-                    ( defaultModel nKey globalData session Nothing, Route.replaceUrl nKey (Route.DocUntitled docId) )
+                    ( defaultModel nKey globalData session (Empty globalData session), Route.replaceUrl nKey (Route.DocUntitled docId) )
 
                 Nothing ->
                     let
@@ -185,10 +196,15 @@ init nKey globalData session dbData_ =
                                     ( True, send <| GetDocumentList )
 
                         newModel =
-                            defaultModel nKey globalData session Nothing
+                            defaultModel nKey globalData session (Empty globalData session)
                                 |> (\m -> { m | loading = isLoading })
                     in
                     ( newModel, maybeGetDocs )
+
+
+notFound : Nav.Key -> GlobalData -> LoggedIn -> ( Model, Cmd Msg )
+notFound nKey globalData session =
+    ( defaultModel nKey globalData session (DocNotFound globalData session), Cmd.none )
 
 
 isDirty : Model -> Bool
@@ -198,6 +214,9 @@ isDirty model =
             Page.Doc.isDirty docModel
 
         Empty _ _ ->
+            False
+
+        DocNotFound _ _ ->
             False
 
 
@@ -210,6 +229,9 @@ getTitle model =
         Empty _ _ ->
             Nothing
 
+        DocNotFound _ _ ->
+            Nothing
+
 
 toLoggedInSession : Model -> LoggedIn
 toLoggedInSession { documentState } =
@@ -220,6 +242,9 @@ toLoggedInSession { documentState } =
         Empty _ session ->
             session
 
+        DocNotFound _ session ->
+            session
+
 
 toSession : Model -> Session
 toSession { documentState } =
@@ -228,6 +253,9 @@ toSession { documentState } =
             session |> LoggedInSession
 
         Empty _ session ->
+            session |> LoggedInSession
+
+        DocNotFound _ session ->
             session |> LoggedInSession
 
 
@@ -245,6 +273,9 @@ toGlobalData { documentState } =
         Empty gData _ ->
             gData
 
+        DocNotFound gData _ ->
+            gData
+
 
 updateSession : LoggedIn -> Model -> Model
 updateSession newSession ({ documentState } as model) =
@@ -255,6 +286,9 @@ updateSession newSession ({ documentState } as model) =
         Empty globalData _ ->
             { model | documentState = Empty globalData newSession }
 
+        DocNotFound globalData _ ->
+            { model | documentState = DocNotFound globalData newSession }
+
 
 updateGlobalData : GlobalData -> Model -> Model
 updateGlobalData newGlobalData ({ documentState } as model) =
@@ -264,6 +298,9 @@ updateGlobalData newGlobalData ({ documentState } as model) =
 
         Empty _ session ->
             { model | documentState = Empty newGlobalData session }
+
+        DocNotFound _ session ->
+            { model | documentState = DocNotFound newGlobalData session }
 
 
 
@@ -395,6 +432,9 @@ update msg model =
                 Empty _ _ ->
                     ( model, Cmd.none )
 
+                DocNotFound _ _ ->
+                    ( model, Cmd.none )
+
         GotFullscreenMsg fullscreenMsg ->
             case model.documentState of
                 Doc ({ docModel } as docState) ->
@@ -421,6 +461,9 @@ update msg model =
                 Empty _ _ ->
                     ( model, Cmd.none )
 
+                DocNotFound _ _ ->
+                    ( model, Cmd.none )
+
         TimeUpdate time ->
             ( model |> updateGlobalData (GlobalData.updateTime time globalData)
             , Cmd.none
@@ -436,6 +479,9 @@ update msg model =
                         ( model, Cmd.none )
 
                 Empty _ _ ->
+                    ( model, Cmd.none )
+
+                DocNotFound _ _ ->
                     ( model, Cmd.none )
 
         SettingsChanged json ->
@@ -458,6 +504,9 @@ update msg model =
                         Empty _ _ ->
                             ( model, Cmd.none )
 
+                        DocNotFound _ _ ->
+                            ( model, Cmd.none )
+
                 CardDataReceived json ->
                     cardDataReceived json model
 
@@ -474,6 +523,9 @@ update msg model =
                             ( model, pushOkMsg |> Maybe.map send |> Maybe.withDefault Cmd.none )
 
                         Empty _ _ ->
+                            ( model, Cmd.none )
+
+                        DocNotFound _ _ ->
                             ( model, Cmd.none )
 
                 GitDataReceived json ->
@@ -501,6 +553,9 @@ update msg model =
                         Empty _ _ ->
                             ( model, Cmd.none )
 
+                        DocNotFound _ _ ->
+                            ( model, Cmd.none )
+
                 SocketConnected ->
                     case model.documentState of
                         Doc { data, docId } ->
@@ -515,6 +570,9 @@ update msg model =
                         Empty _ _ ->
                             ( model, Cmd.none )
 
+                        DocNotFound _ _ ->
+                            ( model, Cmd.none )
+
                 SavedRemotely saveTime ->
                     case model.documentState of
                         Doc docState ->
@@ -523,8 +581,11 @@ update msg model =
                         Empty _ _ ->
                             ( model, Cmd.none )
 
+                        DocNotFound _ _ ->
+                            ( model, Cmd.none )
+
                 NotFound ->
-                    ( model, Route.pushUrl model.navKey Route.Root )
+                    ( model, Route.pushUrl model.navKey (Route.NotFound "testdb") )
 
         IncomingDocMsg incomingMsg ->
             let
@@ -673,6 +734,9 @@ update msg model =
                 Empty _ _ ->
                     ( model, Cmd.none )
 
+                DocNotFound _ _ ->
+                    ( model, Cmd.none )
+
         MigrateToCardBased ->
             case model.documentState of
                 Doc docState ->
@@ -713,6 +777,9 @@ update msg model =
                 Empty _ _ ->
                     ( model, Cmd.none )
 
+                DocNotFound _ _ ->
+                    ( model, Cmd.none )
+
         LogErr err ->
             ( model
             , send (ConsoleLogRequested err)
@@ -740,6 +807,9 @@ update msg model =
                             ( model, Cmd.none )
 
                 Empty _ _ ->
+                    ( model, Cmd.none )
+
+                DocNotFound _ _ ->
                     ( model, Cmd.none )
 
         ConflictResolved ->
@@ -849,6 +919,9 @@ update msg model =
                     openSwitcher docId model
 
                 Empty _ _ ->
+                    ( model, Cmd.none )
+
+                DocNotFound _ _ ->
                     ( model, Cmd.none )
 
         SwitcherClosed ->
@@ -1352,6 +1425,9 @@ update msg model =
                 Empty _ _ ->
                     ( model, Cmd.none )
 
+                DocNotFound _ _ ->
+                    ( model, Cmd.none )
+
         SaveChanges ->
             ( model, Cmd.none )
 
@@ -1550,6 +1626,9 @@ cardDataReceived dataIn model =
         Empty _ _ ->
             ( model, Cmd.none )
 
+        DocNotFound _ _ ->
+            ( model, Cmd.none )
+
 
 historyReceived : Json.Value -> Model -> ( Model, Cmd Msg )
 historyReceived dataIn model =
@@ -1577,6 +1656,9 @@ historyReceived dataIn model =
             )
 
         Empty _ _ ->
+            ( model, Cmd.none )
+
+        DocNotFound _ _ ->
             ( model, Cmd.none )
 
 
@@ -1625,6 +1707,9 @@ gitDataReceived dataIn model =
         Empty _ _ ->
             ( model, Cmd.none )
 
+        DocNotFound _ _ ->
+            ( model, Cmd.none )
+
 
 applyParentMsgs : List MsgToParent -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 applyParentMsgs parentMsgs ( prevModel, prevCmd ) =
@@ -1662,6 +1747,9 @@ localSave op model =
         Empty _ _ ->
             ( model, Cmd.none )
 
+        DocNotFound _ _ ->
+            ( model, Cmd.none )
+
 
 addToHistoryDo : Model -> ( Model, Cmd Msg )
 addToHistoryDo model =
@@ -1690,6 +1778,9 @@ addToHistoryDo model =
                     ( model, Cmd.none )
 
         Empty _ _ ->
+            ( model, Cmd.none )
+
+        DocNotFound _ _ ->
             ( model, Cmd.none )
 
 
@@ -1758,6 +1849,9 @@ setBlock block ( model, cmd ) =
             )
 
         Empty _ _ ->
+            ( model, cmd )
+
+        DocNotFound _ _ ->
             ( model, cmd )
 
 
@@ -1991,6 +2085,26 @@ view ({ documentState } as model) =
                            ]
                         ++ viewModal globalData session model.modalState
                     )
+
+        DocNotFound globalData _ ->
+            div [ id "app-root" ]
+                (Page.Empty.viewNotFound ClickedEmailSupport
+                    ++ [ viewSidebar globalData
+                            session
+                            sidebarMsgs
+                            ""
+                            ModifiedAt
+                            ""
+                            (Session.documents session)
+                            (Session.name session)
+                            Nothing
+                            model.sidebarMenuState
+                            model.sidebarState
+                       , viewIf (Session.isNotConfirmed session) (viewConfirmBanner lang CloseEmailConfirmBanner email)
+                       , viewTooltip
+                       ]
+                    ++ viewModal globalData session model.modalState
+                )
 
 
 viewModal : GlobalData -> LoggedIn -> ModalState -> List (Html Msg)
