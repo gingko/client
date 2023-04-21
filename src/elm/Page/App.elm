@@ -38,7 +38,7 @@ import Page.Doc exposing (Msg(..), MsgToParent(..))
 import Page.Doc.Export as Export exposing (ExportFormat(..), ExportSelection(..), exportView, exportViewError)
 import Page.Doc.Incoming as Incoming exposing (Msg(..))
 import Page.Doc.Theme exposing (Theme(..), applyTheme)
-import Page.Empty
+import Page.DocMessage
 import RandomId
 import Route
 import Session exposing (LoggedIn, Session(..))
@@ -2068,7 +2068,7 @@ view ({ documentState } as model) =
 
             else
                 div [ id "app-root", classList [ ( "loading", model.loading ) ] ]
-                    (Page.Empty.view { newClicked = TemplateSelectorOpened, emptyMessage = EmptyMessage }
+                    (Page.DocMessage.viewEmpty { newClicked = TemplateSelectorOpened, emptyMessage = EmptyMessage }
                         ++ [ viewSidebar globalData
                                 session
                                 sidebarMsgs
@@ -2088,7 +2088,7 @@ view ({ documentState } as model) =
 
         DocNotFound globalData _ ->
             div [ id "app-root" ]
-                (Page.Empty.viewNotFound ClickedEmailSupport
+                (Page.DocMessage.viewNotFound ClickedEmailSupport
                     ++ [ viewSidebar globalData
                             session
                             sidebarMsgs

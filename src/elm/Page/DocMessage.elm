@@ -1,4 +1,4 @@
-module Page.Empty exposing (..)
+module Page.DocMessage exposing (..)
 
 import Ant.Icons.Svg as AntIcons
 import Html exposing (Html, br, div, h1, img, p, text)
@@ -11,8 +11,8 @@ import Json.Decode as Dec
 -- VIEW
 
 
-view : { newClicked : msg, emptyMessage : msg } -> List (Html msg)
-view msgs =
+viewEmpty : { newClicked : msg, emptyMessage : msg } -> List (Html msg)
+viewEmpty msgs =
     [ div [ id "document-header" ] []
     , div [ id "empty-message" ]
         [ h1 [] [ text "You don't have any documents" ]
