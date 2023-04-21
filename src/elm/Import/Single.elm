@@ -34,7 +34,7 @@ decoder : Random.Seed -> ( Decoder Tree, Random.Seed )
 decoder seed =
     let
         ( salt, newSeed ) =
-            Random.step RandomId.stringGenerator seed
+            Random.step (RandomId.stringGenerator 7) seed
     in
     ( decode
         |> Dec.map (\ult -> labelTree 0 "" ult)

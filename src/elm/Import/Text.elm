@@ -145,7 +145,7 @@ toTree : Random.Seed -> List String -> List String -> Settings -> ( Tree, Random
 toTree seed metadata markdownStrings settings =
     let
         ( salt, newSeed ) =
-            Random.step RandomId.stringGenerator seed
+            Random.step (RandomId.stringGenerator 7) seed
 
         maybeRemoveExtension str =
             Regex.fromString "\\..*$"

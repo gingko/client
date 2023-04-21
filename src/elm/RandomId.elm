@@ -6,14 +6,14 @@ import Random
 
 generate : (String -> msg) -> Cmd msg
 generate msgTag =
-    Random.generate msgTag stringGenerator
+    Random.generate msgTag (stringGenerator 7)
 
 
 fromObjectId : Int -> String -> String
 fromObjectId seed objId =
     case Hex.fromString (String.slice 17 24 objId) of
         Ok val ->
-            Random.step stringGenerator (Random.initialSeed (seed + val))
+            Random.step (stringGenerator 7) (Random.initialSeed (seed + val))
                 |> Tuple.first
 
         Err _ ->
@@ -26,11 +26,11 @@ fromObjectId seed objId =
                 |> String.fromList
 
 
-stringGenerator : Random.Generator String
-stringGenerator =
+stringGenerator : Int -> Random.Generator String
+stringGenerator numberOfChars =
     Random.int 0 61
         |> Random.map intToValidChar
-        |> Random.list 7
+        |> Random.list numberOfChars
         |> Random.map String.fromList
 
 

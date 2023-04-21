@@ -11,7 +11,7 @@ treeResult : Random.Seed -> String -> ( Result String Tree, Random.Seed )
 treeResult seed importedString =
     let
         ( salt, newSeed ) =
-            Random.step RandomId.stringGenerator seed
+            Random.step (RandomId.stringGenerator 7) seed
     in
     case Xml.run opmlDecoder importedString of
         Ok trees ->
