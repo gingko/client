@@ -13,12 +13,6 @@ describe('Random seed initialization', () => {
   })
 
   it('Should not duplicate ids', function () {
-    // TODO : This is a hack, due to issue with going directly
-    // to a card-based document before the tree list is loaded.
-    cy.visit(config.TEST_SERVER)
-    cy.wait(1000)
-
-
     cy.visit(config.TEST_SERVER + '/' + this.treeIds[0])
 
     cy.get('#app-root').should('be.visible')
@@ -31,7 +25,7 @@ describe('Random seed initialization', () => {
       .click()
 
     cy.shortcut('{ctrl}{downarrow}')
-    cy.writeInCard('mod')
+    cy.writeInCard('newmod')
     cy.shortcut('{ctrl}{enter}')
 
     cy.contains('#save-indicator', 'Synced')
@@ -47,7 +41,7 @@ describe('Random seed initialization', () => {
     cy.get('#sidebar-document-list-wrap').contains('Untitled').click()
     cy.url().should('contain', this.treeIds[0] )
 
-    cy.contains('mod')
+    cy.contains('newmod')
       .click()
 
     // Check for one textarea only
