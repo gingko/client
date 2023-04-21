@@ -57,25 +57,6 @@ Cypress.Commands.add('signup', (userEmail) => {
 })
 
 
-Cypress.Commands.add('signup_with_old', (userEmail, seedName) =>{
-  const testUserDb = 'userdb-' + helpers.toHex(userEmail);
-  cy.request(
-    { url: config.TEST_SERVER + '/signup'
-      , method: 'POST'
-      , body: {email: userEmail, password: 'testing'}
-    })
-    .then((response) => {
-      localStorage.setItem('gingko-session-storage', JSON.stringify({ email: userEmail, language: 'en' }))
-      const treeData = require(__dirname + '/../fixtures/' + seedName + '.json');
-      const trees = treeData.docs
-        .filter((doc) => doc._id.endsWith('metadata'))
-        .map(m => ({id: m.docId, name: m.name, owner: userEmail, createdAt: m.createdAt, updatedAt: m.updatedAt, location: "couchdb", collaborators: "[]"}))
-      cy.task('db:seed',{dbName: testUserDb, seedName: seedName}).then(() => {
-        cy.request({url: config.TEST_SERVER + '/test/trees', method: 'POST', body: trees})
-      })
-    })
-})
-
 Cypress.Commands.add('signup_with', (userEmail, seedName) =>{
   cy.request(
     { url: config.TEST_SERVER + '/signup'
@@ -85,6 +66,8 @@ Cypress.Commands.add('signup_with', (userEmail, seedName) =>{
     .then((response) => {
       localStorage.setItem('gingko-session-storage', JSON.stringify({ email: userEmail, language: 'en' }))
       cy.task('db:sqlite:seed',{seedName: seedName})
+      cy.visit(config.TEST_SERVER)
+      cy.wait(1000)
     })
 })
 
