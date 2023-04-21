@@ -51,6 +51,14 @@ describe('Document Editing', () => {
     cy.get('div.card.active')
       .contains('A child')
 
+    // Clicking on a different card while editing doesn't
+    // make them both have the same content (bug)
+    cy.get('#card-1').click()
+    cy.shortcut('{enter}')
+    cy.writeInCard('XYZ')
+    cy.getCard(2,1,1).click()
+    cy.getCard(2,1,1).should('not.contain', 'XYZ')
+
     // Create and saves a card below using shortcuts
     cy.get('body').type('{ctrl}j')
 
