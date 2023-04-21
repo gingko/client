@@ -168,7 +168,7 @@ describe('Document Editing', () => {
     cy.shortcut('{leftarrow}{leftarrow}{leftarrow}{leftarrow}{leftarrow}{leftarrow}{leftarrow}')
     cy.shortcut('{ctrl}j')
     cy.get('textarea')
-      .should('have.value', 'orld :)')
+      .should('have.value', 'd :)XYZ')
     cy.getCard(1,1,1)
       .should('not.contain','orld :)')
     cy.shortcut('{ctrl}{enter}')

@@ -502,7 +502,6 @@ incoming incomingMsg model =
         ClickedOutsideCard ->
             if model.viewState.viewMode == Editing then
                 ( model, Cmd.none, [] )
-                    |> saveCardIfEditing
                     |> closeCard
 
             else
