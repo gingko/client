@@ -59,6 +59,13 @@ describe('Document Editing', () => {
     cy.getCard(2,1,1).click()
     cy.getCard(2,1,1).should('not.contain', 'XYZ')
 
+    // Clicking outside a card while editing should save that card
+    cy.get('#card-1').click()
+    cy.shortcut('{enter}')
+    cy.writeInCard('UVW')
+    cy.get('div.buffer').first().click()
+    cy.get('#card-1').should('contain', 'UVW')
+
     // Create and saves a card below using shortcuts
     cy.get('body').type('{ctrl}j')
 
