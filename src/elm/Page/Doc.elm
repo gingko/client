@@ -13,7 +13,7 @@ import Html.Attributes as Attributes exposing (attribute, class, classList, dir,
 import Html.Events exposing (custom, onClick, onDoubleClick, onInput)
 import Html.Extra exposing (viewIf)
 import Html.Keyed as Keyed
-import Html.Lazy exposing (lazy2, lazy4, lazy7, lazy8)
+import Html.Lazy exposing (lazy2, lazy4, lazy5, lazy7, lazy8)
 import Html5.DragDrop as DragDrop
 import Json.Decode as Json
 import List.Extra as ListExtra
@@ -76,7 +76,7 @@ init isNew globalData =
                     ""
             , viewMode =
                 if isNew then
-                    Editing
+                    Editing ""
 
                 else
                     Normal
@@ -236,16 +236,38 @@ update msg ({ workingTree } as model) =
                 |> openCard id str
 
         UpdateActiveField id str ->
-            ( { model
-                | field = str
-                , dirty = True
-              }
-            , Cmd.batch
-                [ send <| SetDirty True
-                , send <| SetTextareaClone id str
-                ]
-            , []
-            )
+            case vs.viewMode of
+                Normal ->
+                    ( model
+                    , Cmd.none
+                    , []
+                    )
+
+                Editing oldStr ->
+                    if oldStr /= str then
+                        ( { model
+                            | viewState = { vs | viewMode = Editing str }
+                            , field = str
+                            , dirty = True
+                          }
+                        , Cmd.batch
+                            [ send <| SetDirty True
+                            , send <| SetTextareaClone id str
+                            ]
+                        , []
+                        )
+
+                    else
+                        ( model
+                        , Cmd.none
+                        , []
+                        )
+
+                FullscreenEditing ->
+                    ( model
+                    , Cmd.none
+                    , []
+                    )
 
         AutoSave ->
             ( model, Cmd.none, [] ) |> saveCardIfEditing
@@ -500,12 +522,13 @@ incoming incomingMsg model =
                 ( model, Cmd.none, [] )
 
         ClickedOutsideCard ->
-            if model.viewState.viewMode == Editing then
-                ( model, Cmd.none, [] )
-                    |> closeCard
+            case model.viewState.viewMode of
+                Editing _ ->
+                    ( model, Cmd.none, [] )
+                        |> closeCard
 
-            else
-                ( model, Cmd.none, [] )
+                _ ->
+                    ( model, Cmd.none, [] )
 
         CheckboxClicked cardId checkboxNumber ->
             case getTree cardId model.workingTree.tree of
@@ -663,7 +686,7 @@ incoming incomingMsg model =
                             -}
                             ( model, Cmd.none, [] )
 
-                        Editing ->
+                        Editing _ ->
                             ( model, Cmd.none, [] )
 
                 "k" ->
@@ -1032,7 +1055,7 @@ saveAndStopEditing model =
         Normal ->
             model |> openCard vs.active (getContent vs.active model.workingTree.tree)
 
-        Editing ->
+        Editing _ ->
             ( model, Cmd.none, [] )
                 |> saveCardIfEditing
                 |> closeCard
@@ -1090,7 +1113,7 @@ openCard id str model =
                 ( FullscreenEditing, send <| ScrollFullscreenCards id )
 
             else
-                ( Editing, Cmd.none )
+                ( Editing str, Cmd.none )
     in
     ( { model
         | viewState = { vs | active = id, viewMode = newViewMode }
@@ -1136,7 +1159,7 @@ exitFullscreen model =
         vs =
             model.viewState
     in
-    ( { model | viewState = { vs | viewMode = Editing } }
+    ( { model | viewState = { vs | viewMode = Editing model.field } }
     , Cmd.batch [ send <| SetField vs.active model.field, focus vs.active ]
     , []
     )
@@ -1831,18 +1854,18 @@ treeView lang isMac vstate model =
                 editing_ =
                     case vstate.viewMode of
                         Normal ->
-                            Normal
+                            VisibleNormal
 
-                        Editing ->
+                        Editing _ ->
                             if c |> List.concat |> List.map .id |> List.member vstate.active then
-                                Editing
+                                VisibleEditing
 
                             else
-                                Normal
+                                VisibleNormal
 
                         FullscreenEditing ->
                             -- TODO : Impossible state
-                            Normal
+                            VisibleFullscreenEditing
             in
             VisibleViewState
                 vstate.active
@@ -1917,13 +1940,13 @@ viewGroup vstate xs =
 
                 isEditing =
                     case vstate.viewMode of
-                        Editing ->
+                        VisibleEditing ->
                             t.id == vstate.active
 
-                        Normal ->
+                        VisibleNormal ->
                             False
 
-                        FullscreenEditing ->
+                        VisibleFullscreenEditing ->
                             -- TODO : Impossible state
                             False
 
@@ -1944,7 +1967,7 @@ viewGroup vstate xs =
                 ( t.id, lazy8 viewCardActive vstate.language t.id t.content (hasChildren t) isLast collabsOnCard collabsEditingCard vstate.dragModel )
 
             else if isEditing then
-                ( t.id, viewCardEditing vstate.language t.id t.content (hasChildren t) vstate.isMac )
+                ( t.id, lazy5 viewCardEditing vstate.language t.id t.content (hasChildren t) vstate.isMac )
 
             else
                 ( t.id, lazy7 viewCardOther t.id t.content isEditing (hasChildren t) isAncestor isLast vstate.dragModel )

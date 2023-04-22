@@ -1,4 +1,4 @@
-module Types exposing (CardTreeOp(..), Children(..), CollabState, Column, ConflictSelection(..), CursorPosition(..), DragExternalModel, DropId(..), Group, Mode(..), OutsideData, SortBy(..), TextCursorInfo, TooltipPosition(..), Tree, ViewMode(..), ViewState, VisibleViewState, dropIdToValue)
+module Types exposing (CardTreeOp(..), Children(..), CollabState, Column, ConflictSelection(..), CursorPosition(..), DragExternalModel, DropId(..), Group, Mode(..), OutsideData, SortBy(..), TextCursorInfo, TooltipPosition(..), Tree, ViewMode(..), ViewState, VisibleViewMode(..), VisibleViewState, dropIdToValue)
 
 import Html5.DragDrop as DragDrop
 import Json.Encode as Enc
@@ -88,8 +88,14 @@ dropIdToValue dropId =
 
 type ViewMode
     = Normal
-    | Editing
+    | Editing String
     | FullscreenEditing
+
+
+type VisibleViewMode
+    = VisibleNormal
+    | VisibleEditing
+    | VisibleFullscreenEditing
 
 
 type SortBy
@@ -135,7 +141,7 @@ type alias ViewState =
 
 type alias VisibleViewState =
     { active : String
-    , viewMode : ViewMode
+    , viewMode : VisibleViewMode
     , descendants : List String
     , ancestors : List String
     , dragModel : ( DragDrop.Model String DropId, DragExternalModel )
