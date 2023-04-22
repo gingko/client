@@ -991,15 +991,21 @@ update msg model =
                     in
                     case version_ of
                         Just ( newHistory, newTree ) ->
+                            let
+                                ( newDocModel, newDocCmd ) =
+                                    Page.Doc.setTree newTree docState.docModel
+                                        |> (\( m, _, _ ) -> m)
+                                        |> Page.Doc.maybeActivate
+                            in
                             ( { model
                                 | headerMenu = HistoryView newHistory
                                 , documentState =
                                     Doc
                                         { docState
-                                            | docModel = Page.Doc.setTree newTree docState.docModel |> (\( m, _, _ ) -> m)
+                                            | docModel = newDocModel
                                         }
                               }
-                            , Cmd.none
+                            , Cmd.map GotDocMsg newDocCmd
                             )
 
                         Nothing ->
@@ -1822,12 +1828,22 @@ closeSwitcher model =
     ( { model | modalState = NoModal }, Cmd.none )
 
 
-toggleHistory : Bool -> Int -> Model -> ( Model, Cmd msg )
+toggleHistory : Bool -> Int -> Model -> ( Model, Cmd Msg )
 toggleHistory isOpen delta model =
     case ( isOpen, model.documentState ) of
-        ( True, Doc { data, docModel } ) ->
-            ( { model | headerMenu = HistoryView (History.init (Page.Doc.getWorkingTree docModel).tree data) }
-            , send <| HistorySlider delta
+        ( True, Doc ({ data, docModel } as docState) ) ->
+            let
+                ( newDocModel, newDocCmds ) =
+                    Page.Doc.maybeActivate docModel
+            in
+            ( { model
+                | headerMenu = HistoryView (History.init (Page.Doc.getWorkingTree docModel).tree data)
+                , documentState = Doc { docState | docModel = newDocModel }
+              }
+            , Cmd.batch
+                [ send <| HistorySlider delta
+                , Cmd.map GotDocMsg newDocCmds
+                ]
             )
                 |> setBlock (Just "Cannot edit while viewing history.")
 

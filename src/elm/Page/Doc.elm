@@ -1,4 +1,4 @@
-module Page.Doc exposing (Model, Msg, MsgToParent(..), exitFullscreenExposed, getActiveId, getActiveTree, getField, getGlobalData, getTextCursorInfo, getViewMode, getWorkingTree, init, isDirty, isFullscreen, isNormalMode, lastActives, opaqueIncoming, opaqueUpdate, openCardFullscreenMsg, saveAndStopEditing, saveCardIfEditing, setBlock, setDirty, setGlobalData, setLoading, setTree, setWorkingTree, subscriptions, updateField, view)
+module Page.Doc exposing (Model, Msg, MsgToParent(..), exitFullscreenExposed, getActiveId, getActiveTree, getField, getGlobalData, getTextCursorInfo, getViewMode, getWorkingTree, init, isDirty, isFullscreen, isNormalMode, lastActives, maybeActivate, opaqueIncoming, opaqueUpdate, openCardFullscreenMsg, saveAndStopEditing, saveCardIfEditing, setBlock, setDirty, setGlobalData, setLoading, setTree, setWorkingTree, subscriptions, updateField, view)
 
 import Ant.Icons.Svg as AntIcons
 import Browser.Dom exposing (Element)
@@ -199,7 +199,7 @@ update msg ({ workingTree } as model) =
                 firstFilteredCardId_ =
                     ListExtra.find (\cId -> List.member cId filteredCardIds) allCardsInOrder
 
-                maybeActivate =
+                maybeChangeActive =
                     case ( newSearchField, firstFilteredCardId_ ) of
                         ( Just _, Just id ) ->
                             activate id False
@@ -215,7 +215,7 @@ update msg ({ workingTree } as model) =
             , []
             )
                 |> maybeBlur
-                |> maybeActivate
+                |> maybeChangeActive
 
         -- === Card Editing  ===
         OpenCard id str ->
@@ -2773,6 +2773,16 @@ setGlobalData globalData (Model model) =
 setBlock : Maybe String -> Model -> Model
 setBlock block_ (Model model) =
     Model { model | block = block_ }
+
+
+maybeActivate : Model -> ( Model, Cmd Msg )
+maybeActivate (Model model) =
+    let
+        activeId =
+            getActiveId (Model model)
+    in
+    changeMode (Normal activeId) False model
+        |> (\( m, c, _ ) -> ( Model m, c ))
 
 
 setLoading : Bool -> Model -> Model
